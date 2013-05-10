@@ -94,7 +94,7 @@ void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size
 			SetRegName(BPMEM_ZCOMPARE);
 			PE_CONTROL config; config.hex = cmddata;
 			const char* pixel_formats[] = { "RGB8_Z24", "RGBA6_Z24", "RGB565_Z16", "Z24", "Y8", "U8", "V8", "YUV420" };
-			const char* zformats[] = { "linear", "compressed (near)", "compressed (mid)", "compressed (far)", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)" };
+			const char* zformats[] = { "linear", "compressed (near)", "compressed (mid)", "compressed (far)", "inv linear", "compressed (inv near)", "compressed (inv mid)", "compressed (inv far)" };
 			snprintf(desc, desc_size, "EFB pixel format: %s\n"
 									"Depth format: %s\n"
 									"Early depth test: %s\n",
