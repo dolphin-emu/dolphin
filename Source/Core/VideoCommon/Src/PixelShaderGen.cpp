@@ -544,7 +544,7 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 		WRITE(p, "float fmod( float x, float y )\n");
 		WRITE(p, "{\n");
 		WRITE(p, "\tfloat z = fract( abs( x / y) ) * abs( y );\n");
-		WRITE(p, "\treturn (x < 0) ? -z : z;\n");
+		WRITE(p, "\treturn (x < 0.0) ? -z : z;\n");
 		WRITE(p, "}\n");
 
 		for (int i = 0; i < 8; ++i)
