@@ -64,6 +64,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
 	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
 	iniFile.Get("Settings", "HackedBufferUpload", &bHackedBufferUpload, 0);
+	iniFile.Get("Settings", "FastDepthCalc", &bFastDepthCalc, true);
 
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
 	iniFile.Get("Settings", "EFBScale", &iEFBScale, (int) SCALE_1X); // native
@@ -123,6 +124,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle);
 	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
 	iniFile.GetIfExists("Video_Settings", "HackedBufferUpload", &bHackedBufferUpload);
+	iniFile.GetIfExists("Video_Settings", "FastDepthCalc", &bFastDepthCalc);
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
 	int tmp = -9000;
 	iniFile.GetIfExists("Video_Settings", "EFBScale", &tmp); // integral
@@ -219,6 +221,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	iniFile.Set("Settings", "EnablePixelLighting", bEnablePixelLighting);
 	iniFile.Set("Settings", "HackedBufferUpload", bHackedBufferUpload);
+	iniFile.Set("Settings", "FastDepthCalc", bFastDepthCalc);
 
 	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
 	iniFile.Set("Settings", "MSAA", iMultisampleMode);
@@ -283,6 +286,7 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	SET_IF_DIFFERS("Video_Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	SET_IF_DIFFERS("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
+	SET_IF_DIFFERS("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	SET_IF_DIFFERS("Video_Settings", "MSAA", iMultisampleMode);
 	SET_IF_DIFFERS("Video_Settings", "EFBScale", iEFBScale); // integral
 	SET_IF_DIFFERS("Video_Settings", "DstAlphaPass", bDstAlphaPass);
