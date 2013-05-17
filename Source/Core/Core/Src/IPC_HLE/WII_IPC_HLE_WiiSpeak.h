@@ -152,7 +152,7 @@ private:
 		u8 bNumDescriptors;
 		struct
 		{
-			u8 bDescriptorType;
+			u8 bDescriptorHidType;
 			u16 wDescriptorLength;
 		};
 	};
