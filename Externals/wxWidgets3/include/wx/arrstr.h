@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon and Vadim Zeitlin
 // Modified by:
 // Created:     07/07/03
-// RCS-ID:      $Id: arrstr.h 66724 2011-01-20 08:38:36Z SC $
+// RCS-ID:      $Id: arrstr.h 67343 2011-03-30 14:16:04Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,7 +28,7 @@ inline int wxCMPFUNC_CONV wxStringSortDescending(wxString* s1, wxString* s2)
     return wxStringSortAscending(s2, s1);
 }
 
-#if wxUSE_STL
+#if wxUSE_STD_CONTAINERS
 
 #include "wx/dynarray.h"
 
@@ -100,7 +100,7 @@ private:
     }
 };
 
-#else // if !wxUSE_STL
+#else // if !wxUSE_STD_CONTAINERS
 
 // this shouldn't be defined for compilers not supporting template methods or
 // without std::distance()
@@ -384,7 +384,7 @@ public:
     { Copy(array); }
 };
 
-#endif // !wxUSE_STL
+#endif // !wxUSE_STD_CONTAINERS
 
 // this class provides a temporary wxString* from a
 // wxArrayString

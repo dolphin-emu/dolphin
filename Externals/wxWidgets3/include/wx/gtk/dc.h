@@ -2,7 +2,7 @@
 // Name:        wx/gtk/dc.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: dc.h 50547 2007-12-06 16:22:00Z PC $
+// Id:          $Id: dc.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@ public:
     virtual ~wxGTKDCImpl();
 
 #if wxUSE_PALETTE
-    void SetColourMap( const wxPalette& palette ) { SetPalette(palette); };
+    void SetColourMap( const wxPalette& palette ) { SetPalette(palette); }
 #endif // wxUSE_PALETTE
 
     // Resolution in pixels per logical inch

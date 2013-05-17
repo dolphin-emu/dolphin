@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _DSPCODEUTIL_H
 #define _DSPCODEUTIL_H
@@ -26,11 +13,11 @@
 bool Assemble(const char *text, std::vector<u16> &code, bool force = false);
 bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &text);
 bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2);
-void GenRandomCode(int size, std::vector<u16> &code);
+void GenRandomCode(u32 size, std::vector<u16> &code);
 void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 				  const char *name, std::string &header);
 void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string> *filenames,
-				   int numCodes, const char *name, std::string &header);
+				   u32 numCodes, const char *name, std::string &header);
 
 // Big-endian, for writing straight to file using File::WriteStringToFile.
 void CodeToBinaryStringBE(const std::vector<u16> &code, std::string &str);

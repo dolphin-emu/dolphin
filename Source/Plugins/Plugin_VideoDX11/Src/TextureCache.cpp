@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "RenderBase.h"
 
@@ -45,18 +32,23 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
 }
 
-bool TextureCache::TCacheEntry::Save(const char filename[])
+bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 {
+	// TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
+	static bool warn_once = true;
+	if (level && warn_once)
+	{
+		WARN_LOG(VIDEO, "Dumping individual LOD not supported by D3D11 backend!");
+		warn_once = false;
+		return false;
+	}
 	return SUCCEEDED(PD3DX11SaveTextureToFileA(D3D::context, texture->GetTex(), D3DX11_IFF_PNG, filename));
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-	unsigned int expanded_width, unsigned int level, bool autogen_mips)
+	unsigned int expanded_width, unsigned int level)
 {
 	D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, expanded_width, level, usage);
-
-	if (autogen_mips)
-		PD3DX11FilterTexture(D3D::context, texture->GetTex(), 0, D3DX11_DEFAULT);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
@@ -93,6 +85,9 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");	
 
 	SAFE_RELEASE(pTexture);
+	
+	if (tex_levels != 1)
+		entry->Load(width, height, expanded_width, 0);
 
 	return entry;
 }
@@ -102,12 +97,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
 {
-	if (!isDynamic || g_ActiveConfig.bCopyEFBToTexture)
+	if (type != TCET_EC_DYNAMIC || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		g_renderer->ResetAPIState();
 
 		// stretch picture with increased internal resolution
-		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtualW, (float)virtualH);
+		const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)virtual_width, (float)virtual_height);
 		D3D::context->RSSetViewports(1, &vp);
 
 		// set transformation
@@ -149,17 +144,17 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	if (!g_ActiveConfig.bCopyEFBToTexture)
 	{
 		u8* dst = Memory::GetPointer(dstAddr);
-		size_t encodeSize = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
-		hash = GetHash64(dst, encodeSize, g_ActiveConfig.iSafeTextureCache_ColorSamples);
-		if (g_ActiveConfig.bEFBCopyCacheEnable)
-		{
-			// If the texture in RAM is already in the texture cache,
-			// do not copy it again as it has not changed.
-			if (TextureCache::Find(dstAddr, hash))
-				return;
-		}
+		size_t encoded_size = g_encoder->Encode(dst, dstFormat, srcFormat, srcRect, isIntensity, scaleByHalf);
 
-		TextureCache::MakeRangeDynamic(dstAddr, encodeSize);
+		u64 hash = GetHash64(dst, (int)encoded_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
+
+		// Mark texture entries in destination address range dynamic unless caching is enabled and the texture entry is up to date
+		if (!g_ActiveConfig.bEFBCopyCacheEnable)
+			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
+		else if (!TextureCache::Find(addr, hash))
+			TextureCache::MakeRangeDynamic(addr, (u32)encoded_size);
+
+		this->hash = hash;
 	}
 }
 

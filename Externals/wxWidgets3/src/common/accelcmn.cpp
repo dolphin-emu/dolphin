@@ -3,7 +3,7 @@
 // Purpose:     implementation of platform-independent wxAcceleratorEntry parts
 // Author:      Vadim Zeitlin
 // Created:     2007-05-05
-// RCS-ID:      $Id: accelcmn.cpp 66592 2011-01-05 18:27:58Z PC $
+// RCS-ID:      $Id: accelcmn.cpp 69853 2011-11-28 10:24:13Z SC $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -186,6 +186,8 @@ wxAcceleratorEntry::ParseAccel(const wxString& text, int *flagsOut, int *keyOut)
                 accelFlags |= wxACCEL_ALT;
             else if ( CompareAccelString(current, wxTRANSLATE("shift")) )
                 accelFlags |= wxACCEL_SHIFT;
+            else if ( CompareAccelString(current, wxTRANSLATE("rawctrl")) )
+                accelFlags |= wxACCEL_RAW_CTRL;
             else // not a recognized modifier name
             {
                 // we may have "Ctrl-+", for example, but we still want to
@@ -311,7 +313,11 @@ wxString wxAcceleratorEntry::ToString() const
         text += _("Ctrl+");
     if ( flags & wxACCEL_SHIFT )
         text += _("Shift+");
-
+#if defined(__WXMAC__) || defined(__WXCOCOA__)
+    if ( flags & wxACCEL_RAW_CTRL )
+        text += _("RawCtrl+");
+#endif
+    
     const int code = GetKeyCode();
 
     if ( code >= WXK_F1 && code <= WXK_F12 )
@@ -342,7 +348,7 @@ wxString wxAcceleratorEntry::ToString() const
                  // build as they're only defined for the ASCII range (or EOF)
                  wxIsascii(code) &&
 #endif // ANSI
-                    wxIsalnum(code) )
+                    wxIsprint(code) )
             {
                 text << (wxChar)code;
             }

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dialog_osx.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: dialog_osx.cpp 68719 2011-08-16 12:00:52Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ wxDialog::~wxDialog()
 // about it
 bool wxDialog::IsEscapeKey(const wxKeyEvent& event)
 {
-    if ( event.GetKeyCode() == '.' && event.GetModifiers() == wxMOD_CMD )
+    if ( event.GetKeyCode() == '.' && event.GetModifiers() == wxMOD_CONTROL )
         return true;
 
     return wxDialogBase::IsEscapeKey(event);

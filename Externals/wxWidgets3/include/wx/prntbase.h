@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: prntbase.h 66539 2011-01-03 15:57:21Z VZ $
+// RCS-ID:      $Id: prntbase.h 68026 2011-06-22 22:58:07Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,6 +40,7 @@ class WXDLLIMPEXP_FWD_CORE wxPreviewFrame;
 class WXDLLIMPEXP_FWD_CORE wxPrintFactory;
 class WXDLLIMPEXP_FWD_CORE wxPrintNativeDataBase;
 class WXDLLIMPEXP_FWD_CORE wxPrintPreview;
+class wxPrintPageMaxCtrl;
 class wxPrintPageTextCtrl;
 
 //----------------------------------------------------------------------------
@@ -51,6 +52,19 @@ enum wxPrinterError
     wxPRINTER_NO_ERROR = 0,
     wxPRINTER_CANCELLED,
     wxPRINTER_ERROR
+};
+
+// Preview frame modality kind used with wxPreviewFrame::Initialize()
+enum wxPreviewFrameModalityKind
+{
+    // Disable all the other top level windows while the preview is shown.
+    wxPreviewFrame_AppModal,
+
+    // Disable only the parent window while the preview is shown.
+    wxPreviewFrame_WindowModal,
+
+    // Don't disable any windows.
+    wxPreviewFrame_NonModal
 };
 
 //----------------------------------------------------------------------------
@@ -384,8 +398,26 @@ public:
                    const wxString& name = wxFrameNameStr);
     virtual ~wxPreviewFrame();
 
+    // Either Initialize() or InitializeWithModality() must be called before
+    // showing the preview frame, the former being just a particular case of
+    // the latter initializing the frame for being showing app-modally.
+
+    // Notice that we must keep Initialize() with its existing signature to
+    // avoid breaking the old code that overrides it and we can't reuse the
+    // same name for the other functions to avoid virtual function hiding
+    // problem and the associated warnings given by some compilers (e.g. from
+    // g++ with -Woverloaded-virtual).
+    virtual void Initialize()
+    {
+        InitializeWithModality(wxPreviewFrame_AppModal);
+    }
+
+    // Also note that this method is not virtual as it doesn't need to be
+    // overridden: it's never called by wxWidgets (of course, the same is true
+    // for Initialize() but, again, it must remain virtual for compatibility).
+    void InitializeWithModality(wxPreviewFrameModalityKind kind);
+
     void OnCloseWindow(wxCloseEvent& event);
-    virtual void Initialize();
     virtual void CreateCanvas();
     virtual void CreateControlBar();
 
@@ -396,6 +428,9 @@ protected:
     wxPreviewControlBar*  m_controlBar;
     wxPrintPreviewBase*   m_printPreview;
     wxWindowDisabler*     m_windowDisabler;
+
+    wxPreviewFrameModalityKind m_modalityKind;
+
 
 private:
     void OnChar(wxKeyEvent& event);
@@ -453,6 +488,7 @@ public:
     virtual ~wxPreviewControlBar();
 
     virtual void CreateButtons();
+    virtual void SetPageInfo(int minPage, int maxPage);
     virtual void SetZoomControl(int zoom);
     virtual int GetZoomControl();
     virtual wxPrintPreviewBase *GetPrintPreview() const
@@ -496,7 +532,8 @@ protected:
     wxPrintPreviewBase*   m_printPreview;
     wxButton*             m_closeButton;
     wxChoice*             m_zoomControl;
-    wxPrintPageTextCtrl* m_currentPageText;
+    wxPrintPageTextCtrl*  m_currentPageText;
+    wxPrintPageMaxCtrl*   m_maxPageText;
 
     long                  m_buttonFlags;
 

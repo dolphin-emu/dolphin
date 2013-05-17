@@ -1,21 +1,9 @@
-// Copyright (C) 2010 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "InputConfigDiag.h"
+#include "WxUtils.h"
 
 void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 {
@@ -48,7 +36,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
 			// label for sticks and stuff
 			if (64 == bitmap.GetHeight())
-				dc.DrawText(wxString::FromAscii((*g)->control_group->name).Upper(), 4, 2);
+				dc.DrawText(StrToWxStr((*g)->control_group->name).Upper(), 4, 2);
 
 			switch ( (*g)->control_group->type )
 			{
@@ -110,7 +98,9 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						dc.DrawCircle( 32, 32, 32);
 					}
 					else
+					{
 						dc.DrawRectangle( 16, 16, 32, 32 );
+					}
 
 					if ( GROUP_TYPE_CURSOR != (*g)->control_group->type )
 					{
@@ -216,7 +206,9 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					for (unsigned int n = 0; n<button_count; ++n)
 					{
 						if ( buttons & bitmasks[n] )
+						{
 							dc.SetBrush( *wxRED_BRUSH );
+						}
 						else
 						{
 							unsigned char amt = 255 - (*g)->control_group->controls[n]->control_ref->State() * 128;
@@ -227,7 +219,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						// text
 						const char* const name = (*g)->control_group->controls[n]->name;
 						// bit of hax so ZL, ZR show up as L, R
-						dc.DrawText(wxString::FromAscii((name[1] && name[1] < 'a') ? name[1] : name[0]), n*12 + 2, 1);
+						dc.DrawText(StrToWxStr(std::string(1, (name[1] && name[1] < 'a') ? name[1] : name[0])), n*12 + 2, 1);
 					}
 
 					delete[] bitmasks;
@@ -263,7 +255,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						dc.DrawRectangle(0, n*12, trigs[n], 14);
 
 						// text
-						dc.DrawText(wxString::FromAscii((*g)->control_group->controls[n]->name), 3, n*12 + 1);
+						dc.DrawText(StrToWxStr((*g)->control_group->controls[n]->name), 3, n*12 + 1);
 					}
 
 					delete[] trigs;
@@ -298,8 +290,8 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						dc.DrawRectangle(64, n*12, 32, 14);
 
 						// text
-						dc.DrawText(wxString::FromAscii((*g)->control_group->controls[n+trigger_count]->name), 3, n*12 + 1);
-						dc.DrawText(wxString::FromAscii((*g)->control_group->controls[n]->name[0]), 64 + 3, n*12 + 1);
+						dc.DrawText(StrToWxStr((*g)->control_group->controls[n+trigger_count]->name), 3, n*12 + 1);
+						dc.DrawText(StrToWxStr(std::string(1, (*g)->control_group->controls[n]->name[0])), 64 + 3, n*12 + 1);
 					}
 
 					// threshold box

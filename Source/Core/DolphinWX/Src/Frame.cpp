@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
 // CFrame is the main parent window. Inside CFrame there is an m_Panel that is
@@ -26,7 +13,6 @@
 #include "Common.h" // Common
 #include "FileUtil.h"
 #include "Timer.h"
-#include "Setup.h"
 
 #include "Globals.h" // Local
 #include "Frame.h"
@@ -53,50 +39,11 @@
 
 extern "C" {
 #include "../resources/Dolphin.c" // Dolphin icon
-#include "../resources/toolbar_browse.c"
-#include "../resources/toolbar_file_open.c"
-#include "../resources/toolbar_fullscreen.c"
-#include "../resources/toolbar_help.c"
-#include "../resources/toolbar_pause.c"
-#include "../resources/toolbar_play.c"
-#include "../resources/toolbar_plugin_dsp.c"
-#include "../resources/toolbar_plugin_gfx.c"
-#include "../resources/toolbar_plugin_options.c"
-#include "../resources/toolbar_plugin_pad.c"
-#include "../resources/toolbar_refresh.c"
-#include "../resources/toolbar_stop.c"
-#include "../resources/Boomy.h" // Theme packages
-#include "../resources/Vista.h"
-#include "../resources/X-Plastik.h"
-#include "../resources/KDE.h"
 };
 
 
-// Windows functions. Setting the cursor with wxSetCursor() did not work in
-// this instance.  Probably because it's somehow reset from the WndProc() in
-// the child window
 #ifdef _WIN32
-// Declare a blank icon and one that will be the normal cursor
-HCURSOR hCursor = NULL, hCursorBlank = NULL;
-
-// Create the default cursor
-void CreateCursor()
-{
-	hCursor = LoadCursor( NULL, IDC_ARROW );
-}
-
-void MSWSetCursor(bool Show)
-{
-	if(Show)
-		SetCursor(hCursor);
-	else
-	{
-		SetCursor(hCursorBlank);
-		//wxSetCursor(wxCursor(wxNullCursor));
-	}
-}
-
-// I could not use FindItemByHWND() instead of this, it crashed on that occation I used it */
+// I could not use FindItemByHWND() instead of this, it crashed on that occasion I used it */
 HWND MSWGetParent_(HWND Parent)
 {
 	return GetParent(Parent);
@@ -116,7 +63,7 @@ CPanel::CPanel(
 			wxWindow *parent,
 			wxWindowID id
 			)
-	: wxPanel(parent, id)
+	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, 0) // disables wxTAB_TRAVERSAL because it was breaking hotkeys
 {
 }
 
@@ -135,41 +82,10 @@ CPanel::CPanel(
 			case WM_USER_SETCURSOR:
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
-					MSWSetCursor(!SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
+					SetCursor(wxCURSOR_BLANK);
 				else
-					MSWSetCursor(true);
+					SetCursor(wxNullCursor);
 				break;
-
-			case WIIMOTE_DISCONNECT:
-				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-				{
-					const int wiimote_idx = lParam;
-					const int wiimote_num = wiimote_idx + 1;
-
-					//Auto reconnect if option is turned on.
-					//TODO: Make this only auto reconnect wiimotes that have the option activated.
-					SConfig::GetInstance().LoadSettingsWii();//Make sure we are using the newest settings.
-					if (SConfig::GetInstance().m_WiiAutoReconnect[wiimote_idx])
-					{
-						GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
-						NOTICE_LOG(WIIMOTE, "Wiimote %i has been auto-reconnected...", wiimote_num);
-					}
-					else
-					{
-						// The Wiimote has been disconnected, we offer reconnect here.
-						wxMessageDialog *dlg = new wxMessageDialog(
-							this,
-							wxString::Format(_("Wiimote %i has been disconnected by system.\nMaybe this game doesn't support multi-wiimote,\nor maybe it is due to idle time out or other reason.\nDo you want to reconnect immediately?"), wiimote_num),
-							_("Reconnect Wiimote Confirm"),
-							wxYES_NO | wxSTAY_ON_TOP | wxICON_INFORMATION, //wxICON_QUESTION,
-							wxDefaultPosition);
-
-						if (dlg->ShowModal() == wxID_YES)
-							GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
-
-						dlg->Destroy();
-					}
-				}
 			}
 			break;
 
@@ -244,6 +160,8 @@ EVT_MENU(IDM_PLAYRECORD, CFrame::OnPlayRecording)
 EVT_MENU(IDM_RECORDEXPORT, CFrame::OnRecordExport)
 EVT_MENU(IDM_RECORDREADONLY, CFrame::OnRecordReadOnly)
 EVT_MENU(IDM_TASINPUT, CFrame::OnTASInput)
+EVT_MENU(IDM_TOGGLE_PAUSEMOVIE, CFrame::OnTogglePauseMovie)
+EVT_MENU(IDM_SHOWLAG, CFrame::OnShowLag)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
@@ -286,13 +204,14 @@ EVT_MENU_RANGE(IDM_LOGWINDOW, IDM_VIDEOWINDOW, CFrame::OnToggleWindow)
 
 EVT_MENU(IDM_PURGECACHE, CFrame::GameListChanged)
 
-EVT_MENU(IDM_LOADLASTSTATE, CFrame::OnLoadLastState)
+EVT_MENU(IDM_SAVEFIRSTSTATE, CFrame::OnSaveFirstState)
 EVT_MENU(IDM_UNDOLOADSTATE,     CFrame::OnUndoLoadState)
 EVT_MENU(IDM_UNDOSAVESTATE,     CFrame::OnUndoSaveState)
 EVT_MENU(IDM_LOADSTATEFILE, CFrame::OnLoadStateFromFile)
 EVT_MENU(IDM_SAVESTATEFILE, CFrame::OnSaveStateToFile)
 
 EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT8, CFrame::OnLoadState)
+EVT_MENU_RANGE(IDM_LOADLAST1, IDM_LOADLAST8, CFrame::OnLoadLastState)
 EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT8, CFrame::OnSaveState)
 EVT_MENU_RANGE(IDM_FRAMESKIP0, IDM_FRAMESKIP9, CFrame::OnFrameSkip)
 EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
@@ -350,7 +269,7 @@ CFrame::CFrame(wxFrame* parent,
 	ConsoleListener *Console = LogManager::GetInstance()->GetConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
 
-	// Start debugging mazimized
+	// Start debugging maximized
 	if (UseDebugger) this->Maximize(true);
 	// Debugger class
 	if (UseDebugger)
@@ -386,8 +305,6 @@ CFrame::CFrame(wxFrame* parent,
 	// ---------------
 
 	// Manager
-	// wxAUI_MGR_LIVE_RESIZE does not exist in the wxWidgets 2.8.9 that comes with Ubuntu 9.04
-	// Could just check for wxWidgets version if it becomes a problem.
 	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
 	m_Mgr->AddPane(m_Panel, wxAuiPaneInfo()
@@ -409,6 +326,8 @@ CFrame::CFrame(wxFrame* parent,
 
 	g_TASInputDlg = new TASInputDlg(this);
 	Movie::SetInputManip(TASManipFunction);
+
+	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
 
 	// Setup perspectives
 	if (g_pCodeWindow)
@@ -432,9 +351,7 @@ CFrame::CFrame(wxFrame* parent,
 	// Commit
 	m_Mgr->Update();
 
-	// Create cursors
 	#ifdef _WIN32
-		CreateCursor();
 		SetToolTip(wxT(""));
 		GetToolTip()->SetAutoPop(25000);
 	#endif
@@ -447,20 +364,11 @@ CFrame::CFrame(wxFrame* parent,
 	// -------------------------
 	// Connect event handlers
 
-	m_Mgr->Connect(wxID_ANY, wxEVT_AUI_RENDER, // Resize
-		wxAuiManagerEventHandler(CFrame::OnManagerResize),
-		(wxObject*)0, this);
+	m_Mgr->Bind(wxEVT_AUI_RENDER, &CFrame::OnManagerResize, this);
 	// ----------
 
 	// Update controls
 	UpdateGUI();
-
-	// If we are rerecording create the status bar now instead of later when a game starts
-	#ifdef RERECORDING
-		ModifyStatusBar();
-		// It's to early for the OnHostMessage(), we will update the status when Ctrl or Space is pressed
-		//Core::WriteStatus();
-	#endif
 }
 // Destructor
 CFrame::~CFrame()
@@ -478,11 +386,24 @@ CFrame::~CFrame()
 
 bool CFrame::RendererIsFullscreen()
 {
+	bool fullscreen = false;
+
 	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 	{
-		return m_RenderFrame->IsFullScreen();
+		fullscreen = m_RenderFrame->IsFullScreen();
 	}
-	return false;
+
+#if defined(__APPLE__)
+	if (m_RenderFrame != NULL)
+	{
+		NSView *view = (NSView *) m_RenderFrame->GetHandle();
+		NSWindow *window = [view window];
+
+		fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
+	}
+#endif
+
+	return fullscreen;
 }
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
@@ -498,11 +419,12 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-#ifdef _WIN32
+#ifdef __WXMSW__
 			::SetFocus((HWND)m_RenderParent->GetHandle());
 #else
 			m_RenderParent->SetFocus();
 #endif
+			
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
 				m_RenderParent->SetCursor(wxCURSOR_BLANK);
@@ -510,7 +432,7 @@ void CFrame::OnActive(wxActivateEvent& event)
 		else
 		{
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-				m_RenderParent->SetCursor(wxCURSOR_ARROW);
+				m_RenderParent->SetCursor(wxNullCursor);
 		}
 	}
 	event.Skip();
@@ -534,10 +456,13 @@ void CFrame::OnClose(wxCloseEvent& event)
 	event.Skip();
 
 	// Save GUI settings
-	if (g_pCodeWindow) SaveIniPerspectives();
-	// Close the log window now so that its settings are saved
+	if (g_pCodeWindow)
+	{
+		SaveIniPerspectives();
+	}
 	else
 	{
+		// Close the log window now so that its settings are saved
 		m_LogWindow->Close();
 		m_LogWindow = NULL;
 	}
@@ -560,7 +485,9 @@ void CFrame::PostEvent(wxCommandEvent& event)
 		g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 	else
+	{
 		event.Skip();
+	}
 }
 
 void CFrame::OnMove(wxMoveEvent& event)
@@ -627,17 +554,17 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 			m_RenderFrame->SetTitle(event.GetString());
 		break;
 
-	case WM_USER_CREATE:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
-			m_RenderParent->SetCursor(wxCURSOR_BLANK);
-		break;
-
 	case IDM_WINDOWSIZEREQUEST:
 		{
 			std::pair<int, int> *win_size = (std::pair<int, int> *)(event.GetClientData());
 			OnRenderWindowSizeRequest(win_size->first, win_size->second);
 			delete win_size;
 		}
+		break;
+
+	case WM_USER_CREATE:
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
 
 #ifdef __WXGTK__
@@ -664,8 +591,11 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 	if (!wxIsMainThread())
 		wxMutexGuiEnter();
 #endif
-	m_RenderParent->GetClientSize(&width, &height);
-	m_RenderParent->GetPosition(&x, &y);
+	wxRect client_rect = m_RenderParent->GetClientRect();
+	width = client_rect.width;
+	height = client_rect.height;
+	x = client_rect.x;
+	y = client_rect.y;
 #ifdef __WXGTK__
 	if (!wxIsMainThread())
 		wxMutexGuiLeave();
@@ -734,7 +664,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 	// 1. Boot the selected iso
 	// 2. Boot the default or last loaded iso.
 	// 3. Call BrowseForDirectory if the gamelist is empty
-	if (!m_GameListCtrl->GetGameNames().size() &&
+	if (!m_GameListCtrl->GetISO(0) &&
 		!((SConfig::GetInstance().m_ListGC &&
 		SConfig::GetInstance().m_ListWii &&
 		SConfig::GetInstance().m_ListWad) &&
@@ -768,95 +698,91 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 		m_GameListCtrl->Update();
 	}
-	else if (!m_GameListCtrl->GetGameNames().size())
+	else if (!m_GameListCtrl->GetISO(0))
+	{
 		m_GameListCtrl->BrowseForDirectory();
+	}
 	else
+	{
 		// Game started by double click
 		BootGame(std::string(""));
+	}
 }
 
 bool IsHotkey(wxKeyEvent &event, int Id)
 {
-	return (event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
+	return (event.GetKeyCode() != WXK_NONE &&
+			event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
 			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
 }
 
 int GetCmdForHotkey(unsigned int key)
 {
-	if (key == HK_OPEN)
-		return wxID_OPEN;
-	if (key == HK_CHANGE_DISC)
-		return IDM_CHANGEDISC;
-	if (key == HK_REFRESH_LIST)
-		return wxID_REFRESH;
+	switch (key)
+	{
+	case HK_OPEN: return wxID_OPEN;
+	case HK_CHANGE_DISC: return IDM_CHANGEDISC;
+	case HK_REFRESH_LIST: return wxID_REFRESH;
+	case HK_PLAY_PAUSE: return IDM_PLAY;
+	case HK_STOP: return IDM_STOP;
+	case HK_RESET: return IDM_RESET;
+	case HK_FRAME_ADVANCE: return IDM_FRAMESTEP;
+	case HK_START_RECORDING: return IDM_RECORD;
+	case HK_PLAY_RECORDING: return IDM_PLAYRECORD;
+	case HK_EXPORT_RECORDING: return IDM_RECORDEXPORT;
+	case HK_READ_ONLY_MODE: return IDM_RECORDREADONLY;
+	case HK_FULLSCREEN: return IDM_TOGGLE_FULLSCREEN;
+	case HK_SCREENSHOT: return IDM_SCREENSHOT;
+	case HK_EXIT: return wxID_EXIT;
 
-	if (key == HK_PLAY_PAUSE)
-		return IDM_PLAY;
-	if (key == HK_STOP)
-		return IDM_STOP;
-	if (key == HK_RESET)
-		return IDM_RESET;
-	if (key == HK_FRAME_ADVANCE)
-		return IDM_FRAMESTEP;
+	case HK_WIIMOTE1_CONNECT: return IDM_CONNECT_WIIMOTE1;
+	case HK_WIIMOTE2_CONNECT: return IDM_CONNECT_WIIMOTE2;
+	case HK_WIIMOTE3_CONNECT: return IDM_CONNECT_WIIMOTE3;
+	case HK_WIIMOTE4_CONNECT: return IDM_CONNECT_WIIMOTE4;
 
-	if (key == HK_START_RECORDING)
-		return IDM_RECORD;
-	if (key == HK_PLAY_RECORDING)
-		return IDM_PLAYRECORD;
-	if (key == HK_EXPORT_RECORDING)
-		return IDM_RECORDEXPORT;
-	if (key == HK_READ_ONLY_MODE)
-		return IDM_RECORDREADONLY;
+	case HK_LOAD_STATE_SLOT_1: return IDM_LOADSLOT1;
+	case HK_LOAD_STATE_SLOT_2: return IDM_LOADSLOT2;
+	case HK_LOAD_STATE_SLOT_3: return IDM_LOADSLOT3;
+	case HK_LOAD_STATE_SLOT_4: return IDM_LOADSLOT4;
+	case HK_LOAD_STATE_SLOT_5: return IDM_LOADSLOT5;
+	case HK_LOAD_STATE_SLOT_6: return IDM_LOADSLOT6;
+	case HK_LOAD_STATE_SLOT_7: return IDM_LOADSLOT7;
+	case HK_LOAD_STATE_SLOT_8: return IDM_LOADSLOT8;
 
-	if (key == HK_FULLSCREEN)
-		return IDM_TOGGLE_FULLSCREEN;
-	if (key == HK_SCREENSHOT)
-		return IDM_SCREENSHOT;
+	case HK_SAVE_STATE_SLOT_1: return IDM_SAVESLOT1;
+	case HK_SAVE_STATE_SLOT_2: return IDM_SAVESLOT2;
+	case HK_SAVE_STATE_SLOT_3: return IDM_SAVESLOT3;
+	case HK_SAVE_STATE_SLOT_4: return IDM_SAVESLOT4;
+	case HK_SAVE_STATE_SLOT_5: return IDM_SAVESLOT5;
+	case HK_SAVE_STATE_SLOT_6: return IDM_SAVESLOT6;
+	case HK_SAVE_STATE_SLOT_7: return IDM_SAVESLOT7;
+	case HK_SAVE_STATE_SLOT_8: return IDM_SAVESLOT8;
 
-	if (key == HK_WIIMOTE1_CONNECT)
-		return IDM_CONNECT_WIIMOTE1;
-	if (key == HK_WIIMOTE2_CONNECT)
-		return IDM_CONNECT_WIIMOTE2;
-	if (key == HK_WIIMOTE3_CONNECT)
-		return IDM_CONNECT_WIIMOTE3;
-	if (key == HK_WIIMOTE4_CONNECT)
-		return IDM_CONNECT_WIIMOTE4;
+	case HK_LOAD_LAST_STATE_1: return IDM_LOADLAST1;
+	case HK_LOAD_LAST_STATE_2: return IDM_LOADLAST2;
+	case HK_LOAD_LAST_STATE_3: return IDM_LOADLAST3;
+	case HK_LOAD_LAST_STATE_4: return IDM_LOADLAST4;
+	case HK_LOAD_LAST_STATE_5: return IDM_LOADLAST5;
+	case HK_LOAD_LAST_STATE_6: return IDM_LOADLAST6;
+	case HK_LOAD_LAST_STATE_7: return IDM_LOADLAST7;
+	case HK_LOAD_LAST_STATE_8: return IDM_LOADLAST8;
 
-	if (key == HK_LOAD_STATE_SLOT_1)
-		return IDM_LOADSLOT1;
-	if (key == HK_LOAD_STATE_SLOT_2)
-		return IDM_LOADSLOT2;
-	if (key == HK_LOAD_STATE_SLOT_3)
-		return IDM_LOADSLOT3;
-	if (key == HK_LOAD_STATE_SLOT_4)
-		return IDM_LOADSLOT4;
-	if (key == HK_LOAD_STATE_SLOT_5)
-		return IDM_LOADSLOT5;
-	if (key == HK_LOAD_STATE_SLOT_6)
-		return IDM_LOADSLOT6;
-	if (key == HK_LOAD_STATE_SLOT_7)
-		return IDM_LOADSLOT7;
-	if (key == HK_LOAD_STATE_SLOT_8)
-		return IDM_LOADSLOT8;
-
-	if (key == HK_SAVE_STATE_SLOT_1)
-		return IDM_SAVESLOT1;
-	if (key == HK_SAVE_STATE_SLOT_2)
-		return IDM_SAVESLOT2;
-	if (key == HK_SAVE_STATE_SLOT_3)
-		return IDM_SAVESLOT3;
-	if (key == HK_SAVE_STATE_SLOT_4)
-		return IDM_SAVESLOT4;
-	if (key == HK_SAVE_STATE_SLOT_5)
-		return IDM_SAVESLOT5;
-	if (key == HK_SAVE_STATE_SLOT_6)
-		return IDM_SAVESLOT6;
-	if (key == HK_SAVE_STATE_SLOT_7)
-		return IDM_SAVESLOT7;
-	if (key == HK_SAVE_STATE_SLOT_8)	
-		return IDM_SAVESLOT8;
+	case HK_SAVE_FIRST_STATE: return IDM_SAVEFIRSTSTATE;
+	case HK_UNDO_LOAD_STATE: return IDM_UNDOLOADSTATE;
+	case HK_UNDO_SAVE_STATE: return IDM_UNDOSAVESTATE;
+	}
 
 	return -1;
+}
+
+void OnAfterLoadCallback()
+{
+	// warning: this gets called from the CPU thread, so we should only queue things to do on the proper thread
+	if(main_frame)
+	{
+		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
+		main_frame->GetEventHandler()->AddPendingEvent(event);
+	}
 }
 
 void TASManipFunction(SPADStatus *PadStatus, int controllerID)
@@ -876,7 +802,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			DoFullscreen(!RendererIsFullscreen());
 		// Send Debugger keys to CodeWindow
 		else if (g_pCodeWindow && (event.GetKeyCode() >= WXK_F9 && event.GetKeyCode() <= WXK_F11))
- 			event.Skip();
+			event.Skip();
 		// Pause and Unpause
 		else if (IsHotkey(event, HK_PLAY_PAUSE))
 			DoPause();
@@ -886,6 +812,8 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		// Screenshot hotkey
 		else if (IsHotkey(event, HK_SCREENSHOT))
 			Core::SaveScreenShot();
+		else if (IsHotkey(event, HK_EXIT))
+			wxPostEvent(this, wxCommandEvent(wxID_EXIT));
 		// Wiimote connect and disconnect hotkeys
 		else if (IsHotkey(event, HK_WIIMOTE1_CONNECT))
 			WiimoteId = 0;
@@ -895,32 +823,10 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			WiimoteId = 2;
 		else if (IsHotkey(event, HK_WIIMOTE4_CONNECT))
 			WiimoteId = 3;
-		// State save and state load hotkeys
-		/*else if (event.GetKeyCode() >= WXK_F1 && event.GetKeyCode() <= WXK_F8)
-		{
-			int slot_number = event.GetKeyCode() - WXK_F1 + 1;
-			if (event.GetModifiers() == wxMOD_NONE)
-				State::Load(slot_number);
-			else if (event.GetModifiers() == wxMOD_SHIFT)
-				State::Save(slot_number);
-			else
-				event.Skip();
-		}*/
-		else if (event.GetKeyCode() == WXK_F11 && event.GetModifiers() == wxMOD_NONE)
-			State::LoadLastSaved();
-		else if (event.GetKeyCode() == WXK_F12)
-		{
-			if (event.GetModifiers() == wxMOD_NONE)
-				State::UndoSaveState();
-			else if (event.GetModifiers() == wxMOD_SHIFT)
-				State::UndoLoadState();
-			else
-				event.Skip();
-		}
 		else
 		{
 			unsigned int i = NUM_HOTKEYS;
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || g_TASInputDlg->HasFocus())
 			{
 				for (i = 0; i < NUM_HOTKEYS; i++)
 				{
@@ -987,7 +893,9 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		}
 	}
 	else
+	{
 		event.Skip();
+	}
 }
 
 void CFrame::OnKeyUp(wxKeyEvent& event)
@@ -1015,7 +923,18 @@ void CFrame::DoFullscreen(bool bF)
 {
 	ToggleDisplayMode(bF);
 
+#if defined(__APPLE__)
+	NSView *view = (NSView *) m_RenderFrame->GetHandle();
+	NSWindow *window = [view window];
+
+	if (bF != RendererIsFullscreen())
+	{
+		[window toggleFullScreen:nil];
+	}
+#else
 	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
+#endif
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		if (bF)
@@ -1031,7 +950,9 @@ void CFrame::DoFullscreen(bool bF)
 		}
 	}
 	else
+	{
 		m_RenderFrame->Raise();
+	}
 }
 
 const CGameListCtrl *CFrame::GetGameListCtrl() const

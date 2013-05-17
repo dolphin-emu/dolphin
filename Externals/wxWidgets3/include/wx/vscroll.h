@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Brad Anderson, Bryan Petty
 // Created:     30.05.03
-// RCS-ID:      $Id: vscroll.h 64943 2010-07-13 13:29:58Z VZ $
+// RCS-ID:      $Id: vscroll.h 70085 2011-12-22 01:26:11Z RD $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -236,7 +236,7 @@ protected:
 
 #ifdef __WXMAC__
     // queue mac window update after handling scroll event
-    virtual void UpdateMacScrollWindow() = 0;
+    virtual void UpdateMacScrollWindow() { }
 #endif // __WXMAC__
 
     // change the target window

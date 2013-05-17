@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxNonOwnedWindow
 // Author:      Stefan Csomor
 // Created:     2008-03-24
-// RCS-ID:      $Id: nonownedwnd.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: nonownedwnd.cpp 69440 2011-10-16 15:59:31Z SJL $
 // Copyright:   (c) Stefan Csomor 2008
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -254,7 +254,7 @@ void wxNonOwnedWindowCarbonImpl::MacSetUnifiedAppearance( bool set )
 
 static pascal long wxShapedMacWindowDef(short varCode, WindowRef window, SInt16 message, SInt32 param);
 
-void SetupMouseEvent( wxMouseEvent &wxevent , wxMacCarbonEvent &cEvent );
+WXDLLEXPORT void SetupMouseEvent( wxMouseEvent &wxevent , wxMacCarbonEvent &cEvent );
 
 // ---------------------------------------------------------------------------
 // Carbon Events
@@ -425,7 +425,7 @@ static pascal OSStatus KeyboardEventHandler( EventHandlerCallRef handler , Event
 EventMouseButton g_lastButton = 0 ;
 bool g_lastButtonWasFakeRight = false ;
 
-void SetupMouseEvent( wxMouseEvent &wxevent , wxMacCarbonEvent &cEvent )
+WXDLLEXPORT void SetupMouseEvent( wxMouseEvent &wxevent , wxMacCarbonEvent &cEvent )
 {
     UInt32 modifiers = cEvent.GetParameter<UInt32>(kEventParamKeyModifiers, typeUInt32) ;
     Point screenMouseLocation = cEvent.GetParameter<Point>(kEventParamMouseLocation) ;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/2/2000
-// RCS-ID:      $Id: dragimgg.cpp 64656 2010-06-20 18:18:23Z VZ $
+// RCS-ID:      $Id: dragimgg.cpp 70749 2012-02-29 13:58:55Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -247,9 +247,9 @@ bool wxGenericDragImage::BeginDrag(const wxPoint& hotspot,
         m_boundingRect = * rect;
 
     m_isDirty = false;
-    m_isDirty = false;
+    m_isShown = false;
 
-    if (m_cursor.Ok())
+    if (m_cursor.IsOk())
     {
         m_oldCursor = window->GetCursor();
         window->SetCursor(m_cursor);
@@ -288,7 +288,7 @@ bool wxGenericDragImage::BeginDrag(const wxPoint& hotspot,
 #ifndef wxHAS_NATIVE_OVERLAY
     wxBitmap* backing = (m_pBackingBitmap ? m_pBackingBitmap : (wxBitmap*) & m_backingBitmap);
 
-    if (!backing->Ok() || (backing->GetWidth() < clientSize.x || backing->GetHeight() < clientSize.y))
+    if (!backing->IsOk() || (backing->GetWidth() < clientSize.x || backing->GetHeight() < clientSize.y))
         (*backing) = wxBitmap(clientSize.x, clientSize.y);
 #endif // !wxHAS_NATIVE_OVERLAY
 
@@ -345,7 +345,7 @@ bool wxGenericDragImage::EndDrag()
 #endif
             m_window->ReleaseMouse();
 
-        if (m_cursor.Ok() && m_oldCursor.Ok())
+        if (m_cursor.IsOk() && m_oldCursor.IsOk())
         {
             m_window->SetCursor(m_oldCursor);
         }
@@ -467,7 +467,7 @@ bool wxGenericDragImage::RedrawImage(const wxPoint& oldPos,
         DoDrawImage(*m_windowDC, newPos);
 #else // !wxHAS_NATIVE_OVERLAY
     wxBitmap* backing = (m_pBackingBitmap ? m_pBackingBitmap : (wxBitmap*) & m_backingBitmap);
-    if (!backing->Ok())
+    if (!backing->IsOk())
         return false;
 
     wxRect oldRect(GetImageRect(oldPos));
@@ -499,7 +499,7 @@ bool wxGenericDragImage::RedrawImage(const wxPoint& oldPos,
     // keep reallocating all the time.
     int excess = 50;
 
-    if (!m_repairBitmap.Ok() || (m_repairBitmap.GetWidth() < fullRect.GetWidth() || m_repairBitmap.GetHeight() < fullRect.GetHeight()))
+    if (!m_repairBitmap.IsOk() || (m_repairBitmap.GetWidth() < fullRect.GetWidth() || m_repairBitmap.GetHeight() < fullRect.GetHeight()))
     {
         m_repairBitmap = wxBitmap(fullRect.GetWidth() + excess, fullRect.GetHeight() + excess);
     }
@@ -539,12 +539,12 @@ bool wxGenericDragImage::RedrawImage(const wxPoint& oldPos,
 // Override this if you are using a virtual image (drawing your own image)
 bool wxGenericDragImage::DoDrawImage(wxDC& dc, const wxPoint& pos) const
 {
-    if (m_bitmap.Ok())
+    if (m_bitmap.IsOk())
     {
         dc.DrawBitmap(m_bitmap, pos.x, pos.y, (m_bitmap.GetMask() != 0));
         return true;
     }
-    else if (m_icon.Ok())
+    else if (m_icon.IsOk())
     {
         dc.DrawIcon(m_icon, pos.x, pos.y);
         return true;
@@ -556,11 +556,11 @@ bool wxGenericDragImage::DoDrawImage(wxDC& dc, const wxPoint& pos) const
 // Override this if you are using a virtual image (drawing your own image)
 wxRect wxGenericDragImage::GetImageRect(const wxPoint& pos) const
 {
-    if (m_bitmap.Ok())
+    if (m_bitmap.IsOk())
     {
         return wxRect(pos.x, pos.y, m_bitmap.GetWidth(), m_bitmap.GetHeight());
     }
-    else if (m_icon.Ok())
+    else if (m_icon.IsOk())
     {
         return wxRect(pos.x, pos.y, m_icon.GetWidth(), m_icon.GetHeight());
     }

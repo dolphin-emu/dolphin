@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "../ConfigManager.h"
@@ -158,7 +145,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_SENDCMD:
-		INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD %x ipc:%08x",
+		INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD %x IPC:%08x",
 			Memory::Read_U32(BufferIn), _CommandAddress);
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, 0, 0, BufferOut, BufferOutSize);
 		break;
@@ -242,7 +229,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 		break;
 
 	default:
-		ERROR_LOG(WII_IPC_SD, "unknown SD IOCtlV command 0x%08x", CommandBuffer.Parameter);
+		ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtlV command 0x%08x", CommandBuffer.Parameter);
 		break;
 	}
 
@@ -376,7 +363,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 				{
 					Memory::Write_U8((u8)buffer[i], req.addr++);
 				}
-				DEBUG_LOG(WII_IPC_SD, "outbuffer size %i got %i", _rwBufferSize, i);
+				DEBUG_LOG(WII_IPC_SD, "Outbuffer size %i got %i", _rwBufferSize, i);
 			}
 			else
 			{

@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Created:     26/04/97
 // Modified by: Vadim Zeitlin to use wxSockAddressImpl on 2008-12-28
-// RCS-ID:      $Id: sckaddr.cpp 65124 2010-07-28 11:26:14Z VZ $
+// RCS-ID:      $Id: sckaddr.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 //              (c) 2008 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -79,7 +79,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
 // TODO: use POSIX getaddrinfo() (also available in Winsock 2) for simplicity
 //       and to use the same code for IPv4 and IPv6 support
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     #define HAVE_INET_ADDR
 
     #ifndef HAVE_GETHOSTBYNAME
@@ -109,7 +109,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
             #pragma warning(default:4706)
         #endif
     #endif
-#endif // __WXMSW__
+#endif // __WINDOWS__
 
 // we assume that we have gethostbyaddr_r() if and only if we have
 // gethostbyname_r() and that it uses the similar conventions to it (see
@@ -144,7 +144,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
 #ifdef HAVE_FUNC_GETSERVBYNAME_R_4
     struct wxGetservBuf : servent_data
     {
-        wxGethostBuf()
+        wxGetservBuf()
         {
             memset(this, 0, sizeof(servent_data));
         }
@@ -273,8 +273,9 @@ hostent *wxGethostbyname_r(const char *hostname,
 #elif defined(HAVE_FUNC_GETHOSTBYNAME_R_5)
     he = gethostbyname_r(hostname, h, buffer, size, err);
 #elif defined(HAVE_FUNC_GETHOSTBYNAME_R_3)
-    he = gethostbyname_r(hostname, h,  &buffer);
-    *err = h_errno;
+    wxUnusedVar(var);
+    *err = gethostbyname_r(hostname, h,  &buffer);
+    he = h;
 #elif defined(HAVE_GETHOSTBYNAME)
     wxLOCK_GETBY_MUTEX(name);
 
@@ -304,8 +305,9 @@ hostent *wxGethostbyaddr_r(const char *addr_buf,
 #elif defined(HAVE_FUNC_GETHOSTBYADDR_R_5)
     he = gethostbyaddr_r(addr_buf, buf_size, proto, h, buffer, size, err);
 #elif defined(HAVE_FUNC_GETHOSTBYADDR_R_3)
-    he = gethostbyaddr_r(addr_buf, buf_size, proto, h, buffer);
-    *err = h_errno;
+    wxUnusedVar(size);
+    *err = gethostbyaddr_r(addr_buf, buf_size, proto, h, &buffer);
+    he = h;
 #elif defined(HAVE_GETHOSTBYADDR)
     wxLOCK_GETBY_MUTEX(addr);
 
@@ -397,6 +399,7 @@ servent *wxGetservbyname_r(const char *port,
 #elif defined(HAVE_FUNC_GETSERVBYNAME_R_5)
     se = getservbyname_r(port, protocol, serv, buffer, size);
 #elif defined(HAVE_FUNC_GETSERVBYNAME_R_4)
+    wxUnusedVar(size);
     if ( getservbyname_r(port, protocol, serv, &buffer) != 0 )
         return NULL;
 #elif defined(HAVE_GETSERVBYNAME)

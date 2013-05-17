@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     13.07.99
-// RCS-ID:      $Id: textcmn.cpp 66592 2011-01-05 18:27:58Z PC $
+// RCS-ID:      $Id: textcmn.cpp 70448 2012-01-23 12:33:03Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -143,8 +143,8 @@ wxTextAttr::wxTextAttr(const wxColour& colText,
 {
     Init();
 
-    if (m_colText.Ok()) m_flags |= wxTEXT_ATTR_TEXT_COLOUR;
-    if (m_colBack.Ok()) m_flags |= wxTEXT_ATTR_BACKGROUND_COLOUR;
+    if (m_colText.IsOk()) m_flags |= wxTEXT_ATTR_TEXT_COLOUR;
+    if (m_colBack.IsOk()) m_flags |= wxTEXT_ATTR_BACKGROUND_COLOUR;
     if (alignment != wxTEXT_ALIGNMENT_DEFAULT)
         m_flags |= wxTEXT_ATTR_ALIGNMENT;
 
@@ -164,6 +164,7 @@ void wxTextAttr::Init()
     m_fontStyle = wxFONTSTYLE_NORMAL;
     m_fontWeight = wxFONTWEIGHT_NORMAL;
     m_fontUnderlined = false;
+    m_fontStrikethrough = false;
     m_fontEncoding = wxFONTENCODING_DEFAULT;
     m_fontFamily = wxFONTFAMILY_DEFAULT;
 
@@ -193,6 +194,7 @@ void wxTextAttr::Copy(const wxTextAttr& attr)
     m_fontStyle = attr.m_fontStyle;
     m_fontWeight = attr.m_fontWeight;
     m_fontUnderlined = attr.m_fontUnderlined;
+    m_fontStrikethrough = attr.m_fontStrikethrough;
     m_fontFaceName = attr.m_fontFaceName;
     m_fontEncoding = attr.m_fontEncoding;
     m_fontFamily = attr.m_fontFamily;
@@ -403,6 +405,10 @@ wxFont wxTextAttr::GetFont() const
     if (HasFontUnderlined())
         underlined = GetFontUnderlined();
 
+    bool strikethrough = false;
+    if ( HasFontStrikethrough() )
+        strikethrough = GetFontStrikethrough();
+
     wxString fontFaceName;
     if (HasFontFaceName())
         fontFaceName = GetFontFaceName();
@@ -416,13 +422,15 @@ wxFont wxTextAttr::GetFont() const
         fontFamily = GetFontFamily();
 
     wxFont font(fontSize, fontFamily, fontStyle, fontWeight, underlined, fontFaceName, encoding);
+    if ( strikethrough )
+        font.SetStrikethrough( true );
     return font;
 }
 
 // Get attributes from font.
 bool wxTextAttr::GetFontAttributes(const wxFont& font, int flags)
 {
-    if (!font.Ok())
+    if (!font.IsOk())
         return false;
 
     if (flags & wxTEXT_ATTR_FONT_SIZE)
@@ -436,6 +444,9 @@ bool wxTextAttr::GetFontAttributes(const wxFont& font, int flags)
 
     if (flags & wxTEXT_ATTR_FONT_UNDERLINE)
         m_fontUnderlined = font.GetUnderlined();
+
+    if (flags & wxTEXT_ATTR_FONT_STRIKETHROUGH)
+        m_fontStrikethrough = font.GetStrikethrough();
 
     if (flags & wxTEXT_ATTR_FONT_FACE)
         m_fontFaceName = font.GetFaceName();
@@ -500,6 +511,12 @@ bool wxTextAttr::Apply(const wxTextAttr& style, const wxTextAttr* compareWith)
             destStyle.SetFontUnderlined(style.GetFontUnderlined());
     }
 
+    if (style.HasFontStrikethrough())
+    {
+        if (!(compareWith && compareWith->HasFontStrikethrough() && compareWith->GetFontStrikethrough() == style.GetFontStrikethrough()))
+            destStyle.SetFontStrikethrough(style.GetFontStrikethrough());
+    }
+
     if (style.HasFontFaceName())
     {
         if (!(compareWith && compareWith->HasFontFaceName() && compareWith->GetFontFaceName() == style.GetFontFaceName()))
@@ -518,13 +535,13 @@ bool wxTextAttr::Apply(const wxTextAttr& style, const wxTextAttr* compareWith)
             destStyle.SetFontFamily(style.GetFontFamily());
     }
 
-    if (style.GetTextColour().Ok() && style.HasTextColour())
+    if (style.GetTextColour().IsOk() && style.HasTextColour())
     {
         if (!(compareWith && compareWith->HasTextColour() && compareWith->GetTextColour() == style.GetTextColour()))
             destStyle.SetTextColour(style.GetTextColour());
     }
 
-    if (style.GetBackgroundColour().Ok() && style.HasBackgroundColour())
+    if (style.GetBackgroundColour().IsOk() && style.HasBackgroundColour())
     {
         if (!(compareWith && compareWith->HasBackgroundColour() && compareWith->GetBackgroundColour() == style.GetBackgroundColour()))
             destStyle.SetBackgroundColour(style.GetBackgroundColour());
@@ -670,30 +687,30 @@ wxTextAttr wxTextAttr::Combine(const wxTextAttr& attr,
     if (attr.HasFont())
         font = attr.GetFont();
 
-    if ( !font.Ok() )
+    if ( !font.IsOk() )
     {
         if (attrDef.HasFont())
             font = attrDef.GetFont();
 
-        if ( text && !font.Ok() )
+        if ( text && !font.IsOk() )
             font = text->GetFont();
     }
 
     wxColour colFg = attr.GetTextColour();
-    if ( !colFg.Ok() )
+    if ( !colFg.IsOk() )
     {
         colFg = attrDef.GetTextColour();
 
-        if ( text && !colFg.Ok() )
+        if ( text && !colFg.IsOk() )
             colFg = text->GetForegroundColour();
     }
 
     wxColour colBg = attr.GetBackgroundColour();
-    if ( !colBg.Ok() )
+    if ( !colBg.IsOk() )
     {
         colBg = attrDef.GetBackgroundColour();
 
-        if ( text && !colBg.Ok() )
+        if ( text && !colBg.IsOk() )
             colBg = text->GetBackgroundColour();
     }
 
@@ -773,7 +790,7 @@ bool wxTextAttr::BitlistsEqPartial(int valueA, int valueB, int flags)
 {
     int relevantBitsA = valueA & flags;
     int relevantBitsB = valueB & flags;
-    return (relevantBitsA != relevantBitsB);
+    return relevantBitsA == relevantBitsB;
 }
 
 /// Split into paragraph and character styles
@@ -940,12 +957,47 @@ int wxTextCtrlBase::overflow(int c)
 
 bool wxTextCtrlBase::EmulateKeyPress(const wxKeyEvent& event)
 {
+    bool handled = false;
     // we have a native implementation for Win32 and so don't need this one
 #ifndef __WIN32__
     wxChar ch = 0;
     int keycode = event.GetKeyCode();
+    
+    long from, to;
+    GetSelection(&from,&to);
+    long insert = GetInsertionPoint();
+    long last = GetLastPosition();
+    
+    // catch arrow left and right 
+    
     switch ( keycode )
     {
+        case WXK_LEFT:
+            if ( event.ShiftDown() )
+                SetSelection( (from > 0 ? from - 1 : 0) , to );
+            else
+            {
+                if ( from != to )
+                    insert = from;
+                else if ( insert > 0 )
+                    insert -= 1;
+                SetInsertionPoint( insert );
+            }
+            handled = true;
+            break;
+        case WXK_RIGHT:
+            if ( event.ShiftDown() )
+                SetSelection( from, (to < last ? to + 1 : last) );
+            else
+            {
+                if ( from != to )
+                    insert = to;
+                else if ( insert < last )
+                    insert += 1;
+                SetInsertionPoint( insert );
+            }
+            handled = true;
+            break;
         case WXK_NUMPAD0:
         case WXK_NUMPAD1:
         case WXK_NUMPAD2:
@@ -991,6 +1043,7 @@ bool wxTextCtrlBase::EmulateKeyPress(const wxKeyEvent& event)
                 const long pos = GetInsertionPoint();
                 if ( pos < GetLastPosition() )
                     Remove(pos, pos + 1);
+                handled = true;
             }
             break;
 
@@ -1000,6 +1053,7 @@ bool wxTextCtrlBase::EmulateKeyPress(const wxKeyEvent& event)
                 const long pos = GetInsertionPoint();
                 if ( pos > 0 )
                     Remove(pos - 1, pos);
+                handled = true;
             }
             break;
 
@@ -1031,13 +1085,13 @@ bool wxTextCtrlBase::EmulateKeyPress(const wxKeyEvent& event)
     {
         WriteText(ch);
 
-        return true;
+        handled = true;
     }
 #else // __WIN32__
     wxUnusedVar(event);
 #endif // !__WIN32__/__WIN32__
 
-    return false;
+    return handled;
 }
 
 // do the window-specific processing after processing the update event
@@ -1082,6 +1136,19 @@ wxTextAreaBase::HitTest(const wxPoint& WXUNUSED(pt), long * WXUNUSED(pos)) const
 {
     // not implemented
     return wxTE_HT_UNKNOWN;
+}
+
+wxPoint wxTextAreaBase::PositionToCoords(long pos) const
+{
+    wxCHECK_MSG( IsValidPosition(pos), wxDefaultPosition,
+                 wxS("Position argument out of range.") );
+
+    return DoPositionToCoords(pos);
+}
+
+wxPoint wxTextAreaBase::DoPositionToCoords(long WXUNUSED(pos)) const
+{
+    return wxDefaultPosition;
 }
 
 #else // !wxUSE_TEXTCTRL

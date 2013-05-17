@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: button_osx.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: button_osx.cpp 67936 2011-06-14 22:19:09Z RD $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -41,11 +41,6 @@ bool IsHelpButtonWithStandardLabel(wxWindowID id, const wxString& label)
 }
 
 } // anonymous namespace
-
-BEGIN_EVENT_TABLE(wxButton, wxControl)
-    EVT_ENTER_WINDOW(wxButton::OnEnterWindow)
-    EVT_LEAVE_WINDOW(wxButton::OnLeaveWindow)
-END_EVENT_TABLE()
 
 bool wxButton::Create(wxWindow *parent,
     wxWindowID id,
@@ -105,57 +100,8 @@ void wxButton::SetLabel(const wxString& label)
         return;
     }
 
-    if ( HasFlag(wxBU_NOTEXT) )
-    {
-        // just store the label internally but don't really use it for the
-        // button
-        m_labelOrig =
-        m_label = label;
-        return;
-    }
-
-    wxButtonBase::SetLabel(label);
+    wxAnyButton::SetLabel(label);
 }
-
-wxBitmap wxButton::DoGetBitmap(State which) const
-{
-    return m_bitmaps[which];
-}
-
-void wxButton::DoSetBitmap(const wxBitmap& bitmap, State which)
-{
-    m_bitmaps[which] = bitmap;
-
-    if ( which == State_Normal )
-        GetPeer()->SetBitmap(bitmap);
-    else if ( which == State_Pressed )
-    {
-        wxButtonImpl* bi = dynamic_cast<wxButtonImpl*> (GetPeer());
-        if ( bi )
-            bi->SetPressedBitmap(bitmap);
-    }
-    InvalidateBestSize();
-}
-
-void wxButton::DoSetBitmapPosition(wxDirection dir)
-{
-    GetPeer()->SetBitmapPosition(dir);
-    InvalidateBestSize();
-}
-
-#if wxUSE_MARKUP && wxOSX_USE_COCOA
-
-bool wxButton::DoSetLabelMarkup(const wxString& markup)
-{
-    if ( !wxButtonBase::DoSetLabelMarkup(markup) )
-        return false;
-
-    GetPeer()->SetLabelMarkup(markup);
-
-    return true;
-}
-
-#endif // wxUSE_MARKUP && wxOSX_USE_COCOA
 
 wxWindow *wxButton::SetDefault()
 {
@@ -177,24 +123,18 @@ void wxButton::Command (wxCommandEvent & WXUNUSED(event))
     // ProcessCommand(event);
 }
 
-void wxButton::OnEnterWindow( wxMouseEvent& WXUNUSED(event))
-{
-    if ( DoGetBitmap( State_Current ).IsOk() )
-        GetPeer()->SetBitmap( DoGetBitmap( State_Current ) );
-}
-
-void wxButton::OnLeaveWindow( wxMouseEvent& WXUNUSED(event))
-{
-    if ( DoGetBitmap( State_Current ).IsOk() )
-        GetPeer()->SetBitmap( DoGetBitmap( State_Normal ) );
-}
-
 bool wxButton::OSXHandleClicked( double WXUNUSED(timestampsec) )
 {
     wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, m_windowId);
     event.SetEventObject(this);
     ProcessCommand(event);
     return true;
+}
+
+/* static */
+wxSize wxButtonBase::GetDefaultSize()
+{
+    return wxAnyButton::GetDefaultSize();
 }
 
 //-------------------------------------------------------

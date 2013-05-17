@@ -61,10 +61,10 @@ public:
   bool ReadFile( char* ImageFileName=0 );
   bool SaveFile( char* ImageFileName=0 );
   bool SaveXPM(char *filename, char *name = 0);
-  int  GetWidth( void ) const { return Width; };
-  int  GetHeight( void ) const { return Height; };
-  int  GetDepth( void ) const { return Depth; };
-  int  GetColorType( void ) const { return ColorType; };
+  int  GetWidth( void ) const { return Width; }
+  int  GetHeight( void ) const { return Height; }
+  int  GetDepth( void ) const { return Depth; }
+  int  GetColorType( void ) const { return ColorType; }
 
   int  GetIndex(int x, int y);
   bool GetRGB(int x, int y, byte* r, byte* g, byte* b);

@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     17.07.02
-// RCS-ID:      $Id: msgout.cpp 66592 2011-01-05 18:27:58Z PC $
+// RCS-ID:      $Id: msgout.cpp 70808 2012-03-04 20:31:42Z VZ $
 // Copyright:   (c) the wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -163,7 +163,7 @@ void wxMessageOutputStderr::Output(const wxString& str)
 
 void wxMessageOutputDebug::Output(const wxString& str)
 {
-#if defined(__WXMSW__) && !defined(__WXMICROWIN__)
+#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
     wxString out(AppendLineFeedIfNeeded(str));
     out.Replace(wxT("\t"), wxT("        "));
     out.Replace(wxT("\n"), wxT("\r\n"));
@@ -202,7 +202,7 @@ void wxMessageOutputMessageBox::Output(const wxString& str)
     wxString out(str);
 
     // the native MSW msg box understands the TABs, others don't
-#ifndef __WXMSW__
+#ifndef __WINDOWS__
     out.Replace(wxT("\t"), wxT("        "));
 #endif
 

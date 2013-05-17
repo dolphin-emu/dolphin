@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "Thunk.h"
@@ -25,7 +12,7 @@
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "JitBase.h"
 #include "Jit_Util.h"
 
@@ -57,7 +44,7 @@ void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int acc
 	else if (signExtend)
 	{
 		// TODO: bake 8-bit into the original load.
-		MOVSX(32, accessSize, reg_value, R(reg_value));   
+		MOVSX(32, accessSize, reg_value, R(reg_value));
 	}
 }
 
@@ -96,7 +83,11 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 		MOVZX(32, accessSize, EAX, MDisp(EAX, (u32)Memory::base + offset));
 	}
 #endif
-	
+
+	// Add a 2 bytes NOP to have some space for the backpatching
+	if (accessSize == 8)
+		NOP(2);
+
 	if (accessSize == 32)
 	{
 		BSWAP(32, EAX);
@@ -112,25 +103,37 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 	else if (signExtend)
 	{
 		// TODO: bake 8-bit into the original load.
-		MOVSX(32, accessSize, EAX, R(EAX));   
+		MOVSX(32, accessSize, EAX, R(EAX));
 	}
 }
 
 void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend)
 {
-	if (Core::g_CoreStartupParameter.bUseFastMem && (accessSize == 32) && !Core::g_CoreStartupParameter.bMMU)
+#if defined(_M_X64)
+#ifdef ENABLE_MEM_CHECK
+	if (!Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging && Core::g_CoreStartupParameter.bFastmem)
+#else
+	if (!Core::g_CoreStartupParameter.bMMU && Core::g_CoreStartupParameter.bFastmem)
+#endif
 	{
-		// BackPatch only supports 32-bits accesses
 		UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
 	}
 	else
+#endif
 	{
 		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
 		{
 			mem_mask |= Memory::ADDR_MASK_MEM1;
 		}
-		
+
+#ifdef ENABLE_MEM_CHECK
+		if (Core::g_CoreStartupParameter.bEnableDebugging)
+		{
+			mem_mask |= Memory::EXRAM_MASK;
+		}
+#endif
+
 		if (opAddress.IsImm())
 		{
 			u32 address = (u32)opAddress.offset + offset;
@@ -232,9 +235,16 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 		mem_mask |= Memory::ADDR_MASK_MEM1;
 	}
 
+#ifdef ENABLE_MEM_CHECK
+	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	{
+		mem_mask |= Memory::EXRAM_MASK;
+	}
+#endif
+
 	TEST(32, R(reg_addr), Imm32(mem_mask));
 	FixupBranch fast = J_CC(CC_Z);
-
+	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 	switch (accessSize)
 	{
 	case 32: ABI_CallFunctionRR(thunks.ProtectFunction(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), 2), reg_value, reg_addr); break;
@@ -249,20 +259,23 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 
 void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr)
 {
-	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
-	{
-		mem_mask |= Memory::ADDR_MASK_MEM1;
-	}
-
-	TEST(32, R(reg_addr), Imm32(mem_mask));
 	if (false && cpu_info.bSSSE3) {
 		// This path should be faster but for some reason it causes errors so I've disabled it.
+		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
+
+		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			mem_mask |= Memory::ADDR_MASK_MEM1;
+
+#ifdef ENABLE_MEM_CHECK
+		if (Core::g_CoreStartupParameter.bEnableDebugging)
+			mem_mask |= Memory::EXRAM_MASK;
+#endif
+		TEST(32, R(reg_addr), Imm32(mem_mask));
 		FixupBranch argh = J_CC(CC_Z);
 		MOVSS(M(&float_buffer), xmm_value);
 		MOV(32, R(EAX), M(&float_buffer));
 		BSWAP(32, EAX);
+		MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 		ABI_CallFunctionRR(thunks.ProtectFunction(((void *)&Memory::Write_U32), 2), EAX, reg_addr);
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
@@ -326,4 +339,12 @@ void EmuCodeBlock::JitClearCA()
 void EmuCodeBlock::JitSetCA()
 {
 	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
+}
+
+void EmuCodeBlock::JitClearCAOV(bool oe)
+{
+	if (oe)
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK & ~XER_OV_MASK)); //XER.CA, XER.OV = 0
+	else
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
 }

@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2004/04/12
-// RCS-ID:      $Id: regiong.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: regiong.cpp 70625 2012-02-19 14:49:37Z SN $
 // Copyright:   (c) 2004 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1645,7 +1645,7 @@ miSubtractO (
         else if (r2->x1 <= x1)
         {
             /*
-             * Subtrahend preceeds minuend: nuke left edge of minuend.
+             * Subtrahend precedes minuend: nuke left edge of minuend.
              */
             x1 = r2->x2;
             if (x1 >= r1->x2)

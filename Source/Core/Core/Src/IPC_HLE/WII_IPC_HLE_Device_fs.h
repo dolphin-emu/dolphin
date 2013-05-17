@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 #ifndef _WII_IPC_HLE_DEVICE_FS_H_
 #define _WII_IPC_HLE_DEVICE_FS_H_
 
@@ -31,19 +19,21 @@ struct NANDStat
 };
 
 enum {
-	FS_RESULT_OK			= 0,
+	FS_RESULT_OK			=  0,
+	FS_INVALID				= -4,
 	FS_DIRFILE_NOT_FOUND	= -6,
-	FS_INVALID_ARGUMENT		= -101,
+	FS_RESULT_FATAL			= -101,
+	FS_NO_ACCESS			= -102,
 	FS_FILE_EXIST			= -105,
 	FS_FILE_NOT_EXIST		= -106,
-	FS_RESULT_FATAL			= -128,
+	FS_NO_HANDLE			= -106,
 };
 
 class CWII_IPC_HLE_Device_fs : public IWII_IPC_HLE_Device
 {
 public:
 
-    CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName);
 	virtual ~CWII_IPC_HLE_Device_fs();
 
 	virtual void DoState(PointerWrap& p);
@@ -53,10 +43,12 @@ public:
 
 	virtual bool IOCtl(u32 _CommandAddress);
 	virtual bool IOCtlV(u32 _CommandAddress);
+	
+	virtual int GetCmdDelay(u32);
 
 private:
 
-	enum 
+	enum
 	{
 		IOCTL_GET_STATS		= 0x02,
 		IOCTL_CREATE_DIR	= 0x03,

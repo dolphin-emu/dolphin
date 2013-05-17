@@ -1,25 +1,14 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <wx/button.h>
 #include <wx/textctrl.h>
 #include <wx/listctrl.h>
 #include <wx/thread.h>
 #include <wx/listctrl.h>
+
+#include "../WxUtils.h"
 #include "MemoryWindow.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
@@ -45,6 +34,7 @@ enum
 	IDM_SETVALBUTTON,
 	IDM_DUMP_MEMORY,
 	IDM_DUMP_MEM2,
+	IDM_DUMP_FAKEVMEM,
 	IDM_VALBOX,
 	IDM_U8,
 	IDM_U16,
@@ -61,6 +51,7 @@ BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
 	EVT_BUTTON(IDM_SETVALBUTTON,	CMemoryWindow::SetMemoryValue)
 	EVT_BUTTON(IDM_DUMP_MEMORY,		CMemoryWindow::OnDumpMemory)
 	EVT_BUTTON(IDM_DUMP_MEM2,		CMemoryWindow::OnDumpMem2)
+	EVT_BUTTON(IDM_DUMP_FAKEVMEM,	CMemoryWindow::OnDumpFakeVMEM)
 	EVT_CHECKBOX(IDM_U8,			CMemoryWindow::U8)
 	EVT_CHECKBOX(IDM_U16,			CMemoryWindow::U16)
 	EVT_CHECKBOX(IDM_U32,			CMemoryWindow::U32)
@@ -75,7 +66,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 {
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerRight = new wxBoxSizer(wxVERTICAL);
-	// Didn't see anything usefull in the left part
+	// Didn't see anything useful in the left part
 	//wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
 
 	DebugInterface* di = &PowerPC::debug_interface;
@@ -95,6 +86,9 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerRight->AddSpacer(5);
 	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _("&Dump MRAM")));
 	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _("&Dump EXRAM")));
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack == 1)
+		sizerRight->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("&Dump FakeVMEM")));
 
 	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
 
@@ -147,8 +141,8 @@ void CMemoryWindow::JumpToAddress(u32 _Address)
 
 void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 {
-	std::string str_addr = std::string(addrbox->GetValue().mb_str());
-	std::string str_val = std::string(valbox->GetValue().mb_str());
+	std::string str_addr = WxStrToStr(addrbox->GetValue());
+	std::string str_val = WxStrToStr(valbox->GetValue());
 	u32 addr;
 	u32 val;
 
@@ -174,7 +168,7 @@ void CMemoryWindow::OnAddrBoxChange(wxCommandEvent& event)
 	if (txt.size())
 	{
 		u32 addr;
-		sscanf(txt.mb_str(), "%08x", &addr);
+		sscanf(WxStrToStr(txt).c_str(), "%08x", &addr);
 		memview->Center(addr & ~3);
 	}
 
@@ -256,6 +250,12 @@ void CMemoryWindow::OnDumpMem2( wxCommandEvent& event )
 	}
 }
 
+// Write fake vmem to file
+void CMemoryWindow::OnDumpFakeVMEM( wxCommandEvent& event )
+{
+	DumpArray(File::GetUserPath(F_FAKEVMEMDUMP_IDX), Memory::m_pVirtualFakeVMEM, Memory::FAKEVMEM_SIZE);
+}
+
 void CMemoryWindow::U8(wxCommandEvent& event)
 {
 	chk16->SetValue(0);
@@ -328,20 +328,17 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 		newsize = rawData.size();
 
 		if (pad)
-	   	{
+		{
 			tmpstr = new char[newsize + 2];
 			memset(tmpstr, 0, newsize + 2);
 			tmpstr[0] = '0';
 		}
-	   	else
-	   	{
+		else
+		{
 			tmpstr = new char[newsize + 1];
 			memset(tmpstr, 0, newsize + 1);
 		}
-		//sprintf(tmpstr, "%s%s", tmpstr, rawData.c_str());
-		//strcpy(&tmpstr[1], rawData.ToAscii());
-		//memcpy(&tmpstr[1], &rawData.c_str()[0], rawData.size());
-		sprintf(tmpstr, "%s%s", tmpstr, (const char *)rawData.mb_str());
+		sprintf(tmpstr, "%s%s", tmpstr, WxStrToStr(rawData).c_str());
 		tmp2 = &Dest.front();
 		count = 0;
 		for(i = 0; i < strlen(tmpstr); i++)
@@ -358,14 +355,16 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 			i += 1;
 		}
 		delete[] tmpstr;
-	} else {
+	}
+	else
+	{
 		//Looking for an ascii string
 		size = rawData.size();
 		Dest.resize(size+1);
 		tmpstr = new char[size+1];
 
 		tmp2 = &Dest.front();
-		sprintf(tmpstr, "%s", (const char *)rawData.mb_str());
+		sprintf(tmpstr, "%s", WxStrToStr(rawData).c_str());
 
 		for(i = 0; i < size; i++)
 			tmp2[i] = tmpstr[i];
@@ -382,7 +381,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 		u32 addr = 0;
 		if (txt.size())
 		{
-			sscanf(txt.mb_str(), "%08x", &addr);
+			sscanf(WxStrToStr(txt).c_str(), "%08x", &addr);
 		}
 		i = addr+4;
 		for( ; i < szRAM; i++)

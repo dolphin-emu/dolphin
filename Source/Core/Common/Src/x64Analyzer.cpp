@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "x64Analyzer.h"
 
@@ -31,12 +18,9 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	info.hasImmediate = false;
 	info.isMemoryWrite = false;
 
-	int addressSize = 8;
 	u8 modRMbyte = 0;
 	u8 sibByte = 0;
-    bool hasModRM = false;
-	bool hasSIBbyte = false;
-	bool hasDisplacement = false;
+	bool hasModRM = false;
 
 	int displacementSize = 0;
 
@@ -47,7 +31,6 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	} 
 	else if (*codePtr == 0x67)
 	{
-		addressSize = 4;
 		codePtr++;
 	}
 
@@ -64,18 +47,18 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 
 	codeByte = *codePtr++;
 
-    // Skip two-byte opcode byte 
-    bool twoByte = false; 
-    if(codeByte == 0x0F) 
-    { 
-        twoByte = true; 
+	// Skip two-byte opcode byte 
+	bool twoByte = false; 
+	if(codeByte == 0x0F) 
+	{
+		twoByte = true; 
 		codeByte2 = *codePtr++;
-    } 
+	}
 
 	if (!twoByte)
 	{
-        if ((codeByte & 0xF0) == 0x80 || 
-            ((codeByte & 0xF8) == 0xC0 && (codeByte & 0x0E) != 0x02))
+		if ((codeByte & 0xF0) == 0x80 || 
+			((codeByte & 0xF8) == 0xC0 && (codeByte & 0x0E) != 0x02))
 		{
 			modRMbyte = *codePtr++;
 			hasModRM = true;
@@ -83,20 +66,20 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	}
 	else
 	{
-        if (((codeByte2 & 0xF0) == 0x00 && (codeByte2 & 0x0F) >= 0x04 && (codeByte2 & 0x0D) != 0x0D) || 
-            (codeByte2 & 0xF0) == 0x30 || 
-            codeByte2 == 0x77 || 
-            (codeByte2 & 0xF0) == 0x80 || 
-            ((codeByte2 & 0xF0) == 0xA0 && (codeByte2 & 0x07) <= 0x02) || 
-            (codeByte2 & 0xF8) == 0xC8) 
-        { 
-            // No mod R/M byte 
-        } 
-        else 
-        { 
+		if (((codeByte2 & 0xF0) == 0x00 && (codeByte2 & 0x0F) >= 0x04 && (codeByte2 & 0x0D) != 0x0D) || 
+			(codeByte2 & 0xF0) == 0x30 || 
+			codeByte2 == 0x77 || 
+			(codeByte2 & 0xF0) == 0x80 || 
+			((codeByte2 & 0xF0) == 0xA0 && (codeByte2 & 0x07) <= 0x02) || 
+			(codeByte2 & 0xF8) == 0xC8) 
+		{ 
+			// No mod R/M byte 
+		} 
+		else 
+		{ 
 			modRMbyte = *codePtr++;
 			hasModRM = true;
-        } 
+		} 
 	}
 
 	if (hasModRM)
@@ -113,7 +96,6 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 				info.otherReg = (sibByte & 7);
 				if (rex & 2) info.scaledReg += 8;
 				if (rex & 1) info.otherReg += 8;
-				hasSIBbyte = true;
 			}
 			else
 			{
@@ -122,7 +104,6 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 		}
 		if (mrm.mod == 1 || mrm.mod == 2)
 		{
-			hasDisplacement = true;
 			if (mrm.mod == 1)
 				displacementSize = 1;
 			else
@@ -136,7 +117,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 		info.displacement = *((s32 *)codePtr);
 	codePtr += displacementSize;
 
-	
+
 	if (accessType == 1)
 	{
 		info.isMemoryWrite = true;

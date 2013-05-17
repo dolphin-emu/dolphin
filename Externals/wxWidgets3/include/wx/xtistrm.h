@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: xtistrm.h 66621 2011-01-07 17:22:59Z SC $
+// RCS-ID:      $Id: xtistrm.h 70396 2012-01-19 09:00:29Z SC $
 // Copyright:   (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,14 +38,16 @@ const int wxNullObjectID = -3;
 // or modify the value before it is streamed-out.
 // ----------------------------------------------------------------------------
 
+/*
+ class WXDLLIMPEXP_BASE wxClassInfo;
+ class WXDLLIMPEXP_BASE wxAnyList;
+ class WXDLLIMPEXP_BASE wxPropertyInfo;
+ class WXDLLIMPEXP_BASE wxAny;
+ class WXDLLIMPEXP_BASE wxHandlerInfo;
+ */
+
 class WXDLLIMPEXP_BASE wxObjectWriter;
 class WXDLLIMPEXP_BASE wxObjectReader;
-class WXDLLIMPEXP_BASE wxClassInfo;
-class WXDLLIMPEXP_BASE wxAnyList;
-class WXDLLIMPEXP_BASE wxPropertyInfo;
-class WXDLLIMPEXP_BASE wxAny;
-class WXDLLIMPEXP_BASE wxObjectWriter;
-class WXDLLIMPEXP_BASE wxHandlerInfo;
 
 class WXDLLIMPEXP_BASE wxObjectWriterCallback
 {

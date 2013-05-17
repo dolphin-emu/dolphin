@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     12/12/98
-// RCS-ID:      $Id: filedlgg.cpp 64019 2010-04-18 00:05:37Z VZ $
+// RCS-ID:      $Id: filedlgg.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
 #if wxUSE_FILEDLG
 
 // NOTE : it probably also supports MAC, untested
-#if !defined(__UNIX__) && !defined(__DOS__) && !defined(__WIN32__) && !defined(__OS2__) && !defined(__PALMOS__)
+#if !defined(__UNIX__) && !defined(__DOS__) && !defined(__WIN32__) && !defined(__OS2__)
 #error wxGenericFileDialog currently only supports Unix, win32 and DOS
 #endif
 
@@ -57,7 +57,6 @@
     #include "wx/config.h"
 #endif
 
-#ifndef __WXPALMOS5__
 #ifndef __WXWINCE__
     #include <sys/types.h>
     #include <sys/stat.h>
@@ -86,7 +85,6 @@
 #if defined(__UNIX__) || defined(__DOS__)
 #include <unistd.h>
 #endif
-#endif // ! __WXPALMOS5__
 
 #if defined(__WXWINCE__)
 #define IsTopMostDir(dir) (dir == wxT("\\") || dir == wxT("/"))

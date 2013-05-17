@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.07.99
-// RCS-ID:      $Id: dialup.cpp 64656 2010-06-20 18:18:23Z VZ $
+// RCS-ID:      $Id: dialup.cpp 70751 2012-02-29 13:59:01Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,6 +40,7 @@
 #include "wx/generic/choicdgg.h"
 
 #include "wx/msw/private.h"
+#include "wx/msw/private/hiddenwin.h"
 #include "wx/dynlib.h"
 
 wxDEFINE_EVENT( wxEVT_DIALUP_CONNECTED, wxDialUpEvent );
@@ -65,10 +66,6 @@ wxDEFINE_EVENT( wxEVT_DIALUP_DISCONNECTED, wxDialUpEvent );
 #ifndef INTERNET_CONNECTION_PROXY
 #define INTERNET_CONNECTION_PROXY 4
 #endif
-
-// implemented in utils.cpp
-extern "C" WXDLLIMPEXP_BASE HWND
-wxCreateHiddenWindow(LPCTSTR *pclassname, LPCTSTR classname, WNDPROC wndproc);
 
 static const wxChar *
     wxMSWDIALUP_WNDCLASSNAME = wxT("_wxDialUpManager_Internal_Class");
@@ -832,7 +829,6 @@ bool wxDialUpManagerMSW::Dial(const wxString& nameOfISP,
 
     // default values for other fields
     rasDialParams.szPhoneNumber[0] = '\0';
-    rasDialParams.szCallbackNumber[0] = '\0';
     rasDialParams.szCallbackNumber[0] = '\0';
 
     rasDialParams.szDomain[0] = '*';

@@ -4,7 +4,7 @@
  * Author:      Vadim Zeitlin
  * Modified by:
  * Created:     16.10.2003 (extracted from wx/defs.h)
- * RCS-ID:      $Id: dlimpexp.h 61944 2009-09-16 12:06:02Z PJC $
+ * RCS-ID:      $Id: dlimpexp.h 69049 2011-09-10 18:09:12Z SJL $
  * Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */
@@ -22,14 +22,25 @@
 #elif defined(__WINDOWS__)
     /*
        __declspec works in BC++ 5 and later, Watcom C++ 11.0 and later as well
-       as VC++ and gcc
+       as VC++.
      */
-#    if defined(__VISUALC__) || defined(__BORLANDC__) || defined(__GNUC__) || defined(__WATCOMC__)
+#    if defined(__VISUALC__) || defined(__BORLANDC__) || defined(__WATCOMC__)
 #        define WXEXPORT __declspec(dllexport)
 #        define WXIMPORT __declspec(dllimport)
-#    else /* compiler doesn't support __declspec() */
-#        define WXEXPORT
-#        define WXIMPORT
+    /*
+        While gcc also supports __declspec(dllexport), it creates unusably huge
+        DLL files since gcc 4.5 (while taking horribly long amounts of time),
+        see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43601. Because of this
+        we rely on binutils auto export/import support which seems to work
+        quite well for 4.5+.
+     */
+#    elif defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 5)
+        /*
+            __declspec could be used here too but let's use the native
+            __attribute__ instead for clarity.
+        */
+#       define WXEXPORT __attribute__((dllexport))
+#       define WXIMPORT __attribute__((dllimport))
 #    endif
 #elif defined(__WXPM__)
 #    if defined (__WATCOMC__)
@@ -91,6 +102,7 @@
 #    define WXMAKINGDLL_RICHTEXT
 #    define WXMAKINGDLL_MEDIA
 #    define WXMAKINGDLL_STC
+#    define WXMAKINGDLL_WEBVIEW
 #endif /* WXMAKINGDLL */
 
 /*
@@ -263,6 +275,17 @@
 #    define WXDLLIMPEXP_DATA_STC(type) type
 #endif
 
+#ifdef WXMAKINGDLL_WEBVIEW
+#    define WXDLLIMPEXP_WEBVIEW WXEXPORT
+#    define WXDLLIMPEXP_DATA_WEBVIEW(type) WXEXPORT type
+#elif defined(WXUSINGDLL)
+#    define WXDLLIMPEXP_WEBVIEW WXIMPORT
+#    define WXDLLIMPEXP_DATA_WEBVIEW(type) WXIMPORT type
+#else /* not making nor using DLL */
+#    define WXDLLIMPEXP_WEBVIEW
+#    define WXDLLIMPEXP_DATA_WEBVIEW(type) type
+#endif
+
 /*
    GCC warns about using __attribute__ (and also __declspec in mingw32 case) on
    forward declarations while MSVC complains about forward declarations without
@@ -284,6 +307,7 @@
     #define WXDLLIMPEXP_FWD_RICHTEXT
     #define WXDLLIMPEXP_FWD_MEDIA
     #define WXDLLIMPEXP_FWD_STC
+    #define WXDLLIMPEXP_FWD_WEBVIEW
 #else
     #define WXDLLIMPEXP_FWD_BASE      WXDLLIMPEXP_BASE
     #define WXDLLIMPEXP_FWD_NET       WXDLLIMPEXP_NET
@@ -299,6 +323,7 @@
     #define WXDLLIMPEXP_FWD_RICHTEXT  WXDLLIMPEXP_RICHTEXT
     #define WXDLLIMPEXP_FWD_MEDIA     WXDLLIMPEXP_MEDIA
     #define WXDLLIMPEXP_FWD_STC       WXDLLIMPEXP_STC
+    #define WXDLLIMPEXP_FWD_WEBVIEW   WXDLLIMPEXP_WEBVIEW
 #endif
 
 /* for backwards compatibility, define suffix-less versions too */

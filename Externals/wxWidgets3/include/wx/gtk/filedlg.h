@@ -2,7 +2,7 @@
 // Name:        wx/gtk/filedlg.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: filedlg.h 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: filedlg.h 70898 2012-03-14 12:32:27Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,6 +22,15 @@ public:
     wxFileDialog() { }
 
     wxFileDialog(wxWindow *parent,
+                 const wxString& message = wxFileSelectorPromptStr,
+                 const wxString& defaultDir = wxEmptyString,
+                 const wxString& defaultFile = wxEmptyString,
+                 const wxString& wildCard = wxFileSelectorDefaultWildcardStr,
+                 long style = wxFD_DEFAULT_STYLE,
+                 const wxPoint& pos = wxDefaultPosition,
+                 const wxSize& sz = wxDefaultSize,
+                 const wxString& name = wxFileDialogNameStr);
+    bool Create(wxWindow *parent,
                  const wxString& message = wxFileSelectorPromptStr,
                  const wxString& defaultDir = wxEmptyString,
                  const wxString& defaultFile = wxEmptyString,

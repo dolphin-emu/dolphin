@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2001-07-10
-// RCS-ID:      $Id: sysopt.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: sysopt.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -101,12 +101,7 @@ wxString wxSystemOptions::GetOption(const wxString& name)
 
 int wxSystemOptions::GetOptionInt(const wxString& name)
 {
-#ifdef _PACC_VER
-    // work around the PalmOS pacc compiler bug
-    return wxAtoi (GetOption(name).data());
-#else
     return wxAtoi (GetOption(name));
-#endif
 }
 
 bool wxSystemOptions::HasOption(const wxString& name)

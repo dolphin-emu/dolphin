@@ -5,7 +5,7 @@
 // Author:      Ryan Norton, Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: sound.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: sound.h 69178 2011-09-21 15:08:02Z VZ $
 // Copyright:   (c) Ryan Norton, Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,13 +49,13 @@ class WXDLLIMPEXP_ADV wxSound : public wxSoundBase
 public:
     wxSound();
     wxSound(const wxString& fileName, bool isResource = false);
-    wxSound(int size, const wxByte* data);
+    wxSound(size_t size, const void* data);
     virtual ~wxSound();
 
     // Create from resource or file
     bool  Create(const wxString& fileName, bool isResource = false);
     // Create from data
-    bool Create(int size, const wxByte* data);
+    bool Create(size_t size, const void* data);
 
     bool IsOk() const { return m_data != NULL; }
 

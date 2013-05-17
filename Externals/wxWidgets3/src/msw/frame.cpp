@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: frame.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: frame.cpp 70511 2012-02-05 14:18:22Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -57,13 +57,19 @@
     #include "wx/univ/colschem.h"
 #endif // __WXUNIVERSAL__
 
+// FIXME-VC6: Only VC6 doesn't have this in its standard headers so this
+//            could be removed once support for it is dropped.
+#ifndef WM_UNINITMENUPOPUP
+    #define WM_UNINITMENUPOPUP 0x0125
+#endif
+
 // ----------------------------------------------------------------------------
 // globals
 // ----------------------------------------------------------------------------
 
-#if wxUSE_MENUS_NATIVE
+#if wxUSE_MENUS || wxUSE_MENUS_NATIVE
     extern wxMenu *wxCurrentPopupMenu;
-#endif // wxUSE_MENUS_NATIVE
+#endif // wxUSE_MENUS || wxUSE_MENUS_NATIVE
 
 // ----------------------------------------------------------------------------
 // event tables
@@ -233,11 +239,6 @@ void wxFrame::DoGetClientSize(int *x, int *y) const
 // wxFrame: various geometry-related functions
 // ----------------------------------------------------------------------------
 
-void wxFrame::Raise()
-{
-    ::SetForegroundWindow(GetHwnd());
-}
-
 // generate an artificial resize event
 void wxFrame::SendSizeEvent(int flags)
 {
@@ -379,7 +380,7 @@ void wxFrame::AttachMenuBar(wxMenuBar *menubar)
         // adjust for menu / titlebar height
         rc.bottom -= (2*menuHeight-1);
 
-        ::MoveWindow(Gethwnd(), rc.left, rc.top, rc.right, rc.bottom, FALSE);
+        ::MoveWindow(GetHwnd(), rc.left, rc.top, rc.right, rc.bottom, FALSE);
     }
 #endif
 
@@ -849,36 +850,38 @@ wxFrame::HandleMenuSelect(WXWORD nItem, WXWORD flags, WXHMENU WXUNUSED(hMenu))
     return false;
 }
 
-bool wxFrame::HandleMenuLoop(const wxEventType& evtType, WXWORD isPopup)
+bool
+wxFrame::DoSendMenuOpenCloseEvent(wxEventType evtType, wxMenu* menu, bool popup)
 {
-    // we don't have the menu id here, so we use the id to specify if the event
-    // was from a popup menu or a normal one
-    wxMenuEvent event(evtType, isPopup ? -1 : 0);
+    wxMenuEvent event(evtType, popup ? wxID_ANY : 0, menu);
     event.SetEventObject(this);
 
     return HandleWindowEvent(event);
 }
 
-bool wxFrame::HandleInitMenuPopup(WXHMENU hMenu)
+bool wxFrame::HandleExitMenuLoop(WXWORD isPopup)
 {
+    return DoSendMenuOpenCloseEvent(wxEVT_MENU_CLOSE,
+                                    isPopup ? wxCurrentPopupMenu : NULL,
+                                    isPopup != 0);
+}
+
+bool wxFrame::HandleMenuPopup(wxEventType evtType, WXHMENU hMenu)
+{
+    bool isPopup = false;
     wxMenu* menu = NULL;
-    if (GetMenuBar())
+    if ( wxCurrentPopupMenu && wxCurrentPopupMenu->GetHMenu() == hMenu )
     {
-        int nCount = GetMenuBar()->GetMenuCount();
-        for (int n = 0; n < nCount; n++)
-        {
-            if (GetMenuBar()->GetMenu(n)->GetHMenu() == hMenu)
-            {
-                menu = GetMenuBar()->GetMenu(n);
-                break;
-            }
-        }
+        menu = wxCurrentPopupMenu;
+        isPopup = true;
+    }
+    else if ( GetMenuBar() )
+    {
+        menu = GetMenuBar()->MSWGetMenu(hMenu);
     }
 
-    wxMenuEvent event(wxEVT_MENU_OPEN, 0, menu);
-    event.SetEventObject(this);
 
-    return HandleWindowEvent(event);
+    return DoSendMenuOpenCloseEvent(evtType, menu, isPopup);
 }
 
 #endif // wxUSE_MENUS
@@ -925,7 +928,7 @@ WXLRESULT wxFrame::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPara
 #if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
 #if wxUSE_MENUS
         case WM_INITMENUPOPUP:
-            processed = HandleInitMenuPopup((WXHMENU) wParam);
+            processed = HandleMenuPopup(wxEVT_MENU_OPEN, (WXHMENU)wParam);
             break;
 
         case WM_MENUSELECT:
@@ -939,14 +942,24 @@ WXLRESULT wxFrame::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPara
             break;
 
         case WM_EXITMENULOOP:
-            processed = HandleMenuLoop(wxEVT_MENU_CLOSE, (WXWORD)wParam);
+            // Under Windows 98 and 2000 and later we're going to get
+            // WM_UNINITMENUPOPUP which will be used to generate this event
+            // with more information (notably the menu that was closed) so we
+            // only need this one under old Windows systems where the newer
+            // event is never sent.
+            if ( wxGetWinVersion() < wxWinVersion_98 )
+                processed = HandleExitMenuLoop(wParam);
+            break;
+
+        case WM_UNINITMENUPOPUP:
+            processed = HandleMenuPopup(wxEVT_MENU_CLOSE, (WXHMENU)wParam);
             break;
 #endif // wxUSE_MENUS
 
         case WM_QUERYDRAGICON:
             {
                 const wxIcon& icon = GetIcon();
-                HICON hIcon = icon.Ok() ? GetHiconOf(icon)
+                HICON hIcon = icon.IsOk() ? GetHiconOf(icon)
                                         : (HICON)GetDefaultIcon();
                 rc = (WXLRESULT)hIcon;
                 processed = rc != 0;

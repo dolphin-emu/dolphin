@@ -21,6 +21,10 @@ volatile u32 s_swapRequested = false;
 u32 s_efbAccessRequested = false;
 volatile u32 s_FifoShuttingDown = false;
 
+std::condition_variable s_perf_query_cond;
+std::mutex s_perf_query_lock;
+static volatile bool s_perf_query_requested;
+
 static volatile struct
 {
 	u32 xfbAddr;
@@ -169,53 +173,108 @@ u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 
 	return 0;
 }
 
-static volatile u32 s_doStateRequested = false;
- 
-static volatile struct
+static bool QueryResultIsReady()
 {
-	unsigned char **ptr;
-	int mode;
-} s_doStateArgs;
+	return !s_perf_query_requested || s_FifoShuttingDown;
+}
 
-// Depending on the threading mode (DC/SC) this can be called 
-// from either the GPU thread or the CPU thread
-void VideoFifo_CheckStateRequest()
+void VideoFifo_CheckPerfQueryRequest()
 {
-	if (Common::AtomicLoadAcquire(s_doStateRequested))
+	if (s_perf_query_requested)
 	{
-		// Clear all caches that touch RAM
-		TextureCache::Invalidate(false);
-		VertexLoaderManager::MarkAllDirty();
-
-		PointerWrap p(s_doStateArgs.ptr, s_doStateArgs.mode);
-		VideoCommon_DoState(p);
-
-		// Refresh state.
-		if (s_doStateArgs.mode == PointerWrap::MODE_READ)
+		g_perf_query->FlushResults();
+		
 		{
-			BPReload();
-			RecomputeCachedArraybases();
+		std::lock_guard<std::mutex> lk(s_perf_query_lock);
+		s_perf_query_requested = false;
 		}
-
-		Common::AtomicStoreRelease(s_doStateRequested, false);
+		
+		s_perf_query_cond.notify_one();
 	}
+}
+
+u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
+{
+	// TODO: Is this check sane?
+	if (!g_perf_query->IsFlushed())
+	{
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		{
+			s_perf_query_requested = true;
+			std::unique_lock<std::mutex> lk(s_perf_query_lock);
+			s_perf_query_cond.wait(lk, QueryResultIsReady);
+		}
+		else
+			g_perf_query->FlushResults();
+	}
+
+	return g_perf_query->GetQueryResult(type);
+}
+
+void VideoBackendHardware::InitializeShared()
+{
+	VideoCommon_Init();
+
+	s_swapRequested = 0;
+	s_efbAccessRequested = 0;
+	s_perf_query_requested = false;
+	s_FifoShuttingDown = 0;
+	memset((void*)&s_beginFieldArgs, 0, sizeof(s_beginFieldArgs));
+	memset(&s_accessEFBArgs, 0, sizeof(s_accessEFBArgs));
+	s_AccessEFBResult = 0;
+	m_invalid = false;
 }
 
 // Run from the CPU thread
 void VideoBackendHardware::DoState(PointerWrap& p)
 {
-	s_doStateArgs.ptr = p.ptr;
-	s_doStateArgs.mode = p.mode;
-	Common::AtomicStoreRelease(s_doStateRequested, true);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+	bool software = false;
+	p.Do(software);
+
+	if (p.GetMode() == PointerWrap::MODE_READ && software == true)
 	{
-		while (Common::AtomicLoadAcquire(s_doStateRequested) && !s_FifoShuttingDown)
-			//Common::SleepCurrentThread(1);
-			Common::YieldCPU();
+		// change mode to abort load of incompatible save state.
+		p.SetMode(PointerWrap::MODE_VERIFY);
 	}
-	else
-		VideoFifo_CheckStateRequest();
+
+	VideoCommon_DoState(p);
+	p.DoMarker("VideoCommon");
+
+	p.Do(s_swapRequested);
+	p.Do(s_efbAccessRequested);
+	p.Do(s_beginFieldArgs);
+	p.Do(s_accessEFBArgs);
+	p.Do(s_AccessEFBResult);
+	p.DoMarker("VideoBackendHardware");
+
+	// Refresh state.
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		m_invalid = true;
+		RecomputeCachedArraybases();
+
+		// Clear all caches that touch RAM
+		// (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
+		VertexLoaderManager::MarkAllDirty();
+	}
 }
+
+void VideoBackendHardware::CheckInvalidState()
+{
+	if (m_invalid)
+	{
+		m_invalid = false;
+		
+		BPReload();
+		TextureCache::Invalidate();
+	}
+}
+
+void VideoBackendHardware::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	Fifo_PauseAndLock(doLock, unpauseOnUnlock);
+}
+
 
 void VideoBackendHardware::RunLoop(bool enable)
 {
@@ -226,6 +285,7 @@ void VideoFifo_CheckAsyncRequest()
 {
 	VideoFifo_CheckSwapRequest();
 	VideoFifo_CheckEFBAccess();
+	VideoFifo_CheckPerfQueryRequest();
 }
 
 void VideoBackendHardware::Video_GatherPipeBursted()
@@ -236,6 +296,11 @@ void VideoBackendHardware::Video_GatherPipeBursted()
 bool VideoBackendHardware::Video_IsPossibleWaitingSetDrawDone()
 {
 	return CommandProcessor::isPossibleWaitingSetDrawDone;
+}
+
+bool VideoBackendHardware::Video_IsHiWatermarkActive()
+{
+	return CommandProcessor::isHiWatermarkActive;
 }
 
 void VideoBackendHardware::Video_AbortFrame()

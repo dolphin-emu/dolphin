@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // WARNING - THIS LIBRARY IS NOT THREAD SAFE!!!
 
@@ -120,7 +107,7 @@ struct OpArg
 		scale = (u8)_scale;
 		offsetOrBaseReg = (u16)rmReg;
 		indexReg = (u16)scaledReg;
-		//if scale == 0 never mind offseting
+		//if scale == 0 never mind offsetting
 		offset = _offset;
 	}
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
@@ -249,6 +236,7 @@ private:
 	void WriteMulDivType(int bits, OpArg src, int ext);
 	void WriteBitSearchType(int bits, X64Reg dest, OpArg src, u8 byte2);
 	void WriteShift(int bits, OpArg dest, OpArg &shift, int ext);
+	void WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext);
 	void WriteMXCSR(OpArg arg, int ext);
 	void WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
@@ -373,6 +361,16 @@ public:
 	void SHL(int bits, OpArg dest, OpArg shift);
 	void SHR(int bits, OpArg dest, OpArg shift);
 	void SAR(int bits, OpArg dest, OpArg shift);
+
+	// Bit Test
+	void BT(int bits, OpArg dest, OpArg index);
+	void BTS(int bits, OpArg dest, OpArg index);
+	void BTR(int bits, OpArg dest, OpArg index);
+	void BTC(int bits, OpArg dest, OpArg index);
+
+	// Double-Precision Shift
+	void SHRD(int bits, OpArg dest, OpArg src, OpArg shift);
+	void SHLD(int bits, OpArg dest, OpArg src, OpArg shift);
 
 	// Extend EAX into EDX in various ways
 	void CWD(int bits = 16);
@@ -639,7 +637,7 @@ public:
 	void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2);
 	void ABI_CallFunctionA(void *func, const Gen::OpArg &arg1);
 
-	// Pass a register as a paremeter.
+	// Pass a register as a parameter.
 	void ABI_CallFunctionR(void *func, Gen::X64Reg reg1);
 	void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2);
 
@@ -746,7 +744,7 @@ public:
 		region_size = 0;
 	}
 
-	bool IsInCodeSpace(u8 *ptr)
+	bool IsInSpace(u8 *ptr)
 	{
 		return ptr >= region && ptr < region + region_size;
 	}
@@ -755,7 +753,7 @@ public:
 	// Start over if you need to change the code (call FreeCodeSpace(), AllocCodeSpace()).
 	void WriteProtect()
 	{
-		WriteProtectMemory(region, region_size, true);		
+		WriteProtectMemory(region, region_size, true);
 	}
 
 	void ResetCodePtr()

@@ -9,7 +9,7 @@
 //              robust Abort(), support for arbitrary FTP commands, ...)
 //              Randall Fox (support for active mode)
 // Created:     07/07/1997
-// RCS-ID:      $Id: ftp.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: ftp.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 //              (c) 1998-2004 wxWidgets team
 // Licence:     wxWindows licence
@@ -587,9 +587,9 @@ wxSocketBase *wxFTP::GetActivePort()
     addrNew.Service(0); // pick an open port number.
 
     wxSocketServer *sockSrv = new wxSocketServer(addrNew);
-    if (!sockSrv->Ok())
+    if (!sockSrv->IsOk())
     {
-        // We use Ok() here to see if everything is ok
+        // We use IsOk() here to see if everything is ok
         m_lastError = wxPROTO_PROTERR;
         delete sockSrv;
         return NULL;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to derive from wxChoiceBase
 // Created:     04/01/98
-// RCS-ID:      $Id: choice.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: choice.cpp 70870 2012-03-11 05:31:06Z JS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -86,10 +86,7 @@ bool wxChoice::CreateAndInit(wxWindow *parent,
 
 
     // initialize the controls contents
-    for ( int i = 0; i < n; i++ )
-    {
-        Append(choices[i]);
-    }
+    Append(n, choices);
 
     // and now we may finally size the control properly (if needed)
     SetInitialSize(size);
@@ -358,6 +355,10 @@ void wxChoice::SetString(unsigned int n, const wxString& s)
     else if ( HasClientObjectData() )
         oldObjData = GetClientObject(n);
 
+    // and also the selection if we're going to delete the item that was
+    // selected
+    const bool wasSelected = static_cast<int>(n) == GetSelection();
+
     ::SendMessage(GetHwnd(), CB_DELETESTRING, n, 0);
     ::SendMessage(GetHwnd(), CB_INSERTSTRING, n, (LPARAM)s.wx_str() );
 
@@ -367,6 +368,11 @@ void wxChoice::SetString(unsigned int n, const wxString& s)
     else if ( oldObjData )
         SetClientObject(n, oldObjData);
 
+    // and the selection
+    if ( wasSelected )
+        SetSelection(n);
+
+    // the width could have changed so the best size needs to be recomputed
     InvalidateBestSize();
 }
 
@@ -408,7 +414,7 @@ void wxChoice::DoSetItemClientData(unsigned int n, void* clientData)
 void* wxChoice::DoGetItemClientData(unsigned int n) const
 {
     LPARAM rc = SendMessage(GetHwnd(), CB_GETITEMDATA, n, 0);
-    if ( rc == CB_ERR )
+    if ( rc == CB_ERR && GetLastError() != ERROR_SUCCESS )
     {
         wxLogLastError(wxT("CB_GETITEMDATA"));
 
@@ -544,7 +550,10 @@ void wxChoice::DoSetSize(int x, int y,
     const int hItem = SendMessage(GetHwnd(), CB_GETITEMHEIGHT, 0, 0);
     int heightWithItems = 0;
     if (!HasFlag(wxCB_SIMPLE))
-        heightWithItems = height + hItem*nItems;
+        // The extra item (" + 1") is required to prevent a vertical
+        // scrollbar from appearing with comctl32.dll versions earlier
+        // than 6.0 (such as found in Win2k).
+        heightWithItems = height + hItem*(nItems + 1);
     else
         heightWithItems = SetHeightSimpleComboBox(nItems);
 
@@ -749,7 +758,7 @@ bool wxChoice::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
 
 WXHBRUSH wxChoice::MSWControlColor(WXHDC hDC, WXHWND hWnd)
 {
-    if ( !IsEnabled() )
+    if ( !IsThisEnabled() )
         return MSWControlColorDisabled(hDC);
 
     return wxChoiceBase::MSWControlColor(hDC, hWnd);

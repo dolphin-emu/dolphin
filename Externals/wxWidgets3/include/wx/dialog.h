@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.06.99
-// RCS-ID:      $Id: dialog.h 66087 2010-11-10 13:51:57Z VZ $
+// RCS-ID:      $Id: dialog.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ class wxTextSizerWrapper;
 
 // Also see the bit summary table in wx/toplevel.h.
 
-#define wxDIALOG_NO_PARENT      0x0100  // Don't make owned by apps top window
+#define wxDIALOG_NO_PARENT      0x00000020  // Don't make owned by apps top window
 
 #ifdef __WXWINCE__
 #define wxDEFAULT_DIALOG_STYLE  (wxCAPTION | wxMAXIMIZE | wxCLOSE_BOX | wxNO_BORDER)
@@ -350,9 +350,7 @@ public:
 #if defined(__WXUNIVERSAL__) && !defined(__WXMICROWIN__)
     #include "wx/univ/dialog.h"
 #else
-    #if defined(__WXPALMOS__)
-        #include "wx/palmos/dialog.h"
-    #elif defined(__WXMSW__)
+    #if defined(__WXMSW__)
         #include "wx/msw/dialog.h"
     #elif defined(__WXMOTIF__)
         #include "wx/motif/dialog.h"
@@ -393,6 +391,9 @@ typedef void (wxEvtHandler::*wxWindowModalDialogEventFunction)(wxWindowModalDial
 
 #define wxWindowModalDialogEventHandler(func) \
     wxEVENT_HANDLER_CAST(wxWindowModalDialogEventFunction, func)
+
+#define EVT_WINDOW_MODAL_DIALOG_CLOSED(winid, func) \
+    wx__DECLARE_EVT1(wxEVT_WINDOW_MODAL_DIALOG_CLOSED, winid, wxWindowModalDialogEventHandler(func))
 
 #endif
     // _WX_DIALOG_H_BASE_

@@ -1,22 +1,11 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "VolumeWiiCrypted.h"
+#include "VolumeGC.h"
 #include "StringUtil.h"
+#include "Crypto/sha1.h"
 
 namespace DiscIO
 {
@@ -167,21 +156,17 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 	return makerID;
 }
 
-std::string CVolumeWiiCrypted::GetName() const
+std::vector<std::string> CVolumeWiiCrypted::GetNames() const
 {
-	if (m_pReader == NULL)
-	{
-		return std::string();
-	}
+	std::vector<std::string> names;
+	
+	auto const string_decoder = CVolumeGC::GetStringDecoder(GetCountry());
 
-	char name[0xFF];
+	char name[0xFF] = {};
+	if (m_pReader != NULL && Read(0x20, 0x60, (u8*)&name))
+		names.push_back(string_decoder(name));
 
-	if (!Read(0x20, 0x60, (u8*)&name))
-	{
-		return std::string();
-	}
-
-	return name;
+	return names;
 }
 
 u32 CVolumeWiiCrypted::GetFSTSize() const
@@ -230,6 +215,82 @@ u64 CVolumeWiiCrypted::GetSize() const
 	{
 		return 0;
 	}
+}
+
+u64 CVolumeWiiCrypted::GetRawSize() const
+{
+	if (m_pReader)
+	{
+		return m_pReader->GetRawSize();
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+bool CVolumeWiiCrypted::CheckIntegrity() const
+{
+	// Get partition data size
+	u32 partSizeDiv4;
+	RAWRead(m_VolumeOffset + 0x2BC, 4, (u8*)&partSizeDiv4);
+	u64 partDataSize = (u64)Common::swap32(partSizeDiv4) * 4;
+
+	u32 nClusters = (u32)(partDataSize / 0x8000);
+	for (u32 clusterID = 0; clusterID < nClusters; ++clusterID)
+	{
+		u64 clusterOff = m_VolumeOffset + dataOffset + (u64)clusterID * 0x8000;
+
+		// Read and decrypt the cluster metadata
+		u8 clusterMDCrypted[0x400];
+		u8 clusterMD[0x400];
+		u8 IV[16] = { 0 };
+		if (!m_pReader->Read(clusterOff, 0x400, clusterMDCrypted))
+		{
+			NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", clusterID);
+			return false;
+		}
+		AES_cbc_encrypt(clusterMDCrypted, clusterMD, 0x400, &m_AES_KEY, IV, AES_DECRYPT);
+
+		// Some clusters have invalid data and metadata because they aren't
+		// meant to be read by the game (for example, holes between files). To
+		// try to avoid reporting errors because of these clusters, we check
+		// the 0x00 paddings in the metadata.
+		//
+		// This may cause some false negatives though: some bad clusters may be
+		// skipped because they are *too* bad and are not even recognized as
+		// valid clusters. To be improved.
+		bool meaningless = false;
+		for (u32 idx = 0x26C; idx < 0x280; ++idx)
+			if (clusterMD[idx] != 0)
+				meaningless = true;
+
+		if (meaningless)
+			continue;
+
+		u8 clusterData[0x7C00];
+		if (!Read((u64)clusterID * 0x7C00, 0x7C00, clusterData))
+		{
+			NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read data", clusterID);
+			return false;
+		}
+
+		for (u32 hashID = 0; hashID < 31; ++hashID)
+		{
+			u8 hash[20];
+
+			sha1(clusterData + hashID * 0x400, 0x400, hash);
+
+			// Note that we do not use strncmp here
+			if (memcmp(hash, clusterMD + hashID * 20, 20))
+			{
+				NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: hash %d is invalid", clusterID, hashID);
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 } // namespace

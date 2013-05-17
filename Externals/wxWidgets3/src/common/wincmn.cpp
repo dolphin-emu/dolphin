@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp 67285 2011-03-22 17:15:38Z VZ $
+// RCS-ID:      $Id: wincmn.cpp 70838 2012-03-07 23:50:21Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@
 #include "wx/platinfo.h"
 #include "wx/private/window.h"
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     #include "wx/msw/wrapwin.h"
 #endif
 
@@ -554,7 +554,14 @@ void wxWindowBase::SendDestroyEvent()
 
 bool wxWindowBase::Destroy()
 {
-    SendDestroyEvent();
+    // If our handle is invalid, it means that this window has never been
+    // created, either because creating it failed or, more typically, because
+    // this wxWindow object was default-constructed and its Create() method had
+    // never been called. As we didn't send wxWindowCreateEvent in this case
+    // (which is sent after successful creation), don't send the matching
+    // wxWindowDestroyEvent neither.
+    if ( GetHandle() )
+        SendDestroyEvent();
 
     delete this;
 
@@ -1521,7 +1528,7 @@ wxColour wxWindowBase::GetBackgroundColour() const
         // wxWidgets versions where GetBackgroundColour() always returned
         // something -- so give them something even if it doesn't make sense
         // for this window (e.g. it has a themed background)
-        if ( !colBg.Ok() )
+        if ( !colBg.IsOk() )
             colBg = GetClassDefaultAttributes().colBg;
 
         return colBg;
@@ -1533,7 +1540,7 @@ wxColour wxWindowBase::GetBackgroundColour() const
 wxColour wxWindowBase::GetForegroundColour() const
 {
     // logic is the same as above
-    if ( !m_hasFgCol && !m_foregroundColour.Ok() )
+    if ( !m_hasFgCol && !m_foregroundColour.IsOk() )
     {
         wxColour colFg = GetDefaultAttributes().colFg;
 
@@ -1546,6 +1553,39 @@ wxColour wxWindowBase::GetForegroundColour() const
         return m_foregroundColour;
 }
 
+bool wxWindowBase::SetBackgroundStyle(wxBackgroundStyle style)
+{
+    // The checks below shouldn't be triggered if we're not really changing the
+    // style.
+    if ( style == m_backgroundStyle )
+        return true;
+
+    // Transparent background style can be only set before creation because of
+    // wxGTK limitation.
+    wxCHECK_MSG( (style != wxBG_STYLE_TRANSPARENT) || !GetHandle(),
+                 false,
+                 "wxBG_STYLE_TRANSPARENT style can only be set before "
+                 "Create()-ing the window." );
+
+    // And once it is set, wxBG_STYLE_TRANSPARENT can't be unset.
+    wxCHECK_MSG( (m_backgroundStyle != wxBG_STYLE_TRANSPARENT) ||
+                 (style == wxBG_STYLE_TRANSPARENT),
+                 false,
+                 "wxBG_STYLE_TRANSPARENT can't be unset once it was set." );
+
+    m_backgroundStyle = style;
+
+    return true;
+}
+
+bool wxWindowBase::IsTransparentBackgroundSupported(wxString *reason) const
+{
+    if ( reason )
+        *reason = _("This platform does not support background transparency.");
+
+    return false;
+}
+
 bool wxWindowBase::SetBackgroundColour( const wxColour &colour )
 {
     if ( colour == m_backgroundColour )
@@ -1555,7 +1595,7 @@ bool wxWindowBase::SetBackgroundColour( const wxColour &colour )
 
     m_inheritBgCol = m_hasBgCol;
     m_backgroundColour = colour;
-    SetThemeEnabled( !m_hasBgCol && !m_foregroundColour.Ok() );
+    SetThemeEnabled( !m_hasBgCol && !m_foregroundColour.IsOk() );
     return true;
 }
 
@@ -1567,7 +1607,7 @@ bool wxWindowBase::SetForegroundColour( const wxColour &colour )
     m_hasFgCol = colour.IsOk();
     m_inheritFgCol = m_hasFgCol;
     m_foregroundColour = colour;
-    SetThemeEnabled( !m_hasFgCol && !m_backgroundColour.Ok() );
+    SetThemeEnabled( !m_hasFgCol && !m_backgroundColour.IsOk() );
     return true;
 }
 
@@ -1876,6 +1916,7 @@ wxWindowBase::FindWindowById( long id, const wxWindow* parent )
 // dialog oriented functions
 // ----------------------------------------------------------------------------
 
+#if WXWIN_COMPATIBILITY_2_8
 void wxWindowBase::MakeModal(bool modal)
 {
     // Disable all other windows
@@ -1892,6 +1933,7 @@ void wxWindowBase::MakeModal(bool modal)
         }
     }
 }
+#endif // WXWIN_COMPATIBILITY_2_8
 
 bool wxWindowBase::Validate()
 {
@@ -2112,6 +2154,13 @@ void wxWindowBase::DoSetToolTip(wxToolTip *tooltip)
 
         m_tooltip = tooltip;
     }
+}
+
+bool wxWindowBase::CopyToolTip(wxToolTip *tip)
+{
+    SetToolTip(tip ? new wxToolTip(tip->GetTip()) : NULL);
+
+    return tip != NULL;
 }
 
 #endif // wxUSE_TOOLTIPS
@@ -2560,17 +2609,12 @@ void wxWindowBase::GetPositionConstraint(int *x, int *y) const
 
 void wxWindowBase::AdjustForParentClientOrigin(int& x, int& y, int sizeFlags) const
 {
-    // don't do it for the dialogs/frames - they float independently of their
-    // parent
-    if ( !IsTopLevel() )
+    wxWindow *parent = GetParent();
+    if ( !(sizeFlags & wxSIZE_NO_ADJUSTMENTS) && parent )
     {
-        wxWindow *parent = GetParent();
-        if ( !(sizeFlags & wxSIZE_NO_ADJUSTMENTS) && parent )
-        {
-            wxPoint pt(parent->GetClientAreaOrigin());
-            x += pt.x;
-            y += pt.y;
-        }
+        wxPoint pt(parent->GetClientAreaOrigin());
+        x += pt.x;
+        y += pt.y;
     }
 }
 
@@ -2644,7 +2688,7 @@ bool wxWindowBase::SendIdleEvents(wxIdleEvent& event)
 
 void wxWindowBase::OnInternalIdle()
 {
-    if (wxUpdateUIEvent::CanUpdate(this) && IsShownOnScreen())
+    if ( wxUpdateUIEvent::CanUpdate(this) )
         UpdateWindowUI(wxUPDATE_UI_FROMIDLE);
 }
 
@@ -2967,19 +3011,19 @@ wxAccessible* wxWindowBase::CreateAccessible()
 // list classes implementation
 // ----------------------------------------------------------------------------
 
-#if wxUSE_STL
+#if wxUSE_STD_CONTAINERS
 
 #include "wx/listimpl.cpp"
 WX_DEFINE_LIST(wxWindowList)
 
-#else // !wxUSE_STL
+#else // !wxUSE_STD_CONTAINERS
 
 void wxWindowListNode::DeleteData()
 {
     delete (wxWindow *)GetData();
 }
 
-#endif // wxUSE_STL/!wxUSE_STL
+#endif // wxUSE_STD_CONTAINERS/!wxUSE_STD_CONTAINERS
 
 // ----------------------------------------------------------------------------
 // borders
@@ -3283,8 +3327,8 @@ void wxWindowBase::DoMoveInTabOrder(wxWindow *win, WindowOrder move)
     wxWindowList::compatibility_iterator i = siblings.Find(win);
     wxCHECK_RET( i, wxT("MoveBefore/AfterInTabOrder(): win is not a sibling") );
 
-    // unfortunately, when wxUSE_STL == 1 DetachNode() is not implemented so we
-    // can't just move the node around
+    // unfortunately, when wxUSE_STD_CONTAINERS == 1 DetachNode() is not
+    // implemented so we can't just move the node around
     wxWindow *self = (wxWindow *)this;
     siblings.DeleteObject(self);
     if ( move == OrderAfter )
@@ -3314,9 +3358,9 @@ void wxWindowBase::DoMoveInTabOrder(wxWindow *win, WindowOrder move)
 
 bool wxWindowBase::HasFocus() const
 {
-    wxWindowBase *win = DoFindFocus();
-    return win == this ||
-           win == wxConstCast(this, wxWindowBase)->GetMainWindowOfCompositeControl();
+    wxWindowBase* const win = DoFindFocus();
+    return win &&
+            (this == win || this == win->GetMainWindowOfCompositeControl());
 }
 
 // ----------------------------------------------------------------------------

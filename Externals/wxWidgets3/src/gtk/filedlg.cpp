@@ -2,7 +2,7 @@
 // Name:        src/gtk/filedlg.cpp
 // Purpose:     native implementation of wxFileDialog
 // Author:      Robert Roebling, Zbigniew Zagorski, Mart Raudsepp
-// Id:          $Id: filedlg.cpp 64381 2010-05-22 12:07:54Z VZ $
+// Id:          $Id: filedlg.cpp 70898 2012-03-14 12:32:27Z VZ $
 // Copyright:   (c) 1998 Robert Roebling, 2004 Zbigniew Zagorski, 2005 Mart Raudsepp
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,9 @@
 #include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 
+#ifdef __UNIX__
 #include <unistd.h> // chdir
+#endif
 
 #include "wx/filename.h" // wxFilename
 #include "wx/tokenzr.h" // wxStringTokenizer
@@ -173,12 +175,23 @@ wxFileDialog::wxFileDialog(wxWindow *parent, const wxString& message,
                            const wxString& name)
     : wxFileDialogBase()
 {
+    Create(parent, message, defaultDir, defaultFileName, wildCard, style, pos, sz, name);
+}
+
+bool wxFileDialog::Create(wxWindow *parent, const wxString& message,
+                           const wxString& defaultDir,
+                           const wxString& defaultFileName,
+                           const wxString& wildCard,
+                           long style, const wxPoint& pos,
+                           const wxSize& sz,
+                           const wxString& name)
+{
     parent = GetParentForModalDialog(parent, style);
 
     if (!wxFileDialogBase::Create(parent, message, defaultDir, defaultFileName,
                                   wildCard, style, pos, sz, name))
     {
-        return;
+        return false;
     }
 
     if (!PreCreation(parent, pos, wxDefaultSize) ||
@@ -186,7 +199,7 @@ wxFileDialog::wxFileDialog(wxWindow *parent, const wxString& message,
                 wxDefaultValidator, wxT("filedialog")))
     {
         wxFAIL_MSG( wxT("wxFileDialog creation failed") );
-        return;
+        return false;
     }
 
     GtkFileChooserAction gtk_action;
@@ -235,7 +248,7 @@ wxFileDialog::wxFileDialog(wxWindow *parent, const wxString& message,
     // local-only property could be set to false to allow non-local files to be
     // loaded. In that case get/set_uri(s) should be used instead of
     // get/set_filename(s) everywhere and the GtkFileChooserDialog should
-    // probably also be created with a backend, e.g "gnome-vfs", "default", ...
+    // probably also be created with a backend, e.g. "gnome-vfs", "default", ...
     // (gtk_file_chooser_dialog_new_with_backend). Currently local-only is kept
     // as the default - true:
     // gtk_file_chooser_set_local_only(GTK_FILE_CHOOSER(m_widget), true);
@@ -309,6 +322,8 @@ wxFileDialog::wxFileDialog(wxWindow *parent, const wxString& message,
                          G_CALLBACK(gtk_filedialog_update_preview_callback),
                          previewImage);
     }
+
+    return true;
 }
 
 wxFileDialog::~wxFileDialog()
@@ -369,10 +384,17 @@ void wxFileDialog::SetMessage(const wxString& message)
 
 void wxFileDialog::SetPath(const wxString& path)
 {
+    // Don't do anything if no path is specified, in particular don't set the
+    // path to m_dir below as this would result in opening the dialog in the
+    // parent directory of this one instead of m_dir itself.
+    if ( path.empty() )
+        return;
+
     // we need an absolute path for GTK native chooser so ensure that we have
-    // it
+    // it: use the initial directory if it was set or just CWD otherwise (this
+    // is the default behaviour if m_dir is empty)
     wxFileName fn(path);
-    fn.MakeAbsolute();
+    fn.MakeAbsolute(m_dir);
     m_fc.SetPath(fn.GetFullPath());
 }
 

@@ -2,7 +2,7 @@
 // Name:        src/gtk/popupwin.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: popupwin.cpp 62754 2009-12-01 16:23:48Z PC $
+// Id:          $Id: popupwin.cpp 70739 2012-02-28 17:25:59Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ static gint gtk_popup_button_press (GtkWidget *widget, GdkEvent *gdk_event, wxPo
         {
             if (child == widget)
                 return FALSE;
-            child = child->parent;
+            child = gtk_widget_get_parent(child);
         }
     }
 
@@ -71,14 +71,6 @@ bool gtk_dialog_delete_callback( GtkWidget *WXUNUSED(widget), GdkEvent *WXUNUSED
 
     return TRUE;
 }
-}
-
-void wxPopupWindow::AddChildGTK(wxWindowGTK* child)
-{
-    gtk_widget_set_size_request(
-        child->m_widget, child->m_width, child->m_height);
-    gtk_fixed_put(
-        GTK_FIXED(m_wxwindow), child->m_widget, child->m_x, child->m_y);
 }
 
 //-----------------------------------------------------------------------------

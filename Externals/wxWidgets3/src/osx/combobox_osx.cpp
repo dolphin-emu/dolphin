@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox_osx.cpp 67243 2011-03-19 08:36:23Z SC $
+// RCS-ID:      $Id: combobox_osx.cpp 69948 2011-12-07 23:41:06Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,10 +22,6 @@
 // work in progress
 
 wxComboBox::~wxComboBox()
-{
-}
-
-void wxComboBox::Init()
 {
 }
 
@@ -217,6 +213,16 @@ bool wxComboBox::OSXHandleClicked( double WXUNUSED(timestampsec) )
 wxComboWidgetImpl* wxComboBox::GetComboPeer() const
 {
     return dynamic_cast<wxComboWidgetImpl*> (GetPeer());
+}
+
+void wxComboBox::Popup()
+{
+    GetComboPeer()->Popup();
+}
+
+void wxComboBox::Dismiss()
+{
+    GetComboPeer()->Dismiss();
 }
 
 #endif // wxUSE_COMBOBOX && wxOSX_USE_COCOA

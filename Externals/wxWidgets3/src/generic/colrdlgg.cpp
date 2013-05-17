@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: colrdlgg.cpp 66615 2011-01-07 05:26:57Z PC $
+// RCS-ID:      $Id: colrdlgg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -315,7 +315,7 @@ void wxGenericColourDialog::InitializeColours(void)
     for (i = 0; i < WXSIZEOF(wxColourDialogNames); i++)
     {
         wxColour col = wxTheColourDatabase->Find(wxColourDialogNames[i]);
-        if (col.Ok())
+        if (col.IsOk())
             m_standardColours[i].Set(col.Red(), col.Green(), col.Blue());
         else
             m_standardColours[i].Set(0, 0, 0);
@@ -324,14 +324,14 @@ void wxGenericColourDialog::InitializeColours(void)
     for (i = 0; i < WXSIZEOF(m_customColours); i++)
     {
         wxColour c = m_colourData.GetCustomColour(i);
-        if (c.Ok())
+        if (c.IsOk())
             m_customColours[i] = m_colourData.GetCustomColour(i);
         else
             m_customColours[i] = wxColour(255, 255, 255);
     }
 
     wxColour curr = m_colourData.GetColour();
-    if ( curr.Ok() )
+    if ( curr.IsOk() )
     {
         bool m_initColourFound = false;
 

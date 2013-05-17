@@ -2,7 +2,7 @@
 // Name:        wx/gtk/listbox.h
 // Purpose:     wxListBox class declaration
 // Author:      Robert Roebling
-// Id:          $Id: listbox.h 65936 2010-10-27 23:22:00Z VZ $
+// Id:          $Id: listbox.h 67298 2011-03-23 17:36:10Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -82,11 +82,7 @@ public:
 
     // implementation from now on
 
-    GtkWidget *GetConnectWidget();
-
-#if wxUSE_TOOLTIPS
-    void GTKApplyToolTip( GtkTooltips *tips, const gchar *tip );
-#endif // wxUSE_TOOLTIPS
+    virtual GtkWidget *GetConnectWidget();
 
     struct _GtkTreeView   *m_treeview;
     struct _GtkListStore  *m_liststore;

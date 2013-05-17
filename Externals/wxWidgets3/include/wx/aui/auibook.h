@@ -24,7 +24,7 @@
 #include "wx/aui/framemanager.h"
 #include "wx/aui/dockart.h"
 #include "wx/aui/floatpane.h"
-#include "wx/control.h"
+#include "wx/bookctrl.h"
 
 
 class wxAuiNotebook;
@@ -60,40 +60,28 @@ enum wxAuiNotebookOption
 
 // aui notebook event class
 
-class WXDLLIMPEXP_AUI wxAuiNotebookEvent : public wxNotifyEvent
+class WXDLLIMPEXP_AUI wxAuiNotebookEvent : public wxBookCtrlEvent
 {
 public:
-    wxAuiNotebookEvent(wxEventType command_type = wxEVT_NULL,
-                       int win_id = 0)
-          : wxNotifyEvent(command_type, win_id)
+    wxAuiNotebookEvent(wxEventType commandType = wxEVT_NULL,
+                       int winId = 0)
+          : wxBookCtrlEvent(commandType, winId)
     {
-        old_selection = -1;
-        selection = -1;
-        drag_source = NULL;
+        m_dragSource = NULL;
     }
 #ifndef SWIG
-    wxAuiNotebookEvent(const wxAuiNotebookEvent& c) : wxNotifyEvent(c)
+    wxAuiNotebookEvent(const wxAuiNotebookEvent& c) : wxBookCtrlEvent(c)
     {
-        old_selection = c.old_selection;
-        selection = c.selection;
-        drag_source = c.drag_source;
+        m_dragSource = c.m_dragSource;
     }
 #endif
     wxEvent *Clone() const { return new wxAuiNotebookEvent(*this); }
 
-    void SetSelection(int s) { selection = s; m_commandInt = s; }
-    int GetSelection() const { return selection; }
+    void SetDragSource(wxAuiNotebook* s) { m_dragSource = s; }
+    wxAuiNotebook* GetDragSource() const { return m_dragSource; }
 
-    void SetOldSelection(int s) { old_selection = s; }
-    int GetOldSelection() const { return old_selection; }
-
-    void SetDragSource(wxAuiNotebook* s) { drag_source = s; }
-    wxAuiNotebook* GetDragSource() const { return drag_source; }
-
-public:
-    int old_selection;
-    int selection;
-    wxAuiNotebook* drag_source;
+private:
+    wxAuiNotebook* m_dragSource;
 
 #ifndef SWIG
 private:
@@ -117,10 +105,10 @@ class WXDLLIMPEXP_AUI wxAuiTabContainerButton
 public:
 
     int id;               // button's id
-    int cur_state;        // current state (normal, hover, pressed, etc.)
+    int curState;        // current state (normal, hover, pressed, etc.)
     int location;         // buttons location (wxLEFT, wxRIGHT, or wxCENTER)
     wxBitmap bitmap;      // button's hover bitmap
-    wxBitmap dis_bitmap;  // button's disabled bitmap
+    wxBitmap disBitmap;  // button's disabled bitmap
     wxRect rect;          // button's hit rectangle
 };
 
@@ -143,12 +131,14 @@ public:
     virtual wxAuiTabArt* Clone() = 0;
     virtual void SetFlags(unsigned int flags) = 0;
 
-    virtual void SetSizingInfo(const wxSize& tab_ctrl_size,
-                               size_t tab_count) = 0;
+    virtual void SetSizingInfo(const wxSize& tabCtrlSize,
+                               size_t tabCount) = 0;
 
     virtual void SetNormalFont(const wxFont& font) = 0;
     virtual void SetSelectedFont(const wxFont& font) = 0;
     virtual void SetMeasuringFont(const wxFont& font) = 0;
+    virtual void SetColour(const wxColour& colour) = 0;
+    virtual void SetActiveColour(const wxColour& colour) = 0;
 
     virtual void DrawBackground(
                          wxDC& dc,
@@ -158,20 +148,20 @@ public:
     virtual void DrawTab(wxDC& dc,
                          wxWindow* wnd,
                          const wxAuiNotebookPage& pane,
-                         const wxRect& in_rect,
-                         int close_button_state,
-                         wxRect* out_tab_rect,
-                         wxRect* out_button_rect,
-                         int* x_extent) = 0;
+                         const wxRect& inRect,
+                         int closeButtonState,
+                         wxRect* outTabRect,
+                         wxRect* outButtonRect,
+                         int* xExtent) = 0;
 
     virtual void DrawButton(
                          wxDC& dc,
                          wxWindow* wnd,
-                         const wxRect& in_rect,
-                         int bitmap_id,
-                         int button_state,
+                         const wxRect& inRect,
+                         int bitmapId,
+                         int buttonState,
                          int orientation,
-                         wxRect* out_rect) = 0;
+                         wxRect* outRect) = 0;
 
     virtual wxSize GetTabSize(
                          wxDC& dc,
@@ -179,20 +169,20 @@ public:
                          const wxString& caption,
                          const wxBitmap& bitmap,
                          bool active,
-                         int close_button_state,
-                         int* x_extent) = 0;
+                         int closeButtonState,
+                         int* xExtent) = 0;
 
     virtual int ShowDropDown(
                          wxWindow* wnd,
                          const wxAuiNotebookPageArray& items,
-                         int active_idx) = 0;
+                         int activeIdx) = 0;
 
     virtual int GetIndentSize() = 0;
 
     virtual int GetBestTabCtrlSize(
                          wxWindow* wnd,
                          const wxAuiNotebookPageArray& pages,
-                         const wxSize& required_bmp_size) = 0;
+                         const wxSize& requiredBmpSize) = 0;
 };
 
 
@@ -206,12 +196,14 @@ public:
 
     wxAuiTabArt* Clone();
     void SetFlags(unsigned int flags);
-    void SetSizingInfo(const wxSize& tab_ctrl_size,
-                       size_t tab_count);
+    void SetSizingInfo(const wxSize& tabCtrlSize,
+                       size_t tabCount);
 
     void SetNormalFont(const wxFont& font);
     void SetSelectedFont(const wxFont& font);
     void SetMeasuringFont(const wxFont& font);
+    void SetColour(const wxColour& colour);
+    void SetActiveColour(const wxColour& colour);
 
     void DrawBackground(
                  wxDC& dc,
@@ -221,20 +213,20 @@ public:
     void DrawTab(wxDC& dc,
                  wxWindow* wnd,
                  const wxAuiNotebookPage& pane,
-                 const wxRect& in_rect,
-                 int close_button_state,
-                 wxRect* out_tab_rect,
-                 wxRect* out_button_rect,
-                 int* x_extent);
+                 const wxRect& inRect,
+                 int closeButtonState,
+                 wxRect* outTabRect,
+                 wxRect* outButtonRect,
+                 int* xExtent);
 
     void DrawButton(
                  wxDC& dc,
                  wxWindow* wnd,
-                 const wxRect& in_rect,
-                 int bitmap_id,
-                 int button_state,
+                 const wxRect& inRect,
+                 int bitmapId,
+                 int buttonState,
                  int orientation,
-                 wxRect* out_rect);
+                 wxRect* outRect);
 
     int GetIndentSize();
 
@@ -244,38 +236,39 @@ public:
                  const wxString& caption,
                  const wxBitmap& bitmap,
                  bool active,
-                 int close_button_state,
-                 int* x_extent);
+                 int closeButtonState,
+                 int* xExtent);
 
     int ShowDropDown(
                  wxWindow* wnd,
                  const wxAuiNotebookPageArray& items,
-                 int active_idx);
+                 int activeIdx);
 
     int GetBestTabCtrlSize(wxWindow* wnd,
                  const wxAuiNotebookPageArray& pages,
-                 const wxSize& required_bmp_size);
+                 const wxSize& requiredBmpSize);
 
 protected:
 
-    wxFont m_normal_font;
-    wxFont m_selected_font;
-    wxFont m_measuring_font;
-    wxColour m_base_colour;
-    wxPen m_base_colour_pen;
-    wxPen m_border_pen;
-    wxBrush m_base_colour_brush;
-    wxBitmap m_active_close_bmp;
-    wxBitmap m_disabled_close_bmp;
-    wxBitmap m_active_left_bmp;
-    wxBitmap m_disabled_left_bmp;
-    wxBitmap m_active_right_bmp;
-    wxBitmap m_disabled_right_bmp;
-    wxBitmap m_active_windowlist_bmp;
-    wxBitmap m_disabled_windowlist_bmp;
+    wxFont m_normalFont;
+    wxFont m_selectedFont;
+    wxFont m_measuringFont;
+    wxColour m_baseColour;
+    wxPen m_baseColourPen;
+    wxPen m_borderPen;
+    wxBrush m_baseColourBrush;
+    wxColour m_activeColour;
+    wxBitmap m_activeCloseBmp;
+    wxBitmap m_disabledCloseBmp;
+    wxBitmap m_activeLeftBmp;
+    wxBitmap m_disabledLeftBmp;
+    wxBitmap m_activeRightBmp;
+    wxBitmap m_disabledRightBmp;
+    wxBitmap m_activeWindowListBmp;
+    wxBitmap m_disabledWindowListBmp;
 
-    int m_fixed_tab_width;
-    int m_tab_ctrl_height;
+    int m_fixedTabWidth;
+    int m_tabCtrlHeight;
     unsigned int m_flags;
 };
 
@@ -291,12 +284,14 @@ public:
     wxAuiTabArt* Clone();
     void SetFlags(unsigned int flags);
 
-    void SetSizingInfo(const wxSize& tab_ctrl_size,
-                       size_t tab_count);
+    void SetSizingInfo(const wxSize& tabCtrlSize,
+                       size_t tabCount);
 
     void SetNormalFont(const wxFont& font);
     void SetSelectedFont(const wxFont& font);
     void SetMeasuringFont(const wxFont& font);
+    void SetColour(const wxColour& colour);
+    void SetActiveColour(const wxColour& colour);
 
     void DrawBackground(
                  wxDC& dc,
@@ -306,20 +301,20 @@ public:
     void DrawTab(wxDC& dc,
                  wxWindow* wnd,
                  const wxAuiNotebookPage& pane,
-                 const wxRect& in_rect,
-                 int close_button_state,
-                 wxRect* out_tab_rect,
-                 wxRect* out_button_rect,
-                 int* x_extent);
+                 const wxRect& inRect,
+                 int closeButtonState,
+                 wxRect* outTabRect,
+                 wxRect* outButtonRect,
+                 int* xExtent);
 
     void DrawButton(
                  wxDC& dc,
                  wxWindow* wnd,
-                 const wxRect& in_rect,
-                 int bitmap_id,
-                 int button_state,
+                 const wxRect& inRect,
+                 int bitmapId,
+                 int buttonState,
                  int orientation,
-                 wxRect* out_rect);
+                 wxRect* outRect);
 
     int GetIndentSize();
 
@@ -329,38 +324,38 @@ public:
                  const wxString& caption,
                  const wxBitmap& bitmap,
                  bool active,
-                 int close_button_state,
-                 int* x_extent);
+                 int closeButtonState,
+                 int* xExtent);
 
     int ShowDropDown(
                  wxWindow* wnd,
                  const wxAuiNotebookPageArray& items,
-                 int active_idx);
+                 int activeIdx);
 
     int GetBestTabCtrlSize(wxWindow* wnd,
                  const wxAuiNotebookPageArray& pages,
-                 const wxSize& required_bmp_size);
+                 const wxSize& requiredBmpSize);
 
 protected:
 
-    wxFont m_normal_font;
-    wxFont m_selected_font;
-    wxFont m_measuring_font;
-    wxPen m_normal_bkpen;
-    wxPen m_selected_bkpen;
-    wxBrush m_normal_bkbrush;
-    wxBrush m_selected_bkbrush;
-    wxBrush m_bkbrush;
-    wxBitmap m_active_close_bmp;
-    wxBitmap m_disabled_close_bmp;
-    wxBitmap m_active_left_bmp;
-    wxBitmap m_disabled_left_bmp;
-    wxBitmap m_active_right_bmp;
-    wxBitmap m_disabled_right_bmp;
-    wxBitmap m_active_windowlist_bmp;
-    wxBitmap m_disabled_windowlist_bmp;
+    wxFont m_normalFont;
+    wxFont m_selectedFont;
+    wxFont m_measuringFont;
+    wxPen m_normalBkPen;
+    wxPen m_selectedBkPen;
+    wxBrush m_normalBkBrush;
+    wxBrush m_selectedBkBrush;
+    wxBrush m_bkBrush;
+    wxBitmap m_activeCloseBmp;
+    wxBitmap m_disabledCloseBmp;
+    wxBitmap m_activeLeftBmp;
+    wxBitmap m_disabledLeftBmp;
+    wxBitmap m_activeRightBmp;
+    wxBitmap m_disabledRightBmp;
+    wxBitmap m_activeWindowListBmp;
+    wxBitmap m_disabledWindowListBmp;
 
-    int m_fixed_tab_width;
+    int m_fixedTabWidth;
     unsigned int m_flags;
 };
 
@@ -387,7 +382,7 @@ public:
 
     bool AddPage(wxWindow* page, const wxAuiNotebookPage& info);
     bool InsertPage(wxWindow* page, const wxAuiNotebookPage& info, size_t idx);
-    bool MovePage(wxWindow* page, size_t new_idx);
+    bool MovePage(wxWindow* page, size_t newIdx);
     bool RemovePage(wxWindow* page);
     bool SetActivePage(wxWindow* page);
     bool SetActivePage(size_t page);
@@ -401,17 +396,19 @@ public:
     wxAuiNotebookPage& GetPage(size_t idx);
     const wxAuiNotebookPage& GetPage(size_t idx) const;
     wxAuiNotebookPageArray& GetPages();
-    void SetNormalFont(const wxFont& normal_font);
-    void SetSelectedFont(const wxFont& selected_font);
-    void SetMeasuringFont(const wxFont& measuring_font);
+    void SetNormalFont(const wxFont& normalFont);
+    void SetSelectedFont(const wxFont& selectedFont);
+    void SetMeasuringFont(const wxFont& measuringFont);
+    void SetColour(const wxColour& colour);
+    void SetActiveColour(const wxColour& colour);
     void DoShowHide();
     void SetRect(const wxRect& rect);
 
     void RemoveButton(int id);
     void AddButton(int id,
                    int location,
-                   const wxBitmap& normal_bitmap = wxNullBitmap,
-                   const wxBitmap& disabled_bitmap = wxNullBitmap);
+                   const wxBitmap& normalBitmap = wxNullBitmap,
+                   const wxBitmap& disabledBitmap = wxNullBitmap);
 
     size_t GetTabOffset() const;
     void SetTabOffset(size_t offset);
@@ -431,9 +428,9 @@ protected:
     wxAuiTabArt* m_art;
     wxAuiNotebookPageArray m_pages;
     wxAuiTabContainerButtonArray m_buttons;
-    wxAuiTabContainerButtonArray m_tab_close_buttons;
+    wxAuiTabContainerButtonArray m_tabCloseButtons;
     wxRect m_rect;
-    size_t m_tab_offset;
+    size_t m_tabOffset;
     unsigned int m_flags;
 };
 
@@ -452,7 +449,7 @@ public:
 
     ~wxAuiTabCtrl();
 
-    bool IsDragging() const { return m_is_dragging; }
+    bool IsDragging() const { return m_isDragging; }
 
 protected:
     // choose the default border for this window
@@ -478,11 +475,11 @@ protected:
 
 protected:
 
-    wxPoint m_click_pt;
-    wxWindow* m_click_tab;
-    bool m_is_dragging;
-    wxAuiTabContainerButton* m_hover_button;
-    wxAuiTabContainerButton* m_pressed_button;
+    wxPoint m_clickPt;
+    wxWindow* m_clickTab;
+    bool m_isDragging;
+    wxAuiTabContainerButton* m_hoverButton;
+    wxAuiTabContainerButton* m_pressedButton;
 
 #ifndef SWIG
     DECLARE_CLASS(wxAuiTabCtrl)
@@ -493,18 +490,22 @@ protected:
 
 
 
-class WXDLLIMPEXP_AUI wxAuiNotebook : public wxControl
+class WXDLLIMPEXP_AUI wxAuiNotebook : public wxNavigationEnabled<wxBookCtrlBase>
 {
 
 public:
 
-    wxAuiNotebook();
+    wxAuiNotebook() { Init(); }
 
     wxAuiNotebook(wxWindow* parent,
                   wxWindowID id = wxID_ANY,
                   const wxPoint& pos = wxDefaultPosition,
                   const wxSize& size = wxDefaultSize,
-                  long style = wxAUI_NB_DEFAULT_STYLE);
+                  long style = wxAUI_NB_DEFAULT_STYLE)
+    {
+        Init();
+        Create(parent, id, pos, size, style);
+    }
 
     virtual ~wxAuiNotebook();
 
@@ -526,7 +527,7 @@ public:
                  bool select = false,
                  const wxBitmap& bitmap = wxNullBitmap);
 
-    bool InsertPage(size_t page_idx,
+    bool InsertPage(size_t pageIdx,
                     wxWindow* page,
                     const wxString& caption,
                     bool select = false,
@@ -536,16 +537,16 @@ public:
     bool RemovePage(size_t page);
 
     size_t GetPageCount() const;
-    wxWindow* GetPage(size_t page_idx) const;
-    int GetPageIndex(wxWindow* page_wnd) const;
+    wxWindow* GetPage(size_t pageIdx) const;
+    int GetPageIndex(wxWindow* pageWnd) const;
 
     bool SetPageText(size_t page, const wxString& text);
-    wxString GetPageText(size_t page_idx) const;
+    wxString GetPageText(size_t pageIdx) const;
 
     bool SetPageBitmap(size_t page, const wxBitmap& bitmap);
-    wxBitmap GetPageBitmap(size_t page_idx) const;
+    wxBitmap GetPageBitmap(size_t pageIdx) const;
 
-    size_t SetSelection(size_t new_page);
+    int SetSelection(size_t newPage);
     int GetSelection() const;
 
     virtual void Split(size_t page, int direction);
@@ -585,7 +586,28 @@ public:
     // Redo sizing after thawing
     virtual void Thaw();
 
+    //wxBookCtrlBase functions
+
+    virtual void SetPageSize (const wxSize &size);
+    virtual int  HitTest (const wxPoint &pt, long *flags=NULL) const;
+
+    virtual int GetPageImage(size_t n) const;
+    virtual bool SetPageImage(size_t n, int imageId);
+
+    wxWindow* GetCurrentPage () const;
+
+    virtual int ChangeSelection(size_t n);
+
+    virtual bool AddPage(wxWindow *page, const wxString &text, bool select, 
+                         int imageId);
+    virtual bool DeleteAllPages();
+    virtual bool InsertPage(size_t index, wxWindow *page, const wxString &text,
+                            bool select, int imageId);
+
 protected:
+    // Common part of all ctors.
+    void Init();
+
     // choose the default border for this window
     virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
 
@@ -598,12 +620,18 @@ protected:
     virtual int CalculateTabCtrlHeight();
     virtual wxSize CalculateNewSplitSize();
 
+    // remove the page and return a pointer to it
+    virtual wxWindow *DoRemovePage(size_t WXUNUSED(page)) { return NULL; }
+
+    //A general selection function
+    virtual int DoModifySelection(size_t n, bool events);
+
 protected:
 
     void DoSizing();
     void InitNotebook(long style);
     wxAuiTabCtrl* GetTabCtrlFromPoint(const wxPoint& pt);
-    wxWindow* GetTabFrameFromTabCtrl(wxWindow* tab_ctrl);
+    wxWindow* GetTabFrameFromTabCtrl(wxWindow* tabCtrl);
     wxAuiTabCtrl* GetActiveTabCtrl();
     bool FindTab(wxWindow* page, wxAuiTabCtrl** ctrl, int* idx);
     void RemoveEmptyTabFrames();
@@ -618,6 +646,7 @@ protected:
     void OnTabBeginDrag(wxAuiNotebookEvent& evt);
     void OnTabDragMotion(wxAuiNotebookEvent& evt);
     void OnTabEndDrag(wxAuiNotebookEvent& evt);
+    void OnTabCancelDrag(wxAuiNotebookEvent& evt);
     void OnTabButton(wxAuiNotebookEvent& evt);
     void OnTabMiddleDown(wxAuiNotebookEvent& evt);
     void OnTabMiddleUp(wxAuiNotebookEvent& evt);
@@ -638,26 +667,23 @@ protected:
 
     wxAuiManager m_mgr;
     wxAuiTabContainer m_tabs;
-    int m_curpage;
-    int m_tab_id_counter;
-    wxWindow* m_dummy_wnd;
+    int m_curPage;
+    int m_tabIdCounter;
+    wxWindow* m_dummyWnd;
 
-    wxSize m_requested_bmp_size;
-    int m_requested_tabctrl_height;
-    wxFont m_selected_font;
-    wxFont m_normal_font;
-    int m_tab_ctrl_height;
+    wxSize m_requestedBmpSize;
+    int m_requestedTabCtrlHeight;
+    wxFont m_selectedFont;
+    wxFont m_normalFont;
+    int m_tabCtrlHeight;
 
-    int m_last_drag_x;
+    int m_lastDragX;
     unsigned int m_flags;
 
 #ifndef SWIG
     DECLARE_CLASS(wxAuiNotebook)
     DECLARE_EVENT_TABLE()
 #endif
-
-    WX_DECLARE_CONTROL_CONTAINER();
-
 };
 
 

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: xtixml.h 66621 2011-01-07 17:22:59Z SC $
+// RCS-ID:      $Id: xtixml.h 70397 2012-01-19 09:45:49Z SC $
 // Copyright:   (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,6 +19,7 @@
 #include "wx/string.h"
 #include "wx/xtistrm.h"
 
+/*
 class WXDLLIMPEXP_XML wxXmlNode;
 class WXDLLIMPEXP_BASE wxPropertyInfo;
 class WXDLLIMPEXP_BASE wxObject;
@@ -26,6 +27,7 @@ class WXDLLIMPEXP_BASE wxClassInfo;
 class WXDLLIMPEXP_BASE wxAnyList;
 class WXDLLIMPEXP_BASE wxHandlerInfo;
 class WXDLLIMPEXP_BASE wxObjectWriterCallback;
+*/
 
 class WXDLLIMPEXP_XML wxObjectXmlWriter: public wxObjectWriter
 {

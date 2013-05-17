@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "ChunkFile.h"
@@ -75,8 +62,8 @@ enum
 union USIChannelOut
 {
 	u32 Hex;
-	struct  
-	{		
+	struct
+	{
 		u32 OUTPUT1	:	8;
 		u32 OUTPUT0	:	8;
 		u32 CMD		:	8;
@@ -88,8 +75,8 @@ union USIChannelOut
 union USIChannelIn_Hi
 {
 	u32 Hex;
-	struct  
-	{		
+	struct
+	{
 		u32 INPUT3		:	8;
 		u32 INPUT2		:	8;
 		u32 INPUT1		:	8;
@@ -103,7 +90,7 @@ union USIChannelIn_Hi
 union USIChannelIn_Lo
 {
 	u32 Hex;
-	struct  
+	struct
 	{
 		u32 INPUT7		:	8;
 		u32 INPUT6		:	8;
@@ -115,7 +102,7 @@ union USIChannelIn_Lo
 // SI Channel
 struct SSIChannel
 {
-	USIChannelOut	m_Out;		
+	USIChannelOut	m_Out;
 	USIChannelIn_Hi m_InHi;
 	USIChannelIn_Lo m_InLo;
 	ISIDevice*		m_pDevice;
@@ -127,16 +114,16 @@ union USIPoll
 	u32 Hex;
 	struct
 	{
-		u32 VBCPY3	:	1; // 1: write to output buffer only on vblank
+		u32 VBCPY3	:	1;  // 1: write to output buffer only on vblank
 		u32 VBCPY2	:	1;
 		u32 VBCPY1	:	1;
 		u32 VBCPY0	:	1;
-		u32 EN3		:	1; // Enable polling of channel
-		u32 EN2		:	1; //  does not affect communication RAM transfers
+		u32 EN3		:	1;  // Enable polling of channel
+		u32 EN2		:	1;  //  does not affect communication RAM transfers
 		u32 EN1		:	1;
 		u32 EN0		:	1;
-		u32 Y		:   8; // Polls per frame
-		u32 X		:  10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
+		u32 Y		:	8;  // Polls per frame
+		u32 X		:	10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
 		u32			:	6;
 	};
 };
@@ -220,19 +207,45 @@ union USIEXIClockCount
 };
 
 // STATE_TO_SAVE
-static SSIChannel         g_Channel[NUMBER_OF_CHANNELS];
-static USIPoll            g_Poll;
-static USIComCSR          g_ComCSR;
-static USIStatusReg       g_StatusReg;
-static USIEXIClockCount   g_EXIClockCount;
-static u8                 g_SIBuffer[128];
+static SSIChannel			g_Channel[NUMBER_OF_CHANNELS];
+static USIPoll				g_Poll;
+static USIComCSR			g_ComCSR;
+static USIStatusReg			g_StatusReg;
+static USIEXIClockCount		g_EXIClockCount;
+static u8					g_SIBuffer[128];
 
 void DoState(PointerWrap &p)
 {
-	// p.DoArray(g_Channel);
+	for(int i = 0; i < NUMBER_OF_CHANNELS; i++)
+	{
+		p.Do(g_Channel[i].m_InHi.Hex);
+		p.Do(g_Channel[i].m_InLo.Hex);
+		p.Do(g_Channel[i].m_Out.Hex);
+		
+		ISIDevice* pDevice = g_Channel[i].m_pDevice;
+		SIDevices type = pDevice->GetDeviceType();
+		p.Do(type);
+		ISIDevice* pSaveDevice = (type == pDevice->GetDeviceType()) ? pDevice : SIDevice_Create(type, i);
+		pSaveDevice->DoState(p);
+		if(pSaveDevice != pDevice)
+		{
+			// if we had to create a temporary device, discard it if we're not loading.
+			// also, if no movie is active, we'll assume the user wants to keep their current devices
+			// instead of the ones they had when the savestate was created.
+			if(p.GetMode() != PointerWrap::MODE_READ ||
+				(!Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
+			{
+				delete pSaveDevice;
+			}
+			else
+			{
+				AddDevice(pSaveDevice);
+			}
+		}
+	}
 	p.Do(g_Poll);
-	p.Do(g_ComCSR);
-	p.Do(g_StatusReg);
+	p.DoPOD(g_ComCSR);
+	p.DoPOD(g_StatusReg);
 	p.Do(g_EXIClockCount);
 	p.Do(g_SIBuffer);
 }	
@@ -246,10 +259,8 @@ void Init()
 		g_Channel[i].m_InHi.Hex = 0;
 		g_Channel[i].m_InLo.Hex = 0;
 
-		if (Movie::IsUsingPad(i))
-			AddDevice(SIDEVICE_GC_CONTROLLER, i);
-		else if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-			AddDevice(SIDEVICE_NONE, i);
+		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+			AddDevice(Movie::IsUsingPad(i) ?  (Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
 		else
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
 	}
@@ -294,7 +305,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 0
 	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_0_OUT:		
+	case SI_CHANNEL_0_OUT:
 		_uReturnValue = g_Channel[0].m_Out.Hex;
 		break;
 
@@ -313,7 +324,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 1
 	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_1_OUT:		
+	case SI_CHANNEL_1_OUT:
 		_uReturnValue = g_Channel[1].m_Out.Hex;
 		break;
 
@@ -332,7 +343,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 2
 	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_2_OUT:		
+	case SI_CHANNEL_2_OUT:
 		_uReturnValue = g_Channel[2].m_Out.Hex;
 		break;
 
@@ -351,7 +362,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 3
 	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_3_OUT:		
+	case SI_CHANNEL_3_OUT:
 		_uReturnValue = g_Channel[3].m_Out.Hex;
 		break;
 
@@ -378,7 +389,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 
 	default:
 		INFO_LOG(SERIALINTERFACE, "(r32-unk): 0x%08x", _iAddress);
-		_dbg_assert_(SERIALINTERFACE,0);			
+		_dbg_assert_(SERIALINTERFACE,0);
 		break;
 	}
 
@@ -423,7 +434,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		g_Poll.Hex = _iValue;
 		break;
 
-	case SI_COM_CSR:			
+	case SI_COM_CSR:
 		{
 			USIComCSR tmpComCSR(_iValue);
 
@@ -538,15 +549,23 @@ void RemoveDevice(int _iDeviceNumber)
 	g_Channel[_iDeviceNumber].m_pDevice = NULL;
 }
 
-void AddDevice(const SIDevices _device, int _iDeviceNumber)
+void AddDevice(ISIDevice* pDevice)
 {
+	int _iDeviceNumber = pDevice->GetDeviceNumber();
+
 	//_dbg_assert_(SERIALINTERFACE, _iDeviceNumber < NUMBER_OF_CHANNELS);
 
 	// delete the old device
 	RemoveDevice(_iDeviceNumber);
 
 	// create the new one
-	g_Channel[_iDeviceNumber].m_pDevice = SIDevice_Create(_device, _iDeviceNumber);
+	g_Channel[_iDeviceNumber].m_pDevice = pDevice;
+}
+
+void AddDevice(const SIDevices _device, int _iDeviceNumber)
+{
+	ISIDevice* pDevice = SIDevice_Create(_device, _iDeviceNumber);
+	AddDevice(pDevice);
 }
 
 void SetNoResponse(u32 channel)

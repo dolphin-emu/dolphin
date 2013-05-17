@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 13.05.99: complete refont of message handling,
 //              elimination of Default(), ...
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h 67250 2011-03-20 00:00:29Z VZ $
+// RCS-ID:      $Id: window.h 69348 2011-10-09 22:01:57Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -366,7 +366,21 @@ public:
     bool HandlePower(WXWPARAM wParam, WXLPARAM lParam, bool *vetoed);
 
 
-    // Window procedure
+    // The main body of common window proc for all wxWindow objects. It tries
+    // to handle the given message and returns true if it was handled (the
+    // appropriate return value is then put in result, which must be non-NULL)
+    // or false if it wasn't.
+    //
+    // This function should be overridden in any new code instead of
+    // MSWWindowProc() even if currently most of the code overrides
+    // MSWWindowProc() as it had been written before this function was added.
+    virtual bool MSWHandleMessage(WXLRESULT *result,
+                                  WXUINT message,
+                                  WXWPARAM wParam,
+                                  WXLPARAM lParam);
+
+    // Common Window procedure for all wxWindow objects: forwards to
+    // MSWHandleMessage() and MSWDefWindowProc() if the message wasn't handled.
     virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 
     // Calls an appropriate default window procedure
@@ -453,7 +467,13 @@ public:
     // This should be overridden to return true for the controls which have
     // themed background that should through their children. Currently only
     // wxNotebook uses this.
-    virtual bool MSWHasInheritableBackground() const { return false; }
+    //
+    // The base class version already returns true if we have a solid
+    // background colour that should be propagated to our children.
+    virtual bool MSWHasInheritableBackground() const
+    {
+        return InheritsBackgroundColour();
+    }
 
 #if !defined(__WXWINCE__) && !defined(__WXUNIVERSAL__)
     #define wxHAS_MSW_BACKGROUND_ERASE_HOOK
@@ -598,6 +618,14 @@ protected:
     wxKeyEvent CreateKeyEvent(wxEventType evType,
                               WXWPARAM wParam,
                               WXLPARAM lParam = 0) const;
+
+    // Another helper for creating wxKeyEvent for wxEVT_CHAR and related types.
+    //
+    // The wParam and lParam here must come from WM_CHAR event parameters, i.e.
+    // wParam must be a character and not a virtual code.
+    wxKeyEvent CreateCharEvent(wxEventType evType,
+                               WXWPARAM wParam,
+                               WXLPARAM lParam) const;
 
 
     // default OnEraseBackground() implementation, return true if we did erase

@@ -21,6 +21,8 @@
 #include "wx/numformatter.h"
 #include "wx/intl.h"
 
+#include <locale.h> // for setlocale and LC_ALL
+
 // ----------------------------------------------------------------------------
 // local helpers
 // ----------------------------------------------------------------------------
@@ -39,7 +41,9 @@ class LocaleId
 public:
     LocaleId()
     {
+#if wxUSE_INTL
         m_wxloc = NULL;
+#endif // wxUSE_INTL
         m_cloc = NULL;
     }
 
@@ -48,6 +52,7 @@ public:
         Free();
     }
 
+#if wxUSE_INTL
     // Return true if this is the first time this function is called for this
     // object or if the program locale has changed since the last time it was
     // called. Otherwise just return false indicating that updating locale-
@@ -70,15 +75,20 @@ public:
 
         return true;
     }
+#endif // wxUSE_INTL
 
 private:
     void Free()
     {
+#if wxUSE_INTL
         free(m_cloc);
+#endif // wxUSE_INTL
     }
 
+#if wxUSE_INTL
     // Non-owned pointer to wxLocale which was used.
     wxLocale *m_wxloc;
+#endif // wxUSE_INTL
 
     // Owned pointer to the C locale string.
     char *m_cloc;
@@ -98,6 +108,7 @@ private:
 
 wxChar wxNumberFormatter::GetDecimalSeparator()
 {
+#if wxUSE_INTL
     // Notice that while using static variable here is not MT-safe, the worst
     // that can happen is that we redo the initialization if we're called
     // concurrently from more than one thread so it's not a real problem.
@@ -128,10 +139,14 @@ wxChar wxNumberFormatter::GetDecimalSeparator()
     }
 
     return s_decimalSeparator;
+#else // !wxUSE_INTL
+    return wxT('.');
+#endif // wxUSE_INTL/!wxUSE_INTL
 }
 
 bool wxNumberFormatter::GetThousandsSeparatorIfUsed(wxChar *sep)
 {
+#if wxUSE_INTL
     static wxChar s_thousandsSeparator = 0;
     static LocaleId s_localeUsedForInit;
 
@@ -157,6 +172,10 @@ bool wxNumberFormatter::GetThousandsSeparatorIfUsed(wxChar *sep)
         *sep = s_thousandsSeparator;
 
     return true;
+#else // !wxUSE_INTL
+    wxUnusedVar(sep);
+    return false;
+#endif // wxUSE_INTL/!wxUSE_INTL
 }
 
 // ----------------------------------------------------------------------------

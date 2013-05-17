@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: printdlg.mm 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: printdlg.mm 70707 2012-02-27 15:20:19Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -33,10 +33,10 @@ IMPLEMENT_CLASS(wxOSXCocoaPrintData, wxOSXPrintData)
 wxOSXCocoaPrintData::wxOSXCocoaPrintData()
 {
     m_macPrintInfo = [[NSPrintInfo alloc] init];
-    // TODO add 10.4 code
     m_macPageFormat = (PMPageFormat) [m_macPrintInfo PMPageFormat];
     m_macPrintSettings = (PMPrintSettings) [m_macPrintInfo PMPrintSettings];
     m_macPrintSession = (PMPrintSession) [m_macPrintInfo PMPrintSession] ;
+    PMGetPageFormatPaper(m_macPageFormat, &m_macPaper);
 }
 
 wxOSXCocoaPrintData::~wxOSXCocoaPrintData()
@@ -46,14 +46,12 @@ wxOSXCocoaPrintData::~wxOSXCocoaPrintData()
 
 void wxOSXCocoaPrintData::UpdateFromPMState()
 {
-    // TODO add 10.4 code
     [m_macPrintInfo updateFromPMPageFormat];
     [m_macPrintInfo updateFromPMPrintSettings];
 }
 
 void wxOSXCocoaPrintData::UpdateToPMState()
 {
-    // TODO add 10.4 code
     m_macPageFormat = (PMPageFormat) [m_macPrintInfo PMPageFormat];
     m_macPrintSettings = (PMPrintSettings) [m_macPrintInfo PMPrintSettings];
     m_macPrintSession = (PMPrintSession) [m_macPrintInfo PMPrintSession] ;

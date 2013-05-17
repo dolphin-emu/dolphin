@@ -1,27 +1,10 @@
-// Copyright (C) 2010 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "InputConfigDiag.h"
 #include "UDPConfigDiag.h"
-
-#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
-#define WXSTR_FROM_STR(s)	(wxString::FromUTF8((s).c_str()))
-#define WXTSTR_FROM_CSTR(s)	(wxGetTranslation(wxString::FromUTF8(s)))
-#define STR_FROM_WXSTR(w)	(std::string((w).ToUTF8()))
+#include "WxUtils.h"
 
 void GamepadPage::ConfigUDPWii(wxCommandEvent &event)
 {
@@ -38,7 +21,7 @@ void GamepadPage::ConfigExtension(wxCommandEvent& event)
 	if (ex->switch_extension)
 	{
 		wxDialog dlg(this, -1,
-			WXTSTR_FROM_CSTR(ex->attachments[ex->switch_extension]->GetName().c_str()),
+			wxGetTranslation(StrToWxStr(ex->attachments[ex->switch_extension]->GetName())),
 			wxDefaultPosition, wxDefaultSize);
 
 		wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
@@ -68,7 +51,7 @@ PadSettingExtension::PadSettingExtension(wxWindow* const parent, ControllerEmu::
 		e = extension->attachments.end();
 
 	for (; i!=e; ++i)
-		((wxChoice*)wxcontrol)->Append(WXTSTR_FROM_CSTR((*i)->GetName().c_str()));
+		((wxChoice*)wxcontrol)->Append(wxGetTranslation(StrToWxStr((*i)->GetName())));
 
 	UpdateGUI();
 }
@@ -84,7 +67,7 @@ void PadSettingExtension::UpdateValue()
 }
 
 PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const char* const label)
-	: PadSetting(new wxCheckBox(parent, -1, WXTSTR_FROM_CSTR(label), wxDefaultPosition))
+	: PadSetting(new wxCheckBox(parent, -1, wxGetTranslation(StrToWxStr(label)), wxDefaultPosition))
 	, value(_value)
 {
 	UpdateGUI();
@@ -120,13 +103,13 @@ ControlDialog::ControlDialog(GamepadPage* const parent, InputPlugin& plugin, Con
 	m_devq = m_parent->controller->default_device;
 
 	// GetStrings() sounds slow :/
-	//device_cbox = new wxComboBox(this, -1, WXSTR_FROM_STR(ref->device_qualifier.ToString()), wxDefaultPosition, wxSize(256,-1), parent->device_cbox->GetStrings(), wxTE_PROCESS_ENTER);
-	device_cbox = new wxComboBox(this, -1, WXSTR_FROM_STR(m_devq.ToString()), wxDefaultPosition, wxSize(256,-1), parent->device_cbox->GetStrings(), wxTE_PROCESS_ENTER);
+	//device_cbox = new wxComboBox(this, -1, StrToWxStr(ref->device_qualifier.ToString()), wxDefaultPosition, wxSize(256,-1), parent->device_cbox->GetStrings(), wxTE_PROCESS_ENTER);
+	device_cbox = new wxComboBox(this, -1, StrToWxStr(m_devq.ToString()), wxDefaultPosition, wxSize(256,-1), parent->device_cbox->GetStrings(), wxTE_PROCESS_ENTER);
 
-	_connect_macro_(device_cbox, ControlDialog::SetDevice, wxEVT_COMMAND_COMBOBOX_SELECTED, this);
-	_connect_macro_(device_cbox, ControlDialog::SetDevice, wxEVT_COMMAND_TEXT_ENTER, this);
+	device_cbox->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &ControlDialog::SetDevice, this);
+	device_cbox->Bind(wxEVT_COMMAND_TEXT_ENTER, &ControlDialog::SetDevice, this);
 
-	wxStaticBoxSizer* const control_chooser = CreateControlChooser(this, parent);
+	wxStaticBoxSizer* const control_chooser = CreateControlChooser(parent);
 
 	wxStaticBoxSizer* const d_szr = new wxStaticBoxSizer(wxVERTICAL, this, _("Device"));
 	d_szr->Add(device_cbox, 0, wxEXPAND|wxALL, 5);
@@ -146,9 +129,9 @@ ControlButton::ControlButton(wxWindow* const parent, ControllerInterface::Contro
 , control_reference(_ref)
 {
 	if (label.empty())
-		SetLabel(WXSTR_FROM_STR(_ref->expression));
+		SetLabel(StrToWxStr(_ref->expression));
 	else
-		SetLabel(WXSTR_FROM_STR(label));
+		SetLabel(StrToWxStr(label));
 }
 
 void InputConfigDialog::UpdateProfileComboBox()
@@ -170,7 +153,7 @@ void InputConfigDialog::UpdateProfileComboBox()
 	for (; si!=se; ++si)
 	{
 		std::string str(si->begin() + si->find_last_of('/') + 1 , si->end() - 4) ;
-		strs.push_back(WXSTR_FROM_STR(str));
+		strs.push_back(StrToWxStr(str));
 	}
 
 	std::vector< GamepadPage* >::iterator i = m_padpages.begin(),
@@ -210,7 +193,7 @@ void ControlDialog::UpdateListContents()
 				i = dev->Inputs().begin(),
 				e = dev->Inputs().end();
 			for (; i!=e; ++i)
-				control_lbox->Append(WXSTR_FROM_STR((*i)->GetName()));
+				control_lbox->Append(StrToWxStr((*i)->GetName()));
 		}
 		else
 		{
@@ -219,7 +202,7 @@ void ControlDialog::UpdateListContents()
 				i = dev->Outputs().begin(),
 				e = dev->Outputs().end();
 			for (; i!=e; ++i)
-				control_lbox->Append(WXSTR_FROM_STR((*i)->GetName()));
+				control_lbox->Append(StrToWxStr((*i)->GetName()));
 		}
 	}
 }
@@ -228,7 +211,7 @@ void ControlDialog::SelectControl(const std::string& name)
 {
 	//UpdateGUI();
 
-	const int f = control_lbox->FindString(WXSTR_FROM_STR(name));
+	const int f = control_lbox->FindString(StrToWxStr(name));
 	if (f >= 0)
 		control_lbox->Select(f);
 }
@@ -236,7 +219,7 @@ void ControlDialog::SelectControl(const std::string& name)
 void ControlDialog::UpdateGUI()
 {
 	// update textbox
-	textctrl->SetValue(WXSTR_FROM_STR(control_reference->expression));
+	textctrl->SetValue(StrToWxStr(control_reference->expression));
 
 	// updates the "bound controls:" label
 	m_bound_label->SetLabel(wxString::Format(_("Bound Controls: %lu"),
@@ -245,7 +228,7 @@ void ControlDialog::UpdateGUI()
 
 void GamepadPage::UpdateGUI()
 {
-	device_cbox->SetValue(WXSTR_FROM_STR(controller->default_device.ToString()));
+	device_cbox->SetValue(StrToWxStr(controller->default_device.ToString()));
 
 	std::vector< ControlGroupBox* >::const_iterator g = control_groups.begin(),
 		ge = control_groups.end();
@@ -256,7 +239,7 @@ void GamepadPage::UpdateGUI()
 			, e = (*g)->control_buttons.end();
 		for (; i!=e; ++i)
 			//if (std::string::npos == (*i)->control_reference->expression.find_first_of("`|&!#"))
-				(*i)->SetLabel(WXSTR_FROM_STR((*i)->control_reference->expression));
+				(*i)->SetLabel(StrToWxStr((*i)->control_reference->expression));
 			//else
 				//(*i)->SetLabel(wxT("..."));
 
@@ -295,7 +278,7 @@ void GamepadPage::LoadDefaults(wxCommandEvent&)
 
 void ControlDialog::SetControl(wxCommandEvent&)
 {
-	control_reference->expression = STR_FROM_WXSTR(textctrl->GetValue());
+	control_reference->expression = WxStrToStr(textctrl->GetValue());
 
 	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
@@ -305,10 +288,10 @@ void ControlDialog::SetControl(wxCommandEvent&)
 
 void GamepadPage::SetDevice(wxCommandEvent&)
 {
-	controller->default_device.FromString(STR_FROM_WXSTR(device_cbox->GetValue()));
+	controller->default_device.FromString(WxStrToStr(device_cbox->GetValue()));
 	
 	// show user what it was validated as
-	device_cbox->SetValue(WXSTR_FROM_STR(controller->default_device.ToString()));
+	device_cbox->SetValue(StrToWxStr(controller->default_device.ToString()));
 
 	// this will set all the controls to this default device
 	controller->UpdateDefaultDevice();
@@ -320,10 +303,10 @@ void GamepadPage::SetDevice(wxCommandEvent&)
 
 void ControlDialog::SetDevice(wxCommandEvent&)
 {
-	m_devq.FromString(STR_FROM_WXSTR(device_cbox->GetValue()));
+	m_devq.FromString(WxStrToStr(device_cbox->GetValue()));
 	
 	// show user what it was validated as
-	device_cbox->SetValue(WXSTR_FROM_STR(m_devq.ToString()));
+	device_cbox->SetValue(StrToWxStr(m_devq.ToString()));
 
 	// update gui
 	UpdateListContents();
@@ -350,12 +333,12 @@ void ControlDialog::SetSelectedControl(wxCommandEvent&)
 
 	// non-default device
 	if (false == (m_devq == m_parent->controller->default_device))
-		expr.append(wxT('`')).append(WXSTR_FROM_STR(m_devq.ToString())).append(wxT('`'));
+		expr.append(wxT('`')).append(StrToWxStr(m_devq.ToString())).append(wxT('`'));
 
 	// append the control name
 	expr += control_lbox->GetString(num);
 
-	control_reference->expression = STR_FROM_WXSTR(expr);
+	control_reference->expression = WxStrToStr(expr);
 
 	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
@@ -381,12 +364,12 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
 
 	// non-default device
 	if (false == (m_devq == m_parent->controller->default_device))
-		expr.append(wxT('`')).append(WXSTR_FROM_STR(m_devq.ToString())).append(wxT('`'));
+		expr.append(wxT('`')).append(StrToWxStr(m_devq.ToString())).append(wxT('`'));
 
 	// append the control name
 	expr += control_lbox->GetString(num);
 
-	control_reference->expression = STR_FROM_WXSTR(expr);
+	control_reference->expression = WxStrToStr(expr);
 
 	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
@@ -406,7 +389,7 @@ void GamepadPage::AdjustControlOption(wxCommandEvent&)
 	m_control_dialog->control_reference->range = (ControlState)(m_control_dialog->range_slider->GetValue()) / SLIDER_TICK_COUNT;
 }
 
-void GamepadPage::ConfigControl(wxCommandEvent& event)
+void GamepadPage::ConfigControl(wxEvent& event)
 {
 	m_control_dialog = new ControlDialog(this, m_plugin, ((ControlButton*)event.GetEventObject())->control_reference);
 	m_control_dialog->ShowModal();
@@ -416,7 +399,7 @@ void GamepadPage::ConfigControl(wxCommandEvent& event)
 	UpdateGUI();
 }
 
-void GamepadPage::ClearControl(wxCommandEvent& event)
+void GamepadPage::ClearControl(wxEvent& event)
 {
 	ControlButton* const btn = (ControlButton*)event.GetEventObject();
 	btn->control_reference->expression.clear();
@@ -476,28 +459,28 @@ void GamepadPage::DetectControl(wxCommandEvent& event)
 			g_controller_interface.UpdateReference(btn->control_reference, controller->default_device);
 		}
 
-		btn->SetLabel(WXSTR_FROM_STR(btn->control_reference->expression));
+		btn->SetLabel(StrToWxStr(btn->control_reference->expression));
 	}
 }
 
-wxStaticBoxSizer* ControlDialog::CreateControlChooser(wxWindow* const parent, wxWindow* const eventsink)
+wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 {
-	wxStaticBoxSizer* const main_szr = new wxStaticBoxSizer(wxVERTICAL, parent, control_reference->is_input ? _("Input") : _("Output"));
+	wxStaticBoxSizer* const main_szr = new wxStaticBoxSizer(wxVERTICAL, this, control_reference->is_input ? _("Input") : _("Output"));
 
-	textctrl = new wxTextCtrl(parent, -1, wxEmptyString, wxDefaultPosition, wxSize(-1, 48), wxTE_MULTILINE);
+	textctrl = new wxTextCtrl(this, -1, wxEmptyString, wxDefaultPosition, wxSize(-1, 48), wxTE_MULTILINE);
 
-	wxButton* const detect_button = new wxButton(parent, -1, control_reference->is_input ? _("Detect") : _("Test"));
+	wxButton* const detect_button = new wxButton(this, -1, control_reference->is_input ? _("Detect") : _("Test"));
 
-	wxButton* const clear_button = new  wxButton(parent, -1, _("Clear"));
-	wxButton* const set_button = new wxButton(parent, -1, _("Set"));
+	wxButton* const clear_button = new  wxButton(this, -1, _("Clear"));
+	wxButton* const set_button = new wxButton(this, -1, _("Set"));
 
-	wxButton* const select_button = new wxButton(parent, -1, _("Select"));
-	_connect_macro_(select_button, ControlDialog::SetSelectedControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
+	wxButton* const select_button = new wxButton(this, -1, _("Select"));
+	select_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::SetSelectedControl, this);
 
-	wxButton* const or_button = new  wxButton(parent, -1, _("| OR"), wxDefaultPosition);
-	_connect_macro_(or_button, ControlDialog::AppendControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
+	wxButton* const or_button = new  wxButton(this, -1, _("| OR"), wxDefaultPosition);
+	or_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::AppendControl, this);
 
-	control_lbox = new wxListBox(parent, -1, wxDefaultPosition, wxSize(-1, 64));
+	control_lbox = new wxListBox(this, -1, wxDefaultPosition, wxSize(-1, 64));
 
 	wxBoxSizer* const button_sizer = new wxBoxSizer(wxVERTICAL);
 	button_sizer->Add(detect_button, 1, 0, 5);
@@ -507,30 +490,30 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(wxWindow* const parent, wx
 	if (control_reference->is_input)
 	{
 		// TODO: check if && is good on other OS
-		wxButton* const and_button = new  wxButton(parent, -1, _("&& AND"), wxDefaultPosition);
-		wxButton* const not_button = new  wxButton(parent, -1, _("! NOT"), wxDefaultPosition);
-		wxButton* const add_button = new  wxButton(parent, -1, _("^ ADD"), wxDefaultPosition);
+		wxButton* const and_button = new  wxButton(this, -1, _("&& AND"), wxDefaultPosition);
+		wxButton* const not_button = new  wxButton(this, -1, _("! NOT"), wxDefaultPosition);
+		wxButton* const add_button = new  wxButton(this, -1, _("^ ADD"), wxDefaultPosition);
 
-		_connect_macro_(and_button, ControlDialog::AppendControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
-		_connect_macro_(not_button, ControlDialog::AppendControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
-		_connect_macro_(add_button, ControlDialog::AppendControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
+		and_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::AppendControl, this);
+		not_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::AppendControl, this);
+		add_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::AppendControl, this);
 
 		button_sizer->Add(and_button, 1, 0, 5);
 		button_sizer->Add(not_button, 1, 0, 5);
 		button_sizer->Add(add_button, 1, 0, 5);
 	}
 
-	range_slider = new wxSlider(parent, -1, SLIDER_TICK_COUNT, 0, SLIDER_TICK_COUNT * 5, wxDefaultPosition, wxDefaultSize, wxSL_TOP | wxSL_LABELS /*| wxSL_AUTOTICKS*/);
+	range_slider = new wxSlider(this, -1, SLIDER_TICK_COUNT, -SLIDER_TICK_COUNT * 5, SLIDER_TICK_COUNT * 5, wxDefaultPosition, wxDefaultSize, wxSL_TOP | wxSL_LABELS /*| wxSL_AUTOTICKS*/);
 
 	range_slider->SetValue((int)(control_reference->range * SLIDER_TICK_COUNT));
 
-	_connect_macro_(detect_button, ControlDialog::DetectControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
-	_connect_macro_(clear_button, ControlDialog::ClearControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
-	_connect_macro_(set_button, ControlDialog::SetControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
+	detect_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::DetectControl, this);
+	clear_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::ClearControl, this);
+	set_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::SetControl, this);
 
-	_connect_macro_(range_slider, GamepadPage::AdjustControlOption, wxEVT_SCROLL_CHANGED, eventsink);
-	wxStaticText* const range_label = new wxStaticText(parent, -1, _("Range"));
-	m_bound_label = new wxStaticText(parent, -1, wxT(""));
+	range_slider->Bind(wxEVT_SCROLL_CHANGED, &GamepadPage::AdjustControlOption, parent);
+	wxStaticText* const range_label = new wxStaticText(this, -1, _("Range"));
+	m_bound_label = new wxStaticText(this, -1, wxT(""));
 
 	wxBoxSizer* const range_sizer = new wxBoxSizer(wxHORIZONTAL);
 	range_sizer->Add(range_label, 0, wxCENTER|wxLEFT, 5);
@@ -566,7 +549,7 @@ void GamepadPage::GetProfilePath(std::string& path)
 		path += PROFILES_PATH;
 		path += m_plugin.profile_name;
 		path += '/';
-		path += STR_FROM_WXSTR(profile_cbox->GetValue());
+		path += WxStrToStr(profile_cbox->GetValue());
 		path += ".ini";
 	}
 }
@@ -604,7 +587,9 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 		m_config_dialog->UpdateProfileComboBox();
 	}
 	else
+	{
 		PanicAlertT("You must enter a valid profile name.");
+	}
 }
 
 void GamepadPage::DeleteProfile(wxCommandEvent&)
@@ -616,7 +601,7 @@ void GamepadPage::DeleteProfile(wxCommandEvent&)
 
 	if (File::Exists(fnamecstr) &&
 			AskYesNoT("Are you sure you want to delete \"%s\"?",
-			STR_FROM_WXSTR(profile_cbox->GetValue()).c_str()))
+			WxStrToStr(profile_cbox->GetValue()).c_str()))
 	{
 		File::Delete(fnamecstr);
 
@@ -638,9 +623,9 @@ void InputConfigDialog::UpdateDeviceComboBox()
 		for (; di!=de; ++di)
 		{
 			dq.FromDevice(*di);
-			(*i)->device_cbox->Append(WXSTR_FROM_STR(dq.ToString()));
+			(*i)->device_cbox->Append(StrToWxStr(dq.ToString()));
 		}
-		(*i)->device_cbox->SetValue(WXSTR_FROM_STR((*i)->controller->default_device.ToString()));
+		(*i)->device_cbox->SetValue(StrToWxStr((*i)->controller->default_device.ToString()));
 	}
 }
 
@@ -668,7 +653,7 @@ ControlGroupBox::~ControlGroupBox()
 		delete *i;
 }
 
-ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink)
+ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, GamepadPage* const eventsink)
 	: wxBoxSizer(wxVERTICAL)
 	, control_group(group)
 {
@@ -681,7 +666,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 	for (; ci != ce; ++ci)
 	{
 
-		wxStaticText* const label = new wxStaticText(parent, -1, WXTSTR_FROM_CSTR((*ci)->name));
+		wxStaticText* const label = new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr((*ci)->name)));
 		
 		ControlButton* const control_button = new ControlButton(parent, (*ci)->control_ref, 80);
 		control_button->SetFont(m_SmallFont);
@@ -691,16 +676,16 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 		if ((*ci)->control_ref->is_input)
 		{
 			control_button->SetToolTip(_("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
-			_connect_macro_(control_button, GamepadPage::DetectControl, wxEVT_COMMAND_BUTTON_CLICKED, eventsink);
+			control_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::DetectControl, eventsink);
 		}
 		else
 		{
 			control_button->SetToolTip(_("Left/Right-click for more options.\nMiddle-click to clear."));
-			_connect_macro_(control_button, GamepadPage::ConfigControl, wxEVT_COMMAND_BUTTON_CLICKED, eventsink);
+			control_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::ConfigControl, eventsink);
 		}
 
-		_connect_macro_(control_button, GamepadPage::ClearControl, wxEVT_MIDDLE_DOWN, eventsink);
-		_connect_macro_(control_button, GamepadPage::ConfigControl, wxEVT_RIGHT_UP, eventsink);
+		control_button->Bind(wxEVT_MIDDLE_DOWN, &GamepadPage::ClearControl, eventsink);
+		control_button->Bind(wxEVT_RIGHT_UP, &GamepadPage::ConfigControl, eventsink);
 
 		wxBoxSizer* const control_sizer = new wxBoxSizer(wxHORIZONTAL);
 		control_sizer->AddStretchSpacer(1);
@@ -733,9 +718,9 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			for (; i!=e; ++i)
 			{
 				PadSettingSpin* setting = new PadSettingSpin(parent, *i);
-				_connect_macro_(setting->wxcontrol, GamepadPage::AdjustSetting, wxEVT_COMMAND_SPINCTRL_UPDATED, eventsink);
+				setting->wxcontrol->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &GamepadPage::AdjustSetting, eventsink);
 				options.push_back(setting);
-				szr->Add(new wxStaticText(parent, -1, WXTSTR_FROM_CSTR((*i)->name)));
+				szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr((*i)->name))));
 				szr->Add(setting->wxcontrol, 0, wxLEFT, 0);
 			}
 
@@ -754,14 +739,14 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			static_bitmap = new wxStaticBitmap(parent, -1, bitmap, wxDefaultPosition, wxDefaultSize, wxBITMAP_TYPE_BMP);
 
 			PadSettingSpin* const threshold_cbox = new PadSettingSpin(parent, group->settings[0]);
-			_connect_macro_(threshold_cbox->wxcontrol, GamepadPage::AdjustSetting, wxEVT_COMMAND_SPINCTRL_UPDATED, eventsink);
+			threshold_cbox->wxcontrol->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &GamepadPage::AdjustSetting, eventsink);
 
 			threshold_cbox->wxcontrol->SetToolTip(_("Adjust the analog control pressure required to activate buttons."));
 
 			options.push_back(threshold_cbox);
 
 			wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-			szr->Add(new wxStaticText(parent, -1, WXTSTR_FROM_CSTR(group->settings[0]->name)),
+			szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr(group->settings[0]->name))),
 					0, wxCENTER|wxRIGHT, 3);
 			szr->Add(threshold_cbox->wxcontrol, 0, wxRIGHT, 3);
 
@@ -793,10 +778,10 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			for (; i!=e; ++i)
 			{
 				PadSettingSpin* setting = new PadSettingSpin(parent, *i);
-				_connect_macro_(setting->wxcontrol, GamepadPage::AdjustSetting, wxEVT_COMMAND_SPINCTRL_UPDATED, eventsink);
+				setting->wxcontrol->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &GamepadPage::AdjustSetting, eventsink);
 				options.push_back(setting);
 				wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-				szr->Add(new wxStaticText(parent, -1, WXTSTR_FROM_CSTR((*i)->name)), 0, wxCENTER|wxRIGHT, 3);
+				szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr((*i)->name))), 0, wxCENTER|wxRIGHT, 3);
 				szr->Add(setting->wxcontrol, 0, wxRIGHT, 3);
 				Add(szr, 0, wxALL|wxCENTER, 3);
 			}
@@ -811,8 +796,8 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 
 			options.push_back(attachments);
 
-			_connect_macro_(attachments->wxcontrol, GamepadPage::AdjustSetting, wxEVT_COMMAND_CHOICE_SELECTED, eventsink);
-			_connect_macro_(configure_btn, GamepadPage::ConfigExtension, wxEVT_COMMAND_BUTTON_CLICKED, eventsink);
+			attachments->wxcontrol->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &GamepadPage::AdjustSetting, eventsink);
+			configure_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::ConfigExtension, eventsink);
 
 			Add(attachments->wxcontrol, 0, wxTOP|wxLEFT|wxRIGHT|wxEXPAND, 3);
 			Add(configure_btn, 0, wxALL|wxEXPAND, 3);
@@ -821,7 +806,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 	case GROUP_TYPE_UDPWII:
 		{
 			wxButton* const btn = new UDPConfigButton(parent, (UDPWrapper*)group);
-			_connect_macro_(btn, GamepadPage::ConfigUDPWii, wxEVT_COMMAND_BUTTON_CLICKED, eventsink);
+			btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::ConfigUDPWii, eventsink);
 			Add(btn, 0, wxALL|wxEXPAND, 3);
 		}
 		break;
@@ -835,7 +820,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			for (; i!=e; ++i)
 			{
 				PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, (*i)->value, (*i)->name);
-				_connect_macro_(setting_cbox->wxcontrol, GamepadPage::AdjustSetting, wxEVT_COMMAND_CHECKBOX_CLICKED, eventsink);
+				setting_cbox->wxcontrol->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &GamepadPage::AdjustSetting, eventsink);
 				options.push_back(setting_cbox);
 
 				Add(setting_cbox->wxcontrol, 0, wxALL|wxLEFT, 5);
@@ -850,7 +835,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 	//AddStretchSpacer(0);
 }
 
-ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent, wxWindow* const eventsink, std::vector<ControlGroupBox*>* groups)
+ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent, GamepadPage* const eventsink, std::vector<ControlGroupBox*>* groups)
 	: wxBoxSizer(wxHORIZONTAL)
 {
 	size_t col_size = 0;
@@ -860,7 +845,7 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 	{
 		ControlGroupBox* control_group_box = new ControlGroupBox(controller->groups[i], parent, eventsink);
 		wxStaticBoxSizer *control_group =
-			new wxStaticBoxSizer(wxVERTICAL, parent, WXTSTR_FROM_CSTR(controller->groups[i]->name));
+			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(controller->groups[i]->name)));
 		control_group->Add(control_group_box);
 
 		const size_t grp_size = controller->groups[i]->controls.size() + controller->groups[i]->settings.size();
@@ -876,7 +861,9 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 			col_size = grp_size;
 		}
 		else
+		{
 			stacked_groups->Add(control_group, 0, wxEXPAND);
+		}
 
 		if (groups)
 			groups->push_back(control_group_box);
@@ -887,7 +874,7 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 }
 
 GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned int pad_num, InputConfigDialog* const config_dialog)
-	: wxNotebookPage(parent, -1 , wxDefaultPosition, wxDefaultSize)
+	: wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
 	,controller(plugin.controllers[pad_num])
 	, m_config_dialog(config_dialog)
 	, m_plugin(plugin)
@@ -906,9 +893,9 @@ GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned i
 
 	wxButton* refresh_button = new wxButton(this, -1, _("Refresh"), wxDefaultPosition, wxSize(60,-1));
 
-	_connect_macro_(device_cbox, GamepadPage::SetDevice, wxEVT_COMMAND_COMBOBOX_SELECTED, this);
-	_connect_macro_(device_cbox, GamepadPage::SetDevice, wxEVT_COMMAND_TEXT_ENTER, this);
-	_connect_macro_(refresh_button, GamepadPage::RefreshDevices, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	device_cbox->Bind(wxEVT_COMMAND_COMBOBOX_SELECTED, &GamepadPage::SetDevice, this);
+	device_cbox->Bind(wxEVT_COMMAND_TEXT_ENTER, &GamepadPage::SetDevice, this);
+	refresh_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::RefreshDevices, this);
 
 	device_sbox->Add(device_cbox, 1, wxLEFT|wxRIGHT, 3);
 	device_sbox->Add(refresh_button, 0, wxRIGHT|wxBOTTOM, 3);
@@ -920,8 +907,8 @@ GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned i
 	clear_sbox->Add(default_button, 1, wxLEFT, 3);
 	clear_sbox->Add(clearall_button, 1, wxRIGHT, 3);
 
-	_connect_macro_(clearall_button, GamepadPage::ClearAll, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	_connect_macro_(default_button, GamepadPage::LoadDefaults, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	clearall_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::ClearAll, this);
+	default_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::LoadDefaults, this);
 
 	profile_cbox = new wxComboBox(this, -1, wxT(""), wxDefaultPosition, wxSize(64,-1));
 
@@ -929,9 +916,9 @@ GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned i
 	wxButton* const psave_btn = new wxButton(this, -1, _("Save"), wxDefaultPosition, wxSize(48,-1));
 	wxButton* const pdelete_btn = new wxButton(this, -1, _("Delete"), wxDefaultPosition, wxSize(60,-1));
 
-	_connect_macro_(pload_btn, GamepadPage::LoadProfile, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	_connect_macro_(psave_btn, GamepadPage::SaveProfile, wxEVT_COMMAND_BUTTON_CLICKED, this);
-	_connect_macro_(pdelete_btn, GamepadPage::DeleteProfile, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	pload_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::LoadProfile, this);
+	psave_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::SaveProfile, this);
+	pdelete_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::DeleteProfile, this);
 
 	profile_sbox->Add(profile_cbox, 1, wxLEFT, 3);
 	profile_sbox->Add(pload_btn, 0, wxLEFT, 3);
@@ -956,7 +943,7 @@ GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned i
 
 
 InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin, const std::string& name, const int tab_num)
-	: wxDialog(parent, wxID_ANY, WXTSTR_FROM_CSTR(name.c_str()), wxPoint(128,-1), wxDefaultSize)
+	: wxDialog(parent, wxID_ANY, wxGetTranslation(StrToWxStr(name)), wxPoint(128,-1), wxDefaultSize)
 	, m_plugin(plugin)
 {
 	m_pad_notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);
@@ -964,7 +951,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	{
 		GamepadPage* gp = new GamepadPage(m_pad_notebook, m_plugin, i, this);
 		m_padpages.push_back(gp);
-		m_pad_notebook->AddPage(gp, wxString::Format(wxT("%s %u"), WXTSTR_FROM_CSTR(m_plugin.gui_name), 1+i));
+		m_pad_notebook->AddPage(gp, wxString::Format(wxT("%s %u"), wxGetTranslation(StrToWxStr(m_plugin.gui_name)), 1+i));
 	}
 
 	m_pad_notebook->SetSelection(tab_num);
@@ -972,7 +959,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	UpdateDeviceComboBox();
 	UpdateProfileComboBox();
 
-	Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(InputConfigDialog::ClickSave));
+	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &InputConfigDialog::ClickSave, this, wxID_OK);
 
 	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
 	szr->Add(m_pad_notebook, 0, wxEXPAND|wxTOP|wxLEFT|wxRIGHT, 5);
@@ -983,7 +970,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 
 	// live preview update timer
 	m_update_timer = new wxTimer(this, -1);
-	Connect(wxID_ANY, wxEVT_TIMER, wxTimerEventHandler(InputConfigDialog::UpdateBitmaps), (wxObject*)0, this);
+	Bind(wxEVT_TIMER, &InputConfigDialog::UpdateBitmaps, this);
 	m_update_timer->Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
 }
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: frame.h 60337 2009-04-25 12:59:09Z FM $
+// RCS-ID:      $Id: frame.h 70511 2012-02-05 14:18:22Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,6 @@ public:
 
     // implement base class pure virtuals
     virtual bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL);
-    virtual void Raise();
 
     // implementation only from now on
     // -------------------------------
@@ -79,7 +78,6 @@ public:
     bool HandleSize(int x, int y, WXUINT flag);
     bool HandleCommand(WXWORD id, WXWORD cmd, WXHWND control);
     bool HandleMenuSelect(WXWORD nItem, WXWORD nFlags, WXHMENU hMenu);
-    bool HandleMenuLoop(const wxEventType& evtType, WXWORD isPopup);
 
     // tooltip management
 #if wxUSE_TOOLTIPS
@@ -133,8 +131,17 @@ protected:
     // wxMDIChildFrame
     bool MSWDoTranslateMessage(wxFrame *frame, WXMSG *msg);
 
-    // handle WM_INITMENUPOPUP message to generate wxEVT_MENU_OPEN
-    bool HandleInitMenuPopup(WXHMENU hMenu);
+#if wxUSE_MENUS
+    // handle WM_EXITMENULOOP message for Win95 only
+    bool HandleExitMenuLoop(WXWORD isPopup);
+
+    // handle WM_(UN)INITMENUPOPUP message to generate wxEVT_MENU_OPEN/CLOSE
+    bool HandleMenuPopup(wxEventType evtType, WXHMENU hMenu);
+
+    // Command part of HandleMenuPopup() and HandleExitMenuLoop().
+    bool DoSendMenuOpenCloseEvent(wxEventType evtType, wxMenu* menu, bool popup);
+#endif // wxUSE_MENUS
+
 
     virtual bool IsMDIChild() const { return false; }
 

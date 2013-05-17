@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "VideoConfig.h"
@@ -50,6 +37,11 @@ static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
 
 void UpdateViewport(Matrix44& vpCorrection);
+
+void UpdateViewportWithCorrection()
+{
+	UpdateViewport(s_viewportCorrection);
+}
 
 inline void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
@@ -94,15 +86,18 @@ float PHackValue(std::string sValue)
 			c[i] = '\0';
 			break;
 		}
+
 		c[i] = (cStr[i] == ',') ? '.' : *(cStr+i);
 		if (c[i] == '.')
 			fp = true;
-	}	
+	}
+
 	cStr = c;
 	sTof.str(cStr);
 	sTof >> f;
 
-	if (!fp) f /= 0xF4240;
+	if (!fp)
+		f /= 0xF4240;
 
 	delete [] c;
 	return f;
@@ -114,22 +109,22 @@ void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 	float fhacksign1 = 1.0, fhacksign2 = 1.0;
 	bool bProjHack3 = false;
 	const char *sTemp[2];
-	
+
 	if (iPhackvalue[0] == 1)
 	{
-		NOTICE_LOG(VIDEO, "\t\t--- Ortographic Projection Hack ON ---");
-		
+		NOTICE_LOG(VIDEO, "\t\t--- Orthographic Projection Hack ON ---");
+
 		fhacksign1 *= (iPhackvalue[1] == 1) ? -1.0f : fhacksign1;
 		sTemp[0] = (iPhackvalue[1] == 1) ? " * (-1)" : "";
 		fhacksign2 *= (iPhackvalue[2] == 1) ? -1.0f : fhacksign2;
 		sTemp[1] = (iPhackvalue[2] == 1) ? " * (-1)" : "";
-		
+
 		fhackvalue1 = PHackValue(sPhackvalue[0]);
 		NOTICE_LOG(VIDEO, "- zNear Correction = (%f + zNear)%s", fhackvalue1, sTemp[0]);
 
 		fhackvalue2 = PHackValue(sPhackvalue[1]);
 		NOTICE_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", fhackvalue2, sTemp[1]);
-		
+
 		sTemp[0] = "DISABLED";
 		bProjHack3 = (iPhackvalue[3] == 1) ? true : bProjHack3;
 		if (bProjHack3)
@@ -150,6 +145,12 @@ void VertexShaderManager::Init()
 	memset(&xfregs, 0, sizeof(xfregs));
 	memset(xfmem, 0, sizeof(xfmem));
 	ResetView();
+
+	// TODO: should these go inside ResetView()?
+	Matrix44::LoadIdentity(s_viewportCorrection);
+	memset(g_fProjectionMatrix, 0, sizeof(g_fProjectionMatrix));
+	for (int i = 0; i < 4; ++i)
+		g_fProjectionMatrix[i*5] = 1.0f;
 }
 
 void VertexShaderManager::Shutdown()
@@ -158,21 +159,34 @@ void VertexShaderManager::Shutdown()
 
 void VertexShaderManager::Dirty()
 {
-	nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
-	nNormalMatricesChanged[0] = 0; nNormalMatricesChanged[1] = 96;
-	nPostTransformMatricesChanged[0] = 0; nPostTransformMatricesChanged[1] = 256;
-	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
+	nTransformMatricesChanged[0] = 0; 
+	nTransformMatricesChanged[1] = 256;
+
+	nNormalMatricesChanged[0] = 0;
+	nNormalMatricesChanged[1] = 96;
+
+	nPostTransformMatricesChanged[0] = 0; 
+	nPostTransformMatricesChanged[1] = 256;
+
+	nLightsChanged[0] = 0; 
+	nLightsChanged[1] = 0x80;
+
 	bPosNormalMatrixChanged = true;
-	bTexMatricesChanged[0] = bTexMatricesChanged[1] = true;
+	bTexMatricesChanged[0] = true;
+	bTexMatricesChanged[1] = true;
+
 	bProjectionChanged = true;
-	bPosNormalMatrixChanged = bTexMatricesChanged[0] = bTexMatricesChanged[1] = true;
+
 	nMaterialsChanged = 15;
 }
 
 // Syncs the shader constant buffers with xfmem
-// TODO: A cleaner way to control the matricies without making a mess in the parameters field
+// TODO: A cleaner way to control the matrices without making a mess in the parameters field
 void VertexShaderManager::SetConstants()
 {
+	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		Dirty();
+
 	if (nTransformMatricesChanged[0] >= 0)
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
@@ -181,6 +195,7 @@ void VertexShaderManager::SetConstants()
 		SetMultiVSConstant4fv(C_TRANSFORMMATRICES + startn, endn - startn, pstart);
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
 	}
+
 	if (nNormalMatricesChanged[0] >= 0)
 	{
 		int startn = nNormalMatricesChanged[0] / 3;
@@ -196,6 +211,7 @@ void VertexShaderManager::SetConstants()
 		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
 		const float* pstart = (const float*)&xfmem[XFMEM_POSTMATRICES + startn * 4];
 		SetMultiVSConstant4fv(C_POSTTRANSFORMMATRICES + startn, endn - startn, pstart);
+		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
 	}
 
 	if (nLightsChanged[0] >= 0)
@@ -227,7 +243,9 @@ void VertexShaderManager::SetConstants()
 					SetVSConstant4f(C_LIGHTS+5*i+j+1, 0.00001f, xfmemptr[1], xfmemptr[2], 0);
 				}
 				else
+				{
 					SetVSConstant4fv(C_LIGHTS+5*i+j+1, xfmemptr);
+				}
 			}
 		}
 
@@ -239,7 +257,7 @@ void VertexShaderManager::SetConstants()
 		float GC_ALIGNED16(material[4]);
 		float NormalizationCoef = 1 / 255.0f;
 
-		for (int i = 0; i < 4; ++i)
+		for (int i = 0; i < 2; ++i)
 		{
 			if (nMaterialsChanged & (1 << i))
 			{
@@ -251,6 +269,21 @@ void VertexShaderManager::SetConstants()
 				material[3] = ( data        & 0xFF) * NormalizationCoef;
 
 				SetVSConstant4fv(C_MATERIALS + i, material);
+			}
+		}
+		
+		for (int i = 0; i < 2; ++i)
+		{
+			if (nMaterialsChanged & (1 << (i + 2)))
+			{
+				u32 data = *(xfregs.matColor + i);
+
+				material[0] = ((data >> 24) & 0xFF) * NormalizationCoef;
+				material[1] = ((data >> 16) & 0xFF) * NormalizationCoef;
+				material[2] = ((data >>  8) & 0xFF) * NormalizationCoef;
+				material[3] = ( data        & 0xFF) * NormalizationCoef;
+
+				SetVSConstant4fv(C_MATERIALS + i + 2, material);
 			}
 		}
 
@@ -300,7 +333,11 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
-		SetVSConstant4f(C_DEPTHPARAMS,xfregs.viewport.farZ / 16777216.0f,xfregs.viewport.zRange / 16777216.0f,0.0f,0.0f);
+		SetVSConstant4f(C_DEPTHPARAMS,
+						xfregs.viewport.farZ / 16777216.0f,
+						xfregs.viewport.zRange / 16777216.0f,
+						-1.f / (float)g_renderer->EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd)),
+						1.f / (float)g_renderer->EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht)));
 		// This is so implementation-dependent that we can't have it here.
 		UpdateViewport(s_viewportCorrection);
 		bProjectionChanged = true;
@@ -309,27 +346,29 @@ void VertexShaderManager::SetConstants()
 	if (bProjectionChanged)
 	{
 		bProjectionChanged = false;
+		
+		float *rawProjection = xfregs.projection.rawProjection;
 
-		if (xfregs.rawProjection[6] == 0)
+		switch(xfregs.projection.type)
 		{
-			// Perspective
-			
-			g_fProjectionMatrix[0] = xfregs.rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
+		case GX_PERSPECTIVE:
+
+			g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
 			g_fProjectionMatrix[1] = 0.0f;
-			g_fProjectionMatrix[2] = xfregs.rawProjection[1];
+			g_fProjectionMatrix[2] = rawProjection[1];
 			g_fProjectionMatrix[3] = 0.0f;
 
 			g_fProjectionMatrix[4] = 0.0f;
-			g_fProjectionMatrix[5] = xfregs.rawProjection[2] * g_ActiveConfig.fAspectRatioHackH;
-			g_fProjectionMatrix[6] = xfregs.rawProjection[3];
+			g_fProjectionMatrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH;
+			g_fProjectionMatrix[6] = rawProjection[3];
 			g_fProjectionMatrix[7] = 0.0f;
 
 			g_fProjectionMatrix[8] = 0.0f;
 			g_fProjectionMatrix[9] = 0.0f;
-			g_fProjectionMatrix[10] = xfregs.rawProjection[4];
+			g_fProjectionMatrix[10] = rawProjection[4];
 
-			g_fProjectionMatrix[11] = xfregs.rawProjection[5];
- 			
+			g_fProjectionMatrix[11] = rawProjection[5];
+
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
 			// donkopunchstania: GC GPU rounds differently?
@@ -353,24 +392,24 @@ void VertexShaderManager::SetConstants()
 			SETSTAT_FT(stats.gproj_13, g_fProjectionMatrix[13]);
 			SETSTAT_FT(stats.gproj_14, g_fProjectionMatrix[14]);
 			SETSTAT_FT(stats.gproj_15, g_fProjectionMatrix[15]);
-		}
-		else
-		{ 
-			// Orthographic Projection
-			g_fProjectionMatrix[0] = xfregs.rawProjection[0];
+			break;
+
+		case GX_ORTHOGRAPHIC:
+
+			g_fProjectionMatrix[0] = rawProjection[0];
 			g_fProjectionMatrix[1] = 0.0f;
 			g_fProjectionMatrix[2] = 0.0f;
-			g_fProjectionMatrix[3] = xfregs.rawProjection[1];
+			g_fProjectionMatrix[3] = rawProjection[1];
 
 			g_fProjectionMatrix[4] = 0.0f;
-			g_fProjectionMatrix[5] = xfregs.rawProjection[2];
+			g_fProjectionMatrix[5] = rawProjection[2];
 			g_fProjectionMatrix[6] = 0.0f;
-			g_fProjectionMatrix[7] = xfregs.rawProjection[3];
+			g_fProjectionMatrix[7] = rawProjection[3];
 
 			g_fProjectionMatrix[8] = 0.0f;
 			g_fProjectionMatrix[9] = 0.0f;
-			g_fProjectionMatrix[10] = (g_ProjHack1.value + xfregs.rawProjection[4]) * ((g_ProjHack1.sign == 0) ? 1.0f : g_ProjHack1.sign);
-			g_fProjectionMatrix[11] = (g_ProjHack2.value + xfregs.rawProjection[5]) * ((g_ProjHack2.sign == 0) ? 1.0f : g_ProjHack2.sign);
+			g_fProjectionMatrix[10] = (g_ProjHack1.value + rawProjection[4]) * ((g_ProjHack1.sign == 0) ? 1.0f : g_ProjHack1.sign);
+			g_fProjectionMatrix[11] = (g_ProjHack2.value + rawProjection[5]) * ((g_ProjHack2.sign == 0) ? 1.0f : g_ProjHack2.sign);
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
@@ -381,10 +420,10 @@ void VertexShaderManager::SetConstants()
 			this hack was added...setting g_fProjectionMatrix[14] to -1 might make the hack more stable, needs more testing.
 			Only works for OGL and DX9...this is not helping DX11
 			*/
-			
+
 			g_fProjectionMatrix[14] = 0.0f;
-			g_fProjectionMatrix[15] = (g_ProjHack3 && xfregs.rawProjection[0] == 2.0f ? 0.0f : 1.0f);  //causes either the efb copy or bloom layer not to show if proj hack enabled
-		
+			g_fProjectionMatrix[15] = (g_ProjHack3 && rawProjection[0] == 2.0f ? 0.0f : 1.0f);  //causes either the efb copy or bloom layer not to show if proj hack enabled
+
 			SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
 			SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
 			SETSTAT_FT(stats.g2proj_2, g_fProjectionMatrix[2]);
@@ -401,18 +440,21 @@ void VertexShaderManager::SetConstants()
 			SETSTAT_FT(stats.g2proj_13, g_fProjectionMatrix[13]);
 			SETSTAT_FT(stats.g2proj_14, g_fProjectionMatrix[14]);
 			SETSTAT_FT(stats.g2proj_15, g_fProjectionMatrix[15]);
-			SETSTAT_FT(stats.proj_0, xfregs.rawProjection[0]);
-			SETSTAT_FT(stats.proj_1, xfregs.rawProjection[1]);
-			SETSTAT_FT(stats.proj_2, xfregs.rawProjection[2]);
-			SETSTAT_FT(stats.proj_3, xfregs.rawProjection[3]);
-			SETSTAT_FT(stats.proj_4, xfregs.rawProjection[4]);
-			SETSTAT_FT(stats.proj_5, xfregs.rawProjection[5]);
-			SETSTAT_FT(stats.proj_6, xfregs.rawProjection[6]);
+			SETSTAT_FT(stats.proj_0, rawProjection[0]);
+			SETSTAT_FT(stats.proj_1, rawProjection[1]);
+			SETSTAT_FT(stats.proj_2, rawProjection[2]);
+			SETSTAT_FT(stats.proj_3, rawProjection[3]);
+			SETSTAT_FT(stats.proj_4, rawProjection[4]);
+			SETSTAT_FT(stats.proj_5, rawProjection[5]);
+			break;
+
+		default:
+			ERROR_LOG(VIDEO, "Unknown projection type: %d", xfregs.projection.type);
 		}
 
-		PRIM_LOG("Projection: %f %f %f %f %f %f\n", xfregs.rawProjection[0], xfregs.rawProjection[1], xfregs.rawProjection[2], xfregs.rawProjection[3], xfregs.rawProjection[4], xfregs.rawProjection[5]);
+		PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
 
-		if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo ) && xfregs.rawProjection[6] == 0)
+		if ((g_ActiveConfig.bFreeLook || g_ActiveConfig.bAnaglyphStereo ) && xfregs.projection.type == GX_PERSPECTIVE)
 		{
 			Matrix44 mtxA;
 			Matrix44 mtxB;
@@ -444,21 +486,24 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 	if (((u32)start >= (u32)MatrixIndexA.PosNormalMtxIdx * 4 &&
 		 (u32)start <  (u32)MatrixIndexA.PosNormalMtxIdx * 4 + 12) ||
 		((u32)start >= XFMEM_NORMALMATRICES + ((u32)MatrixIndexA.PosNormalMtxIdx & 31) * 3 &&
-		 (u32)start <  XFMEM_NORMALMATRICES + ((u32)MatrixIndexA.PosNormalMtxIdx & 31) * 3 + 9)) {
+		 (u32)start <  XFMEM_NORMALMATRICES + ((u32)MatrixIndexA.PosNormalMtxIdx & 31) * 3 + 9))
+	{
 		bPosNormalMatrixChanged = true;
 	}
 
 	if (((u32)start >= (u32)MatrixIndexA.Tex0MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex0MtxIdx*4+12) ||
 		((u32)start >= (u32)MatrixIndexA.Tex1MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex1MtxIdx*4+12) ||
 		((u32)start >= (u32)MatrixIndexA.Tex2MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex2MtxIdx*4+12) ||
-		((u32)start >= (u32)MatrixIndexA.Tex3MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex3MtxIdx*4+12)) {
+		((u32)start >= (u32)MatrixIndexA.Tex3MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex3MtxIdx*4+12))
+	{
 		bTexMatricesChanged[0] = true;
 	}
 
 	if (((u32)start >= (u32)MatrixIndexB.Tex4MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex4MtxIdx*4+12) ||
 		((u32)start >= (u32)MatrixIndexB.Tex5MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex5MtxIdx*4+12) ||
 		((u32)start >= (u32)MatrixIndexB.Tex6MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex6MtxIdx*4+12) ||
-		((u32)start >= (u32)MatrixIndexB.Tex7MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex7MtxIdx*4+12)) {
+		((u32)start >= (u32)MatrixIndexB.Tex7MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex7MtxIdx*4+12))
+	{
 		bTexMatricesChanged[1] = true;
 	}
 
@@ -605,4 +650,19 @@ void VertexShaderManager::ResetView()
 	s_fViewRotation[0] = s_fViewRotation[1] = 0.0f;
 
 	bProjectionChanged = true;
+}
+
+void VertexShaderManager::DoState(PointerWrap &p)
+{
+	p.Do(g_fProjectionMatrix);
+	p.Do(s_viewportCorrection);
+	p.Do(s_viewRotationMatrix);
+	p.Do(s_viewInvRotationMatrix);
+	p.Do(s_fViewTranslationVector);
+	p.Do(s_fViewRotation);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Dirty();
+	}
 }

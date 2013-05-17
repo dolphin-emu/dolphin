@@ -3,13 +3,15 @@
 // Purpose:     wxMSW-specific wxTextEntry implementation
 // Author:      Vadim Zeitlin
 // Created:     2007-09-26
-// RCS-ID:      $Id: textentry.h 61834 2009-09-05 12:39:12Z JMS $
+// RCS-ID:      $Id: textentry.h 68918 2011-08-27 14:11:13Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_MSW_TEXTENTRY_H_
 #define _WX_MSW_TEXTENTRY_H_
+
+class wxTextAutoCompleteData; // private class used only by wxTextEntry itself
 
 // ----------------------------------------------------------------------------
 // wxTextEntry: common part of wxComboBox and (single line) wxTextCtrl
@@ -18,12 +20,8 @@
 class WXDLLIMPEXP_CORE wxTextEntry : public wxTextEntryBase
 {
 public:
-    wxTextEntry()
-    {
-#if wxUSE_OLE
-        m_enumStrings = NULL;
-#endif // wxUSE_OLE
-    }
+    wxTextEntry();
+    virtual ~wxTextEntry();
 
     // implement wxTextEntryBase pure virtual methods
     virtual void WriteText(const wxString& text);
@@ -45,13 +43,6 @@ public:
     virtual void SetSelection(long from, long to)
         { DoSetSelection(from, to); }
     virtual void GetSelection(long *from, long *to) const;
-
-    // auto-completion uses COM under Windows so they won't work without
-    // wxUSE_OLE as OleInitialize() is not called then
-#if wxUSE_OLE
-    virtual bool AutoComplete(const wxArrayString& choices);
-    virtual bool AutoCompleteFileNames();
-#endif // wxUSE_OLE
 
     virtual bool IsEditable() const;
     virtual void SetEditable(bool editable);
@@ -80,13 +71,29 @@ protected:
     virtual bool DoSetMargins(const wxPoint& pt);
     virtual wxPoint DoGetMargins() const;
 
+    // auto-completion uses COM under Windows so they won't work without
+    // wxUSE_OLE as OleInitialize() is not called then
+#if wxUSE_OLE
+    virtual bool DoAutoCompleteStrings(const wxArrayString& choices);
+    virtual bool DoAutoCompleteFileNames(int flags);
+    virtual bool DoAutoCompleteCustom(wxTextCompleter *completer);
+#endif // wxUSE_OLE
+
 private:
     // implement this to return the HWND of the EDIT control
     virtual WXHWND GetEditHWND() const = 0;
 
 #if wxUSE_OLE
-    // enumerator for strings currently used for auto-completion or NULL
-    class wxIEnumString *m_enumStrings;
+    // Get the auto-complete object creating it if necessary. Returns NULL if
+    // creating it failed.
+    wxTextAutoCompleteData *GetOrCreateCompleter();
+
+    // Various auto-completion-related stuff, only used if any of AutoComplete()
+    // methods are called. Use the function above to access it.
+    wxTextAutoCompleteData *m_autoCompleteData;
+
+    // It needs to call our GetEditableWindow() and GetEditHWND() methods.
+    friend class wxTextAutoCompleteData;
 #endif // wxUSE_OLE
 };
 

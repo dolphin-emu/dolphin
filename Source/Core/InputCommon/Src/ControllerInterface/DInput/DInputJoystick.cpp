@@ -22,13 +22,13 @@ static const struct
 } force_type_names[] =
 {
 	{GUID_ConstantForce, "Constant"},	// DICONSTANTFORCE
-	{GUID_RampForce, "Ramp"},	// DIRAMPFORCE
-	{GUID_Square, "Square"},	// DIPERIODIC ...
+	{GUID_RampForce, "Ramp"},			// DIRAMPFORCE
+	{GUID_Square, "Square"},			// DIPERIODIC ...
 	{GUID_Sine, "Sine"},
 	{GUID_Triangle, "Triangle"},
 	{GUID_SawtoothUp, "Sawtooth Up"},
 	{GUID_SawtoothDown, "Sawtooth Down"},
-	//{GUID_Spring, "Spring"},	// DICUSTOMFORCE ... < i think
+	//{GUID_Spring, "Spring"},			// DICUSTOMFORCE ... < I think
 	//{GUID_Damper, "Damper"},
 	//{GUID_Inertia, "Inertia"},
 	//{GUID_Friction, "Friction"},
@@ -70,9 +70,9 @@ void GetXInputGUIDS( std::vector<DWORD>& guids )
 	if( FAILED(hr) || pIWbemLocator == NULL )
 		goto LCleanup;
 
-	bstrNamespace = SysAllocString( L"\\\\.\\root\\cimv2" );if( bstrNamespace == NULL ) goto LCleanup;		
-	bstrClassName = SysAllocString( L"Win32_PNPEntity" );   if( bstrClassName == NULL ) goto LCleanup;		
-	bstrDeviceID  = SysAllocString( L"DeviceID" );			if( bstrDeviceID == NULL )  goto LCleanup;		
+	bstrNamespace = SysAllocString( L"\\\\.\\root\\cimv2" );if( bstrNamespace == NULL ) goto LCleanup;
+	bstrClassName = SysAllocString( L"Win32_PNPEntity" );   if( bstrClassName == NULL ) goto LCleanup;
+	bstrDeviceID  = SysAllocString( L"DeviceID" );			if( bstrDeviceID == NULL )  goto LCleanup;
 	
 	// Connect to WMI 
 	hr = pIWbemLocator->ConnectServer( bstrNamespace, NULL, NULL, 0L, 0L, NULL, NULL, &pIWbemServices );
@@ -81,7 +81,7 @@ void GetXInputGUIDS( std::vector<DWORD>& guids )
 
 	// Switch security level to IMPERSONATE. 
 	CoSetProxyBlanket( pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, 
-					   RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE );					
+					   RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE );
 
 	hr = pIWbemServices->CreateInstanceEnum( bstrClassName, 0, NULL, &pEnumDevices ); 
 	if( FAILED(hr) || pEnumDevices == NULL )
@@ -184,7 +184,7 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<ControllerInterface::De
 				}
 
 				Joystick* js = new Joystick(/*&*i, */js_device, name_counts[i->tszInstanceName]++);
-				// only add if it has some inputs/outpus
+				// only add if it has some inputs/outputs
 				if (js->Inputs().size() || js->Outputs().size())
 					devices.push_back(js);
 				else
@@ -196,7 +196,6 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<ControllerInterface::De
 				js_device->Release();
 			}
 		}
-		
 	}
 }
 
@@ -226,7 +225,7 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	if (FAILED(m_device->GetCapabilities(&js_caps)))
 		return;
 
-	// max of 32 buttons and 4 hats / the limit of the data format i am using
+	// max of 32 buttons and 4 hats / the limit of the data format I am using
 	js_caps.dwButtons = std::min((DWORD)32, js_caps.dwButtons);
 	js_caps.dwPOVs = std::min((DWORD)4, js_caps.dwPOVs);
 
@@ -241,7 +240,7 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	{
 		// each hat gets 4 input instances associated with it, (up down left right)
 		for (u8 d = 0; d != 4; ++d)
-			AddInput(new Hat(i, m_state_in.rgdwPOV[m_index], d));
+			AddInput(new Hat(i, m_state_in.rgdwPOV[i], d));
 	}
 
 	// get up to 6 axes and 2 sliders
@@ -254,21 +253,21 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	for (unsigned int offset = 0; offset < DIJOFS_BUTTON(0) / sizeof(LONG); ++offset)
 	{
 		range.diph.dwObj = offset * sizeof(LONG);
-		// try to set some nice power of 2 values (8192)
-		range.lMin = -(1 << 13);
-		range.lMax = (1 << 13);
+		// try to set some nice power of 2 values (128) to match the GameCube controls
+		range.lMin = -(1 << 7);
+		range.lMax = (1 << 7);
 		m_device->SetProperty(DIPROP_RANGE, &range.diph);
-		// but i guess not all devices support setting range
-		// so i getproperty right afterward incase it didn't set :P
-		// this also checks that the axis is present
+		// but I guess not all devices support setting range
+		// so I getproperty right afterward incase it didn't set.
+		// This also checks that the axis is present
 		if (SUCCEEDED(m_device->GetProperty(DIPROP_RANGE, &range.diph)))
 		{
 			const LONG base = (range.lMin + range.lMax) / 2;
 			const LONG& ax = (&m_state_in.lX)[offset];
 
 			// each axis gets a negative and a positive input instance associated with it
-			AddInput(new Axis(offset, ax, base, range.lMin-base));
-			AddInput(new Axis(offset, ax, base, range.lMax-base));
+			AddAnalogInputs(new Axis(offset, ax, base, range.lMin-base),
+				new Axis(offset, ax, base, range.lMax-base));
 		}
 	}
 
@@ -281,17 +280,19 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	if ( objects.size() )
 	{
 		// temporary
-		DWORD rgdwAxes[] = {DIJOFS_X, DIJOFS_Y};
-		LONG rglDirection[] = {0, 0};
+		DWORD rgdwAxes[2] = {DIJOFS_X, DIJOFS_Y};
+		LONG rglDirection[2] = {-200, 0};
 
 		DIEFFECT eff;
 		ZeroMemory(&eff, sizeof(eff));
 		eff.dwSize = sizeof(DIEFFECT);
 		eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
 		eff.dwDuration = INFINITE;	// (4 * DI_SECONDS)
+		eff.dwSamplePeriod = 0;
 		eff.dwGain = DI_FFNOMINALMAX;
 		eff.dwTriggerButton = DIEB_NOTRIGGER;
-		eff.cAxes = std::min((DWORD)2, (DWORD)objects.size());
+		eff.dwTriggerRepeatInterval = 0;
+		eff.cAxes = std::min((DWORD)1, (DWORD)objects.size());
 		eff.rgdwAxes = rgdwAxes;
 		eff.rglDirection = rglDirection;
 
@@ -310,11 +311,20 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		{
 			// ugly if ladder
 			if (0 == f)
+			{
+				DICONSTANTFORCE  diCF = {-10000};
+				diCF.lMagnitude = DI_FFNOMINALMAX;
 				eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
+				eff.lpvTypeSpecificParams = &diCF;
+			}
 			else if (1 == f)
+			{
 				eff.cbTypeSpecificParams = sizeof(DIRAMPFORCE);
+			}
 			else
+			{
 				eff.cbTypeSpecificParams = sizeof(DIPERIODIC);
+			}
 			
 			LPDIRECTINPUTEFFECT pEffect;
 			if (SUCCEEDED(m_device->CreateEffect(force_type_names[f].guid, &eff, &pEffect, NULL)))
@@ -393,7 +403,7 @@ bool Joystick::UpdateInput()
 	HRESULT hr = 0;
 
 	// just always poll,
-	// msdn says if this isn't needed it doesnt do anything
+	// MSDN says if this isn't needed it doesn't do anything
 	m_device->Poll();
 
 	if (m_buffered)
@@ -420,7 +430,9 @@ bool Joystick::UpdateInput()
 		}
 	}
 	else
+	{
 		hr = m_device->GetDeviceState(sizeof(m_state_in), &m_state_in);
+	}
 
 	// try reacquire if input lost
 	if (DIERR_INPUTLOST == hr || DIERR_NOTACQUIRED == hr)
@@ -453,12 +465,16 @@ bool Joystick::UpdateOutput()
 				ok_count += SUCCEEDED(i->iface->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START));
 			}
 			else
+			{
 				ok_count += SUCCEEDED(i->iface->Stop());
+			}
 
 			i->params = NULL;
 		}
 		else
+		{
 			++ok_count;
+		}
 	}
 
 	return (m_state_out.size() == ok_count);
@@ -485,7 +501,9 @@ std::string Joystick::Axis::GetName() const
 	}
 	// slider
 	else
+	{
 		ss << "Slider " << (int)(m_index - 6);
+	}
 
 	ss << (m_range < 0 ? '-' : '+');
 	return ss.str();
@@ -520,7 +538,7 @@ ControlState Joystick::Button::GetState() const
 ControlState Joystick::Hat::GetState() const
 {
 	// can this func be simplified ?
-	// hat centered code from msdn
+	// hat centered code from MSDN
 	if (0xFFFF == LOWORD(m_hat))
 		return 0;
 	return (abs((int)(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);

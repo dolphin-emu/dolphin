@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.11.97
-// RCS-ID:      $Id: menuitem.cpp 66628 2011-01-07 17:45:58Z SC $
+// RCS-ID:      $Id: menuitem.cpp 67720 2011-05-10 08:50:38Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -494,9 +494,6 @@ wxMenuItem::wxMenuItem(wxMenu *parentMenu,
 
 void wxMenuItem::Init()
 {
-    m_radioGroup.start = -1;
-    m_isRadioGroupStart = false;
-
 #if  wxUSE_OWNER_DRAWN
 
     // when the color is not valid, wxOwnerDraw takes the default ones.
@@ -557,30 +554,6 @@ bool wxMenuItem::IsChecked() const
     return (flag & MF_CHECKED) != 0;
 }
 
-// radio group stuff
-// -----------------
-
-void wxMenuItem::SetAsRadioGroupStart()
-{
-    m_isRadioGroupStart = true;
-}
-
-void wxMenuItem::SetRadioGroupStart(int start)
-{
-    wxASSERT_MSG( !m_isRadioGroupStart,
-                  wxT("should only be called for the next radio items") );
-
-    m_radioGroup.start = start;
-}
-
-void wxMenuItem::SetRadioGroupEnd(int end)
-{
-    wxASSERT_MSG( m_isRadioGroupStart,
-                  wxT("should only be called for the first radio item") );
-
-    m_radioGroup.end = end;
-}
-
 // change item state
 // -----------------
 
@@ -634,17 +607,10 @@ void wxMenuItem::Check(bool check)
             int start,
                 end;
 
-            if ( m_isRadioGroupStart )
+            if ( !m_parentMenu->MSWGetRadioGroupRange(pos, &start, &end) )
             {
-                // we already have all information we need
-                start = pos;
-                end = m_radioGroup.end;
-            }
-            else // next radio group item
-            {
-                // get the radio group end from the start item
-                start = m_radioGroup.start;
-                end = items.Item(start)->GetData()->m_radioGroup.end;
+                wxFAIL_MSG( wxT("Menu radio item not part of radio group?") );
+                return;
             }
 
 #ifdef __WIN32__
@@ -1063,7 +1029,7 @@ bool wxMenuItem::OnDrawItem(wxDC& dc, const wxRect& rc,
                         - data->CheckBgMargin.cyBottomHeight
                         - data->CheckMargin.cyBottomHeight);
 
-    if ( IsCheckable() && !m_bmpChecked.Ok() )
+    if ( IsCheckable() && !m_bmpChecked.IsOk() )
     {
         if ( stat & wxODChecked )
         {
@@ -1079,25 +1045,25 @@ bool wxMenuItem::OnDrawItem(wxDC& dc, const wxRect& rc,
             bmp = GetDisabledBitmap();
         }
 
-        if ( !bmp.Ok() )
+        if ( !bmp.IsOk() )
         {
             // for not checkable bitmaps we should always use unchecked one
             // because their checked bitmap is not set
             bmp = GetBitmap(!IsCheckable() || (stat & wxODChecked));
 
 #if wxUSE_IMAGE
-            if ( bmp.Ok() && stat & wxODDisabled )
+            if ( bmp.IsOk() && stat & wxODDisabled )
             {
                 // we need to grey out the bitmap as we don't have any specific
                 // disabled bitmap
                 wxImage imgGrey = bmp.ConvertToImage().ConvertToGreyscale();
-                if ( imgGrey.Ok() )
+                if ( imgGrey.IsOk() )
                     bmp = wxBitmap(imgGrey);
             }
 #endif // wxUSE_IMAGE
         }
 
-        if ( bmp.Ok() )
+        if ( bmp.IsOk() )
         {
             wxMemoryDC dcMem(&dc);
             dcMem.SelectObjectAsSource(bmp);

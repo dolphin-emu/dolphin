@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: cmndata.cpp 66615 2011-01-07 05:26:57Z PC $
+// RCS-ID:      $Id: cmndata.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -170,7 +170,7 @@ bool wxPrintData::IsOk() const
 {
     m_nativeData->TransferFrom( *this );
 
-    return m_nativeData->Ok();
+    return m_nativeData->IsOk();
 }
 
 // ----------------------------------------------------------------------------

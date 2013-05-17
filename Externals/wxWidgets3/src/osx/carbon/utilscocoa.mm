@@ -4,12 +4,16 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utilscocoa.mm 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: utilscocoa.mm 70399 2012-01-19 14:04:47Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
+
+#ifndef WX_PRECOMP
+#include "wx/object.h"
+#endif
 
 #if wxOSX_USE_COCOA_OR_CARBON
 #include <Cocoa/Cocoa.h>
@@ -413,8 +417,7 @@ CGImageRef wxOSXCreateCGImageFromNSImage( WX_NSImage nsimage )
     if (nsimage != nil)
     {
         NSSize imageSize = [nsimage size];
-        CGColorSpaceRef genericRGB = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB); 
-        CGContextRef context = CGBitmapContextCreate(NULL, imageSize.width, imageSize.height, 8, 0, genericRGB, kCGImageAlphaPremultipliedFirst); 
+        CGContextRef context = CGBitmapContextCreate(NULL, imageSize.width, imageSize.height, 8, 0, wxMacGetGenericRGBColorSpace(), kCGImageAlphaPremultipliedFirst); 
         NSGraphicsContext *nsGraphicsContext = [NSGraphicsContext graphicsContextWithGraphicsPort:context flipped:NO];
         [NSGraphicsContext saveGraphicsState];
         [NSGraphicsContext setCurrentContext:nsGraphicsContext];

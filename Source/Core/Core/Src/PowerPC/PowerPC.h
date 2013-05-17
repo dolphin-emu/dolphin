@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _POWERPC_H
 #define _POWERPC_H
@@ -97,10 +84,12 @@ void Init(int cpu_core);
 void Shutdown();
 void DoState(PointerWrap &p);
 
+CoreMode GetMode();
 void SetMode(CoreMode _coreType);
 
 void SingleStep();	
 void CheckExceptions();
+void CheckExternalExceptions();
 void CheckBreakPoints();
 void RunLoop();
 void Start();
@@ -115,12 +104,16 @@ void ExpandCR();
 void OnIdle(u32 _uThreadAddr);
 void OnIdleIL();
 
+void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
+
 	// Easy register access macros.
 #define HID0 ((UReg_HID0&)PowerPC::ppcState.spr[SPR_HID0])
 #define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
 #define HID4 ((UReg_HID4&)PowerPC::ppcState.spr[SPR_HID4])
 #define DMAU  (*(UReg_DMAU*)&PowerPC::ppcState.spr[SPR_DMAU])
 #define DMAL  (*(UReg_DMAL*)&PowerPC::ppcState.spr[SPR_DMAL])
+#define MMCR0 ((UReg_MMCR0&)PowerPC::ppcState.spr[SPR_MMCR0])
+#define MMCR1 ((UReg_MMCR1&)PowerPC::ppcState.spr[SPR_MMCR1])
 #define PC     PowerPC::ppcState.pc
 #define NPC    PowerPC::ppcState.npc
 #define FPSCR  ((UReg_FPSCR&)PowerPC::ppcState.fpscr)

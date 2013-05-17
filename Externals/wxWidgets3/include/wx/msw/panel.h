@@ -3,7 +3,7 @@
 // Purpose:     wxMSW-specific wxPanel class.
 // Author:      Vadim Zeitlin
 // Created:     2011-03-18
-// RCS-ID:      $Id: panel.h 67253 2011-03-20 00:00:49Z VZ $
+// RCS-ID:      $Id: panel.h 70098 2011-12-23 05:59:59Z PC $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@ class WXDLLIMPEXP_FWD_CORE wxBrush;
 class WXDLLIMPEXP_CORE wxPanel : public wxPanelBase
 {
 public:
-    wxPanel() { Init(); }
+    wxPanel() { }
 
     wxPanel(wxWindow *parent,
             wxWindowID winid = wxID_ANY,
@@ -29,8 +29,6 @@ public:
             long style = wxTAB_TRAVERSAL | wxNO_BORDER,
             const wxString& name = wxPanelNameStr)
     {
-        Init();
-
         Create(parent, winid, pos, size, style, name);
     }
 
@@ -40,7 +38,7 @@ public:
     virtual bool HasTransparentBackground();
 
 
-#ifdef WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_2_8
     wxDEPRECATED_CONSTRUCTOR(
     wxPanel(wxWindow *parent,
             int x, int y, int width, int height,
@@ -52,18 +50,7 @@ public:
     )
 #endif // WXWIN_COMPATIBILITY_2_8
 
-protected:
-    void Init()
-    {
-        m_backgroundBrush = NULL;
-    }
-
-    virtual void DoSetBackgroundBitmap(const wxBitmap& bmp);
-    virtual WXHBRUSH MSWGetCustomBgBrush();
-
 private:
-    wxBrush *m_backgroundBrush;
-
     wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxPanel);
 };
 

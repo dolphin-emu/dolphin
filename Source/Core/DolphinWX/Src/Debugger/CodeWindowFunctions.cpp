@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "CommonPaths.h"
@@ -25,6 +12,7 @@
 
 #include "DebuggerUIUtil.h"
 
+#include "../WxUtils.h"
 #include "RegisterWindow.h"
 #include "BreakpointWindow.h"
 #include "MemoryWindow.h"
@@ -54,15 +42,6 @@
 
 #include "ConfigManager.h"
 
-extern "C"  // Bitmaps
-{
-	#include "../../resources/toolbar_play.c"
-	#include "../../resources/toolbar_pause.c"
-	#include "../../resources/toolbar_add_memorycheck.c"
-	#include "../../resources/toolbar_debugger_delete.c"
-	#include "../../resources/toolbar_add_breakpoint.c"
-}
-
 // Save and load settings
 // -----------------------------
 void CCodeWindow::Load()
@@ -74,7 +53,7 @@ void CCodeWindow::Load()
 	std::string fontDesc;
 	ini.Get("General", "DebuggerFont", &fontDesc);
 	if (!fontDesc.empty())
-		DebuggerFont.SetNativeFontInfoUserDesc(wxString::FromAscii(fontDesc.c_str()));
+		DebuggerFont.SetNativeFontInfoUserDesc(StrToWxStr(fontDesc));
 
 	// Boot to pause or not
 	ini.Get("General", "AutomaticStart", &bAutomaticStart, false);
@@ -116,7 +95,7 @@ void CCodeWindow::Save()
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	ini.Set("General", "DebuggerFont",
-		   	std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
+		   	WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
 
 	// Boot to pause or not
 	ini.Set("General", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
@@ -163,7 +142,7 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 	pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _("Save code"),
-		wxString::FromAscii("Save the entire disassembled code. This may take a several seconds"
+		StrToWxStr("Save the entire disassembled code. This may take a several seconds"
 		" and may require between 50 and 100 MB of hard drive space. It will only save code"
 		" that are in the first 4 MB of memory, if you are debugging a game that load .rel"
 		" files with code to memory you may want to increase that to perhaps 8 MB, you can do"
@@ -187,35 +166,40 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 
 void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 {
-	if (Core::GetState() == Core::CORE_RUN) {
-		event.Skip();
-		return;
-	}
 	switch (event.GetId())
 	{
 	case IDM_PROFILEBLOCKS:
-		if (jit != NULL) jit->ClearCache();
+		Core::SetState(Core::CORE_PAUSE);
+		if (jit != NULL)
+			jit->ClearCache();
 		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
+		Core::SetState(Core::CORE_RUN);
 		break;
 	case IDM_WRITEPROFILE:
-		if (jit != NULL)
-		{
-			std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
-			File::CreateFullPath(filename);
-			Profiler::WriteProfileResults(filename.c_str());
+		if (Core::GetState() == Core::CORE_RUN)
+			Core::SetState(Core::CORE_PAUSE);
 
-			wxFileType* filetype = NULL;
-			if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
+		if (Core::GetState() == Core::CORE_PAUSE && PowerPC::GetMode() == PowerPC::MODE_JIT)
+		{
+			if (jit != NULL)
 			{
-				// From extension failed, trying with MIME type now
-				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"))))
-					// MIME type failed, aborting mission
-					break;
+				std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
+				File::CreateFullPath(filename);
+				Profiler::WriteProfileResults(filename.c_str());
+
+				wxFileType* filetype = NULL;
+				if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_T("txt"))))
+				{
+					// From extension failed, trying with MIME type now
+					if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_T("text/plain"))))
+						// MIME type failed, aborting mission
+						break;
+				}
+				wxString OpenCommand;
+				OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
+				if(!OpenCommand.IsEmpty())
+					wxExecute(OpenCommand, wxEXEC_SYNC);
 			}
-			wxString OpenCommand;
-			OpenCommand = filetype->GetOpenCommand(wxString::From8BitData(filename.c_str()));
-			if(!OpenCommand.IsEmpty())
-				wxExecute(OpenCommand, wxEXEC_SYNC);
 		}
 		break;
 	}
@@ -288,7 +272,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
 			if (!path.IsEmpty())
 			{
-				std::ifstream f(path.mb_str());
+				std::ifstream f;
+				OpenFStream(f, WxStrToStr(path), std::ios_base::in);
 
 				std::string line;
 				while (std::getline(f, line))
@@ -316,13 +301,13 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 			wxTextEntryDialog input_prefix(
 				this,
-				wxString::FromAscii("Only export symbols with prefix:\n(Blank for all symbols)"),
+				StrToWxStr("Only export symbols with prefix:\n(Blank for all symbols)"),
 				wxGetTextFromUserPromptStr,
 				wxEmptyString);
 
 			if (input_prefix.ShowModal() == wxID_OK)
 			{
-				std::string prefix(input_prefix.GetValue().mb_str());
+				std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
 				wxString path = wxFileSelector(
 					_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
@@ -332,8 +317,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				{
 					SignatureDB db;
 					db.Initialize(&g_symbolDB, prefix.c_str());
-					std::string filename(path.mb_str());
-					db.Save(path.mb_str());
+					db.Save(WxStrToStr(path).c_str());
 				}
 			}
 		}
@@ -347,7 +331,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			if (!path.IsEmpty())
 			{
 				SignatureDB db;
-				db.Load(path.mb_str());
+				db.Load(WxStrToStr(path).c_str());
 				db.Apply(&g_symbolDB);
 			}
 		}
@@ -370,7 +354,7 @@ void CCodeWindow::NotifyMapLoaded()
 	symbols->Clear();
 	for (PPCSymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); ++iter)
 	{
-		int idx = symbols->Append(wxString::FromAscii(iter->second.name.c_str()));
+		int idx = symbols->Append(StrToWxStr(iter->second.name));
 		symbols->SetClientData(idx, (void*)&iter->second);
 	}
 	symbols->Thaw();
@@ -413,7 +397,7 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 		DebuggerFont = dialog.GetFontData().GetChosenFont();
 }
 
-// Toogle windows
+// Toggle windows
 
 void CCodeWindow::OpenPages()
 {

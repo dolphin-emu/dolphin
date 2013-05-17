@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.07.2003
-// RCS-ID:      $Id: renderg.cpp 66091 2010-11-10 13:52:22Z VZ $
+// RCS-ID:      $Id: renderg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -281,7 +281,7 @@ wxRendererGeneric::DrawHeaderButtonContents(wxWindow *win,
         // native hot-tracking line (on XP)
         const int penwidth = 3;
         int y = rect.y + rect.height + 1 - penwidth;
-        wxColour c = (params && params->m_selectionColour.Ok()) ?
+        wxColour c = (params && params->m_selectionColour.IsOk()) ?
             params->m_selectionColour : wxColour(0x66, 0x66, 0x66);
         wxPen pen(c, penwidth);
         pen.SetCap(wxCAP_BUTT);
@@ -322,7 +322,7 @@ wxRendererGeneric::DrawHeaderButtonContents(wxWindow *win,
             triPt[2].y = ar.height;
         }
 
-        wxColour c = (params && params->m_arrowColour.Ok()) ?
+        wxColour c = (params && params->m_arrowColour.IsOk()) ?
             params->m_arrowColour : wxSystemSettings::GetColour(wxSYS_COLOUR_3DSHADOW);
 
         wxDCPenChanger setPen(dc, c);
@@ -336,7 +336,7 @@ wxRendererGeneric::DrawHeaderButtonContents(wxWindow *win,
     int bmpWidth = 0;
 
     // draw the bitmap if there is one
-    if ( params && params->m_labelBitmap.Ok() )
+    if ( params && params->m_labelBitmap.IsOk() )
     {
         int w = params->m_labelBitmap.GetWidth();
         int h = params->m_labelBitmap.GetHeight();
@@ -379,9 +379,9 @@ wxRendererGeneric::DrawHeaderButtonContents(wxWindow *win,
         const int margin = 5;   // number of pixels to reserve on either side of the label
         labelWidth += 2*margin;
 
-        wxFont font  = params->m_labelFont.Ok() ?
+        wxFont font  = params->m_labelFont.IsOk() ?
             params->m_labelFont : win->GetFont();
-        wxColour clr = params->m_labelColour.Ok() ?
+        wxColour clr = params->m_labelColour.IsOk() ?
             params->m_labelColour : win->GetForegroundColour();
 
         wxString label( params->m_labelText );

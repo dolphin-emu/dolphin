@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 
@@ -38,12 +25,12 @@ void CEXIMic::StreamLog(const char *msg)
 void CEXIMic::StreamInit()
 {
 	// Setup the wonderful c-interfaced lib...
-	pa_stream = NULL;
+	pa_stream = nullptr;
 
 	if ((pa_error = Pa_Initialize()) != paNoError)
 		StreamLog("Pa_Initialize");
 
-	stream_buffer = NULL;
+	stream_buffer = nullptr;
 	samples_avail = stream_wpos = stream_rpos = 0;
 }
 
@@ -75,7 +62,7 @@ static int Pa_Callback(const void *inputBuffer, void *outputBuffer,
 	s16 *buff_in = (s16 *)inputBuffer;
 	s16 *buff_out = &mic->stream_buffer[mic->stream_wpos];
 
-	if (buff_in == NULL)
+	if (buff_in == nullptr)
 	{
 		for (int i = 0; i < mic->buff_size_samples; i++)
 		{
@@ -118,11 +105,13 @@ void CEXIMic::StreamStart()
 
 void CEXIMic::StreamStop()
 {
-	if (pa_stream != NULL && Pa_IsStreamActive(pa_stream) >= paNoError)
+	if (pa_stream != nullptr && Pa_IsStreamActive(pa_stream) >= paNoError)
 		Pa_AbortStream(pa_stream);
 
+	samples_avail = stream_wpos = stream_rpos = 0;
+
 	delete [] stream_buffer;
-	stream_buffer = NULL;
+	stream_buffer = nullptr;
 }
 
 void CEXIMic::StreamReadOne()

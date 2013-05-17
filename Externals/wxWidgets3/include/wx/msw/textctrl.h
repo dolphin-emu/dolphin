@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: textctrl.h 65564 2010-09-18 16:26:30Z VZ $
+// RCS-ID:      $Id: textctrl.h 68450 2011-07-29 15:11:54Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -197,6 +197,8 @@ protected:
                        const wxSize& size);
 
     virtual void DoSetValue(const wxString &value, int flags = 0);
+
+    virtual wxPoint DoPositionToCoords(long pos) const;
 
     // return true if this control has a user-set limit on amount of text (i.e.
     // the limit is due to a previous call to SetMaxLength() and not built in)

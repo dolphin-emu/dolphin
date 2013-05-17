@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Stefan Csomor
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloop.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: evtloop.mm 70786 2012-03-03 13:09:54Z SC $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -107,12 +107,15 @@ wxGUIEventLoop::wxGUIEventLoop()
 {
     m_modalSession = nil;
     m_dummyWindow = nil;
+    m_modalNestedLevel = 0;
+    m_modalWindow = NULL;
 }
 
 wxGUIEventLoop::~wxGUIEventLoop()
 {
     wxASSERT( m_modalSession == nil );
     wxASSERT( m_dummyWindow == nil );
+    wxASSERT( m_modalNestedLevel == 0 );
 }
 
 //-----------------------------------------------------------------------------
@@ -139,6 +142,7 @@ bool wxGUIEventLoop::Pending() const
     return true;
 #endif
 }
+
 
 bool wxGUIEventLoop::Dispatch()
 {
@@ -243,17 +247,36 @@ void wxGUIEventLoop::DoRun()
 
 void wxGUIEventLoop::DoStop()
 {
-    [NSApp stop:0];
     // only calling stop: is not enough when called from a runloop-observer,
     // therefore add a dummy event, to make sure the runloop gets another round
-    NSEvent *event = [NSEvent otherEventWithType:NSApplicationDefined 
+    [NSApp stop:0];
+    WakeUp();
+}
+
+void wxGUIEventLoop::WakeUp()
+{
+    // NSEvent* cevent = [NSApp currentEvent];
+    NSString* mode = [[NSRunLoop mainRunLoop] currentMode];
+    
+    // when already in a mouse event handler, don't add higher level event
+    // if ( cevent != nil && [cevent type] <= NSMouseMoved && )
+    if ( [NSEventTrackingRunLoopMode isEqualToString:mode] )
+    {
+        // NSLog(@"event for wakeup %@ in mode %@",cevent,mode);
+        wxCFEventLoop::WakeUp();        
+    }
+    else
+    {
+        wxMacAutoreleasePool autoreleasepool;
+        NSEvent *event = [NSEvent otherEventWithType:NSApplicationDefined 
                                         location:NSMakePoint(0.0, 0.0) 
                                    modifierFlags:0 
                                        timestamp:0 
                                     windowNumber:0 
                                          context:nil
                                          subtype:0 data1:0 data2:0]; 
-    [NSApp postEvent:event atStart:FALSE];
+        [NSApp postEvent:event atStart:FALSE];
+    }
 }
 
 CFRunLoopRef wxGUIEventLoop::CFGetCurrentRunLoop() const
@@ -302,12 +325,22 @@ void wxModalEventLoop::DoRun()
 
 void wxModalEventLoop::DoStop()
 {
-    [NSApp stopModal];
+    [NSApp abortModal];
 }
 
 void wxGUIEventLoop::BeginModalSession( wxWindow* modalWindow )
 {
     WXWindow nsnow = nil;
+
+    if ( m_modalNestedLevel > 0 )
+    {
+        wxASSERT_MSG( m_modalWindow == modalWindow, "Nested Modal Sessions must be based on same window");
+        m_modalNestedLevel++;
+        return;
+    }
+    
+    m_modalWindow = modalWindow;
+    m_modalNestedLevel = 1;
     
     if ( modalWindow )
     {
@@ -333,17 +366,24 @@ void wxGUIEventLoop::BeginModalSession( wxWindow* modalWindow )
         m_dummyWindow = nsnow;
     }
     m_modalSession = [NSApp beginModalSessionForWindow:nsnow];
+    wxASSERT_MSG(m_modalSession != NULL, "modal session couldn't be started");
 }
 
 void wxGUIEventLoop::EndModalSession()
 {
     wxASSERT_MSG(m_modalSession != NULL, "no modal session active");
-    [NSApp endModalSession:(NSModalSession)m_modalSession];
-    m_modalSession = nil;
-    if ( m_dummyWindow )
+    
+    wxASSERT_MSG(m_modalNestedLevel > 0, "incorrect modal nesting level");
+    
+    if ( --m_modalNestedLevel == 0 )
     {
-        [m_dummyWindow release];
-        m_dummyWindow = nil;
+        [NSApp endModalSession:(NSModalSession)m_modalSession];
+        m_modalSession = nil;
+        if ( m_dummyWindow )
+        {
+            [m_dummyWindow release];
+            m_dummyWindow = nil;
+        }
     }
 }
 
@@ -395,7 +435,8 @@ void wxWindowDisabler::DoDisable(wxWindow *winToSkip)
     }
     
     m_modalEventLoop = (wxEventLoop*)wxEventLoopBase::GetActive();
-    m_modalEventLoop->BeginModalSession(winToSkip);
+    if (m_modalEventLoop)
+        m_modalEventLoop->BeginModalSession(winToSkip);
 }
 
 wxWindowDisabler::~wxWindowDisabler()
@@ -403,7 +444,8 @@ wxWindowDisabler::~wxWindowDisabler()
     if ( !m_disabled )
         return;
     
-    m_modalEventLoop->EndModalSession();
+    if (m_modalEventLoop)
+        m_modalEventLoop->EndModalSession();
     
     wxWindowList::compatibility_iterator node;
     for ( node = wxTopLevelWindows.GetFirst(); node; node = node->GetNext() )
@@ -418,4 +460,3 @@ wxWindowDisabler::~wxWindowDisabler()
     
     delete m_winDisabled;
 }
-

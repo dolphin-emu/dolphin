@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #pragma once
 
@@ -100,12 +87,23 @@ void ChangeSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
 
 void RefreshVertexDeclaration();
 void SetVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl);
+void ChangeVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl);
 
 void RefreshVertexShader();
 void SetVertexShader(LPDIRECT3DVERTEXSHADER9 shader);
+void ChangeVertexShader(LPDIRECT3DVERTEXSHADER9 shader);
 
 void RefreshPixelShader();
 void SetPixelShader(LPDIRECT3DPIXELSHADER9 shader);
+void ChangePixelShader(LPDIRECT3DPIXELSHADER9 shader);
+
+void SetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9* pStreamData,UINT OffsetInBytes,UINT Stride);
+void ChangeStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9* pStreamData,UINT OffsetInBytes,UINT Stride);
+void RefreshStreamSource(UINT StreamNumber);
+
+void SetIndices(LPDIRECT3DINDEXBUFFER9 pIndexData);
+void ChangeIndices(LPDIRECT3DINDEXBUFFER9 pIndexData);
+void RefreshIndices();
 
 void ApplyCachedState();
 

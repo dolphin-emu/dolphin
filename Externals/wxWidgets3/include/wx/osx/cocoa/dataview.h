@@ -474,6 +474,8 @@ public:
     //
     virtual wxDataViewItem GetCurrentItem() const;
     virtual void SetCurrentItem(const wxDataViewItem& item);
+    virtual wxDataViewColumn *GetCurrentColumn() const;
+    virtual int  GetSelectedItemsCount() const;
     virtual int  GetSelections(wxDataViewItemArray& sel)   const;
     virtual bool IsSelected(const wxDataViewItem& item) const;
     virtual void Select(const wxDataViewItem& item);
@@ -496,6 +498,8 @@ public:
                          wxDataViewColumn*& columnPtr) const;
     virtual void SetRowHeight(const wxDataViewItem& item, unsigned int height);
     virtual void OnSize();
+    
+    virtual void StartEditor( const wxDataViewItem & item, unsigned int column );
 
     // drag & drop helper methods
     wxDataFormat GetDnDDataFormat(wxDataObjectComposite* dataObjects);

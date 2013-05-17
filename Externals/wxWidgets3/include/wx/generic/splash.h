@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     28/6/2000
-// RCS-ID:      $Id: splash.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: splash.h 69796 2011-11-22 13:18:55Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,8 +13,9 @@
 #define _WX_SPLASH_H_
 
 #include "wx/bitmap.h"
-#include "wx/timer.h"
+#include "wx/eventfilter.h"
 #include "wx/frame.h"
+#include "wx/timer.h"
 
 
 /*
@@ -33,11 +34,12 @@ class WXDLLIMPEXP_FWD_ADV wxSplashScreenWindow;
  * wxSplashScreen
  */
 
-class WXDLLIMPEXP_ADV wxSplashScreen: public wxFrame
+class WXDLLIMPEXP_ADV wxSplashScreen: public wxFrame,
+                                      public wxEventFilter
 {
 public:
     // for RTTI macros only
-    wxSplashScreen() {}
+    wxSplashScreen() { Init(); }
     wxSplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds,
                    wxWindow* parent, wxWindowID id,
                    const wxPoint& pos = wxDefaultPosition,
@@ -52,7 +54,13 @@ public:
     wxSplashScreenWindow* GetSplashWindow() const { return m_window; }
     int GetTimeout() const { return m_milliseconds; }
 
+    // Override wxEventFilter method to hide splash screen on any user input.
+    virtual int FilterEvent(wxEvent& event);
+
 protected:
+    // Common part of all ctors.
+    void Init();
+
     wxSplashScreenWindow*   m_window;
     long                    m_splashStyle;
     int                     m_milliseconds;
@@ -74,8 +82,6 @@ public:
 
     void OnPaint(wxPaintEvent& event);
     void OnEraseBackground(wxEraseEvent& event);
-    void OnMouseEvent(wxMouseEvent& event);
-    void OnChar(wxKeyEvent& event);
 
     void SetBitmap(const wxBitmap& bitmap) { m_bitmap = bitmap; }
     wxBitmap& GetBitmap() { return m_bitmap; }

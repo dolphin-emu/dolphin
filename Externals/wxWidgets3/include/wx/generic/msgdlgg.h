@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: msgdlgg.h 65449 2010-08-30 21:48:21Z VZ $
+// RCS-ID:      $Id: msgdlgg.h 68537 2011-08-04 22:53:42Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,6 +32,7 @@ protected:
 
     void OnYes(wxCommandEvent& event);
     void OnNo(wxCommandEvent& event);
+    void OnHelp(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
     // can be overridden to provide more contents to the dialog

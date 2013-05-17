@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloopcmn.cpp 66229 2010-11-22 01:22:56Z VZ $
+// RCS-ID:      $Id: evtloopcmn.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ bool wxEventLoopBase::Yield(bool onlyIfNeeded)
 }
 
 // wxEventLoopManual is unused in the other ports
-#if defined(__WXMSW__) || defined(__WXDFB__) || ( ( defined(__UNIX__) && !defined(__WXOSX__) ) && wxUSE_BASE)
+#if defined(__WINDOWS__) || defined(__WXDFB__) || ( ( defined(__UNIX__) && !defined(__WXOSX__) ) && wxUSE_BASE)
 
 // ============================================================================
 // wxEventLoopManual implementation
@@ -213,5 +213,5 @@ void wxEventLoopManual::Exit(int rc)
     WakeUp();
 }
 
-#endif // __WXMSW__ || __WXMAC__ || __WXDFB__
+#endif // __WINDOWS__ || __WXMAC__ || __WXDFB__
 

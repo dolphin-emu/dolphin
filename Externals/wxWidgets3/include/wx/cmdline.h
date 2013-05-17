@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.01.00
-// RCS-ID:      $Id: cmdline.h 66253 2010-11-24 00:42:53Z VZ $
+// RCS-ID:      $Id: cmdline.h 69797 2011-11-22 13:18:58Z VZ $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -183,12 +183,25 @@ public:
     void AddSwitch(const wxString& name, const wxString& lng = wxEmptyString,
                    const wxString& desc = wxEmptyString,
                    int flags = 0);
+    void AddLongSwitch(const wxString& lng,
+                       const wxString& desc = wxEmptyString,
+                       int flags = 0)
+    {
+        AddSwitch(wxString(), lng, desc, flags);
+    }
 
     // an option taking a value of the given type
     void AddOption(const wxString& name, const wxString& lng = wxEmptyString,
                    const wxString& desc = wxEmptyString,
                    wxCmdLineParamType type = wxCMD_LINE_VAL_STRING,
                    int flags = 0);
+    void AddLongOption(const wxString& lng,
+                       const wxString& desc = wxEmptyString,
+                       wxCmdLineParamType type = wxCMD_LINE_VAL_STRING,
+                       int flags = 0)
+    {
+        AddOption(wxString(), lng, desc, type, flags);
+    }
 
     // a parameter
     void AddParam(const wxString& desc = wxEmptyString,

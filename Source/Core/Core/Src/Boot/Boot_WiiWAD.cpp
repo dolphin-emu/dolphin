@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Boot.h"
 #include "../PowerPC/PowerPC.h"
@@ -32,8 +19,57 @@
 #include "VolumeCreator.h"
 #include "CommonPaths.h"
 
+static u32 state_checksum(u32 *buf, int len)
+{
+	u32 checksum = 0;
+	len = len>>2;
+
+	for(int i=0; i<len; i++)
+	{
+		checksum += buf[i];
+	}
+
+	return checksum;
+}
+
+typedef struct {
+	u32 checksum;
+	u8 flags;
+	u8 type;
+	u8 discstate;
+	u8 returnto;
+	u32 unknown[6];
+} StateFlags;
+
 bool CBoot::Boot_WiiWAD(const char* _pFilename)
 {
+	
+	std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_STATE);
+
+	if (File::Exists(state_filename))
+	{
+		File::IOFile state_file(state_filename, "r+b");
+		StateFlags state;
+		state_file.ReadBytes(&state, sizeof(StateFlags));
+		
+		state.type = 0x03; // TYPE_RETURN
+		state.checksum = state_checksum((u32*)&state.flags, sizeof(StateFlags)-4);
+
+		state_file.Seek(0, SEEK_SET);
+		state_file.WriteBytes(&state, sizeof(StateFlags));
+	}
+	else
+	{
+		File::CreateFullPath(state_filename);
+		File::IOFile state_file(state_filename, "a+b");
+		StateFlags state;
+		memset(&state,0,sizeof(StateFlags));
+		state.type = 0x03; // TYPE_RETURN
+		state.discstate = 0x01; // DISCSTATE_WII
+		state.checksum = state_checksum((u32*)&state.flags, sizeof(StateFlags)-4);
+		state_file.WriteBytes(&state, sizeof(StateFlags));
+	}
+
 	const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
 	if (!ContentLoader.IsValid())
 		return false;
@@ -41,9 +77,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	u64 titleID = ContentLoader.GetTitleID();
 	// create data directory
 	File::CreateFullPath(Common::GetTitleDataPath(titleID));
-	
-	if (titleID == TITLEID_SYSMENU)
-		HLE_IPC_CreateVirtualFATFilesystem();
+
 	// setup wii mem
 	if (!SetupWiiMemory(ContentLoader.GetCountry()))
 		return false;

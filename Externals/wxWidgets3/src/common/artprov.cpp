@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     18/03/2002
-// RCS-ID:      $Id: artprov.cpp 66506 2010-12-31 17:39:37Z VZ $
+// RCS-ID:      $Id: artprov.cpp 70154 2011-12-28 13:51:29Z VZ $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -231,12 +231,12 @@ wxArtProvider::~wxArtProvider()
              node; node = node->GetNext())
         {
             bmp = node->GetData()->CreateBitmap(id, client, size);
-            if ( bmp.Ok() )
+            if ( bmp.IsOk() )
                 break;
         }
 
         wxSize sizeNeeded = size;
-        if ( !bmp.Ok() )
+        if ( !bmp.IsOk() )
         {
             // no bitmap created -- as a fallback, try if we can find desired
             // icon in a bundle
@@ -407,7 +407,7 @@ bool wxArtProvider::HasNativeProvider()
 
 /* static */ void wxArtProvider::InsertProvider(wxArtProvider *provider)
 {
-    Insert(provider);
+    PushBack(provider);
 }
 
 /* static */ bool wxArtProvider::PopProvider()
@@ -440,13 +440,16 @@ class wxArtProviderModule: public wxModule
 public:
     bool OnInit()
     {
-#if wxUSE_ARTPROVIDER_STD
-        wxArtProvider::InitStdProvider();
-#endif // wxUSE_ARTPROVIDER_STD
+        // The order here is such that the native provider will be used first
+        // and the standard one last as all these default providers add
+        // themselves to the bottom of the stack.
+        wxArtProvider::InitNativeProvider();
 #if wxUSE_ARTPROVIDER_TANGO
         wxArtProvider::InitTangoProvider();
 #endif // wxUSE_ARTPROVIDER_TANGO
-        wxArtProvider::InitNativeProvider();
+#if wxUSE_ARTPROVIDER_STD
+        wxArtProvider::InitStdProvider();
+#endif // wxUSE_ARTPROVIDER_STD
         return true;
     }
     void OnExit()

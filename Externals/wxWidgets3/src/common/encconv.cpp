@@ -444,7 +444,7 @@ wxFontEncodingArray wxEncodingConverter::GetPlatformEquivalents(wxFontEncoding e
 {
     if (platform == wxPLATFORM_CURRENT)
     {
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
         platform = wxPLATFORM_WINDOWS;
 #elif defined(__WXGTK__) || defined(__WXMOTIF__)
         platform = wxPLATFORM_UNIX;

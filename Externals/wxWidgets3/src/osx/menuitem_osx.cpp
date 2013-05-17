@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menuitem_osx.cpp 67273 2011-03-22 07:10:41Z SC $
+// RCS-ID:      $Id: menuitem_osx.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -176,7 +176,7 @@ void wxMenuItem::UpdateItemBitmap()
     if ( !m_parentMenu )
         return;
 
-    if ( m_bitmap.Ok() )
+    if ( m_bitmap.IsOk() )
     {
         GetPeer()->SetBitmap( m_bitmap );
     }

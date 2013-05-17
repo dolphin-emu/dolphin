@@ -26,6 +26,7 @@ extern char **environ;
 #if defined(HAVE_WX) && HAVE_WX
 #include <string>
 #include <algorithm>
+#include "WxUtils.h"
 #endif
 
 namespace X11Utils
@@ -124,12 +125,12 @@ void EWMH_Fullscreen(Display *dpy, int action)
 #if defined(HAVE_WX) && HAVE_WX
 Window XWindowFromHandle(void *Handle)
 {
-	return GDK_WINDOW_XID(GTK_WIDGET(Handle)->window);
+	return GDK_WINDOW_XID(gtk_widget_get_window(GTK_WIDGET(Handle)));
 }
 
 Display *XDisplayFromHandle(void *Handle)
 {
-	return GDK_WINDOW_XDISPLAY(GTK_WIDGET(Handle)->window);
+	return GDK_WINDOW_XDISPLAY(gtk_widget_get_window(GTK_WIDGET(Handle)));
 }
 #endif
 
@@ -225,7 +226,7 @@ void XRRConfiguration::Update()
 	}
 	else
 		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
-				"%a[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
+				"%m[^:]: %ux%u", &output_name, &fullWidth, &fullHeight);
 
 	for (int i = 0; i < screenResources->noutput; i++)
 	{
@@ -350,7 +351,7 @@ void XRRConfiguration::AddResolutions(wxArrayString& arrayStringFor_FullscreenRe
 						if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
 						{
 							resos.push_back(strRes);
-							arrayStringFor_FullscreenResolution.Add(wxString::FromUTF8(strRes.c_str()));
+							arrayStringFor_FullscreenResolution.Add(StrToWxStr(strRes));
 						}
 					}
 		}

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: region.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: region.h 69459 2011-10-18 21:56:40Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,12 +17,13 @@
 class WXDLLIMPEXP_CORE wxRegion : public wxRegionWithCombine
 {
 public:
+    wxRegion() { }
     wxRegion(long x, long y, long w, long h);
     wxRegion(const wxPoint& topLeft, const wxPoint& bottomRight);
     wxRegion(const wxRect& rect);
     wxRegion( WXHRGN hRegion );
     wxRegion(size_t n, const wxPoint *points, wxPolygonFillMode fillStyle = wxODDEVEN_RULE );
-    wxRegion();
+#if wxUSE_IMAGE
     wxRegion(const wxBitmap& bmp)
     {
         Union(bmp);
@@ -32,6 +33,7 @@ public:
     {
         Union(bmp, transColour, tolerance);
     }
+#endif
 
     virtual ~wxRegion();
 

@@ -3,7 +3,7 @@
 // Purpose:     File system watcher impl classes
 // Author:      Bartosz Bekier
 // Created:     2009-05-26
-// RCS-ID:      $Id: fswatcher.h 62475 2009-10-22 11:36:35Z VZ $
+// RCS-ID:      $Id: fswatcher.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2009 Bartosz Bekier <bartosz.bekier@gmail.com>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@
     #define wxFSWatchEntry wxFSWatchEntryKq
     WX_DECLARE_STRING_HASH_MAP(wxSharedPtr<wxFSWatchEntry>,wxFSWatchEntries);
     #include "wx/unix/private/fswatcher_kqueue.h"
-#elif defined(__WXMSW__)
+#elif defined(__WINDOWS__)
     class wxFSWatchEntryMSW;
     #define wxFSWatchEntry wxFSWatchEntryMSW
     WX_DECLARE_STRING_HASH_MAP(wxSharedPtr<wxFSWatchEntry>,wxFSWatchEntries);

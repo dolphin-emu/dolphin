@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: logg.h 61346 2009-07-08 13:47:33Z VZ $
+// RCS-ID:      $Id: logg.h 67656 2011-04-30 10:57:04Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -104,7 +104,7 @@ private:
 // ----------------------------------------------------------------------------
 // (background) log window: this class forwards all log messages to the log
 // target which was active when it was instantiated, but also collects them
-// to the log window. This window has it's own menu which allows the user to
+// to the log window. This window has its own menu which allows the user to
 // close it, clear the log contents or save it to the file.
 // ----------------------------------------------------------------------------
 

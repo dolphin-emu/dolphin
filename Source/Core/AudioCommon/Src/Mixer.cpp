@@ -1,20 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Atomic.h"
 #include "Mixer.h"
@@ -37,7 +23,9 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	if (!samples)
 		return 0;
 
-	if (PowerPC::GetState() != 0)
+	std::lock_guard<std::mutex> lk(m_csMixing);
+
+	if (PowerPC::GetState() != PowerPC::CPU_RUNNING)
 	{
 		// Silence
 		memset(samples, 0, numSamples * 4);
@@ -65,7 +53,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 			{
 				static const __m128i sr_mask =
 					_mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL,
-						      0x04050607L, 0x00010203L);
+								  0x04050607L, 0x00010203L);
 
 				for (unsigned int i = 0; i < numLeft * 2; i += 8)
 				{
@@ -97,12 +85,11 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 				if ((m_indexR2 & INDEX_MASK) == (m_indexW & INDEX_MASK)) //..if it exists
 					m_indexR2 = m_indexR;
 
-				
 				s16 l1 = Common::swap16(m_buffer[m_indexR & INDEX_MASK]); //current
 				s16 l2 = Common::swap16(m_buffer[m_indexR2 & INDEX_MASK]); //next
-				int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;	
-				samples[i+1] = sampleL;			
-				
+				int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
+				samples[i+1] = sampleL;
+
 				s16 r1 = Common::swap16(m_buffer[(m_indexR + 1) & INDEX_MASK]); //current
 				s16 r2 = Common::swap16(m_buffer[(m_indexR2 + 1) & INDEX_MASK]); //next
 				int sampleR = ((r1 << 16) + (r2 - r1) * (u16)frac)  >> 16;
@@ -113,8 +100,6 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 				frac &= 0xffff;
 			}
 		}
-
-
 
 	} else {
 		numLeft = 0;
@@ -136,8 +121,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		if (m_AIplaying) {
 			Premix(samples, numLeft);
 
-			if (m_EnableDTKMusic)
-				AudioInterface::Callback_GetStreaming(samples, numLeft, m_sampleRate);
+			AudioInterface::Callback_GetStreaming(samples, numLeft, m_sampleRate);
 
 			g_wave_writer.AddStereoSamples(samples, numLeft);
 		}
@@ -147,11 +131,8 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		Premix(samples, numSamples);
 
 		// Add the DTK Music
-		if (m_EnableDTKMusic)
-		{
-			// Re-sampling is done inside
-			AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
-		}
+		// Re-sampling is done inside
+		AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
 	}
 
 
@@ -168,7 +149,7 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
 		while (num_samples + Common::AtomicLoad(m_numSamples) > MAX_SAMPLES)
 		{
-			if (*PowerPC::GetStatePtr() != 0) 
+			if (*PowerPC::GetStatePtr() != PowerPC::CPU_RUNNING || soundStream->IsMuted()) 
 				break;
 			// Shortcut key for Throttle Skipping
 			if (Host_GetKeyState('\t'))

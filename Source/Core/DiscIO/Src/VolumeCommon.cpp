@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 #include "Volume.h"
 
 namespace DiscIO
@@ -28,9 +16,11 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		
 		// PAL
 		case 'D': // German
+			return IVolume::COUNTRY_GERMANY;
+			break;
+
 		case 'X': // Used by a couple PAL games
 		case 'Y': // German, french
-
 
 		case 'L': // Japanese import to PAL regions
 		case 'M': // Japanese import to PAL regions
@@ -67,7 +57,7 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		case 'T': // Korea with English language
 		case 'Q': // Korea with Japanese language
 			return IVolume::COUNTRY_KOREA;
-			break;			
+			break;
 
 		case 'O':
 			return IVolume::COUNTRY_SDK;
@@ -109,5 +99,13 @@ u8 GetSysMenuRegion(u16 _TitleVersion)
 	}
 }
 
-};
+std::string IVolume::GetName() const
+{
+	auto names = GetNames();
+	if (names.empty())
+		return "";
+	else
+		return names[0];
+}
 
+}

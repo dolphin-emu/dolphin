@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menu.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: menu.h 70350 2012-01-15 13:41:17Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -83,6 +83,10 @@ private:
     // terminate the current radio group, if any
     void EndRadioGroup();
 
+    // Common part of HandleMenu{Opened,Closed}().
+    void DoHandleMenuOpenedOrClosed(wxEventType evtType);
+
+
     // if TRUE, insert a breal before appending the next item
     bool m_doBreak;
 
@@ -127,6 +131,7 @@ public:
     virtual wxMenu *Remove(size_t pos);
 
     virtual void EnableTop( size_t pos, bool flag );
+    virtual bool IsEnabledTop(size_t pos) const;
     virtual void SetMenuLabel( size_t pos, const wxString& label );
     virtual wxString GetMenuLabel( size_t pos ) const;
     virtual bool Enable( bool enable = true );

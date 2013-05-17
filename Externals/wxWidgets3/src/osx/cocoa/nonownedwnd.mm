@@ -4,7 +4,7 @@
 // Author:      DavidStefan Csomor
 // Modified by:
 // Created:     2008-06-20
-// RCS-ID:      $Id: nonownedwnd.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: nonownedwnd.mm 70862 2012-03-10 12:37:58Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -120,11 +120,21 @@ bool shouldHandleSelector(SEL selector)
     bool handled = false;
     if ( ([event type] >= NSLeftMouseDown) && ([event type] <= NSMouseExited) )
     {
+        WXEVENTREF formerEvent = wxTheApp == NULL ? NULL : wxTheApp->MacGetCurrentEvent();
+        WXEVENTHANDLERCALLREF formerHandler = wxTheApp == NULL ? NULL : wxTheApp->MacGetCurrentEventHandlerCallRef();
+
         wxWindow* cw = wxWindow::GetCapture();
         if ( cw != NULL )
         {
+            if (wxTheApp)
+                wxTheApp->MacSetCurrentEvent(event, NULL);
             ((wxWidgetCocoaImpl*)cw->GetPeer())->DoHandleMouseEvent( event);
             handled = true;
+        }
+        if ( handled )
+        {
+            if (wxTheApp)
+                wxTheApp->MacSetCurrentEvent(formerEvent , formerHandler);
         }
     }
     return handled;
@@ -241,7 +251,18 @@ bool shouldHandleSelector(SEL selector)
 - (void)sendEvent:(NSEvent *) event
 {
     if ( ![self WX_filterSendEvent: event] )
+    {
+        WXEVENTREF formerEvent = wxTheApp == NULL ? NULL : wxTheApp->MacGetCurrentEvent();
+        WXEVENTHANDLERCALLREF formerHandler = wxTheApp == NULL ? NULL : wxTheApp->MacGetCurrentEventHandlerCallRef();
+        
+        if (wxTheApp)
+            wxTheApp->MacSetCurrentEvent(event, NULL);
+        
         [super sendEvent: event];
+        
+        if (wxTheApp)
+            wxTheApp->MacSetCurrentEvent(formerEvent , formerHandler);
+    }
 }
 
 @end
@@ -271,7 +292,7 @@ extern int wxOSXGetIdFromSelector(SEL action );
 
 - (id) init
 {
-    [super init];
+    self = [super init];
     return self;
 }
 
@@ -299,8 +320,8 @@ extern int wxOSXGetIdFromSelector(SEL action );
         wxMenuItem* menuitem = mbar->FindItem(wxOSXGetIdFromSelector(action), &menu);
         if ( menu != NULL && menuitem != NULL)
         {
-            if ( menu->HandleCommandUpdateStatus(menuitem) )
-                return menuitem->IsEnabled();
+            menu->HandleCommandUpdateStatus(menuitem);
+            return menuitem->IsEnabled();
         }
     }
     return YES;
@@ -452,10 +473,11 @@ extern int wxOSXGetIdFromSelector(SEL action );
             editor = [[wxNSTextFieldEditor alloc] init];
             [editor setFieldEditor:YES];
             [tf setFieldEditor:editor];
+            [editor release];
         }
         return editor;
-    }
-
+    } 
+ 
     return nil;
 }
 
@@ -531,30 +553,10 @@ long style, long extraStyle, const wxString& WXUNUSED(name) )
     if ( style & wxFRAME_TOOL_WINDOW )
     {
         windowstyle |= NSUtilityWindowMask;
-        if ( ( style & wxMINIMIZE_BOX ) || ( style & wxMAXIMIZE_BOX ) ||
-            ( style & wxCLOSE_BOX ) || ( style & wxSYSTEM_MENU ) )
-        {
-            windowstyle |= NSTitledWindowMask ;
-        }
     }
     else if ( ( style & wxPOPUP_WINDOW ) )
     {
         level = kCGPopUpMenuWindowLevel;
-        /*
-        if ( ( style & wxBORDER_NONE ) )
-        {
-            wclass = kHelpWindowClass ;   // has no border
-            attr |= kWindowNoShadowAttribute;
-        }
-        else
-        {
-            wclass = kPlainWindowClass ;  // has a single line border, it will have to do for now
-        }
-        */
-    }
-    else if ( ( style & wxCAPTION ) )
-    {
-        windowstyle |= NSTitledWindowMask ;
     }
     else if ( ( style & wxFRAME_DRAWER ) )
     {
@@ -562,40 +564,24 @@ long style, long extraStyle, const wxString& WXUNUSED(name) )
         wclass = kDrawerWindowClass;
         */
     }
-    else
+ 
+    if ( ( style & wxMINIMIZE_BOX ) || ( style & wxMAXIMIZE_BOX ) ||
+        ( style & wxCLOSE_BOX ) || ( style & wxSYSTEM_MENU ) || ( style & wxCAPTION ) )
     {
-        // set these even if we have no title, otherwise the controls won't be visible
-        if ( ( style & wxMINIMIZE_BOX ) || ( style & wxMAXIMIZE_BOX ) ||
-            ( style & wxCLOSE_BOX ) || ( style & wxSYSTEM_MENU ) )
-        {
-            windowstyle |= NSTitledWindowMask ;
-        }
-        /*
-        else if ( ( style & wxNO_BORDER ) )
-        {
-            wclass = kSimpleWindowClass ;
-        }
-        else
-        {
-            wclass = kPlainWindowClass ;
-        }
-        */
-    }
-
-    if ( windowstyle & NSTitledWindowMask )
-    {
+        windowstyle |= NSTitledWindowMask ;
         if ( ( style & wxMINIMIZE_BOX ) )
             windowstyle |= NSMiniaturizableWindowMask ;
-
+        
         if ( ( style & wxMAXIMIZE_BOX ) )
-            windowstyle |= NSResizableWindowMask ; // TODO showing ZOOM ?
-
-        if ( ( style & wxRESIZE_BORDER ) )
             windowstyle |= NSResizableWindowMask ;
-
+        
         if ( ( style & wxCLOSE_BOX) )
             windowstyle |= NSClosableWindowMask ;
     }
+    
+    if ( ( style & wxRESIZE_BORDER ) )
+        windowstyle |= NSResizableWindowMask ;
+
     if ( extraStyle & wxFRAME_EX_METAL)
         windowstyle |= NSTexturedBackgroundWindowMask;
 
@@ -614,7 +600,16 @@ long style, long extraStyle, const wxString& WXUNUSED(name) )
         backing:NSBackingStoreBuffered
         defer:NO
         ];
-
+    
+    // if we just have a title bar with no buttons needed, hide them
+    if ( (windowstyle & NSTitledWindowMask) && 
+        !(style & wxCLOSE_BOX) && !(style & wxMAXIMIZE_BOX) && !(style & wxMINIMIZE_BOX) )
+    {
+        [[m_macWindow standardWindowButton:NSWindowZoomButton] setHidden:YES];
+        [[m_macWindow standardWindowButton:NSWindowCloseButton] setHidden:YES];
+        [[m_macWindow standardWindowButton:NSWindowMiniaturizeButton] setHidden:YES];
+    }
+    
     // If the parent is modal, windows with wxFRAME_FLOAT_ON_PARENT style need
     // to be in kCGUtilityWindowLevel and not kCGFloatingWindowLevel to stay
     // above the parent.
@@ -643,8 +638,6 @@ long style, long extraStyle, const wxString& WXUNUSED(name) )
 
     [m_macWindow setDelegate:controller];
 
-    [m_macWindow setAcceptsMouseMovedEvents: YES];
-    
     if ( ( style & wxFRAME_SHAPED) )
     {
         [m_macWindow setOpaque:NO];
@@ -716,8 +709,12 @@ bool wxNonOwnedWindowCocoaImpl::SetTransparent(wxByte alpha)
     return true;
 }
 
-bool wxNonOwnedWindowCocoaImpl::SetBackgroundColour(const wxColour& WXUNUSED(col) )
+bool wxNonOwnedWindowCocoaImpl::SetBackgroundColour(const wxColour& col )
 {
+    [m_macWindow setBackgroundColor:[NSColor colorWithCalibratedRed:(CGFloat) (col.Red() / 255.0)
+                                                             green:(CGFloat) (col.Green() / 255.0)
+                                                              blue:(CGFloat) (col.Blue() / 255.0)
+                                                             alpha:(CGFloat) (col.Alpha() / 255.0)]];
     return true;
 }
 
@@ -853,6 +850,7 @@ void wxNonOwnedWindowCocoaImpl::Maximize(bool WXUNUSED(maximize))
 
 typedef struct
 {
+    NSUInteger m_formerStyleMask;
     int m_formerLevel;
     NSRect m_formerFrame;
 } FullScreenData ;
@@ -873,25 +871,50 @@ bool wxNonOwnedWindowCocoaImpl::ShowFullScreen(bool show, long WXUNUSED(style))
         m_macFullScreenData = data ;
         data->m_formerLevel = [m_macWindow level];
         data->m_formerFrame = [m_macWindow frame];
-        CGDisplayCapture( kCGDirectMainDisplay );
-        [m_macWindow setLevel:CGShieldingWindowLevel()];
+        data->m_formerStyleMask = [m_macWindow styleMask];
+#if 0
+        // CGDisplayCapture( kCGDirectMainDisplay );
+        //[m_macWindow setLevel:NSMainMenuWindowLevel+1/*CGShieldingWindowLevel()*/];
+#endif
         NSRect screenframe = [[NSScreen mainScreen] frame];
         NSRect frame = NSMakeRect (0, 0, 100, 100);
         NSRect contentRect;
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+        if ( [ m_macWindow respondsToSelector:@selector(setStyleMask:) ] )
+            [m_macWindow setStyleMask:data->m_formerStyleMask & ~ NSResizableWindowMask];
+#endif
+        
         contentRect = [NSWindow contentRectForFrameRect: frame
-                                styleMask: NSTitledWindowMask];
+                                styleMask: [m_macWindow styleMask]];
         screenframe.origin.y += (frame.origin.y - contentRect.origin.y);
         screenframe.size.height += (frame.size.height - contentRect.size.height);
         [m_macWindow setFrame:screenframe display:YES];
+
+        SetSystemUIMode(kUIModeAllHidden,
+                                kUIOptionDisableAppleMenu
+                        /*
+                                | kUIOptionDisableProcessSwitch
+                                | kUIOptionDisableForceQuit
+                         */); 
     }
     else if ( m_macFullScreenData != NULL )
     {
         FullScreenData *data = (FullScreenData *) m_macFullScreenData ;
-        CGDisplayRelease( kCGDirectMainDisplay );
-        [m_macWindow setLevel:data->m_formerLevel];
+#if 0
+        // CGDisplayRelease( kCGDirectMainDisplay );
+        // [m_macWindow setLevel:data->m_formerLevel];
+#endif
+        
         [m_macWindow setFrame:data->m_formerFrame display:YES];
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+        if ( [ m_macWindow respondsToSelector:@selector(setStyleMask:) ] )
+            [m_macWindow setStyleMask:data->m_formerStyleMask];
+#endif
         delete data ;
         m_macFullScreenData = NULL ;
+
+        SetSystemUIMode(kUIModeNormal, 0); 
     }
 
     return true;
@@ -957,6 +980,11 @@ void wxNonOwnedWindowCocoaImpl::SetModified(bool modified)
 bool wxNonOwnedWindowCocoaImpl::IsModified() const
 {
     return [m_macWindow isDocumentEdited];
+}
+
+void wxNonOwnedWindowCocoaImpl::SetRepresentedFilename(const wxString& filename)
+{
+    [m_macWindow setRepresentedFilename:wxCFStringRef(filename).AsNSString()];
 }
 
 void wxNonOwnedWindowCocoaImpl::RestoreWindowLevel()

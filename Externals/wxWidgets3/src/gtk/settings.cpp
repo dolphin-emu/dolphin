@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified by: Mart Raudsepp (GetMetric)
-// Id:          $Id: settings.cpp 67018 2011-02-25 09:38:35Z JS $
+// Id:          $Id: settings.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,6 +22,7 @@
 
 #include <gtk/gtk.h>
 #include "wx/gtk/private/win_gtk.h"
+#include "wx/gtk/private/gtk2-compat.h"
 
 bool wxGetFrameExtents(GdkWindow* window, int* left, int* right, int* top, int* bottom);
 
@@ -60,7 +61,7 @@ static const GtkStyle* ButtonStyle()
         gtk_widget_ensure_style(s_widget);
         g_signal_connect(s_widget, "style_set", G_CALLBACK(style_set), NULL);
     }
-    return s_widget->style;
+    return gtk_widget_get_style(s_widget);
 }
 
 static const GtkStyle* ListStyle()
@@ -73,7 +74,7 @@ static const GtkStyle* ListStyle()
         gtk_container_add(ContainerWidget(), s_widget);
         gtk_widget_ensure_style(s_widget);
     }
-    return s_widget->style;
+    return gtk_widget_get_style(s_widget);
 }
 
 static const GtkStyle* TextCtrlStyle()
@@ -85,7 +86,7 @@ static const GtkStyle* TextCtrlStyle()
         gtk_container_add(ContainerWidget(), s_widget);
         gtk_widget_ensure_style(s_widget);
     }
-    return s_widget->style;
+    return gtk_widget_get_style(s_widget);
 }
 
 static const GtkStyle* MenuItemStyle()
@@ -97,7 +98,7 @@ static const GtkStyle* MenuItemStyle()
         gtk_container_add(ContainerWidget(), s_widget);
         gtk_widget_ensure_style(s_widget);
     }
-    return s_widget->style;
+    return gtk_widget_get_style(s_widget);
 }
 
 static const GtkStyle* MenuBarStyle()
@@ -109,7 +110,7 @@ static const GtkStyle* MenuBarStyle()
         gtk_container_add(ContainerWidget(), s_widget);
         gtk_widget_ensure_style(s_widget);
     }
-    return s_widget->style;
+    return gtk_widget_get_style(s_widget);
 }
 
 static const GtkStyle* ToolTipStyle()
@@ -124,7 +125,7 @@ static const GtkStyle* ToolTipStyle()
         gtk_widget_set_name(s_widget, name);
         gtk_widget_ensure_style(s_widget);
     }
-    return s_widget->style;
+    return gtk_widget_get_style(s_widget);
 }
 
 wxColour wxSystemSettingsNative::GetColour( wxSystemColour index )
@@ -257,7 +258,7 @@ wxFont wxSystemSettingsNative::GetFont( wxSystemFont index )
         case wxSYS_SYSTEM_FONT:
         case wxSYS_DEVICE_DEFAULT_FONT:
         case wxSYS_DEFAULT_GUI_FONT:
-            if (!gs_fontSystem.Ok())
+            if (!gs_fontSystem.IsOk())
             {
                 wxNativeFontInfo info;
                 info.description = ButtonStyle()->font_desc;
@@ -316,8 +317,8 @@ static int GetBorderWidth(wxSystemMetric index, wxWindow* win)
 int wxSystemSettingsNative::GetMetric( wxSystemMetric index, wxWindow* win )
 {
     GdkWindow *window = NULL;
-    if(win && GTK_WIDGET_REALIZED(win->GetHandle()))
-        window = win->GetHandle()->window;
+    if (win)
+        window = gtk_widget_get_window(win->GetHandle());
 
     switch (index)
     {

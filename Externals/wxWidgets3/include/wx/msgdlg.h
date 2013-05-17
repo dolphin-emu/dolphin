@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: msgdlg.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: msgdlg.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -177,10 +177,16 @@ public:
         return true;
     }
 
+    virtual bool SetHelpLabel(const ButtonLabel& help)
+    {
+        DoSetCustomLabel(m_help, help);
+        return true;
+    }
+
     // test if any custom labels were set
     bool HasCustomLabels() const
     {
-        return !(m_ok.empty() && m_cancel.empty() &&
+        return !(m_ok.empty() && m_cancel.empty() && m_help.empty() &&
                  m_yes.empty() && m_no.empty());
     }
 
@@ -195,6 +201,8 @@ public:
         { return m_ok.empty() ? GetDefaultOKLabel() : m_ok; }
     wxString GetCancelLabel() const
         { return m_cancel.empty() ? GetDefaultCancelLabel() : m_cancel; }
+    wxString GetHelpLabel() const
+        { return m_help.empty() ? GetDefaultHelpLabel() : m_help; }
 
     // based on message dialog style, returns exactly one of: wxICON_NONE,
     // wxICON_ERROR, wxICON_WARNING, wxICON_QUESTION, wxICON_INFORMATION
@@ -250,6 +258,7 @@ protected:
     const wxString& GetCustomYesLabel() const { return m_yes; }
     const wxString& GetCustomNoLabel() const { return m_no; }
     const wxString& GetCustomOKLabel() const { return m_ok; }
+    const wxString& GetCustomHelpLabel() const { return m_help; }
     const wxString& GetCustomCancelLabel() const { return m_cancel; }
 
 private:
@@ -259,13 +268,15 @@ private:
     virtual wxString GetDefaultNoLabel() const { return wxGetTranslation("No"); }
     virtual wxString GetDefaultOKLabel() const { return wxGetTranslation("OK"); }
     virtual wxString GetDefaultCancelLabel() const { return wxGetTranslation("Cancel"); }
+    virtual wxString GetDefaultHelpLabel() const { return wxGetTranslation("Help"); }
 
     // labels for the buttons, initially empty meaning that the defaults should
     // be used, use GetYes/No/OK/CancelLabel() to access them
     wxString m_yes,
              m_no,
              m_ok,
-             m_cancel;
+             m_cancel,
+             m_help;
 
     wxDECLARE_NO_COPY_CLASS(wxMessageDialogBase);
 };
@@ -279,8 +290,6 @@ private:
     #define wxMessageDialog wxGenericMessageDialog
 #elif defined(__WXCOCOA__)
     #include "wx/cocoa/msgdlg.h"
-#elif defined(__WXPALMOS__)
-    #include "wx/palmos/msgdlg.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/msgdlg.h"
 #elif defined(__WXMOTIF__)

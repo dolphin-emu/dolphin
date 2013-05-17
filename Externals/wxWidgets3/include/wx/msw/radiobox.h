@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: radiobox.h 65957 2010-10-30 23:50:39Z VZ $
+// RCS-ID:      $Id: radiobox.h 70498 2012-02-02 14:26:06Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -149,6 +149,9 @@ protected:
     // get the total size occupied by the radio box buttons
     wxSize GetTotalButtonSize(const wxSize& sizeBtn) const;
 
+    // Adjust all the buttons to the new window size.
+    void PositionAllButtons(int x, int y, int width, int height);
+
     virtual void DoSetSize(int x, int y,
                            int width, int height,
                            int sizeFlags = wxSIZE_AUTO);
@@ -163,6 +166,8 @@ protected:
     virtual WXHRGN MSWGetRegionWithoutChildren();
 #endif // __WXWINCE__
 
+    // resolve ambiguity in base classes
+    virtual wxBorder GetDefaultBorder() const { return wxRadioBoxBase::GetDefaultBorder(); }
 
     // the buttons we contain
     wxSubwindows *m_radioButtons;

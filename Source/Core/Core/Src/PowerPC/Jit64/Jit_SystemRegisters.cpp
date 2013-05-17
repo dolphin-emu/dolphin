@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 
@@ -23,11 +10,12 @@
 #include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 
 #include "Jit.h"
 #include "JitRegCache.h"
+#include "HW/ProcessorInterface.h"
 
 void Jit64::mtspr(UGeckoInstruction inst)
 {
@@ -93,6 +81,10 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	case SPR_DEC:
 	case SPR_TL:
 	case SPR_TU:
+	case SPR_PMC1:
+	case SPR_PMC2:
+	case SPR_PMC3:
+	case SPR_PMC4:
 		Default(inst);
 		return;
 	default:
@@ -118,7 +110,30 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	gpr.UnlockAll();
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
+
+	// If some exceptions are pending and EE are now enabled, force checking
+	// external exceptions when going out of mtmsr in order to execute delayed
+	// interrupts as soon as possible.
+	TEST(32, M(&MSR), Imm32(0x8000));
+	FixupBranch eeDisabled = J_CC(CC_Z);
+
+	TEST(32, M((void*)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
+	FixupBranch noExceptionsPending = J_CC(CC_Z);
+
+	// Check if a CP interrupt is waiting and keep the GPU emulation in sync (issue 4336)
+	TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP));
+	FixupBranch cpInt = J_CC(CC_NZ);
+
+	MOV(32, M(&PC), Imm32(js.compilerPC + 4));
+	WriteExternalExceptionExit();
+
+	SetJumpTarget(cpInt);
+	SetJumpTarget(noExceptionsPending);
+	SetJumpTarget(eeDisabled);
+
 	WriteExit(js.compilerPC + 4, 0);
+
+	js.firstFPInstructionFound = false;
 }
 
 void Jit64::mfmsr(UGeckoInstruction inst)
@@ -148,10 +163,13 @@ void Jit64::mfcr(UGeckoInstruction inst)
 	gpr.Lock(d);
 	gpr.KillImmediate(d, false, true);
 	MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[0]));
-	for (int i = 1; i < 8; i++) {
+
+	for (int i = 1; i < 8; i++)
+	{
 		SHL(32, R(EAX), Imm8(4));
 		OR(8, R(EAX), M(&PowerPC::ppcState.cr_fast[i]));
 	}
+
 	MOV(32, gpr.R(d), R(EAX));
 	gpr.UnlockAll();
 }

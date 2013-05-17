@@ -3,7 +3,7 @@
 // Purpose:     wxTimer class
 // Author:      Julian Smart
 // Created:     01/02/97
-// RCS-ID:      $Id: timer.h 63486 2010-02-15 17:34:21Z RD $
+// RCS-ID:      $Id: timer.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,7 +19,7 @@
 class WXDLLIMPEXP_BASE wxMSWTimerImpl : public wxTimerImpl
 {
 public:
-    wxMSWTimerImpl(wxTimer *timer) : wxTimerImpl(timer) { m_id = 0; };
+    wxMSWTimerImpl(wxTimer *timer) : wxTimerImpl(timer) { m_id = 0; }
 
     virtual bool Start(int milliseconds = -1, bool oneShot = false);
     virtual void Stop();

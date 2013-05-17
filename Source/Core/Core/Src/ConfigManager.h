@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _CONFIGMANAGER_H
 #define _CONFIGMANAGER_H
@@ -26,14 +13,24 @@
 #include "HW/SI_Device.h"
 #include "SysConf.h"
 
+// DSP Backend Types
+#define BACKEND_NULLSOUND	_trans("No audio output")
+#define BACKEND_ALSA		"ALSA"
+#define BACKEND_AOSOUND		"AOSound"
+#define BACKEND_COREAUDIO	"CoreAudio"
+#define BACKEND_DIRECTSOUND	"DSound"
+#define BACKEND_OPENAL		"OpenAL"
+#define BACKEND_PULSEAUDIO	"Pulse"
+#define BACKEND_XAUDIO2		"XAudio2"
+#define BACKEND_OPENSLES	"OpenSLES"
 struct SConfig : NonCopyable
 {
 	// Wii Devices
 	bool m_WiiSDCard;
 	bool m_WiiKeyboard;
-	bool m_WiiAutoReconnect[4];
-	bool m_WiiAutoUnpair;
 	bool m_WiimoteReconnectOnLoad;
+	bool m_WiimoteContinuousScanning;
+	bool m_WiimoteEnableSpeaker;
 
 	// name of the last used filename
 	std::string m_LastFilename;
@@ -47,10 +44,6 @@ struct SConfig : NonCopyable
 
 	std::string m_strMemoryCardA;
 	std::string m_strMemoryCardB;
-	// eject and reload the memory card on state
-	// in ZTP and other games if the save file has been deleted from the memory card
-	//this is necessary to save after loading a savestate
-	bool b_reloadMCOnState;
 	TEXIDevices m_EXIDevice[3];
 	SIDevices m_SIDevice[4];
 	std::string m_bba_mac;
@@ -79,6 +72,19 @@ struct SConfig : NonCopyable
 	bool m_ListKorea;
 	bool m_ListTaiwan;
 	bool m_ListUnknown;
+	int m_ListSort;
+	int m_ListSort2;
+
+	std::string m_WirelessMac;
+	bool m_PauseMovie;
+	bool m_ShowLag;
+	std::string m_strMovieAuthor;
+
+	// DSP settings
+	bool m_EnableJIT;
+	bool m_DumpAudio;
+	int m_Volume;
+	std::string sBackend;
 
 	SysConf* m_SYSCONF;
 
@@ -87,9 +93,6 @@ struct SConfig : NonCopyable
 
 	// load settings
 	void LoadSettings();
-
-	//Special load settings
-	void LoadSettingsWii();
 
 	// Return the permanent and somewhat globally used instance of this struct
 	static SConfig& GetInstance() {return(*m_Instance);}

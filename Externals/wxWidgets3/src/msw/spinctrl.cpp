@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.07.99
-// RCS-ID:      $Id: spinctrl.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: spinctrl.cpp 70800 2012-03-04 00:29:51Z VZ $
 // Copyright:   (c) 1999-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -119,11 +119,21 @@ LRESULT APIENTRY _EXPORT wxBuddyTextWndProc(HWND hwnd,
         // is clicked with the "?" cursor
         case WM_HELP:
 #endif
-            spin->MSWWindowProc(message, wParam, lParam);
+            {
+                WXLRESULT result;
+                if ( spin->MSWHandleMessage(&result, message, wParam, lParam) )
+                {
+                    // Do not let the message be processed by the window proc
+                    // of the text control if it had been already handled at wx
+                    // level, this is consistent with what happens for normal,
+                    // non-composite controls.
+                    return 0;
+                }
 
-            // The control may have been deleted at this point, so check.
-            if ( !::IsWindow(hwnd) )
-                return 0;
+                // The control may have been deleted at this point, so check.
+                if ( !::IsWindow(hwnd) )
+                    return 0;
+            }
             break;
 
         case WM_GETDLGCODE:
@@ -254,6 +264,14 @@ void wxSpinCtrl::NormalizeValue()
 // construction
 // ----------------------------------------------------------------------------
 
+void wxSpinCtrl::Init()
+{
+    m_blockEvent = false;
+    m_hwndBuddy = NULL;
+    m_wndProcBuddy = NULL;
+    m_oldValue = INT_MIN;
+}
+
 bool wxSpinCtrl::Create(wxWindow *parent,
                         wxWindowID id,
                         const wxString& value,
@@ -263,13 +281,6 @@ bool wxSpinCtrl::Create(wxWindow *parent,
                         int min, int max, int initial,
                         const wxString& name)
 {
-    m_blockEvent = false;
-
-    // this should be in ctor/init function but I don't want to add one to 2.8
-    // to avoid problems with default ctor which can be inlined in the user
-    // code and so might not get this fix without recompilation
-    m_oldValue = INT_MIN;
-
     // before using DoGetBestSize(), have to set style to let the base class
     // know whether this is a horizontal or vertical control (we're always
     // vertical)
@@ -383,14 +394,15 @@ bool wxSpinCtrl::Create(wxWindow *parent,
     // Set the range in the native control
     SetRange(min, max);
 
-    if ( !value.empty() )
+    // If necessary, set the textual value. Don't do it if it's the same as the
+    // numeric value though.
+    if ( value != wxString::Format("%d", initial) )
     {
         SetValue(value);
         m_oldValue = (int) wxAtol(value);
     }
     else
     {
-        SetValue(wxString::Format(wxT("%d"), initial));
         m_oldValue = initial;
     }
 

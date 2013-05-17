@@ -2,7 +2,7 @@
 // Name:        wx/gtk/control.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: control.h 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: control.h 70714 2012-02-27 17:49:33Z PC $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@ typedef struct _GtkFrame GtkFrame;
 // C-linkage function pointer types for GetDefaultAttributesFromGTKWidget
 extern "C" {
     typedef GtkWidget* (*wxGtkWidgetNew_t)(void);
-    typedef GtkWidget* (*wxGtkWidgetNewFromStr_t)(const gchar*);
+    typedef GtkWidget* (*wxGtkWidgetNewFromStr_t)(const char*);
     typedef GtkWidget* (*wxGtkWidgetNewFromAdj_t)(GtkAdjustment*);
 }
 
@@ -75,20 +75,20 @@ protected:
     static wxVisualAttributes
         GetDefaultAttributesFromGTKWidget(GtkWidget* widget,
                                           bool useBase = false,
-                                          int state = -1);
+                                          int state = 0);
     static wxVisualAttributes
         GetDefaultAttributesFromGTKWidget(wxGtkWidgetNew_t,
                                           bool useBase = false,
-                                          int state = -1);
+                                          int state = 0);
     static wxVisualAttributes
         GetDefaultAttributesFromGTKWidget(wxGtkWidgetNewFromStr_t,
                                           bool useBase = false,
-                                          int state = -1);
+                                          int state = 0);
 
     static wxVisualAttributes
         GetDefaultAttributesFromGTKWidget(wxGtkWidgetNewFromAdj_t,
                                           bool useBase = false,
-                                          int state = -1);
+                                          int state = 0);
 
     // Widgets that use the style->base colour for the BG colour should
     // override this and return true.

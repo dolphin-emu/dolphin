@@ -3,7 +3,7 @@
 // Purpose:     wxBitmapComboBox
 // Author:      Jaakko Salli
 // Created:     2008-04-06
-// RCS-ID:      $Id: bmpcbox.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: bmpcbox.cpp 70039 2011-12-17 23:52:43Z VZ $
 // Copyright:   (c) 2008 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -252,6 +252,16 @@ int wxBitmapComboBox::Insert(const wxString& item,
 {
     OnAddBitmap(bitmap);
     const int n = wxComboBox::Insert(item, pos);
+    if ( n != wxNOT_FOUND )
+        DoSetItemBitmap(n, bitmap);
+    return n;
+}
+
+int wxBitmapComboBox::Insert(const wxString& item, const wxBitmap& bitmap,
+                             unsigned int pos, void *clientData)
+{
+    OnAddBitmap(bitmap);
+    const int n = wxComboBox::Insert(item, pos, clientData);
     if ( n != wxNOT_FOUND )
         DoSetItemBitmap(n, bitmap);
     return n;

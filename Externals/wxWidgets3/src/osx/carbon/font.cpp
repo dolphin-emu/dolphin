@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: font.cpp 67216 2011-03-16 10:56:41Z SC $
+// RCS-ID:      $Id: font.cpp 70452 2012-01-23 21:06:07Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -893,7 +893,7 @@ UIFont* wxFont::OSXGetUIFont() const
 const wxNativeFontInfo * wxFont::GetNativeFontInfo() const
 {
     wxCHECK_MSG( M_FONTDATA != NULL , NULL, wxT("invalid font") );
-    wxCHECK_MSG( Ok(), NULL, wxT("invalid font") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid font") );
 
     // cast away constness otherwise lazy font resolution is not possible
     const_cast<wxFont *>(this)->RealizeResource();
@@ -1217,6 +1217,12 @@ wxFontEncoding wxNativeFontInfo::GetEncoding() const
     return m_encoding;
 }
 
+bool wxNativeFontInfo::GetStrikethrough() const
+{
+    return false;
+}
+
+
 // changing the font descriptor
 
 void wxNativeFontInfo::SetPointSize(int pointsize)
@@ -1281,3 +1287,9 @@ void wxNativeFontInfo::SetEncoding(wxFontEncoding encoding_)
     m_encoding = encoding_;
     // not reflected in native descriptors
 }
+
+void wxNativeFontInfo::SetStrikethrough(bool WXUNUSED(strikethrough))
+{
+}
+
+

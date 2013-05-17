@@ -4,7 +4,7 @@
 // Author:      Julian Smart (extracted from docview.h by VZ)
 // Modified by:
 // Created:     05.11.00
-// RCS-ID:      $Id: cmdproc.cpp 66287 2010-11-28 15:14:49Z VZ $
+// RCS-ID:      $Id: cmdproc.cpp 70460 2012-01-25 00:05:12Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -172,9 +172,9 @@ bool wxCommandProcessor::Redo()
 {
     wxCommand *redoCommand = NULL;
     wxList::compatibility_iterator redoNode
-#if !wxUSE_STL
+#if !wxUSE_STD_CONTAINERS
         = NULL          // just to avoid warnings
-#endif // !wxUSE_STL
+#endif // !wxUSE_STD_CONTAINERS
         ;
 
     if ( m_currentCommand )
@@ -328,4 +328,28 @@ void wxCommandProcessor::ClearCommands()
     m_lastSavedCommand = wxList::compatibility_iterator();
 }
 
+bool wxCommandProcessor::IsDirty() const
+{
+    if ( m_commands.empty() )
+    {
+        // If we have never been modified, we can't be dirty.
+        return false;
+    }
+
+    if ( !m_lastSavedCommand )
+    {
+        // If we have been modified but have never been saved, we're dirty.
+        return true;
+    }
+
+    if ( !m_currentCommand )
+    {
+        // This only happens if all commands were undone after saving the
+        // document: we're dirty then.
+        return true;
+    }
+
+    // Finally if both iterators are valid, we may just compare them.
+    return m_currentCommand != m_lastSavedCommand;
+}
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: log.cpp 67268 2011-03-21 10:59:59Z VZ $
+// RCS-ID:      $Id: log.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -53,13 +53,11 @@
 
 #include <stdlib.h>
 
-#ifndef __WXPALMOS5__
 #ifndef __WXWINCE__
 #include <time.h>
 #else
 #include "wx/msw/wince/time.h"
 #endif
-#endif /* ! __WXPALMOS5__ */
 
 #if defined(__WINDOWS__)
     #include "wx/msw/private.h" // includes windows.h
@@ -205,6 +203,62 @@ void wxSafeShowMessage(const wxString& title, const wxString& text)
 }
 
 // ----------------------------------------------------------------------------
+// wxLogFormatter class implementation
+// ----------------------------------------------------------------------------
+
+wxString
+wxLogFormatter::Format(wxLogLevel level,
+                       const wxString& msg,
+                       const wxLogRecordInfo& info) const
+{
+    wxString prefix;
+
+    // don't time stamp debug messages under MSW as debug viewers usually
+    // already have an option to do it
+#ifdef __WINDOWS__
+    if ( level != wxLOG_Debug && level != wxLOG_Trace )
+#endif // __WINDOWS__
+        prefix = FormatTime(info.timestamp);
+
+    switch ( level )
+    {
+    case wxLOG_Error:
+        prefix += _("Error: ");
+        break;
+
+    case wxLOG_Warning:
+        prefix += _("Warning: ");
+        break;
+
+        // don't prepend "debug/trace" prefix under MSW as it goes to the debug
+        // window anyhow and so can't be confused with something else
+#ifndef __WINDOWS__
+    case wxLOG_Debug:
+        // this prefix (as well as the one below) is intentionally not
+        // translated as nobody translates debug messages anyhow
+        prefix += "Debug: ";
+        break;
+
+    case wxLOG_Trace:
+        prefix += "Trace: ";
+        break;
+#endif // !__WINDOWS__
+    }
+
+    return prefix + msg;
+}
+
+wxString
+wxLogFormatter::FormatTime(time_t t) const
+{
+    wxString str;
+    wxLog::TimeStamp(&str, t);
+
+    return str;
+}
+
+
+// ----------------------------------------------------------------------------
 // wxLog class implementation
 // ----------------------------------------------------------------------------
 
@@ -216,12 +270,24 @@ unsigned wxLog::LogLastRepeatIfNeeded()
     {
         wxString msg;
 #if wxUSE_INTL
-        msg.Printf(wxPLURAL("The previous message repeated once.",
-                            "The previous message repeated %lu times.",
-                            gs_prevLog.numRepeated),
-                   gs_prevLog.numRepeated);
+        if ( gs_prevLog.numRepeated == 1 )
+        {
+            // We use a separate message for this case as "repeated 1 time"
+            // looks somewhat strange.
+            msg = _("The previous message repeated once.");
+        }
+        else
+        {
+            // Notice that we still use wxPLURAL() to ensure that multiple
+            // numbers of times are correctly formatted, even though we never
+            // actually use the singular string.
+            msg.Printf(wxPLURAL("The previous message repeated %lu time.",
+                                "The previous message repeated %lu times.",
+                                gs_prevLog.numRepeated),
+                       gs_prevLog.numRepeated);
+        }
 #else
-        msg.Printf(wxS("The previous message was repeated %lu times."),
+        msg.Printf(wxS("The previous message was repeated %lu time(s)."),
                    gs_prevLog.numRepeated);
 #endif
         gs_prevLog.numRepeated = 0;
@@ -240,11 +306,22 @@ wxLog::~wxLog()
     {
         wxMessageOutputDebug().Printf
         (
-            wxS("Last repeated message (\"%s\", %lu times) wasn't output"),
+#if wxUSE_INTL
+            wxPLURAL
+            (
+                "Last repeated message (\"%s\", %lu time) wasn't output",
+                "Last repeated message (\"%s\", %lu times) wasn't output",
+                gs_prevLog.numRepeated
+            ),
+#else
+            wxS("Last repeated message (\"%s\", %lu time(s)) wasn't output"),
+#endif
             gs_prevLog.msg,
             gs_prevLog.numRepeated
         );
     }
+
+    delete m_formatter;
 }
 
 // ----------------------------------------------------------------------------
@@ -276,11 +353,7 @@ wxLog::OnLog(wxLogLevel level,
     {
         wxSafeShowMessage(wxS("Fatal Error"), msg);
 
-#ifdef __WXWINCE__
-        ExitThread(3);
-#else
-        abort();
-#endif
+        wxAbort();
     }
 
     wxLog *logger;
@@ -383,47 +456,8 @@ void wxLog::DoLogRecord(wxLogLevel level,
     wxUnusedVar(info);
 #endif // WXWIN_COMPATIBILITY_2_8/!WXWIN_COMPATIBILITY_2_8
 
-
-    // TODO: it would be better to extract message formatting in a separate
-    //       wxLogFormatter class but for now we hard code formatting here
-
-    wxString prefix;
-
-    // don't time stamp debug messages under MSW as debug viewers usually
-    // already have an option to do it
-#ifdef __WXMSW__
-    if ( level != wxLOG_Debug && level != wxLOG_Trace )
-#endif // __WXMSW__
-        TimeStamp(&prefix);
-
-    // TODO: use the other wxLogRecordInfo fields
-
-    switch ( level )
-    {
-        case wxLOG_Error:
-            prefix += _("Error: ");
-            break;
-
-        case wxLOG_Warning:
-            prefix += _("Warning: ");
-            break;
-
-        // don't prepend "debug/trace" prefix under MSW as it goes to the debug
-        // window anyhow and so can't be confused with something else
-#ifndef __WXMSW__
-        case wxLOG_Debug:
-            // this prefix (as well as the one below) is intentionally not
-            // translated as nobody translates debug messages anyhow
-            prefix += "Debug: ";
-            break;
-
-        case wxLOG_Trace:
-            prefix += "Trace: ";
-            break;
-#endif // !__WXMSW__
-    }
-
-    DoLogTextAtLevel(level, prefix + msg);
+    // Use wxLogFormatter to format the message
+    DoLogTextAtLevel(level, m_formatter->Format (level, msg, info));
 }
 
 void wxLog::DoLogTextAtLevel(wxLogLevel level, const wxString& msg)
@@ -671,16 +705,37 @@ void wxLog::ClearTraceMasks()
 // wxLog miscellaneous other methods
 // ----------------------------------------------------------------------------
 
+#if wxUSE_DATETIME
+
 void wxLog::TimeStamp(wxString *str)
 {
-#if wxUSE_DATETIME
     if ( !ms_timestamp.empty() )
     {
         *str = wxDateTime::UNow().Format(ms_timestamp);
         *str += wxS(": ");
     }
-#endif // wxUSE_DATETIME
 }
+
+void wxLog::TimeStamp(wxString *str, time_t t)
+{
+    if ( !ms_timestamp.empty() )
+    {
+        *str = wxDateTime(t).Format(ms_timestamp);
+        *str += wxS(": ");
+    }
+}
+
+#else // !wxUSE_DATETIME
+
+void wxLog::TimeStamp(wxString*)
+{
+}
+
+void wxLog::TimeStamp(wxString*, time_t)
+{
+}
+
+#endif // wxUSE_DATETIME/!wxUSE_DATETIME
 
 #if wxUSE_THREADS
 
@@ -723,6 +778,14 @@ bool wxLog::EnableThreadLogging(bool enable)
 }
 
 #endif // wxUSE_THREADS
+
+wxLogFormatter *wxLog::SetFormatter(wxLogFormatter* formatter)
+{
+    wxLogFormatter* formatterOld = m_formatter;
+    m_formatter = formatter ? formatter : new wxLogFormatter;
+
+    return formatterOld;
+}
 
 void wxLog::Flush()
 {
@@ -985,7 +1048,7 @@ static void wxLogWrap(FILE *f, const char *pszPrefix, const char *psz)
 // get error code from syste
 unsigned long wxSysErrorCode()
 {
-#if defined(__WXMSW__) && !defined(__WXMICROWIN__)
+#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
     return ::GetLastError();
 #else   //Unix
     return errno;
@@ -998,7 +1061,7 @@ const wxChar *wxSysErrorMsg(unsigned long nErrCode)
     if ( nErrCode == 0 )
         nErrCode = wxSysErrorCode();
 
-#if defined(__WXMSW__) && !defined(__WXMICROWIN__)
+#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
     static wxChar s_szBuf[1024];
 
     // get error message from system
@@ -1046,7 +1109,7 @@ const wxChar *wxSysErrorMsg(unsigned long nErrCode)
     }
 
     return s_szBuf;
-#else // !__WXMSW__
+#else // !__WINDOWS__
     #if wxUSE_UNICODE
         static wchar_t s_wzBuf[1024];
         wxConvCurrent->MB2WC(s_wzBuf, strerror((int)nErrCode),
@@ -1055,7 +1118,7 @@ const wxChar *wxSysErrorMsg(unsigned long nErrCode)
     #else
         return strerror((int)nErrCode);
     #endif
-#endif  // __WXMSW__/!__WXMSW__
+#endif  // __WINDOWS__/!__WINDOWS__
 }
 
 #endif // wxUSE_LOG

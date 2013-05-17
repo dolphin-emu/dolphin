@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
 #include "Common.h"
@@ -24,6 +11,9 @@
 #include "Thread.h"
 #include "ChunkFile.h"
 #include "IniFile.h"
+#include "ConfigManager.h"
+#include "CPUDetect.h"
+#include "Core.h"
 
 #include "DSPLLEGlobals.h" // Local
 #include "DSP/DSPInterpreter.h"
@@ -49,8 +39,19 @@ DSPLLE::DSPLLE() {
 	m_cycle_count = 0;
 }
 
+Common::Event dspEvent;
+Common::Event ppcEvent;
+
 void DSPLLE::DoState(PointerWrap &p)
 {
+	bool isHLE = false;
+	p.Do(isHLE);
+	if (isHLE != false && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.", 3000);
+		p.SetMode(PointerWrap::MODE_VERIFY);
+		return;
+	}
 	p.Do(g_dsp.r);
 	p.Do(g_dsp.pc);
 #if PROFILE
@@ -60,9 +61,12 @@ void DSPLLE::DoState(PointerWrap &p)
 	p.Do(g_dsp.reg_stack_ptr);
 	p.Do(g_dsp.exceptions);
 	p.Do(g_dsp.external_interrupt_waiting);
-	for (int i = 0; i < 4; i++) {
+
+	for (int i = 0; i < 4; i++)
+	{
 		p.Do(g_dsp.reg_stack[i]);
 	}
+
 	p.Do(g_dsp.iram_crc);
 	p.Do(g_dsp.step_counter);
 	p.Do(g_dsp.ifx_regs);
@@ -74,6 +78,24 @@ void DSPLLE::DoState(PointerWrap &p)
 	p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
 	p.Do(cyclesLeft);
 	p.Do(m_cycle_count);
+
+	bool prevInitMixer = m_InitMixer;
+	p.Do(m_InitMixer);
+	if (prevInitMixer != m_InitMixer && p.GetMode() == PointerWrap::MODE_READ)
+	{
+		if (m_InitMixer)
+		{
+			InitMixer();
+			AudioCommon::PauseAndLock(true);
+		}
+		else
+		{
+			AudioCommon::PauseAndLock(false);
+			soundStream->Stop();
+			delete soundStream;
+			soundStream = NULL;
+		}
+	}
 }
 
 // Regular thread
@@ -84,7 +106,9 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 	while (dsp_lle->m_bIsRunning)
 	{
 		int cycles = (int)dsp_lle->m_cycle_count;
-		if (cycles > 0) {
+		if (cycles > 0)
+		{
+			std::lock_guard<std::mutex> lk(dsp_lle->m_csDSPThreadActive);
 			if (dspjit)
 			{
 				DSPCore_RunCycles(cycles);
@@ -96,7 +120,10 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 			Common::AtomicStore(dsp_lle->m_cycle_count, 0);
 		}
 		else
-			Common::YieldCPU();
+		{
+			ppcEvent.Set();
+			dspEvent.Wait();
+		}
 	}
 }
 
@@ -107,13 +134,13 @@ bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 	m_bDSPThread = bDSPThread;
 	m_InitMixer = false;
 
-	std::string irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
-	std::string coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
+	std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
+	std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
 
 	if (!File::Exists(irom_file))
-		irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
+		irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
 	if (!File::Exists(coef_file))
-		coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
+		coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
 	if (!DSPCore_Init(irom_file.c_str(), coef_file.c_str(), AudioCommon::UseJIT()))
 		return false;
 
@@ -138,6 +165,8 @@ void DSPLLE::DSP_StopSoundStream()
 	m_bIsRunning = false;
 	if (m_bDSPThread)
 	{
+		ppcEvent.Set();
+		dspEvent.Set();
 		m_hDSPThread.join();
 	}
 }
@@ -148,6 +177,17 @@ void DSPLLE::Shutdown()
 	DSPCore_Shutdown();
 }
 
+void DSPLLE::InitMixer()
+{
+	unsigned int AISampleRate, DACSampleRate;
+	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
+	delete soundStream;
+	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, 48000), m_hWnd); 
+	if(!soundStream) PanicAlert("Error starting up sound stream");
+	// Mixer is initialized
+	m_InitMixer = true;
+}
+
 u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 {
 	UDSPControl Temp(_uFlag);
@@ -155,12 +195,7 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 	{
 		if (!Temp.DSPHalt)
 		{
-			unsigned int AISampleRate, DACSampleRate;
-			AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
-			soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, ac_Config.iFrequency), m_hWnd); 
-			if(!soundStream) PanicAlert("Error starting up sound stream");
-			// Mixer is initialized
-			m_InitMixer = true;
+			InitMixer();
 		}
 	}
 	DSPInterpreter::WriteCR(_uFlag);
@@ -225,7 +260,7 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, u16 _uHighMail)
 	}
 	else
 	{
-		ERROR_LOG(DSPLLE, "CPU cant write to DSP mailbox");
+		ERROR_LOG(DSPLLE, "CPU can't write to DSP mailbox");
 	}
 }
 
@@ -237,7 +272,7 @@ void DSPLLE::DSP_WriteMailBoxLow(bool _CPUMailbox, u16 _uLowMail)
 	}
 	else
 	{
-		ERROR_LOG(DSPLLE, "CPU cant write to DSP mailbox");
+		ERROR_LOG(DSPLLE, "CPU can't write to DSP mailbox");
 	}
 }
 
@@ -274,10 +309,16 @@ void DSPLLE::DSP_Update(int cycles)
 	else
 	{
 		// Wait for dsp thread to complete its cycle. Note: this logic should be thought through.
-		while (m_cycle_count != 0)
-			;
+		ppcEvent.Wait();
 		Common::AtomicStore(m_cycle_count, dsp_cycles);
+		dspEvent.Set();
+
 	}
+}
+
+u32 DSPLLE::DSP_UpdateRate()
+{
+	return 12600; // TO BE TWEAKED
 }
 
 void DSPLLE::DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
@@ -302,3 +343,15 @@ void DSPLLE::DSP_ClearAudioBuffer(bool mute)
 	if (soundStream)
 		soundStream->Clear(mute);
 }
+
+void DSPLLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	if (doLock || unpauseOnUnlock)
+		DSP_ClearAudioBuffer(doLock); 
+
+	if (doLock)
+		m_csDSPThreadActive.lock();
+	else
+		m_csDSPThreadActive.unlock();
+}
+

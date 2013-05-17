@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.07.99
-// RCS-ID:      $Id: spinctrl.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: spinctrl.h 70799 2012-03-04 00:29:48Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,7 +30,7 @@ WX_DEFINE_EXPORTED_ARRAY_PTR(wxSpinCtrl *, wxArraySpins);
 class WXDLLIMPEXP_CORE wxSpinCtrl : public wxSpinButton
 {
 public:
-    wxSpinCtrl() { }
+    wxSpinCtrl() { Init(); }
 
     wxSpinCtrl(wxWindow *parent,
                wxWindowID id = wxID_ANY,
@@ -41,6 +41,8 @@ public:
                int min = 0, int max = 100, int initial = 0,
                const wxString& name = wxT("wxSpinCtrl"))
     {
+        Init();
+
         Create(parent, id, value, pos, size, style, min, max, initial, name);
     }
 
@@ -143,6 +145,9 @@ protected:
     bool m_blockEvent;
 
 private:
+    // Common part of all ctors.
+    void Init();
+
     DECLARE_DYNAMIC_CLASS(wxSpinCtrl)
     DECLARE_EVENT_TABLE()
     wxDECLARE_NO_COPY_CLASS(wxSpinCtrl);

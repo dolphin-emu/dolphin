@@ -2,7 +2,7 @@
 // Name:        src/gtk/app.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: app.cpp 67280 2011-03-22 14:17:38Z DS $
+// Id:          $Id: app.cpp 70701 2012-02-26 17:18:41Z VZ $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,9 @@
     #include <hildon/hildon.h>
 #endif // wxUSE_LIBHILDON2
 
+#ifdef GDK_WINDOWING_X11
 #include <gdk/gdkx.h>
+#endif
 
 //-----------------------------------------------------------------------------
 // link GnomeVFS

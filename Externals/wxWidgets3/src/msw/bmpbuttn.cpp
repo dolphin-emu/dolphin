@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: bmpbuttn.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: bmpbuttn.cpp 67931 2011-06-14 13:00:42Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,8 @@ bool wxBitmapButton::Create(wxWindow *parent,
                                      validator, name) )
         return false;
 
-    SetBitmapLabel(bitmap);
+    if ( bitmap.IsOk() )
+        SetBitmapLabel(bitmap);
 
     if ( !size.IsFullySpecified() )
     {
@@ -90,56 +91,6 @@ bool wxBitmapButton::Create(wxWindow *parent,
     }
 
     return true;
-}
-
-void wxBitmapButton::DoSetBitmap(const wxBitmap& bitmap, State which)
-{
-    if ( bitmap.IsOk() )
-    {
-        switch ( which )
-        {
-#if wxUSE_IMAGE
-            case State_Normal:
-                if ( !HasFlag(wxBU_AUTODRAW) && !m_disabledSetByUser )
-                {
-                    wxImage img(bitmap.ConvertToImage().ConvertToGreyscale());
-                    wxBitmapButtonBase::DoSetBitmap(img, State_Disabled);
-                }
-                break;
-#endif // wxUSE_IMAGE
-
-            case State_Focused:
-                // if the focus bitmap is specified but current one isn't, use
-                // the focus bitmap for hovering as well if this is consistent
-                // with the current Windows version look and feel
-                //
-                // rationale: this is compatible with the old wxGTK behaviour
-                // and also makes it much easier to do "the right thing" for
-                // all platforms (some of them, such as Windows XP, have "hot"
-                // buttons while others don't)
-                if ( !m_hoverSetByUser )
-                    wxBitmapButtonBase::DoSetBitmap(bitmap, State_Current);
-                break;
-
-            case State_Current:
-                // don't overwrite it with the focused bitmap
-                m_hoverSetByUser = true;
-                break;
-
-            case State_Disabled:
-                // don't overwrite it with the version automatically created
-                // from the normal one
-                m_disabledSetByUser = true;
-                break;
-
-            default:
-                // nothing special to do but include the default clause to
-                // suppress gcc warnings
-                ;
-        }
-    }
-
-    wxBitmapButtonBase::DoSetBitmap(bitmap, which);
 }
 
 #endif // wxUSE_BMPBUTTON

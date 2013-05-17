@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // ---------------------------------------------------------------------------------------------
 // GC graphics pipeline
@@ -39,7 +26,7 @@
 
 // TODO: Move these out of here.
 extern int frameCount;
-extern int OSDChoice, OSDTime;
+extern int OSDChoice;
 
 extern bool bLastFrameDumped;
 
@@ -51,6 +38,15 @@ class Renderer
 public:
 	Renderer();
 	virtual ~Renderer();
+
+	enum PixelPerfQuery {
+		PP_ZCOMP_INPUT_ZCOMPLOC,
+		PP_ZCOMP_OUTPUT_ZCOMPLOC,
+		PP_ZCOMP_INPUT,
+		PP_ZCOMP_OUTPUT,
+		PP_BLEND_INPUT,
+		PP_EFB_COPY_CLOCKS
+	};
 
 	virtual void SetColorMask() = 0;
 	virtual void SetBlendMode(bool forceUpdate) = 0;
@@ -74,10 +70,6 @@ public:
 	static int GetBackbufferWidth() { return s_backbuffer_width; }
 	static int GetBackbufferHeight() { return s_backbuffer_height; }
 
-	// XFB scale - TODO: Remove this and add two XFBToScaled functions instead
-	static float GetXFBScaleX() { return xScale; }
-	static float GetXFBScaleY() { return yScale; }
-
 	static void SetWindowSize(int width, int height);
 
 	// EFB coordinate conversion functions
@@ -85,9 +77,13 @@ public:
 	// Use this to convert a whole native EFB rect to backbuffer coordinates
 	virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
+	static const TargetRectangle& GetTargetRectangle() { return target_rc; }
+	static void UpdateDrawRectangle(int backbuffer_width, int backbuffer_height);
+
+
 	// Use this to upscale native EFB coordinates to IDEAL internal resolution
-	static unsigned int EFBToScaledX(int x) { return x * GetTargetWidth() / EFB_WIDTH; }
-	static unsigned int EFBToScaledY(int y) { return y * GetTargetHeight() / EFB_HEIGHT; }
+	static int EFBToScaledX(int x);
+	static int EFBToScaledY(int y);
 
 	// Floating point versions of the above - only use them if really necessary
 	static float EFBToScaledXf(float x) { return x * ((float)GetTargetWidth() / (float)EFB_WIDTH); }
@@ -133,8 +129,7 @@ public:
 protected:
 
 	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);
-	static bool CalculateTargetSize(int multiplier = 1);
-	static void CalculateXYScale(const TargetRectangle& dst_rect);
+	static bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, int multiplier = 1);
 
 	static void CheckFifoRecording();
 	static void RecordVideoMemory();
@@ -148,7 +143,7 @@ protected:
 #else
 	File::IOFile pFrameDump;
 #endif
-	char* frame_data;
+	std::vector<u8> frame_data;
 	bool bLastFrameDumped;
 
 	// The framebuffer size
@@ -159,12 +154,7 @@ protected:
 	static int s_backbuffer_width;
 	static int s_backbuffer_height;
 
-	// ratio of backbuffer size and render area size - TODO: Remove these!
-	static float xScale;
-	static float yScale;
-
-	static unsigned int s_XFB_width;
-	static unsigned int s_XFB_height;
+	static TargetRectangle target_rc;
 
 	// can probably eliminate this static var
 	static int s_LastEFBScale;
@@ -176,6 +166,11 @@ protected:
 
 private:
 	static unsigned int prev_efb_format;
+	static unsigned int efb_scale_numeratorX;
+	static unsigned int efb_scale_numeratorY;
+	static unsigned int efb_scale_denominatorX;
+	static unsigned int efb_scale_denominatorY;
+	static unsigned int ssaa_multiplier;
 };
 
 extern Renderer *g_renderer;

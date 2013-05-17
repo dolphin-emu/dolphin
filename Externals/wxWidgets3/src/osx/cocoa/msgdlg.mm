@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: msgdlg.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: msgdlg.mm 70926 2012-03-17 10:52:34Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,6 +18,7 @@
     #include "wx/app.h"
 #endif
 
+#include "wx/control.h"
 #include "wx/thread.h"
 #include "wx/osx/private.h"
 
@@ -49,6 +50,13 @@ wxMessageDialog::wxMessageDialog(wxWindow *parent,
                                  const wxPoint& WXUNUSED(pos))
                : wxMessageDialogBase(parent, message, caption, style)
 {
+    m_sheetDelegate = [[ModalDialogDelegate alloc] init];
+    [(ModalDialogDelegate*)m_sheetDelegate setImplementation: this];
+}
+
+wxMessageDialog::~wxMessageDialog()
+{
+    [m_sheetDelegate release];
 }
 
 int wxMessageDialog::ShowModal()
@@ -87,10 +95,10 @@ int wxMessageDialog::ShowModal()
         wxCFStringRef cfTitle( msgtitle, GetFont().GetEncoding() );
         wxCFStringRef cfText( msgtext, GetFont().GetEncoding() );
 
-        wxCFStringRef cfNoString( GetNoLabel(), GetFont().GetEncoding() );
-        wxCFStringRef cfYesString( GetYesLabel(), GetFont().GetEncoding() );
-        wxCFStringRef cfOKString( GetOKLabel(), GetFont().GetEncoding()) ;
-        wxCFStringRef cfCancelString( GetCancelLabel(), GetFont().GetEncoding() );
+        wxCFStringRef cfNoString( wxControl::GetLabelText(GetNoLabel()), GetFont().GetEncoding() );
+        wxCFStringRef cfYesString( wxControl::GetLabelText(GetYesLabel()), GetFont().GetEncoding() );
+        wxCFStringRef cfOKString( wxControl::GetLabelText(GetOKLabel()), GetFont().GetEncoding()) ;
+        wxCFStringRef cfCancelString( wxControl::GetLabelText(GetCancelLabel()), GetFont().GetEncoding() );
 
         NSAlertStyle alertType = GetAlertStyleFromWXStyle(style);
                 
@@ -131,6 +139,8 @@ int wxMessageDialog::ShowModal()
             }
         }
 
+        wxASSERT_MSG( !(style & wxHELP), "wxHELP not supported in non-GUI thread" );
+
         CFOptionFlags exitButton;
         OSStatus err = CFUserNotificationDisplayAlert(
             0, alertType, NULL, NULL, NULL, cfTitle, cfText,
@@ -167,9 +177,7 @@ void wxMessageDialog::ShowWindowModal()
     if (parentWindow)
     {
         NSWindow* nativeParent = parentWindow->GetWXWindow();
-        ModalDialogDelegate* sheetDelegate = [[ModalDialogDelegate alloc] init];
-        [sheetDelegate setImplementation: this];
-        [alert beginSheetModalForWindow: nativeParent modalDelegate: sheetDelegate
+        [alert beginSheetModalForWindow: nativeParent modalDelegate: m_sheetDelegate
             didEndSelector: @selector(sheetDidEnd:returnCode:contextInfo:)
             contextInfo: nil];
     }
@@ -220,10 +228,10 @@ void* wxMessageDialog::ConstructNSAlert()
     NSAlert* alert = [[NSAlert alloc] init];
     NSAlertStyle alertType = GetAlertStyleFromWXStyle(style);
 
-    wxCFStringRef cfNoString( GetNoLabel(), GetFont().GetEncoding() );
-    wxCFStringRef cfYesString( GetYesLabel(), GetFont().GetEncoding() );
-    wxCFStringRef cfOKString( GetOKLabel(), GetFont().GetEncoding() );
-    wxCFStringRef cfCancelString( GetCancelLabel(), GetFont().GetEncoding() );
+    wxCFStringRef cfNoString( wxControl::GetLabelText(GetNoLabel()), GetFont().GetEncoding() );
+    wxCFStringRef cfYesString( wxControl::GetLabelText(GetYesLabel()), GetFont().GetEncoding() );
+    wxCFStringRef cfOKString( wxControl::GetLabelText(GetOKLabel()), GetFont().GetEncoding() );
+    wxCFStringRef cfCancelString( wxControl::GetLabelText(GetCancelLabel()), GetFont().GetEncoding() );
 
     wxCFStringRef cfTitle( msgtitle, GetFont().GetEncoding() );
     wxCFStringRef cfText( msgtext, GetFont().GetEncoding() );
@@ -280,5 +288,15 @@ void* wxMessageDialog::ConstructNSAlert()
         }
 
     }
+
+    if ( style & wxHELP )
+    {
+        wxCFStringRef cfHelpString( GetHelpLabel(), GetFont().GetEncoding() );
+        [alert addButtonWithTitle:cfHelpString.AsNSString()];
+        m_buttonId[ m_buttonCount++ ] = wxID_HELP;
+    }
+
+    wxASSERT_MSG( m_buttonCount <= WXSIZEOF(m_buttonId), "Too many buttons" );
+
     return alert;
 }

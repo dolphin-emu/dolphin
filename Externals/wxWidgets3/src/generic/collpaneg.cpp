@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     8/10/2006
-// Id:          $Id: collpaneg.cpp 67280 2011-03-22 14:17:38Z DS $
+// Id:          $Id: collpaneg.cpp 68366 2011-07-24 22:19:33Z VZ $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -57,16 +57,10 @@ IMPLEMENT_DYNAMIC_CLASS(wxCollapsiblePaneEvent, wxCommandEvent)
 BEGIN_EVENT_TABLE(wxGenericCollapsiblePane, wxControl)
     EVT_BUTTON(wxID_ANY, wxGenericCollapsiblePane::OnButton)
     EVT_SIZE(wxGenericCollapsiblePane::OnSize)
-
-    WX_EVENT_TABLE_CONTROL_CONTAINER(wxGenericCollapsiblePane)
 END_EVENT_TABLE()
-
-WX_DELEGATE_TO_CONTROL_CONTAINER(wxGenericCollapsiblePane, wxControl)
 
 void wxGenericCollapsiblePane::Init()
 {
-    WX_INIT_CONTROL_CONTAINER();
-
     m_pButton = NULL;
     m_pPane = NULL;
     m_pStaticLine = NULL;

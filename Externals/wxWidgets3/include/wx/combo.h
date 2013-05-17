@@ -4,7 +4,7 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: combo.h 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: combo.h 69942 2011-12-07 14:05:11Z VZ $
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -560,7 +560,8 @@ protected:
 
     // Standard textctrl positioning routine. Just give it platform-dependant
     // textctrl coordinate adjustment.
-    virtual void PositionTextCtrl( int textCtrlXAdjust, int textCtrlYAdjust );
+    virtual void PositionTextCtrl( int textCtrlXAdjust = 0,
+                                   int textCtrlYAdjust = 0);
 
     // event handlers
     void OnSizeEvent( wxSizeEvent& event );
@@ -641,7 +642,7 @@ protected:
     // main (ie. topmost) window of a composite control (default = this)
     wxWindow*               m_mainCtrlWnd;
 
-    // used to prevent immediate re-popupping incase closed popup
+    // used to prevent immediate re-popupping in case closed popup
     // by clicking on the combo control (needed because of inconsistent
     // transient implementation across platforms).
     wxLongLong              m_timeCanAcceptClick;
@@ -766,6 +767,13 @@ public:
     // Create the popup child control.
     // Return true for success.
     virtual bool Create(wxWindow* parent) = 0;
+
+    // Calls Destroy() for the popup control (i.e. one returned by
+    // GetControl()) and makes sure that 'this' is deleted at the end.
+    // Default implementation works for both cases where popup control
+    // class is multiple inherited or created on heap as a separate
+    // object.
+    virtual void DestroyPopup();
 
     // We must have an associated control which is subclassed by the combobox.
     virtual wxWindow *GetControl() = 0;

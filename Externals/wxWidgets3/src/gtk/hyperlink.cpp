@@ -3,7 +3,7 @@
 // Purpose:     Hyperlink control
 // Author:      Francesco Montorsi
 // Created:     14/2/2007
-// RCS-ID:      $Id: hyperlink.cpp 65334 2010-08-17 16:55:32Z VZ $
+// RCS-ID:      $Id: hyperlink.cpp 70756 2012-02-29 18:29:31Z PC $
 // Copyright:   (c) 2007 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,6 @@ bool wxHyperlinkCtrl::Create(wxWindow *parent, wxWindowID id,
 
         m_widget = gtk_link_button_new("asdfsaf asdfdsaf asdfdsa");
         g_object_ref(m_widget);
-        gtk_widget_show(m_widget);
 
         // alignment
         float x_alignment = 0.5;
@@ -121,6 +120,13 @@ wxSize wxHyperlinkCtrl::DoGetBestSize() const
     if ( UseNative() )
         return wxControl::DoGetBestSize();
     return wxGenericHyperlinkCtrl::DoGetBestSize();
+}
+
+wxSize wxHyperlinkCtrl::DoGetBestClientSize() const
+{
+    if ( UseNative() )
+        return wxControl::DoGetBestClientSize();
+    return wxGenericHyperlinkCtrl::DoGetBestClientSize();
 }
 
 void wxHyperlinkCtrl::SetLabel(const wxString &label)

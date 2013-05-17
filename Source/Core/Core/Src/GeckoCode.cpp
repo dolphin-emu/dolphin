@@ -1,3 +1,7 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
 #include "GeckoCode.h"
 
 #include "Thread.h"
@@ -5,6 +9,8 @@
 #include "ConfigManager.h"
 
 #include "vector"
+#include "PowerPC/PowerPC.h"
+#include "CommonPaths.h"
 
 namespace Gecko
 {
@@ -12,14 +18,14 @@ namespace Gecko
 enum
 {
 	// Code Types
-	CODETYPE_WRITE_FILL =	0x0,
-	CODETYPE_IF =			0x1,
-	CODETYPE_BA_PO_OPS =	0x2,
-	CODETYPE_FLOW_CONTROL =	0x3,
-	CODETYPE_REGISTER_OPS =	0x4,
-	CODETYPE_SPECIAL_IF =	0x5,
+	CODETYPE_WRITE_FILL =		0x0,
+	CODETYPE_IF =				0x1,
+	CODETYPE_BA_PO_OPS =		0x2,
+	CODETYPE_FLOW_CONTROL =		0x3,
+	CODETYPE_REGISTER_OPS =		0x4,
+	CODETYPE_SPECIAL_IF =		0x5,
 	CODETYPE_ASM_SWITCH_RANGE =	0x6,
-	CODETYPE_END_CODES =	0x7,
+	CODETYPE_END_CODES =		0x7,
 
 	// Data Types
 	DATATYPE_8BIT =		0x0,
@@ -39,6 +45,9 @@ static struct
 
 // codes execute when counter is 0
 static int	code_execution_counter = 0;
+
+// Track whether the code handler has been installed
+static bool	code_handler_installed = false;
 
 // the currently active codes
 std::vector<GeckoCode>	active_codes;
@@ -85,14 +94,80 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 		gcodes_iter = gcodes.begin(),
 		gcodes_end = gcodes.end();
 	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	{
 		if (gcodes_iter->enabled)
 		{
 			// TODO: apply modifiers
 			// TODO: don't need description or creator string, just takin up memory
 			active_codes.push_back(*gcodes_iter);
 		}
+	}
 
 	inserted_asm_codes.clear();
+
+	code_handler_installed = false;
+}
+
+bool InstallCodeHandler()
+{
+	u32 codelist_location = 0x800028B8; // Debugger on location (0x800022A8 = Debugger off, using codehandleronly.bin)
+	std::string data;
+	std::string _rCodeHandlerFilename = File::GetSysDirectory() + GECKO_CODE_HANDLER;
+	if (!File::ReadFileToString(false, _rCodeHandlerFilename.c_str(), data))
+		return false;
+
+	// Install code handler
+	Memory::WriteBigEData((const u8*)data.data(), 0x80001800, data.length());
+
+	// Turn off Pause on start
+	Memory::Write_U32(0, 0x80002774);
+
+	// Write the Game ID into the location expected by WiiRD
+	Memory::WriteBigEData(Memory::GetPointer(0x80000000), 0x80001800, 6);
+
+	// Create GCT in memory
+	Memory::Write_U32(0x00d0c0de, codelist_location);
+	Memory::Write_U32(0x00d0c0de, codelist_location + 4);
+
+	std::lock_guard<std::mutex> lk(active_codes_lock);
+
+	int i = 0;
+	std::vector<GeckoCode>::iterator
+		gcodes_iter = active_codes.begin(),
+		gcodes_end = active_codes.end();
+	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	{
+		if (gcodes_iter->enabled)
+		{
+			current_code = codes_start = &*gcodes_iter->codes.begin();
+			codes_end = &*gcodes_iter->codes.end();
+			for (; current_code < codes_end; ++current_code)
+			{
+				const GeckoCode::Code& code = *current_code;
+
+				// Make sure we have enough memory to hold the code list
+				if ((codelist_location + 24 + i) < 0x80003000)
+				{
+					Memory::Write_U32(code.address, codelist_location + 8 + i);
+					Memory::Write_U32(code.data, codelist_location + 12 + i);
+					i += 8;
+				}
+			}
+		}
+	}
+
+	Memory::Write_U32(0xff000000, codelist_location + 8 + i);
+	Memory::Write_U32(0x00000000, codelist_location + 12 + i);
+
+	// Turn on codes
+	Memory::Write_U8(1, 0x80001807);
+
+	// Invalidate the icache
+	for (unsigned int j = 0; j < data.length(); j += 32)
+	{
+		PowerPC::ppcState.iCache.Invalidate(0x80001800 + j);
+	}
+	return true;
 }
 
 bool RunGeckoCode(GeckoCode& gecko_code)
@@ -137,7 +212,7 @@ bool RunGeckoCode(GeckoCode& gecko_code)
 			gecko_code.enabled = false;
 
 			PanicAlertT("GeckoCode failed to run (CT%i CST%i) (%s)"
-				"\n(either a bad code or the code type is not yet supported.)"
+				"\n(either a bad code or the code type is not yet supported. Try using the native code handler by placing the codehandler.bin file into the Sys directory and restarting Dolphin.)"
 				, code.type, code.subtype, gecko_code.name.c_str());
 			return false;
 		}
@@ -168,7 +243,46 @@ bool RunActiveCodes()
 	return true;
 }
 
-const std::map<u32, std::vector<u32> >& GetInsertedAsmCodes() {
+void RunCodeHandler()
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats && active_codes.size() > 0)
+	{
+		u8 *gameId = Memory::GetPointer(0x80000000);
+		u8 *wiirdId = Memory::GetPointer(0x80001800);
+
+		if (!code_handler_installed || memcmp(gameId, wiirdId, 6))
+			code_handler_installed = InstallCodeHandler();
+
+		if (code_handler_installed)
+		{
+			if (PC == LR)
+			{
+				u32 oldLR = LR;
+				PowerPC::CoreMode oldMode = PowerPC::GetMode();
+
+				PC = 0x800018A8;
+				LR = 0;
+
+				// Execute the code handler in interpreter mode to track when it exits
+				PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+
+				while (PC != 0)
+					PowerPC::SingleStep();
+
+				PowerPC::SetMode(oldMode);
+				PC = LR = oldLR;
+			}
+		}
+		else
+		{
+			// Use the emulated code handler
+			Gecko::RunActiveCodes();
+		}
+	}
+}
+
+const std::map<u32, std::vector<u32> >& GetInsertedAsmCodes()
+{
 	return inserted_asm_codes;
 }
 
@@ -244,7 +358,7 @@ bool RamWriteAndFill()
 		const u8 data_type = current_code->address >> 28;
 		const u32 data_inc = current_code->data;	// amount to increment the data
 		const u16 addr_inc = (u16)current_code->address;	// amount to increment the address
-		count =	((current_code->address >> 16) & 0xFFF) + 1;	// count is different from the other subtypes, note: +1
+		count = ((current_code->address >> 16) & 0xFFF) + 1;	// count is different from the other subtypes, note: +1
 		while (count--)
 		{
 			// switch inside the loop, :/ o well
@@ -349,7 +463,7 @@ bool RegularIf()
 			// CST7 : 16bits (endif, then) If lower
 		case 0x3 :
 			result = (read_value < data_value);
-			break;	
+			break;
 		}
 	}
 
@@ -470,7 +584,9 @@ bool FlowControl()
 				current_code = target_code - 1;
 			}
 			else
+			{
 				return false;	// trying to GOTO to bad address
+			}
 		}
 		break;
 
@@ -487,7 +603,9 @@ bool FlowControl()
 				current_code = target_code - 1;
 			}
 			else
+			{
 				return false;	// trying to GOSUB to bad address
+			}
 		}
 		break;
 
@@ -798,14 +916,14 @@ bool SpecialIf()
 
 // CT6 ASM Codes, On/Off switch and Address Range Check
 // NOT COMPLETE, asm stuff not started
-// fix the uglyness
+// TODO: Fix the ugliness
 bool AsmSwitchRange()
 {
 	// the switch subtype modifies the code :/
 	GeckoCode::Code& code = *current_code;
 
 	// only run if code_execution is set or this code is a switch or rangecheck subtype
-	// the switch and rangecheck run if exectution_counter is 1 (directly inside the failed if) if they are an endif
+	// the switch and rangecheck run if execution_counter is 1 (directly inside the failed if) if they are an endif
 	if (false == CodeExecution())
 	{
 		if (code.subtype < 0x6)
@@ -844,7 +962,7 @@ bool AsmSwitchRange()
 			}
 
 			// Though the next code starts at current_code+number_of_codes+1,
-			// we add only number_of_codes. It is because the for statemet in
+			// we add only number_of_codes. It is because the for statement in
 			// RunGeckoCode() increments current_code.
 			current_code += number_of_codes;
 

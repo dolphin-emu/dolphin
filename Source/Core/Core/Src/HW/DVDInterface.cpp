@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h" // Common
 #include "ChunkFile.h"
@@ -28,13 +15,11 @@
 #include "Thread.h"
 #include "Memmap.h"
 #include "../VolumeHandler.h"
+#include "AudioInterface.h"
+#include "../Movie.h"
 
 // Disc transfer rate measured in bytes per second
-static const u32 DISC_TRANSFER_RATE_GC = 3125 * 1024;
-static const u32 DISC_TRANSFER_RATE_WII = 7926 * 1024;
-
-// Disc access time measured in milliseconds
-static const u32 DISC_ACCESS_TIME_MS = 128;
+static const u32 DISC_TRANSFER_RATE_GC = 4 * 1024 * 1024;
 
 namespace DVDInterface
 {
@@ -61,7 +46,7 @@ enum DI_InterruptType
 	INT_DEINT		= 0,
 	INT_TCINT		= 1,
 	INT_BRKINT		= 2,
-	INT_CVRINT      = 3,
+	INT_CVRINT		= 3,
 };
 
 // debug commands which may be ORd
@@ -79,14 +64,14 @@ union UDISR
 	u32 Hex;
 	struct
 	{
-		u32 BREAK          :  1;	// Stop the Device + Interrupt
-		u32 DEINITMASK     :  1;	// Access Device Error Int Mask
-		u32 DEINT          :  1;	// Access Device Error Int
-		u32 TCINTMASK      :  1;	// Transfer Complete Int Mask
-		u32 TCINT          :  1;	// Transfer Complete Int
-		u32 BRKINTMASK     :  1;
-		u32 BRKINT         :  1;	// w 1: clear brkint
-		u32                : 25;
+		u32 BREAK			:  1;	// Stop the Device + Interrupt
+		u32 DEINITMASK		:  1;	// Access Device Error Int Mask
+		u32 DEINT			:  1;	// Access Device Error Int
+		u32 TCINTMASK		:  1;	// Transfer Complete Int Mask
+		u32 TCINT			:  1;	// Transfer Complete Int
+		u32 BRKINTMASK		:  1;
+		u32 BRKINT			:  1;	// w 1: clear brkint
+		u32					: 25;
 	};
 	UDISR() {Hex = 0;}
 	UDISR(u32 _hex) {Hex = _hex;}
@@ -98,10 +83,10 @@ union UDICVR
 	u32 Hex;
 	struct
 	{
-		u32 CVR            :  1;	// 0: Cover closed	1: Cover open
-		u32 CVRINTMASK	   :  1;	// 1: Interrupt enabled
-		u32 CVRINT         :  1;	// r 1: Interrupt requested w 1: Interrupt clear
-		u32                : 29;
+		u32 CVR				:  1;	// 0: Cover closed	1: Cover open
+		u32 CVRINTMASK		:  1;	// 1: Interrupt enabled
+		u32 CVRINT			:  1;	// r 1: Interrupt requested w 1: Interrupt clear
+		u32					: 29;
 	};
 	UDICVR() {Hex = 0;}
 	UDICVR(u32 _hex) {Hex = _hex;}
@@ -201,9 +186,11 @@ static UDICR		m_DICR;
 static UDIIMMBUF	m_DIIMMBUF;
 static UDICFG		m_DICFG;
 
-static u32			AudioStart;
+static u32			LoopStart;
 static u32			AudioPos;
-static u32			AudioLength;
+static u32			CurrentStart;
+static u32			LoopLength;
+static u32			CurrentLength;
 
 u32	 g_ErrorCode = 0;
 bool g_bDiscInside = false;
@@ -229,21 +216,25 @@ void ExecuteCommand(UDICR& _DICR);
 
 void DoState(PointerWrap &p)
 {
-	p.Do(m_DISR);
-	p.Do(m_DICVR);
+	p.DoPOD(m_DISR);
+	p.DoPOD(m_DICVR);
 	p.DoArray(m_DICMDBUF, 3);
 	p.Do(m_DIMAR);
 	p.Do(m_DILENGTH);
 	p.Do(m_DICR);
 	p.Do(m_DIIMMBUF);
-	p.Do(m_DICFG);
+	p.DoPOD(m_DICFG);
 
-	p.Do(AudioStart);
+	p.Do(LoopStart);
 	p.Do(AudioPos);
-	p.Do(AudioLength);
+	p.Do(LoopLength);
 
 	p.Do(g_ErrorCode);
 	p.Do(g_bDiscInside);
+	p.Do(g_bStream);
+
+	p.Do(CurrentStart);
+	p.Do(CurrentLength);
 }
 
 void TransferComplete(u64 userdata, int cyclesLate)
@@ -266,9 +257,13 @@ void Init()
 	m_DICFG.Hex		= 0;
 	m_DICFG.CONFIG	= 1; // Disable bootrom descrambler
 
-	AudioStart		= 0;
-	AudioPos		= 0;
-	AudioLength		= 0;
+	AudioPos = 0;
+	LoopStart = 0;
+	LoopLength = 0;
+	CurrentStart = 0;
+	CurrentLength = 0;
+
+	g_bStream = false;
 
 	ejectDisc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
 	insertDisc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
@@ -323,6 +318,17 @@ void ChangeDisc(const char* _newFileName)
 	std::string* _FileName = new std::string(_newFileName);
 	CoreTiming::ScheduleEvent_Threadsafe(0, ejectDisc);
 	CoreTiming::ScheduleEvent_Threadsafe(500000000, insertDisc, (u64)_FileName);
+	if (Movie::IsRecordingInput())
+	{
+		Movie::g_bDiscChange = true;
+		std::string fileName = _newFileName;
+		int sizeofpath = fileName.find_last_of("/\\") + 1;
+		if (fileName.substr(sizeofpath).length() > 40)
+		{
+			PanicAlert("Saving iso filename to .dtm failed; max file name length is 40 characters.");
+		}
+		Movie::g_discChange = fileName.substr(sizeofpath);
+	}
 }
 
 void SetLidOpen(bool _bOpen)
@@ -351,33 +357,48 @@ bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
 
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
 {
+	_iNumSamples &= ~31;
+
 	if (AudioPos == 0)
 	{
-		//MessageBox(0,"DVD: Trying to stream from 0", "bah", 0);
 		memset(_pDestBuffer, 0, _iNumSamples); // probably __AI_SRC_INIT :P
+	}
+	else
+	{
+		std::lock_guard<std::mutex> lk(dvdread_section);
+		VolumeHandler::ReadToPtr(_pDestBuffer, AudioPos, _iNumSamples);
+	}
+
+	// loop check
+	if (g_bStream)
+	{
+		AudioPos += _iNumSamples;
+
+		if (AudioPos >= CurrentStart + CurrentLength)
+		{
+			if (LoopStart == 0)
+			{
+				AudioPos = 0;
+				CurrentStart = 0;
+				CurrentLength = 0;
+			}
+			else
+			{
+				AudioPos = LoopStart;
+				CurrentStart = LoopStart;
+				CurrentLength = LoopLength;
+			}
+			NGCADPCM::InitFilter();
+			AudioInterface::GenerateAISInterrupt();
+		}
+
+		//WARN_LOG(DVDINTERFACE,"ReadADPCM");
+		return true;
+	}
+	else
+	{
 		return false;
 	}
-	_iNumSamples &= ~31;
-	{
-	std::lock_guard<std::mutex> lk(dvdread_section);
-	VolumeHandler::ReadToPtr(_pDestBuffer, AudioPos, _iNumSamples);
-	}
-
-	//
-	// FIX THIS
-	//
-	// loop check
-	//
-	AudioPos += _iNumSamples;
-	if (AudioPos >= AudioStart + AudioLength)
-	{
-		g_bStream = false; // Starfox Adventures
-		AudioPos = AudioStart;
-		NGCADPCM::InitFilter();
-	}
-
-	//WARN_LOG(DVDINTERFACE,"ReadADPCM");
-	return true;
 }
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
@@ -396,7 +417,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	case DI_CONFIG_REGISTER:		_uReturnValue = m_DICFG.Hex; break;
 
 	default:
-		_dbg_assert_(DVDINTERFACE, 0);		
+		_dbg_assert_(DVDINTERFACE, 0);
 		_uReturnValue = 0;
 		break;
 	}
@@ -418,9 +439,14 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			m_DISR.BRKINTMASK	= tmpStatusReg.BRKINTMASK;
 			m_DISR.BREAK		= tmpStatusReg.BREAK;
 
-			if (tmpStatusReg.DEINT)		m_DISR.DEINT = 0;
-			if (tmpStatusReg.TCINT)		m_DISR.TCINT = 0;
-			if (tmpStatusReg.BRKINT)	m_DISR.BRKINT = 0;
+			if (tmpStatusReg.DEINT)
+				m_DISR.DEINT = 0;
+
+			if (tmpStatusReg.TCINT)
+				m_DISR.TCINT = 0;
+
+			if (tmpStatusReg.BRKINT)
+				m_DISR.BRKINT = 0;
 
 			if (m_DISR.BREAK)
 			{
@@ -431,21 +457,22 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		}
 		break;
 
-	case DI_COVER_REGISTER:	
+	case DI_COVER_REGISTER:
 		{
 			UDICVR tmpCoverReg(_iValue);
 
 			m_DICVR.CVRINTMASK = tmpCoverReg.CVRINTMASK;
 
-			if (tmpCoverReg.CVRINT)	m_DICVR.CVRINT = 0;
+			if (tmpCoverReg.CVRINT)
+				m_DICVR.CVRINT = 0;
 
 			UpdateInterrupts();
 		}
 		break;
 
-	case DI_COMMAND_0:				m_DICMDBUF[0].Hex = _iValue; break;
-	case DI_COMMAND_1:				m_DICMDBUF[1].Hex = _iValue; break;
-	case DI_COMMAND_2:				m_DICMDBUF[2].Hex = _iValue; break;
+	case DI_COMMAND_0:		m_DICMDBUF[0].Hex = _iValue; break;
+	case DI_COMMAND_1:		m_DICMDBUF[1].Hex = _iValue; break;
+	case DI_COMMAND_2:		m_DICMDBUF[2].Hex = _iValue; break;
 
 	case DI_DMA_ADDRESS_REGISTER:
 		{
@@ -465,8 +492,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
 				{
 					u64 ticksUntilTC = m_DILENGTH.Length * 
-						(SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii?DISC_TRANSFER_RATE_WII:DISC_TRANSFER_RATE_GC)) + 
-						(SystemTimers::GetTicksPerSecond() * DISC_ACCESS_TIME_MS / 1000);
+						(SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 1 : DISC_TRANSFER_RATE_GC));
 					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
 				}
 				else
@@ -504,6 +530,9 @@ void UpdateInterrupts()
 	{
 		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, false);
 	}
+
+	// Required for Summoner: A Goddess Reborn
+	CoreTiming::ForceExceptionCheck(50);
 }
 
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
@@ -640,7 +669,7 @@ void ExecuteCommand(UDICR& _DICR)
 					// Here is the actual Disk Reading
 					if (!DVDRead(iDVDOffset, m_DIMAR.Address, m_DILENGTH.Length))
 					{
-						PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
+						PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
 					}
 				}
 				break;
@@ -650,8 +679,8 @@ void ExecuteCommand(UDICR& _DICR)
 				_dbg_assert_(DVDINTERFACE, m_DICMDBUF[2].Hex == m_DILENGTH.Length);
 				_dbg_assert_(DVDINTERFACE, m_DILENGTH.Length == 0x20);
 				if (!DVDRead(m_DICMDBUF[1].Hex, m_DIMAR.Address, m_DILENGTH.Length))
-					PanicAlertT("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
-				WARN_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(m_DIMAR.Address))
+					PanicAlertT("Can't read from DVD_Plugin - DVD-Interface: Fatal Error");
+				WARN_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(m_DIMAR.Address));
 				break;
 
 			default:
@@ -681,17 +710,21 @@ void ExecuteCommand(UDICR& _DICR)
 			/*
 			if (iDVDOffset == 0x84800000)
 			{
-				ERROR_LOG(DVDINTERFACE, "firmware upload");
+				ERROR_LOG(DVDINTERFACE, "Firmware upload");
 			}
 			else*/
 			if ((offset < 0) || ((offset + len) > 0x40) || len > 0x40)
 			{
 				u32 addr = m_DIMAR.Address;
-				if (iDVDOffset == 0x84800000) {
+				if (iDVDOffset == 0x84800000)
+				{
 					ERROR_LOG(DVDINTERFACE, "FIRMWARE UPLOAD");
-				} else {
+				}
+				else
+				{
 					ERROR_LOG(DVDINTERFACE, "ILLEGAL MEDIA WRITE");
 				}
+
 				while (len >= 4)
 				{
 					ERROR_LOG(DVDINTERFACE, "GC-AM Media Board WRITE (0xAA): %08x: %08x", iDVDOffset, Memory::Read_U32(addr));
@@ -813,28 +846,69 @@ void ExecuteCommand(UDICR& _DICR)
 	//	m_DICMDBUF[2].Hex			= Length of the stream
 	case 0xE1:
 		{
-			// ugly hack to catch the disable command
-			if (m_DICMDBUF[1].Hex != 0)
+			u32 pos = m_DICMDBUF[1].Hex << 2;
+			u32 length = m_DICMDBUF[2].Hex;
+
+			// Start playing
+			if (!g_bStream && m_DICMDBUF[0].CMDBYTE1 == 0 && pos != 0 && length != 0)
 			{
-				AudioPos	= m_DICMDBUF[1].Hex << 2;
-				AudioStart	= AudioPos;
-				AudioLength	= m_DICMDBUF[2].Hex;
-				NGCADPCM::InitFilter();			
-
+				AudioPos = pos;
+				CurrentStart = pos;
+				CurrentLength = length;
+				NGCADPCM::InitFilter();
 				g_bStream = true;
-
-				WARN_LOG(DVDINTERFACE, "(Audio) Stream subcmd = %02x offset = %08x length=%08x",
-					m_DICMDBUF[0].CMDBYTE1, AudioPos, AudioLength);
 			}
-			else
-				WARN_LOG(DVDINTERFACE, "(Audio) Off?");
+
+			LoopStart = pos;
+			LoopLength = length;
+			g_bStream = (m_DICMDBUF[0].CMDBYTE1 == 0); // This command can start/stop the stream
+
+			// Stop stream
+			if (m_DICMDBUF[0].CMDBYTE1 == 1)
+			{
+				AudioPos = 0;
+				LoopStart = 0;
+				LoopLength = 0;
+				CurrentStart = 0;
+				CurrentLength = 0;
+			}
+
+			WARN_LOG(DVDINTERFACE, "(Audio) Stream subcmd = %08x offset = %08x length=%08x",
+				m_DICMDBUF[0].Hex, m_DICMDBUF[1].Hex << 2, m_DICMDBUF[2].Hex);
 		}
 		break;
 
 	// Request Audio Status (Immediate)
 	case 0xE2:
-		m_DIIMMBUF.Hex = g_bStream ? 1 : 0;
-		//WARN_LOG(DVDINTERFACE, "(Audio): Request Audio status %s", g_bStream? "on":"off");
+		{
+			switch (m_DICMDBUF[0].CMDBYTE1)
+			{
+			case 0x00: // Returns streaming status
+				m_DIIMMBUF.Hex = (AudioPos == 0) ? 0 : 1;
+				break;
+			case 0x01: // Returns the current offset
+				if (g_bStream)
+					m_DIIMMBUF.Hex = (AudioPos - CurrentStart) >> 2;
+				else
+					m_DIIMMBUF.Hex = 0;
+				break;
+			case 0x02: // Returns the start offset
+				if (g_bStream)
+					m_DIIMMBUF.Hex = CurrentStart >> 2;
+				else
+					m_DIIMMBUF.Hex = 0;
+				break;
+			case 0x03: // Returns the total length
+				if (g_bStream)
+					m_DIIMMBUF.Hex = CurrentLength;
+				else
+					m_DIIMMBUF.Hex = 0;
+				break;
+			default:
+				WARN_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s", m_DICMDBUF[0].CMDBYTE1, g_bStream? "on":"off");
+				break;
+			}
+		}
 		break;
 
 	case DVDLowStopMotor:

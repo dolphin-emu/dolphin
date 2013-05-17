@@ -2,7 +2,7 @@
 // Name:        src/gtk/utilsgtk.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: utilsgtk.cpp 66657 2011-01-08 18:05:33Z PC $
+// Id:          $Id: utilsgtk.cpp 70704 2012-02-27 00:40:16Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,6 +26,14 @@
 #include "wx/gtk/private/timer.h"
 #include "wx/evtloop.h"
 
+#include <gtk/gtk.h>
+#ifdef GDK_WINDOWING_WIN32
+#include <gdk/gdkwin32.h>
+#endif
+#ifdef GDK_WINDOWING_X11
+#include <gdk/gdkx.h>
+#endif
+
 #if wxDEBUG_LEVEL
     #include "wx/gtk/assertdlg_gtk.h"
     #if wxUSE_STACKWALKER
@@ -37,11 +45,9 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>   // for WNOHANG
+#ifdef __UNIX__
 #include <unistd.h>
-
-#include <gtk/gtk.h>
-#include <gdk/gdkx.h>
+#endif
 
 #if wxUSE_DETECT_SM
     #include <X11/SM/SMlib.h>
@@ -90,7 +96,7 @@ void wxDisplaySizeMM( int *width, int *height )
 
 void wxGetMousePosition( int* x, int* y )
 {
-    gdk_window_get_pointer( NULL, x, y, NULL );
+    gdk_window_get_pointer(gtk_widget_get_root_window(wxGetRootWindow()), x, y, NULL);
 }
 
 bool wxColourDisplay()
@@ -100,7 +106,7 @@ bool wxColourDisplay()
 
 int wxDisplayDepth()
 {
-    return gdk_drawable_get_visual( wxGetRootWindow()->window )->depth;
+    return gtk_widget_get_visual(wxGetRootWindow())->depth;
 }
 
 wxWindow* wxFindWindowAtPoint(const wxPoint& pt)
@@ -186,31 +192,28 @@ const gchar *wx_pango_version_check (int major, int minor, int micro)
 // ----------------------------------------------------------------------------
 
 extern "C" {
-static
-void GTK_EndProcessDetector(gpointer data, gint source,
-                            GdkInputCondition WXUNUSED(condition))
+static gboolean EndProcessDetector(GIOChannel* source, GIOCondition, void* data)
 {
     wxEndProcessData * const
         proc_data = static_cast<wxEndProcessData *>(data);
 
     // child exited, end waiting
-    close(source);
-
-    // don't call us again!
-    gdk_input_remove(proc_data->tag);
+    close(g_io_channel_unix_get_fd(source));
 
     wxHandleProcessTermination(proc_data);
+
+    // don't call us again!
+    return false;
 }
 }
 
 int wxGUIAppTraits::AddProcessCallback(wxEndProcessData *proc_data, int fd)
 {
-    int tag = gdk_input_add(fd,
-                            GDK_INPUT_READ,
-                            GTK_EndProcessDetector,
-                            (gpointer)proc_data);
-
-    return tag;
+    GIOChannel* channel = g_io_channel_unix_new(fd);
+    GIOCondition cond = GIOCondition(G_IO_IN | G_IO_HUP | G_IO_ERR);
+    unsigned id = g_io_add_watch(channel, cond, EndProcessDetector, proc_data);
+    g_io_channel_unref(channel);
+    return int(id);
 }
 
 
@@ -328,14 +331,11 @@ private:
     GtkAssertDialog *m_dlg;
 };
 
-// the callback functions must be extern "C" to comply with GTK+ declarations
-extern "C"
+static void get_stackframe_callback(void* p)
 {
-    void get_stackframe_callback(StackDump *dump)
-    {
-        // skip over frames up to including wxOnAssert()
-        dump->ProcessFrames(3);
-    }
+    StackDump* dump = static_cast<StackDump*>(p);
+    // skip over frames up to including wxOnAssert()
+    dump->ProcessFrames(3);
 }
 
 #endif // wxDEBUG_LEVEL && wxUSE_STACKWALKER
@@ -362,7 +362,7 @@ bool wxGUIAppTraits::ShowAssertDialog(const wxString& msg)
         gtk_assert_dialog_set_backtrace_callback
         (
             GTK_ASSERT_DIALOG(dialog),
-            (GtkAssertDialogStackFrameCallback)get_stackframe_callback,
+            get_stackframe_callback,
             &dump
         );
 #endif // wxUSE_STACKWALKER
@@ -472,11 +472,11 @@ wxGUIAppTraits::GetStandardCmdLineOptions(wxArrayString& names,
     {
         // since GTK>=2.6, we can use the glib_check_version() symbol...
 
-        // check whether GLib version is greater than 2.6 but also lower than 2.19
+        // check whether GLib version is greater than 2.6 but also lower than 2.31
         // because, as we use the undocumented _GOptionGroup struct, we don't want
-        // to run this code with future versions which might change it (2.19 is the
+        // to run this code with future versions which might change it (2.30 is the
         // latest one at the time of this writing)
-        if (!glib_check_version(2,6,0) && glib_check_version(2,20,0))
+        if (glib_check_version(2,6,0) == NULL && glib_check_version(2,31,0))
         {
             usage << _("The following standard GTK+ options are also supported:\n");
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloop.h 65680 2010-09-30 11:44:45Z VZ $
+// RCS-ID:      $Id: evtloop.h 68302 2011-07-19 17:56:57Z SC $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -19,6 +19,8 @@ class WXDLLIMPEXP_CORE wxGUIEventLoop : public wxCFEventLoop
 {
 public:
     wxGUIEventLoop();
+
+    virtual void WakeUp();
 
 protected:
     virtual int DoDispatchTimeout(unsigned long timeout);

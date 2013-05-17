@@ -4,7 +4,7 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/04/01
-// RCS-ID:      $Id: dc.h 58757 2009-02-08 11:45:59Z VZ $
+// RCS-ID:      $Id: dc.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,10 +80,10 @@ public:
     virtual void Clear();
 
     virtual bool StartDoc( const wxString& WXUNUSED(message) ) { return true; }
-    virtual void EndDoc(void) {};
+    virtual void EndDoc(void) {}
 
-    virtual void StartPage(void) {};
-    virtual void EndPage(void) {};
+    virtual void StartPage(void) {}
+    virtual void EndPage(void) {}
 
     virtual void SetFont(const wxFont& font);
     virtual void SetPen(const wxPen& pen);

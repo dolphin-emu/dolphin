@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-09-19
-// RCS-ID:      $Id: sstream.h 63248 2010-01-24 11:33:17Z VZ $
+// RCS-ID:      $Id: sstream.h 67968 2011-06-16 16:22:15Z VZ $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,9 +66,9 @@ public:
     wxStringOutputStream(wxString *pString = NULL,
                          wxMBConv& conv = wxConvUTF8)
         : m_conv(conv)
-#if wxUSE_UNICODE_WCHAR
+#if wxUSE_UNICODE
         , m_unconv(0)
-#endif // wxUSE_UNICODE_WCHAR
+#endif // wxUSE_UNICODE
     {
         m_str = pString ? pString : &m_strInternal;
         m_pos = m_str->length() / sizeof(wxChar);
@@ -98,10 +98,10 @@ private:
     // arbitrary 8 bit data
     wxMBConv& m_conv;
 
-#if wxUSE_UNICODE_WCHAR
+#if wxUSE_UNICODE
     // unconverted data from the last call to OnSysWrite()
     wxMemoryBuffer m_unconv;
-#endif // wxUSE_UNICODE_WCHAR
+#endif // wxUSE_UNICODE
 
     wxDECLARE_NO_COPY_CLASS(wxStringOutputStream);
 };

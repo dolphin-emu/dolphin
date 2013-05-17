@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     8/17/99
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: filedlg.h 62722 2009-11-26 16:17:00Z VZ $
+// RCS-ID:      $Id: filedlg.h 70345 2012-01-15 01:05:28Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -232,9 +232,6 @@ wxSaveFileSelector(const wxString& what,
     #include "wx/cocoa/filedlg.h"
 #elif defined(__WXPM__)
     #include "wx/os2/filedlg.h"
-#elif defined(__WXPALMOS__)
-    #define wxHAS_GENERIC_FILEDIALOG
-    #include "wx/generic/filedlgg.h"
 #endif
 
 #endif // wxUSE_FILEDLG

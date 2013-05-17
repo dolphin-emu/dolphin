@@ -4,7 +4,7 @@
 // Author:      Andreas Pflug
 // Modified by:
 // Created:     2005-01-19
-// RCS-ID:      $Id: datectlg.cpp 66771 2011-01-26 15:52:41Z SC $
+// RCS-ID:      $Id: datectlg.cpp 68910 2011-08-27 12:13:18Z VZ $
 // Copyright:   (c) 2005 Andreas Pflug <pgadmin@pse-consulting.de>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -209,11 +209,15 @@ private:
     // functions honours wxDP_SHOWCENTURY flag.
     wxString GetLocaleDateFormat() const
     {
+#if wxUSE_INTL
         wxString fmt = wxLocale::GetInfo(wxLOCALE_SHORT_DATE_FMT);
         if ( HasDPFlag(wxDP_SHOWCENTURY) )
             fmt.Replace("%y", "%Y");
 
         return fmt;
+#else // !wxUSE_INTL
+        return wxT("x");
+#endif // wxUSE_INTL/!wxUSE_INTL
     }
 
     bool SetFormat(const wxString& fmt)
@@ -381,10 +385,8 @@ wxSize wxDatePickerCtrlGeneric::DoGetBestSize() const
 wxWindowList wxDatePickerCtrlGeneric::GetCompositeWindowParts() const
 {
     wxWindowList parts;
-    if (m_combo)
-        parts.push_back(m_combo);
-    if (m_popup)
-        parts.push_back(m_popup);
+    parts.push_back(m_combo);
+    parts.push_back(m_popup);
     return parts;
 }
 

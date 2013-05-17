@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: icon.h 66772 2011-01-26 15:53:31Z SC $
+// RCS-ID:      $Id: icon.h 70353 2012-01-15 14:46:41Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -23,10 +23,7 @@
 // constant defines the default argument value for wxIcon ctor and wxIcon::LoadFile()
 // functions.
 
-#if defined(__WXPALMOS__)
-  #define wxICON_DEFAULT_TYPE   wxBITMAP_TYPE_XPM
-  #include "wx/generic/icon.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
   #define wxICON_DEFAULT_TYPE   wxBITMAP_TYPE_ICO_RESOURCE
   #include "wx/msw/icon.h"
 #elif defined(__WXMOTIF__)
@@ -40,9 +37,6 @@
   #include "wx/generic/icon.h"
 #elif defined(__WXX11__)
   #define wxICON_DEFAULT_TYPE   wxBITMAP_TYPE_XPM
-  #include "wx/generic/icon.h"
-#elif defined(__WXMGL__)
-  #define wxICON_DEFAULT_TYPE   wxBITMAP_TYPE_ICO_RESOURCE
   #include "wx/generic/icon.h"
 #elif defined(__WXDFB__)
   #define wxICON_DEFAULT_TYPE   wxBITMAP_TYPE_XPM

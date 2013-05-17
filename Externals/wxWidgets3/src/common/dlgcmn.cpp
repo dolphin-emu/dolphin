@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.06.99
-// RCS-ID:      $Id: dlgcmn.cpp 66592 2011-01-05 18:27:58Z PC $
+// RCS-ID:      $Id: dlgcmn.cpp 69458 2011-10-18 21:56:36Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -224,13 +224,7 @@ wxSizer *wxDialogBase::CreateTextSizer(const wxString& message,
         widthMax = wxSystemSettings::GetMetric( wxSYS_SCREEN_X ) - 25;
     }
 
-    // '&' is used as accel mnemonic prefix in the wxWidgets controls but in
-    // the static messages created by CreateTextSizer() (used by wxMessageBox,
-    // for example), we don't want this special meaning, so we need to quote it
-    wxString text(message);
-    text.Replace(wxT("&"), wxT("&&"));
-
-    return wrapper.CreateSizer(text, widthMax);
+    return wrapper.CreateSizer(message, widthMax);
 }
 
 #endif // wxUSE_STATTEXT

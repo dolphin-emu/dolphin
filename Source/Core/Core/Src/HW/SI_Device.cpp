@@ -1,22 +1,11 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "SI_Device.h"
 #include "SI_DeviceGCController.h"
+#include "SI_DeviceGCSteeringWheel.h"
+#include "SI_DeviceDanceMat.h"
 #include "SI_DeviceGBA.h"
 #include "SI_DeviceAMBaseboard.h"
 
@@ -52,7 +41,7 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 class CSIDevice_Null : public ISIDevice
 {
 public:
-	CSIDevice_Null(int _iDeviceNumber) : ISIDevice(_iDeviceNumber) {}
+	CSIDevice_Null(SIDevices device, int _iDeviceNumber) : ISIDevice(device, _iDeviceNumber) {}
 	virtual ~CSIDevice_Null() {}
 
 	int RunBuffer(u8* _pBuffer, int _iLength) {
@@ -73,24 +62,32 @@ ISIDevice* SIDevice_Create(const SIDevices device, const int port_number)
 	switch (device)
 	{
 	case SIDEVICE_GC_CONTROLLER:
-		return new CSIDevice_GCController(port_number);
+		return new CSIDevice_GCController(device, port_number);
+		break;
+
+	case SIDEVICE_DANCEMAT:
+		return new CSIDevice_DanceMat(device, port_number);
+		break;
+
+	case SIDEVICE_GC_STEERING:
+		return new CSIDevice_GCSteeringWheel(device, port_number);
 		break;
 
 	case SIDEVICE_GC_TARUKONGA:
-		return new CSIDevice_TaruKonga(port_number);
+		return new CSIDevice_TaruKonga(device, port_number);
 		break;
 
 	case SIDEVICE_GC_GBA:
-		return new CSIDevice_GBA(port_number);
+		return new CSIDevice_GBA(device, port_number);
 		break;
 
 	case SIDEVICE_AM_BASEBOARD:
-		return new CSIDevice_AMBaseboard(port_number);
+		return new CSIDevice_AMBaseboard(device, port_number);
 		break;
 
 	case SIDEVICE_NONE:
 	default:
-		return new CSIDevice_Null(port_number);
+		return new CSIDevice_Null(device, port_number);
 		break;
 	}
 }

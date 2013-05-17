@@ -1,21 +1,8 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-#include "ABI.h"
+#include "x64ABI.h"
 #include "x64Emitter.h"
 
 #include "../../HW/Memmap.h"
@@ -24,7 +11,7 @@
 #include "../../CoreTiming.h"
 #include "MemoryUtil.h"
 
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Jit.h"
 #include "../JitCommon/JitCache.h"
 
@@ -70,7 +57,7 @@ void Jit64AsmRoutineManager::Generate()
 	MOV(64, R(R15), Imm64((u64)jit->GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
 #endif
 
-	const u8 *outerLoop = GetCodePtr();
+	outerLoop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
 	 
@@ -81,12 +68,15 @@ void Jit64AsmRoutineManager::Generate()
 
 			if (Core::g_CoreStartupParameter.bEnableDebugging)
 			{
+				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
+				FixupBranch notStepping = J_CC(CC_Z);
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
 				ABI_PopAllCalleeSavedRegsAndAdjustStack();
 				RET();
 				SetJumpTarget(noBreakpoint);
+				SetJumpTarget(notStepping);
 			}
 
 			SetJumpTarget(skipToRealDispatch);
@@ -191,26 +181,16 @@ void Jit64AsmRoutineManager::Generate()
 #endif
 			JMP(dispatcherNoCheck); // no point in special casing this
 
-			//FP blocks test for FPU available, jump here if false
-			fpException = AlignCode4(); 
-			LOCK();
-			OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
-			ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-			MOV(32, R(EAX), M(&NPC));
-			MOV(32, M(&PC), R(EAX));
-			JMP(dispatcher, true);
-
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 
-		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
-		
-		testExceptions = GetCodePtr();
+		testExternalExceptions = GetCodePtr();
+		TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
+		FixupBranch noExtException = J_CC(CC_Z);
 		MOV(32, R(EAX), M(&PC));
 		MOV(32, M(&NPC), R(EAX));
-		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-		MOV(32, R(EAX), M(&NPC));
-		MOV(32, M(&PC), R(EAX));
+		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
+		SetJumpTarget(noExtException);
 		
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop, true);

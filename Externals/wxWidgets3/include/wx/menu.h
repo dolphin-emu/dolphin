@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.10.99
-// RCS-ID:      $Id: menu.h 66640 2011-01-07 21:51:19Z SC $
+// RCS-ID:      $Id: menu.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -580,8 +580,6 @@ protected:
 #else // !wxUSE_BASE_CLASSES_ONLY
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/menu.h"
-#elif defined(__WXPALMOS__)
-    #include "wx/palmos/menu.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/menu.h"
 #elif defined(__WXMOTIF__)

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <iostream>
 #include <vector>
@@ -38,7 +25,8 @@ bool Assemble(const char *text, std::vector<u16> &code, bool force)
 
 	// TODO: fix the terrible api of the assembler.
 	DSPAssembler assembler(settings);
-	if (!assembler.Assemble(text, code)) {
+	if (!assembler.Assemble(text, code))
+	{
 		std::cerr << assembler.GetErrorString() << std::endl;
 		return false;
 	}
@@ -77,7 +65,9 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 	for (int i = 0; i < min_size; i++)
 	{
 		if (code1[i] == code2[i])
+		{
 			count_equal++;
+		}
 		else
 		{
 			std::string line1, line2;
@@ -104,10 +94,10 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 	return code1.size() == code2.size() && code1.size() == count_equal;
 }
 
-void GenRandomCode(int size, std::vector<u16> &code) 
+void GenRandomCode(u32 size, std::vector<u16> &code) 
 {
 	code.resize(size);
-	for (int i = 0; i < size; i++)
+	for (u32 i = 0; i < size; i++)
 	{
 		code[i] = rand() ^ (rand() << 8);
 	}
@@ -144,28 +134,28 @@ void CodeToHeader(const std::vector<u16> &code, std::string _filename,
 }
 
 void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>* filenames,
-				   int numCodes, const char *name, std::string &header)
+				   u32 numCodes, const char *name, std::string &header)
 {
 	std::vector<std::vector<u16> > codes_padded;
 	char buffer[1024];
-	int reserveSize = 0;
-	for(int i = 0; i < numCodes; i++)
+	u32 reserveSize = 0;
+	for(u32 i = 0; i < numCodes; i++)
 	{
 		codes_padded.push_back(codes[i]);
 		// Pad with nops to 32byte boundary
 		while (codes_padded.at(i).size() & 0x7f)
 			codes_padded.at(i).push_back(0);
 
-		reserveSize += (int)codes_padded.at(i).size();
+		reserveSize += (u32)codes_padded.at(i).size();
 	}
 
 	
 	header.clear();
 	header.reserve(reserveSize * 4);
-	sprintf(buffer, "#define NUM_UCODES %d\n\n", numCodes);
+	sprintf(buffer, "#define NUM_UCODES %u\n\n", numCodes);
 	header.append(buffer);
 	header.append("const char* UCODE_NAMES[NUM_UCODES] = {\n");
-	for (int i = 0; i < numCodes; i++)
+	for (u32 i = 0; i < numCodes; i++)
 	{
 		std::string filename;
 		if (! SplitPath(filenames->at(i), NULL, &filename, NULL))
@@ -176,7 +166,7 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 	header.append("};\n\n");
 	header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
-	for(int i = 0; i < numCodes; i++)
+	for(u32 i = 0; i < numCodes; i++)
 	{
 		if(codes[i].size() == 0)
 			continue;
@@ -197,7 +187,7 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 void CodeToBinaryStringBE(const std::vector<u16> &code, std::string &str)
 {
 	str.resize(code.size() * 2);
-	for (int i = 0; i < (int)code.size(); i++)
+	for (size_t i = 0; i < code.size(); i++)
 	{
 		str[i * 2 + 0] = code[i] >> 8;
 		str[i * 2 + 1] = code[i] & 0xff;
@@ -207,7 +197,7 @@ void CodeToBinaryStringBE(const std::vector<u16> &code, std::string &str)
 void BinaryStringBEToCode(const std::string &str, std::vector<u16> &code)
 {
 	code.resize(str.size() / 2);
-	for (int i = 0; i < (int)code.size(); i++)
+	for (size_t i = 0; i < code.size(); i++)
 	{
 		code[i] = ((u16)(u8)str[i * 2 + 0] << 8) | ((u16)(u8)str[i * 2 + 1]);
 	}

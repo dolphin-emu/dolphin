@@ -3,7 +3,7 @@
 // Purpose:     Implementation of thread local storage
 // Author:      Vadim Zeitlin
 // Created:     2008-08-08
-// RCS-ID:      $Id: tls.h 65747 2010-10-03 17:16:15Z VZ $
+// RCS-ID:      $Id: tls.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@
         typedef void (*wxTlsDestructorFunction)(void*);
     }
 
-    #if defined(__WXMSW__)
+    #if defined(__WINDOWS__)
         #include "wx/msw/tls.h"
     #elif defined(__OS2__)
         #include "wx/os2/tls.h"
@@ -132,7 +132,7 @@
     };
 
     #define wxTLS_TYPE(T) wxTlsValue<T>
-    #define wxTLS_PTR(var) (var)
+    #define wxTLS_PTR(var) ((var).Get())
     #define wxTLS_VALUE(var) (*(var))
 #endif // wxHAS_COMPILER_TLS/!wxHAS_COMPILER_TLS
 

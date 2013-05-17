@@ -8,6 +8,9 @@
     <ClCompile Include="Src\CISOBlob.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
+    <ClCompile Include="Src\WbfsBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
     <ClCompile Include="Src\CompressedBlob.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
@@ -69,6 +72,9 @@
   <ItemGroup>
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\CISOBlob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\WbfsBlob.h">
       <Filter>Volume\Blob</Filter>
     </ClInclude>
     <ClInclude Include="Src\Blob.h">
@@ -133,7 +139,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Src\SConscript" />
     <None Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>

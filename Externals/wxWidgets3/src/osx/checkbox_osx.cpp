@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: checkbox_osx.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: checkbox_osx.cpp 67892 2011-06-08 23:02:25Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ bool wxCheckBox::OSXHandleClicked( double WXUNUSED(timestampsec) )
     {
         wxCheckBoxState origState ;
 
-        newState = origState = Get3StateValue();
+        origState = Get3StateValue();
 
         switch (origState)
         {
@@ -110,14 +110,24 @@ bool wxCheckBox::OSXHandleClicked( double WXUNUSED(timestampsec) )
             default:
                 break;
         }
+        
         if (newState == origState)
             sendEvent = false;
+        else
+            Set3StateValue( newState );
     }
-
+    else
+    {
+        // in case we cannot avoid this user state change natively (eg cocoa) we intercept it here
+        if ( newState == wxCHK_UNDETERMINED && !Is3rdStateAllowedForUser() )
+        {
+            newState = wxCHK_CHECKED;
+            Set3StateValue( newState );
+        }
+    }
+    
     if (sendEvent)
     {
-        Set3StateValue( newState );
-
         wxCommandEvent event( wxEVT_COMMAND_CHECKBOX_CLICKED, m_windowId );
         event.SetInt( newState );
         event.SetEventObject( this );

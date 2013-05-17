@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp 67280 2011-03-22 14:17:38Z DS $
+// Id:          $Id: treectlg.cpp 70625 2012-02-19 14:49:37Z SN $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -441,7 +441,7 @@ wxTreeTextCtrl::wxTreeTextCtrl(wxGenericTreeCtrl *owner,
     rect.y -= 2;
     rect.width  += 8;
     rect.height += 4;
-#elif defined(__WXMAC__)
+#elif defined(wxOSX_USE_CARBON) && wxOSX_USE_CARBON
     int bestHeight = GetBestSize().y - 8;
     if ( rect.height > bestHeight )
     {
@@ -997,7 +997,7 @@ bool wxGenericTreeCtrl::Create(wxWindow *parent,
 #endif
 
     if ( !wxControl::Create( parent, id, pos, size,
-                             style|wxHSCROLL|wxVSCROLL,
+                             style|wxHSCROLL|wxVSCROLL|wxWANTS_CHARS,
                              validator,
                              name ) )
         return false;
@@ -2054,7 +2054,8 @@ wxGenericTreeCtrl::TagAllChildrenUntilLast(wxGenericTreeItem *crt_item,
     if (crt_item==last_item)
         return true;
 
-    if (crt_item->HasChildren())
+    // We should leave the not shown children of collapsed items alone.
+    if (crt_item->HasChildren() && crt_item->IsExpanded())
     {
         wxArrayGenericTreeItems& children = crt_item->GetChildren();
         size_t count = children.GetCount();
@@ -2878,7 +2879,7 @@ wxGenericTreeCtrl::PaintLevel(wxGenericTreeItem *item,
                 yOrigin = abs(yOrigin);
                 GetClientSize(&width, &height);
 
-                // Move end points to the begining/end of the view?
+                // Move end points to the beginning/end of the view?
                 if (y_mid < yOrigin)
                     y_mid = yOrigin;
                 if (oldY > yOrigin + height)

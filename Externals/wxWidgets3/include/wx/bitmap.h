@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     22.04.01
-// RCS-ID:      $Id: bitmap.h 66086 2010-11-10 13:51:51Z VZ $
+// RCS-ID:      $Id: bitmap.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,8 +68,7 @@ protected:
     virtual bool InitFromMonoBitmap(const wxBitmap& bitmap) = 0;
 };
 
-#if defined(__WXMGL__) || \
-    defined(__WXDFB__) || \
+#if defined(__WXDFB__) || \
     defined(__WXMAC__) || \
     defined(__WXGTK__) || \
     defined(__WXCOCOA__) || \
@@ -84,9 +83,9 @@ protected:
 #define wxBITMAP_SCREEN_DEPTH       (-1)
 
 
-// All ports except wxMSW,wxOS2,wxPalmOS use wxBitmapHandler and wxBitmapBase as base class
-// for wxBitmapHandler; wxMSW,wxOS2,wxPalmOS use wxGDIImageHandler as base class
-// since it allows some code reuse there.
+// All ports except wxMSW and wxOS2 use wxBitmapHandler and wxBitmapBase as
+// base class for wxBitmapHandler; wxMSW and wxOS2 use wxGDIImageHandler as
+// base class since it allows some code reuse there.
 #if wxUSE_BITMAP_BASE
 
 // ----------------------------------------------------------------------------
@@ -237,10 +236,7 @@ protected:
 
 // the wxBITMAP_DEFAULT_TYPE constant defines the default argument value
 // for wxBitmap's ctor and wxBitmap::LoadFile() functions.
-#if defined(__WXPALMOS__)
-    #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_BMP_RESOURCE
-    #include "wx/palmos/bitmap.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
     #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_BMP_RESOURCE
     #include "wx/msw/bitmap.h"
 #elif defined(__WXMOTIF__)
@@ -255,11 +251,8 @@ protected:
 #elif defined(__WXX11__)
     #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_XPM
     #include "wx/x11/bitmap.h"
-#elif defined(__WXMGL__)
-    #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_RESOURCE
-    #include "wx/mgl/bitmap.h"
 #elif defined(__WXDFB__)
-    #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_RESOURCE
+    #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_BMP_RESOURCE
     #include "wx/dfb/bitmap.h"
 #elif defined(__WXMAC__)
     #define wxBITMAP_DEFAULT_TYPE    wxBITMAP_TYPE_PICT_RESOURCE
@@ -287,7 +280,7 @@ ConvertToDisabled(unsigned char brightness) const
 #endif // wxUSE_IMAGE
 
 // we must include generic mask.h after wxBitmap definition
-#if defined(__WXMGL__) || defined(__WXDFB__)
+#if defined(__WXDFB__)
     #define wxUSE_GENERIC_MASK 1
 #else
     #define wxUSE_GENERIC_MASK 0

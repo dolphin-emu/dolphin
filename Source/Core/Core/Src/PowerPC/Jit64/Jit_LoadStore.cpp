@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
 // Should give a very noticable speed boost to paired single heavy code.
@@ -28,7 +15,7 @@
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 
 #include "Jit.h"
 #include "JitAsm.h"
@@ -139,19 +126,18 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
 		
-		gpr.Flush(FLUSH_ALL); 
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 
 		// if it's still 0, we can wait until the next event
 		TEST(32, R(EAX), R(EAX));
 		FixupBranch noIdle = J_CC(CC_NZ);
-
-		gpr.Flush(FLUSH_ALL);
-		fpr.Flush(FLUSH_ALL);
+		
 		ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
 
 		// ! we must continue executing of the loop after exception handling, maybe there is still 0 in r0
 		//MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC));
-		JMP(asm_routines.testExceptions, true);			
+		WriteExceptionExit();
 
 		SetJumpTarget(noIdle);
 
@@ -235,6 +221,21 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	gpr.UnlockAllX();
 }
 
+void Jit64::dcbst(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
+	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
+	// memory location.  Do not invalidate the JIT cache in this case as the memory
+	// will be the same.
+	// dcbt = 0x7c00022c
+	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
+	{
+		Default(inst); return;
+	}
+}
+
 // Zero cache line.
 void Jit64::dcbz(UGeckoInstruction inst)
 {
@@ -288,6 +289,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			addr += offset;
 			if ((addr & 0xFFFFF000) == 0xCC008000 && jo.optimizeGatherPipe)
 			{
+				MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 				gpr.FlushLockX(ABI_PARAM1);
 				MOV(32, R(ABI_PARAM1), gpr.R(s));
 				if (update)
@@ -315,6 +317,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			}
 			else
 			{
+				MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 				switch (accessSize)
 				{
 				case 32: ABI_CallFunctionAC(thunks.ProtectFunction(true ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), 2), gpr.R(s), addr); break;
@@ -352,8 +355,8 @@ void Jit64::stX(UGeckoInstruction inst)
 		}
 
 		/* // TODO - figure out why Beyond Good and Evil hates this
-		#ifdef _M_X64
-		if (accessSize == 32 && !update && jo.enableFastMem)
+		#if defined(_WIN32) && defined(_M_X64)
+		if (accessSize == 32 && !update)
 		{
 		// Fast and daring - requires 64-bit
 		MOV(32, R(EAX), gpr.R(s));
@@ -405,10 +408,13 @@ void Jit64::stXx(UGeckoInstruction inst)
 	gpr.Lock(a, b, s);
 	gpr.FlushLockX(ECX, EDX);
 
-	if (inst.SUBOP10 & 32) {
+	if (inst.SUBOP10 & 32)
+	{
+		MEMCHECK_START
 		gpr.BindToRegister(a, true, true);
 		ADD(32, gpr.R(a), gpr.R(b));
 		MOV(32, R(EDX), gpr.R(a));
+		MEMCHECK_END
 	} else {
 		MOV(32, R(EDX), gpr.R(a));
 		ADD(32, R(EDX), gpr.R(b));
@@ -425,12 +431,6 @@ void Jit64::stXx(UGeckoInstruction inst)
 	MOV(32, R(ECX), gpr.R(s));
 	SafeWriteRegToReg(ECX, EDX, accessSize, 0);
 
-	//MEMCHECK_START
-
-	// TODO: Insert rA update code here
-
-	//MEMCHECK_END
-
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
@@ -438,6 +438,9 @@ void Jit64::stXx(UGeckoInstruction inst)
 // A few games use these heavily in video codecs.
 void Jit64::lmw(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
 #ifdef _M_X64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
@@ -458,6 +461,9 @@ void Jit64::lmw(UGeckoInstruction inst)
 
 void Jit64::stmw(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
 #ifdef _M_X64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));

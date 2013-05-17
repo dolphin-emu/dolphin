@@ -4,9 +4,9 @@
 #include "Common.h"
 #include "ControllerEmu.h"
 #include "IniFile.h"
-#include <string>
+#include "WxUtils.h"
 
-#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
+#include <string>
 
 UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 	wxDialog(parent, -1, _("UDP Wiimote"), wxDefaultPosition, wxDefaultSize),
@@ -28,16 +28,16 @@ UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 
 	wxBoxSizer *const port_sizer = new wxBoxSizer(wxHORIZONTAL);
 	port_sizer->Add(new wxStaticText(this, wxID_ANY, _("UDP Port:")), 0, wxALIGN_CENTER);
-	port_tbox = new wxTextCtrl(this, wxID_ANY, wxString::FromUTF8(wrp->port.c_str()));
+	port_tbox = new wxTextCtrl(this, wxID_ANY, StrToWxStr(wrp->port));
 	port_sizer->Add(port_tbox, 1, wxLEFT | wxEXPAND, 5);
 
-	_connect_macro_(enable, UDPConfigDiag::ChangeState, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(butt, UDPConfigDiag::ChangeUpdateFlags, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(accel, UDPConfigDiag::ChangeUpdateFlags, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(point, UDPConfigDiag::ChangeUpdateFlags, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(nun, UDPConfigDiag::ChangeUpdateFlags, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(nunaccel, UDPConfigDiag::ChangeUpdateFlags, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
-	_connect_macro_(port_tbox, UDPConfigDiag::ChangeState, wxEVT_COMMAND_TEXT_UPDATED, this);
+	enable->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeState, this);
+	butt->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeUpdateFlags, this);
+	accel->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeUpdateFlags, this);
+	point->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeUpdateFlags, this);
+	nun->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeUpdateFlags, this);
+	nunaccel->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &UDPConfigDiag::ChangeUpdateFlags, this);
+	port_tbox->Bind(wxEVT_COMMAND_TEXT_UPDATED, &UDPConfigDiag::ChangeState, this);
 
 	enable->SetValue(wrp->udpEn);
 	butt->SetValue(wrp->updButt);
@@ -73,7 +73,7 @@ void UDPConfigDiag::ChangeUpdateFlags(wxCommandEvent & WXUNUSED(event))
 
 void UDPConfigDiag::ChangeState(wxCommandEvent & WXUNUSED(event))
 {
-	wrp->udpEn=enable->GetValue();
-	wrp->port=port_tbox->GetValue().mb_str(wxConvUTF8);
+	wrp->udpEn = enable->GetValue();
+	wrp->port = WxStrToStr(port_tbox->GetValue());
 	wrp->Refresh();
 }

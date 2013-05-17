@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <cmath>
 
@@ -30,12 +17,14 @@
 #include "VertexLoader.h"
 #include "VertexShaderManager.h"
 #include "Thread.h"
+#include "HW/Memmap.h"
+#include "PerfQueryBase.h"
 
 using namespace BPFunctions;
 
-u32 mapTexAddress;
-bool mapTexFound;
-int numWrites;
+static u32 mapTexAddress;
+static bool mapTexFound;
+static int numWrites;
 
 extern volatile bool g_bSkipCurrentFrame;
 
@@ -61,7 +50,6 @@ void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xf
 {
 	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, rc, gamma);
 }
-
 void BPWritten(const BPCmd& bp)
 {
 	/*
@@ -80,6 +68,9 @@ void BPWritten(const BPCmd& bp)
 		  just stuff geometry in them and don't put state changes there
 	----------------------------------------------------------------------------------------------------------------
 	*/
+	
+	// check for invalid state, else unneeded configuration are built
+	g_video_backend->CheckInvalidState();
 
 	// Debugging only, this lets you skip a bp update
 	//static int times = 0;
@@ -111,7 +102,9 @@ void BPWritten(const BPCmd& bp)
 		if (!mapTexFound)
 		{
 			if (bp.address != BPMEM_TEV_COLOR_ENV && bp.address != BPMEM_TEV_ALPHA_ENV)
+			{
 				numWrites = 0;
+			}
 			else if (++numWrites >= 100)	// seem that if 100 consecutive BP writes are called to either of these addresses in ZTP, 
 			{								// then it is safe to assume the map texture address is currently loaded into the BP memory
 				mapTexAddress = bpmem.tex[0].texImage3[0].hex << 5;
@@ -127,7 +120,28 @@ void BPWritten(const BPCmd& bp)
 			FlushPipeline();
 		}
 	}  // END ZTP SPEEDUP HACK
-	else FlushPipeline();
+	else 
+	{
+		if (((s32*)&bpmem)[bp.address] == bp.newvalue)
+		{
+			if (!(bp.address == BPMEM_TRIGGER_EFB_COPY
+					|| bp.address == BPMEM_CLEARBBOX1
+					|| bp.address == BPMEM_CLEARBBOX2
+					|| bp.address == BPMEM_SETDRAWDONE
+					|| bp.address == BPMEM_PE_TOKEN_ID
+					|| bp.address == BPMEM_PE_TOKEN_INT_ID
+					|| bp.address == BPMEM_LOADTLUT0
+					|| bp.address == BPMEM_LOADTLUT1
+					|| bp.address == BPMEM_TEXINVALIDATE
+					|| bp.address == BPMEM_PRELOAD_MODE
+					|| bp.address == BPMEM_CLEAR_PIXEL_PERF))
+			{
+				return;
+			}
+		}
+
+		FlushPipeline();
+	}
 
 	((u32*)&bpmem)[bp.address] = bp.newvalue;
 	
@@ -139,7 +153,7 @@ void BPWritten(const BPCmd& bp)
 			bpmem.genMode.numtexgens, bpmem.genMode.numcolchans,
 			bpmem.genMode.ms_en, bpmem.genMode.numtevstages+1, bpmem.genMode.cullmode,
 			bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
-			SetGenerationMode(bp);
+			SetGenerationMode();
 			break;
 		}
 	case BPMEM_IND_MTXA: // Index Matrix Changed
@@ -167,12 +181,12 @@ void BPWritten(const BPCmd& bp)
 		SetScissor();
 		break;
 	case BPMEM_LINEPTWIDTH: // Line Width
-		SetLineWidth(bp);
+		SetLineWidth();
 		break;
 	case BPMEM_ZMODE: // Depth Control
 		PRIM_LOG("zmode: test=%d, func=%d, upd=%d", bpmem.zmode.testenable, bpmem.zmode.func,
 		bpmem.zmode.updateenable);
-		SetDepthMode(bp);
+		SetDepthMode();
 		break;
 	case BPMEM_BLENDMODE: // Blending Control
 		{
@@ -181,18 +195,22 @@ void BPWritten(const BPCmd& bp)
 				PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d", 
 					bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
 					bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
+
 				// Set LogicOp Blending Mode
 				if (bp.changes & 2)
-					SetLogicOpMode(bp);
+					SetLogicOpMode();
+
 				// Set Dithering Mode
 				if (bp.changes & 4)
-					SetDitherMode(bp);
+					SetDitherMode();
+
 				// Set Blending Mode
-				if (bp.changes & 0xFE1)
-					SetBlendMode(bp);
+				if (bp.changes & 0xFF1)
+					SetBlendMode();
+
 				// Set Color Mask
 				if (bp.changes & 0x18)
-					SetColorMask(bp);
+					SetColorMask();
 			}
 			break;
 		}
@@ -200,6 +218,8 @@ void BPWritten(const BPCmd& bp)
 		{
 			PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
 			PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
+			if(bp.changes & 0x100)
+				SetBlendMode();
 			break;
 		}
 	// This is called when the game is done drawing the new frame (eg: like in DX: Begin(); Draw(); End();)
@@ -285,7 +305,7 @@ void BPWritten(const BPCmd& bp)
 			// Clear the rectangular region after copying it.
 			if (PE_copy.clear)
 			{
-				ClearScreen(bp, rc);
+				ClearScreen(rc);
 			}
 
 			break;
@@ -301,17 +321,15 @@ void BPWritten(const BPCmd& bp)
 
 			// TODO - figure out a cleaner way.
 			if (GetConfig(CONFIG_ISWII))
-				ptr = GetPointer(bpmem.tlutXferSrc << 5);
+				ptr = GetPointer(bpmem.tmem_config.tlut_src << 5);
 			else
-				ptr = GetPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
+				ptr = GetPointer((bpmem.tmem_config.tlut_src & 0xFFFFF) << 5);
 
 			if (ptr)
 				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
 			else
-				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
+				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tmem_config.tlut_src, bpmem.tmem_config.tlut_src << 5, (bpmem.tmem_config.tlut_src & 0xFFFFF)<< 5);
 
-			// TODO(ector) : kill all textures that use this palette
-			// Not sure if it's a good idea, though. For now, we hash texture palettes
 			break;
 		}
 	case BPMEM_FOGRANGE: // Fog Settings Control
@@ -335,9 +353,10 @@ void BPWritten(const BPCmd& bp)
 			PixelShaderManager::SetFogColorChanged();
 		break;
 	case BPMEM_ALPHACOMPARE: // Compare Alpha Values
-		PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d", bpmem.alphaFunc.ref0,
-				bpmem.alphaFunc.ref1, bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1, bpmem.alphaFunc.logic);
-		PixelShaderManager::SetAlpha(bpmem.alphaFunc);
+		PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d", bpmem.alpha_test.ref0,
+				bpmem.alpha_test.ref1, bpmem.alpha_test.comp0, bpmem.alpha_test.comp1, bpmem.alpha_test.logic);
+		PixelShaderManager::SetAlpha(bpmem.alpha_test);
+		g_renderer->SetColorMask();
 		break;
 	case BPMEM_BIAS: // BIAS
 		PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);
@@ -401,40 +420,47 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_CLEARBBOX1:
 	case BPMEM_CLEARBBOX2:
 		{
-		if(g_ActiveConfig.bUseBBox)
-		{
-			// Don't compute bounding box if this frame is being skipped!
-			// Wrong but valid values are better than bogus values...
-			if(g_bSkipCurrentFrame)
-				break;
+			if(g_ActiveConfig.bUseBBox)
+			{
+				// Don't compute bounding box if this frame is being skipped!
+				// Wrong but valid values are better than bogus values...
+				if(g_bSkipCurrentFrame)
+					break;
 
-			if (bp.address == BPMEM_CLEARBBOX1) {
-				int right = bp.newvalue >> 10;
-				int left = bp.newvalue & 0x3ff;
+				if (bp.address == BPMEM_CLEARBBOX1)
+				{
+					int right = bp.newvalue >> 10;
+					int left = bp.newvalue & 0x3ff;
 			
-				// We should only set these if bbox is calculated properly.
-				PixelEngine::bbox[0] = left;
-				PixelEngine::bbox[1] = right;
-				PixelEngine::bbox_active = true;
-			} else {
-				int bottom = bp.newvalue >> 10;
-				int top = bp.newvalue & 0x3ff;
+					// We should only set these if bbox is calculated properly.
+					PixelEngine::bbox[0] = left;
+					PixelEngine::bbox[1] = right;
+					PixelEngine::bbox_active = true;
+				}
+				else
+				{
+					int bottom = bp.newvalue >> 10;
+					int top = bp.newvalue & 0x3ff;
 
-				// We should only set these if bbox is calculated properly.
-				PixelEngine::bbox[2] = top;
-				PixelEngine::bbox[3] = bottom;
-				PixelEngine::bbox_active = true;
+					// We should only set these if bbox is calculated properly.
+					PixelEngine::bbox[2] = top;
+					PixelEngine::bbox[3] = bottom;
+					PixelEngine::bbox_active = true;
+				}
 			}
 		}
-		}
 		break;
-	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
-		DEBUG_LOG(VIDEO, "BP Texture Invalid: %08x", bp.newvalue);
+	case BPMEM_TEXINVALIDATE:
+		// TODO: Needs some restructuring in TextureCacheBase.
 		break;
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
-		g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
-		OnPixelFormatChange(bp);
+		OnPixelFormatChange();
+		if(bp.changes & 7)
+		{
+			SetBlendMode(); // dual source could be activated by changing to PIXELFMT_RGBA6_Z24
+			g_renderer->SetColorMask(); // alpha writing needs to be disabled if the new pixel format doesn't have an alpha channel
+		}
 		break;
 
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
@@ -461,19 +487,55 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_IND_IMASK: // Index Mask ?
 	case BPMEM_REVBITS: // Always set to 0x0F when GX_InitRevBits() is called.
 		break;
-
-	case BPMEM_UNKOWN_57: // Sunshine alternates this register between values 0x000 and 0xAAA
-		DEBUG_LOG(VIDEO, "Uknown BP Reg 0x57: %08x", bp.newvalue);
+ 
+	case BPMEM_CLEAR_PIXEL_PERF:
+		// GXClearPixMetric writes 0xAAA here, Sunshine alternates this register between values 0x000 and 0xAAA
+		g_perf_query->ResetQuery();
 		break;
 
-	case BPMEM_UNKNOWN_60:
-	case BPMEM_UNKNOWN_61:
-	case BPMEM_UNKNOWN_62:
-		// Cases added due to: http://code.google.com/p/dolphin-emu/issues/detail?id=360#c90
-		// Are these related to BBox?
+	case BPMEM_PRELOAD_ADDR:
+	case BPMEM_PRELOAD_TMEMEVEN:
+	case BPMEM_PRELOAD_TMEMODD: // Used when PRELOAD_MODE is set
 		break;
 
-	case BPMEM_TEXMODESYNC: // Always set to 0 when GX_TexModeSync() is called.
+	case BPMEM_PRELOAD_MODE: // Set to 0 when GX_TexModeSync() is called.
+		// if this is different from 0, manual TMEM management is used (GX_PreloadEntireTexture).
+		if (bp.newvalue != 0)
+		{
+			// TODO: Not quite sure if this is completely correct (likely not)
+			// NOTE: libogc's implementation of GX_PreloadEntireTexture seems flawed, so it's not necessarily a good reference for RE'ing this feature.
+
+			BPS_TmemConfig& tmem_cfg = bpmem.tmem_config;
+			u8* src_ptr = Memory::GetPointer(tmem_cfg.preload_addr << 5); // TODO: Should we add mask here on GC?
+			u32 size = tmem_cfg.preload_tile_info.count * TMEM_LINE_SIZE;
+			u32 tmem_addr_even = tmem_cfg.preload_tmem_even * TMEM_LINE_SIZE;
+
+			if (tmem_cfg.preload_tile_info.type != 3)
+			{
+				if (tmem_addr_even + size > TMEM_SIZE)
+					size = TMEM_SIZE - tmem_addr_even;
+
+				memcpy(texMem + tmem_addr_even, src_ptr, size);
+			}
+			else // RGBA8 tiles (and CI14, but that might just be stupid libogc!)
+			{
+				// AR and GB tiles are stored in separate TMEM banks => can't use a single memcpy for everything
+				u32 tmem_addr_odd = tmem_cfg.preload_tmem_odd * TMEM_LINE_SIZE;
+
+				for (u32 i = 0; i < tmem_cfg.preload_tile_info.count; ++i)
+				{
+					if (tmem_addr_even + TMEM_LINE_SIZE > TMEM_SIZE ||
+						tmem_addr_odd  + TMEM_LINE_SIZE > TMEM_SIZE)
+						break;
+
+					memcpy(texMem + tmem_addr_even, src_ptr, TMEM_LINE_SIZE);
+					memcpy(texMem + tmem_addr_odd, src_ptr + TMEM_LINE_SIZE, TMEM_LINE_SIZE);
+					tmem_addr_even += TMEM_LINE_SIZE;
+					tmem_addr_odd += TMEM_LINE_SIZE;
+					src_ptr += TMEM_LINE_SIZE * 2;
+				}
+			}
+		}
 		break;
 
 		// ------------------------------------------------
@@ -516,8 +578,6 @@ void BPWritten(const BPCmd& bp)
 		// ------------------------
 		case BPMEM_TX_SETMODE0: // (0x90 for linear)
 		case BPMEM_TX_SETMODE0_4:
-			// Shouldn't need to call this here, we call it for each active texture right before rendering
-			SetTextureMode(bp);
 			break;
 
 		case BPMEM_TX_SETMODE1:
@@ -644,3 +704,27 @@ void BPWritten(const BPCmd& bp)
 }
 }
 
+// Called when loading a saved state.
+void BPReload()
+{
+	// restore anything that goes straight to the renderer.
+	// let's not risk actually replaying any writes.
+	// note that PixelShaderManager is already covered since it has its own DoState.
+	SetGenerationMode();
+	SetScissor();
+	SetLineWidth();
+	SetDepthMode();
+	SetLogicOpMode();
+	SetDitherMode();
+	SetBlendMode();
+	SetColorMask();
+	OnPixelFormatChange();
+	{
+		BPCmd bp = {BPMEM_FIELDMASK, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMASK])};
+		SetInterlacingMode(bp);
+	}
+	{
+		BPCmd bp = {BPMEM_FIELDMODE, 0xFFFFFF, static_cast<int>(((u32*)&bpmem)[BPMEM_FIELDMODE])};
+		SetInterlacingMode(bp);
+	}
+}

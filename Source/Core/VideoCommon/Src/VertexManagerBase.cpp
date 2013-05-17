@@ -9,180 +9,155 @@
 #include "NativeVertexFormat.h"
 #include "TextureCacheBase.h"
 #include "RenderBase.h"
+#include "BPStructs.h"
 
 #include "VertexManagerBase.h"
+#include "MainBase.h"
 #include "VideoConfig.h"
 
 VertexManager *g_vertex_manager;
 
 u8 *VertexManager::s_pCurBufferPointer;
 u8 *VertexManager::s_pBaseBufferPointer;
-
-u8 *VertexManager::LocalVBuffer;
-u16 *VertexManager::TIBuffer;
-u16 *VertexManager::LIBuffer;
-u16 *VertexManager::PIBuffer;
-
-bool VertexManager::Flushed;
+u8 *VertexManager::s_pEndBufferPointer;
 
 VertexManager::VertexManager()
 {
-	Flushed = false;
+	LocalVBuffer.resize(MAXVBUFFERSIZE);
+	s_pCurBufferPointer = s_pBaseBufferPointer = &LocalVBuffer[0];
+	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
 
-	LocalVBuffer = new u8[MAXVBUFFERSIZE];
-	s_pCurBufferPointer = s_pBaseBufferPointer = LocalVBuffer;
+	TIBuffer.resize(MAXIBUFFERSIZE);
+	LIBuffer.resize(MAXIBUFFERSIZE);
+	PIBuffer.resize(MAXIBUFFERSIZE);
 
-	TIBuffer = new u16[MAXIBUFFERSIZE];
-	LIBuffer = new u16[MAXIBUFFERSIZE];
-	PIBuffer = new u16[MAXIBUFFERSIZE];
-
-	IndexGenerator::Start(TIBuffer, LIBuffer, PIBuffer);
-}
-
-void VertexManager::ResetBuffer()
-{
-	s_pCurBufferPointer = LocalVBuffer;
+	ResetBuffer();
 }
 
 VertexManager::~VertexManager()
 {
-	delete[] LocalVBuffer;
-
-	delete[] TIBuffer;
-	delete[] LIBuffer;
-	delete[] PIBuffer;
-
-	// TODO: necessary??
-	ResetBuffer();
 }
 
-void VertexManager::AddIndices(int primitive, int numVertices)
+void VertexManager::ResetBuffer()
 {
-	//switch (primitive)
-	//{
-	//case GX_DRAW_QUADS:          IndexGenerator::AddQuads(numVertices);		break;
-	//case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVertices);		break;
-	//case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVertices);		break;
-	//case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVertices);		break;
-	//case GX_DRAW_LINES:		   IndexGenerator::AddLineList(numVertices);	break;
-	//case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVertices);	break;
-	//case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVertices);	break;
-	//}
+	s_pCurBufferPointer = s_pBaseBufferPointer;
+	IndexGenerator::Start(GetTriangleIndexBuffer(), GetLineIndexBuffer(), GetPointIndexBuffer());
+}
 
-	static void (*const primitive_table[])(int) =
+u32 VertexManager::GetRemainingSize()
+{
+	return (u32)(s_pEndBufferPointer - s_pCurBufferPointer);
+}
+
+void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride)
+{	
+	u32 const needed_vertex_bytes = count * stride;
+	
+	if (count > IndexGenerator::GetRemainingIndices() || count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize())
 	{
-		IndexGenerator::AddQuads,
-		NULL,
-		IndexGenerator::AddList,
-		IndexGenerator::AddStrip,
-		IndexGenerator::AddFan,
-		IndexGenerator::AddLineList,
-		IndexGenerator::AddLineStrip,
-		IndexGenerator::AddPoints,
-	};
-
-	primitive_table[primitive](numVertices);
-}
-
-int VertexManager::GetRemainingSize()
-{
-	return MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
-}
-
-int VertexManager::GetRemainingVertices(int primitive)
-{
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:
-	case GX_DRAW_TRIANGLES:
-	case GX_DRAW_TRIANGLE_STRIP:
-	case GX_DRAW_TRIANGLE_FAN:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3;
-		break;
-
-	case GX_DRAW_LINES:
-	case GX_DRAW_LINE_STRIP:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2;
-		break;
-
-	case GX_DRAW_POINTS:
-		return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
-		break;
-
-	default:
-		return 0;
-		break;
+		Flush();
+		
+		if(count > IndexGenerator::GetRemainingIndices())
+			ERROR_LOG(VIDEO, "Too little remaining index values. Use 32-bit or reset them on flush.");
+		if (count > GetRemainingIndices(primitive))
+			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all indices! "
+				"Increase MAXIBUFFERSIZE or we need primitive breaking after all.");
+		if (needed_vertex_bytes > GetRemainingSize())
+			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
+				"Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
 	}
 }
 
-void VertexManager::AddVertices(int primitive, int numVertices)
+bool VertexManager::IsFlushed() const
+{
+	return s_pBaseBufferPointer == s_pCurBufferPointer;
+}
+
+u32 VertexManager::GetRemainingIndices(int primitive)
+{
+	
+	if(g_Config.backend_info.bSupportsPrimitiveRestart)
+	{
+		switch (primitive)
+		{
+		case GX_DRAW_QUADS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 5 * 4;
+		case GX_DRAW_TRIANGLES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 4 * 3;
+		case GX_DRAW_TRIANGLE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 1 - 1;
+		case GX_DRAW_TRIANGLE_FAN:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 6 * 4 + 1;
+
+		case GX_DRAW_LINES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
+		case GX_DRAW_LINE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2 + 1;
+
+		case GX_DRAW_POINTS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
+
+		default:
+			return 0;
+		}
+	}
+	else
+	{
+		switch (primitive)
+		{
+		case GX_DRAW_QUADS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 6 * 4;
+		case GX_DRAW_TRIANGLES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen());
+		case GX_DRAW_TRIANGLE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
+		case GX_DRAW_TRIANGLE_FAN:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
+
+		case GX_DRAW_LINES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
+		case GX_DRAW_LINE_STRIP:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2 + 1;
+
+		case GX_DRAW_POINTS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
+
+		default:
+			return 0;
+		}
+	} 
+}
+
+void VertexManager::AddVertices(int primitive, u32 numVertices)
 {
 	if (numVertices <= 0)
 		return;
 
-	switch (primitive)
-	{
-	case GX_DRAW_QUADS:
-	case GX_DRAW_TRIANGLES:
-	case GX_DRAW_TRIANGLE_STRIP:
-	case GX_DRAW_TRIANGLE_FAN:
-		if (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen() < 3 * numVertices)
-			Flush();
-		break;
-
-	case GX_DRAW_LINES:
-	case GX_DRAW_LINE_STRIP:
-		if (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen() < 2 * numVertices)
-			Flush();
-		break;
-
-	case GX_DRAW_POINTS:
-		if (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen() < numVertices)
-			Flush();
-		break;
-
-	default:
-		return;
-		break;
-	}
-
-	if (Flushed)
-	{
-		IndexGenerator::Start(TIBuffer, LIBuffer, PIBuffer);
-		Flushed = false;
-	}
-
 	ADDSTAT(stats.thisFrame.numPrims, numVertices);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
-	AddIndices(primitive, numVertices);
+
+	IndexGenerator::AddIndices(primitive, numVertices);
 }
 
 void VertexManager::Flush()
 {
-	// Disable Lighting	
-	// TODO - Is this a good spot for this code?
-	if (g_ActiveConfig.bDisableLighting) 
-	{
-		for (u32 i = 0; i < xfregs.numChan.numColorChans; i++)
-		{
-			xfregs.alpha[i].enablelighting = false;
-			xfregs.color[i].enablelighting = false;
-		}
-	}
+	if (g_vertex_manager->IsFlushed())
+		return;
+
+	// loading a state will invalidate BP, so check for it
+	g_video_backend->CheckInvalidState();
+
+	VideoFifo_CheckEFBAccess();
+
 	g_vertex_manager->vFlush();
+
+	g_vertex_manager->ResetBuffer();
 }
 
 // TODO: need to merge more stuff into VideoCommon to use this
 #if (0)
 void VertexManager::Flush()
 {
-	if (LocalVBuffer == s_pCurBufferPointer || Flushed)
-		return;
-
-	Flushed = true;
-
-	VideoFifo_CheckEFBAccess();
-
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGens,
 		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
@@ -208,7 +183,7 @@ void VertexManager::Flush()
 	}
 
 	PRIM_LOG("pixel: tev=%d, ind=%d, texgen=%d, dstalpha=%d, alphafunc=0x%x", bpmem.genMode.numtevstages+1, bpmem.genMode.numindstages,
-		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alphaFunc.hex>>16)&0xff);
+		bpmem.genMode.numtexgens, (u32)bpmem.dstalpha.enable, (bpmem.alpha_test.hex>>16)&0xff);
 #endif
 
 	u32 usedtextures = 0;
@@ -236,25 +211,18 @@ void VertexManager::Flush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
+				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8),
 				(tex.texMode1[i&3].max_lod >> 4));
 
 			if (tentry)
 			{
 				// 0s are probably for no manual wrapping needed.
 				PixelShaderManager::SetTexDims(i, tentry->nativeW, tentry->nativeH, 0, 0);
-
-				// TODO:
-				//if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
-				//{
-				//	// save the textures
-				//	char strfile[255];
-				//	sprintf(strfile, "%stex%.3d_%d.tga", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_Config.iSaveTargetId, i);
-				//	SaveTexture(strfile, GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
-				//}
 			}
 			else
-				ERROR_LOG(VIDEO, "error loading texture");
+			{
+				ERROR_LOG(VIDEO, "Error loading texture");
+			}
 		}
 	}
 
@@ -264,21 +232,23 @@ void VertexManager::Flush()
 
 	// finally bind
 	if (false == PixelShaderCache::SetShader(false, g_nativeVertexFmt->m_components))
-		goto shader_fail;
+		return;
 	if (false == VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
-		goto shader_fail;
+		return;
 
 	const int stride = g_nativeVertexFmt->GetVertexStride();
 	//if (g_nativeVertexFmt)
 		g_nativeVertexFmt->SetupVertexPointers();
 
+	g_renderer->ResumePixelPerf(false);
 	g_vertex_manager->Draw(stride, false);
+	g_renderer->PausePixelPerf(false);
 
 	// run through vertex groups again to set alpha
 	if (false == g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
 		if (false == PixelShaderCache::SetShader(true, g_nativeVertexFmt->m_components))
-			goto shader_fail;
+			return;
 
 		g_vertex_manager->Draw(stride, true);
 	}
@@ -292,10 +262,12 @@ void VertexManager::Flush()
 		// save the shaders
 		char strfile[255];
 		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
-		std::ofstream fps(strfile);
+		std::ofstream fps;
+		OpenFStream(fps, strfile, std::ios_base::out);
 		fps << ps->strprog.c_str();
 		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
-		std::ofstream fvs(strfile);
+		std::ofstream fvs;
+		OpenFStream(fvs, strfile, std::ios_base::out);
 		fvs << vs->strprog.c_str();
 	}
 
@@ -312,8 +284,26 @@ void VertexManager::Flush()
 	}
 #endif
 	++g_Config.iSaveTargetId;
-
-shader_fail:
-	ResetBuffer();
 }
 #endif
+
+void VertexManager::DoState(PointerWrap& p)
+{
+	g_vertex_manager->vDoState(p);
+}
+
+void VertexManager::DoStateShared(PointerWrap& p)
+{
+	// It seems we half-assume to be flushed here
+	// We update s_pCurBufferPointer yet don't worry about IndexGenerator's outdated pointers
+	// and maybe other things are overlooked
+	
+	p.Do(LocalVBuffer);
+	p.Do(TIBuffer);
+	p.Do(LIBuffer);
+	p.Do(PIBuffer);
+	
+	s_pBaseBufferPointer = &LocalVBuffer[0];
+	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
+	p.DoPointer(s_pCurBufferPointer, s_pBaseBufferPointer);
+}

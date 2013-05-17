@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.07.99
-// RCS-ID:      $Id: ctrlcmn.cpp 67062 2011-02-27 12:48:07Z VZ $
+// RCS-ID:      $Id: ctrlcmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -588,7 +588,7 @@ wxSize wxStaticBitmapBase::DoGetBestSize() const
 {
     wxSize best;
     wxBitmap bmp = GetBitmap();
-    if ( bmp.Ok() )
+    if ( bmp.IsOk() )
         best = wxSize(bmp.GetWidth(), bmp.GetHeight());
     else
         // this is completely arbitrary

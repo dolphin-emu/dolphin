@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dirdlg.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: dirdlg.h 67896 2011-06-09 00:28:28Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,6 +23,10 @@ public:
                 const wxSize& size = wxDefaultSize,
                 const wxString& name = wxDirDialogNameStr);
 
+#if wxOSX_USE_COCOA
+    ~wxDirDialog();
+#endif
+
     virtual int ShowModal();
 
 #if wxOSX_USE_COCOA
@@ -33,6 +37,10 @@ public:
 protected:
 
     DECLARE_DYNAMIC_CLASS(wxDirDialog)
+
+#if wxOSX_USE_COCOA
+    WX_NSObject m_sheetDelegate;
+#endif
 };
 
 #endif

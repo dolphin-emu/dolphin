@@ -15,10 +15,16 @@
 #ifdef CIFACE_USE_SDL
 	#include "SDL/SDL.h"
 #endif
+#ifdef CIFACE_USE_ANDROID
+	#include "Android/Android.h"
+#endif
 
 #include "Thread.h"
 
-#define INPUT_DETECT_THRESHOLD			0.85f
+namespace
+{
+const float INPUT_DETECT_THRESHOLD = 0.55f;
+}
 
 ControllerInterface g_controller_interface;
 
@@ -42,10 +48,13 @@ void ControllerInterface::Initialize()
 	ciface::Xlib::Init(m_devices, m_hwnd);
 #endif
 #ifdef CIFACE_USE_OSX
-	ciface::OSX::Init(m_devices);
+	ciface::OSX::Init(m_devices, m_hwnd);
 #endif
 #ifdef CIFACE_USE_SDL
 	ciface::SDL::Init(m_devices);
+#endif
+#ifdef CIFACE_USE_ANDROID
+	ciface::Android::Init(m_devices);
 #endif
 
 	m_is_init = true;
@@ -96,6 +105,9 @@ void ControllerInterface::Shutdown()
 #ifdef CIFACE_USE_SDL
 	// TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
 	SDL_Quit();
+#endif
+#ifdef CIFACE_USE_ANDROID
+	// nothing needed
 #endif
 
 	m_is_init = false;
@@ -154,7 +166,7 @@ bool ControllerInterface::UpdateOutput(const bool force)
 	if (force)
 		lk.lock();
 	else if (!lk.try_lock())
-			return false;
+		return false;
 
 	size_t ok_count = 0;
 
@@ -170,7 +182,7 @@ bool ControllerInterface::UpdateOutput(const bool force)
 //
 //		Device :: ~Device
 //
-// dtor, delete all inputs/outputs on device destruction
+// Destructor, delete all inputs/outputs on device destruction
 //
 ControllerInterface::Device::~Device()
 {
@@ -206,9 +218,9 @@ void ControllerInterface::Device::AddOutput(Output* const o)
 //
 //		Device :: ClearInputState
 //
-// device classes should override this func
-// ControllerInterface will call this when the device returns failure durring UpdateInput
-// used to try to set all buttons and axes to their default state when user unplugs a gamepad durring play
+// Device classes should override this function
+// ControllerInterface will call this when the device returns failure during UpdateInput
+// used to try to set all buttons and axes to their default state when user unplugs a gamepad during play
 // buttons/axes that were held down at the time of unplugging should be seen as not pressed after unplugging
 //
 void ControllerInterface::Device::ClearInputState()
@@ -236,8 +248,10 @@ ControlState ControllerInterface::InputReference::State( const ControlState igno
 
 	// bit of hax for "NOT" to work at start of expression
 	if (ci != ce)
+	{
 		if (ci->mode == 2)
 			state = 1;
+	}
 
 	for (; ci!=ce; ++ci)
 	{
@@ -351,7 +365,8 @@ bool ControllerInterface::DeviceQualifier::operator==(const ControllerInterface:
 		if (name == devq.name)
 			if (source == devq.source)
 				return true;
-	return false;	
+
+	return false;
 }
 
 //
@@ -418,7 +433,9 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 				break;	// no terminating '`' character
 		}
 		else
+		{
 			ctrl_str += c;
+		}
 	}
 }
 
@@ -458,7 +475,7 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 		i = device->Inputs().begin(),
 		e = device->Inputs().end();
 	for (std::vector<bool>::iterator state = states.begin(); i != e; ++i)
-		*state++ = ((*i)->GetState() > INPUT_DETECT_THRESHOLD);
+		*state++ = ((*i)->GetState() > (1 - INPUT_DETECT_THRESHOLD));
 
 	while (time < ms)
 	{
@@ -474,8 +491,10 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 				if (false == *state)
 					return *i;
 			}
-			else
+			else if ((*i)->GetState() < (1 - INPUT_DETECT_THRESHOLD))
+			{
 				*state = false;
+			}
 		}
 		Common::SleepCurrentThread(10); time += 10;
 	}
@@ -487,8 +506,8 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 //
 //		OutputReference :: Detect
 //
-// totally different from the inputReference detect / i have them combined so it was simplier to make the gui.
-// the gui doesnt know the difference between an input and an output / its odd but i was lazy and it was easy
+// Totally different from the inputReference detect / I have them combined so it was simpler to make the GUI.
+// The GUI doesn't know the difference between an input and an output / it's odd but I was lazy and it was easy
 //
 // set all binded outputs to <range> power for x milliseconds return false
 //
@@ -496,7 +515,7 @@ ControllerInterface::Device::Control* ControllerInterface::OutputReference::Dete
 {
 	// ignore device
 
-	// dont hang if we dont even have any controls mapped
+	// don't hang if we don't even have any controls mapped
 	if (m_controls.size())
 	{
 		State(1);

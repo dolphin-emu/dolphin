@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ at 25.02.00: type safe hashes with WX_DECLARE_HASH()
 // Created:     01/02/97
-// RCS-ID:      $Id: hash.h 58757 2009-02-08 11:45:59Z VZ $
+// RCS-ID:      $Id: hash.h 67343 2011-03-30 14:16:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@
 #include "wx/defs.h"
 #include "wx/string.h"
 
-#if !wxUSE_STL
+#if !wxUSE_STD_CONTAINERS
     #include "wx/object.h"
 #else
     class WXDLLIMPEXP_FWD_BASE wxObject;
@@ -80,7 +80,7 @@ protected:
 };
 
 class WXDLLIMPEXP_BASE wxHashTableBase
-#if !wxUSE_STL
+#if !wxUSE_STD_CONTAINERS
     : public wxObject
 #endif
 {

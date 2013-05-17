@@ -19,7 +19,8 @@
 #define _PULSE_AUDIO_STREAM_H
 
 #if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
-#include <pulse/pulseaudio.h>
+#include <pulse/simple.h>
+#include <pulse/error.h>
 #endif
 
 #include "Common.h"
@@ -27,16 +28,16 @@
 
 #include "Thread.h"
 
+#include <vector>
+
 class PulseAudio : public SoundStream
 {
 #if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
 public:
 	PulseAudio(CMixer *mixer);
-	virtual ~PulseAudio();
 
 	virtual bool Start();
 	virtual void Stop(); 
-	virtual void SetVolume(int volume);
 
 	static bool isValid() {return true;}
 
@@ -46,22 +47,16 @@ public:
 
 private:
 	virtual void SoundLoop();
+
 	bool PulseInit();
 	void PulseShutdown();
-	bool Write(const void *data, size_t bytes);
-	void SignalMainLoop();
-	static void ContextStateCB(pa_context *c, void *userdata);
-	static void StreamStateCB(pa_stream *s, void * userdata);
-	static void StreamWriteCB(pa_stream *s, size_t length, void *userdata);
+	void Write(const void *data, size_t bytes);
 
-	u8 *mix_buffer;
+	std::vector<s16> mix_buffer;
 	std::thread thread;
-	volatile bool thread_running;
+	volatile bool run_thread;
 
-	pa_threaded_mainloop *mainloop;
-	pa_context *context;
-	pa_stream *stream;
-	int iVolume;
+	pa_simple* pa;
 #else
 public:
 	PulseAudio(CMixer *mixer) : SoundStream(mixer) {}

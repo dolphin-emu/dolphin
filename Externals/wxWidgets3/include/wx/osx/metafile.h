@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: metafile.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: metafile.h 70710 2012-02-27 15:37:24Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,13 +56,6 @@ public:
     // Implementation
     WXHMETAFILE GetHMETAFILE() const ;
     void SetHMETAFILE(WXHMETAFILE mf) ;
-#if wxOSX_USE_COCOA_OR_CARBON && !defined( __LP64__ )
-    // Since the native metafile format is PDF for Quartz
-    // we need a call that allows setting PICT content for
-    // backwards compatibility
-    void SetPICT(void* pictHandle) ;
-#endif
-
 protected:
     virtual wxGDIRefData *CreateGDIRefData() const;
     virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const;
@@ -145,7 +138,7 @@ class WXDLLIMPEXP_CORE wxMetafileDataObject : public wxDataObjectSimple
 public:
   // ctors
   wxMetafileDataObject()
-    : wxDataObjectSimple(wxDF_METAFILE) {  };
+    : wxDataObjectSimple(wxDF_METAFILE) {  }
   wxMetafileDataObject(const wxMetafile& metafile)
     : wxDataObjectSimple(wxDF_METAFILE), m_metafile(metafile) { }
 

@@ -3,7 +3,7 @@
 // Purpose:     wxGLCanvasBase implementation
 // Author:      Vadim Zeitlin
 // Created:     2007-04-09
-// RCS-ID:      $Id: glcmn.cpp 65680 2010-09-30 11:44:45Z VZ $
+// RCS-ID:      $Id: glcmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ bool wxGLCanvasBase::SetCurrent(const wxGLContext& context) const
 bool wxGLCanvasBase::SetColour(const wxString& colour)
 {
     wxColour col = wxTheColourDatabase->Find(colour);
-    if ( !col.Ok() )
+    if ( !col.IsOk() )
         return false;
 
 #ifdef wxHAS_OPENGL_ES

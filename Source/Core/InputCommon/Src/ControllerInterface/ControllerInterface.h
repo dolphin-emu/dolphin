@@ -29,14 +29,17 @@
 #if defined(__APPLE__)
 	#define CIFACE_USE_OSX
 #endif
-
-// idk in case i wanted to change it to double or somethin, idk what's best
+#ifdef ANDROID
+	#define CIFACE_USE_ANDROID
+#endif
+		
+// idk in case I wanted to change it to double or something, idk what's best
 typedef float ControlState;
 
 //
 //		ControllerInterface
 //
-// some crazy shit i made to control different device inputs and outputs
+// some crazy shit I made to control different device inputs and outputs
 // from lots of different sources, hopefully more easily
 //
 class ControllerInterface
@@ -87,7 +90,7 @@ public:
 
 			Input* ToInput() { return this; }
 		};
-		
+
 		//
 		//		Output
 		//
@@ -122,6 +125,36 @@ public:
 	protected:
 		void AddInput(Input* const i);
 		void AddOutput(Output* const o);
+		
+		class FullAnalogSurface : public Input
+		{
+		public:
+			FullAnalogSurface(Input* low, Input* high)
+				: m_low(*low), m_high(*high)
+			{}
+
+			ControlState GetState() const
+			{
+				return (1 + m_high.GetState() - m_low.GetState()) / 2;
+			}
+
+			std::string GetName() const
+			{
+				return m_low.GetName() + *m_high.GetName().rbegin();
+			}
+
+		private:
+			Input& m_low;
+			Input& m_high;
+		};
+
+		void AddAnalogInputs(Input* low, Input* high)
+		{
+			AddInput(low);
+			AddInput(high);
+			AddInput(new FullAnalogSurface(low, high));
+			AddInput(new FullAnalogSurface(high, low));
+		}
 
 	private:
 		std::vector<Input*>		m_inputs;
@@ -156,7 +189,7 @@ public:
 	//
 	// these are what you create to actually use the inputs, InputReference or OutputReference
 	//
-	// after being binded to devices and controls with ControllerInterface::UpdateReference,
+	// after being bound to devices and controls with ControllerInterface::UpdateReference,
 	//		each one can link to multiple devices and controls
 	//		when you change a ControlReference's expression,
 	//		you must use ControllerInterface::UpdateReference on it to rebind controls

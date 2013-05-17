@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Simo Virokannas (authentication, Dec 2005)
 // Created:     August 1997
-// RCS-ID:      $Id: http.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: http.h 70408 2012-01-20 12:22:25Z VZ $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,6 +17,7 @@
 
 #include "wx/hashmap.h"
 #include "wx/protocol/protocol.h"
+#include "wx/buffer.h"
 
 class WXDLLIMPEXP_NET wxHTTP : public wxProtocol
 {
@@ -36,12 +37,18 @@ public:
     int GetResponse() const { return m_http_response; }
 
     void SetHeader(const wxString& header, const wxString& h_data);
-    void SetPostBuffer(const wxString& post_buf);
+    bool SetPostText(const wxString& contentType,
+                     const wxString& data,
+                     const wxMBConv& conv = wxConvUTF8);
+    bool SetPostBuffer(const wxString& contentType, const wxMemoryBuffer& data);
     void SetProxyMode(bool on);
 
     /* Cookies */
     wxString GetCookie(const wxString& cookie) const;
     bool HasCookies() const { return m_cookies.size() > 0; }
+
+    // Use the other SetPostBuffer() overload or SetPostText() instead.
+    wxDEPRECATED(void SetPostBuffer(const wxString& post_buf));
 
 protected:
     enum wxHTTP_Req
@@ -80,7 +87,8 @@ protected:
     bool m_read,
          m_proxy_mode;
     wxSockAddress *m_addr;
-    wxString m_post_buf;
+    wxMemoryBuffer m_postBuffer;
+    wxString       m_contentType;
     int m_http_response;
 
     DECLARE_DYNAMIC_CLASS(wxHTTP)

@@ -5,7 +5,7 @@
 *  Author:      Vadim Zeitlin
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     18.03.02
-*  RCS-ID:      $Id: features.h 60526 2009-05-06 11:42:16Z VZ $
+*  RCS-ID:      $Id: features.h 69961 2011-12-08 15:58:45Z VZ $
 *  Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 *  Licence:     wxWindows licence
 */
@@ -108,8 +108,16 @@
    If this is defined, wxEvtHandler::Bind<>() is available (not all compilers
    have the required template support for this and in particular under Windows
    where only g++ and MSVC >= 7 currently support it.
+
+   Recent Sun CC versions support this but perhaps older ones can compile this
+   code too, adjust the version check if this is the case (unfortunately we
+   can't easily test for the things used in wx/event.h in configure so we have
+   to maintain these checks manually). The same applies to xlC 7: perhaps
+   earlier versions can compile this code too but they were not tested.
  */
-#if wxCHECK_GCC_VERSION(3, 2) || wxCHECK_VISUALC_VERSION(7)
+#if wxCHECK_GCC_VERSION(3, 2) || wxCHECK_VISUALC_VERSION(7) \
+        || (defined(__SUNCC__) && __SUNCC__ >= 0x5100) \
+        || (defined(__xlC__) && __xlC__ >= 0x700)
     #define wxHAS_EVENT_BIND
 #endif
 

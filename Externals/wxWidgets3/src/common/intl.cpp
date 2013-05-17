@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: intl.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -121,7 +121,7 @@ inline wxString ExtractNotLang(const wxString& langFull)
 // wxLanguageInfo
 // ----------------------------------------------------------------------------
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
 
 // helper used by wxLanguageInfo::GetLocaleName() and elsewhere to determine
 // whether the locale is Unicode-only (it is if this function returns empty
@@ -177,7 +177,7 @@ wxString wxLanguageInfo::GetLocaleName() const
     return locale;
 }
 
-#endif // __WXMSW__
+#endif // __WINDOWS__
 
 // ----------------------------------------------------------------------------
 // wxLocale
@@ -1033,7 +1033,14 @@ wxLocale::~wxLocale()
 bool wxLocale::IsAvailable(int lang)
 {
     const wxLanguageInfo *info = wxLocale::GetLanguageInfo(lang);
-    wxCHECK_MSG( info, false, wxS("invalid language") );
+    if ( !info )
+    {
+        // The language is unknown (this normally only happens when we're
+        // passed wxLANGUAGE_DEFAULT), so we can't support it.
+        wxASSERT_MSG( lang == wxLANGUAGE_DEFAULT,
+                      wxS("No info for a valid language?") );
+        return false;
+    }
 
 #if defined(__WIN32__)
     if ( !info->WinLang )
@@ -1045,16 +1052,21 @@ bool wxLocale::IsAvailable(int lang)
 #elif defined(__UNIX__)
 
     // Test if setting the locale works, then set it back.
-    const char *oldLocale = wxSetlocaleTryUTF8(LC_ALL, info->CanonicalName);
-    if ( !oldLocale )
-    {
-        // Some C libraries don't like xx_YY form and require xx only
-        oldLocale = wxSetlocaleTryUTF8(LC_ALL, ExtractLang(info->CanonicalName));
-        if ( !oldLocale )
-            return false;
-    }
+    char * const oldLocale = wxStrdupA(setlocale(LC_ALL, NULL));
+
+    // Some platforms don't like xx_YY form and require xx only so test for
+    // it too.
+    const bool
+        available = wxSetlocaleTryUTF8(LC_ALL, info->CanonicalName) ||
+                    wxSetlocaleTryUTF8(LC_ALL, ExtractLang(info->CanonicalName));
+
     // restore the original locale
     wxSetlocale(LC_ALL, oldLocale);
+
+    free(oldLocale);
+
+    if ( !available )
+        return false;
 #endif
 
     return true;
@@ -1114,7 +1126,7 @@ wxString wxLocale::GetHeaderValue(const wxString& header,
 // accessors for locale-dependent data
 // ----------------------------------------------------------------------------
 
-#if defined(__WXMSW__) || defined(__WXOSX__)
+#if defined(__WINDOWS__) || defined(__WXOSX__)
 
 namespace
 {
@@ -1136,7 +1148,7 @@ static wxString TranslateFromUnicodeFormat(const wxString& fmt)
 
     const char* formatchars =
         "dghHmMsSy"
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
         "t"
 #else
         "EawD"
@@ -1176,7 +1188,7 @@ static wxString TranslateFromUnicodeFormat(const wxString& fmt)
                             // between 1 and 2 digits for days
                             fmtWX += "%d";
                             break;
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
                         case 3: // ddd
                             fmtWX += "%a";
                             break;
@@ -1189,7 +1201,7 @@ static wxString TranslateFromUnicodeFormat(const wxString& fmt)
                             wxFAIL_MSG( "too many 'd's" );
                     }
                     break;
-#ifndef __WXMSW__
+#ifndef __WINDOWS__
                 case 'D':
                     switch ( lastCount )
                     {
@@ -1332,12 +1344,12 @@ static wxString TranslateFromUnicodeFormat(const wxString& fmt)
                     wxASSERT_MSG( lastCount <= 2, "too many 'g's" );
 
                     break;
-#ifndef __WXMSW__
+#ifndef __WINDOWS__
                 case 'a':
                     fmtWX += "%p";
                     break;
 #endif
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
                 case 't':
                     switch ( lastCount )
                     {
@@ -1377,9 +1389,9 @@ static wxString TranslateFromUnicodeFormat(const wxString& fmt)
 
 } // anonymous namespace
 
-#endif // __WXMSW__ || __WXOSX__
+#endif // __WINDOWS__ || __WXOSX__
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
 
 namespace
 {
@@ -1437,7 +1449,23 @@ wxString wxLocale::GetInfo(wxLocaleInfo index, wxLocaleCategory cat)
                                      : LOCALE_SDECIMAL,
                                  buf,
                                  WXSIZEOF(buf)) )
+            {
                 str = buf;
+
+                // As we get our decimal point separator from Win32 and not the
+                // CRT there is a possibility of mismatch between them and this
+                // can easily happen if the user code called setlocale()
+                // instead of using wxLocale to change the locale. And this can
+                // result in very strange bugs elsewhere in the code as the
+                // assumptions that formatted strings do use the decimal
+                // separator actually fail, so check for it here.
+                wxASSERT_MSG
+                (
+                    wxString::Format("%.3f", 1.23).find(str) != wxString::npos,
+                    "Decimal separator mismatch -- did you use setlocale()?"
+                    "If so, use wxLocale to change the locale instead."
+                );
+            }
             break;
 
         case wxLOCALE_SHORT_DATE_FMT:
@@ -1554,7 +1582,7 @@ wxString wxLocale::GetInfo(wxLocaleInfo index, wxLocaleCategory WXUNUSED(cat))
     return str.AsString();
 }
 
-#else // !__WXMSW__ && !__WXOSX__, assume generic POSIX
+#else // !__WINDOWS__ && !__WXOSX__, assume generic POSIX
 
 namespace
 {

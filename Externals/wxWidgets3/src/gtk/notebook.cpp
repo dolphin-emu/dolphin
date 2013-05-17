@@ -2,7 +2,7 @@
 // Name:        src/gtk/notebook.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: notebook.cpp 66643 2011-01-07 22:31:26Z SC $
+// Id:          $Id: notebook.cpp 70112 2011-12-24 18:19:26Z VZ $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -277,8 +277,8 @@ bool wxNotebook::SetPageImage( size_t page, int image )
     wxGtkNotebookPage* pageData = GetNotebookPage(page);
     if (image >= 0)
     {
-        wxCHECK_MSG(m_imageList, false, "invalid notebook imagelist");
-        const wxBitmap* bitmap = m_imageList->GetBitmapPtr(image);
+        wxCHECK_MSG(HasImageList(), false, "invalid notebook imagelist");
+        const wxBitmap* bitmap = GetImageList()->GetBitmapPtr(image);
         if (bitmap == NULL)
             return false;
         if (pageData->m_image)
@@ -304,9 +304,34 @@ bool wxNotebook::SetPageImage( size_t page, int image )
     return true;
 }
 
-void wxNotebook::SetPageSize( const wxSize &WXUNUSED(size) )
+wxSize wxNotebook::CalcSizeFromPage(const wxSize& sizePage) const
 {
-    wxFAIL_MSG( wxT("wxNotebook::SetPageSize not implemented") );
+    // Compute the max size of the tab labels.
+    wxSize sizeTabMax;
+    const size_t pageCount = GetPageCount();
+    for ( size_t n = 0; n < pageCount; n++ )
+    {
+        GtkRequisition req;
+        gtk_widget_size_request(GetNotebookPage(n)->m_box, &req);
+        sizeTabMax.IncTo(wxSize(req.width, req.height));
+    }
+
+    // Unfortunately this doesn't account for the real tab size and I don't
+    // know how to find it, e.g. where do the margins below come from.
+    const int PAGE_MARGIN = 3;
+    const int TAB_MARGIN = 4;
+
+    sizeTabMax.IncBy(3*TAB_MARGIN);
+
+    wxSize sizeFull(sizePage);
+    if ( IsVertical() )
+        sizeFull.y += sizeTabMax.y;
+    else
+        sizeFull.x += sizeTabMax.x;
+
+    sizeFull.IncBy(2*PAGE_MARGIN);
+
+    return sizeFull;
 }
 
 void wxNotebook::SetPadding( const wxSize &padding )
@@ -351,8 +376,6 @@ wxNotebookPage *wxNotebook::DoRemovePage( size_t page )
     wxNotebookPage *client = GetPage(page);
     if ( !client )
         return NULL;
-
-    gtk_widget_unrealize( client->m_widget );
 
     // we don't need to unparent the client->m_widget; GTK+ will do
     // that for us (and will throw a warning if we do it!)
@@ -410,15 +433,17 @@ bool wxNotebook::InsertPage( size_t position,
     pageData->m_image = NULL;
     if (imageId != -1)
     {
-        if (m_imageList)
+        if (HasImageList())
         {
-            const wxBitmap* bitmap = m_imageList->GetBitmapPtr(imageId);
+            const wxBitmap* bitmap = GetImageList()->GetBitmapPtr(imageId);
             pageData->m_image = gtk_image_new_from_pixbuf(bitmap->GetPixbuf());
             gtk_box_pack_start(GTK_BOX(pageData->m_box),
                 pageData->m_image, false, false, m_padding);
         }
         else
+        {
             wxFAIL_MSG("invalid notebook imagelist");
+        }
     }
 
     /* set the label text */
@@ -434,7 +459,7 @@ bool wxNotebook::InsertPage( size_t position,
     if ( style )
     {
         gtk_widget_modify_style(pageData->m_label, style);
-        gtk_rc_style_unref(style);
+        g_object_unref(style);
     }
 
     if (select && GetPageCount() > 1)
@@ -453,24 +478,30 @@ static bool
 IsPointInsideWidget(const wxPoint& pt, GtkWidget *w,
                     gint x, gint y, gint border = 0)
 {
+    GtkAllocation a;
+    gtk_widget_get_allocation(w, &a);
     return
-        (pt.x >= w->allocation.x - x - border) &&
-        (pt.x <= w->allocation.x - x + border + w->allocation.width) &&
-        (pt.y >= w->allocation.y - y - border) &&
-        (pt.y <= w->allocation.y - y + border + w->allocation.height);
+        (pt.x >= a.x - x - border) &&
+        (pt.x <= a.x - x + border + a.width) &&
+        (pt.y >= a.y - y - border) &&
+        (pt.y <= a.y - y + border + a.height);
 }
 
 int wxNotebook::HitTest(const wxPoint& pt, long *flags) const
 {
-    const gint x = m_widget->allocation.x;
-    const gint y = m_widget->allocation.y;
+    GtkAllocation a;
+    gtk_widget_get_allocation(m_widget, &a);
+    const int x = a.x;
+    const int y = a.y;
 
     const size_t count = GetPageCount();
     size_t i = 0;
 
+#if !GTK_CHECK_VERSION(3,0,0) && !defined(GSEAL_ENABLE)
     GtkNotebook * notebook = GTK_NOTEBOOK(m_widget);
     if (gtk_notebook_get_scrollable(notebook))
         i = g_list_position( notebook->children, notebook->first_tab );
+#endif
 
     for ( ; i < count; i++ )
     {
@@ -556,7 +587,7 @@ void wxNotebook::DoApplyWidgetStyle(GtkRcStyle *style)
 
 GdkWindow *wxNotebook::GTKGetWindow(wxArrayGdkWindows& windows) const
 {
-    windows.push_back(m_widget->window);
+    windows.push_back(gtk_widget_get_window(m_widget));
     windows.push_back(GTK_NOTEBOOK(m_widget)->event_window);
 
     return NULL;

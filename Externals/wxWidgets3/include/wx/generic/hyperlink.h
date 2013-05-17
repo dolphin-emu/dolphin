@@ -4,7 +4,7 @@
 // Author:      David Norris <danorris@gmail.com>, Otto Wyss
 // Modified by: Ryan Norton, Francesco Montorsi
 // Created:     04/02/2005
-// RCS-ID:      $Id: hyperlink.h 65334 2010-08-17 16:55:32Z VZ $
+// RCS-ID:      $Id: hyperlink.h 67948 2011-06-15 21:56:23Z VZ $
 // Copyright:   (c) 2005 David Norris
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -74,6 +74,12 @@ protected:
 
     // Renders the hyperlink.
     void OnPaint(wxPaintEvent& event);
+
+    // Handle set/kill focus events (invalidate for painting focus rect)
+    void OnFocus(wxFocusEvent& event);
+
+    // Fire a HyperlinkEvent on space
+    void OnChar(wxKeyEvent& event);
 
     // Returns the wxRect of the label of this hyperlink.
     // This is different from the clientsize's rectangle when

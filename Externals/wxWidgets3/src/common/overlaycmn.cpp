@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2006-10-20
-// RCS-ID:      $Id: overlaycmn.cpp 59033 2009-02-19 17:45:09Z PC $
+// RCS-ID:      $Id: overlaycmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -139,7 +139,7 @@ wxOverlayImpl::~wxOverlayImpl()
 
 bool wxOverlayImpl::IsOk()
 {
-    return m_bmpSaved.Ok() ;
+    return m_bmpSaved.IsOk() ;
 }
 
 void wxOverlayImpl::Init( wxDC* dc, int x , int y , int width , int height )

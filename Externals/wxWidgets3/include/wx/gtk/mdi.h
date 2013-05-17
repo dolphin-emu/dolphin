@@ -3,7 +3,7 @@
 // Purpose:     TDI-based MDI implementation for wxGTK
 // Author:      Robert Roebling
 // Modified by: 2008-10-31 Vadim Zeitlin: derive from the base classes
-// Id:          $Id: mdi.h 59523 2009-03-14 01:24:45Z FM $
+// Id:          $Id: mdi.h 69528 2011-10-25 16:56:57Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 //              (c) 2008 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -118,9 +118,9 @@ public:
 
     void OnActivate( wxActivateEvent& event );
     void OnMenuHighlight( wxMenuEvent& event );
+    virtual void GTKHandleRealized();
 
     wxMenuBar         *m_menuBar;
-    GtkNotebookPage   *m_page;
     bool               m_justInserted;
 
 private:

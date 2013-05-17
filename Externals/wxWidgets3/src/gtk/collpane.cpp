@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     8/10/2006
-// Id:          $Id: collpane.cpp 67280 2011-03-22 14:17:38Z DS $
+// Id:          $Id: collpane.cpp 70756 2012-02-29 18:29:31Z PC $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -95,7 +95,7 @@ gtk_collapsiblepane_expanded_callback(GObject * WXUNUSED(object),
 
     // 1) need to update our size hints
     // NB: this function call won't actually do any long operation
-    //     (redraw/relayouting/resizing) so that it's flicker-free
+    //     (redraw/relayout/resize) so that it's flicker-free
     p->SetMinSize(sz);
 
     if (p->HasFlag(wxCP_NO_TLW_RESIZE))
@@ -123,7 +123,7 @@ gtk_collapsiblepane_expanded_callback(GObject * WXUNUSED(object),
             //    transition.  This may be sometimes undesired but *is*
             //    necessary and if you look carefully, all GTK+ programs using
             //    GtkExpander perform this trick (e.g. the standard "open file"
-            //    dialog of GTK+>=2.4 is not resizeable when the expander is
+            //    dialog of GTK+>=2.4 is not resizable when the expander is
             //    collapsed!)
             gtk_window_set_resizable (GTK_WINDOW (top->m_widget), p->IsExpanded());
 
@@ -200,7 +200,6 @@ bool wxCollapsiblePane::Create(wxWindow *parent,
     m_pPane = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                           wxTAB_TRAVERSAL|wxNO_BORDER, wxS("wxCollapsiblePanePane"));
 
-    gtk_widget_show(m_widget);
     m_parent->DoAddChild( this );
 
     PostCreation(size);
@@ -281,8 +280,8 @@ void wxCollapsiblePane::OnSize(wxSizeEvent &ev)
 GdkWindow *wxCollapsiblePane::GTKGetWindow(wxArrayGdkWindows& windows) const
 {
     GtkWidget *label = gtk_expander_get_label_widget( GTK_EXPANDER(m_widget) );
-    windows.Add( label->window );
-    windows.Add( m_widget->window );
+    windows.Add(gtk_widget_get_window(label));
+    windows.Add(gtk_widget_get_window(m_widget));
 
     return NULL;
 }

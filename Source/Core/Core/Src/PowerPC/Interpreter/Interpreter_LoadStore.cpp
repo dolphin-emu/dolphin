@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "Atomic.h"
@@ -24,8 +11,7 @@
 #include "Interpreter.h"
 #include "../../Core.h"
 
-#include "../JitCommon/JitBase.h"
-#include "../JitCommon/JitCache.h"
+#include "../JitInterface.h"
 
 #include "Interpreter_FPUtils.h"
 
@@ -363,28 +349,24 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 	{
 		NPC = PC + 12;
 	}*/
-	// Invalidate the icache on dcbf
-	if (jit)
-	{
 		u32 address = Helper_Get_EA_X(_inst);
-		jit->GetBlockCache()->InvalidateICache(address & ~0x1f);
-	}
+		JitInterface::InvalidateICache(address & ~0x1f, 32);
 }
 
 void Interpreter::dcbi(UGeckoInstruction _inst)
 {
 	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything to the data cache
-	// However, we invalidate the icache on dcbi
-	if (jit)
-	{
+	// However, we invalidate the jit block cache on dcbi
 		u32 address = Helper_Get_EA_X(_inst);
-		jit->GetBlockCache()->InvalidateICache(address & ~0x1f);
-	}
+		JitInterface::InvalidateICache(address & ~0x1f, 32);
 }
 
 void Interpreter::dcbst(UGeckoInstruction _inst)
 {
 	// Cache line flush. Since we don't emulate the data cache, we don't need to do anything.
+	// Invalidate the jit block cache on dcbst in case new code has been loaded via the data cache
+		u32 address = Helper_Get_EA_X(_inst);
+		JitInterface::InvalidateICache(address & ~0x1f, 32);
 }
 
 void Interpreter::dcbt(UGeckoInstruction _inst)
@@ -399,9 +381,12 @@ void Interpreter::dcbtst(UGeckoInstruction _inst)
 }
 
 void Interpreter::dcbz(UGeckoInstruction _inst)
-{	
+{
 	// HACK but works... we think
-	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
+	if (!Core::g_CoreStartupParameter.bDCBZOFF)
+		Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
+	if (!JitInterface::GetCore())
+		PowerPC::CheckExceptions();
 }
 
 // eciwx/ecowx technically should access the specified device
@@ -459,7 +444,7 @@ void Interpreter::eieio(UGeckoInstruction _inst)
 }
 
 void Interpreter::icbi(UGeckoInstruction _inst)
-{	
+{
 	u32 address = Helper_Get_EA_X(_inst);	
 	PowerPC::ppcState.iCache.Invalidate(address);
 }
@@ -732,7 +717,7 @@ void Interpreter::stswi(UGeckoInstruction _inst)
 		EA = 0;
 	else
 		EA = m_GPR[_inst.RA];
-    
+
 	u32 n;
 	if (_inst.NB == 0)
 		n = 32;
@@ -794,7 +779,7 @@ void Interpreter::stwbrx(UGeckoInstruction _inst)
 
 // The following two instructions are for SMP communications. On a single
 // CPU, they cannot fail unless an interrupt happens in between.
-    
+
 void Interpreter::lwarx(UGeckoInstruction _inst)
 {
 	u32 uAddress = Helper_Get_EA_X(_inst);

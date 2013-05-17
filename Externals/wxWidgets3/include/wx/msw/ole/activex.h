@@ -4,7 +4,7 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>
 // Modified by:
 // Created:     8/18/05
-// RCS-ID:      $Id: activex.h 64533 2010-06-09 14:28:08Z FM $
+// RCS-ID:      $Id: activex.h 70361 2012-01-15 19:05:34Z SJL $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -168,6 +168,8 @@ public:
     void OnPaint(wxPaintEvent&);
     void OnSetFocus(wxFocusEvent&);
     void OnKillFocus(wxFocusEvent&);
+    virtual bool MSWTranslateMessage(WXMSG* pMsg);
+    virtual bool QueryClientSiteInterface(REFIID iid, void **_interface, const char *&desc);
 
 protected:
     friend class FrameSite;

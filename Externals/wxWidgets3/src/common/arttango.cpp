@@ -3,7 +3,7 @@
 // Purpose:     art provider using embedded PNG versions of Tango icons
 // Author:      Vadim Zeitlin
 // Created:     2010-12-27
-// RCS-ID:      $Id: arttango.cpp 66510 2010-12-31 19:38:49Z VZ $
+// RCS-ID:      $Id: arttango.cpp 70154 2011-12-28 13:51:29Z VZ $
 // Copyright:   (c) 2010 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -322,7 +322,7 @@ wxTangoArtProvider::CreateBitmap(const wxArtID& id,
 /* static */
 void wxArtProvider::InitTangoProvider()
 {
-    wxArtProvider::Push(new wxTangoArtProvider);
+    wxArtProvider::PushBack(new wxTangoArtProvider);
 }
 
 #endif // wxUSE_ARTPROVIDER_TANGO

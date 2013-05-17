@@ -2,7 +2,7 @@
 // Name:        src/generic/timer.cpp
 // Purpose:     wxTimer implementation
 // Author:      Vaclav Slavik
-// Id:          $Id: timer.cpp 67280 2011-03-22 14:17:38Z DS $
+// Id:          $Id: timer.cpp 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,58 +34,22 @@
 // Time input function
 // ----------------------------------------------------------------------------
 
-#ifdef __WXMGL__
-    // We take advantage of wxMGL's _EVT_getTicks because it is faster
-    // (especially under MS-DOS!) and more precise than wxGetLocalTimeMillis
-    // if we are unlucky and the latter combines information from two sources.
-    #include "wx/mgl/private.h"
-    extern "C" ulong _EVT_getTicks();
-    #define GetMillisecondsTime _EVT_getTicks
+#define GetMillisecondsTime wxGetLocalTimeMillis
 
-    typedef ulong wxTimerTick_t;
+typedef wxLongLong wxTimerTick_t;
 
-    #define wxTimerTickFmtSpec wxT("lu")
-    #define wxTimerTickPrintfArg(tt) (tt)
+#if wxUSE_LONGLONG_WX
+    #define wxTimerTickFmtSpec wxLongLongFmtSpec "d"
+    #define wxTimerTickPrintfArg(tt) (tt.GetValue())
+#else // using native wxLongLong
+    #define wxTimerTickFmtSpec wxT("s")
+    #define wxTimerTickPrintfArg(tt) (tt.ToString().c_str())
+#endif // wx/native long long
 
-    #ifdef __DOS__
-        // Under DOS the MGL timer has a 24hr period, so consider the 12 hours
-        // before y to be 'less' and the 12 hours after 'greater' modulo
-        // 24 hours.
-        inline bool wxTickGreaterEqual(wxTimerTick_t x, wxTimerTick_t y)
-        {
-            // _EVT_getTicks wraps at 1573040 * 55
-            const wxTimerTick_t modulus = 1573040 * 55;
-            return (2 * modulus + x - y) % modulus < modulus / 2;
-        }
-    #else
-        // If wxTimerTick_t is 32-bits then it'll wrap in around 50 days. So
-        // let the 25 days before y be 'less' and 25 days after be 'greater'.
-        inline bool wxTickGreaterEqual(wxTimerTick_t x, wxTimerTick_t y)
-        {
-            // This code assumes wxTimerTick_t is an unsigned type.
-            // Set half_modulus with top bit set and the rest zeros.
-            const wxTimerTick_t half_modulus = ~((~(wxTimerTick_t)0) >> 1);
-            return x - y < half_modulus;
-        }
-    #endif
-#else // !__WXMGL__
-    #define GetMillisecondsTime wxGetLocalTimeMillis
-
-    typedef wxLongLong wxTimerTick_t;
-
-    #if wxUSE_LONGLONG_WX
-        #define wxTimerTickFmtSpec wxLongLongFmtSpec "d"
-        #define wxTimerTickPrintfArg(tt) (tt.GetValue())
-    #else // using native wxLongLong
-        #define wxTimerTickFmtSpec wxT("s")
-        #define wxTimerTickPrintfArg(tt) (tt.ToString().c_str())
-    #endif // wx/native long long
-
-    inline bool wxTickGreaterEqual(wxTimerTick_t x, wxTimerTick_t y)
-    {
-        return x >= y;
-    }
-#endif // __WXMGL__/!__WXMGL__
+inline bool wxTickGreaterEqual(wxTimerTick_t x, wxTimerTick_t y)
+{
+    return x >= y;
+}
 
 // ----------------------------------------------------------------------------
 // helper structures and wxTimerScheduler

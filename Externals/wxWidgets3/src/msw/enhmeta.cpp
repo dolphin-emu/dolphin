@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     13.01.00
-// RCS-ID:      $Id: enhmeta.cpp 65057 2010-07-23 23:32:46Z VZ $
+// RCS-ID:      $Id: enhmeta.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -134,7 +134,7 @@ void wxEnhMetaFile::Free()
 
 bool wxEnhMetaFile::Play(wxDC *dc, wxRect *rectBound)
 {
-    wxCHECK_MSG( Ok(), false, wxT("can't play invalid enhanced metafile") );
+    wxCHECK_MSG( IsOk(), false, wxT("can't play invalid enhanced metafile") );
     wxCHECK_MSG( dc, false, wxT("invalid wxDC in wxEnhMetaFile::Play") );
 
     RECT rect;
@@ -174,7 +174,7 @@ wxSize wxEnhMetaFile::GetSize() const
 {
     wxSize size = wxDefaultSize;
 
-    if ( Ok() )
+    if ( IsOk() )
     {
         ENHMETAHEADER hdr;
         if ( !::GetEnhMetaFileHeader(GetEMF(), sizeof(hdr), &hdr) )
@@ -408,7 +408,7 @@ size_t wxEnhMetaFileDataObject::GetDataSize(const wxDataFormat& format) const
 
 bool wxEnhMetaFileDataObject::GetDataHere(const wxDataFormat& format, void *buf) const
 {
-    wxCHECK_MSG( m_metafile.Ok(), false, wxT("copying invalid enh metafile") );
+    wxCHECK_MSG( m_metafile.IsOk(), false, wxT("copying invalid enh metafile") );
 
     HENHMETAFILE hEMF = (HENHMETAFILE)m_metafile.GetHENHMETAFILE();
 
@@ -536,7 +536,7 @@ size_t wxEnhMetaFileSimpleDataObject::GetDataSize() const
 
 bool wxEnhMetaFileSimpleDataObject::GetDataHere(void *buf) const
 {
-    wxCHECK_MSG( m_metafile.Ok(), false, wxT("copying invalid enh metafile") );
+    wxCHECK_MSG( m_metafile.IsOk(), false, wxT("copying invalid enh metafile") );
 
     HENHMETAFILE hEMF = (HENHMETAFILE)m_metafile.GetHENHMETAFILE();
 

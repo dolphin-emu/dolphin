@@ -5,7 +5,7 @@
 //              Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     2010-04-23
-// RCS-ID:      $Id: translation.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: translation.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@
 #include "wx/stdpaths.h"
 #include "wx/hashset.h"
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     #include "wx/msw/wrapwin.h"
 #endif
 
@@ -986,7 +986,7 @@ bool wxMsgCatalogFile::LoadData(const DataBuffer& data,
                 if ( m_charset == wxS("CHARSET") )
                 {
                     // "CHARSET" is not valid charset, but lazy translator
-                    m_charset.empty();
+                    m_charset.clear();
                 }
             }
         }
@@ -1440,7 +1440,7 @@ wxString wxTranslations::ChooseLanguageForDomain(const wxString& WXUNUSED(domain
 
 namespace
 {
-WX_DECLARE_HASH_SET(wxString, wxStringHash, wxStringEqual,
+WX_DECLARE_HASH_SET(wxString, ::wxStringHash, ::wxStringEqual,
                     wxLocaleUntranslatedStrings);
 }
 

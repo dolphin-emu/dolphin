@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.11.99
-// RCS-ID:      $Id: toolbar.h 62849 2009-12-10 03:04:07Z VZ $
+// RCS-ID:      $Id: toolbar.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,8 +68,6 @@ enum
 
     #if defined(__WXUNIVERSAL__)
        #include "wx/univ/toolbar.h"
-    #elif defined(__WXPALMOS__)
-       #include "wx/palmos/toolbar.h"
     #elif defined(__WXMSW__) && (!defined(_WIN32_WCE) || (_WIN32_WCE >= 400 && !defined(__POCKETPC__) && !defined(__SMARTPHONE__)))
        #include "wx/msw/toolbar.h"
     #elif defined(__WXWINCE__)

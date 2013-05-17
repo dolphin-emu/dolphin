@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dc.cpp 67063 2011-02-27 12:48:13Z VZ $
+// RCS-ID:      $Id: dc.cpp 69727 2011-11-10 10:46:34Z JS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,6 +34,7 @@
     #include "wx/bitmap.h"
     #include "wx/dcmemory.h"
     #include "wx/log.h"
+    #include "wx/math.h"
     #include "wx/icon.h"
     #include "wx/dcprint.h"
     #include "wx/module.h"
@@ -82,7 +83,9 @@ IMPLEMENT_ABSTRACT_CLASS(wxMSWDCImpl, wxDCImpl)
 // constants
 // ---------------------------------------------------------------------------
 
-static const int VIEWPORT_EXTENT = 1000;
+// The device space in Win32 GDI measures 2^27*2^27 , so we use 2^27-1 as the
+// maximal possible view port extent.
+static const int VIEWPORT_EXTENT = 134217727;
 
 // ROPs which don't have standard names (see "Ternary Raster Operations" in the
 // MSDN docs for how this and other numbers in wxDC::Blit() are obtained)
@@ -272,6 +275,98 @@ private:
 };
 
 IMPLEMENT_DYNAMIC_CLASS(wxGDIDLLsCleanupModule, wxModule)
+
+namespace
+{
+
+#if wxUSE_DC_TRANSFORM_MATRIX
+
+// Class used to dynamically load world transform related API functions.
+class GdiWorldTransformFuncs
+{
+public:
+    static bool IsOk()
+    {
+        if ( !ms_worldTransformSymbolsLoaded )
+            LoadWorldTransformSymbols();
+
+        return ms_pfnSetGraphicsMode &&
+                ms_pfnSetWorldTransform &&
+                 ms_pfnGetWorldTransform &&
+                  ms_pfnModifyWorldTransform;
+    }
+
+    typedef int (WINAPI *SetGraphicsMode_t)(HDC, int);
+    static SetGraphicsMode_t SetGraphicsMode()
+    {
+        if ( !ms_worldTransformSymbolsLoaded )
+            LoadWorldTransformSymbols();
+
+        return ms_pfnSetGraphicsMode;
+    }
+
+    typedef BOOL (WINAPI *SetWorldTransform_t)(HDC, const XFORM *);
+    static SetWorldTransform_t SetWorldTransform()
+    {
+        if ( !ms_worldTransformSymbolsLoaded )
+            LoadWorldTransformSymbols();
+
+        return ms_pfnSetWorldTransform;
+    }
+
+    typedef BOOL (WINAPI *GetWorldTransform_t)(HDC, LPXFORM);
+    static GetWorldTransform_t GetWorldTransform()
+    {
+        if ( !ms_worldTransformSymbolsLoaded )
+            LoadWorldTransformSymbols();
+
+        return ms_pfnGetWorldTransform;
+    }
+
+    typedef BOOL (WINAPI *ModifyWorldTransform_t)(HDC, const XFORM *, DWORD);
+    static ModifyWorldTransform_t ModifyWorldTransform()
+    {
+        if ( !ms_worldTransformSymbolsLoaded )
+            LoadWorldTransformSymbols();
+
+        return ms_pfnModifyWorldTransform;
+    }
+
+private:
+    static void LoadWorldTransformSymbols()
+    {
+        wxDynamicLibrary dll(wxT("gdi32.dll"));
+
+        wxDL_INIT_FUNC(ms_pfn, SetGraphicsMode, dll);
+        wxDL_INIT_FUNC(ms_pfn, SetWorldTransform, dll);
+        wxDL_INIT_FUNC(ms_pfn, GetWorldTransform, dll);
+        wxDL_INIT_FUNC(ms_pfn, ModifyWorldTransform, dll);
+
+        ms_worldTransformSymbolsLoaded = true;
+    }
+
+    static SetGraphicsMode_t ms_pfnSetGraphicsMode;
+    static SetWorldTransform_t ms_pfnSetWorldTransform;
+    static GetWorldTransform_t ms_pfnGetWorldTransform;
+    static ModifyWorldTransform_t ms_pfnModifyWorldTransform;
+
+    static bool ms_worldTransformSymbolsLoaded;
+};
+
+GdiWorldTransformFuncs::SetGraphicsMode_t
+    GdiWorldTransformFuncs::ms_pfnSetGraphicsMode = NULL;
+GdiWorldTransformFuncs::SetWorldTransform_t
+    GdiWorldTransformFuncs::ms_pfnSetWorldTransform = NULL;
+GdiWorldTransformFuncs::GetWorldTransform_t
+    GdiWorldTransformFuncs::ms_pfnGetWorldTransform = NULL;
+GdiWorldTransformFuncs::ModifyWorldTransform_t
+    GdiWorldTransformFuncs::ms_pfnModifyWorldTransform = NULL;
+
+bool GdiWorldTransformFuncs::ms_worldTransformSymbolsLoaded = false;
+
+#endif // wxUSE_DC_TRANSFORM_MATRIX
+
+} // anonymous namespace
 
 #endif // wxUSE_DYNLIB_CLASS
 
@@ -1048,11 +1143,11 @@ void wxMSWDCImpl::DoDrawSpline(const wxPointList *points)
     lppt[ bezier_pos ] = lppt[ bezier_pos-1 ];
     bezier_pos++;
 
-#if !wxUSE_STL
+#if !wxUSE_STD_CONTAINERS
     while ((node = node->GetNext()) != NULL)
 #else
     while ((node = node->GetNext()))
-#endif // !wxUSE_STL
+#endif // !wxUSE_STD_CONTAINERS
     {
         p = (wxPoint *)node->GetData();
         x1 = x2;
@@ -1867,6 +1962,31 @@ bool wxMSWDCImpl::DoGetPartialTextExtents(const wxString& text, wxArrayInt& widt
     return true;
 }
 
+namespace
+{
+
+void ApplyEffectiveScale(double scale, int sign, int *device, int *logical)
+{
+    // To reduce rounding errors as much as possible, we try to use the largest
+    // possible extent (2^27-1) for the device space but we must also avoid
+    // overflowing the int range i.e. ensure that logical extents are less than
+    // 2^31 in magnitude. So the minimal scale we can use is 1/16 as for
+    // anything smaller VIEWPORT_EXTENT/scale would overflow the int range.
+    static const double MIN_LOGICAL_SCALE = 1./16;
+
+    double physExtent = VIEWPORT_EXTENT;
+    if ( scale < MIN_LOGICAL_SCALE )
+    {
+        physExtent *= scale/MIN_LOGICAL_SCALE;
+        scale = MIN_LOGICAL_SCALE;
+    }
+
+    *device = wxRound(physExtent);
+    *logical = sign*wxRound(VIEWPORT_EXTENT/scale);
+}
+
+} // anonymous namespace
+
 void wxMSWDCImpl::RealizeScaleAndOrigin()
 {
     // although it may seem wasteful to always use MM_ANISOTROPIC here instead
@@ -1875,11 +1995,18 @@ void wxMSWDCImpl::RealizeScaleAndOrigin()
 #ifndef __WXWINCE__
     ::SetMapMode(GetHdc(), MM_ANISOTROPIC);
 
-    int width = DeviceToLogicalXRel(VIEWPORT_EXTENT)*m_signX,
-        height = DeviceToLogicalYRel(VIEWPORT_EXTENT)*m_signY;
+    // wxWidgets API assumes that the coordinate space is "infinite" (i.e. only
+    // limited by 2^32 range of the integer coordinates) but in MSW API we must
+    // actually specify the extents that we use so compute them here.
 
-    ::SetViewportExtEx(GetHdc(), VIEWPORT_EXTENT, VIEWPORT_EXTENT, NULL);
-    ::SetWindowExtEx(GetHdc(), width, height, NULL);
+    int devExtX, devExtY,   // Viewport, i.e. device space, extents.
+        logExtX, logExtY;   // Window, i.e. logical coordinate space, extents.
+
+    ApplyEffectiveScale(m_scaleX, m_signX, &devExtX, &logExtX);
+    ApplyEffectiveScale(m_scaleY, m_signY, &devExtY, &logExtY);
+
+    ::SetViewportExtEx(GetHdc(), devExtX, devExtY, NULL);
+    ::SetWindowExtEx(GetHdc(), logExtX, logExtY, NULL);
 
     ::SetViewportOrgEx(GetHdc(), m_deviceOriginX, m_deviceOriginY, NULL);
     ::SetWindowOrgEx(GetHdc(), m_logicalOriginX, m_logicalOriginY, NULL);
@@ -2005,6 +2132,87 @@ void wxMSWDCImpl::SetDeviceOrigin(wxCoord x, wxCoord y)
     ::SetViewportOrgEx(GetHdc(), (int)m_deviceOriginX, (int)m_deviceOriginY, NULL);
 }
 
+// ----------------------------------------------------------------------------
+// Transform matrix
+// ----------------------------------------------------------------------------
+
+#if wxUSE_DC_TRANSFORM_MATRIX
+
+bool wxMSWDCImpl::CanUseTransformMatrix() const
+{
+    return GdiWorldTransformFuncs::IsOk();
+}
+
+bool wxMSWDCImpl::SetTransformMatrix(const wxAffineMatrix2D &matrix)
+{
+    if ( !GdiWorldTransformFuncs::IsOk() )
+        return false;
+
+    if ( matrix.IsIdentity() )
+    {
+        ResetTransformMatrix();
+        return true;
+    }
+
+    if ( !GdiWorldTransformFuncs::SetGraphicsMode()(GetHdc(), GM_ADVANCED) )
+    {
+        wxLogLastError(wxT("SetGraphicsMode"));
+        return false;
+    }
+
+    wxMatrix2D mat;
+    wxPoint2DDouble tr;
+    matrix.Get(&mat, &tr);
+
+    XFORM xform;
+    xform.eM11 = mat.m_11;
+    xform.eM12 = mat.m_12;
+    xform.eM21 = mat.m_21;
+    xform.eM22 = mat.m_22;
+    xform.eDx = tr.m_x;
+    xform.eDy = tr.m_y;
+
+    if ( !GdiWorldTransformFuncs::SetWorldTransform()(GetHdc(), &xform) )
+    {
+        wxLogLastError(wxT("SetWorldTransform"));
+        return false;
+    }
+
+    return true;
+}
+
+wxAffineMatrix2D wxMSWDCImpl::GetTransformMatrix() const
+{
+    wxAffineMatrix2D transform;
+
+    if ( !GdiWorldTransformFuncs::IsOk() )
+        return transform;
+
+    XFORM xform;
+    if ( !GdiWorldTransformFuncs::GetWorldTransform()(GetHdc(), &xform) )
+    {
+        wxLogLastError(wxT("GetWorldTransform"));
+        return transform;
+    }
+
+    wxMatrix2D m(xform.eM11, xform.eM12, xform.eM21, xform.eM22);
+    wxPoint2DDouble p(xform.eDx, xform.eDy);
+    transform.Set(m, p);
+
+    return transform;
+}
+
+void wxMSWDCImpl::ResetTransformMatrix()
+{
+    if ( GdiWorldTransformFuncs::IsOk() )
+    {
+        GdiWorldTransformFuncs::ModifyWorldTransform()(GetHdc(), NULL, MWT_IDENTITY);
+        GdiWorldTransformFuncs::SetGraphicsMode()(GetHdc(), GM_COMPATIBLE);
+    }
+}
+
+#endif // wxUSE_DC_TRANSFORM_MATRIX
+
 // ---------------------------------------------------------------------------
 // bit blit
 // ---------------------------------------------------------------------------
@@ -2109,7 +2317,8 @@ bool wxMSWDCImpl::DoStretchBlit(wxCoord xdest, wxCoord ydest,
         // than the wxWidgets fall-back implementation. So we need
         // to be able to switch this on and off at runtime.
 #if wxUSE_SYSTEM_OPTIONS
-        if (wxSystemOptions::GetOptionInt(wxT("no-maskblt")) == 0)
+        static bool s_maskBltAllowed = wxSystemOptions::GetOptionInt("no-maskblt") == 0;
+        if ( s_maskBltAllowed )
 #endif
         {
             if ( dstWidth == srcWidth && dstHeight == srcHeight )

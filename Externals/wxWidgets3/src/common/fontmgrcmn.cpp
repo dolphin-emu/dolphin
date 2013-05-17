@@ -3,7 +3,7 @@
 // Purpose:     font management for ports that don't have their own
 // Author:      Vaclav Slavik
 // Created:     2006-11-18
-// RCS-ID:      $Id: fontmgrcmn.cpp 62349 2009-10-09 13:04:59Z VZ $
+// RCS-ID:      $Id: fontmgrcmn.cpp 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) 2001-2002 SciTech Software, Inc. (www.scitechsoft.com)
 //              (c) 2006 REA Elektronik GmbH
 // Licence:     wxWindows licence
@@ -123,8 +123,8 @@ wxFontBundleBase::GetFaceForFont(const wxFontMgrFontRefData& font) const
         type |= FaceType_Bold;
 
     // FIXME -- this should read "if ( font->GetStyle() == wxITALIC )",
-    // but since MGL neither DFB supports slant, we try to display it with
-    // italic face (better than nothing...)
+    // but since DFB doesn't support slant, we try to display it with italic
+    // face (better than nothing...)
     if ( font.GetStyle() == wxITALIC || font.GetStyle() == wxSLANT )
     {
         if ( HasFace((FaceType)(type | FaceType_Italic)) )

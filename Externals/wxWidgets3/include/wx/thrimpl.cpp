@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.06.02 (extracted from src/*/thread.cpp files)
-// RCS-ID:      $Id: thrimpl.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: thrimpl.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) Vadim Zeitlin (2002)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ wxMutexError wxMutex::Unlock()
 // variables and their events/event semaphores have quite different semantics,
 // so we reimplement the conditions from scratch using the mutexes and
 // semaphores
-#if defined(__WXMSW__) || defined(__OS2__) || defined(__EMX__)
+#if defined(__WINDOWS__) || defined(__OS2__) || defined(__EMX__)
 
 class wxConditionInternal
 {
@@ -223,7 +223,7 @@ wxCondError wxConditionInternal::Broadcast()
     return wxCOND_NO_ERROR;
 }
 
-#endif // MSW or OS2
+#endif // __WINDOWS__ || __OS2__ || __EMX__
 
 // ----------------------------------------------------------------------------
 // wxCondition

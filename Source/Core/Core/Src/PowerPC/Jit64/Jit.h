@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // ========================
 // See comments in Jit.cpp.
@@ -62,35 +49,9 @@
 	if (js.memcheck) \
 		SetJumpTarget(memException);
 
-class Jit64 : public JitBase
+class Jit64 : public Jitx86Base
 {
 private:
-	struct JitState
-	{
-		u32 compilerPC;
-		u32 next_compilerPC;
-		u32 blockStart;
-		bool cancel;
-		bool skipnext;
-		UGeckoInstruction next_inst;  // for easy peephole opt.
-		int blockSize;
-		int instructionNumber;
-		int downcountAmount;
-		int block_flags;
-
-		bool isLastInstruction;
-		bool memcheck;
-
-		int fifoBytesThisBlock;
-
-		PPCAnalyst::BlockStats st;
-		PPCAnalyst::BlockRegStats gpa;
-		PPCAnalyst::BlockRegStats fpa;
-		PPCAnalyst::CodeOp *op;
-
-		JitBlock *curBlock;
-	};
-
 	GPRRegCache gpr;
 	FPURegCache fpr;
 
@@ -102,8 +63,6 @@ private:
 public:
 	Jit64() : code_buffer(32000) {}
 	~Jit64() {}
-
-	JitState js;
 
 	void Init();
 	void Shutdown();
@@ -143,11 +102,18 @@ public:
 	void WriteExit(u32 destination, int exit_num);
 	void WriteExitDestInEAX();
 	void WriteExceptionExit();
+	void WriteExternalExceptionExit();
 	void WriteRfiExitDestInEAX();
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 
+	void GenerateConstantOverflow(bool overflow);
+	void GenerateOverflow();
+	void FinalizeCarryOverflow(bool oe, bool inv = false);
+	void GetCarryEAXAndClear();
+	void FinalizeCarryGenerateOverflowEAX(bool oe, bool inv = false);
 	void GenerateCarry();
+	void GenerateRC();
 	void ComputeRC(const Gen::OpArg & arg);
 
 	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
@@ -173,6 +139,7 @@ public:
 	void mulhwux(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
 	void divwux(UGeckoInstruction inst);
+	void divwx(UGeckoInstruction inst);
 	void srawix(UGeckoInstruction inst);
 	void srawx(UGeckoInstruction inst);
 	void addex(UGeckoInstruction inst);
@@ -242,6 +209,7 @@ public:
 	void negx(UGeckoInstruction inst);
 	void slwx(UGeckoInstruction inst);
 	void srwx(UGeckoInstruction inst);
+	void dcbst(UGeckoInstruction inst);
 	void dcbz(UGeckoInstruction inst);
 	void lfsx(UGeckoInstruction inst);
 

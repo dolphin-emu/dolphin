@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdicmn.cpp 65680 2010-09-30 11:44:45Z VZ $
+// RCS-ID:      $Id: gdicmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -499,7 +499,7 @@ wxColour *wxColourDatabase::FindColour(const wxString& name)
     static wxColour s_col;
 
     s_col = Find(name);
-    if ( !s_col.Ok() )
+    if ( !s_col.IsOk() )
         return NULL;
 
     return new wxColour(s_col);
@@ -655,7 +655,19 @@ const wxFont* wxStockGDI::GetFont(Item item)
             font = new wxFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
             break;
         case FONT_SMALL:
-            font = new wxFont(GetFont(FONT_NORMAL)->GetPointSize() - 2, wxSWISS, wxNORMAL, wxNORMAL);
+            font = new wxFont(GetFont(FONT_NORMAL)->GetPointSize()
+                    // Using the font 2 points smaller than the normal one
+                    // results in font so small as to be unreadable under MSW.
+                    // We might want to actually use -1 under the other
+                    // platforms too but for now be conservative and keep -2
+                    // there for compatibility with the old behaviour as the
+                    // small font seems to be readable enough there as it is.
+#ifdef __WXMSW__
+                    - 1,
+#else
+                    - 2,
+#endif
+                    wxSWISS, wxNORMAL, wxNORMAL);
             break;
         case FONT_SWISS:
             font = new wxFont(GetFont(FONT_NORMAL)->GetPointSize(), wxSWISS, wxNORMAL, wxNORMAL);
@@ -768,7 +780,7 @@ wxPen *wxPenList::FindOrCreatePen (const wxColour& colour, int width, wxPenStyle
 
     wxPen* pen = NULL;
     wxPen penTmp(colour, width, style);
-    if (penTmp.Ok())
+    if (penTmp.IsOk())
     {
         pen = new wxPen(penTmp);
         list.Append(pen);
@@ -790,7 +802,7 @@ wxBrush *wxBrushList::FindOrCreateBrush (const wxColour& colour, wxBrushStyle st
 
     wxBrush* brush = NULL;
     wxBrush brushTmp(colour, style);
-    if (brushTmp.Ok())
+    if (brushTmp.IsOk())
     {
         brush = new wxBrush(brushTmp);
         list.Append(brush);
@@ -860,7 +872,7 @@ wxFont *wxFontList::FindOrCreateFont(int pointSize,
     // font not found, create the new one
     font = NULL;
     wxFont fontTmp(pointSize, family, style, weight, underline, facename, encoding);
-    if (fontTmp.Ok())
+    if (fontTmp.IsOk())
     {
         font = new wxFont(fontTmp);
         list.Append(font);

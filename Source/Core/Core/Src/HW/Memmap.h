@@ -12,7 +12,7 @@
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
 
-// Official SVN repository and contact information can be found at
+// Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef _MEMMAP_H
@@ -55,23 +55,26 @@ extern u8 *base;
 extern u8 *m_pRAM;
 extern u8 *m_pEXRAM;
 extern u8 *m_pL1Cache;
+extern u8 *m_pVirtualFakeVMEM;
 
 enum
 {
-	// The size should be just 24MB instead of 32, but the RAM_MASK wouldn't
-	// work.
-	RAM_SIZE		= 0x2000000,
-	RAM_MASK		= 0x1FFFFFF,
+	// RAM_SIZE is the amount allocated by the emulator, whereas REALRAM_SIZE is
+	// what will be reported in lowmem, and thus used by emulated software.
+	// Note: Writing to lowmem is done by IPL. If using retail IPL, it will
+	// always be set to 24MB.
+	REALRAM_SIZE	= 0x1800000,
+	RAM_SIZE		= ROUND_UP_POW2(REALRAM_SIZE),
+	RAM_MASK		= RAM_SIZE - 1,
 	FAKEVMEM_SIZE	= 0x2000000,
-	FAKEVMEM_MASK	= 0x1FFFFFF,
-	REALRAM_SIZE	= 0x1800000,		
+	FAKEVMEM_MASK	= FAKEVMEM_SIZE - 1,
 	L1_CACHE_SIZE	= 0x40000,
-	L1_CACHE_MASK	= 0x3FFFF,
-	EFB_SIZE	    = 0x200000,
-	EFB_MASK	    = 0x1FFFFF,
-	IO_SIZE         = 0x10000,
-	EXRAM_SIZE      = 0x4000000,
-	EXRAM_MASK      = 0x3FFFFFF,
+	L1_CACHE_MASK	= L1_CACHE_SIZE - 1,
+	EFB_SIZE		= 0x200000,
+	EFB_MASK		= EFB_SIZE - 1,
+	IO_SIZE			= 0x10000,
+	EXRAM_SIZE		= 0x4000000,
+	EXRAM_MASK		= EXRAM_SIZE - 1,
 
 	ADDR_MASK_HW_ACCESS	= 0x0c000000,
 	ADDR_MASK_MEM1		= 0x20000000,
@@ -100,7 +103,7 @@ void WriteUnchecked_U32(const u32 _Data, const u32 _Address);
 void InitHWMemFuncs();
 void InitHWMemFuncsWii();
 
-bool IsRAMAddress(const u32 addr, bool allow_locked_cache = false);
+bool IsRAMAddress(const u32 addr, bool allow_locked_cache = false, bool allow_fake_vmem = false);
 writeFn32 GetHWWriteFun32(const u32 _Address);
 
 inline u8* GetCachePtr() {return m_pL1Cache;}
@@ -116,11 +119,6 @@ inline u32 ReadFast32(const u32 _Address)
 
 // used by interpreter to read instructions, uses iCache
 u32 Read_Opcode(const u32 _Address);
-// used by JIT to read instructions
-u32 Read_Opcode_JIT(const u32 _Address);
-// used by JIT. uses iCacheJIT. Reads in the "Locked cache" mode
-u32 Read_Opcode_JIT_LC(const u32 _Address);
-void Write_Opcode_JIT(const u32 _Address, const u32 _Value);
 // this is used by Debugger a lot. 
 // For now, just reads from memory!
 u32 Read_Instruction(const u32 _Address);

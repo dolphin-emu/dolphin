@@ -1,3 +1,6 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef __GECKOCODE_h__
 #define __GECKOCODE_h__
@@ -67,6 +70,7 @@ namespace Gecko
 
 	void SetActiveCodes(const std::vector<GeckoCode>& gcodes);
 	bool RunActiveCodes();
+	void RunCodeHandler();
 	const std::map<u32, std::vector<u32> >& GetInsertedAsmCodes();
 
 }	// namespace Gecko

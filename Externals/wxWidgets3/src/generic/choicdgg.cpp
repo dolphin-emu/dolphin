@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: 03.11.00: VZ to add wxArrayString and multiple sel functions
 // Created:     04/01/98
-// RCS-ID:      $Id: choicdgg.cpp 63734 2010-03-22 11:40:19Z VZ $
+// RCS-ID:      $Id: choicdgg.cpp 70514 2012-02-05 14:18:33Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -222,13 +222,13 @@ void *wxGetSingleChoiceData( const wxString& message,
                              int initialSelection)
 {
     wxSingleChoiceDialog dialog(parent, message, caption, n, choices,
-                                (char **)client_data);
+                                client_data);
 
     dialog.SetSelection(initialSelection);
 
     void *data;
     if ( dialog.ShowModal() == wxID_OK )
-        data = dialog.GetSelectionClientData();
+        data = dialog.GetSelectionData();
     else
         data = NULL;
 
@@ -467,35 +467,12 @@ END_EVENT_TABLE()
 
 IMPLEMENT_DYNAMIC_CLASS(wxSingleChoiceDialog, wxDialog)
 
-wxSingleChoiceDialog::wxSingleChoiceDialog(wxWindow *parent,
-                                           const wxString& message,
-                                           const wxString& caption,
-                                           int n,
-                                           const wxString *choices,
-                                           char **clientData,
-                                           long style,
-                                           const wxPoint& WXUNUSED(pos))
-{
-    Create(parent, message, caption, n, choices, clientData, style);
-}
-
-wxSingleChoiceDialog::wxSingleChoiceDialog(wxWindow *parent,
-                                           const wxString& message,
-                                           const wxString& caption,
-                                           const wxArrayString& choices,
-                                           char **clientData,
-                                           long style,
-                                           const wxPoint& WXUNUSED(pos))
-{
-    Create(parent, message, caption, choices, clientData, style);
-}
-
 bool wxSingleChoiceDialog::Create( wxWindow *parent,
                                    const wxString& message,
                                    const wxString& caption,
                                    int n,
                                    const wxString *choices,
-                                   char **clientData,
+                                   void **clientData,
                                    long style,
                                    const wxPoint& pos )
 {
@@ -519,7 +496,7 @@ bool wxSingleChoiceDialog::Create( wxWindow *parent,
                                    const wxString& message,
                                    const wxString& caption,
                                    const wxArrayString& choices,
-                                   char **clientData,
+                                   void **clientData,
                                    long style,
                                    const wxPoint& pos )
 {

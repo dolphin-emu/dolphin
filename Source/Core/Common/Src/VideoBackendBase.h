@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef VIDEO_BACKEND_H_
 #define VIDEO_BACKEND_H_
@@ -22,6 +9,7 @@
 #include <vector>
 
 #include "ChunkFile.h"
+#include "../../VideoCommon/Src/PerfQueryBase.h"
 
 typedef void (*writeFn16)(const u16,const u32);
 typedef void (*writeFn32)(const u32,const u32);
@@ -93,22 +81,23 @@ public:
 
 	virtual bool Initialize(void *&) = 0;
 	virtual void Shutdown() = 0;
-
-	virtual void DoState(PointerWrap &p) = 0;
 	virtual void RunLoop(bool enable) = 0;
 
 	virtual std::string GetName() = 0;
+	virtual std::string GetDisplayName() { return GetName(); }
 
 	virtual void ShowConfig(void*) {}
 
 	virtual void Video_Prepare() = 0;
 	virtual void Video_EnterLoop() = 0;
 	virtual void Video_ExitLoop() = 0;
+	virtual void Video_Cleanup() = 0; // called from gl/d3d thread
 
 	virtual void Video_BeginField(u32, FieldType, u32, u32) = 0;
 	virtual void Video_EndField() = 0;
 
 	virtual u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) = 0;
+	virtual u32 Video_GetQueryResult(PerfQueryType type) = 0;
 
 	virtual void Video_AddMessage(const char* pstr, unsigned int milliseconds) = 0;
 	virtual void Video_ClearMessages() = 0;
@@ -119,6 +108,7 @@ public:
 	virtual void Video_GatherPipeBursted() = 0;
 
 	virtual bool Video_IsPossibleWaitingSetDrawDone() = 0;
+	virtual bool Video_IsHiWatermarkActive() = 0;
 	virtual void Video_AbortFrame() = 0;
 
 	virtual readFn16  Video_CPRead16() = 0;
@@ -130,6 +120,16 @@ public:
 	static void PopulateList();
 	static void ClearList();
 	static void ActivateBackend(const std::string& name);
+
+	// waits until is paused and fully idle, and acquires a lock on that state.
+	// or, if doLock is false, releases a lock on that state and optionally unpauses.
+	// calls must be balanced and non-recursive (once with doLock true, then once with doLock false).
+	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) = 0;
+
+	// the implementation needs not do synchronization logic, because calls to it are surrounded by PauseAndLock now
+	virtual void DoState(PointerWrap &p) = 0;
+	
+	virtual void CheckInvalidState() = 0;
 };
 
 extern std::vector<VideoBackend*> g_available_video_backends;
@@ -138,8 +138,8 @@ extern VideoBackend* g_video_backend;
 // inherited by dx9/dx11/ogl backends
 class VideoBackendHardware : public VideoBackend
 {
-	void DoState(PointerWrap &p);
 	void RunLoop(bool enable);
+	bool Initialize(void *&) { InitializeShared(); return true; }
 
 	void EmuStateChange(EMUSTATE_CHANGE);
 
@@ -147,8 +147,10 @@ class VideoBackendHardware : public VideoBackend
 	void Video_ExitLoop();
 	void Video_BeginField(u32, FieldType, u32, u32);
 	void Video_EndField();
-	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
 
+	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
+	u32 Video_GetQueryResult(PerfQueryType type);
+	
 	void Video_AddMessage(const char* pstr, unsigned int milliseconds);
 	void Video_ClearMessages();
 	bool Video_Screenshot(const char* filename);
@@ -158,6 +160,7 @@ class VideoBackendHardware : public VideoBackend
 	void Video_GatherPipeBursted();
 
 	bool Video_IsPossibleWaitingSetDrawDone();
+	bool Video_IsHiWatermarkActive();
 	void Video_AbortFrame();
 
 	readFn16  Video_CPRead16();
@@ -165,6 +168,18 @@ class VideoBackendHardware : public VideoBackend
 	readFn16  Video_PERead16();
 	writeFn16 Video_PEWrite16();
 	writeFn32 Video_PEWrite32();
+
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
+	void DoState(PointerWrap &p);
+	
+	bool m_invalid;
+	
+public:
+	 void CheckInvalidState();
+
+protected:
+	void InitializeShared();
+	void InvalidState();
 };
 
 #endif

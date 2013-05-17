@@ -2,7 +2,7 @@
 // Name:        src/common/imagiff.cpp
 // Purpose:     wxImage handler for Amiga IFF images
 // Author:      Steffen Gutmann, Thomas Meyer
-// RCS-ID:      $Id: imagiff.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: imagiff.cpp 69562 2011-10-27 21:10:38Z VZ $
 // Copyright:   (c) Steffen Gutmann, 2002
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,6 @@ private:
     IFFImage *m_image;        // image data
     wxInputStream *m_f;       // input stream
     unsigned char *databuf;
-    unsigned char *picptr;
     unsigned char *decomp_mem;
 
     void Destroy();
@@ -140,7 +139,7 @@ bool wxIFFDecoder::ConvertToImage(wxImage *image) const
     // create the image
     image->Create(GetWidth(), GetHeight());
 
-    if (!image->Ok())
+    if (!image->IsOk())
         return false;
 
     unsigned char *pal = GetPalette();
@@ -546,7 +545,7 @@ int wxIFFDecoder::ReadIFF()
         }
 
         m_image->p = new byte[bmhd_width * bmhd_height * 3];
-            byte *picptr = m_image->p;
+        byte *picptr = m_image->p;
         if (!picptr) {
         Destroy();
         return wxIFF_MEMERR;

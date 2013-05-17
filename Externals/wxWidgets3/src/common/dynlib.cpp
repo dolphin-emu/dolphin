@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id: dynlib.cpp 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: dynlib.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Guilhem Lavaux
 //                  2000-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -59,7 +59,7 @@ WX_DEFINE_USER_EXPORTED_OBJARRAY(wxDynamicLibraryDetailsArray)
 #endif
 
 // for MSW/Unix it is defined in platform-specific file
-#if !(defined(__WXMSW__) || defined(__UNIX__)) || defined(__EMX__)
+#if !(defined(__WINDOWS__) || defined(__UNIX__)) || defined(__EMX__)
 
 wxDllType wxDynamicLibrary::GetProgramHandle()
 {
@@ -67,7 +67,7 @@ wxDllType wxDynamicLibrary::GetProgramHandle()
    return 0;
 }
 
-#endif // __WXMSW__ || __UNIX__
+#endif // __WINDOWS__ || __UNIX__
 
 
 bool wxDynamicLibrary::Load(const wxString& libnameOrig, int flags)
@@ -112,7 +112,7 @@ bool wxDynamicLibrary::Load(const wxString& libnameOrig, int flags)
 // for MSW and Unix this is implemented in the platform-specific file
 //
 // TODO: move the rest to os2/dlpm.cpp and mac/dlmac.cpp!
-#if (!defined(__WXMSW__) && !defined(__UNIX__)) || defined(__EMX__)
+#if (!defined(__WINDOWS__) && !defined(__UNIX__)) || defined(__EMX__)
 
 /* static */
 void wxDynamicLibrary::Unload(wxDllType handle)
@@ -124,7 +124,7 @@ void wxDynamicLibrary::Unload(wxDllType handle)
 #endif
 }
 
-#endif // !(__WXMSW__ || __UNIX__)
+#endif // !(__WINDOWS__ || __UNIX__)
 
 void *wxDynamicLibrary::DoGetSymbol(const wxString &name, bool *success) const
 {

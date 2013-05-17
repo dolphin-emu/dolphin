@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: pen.h 66054 2010-11-07 13:16:20Z VZ $
+// RCS-ID:      $Id: pen.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -99,9 +99,7 @@ public:
     }
 };
 
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/pen.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
     #include "wx/msw/pen.h"
 #elif defined(__WXMOTIF__) || defined(__WXX11__)
     #include "wx/x11/pen.h"
@@ -109,8 +107,6 @@ public:
     #include "wx/gtk/pen.h"
 #elif defined(__WXGTK__)
     #include "wx/gtk1/pen.h"
-#elif defined(__WXMGL__)
-    #include "wx/mgl/pen.h"
 #elif defined(__WXDFB__)
     #include "wx/dfb/pen.h"
 #elif defined(__WXMAC__)

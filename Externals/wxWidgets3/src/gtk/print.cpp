@@ -3,7 +3,7 @@
 // Author:      Anthony Bretaudeau
 // Purpose:     GTK printing support
 // Created:     2007-08-25
-// RCS-ID:      $Id: print.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: print.cpp 70669 2012-02-22 13:41:11Z VZ $
 // Copyright:   (c) 2007 wxWidgets development team
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,6 @@
 #endif
 
 #include "wx/fontutil.h"
-#include "wx/gtk/private.h"
 #include "wx/dynlib.h"
 #include "wx/paper.h"
 
@@ -57,7 +56,7 @@ wxFORCE_LINK_THIS_MODULE(gtk_print)
 
 #include "wx/gtk/private/object.h"
 
-// Usefull to convert angles from/to Rad to/from Deg.
+// Useful to convert angles from/to Rad to/from Deg.
 static const double RAD2DEG  = 180.0 / M_PI;
 static const double DEG2RAD  = M_PI / 180.0;
 
@@ -620,8 +619,6 @@ wxGtkPrintDialog::~wxGtkPrintDialog()
 // This is called even if we actually don't want the dialog to appear.
 int wxGtkPrintDialog::ShowModal()
 {
-    GtkPrintOperationResult response;
-
     // We need to restore the settings given in the constructor.
     wxPrintData data = m_printDialogData.GetPrintData();
     wxGtkPrintNativeData *native =
@@ -655,10 +652,17 @@ int wxGtkPrintDialog::ShowModal()
 
     // Show the dialog if needed.
     GError* gError = NULL;
-    if (GetShowDialog())
-        response = gtk_print_operation_run (printOp, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG, GTK_WINDOW(gtk_widget_get_toplevel(m_parent->m_widget) ), &gError);
-    else
-        response = gtk_print_operation_run (printOp, GTK_PRINT_OPERATION_ACTION_PRINT, GTK_WINDOW(gtk_widget_get_toplevel(m_parent->m_widget)), &gError);
+    GtkPrintOperationResult response = gtk_print_operation_run
+                                       (
+                                           printOp,
+                                           GetShowDialog()
+                                            ? GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG
+                                            : GTK_PRINT_OPERATION_ACTION_PRINT,
+                                           m_parent
+                                            ? GTK_WINDOW(gtk_widget_get_toplevel(m_parent->m_widget))
+                                            : NULL,
+                                           &gError
+                                       );
 
     // Does everything went well?
     if (response == GTK_PRINT_OPERATION_RESULT_CANCEL)
@@ -667,8 +671,8 @@ int wxGtkPrintDialog::ShowModal()
     }
     else if (response == GTK_PRINT_OPERATION_RESULT_ERROR)
     {
+        wxLogError(_("Error while printing: ") + wxString(gError ? gError->message : "???"));
         g_error_free (gError);
-        wxLogError(_("Error while printing: ") + wxString::Format(_("%s"), gError->message));
         return wxID_NO; // We use wxID_NO because there is no wxID_ERROR available
     }
 
@@ -771,7 +775,9 @@ int wxGtkPageSetupDialog::ShowModal()
         title = _("Page Setup");
     GtkWidget *
         dlg = gtk_page_setup_unix_dialog_new(title.utf8_str(),
-                                             GTK_WINDOW(m_parent->m_widget));
+                                             m_parent
+                                                ? GTK_WINDOW(m_parent->m_widget)
+                                                : NULL);
 
     gtk_page_setup_unix_dialog_set_print_settings(
         GTK_PAGE_SETUP_UNIX_DIALOG(dlg), nativeData);
@@ -1738,25 +1744,12 @@ void wxGtkPrinterDCImpl::DoDrawRotatedText(const wxString& text, wxCoord x, wxCo
 
     angle = -angle;
 
-    bool underlined = m_font.Ok() && m_font.GetUnderlined();
-
     const wxScopedCharBuffer data = text.utf8_str();
 
-    size_t datalen = strlen(data);
-    pango_layout_set_text( m_layout, data, datalen);
+    pango_layout_set_text(m_layout, data, data.length());
 
-    if (underlined)
-    {
-        PangoAttrList *attrs = pango_attr_list_new();
-        PangoAttribute *a = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
-        a->start_index = 0;
-        a->end_index = datalen;
-        pango_attr_list_insert(attrs, a);
-        pango_layout_set_attributes(m_layout, attrs);
-        pango_attr_list_unref(attrs);
-    }
-
-    if (m_textForegroundColour.Ok())
+    const bool setAttrs = m_font.GTKSetPangoAttrs(m_layout);
+    if (m_textForegroundColour.IsOk())
     {
         unsigned char red = m_textForegroundColour.Red();
         unsigned char blue = m_textForegroundColour.Blue();
@@ -1816,7 +1809,7 @@ void wxGtkPrinterDCImpl::DoDrawRotatedText(const wxString& text, wxCoord x, wxCo
 
     cairo_restore( m_cairo );
 
-    if (underlined)
+    if (setAttrs)
     {
         // Undo underline attributes setting
         pango_layout_set_attributes(m_layout, NULL);
@@ -1844,7 +1837,7 @@ void wxGtkPrinterDCImpl::SetFont( const wxFont& font )
 {
     m_font = font;
 
-    if (m_font.Ok())
+    if (m_font.IsOk())
     {
         if (m_fontdesc)
             pango_font_description_free( m_fontdesc );
@@ -1861,7 +1854,7 @@ void wxGtkPrinterDCImpl::SetFont( const wxFont& font )
 
 void wxGtkPrinterDCImpl::SetPen( const wxPen& pen )
 {
-    if (!pen.Ok()) return;
+    if (!pen.IsOk()) return;
 
     m_pen = pen;
 
@@ -1940,7 +1933,7 @@ void wxGtkPrinterDCImpl::SetPen( const wxPen& pen )
 
 void wxGtkPrinterDCImpl::SetBrush( const wxBrush& brush )
 {
-    if (!brush.Ok()) return;
+    if (!brush.IsOk()) return;
 
     m_brush = brush;
 
@@ -2149,8 +2142,8 @@ void wxGtkPrinterDCImpl::DoGetTextExtent(const wxString& string, wxCoord *width,
     {
         // scale the font and apply it
         PangoFontDescription *desc = theFont->GetNativeFontInfo()->description;
-        float size = pango_font_description_get_size(desc);
-        size = size * GetFontPointSizeAdjustment(72.0);
+        oldSize = pango_font_description_get_size(desc);
+        const float size = oldSize * GetFontPointSizeAdjustment(72.0);
         pango_font_description_set_size(desc, (gint)size);
 
         pango_layout_set_font_description(m_layout, desc);

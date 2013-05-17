@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     24/09/2006
-// Id:          $Id: animate.cpp 58954 2009-02-16 21:14:12Z FM $
+// Id:          $Id: animate.cpp 70756 2012-02-29 18:29:31Z PC $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -233,7 +233,6 @@ bool wxAnimationCtrl::Create( wxWindow *parent, wxWindowID id,
 
     m_widget = gtk_image_new();
     g_object_ref(m_widget);
-    gtk_widget_show(m_widget);
 
     m_parent->DoAddChild( this );
 

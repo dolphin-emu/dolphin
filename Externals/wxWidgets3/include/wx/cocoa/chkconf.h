@@ -3,7 +3,7 @@
  * Purpose:     wxCocoa-specific config settings checks
  * Author:      Vadim Zeitlin
  * Created:     2008-09-11
- * RCS-ID:      $Id: chkconf.h 55546 2008-09-11 11:20:33Z VZ $
+ * RCS-ID:      $Id: chkconf.h 67497 2011-04-15 19:18:34Z DS $
  * Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */
@@ -19,4 +19,4 @@
 #undef wxUSE_LOG_DIALOG
 #define wxUSE_LOG_DIALOG 0
 
-#endif // _WX_COCOA_CHKCONF_H_
+#endif /* _WX_COCOA_CHKCONF_H_ */

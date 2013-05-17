@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     15/04/2006
-// RCS-ID:      $Id: fontpickercmn.cpp 58718 2009-02-07 18:59:25Z VZ $
+// RCS-ID:      $Id: fontpickercmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ void wxFontPickerCtrl::UpdatePickerFromTextCtrl()
     //     string returned by wxFont::GetNativeFontInfoDesc() and not
     //     the user-friendly one returned by wxFont::GetNativeFontInfoUserDesc()
     wxFont f = String2Font(m_text->GetValue());
-    if (!f.Ok())
+    if (!f.IsOk())
         return;     // invalid user input
 
     if (M_PICKER->GetSelectedFont() != f)

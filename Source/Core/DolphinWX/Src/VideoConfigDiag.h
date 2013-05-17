@@ -20,6 +20,7 @@
 #include <wx/spinctrl.h>
 
 #include "MsgHandler.h"
+#include "WxUtils.h"
 
 template <typename W>
 class BoolSetting : public W
@@ -99,7 +100,7 @@ protected:
 			else
 			{
 				// Select current backend again
-				choice_backend->SetStringSelection(wxString::FromAscii(g_video_backend->GetName().c_str()));
+				choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName()));
 			}
 		}
 
@@ -112,7 +113,7 @@ protected:
 	void Event_ProgressiveScan(wxCommandEvent &ev)
 	{
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", ev.GetInt());
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive = ev.GetInt();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive = ev.IsChecked();
 
 		ev.Skip();
 	}
@@ -120,12 +121,7 @@ protected:
 	void Event_Stc(wxCommandEvent &ev)
 	{
 		int samples[] = { 0, 512, 128 };
-		if (ev.GetInt() < 3)
-		{
-			vconfig.iSafeTextureCache_ColorSamples = samples[ev.GetInt()];
-			vconfig.bSafeTextureCache = true;
-		}
-		else vconfig.bSafeTextureCache = false;
+		vconfig.iSafeTextureCache_ColorSamples = samples[ev.GetInt()];
 
 		ev.Skip();
 	}
@@ -134,7 +130,7 @@ protected:
 	{
 		const int sel = ev.GetInt();
 		if (sel)
-			vconfig.sPostProcessingShader = ev.GetString().mb_str();
+			vconfig.sPostProcessingShader = WxStrToStr(ev.GetString());
 		else
 			vconfig.sPostProcessingShader.clear();
 

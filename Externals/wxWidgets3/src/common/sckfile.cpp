@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     20/07/97
-// RCS-ID:      $Id: sckfile.cpp 58137 2009-01-16 15:08:13Z FM $
+// RCS-ID:      $Id: sckfile.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ wxFileProto::~wxFileProto()
 wxInputStream *wxFileProto::GetInputStream(const wxString& path)
 {
     wxFileInputStream *retval = new wxFileInputStream(wxURI::Unescape(path));
-    if ( retval->Ok() )
+    if ( retval->IsOk() )
     {
         m_lastError = wxPROTO_NOERR;
         return retval;

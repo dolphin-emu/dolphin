@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Stefan Csomor
-// RCS-ID:      $Id: graphics.h 66514 2011-01-01 11:10:35Z SC $
+// RCS-ID:      $Id: graphics.h 69485 2011-10-20 04:49:12Z RD $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -19,12 +19,27 @@
 #include "wx/geometry.h"
 #include "wx/dynarray.h"
 #include "wx/dc.h"
+#include "wx/image.h"
 #include "wx/vector.h"
 
 enum wxAntialiasMode
 {
     wxANTIALIAS_NONE, // should be 0
-    wxANTIALIAS_DEFAULT,
+    wxANTIALIAS_DEFAULT
+};
+
+enum wxInterpolationQuality
+{
+    // default interpolation
+    wxINTERPOLATION_DEFAULT,
+    // no interpolation
+    wxINTERPOLATION_NONE, 
+    // fast interpolation, suited for interactivity
+    wxINTERPOLATION_FAST,
+    // better quality
+    wxINTERPOLATION_GOOD,
+    // best quality, not suited for interactivity
+    wxINTERPOLATION_BEST
 };
 
 enum wxCompositionMode
@@ -35,6 +50,7 @@ enum wxCompositionMode
     // classic Porter-Duff compositions
     // http://keithp.com/~keithp/porterduff/p253-porter.pdf
 
+    wxCOMPOSITION_INVALID = -1, /* indicates invalid/unsupported mode */
     wxCOMPOSITION_CLEAR, /* R = 0 */
     wxCOMPOSITION_SOURCE, /* R = S */
     wxCOMPOSITION_OVER, /* R = S + D*(1 - Sa) */
@@ -50,7 +66,7 @@ enum wxCompositionMode
     wxCOMPOSITION_XOR, /* R = S*(1 - Da) + D*(1 - Sa) */
 
     // mathematical compositions
-    wxCOMPOSITION_ADD, /* R = S + D */
+    wxCOMPOSITION_ADD /* R = S + D */
 };
 
 class WXDLLIMPEXP_FWD_CORE wxWindowDC;
@@ -151,6 +167,14 @@ class WXDLLIMPEXP_CORE wxGraphicsBitmap : public wxGraphicsObject
 public:
     wxGraphicsBitmap() {}
     virtual ~wxGraphicsBitmap() {}
+
+    // Convert bitmap to wxImage: this is more efficient than converting to
+    // wxBitmap first and then to wxImage and also works without X server
+    // connection under Unix that wxBitmap requires.
+#if wxUSE_IMAGE
+    wxImage ConvertToImage() const;
+#endif // wxUSE_IMAGE
+
 private:
     DECLARE_DYNAMIC_CLASS(wxGraphicsBitmap)
 };
@@ -410,6 +434,13 @@ public:
 
     static wxGraphicsContext* Create( wxWindow* window );
 
+#if wxUSE_IMAGE
+    // Create a context for drawing onto a wxImage. The image life time must be
+    // greater than that of the context itself as when the context is destroyed
+    // it will copy its contents to the specified image.
+    static wxGraphicsContext* Create(wxImage& image);
+#endif // wxUSE_IMAGE
+
     // create a context that can be used for measuring texts only, no drawing allowed
     static wxGraphicsContext * Create();
 
@@ -459,11 +490,18 @@ public:
                               wxDouble xc, wxDouble yc, wxDouble radius,
                               const wxGraphicsGradientStops& stops) const;
 
-    // sets the font
+    // creates a font
     virtual wxGraphicsFont CreateFont( const wxFont &font , const wxColour &col = *wxBLACK ) const;
+    virtual wxGraphicsFont CreateFont(double sizeInPixels,
+                                      const wxString& facename,
+                                      int flags = wxFONTFLAG_DEFAULT,
+                                      const wxColour& col = *wxBLACK) const;
 
     // create a native bitmap representation
     virtual wxGraphicsBitmap CreateBitmap( const wxBitmap &bitmap ) const;
+#if wxUSE_IMAGE
+    wxGraphicsBitmap CreateBitmapFromImage(const wxImage& image) const;
+#endif // wxUSE_IMAGE
 
     // create a native bitmap representation
     virtual wxGraphicsBitmap CreateSubBitmap( const wxGraphicsBitmap &bitmap, wxDouble x, wxDouble y, wxDouble w, wxDouble h  ) const;
@@ -496,6 +534,12 @@ public:
     // sets the antialiasing mode, returns true if it supported
     virtual bool SetAntialiasMode(wxAntialiasMode antialias) = 0;
 
+    // returns the current interpolation quality
+    virtual wxInterpolationQuality GetInterpolationQuality() const { return m_interpolation; }
+    
+    // sets the interpolation quality, returns true if it supported
+    virtual bool SetInterpolationQuality(wxInterpolationQuality interpolation) = 0;
+    
     // returns the current compositing operator
     virtual wxCompositionMode GetCompositionMode() const { return m_composition; }
 
@@ -503,7 +547,13 @@ public:
     virtual bool SetCompositionMode(wxCompositionMode op) = 0;
 
     // returns the size of the graphics context in device coordinates
-    virtual void GetSize( wxDouble* width, wxDouble* height);
+    void GetSize(wxDouble* width, wxDouble* height)
+    {
+        if ( width )
+            *width = m_width;
+        if ( height )
+            *height = m_height;
+    }
 
     // returns the resolution of the graphics context in device points per inch
     virtual void GetDPI( wxDouble* dpiX, wxDouble* dpiY);
@@ -636,14 +686,26 @@ public:
 
     // helper to determine if a 0.5 offset should be applied for the drawing operation
     virtual bool ShouldOffset() const { return false; }
-
+    
+    // indicates whether the context should try to offset for pixel boundaries, this only makes sense on 
+    // bitmap devices like screen, by default this is turned off
+    virtual void EnableOffset(bool enable = true);
+    
+    void DisableOffset() { EnableOffset(false); }
+    bool OffsetEnabled() { return m_enableOffset; }
+    
 protected:
+    // These fields must be initialized in the derived class ctors.
+    wxDouble m_width,
+             m_height;
 
     wxGraphicsPen m_pen;
     wxGraphicsBrush m_brush;
     wxGraphicsFont m_font;
     wxAntialiasMode m_antialias;
     wxCompositionMode m_composition;
+    wxInterpolationQuality m_interpolation;
+    bool m_enableOffset;
 
 protected:
     // implementations of overloaded public functions: we use different names
@@ -733,6 +795,10 @@ public:
 
     virtual wxGraphicsContext * CreateContext( wxWindow* window ) = 0;
 
+#if wxUSE_IMAGE
+    virtual wxGraphicsContext * CreateContextFromImage(wxImage& image) = 0;
+#endif // wxUSE_IMAGE
+
     // create a context that can be used for measuring texts only, no drawing allowed
     virtual wxGraphicsContext * CreateMeasuringContext() = 0;
 
@@ -767,9 +833,17 @@ public:
 
     // sets the font
     virtual wxGraphicsFont CreateFont( const wxFont &font , const wxColour &col = *wxBLACK ) = 0;
+    virtual wxGraphicsFont CreateFont(double sizeInPixels,
+                                      const wxString& facename,
+                                      int flags = wxFONTFLAG_DEFAULT,
+                                      const wxColour& col = *wxBLACK) = 0;
 
     // create a native bitmap representation
     virtual wxGraphicsBitmap CreateBitmap( const wxBitmap &bitmap ) = 0;
+#if wxUSE_IMAGE
+    virtual wxGraphicsBitmap CreateBitmapFromImage(const wxImage& image) = 0;
+    virtual wxImage CreateImageFromBitmap(const wxGraphicsBitmap& bmp) = 0;
+#endif // wxUSE_IMAGE
 
     // create a graphics bitmap from a native bitmap
     virtual wxGraphicsBitmap CreateBitmapFromNativeBitmap( void* bitmap ) = 0;
@@ -782,6 +856,16 @@ private:
     DECLARE_ABSTRACT_CLASS(wxGraphicsRenderer)
 };
 
-#endif
+
+#if wxUSE_IMAGE
+inline
+wxImage wxGraphicsBitmap::ConvertToImage() const
+{
+    wxGraphicsRenderer* renderer = GetRenderer();
+    return renderer ? renderer->CreateImageFromBitmap(*this) : wxNullImage;
+}
+#endif // wxUSE_IMAGE
+
+#endif // wxUSE_GRAPHICS_CONTEXT
 
 #endif // _WX_GRAPHICS_H_

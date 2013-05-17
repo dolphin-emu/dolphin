@@ -3,7 +3,7 @@
 // Purpose:     wxIconBundle
 // Author:      Mattia Barbon, Vadim Zeitlin
 // Created:     23.03.2002
-// RCS-ID:      $Id: iconbndl.cpp 66374 2010-12-14 18:43:49Z VZ $
+// RCS-ID:      $Id: iconbndl.cpp 70455 2012-01-24 22:17:47Z VZ $
 // Copyright:   (c) Mattia barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -163,7 +163,7 @@ void wxIconBundle::AddIcon(const wxString& file, wxBitmapType type)
     if ( type == wxBITMAP_TYPE_ICON_RESOURCE )
     {
         wxIcon tmp(file, type);
-        if (tmp.Ok())
+        if (tmp.IsOk())
         {
             AddIcon(tmp);
             return;
@@ -193,49 +193,91 @@ void wxIconBundle::AddIcon(wxInputStream& stream, wxBitmapType type)
 
 #endif // wxUSE_STREAMS && wxUSE_IMAGE
 
-wxIcon wxIconBundle::GetIcon(const wxSize& size) const
+wxIcon wxIconBundle::GetIcon(const wxSize& size, int flags) const
 {
+    wxASSERT( size == wxDefaultSize || (size.x >= 0 && size.y > 0) );
+
+    // We need the standard system icon size when using FALLBACK_SYSTEM.
+    wxCoord sysX = 0,
+            sysY = 0;
+    if ( flags & FALLBACK_SYSTEM )
+    {
+        sysX = wxSystemSettings::GetMetric(wxSYS_ICON_X);
+        sysY = wxSystemSettings::GetMetric(wxSYS_ICON_Y);
+    }
+
+    // If size == wxDefaultSize, we use system default icon size by convention.
+    wxCoord sizeX = size.x;
+    wxCoord sizeY = size.y;
+    if ( size == wxDefaultSize )
+    {
+        wxASSERT_MSG( flags == FALLBACK_SYSTEM,
+                      wxS("Must have valid size if not using FALLBACK_SYSTEM") );
+
+        sizeX = sysX;
+        sizeY = sysY;
+    }
+
+    // Iterate over all icons searching for the exact match or the closest icon
+    // for FALLBACK_NEAREST_LARGER.
+    wxIcon iconBest;
+    int bestDiff = 0;
+    bool bestIsLarger = false;
+    bool bestIsSystem = false;
+
     const size_t count = GetIconCount();
 
-    // optimize for the common case of icon bundles containing one icon only
-    wxIcon iconBest;
-    switch ( count )
+    const wxIconArray& iconArray = M_ICONBUNDLEDATA->m_icons;
+    for ( size_t i = 0; i < count; i++ )
     {
-        case 0:
-            // nothing to do, iconBest is already invalid
+        const wxIcon& icon = iconArray[i];
+        if ( !icon.IsOk() )
+            continue;
+        wxCoord sx = icon.GetWidth(),
+                sy = icon.GetHeight();
+
+        // Exact match ends search immediately in any case.
+        if ( sx == sizeX && sy == sizeY )
+        {
+            iconBest = icon;
             break;
+        }
 
-        case 1:
-            iconBest = M_ICONBUNDLEDATA->m_icons[0];
-            break;
-
-        default:
-            // there is more than one icon, find the best match:
-            wxCoord sysX = wxSystemSettings::GetMetric( wxSYS_ICON_X ),
-                    sysY = wxSystemSettings::GetMetric( wxSYS_ICON_Y );
-
-            const wxIconArray& iconArray = M_ICONBUNDLEDATA->m_icons;
-            for ( size_t i = 0; i < count; i++ )
+        if ( flags & FALLBACK_SYSTEM )
+        {
+            if ( sx == sysX && sy == sysY )
             {
-                const wxIcon& icon = iconArray[i];
-                wxCoord sx = icon.GetWidth(),
-                        sy = icon.GetHeight();
-
-                // if we got an icon of exactly the requested size, we're done
-                if ( sx == size.x && sy == size.y )
-                {
-                    iconBest = icon;
-                    break;
-                }
-
-                // the best icon is by default (arbitrarily) the first one but
-                // if we find a system-sized icon, take it instead
-                if ((sx == sysX && sy == sysY) || !iconBest.IsOk())
-                    iconBest = icon;
+                iconBest = icon;
+                bestIsSystem = true;
+                continue;
             }
+        }
+
+        if ( !bestIsSystem && (flags & FALLBACK_NEAREST_LARGER) )
+        {
+            bool iconLarger = (sx >= sizeX) && (sy >= sizeY);
+            int iconDiff = abs(sx - sizeX) + abs(sy - sizeY);
+
+            // Use current icon as candidate for the best icon, if either:
+            // - we have no candidate yet
+            // - we have no candidate larger than desired size and current icon is
+            // - current icon is closer to desired size than candidate
+            if ( !iconBest.IsOk() ||
+                    (!bestIsLarger && iconLarger) ||
+                        (iconLarger && (iconDiff < bestDiff)) )
+            {
+                iconBest = icon;
+                bestIsLarger = iconLarger;
+                bestDiff = iconDiff;
+                continue;
+            }
+        }
     }
 
 #if defined( __WXMAC__ ) && wxOSX_USE_CARBON
+    if (!iconBest.IsOk())
+        return wxNullIcon;
+
     return wxIcon(iconBest.GetHICON(), size);
 #else
     return iconBest;
@@ -244,14 +286,7 @@ wxIcon wxIconBundle::GetIcon(const wxSize& size) const
 
 wxIcon wxIconBundle::GetIconOfExactSize(const wxSize& size) const
 {
-    wxIcon icon = GetIcon(size);
-    if ( icon.Ok() &&
-            (icon.GetWidth() != size.x || icon.GetHeight() != size.y) )
-    {
-        icon = wxNullIcon;
-    }
-
-    return icon;
+    return GetIcon(size, FALLBACK_NONE);
 }
 
 void wxIconBundle::AddIcon(const wxIcon& icon)
@@ -267,7 +302,7 @@ void wxIconBundle::AddIcon(const wxIcon& icon)
     for ( size_t i = 0; i < count; ++i )
     {
         wxIcon& tmp = iconArray[i];
-        if ( tmp.Ok() &&
+        if ( tmp.IsOk() &&
                 tmp.GetWidth() == icon.GetWidth() &&
                 tmp.GetHeight() == icon.GetHeight() )
         {

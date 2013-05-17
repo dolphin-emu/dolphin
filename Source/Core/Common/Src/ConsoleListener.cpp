@@ -1,20 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <algorithm>  // min
 #include <string> // System: To be able to add strings with "+"
@@ -35,6 +21,9 @@ ConsoleListener::ConsoleListener()
 {
 #ifdef _WIN32
 	hConsole = NULL;
+	bUseColor = true;
+#else
+	bUseColor = isatty(fileno(stdout));
 #endif
 }
 
@@ -58,7 +47,7 @@ void ConsoleListener::Open(bool Hidden, int Width, int Height, const char *Title
 		// Save the window handle that AllocConsole() created
 		hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 		// Set the console window title
-		SetConsoleTitle(Title);
+		SetConsoleTitle(UTF8ToTStr(Title).c_str());
 		// Set letter space
 		LetterSpace(80, 4000);
 		//MoveWindow(GetConsoleWindow(), 200,200, 800,800, true);
@@ -192,7 +181,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 
 	static const int MAX_BYTES = 1024 * 16;
 
-	std::vector<std::array<CHAR, MAX_BYTES>> Str;
+	std::vector<std::array<TCHAR, MAX_BYTES>> Str;
 	std::vector<std::array<WORD, MAX_BYTES>> Attr;
 
 	// ReadConsoleOutputAttribute seems to have a limit at this level
@@ -224,7 +213,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	LetterSpace(LBufWidth, LBufHeight);
 
 
-	ClearScreen(true);	
+	ClearScreen(true);
 	coordScreen.Y = 0;
 	coordScreen.X = 0;
 	DWORD cCharsWritten = 0;
@@ -267,7 +256,7 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 	*/
 	DWORD cCharsWritten;
 	WORD Color;
-	
+
 	switch (Level)
 	{
 	case NOTICE_LEVEL: // light green
@@ -299,7 +288,28 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 	SetConsoleTextAttribute(hConsole, Color);
 	WriteConsole(hConsole, Text, (DWORD)strlen(Text), &cCharsWritten, NULL);
 #else
-	fprintf(stderr, "%s", Text);
+	char ColorAttr[16] = "";
+	char ResetAttr[16] = "";
+
+	if (bUseColor)
+	{
+		strcpy(ResetAttr, "\033[0m");
+		switch (Level)
+		{
+		case NOTICE_LEVEL: // light green
+			strcpy(ColorAttr, "\033[92m");
+			break;
+		case ERROR_LEVEL: // light red
+			strcpy(ColorAttr, "\033[91m");
+			break;
+		case WARNING_LEVEL: // light yellow
+			strcpy(ColorAttr, "\033[93m");
+			break;
+		default:
+			break;
+		}
+	}
+	fprintf(stderr, "%s%s%s", ColorAttr, Text, ResetAttr);
 #endif
 }
 // Clear console screen
@@ -310,9 +320,9 @@ void ConsoleListener::ClearScreen(bool Cursor)
 	DWORD cCharsWritten; 
 	CONSOLE_SCREEN_BUFFER_INFO csbi; 
 	DWORD dwConSize; 
-	
+
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); 
-	
+
 	GetConsoleScreenBufferInfo(hConsole, &csbi); 
 	dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
 	// Write space to the entire console

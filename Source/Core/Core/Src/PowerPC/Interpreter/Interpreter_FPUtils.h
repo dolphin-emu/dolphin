@@ -1,19 +1,6 @@
-// Copyright (C) 2009 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _INTERPRETER_FPUTILS_H
 #define _INTERPRETER_FPUTILS_H
@@ -70,8 +57,8 @@ inline void SetFI(int FI)
 {
 	if (FI)
 	{
-		SetFPException(FPSCR_XX);		
-	}	
+		SetFPException(FPSCR_XX);
+	}
 	FPSCR.FI = FI;
 }
 
@@ -112,13 +99,13 @@ inline double ForceDouble(double d)
 // also, these may be used to set flags like FR, FI, OX, UX
 
 inline double NI_mul(const double a, const double b)
-{	
+{
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
 	double t = a * b;
 	if (t != t)
-	{		
+	{
 		SetFPException(FPSCR_VXIMZ);
 		return PPC_NAN;
 	}
@@ -248,7 +235,7 @@ inline u32 ConvertToSingleFTZ(u64 x)
 	}
 	else
 	{
-		return (x >> 32) & 0x80000000;		
+		return (x >> 32) & 0x80000000;
 	}
 }
 

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <windows.h>
 
@@ -36,6 +23,9 @@ WNDCLASSEX wndClass;
 const TCHAR m_szClassName[] = _T("DolphinEmuWnd");
 int g_winstyle;
 static volatile bool s_sizing;
+static const int TITLE_TEXT_BUF_SIZE = 1024;
+TCHAR m_titleTextBuffer[TITLE_TEXT_BUF_SIZE];
+static const int WM_SETTEXT_CUSTOM = WM_USER + WM_SETTEXT;
 
 bool IsSizing()
 {
@@ -77,7 +67,8 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 	static bool mouseLookEnabled = false;
 	static bool mouseMoveEnabled = false;
 	static float lastMouse[2];
-	POINT point;	
+	POINT point;
+
 	switch(iMsg)
 	{
 	case WM_USER_KEYDOWN:
@@ -109,14 +100,16 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 		break;
 
 	case WM_MOUSEMOVE:
-		if (mouseLookEnabled) {
+		if (mouseLookEnabled)
+		{
 			GetCursorPos(&point);
 			VertexShaderManager::RotateView((point.x - lastMouse[0]) / 200.0f, (point.y - lastMouse[1]) / 200.0f);
 			lastMouse[0] = (float)point.x;
 			lastMouse[1] = (float)point.y;
 		}
 
-		if (mouseMoveEnabled) {
+		if (mouseMoveEnabled)
+		{
 			GetCursorPos(&point);
 			VertexShaderManager::TranslateView((point.x - lastMouse[0]) / 50.0f, (point.y - lastMouse[1]) / 50.0f);
 			lastMouse[0] = (float)point.x;
@@ -130,7 +123,7 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 		lastMouse[1] = (float)point.y;
 		mouseLookEnabled= true;
 		break;
-	case WM_MBUTTONDOWN:		
+	case WM_MBUTTONDOWN:
 		GetCursorPos(&point);
 		lastMouse[0] = (float)point.x;
 		lastMouse[1] = (float)point.y;
@@ -170,8 +163,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		s_sizing = false;
 		break;
 
-	/* Post the mouse events to the main window, it's nessesary because in difference to the
-	   keyboard inputs these events only appear here, not in the parent window or any other WndProc()*/
+	/* Post the mouse events to the main window, it's necessary, because the difference between the
+	   keyboard inputs is that these events only appear here, not in the parent window or any other WndProc()*/
 	case WM_LBUTTONDOWN:
 		if(g_ActiveConfig.backend_info.bSupports3DVision && g_ActiveConfig.b3DVision)
 		{
@@ -202,10 +195,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			OnKeyDown(lParam);
 			FreeLookInput((u32)wParam, lParam);
 		}
-		else if (wParam == WIIMOTE_DISCONNECT)
-		{
-			PostMessage(m_hParent, WM_USER, wParam, lParam);
-		}
 		break;
 
 	// Called when a screensaver wants to show up while this window is active
@@ -224,6 +213,10 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	case WM_SETCURSOR:
 		PostMessage(m_hParent, WM_USER, WM_USER_SETCURSOR, 0);
 		return true;
+
+	case WM_SETTEXT_CUSTOM:
+		SendMessage(hWnd, WM_SETTEXT, wParam, lParam);
+		break;
 
 	default:
 		return DefWindowProc(hWnd, iMsg, wParam, lParam);
@@ -244,7 +237,7 @@ void OSDMenu(WPARAM wParam)
 		OSDChoice = 1;
 		// Toggle native resolution
 		g_Config.iEFBScale = g_Config.iEFBScale + 1;
-		if (g_Config.iEFBScale > 4) g_Config.iEFBScale = 0;
+		if (g_Config.iEFBScale > SCALE_4X) g_Config.iEFBScale = SCALE_AUTO;
 		break;
 	case '4':
 		OSDChoice = 2;
@@ -272,11 +265,6 @@ void OSDMenu(WPARAM wParam)
 	case '6':
 		OSDChoice = 4;
 		g_Config.bDisableFog = !g_Config.bDisableFog;
-		break;
-	case '7':
-		// TODO: Not implemented in the D3D backends, yet
-		OSDChoice = 5;
-		g_Config.bDisableLighting = !g_Config.bDisableLighting;
 		break;
 	}
 }
@@ -355,6 +343,29 @@ void SetSize(int width, int height)
 	rc.top = (1024 - h)/2;
 	rc.bottom = rc.top + h;
 	MoveWindow(m_hWnd, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, TRUE);
+}
+
+void SetWindowText(const TCHAR* text)
+{
+	// the simple way.
+	// we don't do this because it's a blocking call and the GUI thread might be waiting for us.
+	//::SetWindowText(m_hWnd, text);
+
+	// copy to m_titleTextBuffer in such a way that
+	// it remains null-terminated and without garbage data at every point in time,
+	// in case another thread reads it while we're doing this.
+	for (int i = 0; i < TITLE_TEXT_BUF_SIZE-1; ++i)
+	{
+		m_titleTextBuffer[i+1] = 0;
+		TCHAR c = text[i];
+		m_titleTextBuffer[i] = c;
+		if (!c)
+			break;
+	}
+
+	// the OS doesn't allow posting WM_SETTEXT,
+	// so we post our own message and convert it to that in WndProc
+	PostMessage(m_hWnd, WM_SETTEXT_CUSTOM, 0, (LPARAM)m_titleTextBuffer);
 }
 
 }

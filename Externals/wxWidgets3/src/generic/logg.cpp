@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99 (extracted from src/common/log.cpp)
-// RCS-ID:      $Id: logg.cpp 66503 2010-12-31 17:38:51Z VZ $
+// RCS-ID:      $Id: logg.cpp 70671 2012-02-22 17:35:21Z JS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -73,7 +73,7 @@
     #include <wtime.h>
 #endif
 
-#include "wx/datetime.h"
+#include "wx/time.h"
 
 // the suffix we add to the button to show that the dialog can be expanded
 #define EXPAND_SUFFIX wxT(" >>")
@@ -90,7 +90,6 @@
 // allows to exclude the usage of wxDateTime
 static wxString TimeStamp(const wxString& format, time_t t)
 {
-#if wxUSE_DATETIME
     wxChar buf[4096];
     struct tm tm;
     if ( !wxStrftime(buf, WXSIZEOF(buf), format, wxLocaltime_r(&t, &tm)) )
@@ -99,9 +98,6 @@ static wxString TimeStamp(const wxString& format, time_t t)
         wxFAIL_MSG(wxT("strftime() failed"));
     }
     return wxString(buf);
-#else // !wxUSE_DATETIME
-    return wxEmptyString;
-#endif // wxUSE_DATETIME/!wxUSE_DATETIME
 }
 
 
@@ -521,7 +517,7 @@ wxLogFrame::wxLogFrame(wxWindow *pParent, wxLogWindow *log, const wxString& szTi
     wxMenuBar *pMenuBar = new wxMenuBar;
     wxMenu *pMenu = new wxMenu;
 #if CAN_SAVE_FILES
-    pMenu->Append(Menu_Save,  _("&Save..."), _("Save log contents to file"));
+    pMenu->Append(Menu_Save,  _("Save &As..."), _("Save log contents to file"));
 #endif // CAN_SAVE_FILES
     pMenu->Append(Menu_Clear, _("C&lear"), _("Clear the log contents"));
     pMenu->AppendSeparator();
@@ -726,7 +722,7 @@ wxLogDialog::wxLogDialog(wxWindow *parent,
     bool isPda = (wxSystemSettings::GetScreenType() <= wxSYS_SCREEN_PDA);
 
     // create the controls which are always shown and layout them: we use
-    // sizers even though our window is not resizeable to calculate the size of
+    // sizers even though our window is not resizable to calculate the size of
     // the dialog properly
     wxBoxSizer *sizerTop = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *sizerAll = new wxBoxSizer(isPda ? wxVERTICAL : wxHORIZONTAL);
@@ -757,11 +753,17 @@ wxLogDialog::wxLogDialog(wxWindow *parent,
 
     // add the details pane
 #ifndef __SMARTPHONE__
+
+#if wxUSE_COLLPANE
     wxCollapsiblePane * const
         collpane = new wxCollapsiblePane(this, wxID_ANY, ms_details);
     sizerTop->Add(collpane, wxSizerFlags(1).Expand().Border());
 
     wxWindow *win = collpane->GetPane();
+#else
+    wxPanel* win = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                               wxBORDER_NONE);
+#endif
     wxSizer * const paneSz = new wxBoxSizer(wxVERTICAL);
 
     CreateDetailsControls(win);
@@ -850,7 +852,7 @@ void wxLogDialog::CreateDetailsControls(wxWindow *parent)
 
         // This may very well fail if there are insufficient colours available.
         // Degrade gracefully.
-        if ( !bmp.Ok() )
+        if ( !bmp.IsOk() )
         {
             loadedIcons = false;
 

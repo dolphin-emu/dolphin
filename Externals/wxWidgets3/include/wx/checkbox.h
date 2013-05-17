@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.09.00
-// RCS-ID:      $Id: checkbox.h 65942 2010-10-28 14:23:09Z VZ $
+// RCS-ID:      $Id: checkbox.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -40,18 +40,6 @@
  * This style can only be used with 3 state checkboxes.
  */
 #define wxCHK_ALLOW_3RD_STATE_FOR_USER 0x2000
-
-/*
- * The possible states of a 3-state checkbox (Compatible
- * with the 2-state checkbox).
- */
-enum wxCheckBoxState
-{
-    wxCHK_UNCHECKED,
-    wxCHK_CHECKED,
-    wxCHK_UNDETERMINED /* 3-state checkbox only */
-};
-
 
 extern WXDLLIMPEXP_DATA_CORE(const char) wxCheckBoxNameStr[];
 
@@ -196,8 +184,6 @@ private:
 #elif defined(__WXPM__)
     #undef wxHAS_3STATE_CHECKBOX
     #include "wx/os2/checkbox.h"
-#elif defined(__WXPALMOS__)
-    #include "wx/palmos/checkbox.h"
 #endif
 
 #endif // wxUSE_CHECKBOX

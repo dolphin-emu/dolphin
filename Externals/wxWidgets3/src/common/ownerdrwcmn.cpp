@@ -4,7 +4,7 @@
 // Author:      Marcin Malich
 // Modified by:
 // Created:     2009-09-22
-// RCS-ID:      $Id: ownerdrwcmn.cpp 63223 2010-01-23 13:21:36Z VZ $
+// RCS-ID:      $Id: ownerdrwcmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2009 Marcin Malich <me@malcom.pl>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,11 +93,11 @@ void wxOwnerDrawnBase::GetColourToUse(wxODStatus stat, wxColour& colText, wxColo
         }
         else
         {
-            colText = m_colText.Ok() ? m_colText
+            colText = m_colText.IsOk() ? m_colText
                                      : wxSystemSettings::GetColour(wxSYS_COLOUR_MENUTEXT);
         }
 
-        colBack = m_colBack.Ok() ? m_colBack
+        colBack = m_colBack.IsOk() ? m_colBack
                                  : wxSystemSettings::GetColour(wxSYS_COLOUR_MENU);
     }
 }

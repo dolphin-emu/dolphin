@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2008-06-20
-// RCS-ID:      $Id: window.mm 67243 2011-03-19 08:36:23Z SC $
+// RCS-ID:      $Id: window.mm 69754 2011-11-14 07:52:33Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -496,11 +496,13 @@ void wxWidgetIPhoneImpl::SetLabel(const wxString& title, wxFontEncoding encoding
         wxCFStringRef cf( title , encoding );
         [m_osxView setTitle:cf.AsNSString() forState:UIControlStateNormal ];
     }
+#if 0 // nonpublic API problems
     else if ( [m_osxView respondsToSelector:@selector(setStringValue:) ] )
     {
         wxCFStringRef cf( title , encoding );
         [m_osxView setStringValue:cf.AsNSString()];
     }
+#endif
 }
 
 
@@ -595,7 +597,10 @@ void wxWidgetIPhoneImpl::SetControlSize( wxWindowVariant variant )
 
 float wxWidgetIPhoneImpl::GetContentScaleFactor() const 
 {
-    return [m_osxView contentScaleFactor];
+    if ( [m_osxView respondsToSelector:@selector(contentScaleFactor) ])
+        return [m_osxView contentScaleFactor];
+    else 
+        return 1.0;
 }
 
 void wxWidgetIPhoneImpl::SetFont( const wxFont & font , const wxColour& foreground , long windowStyle, bool ignoreBlack )

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.cpp 63932 2010-04-10 17:47:29Z SC $
+// RCS-ID:      $Id: dcclient.cpp 67508 2011-04-16 16:59:44Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,7 +68,9 @@ wxWindowDCImpl::wxWindowDCImpl( wxDC *owner, wxWindow *window )
         if ( window->MacGetLeftBorderSize() != 0 || window->MacGetTopBorderSize() != 0 )
             CGContextTranslateCTM( cg , -window->MacGetLeftBorderSize() , -window->MacGetTopBorderSize() );
 
-        SetGraphicsContext( wxGraphicsContext::CreateFromNative( cg ) );
+        wxGraphicsContext* context = wxGraphicsContext::CreateFromNative( cg );
+        context->EnableOffset(true);
+        SetGraphicsContext( context );
     }
     DoSetClippingRegion( 0 , 0 , m_width , m_height ) ;
 

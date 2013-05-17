@@ -4,7 +4,7 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     09/25/2004
-// RCS-ID:      $Id: taskbar.cpp 64656 2010-06-20 18:18:23Z VZ $
+// RCS-ID:      $Id: taskbar.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2004 Ryan Norton
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -381,7 +381,7 @@ bool wxDockTaskBarIcon::SetIcon(const wxIcon& icon, const wxString& WXUNUSED(too
     // convert the wxIcon into a wxBitmap so we can perform some
     // wxBitmap operations with it
     wxBitmap bmp( icon );
-    wxASSERT( bmp.Ok() );
+    wxASSERT( bmp.IsOk() );
 
     // get the CGImageRef for the wxBitmap:
     // OSX builds only, but then the dock only exists in OSX

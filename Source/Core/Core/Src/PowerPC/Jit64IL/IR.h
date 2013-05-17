@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef IR_H
 #define IR_H
@@ -165,10 +152,10 @@ enum Opcode {
 	ShortIdleLoop, // Idle loop seen in homebrew like wii mahjong,
 		       // just a branch
 
-	// used for MMU, at least until someone 
+	// used for exception checking, at least until someone
 	// has a better idea of integrating it
-	FPExceptionCheckStart, FPExceptionCheckEnd,
-	ISIException,
+	FPExceptionCheck, DSIExceptionCheck,
+	ISIException, ExtExceptionCheck, BreakPointCheck,
 	// "Opcode" representing a register too far away to
 	// reference directly; this is a size optimization
 	Tramp,
@@ -276,8 +263,8 @@ public:
 	InstLoc EmitLoadMSR() {
 		return FoldZeroOp(LoadMSR, 0);
 	}
-	InstLoc EmitStoreMSR(InstLoc val) {
-		return FoldUOp(StoreMSR, val);
+	InstLoc EmitStoreMSR(InstLoc val, InstLoc pc) {
+		return FoldBiOp(StoreMSR, val, pc);
 	}
 	InstLoc EmitStoreFPRF(InstLoc value) {
 		return FoldUOp(StoreFPRF, value);
@@ -402,14 +389,20 @@ public:
 	InstLoc EmitSystemCall(InstLoc pc) {
 		return FoldUOp(SystemCall, pc);
 	}
-	InstLoc EmitFPExceptionCheckStart(InstLoc pc) {
-		return EmitUOp(FPExceptionCheckStart, pc);
+	InstLoc EmitFPExceptionCheck(InstLoc pc) {
+		return EmitUOp(FPExceptionCheck, pc);
 	}
-	InstLoc EmitFPExceptionCheckEnd(InstLoc pc) {
-		return EmitUOp(FPExceptionCheckEnd, pc);
+	InstLoc EmitDSIExceptionCheck(InstLoc pc) {
+		return EmitUOp(DSIExceptionCheck, pc);
 	}
 	InstLoc EmitISIException(InstLoc dest) {
 		return EmitUOp(ISIException, dest);
+	}
+	InstLoc EmitExtExceptionCheck(InstLoc pc) {
+		return EmitUOp(ExtExceptionCheck, pc);
+	}
+	InstLoc EmitBreakPointCheck(InstLoc pc) {
+		return EmitUOp(BreakPointCheck, pc);
 	}
 	InstLoc EmitRFIExit() {
 		return FoldZeroOp(RFIExit, 0);

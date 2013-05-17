@@ -2,7 +2,7 @@
 // Name:        src/gtk/dataobj.cpp
 // Purpose:     wxDataObject class
 // Author:      Robert Roebling
-// Id:          $Id: dataobj.cpp 54741 2008-07-21 03:35:15Z VZ $
+// Id:          $Id: dataobj.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -384,12 +384,12 @@ bool wxBitmapDataObject::SetData(size_t size, const void *buf)
 
     m_bitmap = wxBitmap(image);
 
-    return m_bitmap.Ok();
+    return m_bitmap.IsOk();
 }
 
 void wxBitmapDataObject::DoConvertToPng()
 {
-    if ( !m_bitmap.Ok() )
+    if ( !m_bitmap.IsOk() )
         return;
 
     wxCHECK_RET( wxImage::FindHandler(wxBITMAP_TYPE_PNG) != NULL,

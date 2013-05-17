@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     10/21/99
-// RCS-ID:      $Id: dataobj.cpp 67174 2011-03-12 15:57:37Z SC $
+// RCS-ID:      $Id: dataobj.cpp 67890 2011-06-08 23:00:36Z SC $
 // Copyright:   (c) 1999 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -534,7 +534,7 @@ bool wxDataObject::HasDataInPasteboard( void * pb )
                     wxDataFormat flavorFormat( (wxDataFormat::NativeFormat) flavorType );
 
                     if ( dataFormat == flavorFormat ||
-                        dataFormat.GetType() == wxDF_UNICODETEXT && flavorFormat.GetType() == wxDF_TEXT )
+                        (dataFormat.GetType() == wxDF_UNICODETEXT && flavorFormat.GetType() == wxDF_TEXT) )
                     {
                         hasData = true;
                     }
@@ -636,7 +636,7 @@ wxBitmapDataObject::wxBitmapDataObject( const wxBitmap& rBitmap )
 {
     Init();
 
-    if (m_bitmap.Ok())
+    if (m_bitmap.IsOk())
     {
         SetBitmap( rBitmap );
     }
@@ -651,7 +651,7 @@ void wxBitmapDataObject::SetBitmap( const wxBitmap& rBitmap )
 {
     Clear();
     wxBitmapDataObjectBase::SetBitmap( rBitmap );
-    if (m_bitmap.Ok())
+    if (m_bitmap.IsOk())
     {
         CGImageRef cgImageRef = (CGImageRef) m_bitmap.CreateCGImage();
 
@@ -742,8 +742,8 @@ bool wxBitmapDataObject::SetData( size_t nSize, const void *pBuf )
     if ( source )
     {
         cgImageRef = CGImageSourceCreateImageAtIndex(source, 0, NULL);
+        CFRelease( source );
     }
-    CFRelease( source );
     CFRelease( data );
 
     if ( cgImageRef )
@@ -756,7 +756,7 @@ bool wxBitmapDataObject::SetData( size_t nSize, const void *pBuf )
         cgImageRef = NULL;
     }
 
-    return m_bitmap.Ok();
+    return m_bitmap.IsOk();
 }
 
 #endif

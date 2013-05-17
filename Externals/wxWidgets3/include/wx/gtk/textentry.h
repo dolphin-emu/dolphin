@@ -3,7 +3,7 @@
 // Purpose:     wxGTK-specific wxTextEntry implementation
 // Author:      Vadim Zeitlin
 // Created:     2007-09-24
-// RCS-ID:      $Id: textentry.h 61834 2009-09-05 12:39:12Z JMS $
+// RCS-ID:      $Id: textentry.h 67509 2011-04-16 17:27:04Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,8 +43,6 @@ public:
     virtual void SetSelection(long from, long to);
     virtual void GetSelection(long *from, long *to) const;
 
-    virtual bool AutoComplete(const wxArrayString& choices);
-
     virtual bool IsEditable() const;
     virtual void SetEditable(bool editable);
 
@@ -59,6 +57,8 @@ protected:
     // margins functions
     virtual bool DoSetMargins(const wxPoint& pt);
     virtual wxPoint DoGetMargins() const;
+
+    virtual bool DoAutoCompleteStrings(const wxArrayString& choices);
 
 private:
     // implement this to return the associated GtkEntry or another widget

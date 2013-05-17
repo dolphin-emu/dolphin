@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 31.08.00: wxScrollHelper allows to implement.
 //              Ron Lee on 10.4.02:  virtual size / auto scrollbars et al.
 // Created:     01/02/97
-// RCS-ID:      $Id: scrlwing.cpp 64877 2010-07-11 10:43:35Z VZ $
+// RCS-ID:      $Id: scrlwing.cpp 70443 2012-01-23 11:28:12Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -385,16 +385,17 @@ void wxScrollHelperBase::SetScrollbars(int pixelsPerUnitX,
                                        int yPos,
                                        bool noRefresh)
 {
-    int xpos, ypos;
+    // Convert positions expressed in scroll units to positions in pixels.
+    int xPosInPixels = (xPos + m_xScrollPosition)*m_xScrollPixelsPerLine,
+        yPosInPixels = (yPos + m_yScrollPosition)*m_yScrollPixelsPerLine;
 
-    CalcUnscrolledPosition(xPos, yPos, &xpos, &ypos);
     bool do_refresh =
     (
       (noUnitsX != 0 && m_xScrollLines == 0) ||
-      (noUnitsX < m_xScrollLines && xpos > pixelsPerUnitX * noUnitsX) ||
+      (noUnitsX < m_xScrollLines && xPosInPixels > pixelsPerUnitX * noUnitsX) ||
 
       (noUnitsY != 0 && m_yScrollLines == 0) ||
-      (noUnitsY < m_yScrollLines && ypos > pixelsPerUnitY * noUnitsY) ||
+      (noUnitsY < m_yScrollLines && yPosInPixels > pixelsPerUnitY * noUnitsY) ||
       (xPos != m_xScrollPosition) ||
       (yPos != m_yScrollPosition)
     );
@@ -1111,7 +1112,7 @@ void wxScrollHelperBase::HandleOnChildFocus(wxChildFocusEvent& event)
     // part of a wxComboCtrl visible and the button would still be outside the
     // scrolled area.  But do so only if the parent fits *entirely* inside the
     // scrolled window. In other situations, such as nested wxPanel or
-    // wxScrolledWindows, the parent might be way to big to fit inside the
+    // wxScrolledWindows, the parent might be way too big to fit inside the
     // scrolled window. If that is the case, then make only the focused window
     // visible
     if ( win->GetParent() != m_targetWindow)

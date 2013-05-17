@@ -2,7 +2,7 @@
 // Name:        src/gtk/frame.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: frame.cpp 66648 2011-01-08 06:42:41Z PC $
+// Id:          $Id: frame.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -271,7 +271,7 @@ void wxFrame::DetachMenuBar()
 #if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
         hildon_window_set_menu(HILDON_WINDOW(m_widget), NULL);
 #else // !wxUSE_LIBHILDON && !wxUSE_LIBHILDON2
-        gtk_widget_ref( m_frameMenuBar->m_widget );
+        g_object_ref( m_frameMenuBar->m_widget );
 
         gtk_container_remove( GTK_CONTAINER(m_mainWidget), m_frameMenuBar->m_widget );
 #endif // wxUSE_LIBHILDON || wxUSE_LIBHILDON2 /!wxUSE_LIBHILDON && !wxUSE_LIBHILDON2
@@ -332,7 +332,7 @@ void wxFrame::SetToolBar(wxToolBar *toolbar)
         {
             // Vertical toolbar and m_wxwindow go into an hbox, inside the
             // vbox (m_mainWidget). hbox is created on demand.
-            GtkWidget* hbox = m_wxwindow->parent;
+            GtkWidget* hbox = gtk_widget_get_parent(m_wxwindow);
             if (!GTK_IS_HBOX(hbox))
             {
                 hbox = gtk_hbox_new(false, 0);

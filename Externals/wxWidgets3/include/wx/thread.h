@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin (modifications partly inspired by omnithreads
 //              package from Olivetti & Oracle Research Laboratory)
 // Created:     04/13/98
-// RCS-ID:      $Id: thread.h 67185 2011-03-14 11:54:32Z VZ $
+// RCS-ID:      $Id: thread.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -219,7 +219,7 @@ private:
 
 // in order to avoid any overhead under platforms where critical sections are
 // just mutexes make all wxCriticalSection class functions inline
-#if !defined(__WXMSW__)
+#if !defined(__WINDOWS__)
     #define wxCRITSECT_IS_MUTEX 1
 
     #define wxCRITSECT_INLINE WXEXPORT inline
@@ -249,13 +249,16 @@ public:
     // enter the section (the same as locking a mutex)
     wxCRITSECT_INLINE void Enter();
 
+    // try to enter the section (the same as trying to lock a mutex)
+    wxCRITSECT_INLINE bool TryEnter();
+
     // leave the critical section (same as unlocking a mutex)
     wxCRITSECT_INLINE void Leave();
 
 private:
 #if wxCRITSECT_IS_MUTEX
     wxMutex m_mutex;
-#elif defined(__WXMSW__)
+#elif defined(__WINDOWS__)
     // we can't allocate any memory in the ctor, so use placement new -
     // unfortunately, we have to hardcode the sizeof() here because we can't
     // include windows.h from this public header and we also have to use the
@@ -291,6 +294,7 @@ private:
     inline wxCriticalSection::~wxCriticalSection() { }
 
     inline void wxCriticalSection::Enter() { (void)m_mutex.Lock(); }
+    inline bool wxCriticalSection::TryEnter() { return m_mutex.TryLock() == wxMUTEX_NO_ERROR; }
     inline void wxCriticalSection::Leave() { (void)m_mutex.Unlock(); }
 #endif // wxCRITSECT_IS_MUTEX
 
@@ -840,7 +844,7 @@ public:
 
 #if wxUSE_THREADS
 
-#if defined(__WXMSW__) || defined(__OS2__) || defined(__EMX__) || defined(__WXOSX__)
+#if defined(__WINDOWS__) || defined(__OS2__) || defined(__EMX__) || defined(__WXOSX__)
     // unlock GUI if there are threads waiting for and lock it back when
     // there are no more of them - should be called periodically by the main
     // thread

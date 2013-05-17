@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.02.98
-// RCS-ID:      $Id: oleutils.cpp 66814 2011-01-29 14:20:42Z VZ $
+// RCS-ID:      $Id: oleutils.cpp 70093 2011-12-22 19:08:43Z SJL $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@
 // ============================================================================
 
 // return true if the iid is in the array
-bool IsIidFromList(REFIID riid, const IID *aIids[], size_t nCount)
+WXDLLEXPORT bool IsIidFromList(REFIID riid, const IID *aIids[], size_t nCount)
 {
   for ( size_t i = 0; i < nCount; i++ ) {
     if ( riid == *aIids[i] )
@@ -362,6 +362,10 @@ wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant)
                 variant = oleVariant.boolVal != 0;
                 break;
 
+            case VT_R4:
+                variant = oleVariant.fltVal;
+                break;
+
             case VT_R8:
                 variant = oleVariant.dblVal;
                 break;
@@ -508,18 +512,18 @@ static wxString GetIidName(REFIID riid)
 #endif
 }
 
-void wxLogQueryInterface(const wxChar *szInterface, REFIID riid)
+WXDLLEXPORT void wxLogQueryInterface(const wxChar *szInterface, REFIID riid)
 {
   wxLogTrace(wxTRACE_OleCalls, wxT("%s::QueryInterface (iid = %s)"),
              szInterface, GetIidName(riid).c_str());
 }
 
-void wxLogAddRef(const wxChar *szInterface, ULONG cRef)
+WXDLLEXPORT void wxLogAddRef(const wxChar *szInterface, ULONG cRef)
 {
   wxLogTrace(wxTRACE_OleCalls, wxT("After %s::AddRef: m_cRef = %d"), szInterface, cRef + 1);
 }
 
-void wxLogRelease(const wxChar *szInterface, ULONG cRef)
+WXDLLEXPORT void wxLogRelease(const wxChar *szInterface, ULONG cRef)
 {
   wxLogTrace(wxTRACE_OleCalls, wxT("After %s::Release: m_cRef = %d"), szInterface, cRef - 1);
 }

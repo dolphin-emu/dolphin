@@ -1,19 +1,6 @@
-// Copyright (C) 2003-2009 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "FileUtil.h"
 #include "IniFile.h"
@@ -23,35 +10,39 @@ SWVideoConfig g_SWVideoConfig;
 
 SWVideoConfig::SWVideoConfig()
 {
-    bFullscreen = false;
-    bHideCursor = false;
-    renderToMainframe = false;	
+	bFullscreen = false;
+	bHideCursor = false;
+	renderToMainframe = false;	
 
 	bHwRasterizer = false;
 
-    bShowStats = false;
+	bShowStats = false;
 
-    bDumpTextures = false;
-    bDumpObjects = false;
-    bDumpFrames = false;
+	bDumpTextures = false;
+	bDumpObjects = false;
+	bDumpFrames = false;
 
-    bDumpTevStages = false;
+	bZComploc = true;
+	bZFreeze = true;
+
+	bDumpTevStages = false;
 	bDumpTevTextureFetches = false;
 
-    drawStart = 0;
-    drawEnd = 100000;
+	drawStart = 0;
+	drawEnd = 100000;
 }
 
 void SWVideoConfig::Load(const char* ini_file)
 {
-    std::string temp;
-    IniFile iniFile;
-    iniFile.Load(ini_file);
-    
-    iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
-    iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
+	IniFile iniFile;
+	iniFile.Load(ini_file);
+
+	iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
+	iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
 
 	iniFile.Get("Rendering", "HwRasterizer", &bHwRasterizer, false);
+	iniFile.Get("Rendering", "ZComploc", &bZComploc, true);
+	iniFile.Get("Rendering", "ZFreeze", &bZFreeze, true);
 
 	iniFile.Get("Info", "ShowStats", &bShowStats, false);
 
@@ -67,13 +58,15 @@ void SWVideoConfig::Load(const char* ini_file)
 
 void SWVideoConfig::Save(const char* ini_file)
 {
-    IniFile iniFile;
-    iniFile.Load(ini_file);
+	IniFile iniFile;
+	iniFile.Load(ini_file);
 
-    iniFile.Set("Hardware", "Fullscreen", bFullscreen);
-    iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
+	iniFile.Set("Hardware", "Fullscreen", bFullscreen);
+	iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
 
 	iniFile.Set("Rendering", "HwRasterizer", bHwRasterizer);
+	iniFile.Set("Rendering", "ZComploc", &bZComploc);
+	iniFile.Set("Rendering", "ZFreeze", &bZFreeze);
 
 	iniFile.Set("Info", "ShowStats", bShowStats);
 
@@ -85,7 +78,7 @@ void SWVideoConfig::Save(const char* ini_file)
 
 	iniFile.Set("Misc", "DrawStart", drawStart);
 	iniFile.Set("Misc", "DrawEnd", drawEnd);
-    
-    iniFile.Save(ini_file);
+
+	iniFile.Save(ini_file);
 }
 

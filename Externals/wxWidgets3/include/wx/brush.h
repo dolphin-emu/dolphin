@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: brush.h 66054 2010-11-07 13:16:20Z VZ $
+// RCS-ID:      $Id: brush.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -70,9 +70,7 @@ public:
     }
 };
 
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/brush.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
     #include "wx/msw/brush.h"
 #elif defined(__WXMOTIF__) || defined(__WXX11__)
     #include "wx/x11/brush.h"
@@ -80,8 +78,6 @@ public:
     #include "wx/gtk/brush.h"
 #elif defined(__WXGTK__)
     #include "wx/gtk1/brush.h"
-#elif defined(__WXMGL__)
-    #include "wx/mgl/brush.h"
 #elif defined(__WXDFB__)
     #include "wx/dfb/brush.h"
 #elif defined(__WXMAC__)

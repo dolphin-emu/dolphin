@@ -1,19 +1,6 @@
-// Copyright (C) 2010 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _CONFIGBOX_H_
 #define _CONFIGBOX_H_
@@ -100,7 +87,7 @@ class ControlDialog : public wxDialog
 public:
 	ControlDialog(GamepadPage* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref);
 	
-	wxStaticBoxSizer* CreateControlChooser(wxWindow* const parent, wxWindow* const eventsink);
+	wxStaticBoxSizer* CreateControlChooser(GamepadPage* const parent);
 
 	void DetectControl(wxCommandEvent& event);
 	void ClearControl(wxCommandEvent& event);
@@ -159,7 +146,7 @@ public:
 class ControlGroupBox : public wxBoxSizer
 {
 public:
-	ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink);
+	ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, GamepadPage* const eventsink);
 	~ControlGroupBox();
 
 	std::vector<PadSetting*>		options;
@@ -172,12 +159,12 @@ public:
 class ControlGroupsSizer : public wxBoxSizer
 {
 public:
-	ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent,  wxWindow* const eventsink, std::vector<ControlGroupBox*>* const groups = NULL);
+	ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent, GamepadPage* const eventsink, std::vector<ControlGroupBox*>* const groups = NULL);
 };
 
 class InputConfigDialog;
 
-class GamepadPage : public wxNotebookPage
+class GamepadPage : public wxPanel
 {
 	friend class InputConfigDialog;
 	friend class ControlDialog;
@@ -193,8 +180,8 @@ public:
 	void SaveProfile(wxCommandEvent& event);
 	void DeleteProfile(wxCommandEvent& event);
 
-	void ConfigControl(wxCommandEvent& event);
-	void ClearControl(wxCommandEvent& event);
+	void ConfigControl(wxEvent& event);
+	void ClearControl(wxEvent& event);
 	void DetectControl(wxCommandEvent& event);
 
 	void ConfigExtension(wxCommandEvent& event);

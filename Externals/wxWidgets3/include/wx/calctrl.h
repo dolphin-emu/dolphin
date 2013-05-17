@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.12.99
-// RCS-ID:      $Id: calctrl.h 58718 2009-02-07 18:59:25Z VZ $
+// RCS-ID:      $Id: calctrl.h 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -112,10 +112,10 @@ public:
     void SetHoliday(bool holiday) { m_holiday = holiday; }
 
     // accessors
-    bool HasTextColour() const { return m_colText.Ok(); }
-    bool HasBackgroundColour() const { return m_colBack.Ok(); }
-    bool HasBorderColour() const { return m_colBorder.Ok(); }
-    bool HasFont() const { return m_font.Ok(); }
+    bool HasTextColour() const { return m_colText.IsOk(); }
+    bool HasBackgroundColour() const { return m_colBack.IsOk(); }
+    bool HasBorderColour() const { return m_colBorder.IsOk(); }
+    bool HasFont() const { return m_font.IsOk(); }
     bool HasBorder() const { return m_border != wxCAL_BORDER_NONE; }
 
     bool IsHoliday() const { return m_holiday; }

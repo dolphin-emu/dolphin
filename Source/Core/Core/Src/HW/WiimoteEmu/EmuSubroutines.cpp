@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
 /* HID reports access guide. */
@@ -163,7 +150,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 	case WM_IR_LOGIC: // 0x1a
 		// comment from old plugin:
 		// This enables or disables the IR lights, we update the global variable g_IR
-	    // so that WmRequestStatus() knows about it
+		// so that WmRequestStatus() knows about it
 		//INFO_LOG(WIIMOTE, "WM IR Enable: 0x%02x", sr->data[0]);
 		m_status.ir = sr->enable;
 		if (false == sr->ack)
@@ -248,13 +235,12 @@ void Wiimote::RequestStatus(const wm_request_status* const rs)
 	{
 		using namespace WiimoteReal;
 
-		std::lock_guard<std::mutex> lk(g_refresh_lock);
+		std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
 		if (g_wiimotes[m_index])
 		{
-			wm_request_status rpt;
-			rpt.rumble = 0;
-			g_wiimotes[m_index]->SendPacket(WM_REQUEST_STATUS, &rpt, sizeof(rpt));
+			wm_request_status rpt = {};
+			g_wiimotes[m_index]->QueueReport(WM_REQUEST_STATUS, &rpt, sizeof(rpt));
 		}
 
 		return;
@@ -298,7 +284,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			{
 				// writing the whole mii block each write :/
 				std::ofstream file;
-				file.open((File::GetUserPath(D_WIIUSER_IDX) + "mii.bin").c_str(), std::ios::binary | std::ios::out);
+				OpenFStream(file, File::GetUserPath(D_WIIUSER_IDX) + "mii.bin", std::ios::binary | std::ios::out);
 				file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
 				file.close();
 			}
@@ -361,7 +347,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 			/* TODO?
 			if (region_ptr == &m_reg_speaker)
 			{
-				ERROR_LOG(WIIMOTE, "Write to speaker reg %x %s", address,
+				ERROR_LOG(WIIMOTE, "Write to speaker register %x %s", address,
 					ArrayToString(wd->data, wd->size, 100, false).c_str());
 			}
 			*/
@@ -427,6 +413,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 				if (address + size > WIIMOTE_EEPROM_SIZE) 
 				{
 					PanicAlert("ReadData: address + size out of bounds");
+					delete [] block;
 					return;
 				}
 				// generate a read error
@@ -511,7 +498,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 		break;
 
 	default :
-		PanicAlert("WmReadData: unimplemented parameters (size: %i, addr: 0x%x)!", size, rd->space);
+		PanicAlert("WmReadData: unimplemented parameters (size: %i, address: 0x%x)!", size, rd->space);
 		break;
 	}
 
@@ -593,13 +580,69 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
 
 void Wiimote::DoState(PointerWrap& p)
 {
-	// not working :(
-	//if (p.MODE_READ == p.GetMode())
-	//{
-	//	// LOAD
-	//	Reset();	// should cause a status report to be sent, then wii should re-setup wiimote
-	//}
-	//p.Do(m_reporting_channel);
+	p.Do(m_extension->active_extension);
+	p.Do(m_extension->switch_extension);
+
+	p.Do(m_accel);
+	p.Do(m_index);
+	p.Do(ir_sin);
+	p.Do(ir_cos);
+	p.Do(m_rumble_on);
+	p.Do(m_speaker_mute);
+	p.Do(m_motion_plus_present);
+	p.Do(m_motion_plus_active);
+	p.Do(m_reporting_auto);
+	p.Do(m_reporting_mode);
+	p.Do(m_reporting_channel);
+	p.Do(m_shake_step);
+	p.Do(m_sensor_bar_on_top);
+	p.Do(m_status);
+	p.Do(m_adpcm_state);
+	p.Do(m_ext_key);
+	p.DoArray(m_eeprom, sizeof(m_eeprom));
+	p.Do(m_reg_motion_plus);
+	p.Do(m_reg_ir);
+	p.Do(m_reg_ext);
+	p.Do(m_reg_speaker);
+
+	//Do 'm_read_requests' queue
+	{
+		u32 size = 0;
+		if (p.mode == PointerWrap::MODE_READ)
+		{
+			//clear
+			while (m_read_requests.size())
+				m_read_requests.pop();
+
+			p.Do(size);
+			while (size--)
+			{
+				ReadRequest tmp;
+				p.Do(tmp.address);
+				p.Do(tmp.position);
+				p.Do(tmp.size);
+				tmp.data = new u8[tmp.size];
+				p.DoArray(tmp.data, tmp.size);
+				m_read_requests.push(tmp);
+			}
+		}
+		else
+		{
+			std::queue<ReadRequest> tmp_queue(m_read_requests);
+			size = m_read_requests.size();
+			p.Do(size);
+			while (!tmp_queue.empty())
+			{
+				ReadRequest tmp = tmp_queue.front();
+				p.Do(tmp.address);
+				p.Do(tmp.position);
+				p.Do(tmp.size);
+				p.DoArray(tmp.data, tmp.size);
+				tmp_queue.pop();
+			}
+		}
+	}
+	p.DoMarker("Wiimote");
 }
 
 }

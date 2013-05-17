@@ -3,7 +3,7 @@
 // Purpose:     wxNotebook class (a.k.a. property sheet, tabbed dialog)
 // Author:      Julian Smart
 // Modified by:
-// RCS-ID:      $Id: notebook.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: notebook.h 68810 2011-08-21 14:08:49Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ public:
                   wxNotebookPage *pPage,
                   const wxString& strText,
                   bool bSelect = false,
-                  int imageId = -1);
+                  int imageId = NO_IMAGE);
 
   // callbacks
   // ---------

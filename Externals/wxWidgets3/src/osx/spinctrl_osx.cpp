@@ -3,7 +3,7 @@
 // Purpose:     wxSpinCtrl
 // Author:      Robert
 // Modified by: Mark Newsam (Based on GTK file)
-// RCS-ID:      $Id: spinctrl_osx.cpp 67257 2011-03-20 11:50:39Z SC $
+// RCS-ID:      $Id: spinctrl_osx.cpp 70698 2012-02-26 15:44:04Z JS $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -196,13 +196,6 @@ BEGIN_EVENT_TABLE(wxSpinCtrlButton, wxSpinButton)
     EVT_SPIN(wxID_ANY, wxSpinCtrlButton::OnSpinButton)
 END_EVENT_TABLE()
 
-BEGIN_EVENT_TABLE(wxSpinCtrl, wxControl)
-    WX_EVENT_TABLE_CONTROL_CONTAINER(wxSpinCtrl)
-END_EVENT_TABLE()
-
-WX_DELEGATE_TO_CONTROL_CONTAINER(wxSpinCtrl, wxControl)
-
-
 // ============================================================================
 // implementation
 // ============================================================================
@@ -215,7 +208,6 @@ void wxSpinCtrl::Init()
 {
     m_text = NULL;
     m_btn = NULL;
-    WX_INIT_CONTROL_CONTAINER();
 }
 
 bool wxSpinCtrl::Create(wxWindow *parent,
@@ -328,6 +320,8 @@ bool wxSpinCtrl::Enable(bool enable)
 {
     if ( !wxControl::Enable(enable) )
         return false;
+    m_text->Enable(enable);
+    m_btn->Enable(enable);
     return true;
 }
 

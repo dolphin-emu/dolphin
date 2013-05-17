@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: statbmp.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: statbmp.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -153,7 +153,7 @@ WXDWORD wxStaticBitmap::MSWGetStyle(long style, WXDWORD *exstyle) const
 
 bool wxStaticBitmap::ImageIsOk() const
 {
-    return m_image && m_image->Ok();
+    return m_image && m_image->IsOk();
 }
 
 wxIcon wxStaticBitmap::GetIcon() const

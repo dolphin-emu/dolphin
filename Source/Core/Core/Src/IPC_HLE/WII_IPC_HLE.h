@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _WII_IPC_HLE_H_
 #define _WII_IPC_HLE_H_
@@ -25,9 +12,9 @@ class IWII_IPC_HLE_Device;
 namespace WII_IPC_HLE_Interface
 {
 
-#define IPC_FIRST_HARDWARE_ID	0		// first IPC device ID
-#define IPC_FIRST_FILEIO_ID		33		// first IPC file ID 
-
+#define IPC_FIRST_ID	0x00		// first IPC device ID
+#define IPC_MAX_FILES	0x10		// first IPC file ID 
+	
 // Init
 void Init();
 
@@ -46,13 +33,12 @@ void ES_DIVerify(u8 *_pTMD, u32 _sz);
 
 void SDIO_EventNotify();
 
-int GetDeviceIDByName(const std::string& _rDeviceName);
-
-IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID);
-
-void DeleteDeviceByID(u32 _ID);
 
 IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName);
+
+IWII_IPC_HLE_Device* GetDeviceByName(const std::string& _rDeviceName);
+IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID);
+int getFreeDeviceId();
 
 // Update
 void Update();
@@ -63,7 +49,7 @@ void UpdateDevices();
 void ExecuteCommand(u32 _Address);
 
 void EnqRequest(u32 _Address);
-void EnqReply(u32 _Address);
+void EnqReply(u32 _Address, int cycles_in_future = 0);
 
 enum ECommandType
 {

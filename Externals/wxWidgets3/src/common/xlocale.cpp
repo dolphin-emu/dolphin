@@ -3,7 +3,7 @@
 // Purpose:     xlocale wrappers/impl to provide some xlocale wrappers
 // Author:      Brian Vanderburg II, Vadim Zeitlin
 // Created:     2008-01-07
-// RCS-ID:      $Id: xlocale.cpp 66054 2010-11-07 13:16:20Z VZ $
+// RCS-ID:      $Id: xlocale.cpp 67406 2011-04-06 14:37:32Z VZ $
 // Copyright:   (c) 2008 Brian Vanderburg II
 //                  2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -279,70 +279,91 @@ int wxToupper_l(const wxUniChar& c, const wxXLocale& loc)
              case !wxHAS_XLOCALE_SUPPORT...
 */
 
-/*
-    Note that this code is similar to (a portion of) wxLocale::IsAvailable code
-*/
-#define IMPLEMENT_STRTOX_L_START                                \
-    wxCHECK(loc.IsOk(), 0);                                     \
-                                                                \
-    /* (Try to) temporary set the 'C' locale */                 \
-    const char *oldLocale = wxSetlocale(LC_NUMERIC, "C");       \
-    if ( !oldLocale )                                           \
-    {                                                           \
-        /* the current locale was not changed; no need to */    \
-        /* restore the previous one... */                       \
-        errno = EINVAL;                                         \
-            /* signal an error (better than nothing) */         \
-        return 0;                                               \
+namespace
+{
+
+// Helper class that changes LC_NUMERIC facet of the global locale in its ctor
+// to "C" locale and restores it in its dtor later.
+class CNumericLocaleSetter
+{
+public:
+    CNumericLocaleSetter()
+        : m_oldLocale(wxStrdupA(setlocale(LC_NUMERIC, NULL)))
+    {
+        if ( !wxSetlocale(LC_NUMERIC, "C") )
+        {
+            // Setting locale to "C" should really always work.
+            wxFAIL_MSG( wxS("Couldn't set LC_NUMERIC to \"C\"") );
+        }
     }
 
-#define IMPLEMENT_STRTOX_L_END                                  \
-    /* restore the original locale */                           \
-    wxSetlocale(LC_NUMERIC, oldLocale);                         \
-    return ret;
+    ~CNumericLocaleSetter()
+    {
+        wxSetlocale(LC_NUMERIC, m_oldLocale);
+        free(m_oldLocale);
+    }
+
+private:
+    char * const m_oldLocale;
+
+    wxDECLARE_NO_COPY_CLASS(CNumericLocaleSetter);
+};
+
+} // anonymous namespace
 
 double wxStrtod_l(const wchar_t* str, wchar_t **endptr, const wxXLocale& loc)
 {
-    IMPLEMENT_STRTOX_L_START
-    double ret = wxStrtod(str, endptr);
-    IMPLEMENT_STRTOX_L_END
+    wxCHECK( loc.IsOk(), 0. );
+
+    CNumericLocaleSetter locSetter;
+
+    return wxStrtod(str, endptr);
 }
 
 double wxStrtod_l(const char* str, char **endptr, const wxXLocale& loc)
 {
-    IMPLEMENT_STRTOX_L_START
-    double ret = wxStrtod(str, endptr);
-    IMPLEMENT_STRTOX_L_END
+    wxCHECK( loc.IsOk(), 0. );
+
+    CNumericLocaleSetter locSetter;
+
+    return wxStrtod(str, endptr);
 }
 
 long wxStrtol_l(const wchar_t* str, wchar_t **endptr, int base, const wxXLocale& loc)
 {
-    IMPLEMENT_STRTOX_L_START
-    long ret = wxStrtol(str, endptr, base);
-    IMPLEMENT_STRTOX_L_END
+    wxCHECK( loc.IsOk(), 0 );
+
+    CNumericLocaleSetter locSetter;
+
+    return wxStrtol(str, endptr, base);
 }
 
 long wxStrtol_l(const char* str, char **endptr, int base, const wxXLocale& loc)
 {
-    IMPLEMENT_STRTOX_L_START
-    long ret = wxStrtol(str, endptr, base);
-    IMPLEMENT_STRTOX_L_END
+    wxCHECK( loc.IsOk(), 0 );
+
+    CNumericLocaleSetter locSetter;
+
+    return wxStrtol(str, endptr, base);
 }
 
 unsigned long wxStrtoul_l(const wchar_t* str, wchar_t **endptr, int base, const wxXLocale& loc)
 {
-    IMPLEMENT_STRTOX_L_START
-    unsigned long ret = wxStrtoul(str, endptr, base);
-    IMPLEMENT_STRTOX_L_END
+    wxCHECK( loc.IsOk(), 0 );
+
+    CNumericLocaleSetter locSetter;
+
+    return wxStrtoul(str, endptr, base);
 }
 
 unsigned long wxStrtoul_l(const char* str, char **endptr, int base, const wxXLocale& loc)
 {
-    IMPLEMENT_STRTOX_L_START
-    unsigned long ret = wxStrtoul(str, endptr, base);
-    IMPLEMENT_STRTOX_L_END
-}
+    wxCHECK( loc.IsOk(), 0 );
 
+    CNumericLocaleSetter locSetter;
+
+    return wxStrtoul(str, endptr, base);
+}
 
 #endif // !defined(wxHAS_XLOCALE_SUPPORT)
 

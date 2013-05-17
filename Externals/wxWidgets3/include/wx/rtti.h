@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: rtti.h 66636 2011-01-07 20:55:00Z SC $
+// RCS-ID:      $Id: rtti.h 67879 2011-06-07 13:06:17Z VZ $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2001 Ron Lee <ron@debian.org>
 // Licence:     wxWindows licence
@@ -144,7 +144,7 @@ WXDLLIMPEXP_BASE wxObject *wxCreateDynamicObject(const wxString& name);
     static wxObject* wxCreateObject()
 
 #define wxDECLARE_CLASS(name)                                                 \
-    wxDECLARE_DYNAMIC_CLASS(name)
+    wxDECLARE_ABSTRACT_CLASS(name)
 
 
 // common part of the macros below

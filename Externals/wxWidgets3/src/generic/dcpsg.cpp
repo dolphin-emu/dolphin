@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Markus Holzhem
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: dcpsg.cpp 65820 2010-10-15 23:46:46Z VZ $
+// RCS-ID:      $Id: dcpsg.cpp 69243 2011-09-30 15:26:36Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -509,13 +509,10 @@ void wxPostScriptDCImpl::DoDrawArc (wxCoord x1, wxCoord y1, wxCoord x2, wxCoord 
         wxString buffer;
         buffer.Printf( "newpath\n"
                        "%f %f %f %f %f %f ellipse\n"
-                       "%f %f lineto\n"
-                       "closepath\n"
                        "stroke\n",
                 XLOG2DEV(xc), YLOG2DEV(yc),
                 XLOG2DEVREL(i_radius), YLOG2DEVREL(i_radius),
-                alpha1, alpha2,
-                XLOG2DEV(xc), YLOG2DEV(yc) );
+                alpha1, alpha2 );
         buffer.Replace( ",", "." );
         PsPrint( buffer );
 
@@ -971,11 +968,11 @@ void wxPostScriptDCImpl::DoDrawBitmap( const wxBitmap& bitmap, wxCoord x, wxCoor
 {
     wxCHECK_RET( m_ok, wxT("invalid postscript dc") );
 
-    if (!bitmap.Ok()) return;
+    if (!bitmap.IsOk()) return;
 
     wxImage image = bitmap.ConvertToImage();
 
-    if (!image.Ok()) return;
+    if (!image.IsOk()) return;
 
     wxCoord w = image.GetWidth();
     wxCoord h = image.GetHeight();
@@ -1041,7 +1038,7 @@ void wxPostScriptDCImpl::SetFont( const wxFont& font )
 {
     wxCHECK_RET( m_ok, wxT("invalid postscript dc") );
 
-    if (!font.Ok())  return;
+    if (!font.IsOk())  return;
 
     m_font = font;
 
@@ -1136,9 +1133,9 @@ void wxPostScriptDCImpl::SetPen( const wxPen& pen )
 {
     wxCHECK_RET( m_ok, wxT("invalid postscript dc") );
 
-    if (!pen.Ok()) return;
+    if (!pen.IsOk()) return;
 
-    int oldStyle = m_pen.GetStyle();
+    int oldStyle = m_pen.IsOk() ? m_pen.GetStyle() : wxPENSTYLE_INVALID;
 
     m_pen = pen;
 
@@ -1243,7 +1240,7 @@ void wxPostScriptDCImpl::SetBrush( const wxBrush& brush )
 {
     wxCHECK_RET( m_ok, wxT("invalid postscript dc") );
 
-    if (!brush.Ok()) return;
+    if (!brush.IsOk()) return;
 
     m_brush = brush;
 
@@ -1291,7 +1288,7 @@ void wxPostScriptDCImpl::DoDrawText( const wxString& text, wxCoord x, wxCoord y 
     if ( !textbuf )
         return;
 
-    if (m_textForegroundColour.Ok())
+    if (m_textForegroundColour.IsOk())
     {
         unsigned char red = m_textForegroundColour.Red();
         unsigned char blue = m_textForegroundColour.Blue();
@@ -1401,7 +1398,7 @@ void wxPostScriptDCImpl::DoDrawRotatedText( const wxString& text, wxCoord x, wxC
 
     SetFont( m_font );
 
-    if (m_textForegroundColour.Ok())
+    if (m_textForegroundColour.IsOk())
     {
         unsigned char red = m_textForegroundColour.Red();
         unsigned char blue = m_textForegroundColour.Blue();
@@ -1960,7 +1957,7 @@ bool wxPostScriptDCImpl::DoBlit( wxCoord xdest, wxCoord ydest,
 
 wxCoord wxPostScriptDCImpl::GetCharHeight() const
 {
-    if (m_font.Ok())
+    if (m_font.IsOk())
         return m_font.GetPointSize();
     else
         return 12;
@@ -2058,7 +2055,7 @@ void wxPostScriptDCImpl::DoGetTextExtent(const wxString& string,
     /  example:
     /
     /    wxPostScriptDC dc(NULL, true);
-    /    if (dc.Ok()){
+    /    if (dc.IsOk()){
     /      wxSetAFMPath("d:\\wxw161\\afm\\");
     /      dc.StartDoc("Test");
     /      dc.StartPage();

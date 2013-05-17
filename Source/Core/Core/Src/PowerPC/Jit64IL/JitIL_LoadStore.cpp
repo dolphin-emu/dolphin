@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
 // Should give a very noticable speed boost to paired single heavy code.
@@ -27,7 +14,7 @@
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 
 #include "JitIL.h"
 #include "JitILAsm.h"
@@ -112,6 +99,21 @@ void JitIL::lXzx(UGeckoInstruction inst)
 	case 87:  val = ibuild.EmitLoad8(addr);  break; //lbzx
 	}
 	ibuild.EmitStoreGReg(val, inst.RD);
+}
+
+void JitIL::dcbst(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
+	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
+	// memory location.  Do not invalidate the JIT cache in this case as the memory
+	// will be the same.
+	// dcbt = 0x7c00022c
+	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
+	{
+		Default(inst); return;
+	}
 }
 
 // Zero cache line.

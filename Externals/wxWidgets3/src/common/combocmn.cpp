@@ -4,7 +4,7 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: combocmn.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: combocmn.cpp 69005 2011-09-05 20:08:04Z RD $
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -674,6 +674,34 @@ void wxComboPopup::Dismiss()
     m_combo->HidePopup(true);
 }
 
+void wxComboPopup::DestroyPopup()
+{
+    // Here we make sure that the popup control's Destroy() gets called.
+    // This is necessary for the wxPersistentWindow to work properly.
+    wxWindow* popupCtrl = GetControl();
+    if ( popupCtrl )
+    {
+        // While all wxComboCtrl examples have m_popupInterface and
+        // popupCtrl as the same class (that will be deleted via the
+        // Destroy() call below), it is technically still possible to
+        // have implementations where they are in fact not same
+        // multiple-inherited class. Here we use C++ RTTI to check for
+        // this rare case.
+      #ifndef wxNO_RTTI
+        // It is probably better to delete m_popupInterface first, so
+        // that it retains access to its popup control window.
+        if ( dynamic_cast<void*>(this) !=
+             dynamic_cast<void*>(popupCtrl) )
+            delete this;
+      #endif
+        popupCtrl->Destroy();
+    }
+    else
+    {
+        delete this;
+    }
+}
+
 // ----------------------------------------------------------------------------
 // input handling
 // ----------------------------------------------------------------------------
@@ -932,7 +960,6 @@ public:
 
 
 BEGIN_EVENT_TABLE(wxComboCtrlBase, wxControl)
-    EVT_TEXT(wxID_ANY,wxComboCtrlBase::OnTextCtrlEvent)
     EVT_SIZE(wxComboCtrlBase::OnSizeEvent)
     EVT_SET_FOCUS(wxComboCtrlBase::OnFocusEvent)
     EVT_KILL_FOCUS(wxComboCtrlBase::OnFocusEvent)
@@ -940,7 +967,6 @@ BEGIN_EVENT_TABLE(wxComboCtrlBase, wxControl)
     //EVT_BUTTON(wxID_ANY,wxComboCtrlBase::OnButtonClickEvent)
     EVT_KEY_DOWN(wxComboCtrlBase::OnKeyEvent)
     EVT_CHAR(wxComboCtrlBase::OnCharEvent)
-    EVT_TEXT_ENTER(wxID_ANY,wxComboCtrlBase::OnTextCtrlEvent)
     EVT_SYS_COLOUR_CHANGED(wxComboCtrlBase::OnSysColourChanged)
 END_EVENT_TABLE()
 
@@ -1018,10 +1044,11 @@ bool wxComboCtrlBase::Create(wxWindow *parent,
     m_iFlags |= wxCC_IFLAG_CREATED;
 
     // If x and y indicate valid size, wxSizeEvent won't be
-    // emitted automatically, so we need to add artifical one.
+    // emitted automatically, so we need to add artificial one.
     if ( size.x > 0 && size.y > 0 )
     {
         wxSizeEvent evt(size,GetId());
+        evt.SetEventObject(this);
         GetEventHandler()->AddPendingEvent(evt);
     }
 
@@ -1066,6 +1093,16 @@ wxComboCtrlBase::CreateTextCtrl(int style)
         m_text->Create(this, wxID_ANY, m_valueString,
                        wxDefaultPosition, wxSize(10,-1),
                        style);
+
+        // Connecting the events is currently the most reliable way
+        wxWindowID id = m_text->GetId();
+        m_text->Connect(id, wxEVT_COMMAND_TEXT_UPDATED,
+                        wxCommandEventHandler(wxComboCtrlBase::OnTextCtrlEvent),
+                        NULL, this);
+        m_text->Connect(id, wxEVT_COMMAND_TEXT_ENTER,
+                        wxCommandEventHandler(wxComboCtrlBase::OnTextCtrlEvent),
+                        NULL, this);
+
         m_text->SetHint(m_hintText);
     }
 }
@@ -1135,7 +1172,7 @@ void wxComboCtrlBase::CalculateAreas( int btnWidth )
     // its platform default or bitmap+pushbutton background is used, but not if
     // there is vertical size adjustment or horizontal spacing.
     if ( ( (m_iFlags & wxCC_BUTTON_OUTSIDE_BORDER) ||
-                (m_bmpNormal.Ok() && m_blankButtonBg) ) &&
+                (m_bmpNormal.IsOk() && m_blankButtonBg) ) &&
          m_btnSpacingX == 0 &&
          m_btnHei <= 0 )
     {
@@ -1143,7 +1180,7 @@ void wxComboCtrlBase::CalculateAreas( int btnWidth )
         btnBorder = 0;
     }
     else if ( (m_iFlags & wxCC_BUTTON_COVERS_BORDER) &&
-              m_btnSpacingX == 0 && !m_bmpNormal.Ok() )
+              m_btnSpacingX == 0 && !m_bmpNormal.IsOk() )
     {
         m_iFlags &= ~(wxCC_IFLAG_BUTTON_OUTSIDE);
         btnBorder = 0;
@@ -1200,7 +1237,7 @@ void wxComboCtrlBase::CalculateAreas( int btnWidth )
     //   It is larger
     //   OR
     //   button width is set to default and blank button bg is not drawn
-    if ( m_bmpNormal.Ok() )
+    if ( m_bmpNormal.IsOk() )
     {
         int bmpReqWidth = m_bmpNormal.GetWidth();
         int bmpReqHeight = m_bmpNormal.GetHeight();
@@ -1222,7 +1259,7 @@ void wxComboCtrlBase::CalculateAreas( int btnWidth )
         {
             int newY = butHeight+(customBorder*2);
             SetClientSize(wxDefaultCoord,newY);
-            if ( m_bmpNormal.Ok() || m_btnArea.width != butWidth || m_btnArea.height != butHeight )
+            if ( m_bmpNormal.IsOk() || m_btnArea.width != butWidth || m_btnArea.height != butHeight )
                 m_iFlags |= wxCC_IFLAG_HAS_NONSTANDARD_BUTTON;
             else
                 m_iFlags &= ~wxCC_IFLAG_HAS_NONSTANDARD_BUTTON;
@@ -1331,16 +1368,16 @@ wxSize wxComboCtrlBase::DoGetBestSize() const
     // TODO: Better method to calculate close-to-native control height.
 
     int fhei;
-    if ( m_font.Ok() )
+    if ( m_font.IsOk() )
         fhei = (m_font.GetPointSize()*2) + 5;
-    else if ( wxNORMAL_FONT->Ok() )
+    else if ( wxNORMAL_FONT->IsOk() )
         fhei = (wxNORMAL_FONT->GetPointSize()*2) + 5;
     else
         fhei = sizeText.y + 4;
 
     // Need to force height to accomodate bitmap?
     int btnSizeY = m_btnSize.y;
-    if ( m_bmpNormal.Ok() && fhei < btnSizeY )
+    if ( m_bmpNormal.IsOk() && fhei < btnSizeY )
         fhei = btnSizeY;
 
     // Control height doesn't depend on border
@@ -1665,7 +1702,7 @@ void wxComboCtrlBase::DrawButton( wxDC& dc, const wxRect& rect, int flags )
         dc.DrawRectangle(rect);
     }
 
-    if ( !m_bmpNormal.Ok() )
+    if ( !m_bmpNormal.IsOk() )
     {
         if ( flags & Button_BitmapOnly )
             return;
@@ -1715,6 +1752,7 @@ void wxComboCtrlBase::RecalcAndRefresh()
     if ( IsCreated() )
     {
         wxSizeEvent evt(GetSize(),GetId());
+        evt.SetEventObject(this);
         GetEventHandler()->ProcessEvent(evt);
         Refresh();
     }
@@ -1726,6 +1764,13 @@ void wxComboCtrlBase::RecalcAndRefresh()
 
 void wxComboCtrlBase::OnTextCtrlEvent(wxCommandEvent& event)
 {
+    // Avoid infinite recursion
+    if ( event.GetEventObject() == this )
+    {
+        event.Skip();
+        return;
+    }
+
     if ( event.GetEventType() == wxEVT_COMMAND_TEXT_UPDATED )
     {
         if ( m_ignoreEvtText > 0 )
@@ -1735,12 +1780,13 @@ void wxComboCtrlBase::OnTextCtrlEvent(wxCommandEvent& event)
         }
     }
 
-    // Change event id, object and string before relaying it forward
-    event.SetId(GetId());
-    wxString s = event.GetString();
-    event.SetEventObject(this);
-    event.SetString(s);
-    event.Skip();
+    // For safety, completely re-create a new wxCommandEvent
+    wxCommandEvent evt2(event);
+    evt2.SetId(GetId());
+    evt2.SetEventObject(this);
+    HandleWindowEvent(evt2);
+
+    event.StopPropagation();
 }
 
 // call if cursor is on button area or mouse is captured for the button
@@ -1988,6 +2034,8 @@ void wxComboCtrlBase::OnCharEvent(wxKeyEvent& event)
 
 void wxComboCtrlBase::OnFocusEvent( wxFocusEvent& event )
 {
+// On Mac, this leads to infinite recursion and eventually a crash 
+#ifndef __WXMAC__
     if ( event.GetEventType() == wxEVT_SET_FOCUS )
     {
         wxWindow* tc = GetTextCtrl();
@@ -1998,6 +2046,7 @@ void wxComboCtrlBase::OnFocusEvent( wxFocusEvent& event )
     }
 
     Refresh();
+#endif
 }
 
 void wxComboCtrlBase::OnIdleEvent( wxIdleEvent& WXUNUSED(event) )
@@ -2089,7 +2138,12 @@ void wxComboCtrlBase::DestroyPopup()
 
     wxDELETE(m_popupEvtHandler);
 
-    wxDELETE(m_popupInterface);
+    if ( m_popupInterface )
+    {
+        // NB: DestroyPopup() performs 'delete this'.
+        m_popupInterface->DestroyPopup();
+        m_popupInterface = NULL;
+    }
 
     if ( m_winPopup )
     {
@@ -2513,17 +2567,17 @@ void wxComboCtrlBase::SetButtonBitmaps( const wxBitmap& bmpNormal,
     m_bmpNormal = bmpNormal;
     m_blankButtonBg = blankButtonBg;
 
-    if ( bmpPressed.Ok() )
+    if ( bmpPressed.IsOk() )
         m_bmpPressed = bmpPressed;
     else
         m_bmpPressed = bmpNormal;
 
-    if ( bmpHover.Ok() )
+    if ( bmpHover.IsOk() )
         m_bmpHover = bmpHover;
     else
         m_bmpHover = bmpNormal;
 
-    if ( bmpDisabled.Ok() )
+    if ( bmpDisabled.IsOk() )
         m_bmpDisabled = bmpDisabled;
     else
         m_bmpDisabled = bmpNormal;

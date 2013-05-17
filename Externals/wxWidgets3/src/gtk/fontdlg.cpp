@@ -2,7 +2,7 @@
 // Name:        src/gtk/fontdlg.cpp
 // Purpose:     wxFontDialog
 // Author:      Robert Roebling
-// Id:          $Id: fontdlg.cpp 64019 2010-04-18 00:05:37Z VZ $
+// Id:          $Id: fontdlg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -106,17 +106,17 @@ bool wxFontDialog::DoCreate(wxWindow *parent)
 
     GtkFontSelectionDialog *sel = GTK_FONT_SELECTION_DIALOG(m_widget);
 
-    g_signal_connect (sel->ok_button, "clicked",
+    g_signal_connect (gtk_font_selection_dialog_get_ok_button(sel), "clicked",
                       G_CALLBACK (gtk_fontdialog_ok_callback), this);
 
-    g_signal_connect (sel->cancel_button, "clicked",
+    g_signal_connect (gtk_font_selection_dialog_get_cancel_button(sel), "clicked",
                       G_CALLBACK (gtk_fontdialog_cancel_callback), this);
 
     g_signal_connect (m_widget, "delete_event",
                       G_CALLBACK (gtk_fontdialog_delete_callback), this);
 
     wxFont font = m_fontData.GetInitialFont();
-    if( font.Ok() )
+    if( font.IsOk() )
     {
         const wxNativeFontInfo *info = font.GetNativeFontInfo();
 

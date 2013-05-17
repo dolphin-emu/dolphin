@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-07
-// RCS-ID:      $Id: stackwalk.h 64754 2010-06-26 11:43:13Z FM $
+// RCS-ID:      $Id: stackwalk.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -146,7 +146,7 @@ protected:
     virtual void OnStackFrame(const wxStackFrame& frame) = 0;
 };
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     #include "wx/msw/stackwalk.h"
 #elif defined(__UNIX__)
     #include "wx/unix/stackwalk.h"

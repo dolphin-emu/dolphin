@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <math.h>
 #include <locale.h>
@@ -41,7 +28,8 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 
 	uid->values[2] |= (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting) << 31;
 	u32 *pcurvalue = &uid->values[3];
-	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i) {
+	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+	{
 		TexMtxInfo tinfo = xfregs.texMtxInfo[i];
 		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
 			tinfo.hex &= 0x7ff;
@@ -49,12 +37,14 @@ void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 			tinfo.projection = 0;
 
 		u32 val = ((tinfo.hex >> 1) & 0x1ffff);
-		if (xfregs.dualTexTrans.enabled && tinfo.texgentype == XF_TEXGEN_REGULAR) {
+		if (xfregs.dualTexTrans.enabled && tinfo.texgentype == XF_TEXGEN_REGULAR)
+		{
 			// rewrite normalization and post index
 			val |= ((u32)xfregs.postMtxInfo[i].index << 17) | ((u32)xfregs.postMtxInfo[i].normalize << 23);
 		}
 
-		switch (i & 3) {
+		switch (i & 3)
+		{
 			case 0: pcurvalue[0] |= val; break;
 			case 1: pcurvalue[0] |= val << 24; pcurvalue[1] = val >> 8; ++pcurvalue; break;
 			case 2: pcurvalue[0] |= val << 16; pcurvalue[1] = val >> 16; ++pcurvalue; break;
@@ -73,12 +63,16 @@ void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components)
 	*ptr++ = xfregs.numChan.hex;
 	*ptr++ = xfregs.dualTexTrans.hex;
 
-	for (int i = 0; i < 2; ++i) {
+	for (int i = 0; i < 2; ++i)
+	{
 		*ptr++ = xfregs.color[i].hex;
 		*ptr++ = xfregs.alpha[i].hex;
 	}
+
 	*ptr++ = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
-	for (unsigned int i = 0; i < 8; ++i) {
+
+	for (unsigned int i = 0; i < 8; ++i)
+	{
 		*ptr++ = xfregs.texMtxInfo[i].hex;
 		*ptr++ = xfregs.postMtxInfo[i].hex;
 	}
@@ -114,7 +108,8 @@ void ValidateVertexShaderIDs(API_TYPE api, VERTEXSHADERUIDSAFE old_id, const std
 			static int num_failures = 0;
 			char szTemp[MAX_PATH];
 			sprintf(szTemp, "%svsuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-			std::ofstream file(szTemp);
+			std::ofstream file;
+			OpenFStream(file, szTemp, std::ios_base::out);
 			file << msg;
 			file << "\n\nOld shader code:\n" << old_code;
 			file << "\n\nNew shader code:\n" << new_code;
@@ -130,46 +125,60 @@ static char text[16384];
 
 #define WRITE p+=sprintf
 
-char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE api_type)
+char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE ApiType)
 {
-	WRITE(p, "struct VS_OUTPUT {\n");
-	WRITE(p, "  float4 pos : POSITION;\n");
-	WRITE(p, "  float4 colors_0 : COLOR0;\n");
-	WRITE(p, "  float4 colors_1 : COLOR1;\n");
 
-	if (xfregs.numTexGen.numTexGens < 7) {
+	// "centroid" attribute is only supported by D3D11
+	const char* optCentroid = (ApiType == API_D3D11 ? "centroid" : "");
+
+	// GLSL makes this ugly
+	// TODO: Make pretty
+	WRITE(p, "struct VS_OUTPUT {\n");
+	WRITE(p, "  %s float4 pos %s POSITION;\n", optCentroid, ApiType == API_OPENGL ? ";//" : ":");
+	WRITE(p, "  %s float4 colors_0 %s COLOR0;\n", optCentroid, ApiType == API_OPENGL ? ";//" : ":");
+	WRITE(p, "  %s float4 colors_1 %s COLOR1;\n", optCentroid, ApiType == API_OPENGL ? ";//" : ":");
+
+	if (xfregs.numTexGen.numTexGens < 7)
+	{
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			WRITE(p, "  float3 tex%d : TEXCOORD%d;\n", i, i);
-		WRITE(p, "  float4 clipPos : TEXCOORD%d;\n", xfregs.numTexGen.numTexGens);
+			WRITE(p, "  %s float3 tex%d %s TEXCOORD%d;\n", optCentroid, i, ApiType == API_OPENGL ? ";//" : ":", i);
+
+		WRITE(p, "  %s float4 clipPos %s TEXCOORD%d;\n", optCentroid, ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens);
+
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			WRITE(p, "  float4 Normal : TEXCOORD%d;\n", xfregs.numTexGen.numTexGens + 1);
-	} else {
+			WRITE(p, "  %s float4 Normal %s TEXCOORD%d;\n", optCentroid, ApiType == API_OPENGL ? ";//" : ":", xfregs.numTexGen.numTexGens + 1);
+	}
+	else
+	{
 		// clip position is in w of first 4 texcoords
 		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
 			for (int i = 0; i < 8; ++i)
-				WRITE(p, "  float4 tex%d : TEXCOORD%d;\n", i, i);
+				WRITE(p, "  %s float4 tex%d %s TEXCOORD%d;\n", optCentroid, i, ApiType == API_OPENGL? ";//" : ":", i);
 		}
 		else
 		{
 			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				WRITE(p, "  float%d tex%d : TEXCOORD%d;\n", i < 4 ? 4 : 3 , i, i);
+				WRITE(p, "  %s float%d tex%d %s TEXCOORD%d;\n", optCentroid, i < 4 ? 4 : 3 , i, ApiType == API_OPENGL ? ";//" : ":", i);
 		}
-	}	
+	}
 	WRITE(p, "};\n");
 
 	return p;
 }
 
-const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
+extern const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num);
+extern const char *WriteLocation(API_TYPE ApiType);
+
+const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
 	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
-	
-	bool is_d3d = (api_type & API_D3D9 || api_type == API_D3D11);
+
+	bool is_d3d = (ApiType & API_D3D9 || ApiType == API_D3D11);
 	u32 lightMask = 0;
 	if (xfregs.numChan.numColorChans > 0)
 		lightMask |= xfregs.color[0].GetFullLightMask() | xfregs.alpha[0].GetFullLightMask();
@@ -178,91 +187,146 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 
 	char *p = text;
 	WRITE(p, "//Vertex Shader: comp:%x, \n", components);
-	WRITE(p, "typedef struct { float4 T0, T1, T2; float4 N0, N1, N2; } s_"I_POSNORMALMATRIX";\n"
-		"typedef struct { float4 t; } FLT4;\n"
-		"typedef struct { FLT4 T[24]; } s_"I_TEXMATRICES";\n"
-		"typedef struct { FLT4 T[64]; } s_"I_TRANSFORMMATRICES";\n"
-		"typedef struct { FLT4 T[32]; } s_"I_NORMALMATRICES";\n"
-		"typedef struct { FLT4 T[64]; } s_"I_POSTTRANSFORMMATRICES";\n"
-		"typedef struct { float4 col; float4 cosatt; float4 distatt; float4 pos; float4 dir; } Light;\n"
-		"typedef struct { Light lights[8]; } s_"I_LIGHTS";\n"
-		"typedef struct { float4 C0, C1, C2, C3; } s_"I_MATERIALS";\n"
-		"typedef struct { float4 T0, T1, T2, T3; } s_"I_PROJECTION";\n"
-		);
-
-	p = GenerateVSOutputStruct(p, components, api_type);
 
 	// uniforms
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		WRITE(p, "layout(std140) uniform VSBlock {\n");
 
-	WRITE(p, "uniform s_"I_TRANSFORMMATRICES" "I_TRANSFORMMATRICES" : register(c%d);\n", C_TRANSFORMMATRICES);
-	WRITE(p, "uniform s_"I_TEXMATRICES" "I_TEXMATRICES" : register(c%d);\n", C_TEXMATRICES); // also using tex matrices
-	WRITE(p, "uniform s_"I_NORMALMATRICES" "I_NORMALMATRICES" : register(c%d);\n", C_NORMALMATRICES);
-	WRITE(p, "uniform s_"I_POSNORMALMATRIX" "I_POSNORMALMATRIX" : register(c%d);\n", C_POSNORMALMATRIX);
-	WRITE(p, "uniform s_"I_POSTTRANSFORMMATRICES" "I_POSTTRANSFORMMATRICES" : register(c%d);\n", C_POSTTRANSFORMMATRICES);
-	WRITE(p, "uniform s_"I_LIGHTS" "I_LIGHTS" : register(c%d);\n", C_LIGHTS);
-	WRITE(p, "uniform s_"I_MATERIALS" "I_MATERIALS" : register(c%d);\n", C_MATERIALS);
-	WRITE(p, "uniform s_"I_PROJECTION" "I_PROJECTION" : register(c%d);\n", C_PROJECTION);
-	WRITE(p, "uniform float4 "I_DEPTHPARAMS" : register(c%d);\n", C_DEPTHPARAMS);
+	WRITE(p, "%sfloat4 " I_POSNORMALMATRIX"[6] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSNORMALMATRIX));
+	WRITE(p, "%sfloat4 " I_PROJECTION"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_PROJECTION));	
+	WRITE(p, "%sfloat4 " I_MATERIALS"[4] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_MATERIALS));
+	WRITE(p, "%sfloat4 " I_LIGHTS"[40] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_LIGHTS));
+	WRITE(p, "%sfloat4 " I_TEXMATRICES"[24] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_TEXMATRICES)); // also using tex matrices
+	WRITE(p, "%sfloat4 " I_TRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType),WriteRegister(ApiType, "c", C_TRANSFORMMATRICES));
+	WRITE(p, "%sfloat4 " I_NORMALMATRICES"[32] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_NORMALMATRICES));
+	WRITE(p, "%sfloat4 " I_POSTTRANSFORMMATRICES"[64] %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_POSTTRANSFORMMATRICES));
+	WRITE(p, "%sfloat4 " I_DEPTHPARAMS" %s;\n", WriteLocation(ApiType), WriteRegister(ApiType, "c", C_DEPTHPARAMS));
 
-	WRITE(p, "VS_OUTPUT main(\n");	
-	
-	// inputs
-	if (components & VB_HAS_NRM0)
-		WRITE(p, "  float3 rawnorm0 : NORMAL0,\n");
-	if (components & VB_HAS_NRM1) {
-		if (is_d3d)
-			WRITE(p, "  float3 rawnorm1 : NORMAL1,\n");
-		else
-			WRITE(p, "  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
-	}
-	if (components & VB_HAS_NRM2) {
-		if (is_d3d)
-			WRITE(p, "  float3 rawnorm2 : NORMAL2,\n");
-		else
-			WRITE(p, "  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
-	}
-	if (components & VB_HAS_COL0)
-		WRITE(p, "  float4 color0 : COLOR0,\n");
-	if (components & VB_HAS_COL1)
-		WRITE(p, "  float4 color1 : COLOR1,\n");
-	for (int i = 0; i < 8; ++i) {
-		u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
-		if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
-			WRITE(p, "  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
-	}
-	if (components & VB_HAS_POSMTXIDX) {
-		if (is_d3d)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+		WRITE(p, "};\n");
+
+	p = GenerateVSOutputStruct(p, components, ApiType);
+
+	if(ApiType == API_OPENGL)
+	{
+		WRITE(p, "ATTRIN float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
+		if (components & VB_HAS_POSMTXIDX)
+			WRITE(p, "ATTRIN float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		if (components & VB_HAS_NRM0)
+			WRITE(p, "ATTRIN float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
+		if (components & VB_HAS_NRM1)
+			WRITE(p, "ATTRIN float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
+		if (components & VB_HAS_NRM2)
+			WRITE(p, "ATTRIN float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
+
+		if (components & VB_HAS_COL0)
+			WRITE(p, "ATTRIN float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
+		if (components & VB_HAS_COL1)
+			WRITE(p, "ATTRIN float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
+
+		for (int i = 0; i < 8; ++i)
 		{
-			WRITE(p, "  float4 blend_indices : BLENDINDICES,\n");
+			u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
+			if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
+				WRITE(p, "ATTRIN float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
+		}
+
+		// Let's set up attributes
+		if (xfregs.numTexGen.numTexGens < 7)
+		{
+			for (int i = 0; i < 8; ++i)
+				WRITE(p, "VARYOUT  float3 uv%d_2;\n", i);
+			WRITE(p, "VARYOUT   float4 clipPos_2;\n");
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+				WRITE(p, "VARYOUT   float4 Normal_2;\n");
 		}
 		else
-			WRITE(p, "  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		{
+			// wpos is in w of first 4 texcoords
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				for (int i = 0; i < 8; ++i)
+					WRITE(p, "VARYOUT   float4 uv%d_2;\n", i);
+			}
+			else
+			{
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+					WRITE(p, "VARYOUT   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
+			}
+		}
+		WRITE(p, "VARYOUT   float4 colors_02;\n");
+		WRITE(p, "VARYOUT   float4 colors_12;\n");
+
+		WRITE(p, "void main()\n{\n");
 	}
-	WRITE(p, "  float4 rawpos : POSITION) {\n");
+	else
+	{
+		WRITE(p, "VS_OUTPUT main(\n");
+
+		// inputs
+		if (components & VB_HAS_NRM0)
+			WRITE(p, "  float3 rawnorm0 : NORMAL0,\n");
+		if (components & VB_HAS_NRM1)
+		{
+			if (is_d3d)
+				WRITE(p, "  float3 rawnorm1 : NORMAL1,\n");
+			else
+				WRITE(p, "  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
+		}
+		if (components & VB_HAS_NRM2)
+		{
+			if (is_d3d)
+				WRITE(p, "  float3 rawnorm2 : NORMAL2,\n");
+			else
+				WRITE(p, "  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
+		}
+		if (components & VB_HAS_COL0)
+		{
+			WRITE(p, "  float4 color0 : COLOR0,\n");
+		}
+		if (components & VB_HAS_COL1)
+		{
+			WRITE(p, "  float4 color1 : COLOR1,\n");
+		}
+		for (int i = 0; i < 8; ++i)
+		{
+			u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
+			if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
+				WRITE(p, "  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
+		}
+		if (components & VB_HAS_POSMTXIDX)
+		{
+			if (is_d3d)
+				WRITE(p, "  float4 blend_indices : BLENDINDICES,\n");
+			else
+				WRITE(p, "  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+		}
+		WRITE(p, "  float4 rawpos : POSITION) {\n");
+	}
 	WRITE(p, "VS_OUTPUT o;\n");	
 
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
 	{
-		if (api_type & API_D3D9)
+		if (ApiType & API_D3D9)
 		{
 			WRITE(p, "int4 indices = D3DCOLORtoUBYTE4(blend_indices);\n");
 			WRITE(p, "int posmtx = indices.x;\n");
 		}
-		else if (api_type == API_D3D11)
+		else if (ApiType == API_D3D11)
 		{
 			WRITE(p, "int posmtx = blend_indices.x * 255.0f;\n");
 		}
 		else
 		{
-			WRITE(p, "int posmtx = fposmtx;\n");
+			WRITE(p, "int posmtx = int(fposmtx);\n");
 		}
 
-		WRITE(p, "float4 pos = float4(dot("I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos), 1);\n");		
+		WRITE(p, "float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");		
 
 		if (components & VB_HAS_NRMALL) {
 			WRITE(p, "int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
-			WRITE(p, "float3 N0 = "I_NORMALMATRICES".T[normidx].t.xyz, N1 = "I_NORMALMATRICES".T[normidx+1].t.xyz, N2 = "I_NORMALMATRICES".T[normidx+2].t.xyz;\n");
+			WRITE(p, "float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
 		}
 
 		if (components & VB_HAS_NRM0)
@@ -274,27 +338,25 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	}
 	else
 	{
-		WRITE(p, "float4 pos = float4(dot("I_POSNORMALMATRIX".T0, rawpos), dot("I_POSNORMALMATRIX".T1, rawpos), dot("I_POSNORMALMATRIX".T2, rawpos), 1.0f);\n");
+		WRITE(p, "float4 pos = float4(dot(" I_POSNORMALMATRIX"[0], rawpos), dot(" I_POSNORMALMATRIX"[1], rawpos), dot(" I_POSNORMALMATRIX"[2], rawpos), 1.0f);\n");
 		if (components & VB_HAS_NRM0)
-			WRITE(p, "float3 _norm0 = normalize(float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm0)));\n");
+			WRITE(p, "float3 _norm0 = normalize(float3(dot(" I_POSNORMALMATRIX"[3].xyz, rawnorm0), dot(" I_POSNORMALMATRIX"[4].xyz, rawnorm0), dot(" I_POSNORMALMATRIX"[5].xyz, rawnorm0)));\n");
 		if (components & VB_HAS_NRM1)
-			WRITE(p, "float3 _norm1 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");
+			WRITE(p, "float3 _norm1 = float3(dot(" I_POSNORMALMATRIX"[3].xyz, rawnorm1), dot(" I_POSNORMALMATRIX"[4].xyz, rawnorm1), dot(" I_POSNORMALMATRIX"[5].xyz, rawnorm1));\n");
 		if (components & VB_HAS_NRM2)
-			WRITE(p, "float3 _norm2 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm2));\n");
+			WRITE(p, "float3 _norm2 = float3(dot(" I_POSNORMALMATRIX"[3].xyz, rawnorm2), dot(" I_POSNORMALMATRIX"[4].xyz, rawnorm2), dot(" I_POSNORMALMATRIX"[5].xyz, rawnorm2));\n");
 	}
 
 	if (!(components & VB_HAS_NRM0))
 		WRITE(p, "float3 _norm0 = float3(0.0f, 0.0f, 0.0f);\n");
 
-	
-
-	WRITE(p, "o.pos = float4(dot("I_PROJECTION".T0, pos), dot("I_PROJECTION".T1, pos), dot("I_PROJECTION".T2, pos), dot("I_PROJECTION".T3, pos));\n");
+	WRITE(p, "o.pos = float4(dot(" I_PROJECTION"[0], pos), dot(" I_PROJECTION"[1], pos), dot(" I_PROJECTION"[2], pos), dot(" I_PROJECTION"[3], pos));\n");
 
 	WRITE(p, "float4 mat, lacc;\n"
 	"float3 ldir, h;\n"
 	"float dist, dist2, attn;\n");
 
-	if(xfregs.numChan.numColorChans == 0)
+	if (xfregs.numChan.numColorChans == 0)
 	{
 		if (components & VB_HAS_COL0)
 			WRITE(p, "o.colors_0 = color0;\n");
@@ -305,7 +367,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	// TODO: This probably isn't necessary if pixel lighting is enabled.
 	p = GenerateLightingShader(p, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
-	if(xfregs.numChan.numColorChans < 2)
+	if (xfregs.numChan.numColorChans < 2)
 	{
 		if (components & VB_HAS_COL1)
 			WRITE(p, "o.colors_1 = color1;\n");
@@ -323,18 +385,22 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 
 	// transform texcoords
 	WRITE(p, "float4 coord = float4(0.0f, 0.0f, 1.0f, 1.0f);\n");
-	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i) {
+	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+	{
 		TexMtxInfo& texinfo = xfregs.texMtxInfo[i];
 
 		WRITE(p, "{\n");
 		WRITE(p, "coord = float4(0.0f, 0.0f, 1.0f, 1.0f);\n");
-		switch (texinfo.sourcerow) {
+
+		switch (texinfo.sourcerow)
+		{
 		case XF_SRCGEOM_INROW:
 			_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
 			WRITE(p, "coord = rawpos;\n"); // pos.w is 1
 			break;
 		case XF_SRCNORMAL_INROW:
-			if (components & VB_HAS_NRM0) {
+			if (components & VB_HAS_NRM0)
+			{
 				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
 				WRITE(p, "coord = float4(rawnorm0.xyz, 1.0f);\n");
 			}
@@ -343,13 +409,15 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 			_assert_( texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 || texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1 );
 			break;
 		case XF_SRCBINORMAL_T_INROW:
-			if (components & VB_HAS_NRM1) {
+			if (components & VB_HAS_NRM1)
+			{
 				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
 				WRITE(p, "coord = float4(rawnorm1.xyz, 1.0f);\n");
 			}
 			break;
 		case XF_SRCBINORMAL_B_INROW:
-			if (components & VB_HAS_NRM2) {
+			if (components & VB_HAS_NRM2)
+			{
 				_assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
 				WRITE(p, "coord = float4(rawnorm2.xyz, 1.0f);\n");
 			}
@@ -362,12 +430,14 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		}
 
 		// first transformation
-		switch (texinfo.texgentype) {
+		switch (texinfo.texgentype)
+		{
 			case XF_TEXGEN_EMBOSS_MAP: // calculate tex coords into bump map
 
-				if (components & (VB_HAS_NRM1|VB_HAS_NRM2)) {
+				if (components & (VB_HAS_NRM1|VB_HAS_NRM2))
+				{
 					// transform the light dir into tangent space
-					WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift);
+					WRITE(p, "ldir = normalize(" I_LIGHTS"[5*%d + 3].xyz - pos.xyz);\n", texinfo.embosslightshift);
 					WRITE(p, "o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
 				}
 				else
@@ -387,32 +457,37 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 				break;
 			case XF_TEXGEN_REGULAR:
 			default:
-				if (components & (VB_HAS_TEXMTXIDX0<<i)) {
+				if (components & (VB_HAS_TEXMTXIDX0<<i))
+				{
+					WRITE(p, "int tmp = int(tex%d.z);\n", i);
 					if (texinfo.projection == XF_TEXPROJ_STQ)
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z+1].t), dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z+2].t));\n", i, i, i, i);
-					else {
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z+1].t), 1);\n", i, i, i);
-					}
-				}
-				else {
-					if (texinfo.projection == XF_TEXPROJ_STQ)
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TEXMATRICES".T[%d].t), dot(coord, "I_TEXMATRICES".T[%d].t), dot(coord, "I_TEXMATRICES".T[%d].t));\n", i, 3*i, 3*i+1, 3*i+2);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), dot(coord, " I_TRANSFORMMATRICES"[tmp+2]));\n", i);
 					else
-						WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TEXMATRICES".T[%d].t), dot(coord, "I_TEXMATRICES".T[%d].t), 1);\n", i, 3*i, 3*i+1);
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), 1);\n", i);
+				}
+				else
+				{
+					if (texinfo.projection == XF_TEXPROJ_STQ)
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]));\n", i, 3*i, 3*i+1, 3*i+2);
+					else
+						WRITE(p, "o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), 1);\n", i, 3*i, 3*i+1);
 				}
 				break;
 		}
 
-		if (xfregs.dualTexTrans.enabled && texinfo.texgentype == XF_TEXGEN_REGULAR) { // only works for regular tex gen types?
+		// CHECKME: does this only work for regular tex gen types?
+		if (xfregs.dualTexTrans.enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
+		{
 			const PostMtxInfo& postInfo = xfregs.postMtxInfo[i];
 
 			int postidx = postInfo.index;
-			WRITE(p, "float4 P0 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n"
-				"float4 P1 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n"
-				"float4 P2 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n",
+			WRITE(p, "float4 P0 = " I_POSTTRANSFORMMATRICES"[%d];\n"
+				"float4 P1 = " I_POSTTRANSFORMMATRICES"[%d];\n"
+				"float4 P2 = " I_POSTTRANSFORMMATRICES"[%d];\n",
 				postidx&0x3f, (postidx+1)&0x3f, (postidx+2)&0x3f);
 
-			if (texGenSpecialCase) {
+			if (texGenSpecialCase)
+			{
 				// no normalization
 				// q of input is 1
 				// q of output is unknown
@@ -434,9 +509,12 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	}
 
 	// clipPos/w needs to be done in pixel shader, not here
-	if (xfregs.numTexGen.numTexGens < 7) {
+	if (xfregs.numTexGen.numTexGens < 7)
+	{
 		WRITE(p, "o.clipPos = float4(pos.x,pos.y,o.pos.z,o.pos.w);\n");
-	} else {
+	}
+	else
+	{
 		WRITE(p, "o.tex0.w = pos.x;\n");
 		WRITE(p, "o.tex1.w = pos.y;\n");
 		WRITE(p, "o.tex2.w = o.pos.z;\n");
@@ -445,9 +523,12 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		if (xfregs.numTexGen.numTexGens < 7) {
+		if (xfregs.numTexGen.numTexGens < 7)
+		{
 			WRITE(p, "o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
-		} else {
+		}
+		else
+		{
 			WRITE(p, "o.tex4.w = _norm0.x;\n");
 			WRITE(p, "o.tex5.w = _norm0.y;\n");
 			WRITE(p, "o.tex6.w = _norm0.z;\n");
@@ -455,9 +536,10 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 				WRITE(p, "o.tex7 = pos.xyzz;\n");
 			else
 				WRITE(p, "o.tex7.w = pos.z;\n");
-		}		
+		}
+
 		if (components & VB_HAS_COL0)
-			WRITE(p, "o.colors_0 = color0;\n");		
+			WRITE(p, "o.colors_0 = color0;\n");
 
 		if (components & VB_HAS_COL1)
 			WRITE(p, "o.colors_1 = color1;\n");
@@ -467,34 +549,84 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	//if not early z culling will improve speed
 	if (is_d3d)
 	{
-		WRITE(p, "o.pos.z = "I_DEPTHPARAMS".x * o.pos.w + o.pos.z * "I_DEPTHPARAMS".y;\n");
+		WRITE(p, "o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
 	}
 	else
 	{
-	    // this results in a scale from -1..0 to -1..1 after perspective
-	    // divide
-	    WRITE(p, "o.pos.z = o.pos.w + o.pos.z * 2.0f;\n");
+		// this results in a scale from -1..0 to -1..1 after perspective
+		// divide
+		WRITE(p, "o.pos.z = o.pos.w + o.pos.z * 2.0f;\n");
 
-	    // Sonic Unleashed puts its final rendering at the near or
-	    // far plane of the viewing frustrum(actually box, they use
-	    // orthogonal projection for that), and we end up putting it
-	    // just beyond, and the rendering gets clipped away. (The
-	    // primitive gets dropped)
-	    WRITE(p, "o.pos.z = o.pos.z * 1048575.0f/1048576.0f;\n");
+		// Sonic Unleashed puts its final rendering at the near or
+		// far plane of the viewing frustrum(actually box, they use
+		// orthogonal projection for that), and we end up putting it
+		// just beyond, and the rendering gets clipped away. (The
+		// primitive gets dropped)
+		WRITE(p, "o.pos.z = o.pos.z * 1048575.0f/1048576.0f;\n");
 
-	    // the next steps of the OGL pipeline are:
-	    // (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
-	    // clipping to -w_c <= (x_c,y_c,z_c) <= w_c
-	    // (x_d,y_d,z_d) = (x_c,y_c,z_c)/w_c//perspective divide
-	    // z_w = (f-n)/2*z_d + (n+f)/2
-	    // z_w now contains the value to go to the 0..1 depth buffer
-	    
-	    //trying to get the correct semantic while not using glDepthRange
-	    //seems to get rather complicated
+		// the next steps of the OGL pipeline are:
+		// (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
+		// clipping to -w_c <= (x_c,y_c,z_c) <= w_c
+		// (x_d,y_d,z_d) = (x_c,y_c,z_c)/w_c//perspective divide
+		// z_w = (f-n)/2*z_d + (n+f)/2
+		// z_w now contains the value to go to the 0..1 depth buffer
+
+		//trying to get the correct semantic while not using glDepthRange
+		//seems to get rather complicated
 	}
 
-	WRITE(p, "return o;\n}\n");
+	if (ApiType & API_D3D9)
+	{
+		// D3D9 is addressing pixel centers instead of pixel boundaries in clip space.
+		// Thus we need to offset the final position by half a pixel
+		WRITE(p, "o.pos = o.pos + float4(" I_DEPTHPARAMS".z, " I_DEPTHPARAMS".w, 0.f, 0.f);\n");
+	}
 
+	if(ApiType == API_OPENGL)
+	{
+		// Bit ugly here
+		// TODO: Make pretty
+		// Will look better when we bind uniforms in GLSL 1.3
+		// clipPos/w needs to be done in pixel shader, not here
+
+		if (xfregs.numTexGen.numTexGens < 7)
+		{
+			for (unsigned int i = 0; i < 8; ++i)
+			{
+				if(i < xfregs.numTexGen.numTexGens)
+					WRITE(p, " uv%d_2.xyz =  o.tex%d;\n", i, i);
+				else
+					WRITE(p, " uv%d_2.xyz =  float3(0.0f, 0.0f, 0.0f);\n", i);
+			}
+
+			WRITE(p, "  clipPos_2 = o.clipPos;\n");
+
+			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+				WRITE(p, "  Normal_2 = o.Normal;\n");
+		}
+		else
+		{
+			// clip position is in w of first 4 texcoords
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				for (int i = 0; i < 8; ++i)
+					WRITE(p, " uv%d_2 = o.tex%d;\n", i, i);
+			}
+			else
+			{
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+					WRITE(p, "  uv%d_2%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
+			}
+		}
+		WRITE(p, "colors_02 = o.colors_0;\n");
+		WRITE(p, "colors_12 = o.colors_1;\n");
+		WRITE(p, "gl_Position = o.pos;\n");
+		WRITE(p, "}\n");
+	}
+	else
+	{
+		WRITE(p, "return o;\n}\n");
+	}
 
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");

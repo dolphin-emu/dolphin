@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: fileconf.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1997 Karsten Ballueder  &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
@@ -46,7 +46,7 @@
 
 #include  "wx/stdpaths.h"
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
     #include "wx/msw/private.h"
 #endif  //windows.h
 #if defined(__WXPM__)
@@ -2111,7 +2111,7 @@ static wxString FilterOutEntryName(const wxString& str)
 #if !wxUSE_UNICODE
             ((unsigned char)c < 127) &&
 #endif // ANSI
-         !wxIsalnum(c) && !wxStrchr(wxT("@_/-!.*%"), c) )
+         !wxIsalnum(c) && !wxStrchr(wxT("@_/-!.*%()"), c) )
     {
       strResult += wxT('\\');
     }

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.06.01
-// RCS-ID:      $Id: evtloop.h 65057 2010-07-23 23:32:46Z VZ $
+// RCS-ID:      $Id: evtloop.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -233,9 +233,7 @@ private:
 // integration with MFC) but currently this is not done for all ports yet (e.g.
 // wxX11) so fall back to the old wxGUIEventLoop definition below for them
 
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/evtloop.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
     // this header defines both console and GUI loops for MSW
     #include "wx/msw/evtloop.h"
 #elif defined(__WXOSX__)

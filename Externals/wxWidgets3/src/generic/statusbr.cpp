@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Francesco Montorsi
 // Created:     01/02/97
-// RCS-ID:      $Id: statusbr.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: statusbr.cpp 70625 2012-02-19 14:49:37Z SN $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -275,7 +275,7 @@ void wxStatusBarGeneric::DrawField(wxDC& dc, int i, int textHeight)
     GetFieldRect(i, rect);
 
     if (rect.GetWidth() <= 0)
-        return;     // happens when the status bar is shrinked in a very small area!
+        return;     // happens when the status bar is shrunk in a very small area!
 
     int style = m_panes[i].GetStyle();
     if (style != wxSB_FLAT)
@@ -414,9 +414,9 @@ void wxStatusBarGeneric::OnPaint(wxPaintEvent& WXUNUSED(event) )
         GdkWindowEdge edge =
             GetLayoutDirection() == wxLayout_RightToLeft ? GDK_WINDOW_EDGE_SOUTH_WEST :
                                                            GDK_WINDOW_EDGE_SOUTH_EAST;
-        gtk_paint_resize_grip( m_widget->style,
+        gtk_paint_resize_grip(gtk_widget_get_style(m_widget),
                             GTKGetDrawingWindow(),
-                            (GtkStateType) GTK_WIDGET_STATE (m_widget),
+                            gtk_widget_get_state(m_widget),
                             NULL,
                             m_widget,
                             "statusbar",

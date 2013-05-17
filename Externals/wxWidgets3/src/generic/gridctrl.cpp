@@ -4,7 +4,7 @@
 // Author:      Paul Gammans, Roger Gammans
 // Modified by:
 // Created:     11/04/2001
-// RCS-ID:      $Id: gridctrl.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: gridctrl.cpp 69856 2011-11-28 13:23:33Z VZ $
 // Copyright:   (c) The Computer Surgery (paul@compsurg.co.uk)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -311,7 +311,7 @@ wxGridCellAutoWrapStringRenderer::GetTextLines(wxGrid& grid,
     while ( tk.HasMoreTokens() )
     {
         wxString tok = tk.GetNextToken();
-        //FIXME: this causes us to print an extra unnecesary
+        //FIXME: this causes us to print an extra unnecessary
         //       space at the end of the line. But it
         //       is invisible , simplifies the size calculation
         //       and ensures tokens are separated in the display
@@ -598,10 +598,13 @@ wxSize wxGridCellNumberRenderer::GetBestSize(wxGrid& grid,
 // wxGridCellFloatRenderer
 // ----------------------------------------------------------------------------
 
-wxGridCellFloatRenderer::wxGridCellFloatRenderer(int width, int precision)
+wxGridCellFloatRenderer::wxGridCellFloatRenderer(int width,
+                                                 int precision,
+                                                 int format)
 {
     SetWidth(width);
     SetPrecision(precision);
+    SetFormat(format);
 }
 
 wxGridCellRenderer *wxGridCellFloatRenderer::Clone() const
@@ -609,6 +612,7 @@ wxGridCellRenderer *wxGridCellFloatRenderer::Clone() const
     wxGridCellFloatRenderer *renderer = new wxGridCellFloatRenderer;
     renderer->m_width = m_width;
     renderer->m_precision = m_precision;
+    renderer->m_style = m_style;
     renderer->m_format = m_format;
 
     return renderer;
@@ -641,22 +645,30 @@ wxString wxGridCellFloatRenderer::GetString(const wxGrid& grid, int row, int col
                 if ( m_precision == -1 )
                 {
                     // default width/precision
-                    m_format = wxT("%f");
+                    m_format = wxT("%");
                 }
                 else
                 {
-                    m_format.Printf(wxT("%%.%df"), m_precision);
+                    m_format.Printf(wxT("%%.%d"), m_precision);
                 }
             }
             else if ( m_precision == -1 )
             {
                 // default precision
-                m_format.Printf(wxT("%%%d.f"), m_width);
+                m_format.Printf(wxT("%%%d."), m_width);
             }
             else
             {
-                m_format.Printf(wxT("%%%d.%df"), m_width, m_precision);
+                m_format.Printf(wxT("%%%d.%d"), m_width, m_precision);
             }
+
+            bool isUpper = ( ( m_style & wxGRID_FLOAT_FORMAT_UPPER ) == wxGRID_FLOAT_FORMAT_UPPER);
+            if ( ( m_style & wxGRID_FLOAT_FORMAT_SCIENTIFIC ) == wxGRID_FLOAT_FORMAT_SCIENTIFIC)
+                m_format += isUpper ? wxT('E') : wxT('e');
+            else if ( ( m_style & wxGRID_FLOAT_FORMAT_COMPACT ) == wxGRID_FLOAT_FORMAT_COMPACT)
+                m_format += isUpper ? wxT('G') : wxT('g');
+            else
+                m_format += wxT('f');
         }
 
         text.Printf(m_format, val);
@@ -704,10 +716,12 @@ void wxGridCellFloatRenderer::SetParameters(const wxString& params)
         // reset to defaults
         SetWidth(-1);
         SetPrecision(-1);
+        SetFormat(wxGRID_FLOAT_FORMAT_DEFAULT);
     }
     else
     {
-        wxString tmp = params.BeforeFirst(wxT(','));
+        wxString rest;
+        wxString tmp = params.BeforeFirst(wxT(','), &rest);
         if ( !tmp.empty() )
         {
             long width;
@@ -721,7 +735,7 @@ void wxGridCellFloatRenderer::SetParameters(const wxString& params)
             }
         }
 
-        tmp = params.AfterFirst(wxT(','));
+        tmp = rest.BeforeFirst(wxT(','));
         if ( !tmp.empty() )
         {
             long precision;
@@ -732,6 +746,43 @@ void wxGridCellFloatRenderer::SetParameters(const wxString& params)
             else
             {
                 wxLogDebug(wxT("Invalid wxGridCellFloatRenderer precision parameter string '%s ignored"), params.c_str());
+            }
+        }
+
+        tmp = rest.AfterFirst(wxT(','));
+        if ( !tmp.empty() )
+        {
+            if ( tmp[0] == wxT('f') )
+            {
+                SetFormat(wxGRID_FLOAT_FORMAT_FIXED);
+            }
+            else if ( tmp[0] == wxT('e') )
+            {
+                SetFormat(wxGRID_FLOAT_FORMAT_SCIENTIFIC);
+            }
+            else if ( tmp[0] == wxT('g') )
+            {
+                SetFormat(wxGRID_FLOAT_FORMAT_COMPACT);
+            }
+            else if ( tmp[0] == wxT('E') )
+            {
+                SetFormat(wxGRID_FLOAT_FORMAT_SCIENTIFIC |
+                          wxGRID_FLOAT_FORMAT_UPPER);
+            }
+            else if ( tmp[0] == wxT('F') )
+            {
+                SetFormat(wxGRID_FLOAT_FORMAT_FIXED |
+                          wxGRID_FLOAT_FORMAT_UPPER);
+            }
+            else if ( tmp[0] == wxT('G') )
+            {
+                SetFormat(wxGRID_FLOAT_FORMAT_COMPACT |
+                          wxGRID_FLOAT_FORMAT_UPPER);
+            }
+            else
+            {
+                wxLogDebug("Invalid wxGridCellFloatRenderer format "
+                           "parameter string '%s ignored", params);
             }
         }
     }

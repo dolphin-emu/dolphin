@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "Atomic.h"
@@ -49,14 +36,16 @@
 #include "D3DUtil.h"
 #include "EmuWindow.h"
 #include "VideoState.h"
-#include "render.h"
+#include "Render.h"
 #include "DLCache.h"
+#include "IndexGenerator.h"
 #include "IniFile.h"
 #include "Core.h"
 #include "Host.h"
 
 #include "ConfigManager.h"
 #include "VideoBackend.h"
+#include "PerfQuery.h"
 
 namespace DX9
 {
@@ -78,10 +67,15 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 {
 	TCHAR temp[512];
 	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs | DX9 | %hs"), scm_rev_str, text);
-	SetWindowText(EmuWindow::GetWnd(), temp);
+	EmuWindow::SetWindowText(temp);
 }
 
 std::string VideoBackend::GetName()
+{
+	return "DX9";
+}
+
+std::string VideoBackend::GetDisplayName()
 {
 	return "Direct3D9";
 }
@@ -89,15 +83,18 @@ std::string VideoBackend::GetName()
 void InitBackendInfo()
 {
 	DX9::D3D::Init();
-	const int shaderModel = ((DX9::D3D::GetCaps().PixelShaderVersion >> 8) & 0xFF);
+	D3DCAPS9 device_caps = DX9::D3D::GetCaps();
+	const int shaderModel = ((device_caps.PixelShaderVersion >> 8) & 0xFF);
 	const int maxConstants = (shaderModel < 3) ? 32 : ((shaderModel < 4) ? 224 : 65536);
-	g_Config.backend_info.APIType = shaderModel < 3 ? API_D3D9_SM20 :API_D3D9_SM30;
+	g_Config.backend_info.APIType = shaderModel < 3 ? API_D3D9_SM20 : API_D3D9_SM30;
 	g_Config.backend_info.bUseRGBATextures = false;
+	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = true;
+	g_Config.backend_info.bSupportsPrimitiveRestart = false; // TODO: figure out if it does
+	g_Config.backend_info.bSupportsSeparateAlphaFunction = device_caps.PrimitiveMiscCaps & D3DPMISCCAPS_SEPARATEALPHABLEND;
+	// Dual source blend disabled by default until a proper method to test for support is found	
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
-	
-	
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 
 	// adapters
@@ -132,6 +129,7 @@ void VideoBackend::ShowConfig(void* parent)
 
 bool VideoBackend::Initialize(void *&window_handle)
 {
+	InitializeShared();
 	InitBackendInfo();
 
 	frameCount = 0;
@@ -167,20 +165,21 @@ void VideoBackend::Video_Prepare()
 	s_swapRequested = FALSE;
 
 	// internal interfaces
-	g_renderer = new Renderer;
-	g_texture_cache = new TextureCache;
 	g_vertex_manager = new VertexManager;
+	g_perf_query = new PerfQuery;
+	g_renderer = new Renderer;
+	g_texture_cache = new TextureCache;	
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
+	IndexGenerator::Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
 	CommandProcessor::Init();
 	PixelEngine::Init();
-	DLCache::Init();
-
+	DLCache::Init();	
 	// Notify the core that the video backend is ready
 	Host_Message(WM_USER_CREATE);
 }
@@ -189,6 +188,7 @@ void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
 
+	// TODO: should be in Video_Cleanup
 	if (g_renderer)
 	{
 		s_efbAccessRequested = FALSE;
@@ -207,12 +207,17 @@ void VideoBackend::Shutdown()
 		// internal interfaces
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
-		delete g_vertex_manager;
 		delete g_texture_cache;
 		delete g_renderer;
+		delete g_perf_query;
+		delete g_vertex_manager;
 		g_renderer = NULL;
+		g_texture_cache = NULL;
 	}
 	D3D::Shutdown();
+}
+
+void VideoBackend::Video_Cleanup() {
 }
 
 }

@@ -2,29 +2,40 @@ set(SRCS	Src/FramebufferManager.cpp
 			Src/GLUtil.cpp
 			Src/main.cpp
 			Src/NativeVertexFormat.cpp
+			Src/PerfQuery.cpp
 			Src/PixelShaderCache.cpp
 			Src/PostProcessing.cpp
+			Src/ProgramShaderCache.cpp
 			Src/RasterFont.cpp
 			Src/Render.cpp
+			Src/SamplerCache.cpp
+			Src/StreamBuffer.cpp
 			Src/TextureCache.cpp
 			Src/TextureConverter.cpp
 			Src/VertexShaderCache.cpp
 			Src/VertexManager.cpp)
 
 set(LIBS	videocommon
-			GLEW
 			SOIL
 			common
-			${OPENGL_LIBRARIES}
 			${X11_LIBRARIES})
+if(USE_EGL)
+	set(LIBS ${LIBS}
+		EGL)
+endif()
+
+if(USE_GLES)
+	set(LIBS ${LIBS}
+		GLESv2)
+else()
+	set(LIBS ${LIBS}
+		GLEW
+		${OPENGL_LIBRARIES})
+endif()
 
 if(wxWidgets_FOUND)
 	set(LIBS	${LIBS} ${wxWidgets_LIBRARIES})
 endif(wxWidgets_FOUND)
-
-if(APPLE OR WIN32 OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	set(LIBS	${LIBS} Cg CgGL)
-endif()
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(LIBS	${LIBS} clrun)

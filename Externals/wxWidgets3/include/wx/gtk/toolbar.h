@@ -2,7 +2,7 @@
 // Name:        wx/gtk/toolbar.h
 // Purpose:     GTK toolbar
 // Author:      Robert Roebling
-// RCS-ID:      $Id: toolbar.h 66633 2011-01-07 18:15:21Z PC $
+// RCS-ID:      $Id: toolbar.h 70854 2012-03-10 00:01:09Z RD $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -11,6 +11,8 @@
 #define _WX_GTK_TOOLBAR_H_
 
 #if wxUSE_TOOLBAR
+
+typedef struct _GtkTooltips GtkTooltips;
 
 // ----------------------------------------------------------------------------
 // wxToolBar
@@ -56,6 +58,17 @@ public:
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
+    virtual wxToolBarToolBase *CreateTool(int id,
+                                          const wxString& label,
+                                          const wxBitmap& bitmap1,
+                                          const wxBitmap& bitmap2 = wxNullBitmap,
+                                          wxItemKind kind = wxITEM_NORMAL,
+                                          wxObject *clientData = NULL,
+                                          const wxString& shortHelpString = wxEmptyString,
+                                          const wxString& longHelpString = wxEmptyString);
+    virtual wxToolBarToolBase *CreateTool(wxControl *control,
+                                          const wxString& label);
+
     // implementation from now on
     // --------------------------
 
@@ -70,17 +83,6 @@ protected:
     virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable);
     virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle);
     virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle);
-
-    virtual wxToolBarToolBase *CreateTool(int id,
-                                          const wxString& label,
-                                          const wxBitmap& bitmap1,
-                                          const wxBitmap& bitmap2,
-                                          wxItemKind kind,
-                                          wxObject *clientData,
-                                          const wxString& shortHelpString,
-                                          const wxString& longHelpString);
-    virtual wxToolBarToolBase *CreateTool(wxControl *control,
-                                          const wxString& label);
 
 private:
     void Init();

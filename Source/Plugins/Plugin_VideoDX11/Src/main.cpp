@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <wx/wx.h>
 
@@ -35,6 +22,7 @@
 #include "Debugger/DebuggerPanel.h"
 #include "DLCache.h"
 #include "EmuWindow.h"
+#include "IndexGenerator.h"
 #include "FileUtil.h"
 #include "Globals.h"
 #include "IniFile.h"
@@ -42,6 +30,7 @@
 
 #include "D3DUtil.h"
 #include "D3DBase.h"
+#include "PerfQuery.h"
 #include "PixelShaderCache.h"
 #include "TextureCache.h"
 #include "VertexManager.h"
@@ -68,12 +57,17 @@ unsigned int VideoBackend::PeekMessages()
 
 void VideoBackend::UpdateFPSDisplay(const char *text)
 {
-	char temp[512];
-	sprintf_s(temp, sizeof temp, "%s | DX11 | %s", scm_rev_str, text);
-	SetWindowTextA(EmuWindow::GetWnd(), temp);
+	TCHAR temp[512];
+	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs | DX11 | %hs"), scm_rev_str, text);
+	EmuWindow::SetWindowText(temp);
 }
 
 std::string VideoBackend::GetName()
+{
+	return "DX11";
+}
+
+std::string VideoBackend::GetDisplayName()
 {
 	return "Direct3D11";
 }
@@ -90,10 +84,12 @@ void InitBackendInfo()
 
 	g_Config.backend_info.APIType = API_D3D11;
 	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
+	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsDualSourceBlend = true;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
+	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -101,15 +97,13 @@ void InitBackendInfo()
 	if (FAILED(hr))
 		PanicAlert("Failed to create IDXGIFactory object");
 
-	char tmpstr[512] = {};
-	DXGI_ADAPTER_DESC desc;
 	// adapters
 	g_Config.backend_info.Adapters.clear();
 	g_Config.backend_info.AAModes.clear();
 	while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
 	{
+		DXGI_ADAPTER_DESC desc;
 		ad->GetDesc(&desc);
-		WideCharToMultiByte(/*CP_UTF8*/CP_ACP, 0, desc.Description, -1, tmpstr, 512, 0, false);
 
 		// TODO: These don't get updated on adapter change, yet
 		if (g_Config.backend_info.Adapters.size() == g_Config.iAdapter)
@@ -119,14 +113,14 @@ void InitBackendInfo()
 			modes = DX11::D3D::EnumAAModes(ad);
 			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
-				if (i == 0) sprintf_s(buf, 32, "None");
-				else if (modes[i].Quality) sprintf_s(buf, 32, "%d samples (quality level %d)", modes[i].Count, modes[i].Quality);
-				else sprintf_s(buf, 32, "%d samples", modes[i].Count);
+				if (i == 0) sprintf_s(buf, 32, _trans("None"));
+				else if (modes[i].Quality) sprintf_s(buf, 32, _trans("%d samples (quality level %d)"), modes[i].Count, modes[i].Quality);
+				else sprintf_s(buf, 32, _trans("%d samples"), modes[i].Count);
 				g_Config.backend_info.AAModes.push_back(buf);
 			}
 		}
 
-		g_Config.backend_info.Adapters.push_back(tmpstr);
+		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
 		ad->Release();
 	}
 
@@ -150,6 +144,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 
 bool VideoBackend::Initialize(void *&window_handle)
 {
+	InitializeShared();
 	InitBackendInfo();
 
 	frameCount = 0;
@@ -183,6 +178,7 @@ void VideoBackend::Video_Prepare()
 	g_renderer = new Renderer;
 	g_texture_cache = new TextureCache;
 	g_vertex_manager = new VertexManager;
+	g_perf_query = new PerfQuery;
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
 	D3D::InitUtils();
@@ -190,6 +186,7 @@ void VideoBackend::Video_Prepare()
 	// VideoCommon
 	BPInit();
 	Fifo_Init();
+	IndexGenerator::Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
 	VertexShaderManager::Init();
@@ -206,6 +203,7 @@ void VideoBackend::Shutdown()
 {
 	s_BackendInitialized = false;
 
+	// TODO: should be in Video_Cleanup
 	if (g_renderer)
 	{
 		s_efbAccessRequested = FALSE;
@@ -225,11 +223,16 @@ void VideoBackend::Shutdown()
 		D3D::ShutdownUtils();
 		PixelShaderCache::Shutdown();
 		VertexShaderCache::Shutdown();
+		delete g_perf_query;
 		delete g_vertex_manager;
 		delete g_texture_cache;
 		delete g_renderer;
 		g_renderer = NULL;
+		g_texture_cache = NULL;
 	}
+}
+
+void VideoBackend::Video_Cleanup() {
 }
 
 }

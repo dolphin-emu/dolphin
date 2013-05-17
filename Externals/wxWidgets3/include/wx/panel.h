@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: panel.h 67253 2011-03-20 00:00:49Z VZ $
+// RCS-ID:      $Id: panel.h 69378 2011-10-11 17:07:43Z VZ $
 // Copyright:   (c) Julian Smart
 //              (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows Licence
@@ -28,10 +28,10 @@ extern WXDLLIMPEXP_DATA_CORE(const char) wxPanelNameStr[];
 // wxPanel contains other controls and implements TAB traversal between them
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_CORE wxPanelBase : public wxWindow
+class WXDLLIMPEXP_CORE wxPanelBase : public wxNavigationEnabled<wxWindow>
 {
 public:
-    wxPanelBase();
+    wxPanelBase() { }
 
     // Derived classes should also provide this constructor:
     /*
@@ -52,31 +52,12 @@ public:
                 const wxString& name = wxPanelNameStr);
 
 
-    // Use the given bitmap to tile the background of this panel. This bitmap
-    // will show through any transparent children.
-    //
-    // Notice that you must not prevent the base class EVT_ERASE_BACKGROUND
-    // handler from running (i.e. not to handle this event yourself) for this
-    // to work.
-    void SetBackgroundBitmap(const wxBitmap& bmp)
-    {
-        DoSetBackgroundBitmap(bmp);
-    }
-
-
     // implementation from now on
     // --------------------------
 
     virtual void InitDialog();
 
-    WX_DECLARE_CONTROL_CONTAINER();
-
-protected:
-    virtual void DoSetBackgroundBitmap(const wxBitmap& bmp) = 0;
-
 private:
-    wxDECLARE_EVENT_TABLE();
-
     wxDECLARE_NO_COPY_CLASS(wxPanelBase);
 };
 

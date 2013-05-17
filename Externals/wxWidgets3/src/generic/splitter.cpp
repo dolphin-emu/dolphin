@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: splitter.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: splitter.cpp 70840 2012-03-08 13:23:39Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,11 +66,7 @@ BEGIN_EVENT_TABLE(wxSplitterWindow, wxWindow)
 #if defined( __WXMSW__ ) || defined( __WXMAC__)
     EVT_SET_CURSOR(wxSplitterWindow::OnSetCursor)
 #endif // wxMSW
-
-    WX_EVENT_TABLE_CONTROL_CONTAINER(wxSplitterWindow)
 END_EVENT_TABLE()
-
-WX_DELEGATE_TO_CONTROL_CONTAINER(wxSplitterWindow, wxWindow)
 
 static bool IsLive(wxSplitterWindow* wnd)
 {
@@ -97,10 +93,7 @@ bool wxSplitterWindow::Create(wxWindow *parent, wxWindowID id,
     if ( !wxWindow::Create(parent, id, pos, size, style, name) )
         return false;
 
-    if (size.x >= 0)
-        m_lastSize.x = size.x;
-    if (size.y >= 0)
-        m_lastSize.y = size.y;
+    m_lastSize = GetClientSize();
 
     m_permitUnsplitAlways = (style & wxSP_PERMIT_UNSPLIT) != 0;
 
@@ -117,8 +110,6 @@ bool wxSplitterWindow::Create(wxWindow *parent, wxWindowID id,
 
 void wxSplitterWindow::Init()
 {
-    WX_INIT_CONTROL_CONTAINER();
-
     m_splitMode = wxSPLIT_VERTICAL;
     m_permitUnsplitAlways = true;
     m_windowOne = NULL;
@@ -127,10 +118,10 @@ void wxSplitterWindow::Init()
     m_oldX = 0;
     m_oldY = 0;
     m_sashStart = 0;
-    m_sashPosition = m_requestedSashPosition = 0;
+    m_sashPosition = 0;
+    m_requestedSashPosition = INT_MAX;
     m_sashGravity = 0.0;
     m_lastSize = wxSize(0,0);
-    m_checkRequestedSashPosition = false;
     m_minimumPaneSize = 0;
     m_sashCursorWE = wxCursor(wxCURSOR_SIZEWE);
     m_sashCursorNS = wxCursor(wxCURSOR_SIZENS);
@@ -202,17 +193,21 @@ void wxSplitterWindow::OnInternalIdle()
 {
     wxWindow::OnInternalIdle();
 
-    // if this is the first idle time after a sash position has potentially
-    // been set, allow SizeWindows to check for a requested size.
-    if (!m_checkRequestedSashPosition)
+    // We may need to update the children sizes in two cases: either because
+    // we're in the middle of a live update as indicated by m_needUpdating or
+    // because we have a requested but not yet set sash position as indicated
+    // by m_requestedSashPosition having a valid value.
+    if ( m_needUpdating )
     {
-        m_checkRequestedSashPosition = true;
-        SizeWindows();
-        return; // it won't needUpdating in this case
+        m_needUpdating = false;
+    }
+    else if ( m_requestedSashPosition == INT_MAX )
+    {
+        // We don't need to resize the children.
+        return;
     }
 
-    if (m_needUpdating)
-        SizeWindows();
+    SizeWindows();
 }
 
 void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
@@ -440,30 +435,43 @@ void wxSplitterWindow::OnSize(wxSizeEvent& event)
         return;
     }
 
-    if ( m_windowTwo )
-    {
-        int w, h;
-        GetClientSize(&w, &h);
+    const wxSize curSize = event.GetSize();
 
-        int size = m_splitMode == wxSPLIT_VERTICAL ? w : h;
+    // Update the sash position if needed.
+    //
+    // Notice that we shouldn't do this if the sash position requested by user
+    // couldn't be set yet as it would never be taken into account at all if we
+    // modified it before this happens.
+    if ( m_windowTwo && m_requestedSashPosition == INT_MAX )
+    {
+        int size = m_splitMode == wxSPLIT_VERTICAL ? curSize.x : curSize.y;
 
         int old_size = m_splitMode == wxSPLIT_VERTICAL ? m_lastSize.x : m_lastSize.y;
-        if ( old_size != 0 )
+
+        // Don't do anything if the size didn't really change.
+        if ( size != old_size )
         {
+            int newPosition = -1;
+
+            // Apply gravity if we use it.
             int delta = (int) ( (size - old_size)*m_sashGravity );
             if ( delta != 0 )
             {
-                int newPosition = m_sashPosition + delta;
+                newPosition = m_sashPosition + delta;
                 if( newPosition < m_minimumPaneSize )
                     newPosition = m_minimumPaneSize;
-                SetSashPositionAndNotify(newPosition);
             }
-        }
 
-        if ( m_sashPosition >= size - 5 )
-            SetSashPositionAndNotify(wxMax(10, size - 40));
-        m_lastSize = wxSize(w,h);
+            // Also check if the second window became too small.
+            newPosition = AdjustSashPosition(newPosition == -1
+                                                 ? m_sashPosition
+                                                 : newPosition);
+            if ( newPosition != m_sashPosition )
+                SetSashPositionAndNotify(newPosition);
+        }
     }
+
+    m_lastSize = curSize;
 
     SizeWindows();
 }
@@ -488,7 +496,18 @@ bool wxSplitterWindow::SashHitTest(int x, int y, int tolerance)
     return z >=  hitMin && z <= hitMax;
 }
 
+void wxSplitterWindow::SetSashInvisible(bool invisible)
+{
+    if ( IsSashInvisible() != invisible )
+        ToggleWindowStyle(wxSP_NOSASH);
+}
+
 int wxSplitterWindow::GetSashSize() const
+{
+    return IsSashInvisible() ? 0 : GetDefaultSashSize();
+}
+
+int wxSplitterWindow::GetDefaultSashSize() const
 {
     return wxRendererNative::Get().GetSplitterParams(this).widthSash;
 }
@@ -514,7 +533,7 @@ void wxSplitterWindow::DrawSash(wxDC& dc)
         return;
 
     // nor if we're configured to not show it
-    if ( HasFlag(wxSP_NOSASH) )
+    if ( IsSashInvisible() )
         return;
 
     wxRendererNative::Get().DrawSplitterSash
@@ -646,7 +665,7 @@ void wxSplitterWindow::SetSashPositionAndNotify(int sashPos)
 void wxSplitterWindow::SizeWindows()
 {
     // check if we have delayed setting the real sash position
-    if ( m_checkRequestedSashPosition && m_requestedSashPosition != INT_MAX )
+    if ( m_requestedSashPosition != INT_MAX )
     {
         int newSashPosition = ConvertSashPosition(m_requestedSashPosition);
         if ( newSashPosition != m_sashPosition )
@@ -712,8 +731,6 @@ void wxSplitterWindow::SizeWindows()
 
     wxClientDC dc(this);
     DrawSash(dc);
-
-    SetNeedUpdating(false);
 }
 
 // Set pane for unsplit window
@@ -849,7 +866,6 @@ void wxSplitterWindow::SetSashPosition(int position, bool redraw)
     // remember the sash position we want to set for later if we can't set it
     // right now (e.g. because the window is too small)
     m_requestedSashPosition = position;
-    m_checkRequestedSashPosition = false;
 
     DoSetSashPosition(ConvertSashPosition(position));
 
@@ -864,9 +880,7 @@ void wxSplitterWindow::SetSashPosition(int position, bool redraw)
 // window is shown, if you know the overall size is correct.
 void wxSplitterWindow::UpdateSize()
 {
-    m_checkRequestedSashPosition = true;
     SizeWindows();
-    m_checkRequestedSashPosition = false;
 }
 
 bool wxSplitterWindow::DoSendEvent(wxSplitterEvent& event)

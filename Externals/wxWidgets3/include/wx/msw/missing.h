@@ -3,7 +3,7 @@
 // Purpose:     Declarations for parts of the Win32 SDK that are missing in
 //              the versions that come with some compilers
 // Created:     2002/04/23
-// RCS-ID:      $Id: missing.h 66996 2011-02-22 13:26:06Z VZ $
+// RCS-ID:      $Id: missing.h 69844 2011-11-27 19:50:53Z VZ $
 // Copyright:   (c) 2002 Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -94,6 +94,7 @@
     #define VK_OEM_5        0xDC
     #define VK_OEM_6        0xDD
     #define VK_OEM_7        0xDE
+    #define VK_OEM_102      0xE2
 #endif
 
 #ifndef VK_OEM_COMMA
@@ -514,6 +515,152 @@ typedef struct
 
 #endif
 
+#endif
+
+//Various defines that will be needed by mingw and possibly VC++6
+//Used by the webview library
+
+#ifndef DISPID_COMMANDSTATECHANGE
+#define DISPID_COMMANDSTATECHANGE 105
+#endif
+
+#ifndef DISPID_NAVIGATECOMPLETE2
+#define DISPID_NAVIGATECOMPLETE2 252
+#endif
+
+#ifndef DISPID_NAVIGATEERROR
+#define DISPID_NAVIGATEERROR 271
+#endif
+
+#ifndef DISPID_NEWWINDOW3
+#define DISPID_NEWWINDOW3 273
+#endif
+
+#ifndef INET_E_ERROR_FIRST
+#define INET_E_ERROR_FIRST 0x800C0002L
+#endif
+
+#ifndef INET_E_INVALID_URL
+#define INET_E_INVALID_URL 0x800C0002L
+#endif
+
+#ifndef INET_E_NO_SESSION
+#define INET_E_NO_SESSION 0x800C0003L
+#endif
+
+#ifndef INET_E_CANNOT_CONNECT
+#define INET_E_CANNOT_CONNECT 0x800C0004L
+#endif
+
+#ifndef INET_E_RESOURCE_NOT_FOUND
+#define INET_E_RESOURCE_NOT_FOUND 0x800C0005L
+#endif
+
+#ifndef INET_E_OBJECT_NOT_FOUND
+#define INET_E_OBJECT_NOT_FOUND 0x800C0006L
+#endif
+
+#ifndef INET_E_DATA_NOT_AVAILABLE
+#define INET_E_DATA_NOT_AVAILABLE 0x800C0007L
+#endif
+
+#ifndef INET_E_DOWNLOAD_FAILURE
+#define INET_E_DOWNLOAD_FAILURE 0x800C0008L
+#endif
+
+#ifndef INET_E_AUTHENTICATION_REQUIRED
+#define INET_E_AUTHENTICATION_REQUIRED 0x800C0009L
+#endif
+
+#ifndef INET_E_NO_VALID_MEDIA
+#define INET_E_NO_VALID_MEDIA 0x800C000AL
+#endif
+
+#ifndef INET_E_CONNECTION_TIMEOUT
+#define INET_E_CONNECTION_TIMEOUT 0x800C000BL
+#endif
+
+#ifndef INET_E_INVALID_REQUEST
+#define INET_E_INVALID_REQUEST 0x800C000CL
+#endif
+
+#ifndef INET_E_UNKNOWN_PROTOCOL
+#define INET_E_UNKNOWN_PROTOCOL 0x800C000DL
+#endif
+
+#ifndef INET_E_SECURITY_PROBLEM
+#define INET_E_SECURITY_PROBLEM 0x800C000EL
+#endif
+
+#ifndef INET_E_CANNOT_LOAD_DATA
+#define INET_E_CANNOT_LOAD_DATA 0x800C000FL
+#endif
+
+#ifndef INET_E_CANNOT_INSTANTIATE_OBJECT
+#define INET_E_CANNOT_INSTANTIATE_OBJECT 0x800C0010L
+#endif
+
+#ifndef INET_E_QUERYOPTION_UNKNOWN
+#define INET_E_QUERYOPTION_UNKNOWN 0x800C0013L
+#endif
+
+#ifndef INET_E_REDIRECT_FAILED
+#define INET_E_REDIRECT_FAILED 0x800C0014L
+#endif
+
+#ifndef INET_E_REDIRECT_TO_DIR
+#define INET_E_REDIRECT_TO_DIR 0x800C0015L
+#endif
+
+#ifndef INET_E_CANNOT_LOCK_REQUEST
+#define INET_E_CANNOT_LOCK_REQUEST 0x800C0016L
+#endif
+
+#ifndef INET_E_USE_EXTEND_BINDING
+#define INET_E_USE_EXTEND_BINDING 0x800C0017L
+#endif
+
+#ifndef INET_E_TERMINATED_BIND
+#define INET_E_TERMINATED_BIND 0x800C0018L
+#endif
+
+#ifndef INET_E_INVALID_CERTIFICATE
+#define INET_E_INVALID_CERTIFICATE 0x800C0019L
+#endif
+
+#ifndef INET_E_CODE_DOWNLOAD_DECLINED
+#define INET_E_CODE_DOWNLOAD_DECLINED 0x800C0100L
+#endif
+
+#ifndef INET_E_RESULT_DISPATCHED
+#define INET_E_RESULT_DISPATCHED 0x800C0200L
+#endif
+
+#ifndef INET_E_CANNOT_REPLACE_SFP_FILE
+#define INET_E_CANNOT_REPLACE_SFP_FILE 0x800C0300L
+#endif
+
+#ifndef INET_E_CODE_INSTALL_BLOCKED_BY_HASH_POLICY
+#define INET_E_CODE_INSTALL_BLOCKED_BY_HASH_POLICY 0x800C0500L
+#endif
+
+#ifndef INET_E_CODE_INSTALL_SUPPRESSED
+#define INET_E_CODE_INSTALL_SUPPRESSED 0x800C0400L
+#endif
+
+//We need to check if we are using MinGW or mingw-w64 as their
+//definitions are different
+
+#ifdef __MINGW32__
+#include <_mingw.h>
+#endif
+
+#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+typedef enum CommandStateChangeConstants {
+    CSC_UPDATECOMMANDS = (int) 0xFFFFFFFF,
+    CSC_NAVIGATEFORWARD = 0x1,
+    CSC_NAVIGATEBACK = 0x2
+} CommandStateChangeConstants;
 #endif
 
  /*

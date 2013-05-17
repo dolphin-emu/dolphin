@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: font.h 70445 2012-01-23 11:28:21Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -77,6 +77,19 @@ public:
     {
         Create(10, family, style, weight, underlined, face, encoding);
         SetPixelSize(pixelSize);
+    }
+
+    wxFont(int pointSize,
+           wxFontFamily family,
+           int flags = wxFONTFLAG_DEFAULT,
+           const wxString& face = wxEmptyString,
+           wxFontEncoding encoding = wxFONTENCODING_DEFAULT)
+    {
+        Create(pointSize, family,
+               GetStyleFromFlags(flags),
+               GetWeightFromFlags(flags),
+               GetUnderlinedFromFlags(flags),
+               face, encoding);
     }
 
     bool Create(int size,

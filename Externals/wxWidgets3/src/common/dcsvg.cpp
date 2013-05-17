@@ -3,7 +3,7 @@
 // Purpose:     SVG sample
 // Author:      Chris Elliott
 // Modified by:
-// RCS-ID:      $Id: dcsvg.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: dcsvg.cpp 67883 2011-06-07 22:27:35Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -28,9 +28,6 @@
 #include "wx/wfstream.h"
 #include "wx/filename.h"
 
-#define wxSVG_DEBUG false
-// or true to see the calls being executed
-
 // ----------------------------------------------------------
 // Global utilities
 // ----------------------------------------------------------
@@ -40,26 +37,6 @@ namespace
 
 inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
 
-wxString wxBrushString ( wxColour c, int style )
-{
-    wxString s = wxT("fill:") + c.GetAsString(wxC2S_HTML_SYNTAX)  + wxT("; ");
-    switch ( style )
-    {
-        case wxBRUSHSTYLE_SOLID :
-            s = s + wxT("fill-opacity:1.0; ");
-            break;
-        case wxBRUSHSTYLE_TRANSPARENT:
-            s = s + wxT("fill-opacity:0.0; ");
-            break;
-
-        default :
-            wxASSERT_MSG(false, wxT("wxSVGFileDC::Requested Brush Style not available"));
-
-    }
-    s = s + wxT("\n");
-    return s;
-}
-
 // This function returns a string representation of a floating point number in
 // C locale (i.e. always using "." for the decimal separator) and with the
 // fixed precision (which is 2 for some unknown reason but this is what it was
@@ -67,6 +44,66 @@ wxString wxBrushString ( wxColour c, int style )
 inline wxString NumStr(double f)
 {
     return wxString::FromCDouble(f, 2);
+}
+
+// Return the colour representation as HTML-like "#rrggbb" string and also
+// returns its alpha as opacity number in 0..1 range.
+wxString Col2SVG(wxColour c, float *opacity)
+{
+    if ( c.Alpha() != wxALPHA_OPAQUE )
+    {
+        *opacity = c.Alpha()/255.;
+
+        // Remove the alpha before using GetAsString(wxC2S_HTML_SYNTAX) as it
+        // doesn't support colours with alpha channel.
+        c = wxColour(c.GetRGB());
+    }
+    else // No alpha.
+    {
+        *opacity = 1.;
+    }
+
+    return c.GetAsString(wxC2S_HTML_SYNTAX);
+}
+
+wxString wxPenString(wxColour c, int style = wxPENSTYLE_SOLID)
+{
+    float opacity;
+    wxString s = wxT("stroke:") + Col2SVG(c, &opacity)  + wxT("; ");
+
+    switch ( style )
+    {
+        case wxPENSTYLE_SOLID:
+            s += wxString::Format(wxT("stroke-opacity:%s; "), NumStr(opacity));
+            break;
+        case wxPENSTYLE_TRANSPARENT:
+            s += wxT("stroke-opacity:0.0; ");
+            break;
+        default :
+            wxASSERT_MSG(false, wxT("wxSVGFileDC::Requested Pen Style not available"));
+    }
+
+    return s;
+}
+
+wxString wxBrushString(wxColour c, int style = wxBRUSHSTYLE_SOLID)
+{
+    float opacity;
+    wxString s = wxT("fill:") + Col2SVG(c, &opacity)  + wxT("; ");
+
+    switch ( style )
+    {
+        case wxBRUSHSTYLE_SOLID:
+            s += wxString::Format(wxT("fill-opacity:%s; "), NumStr(opacity));
+            break;
+        case wxBRUSHSTYLE_TRANSPARENT:
+            s += wxT("fill-opacity:0.0; ");
+            break;
+        default :
+            wxASSERT_MSG(false, wxT("wxSVGFileDC::Requested Brush Style not available"));
+    }
+
+    return s;
 }
 
 } // anonymous namespace
@@ -110,7 +147,7 @@ void wxSVGFileDCImpl::Init (const wxString &filename, int Width, int Height, dou
     ////////////////////code here
 
     m_outfile = new wxFileOutputStream(filename);
-    m_OK = m_outfile->Ok ();
+    m_OK = m_outfile->IsOk();
     if (m_OK)
     {
         m_filename = filename;
@@ -158,17 +195,15 @@ wxSize wxSVGFileDCImpl::GetPPI() const
 
 void wxSVGFileDCImpl::DoDrawLine (wxCoord x1, wxCoord y1, wxCoord x2, wxCoord y2)
 {
-    if (m_graphics_changed) NewGraphics ();
+    if (m_graphics_changed) NewGraphics();
     wxString s;
     s.Printf ( wxT("<path d=\"M%d %d L%d %d\" /> \n"), x1,y1,x2,y2 );
     if (m_OK)
     {
         write(s);
     }
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DrawLine Call executed"));
     CalcBoundingBox(x1, y1);
     CalcBoundingBox(x2, y2);
-    return;
 }
 
 void wxSVGFileDCImpl::DoDrawLines(int n, wxPoint points[], wxCoord xoffset , wxCoord yoffset )
@@ -183,7 +218,7 @@ void wxSVGFileDCImpl::DoDrawLines(int n, wxPoint points[], wxCoord xoffset , wxC
 void wxSVGFileDCImpl::DoDrawPoint (wxCoord x1, wxCoord y1)
 {
     wxString s;
-    if (m_graphics_changed) NewGraphics ();
+    if (m_graphics_changed) NewGraphics();
     s = wxT("<g style = \"stroke-linecap:round;\" > ") + wxString(wxT("\n"));
     write(s);
     DoDrawLine ( x1,y1,x1,y1 );
@@ -199,13 +234,12 @@ void wxSVGFileDCImpl::DoDrawCheckMark(wxCoord x1, wxCoord y1, wxCoord width, wxC
 void wxSVGFileDCImpl::DoDrawText(const wxString& text, wxCoord x1, wxCoord y1)
 {
     DoDrawRotatedText(text, x1,y1,0.0);
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DrawText Call executed"));
 }
 
 void wxSVGFileDCImpl::DoDrawRotatedText(const wxString& sText, wxCoord x, wxCoord y, double angle)
 {
     //known bug; if the font is drawn in a scaled DC, it will not behave exactly as wxMSW
-    if (m_graphics_changed) NewGraphics ();
+    if (m_graphics_changed) NewGraphics();
     wxString s, sTmp;
 
     // calculate bounding box
@@ -229,37 +263,36 @@ void wxSVGFileDCImpl::DoDrawRotatedText(const wxString& sText, wxCoord x, wxCoor
         // draw background first
         // just like DoDrawRectangle except we pass the text color to it and set the border to a 1 pixel wide text background
 
-        wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::Draw Rotated Text Call plotting text background"));
-        sTmp.Printf ( wxT(" <rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\"  "), x,y+desc-h, w, h );
-        s = sTmp + wxT("style=\"fill:") + m_textBackgroundColour.GetAsString(wxC2S_HTML_SYNTAX) + wxT("; ");
-        s = s + wxT("stroke-width:1; stroke:") + m_textBackgroundColour.GetAsString(wxC2S_HTML_SYNTAX) + wxT("; ");
-        sTmp.Printf ( wxT("\" transform=\"rotate( %s %d %d )  \">"), NumStr(-angle), x,y );
-        s = s + sTmp + wxT("\n");
+        sTmp.Printf ( wxT(" <rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" "), x,y+desc-h, w, h );
+        s = sTmp + wxT("style=\"") + wxBrushString(m_textBackgroundColour);
+        s += wxT("stroke-width:1; ") + wxPenString(m_textBackgroundColour);
+        sTmp.Printf ( wxT("\" transform=\"rotate( %s %d %d )  \" />"), NumStr(-angle), x,y );
+        s += sTmp + wxT("\n");
         write(s);
     }
     //now do the text itself
     s.Printf (wxT(" <text x=\"%d\" y=\"%d\" "),x,y );
 
-    sTmp = m_font.GetFaceName ();
-    if (sTmp.Len () > 0)  s = s + wxT("style=\"font-family:") + sTmp + wxT("; ");
-    else s = s + wxT("style=\" ");
+    sTmp = m_font.GetFaceName();
+    if (sTmp.Len() > 0)  s += wxT("style=\"font-family:") + sTmp + wxT("; ");
+    else s += wxT("style=\" ");
 
     wxString fontweights [3] = { wxT("normal"), wxT("lighter"), wxT("bold") };
-    s = s + wxT("font-weight:") + fontweights[m_font.GetWeight() - wxNORMAL] + wxT("; ");
+    s += wxT("font-weight:") + fontweights[m_font.GetWeight() - wxNORMAL] + wxT("; ");
 
     wxString fontstyles [5] = { wxT("normal"), wxT("style error"), wxT("style error"), wxT("italic"), wxT("oblique") };
-    s = s + wxT("font-style:") + fontstyles[m_font.GetStyle() - wxNORMAL] + wxT("; ");
+    s += wxT("font-style:") + fontstyles[m_font.GetStyle() - wxNORMAL] + wxT("; ");
 
-    sTmp.Printf (wxT("font-size:%dpt; fill:"), m_font.GetPointSize () );
-    s = s + sTmp;
-    s = s + m_textForegroundColour.GetAsString(wxC2S_HTML_SYNTAX) + wxT("; stroke:") + m_textForegroundColour.GetAsString(wxC2S_HTML_SYNTAX) + wxT("; ");
+    sTmp.Printf (wxT("font-size:%dpt; "), m_font.GetPointSize() );
+    s += sTmp;
+    //text will be solid, unless alpha value isn't opaque in the foreground colour
+    s += wxBrushString(m_textForegroundColour) + wxPenString(m_textForegroundColour);
     sTmp.Printf ( wxT("stroke-width:0;\"  transform=\"rotate( %s %d %d )  \" >"),  NumStr(-angle), x,y );
-    s = s + sTmp + sText + wxT("</text> ") + wxT("\n");
+    s += sTmp + sText + wxT("</text> ") + wxT("\n");
     if (m_OK)
     {
         write(s);
     }
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DrawRotatedText Call executed"));
 }
 
 void wxSVGFileDCImpl::DoDrawRectangle(wxCoord x, wxCoord y, wxCoord width, wxCoord height)
@@ -270,16 +303,15 @@ void wxSVGFileDCImpl::DoDrawRectangle(wxCoord x, wxCoord y, wxCoord width, wxCoo
 void wxSVGFileDCImpl::DoDrawRoundedRectangle(wxCoord x, wxCoord y, wxCoord width, wxCoord height, double radius )
 
 {
-    if (m_graphics_changed) NewGraphics ();
+    if (m_graphics_changed) NewGraphics();
     wxString s;
 
     s.Printf ( wxT(" <rect x=\"%d\" y=\"%d\" width=\"%d\" height=\"%d\" rx=\"%s\" "),
             x, y, width, height, NumStr(radius) );
 
-    s = s + wxT(" /> ") + wxT("\n");
+    s += wxT(" /> \n");
     write(s);
 
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DoDrawRoundedRectangle Call executed"));
     CalcBoundingBox(x, y);
     CalcBoundingBox(x + width, y + height);
 }
@@ -288,44 +320,40 @@ void wxSVGFileDCImpl::DoDrawPolygon(int n, wxPoint points[],
                                     wxCoord xoffset, wxCoord yoffset,
                                     wxPolygonFillMode fillStyle)
 {
-    if (m_graphics_changed) NewGraphics ();
+    if (m_graphics_changed) NewGraphics();
     wxString s, sTmp;
     s = wxT("<polygon style=\"");
     if ( fillStyle == wxODDEVEN_RULE )
-        s = s + wxT("fill-rule:evenodd; ");
+        s += wxT("fill-rule:evenodd; ");
     else
-        s = s + wxT("fill-rule:nonzero; ");
+        s += wxT("fill-rule:nonzero; ");
 
-    s = s  + wxT("\" \npoints=\"");
+    s += wxT("\" \npoints=\"");
 
     for (int i = 0; i < n;  i++)
     {
         sTmp.Printf ( wxT("%d,%d"), points [i].x+xoffset, points[i].y+yoffset );
-        s = s + sTmp + wxT("\n");
+        s += sTmp + wxT("\n");
         CalcBoundingBox ( points [i].x+xoffset, points[i].y+yoffset);
     }
-    s = s + wxT("\" /> ");
-    s = s + wxT("\n");
+    s += wxT("\" /> \n");
     write(s);
-
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DoDrawPolygon Call executed"));
 }
 
 void wxSVGFileDCImpl::DoDrawEllipse (wxCoord x, wxCoord y, wxCoord width, wxCoord height)
 
 {
-    if (m_graphics_changed) NewGraphics ();
+    if (m_graphics_changed) NewGraphics();
 
     int rh = height /2;
     int rw = width  /2;
 
     wxString s;
     s.Printf ( wxT("<ellipse cx=\"%d\" cy=\"%d\" rx=\"%d\" ry=\"%d\" "), x+rw,y+rh, rw, rh );
-    s = s + wxT(" /> ") + wxT("\n");
+    s += wxT(" /> \n");
 
     write(s);
 
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DoDrawEllipse Call executed"));
     CalcBoundingBox(x, y);
     CalcBoundingBox(x + width, y + height);
 }
@@ -341,7 +369,7 @@ void wxSVGFileDCImpl::DoDrawArc(wxCoord x1, wxCoord y1, wxCoord x2, wxCoord y2, 
 
     Might be better described as Pie drawing */
 
-    if (m_graphics_changed) NewGraphics ();
+    if (m_graphics_changed) NewGraphics();
     wxString s;
 
     // we need the radius of the circle which has two estimates
@@ -370,15 +398,13 @@ void wxSVGFileDCImpl::DoDrawArc(wxCoord x1, wxCoord y1, wxCoord x2, wxCoord y2, 
         x1,y1, NumStr(r1), NumStr(r2), fArc, fSweep, x2, y2, xc, yc );
 
     // the z means close the path and fill
-    s = s + wxT(" \" /> ") + wxT("\n");
+    s += wxT(" \" /> \n");
 
 
     if (m_OK)
     {
         write(s);
     }
-
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DoDrawArc Call executed"));
 }
 
 void wxSVGFileDCImpl::DoDrawEllipticArc(wxCoord x,wxCoord y,wxCoord w,wxCoord h,double sa,double ea)
@@ -402,7 +428,7 @@ void wxSVGFileDCImpl::DoDrawEllipticArc(wxCoord x,wxCoord y,wxCoord w,wxCoord h,
 
     //known bug: SVG draws with the current pen along the radii, but this does not happen in wxMSW
 
-    if (m_graphics_changed) NewGraphics ();
+    if (m_graphics_changed) NewGraphics();
 
     wxString s;
     //radius
@@ -433,15 +459,12 @@ void wxSVGFileDCImpl::DoDrawEllipticArc(wxCoord x,wxCoord y,wxCoord w,wxCoord h,
         int(xs), int(ys), int(rx), int(ry),
         fArc, fSweep, int(xe), int(ye), int(xc), int(yc)  );
 
-
-    s = s + wxT(" \" /> ") + wxT("\n");
+    s += wxT(" \" /> \n");
 
     if (m_OK)
     {
         write(s);
     }
-
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DoDrawEllipticArc Call executed"));
 }
 
 void wxSVGFileDCImpl::DoGetTextExtent(const wxString& string, wxCoord *w, wxCoord *h, wxCoord *descent , wxCoord *externalLeading , const wxFont *font) const
@@ -452,17 +475,14 @@ void wxSVGFileDCImpl::DoGetTextExtent(const wxString& string, wxCoord *w, wxCoor
     sDC.SetFont (m_font);
     if ( font != NULL ) sDC.SetFont ( *font );
     sDC.GetTextExtent(string, w,  h, descent, externalLeading );
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::GetTextExtent Call executed"));
 }
 
 wxCoord wxSVGFileDCImpl::GetCharHeight() const
-
 {
     wxScreenDC sDC;
     sDC.SetFont (m_font);
 
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::GetCharHeight Call executing"));
-    return ( sDC.GetCharHeight() );
+    return sDC.GetCharHeight();
 
 }
 
@@ -471,9 +491,7 @@ wxCoord wxSVGFileDCImpl::GetCharWidth() const
     wxScreenDC sDC;
     sDC.SetFont (m_font);
 
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::GetCharWidth Call executing"));
-    return ( sDC.GetCharWidth() );
-
+    return sDC.GetCharWidth();
 }
 
 
@@ -483,16 +501,13 @@ wxCoord wxSVGFileDCImpl::GetCharWidth() const
 
 void wxSVGFileDCImpl::SetBackground( const wxBrush &brush )
 {
-
     m_backgroundBrush = brush;
-    return;
 }
 
 
 void wxSVGFileDCImpl::SetBackgroundMode( int mode )
 {
     m_backgroundMode = mode;
-    return;
 }
 
 
@@ -502,7 +517,6 @@ void wxSVGFileDCImpl::SetBrush(const wxBrush& brush)
     m_brush = brush;
 
     m_graphics_changed = true;
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::SetBrush Call executed"));
 }
 
 
@@ -513,21 +527,16 @@ void wxSVGFileDCImpl::SetPen(const wxPen& pen)
     m_pen = pen;
 
     m_graphics_changed = true;
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::SetPen Call executed"));
 }
 
-void wxSVGFileDCImpl::NewGraphics ()
+void wxSVGFileDCImpl::NewGraphics()
 {
-
-    int w = m_pen.GetWidth ();
-    wxColour c = m_pen.GetColour ();
-
     wxString s, sBrush, sPenCap, sPenJoin, sPenStyle, sLast, sWarn;
 
-    sBrush = wxT("</g>\n<g style=\"") + wxBrushString ( m_brush.GetColour (), m_brush.GetStyle () )
-            + wxT("  stroke:") + c.GetAsString(wxC2S_HTML_SYNTAX) + wxT("; ");
+    sBrush = wxT("</g>\n<g style=\"") + wxBrushString ( m_brush.GetColour(), m_brush.GetStyle() )
+            + wxPenString(m_pen.GetColour(), m_pen.GetStyle());
 
-    switch ( m_pen.GetCap () )
+    switch ( m_pen.GetCap() )
     {
         case  wxCAP_PROJECTING :
             sPenCap = wxT("stroke-linecap:square; ");
@@ -538,8 +547,9 @@ void wxSVGFileDCImpl::NewGraphics ()
         case    wxCAP_ROUND :
         default :
             sPenCap = wxT("stroke-linecap:round; ");
-    };
-    switch ( m_pen.GetJoin () )
+    }
+
+    switch ( m_pen.GetJoin() )
     {
         case  wxJOIN_BEVEL :
             sPenJoin = wxT("stroke-linejoin:bevel; ");
@@ -550,28 +560,14 @@ void wxSVGFileDCImpl::NewGraphics ()
         case    wxJOIN_ROUND :
         default :
             sPenJoin = wxT("stroke-linejoin:round; ");
-    };
-
-    switch ( m_pen.GetStyle () )
-    {
-        case  wxPENSTYLE_SOLID :
-            sPenStyle = wxT("stroke-opacity:1.0; stroke-opacity:1.0; ");
-            break;
-        case  wxPENSTYLE_TRANSPARENT :
-            sPenStyle = wxT("stroke-opacity:0.0; stroke-opacity:0.0; ");
-            break;
-        default :
-            wxASSERT_MSG(false, wxT("wxSVGFileDC::SetPen Call called to set a Style which is not available"));
-            sWarn = sWarn + wxT("<!--- wxSVGFileDC::SetPen Call called to set a Style which is not available --> \n");
     }
 
     sLast.Printf( wxT("stroke-width:%d\" \n   transform=\"translate(%s %s) scale(%s %s)\">"),
-                w, NumStr(m_logicalOriginX), NumStr(m_logicalOriginY), NumStr(m_scaleX), NumStr(m_scaleY)  );
+                m_pen.GetWidth(), NumStr(m_logicalOriginX), NumStr(m_logicalOriginY), NumStr(m_scaleX), NumStr(m_scaleY)  );
 
     s = sBrush + sPenCap + sPenJoin + sPenStyle + sLast + wxT("\n") + sWarn;
     write(s);
     m_graphics_changed = false;
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::NewGraphics Call executed"));
 }
 
 
@@ -579,8 +575,6 @@ void wxSVGFileDCImpl::SetFont(const wxFont& font)
 
 {
     m_font = font;
-
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::SetFont Call executed"));
 }
 
 // export a bitmap as a raster image in png
@@ -605,7 +599,6 @@ bool wxSVGFileDCImpl::DoBlit(wxCoord xdest, wxCoord ydest, wxCoord width, wxCoor
     memDC.Blit(0, 0, width, height, source, xsrc, ysrc);
     memDC.SelectObject( wxNullBitmap );
     DoDrawBitmap(myBitmap, xdest, ydest);
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DoBlit Call executed"));
     return false;
 }
 
@@ -617,13 +610,11 @@ void wxSVGFileDCImpl::DoDrawIcon(const class wxIcon & myIcon, wxCoord x, wxCoord
     memDC.DrawIcon(myIcon,0,0);
     memDC.SelectObject( wxNullBitmap );
     DoDrawBitmap(myBitmap, x, y);
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DoDrawIcon Call executed"));
-    return;
 }
 
 void wxSVGFileDCImpl::DoDrawBitmap(const class wxBitmap & bmp, wxCoord x, wxCoord y , bool  WXUNUSED(bTransparent) /*=0*/ )
 {
-    if (m_graphics_changed) NewGraphics ();
+    if (m_graphics_changed) NewGraphics();
 
     wxString sTmp, s, sPNG;
     if ( wxImage::FindHandler(wxBITMAP_TYPE_PNG) == NULL )
@@ -652,25 +643,22 @@ void wxSVGFileDCImpl::DoDrawBitmap(const class wxBitmap & bmp, wxCoord x, wxCoor
     int w = myBitmap.GetWidth();
     int h = myBitmap.GetHeight();
     sTmp.Printf ( wxT(" <image x=\"%d\" y=\"%d\" width=\"%dpx\" height=\"%dpx\" "), x,y,w,h );
-    s = s + sTmp;
+    s += sTmp;
     sTmp.Printf ( wxT(" xlink:href=\"%s\"> \n"), sPNG.c_str() );
-    s = s + sTmp + wxT("<title>Image from wxSVG</title>  </image>") + wxT("\n");
+    s += sTmp + wxT("<title>Image from wxSVG</title>  </image>") + wxT("\n");
 
     if (m_OK && bPNG_OK)
     {
         write(s);
     }
-    m_OK = m_outfile->Ok () && bPNG_OK;
-    wxASSERT_MSG(!wxSVG_DEBUG, wxT("wxSVGFileDC::DoDrawBitmap Call executed"));
-
-    return;
+    m_OK = m_outfile->IsOk() && bPNG_OK;
 }
 
 void wxSVGFileDCImpl::write(const wxString &s)
 {
     const wxCharBuffer buf = s.utf8_str();
     m_outfile->Write(buf, strlen((const char *)buf));
-    m_OK = m_outfile->Ok();
+    m_OK = m_outfile->IsOk();
 }
 
 

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: button.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: button.mm 67931 2011-06-14 13:00:42Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,39 +22,6 @@
 #include "wx/stockitem.h"
 
 #include "wx/osx/private.h"
-
-wxSize wxButton::DoGetBestSize() const
-{
-    if ( GetId() == wxID_HELP )
-        return wxSize( 18 , 18 ) ;
-
-    wxSize sz = GetDefaultSize() ;
-
-    wxRect r ;
-
-    GetPeer()->GetBestRect(&r);
-
-    if ( r.GetWidth() == 0 && r.GetHeight() == 0 )
-    {
-    }
-    sz.x = r.GetWidth();
-    sz.y = r.GetHeight();
-
-    int wBtn = 72;
-
-    if ((wBtn > sz.x) || ( GetWindowStyle() & wxBU_EXACTFIT))
-        sz.x = wBtn;
-
-    return sz ;
-}
-
-wxSize wxButton::GetDefaultSize()
-{
-    int wBtn = 72 ;
-    int hBtn = 35 ;
-
-    return wxSize(wBtn, hBtn);
-}
 
 @implementation wxUIButton
 

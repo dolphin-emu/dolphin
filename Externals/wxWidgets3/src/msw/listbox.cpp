@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin (owner drawn stuff)
 // Created:
-// RCS-ID:      $Id: listbox.cpp 66664 2011-01-10 12:00:54Z VZ $
+// RCS-ID:      $Id: listbox.cpp 70415 2012-01-20 22:11:44Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -306,7 +306,15 @@ bool wxListBox::IsSelected(int N) const
 
 void *wxListBox::DoGetItemClientData(unsigned int n) const
 {
-    return (void *)SendMessage(GetHwnd(), LB_GETITEMDATA, n, 0);
+    LPARAM rc = SendMessage(GetHwnd(), LB_GETITEMDATA, n, 0);
+    if ( rc == LB_ERR && GetLastError() != ERROR_SUCCESS )
+    {
+        wxLogLastError(wxT("LB_GETITEMDATA"));
+
+        return NULL;
+    }
+
+    return (void *)rc;
 }
 
 void wxListBox::DoSetItemClientData(unsigned int n, void *clientData)

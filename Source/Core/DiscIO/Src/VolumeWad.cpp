@@ -1,20 +1,8 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
+#include <algorithm>
 #include <math.h>
 
 #include "VolumeWad.h"
@@ -107,41 +95,56 @@ bool CVolumeWAD::GetTitleID(u8* _pBuffer) const
 	return true;
 }
 
-std::string CVolumeWAD::GetName() const
+std::vector<std::string> CVolumeWAD::GetNames() const
 {
+	std::vector<std::string> names;
+
 	u32 footer_size;
-
 	if (!Read(0x1C, 4, (u8*)&footer_size))
-		return "";
-
-	// Offset to the english title
-	char temp[84];
-	if (!Read(0xF1 + OpeningBnrOffset, 84, (u8*)&temp) || Common::swap32(footer_size) < 0xF1)
-		return "";
-
-	// Remove the null bytes due to 16bit char length
-	std::string out_temp;
-	for (unsigned int i = 0; i < sizeof(temp); i+=2)
 	{
-		// Replace null chars with a single space per null section
- 		if (temp[i] == '\0' && i > 0)
-		{ 		
-			if (out_temp.at(out_temp.size()-1) != ' ')
- 				out_temp.push_back(' ');
+		return names;
+	}
+	
+	footer_size = Common::swap32(footer_size);
+	
+	//Japanese, English, German, French, Spanish, Italian, Dutch, unknown, unknown, Korean
+	for (int i = 0; i != 10; ++i)
+	{
+		static const u32 string_length = 42;
+		static const u32 bytes_length = string_length * sizeof(u16);
+		
+		u16 temp[string_length];
+
+		if (footer_size < 0xF1 || !Read(0x9C + (i * bytes_length) + OpeningBnrOffset, bytes_length, (u8*)&temp))
+		{
+			names.push_back("");
 		}
 		else
-			out_temp.push_back(temp[i]);
+		{
+			std::wstring out_temp;
+			out_temp.resize(string_length);
+			std::transform(temp, temp + out_temp.size(), out_temp.begin(), (u16(&)(u16))Common::swap16);
+			out_temp.erase(std::find(out_temp.begin(), out_temp.end(), 0x00), out_temp.end());
+			
+			names.push_back(UTF16ToUTF8(out_temp));
+		}
 	}
-	// Make it a null terminated string
-	out_temp.replace(out_temp.end()-1, out_temp.end(), 1, '\0');
 
-	return out_temp;
+	return names;
 }
 
 u64 CVolumeWAD::GetSize() const
 {
 	if (m_pReader)
-		return (size_t)m_pReader->GetDataSize();
+		return m_pReader->GetDataSize();
+	else
+		return 0;
+}
+
+u64 CVolumeWAD::GetRawSize() const
+{
+	if (m_pReader)
+		return m_pReader->GetRawSize();
 	else
 		return 0;
 }

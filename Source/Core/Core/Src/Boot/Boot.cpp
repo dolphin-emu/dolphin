@@ -1,24 +1,12 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
 #include "Common.h" // Common
 #include "StringUtil.h"
 #include "FileUtil.h"
+#include "MathUtil.h"
 
 #include "../HLE/HLE.h" // Core
 #include "../PowerPC/PowerPC.h"
@@ -52,7 +40,8 @@
 
 void CBoot::Load_FST(bool _bIsWii)
 {
-	if (!VolumeHandler::IsValid()) return;
+	if (!VolumeHandler::IsValid())
+		return;
 
 	// copy first 20 bytes of disc to start of Mem 1
 	VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20);		
@@ -68,13 +57,13 @@ void CBoot::Load_FST(bool _bIsWii)
 	u32 fstSize    = VolumeHandler::Read32(0x0428) << shift;
 	u32 maxFstSize = VolumeHandler::Read32(0x042c) << shift;
 
-	u32 arenaHigh = 0x817FFFF4 - maxFstSize;
+	u32 arenaHigh = ROUND_DOWN(0x817FFFFF - maxFstSize, 0x20);
 	Memory::Write_U32(arenaHigh, 0x00000034);
 
 	// load FST
 	VolumeHandler::ReadToPtr(Memory::GetPointer(arenaHigh), fstOffset, fstSize);
 	Memory::Write_U32(arenaHigh, 0x00000038);
-	Memory::Write_U32(maxFstSize, 0x0000003c);		
+	Memory::Write_U32(maxFstSize, 0x0000003c);
 }
 
 void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
@@ -107,7 +96,7 @@ std::string CBoot::GenerateMapFilename()
 		return File::GetUserPath(D_MAPS_IDX) + _StartupPara.GetUniqueID() + ".map";
 	}
 
-    return std::string("unknown map");
+	return std::string("unknown map");
 }
 
 bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_gameID)
@@ -118,7 +107,7 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 	std::string strMapFilename = GenerateMapFilename();
 
 	bool success = false;
-    if (!g_symbolDB.LoadMap(strMapFilename.c_str()))
+	if (!g_symbolDB.LoadMap(strMapFilename.c_str()))
 	{
 		if (_gameID != NULL)
 		{
@@ -175,7 +164,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 
 	std::string BootRegion = _rBootROMFilename.substr(_rBootROMFilename.find_last_of(DIR_SEP) - 3, 3);
 	if (BootRegion != ipl_region)
-		PanicAlert("%s ipl found in %s directory, the disc may not be recognized", ipl_region.c_str(), BootRegion.c_str());
+		PanicAlert("%s IPL found in %s directory. The disc may not be recognized", ipl_region.c_str(), BootRegion.c_str());
 
 	// Run the descrambler over the encrypted section containing BS1/BS2
 	CEXIIPL::Descrambler((u8*)data.data()+0x100, 0x1AFE00);
@@ -183,7 +172,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 	Memory::WriteBigEData((const u8*)data.data() + 0x100, 0x81200000, 0x700);
 	Memory::WriteBigEData((const u8*)data.data() + 0x820, 0x81300000, 0x1AFE00);
 	PC = 0x81200000;
-    return true;
+	return true;
 }
 
 
@@ -195,10 +184,13 @@ bool CBoot::BootUp()
 
 	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
 
-	// HLE jump to loader (homebrew)
-	HLE::Patch(0x80001800, "HBReload");
-	const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };
-	Memory::WriteBigEData(stubstr, 0x80001804, 8);
+	// HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code handler
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	{
+		HLE::Patch(0x80001800, "HBReload");
+		const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };
+		Memory::WriteBigEData(stubstr, 0x80001804, 8);
+	}
 
 	g_symbolDB.Clear();
 	VideoInterface::Preset(_StartupPara.bNTSC);
@@ -224,7 +216,9 @@ bool CBoot::BootUp()
 		// setup the map from ISOFile ID
 		VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
 
-		VideoInterface::SetRegionReg((char)VolumeHandler::GetVolume()->GetUniqueID().at(3));
+		std::string unique_id = VolumeHandler::GetVolume()->GetUniqueID();
+		if (unique_id.size() >= 4)
+			VideoInterface::SetRegionReg(unique_id.at(3));
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
@@ -249,6 +243,19 @@ bool CBoot::BootUp()
 		{
 			// If we can't load the bootrom file we HLE it instead
 			EmulatedBS2(_StartupPara.bWii);
+		}
+
+		// Scan for common HLE functions
+		if (_StartupPara.bSkipIdle && !_StartupPara.bEnableDebugging)
+		{
+			PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
+			SignatureDB db;
+			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
+			{
+				db.Apply(&g_symbolDB);
+				HLE::PatchFunctions();
+				db.Clear();
+			}
 		}
 
 		/* Try to load the symbol map if there is one, and then scan it for
@@ -302,7 +309,7 @@ bool CBoot::BootUp()
 		if (LoadMapFromFilename(_StartupPara.m_strFilename))
 			HLE::PatchFunctions();
 
-        break;
+		break;
 	}
 
 	// ELF

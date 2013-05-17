@@ -1,22 +1,10 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "AboutDolphin.h"
+#include "WxUtils.h"
 #include "../resources/dolphin_logo.cpp"
 #include "scmrev.h"
 
@@ -31,7 +19,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 			wxBitmap(iDolphinLogo));
 
 	std::string Text = "Dolphin " SCM_DESC_STR "\n"
-		"Copyright (c) 2003-2011+ Dolphin Team\n"
+		"Copyright (c) 2003-2013+ Dolphin Team\n"
 		"\n"
 		"Branch: " SCM_BRANCH_STR "\n"
 		"Revision: " SCM_REV_STR "\n"
@@ -62,7 +50,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		"and should not be used to play games you do\n"
 		"not legally own.";
 	wxStaticText* const Message = new wxStaticText(this, wxID_ANY,
-			wxString::FromAscii(Text.c_str()));
+			StrToWxStr(Text));
 	Message->Wrap(GetSize().GetWidth());
 
 	wxBoxSizer* const sInfo = new wxBoxSizer(wxVERTICAL);

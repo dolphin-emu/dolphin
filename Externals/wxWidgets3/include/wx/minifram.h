@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: minifram.h 54125 2008-06-11 19:17:41Z SC $
+// RCS-ID:      $Id: minifram.h 70345 2012-01-15 01:05:28Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -16,9 +16,7 @@
 
 #if wxUSE_MINIFRAME
 
-#if defined(__WXPALMOS__)
-#include "wx/palmos/minifram.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
 #include "wx/msw/minifram.h"
 #elif defined(__WXMOTIF__)
 #include "wx/motif/minifram.h"

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <map>
 
@@ -24,7 +11,7 @@
 
 #include "Common.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 #include "../../HLE/HLE.h"
 #include "../../Core.h"
@@ -41,6 +28,10 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 #include "Jit64_Tables.h"
+#include "HW/ProcessorInterface.h"
+#if defined(_DEBUG) || defined(DEBUGFAST)
+#include "PowerPCDisasm.h"
+#endif
 
 using namespace Gen;
 using namespace PowerPC;
@@ -187,13 +178,7 @@ void Jit64::Init()
 		else
 			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
 	}
-#ifdef _M_X64
-	jo.enableFastMem = Core::g_CoreStartupParameter.bUseFastMem;
-#else
-	jo.enableFastMem = false;
-#endif
-	jo.assumeFPLoadFromMem = Core::g_CoreStartupParameter.bUseFastMem;
-	jo.fpAccurateFcmp = true; // Fallback to Interpreter
+	jo.fpAccurateFcmp = Core::g_CoreStartupParameter.bEnableFPRF;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = true;
@@ -254,8 +239,6 @@ void Jit64::HLEFunction(UGeckoInstruction _inst)
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
-	MOV(32, R(EAX), M(&NPC));
-	WriteExitDestInEAX();
 }
 
 void Jit64::DoNothing(UGeckoInstruction _inst)
@@ -295,13 +278,20 @@ static void ImHere()
 void Jit64::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+	{
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+	}
+
+	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
+	if (MMCR0.Hex || MMCR1.Hex)
+		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
 void Jit64::WriteExit(u32 destination, int exit_num)
 {
 	Cleanup();
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
@@ -334,16 +324,31 @@ void Jit64::WriteExitDestInEAX()
 void Jit64::WriteRfiExitDestInEAX() 
 {
 	MOV(32, M(&PC), R(EAX));
+	MOV(32, M(&NPC), R(EAX));
 	Cleanup();
+	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
-	JMP(asm_routines.testExceptions, true);
+	JMP(asm_routines.dispatcher, true);
 }
 
 void Jit64::WriteExceptionExit()
 {
 	Cleanup();
+	MOV(32, R(EAX), M(&PC));
+	MOV(32, M(&NPC), R(EAX));
+	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
+	JMP(asm_routines.dispatcher, true);
+}
+
+void Jit64::WriteExternalExceptionExit()
+{
+	Cleanup();
+	MOV(32, R(EAX), M(&PC));
+	MOV(32, M(&NPC), R(EAX));
+	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
 	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
-	JMP(asm_routines.testExceptions, true);
+	JMP(asm_routines.dispatcher, true);
 }
 
 void STACKALIGN Jit64::Run()
@@ -412,13 +417,19 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
-		blockSize = 1;
-		broken_block = true;
-		Trace();
+		if (!Profiler::g_ProfileBlocks)
+		{
+			if (GetState() == CPU_STEPPING)
+				blockSize = 1;
+			Trace();
+		}
 	}
 
 	if (em_address == 0)
-		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
+	{
+		// Memory exception occurred during instruction fetch
+		memory_exception = true;
+	}
 
 	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
 	{
@@ -430,12 +441,15 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	}
 
 	int size = 0;
+	js.firstFPInstructionFound = false;
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
 	js.block_flags = 0;
 	js.cancel = false;
+	jit->js.numLoadStoreInst = 0;
+	jit->js.numFloatingPointInst = 0;
 
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
@@ -466,16 +480,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (ImHereDebug)
 		ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
-
-	if (js.fpa.any)
-	{
-		// This block uses FPU - needs to add FP exception bailout
-		TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); //Test FP enabled bit
-		FixupBranch b1 = J_CC(CC_NZ);
-		MOV(32, M(&PC), Imm32(js.blockStart));
-		JMP(asm_routines.fpException, true);
-		SetJumpTarget(b1);
-	}
 
 	// Conditionally add profiling code.
 	if (Profiler::g_ProfileBlocks) {
@@ -547,23 +551,89 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
 			js.fifoBytesThisBlock -= 32;
+			MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 			ABI_CallFunction(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
+		}
+
+		u32 function = HLE::GetFunctionIndex(ops[i].address);
+		if (function != 0)
+		{
+			int type = HLE::GetFunctionTypeByIndex(function);
+			if (type == HLE::HLE_HOOK_START || type == HLE::HLE_HOOK_REPLACE)
+			{
+				int flags = HLE::GetFunctionFlagsByIndex(function);
+				if (HLE::IsEnabled(flags))
+				{
+					HLEFunction(function);
+					if (type == HLE::HLE_HOOK_REPLACE)
+					{
+						MOV(32, R(EAX), M(&NPC));
+						js.downcountAmount += js.st.numCycles;
+						WriteExitDestInEAX();
+						break;
+					}
+				}
+			}
 		}
 
 		if (!ops[i].skip)
 		{
-			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
+			if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
 			{
+				gpr.Flush(FLUSH_ALL);
+				fpr.Flush(FLUSH_ALL);
+
 				//This instruction uses FPU - needs to add FP exception bailout
 				TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
-				FixupBranch b1 = J_CC(CC_NZ);
+				FixupBranch b1 = J_CC(CC_NZ, true);
 
 				// If a FPU exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
 				MOV(32, M(&PC), Imm32(ops[i].address));
-				SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
-				JMP(asm_routines.fpException, true);
+				OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+				WriteExceptionExit();
+
 				SetJumpTarget(b1);
+
+				js.firstFPInstructionFound = true;
+			}
+
+			// Add an external exception check if the instruction writes to the FIFO.
+			if (jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end())
+			{
+				gpr.Flush(FLUSH_ALL);
+				fpr.Flush(FLUSH_ALL);
+
+				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
+				FixupBranch clearInt = J_CC(CC_NZ, true);
+				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+				FixupBranch noExtException = J_CC(CC_Z, true);
+				TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
+				FixupBranch noExtIntEnable = J_CC(CC_Z, true);
+				TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
+				FixupBranch noCPInt = J_CC(CC_Z, true);
+
+				MOV(32, M(&PC), Imm32(ops[i].address));
+				WriteExternalExceptionExit();
+
+				SetJumpTarget(noCPInt);
+				SetJumpTarget(noExtIntEnable);
+				SetJumpTarget(noExtException);
+				SetJumpTarget(clearInt);
+			}
+
+			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			{
+				gpr.Flush(FLUSH_ALL);
+				fpr.Flush(FLUSH_ALL);
+
+				MOV(32, M(&PC), Imm32(ops[i].address));
+				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+				FixupBranch noBreakpoint = J_CC(CC_Z);
+
+				WriteExit(ops[i].address, 0);
+				SetJumpTarget(noBreakpoint);
 			}
 
 			Jit64Tables::CompileInstruction(ops[i]);
@@ -575,7 +645,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				fpr.Flush(FLUSH_ALL);
 
 				TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
-				FixupBranch noMemException = J_CC(CC_Z);
+				FixupBranch noMemException = J_CC(CC_Z, true);
 
 				// If a memory exception occurs, the exception handler will read
 				// from PC.  Update PC with the latest value in case that happens.
@@ -583,6 +653,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				WriteExceptionExit();
 				SetJumpTarget(noMemException);
 			}
+
+			if (opinfo->flags & FL_LOADSTORE)
+				++jit->js.numLoadStoreInst;
+
+			if (opinfo->flags & FL_USE_FPU)
+				++jit->js.numFloatingPointInst;
 		}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -590,10 +666,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			char ppcInst[256];
 			DisassembleGekko(ops[i].inst.hex, em_address, ppcInst, 256);
-			NOTICE_LOG(DYNA_REC, "Unflushed reg: %s", ppcInst);
+			NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppcInst);
 		}
 #endif
-
 		if (js.skipnext) {
 			js.skipnext = false;
 			i++; // Skip next instruction
@@ -603,10 +678,25 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			break;
 	}
 
+	u32 function = HLE::GetFunctionIndex(js.blockStart);
+	if (function != 0)
+	{
+		int type = HLE::GetFunctionTypeByIndex(function);
+		if (type == HLE::HLE_HOOK_END)
+		{
+			int flags = HLE::GetFunctionFlagsByIndex(function);
+			if (HLE::IsEnabled(flags))
+			{
+				HLEFunction(function);
+			}
+		}
+	}
+
 	if (memory_exception)
 	{
 		// Address of instruction could not be translated
 		MOV(32, M(&NPC), Imm32(js.compilerPC));
+
 		OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 		// Remove the invalid instruction from the icache, forcing a recompile

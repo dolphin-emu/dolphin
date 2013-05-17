@@ -266,7 +266,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Src\SConscript" />
     <None Include="CMakeLists.txt" />
     <None Include="..\..\..\Installer\Dolphin.ico">
       <Filter>Resources</Filter>

@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: pen.cpp 58739 2009-02-07 23:23:18Z KO $
+// RCS-ID:      $Id: pen.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -164,42 +164,42 @@ bool wxPen::operator==(const wxPen& pen) const
 
 wxColour wxPen::GetColour() const
 {
-    wxCHECK_MSG( Ok(), wxNullColour, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), wxNullColour, wxT("invalid pen") );
 
     return M_PENDATA->m_colour;
 }
 
 int wxPen::GetWidth() const
 {
-    wxCHECK_MSG( Ok(), -1, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), -1, wxT("invalid pen") );
 
     return M_PENDATA->m_width;
 }
 
 wxPenStyle wxPen::GetStyle() const
 {
-    wxCHECK_MSG( Ok(), wxPENSTYLE_INVALID, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), wxPENSTYLE_INVALID, wxT("invalid pen") );
 
     return M_PENDATA->m_style;
 }
 
 wxPenJoin wxPen::GetJoin() const
 {
-    wxCHECK_MSG( Ok(), wxJOIN_INVALID, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), wxJOIN_INVALID, wxT("invalid pen") );
 
     return M_PENDATA->m_join;
 }
 
 wxPenCap wxPen::GetCap() const
 {
-    wxCHECK_MSG( Ok(), wxCAP_INVALID, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), wxCAP_INVALID, wxT("invalid pen") );
 
     return M_PENDATA->m_cap;
 }
 
 int wxPen::GetDashes(wxDash **ptr) const
 {
-    wxCHECK_MSG( Ok(), -1, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), -1, wxT("invalid pen") );
 
     *ptr = M_PENDATA->m_dash;
     return M_PENDATA->m_nbDash;
@@ -212,7 +212,7 @@ int wxPen::GetDashCount() const
 
 wxBitmap *wxPen::GetStipple() const
 {
-    wxCHECK_MSG( Ok(), NULL, wxT("invalid pen") );
+    wxCHECK_MSG( IsOk(), NULL, wxT("invalid pen") );
 
     return &M_PENDATA->m_stipple;
 }

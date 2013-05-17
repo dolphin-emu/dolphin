@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004/02/01
-// RCS-ID:      $Id: sound.h 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: sound.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2004, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ protected:
 // wxSound class implementation
 // ----------------------------------------------------------------------------
 
-#if defined(__WXMSW__)
+#if defined(__WINDOWS__)
     #include "wx/msw/sound.h"
 #elif defined(__WXCOCOA__)
     #include "wx/cocoa/sound.h"

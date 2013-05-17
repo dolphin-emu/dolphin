@@ -2,7 +2,7 @@
 // Name:        src/gtk/treeentry_gtk.c
 // Purpose:     GtkTreeEntry implementation
 // Author:      Ryan Norton
-// Id:          $Id: treeentry_gtk.c 65341 2010-08-18 21:28:11Z RR $
+// Id:          $Id: treeentry_gtk.c 67433 2011-04-11 09:36:56Z JJ $
 // Copyright:   (c) 2006 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////// */
@@ -46,10 +46,10 @@ gtk_tree_entry_new()
     return GTK_TREE_ENTRY(g_object_new(GTK_TYPE_TREE_ENTRY, NULL));
 }
 
-GtkType
+GType
 gtk_tree_entry_get_type ()
 {
-    static GtkType tree_entry_type = 0;
+    static GType tree_entry_type = 0;
 
     if (!tree_entry_type)
     {

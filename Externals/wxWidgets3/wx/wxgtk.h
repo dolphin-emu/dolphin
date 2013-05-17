@@ -213,9 +213,15 @@
     #define wxUSE_STD_DEFAULT  0
 #endif
 
+#define wxUSE_STD_CONTAINERS 0
+
 #define wxUSE_STD_IOSTREAM 1
 
 #define wxUSE_STD_STRING 1
+
+#define wxUSE_STD_STRING_CONV_IN_WXSTRING wxUSE_STL
+
+#define wxUSE_IOSTREAMH     0
 
 #define wxUSE_PRINTF_POS_PARAMS 1
 
@@ -323,6 +329,19 @@
 
 #define wxUSE_STC 0
 
+#define wxUSE_WEBVIEW 0
+
+#ifdef __WXMSW__
+#define wxUSE_WEBVIEW_IE 0
+#else
+#define wxUSE_WEBVIEW_IE 0
+#endif
+
+#if defined(__WXGTK__) || defined(__WXOSX__)
+#define wxUSE_WEBVIEW_WEBKIT 0
+#else
+#define wxUSE_WEBVIEW_WEBKIT 0
+#endif
 
 
 #ifdef _MSC_VER
@@ -350,11 +369,14 @@
 
 #define wxUSE_CONTROLS 1
 
+#define wxUSE_MARKUP       0
+
 #define wxUSE_POPUPWIN 1
 
 #define wxUSE_TIPWINDOW 1
 
 #define wxUSE_ANIMATIONCTRL 1
+#define wxUSE_BANNERWINDOW 1
 #define wxUSE_BUTTON 1
 #define wxUSE_BMPBUTTON 1
 #define wxUSE_CALENDARCTRL 1
@@ -390,8 +412,10 @@
 #define wxUSE_STATTEXT 1
 #define wxUSE_STATBMP 1
 #define wxUSE_TEXTCTRL 1
+#define wxUSE_TIMEPICKCTRL 1
 #define wxUSE_TOGGLEBTN 1
 #define wxUSE_TREECTRL 1
+#define wxUSE_TREELISTCTRL 1
 
 #define wxUSE_STATUSBAR 1
 
@@ -446,6 +470,8 @@
 #define wxUSE_MENUS 1
 
 #define wxUSE_NOTIFICATION_MESSAGE 1
+
+#define wxUSE_RICHTOOLTIP 1
 
 #define wxUSE_SASH 1
 
@@ -559,6 +585,7 @@
 
 #define wxUSE_SVG 1
 
+#define wxUSE_DC_TRANSFORM_MATRIX 1
 
 #define REMOVE_UNUSED_ARG   0
 

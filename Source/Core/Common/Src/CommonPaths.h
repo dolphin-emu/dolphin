@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _COMMON_PATHS_H_
 #define _COMMON_PATHS_H_
@@ -36,6 +23,9 @@
 	// You can use the File::GetUserPath() util for this
 	#define USERDATA_DIR "Contents/Resources/User"
 	#define DOLPHIN_DATA_DIR "Library/Application Support/Dolphin"
+#elif defined ANDROID
+	#define USERDATA_DIR "user"
+	#define DOLPHIN_DATA_DIR "/sdcard/dolphin-emu"
 #else
 	#define USERDATA_DIR "user"
 	#ifdef USER_DIR
@@ -52,6 +42,9 @@
 	#define SYSDATA_DIR "Contents/Resources/Sys"
 	#define SHARED_USER_DIR	File::GetBundleDirectory() + \
 				DIR_SEP USERDATA_DIR DIR_SEP
+#elif defined ANDROID
+	#define SYSDATA_DIR "/sdcard/dolphin-emu"
+	#define SHARED_USER_DIR SYSDATA_DIR
 #else
 	#ifdef DATA_DIR
 		#define SYSDATA_DIR DATA_DIR "sys"
@@ -89,11 +82,11 @@
 #define MAIL_LOGS_DIR		LOGS_DIR DIR_SEP "Mail"
 #define SHADERS_DIR 		"Shaders"
 #define WII_SYSCONF_DIR		"shared2" DIR_SEP "sys"
+#define THEMES_DIR		"Themes"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
 #define DOLPHIN_CONFIG	"Dolphin.ini"
-#define DSP_CONFIG		"DSP.ini"
 #define DEBUGGER_CONFIG	"Debugger.ini"
 #define LOGGER_CONFIG	"Logger.ini"
 
@@ -106,6 +99,7 @@
 // Files in the directory returned by GetUserPath(D_DUMP_IDX)
 #define RAM_DUMP	"ram.raw"
 #define ARAM_DUMP	"aram.raw"
+#define FAKEVMEM_DUMP	"fakevmem.raw"
 
 // Sys files
 #define TOTALDB		"totaldb.dsy"
@@ -121,10 +115,15 @@
 #define GC_MEMCARDA	"MemoryCardA"
 #define GC_MEMCARDB	"MemoryCardB"
 
-#define WII_SETTING 	"setting.txt"
+#define WII_STATE	"state.dat"
+
+#define WII_SETTING		"setting.txt"
 #define WII_EUR_SETTING "setting-eur.txt"
 #define WII_USA_SETTING "setting-usa.txt"
 #define WII_JAP_SETTING "setting-jpn.txt"
+#define WII_KOR_SETTING "setting-kor.txt"
+
+#define GECKO_CODE_HANDLER "codehandler.bin"
 
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"

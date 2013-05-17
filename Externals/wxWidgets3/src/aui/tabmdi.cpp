@@ -4,7 +4,7 @@
 // Author:      Hans Van Leemputten
 // Modified by: Benjamin I. Williams / Kirix Corporation
 // Created:     29/07/2002
-// RCS-ID:      $Id: tabmdi.cpp 58227 2009-01-19 13:55:27Z VZ $
+// RCS-ID:      $Id: tabmdi.cpp 70909 2012-03-15 13:49:54Z VZ $
 // Copyright:   (c) Hans Van Leemputten
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,6 +56,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxAuiMDIParentFrame, wxFrame)
 BEGIN_EVENT_TABLE(wxAuiMDIParentFrame, wxFrame)
 #if wxUSE_MENUS
     EVT_MENU (wxID_ANY, wxAuiMDIParentFrame::DoHandleMenu)
+    EVT_UPDATE_UI (wxID_ANY, wxAuiMDIParentFrame::DoHandleUpdateUI)
 #endif
 END_EVENT_TABLE()
 
@@ -347,6 +348,35 @@ void wxAuiMDIParentFrame::DoHandleMenu(wxCommandEvent& event)
             event.Skip();
     }
 }
+
+void wxAuiMDIParentFrame::DoHandleUpdateUI(wxUpdateUIEvent& event)
+{
+    switch (event.GetId())
+    {
+        case wxWINDOWCLOSE:
+        case wxWINDOWCLOSEALL:
+        {
+            wxAuiMDIClientWindow* client_window = GetClientWindow();
+            wxCHECK_RET(client_window, wxS("Missing MDI Client Window"));
+            size_t pages = client_window->GetPageCount();
+            event.Enable(pages >= 1);
+            break;
+        }
+
+        case wxWINDOWNEXT:
+        case wxWINDOWPREV:
+        {
+            wxAuiMDIClientWindow* client_window = GetClientWindow();
+            wxCHECK_RET(client_window, wxS("Missing MDI Client Window"));
+            size_t pages = client_window->GetPageCount();
+            event.Enable(pages >= 2);
+            break;
+        }
+
+        default:
+            event.Skip();
+    }
+}
 #endif // wxUSE_MENUS
 
 void wxAuiMDIParentFrame::DoGetClientSize(int* width, int* height) const
@@ -409,7 +439,7 @@ wxAuiMDIChildFrame::wxAuiMDIChildFrame(wxAuiMDIParentFrame *parent,
     // is, but those are the expected symantics.  No style flag is passed
     // onto the panel underneath.
     if (style & wxMINIMIZE)
-        m_activate_on_create = false;
+        m_activateOnCreate = false;
 
     Create(parent, id, title, wxDefaultPosition, size, 0, name);
 }
@@ -451,7 +481,7 @@ bool wxAuiMDIChildFrame::Create(wxAuiMDIParentFrame* parent,
 
     // see comment in constructor
     if (style & wxMINIMIZE)
-        m_activate_on_create = false;
+        m_activateOnCreate = false;
 
     wxSize cli_size = pClientWindow->GetClientSize();
 
@@ -471,7 +501,7 @@ bool wxAuiMDIChildFrame::Create(wxAuiMDIParentFrame* parent,
 
     m_title = title;
 
-    pClientWindow->AddPage(this, title, m_activate_on_create);
+    pClientWindow->AddPage(this, title, m_activateOnCreate);
     pClientWindow->Refresh();
 
     return true;
@@ -565,12 +595,12 @@ void wxAuiMDIChildFrame::SetIcons(const wxIconBundle& icons)
 {
     // get icon with the system icon size
     SetIcon(icons.GetIcon(-1));
-    m_icon_bundle = icons;
+    m_iconBundle = icons;
 }
 
 const wxIconBundle& wxAuiMDIChildFrame::GetIcons() const
 {
-    return m_icon_bundle;
+    return m_iconBundle;
 }
 
 void wxAuiMDIChildFrame::SetIcon(const wxIcon& icon)
@@ -658,7 +688,7 @@ wxAuiMDIParentFrame* wxAuiMDIChildFrame::GetMDIParentFrame() const
 
 void wxAuiMDIChildFrame::Init()
 {
-    m_activate_on_create = true;
+    m_activateOnCreate = true;
     m_pMDIParentFrame = NULL;
 #if wxUSE_MENUS
     m_pMenuBar = NULL;
@@ -667,7 +697,7 @@ void wxAuiMDIChildFrame::Init()
 
 bool wxAuiMDIChildFrame::Show(bool show)
 {
-    m_activate_on_create = show;
+    m_activateOnCreate = show;
 
     // do nothing
     return true;
@@ -680,7 +710,7 @@ void wxAuiMDIChildFrame::DoShow(bool show)
 
 void wxAuiMDIChildFrame::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
-    m_mdi_newrect = wxRect(x, y, width, height);
+    m_mdiNewRect = wxRect(x, y, width, height);
 #ifdef __WXGTK__
     wxPanel::DoSetSize(x,y,width, height, sizeFlags);
 #else
@@ -690,16 +720,16 @@ void wxAuiMDIChildFrame::DoSetSize(int x, int y, int width, int height, int size
 
 void wxAuiMDIChildFrame::DoMoveWindow(int x, int y, int width, int height)
 {
-    m_mdi_newrect = wxRect(x, y, width, height);
+    m_mdiNewRect = wxRect(x, y, width, height);
 }
 
 void wxAuiMDIChildFrame::ApplyMDIChildFrameRect()
 {
-    if (m_mdi_currect != m_mdi_newrect)
+    if (m_mdiCurRect != m_mdiNewRect)
     {
-        wxPanel::DoMoveWindow(m_mdi_newrect.x, m_mdi_newrect.y,
-                              m_mdi_newrect.width, m_mdi_newrect.height);
-        m_mdi_currect = m_mdi_newrect;
+        wxPanel::DoMoveWindow(m_mdiNewRect.x, m_mdiNewRect.y,
+                              m_mdiNewRect.width, m_mdiNewRect.height);
+        m_mdiCurRect = m_mdiNewRect;
     }
 }
 
@@ -723,11 +753,6 @@ wxAuiMDIClientWindow::wxAuiMDIClientWindow()
 wxAuiMDIClientWindow::wxAuiMDIClientWindow(wxAuiMDIParentFrame* parent, long style)
 {
     CreateClient(parent, style);
-}
-
-wxAuiMDIClientWindow::~wxAuiMDIClientWindow()
-{
-    DestroyChildren();
 }
 
 bool wxAuiMDIClientWindow::CreateClient(wxAuiMDIParentFrame* parent, long style)

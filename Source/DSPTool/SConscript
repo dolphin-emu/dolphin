@@ -1,6 +1,0 @@
-# -*- python -*-
-
-Import('env')
-import sys
-
-env.Program('dsptool', 'Src/DSPTool.cpp')

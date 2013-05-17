@@ -3,7 +3,7 @@
 // Purpose:   Region class
 // Author:    Stefan Csomor
 // Created:   Fri Oct 24 10:46:34 MET 1997
-// RCS-ID:    $Id: region.cpp 66801 2011-01-28 07:35:07Z SC $
+// RCS-ID:    $Id: region.cpp 70537 2012-02-08 00:20:38Z RD $
 // Copyright: (c) 1997 Stefan Csomor
 // Licence:   wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,6 +16,7 @@
 
 #ifndef WX_PRECOMP
     #include "wx/gdicmn.h"
+    #include "wx/dcmemory.h"
 #endif
 
 #include "wx/osx/private.h"
@@ -67,14 +68,6 @@ public:
 // wxRegion
 //-----------------------------------------------------------------------------
 
-/*!
- * Create an empty region.
- */
-wxRegion::wxRegion()
-{
-    m_refData = new wxRegionRefData();
-}
-
 wxRegion::wxRegion(WXHRGN hRegion )
 {
     wxCFRef< HIShapeRef > shape( (HIShapeRef) hRegion );
@@ -89,8 +82,8 @@ wxRegion::wxRegion(long x, long y, long w, long h)
 wxRegion::wxRegion(const wxPoint& topLeft, const wxPoint& bottomRight)
 {
     m_refData = new wxRegionRefData(topLeft.x , topLeft.y ,
-                                    topLeft.x - bottomRight.x ,
-                                    topLeft.y - bottomRight.y);
+                                    bottomRight.x - topLeft.x,
+                                    bottomRight.y - topLeft.y);
 }
 
 wxRegion::wxRegion(const wxRect& rect)
@@ -98,63 +91,41 @@ wxRegion::wxRegion(const wxRect& rect)
     m_refData = new wxRegionRefData(rect.x , rect.y , rect.width , rect.height);
 }
 
-wxRegion::wxRegion(size_t n, const wxPoint *points, wxPolygonFillMode WXUNUSED(fillStyle))
+wxRegion::wxRegion(size_t n, const wxPoint *points, wxPolygonFillMode fillStyle)
 {
-    wxUnusedVar(n);
-    wxUnusedVar(points);
-
-#if 0
-    // no non-QD APIs available
-    // TODO : remove ?
-    // OS X somehow does not collect the region invisibly as before, so sometimes things
-    // get drawn on screen instead of just being combined into a region, therefore we allocate a temp gworld now
-
-    GWorldPtr gWorld = NULL;
-    GWorldPtr oldWorld;
-    GDHandle oldGDHandle;
-    OSStatus err;
-    Rect destRect = { 0, 0, 1, 1 };
-
-    ::GetGWorld( &oldWorld, &oldGDHandle );
-    err = ::NewGWorld( &gWorld, 32, &destRect, NULL, NULL, 0 );
-    if ( err == noErr )
-    {
-        ::SetGWorld( gWorld, GetGDevice() );
-
-        OpenRgn();
-
-        wxCoord x1, x2 , y1 , y2 ;
-        x2 = x1 = points[0].x ;
-        y2 = y1 = points[0].y ;
-
-        ::MoveTo( x1, y1 );
-        for (size_t i = 1; i < n; i++)
-        {
-            x2 = points[i].x ;
-            y2 = points[i].y ;
-            ::LineTo( x2, y2 );
-        }
-
-        // close the polyline if necessary
-        if ( x1 != x2 || y1 != y2 )
-            ::LineTo( x1, y1 ) ;
-
-        RgnHandle tempRgn = NewRgn();
-        CloseRgn( tempRgn ) ;
-
-        ::SetGWorld( oldWorld, oldGDHandle );
-        wxCFRef<HIShapeRef> tempShape( HIShapeCreateWithQDRgn(tempRgn ) );
-        m_refData = new wxRegionRefData(tempShape);
-        DisposeRgn( tempRgn );
-    }
-    else
-    {
-        m_refData = new wxRegionRefData;
-    }
-#else
-    wxFAIL_MSG( "not implemented" );
-    m_refData = NULL;
-#endif
+    // Set the region to a polygon shape generically using a bitmap with the 
+    // polygon drawn on it. 
+ 
+    m_refData = new wxRegionRefData(); 
+     
+    wxCoord mx = 0; 
+    wxCoord my = 0; 
+    wxPoint p; 
+    size_t idx;     
+     
+    // Find the max size needed to draw the polygon 
+    for (idx=0; idx<n; idx++) 
+    { 
+        wxPoint pt = points[idx]; 
+        if (pt.x > mx) 
+            mx = pt.x; 
+        if (pt.y > my) 
+            my = pt.y; 
+    } 
+ 
+    // Make the bitmap 
+    wxBitmap bmp(mx, my); 
+    wxMemoryDC dc(bmp); 
+    dc.SetBackground(*wxBLACK_BRUSH); 
+    dc.Clear(); 
+    dc.SetPen(*wxWHITE_PEN); 
+    dc.SetBrush(*wxWHITE_BRUSH); 
+    dc.DrawPolygon(n, (wxPoint*)points, 0, 0, fillStyle); 
+    dc.SelectObject(wxNullBitmap); 
+    bmp.SetMask(new wxMask(bmp, *wxBLACK)); 
+ 
+    // Use it to set this region 
+    Union(bmp); 
 }
 
 wxRegion::~wxRegion()
@@ -185,11 +156,13 @@ void wxRegion::Clear()
 // Move the region
 bool wxRegion::DoOffset(wxCoord x, wxCoord y)
 {
-    wxCHECK_MSG( M_REGION, false, wxT("invalid wxRegion") );
+    wxCHECK_MSG( m_refData, false, wxT("invalid wxRegion") );
 
     if ( !x && !y )
         // nothing to do
         return true;
+
+    AllocExclusive();
 
     verify_noerr( HIShapeOffset( M_REGION , x , y ) ) ;
 
@@ -200,19 +173,33 @@ bool wxRegion::DoOffset(wxCoord x, wxCoord y)
 //! Union /e region with this.
 bool wxRegion::DoCombine(const wxRegion& region, wxRegionOp op)
 {
-    wxCHECK_MSG( region.Ok(), false, wxT("invalid wxRegion") );
+    wxCHECK_MSG( region.IsOk(), false, wxT("invalid wxRegion") );
 
-    // Don't change shared data
-    if (!m_refData)
+    // Handle the special case of not initialized (e.g. default constructed)
+    // region as we can't use HIShape functions if we don't have any shape.
+    if ( !m_refData )
     {
-        m_refData = new wxRegionRefData();
+        switch ( op )
+        {
+            case wxRGN_COPY:
+            case wxRGN_OR:
+            case wxRGN_XOR:
+                // These operations make sense with a null region.
+                *this = region;
+                return true;
+
+            case wxRGN_AND:
+            case wxRGN_DIFF:
+                // Those ones don't really make sense so just leave this region
+                // empty/invalid.
+                return false;
+        }
+
+        wxFAIL_MSG( wxT("Unknown region operation") );
+        return false;
     }
-    else if (m_refData->GetRefCount() > 1)
-    {
-        wxRegionRefData* ref = (wxRegionRefData*)m_refData;
-        UnRef();
-        m_refData = new wxRegionRefData(*ref);
-    }
+
+    AllocExclusive();
 
     switch (op)
     {
@@ -250,11 +237,21 @@ bool wxRegion::DoCombine(const wxRegion& region, wxRegionOp op)
 //# Information on region
 //-----------------------------------------------------------------------------
 
-bool wxRegion::DoIsEqual(const wxRegion& WXUNUSED(region)) const
+bool wxRegion::DoIsEqual(const wxRegion& region) const
 {
-    wxFAIL_MSG( wxT("not implemented") );
+    // There doesn't seem to be any native function for checking the equality
+    // of HIShapes so we compute their differences to determine if they are
+    // equal.
+    wxRegion r(*this);
+    r.Subtract(region);
 
-    return false;
+    if ( !r.IsEmpty() )
+        return false;
+
+    wxRegion r2(region);
+    r2.Subtract(*this);
+
+    return r2.IsEmpty();
 }
 
 // Outer bounds of region
@@ -290,6 +287,9 @@ bool wxRegion::IsEmpty() const
 
 WXHRGN wxRegion::GetWXHRGN() const
 {
+    if ( !m_refData )
+        return NULL;
+
     return M_REGION ;
 }
 

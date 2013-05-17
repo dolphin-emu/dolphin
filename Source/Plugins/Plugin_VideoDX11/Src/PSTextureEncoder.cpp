@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "PSTextureEncoder.h"
 
@@ -156,18 +143,34 @@ static const char EFB_ENCODE_PS[] =
 	"return (a << 16) | b;\n"
 "}\n"
 
+"uint Float8ToUint3(float v) {\n"
+	"return (uint)(v*255.0) >> 5;\n"
+"}\n"
+
+"uint Float8ToUint4(float v) {\n"
+	"return (uint)(v*255.0) >> 4;\n"
+"}\n"
+
+"uint Float8ToUint5(float v) {\n"
+	"return (uint)(v*255.0) >> 3;\n"
+"}\n"
+
+"uint Float8ToUint6(float v) {\n"
+	"return (uint)(v*255.0) >> 2;\n"
+"}\n"
+
 "uint EncodeRGB5A3(float4 pixel) {\n"
 	"if (pixel.a >= 224.0/255.0) {\n"
 		// Encode to ARGB1555
-		"return UINT_1555(1, pixel.r*31, pixel.g*31, pixel.b*31);\n"
+		"return UINT_1555(1, Float8ToUint5(pixel.r), Float8ToUint5(pixel.g), Float8ToUint5(pixel.b));\n"
 	"} else {\n"
 		// Encode to ARGB3444
-		"return UINT_3444(pixel.a*7, pixel.r*15, pixel.g*15, pixel.b*15);\n"
+		"return UINT_3444(Float8ToUint3(pixel.a), Float8ToUint4(pixel.r), Float8ToUint4(pixel.g), Float8ToUint4(pixel.b));\n"
 	"}\n"
 "}\n"
 
 "uint EncodeRGB565(float4 pixel) {\n"
-	"return UINT_565(pixel.r*31, pixel.g*63, pixel.b*31);\n"
+	"return UINT_565(Float8ToUint5(pixel.r), Float8ToUint6(pixel.g), Float8ToUint5(pixel.b));\n"
 "}\n"
 
 "float2 CalcTexCoord(float2 coord)\n"
@@ -385,14 +388,14 @@ static const char EFB_ENCODE_PS[] =
 	"uint dw[4];\n"
 	"for (uint i = 0; i < 4; ++i) {\n"
 		"dw[i] = UINT_44444444_BE(\n"
-			"15*sample[8*i+0].r,\n"
-			"15*sample[8*i+1].r,\n"
-			"15*sample[8*i+2].r,\n"
-			"15*sample[8*i+3].r,\n"
-			"15*sample[8*i+4].r,\n"
-			"15*sample[8*i+5].r,\n"
-			"15*sample[8*i+6].r,\n"
-			"15*sample[8*i+7].r\n"
+			"Float8ToUint4(sample[8*i+0].r),\n"
+			"Float8ToUint4(sample[8*i+1].r),\n"
+			"Float8ToUint4(sample[8*i+2].r),\n"
+			"Float8ToUint4(sample[8*i+3].r),\n"
+			"Float8ToUint4(sample[8*i+4].r),\n"
+			"Float8ToUint4(sample[8*i+5].r),\n"
+			"Float8ToUint4(sample[8*i+6].r),\n"
+			"Float8ToUint4(sample[8*i+7].r)\n"
 			");\n"
 	"}\n"
 
@@ -460,28 +463,28 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sampleF = SampleEFB(subBlockUL+float2(7,1));\n"
 
 	"uint dw0 = UINT_44444444_BE(\n"
-		"15*sample0.a, 15*sample0.r,\n"
-		"15*sample1.a, 15*sample1.r,\n"
-		"15*sample2.a, 15*sample2.r,\n"
-		"15*sample3.a, 15*sample3.r\n"
+		"Float8ToUint4(sample0.a), Float8ToUint4(sample0.r),\n"
+		"Float8ToUint4(sample1.a), Float8ToUint4(sample1.r),\n"
+		"Float8ToUint4(sample2.a), Float8ToUint4(sample2.r),\n"
+		"Float8ToUint4(sample3.a), Float8ToUint4(sample3.r)\n"
 		");\n"
 	"uint dw1 = UINT_44444444_BE(\n"
-		"15*sample4.a, 15*sample4.r,\n"
-		"15*sample5.a, 15*sample5.r,\n"
-		"15*sample6.a, 15*sample6.r,\n"
-		"15*sample7.a, 15*sample7.r\n"
+		"Float8ToUint4(sample4.a), Float8ToUint4(sample4.r),\n"
+		"Float8ToUint4(sample5.a), Float8ToUint4(sample5.r),\n"
+		"Float8ToUint4(sample6.a), Float8ToUint4(sample6.r),\n"
+		"Float8ToUint4(sample7.a), Float8ToUint4(sample7.r)\n"
 		");\n"
 	"uint dw2 = UINT_44444444_BE(\n"
-		"15*sample8.a, 15*sample8.r,\n"
-		"15*sample9.a, 15*sample9.r,\n"
-		"15*sampleA.a, 15*sampleA.r,\n"
-		"15*sampleB.a, 15*sampleB.r\n"
+		"Float8ToUint4(sample8.a), Float8ToUint4(sample8.r),\n"
+		"Float8ToUint4(sample9.a), Float8ToUint4(sample9.r),\n"
+		"Float8ToUint4(sampleA.a), Float8ToUint4(sampleA.r),\n"
+		"Float8ToUint4(sampleB.a), Float8ToUint4(sampleB.r)\n"
 		");\n"
 	"uint dw3 = UINT_44444444_BE(\n"
-		"15*sampleC.a, 15*sampleC.r,\n"
-		"15*sampleD.a, 15*sampleD.r,\n"
-		"15*sampleE.a, 15*sampleE.r,\n"
-		"15*sampleF.a, 15*sampleF.r\n"
+		"Float8ToUint4(sampleC.a), Float8ToUint4(sampleC.r),\n"
+		"Float8ToUint4(sampleD.a), Float8ToUint4(sampleD.r),\n"
+		"Float8ToUint4(sampleE.a), Float8ToUint4(sampleE.r),\n"
+		"Float8ToUint4(sampleF.a), Float8ToUint4(sampleF.r)\n"
 		");\n"
 	
 	"return uint4(dw0, dw1, dw2, dw3);\n"
@@ -1124,9 +1127,9 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		ID3D11ShaderResourceView* pEFB = (srcFormat == PIXELFMT_Z24) ?
 			FramebufferManager::GetEFBDepthTexture()->GetSRV() :
 			// FIXME: Instead of resolving EFB, it would be better to pick out a
- 			// single sample from each pixel. The game may break if it isn't
- 			// expecting the blurred edges around multisampled shapes.
- 			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+			// single sample from each pixel. The game may break if it isn't
+			// expecting the blurred edges around multisampled shapes.
+			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
 
 		D3D::context->PSSetConstantBuffers(0, 1, &m_encodeParams);
 		D3D::context->PSSetShaderResources(0, 1, &pEFB);
@@ -1335,7 +1338,7 @@ bool PSTextureEncoder::InitDynamicMode()
 	var = reflect->GetVariableByName("g_generator");
 	m_generatorSlot = var->GetInterfaceSlot(0);
 
-	INFO_LOG(VIDEO, "fetch slot %d, scaledFetch slot %d, intensity slot %d, generator slot %d",
+	INFO_LOG(VIDEO, "Fetch slot %d, scaledFetch slot %d, intensity slot %d, generator slot %d",
 		m_fetchSlot, m_scaledFetchSlot, m_intensitySlot, m_generatorSlot);
 
 	// Class instances will be created at the time they are used

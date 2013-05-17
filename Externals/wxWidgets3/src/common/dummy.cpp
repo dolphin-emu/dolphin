@@ -23,7 +23,7 @@
     #pragma hdrstop
 #endif
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     #include "wx/msw/msvcrt.h"
 #endif
 

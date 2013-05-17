@@ -19,7 +19,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    ====================================================================*/
 
@@ -52,7 +52,7 @@ u16 dsp_dmem_read(u16 addr)
 		return g_dsp.dram[addr & DSP_DRAM_MASK];
 		
 	case 0x1:  // 1xxx COEF
-		DEBUG_LOG(DSPLLE, "%04x : Coef Read @ %04x", g_dsp.pc, addr);
+		DEBUG_LOG(DSPLLE, "%04x : Coefficient Read @ %04x", g_dsp.pc, addr);
 		return g_dsp.coef[addr & DSP_COEF_MASK];
 
 	case 0xf:  // Fxxx HW regs

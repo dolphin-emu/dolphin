@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: event.cpp 69893 2011-12-02 00:50:25Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,6 +25,7 @@
 #endif
 
 #include "wx/event.h"
+#include "wx/eventfilter.h"
 #include "wx/evtloop.h"
 
 #ifndef WX_PRECOMP
@@ -62,11 +63,11 @@
     IMPLEMENT_DYNAMIC_CLASS(wxEvtHandler, wxObject)
     IMPLEMENT_ABSTRACT_CLASS(wxEvent, wxObject)
     IMPLEMENT_DYNAMIC_CLASS(wxIdleEvent, wxEvent)
+    IMPLEMENT_DYNAMIC_CLASS(wxThreadEvent, wxEvent)
 #endif // wxUSE_BASE
 
 #if wxUSE_GUI
     IMPLEMENT_DYNAMIC_CLASS(wxCommandEvent, wxEvent)
-    IMPLEMENT_DYNAMIC_CLASS(wxThreadEvent, wxCommandEvent)
     IMPLEMENT_DYNAMIC_CLASS(wxNotifyEvent, wxCommandEvent)
     IMPLEMENT_DYNAMIC_CLASS(wxScrollEvent, wxCommandEvent)
     IMPLEMENT_DYNAMIC_CLASS(wxScrollWinEvent, wxEvent)
@@ -155,6 +156,9 @@ const wxEventType wxEVT_NULL = wxNewEventType();
 
 wxDEFINE_EVENT( wxEVT_IDLE, wxIdleEvent );
 
+// Thread event
+wxDEFINE_EVENT( wxEVT_THREAD, wxThreadEvent );
+
 #endif // wxUSE_BASE
 
 #if wxUSE_GUI
@@ -206,6 +210,7 @@ wxDEFINE_EVENT( wxEVT_AUX2_DCLICK, wxMouseEvent );
 
 // Character input event type
 wxDEFINE_EVENT( wxEVT_CHAR, wxKeyEvent );
+wxDEFINE_EVENT( wxEVT_AFTER_CHAR, wxKeyEvent );
 wxDEFINE_EVENT( wxEVT_CHAR_HOOK, wxKeyEvent );
 wxDEFINE_EVENT( wxEVT_NAVIGATION_KEY, wxNavigationKeyEvent );
 wxDEFINE_EVENT( wxEVT_KEY_DOWN, wxKeyEvent );
@@ -311,9 +316,6 @@ wxDEFINE_EVENT( wxEVT_COMMAND_ENTER, wxCommandEvent );
 wxDEFINE_EVENT( wxEVT_HELP, wxHelpEvent );
 wxDEFINE_EVENT( wxEVT_DETAILED_HELP, wxHelpEvent );
 
-// Thread event
-wxDEFINE_EVENT( wxEVT_COMMAND_THREAD, wxThreadEvent );
-
 #endif // wxUSE_GUI
 
 #if wxUSE_BASE
@@ -411,27 +413,16 @@ wxEvent& wxEvent::operator=(const wxEvent& src)
 // wxCommandEvent
 // ----------------------------------------------------------------------------
 
-#ifdef __VISUALC__
-    // 'this' : used in base member initializer list (for m_commandString)
-    #pragma warning(disable:4355)
-#endif
-
 wxCommandEvent::wxCommandEvent(wxEventType commandType, int theId)
               : wxEvent(theId, commandType)
 {
     m_clientData = NULL;
     m_clientObject = NULL;
-    m_extraLong = 0;
-    m_commandInt = 0;
     m_isCommandEvent = true;
 
     // the command events are propagated upwards by default
     m_propagationLevel = wxEVENT_PROPAGATE_MAX;
 }
-
-#ifdef __VISUALC__
-    #pragma warning(default:4355)
-#endif
 
 wxString wxCommandEvent::GetString() const
 {
@@ -471,6 +462,13 @@ bool wxUpdateUIEvent::CanUpdate(wxWindowBase *win)
     if (win &&
        (GetMode() == wxUPDATE_UI_PROCESS_SPECIFIED &&
        ((win->GetExtraStyle() & wxWS_EX_PROCESS_UI_UPDATES) == 0)))
+        return false;
+
+    // Don't update children of the hidden windows: this is useless as any
+    // change to their state won't be seen by the user anyhow. Notice that this
+    // argument doesn't apply to the hidden windows (with visible parent)
+    // themselves as they could be shown by their EVT_UPDATE_UI handler.
+    if ( win->GetParent() && !win->GetParent()->IsShownOnScreen() )
         return false;
 
     if (sm_updateInterval == -1)
@@ -737,22 +735,28 @@ wxKeyEvent::wxKeyEvent(wxEventType type)
 #if wxUSE_UNICODE
     m_uniChar = WXK_NONE;
 #endif
+
+    InitPropagation();
 }
 
 wxKeyEvent::wxKeyEvent(const wxKeyEvent& evt)
           : wxEvent(evt),
             wxKeyboardState(evt)
 {
-    m_x = evt.m_x;
-    m_y = evt.m_y;
+    DoAssignMembers(evt);
 
-    m_keyCode = evt.m_keyCode;
-    m_rawCode = evt.m_rawCode;
-    m_rawFlags = evt.m_rawFlags;
+    InitPropagation();
+}
 
-#if wxUSE_UNICODE
-    m_uniChar = evt.m_uniChar;
-#endif
+wxKeyEvent::wxKeyEvent(wxEventType eventType, const wxKeyEvent& evt)
+          : wxEvent(evt),
+            wxKeyboardState(evt)
+{
+    DoAssignMembers(evt);
+
+    m_eventType = eventType;
+
+    InitPropagation();
 }
 
 bool wxKeyEvent::IsKeyInCategory(int category) const
@@ -1126,6 +1130,43 @@ bool wxEvtHandler::IsUnlinked() const
            m_nextHandler == NULL;
 }
 
+wxEventFilter* wxEvtHandler::ms_filterList = NULL;
+
+/* static */ void wxEvtHandler::AddFilter(wxEventFilter* filter)
+{
+    wxCHECK_RET( filter, "NULL filter" );
+
+    filter->m_next = ms_filterList;
+    ms_filterList = filter;
+}
+
+/* static */ void wxEvtHandler::RemoveFilter(wxEventFilter* filter)
+{
+    wxEventFilter* prev = NULL;
+    for ( wxEventFilter* f = ms_filterList; f; f = f->m_next )
+    {
+        if ( f == filter )
+        {
+            // Set the previous list element or the list head to the next
+            // element.
+            if ( prev )
+                prev->m_next = f->m_next;
+            else
+                ms_filterList = f->m_next;
+
+            // Also reset the next pointer in the filter itself just to avoid
+            // having possibly dangling pointers, even though it's not strictly
+            // necessary.
+            f->m_next = NULL;
+
+            // Skip the assert below.
+            return;
+        }
+    }
+
+    wxFAIL_MSG( "Filter not found" );
+}
+
 #if wxUSE_THREADS
 
 bool wxEvtHandler::ProcessThreadEvent(const wxEvent& event)
@@ -1354,23 +1395,24 @@ bool wxEvtHandler::TryAfter(wxEvent& event)
 
 bool wxEvtHandler::ProcessEvent(wxEvent& event)
 {
-    // The very first thing we do is to allow the application to hook into
-    // event processing in order to globally pre-process all events.
+    // The very first thing we do is to allow any registered filters to hook
+    // into event processing in order to globally pre-process all events.
     //
     // Note that we should only do it if we're the first event handler called
     // to avoid calling FilterEvent() multiple times as the event goes through
     // the event handler chain and possibly upwards the window hierarchy.
     if ( !event.WasProcessed() )
     {
-        if ( wxTheApp )
+        for ( wxEventFilter* f = ms_filterList; f; f = f->m_next )
         {
-            int rc = wxTheApp->FilterEvent(event);
-            if ( rc != -1 )
+            int rc = f->FilterEvent(event);
+            if ( rc != wxEventFilter::Event_Skip )
             {
-                wxASSERT_MSG( rc == 1 || rc == 0,
-                              "unexpected wxApp::FilterEvent return value" );
+                wxASSERT_MSG( rc == wxEventFilter::Event_Ignore ||
+                                rc == wxEventFilter::Event_Processed,
+                              "unexpected FilterEvent() return value" );
 
-                return rc != 0;
+                return rc != wxEventFilter::Event_Ignore;
             }
             //else: proceed normally
         }

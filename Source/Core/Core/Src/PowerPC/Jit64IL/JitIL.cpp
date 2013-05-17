@@ -1,25 +1,12 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <map>
 
 #include "Common.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 #include "../../HLE/HLE.h"
 #include "../../Core.h"
@@ -199,7 +186,7 @@ namespace JitILProfiler
 	static u64 beginTime;
 	static Block& Add(u64 codeHash)
 	{
-		const u32 _blockIndex = blocks.size();
+		const u32 _blockIndex = (u32)blocks.size();
 		blocks.push_back(Block());
 		Block& block = blocks.back();
 		block.index = _blockIndex;
@@ -276,12 +263,6 @@ void JitIL::Init()
 			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
 	}
 
-#ifdef _M_X64
-	jo.enableFastMem = false;
-#else
-	jo.enableFastMem = false;
-#endif
-	jo.assumeFPLoadFromMem = Core::g_CoreStartupParameter.bUseFastMem;
 	jo.fpAccurateFcmp = false;
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
@@ -395,7 +376,13 @@ static void ImHere()
 void JitIL::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+	{
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+	}
+
+	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
+	if (MMCR0.Hex || MMCR1.Hex)
+		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
 void JitIL::WriteExit(u32 destination, int exit_num)
@@ -524,12 +511,19 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
-		blockSize = 1;
-		Trace();
+		if (!Profiler::g_ProfileBlocks)
+		{
+			if (GetState() == CPU_STEPPING)
+				blockSize = 1;
+			Trace();
+		}
 	}
 
 	if (em_address == 0)
-		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
+	{
+		// Memory exception occurred during instruction fetch
+		memory_exception = true;
+	}
 
 	if (Core::g_CoreStartupParameter.bMMU && (em_address & JIT_ICACHE_VMEM_BIT))
 	{
@@ -546,6 +540,8 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
 	js.cancel = false;
+	jit->js.numLoadStoreInst = 0;
+	jit->js.numFloatingPointInst = 0;
 
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
@@ -642,18 +638,69 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.next_compilerPC = ops[i + 1].address;
 		}
 
+		u32 function = HLE::GetFunctionIndex(ops[i].address);
+		if (function != 0)
+		{
+			int type = HLE::GetFunctionTypeByIndex(function);
+			if (type == HLE::HLE_HOOK_START || type == HLE::HLE_HOOK_REPLACE)
+			{
+				int flags = HLE::GetFunctionFlagsByIndex(function);
+				if (HLE::IsEnabled(flags))
+				{
+					HLEFunction(function);
+					if (type == HLE::HLE_HOOK_REPLACE)
+					{
+						MOV(32, R(EAX), M(&NPC));
+						jit->js.downcountAmount += jit->js.st.numCycles;
+						WriteExitDestInOpArg(R(EAX));
+						break;
+					}
+				}
+			}
+		}
+
 		if (!ops[i].skip)
 		{
 			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 			{
-				ibuild.EmitFPExceptionCheckStart(ibuild.EmitIntConst(ops[i].address));
+				ibuild.EmitFPExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
-			
+
+			if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
+			{
+				ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
+			}
+
+			if (Core::g_CoreStartupParameter.bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			{
+				ibuild.EmitBreakPointCheck(ibuild.EmitIntConst(ops[i].address));
+			}
+
 			JitILTables::CompileInstruction(ops[i]);
 
 			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
-				ibuild.EmitFPExceptionCheckEnd(ibuild.EmitIntConst(ops[i].address));
+				ibuild.EmitDSIExceptionCheck(ibuild.EmitIntConst(ops[i].address));
+			}
+
+			if (opinfo->flags & FL_LOADSTORE)
+				++jit->js.numLoadStoreInst;
+
+			if (opinfo->flags & FL_USE_FPU)
+				++jit->js.numFloatingPointInst;
+		}
+	}
+
+	u32 function = HLE::GetFunctionIndex(jit->js.blockStart);
+	if (function != 0)
+	{
+		int type = HLE::GetFunctionTypeByIndex(function);
+		if (type == HLE::HLE_HOOK_END)
+		{
+			int flags = HLE::GetFunctionFlagsByIndex(function);
+			if (HLE::IsEnabled(flags))
+			{
+				HLEFunction(function);
 			}
 		}
 	}

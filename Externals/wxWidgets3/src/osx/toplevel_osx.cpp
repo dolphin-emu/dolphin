@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel_osx.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: toplevel_osx.cpp 70295 2012-01-08 14:52:47Z VZ $
 // Copyright:   (c) 2001-2004 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -212,4 +212,9 @@ void wxTopLevelWindowMac::OSXSetModified(bool modified)
 bool wxTopLevelWindowMac::OSXIsModified() const
 {
     return m_nowpeer->IsModified();
+}
+
+void wxTopLevelWindowMac::SetRepresentedFilename(const wxString& filename)
+{
+    m_nowpeer->SetRepresentedFilename(filename);
 }

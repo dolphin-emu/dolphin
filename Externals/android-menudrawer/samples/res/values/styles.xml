@@ -1,0 +1,55 @@
+<resources>
+
+    <style name="MenuDrawer" />
+
+    <style name="MenuDrawer.Widget" />
+
+    <style name="MenuDrawer.Widget.Category">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?android:attr/textColorSecondaryInverse</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textAllCaps">true</item>
+
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:background">@drawable/md__category_background</item>
+
+        <item name="android:singleLine">true</item>
+        <item name="android:ellipsize">end</item>
+    </style>
+
+    <style name="MenuDrawer.Widget.Title">
+        <item name="android:background">@drawable/md__list_selector_holo_dark</item>
+        <item name="android:textAppearance">?android:attr/textAppearance</item>
+        <item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:paddingLeft">16dp</item>
+        <item name="android:paddingRight">32dp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:drawablePadding">16dp</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="MenuDrawerStyle" parent="Widget.MenuDrawer">
+        <item name="mdActiveIndicator">@drawable/menu_arrow</item>
+        <item name="mdMenuSize">250dp</item>
+    </style>
+
+    <style name="MenuDrawerStyle.Right" parent="Widget.MenuDrawer">
+        <item name="mdActiveIndicator">@drawable/menu_arrow_right</item>
+        <item name="mdMenuSize">150dp</item>
+    </style>
+
+    <style name="MenuDrawerStyle.Top" parent="Widget.MenuDrawer">
+        <item name="mdActiveIndicator">@drawable/menu_arrow_top</item>
+        <item name="mdMenuSize">64dp</item>
+        <item name="mdAllowIndicatorAnimation">true</item>
+    </style>
+
+    <style name="MenuDrawerStyle.Bottom" parent="Widget.MenuDrawer">
+        <item name="mdActiveIndicator">@drawable/menu_arrow_bottom</item>
+        <item name="mdMenuSize">64dp</item>
+    </style>
+
+</resources>

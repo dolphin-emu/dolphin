@@ -2,7 +2,7 @@
 // Name:        src/generic/imaglist.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: imaglist.cpp 67280 2011-03-22 14:17:38Z DS $
+// Id:          $Id: imaglist.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,8 +15,6 @@
 #endif
 
 #if wxUSE_IMAGLIST && !defined(wxHAS_NATIVE_IMAGELIST)
-
-#ifndef __WXPALMOS__
 
 #include "wx/imaglist.h"
 
@@ -106,7 +104,7 @@ int wxGenericImageList::Add( const wxBitmap &bitmap )
 int wxGenericImageList::Add( const wxBitmap& bitmap, const wxBitmap& mask )
 {
     wxBitmap bmp(bitmap);
-    if (mask.Ok())
+    if (mask.IsOk())
         bmp.SetMask(new wxMask(mask));
     return Add(bmp);
 }
@@ -214,7 +212,7 @@ bool wxGenericImageList::Replace( int index, const wxBitmap &bitmap, const wxBit
         m_images.Insert( next, newBitmap );
     }
 
-    if (mask.Ok())
+    if (mask.IsOk())
         newBitmap->SetMask(new wxMask(mask));
 
     return true;
@@ -272,7 +270,5 @@ bool wxGenericImageList::Draw( int index, wxDC &dc, int x, int y,
 
     return true;
 }
-
-#endif // __WXPALMOS__
 
 #endif // wxUSE_IMAGLIST

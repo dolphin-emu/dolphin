@@ -3,7 +3,7 @@
 // Purpose:     generic wxHeaderCtrl implementation
 // Author:      Vadim Zeitlin
 // Created:     2008-12-03
-// RCS-ID:      $Id: headerctrlg.cpp 63575 2010-02-28 11:08:42Z VZ $
+// RCS-ID:      $Id: headerctrlg.cpp 67384 2011-04-03 20:31:32Z DS $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -180,7 +180,7 @@ unsigned int wxHeaderCtrl::FindColumnAtPoint(int x, bool *onSeparator) const
 
         pos += col.GetWidth();
 
-        // if the column is resizeable, check if we're approximatively over the
+        // if the column is resizable, check if we're approximatively over the
         // line separating it from the next column
         //
         // TODO: don't hardcode sensitivity

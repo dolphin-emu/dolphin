@@ -26,13 +26,25 @@ if(wxWidgets_FOUND)
 endif(wxWidgets_FOUND)
 
 set(LIBS	videocommon
-			GLEW
 			SOIL
 			common
-			${OPENGL_LIBRARIES}
 			${X11_LIBRARIES}
 			${wxWidgets_LIBRARIES})
+if(USE_EGL)
+	set(LIBS ${LIBS}
+		EGL)
+endif()
 
+if(USE_GLES)
+	set(SRCS ${SRCS} ../Plugin_VideoOGL/Src/GLUtil.cpp)
+	set(LIBS ${LIBS}
+		GLESv2)
+else()
+	set(SRCS ${SRCS} Src/RasterFont.cpp)
+	set(LIBS ${LIBS}
+		GLEW
+		${OPENGL_LIBRARIES})
+endif()
 if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	set(LIBS	${LIBS} clrun)
 endif()

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Created:     01/02/97
 // Modified:
-// Id:          $Id: treebase.cpp 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: treebase.cpp 70795 2012-03-04 00:29:21Z VZ $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart et al
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -166,6 +166,22 @@ wxTreeEvent::wxTreeEvent(const wxTreeEvent & event)
 // ----------------------------------------------------------------------------
 // wxTreeCtrlBase
 // ----------------------------------------------------------------------------
+
+wxTreeCtrlBase::wxTreeCtrlBase()
+{
+    m_imageListNormal =
+    m_imageListState = NULL;
+    m_ownsImageListNormal =
+    m_ownsImageListState = false;
+
+    // arbitrary default
+    m_spacing = 18;
+
+    // quick DoGetBestSize calculation
+    m_quickBestSize = true;
+
+    Connect(wxEVT_CHAR_HOOK, wxKeyEventHandler(wxTreeCtrlBase::OnCharHook));
+}
 
 wxTreeCtrlBase::~wxTreeCtrlBase()
 {
@@ -333,6 +349,28 @@ void wxTreeCtrlBase::CollapseAllChildren(const wxTreeItemId& item)
 bool wxTreeCtrlBase::IsEmpty() const
 {
     return !GetRootItem().IsOk();
+}
+
+void wxTreeCtrlBase::OnCharHook(wxKeyEvent& event)
+{
+    if ( GetEditControl() )
+    {
+        bool discardChanges = false;
+        switch ( event.GetKeyCode() )
+        {
+            case WXK_ESCAPE:
+                discardChanges = true;
+                // fall through
+
+            case WXK_RETURN:
+                EndEditLabel(GetFocusedItem(), discardChanges);
+
+                // Do not call Skip() below.
+                return;
+        }
+    }
+
+    event.Skip();
 }
 
 #endif // wxUSE_TREECTRL

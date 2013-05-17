@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: checkbox.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: checkbox.cpp 70015 2011-12-16 11:03:15Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -147,6 +147,19 @@ wxSize wxCheckBox::DoGetBestSize() const
         dc.GetMultiLineTextExtent(GetLabelText(str), &wCheckbox, &hCheckbox);
         wCheckbox += s_checkSize + GetCharWidth();
 
+        if ( ::GetWindowLong(GetHwnd(), GWL_STYLE) & BS_MULTILINE )
+        {
+            // We need to make the checkbox even wider in this case because
+            // otherwise it wraps lines automatically and not only on "\n"s as
+            // we need and this makes the size computed here wrong resulting in
+            // checkbox contents being truncated when it's actually displayed.
+            // Without this hack simple checkbox with "Some thing\n and more"
+            // label appears on 3 lines, not 2, under Windows 2003 using
+            // classic look and feel (although it works fine under Windows 7,
+            // with or without themes).
+            wCheckbox += s_checkSize;
+        }
+
         if ( hCheckbox < s_checkSize )
             hCheckbox = s_checkSize;
     }
@@ -260,7 +273,7 @@ bool wxCheckBox::SetForegroundColour(const wxColour& colour)
     // the only way to change the checkbox foreground colour under Windows XP
     // is to owner draw it
     if ( wxUxThemeEngine::GetIfActive() )
-        MakeOwnerDrawn(colour.Ok());
+        MakeOwnerDrawn(colour.IsOk());
 
     return true;
 }

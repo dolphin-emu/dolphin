@@ -2,7 +2,7 @@
 // Name:        src/gtk/slider.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: slider.cpp 66555 2011-01-04 08:31:53Z SC $
+// Id:          $Id: slider.cpp 70756 2012-02-29 18:29:31Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,6 +20,7 @@
 #endif
 
 #include <gtk/gtk.h>
+#include "wx/gtk/private/gtk2-compat.h"
 
 //-----------------------------------------------------------------------------
 // data
@@ -124,10 +125,9 @@ extern "C" {
 static void
 gtk_value_changed(GtkRange* range, wxSlider* win)
 {
-    GtkAdjustment* adj = gtk_range_get_adjustment (range);
-    const int pos = wxRound(adj->value);
+    const double value = gtk_range_get_value(range);
     const double oldPos = win->m_pos;
-    win->m_pos = adj->value;
+    win->m_pos = value;
 
     if (!win->m_hasVMT || g_blockEventsOnDrag)
         return;
@@ -151,18 +151,19 @@ gtk_value_changed(GtkRange* range, wxSlider* win)
     else if (win->m_mouseButtonDown)
     {
         // Difference from last change event
-        const double diff = adj->value - oldPos;
+        const double diff = value - oldPos;
         const bool isDown = diff > 0;
 
-        if (IsScrollIncrement(adj->page_increment, diff))
+        GtkAdjustment* adj = gtk_range_get_adjustment(range);
+        if (IsScrollIncrement(gtk_adjustment_get_page_increment(adj), diff))
         {
             eventType = isDown ? wxEVT_SCROLL_PAGEDOWN : wxEVT_SCROLL_PAGEUP;
         }
-        else if (wxIsSameDouble(adj->value, 0))
+        else if (wxIsSameDouble(value, 0))
         {
             eventType = wxEVT_SCROLL_PAGEUP;
         }
-        else if (wxIsSameDouble(adj->value, adj->upper))
+        else if (wxIsSameDouble(value, gtk_adjustment_get_upper(adj)))
         {
             eventType = wxEVT_SCROLL_PAGEDOWN;
         }
@@ -178,7 +179,7 @@ gtk_value_changed(GtkRange* range, wxSlider* win)
     win->m_scrollEventType = GTK_SCROLL_NONE;
 
     // If integral position has changed
-    if (wxRound(oldPos) != pos)
+    if (wxRound(oldPos) != wxRound(value))
     {
         ProcessScrollEvent(win, eventType);
         win->m_needThumbRelease = eventType == wxEVT_SCROLL_THUMBTRACK;
@@ -317,7 +318,6 @@ bool wxSlider::Create(wxWindow *parent,
         else
             m_widget = gtk_vbox_new(false, 0);
         g_object_ref(m_widget);
-        gtk_widget_show( m_widget );
         gtk_container_add( GTK_CONTAINER(m_widget), m_scale );
 
         GtkWidget *box;
@@ -438,6 +438,8 @@ void wxSlider::GTKSetValue(int value)
 {
     GTKDisableEvents();
     gtk_range_set_value(GTK_RANGE (m_scale), value);
+    // GTK only updates value label if handle moves at least 1 pixel
+    gtk_widget_queue_draw(m_scale);
     GTKEnableEvents();
 }
 
@@ -471,12 +473,14 @@ void wxSlider::SetRange( int minValue, int maxValue )
 
 int wxSlider::GetMin() const
 {
-    return int(gtk_range_get_adjustment (GTK_RANGE (m_scale))->lower);
+    GtkAdjustment* adj = gtk_range_get_adjustment(GTK_RANGE(m_scale));
+    return int(gtk_adjustment_get_lower(adj));
 }
 
 int wxSlider::GetMax() const
 {
-    return int(gtk_range_get_adjustment (GTK_RANGE (m_scale))->upper);
+    GtkAdjustment* adj = gtk_range_get_adjustment(GTK_RANGE(m_scale));
+    return int(gtk_adjustment_get_upper(adj));
 }
 
 void wxSlider::SetPageSize( int pageSize )
@@ -488,7 +492,8 @@ void wxSlider::SetPageSize( int pageSize )
 
 int wxSlider::GetPageSize() const
 {
-    return int(gtk_range_get_adjustment (GTK_RANGE (m_scale))->page_increment);
+    GtkAdjustment* adj = gtk_range_get_adjustment(GTK_RANGE(m_scale));
+    return int(gtk_adjustment_get_page_increment(adj));
 }
 
 // GTK does not support changing the size of the slider
@@ -510,7 +515,8 @@ void wxSlider::SetLineSize( int lineSize )
 
 int wxSlider::GetLineSize() const
 {
-    return int(gtk_range_get_adjustment (GTK_RANGE (m_scale))->step_increment);
+    GtkAdjustment* adj = gtk_range_get_adjustment(GTK_RANGE(m_scale));
+    return int(gtk_adjustment_get_step_increment(adj));
 }
 
 GdkWindow *wxSlider::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const

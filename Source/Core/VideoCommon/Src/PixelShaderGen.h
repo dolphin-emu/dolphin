@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef GCOGL_PIXELSHADER_H
 #define GCOGL_PIXELSHADER_H
@@ -28,8 +15,8 @@
 #define I_INDTEXSCALE "cindscale"
 #define I_INDTEXMTX   "cindmtx"
 #define I_FOG         "cfog"
-#define I_PLIGHTS	  "cLights"
-#define I_PMATERIALS   "cmtrl"
+#define I_PLIGHTS     "cPLights"
+#define I_PMATERIALS  "cPmtrl"
 
 #define C_COLORMATRIX	0						// 0
 #define C_COLORS		0						// 0
@@ -45,7 +32,20 @@
 #define C_PMATERIALS	(C_PLIGHTS + 40)
 #define C_PENVCONST_END (C_PMATERIALS + 4)
 #define PIXELSHADERUID_MAX_VALUES 70
-#define PIXELSHADERUID_MAX_VALUES_SAFE 120
+#define PIXELSHADERUID_MAX_VALUES_SAFE 116
+
+// Annoying sure, can be removed once we get up to GLSL ~1.3
+const s_svar PSVar_Loc[] = { {I_COLORS, C_COLORS, 4 },
+						{I_KCOLORS, C_KCOLORS, 4 },
+						{I_ALPHA, C_ALPHA, 1 },
+						{I_TEXDIMS, C_TEXDIMS, 8 },
+						{I_ZBIAS , C_ZBIAS, 2  },
+						{I_INDTEXSCALE , C_INDTEXSCALE, 2  },
+						{I_INDTEXMTX, C_INDTEXMTX, 6 },
+						{I_FOG, C_FOG, 3 },
+						{I_PLIGHTS, C_PLIGHTS, 40 },
+						{I_PMATERIALS, C_PMATERIALS, 4 },
+						};
 
 // DO NOT make anything in this class virtual.
 template<bool safe>
@@ -62,23 +62,30 @@ public:
 	_PIXELSHADERUID(const _PIXELSHADERUID& r)
 	{
 		num_values = r.num_values;
-		if (safe) memcpy(values, r.values, PIXELSHADERUID_MAX_VALUES_SAFE);
-		else memcpy(values, r.values, r.GetNumValues() * sizeof(values[0]));
+
+		if (safe)
+			memcpy(values, r.values, PIXELSHADERUID_MAX_VALUES_SAFE);
+		else
+			memcpy(values, r.values, r.GetNumValues() * sizeof(values[0]));
 	}
 
 	int GetNumValues() const
 	{
-		if (safe) return (sizeof(values) / sizeof(u32));
-		else return num_values;
+		if (safe)
+			return (sizeof(values) / sizeof(u32));
+		else
+			return num_values;
 	}
 
 	bool operator <(const _PIXELSHADERUID& _Right) const
 	{
 		int N = GetNumValues();
+
 		if (N < _Right.GetNumValues())
 			return true;
 		else if (N > _Right.GetNumValues())
 			return false;
+
 		for (int i = 0; i < N; ++i)
 		{
 			if (values[i] < _Right.values[i])
@@ -86,22 +93,27 @@ public:
 			else if (values[i] > _Right.values[i])
 				return false;
 		}
+
 		return false;
 	}
 
 	bool operator ==(const _PIXELSHADERUID& _Right) const
 	{
 		int N = GetNumValues();
+
 		if (N != _Right.GetNumValues())
 			return false;
+
 		for (int i = 0; i < N; ++i)
 		{
 			if (values[i] != _Right.values[i])
 				return false;
 		}
+
 		return true;
 	}
 };
+
 typedef _PIXELSHADERUID<false> PIXELSHADERUID;
 typedef _PIXELSHADERUID<true> PIXELSHADERUIDSAFE;
 

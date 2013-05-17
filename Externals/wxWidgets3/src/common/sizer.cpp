@@ -5,7 +5,7 @@
 //              Dirk Holtwick, Ron Lee
 // Modified by: Ron Lee
 // Created:
-// RCS-ID:      $Id: sizer.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: sizer.cpp 69172 2011-09-21 15:07:37Z VZ $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -908,6 +908,11 @@ wxSize wxSizer::ComputeFittingClientSize(wxWindow *window)
         }
 
         sizeMax = wxDisplay(disp).GetClientArea().GetSize();
+
+        // If determining the display size failed, skip the max size checks as
+        // we really don't want to create windows of (0, 0) size.
+        if ( !sizeMax.x || !sizeMax.y )
+            return size;
 
         // space for decorations and toolbars etc.
         sizeMax = tlw->WindowToClientSize(sizeMax);

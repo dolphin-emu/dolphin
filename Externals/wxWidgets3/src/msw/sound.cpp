@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: 2005-07-29: Vadim Zeitlin: redesign
 // Created:     04/01/98
-// RCS-ID:      $Id: sound.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: sound.cpp 69178 2011-09-21 15:08:02Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ class wxSoundDataMemory : public wxSoundData
 {
 public:
     // we copy the data
-    wxSoundDataMemory(int size, const wxByte *buf);
+    wxSoundDataMemory(size_t size, const void* buf);
 
     void *GetPtr() const { return m_waveDataPtr; }
 
@@ -101,7 +101,7 @@ private:
 // wxSoundData-derived classes
 // ----------------------------------------------------------------------------
 
-wxSoundDataMemory::wxSoundDataMemory(int size, const wxByte *buf)
+wxSoundDataMemory::wxSoundDataMemory(size_t size, const void* buf)
                  : m_waveData(size),
                    m_waveDataPtr(m_waveData)
 {
@@ -131,7 +131,7 @@ wxSound::wxSound(const wxString& filename, bool isResource)
     Create(filename, isResource);
 }
 
-wxSound::wxSound(int size, const wxByte *data)
+wxSound::wxSound(size_t size, const void* data)
 {
     Init();
     Create(size, data);
@@ -164,7 +164,7 @@ bool wxSound::Create(const wxString& filename, bool isResource)
     return CheckCreatedOk();
 }
 
-bool wxSound::Create(int size, const wxByte* data)
+bool wxSound::Create(size_t size, const void* data)
 {
     Free();
 

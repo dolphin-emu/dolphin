@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: dirdlg.h 54125 2008-06-11 19:17:41Z SC $
+// RCS-ID:      $Id: dirdlg.h 70353 2012-01-15 14:46:41Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -116,9 +116,7 @@ protected:
     #include "wx/cocoa/dirdlg.h"    // Native Cocoa
 #elif defined(__WXMOTIF__) || \
       defined(__WXX11__)   || \
-      defined(__WXMGL__)   || \
       defined(__WXCOCOA__) || \
-      defined(__WXPALMOS__) || \
       defined(__WXPM__)
     #include "wx/generic/dirdlgg.h"     // Other ports use generic implementation
     #define wxDirDialog wxGenericDirDialog

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.06.01
-// RCS-ID:      $Id: evtloop.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: evtloop.cpp 70690 2012-02-25 23:49:45Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -426,7 +426,7 @@ bool wxGUIEventLoop::YieldFor(long eventsToProcess)
         }
 
         // choose a wxEventCategory for this Windows message
-        wxEventCategory cat;
+        bool processNow;
         switch (msg.message)
         {
 #if !defined(__WXWINCE__)
@@ -495,11 +495,11 @@ bool wxGUIEventLoop::YieldFor(long eventsToProcess)
             case WM_MBUTTONUP:
             case WM_MBUTTONDBLCLK:
             case WM_MOUSEWHEEL:
-                cat = wxEVT_CATEGORY_USER_INPUT;
+                processNow = (eventsToProcess & wxEVT_CATEGORY_USER_INPUT) != 0;
                 break;
 
             case WM_TIMER:
-                cat = wxEVT_CATEGORY_TIMER;
+                processNow = (eventsToProcess & wxEVT_CATEGORY_TIMER) != 0;
                 break;
 
             default:
@@ -509,14 +509,22 @@ bool wxGUIEventLoop::YieldFor(long eventsToProcess)
                     // by the system.
                     // there are too many of these types of messages to handle
                     // them in this switch
-                    cat = wxEVT_CATEGORY_UI;
+                    processNow = (eventsToProcess & wxEVT_CATEGORY_UI) != 0;
                 }
                 else
-                    cat = wxEVT_CATEGORY_UNKNOWN;
+                {
+                    // Process all the unknown messages. We must do it because
+                    // failure to process some of them can be fatal, e.g. if we
+                    // don't dispatch WM_APP+2 then embedded IE ActiveX
+                    // controls don't work any more, see #14027. And there may
+                    // be more examples like this, so dispatch all unknown
+                    // messages immediately to be safe.
+                    processNow = true;
+                }
         }
 
         // should we process this event now?
-        if (cat & eventsToProcess)
+        if ( processNow )
         {
             if ( !wxTheApp->Dispatch() )
                 break;

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.cpp 63229 2010-01-23 13:22:25Z VZ $
+// RCS-ID:      $Id: dcclient.cpp 68337 2011-07-22 16:53:56Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -225,6 +225,12 @@ wxPaintDCImpl::wxPaintDCImpl( wxDC *owner, wxWindow *window ) :
     }
 #endif // wxHAS_PAINT_DEBUG
 
+    // see comments in src/msw/window.cpp where this is defined
+    extern bool wxDidCreatePaintDC;
+
+    wxDidCreatePaintDC = true;
+
+
     m_window = window;
 
     // do we have a DC for this window in the cache?
@@ -236,11 +242,6 @@ wxPaintDCImpl::wxPaintDCImpl( wxDC *owner, wxWindow *window ) :
     }
     else // not in cache, create a new one
     {
-        // see comments in src/msw/window.cpp where this is defined
-        extern bool wxDidCreatePaintDC;
-
-        wxDidCreatePaintDC = true;
-
         m_hDC = (WXHDC)::BeginPaint(GetHwndOf(m_window), &g_paintStruct);
         if (m_hDC)
             ms_cache.Add(new wxPaintDCInfo(m_window, this));

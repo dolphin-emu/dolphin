@@ -5,7 +5,7 @@
 // Author:      Julian Smart
 // Modified by: Vaclav Slavik
 // Created:     24/3/98
-// RCS-ID:      $Id: taskbar.cpp 64139 2010-04-25 12:07:37Z VS $
+// RCS-ID:      $Id: taskbar.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -215,7 +215,7 @@ bool wxTaskBarIcon::SetIcon(const wxIcon& icon, const wxString& tooltip)
 
     NotifyIconData notifyData(GetHwndOf(m_win));
 
-    if (icon.Ok())
+    if (icon.IsOk())
     {
         notifyData.uFlags |= NIF_ICON;
         notifyData.hIcon = GetHiconOf(icon);

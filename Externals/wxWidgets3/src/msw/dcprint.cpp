@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcprint.cpp 62823 2009-12-08 16:35:47Z VZ $
+// RCS-ID:      $Id: dcprint.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -401,7 +401,7 @@ void wxPrinterDCImpl::DoDrawBitmap(const wxBitmap& bmp,
                                wxCoord x, wxCoord y,
                                bool useMask)
 {
-    wxCHECK_RET( bmp.Ok(), wxT("invalid bitmap in wxPrinterDC::DrawBitmap") );
+    wxCHECK_RET( bmp.IsOk(), wxT("invalid bitmap in wxPrinterDC::DrawBitmap") );
 
     int width = bmp.GetWidth(),
         height = bmp.GetHeight();

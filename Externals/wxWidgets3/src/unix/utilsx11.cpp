@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon, Vaclav Slavik, Robert Roebling
 // Modified by:
 // Created:     25.03.02
-// RCS-ID:      $Id: utilsx11.cpp 65385 2010-08-22 22:15:42Z VZ $
+// RCS-ID:      $Id: utilsx11.cpp 70741 2012-02-28 18:23:39Z PC $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -272,7 +272,7 @@ static bool wxQueryWMspecSupport(Display* WXUNUSED(display),
                                  Atom (feature))
 {
     GdkAtom gatom = gdk_x11_xatom_to_atom(feature);
-    return gdk_net_wm_supports(gatom);
+    return gdk_x11_screen_supports_net_wm_hint(gdk_screen_get_default(), gatom);
 }
 #else
 static bool wxQueryWMspecSupport(Display *display, Window rootWnd, Atom feature)

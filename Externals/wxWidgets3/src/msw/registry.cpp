@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.04.98
-// RCS-ID:      $Id: registry.cpp 67246 2011-03-19 11:57:13Z VZ $
+// RCS-ID:      $Id: registry.cpp 70750 2012-02-29 13:58:58Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 // TODO:        - parsing of registry key names
@@ -326,7 +326,7 @@ void wxRegKey::SetHkey(WXHKEY hKey)
   m_mode = Write;
 
   // reset old data
-  m_strKey.empty();
+  m_strKey.clear();
   m_dwLastError = 0;
 }
 
@@ -1235,7 +1235,7 @@ bool wxRegKey::Export(const wxString& filename) const
 
     wxFFileOutputStream ostr(filename, wxT("w"));
 
-    return ostr.Ok() && Export(ostr);
+    return ostr.IsOk() && Export(ostr);
 #else
     wxUnusedVar(filename);
     return false;

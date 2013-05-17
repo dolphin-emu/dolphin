@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: imaglist.cpp 65962 2010-10-30 23:51:09Z VZ $
+// RCS-ID:      $Id: imaglist.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -299,7 +299,7 @@ bool wxImageList::Draw(int index,
     if ( solidBackground )
     {
         const wxBrush& brush = dc.GetBackground();
-        if ( brush.Ok() )
+        if ( brush.IsOk() )
         {
             clr = wxColourToRGB(brush.GetColour());
         }
@@ -399,7 +399,7 @@ static HBITMAP GetMaskForImage(const wxBitmap& bitmap, const wxBitmap& mask)
     wxMask *pMask;
     bool deleteMask = false;
 
-    if ( mask.Ok() )
+    if ( mask.IsOk() )
     {
         hbmpMask = GetHbitmapOf(mask);
         pMask = NULL;

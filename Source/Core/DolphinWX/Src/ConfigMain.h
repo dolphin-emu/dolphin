@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef __CONFIG_MAIN_h__
 #define __CONFIG_MAIN_h__
@@ -69,7 +56,6 @@ private:
 		ID_FRAMELIMIT_USEFPSFORLIMITING,
 
 		ID_CPUENGINE,
-		ID_LOCKTHREADS,
 		ID_DSPTHREAD,
 
 		ID_NTSCJ,
@@ -77,17 +63,17 @@ private:
 		// Audio Settings
 		ID_DSPENGINE,
 		ID_ENABLE_HLE_AUDIO,
-		ID_ENABLE_DTK_MUSIC,
 		ID_ENABLE_THROTTLE,
 		ID_DUMP_AUDIO,
-		ID_FREQUENCY,
+		ID_DPL2DECODER,
+		ID_LATENCY,
 		ID_BACKEND,
 		ID_VOLUME,
 
 		// Interface settings
 		ID_INTERFACE_CONFIRMSTOP,
 		ID_INTERFACE_USEPANICHANDLERS,
-		ID_INTERFACE_THEME,
+		ID_INTERFACE_ONSCREENDISPLAYMESSAGES,
 		ID_INTERFACE_LANG,
 		ID_HOTKEY_CONFIG,
 
@@ -143,7 +129,6 @@ private:
 	wxCheckBox* EnableOpenCL;
 	wxRadioBox* CPUEngine;
 	wxCheckBox* DSPThread;
-	wxCheckBox* LockThreads;
 	wxCheckBox* _NTSCJ;
 
 
@@ -155,18 +140,17 @@ private:
 	wxBoxSizer* sAudioPage; // GC settings
 	wxRadioBox* DSPEngine;
 	wxSlider*	VolumeSlider;
-	wxStaticText* VolumeText;    
-	wxCheckBox*	EnableDTKMusic;
-	wxCheckBox*	EnableThrottle;
+	wxStaticText* VolumeText;
 	wxCheckBox*	DumpAudio;
+	wxCheckBox*	DPL2Decoder;
 	wxArrayString wxArrayBackends;
 	wxChoice*	BackendSelection;
-	wxChoice*	FrequencySelection;
+	wxSpinCtrl*	Latency;
 
 	// Interface
 	wxCheckBox* ConfirmStop;
 	wxCheckBox* UsePanicHandlers;
-	wxRadioBox* Theme;
+	wxCheckBox* OnScreenDisplayMessages;
 	wxChoice* InterfaceLang;
 	wxButton* HotkeyConfig;
 
@@ -228,7 +212,6 @@ private:
 	wxArrayString arrayStringFor_CPUEngine;
 	wxArrayString arrayStringFor_DSPEngine;
 	wxArrayString arrayStringFor_FullscreenResolution;
-	wxArrayString arrayStringFor_Themes;
 	wxArrayString arrayStringFor_InterfaceLang;
 	wxArrayString arrayStringFor_GCSystemLang;
 	wxArrayString arrayStringFor_WiiSensBarPos;
@@ -254,8 +237,8 @@ private:
 
 	void GCSettingsChanged(wxCommandEvent& event);
 	void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);
-	void ChooseSIDevice(std::string deviceName, int deviceNum);
-	void ChooseEXIDevice(std::string deviceName, int deviceNum);
+	void ChooseSIDevice(wxString deviceName, int deviceNum);
+	void ChooseEXIDevice(wxString deviceName, int deviceNum);
 
 	void WiiSettingsChanged(wxCommandEvent& event);
 	// Change from IPL.LNG value to country code

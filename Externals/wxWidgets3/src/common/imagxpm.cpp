@@ -2,7 +2,7 @@
 // Name:        src/common/imagxpm.cpp
 // Purpose:     wxXPMHandler
 // Author:      Vaclav Slavik, Robert Roebling
-// RCS-ID:      $Id: imagxpm.cpp 60852 2009-06-01 11:43:36Z FM $
+// RCS-ID:      $Id: imagxpm.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2001 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ bool wxXPMHandler::LoadFile(wxImage *image,
     wxXPMDecoder decoder;
 
     wxImage img = decoder.ReadFile(stream);
-    if ( !img.Ok() )
+    if ( !img.IsOk() )
         return false;
     *image = img;
     return true;

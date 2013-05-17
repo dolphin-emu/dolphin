@@ -2,7 +2,7 @@
 // Name:        src/common/calctrlcmn.cpp
 // Author:      Marcin Wojdyr
 // Created:     2008-03-26
-// RCS-ID:      $Id: calctrlcmn.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: calctrlcmn.cpp 69224 2011-09-29 13:43:15Z VZ $
 // Copyright:   (C) Marcin Wojdyr
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,13 +16,14 @@
 #ifndef WX_PRECOMP
 #endif //WX_PRECOMP
 
-#if wxUSE_CALENDARCTRL || wxUSE_DATEPICKCTRL
+#if wxUSE_CALENDARCTRL || wxUSE_DATEPICKCTRL || wxUSE_TIMEPICKCTRL
 
 #include "wx/dateevt.h"
 IMPLEMENT_DYNAMIC_CLASS(wxDateEvent, wxCommandEvent)
 wxDEFINE_EVENT(wxEVT_DATE_CHANGED, wxDateEvent);
+wxDEFINE_EVENT(wxEVT_TIME_CHANGED, wxDateEvent);
 
-#endif // wxUSE_CALENDARCTRL || wxUSE_DATEPICKCTRL
+#endif // wxUSE_CALENDARCTRL || wxUSE_DATEPICKCTRL || wxUSE_TIMEPICKCTRL
 
 
 #if wxUSE_CALENDARCTRL

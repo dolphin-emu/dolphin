@@ -5,7 +5,7 @@
 //              Ryan Norton, Fredrik Roubert (UTF7)
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.cpp 66523 2011-01-02 16:59:15Z PC $
+// RCS-ID:      $Id: strconv.cpp 70462 2012-01-25 00:10:44Z VZ $
 // Copyright:   (c) 1999 Ove Kaaven, Robert Roebling, Vaclav Slavik
 //              (c) 2000-2003 Vadim Zeitlin
 //              (c) 2004 Ryan Norton, Fredrik Roubert
@@ -995,7 +995,7 @@ wxMBConvStrictUTF8::ToWChar(wchar_t *dst, size_t dstLen,
 
     for ( const char *p = src; ; p++ )
     {
-        if ( !(srcLen == wxNO_LEN ? *p : srcLen) )
+        if ( (srcLen == wxNO_LEN ? !*p : !srcLen) )
         {
             // all done successfully, just add the trailing NULL if we are not
             // using explicit length
@@ -1115,7 +1115,7 @@ wxMBConvStrictUTF8::FromWChar(char *dst, size_t dstLen,
 
     for ( const wchar_t *wp = src; ; wp++ )
     {
-        if ( !(srcLen == wxNO_LEN ? *wp : srcLen) )
+        if ( (srcLen == wxNO_LEN ? !*wp : !srcLen) )
         {
             // all done successfully, just add the trailing NULL if we are not
             // using explicit length
@@ -1145,6 +1145,8 @@ wxMBConvStrictUTF8::FromWChar(char *dst, size_t dstLen,
         {
             // skip the next char too as we decoded a surrogate
             wp++;
+            if ( srcLen != wxNO_LEN )
+                srcLen--;
         }
 #else // wchar_t is UTF-32
         code = *wp & 0x7fffffff;
@@ -1230,7 +1232,10 @@ size_t wxMBConvUTF8::ToWChar(wchar_t *buf, size_t n,
 
     size_t len = 0;
 
-    while ((srcLen == wxNO_LEN ? *psz : srcLen--) && ((!buf) || (len < n)))
+    // The length can be either given explicitly or computed implicitly for the
+    // NUL-terminated strings.
+    const bool isNulTerminated = srcLen == wxNO_LEN;
+    while ((isNulTerminated ? *psz : srcLen--) && ((!buf) || (len < n)))
     {
         const char *opsz = psz;
         bool invalid = false;
@@ -1364,10 +1369,17 @@ size_t wxMBConvUTF8::ToWChar(wchar_t *buf, size_t n,
         }
     }
 
-    if (srcLen == wxNO_LEN && buf && (len < n))
-        *buf = 0;
+    if ( isNulTerminated )
+    {
+        // Add the trailing NUL in this case if we have a large enough buffer.
+        if ( buf && (len < n) )
+            *buf = 0;
 
-    return len + 1;
+        // And count it in any case.
+        len++;
+    }
+
+    return len;
 }
 
 static inline bool isoctal(wchar_t wch)
@@ -1383,7 +1395,10 @@ size_t wxMBConvUTF8::FromWChar(char *buf, size_t n,
 
     size_t len = 0;
 
-    while ((srcLen == wxNO_LEN ? *psz : srcLen--) && ((!buf) || (len < n)))
+    // The length can be either given explicitly or computed implicitly for the
+    // NUL-terminated strings.
+    const bool isNulTerminated = srcLen == wxNO_LEN;
+    while ((isNulTerminated ? *psz : srcLen--) && ((!buf) || (len < n)))
     {
         wxUint32 cc;
 
@@ -1451,10 +1466,17 @@ size_t wxMBConvUTF8::FromWChar(char *buf, size_t n,
         }
     }
 
-    if (srcLen == wxNO_LEN && buf && (len < n))
-        *buf = 0;
+    if ( isNulTerminated )
+    {
+        // Add the trailing NUL in this case if we have a large enough buffer.
+        if ( buf && (len < n) )
+            *buf = 0;
 
-    return len + 1;
+        // And count it in any case.
+        len++;
+    }
+
+    return len;
 }
 
 // ============================================================================
@@ -1645,7 +1667,7 @@ wxMBConvUTF16straight::FromWChar(char *dst, size_t dstLen,
     wxUint16 *outBuff = reinterpret_cast<wxUint16 *>(dst);
     for ( size_t n = 0; n < srcLen; n++ )
     {
-        wxUint16 cc[2];
+        wxUint16 cc[2] = { 0 };
         const size_t numChars = encode_utf16(*src++, cc);
         if ( numChars == wxCONV_FAILED )
             return wxCONV_FAILED;
@@ -1728,7 +1750,7 @@ wxMBConvUTF16swap::FromWChar(char *dst, size_t dstLen,
     wxUint16 *outBuff = reinterpret_cast<wxUint16 *>(dst);
     for ( const wchar_t *srcEnd = src + srcLen; src < srcEnd; src++ )
     {
-        wxUint16 cc[2];
+        wxUint16 cc[2] = { 0 };
         const size_t numChars = encode_utf16(*src, cc);
         if ( numChars == wxCONV_FAILED )
             return wxCONV_FAILED;
@@ -1812,7 +1834,7 @@ wxMBConvUTF32straight::ToWChar(wchar_t *dst, size_t dstLen,
     size_t outLen = 0;
     for ( size_t n = 0; n < inLen; n++ )
     {
-        wxUint16 cc[2];
+        wxUint16 cc[2] = { 0 };
         const size_t numChars = encode_utf16(*inBuff++, cc);
         if ( numChars == wxCONV_FAILED )
             return wxCONV_FAILED;
@@ -1890,7 +1912,7 @@ wxMBConvUTF32swap::ToWChar(wchar_t *dst, size_t dstLen,
     size_t outLen = 0;
     for ( size_t n = 0; n < inLen; n++, inBuff++ )
     {
-        wxUint16 cc[2];
+        wxUint16 cc[2] = { 0 };
         const size_t numChars = encode_utf16(wxUINT32_SWAP_ALWAYS(*inBuff), cc);
         if ( numChars == wxCONV_FAILED )
             return wxCONV_FAILED;

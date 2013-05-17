@@ -2,7 +2,7 @@
 // Name:        src/gtk/choice.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.cpp 66555 2011-01-04 08:31:53Z SC $
+// Id:          $Id: choice.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -334,7 +334,7 @@ void wxChoice::GTKEnableEvents()
 
 GdkWindow *wxChoice::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
 {
-    return m_widget->window;
+    return gtk_widget_get_window(m_widget);
 }
 
 // Notice that this method shouldn't be necessary, because GTK calculates
@@ -371,7 +371,7 @@ wxSize wxChoice::DoGetBestSize() const
 void wxChoice::DoApplyWidgetStyle(GtkRcStyle *style)
 {
     gtk_widget_modify_style(m_widget, style);
-    gtk_widget_modify_style(GTK_BIN(m_widget)->child, style);
+    gtk_widget_modify_style(gtk_bin_get_child(GTK_BIN(m_widget)), style);
 }
 
 

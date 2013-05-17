@@ -4,7 +4,7 @@
  * Author:      Vadim Zeitlin
  * Modified by:
  * Created:     2005-04-05 (extracted from wx/chkconf.h)
- * RCS-ID:      $Id: chkconf.h 66955 2011-02-18 18:44:43Z SC $
+ * RCS-ID:      $Id: chkconf.h 67497 2011-04-15 19:18:34Z DS $
  * Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */
@@ -107,4 +107,4 @@
     #include "wx/osx/cocoa/chkconf.h"
 #endif
 
-#endif // _WX_OSX_CHKCONF_H_
+#endif /* _WX_OSX_CHKCONF_H_ */

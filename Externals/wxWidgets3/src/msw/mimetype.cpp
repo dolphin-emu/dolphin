@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.cpp 64416 2010-05-27 17:07:46Z VZ $
+// RCS-ID:      $Id: mimetype.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -36,7 +36,7 @@
 #include "wx/iconloc.h"
 #include "wx/confbase.h"
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     #include "wx/msw/registry.h"
     #include "wx/msw/private.h"
 #endif // OS

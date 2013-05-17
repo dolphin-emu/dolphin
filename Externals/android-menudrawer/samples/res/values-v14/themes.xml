@@ -1,0 +1,7 @@
+<resources>
+
+    <style name="SampleBase" parent="@android:style/Theme.Holo.Light">
+        <item name="android:windowBackground">@color/windowBackground</item>
+    </style>
+
+</resources>

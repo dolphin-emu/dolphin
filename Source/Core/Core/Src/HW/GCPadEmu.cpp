@@ -1,19 +1,6 @@
-// Copyright (C) 2010 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "GCPadEmu.h"
 #include "../Host.h"
@@ -56,11 +43,11 @@ const char* const named_triggers[] =
 	// i18n:  Left
 	_trans("L"),
 	// i18n:  Right
-   	_trans("R"),
+	_trans("R"),
 	// i18n:  Left-Analog
-   	_trans("L-Analog"),
+	_trans("L-Analog"),
 	// i18n:  Right-Analog
-   	_trans("R-Analog")
+	_trans("R-Analog")
 };
 
 GCPad::GCPad(const unsigned int index) : m_index(index)
@@ -93,7 +80,6 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 	// options
 	groups.push_back(m_options = new ControlGroup(_trans("Options")));
 	m_options->settings.push_back(new ControlGroup::Setting(_trans("Background Input"), false));
-
 }
 
 std::string GCPad::GetName() const
@@ -130,7 +116,21 @@ void GCPad::GetInput(SPADStatus* const pad)
 	}
 }
 
-void GCPad::SetOutput(const bool on)
+void GCPad::SetMotor(const u8 on)
+{
+	float state = (float)on / 255;
+	float force = abs(state - 0.5) * 2;
+	if (state < 0.5)
+		force = -force;
+
+	// only rumble if window has focus or background input is enabled
+	if (Host_RendererHasFocus() || m_options[0].settings[0]->value)
+		m_rumble->controls[0]->control_ref->State(force);
+	else
+		m_rumble->controls[0]->control_ref->State(0);
+}
+
+void GCPad::SetOutput(const u8 on)
 {
 	// only rumble if window has focus or background input is enabled
 	m_rumble->controls[0]->control_ref->State(on && (Host_RendererHasFocus() || m_options[0].settings[0]->value));

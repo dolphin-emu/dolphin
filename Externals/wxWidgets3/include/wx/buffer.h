@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.04.99
-// RCS-ID:      $Id: buffer.h 66780 2011-01-27 11:00:26Z SC $
+// RCS-ID:      $Id: buffer.h 70417 2012-01-20 22:11:51Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,9 +15,7 @@
 #include "wx/chartype.h"
 #include "wx/wxcrtbase.h"
 
-#ifndef __WXPALMOS5__
 #include <stdlib.h>             // malloc() and free()
-#endif // ! __WXPALMOS5__
 
 class WXDLLIMPEXP_FWD_BASE wxCStrData;
 
@@ -314,6 +312,10 @@ public:
         if ( !str )
             return false;
 
+        // For consistency with the ctor taking just the length, NUL-terminate
+        // the buffer.
+        str[len] = (CharType)0;
+
         if ( this->m_data == this->GetNullData() )
         {
             this->m_data = new Data(str, len);
@@ -537,12 +539,16 @@ public:
     size_t GetBufSize() const { return m_bufdata->m_size; }
     size_t GetDataLen() const { return m_bufdata->m_len; }
 
+    bool IsEmpty() const { return GetDataLen() == 0; }
+
     void   SetBufSize(size_t size) { m_bufdata->ResizeIfNeeded(size); }
     void   SetDataLen(size_t len)
     {
         wxASSERT(len <= m_bufdata->m_size);
         m_bufdata->m_len = len;
     }
+
+    void Clear() { SetDataLen(0); }
 
     // Ensure the buffer is big enough and return a pointer to it
     void *GetWriteBuf(size_t sizeNeeded)

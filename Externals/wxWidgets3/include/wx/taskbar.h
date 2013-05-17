@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: taskbar.h 58822 2009-02-10 03:43:30Z PC $
+// RCS-ID:      $Id: taskbar.h 70345 2012-01-15 01:05:28Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -32,7 +32,7 @@ public:
 #if defined(__WXGTK__) || defined(__WXX11__) || defined(__WXMOTIF__)
     static bool IsAvailable();
 #else
-    static bool IsAvailable() { return true; };
+    static bool IsAvailable() { return true; }
 #endif
 
     // Operations:
@@ -61,9 +61,7 @@ private:
 // now include the actual class declaration
 // ----------------------------------------------------------------------------
 
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/taskbar.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
     #include "wx/msw/taskbar.h"
 #elif defined(__WXGTK20__)
     #include "wx/gtk/taskbar.h"

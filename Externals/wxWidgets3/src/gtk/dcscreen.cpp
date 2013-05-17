@@ -2,7 +2,7 @@
 // Name:        src/gtk/dcscreen.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: dcscreen.cpp 61724 2009-08-21 10:41:26Z VZ $
+// Id:          $Id: dcscreen.cpp 70809 2012-03-04 23:50:35Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -10,15 +10,8 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#include "wx/dcscreen.h"
 #include "wx/gtk/dcscreen.h"
 
-#ifndef WX_PRECOMP
-    #include "wx/window.h"
-#endif
-
-#include <gdk/gdk.h>
-#include <gdk/gdkx.h>
 #include <gtk/gtk.h>
 
 //-----------------------------------------------------------------------------
@@ -58,6 +51,8 @@ void wxScreenDCImpl::Init()
 
 wxScreenDCImpl::~wxScreenDCImpl()
 {
+    g_object_unref(m_context);
+
     gdk_gc_set_subwindow( m_penGC, GDK_CLIP_BY_CHILDREN );
     gdk_gc_set_subwindow( m_brushGC, GDK_CLIP_BY_CHILDREN );
     gdk_gc_set_subwindow( m_textGC, GDK_CLIP_BY_CHILDREN );

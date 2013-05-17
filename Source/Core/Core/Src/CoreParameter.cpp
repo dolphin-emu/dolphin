@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "CommonPaths.h"
@@ -45,22 +32,20 @@ SCoreStartupParameter::SCoreStartupParameter()
   bEnableFPRF(false), 
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bNTSC(false), bForceNTSCJ(false),
-  bHLE_BS2(true), bUseFastMem(false),
-  bLockThreads(false),
-  bEnableCheats(false),
-  bMergeBlocks(false),
+  bHLE_BS2(true), bEnableCheats(false),
+  bMergeBlocks(false), bEnableMemcardSaving(true),
+  bDPL2Decoder(false), iLatency(14),
   bRunCompareServer(false), bRunCompareClient(false),
-  bMMU(false), bMMUBAT(false), iTLBHack(0), bVBeam(false),
-  bFastDiscSpeed(false),
-  SelectedLanguage(0), bWii(false), bDisableWiimoteSpeaker(false),
-  bConfirmStop(false), bHideCursor(false), 
-  bAutoHideCursor(false), bUsePanicHandlers(true),
+  bMMU(false), bDCBZOFF(false), iTLBHack(0), bVBeamSpeedHack(false),
+  bSyncGPU(false), bFastDiscSpeed(false),
+  SelectedLanguage(0), bWii(false),
+  bConfirmStop(false), bHideCursor(false),
+  bAutoHideCursor(false), bUsePanicHandlers(true), bOnScreenDisplayMessages(true),
   iRenderWindowXPos(-1), iRenderWindowYPos(-1),
   iRenderWindowWidth(640), iRenderWindowHeight(480),
-  bRenderWindowAutoSize(false),
+  bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
   bFullscreen(false), bRenderToMain(false),
   bProgressive(false), bDisableScreenSaver(false),
-  iTheme(0),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600)
 {
 	LoadDefaults();
@@ -75,16 +60,20 @@ void SCoreStartupParameter::LoadDefaults()
 	bRunCompareServer = false;
 	bDSPHLE = true;
 	bDSPThread = true;
-	bLockThreads = true;
+	bFastmem = true;
 	bEnableFPRF = false;
 	bMMU = false;
-	bMMUBAT = false;
+	bDCBZOFF = false;
 	iTLBHack = 0;
-	bVBeam = false;
+	bVBeamSpeedHack = false;
+	bSyncGPU = false;
 	bFastDiscSpeed = false;
 	bMergeBlocks = false;
+	bEnableMemcardSaving = true;
 	SelectedLanguage = 0;
 	bWii = false;
+	bDPL2Decoder = false;
+	iLatency = 14;
 
 	iPosX = 100;
 	iPosY = 100;
@@ -99,8 +88,6 @@ void SCoreStartupParameter::LoadDefaults()
 	bJITIntegerOff = false;
 	bJITPairedOff = false;
 	bJITSystemRegistersOff = false;
-
-	bDisableWiimoteSpeaker = false;
 
 	m_strName = "NONE";
 	m_strUniqueID = "00000000";
@@ -127,6 +114,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 			SplitPath(m_strFilename, NULL, NULL, &Extension);
 			if (!strcasecmp(Extension.c_str(), ".gcm") || 
 				!strcasecmp(Extension.c_str(), ".iso") ||
+				!strcasecmp(Extension.c_str(), ".wbfs") ||
 				!strcasecmp(Extension.c_str(), ".ciso") ||
 				!strcasecmp(Extension.c_str(), ".gcz") ||
 				bootDrive)
@@ -327,7 +315,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 		{
 			if (!File::Exists(m_strBootROM))
 			{
-				WARN_LOG(BOOT, "bootrom file %s not found - using HLE.", m_strBootROM.c_str());
+				WARN_LOG(BOOT, "Bootrom file %s not found - using HLE.", m_strBootROM.c_str());
 				bHLE_BS2 = true;
 			}
 		}
@@ -348,7 +336,11 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 	{
 		// Use default memcard path if there is no user defined name
 		std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
-		memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+		#ifdef _WIN32
+			memcardPath = "." + File::GetUserPath(D_GCUSER_IDX).substr(File::GetExeDirectory().size()) + defaultFilename + ext;
+		#else
+			memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+		#endif
 	}
 	else
 	{

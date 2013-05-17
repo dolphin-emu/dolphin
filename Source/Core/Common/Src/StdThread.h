@@ -5,9 +5,18 @@
 #define GCC_VER(x,y,z)	((x) * 10000 + (y) * 100 + (z))
 #define GCC_VERSION GCC_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 
-#if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__
+#ifndef __has_include
+#define __has_include(s) 0
+#endif
+
+#if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__ && !ANDROID
 // GCC 4.4 provides <thread>
+#ifndef _GLIBCXX_USE_SCHED_YIELD
 #define _GLIBCXX_USE_SCHED_YIELD
+#endif
+#include <thread>
+#elif __has_include(<thread>) && !ANDROID
+// Clang + libc++
 #include <thread>
 #else
 
@@ -86,7 +95,7 @@ public:
 		{
 			return !(*this == rhs);
 		}
-		
+
 		bool operator<(const id& rhs) const
 		{
 			return m_thread < rhs.m_thread;
@@ -279,7 +288,7 @@ namespace this_thread
 inline void yield()
 {
 #ifdef _WIN32
-	Sleep(0);
+	SwitchToThread();
 #else
 	sleep(0);
 #endif

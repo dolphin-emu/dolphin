@@ -19,7 +19,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
    ====================================================================*/
 
@@ -130,7 +130,9 @@ static inline u16 dsp_decrement_addr_reg(u16 reg)
 static inline u16 dsp_op_read_reg(int _reg)
 {
 	int reg = _reg & 0x1f;
-	switch (reg) {
+
+	switch (reg)
+	{
 	case DSP_REG_ST0:
 	case DSP_REG_ST1:
 	case DSP_REG_ST2:
@@ -181,7 +183,9 @@ static inline u16 dsp_op_read_reg(int _reg)
 static inline void dsp_op_write_reg(int _reg, u16 val)
 {
 	int reg = _reg & 0x1f;
-	switch (reg) {
+
+	switch (reg)
+	{
 	// 8-bit sign extended registers. Should look at prod.h too...
 	case DSP_REG_ACH0:
 	case DSP_REG_ACH1:
@@ -349,10 +353,14 @@ inline u16 dsp_op_read_reg_and_saturate(u8 _reg)
 				return 0x8000;
 		}
 		else
+		{
 			return g_dsp.r.ac[_reg].m;
+		}
 	}
 	else
+	{
 		return g_dsp.r.ac[_reg].m;
+	}
 }
 
 // ---------------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 // Name:        wx/gtk/app.h
 // Purpose:     wxApp definition for wxGTK
 // Author:      Robert Roebling
-// Id:          $Id: app.h 63091 2010-01-07 18:30:18Z PC $
+// Id:          $Id: app.h 69020 2011-09-07 16:56:50Z PC $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ private:
 #if wxUSE_THREADS
     wxMutex m_idleMutex;
 #endif
-    guint m_idleSourceId;
+    unsigned m_idleSourceId;
 
 #if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
     HildonProgram *m_hildonProgram;

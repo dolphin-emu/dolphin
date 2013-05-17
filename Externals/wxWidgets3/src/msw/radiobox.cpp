@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: radiobox.cpp 65957 2010-10-30 23:50:39Z VZ $
+// RCS-ID:      $Id: radiobox.cpp 70498 2012-02-02 14:26:06Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -251,6 +251,10 @@ bool wxRadioBox::Create(wxWindow *parent,
 
     // Now that we have items determine what is the best size and set it.
     SetInitialSize(size);
+
+    // And update all the buttons positions to match it.
+    const wxSize actualSize = GetSize();
+    PositionAllButtons(pos.x, pos.y, actualSize.x, actualSize.y);
 
     return true;
 }
@@ -625,6 +629,12 @@ void wxRadioBox::DoMoveWindow(int x, int y, int width, int height)
 {
     wxStaticBox::DoMoveWindow(x, y, width, height);
 
+    PositionAllButtons(x, y, width, height);
+}
+
+void
+wxRadioBox::PositionAllButtons(int x, int y, int width, int WXUNUSED(height))
+{
     wxSize maxSize = GetMaxButtonSize();
     int maxWidth = maxSize.x,
         maxHeight = maxSize.y;

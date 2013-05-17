@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifdef _WIN32
 #include <io.h>
@@ -222,7 +209,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 		// u64 size = header.block_size;
 		std::fill(in_buf, in_buf + header.block_size, 0);
 		if (scrubbing)
-			DiscScrubber::GetNextBlock(inf.GetHandle(), in_buf);
+			DiscScrubber::GetNextBlock(inf, in_buf);
 		else
 			inf.ReadBytes(in_buf, header.block_size);
 		z_stream z;
@@ -296,9 +283,16 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 	}
 
 	CompressedBlobReader* reader = CompressedBlobReader::Create(infile);
-	if (!reader) return false;
+	if (!reader)
+		return false;
 
 	File::IOFile f(outfile, "wb");
+	if (!f)
+	{
+		delete reader;
+		return false;
+	}
+
 	const CompressedBlobHeader &header = reader->GetHeader();
 	u8* buffer = new u8[header.block_size];
 	int progress_monitor = max<int>(1, header.num_blocks / 100);

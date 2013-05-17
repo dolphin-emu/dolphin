@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _UCODES_H
 #define _UCODES_H
@@ -25,8 +12,9 @@
 #include "../DSPHLE.h"
 #include "../../Memmap.h"
 
-#define UCODE_ROM                   0x0000000
-#define UCODE_INIT_AUDIO_SYSTEM     0x0000001
+#define UCODE_ROM                   0x00000000
+#define UCODE_INIT_AUDIO_SYSTEM     0x00000001
+#define UCODE_NULL                  0xFFFFFFFF
 
 class CMailHandler;
 
@@ -73,10 +61,11 @@ inline void* HLEMemory_Get_Pointer(u32 _uAddress)
 class IUCode
 {
 public:
-	IUCode(DSPHLE *dsphle)
+	IUCode(DSPHLE *dsphle, u32 _crc)
 		: m_rMailHandler(dsphle->AccessMailHandler())
 		, m_UploadSetupInProgress(false)
 		, m_DSPHLE(dsphle)
+		, m_CRC(_crc)
 		, m_NextUCode()
 		, m_NextUCode_steps(0)
 		, m_NeedsResumeMail(false)
@@ -90,8 +79,11 @@ public:
 	// Cycles are out of the 81/121mhz the DSP runs at.
 	virtual void Update(int cycles) = 0;
 	virtual void MixAdd(short* buffer, int size) {}
+	virtual u32 GetUpdateMs() = 0;
 
-	virtual void DoState(PointerWrap &p) {}
+	virtual void DoState(PointerWrap &p) { DoStateShared(p); }
+
+	static u32 GetCRC(IUCode* pUCode) { return pUCode ? pUCode->m_CRC : UCODE_NULL; }
 
 protected:
 	void PrepareBootUCode(u32 mail);
@@ -100,6 +92,8 @@ protected:
 	// sent if they are be started via PrepareBootUCode.
 	// The HLE can use this to 
 	bool NeedsResumeMail();
+
+	void DoStateShared(PointerWrap &p);
 
 	CMailHandler& m_rMailHandler;
 	std::mutex m_csMix;
@@ -120,6 +114,10 @@ protected:
 
 	// Need a pointer back to DSPHLE to switch ucodes.
 	DSPHLE *m_DSPHLE;
+
+	// used for reconstruction when loading saves,
+	// and for variations within certain ucodes.
+	u32 m_CRC;
 
 private:
 	struct SUCode

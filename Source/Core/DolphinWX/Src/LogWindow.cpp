@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "LogWindow.h"
 #include "ConsoleListener.h"
@@ -21,6 +8,8 @@
 #include "IniFile.h"
 #include "FileUtil.h"
 #include "Debugger/DebuggerUIUtil.h"
+#include "WxUtils.h"
+
 #include <wx/fontmap.h>
 
 // Milliseconds between msgQueue flushes to wxTextCtrl
@@ -36,28 +25,12 @@ BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
 END_EVENT_TABLE()
 
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
-	   	const wxSize& size, long style, const wxString& name)
+		const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, pos, size, style, name)
 	, x(0), y(0), winpos(0)
-	, Parent(parent) , m_LogAccess(true)
+	, Parent(parent), m_ignoreLogTimer(false), m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
-	, m_SJISConv(wxT(""))
 {
-#ifdef _WIN32
-		static bool validCP932 = ::IsValidCodePage(932) != 0;
-		if (validCP932)
-		{
-			m_SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
-		}
-		else
-		{
-			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
-			m_SJISConv = *(wxCSConv*)wxConvCurrent;
-		}
-#else
-		m_SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
-#endif
-
 	m_LogManager = LogManager::GetInstance();
 
 	CreateGUIControls();
@@ -78,12 +51,28 @@ void CLogWindow::CreateGUIControls()
 	// Set up log listeners
 	int verbosity;
 	ini.Get("Options", "Verbosity", &verbosity, 0);
-	if (verbosity < 1) verbosity = 1;
-	if (verbosity > MAX_LOGLEVEL) verbosity = MAX_LOGLEVEL;
+	
+	// Ensure the verbosity level is valid
+	if (verbosity < 1)
+		verbosity = 1;
+	if (verbosity > MAX_LOGLEVEL)
+		verbosity = MAX_LOGLEVEL;
 
+	// Get the logger output settings from the config ini file.
 	ini.Get("Options", "WriteToFile", &m_writeFile, false);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
 	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
+#ifdef _MSC_VER
+	if (IsDebuggerPresent())
+	{
+		ini.Get("Options", "WriteToDebugger", &m_writeDebugger, true);
+	}
+	else
+#endif
+	{
+		m_writeDebugger = false;
+	}
+
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
@@ -103,6 +92,12 @@ void CLogWindow::CreateGUIControls()
 			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
 		else
 			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
+
+		if (m_writeDebugger && enable)
+			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetDebuggerListener());
+		else
+			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetDebuggerListener());
+
 		m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
 	}
 
@@ -190,7 +185,7 @@ void CLogWindow::SaveSettings()
 void CLogWindow::OnSubmit(wxCommandEvent& WXUNUSED (event))
 {
 	if (!m_cmdline) return;
-	Console_Submit(m_cmdline->GetValue().To8BitData());
+	Console_Submit(WxStrToStr(m_cmdline->GetValue()).c_str());
 	m_cmdline->SetValue(wxEmptyString);
 }
 
@@ -229,7 +224,7 @@ wxTextCtrl* CLogWindow::CreateTextCtrl(wxPanel* parent, wxWindowID id, long Styl
 #else
 	TC->SetBackgroundColour(*wxBLACK);
 #endif
-	if (m_FontChoice && m_FontChoice->GetSelection() < (int)LogFont.size())
+	if (m_FontChoice && m_FontChoice->GetSelection() < (int)LogFont.size() && m_FontChoice->GetSelection() >= 0)
 		TC->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, LogFont[m_FontChoice->GetSelection()]));
 
 	return TC;
@@ -278,6 +273,7 @@ void CLogWindow::OnWrapLineCheck(wxCommandEvent& event)
 void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 {
 	if (!m_LogAccess) return;
+	if (m_ignoreLogTimer) return;
 
 	UpdateLog();
 	// Scroll to the last line
@@ -293,52 +289,56 @@ void CLogWindow::UpdateLog()
 	if (!m_LogAccess) return;
 	if (!m_Log) return;
 
-	m_LogTimer->Stop();
+	// m_LogTimer->Stop();
+	// instead of stopping the timer, let's simply ignore its calls during UpdateLog,
+	// because repeatedly stopping and starting a timer churns memory (and potentially leaks it).
+	m_ignoreLogTimer = true;
 
+	if (!msgQueue.empty())
 	{
-	std::lock_guard<std::mutex> lk(m_LogSection);
-	int msgQueueSize = (int)msgQueue.size();
-	for (int i = 0; i < msgQueueSize; i++)
-	{
-		switch (msgQueue.front().first)
+		std::lock_guard<std::mutex> lk(m_LogSection);
+		int msgQueueSize = (int)msgQueue.size();
+		for (int i = 0; i < msgQueueSize; i++)
 		{
-			
-			case ERROR_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
-				break;
+			switch (msgQueue.front().first)
+			{
+				case ERROR_LEVEL:
+					m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
+					break;
 				
-			case WARNING_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0))); // YELLOW
-				break;
+				case WARNING_LEVEL:
+					m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0))); // YELLOW
+					break;
 				
-			case NOTICE_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
-				break;
+				case NOTICE_LEVEL:
+					m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
+					break;
 				
-			case INFO_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
-				break;
+				case INFO_LEVEL:
+					m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
+					break;
 				
-			case DEBUG_LEVEL:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxLIGHT_GREY));
-				break;
+				case DEBUG_LEVEL:
+					m_Log->SetDefaultStyle(wxTextAttr(*wxLIGHT_GREY));
+					break;
 				
-			default:
-				m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
-				break;
+				default:
+					m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
+					break;
+			}
+			if (msgQueue.front().second.size())
+			{
+				int j = m_Log->GetLastPosition();
+				m_Log->AppendText(msgQueue.front().second);
+				// White timestamp
+				m_Log->SetStyle(j, j + 9, wxTextAttr(*wxWHITE));
+			}
+			msgQueue.pop();
 		}
-		if (msgQueue.front().second.size())
-		{
-			int j = m_Log->GetLastPosition();
-			m_Log->AppendText(msgQueue.front().second);
-			// White timestamp
-			m_Log->SetStyle(j, j + 9, wxTextAttr(*wxWHITE));
-		}
-		msgQueue.pop();
-	}
 	}	// unlock log
 
-	m_LogTimer->Start(UPDATETIME);
+	// m_LogTimer->Start(UPDATETIME);
+	m_ignoreLogTimer = false;
 }
 
 void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
@@ -347,5 +347,6 @@ void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
 
 	if (msgQueue.size() >= 100)
 		msgQueue.pop();
-	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString(text, m_SJISConv)));
+
+	msgQueue.push(std::make_pair(u8(level), StrToWxStr(text)));
 }

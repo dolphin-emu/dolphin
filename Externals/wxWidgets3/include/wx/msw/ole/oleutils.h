@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.02.1998
-// RCS-ID:      $Id: oleutils.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: oleutils.h 70162 2011-12-29 11:26:05Z SN $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ inline void ReleaseInterface(IUnknown *pIUnk)
 #define   RELEASE_AND_NULL(p)   if ( (p) != NULL ) { p->Release(); p = NULL; };
 
 // return true if the iid is in the array
-extern bool IsIidFromList(REFIID riid, const IID *aIids[], size_t nCount);
+extern WXDLLIMPEXP_CORE bool IsIidFromList(REFIID riid, const IID *aIids[], size_t nCount);
 
 // ============================================================================
 // IUnknown implementation helpers
@@ -140,9 +140,10 @@ private:
     wxAutoULong           m_cRef
 
 // macros for declaring supported interfaces
-// NB: you should write ADD_INTERFACE(Foo) and not ADD_INTERFACE(IID_IFoo)!
+// NB: ADD_IID prepends IID_I whereas ADD_RAW_IID does not
 #define BEGIN_IID_TABLE(cname)  const IID *cname::ms_aIids[] = {
 #define ADD_IID(iid)                                             &IID_I##iid,
+#define ADD_RAW_IID(iid)                                         &iid,
 #define END_IID_TABLE                                          }
 
 // implementation is as straightforward as possible
@@ -197,11 +198,11 @@ private:
 // ----------------------------------------------------------------------------
 
 // tries to translate riid into a symbolic name, if possible
-void wxLogQueryInterface(const wxChar *szInterface, REFIID riid);
+WXDLLIMPEXP_CORE void wxLogQueryInterface(const wxChar *szInterface, REFIID riid);
 
 // these functions print out the new value of reference counter
-void wxLogAddRef (const wxChar *szInterface, ULONG cRef);
-void wxLogRelease(const wxChar *szInterface, ULONG cRef);
+WXDLLIMPEXP_CORE void wxLogAddRef (const wxChar *szInterface, ULONG cRef);
+WXDLLIMPEXP_CORE void wxLogRelease(const wxChar *szInterface, ULONG cRef);
 
 #else   //!__WXDEBUG__
   #define   wxLogQueryInterface(szInterface, riid)

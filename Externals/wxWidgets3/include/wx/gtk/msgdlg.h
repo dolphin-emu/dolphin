@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2003/02/28
-// RCS-ID:      $Id: msgdlg.h 65348 2010-08-18 22:48:28Z VZ $
+// RCS-ID:      $Id: msgdlg.h 68537 2011-08-04 22:53:42Z VZ $
 // Copyright:   (c) Vaclav Slavik, 2003
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,6 +40,7 @@ private:
     virtual wxString GetDefaultNoLabel() const;
     virtual wxString GetDefaultOKLabel() const;
     virtual wxString GetDefaultCancelLabel() const;
+    virtual wxString GetDefaultHelpLabel() const;
 
     // create the real GTK+ dialog: this is done from ShowModal() to allow
     // changing the message between constructing the dialog and showing it

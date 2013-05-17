@@ -4,7 +4,7 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     11/08/2003
-// RCS-ID:      $Id: hashset.h 60410 2009-04-27 13:26:19Z VZ $
+// RCS-ID:      $Id: hashset.h 69568 2011-10-27 22:26:10Z VZ $
 // Copyright:   (c) Mattia Barbon
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@
 // see comment in wx/hashmap.h which also applies to different standard hash
 // set classes
 
-#if wxUSE_STL && \
+#if wxUSE_STD_CONTAINERS && \
     (defined(HAVE_STD_UNORDERED_SET) || defined(HAVE_TR1_UNORDERED_SET))
 
 #if defined(HAVE_STD_UNORDERED_SET)
@@ -30,7 +30,7 @@
     #error Update this code: unordered_set is available, but I do not know where.
 #endif
 
-#elif wxUSE_STL && defined(HAVE_STL_HASH_MAP)
+#elif wxUSE_STD_CONTAINERS && defined(HAVE_STL_HASH_MAP)
 
 #if defined(HAVE_EXT_HASH_MAP)
     #include <ext/hash_set>
@@ -46,7 +46,7 @@
 
 // we need to define the class declared by _WX_DECLARE_HASH_SET as a class and
 // not a typedef to allow forward declaring it
-#define _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, CLASSNAME, CLASSEXP )  \
+#define _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, PTROP, CLASSNAME, CLASSEXP )  \
 CLASSEXP CLASSNAME                                                            \
     : public WX_HASH_SET_BASE_TEMPLATE< KEY_T, HASH_T, KEY_EQ_T >             \
 {                                                                             \
@@ -89,9 +89,11 @@ public:                                                                      \
     CLASSNAME& operator=(const CLASSNAME&) { return *this; }                 \
 };
 
-#define _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, CLASSNAME, CLASSEXP )\
+#define _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, PTROP, CLASSNAME, CLASSEXP )\
 _WX_DECLARE_HASH_SET_KEY_EX( KEY_T, CLASSNAME##_wxImplementation_KeyEx, CLASSEXP ) \
-_WX_DECLARE_HASHTABLE( KEY_T, KEY_T, HASH_T, CLASSNAME##_wxImplementation_KeyEx, KEY_EQ_T, CLASSNAME##_wxImplementation_HashTable, CLASSEXP, grow_lf70, never_shrink ) \
+_WX_DECLARE_HASHTABLE( KEY_T, KEY_T, HASH_T,                                 \
+    CLASSNAME##_wxImplementation_KeyEx, KEY_EQ_T, PTROP,                     \
+    CLASSNAME##_wxImplementation_HashTable, CLASSEXP, grow_lf70, never_shrink ) \
 CLASSEXP CLASSNAME:public CLASSNAME##_wxImplementation_HashTable             \
 {                                                                            \
 public:                                                                      \
@@ -134,16 +136,26 @@ public:                                                                      \
 
 // these macros are to be used in the user code
 #define WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, CLASSNAME) \
-    _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, CLASSNAME, class )
+    _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, wxPTROP_NORMAL, CLASSNAME, class )
 
 // and these do exactly the same thing but should be used inside the
 // library
 #define WX_DECLARE_HASH_SET_WITH_DECL( KEY_T, HASH_T, KEY_EQ_T, CLASSNAME, DECL) \
-    _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, CLASSNAME, DECL )
+    _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, wxPTROP_NORMAL, CLASSNAME, DECL )
 
 #define WX_DECLARE_EXPORTED_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, CLASSNAME) \
     WX_DECLARE_HASH_SET_WITH_DECL( KEY_T, HASH_T, KEY_EQ_T, \
                                    CLASSNAME, class WXDLLIMPEXP_CORE )
+
+// Finally these versions allow to define hash sets of non-objects (including
+// pointers, hence the confusing but wxArray-compatible name) without
+// operator->() which can't be used for them. This is mostly used inside the
+// library itself to avoid warnings when using such hash sets with some less
+// common compilers (notably Sun CC).
+#define WX_DECLARE_HASH_SET_PTR( KEY_T, HASH_T, KEY_EQ_T, CLASSNAME) \
+    _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, wxPTROP_NOP, CLASSNAME, class )
+#define WX_DECLARE_HASH_SET_WITH_DECL_PTR( KEY_T, HASH_T, KEY_EQ_T, CLASSNAME, DECL) \
+    _WX_DECLARE_HASH_SET( KEY_T, HASH_T, KEY_EQ_T, wxPTROP_NOP, CLASSNAME, DECL )
 
 // delete all hash elements
 //

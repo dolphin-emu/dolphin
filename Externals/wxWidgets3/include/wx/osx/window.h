@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.h 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: window.h 70765 2012-03-01 15:04:42Z JS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -114,6 +114,14 @@ public:
 
     virtual bool Reparent( wxWindowBase *newParent );
 
+#if wxUSE_HOTKEY && wxOSX_USE_COCOA_OR_CARBON
+    // hot keys (system wide accelerators)
+    // -----------------------------------
+    
+    virtual bool RegisterHotKey(int hotkeyId, int modifiers, int keycode);
+    virtual bool UnregisterHotKey(int hotkeyId);
+#endif // wxUSE_HOTKEY
+    
 #if wxUSE_DRAG_AND_DROP
     virtual void SetDropTarget( wxDropTarget *dropTarget );
 #endif
@@ -280,6 +288,9 @@ public:
     
     float               GetContentScaleFactor() const ;
     
+    // internal response to size events
+    virtual void MacOnInternalSize() {}
+
 protected:
     // For controls like radio buttons which are genuinely composite
     wxList              m_subControls;

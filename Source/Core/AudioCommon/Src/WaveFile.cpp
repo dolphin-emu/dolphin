@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "WaveFile.h"
@@ -73,7 +60,7 @@ bool WaveFileWriter::Start(const char *filename, unsigned int HLESampleRate)
 
 	// We are now at offset 44
 	if (file.Tell() != 44)
-		PanicAlert("wrong offset: %lld", (long long)file.Tell());
+		PanicAlert("Wrong offset: %lld", (long long)file.Tell());
 
 	return true;
 }
@@ -100,39 +87,52 @@ void WaveFileWriter::Write4(const char *ptr)
 	file.WriteBytes(ptr, 4);
 }
 
-void WaveFileWriter::AddStereoSamples(const short *sample_data, int count)
+void WaveFileWriter::AddStereoSamples(const short *sample_data, u32 count)
 {
 	if (!file)
 		PanicAlertT("WaveFileWriter - file not open.");
-	if (skip_silence) {
+
+	if (skip_silence)
+	{
 		bool all_zero = true;
-		for (int i = 0; i < count * 2; i++)
-			if (sample_data[i]) all_zero = false;
-		if (all_zero) return;
+
+		for (u32 i = 0; i < count * 2; i++)
+		{
+			if (sample_data[i])
+				all_zero = false;
+		}
+
+		if (all_zero)
+			return;
 	}
+
 	file.WriteBytes(sample_data, count * 4);
 	audio_size += count * 4;
 }
 
-void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, int count)
+void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count)
 {
 	if (!file)
 		PanicAlertT("WaveFileWriter - file not open.");
 
 	if (count > BUF_SIZE * 2)
-		PanicAlert("WaveFileWriter - buffer too small (count = %i).", count);
+		PanicAlert("WaveFileWriter - buffer too small (count = %u).", count);
 
 	if (skip_silence) 
 	{
 		bool all_zero = true;
-		for (int i = 0; i < count * 2; i++)
+
+		for (u32 i = 0; i < count * 2; i++)
+		{
 			if (sample_data[i])
 				all_zero = false;
+		}
+
 		if (all_zero)
 			return;
 	}
 
-	for (int i = 0; i < count * 2; i++)
+	for (u32 i = 0; i < count * 2; i++)
 		conv_buffer[i] = Common::swap16((u16)sample_data[i]);
 
 	file.WriteBytes(conv_buffer, count * 4);

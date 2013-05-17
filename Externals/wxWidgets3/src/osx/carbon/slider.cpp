@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: slider.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: slider.cpp 67416 2011-04-08 15:09:38Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,6 +15,22 @@
 
 #include "wx/slider.h"
 #include "wx/osx/private.h"
+
+class wxMacSliderCarbonControl : public wxMacControl
+{
+public :
+    wxMacSliderCarbonControl( wxWindowMac* peer ) : wxMacControl( peer )
+    {
+    }
+    
+    // work around an OSX bug : if the control is having the keyboard focus it cannot
+    // be set to the full max/min values by dragging
+    virtual bool CanFocus() const
+    { 
+        return false; 
+    }
+};
+
 
 wxWidgetImplType* wxWidgetImpl::CreateSlider( wxWindowMac* wxpeer,
                                     wxWindowMac* parent,
@@ -38,7 +54,7 @@ wxWidgetImplType* wxWidgetImpl::CreateSlider( wxWindowMac* wxpeer,
         tickMarks /= 5;
 
 
-    wxMacControl* peer = new wxMacControl( wxpeer );
+    wxMacControl* peer = new wxMacSliderCarbonControl( wxpeer );
     OSStatus err = CreateSliderControl(
         MAC_WXHWND(parent->MacGetTopLevelWindowRef()), &bounds,
         value, minimum, maximum,

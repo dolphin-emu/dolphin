@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxHeaderCtrlBase
 // Author:      Vadim Zeitlin
 // Created:     2008-12-02
-// RCS-ID:      $Id: headerctrlcmn.cpp 66740 2011-01-24 14:35:33Z VS $
+// RCS-ID:      $Id: headerctrlcmn.cpp 70338 2012-01-14 16:51:57Z VS $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -31,6 +31,7 @@
 
 #include "wx/headerctrl.h"
 #include "wx/rearrangectrl.h"
+#include "wx/renderer.h"
 
 namespace
 {
@@ -107,6 +108,21 @@ void wxHeaderCtrlBase::SetColumnCount(unsigned int count)
     DoSetCount(count);
 }
 
+int wxHeaderCtrlBase::GetColumnTitleWidth(const wxHeaderColumn& col)
+{
+    int w = wxWindowBase::GetTextExtent(col.GetTitle()).x;
+
+    // add some margin:
+    w += wxRendererNative::Get().GetHeaderButtonMargin(this);
+
+    // if a bitmap is used, add space for it and 2px border:
+    wxBitmap bmp = col.GetBitmap();
+    if ( bmp.IsOk() )
+        w += bmp.GetWidth() + 2;
+
+    return w;
+}
+
 // ----------------------------------------------------------------------------
 // wxHeaderCtrlBase event handling
 // ----------------------------------------------------------------------------
@@ -122,8 +138,7 @@ void wxHeaderCtrlBase::OnSeparatorDClick(wxHeaderCtrlEvent& event)
         return;
     }
 
-    int w = wxWindowBase::GetTextExtent(column.GetTitle()).x;
-    w += 4*GetCharWidth(); // add some arbitrary margins around text
+    int w = GetColumnTitleWidth(column);
 
     if ( !UpdateColumnWidthToFit(col, w) )
         event.Skip();
@@ -443,7 +458,7 @@ void wxHeaderCtrlSimple::DoShowSortIndicator(unsigned int idx, bool ascending)
 {
     RemoveSortIndicator();
 
-    m_cols[idx].SetAsSortKey(ascending);
+    m_cols[idx].SetSortOrder(ascending);
     m_sortKey = idx;
 
     UpdateColumn(idx);

@@ -2,7 +2,7 @@
 // Name:        wx/gtk/menu.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: menu.h 66180 2010-11-17 05:57:21Z PC $
+// Id:          $Id: menu.h 70350 2012-01-15 13:41:17Z VZ $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -33,6 +33,7 @@ public:
     virtual wxMenuItem* FindItem( int id, wxMenu **menu = NULL ) const;
 
     virtual void EnableTop( size_t pos, bool flag );
+    virtual bool IsEnabledTop(size_t pos) const;
     virtual void SetMenuLabel( size_t pos, const wxString& label );
     virtual wxString GetMenuLabel( size_t pos ) const;
 
@@ -51,7 +52,7 @@ public:
 
 private:
     // common part of Append and Insert
-    bool GtkAppend(wxMenu *menu, const wxString& title, int pos=-1);
+    void GtkAppend(wxMenu* menu, const wxString& title, int pos = -1);
 
     void Init(size_t n, wxMenu *menus[], const wxString titles[], long style);
 
@@ -99,9 +100,8 @@ private:
     void Init();
 
     // common part of Append (if pos == -1)  and Insert
-    bool GtkAppend(wxMenuItem *item, int pos=-1);
+    void GtkAppend(wxMenuItem* item, int pos = -1);
 
-    GtkWidget *m_prevRadio;
 
     DECLARE_DYNAMIC_CLASS(wxMenu)
 };

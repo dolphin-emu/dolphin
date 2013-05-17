@@ -3,7 +3,7 @@
 // Purpose:     implements wrappers for GDI+ flat API
 // Author:      Vadim Zeitlin
 // Created:     2007-03-14
-// RCS-ID:      $Id: gdiplus.cpp 66787 2011-01-27 13:27:09Z VZ $
+// RCS-ID:      $Id: gdiplus.cpp 67973 2011-06-17 21:53:32Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,6 +35,14 @@
 #include "wx/dynload.h"
 
 #include "wx/msw/wrapgdip.h"
+
+// w32api headers used by both MinGW and Cygwin wrongly define UINT16 inside
+// Gdiplus namespace in gdiplus.h which results in ambiguity errors when using
+// this type as UINT16 is also defined in global scope by windows.h (or rather
+// basetsd.h included from it), so we redefine it to work around this problem.
+#if defined(__CYGWIN__) || defined(__MINGW32__)
+    #define UINT16 unsigned short
+#endif
 
 // ----------------------------------------------------------------------------
 // helper macros
@@ -732,17 +740,17 @@ wxFOR_ALL_GDIPLUS_STATUS_FUNCS(wxDECL_GDIPLUS_FUNC_TYPE)
 
 #undef wxDECL_GDIPLUS_FUNC_TYPE
 
-} // extern "C"
-
-// Special hack for Cygwin: its headers reference this variable which is
-// normally defined in Cygwin-specific gdiplus.lib but as we don't link with it
+// Special hack for w32api headers that reference this variable which is
+// normally defined in w32api-specific gdiplus.lib but as we don't link with it
 // and load gdiplus.dll dynamically, it's not defined in our case resulting in
 // linking errors -- so just provide it ourselves, it doesn't matter where it
 // is and if Cygwin headers are modified to not use it in the future, it's not
 // a big deal neither, we'll just have an unused pointer.
-#ifdef __CYGWIN__
-extern "C" void *_GdipStringFormatCachedGenericTypographic = NULL;
-#endif // __CYGWIN__
+#if defined(__CYGWIN__) || defined(__MINGW32__)
+void *_GdipStringFormatCachedGenericTypographic = NULL;
+#endif // __CYGWIN__ || __MINGW32__
+
+} // extern "C"
 
 // ============================================================================
 // wxGdiPlus helper class

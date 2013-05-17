@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "FileUtil.h"
@@ -22,6 +9,7 @@
 #include "../CoreTiming.h"
 
 #include "../ConfigManager.h"
+#include "../Movie.h"
 #include "EXI.h"
 #include "EXI_Device.h"
 #include "EXI_DeviceMemoryCard.h"
@@ -37,12 +25,21 @@
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
-static CEXIMemoryCard *cards[2];
-
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 {
-	CEXIMemoryCard *ptr = cards[userdata];
-	ptr->Flush();
+	// note that userdata is forbidden to be a pointer, due to the implementation of EventDoState
+	int card_index = (int)userdata;
+	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+	if (pThis)
+		pThis->Flush();
+}
+
+void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
+{
+	int card_index = (int)userdata;
+	CEXIMemoryCard* pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+	if (pThis)
+		pThis->CmdDone();
 }
 
 CEXIMemoryCard::CEXIMemoryCard(const int index)
@@ -50,9 +47,12 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	, m_bDirty(false)
 {
 	m_strFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
-	cards[card_index] = this;
-	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardA" : "memcardB", FlushCallback);
-	reloadOnState = SConfig::GetInstance().b_reloadMCOnState;
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave())
+		m_strFilename = "Movie.raw";
+
+	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
+	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
+	et_cmd_done = CoreTiming::RegisterEvent((card_index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
  
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
@@ -73,7 +73,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	//0x00000510 16Mb "bigben" card
 	//card_id = 0xc243;
  
-	card_id = 0xc221; // It's a nintendo brand memcard
+	card_id = 0xc221; // It's a Nintendo brand memcard
  
 	File::IOFile pFile(m_strFilename, "rb");
 	if (pFile)
@@ -97,14 +97,14 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 		memory_card_content = new u8[memory_card_size];
 		GCMemcard::Format(memory_card_content, m_strFilename.find(".JAP.raw") != std::string::npos, nintendo_card_id);
 		memset(memory_card_content+MC_HDR_SIZE, 0xFF, memory_card_size-MC_HDR_SIZE); 
-		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
+		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create a new one.");
 	}
 	SetCardFlashID(memory_card_content, card_index);
 }
 
 void innerFlush(FlushData* data)
 {
-	File::IOFile pFile(data->filename, "wb");
+	File::IOFile pFile(data->filename, "r+b");
 	if (!pFile)
 	{
 		std::string dir;
@@ -117,7 +117,9 @@ void innerFlush(FlushData* data)
 	if (!pFile) // Note - pFile changed inside above if
 	{
 		PanicAlertT("Could not write memory card file %s.\n\n"
-			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", data->filename.c_str());
+			"Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?\n\n"
+			"Are you receiving this after moving the emulator directory?\nIf so, then you may "
+			"need to re-specify your memory card location in the options.", data->filename.c_str());
 		return;
 	}
 
@@ -133,6 +135,9 @@ void innerFlush(FlushData* data)
 void CEXIMemoryCard::Flush(bool exiting)
 {
 	if(!m_bDirty)
+		return;
+
+	if (!Core::g_CoreStartupParameter.bEnableMemcardSaving)
 		return;
 
 	if (flushThread.joinable())
@@ -158,6 +163,7 @@ void CEXIMemoryCard::Flush(bool exiting)
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
+	CoreTiming::RemoveEvent(et_this_card);
 	Flush(true);
 	delete[] memory_card_content;
 	memory_card_content = NULL;
@@ -173,6 +179,21 @@ bool CEXIMemoryCard::IsPresent()
 	return true;
 }
 
+void CEXIMemoryCard::CmdDone()
+{
+	status |= MC_STATUS_READY;
+	status &= ~MC_STATUS_BUSY;
+
+	m_bInterruptSet = 1;
+	m_bDirty = true;
+}
+
+void CEXIMemoryCard::CmdDoneLater(u64 cycles)
+{
+	CoreTiming::RemoveEvent(et_cmd_done);
+	CoreTiming::ScheduleEvent(cycles, et_cmd_done, (u64)card_index);
+}
+
 void CEXIMemoryCard::SetCS(int cs)
 {
 	// So that memory card won't be invalidated during flushing
@@ -182,7 +203,9 @@ void CEXIMemoryCard::SetCS(int cs)
 	}
 
 	if (cs)  // not-selected to selected
+	{
 		m_uPosition = 0;
+	}
 	else
 	{	
 		switch (command)
@@ -196,11 +219,7 @@ void CEXIMemoryCard::SetCS(int cs)
 
 				//???
 
-				status |= MC_STATUS_READY;
-				status &= ~MC_STATUS_BUSY;
-
-				m_bInterruptSet = 1;
-				m_bDirty = true;
+				CmdDoneLater(5000);
 			}
 			break;
 
@@ -227,17 +246,13 @@ void CEXIMemoryCard::SetCS(int cs)
 					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
 				}
 
-				status |= MC_STATUS_READY;
-				status &= ~MC_STATUS_BUSY;
-
-				m_bInterruptSet = 1;
-				m_bDirty = true;
+				CmdDoneLater(5000);
 			}
 			
 			// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
 			// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write.
 			CoreTiming::RemoveEvent(et_this_card);
-			CoreTiming::ScheduleEvent(500000000, et_this_card, card_index);
+			CoreTiming::ScheduleEvent(500000000, et_this_card, (u64)card_index);
 			break;
 		}
 	}
@@ -316,11 +331,11 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 		{
 		case cmdNintendoID:
 			//
-			// nintendo card:
+			// Nintendo card:
 			// 00 | 80 00 00 00 10 00 00 00 
 			// "bigben" card:
 			// 00 | ff 00 00 05 10 00 00 00 00 00 00 00 00 00 00
-			// we do it the nintendo way.
+			// we do it the Nintendo way.
 			if (m_uPosition == 1)
 				byte = 0x80; // dummy cycle
 			else
@@ -423,10 +438,52 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 	DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
 }
 
+void CEXIMemoryCard::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	if (doLock)
+	{
+		// we don't exactly have anything to pause,
+		// but let's make sure the flush thread isn't running.
+		if (flushThread.joinable())
+		{
+			flushThread.join();
+		}
+	}
+}
+
 void CEXIMemoryCard::DoState(PointerWrap &p)
 {
-	if (reloadOnState)
+	// for movie sync, we need to save/load memory card contents (and other data) in savestates.
+	// otherwise, we'll assume the user wants to keep their memcards and saves separate,
+	// unless we're loading (in which case we let the savestate contents decide, in order to stay aligned with them).
+	bool storeContents = (Movie::IsRecordingInput() || Movie::IsPlayingInput());
+	p.Do(storeContents);
+
+	if (storeContents)
 	{
-		ExpansionInterface::ChangeDevice(card_index, EXIDEVICE_MEMORYCARD, 0);
+		p.Do(interruptSwitch);
+		p.Do(m_bInterruptSet);
+		p.Do(command);
+		p.Do(status);
+		p.Do(m_uPosition);
+		p.Do(programming_buffer);
+		p.Do(formatDelay);
+		p.Do(m_bDirty);
+		p.Do(address);
+
+		p.Do(nintendo_card_id);
+		p.Do(card_id);
+		p.Do(memory_card_size);
+		p.DoArray(memory_card_content, memory_card_size); 
+		p.Do(card_index);
 	}
+}
+
+IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
+{
+	if (device_type != m_deviceType)
+		return NULL;
+	if (customIndex != card_index)
+		return NULL;
+	return this;
 }

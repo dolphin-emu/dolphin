@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: scrolbar.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: scrolbar.cpp 70383 2012-01-18 10:05:27Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -156,9 +156,7 @@ void wxScrollBar::SetThumbPosition(int viewStart)
 
 int wxScrollBar::GetThumbPosition(void) const
 {
-    SCROLLINFO scrollInfo;
-    wxZeroMemory(scrollInfo);
-    scrollInfo.cbSize = sizeof(SCROLLINFO);
+    WinStruct<SCROLLINFO> scrollInfo;
     scrollInfo.fMask = SIF_POS;
 
     if ( !::GetScrollInfo(GetHwnd(), SB_CTL, &scrollInfo) )

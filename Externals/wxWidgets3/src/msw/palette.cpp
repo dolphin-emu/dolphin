@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: palette.cpp 56644 2008-11-02 02:39:52Z VZ $
+// RCS-ID:      $Id: palette.cpp 70040 2011-12-17 23:52:47Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,9 +32,9 @@ public:
     wxPaletteRefData() { Init(); }
 
     wxPaletteRefData(int n,
-                     unsigned char *red,
-                     unsigned char *green,
-                     unsigned char *blue)
+                     const unsigned char *red,
+                     const unsigned char *green,
+                     const unsigned char *blue)
     {
         Init();
 
@@ -117,9 +117,9 @@ IMPLEMENT_DYNAMIC_CLASS(wxPalette, wxGDIObject)
 #define M_PALETTEDATA ((wxPaletteRefData *)m_refData)
 
 bool wxPalette::Create(int n,
-                       unsigned char *red,
-                       unsigned char *green,
-                       unsigned char *blue)
+                       const unsigned char *red,
+                       const unsigned char *green,
+                       const unsigned char *blue)
 {
     m_refData = new wxPaletteRefData(n, red, green, blue);
 

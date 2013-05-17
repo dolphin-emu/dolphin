@@ -5,7 +5,7 @@
 //              Generalized clipboard implementation by Matthew Flatt
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: clipbrd.cpp 65383 2010-08-22 22:15:27Z VZ $
+// RCS-ID:      $Id: clipbrd.cpp 69729 2011-11-10 11:49:02Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -157,10 +157,10 @@ bool wxClipboard::GetData( wxDataObject& data )
 
     wxCHECK_MSG( m_open, false, wxT("clipboard not open") );
 
-    size_t formatcount = data.GetFormatCount() + 1;
+    size_t formatcount = data.GetFormatCount(wxDataObject::Set) + 1;
     wxDataFormat *array = new wxDataFormat[ formatcount ];
-    array[0] = data.GetPreferredFormat();
-    data.GetAllFormats( &array[1] );
+    array[0] = data.GetPreferredFormat(wxDataObject::Set);
+    data.GetAllFormats( &array[1], wxDataObject::Set );
 
     bool transferred = false;
 

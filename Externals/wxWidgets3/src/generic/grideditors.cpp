@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Robin Dunn, Vadim Zeitlin, Santiago Palacios
 // Created:     1/08/1999
-// RCS-ID:      $Id: grideditors.cpp 66714 2011-01-19 10:48:28Z VZ $
+// RCS-ID:      $Id: grideditors.cpp 70693 2012-02-25 23:49:55Z VZ $
 // Copyright:   (c) Michael Bedward (mbedward@ozemail.com.au)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -300,13 +300,13 @@ void wxGridCellEditor::Show(bool show, wxGridCellAttr *attr)
     else
     {
         // restore the standard colours fonts
-        if ( m_colFgOld.Ok() )
+        if ( m_colFgOld.IsOk() )
         {
             m_control->SetForegroundColour(m_colFgOld);
             m_colFgOld = wxNullColour;
         }
 
-        if ( m_colBgOld.Ok() )
+        if ( m_colBgOld.IsOk() )
         {
             m_control->SetBackgroundColour(m_colBgOld);
             m_colBgOld = wxNullColour;
@@ -314,7 +314,7 @@ void wxGridCellEditor::Show(bool show, wxGridCellAttr *attr)
 
 // Workaround for GTK+1 font setting problem on some platforms
 #if !defined(__WXGTK__) || defined(__WXGTK20__)
-        if ( m_fontOld.Ok() )
+        if ( m_fontOld.IsOk() )
         {
             m_control->SetFont(m_fontOld);
             m_fontOld = wxNullFont;
@@ -862,10 +862,13 @@ wxString wxGridCellNumberEditor::GetValue() const
 // wxGridCellFloatEditor
 // ----------------------------------------------------------------------------
 
-wxGridCellFloatEditor::wxGridCellFloatEditor(int width, int precision)
+wxGridCellFloatEditor::wxGridCellFloatEditor(int width,
+                                             int precision,
+                                             int format)
 {
     m_width = width;
     m_precision = precision;
+    m_style = format;
 }
 
 void wxGridCellFloatEditor::Create(wxWindow* parent,
@@ -988,51 +991,113 @@ void wxGridCellFloatEditor::SetParameters(const wxString& params)
         // reset to default
         m_width =
         m_precision = -1;
+        m_style = wxGRID_FLOAT_FORMAT_DEFAULT;
+        m_format.clear();
     }
     else
     {
-        long tmp;
-        if ( params.BeforeFirst(wxT(',')).ToLong(&tmp) )
+        wxString rest;
+        wxString tmp = params.BeforeFirst(wxT(','), &rest);
+        if ( !tmp.empty() )
         {
-            m_width = (int)tmp;
-
-            if ( params.AfterFirst(wxT(',')).ToLong(&tmp) )
+            long width;
+            if ( tmp.ToLong(&width) )
             {
-                m_precision = (int)tmp;
-
-                // skip the error message below
-                return;
+                m_width = (int)width;
+            }
+            else
+            {
+                wxLogDebug(wxT("Invalid wxGridCellFloatRenderer width parameter string '%s ignored"), params.c_str());
             }
         }
 
-        wxLogDebug(wxT("Invalid wxGridCellFloatEditor parameter string '%s' ignored"), params.c_str());
+        tmp = rest.BeforeFirst(wxT(','));
+        if ( !tmp.empty() )
+        {
+            long precision;
+            if ( tmp.ToLong(&precision) )
+            {
+                m_precision = (int)precision;
+            }
+            else
+            {
+                wxLogDebug(wxT("Invalid wxGridCellFloatRenderer precision parameter string '%s ignored"), params.c_str());
+            }
+        }
+
+        tmp = rest.AfterFirst(wxT(','));
+        if ( !tmp.empty() )
+        {
+            if ( tmp[0] == wxT('f') )
+            {
+                m_style = wxGRID_FLOAT_FORMAT_FIXED;
+            }
+            else if ( tmp[0] == wxT('e') )
+            {
+                m_style = wxGRID_FLOAT_FORMAT_SCIENTIFIC;
+            }
+            else if ( tmp[0] == wxT('g') )
+            {
+                m_style = wxGRID_FLOAT_FORMAT_COMPACT;
+            }
+            else if ( tmp[0] == wxT('E') )
+            {
+                m_style = wxGRID_FLOAT_FORMAT_SCIENTIFIC |
+                          wxGRID_FLOAT_FORMAT_UPPER;
+            }
+            else if ( tmp[0] == wxT('F') )
+            {
+                m_style = wxGRID_FLOAT_FORMAT_FIXED |
+                          wxGRID_FLOAT_FORMAT_UPPER;
+            }
+            else if ( tmp[0] == wxT('G') )
+            {
+                m_style = wxGRID_FLOAT_FORMAT_COMPACT |
+                          wxGRID_FLOAT_FORMAT_UPPER;
+            }
+            else
+            {
+                wxLogDebug("Invalid wxGridCellFloatRenderer format "
+                           "parameter string '%s ignored", params);
+            }
+        }
     }
 }
 
-wxString wxGridCellFloatEditor::GetString() const
+wxString wxGridCellFloatEditor::GetString()
 {
-    wxString fmt;
-    if ( m_precision == -1 && m_width != -1)
+    if ( !m_format )
     {
-        // default precision
-        fmt.Printf(wxT("%%%d.f"), m_width);
-    }
-    else if ( m_precision != -1 && m_width == -1)
-    {
-        // default width
-        fmt.Printf(wxT("%%.%df"), m_precision);
-    }
-    else if ( m_precision != -1 && m_width != -1 )
-    {
-        fmt.Printf(wxT("%%%d.%df"), m_width, m_precision);
-    }
-    else
-    {
-        // default width/precision
-        fmt = wxT("%f");
+        if ( m_precision == -1 && m_width != -1)
+        {
+            // default precision
+            m_format.Printf(wxT("%%%d."), m_width);
+        }
+        else if ( m_precision != -1 && m_width == -1)
+        {
+            // default width
+            m_format.Printf(wxT("%%.%d"), m_precision);
+        }
+        else if ( m_precision != -1 && m_width != -1 )
+        {
+            m_format.Printf(wxT("%%%d.%d"), m_width, m_precision);
+        }
+        else
+        {
+            // default width/precision
+            m_format = wxT("%");
+        }
+
+        bool isUpper = (m_style & wxGRID_FLOAT_FORMAT_UPPER) != 0;
+        if ( m_style & wxGRID_FLOAT_FORMAT_SCIENTIFIC )
+            m_format += isUpper ? wxT('E') : wxT('e');
+        else if ( m_style & wxGRID_FLOAT_FORMAT_COMPACT )
+            m_format += isUpper ? wxT('G') : wxT('g');
+        else
+            m_format += wxT('f');
     }
 
-    return wxString::Format(fmt, m_value);
+    return wxString::Format(m_format, m_value);
 }
 
 bool wxGridCellFloatEditor::IsAcceptedKey(wxKeyEvent& event)
@@ -1349,6 +1414,29 @@ void wxGridCellChoiceEditor::Create(wxWindow* parent,
     wxGridCellEditor::Create(parent, id, evtHandler);
 }
 
+void wxGridCellChoiceEditor::SetSize(const wxRect& rect)
+{
+    wxASSERT_MSG(m_control,
+                 wxT("The wxGridCellChoiceEditor must be created first!"));
+
+    // Check that the height is not too small to fit the combobox.
+    wxRect rectTallEnough = rect;
+    const wxSize bestSize = m_control->GetBestSize();
+    const wxCoord diffY = bestSize.GetHeight() - rectTallEnough.GetHeight();
+    if ( diffY > 0 )
+    {
+        // Do make it tall enough.
+        rectTallEnough.height += diffY;
+
+        // Also centre the effective rectangle vertically with respect to the
+        // original one.
+        rectTallEnough.y -= diffY/2;
+    }
+    //else: The rectangle provided is already tall enough.
+
+    wxGridCellEditor::SetSize(rectTallEnough);
+}
+
 void wxGridCellChoiceEditor::PaintBackground(const wxRect& rectCell,
                                              wxGridCellAttr * attr)
 {
@@ -1379,6 +1467,14 @@ void wxGridCellChoiceEditor::BeginEdit(int row, int col, wxGrid* grid)
     Reset(); // this updates combo box to correspond to m_value
 
     Combo()->SetFocus();
+
+#ifdef __WXOSX_COCOA__
+    // This is a work around for the combobox being simply dismissed when a
+    // choice is made in it under OS X. The bug is almost certainly due to a
+    // problem in focus events generation logic but it's not obvious to fix and
+    // for now this at least allows to use wxGrid.
+    Combo()->Popup();
+#endif
 
     if (evtHandler)
     {

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     16/04/2000
-// RCS-ID:      $Id: helpchm.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: helpchm.h 67880 2011-06-07 14:28:55Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -82,7 +82,7 @@ protected:
 
     wxString m_helpFile;
 
-    DECLARE_CLASS(wxCHMHelpController)
+    DECLARE_DYNAMIC_CLASS(wxCHMHelpController)
 };
 
 #endif // wxUSE_MS_HTML_HELP

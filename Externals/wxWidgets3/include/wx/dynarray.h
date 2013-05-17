@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.09.97
-// RCS-ID:      $Id: dynarray.h 56600 2008-10-30 15:57:18Z VZ $
+// RCS-ID:      $Id: dynarray.h 69688 2011-11-05 15:20:32Z VS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 #include "wx/defs.h"
 
-#if wxUSE_STL
+#if wxUSE_STD_CONTAINERS
     #include "wx/beforestd.h"
     #include <vector>
     #include <algorithm>
@@ -81,7 +81,7 @@ typedef int (wxCMPFUNC_CONV *CMPFUNC)(const void* pItem1, const void* pItem2);
 //     you cast "SomeArray *" as "BaseArray *" and then delete it)
 // ----------------------------------------------------------------------------
 
-#if wxUSE_STL
+#if wxUSE_STD_CONTAINERS
 
 template<class T>
 class wxArray_SortFunction
@@ -151,7 +151,7 @@ public:                                                             \
                                        e = rend();                  \
           for ( const_reverse_iterator i = b; i != e; ++i )         \
               if ( *i == item )                                     \
-                  return (int)(i - b);                              \
+                  return (int)(e - i - 1);                          \
       }                                                             \
       else                                                          \
       {                                                             \
@@ -203,12 +203,12 @@ public:                                                             \
   }                                                                 \
 }
 
-#else // if !wxUSE_STL
+#else // if !wxUSE_STD_CONTAINERS
 
 #define  _WX_DECLARE_BASEARRAY(T, name, classexp)                   \
 classexp name                                                       \
 {                                                                   \
-  typedef CMPFUNC SCMPFUNC; /* for compatibility wuth wxUSE_STL */  \
+  typedef CMPFUNC SCMPFUNC; /* for compatibility wuth wxUSE_STD_CONTAINERS */  \
 public:                                                             \
   name();                                                           \
   name(const name& array);                                          \
@@ -307,7 +307,7 @@ private:                                                            \
   T      *m_pItems;                                                 \
 }
 
-#endif // !wxUSE_STL
+#endif // !wxUSE_STD_CONTAINERS
 
 // ============================================================================
 // The private helper macros containing the core of the array classes
@@ -325,7 +325,7 @@ private:                                                            \
 // _WX_DEFINE_TYPEARRAY: array for simple types
 // ----------------------------------------------------------------------------
 
-#if wxUSE_STL
+#if wxUSE_STD_CONTAINERS
 
 // in STL case we don't need the entire base arrays hack as standard container
 // don't suffer from alignment/storage problems as our home-grown do
@@ -335,7 +335,7 @@ private:                                                            \
 #define  _WX_DEFINE_TYPEARRAY_PTR(T, name, base, classexp)         \
          _WX_DEFINE_TYPEARRAY(T, name, base, classexp)
 
-#else // if !wxUSE_STL
+#else // if !wxUSE_STD_CONTAINERS
 
 // common declaration used by both _WX_DEFINE_TYPEARRAY and
 // _WX_DEFINE_TYPEARRAY_PTR
@@ -505,7 +505,7 @@ public:                                                               \
 #define _WX_DEFINE_TYPEARRAY_PTR(T, name, base, classexp)          \
     _WX_DEFINE_TYPEARRAY_HELPER(T, name, base, classexp, _WX_PTROP_NONE)
 
-#endif // !wxUSE_STL
+#endif // !wxUSE_STD_CONTAINERS
 
 // ----------------------------------------------------------------------------
 // _WX_DEFINE_SORTED_TYPEARRAY: sorted array for simple data types
@@ -546,6 +546,8 @@ public:                                                               \
                                                                       \
   size_t Add(T lItem)                                                 \
     { return base::Add(lItem, (CMPFUNC)m_fnCompare); }                \
+  void push_back(T lItem)                                             \
+    { Add(lItem); }                                                   \
                                                                       \
   void RemoveAt(size_t uiIndex, size_t nRemove = 1)                   \
     { base::erase(begin() + uiIndex, begin() + uiIndex + nRemove); }  \
@@ -636,7 +638,7 @@ private:                                                                 \
 // that wants to export a wxArray daubed with your own import/export goo.
 //
 // Finally, you can define the macro below as something special to modify the
-// arrays defined by a simple WX_FOO_ARRAY as well. By default is is empty.
+// arrays defined by a simple WX_FOO_ARRAY as well. By default is empty.
 #define wxARRAY_DEFAULT_EXPORT
 
 // ----------------------------------------------------------------------------

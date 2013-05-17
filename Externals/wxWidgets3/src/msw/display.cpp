@@ -4,7 +4,7 @@
 // Author:      Royce Mitchell III, Vadim Zeitlin
 // Modified by: Ryan Norton (IsPrimary override)
 // Created:     06/21/02
-// RCS-ID:      $Id: display.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: display.cpp 69171 2011-09-21 15:07:35Z VZ $
 // Copyright:   (c) wxWidgets team
 // Copyright:   (c) 2002-2006 wxWidgets team
 // Licence:     wxWindows licence
@@ -42,6 +42,7 @@
 #include "wx/msw/wrapwin.h"
 #include "wx/msw/missing.h"
 #include "wx/msw/private.h"
+#include "wx/msw/private/hiddenwin.h"
 
 #ifndef __WXWINCE__
     // Older versions of windef.h don't define HMONITOR.  Unfortunately, we
@@ -171,12 +172,20 @@ public:
     // m_displays array if they're available
     wxDisplayFactoryMSW();
 
+    // Dtor destroys the hidden window we use for getting WM_SETTINGCHANGE.
+    virtual ~wxDisplayFactoryMSW();
+
     bool IsOk() const { return !m_displays.empty(); }
 
     virtual wxDisplayImpl *CreateDisplay(unsigned n);
     virtual unsigned GetCount() { return unsigned(m_displays.size()); }
     virtual int GetFromPoint(const wxPoint& pt);
     virtual int GetFromWindow(const wxWindow *window);
+
+    // Called when we receive WM_SETTINGCHANGE to refresh the list of monitor
+    // handles.
+    static void RefreshMonitors() { ms_factory->DoRefreshMonitors(); }
+
 
 private:
     // EnumDisplayMonitors() callback
@@ -189,13 +198,29 @@ private:
     // return wxNOT_FOUND if not found
     int FindDisplayFromHMONITOR(HMONITOR hmon) const;
 
+    // Update m_displays array, used by RefreshMonitors().
+    void DoRefreshMonitors();
+
+
+    // The unique factory being used (as we don't have direct access to the
+    // global factory pointer in the common code so we just duplicate this
+    // variable (also making it of correct type for us) here).
+    static wxDisplayFactoryMSW* ms_factory;
+
+
     // the array containing information about all available displays, filled by
     // MultimonEnumProc()
     wxMonitorHandleArray m_displays;
 
+    // The hidden window we use for receiving WM_SETTINGCHANGE and its class
+    // name.
+    HWND m_hiddenHwnd;
+    const wxChar* m_hiddenClass;
+
     wxDECLARE_NO_COPY_CLASS(wxDisplayFactoryMSW);
 };
 
+wxDisplayFactoryMSW* wxDisplayFactoryMSW::ms_factory = NULL;
 
 // ----------------------------------------------------------------------------
 // wxDisplay implementation
@@ -445,8 +470,30 @@ bool wxDisplayMSW::ChangeMode(const wxVideoMode& mode)
 // wxDisplayFactoryMSW implementation
 // ----------------------------------------------------------------------------
 
+LRESULT APIENTRY
+wxDisplayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    if ( msg == WM_SETTINGCHANGE )
+    {
+        wxDisplayFactoryMSW::RefreshMonitors();
+
+        return 0;
+    }
+
+    return ::DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
 wxDisplayFactoryMSW::wxDisplayFactoryMSW()
 {
+    // This is not supposed to happen with the current code, the factory is
+    // implicitly a singleton.
+    wxASSERT_MSG( !ms_factory, wxS("Using more than one factory?") );
+
+    ms_factory = this;
+
+    m_hiddenHwnd = NULL;
+    m_hiddenClass = NULL;
+
     if ( gs_MonitorFromPoint==NULL || gs_MonitorFromWindow==NULL
          || gs_GetMonitorInfo==NULL || gs_EnumDisplayMonitors==NULL )
     {
@@ -466,7 +513,44 @@ wxDisplayFactoryMSW::wxDisplayFactoryMSW()
          || gs_GetMonitorInfo==NULL || gs_EnumDisplayMonitors==NULL )
         return;
 
-    // enumerate all displays
+    DoRefreshMonitors();
+
+    // Also create a hidden window to listen for WM_SETTINGCHANGE that we
+    // receive when a monitor is added to or removed from the system as we must
+    // refresh our monitor handles information then.
+    m_hiddenHwnd = wxCreateHiddenWindow
+                   (
+                    &m_hiddenClass,
+                    wxT("wxDisplayHiddenWindow"),
+                    wxDisplayWndProc
+                   );
+}
+
+wxDisplayFactoryMSW::~wxDisplayFactoryMSW()
+{
+    if ( m_hiddenHwnd )
+    {
+        if ( !::DestroyWindow(m_hiddenHwnd) )
+        {
+            wxLogLastError(wxT("DestroyWindow(wxDisplayHiddenWindow)"));
+        }
+
+        if ( m_hiddenClass )
+        {
+            if ( !::UnregisterClass(m_hiddenClass, wxGetInstance()) )
+            {
+                wxLogLastError(wxT("UnregisterClass(wxDisplayHiddenWindow)"));
+            }
+        }
+    }
+
+    ms_factory = NULL;
+}
+
+void wxDisplayFactoryMSW::DoRefreshMonitors()
+{
+    m_displays.Clear();
+
     if ( !gs_EnumDisplayMonitors(NULL, NULL, MultimonEnumProc, (LPARAM)this) )
     {
         wxLogLastError(wxT("EnumDisplayMonitors"));

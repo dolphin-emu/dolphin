@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Memmap.h"
 
@@ -104,43 +91,50 @@ public:
 // F A C T O R Y 
 IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 {
+	IEXIDevice* result = NULL;
+
 	switch (device_type)
 	{
 	case EXIDEVICE_DUMMY:
-		return new CEXIDummy("Dummy");
+		result = new CEXIDummy("Dummy");
 		break;
 
 	case EXIDEVICE_MEMORYCARD:
-		return new CEXIMemoryCard(channel_num);
+		result = new CEXIMemoryCard(channel_num);
 		break;
 
 	case EXIDEVICE_MASKROM:
-		return new CEXIIPL();
+		result = new CEXIIPL();
 		break;
 
 	case EXIDEVICE_AD16:
-		return new CEXIAD16();
+		result = new CEXIAD16();
 		break;
 
 	case EXIDEVICE_MIC:
-		return new CEXIMic(channel_num);
+		result = new CEXIMic(channel_num);
 		break;
 
 	case EXIDEVICE_ETH:
-		return new CEXIETHERNET(SConfig::GetInstance().m_bba_mac);
+		result = new CEXIETHERNET();
 		break;
 
 	case EXIDEVICE_AM_BASEBOARD:
-		return new CEXIAMBaseboard();
+		result = new CEXIAMBaseboard();
 		break;
 
 	case EXIDEVICE_GECKO:
-		return new CEXIGecko();
+		result = new CEXIGecko();
 		break;
 
 	case EXIDEVICE_NONE:
 	default:
-		return new IEXIDevice();
+		result = new IEXIDevice();
 		break;
 	}
+
+	if (result != NULL)
+		result->m_deviceType = device_type;
+
+	return result;
 }

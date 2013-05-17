@@ -2,7 +2,7 @@
 // Name:        src/unix/utilsunx.cpp
 // Purpose:     generic Unix implementation of many wx functions (for wxBase)
 // Author:      Vadim Zeitlin
-// Id:          $Id: utilsunx.cpp 66153 2010-11-14 14:04:44Z VZ $
+// Id:          $Id: utilsunx.cpp 67411 2011-04-06 17:04:12Z PC $
 // Copyright:   (c) 1998 Robert Roebling, Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -728,7 +728,9 @@ long wxExecute(char **argv, int flags, wxProcess *process,
                 // it might not be the best idea.
                 wxLogSysError(_("Failed to set up non-blocking pipe, "
                                 "the program might hang."));
+#if wxUSE_LOG
                 wxLog::FlushActive();
+#endif
             }
 
             wxOutputStream *inStream =

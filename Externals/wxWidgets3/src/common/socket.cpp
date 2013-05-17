@@ -6,7 +6,7 @@
 // Copyright:  (C) 1999-1997, Guilhem Lavaux
 //             (C) 1999-2000, Guillermo Rodriguez Garcia
 //             (C) 2008 Vadim Zeitlin
-// RCS_ID:     $Id: socket.cpp 65378 2010-08-21 23:33:40Z VZ $
+// RCS_ID:     $Id: socket.cpp 70808 2012-03-04 20:31:42Z VZ $
 // Licence:    wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1297,17 +1297,31 @@ wxSocketEventFlags wxSocketImpl::Select(wxSocketEventFlags flags,
         exceptfds;                      // always want to know about errors
 
     if ( flags & wxSOCKET_INPUT_FLAG )
-    {
         preadfds = &readfds;
+
+    if ( flags & wxSOCKET_OUTPUT_FLAG )
+        pwritefds = &writefds;
+
+    // When using non-blocking connect() the client socket becomes connected
+    // (successfully or not) when it becomes writable but when using
+    // non-blocking accept() the server socket becomes connected when it
+    // becomes readable.
+    if ( flags & wxSOCKET_CONNECTION_FLAG )
+    {
+        if ( m_server )
+            preadfds = &readfds;
+        else
+            pwritefds = &writefds;
+    }
+
+    if ( preadfds )
+    {
         wxFD_ZERO(preadfds);
         wxFD_SET(m_fd, preadfds);
     }
 
-    // when using non-blocking connect() the socket becomes connected
-    // (successfully or not) when it becomes writable
-    if ( flags & (wxSOCKET_OUTPUT_FLAG | wxSOCKET_CONNECTION_FLAG) )
+    if ( pwritefds )
     {
-        pwritefds = &writefds;
         wxFD_ZERO(pwritefds);
         wxFD_SET(m_fd, pwritefds);
     }
@@ -2097,7 +2111,7 @@ wxFORCE_LINK_MODULE( socketiohandler )
 #endif
 
 // same for ManagerSetter in the MSW file
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     wxFORCE_LINK_MODULE( mswsocket )
 #endif
 

@@ -1,19 +1,6 @@
-// Copyright (C) 2010 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _CONTROLLEREMU_H_
 #define _CONTROLLEREMU_H_
@@ -153,7 +140,7 @@ public:
 			// deadzone / square stick code
 			if (deadzone || square)
 			{
-				// this section might be all wrong, but its working good enough, i think
+				// this section might be all wrong, but its working good enough, I think
 
 				ControlState ang = atan2(yy, xx); 
 				ControlState ang_sin = sin(ang);
@@ -163,7 +150,7 @@ public:
 				ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
 
 				// the amt a full stick would have that was ( user setting squareness) at current angle
-				// i think this is more like a pointed circle rather than a rounded square like it should be
+				// I think this is more like a pointed circle rather than a rounded square like it should be
 				ControlState stick_full = (1 + (square_full - 1) * square);
 
 				ControlState dist = sqrt(xx*xx + yy*yy);
@@ -196,11 +183,15 @@ public:
 		template <typename C>
 		void GetState(C* const buttons, const C* bitmasks)
 		{
-			std::vector<Control*>::iterator i = controls.begin(),
+			std::vector<Control*>::iterator
+				i = controls.begin(),
 				e = controls.end();
+
 			for (; i!=e; ++i, ++bitmasks)
+			{
 				if ((*i)->control_ref->State() > settings[0]->value) // threshold
 					*buttons |= *bitmasks;
+			}
 		}
 
 	};
@@ -221,8 +212,9 @@ public:
 					*digital |= *bitmasks;
 				}
 				else
+				{
 					*analog = S(controls[i+trig_count]->control_ref->State() * range);
-					
+				}
 			}
 		}
 
@@ -307,6 +299,7 @@ public:
 
 			ControlState deadzone = settings[0]->value;
 			ControlState circle = settings[1]->value;
+			auto const angle = settings[2]->value / 1.8f;
 			ControlState m = controls[4]->control_ref->State();
 
 			// modifier code
@@ -319,7 +312,7 @@ public:
 			// deadzone / circle stick code
 			if (deadzone || circle)
 			{
-				// this section might be all wrong, but its working good enough, i think
+				// this section might be all wrong, but its working good enough, I think
 
 				ControlState ang = atan2(yy, xx); 
 				ControlState ang_sin = sin(ang);
@@ -329,7 +322,7 @@ public:
 				ControlState square_full = std::min(ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2);
 
 				// the amt a full stick would have that was (user setting circular) at current angle
-				// i think this is more like a pointed circle rather than a rounded square like it should be
+				// I think this is more like a pointed circle rather than a rounded square like it should be
 				ControlState stick_full = (square_full * (1 - circle)) + (circle);
 
 				ControlState dist = sqrt(xx*xx + yy*yy);
@@ -363,8 +356,8 @@ public:
 					m_tilt[1] = std::max(m_tilt[1] - 0.1f, yy);
 			}
 
-			*y = C(m_tilt[1] * range + base);
-			*x = C(m_tilt[0] * range + base);
+			*y = C(m_tilt[1] * angle * range + base);
+			*x = C(m_tilt[0] * angle * range + base);
 		}
 	private:
 		float	m_tilt[2];

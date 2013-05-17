@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <wx/notebook.h>
 
@@ -22,7 +9,7 @@
 
 BEGIN_EVENT_TABLE(GCMicDialog,wxDialog)
 	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1,
-		   	wxEVT_COMMAND_BUTTON_CLICKED, GCMicDialog::OnButtonClick)
+			wxEVT_COMMAND_BUTTON_CLICKED, GCMicDialog::OnButtonClick)
 	EVT_TIMER(wxID_ANY, GCMicDialog::OnButtonTimer)
 END_EVENT_TABLE()
 
@@ -56,9 +43,7 @@ void GCMicDialog::SaveButtonMapping(int Id, int Key, int Modkey)
 
 void GCMicDialog::EndGetButtons(void)
 {
-	wxTheApp->Disconnect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
-			wxKeyEventHandler(GCMicDialog::OnKeyDown),
-			(wxObject*)0, this);
+	wxTheApp->Unbind(wxEVT_KEY_DOWN, &GCMicDialog::OnKeyDown, this);
 	m_ButtonMappingTimer->Stop();
 	GetButtonWaitingTimer = 0;
 	GetButtonWaitingID = 0;
@@ -88,8 +73,8 @@ void GCMicDialog::OnKeyDown(wxKeyEvent& event)
 		else
 		{
 			SetButtonText(ClickedButton->GetId(),
-				   	InputCommon::WXKeyToString(g_Pressed),
-				   	InputCommon::WXKeymodToString(g_Modkey));
+					InputCommon::WXKeyToString(g_Pressed),
+					InputCommon::WXKeymodToString(g_Modkey));
 			SaveButtonMapping(ClickedButton->GetId(), g_Pressed, g_Modkey);
 		}
 		EndGetButtons();
@@ -114,7 +99,7 @@ void GCMicDialog::DoGetButtons(int _GetId)
 		if(m_ButtonMappingTimer->IsRunning())
 			m_ButtonMappingTimer->Stop();
 
-		 // Save the button Id
+		// Save the button Id
 		GetButtonWaitingID = _GetId;
 		GetButtonWaitingTimer = 0;
 
@@ -151,11 +136,10 @@ void GCMicDialog::OnButtonClick(wxCommandEvent& event)
 {
 	event.Skip();
 
-	if (m_ButtonMappingTimer->IsRunning()) return;
+	if (m_ButtonMappingTimer->IsRunning())
+		return;
 
-	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
-			wxKeyEventHandler(GCMicDialog::OnKeyDown),
-			(wxObject*)0, this);
+	wxTheApp->Bind(wxEVT_KEY_DOWN, &GCMicDialog::OnKeyDown, this);
 
 	// Get the button
 	ClickedButton = (wxButton *)event.GetEventObject();

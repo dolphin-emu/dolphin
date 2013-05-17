@@ -1,8 +1,12 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _WIIMOTE_H_
 #define _WIIMOTE_H_
 
 #include "../../InputCommon/Src/InputConfig.h"
+#include "ChunkFile.h"
 
 #define MAX_WIIMOTES	4
 
@@ -25,7 +29,7 @@ void Shutdown();
 void Initialize(void* const hwnd);
 
 unsigned int GetAttached();
-void DoState(unsigned char **ptr, int mode);
+void DoState(u8 **ptr, PointerWrap::Mode mode);
 void EmuStateChange(EMUSTATE_CHANGE newState);
 InputPlugin *GetPlugin();
 
@@ -38,16 +42,11 @@ void Update(int _number);
 namespace WiimoteReal
 {
 
-unsigned int Initialize();
+void Initialize();
 void Shutdown();
 void Refresh();
 
 void LoadSettings();
-
-#ifdef _WIN32
-int PairUp(bool unpair = false);
-int UnPair();
-#endif
 
 }
 

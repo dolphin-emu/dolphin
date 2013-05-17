@@ -1,3 +1,7 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
 #ifndef _DSPDEBUGINTERFACE_H
 #define _DSPDEBUGINTERFACE_H
 
@@ -27,7 +31,7 @@ public:
 	virtual void setPC(unsigned int address);
 	virtual void step() {}
 	virtual void runToBreakpoint();
-	virtual void insertBLR(unsigned int address);
+	virtual void insertBLR(unsigned int address, unsigned int value);
 	virtual int getColor(unsigned int address);
 	virtual std::string getDescription(unsigned int address);
 };

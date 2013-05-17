@@ -3,7 +3,7 @@
 // Purpose:     implements wxGenericAboutBox() function
 // Author:      Vadim Zeitlin
 // Created:     2006-10-08
-// RCS-ID:      $Id: aboutdlgg.cpp 61534 2009-07-25 22:53:23Z VZ $
+// RCS-ID:      $Id: aboutdlgg.cpp 70671 2012-02-22 17:35:21Z JS $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@ wxString wxAboutDialogInfo::GetDescriptionAndCredits() const
 wxIcon wxAboutDialogInfo::GetIcon() const
 {
     wxIcon icon = m_icon;
-    if ( !icon.Ok() && wxTheApp )
+    if ( !icon.IsOk() && wxTheApp )
     {
         const wxTopLevelWindow * const
             tlw = wxDynamicCast(wxTheApp->GetTopWindow(), wxTopLevelWindow);
@@ -138,7 +138,7 @@ void wxAboutDialogInfo::SetVersion(const wxString& version,
 
 bool wxGenericAboutDialog::Create(const wxAboutDialogInfo& info, wxWindow* parent)
 {
-    if ( !wxDialog::Create(parent, wxID_ANY, _("About ") + info.GetName(),
+    if ( !wxDialog::Create(parent, wxID_ANY, wxString::Format(_("About %s"), info.GetName()),
                            wxDefaultPosition, wxDefaultSize, wxRESIZE_BORDER|wxDEFAULT_DIALOG_STYLE) )
         return false;
 
@@ -196,7 +196,7 @@ bool wxGenericAboutDialog::Create(const wxAboutDialogInfo& info, wxWindow* paren
     wxSizer *sizerIconAndText = new wxBoxSizer(wxHORIZONTAL);
 #if wxUSE_STATBMP
     wxIcon icon = info.GetIcon();
-    if ( icon.Ok() )
+    if ( icon.IsOk() )
     {
         sizerIconAndText->Add(new wxStaticBitmap(this, wxID_ANY, icon),
                                 wxSizerFlags().Border(wxRIGHT));
@@ -220,6 +220,13 @@ bool wxGenericAboutDialog::Create(const wxAboutDialogInfo& info, wxWindow* paren
 
     CentreOnParent();
 
+#if !wxUSE_MODAL_ABOUT_DIALOG
+    Connect(wxEVT_CLOSE_WINDOW,
+            wxCloseEventHandler(wxGenericAboutDialog::OnCloseWindow));
+    Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED,
+            wxCommandEventHandler(wxGenericAboutDialog::OnOK));
+#endif // !wxUSE_MODAL_ABOUT_DIALOG
+
     return true;
 }
 
@@ -242,6 +249,7 @@ void wxGenericAboutDialog::AddText(const wxString& text)
         AddControl(new wxStaticText(this, wxID_ANY, text));
 }
 
+#if wxUSE_COLLPANE
 void wxGenericAboutDialog::AddCollapsiblePane(const wxString& title,
                                               const wxString& text)
 {
@@ -264,6 +272,25 @@ void wxGenericAboutDialog::AddCollapsiblePane(const wxString& title,
     // NB: all the wxCollapsiblePanes must be added with a null proportion value
     m_sizerText->Add(pane, wxSizerFlags(0).Expand().Border(wxBOTTOM));
 }
+#endif
+
+#if !wxUSE_MODAL_ABOUT_DIALOG
+
+void wxGenericAboutDialog::OnCloseWindow(wxCloseEvent& event)
+{
+    Destroy();
+
+    event.Skip();
+}
+
+void wxGenericAboutDialog::OnOK(wxCommandEvent& WXUNUSED(event))
+{
+    // By default a modeless dialog would be just hidden, destroy this one
+    // instead.
+    Destroy();
+}
+
+#endif // !wxUSE_MODAL_ABOUT_DIALOG
 
 // ----------------------------------------------------------------------------
 // public functions
@@ -271,7 +298,7 @@ void wxGenericAboutDialog::AddCollapsiblePane(const wxString& title,
 
 void wxGenericAboutBox(const wxAboutDialogInfo& info, wxWindow* parent)
 {
-#if !defined(__WXGTK__) && !defined(__WXMAC__)
+#if wxUSE_MODAL_ABOUT_DIALOG
     wxGenericAboutDialog dlg(info, parent);
     dlg.ShowModal();
 #else

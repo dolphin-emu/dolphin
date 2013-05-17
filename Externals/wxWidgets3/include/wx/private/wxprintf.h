@@ -4,7 +4,7 @@
 // Author:      Ove Kaven
 // Modified by: Ron Lee, Francesco Montorsi
 // Created:     09/04/99
-// RCS-ID:      $Id: wxprintf.h 65690 2010-09-30 14:30:35Z VZ $
+// RCS-ID:      $Id: wxprintf.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) wxWidgets copyright
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -289,7 +289,7 @@ bool wxPrintfConvSpec<CharType>::Parse(const CharType *format)
                 CHECK_PREC
                 m_szFlags[flagofs++] = char(ch);
                 break;
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
             // under Windows we support the special '%I64' notation as longlong
             // integer conversion specifier for MSVC compatibility
             // (it behaves exactly as '%lli' or '%Li' or '%qi')
@@ -308,7 +308,7 @@ bool wxPrintfConvSpec<CharType>::Parse(const CharType *format)
                     break;
                 }
                 // else: fall-through, 'I' is MSVC equivalent of C99 'z'
-#endif      // __WXMSW__
+#endif      // __WINDOWS__
 
             case wxT('z'):
             case wxT('Z'):

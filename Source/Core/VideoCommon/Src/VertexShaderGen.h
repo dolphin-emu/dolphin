@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef GCOGL_VERTEXSHADER_H
 #define GCOGL_VERTEXSHADER_H
@@ -21,9 +8,24 @@
 #include "XFMemory.h"
 #include "VideoCommon.h"
 
-#define SHADER_POSMTX_ATTRIB 1
-#define SHADER_NORM1_ATTRIB  6
-#define SHADER_NORM2_ATTRIB  7
+// TODO should be reordered
+#define SHADER_POSITION_ATTRIB  0
+#define SHADER_POSMTX_ATTRIB    1
+#define SHADER_NORM0_ATTRIB     2
+#define SHADER_NORM1_ATTRIB     3
+#define SHADER_NORM2_ATTRIB     4
+#define SHADER_COLOR0_ATTRIB    5
+#define SHADER_COLOR1_ATTRIB    6
+
+#define SHADER_TEXTURE0_ATTRIB  8
+#define SHADER_TEXTURE1_ATTRIB  9
+#define SHADER_TEXTURE2_ATTRIB  10
+#define SHADER_TEXTURE3_ATTRIB  11
+#define SHADER_TEXTURE4_ATTRIB  12
+#define SHADER_TEXTURE5_ATTRIB  13
+#define SHADER_TEXTURE6_ATTRIB  14
+#define SHADER_TEXTURE7_ATTRIB  15
+
 
 
 // shader variables
@@ -35,7 +37,7 @@
 #define I_TRANSFORMMATRICES     "ctrmtx"
 #define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
-#define I_DEPTHPARAMS           "cDepth"
+#define I_DEPTHPARAMS           "cDepth" // farZ, zRange, scaled viewport width, scaled viewport height
 
 #define C_POSNORMALMATRIX        0
 #define C_PROJECTION            (C_POSNORMALMATRIX + 6)
@@ -46,8 +48,17 @@
 #define C_NORMALMATRICES        (C_TRANSFORMMATRICES + 64)
 #define C_POSTTRANSFORMMATRICES (C_NORMALMATRICES + 32)
 #define C_DEPTHPARAMS           (C_POSTTRANSFORMMATRICES + 64)
-#define C_VENVCONST_END			(C_DEPTHPARAMS + 4)
-
+#define C_VENVCONST_END         (C_DEPTHPARAMS + 1)
+const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
+						{I_PROJECTION , C_PROJECTION, 4  },
+						{I_MATERIALS, C_MATERIALS, 4 },
+						{I_LIGHTS, C_LIGHTS, 40 },
+						{I_TEXMATRICES, C_TEXMATRICES, 24 },
+						{I_TRANSFORMMATRICES , C_TRANSFORMMATRICES, 64  },
+						{I_NORMALMATRICES , C_NORMALMATRICES, 32  },
+						{I_POSTTRANSFORMMATRICES, C_POSTTRANSFORMMATRICES, 64 },
+						{I_DEPTHPARAMS, C_DEPTHPARAMS, 1 },
+						};
 template<bool safe>
 class _VERTEXSHADERUID
 {
@@ -77,6 +88,7 @@ public:
 			return true;
 		else if (values[0] > _Right.values[0])
 			return false;
+
 		int N = GetNumValues();
 		for (int i = 1; i < N; ++i) 
 		{
@@ -85,6 +97,7 @@ public:
 			else if (values[i] > _Right.values[i])
 				return false;
 		}
+
 		return false;
 	}
 
@@ -92,12 +105,14 @@ public:
 	{
 		if (values[0] != _Right.values[0])
 			return false;
+
 		int N = GetNumValues();
 		for (int i = 1; i < N; ++i)
 		{
 			if (values[i] != _Right.values[i])
 				return false;
 		}
+
 		return true;
 	}
 };

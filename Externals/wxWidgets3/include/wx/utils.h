@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utils.h 67129 2011-03-05 12:21:20Z SC $
+// RCS-ID:      $Id: utils.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -113,7 +113,7 @@ wxClip(T1 a, T2 b, T3 c)
 // String functions (deprecated, use wxString)
 // ----------------------------------------------------------------------------
 
-#ifdef WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_2_8
 // A shorter way of using strcmp
 wxDEPRECATED_INLINE(inline bool wxStringEq(const char *s1, const char *s2),
     return wxCRT_StrcmpA(s1, s2) == 0; )
@@ -334,10 +334,17 @@ enum
 
     // under Windows, don't hide the child even if it's IO is redirected (this
     // is done by default)
-    wxEXEC_NOHIDE   = 2,
+    wxEXEC_SHOW_CONSOLE   = 2,
+
+    // deprecated synonym for wxEXEC_SHOW_CONSOLE, use the new name as it's
+    // more clear
+    wxEXEC_NOHIDE = wxEXEC_SHOW_CONSOLE,
 
     // under Unix, if the process is the group leader then passing wxKILL_CHILDREN to wxKill
     // kills all children as well as pid
+    // under Windows (NT family only), sets the CREATE_NEW_PROCESS_GROUP flag,
+    // which allows to target Ctrl-Break signal to the spawned process.
+    // applies to console processes only.
     wxEXEC_MAKE_GROUP_LEADER = 4,
 
     // by default synchronous execution disables all program windows to avoid
@@ -349,6 +356,10 @@ enum
     // to complete and this flag can be used to simply block the main process
     // until the child process finishes
     wxEXEC_NOEVENTS = 16,
+
+    // under Windows, hide the console of the child process if it has one, even
+    // if its IO is not redirected
+    wxEXEC_HIDE_CONSOLE = 32,
 
     // convenient synonym for flags given system()-like behaviour
     wxEXEC_BLOCK = wxEXEC_SYNC | wxEXEC_NOEVENTS
@@ -399,12 +410,12 @@ WXDLLIMPEXP_BASE long wxExecute(const wxString& command,
                                 int flags = 0,
                                 const wxExecuteEnv *env = NULL);
 
-#if defined(__WXMSW__) && wxUSE_IPC
+#if defined(__WINDOWS__) && wxUSE_IPC
 // ask a DDE server to execute the DDE request with given parameters
 WXDLLIMPEXP_BASE bool wxExecuteDDE(const wxString& ddeServer,
                                    const wxString& ddeTopic,
                                    const wxString& ddeCommand);
-#endif // __WXMSW__ && wxUSE_IPC
+#endif // __WINDOWS__ && wxUSE_IPC
 
 enum wxSignal
 {
@@ -588,14 +599,14 @@ WXDLLIMPEXP_BASE bool wxGetDiskSpace(const wxString& path,
 
 
 
-extern "C"
-{
-typedef int (wxCMPFUNC_CONV *CMPFUNCDATA)(const void* pItem1, const void* pItem2, const void* user_data);
-}
+typedef int (*wxSortCallback)(const void* pItem1,
+                              const void* pItem2,
+                              const void* user_data);
 
 
-WXDLLIMPEXP_BASE void wxQsort(void *const pbase, size_t total_elems,
-                              size_t size, CMPFUNCDATA cmp, const void* user_data);
+WXDLLIMPEXP_BASE void wxQsort(void* pbase, size_t total_elems,
+                              size_t size, wxSortCallback cmp,
+                              const void* user_data);
 
 
 #if wxUSE_GUI // GUI only things from now on
@@ -804,8 +815,8 @@ WXDLLIMPEXP_CORE bool wxYieldIfNeeded();
 // Windows resources access
 // ----------------------------------------------------------------------------
 
-// MSW only: get user-defined resource from the .res file.
-#ifdef __WXMSW__
+// Windows only: get user-defined resource from the .res file.
+#ifdef __WINDOWS__
     // default resource type for wxLoadUserResource()
     extern WXDLLIMPEXP_DATA_BASE(const wxChar*) wxUserResourceStr;
 
@@ -832,7 +843,7 @@ WXDLLIMPEXP_CORE bool wxYieldIfNeeded();
                        const wxString& resourceType = wxUserResourceStr,
                        int* pLen = NULL,
                        WXHINSTANCE module = 0);
-#endif // MSW
+#endif // __WINDOWS__
 
 #endif
     // _WX_UTILSH__

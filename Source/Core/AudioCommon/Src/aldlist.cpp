@@ -27,6 +27,9 @@
 #ifdef _WIN32
 #include "../../../../Externals/OpenAL/include/al.h"
 #include "../../../../Externals/OpenAL/include/alc.h"
+#elif defined(__APPLE__)
+#include <al.h>
+#include <alc.h>
 #else
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -45,7 +48,7 @@ ALDeviceList::ALDeviceList()
 	const char *actualDeviceName = NULL;
 
 	// DeviceInfo vector stores, for each enumerated device, it's device name, selection status, spec version #, and extension support
-	vDeviceInfo.empty();
+	vDeviceInfo.clear();
 	vDeviceInfo.reserve(10);
 
 	defaultDeviceIndex = 0;
@@ -143,12 +146,12 @@ ALDeviceList::~ALDeviceList()
 {
 	for (u32 i = 0; i < vDeviceInfo.size(); i++) {
 		if (vDeviceInfo[i].pvstrExtensions) {
-			vDeviceInfo[i].pvstrExtensions->empty();
+			vDeviceInfo[i].pvstrExtensions->clear();
 			delete vDeviceInfo[i].pvstrExtensions;
 		}
 	}
 
-	vDeviceInfo.empty();
+	vDeviceInfo.clear();
 }
 
 /*

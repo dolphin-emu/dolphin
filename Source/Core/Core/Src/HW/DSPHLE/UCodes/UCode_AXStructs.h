@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _UCODE_AX_STRUCTS_H
 #define _UCODE_AX_STRUCTS_H
@@ -25,8 +12,22 @@ struct PBMixer
 	u16 right;
 	u16 right_delta;
 
-	u16 unknown3[8];
-	u16 unknown4[6];
+	u16 auxA_left;
+	u16 auxA_left_delta;
+	u16 auxA_right;
+	u16 auxA_right_delta;
+
+	u16 auxB_left;
+	u16 auxB_left_delta;
+	u16 auxB_right;
+	u16 auxB_right_delta;
+
+	u16 auxB_surround;
+	u16 auxB_surround_delta;
+	u16 surround;
+	u16 surround_delta;
+	u16 auxA_surround;
+	u16 auxA_surround_delta;
 };
 
 struct PBMixerWii
@@ -114,7 +115,17 @@ struct PBUpdates
 // and ramped down on a per-sample basis to provide a gentle "roll off."
 struct PBDpop
 {
-	s16 unknown[9];
+	s16 left;
+	s16 auxA_left;
+	s16 auxB_left;
+
+	s16 right;
+	s16 auxA_right;
+	s16 auxB_right;
+
+	s16 surround;
+	s16 auxA_surround;
+	s16 auxB_surround;
 };
 
 struct PBDpopWii
@@ -137,15 +148,15 @@ struct PBDpopWii
 
 struct PBDpopWM
 {
-	s16 aMain0;
-	s16 aMain1;
-	s16 aMain2;
-	s16 aMain3;
+	s16 main0;
+	s16 main1;
+	s16 main2;
+	s16 main3;
 
-	s16 aAux0;
-	s16 aAux1;
-	s16 aAux2;
-	s16 aAux3;
+	s16 aux0;
+	s16 aux1;
+	s16 aux2;
+	s16 aux3;
 };
 
 struct PBVolumeEnvelope
@@ -187,13 +198,13 @@ struct PBSampleRateConverter
 	u16 ratio_hi; // integer part of sampling ratio
 	u16 ratio_lo; // fraction part of sampling ratio
 	u16 cur_addr_frac;
-	u16 last_samples[4];
+	s16 last_samples[4];
 };
 
 struct PBSampleRateConverterWM
 {
-	u16 currentAddressFrac;
-	u16 last_samples[4];
+	u16 cur_addr_frac;
+	s16 last_samples[4];
 };
 
 struct PBADPCMLoopInfo
@@ -201,6 +212,14 @@ struct PBADPCMLoopInfo
 	u16 pred_scale;
 	u16 yn1;
 	u16 yn2;
+};
+
+struct PBLowPassFilter
+{
+	u16 enabled;
+	s16 yn1;
+	u16 a0;
+	u16 b0;
 };
 
 struct AXPB
@@ -227,15 +246,9 @@ struct AXPB
 	PBADPCMInfo adpcm;
 	PBSampleRateConverter src;
 	PBADPCMLoopInfo adpcm_loop_info;
-	u16 unknown_maybe_padding[3];
-};
+	PBLowPassFilter lpf;
 
-struct PBLowPassFilter
-{
-	u16 enabled;
-	u16 yn1;
-	u16 a0;
-	u16 b0;
+	u16 padding[25];
 };
 
 struct PBBiquadFilter
@@ -269,7 +282,8 @@ struct AXPBWii
 
 	u16 src_type;		// Type of sample rate converter (none, 4-tap, linear)
 	u16 coef_select;	// coef for the 4-tap src
-	u32 mixer_control;
+	u16 mixer_control_hi;
+	u16 mixer_control_lo;
 
 	u16 running;		// 1=RUN   0=STOP
 	u16 is_stream;		// 1 = stream, 0 = one shot
@@ -297,67 +311,24 @@ struct AXPBWii
 	u16 pad[12]; // align us, captain! (32B)
 };
 
-// Seems like nintendo used an early version of AXWii and forgot to remove the update functionality ;p
-struct PBUpdatesWiiSports
-{
-	u16 num_updates[3];
-	u16 data_hi;
-	u16 data_lo;
-};
-
-struct AXPBWiiSports
-{
-	u16 next_pb_hi;
-	u16 next_pb_lo;
-	u16 this_pb_hi;
-	u16 this_pb_lo;
-
-	u16 src_type;		// Type of sample rate converter (none, 4-tap, linear)
-	u16 coef_select;	// coef for the 4-tap src
-	u32 mixer_control;
-
-	u16 running;		// 1=RUN   0=STOP
-	u16 is_stream;		// 1 = stream, 0 = one shot
-
-	PBMixerWii mixer;
-	PBInitialTimeDelay initial_time_delay;
-	PBUpdatesWiiSports updates;
-	PBDpopWii dpop;
-	PBVolumeEnvelope vol_env;
-	PBAudioAddr audio_addr;
-	PBADPCMInfo adpcm;
-	PBSampleRateConverter src;
-	PBADPCMLoopInfo adpcm_loop_info;
-	PBLowPassFilter lpf;
-	PBBiquadFilter biquad;
-
-	// WIIMOTE :D
-	u16 remote;
-	u16 remote_mixer_control;
-
-	PBMixerWM remote_mixer;
-	PBDpopWM remote_dpop;
-	PBSampleRateConverterWM remote_src;
-	PBInfImpulseResponseWM remote_iir;
-
-	u16 pad[7]; // align us, captain! (32B)
-};
-
 // TODO: All these enums have changed a lot for wii
-enum {
-    AUDIOFORMAT_ADPCM = 0,
-    AUDIOFORMAT_PCM8  = 0x19,
+enum
+{
+	AUDIOFORMAT_ADPCM = 0,
+	AUDIOFORMAT_PCM8  = 0x19,
 	AUDIOFORMAT_PCM16 = 0xA,
 };
 
-enum {
+enum
+{
+	SRCTYPE_POLYPHASE = 0,
 	SRCTYPE_LINEAR  = 1,
 	SRCTYPE_NEAREST = 2,
-	MIXCONTROL_RAMPING = 8,
 };
 
 // Both may be used at once
-enum {
+enum
+{
 	FILTER_LOWPASS = 1,
 	FILTER_BIQUAD = 2,
 };

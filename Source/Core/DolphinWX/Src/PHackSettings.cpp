@@ -1,22 +1,10 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "PHackSettings.h"
 #include "ConfigManager.h"
+#include "WxUtils.h"
 
 extern PHackData PHack_Data;
 
@@ -97,8 +85,8 @@ void CPHackSettings::LoadPHackData()
 		if (sTemp.empty())
 			sTemp = wxString(_("(UNKNOWN)")).char_str();
 		if (i == 0)
-			PHackChoice->Append(wxString("-------------", *wxConvCurrent));
-		PHackChoice->Append(wxString(sTemp.c_str(), *wxConvCurrent));
+			PHackChoice->Append(StrToWxStr("-------------"));
+		PHackChoice->Append(StrToWxStr(sTemp));
 	}
 	PHackChoice->Select(0);
 
@@ -106,8 +94,8 @@ void CPHackSettings::LoadPHackData()
 	PHackSZFar->Set3StateValue((wxCheckBoxState)PHack_Data.PHackSZFar);
 	PHackExP->Set3StateValue((wxCheckBoxState)PHack_Data.PHackExP);
 
-	PHackZNear->SetValue(wxString(PHack_Data.PHZNear.c_str(), *wxConvCurrent));
-	PHackZFar->SetValue(wxString(PHack_Data.PHZFar.c_str(), *wxConvCurrent));
+	PHackZNear->SetValue(StrToWxStr(PHack_Data.PHZNear));
+	PHackZFar->SetValue(StrToWxStr(PHack_Data.PHZFar));
 }
 
 void CPHackSettings::SetRefresh(wxCommandEvent& event)
@@ -128,9 +116,9 @@ void CPHackSettings::SetRefresh(wxCommandEvent& event)
 		PHPresetsIni.Get(sIndex, "PH_ExtraParam", &bTemp);
 		PHackExP->Set3StateValue((wxCheckBoxState)bTemp);
 		PHPresetsIni.Get(sIndex, "PH_ZNear", &sTemp);
-		PHackZNear->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
+		PHackZNear->SetValue(StrToWxStr(sTemp));
 		PHPresetsIni.Get(sIndex, "PH_ZFar", &sTemp);
-		PHackZFar->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
+		PHackZFar->SetValue(StrToWxStr(sTemp));
 	}
 }
 

@@ -2,7 +2,7 @@
 // Name:        src/gtk/statbox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: statbox.cpp 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: statbox.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,6 +16,7 @@
 #include "wx/gtk/private/win_gtk.h"     // for wxPizza
 
 #include <gtk/gtk.h>
+#include "wx/gtk/private/gtk2-compat.h"
 
 // constants taken from GTK sources
 #define LABEL_PAD 1
@@ -31,15 +32,16 @@ static void size_allocate(GtkWidget* widget, GtkAllocation* alloc, void*)
     // clip label as GTK >= 2.12 does
     GtkWidget* label_widget = gtk_frame_get_label_widget(GTK_FRAME(widget));
     int w = alloc->width -
-        2 * widget->style->xthickness - 2 * LABEL_PAD - 2 * LABEL_SIDE_PAD;
+        2 * gtk_widget_get_style(widget)->xthickness - 2 * LABEL_PAD - 2 * LABEL_SIDE_PAD;
     if (w < 0)
         w = 0;
 
-    if (label_widget->allocation.width > w)
+    GtkAllocation a;
+    gtk_widget_get_allocation(label_widget, &a);
+    if (a.width > w)
     {
-        GtkAllocation alloc2 = label_widget->allocation;
-        alloc2.width = w;
-        gtk_widget_size_allocate(label_widget, &alloc2);
+        a.width = w;
+        gtk_widget_size_allocate(label_widget, &a);
     }
 }
 }

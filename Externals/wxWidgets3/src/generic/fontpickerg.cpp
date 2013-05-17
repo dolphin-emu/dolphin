@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     15/04/2006
-// RCS-ID:      $Id: fontpickerg.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: fontpickerg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ void wxGenericFontButton::OnButtonClick(wxCommandEvent& WXUNUSED(ev))
 
 void wxGenericFontButton::UpdateFont()
 {
-    if ( !m_selectedFont.Ok() )
+    if ( !m_selectedFont.IsOk() )
         return;
 
     SetForegroundColour(m_data.GetColour());

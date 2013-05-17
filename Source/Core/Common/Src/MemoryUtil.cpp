@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
 #include "MemoryUtil.h"
@@ -43,18 +31,20 @@ void* AllocateExecutableMemory(size_t size, bool low)
 #else
 	static char *map_hint = 0;
 #if defined(__x86_64__) && !defined(MAP_32BIT)
+	// This OS has no flag to enforce allocation below the 4 GB boundary,
+	// but if we hint that we want a low address it is very likely we will
+	// get one.
+	// An older version of this code used MAP_FIXED, but that has the side
+	// effect of discarding already mapped pages that happen to be in the
+	// requested virtual memory range (such as the emulated RAM, sometimes).
 	if (low && (!map_hint))
 		map_hint = (char*)round_page(512*1024*1024); /* 0.5 GB rounded up to the next page */
 #endif
 	void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 		MAP_ANON | MAP_PRIVATE
-#if defined(__x86_64__)
-#if defined(MAP_32BIT)
+#if defined(__x86_64__) && defined(MAP_32BIT)
 		| (low ? MAP_32BIT : 0)
-#else
-		| (low ? MAP_FIXED : 0)
-#endif /* defined(MAP_32BIT) */
-#endif /* defined(__x86_64__) */
+#endif
 		, -1, 0);
 #endif /* defined(_WIN32) */
 
@@ -115,8 +105,12 @@ void* AllocateAlignedMemory(size_t size,size_t alignment)
 	void* ptr =  _aligned_malloc(size,alignment);
 #else
 	void* ptr = NULL;
-	posix_memalign(&ptr, alignment, size);
-;
+#ifdef ANDROID
+	ptr = memalign(alignment, size);
+#else
+	if (posix_memalign(&ptr, alignment, size) != 0)
+		ERROR_LOG(MEMMAP, "Failed to allocate aligned memory");
+#endif
 #endif
 
 	// printf("Mapped memory at %p (size %ld)\n", ptr,
@@ -149,9 +143,7 @@ void FreeAlignedMemory(void* ptr)
 	if (ptr)
 	{
 #ifdef _WIN32
-	
-		_aligned_free(ptr);
-	
+	_aligned_free(ptr);
 #else
 	free(ptr);
 #endif

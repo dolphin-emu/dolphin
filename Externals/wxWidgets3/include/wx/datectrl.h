@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-09
-// RCS-ID:      $Id: datectrl.h 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: datectrl.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,8 +16,7 @@
 
 #if wxUSE_DATEPICKCTRL
 
-#include "wx/control.h"         // the base class
-#include "wx/datetime.h"
+#include "wx/datetimectrl.h"    // the base class
 
 #define wxDatePickerCtrlNameStr wxT("datectrl")
 
@@ -46,7 +45,7 @@ enum
 // wxDatePickerCtrl: allow the user to enter the date
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_ADV wxDatePickerCtrlBase : public wxControl
+class WXDLLIMPEXP_ADV wxDatePickerCtrlBase : public wxDateTimePickerCtrl
 {
 public:
     /*
@@ -63,23 +62,26 @@ public:
                     const wxString& name = wxDatePickerCtrlNameStr);
      */
 
-    // set/get the date
-    virtual void SetValue(const wxDateTime& dt) = 0;
-    virtual wxDateTime GetValue() const = 0;
+    /*
+        We inherit the methods to set/get the date from the base class.
 
-    // set/get the allowed valid range for the dates, if either/both of them
-    // are invalid, there is no corresponding limit and if neither is set
-    // GetRange() returns false
+        virtual void SetValue(const wxDateTime& dt) = 0;
+        virtual wxDateTime GetValue() const = 0;
+    */
+
+    // And add methods to set/get the allowed valid range for the dates. If
+    // either/both of them are invalid, there is no corresponding limit and if
+    // neither is set, GetRange() returns false.
     virtual void SetRange(const wxDateTime& dt1, const wxDateTime& dt2) = 0;
     virtual bool GetRange(wxDateTime *dt1, wxDateTime *dt2) const = 0;
 };
 
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/datectrl.h"
+#if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
+    #include "wx/msw/datectrl.h"
 
     #define wxHAS_NATIVE_DATEPICKCTRL
-#elif defined(__WXMSW__) && !defined(__WXUNIVERSAL__)
-    #include "wx/msw/datectrl.h"
+#elif defined(__WXOSX_COCOA__) && !defined(__WXUNIVERSAL__)
+    #include "wx/osx/datectrl.h"
 
     #define wxHAS_NATIVE_DATEPICKCTRL
 #else

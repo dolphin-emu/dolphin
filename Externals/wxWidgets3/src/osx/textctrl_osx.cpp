@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl_osx.cpp 67243 2011-03-19 08:36:23Z SC $
+// RCS-ID:      $Id: textctrl_osx.cpp 70355 2012-01-15 15:54:53Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -152,11 +152,6 @@ void wxTextCtrl::MacVisibilityChanged()
 void wxTextCtrl::MacCheckSpelling(bool check)
 {
     GetTextPeer()->CheckSpelling(check);
-}
-
-void wxTextCtrl::SetMaxLength(unsigned long len)
-{
-    m_maxLength = len ;
 }
 
 bool wxTextCtrl::SetFont( const wxFont& font )
@@ -339,7 +334,7 @@ void wxTextCtrl::OnDropFiles(wxDropFilesEvent& event)
 
 void wxTextCtrl::OnKeyDown(wxKeyEvent& event)
 {
-    if ( event.GetModifiers() == wxMOD_CMD )
+    if ( event.GetModifiers() == wxMOD_CONTROL )
     {
         switch( event.GetKeyCode() )
         {
@@ -381,18 +376,21 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
         return ;
     }
 
-    // Check if we have reached the max # of chars (if it is set), but still
-    // allow navigation and deletion
-    GetSelection( &from, &to );
-    if ( !IsMultiLine() && m_maxLength && GetValue().length() >= m_maxLength &&
-        !event.IsKeyInCategory(WXK_CATEGORY_ARROW | WXK_CATEGORY_TAB | WXK_CATEGORY_CUT) &&
-        !( key == WXK_RETURN && (m_windowStyle & wxTE_PROCESS_ENTER) ) &&
-        from == to )
+    if ( !GetTextPeer()->CanClipMaxLength() )
     {
-        // eat it, we don't want to add more than allowed # of characters
+        // Check if we have reached the max # of chars (if it is set), but still
+        // allow navigation and deletion
+        GetSelection( &from, &to );
+        if ( !IsMultiLine() && m_maxLength && GetValue().length() >= m_maxLength &&
+            !event.IsKeyInCategory(WXK_CATEGORY_ARROW | WXK_CATEGORY_TAB | WXK_CATEGORY_CUT) &&
+            !( key == WXK_RETURN && (m_windowStyle & wxTE_PROCESS_ENTER) ) &&
+            from == to )
+        {
+            // eat it, we don't want to add more than allowed # of characters
 
-        // TODO: generate EVT_TEXT_MAXLEN()
-        return;
+            // TODO: generate EVT_TEXT_MAXLEN()
+            return;
+        }
     }
 
     // assume that any key not processed yet is going to modify the control
@@ -775,9 +773,10 @@ int wxTextWidgetImpl::GetLineLength(long lineNo) const
             count = 0;
             for (size_t j = i; j < content.length(); j++)
             {
-                count++;
                 if (content[j] == '\n')
                     return count;
+
+                count++;
             }
 
             return count;

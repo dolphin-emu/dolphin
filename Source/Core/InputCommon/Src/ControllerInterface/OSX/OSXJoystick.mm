@@ -64,8 +64,8 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 				AddInput(new Hat(e, m_device, Hat::down));
 				AddInput(new Hat(e, m_device, Hat::left));
 			} else {
-				AddInput(new Axis(e, m_device, Axis::negative));
-				AddInput(new Axis(e, m_device, Axis::positive));
+				AddAnalogInputs(new Axis(e, m_device, Axis::negative),
+					new Axis(e, m_device, Axis::positive));
 			}
 		}
 		CFRelease(axes);
@@ -121,7 +121,9 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
 	// Need to parse the element a bit first
 	std::string description("unk");
 
-	switch (IOHIDElementGetUsage(m_element)) {
+	int const usage = IOHIDElementGetUsage(m_element);
+	switch (usage)
+	{
 	case kHIDUsage_GD_X:
 		description = "X";
 		break;
@@ -146,6 +148,13 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
 	case kHIDUsage_Csmr_ACPan:
 		description = "Pan";
 		break;
+	default:
+	{
+		std::ostringstream s;
+		s << usage;
+		description = s.str();
+		break;
+	}
 	}
 
 	m_name = std::string("Axis ") + description;

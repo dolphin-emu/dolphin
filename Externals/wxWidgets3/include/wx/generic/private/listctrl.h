@@ -3,7 +3,7 @@
 // Purpose:     private definitions of wxListCtrl helpers
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.h 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: listctrl.h 70285 2012-01-07 15:09:54Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -402,6 +402,10 @@ public:
 
     wxTextCtrl *GetText() const { return m_text; }
 
+    // Check if the given key event should stop editing and return true if it
+    // does or false otherwise.
+    bool CheckForEndEditKey(const wxKeyEvent& event);
+
     // Different reasons for calling EndEdit():
     //
     // It was called because:
@@ -557,6 +561,7 @@ public:
     // called to switch the selection from the current item to newCurrent,
     void OnArrowChar( size_t newCurrent, const wxKeyEvent& event );
 
+    void OnCharHook( wxKeyEvent &event );
     void OnChar( wxKeyEvent &event );
     void OnKeyDown( wxKeyEvent &event );
     void OnKeyUp( wxKeyEvent &event );
@@ -570,13 +575,12 @@ public:
 
     void DrawImage( int index, wxDC *dc, int x, int y );
     void GetImageSize( int index, int &width, int &height ) const;
-    int GetTextLength( const wxString &s ) const;
 
     void SetImageList( wxImageList *imageList, int which );
     void SetItemSpacing( int spacing, bool isSmall = false );
     int GetItemSpacing( bool isSmall = false );
 
-    void SetColumn( int col, wxListItem &item );
+    void SetColumn( int col, const wxListItem &item );
     void SetColumnWidth( int col, int width );
     void GetColumn( int col, wxListItem &item ) const;
     int GetColumnWidth( int col ) const;
@@ -640,7 +644,7 @@ public:
     long FindItem( const wxPoint& pt );
     long HitTest( int x, int y, int &flags ) const;
     void InsertItem( wxListItem &item );
-    void InsertColumn( long col, wxListItem &item );
+    void InsertColumn( long col, const wxListItem &item );
     int GetItemWidthWithImage(wxListItem * item);
     void SortItems( wxListCtrlCompare fn, wxIntPtr data );
 
@@ -787,6 +791,10 @@ private:
 
     // delete all items but don't refresh: called from dtor
     void DoDeleteAllItems();
+
+    // Compute the minimal width needed to fully display the column header.
+    int ComputeMinHeaderWidth(const wxListHeaderData* header) const;
+
 
     // the height of one line using the current font
     wxCoord m_lineHeight;

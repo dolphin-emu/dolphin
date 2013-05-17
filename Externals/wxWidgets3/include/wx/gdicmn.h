@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: gdicmn.h 66306 2010-12-03 12:39:43Z VZ $
+// RCS-ID:      $Id: gdicmn.h 70789 2012-03-04 00:28:58Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -59,8 +59,10 @@ enum wxBitmapType
     wxBITMAP_TYPE_XBM_DATA,
     wxBITMAP_TYPE_XPM,
     wxBITMAP_TYPE_XPM_DATA,
-    wxBITMAP_TYPE_TIF,
-    wxBITMAP_TYPE_TIF_RESOURCE,
+    wxBITMAP_TYPE_TIFF,
+    wxBITMAP_TYPE_TIF = wxBITMAP_TYPE_TIFF,
+    wxBITMAP_TYPE_TIFF_RESOURCE,
+    wxBITMAP_TYPE_TIF_RESOURCE = wxBITMAP_TYPE_TIFF_RESOURCE,
     wxBITMAP_TYPE_GIF,
     wxBITMAP_TYPE_GIF_RESOURCE,
     wxBITMAP_TYPE_PNG,
@@ -158,14 +160,18 @@ enum wxStockCursor
 // macros
 // ---------------------------------------------------------------------------
 
+#if defined(__WINDOWS__) || defined(__WXPM__)
+    #define wxHAS_IMAGES_IN_RESOURCES
+#endif
+
 /* Useful macro for creating icons portably, for example:
 
     wxIcon *icon = new wxICON(sample);
 
   expands into:
 
-    wxIcon *icon = new wxIcon("sample");      // On wxMSW
-    wxIcon *icon = new wxIcon(sample_xpm);    // On wxGTK
+    wxIcon *icon = new wxIcon("sample");      // On Windows
+    wxIcon *icon = new wxIcon(sample_xpm);    // On wxGTK/Linux
  */
 
 #ifdef __WXMSW__
@@ -174,9 +180,6 @@ enum wxStockCursor
 #elif defined(__WXPM__)
     // Load from a resource
     #define wxICON(X) wxIcon(wxT(#X))
-#elif defined(__WXMGL__)
-    // Initialize from an included XPM
-    #define wxICON(X) wxIcon( X##_xpm )
 #elif defined(__WXDFB__)
     // Initialize from an included XPM
     #define wxICON(X) wxIcon( X##_xpm )
@@ -202,12 +205,11 @@ enum wxStockCursor
  */
 
 #if defined(__WXMSW__) || defined(__WXPM__)
-    #define wxBITMAP(name) wxBitmap(wxT(#name), wxBITMAP_TYPE_RESOURCE)
+    #define wxBITMAP(name) wxBitmap(wxT(#name), wxBITMAP_TYPE_BMP_RESOURCE)
 #elif defined(__WXGTK__)   || \
       defined(__WXMOTIF__) || \
       defined(__WXX11__)   || \
       defined(__WXMAC__)   || \
-      defined(__WXMGL__)   || \
       defined(__WXDFB__)   || \
       defined(__WXCOCOA__)
     // Initialize from an included XPM
@@ -900,7 +902,7 @@ class WXDLLIMPEXP_CORE wxResourceCache: public wxList
 {
 public:
     wxResourceCache() { }
-#if !wxUSE_STL
+#if !wxUSE_STD_CONTAINERS
     wxResourceCache(const unsigned int keyType) : wxList(keyType) { }
 #endif
     virtual ~wxResourceCache();

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "AudioCommon.h"
 #include "FileUtil.h"
@@ -26,6 +13,12 @@
 #include "CoreAudioSoundStream.h"
 #include "OpenALStream.h"
 #include "PulseAudioStream.h"
+#include "OpenSLESStream.h"
+#include "../../Core/Src/Movie.h"
+#include "../../Core/Src/ConfigManager.h"
+
+// This shouldn't be a global, at least not here.
+SoundStream *soundStream;
 
 namespace AudioCommon 
 {	
@@ -33,7 +26,7 @@ namespace AudioCommon
 	{
 		// TODO: possible memleak with mixer
 
-		std::string backend = ac_Config.sBackend;
+		std::string backend = SConfig::GetInstance().sBackend;
 		if (backend == BACKEND_OPENAL           && OpenALStream::isValid()) 
 			soundStream = new OpenALStream(mixer);
 		else if (backend == BACKEND_NULLSOUND   && NullSound::isValid()) 
@@ -50,13 +43,14 @@ namespace AudioCommon
 			soundStream = new CoreAudioSound(mixer);
 		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
 			soundStream = new PulseAudio(mixer);
-
+		else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
+			soundStream = new OpenSLESStream(mixer);
 		if (soundStream != NULL)
 		{
-			ac_Config.Update();
+			UpdateSoundStream();
 			if (soundStream->Start())
 			{
-				if (ac_Config.m_DumpAudio)
+				if (SConfig::GetInstance().m_DumpAudio)
 				{
 					std::string audio_file_name = File::GetUserPath(D_DUMPAUDIO_IDX) + "audiodump.wav";
 					File::CreateFullPath(audio_file_name);
@@ -81,7 +75,7 @@ namespace AudioCommon
 		if (soundStream) 
 		{
 			soundStream->Stop();
-			if (ac_Config.m_DumpAudio)
+			if (SConfig::GetInstance().m_DumpAudio)
 				soundStream->GetMixer()->StopLogAudio();
 				//soundStream->StopLogAudio();
 			delete soundStream;
@@ -95,27 +89,60 @@ namespace AudioCommon
 	{
 		std::vector<std::string> backends;
 
-		if (NullSound::isValid())  
+		if (NullSound::isValid())
 			backends.push_back(BACKEND_NULLSOUND);
-		if (DSound::isValid())  
+		if (DSound::isValid())
 			backends.push_back(BACKEND_DIRECTSOUND);
-		if (XAudio2::isValid())  
+		if (XAudio2::isValid())
 			backends.push_back(BACKEND_XAUDIO2);
+		if (AOSound::isValid())
+			backends.push_back(BACKEND_AOSOUND);
+		if (AlsaSound::isValid())
+			backends.push_back(BACKEND_ALSA);
+		if (CoreAudioSound::isValid())
+			backends.push_back(BACKEND_COREAUDIO);
+		if (PulseAudio::isValid())
+			backends.push_back(BACKEND_PULSEAUDIO);
 		if (OpenALStream::isValid())
 			backends.push_back(BACKEND_OPENAL);
-		if (AOSound::isValid())   
-			backends.push_back(BACKEND_AOSOUND);
-		if (AlsaSound::isValid()) 
-			backends.push_back(BACKEND_ALSA);
-		if (CoreAudioSound::isValid())       
-			backends.push_back(BACKEND_COREAUDIO);
-		if (PulseAudio::isValid()) 
-			backends.push_back(BACKEND_PULSEAUDIO);
-	   
+		if (OpenSLESStream::isValid())
+			backends.push_back(BACKEND_OPENSLES);
 		return backends;
 	}
 
-	bool UseJIT() {
-		return ac_Config.m_EnableJIT;
+	bool UseJIT() 
+	{
+		if (!Movie::IsDSPHLE() && Movie::IsPlayingInput() && Movie::IsConfigSaved())
+		{
+			return true;
+		}
+		return SConfig::GetInstance().m_EnableJIT;
+	}
+
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock)
+	{
+		if (soundStream)
+		{
+			// audio typically doesn't maintain its own "paused" state
+			// (that's already handled by the CPU and whatever else being paused)
+			// so it should be good enough to only lock/unlock here.
+			CMixer* pMixer = soundStream->GetMixer();
+			if (pMixer)
+			{
+				std::mutex& csMixing = pMixer->MixerCritical();
+				if (doLock)
+					csMixing.lock();
+				else
+					csMixing.unlock();
+			}
+		}
+	}
+	void UpdateSoundStream()
+	{
+		if (soundStream)
+		{
+			soundStream->GetMixer()->SetThrottle(SConfig::GetInstance().m_Framelimit == 2);
+			soundStream->SetVolume(SConfig::GetInstance().m_Volume);
+		}
 	}
 }

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #pragma once
 
@@ -114,9 +101,9 @@ private:
 				color_surface_Format(D3DFMT_UNKNOWN), depth_surface_Format(D3DFMT_UNKNOWN),
 				depth_ReadBuffer_Format(D3DFMT_UNKNOWN) {}
 
-		LPDIRECT3DTEXTURE9 color_texture;//Texture thats contains the color data of the render target
+		LPDIRECT3DTEXTURE9 color_texture;//Texture that contains the color data of the render target
 		LPDIRECT3DTEXTURE9 colorRead_texture;//1 pixel texture for temporal data store
-		LPDIRECT3DTEXTURE9 depth_texture;//Texture thats contains the depth data of the render target
+		LPDIRECT3DTEXTURE9 depth_texture;//Texture that contains the depth data of the render target
 		LPDIRECT3DTEXTURE9 depthRead_texture;//4 pixel texture for temporal data store
 
 		LPDIRECT3DTEXTURE9 color_reinterpret_texture;//buffer used for ReinterpretPixelData
@@ -126,8 +113,8 @@ private:
 		LPDIRECT3DSURFACE9 color_surface;//Color Surface
 		LPDIRECT3DSURFACE9 color_ReadBuffer;//Surface 0 of colorRead_texture
 		LPDIRECT3DSURFACE9 depth_ReadBuffer;//Surface 0 of depthRead_texture
-		LPDIRECT3DSURFACE9 color_OffScreenReadBuffer;//System memory Surface that can be locked to retriebe the data
-		LPDIRECT3DSURFACE9 depth_OffScreenReadBuffer;//System memory Surface that can be locked to retriebe the data
+		LPDIRECT3DSURFACE9 color_OffScreenReadBuffer;//System memory Surface that can be locked to retrieve the data
+		LPDIRECT3DSURFACE9 depth_OffScreenReadBuffer;//System memory Surface that can be locked to retrieve the data
 
 		D3DFORMAT color_surface_Format;//Format of the color Surface
 		D3DFORMAT depth_surface_Format;//Format of the Depth Surface

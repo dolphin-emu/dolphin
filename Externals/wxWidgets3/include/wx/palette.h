@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: palette.h 61508 2009-07-23 20:30:22Z VZ $
+// RCS-ID:      $Id: palette.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,16 +28,12 @@ public:
     virtual int GetColoursCount() const { wxFAIL_MSG( wxT("not implemented") ); return 0; }
 };
 
-#if defined(__WXPALMOS__)
-    #include "wx/palmos/palette.h"
-#elif defined(__WXMSW__)
+#if defined(__WXMSW__)
     #include "wx/msw/palette.h"
 #elif defined(__WXX11__) || defined(__WXMOTIF__)
     #include "wx/x11/palette.h"
 #elif defined(__WXGTK__) || defined(__WXCOCOA__)
     #include "wx/generic/paletteg.h"
-#elif defined(__WXMGL__)
-    #include "wx/mgl/palette.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/palette.h"
 #elif defined(__WXPM__)

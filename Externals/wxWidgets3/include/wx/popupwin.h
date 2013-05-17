@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.01.01
-// RCS-ID:      $Id: popupwin.h 67244 2011-03-19 11:57:06Z VZ $
+// RCS-ID:      $Id: popupwin.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,8 +66,6 @@ public:
     #include "wx/motif/popupwin.h"
 #elif defined(__WXDFB__)
     #include "wx/dfb/popupwin.h"
-#elif defined(__WXMGL__)
-    #include "wx/mgl/popupwin.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/popupwin.h"
 #else
@@ -112,6 +110,9 @@ public:
     // Overridden to grab the input on some plaforms
     virtual bool Show( bool show = true );
 
+    // Override to implement delayed destruction of this window.
+    virtual bool Destroy();
+
 protected:
     // common part of all ctors
     void Init();
@@ -129,8 +130,9 @@ protected:
     // get alerted when child gets deleted from under us
     void OnDestroy(wxWindowDestroyEvent& event);
 
-#if defined( __WXMSW__ ) || defined( __WXMAC__)
-    // check if the mouse needs captured or released
+#if defined(__WXMSW__) ||(defined(__WXMAC__) && wxOSX_USE_CARBON)
+    // Check if the mouse needs to be captured or released: we must release
+    // when it's inside our window if we want the embedded controls to work.
     void OnIdle(wxIdleEvent& event);
 #endif
 

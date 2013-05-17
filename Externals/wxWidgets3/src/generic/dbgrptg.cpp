@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Andrej Putrin
 // Modified by:
 // Created:     2005-01-21
-// RCS-ID:      $Id: dbgrptg.cpp 64940 2010-07-13 13:29:13Z VZ $
+// RCS-ID:      $Id: dbgrptg.cpp 69828 2011-11-27 19:49:43Z VZ $
 // Copyright:   (c) 2005 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -228,7 +228,7 @@ void wxDumpOpenExternalDlg::OnBrowse(wxCommandEvent& )
                      fname.GetPathWithSep(),
                      fname.GetFullName()
 #ifdef __WXMSW__
-                     , _("Executable files (*.exe)|*.exe|All files (*.*)|*.*||")
+                     , _("Executable files (*.exe)|*.exe|") + wxALL_FILES
 #endif // __WXMSW__
                      );
     if ( dlg.ShowModal() == wxID_OK )

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // Include
 #include "Common.h"
@@ -30,6 +17,7 @@
 #include "CodeWindow.h"
 #include "CodeView.h"
 
+#include "../WxUtils.h"
 #include "FileUtil.h"
 #include "Core.h"
 #include "HW/Memmap.h"
@@ -38,6 +26,7 @@
 #include "LogManager.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
+#include "PowerPC/JitInterface.h"
 #include "Debugger/PPCDebugInterface.h"
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCAnalyst.h"
@@ -45,17 +34,12 @@
 #include "PowerPC/PPCSymbolDB.h"
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
-#include "PowerPC/JitCommon/JitBase.h"
-#include "PowerPC/JitCommon/JitCache.h" // for ClearCache()
 
 #include "ConfigManager.h"
 
 extern "C"  // Bitmaps
 {
-	#include "../../resources/toolbar_play.c"
-	#include "../../resources/toolbar_pause.c"
 	#include "../../resources/toolbar_add_memorycheck.c"
-	#include "../../resources/toolbar_debugger_delete.c"
 	#include "../../resources/toolbar_add_breakpoint.c"
 }
 
@@ -141,16 +125,16 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	    case IDM_NOTIFYMAPLOADED:
-		    NotifyMapLoaded();
+		case IDM_NOTIFYMAPLOADED:
+			NotifyMapLoaded();
 			if (m_BreakpointWindow) m_BreakpointWindow->NotifyUpdate();
-		    break;
+			break;
 
-	    case IDM_UPDATEDISASMDIALOG:
-		    Update();
+		case IDM_UPDATEDISASMDIALOG:
+			Update();
 			if (codeview) codeview->Center(PC);
-		    if (m_RegisterWindow) m_RegisterWindow->NotifyUpdate();
-		    break;
+			if (m_RegisterWindow) m_RegisterWindow->NotifyUpdate();
+			break;
 
 		case IDM_UPDATEBREAKPOINTS:
 			Update();
@@ -164,31 +148,31 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	    case IDM_STEP:
+		case IDM_STEP:
 			SingleStep();
-		    break;
+			break;
 
-	    case IDM_STEPOVER:
+		case IDM_STEPOVER:
 			StepOver();
-		    break;
+			break;
 
 		case IDM_TOGGLE_BREAKPOINT:
 			ToggleBreakpoint();
 			break;
 
-	    case IDM_SKIP:
-		    PC += 4;
-		    Update();
-		    break;
+		case IDM_SKIP:
+			PC += 4;
+			Update();
+			break;
 
-	    case IDM_SETPC:
-		    PC = codeview->GetSelection();
-		    Update();
-		    break;
+		case IDM_SETPC:
+			PC = codeview->GetSelection();
+			Update();
+			break;
 
-	    case IDM_GOTOPC:
-		    JumpToAddress(PC);
-		    break;
+		case IDM_GOTOPC:
+			JumpToAddress(PC);
+			break;
 	}
 
 	UpdateButtonStates();
@@ -214,7 +198,7 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(IDM_ADDRBOX);
 	wxString txt = pAddrCtrl->GetValue();
 
-	std::string text(txt.mb_str());
+	std::string text(WxStrToStr(txt));
 	text = StripSpaces(text);
 	if (text.size() == 8)
 	{
@@ -230,7 +214,7 @@ void CCodeWindow::OnCallstackListChange(wxCommandEvent& event)
 {
 	int index   = callstack->GetSelection();
 	if (index >= 0)
-   	{
+	{
 		u32 address = (u32)(u64)(callstack->GetClientData(index));
 		if (address)
 			JumpToAddress(address);
@@ -241,7 +225,7 @@ void CCodeWindow::OnCallersListChange(wxCommandEvent& event)
 {
 	int index = callers->GetSelection();
 	if (index >= 0)
-   	{
+	{
 		u32 address = (u32)(u64)(callers->GetClientData(index));
 		if (address)
 			JumpToAddress(address);
@@ -252,7 +236,7 @@ void CCodeWindow::OnCallsListChange(wxCommandEvent& event)
 {
 	int index = calls->GetSelection();
 	if (index >= 0)
-   	{
+	{
 		u32 address = (u32)(u64)(calls->GetClientData(index));
 		if (address)
 			JumpToAddress(address);
@@ -263,6 +247,7 @@ void CCodeWindow::SingleStep()
 {
 	if (CCPU::IsStepping())
 	{
+		JitInterface::InvalidateICache(PC, 4);
 		CCPU::StepOpcode(&sync_event);
 		wxThread::Sleep(20);
 		// need a short wait here
@@ -285,7 +270,9 @@ void CCodeWindow::StepOver()
 			Update();
 		}
 		else
+		{
 			SingleStep();
+		}
 
 		UpdateButtonStates();
 		// Update all toolbars in the aui manager
@@ -309,15 +296,16 @@ void CCodeWindow::UpdateLists()
 	Symbol *symbol = g_symbolDB.GetSymbolFromAddr(addr);
 	if (!symbol)
 		return;
+
 	for (int i = 0; i < (int)symbol->callers.size(); i++)
 	{
 		u32 caller_addr = symbol->callers[i].callAddress;
 		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
 		if (caller_symbol)
-	   	{
-			int idx = callers->Append(wxString::FromAscii(StringFromFormat
+		{
+			int idx = callers->Append(StrToWxStr(StringFromFormat
 						("< %s (%08x)", caller_symbol->name.c_str(), caller_addr).c_str()));
-			callers->SetClientData(idx, (void*)caller_addr);
+			callers->SetClientData(idx, (void*)(u64)caller_addr);
 		}
 	}
 
@@ -327,10 +315,10 @@ void CCodeWindow::UpdateLists()
 		u32 call_addr = symbol->calls[i].function;
 		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
 		if (call_symbol)
-	   	{
-			int idx = calls->Append(wxString::FromAscii(StringFromFormat
+		{
+			int idx = calls->Append(StrToWxStr(StringFromFormat
 						("> %s (%08x)", call_symbol->name.c_str(), call_addr).c_str()));
-			calls->SetClientData(idx, (void*)call_addr);
+			calls->SetClientData(idx, (void*)(u64)call_addr);
 		}
 	}
 }
@@ -347,23 +335,22 @@ void CCodeWindow::UpdateCallstack()
 
 	for (size_t i = 0; i < stack.size(); i++)
 	{
-		int idx = callstack->Append(wxString::FromAscii(stack[i].Name.c_str()));
+		int idx = callstack->Append(StrToWxStr(stack[i].Name));
 		callstack->SetClientData(idx, (void*)(u64)stack[i].vAddress);
 	}
 
 	if (!ret)
-		callstack->Append(wxString::FromAscii("invalid callstack"));
+		callstack->Append(StrToWxStr("invalid callstack"));
 }
 
 // Create CPU Mode menus
-void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter,
-	   	wxMenuBar *pMenuBar)
+void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar)
 {
 	// CPU Mode
 	wxMenu* pCoreMenu = new wxMenu;
 
 	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _("&Interpreter core"), 
-		wxString::FromAscii("This is necessary to get break points"
+		StrToWxStr("This is necessary to get break points"
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
 		" slow, perhaps slower than 1 fps."), 
 		wxITEM_CHECK);
@@ -388,7 +375,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		_("Turn off all JIT functions, but still use the JIT core from Jit.cpp"),
 		wxITEM_CHECK);
 	pCoreMenu->Append(IDM_JITLSOFF, _("&JIT LoadStore off"),
-		   	wxEmptyString, wxITEM_CHECK);
+			wxEmptyString, wxITEM_CHECK);
 	pCoreMenu->Append(IDM_JITLSLBZXOFF, _("    &JIT LoadStore lbzx off"),
 			wxEmptyString, wxITEM_CHECK);
 	pCoreMenu->Append(IDM_JITLSLXZOFF, _("    &JIT LoadStore lXz off"),
@@ -396,17 +383,17 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	pCoreMenu->Append(IDM_JITLSLWZOFF, _("&JIT LoadStore lwz off"),
 			wxEmptyString, wxITEM_CHECK);
 	pCoreMenu->Append(IDM_JITLSFOFF, _("&JIT LoadStore Floating off"),
-		   	wxEmptyString, wxITEM_CHECK);
+			wxEmptyString, wxITEM_CHECK);
 	pCoreMenu->Append(IDM_JITLSPOFF, _("&JIT LoadStore Paired off"),
-		   	wxEmptyString, wxITEM_CHECK);
+			wxEmptyString, wxITEM_CHECK);
 	pCoreMenu->Append(IDM_JITFPOFF, _("&JIT FloatingPoint off"),
-		   	wxEmptyString, wxITEM_CHECK);
+			wxEmptyString, wxITEM_CHECK);
 	pCoreMenu->Append(IDM_JITIOFF, _("&JIT Integer off"),
-		   	wxEmptyString, wxITEM_CHECK);
+			wxEmptyString, wxITEM_CHECK);
 	pCoreMenu->Append(IDM_JITPOFF, _("&JIT Paired off"),
-		   	wxEmptyString, wxITEM_CHECK);
+			wxEmptyString, wxITEM_CHECK);
 	pCoreMenu->Append(IDM_JITSROFF, _("&JIT SystemRegisters off"),
-		   	wxEmptyString, wxITEM_CHECK);
+			wxEmptyString, wxITEM_CHECK);
 
 	pMenuBar->Append(pCoreMenu, _("&JIT"));
 
@@ -431,7 +418,7 @@ void CCodeWindow::CreateMenuOptions(wxMenu* pMenu)
 	boottopause->Check(bBootToPause);
 
 	wxMenuItem* automaticstart = pMenu->Append(IDM_AUTOMATICSTART, _("&Automatic start"), 
-		wxString::FromAscii(
+		StrToWxStr(
 		"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
 		" if you have not given it an elf file with the --elf command line. [This can be"
 		" convenient if you are bug-testing with a certain game and want to rebuild"
@@ -450,53 +437,51 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 	{
 		case IDM_INTERPRETER:
 			PowerPC::SetMode(UseInterpreter() ? PowerPC::MODE_INTERPRETER : PowerPC::MODE_JIT);
-		   	break;
+			break;
 		case IDM_BOOTTOPAUSE:
 			bBootToPause = !bBootToPause;
-		   	return;
+			return;
 		case IDM_AUTOMATICSTART:
 			bAutomaticStart = !bAutomaticStart;
-		   	return;
+			return;
 		case IDM_JITOFF:
 			Core::g_CoreStartupParameter.bJITOff = event.IsChecked();
-		   	break;
+			break;
 		case IDM_JITLSOFF:
 			Core::g_CoreStartupParameter.bJITLoadStoreOff = event.IsChecked();
-		   	break;
+			break;
 		case IDM_JITLSLXZOFF:
 			Core::g_CoreStartupParameter.bJITLoadStorelXzOff = event.IsChecked();
-		   	break;
+			break;
 		case IDM_JITLSLWZOFF:
 			Core::g_CoreStartupParameter.bJITLoadStorelwzOff = event.IsChecked();
-		   	break;
+			break;
 		case IDM_JITLSLBZXOFF:
 			Core::g_CoreStartupParameter.bJITLoadStorelbzxOff = event.IsChecked();
-		   	break;
+			break;
 		case IDM_JITLSFOFF:
 			Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff = event.IsChecked();
-		   	break;
+			break;
 		case IDM_JITLSPOFF:
 			Core::g_CoreStartupParameter.bJITLoadStorePairedOff = event.IsChecked();
-		   	break;
+			break;
 		case IDM_JITFPOFF:
 			Core::g_CoreStartupParameter.bJITFloatingPointOff = event.IsChecked();
-		   	break;
+			break;
 		case IDM_JITIOFF:
 			Core::g_CoreStartupParameter.bJITIntegerOff = event.IsChecked();
-		   	break;
+			break;
 		case IDM_JITPOFF:
 			Core::g_CoreStartupParameter.bJITPairedOff = event.IsChecked();
-		   	break;
+			break;
 		case IDM_JITSROFF:
 			Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked();
-		   	break;
+			break;
 	}
 
 	// Clear the JIT cache to enable these changes
-	if (jit)
-	{
-		jit->ClearCache();
-	}
+	JitInterface::ClearCache();
+	
 	// Update
 	UpdateButtonStates();
 }
@@ -507,23 +492,23 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 	{
 		case IDM_LOGINSTRUCTIONS:
 			PPCTables::LogCompiledInstructions();
-		   	break;
+			break;
 
 		case IDM_CLEARCODECACHE:
-			jit->ClearCache();
-		   	break;
+			JitInterface::ClearCache();
+			break;
 
 		case IDM_SEARCHINSTRUCTION:
 		{
 			wxString str;
 			str = wxGetTextFromUser(_T(""), wxT("Op?"), wxEmptyString, this);
 			for (u32 addr = 0x80000000; addr < 0x80100000; addr += 4)
-		   	{
+			{
 				const char *name = PPCTables::GetInstructionName(Memory::ReadUnchecked_U32(addr));
-				if (name && !strcmp((const char *)str.mb_str(), name))
-			   	{
-					std::string mb_str(str.mb_str());
-					NOTICE_LOG(POWERPC, "Found %s at %08x", mb_str.c_str(), addr);
+				auto const wx_name = WxStrToStr(str);
+				if (name && (wx_name == name))
+				{
+					NOTICE_LOG(POWERPC, "Found %s at %08x", wx_name.c_str(), addr);
 				}
 			}
 			break;
@@ -561,30 +546,28 @@ bool CCodeWindow::JITBlockLinking()
 void CCodeWindow::InitBitmaps()
 {
 	// load original size 48x48
-	m_Bitmaps[Toolbar_DebugGo] = wxGetBitmapFromMemory(toolbar_play_png);
 	m_Bitmaps[Toolbar_Step] = wxGetBitmapFromMemory(toolbar_add_breakpoint_png);
 	m_Bitmaps[Toolbar_StepOver] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_Skip] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_GotoPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_DebugPause] = wxGetBitmapFromMemory(toolbar_pause_png);
 
 	// scale to 24x24 for toolbar
-	for (size_t n = Toolbar_DebugGo; n < ToolbarDebugBitmapMax; n++)
+	for (size_t n = 0; n < ToolbarDebugBitmapMax; n++)
 		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(24, 24));
 }
 
 void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 {
-	int w = m_Bitmaps[Toolbar_DebugGo].GetWidth(),
-		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
+	int w = m_Bitmaps[0].GetWidth(),
+		h = m_Bitmaps[0].GetHeight();
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
 	toolBar->AddTool(IDM_STEP,		_("Step"),			m_Bitmaps[Toolbar_Step]);
-	toolBar->AddTool(IDM_STEPOVER,	_("Step Over"),     m_Bitmaps[Toolbar_StepOver]);
+	toolBar->AddTool(IDM_STEPOVER,	_("Step Over"),		m_Bitmaps[Toolbar_StepOver]);
 	toolBar->AddTool(IDM_SKIP,		_("Skip"),			m_Bitmaps[Toolbar_Skip]);
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_GOTOPC,    _("Show PC"),		m_Bitmaps[Toolbar_GotoPC]);
+	toolBar->AddTool(IDM_GOTOPC,		_("Show PC"),		m_Bitmaps[Toolbar_GotoPC]);
 	toolBar->AddTool(IDM_SETPC,		_("Set PC"),		m_Bitmaps[Toolbar_SetPC]);
 	toolBar->AddSeparator();
 	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, _T("")));

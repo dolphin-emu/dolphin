@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: panelcmn.cpp 67251 2011-03-20 00:00:38Z VZ $
+// RCS-ID:      $Id: panelcmn.cpp 68366 2011-07-24 22:19:33Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,28 +85,13 @@ wxCONSTRUCTOR_6( wxPanel, wxWindow*, Parent, wxWindowID, Id, \
                  wxString, Name)
 
 
-// ----------------------------------------------------------------------------
-// wxWin macros
-// ----------------------------------------------------------------------------
-
-BEGIN_EVENT_TABLE(wxPanelBase, wxWindow)
-    WX_EVENT_TABLE_CONTROL_CONTAINER(wxPanelBase)
-END_EVENT_TABLE()
-
 // ============================================================================
 // implementation
 // ============================================================================
 
-WX_DELEGATE_TO_CONTROL_CONTAINER(wxPanelBase, wxWindow)
-
 // ----------------------------------------------------------------------------
 // wxPanelBase creation
 // ----------------------------------------------------------------------------
-
-wxPanelBase::wxPanelBase()
-{
-    WX_INIT_CONTROL_CONTAINER();
-}
 
 bool wxPanelBase::Create(wxWindow *parent, wxWindowID id,
                          const wxPoint& pos,

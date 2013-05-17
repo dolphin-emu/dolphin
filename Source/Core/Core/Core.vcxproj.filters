@@ -5,9 +5,8 @@
     <ClCompile Include="Src\Console.cpp" />
     <ClCompile Include="Src\Core.cpp" />
     <ClCompile Include="Src\CoreParameter.cpp" />
-    <ClCompile Include="Src\CoreRerecording.cpp" />
     <ClCompile Include="Src\CoreTiming.cpp" />
-    <ClCompile Include="Src\MemTools.cpp" />
+    <ClCompile Include="Src\x64MemTools.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
     <ClCompile Include="Src\DSPEmulator.cpp" />
     <ClCompile Include="Src\State.cpp" />
@@ -287,6 +286,12 @@
     <ClCompile Include="Src\HW\SI_DeviceGCController.cpp">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClCompile>
+    <ClCompile Include="Src\HW\SI_DeviceGCSteeringWheel.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\HW\SI_DeviceDanceMat.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
     <ClCompile Include="Src\HW\VideoInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\VI - Video Interface</Filter>
     </ClCompile>
@@ -556,6 +561,9 @@
     <ClCompile Include="Src\HW\GCMemcard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitInterface.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_WiiSpeak.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClCompile>
@@ -730,9 +738,6 @@
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
-    <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_ADPCM.h">
-      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
-    </ClInclude>
     <ClInclude Include="Src\HW\DSPHLE\UCodes\UCode_AX_Voice.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
@@ -806,6 +811,12 @@
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
     <ClInclude Include="Src\HW\SI_DeviceGCController.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HW\SI_DeviceGCSteeringWheel.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HW\SI_DeviceDanceMat.h">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
     <ClInclude Include="Src\HW\SI.h">
@@ -1006,7 +1017,6 @@
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
-    <ClInclude Include="Src\DolLoader.h" />
     <ClInclude Include="Src\NetPlay.h">
       <Filter>NetPlay</Filter>
     </ClInclude>
@@ -1036,13 +1046,15 @@
     <ClInclude Include="Src\HW\GCMemcard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
+    <ClInclude Include="Src\PowerPC\JitInterface.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_WiiSpeak.h">
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
-    <None Include="Src\SConscript" />
     <None Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_Obsolete.txt">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </None>

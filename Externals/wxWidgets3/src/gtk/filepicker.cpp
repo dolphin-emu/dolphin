@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     15/04/2006
-// Id:          $Id: filepicker.cpp 61724 2009-08-21 10:41:26Z VZ $
+// Id:          $Id: filepicker.cpp 70754 2012-02-29 18:05:03Z PC $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -80,9 +80,7 @@ bool wxFileButton::Create( wxWindow *parent, wxWindowID id,
 
         //       use as label the currently selected file
         m_widget = gtk_file_chooser_button_new_with_dialog( m_dialog->m_widget );
-
         g_object_ref(m_widget);
-        gtk_widget_show(m_widget);
 
         // we need to know when the dialog has been dismissed clicking OK...
         // NOTE: the "clicked" signal is not available for a GtkFileChooserButton
@@ -129,6 +127,14 @@ void wxFileButton::SetPath(const wxString &str)
         UpdateDialogPath(m_dialog);
 }
 
+void wxFileButton::SetInitialDirectory(const wxString& dir)
+{
+    if (m_dialog)
+        DoSetInitialDirectory(static_cast<wxFileDialog*>(m_dialog), dir);
+    else
+        wxGenericFileButton::SetInitialDirectory(dir);
+}
+
 #endif      // wxUSE_FILEPICKERCTRL && defined(__WXGTK26__)
 
 
@@ -136,7 +142,9 @@ void wxFileButton::SetPath(const wxString &str)
 
 #if wxUSE_DIRPICKERCTRL && defined(__WXGTK26__)
 
+#ifdef __UNIX__
 #include <unistd.h> // chdir
+#endif
 
 //-----------------------------------------------------------------------------
 // "current-folder-changed"
@@ -227,9 +235,6 @@ bool wxDirButton::Create( wxWindow *parent, wxWindowID id,
         m_widget = gtk_file_chooser_button_new_with_dialog( m_dialog->m_widget );
         g_object_ref(m_widget);
 
-
-        gtk_widget_show(m_widget);
-
         // GtkFileChooserButton signals
         g_signal_connect(m_widget, "current-folder-changed",
                          G_CALLBACK(gtk_dirbutton_currentfolderchanged_callback), this);
@@ -272,6 +277,17 @@ void wxDirButton::SetPath(const wxString& str)
 
     if (m_dialog)
         UpdateDialogPath(m_dialog);
+}
+
+void wxDirButton::SetInitialDirectory(const wxString& dir)
+{
+    if (m_dialog)
+    {
+        if (m_path.empty())
+            static_cast<wxDirDialog*>(m_dialog)->SetPath(dir);
+    }
+    else
+        wxGenericDirButton::SetInitialDirectory(dir);
 }
 
 #endif      // wxUSE_DIRPICKERCTRL && defined(__WXGTK26__)

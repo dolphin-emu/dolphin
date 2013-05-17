@@ -3,7 +3,7 @@
 // Purpose:     Classes mapping markup attributes to wxFont/wxColour.
 // Author:      Vadim Zeitlin
 // Created:     2011-02-18
-// RCS-ID:      $Id: markupparserattr.h 67073 2011-02-27 14:01:36Z VZ $
+// RCS-ID:      $Id: markupparserattr.h 70447 2012-01-23 11:28:32Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -78,8 +78,8 @@ public:
     virtual void OnUnderlinedStart() { DoChangeFont(&wxFont::Underlined); }
     virtual void OnUnderlinedEnd() { DoEndAttr(); }
 
-    virtual void OnStrikethroughStart() { } // TODO: No support in wxFont yet.
-    virtual void OnStrikethroughEnd() { }
+    virtual void OnStrikethroughStart() { DoChangeFont(&wxFont::Strikethrough); }
+    virtual void OnStrikethroughEnd() { DoEndAttr(); }
 
     virtual void OnBigStart() { DoChangeFont(&wxFont::Larger); }
     virtual void OnBigEnd() { DoEndAttr(); }

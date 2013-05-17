@@ -1,27 +1,14 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "ChunkFile.h"
 #include "ProcessorInterface.h"
 #include "Memmap.h"
-#include "../PowerPC/PowerPC.h"
-
 #include "VideoBackendBase.h"
+#include "../PowerPC/JitCommon/JitBase.h"
+#include "../PowerPC/PowerPC.h"
 
 #include "GPFifo.h"
 
@@ -54,6 +41,7 @@ void DoState(PointerWrap &p)
 void Init()
 {
 	ResetGatherPipe();
+	memset(m_gatherPipe, 0, sizeof(m_gatherPipe));
 }
 
 bool IsEmpty()
@@ -73,14 +61,14 @@ void STACKALIGN CheckGatherPipe()
 		u32 cnt;
 		u8* curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
 		for (cnt = 0; m_gatherPipeCount >= GATHER_PIPE_SIZE; cnt += GATHER_PIPE_SIZE)
-		{	
+		{
 			// copy the GatherPipe
 			memcpy(curMem, m_gatherPipe + cnt, GATHER_PIPE_SIZE);
 			m_gatherPipeCount -= GATHER_PIPE_SIZE;
 
 			// increase the CPUWritePointer
 			if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
-			{				
+			{
 				ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
 				curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
 			}
@@ -95,6 +83,20 @@ void STACKALIGN CheckGatherPipe()
 		
 		// move back the spill bytes
 		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
+		
+		// Profile where the FIFO writes are occurring.
+		if (jit && PC != 0 && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
+		{
+			// Log only stores, fp stores and ps stores, filtering out other instructions arrived via optimizeGatherPipe
+			int type = GetOpInfo(Memory::ReadUnchecked_U32(PC))->type;
+			if (type == OPTYPE_STORE || type == OPTYPE_STOREFP || (type == OPTYPE_PS && !strcmp(GetOpInfo(Memory::ReadUnchecked_U32(PC))->opname, "psq_st")))
+			{
+				jit->js.fifoWriteAddresses.insert(PC);
+
+				// Invalidate the JIT block so that it gets recompiled with the external exception check included.
+				jit->GetBlockCache()->InvalidateICache(PC, 4);
+			}
+		}
 	}
 }
 

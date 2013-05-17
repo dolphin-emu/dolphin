@@ -3,7 +3,7 @@
 // Purpose:     wxWindowID class - a class for managing window ids
 // Author:      Brian Vanderburg II
 // Created:     2007-09-21
-// RCS-ID:      $Id: windowid.cpp 67211 2011-03-16 07:06:43Z SC $
+// RCS-ID:      $Id: windowid.cpp 69682 2011-11-05 11:24:04Z VZ $
 // Copyright:   (c) 2007 Brian Vanderburg II
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,6 +22,8 @@
     #include "wx/intl.h"
 #endif //WX_PRECOMP
 
+#include "wx/hashmap.h"
+
 // Not needed, included in defs.h
 // #include "wx/windowid.h"
 
@@ -38,10 +40,21 @@ namespace
 // meanwhile
 static const wxUint8 ID_FREE = 0;
 static const wxUint8 ID_STARTCOUNT = 1;
-static const wxUint8 ID_MAXCOUNT = 254;
+static const wxUint8 ID_COUNTTOOLARGE = 254;
 static const wxUint8 ID_RESERVED = 255;
 
+// we use a two level count, most IDs will be used less than ID_COUNTTOOLARGE-1
+// thus we store their count directly in this array, however when the same ID
+// is reused a great number of times (more than or equal to ID_COUNTTOOLARGE),
+// the hash map stores the actual count
 wxUint8 gs_autoIdsRefCount[wxID_AUTO_HIGHEST - wxID_AUTO_LOWEST + 1] = { 0 };
+
+// NB: this variable is allocated (again) only when an ID gets at least
+// ID_COUNTTOOLARGE refs, and is freed when the latest entry in the map gets
+// freed. The cell storing the count for an ID is freed only when its count
+// gets to zero (not when it goes below ID_COUNTTOOLARGE, so as to avoid
+// degenerate cases)
+wxLongToLongHashMap *gs_autoIdsLargeRefCount = NULL;
 
 // this is an optimization used until we wrap around wxID_AUTO_HIGHEST: if this
 // value is < wxID_AUTO_HIGHEST we know that we haven't wrapped yet and so can
@@ -81,7 +94,10 @@ int GetIdRefCount(wxWindowID winid)
             wxT("invalid id range"));
 
     winid -= wxID_AUTO_LOWEST;
-    return gs_autoIdsRefCount[winid];
+    int refCount = gs_autoIdsRefCount[winid];
+    if (refCount == ID_COUNTTOOLARGE)
+        refCount = (*gs_autoIdsLargeRefCount)[winid];
+    return refCount;
 }
 
 // Increase the count for an id
@@ -92,16 +108,32 @@ void IncIdRefCount(wxWindowID winid)
 
     winid -= wxID_AUTO_LOWEST;
 
-    wxCHECK_RET(gs_autoIdsRefCount[winid] != ID_MAXCOUNT, wxT("id count at max"));
     wxCHECK_RET(gs_autoIdsRefCount[winid] != ID_FREE, wxT("id should first be reserved"));
 
     if(gs_autoIdsRefCount[winid] == ID_RESERVED)
+    {
         gs_autoIdsRefCount[winid] = ID_STARTCOUNT;
+    }
+    else if (gs_autoIdsRefCount[winid] >= ID_COUNTTOOLARGE-1)
+    {
+        if (gs_autoIdsRefCount[winid] == ID_COUNTTOOLARGE-1)
+        {
+            // we need to allocate a cell, and maybe the hash map itself
+            if (!gs_autoIdsLargeRefCount)
+                gs_autoIdsLargeRefCount = new wxLongToLongHashMap;
+            (*gs_autoIdsLargeRefCount)[winid] = ID_COUNTTOOLARGE-1;
+
+            gs_autoIdsRefCount[winid] = ID_COUNTTOOLARGE;
+        }
+        ++(*gs_autoIdsLargeRefCount)[winid];
+    }
     else
+    {
         gs_autoIdsRefCount[winid]++;
+    }
 
     wxLogTrace(wxTRACE_WINDOWID, wxT("Increasing ref count of ID %d to %d"),
-            winid + wxID_AUTO_LOWEST, gs_autoIdsRefCount[winid]);
+            winid + wxID_AUTO_LOWEST, GetIdRefCount(winid + wxID_AUTO_LOWEST));
 }
 
 // Decrease the count for an id
@@ -121,11 +153,24 @@ void DecIdRefCount(wxWindowID winid)
         wxFAIL_MSG(wxT("reserve id being decreased"));
         gs_autoIdsRefCount[winid] = ID_FREE;
     }
+    else if(gs_autoIdsRefCount[winid] == ID_COUNTTOOLARGE)
+    {
+        long &largeCount = (*gs_autoIdsLargeRefCount)[winid];
+        --largeCount;
+        if (largeCount == 0)
+        {
+            gs_autoIdsLargeRefCount->erase (winid);
+            gs_autoIdsRefCount[winid] = ID_FREE;
+
+            if (gs_autoIdsLargeRefCount->empty())
+                wxDELETE (gs_autoIdsLargeRefCount);
+        }
+    }
     else
         gs_autoIdsRefCount[winid]--;
 
     wxLogTrace(wxTRACE_WINDOWID, wxT("Decreasing ref count of ID %d to %d"),
-            winid + wxID_AUTO_LOWEST, gs_autoIdsRefCount[winid]);
+            winid + wxID_AUTO_LOWEST, GetIdRefCount(winid + wxID_AUTO_LOWEST));
 }
 
 #else // wxUSE_AUTOID_MANAGEMENT

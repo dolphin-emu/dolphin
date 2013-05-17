@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     28.12.00
-// RCS-ID:      $Id: filename.h 63886 2010-04-06 22:51:11Z FM $
+// RCS-ID:      $Id: filename.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2000 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,7 @@ class WXDLLIMPEXP_FWD_BASE wxFFile;
 
 // this symbol is defined for the platforms where file systems use volumes in
 // paths
-#if defined(__WXMSW__) || defined(__DOS__) || defined(__OS2__)
+#if defined(__WINDOWS__) || defined(__DOS__) || defined(__OS2__)
     #define wxHAS_FILESYSTEM_VOLUMES
 #endif
 
@@ -214,13 +214,19 @@ public:
                 !m_ext.empty() || m_hasExt;
     }
 
-        // does the file with this name exists?
+        // does the file with this name exist?
     bool FileExists() const;
     static bool FileExists( const wxString &file );
 
-        // does the directory with this name exists?
+        // does the directory with this name exist?
     bool DirExists() const;
     static bool DirExists( const wxString &dir );
+
+        // does anything at all with this name (i.e. file, directory or some
+        // other file system object such as a device, socket, ...) exist?
+    bool Exists() const { return Exists(GetFullPath()); }
+    static bool Exists(const wxString& path);
+
 
         // checks on most common flags for files/directories;
         // more platform-specific features (like e.g. Unix permissions) are not

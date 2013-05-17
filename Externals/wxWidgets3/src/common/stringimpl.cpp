@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Ryan Norton
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: stringimpl.cpp 66728 2011-01-22 14:38:36Z DS $
+// RCS-ID:      $Id: stringimpl.cpp 70150 2011-12-28 13:51:13Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              (c) 2004 Ryan Norton <wxprojects@comcast.net>
 // Licence:     wxWindows licence
@@ -681,7 +681,11 @@ bool wxStringImpl::AssignCopy(size_t nSrcLen,
       // allocation failure handled by caller
       return false;
     }
-    memcpy(m_pchData, pszSrcData, nSrcLen*sizeof(wxStringCharType));
+
+    // use memmove() and not memcpy() here as we might be copying from our own
+    // buffer in case of assignment such as "s = s.c_str()" (see #11294)
+    memmove(m_pchData, pszSrcData, nSrcLen*sizeof(wxStringCharType));
+
     GetStringData()->nDataLength = nSrcLen;
     m_pchData[nSrcLen] = wxT('\0');
   }

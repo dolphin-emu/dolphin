@@ -3,7 +3,7 @@
 // Purpose:     common (for all platforms) wxFrame functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Created:     01/02/97
-// Id:          $Id: framecmn.cpp 66592 2011-01-05 18:27:58Z PC $
+// Id:          $Id: framecmn.cpp 69101 2011-09-16 13:23:14Z VZ $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -270,6 +270,10 @@ bool wxFrameBase::ProcessCommand(wxMenuItem *item)
 
         // use the new value
         commandEvent.SetInt(item->IsChecked());
+    }
+    else // Uncheckable item.
+    {
+        commandEvent.SetInt(-1);
     }
 
     return HandleWindowEvent(commandEvent);

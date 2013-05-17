@@ -3,7 +3,7 @@
 // Purpose:     Test if a type is movable using memmove() etc.
 // Author:      Vaclav Slavik
 // Created:     2008-01-21
-// RCS-ID:      $Id: movable.h 64589 2010-06-14 15:12:37Z JMS $
+// RCS-ID:      $Id: movable.h 67343 2011-03-30 14:16:04Z VZ $
 // Copyright:   (c) 2008 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ struct wxIsMovable
 // (NB: we don't put this into string.h and choose to include wx/string.h from
 // here instead so that rarely-used wxIsMovable<T> code isn't included by
 // everything)
-#if !wxUSE_STL && !wxUSE_STRING_POS_CACHE
+#if !wxUSE_STD_STRING && !wxUSE_STRING_POS_CACHE
 WX_DECLARE_TYPE_MOVABLE(wxString)
 #endif
 

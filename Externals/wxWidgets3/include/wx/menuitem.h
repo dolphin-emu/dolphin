@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     25.10.99
-// RCS-ID:      $Id: menuitem.h 66966 2011-02-19 12:32:59Z VZ $
+// RCS-ID:      $Id: menuitem.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -189,8 +189,6 @@ inline void wxMenuItemBase::SetText(const wxString& text) { SetItemLabel(text); 
 #else // !wxUSE_BASE_CLASSES_ONLY
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/menuitem.h"
-#elif defined(__WXPALMOS__)
-    #include "wx/palmos/menuitem.h"
 #elif defined(__WXMSW__)
     #include "wx/msw/menuitem.h"
 #elif defined(__WXMOTIF__)

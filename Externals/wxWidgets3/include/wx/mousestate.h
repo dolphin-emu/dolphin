@@ -3,7 +3,7 @@
 // Purpose:     Declaration of wxMouseState class
 // Author:      Vadim Zeitlin
 // Created:     2008-09-19 (extracted from wx/utils.h)
-// RCS-ID:      $Id: mousestate.h 65379 2010-08-22 22:15:07Z VZ $
+// RCS-ID:      $Id: mousestate.h 70098 2011-12-23 05:59:59Z PC $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,10 +79,6 @@ public:
     {
         switch ( but )
         {
-            default:
-                wxFAIL_MSG(wxT("invalid parameter in wxMouseState::ButtonIsDown"));
-                // fall through
-
             case wxMOUSE_BTN_ANY:
                 return LeftIsDown() || MiddleIsDown() || RightIsDown() ||
                             Aux1IsDown() || Aux2IsDown();
@@ -101,6 +97,15 @@ public:
 
             case wxMOUSE_BTN_AUX2:
                 return Aux2IsDown();
+
+            case wxMOUSE_BTN_NONE:
+            case wxMOUSE_BTN_MAX:
+                wxFAIL_MSG(wxS("invalid parameter"));
+                return false;
+
+            default:
+                wxFAIL_MSG(wxS("unknown parameter"));
+                return false;
         }
     }
 
@@ -123,7 +128,7 @@ public:
     // version of wxMouseState but their names are confusing as wxMouseEvent
     // has methods with the same names which do something quite different so
     // don't use them any more
-#ifdef WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_2_8
     wxDEPRECATED_INLINE(bool LeftDown() const, return LeftIsDown(); )
     wxDEPRECATED_INLINE(bool MiddleDown() const, return MiddleIsDown(); )
     wxDEPRECATED_INLINE(bool RightDown() const, return RightIsDown(); )

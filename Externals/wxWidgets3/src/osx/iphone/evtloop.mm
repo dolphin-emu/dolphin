@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Stefan Csomor
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloop.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: evtloop.mm 69525 2011-10-25 11:51:36Z SC $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -112,6 +112,10 @@ CFRunLoopRef wxGUIEventLoop::CFGetCurrentRunLoop() const
     return wxCFEventLoop::CFGetCurrentRunLoop();
 }
 
+void wxGUIEventLoop::WakeUp()
+{
+    return wxCFEventLoop::WakeUp();
+}
 
 // TODO move into a evtloop_osx.cpp
 

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "NANDContentLoader.h"
 
@@ -191,6 +178,8 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 
 bool CNANDContentLoader::Initialize(const std::string& _rName)
 {
+	if (_rName.empty())
+		return false;
 	m_Path = _rName;
 	WiiWAD Wad(_rName);
 	u8* pDataApp = NULL;
@@ -213,7 +202,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 	{
 		std::string TMDFileName(m_Path);
 
-		if (File::IsDirectory(TMDFileName))
+		if ('/' == *TMDFileName.rbegin())
 			TMDFileName += "title.tmd";
 		else
 			m_Path = TMDFileName.substr(0, TMDFileName.find("title.tmd"));
@@ -221,7 +210,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		File::IOFile pTMDFile(TMDFileName, "rb");
 		if (!pTMDFile)
 		{
-			ERROR_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
+			DEBUG_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
 					  TMDFileName.c_str());
 			return false;
 		}
@@ -258,20 +247,21 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		rContent.m_Size= (u32)Common::swap64(pTMD + 0x01ec + 0x24*i);
 		memcpy(rContent.m_SHA1Hash, pTMD + 0x01f4 + 0x24*i, 20);
 		memcpy(rContent.m_Header, pTMD + 0x01e4 + 0x24*i, 36);
+
 		if (m_isWAD)
 		{
-		u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
-		rContent.m_pData = new u8[RoundedSize];
+			u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
+			rContent.m_pData = new u8[RoundedSize];
 		
-		memset(IV, 0, sizeof IV);
-		memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
-		AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
+			memset(IV, 0, sizeof IV);
+			memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
+			AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
 
-		pDataApp += RoundedSize;
-		continue;
+			pDataApp += RoundedSize;
+			continue;
 		}
 
-		rContent.m_pData = NULL;		 
+		rContent.m_pData = NULL;
 		char szFilename[1024];
 
 		if (rContent.m_Type & 0x8000)  // shared app
@@ -280,7 +270,9 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 			strcpy(szFilename, Filename.c_str());
 		}
 		else
+		{
 			sprintf(szFilename, "%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
+		}
 
 		INFO_LOG(DISCIO, "NANDContentLoader: load %s", szFilename);
 
@@ -460,7 +452,7 @@ void cUIDsys::AddTitle(u64 _TitleID)
 	File::CreateFullPath(uidSys);
 	File::IOFile pFile(uidSys, "ab");
 
-	if (pFile.WriteArray(&Element, 1))
+	if (!pFile.WriteArray(&Element, 1))
 		ERROR_LOG(DISCIO, "fwrite failed");
 }
 
@@ -536,20 +528,14 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 
 	pTMDFile.Close();
 	
+
+
+
 	//Extract and copy WAD's ticket to ticket directory
-	std::string TicketFileName = Common::GetTicketFileName(TitleID);
-
-	File::CreateFullPath(TicketFileName);
-	File::IOFile pTicketFile(TicketFileName, "wb");
-	if (!pTicketFile)
+	if (!Add_Ticket(TitleID, ContentLoader.GetTIK(), ContentLoader.GetTIKSize()))
 	{
-		PanicAlertT("WAD installation failed: error creating %s", TicketFileName.c_str());
+		PanicAlertT("WAD installation failed: error creating ticket");
 		return 0;
-	} 
-
-	if (ContentLoader.GetTIK())
-	{
-		pTicketFile.WriteBytes(ContentLoader.GetTIK(), ContentLoader.GetTIKSize());
 	}
 
 	cUIDsys::AccessInstance().AddTitle(TitleID);
@@ -558,6 +544,18 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	return TitleID;
 }
 
+bool Add_Ticket(u64 TitleID, const u8 *p_tik, u32 tikSize)
+{
+	std::string TicketFileName = Common::GetTicketFileName(TitleID);
+	File::CreateFullPath(TicketFileName);
+	File::IOFile pTicketFile(TicketFileName, "wb");
+	if (!pTicketFile || !p_tik)
+	{
+		//PanicAlertT("WAD installation failed: error creating %s", TicketFileName.c_str());
+		return false;
+	}
+	return pTicketFile.WriteBytes(p_tik, tikSize);
+}
 
 } // namespace end
 

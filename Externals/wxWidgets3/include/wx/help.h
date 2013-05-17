@@ -5,7 +5,7 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: help.h 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: help.h 70345 2012-01-15 01:05:28Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -22,10 +22,6 @@
     #include "wx/msw/wince/helpwce.h"
 
     #define wxHelpController wxWinceHelpController
-#elif defined(__WXPALMOS__)
-    #include "wx/palmos/help.h"
-
-    #define wxHelpController wxPalmHelpController
 #elif defined(__WXMSW__)
     #include "wx/msw/helpchm.h"
 

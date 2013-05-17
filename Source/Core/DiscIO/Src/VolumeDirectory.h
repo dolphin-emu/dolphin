@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _VOLUME_DIRECTORY
 #define _VOLUME_DIRECTORY
@@ -50,7 +37,7 @@ public:
 
 	std::string GetMakerID() const;
 
-	std::string GetName() const;
+	std::vector<std::string> GetNames() const;
 	void SetName(std::string);
 
 	u32 GetFSTSize() const;
@@ -59,7 +46,8 @@ public:
 
 	ECountry GetCountry() const;
 
-	u64 GetSize() const;		
+	u64 GetSize() const;
+	u64 GetRawSize() const;
 
 	void BuildFST();
 
@@ -141,6 +129,16 @@ private:
 
 	u64 m_DOLSize;
 	u8* m_DOL;
+
+	static const u8 ENTRY_SIZE = 0x0c;
+	static const u8 FILE_ENTRY = 0;
+	static const u8 DIRECTORY_ENTRY = 1;
+	static const u64 DISKHEADER_ADDRESS = 0;
+	static const u64 DISKHEADERINFO_ADDRESS = 0x440;
+	static const u64 APPLOADER_ADDRESS = 0x2440;
+	static const u32 MAX_NAME_LENGTH = 0x3df;
+	u64 FST_ADDRESS;
+	u64 DOL_ADDRESS;
 };
 
 } // namespace

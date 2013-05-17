@@ -2,7 +2,7 @@
 // Name:        wx/gtk/dirdlg.h
 // Purpose:     wxDirDialog
 // Author:      Francesco Montorsi
-// Id:          $Id: dirdlg.h 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: dirdlg.h 70898 2012-03-14 12:32:27Z VZ $
 // Copyright:   (c) 2006 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,13 @@ public:
                 const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize,
                 const wxString& name = wxDirDialogNameStr);
-
+    bool Create(wxWindow *parent,
+                const wxString& message = wxDirSelectorPromptStr,
+                const wxString& defaultPath = wxEmptyString,
+                long style = wxDD_DEFAULT_STYLE,
+                const wxPoint& pos = wxDefaultPosition,
+                const wxSize& size = wxDefaultSize,
+                const wxString& name = wxDirDialogNameStr);
     virtual ~wxDirDialog() { }
 
 

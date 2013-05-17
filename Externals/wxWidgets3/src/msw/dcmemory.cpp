@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcmemory.cpp 61724 2009-08-21 10:41:26Z VZ $
+// RCS-ID:      $Id: dcmemory.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -104,7 +104,7 @@ void wxMemoryDCImpl::DoSelect( const wxBitmap& bitmap )
     if ( m_oldBitmap )
     {
         ::SelectObject(GetHdc(), (HBITMAP) m_oldBitmap);
-        if ( m_selectedBitmap.Ok() )
+        if ( m_selectedBitmap.IsOk() )
         {
             m_selectedBitmap.SetSelectedInto(NULL);
             m_selectedBitmap = wxNullBitmap;
@@ -138,7 +138,7 @@ void wxMemoryDCImpl::DoSelect( const wxBitmap& bitmap )
 
 void wxMemoryDCImpl::DoGetSize(int *width, int *height) const
 {
-    if ( m_selectedBitmap.Ok() )
+    if ( m_selectedBitmap.IsOk() )
     {
         *width = m_selectedBitmap.GetWidth();
         *height = m_selectedBitmap.GetHeight();
@@ -163,7 +163,7 @@ static void wxDrawRectangle(wxDC& dc, wxCoord x, wxCoord y, wxCoord width, wxCoo
 {
     wxBrush brush(dc.GetBrush());
     wxPen pen(dc.GetPen());
-    if (brush.Ok() && brush.GetStyle() != wxTRANSPARENT)
+    if (brush.IsOk() && brush.GetStyle() != wxTRANSPARENT)
     {
         HBRUSH hBrush = (HBRUSH) brush.GetResourceHandle() ;
         if (hBrush)
@@ -176,7 +176,7 @@ static void wxDrawRectangle(wxDC& dc, wxCoord x, wxCoord y, wxCoord width, wxCoo
         }
     }
     width --; height --;
-    if (pen.Ok() && pen.GetStyle() != wxTRANSPARENT)
+    if (pen.IsOk() && pen.GetStyle() != wxTRANSPARENT)
     {
         dc.DrawLine(x, y, x + width, y);
         dc.DrawLine(x, y, x, y + height);
@@ -192,7 +192,7 @@ void wxMemoryDCImpl::DoDrawRectangle(wxCoord x, wxCoord y, wxCoord width, wxCoor
     // Set this to 1 to work around an apparent video driver bug
     // (visible with e.g. 70x70 rectangle on a memory DC; see Drawing sample)
 #if wxUSE_MEMORY_DC_DRAW_RECTANGLE
-    if (m_brush.Ok() && m_pen.Ok() &&
+    if (m_brush.IsOk() && m_pen.IsOk() &&
         (m_brush.GetStyle() == wxSOLID || m_brush.GetStyle() == wxTRANSPARENT) &&
         (m_pen.GetStyle() == wxSOLID || m_pen.GetStyle() == wxTRANSPARENT) &&
         (GetLogicalFunction() == wxCOPY))

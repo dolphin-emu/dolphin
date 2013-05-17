@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin
 // Created:     04/01/98
-// RCS-ID:      $Id: menu.cpp 66845 2011-02-05 16:38:53Z VZ $
+// RCS-ID:      $Id: menu.cpp 70441 2012-01-23 11:28:05Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -41,6 +41,7 @@
 #endif
 
 #include "wx/scopedarray.h"
+#include "wx/vector.h"
 
 #include "wx/msw/private.h"
 #include "wx/msw/wrapcctl.h" // include <commctrl.h> "properly"
@@ -85,8 +86,101 @@
 static const int idMenuTitle = wxID_NONE;
 
 // ----------------------------------------------------------------------------
-// private functions
+// private helper classes and functions
 // ----------------------------------------------------------------------------
+
+// Contains the data about the radio items groups in the given menu.
+class wxMenuRadioItemsData
+{
+public:
+    wxMenuRadioItemsData() { }
+
+    // Default copy ctor, assignment operator and dtor are all ok.
+
+    // Find the start and end of the group containing the given position or
+    // return false if it's not inside any range.
+    bool GetGroupRange(int pos, int *start, int *end) const
+    {
+        // We use a simple linear search here because there are not that many
+        // items in a menu and hence even fewer radio items ranges anyhow, so
+        // normally there is no need to do anything fancy (like keeping the
+        // array sorted and using binary search).
+        for ( Ranges::const_iterator it = m_ranges.begin();
+              it != m_ranges.end();
+              ++it )
+        {
+            const Range& r = *it;
+
+            if ( r.start <= pos && pos <= r.end )
+            {
+                if ( start )
+                    *start = r.start;
+                if ( end )
+                    *end = r.end;
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Take into account the new radio item about to be added at the given
+    // position.
+    //
+    // Returns true if this item starts a new radio group, false if it extends
+    // an existing one.
+    bool UpdateOnInsert(int pos)
+    {
+        bool inExistingGroup = false;
+
+        for ( Ranges::iterator it = m_ranges.begin();
+              it != m_ranges.end();
+              ++it )
+        {
+            Range& r = *it;
+
+            if ( pos < r.start )
+            {
+                // Item is inserted before this range, update its indices.
+                r.start++;
+                r.end++;
+            }
+            else if ( pos <= r.end + 1 )
+            {
+                // Item is inserted in the middle of this range or immediately
+                // after it in which case it extends this range so make it span
+                // one more item in any case.
+                r.end++;
+
+                inExistingGroup = true;
+            }
+            //else: Item is inserted after this range, nothing to do for it.
+        }
+
+        if ( inExistingGroup )
+            return false;
+
+        // Make a new range for the group this item will belong to.
+        Range r;
+        r.start = pos;
+        r.end = pos;
+        m_ranges.push_back(r);
+
+        return true;
+    }
+
+private:
+    // Contains the inclusive positions of the range start and end.
+    struct Range
+    {
+        int start;
+        int end;
+    };
+
+    typedef wxVector<Range> Ranges;
+    Ranges m_ranges;
+};
 
 namespace
 {
@@ -96,9 +190,7 @@ void SetDefaultMenuItem(HMENU WXUNUSED_IN_WINCE(hmenu),
                         UINT WXUNUSED_IN_WINCE(id))
 {
 #ifndef __WXWINCE__
-    MENUITEMINFO mii;
-    wxZeroMemory(mii);
-    mii.cbSize = sizeof(MENUITEMINFO);
+    WinStruct<MENUITEMINFO> mii;
     mii.fMask = MIIM_STATE;
     mii.fState = MFS_DEFAULT;
 
@@ -116,9 +208,7 @@ void SetOwnerDrawnMenuItem(HMENU WXUNUSED_IN_WINCE(hmenu),
                            BOOL WXUNUSED_IN_WINCE(byPositon = FALSE))
 {
 #ifndef __WXWINCE__
-    MENUITEMINFO mii;
-    wxZeroMemory(mii);
-    mii.cbSize = sizeof(MENUITEMINFO);
+    WinStruct<MENUITEMINFO> mii;
     mii.fMask = MIIM_FTYPE | MIIM_DATA;
     mii.fType = MFT_OWNERDRAW;
     mii.dwItemData = data;
@@ -136,9 +226,7 @@ void SetOwnerDrawnMenuItem(HMENU WXUNUSED_IN_WINCE(hmenu),
 #ifdef __WXWINCE__
 UINT GetMenuState(HMENU hMenu, UINT id, UINT flags)
 {
-    MENUITEMINFO info;
-    wxZeroMemory(info);
-    info.cbSize = sizeof(info);
+    WinStruct<MENUITEMINFO> info;
     info.fMask = MIIM_STATE;
     // MF_BYCOMMAND is zero so test MF_BYPOSITION
     if ( !::GetMenuItemInfo(hMenu, id, flags & MF_BYPOSITION ? TRUE : FALSE , & info) )
@@ -166,16 +254,21 @@ inline bool IsGreaterThanStdSize(const wxBitmap& bmp)
 // ---------------------------------------------------------------------------
 
 // Construct a menu with optional title (then use append)
-void wxMenu::Init()
+void wxMenu::InitNoCreate()
 {
+    m_radioData = NULL;
     m_doBreak = false;
-    m_startRadioGroup = -1;
 
 #if wxUSE_OWNER_DRAWN
     m_ownerDrawn = false;
     m_maxBitmapWidth = 0;
     m_maxAccelWidth = -1;
 #endif // wxUSE_OWNER_DRAWN
+}
+
+void wxMenu::Init()
+{
+    InitNoCreate();
 
     // create the menu
     m_hMenu = (WXHMENU)CreatePopupMenu();
@@ -190,6 +283,24 @@ void wxMenu::Init()
         const wxString title = m_title;
         m_title.clear(); // so that SetTitle() knows there was no title before
         SetTitle(title);
+    }
+}
+
+wxMenu::wxMenu(WXHMENU hMenu)
+{
+    InitNoCreate();
+
+    m_hMenu = hMenu;
+
+    // Ensure that our internal idea of how many items we have corresponds to
+    // the real number of items in the menu.
+    //
+    // We could also retrieve the real labels of the items here but it doesn't
+    // seem to be worth the trouble.
+    const int numExistingItems = ::GetMenuItemCount(m_hMenu);
+    for ( int n = 0; n < numExistingItems; n++ )
+    {
+        wxMenuBase::DoAppend(wxMenuItem::New(this, wxID_SEPARATOR));
     }
 }
 
@@ -211,19 +322,14 @@ wxMenu::~wxMenu()
     // delete accels
     WX_CLEAR_ARRAY(m_accels);
 #endif // wxUSE_ACCEL
+
+    delete m_radioData;
 }
 
 void wxMenu::Break()
 {
     // this will take effect during the next call to Append()
     m_doBreak = true;
-}
-
-void wxMenu::Attach(wxMenuBarBase *menubar)
-{
-    wxMenuBase::Attach(menubar);
-
-    EndRadioGroup();
 }
 
 #if wxUSE_ACCEL
@@ -295,7 +401,9 @@ void wxMenu::UpdateAccel(wxMenuItem *item)
             GetMenuBar()->RebuildAccelTable();
         }
 
+#if wxUSE_OWNER_DRAWN
         ResetMaxAccelWidth();
+#endif
     }
     //else: it is a separator, they can't have accels, nothing to do
 }
@@ -324,6 +432,7 @@ HBITMAP GetHBitmapForMenu(wxMenuItem *pItem, bool checked = true)
 #if wxUSE_IMAGE
     if ( wxGetWinVersion() >= wxWinVersion_Vista )
     {
+#if wxUSE_OWNER_DRAWN
         wxBitmap bmp = pItem->GetBitmap(checked);
         if ( bmp.IsOk() )
         {
@@ -337,6 +446,7 @@ HBITMAP GetHBitmapForMenu(wxMenuItem *pItem, bool checked = true)
 
             return GetHbitmapOf(pItem->GetBitmap(checked));
         }
+#endif // wxUSE_OWNER_DRAWN
         //else: bitmap is not set
 
         return NULL;
@@ -347,6 +457,11 @@ HBITMAP GetHBitmapForMenu(wxMenuItem *pItem, bool checked = true)
 }
 
 } // anonymous namespace
+
+bool wxMenu::MSWGetRadioGroupRange(int pos, int *start, int *end) const
+{
+    return m_radioData && m_radioData->GetGroupRange(pos, start, end);
+}
 
 // append a new item or submenu to the menu
 bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
@@ -397,6 +512,21 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
         pos = GetMenuItemCount() - 1;
     }
 
+    // Update radio groups data if we're inserting a new radio item.
+    //
+    // NB: If we supported inserting non-radio items in the middle of existing
+    //     radio groups to break them into two subgroups, we'd need to update
+    //     m_radioData in this case too but currently this is not supported.
+    bool checkInitially = false;
+    if ( pItem->GetKind() == wxITEM_RADIO )
+    {
+        if ( !m_radioData )
+            m_radioData = new wxMenuRadioItemsData;
+
+        if ( m_radioData->UpdateOnInsert(pos) )
+            checkInitially = true;
+    }
+
     // adjust position to account for the title of a popup menu, if any
     if ( !GetMenuBar() && !m_title.empty() )
         pos += 2; // for the title itself and its separator
@@ -424,17 +554,17 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
             // them in any case if the item has custom colours or font
             static const wxWinVersion winver = wxGetWinVersion();
             bool mustUseOwnerDrawn = winver < wxWinVersion_98 ||
-                                     pItem->GetTextColour().Ok() ||
-                                     pItem->GetBackgroundColour().Ok() ||
-                                     pItem->GetFont().Ok();
+                                     pItem->GetTextColour().IsOk() ||
+                                     pItem->GetBackgroundColour().IsOk() ||
+                                     pItem->GetFont().IsOk();
 
             if ( !mustUseOwnerDrawn )
             {
                 const wxBitmap& bmpUnchecked = pItem->GetBitmap(false),
                                 bmpChecked   = pItem->GetBitmap(true);
 
-                if ( (bmpUnchecked.Ok() && IsGreaterThanStdSize(bmpUnchecked)) ||
-                     (bmpChecked.Ok()   && IsGreaterThanStdSize(bmpChecked)) )
+                if ( (bmpUnchecked.IsOk() && IsGreaterThanStdSize(bmpUnchecked)) ||
+                     (bmpChecked.IsOk()   && IsGreaterThanStdSize(bmpChecked)) )
                 {
                     mustUseOwnerDrawn = true;
                 }
@@ -600,6 +730,10 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
     }
 
 
+    // Check the item if it should be initially checked.
+    if ( checkInitially )
+        pItem->Check(true);
+
     // if we just appended the title, highlight it
     if ( id == (UINT_PTR)idMenuTitle )
     {
@@ -616,67 +750,9 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
     return true;
 }
 
-void wxMenu::EndRadioGroup()
-{
-    // we're not inside a radio group any longer
-    m_startRadioGroup = -1;
-}
-
 wxMenuItem* wxMenu::DoAppend(wxMenuItem *item)
 {
-    wxCHECK_MSG( item, NULL, wxT("NULL item in wxMenu::DoAppend") );
-
-    bool check = false;
-
-    if ( item->GetKind() == wxITEM_RADIO )
-    {
-        int count = GetMenuItemCount();
-
-        if ( m_startRadioGroup == -1 )
-        {
-            // start a new radio group
-            m_startRadioGroup = count;
-
-            // for now it has just one element
-            item->SetAsRadioGroupStart();
-            item->SetRadioGroupEnd(m_startRadioGroup);
-
-            // ensure that we have a checked item in the radio group
-            check = true;
-        }
-        else // extend the current radio group
-        {
-            // we need to update its end item
-            item->SetRadioGroupStart(m_startRadioGroup);
-            wxMenuItemList::compatibility_iterator node = GetMenuItems().Item(m_startRadioGroup);
-
-            if ( node )
-            {
-                node->GetData()->SetRadioGroupEnd(count);
-            }
-            else
-            {
-                wxFAIL_MSG( wxT("where is the radio group start item?") );
-            }
-        }
-    }
-    else // not a radio item
-    {
-        EndRadioGroup();
-    }
-
-    if ( !wxMenuBase::DoAppend(item) || !DoInsertOrAppend(item) )
-    {
-        return NULL;
-    }
-
-    if ( check )
-    {
-        // check the item initially
-        item->Check(true);
-    }
-
-    return item;
+    return wxMenuBase::DoAppend(item) && DoInsertOrAppend(item) ? item : NULL;
 }
 
 wxMenuItem* wxMenu::DoInsert(size_t pos, wxMenuItem *item)
@@ -712,7 +788,9 @@ wxMenuItem *wxMenu::DoRemove(wxMenuItem *item)
 
         m_accels.RemoveAt(n);
 
+#if wxUSE_OWNER_DRAWN
         ResetMaxAccelWidth();
+#endif
     }
     //else: this item doesn't have an accel, nothing to do
 #endif // wxUSE_ACCEL
@@ -829,9 +907,7 @@ void wxMenu::SetTitle(const wxString& label)
         {
             // modify the title
 #ifdef __WXWINCE__
-            MENUITEMINFO info;
-            wxZeroMemory(info);
-            info.cbSize = sizeof(info);
+            WinStruct<MENUITEMINFO> info;
             info.fMask = MIIM_TYPE;
             info.fType = MFT_STRING;
             info.cch = m_title.length();
@@ -855,7 +931,7 @@ void wxMenu::SetTitle(const wxString& label)
     // put the title string in bold face
     if ( !m_title.empty() )
     {
-        SetDefaultMenuItem(GetHmenu(), (UINT_PTR)idMenuTitle);
+        SetDefaultMenuItem(GetHmenu(), (UINT)idMenuTitle);
     }
 #endif // Win32
 }
@@ -871,19 +947,55 @@ bool wxMenu::MSWCommand(WXUINT WXUNUSED(param), WXWORD id_)
     // ignore commands from the menu title
     if ( id != idMenuTitle )
     {
+        // Default value for uncheckable items.
+        int checked = -1;
+
         // update the check item when it's clicked
         wxMenuItem * const item = FindItem(id);
         if ( item && item->IsCheckable() )
+        {
             item->Toggle();
 
-        // get the status of the menu item: note that it has been just changed
-        // by Toggle() above so here we already get the new state of the item
-        UINT menuState = ::GetMenuState(GetHmenu(), id, MF_BYCOMMAND);
-        SendEvent(id, menuState & MF_CHECKED);
+            // Get the status of the menu item: note that it has been just changed
+            // by Toggle() above so here we already get the new state of the item.
+            //
+            // Also notice that we must pass unsigned id_ and not sign-extended id
+            // to ::GetMenuState() as this is what it expects.
+            UINT menuState = ::GetMenuState(GetHmenu(), id_, MF_BYCOMMAND);
+            checked = (menuState & MF_CHECKED) != 0;
+        }
+
+        SendEvent(id, checked);
     }
 
     return true;
 }
+
+// get the menu with given handle (recursively)
+#if wxUSE_OWNER_DRAWN
+wxMenu* wxMenu::MSWGetMenu(WXHMENU hMenu)
+{
+    // check self
+    if ( GetHMenu() == hMenu )
+        return this;
+
+    // recursively query submenus
+    for ( size_t n = 0 ; n < GetMenuItemCount(); ++n )
+    {
+        wxMenuItem* item = FindItemByPosition(n);
+        wxMenu* submenu = item->GetSubMenu();
+        if ( submenu )
+        {
+            submenu = submenu->MSWGetMenu(hMenu);
+            if (submenu)
+                return submenu;
+        }
+    }
+
+    // unknown hMenu
+    return NULL;
+}
+#endif // wxUSE_OWNER_DRAWN
 
 // ---------------------------------------------------------------------------
 // Menu Bar
@@ -1101,6 +1213,19 @@ void wxMenuBar::EnableTop(size_t pos, bool enable)
     Refresh();
 }
 
+bool wxMenuBar::IsEnabledTop(size_t pos) const
+{
+    wxCHECK_MSG( pos < GetMenuCount(), false, wxS("invalid menu index") );
+    WinStruct<MENUITEMINFO> mii;
+    mii.fMask = MIIM_STATE;
+    if ( !::GetMenuItemInfo(GetHmenu(), pos, TRUE, &mii) )
+    {
+        wxLogLastError(wxS("GetMenuItemInfo(menubar)"));
+    }
+
+    return !(mii.fState & MFS_GRAYED);
+}
+
 void wxMenuBar::SetMenuLabel(size_t pos, const wxString& label)
 {
     wxCHECK_RET( pos < GetMenuCount(), wxT("invalid menu index") );
@@ -1136,9 +1261,7 @@ void wxMenuBar::SetMenuLabel(size_t pos, const wxString& label)
     }
 
 #ifdef __WXWINCE__
-    MENUITEMINFO info;
-    wxZeroMemory(info);
-    info.cbSize = sizeof(info);
+    WinStruct<MENUITEMINFO> info;
     info.fMask = MIIM_TYPE;
     info.fType = MFT_STRING;
     info.cch = label.length();
@@ -1465,6 +1588,26 @@ bool wxMenuBar::AddAdornments(long style)
 void wxMenuBar::Detach()
 {
     wxMenuBarBase::Detach();
+}
+
+// get the menu with given handle (recursively)
+wxMenu* wxMenuBar::MSWGetMenu(WXHMENU hMenu)
+{
+    wxCHECK_MSG( GetHMenu() != hMenu, NULL,
+                 wxT("wxMenuBar::MSWGetMenu(): menu handle is wxMenuBar, not wxMenu") );
+
+#if wxUSE_OWNER_DRAWN
+    // query all menus
+    for ( size_t n = 0 ; n < GetMenuCount(); ++n )
+    {
+        wxMenu* menu = GetMenu(n)->MSWGetMenu(hMenu);
+        if ( menu )
+            return menu;
+    }
+#endif
+
+    // unknown hMenu
+    return NULL;
 }
 
 #endif // wxUSE_MENUS

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Wlodzimierz ABX Skiba from wx/listbook.h
 // Created:     15.09.04
-// RCS-ID:      $Id: choicebk.h 66233 2010-11-22 01:23:21Z VZ $
+// RCS-ID:      $Id: choicebk.h 68810 2011-08-21 14:08:49Z VZ $
 // Copyright:   (c) Vadim Zeitlin, Wlodzimierz Skiba
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ public:
                             wxWindow *page,
                             const wxString& text,
                             bool bSelect = false,
-                            int imageId = -1);
+                            int imageId = NO_IMAGE);
     virtual int SetSelection(size_t n)
         { return DoSetSelection(n, SetSelection_SendEvent); }
     virtual int ChangeSelection(size_t n) { return DoSetSelection(n); }

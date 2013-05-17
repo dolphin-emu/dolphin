@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _CPMEMORY_H
 #define _CPMEMORY_H
@@ -25,18 +12,18 @@ enum
 {
 	ARRAY_POSITION	= 0,
 	ARRAY_NORMAL	= 1,
-	ARRAY_COLOR     = 2,
-	ARRAY_COLOR2    = 3,
-	ARRAY_TEXCOORD0 = 4,
+	ARRAY_COLOR		= 2,
+	ARRAY_COLOR2	= 3,
+	ARRAY_TEXCOORD0	= 4,
 };
 
 // Vertex components
 enum
 {
 	NOT_PRESENT = 0,
-	DIRECT = 1,
-	INDEX8 = 2,
-	INDEX16 = 3,
+	DIRECT		= 1,
+	INDEX8		= 2,
+	INDEX16		= 3,
 };
 
 enum
@@ -74,14 +61,14 @@ union TVtxDesc
 		// 0: not present
 		// 1: present
 		u32 PosMatIdx	: 1;
-		u32 Tex0MatIdx 	: 1;
-		u32 Tex1MatIdx 	: 1;
-		u32 Tex2MatIdx 	: 1;
-		u32 Tex3MatIdx 	: 1;
-		u32 Tex4MatIdx 	: 1;
-		u32 Tex5MatIdx 	: 1;
-		u32 Tex6MatIdx 	: 1;
-		u32 Tex7MatIdx 	: 1;
+		u32 Tex0MatIdx	: 1;
+		u32 Tex1MatIdx	: 1;
+		u32 Tex2MatIdx	: 1;
+		u32 Tex3MatIdx	: 1;
+		u32 Tex4MatIdx	: 1;
+		u32 Tex5MatIdx	: 1;
+		u32 Tex6MatIdx	: 1;
+		u32 Tex7MatIdx	: 1;
 
 		// 00: not present 
 		// 01: direct 
@@ -89,156 +76,158 @@ union TVtxDesc
 		// 11: 16 bit index
 		u32 Position	: 2;
 		u32 Normal		: 2;
-		u32 Color0 		: 2;
-		u32 Color1 		: 2;
-		u32 Tex0Coord 	: 2;
-		u32 Tex1Coord 	: 2;
-		u32 Tex2Coord 	: 2;
-		u32 Tex3Coord 	: 2;
-		u32 Tex4Coord 	: 2;
-		u32 Tex5Coord 	: 2;
-		u32 Tex6Coord 	: 2;
-		u32 Tex7Coord 	: 2;
+		u32 Color0		: 2;
+		u32 Color1		: 2;
+		u32 Tex0Coord	: 2;
+		u32 Tex1Coord	: 2;
+		u32 Tex2Coord	: 2;
+		u32 Tex3Coord	: 2;
+		u32 Tex4Coord	: 2;
+		u32 Tex5Coord	: 2;
+		u32 Tex6Coord	: 2;
+		u32 Tex7Coord	: 2;
 		u32				:31;
 	};
-    struct {
-        u32 Hex0, Hex1;
-    };
+
+	struct
+	{
+		u32 Hex0, Hex1;
+	};
 };
 
 union UVAT_group0
 {
-    u32 Hex;
-    struct 
-    {
-        // 0:8
-        u32 PosElements			: 1;
-        u32 PosFormat			: 3; 
-        u32 PosFrac				: 5; 
-        // 9:12
-        u32 NormalElements		: 1; 
-        u32 NormalFormat		: 3; 
-        // 13:16
-        u32 Color0Elements		: 1;
-        u32 Color0Comp			: 3; 
-        // 17:20
-        u32 Color1Elements		: 1;
-        u32 Color1Comp			: 3; 
-        // 21:29
-        u32 Tex0CoordElements	: 1;
-        u32 Tex0CoordFormat		: 3;
-        u32 Tex0Frac			: 5;
-        // 30:31
-        u32 ByteDequant			: 1;
-        u32 NormalIndex3		: 1;
-    };
+	u32 Hex;
+	struct 
+	{
+		// 0:8
+		u32 PosElements			: 1;
+		u32 PosFormat			: 3; 
+		u32 PosFrac				: 5; 
+		// 9:12
+		u32 NormalElements		: 1; 
+		u32 NormalFormat		: 3; 
+		// 13:16
+		u32 Color0Elements		: 1;
+		u32 Color0Comp			: 3; 
+		// 17:20
+		u32 Color1Elements		: 1;
+		u32 Color1Comp			: 3; 
+		// 21:29
+		u32 Tex0CoordElements	: 1;
+		u32 Tex0CoordFormat		: 3;
+		u32 Tex0Frac			: 5;
+		// 30:31
+		u32 ByteDequant			: 1;
+		u32 NormalIndex3		: 1;
+	};
 };
 
 union UVAT_group1
 {
-    u32 Hex;
-    struct 
-    {
-        // 0:8
-        u32 Tex1CoordElements	: 1;
-        u32 Tex1CoordFormat		: 3;
-        u32 Tex1Frac			: 5;
-        // 9:17
-        u32 Tex2CoordElements	: 1;
-        u32 Tex2CoordFormat		: 3;
-        u32 Tex2Frac			: 5;
-        // 18:26
-        u32 Tex3CoordElements	: 1;
-        u32 Tex3CoordFormat		: 3;
-        u32 Tex3Frac			: 5;
-        // 27:30
-        u32 Tex4CoordElements	: 1;
-        u32 Tex4CoordFormat		: 3;
-        // 
-        u32						: 1;
-    };
+	u32 Hex;
+	struct 
+	{
+		// 0:8
+		u32 Tex1CoordElements	: 1;
+		u32 Tex1CoordFormat		: 3;
+		u32 Tex1Frac			: 5;
+		// 9:17
+		u32 Tex2CoordElements	: 1;
+		u32 Tex2CoordFormat		: 3;
+		u32 Tex2Frac			: 5;
+		// 18:26
+		u32 Tex3CoordElements	: 1;
+		u32 Tex3CoordFormat		: 3;
+		u32 Tex3Frac			: 5;
+		// 27:30
+		u32 Tex4CoordElements	: 1;
+		u32 Tex4CoordFormat		: 3;
+		// 
+		u32						: 1;
+	};
 };
 
 union UVAT_group2
 {
-    u32 Hex;
-    struct 
-    {
-        // 0:4
-        u32 Tex4Frac			: 5;
-        // 5:13
-        u32 Tex5CoordElements	: 1;
-        u32 Tex5CoordFormat		: 3;
-        u32 Tex5Frac			: 5;
-        // 14:22
-        u32 Tex6CoordElements	: 1;
-        u32 Tex6CoordFormat		: 3;
-        u32 Tex6Frac			: 5;
-        // 23:31
-        u32 Tex7CoordElements	: 1;
-        u32 Tex7CoordFormat		: 3;
-        u32 Tex7Frac			: 5;
-    };
+	u32 Hex;
+	struct 
+	{
+		// 0:4
+		u32 Tex4Frac			: 5;
+		// 5:13
+		u32 Tex5CoordElements	: 1;
+		u32 Tex5CoordFormat		: 3;
+		u32 Tex5Frac			: 5;
+		// 14:22
+		u32 Tex6CoordElements	: 1;
+		u32 Tex6CoordFormat		: 3;
+		u32 Tex6Frac			: 5;
+		// 23:31
+		u32 Tex7CoordElements	: 1;
+		u32 Tex7CoordFormat		: 3;
+		u32 Tex7Frac			: 5;
+	};
 };
 
 struct ColorAttr
 {
-    u8 Elements;
-    u8 Comp;
+	u8 Elements;
+	u8 Comp;
 };
 
 struct TexAttr
 {
-    u8 Elements;
-    u8 Format;
-    u8 Frac;
+	u8 Elements;
+	u8 Format;
+	u8 Frac;
 };
 
 struct TVtxAttr
-{		
-    u8 PosElements;
-    u8 PosFormat; 
-    u8 PosFrac; 
-    u8 NormalElements;
-    u8 NormalFormat; 
-    ColorAttr color[2];
-    TexAttr texCoord[8];
-    u8 ByteDequant;
-    u8 NormalIndex3;
+{
+	u8 PosElements;
+	u8 PosFormat; 
+	u8 PosFrac; 
+	u8 NormalElements;
+	u8 NormalFormat; 
+	ColorAttr color[2];
+	TexAttr texCoord[8];
+	u8 ByteDequant;
+	u8 NormalIndex3;
 };
 
 // Matrix indices
 union TMatrixIndexA
 {
-    struct
-    {
-        u32 PosNormalMtxIdx : 6;
-        u32 Tex0MtxIdx : 6;
-        u32 Tex1MtxIdx : 6;
-        u32 Tex2MtxIdx : 6;
-        u32 Tex3MtxIdx : 6;
-    };
-    struct
-    {
-        u32 Hex : 30;
-        u32 unused : 2;
-    };
+	struct
+	{
+		u32 PosNormalMtxIdx : 6;
+		u32 Tex0MtxIdx : 6;
+		u32 Tex1MtxIdx : 6;
+		u32 Tex2MtxIdx : 6;
+		u32 Tex3MtxIdx : 6;
+	};
+	struct
+	{
+		u32 Hex : 30;
+		u32 unused : 2;
+	};
 };
 
 union TMatrixIndexB
 {
-    struct
-    {
-        u32 Tex4MtxIdx : 6;
-        u32 Tex5MtxIdx : 6;
-        u32 Tex6MtxIdx : 6;
-        u32 Tex7MtxIdx : 6;
-    };
-    struct
-    {
-        u32 Hex : 24;
-        u32 unused : 8;
-    };
+	struct
+	{
+		u32 Tex4MtxIdx : 6;
+		u32 Tex5MtxIdx : 6;
+		u32 Tex6MtxIdx : 6;
+		u32 Tex7MtxIdx : 6;
+	};
+	struct
+	{
+		u32 Hex : 24;
+		u32 unused : 8;
+	};
 };
 
 #pragma pack()

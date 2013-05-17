@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 /*
 
@@ -1212,7 +1199,7 @@ void IRBuilder::simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2)
 }
 
 bool IRBuilder::maskedValueIsZero(InstLoc Op1, InstLoc Op2) const {
-	return (~ComputeKnownZeroBits(Op1) & ~ComputeKnownZeroBits(Op1)) == 0;
+	return (~ComputeKnownZeroBits(Op1) & ~ComputeKnownZeroBits(Op2)) == 0;
 }
 
 // Returns I' if I == (0 - I')
@@ -1260,16 +1247,17 @@ static const std::string opcodeNames[] = {
 	"FResult_End", "StorePaired", "StoreSingle", "StoreDouble", "StoreFReg", 
 	"FDCmpCR", "CInt16", "CInt32", "SystemCall", "RFIExit", 
 	"InterpreterBranch", "IdleBranch", "ShortIdleLoop", 
-	"FPExceptionCheckStart", "FPExceptionCheckEnd", "ISIException", "Tramp", 
-	"BlockStart", "BlockEnd", "Int3", 
+	"FPExceptionCheckStart", "FPExceptionCheckEnd", "ISIException", "ExtExceptionCheck",
+	"Tramp", "BlockStart", "BlockEnd", "Int3",
 };
 static const unsigned alwaysUsedList[] = {
 	InterpreterFallback, StoreGReg, StoreCR, StoreLink, StoreCTR, StoreMSR,
 	StoreGQR, StoreSRR, StoreCarry, StoreFPRF, Load8, Load16, Load32, Store8,
 	Store16, Store32, StoreSingle, StoreDouble, StorePaired, StoreFReg, FDCmpCR,
 	BlockStart, BlockEnd, IdleBranch, BranchCond, BranchUncond, ShortIdleLoop,
-	SystemCall, InterpreterBranch, RFIExit, FPExceptionCheckStart,
-	FPExceptionCheckEnd, ISIException, Int3, Tramp, Nop
+	SystemCall, InterpreterBranch, RFIExit, FPExceptionCheck,
+	DSIExceptionCheck, ISIException, ExtExceptionCheck, BreakPointCheck,
+	Int3, Tramp, Nop
 };
 static const unsigned extra8RegList[] = {
 	LoadGReg, LoadCR, LoadGQR, LoadFReg, LoadFRegDENToZero,

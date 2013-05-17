@@ -1,24 +1,14 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "DebugInterface.h"
 #include "BreakPoints.h"
+#include "../../Core/Src/PowerPC/JitCommon/JitBase.h"
+
 #include <sstream>
+#include <algorithm>
 
 bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {
@@ -70,7 +60,11 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bps)
 void BreakPoints::Add(const TBreakPoint& bp)
 {
 	if (!IsAddressBreakPoint(bp.iAddress))
+	{
 		m_BreakPoints.push_back(bp);
+		if (jit)
+			jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4);
+	}
 }
 
 void BreakPoints::Add(u32 em_address, bool temp)
@@ -83,21 +77,40 @@ void BreakPoints::Add(u32 em_address, bool temp)
 		pt.iAddress = em_address;
 
 		m_BreakPoints.push_back(pt);
+
+		if (jit)
+			jit->GetBlockCache()->InvalidateICache(em_address, 4);
 	}
 }
 
-void BreakPoints::Remove(u32 _iAddress)
+void BreakPoints::Remove(u32 em_address)
 {
 	for (TBreakPoints::iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
 	{
-		if (i->iAddress == _iAddress)
+		if (i->iAddress == em_address)
 		{
 			m_BreakPoints.erase(i);
+			if (jit)
+				jit->GetBlockCache()->InvalidateICache(em_address, 4);
 			return;
 		}
 	}
 }
 
+void BreakPoints::Clear()
+{
+	if (jit)
+	{
+		std::for_each(m_BreakPoints.begin(), m_BreakPoints.end(),
+			[](const TBreakPoint& bp)
+			{
+				jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4);
+			}
+		);
+	}
+	
+	m_BreakPoints.clear();
+}
 
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {

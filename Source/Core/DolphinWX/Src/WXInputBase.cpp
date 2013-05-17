@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "WXInputBase.h"
 
@@ -43,7 +30,10 @@ const wxString WXKeyToString(int keycode)
 		case WXK_CLEAR:				return _("Clear");
 		case WXK_SHIFT:				return wxT("Shift");
 		case WXK_ALT:				return wxT("Alt");
-		case WXK_CONTROL:			return _("Control");
+		case WXK_RAW_CONTROL:		return _("Control");
+#ifdef __WXOSX__
+		case WXK_COMMAND:			return _("Command");
+#endif
 		case WXK_MENU:				return _("Menu");
 		case WXK_PAUSE:				return _("Pause");
 		case WXK_CAPITAL:			return _("Caps Lock");
@@ -131,7 +121,6 @@ const wxString WXKeyToString(int keycode)
 		case WXK_WINDOWS_LEFT:			return _("Windows Left");
 		case WXK_WINDOWS_RIGHT:			return _("Windows Right");
 		case WXK_WINDOWS_MENU:			return _("Windows Menu");
-		case WXK_COMMAND:			return _("Command");
 	}
 
 	if (keycode > WXK_SPACE && keycode < WXK_DELETE) {

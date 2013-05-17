@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp 66245 2010-11-23 13:11:10Z VZ $
+// RCS-ID:      $Id: datetime.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -63,7 +63,7 @@
 #if !defined(wxUSE_DATETIME) || wxUSE_DATETIME
 
 #ifndef WX_PRECOMP
-    #ifdef __WXMSW__
+    #ifdef __WINDOWS__
         #include "wx/msw/wrapwin.h"
     #endif
     #include "wx/string.h"
@@ -75,6 +75,7 @@
 #endif // WX_PRECOMP
 
 #include "wx/thread.h"
+#include "wx/time.h"
 #include "wx/tokenzr.h"
 
 #include <ctype.h>
@@ -107,98 +108,6 @@ template<> void wxStringWriteValue(wxString &s , const wxDateTime &data )
 wxCUSTOM_TYPE_INFO(wxDateTime, wxToStringConverter<wxDateTime> , wxFromStringConverter<wxDateTime>)
 
 #endif // wxUSE_EXTENDED_RTTI
-
-
-// ----------------------------------------------------------------------------
-// conditional compilation
-// ----------------------------------------------------------------------------
-
-#if defined(__MWERKS__) && wxUSE_UNICODE
-    #include <wtime.h>
-#endif
-
-#if defined(__DJGPP__) || defined(__WINE__)
-    #include <sys/timeb.h>
-    #include <values.h>
-#endif
-
-#ifndef WX_GMTOFF_IN_TM
-    // Define it for some systems which don't (always) use configure but are
-    // known to have tm_gmtoff field.
-    #if defined(__WXPALMOS__) || defined(__DARWIN__)
-        #define WX_GMTOFF_IN_TM
-    #endif
-#endif
-
-// NB: VC8 safe time functions could/should be used for wxMSW as well probably
-#if defined(__WXWINCE__) && defined(__VISUALC8__)
-
-struct tm *wxLocaltime_r(const time_t *t, struct tm* tm)
-{
-    __time64_t t64 = *t;
-    return _localtime64_s(tm, &t64) == 0 ? tm : NULL;
-}
-
-struct tm *wxGmtime_r(const time_t* t, struct tm* tm)
-{
-    __time64_t t64 = *t;
-    return _gmtime64_s(tm, &t64) == 0 ? tm : NULL;
-}
-
-#else // !wxWinCE with VC8
-
-#if (!defined(HAVE_LOCALTIME_R) || !defined(HAVE_GMTIME_R)) && wxUSE_THREADS && !defined(__WINDOWS__)
-static wxMutex timeLock;
-#endif
-
-#ifndef HAVE_LOCALTIME_R
-struct tm *wxLocaltime_r(const time_t* ticks, struct tm* temp)
-{
-#if wxUSE_THREADS && !defined(__WINDOWS__)
-  // No need to waste time with a mutex on windows since it's using
-  // thread local storage for localtime anyway.
-  wxMutexLocker locker(timeLock);
-#endif
-
-  // Borland CRT crashes when passed 0 ticks for some reason, see SF bug 1704438
-#ifdef __BORLANDC__
-  if ( !*ticks )
-      return NULL;
-#endif
-
-  const tm * const t = localtime(ticks);
-  if ( !t )
-      return NULL;
-
-  memcpy(temp, t, sizeof(struct tm));
-  return temp;
-}
-#endif // !HAVE_LOCALTIME_R
-
-#ifndef HAVE_GMTIME_R
-struct tm *wxGmtime_r(const time_t* ticks, struct tm* temp)
-{
-#if wxUSE_THREADS && !defined(__WINDOWS__)
-  // No need to waste time with a mutex on windows since it's
-  // using thread local storage for gmtime anyway.
-  wxMutexLocker locker(timeLock);
-#endif
-
-#ifdef __BORLANDC__
-  if ( !*ticks )
-      return NULL;
-#endif
-
-  const tm * const t = gmtime(ticks);
-  if ( !t )
-      return NULL;
-
-  memcpy(temp, gmtime(ticks), sizeof(struct tm));
-  return temp;
-}
-#endif // !HAVE_GMTIME_R
-
-#endif // wxWinCE with VC8/other platforms
 
 // ----------------------------------------------------------------------------
 // macros
@@ -327,63 +236,6 @@ wxDateTime::wxDateTime_t GetNumOfDaysInMonth(int year, wxDateTime::Month month)
     return daysInMonth[wxDateTime::IsLeapYear(year)][month];
 }
 
-// returns the time zone in the C sense, i.e. the difference UTC - local
-// (in seconds)
-// NOTE: not static because used by datetimefmt.cpp
-int GetTimeZone()
-{
-#ifdef WX_GMTOFF_IN_TM
-    // set to true when the timezone is set
-    static bool s_timezoneSet = false;
-    static long gmtoffset = LONG_MAX; // invalid timezone
-
-    // ensure that the timezone variable is set by calling wxLocaltime_r
-    if ( !s_timezoneSet )
-    {
-        // just call wxLocaltime_r() instead of figuring out whether this
-        // system supports tzset(), _tzset() or something else
-        time_t t = 0;
-        struct tm tm;
-
-        wxLocaltime_r(&t, &tm);
-        s_timezoneSet = true;
-
-        // note that GMT offset is the opposite of time zone and so to return
-        // consistent results in both WX_GMTOFF_IN_TM and !WX_GMTOFF_IN_TM
-        // cases we have to negate it
-        gmtoffset = -tm.tm_gmtoff;
-    }
-    return (int)gmtoffset;
-#elif defined(__DJGPP__) || defined(__WINE__)
-    struct timeb tb;
-    ftime(&tb);
-    return tb.timezone*60;
-#elif defined(__VISUALC__)
-    // We must initialize the time zone information before using it (this will
-    // be done only once internally).
-    _tzset();
-
-    // Starting with VC++ 8 timezone variable is deprecated and is not even
-    // available in some standard library version so use the new function for
-    // accessing it instead.
-    #if wxCHECK_VISUALC_VERSION(8)
-        long t;
-        _get_timezone(&t);
-        return t;
-    #else // VC++ < 8
-        return timezone;
-    #endif
-#elif defined(WX_TIMEZONE) // If WX_TIMEZONE was defined by configure, use it.
-    return WX_TIMEZONE;
-#elif defined(__BORLANDC__) || defined(__MINGW32__) || defined(__VISAGECPP__)
-    return _timezone;
-#elif defined(__MWERKS__)
-    return 28800;
-#else // unknown platform -- assume it has timezone
-    return timezone;
-#endif // WX_GMTOFF_IN_TM/!WX_GMTOFF_IN_TM
-}
-
 // return the integral part of the JDN for the midnight of the given date (to
 // get the real JDN you need to add 0.5, this is, in fact, JDN of the
 // noon of the previous day)
@@ -437,8 +289,15 @@ wxString CallStrftime(const wxString& format, const tm* tm)
 
     if ( !wxStrftime(buf, WXSIZEOF(buf), format, tm) )
     {
-        // if the format is valid, buffer must be too small?
-        wxFAIL_MSG(wxT("strftime() failed"));
+        // There is one special case in which strftime() can return 0 without
+        // indicating an error: "%p" may give empty string depending on the
+        // locale, so check for it explicitly. Apparently it's really the only
+        // exception.
+        if ( format != wxS("%p") )
+        {
+            // if the format is valid, buffer must be too small?
+            wxFAIL_MSG(wxT("strftime() failed"));
+        }
 
         buf[0] = '\0';
     }
@@ -602,7 +461,7 @@ wxDateTime::TimeZone::TimeZone(wxDateTime::TZ tz)
         case wxDateTime::Local:
             // get the offset from C RTL: it returns the difference GMT-local
             // while we want to have the offset _from_ GMT, hence the '-'
-            m_offset = -GetTimeZone();
+            m_offset = -wxGetTimeZone();
             break;
 
         case wxDateTime::GMT_12:
@@ -1243,7 +1102,7 @@ wxDateTime wxDateTime::GetEndDST(int year, Country country)
 // return the current time with ms precision
 /* static */ wxDateTime wxDateTime::UNow()
 {
-    return wxDateTime(wxGetLocalTimeMillis());
+    return wxDateTime(wxGetUTCTimeMillis());
 }
 
 // the values in the tm structure contain the local time
@@ -1259,7 +1118,7 @@ wxDateTime& wxDateTime::Set(const struct tm& tm)
         if ( tm2.tm_year == 70 && tm2.tm_mon == 0 && tm2.tm_mday == 1 )
         {
             return Set((time_t)(
-                       GetTimeZone() +
+                       wxGetTimeZone() +
                        tm2.tm_hour * MIN_PER_HOUR * SEC_PER_MIN +
                        tm2.tm_min * SEC_PER_MIN +
                        tm2.tm_sec));
@@ -1373,7 +1232,7 @@ wxDateTime& wxDateTime::Set(wxDateTime_t day,
         m_time *= SECONDS_PER_DAY * TIME_T_FACTOR;
 
         // JDN corresponds to GMT, we take localtime
-        Add(wxTimeSpan(hour, minute, second + GetTimeZone(), millisec));
+        Add(wxTimeSpan(hour, minute, second + wxGetTimeZone(), millisec));
     }
 
     return *this;
@@ -1512,7 +1371,7 @@ wxDateTime::Tm wxDateTime::GetTm(const TimeZone& tz) const
         // use C RTL functions
         struct tm tmstruct;
         tm *tm;
-        if ( tz.GetOffset() == -GetTimeZone() )
+        if ( tz.GetOffset() == -wxGetTimeZone() )
         {
             // we are working with local time
             tm = wxLocaltime_r(&time, &tmstruct);
@@ -2146,7 +2005,7 @@ int wxDateTime::IsDST(wxDateTime::Country country) const
 
 wxDateTime& wxDateTime::MakeTimezone(const TimeZone& tz, bool noDST)
 {
-    long secDiff = GetTimeZone() + tz.GetOffset();
+    long secDiff = wxGetTimeZone() + tz.GetOffset();
 
     // we need to know whether DST is or not in effect for this date unless
     // the test disabled by the caller
@@ -2161,7 +2020,7 @@ wxDateTime& wxDateTime::MakeTimezone(const TimeZone& tz, bool noDST)
 
 wxDateTime& wxDateTime::MakeFromTimezone(const TimeZone& tz, bool noDST)
 {
-    long secDiff = GetTimeZone() + tz.GetOffset();
+    long secDiff = wxGetTimeZone() + tz.GetOffset();
 
     // we need to know whether DST is or not in effect for this date unless
     // the test disabled by the caller
@@ -2339,7 +2198,7 @@ WXDLLIMPEXP_BASE void wxPrevWDay(wxDateTime::WeekDay& wd)
                                : (wxDateTime::WeekDay)(wd - 1);
 }
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
 
 wxDateTime& wxDateTime::SetFromMSWSysTime(const SYSTEMTIME& st)
 {
@@ -2387,6 +2246,6 @@ void wxDateTime::GetAsMSWSysDate(SYSTEMTIME* st) const
     st->wMilliseconds = 0;
 }
 
-#endif // __WXMSW__
+#endif // __WINDOWS__
 
 #endif // wxUSE_DATETIME

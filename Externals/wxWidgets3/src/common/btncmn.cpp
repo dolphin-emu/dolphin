@@ -3,7 +3,7 @@
 // Purpose:     implementation of wxButtonBase
 // Author:      Vadim Zeitlin
 // Created:     2007-04-08
-// RCS-ID:      $Id: btncmn.cpp 66592 2011-01-05 18:27:58Z PC $
+// RCS-ID:      $Id: btncmn.cpp 67931 2011-06-14 13:00:42Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -107,7 +107,7 @@ wxWindow *wxButtonBase::SetDefault()
     return tlw->SetDefaultItem(this);
 }
 
-void wxButtonBase::SetBitmapPosition(wxDirection dir)
+void wxAnyButtonBase::SetBitmapPosition(wxDirection dir)
 {
     wxASSERT_MSG( !(dir & ~wxDIRECTION_MASK), "non-direction flag used" );
     wxASSERT_MSG( !!(dir & wxLEFT) +

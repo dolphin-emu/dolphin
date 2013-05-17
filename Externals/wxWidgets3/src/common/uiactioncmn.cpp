@@ -4,7 +4,7 @@
 // Author:      Kevin Ollivier, Steven Lamerton, Vadim Zeitlin
 // Modified by:
 // Created:     2010-03-06
-// RCS-ID:      $Id: uiactioncmn.cpp 65561 2010-09-17 11:17:55Z DS $
+// RCS-ID:      $Id: uiactioncmn.cpp 69960 2011-12-08 15:55:40Z VZ $
 // Copyright:   (c) Kevin Ollivier
 //              (c) 2010 Steven Lamerton
 //              (c) 2010 Vadim Zeitlin
@@ -80,6 +80,51 @@ void wxUIActionSimulator::SimulateModifiers(int modifiers, bool isDown)
 
 bool wxUIActionSimulator::Char(int keycode, int modifiers)
 {
+    switch(keycode)
+    {
+    case '0':
+        keycode = '0';
+        break;
+    case '1':
+        keycode = '1';
+        break;
+    case '2':
+        keycode = '2';
+        break;
+    case '3':
+        keycode = '3';
+        break;
+    case '4':
+        keycode = '4';
+        break;
+    case '5':
+        keycode = '5';
+        break;
+    case '6':
+        keycode = '6';
+        break;
+    case '7':
+        keycode = '7';
+        break;
+    case '8':
+        keycode = '8';
+        break;
+    case '9':
+        keycode = '9';
+        break;
+    case '+':
+        keycode = '+';
+        break;
+    case '-':
+        keycode = '-';
+        break;
+    case '.':
+        keycode = '.';
+        break;
+    default:
+        break;
+    };
+
     Key(keycode, modifiers, true);
     Key(keycode, modifiers, false);
 
@@ -91,9 +136,6 @@ bool wxUIActionSimulator::Text(const char *s)
     while ( *s != '\0' )
     {
         const char ch = *s++;
-
-        wxASSERT_MSG( ch, "Only letters are allowed" );
-
         if ( !Char(ch, isupper(ch) ? wxMOD_SHIFT : 0) )
             return false;
     }

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "ChunkFile.h"
@@ -25,6 +12,7 @@
 
 #include "EXI.h"
 #include "Sram.h"
+#include "../Movie.h"
 SRAM g_SRAM;
 
 namespace ExpansionInterface
@@ -44,7 +32,12 @@ void Init()
 	for (u32 i = 0; i < NUM_CHANNELS; i++)
 		g_Channels[i] = new CEXIChannel(i);
 
-	g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[0],	0); // SlotA
+	if (Movie::IsPlayingInput() && Movie::IsUsingMemcard() && Movie::IsConfigSaved())
+		g_Channels[0]->AddDevice(EXIDEVICE_MEMORYCARD,	0); // SlotA
+	else if(Movie::IsPlayingInput() && !Movie::IsUsingMemcard() && Movie::IsConfigSaved())
+		g_Channels[0]->AddDevice(EXIDEVICE_NONE,		0); // SlotA
+	else
+		g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[0],	0); // SlotA
 	g_Channels[0]->AddDevice(EXIDEVICE_MASKROM,						1);
 	g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[2],	2); // Serial Port 1
 	g_Channels[1]->AddDevice(SConfig::GetInstance().m_EXIDevice[1],	0); // SlotB
@@ -64,13 +57,16 @@ void Shutdown()
 
 void DoState(PointerWrap &p)
 {
-	// TODO: Complete DoState for each IEXIDevice
-	g_Channels[0]->GetDevice(1)->DoState(p);
-	g_Channels[0]->GetDevice(2)->DoState(p);
-	g_Channels[0]->GetDevice(4)->DoState(p);
-	g_Channels[1]->GetDevice(1)->DoState(p);	
-	g_Channels[2]->GetDevice(1)->DoState(p);
+	for (int c = 0; c < NUM_CHANNELS; ++c)
+		g_Channels[c]->DoState(p);
 }
+
+void PauseAndLock(bool doLock, bool unpauseOnUnlock)
+{
+	for (int c = 0; c < NUM_CHANNELS; ++c)
+		g_Channels[c]->PauseAndLock(doLock, unpauseOnUnlock);
+}
+
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 {
@@ -87,6 +83,17 @@ void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 devi
 	// Let the hardware see no device for .5b cycles
 	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | ((u64)EXIDEVICE_NONE << 16) | device_num);
 	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | ((u64)device_type << 16) | device_num);
+}
+
+IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
+{
+	for (int i = 0; i < NUM_CHANNELS; ++i)
+	{
+		IEXIDevice* device = g_Channels[i]->FindDevice(device_type, customIndex);
+		if (device)
+			return device;
+	}
+	return NULL;
 }
 
 // Unused (?!)

@@ -3,7 +3,7 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: combobox.h 65324 2010-08-16 17:48:28Z RR $
+// Id:          $Id: combobox.h 70880 2012-03-11 23:55:19Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -88,6 +88,9 @@ public:
     {
         return wxItemContainer::GetStringSelection();
     }
+
+    virtual void SetString(unsigned int n, const wxString& string);
+
     virtual void Popup();
     virtual void Dismiss();
 
@@ -97,7 +100,9 @@ public:
         wxItemContainer::Clear();
     }
 
-    bool IsEmpty() const { return wxItemContainer::IsEmpty(); }
+    // See wxComboBoxBase discussion of IsEmpty().
+    bool IsListEmpty() const { return wxItemContainer::IsEmpty(); }
+    bool IsTextEmpty() const { return wxTextEntry::IsEmpty(); }
 
     void OnChar( wxKeyEvent &event );
 

@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux, Guillermo Rodriguez Garcia, Vadim Zeitlin
 // Modified by:
 // Created:     11/07/98
-// RCS-ID:      $Id: stream.h 59761 2009-03-23 10:59:40Z VZ $
+// RCS-ID:      $Id: stream.h 68331 2011-07-22 16:16:00Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,7 +64,7 @@ public:
     bool operator!() const { return !IsOk(); }
 
     // reset the stream state
-    void Reset() { m_lasterror = wxSTREAM_NO_ERROR; }
+    void Reset(wxStreamError error = wxSTREAM_NO_ERROR) { m_lasterror = error; }
 
     // this doesn't make sense for all streams, always test its return value
     virtual size_t GetSize() const;

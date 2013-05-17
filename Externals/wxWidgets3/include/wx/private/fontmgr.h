@@ -3,7 +3,7 @@
 // Purpose:     font management for ports that don't have their own
 // Author:      Vaclav Slavik
 // Created:     2006-11-18
-// RCS-ID:      $Id: fontmgr.h 62349 2009-10-09 13:04:59Z VZ $
+// RCS-ID:      $Id: fontmgr.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) 2001-2002 SciTech Software, Inc. (www.scitechsoft.com)
 //              (c) 2006 REA Elektronik GmbH
 // Licence:     wxWindows licence
@@ -192,9 +192,7 @@ protected:
 
 
 
-#if defined(__WXMGL__)
-    #include "wx/mgl/private/fontmgr.h"
-#elif defined(__WXDFB__)
+#if defined(__WXDFB__)
     #include "wx/dfb/private/fontmgr.h"
 #endif
 

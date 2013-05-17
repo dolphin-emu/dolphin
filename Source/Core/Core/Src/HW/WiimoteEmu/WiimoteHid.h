@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef WIIMOTE_HID_H
 #define WIIMOTE_HID_H
@@ -28,7 +15,8 @@
 
 // Source: HID_010_SPC_PFL/1.0 (official HID specification)
 
-struct hid_packet {
+struct hid_packet
+{
 	u8 param : 4;
 	u8 type : 4;
 	u8 data[0];
@@ -199,17 +187,21 @@ struct wm_report
 #define WM_RUMBLE 0x10
 
 #define WM_LEDS 0x11
-struct wm_leds {
+struct wm_leds
+{
 	u8 rumble : 1;
+	// real wii also sets bit 0x2 (unknown purpose)
 	u8 : 3;
 	u8 leds : 4;
 };
 
 #define WM_REPORT_MODE 0x12
-struct wm_report_mode {
+struct wm_report_mode
+{
 	u8 rumble : 1;
-	u8 continuous : 1;		// these 2 seem to be named wrong
+	// unsure what "all_the_time" actually is, the real wii does set it (bit 0x2)
 	u8 all_the_time : 1;
+	u8 continuous : 1;
 	u8 : 5;
 	u8 mode;
 };
@@ -218,13 +210,15 @@ struct wm_report_mode {
 #define WM_IR_LOGIC 0x1A
 
 #define WM_REQUEST_STATUS 0x15
-struct wm_request_status {
+struct wm_request_status
+{
 	u8 rumble : 1;
 	u8 : 7;
 };
 
 #define WM_STATUS_REPORT 0x20
-struct wm_status_report {
+struct wm_status_report
+{
 	wm_core buttons;
 	u8 battery_low : 1;
 	u8 extension : 1;
@@ -255,7 +249,8 @@ struct wm_acknowledge
 };
 
 #define WM_READ_DATA 0x17
-struct wm_read_data {
+struct wm_read_data
+{
 	u8 rumble : 1;
 	u8 space : 2;	//see WM_SPACE_*
 	u8 : 5;
@@ -269,7 +264,8 @@ struct wm_read_data {
 #define WM_SPACE_INVALID 3
 
 #define WM_READ_DATA_REPLY 0x21
-struct wm_read_data_reply {
+struct wm_read_data_reply
+{
 	wm_core buttons;
 	u8 error : 4;	//see WM_RDERR_*
 	u8 size : 4;
@@ -284,12 +280,14 @@ struct wm_read_data_reply {
 // Data reports
 
 #define WM_REPORT_CORE 0x30
-struct wm_report_core {
+struct wm_report_core
+{
 	wm_core c;
 };
 
 #define WM_REPORT_CORE_ACCEL 0x31
-struct wm_report_core_accel {
+struct wm_report_core_accel
+{
 	wm_core c;
 	wm_accel a;
 };
@@ -297,7 +295,8 @@ struct wm_report_core_accel {
 #define WM_REPORT_CORE_EXT8 0x32
 
 #define WM_REPORT_CORE_ACCEL_IR12 0x33
-struct wm_report_core_accel_ir12 {
+struct wm_report_core_accel_ir12
+{
 	wm_core c;
 	wm_accel a;
 	wm_ir_extended ir[4];
@@ -339,7 +338,8 @@ struct wm_report_ext21
 #define WM_SPEAKER_ENABLE 0x14
 #define WM_SPEAKER_MUTE 0x19 
 #define WM_WRITE_SPEAKER_DATA 0x18
-struct wm_speaker_data {
+struct wm_speaker_data
+{
 	u8 unknown : 3;
 	u8 length : 5;
 	u8 data[20];
@@ -370,28 +370,34 @@ struct accel_cal
 	} one_g;
 };
 
-struct nu_js {
+struct nu_js
+{
 	u8 max, min, center;
 };
-struct cc_trigger {
+
+struct cc_trigger
+{
 	u8 neutral;
 };
+
 struct nu_cal
 {
-	wm_accel cal_zero;		// zero calibratio
+	wm_accel cal_zero;		// zero calibration
 	wm_accel cal_g;			// g size
 	nu_js jx;				//
 	nu_js jy;				//
 };
+
 struct cc_cal
 {
 	nu_js Lx;				//
 	nu_js Ly;				//
 	nu_js Rx;				//
 	nu_js Ry;				//
-	cc_trigger Tl;				//
-	cc_trigger Tr;				//
+	cc_trigger Tl;			//
+	cc_trigger Tr;			//
 };
+
 struct gh3_cal
 {
 	nu_js Lx;

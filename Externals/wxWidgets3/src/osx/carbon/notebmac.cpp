@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: notebmac.cpp 67230 2011-03-18 14:20:12Z SC $
+// RCS-ID:      $Id: notebmac.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,7 +169,7 @@ void wxMacControl::SetupTabs( const wxNotebook& notebook)
         if ( notebook.GetImageList() && notebook.GetPageImage(ii) >= 0 )
         {
             const wxBitmap bmap = notebook.GetImageList()->GetBitmap( notebook.GetPageImage( ii ) ) ;
-            if ( bmap.Ok() )
+            if ( bmap.IsOk() )
             {
                 ControlButtonContentInfo info ;
 

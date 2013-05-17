@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: slider.mm 67232 2011-03-18 15:10:15Z DS $
+// RCS-ID:      $Id: slider.mm 67887 2011-06-08 22:48:29Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -90,6 +90,13 @@ wxWidgetImplType* wxWidgetImpl::CreateSlider( wxWindowMac* wxpeer,
                                     long WXUNUSED(extraStyle))
 {
     NSRect r = wxOSXGetFrameForControl( wxpeer, pos , size ) ;
+    if ( size == wxDefaultSize )
+    {
+        if ( style & wxSL_VERTICAL )
+            r.size.height = r.size.width * 2;
+        else
+            r.size.width = r.size.height * 2;
+    }
     wxNSSlider* v = [[wxNSSlider alloc] initWithFrame:r];
 
     int tickMarks = 0;

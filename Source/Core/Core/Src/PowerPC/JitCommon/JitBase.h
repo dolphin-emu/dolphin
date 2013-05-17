@@ -1,19 +1,6 @@
-// Copyright (C) 2010 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _JITBASE_H
 #define _JITBASE_H
@@ -28,24 +15,18 @@
 #include "JitBackpatch.h"  // for EmuCodeBlock
 #include "JitAsmCommon.h"
 
-#include "PowerPCDisasm.h"
-#include "disasm.h"
+#include <set>
 
 #define JIT_OPCODE 0
 
-class JitBase : public CPUCoreBase, public EmuCodeBlock
+class JitBase : public CPUCoreBase
 {
 protected:
-	JitBlockCache blocks;
-	TrampolineCache trampolines;
-
 	struct JitOptions
 	{
 		bool optimizeStack;
-		bool assumeFPLoadFromMem;
 		bool enableBlocklink;
 		bool fpAccurateFcmp;
-		bool enableFastMem;
 		bool optimizeGatherPipe;
 		bool fastInterrupts;
 		bool accurateSinglePrecision;
@@ -60,11 +41,16 @@ protected:
 		int blockSize;
 		int instructionNumber;
 		int downcountAmount;
+		u32 numLoadStoreInst;
+		u32 numFloatingPointInst;
 
+		bool firstFPInstructionFound;
 		bool isLastInstruction;
 		bool forceUnsafeLoad;
 		bool memcheck;
+		bool skipnext;
 		bool broken_block;
+		int block_flags;
 
 		int fifoBytesThisBlock;
 
@@ -75,20 +61,37 @@ protected:
 		u8* rewriteStart;
 
 		JitBlock *curBlock;
+
+		std::set<u32> fifoWriteAddresses;
 	};
 
 public:
 	// This should probably be removed from public:
 	JitOptions jo;
 	JitState js;
-
-	JitBlockCache *GetBlockCache() { return &blocks; }
+	
+	virtual JitBaseBlockCache *GetBlockCache() = 0;
 
 	virtual void Jit(u32 em_address) = 0;
 
+	virtual	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, void *ctx) = 0;
+
+	virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
+
+	virtual bool IsInCodeSpace(u8 *ptr) = 0;
+};
+
+class Jitx86Base : public JitBase, public EmuCodeBlock
+{
+protected:
+	JitBlockCache blocks;
+	TrampolineCache trampolines;	
+public:
+	JitBlockCache *GetBlockCache() { return &blocks; }
+	
 	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, void *ctx);
 
-	virtual const CommonAsmRoutines *GetAsmRoutines() = 0;
+	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
 };
 
 extern JitBase *jit;

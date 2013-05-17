@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: treectrl.h 64943 2010-07-13 13:29:58Z VZ $
+// RCS-ID:      $Id: treectrl.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -225,7 +225,7 @@ public:
     bool SortChildren(long item);
     bool EnsureVisible(long item);
 
-    void Command(wxCommandEvent& event) { ProcessCommand(event); };
+    void Command(wxCommandEvent& event) { ProcessCommand(event); }
 
 protected:
     wxTextCtrl*  m_textCtrl;

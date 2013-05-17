@@ -6,7 +6,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h 67233 2011-03-18 15:45:51Z SC $
+// RCS-ID:      $Id: private.h 70354 2012-01-15 15:53:56Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@
     #define wxOSX_10_6_AND_LATER(x)
 #endif
 
-#if !wxUSE_GUI || wxOSX_USE_COCOA_OR_CARBON
+#if ( !wxUSE_GUI && !wxOSX_USE_IPHONE ) || wxOSX_USE_COCOA_OR_CARBON
 
 // Carbon functions are currently still used in wxOSX/Cocoa too (including
 // wxBase part of it).
@@ -46,6 +46,11 @@ wxString WXDLLIMPEXP_CORE wxMacMakeStringFromPascal( const unsigned char * from 
 WXDLLIMPEXP_BASE wxString wxMacFSRefToPath( const FSRef *fsRef , CFStringRef additionalPathComponent = NULL );
 WXDLLIMPEXP_BASE OSStatus wxMacPathToFSRef( const wxString&path , FSRef *fsRef );
 WXDLLIMPEXP_BASE wxString wxMacHFSUniStrToString( ConstHFSUniStr255Param uniname );
+
+// keycode utils from app.cpp
+
+WXDLLIMPEXP_BASE CGKeyCode wxCharCodeWXToOSX(wxKeyCode code);
+WXDLLIMPEXP_BASE long wxMacTranslateKey(unsigned char key, unsigned char code);
 
 #endif
 
@@ -626,6 +631,9 @@ public :
     virtual void GetSelection( long* from, long* to ) const = 0 ;
     virtual void WriteText( const wxString& str ) = 0 ;
 
+    virtual bool CanClipMaxLength() const { return false; }
+    virtual void SetMaxLength(unsigned long WXUNUSED(len)) {}
+    
     virtual bool GetStyle( long position, wxTextAttr& style);
     virtual void SetStyle( long start, long end, const wxTextAttr& style ) ;
     virtual void Copy() ;
@@ -675,16 +683,18 @@ public :
 
     virtual ~wxComboWidgetImpl() {}
 
-    virtual int GetSelectedItem() const { return -1; };
-    virtual void SetSelectedItem(int WXUNUSED(item)) {};
+    virtual int GetSelectedItem() const { return -1; }
+    virtual void SetSelectedItem(int WXUNUSED(item)) {}
 
-    virtual int GetNumberOfItems() const { return -1; };
+    virtual int GetNumberOfItems() const { return -1; }
 
     virtual void InsertItem(int WXUNUSED(pos), const wxString& WXUNUSED(item)) {}
 
     virtual void RemoveItem(int WXUNUSED(pos)) {}
 
     virtual void Clear() {}
+    virtual void Popup() {}
+    virtual void Dismiss() {}
 
     virtual wxString GetStringAtIndex(int WXUNUSED(pos)) const { return wxEmptyString; }
 
@@ -855,6 +865,8 @@ public :
 
     virtual void SetModified(bool WXUNUSED(modified)) { }
     virtual bool IsModified() const { return false; }
+
+    virtual void SetRepresentedFilename(const wxString& WXUNUSED(filename)) { }
 
 #if wxOSX_USE_IPHONE
     virtual CGFloat GetWindowLevel() const { return 0.0; }

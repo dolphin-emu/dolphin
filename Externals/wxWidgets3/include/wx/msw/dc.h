@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dc.h 67063 2011-02-27 12:48:13Z VZ $
+// RCS-ID:      $Id: dc.h 67588 2011-04-23 16:03:10Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -86,6 +86,13 @@ public:
     virtual void SetLogicalOrigin(wxCoord x, wxCoord y);
     virtual void SetDeviceOrigin(wxCoord x, wxCoord y);
     virtual void SetAxisOrientation(bool xLeftRight, bool yBottomUp);
+
+#if wxUSE_DC_TRANSFORM_MATRIX
+    virtual bool CanUseTransformMatrix() const;
+    virtual bool SetTransformMatrix(const wxAffineMatrix2D& matrix);
+    virtual wxAffineMatrix2D GetTransformMatrix() const;
+    virtual void ResetTransformMatrix();
+#endif // wxUSE_DC_TRANSFORM_MATRIX
 
     virtual void SetLogicalFunction(wxRasterOperationMode function);
 

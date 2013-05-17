@@ -50,6 +50,14 @@ public:
 	static void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma);
 	static const XFBSourceBase* const* GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
 
+	static void SetLastXfbWidth(unsigned int width) { s_last_xfb_width = width; }
+	static void SetLastXfbHeight(unsigned int height) { s_last_xfb_height = height; }
+	static unsigned int LastXfbWidth() { return s_last_xfb_width; }
+	static unsigned int LastXfbHeight() { return s_last_xfb_height; }
+
+	static int ScaleToVirtualXfbWidth(int x, unsigned int backbuffer_width);
+	static int ScaleToVirtualXfbHeight(int y, unsigned int backbuffer_height);
+
 protected:
 	struct VirtualXFB
 	{
@@ -85,6 +93,9 @@ private:
 	static VirtualXFBListType m_virtualXFBList; // Only used in Virtual XFB mode
 
 	static const XFBSourceBase* m_overlappingXFBArray[MAX_VIRTUAL_XFB];
+
+	static unsigned int s_last_xfb_width;
+	static unsigned int s_last_xfb_height;
 };
 
 extern FramebufferManagerBase *g_framebuffer_manager;

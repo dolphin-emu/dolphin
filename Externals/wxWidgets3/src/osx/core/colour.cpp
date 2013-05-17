@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: colour.cpp 67254 2011-03-20 00:14:35Z DS $
+// RCS-ID:      $Id: colour.cpp 70400 2012-01-19 14:06:36Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -79,6 +79,7 @@ void wxColour::InitRGBA (ChannelType r, ChannelType g, ChannelType b, ChannelTyp
         CGFloat components[4] = { (CGFloat)(r / 255.0), (CGFloat) (g / 255.0), (CGFloat) (b / 255.0), (CGFloat) (a / 255.0) } ;
         col = CGColorCreate( wxMacGetGenericRGBColorSpace() , components ) ;
     }
+    wxASSERT_MSG(col != NULL, "Invalid CoreGraphics Color");
     m_cgColour.reset( col );
 }
 
@@ -101,12 +102,14 @@ void wxColour::InitRGBColor( const RGBColor& col )
                                     (CGFloat)(col.blue / 65535.0), (CGFloat) 1.0 } ;
         cfcol = CGColorCreate( wxMacGetGenericRGBColorSpace() , components ) ;
     }
+    wxASSERT_MSG(cfcol != NULL, "Invalid CoreGraphics Color");
     m_cgColour.reset( cfcol );
 }
 #endif
 
 void wxColour::InitCGColorRef( CGColorRef col )
 {
+    wxASSERT_MSG(col != NULL, "Invalid CoreGraphics Color");
     m_cgColour.reset( col );
     size_t noComp = CGColorGetNumberOfComponents( col );
 

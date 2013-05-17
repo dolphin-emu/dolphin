@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     07.05.02
-// RCS-ID:      $Id: build.h 64531 2010-06-09 13:23:13Z FM $
+// RCS-ID:      $Id: build.h 67343 2011-03-30 14:16:04Z VZ $
 // Copyright:   (c) 2002 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -85,7 +85,7 @@
 #endif
 
 // deriving wxWin containers from STL ones changes them completely:
-#if wxUSE_STL
+#if wxUSE_STD_CONTAINERS
     #define __WX_BO_STL ",STL containers"
 #else
     #define __WX_BO_STL ",wx containers"

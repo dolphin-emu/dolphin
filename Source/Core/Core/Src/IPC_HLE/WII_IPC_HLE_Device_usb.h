@@ -1,25 +1,14 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #pragma once
 
-#include "hci.h"
+#include <algorithm>
 #include <vector>
 #include <queue>
+
+#include "hci.h"
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
 #include "WII_IPC_HLE_WiiMote.h"
@@ -41,8 +30,20 @@ struct SQueuedEvent
 		}
 		memset(m_buffer, 0, 1024);
 	}
+
+	SQueuedEvent()
+		: m_size(0)
+		, m_connectionHandle(0)
+	{
+	}
 };
 
+// Hacks for ChunkFile to accept SQueuedEvent as POD
+namespace std
+{
+template <>
+struct is_pod<SQueuedEvent> : std::true_type {};
+}
 
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
 // /dev/usb/oh1 -> internal usb bus
@@ -88,7 +89,7 @@ private:
 
 	enum USBEndpoint
 	{
-		HCI_CTRL		= 0x00,	
+		HCI_CTRL		= 0x00,
 		HCI_EVENT		= 0x81,
 		ACL_DATA_IN		= 0x82,
 		ACL_DATA_OUT	= 0x02
@@ -162,70 +163,33 @@ private:
 
 	class ACLPool
 	{
-		u8 m_pool[m_acl_pkt_size * m_acl_pkts_num];
-		int m_read_ptr;
-		int m_write_ptr;
-
-		struct
+		struct Packet
 		{
+			u8 data[m_acl_pkt_size];
 			u16 size;
 			u16 conn_handle;
-		} m_info[m_acl_pkts_num];
+		};
+		
+		std::deque<Packet> m_queue;
 
 	public:
 		ACLPool()
-			: m_read_ptr(0)
-			, m_write_ptr(0)
+			: m_queue()
 		{}
 
-		void Store(const u8* data, const u16 size, const u16 conn_handle)
-		{
-			_dbg_assert_msg_(WII_IPC_WIIMOTE,
-				size < m_acl_pkt_size, "acl packet too large for pool");
-
-			const int next_write_ptr = (m_write_ptr + 1) % m_acl_pkts_num;
-			if (next_write_ptr == m_read_ptr)
-			{
-				// Many simultaneous exchanges of ACL packets tend to cause the
-				// 10-packet limit to be exceeded.  Typically, this occurs when
-				// many emulated Wiimotes are requesting connections at once.
-				// See issue 4608 for more info.
-				ERROR_LOG(WII_IPC_WIIMOTE, "ACL queue is full - current packet will be "
-						"dropped! (m_write_ptr(%d) was about to overlap m_read_ptr(%d))",
-						m_write_ptr, m_read_ptr);
-				return;
-			}
-
-			memcpy(m_pool + m_acl_pkt_size * m_write_ptr, data, size);
-			m_info[m_write_ptr].size = size;
-			m_info[m_write_ptr].conn_handle = conn_handle;
-			m_write_ptr = next_write_ptr;
-		}
+		void Store(const u8* data, const u16 size, const u16 conn_handle);
 
 		void WriteToEndpoint(CtrlBuffer& endpoint);
 
 		bool IsEmpty() const
 		{
-			return m_write_ptr == m_read_ptr;
-		}
-
-		int GetWritePos() const
-		{
-			return m_write_ptr;
-		}
-
-		int GetReadPos() const
-		{
-			return m_read_ptr;
+			return m_queue.empty();
 		}
 
 		// For SaveStates
 		void DoState(PointerWrap &p)
 		{
-			p.Do(m_write_ptr);
-			p.Do(m_read_ptr);
-			p.DoArray((u8 *)m_pool, sizeof(m_pool));
-			p.DoArray((u8 *)m_info, sizeof(m_info));
+			p.Do(m_queue);
 		}
 	} m_acl_pool;
 
@@ -276,7 +240,7 @@ private:
 	void CommandDisconnect(u8* _Input);
 	void CommandLinkKeyNegRep(u8* _Input);
 	void CommandLinkKeyRep(u8* _Input);
-    void CommandDeleteStoredLinkKey(u8* _Input);
+	void CommandDeleteStoredLinkKey(u8* _Input);
 	void CommandChangeConPacketType(u8* _Input);
 
 	// OGF 0x02	Link policy commands and return parameters

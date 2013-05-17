@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.07.99
-// RCS-ID:      $Id: choice.h 58757 2009-02-08 11:45:59Z VZ $
+// RCS-ID:      $Id: choice.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -84,8 +84,6 @@ private:
     #include "wx/cocoa/choice.h"
 #elif defined(__WXPM__)
     #include "wx/os2/choice.h"
-#elif defined(__WXPALMOS__)
-    #include "wx/palmos/choice.h"
 #endif
 
 #endif // wxUSE_CHOICE

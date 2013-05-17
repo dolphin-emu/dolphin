@@ -3,7 +3,7 @@
 // Purpose:     wxDataViewRenderer for generic wxDataViewCtrl implementation
 // Author:      Robert Roebling, Vadim Zeitlin
 // Created:     2009-11-07 (extracted from wx/generic/dataview.h)
-// RCS-ID:      $Id: dvrenderer.h 67099 2011-03-01 12:16:49Z VS $
+// RCS-ID:      $Id: dvrenderer.h 69473 2011-10-19 16:20:17Z VS $
 // Copyright:   (c) 2006 Robert Roebling
 //              (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -41,23 +41,16 @@ public:
 
     // implementation
 
-    // These callbacks are used by generic implementation of wxDVC itself.
-    // They're different from the corresponding Activate/LeftClick() methods
-    // which should only be overridable for the custom renderers while the
-    // generic implementation uses these ones for all of them, including the
-    // standard ones.
+    // This callback is used by generic implementation of wxDVC itself.  It's
+    // different from the corresponding ActivateCell() method which should only
+    // be overridable for the custom renderers while the generic implementation
+    // uses this one for all of them, including the standard ones.
 
-    virtual bool WXOnActivate(const wxRect& WXUNUSED(cell),
-                              wxDataViewModel *WXUNUSED(model),
-                              const wxDataViewItem & WXUNUSED(item),
-                              unsigned int WXUNUSED(col))
-        { return false; }
-
-    virtual bool WXOnLeftClick(const wxPoint& WXUNUSED(cursor),
-                               const wxRect& WXUNUSED(cell),
-                               wxDataViewModel *WXUNUSED(model),
-                               const wxDataViewItem & WXUNUSED(item),
-                               unsigned int WXUNUSED(col) )
+    virtual bool WXActivateCell(const wxRect& WXUNUSED(cell),
+                                wxDataViewModel *WXUNUSED(model),
+                                const wxDataViewItem & WXUNUSED(item),
+                                unsigned int WXUNUSED(col),
+                                const wxMouseEvent* WXUNUSED(mouseEvent))
         { return false; }
 
 private:

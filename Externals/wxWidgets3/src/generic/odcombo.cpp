@@ -4,7 +4,7 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: odcombo.cpp 66728 2011-01-22 14:38:36Z DS $
+// RCS-ID:      $Id: odcombo.cpp 70625 2012-02-19 14:49:37Z SN $
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -375,7 +375,7 @@ bool wxVListBoxComboPopup::HandleKey( int keycode, bool saturate, wxChar keychar
 
     // The m_combo->SetValue() call above sets m_value to the index of this
     // string. But if there are more identical string, the index is of the
-    // first occurence, which may be wrong, so set the index explicitly here,
+    // first occurrence, which may be wrong, so set the index explicitly here,
     // _after_ the SetValue() call.
     m_value = value;
 
@@ -902,7 +902,6 @@ wxOwnerDrawnComboBox::wxOwnerDrawnComboBox(wxWindow *parent,
                                            long style,
                                            const wxValidator& validator,
                                            const wxString& name)
-    : wxComboCtrl()
 {
     Init();
 

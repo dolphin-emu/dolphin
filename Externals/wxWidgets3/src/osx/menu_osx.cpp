@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menu_osx.cpp 67272 2011-03-22 06:44:08Z SC $
+// RCS-ID:      $Id: menu_osx.cpp 70480 2012-01-30 16:25:22Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -210,6 +210,17 @@ wxMenuItem* wxMenu::DoInsert(size_t pos, wxMenuItem *item)
 
 wxMenuItem *wxMenu::DoRemove(wxMenuItem *item)
 {
+    if ( m_startRadioGroup != -1 )
+    {
+        // Check if we're removing the item starting the radio group
+        if ( GetMenuItems().Item(m_startRadioGroup)->GetData() == item )
+        {
+            // Yes, we do, so reset its index as the next item added shouldn't
+            // count as part of the same radio group anyhow.
+            m_startRadioGroup = -1;
+        }
+    }
+
 /*
     // we need to find the items position in the child list
     size_t pos;
@@ -418,7 +429,7 @@ bool wxMenu::HandleCommandProcess( wxMenuItem* item, wxWindow* senderWindow )
         if ( senderWindow != NULL )
         {
             wxCommandEvent event(wxEVT_COMMAND_MENU_SELECTED , menuid);
-            event.SetEventObject(senderWindow);
+            event.SetEventObject(this);
             event.SetInt(item->IsCheckable() ? item->IsChecked() : -1);
 
             if ( senderWindow->HandleWindowEvent(event) )
@@ -441,16 +452,25 @@ void wxMenu::HandleMenuItemHighlighted( wxMenuItem* item )
     DoHandleMenuEvent( wxevent );
 }
 
+void wxMenu::DoHandleMenuOpenedOrClosed(wxEventType evtType)
+{
+    // Popup menu being currently shown or NULL, defined in wincmn.cpp.
+    extern wxMenu *wxCurrentPopupMenu;
+
+    // Set the id to allow wxMenuEvent::IsPopup() to work correctly.
+    int menuid = this == wxCurrentPopupMenu ? wxID_ANY : 0;
+    wxMenuEvent wxevent(evtType, menuid, this);
+    DoHandleMenuEvent( wxevent );
+}
+
 void wxMenu::HandleMenuOpened()
 {
-    wxMenuEvent wxevent(wxEVT_MENU_OPEN, 0, this);
-    DoHandleMenuEvent( wxevent );
+    DoHandleMenuOpenedOrClosed(wxEVT_MENU_OPEN);
 }
 
 void wxMenu::HandleMenuClosed()
 {
-    wxMenuEvent wxevent(wxEVT_MENU_CLOSE, 0, this);
-    DoHandleMenuEvent( wxevent );
+    DoHandleMenuOpenedOrClosed(wxEVT_MENU_CLOSE);
 }
 
 bool wxMenu::DoHandleMenuEvent(wxEvent& wxevent)
@@ -532,21 +552,17 @@ void wxMenuBar::Init()
     }
 
     // standard menu items, handled in wxMenu::HandleCommandProcess(), see above:
-    wxString hideLabel(_("Hide"));
-    if ( wxTheApp )
-        hideLabel << ' ' << wxTheApp->GetAppDisplayName();
-    hideLabel << "\tCtrl+H";
-    m_appleMenu->Append( wxID_OSX_HIDE, hideLabel );    
+    wxString hideLabel;
+    hideLabel = wxString::Format(_("Hide %s"), wxTheApp ? wxTheApp->GetAppDisplayName() : _("Application"));
+    m_appleMenu->Append( wxID_OSX_HIDE, hideLabel + "\tCtrl+H" );    
     m_appleMenu->Append( wxID_OSX_HIDEOTHERS, _("Hide Others")+"\tAlt+Ctrl+H" );    
     m_appleMenu->Append( wxID_OSX_SHOWALL, _("Show All") );    
     m_appleMenu->AppendSeparator();
     
     // Do always add "Quit" item unconditionally however, it can't be disabled.
-    wxString quitLabel(_("Quit"));
-    if ( wxTheApp )
-        quitLabel << ' ' << wxTheApp->GetAppDisplayName();
-    quitLabel << "\tCtrl+Q";
-    m_appleMenu->Append( wxApp::s_macExitMenuItemId, quitLabel );
+    wxString quitLabel;
+    quitLabel = wxString::Format(_("Quit %s"), wxTheApp ? wxTheApp->GetAppDisplayName() : _("Application"));
+    m_appleMenu->Append( wxApp::s_macExitMenuItemId, quitLabel + "\tCtrl+Q" );
 #endif // !wxOSX_USE_CARBON
 
     m_rootMenu->AppendSubMenu(m_appleMenu, "\x14") ;
@@ -811,6 +827,17 @@ void wxMenuBar::EnableTop(size_t pos, bool enable)
     m_rootMenu->FindItemByPosition(pos+firstMenuPos)->Enable(enable);
 
     Refresh();
+}
+
+bool wxMenuBar::IsEnabledTop(size_t pos) const
+{
+    wxCHECK_MSG( IsAttached(), true,
+                 wxT("doesn't work with unattached menubars") );
+
+    wxMenuItem* const item = m_rootMenu->FindItemByPosition(pos+firstMenuPos);
+    wxCHECK_MSG( item, false, wxT("invalid menu index") );
+
+    return item->IsEnabled();
 }
 
 bool wxMenuBar::Enable(bool enable)

@@ -5,7 +5,7 @@
 // Author:      Joel Farley, Ove Kaaven
 // Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee, Vaclav Slavik
 // Created:     1998/06/12
-// RCS-ID:      $Id: wxcrt.h 66798 2011-01-28 06:18:33Z PC $
+// RCS-ID:      $Id: wxcrt.h 68594 2011-08-08 08:33:19Z VZ $
 // Copyright:   (c) 1998-2006 wxWidgets dev team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -467,7 +467,7 @@ WX_STRCMP_FUNC(wxStricmp, wxCRT_StricmpA, wxCRT_StricmpW, wxStricmp_String)
 // forward-declare the template and implement it below WX_STRCMP_FUNC. OTOH,
 // this fails to compile with VC6, so don't do it for VC. It also causes
 // problems with GCC visibility in newer GCC versions.
-#if !(defined(__VISUALC__) || wxCHECK_GCC_VERSION(3,5)) || defined(__clang__)
+#if !(defined(__VISUALC__) || (wxCHECK_GCC_VERSION(3,5) && !wxCHECK_GCC_VERSION(4,7))) || defined(__clang__)
     #define wxNEEDS_DECL_BEFORE_TEMPLATE
 #endif
 

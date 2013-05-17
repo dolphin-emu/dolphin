@@ -3,7 +3,7 @@
 // Purpose:     wxNativeWindow implementation
 // Author:      Vadim Zeitlin
 // Created:     2008-03-05
-// RCS-ID:      $Id: nativewin.cpp 52437 2008-03-11 00:03:46Z VZ $
+// RCS-ID:      $Id: nativewin.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,6 +29,7 @@
 #include "wx/nativewin.h"
 
 #include <gtk/gtk.h>
+#include "wx/gtk/private/gtk2-compat.h"
 
 #ifdef GDK_WINDOWING_X11
     #include <X11/Xlib.h>
@@ -71,7 +72,7 @@ bool wxNativeContainerWindow::Create(wxNativeContainerWindowHandle win)
 
     // we need to realize the window first before reparenting it
     gtk_widget_realize(m_widget);
-    gdk_window_reparent(m_widget->window, win, 0, 0);
+    gdk_window_reparent(gtk_widget_get_window(m_widget), win, 0, 0);
 
 #ifdef GDK_WINDOWING_X11
     // if the native window is destroyed, our own window will be destroyed too
@@ -79,7 +80,7 @@ bool wxNativeContainerWindow::Create(wxNativeContainerWindowHandle win)
     // destroyed" GdkWindow, so intercept to DestroyNotify ourselves to fix
     // this and also destroy the associated C++ object when its window is
     // destroyed
-    gdk_window_add_filter(m_widget->window, wxNativeContainerWindowFilter, this);
+    gdk_window_add_filter(gtk_widget_get_window(m_widget), wxNativeContainerWindowFilter, this);
 #endif // GDK_WINDOWING_X11
 
     // we should be initially visible as we suppose that the native window we

@@ -1,24 +1,13 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "FileUtil.h"
 
 #include <string>
+#include <vector>
+#include <algorithm>
 
 #include "FileSystemGCWii.h"
 #include "StringUtil.h"
@@ -26,10 +15,10 @@
 namespace DiscIO
 {
 CFileSystemGCWii::CFileSystemGCWii(const IVolume *_rVolume)
-	: IFileSystem(_rVolume),
-	m_Initialized(false),
-	m_Valid(false),
-	m_OffsetShift(0)
+	: IFileSystem(_rVolume)
+	, m_Initialized(false)
+	, m_Valid(false)
+	, m_OffsetShift(0)
 {
 	m_Valid = DetectFileSystem();
 }
@@ -95,7 +84,7 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 
 	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
 
-	if (!pFileInfo || pFileInfo->m_FileSize == 0)
+	if (!pFileInfo)
 		return false;
 
 	u64 remainingSize = pFileInfo->m_FileSize;
@@ -112,22 +101,17 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 		// Limit read size to 128 MB
 		size_t readSize = (size_t)min(remainingSize, (u64)0x08000000);
 
-		u8* buffer = new u8[readSize];
+		std::vector<u8> buffer(readSize);
 
-		result = m_rVolume->Read(fileOffset, readSize, buffer);
+		result = m_rVolume->Read(fileOffset, readSize, &buffer[0]);
 
 		if (!result)
-		{
-			delete[] buffer;
 			break;
-		}
 
-		f.WriteBytes(buffer, readSize);
+		f.WriteBytes(&buffer[0], readSize);
 
 		remainingSize -= readSize;
 		fileOffset += readSize;
-
-		delete[] buffer;
 	}
 
 	return result;
@@ -140,26 +124,24 @@ bool CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
 	AppSize += 0x20;					// + header size
 	DEBUG_LOG(DISCIO,"AppSize -> %x", AppSize);
 
-	u8* buffer = new u8[AppSize];
-	if (m_rVolume->Read(0x2440, AppSize, buffer))
+	std::vector<u8> buffer(AppSize);
+	if (m_rVolume->Read(0x2440, AppSize, &buffer[0]))
 	{
-		char exportName[512];
-		sprintf(exportName, "%s/apploader.img", _rExportFolder);
+		std::string exportName(_rExportFolder);
+		exportName += "/apploader.img";
 
 		File::IOFile AppFile(exportName, "wb");
 		if (AppFile)
 		{
-			AppFile.WriteBytes(buffer, AppSize);
-			delete[] buffer;
+			AppFile.WriteBytes(&buffer[0], AppSize);
 			return true;
 		}
 	}
 
-	delete[] buffer;
 	return false;
 }
 
-bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
+u32 CFileSystemGCWii::GetBootDOLSize() const
 {
 	u32 DolOffset = Read32(0x420) << m_OffsetShift;
 	u32 DolSize = 0, offset = 0, size = 0;
@@ -181,22 +163,34 @@ bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
 		if (offset + size > DolSize)
 			DolSize = offset + size;
 	}
+	return DolSize;
+}
 
-	u8* buffer = new u8[DolSize];
-	if (m_rVolume->Read(DolOffset, DolSize, buffer))
+bool CFileSystemGCWii::GetBootDOL(u8* &buffer, u32 DolSize) const
+{
+	u32 DolOffset = Read32(0x420) << m_OffsetShift;
+	return m_rVolume->Read(DolOffset, DolSize, buffer);
+}
+
+bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
+{
+	u32 DolOffset = Read32(0x420) << m_OffsetShift;
+	u32 DolSize = GetBootDOLSize();
+
+	std::vector<u8> buffer(DolSize);
+	if (m_rVolume->Read(DolOffset, DolSize, &buffer[0]))
 	{
-		char exportName[512];
-		sprintf(exportName, "%s/boot.dol", _rExportFolder);
+		std::string exportName(_rExportFolder);
+		exportName += "/boot.dol";
+
 		File::IOFile DolFile(exportName, "wb");
 		if (DolFile)
 		{
-			DolFile.WriteBytes(buffer, DolSize);
-			delete[] buffer;
+			DolFile.WriteBytes(&buffer[0], DolSize);
 			return true;
 		}
 	}
 	
-	delete[] buffer;
 	return false;
 }
 
@@ -207,9 +201,16 @@ u32 CFileSystemGCWii::Read32(u64 _Offset) const
 	return Common::swap32(Temp);
 }
 
-void CFileSystemGCWii::GetStringFromOffset(u64 _Offset, char* Filename) const
+std::string CFileSystemGCWii::GetStringFromOffset(u64 _Offset) const
 {
-	m_rVolume->Read(_Offset, 255, (u8*)Filename);
+	std::string data;
+	data.resize(255);
+	m_rVolume->Read(_Offset, data.size(), (u8*)&data[0]);
+	data.erase(std::find(data.begin(), data.end(), 0x00), data.end());
+	
+	// TODO: Should we really always use SHIFT-JIS?
+	// It makes some filenames in Pikmin (NTSC-U) sane, but is it correct?
+	return SHIFTJISToUTF8(data);
 }
 
 size_t CFileSystemGCWii::GetFileList(std::vector<const SFileInfo *> &_rFilenames)
@@ -305,18 +306,16 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 	{
 		SFileInfo *rFileInfo = &m_FileInfoVector[CurrentIndex];
 		u64 uOffset = _NameTableOffset + (rFileInfo->m_NameOffset & 0xFFFFFF);
-		char filename[512];
-		memset(filename, 0, sizeof(filename));
-		GetStringFromOffset(uOffset, filename);
+		std::string filename = GetStringFromOffset(uOffset);
 
 		// check next index
 		if (rFileInfo->IsDirectory())
 		{
 			// this is a directory, build up the new szDirectory
 			if (_szDirectory != NULL)
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s/", _szDirectory, filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s/", _szDirectory, filename.c_str());
 			else
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s/", filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s/", filename.c_str());
 
 			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo->m_FileSize, rFileInfo->m_FullPath, _NameTableOffset);
 		}
@@ -324,9 +323,9 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 		{
 			// this is a filename
 			if (_szDirectory != NULL)
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s", _szDirectory, filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s", _szDirectory, filename.c_str());
 			else
-				CharArrayFromFormat(rFileInfo->m_FullPath, "%s", filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s", filename.c_str());
 
 			CurrentIndex++;
 		}

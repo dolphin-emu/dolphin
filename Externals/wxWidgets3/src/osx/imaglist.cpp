@@ -2,7 +2,7 @@
 // Name:        src/osx/imaglist.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS_ID:      $Id: imaglist.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS_ID:      $Id: imaglist.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -108,7 +108,7 @@ int wxImageList::Add( const wxBitmap &bitmap )
 int wxImageList::Add( const wxBitmap& bitmap, const wxBitmap& mask )
 {
     wxBitmap bmp( bitmap );
-    if (mask.Ok())
+    if (mask.IsOk())
         bmp.SetMask( new wxMask( mask ) );
 
     return Add( bmp );
@@ -231,7 +231,7 @@ bool wxImageList::Replace( int index, const wxBitmap &bitmap, const wxBitmap &ma
         m_images.Insert( next, newBitmap );
     }
 
-    if (mask.Ok())
+    if (mask.IsOk())
         newBitmap->SetMask(new wxMask(mask));
 
     return true;

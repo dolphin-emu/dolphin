@@ -152,7 +152,6 @@
     <None Include="CMakeLists.txt" />
     <None Include="dis_tables.inl" />
     <None Include="opcodes.inl" />
-    <None Include="SConscript" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

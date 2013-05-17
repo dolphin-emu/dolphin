@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - plural forms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.h 64215 2010-05-05 12:27:07Z VS $
+// RCS-ID:      $Id: intl.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -60,17 +60,17 @@ struct WXDLLIMPEXP_BASE wxLanguageInfo
 {
     int Language;                   // wxLanguage id
     wxString CanonicalName;         // Canonical name, e.g. fr_FR
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     wxUint32 WinLang,               // Win32 language identifiers
              WinSublang;
-#endif // __WXMSW__
+#endif // __WINDOWS__
     wxString Description;           // human-readable name of the language
     wxLayoutDirection LayoutDirection;
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
     // return the LCID corresponding to this language
     wxUint32 GetLCID() const;
-#endif // __WXMSW__
+#endif // __WINDOWS__
 
     // return the locale name corresponding to this language usable with
     // setlocale() on the current system
@@ -79,9 +79,9 @@ struct WXDLLIMPEXP_BASE wxLanguageInfo
 
 // for Unix systems GetLocaleName() is trivial so implement it inline here, for
 // MSW it's implemented in intl.cpp
-#ifndef __WXMSW__
+#ifndef __WINDOWS__
 inline wxString wxLanguageInfo::GetLocaleName() const { return CanonicalName; }
-#endif // !__WXMSW__
+#endif // !__WINDOWS__
 
 
 // ----------------------------------------------------------------------------

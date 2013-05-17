@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _GFX_DEBUGGER_H_
 #define _GFX_DEBUGGER_H_
@@ -72,21 +59,9 @@ void GFXDebuggerCheckAndPause(bool update);
 void GFXDebuggerToPause(bool update);
 void GFXDebuggerUpdateScreen();
 
-#undef ENABLE_GFX_DEBUGGER
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#define ENABLE_GFX_DEBUGGER
-#endif
-
-#ifdef ENABLE_GFX_DEBUGGER
 #define GFX_DEBUGGER_PAUSE_AT(event,update) {if (((GFXDebuggerToPauseAtNext & event) && --GFXDebuggerEventToPauseCount<=0) || GFXDebuggerPauseFlag) GFXDebuggerToPause(update);}
 #define GFX_DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc) {if (((GFXDebuggerToPauseAtNext & event) && --GFXDebuggerEventToPauseCount<=0) || GFXDebuggerPauseFlag) {{dumpfunc};GFXDebuggerToPause(update);}}
 #define GFX_DEBUGGER_LOG_AT(event,dumpfunc) {if (( GFXDebuggerToPauseAtNext & event ) ) {{dumpfunc};}}
-#else
-// Disable debugging calls in Release build
-#define GFX_DEBUGGER_PAUSE_AT(event,update)
-#define GFX_DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc)
-#define GFX_DEBUGGER_LOG_AT(event,dumpfunc)
-#endif // ENABLE_GFX_DEBUGGER
 
 
 #endif // _GFX_DEBUGGER_H_

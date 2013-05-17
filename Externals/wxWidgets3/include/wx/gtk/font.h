@@ -2,7 +2,7 @@
 // Name:        wx/gtk/font.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: font.h 67254 2011-03-20 00:14:35Z DS $
+// Id:          $Id: font.h 70476 2012-01-29 08:14:34Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -63,6 +63,12 @@ public:
         SetPixelSize(pixelSize);
     }
 
+    wxFont(int pointSize,
+           wxFontFamily family,
+           int flags = wxFONTFLAG_DEFAULT,
+           const wxString& face = wxEmptyString,
+           wxFontEncoding encoding = wxFONTENCODING_DEFAULT);
+
     bool Create(int size,
                 wxFontFamily family,
                 wxFontStyle style,
@@ -82,6 +88,7 @@ public:
     virtual wxFontWeight GetWeight() const;
     virtual wxString GetFaceName() const;
     virtual bool GetUnderlined() const;
+    virtual bool GetStrikethrough() const;
     virtual wxFontEncoding GetEncoding() const;
     virtual const wxNativeFontInfo *GetNativeFontInfo() const;
     virtual bool IsFixedWidth() const;
@@ -92,9 +99,17 @@ public:
     virtual void SetWeight(wxFontWeight weight);
     virtual bool SetFaceName( const wxString& faceName );
     virtual void SetUnderlined( bool underlined );
+    virtual void SetStrikethrough(bool strikethrough);
     virtual void SetEncoding(wxFontEncoding encoding);
 
     wxDECLARE_COMMON_FONT_METHODS();
+
+    // Set Pango attributes in the specified layout. Currently only
+    // underlined and strike-through attributes are handled by this function.
+    //
+    // If neither of them is specified, returns false, otherwise sets up the
+    // attributes and returns true.
+    bool GTKSetPangoAttrs(PangoLayout* layout) const;
 
     // implementation from now on
     void Unshare();

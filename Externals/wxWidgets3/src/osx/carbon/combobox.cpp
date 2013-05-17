@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor, Dan "Bud" Keith (composite combobox)
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.cpp 66555 2011-01-04 08:31:53Z SC $
+// RCS-ID:      $Id: combobox.cpp 68366 2011-07-24 22:19:33Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,13 +24,6 @@
 #endif
 
 #include "wx/osx/private.h"
-
-WX_DELEGATE_TO_CONTROL_CONTAINER(wxComboBox, wxControl)
-
-BEGIN_EVENT_TABLE(wxComboBox, wxControl)
-    WX_EVENT_TABLE_CONTROL_CONTAINER(wxComboBox)
-END_EVENT_TABLE()
-
 
 // ----------------------------------------------------------------------------
 // constants
@@ -316,11 +309,6 @@ void wxComboBox::DelegateTextChanged( const wxString& value )
 void wxComboBox::DelegateChoice( const wxString& value )
 {
     SetStringSelection( value );
-}
-
-void wxComboBox::Init()
-{
-    WX_INIT_CONTROL_CONTAINER();
 }
 
 bool wxComboBox::Create(wxWindow *parent,

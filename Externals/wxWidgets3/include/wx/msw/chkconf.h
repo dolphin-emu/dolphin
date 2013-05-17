@@ -4,7 +4,7 @@
  * Author:      Julian Smart
  * Modified by:
  * Created:     01/02/97
- * RCS-ID:      $Id: chkconf.h 63832 2010-04-02 19:30:41Z VZ $
+ * RCS-ID:      $Id: chkconf.h 69845 2011-11-27 19:52:13Z VZ $
  * Copyright:   (c) Julian Smart
  * Licence:     wxWindows licence
  */
@@ -224,11 +224,6 @@
  */
 #ifdef __WIN64__
 #   if wxUSE_STACKWALKER
-        /* this is not currently supported under Win64, volunteers needed to
-           make it work */
-#       undef wxUSE_STACKWALKER
-#       define wxUSE_STACKWALKER 0
-
 #       undef wxUSE_CRASHREPORT
 #       define wxUSE_CRASHREPORT 0
 #   endif
@@ -239,7 +234,7 @@
    Compiler-specific checks.
  */
 
-// Borland
+/* Borland */
 #ifdef __BORLANDC__
 
 #if __BORLANDC__ < 0x500
@@ -336,6 +331,14 @@
 #endif  /* !wxUSE_DYNAMIC_LOADER */
 
 #if !wxUSE_DYNLIB_CLASS
+#   if wxUSE_DC_TRANSFORM_MATRIX
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxUSE_DC_TRANSFORM_MATRIX requires wxUSE_DYNLIB_CLASS"
+#       else
+#           undef wxUSE_DC_TRANSFORM_MATRIX
+#           define wxUSE_DC_TRANSFORM_MATRIX 0
+#       endif
+#   endif
 #   if wxUSE_UXTHEME
 #       ifdef wxABORT_ON_CONFIG_ERROR
 #           error "wxUSE_UXTHEME requires wxUSE_DYNLIB_CLASS"
@@ -400,6 +403,14 @@
 #           define wxUSE_MEDIACTRL 0
 #       endif
 #   endif
+#    if wxUSE_WEB
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxWebView requires wxActiveXContainer under MSW"
+#       else
+#           undef wxUSE_WEB
+#           define wxUSE_WEB 0
+#       endif
+#   endif
 #endif /* !wxUSE_ACTIVEX */
 
 #if !wxUSE_THREADS
@@ -412,6 +423,18 @@
 #       endif
 #   endif
 #endif /* !wxUSE_THREADS */
+
+
+#if !wxUSE_OLE_AUTOMATION
+#    if wxUSE_WEB
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxWebView requires wxUSE_OLE_AUTOMATION under MSW"
+#       else
+#           undef wxUSE_WEB
+#           define wxUSE_WEB 0
+#       endif
+#   endif
+#endif /* !wxUSE_OLE_AUTOMATION */
 
 #if defined(__WXUNIVERSAL__) && wxUSE_POSTSCRIPT_ARCHITECTURE_IN_MSW && !wxUSE_POSTSCRIPT
 #   undef wxUSE_POSTSCRIPT

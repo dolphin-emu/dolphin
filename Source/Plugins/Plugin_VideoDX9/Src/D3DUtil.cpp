@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "StringUtil.h"
@@ -198,6 +185,8 @@ const int TS[6][2] =
 void RestoreShaders()
 {
 	D3D::SetTexture(0, 0);
+	D3D::RefreshStreamSource(0);
+	D3D::RefreshIndices();
 	D3D::RefreshVertexDeclaration();
 	D3D::RefreshPixelShader();
 	D3D::RefreshVertexShader();
@@ -217,9 +206,9 @@ void CD3DFont::SetRenderStates()
 {
 	D3D::SetTexture(0, m_pTexture);
 
-	dev->SetPixelShader(0);
-	dev->SetVertexShader(0);
-	
+	D3D::ChangePixelShader(0);
+	D3D::ChangeVertexShader(0);
+	D3D::ChangeVertexDeclaration(0);
 	dev->SetFVF(D3DFVF_FONT2DVERTEX);
 
 	for (int i = 0; i < 6; i++)
@@ -236,7 +225,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 		return 0;
 
 	SetRenderStates();
-	dev->SetStreamSource(0, m_pVB, 0, sizeof(FONT2DVERTEX));
+	D3D::ChangeStreamSource(0, m_pVB, 0, sizeof(FONT2DVERTEX));
 
 	float vpWidth = 1;
 	float vpHeight = 1;
@@ -383,15 +372,16 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 	float v2=((float)rSource->bottom) * sh;
 	float g = 1.0f/Gamma;
 
-	struct Q2DVertex { float x,y,z,rhw,u,v,w,h,G; } coords[4] = {
+	const struct Q2DVertex { float x,y,z,rhw,u,v,w,h,G; } coords[4] = {
 		{-1.0f - dw,-1.0f + dh, 0.0f,1.0f, u1, v2, sw, sh, g},
 		{-1.0f - dw, 1.0f + dh, 0.0f,1.0f, u1, v1, sw, sh, g},
 		{ 1.0f - dw,-1.0f + dh, 0.0f,1.0f, u2, v2, sw, sh, g},
 		{ 1.0f - dw, 1.0f + dh, 0.0f,1.0f, u2, v1, sw, sh, g}
 	};
-	dev->SetVertexShader(Vshader);
-	dev->SetPixelShader(PShader);
+	D3D::ChangeVertexShader(Vshader);
+	D3D::ChangePixelShader(PShader);
 	D3D::SetTexture(0, texture);
+	D3D::ChangeVertexDeclaration(0);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_TEX3 |  D3DFVF_TEXCOORDSIZE1(2));
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, coords, sizeof(Q2DVertex));
 	RestoreShaders();
@@ -424,9 +414,10 @@ void drawShadedTexSubQuad(IDirect3DTexture9 *texture,
 		{ rDest->right - dw , rDest->top    + dh, 1.0f,1.0f, u2, v2, sw, sh, g},
 		{ rDest->right - dw , rDest->bottom + dh, 1.0f,1.0f, u2, v1, sw, sh, g}
 	};
-	dev->SetVertexShader(Vshader);
-	dev->SetPixelShader(PShader);
+	D3D::ChangeVertexShader(Vshader);
+	D3D::ChangePixelShader(PShader);
 	D3D::SetTexture(0, texture);
+	D3D::ChangeVertexDeclaration(0);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_TEX3 |  D3DFVF_TEXCOORDSIZE1(2));
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, coords, sizeof(Q2DVertex));
 	RestoreShaders();
@@ -434,35 +425,33 @@ void drawShadedTexSubQuad(IDirect3DTexture9 *texture,
 
 // Fills a certain area of the current render target with the specified color
 // Z buffer disabled; destination coordinates normalized to (-1;1)
-void drawColorQuad(int DestWidth, int DestHeight, u32 Color, float x1, float y1, float x2, float y2)
+void drawColorQuad(u32 Color, float x1, float y1, float x2, float y2)
 {
-	float dw = 1.f / (float)DestWidth;
-	float dh = 1.f / (float)DestHeight;
 	struct CQVertex { float x, y, z, rhw; u32 col; } coords[4] = {
-		{ x1-dw, y2+dh, 0.f, 1.f, Color },
-		{ x2-dw, y2+dh, 0.f, 1.f, Color },
-		{ x1-dw, y1+dh, 0.f, 1.f, Color },
-		{ x2-dw, y1+dh, 0.f, 1.f, Color },
+		{ x1, y2, 0.f, 1.f, Color },
+		{ x2, y2, 0.f, 1.f, Color },
+		{ x1, y1, 0.f, 1.f, Color },
+		{ x2, y1, 0.f, 1.f, Color },
 	};
-	dev->SetVertexShader(VertexShaderCache::GetClearVertexShader());
-	dev->SetPixelShader(PixelShaderCache::GetClearProgram());
+	D3D::ChangeVertexShader(VertexShaderCache::GetClearVertexShader());
+	D3D::ChangePixelShader(PixelShaderCache::GetClearProgram());
+	D3D::ChangeVertexDeclaration(0);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_DIFFUSE);
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(CQVertex));
 	RestoreShaders();
 }
 
-void drawClearQuad(int DestWidth, int DestHeight, u32 Color, float z, IDirect3DPixelShader9 *PShader, IDirect3DVertexShader9 *Vshader)
+void drawClearQuad(u32 Color,float z,IDirect3DPixelShader9 *PShader,IDirect3DVertexShader9 *Vshader)
 {
-	float dw = 1.f / (float)DestWidth;
-	float dh = 1.f / (float)DestHeight;
 	struct Q2DVertex { float x,y,z,rhw;u32 color;} coords[4] = {
-		{-1.0f-dw,  1.0f+dh, z, 1.0f, Color},
-		{ 1.0f-dw,  1.0f+dh, z, 1.0f, Color},
-		{ 1.0f-dw, -1.0f+dh, z, 1.0f, Color},
-		{-1.0f-dw, -1.0f+dh, z, 1.0f, Color}
+		{-1.0f,  1.0f, z, 1.0f, Color},
+		{ 1.0f,  1.0f, z, 1.0f, Color},
+		{ 1.0f, -1.0f, z, 1.0f, Color},
+		{-1.0f, -1.0f, z, 1.0f, Color}
 	};
-	dev->SetVertexShader(Vshader);
-	dev->SetPixelShader(PShader);
+	D3D::ChangeVertexShader(Vshader);
+	D3D::ChangePixelShader(PShader);
+	D3D::ChangeVertexDeclaration(0);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_DIFFUSE);
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));
 	RestoreShaders();

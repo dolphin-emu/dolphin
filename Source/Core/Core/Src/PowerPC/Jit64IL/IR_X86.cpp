@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 /*
 For a more general explanation of the IR, see IR.cpp.
@@ -50,6 +37,7 @@ The register allocation is linear scan allocation.
 #include "../../../../Common/Src/CPUDetect.h"
 #include "MathUtil.h"
 #include "../../Core.h"
+#include "HW/ProcessorInterface.h"
 
 static ThunkManager thunks;
 
@@ -471,10 +459,10 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 #else
 			// 64-bit
 			if (Profiled) {
-				RI.Jit->LEA(32, EAX, M((void*)addr));
+				RI.Jit->LEA(32, EAX, M((void*)(u64)addr));
 				return MComplex(RBX, EAX, SCALE_1, 0);
 			}
-			return M((void*)addr);
+			return M((void*)(u64)addr);
 #endif
 		}
 	}
@@ -758,9 +746,11 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 		case RFIExit:
 		case InterpreterBranch:		
 		case ShortIdleLoop:
-		case FPExceptionCheckStart:
-		case FPExceptionCheckEnd:
+		case FPExceptionCheck:
+		case DSIExceptionCheck:
 		case ISIException:
+		case ExtExceptionCheck:
+		case BreakPointCheck:
 		case Int3:
 		case Tramp:
 			// No liveness effects
@@ -991,8 +981,26 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			break;
 		}
 		case StoreMSR: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
 			regStoreInstToConstLoc(RI, 32, getOp1(I), &MSR);
 			regNormalRegClear(RI, I);
+
+			// If some exceptions are pending and EE are now enabled, force checking
+			// external exceptions when going out of mtmsr in order to execute delayed
+			// interrupts as soon as possible.
+			Jit->MOV(32, R(EAX), M(&MSR));
+			Jit->TEST(32, R(EAX), Imm32(0x8000));
+			FixupBranch eeDisabled = Jit->J_CC(CC_Z);
+
+			Jit->MOV(32, R(EAX), M((void*)&PowerPC::ppcState.Exceptions));
+			Jit->TEST(32, R(EAX), R(EAX));
+			FixupBranch noExceptionsPending = Jit->J_CC(CC_Z);
+
+			Jit->MOV(32, M(&PC), Imm32(InstLoc + 4));
+			Jit->WriteExceptionExit(); // TODO: Implement WriteExternalExceptionExit for JitIL
+
+			Jit->SetJumpTarget(eeDisabled);
+			Jit->SetJumpTarget(noExceptionsPending);
 			break;
 		}
 		case StoreGQR: {
@@ -1347,6 +1355,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 				Core::g_CoreStartupParameter.iTLBHack) {
 				mem_mask |= Memory::ADDR_MASK_MEM1;
 			}
+#ifdef ENABLE_MEM_CHECK
+			if (Core::g_CoreStartupParameter.bEnableDebugging)
+			{
+				mem_mask |= Memory::EXRAM_MASK;
+			}
+#endif
 			Jit->TEST(32, regLocForInst(RI, getOp2(I)), Imm32(mem_mask));
 			FixupBranch safe = Jit->J_CC(CC_NZ);
 				// Fast routine
@@ -1379,7 +1393,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 					RI.Jit->UnsafeWriteRegToReg(EAX, ECX, 32, 0);
 				}
-			FixupBranch exit = Jit->J();
+			FixupBranch exit = Jit->J(true);
 			Jit->SetJumpTarget(safe);
 				// Safe but slow routine
 				OpArg value = fregLocForInst(RI, getOp1(I));
@@ -1860,7 +1874,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->WriteRfiExitDestInOpArg(R(EAX));
 			break;
 		}
-		case FPExceptionCheckStart: {
+		case FPExceptionCheck: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			//This instruction uses FPU - needs to add FP exception bailout
 			Jit->TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
@@ -1874,7 +1888,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->SetJumpTarget(b1);
 			break;
 		}
-		case FPExceptionCheckEnd: {
+		case DSIExceptionCheck: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
 			FixupBranch noMemException = Jit->J_CC(CC_Z);
@@ -1914,6 +1928,38 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->WriteExceptionExit();
 			break;
 		}
+		case ExtExceptionCheck: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI | EXCEPTION_PROGRAM | EXCEPTION_SYSCALL | EXCEPTION_FPU_UNAVAILABLE | EXCEPTION_DSI | EXCEPTION_ALIGNMENT));
+			FixupBranch clearInt = Jit->J_CC(CC_NZ);
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+			FixupBranch noExtException = Jit->J_CC(CC_Z);
+			Jit->TEST(32, M((void *)&PowerPC::ppcState.msr), Imm32(0x0008000));
+			FixupBranch noExtIntEnable = Jit->J_CC(CC_Z);
+			Jit->TEST(32, M((void *)&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN | ProcessorInterface::INT_CAUSE_PE_FINISH));
+			FixupBranch noCPInt = Jit->J_CC(CC_Z);
+
+			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->WriteExceptionExit();
+
+			Jit->SetJumpTarget(noCPInt);
+			Jit->SetJumpTarget(noExtIntEnable);
+			Jit->SetJumpTarget(noExtException);
+			Jit->SetJumpTarget(clearInt);
+			break;
+		}
+		case BreakPointCheck: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+
+			Jit->MOV(32, M(&PC), Imm32(InstLoc));
+			Jit->ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+			Jit->TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+			FixupBranch noBreakpoint = Jit->J_CC(CC_Z);
+			Jit->WriteExit(InstLoc, 0);
+			Jit->SetJumpTarget(noBreakpoint);
+			break;
+		}
 		case Int3: {
 			Jit->INT3();
 			break;
@@ -1950,8 +1996,10 @@ void JitIL::WriteCode() {
 }
 
 void ProfiledReJit() {
-	jit->SetCodePtr(jit->js.rewriteStart);
-	DoWriteCode(&((JitIL *)jit)->ibuild, (JitIL *)jit, true, false);
-	jit->js.curBlock->codeSize = (int)(jit->GetCodePtr() - jit->js.rewriteStart);
-	jit->GetBlockCache()->FinalizeBlock(jit->js.curBlock->blockNum, jit->jo.enableBlocklink, jit->js.curBlock->normalEntry);
+	JitIL *jitil = (JitIL *)jit;
+	jitil->SetCodePtr(jitil->js.rewriteStart);
+	DoWriteCode(&jitil->ibuild, jitil, true, false);
+	jitil->js.curBlock->codeSize = (int)(jitil->GetCodePtr() - jitil->js.rewriteStart);
+	jitil->GetBlockCache()->FinalizeBlock(jitil->js.curBlock->blockNum, jitil->jo.enableBlocklink,
+	jitil->js.curBlock->normalEntry);
 }

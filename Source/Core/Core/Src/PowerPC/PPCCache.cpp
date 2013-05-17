@@ -1,25 +1,13 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "PPCCache.h"
 #include "../HW/Memmap.h"
 #include "PowerPC.h"
 #include "JitCommon/JitBase.h"
 #include "JitCommon/JitCache.h"
+#include "JitInterface.h"
 
 namespace PowerPC
 {
@@ -76,8 +64,17 @@ namespace PowerPC
 		memset(lookup_table_ex, 0xff, sizeof(lookup_table_ex));
 		memset(lookup_table_vmem, 0xff, sizeof(lookup_table_vmem));
 #endif
-		if (jit)
-			jit->GetBlockCache()->ClearSafe();
+		JitInterface::ClearSafe();
+	}
+
+	void InstructionCache::Init()
+	{
+		memset(data, 0, sizeof(data));
+		memset(tags, 0, sizeof(tags));
+		memset(way_from_valid, 0, sizeof(way_from_valid));
+		memset(way_from_plru, 0, sizeof(way_from_plru));
+		
+		Reset();
 	}
 
 	void InstructionCache::Invalidate(u32 addr)
@@ -99,14 +96,7 @@ namespace PowerPC
 			}
 #endif
 		valid[set] = 0;
-		if (jit)
-			jit->GetBlockCache()->InvalidateICache(addr);
-	}
-
-	void InstructionCache::InvalidateBlock(u32 addr)
-	{
-		if (jit)
-			jit->GetBlockCache()->InvalidateICache(addr);
+		JitInterface::InvalidateICache(addr & ~0x1f, 32);
 	}
 
 	u32 InstructionCache::ReadInstruction(u32 addr)
@@ -119,11 +109,11 @@ namespace PowerPC
 		u32 t;
 		if (addr & ICACHE_VMEM_BIT)
 		{
-			t = lookup_table_vmem[(addr>>5) & 0xfffff];			
+			t = lookup_table_vmem[(addr>>5) & 0xfffff];
 		}
 		else if (addr & ICACHE_EXRAM_BIT)
 		{
-			t = lookup_table_ex[(addr>>5) & 0x1fffff];			
+			t = lookup_table_ex[(addr>>5) & 0x1fffff];
 		}
 		else
 		{
@@ -160,6 +150,7 @@ namespace PowerPC
 				else
 					lookup_table[((tags[set][t] << 7) | set) & 0xfffff] = 0xff;
 			}
+
 			if (addr & ICACHE_VMEM_BIT)
 				lookup_table_vmem[(addr>>5) & 0xfffff] = t;
 			else if (addr & ICACHE_EXRAM_BIT)

@@ -4,7 +4,7 @@
 // Author:      Arthur Seaton, Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: memory.cpp 66898 2011-02-16 05:13:00Z PC $
+// RCS-ID:      $Id: memory.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,7 +21,7 @@
 #include "wx/memory.h"
 
 #ifndef WX_PRECOMP
-    #ifdef __WXMSW__
+    #ifdef __WINDOWS__
         #include "wx/msw/wrapwin.h"
     #endif
     #include "wx/utils.h"
@@ -888,7 +888,7 @@ static MemoryCriticalSection memLocker;
 #endif // USE_THREADSAFE_MEMORY_ALLOCATION
 
 
-#if !(defined(__WXMSW__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE)))
+#if !(defined(__WINDOWS__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE)))
 #if wxUSE_GLOBAL_MEMORY_OPERATORS
 void * operator new (size_t size, wxChar * fileName, int lineNum)
 {
@@ -922,7 +922,7 @@ void operator delete[] (void * buf)
 }
 #endif // wxUSE_ARRAY_MEMORY_OPERATORS
 #endif // wxUSE_GLOBAL_MEMORY_OPERATORS
-#endif // !(defined(__WXMSW__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE)))
+#endif // !(defined(__WINDOWS__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE)))
 
 // TODO: store whether this is a vector or not.
 void * wxDebugAlloc(size_t size, wxChar * fileName, int lineNum, bool isObject, bool WXUNUSED(isVect) )
@@ -1045,7 +1045,7 @@ void wxTrace(const wxChar * ...)
 
   va_start(ap, fmt);
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
   wvsprintf(buffer,fmt,ap) ;
 #else
   vsprintf(buffer,fmt,ap) ;
@@ -1059,7 +1059,7 @@ void wxTrace(const wxChar * ...)
     wxDebugContext::GetStream().flush();
   }
   else
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
 #ifdef __WIN32__
     OutputDebugString((LPCTSTR)buffer) ;
 #else
@@ -1085,7 +1085,7 @@ void wxTraceLevel(int, const wxChar * ...)
 
   va_start(ap, fmt);
 
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
   wxWvsprintf(buffer,fmt,ap) ;
 #else
   vsprintf(buffer,fmt,ap) ;
@@ -1099,7 +1099,7 @@ void wxTraceLevel(int, const wxChar * ...)
     wxDebugContext::GetStream().flush();
   }
   else
-#ifdef __WXMSW__
+#ifdef __WINDOWS__
 #ifdef __WIN32__
     OutputDebugString((LPCTSTR)buffer) ;
 #else

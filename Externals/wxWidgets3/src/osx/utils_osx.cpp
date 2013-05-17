@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils_osx.cpp 65680 2010-09-30 11:44:45Z VZ $
+// RCS-ID:      $Id: utils_osx.cpp 69543 2011-10-26 05:38:24Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -65,11 +65,45 @@ bool wxColourDisplay()
     return true;
 }
 
+
 #if wxOSX_USE_COCOA_OR_CARBON
+
+#if (MAC_OS_X_VERSION_MAX_ALLOWED >= 1070) && (MAC_OS_X_VERSION_MIN_REQUIRED < 1060)
+// bring back declaration so that we can support deployment targets < 10_6
+CG_EXTERN size_t CGDisplayBitsPerPixel(CGDirectDisplayID display)
+CG_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6,
+                            __IPHONE_NA, __IPHONE_NA);
+#endif
+
 // Returns depth of screen
 int wxDisplayDepth()
 {
-    int theDepth = (int) CGDisplayBitsPerPixel(CGMainDisplayID());
+    int theDepth = 0;
+    
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
+    if ( UMAGetSystemVersion() >= 0x1060 ) 
+    {
+        CGDisplayModeRef currentMode = CGDisplayCopyDisplayMode(kCGDirectMainDisplay);
+        CFStringRef encoding = CGDisplayModeCopyPixelEncoding(currentMode);
+        
+        if(CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+            theDepth = 32;
+        else if(CFStringCompare(encoding, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+            theDepth = 16;
+        else if(CFStringCompare(encoding, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+            theDepth = 8;
+        else
+            theDepth = 32; // some reasonable default
+
+        CFRelease(encoding);
+    }
+    else
+#endif
+    {
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
+        theDepth = (int) CGDisplayBitsPerPixel(CGMainDisplayID());
+#endif
+    }
     return theDepth;
 }
 

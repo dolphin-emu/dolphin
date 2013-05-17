@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:
-// RCS-ID:      $Id: progdlg.h 66930 2011-02-16 23:45:00Z VZ $
+// RCS-ID:      $Id: progdlg.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,31 +29,27 @@
 #define wxPD_CAN_SKIP           0x0080
 
 
-#ifdef __WXPALMOS__
-    #include "wx/palmos/progdlg.h"
+#include "wx/generic/progdlgg.h"
+
+#if defined(__WXMSW__) && wxUSE_THREADS && !defined(__WXUNIVERSAL__)
+    #include "wx/msw/progdlg.h"
 #else
-    #include "wx/generic/progdlgg.h"
+    class WXDLLIMPEXP_CORE wxProgressDialog
+                           : public wxGenericProgressDialog
+    {
+    public:
+        wxProgressDialog( const wxString& title, const wxString& message,
+                          int maximum = 100,
+                          wxWindow *parent = NULL,
+                          int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE )
+            : wxGenericProgressDialog( title, message, maximum,
+                                       parent, style )
+            { }
 
-    #if defined(__WXMSW__) && wxUSE_THREADS && !defined(__WXUNIVERSAL__)
-        #include "wx/msw/progdlg.h"
-    #else
-        class WXDLLIMPEXP_CORE wxProgressDialog
-                               : public wxGenericProgressDialog
-        {
-        public:
-            wxProgressDialog( const wxString& title, const wxString& message,
-                              int maximum = 100,
-                              wxWindow *parent = NULL,
-                              int style = wxPD_APP_MODAL | wxPD_AUTO_HIDE )
-                : wxGenericProgressDialog( title, message, maximum,
-                                           parent, style )
-                { }
-
-        private:
-            wxDECLARE_DYNAMIC_CLASS_NO_COPY( wxProgressDialog );
-        };
-    #endif // defined(__WXMSW__) && wxUSE_THREADS
-#endif // __WXPALMOS__
+    private:
+        wxDECLARE_DYNAMIC_CLASS_NO_COPY( wxProgressDialog );
+    };
+#endif // defined(__WXMSW__) && wxUSE_THREADS
 
 #endif // wxUSE_PROGRESSDLG
 

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _LOG_H_
 #define _LOG_H_
@@ -114,11 +101,11 @@ void GenericLog(LOGTYPES_LEVELS level, LOGTYPES_TYPE type,
 	}
 #endif
 
-#define ERROR_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__) }
-#define WARN_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__) }
-#define NOTICE_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LNOTICE, __VA_ARGS__) }
-#define INFO_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__) }
-#define DEBUG_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__) }
+#define ERROR_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__) } while (0)
+#define WARN_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__) } while (0)
+#define NOTICE_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LNOTICE, __VA_ARGS__) } while (0)
+#define INFO_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__) } while (0)
+#define DEBUG_LOG(t,...) do { GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__) } while (0)
 
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 #define _dbg_assert_(_t_, _a_) \

@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 #ifndef _LINEAR_DISKCACHE
 #define _LINEAR_DISKCACHE
@@ -21,11 +9,8 @@
 #include "Common.h"
 #include <fstream>
 
-// Increment this every time you change shader generation code.
-enum
-{
-	LINEAR_DISKCACHE_VER = 6967
-};
+// defined in Version.cpp
+extern const char *scm_rev_git_str;
 
 // On disk format:
 //header{
@@ -71,36 +56,58 @@ public:
 
 		// close any currently opened file
 		Close();
+		m_num_entries = 0;
 
 		// try opening for reading/writing
-		m_file.open(filename, ios_base::in | ios_base::out | ios_base::binary | ios_base::app);
+		OpenFStream(m_file, filename, ios_base::in | ios_base::out | ios_base::binary);
+
+		m_file.seekg(0, std::ios::end);
+		std::fstream::pos_type end_pos = m_file.tellg();
+		m_file.seekg(0, std::ios::beg);
+		std::fstream::pos_type start_pos = m_file.tellg();
+		std::streamoff file_size = end_pos - start_pos;
 		
 		if (m_file.is_open() && ValidateHeader())
 		{
 			// good header, read some key/value pairs
-			u32 num_entries = 0;
 			K key;
 
 			V *value = NULL;
 			u32 value_size;
+			u32 entry_number;
+
+			std::fstream::pos_type last_pos = m_file.tellg();
 
 			while (Read(&value_size))
 			{
+				std::streamoff next_extent = (last_pos - start_pos) + sizeof(value_size) + value_size;
+				if (next_extent > file_size)
+					break;
+
 				delete[] value;
 				value = new V[value_size];
 
 				// read key/value and pass to reader
-				if (Read(&key) && Read(value, value_size))
+				if (Read(&key) &&
+					Read(value, value_size) && 
+					Read(&entry_number) &&
+					entry_number == m_num_entries+1)
+ 				{
 					reader.Read(key, value, value_size);
+				}
 				else
+				{
 					break;
+				}
 
-				++num_entries;
+				m_num_entries++;
+				last_pos = m_file.tellg();
 			}
+			m_file.seekp(last_pos);
 			m_file.clear();
 
 			delete[] value;
-			return num_entries;
+			return m_num_entries;
 		}
 
 		// failed to open file for reading or bad header
@@ -127,10 +134,12 @@ public:
 	// Appends a key-value pair to the store.
 	void Append(const K &key, const V *value, u32 value_size)
 	{
-		// TODO: Should do a check that we don't already have "key"?
+		// TODO: Should do a check that we don't already have "key"? (I think each caller does that already.)
 		Write(&value_size);
 		Write(&key);
 		Write(value, value_size);
+		m_num_entries++;
+		Write(&m_num_entries);
 	}
 
 private:
@@ -163,17 +172,20 @@ private:
 	{
 		Header()
 			: id(*(u32*)"DCAC")
-			, ver(LINEAR_DISKCACHE_VER)
 			, key_t_size(sizeof(K))
 			, value_t_size(sizeof(V))
-		{}
+		{
+			memcpy(ver, scm_rev_git_str, 40);
+		}
 
-		const u32 id, ver;
+		const u32 id;
 		const u16 key_t_size, value_t_size;
+		char ver[40];
 
 	} m_header;
 
 	std::fstream m_file;
+	u32 m_num_entries;
 };
 
 #endif  // _LINEAR_DISKCACHE

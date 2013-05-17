@@ -4,7 +4,7 @@
 // Author:      Kevin Ollivier, Steven Lamerton, Vadim Zeitlin
 // Modified by:
 // Created:     2010-03-06
-// RCS-ID:      $Id: uiactionx11.cpp 65561 2010-09-17 11:17:55Z DS $
+// RCS-ID:      $Id: uiactionx11.cpp 69626 2011-11-01 12:04:27Z VZ $
 // Copyright:   (c) Kevin Ollivier
 //              (c) 2010 Steven Lamerton
 //              (c) 2010 Vadim Zeitlin
@@ -17,6 +17,7 @@
 
 #include "wx/uiaction.h"
 
+#include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
 #include "wx/unix/utilsx11.h"

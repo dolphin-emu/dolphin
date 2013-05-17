@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcprint.cpp 65680 2010-09-30 11:44:45Z VZ $
+// RCS-ID:      $Id: dcprint.cpp 70884 2012-03-12 17:47:18Z SC $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ public :
 
     // returns 0 in case of no Error, otherwise platform specific error codes
     virtual wxUint32 GetStatus() const = 0 ;
-    bool Ok() { return GetStatus() == 0 ; }
+    bool IsOk() { return GetStatus() == 0 ; }
 
     static wxNativePrinterDC* Create(wxPrintData* data) ;
 } ;
@@ -88,29 +88,16 @@ wxMacCarbonPrinterDC::wxMacCarbonPrinterDC( wxPrintData* data )
     m_err = PMSessionGetCurrentPrinter(native->GetPrintSession(), &printer);
     if ( m_err == noErr )
     {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-        if ( PMPrinterGetOutputResolution != NULL )
+        m_err = PMPrinterGetOutputResolution( printer, native->GetPrintSettings(), &res) ;
+        if ( m_err == -9589 /* kPMKeyNotFound */ )
         {
-            {
-                m_err = PMPrinterGetOutputResolution( printer, native->GetPrintSettings(), &res) ;
-                if ( m_err == -9589 /* kPMKeyNotFound */ )
-                {
-                    m_err = noErr ;
-                    res.hRes = res.vRes = 300;
-                }
-            }
+            m_err = noErr ;
+            res.hRes = res.vRes = 300;
         }
-        else
-#endif
-        {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-            m_err = PMPrinterGetPrinterResolution(printer, kPMCurrentValue, &res);
-            if ( m_err != noErr )
-            {
-                m_err = PMGetResolution((PMPageFormat) (native->GetPageFormat()), &res);
-            }
-#endif
-        }
+    }
+    else
+    {
+        res.hRes = res.vRes = 300;
     }
 
     m_maxX = wxCoord((double)m_maxX * res.hRes / 72.0);
@@ -158,28 +145,14 @@ bool wxMacCarbonPrinterDC::StartDoc(  wxPrinterDC* dc , const wxString& message 
     m_err = PMSessionGetCurrentPrinter(native->GetPrintSession(), &printer);
     if (m_err == noErr)
     {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-        if ( PMPrinterGetOutputResolution != NULL )
+        m_err = PMPrinterGetOutputResolution( printer, native->GetPrintSettings(), &res) ;
+        if ( m_err == -9589 /* kPMKeyNotFound */ )
         {
-            m_err = PMPrinterGetOutputResolution( printer, native->GetPrintSettings(), &res) ;
-            if ( m_err == -9589 /* kPMKeyNotFound */ )
-            {
-                m_err = noErr ;
-                res.hRes = res.vRes = 300;
-            }
-        }
-        else
-#endif
-        {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-            if ( PMPrinterGetPrinterResolution(printer, kPMCurrentValue, &res) != noErr )
-            {
-                res.hRes = res.vRes = 300;
-            }
-#endif
+            m_err = noErr ;
+            res.hRes = res.vRes = 300;
         }
     }
-
+    
     m_maxX = wxCoord((double)m_maxX * res.hRes / 72.0);
     m_maxY = wxCoord((double)m_maxY * res.vRes / 72.0);
 
@@ -288,7 +261,7 @@ wxPrinterDCImpl::wxPrinterDCImpl( wxPrinterDC *owner, const wxPrintData& printda
     m_nativePrinterDC = wxNativePrinterDC::Create( &m_printData ) ;
     if ( m_nativePrinterDC )
     {
-        m_ok = m_nativePrinterDC->Ok() ;
+        m_ok = m_nativePrinterDC->IsOk() ;
         if ( !m_ok )
         {
             wxString message ;
@@ -329,7 +302,7 @@ bool wxPrinterDCImpl::StartDoc( const wxString& message )
     {
         // in case we have to do additional things when successful
     }
-    m_ok = m_nativePrinterDC->Ok() ;
+    m_ok = m_nativePrinterDC->IsOk() ;
     if ( !m_ok )
     {
         wxString message ;
@@ -347,7 +320,7 @@ void wxPrinterDCImpl::EndDoc(void)
         return ;
 
     m_nativePrinterDC->EndDoc( (wxPrinterDC*) GetOwner() ) ;
-    m_ok = m_nativePrinterDC->Ok() ;
+    m_ok = m_nativePrinterDC->IsOk() ;
 
     if ( !m_ok )
     {
@@ -397,7 +370,7 @@ void wxPrinterDCImpl::StartPage()
     m_backgroundBrush = *wxWHITE_BRUSH;
 
     m_nativePrinterDC->StartPage( (wxPrinterDC*) GetOwner() ) ;
-    m_ok = m_nativePrinterDC->Ok() ;
+    m_ok = m_nativePrinterDC->IsOk() ;
 
 }
 
@@ -407,7 +380,7 @@ void wxPrinterDCImpl::EndPage()
         return ;
 
     m_nativePrinterDC->EndPage( (wxPrinterDC*) GetOwner() );
-    m_ok = m_nativePrinterDC->Ok() ;
+    m_ok = m_nativePrinterDC->IsOk() ;
 }
 
 void wxPrinterDCImpl::DoGetSize(int *width, int *height) const

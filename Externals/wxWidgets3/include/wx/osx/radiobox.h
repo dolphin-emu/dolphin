@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: radiobox.h 64943 2010-07-13 13:29:58Z VZ $
+// RCS-ID:      $Id: radiobox.h 69544 2011-10-26 05:39:18Z RD $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -89,6 +89,9 @@ public:
     void OnRadioButton( wxCommandEvent& event ) ;
 
 protected:
+    // resolve ambiguity in base classes
+    virtual wxBorder GetDefaultBorder() const { return wxRadioBoxBase::GetDefaultBorder(); }
+
     wxRadioButton    *m_radioButtonCycle;
 
     unsigned int      m_noItems;

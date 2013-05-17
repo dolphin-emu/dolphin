@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "HiresTextures.h"
 
@@ -90,10 +77,15 @@ void Init(const char *gameCode)
 	}
 }
 
-PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned int *pHeight, int texformat, u8 *data)
+bool HiresTexExists(const char* filename)
+{
+	std::string key(filename);
+	return textureMap.find(key) != textureMap.end();
+}
+
+PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned int *pHeight, unsigned int *required_size, int texformat, unsigned int data_size, u8 *data)
 {
 	std::string key(fileName);
-
 	if (textureMap.find(key) == textureMap.end())
 		return PC_TEX_FMT_NONE;
 
@@ -102,23 +94,17 @@ PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned in
 	int channels;
 
 	u8 *temp = SOIL_load_image(textureMap[key].c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
-
 	if (temp == NULL)
 	{
 		ERROR_LOG(VIDEO, "Custom texture %s failed to load", textureMap[key].c_str());
-		SOIL_free_image_data(temp);
 		return PC_TEX_FMT_NONE;
 	}
 
-	if (width > 2048 || height > 2048)
-	{
-		ERROR_LOG(VIDEO, "Custom texture %s is too large (%ix%i); textures can only be 2048 pixels tall and wide", textureMap[key].c_str(), width, height);
-		SOIL_free_image_data(temp);
-		return PC_TEX_FMT_NONE;
-	}
+	*pWidth = width;
+	*pHeight = height;
 
 	int offset = 0;
-	PC_TexFormat returnTex;
+	PC_TexFormat returnTex = PC_TEX_FMT_NONE;
 
 	switch (texformat)
 	{
@@ -126,24 +112,32 @@ PC_TexFormat GetHiresTex(const char *fileName, unsigned int *pWidth, unsigned in
 	case GX_TF_I8:
 	case GX_TF_IA4:
 	case GX_TF_IA8:
+		*required_size = width * height * 8;
+		if (data_size < *required_size)
+			goto cleanup;
+
 		for (int i = 0; i < width * height * 4; i += 4)
 		{
 			// Rather than use a luminosity function, just use the most intense color for luminance
+			// TODO(neobrain): Isn't this kind of.. stupid?
 			data[offset++] = *std::max_element(temp+i, temp+i+3);
 			data[offset++] = temp[i+3];
 		}
 		returnTex = PC_TEX_FMT_IA8;
 		break;
 	default:
+		*required_size = width * height * 4;
+		if (data_size < *required_size)
+			goto cleanup;
+
 		memcpy(data, temp, width * height * 4);
 		returnTex = PC_TEX_FMT_RGBA32;
 		break;
 	}
 
-	*pWidth = width;
-	*pHeight = height;
+	INFO_LOG(VIDEO, "Loading custom texture from %s", textureMap[key].c_str());
+cleanup:
 	SOIL_free_image_data(temp);
-	INFO_LOG(VIDEO, "loading custom texture from %s", textureMap[key].c_str());
 	return returnTex;
 }
 

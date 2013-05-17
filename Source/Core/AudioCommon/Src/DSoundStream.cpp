@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <cmath>
 #include <functional>
@@ -96,6 +83,8 @@ bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write
 // The audio thread.
 void DSound::SoundLoop()
 {
+	Common::SetCurrentThreadName("Audio thread - dsound");
+
 	currentPos = 0;
 	lastPos = 0;
 	dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
@@ -120,7 +109,7 @@ void DSound::SoundLoop()
 bool DSound::Start()
 {
 	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
-        return false;
+		return false;
 	if (hWnd)
 	{
 		HRESULT hr = ds->SetCooperativeLevel((HWND)hWnd, DSSCL_PRIORITY);
@@ -130,7 +119,7 @@ bool DSound::Start()
 
 	DWORD num1;
 	short* p1;
-	dsBuffer->Lock(0, bufferSize, (void* *)&p1, &num1, 0, 0, 0);
+	dsBuffer->Lock(0, bufferSize, (void* *)&p1, &num1, 0, 0, DSBLOCK_ENTIREBUFFER);
 	memset(p1, 0, num1);
 	dsBuffer->Unlock(p1, num1, 0, 0);
 	thread = std::thread(std::mem_fun(&DSound::SoundLoop), this);

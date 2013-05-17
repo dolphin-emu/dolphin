@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Brad Anderson, David Warkentin
 // Created:     30.05.03
-// RCS-ID:      $Id: vscroll.cpp 67280 2011-03-22 14:17:38Z DS $
+// RCS-ID:      $Id: vscroll.cpp 69180 2011-09-21 15:08:10Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,6 +30,8 @@
 #endif
 
 #include "wx/vscroll.h"
+
+#include "wx/utils.h"   // For wxMin/wxMax().
 
 // ============================================================================
 // wxVarScrollHelperEvtHandler declaration
@@ -308,14 +310,17 @@ size_t wxVarScrollHelperBase::GetNewScrollPosition(wxScrollWinEvent& event) cons
     }
     else if ( evtType == wxEVT_SCROLLWIN_PAGEUP )
     {
-        return FindFirstVisibleFromLast(m_unitFirst);
+        // Page up should do at least as much as line up.
+        return wxMin(FindFirstVisibleFromLast(m_unitFirst),
+                    m_unitFirst ? m_unitFirst - 1 : 0);
     }
     else if ( evtType == wxEVT_SCROLLWIN_PAGEDOWN )
     {
+        // And page down should do at least as much as line down.
         if ( GetVisibleEnd() )
-            return GetVisibleEnd() - 1;
+            return wxMax(GetVisibleEnd() - 1, m_unitFirst + 1);
         else
-            return GetVisibleEnd();
+            return wxMax(GetVisibleEnd(), m_unitFirst + 1);
     }
     else if ( evtType == wxEVT_SCROLLWIN_THUMBRELEASE )
     {
