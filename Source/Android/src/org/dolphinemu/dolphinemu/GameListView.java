@@ -61,7 +61,8 @@ public class GameListView extends ListActivity {
 			            		ff.getName().toLowerCase().contains(".wbfs") ||
 			            		ff.getName().toLowerCase().contains(".gcz") ||
 			            		ff.getName().toLowerCase().contains(".dol") ||
-			            		ff.getName().toLowerCase().contains(".elf"))
+			            		ff.getName().toLowerCase().contains(".elf") ||
+			            		ff.getName().toLowerCase().contains(".dff"))
 			            			fls.add(new GameListItem(getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
 				}
 			}
