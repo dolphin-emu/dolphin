@@ -394,10 +394,10 @@ void EmuThread()
 		Wiimote::Initialize(g_pWindowHandle);
 
 		// Activate wiimotes which don't have source set to "None"
-		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
+		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
 			if (g_wiimote_sources[i])
-				GetUsbPointer()->AccessWiiMote(i | 0x100)->
-					Activate(true);
+				GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
+			
 	}
 
 	// The hardware is initialized.

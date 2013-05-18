@@ -15,7 +15,7 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	wxStaticText* wiimote_label[4];
 	wxChoice* wiimote_source_ch[4];
 
-	for (unsigned int i = 0; i < 4; ++i)
+	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
 	{
 		wxString str;
 		str.Printf(_("Wiimote %i"), i + 1);
@@ -206,7 +206,7 @@ void WiimoteConfigDiag::SelectSource(wxCommandEvent& event)
 
 void WiimoteConfigDiag::RevertSource()
 {
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < MAX_WIIMOTES; ++i)
 		g_wiimote_sources[i] = m_orig_wiimote_sources[i];
 }
 
