@@ -116,22 +116,21 @@ WiimoteScanner::~WiimoteScanner()
 void WiimoteScanner::Update()
 {}
 
-std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
+void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimote* & found_board)
 {
 	// TODO: find the device in the constructor and save it for later
-	
-	std::vector<Wiimote*> wiimotes;
 	IOBluetoothHostController *bth;
 	IOBluetoothDeviceInquiry *bti;
 	SearchBT *sbt;
 	NSEnumerator *en;
+	found_board = NULL;
 
 	bth = [[IOBluetoothHostController alloc] init];
 	if ([bth addressAsString] == nil)
 	{
 		WARN_LOG(WIIMOTE, "No bluetooth host controller");
 		[bth release];
-		return wiimotes;
+		return;
 	}
 
 	sbt = [[SearchBT alloc] init];
@@ -162,14 +161,22 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 
 		Wiimote *wm = new Wiimote();
 		wm->btd = dev;
-		wiimotes.push_back(wm);
+		
+		if(IsBalanceBoardName(name))
+		{
+			found_board = wm;
+			NOTICE_LOG(WIIMOTE, "Found balance board (%s).", bdaddr_str);
+		}
+		else
+		{
+			found_wiimotes.push_back(wm);
+			NOTICE_LOG(WIIMOTE, "Found wiimote (%s).", bdaddr_str);
+		}
 	}
 
 	[bth release];
 	[bti release];
 	[sbt release];
-
-	return wiimotes;
 }
 
 bool WiimoteScanner::IsReady() const
