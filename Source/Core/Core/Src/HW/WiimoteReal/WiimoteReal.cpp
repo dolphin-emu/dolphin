@@ -457,7 +457,10 @@ void LoadSettings()
 
 		sec.Get("Source", &g_wiimote_sources[i], i ? WIIMOTE_SRC_NONE : WIIMOTE_SRC_EMU);
 	}
-	g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = WIIMOTE_SRC_REAL;
+	
+	std::string secname("BalanceBoard");
+	IniFile::Section& sec = *inifile.GetOrCreateSection(secname.c_str());
+	sec.Get("Source", &g_wiimote_sources[WIIMOTE_BALANCE_BOARD], WIIMOTE_SRC_NONE);
 }
 
 // config dialog calls this when some settings change
@@ -501,14 +504,14 @@ void Shutdown(void)
 void ChangeWiimoteSource(unsigned int index, int source)
 {
 	{
-	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-	g_wiimote_sources[index] = source;
-	g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
-	g_wiimote_scanner.WantBB(0 != CalculateWantedBB());
-	
-	
-	// kill real connection (or swap to different slot)
-	DoneWithWiimote(index);
+		std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+		g_wiimote_sources[index] = source;
+		g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
+		g_wiimote_scanner.WantBB(0 != CalculateWantedBB());
+		
+		
+		// kill real connection (or swap to different slot)
+		DoneWithWiimote(index);
 	}
 
 	// reconnect to the emulator
@@ -635,7 +638,7 @@ void Refresh()
 		std::vector<Wiimote*> found_wiimotes;
 		Wiimote* found_board = NULL;
 		
-		if (0 != CalculateWantedWiimotes())
+		if (0 != CalculateWantedWiimotes() || 0 != CalculateWantedBB())
 		{
 			// Don't hang Dolphin when searching
 			lk.unlock();
@@ -646,7 +649,8 @@ void Refresh()
 		CheckForDisconnectedWiimotes();
 
 		// Brief rumble for already connected Wiimotes.
-		for (int i = 0; i < MAX_BBMOTES; ++i)
+		// Don't do this for Balance Board as it doesn't have rumble anyway.
+		for (int i = 0; i < MAX_WIIMOTES; ++i)
 		{
 			if (g_wiimotes[i])
 			{
