@@ -83,6 +83,7 @@ void SHADER::SetProgramVariables()
 	//glGetUniformIndices(glprogid, NUM_UNIFORMS, UniformNames, UniformLocations);
 	// Got to do it this crappy way.
 	UniformLocations[0] = glGetUniformLocation(glprogid, UniformNames[0]);
+	UniformLocations[2] = glGetUniformLocation(glprogid, UniformNames[2]);
 	if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		for (int a = 1; a < NUM_UNIFORMS; ++a)
 			UniformLocations[a] = glGetUniformLocation(glprogid, UniformNames[a]);

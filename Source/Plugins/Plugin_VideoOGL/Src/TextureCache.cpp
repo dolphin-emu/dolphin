@@ -46,7 +46,9 @@ namespace OGL
 static SHADER s_ColorMatrixProgram;
 static SHADER s_DepthMatrixProgram;
 static GLuint s_ColorMatrixUniform;
+static GLuint s_ColorSizeUniform;
 static GLuint s_DepthMatrixUniform;
+static GLuint s_DepthSizeUniform;
 static u32 s_ColorCbufid;
 static u32 s_DepthCbufid;
 
@@ -63,6 +65,7 @@ static std::map<u64,VBOCache> s_VBO;
 
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
+#ifndef USE_GLES3
 	int width = std::max(virtual_width >> level, 1);
 	int height = std::max(virtual_height >> level, 1);
 	std::vector<u32> data(width * height);
@@ -80,6 +83,7 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width
 	}
 
 	return SaveTGA(filename, width, height, &data[0]);
+#endif
 }
 
 TextureCache::TCacheEntry::~TCacheEntry()
@@ -147,14 +151,15 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 		default:
 		case PC_TEX_FMT_NONE:
 			PanicAlert("Invalid PC texture format %i", pcfmt); 
-		case PC_TEX_FMT_BGRA32:
-			gl_format = GL_BGRA;
+		
+		case PC_TEX_FMT_RGBA32:
+			gl_format = GL_RGBA;
 			gl_iformat = GL_RGBA;
 			gl_type = GL_UNSIGNED_BYTE;
 			break;
-
-		case PC_TEX_FMT_RGBA32:
-			gl_format = GL_RGBA;
+#ifndef USE_GLES3
+		case PC_TEX_FMT_BGRA32:
+			gl_format = GL_BGRA;
 			gl_iformat = GL_RGBA;
 			gl_type = GL_UNSIGNED_BYTE;
 			break;
@@ -188,6 +193,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 			gl_iformat = GL_RGB;
 			gl_type = GL_UNSIGNED_SHORT_5_6_5;
 			break;
+#endif
 		}
 	}
 
@@ -274,7 +280,6 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 
 	return entry;
 }
-
 void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 	unsigned int srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
@@ -296,24 +301,28 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		GL_REPORT_ERRORD();
 
 		glActiveTexture(GL_TEXTURE0+9);
-		glBindTexture(GL_TEXTURE_RECTANGLE, read_texture);
+		glBindTexture(GL_TEXTURE_2D, read_texture);
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
+		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 		if(srcFormat == PIXELFMT_Z24) {
 			s_DepthMatrixProgram.Bind();
 			if(s_DepthCbufid != cbufid)
+			{
 				glUniform4fv(s_DepthMatrixUniform, 5, colmat);
+				glUniform2f(s_DepthSizeUniform, (GLfloat)targetSource.right, (GLfloat)targetSource.top);
+			}
 			s_DepthCbufid = cbufid;
 		} else {
 			s_ColorMatrixProgram.Bind();
 			if(s_ColorCbufid != cbufid)
+			{
 				glUniform4fv(s_ColorMatrixUniform, 7, colmat);
+				glUniform2f(s_ColorSizeUniform, (GLfloat)targetSource.right, (GLfloat)targetSource.top);
+			}
 			s_ColorCbufid = cbufid;
 		}
-		GL_REPORT_ERRORD();
-
-		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 		GL_REPORT_ERRORD();
 
 		// should be unique enough, if not, vbo will "only" be uploaded to much
@@ -360,7 +369,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		glBindVertexArray(vbo_it->second.vao);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		GL_REPORT_ERRORD();
 	}
@@ -406,25 +415,27 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 TextureCache::TextureCache()
 {
 	const char *pColorMatrixProg = 
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[7];\n"
+		"uniform vec2 texSize;\n"
 		"VARYIN vec2 uv0;\n"
 		"COLOROUT(ocol0)\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture2DRect(samp9, uv0);\n"
+		"	vec4 texcol = texture(samp9, uv0 / texSize);\n"
 		"	texcol = round(texcol * colmat[5]) * colmat[6];\n"
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
 	const char *pDepthMatrixProg =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[5];\n"
+		"uniform vec2 texSize;\n"
 		"VARYIN vec2 uv0;\n"
 		"COLOROUT(ocol0)\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture2DRect(samp9, uv0);\n"
+		"	vec4 texcol = texture(samp9, uv0 / texSize);\n"
 		"	vec4 EncodedDepth = fract((texcol.r * (16777215.0f/16777216.0f)) * vec4(1.0f,256.0f,256.0f*256.0f,1.0f));\n"
 		"	texcol = round(EncodedDepth * (16777216.0f/16777215.0f) * vec4(255.0f,255.0f,255.0f,15.0f)) / vec4(255.0f,255.0f,255.0f,15.0f);\n"
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];"
@@ -445,6 +456,9 @@ TextureCache::TextureCache()
 
 	s_ColorMatrixUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "colmat");
 	s_DepthMatrixUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "colmat");
+	s_ColorSizeUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "texSize");
+	s_DepthSizeUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "texSize");
+
 	s_ColorCbufid = -1;
 	s_DepthCbufid = -1;
 

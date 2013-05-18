@@ -69,20 +69,20 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		m_efbColor = glObj[0];
 		m_efbDepth = glObj[1];
 
-		glBindTexture(GL_TEXTURE_RECTANGLE, m_efbColor);
-		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_2D, m_efbColor);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-		glBindTexture(GL_TEXTURE_RECTANGLE, m_efbDepth);
-		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+		glBindTexture(GL_TEXTURE_2D, m_efbDepth);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 
-		glBindTexture(GL_TEXTURE_RECTANGLE, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// Bind target textures to the EFB framebuffer.
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, m_efbColor, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_RECTANGLE, m_efbDepth, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_efbColor, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_efbDepth, 0);
 
 		GL_REPORT_FBO_ERROR();
 	}
@@ -131,20 +131,20 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		m_resolvedColorTexture = glObj[0];
 		m_resolvedDepthTexture = glObj[1];
 
-		glBindTexture(GL_TEXTURE_RECTANGLE, m_resolvedColorTexture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_2D, m_resolvedColorTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-		glBindTexture(GL_TEXTURE_RECTANGLE, m_resolvedDepthTexture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_2D, m_resolvedDepthTexture);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
 
-		glBindTexture(GL_TEXTURE_RECTANGLE, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 
 		// Bind resolved textures to resolved framebuffer.
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer);
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE, m_resolvedColorTexture, 0);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_RECTANGLE, m_resolvedDepthTexture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_resolvedColorTexture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_resolvedDepthTexture, 0);
 
 		GL_REPORT_FBO_ERROR();
 
@@ -336,7 +336,7 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 	glGenRenderbuffers(1, &renderbuf);
 	
 	glBindRenderbuffer(GL_RENDERBUFFER, renderbuf);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, target_width, target_height);
+	glRenderbufferStorage(GL_RENDERBUFFER, GLRENDERBUFFERFORMAT, target_width, target_height);
 
 	return new XFBSource(renderbuf);
 }

@@ -911,7 +911,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 #ifdef USE_GLES3
 				// XXX: Swap colours
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-				             GL_RGBA, GL_UNSIGNED_INT, colorMap);
+				             GL_RGBA, GL_UNSIGNED_BYTE, colorMap);
 #else
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
 				             GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap);

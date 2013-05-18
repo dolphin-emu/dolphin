@@ -18,7 +18,11 @@
 #define _INTERFACEEGL_H_
 
 #if USE_GLES
+#ifdef USE_GLES3
+#include <GLES3/gl3.h>
+#else
 #include <GLES2/gl2.h>
+#endif
 #else
 #include <GL/glxew.h>
 #include <GL/gl.h>

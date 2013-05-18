@@ -66,13 +66,16 @@ void CreatePrograms()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *FProgramRgbToYuyv =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"VARYIN vec2 uv0;\n"
 		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
-		"	vec3 c0 = texture2DRect(samp9, uv0).rgb;\n"
-		"	vec3 c1 = texture2DRect(samp9, uv0 + vec2(1.0, 0.0)).rgb;\n"
+		"	ivec2 ires = textureSize(samp9, 0);\n"
+		"	vec2 res = vec2(ires.x, ires.y);\n"
+		"	vec2 res2 = res + vec2(1.0, 0.0);\n"
+		"	vec3 c0 = texture(samp9, uv0 / res).rgb;\n"
+		"	vec3 c1 = texture(samp9, uv0 / res2).rgb;\n"
 		"	vec3 c01 = (c0 + c1) * 0.5;\n"
 		"	vec3 y_const = vec3(0.257,0.504,0.098);\n"
 		"	vec3 u_const = vec3(-0.148,-0.291,0.439);\n"
@@ -82,12 +85,14 @@ void CreatePrograms()
 		"}\n";
 
 	const char *FProgramYuyvToRgb =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"VARYIN vec2 uv0;\n"
 		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
-		"	vec4 c0 = texture2DRect(samp9, uv0).rgba;\n"
+		"	ivec2 ires = textureSize(samp9, 0);\n"
+		"	vec2 res = vec2(ires.x, ires.y);\n"
+		"	vec4 c0 = texture(samp9, uv0 / res).rgba;\n"
 		"	float f = step(0.5, fract(uv0.x));\n"
 		"	float y = mix(c0.b, c0.r, f);\n"
 		"	float yComp = 1.164f * (y - 0.0625f);\n"
@@ -162,16 +167,16 @@ void Init()
 	glGenRenderbuffers(1, &s_dstRenderBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, s_dstRenderBuffer);
 	
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, renderBufferWidth, renderBufferHeight);
+	glRenderbufferStorage(GL_RENDERBUFFER, GLRENDERBUFFERFORMAT, renderBufferWidth, renderBufferHeight);
 
 	s_srcTextureWidth = 0;
 	s_srcTextureHeight = 0;
 
 	glGenTextures(1, &s_srcTexture);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	CreatePrograms();
 }
@@ -213,17 +218,17 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 
 	// set source texture
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(GL_TEXTURE_RECTANGLE, srcTexture);
+	glBindTexture(GL_TEXTURE_2D, srcTexture);
 
 	if (linearFilter)
 	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 	else
 	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
 
 	GL_REPORT_ERRORD();
@@ -251,7 +256,7 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	glBindVertexArray( s_encode_VAO );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	
 	GL_REPORT_ERRORD();
 
@@ -328,6 +333,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 
 	texconv_shader.Bind();
 	glUniform4fv(texconv_shader.UniformLocations[C_COLORS], 2, params);
+	glUniform2f(texconv_shader.UniformLocations[2], (GLfloat)width, (GLfloat)height);
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
@@ -386,17 +392,17 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 	// activate source texture
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(GL_TEXTURE_RECTANGLE, s_srcTexture);
+	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
 
 	// TODO: make this less slow.  (How?)
 	if ((GLsizei)s_srcTextureWidth == (GLsizei)srcFmtWidth && (GLsizei)s_srcTextureHeight == (GLsizei)srcHeight)
 	{
-		glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0,0,0,s_srcTextureWidth, s_srcTextureHeight,
+		glTexSubImage2D(GL_TEXTURE_2D, 0,0,0,s_srcTextureWidth, s_srcTextureHeight,
 				GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 	}
 	else
 	{
-		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight,
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight,
 				0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 		s_srcTextureWidth = (GLsizei)srcFmtWidth;
 		s_srcTextureHeight = (GLsizei)srcHeight;
@@ -432,7 +438,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 	GL_REPORT_ERRORD();
 
 	// reset state
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	VertexShaderManager::SetViewportChanged();
 

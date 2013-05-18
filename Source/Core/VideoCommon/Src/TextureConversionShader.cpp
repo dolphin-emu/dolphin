@@ -72,14 +72,15 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	// [1] width and height of destination texture in pixels
 	// Two were merged for GLSL
 	WRITE(p, "uniform float4 " I_COLORS"[2] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
-
+	WRITE(p, "uniform float2 " I_ALPHA" %s;\n", WriteRegister(ApiType, "c", C_ALPHA));
+	
 	float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
 	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
 	float samples = (float)GetEncodedSampleCount(format);
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
-		WRITE(p, "uniform sampler2DRect samp0;\n");
+		WRITE(p, "uniform sampler2D samp0;\n");
 	}
 	else if (ApiType & API_D3D9)
 	{
@@ -152,6 +153,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	// [1] width and height of destination texture in pixels
 	// Two were merged for GLSL
 	WRITE(p, "uniform float4 " I_COLORS"[2] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
+	WRITE(p, "uniform float2 " I_ALPHA" %s;\n", WriteRegister(ApiType, "c", C_ALPHA));
 
 	float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
 	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
@@ -160,7 +162,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
-		WRITE(p, "uniform sampler2DRect samp0;\n");
+		WRITE(p, "uniform sampler2D samp0;\n");
 	}
 	else if (ApiType & API_D3D9)
 	{
@@ -234,7 +236,7 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYP
 	else if (ApiType == API_D3D11)
 		texSampleOpName = "tex0.Sample";
 	else
-		texSampleOpName = "texture2DRect";
+		texSampleOpName = "texture";
 
 	// the increment of sampleUv.x is delayed, so we perform it here. see WriteIncrementSampleX.
 	const char* texSampleIncrementUnit;
@@ -243,8 +245,12 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYP
 	else
 		texSampleIncrementUnit = I_COLORS"[0].x";
 
-	WRITE(p, "  %s = %s(samp0, sampleUv + float2(%d * (%s), 0)).%s;\n",
-		dest, texSampleOpName, s_incrementSampleXCount, texSampleIncrementUnit, colorComp);
+	if (ApiType == API_OPENGL)
+		WRITE(p, "  %s = %s(samp0, (sampleUv + float2(%d * (%s), 0)) / " I_ALPHA").%s;\n",
+			dest, texSampleOpName, s_incrementSampleXCount, texSampleIncrementUnit, colorComp);
+	else
+		WRITE(p, "  %s = %s(samp0, sampleUv + float2(%d * (%s), 0)).%s;\n",
+			dest, texSampleOpName, s_incrementSampleXCount, texSampleIncrementUnit, colorComp);
 }
 
 void WriteColorToIntensity(char*& p, const char* src, const char* dest)
