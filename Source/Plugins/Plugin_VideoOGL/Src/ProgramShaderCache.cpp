@@ -334,6 +334,12 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 	if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
 	{
 		GLsizei charsWritten;
+#ifdef USE_GLES3
+		// This is a bug in the Qualcomm OpenGL Driver
+		// The length returned is garbage length so we need to set a default max
+		// XXX: Check if qualcomm driver here
+		length = 1024; // Qualcomm driver maxes out at 512 bytes returned from glGetShaderInfoLog anyway
+#endif
 		GLchar* infoLog = new GLchar[length];
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "PS Shader info log:\n%s", infoLog);
@@ -527,7 +533,7 @@ void ProgramShaderCache::CreateHeader ( void )
 		
 		, v==GLSLES3 ? "300 es" : v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : "140"
 		, v==GLSLES3 ? "precision highp float;" : ""
-		, v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
+		, v==GLSLES3 ? "" : v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
 		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, v==GLSL_120 ? "attribute" : "in"
 		, v==GLSL_120 ? "attribute" : "out"
