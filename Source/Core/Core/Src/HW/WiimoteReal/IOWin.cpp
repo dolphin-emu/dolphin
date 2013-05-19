@@ -217,11 +217,17 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 			wm->devicepath = detail_data->DevicePath;
 			
 			TCHAR name[128] = {};
-			HANDLE dev_handle = CreateFile(wm->devicepath.c_str(),
-								GENERIC_READ, FILE_SHARE_READ,
-								NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+			HANDLE dev_handle = CreateFile(wm->devicepath.c_str(), 
+								  GENERIC_READ, 
+								  FILE_SHARE_READ, 
+								  NULL, 
+								  OPEN_EXISTING, 
+								  FILE_FLAG_OVERLAPPED, 
+								  NULL);
 			
-			if (dev_handle != INVALID_HANDLE_VALUE && HidD_GetProductString(dev_handle, name, 128) && IsBalanceBoardName(TStrToUTF8(name)))
+			if (dev_handle != INVALID_HANDLE_VALUE && 
+				HidD_GetProductString(dev_handle, name, 128) && 
+				IsBalanceBoardName(TStrToUTF8(name)))
 			{
 				found_board = wm;
 			}
@@ -230,7 +236,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 				found_wiimotes.push_back(wm);
 			}
 			
-			if(dev_handle != INVALID_HANDLE_VALUE)
+			if (dev_handle != INVALID_HANDLE_VALUE)
 			{
 				CloseHandle(dev_handle);
 			}
