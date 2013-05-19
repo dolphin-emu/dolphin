@@ -183,7 +183,7 @@ void WiimoteScanner::Update()
 // Does not replace already found wiimotes even if they are disconnected.
 // wm is an array of max_wiimotes wiimotes
 // Returns the total number of found and connected wiimotes.
-std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
+void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimote* & found_board)
 {
 	ProcessWiimotes(true, [](HANDLE hRadio, const BLUETOOTH_RADIO_INFO& rinfo, BLUETOOTH_DEVICE_INFO_STRUCT& btdi)
 	{
@@ -197,8 +197,6 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 
 	// Get all hid devices connected
 	HDEVINFO const device_info = SetupDiGetClassDevs(&device_id, NULL, NULL, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
-
-	std::vector<Wiimote*> wiimotes;
 
 	SP_DEVICE_INTERFACE_DATA device_data;
 	device_data.cbSize = sizeof(device_data);
@@ -217,7 +215,25 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 		{
 			auto const wm = new Wiimote;
 			wm->devicepath = detail_data->DevicePath;
-			wiimotes.push_back(wm);
+			
+			TCHAR name[128] = {};
+			HANDLE dev_handle = CreateFile(wm->devicepath.c_str(),
+								GENERIC_READ, FILE_SHARE_READ,
+								NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+			
+			if (dev_handle != INVALID_HANDLE_VALUE && HidD_GetProductString(dev_handle, name, 128) && IsBalanceBoardName(TStrToUTF8(name)))
+			{
+				found_board = wm;
+			}
+			else
+			{
+				found_wiimotes.push_back(wm);
+			}
+			
+			if(dev_handle != INVALID_HANDLE_VALUE)
+			{
+				CloseHandle(dev_handle);
+			}
 		}
 
 		free(detail_data);
@@ -229,7 +245,6 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 	//if (!wiimotes.empty())
 	//	SLEEP(2000);
 
-	return wiimotes;
 }
 
 bool WiimoteScanner::IsReady() const

@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "InputConfig.h"
-#include "../Src/ConfigManager.h"
-#include "../Src/HW/Wiimote.h"
+#include "../../Core/Src/ConfigManager.h"
+#include "../../Core/Src/HW/Wiimote.h"
 
 InputPlugin::~InputPlugin()
 {
