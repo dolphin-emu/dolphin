@@ -59,7 +59,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 18;
+static const u32 STATE_VERSION = 19;
 
 enum
 {
