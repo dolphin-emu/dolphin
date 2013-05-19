@@ -1,38 +1,26 @@
 package org.dolphinemu.dolphinemu;
 
+import android.app.Activity;
+import android.app.ListActivity;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.Toast;
+import net.simonvt.menudrawer.MenuDrawer;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.simonvt.menudrawer.MenuDrawer;
-
-import android.app.Activity;
-import android.app.ListActivity;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Environment;
-import android.util.DisplayMetrics;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
-import android.view.Surface;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
 public class GameListView extends ListActivity {
 	private GameListAdapter adapter;
-	private static List<File> currentDir;
 	private MenuDrawer mDrawer;
 	
     private SideMenuAdapter mAdapter;
-    private ListView mList;
     private static GameListView me;
     public static native String GetConfig(String Key, String Value, String Default);
     public static native void SetConfig(String Key, String Value, String Default);
@@ -66,7 +54,7 @@ public class GameListView extends ListActivity {
 			            			fls.add(new GameListItem(getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
 				}
 			}
-			catch(Exception e)
+			catch(Exception ignored)
 			{
 			}
 		}
@@ -78,13 +66,10 @@ public class GameListView extends ListActivity {
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		// TODO Auto-generated method stub
 		super.onListItemClick(l, v, position, id);
 		GameListItem o = adapter.getItem(position);
-		if(o.getData().equalsIgnoreCase("folder")||o.getData().equalsIgnoreCase("parent directory")){
-		}
-		else
-		{
+		if(!(o.getData().equalsIgnoreCase("folder")||o.getData().equalsIgnoreCase("parent directory")))
+        {
 			onFileClick(o.getPath());
 		}
 	}
@@ -131,8 +116,9 @@ public class GameListView extends ListActivity {
 		 
 		List<SideMenuItem>dir = new ArrayList<SideMenuItem>();
 		dir.add(new SideMenuItem("Browse Folder", 0));
+        dir.add(new SideMenuItem("Settings", 1));
 
-		mList = new ListView(this);
+        ListView mList = new ListView(this);
 		mAdapter = new SideMenuAdapter(this,R.layout.sidemenu,dir);
 		mList.setAdapter(mAdapter);
 		mList.setOnItemClickListener(mItemClickListener);
@@ -150,6 +136,11 @@ public class GameListView extends ListActivity {
         			Intent ListIntent = new Intent(me, FolderBrowser.class);
         			startActivityForResult(ListIntent, 1);
         		break;
+                case 1:
+                    Toast.makeText(me, "Loading up settings", Toast.LENGTH_SHORT).show();
+                    Intent SettingIntent = new Intent(me, SettingBrowser.class);
+                    startActivityForResult(SettingIntent, 1);
+                break;
         		default:
         		break;
         	}

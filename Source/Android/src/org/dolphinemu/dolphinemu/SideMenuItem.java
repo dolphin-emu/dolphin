@@ -1,5 +1,11 @@
 package org.dolphinemu.dolphinemu;
 
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 public class SideMenuItem implements Comparable<SideMenuItem>{
     private String m_name;
     private int m_id;
