@@ -3,7 +3,9 @@ package org.dolphinemu.dolphinemu;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -24,6 +26,8 @@ public class GameListView extends ListActivity {
     private static GameListView me;
     public static native String GetConfig(String Key, String Value, String Default);
     public static native void SetConfig(String Key, String Value, String Default);
+
+    enum keyTypes {TYPE_STRING, TYPE_BOOL};
 	
 	private void Fill()
     {
@@ -88,19 +92,67 @@ public class GameListView extends ListActivity {
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		super.onActivityResult(requestCode, resultCode, data);
-		
-		if (resultCode == Activity.RESULT_OK)
-		{
-			String FileName = data.getStringExtra("Select");
-			Toast.makeText(this, "Folder Selected: " + FileName, Toast.LENGTH_SHORT).show();
-			String Directories = GetConfig("General", "GCMPathes", "0");
-			int intDirectories = Integer.parseInt(Directories);
-			Directories = Integer.toString(intDirectories + 1);
-			SetConfig("General", "GCMPathes", Directories);
-			SetConfig("General", "GCMPaths" + Integer.toString(intDirectories), FileName);
-			
-			Fill();
-		}
+
+        switch (requestCode)
+        {
+            // Browse
+            case 1:
+                if (resultCode == Activity.RESULT_OK)
+                {
+                    String FileName = data.getStringExtra("Select");
+                    Toast.makeText(this, "Folder Selected: " + FileName, Toast.LENGTH_SHORT).show();
+                    String Directories = GetConfig("General", "GCMPathes", "0");
+                    int intDirectories = Integer.parseInt(Directories);
+                    Directories = Integer.toString(intDirectories + 1);
+                    SetConfig("General", "GCMPathes", Directories);
+                    SetConfig("General", "GCMPaths" + Integer.toString(intDirectories), FileName);
+
+                    Fill();
+                }
+            break;
+            // Settings
+            case 2:
+
+                String Keys[] = {
+                        "cpupref",
+                        "dualcorepref",
+                        "gpupref",
+                };
+                String ConfigKeys[] = {
+                        "Core-CPUCore",
+                        "Core-CPUThread",
+                        "Core-GFXBackend",
+                };
+
+                keyTypes KeysTypes[] = {
+                        keyTypes.TYPE_STRING,
+                        keyTypes.TYPE_BOOL,
+                        keyTypes.TYPE_STRING,
+                };
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+                // Set our preferences here
+                for (int a = 0; a < Keys.length; ++a)
+                {
+                    String ConfigValues[] = ConfigKeys[a].split("-");
+                    String Key = ConfigValues[0];
+                    String Value = ConfigValues[1];
+
+                    switch(KeysTypes[a])
+                    {
+                        case TYPE_STRING:
+                            String strPref = prefs.getString(Keys[a], "");
+                            SetConfig(Key, Value, strPref);
+                        break;
+                        case TYPE_BOOL:
+                            boolean boolPref = prefs.getBoolean(Keys[a], true);
+                            SetConfig(Key, Value, boolPref ? "True" : "False");
+                        break;
+                    }
+
+                }
+            break;
+        }
 	}
 	
 	@Override
@@ -138,8 +190,8 @@ public class GameListView extends ListActivity {
         		break;
                 case 1:
                     Toast.makeText(me, "Loading up settings", Toast.LENGTH_SHORT).show();
-                    Intent SettingIntent = new Intent(me, SettingBrowser.class);
-                    startActivityForResult(SettingIntent, 1);
+                    Intent SettingIntent = new Intent(me, PrefsActivity.class);
+                    startActivityForResult(SettingIntent, 2);
                 break;
         		default:
         		break;

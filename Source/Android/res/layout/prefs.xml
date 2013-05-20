@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+        >
+    <PreferenceCategory
+            android:summary="Settings"
+            android:title="CPU Settings" >
+        <ListPreference
+                android:entries="@array/cpuOptions"
+                android:entryValues="@array/cpuValues"
+                android:key="cpupref"
+                android:summary="Emulation core to use"
+                android:title="CPU Core" />
+        <CheckBoxPreference
+                android:key="dualcorepref"
+                android:summary="On/Off"
+                android:title="Dual Core" />
+    </PreferenceCategory>
+    <PreferenceCategory
+            android:summary="Settings"
+            android:title="Video Settings" >
+        <ListPreference
+                android:entries="@array/gpuOptions"
+                android:entryValues="@array/gpuValues"
+                android:key="gpupref"
+                android:summary="Video backend to use"
+                android:title="Video Backend" />
+    </PreferenceCategory>
+</PreferenceScreen>
