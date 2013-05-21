@@ -31,11 +31,15 @@
             android:theme="@android:style/Theme"
             android:configChanges="orientation|locale|keyboard|keyboardHidden|navigation|fontScale|uiMode" >
         </activity>
-                <activity 
+        <activity
             android:name="org.dolphinemu.dolphinemu.FolderBrowser"
             android:label="@string/app_name"
             android:theme="@android:style/Theme"
             android:configChanges="orientation|locale|keyboard|keyboardHidden|navigation|fontScale|uiMode" >
+        </activity>
+            <activity
+            android:name=".PrefsActivity"
+            android:theme="@android:style/Theme.Black.NoTitleBar" >
         </activity>
     </application>
 

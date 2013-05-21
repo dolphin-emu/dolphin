@@ -1,41 +1,33 @@
 package org.dolphinemu.dolphinemu;
 
+import android.app.Activity;
+import android.app.ListActivity;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.Toast;
+import net.simonvt.menudrawer.MenuDrawer;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.simonvt.menudrawer.MenuDrawer;
-
-import android.app.Activity;
-import android.app.ListActivity;
-import android.content.Intent;
-import android.os.Bundle;
-import android.os.Environment;
-import android.util.DisplayMetrics;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
-import android.view.Surface;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-
 public class GameListView extends ListActivity {
 	private GameListAdapter adapter;
-	private static List<File> currentDir;
 	private MenuDrawer mDrawer;
 	
     private SideMenuAdapter mAdapter;
-    private ListView mList;
     private static GameListView me;
     public static native String GetConfig(String Key, String Value, String Default);
     public static native void SetConfig(String Key, String Value, String Default);
+
+    enum keyTypes {TYPE_STRING, TYPE_BOOL};
 	
 	private void Fill()
     {
@@ -66,7 +58,7 @@ public class GameListView extends ListActivity {
 			            			fls.add(new GameListItem(getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
 				}
 			}
-			catch(Exception e)
+			catch(Exception ignored)
 			{
 			}
 		}
@@ -78,13 +70,10 @@ public class GameListView extends ListActivity {
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		// TODO Auto-generated method stub
 		super.onListItemClick(l, v, position, id);
 		GameListItem o = adapter.getItem(position);
-		if(o.getData().equalsIgnoreCase("folder")||o.getData().equalsIgnoreCase("parent directory")){
-		}
-		else
-		{
+		if(!(o.getData().equalsIgnoreCase("folder")||o.getData().equalsIgnoreCase("parent directory")))
+        {
 			onFileClick(o.getPath());
 		}
 	}
@@ -103,19 +92,67 @@ public class GameListView extends ListActivity {
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
 		super.onActivityResult(requestCode, resultCode, data);
-		
-		if (resultCode == Activity.RESULT_OK)
-		{
-			String FileName = data.getStringExtra("Select");
-			Toast.makeText(this, "Folder Selected: " + FileName, Toast.LENGTH_SHORT).show();
-			String Directories = GetConfig("General", "GCMPathes", "0");
-			int intDirectories = Integer.parseInt(Directories);
-			Directories = Integer.toString(intDirectories + 1);
-			SetConfig("General", "GCMPathes", Directories);
-			SetConfig("General", "GCMPaths" + Integer.toString(intDirectories), FileName);
-			
-			Fill();
-		}
+
+        switch (requestCode)
+        {
+            // Browse
+            case 1:
+                if (resultCode == Activity.RESULT_OK)
+                {
+                    String FileName = data.getStringExtra("Select");
+                    Toast.makeText(this, "Folder Selected: " + FileName, Toast.LENGTH_SHORT).show();
+                    String Directories = GetConfig("General", "GCMPathes", "0");
+                    int intDirectories = Integer.parseInt(Directories);
+                    Directories = Integer.toString(intDirectories + 1);
+                    SetConfig("General", "GCMPathes", Directories);
+                    SetConfig("General", "GCMPaths" + Integer.toString(intDirectories), FileName);
+
+                    Fill();
+                }
+            break;
+            // Settings
+            case 2:
+
+                String Keys[] = {
+                        "cpupref",
+                        "dualcorepref",
+                        "gpupref",
+                };
+                String ConfigKeys[] = {
+                        "Core-CPUCore",
+                        "Core-CPUThread",
+                        "Core-GFXBackend",
+                };
+
+                keyTypes KeysTypes[] = {
+                        keyTypes.TYPE_STRING,
+                        keyTypes.TYPE_BOOL,
+                        keyTypes.TYPE_STRING,
+                };
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+                // Set our preferences here
+                for (int a = 0; a < Keys.length; ++a)
+                {
+                    String ConfigValues[] = ConfigKeys[a].split("-");
+                    String Key = ConfigValues[0];
+                    String Value = ConfigValues[1];
+
+                    switch(KeysTypes[a])
+                    {
+                        case TYPE_STRING:
+                            String strPref = prefs.getString(Keys[a], "");
+                            SetConfig(Key, Value, strPref);
+                        break;
+                        case TYPE_BOOL:
+                            boolean boolPref = prefs.getBoolean(Keys[a], true);
+                            SetConfig(Key, Value, boolPref ? "True" : "False");
+                        break;
+                    }
+
+                }
+            break;
+        }
 	}
 	
 	@Override
@@ -131,8 +168,9 @@ public class GameListView extends ListActivity {
 		 
 		List<SideMenuItem>dir = new ArrayList<SideMenuItem>();
 		dir.add(new SideMenuItem("Browse Folder", 0));
+        dir.add(new SideMenuItem("Settings", 1));
 
-		mList = new ListView(this);
+        ListView mList = new ListView(this);
 		mAdapter = new SideMenuAdapter(this,R.layout.sidemenu,dir);
 		mList.setAdapter(mAdapter);
 		mList.setOnItemClickListener(mItemClickListener);
@@ -150,6 +188,11 @@ public class GameListView extends ListActivity {
         			Intent ListIntent = new Intent(me, FolderBrowser.class);
         			startActivityForResult(ListIntent, 1);
         		break;
+                case 1:
+                    Toast.makeText(me, "Loading up settings", Toast.LENGTH_SHORT).show();
+                    Intent SettingIntent = new Intent(me, PrefsActivity.class);
+                    startActivityForResult(SettingIntent, 2);
+                break;
         		default:
         		break;
         	}
