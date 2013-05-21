@@ -137,6 +137,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 {
 	g_dsp.step_counter = 0;
 	cyclesLeft = 0;
+	init_hax = false;
 	dspjit = NULL;
 	
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
