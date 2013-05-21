@@ -138,6 +138,10 @@ inline void init_lib()
 
 namespace WiimoteReal
 {
+	
+	
+int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, int len);
+int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index);
 
 template <typename T>
 void ProcessWiimotes(bool new_scan, T& callback);
@@ -212,33 +216,23 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 		// Query the data for this device
 		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, NULL, NULL))
-		{
+		{			
 			auto const wm = new Wiimote;
 			wm->devicepath = detail_data->DevicePath;
-			
-			TCHAR name[128] = {};
-			HANDLE dev_handle = CreateFile(wm->devicepath.c_str(), 
-								  GENERIC_READ, 
-								  FILE_SHARE_READ, 
-								  NULL, 
-								  OPEN_EXISTING, 
-								  FILE_FLAG_OVERLAPPED, 
-								  NULL);
-			
-			if (dev_handle != INVALID_HANDLE_VALUE && 
-				HidD_GetProductString(dev_handle, name, 128) && 
-				IsBalanceBoardName(TStrToUTF8(name)))
+			bool real_wiimote = false, is_bb = false;
+
+			CheckDeviceType(wm->devicepath, real_wiimote, is_bb);
+			if (is_bb)
 			{
 				found_board = wm;
 			}
-			else
+			else if (real_wiimote)
 			{
 				found_wiimotes.push_back(wm);
 			}
-			
-			if (dev_handle != INVALID_HANDLE_VALUE)
+			else
 			{
-				CloseHandle(dev_handle);
+				free(wm);
 			}
 		}
 
@@ -251,6 +245,169 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	//if (!wiimotes.empty())
 	//	SLEEP(2000);
 
+}
+int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, int size, int attempts)
+{
+	OVERLAPPED hid_overlap_write = OVERLAPPED();
+	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
+	enum win_bt_stack_t stack = MSBT_STACK_UNKNOWN;
+
+	DWORD written = 0;
+	
+	for (; attempts>0; --attempts)
+	{
+		if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, size))
+		{
+			auto const wait_result = WaitForSingleObject(hid_overlap_write.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
+			if (WAIT_TIMEOUT == wait_result)
+			{
+				WARN_LOG(WIIMOTE, "CheckDeviceType_Write: A timeout occurred on writing to Wiimote.");
+				CancelIo(dev_handle);
+				continue;
+			}
+			else if (WAIT_FAILED == wait_result)
+			{
+				WARN_LOG(WIIMOTE, "CheckDeviceType_Write: A wait error occurred on writing to Wiimote.");
+				CancelIo(dev_handle);
+				continue;
+			}
+			if (GetOverlappedResult(dev_handle, &hid_overlap_write, &written, TRUE))
+			{
+				break;
+			}
+		}
+	}
+	
+	CloseHandle(hid_overlap_write.hEvent);
+
+	return written;
+}
+
+int CheckDeviceType_Read(HANDLE &dev_handle, u8* buf, int attempts)
+{
+	OVERLAPPED hid_overlap_read = OVERLAPPED();
+	hid_overlap_read.hEvent = CreateEvent(NULL, true, false, NULL);
+	int read = 0;
+	for (; attempts>0; --attempts)
+	{
+		read = _IORead(dev_handle, hid_overlap_read, buf, 1);
+		if (read > 0)
+			break;
+	}
+	
+	CloseHandle(hid_overlap_read.hEvent);
+
+	return read;
+}
+
+// A convoluted way of checking if a device is a Wii Balance Board and if it is a connectable Wiimote.
+// Because nothing on Windows should be easy.
+// (We can't seem to easily identify the bluetooth device an HID device belongs to...)
+void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool &real_wiimote, bool &is_bb)
+{
+	real_wiimote = false;
+	is_bb = false;
+	
+#ifdef SHARE_WRITE_WIIMOTES
+	std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
+	if (g_connected_wiimotes.count(devicepath) != 0)
+		return;
+#endif
+	
+	HANDLE dev_handle = CreateFile(devicepath.c_str(),
+								GENERIC_READ | GENERIC_WRITE, 
+								FILE_SHARE_READ | FILE_SHARE_WRITE,
+								NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 
+								NULL);
+	if (dev_handle == INVALID_HANDLE_VALUE)
+		return;
+	// enable to only check for official nintendo wiimotes/bb's
+	bool check_vidpid = false;
+	HIDD_ATTRIBUTES attrib;
+	attrib.Size = sizeof(attrib);
+	if (!check_vidpid || 
+		(HidD_GetAttributes(dev_handle, &attrib) &&
+		(attrib.VendorID == 0x057e) &&
+		(attrib.ProductID == 0x0306)))
+	{
+		int rc = 0;
+		// max_cycles insures we are never stuck here due to bad coding...
+		int max_cycles = 20;
+		u8 buf[MAX_PAYLOAD] = {0};
+
+		u8 const req_status_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REQUEST_STATUS, 0};
+
+		rc = CheckDeviceType_Write(dev_handle, 
+									req_status_report, 
+									sizeof(req_status_report), 
+									1);
+		while (rc > 0 && --max_cycles > 0)
+		{
+			if ((rc = CheckDeviceType_Read(dev_handle, buf, 1)) <= 0)
+				break;
+			
+			switch (buf[1])
+			{
+				case WM_STATUS_REPORT:
+				{
+					real_wiimote = true;
+					wm_status_report * wsr = (wm_status_report*)&buf[2];
+					if (wsr->extension)
+					{
+						// Wiimote with extension, we ask it what kind.
+						u8 read_ext[MAX_PAYLOAD] = {0};
+						read_ext[0] = WM_SET_REPORT | WM_BT_OUTPUT;
+						read_ext[1] = WM_READ_DATA;
+						// Extension type register.
+						*(u32*)&read_ext[2] = Common::swap32(0x4a400fa);
+						// Size.
+						*(u16*)&read_ext[6] = Common::swap16(6);
+						rc = CheckDeviceType_Write(dev_handle, read_ext, 8, 1);
+					}
+					else
+					{
+						// Normal Wiimote, exit while and be happy.
+						rc = -1;
+					}
+					break;
+				}
+				case WM_ACK_DATA:
+				{
+					real_wiimote = true;
+					break;
+				}
+				case WM_READ_DATA_REPLY:
+				{
+					wm_read_data_reply * wrdr 
+						= (wm_read_data_reply*)&buf[2];
+					// Check if it has returned what we asked.
+					if (Common::swap16(wrdr->address) == 0x00fa)
+					{
+						// 0x020420A40000ULL means balance board.
+						u64 ext_type = (*(u64*)&wrdr->data[0]);
+						is_bb = ext_type == 0x020420A40000ULL;
+					}
+					else
+					{
+						ERROR_LOG(WIIMOTE, 
+								  "CheckDeviceType: GOT UNREQUESTED ADDRESS %X", 
+								  Common::swap16(wrdr->address));
+					}
+					// force end
+					rc = -1;
+
+					break;
+				}
+				default:
+				{
+					// We let read try again incase there is another packet waiting.
+					// ERROR_LOG(WIIMOTE, "CheckDeviceType: GOT UNKNOWN REPLY: %X", buf[1]);
+					break;
+				}
+			}
+		}
+	}
+	CloseHandle(dev_handle);
 }
 
 bool WiimoteScanner::IsReady() const
@@ -376,7 +533,7 @@ bool Wiimote::IsConnected() const
 // positive = read packet
 // negative = didn't read packet
 // zero = error
-int Wiimote::IORead(u8* buf)
+int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index)
 {
 	// Add data report indicator byte (here, 0xa1)
 	buf[0] = 0xa1;
@@ -429,76 +586,90 @@ int Wiimote::IORead(u8* buf)
 	return bytes + 1;
 }
 
-int Wiimote::IOWrite(const u8* buf, int len)
+// positive = read packet
+// negative = didn't read packet
+// zero = error
+int Wiimote::IORead(u8* buf)
+{
+	return _IORead(dev_handle, hid_overlap_read, buf, index);
+}
+
+
+int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, int len)
 {
 	switch (stack)
 	{
-	case MSBT_STACK_UNKNOWN:
-	{
-		// Try to auto-detect the stack type
-		stack = MSBT_STACK_BLUESOLEIL;
-		if (IOWrite(buf, len))
-			return 1;
-
-		stack = MSBT_STACK_MS;
-		if (IOWrite(buf, len))
-			return 1;
-
-		stack = MSBT_STACK_UNKNOWN;
-		break;
-	}
-	case MSBT_STACK_MS:
-	{
-		auto result = HidD_SetOutputReport(dev_handle, const_cast<u8*>(buf) + 1, len - 1);
-		//FlushFileBuffers(dev_handle);
-
-		if (!result)
+		case MSBT_STACK_UNKNOWN:
 		{
-			auto err = GetLastError();
-			if (err == 121)
+			// Try to auto-detect the stack type
+			stack = MSBT_STACK_BLUESOLEIL;
+			if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, len))
+				return 1;
+			
+			stack = MSBT_STACK_MS;
+			if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, len))
+				return 1;
+			
+			stack = MSBT_STACK_UNKNOWN;
+			break;
+		}
+		case MSBT_STACK_MS:
+		{
+			auto result = HidD_SetOutputReport(dev_handle, const_cast<u8*>(buf) + 1, len - 1);
+			//FlushFileBuffers(dev_handle);
+			
+			if (!result)
 			{
-				// Semaphore timeout
-				NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to the Wiimote");
+				auto err = GetLastError();
+				if (err == 121)
+				{
+					// Semaphore timeout
+					NOTICE_LOG(WIIMOTE, "WiimoteIOWrite[MSBT_STACK_MS]:  Unable to send data to the Wiimote");
+				}
+				else
+				{
+					WARN_LOG(WIIMOTE, "IOWrite[MSBT_STACK_MS]: ERROR: %08x", err);
+				}
+			}
+			
+			return result;
+			break;
+		}
+		case MSBT_STACK_BLUESOLEIL:
+		{
+			u8 big_buf[MAX_PAYLOAD];
+			if (len < MAX_PAYLOAD)
+			{
+				std::copy(buf, buf + len, big_buf);
+				std::fill(big_buf + len, big_buf + MAX_PAYLOAD, 0);
+				buf = big_buf;
+			}
+			
+			ResetEvent(hid_overlap_write.hEvent);
+			DWORD bytes = 0;
+			if (WriteFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap_write))
+			{
+				// WriteFile always returns true with bluesoleil.
+				return 1;
 			}
 			else
 			{
-				WARN_LOG(WIIMOTE, "IOWrite[MSBT_STACK_MS]: ERROR: %08x", err);
+				auto const err = GetLastError();
+				if (ERROR_IO_PENDING == err)
+				{
+					CancelIo(dev_handle);
+				}
 			}
+			break;
 		}
-
-		return result;
-		break;
 	}
-	case MSBT_STACK_BLUESOLEIL:
-	{
-		u8 big_buf[MAX_PAYLOAD];
-		if (len < MAX_PAYLOAD)
-		{
-			std::copy(buf, buf + len, big_buf);
-			std::fill(big_buf + len, big_buf + MAX_PAYLOAD, 0);
-			buf = big_buf;
-		}
-
-		ResetEvent(hid_overlap_write.hEvent);
-		DWORD bytes = 0;
-		if (WriteFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap_write))
-		{
-			// WriteFile always returns true with bluesoleil.
-			return 1;
-		}
-		else
-		{
-			auto const err = GetLastError();
-			if (ERROR_IO_PENDING == err)
-			{
-				CancelIo(dev_handle);
-			}
-		}
-		break;
-	}
-	}
-
+	
 	return 0;
+}
+
+int Wiimote::IOWrite(const u8* buf, int len)
+{
+	return _IOWrite(dev_handle, hid_overlap_write, stack, buf, len);
 }
 
 // invokes callback for each found wiimote bluetooth device
@@ -519,7 +690,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
 
 	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
 	radioParam.dwSize = sizeof(radioParam);
-
+	
 	HANDLE hRadio;
 	
 	// TODO: save radio(s) in the WiimoteScanner constructor?

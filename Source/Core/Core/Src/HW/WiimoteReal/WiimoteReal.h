@@ -137,8 +137,7 @@ private:
 	volatile bool m_want_bb;
 
 #if defined(_WIN32)
-	
-
+	void CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool &real_wiimote, bool &is_bb);
 #elif defined(__linux__) && HAVE_BLUEZ
 	int device_id;
 	int device_sock;
