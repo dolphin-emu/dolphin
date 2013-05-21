@@ -344,13 +344,16 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 		while (rc > 0 && --max_cycles > 0)
 		{
 			if ((rc = CheckDeviceType_Read(dev_handle, buf, 1)) <= 0)
+			{
+				// DEBUG_LOG(WIIMOTE, "CheckDeviceType: Read failed...");
 				break;
+			}
 			
 			switch (buf[1])
 			{
 				case WM_STATUS_REPORT:
 				{
-					real_wiimote = true;
+					// DEBUG_LOG(WIIMOTE, "CheckDeviceType: Got Status Report");
 					wm_status_report * wsr = (wm_status_report*)&buf[2];
 					if (wsr->extension)
 					{
@@ -366,6 +369,7 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 					}
 					else
 					{
+						real_wiimote = true;
 						// Normal Wiimote, exit while and be happy.
 						rc = -1;
 					}
@@ -373,18 +377,23 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 				}
 				case WM_ACK_DATA:
 				{
-					real_wiimote = true;
+					// DEBUG_LOG(WIIMOTE, "CheckDeviceType: Got Ack");
 					break;
 				}
 				case WM_READ_DATA_REPLY:
 				{
+					// DEBUG_LOG(WIIMOTE, "CheckDeviceType: Got Data Reply");
 					wm_read_data_reply * wrdr 
 						= (wm_read_data_reply*)&buf[2];
 					// Check if it has returned what we asked.
 					if (Common::swap16(wrdr->address) == 0x00fa)
 					{
+						real_wiimote = true;
 						// 0x020420A40000ULL means balance board.
 						u64 ext_type = (*(u64*)&wrdr->data[0]);
+						// DEBUG_LOG(WIIMOTE, 
+						//		  "CheckDeviceType: GOT EXT TYPE %llX", 
+						//		  ext_type);
 						is_bb = ext_type == 0x020420A40000ULL;
 					}
 					else
@@ -401,7 +410,7 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 				default:
 				{
 					// We let read try again incase there is another packet waiting.
-					// ERROR_LOG(WIIMOTE, "CheckDeviceType: GOT UNKNOWN REPLY: %X", buf[1]);
+					// DEBUG_LOG(WIIMOTE, "CheckDeviceType: GOT UNKNOWN REPLY: %X", buf[1]);
 					break;
 				}
 			}
