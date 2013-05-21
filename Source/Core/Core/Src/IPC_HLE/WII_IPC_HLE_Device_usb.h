@@ -12,6 +12,7 @@
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
 #include "WII_IPC_HLE_WiiMote.h"
+#include "../HW/Wiimote.h"
 
 struct SQueuedEvent
 {
@@ -193,7 +194,7 @@ private:
 		}
 	} m_acl_pool;
 
-	u32 m_PacketCount[4];
+	u32 m_PacketCount[MAX_BBMOTES];
 	u64 m_last_ticks;
 
 	// Send ACL data to a device (wiimote)
@@ -274,7 +275,6 @@ private:
 
 #pragma pack(push,1)
 #define CONF_PAD_MAX_REGISTERED 10
-#define CONF_PAD_MAX_ACTIVE 4
 	
 	struct _conf_pad_device
 	{
@@ -286,7 +286,7 @@ private:
 	{
 		u8 num_registered;
 		_conf_pad_device registered[CONF_PAD_MAX_REGISTERED];
-		_conf_pad_device active[CONF_PAD_MAX_ACTIVE];
+		_conf_pad_device active[MAX_WIIMOTES];
 		_conf_pad_device balance_board;
 		u8 unknown[0x45];
 	};
