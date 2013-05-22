@@ -353,6 +353,8 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 			{
 				case WM_STATUS_REPORT:
 				{
+					real_wiimote = true;
+					
 					// DEBUG_LOG(WIIMOTE, "CheckDeviceType: Got Status Report");
 					wm_status_report * wsr = (wm_status_report*)&buf[2];
 					if (wsr->extension)
@@ -369,7 +371,6 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 					}
 					else
 					{
-						real_wiimote = true;
 						// Normal Wiimote, exit while and be happy.
 						rc = -1;
 					}
@@ -377,7 +378,9 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 				}
 				case WM_ACK_DATA:
 				{
-					// DEBUG_LOG(WIIMOTE, "CheckDeviceType: Got Ack");
+					real_wiimote = true;
+					//wm_acknowledge * wm = (wm_acknowledge*)&buf[2];
+					//DEBUG_LOG(WIIMOTE, "CheckDeviceType: Got Ack Error: %X ReportID: %X", wm->errorID, wm->reportID);
 					break;
 				}
 				case WM_READ_DATA_REPLY:
@@ -394,7 +397,9 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 						// DEBUG_LOG(WIIMOTE, 
 						//		  "CheckDeviceType: GOT EXT TYPE %llX", 
 						//		  ext_type);
-						is_bb = ext_type == 0x020420A40000ULL;
+						is_bb = (ext_type == 0x020420A40000ULL) ||
+									((ext_type & 0xf00000000000ULL) && 
+										ext_type != 0xffffffffffffULL);
 					}
 					else
 					{
