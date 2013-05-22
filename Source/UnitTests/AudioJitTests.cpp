@@ -341,7 +341,7 @@ void AudioJitTests()
 
 //required to be able to link against DSPCore
 void DSPHost_UpdateDebugger() { }
-unsigned int DSPHost_CodeLoaded(unsigned const char*, int) { return 0; }
+void DSPHost_CodeLoaded(unsigned const char*, int) { }
 void DSPHost_InterruptRequest() { }
 bool DSPHost_OnThread() { return false; }
 void DSPHost_WriteHostMemory(unsigned char, unsigned int) { }
