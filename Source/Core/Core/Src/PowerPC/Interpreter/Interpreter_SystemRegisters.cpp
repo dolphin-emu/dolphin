@@ -452,6 +452,18 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 	case SPR_IBAT3U:
 		MMUTable::on_ibatu_change(3, oldValue, rSPR(iIndex), rSPR(iIndex+1));
 		break;
+	case SPR_IBAT4U:
+		MMUTable::on_ibatu_change(4, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
+	case SPR_IBAT5U:
+		MMUTable::on_ibatu_change(5, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
+	case SPR_IBAT6U:
+		MMUTable::on_ibatu_change(6, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
+	case SPR_IBAT7U:
+		MMUTable::on_ibatu_change(7, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
 	case SPR_IBAT0L:
 		MMUTable::on_ibatl_change(0, rSPR(iIndex-1), rSPR(iIndex));
 		break;
@@ -463,6 +475,18 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 		break;
 	case SPR_IBAT3L:
 		MMUTable::on_ibatl_change(3, rSPR(iIndex-1), rSPR(iIndex));
+		break;
+	case SPR_IBAT4L:
+		MMUTable::on_ibatl_change(4, rSPR(iIndex-1), rSPR(iIndex));
+		break;
+	case SPR_IBAT5L:
+		MMUTable::on_ibatl_change(5, rSPR(iIndex-1), rSPR(iIndex));
+		break;
+	case SPR_IBAT6L:
+		MMUTable::on_ibatl_change(6, rSPR(iIndex-1), rSPR(iIndex));
+		break;
+	case SPR_IBAT7L:
+		MMUTable::on_ibatl_change(7, rSPR(iIndex-1), rSPR(iIndex));
 		break;
 	case SPR_DBAT0U:
 		MMUTable::on_dbatu_change(0, oldValue, rSPR(iIndex), rSPR(iIndex+1));
@@ -476,6 +500,18 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 	case SPR_DBAT3U:
 		MMUTable::on_dbatu_change(3, oldValue, rSPR(iIndex), rSPR(iIndex+1));
 		break;
+	case SPR_DBAT4U:
+		MMUTable::on_dbatu_change(4, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
+	case SPR_DBAT5U:
+		MMUTable::on_dbatu_change(5, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
+	case SPR_DBAT6U:
+		MMUTable::on_dbatu_change(6, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
+	case SPR_DBAT7U:
+		MMUTable::on_dbatu_change(7, oldValue, rSPR(iIndex), rSPR(iIndex+1));
+		break;
 	case SPR_DBAT0L:
 		MMUTable::on_dbatl_change(0, rSPR(iIndex-1), rSPR(iIndex));
 		break;
@@ -487,6 +523,18 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 		break;
 	case SPR_DBAT3L:
 		MMUTable::on_dbatl_change(3, rSPR(iIndex-1), rSPR(iIndex));
+		break;
+	case SPR_DBAT4L:
+		MMUTable::on_dbatl_change(4, rSPR(iIndex-1), rSPR(iIndex));
+		break;
+	case SPR_DBAT5L:
+		MMUTable::on_dbatl_change(5, rSPR(iIndex-1), rSPR(iIndex));
+		break;
+	case SPR_DBAT6L:
+		MMUTable::on_dbatl_change(6, rSPR(iIndex-1), rSPR(iIndex));
+		break;
+	case SPR_DBAT7L:
+		MMUTable::on_dbatl_change(7, rSPR(iIndex-1), rSPR(iIndex));
 		break;
 	}
 }

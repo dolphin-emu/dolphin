@@ -204,8 +204,9 @@ void Interpreter::lmw(UGeckoInstruction _inst)
 		u32 TempReg = Memory::Read_U32(uAddress);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
-			PanicAlert("DSI exception in lmw");
+			//PanicAlert("DSI exception in lmw");
 			NOTICE_LOG(POWERPC, "DSI exception in lmw");
+			PowerPC::CheckExceptions();
 			return;
 		}
 		else
@@ -224,8 +225,9 @@ void Interpreter::stmw(UGeckoInstruction _inst)
 		Memory::Write_U32(m_GPR[iReg], uAddress);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
-			PanicAlert("DSI exception in stmw");
+			//PanicAlert("DSI exception in stmw");
 			NOTICE_LOG(POWERPC, "DSI exception in stmw");
+			PowerPC::CheckExceptions();
 			return;
 		}
 	}

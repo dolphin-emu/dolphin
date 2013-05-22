@@ -20,6 +20,7 @@
 #include "../../Core.h"
 #include "../../CoreTiming.h"
 #include "../../HW/SystemTimers.h"
+#include "../../HW/MMUTable.h"
 #include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
@@ -122,6 +123,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	gpr.UnlockAll();
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
+	ABI_CallFunction(thunks.ProtectFunction((void*)&MMUTable::on_msr_change, 0));
 	WriteExit(js.compilerPC + 4, 0);
 	js.firstFPInstructionFound = false;
 }

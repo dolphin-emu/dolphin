@@ -374,6 +374,53 @@ int MMIO_Device_EFB_write32(void* context, const u32 addr, const u32 in)
 }
 
 
+/*
+int rfh_read8(const void* context, const u32 addr, u8 &out)
+{
+	ReadFromHardware<u8>(out, addr, addr, FLAG_READ);
+	return 0;
+}
+int rfh_read16(const void* context, const u32 addr, u8 &out)
+{
+	ReadFromHardware<u16>(out, addr, addr, FLAG_READ);
+	return 0;
+}
+int rfh_read32(const void* context, const u32 addr, u8 &out)
+{
+	ReadFromHardware<u32>(out, addr, addr, FLAG_READ);
+	return 0;
+}
+int rfh_read64(const void* context, const u32 addr, u8 &out)
+{
+	ReadFromHardware<u64>(out, addr, addr, FLAG_READ);
+	return 0;
+}
+int wth_write8(void* context, const u32 addr, const u8 in)
+{
+	WriteToHardware<u8>(addr, in, addr, FLAG_WRITE);
+	return 0;
+}
+int wth_write16(void* context, const u32 addr, const u8 in)
+{
+	WriteToHardware<u16>(addr, in, addr, FLAG_WRITE);
+	return 0;
+}
+
+int wth_write32(void* context, const u32 addr, const u32 in)
+{
+	WriteToHardware<u32>(addr, in, addr, FLAG_WRITE);
+	return 0;
+}
+int wth_write64(void* context, const u32 addr, const u64 in)
+{
+	WriteToHardware<u64>(addr, in, addr, FLAG_WRITE);
+	return 0;
+}
+*/
+
+
+
+
 
 
 
@@ -608,6 +655,28 @@ void InitHWMemFuncsWii()
 #endif
 	MMUTable::map_physical(m_pRAM, RAM_SIZE, 0x00000000);
 	MMUTable::map_physical(m_pEXRAM, EXRAM_SIZE, 0x10000000);
+	MMUTable::map_physical(m_pL1Cache, L1_CACHE_SIZE, 0xe0000000);
+	struct MMUTable::DAccessFuncs daf;
+
+// this is lazy...
+	extern int rfh_read8(const void* context, const u32 addr, u8 &out);
+	extern int rfh_read16(const void* context, const u32 addr, u16 &out);
+	extern int rfh_read32(const void* context, const u32 addr, u32 &out);
+	extern int rfh_read64(const void* context, const u32 addr, u64 &out);
+	extern int wth_write8(void* context, const u32 addr, const u8 in);
+	extern int wth_write16(void* context, const u32 addr, const u16 in);
+	extern int wth_write32(void* context, const u32 addr, const u32 in);
+	extern int wth_write64(void* context, const u32 addr, const u64 in);
+	MMUTable::daf_reset_to_no_except(&daf);
+	daf.read_u8 = &rfh_read8; 
+	daf.read_u16 = &rfh_read16; 
+	daf.read_u32 = &rfh_read32; 
+	daf.read_u64 = &rfh_read64; 
+	daf.write_u8 = &wth_write8;
+	daf.write_u16 = &wth_write16;
+	daf.write_u32 = &wth_write32;
+	daf.write_u64 = &wth_write64;
+	MMUTable::map_mmio_device(&daf, NULL, 0x1000000, 0x0d000000);
 }
 
 writeFn32 GetHWWriteFun32(const u32 _Address)

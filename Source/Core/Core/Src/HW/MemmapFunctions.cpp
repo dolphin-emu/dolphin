@@ -632,6 +632,48 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 	WriteToHardware<u32>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
 }
 
+int rfh_read8(const void* context, const u32 addr, u8 &out)
+{
+	ReadFromHardware<u8>(out, addr, addr, FLAG_READ);
+	return 0;
+}
+int rfh_read16(const void* context, const u32 addr, u16 &out)
+{
+	ReadFromHardware<u16>(out, addr, addr, FLAG_READ);
+	return 0;
+}
+int rfh_read32(const void* context, const u32 addr, u32 &out)
+{
+	ReadFromHardware<u32>(out, addr, addr, FLAG_READ);
+	return 0;
+}
+int rfh_read64(const void* context, const u32 addr, u64 &out)
+{
+	ReadFromHardware<u64>(out, addr, addr, FLAG_READ);
+	return 0;
+}
+int wth_write8(void* context, const u32 addr, const u8 in)
+{
+	WriteToHardware<u8>(addr, in, addr, FLAG_WRITE);
+	return 0;
+}
+int wth_write16(void* context, const u32 addr, const u16 in)
+{
+	WriteToHardware<u16>(addr, in, addr, FLAG_WRITE);
+	return 0;
+}
+
+int wth_write32(void* context, const u32 addr, const u32 in)
+{
+	WriteToHardware<u32>(addr, in, addr, FLAG_WRITE);
+	return 0;
+}
+int wth_write64(void* context, const u32 addr, const u64 in)
+{
+	WriteToHardware<u64>(addr, in, addr, FLAG_WRITE);
+	return 0;
+}
+
 // *********************************************************************************
 // Warning: Test Area
 //

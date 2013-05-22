@@ -82,6 +82,8 @@ bool CBoot::EmulatedBS2_GC()
 	Memory::Write_U32(0x4c000064, 0x80000800);	// write default FPU Handler:		rfi
 	Memory::Write_U32(0x4c000064, 0x80000C00);	// write default Syscall Handler:   rfi
 
+
+
 	Memory::Write_U64((u64)CEXIIPL::GetGCTime() * (u64)40500000, 0x800030D8);	// preset time base ticks
 	// HIO checks this
 	//Memory::Write_U16(0x8200,     0x000030e6);	// Console type
@@ -272,7 +274,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	// 40 is copied from 88 after running apploader
 	Memory::Write_U32(0x00090204, 0x00003140);		// IOS revision (IOS9, v2.4)
 	Memory::Write_U32(0x00062507, 0x00003144);		// IOS date in USA format (June 25, 2007)
-	Memory::Write_U16(0x0113,     0x0000315e);		// Apploader
+	Memory::Write_U16(0x0113,     0x0000315e);		// Apploader version
 	Memory::Write_U32(0x0000FF16, 0x00003158);		// DDR ram vendor code
 	Memory::Write_U32(0x00000000, 0x00003160);		// Init semaphore (sysmenu waits for this to clear)
 	Memory::Write_U32(0x00090204, 0x00003188);		// Expected IOS revision

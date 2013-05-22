@@ -22,6 +22,7 @@
 #include "../../CoreTiming.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
+#include "../../HW/MMUTable.h"
 
 #include "Jit.h"
 #include "JitRegCache.h"
@@ -69,6 +70,7 @@ void Jit64::rfi(UGeckoInstruction inst)
 	AND(32, R(EAX), Imm32(mask & clearMSR13));
 	OR(32, M(&MSR), R(EAX));
 	// NPC = SRR0;
+	ABI_CallFunction(thunks.ProtectFunction((void*)&MMUTable::on_msr_change, 0));
 	MOV(32, R(EAX), M(&SRR0));
 	WriteRfiExitDestInEAX();
 }

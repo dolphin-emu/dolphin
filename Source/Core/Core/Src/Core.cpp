@@ -417,30 +417,78 @@ void EmuThread()
 
 	// Setup Initial State
 
-	PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001FFF;
-	PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
-	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xC0001FFF;
-	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002A;
-	PowerPC::ppcState.spr[SPR_DBAT2U] = 0;
-	PowerPC::ppcState.spr[SPR_DBAT2L] = 0;
-	PowerPC::ppcState.spr[SPR_DBAT3U] = 0xFFF0001F;
-	PowerPC::ppcState.spr[SPR_DBAT3L] = 0xFFF00001;
-	PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001FFF;
-	PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
-	PowerPC::ppcState.spr[SPR_IBAT1U] = 0;
-	PowerPC::ppcState.spr[SPR_IBAT1L] = 0;
-	PowerPC::ppcState.spr[SPR_IBAT2U] = 0;
-	PowerPC::ppcState.spr[SPR_IBAT2L] = 0;
-	PowerPC::ppcState.spr[SPR_IBAT3U] = 0xFFF0001F;
-	PowerPC::ppcState.spr[SPR_IBAT3L] = 0xFFF00001;
-	MMUTable::on_ibatl_change(0, PowerPC::ppcState.spr[SPR_IBAT0U], PowerPC::ppcState.spr[SPR_IBAT0L]);
-	MMUTable::on_ibatl_change(1, PowerPC::ppcState.spr[SPR_IBAT1U], PowerPC::ppcState.spr[SPR_IBAT1L]);
-	MMUTable::on_ibatl_change(2, PowerPC::ppcState.spr[SPR_IBAT2U], PowerPC::ppcState.spr[SPR_IBAT2L]);
-	MMUTable::on_ibatl_change(3, PowerPC::ppcState.spr[SPR_IBAT3U], PowerPC::ppcState.spr[SPR_IBAT3L]);
-	MMUTable::on_dbatl_change(0, PowerPC::ppcState.spr[SPR_DBAT0U], PowerPC::ppcState.spr[SPR_DBAT0L]);
-	MMUTable::on_dbatl_change(1, PowerPC::ppcState.spr[SPR_DBAT1U], PowerPC::ppcState.spr[SPR_DBAT1L]);
-	MMUTable::on_dbatl_change(2, PowerPC::ppcState.spr[SPR_DBAT2U], PowerPC::ppcState.spr[SPR_DBAT2L]);
-	MMUTable::on_dbatl_change(3, PowerPC::ppcState.spr[SPR_DBAT3U], PowerPC::ppcState.spr[SPR_DBAT3L]);
+	if (g_CoreStartupParameter.bWii)
+	{
+		PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001FFF;
+		PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+		PowerPC::ppcState.spr[SPR_DBAT1U] = 0xC0001FFF;
+		PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002A;
+		PowerPC::ppcState.spr[SPR_DBAT2U] = 0;
+		PowerPC::ppcState.spr[SPR_DBAT2L] = 0;
+		PowerPC::ppcState.spr[SPR_DBAT3U] = 0x0000001F;
+		PowerPC::ppcState.spr[SPR_DBAT3L] = 0x00000001;
+		PowerPC::ppcState.spr[SPR_DBAT4U] = 0x90001FFF;
+		PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
+		PowerPC::ppcState.spr[SPR_DBAT5U] = 0xD0001FFF;
+		PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002A;
+		PowerPC::ppcState.spr[SPR_DBAT6U] = 0;
+		PowerPC::ppcState.spr[SPR_DBAT6L] = 0;
+		PowerPC::ppcState.spr[SPR_DBAT7U] = 0;
+		PowerPC::ppcState.spr[SPR_DBAT7L] = 0;
+		
+		
+		PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001FFF;
+		PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+		PowerPC::ppcState.spr[SPR_IBAT1U] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT1L] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT2U] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT2L] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT3U] = 0x0000001F;
+		PowerPC::ppcState.spr[SPR_IBAT3L] = 0x00000001;
+		PowerPC::ppcState.spr[SPR_IBAT4U] = 0x90001FFF;
+		PowerPC::ppcState.spr[SPR_IBAT4L] = 0x10000002;
+		PowerPC::ppcState.spr[SPR_IBAT5U] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT5L] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT6U] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT6L] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT7U] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT7L] = 0;
+
+		MMUTable::on_ibatl_change(0, PowerPC::ppcState.spr[SPR_IBAT0U], PowerPC::ppcState.spr[SPR_IBAT0L]);
+		MMUTable::on_ibatl_change(3, PowerPC::ppcState.spr[SPR_IBAT3U], PowerPC::ppcState.spr[SPR_IBAT3L]);
+		MMUTable::on_ibatl_change(4, PowerPC::ppcState.spr[SPR_IBAT4U], PowerPC::ppcState.spr[SPR_IBAT4L]);
+		MMUTable::on_dbatl_change(0, PowerPC::ppcState.spr[SPR_DBAT0U], PowerPC::ppcState.spr[SPR_DBAT0L]);
+		MMUTable::on_dbatl_change(1, PowerPC::ppcState.spr[SPR_DBAT1U], PowerPC::ppcState.spr[SPR_DBAT1L]);
+		MMUTable::on_dbatl_change(3, PowerPC::ppcState.spr[SPR_DBAT3U], PowerPC::ppcState.spr[SPR_DBAT3L]);
+		MMUTable::on_dbatl_change(4, PowerPC::ppcState.spr[SPR_DBAT4U], PowerPC::ppcState.spr[SPR_DBAT4L]);
+		MMUTable::on_dbatl_change(5, PowerPC::ppcState.spr[SPR_DBAT5U], PowerPC::ppcState.spr[SPR_DBAT5L]);
+	
+	}
+	else
+	{
+		PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001FFF;
+		PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+		PowerPC::ppcState.spr[SPR_DBAT1U] = 0xC0001FFF;
+		PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002A;
+		PowerPC::ppcState.spr[SPR_DBAT2U] = 0;
+		PowerPC::ppcState.spr[SPR_DBAT2L] = 0;
+		PowerPC::ppcState.spr[SPR_DBAT3U] = 0xFFF0001F;
+		PowerPC::ppcState.spr[SPR_DBAT3L] = 0xFFF00001;
+		PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001FFF;
+		PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+		PowerPC::ppcState.spr[SPR_IBAT1U] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT1L] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT2U] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT2L] = 0;
+		PowerPC::ppcState.spr[SPR_IBAT3U] = 0xFFF0001F;
+		PowerPC::ppcState.spr[SPR_IBAT3L] = 0xFFF00001;
+		MMUTable::on_ibatl_change(0, PowerPC::ppcState.spr[SPR_IBAT0U], PowerPC::ppcState.spr[SPR_IBAT0L]);
+		MMUTable::on_ibatl_change(3, PowerPC::ppcState.spr[SPR_IBAT3U], PowerPC::ppcState.spr[SPR_IBAT3L]);
+		MMUTable::on_dbatl_change(0, PowerPC::ppcState.spr[SPR_DBAT0U], PowerPC::ppcState.spr[SPR_DBAT0L]);
+		MMUTable::on_dbatl_change(1, PowerPC::ppcState.spr[SPR_DBAT1U], PowerPC::ppcState.spr[SPR_DBAT1L]);
+		MMUTable::on_dbatl_change(3, PowerPC::ppcState.spr[SPR_DBAT3U], PowerPC::ppcState.spr[SPR_DBAT3L]);
+	}
+
 	for(int i=0;i<16;i++)
 	{
 		PowerPC::ppcState.sr[i]=0xffffffff;
