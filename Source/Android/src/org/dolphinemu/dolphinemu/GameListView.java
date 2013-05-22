@@ -39,7 +39,7 @@ public class GameListView extends ListActivity {
 		int intDirectories = Integer.parseInt(Directories);
 		for (int a = 0; a < intDirectories; ++a)
 		{
-			String BrowseDir = GetConfig("General", "GCMPaths" + Integer.toString(a), "");
+			String BrowseDir = GetConfig("General", "GCMPath" + Integer.toString(a), "");
 			File currentDir = new File(BrowseDir);
 			File[]dirs = currentDir.listFiles();
 			try
@@ -105,7 +105,7 @@ public class GameListView extends ListActivity {
                     int intDirectories = Integer.parseInt(Directories);
                     Directories = Integer.toString(intDirectories + 1);
                     SetConfig("General", "GCMPathes", Directories);
-                    SetConfig("General", "GCMPaths" + Integer.toString(intDirectories), FileName);
+                    SetConfig("General", "GCMPath" + Integer.toString(intDirectories), FileName);
 
                     Fill();
                 }

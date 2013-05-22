@@ -1,29 +1,19 @@
 package org.dolphinemu.dolphinemu;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import net.simonvt.menudrawer.MenuDrawer;
-
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
-import android.view.Gravity;
-import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.BaseAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class FolderBrowser extends ListActivity {
 	private GameListAdapter adapter;
@@ -87,12 +77,18 @@ public class FolderBrowser extends ListActivity {
 		Fill(currentDir);
 	}
     @Override
-    public void onBackPressed() {
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        menu.add("Add current folder");
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent = new Intent();
         intent.putExtra("Select", currentDir.getPath());
         setResult(Activity.RESULT_OK, intent);
-        
-    	this.finish();
-    	super.onBackPressed();
+
+        this.finish();
+        return true;
     }
 }
