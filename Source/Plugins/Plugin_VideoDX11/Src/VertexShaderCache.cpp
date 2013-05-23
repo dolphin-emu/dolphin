@@ -50,6 +50,8 @@ ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 		memcpy(map.pData, vsconstants, sizeof(vsconstants));
 		D3D::context->Unmap(vscbuf, 0);
 		vscbufchanged = false;
+		
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(vsconstants));
 	}
 	return vscbuf;
 }

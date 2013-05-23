@@ -197,6 +197,8 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 		D3D::SetIndices(m_index_buffers[m_current_index_buffer]);
 	}
 	
+	ADDSTAT(stats.thisFrame.bytesVertexStreamed, datasize);
+	ADDSTAT(stats.thisFrame.bytesIndexStreamed, IndexDataSize);
 }
 
 void VertexManager::DrawVertexBuffer(int stride)

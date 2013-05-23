@@ -345,6 +345,8 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 		memcpy(map.pData, psconstants, sizeof(psconstants));
 		D3D::context->Unmap(pscbuf, 0);
 		pscbufchanged = false;
+		
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(psconstants));
 	}
 	return pscbuf;
 }

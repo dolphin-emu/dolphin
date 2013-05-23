@@ -104,6 +104,9 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	{
 		s_offset[2] = s_indexBuffer->Upload((u8*)GetPointIndexBuffer(), point_index_size * sizeof(u16));
 	}
+	
+	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertex_data_size);
+	ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_size);
 }
 
 void VertexManager::Draw(u32 stride)
