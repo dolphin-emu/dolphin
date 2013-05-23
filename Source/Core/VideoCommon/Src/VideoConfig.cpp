@@ -10,12 +10,15 @@
 #include "VideoCommon.h"
 #include "FileUtil.h"
 #include "Core.h"
+#include "Movie.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 
 void UpdateActiveConfig()
 {
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+		Movie::SetGraphicsConfig();
 	g_ActiveConfig = g_Config;
 }
 

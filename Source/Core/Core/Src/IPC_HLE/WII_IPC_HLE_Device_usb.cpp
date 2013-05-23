@@ -32,7 +32,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	}
 	else
 	{
-		u8 maxWM = min<u8>(BT_DINF.num_registered, CONF_PAD_MAX_ACTIVE);
+		u8 maxWM = min<u8>(BT_DINF.num_registered, MAX_BBMOTES);
 		bdaddr_t tmpBD = BDADDR_ANY;
 		u8 i = 0;
 		while (i < maxWM)
@@ -43,28 +43,60 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 			tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3];
 			tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4];
 			tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5];
+			if(i == WIIMOTE_BALANCE_BOARD)
+			{
+				const char * wmName = "Nintendo RVL-WBC-01";
+				memcpy(BT_DINF.registered[i].name, wmName, 20);
+				memcpy(BT_DINF.balance_board.name, wmName, 20);
+			}
+			else
+			{
+				const char * wmName = "Nintendo RVL-CNT-01";
+				memcpy(BT_DINF.registered[i].name, wmName, 20);
+				memcpy(BT_DINF.active[i].name, wmName, 20);
+			}
 
 			INFO_LOG(WII_IPC_WIIMOTE, "Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
 			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
 			i++;
 		}
-		while (i < CONF_PAD_MAX_ACTIVE)
+		while (i < MAX_BBMOTES)
 		{
-			const char * wmName = "Nintendo RVL-CNT-01";
-			++BT_DINF.num_registered;
-			BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = tmpBD.b[5] = i;
-			BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = tmpBD.b[4] = 0;
-			BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = tmpBD.b[3] = 0x79;
-			BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = tmpBD.b[2] = 0x19;
-			BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = tmpBD.b[1] = 2;
-			BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = tmpBD.b[0] = 0x11;
-			memcpy(BT_DINF.registered[i].name, wmName, 20);
+			if(i == WIIMOTE_BALANCE_BOARD)
+			{
+				const char * wmName = "Nintendo RVL-WBC-01";
+				++BT_DINF.num_registered;
+				BT_DINF.balance_board.bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = tmpBD.b[5] = i;
+				BT_DINF.balance_board.bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = tmpBD.b[4] = 0;
+				BT_DINF.balance_board.bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = tmpBD.b[3] = 0x79;
+				BT_DINF.balance_board.bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = tmpBD.b[2] = 0x19;
+				BT_DINF.balance_board.bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = tmpBD.b[1] = 2;
+				BT_DINF.balance_board.bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = tmpBD.b[0] = 0x11;
+				memcpy(BT_DINF.registered[i].name, wmName, 20);
+				memcpy(BT_DINF.balance_board.name, wmName, 20);
+				
+				INFO_LOG(WII_IPC_WIIMOTE, "Balance Board %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
+				m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
+			}
+			else
+			{
+				const char * wmName = "Nintendo RVL-CNT-01";
+				++BT_DINF.num_registered;
+				BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = tmpBD.b[5] = i;
+				BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = tmpBD.b[4] = 0;
+				BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = tmpBD.b[3] = 0x79;
+				BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = tmpBD.b[2] = 0x19;
+				BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = tmpBD.b[1] = 2;
+				BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = tmpBD.b[0] = 0x11;
+				memcpy(BT_DINF.registered[i].name, wmName, 20);
 
-			INFO_LOG(WII_IPC_WIIMOTE, "Adding to SYSConf Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
-			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
+				INFO_LOG(WII_IPC_WIIMOTE, "Adding to SYSConf Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
+				m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
+			
+			}
 			i++;
 		}
-
+		
 		// save now so that when games load sysconf file it includes the new wiimotes
 		// and the correct order for connected wiimotes
 		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !SConfig::GetInstance().m_SYSCONF->Save())
@@ -99,18 +131,18 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.DoPOD(m_HCIEndpoint);
 	p.DoPOD(m_ACLEndpoint);
 	p.Do(m_last_ticks);
-	p.DoArray(m_PacketCount,4);
+	p.DoArray(m_PacketCount,MAX_BBMOTES);
 	p.Do(m_ScanEnable);
 	p.Do(m_EventQueue);
 	m_acl_pool.DoState(p);
 
-	for (unsigned int i = 0; i < 4; i++)
+	for (unsigned int i = 0; i < MAX_BBMOTES; i++)
 		m_WiiMotes[i].DoState(p);
 
 	// Reset the connection of real and hybrid wiimotes
 	if (p.GetMode() == PointerWrap::MODE_READ && SConfig::GetInstance().m_WiimoteReconnectOnLoad)
 	{
-		for (unsigned int i = 0; i < 4; i++)
+		for (unsigned int i = 0; i < MAX_BBMOTES; i++)
 		{
 			if (WIIMOTE_SRC_EMU == g_wiimote_sources[i] || WIIMOTE_SRC_NONE == g_wiimote_sources[i])
 				continue;

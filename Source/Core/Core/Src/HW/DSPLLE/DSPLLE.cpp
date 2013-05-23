@@ -16,6 +16,7 @@
 #include "Core.h"
 
 #include "DSPLLEGlobals.h" // Local
+#include "DSP/DSPHost.h"
 #include "DSP/DSPInterpreter.h"
 #include "DSP/DSPHWInterface.h"
 #include "DSP/disassemble.h"
@@ -67,7 +68,6 @@ void DSPLLE::DoState(PointerWrap &p)
 		p.Do(g_dsp.reg_stack[i]);
 	}
 
-	p.Do(g_dsp.iram_crc);
 	p.Do(g_dsp.step_counter);
 	p.Do(g_dsp.ifx_regs);
 	p.Do(g_dsp.mbox[0]);
@@ -75,8 +75,11 @@ void DSPLLE::DoState(PointerWrap &p)
 	UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 	p.DoArray(g_dsp.iram, DSP_IRAM_SIZE);
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+	if (p.GetMode() == PointerWrap::MODE_READ)
+		DSPHost_CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
 	p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
 	p.Do(cyclesLeft);
+	p.Do(init_hax);
 	p.Do(m_cycle_count);
 
 	bool prevInitMixer = m_InitMixer;

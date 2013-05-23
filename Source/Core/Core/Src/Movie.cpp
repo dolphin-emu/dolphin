@@ -126,11 +126,6 @@ void FrameUpdate()
 		g_totalFrames = g_currentFrame;
 		g_totalLagCount = g_currentLagCount;
 	}
-	if (IsPlayingInput() && IsConfigSaved())
-	{
-		SetGraphicsConfig();
-	}
-
 	if (g_bFrameStep)
 	{
 		Core::SetState(Core::CORE_PAUSE);
@@ -392,7 +387,7 @@ void ChangeWiiPads(bool instantly)
 	if (instantly && (g_numPads >> 4) == controllers)
 		return;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_BBMOTES; i++)
 	{
 		g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
 		GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
