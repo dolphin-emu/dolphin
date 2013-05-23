@@ -169,6 +169,7 @@ protected:
 		
 		// OGL Hacked buffer
 		hacked_buffer_upload->Enable(Core::GetState() == Core::CORE_UNINITIALIZED && vconfig.backend_info.APIType == API_OPENGL);
+		hacked_buffer_upload->Show(vconfig.backend_info.APIType == API_OPENGL);
 
 		ev.Skip();
 	}
