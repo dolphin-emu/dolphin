@@ -131,6 +131,7 @@ wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, 
 wxArrayString GetListOfResolutions()
 {
 	wxArrayString retlist;
+	retlist.Add("Auto");
 #ifdef _WIN32
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
