@@ -172,6 +172,8 @@ void ProgramShaderCache::UploadConstants()
 		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, s_ps_data_size);
 		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset + s_vs_data_offset, s_vs_data_size);
 		s_ubo_dirty = false;
+		
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, s_ubo_buffer_size);
 	}
 }
 

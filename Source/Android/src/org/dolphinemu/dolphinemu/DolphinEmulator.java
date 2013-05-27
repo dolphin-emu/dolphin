@@ -163,7 +163,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 		return false;
 	}
 	
-	public boolean overrideKeys()
+    public boolean overrideKeys()
 	{   
 		return false;
 	}  

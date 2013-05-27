@@ -55,6 +55,9 @@ char *Statistics::ToString(char *ptr)
 	ptr+=sprintf(ptr,"CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
 	ptr+=sprintf(ptr,"BP loads: %i\n",stats.thisFrame.numBPLoads);
 	ptr+=sprintf(ptr,"BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
+	ptr+=sprintf(ptr,"Vertex streamed: %i kB\n",stats.thisFrame.bytesVertexStreamed/1024);
+	ptr+=sprintf(ptr,"Index streamed: %i kB\n",stats.thisFrame.bytesIndexStreamed/1024);
+	ptr+=sprintf(ptr,"Uniform streamed: %i kB\n",stats.thisFrame.bytesUniformStreamed/1024);
 	ptr+=sprintf(ptr,"Vertex Loaders: %i\n",stats.numVertexLoaders);
 
 	std::string text1;

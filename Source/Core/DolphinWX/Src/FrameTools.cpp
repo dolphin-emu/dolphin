@@ -798,7 +798,7 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 void CFrame::ToggleDisplayMode(bool bFullscreen)
 {
 #ifdef _WIN32
-	if (bFullscreen)
+	if (bFullscreen && SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution != "Auto")
 	{
 		DEVMODE dmScreenSettings;
 		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
@@ -817,7 +817,8 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 		ChangeDisplaySettings(NULL, CDS_FULLSCREEN);
 	}
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
-	m_XRRConfig->ToggleDisplayMode(bFullscreen);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution != "Auto")
+		m_XRRConfig->ToggleDisplayMode(bFullscreen);
 #elif defined __APPLE__
 	if(bFullscreen)
 		CGDisplayHideCursor(CGMainDisplayID());
