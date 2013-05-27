@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.view.MenuItem;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -205,25 +205,18 @@ public class GameListView extends ListActivity {
     	mDrawer.setContentView(layoutResID);
         onContentChanged();
     }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-            	mDrawer.toggleMenu();
-                return true;
-        }
 
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onBackPressed() {
-        final int drawerState = mDrawer.getDrawerState();
-        if (drawerState == MenuDrawer.STATE_OPEN || drawerState == MenuDrawer.STATE_OPENING) {
-        	mDrawer.closeMenu();
-            return;
-        }
-
-        super.onBackPressed();
-    }
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if (event.getAction() == KeyEvent.KEYCODE_MENU|| event.getAction() == KeyEvent.KEYCODE_BACK) {
+			final int drawerState = mDrawer.getDrawerState();
+			if (drawerState == MenuDrawer.STATE_OPEN || drawerState == MenuDrawer.STATE_OPENING) {
+				mDrawer.closeMenu();
+				return true;
+			}
+			mDrawer.openMenu();
+			return true;
+		}
+		return false;
+	}
 }
