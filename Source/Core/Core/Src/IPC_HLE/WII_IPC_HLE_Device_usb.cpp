@@ -487,18 +487,16 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 	// The Real Wiimote sends report every ~5ms (200 Hz).
 	const u64 interval = SystemTimers::GetTicksPerSecond() / 200;
-	const u64 each_wiimote_interval = interval / m_WiiMotes.size();
 	const u64 now = CoreTiming::GetTicks();
 
-	if (now - m_last_ticks > each_wiimote_interval)
+	if (now - m_last_ticks > interval)
 	{
-		static int wiimote_to_update = 0;
-		if (m_WiiMotes[wiimote_to_update].IsConnected())
-		{
-			NetPlay_WiimoteUpdate(wiimote_to_update);
-			Wiimote::Update(wiimote_to_update);
-		}
-		wiimote_to_update = (wiimote_to_update + 1) % m_WiiMotes.size();
+		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+			if (m_WiiMotes[i].IsConnected())
+			{
+				NetPlay_WiimoteUpdate(i);
+				Wiimote::Update(i);
+			}
 		m_last_ticks = now;
 	}
 
