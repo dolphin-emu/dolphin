@@ -28,7 +28,6 @@ struct SConfig : NonCopyable
 	// Wii Devices
 	bool m_WiiSDCard;
 	bool m_WiiKeyboard;
-	bool m_WiimoteReconnectOnLoad;
 	bool m_WiimoteContinuousScanning;
 	bool m_WiimoteEnableSpeaker;
 

@@ -781,7 +781,10 @@ void Wiimote::Update()
 
 	// send data report
 	if (rptf_size)
+	{
+		WiimoteEmu::Spy(this, data, rptf_size);
 		Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, rptf_size);
+	}
 }
 
 void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size) 
@@ -853,7 +856,7 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 			{
 				const wm_report* const sr = (wm_report*)hidp->data;
 
-				if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index])
+				if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index])
 				{
 					switch (sr->wm)
 					{

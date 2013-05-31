@@ -32,8 +32,7 @@ void Shutdown()
 		delete *i;
 	g_plugin.controllers.clear();
 
-	// WiimoteReal is shutdown on app exit
-	//WiimoteReal::Shutdown();
+	WiimoteReal::Shutdown();
 
 	g_controller_interface.Shutdown();
 }
@@ -58,6 +57,17 @@ void Initialize(void* const hwnd)
 		Movie::ChangeWiiPads();
 }
 
+void Resume()
+{
+	WiimoteReal::Resume();
+}
+
+void Pause()
+{
+	WiimoteReal::Pause();
+}
+
+
 // __________________________________________________________________________________________________
 // Function: ControlChannel
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
@@ -72,11 +82,8 @@ void Initialize(void* const hwnd)
 //
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+	if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->ControlChannel(_channelID, _pData, _Size);
-
-	if (WIIMOTE_SRC_REAL & g_wiimote_sources[_number])
-		WiimoteReal::ControlChannel(_number, _channelID, _pData, _Size);
 }
 
 // __________________________________________________________________________________________________
@@ -93,10 +100,8 @@ void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 //
 void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+	if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->InterruptChannel(_channelID, _pData, _Size);
-	else
-		WiimoteReal::InterruptChannel(_number, _channelID, _pData, _Size);
 }
 
 // __________________________________________________________________________________________________

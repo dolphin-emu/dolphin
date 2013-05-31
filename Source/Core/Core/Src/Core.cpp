@@ -504,9 +504,11 @@ void SetState(EState _State)
 		break;
 	case CORE_PAUSE:
 		CCPU::EnableStepping(true);  // Break
+		Wiimote::Pause();
 		break;
 	case CORE_RUN:
 		CCPU::EnableStepping(false);
+		Wiimote::Resume();
 		break;
 	default:
 		PanicAlertT("Invalid state");
