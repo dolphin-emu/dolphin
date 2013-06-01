@@ -168,6 +168,7 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 	
 	auto const data = static_cast<const u8*>(_data);
 	Report rpt(data, data + size);
+	WiimoteEmu::Wiimote *const wm = (WiimoteEmu::Wiimote*)::Wiimote::GetPlugin()->controllers[index];
 
 	// Convert output DATA packets to SET_REPORT packets.
 	// Nintendo Wiimotes work without this translation, but 3rd
@@ -189,7 +190,8 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const _data, const
 		}
 	}
 	else if (rpt[1] == WM_WRITE_SPEAKER_DATA
-		&& !SConfig::GetInstance().m_WiimoteEnableSpeaker)
+		&& (!SConfig::GetInstance().m_WiimoteEnableSpeaker
+		|| (!wm->m_status.speaker || wm->m_speaker_mute)))
 	{
 		// Translate speaker data reports into rumble reports.
 		rpt[1] = WM_RUMBLE;
