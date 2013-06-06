@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __HOTKEYDIALOG_h__
-#define __HOTKEYDIALOG_h__
+#ifndef __GCMICDIALOG_h__
+#define __GCMICDIALOG_h__
 
 #include <wx/wx.h>
 #include <wx/textctrl.h>
