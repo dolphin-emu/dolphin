@@ -107,6 +107,8 @@ public:
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
+	static void RequestInvalidateTextureCache();
+
 protected:
 	TextureCache();
 
@@ -117,7 +119,6 @@ private:
 	static bool CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsigned int levels);
 	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height);
 	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
-
 
 	typedef std::map<u32, TCacheEntryBase*> TexCache;
 
