@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "ProgramShaderCache.h"
-#include "DriverDetails"
+#include "DriverDetails.h"
 #include "MathUtil.h"
 #include "StreamBuffer.h"
 #include "Debugger.h"
