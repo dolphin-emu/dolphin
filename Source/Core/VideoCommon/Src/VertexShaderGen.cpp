@@ -323,7 +323,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 			WRITE(p, "int posmtx = int(fposmtx);\n");
 		}
 
-		if (DriverDetails::HasBug(BUG_NODYNUBOACCESS))
+		if (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS))
 		{
 			// This'll cause issues, but  it can't be helped
 			WRITE(p, "float4 pos = float4(dot(" I_TRANSFORMMATRICES"[0], rawpos), dot(" I_TRANSFORMMATRICES"[1], rawpos), dot(" I_TRANSFORMMATRICES"[2], rawpos), 1);\n");		
