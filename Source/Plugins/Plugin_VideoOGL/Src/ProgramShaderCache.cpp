@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "ProgramShaderCache.h"
+#include "DriverDetails"
 #include "MathUtil.h"
 #include "StreamBuffer.h"
 #include "Debugger.h"
@@ -532,15 +533,15 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n"
 		"%s\n"
 		"#define COLOROUT(name) %s\n"
-		
+				
 		, v==GLSLES3 ? "300 es" : v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : "140"
 		, v==GLSLES3 ? "precision highp float;" : ""
 		, v==GLSLES3 ? "" : v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
 		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, v==GLSL_120 ? "attribute" : "in"
 		, v==GLSL_120 ? "attribute" : "out"
-		, v==GLSL_120 ? "varying" : "centroid in"
-		, v==GLSL_120 ? "varying" : "centroid out"
+		, DriverDetails::HasBug(BUG_BROKENCENTROID) ? "in" : v==GLSL_120 ? "varying" : "centroid in"
+		, DriverDetails::HasBug(BUG_BROKENCENTROID) ? "out" : v==GLSL_120 ? "varying" : "centroid out"
 		, v==GLSL_120 ? "#define texture texture2D" : ""
 		, v==GLSL_120 ? "#define round(x) floor((x)+0.5f)" : ""
 		, v==GLSL_120 ? "#define out " : ""

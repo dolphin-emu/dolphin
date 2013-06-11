@@ -9,6 +9,7 @@
 
 #include "BPMemory.h"
 #include "CPMemory.h"
+#include "DriverDetails.h"
 #include "LightingShaderGen.h"
 #include "VertexShaderGen.h"
 #include "VideoConfig.h"
@@ -322,13 +323,22 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE ApiType)
 			WRITE(p, "int posmtx = int(fposmtx);\n");
 		}
 
-		WRITE(p, "float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");		
-
-		if (components & VB_HAS_NRMALL) {
-			WRITE(p, "int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
-			WRITE(p, "float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
+		if (DriverDetails::HasBug(BUG_NODYNUBOACCESS))
+		{
+			// This'll cause issues, but  it can't be helped
+			WRITE(p, "float4 pos = float4(dot(" I_TRANSFORMMATRICES"[0], rawpos), dot(" I_TRANSFORMMATRICES"[1], rawpos), dot(" I_TRANSFORMMATRICES"[2], rawpos), 1);\n");		
+			if (components & VB_HAS_NRMALL) 
+				WRITE(p, "float3 N0 = " I_NORMALMATRICES"[0].xyz, N1 = " I_NORMALMATRICES"[1].xyz, N2 = " I_NORMALMATRICES"[2].xyz;\n");
 		}
+		else
+		{
+			WRITE(p, "float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");		
 
+			if (components & VB_HAS_NRMALL) {
+				WRITE(p, "int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
+				WRITE(p, "float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
+			}
+		}
 		if (components & VB_HAS_NRM0)
 			WRITE(p, "float3 _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, rawnorm0)));\n");
 		if (components & VB_HAS_NRM1)

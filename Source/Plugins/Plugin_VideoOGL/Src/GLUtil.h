@@ -21,6 +21,9 @@
 #define PREC	"highp"
 #define TEXTYPE "sampler2D"
 #define TEXFUNC "texture2D"
+#ifdef USE_GLES3
+#include "GLFunctions.h"
+#endif
 #else
 #define TEX2D	GL_TEXTURE_RECTANGLE_ARB
 #define PREC 
