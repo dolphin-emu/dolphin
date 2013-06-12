@@ -12,7 +12,7 @@
 
     <string-array name="gpuOptions">
         <item>Software Renderer</item>
-        <!--item>OpenGL</item-->
+        <item>OpenGL</item>
     </string-array>
 
     <string-array name="gpuValues">
