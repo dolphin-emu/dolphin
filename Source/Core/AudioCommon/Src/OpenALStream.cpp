@@ -127,8 +127,10 @@ void OpenALStream::SoundLoop()
 	bool surround_capable = Core::g_CoreStartupParameter.bDPL2Decoder;
 #if defined(__APPLE__)
 	bool float32_capable = false;
+	const ALenum AL_FORMAT_STEREO_FLOAT32 = 0;
 	// OSX does not have the alext AL_FORMAT_51CHN32 yet.
 	surround_capable = false;
+	const ALenum AL_FORMAT_51CHN32 = 0;
 #else
 	bool float32_capable = true;
 #endif
