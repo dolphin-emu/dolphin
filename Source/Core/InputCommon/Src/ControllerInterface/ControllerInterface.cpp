@@ -21,6 +21,8 @@
 
 #include "Thread.h"
 
+using namespace ciface::ExpressionParser;
+
 namespace
 {
 const float INPUT_DETECT_THRESHOLD = 0.55f;
@@ -187,48 +189,10 @@ bool ControllerInterface::UpdateOutput(const bool force)
 //
 ControlState ControllerInterface::InputReference::State( const ControlState ignore )
 {
-	//if (NULL == device)
-		//return 0;
-
-	ControlState state = 0;
-
-	std::vector<DeviceControl>::const_iterator
-		ci = m_controls.begin(),
-		ce = m_controls.end();
-
-	// bit of hax for "NOT" to work at start of expression
-	if (ci != ce)
-	{
-		if (ci->mode == 2)
-			state = 1;
-	}
-
-	for (; ci!=ce; ++ci)
-	{
-		const ControlState istate = ci->control->ToInput()->GetState();
-
-		switch (ci->mode)
-		{
-		// OR
-		case 0 :
-			state = std::max(state, istate);
-			break;
-		// AND
-		case 1 :
-			state = std::min(state, istate);
-			break;
-		// NOT
-		case 2 :
-			state = std::max(std::min(state, 1.0f - istate), 0.0f);
-			break;
-		// ADD
-		case 3 :
-			state += istate;
-			break;
-		}
-	}
-
-	return std::min(1.0f, state * range);
+	if (parsed_expression)
+		return parsed_expression->GetValue();
+	else
+		return 0.0f;
 }
 
 //
@@ -240,17 +204,9 @@ ControlState ControllerInterface::InputReference::State( const ControlState igno
 //
 ControlState ControllerInterface::OutputReference::State(const ControlState state)
 {
-	const ControlState tmp_state = std::min(1.0f, state * range);
-
-	// output ref just ignores the modes ( |&!... )
-
-	std::vector<DeviceControl>::iterator
-		ci = m_controls.begin(),
-		ce = m_controls.end();
-	for (; ci != ce; ++ci)
-		ci->control->ToOutput()->SetState(tmp_state);
-	
-	return state;	// just return the output, watever
+	if (parsed_expression)
+		parsed_expression->SetValue(state);
+	return 0.0f;
 }
 
 //
@@ -262,65 +218,13 @@ ControlState ControllerInterface::OutputReference::State(const ControlState stat
 void ControllerInterface::UpdateReference(ControllerInterface::ControlReference* ref
 	, const DeviceQualifier& default_device) const
 {
-	ref->m_controls.clear();
+	delete ref->parsed_expression;
+	ref->parsed_expression = NULL;
 
-	// adding | to parse the last item, silly
-	std::istringstream ss(ref->expression + '|');
-
-	const std::string mode_chars("|&!^");
-
-	ControlReference::DeviceControl	devc;
-
-	std::string	dev_str;
-	std::string ctrl_str;
-
-	char c = 0;
-	while (ss.read(&c, 1))
-	{
-		const size_t f = mode_chars.find(c);
-
-		if (mode_chars.npos != f)
-		{
-			// add ctrl
-			if (ctrl_str.size())
-			{
-				DeviceQualifier	devq;
-
-				// using default device or alterate device inside `backticks`
-				if (dev_str.empty())
-					devq = default_device;
-				else
-					devq.FromString(dev_str);
-
-				// find device
-				Device* const def_device = FindDevice(devq);
-
-				if (def_device)
-				{
-					if (ref->is_input)
-						devc.control = FindInput(ctrl_str, def_device);
-					else
-						devc.control = FindOutput(ctrl_str, def_device);
-
-					if (devc.control)
-						ref->m_controls.push_back(devc);
-				}
-			}
-			// reset stuff for next ctrl
-			devc.mode = (int)f;
-			ctrl_str.clear();
-		}
-		else if ('`' == c)
-		{
-			// different device
-			if (std::getline(ss, dev_str, '`').eof())
-				break;	// no terminating '`' character
-		}
-		else
-		{
-			ctrl_str += c;
-		}
-	}
+	ControlFinder finder(*this, default_device, ref->is_input);
+	ExpressionParseStatus status;
+	status = ParseExpression(ref->expression, finder, &ref->parsed_expression);
+	// XXX: do something with status?
 }
 
 //
@@ -388,7 +292,7 @@ Device::Control* ControllerInterface::OutputReference::Detect(const unsigned int
 	// ignore device
 
 	// don't hang if we don't even have any controls mapped
-	if (m_controls.size())
+	if (BoundCount() > 0)
 	{
 		State(1);
 		unsigned int slept = 0;

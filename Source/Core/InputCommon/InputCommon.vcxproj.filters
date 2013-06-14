@@ -23,6 +23,12 @@
     <ClCompile Include="Src\ControllerInterface\DInput\DInput.cpp">
       <Filter>ControllerInterface\DInput</Filter>
     </ClCompile>
+    <ClCompile Include="Src\ControllerInterface\ExpressionParser.cpp">
+      <Filter>ControllerInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ControllerInterface\Device.cpp">
+      <Filter>ControllerInterface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ControllerEmu.h" />
@@ -41,6 +47,9 @@
     </ClInclude>
     <ClInclude Include="Src\ControllerInterface\Device.h">
       <Filter>ControllerInterface\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ControllerInterface\ExpressionParser.h">
+      <Filter>ControllerInterface</Filter>
     </ClInclude>
     <ClInclude Include="Src\ControllerInterface\DInput\NamedKeys.h">
       <Filter>ControllerInterface\DInput</Filter>

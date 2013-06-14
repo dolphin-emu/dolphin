@@ -9,6 +9,7 @@
 
 #include "Common.h"
 #include "Thread.h"
+#include "ExpressionParser.h"
 #include "Device.h"
 
 // enable disable sources
@@ -53,30 +54,28 @@ public:
 	class ControlReference
 	{
 		friend class ControllerInterface;
-
 	public:
-		virtual ~ControlReference() {}
-
 		virtual ControlState State(const ControlState state = 0) = 0;
 		virtual Device::Control* Detect(const unsigned int ms, Device* const device) = 0;
-		size_t BoundCount() const { return m_controls.size(); }
 
-		ControlState		range;
+		ControlState range;
 		std::string			expression;
 		const bool			is_input;
 
+		virtual ~ControlReference() {
+			delete parsed_expression;
+		}
+
+		int BoundCount() {
+			if (parsed_expression)
+				return parsed_expression->num_controls;
+			else
+				return 0;
+		}
+
 	protected:
-		ControlReference(const bool _is_input) : range(1), is_input(_is_input) {}
-
-		struct DeviceControl
-		{
-			DeviceControl() : control(NULL), mode(0) {}
-
-			Device::Control*	control;
-			int		mode;
-		};
-
-		std::vector<DeviceControl>	m_controls;
+		ControlReference(const bool _is_input) : range(1), is_input(_is_input), parsed_expression(NULL) {}
+		ciface::ExpressionParser::Expression *parsed_expression;
 	};
 
 	//

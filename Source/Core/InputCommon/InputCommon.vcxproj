@@ -167,6 +167,7 @@
     <ClCompile Include="Src\ControllerEmu.cpp" />
     <ClCompile Include="Src\ControllerInterface\ControllerInterface.cpp" />
     <ClCompile Include="Src\ControllerInterface\Device.cpp" />
+    <ClCompile Include="Src\ControllerInterface\ExpressionParser.cpp" />
     <ClCompile Include="Src\ControllerInterface\DInput\DInput.cpp" />
     <ClCompile Include="Src\ControllerInterface\DInput\DInputJoystick.cpp" />
     <ClCompile Include="Src\ControllerInterface\DInput\DInputKeyboardMouse.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="Src\ControllerEmu.h" />
     <ClInclude Include="Src\ControllerInterface\ControllerInterface.h" />
     <ClInclude Include="Src\ControllerInterface\Device.h" />
+    <ClInclude Include="Src\ControllerInterface\ExpressionParser.h" />
     <ClInclude Include="Src\ControllerInterface\DInput\DInput.h" />
     <ClInclude Include="Src\ControllerInterface\DInput\DInputJoystick.h" />
     <ClInclude Include="Src\ControllerInterface\DInput\DInputKeyboardMouse.h" />
