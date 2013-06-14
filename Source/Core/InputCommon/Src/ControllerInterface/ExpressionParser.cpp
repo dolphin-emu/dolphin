@@ -24,6 +24,7 @@ enum TokenType
 	TOK_AND,
 	TOK_OR,
 	TOK_NOT,
+	TOK_ADD,
 	TOK_CONTROL,
 };
 
@@ -37,6 +38,8 @@ inline std::string OpName(TokenType op)
 		return "Or";
 	case TOK_NOT:
 		return "Not";
+	case TOK_ADD:
+		return "Add";
 	default:
 		assert(false);
 		return "";
@@ -72,6 +75,8 @@ public:
 			return "|";
 		case TOK_NOT:
 			return "!";
+		case TOK_ADD:
+			return "+";
 		case TOK_CONTROL:
 			return "Device(" + (std::string)qualifier + ")";
 		}
@@ -144,6 +149,8 @@ public:
 			return Token(TOK_OR);
 		case '!':
 			return Token(TOK_NOT);
+		case '+':
+			return Token(TOK_ADD);
 		case '`':
 			return GetControlQualifier();
 		default:
@@ -232,6 +239,8 @@ public:
 			return std::min(lhsValue, rhsValue);
 		case TOK_OR:
 			return std::max(lhsValue, rhsValue);
+		case TOK_ADD:
+			return std::min(lhsValue + rhsValue, 1.0f);
 		default:
 			assert(false);
 			return 0;
@@ -412,6 +421,7 @@ private:
 		{
 		case TOK_AND:
 		case TOK_OR:
+		case TOK_ADD:
 			return true;
 		default:
 			return false;
