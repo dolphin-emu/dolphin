@@ -108,7 +108,7 @@ public:
 		return false;
 	}
 
-	Token GetControlQualifier()
+	Token GetFullyQualifiedControl()
 	{
 		ControlQualifier qualifier;
 		std::string value;
@@ -123,6 +123,24 @@ public:
 
 		qualifier.control_name = value;
 
+		return Token(TOK_CONTROL, qualifier);
+	}
+
+	Token GetBarewordsControl(char c)
+	{
+		std::string name;
+		name += c;
+
+		while (it != expr.end()) {
+			c = *it;
+			if (!isalpha(c))
+				break;
+			name += c;
+			it++;
+		}
+
+		ControlQualifier qualifier;
+		qualifier.control_name = name;
 		return Token(TOK_CONTROL, qualifier);
 	}
 
@@ -152,9 +170,12 @@ public:
 		case '+':
 			return Token(TOK_ADD);
 		case '`':
-			return GetControlQualifier();
+			return GetFullyQualifiedControl();
 		default:
-			return Token(TOK_INVALID);
+			if (isalpha(c))
+				return GetBarewordsControl(c);
+			else
+				return Token(TOK_INVALID);
 		}
 	}
 
