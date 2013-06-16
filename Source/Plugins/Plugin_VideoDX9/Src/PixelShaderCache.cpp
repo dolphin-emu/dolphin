@@ -5,9 +5,6 @@
 #include <map>
 #include <set>
 #include <locale.h>
-#ifdef __APPLE__
-	#include <xlocale.h>
-#endif
 
 #include "Common.h"
 #include "Hash.h"
@@ -219,7 +216,7 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShaderCache copy shader generator - buffer too small, canary has been eaten!");
-
+	
 	uselocale(old_locale); // restore locale
 	freelocale(locale);
 	return D3D::CompileAndCreatePixelShader(text, (int)strlen(text));

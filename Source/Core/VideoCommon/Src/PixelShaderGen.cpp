@@ -516,8 +516,10 @@ const char *WriteLocation(API_TYPE ApiType)
 
 const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
+#ifndef ANDROID
 	locale_t locale = newlocale(LC_NUMERIC_MASK, "C", NULL); // New locale for compilation
 	locale_t old_locale = uselocale(locale); // Apply the locale for this thread
+#endif
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
 	BuildSwapModeTable(); // Needed for WriteStage
@@ -890,8 +892,10 @@ const char *GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
 
+#ifndef ANDROID
 	uselocale(old_locale); // restore locale
 	freelocale(locale);
+#endif
 	return text;
 }
 
