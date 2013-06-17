@@ -473,7 +473,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	if (numTexgen < 7)
 		out.Write("\tclipPos = float4(rawpos.x, rawpos.y, clipPos.z, clipPos.w);\n");
 	else
-		out.Write("\tfloat4 clipPos = float4(rawpos.x, rawpos.y, uv2.w, uv3.w);\n");
+		out.Write("\tclipPos = float4(rawpos.x, rawpos.y, uv2.w, uv3.w);\n");
 
 	// HACK to handle cases where the tex gen is not enabled
 	if (numTexgen == 0)
