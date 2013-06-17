@@ -811,26 +811,26 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
-	uid_data.cc_n_d = (u64)cc.d << (4*n);
-	uid_data.cc_n_c = (u64)cc.c << (4*n);
-	uid_data.cc_n_b = (u64)cc.b << (4*n);
-	uid_data.cc_n_a = (u64)cc.a << (4*n);
-	uid_data.cc_n_bias = cc.bias << (2*n);
-	uid_data.cc_n_op = cc.op << n;
-	uid_data.cc_n_clamp = cc.clamp << n;
-	uid_data.cc_n_shift = cc.shift << (2*n);
-	uid_data.cc_n_dest = cc.dest << (2*n);
-	uid_data.ac_n_rswap = ac.rswap << (2*n);
-	uid_data.ac_n_tswap = ac.tswap << (2*n);
-	uid_data.ac_n_d = (u64)ac.d << (3*n);
-	uid_data.ac_n_c = (u64)ac.c << (3*n);
-	uid_data.ac_n_b = (u64)ac.b << (3*n);
-	uid_data.ac_n_a = (u64)ac.a << (3*n);
-	uid_data.ac_n_bias = ac.bias << (2*n);
-	uid_data.ac_n_op = ac.op << n;
-	uid_data.ac_n_clamp = ac.clamp << n;
-	uid_data.ac_n_shift = ac.shift << (2*n);
-	uid_data.ac_n_dest = ac.dest << (2*n);
+	uid_data.cc_n_d |= (u64)cc.d << (4*n);
+	uid_data.cc_n_c |= (u64)cc.c << (4*n);
+	uid_data.cc_n_b |= (u64)cc.b << (4*n);
+	uid_data.cc_n_a |= (u64)cc.a << (4*n);
+	uid_data.cc_n_bias |= cc.bias << (2*n);
+	uid_data.cc_n_op |= cc.op << n;
+	uid_data.cc_n_clamp |= cc.clamp << n;
+	uid_data.cc_n_shift |= cc.shift << (2*n);
+	uid_data.cc_n_dest |= cc.dest << (2*n);
+	uid_data.ac_n_rswap |= ac.rswap << (2*n);
+	uid_data.ac_n_tswap |= ac.tswap << (2*n);
+	uid_data.ac_n_d |= (u64)ac.d << (3*n);
+	uid_data.ac_n_c |= (u64)ac.c << (3*n);
+	uid_data.ac_n_b |= (u64)ac.b << (3*n);
+	uid_data.ac_n_a |= (u64)ac.a << (3*n);
+	uid_data.ac_n_bias |= ac.bias << (2*n);
+	uid_data.ac_n_op |= ac.op << n;
+	uid_data.ac_n_clamp |= ac.clamp << n;
+	uid_data.ac_n_shift |= ac.shift << (2*n);
+	uid_data.ac_n_dest |= ac.dest << (2*n);
 
 	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
 		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
@@ -840,10 +840,10 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
 	{
 		const int i = bpmem.combiners[n].alphaC.rswap;
-		uid_data.tevksel_n_swap1 = bpmem.tevksel[i*2  ].swap1 << (2 * (i*2  ));
-		uid_data.tevksel_n_swap1 = bpmem.tevksel[i*2+1].swap1 << (2 * (i*2+1));
-		uid_data.tevksel_n_swap2 = bpmem.tevksel[i*2  ].swap2 << (2 * (i*2  ));
-		uid_data.tevksel_n_swap2 = bpmem.tevksel[i*2+1].swap2 << (2 * (i*2+1));
+		uid_data.tevksel_n_swap1 |= bpmem.tevksel[i*2  ].swap1 << (2 * (i*2  ));
+		uid_data.tevksel_n_swap1 |= bpmem.tevksel[i*2+1].swap1 << (2 * (i*2+1));
+		uid_data.tevksel_n_swap2 |= bpmem.tevksel[i*2  ].swap2 << (2 * (i*2  ));
+		uid_data.tevksel_n_swap2 |= bpmem.tevksel[i*2+1].swap2 << (2 * (i*2+1));
 
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		out.Write("rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
@@ -863,10 +863,10 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		}
 
 		const int i = bpmem.combiners[n].alphaC.tswap;
-		uid_data.tevksel_n_swap1 = bpmem.tevksel[i*2  ].swap1 << (2 * (i*2  ));
-		uid_data.tevksel_n_swap1 = bpmem.tevksel[i*2+1].swap1 << (2 * (i*2+1));
-		uid_data.tevksel_n_swap2 = bpmem.tevksel[i*2  ].swap2 << (2 * (i*2  ));
-		uid_data.tevksel_n_swap2 = bpmem.tevksel[i*2+1].swap2 << (2 * (i*2+1));
+		uid_data.tevksel_n_swap1 |= bpmem.tevksel[i*2  ].swap1 << (2 * (i*2  ));
+		uid_data.tevksel_n_swap1 |= bpmem.tevksel[i*2+1].swap1 << (2 * (i*2+1));
+		uid_data.tevksel_n_swap2 |= bpmem.tevksel[i*2  ].swap2 << (2 * (i*2  ));
+		uid_data.tevksel_n_swap2 |= bpmem.tevksel[i*2+1].swap2 << (2 * (i*2+1));
 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
