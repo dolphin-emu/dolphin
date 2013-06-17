@@ -24,11 +24,6 @@
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and
 
-template<class T> static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType);
-template<class T> static void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
-template<class T> static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
-template<class T> static void WriteFog(T& out, pixel_shader_uid_data& uid_data);
-
 static const char *tevKSelTableC[] = // KCSEL
 {
 	"1.0f,1.0f,1.0f",       // 1   = 0x00
@@ -207,10 +202,6 @@ static const char *tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; //
 static const char *tevIndWrapStart[]  = {"0.0f", "256.0f", "128.0f", "64.0f", "32.0f", "16.0f", "0.001f" };
 static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "7.0f" };
 
-static char swapModeTable[4][5];
-
-static char text[16384];
-
 struct RegisterState
 {
 	bool ColorNeedOverflowControl;
@@ -218,7 +209,9 @@ struct RegisterState
 	bool AuxStored;
 };
 
-static RegisterState RegisterStates[4];
+static char swapModeTable[4][5];
+
+static char text[16384];
 
 static void BuildSwapModeTable()
 {
@@ -233,6 +226,11 @@ static void BuildSwapModeTable()
 	}
 }
 
+template<class T> static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4]);
+template<class T> static void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
+template<class T> static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
+template<class T> static void WriteFog(T& out, pixel_shader_uid_data& uid_data);
+
 template<class T>
 static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
@@ -240,8 +238,6 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	pixel_shader_uid_data dummy_data;
 	pixel_shader_uid_data& uid_data = (&out.template GetUidData<pixel_shader_uid_data>() != NULL)
 										? out.template GetUidData<pixel_shader_uid_data>() : dummy_data;
-
-	ERROR_LOG(VIDEO, "%lu", sizeof(pixel_shader_uid_data));
 
 	out.SetBuffer(text);
 	if (out.GetBuffer() != NULL)
@@ -513,6 +509,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		}
 	}
 
+	RegisterState RegisterStates[4];
 	RegisterStates[0].AlphaNeedOverflowControl = false;
 	RegisterStates[0].ColorNeedOverflowControl = false;
 	RegisterStates[0].AuxStored = false;
@@ -526,7 +523,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	// Uid fields for BuildSwapModeTable are set in WriteStage
 	BuildSwapModeTable();
 	for (unsigned int i = 0; i < numStages; i++)
-		WriteStage<T>(out, uid_data, i, ApiType); // build the equation for this stage
+		WriteStage<T>(out, uid_data, i, ApiType, RegisterStates); // build the equation for this stage
 
 	if (numStages)
 	{
@@ -676,7 +673,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 
 
 template<class T>
-static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType)
+static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4])
 {
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
 	bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
