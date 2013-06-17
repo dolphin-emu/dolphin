@@ -615,24 +615,26 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 
 	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0
 		&& m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
+	{
 		popupMenu->Append(IDM_EXTRACTDIR, _("Extract Partition..."));
+	}
 	else if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 1)
 		popupMenu->Append(IDM_EXTRACTDIR, _("Extract Directory..."));
 	else if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 2)
 		popupMenu->Append(IDM_EXTRACTFILE, _("Extract File..."));
-
+	
 	popupMenu->Append(IDM_EXTRACTALL, _("Extract All Files..."));
-	popupMenu->AppendSeparator();
-	popupMenu->Append(IDM_EXTRACTAPPLOADER, _("Extract Apploader..."));
-	popupMenu->Append(IDM_EXTRACTDOL, _("Extract DOL..."));
-
+	
 	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0
 		&& m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
 	{
 		popupMenu->AppendSeparator();
+		popupMenu->Append(IDM_EXTRACTAPPLOADER, _("Extract Apploader..."));
+		popupMenu->Append(IDM_EXTRACTDOL, _("Extract DOL..."));
+		popupMenu->AppendSeparator();
 		popupMenu->Append(IDM_CHECKINTEGRITY, _("Check Partition Integrity"));
 	}
-
+	
 	PopupMenu(popupMenu);
 
 	event.Skip();
@@ -825,20 +827,27 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 		return;
 
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
-		if(WiiDisc.size() > 0)
+	{
+		wxString Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
+		std::size_t partitionNum = (std::size_t)wxAtoi(Directory.Mid(Directory.find_first_of("/"), 1));
+		Directory.Remove(0, Directory.find_first_of("/") +1); // Remove "Partition x/"
+		
+		if(WiiDisc.size() > partitionNum)
 		{
 			// Get the filesystem of the LAST partition
-			FS = WiiDisc.at(WiiDisc.size() - 1).FileSystem;
+			FS = WiiDisc.at(partitionNum).FileSystem;
 		}
 		else
 		{
-			PanicAlertT("No partitions found for: %s!", 
-						WxStrToStr(Path).c_str());
+			PanicAlertT("Partition doesn't exist: %lu", partitionNum);
 			return;
 		}
+	}
 	else
+	{
 		FS = pFileSystem;
-
+	}
+	
 	bool ret = false;
 	if (event.GetId() == IDM_EXTRACTAPPLOADER)
 	{
