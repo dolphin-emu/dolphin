@@ -1,6 +1,3 @@
-#include "../ControllerInterface.h"
-
-#ifdef CIFACE_USE_DINPUT_KBM
 
 #include "DInputKeyboardMouse.h"
 #include "DInput.h"
@@ -42,7 +39,7 @@ static const struct
 // lil silly
 static HWND hwnd;
 
-void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices, HWND _hwnd)
+void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND _hwnd)
 {
 	hwnd = _hwnd;
 
@@ -252,16 +249,6 @@ std::string KeyboardMouse::GetSource() const
 	return DINPUT_SOURCE_NAME;
 }
 
-//ControlState KeyboardMouse::GetInputState(const ControllerInterface::Device::Input* const input) const
-//{
-//	return (((Input*)input)->GetState(&m_state_in));
-//}
-//
-//void KeyboardMouse::SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state)
-//{
-//	((Output*)output)->SetState(state, m_state_out);
-//}
-
 // names
 std::string KeyboardMouse::Key::GetName() const
 {
@@ -322,5 +309,3 @@ void KeyboardMouse::Light::SetState(const ControlState state)
 
 }
 }
-
-#endif

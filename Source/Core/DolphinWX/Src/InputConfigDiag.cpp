@@ -184,13 +184,13 @@ void ControlDialog::UpdateListContents()
 {
 	control_lbox->Clear();
 
-	ControllerInterface::Device* const dev = g_controller_interface.FindDevice(m_devq);
+	Device* const dev = g_controller_interface.FindDevice(m_devq);
 	if (dev)
 	{
 		if (control_reference->is_input)
 		{
 			// for inputs
-			std::vector<ControllerInterface::Device::Input*>::const_iterator
+			std::vector<Device::Input*>::const_iterator
 				i = dev->Inputs().begin(),
 				e = dev->Inputs().end();
 			for (; i!=e; ++i)
@@ -199,7 +199,7 @@ void ControlDialog::UpdateListContents()
 		else
 		{
 			// for outputs
-			std::vector<ControllerInterface::Device::Output*>::const_iterator
+			std::vector<Device::Output*>::const_iterator
 				i = dev->Outputs().begin(),
 				e = dev->Outputs().end();
 			for (; i!=e; ++i)
@@ -418,7 +418,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 	wxButton* const btn = (wxButton*)event.GetEventObject();
 	const wxString lbl = btn->GetLabel();
 
-	ControllerInterface::Device* const dev = g_controller_interface.FindDevice(m_devq);
+	Device* const dev = g_controller_interface.FindDevice(m_devq);
 	if (dev)
 	{
 		btn->SetLabel(_("[ waiting ]"));
@@ -427,7 +427,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 		wxTheApp->Yield();
 
 		std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
-		ControllerInterface::Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
+		Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, select it in the list
 		if (ctrl)
@@ -442,7 +442,7 @@ void GamepadPage::DetectControl(wxCommandEvent& event)
 	ControlButton* btn = (ControlButton*)event.GetEventObject();
 
 	// find device :/
-	ControllerInterface::Device* const dev = g_controller_interface.FindDevice(controller->default_device);
+	Device* const dev = g_controller_interface.FindDevice(controller->default_device);
 	if (dev)
 	{
 		btn->SetLabel(_("[ waiting ]"));
@@ -451,7 +451,7 @@ void GamepadPage::DetectControl(wxCommandEvent& event)
 		wxTheApp->Yield();
 
 		std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
-		ControllerInterface::Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, dev);
+		Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, update expression and reference
 		if (ctrl)
@@ -614,11 +614,11 @@ void InputConfigDialog::UpdateDeviceComboBox()
 {
 	std::vector< GamepadPage* >::iterator i = m_padpages.begin(),
 		e = m_padpages.end();
-	ControllerInterface::DeviceQualifier dq;
+	DeviceQualifier dq;
 	for (; i != e; ++i)
 	{
 		(*i)->device_cbox->Clear();
-		std::vector<ControllerInterface::Device*>::const_iterator
+		std::vector<Device*>::const_iterator
 			di = g_controller_interface.Devices().begin(),
 			de = g_controller_interface.Devices().end();
 		for (; di!=de; ++di)

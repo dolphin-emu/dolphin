@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../ControllerInterface.h"
+#include "../Device.h"
 
 namespace ciface
 {
 namespace OSX
 {
 
-void Init(std::vector<ControllerInterface::Device*>& devices, void *window);
+void Init(std::vector<Core::Device*>& devices, void *window);
 void DeInit();
 
 void DeviceElementDebugPrint(const void *, void *);

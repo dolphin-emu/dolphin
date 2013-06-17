@@ -1,6 +1,3 @@
-#include "../ControllerInterface.h"
-
-#ifdef CIFACE_USE_XINPUT
 
 #include "XInput.h"
 
@@ -51,7 +48,7 @@ static const char* const named_motors[] =
 	"Motor R"
 };
 
-void Init(DeviceList& devices)
+void Init(std::vector<Core::Device*>& devices)
 {
 	XINPUT_CAPABILITIES caps;
 	for (int i = 0; i != 4; ++i)
@@ -210,5 +207,3 @@ void Device::Motor::SetState(ControlState state)
 
 }
 }
-
-#endif

@@ -449,8 +449,7 @@ public:
 
 	std::vector< ControlGroup* >		groups;
 
-	ControllerInterface::DeviceQualifier	default_device;
-
+	DeviceQualifier	default_device;
 };
 
 

@@ -180,56 +180,6 @@ bool ControllerInterface::UpdateOutput(const bool force)
 }
 
 //
-//		Device :: ~Device
-//
-// Destructor, delete all inputs/outputs on device destruction
-//
-ControllerInterface::Device::~Device()
-{
-	{
-	// delete inputs
-	std::vector<Device::Input*>::iterator
-		i = m_inputs.begin(),
-		e = m_inputs.end();
-	for ( ;i!=e; ++i)
-		delete *i;
-	}
-
-	{
-	// delete outputs
-	std::vector<Device::Output*>::iterator
-		o = m_outputs.begin(),
-		e = m_outputs.end();
-	for ( ;o!=e; ++o)
-		delete *o;
-	}
-}
-
-void ControllerInterface::Device::AddInput(Input* const i)
-{
-	m_inputs.push_back(i);
-}
-
-void ControllerInterface::Device::AddOutput(Output* const o)
-{
-	m_outputs.push_back(o);
-}
-
-//
-//		Device :: ClearInputState
-//
-// Device classes should override this function
-// ControllerInterface will call this when the device returns failure during UpdateInput
-// used to try to set all buttons and axes to their default state when user unplugs a gamepad during play
-// buttons/axes that were held down at the time of unplugging should be seen as not pressed after unplugging
-//
-void ControllerInterface::Device::ClearInputState()
-{
-	// this is going to be called for every UpdateInput call that fails
-	// kinda slow but, w/e, should only happen when user unplugs a device while playing
-}
-
-//
 //		InputReference :: State
 //
 // get the state of an input reference
@@ -304,79 +254,13 @@ ControlState ControllerInterface::OutputReference::State(const ControlState stat
 }
 
 //
-//		DeviceQualifier :: ToString
-//
-// get string from a device qualifier / serialize
-//
-std::string ControllerInterface::DeviceQualifier::ToString() const
-{
-	if (source.empty() && (cid < 0) && name.empty())
-		return "";
-	std::ostringstream ss;
-	ss << source << '/';
-	if ( cid > -1 )
-		ss << cid;
-	ss << '/' << name;
-	return ss.str();
-}
-
-//
-//		DeviceQualifier	::	FromString
-//
-// set a device qualifier from a string / unserialize
-//
-void ControllerInterface::DeviceQualifier::FromString(const std::string& str)
-{
-	std::istringstream ss(str);
-
-	std::getline(ss, source = "", '/');
-
-	// silly
-	std::getline(ss, name, '/');
-	std::istringstream(name) >> (cid = -1);
-
-	std::getline(ss, name = "");
-}
-
-//
-//		DeviceQualifier :: FromDevice
-//
-// set a device qualifier from a device
-//
-void ControllerInterface::DeviceQualifier::FromDevice(const ControllerInterface::Device* const dev)
-{
-	name = dev->GetName();
-	cid = dev->GetId();
-	source= dev->GetSource();
-}
-
-bool ControllerInterface::DeviceQualifier::operator==(const ControllerInterface::Device* const dev) const
-{
-	if (dev->GetId() == cid)
-		if (dev->GetName() == name)
-			if (dev->GetSource() == source)
-				return true;
-	return false;
-}
-
-bool ControllerInterface::DeviceQualifier::operator==(const ControllerInterface::DeviceQualifier& devq) const
-{
-	if (cid == devq.cid)
-		if (name == devq.name)
-			if (source == devq.source)
-				return true;
-
-	return false;
-}
-
-//
 //		UpdateReference
 //
 // updates a controlreference's binded devices/controls
 // need to call this to re-parse a control reference's expression after changing it
 //
 void ControllerInterface::UpdateReference(ControllerInterface::ControlReference* ref
-	, const ControllerInterface::DeviceQualifier& default_device) const
+	, const DeviceQualifier& default_device) const
 {
 	ref->m_controls.clear();
 
@@ -439,18 +323,6 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 	}
 }
 
-ControllerInterface::Device* ControllerInterface::FindDevice(const ControllerInterface::DeviceQualifier& devq) const
-{
-	std::vector<ControllerInterface::Device*>::const_iterator
-		di = m_devices.begin(),
-		de = m_devices.end();
-	for (; di!=de; ++di)
-		if (devq == *di)
-			return *di;
-
-	return NULL;
-}
-
 //
 //		InputReference :: Detect
 //
@@ -461,7 +333,7 @@ ControllerInterface::Device* ControllerInterface::FindDevice(const ControllerInt
 // upon input, return pointer to detected Control
 // else return NULL
 //
-ControllerInterface::Device::Control* ControllerInterface::InputReference::Detect(const unsigned int ms, Device* const device)
+Device::Control* ControllerInterface::InputReference::Detect(const unsigned int ms, Device* const device)
 {
 	unsigned int time = 0;
 	std::vector<bool> states(device->Inputs().size());
@@ -511,7 +383,7 @@ ControllerInterface::Device::Control* ControllerInterface::InputReference::Detec
 //
 // set all binded outputs to <range> power for x milliseconds return false
 //
-ControllerInterface::Device::Control* ControllerInterface::OutputReference::Detect(const unsigned int ms, Device* const device)
+Device::Control* ControllerInterface::OutputReference::Detect(const unsigned int ms, Device* const device)
 {
 	// ignore device
 
@@ -533,56 +405,4 @@ ControllerInterface::Device::Control* ControllerInterface::OutputReference::Dete
 		device->UpdateOutput();
 	}
 	return NULL;
-}
-
-ControllerInterface::Device::Input* ControllerInterface::Device::FindInput(const std::string &name) const
-{
-	std::vector<Input*>::const_iterator
-		it = m_inputs.begin(),
-		itend = m_inputs.end();
-	for (; it != itend; ++it)
-		if ((*it)->GetName() == name)
-			return *it;
-
-	return NULL;
-}
-
-ControllerInterface::Device::Output* ControllerInterface::Device::FindOutput(const std::string &name) const
-{
-	std::vector<Output*>::const_iterator
-		it = m_outputs.begin(),
-		itend = m_outputs.end();
-	for (; it != itend; ++it)
-		if ((*it)->GetName() == name)
-			return *it;
-
-	return NULL;
-}
-
-ControllerInterface::Device::Input* ControllerInterface::FindInput(const std::string& name, const Device* def_dev) const
-{
-	if (def_dev)
-	{
-		Device::Input* const inp = def_dev->FindInput(name);
-		if (inp)
-			return inp;
-	}
-
-	std::vector<Device*>::const_iterator
-		di = m_devices.begin(),
-		de = m_devices.end();
-	for (; di != de; ++di)
-	{
-		Device::Input* const i = (*di)->FindInput(name);
-
-		if (i)
-			return i;
-	}
-
-	return NULL;
-}
-
-ControllerInterface::Device::Output* ControllerInterface::FindOutput(const std::string& name, const Device* def_dev) const
-{
-	return def_dev->FindOutput(name);
 }

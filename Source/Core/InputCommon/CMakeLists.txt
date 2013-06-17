@@ -2,7 +2,8 @@ set(SRCS	Src/ControllerEmu.cpp
 			Src/InputConfig.cpp
 			Src/UDPWiimote.cpp
 			Src/UDPWrapper.cpp
-			Src/ControllerInterface/ControllerInterface.cpp)
+			Src/ControllerInterface/ControllerInterface.cpp
+			Src/ControllerInterface/Device.cpp)
 
 if(WIN32)
 	set(SRCS	${SRCS}

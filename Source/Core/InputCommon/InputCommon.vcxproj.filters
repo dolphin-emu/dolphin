@@ -39,6 +39,9 @@
     <ClInclude Include="Src\ControllerInterface\ControllerInterface.h">
       <Filter>ControllerInterface</Filter>
     </ClInclude>
+    <ClInclude Include="Src\ControllerInterface\Device.h">
+      <Filter>ControllerInterface\Device</Filter>
+    </ClInclude>
     <ClInclude Include="Src\ControllerInterface\DInput\NamedKeys.h">
       <Filter>ControllerInterface\DInput</Filter>
     </ClInclude>
