@@ -59,6 +59,8 @@ const s_svar PSVar_Loc[] = { {I_COLORS, C_COLORS, 4 },
 //#pragma pack(4)
 struct pixel_shader_uid_data
 {
+	// TODO: Optimize field order for easy access!
+
 	u32 components;
 	u32 dstAlphaMode : 2;
 	u32 Pretest : 2;
@@ -171,6 +173,7 @@ struct pixel_shader_uid_data
 
 	u32 xfregs_numTexGen_numTexGens : 4;
 
+	// TODO: I think we're fine without an enablePixelLighting field, should probably double check, though..
 	LightingUidData lighting;
 };
 //#pragma pack()
