@@ -55,7 +55,7 @@ const s_svar PSVar_Loc[] = { {I_COLORS, C_COLORS, 4 },
 						{I_PMATERIALS, C_PMATERIALS, 4 },
 						};
 
-// TODO: Packing?
+// TODO: Should compact packing be enabled?
 //#pragma pack(4)
 struct pixel_shader_uid_data
 {
