@@ -126,11 +126,6 @@ void FrameUpdate()
 		g_totalFrames = g_currentFrame;
 		g_totalLagCount = g_currentLagCount;
 	}
-	if (IsPlayingInput() && IsConfigSaved())
-	{
-		SetGraphicsConfig();
-	}
-
 	if (g_bFrameStep)
 	{
 		Core::SetState(Core::CORE_PAUSE);
@@ -392,7 +387,7 @@ void ChangeWiiPads(bool instantly)
 	if (instantly && (g_numPads >> 4) == controllers)
 		return;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_BBMOTES; i++)
 	{
 		g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
 		GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
@@ -1173,18 +1168,15 @@ void GetSettings()
 	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
 	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
 	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
-	videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+	videoBackend = g_video_backend->GetName();
 	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 
-	int temp;
-
-	for(int i = 0; i < 4; ++i )
+	for (int i = 0; i < 20; ++i)
 	{
-		sscanf(SCM_REV_STR + 2 * i, "%2x", &temp );
-		revision[i] = temp;
+		sscanf(SCM_REV_STR + 2 * i, "%02x", &revision[i]);
 	}
 }
 

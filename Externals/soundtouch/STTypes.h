@@ -80,7 +80,7 @@ namespace soundtouch
     #undef SOUNDTOUCH_INTEGER_SAMPLES
     #undef SOUNDTOUCH_FLOAT_SAMPLES
 
-    #if (defined(__SOFTFP__))
+    #if (defined(ANDROID) && defined(__SOFTFP__))
         // For Android compilation: Force use of Integer samples in case that
         // compilation uses soft-floating point emulation - soft-fp is way too slow
         #undef  SOUNDTOUCH_FLOAT_SAMPLES

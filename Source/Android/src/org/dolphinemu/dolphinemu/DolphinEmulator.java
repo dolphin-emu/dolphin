@@ -1,13 +1,5 @@
 package org.dolphinemu.dolphinemu;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import net.simonvt.menudrawer.MenuDrawer;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +10,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 
+import java.io.*;
+
 public class DolphinEmulator<MainActivity> extends Activity 
 {	
 	static private NativeGLSurfaceView GLview = null;
@@ -25,7 +19,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 	
 	private float screenWidth;
 	private float screenHeight;
-	
+
 	public static native void onTouchEvent(int Action, float X, float Y);
 	
 	static
@@ -143,7 +137,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 			
 			String FileName = data.getStringExtra("Select");
 			GLview = new NativeGLSurfaceView(this);
-			//this.getWindow().setUiOptions(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN, View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
+			this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 			GLview.SetDimensions(screenWidth, screenHeight);
 			GLview.SetFileName(FileName);
 			setContentView(GLview);
@@ -169,7 +163,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 		return false;
 	}
 	
-	public boolean overrideKeys()
+    public boolean overrideKeys()
 	{   
 		return false;
 	}  

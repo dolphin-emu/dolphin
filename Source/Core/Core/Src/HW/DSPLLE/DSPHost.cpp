@@ -4,6 +4,8 @@
 
 #include "Common.h"
 #include "Hash.h"
+#include "DSP/DSPAnalyzer.h"
+#include "DSP/DSPCore.h"
 #include "DSP/DSPHost.h"
 #include "DSPSymbols.h"
 #include "DSPLLETools.h"
@@ -45,23 +47,23 @@ void DSPHost_InterruptRequest()
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
-u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
+void DSPHost_CodeLoaded(const u8 *ptr, int size)
 {
-	u32 ector_crc = HashEctor(ptr, size);
+	g_dsp.iram_crc = HashEctor(ptr, size);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	DumpDSPCode(ptr, size, ector_crc);
+	DumpDSPCode(ptr, size, g_dsp.iram_crc);
 #endif
 
 	DSPSymbols::Clear();
 
 	// Auto load text file - if none just disassemble.
 	
-	NOTICE_LOG(DSPLLE, "ector_crc: %08x", ector_crc);
+	NOTICE_LOG(DSPLLE, "g_dsp.iram_crc: %08x", g_dsp.iram_crc);
 
 	DSPSymbols::Clear();
 	bool success = false;
-	switch (ector_crc)
+	switch (g_dsp.iram_crc)
 	{
 		case 0x86840740: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_Zelda.txt"); break;
 		case 0x42f64ac4: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_Luigi.txt"); break;
@@ -86,7 +88,10 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 
 	DSPHost_UpdateDebugger();
 
-	return ector_crc;
+	if (dspjit)
+		dspjit->ClearIRAM();
+
+	DSPAnalyzer::Analyze();
 }
 
 void DSPHost_UpdateDebugger()

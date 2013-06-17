@@ -37,6 +37,7 @@ private:
 	void OnFindPreviousClick(wxCommandEvent& event);
 	void OnSearchFieldTextChanged(wxCommandEvent& event);
 	void ChangeSearchResult(unsigned int result_idx);
+	void ResetSearch();
 
 	void OnRecordingFinished(wxEvent& event);
 	void OnFrameWritten(wxEvent& event);

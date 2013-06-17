@@ -4,6 +4,7 @@
 
 #include "InputConfig.h"
 #include "../../Core/Src/ConfigManager.h"
+#include "../../Core/Src/HW/Wiimote.h"
 
 InputPlugin::~InputPlugin()
 {
@@ -18,9 +19,9 @@ bool InputPlugin::LoadConfig(bool isGC)
 {
 	IniFile inifile;
 	IniFile game_ini;
-	bool useProfile[4] = {false, false, false, false};
-	std::string num[4] = {"1", "2", "3", "4"};
-	std::string profile[4];
+	bool useProfile[MAX_BBMOTES] = {false, false, false, false, false};
+	std::string num[MAX_BBMOTES] = {"1", "2", "3", "4", "BB"};
+	std::string profile[MAX_BBMOTES];
 	std::string path;
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() != "00000000")

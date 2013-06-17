@@ -246,14 +246,9 @@ static void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	}
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
-	g_dsp.iram_crc = DSPHost_CodeLoaded(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
-	
-	NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
+	DSPHost_CodeLoaded((const u8*)g_dsp.iram + dsp_addr, size);
 
-	if (dspjit)
-		dspjit->ClearIRAM();
-	
-	DSPAnalyzer::Analyze();
+	NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
 }
 
 static void gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)

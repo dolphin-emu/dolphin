@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "ProgramShaderCache.h"
+#include "DriverDetails.h"
 #include "MathUtil.h"
 #include "StreamBuffer.h"
 #include "Debugger.h"
@@ -23,6 +24,7 @@ u32 ProgramShaderCache::s_ubo_buffer_size;
 bool ProgramShaderCache::s_ubo_dirty;
 
 static StreamBuffer *s_buffer;
+static int num_failures = 0;
 
 LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
 static GLuint CurrentProgram = 0;
@@ -104,6 +106,7 @@ void SHADER::SetProgramVariables()
 
 void SHADER::SetProgramBindings()
 {
+#ifndef USE_GLES3
 	if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 	{
 		// So we do support extended blending
@@ -121,7 +124,7 @@ void SHADER::SetProgramBindings()
 		// ogl2 shaders don't need to bind output colors.
 		// gl_FragColor already point to color channel
 	}
-
+#endif
 	// Need to set some attribute locations
 	glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
 	
@@ -171,6 +174,8 @@ void ProgramShaderCache::UploadConstants()
 		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, s_ps_data_size);
 		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset + s_vs_data_offset, s_vs_data_size);
 		s_ubo_dirty = false;
+		
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, s_ubo_buffer_size);
 	}
 }
 
@@ -288,11 +293,19 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		glGetProgramInfoLog(pid, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sp_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), pid);
+		sprintf(szTemp, "%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
 		std::ofstream file;
 		OpenFStream(file, szTemp, std::ios_base::out);
 		file << infoLog << s_glsl_header << vcode << s_glsl_header << pcode;
 		file.close();
+		
+		PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
+			szTemp,
+			g_ogl_config.gl_vendor,
+			g_ogl_config.gl_renderer,
+			g_ogl_config.gl_version,
+			infoLog);
+		
 		delete [] infoLog;
 	}
 	if (linkStatus != GL_TRUE)
@@ -325,15 +338,34 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 	if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
 	{
 		GLsizei charsWritten;
+#ifdef USE_GLES3
+		// This is a bug in the Qualcomm OpenGL Driver
+		// The length returned is garbage length so we need to set a default max
+		// XXX: Check if qualcomm driver here
+		length = 1024; // Qualcomm driver maxes out at 512 bytes returned from glGetShaderInfoLog anyway
+#endif
 		GLchar* infoLog = new GLchar[length];
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "PS Shader info log:\n%s", infoLog);
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sps_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), result);
+		sprintf(szTemp, 
+			"%sbad_%s_%04i.txt", 
+			File::GetUserPath(D_DUMP_IDX).c_str(), 
+			type==GL_VERTEX_SHADER ? "vs" : "ps", 
+			num_failures++);
 		std::ofstream file;
 		OpenFStream(file, szTemp, std::ios_base::out);
 		file << infoLog << s_glsl_header << code;
 		file.close();
+		
+		PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
+			type==GL_VERTEX_SHADER ? "vertex" : "pixel",
+			szTemp,
+			g_ogl_config.gl_vendor,
+			g_ogl_config.gl_renderer,
+			g_ogl_config.gl_version,
+			infoLog);
+		
 		delete[] infoLog;
 	}
 	if (compileStatus != GL_TRUE)
@@ -478,6 +510,7 @@ void ProgramShaderCache::CreateHeader ( void )
 	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
 	snprintf(s_glsl_header, sizeof(s_glsl_header), 
 		"#version %s\n"
+		"%s\n" // default precision
 		"%s\n" // tex_rect
 		"%s\n" // ubo
 		
@@ -492,11 +525,6 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define float3 vec3\n"
 		"#define float4 vec4\n"
 
-		// hlsl to glsl function translation
-		"#define frac(x) fract(x)\n"
-		"#define saturate(x) clamp(x, 0.0f, 1.0f)\n"
-		"#define lerp(x, y, z) mix(x, y, z)\n"
-		
 		// glsl 120 hack
 		"%s\n"
 		"%s\n"
@@ -504,14 +532,15 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n"
 		"%s\n"
 		"#define COLOROUT(name) %s\n"
-		
-		, v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : "140"
-		, v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
-		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v!=GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
+				
+		, v==GLSLES3 ? "300 es" : v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : "140"
+		, v==GLSLES3 ? "precision highp float;" : ""
+		, v==GLSLES3 ? "" : v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
+		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, v==GLSL_120 ? "attribute" : "in"
 		, v==GLSL_120 ? "attribute" : "out"
-		, v==GLSL_120 ? "varying" : "centroid in"
-		, v==GLSL_120 ? "varying" : "centroid out"
+		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "in" : v==GLSL_120 ? "varying" : "centroid in"
+		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "out" : v==GLSL_120 ? "varying" : "centroid out"
 		, v==GLSL_120 ? "#define texture texture2D" : ""
 		, v==GLSL_120 ? "#define round(x) floor((x)+0.5f)" : ""
 		, v==GLSL_120 ? "#define out " : ""

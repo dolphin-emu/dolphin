@@ -5,6 +5,7 @@
 #include "InputConfigDiag.h"
 #include "UDPConfigDiag.h"
 #include "WxUtils.h"
+#include "HW/Wiimote.h"
 
 void GamepadPage::ConfigUDPWii(wxCommandEvent &event)
 {
@@ -947,7 +948,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin
 	, m_plugin(plugin)
 {
 	m_pad_notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT);
-	for (unsigned int i = 0; i < plugin.controllers.size(); ++i)
+	for (unsigned int i = 0; i < std::min(plugin.controllers.size(), (size_t)MAX_WIIMOTES); ++i)
 	{
 		GamepadPage* gp = new GamepadPage(m_pad_notebook, m_plugin, i, this);
 		m_padpages.push_back(gp);

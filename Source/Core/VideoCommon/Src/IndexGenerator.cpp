@@ -142,7 +142,7 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
 	
 	if(pr)
 	{
-		for(; i<=numVerts-3; i+=3)
+		for(; i+3<=numVerts; i+=3)
 		{
 			*Tptr++ = index + i - 1;
 			*Tptr++ = index + i + 0;
@@ -153,7 +153,7 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
 			numT += 3;
 		}
 		
-		for(; i<=numVerts-2; i+=2)
+		for(; i+2<=numVerts; i+=2)
 		{
 			*Tptr++ = index + i - 1;
 			*Tptr++ = index + i + 0;

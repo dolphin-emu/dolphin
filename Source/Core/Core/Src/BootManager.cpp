@@ -60,6 +60,7 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
 	SConfig::GetInstance().m_LastFilename = _rFilename;
+	SConfig::GetInstance().SaveSettings();
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
 
@@ -108,20 +109,6 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "HLE_BS2",				&StartUp.bHLE_BS2, StartUp.bHLE_BS2);
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 
-		if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
-		{
-			StartUp.bCPUThread = Movie::IsDualCore();
-			StartUp.bSkipIdle = Movie::IsSkipIdle();
-			StartUp.bDSPHLE = Movie::IsDSPHLE();
-			StartUp.bProgressive = Movie::IsProgressive();
-			StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
-			StartUp.iCPUCore = Movie::GetCPUMode();
-			if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
-			{
-				if (File::Exists("Movie.raw"))
-					File::Delete("Movie.raw");
-			}
-		}
 		// Wii settings
 		if (StartUp.bWii)
 		{
@@ -129,6 +116,22 @@ bool BootCore(const std::string& _rFilename)
 			SConfig::GetInstance().m_SYSCONF->Save();
 		}
 	} 
+
+	// movie settings
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+	{
+		StartUp.bCPUThread = Movie::IsDualCore();
+		StartUp.bSkipIdle = Movie::IsSkipIdle();
+		StartUp.bDSPHLE = Movie::IsDSPHLE();
+		StartUp.bProgressive = Movie::IsProgressive();
+		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
+		StartUp.iCPUCore = Movie::GetCPUMode();
+		if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+		{
+			if (File::Exists("Movie.raw"))
+				File::Delete("Movie.raw");
+		}
+	}
 
 	// Run the game
 	// Init the core

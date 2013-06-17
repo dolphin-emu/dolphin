@@ -22,6 +22,7 @@
 #endif
 
 #include "CommonPaths.h"
+#include "DriverDetails.h"
 #include "VideoConfig.h"
 #include "Statistics.h"
 #include "ImageWrite.h"
@@ -201,6 +202,8 @@ int GetNumMSAACoverageSamples(int MSAAMode)
 }
 
 void ApplySSAASettings() {
+	// GLES3 doesn't support SSAA
+#ifndef USE_GLES3
 	if(g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X) {
 		if(g_ogl_config.bSupportSampleShading) {
 			glEnable(GL_SAMPLE_SHADING_ARB);
@@ -211,13 +214,17 @@ void ApplySSAASettings() {
 	} else if(g_ogl_config.bSupportSampleShading) {
 		glDisable(GL_SAMPLE_SHADING_ARB);
 	}
+#endif
 }
 
 void ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, void* userParam)
 {
+	// GLES3 doesn't natively support this
+	// XXX: Include GLES2 extensions header so we can use this
+#ifndef USE_GLES3
 	const char *s_source;
 	const char *s_type;
-	
+
 	switch(source)
 	{
 		case GL_DEBUG_SOURCE_API_ARB:             s_source = "API"; break;
@@ -245,6 +252,54 @@ void ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsi
 		case GL_DEBUG_SEVERITY_LOW_ARB:    WARN_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
+#endif
+}
+
+void InitDriverInfo()
+{
+	// Get Vendor
+	std::string svendor = std::string(g_ogl_config.gl_vendor);
+	std::string srenderer = std::string(g_ogl_config.gl_renderer);
+	DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
+	u32 devfamily = 0;
+	double version = 0.0;
+
+	// Get Vendor first
+	if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
+		vendor = DriverDetails::VENDOR_NVIDIA; 
+	else if (svendor == "ATI Technologies Inc.")
+		vendor = DriverDetails::VENDOR_ATI;
+	else if (std::string::npos != svendor.find("Intel"))
+		vendor = DriverDetails::VENDOR_INTEL;
+	else if (svendor == "ARM")
+		vendor = DriverDetails::VENDOR_ARM;
+	else if (svendor == "Qualcomm")
+		vendor = DriverDetails::VENDOR_QUALCOMM;
+	else if (svendor == "Imagination Technologies")
+		vendor = DriverDetails::VENDOR_IMGTEC;
+	else if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
+		vendor = DriverDetails::VENDOR_TEGRA;
+	else if (svendor == "Vivante Corporation")
+		vendor = DriverDetails::VENDOR_VIVANTE;
+	
+	// Get device family and driver version...if we care about it
+	switch(vendor)
+	{
+		case DriverDetails::VENDOR_QUALCOMM:
+		{
+			if (std::string::npos != srenderer.find("Adreno (TM) 3"))
+				devfamily = 300;
+			else
+				devfamily = 200;
+			double glVersion;
+			sscanf(g_ogl_config.gl_version, "OpenGL ES %lg V@%lg", &glVersion, &version);
+		}
+		break;
+		// We don't care about these
+		default:
+		break;
+	}
+	DriverDetails::Init(vendor, devfamily, version);
 }
 
 // Init functions
@@ -259,6 +314,32 @@ Renderer::Renderer()
 	InitFPSCounter();
 
 	bool bSuccess = true;
+
+	g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
+	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
+	g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
+	g_ogl_config.glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+	
+	InitDriverInfo();
+
+	// Init extension support.
+#ifdef USE_GLES3
+	// Set default GLES3 options
+	GLFunc::Init();
+	WARN_LOG(VIDEO, "Running the OpenGL ES 3 backend!");
+	g_Config.backend_info.bSupportsDualSourceBlend = false;
+	g_Config.backend_info.bSupportsGLSLUBO = true; 
+	g_Config.backend_info.bSupportsPrimitiveRestart = false; 
+	
+	g_ogl_config.bSupportsGLSLCache = false; // XXX: Reenable once shaders compile correctly  
+	g_ogl_config.bSupportsGLPinnedMemory = false; 
+	g_ogl_config.bSupportsGLSync = true; 
+	g_ogl_config.bSupportsGLBaseVertex = false; 
+	g_ogl_config.bSupportCoverageMSAA = false; // XXX: GLES3 spec has MSAA
+	g_ogl_config.bSupportSampleShading = false; 
+	g_ogl_config.bSupportOGL31 = false; 
+	g_ogl_config.eSupportedGLSLVersion = GLSLES3;
+#else
 	GLint numvertexattribs = 0;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
 	if (numvertexattribs < 16)
@@ -268,8 +349,6 @@ Renderer::Renderer()
 				numvertexattribs);
 		bSuccess = false;
 	}
-
-	// Init extension support.
 #ifdef __APPLE__
 	glewExperimental = 1;
 #endif
@@ -323,6 +402,8 @@ Renderer::Renderer()
 				"Please report this issue, then there will be a workaround");
 		bSuccess = false;
 	}
+	if (!GLEW_ARB_texture_non_power_of_two)
+		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
 
 	if (!bSuccess)
 		return;	// TODO: fail
@@ -338,12 +419,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupportCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
 	g_ogl_config.bSupportSampleShading = GLEW_ARB_sample_shading;
 	g_ogl_config.bSupportOGL31 = GLEW_VERSION_3_1;
-	
-	g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
-	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
-	g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
-	g_ogl_config.glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-	
+
 	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10"))
 	{
 		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need at least GLSL 1.20\n"
@@ -364,6 +440,7 @@ Renderer::Renderer()
 	{
 		g_ogl_config.eSupportedGLSLVersion = GLSL_140;
 	}
+#endif	
 	
 	glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
 	if(g_ogl_config.max_samples < 1) 
@@ -425,9 +502,6 @@ Renderer::Renderer()
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
-	if (!GLEW_ARB_texture_non_power_of_two)
-		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
-
 	// TODO: Move these somewhere else?
 	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
 	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
@@ -457,7 +531,7 @@ Renderer::Renderer()
 	glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClearDepth(1.0f);
+	glClearDepthf(1.0f);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
@@ -468,8 +542,9 @@ Renderer::Renderer()
 
 	glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 	glBlendColor(0, 0, 0, 0.5f);
-	glClearDepth(1.0f);
-	
+	glClearDepthf(1.0f);
+
+#ifndef USE_GLES3	
 	if(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
 	{
 		if(g_ogl_config.bSupportOGL31)
@@ -483,7 +558,7 @@ Renderer::Renderer()
 			glPrimitiveRestartIndexNV(65535);
 		}
 	}
-
+#endif
 	UpdateActiveConfig();
 }
 
@@ -884,8 +959,14 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 				u32* colorMap = new u32[targetPixelRcWidth * targetPixelRcHeight];
 
+#ifdef USE_GLES3
+				// XXX: Swap colours
+				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
+				             GL_RGBA, GL_UNSIGNED_INT, colorMap);
+#else
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
 				             GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap);
+#endif
 				GL_REPORT_ERRORD();
 
 				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, colorMap);
@@ -970,7 +1051,7 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 
 	// Update the view port
 	glViewport(X, Y, Width, Height);
-	glDepthRange(GLNear, GLFar);
+	glDepthRangef(GLNear, GLFar);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
@@ -992,7 +1073,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	// depth
 	glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-	glClearDepth(float(z & 0xFFFFFF) / float(0xFFFFFF));
+	glClearDepthf(float(z & 0xFFFFFF) / float(0xFFFFFF));
 
 	// Update rect for clearing the picture
 	glEnable(GL_SCISSOR_TEST);
@@ -1246,6 +1327,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	}
 
 	// Frame dumps are handled a little differently in Windows
+	// Frame dumping disabled entirely on GLES3
+#ifndef USE_GLES3
 #if defined _WIN32 || defined HAVE_LIBAV
 	if (g_ActiveConfig.bDumpFrames)
 	{
@@ -1342,7 +1425,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		bLastFrameDumped = false;
 	}
 #endif
-
+#endif
 	// Finish up the current frame, print some stats
 
 	SetWindowSize(fbWidth, fbHeight);
@@ -1400,7 +1483,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	DrawDebugText();
 
 	GL_REPORT_ERRORD();
-	
+ 
 	// Do our OSD callbacks	
 	OSD::DoCallbacks(OSD::OSD_ONFRAME);
 	OSD::DrawMessages();
@@ -1487,7 +1570,9 @@ void Renderer::RestoreAPIState()
 	SetBlendMode(true);
 	VertexShaderManager::SetViewportChanged();
 
+#ifndef USE_GLES3
 	glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
+#endif
 	
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
@@ -1539,6 +1624,9 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
+
+	// Logic ops aren't available in GLES3/GLES2
+#ifndef USE_GLES3
 	const GLenum glLogicOpCodes[16] =
 	{
 		GL_CLEAR,
@@ -1568,6 +1656,7 @@ void Renderer::SetLogicOpMode()
 	{
 		glDisable(GL_COLOR_LOGIC_OP);
 	}
+#endif
 }
 
 void Renderer::SetDitherMode()
@@ -1585,8 +1674,10 @@ void Renderer::SetLineWidth()
 	if (bpmem.lineptwidth.linesize > 0)
 		// scale by ratio of widths
 		glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f);
+#ifndef USE_GLES3
 	if (bpmem.lineptwidth.pointsize > 0)
 		glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
+#endif
 }
 
 void Renderer::SetSamplerState(int stage, int texindex)

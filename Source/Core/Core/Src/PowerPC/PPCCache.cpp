@@ -26,31 +26,29 @@ namespace PowerPC
 
 		for (u32 m = 0; m < 128; m++)
 		{
-			u32 b[7];
-			for (int i = 0; i < 7; i++) b[i] = m & (1<<i);
-			u32 w;
-			if (b[0])
-				if (b[2])
-					if (b[6])
-						w = 7;
-					else
-						w = 6;
-				else
-					if (b[5])
-						w = 5;
-					else
-						w = 4;
-			else
-				if (b[1])
-					if (b[4])
-						w = 3;
-					else
-						w = 2;
-				else
-					if (b[3])
-						w = 1;
-					else
-						w = 0;
+            u32 w;
+            if(m & (1<<0))
+                if(m & (1<<2))
+                    if(m & (1<<6))
+                        w=7;
+                    else
+                        w=6;
+                    else
+                        if(m & (1<<5))
+                            w=5;
+                        else
+                            w=4;
+                        else
+                            if(m & (1<<1))
+                                if(m & (1<<4))
+                                    w=3;
+                                else
+                                    w=2;
+                                else
+                                    if(m & (1<<3))
+                                        w=1;
+                                    else
+                                        w=0;
 			way_from_plru[m] = w;
 		}
 	}

@@ -37,9 +37,6 @@ namespace ButtonManager
 	
 	void Init()
 	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		
 		// Initialize our buttons
 		m_buttons.push_back(new Button("ButtonA.png", BUTTON_A, m_coords[0]));
 		m_buttons.push_back(new Button("ButtonB.png", BUTTON_B, m_coords[1]));
@@ -83,8 +80,13 @@ namespace ButtonManager
 
 	void DrawButtons()
 	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		for(auto it = m_buttons.begin(); it != m_buttons.end(); ++it)
 			DrawButton((*it)->GetTexture(), (*it)->GetCoords());	
+
+		glDisable(GL_BLEND);
 	}
 
 }

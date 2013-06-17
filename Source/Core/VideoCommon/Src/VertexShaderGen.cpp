@@ -4,11 +4,15 @@
 
 #include <math.h>
 #include <locale.h>
+#ifdef __APPLE__
+	#include <xlocale.h>
+#endif
 
 #include "NativeVertexFormat.h"
 
 #include "BPMemory.h"
 #include "CPMemory.h"
+#include "DriverDetails.h"
 #include "LightingShaderGen.h"
 #include "VertexShaderGen.h"
 #include "VideoConfig.h"
@@ -71,9 +75,15 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 											? out.template GetUidData<vertex_shader_uid_data>() : dummy_data;
 
 	out.SetBuffer(text);
+#ifndef ANDROID
+	locale_t locale;
+	locale_t old_locale;
 	if (out.GetBuffer() != NULL)
-		setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
-
+	{
+		locale = newlocale(LC_NUMERIC_MASK, "C", NULL); // New locale for compilation
+		old_locale = uselocale(locale); // Apply the locale for this thread
+	}
+#endif
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
 	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGen.numTexGens);
@@ -214,13 +224,22 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 			out.Write("int posmtx = int(fposmtx);\n");
 		}
 
-		out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");		
-
-		if (components & VB_HAS_NRMALL) {
-			out.Write("int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
-			out.Write("float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
+		if (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS))
+		{
+			// This'll cause issues, but  it can't be helped
+			out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[0], rawpos), dot(" I_TRANSFORMMATRICES"[1], rawpos), dot(" I_TRANSFORMMATRICES"[2], rawpos), 1);\n");
+			if (components & VB_HAS_NRMALL)
+				out.Write("float3 N0 = " I_NORMALMATRICES"[0].xyz, N1 = " I_NORMALMATRICES"[1].xyz, N2 = " I_NORMALMATRICES"[2].xyz;\n");
 		}
+		else
+		{
+			out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[posmtx], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES"[posmtx+2], rawpos), 1);\n");
 
+			if (components & VB_HAS_NRMALL) {
+				out.Write("int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
+				out.Write("float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
+			}
+		}
 		if (components & VB_HAS_NRM0)
 			out.Write("float3 _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, rawnorm0)));\n");
 		if (components & VB_HAS_NRM1)
@@ -531,8 +550,13 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
 
+#ifndef ANDROID
 	if (out.GetBuffer() != NULL)
-		setlocale(LC_NUMERIC, ""); // restore locale
+	{
+		uselocale(old_locale); // restore locale
+		freelocale(locale);
+	}
+#endif
 }
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type)

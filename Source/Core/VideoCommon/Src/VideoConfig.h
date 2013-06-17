@@ -123,6 +123,7 @@ struct VideoConfig
 	bool bUseBBox;
 	bool bEnablePixelLighting;
 	bool bHackedBufferUpload;
+	bool bFastDepthCalc;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped

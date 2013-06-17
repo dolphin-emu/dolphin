@@ -394,10 +394,10 @@ void EmuThread()
 		Wiimote::Initialize(g_pWindowHandle);
 
 		// Activate wiimotes which don't have source set to "None"
-		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
+		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
 			if (g_wiimote_sources[i])
-				GetUsbPointer()->AccessWiiMote(i | 0x100)->
-					Activate(true);
+				GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
+			
 	}
 
 	// The hardware is initialized.
@@ -680,7 +680,8 @@ void UpdateTitle()
 	u32 Speed = DrawnVideo * (100 * 1000) / (VideoInterface::TargetRefreshRate * ElapseTime);
 
 	// Settings are shown the same for both extended and summary info
-	std::string SSettings = StringFromFormat("%s %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC");
+	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC", 
+		g_video_backend->GetName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
 	// Use extended or summary information. The summary information does not print the ticks data,
 	// that's more of a debugging interest, it can always be optional of course if someone is interested.
@@ -697,7 +698,7 @@ void UpdateTitle()
 
 		float TicksPercentage = (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
 
-		std::string SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
+		std::string SFPS = StringFromFormat("FPS: %u - VPS: %u - %u%%", FPS, VPS, Speed);
 		SFPS += StringFromFormat(" | CPU: %s%i MHz [Real: %i + IdleSkip: %i] / %i MHz (%s%3.0f%%)",
 				_CoreParameter.bSkipIdle ? "~" : "",
 				(int)(diff),
@@ -710,11 +711,11 @@ void UpdateTitle()
 	#else	// Summary information
 	std::string SFPS;
 	if (Movie::IsPlayingInput())
-		SFPS = StringFromFormat("VI: %u/%u - Frame: %u/%u - FPS: %u - VPS: %u - SPEED: %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
+		SFPS = StringFromFormat("VI: %u/%u - Frame: %u/%u - FPS: %u - VPS: %u - %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
 	else if (Movie::IsRecordingInput())
-		SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - SPEED: %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
+		SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
 	else
-		SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
+		SFPS = StringFromFormat("FPS: %u - VPS: %u - %u%%", FPS, VPS, Speed);
 	#endif
 
 	// This is our final "frame counter" string

@@ -598,9 +598,6 @@ union UPTE2
 	u32 Hex;
 };
 
-u32 pagetable_base = 0;
-u32 pagetable_hashmask = 0;
-
 void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 {
 	if (_bWrite)
@@ -644,8 +641,8 @@ void SDRUpdated()
 	{
 		return;
 	}
-	pagetable_base = htaborg<<16;
-	pagetable_hashmask = ((xx<<10)|0x3ff);
+	PowerPC::ppcState.pagetable_base = htaborg<<16;
+	PowerPC::ppcState.pagetable_hashmask = ((xx<<10)|0x3ff);
 } 
 
 
@@ -821,7 +818,7 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 
 	// hash function no 1 "xor" .360
 	u32 hash1 = (VSID ^ page_index);
-	u32 pteg_addr = ((hash1 & pagetable_hashmask) << 6) | pagetable_base;
+	u32 pteg_addr = ((hash1 & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
 
 	// hash1
 	for (int i = 0; i < 8; i++)
@@ -856,7 +853,7 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 
 	// hash function no 2 "not" .360
 	hash1 = ~hash1;
-	pteg_addr = ((hash1 & pagetable_hashmask) << 6) | pagetable_base;
+	pteg_addr = ((hash1 & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
 	for (int i = 0; i < 8; i++) 
 	{
 		u32 pte = bswap(*(u32*)&pRAM[pteg_addr]);

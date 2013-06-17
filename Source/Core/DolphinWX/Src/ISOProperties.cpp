@@ -818,14 +818,24 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 {
 	std::vector<const DiscIO::SFileInfo *> fst;
-	DiscIO::IFileSystem *FS = 0;
+	DiscIO::IFileSystem *FS = NULL;
 	wxString Path = wxDirSelector(_("Choose the folder to extract to"));
 
 	if (Path.empty())
 		return;
 
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
-		FS = WiiDisc.at(1).FileSystem;
+		if(WiiDisc.size() > 0)
+		{
+			// Get the filesystem of the LAST partition
+			FS = WiiDisc.at(WiiDisc.size() - 1).FileSystem;
+		}
+		else
+		{
+			PanicAlertT("No partitions found for: %s!", 
+						WxStrToStr(Path).c_str());
+			return;
+		}
 	else
 		FS = pFileSystem;
 

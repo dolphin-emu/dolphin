@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "GeckoCodeDiag.h"
+#include "Core.h"
 #include "WxUtils.h"
 
 #include <SFML/Network/Http.hpp>
@@ -41,7 +42,8 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 
 	// button sizer
 	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
-	wxButton* const btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
+	btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
+	btn_download->Enable(false);
 	btn_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CodeConfigPanel::DownloadCodes, this);
 	sizer_buttons->AddStretchSpacer(1);
 	sizer_buttons->Add(btn_download, 1, wxEXPAND);
@@ -58,8 +60,11 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	SetSizerAndFit(sizer_main);
 }
 
-void CodeConfigPanel::UpdateCodeList()
+void CodeConfigPanel::UpdateCodeList(bool checkRunning)
 {
+	// disable the button if it doesn't have an effect
+	btn_download->Enable((!checkRunning || Core::IsRunning()) && !m_gameid.empty());
+
 	m_listbox_gcodes->Clear();
 	// add the codes to the listbox
 	std::vector<GeckoCode>::const_iterator
@@ -76,14 +81,15 @@ void CodeConfigPanel::UpdateCodeList()
 	UpdateInfoBox(evt);
 }
 
-void CodeConfigPanel::LoadCodes(const IniFile& inifile, const std::string& gameid)
+void CodeConfigPanel::LoadCodes(const IniFile& inifile, const std::string& gameid, bool checkRunning)
 {
 	m_gameid = gameid;
 
 	m_gcodes.clear();
-	Gecko::LoadCodes(inifile, m_gcodes);
+	if (!checkRunning || Core::IsRunning())
+		Gecko::LoadCodes(inifile, m_gcodes);
 
-	UpdateCodeList();
+	UpdateCodeList(checkRunning);
 }
 
 void CodeConfigPanel::ToggleCode(wxCommandEvent& evt)
@@ -277,9 +283,8 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 						break;
 					}
 
-					// code with this name+creator exists
-					if (existing_gcodes_iter->name == gcodes_iter->name &&
-						existing_gcodes_iter->creator == gcodes_iter->creator)
+					// code exists
+					if (existing_gcodes_iter->Compare(*gcodes_iter))
 						break;
 				}
 			}

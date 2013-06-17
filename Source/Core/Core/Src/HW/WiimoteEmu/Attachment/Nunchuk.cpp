@@ -72,6 +72,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 	m_stick->GetState(&ncdata->jx, &ncdata->jy, 0x80, focus ? 127 : 0);
 	
 	AccelData accel;
+	accel_cal* calib = (accel_cal*)&reg[0x20];
 
 	// tilt
 	EmulateTilt(&accel, m_tilt, focus);
@@ -81,7 +82,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 		// swing
 		EmulateSwing(&accel, m_swing);
 		// shake
-		EmulateShake(&accel, m_shake, m_shake_step);
+		EmulateShake(&accel, calib, m_shake, m_shake_step);
 		// buttons
 		m_buttons->GetState(&ncdata->bt, nunchuk_button_bitmasks);
 	}
@@ -119,7 +120,6 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 	}
 
 	wm_accel* dt = (wm_accel*)&ncdata->ax;
-	accel_cal* calib = (accel_cal*)&reg[0x20];
 	dt->x = u8(trim(accel.x * (calib->one_g.x - calib->zero_g.x) + calib->zero_g.x));
 	dt->y = u8(trim(accel.y * (calib->one_g.y - calib->zero_g.y) + calib->zero_g.y));
 	dt->z = u8(trim(accel.z * (calib->one_g.z - calib->zero_g.z) + calib->zero_g.z));

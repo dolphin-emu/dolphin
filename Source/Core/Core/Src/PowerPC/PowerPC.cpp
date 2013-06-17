@@ -138,6 +138,8 @@ void Init(int cpu_core)
 	ppcState.itlb_last = 0;
 	memset(ppcState.itlb_va, 0, sizeof(ppcState.itlb_va));
 	memset(ppcState.itlb_pa, 0, sizeof(ppcState.itlb_pa));
+	ppcState.pagetable_base = 0;
+	ppcState.pagetable_hashmask = 0;
 
 	ResetRegisters();
 	PPCTables::InitTables(cpu_core);

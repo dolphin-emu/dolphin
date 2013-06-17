@@ -12,7 +12,8 @@ void ClearEFBCache();
 enum GLSL_VERSION {
 	GLSL_120,
 	GLSL_130,
-	GLSL_140 // and above
+	GLSL_140, // and above
+	GLSLES3
 };
 
 // ogl-only config, so not in VideoConfig.h

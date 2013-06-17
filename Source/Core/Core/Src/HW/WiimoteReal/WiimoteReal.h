@@ -117,11 +117,12 @@ public:
 	bool IsReady() const;
 	
 	void WantWiimotes(bool do_want);
+	void WantBB(bool do_want);
 
 	void StartScanning();
 	void StopScanning();
 
-	std::vector<Wiimote*> FindWiimotes();
+	void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&);
 
 	// function called when not looking for more wiimotes
 	void Update();
@@ -133,10 +134,10 @@ private:
 
 	volatile bool m_run_thread;
 	volatile bool m_want_wiimotes;
+	volatile bool m_want_bb;
 
 #if defined(_WIN32)
-	
-
+	void CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool &real_wiimote, bool &is_bb);
 #elif defined(__linux__) && HAVE_BLUEZ
 	int device_id;
 	int device_sock;
@@ -145,7 +146,7 @@ private:
 
 extern std::recursive_mutex g_refresh_lock;
 extern WiimoteScanner g_wiimote_scanner;
-extern Wiimote *g_wiimotes[4];
+extern Wiimote *g_wiimotes[MAX_BBMOTES];
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
@@ -158,6 +159,7 @@ int FindWiimotes(Wiimote** wm, int max_wiimotes);
 void ChangeWiimoteSource(unsigned int index, int source);
 
 bool IsValidBluetoothName(const std::string& name);
+bool IsBalanceBoardName(const std::string& name);
 
 }; // WiimoteReal
 
