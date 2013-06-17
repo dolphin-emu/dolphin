@@ -69,13 +69,7 @@ struct pixel_shader_uid_data
 
 	u32 nIndirectStagesUsed : 8;
 
-	u32 texMtxInfo_n_unknown : 8; // 8x1 bit
 	u32 texMtxInfo_n_projection : 8; // 8x1 bit
-	u32 texMtxInfo_n_inputform : 16; // 8x2 bits
-	u32 texMtxInfo_n_texgentype : 24; // 8x3 bits
-	u64 texMtxInfo_n_sourcerow : 40; // 8x5 bits
-	u32 texMtxInfo_n_embosssourceshift : 24; // 8x3 bits
-	u32 texMtxInfo_n_embosslightshift : 24; // 8x3 bits
 
 	u32 tevindref_bi0 : 3;
 	u32 tevindref_bc0 : 3;
@@ -135,8 +129,8 @@ struct pixel_shader_uid_data
 	u64 tevksel_n_kasel0 : 40; // 8x5 bits
 	u64 tevksel_n_kcsel1 : 40; // 8x5 bits
 	u64 tevksel_n_kasel1 : 40; // 8x5 bits
-	void set_tevksel_kcsel(int index, int i, u32 value) { if (i) tevksel_n_kcsel1 |= value << (5*index); else tevksel_n_kcsel0 |= value << (5*index); }
-	void set_tevksel_kasel(int index, int i, u32 value) { if( i) tevksel_n_kasel1 |= value << (5*index); else tevksel_n_kasel0 |= value << (5*index); }
+	void set_tevksel_kcsel(int index, int i, u64 value) { if (i) tevksel_n_kcsel1 |= value << (5*index); else tevksel_n_kcsel0 |= value << (5*index); }
+	void set_tevksel_kasel(int index, int i, u64 value) { if( i) tevksel_n_kasel1 |= value << (5*index); else tevksel_n_kasel0 |= value << (5*index); }
 
 	u64 cc_n_d : 64; // 16x4 bits
 	u64 cc_n_c : 64; // 16x4 bits

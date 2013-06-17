@@ -720,7 +720,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	out.Write("// TEV stage %d\n", n);
 
 	uid_data.bHasIndStage |= bHasIndStage << n;
-	uid_data.tevorders_n_texcoord |= texcoord << (3 * n);
+	uid_data.tevorders_n_texcoord |= (u64)texcoord << (3 * n);
 	if (bHasIndStage)
 	{
 		uid_data.tevind_n_bs |= bpmem.tevind[n].bs << (2*n);
@@ -811,10 +811,10 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
-	uid_data.cc_n_d = cc.d << (4*n);
-	uid_data.cc_n_c = cc.c << (4*n);
-	uid_data.cc_n_b = cc.b << (4*n);
-	uid_data.cc_n_a = cc.a << (4*n);
+	uid_data.cc_n_d = (u64)cc.d << (4*n);
+	uid_data.cc_n_c = (u64)cc.c << (4*n);
+	uid_data.cc_n_b = (u64)cc.b << (4*n);
+	uid_data.cc_n_a = (u64)cc.a << (4*n);
 	uid_data.cc_n_bias = cc.bias << (2*n);
 	uid_data.cc_n_op = cc.op << n;
 	uid_data.cc_n_clamp = cc.clamp << n;
@@ -822,10 +822,10 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	uid_data.cc_n_dest = cc.dest << (2*n);
 	uid_data.ac_n_rswap = ac.rswap << (2*n);
 	uid_data.ac_n_tswap = ac.tswap << (2*n);
-	uid_data.ac_n_d = ac.d << (3*n);
-	uid_data.ac_n_c = ac.c << (3*n);
-	uid_data.ac_n_b = ac.b << (3*n);
-	uid_data.ac_n_a = ac.a << (3*n);
+	uid_data.ac_n_d = (u64)ac.d << (3*n);
+	uid_data.ac_n_c = (u64)ac.c << (3*n);
+	uid_data.ac_n_b = (u64)ac.b << (3*n);
+	uid_data.ac_n_a = (u64)ac.a << (3*n);
 	uid_data.ac_n_bias = ac.bias << (2*n);
 	uid_data.ac_n_op = ac.op << n;
 	uid_data.ac_n_clamp = ac.clamp << n;
