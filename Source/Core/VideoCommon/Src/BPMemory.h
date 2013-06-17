@@ -144,6 +144,11 @@
 #define TEVALPHAARG_KONST 6
 #define TEVALPHAARG_ZERO  7
 
+#define GX_TEVPREV       0
+#define GX_TEVREG0       1
+#define GX_TEVREG1       2
+#define GX_TEVREG2       3
+
 #define ALPHACMP_NEVER   0
 #define ALPHACMP_LESS    1
 #define ALPHACMP_EQUAL   2
@@ -371,7 +376,7 @@ struct TevStageCombiner
 
 	union TwoTevStageOrders
 	{
-		struct 
+		struct
 		{
 			u32 texmap0    : 3; // indirect tex stage texmap
 			u32 texcoord0  : 3;
