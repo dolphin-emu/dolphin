@@ -269,7 +269,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	unsigned int numStages = bpmem.genMode.numtevstages + 1;
 	unsigned int numTexgen = bpmem.genMode.numtexgens;
 
-	bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable) || !g_ActiveConfig.bFastDepthCalc;
+	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable) || !g_ActiveConfig.bFastDepthCalc;
 	const bool bOpenGL = ApiType == API_OPENGL;
 
 	out.Write("//Pixel Shader for TEV stages\n");
@@ -288,7 +288,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		out.Write("float fmod( float x, float y )\n");
 		out.Write("{\n");
 		out.Write("\tfloat z = fract( abs( x / y) ) * abs( y );\n");
-		out.Write("\treturn (x < 0) ? -z : z;\n");
+		out.Write("\treturn (x < 0.0) ? -z : z;\n");
 		out.Write("}\n");
 
 		// Declare samplers
@@ -587,10 +587,11 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	}
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
-	bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
+	const bool skip_ztexture = !per_pixel_depth && !bpmem.fog.c_proj_fsel.fsel;
 
 	uid_data.ztex_op = bpmem.ztex2.op;
 	uid_data.per_pixel_depth = per_pixel_depth;
+	uid_data.fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
 	uid_data.fog_fsel = bpmem.fog.c_proj_fsel.fsel;
 
 	// Note: z-textures are not written to depth buffer if early depth test is used
@@ -810,26 +811,26 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
-	uid_data.cc_n_d = cc.d;
-	uid_data.cc_n_c = cc.c;
-	uid_data.cc_n_b = cc.b;
-	uid_data.cc_n_a = cc.a;
-	uid_data.cc_n_bias = cc.bias;
-	uid_data.cc_n_op = cc.op;
-	uid_data.cc_n_clamp = cc.clamp;
-	uid_data.cc_n_shift = cc.shift;
-	uid_data.cc_n_dest = cc.dest;
-	uid_data.ac_n_rswap = ac.rswap;
-	uid_data.ac_n_tswap = ac.tswap;
-	uid_data.ac_n_d = ac.d;
-	uid_data.ac_n_c = ac.c;
-	uid_data.ac_n_b = ac.b;
-	uid_data.ac_n_a = ac.a;
-	uid_data.ac_n_bias = ac.bias;
-	uid_data.ac_n_op = ac.op;
-	uid_data.ac_n_clamp = ac.clamp;
-	uid_data.ac_n_shift = ac.shift;
-	uid_data.ac_n_dest = ac.dest;
+	uid_data.cc_n_d = cc.d << (4*n);
+	uid_data.cc_n_c = cc.c << (4*n);
+	uid_data.cc_n_b = cc.b << (4*n);
+	uid_data.cc_n_a = cc.a << (4*n);
+	uid_data.cc_n_bias = cc.bias << (2*n);
+	uid_data.cc_n_op = cc.op << n;
+	uid_data.cc_n_clamp = cc.clamp << n;
+	uid_data.cc_n_shift = cc.shift << (2*n);
+	uid_data.cc_n_dest = cc.dest << (2*n);
+	uid_data.ac_n_rswap = ac.rswap << (2*n);
+	uid_data.ac_n_tswap = ac.tswap << (2*n);
+	uid_data.ac_n_d = ac.d << (3*n);
+	uid_data.ac_n_c = ac.c << (3*n);
+	uid_data.ac_n_b = ac.b << (3*n);
+	uid_data.ac_n_a = ac.a << (3*n);
+	uid_data.ac_n_bias = ac.bias << (2*n);
+	uid_data.ac_n_op = ac.op << n;
+	uid_data.ac_n_clamp = ac.clamp << n;
+	uid_data.ac_n_shift = ac.shift << (2*n);
+	uid_data.ac_n_dest = ac.dest << (2*n);
 
 	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
 		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC

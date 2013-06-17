@@ -171,6 +171,7 @@ struct pixel_shader_uid_data
 
 	u32 ztex_op : 2;
 
+	u32 fast_depth_calc : 1;
 	u32 per_pixel_depth : 1;
 	u32 bHasIndStage : 16;
 
