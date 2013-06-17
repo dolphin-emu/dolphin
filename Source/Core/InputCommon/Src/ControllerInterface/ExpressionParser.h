@@ -53,6 +53,7 @@ public:
 	ControlState GetValue();
 	void SetValue (ControlState state);
 	int num_controls;
+	bool is_complicated;
 
 private:
 	ExpressionNode *expr;

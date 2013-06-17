@@ -238,8 +238,13 @@ void GamepadPage::UpdateGUI()
 		// buttons
 		std::vector<ControlButton*>::const_iterator i = (*g)->control_buttons.begin()
 			, e = (*g)->control_buttons.end();
-		for (; i!=e; ++i)
-			(*i)->SetLabel(StrToWxStr((*i)->control_reference->expression));
+		for (; i!=e; ++i) {
+			ControllerInterface::ControlReference *r = (*i)->control_reference;
+			if (r->IsComplicated())
+				(*i)->SetLabel("...");
+			else
+				(*i)->SetLabel(StrToWxStr((*i)->control_reference->expression));
+		}
 
 		// cboxes
 		std::vector<PadSetting*>::const_iterator si = (*g)->options.begin()

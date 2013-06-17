@@ -209,6 +209,7 @@ public:
 	virtual ~ExpressionNode() {}
 	virtual ControlState GetValue() { return 0; }
 	virtual void SetValue(ControlState state) {}
+	virtual bool IsComplicated() { return false; }
 	virtual operator std::string() { return ""; }
 };
 
@@ -228,6 +229,11 @@ public:
 	virtual void SetValue(ControlState value)
 	{
 		control->ToOutput()->SetState(value);
+	}
+
+	virtual bool IsComplicated()
+	{
+		return false;
 	}
 
 	virtual operator std::string()
@@ -276,6 +282,11 @@ public:
 		rhs->SetValue(value);
 	}
 
+	virtual bool IsComplicated()
+	{
+		return true;
+	}
+
 	virtual operator std::string()
 	{
 		return OpName(op) + "(" + (std::string)(*lhs) + ", " + (std::string)(*rhs) + ")";
@@ -316,6 +327,11 @@ public:
 		default:
 			assert(false);
 		}
+	}
+
+	virtual bool IsComplicated()
+	{
+		return true;
 	}
 
 	virtual operator std::string()
@@ -361,6 +377,7 @@ public:
 		expr = new Expression();
 		expr->expr = expr_node;
 		expr->num_controls = CountNumControls();
+		expr->is_complicated = expr_node->IsComplicated();
 		*expr_out = expr;
 
 		return EXPRESSION_PARSE_SUCCESS;
