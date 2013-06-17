@@ -945,7 +945,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		out.SetConstantsUsed(C_COLORS+2,C_COLORS+2);
 		if(RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
 		{
-			out.Write("cc1 = frac(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
+			out.Write("cc1 = %s(c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n", GLSLConvertFunctions[FUNC_FRAC + bOpenGL]);
 			RegisterStates[2].AlphaNeedOverflowControl = false;
 			RegisterStates[2].ColorNeedOverflowControl = false;
 		}
