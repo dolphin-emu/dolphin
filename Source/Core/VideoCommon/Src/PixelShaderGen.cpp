@@ -199,7 +199,7 @@ static void BuildSwapModeTable()
 }
 
 template<class T> static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType);
-template<class T> static void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
+template<class T> static void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 template<class T> static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
 template<class T> static void WriteFog(T& out, pixel_shader_uid_data& uid_data);
 
@@ -490,9 +490,8 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 			else
 				out.Write("\ttempcoord = float2(0.0f, 0.0f);\n");
 
-			char buffer[32];
-			sprintf(buffer, "float3 indtex%d", i);
-			SampleTexture<T>(out, buffer, "tempcoord", "abg", texmap, ApiType);
+			out.Write("float3 indtex%d = ", i);
+			SampleTexture<T>(out, "tempcoord", "abg", texmap, ApiType);
 		}
 	}
 
@@ -831,7 +830,8 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		uid_data.SetTevindrefTexmap(i, texmap);
-		SampleTexture<T>(out, "textemp", "tevcoord", texswap, texmap, ApiType);
+		out.Write("textemp = ");
+		SampleTexture<T>(out, "tevcoord", texswap, texmap, ApiType);
 	}
 	else
 	{
@@ -929,13 +929,13 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 }
 
 template<class T>
-void SampleTexture(T& out, const char *destination, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
+void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 	if (ApiType == API_D3D11)
-		out.Write("%s=Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
+		out.Write("Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", texmap,texmap, texcoords, texmap, texswap);
 	else
-		out.Write("%s=%s(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", destination, ApiType == API_OPENGL ? "texture" : "tex2D", texmap, texcoords, texmap, texswap);
+		out.Write("%s(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", ApiType == API_OPENGL ? "texture" : "tex2D", texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
