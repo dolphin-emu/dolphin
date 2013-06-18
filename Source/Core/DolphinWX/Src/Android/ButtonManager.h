@@ -15,7 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#pragma once
+
 #include <string>
+#include <map>
 #include "CommonPaths.h"
 #include "Android/TextureLoader.h"
 
@@ -26,11 +29,33 @@ namespace ButtonManager
 		BUTTON_A = 0,
 		BUTTON_B,
 		BUTTON_START,
+		BUTTON_X,
+		BUTTON_Y,
+		BUTTON_Z,
+		BUTTON_UP,
+		BUTTON_DOWN,
+		BUTTON_LEFT,
+		BUTTON_RIGHT,
+		STICK_MAIN_UP,
+		STICK_MAIN_DOWN,
+		STICK_MAIN_LEFT,
+		STICK_MAIN_RIGHT,
+		STICK_C_UP,
+		STICK_C_DOWN,
+		STICK_C_LEFT,
+		STICK_C_RIGHT,
+		TRIGGER_L,
+		TRIGGER_R
 	};
 	enum ButtonState
 	{
 		BUTTON_RELEASED = 0,
 		BUTTON_PRESSED = 1
+	};
+	enum BindType
+	{
+		BIND_BUTTON = 0,
+		BIND_AXIS
 	};
 	class Button
 	{
@@ -47,17 +72,62 @@ namespace ButtonManager
 			memcpy(m_coords, coords, sizeof(float) * 8);
 			m_state = BUTTON_RELEASED;
 		}
+		Button(ButtonType button)
+		{
+			m_button = button;
+			m_state = BUTTON_RELEASED;
+		}
 		void SetState(ButtonState state) { m_state = state; }
 		bool Pressed() { return m_state == BUTTON_PRESSED; }
 		ButtonType GetButtonType() { return m_button; }
 		GLuint GetTexture() { return m_tex; }
 		float *GetCoords() { return m_coords; }
 			
-		~Button() { glDeleteTextures(1, &m_tex); }
+		~Button() { if(m_tex) glDeleteTextures(1, &m_tex); }
 	};
+
+	struct sBind
+	{
+		const ButtonType m_buttontype;
+		const BindType m_bindtype;
+		const int m_bind;
+		const float m_neg;
+		sBind(ButtonType buttontype, BindType bindtype, int bind, float neg) 
+			: m_buttontype(buttontype), m_bindtype(bindtype), m_bind(bind), m_neg(neg) 
+		{}
+	};
+	
+
+	class InputDevice
+	{
+	private:
+		std::string m_dev;
+		std::map<int, bool> m_buttons;
+		std::map<int, float> m_axises;
+		std::map<ButtonType, sBind*> m_binds;
+	public:
+		InputDevice(std::string dev)
+		{
+			m_dev = dev;
+		}
+		~InputDevice()
+		{
+			for (auto it = m_binds.begin(); it != m_binds.end(); ++it)
+			delete it->second;
+		}
+		void AddBind(sBind *bind) { m_binds[bind->m_buttontype] = bind; } 
+		void PressEvent(int button, int action);
+		void AxisEvent(int axis, float value);
+		bool ButtonValue(ButtonType button);
+		float AxisValue(ButtonType axis);
+	};
+
 	void Init();
 	void DrawButtons();
 	bool GetButtonPressed(ButtonType button);
+	float GetAxisValue(ButtonType axis);
 	void TouchEvent(int action, float x, float y);
+	void GamepadEvent(std::string dev, int button, int action);
+	void GamepadAxisEvent(std::string dev, int axis, float value);
 	void Shutdown();
 }

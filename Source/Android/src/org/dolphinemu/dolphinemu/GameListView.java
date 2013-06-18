@@ -24,22 +24,18 @@ public class GameListView extends ListActivity {
 	
     private SideMenuAdapter mAdapter;
     private static GameListView me;
-    public static native String GetConfig(String Key, String Value, String Default);
-    public static native void SetConfig(String Key, String Value, String Default);
 
     enum keyTypes {TYPE_STRING, TYPE_BOOL};
 	
 	private void Fill()
     {
-		
-		
 		this.setTitle("Game List");
 		List<GameListItem>fls = new ArrayList<GameListItem>();
-		String Directories = GetConfig("General", "GCMPathes", "0");
+		String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
 		int intDirectories = Integer.parseInt(Directories);
 		for (int a = 0; a < intDirectories; ++a)
 		{
-			String BrowseDir = GetConfig("General", "GCMPath" + Integer.toString(a), "");
+			String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(a), "");
 			File currentDir = new File(BrowseDir);
 			File[]dirs = currentDir.listFiles();
 			try
@@ -101,11 +97,11 @@ public class GameListView extends ListActivity {
                 {
                     String FileName = data.getStringExtra("Select");
                     Toast.makeText(this, "Folder Selected: " + FileName, Toast.LENGTH_SHORT).show();
-                    String Directories = GetConfig("General", "GCMPathes", "0");
+                    String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
                     int intDirectories = Integer.parseInt(Directories);
                     Directories = Integer.toString(intDirectories + 1);
-                    SetConfig("General", "GCMPathes", Directories);
-                    SetConfig("General", "GCMPath" + Integer.toString(intDirectories), FileName);
+	                NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPathes", Directories);
+	                NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(intDirectories), FileName);
 
                     Fill();
                 }
@@ -142,16 +138,19 @@ public class GameListView extends ListActivity {
                     {
                         case TYPE_STRING:
                             String strPref = prefs.getString(Keys[a], "");
-                            SetConfig(Key, Value, strPref);
+	                        NativeLibrary.SetConfig("Dolphin.ini", Key, Value, strPref);
                         break;
                         case TYPE_BOOL:
                             boolean boolPref = prefs.getBoolean(Keys[a], true);
-                            SetConfig(Key, Value, boolPref ? "True" : "False");
+                            NativeLibrary.SetConfig("Dolphin.ini", Key, Value, boolPref ? "True" : "False");
                         break;
                     }
 
                 }
             break;
+	        case 3: // Gamepad settings
+		        /* Do Nothing */
+		    break;
         }
 	}
 	
@@ -169,6 +168,7 @@ public class GameListView extends ListActivity {
 		List<SideMenuItem>dir = new ArrayList<SideMenuItem>();
 		dir.add(new SideMenuItem("Browse Folder", 0));
         dir.add(new SideMenuItem("Settings", 1));
+		dir.add(new SideMenuItem("Gamepad Config", 2));
 
         ListView mList = new ListView(this);
 		mAdapter = new SideMenuAdapter(this,R.layout.sidemenu,dir);
@@ -193,6 +193,11 @@ public class GameListView extends ListActivity {
                     Intent SettingIntent = new Intent(me, PrefsActivity.class);
                     startActivityForResult(SettingIntent, 2);
                 break;
+		        case 2:
+			        Toast.makeText(me, "Loading up settings", Toast.LENGTH_SHORT).show();
+			        Intent ConfigIntent = new Intent(me, InputConfigActivity.class);
+			        startActivityForResult(ConfigIntent, 3);
+			    break;
         		default:
         		break;
         	}

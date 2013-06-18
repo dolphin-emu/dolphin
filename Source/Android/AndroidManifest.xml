@@ -36,6 +36,11 @@
             android:configChanges="orientation|locale|keyboard|keyboardHidden|navigation|fontScale|uiMode" >
         </activity>
         <activity
+            android:name="org.dolphinemu.dolphinemu.InputConfigActivity"
+            android:label="@string/app_name"
+            android:configChanges="orientation|locale|keyboard|keyboardHidden|navigation|fontScale|uiMode" >
+        </activity>
+        <activity
                 android:name=".PrefsActivity" >
         </activity>
     </application>

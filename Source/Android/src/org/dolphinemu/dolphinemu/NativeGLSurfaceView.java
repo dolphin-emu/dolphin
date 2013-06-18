@@ -1,9 +1,6 @@
 package org.dolphinemu.dolphinemu;
 
 import android.content.Context;
-import android.opengl.GLSurfaceView;
-import android.util.Log;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -14,23 +11,6 @@ public class NativeGLSurfaceView extends SurfaceView {
 	static private boolean Created = false;
 	static private float width;
 	static private float height;
-	
-	public static native void main(String File, Surface surf, int width, int height);
-	public static native void UnPauseEmulation();
-	public static native void PauseEmulation();
-	public static native void StopEmulation();
-	
-	static
-	{
-		try
-		{
-			System.loadLibrary("dolphin-emu-nogui"); 
-		}
-		catch (Exception ex)
-		{
-			Log.w("me", ex.toString());
-		}
-	}
 
 	public NativeGLSurfaceView(Context context) {
 		super(context);
@@ -40,7 +20,7 @@ public class NativeGLSurfaceView extends SurfaceView {
 			{
 				@Override
 	      		public void run() {
-	    	  		main(FileName, getHolder().getSurface(), (int)width, (int)height);
+	    	  		NativeLibrary.Run(FileName, getHolder().getSurface(), (int)width, (int)height);
 	      		}	
 			};
 			getHolder().addCallback(new SurfaceHolder.Callback() {

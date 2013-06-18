@@ -36,7 +36,16 @@ private:
 		Button(ButtonManager::ButtonType index) : m_index(index) {}
 		ControlState GetState() const;
 	private:
-		 const ButtonManager::ButtonType m_index;
+		const ButtonManager::ButtonType m_index;
+	};
+	class Axis : public Input
+	{
+	public:
+		std::string GetName() const;
+		Axis(ButtonManager::ButtonType index) : m_index(index) {}
+		ControlState GetState() const;
+	private:
+		const ButtonManager::ButtonType m_index;
 	};
 
 public:
