@@ -918,14 +918,14 @@ void SampleTexture(T& out, const char *destination, const char *texcoords, const
 
 static const char *tevAlphaFuncsTable[] =
 {
-	"(false)",									// NEVER
-	"(prev.a <= %s - (0.25f/255.0f))",			// LESS
-	"(abs( prev.a - %s ) < (0.5f/255.0f))",		// EQUAL
-	"(prev.a < %s + (0.25f/255.0f))",			// LEQUAL
-	"(prev.a >= %s + (0.25f/255.0f))",			// GREATER
-	"(abs( prev.a - %s ) >= (0.5f/255.0f))",	// NEQUAL
-	"(prev.a > %s - (0.25f/255.0f))",			// GEQUAL
-	"(true)"									// ALWAYS
+	"(false)",			// NEVER
+	"(prev.a < %s)",	// LESS
+	"(prev.a == %s)",	// EQUAL
+	"(prev.a <= %s)",	// LEQUAL
+	"(prev.a > %s)",	// GREATER
+	"(prev.a != %s)",	// NEQUAL
+	"(prev.a >= %s)",	// GEQUAL
+	"(true)"			// ALWAYS
 };
 
 static const char *tevAlphaFunclogicTable[] =
