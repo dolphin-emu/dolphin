@@ -171,7 +171,7 @@ static const char *tevRasTable[] =
 	"ERROR14", //3
 	"ERROR15", //4
 	"float4(alphabump,alphabump,alphabump,alphabump)", // use bump alpha
-	"(float4(alphabump,alphabump,alphabump,alphabump)*(255.0f/248.0f))", //normalized
+	"(FIX_PRECISION_U8(float4(alphabump,alphabump,alphabump,alphabump)*(255.0f/248.0f)))", // normalized, TODO: Verify!
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
 };
 
@@ -179,13 +179,7 @@ static const char *tevRasTable[] =
 
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
-static const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
-//static const char *tevIndAlphaScale[] = {"", "*32", "*16", "*8"};
-static const char *tevIndAlphaScale[] = {"*(248.0f/255.0f)", "*(224.0f/255.0f)", "*(240.0f/255.0f)", "*(248.0f/255.0f)"};
-static const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
-static const char *tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
 static const char *tevIndWrapStart[]  = {"0.0f", "256.0f", "128.0f", "64.0f", "32.0f", "16.0f", "0.001f" };
-static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "7.0f" };
 
 static char swapModeTable[4][5];
 
@@ -460,6 +454,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	out.Write("#define FIX_PRECISION_U8(x) (round((x) * 255.0f) / 255.0f)\n");
 	out.Write("#define CHECK_OVERFLOW_U8(x) (frac((x) * (255.0f/256.0f)) * (256.0f/255.0f))\n");
 	out.Write("#define AS_UNORM8(x) FIX_PRECISION_U8(CHECK_OVERFLOW_U8(x))\n");
+	out.Write("#define MASK_U8(x, mask) FIX_PRECISION_U8(x*mask/255.0f)\n");
 	out.Write("#define FIX_PRECISION_U16(x) (round((x) * 65535.0f) / 65535.0f)\n");
 	out.Write("#define CHECK_OVERFLOW_U16(x) (frac((x) * (65535.0f/65536.0f)) * (65536.0f/65535.0f))\n");
 	out.Write("#define AS_UNORM16(x) FIX_PRECISION_U16(CHECK_OVERFLOW_U16(x))\n");
@@ -695,18 +690,25 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		// perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
 		if (bpmem.tevind[n].bs != ITBA_OFF)
 		{
-			out.Write("alphabump = indtex%d.%s %s;\n",
+			const char *tevIndAlphaSel[] = { "", "x", "y", "z" };
+			const char *tevIndAlphaBumpMask[] = { "248.0f", "224.0f", "240.0f", "248.0f" };
+			out.Write("alphabump = MASK_U8(indtex%d.%s, %s);\n",
 					bpmem.tevind[n].bt,
 					tevIndAlphaSel[bpmem.tevind[n].bs],
-					tevIndAlphaScale[bpmem.tevind[n].fmt]);
+					tevIndAlphaBumpMask[bpmem.tevind[n].fmt]);
 		}
 		// format
+		const char *tevIndFmtScale[] = { "255.0f", "31.0f", "15.0f", "7.0f" };
 		out.Write("float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
 
 		// bias
 		uid_data.Set_tevind_bias(n, bpmem.tevind[n].bias);
 		if (bpmem.tevind[n].bias != ITB_NONE )
+		{
+			const char *tevIndBiasAdd[] = { "-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
+			const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
 			out.Write("indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
+		}
 
 		// multiply by offset matrix and scale
 		uid_data.Set_tevind_mid(n, bpmem.tevind[n].mid);
