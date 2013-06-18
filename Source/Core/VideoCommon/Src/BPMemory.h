@@ -567,7 +567,7 @@ union GenMode
 	{
 		u32 numtexgens : 4;    //     0xF
 		u32 numcolchans : 5;   //   0x1E0
-		u32 ms_en : 1;         //   0x200
+		u32 multisampling : 1; //   0x200
 		u32 numtevstages : 4;  //  0x3C00
 		u32 cullmode : 2;      //  0xC000
 		u32 numindstages : 3;  // 0x30000
