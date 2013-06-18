@@ -389,17 +389,10 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		}
 	}
 
-	out.Write("  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
-			"  float3 comp16 = float3(1.0f, 256.0f, 0.0f), comp24 = float3(1.0f, 256.0f, 256.0f*256.0f);\n"
+	out.Write("  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
 			"  float alphabump=0.0f;\n"
 			"  float3 tevcoord=float3(0.0f, 0.0f, 0.0f);\n"
-			"  float2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n"
-			"  float3 input_ca=float3(0.0f, 0.0f, 0.0f);\n"
-			"  float3 input_cb=float3(0.0f, 0.0f, 0.0f);\n"
-			"  float3 input_cc=float3(0.0f, 0.0f, 0.0f);\n"
-			"  float3 input_cd=float3(0.0f, 0.0f, 0.0f);\n"
-			"  float4 input_aa=float4(0.0f,0.0f,0.0f,0.0f), input_ab=float4(0.0f,0.0f,0.0f,0.0f);\n"
-			"  float4 input_ac=float4(0.0f,0.0f,0.0f,0.0f), input_ad=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
+			"  float2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n\n");
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
@@ -617,14 +610,16 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 
 
 //table with the color compare operations
+#define COMP16 "float3(1.0f, 256.0f, 0.0f)"
+#define COMP24 "float3(1.0f, 256.0f, 256.0f*256.0f)"
 static const char *TEVCMPColorOPTable[8] =
 {
 	"   %s + ((%s.r > %s.r) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_R8_GT 8
 	"   %s + ((%s.r == %s.r) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_R8_EQ 9
-	"   %s + ((dot(%s.rgb, comp16) > (dot(%s.rgb, comp16))) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_GR16_GT 10
-	"   %s + ((dot(%s.rgb, comp16) == dot(%s.rgb, comp16)) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_GR16_EQ 11
-	"   %s + ((dot(%s.rgb, comp24) > (dot(%s.rgb, comp24))) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_BGR24_GT 12
-	"   %s + ((dot(%s.rgb, comp24) == dot(%s.rgb, comp24)) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_BGR24_EQ 13
+	"   %s + ((dot(%s.rgb, " COMP16") > (dot(%s.rgb, " COMP16"))) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_GR16_GT 10
+	"   %s + ((dot(%s.rgb, " COMP16") == dot(%s.rgb, " COMP16")) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_GR16_EQ 11
+	"   %s + ((dot(%s.rgb, " COMP24") > (dot(%s.rgb, " COMP24"))) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_BGR24_GT 12
+	"   %s + ((dot(%s.rgb, " COMP24") == dot(%s.rgb, " COMP24")) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_BGR24_EQ 13
 	"   %s + (max(sign(%s.rgb - %s.rgb), float3(0.0f, 0.0f, 0.0f)) * %s)",//#define TEVCMP_RGB8_GT  14
 	"   %s + ((float3(1.0f, 1.0f, 1.0f) - max(sign(abs(%s.rgb - %s.rgb)), float3(0.0f, 0.0f, 0.0f))) * %s)"//#define TEVCMP_RGB8_EQ  15
 };
@@ -634,10 +629,10 @@ static const char *TEVCMPAlphaOPTable[8] =
 {
 	"   %s.a + ((%s.r > %s.r) ? %s.a : 0.0f)",//#define TEVCMP_R8_GT 8
 	"   %s.a + ((%s.r == %s.r) ? %s.a : 0.0f)",//#define TEVCMP_R8_EQ 9
-	"   %s.a + ((dot(%s.rgb, comp16) > (dot(%s.rgb, comp16))) ? %s.a : 0.0f)",//#define TEVCMP_GR16_GT 10
-	"   %s.a + ((dot(%s.rgb, comp16) == dot(%s.rgb, comp16)) ? %s.a : 0.0f)",//#define TEVCMP_GR16_EQ 11
-	"   %s.a + ((dot(%s.rgb, comp24) > (dot(%s.rgb, comp24))) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_GT 12
-	"   %s.a + ((dot(%s.rgb, comp24) == dot(%s.rgb, comp24)) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_EQ 13
+	"   %s.a + ((dot(%s.rgb, " COMP16") > (dot(%s.rgb, " COMP16"))) ? %s.a : 0.0f)",//#define TEVCMP_GR16_GT 10
+	"   %s.a + ((dot(%s.rgb, " COMP16") == dot(%s.rgb, " COMP16")) ? %s.a : 0.0f)",//#define TEVCMP_GR16_EQ 11
+	"   %s.a + ((dot(%s.rgb, " COMP24") > (dot(%s.rgb, " COMP24"))) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_GT 12
+	"   %s.a + ((dot(%s.rgb, " COMP24") == dot(%s.rgb, " COMP24")) ? %s.a : 0.0f)",//#define TEVCMP_BGR24_EQ 13
 	"   %s.a + ((%s.a > %s.a) ? %s.a : 0.0f)",//#define TEVCMP_A8_GT 14
 	"   %s.a + ((%s.a == %s.a) ? %s.a : 0.0f)"//#define TEVCMP_A8_EQ 15
 };
@@ -653,6 +648,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		texcoord = 0;
 
 	out.Write("// TEV stage %d\n", n);
+	out.Write("{\n");
 
 	uid_data.bHasIndStage |= bHasIndStage << n;
 	uid_data.tevorders_n_texcoord |= (u64)texcoord << (3 * n);
@@ -776,7 +772,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		uid_data.tevksel_n_swap2 |= bpmem.tevksel[i*2+1].swap2 << (2 * (i*2+1));
 
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
-		out.Write("rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
+		out.Write("float4 rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
 	}
 
 
@@ -814,7 +810,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 		uid_data.set_tevksel_kcsel(n/2, n & 1, kc);
 		uid_data.set_tevksel_kasel(n/2, n & 1, ka);
-		out.Write("konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
+		out.Write("float4 konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 		if (kc > 7)
 			out.SetConstantsUsed(C_KCOLORS+((kc-0xc)%4),C_KCOLORS+((kc-0xc)%4));
 		if (ka > 7)
@@ -837,16 +833,16 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
 	// Initialize combiner inputs (taking care of U8 overflows)
-	out.Write("input_ca = AS_UNORM8(%s);\n", tevCInputTable[cc.a]);
-	out.Write("input_cb = AS_UNORM8(%s);\n", tevCInputTable[cc.b]);
-	out.Write("input_cc = AS_UNORM8(%s);\n", tevCInputTable[cc.c]);
-	out.Write("input_cd = %s;\n", tevCInputTable[cc.d]);
+	out.Write("float3 input_ca = AS_UNORM8(%s);\n", tevCInputTable[cc.a]);
+	out.Write("float3 input_cb = AS_UNORM8(%s);\n", tevCInputTable[cc.b]);
+	out.Write("float3 input_cc = AS_UNORM8(%s);\n", tevCInputTable[cc.c]);
+	out.Write("float3 input_cd = %s;\n", tevCInputTable[cc.d]);
 
 	// TODO: Do we need to delay initialization until color combiner has been processed?
-	out.Write("input_aa = AS_UNORM8(%s);\n", tevAInputTable[ac.a]);
-	out.Write("input_ab = AS_UNORM8(%s);\n", tevAInputTable[ac.b]);
-	out.Write("input_ac = AS_UNORM8(%s);\n", tevAInputTable[ac.c]);
-	out.Write("input_ad = %s;\n", tevAInputTable[ac.d]);
+	out.Write("float4 input_aa = AS_UNORM8(%s);\n", tevAInputTable[ac.a]);
+	out.Write("float4 input_ab = AS_UNORM8(%s);\n", tevAInputTable[ac.b]);
+	out.Write("float4 input_ac = AS_UNORM8(%s);\n", tevAInputTable[ac.c]);
+	out.Write("float4 input_ad = %s;\n", tevAInputTable[ac.d]);
 
 	out.Write("// color combine\n");
 	out.Write("%s = ", tevCOutputTable[cc.dest]);
@@ -891,7 +887,8 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	else
 		out.Write(", -1024.0f/255.0f, 1023.0f/255.0f)"); // clamp to S11 range (-1024..1023)
 	out.Write(";\n\n");
-	out.Write("// TEV done\n");
+	out.Write("// End of TEV stage %d\n", n);
+	out.Write("}\n");
 }
 
 template<class T>
