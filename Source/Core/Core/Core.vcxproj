@@ -293,6 +293,7 @@
     <ClCompile Include="Src\HW\GPFifo.cpp" />
     <ClCompile Include="Src\HW\HW.cpp" />
     <ClCompile Include="Src\HW\Memmap.cpp" />
+    <ClCompile Include="Src\HW\MMUTable.cpp" />
     <ClCompile Include="Src\HW\MemmapFunctions.cpp" />
     <ClCompile Include="Src\HW\MemoryInterface.cpp" />
     <ClCompile Include="Src\HW\ProcessorInterface.cpp" />
@@ -497,6 +498,7 @@
     <ClInclude Include="Src\HW\GPFifo.h" />
     <ClInclude Include="Src\HW\HW.h" />
     <ClInclude Include="Src\HW\Memmap.h" />
+    <ClInclude Include="Src\HW\MMUTable.h" />
     <ClInclude Include="Src\HW\MemoryInterface.h" />
     <ClInclude Include="Src\HW\ProcessorInterface.h" />
     <ClInclude Include="Src\HW\SI.h" />

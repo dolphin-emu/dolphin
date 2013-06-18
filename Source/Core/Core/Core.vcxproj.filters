@@ -422,6 +422,9 @@
     <ClCompile Include="Src\HW\Memmap.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
+    <ClCompile Include="Src\HW\MMUTable.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
     <ClCompile Include="Src\HW\MemmapFunctions.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
@@ -890,6 +893,9 @@
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
     <ClInclude Include="Src\HW\Memmap.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\HW\MMUTable.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
     <ClInclude Include="Src\HW\SystemTimers.h">
