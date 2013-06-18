@@ -52,6 +52,16 @@ namespace DriverDetails
 		// Adreno devices /always/ return 0 when querying GL_INFO_LOG_LENGTH
 		// They also max out at 1024 bytes(1023 characters + null terminator) for the log
 		BUG_BROKENINFOLOG,
+		// Bug: Uploading data with rendering causes issues
+		// Affected devices: Qualcomm/Adreno
+		// Started Version: 14
+		// Ended Version: -1
+		// When drawing our elements, the instruction buffer on Adreno devices
+		// becomes too long, causing the device to quickly run out of RAM
+		// I've watched the kernel module go up to ~700MB of RAM in a few seconds
+		// The "workaround" is calling swapbuffers every single time we flush
+		// This causes flickering, but it is the only known way to work around it
+		BUG_BROKENBUFFERS,
 	};
 	
 	// Initializes our internal vendor, device family, and driver version	

@@ -29,6 +29,7 @@ namespace DriverDetails
 		{BUG_NODYNUBOACCESS, 300, 14.0, -1.0},
 		{BUG_BROKENCENTROID, 300, 14.0, -1.0},
 		{BUG_BROKENINFOLOG, 300, -1.0, -1.0},
+		{BUG_BROKENBUFFERS, 300, 14.0, -1.0},
 	};
 
 	std::map<std::pair<Vendor, Bug>, BugInfo> m_bugs;

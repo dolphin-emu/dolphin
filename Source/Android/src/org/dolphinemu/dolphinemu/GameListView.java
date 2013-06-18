@@ -161,8 +161,6 @@ public class GameListView extends ListActivity {
 		me = this;
 		 
 		mDrawer = MenuDrawer.attach(this, MenuDrawer.MENU_DRAG_CONTENT);
-		 
-		
 		Fill();
 		 
 		List<SideMenuItem>dir = new ArrayList<SideMenuItem>();
