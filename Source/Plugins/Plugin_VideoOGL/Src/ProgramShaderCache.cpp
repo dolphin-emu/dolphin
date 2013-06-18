@@ -525,6 +525,11 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define float3 vec3\n"
 		"#define float4 vec4\n"
 
+		// hlsl to glsl function translation
+		"#define frac(x) fract(x)\n"
+		"#define saturate(x) clamp(x, 0.0f, 1.0f)\n"
+		"#define lerp(x, y, z) mix(x, y, z)\n"
+
 		// glsl 120 hack
 		"%s\n"
 		"%s\n"
