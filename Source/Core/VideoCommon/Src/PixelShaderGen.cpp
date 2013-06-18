@@ -1057,6 +1057,7 @@ static void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 
+	out.Write("\tfog = FIX_PRECISION_U8(fog);\n");
 	out.Write("\tprev.rgb = lerp(prev.rgb, " I_FOG"[0].rgb, fog);\n");
 }
 
