@@ -971,15 +971,16 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	if (ac.dest >= GX_TEVREG0 && ac.dest <= GX_TEVREG2)
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
-	out.Write("input_ca = %s;\n", tevCInputTable[cc.a+16]);
-	out.Write("input_cb = %s;\n", tevCInputTable[cc.b+16]);
-	out.Write("input_cc = %s;\n", tevCInputTable[cc.c+16]);
+	// Initialize combiner inputs (taking care of U8 overflows)
+	out.Write("input_ca = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.a]);
+	out.Write("input_cb = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.b]);
+	out.Write("input_cc = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.c]);
 	out.Write("input_cd = %s;\n", tevCInputTable[cc.d]);
 
 	// TODO: Do we need to delay initialization until color combiner has been processed?
-	out.Write("input_aa = %s;\n", tevAInputTable[ac.a+8]);
-	out.Write("input_ab = %s;\n", tevAInputTable[ac.b+8]);
-	out.Write("input_ac = %s;\n", tevAInputTable[ac.c+8]);
+	out.Write("input_aa = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.a]);
+	out.Write("input_ab = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.b]);
+	out.Write("input_ac = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.c]);
 	out.Write("input_ad = %s;\n", tevAInputTable[ac.d]);
 
 	out.Write("// color combine\n");
