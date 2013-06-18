@@ -430,6 +430,12 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 			"  float alphabump=0.0f;\n"
 			"  float3 tevcoord=float3(0.0f, 0.0f, 0.0f);\n"
 			"  float2 wrappedcoord=float2(0.0f,0.0f), tempcoord=float2(0.0f,0.0f);\n"
+			"  float3 input_ca=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float3 input_cb=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float3 input_cc=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float3 input_cd=float3(0.0f, 0.0f, 0.0f);\n"
+			"  float4 input_aa=float4(0.0f,0.0f,0.0f,0.0f), input_ab=float4(0.0f,0.0f,0.0f,0.0f);\n"
+			"  float4 input_ac=float4(0.0f,0.0f,0.0f,0.0f), input_ad=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 cc0=float4(0.0f,0.0f,0.0f,0.0f), cc1=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
@@ -965,6 +971,17 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	if (ac.dest >= GX_TEVREG0 && ac.dest <= GX_TEVREG2)
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
+	out.Write("input_ca = %s;\n", tevCInputTable[cc.a+16]);
+	out.Write("input_cb = %s;\n", tevCInputTable[cc.b+16]);
+	out.Write("input_cc = %s;\n", tevCInputTable[cc.c+16]);
+	out.Write("input_cd = %s;\n", tevCInputTable[cc.d]);
+
+	// TODO: Do we need to delay initialization until color combiner has been processed?
+	out.Write("input_aa = %s;\n", tevAInputTable[ac.a+8]);
+	out.Write("input_ab = %s;\n", tevAInputTable[ac.b+8]);
+	out.Write("input_ac = %s;\n", tevAInputTable[ac.c+8]);
+	out.Write("input_ad = %s;\n", tevAInputTable[ac.d]);
+
 	out.Write("// color combine\n");
 	if (cc.clamp)
 		out.Write("%s = clamp(", tevCOutputTable[cc.dest]);
@@ -975,16 +992,13 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal color combiner goes here
-		out.Write("%s * (%s %s lerp(%s, %s, %s) %s)", tevScaleTable[cc.shift], tevCInputTable[cc.d], tevOpTable[cc.op], tevCInputTable[cc.a+16], tevCInputTable[cc.b+16], tevCInputTable[cc.c+16], tevBiasTable[cc.bias]);
+		out.Write("%s * (input_cd %s lerp(input_ca, input_cb, input_cc) %s)", tevScaleTable[cc.shift], tevOpTable[cc.op], tevBiasTable[cc.bias]);
 	}
 	else
 	{
 		int cmp = (cc.shift<<1)|cc.op; // comparemode stored here
 		out.Write(TEVCMPColorOPTable[cmp],//lookup the function from the op table
-				tevCInputTable[cc.d],
-				tevCInputTable[cc.a + 16],
-				tevCInputTable[cc.b + 16],
-				tevCInputTable[cc.c + 16]);
+				"input_cd", "input_ca", "input_cb", "input_cc");
 	}
 	if (cc.clamp)
 		out.Write(", 0.0f, 1.0f)");
@@ -1002,17 +1016,14 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal alpha combiner goes here
-		out.Write("%s * (%s.a %s lerp(%s.a, %s.a, %s.a) %s)", tevScaleTable[ac.shift], tevAInputTable[ac.d], tevOpTable[ac.op], tevAInputTable[ac.a+8], tevAInputTable[ac.b+8], tevAInputTable[ac.c+8], tevBiasTable[ac.bias]);
+		out.Write("%s * (input_ad.a %s lerp(input_aa.a, input_ab.a, input_ac.a) %s)", tevScaleTable[ac.shift], tevOpTable[ac.op], tevBiasTable[ac.bias]);
 	}
 	else
 	{
 		//compare alpha combiner goes here
 		int cmp = (ac.shift<<1)|ac.op; // comparemode stored here
 		out.Write(TEVCMPAlphaOPTable[cmp],
-				tevAInputTable[ac.d],
-				tevAInputTable[ac.a + 8],
-				tevAInputTable[ac.b + 8],
-				tevAInputTable[ac.c + 8]);
+				"input_ad", "input_aa", "input_ab", "input_ac");
 	}
 	if (ac.clamp)
 		out.Write(", 0.0f, 1.0f)");
