@@ -731,7 +731,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		// ---------
 		// Wrapping
 		// ---------
-		const char *tevIndWrapStart[]  = { "0.0f", "256.0f", "128.0f", "64.0f", "32.0f", "16.0f", "0.001f" };
+		const char *tevIndWrapStart[]  = { "0.0f", "256.0f", "128.0f", "64.0f", "32.0f", "16.0f", "0.0f" };
 		uid_data.Set_tevind_sw(n, bpmem.tevind[n].sw);
 		uid_data.Set_tevind_tw(n, bpmem.tevind[n].tw);
 		uid_data.tevind_n_fb_addprev |= bpmem.tevind[n].fb_addprev << n;
