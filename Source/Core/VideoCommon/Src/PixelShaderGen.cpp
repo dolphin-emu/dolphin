@@ -864,8 +864,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 
 	out.Write("// color combine\n");
 	out.Write("%s = ", tevCOutputTable[cc.dest]);
-	if (cc.clamp)
-		out.Write("clamp(");
+	out.Write("clamp(");
 
 	// combine the color channel
 	if (cc.bias != TevBias_COMPARE) // if not compare
@@ -880,13 +879,14 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 				"input_cd", "input_ca", "input_cb", "input_cc");
 	}
 	if (cc.clamp)
-		out.Write(", 0.0f, 1.0f)");
+		out.Write(", 0.0f, 1.0f)"); // clamp to U8 range (0..255)
+	else
+		out.Write(", -1024.0f/255.0f, 1023.0f/255.0f)"); // clamp to S11 range (-1024..1023)
 	out.Write(";\n");
 
 	out.Write("// alpha combine\n");
 	out.Write("%s = ", tevAOutputTable[ac.dest]);
-	if (ac.clamp)
-		out.Write("clamp(");
+	out.Write("clamp(");
 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
@@ -901,7 +901,9 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 				"input_ad", "input_aa", "input_ab", "input_ac");
 	}
 	if (ac.clamp)
-		out.Write(", 0.0f, 1.0f)");
+		out.Write(", 0.0f, 1.0f)"); // clamp to U8 range (0..255)
+	else
+		out.Write(", -1024.0f/255.0f, 1023.0f/255.0f)"); // clamp to S11 range (-1024..1023)
 	out.Write(";\n\n");
 	out.Write("// TEV done\n");
 }
