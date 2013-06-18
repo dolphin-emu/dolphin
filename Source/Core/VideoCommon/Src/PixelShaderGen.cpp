@@ -653,16 +653,8 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 
 
 //table with the color compare operations
-static const char *TEVCMPColorOPTable[16] =
+static const char *TEVCMPColorOPTable[8] =
 {
-	"float3(0.0f, 0.0f, 0.0f)",//0
-	"float3(0.0f, 0.0f, 0.0f)",//1
-	"float3(0.0f, 0.0f, 0.0f)",//2
-	"float3(0.0f, 0.0f, 0.0f)",//3
-	"float3(0.0f, 0.0f, 0.0f)",//4
-	"float3(0.0f, 0.0f, 0.0f)",//5
-	"float3(0.0f, 0.0f, 0.0f)",//6
-	"float3(0.0f, 0.0f, 0.0f)",//7
 	"   %s + ((%s.r >= %s.r + (0.25f/255.0f)) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_R8_GT 8
 	"   %s + ((abs(%s.r - %s.r) < (0.5f/255.0f)) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_R8_EQ 9
 	"   %s + (( dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s : float3(0.0f, 0.0f, 0.0f))",//#define TEVCMP_GR16_GT 10
@@ -674,16 +666,8 @@ static const char *TEVCMPColorOPTable[16] =
 };
 
 //table with the alpha compare operations
-static const char *TEVCMPAlphaOPTable[16] =
+static const char *TEVCMPAlphaOPTable[8] =
 {
-	"0.0f",//0
-	"0.0f",//1
-	"0.0f",//2
-	"0.0f",//3
-	"0.0f",//4
-	"0.0f",//5
-	"0.0f",//6
-	"0.0f",//7
 	"   %s.a + ((%s.r >= (%s.r + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_R8_GT 8
 	"   %s.a + (abs(%s.r - %s.r) < (0.5f/255.0f) ? %s.a : 0.0f)",//#define TEVCMP_R8_EQ 9
 	"   %s.a + ((dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s.a : 0.0f)",//#define TEVCMP_GR16_GT 10
@@ -995,7 +979,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	}
 	else
 	{
-		int cmp = (cc.shift<<1)|cc.op|8; // comparemode stored here
+		int cmp = (cc.shift<<1)|cc.op; // comparemode stored here
 		out.Write(TEVCMPColorOPTable[cmp],//lookup the function from the op table
 				tevCInputTable[cc.d],
 				tevCInputTable[cc.a + 16],
@@ -1023,7 +1007,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	else
 	{
 		//compare alpha combiner goes here
-		int cmp = (ac.shift<<1)|ac.op|8; // comparemode stored here
+		int cmp = (ac.shift<<1)|ac.op; // comparemode stored here
 		out.Write(TEVCMPAlphaOPTable[cmp],
 				tevAInputTable[ac.d],
 				tevAInputTable[ac.a + 8],
