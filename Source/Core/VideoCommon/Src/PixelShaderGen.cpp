@@ -983,10 +983,9 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	out.Write("input_ad = %s;\n", tevAInputTable[ac.d]);
 
 	out.Write("// color combine\n");
+	out.Write("%s = ", tevCOutputTable[cc.dest]);
 	if (cc.clamp)
-		out.Write("%s = clamp(", tevCOutputTable[cc.dest]);
-	else
-		out.Write("%s = ", tevCOutputTable[cc.dest]);
+		out.Write("clamp(");
 
 	// combine the color channel
 	if (cc.bias != TevBias_COMPARE) // if not compare
@@ -1008,10 +1007,9 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	RegisterStates[ac.dest].AuxStored = false;
 
 	out.Write("// alpha combine\n");
+	out.Write("%s = ", tevAOutputTable[ac.dest]);
 	if (ac.clamp)
-		out.Write("%s = clamp(", tevAOutputTable[ac.dest]);
-	else
-		out.Write("%s = ", tevAOutputTable[ac.dest]);
+		out.Write("clamp(");
 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
