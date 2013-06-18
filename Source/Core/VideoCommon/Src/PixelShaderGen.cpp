@@ -767,12 +767,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	uid_data.ac_n_shift |= ac.shift << (2*n);
 	uid_data.ac_n_dest |= ac.dest << (2*n);
 
-	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
-		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
-		|| cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC
-		|| cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC
-		|| ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA
-		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
+	if(cc.InputUsed(TEVCOLORARG_RASC) || cc.InputUsed(TEVCOLORARG_RASA) || ac.InputUsed(TEVALPHAARG_RASA))
 	{
 		const int i = bpmem.combiners[n].alphaC.rswap;
 		uid_data.tevksel_n_swap1 |= bpmem.tevksel[i*2  ].swap1 << (2 * (i*2  ));
@@ -813,8 +808,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	}
 
 
-	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST
-		|| ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST)
+	if(cc.InputUsed(TEVCOLORARG_KONST) || ac.InputUsed(TEVALPHAARG_KONST))
 	{
 		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
@@ -827,37 +821,13 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 			out.SetConstantsUsed(C_KCOLORS+((ka-0xc)%4),C_KCOLORS+((ka-0xc)%4));
 	}
 
-	if(cc.a == TEVCOLORARG_C0 || cc.a == TEVCOLORARG_A0
-	|| cc.b == TEVCOLORARG_C0 || cc.b == TEVCOLORARG_A0
-	|| cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0
-	|| ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 || ac.c == TEVALPHAARG_A0)
-	{
-		out.SetConstantsUsed(C_COLORS+1,C_COLORS+1);
-	}
-
-	if(cc.a == TEVCOLORARG_C1 || cc.a == TEVCOLORARG_A1
-	|| cc.b == TEVCOLORARG_C1 || cc.b == TEVCOLORARG_A1
-	|| cc.c == TEVCOLORARG_C1 || cc.c == TEVCOLORARG_A1
-	|| ac.a == TEVALPHAARG_A1 || ac.b == TEVALPHAARG_A1 || ac.c == TEVALPHAARG_A1)
-	{
-		out.SetConstantsUsed(C_COLORS+2,C_COLORS+2);
-	}
-
-	if(cc.a == TEVCOLORARG_C2 || cc.a == TEVCOLORARG_A2
-	|| cc.b == TEVCOLORARG_C2 || cc.b == TEVCOLORARG_A2
-	|| cc.c == TEVCOLORARG_C2 || cc.c == TEVCOLORARG_A2
-	|| ac.a == TEVALPHAARG_A2 || ac.b == TEVALPHAARG_A2 || ac.c == TEVALPHAARG_A2)
-	{
-		out.SetConstantsUsed(C_COLORS+3,C_COLORS+3);
-	}
-
-	if (cc.d == TEVCOLORARG_C0 || cc.d == TEVCOLORARG_A0 || ac.d == TEVALPHAARG_A0)
+	if(cc.InputUsed(TEVCOLORARG_C0) || cc.InputUsed(TEVCOLORARG_A0) || ac.InputUsed(TEVALPHAARG_A0))
 		out.SetConstantsUsed(C_COLORS+1,C_COLORS+1);
 
-	if (cc.d == TEVCOLORARG_C1 || cc.d == TEVCOLORARG_A1 || ac.d == TEVALPHAARG_A1)
+	if(cc.InputUsed(TEVCOLORARG_C1) || cc.InputUsed(TEVCOLORARG_A1) || ac.InputUsed(TEVALPHAARG_A1))
 		out.SetConstantsUsed(C_COLORS+2,C_COLORS+2);
 
-	if (cc.d == TEVCOLORARG_C2 || cc.d == TEVCOLORARG_A2 || ac.d == TEVALPHAARG_A2)
+	if(cc.InputUsed(TEVCOLORARG_C2) || cc.InputUsed(TEVCOLORARG_A2) || ac.InputUsed(TEVALPHAARG_A2))
 		out.SetConstantsUsed(C_COLORS+3,C_COLORS+3);
 
 	if (cc.dest >= GX_TEVREG0 && cc.dest <= GX_TEVREG2)

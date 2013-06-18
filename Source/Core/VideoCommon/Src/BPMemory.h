@@ -286,6 +286,11 @@ struct TevStageCombiner
 
 		};
 		u32 hex;
+
+		bool InputUsed(u32 tevsel) const
+		{
+			return (a == tevsel || b == tevsel || c == tevsel || d == tevsel);
+		}
 	};
 	union AlphaCombiner
 	{
@@ -306,6 +311,11 @@ struct TevStageCombiner
 			u32 dest : 2;  //1,2,3
 		};
 		u32 hex;
+
+		bool InputUsed(u32 tevsel) const
+		{
+			return (a == tevsel || b == tevsel || c == tevsel || d == tevsel);
+		}
 	};
 
 	ColorCombiner colorC;
