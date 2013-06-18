@@ -18,15 +18,6 @@
 #include "NativeVertexFormat.h"
 
 
-//   old tev->pixelshader notes
-//
-//   color for this stage (alpha, color) is given by bpmem.tevorders[0].colorchan0
-//   konstant for this stage (alpha, color) is given by bpmem.tevksel
-//   inputs are given by bpmem.combiners[0].colorC.a/b/c/d     << could be current channel color
-//   according to GXTevColorArg table above
-//   output is given by .outreg
-//   tevtemp is set according to swapmodetables and
-
 #define CONST_31_BY_255 "(31.0f/255.0f)"
 #define CONST_63_BY_255 "(63.0f/255.0f)"
 #define CONST_95_BY_255 "(95.0f/255.0f)"
@@ -175,11 +166,8 @@ static const char *tevRasTable[] =
 	"float4(0.0f, 0.0f, 0.0f, 0.0f)", // zero
 };
 
-//static const char *tevTexFunc[] = { "tex2D", "texRECT" };
-
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
-static const char *tevIndWrapStart[]  = {"0.0f", "256.0f", "128.0f", "64.0f", "32.0f", "16.0f", "0.001f" };
 
 static char swapModeTable[4][5];
 
@@ -711,26 +699,22 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 
 		// multiply by offset matrix and scale
 		uid_data.Set_tevind_mid(n, bpmem.tevind[n].mid);
-		if (bpmem.tevind[n].mid != 0)
+		if (bpmem.tevind[n].mid & 3)
 		{
+			int mtxidx = 2*((bpmem.tevind[n].mid&0x3)-1);
 			if (bpmem.tevind[n].mid <= 3)
 			{
-				int mtxidx = 2*(bpmem.tevind[n].mid-1);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
 				out.Write("float2 indtevtrans%d = float2(dot(" I_INDTEXMTX"[%d].xyz, indtevcrd%d), dot(" I_INDTEXMTX"[%d].xyz, indtevcrd%d));\n",
 							n, mtxidx, n, mtxidx+1, n);
 			}
 			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord)
 			{ // s matrix
-				_assert_(bpmem.tevind[n].mid >= 5);
-				int mtxidx = 2*(bpmem.tevind[n].mid-5);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
 				out.Write("float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
 			}
 			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord)
 			{ // t matrix
-				_assert_(bpmem.tevind[n].mid >= 9);
-				int mtxidx = 2*(bpmem.tevind[n].mid-9);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
 				out.Write("float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
 			}
@@ -747,6 +731,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		// ---------
 		// Wrapping
 		// ---------
+		const char *tevIndWrapStart[]  = { "0.0f", "256.0f", "128.0f", "64.0f", "32.0f", "16.0f", "0.001f" };
 		uid_data.Set_tevind_sw(n, bpmem.tevind[n].sw);
 		uid_data.Set_tevind_tw(n, bpmem.tevind[n].tw);
 		uid_data.tevind_n_fb_addprev |= bpmem.tevind[n].fb_addprev << n;
