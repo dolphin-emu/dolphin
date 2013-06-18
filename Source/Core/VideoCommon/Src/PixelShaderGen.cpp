@@ -876,8 +876,8 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	}
 	else
 	{
-		int cmp = (cc.shift<<1)|cc.op; // comparemode stored here
-		out.Write(TEVCMPColorOPTable[cmp],//lookup the function from the op table
+		// compare color combiner goes here
+		out.Write(TEVCMPColorOPTable[(cc.shift<<1) | cc.op],
 				tevCInputTable[cc.d], input_ca, input_cb, input_cc);
 	}
 	if (cc.clamp)
@@ -899,9 +899,8 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	}
 	else
 	{
-		//compare alpha combiner goes here
-		int cmp = (ac.shift<<1)|ac.op; // comparemode stored here
-		out.Write(TEVCMPAlphaOPTable[cmp],
+		// compare alpha combiner goes here
+		out.Write(TEVCMPAlphaOPTable[(ac.shift<<1) | ac.op],
 				tevAInputTable[ac.d], input_aa, input_ab, input_ac);
 	}
 	if (ac.clamp)
