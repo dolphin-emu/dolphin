@@ -452,6 +452,17 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		}
 	}
 
+	// helper macros for emulating tev register bitness
+	out.Write("#define FIX_PRECISION_U8(x) (round((x) * 255.0f) / 255.0f)\n");
+	out.Write("#define CHECK_OVERFLOW_U8(x) (frac((x) * (255.0f/256.0f)) * (256.0f/255.0f))\n");
+	out.Write("#define AS_UNORM8(x) FIX_PRECISION_U8(CHECK_OVERFLOW_U8(x))\n");
+	out.Write("#define FIX_PRECISION_U16(x) (round((x) * 65535.0f) / 65535.0f)\n");
+	out.Write("#define CHECK_OVERFLOW_U16(x) (frac((x) * (65535.0f/65536.0f)) * (65536.0f/65535.0f))\n");
+	out.Write("#define AS_UNORM16(x) FIX_PRECISION_U16(CHECK_OVERFLOW_U16(x))\n");
+	out.Write("#define FIX_PRECISION_U24(x) (round((x) * 16777215.0f) / 16777215.0f)\n");
+	out.Write("#define CHECK_OVERFLOW_U24(x) (frac((x) * (16777215.0f/16777216.0f)) * (16777216.0f/16777215.0f))\n");
+	out.Write("#define AS_UNORM24(x) FIX_PRECISION_U24(CHECK_OVERFLOW_U24(x))\n");
+
 	// indirect texture map lookup
 	int nIndirectStagesUsed = 0;
 	if (bpmem.genMode.numindstages > 0)
@@ -502,7 +513,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		out.Write("\tprev.a = %s;\n", tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
 	}
 	// Final tev output is U8
-	out.Write("\tprev = frac(prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+	out.Write("\tprev = AS_UNORM8(prev);\n");
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	uid_data.Pretest = Pretest;
@@ -542,9 +553,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
 
 		// U24 overflow emulation
-		out.Write("zCoord = zCoord * (16777215.0f/16777216.0f);\n");
-		out.Write("zCoord = frac(zCoord);\n");
-		out.Write("zCoord = zCoord * (16777216.0f/16777215.0f);\n");
+		out.Write("zCoord = AS_UNORM24(zCoord);\n");
 
 		// Note: depth texture output is only written to depth buffer if late depth test is used
 		// final depth value is used for fog calculation, though
@@ -851,15 +860,15 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
 	// Initialize combiner inputs (taking care of U8 overflows)
-	out.Write("input_ca = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.a]);
-	out.Write("input_cb = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.b]);
-	out.Write("input_cc = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevCInputTable[cc.c]);
+	out.Write("input_ca = AS_UNORM8(%s);\n", tevCInputTable[cc.a]);
+	out.Write("input_cb = AS_UNORM8(%s);\n", tevCInputTable[cc.b]);
+	out.Write("input_cc = AS_UNORM8(%s);\n", tevCInputTable[cc.c]);
 	out.Write("input_cd = %s;\n", tevCInputTable[cc.d]);
 
 	// TODO: Do we need to delay initialization until color combiner has been processed?
-	out.Write("input_aa = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.a]);
-	out.Write("input_ab = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.b]);
-	out.Write("input_ac = frac(%s * (255.0f/256.0f)) * (256.0f/255.0f);\n", tevAInputTable[ac.c]);
+	out.Write("input_aa = AS_UNORM8(%s);\n", tevAInputTable[ac.a]);
+	out.Write("input_ab = AS_UNORM8(%s);\n", tevAInputTable[ac.b]);
+	out.Write("input_ac = AS_UNORM8(%s);\n", tevAInputTable[ac.c]);
 	out.Write("input_ad = %s;\n", tevAInputTable[ac.d]);
 
 	out.Write("// color combine\n");
@@ -869,8 +878,8 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	// combine the color channel
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
-		//normal color combiner goes here
-		out.Write("%s * (input_cd %s lerp(input_ca, input_cb, input_cc) %s)", tevScaleTable[cc.shift], tevOpTable[cc.op], tevBiasTable[cc.bias]);
+		// normal color combiner goes here
+		out.Write("FIX_PRECISION_U8(%s * (input_cd %s FIX_PRECISION_U8(lerp(input_ca, input_cb, input_cc) %s)))", tevScaleTable[cc.shift], tevOpTable[cc.op], tevBiasTable[cc.bias]);
 	}
 	else
 	{
@@ -890,8 +899,8 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
-		//normal alpha combiner goes here
-		out.Write("%s * (input_ad.a %s lerp(input_aa.a, input_ab.a, input_ac.a) %s)", tevScaleTable[ac.shift], tevOpTable[ac.op], tevBiasTable[ac.bias]);
+		// normal alpha combiner goes here
+		out.Write("FIX_PRECISION_U8(%s * (input_ad.a %s FIX_PRECISION_U8(lerp(input_aa.a, input_ab.a, input_ac.a)) %s))", tevScaleTable[ac.shift], tevOpTable[ac.op], tevBiasTable[ac.bias]);
 	}
 	else
 	{
