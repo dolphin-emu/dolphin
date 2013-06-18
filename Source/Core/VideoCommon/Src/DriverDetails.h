@@ -42,6 +42,16 @@ namespace DriverDetails
 		// When MSAA is disabled, it acts like a regular in/out
 		// Tends to cause the driver to render full white or black
 		BUG_BROKENCENTROID,
+		// Bug: INFO_LOG_LENGTH broken
+		// Affected devices: Qualcomm/Adreno
+		// Started Version: ? (Noticed on v14)
+		// Ended Version: -1
+		// When compiling a shader, it is important that when it fails, 
+		// you first get the length of the information log prior to grabbing it.
+		// This allows you to allocate an array to store all of the log
+		// Adreno devices /always/ return 0 when querying GL_INFO_LOG_LENGTH
+		// They also max out at 1024 bytes(1023 characters + null terminator) for the log
+		BUG_BROKENINFOLOG,
 	};
 	
 	// Initializes our internal vendor, device family, and driver version	

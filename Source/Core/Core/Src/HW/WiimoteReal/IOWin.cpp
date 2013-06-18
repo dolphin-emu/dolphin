@@ -232,7 +232,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 			}
 			else
 			{
-				free(wm);
+				delete wm;
 			}
 		}
 
