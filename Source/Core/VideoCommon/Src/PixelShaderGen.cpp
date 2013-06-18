@@ -574,6 +574,13 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		out.Write("\tocol0 = prev;\n");
 	}
 
+	// Emulate limited color resolution
+	uid_data.pixel_format = bpmem.zcontrol.pixel_format;
+	if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
+		out.Write("ocol0 = round(ocol0 * 63.0f) / 63.0f;\n");
+	else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
+		out.Write("ocol0 = round(ocol0 * float4(31.0f,63.0f,31.0f,0.0f)) / float4(31.0f,63.0f,31.0f,1.0f);\n");
+
 	// Use dual-source color blending to perform dst alpha in a single pass
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 	{

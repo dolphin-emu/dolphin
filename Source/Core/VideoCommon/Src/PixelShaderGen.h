@@ -171,6 +171,8 @@ struct pixel_shader_uid_data
 	u32 per_pixel_depth : 1;
 	u32 bHasIndStage : 16;
 
+	u32 pixel_format : 3;
+
 	u32 xfregs_numTexGen_numTexGens : 4;
 
 	// TODO: I think we're fine without an enablePixelLighting field, should probably double check, though..
