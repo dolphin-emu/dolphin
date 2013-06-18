@@ -27,16 +27,27 @@
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and
 
+#define CONST_31_BY_255 "(31.0f/255.0f)"
+#define CONST_63_BY_255 "(63.0f/255.0f)"
+#define CONST_95_BY_255 "(95.0f/255.0f)"
+#define CONST_127_BY_255 "(127.0f/255.0f)"
+#define CONST_128_BY_255 "(128.0f/255.0f)"
+#define CONST_159_BY_255 "(159.0f/255.0f)"
+#define CONST_191_BY_255 "(191.0f/255.0f)"
+#define CONST_223_BY_255 "(223.0f/255.0f)"
+
+#define FLOAT3_CONST(const) const"," const"," const
+
 static const char *tevKSelTableC[] = // KCSEL
 {
 	"1.0f,1.0f,1.0f",       // 1   = 0x00
-	"0.875f,0.875f,0.875f", // 7_8 = 0x01
-	"0.75f,0.75f,0.75f",    // 3_4 = 0x02
-	"0.625f,0.625f,0.625f", // 5_8 = 0x03
-	"0.5f,0.5f,0.5f",       // 1_2 = 0x04
-	"0.375f,0.375f,0.375f", // 3_8 = 0x05
-	"0.25f,0.25f,0.25f",    // 1_4 = 0x06
-	"0.125f,0.125f,0.125f", // 1_8 = 0x07
+	FLOAT3_CONST(CONST_223_BY_255), // 7_8 = 0x01
+	FLOAT3_CONST(CONST_191_BY_255),    // 3_4 = 0x02
+	FLOAT3_CONST(CONST_159_BY_255), // 5_8 = 0x03
+	FLOAT3_CONST(CONST_127_BY_255),       // 1_2 = 0x04
+	FLOAT3_CONST(CONST_95_BY_255), // 3_8 = 0x05
+	FLOAT3_CONST(CONST_63_BY_255),    // 1_4 = 0x06
+	FLOAT3_CONST(CONST_31_BY_255), // 1_8 = 0x07
 	"ERROR1", // 0x08
 	"ERROR2", // 0x09
 	"ERROR3", // 0x0a
@@ -66,13 +77,13 @@ static const char *tevKSelTableC[] = // KCSEL
 static const char *tevKSelTableA[] = // KASEL
 {
 	"1.0f",  // 1   = 0x00
-	"0.875f",// 7_8 = 0x01
-	"0.75f", // 3_4 = 0x02
-	"0.625f",// 5_8 = 0x03
-	"0.5f",  // 1_2 = 0x04
-	"0.375f",// 3_8 = 0x05
-	"0.25f", // 1_4 = 0x06
-	"0.125f",// 1_8 = 0x07
+	CONST_223_BY_255,// 7_8 = 0x01
+	CONST_191_BY_255, // 3_4 = 0x02
+	CONST_159_BY_255,// 5_8 = 0x03
+	CONST_127_BY_255,  // 1_2 = 0x04
+	CONST_95_BY_255,// 3_8 = 0x05
+	CONST_63_BY_255, // 1_4 = 0x06
+	CONST_31_BY_255,// 1_8 = 0x07
 	"ERROR5", // 0x08
 	"ERROR6", // 0x09
 	"ERROR7", // 0x0a
@@ -110,8 +121,8 @@ static const char *tevScaleTable[] = // CS
 static const char *tevBiasTable[] = // TB
 {
 	"",       // ZERO,
-	"+0.5f",  // ADDHALF,
-	"-0.5f",  // SUBHALF,
+	"+" CONST_128_BY_255,  // ADDHALF
+	"-" CONST_128_BY_255,  // SUBHALF
 	"",
 };
 
@@ -135,7 +146,7 @@ static const char *tevCInputTable[16] = // CC
 	"(rastemp.rgb)",      // RASC,
 	"(rastemp.aaa)",      // RASA,
 	"float3(1.0f, 1.0f, 1.0f)",              // ONE
-	"float3(0.5f, 0.5f, 0.5f)",              // HALF
+	"float3(0.5f, 0.5f, 0.5f)",          // HALF, TODO:Using CONST_127_BY_255 here breaks Simpsons...
 	"(konsttemp.rgb)", //"konsttemp.rgb",    // KONST
 	"float3(0.0f, 0.0f, 0.0f)",              // ZERO
 };
