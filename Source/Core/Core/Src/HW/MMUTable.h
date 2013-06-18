@@ -10,7 +10,9 @@
 //#define MMU_ALL_READ_WARNINGS
 //#define MMU_ALL_WRITE_WARNINGS
 
-#define MMU_ON_MAP_ALL_WARN
+//#define MMU_ON_MAP_ALL_WARN
+
+//#define MMU_ERROR_ON_ALIGNMENT
 
 //#define  MMU_ON_MSR_CHANGE_WARNING
 //#define MMU_ON_IBAT_CHANGE_WARNING
@@ -194,6 +196,12 @@ int write64_ne(const EmuPointer addr, const u64 in, u32 am=get_access_mask());
 static inline int read_instr_ne(const EmuPointer addr, u32 &out, u32 am=get_access_mask())
 {
 	const void *contexti = memory_access[access_mask][addr.m_addr>>12].contexti;
+#ifdef MMU_ERROR_ON_ALIGNMENT
+	if(addr.m_addr & 3)
+	{
+		ERROR_LOG(MASTER_LOG, "Program read_instr unaligned[%08x] [PC=0x%08x, LR=0x%08x]", addr.m_addr, PowerPC::ppcState.pc, PowerPC::ppcState.spr[SPR_LR]);
+	}
+#endif
 	return memory_access[am][addr.m_addr>>12].iaf.read_u32_exec(contexti, addr.m_addr, out);
 } 
 
@@ -254,6 +262,12 @@ static inline int read8(const EmuPointer addr, u8 &out, u32 am=get_access_mask()
 static inline int read16_ne(const EmuPointer addr, u16 &out, u32 am=get_access_mask())
 {
 	const void *contextd = memory_access[am][addr.m_addr>>12].contextd;
+#ifdef MMU_ERROR_ON_ALIGNMENT
+	if(addr.m_addr & 1)
+	{
+		ERROR_LOG(MASTER_LOG, "Program read16_ne unaligned[%08x] [PC=0x%08x, LR=0x%08x]", addr.m_addr, PowerPC::ppcState.pc, PowerPC::ppcState.spr[SPR_LR]);
+	}
+#endif
 	return memory_access[am][addr.m_addr>>12].daf.read_u16(contextd, addr.m_addr, out);
 } 
 
@@ -284,6 +298,12 @@ static inline int read16(const EmuPointer addr, u16 &out, u32 am=get_access_mask
 static inline int read32_ne(const EmuPointer addr, u32 &out, u32 am=get_access_mask())
 {
 	const void *contextd = memory_access[am][addr.m_addr>>12].contextd;
+#ifdef MMU_ERROR_ON_ALIGNMENT
+	if(addr.m_addr & 3)
+	{
+		ERROR_LOG(MASTER_LOG, "Program read32_ne unaligned[%08x] [PC=0x%08x, LR=0x%08x]", addr.m_addr, PowerPC::ppcState.pc, PowerPC::ppcState.spr[SPR_LR]);
+	}
+#endif
 	int rv= memory_access[am][addr.m_addr>>12].daf.read_u32(contextd, addr.m_addr, out);
 	return rv;
 } 
@@ -316,6 +336,12 @@ static inline int read32(const EmuPointer addr, u32 &out, u32 am=get_access_mask
 static inline int read64_ne(const EmuPointer addr, u64 &out, u32 am=get_access_mask())
 {
 	const void *contextd = memory_access[am][addr.m_addr>>12].contextd;
+#ifdef MMU_ERROR_ON_ALIGNMENT
+	if(addr.m_addr & 7)
+	{
+		ERROR_LOG(MASTER_LOG, "Program read64_ne unaligned[%08x] [PC=0x%08x, LR=0x%08x]", addr.m_addr, PowerPC::ppcState.pc, PowerPC::ppcState.spr[SPR_LR]);
+	}
+#endif
 	return memory_access[am][addr.m_addr>>12].daf.read_u64(contextd, addr.m_addr, out);
 } 
 
@@ -375,6 +401,12 @@ static inline int write8(const EmuPointer addr, const u8 in, u32 am=get_access_m
 static inline int write16_ne(const EmuPointer addr, const u16 in, u32 am=get_access_mask())
 {
 	void *contextd = memory_access[am][addr.m_addr>>12].contextd;
+#ifdef MMU_ERROR_ON_ALIGNMENT
+	if(addr.m_addr & 1)
+	{
+		ERROR_LOG(MASTER_LOG, "Program write16_ne unaligned[%08x] [PC=0x%08x, LR=0x%08x]", addr.m_addr, PowerPC::ppcState.pc, PowerPC::ppcState.spr[SPR_LR]);
+	}
+#endif
 	return memory_access[am][addr.m_addr>>12].daf.write_u16(contextd, addr.m_addr, in);
 }
 static inline int write16(const EmuPointer addr, const u16 in, u32 am=get_access_mask())
@@ -404,6 +436,12 @@ static inline int write16(const EmuPointer addr, const u16 in, u32 am=get_access
 static inline int write32_ne(const EmuPointer addr, const u32 in, u32 am=get_access_mask())
 {
 	void *contextd = memory_access[am][addr.m_addr>>12].contextd;
+#ifdef MMU_ERROR_ON_ALIGNMENT
+	if(addr.m_addr & 3)
+	{
+		ERROR_LOG(MASTER_LOG, "Program write32_ne unaligned[%08x] [PC=0x%08x, LR=0x%08x]", addr.m_addr, PowerPC::ppcState.pc, PowerPC::ppcState.spr[SPR_LR]);
+	}
+#endif
 	return memory_access[am][addr.m_addr>>12].daf.write_u32(contextd, addr.m_addr, in);
 }
 static inline int write32(const EmuPointer addr, const u32 in, u32 am=get_access_mask())
@@ -433,6 +471,12 @@ static inline int write32(const EmuPointer addr, const u32 in, u32 am=get_access
 static inline int write64_ne(const EmuPointer addr, const u64 in, u32 am=get_access_mask())
 {
 	void *contextd = memory_access[am][addr.m_addr>>12].contextd;
+#ifdef MMU_ERROR_ON_ALIGNMENT
+	if(addr.m_addr & 7)
+	{
+		ERROR_LOG(MASTER_LOG, "Program write64_ne unaligned[%08x] [PC=0x%08x, LR=0x%08x]", addr.m_addr, PowerPC::ppcState.pc, PowerPC::ppcState.spr[SPR_LR]);
+	}
+#endif
 	return memory_access[am][addr.m_addr>>12].daf.write_u64(contextd, addr.m_addr, in);
 }
 static inline int write64(const EmuPointer addr, const u64 in, u32 am=get_access_mask())
