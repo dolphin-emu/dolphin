@@ -335,15 +335,13 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
 	GLsizei length = 0;
 	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
+
+	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENINFOLOG))
+		length = 1024;
+
 	if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
 	{
 		GLsizei charsWritten;
-#ifdef USE_GLES3
-		// This is a bug in the Qualcomm OpenGL Driver
-		// The length returned is garbage length so we need to set a default max
-		// XXX: Check if qualcomm driver here
-		length = 1024; // Qualcomm driver maxes out at 512 bytes returned from glGetShaderInfoLog anyway
-#endif
 		GLchar* infoLog = new GLchar[length];
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "PS Shader info log:\n%s", infoLog);
