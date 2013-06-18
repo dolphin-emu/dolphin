@@ -637,6 +637,28 @@ static const char *TEVCMPAlphaOPTable[8] =
 	"   %s.a + ((%s.a == %s.a) ? %s.a : 0.0f)"//#define TEVCMP_A8_EQ 15
 };
 
+// Emulates U8 integer overflow when source value might be bigger than that.
+// In this case a temporary variable with the name temp_name will be declared.
+// The returned string is the name of the variable that holds the loaded register value.
+template<class T>
+const char* LoadTevColorInput(T& out, u32 input, const char* temp_name)
+{
+	// rastemp, textemp and konsttemp are guaranteed to be bitness correct already
+	if (input < 8)
+		out.Write("float3 %s = AS_UNORM8(%s);\n", temp_name, tevCInputTable[input]);
+
+	return (input < 8) ? temp_name : tevCInputTable[input];
+}
+
+template<class T>
+const char* LoadTevAlphaInput(T& out, u32 input, const char* temp_name)
+{
+	if (input < 4)
+		out.Write("float4 %s = AS_UNORM8(%s);\n", temp_name, tevAInputTable[input]);
+
+	return (input < 4) ? temp_name : tevAInputTable[input];
+}
+
 template<class T>
 static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType)
 {
@@ -832,17 +854,15 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	if (ac.dest >= GX_TEVREG0 && ac.dest <= GX_TEVREG2)
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
-	// Initialize combiner inputs (taking care of U8 overflows)
-	out.Write("float3 input_ca = AS_UNORM8(%s);\n", tevCInputTable[cc.a]);
-	out.Write("float3 input_cb = AS_UNORM8(%s);\n", tevCInputTable[cc.b]);
-	out.Write("float3 input_cc = AS_UNORM8(%s);\n", tevCInputTable[cc.c]);
-	out.Write("float3 input_cd = %s;\n", tevCInputTable[cc.d]);
+	// Loading prev or C0/C1/C2 into the 8 bit tev registers (A,B and C) requires integer overflow emulation
+	const char* input_ca = LoadTevColorInput(out, cc.a, "input_cc_a");
+	const char* input_cb = LoadTevColorInput(out, cc.b, "input_cc_b");
+	const char* input_cc = LoadTevColorInput(out, cc.c, "input_cc_c");
 
 	// TODO: Do we need to delay initialization until color combiner has been processed?
-	out.Write("float4 input_aa = AS_UNORM8(%s);\n", tevAInputTable[ac.a]);
-	out.Write("float4 input_ab = AS_UNORM8(%s);\n", tevAInputTable[ac.b]);
-	out.Write("float4 input_ac = AS_UNORM8(%s);\n", tevAInputTable[ac.c]);
-	out.Write("float4 input_ad = %s;\n", tevAInputTable[ac.d]);
+	const char* input_aa = LoadTevAlphaInput(out, ac.a, "input_ac_a");
+	const char* input_ab = LoadTevAlphaInput(out, ac.b, "input_ac_b");
+	const char* input_ac = LoadTevAlphaInput(out, ac.c, "input_ac_c");
 
 	out.Write("// color combine\n");
 	out.Write("%s = ", tevCOutputTable[cc.dest]);
@@ -852,13 +872,15 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
 		// normal color combiner goes here
-		out.Write("FIX_PRECISION_U8(%s * (input_cd %s FIX_PRECISION_U8(lerp(input_ca, input_cb, input_cc) %s)))", tevScaleTable[cc.shift], tevOpTable[cc.op], tevBiasTable[cc.bias]);
+		out.Write("FIX_PRECISION_U8(%s * (%s %s FIX_PRECISION_U8(lerp(%s, %s, %s) %s)))",
+					tevScaleTable[cc.shift], tevCInputTable[cc.d], tevOpTable[cc.op],
+					input_ca, input_cb, input_cc, tevBiasTable[cc.bias]);
 	}
 	else
 	{
 		int cmp = (cc.shift<<1)|cc.op; // comparemode stored here
 		out.Write(TEVCMPColorOPTable[cmp],//lookup the function from the op table
-				"input_cd", "input_ca", "input_cb", "input_cc");
+				tevCInputTable[cc.d], input_ca, input_cb, input_cc);
 	}
 	if (cc.clamp)
 		out.Write(", 0.0f, 1.0f)"); // clamp to U8 range (0..255)
@@ -873,14 +895,16 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
 		// normal alpha combiner goes here
-		out.Write("FIX_PRECISION_U8(%s * (input_ad.a %s FIX_PRECISION_U8(lerp(input_aa.a, input_ab.a, input_ac.a)) %s))", tevScaleTable[ac.shift], tevOpTable[ac.op], tevBiasTable[ac.bias]);
+		out.Write("FIX_PRECISION_U8(%s * (%s.a %s FIX_PRECISION_U8(lerp(%s.a, %s.a, %s.a) %s)))",
+					tevScaleTable[ac.shift], tevAInputTable[ac.d], tevOpTable[ac.op],
+					input_aa, input_ab, input_ac, tevBiasTable[ac.bias]);
 	}
 	else
 	{
 		//compare alpha combiner goes here
 		int cmp = (ac.shift<<1)|ac.op; // comparemode stored here
 		out.Write(TEVCMPAlphaOPTable[cmp],
-				"input_ad", "input_aa", "input_ab", "input_ac");
+				tevAInputTable[ac.d], input_aa, input_ab, input_ac);
 	}
 	if (ac.clamp)
 		out.Write(", 0.0f, 1.0f)"); // clamp to U8 range (0..255)
