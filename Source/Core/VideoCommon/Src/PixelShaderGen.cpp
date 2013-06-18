@@ -991,29 +991,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal color combiner goes here
-		if (cc.shift > TEVSCALE_1)
-			out.Write("%s*(", tevScaleTable[cc.shift]);
-
-		if(!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
-			out.Write("%s%s", tevCInputTable[cc.d], tevOpTable[cc.op]);
-
-		if (cc.a == cc.b)
-			out.Write("%s", tevCInputTable[cc.a + 16]);
-		else if (cc.c == TEVCOLORARG_ZERO)
-			out.Write("%s", tevCInputTable[cc.a + 16]);
-		else if (cc.c == TEVCOLORARG_ONE)
-			out.Write("%s", tevCInputTable[cc.b + 16]);
-		else if (cc.a == TEVCOLORARG_ZERO)
-			out.Write("%s*%s", tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
-		else if (cc.b == TEVCOLORARG_ZERO)
-			out.Write("%s*(float3(1.0f, 1.0f, 1.0f)-%s)", tevCInputTable[cc.a + 16], tevCInputTable[cc.c + 16]);
-		else
-			out.Write("lerp(%s, %s, %s)", tevCInputTable[cc.a + 16], tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
-
-		out.Write("%s", tevBiasTable[cc.bias]);
-
-		if (cc.shift > TEVSCALE_1)
-			out.Write(")");
+		out.Write("%s * (%s %s lerp(%s, %s, %s) %s)", tevScaleTable[cc.shift], tevCInputTable[cc.d], tevOpTable[cc.op], tevCInputTable[cc.a+16], tevCInputTable[cc.b+16], tevCInputTable[cc.c+16], tevBiasTable[cc.bias]);
 	}
 	else
 	{
@@ -1040,28 +1018,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal alpha combiner goes here
-		if (ac.shift > TEVSCALE_1)
-			out.Write("%s*(", tevScaleTable[ac.shift]);
-
-		if(!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
-			out.Write("%s.a%s", tevAInputTable[ac.d], tevOpTable[ac.op]);
-
-		if (ac.a == ac.b)
-			out.Write("%s.a", tevAInputTable[ac.a + 8]);
-		else if (ac.c == TEVALPHAARG_ZERO)
-			out.Write("%s.a", tevAInputTable[ac.a + 8]);
-		else if (ac.a == TEVALPHAARG_ZERO)
-			out.Write("%s.a*%s.a", tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
-		else if (ac.b == TEVALPHAARG_ZERO)
-			out.Write("%s.a*(1.0f-%s.a)", tevAInputTable[ac.a + 8], tevAInputTable[ac.c + 8]);
-		else
-			out.Write("lerp(%s.a, %s.a, %s.a)", tevAInputTable[ac.a + 8], tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
-
-		out.Write("%s",tevBiasTable[ac.bias]);
-
-		if (ac.shift>0)
-			out.Write(")");
-
+		out.Write("%s * (%s.a %s lerp(%s.a, %s.a, %s.a) %s)", tevScaleTable[ac.shift], tevAInputTable[ac.d], tevOpTable[ac.op], tevAInputTable[ac.a+8], tevAInputTable[ac.b+8], tevAInputTable[ac.c+8], tevBiasTable[ac.bias]);
 	}
 	else
 	{
