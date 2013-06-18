@@ -258,6 +258,9 @@
     <ClInclude Include="Src\FPSCounter.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="Src\ShaderGenCommon.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

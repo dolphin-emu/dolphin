@@ -32,6 +32,7 @@ TextureCache::TexCache TextureCache::textures;
 
 TextureCache::BackupConfig TextureCache::backup_config;
 
+bool invalidate_texture_cache_requested;
 
 TextureCache::TCacheEntryBase::~TCacheEntryBase()
 {
@@ -49,6 +50,13 @@ TextureCache::TextureCache()
 		HiresTextures::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 
 	SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
+
+	invalidate_texture_cache_requested = false;
+}
+
+void TextureCache::RequestInvalidateTextureCache()
+{
+	invalidate_texture_cache_requested = true;
 }
 
 void TextureCache::Invalidate()
@@ -80,7 +88,8 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 		if (config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
 			config.bTexFmtOverlayEnable != backup_config.s_texfmt_overlay ||
 			config.bTexFmtOverlayCenter != backup_config.s_texfmt_overlay_center ||
-			config.bHiresTextures != backup_config.s_hires_textures)
+			config.bHiresTextures != backup_config.s_hires_textures ||
+			invalidate_texture_cache_requested)
 		{
 			g_texture_cache->Invalidate();
 
@@ -89,6 +98,8 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 
 			SetHash64Function(g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures);
 			TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
+
+			invalidate_texture_cache_requested = false;
 		}
 
 		// TODO: Probably shouldn't clear all render targets here, just mark them dirty or something.

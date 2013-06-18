@@ -22,6 +22,7 @@
 #define TEXTYPE "sampler2D"
 #define TEXFUNC "texture2D"
 #ifdef USE_GLES3
+#include "GLFunctions.h"
 #define GL_SAMPLES_PASSED GL_ANY_SAMPLES_PASSED
 #define GL_READ_ONLY                      0x88B8
 #define GL_WRITE_ONLY                     0x88B9

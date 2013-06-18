@@ -45,6 +45,7 @@ struct ADPCMState
 extern const ReportFeatures reporting_mode_features[];
 
 void EmulateShake(AccelData* const accel_data
+	  , accel_cal* const calib
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step);
 

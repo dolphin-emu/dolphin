@@ -59,7 +59,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 19;
+static const u32 STATE_VERSION = 20;
 
 enum
 {
@@ -257,7 +257,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 		lzo_uint i = 0;
 		while (true)
 		{
-			lzo_uint cur_len = 0;
+			lzo_uint32 cur_len = 0;
 			lzo_uint out_len = 0;
 
 			if ((i + IN_LEN) >= buffer_size)
@@ -269,7 +269,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 				PanicAlertT("Internal LZO Error - compression failed");
 
 			// The size of the data to write is 'out_len'
-			f.WriteArray(&out_len, 1);
+			f.WriteArray((lzo_uint32*)&out_len, 1);
 			f.WriteBytes(out, out_len);
 
 			if (cur_len != IN_LEN)
@@ -379,7 +379,7 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 		lzo_uint i = 0;
 		while (true)
 		{
-			lzo_uint cur_len = 0;  // number of bytes to read
+			lzo_uint32 cur_len = 0;  // number of bytes to read
 			lzo_uint new_len = 0;  // number of bytes to write
 
 			if (!f.ReadArray(&cur_len, 1))

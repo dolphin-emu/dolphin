@@ -226,6 +226,7 @@ ControllerEmu::AnalogStick::AnalogStick(const char* const _name) : ControlGroup(
 
 	controls.push_back(new Input(_trans("Modifier")));
 
+	settings.push_back(new Setting(_trans("Radius"), 0.7f, 0, 100));
 	settings.push_back(new Setting(_trans("Dead Zone"), 0, 0, 50));
 	settings.push_back(new Setting(_trans("Square Stick"), 0));
 

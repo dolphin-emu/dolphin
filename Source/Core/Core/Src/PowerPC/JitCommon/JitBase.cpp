@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <sstream>
+
 #include "JitBase.h"
 #include "PowerPCDisasm.h"
 #include "disasm.h"
@@ -54,14 +56,14 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *no
 
 	if (b->codeSize <= 250)
 	{
-		char x86code[500] = "";		
+		std::stringstream ss;
+		ss << std::hex;
 		for (u8 i = 0; i <= b->codeSize; i++)
 		{
-			char opcHex[2] = "";
-			u8 opc = *(normalEntry + i);
-			sprintf(opcHex, "%02x", opc);
-			strncat(x86code, opcHex, 2);		
+			ss.width(2);
+			ss.fill('0');
+			ss << (u32)*(normalEntry + i);
 		}
-		DEBUG_LOG(DYNA_REC,"IR_X86 bin: %s\n\n\n", x86code);
+		DEBUG_LOG(DYNA_REC,"IR_X86 bin: %s\n\n\n", ss.str().c_str());
 	}
 }

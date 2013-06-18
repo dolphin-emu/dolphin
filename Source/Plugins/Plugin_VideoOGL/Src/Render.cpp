@@ -22,6 +22,7 @@
 #endif
 
 #include "CommonPaths.h"
+#include "DriverDetails.h"
 #include "VideoConfig.h"
 #include "Statistics.h"
 #include "ImageWrite.h"
@@ -254,6 +255,53 @@ void ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsi
 #endif
 }
 
+void InitDriverInfo()
+{
+	// Get Vendor
+	std::string svendor = std::string(g_ogl_config.gl_vendor);
+	std::string srenderer = std::string(g_ogl_config.gl_renderer);
+	DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
+	u32 devfamily = 0;
+	double version = 0.0;
+
+	// Get Vendor first
+	if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
+		vendor = DriverDetails::VENDOR_NVIDIA; 
+	else if (svendor == "ATI Technologies Inc.")
+		vendor = DriverDetails::VENDOR_ATI;
+	else if (std::string::npos != svendor.find("Intel"))
+		vendor = DriverDetails::VENDOR_INTEL;
+	else if (svendor == "ARM")
+		vendor = DriverDetails::VENDOR_ARM;
+	else if (svendor == "Qualcomm")
+		vendor = DriverDetails::VENDOR_QUALCOMM;
+	else if (svendor == "Imagination Technologies")
+		vendor = DriverDetails::VENDOR_IMGTEC;
+	else if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
+		vendor = DriverDetails::VENDOR_TEGRA;
+	else if (svendor == "Vivante Corporation")
+		vendor = DriverDetails::VENDOR_VIVANTE;
+	
+	// Get device family and driver version...if we care about it
+	switch(vendor)
+	{
+		case DriverDetails::VENDOR_QUALCOMM:
+		{
+			if (std::string::npos != srenderer.find("Adreno (TM) 3"))
+				devfamily = 300;
+			else
+				devfamily = 200;
+			double glVersion;
+			sscanf(g_ogl_config.gl_version, "OpenGL ES %lg V@%lg", &glVersion, &version);
+		}
+		break;
+		// We don't care about these
+		default:
+		break;
+	}
+	DriverDetails::Init(vendor, devfamily, version);
+}
+
 // Init functions
 Renderer::Renderer()
 {
@@ -271,10 +319,13 @@ Renderer::Renderer()
 	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
 	g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
 	g_ogl_config.glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+	
+	InitDriverInfo();
 
 	// Init extension support.
 #ifdef USE_GLES3
 	// Set default GLES3 options
+	GLFunc::Init();
 	WARN_LOG(VIDEO, "Running the OpenGL ES 3 backend!");
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsGLSLUBO = true; 
@@ -1432,7 +1483,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	DrawDebugText();
 
 	GL_REPORT_ERRORD();
-	
+ 
 	// Do our OSD callbacks	
 	OSD::DoCallbacks(OSD::OSD_ONFRAME);
 	OSD::DrawMessages();

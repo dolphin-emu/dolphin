@@ -89,13 +89,53 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						dc.DrawRectangle( 0, 31 - z*31, 64, 2);
 					}
 
-					// circle for visual aid for diagonal adjustment
+					// octagon for visual aid for diagonal adjustment
 					dc.SetPen(*wxLIGHT_GREY_PEN);
 					dc.SetBrush(*wxWHITE_BRUSH);
 					if ( GROUP_TYPE_STICK == (*g)->control_group->type )
 					{
-						dc.SetBrush(*wxTRANSPARENT_BRUSH);
-						dc.DrawCircle( 32, 32, 32);
+						// outline and fill colors
+						wxBrush LightGrayBrush(_T("#dddddd"));
+						wxPen LightGrayPen(_T("#bfbfbf"));
+						dc.SetBrush(LightGrayBrush);
+						dc.SetPen(LightGrayPen);
+
+						// polygon offset
+						float max
+							, diagonal
+							, box = 64
+							, d_of = box / 256.0
+							, x_of = box / 2.0;
+
+						if ((*g)->control_group->name == "Main Stick")
+						{
+							max = (87.0 / 127.0) * 100;
+							diagonal = (55.0 / 127.0) * 100.0;
+						}
+						else if ((*g)->control_group->name == "C-Stick")
+						{
+							max = (74.0 / 127.0) * 100;
+							diagonal = (46.0 / 127.0) * 100;
+						}
+						else
+						{
+							max = (82.0 / 127.0) * 100;
+							diagonal = (58.0 / 127.0) * 100;
+						}
+
+						// polygon corners
+						wxPoint Points[8];
+						Points[0].x = (int)(0.0 * d_of + x_of); Points[0].y = (int)(max * d_of + x_of);
+						Points[1].x = (int)(diagonal * d_of + x_of); Points[1].y = (int)(diagonal * d_of + x_of);
+						Points[2].x = (int)(max * d_of + x_of); Points[2].y = (int)(0.0 * d_of + x_of);
+						Points[3].x = (int)(diagonal * d_of + x_of); Points[3].y = (int)(-diagonal * d_of + x_of);
+						Points[4].x = (int)(0.0 * d_of + x_of); Points[4].y = (int)(-max * d_of + x_of);
+						Points[5].x = (int)(-diagonal * d_of + x_of); Points[5].y = (int)(-diagonal * d_of + x_of);
+						Points[6].x = (int)(-max * d_of + x_of); Points[6].y = (int)(0.0 * d_of + x_of);
+						Points[7].x = (int)(-diagonal * d_of + x_of); Points[7].y = (int)(diagonal * d_of + x_of);
+
+						// draw polygon
+						dc.DrawPolygon(8, Points);
 					}
 					else
 					{
@@ -106,7 +146,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					{
 						// deadzone circle
 						dc.SetBrush(*wxLIGHT_GREY_BRUSH);
-						dc.DrawCircle( 32, 32, ((*g)->control_group)->settings[0]->value * 32 );
+						dc.DrawCircle( 32, 32, ((*g)->control_group)->settings[SETTING_DEADZONE]->value * 32 );
 					}
 
 					// raw dot

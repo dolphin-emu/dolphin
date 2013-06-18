@@ -49,8 +49,8 @@ public class FolderBrowser extends ListActivity {
 		Collections.sort(dir);
         Collections.sort(fls);
         dir.addAll(fls);
-         if (!f.getName().equalsIgnoreCase("sdcard"))
-        	 dir.add(0, new GameListItem(getApplicationContext(), "..", "Parent Directory", f.getParent()));
+	    if (!f.getPath().equalsIgnoreCase("/"))
+	        dir.add(0, new GameListItem(getApplicationContext(), "..", "Parent Directory", f.getParent()));
 
          adapter = new GameListAdapter(this,R.layout.folderbrowser,dir);
 		 this.setListAdapter(adapter);
@@ -58,7 +58,6 @@ public class FolderBrowser extends ListActivity {
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		// TODO Auto-generated method stub
 		super.onListItemClick(l, v, position, id);
 		GameListItem o = adapter.getItem(position);
 		if(o.getData().equalsIgnoreCase("folder")||o.getData().equalsIgnoreCase("parent directory")){
