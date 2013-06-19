@@ -223,7 +223,7 @@ static inline int read_instr(const EmuPointer addr, u32 &out, u32 am=get_access_
 		}
 		Memory::GenerateISIExceptionEx(addr.m_addr, ISISR_bits);
 #ifdef MMU_READ32_EXEC_WARNING
-i		WARN_LOG(MASTER_LOG, "Program read_instr ISI[%08x] rv=%d [PC=0x%08x, LR=0x%08x]", addr.m_addr, rv, PowerPC::ppcState.pc, PowerPC::ppcState.spr[SPR_LR]);
+		WARN_LOG(MASTER_LOG, "Program read_instr ISI[%08x] rv=%d [PC=0x%08x, LR=0x%08x]", addr.m_addr, rv, PowerPC::ppcState.pc, PowerPC::ppcState.spr[SPR_LR]);
 #endif
 	}
 	return rv;

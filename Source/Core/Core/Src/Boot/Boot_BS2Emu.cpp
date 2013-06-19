@@ -129,6 +129,8 @@ bool CBoot::EmulatedBS2_GC()
 	u32 iAppLoaderMain = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 4);
 	u32 iAppLoaderClose = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 8);
 
+	WARN_LOG(MASTER_LOG, "GC %08x %08x %08x\n", iAppLoaderInit , iAppLoaderMain, iAppLoaderClose);
+	fflush(stdout);
 	// iAppLoaderInit
 	DEBUG_LOG(MASTER_LOG, "Call iAppLoaderInit");
 	PowerPC::ppcState.gpr[3] = 0x81300000;
@@ -238,53 +240,53 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	0x80000060	Copyright code
 	*/	
 
-	DVDInterface::DVDRead(0x00000000, 0x00000000, 0x20); // Game Code
-	Memory::Write_U32(0x0D15EA5E, 0x00000020);		// Another magic word
-	Memory::Write_U32(0x00000001, 0x00000024);		// Unknown
-	Memory::Write_U32(Memory::REALRAM_SIZE, 0x00000028);	// MEM1 size 24MB
-	Memory::Write_U32(0x00000023, 0x0000002c);		// Production Board Model
-	Memory::Write_U32(0x00000000, 0x00000030);		// Init
-	Memory::Write_U32(0x817FEC60, 0x00000034);		// Init
+	DVDInterface::DVDRead(0x00000000, 0x80000000, 0x20); // Game Code
+	Memory::Write_U32(0x0D15EA5E, 0x80000020);		// Another magic word
+	Memory::Write_U32(0x00000001, 0x80000024);		// Unknown
+	Memory::Write_U32(Memory::REALRAM_SIZE, 0x80000028);	// MEM1 size 24MB
+	Memory::Write_U32(0x00000023, 0x8000002c);		// Production Board Model
+	Memory::Write_U32(0x00000000, 0x80000030);		// Init
+	Memory::Write_U32(0x817FEC60, 0x80000034);		// Init
 	// 38, 3C should get start, size of FST through apploader
-	Memory::Write_U32(0x38a00040, 0x00000060);		// Exception init
-	Memory::Write_U32(0x8008f7b8, 0x000000e4);		// Thread Init
-	Memory::Write_U32(Memory::REALRAM_SIZE, 0x000000f0);		// "Simulated memory size" (debug mode?)
-	Memory::Write_U32(0x8179b500, 0x000000f4);		// __start
-	Memory::Write_U32(0x0e7be2c0, 0x000000f8);		// Bus speed
-	Memory::Write_U32(0x2B73A840, 0x000000fc);		// CPU speed
-	Memory::Write_U16(0x0000,     0x000030e6);		// Console type
-	Memory::Write_U32(0x00000000, 0x000030c0);		// EXI
-	Memory::Write_U32(0x00000000, 0x000030c4);		// EXI
-	Memory::Write_U32(0x00000000, 0x000030dc);		// Time
-	Memory::Write_U32(0x00000000, 0x000030d8);		// Time
-	Memory::Write_U16(0x8201,     0x000030e6);		// Dev console / debug capable
-	Memory::Write_U32(0x00000000, 0x000030f0);		// Apploader
-	Memory::Write_U32(0x01800000, 0x00003100);		// BAT
-	Memory::Write_U32(0x01800000, 0x00003104);		// BAT
-	Memory::Write_U32(0x00000000, 0x0000310c);		// Init
-	Memory::Write_U32(0x8179d500, 0x00003110);		// Init
-	Memory::Write_U32(0x04000000, 0x00003118);		// Unknown
-	Memory::Write_U32(0x04000000, 0x0000311c);		// BAT
-	Memory::Write_U32(0x93400000, 0x00003120);		// BAT
-	Memory::Write_U32(0x90000800, 0x00003124);		// Init - MEM2 low
-	Memory::Write_U32(0x93ae0000, 0x00003128);		// Init - MEM2 high
-	Memory::Write_U32(0x93ae0000, 0x00003130);		// IOS MEM2 low
-	Memory::Write_U32(0x93b00000, 0x00003134);		// IOS MEM2 high
-	Memory::Write_U32(0x00000012, 0x00003138);		// Console type
+	Memory::Write_U32(0x38a00040, 0x80000060);		// Exception init
+	Memory::Write_U32(0x8008f7b8, 0x800000e4);		// Thread Init
+	Memory::Write_U32(Memory::REALRAM_SIZE, 0x800000f0);		// "Simulated memory size" (debug mode?)
+	Memory::Write_U32(0x8179b500, 0x800000f4);		// __start
+	Memory::Write_U32(0x0e7be2c0, 0x800000f8);		// Bus speed
+	Memory::Write_U32(0x2B73A840, 0x800000fc);		// CPU speed
+	Memory::Write_U16(0x0000,     0x800030e6);		// Console type
+	Memory::Write_U32(0x00000000, 0x800030c0);		// EXI
+	Memory::Write_U32(0x00000000, 0x800030c4);		// EXI
+	Memory::Write_U32(0x00000000, 0x800030dc);		// Time
+	Memory::Write_U32(0x00000000, 0x800030d8);		// Time
+	Memory::Write_U16(0x8201,     0x800030e6);		// Dev console / debug capable
+	Memory::Write_U32(0x00000000, 0x800030f0);		// Apploader
+	Memory::Write_U32(0x01800000, 0x80003100);		// BAT
+	Memory::Write_U32(0x01800000, 0x80003104);		// BAT
+	Memory::Write_U32(0x00000000, 0x8000310c);		// Init
+	Memory::Write_U32(0x8179d500, 0x80003110);		// Init
+	Memory::Write_U32(0x04000000, 0x80003118);		// Unknown
+	Memory::Write_U32(0x04000000, 0x8000311c);		// BAT
+	Memory::Write_U32(0x93400000, 0x80003120);		// BAT
+	Memory::Write_U32(0x90000800, 0x80003124);		// Init - MEM2 low
+	Memory::Write_U32(0x93ae0000, 0x80003128);		// Init - MEM2 high
+	Memory::Write_U32(0x93ae0000, 0x80003130);		// IOS MEM2 low
+	Memory::Write_U32(0x93b00000, 0x80003134);		// IOS MEM2 high
+	Memory::Write_U32(0x00000012, 0x80003138);		// Console type
 	// 40 is copied from 88 after running apploader
-	Memory::Write_U32(0x00090204, 0x00003140);		// IOS revision (IOS9, v2.4)
-	Memory::Write_U32(0x00062507, 0x00003144);		// IOS date in USA format (June 25, 2007)
-	Memory::Write_U16(0x0113,     0x0000315e);		// Apploader version
-	Memory::Write_U32(0x0000FF16, 0x00003158);		// DDR ram vendor code
-	Memory::Write_U32(0x00000000, 0x00003160);		// Init semaphore (sysmenu waits for this to clear)
-	Memory::Write_U32(0x00090204, 0x00003188);		// Expected IOS revision
+	Memory::Write_U32(0x00090204, 0x80003140);		// IOS revision (IOS9, v2.4)
+	Memory::Write_U32(0x00062507, 0x80003144);		// IOS date in USA format (June 25, 2007)
+	Memory::Write_U16(0x0113,     0x8000315e);		// Apploader version
+	Memory::Write_U32(0x0000FF16, 0x80003158);		// DDR ram vendor code
+	Memory::Write_U32(0x00000000, 0x80003160);		// Init semaphore (sysmenu waits for this to clear)
+	Memory::Write_U32(0x00090204, 0x80003188);		// Expected IOS revision
 
-	Memory::Write_U8(0x80, 0x0000315c);				// OSInit
-	Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
-	Memory::Write_U32(0x80000000, 0x00003184);		// GameID Address
+	Memory::Write_U8(0x80, 0x8000315c);				// OSInit
+	Memory::Write_U16(0x0000, 0x800030e0);			// PADInit
+	Memory::Write_U32(0x80000000, 0x80003184);		// GameID Address
 
 	// Fake the VI Init of the IPL 
-	Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);
+	Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC ? 0 : 1, 0x800000CC);
 
 	// Clear exception handler. Why? Don't we begin with only zeros?
 	for (int i = 0x3000; i <= 0x3038; i += 4)
@@ -341,6 +343,7 @@ bool CBoot::EmulatedBS2_Wii()
 			return false;
 		}
 		VolumeHandler::ReadToPtr(Memory::GetPointer(0x81200000), iAppLoaderOffset + 0x20, iAppLoaderSize);
+		WARN_LOG(MASTER_LOG, "Wii Entry: %08x\n", iAppLoaderEntry);
 
 		//call iAppLoaderEntry
 		DEBUG_LOG(BOOT, "Call iAppLoaderEntry");
@@ -353,6 +356,9 @@ bool CBoot::EmulatedBS2_Wii()
 		u32 iAppLoaderInit = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+0);
 		u32 iAppLoaderMain = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+4);
 		u32 iAppLoaderClose = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+8);
+
+		WARN_LOG(MASTER_LOG, "Wii %08x %08x %08x\n", iAppLoaderInit , iAppLoaderMain, iAppLoaderClose);
+		fflush(stdout);
 
 		// iAppLoaderInit
 		DEBUG_LOG(BOOT, "Run iAppLoaderInit");
@@ -377,7 +383,7 @@ bool CBoot::EmulatedBS2_Wii()
 			u32 iLength		= Memory::ReadUnchecked_U32(0x81300008);
 			u32 iDVDOffset	= Memory::ReadUnchecked_U32(0x8130000c) << 2;
 
-			INFO_LOG(BOOT, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
+			WARN_LOG(BOOT, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
 			DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength);
 		} while(PowerPC::ppcState.gpr[3] != 0x00);
 
@@ -391,7 +397,7 @@ bool CBoot::EmulatedBS2_Wii()
 		// Apploader writes the IOS version and revision here, we copy it
 		// Fake IOSv9 r2.4 if no version is found (elf loading)
 		u32 firmwareVer = Memory::Read_U32(0x80003188);
-		Memory::Write_U32(firmwareVer ? firmwareVer : 0x00090204, 0x00003140);
+		Memory::Write_U32(firmwareVer ? firmwareVer : 0x00090204, 0x80003140);
 
 		// Load patches and run startup patches
 		std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();
