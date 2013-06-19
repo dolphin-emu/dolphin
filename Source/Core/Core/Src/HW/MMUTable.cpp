@@ -10,8 +10,8 @@
 namespace MMUTable
 {
 
-const int PAGE_SIZE=4096;
-const int PAGE_MASK=PAGE_SIZE-1;
+const int MMUTABLE_PAGE_SIZE=4096;
+const int MMUTABLE_PAGE_MASK=MMUTABLE_PAGE_SIZE-1;
 
 const u32 MAP_PAGE_NORMAL=0;
 const u32 MAP_PAGE_NO_C=1;
@@ -351,7 +351,7 @@ template <typename ACCESS_TYPE>
 int normal_read(const void* context, const u32 addr, ACCESS_TYPE &out)
 {
 	const u8 *real_base = (u8*)context;
-	out = swapper<ACCESS_TYPE>(*(ACCESS_TYPE*)(real_base+(addr & PAGE_MASK)));
+	out = swapper<ACCESS_TYPE>(*(ACCESS_TYPE*)(real_base+(addr & MMUTABLE_PAGE_MASK)));
 	return 0;
 }
 
@@ -359,7 +359,7 @@ template <typename ACCESS_TYPE>
 int normal_write(void* context, const u32 addr, const ACCESS_TYPE in)
 {
 	u8 *real_base = (u8*)context;
-	*(ACCESS_TYPE*)(real_base+(addr & PAGE_MASK)) = swapper<ACCESS_TYPE>(in);
+	*(ACCESS_TYPE*)(real_base+(addr & MMUTABLE_PAGE_MASK)) = swapper<ACCESS_TYPE>(in);
 	return 0;
 }
 
@@ -578,16 +578,16 @@ int pagetable_write(void* context, const u32 addr, const ACCESS_TYPE in)
 	u32 pt_bits = ((PowerPC::ppcState.spr[SPR_SDR] & 0x1ff)<<16) | 0xffc0;
 	
 	// unmap whatever this pte was mapping
-	u32 pte_h = swapper<u32>(*(u32*)(real_base+(pte_base_addr & PAGE_MASK)));
-	u32 pte_l = swapper<u32>(*(u32*)(real_base+((pte_base_addr+4) & PAGE_MASK)));
+	u32 pte_h = swapper<u32>(*(u32*)(real_base+(pte_base_addr & MMUTABLE_PAGE_MASK)));
+	u32 pte_l = swapper<u32>(*(u32*)(real_base+((pte_base_addr+4) & MMUTABLE_PAGE_MASK)));
 	unmap_pte((pte_base_addr&pt_bits) >> 6, pte_h, pte_l);
 
 	
 	rv = normal_write<ACCESS_TYPE>(context, addr, in);
 
 	// map whatever this pte is now mapping
-	pte_h = swapper<u32>(*(u32*)(real_base+(pte_base_addr & PAGE_MASK)));
-	pte_l = swapper<u32>(*(u32*)(real_base+((pte_base_addr+4) & PAGE_MASK)));
+	pte_h = swapper<u32>(*(u32*)(real_base+(pte_base_addr & MMUTABLE_PAGE_MASK)));
+	pte_l = swapper<u32>(*(u32*)(real_base+((pte_base_addr+4) & MMUTABLE_PAGE_MASK)));
 	map_pte((pte_base_addr&pt_bits) >> 6, pte_h, pte_l);
 
 	return rv;
@@ -623,7 +623,7 @@ static struct DAccessFuncs DRWAccess =
 int normal_read32_instr(const void* context, const u32 addr, u32 &out)
 {
 	const u8 *real_base = reinterpret_cast<const u8*>(context);
-	out = Common::swap32(*(u32*)(real_base+(addr&PAGE_MASK)));
+	out = Common::swap32(*(u32*)(real_base+(addr&MMUTABLE_PAGE_MASK)));
 	return 0;
 }
 
@@ -650,7 +650,7 @@ void on_msr_change()
 
 void reset()
 {
-	_dbg_assert_msg_(MEMMAP, (PAGE_SIZE & PAGE_MASK)==0, "PAGE_SIZE(%d) and PAGE_MASK(%d) are bad values", PAGE_SIZE, PAGE_MASK);
+	_dbg_assert_msg_(MEMMAP, (MMUTABLE_PAGE_SIZE & MMUTABLE_PAGE_MASK)==0, "PAGE_SIZE(%d) and PAGE_MASK(%d) are bad values", MMUTABLE_PAGE_SIZE, MMUTABLE_PAGE_MASK);
 	for(int j=0; j<ACCESS_COUNT; j++)
 	{
 		for(int i=0; i<0x100000; i++)
@@ -740,7 +740,7 @@ void map_physical(u8 *real_base, u32 phys_size, u32 phys_addr)
 			for(u32 i=0; i<count; i++)
 			{
 				memory_access[j][page + i].daf = DRWAccess;
-				memory_access[j][page + i].contextd = real_base + i*PAGE_SIZE;
+				memory_access[j][page + i].contextd = real_base + i*MMUTABLE_PAGE_SIZE;
 			}
 		}
 		if((j & ACCESS_MASK_IR) == ACCESS_MASK_IR_OFF)
@@ -748,7 +748,7 @@ void map_physical(u8 *real_base, u32 phys_size, u32 phys_addr)
 			for(u32 i=0; i<count; i++)
 			{
 				memory_access[j][page + i].iaf = IAccess;
-				memory_access[j][page + i].contexti = real_base + i*PAGE_SIZE;
+				memory_access[j][page + i].contexti = real_base + i*MMUTABLE_PAGE_SIZE;
 			}
 		}
 	}
@@ -1029,7 +1029,7 @@ u8 *get_phys_addr_ptr(const EmuPointer &addr)
 {
 	u8 *base = reinterpret_cast<u8*>(memory_access[ACCESS_MASK_PHYSICAL][addr.m_addr>>12].contextd);
 	if(base == NULL) return NULL;
-	return &base[addr.m_addr&PAGE_MASK];
+	return &base[addr.m_addr&MMUTABLE_PAGE_MASK];
 }
 
 /*
