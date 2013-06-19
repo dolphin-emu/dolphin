@@ -9,6 +9,7 @@
 
 #include "Fifo.h"
 
+#include "DriverDetails.h"
 #include "VideoConfig.h"
 #include "Statistics.h"
 #include "MemoryUtil.h"
@@ -267,6 +268,8 @@ void VertexManager::vFlush()
 
 	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw(stride);
+	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERS))
+		GLInterface->Swap();
 	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	//ERROR_LOG(VIDEO, "PerfQuery result: %d", g_perf_query->GetQueryResult(bpmem.zcontrol.early_ztest ? PQ_ZCOMP_OUTPUT_ZCOMPLOC : PQ_ZCOMP_OUTPUT));
 
