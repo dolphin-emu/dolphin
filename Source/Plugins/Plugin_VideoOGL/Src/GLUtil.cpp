@@ -24,10 +24,7 @@ namespace OGL
 // Draw messages on top of the screen
 unsigned int VideoBackend::PeekMessages()
 {
-	if (GLInterface)
-		return GLInterface->PeekMessages();
-	else 
-		return 0;
+	return GLInterface->PeekMessages();
 }
 
 // Show the current FPS
