@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
@@ -25,7 +12,7 @@
 #include "DSPJitUtil.h"
 #endif
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 using namespace Gen;
 
 // CLR $acR
@@ -299,7 +286,7 @@ void DSPEmitter::cmpi(const UDSPInstruction opc)
 
 // CMPIS $acD, #I
 // 0000 011d iiii iiii
-// Compares accumulator with short immediate. Comaprison is executed
+// Compares accumulator with short immediate. Comparison is executed
 // by subtracting short immediate (8bit sign extended) from mid accumulator
 // $acD.hm and computing flags based on whole accumulator $acD.
 //
@@ -750,12 +737,12 @@ void DSPEmitter::addp(const UDSPInstruction opc)
 	ADD(64, R(RAX), R(RDX));
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
-//	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, prod, res));
+//	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, prod, res));
 	if (FlagsNeeded())
 	{
 		MOV(64, R(RCX), R(RAX));
 		set_long_acc(dreg, RCX);
-		Update_SR_Register64_Carry2(EAX, tmp1);
+		Update_SR_Register64_Carry(EAX, tmp1);
 	}
 	else
 	{
@@ -1570,16 +1557,18 @@ void DSPEmitter::lsrn(const UDSPInstruction opc)
 	//		acc <<= -shift;
 	//	}
 
-	CMP(64, R(RDX), Imm8(0));
+	CMP(64, R(RDX), Imm8(0));//is this actually worth the branch cost?
 	FixupBranch zero = J_CC(CC_E);
-	TEST(16, R(RAX), Imm16(0x3f));
+	TEST(16, R(RAX), Imm16(0x3f));//is this actually worth the branch cost?
 	FixupBranch noShift = J_CC(CC_Z);
-	MOVZX(64, 16, RCX, R(RAX));
-	AND(16, R(RCX), Imm16(0x3f));
+//CL gets automatically masked with 0x3f on IA32/AMD64
+	//MOVZX(64, 16, RCX, R(RAX));
+	MOV(64, R(RCX), R(RAX));
+	//AND(16, R(RCX), Imm16(0x3f));
 	TEST(16, R(RAX), Imm16(0x40));
 	FixupBranch shiftLeft = J_CC(CC_Z);
 	NEG(16, R(RCX));
-	ADD(16, R(RCX), Imm16(0x40));
+	//ADD(16, R(RCX), Imm16(0x40));
 	SHL(64, R(RDX), R(RCX));
 	FixupBranch exit = J();
 	SetJumpTarget(shiftLeft);

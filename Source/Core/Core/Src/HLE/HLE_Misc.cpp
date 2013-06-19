@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <cmath>
 #include "Common.h"
@@ -33,6 +20,7 @@
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCSymbolDB.h"
 #include "CommonPaths.h"
+#include "TextureCacheBase.h"
 
 namespace HLE_Misc
 {
@@ -59,33 +47,33 @@ inline void FW(u32 addr, float x)
 // According to the PPC ABI, the return value is always in r3.
 void UnimplementedFunction()
 {
-    NPC = LR;
+	NPC = LR;
 }
 
 void UnimplementedFunctionTrue()
 {
-    GPR(3) = 1;
-    NPC = LR;
+	GPR(3) = 1;
+	NPC = LR;
 }
 
 void UnimplementedFunctionFalse()
 {
-    GPR(3) = 0;
-    NPC = LR;
+	GPR(3) = 0;
+	NPC = LR;
 }
 
 void GXPeekZ()
 {
 	// Just some fake Z value.
-    Memory::Write_U32(0xFFFFFF, GPR(5));
-    NPC = LR;
+	Memory::Write_U32(0xFFFFFF, GPR(5));
+	NPC = LR;
 }
 
 void GXPeekARGB()
 {
 	// Just some fake color value.
-    Memory::Write_U32(0xFFFFFFFF, GPR(5));
-    NPC = LR;
+	Memory::Write_U32(0xFFFFFFFF, GPR(5));
+	NPC = LR;
 }
 
 // If you want a function to panic, you can rename it PanicAlert :p
@@ -116,7 +104,7 @@ void SMB_EvilVecCosine()
 	float dot = x1*x2 + y1*y2 + z1*z2;
 
 	rPS0(1) = dot / sqrtf(s1 * s2);
-    NPC = LR;
+	NPC = LR;
 }
 
 // Normalizes the vector pointed at by r3.
@@ -130,7 +118,7 @@ void SMB_EvilNormalize()
 	float inv_len;
 	if (len <= 0)
 		inv_len = 0;
-	else 
+	else
 		inv_len = 1.0f / sqrtf(len);
 	x *= inv_len;
 	y *= inv_len;
@@ -323,6 +311,7 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 	}
 
 	PowerPC::ppcState.iCache.Reset();
+	TextureCache::RequestInvalidateTextureCache();
 
 	CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
 	size_t size = s_Usb->m_WiiMotes.size();

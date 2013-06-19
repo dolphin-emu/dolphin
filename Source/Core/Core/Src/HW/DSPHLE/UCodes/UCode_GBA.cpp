@@ -1,24 +1,12 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "UCodes.h"
 #include "UCode_GBA.h"
 
 #include "../../DSP.h"
+#include "ConfigManager.h"
 
 CUCode_GBA::CUCode_GBA(DSPHLE *dsp_hle, u32 crc)
 : IUCode(dsp_hle, crc)
@@ -40,6 +28,11 @@ void CUCode_GBA::Update(int cycles)
 	}
 }
 
+u32 CUCode_GBA::GetUpdateMs()
+{
+	return SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 3 : 5;
+}
+
 void CUCode_GBA::HandleMail(u32 _uMail)
 {
 	static bool nextmail_is_mramaddr = false;
@@ -58,7 +51,8 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 		nextmail_is_mramaddr = false;
 		u32 mramaddr = _uMail;
 
-		struct sec_params_t {
+		struct sec_params_t
+		{
 			u16 key[2];
 			u16 unk1[2];
 			u16 unk2[2];
@@ -122,8 +116,8 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 		*(u32*)HLEMemory_Get_Pointer(sec_params.dest_addr+4) = Common::swap32((x22 << 16) | x23);
 
 		// Done!
-		DEBUG_LOG(DSPHLE, "\n%08x -> key %08x len %08x dest_addr %08x unk1 %08x unk2 %08x"
-			" 22 %04x 23 %04x",
+		DEBUG_LOG(DSPHLE, "\n%08x -> key: %08x, len: %08x, dest_addr: %08x, unk1: %08x, unk2: %08x"
+			" 22: %04x, 23: %04x",
 			mramaddr,
 			*(u32*)sec_params.key, sec_params.length, sec_params.dest_addr,
 			*(u32*)sec_params.unk1, *(u32*)sec_params.unk2,
@@ -143,12 +137,12 @@ void CUCode_GBA::HandleMail(u32 _uMail)
 			m_DSPHLE->SetUCode(UCODE_ROM);
 			break;
 		default:
-			DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown 0xcdd1 cmd: %08x", _uMail);
+			DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown 0xcdd1 command: %08x", _uMail);
 			break;
 		}
 	}
 	else
 	{
-		DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown cmd: %08x", _uMail);
+		DEBUG_LOG(DSPHLE, "CUCode_GBA - unknown command: %08x", _uMail);
 	}
 }

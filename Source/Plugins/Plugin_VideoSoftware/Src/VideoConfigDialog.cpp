@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "VideoConfigDiag.h"
 #include "VideoConfigDialog.h"
@@ -34,7 +21,7 @@ IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& se
 
 VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title, const std::string& _ininame) :
 	wxDialog(parent, -1,
-		wxString(wxT("Dolphin ")).append(wxString::FromAscii(title.c_str())).append(wxT(" Graphics Configuration")),
+		wxString(wxT("Dolphin ")).append(StrToWxStr(title)).append(wxT(" Graphics Configuration")),
 		wxDefaultPosition, wxDefaultSize),
 	vconfig(g_SWVideoConfig),
 	ininame(_ininame)
@@ -64,10 +51,10 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 			it = g_available_video_backends.begin(),
 			itend = g_available_video_backends.end();
 	for (; it != itend; ++it)
-		choice_backend->AppendString(wxString::FromAscii((*it)->GetName().c_str()));
+		choice_backend->AppendString(StrToWxStr((*it)->GetName()));
 
 	// TODO: How to get the translated plugin name?
-	choice_backend->SetStringSelection(wxString::FromAscii(g_video_backend->GetName().c_str()));
+	choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName()));
 	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDialog::Event_Backend, this);
 
 	szr_rendering->Add(label_backend, 1, wxALIGN_CENTER_VERTICAL, 5);

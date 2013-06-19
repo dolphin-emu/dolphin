@@ -1,16 +1,8 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
+#include <sstream>
 
 #include "JitBase.h"
 #include "PowerPCDisasm.h"
@@ -64,14 +56,14 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *no
 
 	if (b->codeSize <= 250)
 	{
-		char x86code[500] = "";		
+		std::stringstream ss;
+		ss << std::hex;
 		for (u8 i = 0; i <= b->codeSize; i++)
 		{
-			char opcHex[2] = "";
-			u8 opc = *(normalEntry + i);
-			sprintf(opcHex, "%02x", opc);
-			strncat(x86code, opcHex, 2);		
+			ss.width(2);
+			ss.fill('0');
+			ss << (u32)*(normalEntry + i);
 		}
-		DEBUG_LOG(DYNA_REC,"IR_X86 bin: %s\n\n\n", x86code);
+		DEBUG_LOG(DYNA_REC,"IR_X86 bin: %s\n\n\n", ss.str().c_str());
 	}
 }

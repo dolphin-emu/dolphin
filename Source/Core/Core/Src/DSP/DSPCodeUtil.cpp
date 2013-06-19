@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <iostream>
 #include <vector>
@@ -38,7 +25,8 @@ bool Assemble(const char *text, std::vector<u16> &code, bool force)
 
 	// TODO: fix the terrible api of the assembler.
 	DSPAssembler assembler(settings);
-	if (!assembler.Assemble(text, code)) {
+	if (!assembler.Assemble(text, code))
+	{
 		std::cerr << assembler.GetErrorString() << std::endl;
 		return false;
 	}
@@ -77,7 +65,9 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 	for (int i = 0; i < min_size; i++)
 	{
 		if (code1[i] == code2[i])
+		{
 			count_equal++;
+		}
 		else
 		{
 			std::string line1, line2;

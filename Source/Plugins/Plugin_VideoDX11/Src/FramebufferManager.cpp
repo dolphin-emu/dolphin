@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "VideoConfig.h"
 
@@ -208,6 +195,8 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 
 void XFBSource::CopyEFB(float Gamma)
 {
+	g_renderer->ResetAPIState(); // reset any game specific settings
+	
 	// Copy EFB data to XFB and restore render target again
 	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)texWidth, (float)texHeight);
 
@@ -222,6 +211,8 @@ void XFBSource::CopyEFB(float Gamma)
 
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	
+	g_renderer->RestoreAPIState();
 }
 
 }  // namespace DX11

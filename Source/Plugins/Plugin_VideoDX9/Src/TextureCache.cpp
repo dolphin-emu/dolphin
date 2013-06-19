@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <d3dx9.h>
 
@@ -72,10 +59,9 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-	unsigned int expanded_width, unsigned int level, bool autogen_mips)
+	unsigned int expanded_width, unsigned int level)
 {
 	D3D::ReplaceTexture2D(texture, temp, width, height, expanded_width, d3d_fmt, swap_r_b, level);
-	// D3D9 will automatically generate mip maps if necessary
 }
 
 void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
@@ -83,6 +69,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	bool isIntensity, bool scaleByHalf, unsigned int cbufid,
 	const float *colmat)
 {
+	g_renderer->ResetAPIState(); // reset any game specific settings
+	
 	const LPDIRECT3DTEXTURE9 read_texture = (srcFormat == PIXELFMT_Z24) ?
 		FramebufferManager::GetEFBDepthTexture() :
 		FramebufferManager::GetEFBColorTexture();
@@ -180,6 +168,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	D3D::SetTexture(0, NULL);
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
+
+	g_renderer->RestoreAPIState();
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, unsigned int height,
@@ -227,6 +217,8 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width, u
 	TCacheEntry* entry = new TCacheEntry(D3D::CreateTexture2D(temp, width, height, expanded_width, d3d_fmt, swap_r_b, tex_levels));
 	entry->swap_r_b = swap_r_b;
 	entry->d3d_fmt = d3d_fmt;
+	
+	entry->Load(width, height, expanded_width, 0);
 
 	return entry;
 }

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "FifoAnalyzer.h"
 
@@ -35,21 +22,21 @@ void Init()
 }
 
 u8 ReadFifo8(u8 *&data)
-{	
+{
 	u8 value = data[0];
 	data += 1;
 	return value;
 }
 
 u16 ReadFifo16(u8 *&data)
-{	
+{
 	u16 value = Common::swap16(data);
 	data += 2;
 	return value;
 }
 
 u32 ReadFifo32(u8 *&data)
-{	
+{
 	u32 value = Common::swap32(data);
 	data += 4;
 	return value;
@@ -57,13 +44,13 @@ u32 ReadFifo32(u8 *&data)
 
 void InitBPMemory(BPMemory *bpMem)
 {
-    memset(bpMem, 0, sizeof(BPMemory));
-    bpMem->bpMask = 0x00FFFFFF;
+	memset(bpMem, 0, sizeof(BPMemory));
+	bpMem->bpMask = 0x00FFFFFF;
 }
 
 BPCmd DecodeBPCmd(u32 value, const BPMemory &bpMem)
 {
-    //handle the mask register
+	//handle the mask register
 	int opcode = value >> 24;
 	int oldval = ((u32*)&bpMem)[opcode];
 	int newval = (oldval & ~bpMem.bpMask) | (value & bpMem.bpMask);
@@ -71,7 +58,7 @@ BPCmd DecodeBPCmd(u32 value, const BPMemory &bpMem)
 
 	BPCmd bp = {opcode, changes, newval};
 
-    return bp;
+	return bp;
 }
 
 void LoadBPReg(const BPCmd &bp, BPMemory &bpMem)
@@ -152,23 +139,23 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	const TVtxDesc &vtxDesc = cpMem.vtxDesc;
 	const VAT &vtxAttr = cpMem.vtxAttr[vatIndex];
 
-    // Colors
+	// Colors
 	const u32 colDesc[2] = {vtxDesc.Color0, vtxDesc.Color1};
 	const u32 colComp[2] = {vtxAttr.g0.Color0Comp, vtxAttr.g0.Color1Comp};
-	
-    const u32 tcElements[8] =
-	{
-        vtxAttr.g0.Tex0CoordElements, vtxAttr.g1.Tex1CoordElements, vtxAttr.g1.Tex2CoordElements, 
-        vtxAttr.g1.Tex3CoordElements, vtxAttr.g1.Tex4CoordElements, vtxAttr.g2.Tex5CoordElements,
-        vtxAttr.g2.Tex6CoordElements, vtxAttr.g2.Tex7CoordElements
-    };
 
-    const u32 tcFormat[8] =
+	const u32 tcElements[8] =
 	{
-        vtxAttr.g0.Tex0CoordFormat, vtxAttr.g1.Tex1CoordFormat, vtxAttr.g1.Tex2CoordFormat, 
-        vtxAttr.g1.Tex3CoordFormat, vtxAttr.g1.Tex4CoordFormat, vtxAttr.g2.Tex5CoordFormat,
-        vtxAttr.g2.Tex6CoordFormat, vtxAttr.g2.Tex7CoordFormat
-    };
+		vtxAttr.g0.Tex0CoordElements, vtxAttr.g1.Tex1CoordElements, vtxAttr.g1.Tex2CoordElements, 
+		vtxAttr.g1.Tex3CoordElements, vtxAttr.g1.Tex4CoordElements, vtxAttr.g2.Tex5CoordElements,
+		vtxAttr.g2.Tex6CoordElements, vtxAttr.g2.Tex7CoordElements
+	};
+
+	const u32 tcFormat[8] =
+	{
+		vtxAttr.g0.Tex0CoordFormat, vtxAttr.g1.Tex1CoordFormat, vtxAttr.g1.Tex2CoordFormat, 
+		vtxAttr.g1.Tex3CoordFormat, vtxAttr.g1.Tex4CoordFormat, vtxAttr.g2.Tex5CoordFormat,
+		vtxAttr.g2.Tex6CoordFormat, vtxAttr.g2.Tex7CoordFormat
+	};
 
 	// Add position and texture matrix indices
 	u64 vtxDescHex = cpMem.vtxDesc.Hex;
@@ -178,14 +165,14 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 		vtxDescHex >>= 1;
 	}
 
-    // Position
+	// Position
 	sizes[9] = VertexLoader_Position::GetSize(vtxDesc.Position, vtxAttr.g0.PosFormat, vtxAttr.g0.PosElements);
 
 	// Normals
 	if (vtxDesc.Normal != NOT_PRESENT)
 	{
 		sizes[10] = VertexLoader_Normal::GetSize(vtxDesc.Normal, vtxAttr.g0.NormalFormat, vtxAttr.g0.NormalElements, vtxAttr.g0.NormalIndex3);		
-    }
+	}
 	else
 	{
 		sizes[10] = 0;
@@ -212,11 +199,11 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 			default: _assert_(0); break;
 			}
 			break;
-		case INDEX8:	
-			size = 1;			
+		case INDEX8:
+			size = 1;
 			break;
 		case INDEX16:
-			size = 2;			
+			size = 2;
 			break;
 		}
 
@@ -229,7 +216,7 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	{
 		sizes[13 + i] = VertexLoader_TextCoord::GetSize(vtxDescHex & 3, tcFormat[i], tcElements[i]);
 		vtxDescHex >>= 2;
-    }
+	}
 }
 
 }

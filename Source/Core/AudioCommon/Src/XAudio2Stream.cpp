@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "AudioCommon.h"
 #include "XAudio2Stream.h"
@@ -95,10 +82,10 @@ void StreamingVoiceContext::OnBufferEnd(void* context)
 
 	if (!m_source_voice || !context)
 		return;
-	
+
 	//m_sound_sync_event->Wait(); // sync
 	//m_sound_sync_event->Spin(); // or tight sync
-		
+
 	m_mixer->Mix(static_cast<short*>(context), SAMPLES_PER_BUFFER);
 	SubmitBuffer(static_cast<BYTE*>(context));
 }
@@ -107,7 +94,7 @@ bool XAudio2::Start()
 {
 	HRESULT hr;
 
-	// callback dosent seem to run on a speecific cpu anyways
+	// callback doesn't seem to run on a specific cpu anyways
 	IXAudio2* xaudptr;
 	if (FAILED(hr = XAudio2Create(&xaudptr, 0, XAUDIO2_DEFAULT_PROCESSOR)))
 	{
@@ -183,6 +170,6 @@ void XAudio2::Stop()
 		m_mastering_voice->DestroyVoice();
 		m_mastering_voice = nullptr;
 	}
-	
+
 	m_xaudio2.reset();	// release interface
 }

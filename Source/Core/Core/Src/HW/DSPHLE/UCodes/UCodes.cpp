@@ -1,37 +1,17 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "UCodes.h"
 
 #include "UCode_AX.h"
 #include "UCode_AXWii.h"
-#include "UCode_NewAXWii.h"
 #include "UCode_Zelda.h"
 #include "UCode_ROM.h"
 #include "UCode_CARD.h"
 #include "UCode_InitAudioSystem.h"
 #include "UCode_GBA.h"
 #include "Hash.h"
-
-#if 0
-# define AXWII CUCode_NewAXWii
-#else
-# define AXWII CUCode_AXWii
-#endif
 
 IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 {
@@ -40,7 +20,7 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	case UCODE_ROM:
 		INFO_LOG(DSPHLE, "Switching to ROM ucode");
 		return new CUCode_Rom(dsp_hle, _CRC);
-      
+
 	case UCODE_INIT_AUDIO_SYSTEM:
 		INFO_LOG(DSPHLE, "Switching to INIT ucode");
 		return new CUCode_InitAudioSystem(dsp_hle, _CRC);
@@ -81,11 +61,11 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 		INFO_LOG(DSPHLE, "CRC %08x: Zelda ucode chosen", _CRC);
 		return new CUCode_Zelda(dsp_hle, _CRC);
 
-      // WII CRCs
+	// WII CRCs
 	case 0xb7eb9a9c: // Wii Pikmin - PAL
 	case 0xeaeb38cc: // Wii Pikmin 2 - PAL
 	case 0x6c3f6f94: // Zelda TP - PAL
-	case 0xd643001f: // Mario Galaxy - PAL / WII DK Jungle Beat - PAL    
+	case 0xd643001f: // Mario Galaxy - PAL / WII DK Jungle Beat - PAL
 		INFO_LOG(DSPHLE, "CRC %08x: Zelda Wii ucode chosen\n", _CRC);
 		return new CUCode_Zelda(dsp_hle, _CRC);
 
@@ -94,16 +74,16 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	case 0x347112ba: // raving rabbits
 	case 0xfa450138: // wii sports - PAL
 	case 0xadbc06bd: // Elebits
-	case 0x4cc52064: // Bleach: Versus Crusade    
-    case 0xd9c4bf34: // WiiMenu
+	case 0x4cc52064: // Bleach: Versus Crusade
+	case 0xd9c4bf34: // WiiMenu
 		INFO_LOG(DSPHLE, "CRC %08x: Wii - AXWii chosen", _CRC);
-		return new AXWII(dsp_hle, _CRC);
+		return new CUCode_AXWii(dsp_hle, _CRC);
 
 	default:
 		if (bWii)
 		{
 			PanicAlert("DSPHLE: Unknown ucode (CRC = %08x) - forcing AXWii.\n\nTry LLE emulator if this is homebrew.", _CRC);
-			return new AXWII(dsp_hle, _CRC);
+			return new CUCode_AXWii(dsp_hle, _CRC);
 		}
 		else
 		{

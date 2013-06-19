@@ -1,20 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifdef _WIN32
 #include <windows.h>
@@ -55,7 +41,6 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
 #include "PowerPC/PowerPC.h"
-#include "PowerPC/JitCommon/JitBase.h"
 
 #include "DSPEmulator.h"
 #include "ConfigManager.h"
@@ -106,6 +91,7 @@ static bool g_requestRefreshInfo = false;
 static int g_pauseAndLockDepth = 0;
 
 SCoreStartupParameter g_CoreStartupParameter;
+bool isTabPressed = false;
 
 std::string GetStateFileName() { return g_stateFileName; }
 void SetStateFileName(std::string val) { g_stateFileName = val; }
@@ -141,10 +127,12 @@ void DisplayMessage(const char *message, int time_in_ms)
 	if (_CoreParameter.bRenderToMain &&
 		SConfig::GetInstance().m_InterfaceStatusbar)
 	{
-		Host_UpdateStatusBar(message);
+			Host_UpdateStatusBar(message);
 	}
 	else
+	{
 		Host_UpdateTitle(message);
+	}
 }
 
 void Callback_DebuggerBreak()
@@ -190,7 +178,7 @@ bool IsGPUThread()
 		return IsCPUThread();
 	}
 }
-	
+
 // This is called from the GUI thread. See the booting call schedule in
 // BootManager.cpp
 bool Init()
@@ -311,7 +299,8 @@ void CpuThread()
 		g_video_backend->Video_Prepare();
 	}
 
-	#if defined(_M_X64)
+	#if defined(_M_X64) || _M_ARM
+	if (_CoreParameter.bFastmem)
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 	#endif
 
@@ -324,6 +313,9 @@ void CpuThread()
 	CCPU::Run();
 
 	g_bStarted = false;
+	
+	if (!_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	return;
 }
@@ -352,6 +344,9 @@ void FifoPlayerThread()
 	}
 
 	g_bStarted = false;
+	
+	if(!_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	return;
 }
@@ -400,10 +395,10 @@ void EmuThread()
 		Wiimote::Initialize(g_pWindowHandle);
 
 		// Activate wiimotes which don't have source set to "None"
-		for (unsigned int i = 0; i != MAX_WIIMOTES; ++i)
+		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
 			if (g_wiimote_sources[i])
-				GetUsbPointer()->AccessWiiMote(i | 0x100)->
-					Activate(true);
+				GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
+			
 	}
 
 	// The hardware is initialized.
@@ -564,6 +559,9 @@ void EmuThread()
 	g_cpu_thread.join();
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
+	
+	if(_CoreParameter.bCPUThread)
+		g_video_backend->Video_Cleanup();
 
 	VolumeHandler::EjectVolume();
 	FileMon::Close();
@@ -633,7 +631,9 @@ static std::string GenerateScreenshotName()
 
 	std::string name;
 	for (int i = 1; File::Exists(name = StringFromFormat("%s-%d.png", path.c_str(), i)); ++i)
-	{}
+	{
+		// TODO?
+	}
 
 	return name;
 }
@@ -682,13 +682,18 @@ void VideoThrottle()
 	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 2) ?
 		(SConfig::GetInstance().m_Framelimit - 1) * 5 : VideoInterface::TargetRefreshRate;
 
+	if (Host_GetKeyState('\t'))
+		isTabPressed = true;
+
 	// Disable the frame-limiter when the throttle (Tab) key is held down. Audio throttle: m_Framelimit = 2
 	if (SConfig::GetInstance().m_Framelimit && SConfig::GetInstance().m_Framelimit != 2 && !Host_GetKeyState('\t'))
 	{
+		isTabPressed = false;
 		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
 
 		u32 timeDifference = (u32)Timer.GetTimeDifference();
-		if (timeDifference < frametime) {
+		if (timeDifference < frametime)
+		{
 			Common::SleepCurrentThread(frametime - timeDifference - 1);
 		}
 
@@ -744,7 +749,7 @@ const char *Callback_ISOName()
 		SConfig::GetInstance().m_LocalCoreStartupParameter;
 	if (params.m_strName.length() > 0)
 		return params.m_strName.c_str();
-	else	
+	else
 		return "";
 }
 
@@ -762,7 +767,8 @@ void UpdateTitle()
 	u32 Speed = DrawnVideo * (100 * 1000) / (VideoInterface::TargetRefreshRate * ElapseTime);
 
 	// Settings are shown the same for both extended and summary info
-	std::string SSettings = StringFromFormat("%s %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC");
+	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC", 
+		g_video_backend->GetName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
 	// Use extended or summary information. The summary information does not print the ticks data,
 	// that's more of a debugging interest, it can always be optional of course if someone is interested.
@@ -779,7 +785,7 @@ void UpdateTitle()
 
 		float TicksPercentage = (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
 
-		std::string SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
+		std::string SFPS = StringFromFormat("FPS: %u - VPS: %u - %u%%", FPS, VPS, Speed);
 		SFPS += StringFromFormat(" | CPU: %s%i MHz [Real: %i + IdleSkip: %i] / %i MHz (%s%3.0f%%)",
 				_CoreParameter.bSkipIdle ? "~" : "",
 				(int)(diff),
@@ -792,11 +798,11 @@ void UpdateTitle()
 	#else	// Summary information
 	std::string SFPS;
 	if (Movie::IsPlayingInput())
-		SFPS = StringFromFormat("VI: %u/%u - Frame: %u/%u - FPS: %u - VPS: %u - SPEED: %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
+		SFPS = StringFromFormat("VI: %u/%u - Frame: %u/%u - FPS: %u - VPS: %u - %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
 	else if (Movie::IsRecordingInput())
-		SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - SPEED: %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
+		SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
 	else
-		SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
+		SFPS = StringFromFormat("FPS: %u - VPS: %u - %u%%", FPS, VPS, Speed);
 	#endif
 
 	// This is our final "frame counter" string
@@ -816,10 +822,12 @@ void UpdateTitle()
 	}
 
 	if (_CoreParameter.bRenderToMain &&
-		SConfig::GetInstance().m_InterfaceStatusbar) {
+		SConfig::GetInstance().m_InterfaceStatusbar)
+	{
 		Host_UpdateStatusBar(SMessage.c_str());
 		Host_UpdateTitle(scm_rev_str);
-	} else
+	}
+	else
 		Host_UpdateTitle(TMessage.c_str());
 	}
 

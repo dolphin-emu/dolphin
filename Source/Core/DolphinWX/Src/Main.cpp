@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <vector>
 #include <string>
@@ -32,6 +19,7 @@
 #include "Host.h" // Core
 #include "HW/Wiimote.h"
 
+#include "WxUtils.h"
 #include "Globals.h" // Local
 #include "Main.h"
 #include "ConfigManager.h"
@@ -47,6 +35,24 @@
 
 #ifdef _WIN32
 #include <shellapi.h>
+
+#ifndef SM_XVIRTUALSCREEN
+#define SM_XVIRTUALSCREEN 76
+#endif
+#ifndef SM_YVIRTUALSCREEN
+#define SM_YVIRTUALSCREEN 77
+#endif
+#ifndef SM_CXVIRTUALSCREEN
+#define SM_CXVIRTUALSCREEN 78
+#endif
+#ifndef SM_CYVIRTUALSCREEN
+#define SM_CYVIRTUALSCREEN 79
+#endif
+
+#endif
+
+#ifdef __APPLE__
+#import <AppKit/AppKit.h>
 #endif
 
 // Nvidia drivers >= v302 will check if the application exports a global
@@ -162,6 +168,11 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
+			wxCMD_LINE_OPTION, "m", "movie",
+			"Play a movie file",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
 			wxCMD_LINE_NONE, NULL, NULL, NULL, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
@@ -181,6 +192,7 @@ bool DolphinApp::OnInit()
 		&videoBackendName);
 	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
 		&audioEmulationName);
+	playMovie = parser.Found(wxT("movie"), &movieFile);
 #endif // wxUSE_CMDLINE_PARSER
 
 #if defined _DEBUG && defined _WIN32
@@ -193,7 +205,7 @@ bool DolphinApp::OnInit()
 	RegisterMsgAlertHandler(&wxMsgAlert);
 	RegisterStringTranslator(&wxStringTranslator);
 
-	// "ExtendedTrace" looks freakin dangerous!!!
+	// "ExtendedTrace" looks freakin' dangerous!!!
 #ifdef _WIN32
 	EXTENDEDTRACEINITIALIZE(".");
 	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
@@ -201,6 +213,7 @@ bool DolphinApp::OnInit()
 	wxHandleFatalExceptions(true);
 #endif
 
+#ifndef _M_ARM
 	// TODO: if First Boot
 	if (!cpu_info.bSSE2) 
 	{
@@ -209,11 +222,23 @@ bool DolphinApp::OnInit()
 				"Sayonara!\n");
 		return false;
 	}
+#endif
+#ifdef __APPLE__
+	if (floor(NSAppKitVersionNumber) < NSAppKitVersionNumber10_7)
+	{
+		PanicAlertT("Hi,\n\nDolphin requires Mac OS X 10.7 or greater.\n"
+				"Unfortunately you're running an old version of OS X.\n"
+				"The last Dolphin version to support OS X 10.6 is Dolphin 3.5\n"
+				"Please upgrade to 10.7 or greater to use the newest Dolphin version.\n\n"
+				"Sayonara!\n");
+		return false;
+	}
+#endif
 
 #ifdef _WIN32
-	if (!wxSetWorkingDirectory(wxString(File::GetExeDirectory().c_str(), *wxConvCurrent)))
+	if (!wxSetWorkingDirectory(StrToWxStr(File::GetExeDirectory())))
 	{
-		INFO_LOG(CONSOLE, "set working directory failed");
+		INFO_LOG(CONSOLE, "Set working directory failed");
 	}
 #else
 	//create all necessary directories in user directory
@@ -246,7 +271,7 @@ bool DolphinApp::OnInit()
 
 	if (selectVideoBackend && videoBackendName != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend =
-			std::string(videoBackendName.mb_str());
+			WxStrToStr(videoBackendName);
 
 	if (selectAudioEmulation)
 	{
@@ -275,7 +300,7 @@ bool DolphinApp::OnInit()
 		MessageBox(NULL,
 				   L"This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
 				   L"download Dolphin from the official website instead: http://dolphin-emu.org/",
-                   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
+				   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
 		ShellExecute(NULL, L"open", L"http://dolphin-emu.org/?ref=badver", NULL, NULL, SW_SHOWDEFAULT);
 		exit(0);
 	}
@@ -285,10 +310,11 @@ bool DolphinApp::OnInit()
 	// do not allow windows to be created off the desktop.
 #ifdef _WIN32
 	// Out of desktop check
-	HWND hDesktop = GetDesktopWindow();
-	RECT rc;
-	GetWindowRect(hDesktop, &rc);
-	if (rc.right < x + w || rc.bottom < y + h)
+	int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
+	int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
+	int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);	
+	if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
 		x = y = wxDefaultCoord;
 #elif defined __APPLE__
 	if (y < 1)
@@ -296,7 +322,7 @@ bool DolphinApp::OnInit()
 #endif
 
 	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY,
-				wxString::FromAscii(scm_rev_str),
+				StrToWxStr(scm_rev_str),
 				wxPoint(x, y), wxSize(w, h),
 				UseDebugger, BatchMode, UseLogger);
 	SetTopWindow(main_frame);
@@ -317,7 +343,7 @@ void DolphinApp::MacOpenFile(const wxString &fileName)
 	LoadFile = true;
 
 	if (m_afterinit == NULL)
-		main_frame->BootGame(std::string(FileToLoad.mb_str()));
+		main_frame->BootGame(WxStrToStr(FileToLoad));
 }
 
 void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
@@ -328,10 +354,25 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 	if (!BatchMode)
 		main_frame->UpdateGameList();
 
-	// First check if we have an exec command line.
-	if (LoadFile && FileToLoad != wxEmptyString)
+	if (playMovie && movieFile != wxEmptyString)
 	{
-		main_frame->BootGame(std::string(FileToLoad.mb_str()));
+		if (Movie::PlayInput(movieFile.char_str()))
+		{
+			if (LoadFile && FileToLoad != wxEmptyString)
+			{
+				main_frame->BootGame(WxStrToStr(FileToLoad));
+			}
+			else
+			{
+				main_frame->BootGame(std::string(""));
+			}
+		}
+	}
+
+	// First check if we have an exec command line.
+	else if (LoadFile && FileToLoad != wxEmptyString)
+	{
+		main_frame->BootGame(WxStrToStr(FileToLoad));
 	}
 	// If we have selected Automatic Start, start the default ISO,
 	// or if no default ISO exists, start the last loaded ISO
@@ -339,17 +380,7 @@ void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
 	{
 		if (main_frame->g_pCodeWindow->AutomaticStart())
 		{
-			if(!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty()
-					&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM))
-			{
-				main_frame->BootGame(SConfig::GetInstance().m_LocalCoreStartupParameter.
-						m_strDefaultGCM);
-			}
-			else if(!SConfig::GetInstance().m_LastFilename.empty()
-					&& File::Exists(SConfig::GetInstance().m_LastFilename))
-			{
-				main_frame->BootGame(SConfig::GetInstance().m_LastFilename);
-			}	
+			main_frame->BootGame("");
 		}
 	}
 }
@@ -390,10 +421,6 @@ void DolphinApp::InitLanguageSupport()
 int DolphinApp::OnExit()
 {
 	WiimoteReal::Shutdown();
-#ifdef _WIN32
-	if (SConfig::GetInstance().m_WiiAutoUnpair)
-		WiimoteReal::UnPair();
-#endif
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
@@ -422,7 +449,7 @@ void Host_SysMessage(const char *fmt, ...)
 	va_end(list);
 
 	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
-	//wxMessageBox(wxString::FromAscii(msg));
+	//wxMessageBox(StrToWxStr(msg));
 	PanicAlert("%s", msg);
 }
 
@@ -431,14 +458,13 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 #ifdef __WXGTK__
 	if (wxIsMainThread())
 #endif
-		return wxYES == wxMessageBox(wxString::FromUTF8(text), 
-				wxString::FromUTF8(caption),
+		return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
 				(yes_no) ? wxYES_NO : wxOK, wxGetActiveWindow());
 #ifdef __WXGTK__
 	else
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PANIC);
-		event.SetString(wxString::FromUTF8(caption) + wxT(":") + wxString::FromUTF8(text));
+		event.SetString(StrToWxStr(caption) + wxT(":") + StrToWxStr(text));
 		event.SetInt(yes_no);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
 		main_frame->panic_event.Wait();
@@ -449,7 +475,7 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 
 std::string wxStringTranslator(const char *text)
 {
-	return (const char *)wxString(wxGetTranslation(wxString::From8BitData(text))).ToUTF8();
+	return WxStrToStr(wxGetTranslation(wxString::FromUTF8(text)));
 }
 
 // Accessor for the main window class
@@ -479,7 +505,7 @@ void* Host_GetInstance()
 
 void* Host_GetRenderHandle()
 {
-    return main_frame->GetRenderHandle();
+	return main_frame->GetRenderHandle();
 }
 
 // OK, this thread boundary is DANGEROUS on linux
@@ -540,7 +566,7 @@ void Host_UpdateMainFrame()
 void Host_UpdateTitle(const char* title)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
-	event.SetString(wxString::FromAscii(title));
+	event.SetString(StrToWxStr(title));
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
@@ -590,7 +616,7 @@ void Host_SetStartupDebuggingParameters()
 {
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	if (main_frame->g_pCodeWindow)
-	{    
+	{
 		StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
 		StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
 		StartUp.bJITNoBlockCache = main_frame->g_pCodeWindow->JITNoBlockCache();
@@ -607,7 +633,7 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
 	// Set the event string
-	event.SetString(wxString::FromAscii(_pText));
+	event.SetString(StrToWxStr(_pText));
 	// Update statusbar field
 	event.SetInt(Field);
 	// Post message

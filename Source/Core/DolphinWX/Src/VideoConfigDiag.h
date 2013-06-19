@@ -8,6 +8,7 @@
 
 #include "ConfigManager.h"
 #include "VideoConfig.h"
+#include "Core.h"
 
 #include <wx/wx.h>
 #include <wx/textctrl.h>
@@ -20,6 +21,7 @@
 #include <wx/spinctrl.h>
 
 #include "MsgHandler.h"
+#include "WxUtils.h"
 
 template <typename W>
 class BoolSetting : public W
@@ -99,7 +101,7 @@ protected:
 			else
 			{
 				// Select current backend again
-				choice_backend->SetStringSelection(wxString::FromAscii(g_video_backend->GetName().c_str()));
+				choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName()));
 			}
 		}
 
@@ -129,7 +131,7 @@ protected:
 	{
 		const int sel = ev.GetInt();
 		if (sel)
-			vconfig.sPostProcessingShader = ev.GetString().mb_str();
+			vconfig.sPostProcessingShader = WxStrToStr(ev.GetString());
 		else
 			vconfig.sPostProcessingShader.clear();
 
@@ -164,6 +166,10 @@ protected:
 		// XFB
 		virtual_xfb->Enable(vconfig.bUseXFB);
 		real_xfb->Enable(vconfig.bUseXFB);
+		
+		// OGL Hacked buffer
+		hacked_buffer_upload->Enable(Core::GetState() == Core::CORE_UNINITIALIZED && vconfig.backend_info.APIType == API_OPENGL);
+		hacked_buffer_upload->Show(vconfig.backend_info.APIType == API_OPENGL);
 
 		ev.Skip();
 	}
@@ -193,6 +199,7 @@ protected:
 	SettingRadioButton* efbcopy_ram;
 	SettingCheckBox* cache_efb_copies;
 	SettingCheckBox* emulate_efb_format_changes;
+	SettingCheckBox* hacked_buffer_upload;
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;

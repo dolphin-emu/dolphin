@@ -1,24 +1,11 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _DATAREADER_H
 #define _DATAREADER_H
+
+#include "VertexManagerBase.h"
 
 extern u8* g_pVideoData;
 
@@ -31,43 +18,63 @@ __forceinline void DataSkip(u32 skip)
 	g_pVideoData += skip;
 }
 
+// probably unnecessary
+template <int count>
+__forceinline void DataSkip()
+{
+	g_pVideoData += count;
+}
+
+template <typename T>
+__forceinline T DataPeek(int _uOffset)
+{
+	auto const result = Common::FromBigEndian(*reinterpret_cast<T*>(g_pVideoData + _uOffset));
+	return result;
+}
+
+// TODO: kill these
 __forceinline u8 DataPeek8(int _uOffset)
 {
-	return g_pVideoData[_uOffset];
+	return DataPeek<u8>(_uOffset);
 }
 
 __forceinline u16 DataPeek16(int _uOffset)
 {
-	return Common::swap16(*(u16*)&g_pVideoData[_uOffset]);
+	return DataPeek<u16>(_uOffset);
 }
 
 __forceinline u32 DataPeek32(int _uOffset)	
 {
-	return Common::swap32(*(u32*)&g_pVideoData[_uOffset]);
+	return DataPeek<u32>(_uOffset);
 }
 
+template <typename T>
+__forceinline T DataRead()
+{
+	auto const result = DataPeek<T>(0);
+	DataSkip<sizeof(T)>();
+	return result;
+}
+
+// TODO: kill these
 __forceinline u8 DataReadU8()
 {
-	return *g_pVideoData++;
+	return DataRead<u8>();
 }
 
 __forceinline s8 DataReadS8()
 {
-	return (s8)(*g_pVideoData++);
+	return DataRead<s8>();
 }
 
 __forceinline u16 DataReadU16()
 {
-	u16 tmp = Common::swap16(*(u16*)g_pVideoData);
-	g_pVideoData += 2;
-	return tmp;
+	return DataRead<u16>();
 }
 
 __forceinline u32 DataReadU32()
 {
-	u32 tmp = Common::swap32(*(u32*)g_pVideoData);
-	g_pVideoData += 4;
-	return tmp;
+	return DataRead<u32>();
 }
 
 typedef void (*DataReadU32xNfunc)(u32 *buf);
@@ -120,58 +127,16 @@ __forceinline u32 DataReadU32Unswapped()
 	return tmp;
 }
 
-template<class T>
-__forceinline T DataRead()
-{
-	T tmp = *(T*)g_pVideoData;
-	g_pVideoData += sizeof(T);
-	return tmp;
-}
-
-template <>
-__forceinline u16 DataRead()
-{
-	u16 tmp = Common::swap16(*(u16*)g_pVideoData);
-	g_pVideoData += 2;
-	return tmp;
-}
-
-template <>
-__forceinline s16 DataRead()
-{
-	s16 tmp = (s16)Common::swap16(*(u16*)g_pVideoData);
-	g_pVideoData += 2;
-	return tmp;
-}
-
-template <>
-__forceinline u32 DataRead()
-{
-	u32 tmp = (u32)Common::swap32(*(u32*)g_pVideoData);
-	g_pVideoData += 4;
-	return tmp;
-}
-
-template <>
-__forceinline s32 DataRead()
-{
-	s32 tmp = (s32)Common::swap32(*(u32*)g_pVideoData);
-	g_pVideoData += 4;
-	return tmp;
-}
-
-__forceinline float DataReadF32()
-{
-	union {u32 i; float f;} temp;
-	temp.i = Common::swap32(*(u32*)g_pVideoData);
-	g_pVideoData += 4;
-	float tmp = temp.f;
-	return tmp;
-}
-
 __forceinline u8* DataGetPosition()
 {
 	return g_pVideoData;
+}
+
+template <typename T>
+__forceinline void DataWrite(T data)
+{
+	*(T*)VertexManager::s_pCurBufferPointer = data;
+	VertexManager::s_pCurBufferPointer += sizeof(T);
 }
 
 #endif

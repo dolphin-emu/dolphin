@@ -19,7 +19,22 @@
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <X11/Xutil.h>
 
+#if USE_EGL
+class cXInterface
+{
+private:
+	void XEventThread();
+public:
+	bool ServerConnect(void);
+	bool Initialize(void *config);
+	void *EGLGetDisplay(void);
+	void *CreateWindow(void);
+	void DestroyWindow(void);
+	void UpdateFPSDisplay(const char *text);
+};
+#else
 class cX11Window
 {
 private:
@@ -28,4 +43,6 @@ public:
 	void CreateXWindow(void);
 	void DestroyXWindow(void);
 };
+#endif
+
 #endif

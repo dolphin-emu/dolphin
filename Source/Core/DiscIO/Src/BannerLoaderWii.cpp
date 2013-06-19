@@ -1,21 +1,9 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <stdio.h>
+#include <algorithm>
 
 #include "Common.h"
 #include "ColorUtil.h"
@@ -144,73 +132,48 @@ bool CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 	return true;
 }
 
-bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::string& s)
-{
-	bool ret = false;
-
-	if (IsValid())
-	{
-		// find Banner type
-		SWiiBanner *pBanner = (SWiiBanner*)m_pBannerFile;
-
-		// Ensure the string is null-terminating, since the banner format
-		// doesn't require it
-		u16 *src = new u16[COMMENT_SIZE + 1];
-		memcpy(src, &pBanner->m_Comment[index], COMMENT_SIZE * sizeof(u16));
-		src[COMMENT_SIZE] = 0;
-
-		ret = CopyBeUnicodeToString(s, src, COMMENT_SIZE + 1);
-
-		delete [] src;
-	}
-
-	return ret;
-}
-
-bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::wstring& s)
+bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::string& result)
 {
 	if (IsValid())
 	{
-		// find Banner type
-		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
-
-		std::wstring description;
-		for (int i = 0; i < COMMENT_SIZE; ++i)
-			description.push_back(Common::swap16(pBanner->m_Comment[index][i]));
-
-		s = description;
+		auto const banner = reinterpret_cast<const SWiiBanner*>(m_pBannerFile);
+		auto const src_ptr = banner->m_Comment[index];
+		
+		// Trim at first NULL
+		auto const length = std::find(src_ptr, src_ptr + COMMENT_SIZE, 0x0) - src_ptr;
+		
+		std::wstring src;
+		src.resize(length);
+		std::transform(src_ptr, src_ptr + src.size(), src.begin(), (u16(&)(u16))Common::swap16);
+		result = UTF16ToUTF8(src);
+		
 		return true;
 	}
+
 	return false;
 }
 
-bool CBannerLoaderWii::GetName(std::string* _rName)
+std::vector<std::string> CBannerLoaderWii::GetNames()
 {
-	return GetStringFromComments(NAME_IDX, *_rName);
-}
+	std::vector<std::string> ret(1);
+	
+	if (!GetStringFromComments(NAME_IDX, ret[0]))
+		ret.clear();
 
-bool CBannerLoaderWii::GetName(std::vector<std::wstring>&  _rNames)
-{
-	std::wstring temp;
-	bool ret = GetStringFromComments(NAME_IDX, temp);
-	_rNames.push_back(temp);
 	return ret;
 }
 
-bool CBannerLoaderWii::GetCompany(std::string& _rCompany)
+std::string CBannerLoaderWii::GetCompany()
 {
-    _rCompany = "N/A";
-    return true;
+	return "";
 }
 
-bool CBannerLoaderWii::GetDescription(std::string* _rDescription)
+std::vector<std::string> CBannerLoaderWii::GetDescriptions()
 {
-	return GetStringFromComments(DESC_IDX, *_rDescription);
-}
-
-bool CBannerLoaderWii::GetDescription(std::wstring& _rDescription)
-{
-	return GetStringFromComments(DESC_IDX, _rDescription);
+	std::vector<std::string> result(1);
+	if (!GetStringFromComments(DESC_IDX, result[0]))
+		result.clear();
+	return result;
 }
 
 void CBannerLoaderWii::decode5A3image(u32* dst, u16* src, int width, int height)

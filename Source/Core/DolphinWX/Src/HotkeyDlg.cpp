@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <wx/notebook.h>
 
@@ -22,7 +9,7 @@
 
 BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
 	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1,
-		   	wxEVT_COMMAND_BUTTON_CLICKED, HotkeyConfigDialog::OnButtonClick)
+			wxEVT_COMMAND_BUTTON_CLICKED, HotkeyConfigDialog::OnButtonClick)
 	EVT_TIMER(wxID_ANY, HotkeyConfigDialog::OnButtonTimer)
 END_EVENT_TABLE()
 
@@ -86,8 +73,8 @@ void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
 		else
 		{
 			SetButtonText(ClickedButton->GetId(),
-				   	InputCommon::WXKeyToString(g_Pressed),
-				   	InputCommon::WXKeymodToString(g_Modkey));
+					InputCommon::WXKeyToString(g_Pressed),
+					InputCommon::WXKeymodToString(g_Modkey));
 			SaveButtonMapping(ClickedButton->GetId(), g_Pressed, g_Modkey);
 		}
 		EndGetButtons();
@@ -112,7 +99,7 @@ void HotkeyConfigDialog::DoGetButtons(int _GetId)
 		if(m_ButtonMappingTimer->IsRunning())
 			m_ButtonMappingTimer->Stop();
 
-		 // Save the button Id
+		// Save the button Id
 		GetButtonWaitingID = _GetId;
 		GetButtonWaitingTimer = 0;
 
@@ -149,7 +136,8 @@ void HotkeyConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
 	event.Skip();
 
-	if (m_ButtonMappingTimer->IsRunning()) return;
+	if (m_ButtonMappingTimer->IsRunning())
+		return;
 
 	wxTheApp->Bind(wxEVT_KEY_DOWN, &HotkeyConfigDialog::OnKeyDown, this);
 
@@ -191,6 +179,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 
 		_("Toggle Fullscreen"),
 		_("Take Screenshot"),
+		_("Exit"),
 
 		_("Connect Wiimote 1"),
 		_("Connect Wiimote 2"),
@@ -213,7 +202,20 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		_("Save State Slot 5"),
 		_("Save State Slot 6"),
 		_("Save State Slot 7"),
-		_("Save State Slot 8")
+		_("Save State Slot 8"),
+
+		_("Load State Last 1"),
+		_("Load State Last 2"),
+		_("Load State Last 3"),
+		_("Load State Last 4"),
+		_("Load State Last 5"),
+		_("Load State Last 6"),
+		_("Load State Last 7"),
+		_("Load State Last 8"),
+
+		_("Save Oldest State"),
+		_("Undo Load State"),
+		_("Undo Save State")
 	};
 
 	const int page_breaks[3] = {HK_OPEN, HK_LOAD_STATE_SLOT_1, NUM_HOTKEYS};

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <float.h>
 #ifdef _WIN32
@@ -26,13 +13,6 @@
 #undef _interlockedbittestandreset
 #undef _interlockedbittestandset64
 #undef _interlockedbittestandreset64
-#else
-static const unsigned short FPU_ROUND_NEAR = 0 << 10;
-static const unsigned short FPU_ROUND_DOWN = 1 << 10;
-static const unsigned short FPU_ROUND_UP   = 2 << 10;
-static const unsigned short FPU_ROUND_CHOP = 3 << 10;
-static const unsigned short FPU_ROUND_MASK = 3 << 10;
-#include <xmmintrin.h>
 #endif
 
 #include "CPUDetect.h"
@@ -44,6 +24,7 @@ static const unsigned short FPU_ROUND_MASK = 3 << 10;
 #include "../../HW/SystemTimers.h"
 #include "../../Core.h"
 #include "Interpreter.h"
+#include "FPURoundMode.h"
 
 #include "Interpreter_FPUtils.h"
 
@@ -62,38 +43,11 @@ mffsx: 80036650 (huh?)
 // That is, set rounding mode etc when entering jit code or the interpreter loop
 // Restore rounding mode when calling anything external
 
-const u32 MASKS = 0x1F80;  // mask away the interrupts.
-const u32 DAZ = 0x40;
-const u32 FTZ = 0x8000;
-
 static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 {
-	// Set FPU rounding mode to mimic the PowerPC's
-#ifdef _M_IX86
-	// This shouldn't really be needed anymore since we use SSE
-#ifdef _WIN32
-	const int table[4] = 
-	{
-		_RC_NEAR,
-		_RC_CHOP,
-		_RC_UP,
-		_RC_DOWN
-	};
-	_set_controlfp(_MCW_RC, table[fp.RN]);
-#else
-	const unsigned short table[4] = 
-	{
-		FPU_ROUND_NEAR,
-		FPU_ROUND_CHOP,
-		FPU_ROUND_UP,
-		FPU_ROUND_DOWN
-	};
-	unsigned short mode;
-	asm ("fstcw %0" : "=m" (mode) : );
-	mode = (mode & ~FPU_ROUND_MASK) | table[fp.RN];
-	asm ("fldcw %0" : : "m" (mode));
-#endif
-#endif
+
+	FPURoundMode::SetRoundMode(fp.RN);
+	
 	if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)
 	{
 		//PanicAlert("FPSCR - exceptions enabled. Please report. VE=%i OE=%i UE=%i ZE=%i XE=%i",
@@ -102,14 +56,6 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 	}
 
 	// Also corresponding SSE rounding mode setting
-	static const u32 ssetable[4] = 
-	{
-		(0 << 13) | MASKS,
-		(3 << 13) | MASKS,
-		(2 << 13) | MASKS,
-		(1 << 13) | MASKS,
-	};
-	u32 csr = ssetable[FPSCR.RN];
 	if (FPSCR.NI)
 	{
 		// Either one of these two breaks Beyond Good & Evil.
@@ -117,7 +63,7 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 		//     csr |= DAZ;
 		// csr |= FTZ;
 	}
-	_mm_setcsr(csr);
+	FPURoundMode::SetSIMDMode(FPSCR.RN);
 }
 
 void Interpreter::mtfsb0x(UGeckoInstruction _inst)
@@ -236,6 +182,7 @@ void Interpreter::mtmsr(UGeckoInstruction _inst)
 	// Privileged?
 	MSR = m_GPR[_inst.RS];
 	MMUTable::on_msr_change();
+	PowerPC::CheckExceptions();
 	m_EndBlock = true;
 }
 
@@ -587,7 +534,7 @@ void Interpreter::mcrf(UGeckoInstruction _inst)
 
 void Interpreter::isync(UGeckoInstruction _inst)
 {
-	//shouldnt do anything
+	//shouldn't do anything
 }
 
 // the following commands read from FPSCR

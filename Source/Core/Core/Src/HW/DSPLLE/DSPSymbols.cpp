@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <stdarg.h>
 
@@ -64,14 +51,19 @@ const char *GetLineText(int line)
 		return lines[line].c_str();
 	}
 	else
+	{
 		return "----";
+	}
 }
 
 Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 {
 	XFuncMap::iterator it = functions.find(addr);
+
 	if (it != functions.end())
+	{
 		return &it->second;
+	}
 	else
 	{
 		for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
@@ -84,8 +76,10 @@ Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 }
 
 // lower case only
-bool IsHexDigit(char c) {
-	switch (c) {
+bool IsHexDigit(char c)
+{
+	switch (c)
+	{
 		case '0':
 		case '1':
 		case '2':
@@ -108,7 +102,8 @@ bool IsHexDigit(char c) {
 	}
 }
 
-bool IsAlpha(char c) {
+bool IsAlpha(char c)
+{
 	return (c >= 'A' && c <= 'Z') ||
 		   (c >= 'a' && c <= 'z');
 }
@@ -165,7 +160,9 @@ bool ReadAnnotatedAssembly(const char *filename)
 						break;
 					}
 				}
-			} else {
+			}
+			else
+			{
 				if (i - first_hex < 3)
 				{
 					first_hex = -1;
@@ -176,10 +173,13 @@ bool ReadAnnotatedAssembly(const char *filename)
 		}
 
 		// Scan for function starts
-		if (!memcmp(line, "void", 4)) {
+		if (!memcmp(line, "void", 4))
+		{
 			char temp[256];
-			for (size_t i = 6; i < len; i++) {
-				if (line[i] == '(') {
+			for (size_t i = 6; i < len; i++)
+			{
+				if (line[i] == '(')
+				{
 					// Yep, got one.
 					memcpy(temp, line + 5, i - 5);
 					temp[i - 5] = 0;
@@ -197,13 +197,15 @@ bool ReadAnnotatedAssembly(const char *filename)
 		}
 
 		// Scan for braces
-		for (size_t i = 0; i < len; i++) {
+		for (size_t i = 0; i < len; i++)
+		{
 			if (line[i] == '{')
 				brace_count++;
 			if (line[i] == '}')
 			{
 				brace_count--;
-				if (brace_count == 0 && symbol_in_progress) {
+				if (brace_count == 0 && symbol_in_progress)
+				{
 					// Commit this symbol.
 					current_symbol.size = last_addr - current_symbol.address + 1;
 					g_dsp_symbol_db.AddCompleteSymbol(current_symbol);
@@ -219,7 +221,8 @@ bool ReadAnnotatedAssembly(const char *filename)
 			sscanf(line + first_hex, "%04x", &hex);
 
 			// Sanity check
-			if (hex > last_addr + 3 || hex < last_addr - 3) {
+			if (hex > last_addr + 3 || hex < last_addr - 3)
+			{
 				static int errors = 0;
 				INFO_LOG(DSPLLE, "Got Insane Hex Digit %04x (%04x) from %s", hex, last_addr, line);
 				errors++;
@@ -269,7 +272,7 @@ void AutoDisassembly(u16 start_addr, u16 end_addr)
 			break;
 		}
 
-		//NOTICE_LOG(DSPLLE, "added %04x %i %s", addr, line_counter, buf.c_str());
+		//NOTICE_LOG(DSPLLE, "Added %04x %i %s", addr, line_counter, buf.c_str());
 		lines.push_back(buf);
 		line_counter++;
 	}

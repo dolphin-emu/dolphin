@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _TEXTURECACHEBASE_H
 #define _TEXTURECACHEBASE_H
@@ -60,26 +47,26 @@ public:
 		int frameCount;
 
 
-		void SetGeneralParameters(u32 addr, u32 size, u32 format, unsigned int num_mipmaps)
+		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format, unsigned int _num_mipmaps)
 		{
-			this->addr = addr;
-			this->size_in_bytes = size;
-			this->format = format;
-			this->num_mipmaps = num_mipmaps;
+			addr = _addr;
+			size_in_bytes = _size;
+			format = _format;
+			num_mipmaps = _num_mipmaps;
 		}
 
-		void SetDimensions(unsigned int native_width, unsigned int native_height, unsigned int virtual_width, unsigned int virtual_height)
+		void SetDimensions(unsigned int _native_width, unsigned int _native_height, unsigned int _virtual_width, unsigned int _virtual_height)
 		{
-			this->native_width = native_width;
-			this->native_height = native_height;
-			this->virtual_width = virtual_width;
-			this->virtual_height = virtual_height;
+			native_width = _native_width;
+			native_height = _native_height;
+			virtual_width = _virtual_width;
+			virtual_height = _virtual_height;
 		}
 
-		void SetHashes(u64 hash/*, u32 pal_hash*/)
+		void SetHashes(u64 _hash/*, u32 _pal_hash*/)
 		{
-			this->hash = hash;
-			//this->pal_hash = pal_hash;
+			hash = _hash;
+			//pal_hash = _pal_hash;
 		}
 
 
@@ -89,7 +76,7 @@ public:
 		virtual bool Save(const char filename[], unsigned int level) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int level, bool autogen_mips) = 0;
+			unsigned int expanded_width, unsigned int level) = 0;
 		virtual void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 			unsigned int srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
@@ -116,9 +103,11 @@ public:
 	virtual TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) = 0;
 
 	static TCacheEntryBase* Load(unsigned int stage, u32 address, unsigned int width, unsigned int height,
-		int format, unsigned int tlutaddr, int tlutfmt, bool UseNativeMips, unsigned int maxlevel, bool from_tmem);
+		int format, unsigned int tlutaddr, int tlutfmt, bool use_mipmaps, unsigned int maxlevel, bool from_tmem);
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, unsigned int srcFormat,
 		const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
+
+	static void RequestInvalidateTextureCache();
 
 protected:
 	TextureCache();
@@ -131,13 +120,13 @@ private:
 	static PC_TexFormat LoadCustomTexture(u64 tex_hash, int texformat, unsigned int level, unsigned int& width, unsigned int& height);
 	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
 
-
 	typedef std::map<u32, TCacheEntryBase*> TexCache;
 
 	static TexCache textures;
 
 	// Backup configuration values
-	static struct BackupConfig {
+	static struct BackupConfig
+	{
 		int s_colorsamples;
 		bool s_copy_efb_to_texture;
 		bool s_copy_efb_scaled;

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _UCODE_ZELDA_H
 #define _UCODE_ZELDA_H
@@ -45,30 +32,30 @@ union ZeldaVoicePB
 		u16 volumeLeft2;				// 0x0A | Left Volume 2
 		u16 Unk0B;						// 0x0B | unknown
 
-		u16 SoundType2;                 // 0x0C | "Sound type" 2   (not really sound type)
+		u16 SoundType2;					// 0x0C | "Sound type" 2   (not really sound type)
 		u16 volumeRight1;				// 0x0D | Right Volume 1
 		u16 volumeRight2;				// 0x0E | Right Volume 2
 		u16 Unk0F;						// 0x0F | unknown
 
-		u16 SoundType3;                 // 0x10 | "Sound type" 3   (not really sound type)
+		u16 SoundType3;					// 0x10 | "Sound type" 3   (not really sound type)
 		u16 volumeUnknown1_1;			// 0x11 | Unknown Volume 1
 		u16 volumeUnknown1_2;			// 0x12 | Unknown Volume 1
 		u16 Unk13;						// 0x13 | unknown
 
-		u16 SoundType4;                 // 0x14 | "Sound type" 4   (not really sound type)
+		u16 SoundType4;					// 0x14 | "Sound type" 4   (not really sound type)
 		u16 volumeUnknown2_1;			// 0x15 | Unknown Volume 2
 		u16 volumeUnknown2_2;			// 0x16 | Unknown Volume 2
-		u16 Unk17;                      // 0x17 | unknown
+		u16 Unk17;						// 0x17 | unknown
 
-		u16 Unk18[0x10];                // 0x18 | unknown
-		u16 Unk28;      				// 0x28 | unknown  
-		u16 Unk29;      				// 0x29 | unknown  // multiplied by 0x2a @ 0d21/ZWW
-		u16 Unk2a;      				// 0x2A | unknown  // loaded at 0d2e/ZWW
-		u16 Unk2b;      				// 0x2B | unknown  
-		u16 VolumeMode;      			// 0x2C | unknown  // See 0337/ZWW
-		u16 Unk2D;      				// 0x2D | unknown
-		u16 Unk2E;      				// 0x2E | unknown
-		u16 Unk2F;      				// 0x2F | unknown
+		u16 Unk18[0x10];				// 0x18 | unknown
+		u16 Unk28;						// 0x28 | unknown  
+		u16 Unk29;						// 0x29 | unknown  // multiplied by 0x2a @ 0d21/ZWW
+		u16 Unk2a;						// 0x2A | unknown  // loaded at 0d2e/ZWW
+		u16 Unk2b;						// 0x2B | unknown  
+		u16 VolumeMode;					// 0x2C | unknown  // See 0337/ZWW
+		u16 Unk2D;						// 0x2D | unknown
+		u16 Unk2E;						// 0x2E | unknown
+		u16 Unk2F;						// 0x2F | unknown
 		u16 CurSampleFrac;				// 0x30 | Fractional part of the current sample position
 		u16 Unk31;						// 0x31 | unknown / unused
 		u16 CurBlock;					// 0x32 | current block? used by zelda's AFC decoder. we don't need it.
@@ -85,14 +72,14 @@ union ZeldaVoicePB
 		u16 YN2;						// 0x66 | YN2
 		u16 YN1;						// 0x67 | YN1
 		u16 Unk68[0x10];				// 0x68 | Saved samples from last decode?
-		u16 FilterState1;  				// 0x78 | unknown  // ZWW: 0c84_FilterBufferInPlace loads and stores. Simply, the filter state.
-		u16 FilterState2; 				// 0x79 | unknown  // ZWW: same as above.  these two are active if 0x04a8 != 0.
-		u16 Unk7A;      				// 0x7A | unknown
-		u16 Unk7B;      				// 0x7B | unknown  
-		u16 Unk7C;      				// 0x7C | unknown
-		u16 Unk7D;      				// 0x7D | unknown
-		u16 Unk7E;      				// 0x7E | unknown
-		u16 Unk7F;      				// 0x7F | unknown
+		u16 FilterState1;				// 0x78 | unknown  // ZWW: 0c84_FilterBufferInPlace loads and stores. Simply, the filter state.
+		u16 FilterState2;				// 0x79 | unknown  // ZWW: same as above.  these two are active if 0x04a8 != 0.
+		u16 Unk7A;						// 0x7A | unknown
+		u16 Unk7B;						// 0x7B | unknown  
+		u16 Unk7C;						// 0x7C | unknown
+		u16 Unk7D;						// 0x7D | unknown
+		u16 Unk7E;						// 0x7E | unknown
+		u16 Unk7F;						// 0x7F | unknown
 
 		// Read-only part
 		u16 Format;						// 0x80 | audio format
@@ -109,8 +96,8 @@ union ZeldaVoicePB
 		u32 UnkAddr;					// 0x8E | ???
 		u16 Padding[0x10];				// 0x90 | padding
 		u16 Padding2[0x8];				// 0xa0 | FIR filter coefs of some sort (0xa4 controls the appearance of 0xa5-0xa7 and is almost always 0x7FFF)
-		u16 FilterEnable;               // 0xa8 | FilterBufferInPlace enable
-		u16 Padding3[0x7];              // 0xa9 | padding
+		u16 FilterEnable;				// 0xa8 | FilterBufferInPlace enable
+		u16 Padding3[0x7];				// 0xa9 | padding
 		u16 Padding4[0x10];				// 0xb0 | padding
 	};
 	u16 raw[0xc0]; // WARNING-do not use on parts of the 32-bit values - they are swapped!
@@ -133,6 +120,7 @@ class CUCode_Zelda : public IUCode
 public:
 	CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC);
 	virtual ~CUCode_Zelda();
+	u32 GetUpdateMs();
 
 	void HandleMail(u32 _uMail);
 	void HandleMail_LightVersion(u32 _uMail);
@@ -142,16 +130,16 @@ public:
 	void Update(int cycles);
 	void MixAdd(short* buffer, int size);
 
-    void CopyPBsFromRAM();
-    void CopyPBsToRAM();
+	void CopyPBsFromRAM();
+	void CopyPBsToRAM();
 
 	void DoState(PointerWrap &p);
 
-    int *templbuffer;
-    int *temprbuffer;
+	int *templbuffer;
+	int *temprbuffer;
 
-    // Simple dump ...
-    int DumpAFC(u8* pIn, const int size, const int srate);
+	// Simple dump ...
+	int DumpAFC(u8* pIn, const int size, const int srate);
 
 	u32 Read32()
 	{
@@ -218,7 +206,6 @@ private:
 	s32* m_LeftBuffer;
 	s32* m_RightBuffer;
 
-
 	// If you add variables, remember to keep DoState() and the constructor up to date.
 
 	s16 m_AFCCoefTable[32];
@@ -261,20 +248,20 @@ private:
 
 	u32 m_readOffset;
 
-    enum EMailState  
-    {
-        WaitForMail,
-        ReadingFrameSync,
-        ReadingMessage,
-        ReadingSystemMsg
-    };
+	enum EMailState
+	{
+		WaitForMail,
+		ReadingFrameSync,
+		ReadingMessage,
+		ReadingSystemMsg
+	};
 
-    EMailState m_MailState;
-    u16 m_PBMask[0x10];
+	EMailState m_MailState;
+	u16 m_PBMask[0x10];
 
-    u32 m_NumPBs;
-    u32 m_PBAddress;   // The main param block array
-    u32 m_PBAddress2;  // 4 smaller param blocks
+	u32 m_NumPBs;
+	u32 m_PBAddress;   // The main param block array
+	u32 m_PBAddress2;  // 4 smaller param blocks
 
 	void ExecuteList();
 

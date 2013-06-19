@@ -37,7 +37,7 @@ public:
 private:
 	std::string port,displayName;
 	int pharsePacket(u8 * data, size_t size);
-	struct _d; //using pimpl because Winsock2.h doesen't have include guards -_-
+	struct _d; //using pimpl because Winsock2.h doesn't have include guards -_-
 	_d *d; 
 	double x,y,z;
 	double naX,naY,naZ;

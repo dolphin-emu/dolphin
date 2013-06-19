@@ -1,23 +1,9 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
 // http://developer.nvidia.com/object/General_FAQ.html#t6 !!!!!
-
 
 
 #include "Common.h"
@@ -28,10 +14,12 @@
 #include "ConfigManager.h"
 
 #include "PixelEngine.h"
+#include "RenderBase.h"
 #include "CommandProcessor.h"
 #include "HW/ProcessorInterface.h"
 #include "DLCache.h"
 #include "State.h"
+
 namespace PixelEngine
 {
 
@@ -110,22 +98,22 @@ static UPEAlphaReadReg		m_AlphaRead;
 static UPECtrlReg			m_Control;
 //static u16					m_Token; // token value most recently encountered
 
-static bool g_bSignalTokenInterrupt;
-static bool g_bSignalFinishInterrupt;
+volatile u32 g_bSignalTokenInterrupt;
+volatile u32 g_bSignalFinishInterrupt;
 
 static int et_SetTokenOnMainThread;
 static int et_SetFinishOnMainThread;
 
-volatile bool interruptSetToken = false;
-volatile bool interruptSetFinish = false;
+volatile u32 interruptSetToken = 0;
+volatile u32 interruptSetFinish = 0;
 
 u16 bbox[4];
 bool bbox_active;
 
 enum
 {
-    INT_CAUSE_PE_TOKEN    =  0x200, // GP Token
-    INT_CAUSE_PE_FINISH   =  0x400, // GP Finished
+	INT_CAUSE_PE_TOKEN    =  0x200, // GP Token
+	INT_CAUSE_PE_FINISH   =  0x400, // GP Finished
 };
 
 void DoState(PointerWrap &p)
@@ -135,7 +123,7 @@ void DoState(PointerWrap &p)
 	p.Do(m_DstAlphaConf);
 	p.Do(m_AlphaModeConf);
 	p.Do(m_AlphaRead);
-	p.Do(m_Control);
+	p.DoPOD(m_Control);
 
 	p.Do(g_bSignalTokenInterrupt);
 	p.Do(g_bSignalFinishInterrupt);
@@ -161,10 +149,10 @@ void Init()
 	m_AlphaModeConf.Hex = 0;
 	m_AlphaRead.Hex = 0;
 
-	g_bSignalTokenInterrupt = false;
-	g_bSignalFinishInterrupt = false;
-	interruptSetToken = false;
-	interruptSetFinish = false;
+	g_bSignalTokenInterrupt = 0;
+	g_bSignalFinishInterrupt = 0;
+	interruptSetToken = 0;
+	interruptSetFinish = 0;
 
 	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
 	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
@@ -211,7 +199,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 	case PE_TOKEN_REG:
-		_uReturnValue = CommandProcessor::fifo.PEToken;
+		_uReturnValue = Common::AtomicLoad(*(volatile u32*)&CommandProcessor::fifo.PEToken);
 		INFO_LOG(PIXELENGINE, "(r16) TOKEN_REG : %04x", _uReturnValue);
 		break;
 
@@ -255,23 +243,59 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 	}
 
-	case PE_PERF_0L:
-	case PE_PERF_0H:
-	case PE_PERF_1L:
-	case PE_PERF_1H:
-	case PE_PERF_2L:
-	case PE_PERF_2H:
-	case PE_PERF_3L:
-	case PE_PERF_3H:
-	case PE_PERF_4L:
-	case PE_PERF_4H:
-	case PE_PERF_5L:
-	case PE_PERF_5H:
-		INFO_LOG(PIXELENGINE, "(r16) perf counter @ %08x", _iAddress);
-		// git r90a2096a24f4 (svn r3663) added the PE_PERF cases, without setting
-		// _uReturnValue to anything, this reverts to the previous behaviour which allows
-		// The timer in SMS:Scrubbing Serena Beach to countdown correctly
-		_uReturnValue = 1;
+	// NOTE(neobrain): only PE_PERF_ZCOMP_OUTPUT is implemented in D3D11, but the other values shouldn't be contradictionary to the value of that register (i.e. INPUT registers should always be greater or equal to their corresponding OUTPUT registers).
+	case PE_PERF_ZCOMP_INPUT_ZCOMPLOC_L:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_INPUT_ZCOMPLOC) & 0xFFFF;
+		break;
+
+	case PE_PERF_ZCOMP_INPUT_ZCOMPLOC_H:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_INPUT_ZCOMPLOC) >> 16;
+		break;
+
+	case PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_L:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_OUTPUT_ZCOMPLOC) & 0xFFFF;
+		break;
+
+	case PE_PERF_ZCOMP_OUTPUT_ZCOMPLOC_H:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_OUTPUT_ZCOMPLOC) >> 16;
+		break;
+
+	case PE_PERF_ZCOMP_INPUT_L:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_INPUT) & 0xFFFF;
+		break;
+
+	case PE_PERF_ZCOMP_INPUT_H:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_INPUT) >> 16;
+		break;
+
+	case PE_PERF_ZCOMP_OUTPUT_L:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_OUTPUT) & 0xFFFF;
+		break;
+
+	case PE_PERF_ZCOMP_OUTPUT_H:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_ZCOMP_OUTPUT) >> 16;
+		break;
+
+	case PE_PERF_BLEND_INPUT_L:
+		// Super Mario Sunshine uses this register in episode 6 of Sirena Beach:
+		// The amount of remaining goop is determined by checking how many pixels reach the blending stage.
+		// Once this register falls below a particular value (around 0x90), the game regards the challenge finished.
+		// In very old builds, Dolphin only returned 0. That caused the challenge to be immediately finished without any goop being cleaned (the timer just didn't even start counting from 3:00:00).
+		// Later builds returned 1 for the high register. That caused the timer to actually count down, but made the challenge unbeatable because the game always thought you didn't clear any goop at all.
+		// Note that currently this functionality is only implemented in the D3D11 backend.
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_BLEND_INPUT) & 0xFFFF;
+		break;
+
+	case PE_PERF_BLEND_INPUT_H:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_BLEND_INPUT) >> 16;
+		break;
+
+	case PE_PERF_EFB_COPY_CLOCKS_L:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_EFB_COPY_CLOCKS) & 0xFFFF;
+		break;
+
+	case PE_PERF_EFB_COPY_CLOCKS_H:
+		_uReturnValue = g_video_backend->Video_GetQueryResult(PQ_EFB_COPY_CLOCKS) >> 16;
 		break;
 
 	default:
@@ -312,8 +336,8 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		{
 			UPECtrlReg tmpCtrl(_iValue);
 
-			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = false;
-			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = false;
+			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = 0;
+			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = 0;
 
 			m_Control.PETokenEnable  = tmpCtrl.PETokenEnable;
 			m_Control.PEFinishEnable = tmpCtrl.PEFinishEnable;
@@ -359,14 +383,14 @@ void UpdateInterrupts()
 
 void UpdateTokenInterrupt(bool active)
 {
-		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
-		interruptSetToken = active;
+	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
+	Common::AtomicStore(interruptSetToken, active ? 1 : 0);
 }
 
 void UpdateFinishInterrupt(bool active)
 {
-		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
-		interruptSetFinish = active;
+	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
+	Common::AtomicStore(interruptSetFinish, active ? 1 : 0);
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
@@ -376,20 +400,23 @@ void UpdateFinishInterrupt(bool active)
 // Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
 void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 {
-	//if (userdata >> 16)
-	//{
-		g_bSignalTokenInterrupt = true;	
-		//_dbg_assert_msg_(PIXELENGINE, (CommandProcessor::fifo.PEToken == (userdata&0xFFFF)), "WTF? BPMEM_PE_TOKEN_INT_ID's token != BPMEM_PE_TOKEN_ID's token" );
-		INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
+	// XXX: No 16-bit atomic store available, so cheat and use 32-bit.
+	// That's what we've always done. We're counting on fifo.PEToken to be
+	// 4-byte padded.
+	Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, userdata & 0xffff);
+	INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
+	if (userdata >> 16)
+	{
+		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
 		UpdateInterrupts();
-		CommandProcessor::interruptTokenWaiting = false;
-		IncrementCheckContextId();
-	//}
+	}
+	CommandProcessor::interruptTokenWaiting = false;
+	IncrementCheckContextId();
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
-	g_bSignalFinishInterrupt = 1;	
+	Common::AtomicStore(*(volatile u32*)&g_bSignalFinishInterrupt, 1);
 	UpdateInterrupts();
 	CommandProcessor::interruptFinishWaiting = false;
 	CommandProcessor::isPossibleWaitingSetDrawDone = false;
@@ -399,23 +426,13 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 // THIS IS EXECUTED FROM VIDEO THREAD
 void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 {
-	// TODO?: set-token-value and set-token-INT could be merged since set-token-INT own the token value.
 	if (_bSetTokenAcknowledge) // set token INT
 	{
+		Common::AtomicStore(*(volatile u32*)&g_bSignalTokenInterrupt, 1);
+	}
 
-		Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
-		CommandProcessor::interruptTokenWaiting = true;
-		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
-	}
-	else // set token value
-	{
-		// we do it directly from videoThread because of
-		// Super Monkey Ball
-		// XXX: No 16-bit atomic store available, so cheat and use 32-bit.
-		// That's what we've always done. We're counting on fifo.PEToken to be
-		// 4-byte padded.
-        Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, _token);
-	}
+	CommandProcessor::interruptTokenWaiting = true;
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 	IncrementCheckContextId();
 }
 
@@ -433,12 +450,11 @@ void SetFinish()
 void ResetSetFinish()
 {
 	//if SetFinish happened but PE_CTRL_REGISTER not, I reset the interrupt else
-	//remove event from the queque
+	//remove event from the queue
 	if (g_bSignalFinishInterrupt)
 	{
 		UpdateFinishInterrupt(false);
 		g_bSignalFinishInterrupt = false;
-		
 	}
 	else
 	{
@@ -452,26 +468,12 @@ void ResetSetToken()
 	if (g_bSignalTokenInterrupt)
 	{
 		UpdateTokenInterrupt(false);
-		g_bSignalTokenInterrupt = false;
-		
+		g_bSignalTokenInterrupt = 0;
 	}
 	else
 	{
 		CoreTiming::RemoveEvent(et_SetTokenOnMainThread);
 	}
-	CommandProcessor::interruptTokenWaiting = false;
-}
-
-bool WaitingForPEInterrupt()
-{
-	return !CommandProcessor::waitingForPEInterruptDisable && (CommandProcessor::interruptFinishWaiting  || CommandProcessor::interruptTokenWaiting || interruptSetFinish || interruptSetToken);
-}
-
-void ResumeWaitingForPEInterrupt()
-{
-	interruptSetFinish = false;
-	interruptSetToken = false;
-	CommandProcessor::interruptFinishWaiting = false;
 	CommandProcessor::interruptTokenWaiting = false;
 }
 } // end of namespace PixelEngine

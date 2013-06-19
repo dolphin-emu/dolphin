@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Movie.h"
 
@@ -94,6 +81,7 @@ void EnsureTmpInputSize(size_t bound)
 	size_t newAlloc = DTM_BASE_LENGTH;
 	while (newAlloc < bound)
 		newAlloc *= 2;
+	
 	u8* newTmpInput = new u8[newAlloc];
 	tmpInputAllocated = newAlloc;
 	if (tmpInput != NULL)
@@ -118,10 +106,12 @@ std::string GetInputDisplay()
 				g_numPads |= (1 << (i + 4));
 		}
 	}
+
 	std::string inputDisplay = "";
 	for (int i = 0; i < 8; ++i)
 		if ((g_numPads & (1 << i)) != 0)
 			inputDisplay.append(g_InputDisplay[i]);
+	
 	return inputDisplay; 
 }
 
@@ -136,11 +126,6 @@ void FrameUpdate()
 		g_totalFrames = g_currentFrame;
 		g_totalLagCount = g_currentLagCount;
 	}
-	if (IsPlayingInput() && IsConfigSaved())
-	{
-		SetGraphicsConfig();
-	}
-
 	if (g_bFrameStep)
 	{
 		Core::SetState(Core::CORE_PAUSE);
@@ -177,6 +162,7 @@ void Init()
 			EndPlayInput(false);
 		}
 	}
+
 	if (IsRecordingInput())
 	{
 		GetSettings();
@@ -401,7 +387,7 @@ void ChangeWiiPads(bool instantly)
 	if (instantly && (g_numPads >> 4) == controllers)
 		return;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_BBMOTES; i++)
 	{
 		g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
 		GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
@@ -1043,7 +1029,7 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, 
 
 	if (size != sizeInMovie)
 	{
-		PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s", (u32)sizeInMovie, (u32)size, (u32)g_currentByte, (g_numPads & 0xF)?" Try re-creating the recording with all GameCube controllers disabled (in Configure > Gamecube > Device Settings).":"");
+		PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s", (u32)sizeInMovie, (u32)size, (u32)g_currentByte, (g_numPads & 0xF)?" Try re-creating the recording with all GameCube controllers disabled (in Configure > Gamecube > Device Settings), or restarting Dolphin (Dolphin currently must be restarted every time before playing back a wiimote movie).":"");
 		EndPlayInput(!g_bReadOnly);
 		return false;
 	}
@@ -1182,18 +1168,15 @@ void GetSettings()
 	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
 	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
 	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
-	videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+	videoBackend = g_video_backend->GetName();
 	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 
-	int temp;
-
-	for(int i = 0; i < 4; ++i )
+	for (int i = 0; i < 20; ++i)
 	{
-		sscanf(SCM_REV_STR + 2 * i, "%2x", &temp );
-		revision[i] = temp;
+		sscanf(SCM_REV_STR + 2 * i, "%02x", &revision[i]);
 	}
 }
 

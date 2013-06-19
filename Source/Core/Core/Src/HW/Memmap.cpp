@@ -1,25 +1,13 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
+// NOTE:
+// These functions are primarily used by the interpreter versions of the LoadStore instructions.
+// However, if a JITed instruction (for example lwz) wants to access a bad memory area that call
+// may be redirected here (for example to Read_U32()).
 
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-/*
-These functions are primarily used by the interpreter versions of the LoadStore instructions.
-However, if a JITed instruction (for example lwz) wants to access a bad memory area that call
-may be redirected here (for example to Read_U32()).
-*/
 
 #include "Common.h"
 #include "MemoryUtil.h"
@@ -131,10 +119,13 @@ void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illega
 #define PAGE_SIZE (1 << PAGE_SHIFT)
 #define PAGE_MASK (PAGE_SHIFT - 1)
 
-template <class T, u8 *P> void HW_Read_Memory(T &_Data, const u32 _Address) {
+template <class T, u8 *P> void HW_Read_Memory(T &_Data, const u32 _Address)
+{
 	_Data = *(T *)&P[_Address & PAGE_MASK];
 }
-template <class T, u8 *P> void HW_Write_Memory(T _Data, const u32 _Address) {
+
+template <class T, u8 *P> void HW_Write_Memory(T _Data, const u32 _Address)
+{
 	*(T *)&P[_Address & PAGE_MASK] = _Data;
 }
 
@@ -453,7 +444,7 @@ void InitHWMemFuncs()
 	{
 		hwRead16 [CP_START+i] = g_video_backend->Video_CPRead16();
 		hwWrite16[CP_START+i] = g_video_backend->Video_CPWrite16();
- 
+
 		hwRead16 [PE_START+i] = g_video_backend->Video_PERead16();
 		hwWrite16[PE_START+i] = g_video_backend->Video_PEWrite16();
 		hwWrite32[PE_START+i] = g_video_backend->Video_PEWrite32();
@@ -592,7 +583,7 @@ void InitHWMemFuncsWii()
 	{
 		hwRead16 [CP_START+i] = g_video_backend->Video_CPRead16();
 		hwWrite16[CP_START+i] = g_video_backend->Video_CPWrite16();
- 
+
 		hwRead16 [PE_START+i] = g_video_backend->Video_PERead16();
 		hwWrite16[PE_START+i] = g_video_backend->Video_PEWrite16();
 		hwWrite32[PE_START+i] = g_video_backend->Video_PEWrite32();
@@ -787,97 +778,24 @@ u32 Read_Instruction(const u32 em_address)
 	return inst.hex;
 }
 
-u32 Read_Opcode_JIT_Uncached(const u32 _Address)
+void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 _iSize)
 {
-	u8* iCache;
-	u32 addr;
-	if (_Address & JIT_ICACHE_VMEM_BIT)
-	{
-		iCache = jit->GetBlockCache()->GetICacheVMEM();
-		addr = _Address & JIT_ICACHE_MASK;
-	}
-	else if (_Address & JIT_ICACHE_EXRAM_BIT)
-	{
-		iCache = jit->GetBlockCache()->GetICacheEx();
-		addr = _Address & JIT_ICACHEEX_MASK;
-	}
-	else
-	{
-		iCache = jit->GetBlockCache()->GetICache();
-		addr = _Address & JIT_ICACHE_MASK;
-	}
-	u32 inst = *(u32*)(iCache + addr);
-	if (inst == JIT_ICACHE_INVALID_WORD)
-	{
-		u32 cache_block_start = addr & ~0x1f;
-		u32 mem_block_start = _Address & ~0x1f;
-		u8 *pMem = Memory::GetPointer(mem_block_start);
-		memcpy(iCache + cache_block_start, pMem, 32);
-		inst = *(u32*)(iCache + addr);
-	}
-	inst = Common::swap32(inst);
-
-	if ((inst & 0xfc000000) == 0)
-	{
-		inst = jit->GetBlockCache()->GetOriginalFirstOp(inst);
-	}
-
-	return inst;
+	memcpy(GetPointer(_Address), _pData, _iSize);
 }
 
-u32 Read_Opcode_JIT(u32 _Address)
+void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 {
-#ifdef FAST_ICACHE	
-	if (bMMU && !bFakeVMEM && (_Address & ADDR_MASK_MEM1))
+	u8 *ptr = GetPointer(_Address);
+	if (ptr != NULL)
 	{
-		_Address = Memory::TranslateAddress(_Address, FLAG_OPCODE);
-		if (_Address == 0)
-		{
-			return 0;
-		}
-	}
-	u32 inst = 0;
-
-	// Bypass the icache for the external interrupt exception handler
-	if ( (_Address & 0x0FFFFF00) == 0x00000500 )
-		inst = Read_Opcode_JIT_Uncached(_Address);
-	else
-		inst = PowerPC::ppcState.iCache.ReadInstruction(_Address);
-#else
-	u32 inst = Memory::ReadUnchecked_U32(_Address);
-#endif
-	return inst;
-}
-
-// The following function is deprecated in favour of FAST_ICACHE
-u32 Read_Opcode_JIT_LC(const u32 _Address)
-{
-#ifdef JIT_UNLIMITED_ICACHE	
-	if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000 &&
-		(_Address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
-		(_Address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (_Address & ~JIT_ICACHEEX_MASK) != 0x10000000)
-	{
-		PanicAlertT("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
-		ERROR_LOG(MEMMAP, "iCacheJIT: Reading Opcode from %x. Please report.", _Address);
-		return 0;
-	}
-	u8* iCache;
-	u32 addr;
-	if (_Address & JIT_ICACHE_VMEM_BIT)
-	{		
-		iCache = jit->GetBlockCache()->GetICacheVMEM();
-		addr = _Address & JIT_ICACHE_MASK;
-	}
-	else if (_Address & JIT_ICACHE_EXRAM_BIT)
-	{		
-		iCache = jit->GetBlockCache()->GetICacheEx();
-		addr = _Address & JIT_ICACHEEX_MASK;
+		memset(ptr,_iValue,_iLength);
 	}
 	else
 	{
-		iCache = jit->GetBlockCache()->GetICache();
-		addr = _Address & JIT_ICACHE_MASK;
+		for (u32 i = 0; i < _iLength; i++)
+			Write_U8(_iValue, _Address + i);
 	}
+<<<<<<< HEAD
 	u32 inst = *(u32*)(iCache + addr);
 	if (inst == JIT_ICACHE_INVALID_WORD)
 		inst = Memory::ReadUnchecked_U32(_Address);
@@ -933,6 +851,8 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
             Write_U8(_iValue, _Address + i);
     }
 */
+=======
+>>>>>>> master
 }
 
 void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
@@ -940,18 +860,18 @@ void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlo
 	const u8 *src = GetCachePtr() + (_CacheAddr & 0x3FFFF);
 	u8 *dst = GetPointer(_MemAddr);
 
-    if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
-    {
-	    memcpy(dst, src, 32 * _iNumBlocks);
-    }
-    else
-    {
-        for (u32 i = 0; i < 32 * _iNumBlocks; i++)
-        {
-            u8 Temp = Read_U8(_CacheAddr + i);
-            Write_U8(Temp, _MemAddr + i);
-        }
-    }
+	if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	{
+		memcpy(dst, src, 32 * _iNumBlocks);
+	}
+	else
+	{
+		for (u32 i = 0; i < 32 * _iNumBlocks; i++)
+		{
+			u8 Temp = Read_U8(_CacheAddr + i);
+			Write_U8(Temp, _MemAddr + i);
+		}
+	}
 }
 
 void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlocks)
@@ -959,18 +879,18 @@ void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlo
 	const u8 *src = GetPointer(_MemAddr);
 	u8 *dst = GetCachePtr() + (_CacheAddr & 0x3FFFF);
 
-    if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
-    {
-        memcpy(dst, src, 32 * _iNumBlocks);
-    }
-    else
-    {
-        for (u32 i = 0; i < 32 * _iNumBlocks; i++)
-        {
-            u8 Temp = Read_U8(_MemAddr + i);
-            Write_U8(Temp, _CacheAddr + i);
-        }
-    }
+	if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
+	{
+		memcpy(dst, src, 32 * _iNumBlocks);
+	}
+	else
+	{
+		for (u32 i = 0; i < 32 * _iNumBlocks; i++)
+		{
+			u8 Temp = Read_U8(_MemAddr + i);
+			Write_U8(Temp, _CacheAddr + i);
+		}
+	}
 }
 
 void ReadBigEData(u8 *data, const u32 em_address, const u32 size)

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _DSPEMITTER_H
 #define _DSPEMITTER_H
@@ -120,8 +107,8 @@ public:
 	void dsp_op_write_reg_imm(int reg, u16 val);
 	void dsp_conditional_extend_accum(int reg);
 	void dsp_conditional_extend_accum_imm(int reg, u16 val);
+	void dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg, DSPJitSignExtend extend = NONE);
 	void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExtend extend = NONE);
-	void dsp_op_read_reg_and_saturate(int reg, Gen::X64Reg host_dreg, DSPJitSignExtend extend = NONE);
 
 	// Commands
 	void dar(const UDSPInstruction opc);

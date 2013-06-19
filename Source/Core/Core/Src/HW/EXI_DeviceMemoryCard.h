@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _EXI_DEVICEMEMORYCARD_H
 #define _EXI_DEVICEMEMORYCARD_H
@@ -47,8 +34,17 @@ private:
 	// through the userdata parameter, so that it can then call Flush on the right card.
 	static void FlushCallback(u64 userdata, int cyclesLate);
 
+	// Scheduled when a command that required delayed end signaling is done.
+	static void CmdDoneCallback(u64 userdata, int cyclesLate);
+
 	// Flushes the memory card contents to disk.
 	void Flush(bool exiting = false);
+
+	// Signals that the command that was previously executed is now done.
+	void CmdDone();
+
+	// Variant of CmdDone which schedules an event later in the future to complete the command.
+	void CmdDoneLater(u64 cycles);
 
 	enum 
 	{
@@ -71,7 +67,7 @@ private:
 
 	std::string m_strFilename;
 	int card_index;
-	int et_this_card;
+	int et_this_card, et_cmd_done;
 	//! memory card state
 
 	// STATE_TO_SAVE

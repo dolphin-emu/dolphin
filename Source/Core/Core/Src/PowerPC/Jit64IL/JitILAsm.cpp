@@ -1,21 +1,8 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
-#include "ABI.h"
+#include "x64ABI.h"
 #include "x64Emitter.h"
 
 #include "../../HW/Memmap.h"
@@ -25,7 +12,7 @@
 #include "MemoryUtil.h"
 #include "CPUDetect.h"
 
-#include "ABI.h"
+#include "x64ABI.h"
 #include "Thunk.h"
 
 #include "../../HW/GPFifo.h"
@@ -71,7 +58,7 @@ void JitILAsmRoutineManager::Generate()
 #endif
 //	INT3();
 
-	const u8 *outerLoop = GetCodePtr();
+	const u8 *outer_loop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
 	
@@ -211,16 +198,16 @@ void JitILAsmRoutineManager::Generate()
 		doTiming = GetCodePtr();
 
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
-
+		
 		testExceptions = GetCodePtr();
 		MOV(32, R(EAX), M(&PC));
 		MOV(32, M(&NPC), R(EAX));
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 		MOV(32, R(EAX), M(&NPC));
 		MOV(32, M(&PC), R(EAX));
-
+		
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-		J_CC(CC_Z, outerLoop, true);
+		J_CC(CC_Z, outer_loop, true);
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();

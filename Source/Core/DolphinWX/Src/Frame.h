@@ -1,20 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
-
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef __FRAME_H_
 #define __FRAME_H_
@@ -28,6 +14,10 @@
 #include <wx/tooltip.h>
 #include <string>
 #include <vector>
+
+#ifdef __APPLE__
+#include <Cocoa/Cocoa.h>
+#endif
 
 #include "CDUtils.h"
 #include "Debugger/CodeWindow.h"
@@ -116,7 +106,7 @@ public:
 		#endif
 	}
 
-	// These have to be public		
+	// These have to be public
 	CCodeWindow* g_pCodeWindow;
 	NetPlaySetupDiag* g_NetPlaySetupDiag;
 	wxCheatsWindow* g_CheatsWindow;
@@ -130,7 +120,7 @@ public:
 	void UpdateGameList();
 	void ToggleLogWindow(bool bShow);
 	void ToggleLogConfigWindow(bool bShow);
-	void ToggleConsole(bool bShow);		
+	void ToggleConsole(bool bShow);
 	void PostEvent(wxCommandEvent& event);
 	void StatusBarMessage(const char * Text, ...);
 	void ClearStatusBar();
@@ -205,7 +195,7 @@ private:
 		Toolbar_ConfigGFX,
 		Toolbar_ConfigDSP,
 		Toolbar_ConfigPAD,
-		Toolbar_Wiimote,			
+		Toolbar_Wiimote,
 		Toolbar_Help,
 		EToolbar_Max
 	};
@@ -299,12 +289,13 @@ private:
 	void OnLoadStateFromFile(wxCommandEvent& event);
 	void OnSaveStateToFile(wxCommandEvent& event);
 	void OnLoadLastState(wxCommandEvent& event);
+	void OnSaveFirstState(wxCommandEvent& event);
 	void OnUndoLoadState(wxCommandEvent& event);
 	void OnUndoSaveState(wxCommandEvent& event);
-		
+
 	void OnFrameSkip(wxCommandEvent& event);
 	void OnFrameStep(wxCommandEvent& event);
-		
+
 	void OnConfigMain(wxCommandEvent& event); // Options
 	void OnConfigGFX(wxCommandEvent& event);
 	void OnConfigDSP(wxCommandEvent& event);
@@ -328,7 +319,7 @@ private:
 	void OnKeyUp(wxKeyEvent& event);
 
 	void OnMouse(wxMouseEvent& event); // Mouse
-		
+
 	void OnHostMessage(wxCommandEvent& event);
 
 	void OnMemcard(wxCommandEvent& event); // Misc

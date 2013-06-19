@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "CommonPaths.h"
@@ -26,6 +13,7 @@
 #include "FileUtil.h"
 #include "NandPaths.h"
 #include "ChunkFile.h"
+#include "../HW/SystemTimers.h"
 
 #include "../VolumeHandler.h"
 
@@ -48,8 +36,8 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	// clear tmp folder
 	{
 		std::string Path = File::GetUserPath(D_WIIUSER_IDX) + "tmp";
-	    File::DeleteDirRecursively(Path);
-	    File::CreateDir(Path.c_str());
+		File::DeleteDirRecursively(Path);
+		File::CreateDir(Path.c_str());
 	}
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -135,7 +123,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
 				size_t numFile = FileSearch.GetFileNames().size();
-				INFO_LOG(WII_IPC_FILEIO, "\t%lu Files found", (unsigned long)numFile);
+				INFO_LOG(WII_IPC_FILEIO, "\t%lu files found", (unsigned long)numFile);
 
 				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}
@@ -226,7 +214,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 				fsBlocks = 0;
 				iNodes = 0;
 				ReturnValue = FS_RESULT_OK;
-				WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directoy: %s", path.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directory: %s", path.c_str());
 			}
 
 			Memory::Write_U32(fsBlocks, CommandBuffer.PayloadBuffer[0].m_Address);
@@ -376,7 +364,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 				u32 Addr = _BufferOut;
 				Memory::Write_U32(OwnerID, Addr);										Addr += 4;
 				Memory::Write_U16(GroupID, Addr);										Addr += 2;
-				memcpy(Memory::GetPointer(Addr), Filename.c_str(), Filename.size());	Addr += 64;
+				memcpy(Memory::GetPointer(Addr), Memory::GetPointer(_BufferIn), 64);	Addr += 64;
 				Memory::Write_U8(OwnerPerm, Addr);										Addr += 1;
 				Memory::Write_U8(GroupPerm, Addr);										Addr += 1;
 				Memory::Write_U8(OtherPerm, Addr);										Addr += 1;
@@ -427,7 +415,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			File::CreateFullPath(FilenameRename);
 
 			// if there is already a file, delete it
-			if (File::Exists(FilenameRename))
+			if (File::Exists(Filename) && File::Exists(FilenameRename))
 			{
 				File::Delete(FilenameRename);
 			}
@@ -497,6 +485,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 	}
 
 	return FS_RESULT_FATAL;
+}
+
+int CWII_IPC_HLE_Device_fs::GetCmdDelay(u32)
+{
+	// ~1/1000th of a second is too short and causes hangs in Wii Party
+	// Play it safe at 1/500th
+	return SystemTimers::GetTicksPerSecond() / 500;
 }
 
 void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)

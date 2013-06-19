@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _SIDEVICE_H
 #define _SIDEVICE_H
@@ -47,6 +34,7 @@ enum TSIDevices
 	SI_GC_CONTROLLER	= (SI_TYPE_GC | SI_GC_STANDARD),
 	SI_GC_KEYBOARD		= (SI_TYPE_GC | 0x00200000),
 	SI_GC_STEERING		= SI_TYPE_GC, // (shuffle2)I think the "chainsaw" is the same (Or else it's just standard)
+	SI_DANCEMAT			= (SI_TYPE_GC | SI_GC_STANDARD | 0x00000300),
 	SI_AM_BASEBOARD		= 0x10110800 // gets ORd with dipswitch state
 };
 
@@ -62,6 +50,7 @@ enum SIDevices
 	SIDEVICE_GC_CONTROLLER,
 	SIDEVICE_GC_KEYBOARD,
 	SIDEVICE_GC_STEERING,
+	SIDEVICE_DANCEMAT,
 	SIDEVICE_GC_TARUKONGA,
 	SIDEVICE_AM_BASEBOARD
 };

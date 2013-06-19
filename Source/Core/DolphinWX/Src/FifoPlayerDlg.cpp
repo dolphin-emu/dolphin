@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "FifoPlayerDlg.h"
@@ -22,6 +9,7 @@
 #include "FifoPlayer/FifoPlayer.h"
 #include "FifoPlayer/FifoRecorder.h"
 #include "OpcodeDecoding.h"
+#include "WxUtils.h"
 
 #include <wx/spinctrl.h>
 #include <wx/clipbrd.h>
@@ -46,8 +34,8 @@ FifoPlayerDlg::FifoPlayerDlg(wxWindow * const parent) :
 {
 	CreateGUIControls();
 
-	sMutex.lock();	
-	m_EvtHandler = GetEventHandler();	
+	sMutex.lock();
+	m_EvtHandler = GetEventHandler();
 	sMutex.unlock();
 
 	FifoPlayer::GetInstance().SetFileLoadedCallback(FileLoaded);
@@ -67,7 +55,7 @@ FifoPlayerDlg::~FifoPlayerDlg()
 	m_ObjectToCtrl->Unbind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnObjectTo, this);
 	m_EarlyMemoryUpdates->Unbind(wxEVT_COMMAND_CHECKBOX_CLICKED, &FifoPlayerDlg::OnCheckEarlyMemoryUpdates, this);
 	m_RecordStop->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnRecordStop, this);
-	m_Save->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnSaveFile, this);	
+	m_Save->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnSaveFile, this);
 	m_FramesToRecordCtrl->Unbind(wxEVT_COMMAND_SPINCTRL_UPDATED, &FifoPlayerDlg::OnNumFramesToRecord, this);
 	m_Close->Unbind(wxEVT_COMMAND_BUTTON_CLICKED, &FifoPlayerDlg::OnCloseClick, this);
 
@@ -77,7 +65,7 @@ FifoPlayerDlg::~FifoPlayerDlg()
 
 	FifoPlayer::GetInstance().SetFrameWrittenCallback(NULL);
 
-	sMutex.lock();	
+	sMutex.lock();
 	m_EvtHandler = NULL;
 	sMutex.unlock();
 }
@@ -204,7 +192,8 @@ void FifoPlayerDlg::CreateGUIControls()
 	m_FramesToRecordLabel->Wrap(-1);
 	sRecordingOptions->Add(m_FramesToRecordLabel, 0, wxALL, 5);
 	
-	m_FramesToRecordCtrl = new wxSpinCtrl(m_RecordPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 1);
+	wxString initialNum = wxString::Format(_T("%d"), m_FramesToRecord);
+	m_FramesToRecordCtrl = new wxSpinCtrl(m_RecordPage, wxID_ANY, initialNum, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 1);
 	sRecordingOptions->Add(m_FramesToRecordCtrl, 0, wxALL, 5);
 	
 	sRecordPage->Add(sRecordingOptions, 0, wxEXPAND, 5);
@@ -264,9 +253,7 @@ void FifoPlayerDlg::CreateGUIControls()
 	m_findNext = new wxButton(m_AnalyzePage, wxID_ANY, _("Find next"));
 	m_findPrevious = new wxButton(m_AnalyzePage, wxID_ANY, _("Find previous"));
 
-	m_beginSearch->Disable();
-	m_findNext->Disable();
-	m_findPrevious->Disable();
+	ResetSearch();
 
 	sSearchButtons->Add(m_beginSearch, 0, wxALL, 5);
 	sSearchButtons->Add(m_findNext, 0, wxALL, 5);
@@ -386,18 +373,23 @@ void FifoPlayerDlg::OnCheckEarlyMemoryUpdates(wxCommandEvent& event)
 
 void FifoPlayerDlg::OnSaveFile(wxCommandEvent& WXUNUSED(event))
 {
+	// Pointer to the file data that was created as a result of recording.
 	FifoDataFile *file = FifoRecorder::GetInstance().GetRecordedFile();
 
 	if (file)
-		{
+	{
+		// Bring up a save file dialog. The location the user chooses will be assigned to this variable.
 		wxString path = wxSaveFileSelector(_("Dolphin FIFO"), wxT("dff"), wxEmptyString, this);
 
+		// Has a valid file path
 		if (!path.empty())
 		{
+			// Attempt to save the file to the path the user chose
 			wxBeginBusyCursor();
-			bool result = file->Save(path.mb_str());
+			bool result = file->Save(WxStrToStr(path).c_str());
 			wxEndBusyCursor();
 			
+			// Wasn't able to save the file, shit's whack, yo.
 			if (!result)
 				PanicAlert("Error saving file");
 		}
@@ -408,14 +400,21 @@ void FifoPlayerDlg::OnRecordStop(wxCommandEvent& WXUNUSED(event))
 {
 	FifoRecorder& recorder = FifoRecorder::GetInstance();
 
+	// Recorder is still recording
 	if (recorder.IsRecording())
 	{
+		// Then stop recording
 		recorder.StopRecording();
-		m_RecordStop->Disable();
+
+		// and change the button label accordingly.
+		m_RecordStop->SetLabel(_("Record"));
 	}
-	else
+	else // Recorder is actually about to start recording
 	{
+		// So start recording
 		recorder.StartRecording(m_FramesToRecord, RecordingFinished);
+
+		// and change the button label accordingly.
 		m_RecordStop->SetLabel(_("Stop"));
 	}
 }
@@ -483,8 +482,7 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 			SearchResult result;
 			result.frame_idx = frame_idx;
 
-			int obj_idx = m_objectsList->GetSelection();
-			result.obj_idx = obj_idx;
+			result.obj_idx = m_objectsList->GetSelection();
 			result.cmd_idx = 0;
 			for (unsigned int cmd_idx = 1; cmd_idx < m_objectCmdOffsets.size(); ++cmd_idx)
 			{
@@ -500,16 +498,12 @@ void FifoPlayerDlg::OnBeginSearch(wxCommandEvent& event)
 
 	ChangeSearchResult(0);
 	m_beginSearch->Disable();
-	m_findNext->Enable();
-	m_findPrevious->Enable();
 	m_numResultsText->SetLabel(wxString::Format(_("Found %d results for \'"), search_results.size()) + m_searchField->GetValue() + _("\'"));
 }
 
 void FifoPlayerDlg::OnSearchFieldTextChanged(wxCommandEvent& event)
 {
-	m_beginSearch->Enable(m_searchField->GetLineLength(0) > 0);
-	m_findNext->Disable();
-	m_findPrevious->Disable();
+	ResetSearch();
 }
 
 void FifoPlayerDlg::OnFindNextClick(wxCommandEvent& event)
@@ -552,7 +546,7 @@ void FifoPlayerDlg::OnFindPreviousClick(wxCommandEvent& event)
 
 void FifoPlayerDlg::ChangeSearchResult(unsigned int result_idx)
 {
-	if (search_results.size() > result_idx)
+	if (result_idx < search_results.size()) // if index is valid
 	{
 		m_search_result_idx = result_idx;
 		int prev_frame = m_framesList->GetSelection();
@@ -578,11 +572,23 @@ void FifoPlayerDlg::ChangeSearchResult(unsigned int result_idx)
 			ev.SetInt(m_objectCmdList->GetSelection());
 			OnObjectCmdListSelectionChanged(ev);
 		}
+
+		m_findNext->Enable(result_idx+1 < search_results.size());
+		m_findPrevious->Enable(result_idx != 0);
 	}
 	else if (search_results.size())
 	{
 		ChangeSearchResult(search_results.size() - 1);
 	}
+}
+
+void FifoPlayerDlg::ResetSearch()
+{
+	m_beginSearch->Enable(m_searchField->GetLineLength(0) > 0);
+	m_findNext->Disable();
+	m_findPrevious->Disable();
+
+	search_results.clear();
 }
 
 void FifoPlayerDlg::OnFrameListSelectionChanged(wxCommandEvent& event)
@@ -601,6 +607,8 @@ void FifoPlayerDlg::OnFrameListSelectionChanged(wxCommandEvent& event)
 	wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
 	ev.SetInt(-1);
 	OnObjectListSelectionChanged(ev);
+
+	ResetSearch();
 }
 
 void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
@@ -625,7 +633,9 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 		int stream_size = Common::swap16(objectdata);
 		objectdata += 2;
 		wxString newLabel = wxString::Format(wxT("%08X:  %02X %04X  "), obj_offset, cmd, stream_size);
-		if ((objectdata_end - objectdata) % stream_size) newLabel += _("NOTE: Stream size doesn't match actual data length\n");
+		if (stream_size && ((objectdata_end - objectdata) % stream_size))
+			newLabel += _("NOTE: Stream size doesn't match actual data length\n");
+
 		while (objectdata < objectdata_end)
 		{
 			newLabel += wxString::Format(wxT("%02X"), *objectdata++);
@@ -642,8 +652,8 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 			{
 				m_objectCmdOffsets.push_back(objectdata - objectdata_start);
 				int new_offset = objectdata - &fifo_frame.fifoData[frame.objectStarts[0]];
-				int cmd = *objectdata++;
-				switch (cmd)
+				int command = *objectdata++;
+				switch (command)
 				{
 				case GX_NOP:
 					newLabel = _("NOP");
@@ -691,9 +701,9 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 				case GX_LOAD_INDX_C:
 				case GX_LOAD_INDX_D:
 					objectdata += 4;
-					newLabel = wxString::Format(wxT("LOAD INDX %s"), (cmd == GX_LOAD_INDX_A) ? _("A") :
-																	(cmd == GX_LOAD_INDX_B) ? _("B") :
-																	(cmd == GX_LOAD_INDX_C) ? _("C") : _("D"));
+					newLabel = wxString::Format(wxT("LOAD INDX %s"), (command == GX_LOAD_INDX_A) ? _("A") :
+																	(command == GX_LOAD_INDX_B) ? _("B") :
+																	(command == GX_LOAD_INDX_C) ? _("C") : _("D"));
 					break;
 
 				case GX_CMD_CALL_DL:
@@ -726,6 +736,8 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
 	wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
 	ev.SetInt(-1);
 	OnObjectCmdListSelectionChanged(ev);
+
+	ResetSearch();
 }
 
 void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
@@ -751,10 +763,10 @@ void FifoPlayerDlg::OnObjectCmdListSelectionChanged(wxCommandEvent& event)
 		char name[64]="\0", desc[512]="\0";
 		GetBPRegInfo(cmddata+1, name, sizeof(name), desc, sizeof(desc));
 		newLabel = _("BP register ");
-		newLabel += (name[0] != '\0') ? wxString(name, *wxConvCurrent) : wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1));
+		newLabel += (name[0] != '\0') ? StrToWxStr(name) : wxString::Format(_("UNKNOWN_%02X"), *(cmddata+1));
 		newLabel += wxT(":\n");
 		if (desc[0] != '\0')
-			newLabel += wxString(desc, *wxConvCurrent);
+			newLabel += StrToWxStr(desc);
 		else
 			newLabel += _("No description available");
 	}
@@ -837,10 +849,12 @@ void FifoPlayerDlg::UpdateAnalyzerGui()
 	if ((int)m_framesList->GetCount() != num_frames)
 	{
 		m_framesList->Clear();
+
 		for (int i = 0; i < num_frames; ++i)
 		{
 			m_framesList->Append(wxString::Format(wxT("Frame %i"), i));
 		}
+
 		wxCommandEvent ev = wxCommandEvent(wxEVT_COMMAND_LISTBOX_SELECTED);
 		ev.SetInt(-1);
 		OnFrameListSelectionChanged(ev);

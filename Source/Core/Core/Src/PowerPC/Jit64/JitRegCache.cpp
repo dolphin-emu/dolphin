@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "../PowerPC.h"
 #include "../PPCTables.h"
@@ -25,7 +12,8 @@
 using namespace Gen;
 using namespace PowerPC;
 
-RegCache::RegCache() : emit(0) {
+RegCache::RegCache() : emit(0)
+{
 	memset(locks, 0, sizeof(locks));
 	memset(xlocks, 0, sizeof(xlocks));
 	memset(saved_locks, 0, sizeof(saved_locks));
@@ -165,9 +153,12 @@ void RegCache::FlushR(X64Reg reg)
 
 int RegCache::SanityCheck() const
 {
-	for (int i = 0; i < 32; i++) {
-		if (regs[i].away) {
-			if (regs[i].location.IsSimpleReg()) {
+	for (int i = 0; i < 32; i++)
+	{
+		if (regs[i].away)
+		{
+			if (regs[i].location.IsSimpleReg())
+			{
 				Gen::X64Reg simple = regs[i].location.GetSimpleReg();
 				if (xlocks[simple])
 					return 1;
@@ -298,7 +289,9 @@ void GPRRegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 		// and immediates are taken care of above.
 		xregs[RX(i)].dirty |= makeDirty;
 	}
-	if (xlocks[RX(i)]) {
+
+	if (xlocks[RX(i)])
+	{
 		PanicAlert("Seriously WTF, this reg should have been flushed");
 	}
 }
@@ -351,7 +344,9 @@ void FPURegCache::BindToRegister(int i, bool doLoad, bool makeDirty)
 		}
 		regs[i].location = newloc;
 		regs[i].away = true;
-	} else {
+	}
+	else
+	{
 		// There are no immediates in the FPR reg file, so we already had this in a register. Make dirty as necessary.
 		xregs[RX(i)].dirty |= makeDirty;
 	}
@@ -380,15 +375,17 @@ void FPURegCache::StoreFromRegister(int i)
 
 void RegCache::Flush(FlushMode mode)
 {
-	for (int i = 0; i < NUMXREGS; i++) {
+	for (int i = 0; i < NUMXREGS; i++)
+	{
 		if (xlocks[i])
 			PanicAlert("Someone forgot to unlock X64 reg %i.", i);
 	}
+
 	for (int i = 0; i < 32; i++)
 	{
 		if (locks[i])
 		{
-			PanicAlert("Somebody forgot to unlock PPC reg %i.", i);
+			PanicAlert("Someone forgot to unlock PPC reg %i.", i);
 		}
 		if (regs[i].away)
 		{

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // TODO: Make a more centralized version of this (for now every backend that will use it will create its own context, which is weird). An object maybe?
 
@@ -148,25 +135,25 @@ cl_program CompileProgram(const char *Kernel)
 	// Build the program executable
 	err = clBuildProgram(program , 0, NULL, NULL, NULL, NULL);
 	if(err != CL_SUCCESS) {
-        HandleCLError(err, "Error: failed to build program");
+		HandleCLError(err, "Error: failed to build program");
 
 		char *buildlog = NULL;
-        size_t buildlog_size = 0;
+		size_t buildlog_size = 0;
 
 		clGetProgramBuildInfo(program, OpenCL::device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &buildlog_size);
-        buildlog = new char[buildlog_size + 1];
-        err = clGetProgramBuildInfo(program, OpenCL::device_id, CL_PROGRAM_BUILD_LOG, buildlog_size, buildlog, NULL);
-        buildlog[buildlog_size] = 0;
-        
-        if(err != CL_SUCCESS)
-        {
-            HandleCLError(err, "Error: can't get build log");
-        } else
-        {
-		    ERROR_LOG(COMMON, "Error log:\n%s\n", buildlog);
-        }
+		buildlog = new char[buildlog_size + 1];
+		err = clGetProgramBuildInfo(program, OpenCL::device_id, CL_PROGRAM_BUILD_LOG, buildlog_size, buildlog, NULL);
+		buildlog[buildlog_size] = 0;
+		
+		if(err != CL_SUCCESS)
+		{
+			HandleCLError(err, "Error: can't get build log");
+		} else
+		{
+			ERROR_LOG(COMMON, "Error log:\n%s\n", buildlog);
+		}
 
-        delete[] buildlog;
+		delete[] buildlog;
 		return NULL;
 	}
 

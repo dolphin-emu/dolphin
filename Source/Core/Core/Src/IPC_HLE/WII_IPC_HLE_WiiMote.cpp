@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h" // Common
 #include "StringUtil.h"
@@ -50,7 +37,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	, m_HIDInterruptChannel_Config(false)
 	, m_HIDInterruptChannel_ConfigWait(false)
 	, m_BD(_BD)
-	, m_Name("Nintendo RVL-CNT-01")
+	, m_Name(_Number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
 	, m_pHost(_pHost)
 {
 	DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote: #%i Constructed", _Number);
@@ -211,8 +198,7 @@ void CWII_IPC_HLE_WiiMote::EventConnectionAccepted()
 void CWII_IPC_HLE_WiiMote::EventDisconnect()
 {
 	// Send disconnect message to plugin
-	u8 Message = WIIMOTE_DISCONNECT;
-	Wiimote::ControlChannel(m_ConnectionHandle & 0xFF, 99, &Message, 0);
+	Wiimote::ControlChannel(m_ConnectionHandle & 0xFF, 99, NULL, 0);
 
 	m_ConnectionState = CONN_INACTIVE;
 	// Clear channel flags
@@ -291,13 +277,13 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 					break;
 
 				case L2CAP_PSM_HID_CNTL:
-					if (number < 4)
+					if (number < MAX_BBMOTES)
 						Wiimote::ControlChannel(number, pHeader->dcid, pData, DataSize);
 					break;
 
 				case L2CAP_PSM_HID_INTR:
 					{
-						if (number < 4)
+						if (number < MAX_BBMOTES)
 						{
 							DEBUG_LOG(WIIMOTE, "Wiimote_InterruptChannel");
 							DEBUG_LOG(WIIMOTE, "    Channel ID: %04x", pHeader->dcid);
@@ -310,7 +296,7 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 					break;
 
 				default:
-					ERROR_LOG(WII_IPC_WIIMOTE, "channel 0x04%x has unknown PSM %x", pHeader->dcid, rChannel.PSM);
+					ERROR_LOG(WII_IPC_WIIMOTE, "Channel 0x04%x has unknown PSM %x", pHeader->dcid, rChannel.PSM);
 					break;
 				}
 			}
@@ -320,7 +306,7 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 }
 
 void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
-{    
+{
 	while (_Size >= sizeof(l2cap_cmd_hdr_t))
 	{
 		l2cap_cmd_hdr_t* cmd_hdr = (l2cap_cmd_hdr_t*)_pData;
@@ -334,7 +320,7 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 				"Try to replace your SYSCONF file with a new copy.");
 			break;
 
-		case L2CAP_CONNECT_REQ:            
+		case L2CAP_CONNECT_REQ:
 			ReceiveConnectionReq(cmd_hdr->ident, _pData, cmd_hdr->length);
 			break;
 
@@ -342,7 +328,7 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 			ReceiveConnectionResponse(cmd_hdr->ident, _pData, cmd_hdr->length);
 			break;
 
-		case L2CAP_CONFIG_REQ:            
+		case L2CAP_CONFIG_REQ:
 			ReceiveConfigurationReq(cmd_hdr->ident, _pData, cmd_hdr->length);
 			break;
 
@@ -665,8 +651,8 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceSearchResponse(u16 cid, u16 Transaction
 	// verify block... we handle search pattern for HID service only
 	{
 		CBigEndianBuffer buffer(pServiceSearchPattern);		
-		_dbg_assert_(WII_IPC_WIIMOTE, buffer.Read8(0) == SDP_SEQ8);       // data sequence
-		_dbg_assert_(WII_IPC_WIIMOTE, buffer.Read8(1) == 0x03);		  // sequence size
+		_dbg_assert_(WII_IPC_WIIMOTE, buffer.Read8(0) == SDP_SEQ8);   // data sequence
+		_dbg_assert_(WII_IPC_WIIMOTE, buffer.Read8(1) == 0x03);       // sequence size
 
 		// HIDClassID
 		_dbg_assert_(WII_IPC_WIIMOTE, buffer.Read8(2) == 0x19);
@@ -697,7 +683,7 @@ static u32 ParseCont(u8* pCont)
 {
 	u32 attribOffset = 0;
 	CBigEndianBuffer attribList(pCont);
-	u8 typeID      = attribList.Read8(attribOffset);		attribOffset++;
+	u8 typeID		= attribList.Read8(attribOffset);		attribOffset++;
 
 	if (typeID == 0x02)
 	{
@@ -720,7 +706,7 @@ int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 
 	u8 sequence		= attribList.Read8(attribOffset);		attribOffset++;
 	u8 seqSize		= attribList.Read8(attribOffset);		attribOffset++;
-	u8 typeID      		= attribList.Read8(attribOffset);		attribOffset++;
+	u8 typeID		= attribList.Read8(attribOffset);		attribOffset++;
 
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 	_dbg_assert_(WII_IPC_WIIMOTE, sequence == SDP_SEQ8);
@@ -752,8 +738,8 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 Transact
 {
 	if (ServiceHandle != 0x10000)
 	{
-		ERROR_LOG(WII_IPC_WIIMOTE, "unknown service handle %x" , ServiceHandle);
-		PanicAlert("unknown service handle %x" , ServiceHandle);
+		ERROR_LOG(WII_IPC_WIIMOTE, "Unknown service handle %x" , ServiceHandle);
+		PanicAlert("Unknown service handle %x" , ServiceHandle);
 	}
 
 

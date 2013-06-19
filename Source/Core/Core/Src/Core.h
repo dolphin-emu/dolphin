@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 
 // Core
@@ -38,13 +25,15 @@ namespace Core
 // TODO: kill, use SConfig instead
 extern SCoreStartupParameter g_CoreStartupParameter;
 
+extern bool isTabPressed;
+
 void Callback_VideoCopiedToXFB(bool video_update);
 
 enum EState
 {
-    CORE_UNINITIALIZED,
-    CORE_PAUSE,
-    CORE_RUN,
+	CORE_UNINITIALIZED,
+	CORE_PAUSE,
+	CORE_RUN,
 	CORE_STOPPING
 };
 
@@ -67,7 +56,7 @@ void SaveScreenShot();
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
 void* GetWindowHandle();
-    
+
 void StartTrace(bool write);
 
 // This displays messages in a user-visible way.
@@ -80,7 +69,7 @@ inline void DisplayMessage(const std::string &message, int time_in_ms)
 	
 std::string GetStateFileName();
 void SetStateFileName(std::string val);
-    
+
 int SyncTrace();
 void SetBlockStart(u32 addr);
 void StopTrace();

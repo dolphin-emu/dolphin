@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _COREPARAMETER_H
 #define _COREPARAMETER_H
@@ -21,7 +8,8 @@
 #include "IniFile.h"
 #include <string>
 
-enum Hotkey {
+enum Hotkey
+{
 	HK_OPEN,
 	HK_CHANGE_DISC,
 	HK_REFRESH_LIST,
@@ -38,6 +26,7 @@ enum Hotkey {
 
 	HK_FULLSCREEN,
 	HK_SCREENSHOT,
+	HK_EXIT,
 
 	HK_WIIMOTE1_CONNECT,
 	HK_WIIMOTE2_CONNECT,
@@ -61,6 +50,19 @@ enum Hotkey {
 	HK_SAVE_STATE_SLOT_6,
 	HK_SAVE_STATE_SLOT_7,
 	HK_SAVE_STATE_SLOT_8,
+
+	HK_LOAD_LAST_STATE_1,
+	HK_LOAD_LAST_STATE_2,
+	HK_LOAD_LAST_STATE_3,
+	HK_LOAD_LAST_STATE_4,
+	HK_LOAD_LAST_STATE_5,
+	HK_LOAD_LAST_STATE_6,
+	HK_LOAD_LAST_STATE_7,
+	HK_LOAD_LAST_STATE_8,
+
+	HK_SAVE_FIRST_STATE,
+	HK_UNDO_LOAD_STATE,
+	HK_UNDO_SAVE_STATE,
 
 	NUM_HOTKEYS,
 };
@@ -94,6 +96,7 @@ struct SCoreStartupParameter
 	bool bJITILTimeProfiling;
 	bool bJITILOutputIR;
 
+	bool bFastmem;
 	bool bEnableFPRF;
 
 	bool bCPUThread;
@@ -105,6 +108,7 @@ struct SCoreStartupParameter
 	bool bHLE_BS2;
 	bool bEnableCheats;
 	bool bMergeBlocks;
+	bool bEnableMemcardSaving;
 
 	bool bDPL2Decoder;
 	int iLatency;
@@ -115,13 +119,13 @@ struct SCoreStartupParameter
 	bool bMMU;
 	bool bDCBZOFF;
 	int iTLBHack;
-	bool bVBeam;
+	bool bVBeamSpeedHack;
+	bool bSyncGPU;
 	bool bFastDiscSpeed;
 
 	int SelectedLanguage;
 
 	bool bWii;
-	bool bDisableWiimoteSpeaker;
 
 	// Interface settings
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;

@@ -1,0 +1,1169 @@
+IROM_BASE:	equ 0x8000
+
+lri $CR, #0x00ff
+lri $SR, #0x2000
+si @DMBH, #0x8071
+si @DMBL, #0xfeed
+
+mainloop:
+	clr $ACC1
+	clr $ACC0
+	call wait_for_cpu_mbox+#IROM_BASE
+
+;mmem-addr	
+param1:
+	lr $AC1.M, @CMBL
+	lri $AC0.M, #0xa001
+	cmp
+	jnz param2+#IROM_BASE
+	call wait_for_cpu_mbox+#IROM_BASE
+	lr $IX0, @CMBH
+	lr $IX1, @CMBL
+	jmp mainloop+#IROM_BASE
+
+;iram-addr	
+param2:
+	lri $AC0.M, #0xc002
+	cmp
+	jnz param3+#IROM_BASE
+	call wait_for_cpu_mbox+#IROM_BASE
+	lr $IX2, @CMBL
+	jmp mainloop+#IROM_BASE
+
+;iram-length	
+param3:
+	lri $AC0.M, #0xa002
+	cmp
+	jnz param4+#IROM_BASE
+	call wait_for_cpu_mbox+#IROM_BASE
+	lr $IX3, @CMBL
+	jmp mainloop+#IROM_BASE
+
+;dram-length	
+param4:
+	lri $AC0.M, #0xb002
+	cmp
+	jnz param5+#IROM_BASE
+	call wait_for_cpu_mbox+#IROM_BASE
+	lr $AX0.L, @CMBL
+	jmp mainloop+#IROM_BASE	
+
+;iram-start-addr	
+param5:
+	lri $AC0.M, #0xd001
+	cmp
+	jnz mainloop+#IROM_BASE
+	call wait_for_cpu_mbox+#IROM_BASE
+	lr $AR0, @CMBL
+	jmp 0x80b5
+	
+wait_for_dsp_mbox:
+	lrs		$AC0.M, @DMBH
+	andcf	$AC0.M, #0x8000
+	jlz		wait_for_dsp_mbox+#IROM_BASE
+	ret
+
+wait_for_cpu_mbox:
+	lrs		$AC0.M, @CMBH
+	andcf	$AC0.M, #0x8000
+	jlnz	wait_for_cpu_mbox+#IROM_BASE
+	ret
+	
+wait_dma:
+	lrs		$AC0.M, @DSCR
+	andcf	$AC0.M, #0x0004
+	jlz		wait_dma+#IROM_BASE
+	ret
+	
+bootucode:	
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop		
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop	
+	nop		
+	nop		
+	nop		
+	nop		
+	nop		
+	nop		
+	nop		
+	nop		
+	nop		
+
+sub_80b5:
+	set16       
+	clr  $ACC1
+	clr  $ACC0
+	lris $AC0.M, #0x2
+	sr   @DSCR, $AC0.M
+	sr   @DSMAH, $IX0
+	sr   @DSMAL, $IX1
+	sr   @DSPA, $IX2
+	sr   @DSBL, $IX3
+	call wait_dma+#IROM_BASE
+	jmpr $AR0
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+; 80e7
+; Args:
+; AR0 points to the 32 input 1 samples (s16)
+; AR1 points to the volume data (init1, delta1, init2, delta2)
+; AR2 points to the already mixed samples for output 1 (s32)
+; AR3 points to where the output 1 should be stored (s32)
+; IX0 points to the 32 input 2 samples (s16)
+; IX1 points to where the output 2 should be stored (s32)
+;
+; Returns:
+; AX0.L is the value of the last sample from input 1
+; AX1.H is the value of the last sample from input 2
+mix_two_add:
+    call mix_add+#IROM_BASE
+    iar $AR1
+    mrr $AR0, $IX0
+    mrr $AR2, $IX1
+    mrr $AR3, $IX1
+    mrr $IX0, $AX0.L
+    call mix_add+#IROM_BASE
+    mrr $AX1.H, $AX0.L
+    mrr $AX0.L, $IX0
+    ret
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+; 81f9
+; Args:
+; AR0 points to the 32 input samples (s16)
+; AR1 points to the volume data (init, delta)
+; AR2 points to the already mixed samples (s32)
+; AR3 points to where the output should be stored (s32)
+;
+; Returns:
+; AX0.L is the value of the last sample
+; AX1.H is the first address after the output
+mix_add:
+    lrri $AX1.L, @$AR1
+    bloopi #32, ____mix_add_end_loop+#IROM_BASE
+        lrri $AC0.M, @$AR2
+        lrri $AC0.L, @$AR2
+        lsl16 $ACC0
+        lrri $AX0.H, @$AR0
+        mulx $AX0.H, $AX1.L
+        addp $ACC0
+        asr16 $ACC0
+        srri @$AR3, $AC0.M
+____mix_add_end_loop:
+        srri @$AR3, $AC0.L
+    movp $ACC0
+    mrr $AX0.L, $AC0.M
+    mrr $AX1.H, $AR3
+    ret
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+; 8282
+mix_two_add_ramp:
+    call mix_add_ramp+#IROM_BASE
+    mrr $AR0, $IX0
+    mrr $AR2, $IX1
+    mrr $IX1, $AX0.L
+    call mix_add_ramp+#IROM_BASE
+    mrr $AX1.H, $AX0.L
+    mrr $AX0.L, $IX1
+    ret
+
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+; 845d
+mix_add_ramp:
+    clr $ACC0
+    clr $ACC1
+    lrri $AC0.L, @$AR1
+    lrrd $AC1.L, @$AR1
+    mrr $IX2, $AR3
+
+    bloopi #32, ____mix_add_ramp_end_ramp+#IROM_BASE
+        srri @$AR3, $AC0.L
+____mix_add_ramp_end_ramp:
+        add $ACC0, $ACC1
+
+    srri @$AR1, $AC0.L
+    iar $AR1
+    mrr $IX3, $AR1
+    mrr $AR1, $IX2
+    mrr $AR3, $AR2
+
+    bloopi #32, ____mix_add_ramp_end_loop+#IROM_BASE
+        lrri $AC0.M, @$AR2
+        lrri $AC0.L, @$AR2
+        lsl16 $ACC0
+        lrri $AX0.H, @$AR0
+        lrri $AX1.L, @$AR1
+        mulx $AX0.H, $AX1.L
+        addp $ACC0
+        asr16 $ACC0
+        srri @$AR3, $AC0.M
+____mix_add_ramp_end_loop:
+        srri @$AR3, $AC0.L
+    movp $ACC0
+    mrr $AX0.L, $AC0.M
+    mrr $AX1.H, $AR3
+    mrr $AR1, $IX3
+    mrr $AR3, $IX2
+    ret

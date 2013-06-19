@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <cmath>
 
@@ -74,31 +61,32 @@ static const u8 eeprom_data_16D0[] = {
 
 const ReportFeatures reporting_mode_features[] = 
 {
-    //0x30: Core Buttons
+	//0x30: Core Buttons
 	{ 2, 0, 0, 0, 4 },
-    //0x31: Core Buttons and Accelerometer
+	//0x31: Core Buttons and Accelerometer
 	{ 2, 4, 0, 0, 7 },
-    //0x32: Core Buttons with 8 Extension bytes
+	//0x32: Core Buttons with 8 Extension bytes
 	{ 2, 0, 0, 4, 12 },
-    //0x33: Core Buttons and Accelerometer with 12 IR bytes
+	//0x33: Core Buttons and Accelerometer with 12 IR bytes
 	{ 2, 4, 7, 0, 19 },
-    //0x34: Core Buttons with 19 Extension bytes
+	//0x34: Core Buttons with 19 Extension bytes
 	{ 2, 0, 0, 4, 23 },
-    //0x35: Core Buttons and Accelerometer with 16 Extension Bytes
+	//0x35: Core Buttons and Accelerometer with 16 Extension Bytes
 	{ 2, 4, 0, 7, 23 },
-    //0x36: Core Buttons with 10 IR bytes and 9 Extension Bytes
+	//0x36: Core Buttons with 10 IR bytes and 9 Extension Bytes
 	{ 2, 0, 4, 14, 23 },
-    //0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
+	//0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
 	{ 2, 4, 7, 17, 23 },
 
 	// UNSUPPORTED:
-    //0x3d: 21 Extension Bytes
+	//0x3d: 21 Extension Bytes
 	{ 0, 0, 0, 2, 23 },
-    //0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
+	//0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
 	{ 0, 0, 0, 0, 23 },
 };
 
 void EmulateShake(AccelData* const accel
+	  , accel_cal* const calib
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step )
 {
@@ -107,7 +95,7 @@ void EmulateShake(AccelData* const accel
 	auto const shake_step_max = 15;
 
 	// peak G-force
-	auto const shake_intensity = 3.f;
+	double shake_intensity;
 	
 	// shake is a bitfield of X,Y,Z shake button states
 	static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
@@ -118,6 +106,9 @@ void EmulateShake(AccelData* const accel
 	{
 		if (shake & (1 << i))
 		{
+			double zero = double((&(calib->zero_g.x))[i]);
+			double one = double((&(calib->one_g.x))[i]);
+			shake_intensity = max(zero / (one - zero), (255.f - zero) / (one - zero));
 			(&(accel->x))[i] = std::sin(TAU * shake_step[i] / shake_step_max) * shake_intensity;
 			shake_step[i] = (shake_step[i] + 1) % shake_step_max;
 		}
@@ -419,6 +410,7 @@ void Wiimote::GetAccelData(u8* const data, u8* const buttons)
 	const bool has_focus = HAS_FOCUS;
 	const bool is_sideways = m_options->settings[1]->value != 0;
 	const bool is_upright = m_options->settings[2]->value != 0;
+	accel_cal* calib = (accel_cal*)&m_eeprom[0x16];
 
 	// ----TILT----
 	EmulateTilt(&m_accel, m_tilt, has_focus, is_sideways, is_upright);
@@ -428,11 +420,10 @@ void Wiimote::GetAccelData(u8* const data, u8* const buttons)
 	if (has_focus)
 	{
 		EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
-		EmulateShake(&m_accel, m_shake, m_shake_step);
+		EmulateShake(&m_accel, calib, m_shake, m_shake_step);
 		UDPTLayer::GetAcceleration(m_udp, &m_accel);
 	}
 	wm_accel* dt = (wm_accel*)data;
-	accel_cal* calib = (accel_cal*)&m_eeprom[0x16];
 	double cx,cy,cz;
 	cx=trim(m_accel.x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x);
 	cy=trim(m_accel.y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y);
@@ -478,7 +469,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 				az/=len; //normalizing the vector
 				nsin=ax;
 				ncos=az;
-			} else
+			}
+			else
 			{
 				nsin=0;
 				ncos=1;
@@ -486,7 +478,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		//	PanicAlert("%d %d %d\nx:%f\nz:%f\nsin:%f\ncos:%f",accel->x,accel->y,accel->z,ax,az,sin,cos);
 			//PanicAlert("%d %d %d\n%d %d %d\n%d %d %d",accel->x,accel->y,accel->z,calib->zero_g.x,calib->zero_g.y,calib->zero_g.z,
 			//	calib->one_g.x,calib->one_g.y,calib->one_g.z);
-		} else
+		}
+		else
 		{
 			nsin=0; //m_tilt stuff here (can't figure it out yet....)
 			ncos=1;
@@ -704,13 +697,13 @@ void Wiimote::Update()
 		{
 			using namespace WiimoteReal;
 	
-			std::lock_guard<std::mutex> lk(g_refresh_lock);
+			std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 			if (g_wiimotes[m_index])
 			{
-				Report rpt = g_wiimotes[m_index]->ProcessReadQueue();
-				const u8 *real_data = rpt.first;
-				if (real_data)
+				const Report& rpt = g_wiimotes[m_index]->ProcessReadQueue();
+				if (!rpt.empty())
 				{
+					const u8 *real_data = rpt.data();
 					switch (real_data[1])
 					{
 						// use data reports
@@ -770,13 +763,9 @@ void Wiimote::Update()
 					// copy over report from real-wiimote
 					if (-1 == rptf_size)
 					{
-						memcpy(data, real_data, rpt.second);
-						rptf_size = rpt.second;
+						std::copy(rpt.begin(), rpt.end(), data);
+						rptf_size = rpt.size();
 					}
-	
-					if (real_data != g_wiimotes[m_index]->\
-						m_last_data_report.first)
-						delete[] real_data;
 				}
 			}
 		}
@@ -934,14 +923,14 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 	// DPad
 #ifdef _WIN32
-	set_control(m_dpad, 0, "UP");			// Up
+	set_control(m_dpad, 0, "UP");		// Up
 	set_control(m_dpad, 1, "DOWN");		// Down
 	set_control(m_dpad, 2, "LEFT");		// Left
-	set_control(m_dpad, 3, "RIGHT");		// Right
+	set_control(m_dpad, 3, "RIGHT");	// Right
 #elif __APPLE__
 	set_control(m_dpad, 0, "Up Arrow");		// Up
-	set_control(m_dpad, 1, "Down Arrow");		// Down
-	set_control(m_dpad, 2, "Left Arrow");		// Left
+	set_control(m_dpad, 1, "Down Arrow");	// Down
+	set_control(m_dpad, 2, "Left Arrow");	// Left
 	set_control(m_dpad, 3, "Right Arrow");	// Right
 #else
 	set_control(m_dpad, 0, "Up");		// Up

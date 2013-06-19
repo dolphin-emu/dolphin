@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _VIDEOCOMMON_H
 #define _VIDEOCOMMON_H
@@ -90,8 +77,8 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, ##__VA_ARGS__)
 #endif
 
-
-// #define LOG_VTX() DEBUG_LOG(VIDEO, "vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1], ((float*)VertexManager::s_pCurBufferPointer)[2]);
+// warning: mapping buffer should be disabled to use this
+// #define LOG_VTX() DEBUG_LOG(VIDEO, "vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-3], ((float*)VertexManager::s_pCurBufferPointer)[-2], ((float*)VertexManager::s_pCurBufferPointer)[-1]);
 
 #define LOG_VTX()
 
@@ -102,8 +89,7 @@ typedef enum
 	API_D3D9_SM20 = 4,
 	API_D3D9 = 6,	
 	API_D3D11 = 8,
-	API_GLSL = 16,
-	API_NONE = 32
+	API_NONE = 16
 } API_TYPE;
 
 inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
@@ -149,5 +135,11 @@ inline unsigned int GetPow2(unsigned int val)
 		++ret;
 	return ret;
 }
+struct s_svar
+{
+	const char *name;
+	const unsigned int reg;
+	const unsigned int size;
+};
 
 #endif  // _VIDEOCOMMON_H

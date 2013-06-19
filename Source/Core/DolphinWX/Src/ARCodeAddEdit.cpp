@@ -1,22 +1,10 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "ARCodeAddEdit.h"
 #include "ARDecrypt.h"
+#include "WxUtils.h"
 
 extern std::vector<ActionReplay::ARCode> arCodes;
 
@@ -38,7 +26,7 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 	}
 	else
 	{
-		currentName = wxString(arCodes.at(selection).name.c_str(), *wxConvCurrent);
+		currentName = StrToWxStr(arCodes.at(selection).name);
 		tempEntries = arCodes.at(selection);
 	}
 
@@ -73,7 +61,7 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)
 {
 	ActionReplay::ARCode currentCode = arCodes.at((int)arCodes.size() - event.GetPosition());
-	EditCheatName->SetValue(wxString(currentCode.name.c_str(), *wxConvCurrent));
+	EditCheatName->SetValue(StrToWxStr(currentCode.name));
 	UpdateTextCtrl(currentCode);
 }
 
@@ -84,7 +72,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 
 	// Split the entered cheat into lines.
 	std::vector<std::string> userInputLines;
-	SplitString(std::string(EditCheatCode->GetValue().mb_str()), '\n', userInputLines);
+	SplitString(WxStrToStr(EditCheatCode->GetValue()), '\n', userInputLines);
 
 	for (size_t i = 0;  i < userInputLines.size();  i++)
 	{
@@ -148,7 +136,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 		// Add a new AR cheat code.
 		ActionReplay::ARCode newCheat;
 
-		newCheat.name = std::string(EditCheatName->GetValue().mb_str());
+		newCheat.name = WxStrToStr(EditCheatName->GetValue());
 		newCheat.ops = decryptedLines;
 		newCheat.active = true;
 
@@ -157,7 +145,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 	else
 	{
 		// Update the currently-selected AR cheat code.
-		arCodes.at(selection).name = std::string(EditCheatName->GetValue().mb_str());
+		arCodes.at(selection).name = WxStrToStr(EditCheatName->GetValue());
 		arCodes.at(selection).ops = decryptedLines;
 	}
 
@@ -169,8 +157,12 @@ void CARCodeAddEdit::UpdateTextCtrl(ActionReplay::ARCode arCode)
 	EditCheatCode->Clear();
 
 	if (arCode.name != "")
+	{
 		for (u32 i = 0; i < arCode.ops.size(); i++)
 			EditCheatCode->AppendText(wxString::Format(wxT("%08X %08X\n"), arCode.ops.at(i).cmd_addr, arCode.ops.at(i).value));
+	}
 	else
+	{
 		EditCheatCode->SetValue(_("Insert Encrypted or Decrypted code here..."));
+	}
 }

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <sstream>
 
@@ -130,7 +117,8 @@ void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	{
 		PB.ReachedEnd = 0;
 reached_end:
-		if (!PB.RepeatMode) {
+		if (!PB.RepeatMode)
+		{
 			// One shot - play zeros the rest of the buffer.
 clear_buffer:
 			for (u32 i = 0; i < rem_samples; i++)
@@ -226,7 +214,6 @@ clear_buffer:
 template <typename T> 
 void PrintObject(const T &Obj) 
 {
-	char byte[2] = {0};
 	std::stringstream ss;
 	u8 *o = (u8 *)&Obj;
 
@@ -235,15 +222,17 @@ void PrintObject(const T &Obj)
 	CompileTimeAssert<sizeof(ZeldaVoicePB) == 0x180> ensure_zpb_size_correct;
 	(void)ensure_zpb_size_correct;
 
-	for (size_t i = 0; i < sizeof(T); i++) {
-		if((i > 0) && ((i & 1) == 0))
-			ss << " ";
-
-		sprintf(byte, "%02X", Common::swap16(o[i]));
-		ss << byte;
+	ss << std::hex;
+	for (size_t i = 0; i < sizeof(T); i++)
+	{
+		if((i & 1) == 0)
+			ss << ' ';
+		ss.width(2);
+		ss.fill('0');
+		ss << Common::swap16(o[i]);
 	}
 
-	DEBUG_LOG(DSPHLE, "AFC PB: %s", ss.str().c_str());
+	DEBUG_LOG(DSPHLE, "AFC PB:%s", ss.str().c_str());
 }
 
 void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
@@ -256,48 +245,51 @@ void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
 
 	// initialize "decoder" if the sample is played the first time
-    if (PB.NeedsReset != 0)
-    {
+	if (PB.NeedsReset != 0)
+	{
 		// This is 0717_ReadOutPBStuff
 		// increment 4fb
-        // zelda: 
-        // perhaps init or "has played before"
-        PB.CurBlock = 0x00;
+		// zelda: 
+		// perhaps init or "has played before"
+		PB.CurBlock = 0x00;
 		PB.YN2 = 0x00;     // history1 
-        PB.YN1 = 0x00;     // history2 
+		PB.YN1 = 0x00;     // history2 
 
 		// Length in samples.
-        PB.RemLength = PB.Length;
-        // Copy ARAM addr from r to rw area.
-        PB.CurAddr = PB.StartAddr;
+		PB.RemLength = PB.Length;
+		// Copy ARAM addr from r to rw area.
+		PB.CurAddr = PB.StartAddr;
 		PB.ReachedEnd = 0;
 		PB.CurSampleFrac = 0;
 
 		for (int i = 0; i < 4; i++) 
 			PB.ResamplerOldData[i] = 0;
-    }
+	}
 
-    if (PB.KeyOff != 0)  // 0747 early out... i dunno if this can happen because we filter it above
+	if (PB.KeyOff != 0)  // 0747 early out... i dunno if this can happen because we filter it above
 	{
 		for (int i = 0; i < _RealSize; i++)
 			*_Buffer++ = 0;
-        return;
+		return;
 	}
 
 	// Round upwards how many samples we need to copy, 0759
-    // u32 frac = NumberOfSamples & 0xF;
-    // NumberOfSamples = (NumberOfSamples + 0xf) >> 4;   // i think the lower 4 are the fraction
+	// u32 frac = NumberOfSamples & 0xF;
+	// NumberOfSamples = (NumberOfSamples + 0xf) >> 4;   // i think the lower 4 are the fraction
 
 	const u8 *source;
 	u32 ram_mask = 1024 * 1024 * 16 - 1;
-	if (IsDMAVersion()) {
+	if (IsDMAVersion())
+	{
 		source = Memory::GetPointer(m_DMABaseAddr);
 		ram_mask = 1024 * 1024 * 64 - 1;
 	}
 	else
+	{
 		source = DSP::GetARAMPtr();
+	}
 
-    int sampleCount = 0;  // must be above restart.
+	int sampleCount = 0;  // must be above restart.
 
 restart:
 	if (PB.ReachedEnd)
@@ -338,17 +330,17 @@ restart:
 	u32 prev_addr = PB.CurAddr;
 
 	// Prefill the decode buffer.
-    AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, PB.Format);
+	AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, PB.Format);
 	PB.CurAddr += PB.Format;  // 9 or 5
 
 	u32 SamplePosition = PB.Length - PB.RemLength;
-    while (sampleCount < _RealSize)
-    {
+	while (sampleCount < _RealSize)
+	{
 		_Buffer[sampleCount] = outbuf[SamplePosition & 15];
 		sampleCount++;
 
 		SamplePosition++;
-	    PB.RemLength--;
+		PB.RemLength--;
 		if (PB.RemLength == 0)
 		{
 			PB.ReachedEnd = 1;
@@ -356,7 +348,8 @@ restart:
 		}
 
 		// Need new samples!
-		if ((SamplePosition & 15) == 0) {
+		if ((SamplePosition & 15) == 0)
+		{
 			prev_yn1 = PB.YN1;
 			prev_yn2 = PB.YN2;
 			prev_addr = PB.CurAddr;
@@ -364,7 +357,7 @@ restart:
 			AFCdecodebuffer(m_AFCCoefTable, (char*)(source + (PB.CurAddr & ram_mask)), outbuf, (short*)&PB.YN2, (short*)&PB.YN1, PB.Format);
 			PB.CurAddr += PB.Format;  // 9 or 5
 		}
-    }
+	}
 
 	// Here we should back off to the previous addr/yn1/yn2, since we didn't consume the full last block.
 	// We'll re-decode it the next time around.
@@ -372,16 +365,16 @@ restart:
 	PB.YN1 = prev_yn1;
 	PB.CurAddr = prev_addr;
 
-    PB.NeedsReset = 0;
+	PB.NeedsReset = 0;
 	// PB.CurBlock = 0x10 - (PB.LoopStartPos & 0xf);
 	// write back
-    // NumberOfSamples = (NumberOfSamples << 4) | frac;    // missing fraction
+	// NumberOfSamples = (NumberOfSamples << 4) | frac;    // missing fraction
 
-    // i think  pTest[0x3a] and pTest[0x3b] got an update after you have decoded some samples...
-    // just decrement them with the number of samples you have played
-    // and increase the ARAM Offset in pTest[0x38], pTest[0x39]
+	// i think  pTest[0x3a] and pTest[0x3b] got an update after you have decoded some samples...
+	// just decrement them with the number of samples you have played
+	// and increase the ARAM Offset in pTest[0x38], pTest[0x39]
 
-    // end of block (Zelda 03b2)
+	// end of block (Zelda 03b2)
 }
 
 void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer);
@@ -513,7 +506,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
 
-	case 0x0008:        // PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD + very little in Zelda WW.
+	case 0x0008:		// PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD + very little in Zelda WW.
 		RenderVoice_PCM8(PB, m_ResampleBuffer + 4, _Size);
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
@@ -563,12 +556,12 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			WARN_LOG(DSPHLE, "Synthesizing 0x0006 (constant sound)");
 			RenderSynth_Constant(PB, m_VoiceBuffer, _Size);
 			break;
-                        
-  		// These are more "synth" formats - square wave, saw wave etc.
+
+		// These are more "synth" formats - square wave, saw wave etc.
 		case 0x0002:
 			WARN_LOG(DSPHLE, "PB Format 0x02 used!");
 			break;
-                    
+
 		case 0x0004: // Example: Big Pikmin onion mothership landing/building a bridge in Pikmin
 		case 0x0007: // Example: "success" SFX in Pikmin 1, Pikmin 2 in a cave, not sure what sound it is.
 		case 0x000b: // Example: SFX in area selection menu in Pikmin
@@ -596,7 +589,7 @@ ContinueWithBlock:
 
 	for (int i = 0; i < _Size; i++)
 	{
-		
+		// TODO?
 	}
 	
 	// Apply volume. There are two different modes.
@@ -625,12 +618,14 @@ ContinueWithBlock:
 		b00[2] = AX0H * AX1L >> 16;
 		b00[3] = AX0L * AX0H >> 16;
 
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++)
+		{
 			b00[i + 4] = (s16)b00[i] * (s16)PB.raw[0x2a] >> 16;
 		}
 
 		int prod = ((s16)PB.raw[0x2a] * (s16)PB.raw[0x29] * 2) >> 16;
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++)
+		{
 			b00[i + 8] = (s16)b00[i + 4] * prod;
 		}
 
@@ -639,11 +634,13 @@ ContinueWithBlock:
 		int diff = (s16)PB.raw[0x2b] - (s16)PB.raw[0x2a];
 		PB.raw[0x2a] = PB.raw[0x2b];
 
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++)
+		{
 			b00[i + 0xc] = (unsigned short)b00[i] * diff >> 16;
 		}
 
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++)
+		{
 			b00[i + 0x10] = (s16)b00[i + 0xc] * PB.raw[0x29];
 		}
 
@@ -682,7 +679,9 @@ ContinueWithBlock:
 				sum += value;
 				addr += 5;
 			}
-			if (sum == 0) {
+
+			if (sum == 0)
+			{
 				PB.KeyOff = 1;
 			}
 		}
@@ -719,7 +718,9 @@ ContinueWithBlock:
 						case 0: _LeftBuffer[i] += (u64)value * ramp >> 29; break;
 						case 1: _RightBuffer[i] += (u64)value * ramp >> 29; break;
 					}
-					if (((i & 1) == 0) && i < 64) {
+
+					if (((i & 1) == 0) && i < 64)
+					{
 						ramp += delta;
 					}
 				}

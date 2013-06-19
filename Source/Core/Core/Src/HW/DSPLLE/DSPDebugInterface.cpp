@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "DSPDebugInterface.h"
 
@@ -38,9 +25,11 @@ void DSPDebugInterface::getRawMemoryString(int memory, unsigned int address, cha
 		return;
 	}
 
-	switch (memory) {
+	switch (memory)
+	{
 	case 0:  // IMEM
-		switch (address >> 12) {
+		switch (address >> 12)
+		{
 		case 0:
 		case 0x8:
 			sprintf(dest, "%04x", dsp_imem_read(address));
@@ -51,7 +40,8 @@ void DSPDebugInterface::getRawMemoryString(int memory, unsigned int address, cha
 		}
 		break;
 	case 1:  // DMEM
-		switch (address >> 12) {
+		switch (address >> 12)
+		{
 		case 0:
 		case 1:
 			sprintf(dest, "%04x (DMEM)", dsp_dmem_read(address));
@@ -94,29 +84,39 @@ bool DSPDebugInterface::isBreakpoint(unsigned int address)
 void DSPDebugInterface::setBreakpoint(unsigned int address)
 {
 	int real_addr = DSPSymbols::Line2Addr(address);
-	if (real_addr >= 0) {
+
+	if (real_addr >= 0)
+	{
 		if (dsp_breakpoints.Add(real_addr))
-		{}
+		{
+
+		}
 	}
 }
 
 void DSPDebugInterface::clearBreakpoint(unsigned int address)
 {
 	int real_addr = DSPSymbols::Line2Addr(address);
-	if (real_addr >= 0) {
+	
+	if (real_addr >= 0)
+	{
 		if (dsp_breakpoints.Remove(real_addr))
-		{}
+		{
+
+		}
 	}
 }
 
-void DSPDebugInterface::clearAllBreakpoints() {
+void DSPDebugInterface::clearAllBreakpoints()
+{
 	dsp_breakpoints.Clear();
 }
 
 void DSPDebugInterface::toggleBreakpoint(unsigned int address)
 {
 	int real_addr = DSPSymbols::Line2Addr(address);
-	if (real_addr >= 0) {
+	if (real_addr >= 0)
+	{
 		if (dsp_breakpoints.IsAddressBreakPoint(real_addr))
 			dsp_breakpoints.Remove(real_addr);
 		else

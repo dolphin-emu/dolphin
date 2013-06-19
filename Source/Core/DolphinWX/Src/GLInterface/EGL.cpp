@@ -24,54 +24,25 @@
 // Show the current FPS
 void cInterfaceEGL::UpdateFPSDisplay(const char *text)
 {
-	XStoreName(GLWin.dpy, GLWin.win, text);
+	Platform.UpdateFPSDisplay(text);
 }
-
-void cInterfaceEGL::SwapInterval(int Interval)
-{
-	eglSwapInterval(GLWin.egl_dpy, Interval);
-}
-
 void cInterfaceEGL::Swap()
 {
 	eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);
+}
+void cInterfaceEGL::SwapInterval(int Interval)
+{
+	eglSwapInterval(GLWin.egl_dpy, Interval);
 }
 
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceEGL::Create(void *&window_handle)
 {
-	int _tx, _ty, _twidth, _theight;
-	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
-
-	// Control window size and picture scaling
-	s_backbuffer_width = _twidth;
-	s_backbuffer_height = _theight;
-
+	const char *s;
 	EGLint egl_major, egl_minor;
-
-	GLWin.dpy = XOpenDisplay(NULL);
-
-	if (!GLWin.dpy) {
-		ERROR_LOG(VIDEO, "Error: couldn't open display\n");
-		return false;
-	}
-
-	GLWin.egl_dpy = eglGetDisplay(GLWin.dpy);
-	if (!GLWin.egl_dpy) {
-		ERROR_LOG(VIDEO, "Error: eglGetDisplay() failed\n");
-		return false;
-	}
-
-	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor)) {
-		ERROR_LOG(VIDEO, "Error: eglInitialize() failed\n");
-		return false;
-	}
-
-	INFO_LOG(VIDEO, "EGL_VERSION = %s\n", eglQueryString(GLWin.egl_dpy, EGL_VERSION));
-	INFO_LOG(VIDEO, "EGL_VENDOR = %s\n", eglQueryString(GLWin.egl_dpy, EGL_VENDOR));
-	INFO_LOG(VIDEO, "EGL_EXTENSIONS = %s\n", eglQueryString(GLWin.egl_dpy, EGL_EXTENSIONS));
-	INFO_LOG(VIDEO, "EGL_CLIENT_APIS = %s\n", eglQueryString(GLWin.egl_dpy, EGL_CLIENT_APIS));
+	EGLConfig config;
+	EGLint num_configs;
 
 	// attributes for a visual in RGBA format with at least
 	// 8 bits per color and a 24 bit depth buffer
@@ -81,7 +52,11 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		EGL_BLUE_SIZE, 8,
 		EGL_DEPTH_SIZE, 24,
 #ifdef USE_GLES
+#ifdef USE_GLES3
+		EGL_RENDERABLE_TYPE, (1 << 6) /* EGL_OPENGL_ES3_BIT */,
+#else
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+#endif
 #else
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
 #endif
@@ -93,70 +68,79 @@ bool cInterfaceEGL::Create(void *&window_handle)
 #endif
 		EGL_NONE
 	};
-	
-	GLWin.evdpy = XOpenDisplay(NULL);
-	GLWin.parent = (Window)window_handle;
-	GLWin.screen = DefaultScreen(GLWin.dpy);
-	if (GLWin.parent == 0)
-		GLWin.parent = RootWindow(GLWin.dpy, GLWin.screen);
 
-	XVisualInfo  visTemplate;
-	int num_visuals;
-	EGLConfig config;
-	EGLint num_configs;
-	EGLint vid;
+	if(!Platform.SelectDisplay())
+		return false;
 
-	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs)) {
-		ERROR_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
+	GLWin.egl_dpy = Platform.EGLGetDisplay();
+
+	if (!GLWin.egl_dpy) {
+		INFO_LOG(VIDEO, "Error: eglGetDisplay() failed\n");
 		return false;
 	}
 
-	if (!eglGetConfigAttrib(GLWin.egl_dpy, config, EGL_NATIVE_VISUAL_ID, &vid)) {
-		ERROR_LOG(VIDEO, "Error: eglGetConfigAttrib() failed\n");
+	GLWin.platform = Platform.platform;
+
+	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor)) {
+		INFO_LOG(VIDEO, "Error: eglInitialize() failed\n");
 		return false;
 	}
 
-	/* The X window visual must match the EGL config */
-	visTemplate.visualid = vid;
-	GLWin.vi = XGetVisualInfo(GLWin.dpy, VisualIDMask, &visTemplate, &num_visuals);
-	if (!GLWin.vi) {
-		ERROR_LOG(VIDEO, "Error: couldn't get X visual\n");
-		return false;
-	}
-	
-	GLWin.x = _tx;
-	GLWin.y = _ty;
-	GLWin.width = _twidth;
-	GLWin.height = _theight;
-
-	XWindow.CreateXWindow();
 #ifdef USE_GLES
 	eglBindAPI(EGL_OPENGL_ES_API);
 #else
 	eglBindAPI(EGL_OPENGL_API);
 #endif
-	GLWin.egl_ctx = eglCreateContext(GLWin.egl_dpy, config, EGL_NO_CONTEXT, ctx_attribs );
-	if (!GLWin.egl_ctx) {
-		ERROR_LOG(VIDEO, "Error: eglCreateContext failed\n");
-		return false;
+
+	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs)) {
+		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
+		exit(1);
 	}
 
-	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.win, NULL);
-	if (!GLWin.egl_surf) {
-		ERROR_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
+	if (!Platform.Init(config))
 		return false;
+
+	s = eglQueryString(GLWin.egl_dpy, EGL_VERSION);
+	INFO_LOG(VIDEO, "EGL_VERSION = %s\n", s);
+
+	s = eglQueryString(GLWin.egl_dpy, EGL_VENDOR);
+	INFO_LOG(VIDEO, "EGL_VENDOR = %s\n", s);
+
+	s = eglQueryString(GLWin.egl_dpy, EGL_EXTENSIONS);
+	INFO_LOG(VIDEO, "EGL_EXTENSIONS = %s\n", s);
+
+	s = eglQueryString(GLWin.egl_dpy, EGL_CLIENT_APIS);
+	INFO_LOG(VIDEO, "EGL_CLIENT_APIS = %s\n", s);
+
+	GLWin.egl_ctx = eglCreateContext(GLWin.egl_dpy, config, EGL_NO_CONTEXT, ctx_attribs );
+	if (!GLWin.egl_ctx) {
+		INFO_LOG(VIDEO, "Error: eglCreateContext failed\n");
+		exit(1);
+	}
+
+	GLWin.native_window = Platform.CreateWindow();
+
+	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config,
+				GLWin.native_window, NULL);
+	if (!GLWin.egl_surf) {
+		INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
+		exit(1);
 	}
 
 	if (!eglMakeCurrent(GLWin.egl_dpy, GLWin.egl_surf, GLWin.egl_surf, GLWin.egl_ctx)) {
-		ERROR_LOG(VIDEO, "Error: eglMakeCurrent() failed\n");
+
+		INFO_LOG(VIDEO, "Error: eglMakeCurrent() failed\n");
 		return false;
 	}
-	
+
 	INFO_LOG(VIDEO, "GL_VENDOR: %s\n", glGetString(GL_VENDOR));
 	INFO_LOG(VIDEO, "GL_RENDERER: %s\n", glGetString(GL_RENDERER));
 	INFO_LOG(VIDEO, "GL_VERSION: %s\n", glGetString(GL_VERSION));
 	INFO_LOG(VIDEO, "GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
-	window_handle = (void *)GLWin.win;
+
+	Platform.ToggleFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
+
+	window_handle = (void *)GLWin.native_window;
 	return true;
 }
 
@@ -167,15 +151,18 @@ bool cInterfaceEGL::MakeCurrent()
 // Close backend
 void cInterfaceEGL::Shutdown()
 {
-	XWindow.DestroyXWindow();
+	Platform.DestroyWindow();
 	if (GLWin.egl_ctx && !eglMakeCurrent(GLWin.egl_dpy, GLWin.egl_surf, GLWin.egl_surf, GLWin.egl_ctx))
 		NOTICE_LOG(VIDEO, "Could not release drawing context.");
 	if (GLWin.egl_ctx)
 	{
-		eglDestroyContext(GLWin.egl_dpy, GLWin.egl_ctx);
-		eglDestroySurface(GLWin.egl_dpy, GLWin.egl_surf);
-		eglTerminate(GLWin.egl_dpy);
+		eglMakeCurrent(GLWin.egl_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		if(!eglDestroyContext(GLWin.egl_dpy, GLWin.egl_ctx))
+			NOTICE_LOG(VIDEO, "Could not destroy drawing context.");
+		if(!eglDestroySurface(GLWin.egl_dpy, GLWin.egl_surf))
+			NOTICE_LOG(VIDEO, "Could not destroy window surface.");
+		if(!eglTerminate(GLWin.egl_dpy))
+			NOTICE_LOG(VIDEO, "Could not destroy display connection.");
 		GLWin.egl_ctx = NULL;
 	}
 }
-

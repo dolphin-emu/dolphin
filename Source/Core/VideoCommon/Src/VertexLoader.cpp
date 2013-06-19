@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <assert.h>
 
@@ -23,7 +10,7 @@
 #include "MemoryUtil.h"
 #include "StringUtil.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 #include "PixelEngine.h"
 #include "Host.h"
 
@@ -43,8 +30,11 @@
 //BBox
 #include "XFMemory.h"
 extern float GC_ALIGNED16(g_fProjectionMatrix[16]);
-
+#ifndef _M_GENERIC
+#ifndef __APPLE__
 #define USE_JIT
+#endif
+#endif
 
 #define COMPILED_CODE_SIZE 4096
 
@@ -72,6 +62,10 @@ int colElements[2];
 float posScale;
 float tcScale[8];
 
+// bbox must read vertex position, so convert it to this buffer
+static float s_bbox_vertex_buffer[3];
+static u8 *s_bbox_pCurBufferPointer_orig;
+
 static const float fractionTable[32] = {
 	1.0f / (1U << 0), 1.0f / (1U << 1), 1.0f / (1U << 2), 1.0f / (1U << 3),
 	1.0f / (1U << 4), 1.0f / (1U << 5), 1.0f / (1U << 6), 1.0f / (1U << 7),
@@ -93,10 +87,21 @@ void LOADERDECL PosMtx_ReadDirect_UByte()
 
 void LOADERDECL PosMtx_Write()
 {
-	*VertexManager::s_pCurBufferPointer++ = s_curposmtx;
-	*VertexManager::s_pCurBufferPointer++ = 0;
-	*VertexManager::s_pCurBufferPointer++ = 0;
-	*VertexManager::s_pCurBufferPointer++ = 0;
+	DataWrite<u8>(s_curposmtx);
+	DataWrite<u8>(0);
+	DataWrite<u8>(0);
+	DataWrite<u8>(0);
+}
+
+void LOADERDECL UpdateBoundingBoxPrepare() 
+{
+	if (!PixelEngine::bbox_active)
+		return;
+	
+	// set our buffer as videodata buffer, so we will get a copy of the vertex positions
+	// this is a big hack, but so we can use the same converting function then without bbox
+	s_bbox_pCurBufferPointer_orig = VertexManager::s_pCurBufferPointer;
+	VertexManager::s_pCurBufferPointer = (u8*)s_bbox_vertex_buffer;
 }
 
 void LOADERDECL UpdateBoundingBox() 
@@ -104,12 +109,16 @@ void LOADERDECL UpdateBoundingBox()
 	if (!PixelEngine::bbox_active)
 		return;
 
-	// Truly evil hack, reading backwards from the write pointer. If we were writing to write-only
-	// memory like we might have been with a D3D vertex buffer, this would have been a bad idea.
-	float *data = (float *)(VertexManager::s_pCurBufferPointer - 12);
+	// reset videodata pointer
+	VertexManager::s_pCurBufferPointer = s_bbox_pCurBufferPointer_orig;
+
+	// copy vertex pointers
+	memcpy(VertexManager::s_pCurBufferPointer, s_bbox_vertex_buffer, 12);
+	VertexManager::s_pCurBufferPointer += 12;
+
 	// We must transform the just loaded point by the current world and projection matrix - in software.
 	// Then convert to screen space and update the bounding box.
-	float p[3] = {data[0], data[1], data[2]};
+	float p[3] = {s_bbox_vertex_buffer[0], s_bbox_vertex_buffer[1], s_bbox_vertex_buffer[2]};
 
 	const float *world_matrix  = (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
 	const float *proj_matrix = &g_fProjectionMatrix[0];
@@ -147,24 +156,22 @@ void LOADERDECL TexMtx_ReadDirect_UByte()
 
 void LOADERDECL TexMtx_Write_Float()
 {
-	*(float*)VertexManager::s_pCurBufferPointer = (float)s_curtexmtx[s_texmtxwrite++];
-	VertexManager::s_pCurBufferPointer += 4;
+	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 }
 
 void LOADERDECL TexMtx_Write_Float2()
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = 0;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)s_curtexmtx[s_texmtxwrite++];
-	VertexManager::s_pCurBufferPointer += 8;
+	DataWrite(0.f);
+	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
 }
 
 void LOADERDECL TexMtx_Write_Float4()
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = 0;
-	((float*)VertexManager::s_pCurBufferPointer)[1] = 0;
-	((float*)VertexManager::s_pCurBufferPointer)[2] = s_curtexmtx[s_texmtxwrite++];
-	((float*)VertexManager::s_pCurBufferPointer)[3] = 0;  // Just to fill out with 0.
-	VertexManager::s_pCurBufferPointer += 16;
+	DataWrite(0.f);
+	DataWrite(0.f);
+	DataWrite(float(s_curtexmtx[s_texmtxwrite++]));
+	// Just to fill out with 0.
+	DataWrite(0.f);
 }
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr) 
@@ -182,14 +189,21 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_VtxDesc = vtx_desc;
 	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
 
+	#ifdef USE_JIT
 	AllocCodeSpace(COMPILED_CODE_SIZE);
 	CompileVertexTranslator();
 	WriteProtect();
+	#else
+	CompileVertexTranslator();
+	#endif
+
 }
 
 VertexLoader::~VertexLoader() 
 {
+	#ifdef USE_JIT
 	FreeCodeSpace();
+	#endif
 	delete m_NativeFmt;
 }
 
@@ -200,7 +214,7 @@ void VertexLoader::CompileVertexTranslator()
 
 #ifdef USE_JIT
 	if (m_compiledCode)
-		PanicAlert("trying to recompile a vtx translator");
+		PanicAlert("Trying to recompile a vertex translator");
 
 	m_compiledCode = GetCodePtr();
 	ABI_EmitPrologue(4);
@@ -210,14 +224,17 @@ void VertexLoader::CompileVertexTranslator()
 
 	// Reset component counters if present in vertex format only.
 	if (m_VtxDesc.Tex0Coord || m_VtxDesc.Tex1Coord || m_VtxDesc.Tex2Coord || m_VtxDesc.Tex3Coord ||
-		m_VtxDesc.Tex4Coord || m_VtxDesc.Tex5Coord || m_VtxDesc.Tex6Coord || m_VtxDesc.Tex7Coord) {
+		m_VtxDesc.Tex4Coord || m_VtxDesc.Tex5Coord || m_VtxDesc.Tex6Coord || m_VtxDesc.Tex7Coord)
+	{
 		WriteSetVariable(32, &tcIndex, Imm32(0));
 	}
-	if (m_VtxDesc.Color0 || m_VtxDesc.Color1) {
+	if (m_VtxDesc.Color0 || m_VtxDesc.Color1)
+	{
 		WriteSetVariable(32, &colIndex, Imm32(0));
 	}
 	if (m_VtxDesc.Tex0MatIdx || m_VtxDesc.Tex1MatIdx || m_VtxDesc.Tex2MatIdx || m_VtxDesc.Tex3MatIdx ||
-		m_VtxDesc.Tex4MatIdx || m_VtxDesc.Tex5MatIdx || m_VtxDesc.Tex6MatIdx || m_VtxDesc.Tex7MatIdx) {
+		m_VtxDesc.Tex4MatIdx || m_VtxDesc.Tex5MatIdx || m_VtxDesc.Tex6MatIdx || m_VtxDesc.Tex7MatIdx)
+	{
 		WriteSetVariable(32, &s_texmtxwrite, Imm32(0));
 		WriteSetVariable(32, &s_texmtxread, Imm32(0));
 	}
@@ -244,14 +261,16 @@ void VertexLoader::CompileVertexTranslator()
 	int nat_offset = 0;
 	PortableVertexDeclaration vtx_decl;
 	memset(&vtx_decl, 0, sizeof(vtx_decl));
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 8; i++)
+	{
 		vtx_decl.texcoord_offset[i] = -1;
 	}
 
 	// m_VBVertexStride for texmtx and posmtx is computed later when writing.
 	
 	// Position Matrix Index
-	if (m_VtxDesc.PosMatIdx) {
+	if (m_VtxDesc.PosMatIdx)
+	{
 		WriteCall(PosMtx_ReadDirect_UByte);
 		m_NativeFmt->m_components |= VB_HAS_POSMTXIDX;
 		m_VertexSize += 1;
@@ -267,14 +286,18 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
 	// Write vertex position loader
-	WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+	if(g_ActiveConfig.bUseBBox)
+	{
+		WriteCall(UpdateBoundingBoxPrepare);
+		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+		WriteCall(UpdateBoundingBox);
+	}
+	else
+	{
+		WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+	}
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
 	nat_offset += 12;
-
-	// OK, so we just got a point. Let's go back and read it for the bounding box.
-	
-	if(g_ActiveConfig.bUseBBox)
-		WriteCall(UpdateBoundingBox);
 
 	// Normals
 	vtx_decl.num_normals = 0;
@@ -302,12 +325,14 @@ void VertexLoader::CompileVertexTranslator()
 		vtx_decl.normal_gl_size = 3;
 		vtx_decl.normal_offset[0] = nat_offset;
 		nat_offset += 12;
-		if (vtx_attr.NormalElements) {
+
+		if (vtx_attr.NormalElements)
+		{
 			vtx_decl.normal_offset[1] = nat_offset;
 			nat_offset += 12;
 			vtx_decl.normal_offset[2] = nat_offset;
 			nat_offset += 12;
-		}	
+		}
 
 		int numNormals = (m_VtxAttr.NormalElements == 1) ? NRM_THREE : NRM_ONE;
 		m_NativeFmt->m_components |= VB_HAS_NRM0;
@@ -319,7 +344,8 @@ void VertexLoader::CompileVertexTranslator()
 	vtx_decl.color_gl_type = VAR_UNSIGNED_BYTE;
 	vtx_decl.color_offset[0] = -1;
 	vtx_decl.color_offset[1] = -1;
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; i++)
+	{
 		m_NativeFmt->m_components |= VB_HAS_COL0 << i;
 		switch (col[i])
 		{
@@ -339,7 +365,7 @@ void VertexLoader::CompileVertexTranslator()
 			default: _assert_(0); break;
 			}
 			break;
-		case INDEX8:	
+		case INDEX8:
 			m_VertexSize += 1;
 			switch (m_VtxAttr.color[i].Comp)
 			{
@@ -367,32 +393,39 @@ void VertexLoader::CompileVertexTranslator()
 			break;
 		}
 		// Common for the three bottom cases
-		if (col[i] != NOT_PRESENT) {
+		if (col[i] != NOT_PRESENT)
+		{
 			vtx_decl.color_offset[i] = nat_offset;
 			nat_offset += 4;
 		}
 	}
 
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 8; i++)
+	{
 		vtx_decl.texcoord_offset[i] = -1;
 		const int format = m_VtxAttr.texCoord[i].Format;
 		const int elements = m_VtxAttr.texCoord[i].Elements;
 
-		if (tc[i] == NOT_PRESENT) {
+		if (tc[i] == NOT_PRESENT)
+		{
 			m_NativeFmt->m_components &= ~(VB_HAS_UV0 << i);
-		} else {
+		}
+		else
+		{
 			_assert_msg_(VIDEO, DIRECT <= tc[i] && tc[i] <= INDEX16, "Invalid texture coordinates!\n(tc[i] = %d)", tc[i]);
 			_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
-			_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elemnts!\n(elements = %d)", elements);
+			_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elements!\n(elements = %d)", elements);
 
 			m_NativeFmt->m_components |= VB_HAS_UV0 << i;
 			WriteCall(VertexLoader_TextCoord::GetFunction(tc[i], format, elements));
 			m_VertexSize += VertexLoader_TextCoord::GetSize(tc[i], format, elements);
 		}
 
-		if (m_NativeFmt->m_components & (VB_HAS_TEXMTXIDX0 << i)) {
-			if (tc[i] != NOT_PRESENT) {
+		if (m_NativeFmt->m_components & (VB_HAS_TEXMTXIDX0 << i))
+		{
+			if (tc[i] != NOT_PRESENT)
+			{
 				// if texmtx is included, texcoord will always be 3 floats, z will be the texmtx index
 				vtx_decl.texcoord_offset[i] = nat_offset;
 				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
@@ -400,7 +433,8 @@ void VertexLoader::CompileVertexTranslator()
 				nat_offset += 12;
 				WriteCall(m_VtxAttr.texCoord[i].Elements ? TexMtx_Write_Float : TexMtx_Write_Float2);
 			}
-			else {
+			else
+			{
 				m_NativeFmt->m_components |= VB_HAS_UV0 << i; // have to include since using now
 				vtx_decl.texcoord_offset[i] = nat_offset;
 				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
@@ -409,8 +443,10 @@ void VertexLoader::CompileVertexTranslator()
 				WriteCall(TexMtx_Write_Float4);
 			}
 		}
-		else {
-			if (tc[i] != NOT_PRESENT) {
+		else
+		{
+			if (tc[i] != NOT_PRESENT)
+			{
 				vtx_decl.texcoord_offset[i] = nat_offset;
 				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
 				vtx_decl.texcoord_size[i] = vtx_attr.texCoord[i].Elements ? 2 : 1;
@@ -418,28 +454,35 @@ void VertexLoader::CompileVertexTranslator()
 			}
 		}
 
-		if (tc[i] == NOT_PRESENT) {
+		if (tc[i] == NOT_PRESENT)
+		{
 			// if there's more tex coords later, have to write a dummy call 
 			int j = i + 1;
-			for (; j < 8; ++j) {
-				if (tc[j] != NOT_PRESENT) {
+			for (; j < 8; ++j)
+			{
+				if (tc[j] != NOT_PRESENT)
+				{
 					WriteCall(VertexLoader_TextCoord::GetDummyFunction()); // important to get indices right!
 					break;
 				}
 			}
 			// tricky!
-			if (j == 8 && !((m_NativeFmt->m_components & VB_HAS_TEXMTXIDXALL) & (VB_HAS_TEXMTXIDXALL << (i + 1)))) {
+			if (j == 8 && !((m_NativeFmt->m_components & VB_HAS_TEXMTXIDXALL) & (VB_HAS_TEXMTXIDXALL << (i + 1))))
+			{
 				// no more tex coords and tex matrices, so exit loop
 				break;
 			}
 		}
 	}
 
-	if (m_VtxDesc.PosMatIdx) {
+	if (m_VtxDesc.PosMatIdx)
+	{
 		WriteCall(PosMtx_Write);
 		vtx_decl.posmtx_offset = nat_offset;
 		nat_offset += 4;
-	} else {
+	}
+	else
+	{
 		vtx_decl.posmtx_offset = -1;
 	}
 
@@ -474,7 +517,8 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 	m_PipelineStages[m_numPipelineStages++] = func;
 #endif
 }
-
+// ARMTODO: This should be done in a better way
+#ifndef _M_GENERIC
 void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 {
 #ifdef USE_JIT
@@ -498,8 +542,9 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 #endif
 #endif
 }
+#endif
 
-void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
+int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const count)
 {
 	m_numLoadedVertices += count;
 
@@ -518,7 +563,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	{
 		// if cull mode is none, ignore triangles and quads
 		DataSkip(count * m_VertexSize);
-		return;
+		return 0;
 	}
 
 	m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
@@ -528,7 +573,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	m_VtxAttr.texCoord[0].Frac		= g_VtxAttr[vtx_attr_group].g0.Tex0Frac;
 	m_VtxAttr.texCoord[1].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex1Frac;
 	m_VtxAttr.texCoord[2].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex2Frac;
-	m_VtxAttr.texCoord[3].Frac      = g_VtxAttr[vtx_attr_group].g1.Tex3Frac;
+	m_VtxAttr.texCoord[3].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex3Frac;
 	m_VtxAttr.texCoord[4].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex4Frac;
 	m_VtxAttr.texCoord[5].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex5Frac;
 	m_VtxAttr.texCoord[6].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
@@ -542,157 +587,49 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
-	// if strips or fans, make sure all vertices can fit in buffer, otherwise flush
-	int granularity = 1;
-	switch (primitive) {
-		case 3: // strip .. hm, weird
-		case 4: // fan
-			if (VertexManager::GetRemainingSize() < 3 * native_stride)
-				VertexManager::Flush();
-			break;
-		case 6: // line strip
-			if (VertexManager::GetRemainingSize() < 2 * native_stride)
-				VertexManager::Flush();
-			break;
-		case 0: granularity = 4; break; // quads
-		case 2: granularity = 3; break; // tris
-		case 5: granularity = 2; break; // lines
-	}
-
-	int startv = 0, extraverts = 0;
-	int v = 0;
-
-	//int remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
-	while (v < count)
-	{
-		int remainingVerts = VertexManager::GetRemainingSize() / native_stride;
-		//if (remainingVerts2 - v + startv < remainingVerts)
-		    //remainingVerts = remainingVerts2 - v + startv;
-		if (remainingVerts < granularity) {
-			INCSTAT(stats.thisFrame.numBufferSplits);
-			// This buffer full - break current primitive and flush, to switch to the next buffer.
-			u8* plastptr = VertexManager::s_pCurBufferPointer;
-			if (v - startv > 0)
-				VertexManager::AddVertices(primitive, v - startv + extraverts);
-			VertexManager::Flush();
-			//remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
-			// Why does this need to be so complicated?
-			switch (primitive) {
-				case 3: // triangle strip, copy last two vertices
-					// a little trick since we have to keep track of signs
-					if (v & 1) {
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-2*native_stride, native_stride);
-						memcpy_gc(VertexManager::s_pCurBufferPointer+native_stride, plastptr-native_stride*2, 2*native_stride);
-						VertexManager::s_pCurBufferPointer += native_stride*3;
-						extraverts = 3;
-					}
-					else {
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*2, native_stride*2);
-						VertexManager::s_pCurBufferPointer += native_stride*2;
-						extraverts = 2;
-					}
-					break;
-				case 4: // tri fan, copy first and last vert
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*(v-startv+extraverts), native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					extraverts = 2;
-					break;
-				case 6: // line strip
-					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-					VertexManager::s_pCurBufferPointer += native_stride;
-					extraverts = 1;
-					break;
-				default:
-					extraverts = 0;
-					break;
-			}
-			startv = v;
-		}
-		int remainingPrims = remainingVerts / granularity;
-		remainingVerts = remainingPrims * granularity;
-		if (count - v < remainingVerts)
-			remainingVerts = count - v;
-
-	#ifdef USE_JIT
-		if (remainingVerts > 0) {
-			loop_counter = remainingVerts;
-			((void (*)())(void*)m_compiledCode)();
-		}
-	#else
-		for (int s = 0; s < remainingVerts; s++)
-		{
-			tcIndex = 0;
-			colIndex = 0;
-			s_texmtxwrite = s_texmtxread = 0;
-			for (int i = 0; i < m_numPipelineStages; i++)
-				m_PipelineStages[i]();
-			PRIM_LOG("\n");
-		}
-	#endif
-		v += remainingVerts;
-	}
-
-	if (startv < count)
-		VertexManager::AddVertices(primitive, count - startv + extraverts);
+	VertexManager::PrepareForAdditionalData(primitive, count, native_stride);
+	
+	return count;
 }
 
-
-
-
-void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data)
+void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const count)
 {
-	m_numLoadedVertices += count;
-
-	// Flush if our vertex format is different from the currently set.
-	if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != m_NativeFmt)
-	{
-		// We really must flush here. It's possible that the native representations
-		// of the two vtx formats are the same, but we have no way to easily check that 
-		// now. 
-		VertexManager::Flush();
-		// Also move the Set() here?
-	}
-	g_nativeVertexFmt = m_NativeFmt;
-
-	if (bpmem.genMode.cullmode == 3 && primitive < 5)
-	{
-		// if cull mode is none, ignore triangles and quads
-		DataSkip(count * m_VertexSize);
-		return;
-	}
-
-	m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
-
-	// Load position and texcoord scale factors.
-	m_VtxAttr.PosFrac				= g_VtxAttr[vtx_attr_group].g0.PosFrac;
-	m_VtxAttr.texCoord[0].Frac		= g_VtxAttr[vtx_attr_group].g0.Tex0Frac;
-	m_VtxAttr.texCoord[1].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex1Frac;
-	m_VtxAttr.texCoord[2].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex2Frac;
-	m_VtxAttr.texCoord[3].Frac      = g_VtxAttr[vtx_attr_group].g1.Tex3Frac;
-	m_VtxAttr.texCoord[4].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex4Frac;
-	m_VtxAttr.texCoord[5].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex5Frac;
-	m_VtxAttr.texCoord[6].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
-	m_VtxAttr.texCoord[7].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
-
-	pVtxAttr = &m_VtxAttr;
-	posScale = fractionTable[m_VtxAttr.PosFrac];
-	if (m_NativeFmt->m_components & VB_HAS_UVALL)
-		for (int i = 0; i < 8; i++)
-			tcScale[i] = fractionTable[m_VtxAttr.texCoord[i].Frac];
-	for (int i = 0; i < 2; i++)
-		colElements[i] = m_VtxAttr.color[i].Elements;
-
-	if(VertexManager::GetRemainingSize() < native_stride * count)
-		VertexManager::Flush();
-	memcpy_gc(VertexManager::s_pCurBufferPointer, Data, native_stride * count);
-	VertexManager::s_pCurBufferPointer += native_stride * count;
-	DataSkip(count * m_VertexSize);
-	VertexManager::AddVertices(primitive, count);	
+	auto const new_count = SetupRunVertices(vtx_attr_group, primitive, count);
+	ConvertVertices(new_count);
+	VertexManager::AddVertices(primitive, new_count);
 }
 
+void VertexLoader::ConvertVertices ( int count )
+{
+#ifdef USE_JIT
+	if (count > 0)
+	{
+		loop_counter = count;
+		((void (*)())(void*)m_compiledCode)();
+	}
+#else
+	for (int s = 0; s < count; s++)
+	{
+		tcIndex = 0;
+		colIndex = 0;
+		s_texmtxwrite = s_texmtxread = 0;
+		for (int i = 0; i < m_numPipelineStages; i++)
+			m_PipelineStages[i]();
+		PRIM_LOG("\n");
+	}
+#endif
+}
 
+void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int const count, u8* Data)
+{
+	auto const new_count = SetupRunVertices(vtx_attr_group, primitive, count);
+
+	memcpy_gc(VertexManager::s_pCurBufferPointer, Data, native_stride * new_count);
+	VertexManager::s_pCurBufferPointer += native_stride * new_count;
+	DataSkip(new_count * m_VertexSize);
+
+	VertexManager::AddVertices(primitive, new_count);	
+}
 
 void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2) 
 {
@@ -724,7 +661,7 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 	m_VtxAttr.texCoord[2].Frac		= vat.g1.Tex2Frac;
 	m_VtxAttr.texCoord[3].Elements	= vat.g1.Tex3CoordElements;
 	m_VtxAttr.texCoord[3].Format	= vat.g1.Tex3CoordFormat;
-	m_VtxAttr.texCoord[3].Frac      = vat.g1.Tex3Frac;
+	m_VtxAttr.texCoord[3].Frac		= vat.g1.Tex3Frac;
 	m_VtxAttr.texCoord[4].Elements	= vat.g1.Tex4CoordElements;
 	m_VtxAttr.texCoord[4].Format	= vat.g1.Tex4CoordFormat;
 
@@ -738,6 +675,10 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 	m_VtxAttr.texCoord[7].Elements	= vat.g2.Tex7CoordElements;
 	m_VtxAttr.texCoord[7].Format	= vat.g2.Tex7CoordFormat;
 	m_VtxAttr.texCoord[7].Frac		= vat.g2.Tex7Frac;
+	
+	if(!m_VtxAttr.ByteDequant) {
+		ERROR_LOG(VIDEO, "ByteDequant is set to zero");
+	}
 };
 
 void VertexLoader::AppendToString(std::string *dest) const
@@ -766,10 +707,13 @@ void VertexLoader::AppendToString(std::string *dest) const
 	dest->append(StringFromFormat("%ib skin: %i P: %i %s-%s ",
 		m_VertexSize, m_VtxDesc.PosMatIdx,
 		m_VtxAttr.PosElements ? 3 : 2, posMode[m_VtxDesc.Position], posFormats[m_VtxAttr.PosFormat]));
-	if (m_VtxDesc.Normal) {
+
+	if (m_VtxDesc.Normal)
+	{
 		dest->append(StringFromFormat("Nrm: %i %s-%s ",
 			m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat]));
 	}
+
 	u32 color_mode[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
 	for (int i = 0; i < 2; i++)
 	{

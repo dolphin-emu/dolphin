@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 // AID / AUDIO_DMA controls pushing audio out to the SRC and then the speakers.
 // The audio DMA pushes audio through a small FIFO 32 bytes at a time, as
@@ -42,7 +30,6 @@
 #include "CPU.h"
 #include "MemoryUtil.h"
 #include "Memmap.h"
-#include "MMUTable.h"
 #include "ProcessorInterface.h"
 #include "AudioInterface.h"
 #include "../PowerPC/PowerPC.h"
@@ -60,7 +47,7 @@ enum
 	DSP_MAIL_FROM_DSP_HI	= 0x5004,
 	DSP_MAIL_FROM_DSP_LO	= 0x5006,
 	DSP_CONTROL				= 0x500A,
-	DSP_INTERRUPT_CONTROL   = 0x5010,
+	DSP_INTERRUPT_CONTROL	= 0x5010,
 	AR_INFO					= 0x5012,  // These names are a good guess at best
 	AR_MODE					= 0x5016,  //
 	AR_REFRESH				= 0x501a,
@@ -129,15 +116,15 @@ struct DSPState
 // Blocks are 32 bytes.
 union UAudioDMAControl
 {
-    u16 Hex;
-    struct  
-    {        
-        u16 NumBlocks  : 15;
+	u16 Hex;
+	struct
+	{
+		u16 NumBlocks  : 15;
 		u16 Enable     : 1;
-    };
+	};
 
-    UAudioDMAControl(u16 _Hex = 0) : Hex(_Hex)
-    {}
+	UAudioDMAControl(u16 _Hex = 0) : Hex(_Hex)
+	{}
 };
 
 // AudioDMA
@@ -161,7 +148,7 @@ struct AudioDMA
 struct ARAM_DMA
 {
 	u32 MMAddr;
-	u32 ARAddr;		
+	u32 ARAddr;
 	UARAMCount Cnt;
 
 	ARAM_DMA()
@@ -181,7 +168,8 @@ struct ARAMInfo
 	u8* ptr; // aka audio ram, auxiliary ram, MEM2, EXRAM, etc...
 
 	// Default to GC mode
-	ARAMInfo() {
+	ARAMInfo()
+	{
 		wii_mode = false;
 		size = ARAM_SIZE;
 		mask = ARAM_MASK;
@@ -224,9 +212,9 @@ void DoState(PointerWrap &p)
 {
 	if (!g_ARAM.wii_mode)
 		p.DoArray(g_ARAM.ptr, g_ARAM.size);
-	p.Do(g_dspState);
-	p.Do(g_audioDMA);
-	p.Do(g_arDMA);
+	p.DoPOD(g_dspState);
+	p.DoPOD(g_audioDMA);
+	p.DoPOD(g_arDMA);
 	p.Do(g_ARAM_Info);
 	p.Do(g_AR_MODE);
 	p.Do(g_AR_REFRESH);
@@ -279,8 +267,8 @@ void Init(bool hle)
 	memset(&g_arDMA, 0, sizeof(g_arDMA));
 
 	g_dspState.DSPControl.Hex = 0;
-    g_dspState.DSPControl.DSPHalt = 1;
-	
+	g_dspState.DSPControl.DSPHalt = 1;
+
 	g_ARAM_Info.Hex = 0;
 	g_AR_MODE = 1; // ARAM Controller has init'd
 	g_AR_REFRESH = 156; // 156MHz
@@ -335,7 +323,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 		// ARAM
 	case AR_INFO:
-		//PanicAlert("read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
+		//PanicAlert("Read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
 		_uReturnValue = g_ARAM_Info.Hex;
 		break;
 
@@ -425,7 +413,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			g_dspState.DSPControl.DSPReset		= tmpControl.DSPReset;
 			g_dspState.DSPControl.DSPAssertInt	= tmpControl.DSPAssertInt;
 			g_dspState.DSPControl.DSPHalt		= tmpControl.DSPHalt;
-			g_dspState.DSPControl.DSPInit       = tmpControl.DSPInit;
+			g_dspState.DSPControl.DSPInit		= tmpControl.DSPInit;
 
 			// Interrupt (mask)
 			g_dspState.DSPControl.AID_mask	= tmpControl.AID_mask;
@@ -437,20 +425,16 @@ void Write16(const u16 _Value, const u32 _Address)
 			if (tmpControl.ARAM) g_dspState.DSPControl.ARAM = 0;
 			if (tmpControl.DSP)  g_dspState.DSPControl.DSP  = 0;
 
-			// Tracking DMAState fixes Knockout Kings 2003 in DSP HLE mode
-			if (GetDSPEmulator()->IsLLE())
-				g_dspState.DSPControl.DMAState = 0;	// keep g_ARAM DMA State zero
-
 			// unknown
 			g_dspState.DSPControl.unk3	= tmpControl.unk3;
-			g_dspState.DSPControl.pad   = tmpControl.pad;
+			g_dspState.DSPControl.pad	= tmpControl.pad;
 			if (g_dspState.DSPControl.pad != 0)
 			{
 				PanicAlert("DSPInterface (w) g_dspState.DSPControl (CC00500A) gets a value with junk in the padding %08x", _Value);
 			}
 
 			UpdateInterrupts();
-		}			
+		}
 		break;
 
 	// ARAM
@@ -640,7 +624,7 @@ void GenerateDSPInterrupt(DSPInterruptType type, bool _bSet)
 	switch (type)
 	{
 	case INT_DSP:	g_dspState.DSPControl.DSP		= _bSet ? 1 : 0; break;
-	case INT_ARAM:	g_dspState.DSPControl.ARAM	    = _bSet ? 1 : 0; if (_bSet) g_dspState.DSPControl.DMAState = 0; break;
+	case INT_ARAM:	g_dspState.DSPControl.ARAM		= _bSet ? 1 : 0; if (_bSet) g_dspState.DSPControl.DMAState = 0; break;
 	case INT_AID:	g_dspState.DSPControl.AID		= _bSet ? 1 : 0; break;
 	}
 
@@ -652,17 +636,22 @@ void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, bool _bSet)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
 		0, et_GenerateDSPInterrupt, type | (_bSet<<16));
+	CoreTiming::ForceExceptionCheck(100);
 }
 
 // called whenever SystemTimers thinks the dsp deserves a few more cycles
-void UpdateDSPSlice(int cycles) {
-	if (dsp_is_lle) {
+void UpdateDSPSlice(int cycles)
+{
+	if (dsp_is_lle)
+	{
 		//use up the rest of the slice(if any)
 		dsp_emulator->DSP_Update(dsp_slice);
 		dsp_slice %= 6;
 		//note the new budget
 		dsp_slice += cycles;
-	} else {
+	}
+	else
+	{
 		dsp_emulator->DSP_Update(cycles);
 	}
 }
@@ -692,28 +681,42 @@ void UpdateAudioDMA()
 	{
 		// Send silence. Yeah, it's a bit of a waste to sample rate convert
 		// silence.  or hm. Maybe we shouldn't do this :)
-		//dsp_emulator->DSP_SendAIBuffer(0, AudioInterface::GetAIDSampleRate());
+		dsp_emulator->DSP_SendAIBuffer(0, AudioInterface::GetAIDSampleRate());
 	}
 }
 
 void Do_ARAM_DMA()
 {
-	u64 tmp;
-	// Emulating the DMA wait time fixes Knockout Kings 2003 in DSP HLE mode
-	if (!GetDSPEmulator()->IsLLE())
+	if (g_arDMA.Cnt.count == 32)
+	{
+		// Beyond Good and Evil (GGEE41) sends count 32
+		// Lost Kingdoms 2 needs the exception check here in DSP HLE mode
+		GenerateDSPInterrupt(INT_ARAM);
+		CoreTiming::ForceExceptionCheck(100);
+	}
+	else
+	{
 		g_dspState.DSPControl.DMAState = 1;
+		CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
 
-	GenerateDSPInterrupt(INT_ARAM, true);
-
-//	u32 access_mask = MMUTable::get_access_mask();
-//	if((g_ARAM_Info.Hex & 0x20)==0) access_mask = ACCESS_MASK_PHYSICAL;
+		// Force an early exception check on large transfers. Fixes RE2 audio.
+		// NFS:HP2 (<= 6144)
+		// Viewtiful Joe (<= 6144)
+		// Sonic Mega Collection (> 2048)
+		// Paper Mario battles (> 32)
+		// Mario Super Baseball (> 32)
+		// Knockout Kings 2003 loading (> 32)
+		// WWE DOR (> 32)
+		if (g_arDMA.Cnt.count > 2048 && g_arDMA.Cnt.count <= 6144)
+			CoreTiming::ForceExceptionCheck(100);
+	}
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
 	{
 		// ARAM -> MRAM
-//		WARN_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x PC: %08x",
-//			g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
+		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x PC: %08x",
+			g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
 
 		// Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
 		g_arDMA.ARAddr &= 0x3ffffff;
@@ -725,9 +728,6 @@ void Do_ARAM_DMA()
 			{
 				// These are logically seperated in code to show that a memory map has been set up
 				// See below in the write section for more information
-				tmp = Common::swap64(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask]);
-				MMUTable::write64(MMUTable::EmuPointer(g_arDMA.MMAddr), tmp, ACCESS_MASK_PHYSICAL);
-/*
 				if ((g_ARAM_Info.Hex & 0xf) == 3)
 				{
 					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);
@@ -737,8 +737,10 @@ void Do_ARAM_DMA()
 					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);
 				}
 				else
+				{
 					Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask], g_arDMA.MMAddr);
-*/
+				}
+
 				g_arDMA.MMAddr += 8;
 				g_arDMA.ARAddr += 8;
 				g_arDMA.Cnt.count -= 8;
@@ -749,8 +751,7 @@ void Do_ARAM_DMA()
 			// Assuming no external ARAM installed; returns zeroes on out of bounds reads (verified on real HW)
 			while (g_arDMA.Cnt.count)
 			{
-				MMUTable::write64(MMUTable::EmuPointer(g_arDMA.MMAddr), 0, ACCESS_MASK_PHYSICAL);
-//				Memory::Write_U64(0, g_arDMA.MMAddr);
+				Memory::Write_U64(0, g_arDMA.MMAddr);
 				g_arDMA.MMAddr += 8;
 				g_arDMA.ARAddr += 8;
 				g_arDMA.Cnt.count -= 8;
@@ -760,11 +761,10 @@ void Do_ARAM_DMA()
 	else
 	{
 		// MRAM -> ARAM
-//		WARN_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x",
-//			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr, PC);
+		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x",
+			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr, PC);
 
 		// Incoming data into ARAM is mirrored every 64MB (verified on real HW)
-
 		g_arDMA.ARAddr &= 0x3ffffff;
 		g_arDMA.MMAddr &= 0x3ffffff;
 
@@ -772,9 +772,6 @@ void Do_ARAM_DMA()
 		{
 			while (g_arDMA.Cnt.count)
 			{
-				MMUTable::read64(MMUTable::EmuPointer(g_arDMA.MMAddr), tmp, ACCESS_MASK_PHYSICAL);
-				*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(tmp);
-/*
 				if ((g_ARAM_Info.Hex & 0xf) == 3)
 				{
 					*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
@@ -788,13 +785,14 @@ void Do_ARAM_DMA()
 					*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
 				}
 				else
+				{
 					*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr & g_ARAM.mask] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
-*/
+				}
+
 				g_arDMA.MMAddr += 8;
 				g_arDMA.ARAddr += 8;
 				g_arDMA.Cnt.count -= 8;
 			}
-//			WARN_LOG(DSPINTERFACE, "DMA TAIL: %016llx", tmp);
 		}
 		else
 		{
@@ -820,7 +818,9 @@ u8 ReadARAM(u32 _iAddress)
 			return Memory::Read_U8(_iAddress & Memory::RAM_MASK);
 	}
 	else
+	{
 		return g_ARAM.ptr[_iAddress & g_ARAM.mask];
+	}
 }
 
 void WriteARAM(u8 value, u32 _uAddress)

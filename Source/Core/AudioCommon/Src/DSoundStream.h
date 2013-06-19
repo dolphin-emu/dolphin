@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _DSOUNDSTREAM_H_
 #define _DSOUNDSTREAM_H_
@@ -31,33 +18,33 @@
 class DSound : public SoundStream
 {
 #ifdef _WIN32
-    std::thread thread;
-    Common::Event soundSyncEvent;
-    void  *hWnd;
+	std::thread thread;
+	Common::Event soundSyncEvent;
+	void  *hWnd;
 
-    IDirectSound8* ds;
-    IDirectSoundBuffer* dsBuffer;
-    
-    int bufferSize;     //i bytes
+	IDirectSound8* ds;
+	IDirectSoundBuffer* dsBuffer;
+
+	int bufferSize;     //i bytes
 	int m_volume;
-    
-    // playback position
-    int currentPos;
-    int lastPos;
-    short realtimeBuffer[BUFSIZE / sizeof(short)];
-    
-    inline int FIX128(int x)
+
+	// playback position
+	int currentPos;
+	int lastPos;
+	short realtimeBuffer[BUFSIZE / sizeof(short)];
+
+	inline int FIX128(int x)
 	{
 		return x & (~127);
-    }
+	}
 
-    inline int ModBufferSize(int x)
+	inline int ModBufferSize(int x)
 	{
 		return (x + bufferSize) % bufferSize;
-    }
+	}
 
-    bool CreateBuffer();
-    bool WriteDataToBuffer(DWORD dwOffset, char* soundData, DWORD dwSoundBytes);
+	bool CreateBuffer();
+	bool WriteDataToBuffer(DWORD dwOffset, char* soundData, DWORD dwSoundBytes);
 
 public:
 	DSound(CMixer *mixer, void *_hWnd = NULL)
@@ -70,16 +57,16 @@ public:
 		, hWnd(_hWnd)
 	{}
 
-    virtual ~DSound() {}
+	virtual ~DSound() {}
  
 	virtual bool Start();
-    virtual void SoundLoop();
+	virtual void SoundLoop();
 	virtual void SetVolume(int volume);
-    virtual void Stop();
+	virtual void Stop();
 	virtual void Clear(bool mute);
-    static bool isValid() { return true; }
-    virtual bool usesMixer() const { return true; }
-    virtual void Update();
+	static bool isValid() { return true; }
+	virtual bool usesMixer() const { return true; }
+	virtual void Update();
 
 #else
 public:

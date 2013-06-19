@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <cmath>
 
@@ -22,12 +9,16 @@
 #include "VideoConfig.h"
 #include "VideoCommon.h"
 #include "FileUtil.h"
+#include "Core.h"
+#include "Movie.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 
 void UpdateActiveConfig()
 {
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+		Movie::SetGraphicsConfig();
 	g_ActiveConfig = g_Config;
 }
 
@@ -42,15 +33,15 @@ VideoConfig::VideoConfig()
 	// disable all features by default
 	backend_info.APIType = API_NONE;
 	backend_info.bUseRGBATextures = false;
+	backend_info.bUseMinimalMipCount = false;
 	backend_info.bSupports3DVision = false;
 }
 
 void VideoConfig::Load(const char *ini_file)
 {
-	std::string temp;
 	IniFile iniFile;
 	iniFile.Load(ini_file);
-	
+
 	iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
 	iniFile.Get("Settings", "wideScreenHack", &bWidescreenHack, false);
 	iniFile.Get("Settings", "AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
@@ -75,17 +66,19 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation, 200);
 	iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
 	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
-	
+	iniFile.Get("Settings", "HackedBufferUpload", &bHackedBufferUpload, 0);
+	iniFile.Get("Settings", "FastDepthCalc", &bFastDepthCalc, true);
+
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-	iniFile.Get("Settings", "EFBScale", &iEFBScale, 2); // native
-	
+	iniFile.Get("Settings", "EFBScale", &iEFBScale, (int) SCALE_1X); // native
+
 	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
-	
+
 	iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
 	iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
 	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
-	
+
 	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
 	iniFile.Get("Settings", "OMPDecoder", &bOMPDecoder, false);
 
@@ -95,7 +88,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
 	iniFile.Get("Enhancements", "Enable3dVision", &b3DVision, false);
-	
+
 	iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true);
 	iniFile.Get("Hacks", "DlistCachingEnable", &bDlistCachingEnable,false);
 	iniFile.Get("Hacks", "EFBCopyEnable", &bEFBCopyEnable, true);
@@ -133,8 +126,36 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	iniFile.GetIfExists("Video_Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation);
 	iniFile.GetIfExists("Video_Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle);
 	iniFile.GetIfExists("Video_Settings", "EnablePixelLighting", &bEnablePixelLighting);
+	iniFile.GetIfExists("Video_Settings", "HackedBufferUpload", &bHackedBufferUpload);
+	iniFile.GetIfExists("Video_Settings", "FastDepthCalc", &bFastDepthCalc);
 	iniFile.GetIfExists("Video_Settings", "MSAA", &iMultisampleMode);
-	iniFile.GetIfExists("Video_Settings", "EFBScale", &iEFBScale); // integral
+	int tmp = -9000;
+	iniFile.GetIfExists("Video_Settings", "EFBScale", &tmp); // integral
+	if (tmp != -9000)
+	{
+		if (tmp != SCALE_FORCE_INTEGRAL)
+		{
+			iEFBScale = tmp;
+		}
+		else // Round down to multiple of native IR
+		{
+			switch (iEFBScale)
+			{
+			case SCALE_AUTO:
+				iEFBScale = SCALE_AUTO_INTEGRAL;
+				break;
+			case SCALE_1_5X:
+				iEFBScale = SCALE_1X;
+				break;
+			case SCALE_2_5X:
+				iEFBScale = SCALE_2X;
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
 	iniFile.GetIfExists("Video_Settings", "DstAlphaPass", &bDstAlphaPass);
 	iniFile.GetIfExists("Video_Settings", "DisableFog", &bDisableFog);
 	iniFile.GetIfExists("Video_Settings", "EnableOpenCL", &bEnableOpenCL);
@@ -171,6 +192,7 @@ void VideoConfig::VerifyValidity()
 	if (!backend_info.bSupports3DVision) b3DVision = false;
 	if (!backend_info.bSupportsFormatReinterpretation) bEFBEmulateFormatChanges = false;
 	if (!backend_info.bSupportsPixelLighting) bEnablePixelLighting = false;
+	if (backend_info.APIType != API_OPENGL) backend_info.bSupportsGLSLUBO = false;
 }
 
 void VideoConfig::Save(const char *ini_file)
@@ -201,7 +223,8 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	iniFile.Set("Settings", "EnablePixelLighting", bEnablePixelLighting);
-	
+	iniFile.Set("Settings", "HackedBufferUpload", bHackedBufferUpload);
+	iniFile.Set("Settings", "FastDepthCalc", bFastDepthCalc);
 
 	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
 	iniFile.Set("Settings", "MSAA", iMultisampleMode);
@@ -214,14 +237,14 @@ void VideoConfig::Save(const char *ini_file)
 
 	iniFile.Set("Settings", "EnableOpenCL", bEnableOpenCL);
 	iniFile.Set("Settings", "OMPDecoder", bOMPDecoder);
-	
+
 	iniFile.Set("Settings", "EnableShaderDebugging", bEnableShaderDebugging);
 
 	iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
 	iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
 	iniFile.Set("Enhancements", "PostProcessingShader", sPostProcessingShader);
 	iniFile.Set("Enhancements", "Enable3dVision", b3DVision);
-	
+
 	iniFile.Set("Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	iniFile.Set("Hacks", "DlistCachingEnable", bDlistCachingEnable);
 	iniFile.Set("Hacks", "EFBCopyEnable", bEFBCopyEnable);
@@ -232,7 +255,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
 	iniFile.Set("Hardware", "Adapter", iAdapter);
-	
+
 	iniFile.Save(ini_file);
 }
 
@@ -266,6 +289,7 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	SET_IF_DIFFERS("Video_Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	SET_IF_DIFFERS("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
+	SET_IF_DIFFERS("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	SET_IF_DIFFERS("Video_Settings", "MSAA", iMultisampleMode);
 	SET_IF_DIFFERS("Video_Settings", "EFBScale", iEFBScale); // integral
 	SET_IF_DIFFERS("Video_Settings", "DstAlphaPass", bDstAlphaPass);
@@ -287,4 +311,9 @@ void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
 	SET_IF_DIFFERS("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
 	iniFile.Save(game_ini);
+}
+
+bool VideoConfig::IsVSync()
+{
+	return Core::isTabPressed ? false : bVSync;
 }

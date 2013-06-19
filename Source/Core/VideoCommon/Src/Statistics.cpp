@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <string.h>
 
@@ -46,28 +33,31 @@ void Statistics::SwapDL()
 char *Statistics::ToString(char *ptr)
 {
 	char *p = ptr;
-	ptr+=sprintf(ptr,"textures created: %i\n",stats.numTexturesCreated);
-	ptr+=sprintf(ptr,"textures alive: %i\n",stats.numTexturesAlive);
+	ptr+=sprintf(ptr,"Textures created: %i\n",stats.numTexturesCreated);
+	ptr+=sprintf(ptr,"Textures alive: %i\n",stats.numTexturesAlive);
 	ptr+=sprintf(ptr,"pshaders created: %i\n",stats.numPixelShadersCreated);
 	ptr+=sprintf(ptr,"pshaders alive: %i\n",stats.numPixelShadersAlive);
 	ptr+=sprintf(ptr,"pshaders (unique, delete cache first): %i\n",stats.numUniquePixelShaders);
 	ptr+=sprintf(ptr,"vshaders created: %i\n",stats.numVertexShadersCreated);
 	ptr+=sprintf(ptr,"vshaders alive: %i\n",stats.numVertexShadersAlive);
-    ptr+=sprintf(ptr,"dlists called:    %i\n",stats.numDListsCalled);
-    ptr+=sprintf(ptr,"dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
+	ptr+=sprintf(ptr,"dlists called:    %i\n",stats.numDListsCalled);
+	ptr+=sprintf(ptr,"dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
 	ptr+=sprintf(ptr,"dlists alive:     %i\n",stats.numDListsAlive);
-	ptr+=sprintf(ptr,"primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
-	ptr+=sprintf(ptr,"draw calls:       %i\n",stats.thisFrame.numDrawCalls);
-	ptr+=sprintf(ptr,"indexed draw calls: %i\n",stats.thisFrame.numIndexedDrawCalls);
-	ptr+=sprintf(ptr,"buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
-	ptr+=sprintf(ptr,"primitives: %i\n",stats.thisFrame.numPrims);
-	ptr+=sprintf(ptr,"primitives (DL): %i\n",stats.thisFrame.numDLPrims);
+	ptr+=sprintf(ptr,"Primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
+	ptr+=sprintf(ptr,"Draw calls:       %i\n",stats.thisFrame.numDrawCalls);
+	ptr+=sprintf(ptr,"Indexed draw calls: %i\n",stats.thisFrame.numIndexedDrawCalls);
+	ptr+=sprintf(ptr,"Buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
+	ptr+=sprintf(ptr,"Primitives: %i\n",stats.thisFrame.numPrims);
+	ptr+=sprintf(ptr,"Primitives (DL): %i\n",stats.thisFrame.numDLPrims);
 	ptr+=sprintf(ptr,"XF loads: %i\n",stats.thisFrame.numXFLoads);
 	ptr+=sprintf(ptr,"XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
 	ptr+=sprintf(ptr,"CP loads: %i\n",stats.thisFrame.numCPLoads);
 	ptr+=sprintf(ptr,"CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
 	ptr+=sprintf(ptr,"BP loads: %i\n",stats.thisFrame.numBPLoads);
 	ptr+=sprintf(ptr,"BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
+	ptr+=sprintf(ptr,"Vertex streamed: %i kB\n",stats.thisFrame.bytesVertexStreamed/1024);
+	ptr+=sprintf(ptr,"Index streamed: %i kB\n",stats.thisFrame.bytesIndexStreamed/1024);
+	ptr+=sprintf(ptr,"Uniform streamed: %i kB\n",stats.thisFrame.bytesUniformStreamed/1024);
 	ptr+=sprintf(ptr,"Vertex Loaders: %i\n",stats.numVertexLoaders);
 
 	std::string text1;
@@ -85,7 +75,8 @@ char *Statistics::ToString(char *ptr)
 }
 
 // Is this really needed?
-char *Statistics::ToStringProj(char *ptr) {
+char *Statistics::ToStringProj(char *ptr)
+{
 	char *p = ptr;
 	p+=sprintf(p,"Projection #: X for Raw 6=0 (X for Raw 6!=0)\n\n");
 	p+=sprintf(p,"Projection 0: %f (%f) Raw 0: %f\n", stats.gproj_0, stats.g2proj_0, stats.proj_0);

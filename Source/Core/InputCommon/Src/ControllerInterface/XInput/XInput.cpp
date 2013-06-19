@@ -31,13 +31,13 @@ static const struct
 	{ "Thumb R", XINPUT_GAMEPAD_RIGHT_THUMB }
 };
 
-static const char* const named_triggers[] =	
+static const char* const named_triggers[] =
 {
 	"Trigger L",
 	"Trigger R"
 };
 
-static const char* const named_axes[] =	
+static const char* const named_axes[] =
 {
 	"Left X",
 	"Left Y",
@@ -45,7 +45,7 @@ static const char* const named_axes[] =
 	"Right Y"
 };
 
-static const char* const named_motors[] =	
+static const char* const named_motors[] =
 {
 	"Motor L",
 	"Motor R"
@@ -66,17 +66,19 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 	ZeroMemory(&m_current_state_out, sizeof(m_current_state_out));
 
 	// XInputGetCaps seems to always claim all capabilities are supported
-	// but i will leave all this stuff in, incase m$ fixes xinput up a bit
+	// but I will leave all this stuff in, incase m$ fixes xinput up a bit
 
 	// get supported buttons
 	for (int i = 0; i != sizeof(named_buttons)/sizeof(*named_buttons); ++i)
+	{
 		if (named_buttons[i].bitmask & caps.Gamepad.wButtons)
 			AddInput(new Button(i, m_state_in.Gamepad.wButtons));
+	}
 
 	// get supported triggers
 	for (int i = 0; i != sizeof(named_triggers)/sizeof(*named_triggers); ++i)
 	{
-		//BYTE val = (&caps.Gamepad.bLeftTrigger)[i];	// should be max value / msdn lies
+		//BYTE val = (&caps.Gamepad.bLeftTrigger)[i];	// should be max value / MSDN lies
 		if ((&caps.Gamepad.bLeftTrigger)[i])
 			AddInput(new Trigger(i, (&m_state_in.Gamepad.bLeftTrigger)[i], 255 ));
 	}
@@ -84,7 +86,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 	// get supported axes
 	for (int i = 0; i != sizeof(named_axes)/sizeof(*named_axes); ++i)
 	{
-		//SHORT val = (&caps.Gamepad.sThumbLX)[i];  // xinput doesnt give the range / msdn is lier
+		//SHORT val = (&caps.Gamepad.sThumbLX)[i];  // xinput doesn't give the range / MSDN is a liar
 		if ((&caps.Gamepad.sThumbLX)[i])
 		{
 			const SHORT& ax = (&m_state_in.Gamepad.sThumbLX)[i];
@@ -114,8 +116,8 @@ void Device::ClearInputState()
 std::string Device::GetName() const
 {
 	// why aren't these defined
-	// subtype doesn't seem to work, i tested with 2 diff arcade sticks, both were shown as gamepad
-	// ill leave it in anyway, maybe m$ will fix it
+	// subtype doesn't seem to work, I tested with 2 different arcade sticks, both were shown as gamepad
+	// I'll leave it in anyway, maybe m$ will fix it
 
 	switch (m_subtype)
 	{
@@ -140,7 +142,7 @@ std::string Device::GetSource() const
 	return "XInput";
 }
 
-// update i/o
+// Update I/O
 
 bool Device::UpdateInput()
 {
@@ -157,7 +159,9 @@ bool Device::UpdateOutput()
 		return (ERROR_SUCCESS == XInputSetState(m_index, &m_state_out));
 	}
 	else
+	{
 		return true;
+	}
 }
 
 // GET name/source/id

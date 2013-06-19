@@ -36,7 +36,8 @@ FramebufferManagerBase::~FramebufferManagerBase()
 
 const XFBSourceBase* const* FramebufferManagerBase::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
 {
-	if (!g_ActiveConfig.bUseXFB) return NULL;
+	if (!g_ActiveConfig.bUseXFB)
+		return NULL;
 
 	if (g_ActiveConfig.bUseRealXFB)
 		return GetRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
@@ -60,12 +61,12 @@ const XFBSourceBase* const* FramebufferManagerBase::GetRealXFBSource(u32 xfbAddr
 	m_realXFBSource->texHeight = fbHeight;
 
 	// TODO: stuff only used by OGL... :/
-    // OpenGL texture coordinates originate at the lower left, which is why
-    // sourceRc.top = fbHeight and sourceRc.bottom = 0.
-    m_realXFBSource->sourceRc.left = 0;
-    m_realXFBSource->sourceRc.top = fbHeight;
-    m_realXFBSource->sourceRc.right = fbWidth;
-    m_realXFBSource->sourceRc.bottom = 0;
+	// OpenGL texture coordinates originate at the lower left, which is why
+	// sourceRc.top = fbHeight and sourceRc.bottom = 0.
+	m_realXFBSource->sourceRc.left = 0;
+	m_realXFBSource->sourceRc.top = fbHeight;
+	m_realXFBSource->sourceRc.right = fbWidth;
+	m_realXFBSource->sourceRc.bottom = 0;
 
 	// Decode YUYV data from GameCube RAM
 	m_realXFBSource->DecodeToTexture(xfbAddr, fbWidth, fbHeight);
@@ -163,13 +164,9 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHe
 
 	// keep stale XFB data from being used
 	ReplaceVirtualXFB();
-  
-	g_renderer->ResetAPIState(); // reset any game specific settings
 
 	// Copy EFB data to XFB and restore render target again
 	vxfb->xfbSource->CopyEFB(Gamma);
-
-	g_renderer->RestoreAPIState();
 }
 
 FramebufferManagerBase::VirtualXFBListType::iterator FramebufferManagerBase::FindVirtualXFB(u32 xfbAddr, u32 width, u32 height)
@@ -241,7 +238,9 @@ int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x, unsigned int backbuffe
 		return x * (int)backbuffer_width / (int)FramebufferManagerBase::LastXfbWidth();
 	}
 	else
+	{
 		return x * (int)Renderer::GetTargetRectangle().GetWidth() / (int)FramebufferManagerBase::LastXfbWidth();
+	}
 }
 
 int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y, unsigned int backbuffer_height)
@@ -255,5 +254,7 @@ int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y, unsigned int backbuff
 		return y * (int)backbuffer_height / (int)FramebufferManagerBase::LastXfbHeight();
 	}
 	else
+	{
 		return y * (int)Renderer::GetTargetRectangle().GetHeight() / (int)FramebufferManagerBase::LastXfbHeight();
+	}
 }

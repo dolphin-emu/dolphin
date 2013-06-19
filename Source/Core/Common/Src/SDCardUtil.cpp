@@ -29,6 +29,7 @@
 // Modified for Dolphin.
 
 #include "SDCardUtil.h"
+#include "FileUtil.h"
 
 #include <time.h>
 #include <stdio.h>
@@ -190,7 +191,6 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const char* filename)
 {
 	u32 sectors_per_fat;
 	u32 sectors_per_disk;
-	FILE* f;
 
 	// Convert MB to bytes
 	disk_size *= 1024 * 1024;
@@ -207,7 +207,8 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const char* filename)
 	boot_sector_init(s_boot_sector, s_fsinfo_sector, disk_size, nullptr);
 	fat_init(s_fat_head);
 
-	f = fopen(filename, "wb");
+	File::IOFile file(filename, "wb");
+	FILE* const f = file.GetHandle();
 	if (!f)
 	{
 		ERROR_LOG(COMMON, "Could not create file '%s', aborting...\n", filename);
@@ -247,13 +248,11 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const char* filename)
 
 	if (write_empty(f, sectors_per_disk - RESERVED_SECTORS - 2*sectors_per_fat)) goto FailWrite;
 
-	fclose(f);
 	return true;
 
 FailWrite:
 	ERROR_LOG(COMMON, "Could not write to '%s', aborting...\n", filename);
 	if (unlink(filename) < 0)
 		ERROR_LOG(COMMON, "unlink(%s) failed\n%s", filename, GetLastErrorMsg());
-	fclose(f);
 	return false;
 }

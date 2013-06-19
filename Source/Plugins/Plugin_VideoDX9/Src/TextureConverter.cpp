@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // Fast image conversion using OpenGL shaders.
 // This kind of stuff would be a LOT nicer with OpenCL.
@@ -85,8 +72,8 @@ void CreateRgbToYuyvProgram()
 
 	s_rgbToYuyvProgram = D3D::CompileAndCreatePixelShader(FProgram, (int)strlen(FProgram));
 	if (!s_rgbToYuyvProgram) {
-        ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program");
-    }
+		ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program");
+	}
 	delete [] FProgram;
 }
 
@@ -107,15 +94,15 @@ void CreateYuyvToRgbProgram()
 	"  float uComp = c0.g - 0.5f;\n"
 	"  float vComp = c0.a - 0.5f;\n"
 
-    "  ocol0 = float4(yComp + (1.596f * vComp),\n"
+	"  ocol0 = float4(yComp + (1.596f * vComp),\n"
 	"                 yComp - (0.813f * vComp) - (0.391f * uComp),\n"
 	"                 yComp + (2.018f * uComp),\n"
 	"                 1.0f);\n"
 	"}\n",C_COLORMATRIX,C_COLORMATRIX+1);
 	s_yuyvToRgbProgram = D3D::CompileAndCreatePixelShader(FProgram, (int)strlen(FProgram));
 	if (!s_yuyvToRgbProgram) {
-        ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program");
-    }
+		ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program");
+	}
 	delete [] FProgram;
 }
 
@@ -152,7 +139,7 @@ LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)
 			ERROR_LOG(VIDEO, "Failed to create encoding fragment program");
 			s_encodingProgramsFailed[format] = true;
 		}
-    }
+	}
 	return s_encodingPrograms[format];
 }
 
@@ -213,7 +200,7 @@ void Shutdown()
 void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,
 				            u8* destAddr, int dstWidth, int dstHeight, int readStride, bool toTexture, bool linearFilter,float Gamma)
 {
-	HRESULT hr;		
+	HRESULT hr;
 	u32 index =0;
 	while(index < WorkingBuffers && (TrnBuffers[index].Width != dstWidth || TrnBuffers[index].Height != dstHeight))
 		index++;
@@ -240,8 +227,8 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 		if (TrnBuffers[index].FBTexture != NULL)
 		{
 			TrnBuffers[index].FBTexture->Release();
-			TrnBuffers[index].FBTexture = NULL;		
-		}		
+			TrnBuffers[index].FBTexture = NULL;
+		}
 		TrnBuffers[index].Width = dstWidth;
 		TrnBuffers[index].Height = dstHeight;
 		D3D::dev->CreateTexture(dstWidth, dstHeight, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8,
@@ -326,8 +313,10 @@ int EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 So
 			format |= _GX_TF_CTF;
 	}
 	else
+	{
 		if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
 			format |= _GX_TF_CTF;
+	}
 
 	LPDIRECT3DPIXELSHADER9 texconv_shader = GetOrCreateEncodingShader(format);
 	if (!texconv_shader)
@@ -349,7 +338,7 @@ int EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 So
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-    float sampleStride = bScaleByHalf ? 2.f : 1.f;
+	float sampleStride = bScaleByHalf ? 2.f : 1.f;
 	TextureConversionShader::SetShaderParameters(
 		(float)expandedWidth,
 		(float)Renderer::EFBToScaledY(expandedHeight), // TODO: Why do we scale this?
@@ -366,10 +355,10 @@ int EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture, u32 So
 	scaledSource.left = 0;
 	scaledSource.right = expandedWidth / samples;
 	int cacheBytes = 32;
-    if ((format & 0x0f) == 6)
-        cacheBytes = 64;
+	if ((format & 0x0f) == 6)
+		cacheBytes = 64;
 
-    int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
+	int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0,1.0f);
 	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
 }
@@ -379,9 +368,9 @@ void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourc
 	TextureConversionShader::SetShaderParameters(
 		(float)dstWidth, 
 		(float)dstHeight, 
-		0.0f , 
-		0.0f, 
-		1.0f, 
+		0.0f,
+		0.0f,
+		1.0f,
 		1.0f,
 		(float)Renderer::GetTargetWidth(),
 		(float)Renderer::GetTargetHeight());
@@ -439,25 +428,25 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
 		
 	TextureConversionShader::SetShaderParameters(
-		(float)srcFmtWidth, 
-		(float)srcHeight, 
-		0.0f , 
-		0.0f, 
-		1.0f, 
+		(float)srcFmtWidth,
+		(float)srcHeight,
+		0.0f,
+		0.0f,
+		1.0f,
 		1.0f,
 		(float)srcFmtWidth,
 		(float)srcHeight);
 	D3D::drawShadedTexQuad(
 		s_srcTexture,
-		&sourcerect, 
-		1 , 
+		&sourcerect,
+		1,
 		1,
 		srcWidth,
 		srcHeight,
 		s_yuyvToRgbProgram,
 		VertexShaderCache::GetSimpleVertexShader(0));
-	
-	
+
+
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 	D3D::SetTexture(0,NULL);

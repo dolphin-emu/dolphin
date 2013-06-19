@@ -1,22 +1,11 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
 #include "Hash.h"
+#include "DSP/DSPAnalyzer.h"
+#include "DSP/DSPCore.h"
 #include "DSP/DSPHost.h"
 #include "DSPSymbols.h"
 #include "DSPLLETools.h"
@@ -46,29 +35,35 @@ bool DSPHost_OnThread()
 	return  _CoreParameter.bDSPThread;
 }
 
+bool DSPHost_Wii()
+{
+	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	return  _CoreParameter.bWii;
+}
+
 void DSPHost_InterruptRequest()
 {
 	// Fire an interrupt on the PPC ASAP.
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
-u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
+void DSPHost_CodeLoaded(const u8 *ptr, int size)
 {
-	u32 ector_crc = HashEctor(ptr, size);
+	g_dsp.iram_crc = HashEctor(ptr, size);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	DumpDSPCode(ptr, size, ector_crc);
+	DumpDSPCode(ptr, size, g_dsp.iram_crc);
 #endif
 
 	DSPSymbols::Clear();
 
 	// Auto load text file - if none just disassemble.
 	
-	NOTICE_LOG(DSPLLE, "ector_crc: %08x", ector_crc);
+	NOTICE_LOG(DSPLLE, "g_dsp.iram_crc: %08x", g_dsp.iram_crc);
 
 	DSPSymbols::Clear();
 	bool success = false;
-	switch (ector_crc)
+	switch (g_dsp.iram_crc)
 	{
 		case 0x86840740: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_Zelda.txt"); break;
 		case 0x42f64ac4: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_Luigi.txt"); break;
@@ -83,7 +78,8 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 		default: success = false; break;
 	}
 
-	if (!success) {
+	if (!success)
+	{
 		DSPSymbols::AutoDisassembly(0x0, 0x1000);
 	}
 
@@ -92,7 +88,10 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 
 	DSPHost_UpdateDebugger();
 
-	return ector_crc;
+	if (dspjit)
+		dspjit->ClearIRAM();
+
+	DSPAnalyzer::Analyze();
 }
 
 void DSPHost_UpdateDebugger()

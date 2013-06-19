@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 // PatchEngine
 // Supports simple memory patches, and has a partial Action Replay implementation
@@ -55,7 +43,7 @@ const char *PatchTypeStrings[] =
 std::vector<Patch> onFrame;
 std::map<u32, int> speedHacks;
 std::vector<std::string> discList;
-    
+
 void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini)
 {
 	std::vector<std::string> lines;
@@ -113,22 +101,23 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 	if (currentPatch.name.size() && currentPatch.entries.size())
 		patches.push_back(currentPatch);
 }
-    
-static void LoadDiscList(const char *section, std::vector<std::string> &_discList, IniFile &ini) {
 
-    std::vector<std::string> lines;
-    if (!ini.GetLines(section, lines))
-	return;
-    
-    for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
+static void LoadDiscList(const char *section, std::vector<std::string> &_discList, IniFile &ini)
+{
+	std::vector<std::string> lines;
+	if (!ini.GetLines(section, lines))
+		return;
+
+	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
 	{
-	    std::string line = *iter;
-	    if (line.size())
-		_discList.push_back(line);
-	}	    
+		std::string line = *iter;
+		if (line.size())
+			_discList.push_back(line);
+	}
 }
 
-static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFile &ini) {
+static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFile &ini)
+{
 	std::vector<std::string> keys;
 	ini.GetKeys(section, keys);
 	for (std::vector<std::string>::const_iterator iter = keys.begin(); iter != keys.end(); ++iter)
@@ -163,7 +152,9 @@ void LoadPatches(const char *gameID)
 {
 	IniFile ini;
 	std::string filename = File::GetUserPath(D_GAMECONFIG_IDX) + gameID + ".ini";
-	if (ini.Load(filename.c_str())) {
+
+	if (ini.Load(filename.c_str()))
+	{
 		LoadPatchSection("OnFrame", onFrame, ini);
 		ActionReplay::LoadCodes(ini, false);
 		

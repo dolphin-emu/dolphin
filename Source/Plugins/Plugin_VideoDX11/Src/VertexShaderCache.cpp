@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "FileUtil.h"
 #include "LinearDiskCache.h"
@@ -37,14 +24,15 @@ namespace DX11 {
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
-VERTEXSHADERUID VertexShaderCache::last_uid;
+VertexShaderUid VertexShaderCache::last_uid;
+UidChecker<VertexShaderUid,VertexShaderCode> VertexShaderCache::vertex_uid_checker;
 
 static ID3D11VertexShader* SimpleVertexShader = NULL;
 static ID3D11VertexShader* ClearVertexShader = NULL;
 static ID3D11InputLayout* SimpleLayout = NULL;
 static ID3D11InputLayout* ClearLayout = NULL;
 
-LinearDiskCache<VERTEXSHADERUID, u8> g_vs_disk_cache;
+LinearDiskCache<VertexShaderUid, u8> g_vs_disk_cache;
 
 ID3D11VertexShader* VertexShaderCache::GetSimpleVertexShader() { return SimpleVertexShader; }
 ID3D11VertexShader* VertexShaderCache::GetClearVertexShader() { return ClearVertexShader; }
@@ -63,15 +51,17 @@ ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 		memcpy(map.pData, vsconstants, sizeof(vsconstants));
 		D3D::context->Unmap(vscbuf, 0);
 		vscbufchanged = false;
+		
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(vsconstants));
 	}
 	return vscbuf;
 }
 
 // this class will load the precompiled shaders into our cache
-class VertexShaderCacheInserter : public LinearDiskCacheReader<VERTEXSHADERUID, u8>
+class VertexShaderCacheInserter : public LinearDiskCacheReader<VertexShaderUid, u8>
 {
 public:
-	void Read(const VERTEXSHADERUID &key, const u8 *value, u32 value_size)
+	void Read(const VertexShaderUid &key, const u8 *value, u32 value_size)
 	{
 		D3DBlob* blob = new D3DBlob(value_size, value);
 		VertexShaderCache::InsertByteCode(key, blob);
@@ -162,7 +152,7 @@ void VertexShaderCache::Init()
 	for (k = 0;k < 64;k++) vs_constant_offset_table[C_TRANSFORMMATRICES+k]     = 312+4*k;	
 	for (k = 0;k < 32;k++) vs_constant_offset_table[C_NORMALMATRICES+k]        = 568+4*k;	
 	for (k = 0;k < 64;k++) vs_constant_offset_table[C_POSTTRANSFORMMATRICES+k] = 696+4*k;
-	for (k = 0;k <  4;k++) vs_constant_offset_table[C_DEPTHPARAMS+k]		   = 952+4*k;	
+	vs_constant_offset_table[C_DEPTHPARAMS] = 952;
 
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());
@@ -187,6 +177,7 @@ void VertexShaderCache::Clear()
 	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
 		iter->second.Destroy();
 	vshaders.clear();
+	vertex_uid_checker.Invalidate();
 
 	last_entry = NULL;
 }
@@ -208,14 +199,20 @@ void VertexShaderCache::Shutdown()
 
 bool VertexShaderCache::SetShader(u32 components)
 {
-	VERTEXSHADERUID uid;
-	GetVertexShaderId(&uid, components);
+	VertexShaderUid uid;
+	GetVertexShaderUid(uid, components, API_D3D11);
+	if (g_ActiveConfig.bEnableShaderDebugging)
+	{
+		VertexShaderCode code;
+		GenerateVertexShaderCode(code, components, API_D3D11);
+		vertex_uid_checker.AddToIndexAndCheck(code, uid, "Vertex", "v");
+	}
+
 	if (last_entry)
 	{
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-			ValidateVertexShaderIDs(API_D3D11, last_entry->safe_uid, last_entry->code, components);
 			return (last_entry->shader != NULL);
 		}
 	}
@@ -229,14 +226,14 @@ bool VertexShaderCache::SetShader(u32 components)
 		last_entry = &entry;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-		ValidateVertexShaderIDs(API_D3D11, entry.safe_uid, entry.code, components);
 		return (entry.shader != NULL);
 	}
 
-	const char *code = GenerateVertexShaderCode(components, API_D3D11);
+	VertexShaderCode code;
+	GenerateVertexShaderCode(code, components, API_D3D11);
 
 	D3DBlob* pbytecode = NULL;
-	D3D::CompileVertexShader(code, (int)strlen(code), &pbytecode);
+	D3D::CompileVertexShader(code.GetBuffer(), (int)strlen(code.GetBuffer()), &pbytecode);
 
 	if (pbytecode == NULL)
 	{
@@ -250,15 +247,14 @@ bool VertexShaderCache::SetShader(u32 components)
 
 	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
-		vshaders[uid].code = code;
-		GetSafeVertexShaderId(&vshaders[uid].safe_uid, components);
+		vshaders[uid].code = code.GetBuffer();
 	}
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 	return success;
 }
 
-bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, D3DBlob* bcodeblob)
+bool VertexShaderCache::InsertByteCode(const VertexShaderUid &uid, D3DBlob* bcodeblob)
 {
 	ID3D11VertexShader* shader = D3D::CreateVertexShaderFromByteCode(bcodeblob);
 	if (shader == NULL)

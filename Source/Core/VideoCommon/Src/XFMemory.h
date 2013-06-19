@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _XFMEMORY_H
 #define _XFMEMORY_H
@@ -110,70 +97,70 @@
 
 union LitChannel
 {
-    struct
-    {
-        u32 matsource      : 1;
-        u32 enablelighting : 1;
-        u32 lightMask0_3   : 4;
-        u32 ambsource      : 1;
-        u32 diffusefunc    : 2; // LIGHTDIF_X
-        u32 attnfunc       : 2; // LIGHTATTN_X
-        u32 lightMask4_7   : 4;
-    };
-    struct
-    {
-        u32 hex : 15;
-        u32 unused : 17;
-    };
-    struct
-    {
-        u32 dummy0 : 7;
-        u32 lightparams : 4;
-        u32 dummy1 : 21;
-    };
-    unsigned int GetFullLightMask() const
-    {
-        return enablelighting ? (lightMask0_3 | (lightMask4_7 << 4)) : 0;
-    }
+	struct
+	{
+		u32 matsource      : 1;
+		u32 enablelighting : 1;
+		u32 lightMask0_3   : 4;
+		u32 ambsource      : 1;
+		u32 diffusefunc    : 2; // LIGHTDIF_X
+		u32 attnfunc       : 2; // LIGHTATTN_X
+		u32 lightMask4_7   : 4;
+	};
+	struct
+	{
+		u32 hex : 15;
+		u32 unused : 17;
+	};
+	struct
+	{
+		u32 dummy0 : 7;
+		u32 lightparams : 4;
+		u32 dummy1 : 21;
+	};
+	unsigned int GetFullLightMask() const
+	{
+		return enablelighting ? (lightMask0_3 | (lightMask4_7 << 4)) : 0;
+	}
 };
 
 
 union INVTXSPEC
 {
-    struct
-    {
-        u32 numcolors : 2;
-        u32 numnormals : 2; // 0 - nothing, 1 - just normal, 2 - normals and binormals
-        u32 numtextures : 4;
-        u32 unused : 24;
-    };
-    u32 hex;
+	struct
+	{
+		u32 numcolors   : 2;
+		u32 numnormals  : 2; // 0 - nothing, 1 - just normal, 2 - normals and binormals
+		u32 numtextures : 4;
+		u32 unused : 24;
+	};
+	u32 hex;
 };
 
 union TexMtxInfo
 {
-    struct 
-    {
-        u32 unknown : 1;
-        u32 projection : 1; // XF_TEXPROJ_X
-        u32 inputform : 2; // XF_TEXINPUT_X
-        u32 texgentype : 3; // XF_TEXGEN_X
-        u32 sourcerow : 5; // XF_SRCGEOM_X
-        u32 embosssourceshift : 3; // what generated texcoord to use
-        u32 embosslightshift : 3; // light index that is used
-    };
-    u32 hex;
+	struct 
+	{
+		u32 unknown    : 1;
+		u32 projection : 1; // XF_TEXPROJ_X
+		u32 inputform  : 2; // XF_TEXINPUT_X
+		u32 texgentype : 3; // XF_TEXGEN_X
+		u32 sourcerow  : 5; // XF_SRCGEOM_X
+		u32 embosssourceshift : 3; // what generated texcoord to use
+		u32 embosslightshift  : 3; // light index that is used
+	};
+	u32 hex;
 };
 
 union PostMtxInfo
 {
-    struct 
-    {
-        u32 index : 6; // base row of dual transform matrix
-        u32 unused : 2;
-        u32 normalize : 1; // normalize before send operation
-    };
-    u32 hex;
+	struct 
+	{
+		u32 index     : 6; // base row of dual transform matrix
+		u32 unused    : 2;
+		u32 normalize : 1; // normalize before send operation
+	};
+	u32 hex;
 };
 
 union NumColorChannel
@@ -207,25 +194,29 @@ union DualTexInfo
 
 struct Light
 {
-    u32 useless[3]; 
-    u32 color;    //rgba
-    float a0;  //attenuation
-    float a1; 
-    float a2; 
-    float k0;  //k stuff
-    float k1; 
-    float k2; 
-    union
-    {
-        struct {
+	u32 useless[3]; 
+	u32 color; // rgba
+	float a0;  // attenuation
+	float a1; 
+	float a2; 
+	float k0;  // k stuff
+	float k1; 
+	float k2; 
+
+	union
+	{
+		struct
+		{
 			float dpos[3];
-            float ddir[3]; // specular lights only
-        };
-        struct {
-            float sdir[3];
-            float shalfangle[3]; // specular lights only
-        };
-    };
+			float ddir[3]; // specular lights only
+		};
+
+		struct
+		{
+			float sdir[3];
+			float shalfangle[3]; // specular lights only
+		};
+	};
 };
 
 struct Viewport
@@ -246,35 +237,35 @@ struct Projection
 
 struct XFRegisters
 {
-    u32 error;                      // 0x1000
-    u32 diag;                       // 0x1001
-    u32 state0;                     // 0x1002
-    u32 state1;                     // 0x1003
-    u32 xfClock;                    // 0x1004
-    u32 clipDisable;                // 0x1005
-    u32 perf0;                      // 0x1006
-    u32 perf1;                      // 0x1007
-    INVTXSPEC hostinfo;             // 0x1008 number of textures,colors,normals from vertex input
-    NumColorChannel numChan;        // 0x1009
-    u32 ambColor[2];                // 0x100a, 0x100b
-    u32 matColor[2];                // 0x100c, 0x100d
-    LitChannel color[2];            // 0x100e, 0x100f
-    LitChannel alpha[2];            // 0x1010, 0x1011
-    DualTexInfo dualTexTrans;       // 0x1012
-    u32 unk3;                       // 0x1013
-    u32 unk4;                       // 0x1014
-    u32 unk5;                       // 0x1015
-    u32 unk6;                       // 0x1016
-    u32 unk7;                       // 0x1017
-    u32 MatrixIndexA;               // 0x1018
-    u32 MatrixIndexB;               // 0x1019
-    Viewport viewport;              // 0x101a - 0x101f
-    Projection projection;          // 0x1020 - 0x1026
-    u32 unk8[24];                   // 0x1027 - 0x103e
-    NumTexGen numTexGen;            // 0x103f
-    TexMtxInfo texMtxInfo[8];       // 0x1040 - 0x1047
-    u32 unk9[8];                    // 0x1048 - 0x104f
-    PostMtxInfo postMtxInfo[8];     // 0x1050 - 0x1057
+	u32 error;                      // 0x1000
+	u32 diag;                       // 0x1001
+	u32 state0;                     // 0x1002
+	u32 state1;                     // 0x1003
+	u32 xfClock;                    // 0x1004
+	u32 clipDisable;                // 0x1005
+	u32 perf0;                      // 0x1006
+	u32 perf1;                      // 0x1007
+	INVTXSPEC hostinfo;             // 0x1008 number of textures,colors,normals from vertex input
+	NumColorChannel numChan;        // 0x1009
+	u32 ambColor[2];                // 0x100a, 0x100b
+	u32 matColor[2];                // 0x100c, 0x100d
+	LitChannel color[2];            // 0x100e, 0x100f
+	LitChannel alpha[2];            // 0x1010, 0x1011
+	DualTexInfo dualTexTrans;       // 0x1012
+	u32 unk3;                       // 0x1013
+	u32 unk4;                       // 0x1014
+	u32 unk5;                       // 0x1015
+	u32 unk6;                       // 0x1016
+	u32 unk7;                       // 0x1017
+	u32 MatrixIndexA;               // 0x1018
+	u32 MatrixIndexB;               // 0x1019
+	Viewport viewport;              // 0x101a - 0x101f
+	Projection projection;          // 0x1020 - 0x1026
+	u32 unk8[24];                   // 0x1027 - 0x103e
+	NumTexGen numTexGen;            // 0x103f
+	TexMtxInfo texMtxInfo[8];       // 0x1040 - 0x1047
+	u32 unk9[8];                    // 0x1048 - 0x104f
+	PostMtxInfo postMtxInfo[8];     // 0x1050 - 0x1057
 };
 
 

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Globals.h"
 #include "VideoConfig.h"
@@ -53,8 +40,6 @@ void InitInterface()
 {
 	#if defined(USE_EGL) && USE_EGL
 		GLInterface = new cInterfaceEGL;
-	#elif defined(USE_WX) && USE_WX
-		GLInterface = new cInterfaceWX;
 	#elif defined(__APPLE__)
 		GLInterface = new cInterfaceAGL;
 	#elif defined(_WIN32)
@@ -70,14 +55,14 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 	GLuint programID = glCreateProgram();
-	GLint Result = GL_FALSE;
-	char stringBuffer[1024];
-	GLsizei stringBufferUsage = 0;
 	
 	// compile vertex shader
 	glShaderSource(vertexShaderID, 1, &vertexShader, NULL);
 	glCompileShader(vertexShaderID);
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(DEBUG_GLSL)
+	GLint Result = GL_FALSE;
+	char stringBuffer[1024];
+	GLsizei stringBufferUsage = 0;
 	glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &Result);
 	glGetShaderInfoLog(vertexShaderID, 1024, &stringBufferUsage, stringBuffer);
 	if(Result && stringBufferUsage) {
@@ -147,7 +132,7 @@ void OpenGL_ReportARBProgramError()
 	{
 		GLint loc = 0;
 		glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &loc);
-		ERROR_LOG(VIDEO, "program error at %d: ", loc);
+		ERROR_LOG(VIDEO, "Program error at %d: ", loc);
 		ERROR_LOG(VIDEO, "%s", (char*)pstr);
 		ERROR_LOG(VIDEO, "\n");
 	}
@@ -157,32 +142,26 @@ void OpenGL_ReportARBProgramError()
 bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 {
 #ifndef USE_GLES
-	unsigned int fbo_status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-	if (fbo_status != GL_FRAMEBUFFER_COMPLETE_EXT)
+	unsigned int fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (fbo_status != GL_FRAMEBUFFER_COMPLETE)
 	{
-		const char *error = "-";
+		const char *error = "unknown error";
 		switch (fbo_status)
 		{
-			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
-				error = "INCOMPLETE_ATTACHMENT_EXT";
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+				error = "INCOMPLETE_ATTACHMENT";
 				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
-				error = "INCOMPLETE_MISSING_ATTACHMENT_EXT";
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+				error = "INCOMPLETE_MISSING_ATTACHMENT";
 				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
-				error = "INCOMPLETE_DIMENSIONS_EXT";
+			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
+				error = "INCOMPLETE_DRAW_BUFFER";
 				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
-				error = "INCOMPLETE_FORMATS_EXT";
+			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+				error = "INCOMPLETE_READ_BUFFER";
 				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
-				error = "INCOMPLETE_DRAW_BUFFER_EXT";
-				break;
-			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
-				error = "INCOMPLETE_READ_BUFFER_EXT";
-				break;
-			case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-				error = "UNSUPPORTED_EXT";
+			case GL_FRAMEBUFFER_UNSUPPORTED:
+				error = "UNSUPPORTED";
 				break;
 		}
 		ERROR_LOG(VIDEO, "%s:%d: (%s) OpenGL FBO error - %s\n",

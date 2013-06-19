@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "D3DBase.h"
 #include "VideoConfig.h"
@@ -66,6 +53,7 @@ static int numAdapters;
 static int cur_adapter;
 
 // Value caches for state filtering
+const int MaxStreamSources = 16;
 const int MaxTextureStages = 9;
 const int MaxRenderStates = 210 + 46;
 const int MaxTextureTypes = 33;
@@ -83,10 +71,23 @@ static DWORD m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
 static bool m_SamplerStatesSet[MaxSamplerSize][MaxSamplerTypes];
 static bool m_SamplerStatesChanged[MaxSamplerSize][MaxSamplerTypes];
 
-LPDIRECT3DBASETEXTURE9 m_Textures[16];
-LPDIRECT3DVERTEXDECLARATION9 m_VtxDecl;
-LPDIRECT3DPIXELSHADER9 m_PixelShader;
-LPDIRECT3DVERTEXSHADER9 m_VertexShader;
+static LPDIRECT3DBASETEXTURE9 m_Textures[16];
+static LPDIRECT3DVERTEXDECLARATION9 m_VtxDecl;
+static bool m_VtxDeclChanged;
+static LPDIRECT3DPIXELSHADER9 m_PixelShader;
+static bool m_PixelShaderChanged;
+static LPDIRECT3DVERTEXSHADER9 m_VertexShader;
+static bool m_VertexShaderChanged;
+struct StreamSourceDescriptor
+{
+	LPDIRECT3DVERTEXBUFFER9 pStreamData;
+	UINT OffsetInBytes;
+	UINT Stride;
+};
+static StreamSourceDescriptor m_stream_sources[MaxStreamSources];
+static bool m_stream_sources_Changed[MaxStreamSources];
+static LPDIRECT3DINDEXBUFFER9 m_index_buffer;
+static bool m_index_buffer_Changed;
 
 // Z buffer formats to be used for EFB depth surface
 D3DFORMAT DepthFormats[] = {
@@ -170,9 +171,9 @@ void EnableAlphaToCoverage()
 {
 	// Each vendor has their own specific little hack.
 	if (GetCurAdapter().ident.VendorId == VENDOR_ATI)
-		D3D::SetRenderState(D3DRS_POINTSIZE, (D3DFORMAT)MAKEFOURCC('A', '2', 'M', '1'));
+		SetRenderState(D3DRS_POINTSIZE, (D3DFORMAT)MAKEFOURCC('A', '2', 'M', '1'));
 	else
-		D3D::SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));
+		SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));
 }
 
 void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
@@ -209,20 +210,20 @@ void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 		yres = pp->BackBufferHeight = client.bottom - client.top;
 	}
 	pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
-	pp->PresentationInterval = g_Config.bVSync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
+	pp->PresentationInterval = g_Config.IsVSync() ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
 	pp->Windowed = !g_Config.b3DVision;
 }
 
 void Enumerate()
 {
-	numAdapters = D3D::D3D->GetAdapterCount();
+	numAdapters = D3D->GetAdapterCount();
 
 	for (int i = 0; i < std::min(MAX_ADAPTERS, numAdapters); i++)
 	{
 		Adapter &a = adapters[i];
 		a.aa_levels.clear();
 		a.resolutions.clear();
-		D3D::D3D->GetAdapterIdentifier(i, 0, &a.ident);
+		D3D->GetAdapterIdentifier(i, 0, &a.ident);
 		bool isNvidia = a.ident.VendorId == VENDOR_NVIDIA;
 
 		// Add SuperSamples modes
@@ -233,17 +234,17 @@ void Enumerate()
 		//disable them will they are not implemnted
 		/*
 		DWORD qlevels = 0;
-		if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
+		if (D3DERR_NOTAVAILABLE != D3D->CheckDeviceMultiSampleType(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_2_SAMPLES, &qlevels))
 			if (qlevels > 0)
 				a.aa_levels.push_back(AALevel("2x MSAA", D3DMULTISAMPLE_2_SAMPLES, 0));
 
-		if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
+		if (D3DERR_NOTAVAILABLE != D3D->CheckDeviceMultiSampleType(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_2_SAMPLES, &qlevels))
 			if (qlevels > 0)
 				a.aa_levels.push_back(AALevel("4x MSAA", D3DMULTISAMPLE_4_SAMPLES, 0));
 
-		if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
+		if (D3DERR_NOTAVAILABLE != D3D->CheckDeviceMultiSampleType(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_8_SAMPLES, &qlevels))
 			if (qlevels > 0)
 				a.aa_levels.push_back(AALevel("8x MSAA", D3DMULTISAMPLE_8_SAMPLES, 0));
@@ -251,7 +252,7 @@ void Enumerate()
 		if (isNvidia)
 		{
 			// CSAA support
-			if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
+			if (D3DERR_NOTAVAILABLE != D3D->CheckDeviceMultiSampleType(
 				i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_4_SAMPLES, &qlevels))
 			{
 				if (qlevels > 2)
@@ -262,7 +263,7 @@ void Enumerate()
 					a.aa_levels.push_back(AALevel("8xQ CSAA", D3DMULTISAMPLE_8_SAMPLES, 0));
 				}
 			}
-			if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
+			if (D3DERR_NOTAVAILABLE != D3D->CheckDeviceMultiSampleType(
 				i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_8_SAMPLES, &qlevels))
 			{
 				if (qlevels > 2)
@@ -296,11 +297,11 @@ void Enumerate()
 		{
 			strcpy(a.aa_levels[0].name, "(Not supported on this device)");
 		}
-		int numModes = D3D::D3D->GetAdapterModeCount(i, D3DFMT_X8R8G8B8);
+		int numModes = D3D->GetAdapterModeCount(i, D3DFMT_X8R8G8B8);
 		for (int m = 0; m < numModes; m++)
 		{
 			D3DDISPLAYMODE mode;
-			D3D::D3D->EnumAdapterModes(i, D3DFMT_X8R8G8B8, m, &mode);
+			D3D->EnumAdapterModes(i, D3DFMT_X8R8G8B8, m, &mode);
 
 			int found = -1;
 			for (int x = 0; x < (int)a.resolutions.size(); x++)
@@ -440,8 +441,8 @@ HRESULT Create(int adapter, HWND wnd, int _resolution, int aa_mode, bool auto_de
 	dev->GetRenderTarget(0, &back_buffer);
 	if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
 		back_buffer_z = NULL;
-	D3D::SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE );
-	D3D::SetRenderState(D3DRS_FILLMODE, g_Config.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
+	SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE );
+	SetRenderState(D3DRS_FILLMODE, g_Config.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
 	memset(m_Textures, 0, sizeof(m_Textures));
 	memset(m_TextureStageStatesSet, 0, sizeof(m_TextureStageStatesSet));
 	memset(m_RenderStatesSet, 0, sizeof(m_RenderStatesSet));
@@ -452,6 +453,15 @@ HRESULT Create(int adapter, HWND wnd, int _resolution, int aa_mode, bool auto_de
 	m_VtxDecl = NULL;
 	m_PixelShader = NULL;
 	m_VertexShader = NULL;
+	m_index_buffer = NULL;
+	memset(m_stream_sources, 0, sizeof(m_stream_sources));
+	m_index_buffer = NULL;
+	
+	m_VtxDeclChanged = false;
+	m_PixelShaderChanged = false;
+	m_VertexShaderChanged = false;
+	memset(m_stream_sources_Changed, 0 , sizeof(m_stream_sources_Changed));
+	m_index_buffer_Changed = false;
 	// Device state would normally be set here
 	return S_OK;
 }
@@ -516,7 +526,7 @@ bool CheckDepthStencilSupport(D3DFORMAT target_format, D3DFORMAT depth_format)
 D3DFORMAT GetSupportedDepthTextureFormat()
 {
 	for (int i = 0; i < sizeof(DepthFormats)/sizeof(D3DFORMAT); ++i)
-		if (D3D::CheckTextureSupport(D3DUSAGE_DEPTHSTENCIL, DepthFormats[i]))
+		if (CheckTextureSupport(D3DUSAGE_DEPTHSTENCIL, DepthFormats[i]))
 			return DepthFormats[i];
 
 	return D3DFMT_UNKNOWN;
@@ -525,7 +535,7 @@ D3DFORMAT GetSupportedDepthTextureFormat()
 D3DFORMAT GetSupportedDepthSurfaceFormat(D3DFORMAT target_format)
 {
 	for (int i = 0; i < sizeof(DepthFormats)/sizeof(D3DFORMAT); ++i)
-		if (D3D::CheckDepthStencilSupport(target_format, DepthFormats[i]))
+		if (CheckDepthStencilSupport(target_format, DepthFormats[i]))
 			return DepthFormats[i];
 
 	return D3DFMT_UNKNOWN;
@@ -533,13 +543,13 @@ D3DFORMAT GetSupportedDepthSurfaceFormat(D3DFORMAT target_format)
 
 const char *VertexShaderVersionString()
 {
-	int version = ((D3D::caps.VertexShaderVersion >> 8) & 0xFF);
+	int version = ((caps.VertexShaderVersion >> 8) & 0xFF);
 	return vsVersions[std::min(4, version)];
 }
 
 const char *PixelShaderVersionString()
 {
-	int version = ((D3D::caps.PixelShaderVersion >> 8) & 0xFF);
+	int version = ((caps.PixelShaderVersion >> 8) & 0xFF);
 	return psVersions[std::min(4, version)];
 }
 
@@ -653,14 +663,14 @@ void ApplyCachedState()
 		for (int type = 0; type < MaxSamplerTypes; type++)
 		{
 			if(m_SamplerStatesSet[sampler][type])
-				D3D::dev->SetSamplerState(sampler, (D3DSAMPLERSTATETYPE)type, m_SamplerStates[sampler][type]);
+				dev->SetSamplerState(sampler, (D3DSAMPLERSTATETYPE)type, m_SamplerStates[sampler][type]);
 		}
 	}
 
 	for (int rs = 0; rs < MaxRenderStates; rs++)
 	{
 		if (m_RenderStatesSet[rs])
-			D3D::dev->SetRenderState((D3DRENDERSTATETYPE)rs, m_RenderStates[rs]);
+			dev->SetRenderState((D3DRENDERSTATETYPE)rs, m_RenderStates[rs]);
 	}
 
 	// We don't bother restoring these so let's just wipe the state copy
@@ -671,6 +681,13 @@ void ApplyCachedState()
 	m_VtxDecl = NULL;
 	m_PixelShader = NULL;
 	m_VertexShader = NULL;
+	memset(m_stream_sources, 0, sizeof(m_stream_sources));
+	m_index_buffer = NULL;
+	m_VtxDeclChanged = false;
+	m_PixelShaderChanged = false;
+	m_VertexShaderChanged = false;
+	memset(m_stream_sources_Changed, 0 , sizeof(m_stream_sources_Changed));
+	m_index_buffer_Changed = false;
 }
 
 void SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
@@ -678,7 +695,7 @@ void SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
 	if (m_Textures[Stage] != pTexture)
 	{
 		m_Textures[Stage] = pTexture;
-		D3D::dev->SetTexture(Stage, pTexture);
+		dev->SetTexture(Stage, pTexture);
 	}
 }
 
@@ -686,7 +703,7 @@ void RefreshRenderState(D3DRENDERSTATETYPE State)
 {
 	if(m_RenderStatesSet[State] && m_RenderStatesChanged[State])
 	{
-		D3D::dev->SetRenderState(State, m_RenderStates[State]);
+		dev->SetRenderState(State, m_RenderStates[State]);
 		m_RenderStatesChanged[State] = false;
 	}
 }
@@ -698,7 +715,7 @@ void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value)
 		m_RenderStates[State] = Value;
 		m_RenderStatesSet[State] = true;
 		m_RenderStatesChanged[State] = false;
-		D3D::dev->SetRenderState(State, Value);
+		dev->SetRenderState(State, Value);
 	}
 }
 
@@ -707,7 +724,7 @@ void ChangeRenderState(D3DRENDERSTATETYPE State, DWORD Value)
 	if (m_RenderStates[State] != Value || !m_RenderStatesSet[State])
 	{
 		m_RenderStatesChanged[State] = m_RenderStatesSet[State];
-		D3D::dev->SetRenderState(State, Value);
+		dev->SetRenderState(State, Value);
 	}
 	else
 	{
@@ -722,7 +739,7 @@ void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Valu
 		m_TextureStageStates[Stage][Type] = Value;
 		m_TextureStageStatesSet[Stage][Type]=true;
 		m_TextureStageStatesChanged[Stage][Type]=false;
-		D3D::dev->SetTextureStageState(Stage, Type, Value);
+		dev->SetTextureStageState(Stage, Type, Value);
 	}
 }
 
@@ -730,7 +747,7 @@ void RefreshTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type)
 {
 	if(m_TextureStageStatesSet[Stage][Type] && m_TextureStageStatesChanged[Stage][Type])
 	{
-		D3D::dev->SetTextureStageState(Stage, Type, m_TextureStageStates[Stage][Type]);
+		dev->SetTextureStageState(Stage, Type, m_TextureStageStates[Stage][Type]);
 		m_TextureStageStatesChanged[Stage][Type] = false;
 	}
 }
@@ -740,7 +757,7 @@ void ChangeTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD V
 	if (m_TextureStageStates[Stage][Type] != Value || !m_TextureStageStatesSet[Stage][Type])
 	{
 		m_TextureStageStatesChanged[Stage][Type] = m_TextureStageStatesSet[Stage][Type];
-		D3D::dev->SetTextureStageState(Stage, Type, Value);
+		dev->SetTextureStageState(Stage, Type, Value);
 	}
 	else
 	{
@@ -755,7 +772,7 @@ void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 		m_SamplerStates[Sampler][Type] = Value;
 		m_SamplerStatesSet[Sampler][Type] = true;
 		m_SamplerStatesChanged[Sampler][Type] = false;
-		D3D::dev->SetSamplerState(Sampler, Type, Value);
+		dev->SetSamplerState(Sampler, Type, Value);
 	}
 }
 
@@ -763,7 +780,7 @@ void RefreshSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type)
 {
 	if(m_SamplerStatesSet[Sampler][Type] && m_SamplerStatesChanged[Sampler][Type])
 	{
-		D3D::dev->SetSamplerState(Sampler, Type, m_SamplerStates[Sampler][Type]);
+		dev->SetSamplerState(Sampler, Type, m_SamplerStates[Sampler][Type]);
 		m_SamplerStatesChanged[Sampler][Type] = false;
 	}
 }
@@ -773,7 +790,7 @@ void ChangeSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 	if (m_SamplerStates[Sampler][Type] != Value || !m_SamplerStatesSet[Sampler][Type])
 	{
 		m_SamplerStatesChanged[Sampler][Type] = m_SamplerStatesSet[Sampler][Type];
-		D3D::dev->SetSamplerState(Sampler, Type, Value);
+		dev->SetSamplerState(Sampler, Type, Value);
 	}
 	else
 	{
@@ -783,66 +800,154 @@ void ChangeSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 
 void RefreshVertexDeclaration()
 {
-	if (m_VtxDecl)
+	if (m_VtxDeclChanged)
 	{
-		D3D::dev->SetVertexDeclaration(m_VtxDecl);
+		dev->SetVertexDeclaration(m_VtxDecl);
+		m_VtxDeclChanged = false;
 	}
 }
 
 void SetVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl)
 {
-	if (!decl) {
-		m_VtxDecl = NULL;
-		return;
-	}
 	if (decl != m_VtxDecl)
 	{
-		D3D::dev->SetVertexDeclaration(decl);
+		dev->SetVertexDeclaration(decl);
 		m_VtxDecl = decl;
+		m_VtxDeclChanged = false;
+	}
+}
+
+void ChangeVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl)
+{
+	if (decl != m_VtxDecl) {
+		dev->SetVertexDeclaration(decl);
+		m_VtxDeclChanged = true;
+	}
+}
+
+void ChangeVertexShader(LPDIRECT3DVERTEXSHADER9 shader)
+{
+	if (shader != m_VertexShader)
+	{
+		dev->SetVertexShader(shader);
+		m_VertexShaderChanged = true;
 	}
 }
 
 void RefreshVertexShader()
 {
-	if (m_VertexShader)
+	if (m_VertexShaderChanged)
 	{
-		D3D::dev->SetVertexShader(m_VertexShader);
+		dev->SetVertexShader(m_VertexShader);
+		m_VertexShaderChanged = false;
 	}
 }
 
 void SetVertexShader(LPDIRECT3DVERTEXSHADER9 shader)
 {
-	if (!shader) {
-		m_VertexShader = NULL;
-		return;
-	}
 	if (shader != m_VertexShader)
 	{
-		D3D::dev->SetVertexShader(shader);
+		dev->SetVertexShader(shader);
 		m_VertexShader = shader;
+		m_VertexShaderChanged = false;
 	}
 }
 
 void RefreshPixelShader()
 {
-	if (m_PixelShader)
+	if (m_PixelShaderChanged)
 	{
-		D3D::dev->SetPixelShader(m_PixelShader);
+		dev->SetPixelShader(m_PixelShader);
+		m_PixelShaderChanged = false;
 	}
 }
 
 void SetPixelShader(LPDIRECT3DPIXELSHADER9 shader)
 {
-	if (!shader) {
-		m_PixelShader = NULL;
-		return;
-	}
 	if (shader != m_PixelShader)
 	{
-		D3D::dev->SetPixelShader(shader);
+		dev->SetPixelShader(shader);
 		m_PixelShader = shader;
+		m_PixelShaderChanged = false;
 	}
 }
+
+void ChangePixelShader(LPDIRECT3DPIXELSHADER9 shader)
+{
+	if (shader != m_PixelShader)
+	{
+		dev->SetPixelShader(shader);
+		m_PixelShaderChanged = true;
+	}
+}
+
+void SetStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9* pStreamData,UINT OffsetInBytes,UINT Stride)
+{
+	if (m_stream_sources[StreamNumber].OffsetInBytes != OffsetInBytes
+		|| m_stream_sources[StreamNumber].pStreamData != pStreamData
+		|| m_stream_sources[StreamNumber].Stride != Stride)
+	{
+		m_stream_sources[StreamNumber].OffsetInBytes = OffsetInBytes;
+		m_stream_sources[StreamNumber].pStreamData = pStreamData;
+		m_stream_sources[StreamNumber].Stride = Stride;
+		dev->SetStreamSource(StreamNumber, pStreamData, OffsetInBytes, Stride);
+		m_stream_sources_Changed[StreamNumber] = false;
+	}
+}
+
+void ChangeStreamSource(UINT StreamNumber,IDirect3DVertexBuffer9* pStreamData,UINT OffsetInBytes,UINT Stride)
+{
+	if (m_stream_sources[StreamNumber].OffsetInBytes != OffsetInBytes
+		|| m_stream_sources[StreamNumber].pStreamData != pStreamData
+		|| m_stream_sources[StreamNumber].Stride != Stride)
+	{
+		dev->SetStreamSource(StreamNumber, pStreamData, OffsetInBytes, Stride);
+		m_stream_sources_Changed[StreamNumber] = true;
+	}
+	
+}
+
+void RefreshStreamSource(UINT StreamNumber)
+{
+	if (m_PixelShaderChanged)
+	{
+		dev->SetStreamSource(
+			StreamNumber, 
+			m_stream_sources[StreamNumber].pStreamData, 
+			m_stream_sources[StreamNumber].OffsetInBytes, 
+			m_stream_sources[StreamNumber].Stride);
+		m_stream_sources_Changed[StreamNumber] = false;
+	}
+}
+
+void SetIndices(LPDIRECT3DINDEXBUFFER9 pIndexData)
+{
+	if(pIndexData != m_index_buffer)
+	{
+		m_index_buffer = pIndexData;
+		dev->SetIndices(pIndexData);
+		m_index_buffer_Changed = false;
+	}
+}
+
+void ChangeIndices(LPDIRECT3DINDEXBUFFER9 pIndexData)
+{
+	if(pIndexData != m_index_buffer)
+	{
+		dev->SetIndices(pIndexData);
+		m_index_buffer_Changed = true;
+	}
+}
+
+void RefreshIndices()
+{
+	if (m_index_buffer_Changed)
+	{
+		dev->SetIndices(m_index_buffer);
+		m_index_buffer_Changed = false;
+	}
+}
+
 
 
 }  // namespace

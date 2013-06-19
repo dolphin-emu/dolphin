@@ -21,6 +21,10 @@ volatile u32 s_swapRequested = false;
 u32 s_efbAccessRequested = false;
 volatile u32 s_FifoShuttingDown = false;
 
+std::condition_variable s_perf_query_cond;
+std::mutex s_perf_query_lock;
+static volatile bool s_perf_query_requested;
+
 static volatile struct
 {
 	u32 xfbAddr;
@@ -169,6 +173,43 @@ u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 
 	return 0;
 }
 
+static bool QueryResultIsReady()
+{
+	return !s_perf_query_requested || s_FifoShuttingDown;
+}
+
+void VideoFifo_CheckPerfQueryRequest()
+{
+	if (s_perf_query_requested)
+	{
+		g_perf_query->FlushResults();
+		
+		{
+		std::lock_guard<std::mutex> lk(s_perf_query_lock);
+		s_perf_query_requested = false;
+		}
+		
+		s_perf_query_cond.notify_one();
+	}
+}
+
+u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
+{
+	// TODO: Is this check sane?
+	if (!g_perf_query->IsFlushed())
+	{
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		{
+			s_perf_query_requested = true;
+			std::unique_lock<std::mutex> lk(s_perf_query_lock);
+			s_perf_query_cond.wait(lk, QueryResultIsReady);
+		}
+		else
+			g_perf_query->FlushResults();
+	}
+
+	return g_perf_query->GetQueryResult(type);
+}
 
 void VideoBackendHardware::InitializeShared()
 {
@@ -176,6 +217,7 @@ void VideoBackendHardware::InitializeShared()
 
 	s_swapRequested = 0;
 	s_efbAccessRequested = 0;
+	s_perf_query_requested = false;
 	s_FifoShuttingDown = 0;
 	memset((void*)&s_beginFieldArgs, 0, sizeof(s_beginFieldArgs));
 	memset(&s_accessEFBArgs, 0, sizeof(s_accessEFBArgs));
@@ -186,6 +228,15 @@ void VideoBackendHardware::InitializeShared()
 // Run from the CPU thread
 void VideoBackendHardware::DoState(PointerWrap& p)
 {
+	bool software = false;
+	p.Do(software);
+
+	if (p.GetMode() == PointerWrap::MODE_READ && software == true)
+	{
+		// change mode to abort load of incompatible save state.
+		p.SetMode(PointerWrap::MODE_VERIFY);
+	}
+
 	VideoCommon_DoState(p);
 	p.DoMarker("VideoCommon");
 
@@ -208,7 +259,8 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 	}
 }
 
-void VideoBackendHardware::CheckInvalidState() {
+void VideoBackendHardware::CheckInvalidState()
+{
 	if (m_invalid)
 	{
 		m_invalid = false;
@@ -233,6 +285,7 @@ void VideoFifo_CheckAsyncRequest()
 {
 	VideoFifo_CheckSwapRequest();
 	VideoFifo_CheckEFBAccess();
+	VideoFifo_CheckPerfQueryRequest();
 }
 
 void VideoBackendHardware::Video_GatherPipeBursted()

@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 #ifndef _LINEAR_DISKCACHE
 #define _LINEAR_DISKCACHE
@@ -21,11 +9,8 @@
 #include "Common.h"
 #include <fstream>
 
-// Increment this every time you change shader generation code.
-enum
-{
-	LINEAR_DISKCACHE_VER = 6979
-};
+// defined in Version.cpp
+extern const char *scm_rev_git_str;
 
 // On disk format:
 //header{
@@ -74,7 +59,7 @@ public:
 		m_num_entries = 0;
 
 		// try opening for reading/writing
-		m_file.open(filename, ios_base::in | ios_base::out | ios_base::binary);
+		OpenFStream(m_file, filename, ios_base::in | ios_base::out | ios_base::binary);
 
 		m_file.seekg(0, std::ios::end);
 		std::fstream::pos_type end_pos = m_file.tellg();
@@ -187,13 +172,15 @@ private:
 	{
 		Header()
 			: id(*(u32*)"DCAC")
-			, ver(LINEAR_DISKCACHE_VER)
 			, key_t_size(sizeof(K))
 			, value_t_size(sizeof(V))
-		{}
+		{
+			memcpy(ver, scm_rev_git_str, 40);
+		}
 
-		const u32 id, ver;
+		const u32 id;
 		const u16 key_t_size, value_t_size;
+		char ver[40];
 
 	} m_header;
 

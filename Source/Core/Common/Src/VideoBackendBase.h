@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef VIDEO_BACKEND_H_
 #define VIDEO_BACKEND_H_
@@ -22,6 +9,7 @@
 #include <vector>
 
 #include "ChunkFile.h"
+#include "../../VideoCommon/Src/PerfQueryBase.h"
 
 typedef void (*writeFn16)(const u16,const u32);
 typedef void (*writeFn32)(const u32,const u32);
@@ -96,17 +84,20 @@ public:
 	virtual void RunLoop(bool enable) = 0;
 
 	virtual std::string GetName() = 0;
+	virtual std::string GetDisplayName() { return GetName(); }
 
 	virtual void ShowConfig(void*) {}
 
 	virtual void Video_Prepare() = 0;
 	virtual void Video_EnterLoop() = 0;
 	virtual void Video_ExitLoop() = 0;
+	virtual void Video_Cleanup() = 0; // called from gl/d3d thread
 
 	virtual void Video_BeginField(u32, FieldType, u32, u32) = 0;
 	virtual void Video_EndField() = 0;
 
 	virtual u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) = 0;
+	virtual u32 Video_GetQueryResult(PerfQueryType type) = 0;
 
 	virtual void Video_AddMessage(const char* pstr, unsigned int milliseconds) = 0;
 	virtual void Video_ClearMessages() = 0;
@@ -156,8 +147,10 @@ class VideoBackendHardware : public VideoBackend
 	void Video_ExitLoop();
 	void Video_BeginField(u32, FieldType, u32, u32);
 	void Video_EndField();
-	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
 
+	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
+	u32 Video_GetQueryResult(PerfQueryType type);
+	
 	void Video_AddMessage(const char* pstr, unsigned int milliseconds);
 	void Video_ClearMessages();
 	bool Video_Screenshot(const char* filename);

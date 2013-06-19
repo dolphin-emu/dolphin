@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 #ifndef _FILEUTIL_H_
 #define _FILEUTIL_H_
@@ -25,6 +13,7 @@
 #include <string.h>
 
 #include "Common.h"
+#include "StringUtil.h"
 
 // User directory indices for GetUserPath
 enum {
@@ -131,7 +120,10 @@ bool SetCurrentDir(const std::string &directory);
 
 // Returns a pointer to a string with a Dolphin data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
-std::string &GetUserPath(const unsigned int DirIDX, const std::string &newPath="");
+const std::string& GetUserPath(const unsigned int DirIDX, const std::string &newPath="");
+
+// probably doesn't belong here
+std::string GetThemeDir(const std::string& theme_name);
 
 // Returns the path to where the sys file are
 std::string GetSysDirectory();
@@ -150,7 +142,7 @@ bool ReadFileToString(bool text_file, const char *filename, std::string &str);
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
 // and make forgetting an fclose() harder
-class IOFile : NonCopyable
+class IOFile
 {
 public:
 	IOFile();
@@ -158,6 +150,11 @@ public:
 	IOFile(const std::string& filename, const char openmode[]);
 
 	~IOFile();
+	
+	IOFile(IOFile&& other);
+	IOFile& operator=(IOFile&& other);
+	
+	void Swap(IOFile& other);
 
 	bool Open(const std::string& filename, const char openmode[]);
 	bool Close();
@@ -212,6 +209,7 @@ public:
 	void Clear() { m_good = true; std::clearerr(m_file); }
 
 private:
+	IOFile(const IOFile&) /*= delete*/;
 	IOFile& operator=(const IOFile&) /*= delete*/;
 
 	std::FILE* m_file;
@@ -219,5 +217,16 @@ private:
 };
 
 }  // namespace
+
+// To deal with Windows being dumb at unicode:
+template <typename T>
+void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmode openmode)
+{
+#ifdef _WIN32
+	fstream.open(UTF8ToTStr(filename).c_str(), openmode);
+#else
+	fstream.open(filename.c_str(), openmode);
+#endif
+}
 
 #endif

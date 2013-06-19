@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 // Emulator state saving support.
 
@@ -26,22 +14,34 @@
 namespace State
 {
 
+// number of states
+static const u32 NUM_STATES = 8;
+
+struct StateHeader
+{
+	u8 gameID[6];
+	u32 size;
+	double time;
+};
+
 void Init();
 
 void Shutdown();
 
 void EnableCompression(bool compression);
 
+bool ReadHeader(const std::string filename, StateHeader& header);
+
 // These don't happen instantly - they get scheduled as events.
 // ...But only if we're not in the main cpu thread.
 //    If we're in the main cpu thread then they run immediately instead
 //    because some things (like Lua) need them to run immediately.
 // Slots from 0-99.
-void Save(int slot);
+void Save(int slot, bool wait = false);
 void Load(int slot);
 void Verify(int slot);
 
-void SaveAs(const std::string &filename);
+void SaveAs(const std::string &filename, bool wait = false);
 void LoadAs(const std::string &filename);
 void VerifyAt(const std::string &filename);
 
@@ -49,7 +49,8 @@ void SaveToBuffer(std::vector<u8>& buffer);
 void LoadFromBuffer(std::vector<u8>& buffer);
 void VerifyBuffer(std::vector<u8>& buffer);
 
-void LoadLastSaved();
+void LoadLastSaved(int i = 1);
+void SaveFirstSaved();
 void UndoSaveState();
 void UndoLoadState();
 

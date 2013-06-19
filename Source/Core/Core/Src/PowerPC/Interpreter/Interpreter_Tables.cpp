@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Interpreter_Tables.h"
 
@@ -267,7 +254,7 @@ static GekkoOPTemplate table31[] =
 	{19,  Interpreter::mfcr,        {"mfcr",   OPTYPE_SYSTEM, FL_OUT_D, 0, 0, 0, 0}},
 	{83,  Interpreter::mfmsr,       {"mfmsr",  OPTYPE_SYSTEM, FL_OUT_D, 0, 0, 0, 0}},
 	{144, Interpreter::mtcrf,       {"mtcrf",  OPTYPE_SYSTEM, 0, 0, 0, 0, 0}},
-	{146, Interpreter::mtmsr,       {"mtmsr",  OPTYPE_SYSTEM, FL_ENDBLOCK, 0, 0, 0, 0}},
+	{146, Interpreter::mtmsr,       {"mtmsr",  OPTYPE_SYSTEM, FL_IN_S | FL_ENDBLOCK, 0, 0, 0, 0}},
 	{210, Interpreter::mtsr,        {"mtsr",   OPTYPE_SYSTEM, 0, 0, 0, 0, 0}},
 	{242, Interpreter::mtsrin,      {"mtsrin", OPTYPE_SYSTEM, 0, 0, 0, 0, 0}},
 	{339, Interpreter::mfspr,       {"mfspr",  OPTYPE_SPR, FL_OUT_D, 0, 0, 0, 0}},
@@ -297,6 +284,7 @@ static GekkoOPTemplate table31_2[] =
 	{10,   Interpreter::addcx,       {"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT, 0, 0, 0, 0}},
 	{522,  Interpreter::addcx,       {"addcox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT, 0, 0, 0, 0}},
 	{138,  Interpreter::addex,       {"addex",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 0, 0, 0, 0}},
+	{650,  Interpreter::addex,       {"addeox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 0, 0, 0, 0}},
 	{234,  Interpreter::addmex,      {"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 0, 0, 0, 0}},
 	{202,  Interpreter::addzex,      {"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 0, 0, 0, 0}},
 	{491,  Interpreter::divwx,       {"divwx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39, 0, 0, 0}},

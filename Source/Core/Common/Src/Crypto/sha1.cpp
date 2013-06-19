@@ -36,6 +36,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "../FileUtil.h"
+
 /*
  * 32-bit integer manipulation macros (big endian)
  */
@@ -335,7 +337,10 @@ int sha1_file( char *path, unsigned char output[20] )
     sha1_context ctx;
     unsigned char buf[1024];
 
-    if( ( f = fopen( path, "rb" ) ) == NULL )
+	File::IOFile file(path, "rb");
+	f = file.GetHandle();
+
+    if (f == NULL)
         return( 1 );
 
     sha1_starts( &ctx );
@@ -349,11 +354,9 @@ int sha1_file( char *path, unsigned char output[20] )
 
     if( ferror( f ) != 0 )
     {
-        fclose( f );
         return( 2 );
     }
 
-    fclose( f );
     return( 0 );
 }
 

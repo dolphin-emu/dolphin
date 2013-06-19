@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _COMMON_H_
 #define _COMMON_H_
@@ -133,7 +120,9 @@ private:
 // wxWidgets does not have a true dummy macro for this.
 #define _trans(a) a
 
-#if defined __GNUC__
+#if defined _M_GENERIC
+#  define _M_SSE 0x0
+#elif defined __GNUC__
 # if defined __SSE4_2__
 #  define _M_SSE 0x402
 # elif defined __SSE4_1__
@@ -144,7 +133,7 @@ private:
 #  define _M_SSE 0x300
 # endif
 #elif (_MSC_VER >= 1500) || __INTEL_COMPILER // Visual Studio 2008
-# define _M_SSE 0x402
+#  define _M_SSE 0x402
 #endif
 
 // Host communication.
@@ -155,7 +144,6 @@ enum HOST_COMM
 	WM_USER_CREATE,
 	WM_USER_SETCURSOR,
 	WM_USER_KEYDOWN,
-	WIIMOTE_DISCONNECT // Disconnect Wiimote
 };
 
 // Used for notification on emulation state

@@ -1,19 +1,8 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 // see IniFile.h
 
 #include <stdlib.h>
@@ -25,6 +14,7 @@
 #include <fstream>
 #include <algorithm>
 
+#include "FileUtil.h"
 #include "StringUtil.h"
 #include "IniFile.h"
 
@@ -400,7 +390,7 @@ bool IniFile::Load(const char* filename)
 
 	// Open file
 	std::ifstream in;
-	in.open(filename, std::ios::in);
+	OpenFStream(in, filename, std::ios::in);
 
 	if (in.fail()) return false;
 
@@ -452,7 +442,7 @@ bool IniFile::Load(const char* filename)
 bool IniFile::Save(const char* filename)
 {
 	std::ofstream out;
-	out.open(filename, std::ios::out);
+	OpenFStream(out, filename, std::ios::out);
 
 	if (out.fail())
 	{

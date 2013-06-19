@@ -1,26 +1,13 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _THREAD_H_
 #define _THREAD_H_
 
-#include "StdThread.h"
-#include "StdMutex.h"
 #include "StdConditionVariable.h"
+#include "StdMutex.h"
+#include "StdThread.h"
 
 // Don't include common.h here as it will break LogManager
 #include "CommonTypes.h"
@@ -32,8 +19,6 @@
 #ifndef INFINITE
 #define INFINITE 0xffffffff
 #endif
-
-#include <xmmintrin.h>
 
 //for gettimeofday and struct time(spec|val)
 #include <time.h>
@@ -64,7 +49,7 @@ public:
 			m_condvar.notify_one();
 		}
 	}
-	
+
 	void Wait()
 	{
 		std::unique_lock<std::mutex> lk(m_mutex);

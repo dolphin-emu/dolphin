@@ -9,7 +9,6 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/DSPEmulator.cpp
 			Src/GeckoCodeConfig.cpp
 			Src/GeckoCode.cpp
-			Src/MemTools.cpp
 			Src/Movie.cpp
 			Src/NetPlay.cpp
 			Src/NetPlayClient.cpp
@@ -70,8 +69,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/CPU.cpp
 			Src/HW/DSP.cpp
 			Src/HW/DSPHLE/UCodes/UCode_AX.cpp
-            Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
-            Src/HW/DSPHLE/UCodes/UCode_NewAXWii.cpp
+			Src/HW/DSPHLE/UCodes/UCode_AXWii.cpp
 			Src/HW/DSPHLE/UCodes/UCode_CARD.cpp
 			Src/HW/DSPHLE/UCodes/UCode_InitAudioSystem.cpp
 			Src/HW/DSPHLE/UCodes/UCode_ROM.cpp
@@ -114,6 +112,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/SI.cpp
 			Src/HW/SI_DeviceAMBaseboard.cpp
 			Src/HW/SI_Device.cpp
+			Src/HW/SI_DeviceDanceMat.cpp
 			Src/HW/SI_DeviceGBA.cpp
 			Src/HW/SI_DeviceGCController.cpp
 			Src/HW/SI_DeviceGCSteeringWheel.cpp
@@ -154,6 +153,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/PPCTables.cpp
 			Src/PowerPC/Profiler.cpp
 			Src/PowerPC/SignatureDB.cpp
+			Src/PowerPC/JitInterface.cpp
 			Src/PowerPC/Interpreter/Interpreter_Branch.cpp
 			Src/PowerPC/Interpreter/Interpreter.cpp
 			Src/PowerPC/Interpreter/Interpreter_FloatingPoint.cpp
@@ -163,6 +163,12 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/Interpreter/Interpreter_Paired.cpp
 			Src/PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
 			Src/PowerPC/Interpreter/Interpreter_Tables.cpp
+			Src/PowerPC/JitCommon/JitBase.cpp
+			Src/PowerPC/JitCommon/JitCache.cpp)
+
+if(NOT _M_GENERIC)
+	set(SRCS ${SRCS}
+			Src/x64MemTools.cpp
 			Src/PowerPC/Jit64IL/IR.cpp
 			Src/PowerPC/Jit64IL/IR_X86.cpp
 			Src/PowerPC/Jit64IL/JitILAsm.cpp
@@ -188,15 +194,31 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/Jit64/Jit_Paired.cpp
 			Src/PowerPC/Jit64/JitRegCache.cpp
 			Src/PowerPC/Jit64/Jit_SystemRegisters.cpp
-			Src/PowerPC/JitCommon/JitAsmCommon.cpp
 			Src/PowerPC/JitCommon/JitBackpatch.cpp
-			Src/PowerPC/JitCommon/JitBase.cpp
-			Src/PowerPC/JitCommon/JitCache.cpp
+			Src/PowerPC/JitCommon/JitAsmCommon.cpp
 			Src/PowerPC/JitCommon/Jit_Util.cpp)
+endif()
+if(_M_ARM)
+	set(SRCS ${SRCS}
+			Src/ArmMemTools.cpp
+			Src/PowerPC/JitArm32/Jit.cpp
+			Src/PowerPC/JitArm32/JitAsm.cpp
+			Src/PowerPC/JitArm32/JitArm_BackPatch.cpp
+			Src/PowerPC/JitArm32/JitArm_Tables.cpp
+			Src/PowerPC/JitArm32/JitArmCache.cpp
+			Src/PowerPC/JitArm32/JitRegCache.cpp
+			Src/PowerPC/JitArm32/JitFPRCache.cpp
+			Src/PowerPC/JitArm32/JitArm_Branch.cpp
+			Src/PowerPC/JitArm32/JitArm_Integer.cpp
+			Src/PowerPC/JitArm32/JitArm_LoadStore.cpp
+			Src/PowerPC/JitArm32/JitArm_FloatingPoint.cpp
+			Src/PowerPC/JitArm32/JitArm_SystemRegisters.cpp
+			Src/PowerPC/JitArm32/JitArm_LoadStoreFloating.cpp)
+endif()
 
 set(LIBS bdisasm inputcommon videosoftware sfml-network)
 
-if(NOT USE_GLES)
+if(NOT USE_GLES OR USE_GLES3)
 	set(LIBS ${LIBS} videoogl)
 endif()
 

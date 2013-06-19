@@ -1,22 +1,11 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "MemcardManager.h"
 #include "Common.h"
+
+#include "WxUtils.h"
 #include "wx/mstream.h"
 
 #define ARROWS slot ? _T("") : ARROW[slot], slot ? ARROW[slot] : _T("")
@@ -212,7 +201,7 @@ void CMemcardManager::CreateGUIControls()
 		sPages->Add(m_NextPage[slot], 0, wxEXPAND|wxALL, 1);
 
 		m_MemcardPath[slot] = new wxFilePickerCtrl(this, ID_MEMCARDPATH_A + slot,
-			 wxString::From8BitData(File::GetUserPath(D_GCUSER_IDX).c_str()), _("Choose a memory card:"),
+			 StrToWxStr(File::GetUserPath(D_GCUSER_IDX)), _("Choose a memory card:"),
 		_("Gamecube Memory Cards (*.raw,*.gcp)") + wxString(wxT("|*.raw;*.gcp")), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 	
 		m_MemcardList[slot] = new CMemcardListCtrl(this, ID_MEMCARDLIST_A + slot, wxDefaultPosition, wxSize(350,400),
@@ -263,7 +252,7 @@ void CMemcardManager::CreateGUIControls()
 		m_Delete[i]->Disable();
 		if (DefaultMemcard[i].length())
 		{
-			m_MemcardPath[i]->SetPath(wxString::From8BitData(DefaultMemcard[i].c_str()));
+			m_MemcardPath[i]->SetPath(StrToWxStr(DefaultMemcard[i]));
 			ChangePath(i);
 		}
 	}
@@ -290,7 +279,7 @@ void CMemcardManager::ChangePath(int slot)
 	}
 	else
 	{
-		if (m_MemcardPath[slot]->GetPath().length() && ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot))
+		if (m_MemcardPath[slot]->GetPath().length() && ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()).c_str(), slot))
 		{
 			if (memoryCard[slot2])
 			{
@@ -345,7 +334,7 @@ void CMemcardManager::OnPageChange(wxCommandEvent& event)
 			m_NextPage[slot]->Disable();
 			m_MemcardList[slot]->nextPage = false;
 		}
-		ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot);
+		ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()).c_str(), slot);
 		break;
 	case ID_PREVPAGE_A:
 		slot = SLOT_A;
@@ -361,7 +350,7 @@ void CMemcardManager::OnPageChange(wxCommandEvent& event)
 			m_PrevPage[slot]->Disable();
 			m_MemcardList[slot]->prevPage = false;
 		}
-		ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot);
+		ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()).c_str(), slot);
 		break;
 	}
 }
@@ -373,7 +362,7 @@ void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 	{
 	case ID_MEMCARDPATH_A:
 	case ID_MEMCARDPATH_B:
-		DefaultMemcard[_id - ID_MEMCARDPATH_A] = m_MemcardPath[_id - ID_MEMCARDPATH_A]->GetPath().mb_str();
+		DefaultMemcard[_id - ID_MEMCARDPATH_A] = WxStrToStr(m_MemcardPath[_id - ID_MEMCARDPATH_A]->GetPath());
 		return;
 	case ID_USEPAGES:
 		mcmSettings.usePages = !mcmSettings.usePages;
@@ -400,8 +389,8 @@ void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 		break;
 	}
 
-	if (memoryCard[SLOT_A])	ReloadMemcard(m_MemcardPath[SLOT_A]->GetPath().mb_str(), SLOT_A);
-	if (memoryCard[SLOT_B])	ReloadMemcard(m_MemcardPath[SLOT_B]->GetPath().mb_str(), SLOT_B);
+	if (memoryCard[SLOT_A])	ReloadMemcard(WxStrToStr(m_MemcardPath[SLOT_A]->GetPath()).c_str(), SLOT_A);
+	if (memoryCard[SLOT_B])	ReloadMemcard(WxStrToStr(m_MemcardPath[SLOT_B]->GetPath()).c_str(), SLOT_B);
 }
 bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 {
@@ -416,7 +405,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 			memoryCard[slot]->FixChecksums();
 			if (!memoryCard[slot]->Save()) PanicAlert(E_SAVEFAILED);
 			page[slot] = FIRSTPAGE;
-			ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot);
+			ReloadMemcard(WxStrToStr(m_MemcardPath[slot]->GetPath()).c_str(), slot);
 		}
 		break;
 	case NOMEMCARD:
@@ -464,7 +453,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 		break;
 	case DELETE_FAIL:
 		PanicAlertT("Order of files in the File Directory do not match the block order\n"
-				"Right click and export all of the saves,\nand import the the saves to a new memcard\n");
+				"Right click and export all of the saves,\nand import the saves to a new memcard\n");
 		break;
 	default:
 		PanicAlert(E_UNK);
@@ -506,7 +495,10 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		{
 			SuccessAlertT("The checksum was successfully fixed");
 		}
-		else PanicAlert(E_SAVEFAILED);
+		else
+		{
+			PanicAlert(E_SAVEFAILED);
+		}
 		break; 
 	case ID_CONVERTTOGCI:
 		fileName2 = "convert";
@@ -517,8 +509,8 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		wxString fileName = wxFileSelector(
 			_("Select a save file to import"),
 			(strcmp(DefaultIOPath.c_str(), "/Users/GC") == 0)
-				? wxString::FromAscii("")
-				: wxString::From8BitData(DefaultIOPath.c_str()),
+				? StrToWxStr("")
+				: StrToWxStr(DefaultIOPath),
 			wxEmptyString, wxEmptyString,
 			_("GameCube Savegame files(*.gci;*.gcs;*.sav)") + wxString(wxT("|*.gci;*.gcs;*.sav|")) +
 			_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
@@ -531,12 +523,15 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				wxEmptyString, wxEmptyString, wxT(".gci"),
 				_("GCI File(*.gci)") + wxString(_T("|*.gci")),
 				wxFD_OVERWRITE_PROMPT|wxFD_SAVE, this);
-			if (temp2.empty()) break;
-			fileName2 = temp2.mb_str();
+
+			if (temp2.empty())
+				break;
+
+			fileName2 = WxStrToStr(temp2);
 		}
 		if (fileName.length() > 0)
 		{
-			CopyDeleteSwitch(memoryCard[slot]->ImportGci(fileName.mb_str(), fileName2), slot);
+			CopyDeleteSwitch(memoryCard[slot]->ImportGci(WxStrToStr(fileName).c_str(), fileName2), slot);
 		}
 	}
 	break;
@@ -550,13 +545,13 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			std::string gciFilename;
 			if (!memoryCard[slot]->GCI_FileName(index, gciFilename))
 			{
-				PanicAlert("invalid index");
+				PanicAlert("Invalid index");
 				return;
 			}
 			wxString fileName = wxFileSelector(
 				_("Export save as..."),
-				wxString::From8BitData(DefaultIOPath.c_str()),
-				wxString::From8BitData(gciFilename.c_str()), wxT(".gci"),
+				StrToWxStr(DefaultIOPath),
+				StrToWxStr(gciFilename), wxT(".gci"),
 				_("Native GCI files(*.gci)") + wxString(wxT("|*.gci|")) +
 				_("MadCatz Gameshark files(*.gcs)") + wxString(wxT("|*.gcs|")) +
 				_("Datel MaxDrive/Pro files(*.sav)") + wxString(wxT("|*.sav")),
@@ -564,9 +559,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 
 			if (fileName.length() > 0)
 			{
-				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, fileName.mb_str(), ""), -1))
+				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, WxStrToStr(fileName).c_str(), ""), -1))
 				{
-					File::Delete(std::string(fileName.mb_str()));
+					File::Delete(WxStrToStr(fileName));
 				}
 			}
 		}
@@ -576,7 +571,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	case ID_EXPORTALL_B:
 	{
 		std::string path1, path2, mpath;
-		mpath = m_MemcardPath[slot]->GetPath().mb_str();
+		mpath = WxStrToStr(m_MemcardPath[slot]->GetPath());
 		SplitPath(mpath, &path1, &path2, NULL);
 		path1 += path2;
 		File::CreateDir(path1);
@@ -608,7 +603,8 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	// TODO: add error checking and animate icons
 	memoryCard[card] = new GCMemcard(fileName);
 
-	if (!memoryCard[card]->IsValid()) return false;
+	if (!memoryCard[card]->IsValid())
+		return false;
 
 	int j;
 
@@ -669,7 +665,10 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		{
 			memset(pxdata,0,96*32*4);
 			int frames=3;
-			if (numFrames<frames) frames=numFrames;
+
+			if (numFrames<frames)
+				frames=numFrames;
+
 			for (int f=0;f<frames;f++)
 			{
 				for (int y=0;y<32;y++)
@@ -702,32 +701,20 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		std::string title = memoryCard[card]->GetSaveComment1(fileIndex);
 		std::string comment = memoryCard[card]->GetSaveComment2(fileIndex);
 
-		bool ascii = memoryCard[card]->IsAsciiEncoding();
-
-#ifdef _WIN32
-		wxCSConv SJISConv(*(wxCSConv*)wxConvCurrent);
-		static bool validCP932 = ::IsValidCodePage(932) != 0;
-		if (validCP932)
-		{
-			SJISConv = wxCSConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
-		}
-		else
-		{
-			WARN_LOG(COMMON, "Cannot Convert from Charset Windows Japanese cp 932");
-		}
-#else
-		// on linux the wrong string is returned from wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS)
-		// it returns CP-932, in order to use iconv we need to use CP932
-		wxCSConv SJISConv(wxT("CP932"));
-#endif
-		wxTitle  =  wxString(title.c_str(), ascii ? *wxConvCurrent : SJISConv);
-		wxComment = wxString(comment.c_str(), ascii ? *wxConvCurrent : SJISConv);
+		auto const string_decoder = memoryCard[card]->IsAsciiEncoding() ?
+			CP1252ToUTF8 : SHIFTJISToUTF8;
+			
+		wxTitle = StrToWxStr(string_decoder(title));
+		wxComment = StrToWxStr(string_decoder(comment));
 
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxTitle);
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxComment);
 
 		blocks = memoryCard[card]->DEntry_BlockCount(fileIndex);
-		if (blocks == 0xFFFF) blocks = 0;
+		
+		if (blocks == 0xFFFF)
+			blocks = 0;
+		
 		wxBlock.Printf(wxT("%10d"), blocks);
 		m_MemcardList[card]->SetItem(index,COLUMN_BLOCKS, wxBlock);
 		firstblock = memoryCard[card]->DEntry_FirstBlock(fileIndex);
@@ -814,7 +801,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu->Append(ID_NEXTPAGE_A + slot, _("Next Page"));
 		popupMenu->Append(ID_MEMCARDPATH_A + slot, wxString::Format(_("Set as default Memcard %c"), 'A' + slot));
 		popupMenu->AppendCheckItem(ID_USEPAGES, _("Enable pages"));
-	
+
 		popupMenu->FindItem(ID_PREVPAGE_A + slot)->Enable(prevPage && __mcmSettings.usePages);
 		popupMenu->FindItem(ID_NEXTPAGE_A + slot)->Enable(nextPage && __mcmSettings.usePages);
 		popupMenu->FindItem(ID_USEPAGES)->Check(__mcmSettings.usePages);

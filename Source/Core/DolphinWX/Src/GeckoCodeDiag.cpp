@@ -1,18 +1,10 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "GeckoCodeDiag.h"
+#include "Core.h"
+#include "WxUtils.h"
 
 #include <SFML/Network/Http.hpp>
 
@@ -50,7 +42,8 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 
 	// button sizer
 	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
-	wxButton* const btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
+	btn_download = new wxButton(this, -1, _("Download Codes (WiiRD Database)"), wxDefaultPosition, wxSize(128, -1));
+	btn_download->Enable(false);
 	btn_download->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CodeConfigPanel::DownloadCodes, this);
 	sizer_buttons->AddStretchSpacer(1);
 	sizer_buttons->Add(btn_download, 1, wxEXPAND);
@@ -67,8 +60,11 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	SetSizerAndFit(sizer_main);
 }
 
-void CodeConfigPanel::UpdateCodeList()
+void CodeConfigPanel::UpdateCodeList(bool checkRunning)
 {
+	// disable the button if it doesn't have an effect
+	btn_download->Enable((!checkRunning || Core::IsRunning()) && !m_gameid.empty());
+
 	m_listbox_gcodes->Clear();
 	// add the codes to the listbox
 	std::vector<GeckoCode>::const_iterator
@@ -76,7 +72,7 @@ void CodeConfigPanel::UpdateCodeList()
 		gcodes_end = m_gcodes.end();
 	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
 	{
-		m_listbox_gcodes->Append(wxString(gcodes_iter->name.c_str(), *wxConvCurrent));
+		m_listbox_gcodes->Append(StrToWxStr(gcodes_iter->name));
 		if (gcodes_iter->enabled)
 			m_listbox_gcodes->Check(m_listbox_gcodes->GetCount()-1, true);
 	}
@@ -85,14 +81,15 @@ void CodeConfigPanel::UpdateCodeList()
 	UpdateInfoBox(evt);
 }
 
-void CodeConfigPanel::LoadCodes(const IniFile& inifile, const std::string& gameid)
+void CodeConfigPanel::LoadCodes(const IniFile& inifile, const std::string& gameid, bool checkRunning)
 {
 	m_gameid = gameid;
 
 	m_gcodes.clear();
-	Gecko::LoadCodes(inifile, m_gcodes);
+	if (!checkRunning || Core::IsRunning())
+		Gecko::LoadCodes(inifile, m_gcodes);
 
-	UpdateCodeList();
+	UpdateCodeList(checkRunning);
 }
 
 void CodeConfigPanel::ToggleCode(wxCommandEvent& evt)
@@ -109,7 +106,7 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 
 	if (sel > -1)
 	{
-		m_infobox.label_name->SetLabel(wxGetTranslation(wxstr_name) + wxString(m_gcodes[sel].name.c_str(),  *wxConvCurrent));
+		m_infobox.label_name->SetLabel(wxGetTranslation(wxstr_name) + StrToWxStr(m_gcodes[sel].name));
 
 		// notes textctrl
 		m_infobox.textctrl_notes->Clear();
@@ -117,10 +114,10 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 			notes_iter = m_gcodes[sel].notes.begin(),
 			notes_end = m_gcodes[sel].notes.end();
 		for (; notes_iter!=notes_end; ++notes_iter)
-			m_infobox.textctrl_notes->AppendText(wxString(notes_iter->c_str(),  *wxConvCurrent));
+			m_infobox.textctrl_notes->AppendText(StrToWxStr(*notes_iter));
 		m_infobox.textctrl_notes->ScrollLines(-99);	// silly
 
-		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator) + wxString(m_gcodes[sel].creator.c_str(),  *wxConvCurrent));
+		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator) + StrToWxStr(m_gcodes[sel].creator));
 
 		// add codes to info listbox
 		std::vector<GeckoCode::Code>::const_iterator
@@ -216,7 +213,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 			case 0 :
 			{
 				std::istringstream ssline(line);
-				// stop at [ character (begining of contributer name)
+				// stop at [ character (beginning of contributor name)
 				std::getline(ssline, gcode.name, '[');
 				gcode.name = StripSpaces(gcode.name);
 				// read the code creator name
@@ -286,9 +283,8 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 						break;
 					}
 
-					// code with this name+creator exists
-					if (existing_gcodes_iter->name == gcodes_iter->name &&
-						existing_gcodes_iter->creator == gcodes_iter->creator)
+					// code exists
+					if (existing_gcodes_iter->Compare(*gcodes_iter))
 						break;
 				}
 			}
@@ -300,10 +296,14 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 			UpdateCodeList();
 		}
 		else
+		{
 			PanicAlertT("File contained no codes.");
+		}
 	}
 	else
+	{
 		PanicAlertT("Failed to download codes.");
+	}
 }
 
 }

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _STRINGUTIL_H_
 #define _STRINGUTIL_H_
@@ -96,5 +83,29 @@ void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _P
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest);
 std::string UriDecode(const std::string & sSrc);
 std::string UriEncode(const std::string & sSrc);
+
+std::string CP1252ToUTF8(const std::string& str);
+std::string SHIFTJISToUTF8(const std::string& str);
+std::string UTF16ToUTF8(const std::wstring& str);
+
+#ifdef _WIN32
+
+std::wstring UTF8ToUTF16(const std::string& str);
+
+#ifdef _UNICODE
+inline std::string TStrToUTF8(const std::wstring& str)
+{ return UTF16ToUTF8(str); }
+
+inline std::wstring UTF8ToTStr(const std::string& str)
+{ return UTF8ToUTF16(str); }
+#else
+inline std::string TStrToUTF8(const std::string& str)
+{ return str; }
+
+inline std::string UTF8ToTStr(const std::string& str)
+{ return str; }
+#endif
+
+#endif
 
 #endif // _STRINGUTIL_H_

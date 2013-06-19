@@ -1,29 +1,33 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef GCOGL_VERTEXSHADER_H
 #define GCOGL_VERTEXSHADER_H
 
+#include <stdarg.h>
 #include "XFMemory.h"
 #include "VideoCommon.h"
+#include "ShaderGenCommon.h"
 
-#define SHADER_POSMTX_ATTRIB 1
-#define SHADER_NORM1_ATTRIB  6
-#define SHADER_NORM2_ATTRIB  7
+// TODO should be reordered
+#define SHADER_POSITION_ATTRIB  0
+#define SHADER_POSMTX_ATTRIB    1
+#define SHADER_NORM0_ATTRIB     2
+#define SHADER_NORM1_ATTRIB     3
+#define SHADER_NORM2_ATTRIB     4
+#define SHADER_COLOR0_ATTRIB    5
+#define SHADER_COLOR1_ATTRIB    6
+
+#define SHADER_TEXTURE0_ATTRIB  8
+#define SHADER_TEXTURE1_ATTRIB  9
+#define SHADER_TEXTURE2_ATTRIB  10
+#define SHADER_TEXTURE3_ATTRIB  11
+#define SHADER_TEXTURE4_ATTRIB  12
+#define SHADER_TEXTURE5_ATTRIB  13
+#define SHADER_TEXTURE6_ATTRIB  14
+#define SHADER_TEXTURE7_ATTRIB  15
+
 
 
 // shader variables
@@ -46,73 +50,52 @@
 #define C_NORMALMATRICES        (C_TRANSFORMMATRICES + 64)
 #define C_POSTTRANSFORMMATRICES (C_NORMALMATRICES + 32)
 #define C_DEPTHPARAMS           (C_POSTTRANSFORMMATRICES + 64)
-#define C_VENVCONST_END			(C_DEPTHPARAMS + 4)
+#define C_VENVCONST_END			(C_DEPTHPARAMS + 1)
 
-template<bool safe>
-class _VERTEXSHADERUID
+const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
+						{I_PROJECTION , C_PROJECTION, 4  },
+						{I_MATERIALS, C_MATERIALS, 4 },
+						{I_LIGHTS, C_LIGHTS, 40 },
+						{I_TEXMATRICES, C_TEXMATRICES, 24 },
+						{I_TRANSFORMMATRICES , C_TRANSFORMMATRICES, 64  },
+						{I_NORMALMATRICES , C_NORMALMATRICES, 32  },
+						{I_POSTTRANSFORMMATRICES, C_POSTTRANSFORMMATRICES, 64 },
+						{I_DEPTHPARAMS, C_DEPTHPARAMS, 1 },
+						};
+
+#pragma pack(4)
+
+struct vertex_shader_uid_data
 {
-#define NUM_VSUID_VALUES_SAFE 25
-public:
-	u32 values[safe ? NUM_VSUID_VALUES_SAFE : 9];
+	u32 components;
+	u32 numColorChans : 2;
+	u32 numTexGens : 4;
 
-	_VERTEXSHADERUID()
-	{
-	}
+	struct {
+		u32 projection : 1; // XF_TEXPROJ_X
+		u32 inputform : 2; // XF_TEXINPUT_X
+		u32 texgentype : 3; // XF_TEXGEN_X
+		u32 sourcerow : 5; // XF_SRCGEOM_X
+		u32 embosssourceshift : 3; // what generated texcoord to use
+		u32 embosslightshift : 3; // light index that is used
+	} texMtxInfo[8];
+	struct {
+		u32 index : 6; // base row of dual transform matrix
+		u32 normalize : 1; // normalize before send operation
+	} postMtxInfo[8];
+	struct {
+		u32 enabled : 1;
+	} dualTexTrans;
 
-	_VERTEXSHADERUID(const _VERTEXSHADERUID& r)
-	{
-		for (size_t i = 0; i < sizeof(values) / sizeof(u32); ++i) 
-			values[i] = r.values[i]; 
-	}
-
-	int GetNumValues() const 
-	{
-		if (safe) return NUM_VSUID_VALUES_SAFE;
-		else return (((values[0] >> 23) & 0xf) * 3 + 3) / 4 + 3; // numTexGens*3/4+1
-	}
-
-	bool operator <(const _VERTEXSHADERUID& _Right) const
-	{
-		if (values[0] < _Right.values[0])
-			return true;
-		else if (values[0] > _Right.values[0])
-			return false;
-		int N = GetNumValues();
-		for (int i = 1; i < N; ++i) 
-		{
-			if (values[i] < _Right.values[i])
-				return true;
-			else if (values[i] > _Right.values[i])
-				return false;
-		}
-		return false;
-	}
-
-	bool operator ==(const _VERTEXSHADERUID& _Right) const
-	{
-		if (values[0] != _Right.values[0])
-			return false;
-		int N = GetNumValues();
-		for (int i = 1; i < N; ++i)
-		{
-			if (values[i] != _Right.values[i])
-				return false;
-		}
-		return true;
-	}
+	LightingUidData lighting;
 };
-typedef _VERTEXSHADERUID<false> VERTEXSHADERUID;
-typedef _VERTEXSHADERUID<true> VERTEXSHADERUIDSAFE;
+#pragma pack()
 
+typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
+typedef ShaderCode VertexShaderCode; // TODO: Obsolete..
 
-// components is included in the uid.
-char* GenerateVSOutputStruct(char* p, u32 components, API_TYPE api_type);
-const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type);
-
-void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components);
-void GetSafeVertexShaderId(VERTEXSHADERUIDSAFE *uid, u32 components);
-
-// Used to make sure that our optimized vertex shader IDs don't lose any possible shader code changes
-void ValidateVertexShaderIDs(API_TYPE api, VERTEXSHADERUIDSAFE old_id, const std::string& old_code, u32 components);
+void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type);
+void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type);
+void GenerateVSOutputStructForGS(ShaderCode& object, u32 components, API_TYPE api_type);
 
 #endif // GCOGL_VERTEXSHADER_H

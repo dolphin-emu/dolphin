@@ -13,8 +13,10 @@ class VideoBackend : public VideoBackendHardware
 	void Shutdown();
 
 	std::string GetName();
+	std::string GetDisplayName();
 
 	void Video_Prepare();
+	void Video_Cleanup();
 
 	void ShowConfig(void* parent);
 

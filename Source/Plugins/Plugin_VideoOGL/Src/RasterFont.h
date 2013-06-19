@@ -1,42 +1,28 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef _RASTERFONT_H_
 #define _RASTERFONT_H_
 
+namespace OGL {
+
 class RasterFont {
 public:
-    RasterFont();
-    ~RasterFont(void);
-    static int debug;
-    
-    // some useful constants
-    enum	{char_width = 10};
-    enum	{char_height = 15};
-    
-    // and the happy helper functions
-    void printString(const char *s, double x, double y, double z=0.0);
-    void printCenteredString(const char *s, double y, int screen_width, double z=0.0);
+	RasterFont();
+	~RasterFont(void);
+	static int debug;
 
-	void printMultilineText(const char *text, double x, double y, double z, int bbWidth, int bbHeight);
+	void printMultilineText(const char *text, double x, double y, double z, int bbWidth, int bbHeight, u32 color);
 private:
-	int	fontOffset;
-    char *temp_buffer;
-	enum {TEMP_BUFFER_SIZE = 64 * 1024};
+	
+	u32 VBO;
+	u32 VAO;
+	u32 texture;
+	u32 uniform_color_id;
+	u32 cached_color;
 };
+
+}
 
 #endif // _RASTERFONT_H_

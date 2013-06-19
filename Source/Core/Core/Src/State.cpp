@@ -1,21 +1,9 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "Common.h"
+#include "Timer.h"
 #include "State.h"
 #include "Core.h"
 #include "ConfigManager.h"
@@ -70,14 +58,8 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 
 static std::thread g_save_thread;
 
-// Don't forget to increase this after doing changes on the savestate system 
-static const u32 STATE_VERSION = 10;
-
-struct StateHeader
-{
-	u8 gameID[6];
-	size_t size;
-};
+// Don't forget to increase this after doing changes on the savestate system
+static const u32 STATE_VERSION = 20;
 
 enum
 {
@@ -97,7 +79,7 @@ void DoState(PointerWrap &p)
 {
 	u32 version = STATE_VERSION;
 	{
- 		static const u32 COOKIE_BASE = 0xBAADBABE;
+		static const u32 COOKIE_BASE = 0xBAADBABE;
 		u32 cookie = version + COOKIE_BASE;
 		p.Do(cookie);
 		version = cookie - COOKIE_BASE;
@@ -172,17 +154,61 @@ void VerifyBuffer(std::vector<u8>& buffer)
 	Core::PauseAndLock(false, wasUnpaused);
 }
 
+// return state number not in map
+int GetEmptySlot(std::map<double, int> m)
+{
+	for (int i = 1; i <= (int)NUM_STATES; i++)
+	{
+		bool found = false;
+		for (std::map<double, int>::iterator it = m.begin(); it != m.end(); it++)
+		{
+			if (it->second == i)
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found) return i;
+	}
+	return -1;
+}
+
+static std::string MakeStateFilename(int number);
+
+// read state timestamps
+std::map<double, int> GetSavedStates()
+{
+	StateHeader header;
+	std::map<double, int> m;
+	for (int i = 1; i <= (int)NUM_STATES; i++)
+	{
+		if (File::Exists(MakeStateFilename(i)))
+		{
+			if (ReadHeader(MakeStateFilename(i), header))
+			{
+				double d = Common::Timer::GetDoubleTime() - header.time;
+				// increase time until unique value is obtained
+				while (m.find(d) != m.end()) d += .001;
+				m.insert(std::pair<double,int>(d, i));
+			}
+		}
+	}
+	return m;
+}
+
 struct CompressAndDumpState_args
 {
 	std::vector<u8>* buffer_vector;
 	std::mutex* buffer_mutex;
 	std::string filename;
+	bool wait;
 };
 
 void CompressAndDumpState(CompressAndDumpState_args save_args)
 {
 	std::lock_guard<std::mutex> lk(*save_args.buffer_mutex);
-	g_compressAndDumpStateSyncEvent.Set();
+	if (!save_args.wait)
+		g_compressAndDumpStateSyncEvent.Set();
 
 	const u8* const buffer_data = &(*(save_args.buffer_vector))[0];
 	const size_t buffer_size = (save_args.buffer_vector)->size();
@@ -204,6 +230,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 		else 
 			File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
 	}
+
 	if ((Movie::IsRecordingInput() || Movie::IsPlayingInput()) && !Movie::IsJustStartingRecordingInputFromSaveState())
 		Movie::SaveRecording((filename + ".dtm").c_str());
 	else if (!Movie::IsRecordingInput() && !Movie::IsPlayingInput())
@@ -213,6 +240,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 	if (!f)
 	{
 		Core::DisplayMessage("Could not save state", 2000);
+		g_compressAndDumpStateSyncEvent.Set();
 		return;
 	}
 
@@ -220,6 +248,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 	StateHeader header;
 	memcpy(header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
 	header.size = g_use_compression ? buffer_size : 0;
+	header.time = Common::Timer::GetDoubleTime();
 
 	f.WriteArray(&header, 1);
 
@@ -228,7 +257,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 		lzo_uint i = 0;
 		while (true)
 		{
-			lzo_uint cur_len = 0;
+			lzo_uint32 cur_len = 0;
 			lzo_uint out_len = 0;
 
 			if ((i + IN_LEN) >= buffer_size)
@@ -240,7 +269,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 				PanicAlertT("Internal LZO Error - compression failed");
 
 			// The size of the data to write is 'out_len'
-			f.WriteArray(&out_len, 1);
+			f.WriteArray((lzo_uint32*)&out_len, 1);
 			f.WriteBytes(out, out_len);
 
 			if (cur_len != IN_LEN)
@@ -256,9 +285,10 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s",
 		filename.c_str()).c_str(), 2000);
+	g_compressAndDumpStateSyncEvent.Set();
 }
 
-void SaveAs(const std::string& filename)
+void SaveAs(const std::string& filename, bool wait)
 {
 	// Pause the core while we save the state
 	bool wasUnpaused = Core::PauseAndLock(true);
@@ -286,6 +316,7 @@ void SaveAs(const std::string& filename)
 		save_args.buffer_vector = &g_current_buffer;
 		save_args.buffer_mutex = &g_cs_current_buffer;
 		save_args.filename = filename;
+		save_args.wait = wait;
 
 		Flush();
 		g_save_thread = std::thread(CompressAndDumpState, save_args);
@@ -301,6 +332,20 @@ void SaveAs(const std::string& filename)
 
 	// Resume the core and disable stepping
 	Core::PauseAndLock(false, wasUnpaused);
+}
+
+bool ReadHeader(const std::string filename, StateHeader& header)
+{
+	Flush();
+	File::IOFile f(filename, "rb");
+	if (!f)
+	{
+		Core::DisplayMessage("State not found", 2000);
+		return false;
+	}
+
+	f.ReadArray(&header, 1);
+	return true;
 }
 
 void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
@@ -334,7 +379,7 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 		lzo_uint i = 0;
 		while (true)
 		{
-			lzo_uint cur_len = 0;  // number of bytes to read
+			lzo_uint32 cur_len = 0;  // number of bytes to read
 			lzo_uint new_len = 0;  // number of bytes to write
 
 			if (!f.ReadArray(&cur_len, 1))
@@ -508,9 +553,9 @@ static std::string MakeStateFilename(int number)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), number);
 }
 
-void Save(int slot)
+void Save(int slot, bool wait)
 {
-	SaveAs(MakeStateFilename(slot));
+	SaveAs(MakeStateFilename(slot), wait);
 }
 
 void Load(int slot)
@@ -523,12 +568,35 @@ void Verify(int slot)
 	VerifyAt(MakeStateFilename(slot));
 }
 
-void LoadLastSaved()
+void LoadLastSaved(int i)
 {
-	if (g_last_filename.empty())
-		Core::DisplayMessage("There is no last saved state", 2000);
+	std::map<double, int> savedStates = GetSavedStates();
+
+	if (i > (int)savedStates.size())
+		Core::DisplayMessage("State doesn't exist", 2000);
 	else
-		LoadAs(g_last_filename);
+	{
+		std::map<double, int>::iterator it = savedStates.begin();
+		std::advance(it, i-1);
+		Load(it->second);
+	}
+}
+
+// must wait for state to be written because it must know if all slots are taken
+void SaveFirstSaved()
+{
+	std::map<double, int> savedStates = GetSavedStates();
+
+	// save to an empty slot
+	if (savedStates.size() < NUM_STATES)
+		Save(GetEmptySlot(savedStates), true);
+	// overwrite the oldest state
+	else
+	{
+		std::map<double, int>::iterator it = savedStates.begin();
+		std::advance(it, savedStates.size()-1);
+		Save(it->second, true);
+	}
 }
 
 void Flush()
@@ -551,10 +619,14 @@ void UndoLoadState()
 				Movie::LoadInput("undo.dtm");
 		}
 		else
+		{
 			PanicAlert("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+		}
 	}
 	else
+	{
 		PanicAlert("There is nothing to undo!");
+	}
 }
 
 // Load the state that the last save state overwritten on

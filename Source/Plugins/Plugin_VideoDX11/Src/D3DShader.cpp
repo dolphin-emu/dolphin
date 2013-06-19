@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <string>
 
@@ -64,7 +51,8 @@ bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob)
 		static int num_failures = 0;
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sbad_vs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-		std::ofstream file(szTemp);
+		std::ofstream file;
+		OpenFStream(file, szTemp, std::ios_base::out);
 		file << code;
 		file.close();
 
@@ -121,7 +109,8 @@ bool CompileGeometryShader(const char* code, unsigned int len, D3DBlob** blob,
 		static int num_failures = 0;
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sbad_gs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-		std::ofstream file(szTemp);
+		std::ofstream file;
+		OpenFStream(file, szTemp, std::ios_base::out);
 		file << code;
 		file.close();
 
@@ -180,7 +169,8 @@ bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob,
 		static int num_failures = 0;
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%sbad_ps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-		std::ofstream file(szTemp);
+		std::ofstream file;
+		OpenFStream(file, szTemp, std::ios_base::out);
 		file << code;
 		file.close();
 

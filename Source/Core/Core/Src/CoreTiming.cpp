@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include <vector>
 
@@ -76,36 +63,36 @@ void (*advanceCallback)(int cyclesExecuted) = NULL;
 
 Event* GetNewEvent()
 {
-    if(!eventPool)
-        return new Event;
+	if(!eventPool)
+		return new Event;
 
-    Event* ev = eventPool;
-    eventPool = ev->next;
-    return ev;
+	Event* ev = eventPool;
+	eventPool = ev->next;
+	return ev;
 }
 
 Event* GetNewTsEvent()
 {
-    allocatedTsEvents++;
+	allocatedTsEvents++;
 
-    if(!eventTsPool)
-        return new Event;
+	if(!eventTsPool)
+		return new Event;
 
-    Event* ev = eventTsPool;
-    eventTsPool = ev->next;
-    return ev;
+	Event* ev = eventTsPool;
+	eventTsPool = ev->next;
+	return ev;
 }
 
 void FreeEvent(Event* ev)
 {
-    ev->next = eventPool;
-    eventPool = ev;
+	ev->next = eventPool;
+	eventPool = ev;
 }
 
 void FreeTsEvent(Event* ev)
 {
-    ev->next = eventTsPool;
-    eventTsPool = ev;
+	ev->next = eventTsPool;
+	eventTsPool = ev;
 	allocatedTsEvents--;
 }
 
@@ -158,20 +145,20 @@ void Shutdown()
 	ClearPendingEvents();
 	UnregisterAllEvents();
 
-    while(eventPool)
-    {
-        Event *ev = eventPool;
-        eventPool = ev->next;
-        delete ev;
-    }
+	while(eventPool)
+	{
+		Event *ev = eventPool;
+		eventPool = ev->next;
+		delete ev;
+	}
 
-    std::lock_guard<std::recursive_mutex> lk(externalEventSection);
-    while(eventTsPool)
-    {
-        Event *ev = eventTsPool;
-        eventTsPool = ev->next;
-        delete ev;
-    }
+	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
+	while(eventTsPool)
+	{
+		Event *ev = eventTsPool;
+		eventTsPool = ev->next;
+		delete ev;
+	}
 }
 
 void EventDoState(PointerWrap &p, BaseEvent* ev)
@@ -183,7 +170,10 @@ void EventDoState(PointerWrap &p, BaseEvent* ev)
 
 	// we can't savestate ev->type directly because events might not get registered in the same order (or at all) every time.
 	// so, we savestate the event's type's name, and derive ev->type from that when loading.
-	std::string name = event_types[ev->type].name;
+	std::string name;
+	if (p.GetMode() != PointerWrap::MODE_READ)
+		name = event_types[ev->type].name;
+
 	p.Do(name);
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
@@ -227,7 +217,7 @@ void DoState(PointerWrap &p)
 
 u64 GetTicks()
 {
-    return (u64)globalTimer; 
+	return (u64)globalTimer; 
 }
 
 u64 GetIdleTicks()
@@ -262,7 +252,9 @@ void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 		event_types[event_type].callback(userdata, 0);
 	}
 	else
+	{
 		ScheduleEvent_Threadsafe(0, event_type, userdata);
+	}
 }
 
 void ClearPendingEvents()
@@ -327,6 +319,7 @@ void RemoveEvent(int event_type)
 {
 	if (!first)
 		return;
+
 	while(first)
 	{
 		if (first->type == event_type)
@@ -340,8 +333,10 @@ void RemoveEvent(int event_type)
 			break;
 		}
 	}
+	
 	if (!first)
 		return;
+
 	Event *prev = first;
 	Event *ptr = prev->next;
 	while (ptr)
@@ -367,6 +362,7 @@ void RemoveThreadsafeEvent(int event_type)
 	{
 		return;
 	}
+
 	while(tsFirst)
 	{
 		if (tsFirst->type == event_type)
@@ -380,16 +376,18 @@ void RemoveThreadsafeEvent(int event_type)
 			break;
 		}
 	}
+
 	if (!tsFirst)
 	{
 		return;
 	}
+
 	Event *prev = tsFirst;
 	Event *ptr = prev->next;
 	while (ptr)
 	{
 		if (ptr->type == event_type)
-		{	
+		{
 			prev->next = ptr->next;
 			FreeTsEvent(ptr);
 			ptr = prev->next;
@@ -411,6 +409,15 @@ void RemoveAllEvents(int event_type)
 void SetMaximumSlice(int maximumSliceLength)
 {
 	maxSliceLength = maximumSliceLength;
+}
+
+void ForceExceptionCheck(int cycles)
+{
+	if (downcount > cycles)
+	{
+		slicelength -= (downcount - cycles); // Account for cycles already executed by adjusting the slicelength
+		downcount = cycles;
+	}
 }
 
 void ResetSliceLength()
@@ -446,7 +453,7 @@ void ProcessFifoWaitEvents()
 void MoveEvents()
 {
 	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
-    // Move events from async queue into main queue
+	// Move events from async queue into main queue
 	while (tsFirst)
 	{
 		Event *next = tsFirst->next;
@@ -455,21 +462,20 @@ void MoveEvents()
 	}
 	tsLast = NULL;
 
-    // Move free events to threadsafe pool
-    while(allocatedTsEvents > 0 && eventPool)
-    {        
-        Event *ev = eventPool;
-        eventPool = ev->next;
-        ev->next = eventTsPool;
-        eventTsPool = ev;
-        allocatedTsEvents--;
-    }
+	// Move free events to threadsafe pool
+	while(allocatedTsEvents > 0 && eventPool)
+	{
+		Event *ev = eventPool;
+		eventPool = ev->next;
+		ev->next = eventTsPool;
+		eventTsPool = ev;
+		allocatedTsEvents--;
+	}
 }
 
 void Advance()
 {	
-
-	MoveEvents();		
+	MoveEvents();
 
 	int cyclesExecuted = slicelength - downcount;
 	globalTimer += cyclesExecuted;
@@ -491,6 +497,7 @@ void Advance()
 			break;
 		}
 	}
+
 	if (!first) 
 	{
 		WARN_LOG(POWERPC, "WARNING - no events in queue. Setting downcount to 10000");
@@ -503,6 +510,7 @@ void Advance()
 			slicelength = maxSliceLength;
 		downcount = slicelength;
 	}
+
 	if (advanceCallback)
 		advanceCallback(cyclesExecuted);
 }
@@ -526,7 +534,7 @@ void Idle()
 	//while we process only the events required by the FIFO.
 	while (g_video_backend->Video_IsPossibleWaitingSetDrawDone())
 	{
-		ProcessFifoWaitEvents();		
+		ProcessFifoWaitEvents();
 		Common::YieldCPU();
 	}
 
@@ -546,9 +554,11 @@ std::string GetScheduledEventsSummary()
 		unsigned int t = ptr->type;
 		if (t >= event_types.size())
 			PanicAlertT("Invalid event type %i", t);
+		
 		const char *name = event_types[ptr->type].name;
 		if (!name)
 			name = "[unknown]";
+		
 		text += StringFromFormat("%s : %i %08x%08x\n", event_types[ptr->type].name, ptr->time, ptr->userdata >> 32, ptr->userdata);
 		ptr = ptr->next;
 	}

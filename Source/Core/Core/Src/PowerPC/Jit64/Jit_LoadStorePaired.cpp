@@ -1,22 +1,9 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
-// Should give a very noticable speed boost to paired single heavy code.
+// Should give a very noticeable speed boost to paired single heavy code.
 
 #include "Common.h"
  
@@ -28,7 +15,7 @@
 #include "../PPCTables.h"
 #include "CPUDetect.h"
 #include "x64Emitter.h"
-#include "ABI.h"
+#include "x64ABI.h"
 
 #include "Jit.h"
 #include "JitAsm.h"
@@ -42,6 +29,7 @@ const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10,
 #if 0
 static void WriteDual32(u64 value, u32 address)
 {
+	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 	Memory::Write_U32((u32)(value >> 32), address);
 	Memory::Write_U32((u32)value, address + 4);
 }

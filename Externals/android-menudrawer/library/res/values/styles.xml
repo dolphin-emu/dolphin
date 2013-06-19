@@ -1,0 +1,11 @@
+<resources>
+
+    <style name="Widget" />
+
+    <!-- Base theme for the menu drawer. -->
+    <style name="Widget.MenuDrawer">
+        <item name="mdMenuBackground">@color/md__defaultBackground</item>
+        <item name="mdContentBackground">?android:attr/windowBackground</item>
+    </style>
+
+</resources>

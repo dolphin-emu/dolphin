@@ -25,7 +25,7 @@
 // Show the current FPS
 void cInterfaceGLX::UpdateFPSDisplay(const char *text)
 {
-	XStoreName(GLWin.dpy, GLWin.win, text);
+	XStoreName(GLWin.evdpy, GLWin.win, text);
 }
 
 void cInterfaceGLX::SwapInterval(int Interval)
@@ -69,8 +69,6 @@ bool cInterfaceGLX::Create(void *&window_handle)
 		GLX_GREEN_SIZE, 8,
 		GLX_BLUE_SIZE, 8,
 		GLX_DEPTH_SIZE, 24,
-		GLX_SAMPLE_BUFFERS_ARB, g_Config.iMultisampleMode != MULTISAMPLE_OFF?1:0,
-		GLX_SAMPLES_ARB, g_Config.iMultisampleMode != MULTISAMPLE_OFF?1:0, 
 		None };
 
 	int attrListDefault[] = {
@@ -138,17 +136,22 @@ bool cInterfaceGLX::MakeCurrent()
 	#if defined(HAVE_WX) && (HAVE_WX)
 	Host_GetRenderWindowSize(GLWin.x, GLWin.y,
 			(int&)GLWin.width, (int&)GLWin.height);
-	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y,
+	XMoveResizeWindow(GLWin.evdpy, GLWin.win, GLWin.x, GLWin.y,
 			GLWin.width, GLWin.height);
 	#endif
 	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 }
+
+bool cInterfaceGLX::ClearCurrent()
+{
+	return glXMakeCurrent(GLWin.dpy, None, NULL);
+}
+
+
 // Close backend
 void cInterfaceGLX::Shutdown()
 {
 	XWindow.DestroyXWindow();
-	if (GLWin.ctx && !glXMakeCurrent(GLWin.dpy, None, NULL))
-		NOTICE_LOG(VIDEO, "Could not release drawing context.");
 	if (GLWin.ctx)
 	{
 		glXDestroyContext(GLWin.dpy, GLWin.ctx);

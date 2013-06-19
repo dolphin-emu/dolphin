@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef __GCMEMCARD_h__
 #define __GCMEMCARD_h__
@@ -104,7 +91,8 @@ private:
 		u8 Unused2[7680];	//0x0200	0x1e00	unused (0xff)
 	} hdr;
 
-	struct DEntry {
+	struct DEntry
+	{
 		u8 Gamecode[4];		//0x00		0x04	Gamecode
 		u8 Makercode[2];	//0x04		0x02	Makercode
 		u8 Unused1;			//0x06		0x01	reserved/unused (always 0xff, has no effect)
@@ -113,12 +101,12 @@ private:
 							//		2		Icon Animation 0: forward 1: ping-pong
 							//		1		[--0: No Banner 1: Banner present--] WRONG! YAGCD LIES!
 							//		0		[--Banner Color 0: RGB5A3 1: CI8--]  WRONG! YAGCD LIES!
-							//      bits 0 and 1: image format
+							//		bits 0 and 1: image format
 							//		00 no banner
 							//		01 CI8 banner
 							//		10 RGB5A3 banner
 							//		11 ? maybe ==00? Time Splitters 2 and 3 have it and don't have banner
-							// 	 	
+							//
 		u8 Filename[DENTRY_STRLEN];	//0x08		0x20	filename
 		u8 ModTime[4];		//0x28		0x04	Time of file's last modification in seconds since 12am, January 1st, 2000
 		u8 ImageOffset[4];	//0x2c		0x04	image data offset
@@ -128,20 +116,20 @@ private:
 							//		01	CI8 with a shared color palette after the last frame
 							//		10	RGB5A3
 							//		11	CI8 with a unique color palette after itself
-							// 	 	
+							//
 		u8 AnimSpeed[2];	//0x32		0x02	animation speed (2bits per icon) (*1)
 							//		bits	Description
 							//		00	no icon
 							//		01	Icon lasts for 4 frames
 							//		10	Icon lasts for 8 frames
 							//		11	Icon lasts for 12 frames
-							// 	 	
+							//
 		u8 Permissions;		//0x34		0x01	file-permissions
 							//		bit	permission	Description
 							//		4	no move		File cannot be moved by the IPL
 							//		3	no copy		File cannot be copied by the IPL
 							//		2	public		Can be read by any game
-							//	 	
+							//
 		u8 CopyCounter;		//0x35		0x01	copy counter (*2)
 		u8 FirstBlock[2];	//0x36		0x02	block no of first block of file (0 == offset 0)
 		u8 BlockCount[2];	//0x38		0x02	file-length (number of blocks in file)
@@ -149,8 +137,9 @@ private:
 		u8 CommentsAddr[4];	//0x3c		0x04	Address of the two comments within the file data (*3)
 	};
 
-	struct Directory {
-		DEntry Dir[DIRLEN];	//0x0000	 	Directory Entries (max 127)
+	struct Directory
+	{
+		DEntry Dir[DIRLEN];	//0x0000		Directory Entries (max 127)
 		u8 Padding[0x3a];
 		u16 UpdateCounter;	//0x1ffa	2	update Counter
 		u16 Checksum;		//0x1ffc	2	Additive Checksum
@@ -158,7 +147,8 @@ private:
 	} dir, dir_backup;
 
 	Directory *CurrentDir, *PreviousDir;
-	struct BlockAlloc {
+	struct BlockAlloc
+	{
 		u16 Checksum;			//0x0000	2	Additive Checksum
 		u16 Checksum_Inv;		//0x0002	2	Inverse Checksum
 		u16 UpdateCounter;		//0x0004	2	update Counter
@@ -181,6 +171,7 @@ private:
 
 	u32 ImportGciInternal(FILE* gcih, const char *inputFile, const std::string &outputFile);
 	static void FormatInternal(GCMC_Header &GCP);
+	void initDirBatPointers() ;
 public:
 
 	GCMemcard(const char* fileName, bool forceCreation=false, bool sjis=false);

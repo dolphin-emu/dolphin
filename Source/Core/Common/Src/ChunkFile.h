@@ -1,19 +1,7 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
 
 #ifndef _POINTERWRAP_H_
 #define _POINTERWRAP_H_
@@ -29,8 +17,10 @@
 
 #include <map>
 #include <vector>
+#include <list>
 #include <deque>
 #include <string>
+#include <type_traits>
 
 #include "Common.h"
 #include "FileUtil.h"
@@ -45,7 +35,8 @@ struct LinkedListItem : public T
 class PointerWrap
 {
 public:
-	enum Mode {
+	enum Mode
+	{
 		MODE_READ = 1, // load
 		MODE_WRITE, // save
 		MODE_MEASURE, // calculate size
@@ -57,124 +48,101 @@ public:
 
 public:
 	PointerWrap(u8 **ptr_, Mode mode_) : ptr(ptr_), mode(mode_) {}
-	PointerWrap(unsigned char **ptr_, int mode_) : ptr((u8**)ptr_), mode((Mode)mode_) {}
 
-	void SetMode(Mode mode_) {mode = mode_;}
-	Mode GetMode() const {return mode;}
-	u8 **GetPPtr() {return ptr;}
+	void SetMode(Mode mode_) { mode = mode_; }
+	Mode GetMode() const { return mode; }
+	u8** GetPPtr() { return ptr; }
 
-	void DoVoid(void *data, int size)
+	template <typename K, class V>
+	void Do(std::map<K, V>& x)
 	{
-		switch (mode) {
-		case MODE_READ:	memcpy(data, *ptr, size); break;
-		case MODE_WRITE: memcpy(*ptr, data, size); break;
-		case MODE_MEASURE: break;  // MODE_MEASURE - don't need to do anything
-		case MODE_VERIFY: for(int i = 0; i < size; i++) _dbg_assert_msg_(COMMON, ((u8*)data)[i] == (*ptr)[i], "Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n", ((u8*)data)[i], ((u8*)data)[i], &((u8*)data)[i], (*ptr)[i], (*ptr)[i], &(*ptr)[i]); break;
-		default: break;  // throw an error?
-		}
-		(*ptr) += size;
-	}
+		u32 count = (u32)x.size();
+		Do(count);
 
-	template<class T>
-	void Do(std::map<unsigned int, T> &x)
-	{
-		unsigned int number = (unsigned int)x.size();
-		Do(number);
-		switch (mode) {
+		switch (mode)
+		{
 		case MODE_READ:
+			for (x.clear(); count != 0; --count)
 			{
-				x.clear();
-				while (number > 0)
-				{
-					unsigned int first = 0;
-					Do(first);
-					T second;
-					Do(second);
-					x[first] = second;
-					--number;
-				}
+				std::pair<K, V> pair;
+				Do(pair.first);
+				Do(pair.second);
+				x.insert(pair);
 			}
 			break;
+
 		case MODE_WRITE:
 		case MODE_MEASURE:
 		case MODE_VERIFY:
+			for (auto itr = x.begin(); itr != x.end(); ++itr)
 			{
-				typename std::map<unsigned int, T>::iterator itr = x.begin();
-				while (number > 0)
-				{
-					Do(itr->first);
-					Do(itr->second);
-					--number;
-					++itr;
-				}
+				Do(itr->first);
+				Do(itr->second);
 			}
 			break;
 		}
 	}
 
-	// Store vectors.
-	template<class T>
-	void Do(std::vector<T> &x)
+	template <typename T>
+	void DoContainer(T& x)
 	{
-		u32 vec_size = (u32)x.size();
-		Do(vec_size);
-		x.resize(vec_size);
-		DoArray(&x[0], vec_size);
+		u32 size = (u32)x.size();
+		Do(size);
+		x.resize(size);
+
+		for (auto itr = x.begin(); itr != x.end(); ++itr)
+			Do(*itr);
 	}
-	
-	// Store deques.
-	template<class T>
-	void Do(std::deque<T> &x)
+
+	template <typename T>
+	void Do(std::vector<T>& x)
 	{
-		u32 deq_size = (u32)x.size();
-		Do(deq_size);
-		x.resize(deq_size);
-		u32 i;
-		for(i = 0; i < deq_size; i++)
-			DoVoid(&x[i],sizeof(T));
+		DoContainer(x);
 	}
-	
-	// Store strings.
-	void Do(std::string &x) 
+
+	template <typename T>
+	void Do(std::list<T>& x)
 	{
-		int stringLen = (int)x.length() + 1;
-		Do(stringLen);
+		DoContainer(x);
+	}
+
+	template <typename T>
+	void Do(std::deque<T>& x)
+	{
+		DoContainer(x);
+	}
+
+	template <typename T>
+	void Do(std::basic_string<T>& x)
+	{
+		DoContainer(x);
+	}
+
+	template <typename T>
+	void DoArray(T* x, u32 count)
+	{
+		for (u32 i = 0; i != count; ++i)
+			Do(x[i]);
+	}
+
+	template <typename T>
+	void Do(T& x)
+	{
+		// Ideally this would be std::is_trivially_copyable, but not enough support yet
+		static_assert(std::is_pod<T>::value, "Only sane for POD types");
 		
-		switch (mode) {
-		case MODE_READ:		x = (char*)*ptr; break;
-		case MODE_WRITE:	memcpy(*ptr, x.c_str(), stringLen); break;
-		case MODE_MEASURE: break;
-		case MODE_VERIFY: _dbg_assert_msg_(COMMON, !strcmp(x.c_str(), (char*)*ptr), "Savestate verification failure: \"%s\" != \"%s\" (at %p).\n", x.c_str(), (char*)*ptr, ptr); break;
-		}
-		(*ptr) += stringLen;
+		DoVoid((void*)&x, sizeof(x));
 	}
-
-	void Do(std::wstring &x) 
-	{
-		int stringLen = sizeof(wchar_t)*((int)x.length() + 1);
-		Do(stringLen);
-
-		switch (mode) {
-		case MODE_READ:		x.assign((wchar_t*)*ptr, (stringLen / sizeof(wchar_t)) - 1); break;
-		case MODE_WRITE:	memcpy(*ptr, x.c_str(), stringLen); break;
-		case MODE_MEASURE: break;
-		case MODE_VERIFY: _dbg_assert_msg_(COMMON, x == (wchar_t*)*ptr, "Savestate verification failure: \"%ls\" != \"%ls\" (at %p).\n", x.c_str(), (wchar_t*)*ptr, ptr); break;
-		}
-		(*ptr) += stringLen;
-	}
-
-    template<class T>
-	void DoArray(T *x, int count) {
-        DoVoid((void *)x, sizeof(T) * count);
-    }
 	
-	template<class T>
-	void Do(T &x) {
-		DoVoid((void *)&x, sizeof(x));
+	template <typename T>
+	void DoPOD(T& x)
+	{
+		DoVoid((void*)&x, sizeof(x));
 	}
 
-	template<class T>
-	void DoPointer(T* &x, T*const base) {
+	template <typename T>
+	void DoPointer(T*& x, T* const base)
+	{
 		// pointers can be more than 2^31 apart, but you're using this function wrong if you need that much range
 		s32 offset = x - base;
 		Do(offset);
@@ -182,7 +150,8 @@ public:
 			x = base + offset;
 	}
 
-	template<class T, LinkedListItem<T>* (*TNew)(), void (*TFree)(LinkedListItem<T>*), void (*TDo)(PointerWrap&, T*)>
+	// Let's pretend std::list doesn't exist!
+	template <class T, LinkedListItem<T>* (*TNew)(), void (*TFree)(LinkedListItem<T>*), void (*TDo)(PointerWrap&, T*)>
 	void DoLinkedList(LinkedListItem<T>*& list_start, LinkedListItem<T>** list_end=0)
 	{
 		LinkedListItem<T>* list_cur = list_start;
@@ -242,25 +211,61 @@ public:
 		}
 	}
 
-	void DoMarker(const char* prevName, u32 arbitraryNumber=0x42)
+	void DoMarker(const char* prevName, u32 arbitraryNumber = 0x42)
 	{
 		u32 cookie = arbitraryNumber;
 		Do(cookie);
-		if(mode == PointerWrap::MODE_READ && cookie != arbitraryNumber)
+
+		if (mode == PointerWrap::MODE_READ && cookie != arbitraryNumber)
 		{
-			PanicAlertT("Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load...", prevName, cookie, cookie, arbitraryNumber, arbitraryNumber);
+			PanicAlertT("Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load...",
+				prevName, cookie, cookie, arbitraryNumber, arbitraryNumber);
 			mode = PointerWrap::MODE_MEASURE;
 		}
 	}
-};
 
+private:
+	__forceinline void DoByte(u8& x)
+	{
+		switch (mode)
+		{
+		case MODE_READ:
+			x = **ptr;
+			break;
+
+		case MODE_WRITE:
+			**ptr = x;
+			break;
+
+		case MODE_MEASURE:
+			break;
+
+		case MODE_VERIFY:
+			_dbg_assert_msg_(COMMON, (x == **ptr),
+				"Savestate verification failure: %d (0x%X) (at %p) != %d (0x%X) (at %p).\n",
+					x, x, &x, **ptr, **ptr, *ptr);
+			break;
+
+		default:
+			break;
+		}
+
+		++(*ptr);
+	}
+
+	void DoVoid(void *data, u32 size)
+	{
+		for(u32 i = 0; i != size; ++i)
+			DoByte(reinterpret_cast<u8*>(data)[i]);
+	}
+};
 
 class CChunkFileReader
 {
 public:
 	// Load file template
 	template<class T>
-	static bool Load(const std::string& _rFilename, int _Revision, T& _class) 
+	static bool Load(const std::string& _rFilename, u32 _Revision, T& _class)
 	{
 		INFO_LOG(COMMON, "ChunkReader: Loading %s" , _rFilename.c_str());
 
@@ -290,7 +295,7 @@ public:
 			ERROR_LOG(COMMON,"ChunkReader: Bad header size");
 			return false;
 		}
-		
+
 		// Check revision
 		if (header.Revision != _Revision)
 		{
@@ -298,36 +303,35 @@ public:
 				header.Revision, _Revision);
 			return false;
 		}
-		
+
 		// get size
-		const int sz = (int)(fileSize - headerSize);
+		const u32 sz = (u32)(fileSize - headerSize);
 		if (header.ExpectedSize != sz)
 		{
 			ERROR_LOG(COMMON,"ChunkReader: Bad file size, got %d expected %d",
 				sz, header.ExpectedSize);
 			return false;
 		}
-		
+
 		// read the state
-		u8* buffer = new u8[sz];
-		if (!pFile.ReadBytes(buffer, sz))
+		std::vector<u8> buffer(sz);
+		if (!pFile.ReadArray(&buffer[0], sz))
 		{
 			ERROR_LOG(COMMON,"ChunkReader: Error reading file");
 			return false;
 		}
 
-		u8 *ptr = buffer;
+		u8* ptr = &buffer[0];
 		PointerWrap p(&ptr, PointerWrap::MODE_READ);
 		_class.DoState(p);
-		delete[] buffer;
 		
 		INFO_LOG(COMMON, "ChunkReader: Done loading %s" , _rFilename.c_str());
 		return true;
 	}
-	
+
 	// Save file template
 	template<class T>
-	static bool Save(const std::string& _rFilename, int _Revision, T& _class)
+	static bool Save(const std::string& _rFilename, u32 _Revision, T& _class)
 	{
 		INFO_LOG(COMMON, "ChunkReader: Writing %s" , _rFilename.c_str());
 		File::IOFile pFile(_rFilename, "wb");
@@ -346,13 +350,12 @@ public:
 		ptr = &buffer[0];
 		p.SetMode(PointerWrap::MODE_WRITE);
 		_class.DoState(p);
-		
+
 		// Create header
 		SChunkHeader header;
-		header.Compress = 0;
 		header.Revision = _Revision;
-		header.ExpectedSize = (int)sz;
-		
+		header.ExpectedSize = (u32)sz;
+
 		// Write to file
 		if (!pFile.WriteArray(&header, 1))
 		{
@@ -360,23 +363,21 @@ public:
 			return false;
 		}
 
-		if (!pFile.WriteBytes(&buffer[0], sz))
+		if (!pFile.WriteArray(&buffer[0], sz))
 		{
 			ERROR_LOG(COMMON,"ChunkReader: Failed writing data");
 			return false;
 		}
-		
-		INFO_LOG(COMMON,"ChunkReader: Done writing %s", 
-				 _rFilename.c_str());
+
+		INFO_LOG(COMMON,"ChunkReader: Done writing %s", _rFilename.c_str());
 		return true;
 	}
-	
+
 private:
 	struct SChunkHeader
 	{
-		int Revision;
-		int Compress;
-		int ExpectedSize;
+		u32 Revision;
+		u32 ExpectedSize;
 	};
 };
 

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 /*
 For a more general explanation of the IR, see IR.cpp.
@@ -994,8 +981,26 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			break;
 		}
 		case StoreMSR: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
 			regStoreInstToConstLoc(RI, 32, getOp1(I), &MSR);
 			regNormalRegClear(RI, I);
+
+			// If some exceptions are pending and EE are now enabled, force checking
+			// external exceptions when going out of mtmsr in order to execute delayed
+			// interrupts as soon as possible.
+			Jit->MOV(32, R(EAX), M(&MSR));
+			Jit->TEST(32, R(EAX), Imm32(0x8000));
+			FixupBranch eeDisabled = Jit->J_CC(CC_Z);
+
+			Jit->MOV(32, R(EAX), M((void*)&PowerPC::ppcState.Exceptions));
+			Jit->TEST(32, R(EAX), R(EAX));
+			FixupBranch noExceptionsPending = Jit->J_CC(CC_Z);
+
+			Jit->MOV(32, M(&PC), Imm32(InstLoc + 4));
+			Jit->WriteExceptionExit(); // TODO: Implement WriteExternalExceptionExit for JitIL
+
+			Jit->SetJumpTarget(eeDisabled);
+			Jit->SetJumpTarget(noExceptionsPending);
 			break;
 		}
 		case StoreGQR: {
@@ -1991,8 +1996,10 @@ void JitIL::WriteCode() {
 }
 
 void ProfiledReJit() {
-	jit->SetCodePtr(jit->js.rewriteStart);
-	DoWriteCode(&((JitIL *)jit)->ibuild, (JitIL *)jit, true, false);
-	jit->js.curBlock->codeSize = (int)(jit->GetCodePtr() - jit->js.rewriteStart);
-	jit->GetBlockCache()->FinalizeBlock(jit->js.curBlock->blockNum, jit->jo.enableBlocklink, jit->js.curBlock->normalEntry);
+	JitIL *jitil = (JitIL *)jit;
+	jitil->SetCodePtr(jitil->js.rewriteStart);
+	DoWriteCode(&jitil->ibuild, jitil, true, false);
+	jitil->js.curBlock->codeSize = (int)(jitil->GetCodePtr() - jitil->js.rewriteStart);
+	jitil->GetBlockCache()->FinalizeBlock(jitil->js.curBlock->blockNum, jitil->jo.enableBlocklink,
+	jitil->js.curBlock->normalEntry);
 }

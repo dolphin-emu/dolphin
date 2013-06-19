@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "DebuggerUIUtil.h"
 #include "Common.h"
@@ -22,6 +9,8 @@
 #include "HW/Memmap.h"
 
 #include "MemoryView.h"
+#include "../WxUtils.h"
+
 #include <wx/event.h>
 #include <wx/clipbrd.h>
 
@@ -88,7 +77,7 @@ void CMemoryView::OnMouseDownL(wxMouseEvent& event)
 	}
 	else
 	{
- 		debugger->toggleMemCheck(YToAddress(y));
+		debugger->toggleMemCheck(YToAddress(y));
 
 		Refresh();
 		Host_UpdateBreakPointView();
@@ -141,17 +130,17 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 #if wxUSE_CLIPBOARD
-	    case IDM_COPYADDRESS:
+		case IDM_COPYADDRESS:
 			wxTheClipboard->SetData(new wxTextDataObject(wxString::Format(_T("%08x"), selection)));
-	    break;
+			break;
 
-	    case IDM_COPYHEX:
-	    {
-		    char temp[24];
-		    sprintf(temp, "%08x", debugger->readExtraMemory(memory, selection));
-		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(temp)));
-	    }
-	    break;
+		case IDM_COPYHEX:
+			{
+			char temp[24];
+			sprintf(temp, "%08x", debugger->readExtraMemory(memory, selection));
+			wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
+			}
+			break;
 #endif
 
 		case IDM_TOGGLEMEMORY:
@@ -186,16 +175,16 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 	wxMenu* menu = new wxMenu;
 	//menu.Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
 #if wxUSE_CLIPBOARD
-	menu->Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
-	menu->Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
+	menu->Append(IDM_COPYADDRESS, StrToWxStr("Copy &address"));
+	menu->Append(IDM_COPYHEX, StrToWxStr("Copy &hex"));
 #endif
-	menu->Append(IDM_TOGGLEMEMORY, wxString::FromAscii("Toggle &memory"));
+	menu->Append(IDM_TOGGLEMEMORY, StrToWxStr("Toggle &memory"));
 
 	wxMenu* viewAsSubMenu = new wxMenu;
-	viewAsSubMenu->Append(IDM_VIEWASFP, wxString::FromAscii("FP value"));
-	viewAsSubMenu->Append(IDM_VIEWASASCII, wxString::FromAscii("ASCII"));
-	viewAsSubMenu->Append(IDM_VIEWASHEX, wxString::FromAscii("Hex"));
- 	menu->AppendSubMenu(viewAsSubMenu, wxString::FromAscii("View As:"));
+	viewAsSubMenu->Append(IDM_VIEWASFP, StrToWxStr("FP value"));
+	viewAsSubMenu->Append(IDM_VIEWASASCII, StrToWxStr("ASCII"));
+	viewAsSubMenu->Append(IDM_VIEWASHEX, StrToWxStr("Hex"));
+	menu->AppendSubMenu(viewAsSubMenu, StrToWxStr("View As:"));
 
 	PopupMenu(menu);
 }
@@ -210,10 +199,10 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	wxCoord w,h;
 	dc.GetTextExtent(_T("0WJyq"),&w,&h,NULL,NULL,&hFont);
 	if (h > rowHeight)
-	    rowHeight = h;
+		rowHeight = h;
 	dc.GetTextExtent(_T("0WJyq"),&w,&h,NULL,NULL,&DebuggerFont);
 	if (h > rowHeight)
-	    rowHeight = h;
+		rowHeight = h;
 
 	if (viewAsType==VIEWAS_HEX)
 		dc.SetFont(hFont);
@@ -285,7 +274,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			char mem[256];
 			debugger->getRawMemoryString(memory, address, mem, 256);
 			dc.SetTextForeground(_T("#000080"));
-			dc.DrawText(wxString::FromAscii(mem), 17+fontSize*(8), rowY1);
+			dc.DrawText(StrToWxStr(mem), 17+fontSize*(8), rowY1);
 			dc.SetTextForeground(_T("#000000"));
 		}
 
@@ -357,13 +346,15 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 				curAddress += 32;
 			}
 			else
+			{
 				sprintf(dis, "INVALID VIEWAS TYPE");
+			}
 
 			char desc[256] = "";
 			if (viewAsType != VIEWAS_HEX)
-				dc.DrawText(wxString::FromAscii(dis), textPlacement + fontSize*(8 + 8), rowY1);
+				dc.DrawText(StrToWxStr(dis), textPlacement + fontSize*(8 + 8), rowY1);
 			else
-				dc.DrawText(wxString::FromAscii(dis), textPlacement, rowY1);
+				dc.DrawText(StrToWxStr(dis), textPlacement, rowY1);
 
 			if (desc[0] == 0)
 				strcpy(desc, debugger->getDescription(address).c_str());
@@ -371,7 +362,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			dc.SetTextForeground(_T("#0000FF"));
 
 			if (strlen(desc))
-				dc.DrawText(wxString::FromAscii(desc), 17+fontSize*((8+8+8+30)*2), rowY1);
+				dc.DrawText(StrToWxStr(desc), 17+fontSize*((8+8+8+30)*2), rowY1);
 
 			// Show blue memory check dot
 			if (debugger->isMemCheck(address))

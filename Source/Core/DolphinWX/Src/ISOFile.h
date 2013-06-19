@@ -1,22 +1,12 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #ifndef __ISOFILE_H_
 #define __ISOFILE_H_
+
+#include <vector>
+#include <string>
 
 #include "Volume.h"
 #include "VolumeCreator.h"
@@ -34,11 +24,12 @@ public:
 
 	bool IsValid() const {return m_Valid;}
 	const std::string& GetFileName() const {return m_FileName;}
-	const std::string& GetName(int index) const;
-	bool GetName(std::wstring& wName, int index=0) const;
-	const std::string& GetCompany() const {return m_Company;}
-	const std::string& GetDescription(int index) const;
-	const std::wstring& GetDescription() const;
+	std::string GetBannerName(int index) const;
+	std::string GetVolumeName(int index) const;
+	std::string GetName(int index) const;
+	std::string GetCompany() const;
+	std::string GetDescription(int index = 0) const;
+	int GetRevision() const { return m_Revision; }
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
@@ -65,11 +56,15 @@ public:
 
 private:
 	std::string m_FileName;
-	std::string m_Name[6];
-	std::vector<std::wstring> m_wNames;
-	std::string m_Company;
-	std::string m_Description[6];
-	std::wstring m_wDescription;
+
+	// TODO: eliminate this and overwrite with names from banner when available?
+	std::vector<std::string> m_volume_names;
+
+	// Stuff from banner
+	std::string m_company;
+	std::vector<std::string> m_names;
+	std::vector<std::string> m_descriptions;
+
 	std::string m_UniqueID;
 
 	std::string m_issues;
@@ -80,6 +75,7 @@ private:
 
 	DiscIO::IVolume::ECountry m_Country;
 	int m_Platform;
+	int m_Revision;
 
 #if defined(HAVE_WX) && HAVE_WX
 	wxImage m_Image;

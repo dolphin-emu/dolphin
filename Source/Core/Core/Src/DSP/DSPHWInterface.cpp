@@ -117,71 +117,76 @@ void gdsp_ifx_write(u32 addr, u32 val)
 {
 	switch (addr & 0xff)
 	{
-	    case DSP_DIRQ:
-		    if (val & 0x1)
-			    DSPHost_InterruptRequest();
+		case DSP_DIRQ:
+			if (val & 0x1)
+				DSPHost_InterruptRequest();
 			else 
 				INFO_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
-		    break;
+			break;
 
-	    case DSP_DMBH:
-		    gdsp_mbox_write_h(GDSP_MBOX_DSP, val);
-		    break;
+		case DSP_DMBH:
+			gdsp_mbox_write_h(GDSP_MBOX_DSP, val);
+			break;
 
-	    case DSP_DMBL:
-		    gdsp_mbox_write_l(GDSP_MBOX_DSP, val);
-		    break;
+		case DSP_DMBL:
+			gdsp_mbox_write_l(GDSP_MBOX_DSP, val);
+			break;
 
-	    case DSP_CMBH:
-		    return gdsp_mbox_write_h(GDSP_MBOX_CPU, val);
+		case DSP_CMBH:
+			return gdsp_mbox_write_h(GDSP_MBOX_CPU, val);
 
-	    case DSP_CMBL:
-		    return gdsp_mbox_write_l(GDSP_MBOX_CPU, val);
+		case DSP_CMBL:
+			return gdsp_mbox_write_l(GDSP_MBOX_CPU, val);
 
-	    case DSP_DSBL:
-		    g_dsp.ifx_regs[DSP_DSBL] = val;
+		case DSP_DSBL:
+			g_dsp.ifx_regs[DSP_DSBL] = val;
 			g_dsp.ifx_regs[DSP_DSCR] |= 4; // Doesn't really matter since we do DMA instantly
-		    if (!g_dsp.ifx_regs[DSP_AMDM])
+			if (!g_dsp.ifx_regs[DSP_AMDM])
 				gdsp_do_dma();
 			else
 				NOTICE_LOG(DSPLLE, "Masked DMA skipped");
-		    g_dsp.ifx_regs[DSP_DSCR] &= ~4;
+			g_dsp.ifx_regs[DSP_DSCR] &= ~4;
 			g_dsp.ifx_regs[DSP_DSBL] = 0;
-		    break;
+			break;
 
 		case DSP_ACDATA1: // Accelerator write (Zelda type) - "UnkZelda"
 			dsp_write_aram_d3(val);
 			break;
 
 		case DSP_GAIN:
-			if (val) {
+			if (val)
+			{
 				INFO_LOG(DSPLLE,"Gain Written: 0x%04x", val); 
 			}
-	    case DSP_DSPA:
-	    case DSP_DSMAH:
-	    case DSP_DSMAL:
-	    case DSP_DSCR:
-		    g_dsp.ifx_regs[addr & 0xFF] = val;
-		    break;
+		case DSP_DSPA:
+		case DSP_DSMAH:
+		case DSP_DSMAL:
+		case DSP_DSCR:
+			g_dsp.ifx_regs[addr & 0xFF] = val;
+			break;
 /*
 		case DSP_ACCAL:
 			dsp_step_accelerator();
 			break;
 */
-	    default:
-			if ((addr & 0xff) >= 0xa0) {
-				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description) {
-		   			INFO_LOG(DSPLLE, "%04x MW %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
+		default:
+			if ((addr & 0xff) >= 0xa0)
+			{
+				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description)
+				{
+					INFO_LOG(DSPLLE, "%04x MW %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
 				}
-				else {
-		   			ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
+				else
+				{
+					ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
 				}
 			}
-			else {
-		   	    ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
+			else
+			{
+				ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
 			}
-		    g_dsp.ifx_regs[addr & 0xFF] = val;
-		    break;
+			g_dsp.ifx_regs[addr & 0xFF] = val;
+			break;
 	}
 }
 
@@ -189,40 +194,44 @@ u16 gdsp_ifx_read(u16 addr)
 {
 	switch (addr & 0xff)
 	{
-	    case DSP_DMBH:
-		    return gdsp_mbox_read_h(GDSP_MBOX_DSP);
+		case DSP_DMBH:
+			return gdsp_mbox_read_h(GDSP_MBOX_DSP);
 
-	    case DSP_DMBL:
-		    return gdsp_mbox_read_l(GDSP_MBOX_DSP);
+		case DSP_DMBL:
+			return gdsp_mbox_read_l(GDSP_MBOX_DSP);
 
-	    case DSP_CMBH:
-		    return gdsp_mbox_read_h(GDSP_MBOX_CPU);
+		case DSP_CMBH:
+			return gdsp_mbox_read_h(GDSP_MBOX_CPU);
 
-	    case DSP_CMBL:
-		    return gdsp_mbox_read_l(GDSP_MBOX_CPU);
+		case DSP_CMBL:
+			return gdsp_mbox_read_l(GDSP_MBOX_CPU);
 
-	    case DSP_DSCR:
-		    return g_dsp.ifx_regs[addr & 0xFF];
+		case DSP_DSCR:
+			return g_dsp.ifx_regs[addr & 0xFF];
 
- 	    case DSP_ACCELERATOR:  // ADPCM Accelerator reads
- 		    return dsp_read_accelerator();
+		case DSP_ACCELERATOR:  // ADPCM Accelerator reads
+			return dsp_read_accelerator();
 
-	    case DSP_ACDATA1: // Accelerator reads (Zelda type) - "UnkZelda"
-		    return dsp_read_aram_d3();
+		case DSP_ACDATA1: // Accelerator reads (Zelda type) - "UnkZelda"
+			return dsp_read_aram_d3();
 
-	    default:
-			if ((addr & 0xff) >= 0xa0) {
-				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description) {
-	   				INFO_LOG(DSPLLE, "%04x MR %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, g_dsp.ifx_regs[addr & 0xFF]);
+		default:
+			if ((addr & 0xff) >= 0xa0)
+			{
+				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description)
+				{
+					INFO_LOG(DSPLLE, "%04x MR %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, g_dsp.ifx_regs[addr & 0xFF]);
 				}
-				else {
-	   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, g_dsp.ifx_regs[addr & 0xFF]);
+				else
+				{
+					ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, g_dsp.ifx_regs[addr & 0xFF]);
 				}
 			}
-			else {
-   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, g_dsp.ifx_regs[addr & 0xFF]);
+			else
+			{
+				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, g_dsp.ifx_regs[addr & 0xFF]);
 			}
-		    return g_dsp.ifx_regs[addr & 0xFF];
+			return g_dsp.ifx_regs[addr & 0xFF];
 	}
 }
 
@@ -237,14 +246,9 @@ static void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	}
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
-	g_dsp.iram_crc = DSPHost_CodeLoaded(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
-	
-	NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
+	DSPHost_CodeLoaded((const u8*)g_dsp.iram + dsp_addr, size);
 
-	if (dspjit)
-		dspjit->ClearIRAM();
-	
-	DSPAnalyzer::Analyze();
+	NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
 }
 
 static void gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
@@ -252,7 +256,9 @@ static void gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
 	ERROR_LOG(DSPLLE, "*** idma_out IRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2, addr, size);
 }
 
+#if _M_SSE >= 0x301
 static const __m128i s_mask = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405L, 0x02030001L);
+#endif
 
 // TODO: These should eat clock cycles.
 static void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
@@ -316,28 +322,28 @@ static void gdsp_do_dma()
 
 	if (len > 0x4000)
 	{
-		ERROR_LOG(DSPLLE, "DMA ERROR pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
+		ERROR_LOG(DSPLLE, "DMA ERROR: PC: %04x, Control: %04x, Address: %08x, DSP Address: %04x, Size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 		exit(0);
 	}
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	DEBUG_LOG(DSPLLE, "DMA pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
+	DEBUG_LOG(DSPLLE, "DMA pc: %04x, Control: %04x, Address: %08x, DSP Address: %04x, Size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 #endif
 	switch (ctl & 0x3)
 	{
-	    case (DSP_CR_DMEM | DSP_CR_TO_CPU):
-		    gdsp_ddma_out(dsp_addr, addr, len);
-		    break;
+		case (DSP_CR_DMEM | DSP_CR_TO_CPU):
+			gdsp_ddma_out(dsp_addr, addr, len);
+			break;
 
-	    case (DSP_CR_DMEM | DSP_CR_FROM_CPU):
-		    gdsp_ddma_in(dsp_addr, addr, len);
-		    break;
+		case (DSP_CR_DMEM | DSP_CR_FROM_CPU):
+			gdsp_ddma_in(dsp_addr, addr, len);
+			break;
 
-	    case (DSP_CR_IMEM | DSP_CR_TO_CPU):
-		    gdsp_idma_out(dsp_addr, addr, len);
-		    break;
+		case (DSP_CR_IMEM | DSP_CR_TO_CPU):
+			gdsp_idma_out(dsp_addr, addr, len);
+			break;
 
-	    case (DSP_CR_IMEM | DSP_CR_FROM_CPU):
-		    gdsp_idma_in(dsp_addr, addr, len);
-		    break;
+		case (DSP_CR_IMEM | DSP_CR_FROM_CPU):
+			gdsp_idma_in(dsp_addr, addr, len);
+			break;
 	}
 }

@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "NetPlay.h"
 
@@ -23,6 +10,7 @@
 // for gcpad
 #include "HW/SI_DeviceGCController.h"
 #include "HW/SI_DeviceGCSteeringWheel.h"
+#include "HW/SI_DeviceDanceMat.h"
 // for gctime
 #include "HW/EXI_DeviceIPL.h"
 // for wiimote/ OSD messages
@@ -271,6 +259,16 @@ bool NetPlay::StopGame()
 	return true;
 }
 
+void NetPlay::SetMemcardWriteEnabled(bool enabled)
+{
+	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+
+	if (m_is_running)
+	{
+		Core::g_CoreStartupParameter.bEnableMemcardSaving = enabled;
+	}
+}
+
 // called from ---CPU--- thread
 u8 NetPlay::GetPadNum(u8 numPAD)
 {
@@ -302,6 +300,11 @@ bool CSIDevice_GCSteeringWheel::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus
 	return CSIDevice_GCController::NetPlay_GetInput(numPAD, PadStatus, PADStatus);
 }
 
+bool CSIDevice_DanceMat::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
+{
+	return CSIDevice_GCController::NetPlay_GetInput(numPAD, PadStatus, PADStatus);
+}
+
 // called from ---CPU--- thread
 // so all players' games get the same time
 u32 CEXIIPL::NetPlay_GetGCTime()
@@ -327,6 +330,11 @@ u8 CSIDevice_GCController::NetPlay_GetPadNum(u8 numPAD)
 }
 
 u8 CSIDevice_GCSteeringWheel::NetPlay_GetPadNum(u8 numPAD)
+{
+	return CSIDevice_GCController::NetPlay_GetPadNum(numPAD);
+}
+
+u8 CSIDevice_DanceMat::NetPlay_GetPadNum(u8 numPAD)
 {
 	return CSIDevice_GCController::NetPlay_GetPadNum(numPAD);
 }

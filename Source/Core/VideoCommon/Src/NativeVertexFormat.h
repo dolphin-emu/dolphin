@@ -21,7 +21,8 @@
 #include "Common.h"
 
 // m_components
-enum {
+enum
+{
 	VB_HAS_POSMTXIDX =(1<<1),
 	VB_HAS_TEXMTXIDX0=(1<<2),
 	VB_HAS_TEXMTXIDX1=(1<<3),
@@ -102,7 +103,7 @@ public:
 	virtual void SetupVertexPointers() = 0;
 	virtual void EnableComponents(u32 components) {}
 
-	int GetVertexStride() const { return vertex_stride; }
+	u32 GetVertexStride() const { return vertex_stride; }
 
 	// TODO: move this under private:
 	u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.

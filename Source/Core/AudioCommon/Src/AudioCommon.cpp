@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 #include "AudioCommon.h"
 #include "FileUtil.h"
@@ -26,6 +13,7 @@
 #include "CoreAudioSoundStream.h"
 #include "OpenALStream.h"
 #include "PulseAudioStream.h"
+#include "OpenSLESStream.h"
 #include "../../Core/Src/Movie.h"
 #include "../../Core/Src/ConfigManager.h"
 
@@ -55,7 +43,8 @@ namespace AudioCommon
 			soundStream = new CoreAudioSound(mixer);
 		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
 			soundStream = new PulseAudio(mixer);
-
+		else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
+			soundStream = new OpenSLESStream(mixer);
 		if (soundStream != NULL)
 		{
 			UpdateSoundStream();
@@ -116,7 +105,8 @@ namespace AudioCommon
 			backends.push_back(BACKEND_PULSEAUDIO);
 		if (OpenALStream::isValid())
 			backends.push_back(BACKEND_OPENAL);
-	   
+		if (OpenSLESStream::isValid())
+			backends.push_back(BACKEND_OPENSLES);
 		return backends;
 	}
 
