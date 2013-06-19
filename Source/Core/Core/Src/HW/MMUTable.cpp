@@ -393,6 +393,7 @@ static void unmap_pte(int pteg_index, u32 pteh, u32 ptel)
 	if(i==16)
 	{
 //		WARN_LOG(MASTER_LOG, "couldn't find vsid in segment registers, sad day");
+/*
 		for(i=0;i<4; i++)
 		{
 			WARN_LOG(MASTER_LOG, "SR%02d: 0x%08x SR%02d: 0x%08x SR%02d: 0x%08x SR%02d: 0x%08x",
@@ -401,6 +402,7 @@ static void unmap_pte(int pteg_index, u32 pteh, u32 ptel)
 				4*i+2, PowerPC::ppcState.sr[4*i+2],
 				4*i+3, PowerPC::ppcState.sr[4*i+3]);
 		}
+*/
 		return;
 	}
 	

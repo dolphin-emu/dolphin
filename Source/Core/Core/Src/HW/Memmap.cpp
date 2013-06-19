@@ -785,59 +785,6 @@ void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 _iSize)
 
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 {
-	u8 *ptr = GetPointer(_Address);
-	if (ptr != NULL)
-	{
-		memset(ptr,_iValue,_iLength);
-	}
-	else
-	{
-		for (u32 i = 0; i < _iLength; i++)
-			Write_U8(_iValue, _Address + i);
-	}
-<<<<<<< HEAD
-	u32 inst = *(u32*)(iCache + addr);
-	if (inst == JIT_ICACHE_INVALID_WORD)
-		inst = Memory::ReadUnchecked_U32(_Address);
-	else
-		inst = Common::swap32(inst);
-#else
-	u32 inst = Memory::ReadUnchecked_U32(_Address);
-#endif
-	if ((inst & 0xfc000000) == 0)
-	{
-		inst = jit->GetBlockCache()->GetOriginalFirstOp(inst);
-	}	
-	return inst;
-}
-
-// WARNING! No checks!
-// We assume that _Address is cached
-void Write_Opcode_JIT(const u32 _Address, const u32 _Value)
-{
-#ifdef JIT_UNLIMITED_ICACHE
-	if (_Address & JIT_ICACHE_VMEM_BIT)
-	{
-		*(u32*)(jit->GetBlockCache()->GetICacheVMEM() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);		
-	}
-	else if (_Address & JIT_ICACHE_EXRAM_BIT)
-	{
-		*(u32*)(jit->GetBlockCache()->GetICacheEx() + (_Address & JIT_ICACHEEX_MASK)) = Common::swap32(_Value);		
-	}
-	else
-		*(u32*)(jit->GetBlockCache()->GetICache() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);
-#else
-	Memory::WriteUnchecked_U32(_Value, _Address);
-#endif	
-}
-
-void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 _iSize)
-{
-	memcpy(GetPointer(_Address), _pData, _iSize);
-}
-
-void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
-{
 	MMUTable::memset_emu(MMUTable::EmuPointer(_Address), _iValue, _iLength);
 /*
     u8 *ptr = GetPointer(_Address);
@@ -851,8 +798,6 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
             Write_U8(_iValue, _Address + i);
     }
 */
-=======
->>>>>>> master
 }
 
 void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
