@@ -51,7 +51,7 @@ u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
 bool bSaveConfig, bSkipIdle, bDualCore, bProgressive, bDSPHLE, bFastDiscSpeed = false;
-bool bMemcard, g_bClearSave = false;
+bool bMemcard, g_bClearSave, bSyncGPU = false;
 std::string videoBackend = "unknown";
 int iCPUCore = 1;
 bool g_bDiscChange = false;
@@ -352,6 +352,10 @@ bool IsStartingFromClearSave()
 bool IsUsingMemcard()
 {
 	return bMemcard;
+}
+bool IsSyncGPU()
+{
+	return bSyncGPU;
 }
 
 void ChangePads(bool instantly)
@@ -675,6 +679,7 @@ void ReadHeader()
 		g_bClearSave = tmpHeader.bClearSave;
 		bMemcard = tmpHeader.bMemcard;
 		bongos = tmpHeader.bongos;
+		bSyncGPU = tmpHeader.bSyncGPU;
 		memcpy(revision, tmpHeader.revision, ARRAYSIZE(revision));
 	}
 	else
@@ -1111,6 +1116,7 @@ void SaveRecording(const char *filename)
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
 	header.bMemcard = bMemcard;
 	header.bClearSave = g_bClearSave;
+	header.bSyncGPU = bSyncGPU;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 	memcpy(header.md5,MD5,16);
@@ -1169,6 +1175,7 @@ void GetSettings()
 	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
 	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
 	videoBackend = g_video_backend->GetName();
+	bSyncGPU = SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU;
 	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);

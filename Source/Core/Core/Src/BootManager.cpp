@@ -126,6 +126,7 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bProgressive = Movie::IsProgressive();
 		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
 		StartUp.iCPUCore = Movie::GetCPUMode();
+		StartUp.bSyncGPU = Movie::IsSyncGPU();
 		if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
 		{
 			if (File::Exists("Movie.raw"))
