@@ -66,9 +66,8 @@ void CUCode_AX::LoadResamplingCoefficients()
 
 	WARN_LOG(DSPHLE, "Loading polyphase resampling coeffs from %s", filename.c_str());
 
-	FILE* fp = fopen(filename.c_str(), "rb");
-	fread(m_coeffs, 1, 0x1000, fp);
-	fclose(fp);
+	File::IOFile fp(filename, "rb");
+	fp.ReadBytes(m_coeffs, 0x1000);
 
 	for (u32 i = 0; i < 0x800; ++i)
 		m_coeffs[i] = Common::swap16(m_coeffs[i]);

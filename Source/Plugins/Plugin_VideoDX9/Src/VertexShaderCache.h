@@ -23,7 +23,6 @@ private:
 		LPDIRECT3DVERTEXSHADER9 shader;
 
 		std::string code;
-		VERTEXSHADERUIDSAFE safe_uid;
 
 		VSCacheEntry() : shader(NULL) {}
 		void Destroy()
@@ -34,11 +33,14 @@ private:
 		}
 	};
 
-	typedef std::map<VERTEXSHADERUID, VSCacheEntry> VSCache;
+	typedef std::map<VertexShaderUid, VSCacheEntry> VSCache;
 
 	static VSCache vshaders;
 	static const VSCacheEntry *last_entry;
-	static VERTEXSHADERUID last_uid;
+	static VertexShaderUid last_uid;
+
+	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
+
 	static void Clear();
 
 public:
@@ -47,7 +49,7 @@ public:
 	static bool SetShader(u32 components);
 	static LPDIRECT3DVERTEXSHADER9 GetSimpleVertexShader(int level);
 	static LPDIRECT3DVERTEXSHADER9 GetClearVertexShader();	
-	static bool InsertByteCode(const VERTEXSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate);
+	static bool InsertByteCode(const VertexShaderUid &uid, const u8 *bytecode, int bytecodelen, bool activate);
 
 	static std::string GetCurrentShaderCode();
 };

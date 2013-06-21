@@ -92,6 +92,11 @@ namespace OGL
 
 std::string VideoBackend::GetName()
 {
+	return "OGL";
+}
+
+std::string VideoBackend::GetDisplayName()
+{
 	return "OpenGL";
 }
 
@@ -144,10 +149,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 	diag.ShowModal();
 #endif
 }
-void Test(u32 Data)
-{
-	printf("Data: %d\n", Data);
-}
+
 bool VideoBackend::Initialize(void *&window_handle)
 {
 	InitializeShared();

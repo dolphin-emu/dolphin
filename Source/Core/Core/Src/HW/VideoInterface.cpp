@@ -804,11 +804,9 @@ static void BeginField(FieldType field)
 	u32 fbWidth = m_HorizontalStepping.FieldSteps * 16;
 	u32 fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
 
-	// TODO: Are the "Bottom Field" and "Top Field" registers actually more
-	// like "First Field" and "Second Field" registers? There's an important
-	// difference because NTSC and PAL have opposite field orders.
-
-	u32 xfbAddr = (field == FIELD_LOWER) ? GetXFBAddressBottom() : GetXFBAddressTop();
+	// NTSC and PAL have opposite field orders.
+	FieldType order = (m_DisplayControlRegister.FMT == 0) ? FIELD_LOWER : FIELD_UPPER;
+	u32 xfbAddr = (field == order) ? GetXFBAddressBottom() : GetXFBAddressTop();
 
 	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
 

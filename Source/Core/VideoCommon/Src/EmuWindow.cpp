@@ -68,6 +68,7 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 	static bool mouseMoveEnabled = false;
 	static float lastMouse[2];
 	POINT point;
+
 	switch(iMsg)
 	{
 	case WM_USER_KEYDOWN:
@@ -99,14 +100,16 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 		break;
 
 	case WM_MOUSEMOVE:
-		if (mouseLookEnabled) {
+		if (mouseLookEnabled)
+		{
 			GetCursorPos(&point);
 			VertexShaderManager::RotateView((point.x - lastMouse[0]) / 200.0f, (point.y - lastMouse[1]) / 200.0f);
 			lastMouse[0] = (float)point.x;
 			lastMouse[1] = (float)point.y;
 		}
 
-		if (mouseMoveEnabled) {
+		if (mouseMoveEnabled)
+		{
 			GetCursorPos(&point);
 			VertexShaderManager::TranslateView((point.x - lastMouse[0]) / 50.0f, (point.y - lastMouse[1]) / 50.0f);
 			lastMouse[0] = (float)point.x;

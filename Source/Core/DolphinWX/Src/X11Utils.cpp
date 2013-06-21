@@ -200,6 +200,9 @@ XRRConfiguration::~XRRConfiguration()
 
 void XRRConfiguration::Update()
 {
+	if(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution == "Auto")
+		return;
+	
 	if (!bValid)
 		return;
 

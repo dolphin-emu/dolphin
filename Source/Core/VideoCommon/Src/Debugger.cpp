@@ -89,21 +89,21 @@ void GFXDebuggerBase::DumpPixelShader(const char* path)
 	if (!useDstAlpha)
 	{
 		output = "Destination alpha disabled:\n";
-		output += GeneratePixelShaderCode(DSTALPHA_NONE, g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
+///		output += GeneratePixelShaderCode(DSTALPHA_NONE, g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
 	}
 	else
 	{
 		if(g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 		{
 			output = "Using dual source blending for destination alpha:\n";
-			output += GeneratePixelShaderCode(DSTALPHA_DUAL_SOURCE_BLEND, g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
+///			output += GeneratePixelShaderCode(DSTALPHA_DUAL_SOURCE_BLEND, g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
 		}
 		else
 		{
 			output = "Using two passes for emulating destination alpha:\n";
-			output += GeneratePixelShaderCode(DSTALPHA_NONE, g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
+///			output += GeneratePixelShaderCode(DSTALPHA_NONE, g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
 			output += "\n\nDestination alpha pass shader:\n";
-			output += GeneratePixelShaderCode(DSTALPHA_ALPHA_PASS, g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
+///			output += GeneratePixelShaderCode(DSTALPHA_ALPHA_PASS, g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
 		}
 	}
 
@@ -117,7 +117,7 @@ void GFXDebuggerBase::DumpVertexShader(const char* path)
 	sprintf(filename, "%sdump_vs.txt", path);
 
 	File::CreateEmptyFile(filename);
-	File::WriteStringToFile(true, GenerateVertexShaderCode(g_nativeVertexFmt->m_components, g_ActiveConfig.backend_info.APIType), filename);
+///	File::WriteStringToFile(true, GenerateVertexShaderCode(g_nativeVertexFmt->m_components, g_ActiveConfig.backend_info.APIType), filename);
 }
 
 void GFXDebuggerBase::DumpPixelShaderConstants(const char* path)

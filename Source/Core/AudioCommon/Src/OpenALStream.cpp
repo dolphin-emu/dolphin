@@ -118,6 +118,17 @@ bool OpenALSoundStream::OnPreThreadStart()
 void OpenALSoundStream::SoundLoop()
 {
 	Common::SetCurrentThreadName("Audio thread - openal");
+
+	bool surround_capable = Core::g_CoreStartupParameter.bDPL2Decoder;
+#if defined(__APPLE__)
+	bool float32_capable = false;
+	const ALenum AL_FORMAT_STEREO_FLOAT32 = 0;
+	// OSX does not have the alext AL_FORMAT_51CHN32 yet.
+	surround_capable = false;
+	const ALenum AL_FORMAT_51CHN32 = 0;
+#else
+	bool float32_capable = true;
+#endif
 	
 	CMixer *mixer = CBaseSoundStream::GetMixer();
 	u32 ulFrequency = mixer->GetSampleRate();
@@ -132,23 +143,21 @@ void OpenALSoundStream::SoundLoop()
 	alGenSources(1, &m_uiSource);
 
 	// Short Silence
-	memset(m_sampleBuffer, 0, OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * m_numBuffers);
-	memset(m_realtimeBuffer, 0, OAL_MAX_SAMPLES * 4);
+	memset(m_sampleBuffer, 0, OAL_MAX_SAMPLES * m_numBuffers * FRAME_SURROUND_FLOAT);
+	memset(m_realtimeBuffer, 0, OAL_MAX_SAMPLES * FRAME_STEREO_SHORT);
 	for (int i = 0; i < m_numBuffers; i++)
 	{
-#if !defined(__APPLE__)
-		if (Core::g_CoreStartupParameter.bDPL2Decoder)
-			alBufferData(m_uiBuffers[i], AL_FORMAT_51CHN32, m_sampleBuffer, 4 * SIZE_FLOAT * SURROUND_CHANNELS, ulFrequency);
+		if (surround_capable)
+			alBufferData(m_uiBuffers[i], AL_FORMAT_51CHN32, m_sampleBuffer, 4 * FRAME_SURROUND_FLOAT, ulFrequency);
 		else
-#endif
-			alBufferData(m_uiBuffers[i], AL_FORMAT_STEREO16, m_realtimeBuffer, 4 * 2 * 2, ulFrequency);
+			alBufferData(m_uiBuffers[i], AL_FORMAT_STEREO16, m_realtimeBuffer, 4 * FRAME_STEREO_SHORT, ulFrequency);
 	}
 	alSourceQueueBuffers(m_uiSource, m_numBuffers, m_uiBuffers);
 	alSourcePlay(m_uiSource);
-	
+
 	// Set the default sound volume as saved in the config file.
 	u32 vol = CBaseSoundStream::GetVolume();
-	alSourcef(m_uiSource, AL_GAIN, ConvertVolume(vol)); 
+	alSourcef(m_uiSource, AL_GAIN, ConvertVolume(vol));
 
 	// TODO: Error handling
 	//ALenum err = alGetError();
@@ -190,11 +199,10 @@ void OpenALSoundStream::SoundLoop()
 		num_samples = mixer->Mix(m_realtimeBuffer, num_samples);
 
 		// Convert the samples from short to float
-		float dest[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
-		for (u32 i = 0; i < num_samples; ++i)
+		float dest[OAL_MAX_SAMPLES * STEREO_CHANNELS];
+		for (u32 i = 0; i < num_samples * STEREO_CHANNELS; ++i)
 		{
-			dest[i * 2 + 0] = (float)m_realtimeBuffer[i * 2 + 0] / (1 << 16);
-			dest[i * 2 + 1] = (float)m_realtimeBuffer[i * 2 + 1] / (1 << 16);
+			dest[i] = (float)m_realtimeBuffer[i] / (1 << 16);
 		}
 
 		soundTouch.putSamples(dest, num_samples);
@@ -227,101 +235,92 @@ void OpenALSoundStream::SoundLoop()
 				}
 			}
 
-			unsigned int nSamples = soundTouch.receiveSamples(m_sampleBuffer, OAL_MAX_SAMPLES * SIZE_FLOAT * OAL_MAX_BUFFERS);
+			unsigned int nSamples = soundTouch.receiveSamples(m_sampleBuffer, OAL_MAX_SAMPLES * m_numBuffers);
 
-			if (nSamples > minSamples)
+			if (nSamples < minSamples)
+				continue;
+
+			// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
+			if (iBuffersFilled == 0)
 			{
-				// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
-				if (iBuffersFilled == 0)
-				{
-					alSourceUnqueueBuffers(m_uiSource, iBuffersProcessed, uiBufferTemp);
-					ALenum err = alGetError();
-					if (err != 0)
-					{
-						ERROR_LOG(AUDIO, "Error unqueuing buffers: %08x", err);
-					}
-				}
-#if defined(__APPLE__)
-				// OSX does not have the alext AL_FORMAT_51CHN32 yet.
-				surround_capable = false;
-#else
-				if (surround_capable)
-				{
-					float dpl2[OAL_MAX_SAMPLES * SIZE_FLOAT * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-					dpl2decode(m_sampleBuffer, nSamples, dpl2);
-
-					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * SIZE_FLOAT * SURROUND_CHANNELS, ulFrequency);
-					ALenum err = alGetError();
-					if (err == AL_INVALID_ENUM)
-					{
-						// 5.1 is not supported by the host, fallback to stereo
-						WARN_LOG(AUDIO, "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
-						surround_capable = false;
-					}
-					else if (err != 0)
-					{
-						ERROR_LOG(AUDIO, "Error occurred while buffering data: %08x", err);
-					}
-				}
-#endif
-				if (!surround_capable)
-				{
-#if !defined(__APPLE__)
-					if (float32_capable)
-					{
-						alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO_FLOAT32, m_sampleBuffer, nSamples * 4 * 2, ulFrequency);
-						ALenum err = alGetError();
-						if (err == AL_INVALID_ENUM)
-						{
-							float32_capable = false;
-						}
-						else if (err != 0)
-						{
-							ERROR_LOG(AUDIO, "Error occurred while buffering float32 data: %08x", err);
-						}
-					}
-#endif
-					if (!float32_capable)
-					{
-						// Convert the samples from float to short
-						short stereo[OAL_MAX_SAMPLES * 2 * 2 * OAL_MAX_BUFFERS];
-						for (u32 i = 0; i < nSamples; ++i)
-						{
-							stereo[i * 2 + 0] = (short)((float)m_sampleBuffer[i * 2 + 0] * (1 << 16));
-							stereo[i * 2 + 1] = (short)((float)m_sampleBuffer[i * 2 + 1] * (1 << 16));
-						}
-						alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * 2 * 2, ulFrequency);
-					}
-				}
-
-				alSourceQueueBuffers(m_uiSource, 1, &uiBufferTemp[iBuffersFilled]);
+				alSourceUnqueueBuffers(m_uiSource, iBuffersProcessed, uiBufferTemp);
 				ALenum err = alGetError();
 				if (err != 0)
 				{
-					ERROR_LOG(AUDIO, "Error queuing buffers: %08x", err);
+					ERROR_LOG(AUDIO, "Error unqueuing buffers: %08x", err);
 				}
-				iBuffersFilled++;
+			}
 
-				if (iBuffersFilled == m_numBuffers)
+			if (surround_capable)
+			{
+				float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
+				dpl2decode(m_sampleBuffer, nSamples, dpl2);
+				alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2, nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
+				ALenum err = alGetError();
+				if (err == AL_INVALID_ENUM)
 				{
-					alSourcePlay(m_uiSource);
-					err = alGetError();
-					if (err != 0)
+					// 5.1 is not supported by the host, fallback to stereo
+					WARN_LOG(AUDIO, "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
+					surround_capable = false;
+				}
+				else if (err != 0)
+				{
+					ERROR_LOG(AUDIO, "Error occurred while buffering data: %08x", err);
+				}
+			}
+			else
+			{
+				if (float32_capable)
+				{
+					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO_FLOAT32, m_sampleBuffer, nSamples * FRAME_STEREO_FLOAT, ulFrequency);
+					ALenum err = alGetError();
+					if (err == AL_INVALID_ENUM)
 					{
-						ERROR_LOG(AUDIO, "Error occurred during playback: %08x", err);
+						float32_capable = false;
+					}
+					else if (err != 0)
+					{
+						ERROR_LOG(AUDIO, "Error occurred while buffering float32 data: %08x", err);
 					}
 				}
-
-				alGetSourcei(m_uiSource, AL_SOURCE_STATE, &iState);
-				if (iState != AL_PLAYING)
+				else
 				{
-					// Buffer underrun occurred, resume playback
-					alSourcePlay(m_uiSource);
-					err = alGetError();
-					if (err != 0)
-					{
-						ERROR_LOG(AUDIO, "Error occurred resuming playback: %08x", err);
-					}
+					// Convert the samples from float to short
+					short stereo[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
+					for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
+						stereo[i] = (short)((float)m_sampleBuffer[i] * (1 << 16));
+
+					alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo, nSamples * FRAME_STEREO_SHORT, ulFrequency);
+				}
+			}
+
+			alSourceQueueBuffers(m_uiSource, 1, &uiBufferTemp[iBuffersFilled]);
+			ALenum err = alGetError();
+			if (err != 0)
+			{
+				ERROR_LOG(AUDIO, "Error queuing buffers: %08x", err);
+			}
+			iBuffersFilled++;
+
+			if (iBuffersFilled == m_numBuffers)
+			{
+				alSourcePlay(m_uiSource);
+				err = alGetError();
+				if (err != 0)
+				{
+					ERROR_LOG(AUDIO, "Error occurred during playback: %08x", err);
+				}
+			}
+
+			alGetSourcei(m_uiSource, AL_SOURCE_STATE, &iState);
+			if (iState != AL_PLAYING)
+			{
+				// Buffer underrun occurred, resume playback
+				alSourcePlay(m_uiSource);
+				err = alGetError();
+				if (err != 0)
+				{
+					ERROR_LOG(AUDIO, "Error occurred resuming playback: %08x", err);
 				}
 			}
 		}

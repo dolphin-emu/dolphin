@@ -230,9 +230,13 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 {
 	bool software = false;
 	p.Do(software);
+
 	if (p.GetMode() == PointerWrap::MODE_READ && software == true)
+	{
 		// change mode to abort load of incompatible save state.
 		p.SetMode(PointerWrap::MODE_VERIFY);
+	}
+
 	VideoCommon_DoState(p);
 	p.DoMarker("VideoCommon");
 
@@ -255,7 +259,8 @@ void VideoBackendHardware::DoState(PointerWrap& p)
 	}
 }
 
-void VideoBackendHardware::CheckInvalidState() {
+void VideoBackendHardware::CheckInvalidState()
+{
 	if (m_invalid)
 	{
 		m_invalid = false;

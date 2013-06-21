@@ -37,7 +37,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	, m_HIDInterruptChannel_Config(false)
 	, m_HIDInterruptChannel_ConfigWait(false)
 	, m_BD(_BD)
-	, m_Name("Nintendo RVL-CNT-01")
+	, m_Name(_Number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01")
 	, m_pHost(_pHost)
 {
 	DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote: #%i Constructed", _Number);
@@ -277,13 +277,13 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 					break;
 
 				case L2CAP_PSM_HID_CNTL:
-					if (number < 4)
+					if (number < MAX_BBMOTES)
 						Wiimote::ControlChannel(number, pHeader->dcid, pData, DataSize);
 					break;
 
 				case L2CAP_PSM_HID_INTR:
 					{
-						if (number < 4)
+						if (number < MAX_BBMOTES)
 						{
 							DEBUG_LOG(WIIMOTE, "Wiimote_InterruptChannel");
 							DEBUG_LOG(WIIMOTE, "    Channel ID: %04x", pHeader->dcid);

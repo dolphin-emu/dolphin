@@ -106,7 +106,8 @@ struct DTMHeader {
 	bool bMemcard;
 	bool bClearSave;		// Create a new memory card when playing back a movie if true
 	u8 bongos;
-	u8 reserved[15];		// Padding for any new config options
+	bool bSyncGPU;
+	u8 reserved[14];		// Padding for any new config options
 	u8 discChange[40];		// Name of iso file to switch to, for two disc games.
 	u8 revision[20];		// Git hash
 	u8 reserved2[27];		// Make heading 256 bytes, just because we can
@@ -138,6 +139,7 @@ bool IsFastDiscSpeed();
 int GetCPUMode();
 bool IsStartingFromClearSave();
 bool IsUsingMemcard();
+bool IsSyncGPU();
 void SetGraphicsConfig();
 void GetSettings();
 

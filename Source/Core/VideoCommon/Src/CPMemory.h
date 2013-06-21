@@ -88,7 +88,9 @@ union TVtxDesc
 		u32 Tex7Coord	: 2;
 		u32				:31;
 	};
-	struct {
+
+	struct
+	{
 		u32 Hex0, Hex1;
 	};
 };

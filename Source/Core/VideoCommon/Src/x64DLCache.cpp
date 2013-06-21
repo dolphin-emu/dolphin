@@ -169,7 +169,7 @@ struct CachedDisplayList
 		while(Current)
 		{
 			if(!Current->IntersectsMemoryRange(RegionStart, Regionsize))
-					return Current;
+				return Current;
 			Current = Current->NextRegion;
 		}
 		return Current;
@@ -598,14 +598,17 @@ void Shutdown()
 void Clear() 
 {
 	VDLMap::iterator iter = dl_map.begin();
-	while (iter != dl_map.end()) {
+	while (iter != dl_map.end())
+	{
 		VDlist &ParentEntry = iter->second;
 		DLMap::iterator childiter = ParentEntry.dl_map.begin();
-		while (childiter != ParentEntry.dl_map.end()) {
+		while (childiter != ParentEntry.dl_map.end())
+		{
 			CachedDisplayList &entry = childiter->second;
 			entry.ClearRegions();
 			childiter++;
 		}
+
 		ParentEntry.dl_map.clear();
 		iter++;
 	}
@@ -617,26 +620,33 @@ void Clear()
 void ProgressiveCleanup()
 {
 	VDLMap::iterator iter = dl_map.begin();
-	while (iter != dl_map.end()) {
+	while (iter != dl_map.end())
+	{
 		VDlist &ParentEntry = iter->second;
 		DLMap::iterator childiter = ParentEntry.dl_map.begin();
 		while (childiter != ParentEntry.dl_map.end()) 
 		{
 			CachedDisplayList &entry = childiter->second;
 			int limit = 3600;
-			if (entry.frame_count < frameCount - limit) {
+			if (entry.frame_count < frameCount - limit)
+			{
 				entry.ClearRegions();
 				ParentEntry.dl_map.erase(childiter++);  // (this is gcc standard!)
 			}
 			else
+			{
 				++childiter;
+			}
 		}
+
 		if(ParentEntry.dl_map.empty())
 		{
 			dl_map.erase(iter++);
 		}
 		else
+		{
 			iter++;
+		}
 	}
 }
 
@@ -653,10 +663,12 @@ bool HandleDisplayList(u32 address, u32 size)
 	//Fixed DlistCaching now is fully functional still some things to workout
 	if(!g_ActiveConfig.bDlistCachingEnable)
 		return false;
-	if(size == 0) return false;
+	if(size == 0)
+		return false;
 
-	// Is this thread safe?
-	if (DLCache::GetSpaceLeft() < DL_CODE_CLEAR_THRESHOLD) {
+	// TODO: Is this thread safe?
+	if (DLCache::GetSpaceLeft() < DL_CODE_CLEAR_THRESHOLD)
+	{
 		DLCache::Clear();
 	}
 
@@ -665,12 +677,14 @@ bool HandleDisplayList(u32 address, u32 size)
 	DLCache::VDLMap::iterator Parentiter = DLCache::dl_map.find(dl_id);
 	DLCache::DLMap::iterator iter;
 	bool childexist = false;
+
 	if (Parentiter != DLCache::dl_map.end())
 	{
 		vhash = DLCache::CreateVMapId(Parentiter->second.VATUsed);
 		iter = 	Parentiter->second.dl_map.find(vhash);
 		childexist = iter != Parentiter->second.dl_map.end();
 	}
+
 	if (Parentiter != DLCache::dl_map.end() && childexist)
 	{
 		DLCache::CachedDisplayList &dl = iter->second;

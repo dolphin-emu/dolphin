@@ -171,6 +171,7 @@ private:
 
 	u32 ImportGciInternal(FILE* gcih, const char *inputFile, const std::string &outputFile);
 	static void FormatInternal(GCMC_Header &GCP);
+	void initDirBatPointers() ;
 public:
 
 	GCMemcard(const char* fileName, bool forceCreation=false, bool sjis=false);

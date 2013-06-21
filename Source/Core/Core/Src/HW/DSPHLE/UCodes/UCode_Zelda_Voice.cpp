@@ -214,7 +214,6 @@ clear_buffer:
 template <typename T> 
 void PrintObject(const T &Obj) 
 {
-	char byte[2] = {0};
 	std::stringstream ss;
 	u8 *o = (u8 *)&Obj;
 
@@ -223,16 +222,17 @@ void PrintObject(const T &Obj)
 	CompileTimeAssert<sizeof(ZeldaVoicePB) == 0x180> ensure_zpb_size_correct;
 	(void)ensure_zpb_size_correct;
 
+	ss << std::hex;
 	for (size_t i = 0; i < sizeof(T); i++)
 	{
-		if((i > 0) && ((i & 1) == 0))
-			ss << " ";
-
-		sprintf(byte, "%02X", Common::swap16(o[i]));
-		ss << byte;
+		if((i & 1) == 0)
+			ss << ' ';
+		ss.width(2);
+		ss.fill('0');
+		ss << Common::swap16(o[i]);
 	}
 
-	DEBUG_LOG(DSPHLE, "AFC PB: %s", ss.str().c_str());
+	DEBUG_LOG(DSPHLE, "AFC PB:%s", ss.str().c_str());
 }
 
 void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)

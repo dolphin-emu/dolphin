@@ -16,18 +16,17 @@
 namespace OGL
 {
 
-template<bool safe>
-class _SHADERUID
+class SHADERUID
 {
 public:
-	_VERTEXSHADERUID<safe> vuid;
-	_PIXELSHADERUID<safe> puid;
+	VertexShaderUid vuid;
+	PixelShaderUid puid;
 
-	_SHADERUID() {}
+	SHADERUID() {}
 
-	_SHADERUID(const _SHADERUID& r) : vuid(r.vuid), puid(r.puid) {}
+	SHADERUID(const SHADERUID& r) : vuid(r.vuid), puid(r.puid) {}
 
-	bool operator <(const _SHADERUID& r) const
+	bool operator <(const SHADERUID& r) const
 	{
 		if(puid < r.puid) return true;
 		if(r.puid < puid) return false;
@@ -35,13 +34,11 @@ public:
 		return false;
 	}
 
-	bool operator ==(const _SHADERUID& r) const
+	bool operator ==(const SHADERUID& r) const
 	{
 		return puid == r.puid && vuid == r.vuid;
 	}
 };
-typedef _SHADERUID<false> SHADERUID;
-typedef _SHADERUID<true> SHADERUIDSAFE;
 
 
 const int NUM_UNIFORMS = 19;
@@ -72,7 +69,6 @@ public:
 	struct PCacheEntry
 	{
 		SHADER shader;
-		SHADERUIDSAFE safe_uid;
 		bool in_cache;
 
 		void Destroy()
@@ -81,12 +77,12 @@ public:
 		}
 	};
 
+	typedef std::map<SHADERUID, PCacheEntry> PCache;
+
 	static PCacheEntry GetShaderProgram(void);
 	static GLuint GetCurrentProgram(void);
 	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
 	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
-	static void GetSafeShaderId(SHADERUIDSAFE *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
-	static void ValidateShaderIDs(PCacheEntry *entry, DSTALPHA_MODE dstAlphaMode, u32 components);
 	
 	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode);
 	static GLuint CompileSingleShader(GLuint type, const char *code);
@@ -106,11 +102,12 @@ private:
 		void Read(const SHADERUID &key, const u8 *value, u32 value_size);
 	};
 
-	typedef std::map<SHADERUID, PCacheEntry> PCache;
-
 	static PCache pshaders;
 	static PCacheEntry* last_entry;
 	static SHADERUID last_uid;
+
+	static UidChecker<PixelShaderUid,PixelShaderCode> pixel_uid_checker;
+	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
 
 	static GLintptr s_vs_data_size;
 	static GLintptr s_ps_data_size;

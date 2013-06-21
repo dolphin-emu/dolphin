@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <locale.h>
+#ifdef __APPLE__
+	#include <xlocale.h>
+#endif
 
 #include "TextureConversionShader.h"
 #include "TextureDecoder.h"
@@ -26,7 +29,8 @@ namespace TextureConversionShader
 
 u16 GetEncodedSampleCount(u32 format)
 {
-	switch (format) {
+	switch (format)
+	{
 	case GX_TF_I4: return 8;
 	case GX_TF_I8: return 4;
 	case GX_TF_IA4: return 4;
@@ -803,7 +807,10 @@ void WriteZ24Encoder(char* p, API_TYPE ApiType)
 
 const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 {
-	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
+#ifndef ANDROID
+	locale_t locale = newlocale(LC_NUMERIC_MASK, "C", NULL); // New locale for compilation
+	locale_t old_locale = uselocale(locale); // Apply the locale for this thread
+#endif
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
 	char *p = text;
@@ -886,8 +893,11 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("TextureConversionShader generator - buffer too small, canary has been eaten!");
-
-	setlocale(LC_NUMERIC, ""); // restore locale
+	
+#ifndef ANDROID
+	uselocale(old_locale); // restore locale
+	freelocale(locale);
+#endif
 	return text;
 }
 

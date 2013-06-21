@@ -92,7 +92,8 @@ template <bool pr> void IndexGenerator::AddList(u32 const numVerts)
 
 template <bool pr> void IndexGenerator::AddStrip(u32 const numVerts)
 {
-	if(pr) {
+	if(pr)
+	{
 		for (u32 i = 0; i < numVerts; ++i)
 		{
 			*Tptr++ = index + i;
@@ -100,7 +101,9 @@ template <bool pr> void IndexGenerator::AddStrip(u32 const numVerts)
 		*Tptr++ = s_primitive_restart;
 		numT += numVerts - 2;
 		
-	} else {
+	}
+	else
+	{
 		bool wind = false;
 		for (u32 i = 2; i < numVerts; ++i)
 		{
@@ -137,8 +140,10 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
 {
 	u32 i = 2;
 	
-	if(pr) {
-		for(; i<=numVerts-3; i+=3) {
+	if(pr)
+	{
+		for(; i+3<=numVerts; i+=3)
+		{
 			*Tptr++ = index + i - 1;
 			*Tptr++ = index + i + 0;
 			*Tptr++ = index;
@@ -148,7 +153,8 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
 			numT += 3;
 		}
 		
-		for(; i<=numVerts-2; i+=2) {
+		for(; i+2<=numVerts; i+=2)
+		{
 			*Tptr++ = index + i - 1;
 			*Tptr++ = index + i + 0;
 			*Tptr++ = index;
@@ -186,18 +192,22 @@ template <bool pr> void IndexGenerator::AddQuads(u32 numVerts)
 	auto const numQuads = numVerts / 4;
 	for (u32 i = 0; i != numQuads; ++i)
 	{
-		if(pr) {
+		if(pr)
+		{
 			*Tptr++ = index + i * 4 + 1;
 			*Tptr++ = index + i * 4 + 2;
 			*Tptr++ = index + i * 4 + 0;
 			*Tptr++ = index + i * 4 + 3;
 			*Tptr++ = s_primitive_restart;
 			numT += 2;
-		} else {
+		}
+		else
+		{
 			WriteTriangle<pr>(index + i * 4, index + i * 4 + 1, index + i * 4 + 2);
 			WriteTriangle<pr>(index + i * 4, index + i * 4 + 2, index + i * 4 + 3);
 		}
 	}
+
 	// three vertices remaining, so render a triangle
 	u32 remainingVerts = numVerts - numQuads*4;
 	if(remainingVerts == 3)
@@ -205,7 +215,9 @@ template <bool pr> void IndexGenerator::AddQuads(u32 numVerts)
 		WriteTriangle<pr>(index+numVerts-3, index+numVerts-2, index+numVerts-1);
 	}
 	else if(remainingVerts)
+	{
 		ERROR_LOG(VIDEO, "AddQuads: unknown count of vertices found");
+	}
 }
 
 // Lines

@@ -42,9 +42,10 @@ void Shutdown()
 void Initialize(void* const hwnd)
 {
 	// add 4 wiimotes
-	for (unsigned int i = 0; i<4; ++i)
+	for (unsigned int i = WIIMOTE_CHAN_0; i<MAX_BBMOTES; ++i)
 		g_plugin.controllers.push_back(new WiimoteEmu::Wiimote(i));
-
+	
+	
 	g_controller_interface.SetHwnd(hwnd);
 	g_controller_interface.Initialize();
 
@@ -134,7 +135,7 @@ void Update(int _number)
 unsigned int GetAttached()
 {
 	unsigned int attached = 0;
-	for (unsigned int i=0; i<4; ++i)
+	for (unsigned int i=0; i<MAX_BBMOTES; ++i)
 		if (g_wiimote_sources[i])
 			attached |= (1 << i);
 	return attached;
@@ -151,7 +152,7 @@ void DoState(u8 **ptr, PointerWrap::Mode mode)
 	// TODO:
 
 	PointerWrap p(ptr, mode);
-	for (unsigned int i=0; i<4; ++i)
+	for (unsigned int i=0; i<MAX_BBMOTES; ++i)
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[i])->DoState(p);
 }
 

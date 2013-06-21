@@ -48,6 +48,20 @@ Touchscreen::Touchscreen()
 	AddInput(new Button(ButtonManager::BUTTON_A));
 	AddInput(new Button(ButtonManager::BUTTON_B));
 	AddInput(new Button(ButtonManager::BUTTON_START));
+	AddInput(new Button(ButtonManager::BUTTON_X));
+	AddInput(new Button(ButtonManager::BUTTON_Y));
+	AddInput(new Button(ButtonManager::BUTTON_Z));
+	AddInput(new Button(ButtonManager::BUTTON_UP));
+	AddInput(new Button(ButtonManager::BUTTON_DOWN));
+	AddInput(new Button(ButtonManager::BUTTON_LEFT));
+	AddInput(new Button(ButtonManager::BUTTON_RIGHT));
+	AddAnalogInputs(new Axis(ButtonManager::STICK_MAIN_LEFT), new Axis(ButtonManager::STICK_MAIN_RIGHT));
+	AddAnalogInputs(new Axis(ButtonManager::STICK_MAIN_UP), new Axis(ButtonManager::STICK_MAIN_DOWN));
+	AddAnalogInputs(new Axis(ButtonManager::STICK_C_UP), new Axis(ButtonManager::STICK_C_DOWN));
+	AddAnalogInputs(new Axis(ButtonManager::STICK_C_LEFT), new Axis(ButtonManager::STICK_C_RIGHT));
+	AddAnalogInputs(new Axis(ButtonManager::TRIGGER_L), new Axis(ButtonManager::TRIGGER_L));
+	AddAnalogInputs(new Axis(ButtonManager::TRIGGER_R), new Axis(ButtonManager::TRIGGER_R));
+
 }
 // Buttons and stuff
 
@@ -61,6 +75,17 @@ std::string Touchscreen::Button::GetName() const
 ControlState Touchscreen::Button::GetState() const
 {
 	return ButtonManager::GetButtonPressed(m_index);
+}
+std::string Touchscreen::Axis::GetName() const
+{
+	std::ostringstream ss;
+	ss << "Axis " << (int)m_index;
+	return ss.str();
+}
+
+ControlState Touchscreen::Axis::GetState() const
+{
+	return ButtonManager::GetAxisValue(m_index);
 }
 
 }

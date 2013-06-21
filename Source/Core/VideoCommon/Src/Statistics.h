@@ -60,6 +60,10 @@ struct Statistics
 		int numBufferSplits;
 
 		int numDListsCalled;
+		
+		int bytesVertexStreamed;
+		int bytesIndexStreamed;
+		int bytesUniformStreamed;
 	};
 	ThisFrame thisFrame;
 	void ResetFrame();

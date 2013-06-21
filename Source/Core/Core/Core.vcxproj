@@ -298,6 +298,7 @@
     <ClCompile Include="Src\HW\SI.cpp" />
     <ClCompile Include="Src\HW\SI_Device.cpp" />
     <ClCompile Include="Src\HW\SI_DeviceAMBaseboard.cpp" />
+    <ClCompile Include="Src\HW\SI_DeviceDanceMat.cpp" />
     <ClCompile Include="Src\HW\SI_DeviceGBA.cpp" />
     <ClCompile Include="Src\HW\SI_DeviceGCController.cpp" />
     <ClCompile Include="Src\HW\SI_DeviceGCSteeringWheel.cpp" />
@@ -498,6 +499,7 @@
     <ClInclude Include="Src\HW\SI.h" />
     <ClInclude Include="Src\HW\SI_Device.h" />
     <ClInclude Include="Src\HW\SI_DeviceAMBaseboard.h" />
+    <ClInclude Include="Src\HW\SI_DeviceDanceMat.h" />
     <ClInclude Include="Src\HW\SI_DeviceGBA.h" />
     <ClInclude Include="Src\HW\SI_DeviceGCController.h" />
     <ClInclude Include="Src\HW\SI_DeviceGCSteeringWheel.h" />

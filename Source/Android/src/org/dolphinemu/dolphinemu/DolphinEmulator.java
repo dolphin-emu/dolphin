@@ -1,19 +1,19 @@
 package org.dolphinemu.dolphinemu;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.WindowManager;
+
+import java.io.*;
+import java.util.List;
 
 public class DolphinEmulator<MainActivity> extends Activity 
 {	
@@ -22,20 +22,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 	
 	private float screenWidth;
 	private float screenHeight;
-	
-	public static native void onTouchEvent(int Action, float X, float Y);
-	
-	static
-	{
-		try
-		{
-			System.loadLibrary("dolphin-emu-nogui"); 
-		}
-		catch (Exception ex)
-		{
-			Log.w("me", ex.toString());
-		}
-	}
+
 	private void CopyAsset(String asset, String output) {
         InputStream in = null;
         OutputStream out = null;
@@ -52,6 +39,7 @@ public class DolphinEmulator<MainActivity> extends Activity
             Log.e("tag", "Failed to copy asset file: " + asset, e);
         }       
 	}
+
 	private void copyFile(InputStream in, OutputStream out) throws IOException {
 	    byte[] buffer = new byte[1024];
 	    int read;
@@ -65,21 +53,21 @@ public class DolphinEmulator<MainActivity> extends Activity
 	{
 		super.onStop();
 		if (Running)
-			NativeGLSurfaceView.StopEmulation();
+			NativeLibrary.StopEmulation();
 	}
 	@Override
 	public void onPause()
 	{
 		super.onPause();
 		if (Running)
-			NativeGLSurfaceView.PauseEmulation();
+			NativeLibrary.PauseEmulation();
 	}
 	@Override
 	public void onResume()
 	{
 		super.onResume();
 		if (Running)
-			NativeGLSurfaceView.UnPauseEmulation();
+			NativeLibrary.UnPauseEmulation();
 	}
 
     /** Called when the activity is first created. */
@@ -88,7 +76,8 @@ public class DolphinEmulator<MainActivity> extends Activity
 		super.onCreate(savedInstanceState);
 		if (savedInstanceState == null)
 		{
-			Intent ListIntent = new Intent(this, NativeListView.class);
+
+			Intent ListIntent = new Intent(this, GameListView.class);
 			startActivityForResult(ListIntent, 1);
 			
 			// Make the assets directory
@@ -117,16 +106,13 @@ public class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("NoBanner.png", 
 						Environment.getExternalStorageDirectory()+File.separator+
 						"dolphin-emu" + File.separator + "NoBanner.png");
-				CopyAsset("Dolphin.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Dolphin.png");
 				CopyAsset("GCPadNew.ini", 
 						Environment.getExternalStorageDirectory()+File.separator+
 						"dolphin-emu" + File.separator +"Config"+ File.separator +"GCPadNew.ini");
 			}
 		}
 	}
-	
+
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data)
 	{
@@ -135,15 +121,19 @@ public class DolphinEmulator<MainActivity> extends Activity
 		if (resultCode == Activity.RESULT_OK)
 		{
 			DisplayMetrics displayMetrics = new DisplayMetrics();
-			WindowManager wm = (WindowManager) getApplicationContext().getSystemService(getApplicationContext().WINDOW_SERVICE); // the results will be higher than using the activity context object or the getWindowManager() shortcut
+			WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE); // the results will be higher than using the activity context object or the getWindowManager() shortcut
 			wm.getDefaultDisplay().getMetrics(displayMetrics);
 			screenWidth = displayMetrics.widthPixels;
 			screenHeight = displayMetrics.heightPixels;
 			
 			String FileName = data.getStringExtra("Select");
 			GLview = new NativeGLSurfaceView(this);
-			//this.getWindow().setUiOptions(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN, View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_FULLSCREEN);
-			GLview.SetDimensions(screenWidth, screenHeight);
+			this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+			String backend = NativeLibrary.GetConfig("Dolphin.ini", "Core", "GFXBackend", "OGL");
+			if (backend.equals("OGL"))
+				GLview.SetDimensions(screenHeight, screenWidth);
+			else
+				GLview.SetDimensions(screenWidth, screenHeight);
 			GLview.SetFileName(FileName);
 			setContentView(GLview);
 			Running = true;
@@ -163,14 +153,46 @@ public class DolphinEmulator<MainActivity> extends Activity
 		float ScreenX = ((X / screenWidth) * 2.0f) - 1.0f;
 		float ScreenY = ((Y / screenHeight) * -2.0f) + 1.0f;
 
-		onTouchEvent(Action, ScreenX, ScreenY);
+		NativeLibrary.onTouchEvent(Action, ScreenX, ScreenY);
 		
 		return false;
 	}
-	
-	public boolean overrideKeys()
-	{   
-		return false;
-	}  
+
+	// Gets button presses
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent event) {
+		int action = 0;
+		switch (event.getAction()) {
+			case KeyEvent.ACTION_DOWN:
+				action = 0;
+				break;
+			case KeyEvent.ACTION_UP:
+				action = 1;
+				break;
+			default:
+				break;
+		}
+		InputDevice input = event.getDevice();
+		NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
+		return true;
+	}
+
+	@Override
+	public boolean dispatchGenericMotionEvent(MotionEvent event) {
+		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)) {
+			return super.dispatchGenericMotionEvent(event);
+		}
+
+		InputDevice input = event.getDevice();
+		List<InputDevice.MotionRange> motions = input.getMotionRanges();
+		for (int a = 0; a < motions.size(); ++a)
+		{
+			InputDevice.MotionRange range;
+			range = motions.get(a);
+			NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), range.getAxis(), event.getAxisValue(range.getAxis()));
+		}
+
+		return true;
+	}
 
 }                                

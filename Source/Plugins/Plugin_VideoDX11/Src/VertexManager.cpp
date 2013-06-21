@@ -128,6 +128,9 @@ void VertexManager::PrepareDrawBuffers()
 	memcpy((u16*)map.pData + m_point_draw_index, GetPointIndexBuffer(), sizeof(u16) * IndexGenerator::GetPointindexLen());
 	D3D::context->Unmap(m_index_buffers[m_current_index_buffer], 0);
 	m_index_buffer_cursor += iCount;
+	
+	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vSize);
+	ADDSTAT(stats.thisFrame.bytesIndexStreamed, iCount*sizeof(u16));
 }
 
 static const float LINE_PT_TEX_OFFSETS[8] = {
@@ -235,7 +238,7 @@ void VertexManager::vFlush()
 
 	// set global constants
 	VertexShaderManager::SetConstants();
-	PixelShaderManager::SetConstants();
+	PixelShaderManager::SetConstants(g_nativeVertexFmt->m_components);
 
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
 		bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;

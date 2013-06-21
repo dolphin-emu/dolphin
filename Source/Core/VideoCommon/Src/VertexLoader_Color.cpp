@@ -78,7 +78,8 @@ void LOADERDECL Color_ReadDirect_24b_888()
 	DataSkip(3);
 }
 
-void LOADERDECL Color_ReadDirect_32b_888x(){
+void LOADERDECL Color_ReadDirect_32b_888x()
+{
 	_SetCol(_Read24(DataGetPosition()));
 	DataSkip(4);
 }

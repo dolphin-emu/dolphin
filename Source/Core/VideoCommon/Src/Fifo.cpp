@@ -151,7 +151,8 @@ void RunGpuLoop()
 		// check if we are able to run this buffer	
 		while (GpuRunningState && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 		{
-			if (!GpuRunningState) break;
+			if (!GpuRunningState)
+				break;
 
 			fifo.isGpuReadingData = true;
 			CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable ? true : false;
@@ -161,8 +162,10 @@ void RunGpuLoop()
 				u32 readPtr = fifo.CPReadPointer;
 				u8 *uData = Memory::GetPointer(readPtr);
 
-				if (readPtr == fifo.CPEnd) readPtr = fifo.CPBase;
-				else readPtr += 32;
+				if (readPtr == fifo.CPEnd)
+					readPtr = fifo.CPBase;
+				else
+					readPtr += 32;
 
 				_assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0 ,
 					"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instability in the game. Please report it.", fifo.CPReadWriteDistance - 32);
@@ -236,8 +239,10 @@ void RunGpu()
 
 		//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
 
-		if (fifo.CPReadPointer == fifo.CPEnd) fifo.CPReadPointer = fifo.CPBase;
-			else fifo.CPReadPointer += 32;
+		if (fifo.CPReadPointer == fifo.CPEnd)
+			fifo.CPReadPointer = fifo.CPBase;
+		else
+			fifo.CPReadPointer += 32;
 
 		fifo.CPReadWriteDistance -= 32;
 	}

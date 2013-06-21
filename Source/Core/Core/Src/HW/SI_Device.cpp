@@ -5,6 +5,7 @@
 #include "SI_Device.h"
 #include "SI_DeviceGCController.h"
 #include "SI_DeviceGCSteeringWheel.h"
+#include "SI_DeviceDanceMat.h"
 #include "SI_DeviceGBA.h"
 #include "SI_DeviceAMBaseboard.h"
 
@@ -62,6 +63,10 @@ ISIDevice* SIDevice_Create(const SIDevices device, const int port_number)
 	{
 	case SIDEVICE_GC_CONTROLLER:
 		return new CSIDevice_GCController(device, port_number);
+		break;
+
+	case SIDEVICE_DANCEMAT:
+		return new CSIDevice_DanceMat(device, port_number);
 		break;
 
 	case SIDEVICE_GC_STEERING:

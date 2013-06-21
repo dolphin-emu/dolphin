@@ -51,7 +51,7 @@ u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
 bool bSaveConfig, bSkipIdle, bDualCore, bProgressive, bDSPHLE, bFastDiscSpeed = false;
-bool bMemcard, g_bClearSave = false;
+bool bMemcard, g_bClearSave, bSyncGPU = false;
 std::string videoBackend = "unknown";
 int iCPUCore = 1;
 bool g_bDiscChange = false;
@@ -126,11 +126,6 @@ void FrameUpdate()
 		g_totalFrames = g_currentFrame;
 		g_totalLagCount = g_currentLagCount;
 	}
-	if (IsPlayingInput() && IsConfigSaved())
-	{
-		SetGraphicsConfig();
-	}
-
 	if (g_bFrameStep)
 	{
 		Core::SetState(Core::CORE_PAUSE);
@@ -358,6 +353,10 @@ bool IsUsingMemcard()
 {
 	return bMemcard;
 }
+bool IsSyncGPU()
+{
+	return bSyncGPU;
+}
 
 void ChangePads(bool instantly)
 {
@@ -392,7 +391,7 @@ void ChangeWiiPads(bool instantly)
 	if (instantly && (g_numPads >> 4) == controllers)
 		return;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_BBMOTES; i++)
 	{
 		g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
 		GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
@@ -680,6 +679,7 @@ void ReadHeader()
 		g_bClearSave = tmpHeader.bClearSave;
 		bMemcard = tmpHeader.bMemcard;
 		bongos = tmpHeader.bongos;
+		bSyncGPU = tmpHeader.bSyncGPU;
 		memcpy(revision, tmpHeader.revision, ARRAYSIZE(revision));
 	}
 	else
@@ -850,6 +850,7 @@ void LoadInput(const char *filename)
 					{ 
 						// TODO: more detail
 						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i+256, i+256);
+						memcpy(tmpInput, movInput, g_currentByte);
 					}
 					else
 					{
@@ -871,6 +872,8 @@ void LoadInput(const char *filename)
 							(int)curPadState.Start, (int)curPadState.A, (int)curPadState.B, (int)curPadState.X, (int)curPadState.Y, (int)curPadState.Z, (int)curPadState.DPadUp, (int)curPadState.DPadDown, (int)curPadState.DPadLeft, (int)curPadState.DPadRight, (int)curPadState.L, (int)curPadState.R, (int)curPadState.TriggerL, (int)curPadState.TriggerR, (int)curPadState.AnalogStickX, (int)curPadState.AnalogStickY, (int)curPadState.CStickX, (int)curPadState.CStickY,
 							(int)frame,
 							(int)movPadState.Start, (int)movPadState.A, (int)movPadState.B, (int)movPadState.X, (int)movPadState.Y, (int)movPadState.Z, (int)movPadState.DPadUp, (int)movPadState.DPadDown, (int)movPadState.DPadLeft, (int)movPadState.DPadRight, (int)movPadState.L, (int)movPadState.R, (int)movPadState.TriggerL, (int)movPadState.TriggerR, (int)movPadState.AnalogStickX, (int)movPadState.AnalogStickY, (int)movPadState.CStickX, (int)movPadState.CStickY);
+
+						memcpy(tmpInput, movInput, g_currentByte);
 					}
 					break;
 				}
@@ -1116,6 +1119,7 @@ void SaveRecording(const char *filename)
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
 	header.bMemcard = bMemcard;
 	header.bClearSave = g_bClearSave;
+	header.bSyncGPU = bSyncGPU;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 	memcpy(header.md5,MD5,16);
@@ -1173,18 +1177,16 @@ void GetSettings()
 	bProgressive = SConfig::GetInstance().m_LocalCoreStartupParameter.bProgressive;
 	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
 	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
-	videoBackend = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend;
+	videoBackend = g_video_backend->GetName();
+	bSyncGPU = SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU;
 	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 
-	int temp;
-
-	for(int i = 0; i < 4; ++i )
+	for (int i = 0; i < 20; ++i)
 	{
-		sscanf(SCM_REV_STR + 2 * i, "%2x", &temp );
-		revision[i] = temp;
+		sscanf(SCM_REV_STR + 2 * i, "%02x", &revision[i]);
 	}
 }
 

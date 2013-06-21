@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "ProgramShaderCache.h"
+#include "DriverDetails.h"
 #include "MathUtil.h"
 #include "StreamBuffer.h"
 #include "Debugger.h"
@@ -23,12 +24,15 @@ u32 ProgramShaderCache::s_ubo_buffer_size;
 bool ProgramShaderCache::s_ubo_dirty;
 
 static StreamBuffer *s_buffer;
+static int num_failures = 0;
 
 LinearDiskCache<SHADERUID, u8> g_program_disk_cache;
 static GLuint CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_entry;
 SHADERUID ProgramShaderCache::last_uid;
+UidChecker<PixelShaderUid,PixelShaderCode> ProgramShaderCache::pixel_uid_checker;
+UidChecker<VertexShaderUid,VertexShaderCode> ProgramShaderCache::vertex_uid_checker;
 
 static char s_glsl_header[1024] = "";
 
@@ -102,6 +106,7 @@ void SHADER::SetProgramVariables()
 
 void SHADER::SetProgramBindings()
 {
+#ifndef USE_GLES3
 	if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 	{
 		// So we do support extended blending
@@ -119,7 +124,7 @@ void SHADER::SetProgramBindings()
 		// ogl2 shaders don't need to bind output colors.
 		// gl_FragColor already point to color channel
 	}
-
+#endif
 	// Need to set some attribute locations
 	glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
 	
@@ -169,6 +174,8 @@ void ProgramShaderCache::UploadConstants()
 		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, s_ps_data_size);
 		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset + s_vs_data_offset, s_vs_data_size);
 		s_ubo_dirty = false;
+		
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, s_ubo_buffer_size);
 	}
 }
 
@@ -181,21 +188,20 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 {
 	SHADERUID uid;
 	GetShaderId(&uid, dstAlphaMode, components);
-	
+
 	// Check if the shader is already set
 	if (last_entry)
 	{
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-			ValidateShaderIDs(last_entry, dstAlphaMode, components);
 			last_entry->shader.Bind();
 			return &last_entry->shader;
 		}
 	}
-	
+
 	last_uid = uid;
-	
+
 	// Check if shader is already in cache
 	PCache::iterator iter = pshaders.find(uid);
 	if (iter != pshaders.end())
@@ -204,24 +210,24 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 		last_entry = entry;
 
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-		ValidateShaderIDs(entry, dstAlphaMode, components);
 		last_entry->shader.Bind();
 		return &last_entry->shader;
 	}
-	
+
 	// Make an entry in the table
 	PCacheEntry& newentry = pshaders[uid];
 	last_entry = &newentry;
 	newentry.in_cache = 0;
-	
-	const char *vcode = GenerateVertexShaderCode(components, API_OPENGL);
-	const char *pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, components);
-	
+
+	VertexShaderCode vcode;
+	PixelShaderCode pcode;
+	GenerateVertexShaderCode(vcode, components, API_OPENGL);
+	GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
+
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
-		GetSafeShaderId(&newentry.safe_uid, dstAlphaMode, components);
-		newentry.shader.strvprog = vcode;
-		newentry.shader.strpprog = pcode;
+		newentry.shader.strvprog = vcode.GetBuffer();
+		newentry.shader.strpprog = pcode.GetBuffer();
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -229,13 +235,13 @@ SHADER* ProgramShaderCache::SetShader ( DSTALPHA_MODE dstAlphaMode, u32 componen
 		static int counter = 0;
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-		SaveData(szTemp, vcode);
+		SaveData(szTemp, vcode.GetBuffer());
 		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
-		SaveData(szTemp, pcode);
+		SaveData(szTemp, pcode.GetBuffer());
 	}
 #endif
 
-	if (!CompileShader(newentry.shader, vcode, pcode)) {
+	if (!CompileShader(newentry.shader, vcode.GetBuffer(), pcode.GetBuffer())) {
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return NULL;
 	}
@@ -252,7 +258,7 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 {
 	GLuint vsid = CompileSingleShader(GL_VERTEX_SHADER, vcode);
 	GLuint psid = CompileSingleShader(GL_FRAGMENT_SHADER, pcode);
-	
+
 	if(!vsid || !psid)
 	{
 		glDeleteShader(vsid);
@@ -287,11 +293,19 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		glGetProgramInfoLog(pid, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sp_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), pid);
+		sprintf(szTemp, "%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
 		std::ofstream file;
 		OpenFStream(file, szTemp, std::ios_base::out);
 		file << infoLog << s_glsl_header << vcode << s_glsl_header << pcode;
 		file.close();
+		
+		PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
+			szTemp,
+			g_ogl_config.gl_vendor,
+			g_ogl_config.gl_renderer,
+			g_ogl_config.gl_version,
+			infoLog);
+		
 		delete [] infoLog;
 	}
 	if (linkStatus != GL_TRUE)
@@ -321,6 +335,10 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 	glGetShaderiv(result, GL_COMPILE_STATUS, &compileStatus);
 	GLsizei length = 0;
 	glGetShaderiv(result, GL_INFO_LOG_LENGTH, &length);
+
+	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENINFOLOG))
+		length = 1024;
+
 	if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
 	{
 		GLsizei charsWritten;
@@ -328,11 +346,24 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
 		ERROR_LOG(VIDEO, "PS Shader info log:\n%s", infoLog);
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%sps_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), result);
+		sprintf(szTemp, 
+			"%sbad_%s_%04i.txt", 
+			File::GetUserPath(D_DUMP_IDX).c_str(), 
+			type==GL_VERTEX_SHADER ? "vs" : "ps", 
+			num_failures++);
 		std::ofstream file;
 		OpenFStream(file, szTemp, std::ios_base::out);
 		file << infoLog << s_glsl_header << code;
 		file.close();
+		
+		PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
+			type==GL_VERTEX_SHADER ? "vertex" : "pixel",
+			szTemp,
+			g_ogl_config.gl_vendor,
+			g_ogl_config.gl_renderer,
+			g_ogl_config.gl_version,
+			infoLog);
+		
 		delete[] infoLog;
 	}
 	if (compileStatus != GL_TRUE)
@@ -348,27 +379,22 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 	return result;
 }
 
-
-
-void ProgramShaderCache::GetShaderId ( SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 components )
+void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 components)
 {
-	GetPixelShaderId(&uid->puid, dstAlphaMode, components);
-	GetVertexShaderId(&uid->vuid, components);
+	GetPixelShaderUid(uid->puid, dstAlphaMode, API_OPENGL, components);
+	GetVertexShaderUid(uid->vuid, components, API_OPENGL);
+
+	if (g_ActiveConfig.bEnableShaderDebugging)
+	{
+		PixelShaderCode pcode;
+		GeneratePixelShaderCode(pcode, dstAlphaMode, API_OPENGL, components);
+		pixel_uid_checker.AddToIndexAndCheck(pcode, uid->puid, "Pixel", "p");
+
+		VertexShaderCode vcode;
+		GenerateVertexShaderCode(vcode, components, API_OPENGL);
+		vertex_uid_checker.AddToIndexAndCheck(vcode, uid->vuid, "Vertex", "v");
+	}
 }
-
-void ProgramShaderCache::GetSafeShaderId ( SHADERUIDSAFE* uid, DSTALPHA_MODE dstAlphaMode, u32 components )
-{
-	GetSafePixelShaderId(&uid->puid, dstAlphaMode, components);
-	GetSafeVertexShaderId(&uid->vuid, components);
-}
-
-void ProgramShaderCache::ValidateShaderIDs ( PCacheEntry *entry, DSTALPHA_MODE dstAlphaMode, u32 components )
-{
-	ValidateVertexShaderIDs(API_OPENGL, entry->safe_uid.vuid, entry->shader.strvprog, components);
-	ValidatePixelShaderIDs(API_OPENGL, entry->safe_uid.puid, entry->shader.strpprog, dstAlphaMode, components);
-}
-
-
 
 ProgramShaderCache::PCacheEntry ProgramShaderCache::GetShaderProgram(void)
 {
@@ -465,6 +491,9 @@ void ProgramShaderCache::Shutdown(void)
 		iter->second.Destroy();
 	pshaders.clear();
 
+	pixel_uid_checker.Invalidate();
+	vertex_uid_checker.Invalidate();
+
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
 		delete s_buffer;
@@ -479,6 +508,7 @@ void ProgramShaderCache::CreateHeader ( void )
 	GLSL_VERSION v = g_ogl_config.eSupportedGLSLVersion;
 	snprintf(s_glsl_header, sizeof(s_glsl_header), 
 		"#version %s\n"
+		"%s\n" // default precision
 		"%s\n" // tex_rect
 		"%s\n" // ubo
 		
@@ -494,10 +524,9 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define float4 vec4\n"
 
 		// hlsl to glsl function translation
-		"#define frac(x) fract(x)\n"
-		"#define saturate(x) clamp(x, 0.0f, 1.0f)\n"
-		"#define lerp(x, y, z) mix(x, y, z)\n"
-		
+		"#define frac fract\n"
+		"#define lerp mix\n"
+
 		// glsl 120 hack
 		"%s\n"
 		"%s\n"
@@ -505,14 +534,15 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n"
 		"%s\n"
 		"#define COLOROUT(name) %s\n"
-		
-		, v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : "140"
-		, v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
-		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v!=GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
+				
+		, v==GLSLES3 ? "300 es" : v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : "140"
+		, v==GLSLES3 ? "precision highp float;" : ""
+		, v==GLSLES3 ? "" : v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
+		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, v==GLSL_120 ? "attribute" : "in"
 		, v==GLSL_120 ? "attribute" : "out"
-		, v==GLSL_120 ? "varying" : "centroid in"
-		, v==GLSL_120 ? "varying" : "centroid out"
+		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "in" : v==GLSL_120 ? "varying" : "centroid in"
+		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "out" : v==GLSL_120 ? "varying" : "centroid out"
 		, v==GLSL_120 ? "#define texture texture2D" : ""
 		, v==GLSL_120 ? "#define round(x) floor((x)+0.5f)" : ""
 		, v==GLSL_120 ? "#define out " : ""

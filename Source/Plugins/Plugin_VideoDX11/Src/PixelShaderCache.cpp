@@ -28,9 +28,10 @@ namespace DX11
 
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
-PIXELSHADERUID PixelShaderCache::last_uid;
+PixelShaderUid PixelShaderCache::last_uid;
+UidChecker<PixelShaderUid,PixelShaderCode> PixelShaderCache::pixel_uid_checker;
 
-LinearDiskCache<PIXELSHADERUID, u8> g_ps_disk_cache;
+LinearDiskCache<PixelShaderUid, u8> g_ps_disk_cache;
 
 ID3D11PixelShader* s_ColorMatrixProgram[2] = {NULL};
 ID3D11PixelShader* s_ColorCopyProgram[2] = {NULL};
@@ -345,15 +346,17 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 		memcpy(map.pData, psconstants, sizeof(psconstants));
 		D3D::context->Unmap(pscbuf, 0);
 		pscbufchanged = false;
+		
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(psconstants));
 	}
 	return pscbuf;
 }
 
 // this class will load the precompiled shaders into our cache
-class PixelShaderCacheInserter : public LinearDiskCacheReader<PIXELSHADERUID, u8>
+class PixelShaderCacheInserter : public LinearDiskCacheReader<PixelShaderUid, u8>
 {
 public:
-	void Read(const PIXELSHADERUID &key, const u8 *value, u32 value_size)
+	void Read(const PixelShaderUid &key, const u8 *value, u32 value_size)
 	{
 		PixelShaderCache::InsertByteCode(key, value, value_size);
 	}
@@ -412,7 +415,8 @@ void PixelShaderCache::Clear()
 {
 	for (PSCache::iterator iter = PixelShaders.begin(); iter != PixelShaders.end(); iter++)
 		iter->second.Destroy();
-	PixelShaders.clear(); 
+	PixelShaders.clear();
+	pixel_uid_checker.Invalidate();
 
 	last_entry = NULL;
 }
@@ -448,8 +452,14 @@ void PixelShaderCache::Shutdown()
 
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 {
-	PIXELSHADERUID uid;
-	GetPixelShaderId(&uid, dstAlphaMode, components);
+	PixelShaderUid uid;
+	GetPixelShaderUid(uid, dstAlphaMode, API_D3D11, components);
+	if (g_ActiveConfig.bEnableShaderDebugging)
+	{
+		PixelShaderCode code;
+		GeneratePixelShaderCode(code, dstAlphaMode, API_D3D11, components);
+		pixel_uid_checker.AddToIndexAndCheck(code, uid, "Pixel", "p");
+	}
 
 	// Check if the shader is already set
 	if (last_entry)
@@ -457,7 +467,6 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
-			ValidatePixelShaderIDs(API_D3D11, last_entry->safe_uid, last_entry->code, dstAlphaMode, components);
 			return (last_entry->shader != NULL);
 		}
 	}
@@ -473,15 +482,15 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 		last_entry = &entry;
 		
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
-		ValidatePixelShaderIDs(API_D3D11, entry.safe_uid, entry.code, dstAlphaMode, components);
 		return (entry.shader != NULL);
 	}
 
 	// Need to compile a new shader
-	const char* code = GeneratePixelShaderCode(dstAlphaMode, API_D3D11, components);
+	PixelShaderCode code;
+	GeneratePixelShaderCode(code, dstAlphaMode, API_D3D11, components);
 
 	D3DBlob* pbytecode;
-	if (!D3D::CompilePixelShader(code, (unsigned int)strlen(code), &pbytecode))
+	if (!D3D::CompilePixelShader(code.GetBuffer(), (unsigned int)strlen(code.GetBuffer()), &pbytecode))
 	{
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return false;
@@ -495,15 +504,14 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 
 	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
-		PixelShaders[uid].code = code;
-		GetSafePixelShaderId(&PixelShaders[uid].safe_uid, dstAlphaMode, components);
+		PixelShaders[uid].code = code.GetBuffer();
 	}
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
 	return success;
 }
 
-bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const void* bytecode, unsigned int bytecodelen)
+bool PixelShaderCache::InsertByteCode(const PixelShaderUid &uid, const void* bytecode, unsigned int bytecodelen)
 {
 	ID3D11PixelShader* shader = D3D::CreatePixelShaderFromByteCode(bytecode, bytecodelen);
 	if (shader == NULL)

@@ -24,9 +24,10 @@ if(USE_EGL)
 		EGL)
 endif()
 
-if(USE_GLES)
+if(USE_GLES3)
 	set(LIBS ${LIBS}
 		GLESv2)
+	set(SRCS ${SRCS} Src/GLFunctions.cpp)
 else()
 	set(LIBS ${LIBS}
 		GLEW

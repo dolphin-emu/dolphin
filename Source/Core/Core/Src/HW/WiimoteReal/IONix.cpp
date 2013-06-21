@@ -63,23 +63,22 @@ WiimoteScanner::~WiimoteScanner()
 void WiimoteScanner::Update()
 {}
 
-std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
+void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimote* & found_board)
 {
-	std::vector<Wiimote*> found_wiimotes;
-
 	// supposedly 1.28 seconds
 	int const wait_len = 1;
 
 	int const max_infos = 255;
 	inquiry_info scan_infos[max_infos] = {};
 	auto* scan_infos_ptr = scan_infos;
-
+	found_board = NULL;
+	
 	// Scan for bluetooth devices
 	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, NULL, &scan_infos_ptr, IREQ_CACHE_FLUSH);
 	if (found_devices < 0)
 	{
 		ERROR_LOG(WIIMOTE, "Error searching for bluetooth devices.");
-		return found_wiimotes;
+		return;
 	}
 
 	DEBUG_LOG(WIIMOTE, "Found %i bluetooth device(s).", found_devices);
@@ -91,7 +90,7 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 		
 		// BT names are a maximum of 248 bytes apparently
 		char name[255] = {};
-		if (hci_read_remote_name(device_sock, &scan_infos[i].bdaddr, sizeof(name), name, 0) < 0)
+		if (hci_read_remote_name(device_sock, &scan_infos[i].bdaddr, sizeof(name), name, 1000) < 0)
 		{
 			ERROR_LOG(WIIMOTE, "name request failed");
 			continue;
@@ -119,14 +118,20 @@ std::vector<Wiimote*> WiimoteScanner::FindWiimotes()
 
 				auto* const wm = new Wiimote;
 				wm->bdaddr = scan_infos[i].bdaddr;
-				found_wiimotes.push_back(wm);
-				
-				NOTICE_LOG(WIIMOTE, "Found wiimote (%s).", bdaddr_str);
+				if(IsBalanceBoardName(name))
+				{
+					found_board = wm;
+					NOTICE_LOG(WIIMOTE, "Found balance board (%s).", bdaddr_str);
+				}
+				else
+				{
+					found_wiimotes.push_back(wm);
+					NOTICE_LOG(WIIMOTE, "Found wiimote (%s).", bdaddr_str);
+				}
 			}
 		}
 	}
 
-	return found_wiimotes;
 }
 
 // Connect to a wiimote with a known address.

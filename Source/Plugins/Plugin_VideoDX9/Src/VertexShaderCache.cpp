@@ -25,14 +25,15 @@ namespace DX9
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
-VERTEXSHADERUID VertexShaderCache::last_uid;
+VertexShaderUid VertexShaderCache::last_uid;
+UidChecker<VertexShaderUid,VertexShaderCode> VertexShaderCache::vertex_uid_checker;
 
 #define MAX_SSAA_SHADERS 3
 
 static LPDIRECT3DVERTEXSHADER9 SimpleVertexShader[MAX_SSAA_SHADERS];
 static LPDIRECT3DVERTEXSHADER9 ClearVertexShader;
 
-LinearDiskCache<VERTEXSHADERUID, u8> g_vs_disk_cache;
+LinearDiskCache<VertexShaderUid, u8> g_vs_disk_cache;
 
 LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetSimpleVertexShader(int level)
 {
@@ -45,10 +46,10 @@ LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetClearVertexShader()
 }
 
 // this class will load the precompiled shaders into our cache
-class VertexShaderCacheInserter : public LinearDiskCacheReader<VERTEXSHADERUID, u8>
+class VertexShaderCacheInserter : public LinearDiskCacheReader<VertexShaderUid, u8>
 {
 public:
-	void Read(const VERTEXSHADERUID &key, const u8 *value, u32 value_size)
+	void Read(const VertexShaderUid &key, const u8 *value, u32 value_size)
 	{
 		VertexShaderCache::InsertByteCode(key, value, value_size, false);
 	}
@@ -150,6 +151,7 @@ void VertexShaderCache::Clear()
 	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
 		iter->second.Destroy();
 	vshaders.clear();
+	vertex_uid_checker.Invalidate();
 
 	last_entry = NULL;
 }
@@ -174,14 +176,20 @@ void VertexShaderCache::Shutdown()
 
 bool VertexShaderCache::SetShader(u32 components)
 {
-	VERTEXSHADERUID uid;
-	GetVertexShaderId(&uid, components);
+	VertexShaderUid uid;
+	GetVertexShaderUid(uid, components, API_D3D9);
+	if (g_ActiveConfig.bEnableShaderDebugging)
+	{
+		VertexShaderCode code;
+		GenerateVertexShaderCode(code, components, API_D3D9);
+		vertex_uid_checker.AddToIndexAndCheck(code, uid, "Vertex", "v");
+	}
+
 	if (last_entry)
 	{
 		if (uid == last_uid)
 		{
 			GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-			ValidateVertexShaderIDs(API_D3D9, last_entry->safe_uid, last_entry->code, components);
 			return (last_entry->shader != NULL);
 		}
 	}
@@ -196,14 +204,15 @@ bool VertexShaderCache::SetShader(u32 components)
 
 		if (entry.shader) D3D::SetVertexShader(entry.shader);
 		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
-		ValidateVertexShaderIDs(API_D3D9, entry.safe_uid, entry.code, components);
 		return (entry.shader != NULL);
 	}
 
-	const char *code = GenerateVertexShaderCode(components, API_D3D9);
+	VertexShaderCode code;
+	GenerateVertexShaderCode(code, components, API_D3D9);
+
 	u8 *bytecode;
 	int bytecodelen;
-	if (!D3D::CompileVertexShader(code, (int)strlen(code), &bytecode, &bytecodelen))
+	if (!D3D::CompileVertexShader(code.GetBuffer(), (int)strlen(code.GetBuffer()), &bytecode, &bytecodelen))
 	{
 		GFX_DEBUGGER_PAUSE_AT(NEXT_ERROR, true);
 		return false;
@@ -213,15 +222,14 @@ bool VertexShaderCache::SetShader(u32 components)
 	bool success = InsertByteCode(uid, bytecode, bytecodelen, true);
 	if (g_ActiveConfig.bEnableShaderDebugging && success)
 	{
-		vshaders[uid].code = code;
-		GetSafeVertexShaderId(&vshaders[uid].safe_uid, components);
+		vshaders[uid].code = code.GetBuffer();
 	}
 	delete [] bytecode;
 	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 	return success;
 }
 
-bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate) {
+bool VertexShaderCache::InsertByteCode(const VertexShaderUid &uid, const u8 *bytecode, int bytecodelen, bool activate) {
 	LPDIRECT3DVERTEXSHADER9 shader = D3D::CreateVertexShaderFromByteCode(bytecode, bytecodelen);
 
 	// Make an entry in the table

@@ -204,13 +204,14 @@ EVT_MENU_RANGE(IDM_LOGWINDOW, IDM_VIDEOWINDOW, CFrame::OnToggleWindow)
 
 EVT_MENU(IDM_PURGECACHE, CFrame::GameListChanged)
 
-EVT_MENU(IDM_LOADLASTSTATE, CFrame::OnLoadLastState)
+EVT_MENU(IDM_SAVEFIRSTSTATE, CFrame::OnSaveFirstState)
 EVT_MENU(IDM_UNDOLOADSTATE,     CFrame::OnUndoLoadState)
 EVT_MENU(IDM_UNDOSAVESTATE,     CFrame::OnUndoSaveState)
 EVT_MENU(IDM_LOADSTATEFILE, CFrame::OnLoadStateFromFile)
 EVT_MENU(IDM_SAVESTATEFILE, CFrame::OnSaveStateToFile)
 
 EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT8, CFrame::OnLoadState)
+EVT_MENU_RANGE(IDM_LOADLAST1, IDM_LOADLAST8, CFrame::OnLoadLastState)
 EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT8, CFrame::OnSaveState)
 EVT_MENU_RANGE(IDM_FRAMESKIP0, IDM_FRAMESKIP9, CFrame::OnFrameSkip)
 EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
@@ -719,104 +720,56 @@ int GetCmdForHotkey(unsigned int key)
 {
 	switch (key)
 	{
-	case HK_OPEN:
-		return wxID_OPEN;
+	case HK_OPEN: return wxID_OPEN;
+	case HK_CHANGE_DISC: return IDM_CHANGEDISC;
+	case HK_REFRESH_LIST: return wxID_REFRESH;
+	case HK_PLAY_PAUSE: return IDM_PLAY;
+	case HK_STOP: return IDM_STOP;
+	case HK_RESET: return IDM_RESET;
+	case HK_FRAME_ADVANCE: return IDM_FRAMESTEP;
+	case HK_START_RECORDING: return IDM_RECORD;
+	case HK_PLAY_RECORDING: return IDM_PLAYRECORD;
+	case HK_EXPORT_RECORDING: return IDM_RECORDEXPORT;
+	case HK_READ_ONLY_MODE: return IDM_RECORDREADONLY;
+	case HK_FULLSCREEN: return IDM_TOGGLE_FULLSCREEN;
+	case HK_SCREENSHOT: return IDM_SCREENSHOT;
+	case HK_EXIT: return wxID_EXIT;
 
-	case HK_CHANGE_DISC:
-		return IDM_CHANGEDISC;
+	case HK_WIIMOTE1_CONNECT: return IDM_CONNECT_WIIMOTE1;
+	case HK_WIIMOTE2_CONNECT: return IDM_CONNECT_WIIMOTE2;
+	case HK_WIIMOTE3_CONNECT: return IDM_CONNECT_WIIMOTE3;
+	case HK_WIIMOTE4_CONNECT: return IDM_CONNECT_WIIMOTE4;
 
-	case HK_REFRESH_LIST:
-		return wxID_REFRESH;
+	case HK_LOAD_STATE_SLOT_1: return IDM_LOADSLOT1;
+	case HK_LOAD_STATE_SLOT_2: return IDM_LOADSLOT2;
+	case HK_LOAD_STATE_SLOT_3: return IDM_LOADSLOT3;
+	case HK_LOAD_STATE_SLOT_4: return IDM_LOADSLOT4;
+	case HK_LOAD_STATE_SLOT_5: return IDM_LOADSLOT5;
+	case HK_LOAD_STATE_SLOT_6: return IDM_LOADSLOT6;
+	case HK_LOAD_STATE_SLOT_7: return IDM_LOADSLOT7;
+	case HK_LOAD_STATE_SLOT_8: return IDM_LOADSLOT8;
 
-	case HK_PLAY_PAUSE:
-		return IDM_PLAY;
+	case HK_SAVE_STATE_SLOT_1: return IDM_SAVESLOT1;
+	case HK_SAVE_STATE_SLOT_2: return IDM_SAVESLOT2;
+	case HK_SAVE_STATE_SLOT_3: return IDM_SAVESLOT3;
+	case HK_SAVE_STATE_SLOT_4: return IDM_SAVESLOT4;
+	case HK_SAVE_STATE_SLOT_5: return IDM_SAVESLOT5;
+	case HK_SAVE_STATE_SLOT_6: return IDM_SAVESLOT6;
+	case HK_SAVE_STATE_SLOT_7: return IDM_SAVESLOT7;
+	case HK_SAVE_STATE_SLOT_8: return IDM_SAVESLOT8;
 
-	case HK_STOP:
-		return IDM_STOP;
+	case HK_LOAD_LAST_STATE_1: return IDM_LOADLAST1;
+	case HK_LOAD_LAST_STATE_2: return IDM_LOADLAST2;
+	case HK_LOAD_LAST_STATE_3: return IDM_LOADLAST3;
+	case HK_LOAD_LAST_STATE_4: return IDM_LOADLAST4;
+	case HK_LOAD_LAST_STATE_5: return IDM_LOADLAST5;
+	case HK_LOAD_LAST_STATE_6: return IDM_LOADLAST6;
+	case HK_LOAD_LAST_STATE_7: return IDM_LOADLAST7;
+	case HK_LOAD_LAST_STATE_8: return IDM_LOADLAST8;
 
-	case HK_RESET:
-		return IDM_RESET;
-
-	case HK_FRAME_ADVANCE:
-		return IDM_FRAMESTEP;
-
-	case HK_START_RECORDING:
-		return IDM_RECORD;
-
-	case HK_PLAY_RECORDING:
-		return IDM_PLAYRECORD;
-
-	case HK_EXPORT_RECORDING:
-		return IDM_RECORDEXPORT;
-
-	case HK_READ_ONLY_MODE:
-		return IDM_RECORDREADONLY;
-
-	case HK_FULLSCREEN:
-		return IDM_TOGGLE_FULLSCREEN;
-
-	case HK_SCREENSHOT:
-		return IDM_SCREENSHOT;
-
-	case HK_WIIMOTE1_CONNECT:
-		return IDM_CONNECT_WIIMOTE1;
-
-	case HK_WIIMOTE2_CONNECT:
-		return IDM_CONNECT_WIIMOTE2;
-
-	case HK_WIIMOTE3_CONNECT:
-		return IDM_CONNECT_WIIMOTE3;
-
-	case HK_WIIMOTE4_CONNECT:
-		return IDM_CONNECT_WIIMOTE4;
-
-	case HK_LOAD_STATE_SLOT_1:
-		return IDM_LOADSLOT1;
-
-	case HK_LOAD_STATE_SLOT_2:
-		return IDM_LOADSLOT2;
-
-	case HK_LOAD_STATE_SLOT_3:
-		return IDM_LOADSLOT3;
-
-	case HK_LOAD_STATE_SLOT_4:
-		return IDM_LOADSLOT4;
-
-	case HK_LOAD_STATE_SLOT_5:
-		return IDM_LOADSLOT5;
-
-	case HK_LOAD_STATE_SLOT_6:
-		return IDM_LOADSLOT6;
-
-	case HK_LOAD_STATE_SLOT_7:
-		return IDM_LOADSLOT7;
-
-	case HK_LOAD_STATE_SLOT_8:
-		return IDM_LOADSLOT8;
-
-	case HK_SAVE_STATE_SLOT_1:
-		return IDM_SAVESLOT1;
-
-	case HK_SAVE_STATE_SLOT_2:
-		return IDM_SAVESLOT2;
-
-	case HK_SAVE_STATE_SLOT_3:
-		return IDM_SAVESLOT3;
-
-	case HK_SAVE_STATE_SLOT_4:
-		return IDM_SAVESLOT4;
-
-	case HK_SAVE_STATE_SLOT_5:
-		return IDM_SAVESLOT5;
-
-	case HK_SAVE_STATE_SLOT_6:
-		return IDM_SAVESLOT6;
-
-	case HK_SAVE_STATE_SLOT_7:
-		return IDM_SAVESLOT7;
-
-	case HK_SAVE_STATE_SLOT_8:
-		return IDM_SAVESLOT8;
+	case HK_SAVE_FIRST_STATE: return IDM_SAVEFIRSTSTATE;
+	case HK_UNDO_LOAD_STATE: return IDM_UNDOLOADSTATE;
+	case HK_UNDO_SAVE_STATE: return IDM_UNDOSAVESTATE;
 	}
 
 	return -1;
@@ -859,6 +812,8 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		// Screenshot hotkey
 		else if (IsHotkey(event, HK_SCREENSHOT))
 			Core::SaveScreenShot();
+		else if (IsHotkey(event, HK_EXIT))
+			wxPostEvent(this, wxCommandEvent(wxID_EXIT));
 		// Wiimote connect and disconnect hotkeys
 		else if (IsHotkey(event, HK_WIIMOTE1_CONNECT))
 			WiimoteId = 0;
@@ -868,28 +823,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			WiimoteId = 2;
 		else if (IsHotkey(event, HK_WIIMOTE4_CONNECT))
 			WiimoteId = 3;
-		// State save and state load hotkeys
-		/*else if (event.GetKeyCode() >= WXK_F1 && event.GetKeyCode() <= WXK_F8)
-		{
-			int slot_number = event.GetKeyCode() - WXK_F1 + 1;
-			if (event.GetModifiers() == wxMOD_NONE)
-				State::Load(slot_number);
-			else if (event.GetModifiers() == wxMOD_SHIFT)
-				State::Save(slot_number);
-			else
-				event.Skip();
-		}*/
-		else if (event.GetKeyCode() == WXK_F11 && event.GetModifiers() == wxMOD_NONE)
-			State::LoadLastSaved();
-		else if (event.GetKeyCode() == WXK_F12)
-		{
-			if (event.GetModifiers() == wxMOD_NONE)
-				State::UndoSaveState();
-			else if (event.GetModifiers() == wxMOD_SHIFT)
-				State::UndoLoadState();
-			else
-				event.Skip();
-		}
 		else
 		{
 			unsigned int i = NUM_HOTKEYS;

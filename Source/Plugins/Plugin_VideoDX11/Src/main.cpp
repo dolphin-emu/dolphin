@@ -64,6 +64,11 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 
 std::string VideoBackend::GetName()
 {
+	return "DX11";
+}
+
+std::string VideoBackend::GetDisplayName()
+{
 	return "Direct3D11";
 }
 

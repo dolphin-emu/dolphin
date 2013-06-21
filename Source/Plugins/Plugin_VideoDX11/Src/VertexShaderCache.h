@@ -31,7 +31,7 @@ public:
 	static ID3D11InputLayout* GetSimpleInputLayout();
 	static ID3D11InputLayout* GetClearInputLayout();
 
-	static bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, D3DBlob* bcodeblob);
+	static bool VertexShaderCache::InsertByteCode(const VertexShaderUid &uid, D3DBlob* bcodeblob);
 
 private:
 	struct VSCacheEntry
@@ -39,7 +39,6 @@ private:
 		ID3D11VertexShader* shader;
 		D3DBlob* bytecode; // needed to initialize the input layout
 
-		VERTEXSHADERUIDSAFE safe_uid;
 		std::string code;
 
 		VSCacheEntry() : shader(NULL), bytecode(NULL) {}
@@ -55,11 +54,13 @@ private:
 			SAFE_RELEASE(bytecode);
 		}
 	};
-	typedef std::map<VERTEXSHADERUID, VSCacheEntry> VSCache;
+	typedef std::map<VertexShaderUid, VSCacheEntry> VSCache;
 	
 	static VSCache vshaders;
 	static const VSCacheEntry* last_entry;
-	static VERTEXSHADERUID last_uid;
+	static VertexShaderUid last_uid;
+
+	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
 };
 
 }  // namespace DX11
