@@ -8,10 +8,11 @@
 
 enum {BUF_SIZE = 32*1024};
 
-WaveFileWriter::WaveFileWriter()
+WaveFileWriter::WaveFileWriter():
+	skip_silence(false),
+	audio_size(0),
+	conv_buffer(NULL)
 {
-	conv_buffer = 0;
-	skip_silence = false;
 }
 
 WaveFileWriter::~WaveFileWriter()
@@ -38,6 +39,8 @@ bool WaveFileWriter::Start(const char *filename, unsigned int HLESampleRate)
 		PanicAlertT("The file %s could not be opened for writing. Please check if it's already opened by another program.", filename);
 		return false;
 	}
+
+	audio_size = 0;
 
 	// -----------------
 	// Write file header
