@@ -176,13 +176,6 @@ void OpenALSoundStream::SoundLoop()
 	soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 28);
 	soundTouch.setSetting(SETTING_OVERLAP_MS, 12);
 
-	bool surround_capable = Core::g_CoreStartupParameter.bDPL2Decoder;
-#if defined(__APPLE__)
-	bool float32_capable = false;
-#else
-	bool float32_capable = true;
-#endif
-
 	while (!m_join)
 	{
 		// num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
