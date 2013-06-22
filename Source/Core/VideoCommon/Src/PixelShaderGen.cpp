@@ -535,6 +535,11 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	for (unsigned int i = 0; i < numStages; i++)
 		WriteStage<T>(out, uid_data, i, ApiType, RegisterStates); // build the equation for this stage
 
+#define MY_STRUCT_OFFSET(str,elem) ((u32)((u64)&(str).elem-(u64)&(str)))
+	bool enable_pl = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
+	uid_data.num_values = (enable_pl) ? sizeof(uid_data)/sizeof(32) : MY_STRUCT_OFFSET(uid_data,stagehash[numStages])/sizeof(u32);
+
+
 	if (numStages)
 	{
 		// The results of the last texenv stage are put onto the screen,

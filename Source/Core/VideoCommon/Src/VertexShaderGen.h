@@ -67,6 +67,9 @@ const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
 
 struct vertex_shader_uid_data
 {
+	u32 num_values; // TODO: Shouldn't be a u32
+
+	u32 NumValues() const { return num_values; }
 	u32 components;
 	u32 numColorChans : 2;
 	u32 numTexGens : 4;

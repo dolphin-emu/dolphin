@@ -100,7 +100,7 @@ public:
 	bool operator < (const ShaderUid& obj) const
 	{
 		// TODO: Store last frame used and order by that? makes much more sense anyway...
-		for (unsigned int i = 0; i < sizeof(uid_data) / sizeof(u32); ++i)
+		for (unsigned int i = 0; i < data.NumValues(); ++i)
 		{
 			if (this->values[i] < obj.values[i])
 				return true;
@@ -212,6 +212,8 @@ struct LightingUidData
 	u32 diffusefunc : 8; // 4x2 bits
 	u32 attnfunc : 8; // 4x2 bits
 	u32 light_mask : 32; // 4x8 bits
+
+	u32 NumValues() const { return sizeof(LightingUidData) / sizeof(u32); }
 };
 #pragma pack()
 
