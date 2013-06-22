@@ -383,6 +383,7 @@ void SoundTouch::flush()
     pTDStretch->clearInput();
     // yet leave the 'tempoChanger' output intouched as that's where the
     // flushed samples are!
+    free(buff);
 }
 
 

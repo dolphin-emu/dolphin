@@ -217,6 +217,7 @@ uint FIRFilter::evaluateFilterMulti(SAMPLETYPE *dest, const SAMPLETYPE *src, uin
             sum[c] = 0;
         }
     }
+    free(sum);
     return numSamples - length;
 }
 
