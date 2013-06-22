@@ -55,8 +55,8 @@ public class InputConfigActivity extends ListActivity {
 		Input.add(a++, new InputConfigItem("Trigger L", "Android-InputL"));
 		Input.add(a++, new InputConfigItem("Trigger R", "Android-InputR"));
 
-		adapter = new InputConfigAdapter(this,R.layout.folderbrowser, Input);
-		this.setListAdapter(adapter);
+		adapter = new InputConfigAdapter(this, R.layout.folderbrowser, Input);
+		setListAdapter(adapter);
 	}
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {

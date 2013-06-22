@@ -77,7 +77,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 		if (savedInstanceState == null)
 		{
 
-			Intent ListIntent = new Intent(this, GameListView.class);
+			Intent ListIntent = new Intent(this, GameListActivity.class);
 			startActivityForResult(ListIntent, 1);
 			
 			// Make the assets directory
