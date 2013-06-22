@@ -170,7 +170,7 @@ uint FIRFilter::evaluateFilterMono(SAMPLETYPE *dest, const SAMPLETYPE *src, uint
 uint FIRFilter::evaluateFilterMulti(SAMPLETYPE *dest, const SAMPLETYPE *src, uint numSamples, uint numChannels) const
 {
     uint i, j, end, c;
-    LONG_SAMPLETYPE *sum=(LONG_SAMPLETYPE*)alloca(numChannels*sizeof(*sum));
+    LONG_SAMPLETYPE *sum=(LONG_SAMPLETYPE*)malloc(numChannels*sizeof(*sum));
 #ifdef SOUNDTOUCH_FLOAT_SAMPLES
     // when using floating point samples, use a scaler instead of a divider
     // because division is much slower operation than multiplying.

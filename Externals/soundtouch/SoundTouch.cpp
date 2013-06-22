@@ -348,7 +348,7 @@ void SoundTouch::flush()
     int i;
     int nUnprocessed;
     int nOut;
-    SAMPLETYPE *buff=(SAMPLETYPE*)alloca(64*channels*sizeof(SAMPLETYPE));
+    SAMPLETYPE *buff=(SAMPLETYPE*)malloc(64*channels*sizeof(SAMPLETYPE));
 
     // check how many samples still await processing, and scale
     // that by tempo & rate to get expected output sample count
