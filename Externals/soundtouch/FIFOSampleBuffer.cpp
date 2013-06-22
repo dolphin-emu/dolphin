@@ -15,7 +15,7 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2012-11-08 20:53:01 +0200 (Thu, 08 Nov 2012) $
+// Last changed  : $Date: 2012-11-08 18:53:01 +0000 (Thu, 08 Nov 2012) $
 // File revision : $Revision: 4 $
 //
 // $Id: FIFOSampleBuffer.cpp 160 2012-11-08 18:53:01Z oparviai $
@@ -220,7 +220,7 @@ uint FIFOSampleBuffer::receiveSamples(SAMPLETYPE *output, uint maxSamples)
 
     num = (maxSamples > samplesInBuffer) ? samplesInBuffer : maxSamples;
 
-	memcpy(output, ptrBegin(), channels * sizeof(SAMPLETYPE) * num);
+    memcpy(output, ptrBegin(), channels * sizeof(SAMPLETYPE) * num);
     return receiveSamples(num);
 }
 
