@@ -25,11 +25,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity 
-            android:name="org.dolphinemu.dolphinemu.GameListView"
-            android:label="@string/app_name"
-            android:configChanges="orientation|locale|keyboard|keyboardHidden|navigation|fontScale|uiMode" >
-        </activity>
         <activity
             android:name="org.dolphinemu.dolphinemu.FolderBrowser"
             android:label="@string/app_name"
@@ -42,6 +37,9 @@
         </activity>
         <activity
                 android:name=".PrefsActivity" >
+        </activity>
+        <activity
+            android:name=".GameListActivity" >
         </activity>
     </application>
 

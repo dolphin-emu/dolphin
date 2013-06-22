@@ -1,7 +1,5 @@
 package org.dolphinemu.dolphinemu;
 
-import java.util.List;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +7,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.List;
 
 public class GameListAdapter extends ArrayAdapter<GameListItem>{
 
@@ -36,9 +36,9 @@ public class GameListAdapter extends ArrayAdapter<GameListItem>{
               }
               final GameListItem o = items.get(position);
               if (o != null) {
-                      TextView t1 = (TextView) v.findViewById(R.id.TextView01);
-                      TextView t2 = (TextView) v.findViewById(R.id.TextView02);
-                      ImageView v1 = (ImageView) v.findViewById(R.id.imageView1);
+                      TextView t1 = (TextView) v.findViewById(R.id.GameItemTitle);
+                      TextView t2 = (TextView) v.findViewById(R.id.GameItemSubText);
+                      ImageView v1 = (ImageView) v.findViewById(R.id.GameItemIcon);
                       
                       if(t1!=null)
                       	t1.setText(o.getName());

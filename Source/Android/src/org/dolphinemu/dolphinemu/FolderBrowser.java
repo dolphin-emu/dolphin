@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class FolderBrowser extends ListActivity {
-	private GameListAdapter adapter;
+	private FolderBrowserAdapter adapter;
 	private static File currentDir = null;
 	private void Fill(File f)
     {
@@ -52,7 +52,7 @@ public class FolderBrowser extends ListActivity {
 	    if (!f.getPath().equalsIgnoreCase("/"))
 	        dir.add(0, new GameListItem(getApplicationContext(), "..", "Parent Directory", f.getParent()));
 
-         adapter = new GameListAdapter(this,R.layout.folderbrowser,dir);
+         adapter = new FolderBrowserAdapter(this,R.layout.folderbrowser,dir);
 		 this.setListAdapter(adapter);
     }
 

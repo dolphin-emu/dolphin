@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Android.iml" filepath="$PROJECT_DIR$/Android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../Externals/android-menudrawer/library/library.iml" filepath="$PROJECT_DIR$/../../Externals/android-menudrawer/library/library.iml" />
     </modules>
   </component>
 </project>

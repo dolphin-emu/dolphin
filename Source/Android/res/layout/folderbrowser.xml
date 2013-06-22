@@ -3,42 +3,27 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:orientation="vertical" >
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" >
-            </LinearLayout>
-
             <TextView
-                android:id="@+id/TextView01"
+                android:id="@+id/FolderTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dip"
                 android:layout_marginTop="5dip"
                 android:singleLine="true"
-                android:text="@+id/TextView01"
+                android:text="Title"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/TextView02"
+                android:id="@+id/FolderSubTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dip"
-                android:text="@+id/TextView02" />
+                android:text="Subtitle" />
 
         </LinearLayout>
-
-    </LinearLayout>
-
-
-
 </LinearLayout>

@@ -9,25 +9,20 @@ import android.widget.TextView;
 
 import java.util.List;
 
-/**
- * Copyright 2013 Dolphin Emulator Project
- * Licensed under GPLv2
- * Refer to the license.txt file included.
- */
-public class InputConfigAdapter extends ArrayAdapter<InputConfigItem> {
+public class FolderBrowserAdapter extends ArrayAdapter<GameListItem>{
+
 	private Context c;
 	private int id;
-	private List<InputConfigItem> items;
+	private List<GameListItem>items;
 
-	public InputConfigAdapter(Context context, int textViewResourceId,
-	                       List<InputConfigItem> objects) {
+	public FolderBrowserAdapter(Context context, int textViewResourceId,
+	                       List<GameListItem> objects) {
 		super(context, textViewResourceId, objects);
 		c = context;
 		id = textViewResourceId;
 		items = objects;
 	}
-
-	public InputConfigItem getItem(int i)
+	public GameListItem getItem(int i)
 	{
 		return items.get(i);
 	}
@@ -38,7 +33,7 @@ public class InputConfigAdapter extends ArrayAdapter<InputConfigItem> {
 			LayoutInflater vi = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			v = vi.inflate(id, null);
 		}
-		final InputConfigItem o = items.get(position);
+		final GameListItem o = items.get(position);
 		if (o != null) {
 			TextView t1 = (TextView) v.findViewById(R.id.FolderTitle);
 			TextView t2 = (TextView) v.findViewById(R.id.FolderSubTitle);
@@ -46,7 +41,8 @@ public class InputConfigAdapter extends ArrayAdapter<InputConfigItem> {
 			if(t1!=null)
 				t1.setText(o.getName());
 			if(t2!=null)
-				t2.setText(o.getBind());
+				t2.setText(o.getData());
+
 		}
 		return v;
 	}
@@ -54,3 +50,4 @@ public class InputConfigAdapter extends ArrayAdapter<InputConfigItem> {
 
 
 }
+
