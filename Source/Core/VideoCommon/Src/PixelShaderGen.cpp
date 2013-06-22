@@ -706,13 +706,11 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 
 	out.Write("// TEV stage %d\n", n);
 
-	uid_data.bHasIndStage |= bHasIndStage << n;
-	uid_data.tevorders_n_texcoord |= (u64)texcoord << (3 * n);
+	uid_data.stagehash[n].hasindstage = bHasIndStage;
+	uid_data.stagehash[n].tevorders_texcoord = texcoord;
 	if (bHasIndStage)
 	{
-		uid_data.tevind_n_bs |= bpmem.tevind[n].bs << (2*n);
-		uid_data.tevind_n_bt |= bpmem.tevind[n].bt << (2*n);
-		uid_data.tevind_n_fmt |= bpmem.tevind[n].fmt << (2*n);
+		uid_data.stagehash[n].tevind = bpmem.tevind[n].hex & 0x7FFFFF;
 
 		out.Write("// indirect op\n");
 		// perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
@@ -727,12 +725,10 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		out.Write("float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
 
 		// bias
-		uid_data.Set_tevind_bias(n, bpmem.tevind[n].bias);
 		if (bpmem.tevind[n].bias != ITB_NONE )
 			out.Write("indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 
 		// multiply by offset matrix and scale
-		uid_data.Set_tevind_mid(n, bpmem.tevind[n].mid);
 		if (bpmem.tevind[n].mid != 0)
 		{
 			if (bpmem.tevind[n].mid <= 3)
@@ -769,9 +765,6 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		// ---------
 		// Wrapping
 		// ---------
-		uid_data.Set_tevind_sw(n, bpmem.tevind[n].sw);
-		uid_data.Set_tevind_tw(n, bpmem.tevind[n].tw);
-		uid_data.tevind_n_fb_addprev |= bpmem.tevind[n].fb_addprev << n;
 
 		// wrap S
 		if (bpmem.tevind[n].sw == ITW_OFF)
@@ -798,26 +791,8 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
-	uid_data.cc_n_d |= (u64)cc.d << (4*n);
-	uid_data.cc_n_c |= (u64)cc.c << (4*n);
-	uid_data.cc_n_b |= (u64)cc.b << (4*n);
-	uid_data.cc_n_a |= (u64)cc.a << (4*n);
-	uid_data.cc_n_bias |= cc.bias << (2*n);
-	uid_data.cc_n_op |= cc.op << n;
-	uid_data.cc_n_clamp |= cc.clamp << n;
-	uid_data.cc_n_shift |= cc.shift << (2*n);
-	uid_data.cc_n_dest |= cc.dest << (2*n);
-	uid_data.ac_n_rswap |= ac.rswap << (2*n);
-	uid_data.ac_n_tswap |= ac.tswap << (2*n);
-	uid_data.ac_n_d |= (u64)ac.d << (3*n);
-	uid_data.ac_n_c |= (u64)ac.c << (3*n);
-	uid_data.ac_n_b |= (u64)ac.b << (3*n);
-	uid_data.ac_n_a |= (u64)ac.a << (3*n);
-	uid_data.ac_n_bias |= ac.bias << (2*n);
-	uid_data.ac_n_op |= ac.op << n;
-	uid_data.ac_n_clamp |= ac.clamp << n;
-	uid_data.ac_n_shift |= ac.shift << (2*n);
-	uid_data.ac_n_dest |= ac.dest << (2*n);
+	uid_data.stagehash[n].cc = cc.hex & 0xFFFFFF;
+	uid_data.stagehash[n].ac = ac.hex & 0xFFFFF0; // Storing rswap and tswap later
 
 	if(cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC
 		|| cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC
@@ -827,17 +802,19 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		|| ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
 	{
 		const int i = bpmem.combiners[n].alphaC.rswap;
-		uid_data.tevksel_n_swap1 |= bpmem.tevksel[i*2  ].swap1 << (2 * (i*2  ));
-		uid_data.tevksel_n_swap1 |= bpmem.tevksel[i*2+1].swap1 << (2 * (i*2+1));
-		uid_data.tevksel_n_swap2 |= bpmem.tevksel[i*2  ].swap2 << (2 * (i*2  ));
-		uid_data.tevksel_n_swap2 |= bpmem.tevksel[i*2+1].swap2 << (2 * (i*2+1));
+		uid_data.stagehash[n].ac |= bpmem.combiners[n].alphaC.rswap;
+		uid_data.stagehash[n].tevksel_swap1a = bpmem.tevksel[i*2].swap1;
+		uid_data.stagehash[n].tevksel_swap2a = bpmem.tevksel[i*2].swap2;
+		uid_data.stagehash[n].tevksel_swap1b = bpmem.tevksel[i*2+1].swap1;
+		uid_data.stagehash[n].tevksel_swap2b = bpmem.tevksel[i*2+1].swap2;
+		uid_data.stagehash[n].tevorders_colorchan = bpmem.tevorders[n / 2].getColorChan(n & 1);
 
 		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		out.Write("rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
 		out.Write("crastemp = frac(rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 	}
 
-
+	uid_data.stagehash[n].tevorders_enable = bpmem.tevorders[n / 2].getEnable(n & 1);
 	if (bpmem.tevorders[n/2].getEnable(n&1))
 	{
 		if (!bHasIndStage)
@@ -850,10 +827,13 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		}
 
 		const int i = bpmem.combiners[n].alphaC.tswap;
-		uid_data.tevksel_n_swap1 |= bpmem.tevksel[i*2  ].swap1 << (2 * (i*2  ));
-		uid_data.tevksel_n_swap1 |= bpmem.tevksel[i*2+1].swap1 << (2 * (i*2+1));
-		uid_data.tevksel_n_swap2 |= bpmem.tevksel[i*2  ].swap2 << (2 * (i*2  ));
-		uid_data.tevksel_n_swap2 |= bpmem.tevksel[i*2+1].swap2 << (2 * (i*2+1));
+		uid_data.stagehash[n].ac |= bpmem.combiners[n].alphaC.tswap << 2;
+		uid_data.stagehash[n].tevksel_swap1c = bpmem.tevksel[i*2].swap1;
+		uid_data.stagehash[n].tevksel_swap2c = bpmem.tevksel[i*2].swap2;
+		uid_data.stagehash[n].tevksel_swap1d = bpmem.tevksel[i*2+1].swap1;
+		uid_data.stagehash[n].tevksel_swap2d = bpmem.tevksel[i*2+1].swap2;
+
+		uid_data.stagehash[n].tevorders_texmap= bpmem.tevorders[n/2].getTexMap(n&1);
 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
@@ -871,8 +851,8 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 	{
 		int kc = bpmem.tevksel[n / 2].getKC(n & 1);
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
-		uid_data.set_tevksel_kcsel(n/2, n & 1, kc);
-		uid_data.set_tevksel_kasel(n/2, n & 1, ka);
+		uid_data.stagehash[n].tevksel_kc = kc;
+		uid_data.stagehash[n].tevksel_ka = ka;
 		out.Write("konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 		if(kc > 7 || ka > 7)
 		{
