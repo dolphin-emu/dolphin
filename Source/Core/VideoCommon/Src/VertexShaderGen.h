@@ -63,32 +63,30 @@ const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
 						{I_DEPTHPARAMS, C_DEPTHPARAMS, 1 },
 						};
 
-#pragma pack(4)
+#pragma pack(1)
 
 struct vertex_shader_uid_data
 {
-	u32 num_values; // TODO: Shouldn't be a u32
 
 	u32 NumValues() const { return num_values; }
+
 	u32 components;
+	u32 num_values : 16; // TODO: Shouldn't be a u32
 	u32 numColorChans : 2;
 	u32 numTexGens : 4;
 
+	u32 dualTexTrans_enabled : 1;
+
+	u32 texMtxInfo_n_projection : 16; // XF_TEXPROJ_X
 	struct {
-		u32 projection : 1; // XF_TEXPROJ_X
 		u32 inputform : 2; // XF_TEXINPUT_X
 		u32 texgentype : 3; // XF_TEXGEN_X
 		u32 sourcerow : 5; // XF_SRCGEOM_X
 		u32 embosssourceshift : 3; // what generated texcoord to use
 		u32 embosslightshift : 3; // light index that is used
-	} texMtxInfo[8];
-	struct {
-		u32 index : 6; // base row of dual transform matrix
-		u32 normalize : 1; // normalize before send operation
-	} postMtxInfo[8];
-	struct {
-		u32 enabled : 1;
-	} dualTexTrans;
+	} texMtxInfo[8]; // TODO: Wasting space
+
+	u8 postMtxInfo[8]; // index + normalize + 1 padding bit, TODO: Can be made a struct again..
 
 	LightingUidData lighting;
 };

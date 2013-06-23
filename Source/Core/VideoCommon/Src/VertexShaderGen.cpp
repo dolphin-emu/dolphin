@@ -376,7 +376,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 				break;
 			case XF_TEXGEN_REGULAR:
 			default:
-				uid_data.texMtxInfo[i].projection = xfregs.texMtxInfo[i].projection;
+				uid_data.texMtxInfo_n_projection |= xfregs.texMtxInfo[i].projection << i;
 				if (components & (VB_HAS_TEXMTXIDX0<<i))
 				{
 					out.Write("int tmp = int(tex%d.z);\n", i);
@@ -395,13 +395,13 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 				break;
 		}
 
-		uid_data.dualTexTrans.enabled = xfregs.dualTexTrans.enabled;
+		uid_data.dualTexTrans_enabled = xfregs.dualTexTrans.enabled;
 		// CHECKME: does this only work for regular tex gen types?
 		if (xfregs.dualTexTrans.enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
 		{
 			const PostMtxInfo& postInfo = xfregs.postMtxInfo[i];
 
-			uid_data.postMtxInfo[i].index = xfregs.postMtxInfo[i].index;
+			uid_data.postMtxInfo[i] = xfregs.postMtxInfo[i].index;
 			int postidx = postInfo.index;
 			out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES"[%d];\n"
 				"float4 P1 = " I_POSTTRANSFORMMATRICES"[%d];\n"
@@ -419,7 +419,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 			}
 			else
 			{
-				uid_data.postMtxInfo[i].normalize = xfregs.postMtxInfo[i].normalize;
+				uid_data.postMtxInfo[i] |= xfregs.postMtxInfo[i].normalize << 6;
 				if (postInfo.normalize)
 					out.Write("o.tex%d.xyz = normalize(o.tex%d.xyz);\n", i, i);
 
