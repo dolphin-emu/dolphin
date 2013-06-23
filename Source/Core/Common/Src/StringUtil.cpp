@@ -241,7 +241,7 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 {
 	while(1)
 	{
-		const int pos = result.find(src);
+		const size_t pos = result.find(src);
 		if (pos == -1) break;
 		result.replace(pos, src.size(), dest);
 	}
@@ -288,7 +288,7 @@ std::string UriDecode(const std::string & sSrc)
 	// for future extension"
 
 	const unsigned char * pSrc = (const unsigned char *)sSrc.c_str();
-	const int SRC_LEN = sSrc.length();
+	const size_t SRC_LEN = sSrc.length();
 	const unsigned char * const SRC_END = pSrc + SRC_LEN;
 	const unsigned char * const SRC_LAST_DEC = SRC_END - 2;   // last decodable '%' 
 
@@ -350,15 +350,17 @@ std::string UriEncode(const std::string & sSrc)
 {
 	const char DEC2HEX[16 + 1] = "0123456789ABCDEF";
 	const unsigned char * pSrc = (const unsigned char *)sSrc.c_str();
-	const int SRC_LEN = sSrc.length();
+	const size_t SRC_LEN = sSrc.length();
 	unsigned char * const pStart = new unsigned char[SRC_LEN * 3];
 	unsigned char * pEnd = pStart;
 	const unsigned char * const SRC_END = pSrc + SRC_LEN;
 
 	for (; pSrc < SRC_END; ++pSrc)
 	{
-		if (SAFE[*pSrc]) 
+		if (SAFE[*pSrc])
+		{
 			*pEnd++ = *pSrc;
+		}
 		else
 		{
 			// escape this char
@@ -377,26 +379,38 @@ std::string UriEncode(const std::string & sSrc)
 
 std::string UTF16ToUTF8(const std::wstring& input)
 {
-	auto const size = WideCharToMultiByte(CP_UTF8, 0, input.data(), input.size(), nullptr, 0, nullptr, nullptr);
+	int input_size = static_cast<int>(input.size());
+	const auto input_data = input.data();
+
+	auto const size = WideCharToMultiByte(CP_UTF8, 0, input_data, input_size, nullptr, 0, nullptr, nullptr);
 
 	std::string output;
 	output.resize(size);
+	int output_size = static_cast<int>(output.size());
 
-	if (size == 0 || size != WideCharToMultiByte(CP_UTF8, 0, input.data(), input.size(), &output[0], output.size(), nullptr, nullptr))
+	if (size == 0 || size != WideCharToMultiByte(CP_UTF8, 0, input_data, input_size, &output[0], output_size, nullptr, nullptr))
+	{
 		output.clear();
+	}
 
 	return output;
 }
 
 std::wstring CPToUTF16(u32 code_page, const std::string& input)
 {
-	auto const size = MultiByteToWideChar(code_page, 0, input.data(), input.size(), nullptr, 0);
+	int input_size = static_cast<int>(input.size());
+	const auto input_data = input.data();
+
+	auto const size = MultiByteToWideChar(code_page, 0, input_data, input_size, nullptr, 0);
 
 	std::wstring output;
 	output.resize(size);
+	int output_size = static_cast<int>(output.size());
 
-	if (size == 0 || size != MultiByteToWideChar(code_page, 0, input.data(), input.size(), &output[0], output.size()))
+	if (size == 0 || size != MultiByteToWideChar(code_page, 0, input_data, input_size, &output[0], output_size))
+	{
 		output.clear();
+	}
 
 	return output;
 }

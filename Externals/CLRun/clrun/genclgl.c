@@ -2,6 +2,8 @@
 #include "dynamiclib.h"
 #include "../include/CL/cl_gl.h"
 
+// Disable warning C4996 ('function': was declared deprecated)
+#pragma warning(disable : 4996)
 
 static cl_mem (*clCreateFromGLBuffer_ptr)(cl_context, cl_mem_flags, cl_GLuint, int *) = NULL;
 cl_mem CL_API_CALL clCreateFromGLBuffer (cl_context context,cl_mem_flags flags,cl_GLuint bufobj,int * errcode_ret) {

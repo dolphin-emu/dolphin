@@ -2,6 +2,8 @@
 #include "dynamiclib.h"
 #include "../include/CL/cl.h"
 
+// Disable warning C4996 ('function': was declared deprecated)
+#pragma warning(disable : 4996)
 
 static cl_int (*clGetPlatformIDs_ptr)(cl_uint, cl_platform_id *, cl_uint *) = NULL;
 cl_int CL_API_CALL clGetPlatformIDs (cl_uint num_entries,cl_platform_id * platforms,cl_uint * num_platforms) {
