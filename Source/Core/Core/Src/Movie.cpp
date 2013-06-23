@@ -60,7 +60,7 @@ std::string author = "";
 u64 g_titleID = 0;
 unsigned char MD5[16];
 u8 bongos;
-u8 revision[20];
+u32 revision[5];
 
 bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
@@ -1184,9 +1184,9 @@ void GetSettings()
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
 
-	for (int i = 0; i < 20; ++i)
+	for (int i = 0; i < 5; ++i)
 	{
-		sscanf(SCM_REV_STR + 2 * i, "%02x", &revision[i]);
+		sscanf(SCM_REV_STR + 8 * i, "%08x", &revision[i]);
 	}
 }
 
