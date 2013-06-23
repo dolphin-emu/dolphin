@@ -41,6 +41,9 @@
         <activity
             android:name=".GameListActivity" >
         </activity>
+        <activity
+            android:name=".AboutActivity" >
+        </activity>
     </application>
 
 </manifest>

@@ -27,7 +27,11 @@ const char *scm_rev_str = "Dolphin "
 #ifdef _M_X64
 #define NP_ARCH "x64"
 #else
+#ifdef _M_ARM
+#define NP_ARCH "ARM"
+#else	
 #define NP_ARCH "x86"
+#endif
 #endif
 
 #ifdef _WIN32

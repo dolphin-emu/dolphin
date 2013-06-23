@@ -20,7 +20,7 @@ public class GameListItem implements Comparable<GameListItem>{
         data = d;
         path = p;
         File file = new File(path);
-        if (!file.isDirectory())
+        if (!file.isDirectory() && !path.equals(""))
         {
         	int[] Banner = NativeLibrary.GetBanner(path);
         	if (Banner[0] == 0)

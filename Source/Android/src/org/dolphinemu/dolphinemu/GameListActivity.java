@@ -129,6 +129,7 @@ public class GameListActivity extends Activity {
 		dir.add(new SideMenuItem("Browse Folder", 0));
 		dir.add(new SideMenuItem("Settings", 1));
 		dir.add(new SideMenuItem("Gamepad Config", 2));
+		dir.add(new SideMenuItem("About", 3));
 
 		mDrawerAdapter = new SideMenuAdapter(this, R.layout.sidemenu, dir);
 		mDrawerList.setAdapter(mDrawerAdapter);
@@ -183,6 +184,11 @@ public class GameListActivity extends Activity {
 					Toast.makeText(me, "Loading up gamepad config", Toast.LENGTH_SHORT).show();
 					Intent ConfigIntent = new Intent(me, InputConfigActivity.class);
 					startActivityForResult(ConfigIntent, 3);
+					break;
+				case 3:
+					Toast.makeText(me, "Loading up About", Toast.LENGTH_SHORT).show();
+					Intent AboutIntent = new Intent(me, AboutActivity.class);
+					startActivityForResult(AboutIntent, 3);
 					break;
 				default:
 					break;
