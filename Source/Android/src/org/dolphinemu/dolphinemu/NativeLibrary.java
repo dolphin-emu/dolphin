@@ -16,6 +16,7 @@ public class NativeLibrary {
 	public static native void SetConfig(String configFile, String Key, String Value, String Default);
 	public static native int[] GetBanner(String filename);
 	public static native String GetTitle(String filename);
+	public static native String GetVersionString();
 
 	public static native void Run(String File, Surface surf, int width, int height);
 	public static native void UnPauseEmulation();
