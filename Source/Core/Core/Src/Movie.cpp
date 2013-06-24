@@ -1186,7 +1186,7 @@ void GetSettings()
 
 	for (int i = 0; i < 20; ++i)
 	{
-		sscanf(SCM_REV_STR + 2 * i, "%02x", &revision[i]);
+		sscanf(SCM_REV_STR + 2 * i, "%02hhx", &revision[i]);
 	}
 }
 
