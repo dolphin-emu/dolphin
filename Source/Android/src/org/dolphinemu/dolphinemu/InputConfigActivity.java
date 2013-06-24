@@ -66,7 +66,7 @@ public class InputConfigActivity extends ListActivity {
 		{
 			case 0: // On screen controls
 				String newBind;
-				if (o.getBind() == "True")
+				if (o.getBind().equals("True"))
 				{
 					Toast.makeText(this, "Not Drawing on screen controls", Toast.LENGTH_SHORT).show();
 					newBind = "False";
@@ -111,9 +111,7 @@ public class InputConfigActivity extends ListActivity {
 			if (firstEvent)
 			{
 				m_values.clear();
-				for (int a = 0; a < motions.size(); ++a)
-				{
-					InputDevice.MotionRange range = motions.get(a);
+				for (InputDevice.MotionRange range : motions) {
 					m_values.add(event.getAxisValue(range.getAxis()));
 				}
 				firstEvent = false;
