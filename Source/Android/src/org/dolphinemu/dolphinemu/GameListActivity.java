@@ -152,6 +152,16 @@ public class GameListActivity extends Activity {
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 
 		recreateFragment();
+
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+		boolean bFirstRun = prefs.getBoolean("FirstRun", true);
+		if (bFirstRun)
+		{
+			SharedPreferences.Editor editor = prefs.edit();
+			editor.putBoolean("FirstRun", false);
+			editor.commit();
+			mDrawerLayout.openDrawer(mDrawerList);
+		}
 	}
 
 	private void recreateFragment()
