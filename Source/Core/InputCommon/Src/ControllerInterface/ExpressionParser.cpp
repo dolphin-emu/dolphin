@@ -98,12 +98,12 @@ public:
 		while (it != expr.end())
 		{
 			char c = *it;
+			it++;
 			if (c == '`')
 				return false;
 			if (c > 0 && c == otherDelim)
 				return true;
 			value += c;
-			it++;
 		}
 		return false;
 	}
