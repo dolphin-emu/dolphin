@@ -255,6 +255,16 @@ void ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsi
 #endif
 }
 
+// Two small Fallbacks to avoid GL_ARB_ES2_compatibility
+void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
+{
+	glDepthRange(neardepth, fardepth);
+}
+void GLAPIENTRY ClearDepthf(GLfloat depthval)
+{
+	glClearDepth(depthval);
+}
+
 void InitDriverInfo()
 {
 	// Get Vendor
@@ -404,6 +414,16 @@ Renderer::Renderer()
 	}
 	if (!GLEW_ARB_texture_non_power_of_two)
 		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
+	
+	// OpenGL 3 doesn't provide GLES like float functions for depth.
+	// They are in core in OpenGL 4.1, so almost every driver should support them.
+	// But for the oldest ones, we provide fallbacks to the old double functions.
+	if (!GLEW_ARB_ES2_compatibility)
+	{
+		glDepthRangef = DepthRangef;
+		glClearDepthf = ClearDepthf;
+		
+	}
 
 	if (!bSuccess)
 		return;	// TODO: fail
