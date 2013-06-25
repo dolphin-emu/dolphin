@@ -327,10 +327,31 @@ void ControlDialog::ClearControl(wxCommandEvent&)
 
 inline bool IsAlphabetic(wxString &str)
 {
-    for (wxString::const_iterator it = str.begin(); it != str.end(); ++it)
+	for (wxString::const_iterator it = str.begin(); it != str.end(); ++it)
 		if (!isalpha(*it))
 			return false;
 	return true;
+}
+
+inline void GetExpressionForControl(wxString &expr,
+				    wxString &control_name,
+				    DeviceQualifier *control_device = NULL,
+				    DeviceQualifier *default_device = NULL)
+{
+	expr = "";
+
+	// non-default device
+	if (control_device && default_device && !(*control_device == *default_device))
+	{
+		expr += ":";
+		expr += control_device->ToString();
+	}
+
+	// append the control name
+	expr += control_name;
+
+	if (!IsAlphabetic(expr))
+		expr = wxString::Format("`%s`", expr);
 }
 
 bool ControlDialog::GetExpressionForSelectedControl(wxString &expr)
@@ -340,17 +361,11 @@ bool ControlDialog::GetExpressionForSelectedControl(wxString &expr)
 	if (num < 0)
 		return false;
 
-	expr = "";
-
-	// non-default device
-	if (!(m_devq == m_parent->controller->default_device))
-		expr += m_devq.ToString();
-
-	// append the control name
-	expr += control_lbox->GetString(num);
-
-	if (!IsAlphabetic(expr))
-		expr = wxString::Format("`%s`", expr);
+	wxString control_name = control_lbox->GetString(num);
+	GetExpressionForControl(expr,
+				control_name,
+				&m_devq,
+				&m_parent->controller->default_device);
 
 	return true;
 }
@@ -482,12 +497,15 @@ void GamepadPage::DetectControl(wxCommandEvent& event)
 		// if we got input, update expression and reference
 		if (ctrl)
 		{
-			btn->control_reference->expression = ctrl->GetName();
+			wxString control_name = ctrl->GetName();
+			wxString expr;
+			GetExpressionForControl(expr, control_name);
+			btn->control_reference->expression = expr;
 			g_controller_interface.UpdateReference(btn->control_reference, controller->default_device);
 		}
-
-		btn->SetLabel(StrToWxStr(btn->control_reference->expression));
 	}
+
+	UpdateGUI();
 }
 
 wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
