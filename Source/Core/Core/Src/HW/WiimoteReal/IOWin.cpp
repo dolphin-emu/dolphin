@@ -597,6 +597,8 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 		}
 	}
 
+	WiimoteEmu::Spy(NULL, buf, bytes + 1);
+
 	return bytes + 1;
 }
 
@@ -611,6 +613,8 @@ int Wiimote::IORead(u8* buf)
 
 int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, int len)
 {
+	WiimoteEmu::Spy(NULL, buf, len);
+
 	switch (stack)
 	{
 		case MSBT_STACK_UNKNOWN:

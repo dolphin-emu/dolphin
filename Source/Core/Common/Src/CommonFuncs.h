@@ -162,6 +162,7 @@ const char* GetLastErrorMsg();
 namespace Common
 {
 inline u8 swap8(u8 _data) {return _data;}
+inline u32 swap24(const u8* _data) {return (_data[0] << 16) | (_data[1] << 8) | _data[2];}
 
 #ifdef _WIN32
 inline u16 swap16(u16 _data) {return _byteswap_ushort(_data);}
