@@ -1,13 +1,13 @@
 #include <IOKit/hid/IOHIDLib.h>
 
-#include "../ControllerInterface.h"
+#include "../Device.h"
 
 namespace ciface
 {
 namespace OSX
 {
 
-class Keyboard : public ControllerInterface::Device
+class Keyboard : public Core::Device
 {
 private:
 	class Key : public Input

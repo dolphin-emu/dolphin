@@ -112,7 +112,8 @@ public:
 private:
 	GamepadPage* const		m_parent;
 	wxStaticText*		m_bound_label;
-	ControllerInterface::DeviceQualifier	m_devq;
+	DeviceQualifier	m_devq;
+	bool GetExpressionForSelectedControl(wxString &expr);
 };
 
 class ExtensionButton : public wxButton

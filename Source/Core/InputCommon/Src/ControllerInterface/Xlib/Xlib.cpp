@@ -7,7 +7,7 @@ namespace ciface
 namespace Xlib
 {
 
-void Init(std::vector<ControllerInterface::Device*>& devices, void* const hwnd)
+void Init(std::vector<Core::Device*>& devices, void* const hwnd)
 {
 	devices.push_back(new KeyboardMouse((Window)hwnd));
 }

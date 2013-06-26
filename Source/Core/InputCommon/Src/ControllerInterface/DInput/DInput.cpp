@@ -1,17 +1,10 @@
-#include "../ControllerInterface.h"
-
-#ifdef CIFACE_USE_DINPUT
 
 #include "DInput.h"
 
 #include "StringUtil.h"
 
-#ifdef CIFACE_USE_DINPUT_JOYSTICK
-	#include "DInputJoystick.h"
-#endif
-#ifdef CIFACE_USE_DINPUT_KBM
-	#include "DInputKeyboardMouse.h"
-#endif
+#include "DInputJoystick.h"
+#include "DInputKeyboardMouse.h"
 
 #pragma comment(lib, "Dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
@@ -55,18 +48,14 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
 	return result;
 }
 
-void Init(std::vector<ControllerInterface::Device*>& devices, HWND hwnd)
+void Init(std::vector<Core::Device*>& devices, HWND hwnd)
 {
 	IDirectInput8* idi8;
 	if (FAILED(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&idi8, NULL)))
 		return;
 
-#ifdef CIFACE_USE_DINPUT_KBM
 	InitKeyboardMouse(idi8, devices, hwnd);
-#endif
-#ifdef CIFACE_USE_DINPUT_JOYSTICK
 	InitJoystick(idi8, devices, hwnd);
-#endif
 
 	idi8->Release();
 
@@ -74,5 +63,3 @@ void Init(std::vector<ControllerInterface::Device*>& devices, HWND hwnd)
 
 }
 }
-
-#endif

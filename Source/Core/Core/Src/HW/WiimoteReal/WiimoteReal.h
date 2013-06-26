@@ -47,6 +47,8 @@ public:
 	// "handshake" / stop packets
 	void EmuStart();
 	void EmuStop();
+	void EmuResume();
+	void EmuPause();
 
 	// connecting and disconnecting from physical devices
 	// (using address inserted by FindWiimotes)
@@ -59,6 +61,8 @@ public:
 	bool Prepare(int index);
 
 	void DisableDataReporting();
+	void EnableDataReporting(u8 mode);
+	void SetChannel(u16 channel);
 	
 	void QueueReport(u8 rpt_id, const void* data, unsigned int size);
 

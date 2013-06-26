@@ -24,7 +24,7 @@ class TASInputDlg : public wxDialog
 		void OnCloseWindow(wxCloseEvent& event);
 		void UpdateFromSliders(wxCommandEvent& event);
 		void UpdateFromText(wxCommandEvent& event);
-		void OnMouseUpL(wxMouseEvent& event);
+		void OnMouseDownL(wxMouseEvent& event);
 		void OnMouseUpR(wxMouseEvent& event);
 		void ResetValues();
 		void GetValues(SPADStatus *PadStatus, int controllerID);

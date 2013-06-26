@@ -1,7 +1,7 @@
 #ifndef _CIFACE_DINPUT_H_
 #define _CIFACE_DINPUT_H_
 
-#include "../ControllerInterface.h"
+#include "../Device.h"
 
 #define DINPUT_SOURCE_NAME "DInput"
 
@@ -23,7 +23,7 @@ BOOL CALLBACK DIEnumDeviceObjectsCallback(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVO
 BOOL CALLBACK DIEnumDevicesCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef);
 std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device);
 
-void Init(std::vector<ControllerInterface::Device*>& devices, HWND hwnd);
+void Init(std::vector<Core::Device*>& devices, HWND hwnd);
 
 }
 }

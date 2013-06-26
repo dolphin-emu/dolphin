@@ -23,7 +23,7 @@ namespace ciface
 namespace Android
 {
 
-void Init( std::vector<ControllerInterface::Device*>& devices )
+void Init( std::vector<Core::Device*>& devices )
 {
 	devices.push_back(new Touchscreen());
 }

@@ -52,11 +52,6 @@ public:
 		SConfig::GetInstance().m_SYSCONF->SetData("BT.MOT", event.GetInt());
 		event.Skip();
 	}
-	void OnReconnectOnLoad(wxCommandEvent& event)
-	{
-		SConfig::GetInstance().m_WiimoteReconnectOnLoad = event.IsChecked();
-		event.Skip();
-	}
 	void OnContinuousScanning(wxCommandEvent& event)
 	{
 		SConfig::GetInstance().m_WiimoteContinuousScanning = event.IsChecked();

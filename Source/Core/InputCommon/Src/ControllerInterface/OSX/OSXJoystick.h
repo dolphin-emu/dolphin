@@ -1,13 +1,13 @@
 #include <IOKit/hid/IOHIDLib.h>
 
-#include "../ControllerInterface.h"
+#include "../Device.h"
 
 namespace ciface
 {
 namespace OSX
 {
 
-class Joystick : public ControllerInterface::Device
+class Joystick : public Core::Device
 {
 private:
 	class Button : public Input

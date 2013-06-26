@@ -184,13 +184,13 @@ void ControlDialog::UpdateListContents()
 {
 	control_lbox->Clear();
 
-	ControllerInterface::Device* const dev = g_controller_interface.FindDevice(m_devq);
+	Device* const dev = g_controller_interface.FindDevice(m_devq);
 	if (dev)
 	{
 		if (control_reference->is_input)
 		{
 			// for inputs
-			std::vector<ControllerInterface::Device::Input*>::const_iterator
+			std::vector<Device::Input*>::const_iterator
 				i = dev->Inputs().begin(),
 				e = dev->Inputs().end();
 			for (; i!=e; ++i)
@@ -199,7 +199,7 @@ void ControlDialog::UpdateListContents()
 		else
 		{
 			// for outputs
-			std::vector<ControllerInterface::Device::Output*>::const_iterator
+			std::vector<Device::Output*>::const_iterator
 				i = dev->Outputs().begin(),
 				e = dev->Outputs().end();
 			for (; i!=e; ++i)
@@ -238,11 +238,13 @@ void GamepadPage::UpdateGUI()
 		// buttons
 		std::vector<ControlButton*>::const_iterator i = (*g)->control_buttons.begin()
 			, e = (*g)->control_buttons.end();
-		for (; i!=e; ++i)
-			//if (std::string::npos == (*i)->control_reference->expression.find_first_of("`|&!#"))
+		for (; i!=e; ++i) {
+			ControllerInterface::ControlReference *r = (*i)->control_reference;
+			if (r->IsComplicated())
+				(*i)->SetLabel("...");
+			else
 				(*i)->SetLabel(StrToWxStr((*i)->control_reference->expression));
-			//else
-				//(*i)->SetLabel(wxT("..."));
+		}
 
 		// cboxes
 		std::vector<PadSetting*>::const_iterator si = (*g)->options.begin()
@@ -323,23 +325,60 @@ void ControlDialog::ClearControl(wxCommandEvent&)
 	UpdateGUI();
 }
 
-void ControlDialog::SetSelectedControl(wxCommandEvent&)
+inline bool IsAlphabetic(wxString &str)
+{
+	for (wxString::const_iterator it = str.begin(); it != str.end(); ++it)
+		if (!isalpha(*it))
+			return false;
+	return true;
+}
+
+inline void GetExpressionForControl(wxString &expr,
+				    wxString &control_name,
+				    DeviceQualifier *control_device = NULL,
+				    DeviceQualifier *default_device = NULL)
+{
+	expr = "";
+
+	// non-default device
+	if (control_device && default_device && !(*control_device == *default_device))
+	{
+		expr += ":";
+		expr += control_device->ToString();
+	}
+
+	// append the control name
+	expr += control_name;
+
+	if (!IsAlphabetic(expr))
+		expr = wxString::Format("`%s`", expr);
+}
+
+bool ControlDialog::GetExpressionForSelectedControl(wxString &expr)
 {
 	const int num = control_lbox->GetSelection();
 
 	if (num < 0)
-		return;
+		return false;
 
+	wxString control_name = control_lbox->GetString(num);
+	GetExpressionForControl(expr,
+				control_name,
+				&m_devq,
+				&m_parent->controller->default_device);
+
+	return true;
+}
+
+void ControlDialog::SetSelectedControl(wxCommandEvent&)
+{
 	wxString expr;
 
-	// non-default device
-	if (false == (m_devq == m_parent->controller->default_device))
-		expr.append(wxT('`')).append(StrToWxStr(m_devq.ToString())).append(wxT('`'));
+	if (!GetExpressionForSelectedControl(expr))
+		return;
 
-	// append the control name
-	expr += control_lbox->GetString(num);
-
-	control_reference->expression = WxStrToStr(expr);
+	textctrl->WriteText(expr);
+	control_reference->expression = textctrl->GetValue();
 
 	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
@@ -349,28 +388,30 @@ void ControlDialog::SetSelectedControl(wxCommandEvent&)
 
 void ControlDialog::AppendControl(wxCommandEvent& event)
 {
-	const int num = control_lbox->GetSelection();
+	wxString device_expr, expr;
 
-	if (num < 0)
+	const wxString lbl = ((wxButton*)event.GetEventObject())->GetLabel();
+	char op = lbl[0];
+
+	if (!GetExpressionForSelectedControl(device_expr))
 		return;
 
-	// o boy!, hax
-	const wxString lbl = ((wxButton*)event.GetEventObject())->GetLabel();
+	// Unary ops (that is, '!') are a special case. When there's a selection,
+	// put parens around it and prepend it with a '!', but when there's nothing,
+	// just add a '!device'.
+	if (op == '!')
+	{
+		wxString selection = textctrl->GetStringSelection();
+		if (selection == "")
+			expr = wxString::Format("%c%s", op, device_expr);
+		else
+			expr = wxString::Format("%c(%s)", op, selection);
+	}
+	else
+		expr = wxString::Format(" %c %s", op, device_expr);
 
-	wxString expr = textctrl->GetValue();
-
-	// append the operator to the expression
-	if (wxT('!') == lbl[0] || false == expr.empty())
-		expr += lbl[0];
-
-	// non-default device
-	if (false == (m_devq == m_parent->controller->default_device))
-		expr.append(wxT('`')).append(StrToWxStr(m_devq.ToString())).append(wxT('`'));
-
-	// append the control name
-	expr += control_lbox->GetString(num);
-
-	control_reference->expression = WxStrToStr(expr);
+	textctrl->WriteText(expr);
+	control_reference->expression = textctrl->GetValue();
 
 	std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
@@ -418,7 +459,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 	wxButton* const btn = (wxButton*)event.GetEventObject();
 	const wxString lbl = btn->GetLabel();
 
-	ControllerInterface::Device* const dev = g_controller_interface.FindDevice(m_devq);
+	Device* const dev = g_controller_interface.FindDevice(m_devq);
 	if (dev)
 	{
 		btn->SetLabel(_("[ waiting ]"));
@@ -427,7 +468,7 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 		wxTheApp->Yield();
 
 		std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
-		ControllerInterface::Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
+		Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, select it in the list
 		if (ctrl)
@@ -442,7 +483,7 @@ void GamepadPage::DetectControl(wxCommandEvent& event)
 	ControlButton* btn = (ControlButton*)event.GetEventObject();
 
 	// find device :/
-	ControllerInterface::Device* const dev = g_controller_interface.FindDevice(controller->default_device);
+	Device* const dev = g_controller_interface.FindDevice(controller->default_device);
 	if (dev)
 	{
 		btn->SetLabel(_("[ waiting ]"));
@@ -451,24 +492,30 @@ void GamepadPage::DetectControl(wxCommandEvent& event)
 		wxTheApp->Yield();
 
 		std::lock_guard<std::recursive_mutex> lk(m_plugin.controls_lock);
-		ControllerInterface::Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, dev);
+		Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, update expression and reference
 		if (ctrl)
 		{
-			btn->control_reference->expression = ctrl->GetName();
+			wxString control_name = ctrl->GetName();
+			wxString expr;
+			GetExpressionForControl(expr, control_name);
+			btn->control_reference->expression = expr;
 			g_controller_interface.UpdateReference(btn->control_reference, controller->default_device);
 		}
-
-		btn->SetLabel(StrToWxStr(btn->control_reference->expression));
 	}
+
+	UpdateGUI();
 }
 
 wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 {
 	wxStaticBoxSizer* const main_szr = new wxStaticBoxSizer(wxVERTICAL, this, control_reference->is_input ? _("Input") : _("Output"));
 
-	textctrl = new wxTextCtrl(this, -1, wxEmptyString, wxDefaultPosition, wxSize(-1, 48), wxTE_MULTILINE);
+	textctrl = new wxTextCtrl(this, -1, wxEmptyString, wxDefaultPosition, wxSize(-1, 48), wxTE_MULTILINE | wxTE_RICH2);
+	wxFont font = textctrl->GetFont();
+	font.SetFamily(wxFONTFAMILY_MODERN);
+	textctrl->SetFont(font);
 
 	wxButton* const detect_button = new wxButton(this, -1, control_reference->is_input ? _("Detect") : _("Test"));
 
@@ -477,6 +524,9 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 
 	wxButton* const select_button = new wxButton(this, -1, _("Select"));
 	select_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::SetSelectedControl, this);
+
+	wxButton* const not_button = new  wxButton(this, -1, _("! NOT"), wxDefaultPosition);
+	not_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::AppendControl, this);
 
 	wxButton* const or_button = new  wxButton(this, -1, _("| OR"), wxDefaultPosition);
 	or_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::AppendControl, this);
@@ -492,11 +542,9 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 	{
 		// TODO: check if && is good on other OS
 		wxButton* const and_button = new  wxButton(this, -1, _("&& AND"), wxDefaultPosition);
-		wxButton* const not_button = new  wxButton(this, -1, _("! NOT"), wxDefaultPosition);
-		wxButton* const add_button = new  wxButton(this, -1, _("^ ADD"), wxDefaultPosition);
+		wxButton* const add_button = new  wxButton(this, -1, _("+ ADD"), wxDefaultPosition);
 
 		and_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::AppendControl, this);
-		not_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::AppendControl, this);
 		add_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::AppendControl, this);
 
 		button_sizer->Add(and_button, 1, 0, 5);
@@ -614,11 +662,11 @@ void InputConfigDialog::UpdateDeviceComboBox()
 {
 	std::vector< GamepadPage* >::iterator i = m_padpages.begin(),
 		e = m_padpages.end();
-	ControllerInterface::DeviceQualifier dq;
+	DeviceQualifier dq;
 	for (; i != e; ++i)
 	{
 		(*i)->device_cbox->Clear();
-		std::vector<ControllerInterface::Device*>::const_iterator
+		std::vector<Device*>::const_iterator
 			di = g_controller_interface.Devices().begin(),
 			de = g_controller_interface.Devices().end();
 		for (; di!=de; ++di)

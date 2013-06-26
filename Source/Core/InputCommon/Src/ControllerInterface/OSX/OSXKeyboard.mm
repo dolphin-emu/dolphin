@@ -3,8 +3,9 @@
 #include <Cocoa/Cocoa.h>
 #include <wx/wx.h> // wxWidgets
 
-#include "../ControllerInterface.h"
 #include "OSXKeyboard.h"
+
+#include <sstream>
 
 namespace ciface
 {

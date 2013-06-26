@@ -36,6 +36,8 @@ namespace Wiimote
 
 void Shutdown();
 void Initialize(void* const hwnd);
+void Resume();
+void Pause();
 
 unsigned int GetAttached();
 void DoState(u8 **ptr, PointerWrap::Mode mode);
@@ -53,6 +55,8 @@ namespace WiimoteReal
 
 void Initialize();
 void Shutdown();
+void Resume();
+void Pause();
 void Refresh();
 
 void LoadSettings();

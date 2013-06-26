@@ -231,7 +231,7 @@ void OpenALStream::SoundLoop()
 
 			unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * numBuffers);
 
-			if (nSamples < minSamples)
+			if (nSamples <= minSamples)
 				continue;
 
 			// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)

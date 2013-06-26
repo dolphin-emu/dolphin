@@ -1,9 +1,10 @@
-#include "../ControllerInterface.h"
-
-#ifdef CIFACE_USE_DINPUT_JOYSTICK
 
 #include "DInputJoystick.h"
 #include "DInput.h"
+
+#include <map>
+#include <sstream>
+#include <algorithm>
 
 namespace ciface
 {
@@ -142,7 +143,7 @@ LCleanup:
 }
 #endif
 
-void InitJoystick(IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices, HWND hwnd)
+void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND hwnd)
 {
 	std::list<DIDEVICEINSTANCE> joysticks;
 	idi8->EnumDevices( DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks, DIEDFL_ATTACHEDONLY );
@@ -599,5 +600,3 @@ Joystick::Force<P>::Force(u8 index, EffectState& state)
 
 }
 }
-
-#endif

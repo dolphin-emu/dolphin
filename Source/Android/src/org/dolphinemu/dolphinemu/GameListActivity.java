@@ -10,17 +10,14 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
-import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,7 +25,8 @@ import java.util.List;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class GameListActivity extends Activity {
+public class GameListActivity extends Activity
+		implements GameListFragment.OnGameListZeroListener{
 
 	enum keyTypes {TYPE_STRING, TYPE_BOOL};
 
@@ -37,90 +35,19 @@ public class GameListActivity extends Activity {
 	private SideMenuAdapter mDrawerAdapter;
 	private ListView mDrawerList;
 
-	private static GameListActivity me;
+	private static GameListActivity mMe;
 
-	public static class GameListFragment extends Fragment {
-		private ListView mMainList;
-		private GameListAdapter mGameAdapter;
-
-		public GameListFragment() {
-			// Empty constructor required for fragment subclasses
-		}
-		private void Fill()
-		{
-			List<GameListItem>fls = new ArrayList<GameListItem>();
-			String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
-			int intDirectories = Integer.parseInt(Directories);
-			for (int a = 0; a < intDirectories; ++a)
-			{
-				String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(a), "");
-				File currentDir = new File(BrowseDir);
-				File[]dirs = currentDir.listFiles();
-				try
-				{
-					for(File ff: dirs)
-					{
-						if (ff.getName().charAt(0) != '.')
-							if(!ff.isDirectory())
-								if (ff.getName().toLowerCase().contains(".gcm") ||
-										ff.getName().toLowerCase().contains(".iso") ||
-										ff.getName().toLowerCase().contains(".wbfs") ||
-										ff.getName().toLowerCase().contains(".gcz") ||
-										ff.getName().toLowerCase().contains(".dol") ||
-										ff.getName().toLowerCase().contains(".elf") ||
-										ff.getName().toLowerCase().contains(".dff"))
-									fls.add(new GameListItem(me.getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
-					}
-				}
-				catch(Exception ignored)
-				{
-				}
-			}
-			Collections.sort(fls);
-
-			mGameAdapter = new GameListAdapter(me, R.layout.gamelist_layout, fls);
-			mMainList.setAdapter(mGameAdapter);
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-		                         Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
-			mMainList = (ListView) rootView.findViewById(R.id.gamelist);
-			mMainList.setOnItemClickListener(mGameItemClickListener);
-
-			Fill();
-
-			return mMainList;
-		}
-		private AdapterView.OnItemClickListener mGameItemClickListener = new AdapterView.OnItemClickListener()
-		{
-			public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-			{
-				GameListItem o = mGameAdapter.getItem(position);
-				if(!(o.getData().equalsIgnoreCase("folder")||o.getData().equalsIgnoreCase("parent directory")))
-				{
-					onFileClick(o.getPath());
-				}
-			}
-		};
-		private void onFileClick(String o)
-		{
-			Toast.makeText(me, "File Clicked: " + o, Toast.LENGTH_SHORT).show();
-
-			Intent intent = new Intent();
-			intent.putExtra("Select", o);
-			me.setResult(Activity.RESULT_OK, intent);
-
-			me.finish();
-		}
+	// Called from the game list fragment
+	public void onZeroFiles()
+	{
+		mDrawerLayout.openDrawer(mDrawerList);
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.gamelist_activity);
-		me = this;
+		mMe = this;
 
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -148,6 +75,13 @@ public class GameListActivity extends Activity {
 				R.string.drawer_open,  /* "open drawer" description for accessibility */
 				R.string.drawer_close  /* "close drawer" description for accessibility */
 		) {
+			public void onDrawerClosed(View view) {
+				invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+			}
+
+			public void onDrawerOpened(View drawerView) {
+				invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+			}
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 
@@ -171,23 +105,23 @@ public class GameListActivity extends Activity {
 			switch(o.getID())
 			{
 				case 0:
-					Toast.makeText(me, "Loading up the browser", Toast.LENGTH_SHORT).show();
-					Intent ListIntent = new Intent(me, FolderBrowser.class);
+					Toast.makeText(mMe, "Loading up the browser", Toast.LENGTH_SHORT).show();
+					Intent ListIntent = new Intent(mMe, FolderBrowser.class);
 					startActivityForResult(ListIntent, 1);
 					break;
 				case 1:
-					Toast.makeText(me, "Loading up settings", Toast.LENGTH_SHORT).show();
-					Intent SettingIntent = new Intent(me, PrefsActivity.class);
+					Toast.makeText(mMe, "Loading up settings", Toast.LENGTH_SHORT).show();
+					Intent SettingIntent = new Intent(mMe, PrefsActivity.class);
 					startActivityForResult(SettingIntent, 2);
 					break;
 				case 2:
-					Toast.makeText(me, "Loading up gamepad config", Toast.LENGTH_SHORT).show();
-					Intent ConfigIntent = new Intent(me, InputConfigActivity.class);
+					Toast.makeText(mMe, "Loading up gamepad config", Toast.LENGTH_SHORT).show();
+					Intent ConfigIntent = new Intent(mMe, InputConfigActivity.class);
 					startActivityForResult(ConfigIntent, 3);
 					break;
 				case 3:
-					Toast.makeText(me, "Loading up About", Toast.LENGTH_SHORT).show();
-					Intent AboutIntent = new Intent(me, AboutActivity.class);
+					Toast.makeText(mMe, "Loading up About", Toast.LENGTH_SHORT).show();
+					Intent AboutIntent = new Intent(mMe, AboutActivity.class);
 					startActivityForResult(AboutIntent, 3);
 					break;
 				default:
@@ -288,6 +222,16 @@ public class GameListActivity extends Activity {
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		return super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// The action bar home/up action should open or close the drawer.
+		// ActionBarDrawerToggle will take care of this.
+		if (mDrawerToggle.onOptionsItemSelected(item)) {
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 	public void onBackPressed()
 	{

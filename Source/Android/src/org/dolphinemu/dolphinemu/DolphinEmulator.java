@@ -3,8 +3,10 @@ package org.dolphinemu.dolphinemu;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.InputDevice;
@@ -91,7 +93,8 @@ public class DolphinEmulator<MainActivity> extends Activity
 			
 			// Copy assets if needed
 			java.io.File file = new java.io.File(
-					Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "NoBanner.png");
+					Environment.getExternalStorageDirectory()+File.separator+
+							"dolphin-emu" + File.separator + "Config" + File.separator + "Dolphin.ini");
 			if(!file.exists())
 			{
 				CopyAsset("ButtonA.png", 
@@ -108,7 +111,15 @@ public class DolphinEmulator<MainActivity> extends Activity
 						"dolphin-emu" + File.separator + "NoBanner.png");
 				CopyAsset("GCPadNew.ini", 
 						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator +"Config"+ File.separator +"GCPadNew.ini");
+						"dolphin-emu" + File.separator + "Config" + File.separator + "GCPadNew.ini");
+				CopyAsset("GCPadNew.ini",
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "Config" + File.separator  +"Dolphin.ini");
+
+				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+				SharedPreferences.Editor editor = prefs.edit();
+				editor.clear();
+				editor.commit();
 			}
 		}
 	}
@@ -129,7 +140,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 			String FileName = data.getStringExtra("Select");
 			GLview = new NativeGLSurfaceView(this);
 			this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-			String backend = NativeLibrary.GetConfig("Dolphin.ini", "Core", "GFXBackend", "OGL");
+			String backend = NativeLibrary.GetConfig("Dolphin.ini", "Core", "GFXBackend", "Software Renderer");
 			if (backend.equals("OGL"))
 				GLview.SetDimensions(screenHeight, screenWidth);
 			else
