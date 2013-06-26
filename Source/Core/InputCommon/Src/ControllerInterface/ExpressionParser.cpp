@@ -351,6 +351,9 @@ Device *ControlFinder::FindDevice(ControlQualifier qualifier)
 Device::Control *ControlFinder::FindControl(ControlQualifier qualifier)
 {
 	Device *device = FindDevice(qualifier);
+	if (!device)
+		return NULL;
+
 	if (is_input)
 		return device->FindInput(qualifier.control_name);
 	else
