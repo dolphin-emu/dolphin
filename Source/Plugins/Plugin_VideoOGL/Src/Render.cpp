@@ -255,6 +255,7 @@ void ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsi
 #endif
 }
 
+#ifndef USE_GLES3
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
 void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 {
@@ -264,6 +265,7 @@ void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
 	glClearDepth(depthval);
 }
+#endif
 
 void InitDriverInfo()
 {
