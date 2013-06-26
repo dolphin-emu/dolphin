@@ -185,6 +185,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		_("Connect Wiimote 2"),
 		_("Connect Wiimote 3"),
 		_("Connect Wiimote 4"),
+		_("Connect Balance Board"),
 
 		_("Load State Slot 1"),
 		_("Load State Slot 2"),

@@ -205,6 +205,7 @@ void CFrame::CreateMenu()
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, GetMenuLabel(HK_WIIMOTE2_CONNECT));
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE3, GetMenuLabel(HK_WIIMOTE3_CONNECT));
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE4, GetMenuLabel(HK_WIIMOTE4_CONNECT));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_BALANCEBOARD, GetMenuLabel(HK_BALANCEBOARD_CONNECT));
 
 	m_MenuBar->Append(toolsMenu, _("&Tools"));
 
@@ -370,7 +371,9 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = wxString::Format(_("Connect Wiimote %i"),
 					Id - HK_WIIMOTE1_CONNECT + 1);
 			break;
-
+		case HK_BALANCEBOARD_CONNECT:
+			Label = _("Connect Balance Board");
+			break;
 		case HK_LOAD_STATE_SLOT_1:
 		case HK_LOAD_STATE_SLOT_2:
 		case HK_LOAD_STATE_SLOT_3:
@@ -1577,6 +1580,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Enable(RunningWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONFIG_WIIMOTE_PLUGIN)->Enable(!RunningGamecube);
 	if (RunningWii)
 	{
@@ -1588,6 +1592,8 @@ void CFrame::UpdateGUI()
 				AccessWiiMote(0x0102)->IsConnected());
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Check(GetUsbPointer()->
 				AccessWiiMote(0x0103)->IsConnected());
+		GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Check(GetUsbPointer()->
+				AccessWiiMote(0x0104)->IsConnected());
 	}
 
 	if (Running)

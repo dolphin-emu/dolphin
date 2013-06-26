@@ -41,6 +41,7 @@ static const struct {
 	{ "Wiimote2Connect",	50 /* '2' */,		2 /* wxMOD_CMD */ },
 	{ "Wiimote3Connect",	51 /* '3' */,		2 /* wxMOD_CMD */ },
 	{ "Wiimote4Connect",	52 /* '4' */,		2 /* wxMOD_CMD */ },
+	{ "BalanceBoardConnect",53 /* '4' */,		2 /* wxMOD_CMD */ },
 #else
 	{ "Open",		79 /* 'O' */,		2 /* wxMOD_CONTROL */},
 	{ "ChangeDisc",		0,			0 /* wxMOD_NONE */ },
@@ -64,6 +65,7 @@ static const struct {
 	{ "Wiimote2Connect",	345 /* WXK_F6 */,	1 /* wxMOD_ALT */ },
 	{ "Wiimote3Connect",	346 /* WXK_F7 */,	1 /* wxMOD_ALT */ },
 	{ "Wiimote4Connect",	347 /* WXK_F8 */,	1 /* wxMOD_ALT */ },
+	{ "BalanceBoardConnect",348 /* WXK_F9 */,	1 /* wxMOD_ALT */ },
 #endif
 
 	{ "LoadStateSlot1",	340 /* WXK_F1 */,	0 /* wxMOD_NONE */ },
