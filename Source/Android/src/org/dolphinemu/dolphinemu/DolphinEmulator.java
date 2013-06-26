@@ -112,9 +112,9 @@ public class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("GCPadNew.ini", 
 						Environment.getExternalStorageDirectory()+File.separator+
 						"dolphin-emu" + File.separator + "Config" + File.separator + "GCPadNew.ini");
-				CopyAsset("GCPadNew.ini",
+				CopyAsset("Dolphin.ini",
 						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Config" + File.separator  +"Dolphin.ini");
+						"dolphin-emu" + File.separator + "Config" + File.separator + "Dolphin.ini");
 
 				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 				SharedPreferences.Editor editor = prefs.edit();
