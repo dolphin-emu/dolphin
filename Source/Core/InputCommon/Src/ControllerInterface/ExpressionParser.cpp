@@ -209,6 +209,7 @@ public:
 	virtual ~ExpressionNode() {}
 	virtual ControlState GetValue() { return 0; }
 	virtual void SetValue(ControlState state) {}
+	virtual int CountNumControls() { return 0; }
 	virtual bool IsComplicated() { return false; }
 	virtual operator std::string() { return ""; }
 };
@@ -229,6 +230,11 @@ public:
 	virtual void SetValue(ControlState value)
 	{
 		control->ToOutput()->SetState(value);
+	}
+
+	virtual int CountNumControls()
+	{
+		return 1;
 	}
 
 	virtual bool IsComplicated()
@@ -282,6 +288,11 @@ public:
 		rhs->SetValue(value);
 	}
 
+	virtual int CountNumControls()
+	{
+		return lhs->CountNumControls() + rhs->CountNumControls();
+	}
+
 	virtual bool IsComplicated()
 	{
 		return true;
@@ -329,6 +340,11 @@ public:
 		}
 	}
 
+	virtual int CountNumControls()
+	{
+		return inner->CountNumControls();
+	}
+
 	virtual bool IsComplicated()
 	{
 		return true;
@@ -371,18 +387,12 @@ public:
 
 	ExpressionParseStatus Parse(Expression **expr_out)
 	{
-		Expression *expr;
-		ExpressionNode *expr_node;
-		ExpressionParseStatus status = Toplevel(&expr_node);
+		ExpressionNode *node;
+		ExpressionParseStatus status = Toplevel(&node);
 		if (status != EXPRESSION_PARSE_SUCCESS)
 			return status;
 
-		expr = new Expression();
-		expr->expr = expr_node;
-		expr->num_controls = CountNumControls();
-		expr->is_complicated = expr_node->IsComplicated();
-		*expr_out = expr;
-
+		*expr_out = new Expression(node);
 		return EXPRESSION_PARSE_SUCCESS;
 	}
 
@@ -513,33 +523,31 @@ private:
 	{
 		return Binary(expr_out);
 	}
-
-	int CountNumControls()
-	{
-		int count = 0;
-		for (std::vector<Token>::iterator it = tokens.begin(); it != tokens.end(); ++it)
-			if (it->type == TOK_CONTROL)
-				count++;
-		return count;
-	}
 };
 
 ControlState Expression::GetValue()
 {
-	return expr->GetValue();
+	return node->GetValue();
 }
 
 void Expression::SetValue(ControlState value)
 {
-	expr->SetValue(value);
+	node->SetValue(value);
+}
+
+Expression::Expression(ExpressionNode *node_)
+{
+	node = node_;
+	num_controls = node->CountNumControls();
+	is_complicated = node->IsComplicated();
 }
 
 Expression::~Expression()
 {
-	delete expr;
+	delete node;
 }
 
-ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Expression **expr_out)
+ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder &finder, Expression **expr_out)
 {
 	ExpressionParseStatus status;
 	Expression *expr;
@@ -561,6 +569,33 @@ ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Ex
 
 	*expr_out = expr;
 	return EXPRESSION_PARSE_SUCCESS;
+}
+
+ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Expression **expr_out)
+{
+	ExpressionParseStatus status;
+
+	status = ParseExpressionInner(str, finder, expr_out);
+	if (status == EXPRESSION_PARSE_SUCCESS)
+		return status;
+
+	if (status != EXPRESSION_PARSE_SYNTAX_ERROR)
+		return status;
+
+	// Add compatibility with old simple expressions, which are simple
+	// barewords control names.
+
+	ControlQualifier qualifier;
+	qualifier.control_name = str;
+	qualifier.has_device = false;
+
+	Device::Control *control = finder.FindControl(qualifier);
+	if (control) {
+		*expr_out = new Expression(new ControlExpression(qualifier, control));
+		return EXPRESSION_PARSE_SUCCESS;
+	}
+
+	return EXPRESSION_PARSE_SYNTAX_ERROR;
 }
 
 }
