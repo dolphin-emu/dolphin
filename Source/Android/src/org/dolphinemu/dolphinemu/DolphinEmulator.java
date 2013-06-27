@@ -173,24 +173,46 @@ public class DolphinEmulator<MainActivity> extends Activity
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event) {
 		int action = 0;
-		switch (event.getAction()) {
-			case KeyEvent.ACTION_DOWN:
-				action = 0;
-				break;
-			case KeyEvent.ACTION_UP:
-				action = 1;
-				break;
-			default:
-				break;
+
+		// Special catch for the back key
+		// Currently disabled because stopping and starting emulation is broken.
+		/*
+		if (    event.getSource() == InputDevice.SOURCE_KEYBOARD
+				&& event.getKeyCode() == KeyEvent.KEYCODE_BACK
+				&& event.getAction() == KeyEvent.ACTION_UP
+				)
+		{
+			if (Running)
+				NativeLibrary.StopEmulation();
+			Running = false;
+			Intent ListIntent = new Intent(this, GameListActivity.class);
+			startActivityForResult(ListIntent, 1);
+			return true;
 		}
-		InputDevice input = event.getDevice();
-		NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
-		return true;
+		*/
+
+		if (Running)
+		{
+			switch (event.getAction()) {
+				case KeyEvent.ACTION_DOWN:
+					action = 0;
+					break;
+				case KeyEvent.ACTION_UP:
+					action = 1;
+					break;
+				default:
+					return false;
+			}
+			InputDevice input = event.getDevice();
+			NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
+			return true;
+		}
+		return false;
 	}
 
 	@Override
 	public boolean dispatchGenericMotionEvent(MotionEvent event) {
-		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)) {
+		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0) || !Running) {
 			return super.dispatchGenericMotionEvent(event);
 		}
 

@@ -60,10 +60,12 @@ public class FolderBrowser extends ListActivity {
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
 		GameListItem o = adapter.getItem(position);
-		if(o.getData().equalsIgnoreCase("folder")||o.getData().equalsIgnoreCase("parent directory")){
+		if(o.getData().equalsIgnoreCase("folder") || o.getData().equalsIgnoreCase("parent directory")){
 			currentDir = new File(o.getPath());
 			Fill(currentDir);
 		}
+		else
+			FolderSelected();
 	}
 	
 	@Override
@@ -83,11 +85,14 @@ public class FolderBrowser extends ListActivity {
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Intent intent = new Intent();
-        intent.putExtra("Select", currentDir.getPath());
-        setResult(Activity.RESULT_OK, intent);
-
-        this.finish();
-        return true;
+		FolderSelected();
+		return true;
     }
+	private void FolderSelected()
+	{
+		Intent intent = new Intent();
+		intent.putExtra("Select", currentDir.getPath());
+		setResult(Activity.RESULT_OK, intent);
+		this.finish();
+	}
 }
