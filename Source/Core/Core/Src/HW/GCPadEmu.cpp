@@ -181,14 +181,14 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 	set_control(m_main_stick, 4, "LSHIFT");		// Modifier
 
 #elif __APPLE__
-	set_control(m_c_stick, 4, "`Left Control`");	// Modifier
+	set_control(m_c_stick, 4, "Left Control");	// Modifier
 
 	// Main Stick
-	set_control(m_main_stick, 0, "`Up Arrow");		// Up
-	set_control(m_main_stick, 1, "`Down Arrow`");		// Down
-	set_control(m_main_stick, 2, "`Left Arrow`");		// Left
-	set_control(m_main_stick, 3, "`Right Arrow`");	// Right
-	set_control(m_main_stick, 4, "`Left Shift`");		// Modifier
+	set_control(m_main_stick, 0, "Up Arrow");		// Up
+	set_control(m_main_stick, 1, "Down Arrow");		// Down
+	set_control(m_main_stick, 2, "Left Arrow");		// Left
+	set_control(m_main_stick, 3, "Right Arrow");	// Right
+	set_control(m_main_stick, 4, "Left Shift");		// Modifier
 #else
 	// not sure if these are right
 

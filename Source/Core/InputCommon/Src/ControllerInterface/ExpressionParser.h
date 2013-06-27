@@ -41,22 +41,18 @@ private:
 	bool is_input;
 };
 
-class Parser;
 class ExpressionNode;
 class Expression
 {
-	friend class Parser;
-
 public:
-	Expression() : expr(NULL) {}
+	Expression() : node(NULL) {}
+	Expression(ExpressionNode *node);
 	~Expression();
 	ControlState GetValue();
 	void SetValue (ControlState state);
 	int num_controls;
 	bool is_complicated;
-
-private:
-	ExpressionNode *expr;
+	ExpressionNode *node;
 };
 
 enum ExpressionParseStatus
