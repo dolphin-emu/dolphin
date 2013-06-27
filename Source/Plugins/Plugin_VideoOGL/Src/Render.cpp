@@ -141,6 +141,8 @@ static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static std::vector<u32> s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT]; // 2 for PEEK_Z and PEEK_COLOR
 
+static bool s_b3D_RightFrame = true;
+
 int GetNumMSAASamples(int MSAAMode)
 {
 	int samples;
@@ -1255,6 +1257,30 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	flipped_trc.top = flipped_trc.bottom;
 	flipped_trc.bottom = tmp;
 	
+	// apply 3d
+	if(g_ActiveConfig.b3DVision)
+	{
+		flipped_trc.left /= 2;
+		flipped_trc.right /= 2;
+		
+		VertexShaderManager::ResetView();
+		
+		if(s_b3D_RightFrame)
+		{
+			flipped_trc.left += s_backbuffer_width/2;
+			flipped_trc.right += s_backbuffer_width/2;
+			
+			VertexShaderManager::TranslateView(0.001f * g_ActiveConfig.iAnaglyphStereoSeparation,0.0f);
+			VertexShaderManager::RotateView(0.0001f *g_ActiveConfig.iAnaglyphFocalAngle,0.0f);
+		}
+		else
+		{
+			VertexShaderManager::TranslateView(-0.001f *g_ActiveConfig.iAnaglyphStereoSeparation,0.0f);
+			VertexShaderManager::RotateView(-0.0001f * g_ActiveConfig.iAnaglyphFocalAngle,0.0f);
+		}
+		s_b3D_RightFrame ^= 1;
+	}
+	
 	GL_REPORT_ERRORD();
 
 	// Copy the framebuffer to screen.
@@ -1511,14 +1537,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	OSD::DrawMessages();
 	GL_REPORT_ERRORD();
 
-	// Copy the rendered frame to the real window
-	GLInterface->Swap();
-
-	GL_REPORT_ERRORD();
-
-	// Clear framebuffer
-	if(!g_ActiveConfig.bAnaglyphStereo)
+	if(!g_ActiveConfig.b3DVision || s_b3D_RightFrame)
 	{
+		// Copy the rendered frame to the real window
+		GLInterface->Swap();
+		
+		// Clear framebuffer
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
