@@ -37,7 +37,6 @@ static const struct
 
 #define DATA_BUFFER_SIZE	32
 
-#ifdef NO_DUPLICATE_DINPUT_XINPUT
 //-----------------------------------------------------------------------------
 // Modified some MSDN code to get all the XInput device GUID.Data1 values in a vector,
 // faster than checking all the devices for each DirectInput device, like MSDN says to do
@@ -141,7 +140,6 @@ LCleanup:
 	if( bCleanupCOM )
 		CoUninitialize();
 }
-#endif
 
 void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND hwnd)
 {
@@ -152,21 +150,18 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices
 	// multiple joysticks with the same name shall get unique ids starting at 0
 	std::map< std::basic_string<TCHAR>, int>	name_counts;
 
-#ifdef NO_DUPLICATE_DINPUT_XINPUT
 	std::vector<DWORD> xinput_guids;
 	GetXInputGUIDS( xinput_guids );
-#endif
 
 	std::list<DIDEVICEINSTANCE>::iterator
 		i = joysticks.begin(),
 		e = joysticks.end();
 	for ( ; i!=e; ++i )
 	{
-#ifdef NO_DUPLICATE_DINPUT_XINPUT
 		// skip XInput Devices
 		if ( std::find( xinput_guids.begin(), xinput_guids.end(), i->guidProduct.Data1 ) != xinput_guids.end() )
 			continue;
-#endif
+
 		LPDIRECTINPUTDEVICE8 js_device;
 		if (SUCCEEDED(idi8->CreateDevice(i->guidInstance, &js_device, NULL)))
 		{
