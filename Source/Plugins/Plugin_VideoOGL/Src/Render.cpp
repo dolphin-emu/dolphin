@@ -217,7 +217,7 @@ void ApplySSAASettings() {
 #endif
 }
 
-void ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, void* userParam)
+void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, void* userParam)
 {
 	// GLES3 doesn't natively support this
 	// XXX: Include GLES2 extensions header so we can use this
