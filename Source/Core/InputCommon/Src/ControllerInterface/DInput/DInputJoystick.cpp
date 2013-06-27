@@ -6,6 +6,9 @@
 #include <sstream>
 #include <algorithm>
 
+#include <wbemidl.h>
+#include <oleauto.h>
+
 namespace ciface
 {
 namespace DInput
