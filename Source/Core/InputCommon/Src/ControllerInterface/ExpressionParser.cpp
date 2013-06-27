@@ -573,15 +573,6 @@ ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder &finde
 
 ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Expression **expr_out)
 {
-	ExpressionParseStatus status;
-
-	status = ParseExpressionInner(str, finder, expr_out);
-	if (status == EXPRESSION_PARSE_SUCCESS)
-		return status;
-
-	if (status != EXPRESSION_PARSE_SYNTAX_ERROR)
-		return status;
-
 	// Add compatibility with old simple expressions, which are simple
 	// barewords control names.
 
@@ -595,7 +586,7 @@ ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Ex
 		return EXPRESSION_PARSE_SUCCESS;
 	}
 
-	return EXPRESSION_PARSE_SYNTAX_ERROR;
+	return ParseExpressionInner(str, finder, expr_out);
 }
 
 }
