@@ -55,11 +55,13 @@ const s_svar PSVar_Loc[] = { {I_COLORS, C_COLORS, 4 },
 						{I_PMATERIALS, C_PMATERIALS, 4 },
 						};
 
-// TODO: Should compact packing be enabled?
-//#pragma pack(4)
+#pragma pack(1)
 struct pixel_shader_uid_data
 {
 	// TODO: Optimize field order for easy access!
+
+	u32 num_values; // TODO: Shouldn't be a u32
+	u32 NumValues() const { return num_values; }
 
 	u32 components;
 	u32 dstAlphaMode : 2;
@@ -96,69 +98,10 @@ struct pixel_shader_uid_data
 		else if (index == 3) { tevindref_bi4 = texmap; }
 	}
 
-	u64 tevorders_n_texcoord : 48; // 16 x 3 bits
-
-	u64 tevind_n_sw : 48;         // 16 x 3 bits
-	u64 tevind_n_tw : 48;         // 16 x 3 bits
-	u32 tevind_n_fb_addprev : 16; // 16 x 1 bit
-	u32 tevind_n_bs : 32;         // 16 x 2 bits
-	u32 tevind_n_fmt : 32;        // 16 x 2 bits
-	u32 tevind_n_bt : 32;         // 16 x 2 bits
-	u64 tevind_n_bias : 48;       // 16 x 3 bits
-	u64 tevind_n_mid : 64;        // 16 x 4 bits
-
-	// NOTE: These assume that the affected bits are zero before calling
-	void Set_tevind_sw(int index, u64 val)
-	{
-		tevind_n_sw |= val << (3*index);
-	}
-	void Set_tevind_tw(int index, u64 val)
-	{
-		tevind_n_tw |= val << (3*index);
-	}
-	void Set_tevind_bias(int index, u64 val)
-	{
-		tevind_n_bias |= val << (3*index);
-	}
-	void Set_tevind_mid(int index, u64 val)
-	{
-		tevind_n_mid |= val << (4*index);
-	}
-
-	u32 tevksel_n_swap1 : 16; // 8x2 bits
-	u32 tevksel_n_swap2 : 16; // 8x2 bits
-	u64 tevksel_n_kcsel0 : 40; // 8x5 bits
-	u64 tevksel_n_kasel0 : 40; // 8x5 bits
-	u64 tevksel_n_kcsel1 : 40; // 8x5 bits
-	u64 tevksel_n_kasel1 : 40; // 8x5 bits
-	void set_tevksel_kcsel(int index, int i, u64 value) { if (i) tevksel_n_kcsel1 |= value << (5*index); else tevksel_n_kcsel0 |= value << (5*index); }
-	void set_tevksel_kasel(int index, int i, u64 value) { if( i) tevksel_n_kasel1 |= value << (5*index); else tevksel_n_kasel0 |= value << (5*index); }
-
-	u64 cc_n_d : 64; // 16x4 bits
-	u64 cc_n_c : 64; // 16x4 bits
-	u64 cc_n_b : 64; // 16x4 bits
-	u64 cc_n_a : 64; // 16x4 bits
-	u32 cc_n_bias : 32; // 16x2 bits
-	u32 cc_n_op : 16; // 16x1 bit
-	u32 cc_n_clamp : 16; // 16x1 bit
-	u32 cc_n_shift : 32; // 16x2 bits
-	u32 cc_n_dest : 32; // 16x2 bits
-
-	u32 ac_n_rswap : 32; // 16x2 bits
-	u32 ac_n_tswap : 32; // 16x2 bits
-	u64 ac_n_d : 48; // 16x3 bits
-	u64 ac_n_c : 48; // 16x3 bits
-	u64 ac_n_b : 48; // 16x3 bits
-	u64 ac_n_a : 48; // 16x3 bits
-	u32 ac_n_bias : 32; // 16x2 bits
-	u32 ac_n_op : 16; // 16x1 bit
-	u32 ac_n_clamp : 16; // 16x1 bit
-	u32 ac_n_shift : 32; // 16x2 bits
-	u32 ac_n_dest : 32; // 16x2 bits
-
 	u32 alpha_test_comp0 : 3;
 	u32 alpha_test_comp1 : 3;
 	u32 alpha_test_logic : 2;
+
 	u32 alpha_test_use_zcomploc_hack : 1;
 
 	u32 fog_proj : 1;
@@ -169,14 +112,42 @@ struct pixel_shader_uid_data
 
 	u32 fast_depth_calc : 1;
 	u32 per_pixel_depth : 1;
-	u32 bHasIndStage : 16;
 
 	u32 xfregs_numTexGen_numTexGens : 4;
+
+	struct {
+		// TODO: Can save a lot space by removing the padding bits
+		u32 cc : 24;
+		u32 ac : 24;
+
+		u32 tevorders_texmap : 3;
+		u32 tevorders_texcoord : 3;
+		u32 tevorders_enable : 1;
+		u32 tevorders_colorchan : 3;
+		u32 pad1 : 6;
+
+		// TODO: Clean up the swapXY mess
+		u32 hasindstage : 1;
+		u32 tevind : 21;
+		u32 tevksel_swap1a : 2;
+		u32 tevksel_swap2a : 2;
+		u32 tevksel_swap1b : 2;
+		u32 tevksel_swap2b : 2;
+		u32 pad2 : 2;
+
+		u32 tevksel_swap1c : 2;
+		u32 tevksel_swap2c : 2;
+		u32 tevksel_swap1d : 2;
+		u32 tevksel_swap2d : 2;
+		u32 tevksel_kc : 5;
+		u32 tevksel_ka : 5;
+		u32 pad3 : 14;
+	} stagehash[16];
 
 	// TODO: I think we're fine without an enablePixelLighting field, should probably double check, though..
 	LightingUidData lighting;
 };
-//#pragma pack()
+#pragma pack()
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 typedef ShaderCode PixelShaderCode; // TODO: Obsolete

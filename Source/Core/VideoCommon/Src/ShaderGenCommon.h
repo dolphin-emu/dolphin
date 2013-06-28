@@ -100,7 +100,7 @@ public:
 	bool operator < (const ShaderUid& obj) const
 	{
 		// TODO: Store last frame used and order by that? makes much more sense anyway...
-		for (unsigned int i = 0; i < sizeof(uid_data) / sizeof(u32); ++i)
+		for (unsigned int i = 0; i < data.NumValues(); ++i)
 		{
 			if (this->values[i] < obj.values[i])
 				return true;
@@ -199,10 +199,9 @@ static void DeclareUniform(T& object, API_TYPE api_type, bool using_ubos, const 
 	object.Write(";\n");
 }
 
-#pragma pack(4)
+#pragma pack(1)
 /**
  * Common uid data used for shader generators that use lighting calculations.
- * Expected to be stored as a member called "lighting".
  */
 struct LightingUidData
 {
@@ -212,6 +211,8 @@ struct LightingUidData
 	u32 diffusefunc : 8; // 4x2 bits
 	u32 attnfunc : 8; // 4x2 bits
 	u32 light_mask : 32; // 4x8 bits
+
+	u32 NumValues() const { return sizeof(LightingUidData) / sizeof(u32); }
 };
 #pragma pack()
 

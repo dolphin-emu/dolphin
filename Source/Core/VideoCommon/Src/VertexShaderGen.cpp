@@ -74,6 +74,8 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	vertex_shader_uid_data& uid_data = (&out.template GetUidData<vertex_shader_uid_data>() != NULL)
 											? out.template GetUidData<vertex_shader_uid_data>() : dummy_data;
 
+	uid_data.num_values = sizeof(uid_data)/sizeof(u32);
+
 	out.SetBuffer(text);
 #ifndef ANDROID
 	locale_t locale;
@@ -374,7 +376,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 				break;
 			case XF_TEXGEN_REGULAR:
 			default:
-				uid_data.texMtxInfo[i].projection = xfregs.texMtxInfo[i].projection;
+				uid_data.texMtxInfo_n_projection |= xfregs.texMtxInfo[i].projection << i;
 				if (components & (VB_HAS_TEXMTXIDX0<<i))
 				{
 					out.Write("int tmp = int(tex%d.z);\n", i);
@@ -393,7 +395,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 				break;
 		}
 
-		uid_data.dualTexTrans.enabled = xfregs.dualTexTrans.enabled;
+		uid_data.dualTexTrans_enabled = xfregs.dualTexTrans.enabled;
 		// CHECKME: does this only work for regular tex gen types?
 		if (xfregs.dualTexTrans.enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
 		{
