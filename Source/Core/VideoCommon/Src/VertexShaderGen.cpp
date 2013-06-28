@@ -401,7 +401,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 		{
 			const PostMtxInfo& postInfo = xfregs.postMtxInfo[i];
 
-			uid_data.postMtxInfo[i] = xfregs.postMtxInfo[i].index;
+			uid_data.postMtxInfo[i].index = xfregs.postMtxInfo[i].index;
 			int postidx = postInfo.index;
 			out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES"[%d];\n"
 				"float4 P1 = " I_POSTTRANSFORMMATRICES"[%d];\n"
@@ -419,7 +419,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 			}
 			else
 			{
-				uid_data.postMtxInfo[i] |= xfregs.postMtxInfo[i].normalize << 6;
+				uid_data.postMtxInfo[i].normalize = xfregs.postMtxInfo[i].normalize;
 				if (postInfo.normalize)
 					out.Write("o.tex%d.xyz = normalize(o.tex%d.xyz);\n", i, i);
 

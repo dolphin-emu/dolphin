@@ -55,14 +55,13 @@ const s_svar PSVar_Loc[] = { {I_COLORS, C_COLORS, 4 },
 						{I_PMATERIALS, C_PMATERIALS, 4 },
 						};
 
-// TODO: Should compact packing be enabled?
-//#pragma pack(4)
+#pragma pack(1)
 struct pixel_shader_uid_data
 {
 	// TODO: Optimize field order for easy access!
 
 	u32 num_values; // TODO: Shouldn't be a u32
-	u32 NumValues() const { return num_values; } // TODO: Can be optimized :)
+	u32 NumValues() const { return num_values; }
 
 	u32 components;
 	u32 dstAlphaMode : 2;
@@ -117,6 +116,7 @@ struct pixel_shader_uid_data
 	u32 xfregs_numTexGen_numTexGens : 4;
 
 	struct {
+		// TODO: Can save a lot space by removing the padding bits
 		u32 cc : 24;
 		u32 ac : 24;
 
@@ -147,7 +147,7 @@ struct pixel_shader_uid_data
 	// TODO: I think we're fine without an enablePixelLighting field, should probably double check, though..
 	LightingUidData lighting;
 };
-//#pragma pack()
+#pragma pack()
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 typedef ShaderCode PixelShaderCode; // TODO: Obsolete

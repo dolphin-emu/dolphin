@@ -199,10 +199,9 @@ static void DeclareUniform(T& object, API_TYPE api_type, bool using_ubos, const 
 	object.Write(";\n");
 }
 
-#pragma pack(4)
+#pragma pack(1)
 /**
  * Common uid data used for shader generators that use lighting calculations.
- * Expected to be stored as a member called "lighting".
  */
 struct LightingUidData
 {
