@@ -343,8 +343,8 @@ inline void GetExpressionForControl(wxString &expr,
 	// non-default device
 	if (control_device && default_device && !(*control_device == *default_device))
 	{
-		expr += ":";
 		expr += control_device->ToString();
+		expr += ":";
 	}
 
 	// append the control name
