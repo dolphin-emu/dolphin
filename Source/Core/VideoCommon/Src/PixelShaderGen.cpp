@@ -585,6 +585,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	uid_data.ztex_op = bpmem.ztex2.op;
 	uid_data.per_pixel_depth = per_pixel_depth;
 	uid_data.fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
+	uid_data.early_ztest = bpmem.zcontrol.early_ztest;
 	uid_data.fog_fsel = bpmem.fog.c_proj_fsel.fsel;
 
 	// Note: z-textures are not written to depth buffer if early depth test is used
