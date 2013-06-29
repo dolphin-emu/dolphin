@@ -279,8 +279,8 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 			out.Write("o.colors_0 = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 	}
 
-	// TODO: This probably isn't necessary if pixel lighting is enabled.
-	GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
+	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
 	if (xfregs.numChan.numColorChans < 2)
 	{
