@@ -210,7 +210,6 @@ public:
 	virtual ControlState GetValue() { return 0; }
 	virtual void SetValue(ControlState state) {}
 	virtual int CountNumControls() { return 0; }
-	virtual bool IsComplicated() { return false; }
 	virtual operator std::string() { return ""; }
 };
 
@@ -235,11 +234,6 @@ public:
 	virtual int CountNumControls()
 	{
 		return 1;
-	}
-
-	virtual bool IsComplicated()
-	{
-		return false;
 	}
 
 	virtual operator std::string()
@@ -293,11 +287,6 @@ public:
 		return lhs->CountNumControls() + rhs->CountNumControls();
 	}
 
-	virtual bool IsComplicated()
-	{
-		return true;
-	}
-
 	virtual operator std::string()
 	{
 		return OpName(op) + "(" + (std::string)(*lhs) + ", " + (std::string)(*rhs) + ")";
@@ -343,11 +332,6 @@ public:
 	virtual int CountNumControls()
 	{
 		return inner->CountNumControls();
-	}
-
-	virtual bool IsComplicated()
-	{
-		return true;
 	}
 
 	virtual operator std::string()
@@ -539,7 +523,6 @@ Expression::Expression(ExpressionNode *node_)
 {
 	node = node_;
 	num_controls = node->CountNumControls();
-	is_complicated = node->IsComplicated();
 }
 
 Expression::~Expression()

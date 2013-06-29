@@ -73,13 +73,6 @@ public:
 				return 0;
 		}
 
-		bool IsComplicated() {
-			if (parsed_expression)
-				return parsed_expression->is_complicated;
-			else
-				return false;
-		}
-
 	protected:
 		ControlReference(const bool _is_input) : range(1), is_input(_is_input), parsed_expression(NULL) {}
 		ciface::ExpressionParser::Expression *parsed_expression;

@@ -240,10 +240,9 @@ void GamepadPage::UpdateGUI()
 			, e = (*g)->control_buttons.end();
 		for (; i!=e; ++i) {
 			ControllerInterface::ControlReference *r = (*i)->control_reference;
-			if (r->IsComplicated())
-				(*i)->SetLabel("...");
-			else
-				(*i)->SetLabel(StrToWxStr((*i)->control_reference->expression));
+			wxString expr = StrToWxStr((*i)->control_reference->expression);
+			expr.Replace("&", "&&");
+			(*i)->SetLabel(expr);
 		}
 
 		// cboxes
