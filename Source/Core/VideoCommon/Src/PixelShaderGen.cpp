@@ -592,6 +592,8 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	if (per_pixel_depth && bpmem.zcontrol.early_ztest)
 		out.Write("depth = zCoord;\n");
 
+	// Note: depth texture output is only written to depth buffer if late depth test is used
+	// theoretical final depth value is used for fog calculation, though, so we have to emulate ztextures anyway
 	if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !skip_ztexture)
 	{
 		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
@@ -603,13 +605,9 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		out.Write("zCoord = zCoord * (16777215.0f/16777216.0f);\n");
 		out.Write("zCoord = frac(zCoord);\n");
 		out.Write("zCoord = zCoord * (16777216.0f/16777215.0f);\n");
-
-		// Note: depth texture output is only written to depth buffer if late depth test is used
-		// final depth value is used for fog calculation, though
-		if (per_pixel_depth)
-			out.Write("depth = zCoord;\n");
 	}
-	else if (per_pixel_depth && !bpmem.zcontrol.early_ztest)
+
+	if (per_pixel_depth && !bpmem.zcontrol.early_ztest)
 		out.Write("depth = zCoord;\n");
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
