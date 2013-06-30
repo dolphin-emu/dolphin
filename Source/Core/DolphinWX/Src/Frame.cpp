@@ -771,6 +771,8 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_SAVE_FIRST_STATE: return IDM_SAVEFIRSTSTATE;
 	case HK_UNDO_LOAD_STATE: return IDM_UNDOLOADSTATE;
 	case HK_UNDO_SAVE_STATE: return IDM_UNDOSAVESTATE;
+	case HK_LOAD_STATE_FILE: return IDM_LOADSTATEFILE;
+	case HK_SAVE_STATE_FILE: return IDM_SAVESTATEFILE;
 	}
 
 	return -1;

@@ -98,6 +98,8 @@ static const struct {
 	{ "SaveFirstState",	0,	0 /* wxMOD_NONE */ },
 	{ "UndoLoadState",	351 /* WXK_F12 */,	0 /* wxMOD_NONE */ },
 	{ "UndoSaveState",	351 /* WXK_F12 */,	4 /* wxMOD_SHIFT */ },
+	{ "SaveStateFile",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadStateFile",	0,	0 /* wxMOD_NONE */ },
 };
 
 SConfig::SConfig()
