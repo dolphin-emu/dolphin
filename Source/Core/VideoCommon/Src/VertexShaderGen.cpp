@@ -114,6 +114,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 
 	uid_data.numTexGens = xfregs.numTexGen.numTexGens;
 	uid_data.components = components;
+	uid_data.pixel_lighting = (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting);
 
 	if(api_type == API_OPENGL)
 	{
@@ -279,8 +280,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 			out.Write("o.colors_0 = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 	}
 
-	if (!(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting))
-		GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
+	GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
 	if (xfregs.numChan.numColorChans < 2)
 	{
