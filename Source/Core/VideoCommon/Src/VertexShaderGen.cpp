@@ -74,8 +74,6 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 	vertex_shader_uid_data& uid_data = (&out.template GetUidData<vertex_shader_uid_data>() != NULL)
 											? out.template GetUidData<vertex_shader_uid_data>() : dummy_data;
 
-	uid_data.num_values = sizeof(uid_data)/sizeof(u32);
-
 	out.SetBuffer(text);
 #ifndef ANDROID
 	locale_t locale;

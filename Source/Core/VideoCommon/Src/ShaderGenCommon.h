@@ -120,7 +120,7 @@ private:
 	union
 	{
 		uid_data data;
-		u32 values[sizeof(uid_data) / sizeof(u32)];
+		u8 values[sizeof(uid_data)];
 	};
 };
 
@@ -212,7 +212,7 @@ struct LightingUidData
 	u32 attnfunc : 8; // 4x2 bits
 	u32 light_mask : 32; // 4x8 bits
 
-	u32 NumValues() const { return sizeof(LightingUidData) / sizeof(u32); }
+	u32 NumValues() const { return sizeof(LightingUidData); }
 };
 #pragma pack()
 
