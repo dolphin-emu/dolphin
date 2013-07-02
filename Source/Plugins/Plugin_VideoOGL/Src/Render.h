@@ -26,6 +26,7 @@ extern struct VideoConfig {
 	bool bSupportSampleShading;
 	GLSL_VERSION eSupportedGLSLVersion;
 	bool bSupportOGL31;
+	bool bSupportMSAABlitScaled;
 	
 	const char *gl_vendor;
 	const char *gl_renderer;
