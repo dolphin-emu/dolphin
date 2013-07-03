@@ -190,7 +190,7 @@ public:
 
 			if (tok.type == TOK_INVALID)
 			{
-				tokens.empty();
+				tokens.clear();
 				return EXPRESSION_PARSE_SYNTAX_ERROR;
 			}
 
