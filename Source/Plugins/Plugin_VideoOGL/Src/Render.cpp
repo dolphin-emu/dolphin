@@ -289,7 +289,7 @@ void InitDriverInfo()
 		vendor = DriverDetails::VENDOR_QUALCOMM;
 	else if (svendor == "Imagination Technologies")
 		vendor = DriverDetails::VENDOR_IMGTEC;
-	else if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
+	else if (svendor == "NVIDIA Corporation" && srenderer == "NVIDIA Tegra")
 		vendor = DriverDetails::VENDOR_TEGRA;
 	else if (svendor == "Vivante Corporation")
 		vendor = DriverDetails::VENDOR_VIVANTE;
