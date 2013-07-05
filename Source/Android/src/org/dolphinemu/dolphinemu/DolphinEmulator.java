@@ -204,7 +204,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 					return false;
 			}
 			InputDevice input = event.getDevice();
-			NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
+			NativeLibrary.onGamePadEvent(InputConfigActivity.getInputDesc(input), event.getKeyCode(), action);
 			return true;
 		}
 		return false;
@@ -222,7 +222,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 		{
 			InputDevice.MotionRange range;
 			range = motions.get(a);
-			NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), range.getAxis(), event.getAxisValue(range.getAxis()));
+			NativeLibrary.onGamePadMoveEvent(InputConfigActivity.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
 		}
 
 		return true;
