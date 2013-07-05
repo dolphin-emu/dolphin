@@ -118,7 +118,9 @@ public class DolphinEmulator<MainActivity> extends Activity
 
 				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 				SharedPreferences.Editor editor = prefs.edit();
-				editor.clear();
+				editor.putString("cpupref", NativeLibrary.GetConfig("Dolphin.ini", "Core", "CPUCore", "3"));
+				editor.putBoolean("dualcorepref", NativeLibrary.GetConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True") ? true : false);
+				editor.putString("gpupref", NativeLibrary.GetConfig("Dolphin.ini", "Core", "GFXBackend ", "Software Renderer"));
 				editor.commit();
 			}
 		}
