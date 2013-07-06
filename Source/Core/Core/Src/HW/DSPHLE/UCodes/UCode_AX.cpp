@@ -239,7 +239,11 @@ void CUCode_AX::HandleCommandList()
 				MixAUXBLR(HILO_TO_32(addr), HILO_TO_32(addr2));
 				break;
 
-			case CMD_UNK_11: curr_idx += 2; break;
+			case CMD_SET_OPPOSITE_LR:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				SetOppositeLR(HILO_TO_32(addr));
+				break;
 
 			case CMD_UNK_12:
 			{
@@ -586,6 +590,18 @@ void CUCode_AX::MixAUXBLR(u32 ul_addr, u32 dl_addr)
 		int samp = Common::swap32(*ptr++);
 		m_samples_auxB_right[i] = samp;
 		m_samples_right[i] += samp;
+	}
+}
+
+void CUCode_AX::SetOppositeLR(u32 src_addr)
+{
+	int* ptr = (int*)HLEMemory_Get_Pointer(src_addr);
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		int inp = Common::swap32(*ptr++);
+		m_samples_left[i] = -inp;
+		m_samples_right[i] = inp;
+		m_samples_surround[i] = 0;
 	}
 }
 
