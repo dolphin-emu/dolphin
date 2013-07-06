@@ -23,6 +23,7 @@
 #define TEXFUNC "texture2D"
 #ifdef USE_GLES3
 #include "GLFunctions.h"
+#define GLAPIENTRY GL_APIENTRY
 #define GL_SAMPLES_PASSED GL_ANY_SAMPLES_PASSED
 #define GL_READ_ONLY                      0x88B8
 #define GL_WRITE_ONLY                     0x88B9
