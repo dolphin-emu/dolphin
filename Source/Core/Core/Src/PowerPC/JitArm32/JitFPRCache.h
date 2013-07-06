@@ -29,7 +29,6 @@ using namespace ArmGen;
 class ArmFPRCache
 {
 private:
-	PPCCachedReg regs[32];
 	JRCPPC ArmCRegs[ARMFPUREGS];
 	JRCReg ArmRegs[ARMFPUREGS]; 
 	

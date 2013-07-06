@@ -653,10 +653,10 @@ void SDRUpdated()
 #define TLB_WAYS 2
 #define NUM_TLBS 2
 
-#define PAGE_SIZE 4096
-#define PAGE_INDEX_SHIFT 12
-#define PAGE_INDEX_MASK 0x3f
-#define PAGE_TAG_SHIFT 18
+#define HW_PAGE_SIZE 4096
+#define HW_PAGE_INDEX_SHIFT 12
+#define HW_PAGE_INDEX_MASK 0x3f
+#define HW_PAGE_TAG_SHIFT 18
 
 #define TLB_FLAG_MOST_RECENT 0x01
 #define TLB_FLAG_INVALID 0x02
@@ -676,7 +676,7 @@ static tlb_entry tlb[NUM_TLBS][TLB_SIZE/TLB_WAYS][TLB_WAYS];
 u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 {
 #ifdef FAST_TLB_CACHE
-	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>PAGE_INDEX_SHIFT)&PAGE_INDEX_MASK];
+	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
 	if(tlbe[0].tag == (vpa & ~0xfff) && !(tlbe[0].flags & TLB_FLAG_INVALID))
 	{
 		tlbe[0].flags |= TLB_FLAG_MOST_RECENT;
@@ -725,19 +725,19 @@ u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 {
 #ifdef FAST_TLB_CACHE
-	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>PAGE_INDEX_SHIFT)&PAGE_INDEX_MASK];
+	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
 	if((tlbe[0].flags & TLB_FLAG_MOST_RECENT) == 0)
 	{
 		tlbe[0].flags = TLB_FLAG_MOST_RECENT;
 		tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
-		tlbe[0].paddr = PTE2.RPN << PAGE_INDEX_SHIFT;
+		tlbe[0].paddr = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
 		tlbe[0].tag = vpa & ~0xfff;
 	}
 	else
 	{
 		tlbe[1].flags = TLB_FLAG_MOST_RECENT;
 		tlbe[0].flags &= ~TLB_FLAG_MOST_RECENT;
-		tlbe[1].paddr = PTE2.RPN << PAGE_INDEX_SHIFT;
+		tlbe[1].paddr = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
 		tlbe[1].tag = vpa & ~0xfff;
 	}
 #else
@@ -746,7 +746,7 @@ void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 		// ITLB cache
 		PowerPC::ppcState.itlb_last++;
 		PowerPC::ppcState.itlb_last &= 127;
-		PowerPC::ppcState.itlb_pa[PowerPC::ppcState.itlb_last] = PTE2.RPN << PAGE_INDEX_SHIFT;
+		PowerPC::ppcState.itlb_pa[PowerPC::ppcState.itlb_last] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
 		PowerPC::ppcState.itlb_va[PowerPC::ppcState.itlb_last] = vpa & ~0xfff;	
 	}
 	else
@@ -754,7 +754,7 @@ void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 		// DTLB cache
 		PowerPC::ppcState.dtlb_last++;
 		PowerPC::ppcState.dtlb_last &= 127;
-		PowerPC::ppcState.dtlb_pa[PowerPC::ppcState.dtlb_last] = PTE2.RPN << PAGE_INDEX_SHIFT;
+		PowerPC::ppcState.dtlb_pa[PowerPC::ppcState.dtlb_last] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
 		PowerPC::ppcState.dtlb_va[PowerPC::ppcState.dtlb_last] = vpa & ~0xfff;	
 	}
 #endif
@@ -763,7 +763,7 @@ void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 void InvalidateTLBEntry(u32 vpa)
 {
 #ifdef FAST_TLB_CACHE
-	tlb_entry *tlbe = tlb[0][(vpa>>PAGE_INDEX_SHIFT)&PAGE_INDEX_MASK];
+	tlb_entry *tlbe = tlb[0][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
 	if(tlbe[0].tag == (vpa & ~0xfff))
 	{
 		tlbe[0].flags |= TLB_FLAG_INVALID;
@@ -772,7 +772,7 @@ void InvalidateTLBEntry(u32 vpa)
 	{
 		tlbe[1].flags |= TLB_FLAG_INVALID;
 	}
-	tlb_entry *tlbe_i = tlb[1][(vpa>>PAGE_INDEX_SHIFT)&PAGE_INDEX_MASK];
+	tlb_entry *tlbe_i = tlb[1][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
 	if(tlbe_i[0].tag == (vpa & ~0xfff))
 	{
 		tlbe_i[0].flags |= TLB_FLAG_INVALID;
