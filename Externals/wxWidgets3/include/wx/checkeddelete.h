@@ -38,14 +38,14 @@
 #define wxCHECKED_DELETE(ptr)                                                 \
     wxPRE_NO_WARNING_SCOPE(scope_var1)                                        \
     {                                                                         \
-        typedef char complete[sizeof(*ptr)];                                  \
+        typedef char complete[sizeof(*ptr)] WX_ATTRIBUTE_UNUSED;              \
         delete ptr;                                                           \
     } wxPOST_NO_WARNING_SCOPE(scope_var1)
 
 #define wxCHECKED_DELETE_ARRAY(ptr)                                           \
     wxPRE_NO_WARNING_SCOPE(scope_var2)                                        \
     {                                                                         \
-        typedef char complete[sizeof(*ptr)];                                  \
+        typedef char complete[sizeof(*ptr)] WX_ATTRIBUTE_UNUSED;              \
         delete [] ptr;                                                        \
     } wxPOST_NO_WARNING_SCOPE(scope_var2)
 
