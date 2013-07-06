@@ -83,18 +83,22 @@ public class DolphinEmulator<MainActivity> extends Activity
 			startActivityForResult(ListIntent, 1);
 			
 			// Make the assets directory
-			String strDir = Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu";
-			File directory = new File(strDir);
+			String BaseDir = Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu";
+			File directory = new File(BaseDir);
 			directory.mkdirs();
 			
-			strDir += File.separator+"Config";
-			directory = new File(strDir);
+			String ConfigDir = BaseDir + File.separator + "Config";
+			directory = new File(ConfigDir);
 			directory.mkdirs();
-			
+
+			String GCDir = BaseDir + File.separator + "GC";
+			directory = new File(GCDir);
+			directory.mkdirs();
+
 			// Copy assets if needed
 			java.io.File file = new java.io.File(
 					Environment.getExternalStorageDirectory()+File.separator+
-							"dolphin-emu" + File.separator + "Config" + File.separator + "Dolphin.ini");
+							"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_coef.bin");
 			if(!file.exists())
 			{
 				CopyAsset("ButtonA.png", 
@@ -115,6 +119,18 @@ public class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("Dolphin.ini",
 						Environment.getExternalStorageDirectory()+File.separator+
 						"dolphin-emu" + File.separator + "Config" + File.separator + "Dolphin.ini");
+				CopyAsset("dsp_coef.bin",
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_coef.bin");
+				CopyAsset("dsp_rom.bin",
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_rom.bin");
+				CopyAsset("font_ansi.bin",
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "GC" + File.separator + "font_ansi.bin");
+				CopyAsset("font_sjis.bin",
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "GC" + File.separator + "font_sjis.bin");
 
 				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 				SharedPreferences.Editor editor = prefs.edit();
