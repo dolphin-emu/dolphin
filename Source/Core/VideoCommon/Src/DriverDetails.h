@@ -68,5 +68,5 @@ namespace DriverDetails
 	void Init(Vendor vendor, const u32 devfamily, const double version);
 	
 	// Once Vendor and driver version is set, this will return if it has the applicable bug passed to it.
-	const bool HasBug(Bug bug);
+	bool HasBug(Bug bug);
 }

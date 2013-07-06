@@ -83,7 +83,7 @@ bool GeckoCode::Compare(GeckoCode compare) const
 	if (codes.size() != compare.codes.size())
 		return false;
 
-	int exist = 0;
+	unsigned int exist = 0;
 	std::vector<GeckoCode::Code>::const_iterator
 		codes_iter = codes.begin(),
 		codes_end = codes.end();

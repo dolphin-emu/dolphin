@@ -40,7 +40,7 @@ namespace DriverDetails
 		switch(m_vendor)
 		{
 			case VENDOR_QUALCOMM:
-				for (int a = 0; a < (sizeof(m_qualcommbugs) / sizeof(BugInfo)); ++a)
+				for (unsigned int a = 0; a < (sizeof(m_qualcommbugs) / sizeof(BugInfo)); ++a)
 					m_bugs[std::make_pair(m_vendor, m_qualcommbugs[a].m_bug)] = m_qualcommbugs[a];
 			break;
 			default:
@@ -61,7 +61,7 @@ namespace DriverDetails
 					it->second.m_hasbug = true;
 	}
 
-	const bool HasBug(Bug bug)
+	bool HasBug(Bug bug)
 	{
 		auto it = m_bugs.find(std::make_pair(m_vendor, bug));
 		if (it == m_bugs.end())
