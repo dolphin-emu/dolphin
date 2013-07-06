@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.InputDevice;
@@ -26,6 +27,19 @@ public class InputConfigActivity extends ListActivity {
 	boolean Configuring = false;
 	boolean firstEvent = true;
 
+	static public String getInputDesc(InputDevice input)
+	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+			return input.getDescriptor();
+		else
+		{
+			List<InputDevice.MotionRange> motions = input.getMotionRanges();
+			String fakeid = "";
+			for (InputDevice.MotionRange range : motions)
+				fakeid += range.getAxis();
+			return fakeid;
+		}
+	}
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
@@ -124,12 +138,12 @@ public class InputConfigActivity extends ListActivity {
 					range = motions.get(a);
 					if (m_values.get(a) > (event.getAxisValue(range.getAxis()) + 0.5f))
 					{
-						AssignBind("Device '" + input.getDescriptor() + "'-Axis " + range.getAxis() + "-");
+						AssignBind("Device '" + InputConfigActivity.getInputDesc(input) + "'-Axis " + range.getAxis() + "-");
 						Configuring = false;
 					}
 					else if (m_values.get(a) < (event.getAxisValue(range.getAxis()) - 0.5f))
 					{
-						AssignBind("Device '" + input.getDescriptor() + "'-Axis " + range.getAxis() + "+");
+						AssignBind("Device '" + InputConfigActivity.getInputDesc(input) + "'-Axis " + range.getAxis() + "+");
 						Configuring = false;
 					}
 				}
@@ -148,7 +162,7 @@ public class InputConfigActivity extends ListActivity {
 				if (Configuring)
 				{
 					InputDevice input = event.getDevice();
-					AssignBind("Device '" + input.getDescriptor() + "'-Button " + event.getKeyCode());
+					AssignBind("Device '" + InputConfigActivity.getInputDesc(input) + "'-Button " + event.getKeyCode());
 					Configuring = false;
 					return true;
 				}

@@ -112,6 +112,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 
 	uid_data.numTexGens = xfregs.numTexGen.numTexGens;
 	uid_data.components = components;
+	uid_data.pixel_lighting = (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting);
 
 	if(api_type == API_OPENGL)
 	{
@@ -277,7 +278,6 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 			out.Write("o.colors_0 = float4(1.0f, 1.0f, 1.0f, 1.0f);\n");
 	}
 
-	// TODO: This probably isn't necessary if pixel lighting is enabled.
 	GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
 
 	if (xfregs.numChan.numColorChans < 2)
@@ -374,7 +374,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 				break;
 			case XF_TEXGEN_REGULAR:
 			default:
-				uid_data.texMtxInfo[i].projection = xfregs.texMtxInfo[i].projection;
+				uid_data.texMtxInfo_n_projection |= xfregs.texMtxInfo[i].projection << i;
 				if (components & (VB_HAS_TEXMTXIDX0<<i))
 				{
 					out.Write("int tmp = int(tex%d.z);\n", i);
@@ -393,7 +393,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 				break;
 		}
 
-		uid_data.dualTexTrans.enabled = xfregs.dualTexTrans.enabled;
+		uid_data.dualTexTrans_enabled = xfregs.dualTexTrans.enabled;
 		// CHECKME: does this only work for regular tex gen types?
 		if (xfregs.dualTexTrans.enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
 		{

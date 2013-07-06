@@ -190,7 +190,7 @@ public:
 
 			if (tok.type == TOK_INVALID)
 			{
-				tokens.empty();
+				tokens.clear();
 				return EXPRESSION_PARSE_SYNTAX_ERROR;
 			}
 
@@ -210,7 +210,6 @@ public:
 	virtual ControlState GetValue() { return 0; }
 	virtual void SetValue(ControlState state) {}
 	virtual int CountNumControls() { return 0; }
-	virtual bool IsComplicated() { return false; }
 	virtual operator std::string() { return ""; }
 };
 
@@ -235,11 +234,6 @@ public:
 	virtual int CountNumControls()
 	{
 		return 1;
-	}
-
-	virtual bool IsComplicated()
-	{
-		return false;
 	}
 
 	virtual operator std::string()
@@ -293,11 +287,6 @@ public:
 		return lhs->CountNumControls() + rhs->CountNumControls();
 	}
 
-	virtual bool IsComplicated()
-	{
-		return true;
-	}
-
 	virtual operator std::string()
 	{
 		return OpName(op) + "(" + (std::string)(*lhs) + ", " + (std::string)(*rhs) + ")";
@@ -343,11 +332,6 @@ public:
 	virtual int CountNumControls()
 	{
 		return inner->CountNumControls();
-	}
-
-	virtual bool IsComplicated()
-	{
-		return true;
 	}
 
 	virtual operator std::string()
@@ -539,7 +523,6 @@ Expression::Expression(ExpressionNode *node_)
 {
 	node = node_;
 	num_controls = node->CountNumControls();
-	is_complicated = node->IsComplicated();
 }
 
 Expression::~Expression()
@@ -573,15 +556,6 @@ ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder &finde
 
 ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Expression **expr_out)
 {
-	ExpressionParseStatus status;
-
-	status = ParseExpressionInner(str, finder, expr_out);
-	if (status == EXPRESSION_PARSE_SUCCESS)
-		return status;
-
-	if (status != EXPRESSION_PARSE_SYNTAX_ERROR)
-		return status;
-
 	// Add compatibility with old simple expressions, which are simple
 	// barewords control names.
 
@@ -595,7 +569,7 @@ ExpressionParseStatus ParseExpression(std::string str, ControlFinder &finder, Ex
 		return EXPRESSION_PARSE_SUCCESS;
 	}
 
-	return EXPRESSION_PARSE_SYNTAX_ERROR;
+	return ParseExpressionInner(str, finder, expr_out);
 }
 
 }

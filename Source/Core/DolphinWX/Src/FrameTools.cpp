@@ -149,12 +149,12 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_LOADSTATE, _("&Load State"), loadMenu);
 	emulationMenu->Append(IDM_SAVESTATE, _("Sa&ve State"), saveMenu);
 
-	saveMenu->Append(IDM_SAVESTATEFILE, _("Save State..."));
+	saveMenu->Append(IDM_SAVESTATEFILE, GetMenuLabel(HK_SAVE_STATE_FILE));
 	saveMenu->Append(IDM_SAVEFIRSTSTATE, GetMenuLabel(HK_SAVE_FIRST_STATE));
 	loadMenu->Append(IDM_UNDOSAVESTATE, GetMenuLabel(HK_UNDO_SAVE_STATE));
 	saveMenu->AppendSeparator();
 
-	loadMenu->Append(IDM_LOADSTATEFILE, _("Load State..."));
+	loadMenu->Append(IDM_LOADSTATEFILE,  GetMenuLabel(HK_LOAD_STATE_FILE));
 	
 	loadMenu->Append(IDM_UNDOLOADSTATE, GetMenuLabel(HK_UNDO_LOAD_STATE));
 	loadMenu->AppendSeparator();
@@ -397,6 +397,9 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = wxString::Format(_("Slot %i"), 
 					Id - HK_SAVE_STATE_SLOT_1 + 1);
 			break;
+		case HK_SAVE_STATE_FILE:
+			Label = _("Save State...");
+			break;
 
 		case HK_LOAD_LAST_STATE_1:
 		case HK_LOAD_LAST_STATE_2:
@@ -408,6 +411,9 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_LOAD_LAST_STATE_8:
 			Label = wxString::Format(_("Last %i"),
 				Id - HK_LOAD_LAST_STATE_1 + 1);
+			break;
+		case HK_LOAD_STATE_FILE:
+			Label = _("Load State...");
 			break;
 
 		case HK_SAVE_FIRST_STATE: Label = wxString("Save Oldest State"); break;

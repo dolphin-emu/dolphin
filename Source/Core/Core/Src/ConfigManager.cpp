@@ -98,6 +98,8 @@ static const struct {
 	{ "SaveFirstState",	0,	0 /* wxMOD_NONE */ },
 	{ "UndoLoadState",	351 /* WXK_F12 */,	0 /* wxMOD_NONE */ },
 	{ "UndoSaveState",	351 /* WXK_F12 */,	4 /* wxMOD_SHIFT */ },
+	{ "SaveStateFile",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadStateFile",	0,	0 /* wxMOD_NONE */ },
 };
 
 SConfig::SConfig()
@@ -407,6 +409,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
+		ini.Get("Core", "BBDumpPort",		&m_LocalCoreStartupParameter.iBBDumpPort,		-1);
 		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeamSpeedHack,			false);
 		ini.Get("Core", "SyncGPU",			&m_LocalCoreStartupParameter.bSyncGPU,			false);
 		ini.Get("Core", "FastDiscSpeed",	&m_LocalCoreStartupParameter.bFastDiscSpeed,	false);

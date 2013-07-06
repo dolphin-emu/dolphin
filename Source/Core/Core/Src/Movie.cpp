@@ -432,9 +432,9 @@ bool BeginRecordingInput(int controllers)
 				Movie::g_bClearSave = true;
 		}
 		std::thread md5thread(GetMD5);
+		GetSettings();
 	}
 	g_playMode = MODE_RECORDING;
-	GetSettings();
 	author = SConfig::GetInstance().m_strMovieAuthor;
 	EnsureTmpInputSize(1);
 
@@ -687,23 +687,9 @@ void ReadHeader()
 		GetSettings();
 	}
 
-	videoBackend.resize(ARRAYSIZE(tmpHeader.videoBackend));
-	for (unsigned int i = 0; i < ARRAYSIZE(tmpHeader.videoBackend);i++)
-	{
-		videoBackend[i] = tmpHeader.videoBackend[i];
-	}
-
-	g_discChange.resize(ARRAYSIZE(tmpHeader.discChange));
-	for (unsigned int i = 0; i < ARRAYSIZE(tmpHeader.discChange);i++)
-	{
-		g_discChange[i] = tmpHeader.discChange[i];
-	}
-
-	author.resize(ARRAYSIZE(tmpHeader.author));
-	for (unsigned int i = 0; i < ARRAYSIZE(tmpHeader.author);i++)
-	{
-		author[i] = tmpHeader.author[i];
-	}
+	videoBackend = (char*) tmpHeader.videoBackend;
+	g_discChange = (char*) tmpHeader.discChange;
+	author = (char*) tmpHeader.author;
 	memcpy(MD5, tmpHeader.md5, 16);
 }
 
@@ -1075,7 +1061,7 @@ void EndPlayInput(bool cont)
 		g_currentByte = 0;
 		g_playMode = MODE_NONE;
 		Core::DisplayMessage("Movie End.", 2000);
-		g_bRecordingFromSaveState = 0;
+		g_bRecordingFromSaveState = false;
 		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
 		//g_totalFrames = g_totalBytes = 0;
 		//delete tmpInput;
@@ -1183,10 +1169,11 @@ void GetSettings()
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
-
+	u8 tmp[21];
 	for (int i = 0; i < 20; ++i)
 	{
-		sscanf(SCM_REV_STR + 2 * i, "%02hhx", &revision[i]);
+		sscanf(SCM_REV_STR + 2 * i, "%02hhx", &tmp[i]);
+		revision[i] = tmp[i];
 	}
 }
 
@@ -1216,8 +1203,7 @@ void CheckMD5()
 void GetMD5()
 {
 	Core::DisplayMessage("Calculating checksum of game file...", 2000);
-	for (int i = 0; i < 16; i++)
-		MD5[i] = 0;
+	memset(MD5, 0, sizeof(MD5));
 	char game[255];
 	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(),SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.size());
 	md5_file(game, MD5);

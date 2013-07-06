@@ -129,8 +129,8 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bSyncGPU = Movie::IsSyncGPU();
 		if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
 		{
-			if (File::Exists("Movie.raw"))
-				File::Delete("Movie.raw");
+			if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + "Movie.raw"))
+				File::Delete(File::GetUserPath(D_GCUSER_IDX) + "Movie.raw");
 		}
 	}
 

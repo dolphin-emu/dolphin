@@ -216,7 +216,9 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 
 		_("Save Oldest State"),
 		_("Undo Load State"),
-		_("Undo Save State")
+		_("Undo Save State"),
+		_("Save State"),
+		_("Load State"),
 	};
 
 	const int page_breaks[3] = {HK_OPEN, HK_LOAD_STATE_SLOT_1, NUM_HOTKEYS};

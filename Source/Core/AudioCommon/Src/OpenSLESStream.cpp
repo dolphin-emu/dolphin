@@ -41,7 +41,8 @@ static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
 	// Comment from sample code:
 	// the most likely other result is SL_RESULT_BUFFER_INSUFFICIENT,
 	// which for this code example would indicate a programming error
-	assert(SL_RESULT_SUCCESS == result);
+	_assert_msg_(AUDIO, SL_RESULT_SUCCESS == result, "Couldn't enqueue audio stream.");
+
 
 	curBuffer ^= 1;	// Switch buffer
 	// Render to the fresh buffer

@@ -12,6 +12,8 @@
 #include "Timer.h"
 #include "Host.h"
 #include "ConfigManager.h"
+#include "SFML/Network.hpp"
+ 
 
 #include "WiimoteReal.h"
 
@@ -210,6 +212,12 @@ bool Wiimote::Read()
 
 	if (result > 0 && m_channel > 0)
 	{
+		if (Core::g_CoreStartupParameter.iBBDumpPort > 0 && index == WIIMOTE_BALANCE_BOARD)
+		{
+			static sf::SocketUDP Socket;
+			Socket.Send((char*)rpt.data(), rpt.size(), sf::IPAddress::LocalHost, Core::g_CoreStartupParameter.iBBDumpPort);
+		}
+
 		// Add it to queue
 		rpt.resize(result);
 		m_read_reports.Push(std::move(rpt));
@@ -234,6 +242,11 @@ bool Wiimote::Write()
 		
 		if (!is_speaker_data || m_last_audio_report.GetTimeDifference() > 5)
 		{
+			if (Core::g_CoreStartupParameter.iBBDumpPort > 0 && index == WIIMOTE_BALANCE_BOARD)
+			{
+				static sf::SocketUDP Socket;
+				Socket.Send((char*)rpt.data(), rpt.size(), sf::IPAddress::LocalHost, Core::g_CoreStartupParameter.iBBDumpPort);
+			}
 			IOWrite(rpt.data(), rpt.size());
 			
 			if (is_speaker_data)

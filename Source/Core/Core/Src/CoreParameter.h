@@ -64,6 +64,8 @@ enum Hotkey
 	HK_SAVE_FIRST_STATE,
 	HK_UNDO_LOAD_STATE,
 	HK_UNDO_SAVE_STATE,
+	HK_SAVE_STATE_FILE,
+	HK_LOAD_STATE_FILE,
 
 	NUM_HOTKEYS,
 };
@@ -120,6 +122,7 @@ struct SCoreStartupParameter
 	bool bMMU;
 	bool bDCBZOFF;
 	int iTLBHack;
+	int iBBDumpPort;
 	bool bVBeamSpeedHack;
 	bool bSyncGPU;
 	bool bFastDiscSpeed;
