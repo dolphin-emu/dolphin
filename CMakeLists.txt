@@ -498,7 +498,7 @@ if(ANDROID)
 	set(PNG libpng)
 endif()
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
 	check_lib(SOUNDTOUCH SoundTouch soundtouch/soundtouch.h QUIET)
 endif()
 if (SOUNDTOUCH_FOUND)
