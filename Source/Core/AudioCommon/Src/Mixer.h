@@ -16,33 +16,12 @@
 class CMixer {
 	
 public:
-	CMixer(unsigned int AISampleRate = 48000, unsigned int DACSampleRate = 48000, unsigned int BackendSampleRate = 32000)
-		: m_aiSampleRate(AISampleRate)
-		, m_dacSampleRate(DACSampleRate)
-		, m_bits(16)
-		, m_channels(2)
-		, m_HLEready(false)
-		, m_logAudio(0)
-		, m_numSamples(0)
-		, m_indexW(0)
-		, m_indexR(0)
-		, m_AIplaying(true)
-	{
-		// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
-		// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
-		m_sampleRate = BackendSampleRate;
-
-		memset(m_buffer, 0, sizeof(m_buffer));
-
-		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);
-	}
-
+	CMixer(unsigned int AISampleRate = 48000, unsigned int DACSampleRate = 48000, unsigned int BackendSampleRate = 32000);
 	virtual ~CMixer() {}
 
 	// Called from audio threads
 	virtual unsigned int Mix(short* samples, unsigned int numSamples);
 	virtual void Premix(short * /*samples*/, unsigned int /*numSamples*/) {}
-	unsigned int GetNumSamples();
 
 	// Called from main thread
 	virtual void PushSamples(const short* samples, unsigned int num_samples);
@@ -95,16 +74,15 @@ protected:
 	bool m_logAudio;
 
 	bool m_throttle;
-
-	short m_buffer[MAX_SAMPLES * 2];
-	volatile u32 m_numSamples;
-	u32 m_indexW;
-	u32 m_indexR;
+	volatile u32 m_indexW;
+	volatile u32 m_indexR;
+	s16 m_last_sample[2];
 
 	bool m_AIplaying;
 	std::mutex m_csMixing;
 
 	volatile float m_speed; // Current rate of the emulation (1.0 = 100% speed)
+	float m_last_speed;
 private:
 
 };

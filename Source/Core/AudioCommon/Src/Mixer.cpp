@@ -17,6 +17,43 @@
 #include <tmmintrin.h>
 #endif
 
+#include <soundtouch/SoundTouch.h>
+
+soundtouch::SAMPLETYPE m_buffer[MAX_SAMPLES * 2];
+soundtouch::SoundTouch m_soundtouch;
+	
+CMixer::CMixer(unsigned int AISampleRate, unsigned int DACSampleRate, unsigned int BackendSampleRate)
+	: m_aiSampleRate(AISampleRate)
+	, m_dacSampleRate(DACSampleRate)
+	, m_bits(16)
+	, m_channels(2)
+	, m_HLEready(false)
+	, m_logAudio(0)
+	, m_indexW(0)
+	, m_indexR(0)
+	, m_AIplaying(true)
+	, m_last_speed(1.0)
+{
+	// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
+	// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
+	m_sampleRate = BackendSampleRate;
+
+	memset(m_buffer, 0, sizeof(m_buffer));
+	
+	m_soundtouch.setChannels(m_channels);
+	m_soundtouch.setSampleRate(m_sampleRate);
+	m_soundtouch.setRate(32000. / m_sampleRate);
+	m_soundtouch.setTempo(1.0);
+	m_soundtouch.setSetting(SETTING_USE_QUICKSEEK, 0);
+	m_soundtouch.setSetting(SETTING_USE_AA_FILTER, 0);
+	m_soundtouch.setSetting(SETTING_SEQUENCE_MS, 1);
+	m_soundtouch.setSetting(SETTING_SEEKWINDOW_MS, 28);
+	m_soundtouch.setSetting(SETTING_OVERLAP_MS, 12);
+	m_soundtouch.clear();
+	
+	INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);
+}
+
 // Executed from sound stream thread
 unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 {
@@ -32,98 +69,71 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		return numSamples;
 	}
 
-	unsigned int numLeft = Common::AtomicLoad(m_numSamples);
+	// cache access in non-volatile variable
+	u32 indexR = m_indexR;
+	u32 indexW = m_indexW;
+	float speed = m_speed;
+	
+	if(speed != m_last_speed)
+	{
+		m_last_speed = speed;
+		speed = std::min<float>(std::max<float>(speed, 0.1), 10.0);
+		m_soundtouch.setSetting(SETTING_SEQUENCE_MS, (int)(1 / (speed * speed)));
+		m_soundtouch.setTempo(speed);
+	}
+	
+	// convert samples in buffer
+	if((indexW & INDEX_MASK) < (indexR & INDEX_MASK)) {
+		// rollover, so convert to end of buffer
+		u32 read_samples = std::min<int>((2*MAX_SAMPLES-(indexR & INDEX_MASK))/2, std::max<int>(0, MAX_SAMPLES-m_soundtouch.numSamples()));
+		m_soundtouch.putSamples(m_buffer + (indexR & INDEX_MASK), read_samples);
+		indexR += 2*read_samples;
+	}
+	if((indexW & INDEX_MASK) > (indexR & INDEX_MASK)) {
+		u32 read_samples = std::min<int>(((indexW-indexR) & INDEX_MASK)/2, std::max<int>(0, MAX_SAMPLES-m_soundtouch.numSamples()));
+		m_soundtouch.putSamples(m_buffer + (indexR & INDEX_MASK), read_samples);
+		indexR += 2*read_samples;
+	}
+	m_indexR = indexR;
+	
 	if (m_AIplaying) {
-		if (numLeft < numSamples)//cannot do much about this
-			m_AIplaying = false;
-		if (numLeft < MAX_SAMPLES/4)//low watermark
+		if (m_soundtouch.numSamples() < numSamples) //cannot do much about this
 			m_AIplaying = false;
 	} else {
-		if (numLeft > MAX_SAMPLES/2)//high watermark
+		if (m_soundtouch.numSamples() > MAX_SAMPLES/2) //high watermark
 			m_AIplaying = true;
 	}
-
+	
 	if (m_AIplaying) {
-		numLeft = (numLeft > numSamples) ? numSamples : numLeft;
-
-		if (AudioInterface::GetAIDSampleRate() == m_sampleRate) // (1:1)
+		soundtouch::SAMPLETYPE *buffer = (soundtouch::SAMPLETYPE*)alloca(2 * numSamples * sizeof(soundtouch::SAMPLETYPE));
+		m_soundtouch.receiveSamples(buffer, numSamples);
+		
+		for(u32 i=0; i<2*numSamples; i++)
 		{
-#if _M_SSE >= 0x301
-			if (cpu_info.bSSSE3 && !((numLeft * 2) % 8))
-			{
-				static const __m128i sr_mask =
-					_mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL,
-								  0x04050607L, 0x00010203L);
-
-				for (unsigned int i = 0; i < numLeft * 2; i += 8)
-				{
-					_mm_storeu_si128((__m128i *)&samples[i], _mm_shuffle_epi8(_mm_loadu_si128((__m128i *)&m_buffer[(m_indexR + i) & INDEX_MASK]), sr_mask));
-				}
-			}
-			else
-#endif
-			{
-				for (unsigned int i = 0; i < numLeft * 2; i+=2)
-				{
-					samples[i] = Common::swap16(m_buffer[(m_indexR + i + 1) & INDEX_MASK]);
-					samples[i+1] = Common::swap16(m_buffer[(m_indexR + i) & INDEX_MASK]);
-				}
-			}
-			m_indexR += numLeft * 2;
+			samples[i] = buffer[i];
 		}
-		else //linear interpolation
-		{
-			//render numleft sample pairs to samples[]
-			//advance m_indexR with sample position
-			//remember fractional offset
-
-			static u32 frac = 0;
-			const u32 ratio = (u32)( 65536.0f * (float)AudioInterface::GetAIDSampleRate() / (float)m_sampleRate );
-
-			for (u32 i = 0; i < numLeft * 2; i+=2) {
-				u32 m_indexR2 = m_indexR + 2; //next sample
-				if ((m_indexR2 & INDEX_MASK) == (m_indexW & INDEX_MASK)) //..if it exists
-					m_indexR2 = m_indexR;
-
-				s16 l1 = Common::swap16(m_buffer[m_indexR & INDEX_MASK]); //current
-				s16 l2 = Common::swap16(m_buffer[m_indexR2 & INDEX_MASK]); //next
-				int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
-				samples[i+1] = sampleL;
-
-				s16 r1 = Common::swap16(m_buffer[(m_indexR + 1) & INDEX_MASK]); //current
-				s16 r2 = Common::swap16(m_buffer[(m_indexR2 + 1) & INDEX_MASK]); //next
-				int sampleR = ((r1 << 16) + (r2 - r1) * (u16)frac)  >> 16;
-				samples[i] = sampleR;
-
-				frac += ratio;
-				m_indexR += 2 * (u16)(frac >> 16);
-				frac &= 0xffff;
-			}
-		}
-
-	} else {
-		numLeft = 0;
+		
+		m_last_sample[0] = buffer[2*numSamples-2];
+		m_last_sample[1] = buffer[2*numSamples-1];
 	}
-
-	// Padding
-	if (numSamples > numLeft)
+	else
 	{
-		unsigned short s[2];
-		s[0] = Common::swap16(m_buffer[(m_indexR - 1) & INDEX_MASK]);
-		s[1] = Common::swap16(m_buffer[(m_indexR - 2) & INDEX_MASK]);
-		for (unsigned int i = numLeft*2; i < numSamples*2; i+=2)
-			*(u32*)(samples+i) = *(u32*)(s);
-//		memset(&samples[numLeft * 2], 0, (numSamples - numLeft) * 4);
+		// padding
+		for(u32 i=0; i<2*numSamples; i+=2)
+		{
+			samples[i] = m_last_sample[0];
+			samples[i+1] = m_last_sample[1];
+		}
 	}
 
 	//when logging, also throttle HLE audio
 	if (m_logAudio) {
 		if (m_AIplaying) {
-			Premix(samples, numLeft);
+			Premix(samples, numSamples);
 
-			AudioInterface::Callback_GetStreaming(samples, numLeft, m_sampleRate);
+			AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
 
-			g_wave_writer.AddStereoSamples(samples, numLeft);
+			g_wave_writer.AddStereoSamples(samples, numSamples);
 		}
 	}
 	else { 	//or mix as usual
@@ -135,19 +145,19 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
 	}
 
-
-	Common::AtomicAdd(m_numSamples, -(s32)numLeft);
-
 	return numSamples;
 }
 
 
 void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 {
+	// cache access in non-volatile variable
+	u32 indexW = m_indexW;
+	
 	if (m_throttle)
 	{
 		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
-		while (num_samples + Common::AtomicLoad(m_numSamples) > MAX_SAMPLES)
+		while (num_samples * 2 + ((indexW - m_indexR) & INDEX_MASK) >= MAX_SAMPLES * 2)
 		{
 			if (*PowerPC::GetStatePtr() != PowerPC::CPU_RUNNING || soundStream->IsMuted()) 
 				break;
@@ -160,37 +170,17 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 	}
 
 	// Check if we have enough free space
-	if (num_samples + Common::AtomicLoad(m_numSamples) > MAX_SAMPLES)
+	// indexW == m_indexR results in empty buffer, so indexR must always be smaller than indexW
+	if (num_samples * 2 + ((indexW - m_indexR) & INDEX_MASK) >= MAX_SAMPLES * 2)
 		return;
 
-	// AyuanX: Actual re-sampling work has been moved to sound thread
-	// to alleviate the workload on main thread
-	// and we simply store raw data here to make fast mem copy
-	int over_bytes = num_samples * 4 - (MAX_SAMPLES * 2 - (m_indexW & INDEX_MASK)) * sizeof(short);
-	if (over_bytes > 0)
-	{
-		memcpy(&m_buffer[m_indexW & INDEX_MASK], samples, num_samples * 4 - over_bytes);
-		memcpy(&m_buffer[0], samples + (num_samples * 4 - over_bytes) / sizeof(short), over_bytes);
-	}
-	else
-	{
-		memcpy(&m_buffer[m_indexW & INDEX_MASK], samples, num_samples * 4);
+	for(u32 i=0; i<num_samples; i++) {
+		m_buffer[(indexW + 2*i) & INDEX_MASK] = float(s16(Common::swap16(samples[2*i])));
+		m_buffer[(indexW + 2*i + 1) & INDEX_MASK] = float(s16(Common::swap16(samples[2*i + 1])));
 	}
 
 	m_indexW += num_samples * 2;
-
-	if (AudioInterface::GetAIDSampleRate() == m_sampleRate)
-		Common::AtomicAdd(m_numSamples, num_samples);
-	else if ((AudioInterface::GetAIDSampleRate() == 32000) && (m_sampleRate == 48000))
-		Common::AtomicAdd(m_numSamples, num_samples * 3 / 2);
-	else
-		Common::AtomicAdd(m_numSamples, num_samples * 2 / 3);
-
+	
 	return;
-}
-
-unsigned int CMixer::GetNumSamples()
-{
-	return Common::AtomicLoad(m_numSamples);
 }
 
