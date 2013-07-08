@@ -309,7 +309,7 @@ void SConfig::LoadSettings()
 
 	{
 		// Interface
-		ini.Get("Interface", "ConfirmStop",			&m_LocalCoreStartupParameter.bConfirmStop,		false);
+		ini.Get("Interface", "ConfirmStop",			&m_LocalCoreStartupParameter.bConfirmStop,		true);
 		ini.Get("Interface", "UsePanicHandlers",	&m_LocalCoreStartupParameter.bUsePanicHandlers,	true);
 		ini.Get("Interface", "OnScreenDisplayMessages",	&m_LocalCoreStartupParameter.bOnScreenDisplayMessages,	true);
 		ini.Get("Interface", "HideCursor",			&m_LocalCoreStartupParameter.bHideCursor,		false);
