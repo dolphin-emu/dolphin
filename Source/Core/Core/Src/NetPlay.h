@@ -192,6 +192,10 @@ public:
 	u64 CalculateMinimumBufferTime();
 	void AdjustPadBufferSize(unsigned int size);
 
+#ifdef USE_UPNP
+	void TryPortmapping(u16 port);
+#endif
+
 private:
 	class Client : public Player
 	{
@@ -215,6 +219,22 @@ private:
 	Common::Timer	m_ping_timer;
 	u32		m_ping_key;
 	bool	m_update_pings;
+	
+#ifdef USE_UPNP
+	static void mapPortThread(const u16 port);
+	static void unmapPortThread();
+
+	static bool initUPnP();
+	static bool UPnPMapPort(const std::string& addr, const u16 port);
+	static bool UPnPUnmapPort(const u16 port);
+
+	static struct UPNPUrls m_upnp_urls;
+	static struct IGDdatas m_upnp_data;
+	static u16 m_upnp_mapped;
+	static bool m_upnp_inited;
+	static bool m_upnp_error;
+	static std::thread m_upnp_thread;
+#endif
 };
 
 class NetPlayClient : public NetPlay

@@ -164,6 +164,10 @@ else()
 	set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE}-nogui)
 endif()
 
+if(USE_UPNP)
+  set(LIBS  ${LIBS} miniupnpc)
+endif()
+
 if(ANDROID)
 	add_library(${DOLPHIN_EXE} SHARED ${SRCS})
 	target_link_libraries(${DOLPHIN_EXE} 

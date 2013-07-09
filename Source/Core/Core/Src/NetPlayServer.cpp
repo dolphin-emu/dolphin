@@ -11,7 +11,14 @@ NetPlayServer::~NetPlayServer()
 	{
 		m_do_loop = false;
 		m_thread.join();
-	}	
+	}
+
+#ifdef USE_UPNP
+	if (m_upnp_thread.joinable())
+		m_upnp_thread.join();
+	m_upnp_thread = std::thread(&NetPlayServer::unmapPortThread);
+	m_upnp_thread.join();
+#endif
 }
 
 // called from ---GUI--- thread
@@ -632,3 +639,161 @@ void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
 		if (i->second.pid && (i->second.pid != skip_pid))
 			i->second.socket.Send(packet);
 }
+
+#ifdef USE_UPNP
+#include <miniwget.h>
+#include <miniupnpc.h>
+#include <upnpcommands.h>
+
+struct UPNPUrls NetPlayServer::m_upnp_urls;
+struct IGDdatas NetPlayServer::m_upnp_data;
+u16 NetPlayServer::m_upnp_mapped = 0;
+bool NetPlayServer::m_upnp_inited = false;
+bool NetPlayServer::m_upnp_error = false;
+std::thread NetPlayServer::m_upnp_thread;
+
+// called from ---GUI--- thread
+void NetPlayServer::TryPortmapping(u16 port)
+{
+	if (m_upnp_thread.joinable())
+		m_upnp_thread.join();
+	m_upnp_thread = std::thread(&NetPlayServer::mapPortThread, port);
+}
+
+// UPnP thread: try to map a port
+void NetPlayServer::mapPortThread(const u16 port)
+{
+	std::string ourIP = sf::IPAddress::GetLocalAddress().ToString();
+
+	if (!m_upnp_inited)
+		if (!initUPnP())
+			goto fail;
+
+	if (!UPnPMapPort(ourIP, port))
+		goto fail;
+
+	NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, ourIP.c_str());
+	return;
+fail:
+	WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, ourIP.c_str());
+	return;
+}
+
+// UPnP thread: try to unmap a port
+void NetPlayServer::unmapPortThread()
+{
+	if (m_upnp_mapped > 0)
+		UPnPUnmapPort(m_upnp_mapped);
+}
+
+// called from ---UPnP--- thread
+// discovers the IGD
+bool NetPlayServer::initUPnP()
+{
+	UPNPDev *devlist, *dev;
+	std::vector<UPNPDev *> igds;
+	int descXMLsize = 0, upnperror = 0;
+	char *descXML;
+
+	// Don't init if already inited
+	if (m_upnp_inited)
+		return true;
+
+	// Don't init if it failed before
+	if (m_upnp_error)
+		return false;
+
+	memset(&m_upnp_urls, 0, sizeof(UPNPUrls));
+	memset(&m_upnp_data, 0, sizeof(IGDdatas));
+
+	// Find all UPnP devices
+	devlist = upnpDiscover(2000, NULL, NULL, 0, 0, &upnperror);
+	if (!devlist)
+	{
+		WARN_LOG(NETPLAY, "An error occured trying to discover UPnP devices.");
+
+		m_upnp_error = true;
+		m_upnp_inited = false;
+
+		return false;
+	}
+
+	// Look for the IGD
+	dev = devlist;
+	while (dev)
+	{
+		if (strstr(dev->st, "InternetGatewayDevice"))
+			igds.push_back(dev);
+		dev = dev->pNext;
+	}
+
+	std::vector<UPNPDev *>::iterator i;
+	for (i = igds.begin(); i != igds.end(); i++)
+	{
+		dev = *i;
+		descXML = (char *) miniwget(dev->descURL, &descXMLsize, 0);
+		if (descXML)
+		{
+			parserootdesc(descXML, descXMLsize, &m_upnp_data);
+			free(descXML);
+			descXML = 0;
+			GetUPNPUrls(&m_upnp_urls, &m_upnp_data, dev->descURL, 0);
+
+			NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
+			break;
+		}
+		else
+		{
+			WARN_LOG(NETPLAY, "Error getting info from IGD at %s.", dev->descURL);
+		}
+	}
+
+	freeUPNPDevlist(devlist);
+
+	return true;
+}
+
+// called from ---UPnP--- thread
+// Attempt to portforward!
+bool NetPlayServer::UPnPMapPort(const std::string& addr, const u16 port)
+{
+	char port_str[6] = { 0 };
+	int result;
+
+	if (m_upnp_mapped > 0)
+		UPnPUnmapPort(m_upnp_mapped);
+
+	sprintf(port_str, "%d", port);
+	result = UPNP_AddPortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype,
+	                             port_str, port_str, addr.c_str(),
+	                             (std::string("dolphin-emu TCP on ") + addr).c_str(),
+	                             "TCP", NULL, NULL);
+
+	if(result != 0)
+		return false;
+
+	m_upnp_mapped = port;
+
+	return true;
+}
+
+// called from ---UPnP--- thread
+// Attempt to stop portforwarding.
+// --
+// NOTE: It is important that this happens! A few very crappy routers
+// apparently do not delete UPnP mappings on their own, so if you leave them
+// hanging, the NVRAM will fill with portmappings, and eventually all UPnP
+// requests will fail silently, with the only recourse being a factory reset.
+// --
+bool NetPlayServer::UPnPUnmapPort(const u16 port)
+{
+	char port_str[6] = { 0 };
+
+	sprintf(port_str, "%d", port);
+	UPNP_DeletePortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype,
+	                       port_str, "TCP", NULL);
+
+	return true;
+}
+#endif
+
