@@ -12,6 +12,7 @@
 #define MAX_SAMPLES			(1024 * 8)
 #define INDEX_MASK			(MAX_SAMPLES * 2 - 1)
 #define RESERVED_SAMPLES	(256)
+#define MAX_SAMPLES_SOUNDTOUCH	(256)
 
 class CMixer {
 	

@@ -41,7 +41,7 @@ CMixer::CMixer(unsigned int AISampleRate, unsigned int DACSampleRate, unsigned i
 	memset(m_buffer, 0, sizeof(m_buffer));
 	
 	m_soundtouch.setChannels(m_channels);
-	m_soundtouch.setSampleRate(m_sampleRate);
+	m_soundtouch.setSampleRate(32000);
 	m_soundtouch.setRate(32000. / m_sampleRate);
 	m_soundtouch.setTempo(1.0);
 	m_soundtouch.setSetting(SETTING_USE_QUICKSEEK, 0);
@@ -77,22 +77,33 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	if(speed != m_last_speed)
 	{
 		m_last_speed = speed;
+		
 		speed = std::min<float>(std::max<float>(speed, 0.1), 10.0);
-		m_soundtouch.setSetting(SETTING_SEQUENCE_MS, (int)(1 / (speed * speed)));
+		if(speed < 1.05 && speed > 0.95)
+			speed = 1.0;
+		
 		m_soundtouch.setTempo(speed);
 	}
 	
 	// convert samples in buffer
-	if((indexW & INDEX_MASK) < (indexR & INDEX_MASK)) {
-		// rollover, so convert to end of buffer
-		u32 read_samples = std::min<int>((2*MAX_SAMPLES-(indexR & INDEX_MASK))/2, std::max<int>(0, MAX_SAMPLES-m_soundtouch.numSamples()));
-		m_soundtouch.putSamples(m_buffer + (indexR & INDEX_MASK), read_samples);
-		indexR += 2*read_samples;
-	}
-	if((indexW & INDEX_MASK) > (indexR & INDEX_MASK)) {
-		u32 read_samples = std::min<int>(((indexW-indexR) & INDEX_MASK)/2, std::max<int>(0, MAX_SAMPLES-m_soundtouch.numSamples()));
-		m_soundtouch.putSamples(m_buffer + (indexR & INDEX_MASK), read_samples);
-		indexR += 2*read_samples;
+	u32 converte_samples = 0;
+	while(!converte_samples && m_soundtouch.numSamples() < numSamples)
+	{
+		converte_samples = MAX_SAMPLES_SOUNDTOUCH;
+		
+		if((indexW & INDEX_MASK) < (indexR & INDEX_MASK)) {
+			// rollover, so convert to end of buffer
+			u32 read_samples = std::min((2*MAX_SAMPLES-(indexR & INDEX_MASK))/2, converte_samples);
+			m_soundtouch.putSamples(m_buffer + (indexR & INDEX_MASK), read_samples);
+			indexR += 2*read_samples;
+			converte_samples -= read_samples;
+		}
+		if((indexW & INDEX_MASK) > (indexR & INDEX_MASK) && converte_samples) {
+			u32 read_samples = std::min(((indexW-indexR) & INDEX_MASK)/2, converte_samples);
+			m_soundtouch.putSamples(m_buffer + (indexR & INDEX_MASK), read_samples);
+			indexR += 2*read_samples;
+			converte_samples -= read_samples;
+		}
 	}
 	m_indexR = indexR;
 	
@@ -100,7 +111,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		if (m_soundtouch.numSamples() < numSamples) //cannot do much about this
 			m_AIplaying = false;
 	} else {
-		if (m_soundtouch.numSamples() > MAX_SAMPLES/2) //high watermark
+		if (((indexW-indexR) & INDEX_MASK) > MAX_SAMPLES/2) //high watermark
 			m_AIplaying = true;
 	}
 	
