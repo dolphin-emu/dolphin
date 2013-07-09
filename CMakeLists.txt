@@ -299,6 +299,7 @@ if(ANDROID)
 	add_definitions(-DANDROID)
 	set(USE_X11 0)
 	set(USE_WAYLAND 0)
+	set(USE_UPNP 0)
 endif()
 ########################################
 # Dependency checking
