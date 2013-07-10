@@ -658,7 +658,7 @@ void Host_SetWiiMoteConnectionState(int _State)
 	// Update field 1 or 2
 	event.SetInt(1);
 
-	NOTICE_LOG(WIIMOTE, event.GetString().c_str());
+	NOTICE_LOG(WIIMOTE, "%s", static_cast<const char*>(event.GetString().c_str()));
 
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }

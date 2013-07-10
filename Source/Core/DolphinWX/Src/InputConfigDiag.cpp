@@ -239,7 +239,6 @@ void GamepadPage::UpdateGUI()
 		std::vector<ControlButton*>::const_iterator i = (*g)->control_buttons.begin()
 			, e = (*g)->control_buttons.end();
 		for (; i!=e; ++i) {
-			ControllerInterface::ControlReference *r = (*i)->control_reference;
 			wxString expr = StrToWxStr((*i)->control_reference->expression);
 			expr.Replace("&", "&&");
 			(*i)->SetLabel(expr);
