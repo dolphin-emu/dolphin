@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,16 +32,22 @@ public class FolderBrowser extends ListActivity {
 			{
 				if (ff.getName().charAt(0) != '.')
 					if(ff.isDirectory())
-	                	dir.add(new GameListItem(getApplicationContext(), ff.getName(),"Folder",ff.getAbsolutePath()));
+	                	dir.add(new GameListItem(getApplicationContext(), ff.getName(),"Folder",ff.getAbsolutePath(), true));
 					else
+					{
 						if (ff.getName().toLowerCase().contains(".gcm") ||
 		                		ff.getName().toLowerCase().contains(".iso") ||
 		                		ff.getName().toLowerCase().contains(".wbfs") ||
 		                		ff.getName().toLowerCase().contains(".gcz") ||
 		                		ff.getName().toLowerCase().contains(".dol") ||
 		                		ff.getName().toLowerCase().contains(".elf"))
-		                			fls.add(new GameListItem(getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
-             }
+		                			fls.add(new GameListItem(getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath(), true));
+						else if (ff.getName().toLowerCase().contains(".zip") ||
+								ff.getName().toLowerCase().contains(".rar") ||
+								ff.getName().toLowerCase().contains(".7z"))
+									fls.add(new GameListItem(getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath(), false));
+					}
+			}
          }
          catch(Exception e)
          {
@@ -50,7 +57,7 @@ public class FolderBrowser extends ListActivity {
         Collections.sort(fls);
         dir.addAll(fls);
 	    if (!f.getPath().equalsIgnoreCase("/"))
-	        dir.add(0, new GameListItem(getApplicationContext(), "..", "Parent Directory", f.getParent()));
+	        dir.add(0, new GameListItem(getApplicationContext(), "..", "Parent Directory", f.getParent(), true));
 
          adapter = new FolderBrowserAdapter(this,R.layout.folderbrowser,dir);
 		 this.setListAdapter(adapter);
@@ -65,7 +72,10 @@ public class FolderBrowser extends ListActivity {
 			Fill(currentDir);
 		}
 		else
-			FolderSelected();
+			if (o.isValid())
+				FolderSelected();
+			else
+				Toast.makeText(this, "Can not use compressed file types.", Toast.LENGTH_LONG).show();
 	}
 	
 	@Override

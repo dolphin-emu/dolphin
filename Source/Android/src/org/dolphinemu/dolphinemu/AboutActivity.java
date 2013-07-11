@@ -24,7 +24,7 @@ public class AboutActivity extends ListActivity {
 		List<GameListItem> Input = new ArrayList<GameListItem>();
 		int a = 0;
 
-		Input.add(a++, new GameListItem(getApplicationContext(), "Build Revision", NativeLibrary.GetVersionString(), ""));
+		Input.add(a++, new GameListItem(getApplicationContext(), "Build Revision", NativeLibrary.GetVersionString(), "", true));
 		adapter = new FolderBrowserAdapter(this, R.layout.folderbrowser, Input);
 		setListAdapter(adapter);
 	}

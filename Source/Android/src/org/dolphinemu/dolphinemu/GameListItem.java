@@ -13,12 +13,14 @@ public class GameListItem implements Comparable<GameListItem>{
     private String data;
     private String path;
     private Bitmap image;
+	private boolean m_valid;
 
-    public GameListItem(Context ctx, String n,String d,String p)
+    public GameListItem(Context ctx, String n,String d,String p, boolean valid)
     {
         name = n;
         data = d;
         path = p;
+	    m_valid = valid;
         File file = new File(path);
         if (!file.isDirectory() && !path.equals(""))
         {
@@ -58,6 +60,10 @@ public class GameListItem implements Comparable<GameListItem>{
     {
     	return image;
     }
+	public boolean isValid()
+	{
+		return m_valid;
+	}
     
     public int compareTo(GameListItem o) 
     {

@@ -22,6 +22,7 @@ public class FolderBrowserAdapter extends ArrayAdapter<GameListItem>{
 		id = textViewResourceId;
 		items = objects;
 	}
+
 	public GameListItem getItem(int i)
 	{
 		return items.get(i);
@@ -39,7 +40,11 @@ public class FolderBrowserAdapter extends ArrayAdapter<GameListItem>{
 			TextView t2 = (TextView) v.findViewById(R.id.FolderSubTitle);
 
 			if(t1!=null)
+			{
 				t1.setText(o.getName());
+				if (!o.isValid())
+					t1.setTextColor(0xFFFF0000);
+			}
 			if(t2!=null)
 				t2.setText(o.getData());
 

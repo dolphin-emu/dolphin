@@ -103,16 +103,16 @@
       <file leaf-file-name="DolphinEmulator.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/DolphinEmulator.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="224" column="45" selection-start="6730" selection-end="6769" vertical-scroll-proportion="0.0" vertical-offset="2668" max-vertical-offset="3315">
+            <state line="224" column="45" selection-start="6730" selection-end="6769" vertical-scroll-proportion="0.0" vertical-offset="3345" max-vertical-offset="3810">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="InputConfigActivity.java" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="InputConfigActivity.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/InputConfigActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="24" column="39" selection-start="651" selection-end="651" vertical-scroll-proportion="0.15189873" vertical-offset="90" max-vertical-offset="2775">
+            <state line="97" column="16" selection-start="3629" selection-end="3721" vertical-scroll-proportion="0.0" vertical-offset="900" max-vertical-offset="2775">
               <folding />
             </state>
           </provider>
@@ -130,7 +130,25 @@
       <file leaf-file-name="FolderBrowser.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowser.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="82" column="39" selection-start="2671" selection-end="2671" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1365">
+            <state line="73" column="12" selection-start="2651" selection-end="2651" vertical-scroll-proportion="0.0" vertical-offset="540" max-vertical-offset="1500">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="FolderBrowserAdapter.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowserAdapter.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="45" column="42" selection-start="1242" selection-end="1242" vertical-scroll-proportion="0.28030303" vertical-offset="459" max-vertical-offset="855">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="GameListItem.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListItem.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="22" column="24" selection-start="570" selection-end="570" vertical-scroll-proportion="0.0" vertical-offset="405" max-vertical-offset="1140">
               <folding />
             </state>
           </provider>
@@ -159,22 +177,22 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListView.java" />
         <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/InputConfigAdapter.java" />
-        <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowserAdapter.java" />
         <option value="$PROJECT_DIR$/bin/AndroidManifest.xml" />
         <option value="$PROJECT_DIR$/res/layout/folderbrowser.xml" />
         <option value="$PROJECT_DIR$/project.properties" />
-        <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/AboutActivity.java" />
         <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListActivity.java" />
-        <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListItem.java" />
         <option value="$PROJECT_DIR$/assets/GCPadNew.ini" />
         <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/NativeGLSurfaceView.java" />
         <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/NativeLibrary.java" />
         <option value="$PROJECT_DIR$/AndroidManifest.xml" />
-        <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowser.java" />
         <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/DolphinEmulator.java" />
         <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/InputConfigActivity.java" />
+        <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListItem.java" />
+        <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowser.java" />
+        <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/AboutActivity.java" />
+        <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListFragment.java" />
+        <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowserAdapter.java" />
       </list>
     </option>
   </component>
@@ -228,44 +246,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="ProjectPane">
-        <subPane>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Android" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="dolphinemu" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
-      </pane>
       <pane id="Scope">
         <subPane subId="Project Files">
           <PATH>
@@ -326,6 +306,44 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Android" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Android" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Android" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Android" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Android" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dolphinemu" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
       <pane id="PackagesPane" />
     </panes>
   </component>
@@ -347,12 +365,12 @@
     <property name="AndroidRunProguardForReleaseBuild" value="false" />
     <property name="ANDROID_EXTENDED_DEVICE_CHOOSER_AVD" value="YES" />
     <property name="restartRequiresConfirmation" value="true" />
-    <property name="FullScreen" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
+    <property name="FullScreen" value="false" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="dynamic.classpath" value="false" />
-    <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
+    <property name="dynamic.classpath" value="false" />
   </component>
   <component name="RunManager" selected="Android Application.Dolphin Emulator">
     <configuration default="true" type="AndroidTestRunConfigurationType" factoryName="Android Tests">
@@ -563,8 +581,8 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32998455" sideWeight="0.69630873" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21378776" sideWeight="0.70637584" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.29362416" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21378776" sideWeight="0.7080537" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.29194632" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.17619784" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -586,18 +604,18 @@
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.29865772" sideWeight="0.5" order="8" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Build Variants" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2179289" sideWeight="0.29026845" order="3" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32718122" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Android" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.7466443" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32998326" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32998455" sideWeight="0.69630873" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32998455" sideWeight="0.69630873" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21378776" sideWeight="0.70637584" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2496136" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.29362416" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2496136" sideWeight="0.5" order="3" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
     </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -661,20 +679,6 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListAdapter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="13" selection-start="300" selection-end="300" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="825">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/InputConfigItem.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="13" selection-start="167" selection-end="167" vertical-scroll-proportion="0.18421052" vertical-offset="0" max-vertical-offset="930">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/SideMenuItem.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="8" column="13" selection-start="168" selection-end="168" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="630">
@@ -692,20 +696,6 @@
     <entry file="file://$PROJECT_DIR$/project.properties">
       <provider selected="true" editor-type-id="text-editor">
         <state line="13" column="17" selection-start="562" selection-end="562" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="300" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/AboutActivity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="3" selection-start="265" selection-end="265" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="555">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListItem.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="36" selection-start="580" selection-end="580" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1050">
-          <folding />
-        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListActivity.java">
@@ -744,20 +734,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/AndroidManifest.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="3" column="26" selection-start="174" selection-end="174" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="825">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowser.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="82" column="39" selection-start="2671" selection-end="2671" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1365">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/DolphinEmulator.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="224" column="45" selection-start="6730" selection-end="6769" vertical-scroll-proportion="0.0" vertical-offset="2668" max-vertical-offset="3315">
@@ -765,9 +741,51 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/AndroidManifest.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="26" selection-start="174" selection-end="174" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="825">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListItem.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="22" column="24" selection-start="570" selection-end="570" vertical-scroll-proportion="0.0" vertical-offset="405" max-vertical-offset="1140">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/InputConfigActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="39" selection-start="651" selection-end="651" vertical-scroll-proportion="0.15189873" vertical-offset="90" max-vertical-offset="2775">
+        <state line="97" column="16" selection-start="3629" selection-end="3721" vertical-scroll-proportion="0.0" vertical-offset="900" max-vertical-offset="2775">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/AboutActivity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="26" column="125" selection-start="741" selection-end="741" vertical-scroll-proportion="0.0" vertical-offset="120" max-vertical-offset="495">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListFragment.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="60" column="151" selection-start="2013" selection-end="2013" vertical-scroll-proportion="-1.4281985" vertical-offset="1237" max-vertical-offset="1620">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowser.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="73" column="12" selection-start="2651" selection-end="2651" vertical-scroll-proportion="0.0" vertical-offset="540" max-vertical-offset="1500">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowserAdapter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="45" column="42" selection-start="1242" selection-end="1242" vertical-scroll-proportion="0.28030303" vertical-offset="459" max-vertical-offset="855">
           <folding />
         </state>
       </provider>

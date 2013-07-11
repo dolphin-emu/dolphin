@@ -58,7 +58,7 @@ public class GameListFragment extends Fragment
 									ff.getName().toLowerCase().contains(".dol") ||
 									ff.getName().toLowerCase().contains(".elf") ||
 									ff.getName().toLowerCase().contains(".dff"))
-								fls.add(new GameListItem(mMe.getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
+								fls.add(new GameListItem(mMe.getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath(), true));
 				}
 			}
 			catch(Exception ignored)
