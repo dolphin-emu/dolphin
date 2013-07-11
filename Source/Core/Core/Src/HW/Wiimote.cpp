@@ -38,7 +38,7 @@ void Shutdown()
 }
 
 // if plugin isn't initialized, init and load config
-void Initialize(void* const hwnd)
+void Initialize(void* const hwnd, bool wait)
 {
 	// add 4 wiimotes
 	for (unsigned int i = WIIMOTE_CHAN_0; i<MAX_BBMOTES; ++i)
@@ -50,7 +50,7 @@ void Initialize(void* const hwnd)
 
 	g_plugin.LoadConfig(false);
 
-	WiimoteReal::Initialize();
+	WiimoteReal::Initialize(wait);
 	
 	// reload Wiimotes with our settings
 	if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
