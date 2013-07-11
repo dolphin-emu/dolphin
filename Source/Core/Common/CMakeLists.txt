@@ -1,4 +1,5 @@
-set(SRCS	Src/BreakPoints.cpp
+set(SRCS	Src/AudioResampler.cpp
+			Src/BreakPoints.cpp
 			Src/CDUtils.cpp
 			Src/ColorUtil.cpp
 			Src/ConsoleListener.cpp

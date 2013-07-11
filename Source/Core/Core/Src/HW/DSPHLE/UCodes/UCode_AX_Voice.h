@@ -13,6 +13,7 @@
 #error UCode_AX_Voice.h included without specifying version
 #endif
 
+#include "AudioResampler.h"
 #include "Common.h"
 #include "UCode_AXStructs.h"
 #include "../../DSP.h"
@@ -26,6 +27,8 @@
 # define PB_TYPE AXPBWii
 # define MAX_SAMPLES_PER_FRAME 96
 #endif
+
+using Common::ResampleAudio;
 
 // Put all of that in an anonymous namespace to avoid stupid compilers merging
 // functions from AX GC and AX Wii.
@@ -247,140 +250,19 @@ u16 AcceleratorGetSample()
 	return ret;
 }
 
-// Reads samples from the input callback, resamples them to <count> samples at
-// the wanted sample rate (computed from the ratio, see below).
-//
-// If srctype is SRCTYPE_POLYPHASE, coefficients need to be provided as well
-// (or the srctype will automatically be changed to LINEAR).
-//
-// Returns the current position after resampling (including fractional part).
-//
-// The input to output ratio is set in <ratio>, which is a floating point num
-// stored as a 32b integer:
-//  * Upper 16 bits of the ratio are the integer part
-//  * Lower 16 bits are the decimal part
-//
-// <curr_pos> is a 32b integer structured in the same way as the ratio: the
-// upper 16 bits are the integer part of the current position in the input
-// stream, and the lower 16 bits are the decimal part.
-//
-// We start getting samples not from sample 0, but 0.<curr_pos_frac>. This
-// avoids discontinuities in the audio stream, especially with very low ratios
-// which interpolate a lot of values between two "real" samples.
-u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count,
-                  s16* last_samples, u32 curr_pos, u32 ratio, int srctype,
-                  const s16* coeffs)
+// Convert AX resampling type enum to our AudioResampler.h enum.
+Common::ResamplingType AXResamplingType(u32 ax_val)
 {
-	int read_samples_count = 0;
-
-	// TODO(delroth): find out why the polyphase resampling algorithm causes
-	// audio glitches in Wii games with non integral ratios.
-
-	// If DSP DROM coefficients are available, support polyphase resampling.
-	if (0) // if (coeffs && srctype == SRCTYPE_POLYPHASE)
+	switch (ax_val)
 	{
-		s16 temp[4];
-		u32 idx = 0;
-
-		temp[idx++ & 3] = last_samples[0];
-		temp[idx++ & 3] = last_samples[1];
-		temp[idx++ & 3] = last_samples[2];
-		temp[idx++ & 3] = last_samples[3];
-
-		for (u32 i = 0; i < count; ++i)
-		{
-			curr_pos += ratio;
-			while (curr_pos >= 0x10000)
-			{
-				temp[idx++ & 3] = input_callback(read_samples_count++);
-				curr_pos -= 0x10000;
-			}
-
-			u16 curr_pos_frac = ((curr_pos & 0xFFFF) >> 9) << 2;
-			const s16* c = &coeffs[curr_pos_frac];
-
-			s64 t0 = temp[idx++ & 3];
-			s64 t1 = temp[idx++ & 3];
-			s64 t2 = temp[idx++ & 3];
-			s64 t3 = temp[idx++ & 3];
-
-			s64 samp = (t0 * c[0] + t1 * c[1] + t2 * c[2] + t3 * c[3]) >> 15;
-
-			output[i] = (s16)samp;
-		}
-
-		last_samples[3] = temp[--idx & 3];
-		last_samples[2] = temp[--idx & 3];
-		last_samples[1] = temp[--idx & 3];
-		last_samples[0] = temp[--idx & 3];
+	case SRCTYPE_POLYPHASE:
+		return Common::RESAMPLING_POLYPHASE;
+	case SRCTYPE_LINEAR:
+		return Common::RESAMPLING_LINEAR;
+	case SRCTYPE_NEAREST:
+	default:
+		return Common::RESAMPLING_NONE;
 	}
-	else if (srctype == SRCTYPE_LINEAR || srctype == SRCTYPE_POLYPHASE)
-	{
-		// This is the circular buffer containing samples to use for the
-		// interpolation. It is initialized with the values from the PB, and it
-		// will be stored back to the PB at the end.
-		s16 temp[4];
-		u32 idx = 0;
-
-		temp[idx++ & 3] = last_samples[0];
-		temp[idx++ & 3] = last_samples[1];
-		temp[idx++ & 3] = last_samples[2];
-		temp[idx++ & 3] = last_samples[3];
-
-		for (u32 i = 0; i < count; ++i)
-		{
-			curr_pos += ratio;
-
-			// While our current position is >= 1.0, push new samples to the
-			// circular buffer.
-			while (curr_pos >= 0x10000)
-			{
-				temp[idx++ & 3] = input_callback(read_samples_count++);
-				curr_pos -= 0x10000;
-			}
-
-			// Get our current fractional position, used to know how much of
-			// curr0 and how much of curr1 the output sample should be.
-			u16 curr_frac = curr_pos & 0xFFFF;
-			u16 inv_curr_frac = -curr_frac;
-
-			// Interpolate! If curr_frac is 0, we can simply take the last
-			// sample without any multiplying.
-			s16 sample;
-			if (curr_frac)
-			{
-				s32 s0 = temp[idx++ & 3];
-				s32 s1 = temp[idx++ & 3];
-
-				sample = ((s0 * inv_curr_frac) + (s1 * curr_frac)) >> 16;
-				idx += 2;
-			}
-			else
-			{
-				sample = temp[idx++ & 3];
-				idx += 3;
-			}
-
-			output[i] = sample;
-		}
-
-		// Update the four last_samples values.
-		last_samples[3] = temp[--idx & 3];
-		last_samples[2] = temp[--idx & 3];
-		last_samples[1] = temp[--idx & 3];
-		last_samples[0] = temp[--idx & 3];
-	}
-	else // SRCTYPE_NEAREST
-	{
-		// No sample rate conversion here: simply read samples from the
-		// accelerator to the output buffer.
-		for (u32 i = 0; i < count; ++i)
-			output[i] = input_callback(i);
-
-		memcpy(last_samples, output + count - 4, 4 * sizeof (u16));
-	}
-
-	return curr_pos;
 }
 
 // Read <count> input samples from ARAM, decoding and converting rate
@@ -393,9 +275,9 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
 	if (coeffs)
 		coeffs += pb.coef_select * 0x200;
 	u32 curr_pos = ResampleAudio([](u32) { return AcceleratorGetSample(); },
-	                             samples, count, pb.src.last_samples,
+	                             samples, count, 1, pb.src.last_samples,
 	                             pb.src.cur_addr_frac, HILO_TO_32(pb.src.ratio),
-	                             pb.src_type, coeffs);
+	                             AXResamplingType(pb.src_type), coeffs);
 	pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
 
 	// Update current position in the PB.
@@ -516,9 +398,10 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 		// We use ratio 0x55555 == (5 * 65536 + 21845) / 65536 == 5.3333 which
 		// is the nearest we can get to 96/18
 		u32 curr_pos = ResampleAudio([&samples](u32 i) { return samples[i]; },
-		                             wm_samples, wm_count, pb.remote_src.last_samples,
+		                             wm_samples, wm_count, 1,
+		                             pb.remote_src.last_samples,
 		                             pb.remote_src.cur_addr_frac, 0x55555,
-		                             SRCTYPE_POLYPHASE, coeffs);
+		                             Common::RESAMPLING_POLYPHASE, coeffs);
 		pb.remote_src.cur_addr_frac = curr_pos & 0xFFFF;
 
 		// Mix to main[0-3] and aux[0-3]
