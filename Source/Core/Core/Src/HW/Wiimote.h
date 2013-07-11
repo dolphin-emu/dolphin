@@ -35,7 +35,7 @@ namespace Wiimote
 {
 
 void Shutdown();
-void Initialize(void* const hwnd);
+void Initialize(void* const hwnd, bool wait = false);
 void Resume();
 void Pause();
 
@@ -53,7 +53,7 @@ void Update(int _number);
 namespace WiimoteReal
 {
 
-void Initialize();
+void Initialize(bool wait = false);
 void Shutdown();
 void Resume();
 void Pause();

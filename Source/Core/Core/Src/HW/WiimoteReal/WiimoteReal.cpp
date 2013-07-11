@@ -538,7 +538,7 @@ void LoadSettings()
 }
 
 // config dialog calls this when some settings change
-void Initialize()
+void Initialize(bool wait)
 {
 	if (SConfig::GetInstance().m_WiimoteContinuousScanning)
 		g_wiimote_scanner.StartScanning();
@@ -551,16 +551,19 @@ void Initialize()
 	g_wiimote_scanner.WantBB(0 != CalculateWantedBB());
 
 	// wait for connection because it should exist before state load
-	int timeout = 100;
-	std::vector<Wiimote*> found_wiimotes;
-	Wiimote* found_board = NULL;
-	g_wiimote_scanner.FindWiimotes(found_wiimotes, found_board);
-	if (SConfig::GetInstance().m_WiimoteContinuousScanning)
+	if (wait)
 	{
-		while(CalculateWantedWiimotes() && CalculateConnectedWiimotes() < found_wiimotes.size() && timeout)
+		int timeout = 100;
+		std::vector<Wiimote*> found_wiimotes;
+		Wiimote* found_board = NULL;
+		g_wiimote_scanner.FindWiimotes(found_wiimotes, found_board);
+		if (SConfig::GetInstance().m_WiimoteContinuousScanning)
 		{
-			Common::SleepCurrentThread(100);
-			timeout--;
+			while(CalculateWantedWiimotes() && CalculateConnectedWiimotes() < found_wiimotes.size() && timeout)
+			{
+				Common::SleepCurrentThread(100);
+				timeout--;
+			}
 		}
 	}
 

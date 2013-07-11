@@ -391,7 +391,7 @@ void EmuThread()
 	// Load and Init Wiimotes - only if we are booting in wii mode	
 	if (g_CoreStartupParameter.bWii)
 	{
-		Wiimote::Initialize(g_pWindowHandle);
+		Wiimote::Initialize(g_pWindowHandle, !g_stateFileName.empty());
 
 		// Activate wiimotes which don't have source set to "None"
 		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
