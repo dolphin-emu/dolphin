@@ -299,6 +299,11 @@ void Wiimote::Update()
 		return;
 	}
 
+	WiimoteEmu::Wiimote *const wm = (WiimoteEmu::Wiimote*)::Wiimote::GetPlugin()->controllers[index];
+
+	if (wm->Step())
+		return;
+
 	// Pop through the queued reports
 	const Report& rpt = ProcessReadQueue();
 
