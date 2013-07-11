@@ -84,6 +84,7 @@
     <ClInclude Include="Src\MemoryUtil.h" />
     <ClInclude Include="Src\MsgHandler.h" />
     <ClInclude Include="Src\NandPaths.h" />
+    <ClInclude Include="Src\RingBuffer.h" />
     <ClInclude Include="Src\SDCardUtil.h" />
     <ClInclude Include="Src\Setup.h" />
     <ClInclude Include="Src\stdafx.h" />

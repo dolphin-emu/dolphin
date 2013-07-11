@@ -5,8 +5,11 @@
 #ifndef _MIXER_H_
 #define _MIXER_H_
 
-#include "WaveFile.h"
+#include <array>
+
+#include "RingBuffer.h"
 #include "StdMutex.h"
+#include "WaveFile.h"
 
 // 16 bit Stereo
 #define MAX_SAMPLES			(1024 * 8)
@@ -23,15 +26,11 @@ public:
 		, m_channels(2)
 		, m_HLEready(false)
 		, m_logAudio(0)
-		, m_indexW(0)
-		, m_indexR(0)
 		, m_AIplaying(true)
 	{
 		// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
 		// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
 		m_sampleRate = BackendSampleRate;
-
-		memset(m_buffer, 0, sizeof(m_buffer));
 
 		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);
 	}
@@ -95,9 +94,8 @@ protected:
 
 	bool m_throttle;
 
-	short m_buffer[MAX_SAMPLES * 2];
-	volatile u32 m_indexW;
-	volatile u32 m_indexR;
+	std::array<int, MAX_SAMPLES> m_tmpStorage;
+	Common::RingBuffer<short, MAX_SAMPLES * 2> m_buffer;
 
 	bool m_AIplaying;
 	std::mutex m_csMixing;
