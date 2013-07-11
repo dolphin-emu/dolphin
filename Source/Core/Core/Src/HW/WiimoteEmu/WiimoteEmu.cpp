@@ -863,6 +863,8 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 						// these two types are handled in RequestStatus() & ReadData()
 					case WM_REQUEST_STATUS :
 					case WM_READ_DATA :
+						if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
+							WiimoteReal::InterruptChannel(m_index, _channelID, _pData, _Size);
 						break;
 
 					default :

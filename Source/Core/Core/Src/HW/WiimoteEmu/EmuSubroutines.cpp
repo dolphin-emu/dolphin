@@ -760,7 +760,8 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 		break;
 
 	case WM_REQUEST_STATUS : // 0x15
-		RequestStatus((wm_request_status*)sr->data);
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
+			RequestStatus((wm_request_status*)sr->data);
 		return;	// sends its own ack
 		break;
 
@@ -769,7 +770,8 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 		break;
 
 	case WM_READ_DATA : // 0x17
-		ReadData((wm_read_data*)sr->data);
+		if (WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
+			ReadData((wm_read_data*)sr->data);
 		return;	// sends its own ack
 		break;
 
@@ -811,7 +813,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 	}
 
 	// send ack
-	if (send_ack)
+	if (send_ack && WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
 		SendAck(sr->wm);
 }
 
