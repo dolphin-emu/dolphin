@@ -122,6 +122,13 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
 	set(USE_GLES 1)
 endif()
 
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "mips")
+	set(_M_GENERIC 1)
+	set(_M_MIPS 1)
+	add_definitions(-D_M_MIPS=1)
+	add_definitions(-D_M_GENERIC=1)
+endif()
+
 # Set these next two lines to test generic
 #set(_M_GENERIC 1)
 #add_definitions(-D_M_GENERIC=1)
