@@ -118,37 +118,21 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="InputConfigActivity.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/InputConfigActivity.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="97" column="16" selection-start="3629" selection-end="3721" vertical-scroll-proportion="0.0" vertical-offset="1230" max-vertical-offset="2775">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="AndroidManifest.xml" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/AndroidManifest.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="3" column="26" selection-start="174" selection-end="174" vertical-scroll-proportion="0.0" vertical-offset="30" max-vertical-offset="825">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PrefsActivity.java" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="PrefsActivity.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/PrefsActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="62" column="0" selection-start="1857" selection-end="1857" vertical-scroll-proportion="0.0" vertical-offset="720" max-vertical-offset="1260">
-              <folding />
+            <state line="177" column="17" selection-start="5357" selection-end="5357" vertical-scroll-proportion="0.09090909" vertical-offset="2619" max-vertical-offset="3375">
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="prefs.xml" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="prefs.xml" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/res/layout/prefs.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="6" column="37" selection-start="267" selection-end="267" vertical-scroll-proportion="0.2425876" vertical-offset="0" max-vertical-offset="420">
+            <state line="20" column="33" selection-start="799" selection-end="819" vertical-scroll-proportion="-12.0" vertical-offset="0" max-vertical-offset="435">
               <folding />
             </state>
           </provider>
@@ -169,7 +153,7 @@
       <file leaf-file-name="prefvalues.xml" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/res/values/prefvalues.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="1" column="11" selection-start="50" selection-end="50" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="255">
+            <state line="8" column="14" selection-start="231" selection-end="248" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="255">
               <folding />
             </state>
           </provider>
@@ -178,7 +162,7 @@
       <file leaf-file-name="GameListItem.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListItem.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="22" column="24" selection-start="570" selection-end="570" vertical-scroll-proportion="0.0" vertical-offset="315" max-vertical-offset="1230">
+            <state line="22" column="24" selection-start="570" selection-end="570" vertical-scroll-proportion="0.0" vertical-offset="225" max-vertical-offset="1140">
               <folding />
             </state>
           </provider>
@@ -220,8 +204,8 @@
         <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListFragment.java" />
         <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowserAdapter.java" />
         <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/FolderBrowser.java" />
-        <option value="$PROJECT_DIR$/res/layout/prefs.xml" />
         <option value="$PROJECT_DIR$/res/values/prefvalues.xml" />
+        <option value="$PROJECT_DIR$/res/layout/prefs.xml" />
         <option value="$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/PrefsActivity.java" />
       </list>
     </option>
@@ -781,13 +765,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListItem.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="24" selection-start="570" selection-end="570" vertical-scroll-proportion="0.0" vertical-offset="405" max-vertical-offset="1140">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/AboutActivity.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="26" column="125" selection-start="741" selection-end="741" vertical-scroll-proportion="0.0" vertical-offset="120" max-vertical-offset="495">
@@ -816,23 +793,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListActivity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="173" column="16" selection-start="5541" selection-end="5638" vertical-scroll-proportion="0.0" vertical-offset="2070" max-vertical-offset="3390">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/DolphinEmulator.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="224" column="45" selection-start="6730" selection-end="6769" vertical-scroll-proportion="0.0" vertical-offset="2668" max-vertical-offset="3315">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/InputConfigActivity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="97" column="16" selection-start="3629" selection-end="3721" vertical-scroll-proportion="0.0" vertical-offset="900" max-vertical-offset="2775">
           <folding />
         </state>
       </provider>
@@ -844,6 +807,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/InputConfigActivity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="97" column="16" selection-start="3629" selection-end="3721" vertical-scroll-proportion="0.03787879" vertical-offset="1230" max-vertical-offset="2775">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListItem.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="22" column="24" selection-start="570" selection-end="570" vertical-scroll-proportion="0.0" vertical-offset="405" max-vertical-offset="1140">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/res/values/strings.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="396">
@@ -851,28 +828,37 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/res/layout/prefs.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="20" column="33" selection-start="799" selection-end="819" vertical-scroll-proportion="-12.0" vertical-offset="0" max-vertical-offset="435">
+          <folding />
+        </state>
+      </provider>
+      <provider editor-type-id="android-designer">
+        <state />
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/res/values/prefvalues.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="11" selection-start="50" selection-end="50" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="255">
+        <state line="8" column="14" selection-start="231" selection-end="248" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="255">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListActivity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="173" column="16" selection-start="5541" selection-end="5638" vertical-scroll-proportion="0.0" vertical-offset="2070" max-vertical-offset="3390">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/PrefsActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="62" column="0" selection-start="1857" selection-end="1857" vertical-scroll-proportion="0.0" vertical-offset="720" max-vertical-offset="1260">
-          <folding />
+        <state line="177" column="17" selection-start="5357" selection-end="5357" vertical-scroll-proportion="0.09090909" vertical-offset="2619" max-vertical-offset="3375">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/res/layout/prefs.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="6" column="37" selection-start="267" selection-end="267" vertical-scroll-proportion="0.2425876" vertical-offset="0" max-vertical-offset="420">
-          <folding />
-        </state>
-      </provider>
-      <provider editor-type-id="android-designer">
-        <state />
       </provider>
     </entry>
   </component>

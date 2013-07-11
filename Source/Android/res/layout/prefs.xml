@@ -12,7 +12,8 @@
     </PreferenceCategory>
     <PreferenceCategory
             android:summary="Settings"
-            android:title="Video Settings" >
+            android:title="Video Settings"
+            android:key="videoprefcat">
         <ListPreference
                 android:entries="@array/gpuOptions"
                 android:entryValues="@array/gpuValues"
