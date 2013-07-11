@@ -85,22 +85,22 @@ endfunction(enable_precompiled_headers)
 # for revision info
 include(FindGit OPTIONAL)
 if(GIT_FOUND AND NOT DOLPHIN_WC_REVISION)
-# defines DOLPHIN_WC_REVISION
+	# defines DOLPHIN_WC_REVISION
 	EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
-	OUTPUT_VARIABLE DOLPHIN_WC_REVISION
-	OUTPUT_STRIP_TRAILING_WHITESPACE)
-# defines DOLPHIN_WC_DESCRIBE
+		OUTPUT_VARIABLE DOLPHIN_WC_REVISION
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+	# defines DOLPHIN_WC_DESCRIBE
 	EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} describe --always --long --dirty
-	OUTPUT_VARIABLE DOLPHIN_WC_DESCRIBE
-	OUTPUT_STRIP_TRAILING_WHITESPACE)
+		OUTPUT_VARIABLE DOLPHIN_WC_DESCRIBE
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-# remove hash from description
+	# remove hash from description
 	STRING(REGEX REPLACE "-[^-]+((-dirty)?)$" "\\1" DOLPHIN_WC_DESCRIBE "${DOLPHIN_WC_DESCRIBE}")
 
-# defines DOLPHIN_WC_BRANCH
+	# defines DOLPHIN_WC_BRANCH
 	EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-	OUTPUT_VARIABLE DOLPHIN_WC_BRANCH
-	OUTPUT_STRIP_TRAILING_WHITESPACE)
+		OUTPUT_VARIABLE DOLPHIN_WC_BRANCH
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
 
 # version number
@@ -118,7 +118,7 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
 	add_definitions(-marm -march=armv7-a)
 	add_definitions(-D_M_ARM=1)
 	add_definitions(-D_M_GENERIC=1)
-# Set generic options so you don't have to pass anything to cmake to build ARM
+	# Set generic options so you don't have to pass anything to cmake to build ARM
 	set(USE_GLES 1)
 endif()
 
@@ -191,13 +191,13 @@ if(APPLE)
 	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.7.sdk")
 	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk")
 	if(EXISTS "${SYSROOT_PATH}/")
-        set(TARGET_SYSROOT ${SYSROOT_PATH})
+		set(TARGET_SYSROOT ${SYSROOT_PATH})
 	elseif(EXISTS "${SYSROOT_LEGACY_PATH}/")
-        set(TARGET_SYSROOT ${SYSROOT_LEGACY_PATH})
+		set(TARGET_SYSROOT ${SYSROOT_LEGACY_PATH})
 	endif()
 	if(${TARGET_SYSROOT})
-        set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${TARGET_SYSROOT}")
-        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,${TARGET_SYSROOT}")
+		set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${TARGET_SYSROOT}")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,${TARGET_SYSROOT}")
 	endif()
 	# Do not warn about frameworks that are not available on all architectures.
 	# This avoids a warning when linking with QuickTime.
@@ -288,7 +288,7 @@ if(USE_EGL)
 	message("EGL OpenGL interface enabled")
 	add_definitions(-DUSE_EGL=1)
 else()
-# Using GLX
+	# Using GLX
 	set(USE_X11 1)
 	set(USE_WAYLAND 0)
 endif()
@@ -376,8 +376,8 @@ if(NOT ANDROID)
 	endif(OPENAL_FOUND)
 
 	if(UNIX AND NOT APPLE)
-# Note: The convention is to check USE_X11 or USE_WAYLAND where needed.
-# This is where we detect platforms and set the variables accordingly.
+		# Note: The convention is to check USE_X11 or USE_WAYLAND where needed.
+		# This is where we detect platforms and set the variables accordingly.
 		pkg_check_modules(WAYLAND wayland-egl wayland-client wayland-cursor)
 		if(USE_WAYLAND AND WAYLAND_FOUND)
 			pkg_check_modules(XKBCOMMON xkbcommon)
@@ -393,8 +393,8 @@ if(NOT ANDROID)
 			add_definitions(-DHAVE_WAYLAND=0)
 		endif(USE_WAYLAND AND WAYLAND_FOUND)
 
-# Note: We do not need to explicitly check for X11 as it is done in the cmake
-# FindOpenGL module on linux.
+		# Note: We do not need to explicitly check for X11 as it is done in the cmake
+		# FindOpenGL module on linux.
 		if(USE_X11 AND X11_FOUND)
 			set(USE_X11 1)
 			add_definitions(-DHAVE_X11=1)
@@ -406,11 +406,11 @@ if(NOT ANDROID)
 			message("X11 support disabled")
 			add_definitions(-DHAVE_X11=0)
 		endif(USE_X11 AND X11_FOUND)
-	
+
 		if (NOT USE_WAYLAND AND NOT USE_X11)
 			message(FATAL_ERROR "\n"
-			"No suitable display platform found\n"
-			"Requires wayland or x11 to run")
+				"No suitable display platform found\n"
+				"Requires wayland or x11 to run")
 		endif()
 	endif()
 
@@ -544,11 +544,11 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
 	include(FindSFML OPTIONAL)
 endif()
 if(SFML_FOUND AND NOT SFML_VERSION_MAJOR) # SFML 1.x doesn't define SFML_VERSION_MAJOR
-       message("Using shared SFML")
+	message("Using shared SFML")
 else()
-       message("Using static SFML ${SFML_FIND_VERSION_MAJOR}.${SFML_FIND_VERSION_MINOR} from Externals")
-       add_subdirectory(Externals/SFML)
-       include_directories(Externals/SFML/include)
+	message("Using static SFML ${SFML_FIND_VERSION_MAJOR}.${SFML_FIND_VERSION_MINOR} from Externals")
+	add_subdirectory(Externals/SFML)
+	include_directories(Externals/SFML/include)
 endif()
 
 if(USE_UPNP)
@@ -623,22 +623,7 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 	if(wxWidgets_FOUND)
 		EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
 			COMMAND sh "${wxWidgets_CONFIG_EXECUTABLE}"
-				${wxWidgets_CONFIG_OPTIONS} --version
-			OUTPUT_VARIABLE wxWidgets_VERSION
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-			ERROR_QUIET
-			)
-		message("Found wxWidgets version ${wxWidgets_VERSION}")
-		if(${wxWidgets_VERSION} VERSION_LESS "2.8.9")
-			message("At least 2.8.9 is required; ignoring found version")
-			unset(wxWidgets_FOUND)
-		endif()
-	endif(wxWidgets_FOUND)
-		
-	if(wxWidgets_FOUND)
-		EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
-			COMMAND sh "${wxWidgets_CONFIG_EXECUTABLE}"
-				${wxWidgets_CONFIG_OPTIONS} --version
+			${wxWidgets_CONFIG_OPTIONS} --version
 			OUTPUT_VARIABLE wxWidgets_VERSION
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 			ERROR_QUIET
@@ -655,26 +640,26 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 		endif()
 	endif(wxWidgets_FOUND)
 
-		if(UNIX AND NOT APPLE)
-			# There is a bug in the FindGTK module in cmake version 2.8.2 that
-			# does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
-			# users have complained that pkg-config does not find
-			# gdk-pixbuf-2.0.  On yet another hand, cmake version 2.8.3 in
-			# Ubuntu Natty does not find the glib libraries correctly.
-			# Ugly!!!
-			execute_process(COMMAND lsb_release -c -s
-				OUTPUT_VARIABLE DIST_NAME
-				ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-			if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}
-					VERSION_EQUAL 2.8.2 OR "${DIST_NAME}" STREQUAL "natty")
-				check_lib(GTK2 gtk+-2.0 gtk.h REQUIRED)
-			else()
-				include(FindGTK2)
-				if(GTK2_FOUND)
-					include_directories(${GTK2_INCLUDE_DIRS})
-				endif()
+	if(UNIX AND NOT APPLE)
+		# There is a bug in the FindGTK module in cmake version 2.8.2 that
+		# does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
+		# users have complained that pkg-config does not find
+		# gdk-pixbuf-2.0.  On yet another hand, cmake version 2.8.3 in
+		# Ubuntu Natty does not find the glib libraries correctly.
+		# Ugly!!!
+		execute_process(COMMAND lsb_release -c -s
+			OUTPUT_VARIABLE DIST_NAME
+			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+		if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}
+				VERSION_EQUAL 2.8.2 OR "${DIST_NAME}" STREQUAL "natty")
+			check_lib(GTK2 gtk+-2.0 gtk.h REQUIRED)
+		else()
+			include(FindGTK2)
+			if(GTK2_FOUND)
+				include_directories(${GTK2_INCLUDE_DIRS})
 			endif()
 		endif()
+	endif()
 
 	if(wxWidgets_FOUND)
 		include(${wxWidgets_USE_FILE})
@@ -697,7 +682,7 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 		else()
 			message(FATAL_ERROR "wxWidgets in Externals is not compatible with your platform")
 		endif()
-		
+
 		include_directories(
 			Externals/wxWidgets3
 			Externals/wxWidgets3/include)
