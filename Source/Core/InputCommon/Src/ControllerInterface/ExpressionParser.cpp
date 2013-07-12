@@ -95,6 +95,7 @@ public:
 
 	bool FetchBacktickString(std::string &value, char otherDelim = 0)
 	{
+		value = "";
 		while (it != expr.end())
 		{
 			char c = *it;
