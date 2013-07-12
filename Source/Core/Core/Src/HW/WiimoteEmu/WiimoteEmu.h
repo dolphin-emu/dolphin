@@ -17,7 +17,7 @@
 #include <vector>
 #include <queue>
 
-// Registry sizes 
+// Registry sizes
 #define WIIMOTE_EEPROM_SIZE			(16*1024)
 #define WIIMOTE_EEPROM_FREE_SIZE	0x1700
 #define WIIMOTE_REG_SPEAKER_SIZE	10
@@ -45,6 +45,30 @@ struct AccelData
 struct ADPCMState
 {
 	s32 predictor, step;
+};
+
+struct ExtensionReg
+{
+	u8	unknown1[0x08];
+
+	// address 0x08
+	u8	controller_data[0x06];
+	u8	unknown2[0x12];
+
+	// address 0x20
+	u8	calibration[0x10];
+	u8	unknown3[0x10];
+
+	// address 0x40
+	u8	encryption_key[0x10];
+	u8	unknown4[0xA0];
+
+	// address 0xF0
+	u8	encryption;
+	u8	unknown5[0x9];
+
+	// address 0xFA
+	u8	constant_id[6];
 };
 
 extern const ReportFeatures reporting_mode_features[];
@@ -143,7 +167,7 @@ private:
 	ControlGroup*	m_rumble;
 	Extension*		m_extension;
 	ControlGroup*	m_options;
-	
+
 	// WiiMote accel data
 	AccelData		m_accel;
 
@@ -151,7 +175,7 @@ private:
 	const u8	m_index;
 
 	double		ir_sin, ir_cos; //for the low pass filter
-	
+
 	UDPWrapper* m_udp;
 
 	bool	m_rumble_on;
@@ -201,30 +225,7 @@ private:
 
 	}	m_reg_ir;
 
-	struct ExtensionReg
-	{
-		u8	unknown1[0x08];
-
-		// address 0x08
-		u8	controller_data[0x06];
-		u8	unknown2[0x12];
-
-		// address 0x20
-		u8	calibration[0x10];
-		u8	unknown3[0x10];
-
-		// address 0x40
-		u8	encryption_key[0x10];
-		u8	unknown4[0xA0];
-
-		// address 0xF0
-		u8	encryption;
-		u8	unknown5[0x9];
-
-		// address 0xFA
-		u8	constant_id[6];
-
-	}	m_reg_ext;
+	ExtensionReg m_reg_ext;
 
 	struct SpeakerReg
 	{

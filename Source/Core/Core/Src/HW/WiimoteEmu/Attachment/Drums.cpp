@@ -32,7 +32,7 @@ static const u16 drum_button_bitmasks[] =
 	Drums::BUTTON_PLUS,
 };
 
-Drums::Drums() : Attachment(_trans("Drums"))
+Drums::Drums(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Drums"), _reg)
 {
 	// pads
 	groups.push_back(m_pads = new Buttons(_trans("Pads")));
@@ -49,7 +49,7 @@ Drums::Drums() : Attachment(_trans("Drums"))
 
 	// set up register
 	// id
-	memcpy(&reg[0xfa], drums_id, sizeof(drums_id));
+	memcpy(&id, drums_id, sizeof(drums_id));
 }
 
 void Drums::GetState(u8* const data, const bool focus)

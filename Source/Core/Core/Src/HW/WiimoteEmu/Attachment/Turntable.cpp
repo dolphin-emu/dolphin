@@ -30,7 +30,7 @@ static const char* const turntable_button_names[] =
 	"-", "+", _trans("Euphoria"),
 };
 
-Turntable::Turntable() : Attachment(_trans("Turntable"))
+Turntable::Turntable(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Turntable"), _reg)
 {
 	// buttons
 	groups.push_back(m_buttons = new Buttons("Buttons"));
@@ -53,7 +53,7 @@ Turntable::Turntable() : Attachment(_trans("Turntable"))
 
 	// set up register
 	// id
-	memcpy(&reg[0xfa], turntable_id, sizeof(turntable_id));
+	memcpy(&id, turntable_id, sizeof(turntable_id));
 }
 
 void Turntable::GetState(u8* const data, const bool focus)

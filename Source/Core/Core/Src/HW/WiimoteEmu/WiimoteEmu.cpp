@@ -286,12 +286,12 @@ Wiimote::Wiimote( const unsigned int index )
 
 	// extension
 	groups.push_back(m_extension = new Extension(_trans("Extension")));
-	m_extension->attachments.push_back(new WiimoteEmu::None());
-	m_extension->attachments.push_back(new WiimoteEmu::Nunchuk(m_udp));
-	m_extension->attachments.push_back(new WiimoteEmu::Classic());
-	m_extension->attachments.push_back(new WiimoteEmu::Guitar());
-	m_extension->attachments.push_back(new WiimoteEmu::Drums());
-	m_extension->attachments.push_back(new WiimoteEmu::Turntable());
+	m_extension->attachments.push_back(new WiimoteEmu::None(m_reg_ext));
+	m_extension->attachments.push_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext));
+	m_extension->attachments.push_back(new WiimoteEmu::Classic(m_reg_ext));
+	m_extension->attachments.push_back(new WiimoteEmu::Guitar(m_reg_ext));
+	m_extension->attachments.push_back(new WiimoteEmu::Drums(m_reg_ext));
+	m_extension->attachments.push_back(new WiimoteEmu::Turntable(m_reg_ext));
 
 	m_extension->settings.push_back(new ControlGroup::Setting(_trans("Motion Plus"), 0, 0, 1));
 
