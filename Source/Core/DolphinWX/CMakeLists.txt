@@ -177,11 +177,20 @@ if(ANDROID)
 	${LIBS}
 	"-Wl,--no-whole-archive"
 	)
+	if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "mips")
+		set (SO_TARGET "mips")
+	endif()
+	if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
+		set (SO_TARGET "armeabi-v7a")
+	endif()
+	if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "i686")
+		set (SO_TARGET "x86")
+	endif()
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/libs/armeabi-v7a/
+		COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/Source/Android/libs/${SO_TARGET}
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/libs/armeabi-v7a/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/libs/armeabi-v7a/
+		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/libs/${SO_TARGET}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/Source/Android/libs/${SO_TARGET}/
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/
