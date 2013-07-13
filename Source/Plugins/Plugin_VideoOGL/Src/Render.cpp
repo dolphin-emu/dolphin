@@ -984,7 +984,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 #ifdef USE_GLES3
 				// XXX: Swap colours
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-				             GL_RGBA, GL_UNSIGNED_INT, colorMap);
+				             GL_RGBA, GL_UNSIGNED_BYTE, colorMap);
 #else
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
 				             GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap);
@@ -1559,7 +1559,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();
-	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget,
+	// SaveTexture("tex.tga", GL_TEXTURE_2D, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;

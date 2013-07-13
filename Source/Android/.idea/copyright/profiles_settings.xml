@@ -1,5 +1,7 @@
 <component name="CopyrightManager">
-  <settings default="">
-    <module2copyright />
+  <settings default="Dolphin">
+    <module2copyright>
+      <element module="Copywrite" copyright="Dolphin" />
+    </module2copyright>
   </settings>
 </component>

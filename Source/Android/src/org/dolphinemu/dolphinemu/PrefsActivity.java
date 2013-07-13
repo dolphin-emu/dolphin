@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
@@ -20,14 +19,13 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class PrefsActivity extends PreferenceActivity {
 	private PrefsActivity m_activity;
+	
 	private String m_GLVersion;
 	private String m_GLVendor;
 	private String m_GLRenderer;
 
 
 	public class VersionCheck {
-		GLSurfaceView.Renderer mRenderer; // borrow this interface
-
 		EGL10 mEGL;
 		EGLDisplay mEGLDisplay;
 		EGLConfig[] mEGLConfigs;

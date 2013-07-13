@@ -7,6 +7,7 @@
 
 #include "GLUtil.h"
 #include "FramebufferManagerBase.h"
+#include "Render.h"
 
 // On the GameCube, the game sends a request for the graphics processor to
 // transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM
@@ -54,6 +55,17 @@ struct XFBSource : public XFBSourceBase
 
 	const GLuint renderbuf;
 };
+
+inline GLenum getFbType()
+{
+#ifndef USE_GLES3
+	if(g_ogl_config.eSupportedGLSLVersion == GLSL_120)
+	{
+		return GL_TEXTURE_RECTANGLE;
+	}
+#endif
+	return GL_TEXTURE_2D;
+}
 
 class FramebufferManager : public FramebufferManagerBase
 {

@@ -47,6 +47,9 @@
     <rightPanel />
     <splitter proportion="0.5" />
   </component>
+  <component name="CompilerWorkspaceConfiguration">
+    <option name="PARALLEL_COMPILATION" value="true" />
+  </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
   </component>
@@ -54,7 +57,6 @@
     <disable_hints />
   </component>
   <component name="DebuggerManager">
-    <ui_properties default_suspend_policy="SuspendAll" default_condition_enabled="true" />
     <breakpoint_any default_suspend_policy="SuspendAll" default_condition_enabled="true">
       <breakpoint>
         <option name="NOTIFY_CAUGHT" value="true" />
@@ -91,6 +93,7 @@
         <option name="LOG_MESSAGE" value="" />
       </breakpoint>
     </breakpoint_any>
+    <ui_properties default_suspend_policy="SuspendAll" default_condition_enabled="true" />
     <breakpoint_rules />
     <ui_properties />
   </component>
@@ -103,7 +106,7 @@
       <file leaf-file-name="DolphinEmulator.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/DolphinEmulator.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="224" column="45" selection-start="6730" selection-end="6769" vertical-scroll-proportion="0.0" vertical-offset="2846" max-vertical-offset="3585">
+            <state line="224" column="45" selection-start="6730" selection-end="6769" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4302">
               <folding />
             </state>
           </provider>
@@ -112,7 +115,7 @@
       <file leaf-file-name="GameListActivity.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="173" column="16" selection-start="5541" selection-end="5638" vertical-scroll-proportion="0.0" vertical-offset="2070" max-vertical-offset="3390">
+            <state line="173" column="16" selection-start="5541" selection-end="5638" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4068">
               <folding />
             </state>
           </provider>
@@ -121,49 +124,10 @@
       <file leaf-file-name="PrefsActivity.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/PrefsActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="177" column="17" selection-start="5357" selection-end="5357" vertical-scroll-proportion="0.09090909" vertical-offset="2619" max-vertical-offset="3375">
+            <state line="21" column="4" selection-start="629" selection-end="629" vertical-scroll-proportion="0.7099237" vertical-offset="99" max-vertical-offset="4014">
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="prefs.xml" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/res/layout/prefs.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="20" column="33" selection-start="799" selection-end="819" vertical-scroll-proportion="-12.0" vertical-offset="0" max-vertical-offset="435">
-              <folding />
-            </state>
-          </provider>
-          <provider editor-type-id="android-designer">
-            <state />
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="strings.xml" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/res/values/strings.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="210">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="prefvalues.xml" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/res/values/prefvalues.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="8" column="14" selection-start="231" selection-end="248" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="255">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="GameListItem.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListItem.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="22" column="24" selection-start="570" selection-end="570" vertical-scroll-proportion="0.0" vertical-offset="225" max-vertical-offset="1140">
-              <folding />
             </state>
           </provider>
         </entry>
@@ -260,6 +224,16 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="PackagesPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -298,7 +272,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
       <pane id="Scope">
         <subPane subId="Project Files">
           <PATH>
@@ -419,7 +392,7 @@
     <property name="MemberChooser.sorted" value="false" />
     <property name="recentsLimit" value="5" />
     <property name="ExportedApkPath" value="$USER_HOME$/Desktop/DolphinEmu-0.9.apk" />
-    <property name="options.lastSelected" value="project.propCompiler" />
+    <property name="options.lastSelected" value="copyright" />
     <property name="ExportedModule" value="Android" />
     <property name="last_opened_file_path" value="$USER_HOME$/NavigationDrawer/libs/android-support-v4.jar" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -427,7 +400,7 @@
     <property name="MemberChooser.copyJavadoc" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="AndroidRunProguardForReleaseBuild" value="false" />
-    <property name="ANDROID_EXTENDED_DEVICE_CHOOSER_AVD" value="YES" />
+    <property name="ANDROID_EXTENDED_DEVICE_CHOOSER_AVD" value="Mips" />
     <property name="restartRequiresConfirmation" value="true" />
     <property name="FullScreen" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
@@ -640,14 +613,15 @@
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Build Variants" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2179289" sideWeight="0.29026845" order="3" side_tool="true" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32718122" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32659933" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Android" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.7466443" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32998326" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32998455" sideWeight="0.69630873" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21378776" sideWeight="0.7080537" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.29194632" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.21301317" sideWeight="0.7104377" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28956228" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
@@ -752,8 +726,8 @@
       <provider selected="true" editor-type-id="text-editor">
         <state line="59" column="5" selection-start="1460" selection-end="1460" vertical-scroll-proportion="0.8684211" vertical-offset="360" max-vertical-offset="975">
           <folding>
-            <element signature="e#493#661#0" expanded="true" />
-            <element signature="e#654#655#0" expanded="true" />
+            <element signature="e#493#661#0" expanded="false" />
+            <element signature="e#654#655#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -793,13 +767,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/DolphinEmulator.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="224" column="45" selection-start="6730" selection-end="6769" vertical-scroll-proportion="0.0" vertical-offset="2668" max-vertical-offset="3315">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/AndroidManifest.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state line="3" column="26" selection-start="174" selection-end="174" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="825">
@@ -821,6 +788,27 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListActivity.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="173" column="16" selection-start="5541" selection-end="5638" vertical-scroll-proportion="0.0" vertical-offset="2070" max-vertical-offset="3390">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/DolphinEmulator.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="224" column="45" selection-start="6730" selection-end="6769" vertical-scroll-proportion="0.0" vertical-offset="2668" max-vertical-offset="3315">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/res/values/prefvalues.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="8" column="14" selection-start="231" selection-end="248" vertical-scroll-proportion="0.25396827" vertical-offset="0" max-vertical-offset="567">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/res/values/strings.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="396">
@@ -830,7 +818,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/res/layout/prefs.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="33" selection-start="799" selection-end="819" vertical-scroll-proportion="-12.0" vertical-offset="0" max-vertical-offset="435">
+        <state line="20" column="33" selection-start="799" selection-end="819" vertical-scroll-proportion="0.66790354" vertical-offset="0" max-vertical-offset="539">
           <folding />
         </state>
       </provider>
@@ -838,23 +826,9 @@
         <state />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/res/values/prefvalues.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="8" column="14" selection-start="231" selection-end="248" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="255">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/GameListActivity.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="173" column="16" selection-start="5541" selection-end="5638" vertical-scroll-proportion="0.0" vertical-offset="2070" max-vertical-offset="3390">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/org/dolphinemu/dolphinemu/PrefsActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="177" column="17" selection-start="5357" selection-end="5357" vertical-scroll-proportion="0.09090909" vertical-offset="2619" max-vertical-offset="3375">
+        <state line="21" column="4" selection-start="629" selection-end="629" vertical-scroll-proportion="0.7099237" vertical-offset="99" max-vertical-offset="4014">
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -867,6 +841,18 @@
       <state key="ArtifactsStructureConfigurable.UI">
         <settings>
           <artifact-editor />
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+      <state key="Copyright.UI">
+        <settings>
+          <last-edited>Dolphin</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>
@@ -946,6 +932,21 @@
               </list>
             </option>
           </splitter-proportions>
+        </settings>
+      </state>
+      <state key="ScopeChooserConfigurable.UI">
+        <settings>
+          <last-edited>Copywrite</last-edited>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+          <order>
+            <scope name="Copywrite" />
+          </order>
         </settings>
       </state>
     </states>
