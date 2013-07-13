@@ -26,6 +26,7 @@ public:
 		, m_channels(2)
 		, m_HLEready(false)
 		, m_logAudio(0)
+		, m_fracPos(0)
 		, m_AIplaying(true)
 	{
 		// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
@@ -94,8 +95,12 @@ protected:
 
 	bool m_throttle;
 
-	std::array<int, MAX_SAMPLES> m_tmpStorage;
 	Common::RingBuffer<short, MAX_SAMPLES * 2> m_buffer;
+
+	// Resampling interpolation related state
+	u32 m_fracPos;
+	std::array<s16, 4> m_lastSamplesLeft;
+	std::array<s16, 4> m_lastSamplesRight;
 
 	bool m_AIplaying;
 	std::mutex m_csMixing;

@@ -17,6 +17,28 @@
 #include <tmmintrin.h>
 #endif
 
+namespace
+{
+
+// The data coming from the AI looks like this: R0R1 L0L1 ...
+// R0R1 is the right sample encoded as big-endian, L0L1 same for left.
+//
+// We need instead: L1L0 R1R0. That means exchanging right and left, and
+// swapping each 16 bit sample to make it little endian.
+//
+// But it turns out this is exactly what swapping a 32 bit integer does,
+// so we just Common::swap32 the samples interpreted as an integer array.
+void SwapAndExchangeSamples(s16* samples, u32 nSamples)
+{
+	int* samplesInt = reinterpret_cast<int*>(samples);
+	for (u32 i = 0; i < nSamples; ++i)
+	{
+		samplesInt[i] = Common::swap32(samplesInt[i]);
+	}
+}
+
+}
+
 // Executed from sound stream thread
 unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 {
@@ -52,34 +74,33 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		if (AudioInterface::GetAIDSampleRate() == m_sampleRate) // (1:1)
 		{
 			m_buffer.PopMultiple(samples, numLeft * 2);
+			SwapAndExchangeSamples(samples, numLeft);
 		}
 		else // linear interpolation
 		{
-			static u32 frac = 0;
-			static s16 lastSamplesLeft[4] = { 0 },
-			           lastSamplesRight[4] = { 0 };
 			const u32 ratio = (u32)(65536.0f * (float)AudioInterface::GetAIDSampleRate() / (float)m_sampleRate);
 
 			// Compute the number of samples needed to interpolate to the
 			// wanted number of output samples.
 			u32 neededInput =
-				Common::GetCountNeededForResample(numLeft, frac, ratio,
+				Common::GetCountNeededForResample(numLeft, m_fracPos, ratio,
 				                                  Common::RESAMPLING_LINEAR);
 
 			s16* inputSamples = (s16*)alloca(neededInput * 2 * sizeof (s16));
 			m_buffer.PopMultiple(inputSamples, neededInput * 2);
+			SwapAndExchangeSamples(inputSamples, neededInput);
 
 			// Resample once for left, once for right.
 			u32 new_pos;
 			new_pos = Common::ResampleAudio([&](u32 i) { return inputSamples[i * 2]; },
-			                                samples, numLeft, 2, lastSamplesLeft,
-			                                frac, ratio, Common::RESAMPLING_LINEAR,
+			                                samples, numLeft, 2, m_lastSamplesLeft.data(),
+			                                m_fracPos, ratio, Common::RESAMPLING_LINEAR,
 			                                NULL);
 			new_pos = Common::ResampleAudio([&](u32 i) { return inputSamples[i * 2 + 1]; },
-			                                samples + 1, numLeft, 2, lastSamplesRight,
-			                                frac, ratio, Common::RESAMPLING_LINEAR,
+			                                samples + 1, numLeft, 2, m_lastSamplesRight.data(),
+			                                m_fracPos, ratio, Common::RESAMPLING_LINEAR,
 			                                NULL);
-			frac = new_pos & 0xFFFF;
+			m_fracPos = new_pos & 0xFFFF;
 		}
 	}
 	else
@@ -87,10 +108,21 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		numLeft = 0;
 	}
 
-	// Pad with silence.
+	// Pad the buffer by repeating the last sample.
 	if (numSamples > numLeft)
 	{
-		memset(&samples[numLeft * 2], 0, (numSamples - numLeft) * 4);
+		s16 lastSampleLeft = 0, lastSampleRight = 0;
+		if (numLeft != 0)
+		{
+			lastSampleLeft = samples[(numLeft - 1) * 2];
+			lastSampleRight = samples[(numLeft - 1) * 2 + 1];
+		}
+
+		for (u32 i = 0; i < numSamples - numLeft; ++i)
+		{
+			samples[(numLeft + i) * 2] = lastSampleLeft;
+			samples[(numLeft + i) * 2 + 1] = lastSampleRight;
+		}
 	}
 
 	//when logging, also throttle HLE audio
@@ -138,23 +170,8 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 	if (num_samples * 2 >= m_buffer.WritableCount())
 		return;
 
-	// The data coming from the AI looks like this: R0R1 L0L1 ...
-	// R0R1 is the right sample encoded as big-endian, L0L1 same for left.
-	//
-	// We need instead: L1L0 R1R0. That means exchanging right and left, and
-	// swapping each 16 bit sample to make it little endian.
-	//
-	// But it turns out this is exactly what swapping a 32 bit integer does,
-	// so we just Common::swap32 the samples interpreted as an integer array.
-	const int* samples_int = reinterpret_cast<const int*>(samples);
-	for (u32 i = 0; i < num_samples; ++i)
-	{
-		m_tmpStorage[i] = Common::swap32(samples_int[i]);
-	}
-
 	// Push the swapped data to the ring buffer.
-	m_buffer.PushMultiple(reinterpret_cast<short*>(&m_tmpStorage[0]),
-	                      num_samples * 2);
+	m_buffer.PushMultiple(samples, num_samples * 2);
 }
 
 unsigned int CMixer::GetNumSamples()
