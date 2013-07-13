@@ -268,6 +268,15 @@ if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
 
+if(ANDROID)
+	message("Building for Android")
+	add_definitions(-DANDROID)
+	set(USE_X11 0)
+	set(USE_WAYLAND 0)
+	set(USE_UPNP 0)
+	set(USE_GLES3 1)
+endif()
+
 # For now GLES and EGL are tied to each other.
 # Enabling GLES also disables the OpenGL plugin.
 if(USE_GLES3)
@@ -301,13 +310,6 @@ else()
 endif()
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 
-if(ANDROID)
-	message("Building for Android")
-	add_definitions(-DANDROID)
-	set(USE_X11 0)
-	set(USE_WAYLAND 0)
-	set(USE_UPNP 0)
-endif()
 ########################################
 # Dependency checking
 #
