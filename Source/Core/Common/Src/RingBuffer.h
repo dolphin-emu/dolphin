@@ -93,16 +93,16 @@ public:
 		u32 r = Common::AtomicLoad(m_readIndex);
 		u32 w = Common::AtomicLoad(m_writeIndex);
 
-		return r < w ? w - r : r - w;
+		return (N + w - r) % N;
 	}
 
 	// Returns a lower bound on the number of elements that can be pushed
-	// without overwriting unread data.
+	// without overwriting unread data or filling the buffer (r=w).
 	//
 	// Should be called only from the writer thread.
 	u32 WritableCount()
 	{
-		return N - ReadableCount();
+		return N - ReadableCount() - 1;
 	}
 
 private:
