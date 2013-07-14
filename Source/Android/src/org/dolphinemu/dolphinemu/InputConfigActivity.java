@@ -29,6 +29,8 @@ public class InputConfigActivity extends ListActivity {
 
 	static public String getInputDesc(InputDevice input)
 	{
+		if (input == null)
+			return "null"; // Happens when the inputdevice is from an unknown source
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
 			return input.getDescriptor();
 		else
