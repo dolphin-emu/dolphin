@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="Src\ControllerEmu.cpp" />
@@ -46,7 +46,7 @@
       <Filter>ControllerInterface</Filter>
     </ClInclude>
     <ClInclude Include="Src\ControllerInterface\Device.h">
-      <Filter>ControllerInterface\Device</Filter>
+      <Filter>ControllerInterface</Filter>
     </ClInclude>
     <ClInclude Include="Src\ControllerInterface\ExpressionParser.h">
       <Filter>ControllerInterface</Filter>
