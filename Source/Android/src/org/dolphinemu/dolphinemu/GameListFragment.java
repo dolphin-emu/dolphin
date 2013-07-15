@@ -13,8 +13,11 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Copyright 2013 Dolphin Emulator Project
@@ -40,6 +43,10 @@ public class GameListFragment extends Fragment
 		List<GameListItem> fls = new ArrayList<GameListItem>();
 		String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
 		int intDirectories = Integer.parseInt(Directories);
+
+		// Extensions to filter by.
+		Set<String> exts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf", ".dff"));
+
 		for (int a = 0; a < intDirectories; ++a)
 		{
 			String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(a), "");
@@ -47,18 +54,18 @@ public class GameListFragment extends Fragment
 			File[]dirs = currentDir.listFiles();
 			try
 			{
-				for(File ff: dirs)
+				for(File entry : dirs)
 				{
-					if (ff.getName().charAt(0) != '.')
-						if(!ff.isDirectory())
-							if (ff.getName().toLowerCase().contains(".gcm") ||
-									ff.getName().toLowerCase().contains(".iso") ||
-									ff.getName().toLowerCase().contains(".wbfs") ||
-									ff.getName().toLowerCase().contains(".gcz") ||
-									ff.getName().toLowerCase().contains(".dol") ||
-									ff.getName().toLowerCase().contains(".elf") ||
-									ff.getName().toLowerCase().contains(".dff"))
-								fls.add(new GameListItem(mMe.getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath(), true));
+					String entryName = entry.getName();
+
+					if (entryName.charAt(0) != '.')
+					{
+						if(!entry.isDirectory())
+						{
+							if (exts.contains(entryName.toLowerCase()))
+								fls.add(new GameListItem(mMe.getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), true));
+						}
+					}
 				}
 			}
 			catch(Exception ignored)
