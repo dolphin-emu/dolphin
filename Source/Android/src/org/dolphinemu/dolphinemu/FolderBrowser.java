@@ -19,48 +19,59 @@ import java.util.List;
 public class FolderBrowser extends ListActivity {
 	private FolderBrowserAdapter adapter;
 	private static File currentDir = null;
-	private void Fill(File f)
+
+	// Populates the FolderView with the given currDir's contents.
+	private void Fill(File currDir)
     {
-		File[]dirs = f.listFiles();
-		this.setTitle("Current Dir: " + f.getName());
+		this.setTitle("Current Dir: " + currDir.getName());
+		File[] dirs = currDir.listFiles();
 		List<GameListItem>dir = new ArrayList<GameListItem>();
 		List<GameListItem>fls = new ArrayList<GameListItem>();
-         
+
+		// Search for any directories or supported files within the current dir.
 		try
 		{
-			for(File ff: dirs)
+			for(File entry : dirs)
 			{
-				if (ff.getName().charAt(0) != '.')
-					if(ff.isDirectory())
-	                	dir.add(new GameListItem(getApplicationContext(), ff.getName(),"Folder",ff.getAbsolutePath(), true));
+				String entryName = entry.getName();
+
+				if (entryName.charAt(0) != '.')
+				{
+					if(entry.isDirectory())
+					{
+						dir.add(new GameListItem(getApplicationContext(), entryName,"Folder",entry.getAbsolutePath(), true));
+					}
 					else
 					{
-						if (ff.getName().toLowerCase().contains(".gcm") ||
-		                		ff.getName().toLowerCase().contains(".iso") ||
-		                		ff.getName().toLowerCase().contains(".wbfs") ||
-		                		ff.getName().toLowerCase().contains(".gcz") ||
-		                		ff.getName().toLowerCase().contains(".dol") ||
-		                		ff.getName().toLowerCase().contains(".elf"))
-		                			fls.add(new GameListItem(getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath(), true));
-						else if (ff.getName().toLowerCase().contains(".zip") ||
-								ff.getName().toLowerCase().contains(".rar") ||
-								ff.getName().toLowerCase().contains(".7z"))
-									fls.add(new GameListItem(getApplicationContext(), ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath(), false));
+						if (entryName.toLowerCase().contains(".gcm") ||
+								entryName.toLowerCase().contains(".iso") ||
+								entryName.toLowerCase().contains(".wbfs") ||
+								entryName.toLowerCase().contains(".gcz") ||
+								entryName.toLowerCase().contains(".dol") ||
+								entryName.toLowerCase().contains(".elf"))
+									fls.add(new GameListItem(getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), true));
+						else if (entryName.toLowerCase().contains(".zip") ||
+								entryName.toLowerCase().contains(".rar") ||
+								entryName.toLowerCase().contains(".7z"))
+									fls.add(new GameListItem(getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), false));
 					}
+				}
 			}
-         }
-         catch(Exception e)
-         {
-         }
-         
-		Collections.sort(dir);
-        Collections.sort(fls);
-        dir.addAll(fls);
-	    if (!f.getPath().equalsIgnoreCase("/"))
-	        dir.add(0, new GameListItem(getApplicationContext(), "..", "Parent Directory", f.getParent(), true));
+		}
+		catch(Exception ignored)
+		{
+		}
 
-         adapter = new FolderBrowserAdapter(this,R.layout.folderbrowser,dir);
-		 this.setListAdapter(adapter);
+		Collections.sort(dir);
+		Collections.sort(fls);
+		dir.addAll(fls);
+
+		// Check for a parent directory to the one we're currently in.
+		if (!currDir.getPath().equalsIgnoreCase("/"))
+			dir.add(0, new GameListItem(getApplicationContext(), "..", "Parent Directory", currDir.getParent(), true));
+
+		adapter = new FolderBrowserAdapter(this,R.layout.folderbrowser,dir);
+		this.setListAdapter(adapter);
     }
 
 	@Override
