@@ -12,9 +12,12 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class FolderBrowser extends ListActivity {
 	private FolderBrowserAdapter adapter;
@@ -27,6 +30,10 @@ public class FolderBrowser extends ListActivity {
 		File[] dirs = currDir.listFiles();
 		List<GameListItem>dir = new ArrayList<GameListItem>();
 		List<GameListItem>fls = new ArrayList<GameListItem>();
+
+		// Supported extensions to filter by
+		Set<String> validExts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf"));
+		Set<String> archiveExts = new HashSet<String>(Arrays.asList(".zip", ".rar", ".7z"));
 
 		// Search for any directories or supported files within the current dir.
 		try
@@ -43,17 +50,14 @@ public class FolderBrowser extends ListActivity {
 					}
 					else
 					{
-						if (entryName.toLowerCase().contains(".gcm") ||
-								entryName.toLowerCase().contains(".iso") ||
-								entryName.toLowerCase().contains(".wbfs") ||
-								entryName.toLowerCase().contains(".gcz") ||
-								entryName.toLowerCase().contains(".dol") ||
-								entryName.toLowerCase().contains(".elf"))
-									fls.add(new GameListItem(getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), true));
-						else if (entryName.toLowerCase().contains(".zip") ||
-								entryName.toLowerCase().contains(".rar") ||
-								entryName.toLowerCase().contains(".7z"))
-									fls.add(new GameListItem(getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), false));
+						if (validExts.contains(entryName.toLowerCase()))
+						{
+							fls.add(new GameListItem(getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), true));
+						}
+						else if (archiveExts.contains(entryName.toLowerCase()))
+						{
+							fls.add(new GameListItem(getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), false));
+						}
 					}
 				}
 			}
