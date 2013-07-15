@@ -32,7 +32,7 @@ public class FolderBrowser extends ListActivity {
 		List<GameListItem>fls = new ArrayList<GameListItem>();
 
 		// Supported extensions to filter by
-		Set<String> validExts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf"));
+		Set<String> validExts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf", ".dff"));
 		Set<String> archiveExts = new HashSet<String>(Arrays.asList(".zip", ".rar", ".7z"));
 
 		// Search for any directories or supported files within the current dir.
