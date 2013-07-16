@@ -40,6 +40,7 @@ public class AboutFragment extends Fragment {
 		int a = 0;
 
 		Input.add(a++, new GameListItem(m_activity, "Build Revision", NativeLibrary.GetVersionString(), "", true));
+		Input.add(a++, new GameListItem(m_activity, "Supports OpenGL ES 3", PrefsFragment.SupportsGLES3() ? "Yes" : "No", "", true));
 		adapter = new FolderBrowserAdapter(m_activity, R.layout.folderbrowser, Input);
 		mMainList.setAdapter(adapter);
 

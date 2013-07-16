@@ -17,13 +17,8 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class PrefsFragment extends PreferenceFragment {
 	private Activity m_activity;
-	
-	private String m_GLVersion;
-	private String m_GLVendor;
-	private String m_GLRenderer;
 
-
-	public class VersionCheck {
+	static public class VersionCheck {
 		EGL10 mEGL;
 		EGLDisplay mEGLDisplay;
 		EGLConfig[] mEGLConfigs;
@@ -93,7 +88,42 @@ public class PrefsFragment extends PreferenceFragment {
 			return mEGLConfigs[0];  // Best match is probably the first configuration
 		}
 	}
+	static public boolean SupportsGLES3()
+	{
+		String m_GLVersion;
+		String m_GLVendor;
+		String m_GLRenderer;
 
+		VersionCheck mbuffer = new VersionCheck();
+		m_GLVersion = mbuffer.getVersion();
+		m_GLVendor = mbuffer.getVendor();
+		m_GLRenderer = mbuffer.getRenderer();
+
+		boolean mSupportsGLES3 = false;
+
+		if (m_GLVersion.contains("OpenGL ES 3.0")) // 3.0 support
+			mSupportsGLES3 = true;
+		if (!mSupportsGLES3 && m_GLVendor.equals("Qualcomm"))
+		{
+			if (m_GLRenderer.contains("Adreno (TM) 3"))
+			{
+				int mVStart, mVEnd = 0;
+				float mVersion;
+				mVStart = m_GLVersion.indexOf("V@") + 2;
+				for (int a = mVStart; a < m_GLVersion.length(); ++a)
+					if (m_GLVersion.charAt(a) == ' ')
+					{
+						mVEnd = a;
+						break;
+					}
+				mVersion = Float.parseFloat(m_GLVersion.substring(mVStart, mVEnd));
+
+				if (mVersion >= 14.0f)
+					mSupportsGLES3 = true;
+			}
+		}
+		return mSupportsGLES3;
+	}
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -138,34 +168,8 @@ public class PrefsFragment extends PreferenceFragment {
 
         PreferenceCategory mCategory = (PreferenceCategory) findPreference("cpuprefcat");
         mCategory.addPreference(etp);
-        VersionCheck mbuffer = new VersionCheck();
-        m_GLVersion = mbuffer.getVersion();
-        m_GLVendor = mbuffer.getVendor();
-        m_GLRenderer = mbuffer.getRenderer();
 
-        boolean mSupportsGLES3 = false;
-
-        if (m_GLVersion.contains("OpenGL ES 3.0")) // 3.0 support
-            mSupportsGLES3 = true;
-		if (!mSupportsGLES3 && m_GLVendor.equals("Qualcomm"))
-        {
-	        if (m_GLRenderer.contains("Adreno (TM) 3"))
-	        {
-		        int mVStart, mVEnd = 0;
-		        float mVersion;
-		        mVStart = m_GLVersion.indexOf("V@") + 2;
-		        for (int a = mVStart; a < m_GLVersion.length(); ++a)
-			        if (m_GLVersion.charAt(a) == ' ')
-			        {
-				        mVEnd = a;
-				        break;
-			        }
-		        mVersion = Float.parseFloat(m_GLVersion.substring(mVStart, mVEnd));
-
-		        if (mVersion >= 14.0f)
-			        mSupportsGLES3 = true;
-	        }
-        }
+	    boolean mSupportsGLES3 = SupportsGLES3();
 
         if (!mSupportsGLES3)
         {
