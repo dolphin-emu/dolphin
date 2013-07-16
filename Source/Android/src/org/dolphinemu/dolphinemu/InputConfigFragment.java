@@ -1,15 +1,12 @@
 package org.dolphinemu.dolphinemu;
 
 import android.app.Activity;
-import android.app.ListActivity;
-import android.content.Intent;
+import android.app.Fragment;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.InputDevice;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.View;
+import android.view.*;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -21,7 +18,10 @@ import java.util.List;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class InputConfigActivity extends ListActivity {
+public class InputConfigFragment extends Fragment
+		implements GameListActivity.OnGameConfigListener{
+	private Activity m_activity;
+	private ListView mDrawerList;
 	private InputConfigAdapter adapter;
 	private int configPosition = 0;
 	boolean Configuring = false;
@@ -43,9 +43,9 @@ public class InputConfigActivity extends ListActivity {
 		}
 	}
 	@Override
-	public void onCreate(Bundle savedInstanceState)
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+	                         Bundle savedInstanceState)
 	{
-		super.onCreate(savedInstanceState);
 		List<InputConfigItem> Input = new ArrayList<InputConfigItem>();
 		int a = 0;
 
@@ -71,42 +71,49 @@ public class InputConfigActivity extends ListActivity {
 		Input.add(a++, new InputConfigItem("Trigger L", "Android-InputL"));
 		Input.add(a++, new InputConfigItem("Trigger R", "Android-InputR"));
 
-		adapter = new InputConfigAdapter(this, R.layout.folderbrowser, Input);
-		setListAdapter(adapter);
-	}
-	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
-		super.onListItemClick(l, v, position, id);
-		InputConfigItem o = adapter.getItem(position);
-		switch(position)
-		{
-			case 0: // On screen controls
-				String newBind;
-				if (o.getBind().equals("True"))
-				{
-					Toast.makeText(this, "Not Drawing on screen controls", Toast.LENGTH_SHORT).show();
-					newBind = "False";
-				}
-				else
-				{
-					Toast.makeText(this, "Drawing on screen controls", Toast.LENGTH_SHORT).show();
-					newBind = "True";
-				}
-				adapter.remove(o);
-				o.setBind(newBind);
-				adapter.insert(o, position);
-			break;
-			default: // gamepad controls
-				Toast.makeText(this, "Press button to configure " + o.getName(), Toast.LENGTH_SHORT).show();
-				configPosition = position;
-				Configuring = true;
-				firstEvent = true;
-			break;
-		}
+		adapter = new InputConfigAdapter(m_activity, R.layout.folderbrowser, Input);
+		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
+		mDrawerList = (ListView) rootView.findViewById(R.id.gamelist);
 
+		mDrawerList.setAdapter(adapter);
+		mDrawerList.setOnItemClickListener(mMenuItemClickListener);
+		return mDrawerList;
 	}
+	private AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
+	{
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+		{
+			InputConfigItem o = adapter.getItem(position);
+			switch(position)
+			{
+				case 0: // On screen controls
+					String newBind;
+					if (o.getBind().equals("True"))
+					{
+						Toast.makeText(m_activity, "Not Drawing on screen controls", Toast.LENGTH_SHORT).show();
+						newBind = "False";
+					}
+					else
+					{
+						Toast.makeText(m_activity, "Drawing on screen controls", Toast.LENGTH_SHORT).show();
+						newBind = "True";
+					}
+					adapter.remove(o);
+					o.setBind(newBind);
+					adapter.insert(o, position);
+					break;
+				default: // gamepad controls
+					Toast.makeText(m_activity, "Press button to configure " + o.getName(), Toast.LENGTH_SHORT).show();
+					configPosition = position;
+					Configuring = true;
+					firstEvent = true;
+					break;
+			}
+		}
+	};
+
 	static ArrayList<Float> m_values = new ArrayList<Float>();
-	// Gets move(triggers, joystick) events
+
 	void AssignBind(String bind)
 	{
 		InputConfigItem o = adapter.getItem(configPosition);
@@ -114,12 +121,16 @@ public class InputConfigActivity extends ListActivity {
 		o.setBind(bind);
 		adapter.insert(o, configPosition);
 	}
+	public InputConfigAdapter getAdapter()
+	{
+		return adapter;
+	}
+	// Called from GameListActivity
+	public boolean onMotionEvent(MotionEvent event)
+	{
+		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0))
+			return false;
 
-	@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent event) {
-		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)) {
-			return super.dispatchGenericMotionEvent(event);
-		}
 		InputDevice input = event.getDevice();
 		List<InputDevice.MotionRange> motions = input.getMotionRanges();
 		if (Configuring)
@@ -140,12 +151,12 @@ public class InputConfigActivity extends ListActivity {
 					range = motions.get(a);
 					if (m_values.get(a) > (event.getAxisValue(range.getAxis()) + 0.5f))
 					{
-						AssignBind("Device '" + InputConfigActivity.getInputDesc(input) + "'-Axis " + range.getAxis() + "-");
+						AssignBind("Device '" + InputConfigFragment.getInputDesc(input) + "'-Axis " + range.getAxis() + "-");
 						Configuring = false;
 					}
 					else if (m_values.get(a) < (event.getAxisValue(range.getAxis()) - 0.5f))
 					{
-						AssignBind("Device '" + InputConfigActivity.getInputDesc(input) + "'-Axis " + range.getAxis() + "+");
+						AssignBind("Device '" + InputConfigFragment.getInputDesc(input) + "'-Axis " + range.getAxis() + "+");
 						Configuring = false;
 					}
 				}
@@ -153,10 +164,8 @@ public class InputConfigActivity extends ListActivity {
 		}
 		return true;
 	}
-
-	// Gets button presses
-	@Override
-	public boolean dispatchKeyEvent(KeyEvent event) {
+	public boolean onKeyEvent(KeyEvent event)
+	{
 		Log.w("Dolphinemu", "Got Event " + event.getAction());
 		switch (event.getAction()) {
 			case KeyEvent.ACTION_DOWN:
@@ -164,7 +173,7 @@ public class InputConfigActivity extends ListActivity {
 				if (Configuring)
 				{
 					InputDevice input = event.getDevice();
-					AssignBind("Device '" + InputConfigActivity.getInputDesc(input) + "'-Button " + event.getKeyCode());
+					AssignBind("Device '" + InputConfigFragment.getInputDesc(input) + "'-Button " + event.getKeyCode());
 					Configuring = false;
 					return true;
 				}
@@ -172,24 +181,20 @@ public class InputConfigActivity extends ListActivity {
 				break;
 		}
 
-		return super.dispatchKeyEvent(event);
+		return false;
 	}
 
 	@Override
-	public void onBackPressed() {
-		for (int a = 0; a < adapter.getCount(); ++a)
-		{
-			InputConfigItem o = adapter.getItem(a);
-			String config = o.getConfig();
-			String bind = o.getBind();
-			String ConfigValues[] = config.split("-");
-			String Key = ConfigValues[0];
-			String Value = ConfigValues[1];
-			NativeLibrary.SetConfig("Dolphin.ini", Key, Value, bind);
+	public void onAttach(Activity activity) {
+		super.onAttach(activity);
+
+		// This makes sure that the container activity has implemented
+		// the callback interface. If not, it throws an exception
+		try {
+			m_activity = activity;
+		} catch (ClassCastException e) {
+			throw new ClassCastException(activity.toString()
+					+ " must implement OnGameListZeroListener");
 		}
-		Intent intent = new Intent();
-		setResult(Activity.RESULT_OK, intent);
-		this.finish();
-		super.onBackPressed();
 	}
 }

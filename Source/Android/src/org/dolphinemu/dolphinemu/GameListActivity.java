@@ -10,9 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
+import android.view.*;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -28,7 +26,8 @@ import java.util.List;
 public class GameListActivity extends Activity
 		implements GameListFragment.OnGameListZeroListener{
 
-	private int mCurPage = 0;
+	private int mCurFragmentNum = 0;
+	private Fragment mCurFragment;
 	enum keyTypes {TYPE_STRING, TYPE_BOOL};
 
 	private ActionBarDrawerToggle mDrawerToggle;
@@ -92,15 +91,15 @@ public class GameListActivity extends Activity
 
 	private void recreateFragment()
 	{
-		Fragment fragment = new GameListFragment();
+		mCurFragment = new GameListFragment();
 		FragmentManager fragmentManager = getFragmentManager();
-		fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+		fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 	}
 	private void SwitchPage(int toPage)
 	{
-		if (mCurPage == toPage)
+		if (mCurFragmentNum == toPage)
 			return;
-		switch (mCurPage)
+		switch (mCurFragmentNum)
 		{
 			// Settings
 			case 2:
@@ -145,8 +144,24 @@ public class GameListActivity extends Activity
 				}
 			}
 			break;
-			case 0: // Settings
 			case 3: // Gamepad settings
+			{
+				InputConfigAdapter adapter = ((InputConfigFragment)mCurFragment).getAdapter();
+				for (int a = 0; a < adapter.getCount(); ++a)
+				{
+					InputConfigItem o = adapter.getItem(a);
+					String config = o.getConfig();
+					String bind = o.getBind();
+					String ConfigValues[] = config.split("-");
+					String Key = ConfigValues[0];
+					String Value = ConfigValues[1];
+					NativeLibrary.SetConfig("Dolphin.ini", Key, Value, bind);
+				}
+			}
+			break;
+			case 0: // Game List
+			case 1: // Folder browser
+			case 4: // About
 	        /* Do Nothing */
 				break;
 		}
@@ -154,10 +169,10 @@ public class GameListActivity extends Activity
 		{
 			case 0:
 			{
-				mCurPage = 0;
-				Fragment fragment = new GameListFragment();
+				mCurFragmentNum = 0;
+				mCurFragment = new GameListFragment();
 				FragmentManager fragmentManager = getFragmentManager();
-				fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
 			case 1:
@@ -168,24 +183,28 @@ public class GameListActivity extends Activity
 			case 2:
 			{
 				Toast.makeText(mMe, "Loading up settings", Toast.LENGTH_SHORT).show();
-				mCurPage = 2;
-				Fragment fragment = new PrefsFragment();
+				mCurFragmentNum = 2;
+				mCurFragment = new PrefsFragment();
 				FragmentManager fragmentManager = getFragmentManager();
-				fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
 			case 3:
+			{
 				Toast.makeText(mMe, "Loading up gamepad config", Toast.LENGTH_SHORT).show();
-				Intent ConfigIntent = new Intent(mMe, InputConfigActivity.class);
-				startActivityForResult(ConfigIntent, 3);
-				break;
+				mCurFragmentNum = 3;
+				mCurFragment = new InputConfigFragment();
+				FragmentManager fragmentManager = getFragmentManager();
+				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+			}
+			break;
 			case 4:
 			{
 				Toast.makeText(mMe, "Loading up About", Toast.LENGTH_SHORT).show();
-				mCurPage = 4;
-				Fragment fragment = new AboutFragment();
+				mCurFragmentNum = 4;
+				mCurFragment = new AboutFragment();
 				FragmentManager fragmentManager = getFragmentManager();
-				fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
 			default:
@@ -264,5 +283,25 @@ public class GameListActivity extends Activity
 		SwitchPage(0);
 	}
 
+	public interface OnGameConfigListener {
+		public boolean onMotionEvent(MotionEvent event);
+		public boolean onKeyEvent(KeyEvent event);
+	}
+	// Gets move(triggers, joystick) events
+	@Override
+	public boolean dispatchGenericMotionEvent(MotionEvent event) {
+		if (mCurFragmentNum == 3)
+			if (((OnGameConfigListener)mCurFragment).onMotionEvent(event))
+				return true;
+		return super.dispatchGenericMotionEvent(event);
+	}
+	// Gets button presses
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent event) {
+		if (mCurFragmentNum == 3)
+			if (((OnGameConfigListener)mCurFragment).onKeyEvent(event))
+				return true;
+		return super.dispatchKeyEvent(event);
+	}
 
 }
