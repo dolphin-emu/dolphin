@@ -28,6 +28,7 @@ import java.util.List;
 public class GameListActivity extends Activity
 		implements GameListFragment.OnGameListZeroListener{
 
+	private int mCurPage = 0;
 	enum keyTypes {TYPE_STRING, TYPE_BOOL};
 
 	private ActionBarDrawerToggle mDrawerToggle;
@@ -53,10 +54,11 @@ public class GameListActivity extends Activity
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
 		List<SideMenuItem> dir = new ArrayList<SideMenuItem>();
-		dir.add(new SideMenuItem("Browse Folder", 0));
-		dir.add(new SideMenuItem("Settings", 1));
-		dir.add(new SideMenuItem("Gamepad Config", 2));
-		dir.add(new SideMenuItem("About", 3));
+		dir.add(new SideMenuItem("Game List", 0));
+		dir.add(new SideMenuItem("Browse Folder", 1));
+		dir.add(new SideMenuItem("Settings", 2));
+		dir.add(new SideMenuItem("Gamepad Config", 3));
+		dir.add(new SideMenuItem("About", 4));
 
 		mDrawerAdapter = new SideMenuAdapter(this, R.layout.sidemenu, dir);
 		mDrawerList.setAdapter(mDrawerAdapter);
@@ -94,67 +96,15 @@ public class GameListActivity extends Activity
 		FragmentManager fragmentManager = getFragmentManager();
 		fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
 	}
-
-	private AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
+	private void SwitchPage(int toPage)
 	{
-		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+		if (mCurPage == toPage)
+			return;
+		switch (mCurPage)
 		{
-			SideMenuItem o = mDrawerAdapter.getItem(position);
-			mDrawerLayout.closeDrawer(mDrawerList);
-
-			switch(o.getID())
-			{
-				case 0:
-					Toast.makeText(mMe, "Loading up the browser", Toast.LENGTH_SHORT).show();
-					Intent ListIntent = new Intent(mMe, FolderBrowser.class);
-					startActivityForResult(ListIntent, 1);
-					break;
-				case 1:
-					Toast.makeText(mMe, "Loading up settings", Toast.LENGTH_SHORT).show();
-					Intent SettingIntent = new Intent(mMe, PrefsActivity.class);
-					startActivityForResult(SettingIntent, 2);
-					break;
-				case 2:
-					Toast.makeText(mMe, "Loading up gamepad config", Toast.LENGTH_SHORT).show();
-					Intent ConfigIntent = new Intent(mMe, InputConfigActivity.class);
-					startActivityForResult(ConfigIntent, 3);
-					break;
-				case 3:
-					Toast.makeText(mMe, "Loading up About", Toast.LENGTH_SHORT).show();
-					Intent AboutIntent = new Intent(mMe, AboutActivity.class);
-					startActivityForResult(AboutIntent, 3);
-					break;
-				default:
-					break;
-			}
-
-		}
-	};
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		super.onActivityResult(requestCode, resultCode, data);
-
-		switch (requestCode)
-		{
-			// Browse
-			case 1:
-				if (resultCode == Activity.RESULT_OK)
-				{
-					String FileName = data.getStringExtra("Select");
-					Toast.makeText(this, "Folder Selected: " + FileName, Toast.LENGTH_SHORT).show();
-					String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
-					int intDirectories = Integer.parseInt(Directories);
-					Directories = Integer.toString(intDirectories + 1);
-					NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPathes", Directories);
-					NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(intDirectories), FileName);
-
-					recreateFragment();
-				}
-				break;
 			// Settings
 			case 2:
-
+			{
 				String Keys[] = {
 						"cpupref",
 						"dualcorepref",
@@ -193,9 +143,85 @@ public class GameListActivity extends Activity
 					}
 
 				}
-				break;
+			}
+			break;
+			case 0: // Settings
 			case 3: // Gamepad settings
-		        /* Do Nothing */
+	        /* Do Nothing */
+				break;
+		}
+		switch(toPage)
+		{
+			case 0:
+			{
+				mCurPage = 0;
+				Fragment fragment = new GameListFragment();
+				FragmentManager fragmentManager = getFragmentManager();
+				fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+			}
+			break;
+			case 1:
+				Toast.makeText(mMe, "Loading up the browser", Toast.LENGTH_SHORT).show();
+				Intent ListIntent = new Intent(mMe, FolderBrowser.class);
+				startActivityForResult(ListIntent, 1);
+				break;
+			case 2:
+			{
+				Toast.makeText(mMe, "Loading up settings", Toast.LENGTH_SHORT).show();
+				mCurPage = 2;
+				Fragment fragment = new PrefsFragment();
+				FragmentManager fragmentManager = getFragmentManager();
+				fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+			}
+			break;
+			case 3:
+				Toast.makeText(mMe, "Loading up gamepad config", Toast.LENGTH_SHORT).show();
+				Intent ConfigIntent = new Intent(mMe, InputConfigActivity.class);
+				startActivityForResult(ConfigIntent, 3);
+				break;
+			case 4:
+			{
+				Toast.makeText(mMe, "Loading up About", Toast.LENGTH_SHORT).show();
+				mCurPage = 4;
+				Fragment fragment = new AboutFragment();
+				FragmentManager fragmentManager = getFragmentManager();
+				fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+			}
+			break;
+			default:
+				break;
+		}
+	}
+	private AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
+	{
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
+		{
+			SideMenuItem o = mDrawerAdapter.getItem(position);
+			mDrawerLayout.closeDrawer(mDrawerList);
+			SwitchPage(o.getID());
+		}
+	};
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		super.onActivityResult(requestCode, resultCode, data);
+
+		switch (requestCode)
+		{
+			// Browse
+			case 1:
+				if (resultCode == Activity.RESULT_OK)
+				{
+					String FileName = data.getStringExtra("Select");
+					Toast.makeText(this, "Folder Selected: " + FileName, Toast.LENGTH_SHORT).show();
+					String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
+					int intDirectories = Integer.parseInt(Directories);
+					Directories = Integer.toString(intDirectories + 1);
+					NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPathes", Directories);
+					NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(intDirectories), FileName);
+
+					recreateFragment();
+				}
 				break;
 		}
 	}
@@ -235,7 +261,7 @@ public class GameListActivity extends Activity
 	}
 	public void onBackPressed()
 	{
-
+		SwitchPage(0);
 	}
 
 

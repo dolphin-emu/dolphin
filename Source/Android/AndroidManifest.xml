@@ -36,13 +36,13 @@
             android:configChanges="orientation|locale|keyboard|keyboardHidden|navigation|fontScale|uiMode" >
         </activity>
         <activity
-                android:name=".PrefsActivity" >
+                android:name=".PrefsFragment" >
         </activity>
         <activity
             android:name=".GameListActivity" >
         </activity>
         <activity
-            android:name=".AboutActivity" >
+            android:name=".AboutFragment" >
         </activity>
     </application>
 

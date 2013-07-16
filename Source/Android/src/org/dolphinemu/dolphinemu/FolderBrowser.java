@@ -50,11 +50,11 @@ public class FolderBrowser extends ListActivity {
 					}
 					else
 					{
-						if (validExts.contains(entryName.toLowerCase()))
+						if (validExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 						{
 							fls.add(new GameListItem(getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), true));
 						}
-						else if (archiveExts.contains(entryName.toLowerCase()))
+						else if (archiveExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 						{
 							fls.add(new GameListItem(getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), false));
 						}

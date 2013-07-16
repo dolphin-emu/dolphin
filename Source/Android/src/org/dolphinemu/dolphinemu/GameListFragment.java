@@ -62,7 +62,7 @@ public class GameListFragment extends Fragment
 					{
 						if(!entry.isDirectory())
 						{
-							if (exts.contains(entryName.toLowerCase()))
+							if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 								fls.add(new GameListItem(mMe.getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), true));
 						}
 					}
