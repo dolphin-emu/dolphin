@@ -3,7 +3,6 @@ package org.dolphinemu.dolphinemu;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -95,12 +94,16 @@ public class GameListActivity extends Activity
 		FragmentManager fragmentManager = getFragmentManager();
 		fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 	}
-	private void SwitchPage(int toPage)
+	public void SwitchPage(int toPage)
 	{
 		if (mCurFragmentNum == toPage)
 			return;
 		switch (mCurFragmentNum)
 		{
+			// Folder browser
+			case 1:
+				recreateFragment();
+			break;
 			// Settings
 			case 2:
 			{
@@ -160,7 +163,6 @@ public class GameListActivity extends Activity
 			}
 			break;
 			case 0: // Game List
-			case 1: // Folder browser
 			case 4: // About
 	        /* Do Nothing */
 				break;
@@ -176,10 +178,14 @@ public class GameListActivity extends Activity
 			}
 			break;
 			case 1:
+			{
 				Toast.makeText(mMe, "Loading up the browser", Toast.LENGTH_SHORT).show();
-				Intent ListIntent = new Intent(mMe, FolderBrowser.class);
-				startActivityForResult(ListIntent, 1);
-				break;
+				mCurFragmentNum = 1;
+				mCurFragment = new FolderBrowser();
+				FragmentManager fragmentManager = getFragmentManager();
+				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+			}
+			break;
 			case 2:
 			{
 				Toast.makeText(mMe, "Loading up settings", Toast.LENGTH_SHORT).show();
@@ -220,30 +226,6 @@ public class GameListActivity extends Activity
 			SwitchPage(o.getID());
 		}
 	};
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		super.onActivityResult(requestCode, resultCode, data);
-
-		switch (requestCode)
-		{
-			// Browse
-			case 1:
-				if (resultCode == Activity.RESULT_OK)
-				{
-					String FileName = data.getStringExtra("Select");
-					Toast.makeText(this, "Folder Selected: " + FileName, Toast.LENGTH_SHORT).show();
-					String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
-					int intDirectories = Integer.parseInt(Directories);
-					Directories = Integer.toString(intDirectories + 1);
-					NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPathes", Directories);
-					NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(intDirectories), FileName);
-
-					recreateFragment();
-				}
-				break;
-		}
-	}
 	/**
 	 * When using the ActionBarDrawerToggle, you must call it during
 	 * onPostCreate() and onConfigurationChanged()...
