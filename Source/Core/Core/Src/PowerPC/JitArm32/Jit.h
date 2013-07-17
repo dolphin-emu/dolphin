@@ -162,6 +162,7 @@ public:
 
 	// System Registers
 	void mtmsr(UGeckoInstruction _inst);
+	void mfmsr(UGeckoInstruction _inst);
 	void mtspr(UGeckoInstruction _inst);
 	void mfspr(UGeckoInstruction _inst);
 

@@ -102,3 +102,10 @@ void JitArm::mtmsr(UGeckoInstruction inst)
 	STR(gpr.R(inst.RS), R9, PPCSTATE_OFF(msr));
 	WriteExit(js.compilerPC + 4, 0);
 }
+void JitArm::mfmsr(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(SystemRegisters)
+
+	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(msr));
+}

@@ -280,7 +280,7 @@ static GekkoOPTemplate table31[] =
 	{983, &JitArm::Default}, //"stfiwx", OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
 
 	{19,  &JitArm::Default}, //"mfcr",   OPTYPE_SYSTEM, FL_OUT_D}},
-	{83,  &JitArm::Default}, //"mfmsr",  OPTYPE_SYSTEM, FL_OUT_D}},
+	{83,  &JitArm::mfmsr}, //"mfmsr",  OPTYPE_SYSTEM, FL_OUT_D}},
 	{144, &JitArm::Default}, //"mtcrf",  OPTYPE_SYSTEM, 0}},
 	{146, &JitArm::mtmsr}, //"mtmsr",  OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{210, &JitArm::Default}, //"mtsr",   OPTYPE_SYSTEM, 0}},
