@@ -155,6 +155,7 @@ public:
 	void ori(UGeckoInstruction _inst);	
 	void oris(UGeckoInstruction _inst);	
 	void orx(UGeckoInstruction _inst);
+	void xorx(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);
 	void rlwinmx(UGeckoInstruction _inst);
 	void subfx(UGeckoInstruction _inst);
