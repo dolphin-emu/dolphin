@@ -165,6 +165,7 @@ public:
 	void mfmsr(UGeckoInstruction _inst);
 	void mtspr(UGeckoInstruction _inst);
 	void mfspr(UGeckoInstruction _inst);
+	void mftb(UGeckoInstruction _inst);
 
 	// LoadStore
 	void icbi(UGeckoInstruction _inst);

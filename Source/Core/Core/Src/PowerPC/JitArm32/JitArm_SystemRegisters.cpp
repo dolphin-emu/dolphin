@@ -72,7 +72,12 @@ void JitArm::mtspr(UGeckoInstruction inst)
 	// OK, this is easy.
 	STR(RD, R9,  PPCSTATE_OFF(spr) + iIndex * 4);
 }
-
+void JitArm::mftb(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(SystemRegisters)
+	mfspr(inst);
+}
 void JitArm::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
