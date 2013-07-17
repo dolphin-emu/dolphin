@@ -403,6 +403,30 @@ u64 Read_U64(const u32 _Address)
 	return _var;
 }
 
+double Read_F64(const u32 _Address)
+{
+	union
+	{
+		u64 i;
+		double d;
+	} cvt;
+	
+	cvt.i = Read_U64(_Address);
+	return cvt.d;
+}
+
+float Read_F32(const u32 _Address)
+{
+	union
+	{
+		u32 i;
+		float d;
+	} cvt;
+
+	cvt.i = Read_U32(_Address);
+	return cvt.d;
+}
+
 u32 Read_U8_ZX(const u32 _Address)
 {
 	return (u32)Read_U8(_Address);
