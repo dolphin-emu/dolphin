@@ -189,6 +189,7 @@ public:
 
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);
+	void lfd(UGeckoInstruction _inst);
 };
 
 #endif // _JIT64_H
