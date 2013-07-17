@@ -68,7 +68,6 @@ void JitArm::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
-	Default(inst); return;
 
 	ARMReg vD = fpr.R0(inst.FD);
 	ARMReg vB = fpr.R0(inst.FB);
