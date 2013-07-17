@@ -91,7 +91,7 @@ static GekkoOPTemplate primarytable[] =
 	{45, &JitArm::sthu}, //"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
 	{36, &JitArm::stw}, //"stw",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
 	{37, &JitArm::stwu}, //"stwu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
-	{38, &JitArm::Default}, //"stb",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
+	{38, &JitArm::stb}, //"stb",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
 	{39, &JitArm::stbu}, //"stbu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
 
 	{46, &JitArm::Default}, //"lmw",   OPTYPE_SYSTEM, FL_EVIL, 10}},
@@ -322,7 +322,7 @@ static GekkoOPTemplate table31_2[] =
 	{235,  &JitArm::Default}, //"mullwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
 	{747,  &JitArm::Default}, //"mullwox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
 	{104,  &JitArm::negx}, //"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
-	{40,   &JitArm::Default}, //"subfx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{40,   &JitArm::subfx}, //"subfx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{552,  &JitArm::Default}, //"subox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{8,    &JitArm::Default}, //"subfcx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
 	{136,  &JitArm::Default}, //"subfex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},

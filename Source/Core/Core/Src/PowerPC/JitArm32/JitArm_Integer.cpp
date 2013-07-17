@@ -99,6 +99,18 @@ void JitArm::addx(UGeckoInstruction inst)
 	ADDS(RD, RA, RB);
 	if (inst.Rc) ComputeRC();
 }
+void JitArm::subfx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+
+	ARMReg RA = gpr.R(inst.RA);
+	ARMReg RB = gpr.R(inst.RB);
+	ARMReg RD = gpr.R(inst.RD);
+	SUBS(RD, RB, RA);
+	if (inst.OE) PanicAlert("OE: subfx");
+	if (inst.Rc) GenerateRC();
+}
 void JitArm::mulli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

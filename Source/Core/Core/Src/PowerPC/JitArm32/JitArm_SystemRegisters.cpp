@@ -111,6 +111,8 @@ void JitArm::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(SystemRegisters)
-
+	Default(inst); return;
+	
 	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(msr));
 }
+

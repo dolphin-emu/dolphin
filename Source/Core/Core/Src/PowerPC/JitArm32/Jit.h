@@ -157,6 +157,7 @@ public:
 	void orx(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);
 	void rlwinmx(UGeckoInstruction _inst);
+	void subfx(UGeckoInstruction _inst);
 	void extshx(UGeckoInstruction inst);
 	void extsbx(UGeckoInstruction inst);
 
@@ -173,6 +174,7 @@ public:
 	void lhz(UGeckoInstruction _inst);
 	void lwz(UGeckoInstruction _inst);
 	void lwzx(UGeckoInstruction _inst);
+	void stb(UGeckoInstruction _inst);
 	void stbu(UGeckoInstruction _inst);
 	void sth(UGeckoInstruction _inst);
 	void sthu(UGeckoInstruction _inst);
