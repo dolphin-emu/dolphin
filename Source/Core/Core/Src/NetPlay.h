@@ -119,6 +119,7 @@ public:
 	//void PushPadStates(unsigned int count);
 
 	u8 GetPadNum(u8 numPAD);
+	static NetPlay* GetNetPlayPtr();
 
 protected:
 	//void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);

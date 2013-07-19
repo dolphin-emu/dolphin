@@ -386,3 +386,8 @@ bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int, u16, const void*, u32&)
 	else
 		return false;
 }
+
+NetPlay* NetPlay::GetNetPlayPtr()
+{
+	return netplay_ptr;
+}
