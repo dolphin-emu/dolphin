@@ -31,6 +31,15 @@ public:
 	u32 nLo;
 };
 
+struct NetSettings
+{
+	bool m_CPUthread;
+	bool m_DSPHLE;
+	bool m_DSPEnableJIT;
+	u8 m_Controllers;
+};
+extern NetSettings g_NetPlaySettings;
+
 struct Rpt : public std::vector<u8>
 {
 	u16		channel;
@@ -38,7 +47,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<Rpt>	NetWiimote;
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2013-04-11"
+#define NETPLAY_VERSION		"Dolphin NetPlay 2013-07-19"
 
 // messages
 enum
@@ -125,6 +134,7 @@ public:
 protected:
 	//void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
 	void ClearBuffers();
+	void GetNetSettings();
 	virtual void SendPadState(const PadMapping local_nb, const NetPad& np) = 0;
 
 	struct

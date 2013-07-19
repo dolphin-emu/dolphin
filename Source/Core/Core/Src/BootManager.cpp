@@ -34,6 +34,7 @@
 #include "Host.h"
 #include "VideoBackendBase.h"
 #include "Movie.h"
+#include "NetPlay.h"
 
 namespace BootManager
 {
@@ -42,7 +43,7 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF,
+	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT,
 		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2;
 	int iTLBHack, iCPUCore;
 	std::string strBackend;
@@ -91,6 +92,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bDSPHLE = StartUp.bDSPHLE;
 		config_cache.strBackend = StartUp.m_strVideoBackend;
 		config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
+		config_cache.m_EnableJIT = SConfig::GetInstance().m_EnableJIT;
 
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
@@ -134,6 +136,13 @@ bool BootCore(const std::string& _rFilename)
 		}
 	}
 
+	if (NetPlay::GetNetPlayPtr())
+	{
+		StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
+		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
+		SConfig::GetInstance().m_EnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
+	}
+
 	// Run the game
 	// Init the core
 	if (!Core::Init())
@@ -170,6 +179,7 @@ void Stop()
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
+		SConfig::GetInstance().m_EnableJIT = config_cache.m_EnableJIT;
 	}
 }
 
