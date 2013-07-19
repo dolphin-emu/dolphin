@@ -391,3 +391,8 @@ NetPlay* NetPlay::GetNetPlayPtr()
 {
 	return netplay_ptr;
 }
+
+bool NetPlay::IsUsingPad(int pad)
+{
+	return netplay_ptr->m_local_player->pad_map[pad] != -1;
+}

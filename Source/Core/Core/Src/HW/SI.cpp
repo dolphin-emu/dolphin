@@ -262,6 +262,8 @@ void Init()
 
 		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
 			AddDevice(Movie::IsUsingPad(i) ?  (Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
+		else if (NetPlay::GetNetPlayPtr())
+			AddDevice(NetPlay::IsUsingPad(i) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
 		else
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
 	}

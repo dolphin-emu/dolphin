@@ -120,6 +120,7 @@ public:
 
 	u8 GetPadNum(u8 numPAD);
 	static NetPlay* GetNetPlayPtr();
+	static bool IsUsingPad(int pad);
 
 protected:
 	//void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
