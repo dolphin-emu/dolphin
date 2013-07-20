@@ -138,7 +138,6 @@ bool BootCore(const std::string& _rFilename)
 
 	if (NetPlay::GetNetPlayPtr())
 	{
-		StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
 		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
 		SConfig::GetInstance().m_EnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
 	}

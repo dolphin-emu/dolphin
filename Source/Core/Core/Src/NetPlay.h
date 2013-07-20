@@ -33,7 +33,6 @@ public:
 
 struct NetSettings
 {
-	bool m_CPUthread;
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
 	u8 m_Controllers[4];

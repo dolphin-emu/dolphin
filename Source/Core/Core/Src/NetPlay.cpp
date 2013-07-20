@@ -286,7 +286,6 @@ u8 NetPlay::GetPadNum(u8 numPAD)
 void NetPlay::GetNetSettings()
 {
 	SConfig &instance = SConfig::GetInstance();
-	g_NetPlaySettings.m_CPUthread = instance.m_LocalCoreStartupParameter.bCPUThread;
 	g_NetPlaySettings.m_DSPHLE = instance.m_LocalCoreStartupParameter.bDSPHLE;
 	g_NetPlaySettings.m_DSPEnableJIT = instance.m_EnableJIT;
 

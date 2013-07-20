@@ -193,7 +193,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			{
 			std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 			packet >> m_current_game;
-			packet >> g_NetPlaySettings.m_CPUthread;
 			packet >> g_NetPlaySettings.m_DSPEnableJIT;
 			packet >> g_NetPlaySettings.m_DSPHLE;
 			for (unsigned int i = 0; i < 4; ++i)

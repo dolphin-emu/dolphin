@@ -604,7 +604,6 @@ bool NetPlayServer::StartGame(const std::string &path)
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_START_GAME;
 	spac << NetPlay::m_current_game;
-	spac << g_NetPlaySettings.m_CPUthread;
 	spac << g_NetPlaySettings.m_DSPEnableJIT;
 	spac << g_NetPlaySettings.m_DSPHLE;
 	for (unsigned int i = 0; i < 4; ++i)
