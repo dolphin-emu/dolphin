@@ -289,13 +289,9 @@ void NetPlay::GetNetSettings()
 	g_NetPlaySettings.m_CPUthread = instance.m_LocalCoreStartupParameter.bCPUThread;
 	g_NetPlaySettings.m_DSPHLE = instance.m_LocalCoreStartupParameter.bDSPHLE;
 	g_NetPlaySettings.m_DSPEnableJIT = instance.m_EnableJIT;
-	for (int i = 0; i < 4; ++i)
-		{
-			if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
-				g_NetPlaySettings.m_Controllers |= (1 << i);
-			if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
-				g_NetPlaySettings.m_Controllers |= (1 << (i + 4));
-		}
+
+	for (unsigned int i = 0; i < 4; ++i)
+		g_NetPlaySettings.m_Controllers[i] = SConfig::GetInstance().m_SIDevice[i];
 }
 
 // stuff hacked into dolphin
@@ -407,9 +403,4 @@ bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int, u16, const void*, u32&)
 NetPlay* NetPlay::GetNetPlayPtr()
 {
 	return netplay_ptr;
-}
-
-bool NetPlay::IsUsingPad(int pad)
-{
-	return ((g_NetPlaySettings.m_Controllers & (1 << pad)) != 0);
 }

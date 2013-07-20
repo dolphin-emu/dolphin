@@ -607,8 +607,8 @@ bool NetPlayServer::StartGame(const std::string &path)
 	spac << g_NetPlaySettings.m_CPUthread;
 	spac << g_NetPlaySettings.m_DSPEnableJIT;
 	spac << g_NetPlaySettings.m_DSPHLE;
-	spac << g_NetPlaySettings.m_Controllers;
-
+	for (unsigned int i = 0; i < 4; ++i)
+		spac << g_NetPlaySettings.m_Controllers[i];
 
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);

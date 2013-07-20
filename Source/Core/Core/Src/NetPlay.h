@@ -36,7 +36,7 @@ struct NetSettings
 	bool m_CPUthread;
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
-	u8 m_Controllers;
+	u8 m_Controllers[4];
 };
 extern NetSettings g_NetPlaySettings;
 
@@ -129,7 +129,6 @@ public:
 
 	u8 GetPadNum(u8 numPAD);
 	static NetPlay* GetNetPlayPtr();
-	static bool IsUsingPad(int pad);
 
 protected:
 	//void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
