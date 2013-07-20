@@ -340,9 +340,22 @@ ControlState KeyboardMouse::Key::GetState() const
 	return (m_keyboard[m_keycode / 8] & (1 << (m_keycode % 8))) != 0;
 }
 
+KeyboardMouse::Button::Button(unsigned int index, unsigned int& buttons)
+	: m_buttons(buttons), m_index(index)
+{
+	// this will be a problem if we remove the hardcoded five-button limit
+	name = std::string("Click ") + (char)('1' + m_index);
+}
+
 ControlState KeyboardMouse::Button::GetState() const
 {
 	return ((m_buttons & (1 << m_index)) != 0);
+}
+
+KeyboardMouse::Cursor::Cursor(u8 index, bool positive, const float& cursor)
+	: m_cursor(cursor), m_index(index), m_positive(positive)
+{
+	name = std::string("Cursor ") + (char)('X' + m_index) + (m_positive ? '+' : '-');
 }
 
 ControlState KeyboardMouse::Cursor::GetState() const
@@ -350,37 +363,15 @@ ControlState KeyboardMouse::Cursor::GetState() const
 	return std::max(0.0f, m_cursor / (m_positive ? 1.0f : -1.0f));
 }
 
+KeyboardMouse::Axis::Axis(u8 index, bool positive, const float& axis)
+	: m_axis(axis), m_index(index), m_positive(positive)
+{
+	name = std::string("Axis ") + (char)('X' + m_index) + (m_positive ? '+' : '-');
+}
+
 ControlState KeyboardMouse::Axis::GetState() const
 {
 	return std::max(0.0f, m_axis / (m_positive ? MOUSE_AXIS_SENSITIVITY : -MOUSE_AXIS_SENSITIVITY));
-}
-
-std::string KeyboardMouse::Key::GetName() const
-{
-	return m_keyname;
-}
-
-std::string KeyboardMouse::Cursor::GetName() const
-{
-	static char tmpstr[] = "Cursor ..";
-	tmpstr[7] = (char)('X' + m_index);
-	tmpstr[8] = (m_positive ? '+' : '-');
-	return tmpstr;
-}
-
-std::string KeyboardMouse::Axis::GetName() const
-{
-	static char tmpstr[] = "Axis ..";
-	tmpstr[5] = (char)('X' + m_index);
-	tmpstr[6] = (m_positive ? '+' : '-');
-	return tmpstr;
-}
-
-std::string KeyboardMouse::Button::GetName() const
-{
-	static char tmpstr[] = "Click .";
-	tmpstr[6] = m_index + '1';
-	return tmpstr;
 }
 
 }
