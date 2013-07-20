@@ -92,6 +92,14 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 	ncdata->jx = u8(trim(state[0]));
 	ncdata->jy = u8(trim(state[1]));
 
+	if (ncdata->jx != cal.jx.center || ncdata->jy != cal.jy.center)
+	{
+		if (ncdata->jy == cal.jy.center)
+			ncdata->jy = cal.jy.center + 1;
+		if (ncdata->jx == cal.jx.center)
+			ncdata->jx = cal.jx.center + 1;
+	}
+
 	if (!focus)
 	{
 		ncdata->jx = cal.jx.center;
