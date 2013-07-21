@@ -11,6 +11,7 @@ set(LIBS	core
 if(NOT ANDROID)
 	if(USE_X11)
 	  set(LIBS  ${LIBS} ${X11_LIBRARIES}
+              ${XINPUT2_LIBRARIES}
 	      ${XRANDR_LIBRARIES})
 	endif()
 	if(USE_WAYLAND)
