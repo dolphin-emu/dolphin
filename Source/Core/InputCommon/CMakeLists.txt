@@ -23,7 +23,7 @@ elseif(X11_FOUND)
 	set(SRCS	${SRCS}
 				Src/ControllerInterface/SDL/SDL.cpp
 				Src/ControllerInterface/Xlib/Xlib.cpp)
-	if(X11_Xinput2_FOUND)
+	if(XINPUT2_FOUND)
 		set(SRCS	${SRCS}
 					Src/ControllerInterface/Xlib/XInput2.cpp)
 	endif()
