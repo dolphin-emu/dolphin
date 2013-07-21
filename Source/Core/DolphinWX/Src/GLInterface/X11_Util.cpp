@@ -313,11 +313,6 @@ void cX11Window::XEventThread()
 					if ((unsigned long) event.xclient.data.l[0] ==
 							XInternAtom(GLWin.evdpy, "WM_DELETE_WINDOW", False))
 						Host_Message(WM_USER_STOP);
-					if ((unsigned long) event.xclient.data.l[0] ==
-							XInternAtom(GLWin.evdpy, "RESIZE", False))
-						XMoveResizeWindow(GLWin.evdpy, GLWin.win,
-								event.xclient.data.l[1], event.xclient.data.l[2],
-								event.xclient.data.l[3], event.xclient.data.l[4]);
 					break;
 				default:
 					break;
