@@ -32,22 +32,6 @@ extern char **environ;
 namespace X11Utils
 {
 
-void SendKeyEvent(Display *dpy, int key)
-{
-	XEvent event;
-	Window win = (Window)Core::GetWindowHandle();
-
-	// Init X event structure for key press event
-	event.xkey.type = KeyPress;
-	// WARNING:  This works for ASCII keys.  If in the future other keys are needed
-	// convert with InputCommon::wxCharCodeWXToX from X11InputBase.cpp.
-	event.xkey.keycode = XKeysymToKeycode(dpy, key);
-
-	// Send the event
-	if (!XSendEvent(dpy, win, False, False, &event))
-		ERROR_LOG(VIDEO, "Failed to send key press event to the emulator window.");
-}
-
 void SendButtonEvent(Display *dpy, int button, int x, int y, bool pressed)
 {
 	XEvent event;

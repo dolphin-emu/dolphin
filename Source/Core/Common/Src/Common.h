@@ -143,7 +143,6 @@ enum HOST_COMM
 	WM_USER_STOP = 10,
 	WM_USER_CREATE,
 	WM_USER_SETCURSOR,
-	WM_USER_KEYDOWN,
 };
 
 // Used for notification on emulation state

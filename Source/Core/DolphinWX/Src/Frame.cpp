@@ -30,6 +30,9 @@
 #include "State.h"
 #include "VolumeHandler.h"
 #include "Movie.h"
+#include "RenderBase.h"
+#include "VideoConfig.h"
+#include "VertexShaderManager.h"
 
 #include "VideoBackendBase.h"
 
@@ -873,28 +876,72 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			ConnectWiimote(WiimoteId, connect);
 		}
 
-		// Send the OSD hotkeys to the video backend
-		if (event.GetKeyCode() >= '3' && event.GetKeyCode() <= '7' && event.GetModifiers() == wxMOD_NONE)
+		if (g_Config.bOSDHotKey && event.GetModifiers() == wxMOD_NONE)
 		{
-#ifdef _WIN32
-			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
-#elif defined(HAVE_X11) && HAVE_X11
-			X11Utils::SendKeyEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetKeyCode());
-#endif
+			switch (event.GetKeyCode())
+			{
+			case '3':
+				OSDChoice = 1;
+				// Toggle native resolution
+				g_Config.iEFBScale = g_Config.iEFBScale + 1;
+				if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
+				break;
+			case '4':
+				OSDChoice = 2;
+				// Toggle aspect ratio
+				g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
+				break;
+			case '5':
+				OSDChoice = 3;
+				// Toggle EFB copy
+				if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
+				{
+					g_Config.bEFBCopyEnable ^= true;
+					g_Config.bCopyEFBToTexture = false;
+				}
+				else
+				{
+					g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+				}
+				break;
+			case '6':
+				OSDChoice = 4;
+				g_Config.bDisableFog = !g_Config.bDisableFog;
+				break;
+			default:
+				break;
+			}
 		}
-		// Send the freelook hotkeys to the video backend
-		if ((event.GetKeyCode() == ')' || event.GetKeyCode() == '(' ||
-					event.GetKeyCode() == '0' || event.GetKeyCode() == '9' ||
-					event.GetKeyCode() == 'W' || event.GetKeyCode() == 'S' ||
-					event.GetKeyCode() == 'A' || event.GetKeyCode() == 'D' ||
-					event.GetKeyCode() == 'R')
-				&& event.GetModifiers() == wxMOD_SHIFT)
+
+		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
 		{
-#ifdef _WIN32
-			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
-#elif defined(HAVE_X11) && HAVE_X11
-			X11Utils::SendKeyEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetKeyCode());
-#endif
+			static float debugSpeed = 1.0f;
+			switch (event.GetKeyCode())
+			{
+			case '9':
+				debugSpeed /= 2.0f;
+				break;
+			case '0':
+				debugSpeed *= 2.0f;
+				break;
+			case 'W':
+				VertexShaderManager::TranslateView(0.0f, debugSpeed);
+				break;
+			case 'S':
+				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+				break;
+			case 'A':
+				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+				break;
+			case 'D':
+				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+				break;
+			case 'R':
+				VertexShaderManager::ResetView();
+				break;
+			default:
+				break;
+			}
 		}
 	}
 	else
