@@ -590,6 +590,7 @@ bool NetPlayServer::StartGame(const std::string &path)
 {
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 
+	GetNetSettings();
 	if (false == NetPlay::StartGame(path))
 		return false;
 
@@ -602,7 +603,11 @@ bool NetPlayServer::StartGame(const std::string &path)
 	// tell clients to start game
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_START_GAME;
-	spac << m_current_game;
+	spac << NetPlay::m_current_game;
+	spac << g_NetPlaySettings.m_DSPEnableJIT;
+	spac << g_NetPlaySettings.m_DSPHLE;
+	for (unsigned int i = 0; i < 4; ++i)
+		spac << g_NetPlaySettings.m_Controllers[i];
 
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);

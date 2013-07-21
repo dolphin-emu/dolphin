@@ -15,9 +15,11 @@
 #include "HW/EXI_DeviceIPL.h"
 // for wiimote/ OSD messages
 #include "Core.h"
+#include "ConfigManager.h"
 
 std::mutex crit_netplay_ptr;
 static NetPlay* netplay_ptr = NULL;
+NetSettings g_NetPlaySettings;
 
 #define RPT_SIZE_HACK	(1 << 16)
 
@@ -281,6 +283,16 @@ u8 NetPlay::GetPadNum(u8 numPAD)
 	return i;
 }
 
+void NetPlay::GetNetSettings()
+{
+	SConfig &instance = SConfig::GetInstance();
+	g_NetPlaySettings.m_DSPHLE = instance.m_LocalCoreStartupParameter.bDSPHLE;
+	g_NetPlaySettings.m_DSPEnableJIT = instance.m_EnableJIT;
+
+	for (unsigned int i = 0; i < 4; ++i)
+		g_NetPlaySettings.m_Controllers[i] = SConfig::GetInstance().m_SIDevice[i];
+}
+
 // stuff hacked into dolphin
 
 // called from ---CPU--- thread
@@ -385,4 +397,9 @@ bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int, u16, const void*, u32&)
 	//}
 	else
 		return false;
+}
+
+NetPlay* NetPlay::GetNetPlayPtr()
+{
+	return netplay_ptr;
 }
