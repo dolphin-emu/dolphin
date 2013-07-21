@@ -63,6 +63,15 @@ inline void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count,
 	g_renderer->SetMultiVSConstant4fv(const_number, count, f);
 }
 
+struct ProjectionHack
+{
+	float sign;
+	float value;
+	ProjectionHack() { }
+	ProjectionHack(float new_sign, float new_value)
+		: sign(new_sign), value(new_value) {}
+};
+
 namespace
 {
 // Control Variables

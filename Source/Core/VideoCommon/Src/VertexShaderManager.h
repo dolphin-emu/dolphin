@@ -9,15 +9,6 @@
 
 class PointerWrap;
 
-struct ProjectionHack
-{
-	float sign;
-	float value;
-	ProjectionHack() { }
-	ProjectionHack(float new_sign, float new_value)
-		: sign(new_sign), value(new_value) {}
-};
-
 void UpdateProjectionHack(int iParams[], std::string sParams[]);
 
 void UpdateViewportWithCorrection();
