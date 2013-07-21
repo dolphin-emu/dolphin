@@ -303,11 +303,7 @@ void cX11Window::XEventThread()
 					}
 					break;
 				case ConfigureNotify:
-					Window winDummy;
-					unsigned int borderDummy, depthDummy;
-					XGetGeometry(GLWin.evdpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
-							&GLWin.width, &GLWin.height, &borderDummy, &depthDummy);
-					GLInterface->SetBackBufferDimensions(GLWin.width, GLWin.height);
+					GLInterface->SetBackBufferDimensions(event.xconfigure.width, event.xconfigure.height);
 					break;
 				case ClientMessage:
 					if ((unsigned long) event.xclient.data.l[0] ==
