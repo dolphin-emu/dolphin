@@ -246,7 +246,7 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYP
 	else
 		texSampleIncrementUnit = I_COLORS"[0].x";
 
-	WRITE(p, "  %s = %s(samp0, sampleUv + float2(%d * (%s), 0)).%s;\n",
+	WRITE(p, "  %s = %s(samp0, sampleUv + float2(%d.0f * (%s), 0)).%s;\n",
 		dest, texSampleOpName, s_incrementSampleXCount, texSampleIncrementUnit, colorComp);
 }
 
