@@ -112,6 +112,7 @@ struct pixel_shader_uid_data
 
 	u32 fast_depth_calc : 1;
 	u32 per_pixel_depth : 1;
+	u32 forced_early_z : 1;
 	u32 early_ztest : 1;
 
 	u32 xfregs_numTexGen_numTexGens : 4;

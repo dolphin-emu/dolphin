@@ -342,6 +342,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsGLSLUBO = true; 
 	g_Config.backend_info.bSupportsPrimitiveRestart = false; 
+	g_Config.backend_info.bSupportsEarlyZ = false;
 	
 	g_ogl_config.bSupportsGLSLCache = false; // XXX: Reenable once shaders compile correctly  
 	g_ogl_config.bSupportsGLPinnedMemory = false; 
@@ -433,6 +434,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
 	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
 	g_Config.backend_info.bSupportsPrimitiveRestart = GLEW_VERSION_3_1 || GLEW_NV_primitive_restart;
+	g_Config.backend_info.bSupportsEarlyZ = GLEW_ARB_shader_image_load_store;
 	
 	g_ogl_config.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
 	g_ogl_config.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
@@ -453,14 +455,21 @@ Renderer::Renderer()
 	{
 		g_ogl_config.eSupportedGLSLVersion = GLSL_120;
 		g_Config.backend_info.bSupportsDualSourceBlend = false; //TODO: implement dual source blend
+		g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 	}
 	else if(strstr(g_ogl_config.glsl_version, "1.30"))
 	{
 		g_ogl_config.eSupportedGLSLVersion = GLSL_130;
+		g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+	}
+	else if(strstr(g_ogl_config.glsl_version, "1.40"))
+	{
+		g_ogl_config.eSupportedGLSLVersion = GLSL_140;
+		g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 	}
 	else
 	{
-		g_ogl_config.eSupportedGLSLVersion = GLSL_140;
+		g_ogl_config.eSupportedGLSLVersion = GLSL_150;
 	}
 #endif	
 	
@@ -489,10 +498,11 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version).c_str(), 5000);
 	
-	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
+			g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
 			g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
 			g_ogl_config.bSupportsGLSLCache ? "" : "ShaderCache ",
 			g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",

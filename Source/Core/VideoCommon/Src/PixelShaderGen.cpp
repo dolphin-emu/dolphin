@@ -258,7 +258,8 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	unsigned int numStages = bpmem.genMode.numtevstages + 1;
 	unsigned int numTexgen = bpmem.genMode.numtexgens;
 
-	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable) || !g_ActiveConfig.bFastDepthCalc;
+	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.zcontrol.early_ztest && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
+	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable) || (!g_ActiveConfig.bFastDepthCalc && !forced_early_z);
 
 	out.Write("//Pixel Shader for TEV stages\n");
 	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
@@ -372,6 +373,14 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 			}
 			out.Write("float4 clipPos;\n");
 		}
+		
+		if (forced_early_z)
+		{
+			// HACK: This doesn't force the driver to write to depth buffer if alpha test fails.
+			// It just allows it, but it seems that all drivers do.
+			out.Write("layout(early_fragment_tests) in;\n");
+		}
+		
 		out.Write("void main()\n{\n");
 	}
 	else
@@ -584,6 +593,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 
 	uid_data.ztex_op = bpmem.ztex2.op;
 	uid_data.per_pixel_depth = per_pixel_depth;
+	uid_data.forced_early_z = forced_early_z;
 	uid_data.fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
 	uid_data.early_ztest = bpmem.zcontrol.early_ztest;
 	uid_data.fog_fsel = bpmem.fog.c_proj_fsel.fsel;
@@ -1129,17 +1139,20 @@ static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE Api
 		out.Write("\t\tdepth = 1.f;\n");
 
 	// HAXX: zcomploc (aka early_ztest) is a way to control whether depth test is done before
-	// or after texturing and alpha test. PC GPUs have no way to support this
-	// feature properly as of 2012: depth buffer and depth test are not
+	// or after texturing and alpha test. PC graphics APIs have no way to support this
+	// feature properly as of 2012: Depth buffer and depth test are not
 	// programmable and the depth test is always done after texturing.
-	// Most importantly, PC GPUs do not allow writing to the z-buffer without
+	// Most importantly, they do not allow writing to the z-buffer without
 	// writing a color value (unless color writing is disabled altogether).
-	// We implement "depth test before texturing" by discarding the fragment
-	// when the alpha test fail. This is not a correct implementation because
-	// even if the depth test fails the fragment could be alpha blended, but
-	// we don't have a choice.
-	uid_data.alpha_test_use_zcomploc_hack = bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable;
-	if (!(bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable))
+	// We implement "depth test before texturing" by disabling alpha test when early-z is in use.
+	// It seems to be less buggy than not to update the depth buffer if alpha test fails,
+	// but both ways wouldn't be accurate.
+	
+	// OpenGL 4.2 has a flag which allows the driver to still update the depth buffer 
+	// if alpha test fails. The driver doesn't have to, but I assume they all do because
+	// it's the much faster code path for the GPU.
+	uid_data.alpha_test_use_zcomploc_hack = bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable && !g_ActiveConfig.backend_info.bSupportsEarlyZ;
+	if (!uid_data.alpha_test_use_zcomploc_hack)
 	{
 		out.Write("\t\tdiscard;\n");
 		if (ApiType != API_D3D11)
