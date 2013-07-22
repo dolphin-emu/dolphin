@@ -22,10 +22,8 @@ NetPlayServer::~NetPlayServer()
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port, const std::string& name, NetPlayUI* dialog, const std::string& game) : NetPlay(dialog)
+NetPlayServer::NetPlayServer(const u16 port, const std::string& name, NetPlayUI* dialog) : NetPlay(dialog)
 {
-	m_selected_game = game;
-
 	m_update_pings = true;
 
 	if (m_socket.Listen(port))
@@ -229,10 +227,13 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	socket.Send(spac);
 
 	// send new client the selected game
-	spac.Clear();
-	spac << (MessageId)NP_MSG_CHANGE_GAME;
-	spac << m_selected_game;
-	socket.Send(spac);
+	if (m_selected_game != "")
+	{
+		spac.Clear();
+		spac << (MessageId)NP_MSG_CHANGE_GAME;
+		spac << m_selected_game;
+		socket.Send(spac);
+	}
 
 	// sync values with new client
 	for (i = m_players.begin(); i!=e; ++i)
@@ -801,4 +802,3 @@ bool NetPlayServer::UPnPUnmapPort(const u16 port)
 	return true;
 }
 #endif
-

@@ -183,7 +183,7 @@ class NetPlayServer : public NetPlay
 public:
 	void ThreadFunc();
 
-	NetPlayServer(const u16 port, const std::string& name, NetPlayUI* dialog, const std::string& game = "");
+	NetPlayServer(const u16 port, const std::string& name, NetPlayUI* dialog);
 	~NetPlayServer();
 
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
