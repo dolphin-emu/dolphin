@@ -549,13 +549,6 @@ Renderer::Renderer()
 
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
-
-	// Initialize the FramebufferManager
-	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
-			s_MSAASamples, s_MSAACoverageSamples);
-
-	if (GL_REPORT_ERROR() != GL_NO_ERROR)
-		bSuccess = false;
 	
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -601,12 +594,12 @@ Renderer::~Renderer()
 	if (scrshotThread.joinable())
 		scrshotThread.join();
 #endif
-
-	delete g_framebuffer_manager;
 }
 
 void Renderer::Shutdown()
 {
+	delete g_framebuffer_manager;
+	
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
 	
@@ -621,6 +614,10 @@ void Renderer::Shutdown()
 
 void Renderer::Init()
 {
+	// Initialize the FramebufferManager
+	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
+			s_MSAASamples, s_MSAACoverageSamples);
+	
 	s_pfont = new RasterFont();
 	
 	ProgramShaderCache::CompileShader(s_ShowEFBCopyRegions, 
@@ -1123,7 +1120,14 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
-	// TODO
+	if (convtype == 0 || convtype == 2)
+	{
+		FramebufferManager::ReinterpretPixelData(convtype);
+	}
+	else
+	{
+		ERROR_LOG(VIDEO, "Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
+	}
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)

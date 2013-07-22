@@ -7,6 +7,7 @@
 
 #include "GLUtil.h"
 #include "FramebufferManagerBase.h"
+#include "ProgramShaderCache.h"
 #include "Render.h"
 
 // On the GameCube, the game sends a request for the graphics processor to
@@ -95,6 +96,10 @@ public:
 	// Same as above but for the depth Target.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
 	static GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
+	
+	// Convert EFB content on pixel format change. 
+	// convtype=0 -> rgb8->rgba6, convtype=2 -> rgba6->rgb8
+	static void ReinterpretPixelData(unsigned int convtype);
 
 private:
 	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
@@ -111,12 +116,17 @@ private:
 	static GLuint m_efbColor; // Renderbuffer in MSAA mode; Texture otherwise
 	static GLuint m_efbDepth; // Renderbuffer in MSAA mode; Texture otherwise
 
-	// Only used in MSAA mode.
-	static GLuint m_resolvedFramebuffer;
+	// Only used in MSAA mode and to convert pixel format
+	static GLuint m_resolvedFramebuffer; // will be hot swapped with m_efbColor on non-msaa pixel format change
 	static GLuint m_resolvedColorTexture;
 	static GLuint m_resolvedDepthTexture;
 
 	static GLuint m_xfbFramebuffer; // Only used in MSAA mode
+	
+	// For pixel format draw
+	static GLuint m_pixel_format_vbo;
+	static GLuint m_pixel_format_vao;
+	static SHADER m_pixel_format_shaders[2];
 };
 
 }  // namespace OGL
