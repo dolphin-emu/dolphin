@@ -805,6 +805,7 @@ union PE_CONTROL
 		u32 unused : 17;
 		u32 rid : 8;
 	};
+
 	u32 hex;
 };
 
@@ -1005,6 +1006,9 @@ struct BPMemory
 	TevKSel tevksel[8];//0xf6,0xf7,f8,f9,fa,fb,fc,fd
 	u32 bpMask; //0xFE
 	u32 unknown18; //ff
+
+	bool UseEarlyDepthTest() const { return zcontrol.early_ztest && zmode.testenable; }
+	bool UseLateDepthTest() const { return !zcontrol.early_ztest && zmode.testenable; }
 };
 
 #pragma pack()

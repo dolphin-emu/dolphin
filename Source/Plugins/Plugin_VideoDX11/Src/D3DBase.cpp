@@ -245,6 +245,13 @@ std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
 	return aa_modes;
 }
 
+D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
+{
+	D3D_FEATURE_LEVEL feat_level = D3D_FEATURE_LEVEL_9_1;
+	PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, NULL, &feat_level, NULL);
+	return feat_level;
+}
+
 DXGI_SAMPLE_DESC GetAAMode(int index)
 {
 	return aa_modes[index];

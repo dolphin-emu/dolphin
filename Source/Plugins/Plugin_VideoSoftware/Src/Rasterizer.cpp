@@ -135,7 +135,7 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	if (z < 0 || z > 0x00ffffff)
 		return;
 
-	if (bpmem.zcontrol.early_ztest && bpmem.zmode.testenable && g_SWVideoConfig.bZComploc)
+	if (bpmem.UseEarlyDepthTest() && g_SWVideoConfig.bZComploc)
 	{
 		// TODO: Test if perf regs are incremented even if test is disabled
 		SWPixelEngine::pereg.IncZInputQuadCount(true);
