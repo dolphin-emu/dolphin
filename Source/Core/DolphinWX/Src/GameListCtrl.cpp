@@ -23,6 +23,7 @@
 #include "WxUtils.h"
 #include "Main.h"
 #include "MathUtil.h"
+#include "HW/DVDInterface.h"
 
 #include "../resources/Flag_Europe.xpm"
 #include "../resources/Flag_Germany.xpm"
@@ -174,6 +175,8 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 		wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style), toolTip(0)
 {
+	DragAcceptFiles(true);
+	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CGameListCtrl::OnDropFiles), NULL, this);
 }
 
 CGameListCtrl::~CGameListCtrl()
@@ -1298,4 +1301,36 @@ void CGameListCtrl::UnselectAll()
 	}
 }
 
+void CGameListCtrl::OnDropFiles(wxDropFilesEvent& event)
+{
+	if (event.GetNumberOfFiles() != 1)
+		return;
+	if (File::IsDirectory(WxStrToStr(event.GetFiles()[0])))
+		return;
 
+	wxFileName file = event.GetFiles()[0];
+
+	if (file.GetExt() == "dtm")
+	{
+		if (Core::IsRunning())
+			return;
+
+		if (!Movie::IsReadOnly())
+		{
+			// let's make the read-only flag consistent at the start of a movie.
+			Movie::SetReadOnly(true);
+			main_frame->GetMenuBar()->FindItem(IDM_RECORDREADONLY)->Check(true);
+		}
+
+		if (Movie::PlayInput(file.GetFullPath().c_str()))
+			main_frame->BootGame(std::string(""));
+	}
+	else if (!Core::IsRunning())
+	{
+		main_frame->BootGame(WxStrToStr(file.GetFullPath()));
+	}
+	else
+	{
+		DVDInterface::ChangeDisc(WxStrToStr(file.GetFullPath()).c_str());
+	}
+}
