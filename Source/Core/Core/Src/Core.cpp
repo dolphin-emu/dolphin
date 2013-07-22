@@ -80,7 +80,6 @@ void Stop();
 bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bStarted = false;
-bool g_bRealWiimote = false;
 void *g_pWindowHandle = NULL;
 std::string g_stateFileName;
 std::thread g_EmuThread;
