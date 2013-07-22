@@ -228,9 +228,7 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 	ref->parsed_expression = NULL;
 
 	ControlFinder finder(*this, default_device, ref->is_input);
-	ExpressionParseStatus status;
-	status = ParseExpression(ref->expression, finder, &ref->parsed_expression);
-	// XXX: do something with status?
+	ref->parse_error = ParseExpression(ref->expression, finder, &ref->parsed_expression);
 }
 
 //

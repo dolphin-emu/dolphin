@@ -112,6 +112,7 @@ public:
 private:
 	GamepadPage* const		m_parent;
 	wxStaticText*		m_bound_label;
+	wxStaticText*		m_error_label;
 	DeviceQualifier	m_devq;
 	bool GetExpressionForSelectedControl(wxString &expr);
 };

@@ -6,6 +6,9 @@
 #include "UDPConfigDiag.h"
 #include "WxUtils.h"
 #include "HW/Wiimote.h"
+#include "ControllerInterface/ExpressionParser.h"
+
+using namespace ciface::ExpressionParser;
 
 void GamepadPage::ConfigUDPWii(wxCommandEvent &event)
 {
@@ -225,6 +228,18 @@ void ControlDialog::UpdateGUI()
 	// updates the "bound controls:" label
 	m_bound_label->SetLabel(wxString::Format(_("Bound Controls: %lu"),
 		(unsigned long)control_reference->BoundCount()));
+
+	switch (control_reference->parse_error)
+	{
+	case EXPRESSION_PARSE_SYNTAX_ERROR:
+		m_error_label->SetLabel("Syntax error");
+		break;
+	case EXPRESSION_PARSE_NO_DEVICE:
+		m_error_label->SetLabel("Device not found");
+		break;
+	default:
+		m_error_label->SetLabel("");
+	}
 };
 
 void GamepadPage::UpdateGUI()
@@ -560,7 +575,9 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 
 	range_slider->Bind(wxEVT_SCROLL_CHANGED, &GamepadPage::AdjustControlOption, parent);
 	wxStaticText* const range_label = new wxStaticText(this, -1, _("Range"));
+
 	m_bound_label = new wxStaticText(this, -1, wxT(""));
+	m_error_label = new wxStaticText(this, -1, wxT(""));
 
 	wxBoxSizer* const range_sizer = new wxBoxSizer(wxHORIZONTAL);
 	range_sizer->Add(range_label, 0, wxCENTER|wxLEFT, 5);
@@ -579,6 +596,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 	main_szr->Add(textctrl, 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5);
 	main_szr->Add(bottom_btns_sizer, 0, wxEXPAND|wxBOTTOM|wxRIGHT, 5);
 	main_szr->Add(m_bound_label, 0, wxCENTER, 0);
+	main_szr->Add(m_error_label, 0, wxCENTER, 0);
 
 	UpdateListContents();
 

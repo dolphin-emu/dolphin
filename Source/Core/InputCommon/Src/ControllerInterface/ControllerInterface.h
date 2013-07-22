@@ -64,6 +64,7 @@ public:
 		ControlState range;
 		std::string			expression;
 		const bool			is_input;
+		ciface::ExpressionParser::ExpressionParseStatus parse_error;
 
 		virtual ~ControlReference() {
 			delete parsed_expression;
