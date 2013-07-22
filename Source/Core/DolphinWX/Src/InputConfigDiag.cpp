@@ -292,7 +292,7 @@ void GamepadPage::LoadDefaults(wxCommandEvent&)
 	UpdateGUI();
 }
 
-void ControlDialog::SetControl(wxCommandEvent&)
+bool ControlDialog::Validate()
 {
 	control_reference->expression = WxStrToStr(textctrl->GetValue());
 
@@ -300,6 +300,8 @@ void ControlDialog::SetControl(wxCommandEvent&)
 	g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
 	UpdateGUI();
+
+	return (control_reference->parse_error == EXPRESSION_PARSE_SUCCESS);
 }
 
 void GamepadPage::SetDevice(wxCommandEvent&)
@@ -533,7 +535,6 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 	wxButton* const detect_button = new wxButton(this, -1, control_reference->is_input ? _("Detect") : _("Test"));
 
 	wxButton* const clear_button = new  wxButton(this, -1, _("Clear"));
-	wxButton* const set_button = new wxButton(this, -1, _("Set"));
 
 	wxButton* const select_button = new wxButton(this, -1, _("Select"));
 	select_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::SetSelectedControl, this);
@@ -571,7 +572,6 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 
 	detect_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::DetectControl, this);
 	clear_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::ClearControl, this);
-	set_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &ControlDialog::SetControl, this);
 
 	range_slider->Bind(wxEVT_SCROLL_CHANGED, &GamepadPage::AdjustControlOption, parent);
 	wxStaticText* const range_label = new wxStaticText(this, -1, _("Range"));
@@ -587,8 +587,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 	ctrls_sizer->Add(control_lbox, 1, wxEXPAND, 0);
 	ctrls_sizer->Add(button_sizer, 0, wxEXPAND, 0);
 
-	wxSizer* const bottom_btns_sizer = CreateButtonSizer(wxOK);
-	bottom_btns_sizer->Prepend(set_button, 0, wxRIGHT, 5);
+	wxSizer* const bottom_btns_sizer = CreateButtonSizer(wxOK|wxAPPLY);
 	bottom_btns_sizer->Prepend(clear_button, 0, wxLEFT, 5);
 
 	main_szr->Add(range_sizer, 0, wxEXPAND|wxLEFT|wxRIGHT, 5);

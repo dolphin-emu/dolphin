@@ -89,9 +89,10 @@ public:
 	
 	wxStaticBoxSizer* CreateControlChooser(GamepadPage* const parent);
 
+	virtual bool Validate();
+
 	void DetectControl(wxCommandEvent& event);
 	void ClearControl(wxCommandEvent& event);
-	void SetControl(wxCommandEvent& event);
 	void SetDevice(wxCommandEvent& event);
 
 	void UpdateGUI();
