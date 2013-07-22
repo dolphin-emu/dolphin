@@ -12,6 +12,7 @@
 
 #include <SFML/Network.hpp>
 
+#include "NetPlayProto.h"
 #include "GCPadStatus.h"
 
 #include <functional>
@@ -31,63 +32,6 @@ public:
 	u32 nLo;
 };
 
-struct NetSettings
-{
-	bool m_DSPHLE;
-	bool m_DSPEnableJIT;
-	bool m_WriteToMemcard;
-	u8 m_Controllers[4];
-};
-extern NetSettings g_NetPlaySettings;
-
-struct Rpt : public std::vector<u8>
-{
-	u16		channel;
-};
-
-typedef std::vector<Rpt>	NetWiimote;
-
-#define NETPLAY_VERSION		"Dolphin NetPlay 2013-07-22"
-
-// messages
-enum
-{
-	NP_MSG_PLAYER_JOIN		= 0x10,
-	NP_MSG_PLAYER_LEAVE		= 0x11,
-
-	NP_MSG_CHAT_MESSAGE		= 0x30,
-
-	NP_MSG_PAD_DATA			= 0x60,
-	NP_MSG_PAD_MAPPING		= 0x61,
-	NP_MSG_PAD_BUFFER		= 0x62,
-
-	NP_MSG_WIIMOTE_DATA		= 0x70,
-	NP_MSG_WIIMOTE_MAPPING	= 0x71,	// just using pad mapping for now
-
-	NP_MSG_START_GAME		= 0xA0,
-	NP_MSG_CHANGE_GAME		= 0xA1,
-	NP_MSG_STOP_GAME		= 0xA2,
-	NP_MSG_DISABLE_GAME		= 0xA3,
-
-	NP_MSG_READY			= 0xD0,
-	NP_MSG_NOT_READY		= 0xD1,
-
-	NP_MSG_PING				= 0xE0,
-	NP_MSG_PONG				= 0xE1,
-};
-
-typedef u8	MessageId;
-typedef u8	PlayerId;
-typedef s8	PadMapping;
-typedef u32	FrameNum;
-
-enum
-{
-	CON_ERR_SERVER_FULL = 1,
-	CON_ERR_GAME_RUNNING,
-	CON_ERR_VERSION_MISMATCH	
-};
-
 class NetPlayUI
 {
 public:
@@ -103,6 +47,8 @@ public:
 	virtual void OnMsgStartGame() = 0;
 	virtual void OnMsgStopGame() = 0;
 };
+
+extern NetSettings g_NetPlaySettings;
 
 class NetPlay
 {
@@ -124,16 +70,12 @@ public:
 	virtual bool StartGame(const std::string &path);
 	virtual bool StopGame();
 
-	virtual void SetMemcardWriteEnabled(bool enabled);
-	//void PushPadStates(unsigned int count);
-
 	u8 GetPadNum(u8 numPAD);
 	static NetPlay* GetNetPlayPtr();
 
 protected:
 	//void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
 	void ClearBuffers();
-	void GetNetSettings();
 	virtual void SendPadState(const PadMapping local_nb, const NetPad& np) = 0;
 
 	struct
@@ -178,74 +120,6 @@ protected:
 
 void NetPlay_Enable(NetPlay* const np);
 void NetPlay_Disable();
-
-class NetPlayServer : public NetPlay
-{
-public:
-	void ThreadFunc();
-
-	NetPlayServer(const u16 port, const std::string& name, NetPlayUI* dialog);
-	~NetPlayServer();
-
-	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
-
-	// Send and receive pads values
-	//bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
-	bool ChangeGame(const std::string& game);
-	void SendChatMessage(const std::string& msg);
-
-	bool StartGame(const std::string &path);
-	bool StopGame();
-
-	bool GetPadMapping(const int pid, int map[]);
-	bool SetPadMapping(const int pid, const int map[]);
-
-	void AdjustPadBufferSize(unsigned int size);
-
-#ifdef USE_UPNP
-	void TryPortmapping(u16 port);
-#endif
-
-private:
-	class Client : public Player
-	{
-	public:
-		Client() : ping(0), current_game(0) {}
-
-		sf::SocketTCP	socket;
-		u64				ping;	
-		u32				current_game;
-	};
-
-	void SendPadState(const PadMapping local_nb, const NetPad& np);
-	void SendToClients(sf::Packet& packet, const PlayerId skip_pid = 0);
-	unsigned int OnConnect(sf::SocketTCP& socket);
-	unsigned int OnDisconnect(sf::SocketTCP& socket);
-	unsigned int OnData(sf::Packet& packet, sf::SocketTCP& socket);
-	void UpdatePadMapping();
-
-	std::map<sf::SocketTCP, Client>	m_players;
-
-	Common::Timer	m_ping_timer;
-	u32		m_ping_key;
-	bool	m_update_pings;
-	
-#ifdef USE_UPNP
-	static void mapPortThread(const u16 port);
-	static void unmapPortThread();
-
-	static bool initUPnP();
-	static bool UPnPMapPort(const std::string& addr, const u16 port);
-	static bool UPnPUnmapPort(const u16 port);
-
-	static struct UPNPUrls m_upnp_urls;
-	static struct IGDdatas m_upnp_data;
-	static u16 m_upnp_mapped;
-	static bool m_upnp_inited;
-	static bool m_upnp_error;
-	static std::thread m_upnp_thread;
-#endif
-};
 
 class NetPlayClient : public NetPlay
 {

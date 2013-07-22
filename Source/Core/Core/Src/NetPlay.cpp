@@ -261,12 +261,6 @@ bool NetPlay::StopGame()
 	return true;
 }
 
-void NetPlay::SetMemcardWriteEnabled(bool enabled)
-{
-	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-	g_NetPlaySettings.m_WriteToMemcard = enabled;
-}
-
 // called from ---CPU--- thread
 u8 NetPlay::GetPadNum(u8 numPAD)
 {
@@ -277,16 +271,6 @@ u8 NetPlay::GetPadNum(u8 numPAD)
 			break;
 
 	return i;
-}
-
-void NetPlay::GetNetSettings()
-{
-	SConfig &instance = SConfig::GetInstance();
-	g_NetPlaySettings.m_DSPHLE = instance.m_LocalCoreStartupParameter.bDSPHLE;
-	g_NetPlaySettings.m_DSPEnableJIT = instance.m_EnableJIT;
-
-	for (unsigned int i = 0; i < 4; ++i)
-		g_NetPlaySettings.m_Controllers[i] = SConfig::GetInstance().m_SIDevice[i];
 }
 
 // stuff hacked into dolphin
