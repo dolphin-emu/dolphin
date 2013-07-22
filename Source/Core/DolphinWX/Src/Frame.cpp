@@ -936,6 +936,12 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			case 'D':
 				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
 				break;
+			case 'Q':
+				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+				break;
+			case 'E':
+				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+				break;
 			case 'R':
 				VertexShaderManager::ResetView();
 				break;

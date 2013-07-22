@@ -619,10 +619,10 @@ void VertexShaderManager::SetMaterialColorChanged(int index)
 	nMaterialsChanged  |= (1 << index);
 }
 
-void VertexShaderManager::TranslateView(float x, float y)
+void VertexShaderManager::TranslateView(float x, float y, float z)
 {
 	float result[3];
-	float vector[3] = { x,0,y };
+	float vector[3] = { x,z,y };
 
 	Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
 
