@@ -90,7 +90,6 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
-	g_Config.backend_info.bSupportsEarlyZ = false;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
@@ -103,11 +102,13 @@ void InitBackendInfo()
 	g_Config.backend_info.AAModes.clear();
 	while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
 	{
+		const size_t adapter_index = g_Config.backend_info.Adapters.size();
+
 		DXGI_ADAPTER_DESC desc;
 		ad->GetDesc(&desc);
 
 		// TODO: These don't get updated on adapter change, yet
-		if (g_Config.backend_info.Adapters.size() == g_Config.iAdapter)
+		if (adapter_index == g_Config.iAdapter)
 		{
 			char buf[32];
 			std::vector<DXGI_SAMPLE_DESC> modes;
@@ -119,6 +120,9 @@ void InitBackendInfo()
 				else sprintf_s(buf, 32, _trans("%d samples"), modes[i].Count);
 				g_Config.backend_info.AAModes.push_back(buf);
 			}
+
+			// Requires the earlydepthstencil attribute (only available in shader model 5)
+			g_Config.backend_info.bSupportsEarlyZ = (DX11::D3D::GetFeatureLevel(ad) == D3D_FEATURE_LEVEL_11_0);
 		}
 
 		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
