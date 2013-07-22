@@ -607,6 +607,7 @@ bool NetPlayServer::StartGame(const std::string &path)
 	spac << NetPlay::m_current_game;
 	spac << g_NetPlaySettings.m_DSPEnableJIT;
 	spac << g_NetPlaySettings.m_DSPHLE;
+	spac << g_NetPlaySettings.m_WriteToMemcard;
 	for (unsigned int i = 0; i < 4; ++i)
 		spac << g_NetPlaySettings.m_Controllers[i];
 

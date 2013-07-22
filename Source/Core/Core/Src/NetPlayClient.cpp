@@ -195,6 +195,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> m_current_game;
 			packet >> g_NetPlaySettings.m_DSPEnableJIT;
 			packet >> g_NetPlaySettings.m_DSPHLE;
+			packet >> g_NetPlaySettings.m_WriteToMemcard;
 			for (unsigned int i = 0; i < 4; ++i)
 				packet >> g_NetPlaySettings.m_Controllers[i];
 			}

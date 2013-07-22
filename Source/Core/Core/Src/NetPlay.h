@@ -35,6 +35,7 @@ struct NetSettings
 {
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
+	bool m_WriteToMemcard;
 	u8 m_Controllers[4];
 };
 extern NetSettings g_NetPlaySettings;
@@ -46,7 +47,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<Rpt>	NetWiimote;
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2013-07-19"
+#define NETPLAY_VERSION		"Dolphin NetPlay 2013-07-22"
 
 // messages
 enum
