@@ -371,7 +371,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 			wx_l_button->SetValue(true);
 			L_button_cont = true;
 		}
-		else if (L_slider_cont)
+		else if (L_button_cont)
 		{
 			wx_l_button->SetValue(false);
 			L_button_cont = false;
