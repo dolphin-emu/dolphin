@@ -796,7 +796,7 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 #if defined(HAVE_X11) && HAVE_X11
 		wxRect client_rect = m_RenderParent->GetClientRect();
 		XMoveResizeWindow(X11Utils::XDisplayFromHandle(GetHandle()),
-				  X11Utils::XWindowFromHandle(GetHandle()),
+				  (Window) Core::GetWindowHandle(),
 				  client_rect.x, client_rect.y,
 				  client_rect.width, client_rect.height);
 #endif
