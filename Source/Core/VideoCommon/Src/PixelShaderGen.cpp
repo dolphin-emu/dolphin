@@ -1118,7 +1118,7 @@ static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE Api
 	out.Write("\tif(!( ");
 
 	uid_data.alpha_test_comp0 = bpmem.alpha_test.comp0;
-	uid_data.alpha_test_logic = bpmem.alpha_test.comp1;
+	uid_data.alpha_test_comp1 = bpmem.alpha_test.comp1;
 	uid_data.alpha_test_logic = bpmem.alpha_test.logic;
 
 	// Lookup the first component from the alpha function table
