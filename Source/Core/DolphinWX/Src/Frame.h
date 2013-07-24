@@ -110,7 +110,7 @@ public:
 	CCodeWindow* g_pCodeWindow;
 	NetPlaySetupDiag* g_NetPlaySetupDiag;
 	wxCheatsWindow* g_CheatsWindow;
-	TASInputDlg* g_TASInputDlg;
+	TASInputDlg* g_TASInputDlg[4];
 
 	void InitBitmaps();
 	void DoPause();
@@ -349,6 +349,7 @@ void OnAfterLoadCallback();
 
 // For TASInputDlg
 void TASManipFunction(SPADStatus *PadStatus, int controllerID);
+bool TASInputHasFocus();
 
 #endif  // __FRAME_H_
 
