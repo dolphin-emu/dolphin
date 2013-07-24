@@ -649,9 +649,9 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 {
 	std::string number[4] = {"1","2","3","4"};
 
-	for(int i = 0; i < 4; i++)
+	for (int i = 0; i < 4; ++i)
 	{
-		if(SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER)
+		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 		{
 			g_TASInputDlg[i]->Show(true);
 			g_TASInputDlg[i]->SetTitle("TAS Input - Controller " + number[i]);

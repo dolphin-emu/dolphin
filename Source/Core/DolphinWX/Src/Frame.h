@@ -111,7 +111,7 @@ public:
 	NetPlaySetupDiag* g_NetPlaySetupDiag;
 	wxCheatsWindow* g_CheatsWindow;
 	TASInputDlg* g_TASInputDlg[4];
-    
+
 	void InitBitmaps();
 	void DoPause();
 	void DoStop();
