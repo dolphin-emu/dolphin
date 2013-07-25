@@ -328,13 +328,10 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 
 		if (per_pixel_depth)
 			out.Write("#define depth gl_FragDepth\n");
-		out.Write("float4 rawpos = gl_FragCoord;\n");
 
 		out.Write("VARYIN float4 colors_02;\n");
 		out.Write("VARYIN float4 colors_12;\n");
-		out.Write("float4 colors_0 = colors_02;\n");
-		out.Write("float4 colors_1 = colors_12;\n");
-
+		
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
 		if (xfregs.numTexGen.numTexGens < 7)
@@ -342,14 +339,11 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 			for (int i = 0; i < 8; ++i)
 			{
 				out.Write("VARYIN float3 uv%d_2;\n", i);
-				out.Write("float3 uv%d = uv%d_2;\n", i, i);
 			}
 			out.Write("VARYIN float4 clipPos_2;\n");
-			out.Write("float4 clipPos = clipPos_2;\n");
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			{
 				out.Write("VARYIN float4 Normal_2;\n");
-				out.Write("float4 Normal = Normal_2;\n");
 			}
 		}
 		else
@@ -360,7 +354,6 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 				for (int i = 0; i < 8; ++i)
 				{
 					out.Write("VARYIN float4 uv%d_2;\n", i);
-					out.Write("float4 uv%d = uv%d_2;\n", i, i);
 				}
 			}
 			else
@@ -368,7 +361,6 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 				{
 					out.Write("VARYIN float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
-					out.Write("float%d uv%d = uv%d_2;\n", i < 4 ? 4 : 3 , i, i);
 				}
 			}
 			out.Write("float4 clipPos;\n");
@@ -442,6 +434,50 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 			"  float4 cc0=float4(0.0f,0.0f,0.0f,0.0f), cc1=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 cc2=float4(0.0f,0.0f,0.0f,0.0f), cprev=float4(0.0f,0.0f,0.0f,0.0f);\n"
 			"  float4 crastemp=float4(0.0f,0.0f,0.0f,0.0f),ckonsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n\n");
+
+	if (ApiType == API_OPENGL)
+	{
+		// On Mali, global variables must be initialized as constants.
+		// This is why we initialize these variables locally instead.
+		out.Write("float4 rawpos = gl_FragCoord;\n");
+		out.Write("float4 colors_0 = colors_02;\n");
+		out.Write("float4 colors_1 = colors_12;\n");
+		// compute window position if needed because binding semantic WPOS is not widely supported
+		// Let's set up attributes
+		if (xfregs.numTexGen.numTexGens < 7)
+		{
+			if(numTexgen)
+			{
+			for (int i = 0; i < 8; ++i)
+			{
+				out.Write("float3 uv%d = uv%d_2;\n", i, i);
+			}
+			}
+			out.Write("float4 clipPos = clipPos_2;\n");
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				out.Write("float4 Normal = Normal_2;\n");
+			}
+		}
+		else
+		{
+			// wpos is in w of first 4 texcoords
+			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			{
+				for (int i = 0; i < 8; ++i)
+				{
+					out.Write("float4 uv%d = uv%d_2;\n", i, i);
+				}
+			}
+			else
+			{
+				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+				{
+					out.Write("float%d uv%d = uv%d_2;\n", i < 4 ? 4 : 3 , i, i);
+				}
+			}
+		}
+	}
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
