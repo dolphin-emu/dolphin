@@ -59,7 +59,7 @@ static const char *VProgram =
 	"void main()\n"
 	"{\n"
 	"	uv0 = tex0;\n"
-	"	gl_Position = vec4(rawpos,0,1);\n"
+	"	gl_Position = vec4(rawpos, 0.0f, 1.0f);\n"
 	"}\n";
 
 void CreatePrograms()
@@ -162,7 +162,7 @@ void Init()
 	glGenRenderbuffers(1, &s_dstRenderBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, s_dstRenderBuffer);
 	
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, renderBufferWidth, renderBufferHeight);
+	glRenderbufferStorage(GL_RENDERBUFFER, GLRENDERBUFFERFORMAT, renderBufferWidth, renderBufferHeight);
 
 	s_srcTextureWidth = 0;
 	s_srcTextureHeight = 0;

@@ -631,8 +631,8 @@ void Renderer::Init()
 		"ATTRIN vec3 color0;\n"
 		"VARYOUT vec4 c;\n"
 		"void main(void) {\n"
-		"	gl_Position = vec4(rawpos,0,1);\n"
-		"	c = vec4(color0, 1.0);\n"
+		"	gl_Position = vec4(rawpos, 0.0f, 1.0f);\n"
+		"	c = vec4(color0, 1.0f);\n"
 		"}\n",
 		"VARYIN vec4 c;\n"
 		"COLOROUT(ocol0)\n"
