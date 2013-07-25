@@ -307,6 +307,12 @@ void InitDriverInfo()
 			sscanf(g_ogl_config.gl_version, "OpenGL ES %lg V@%lg", &glVersion, &version);
 		}
 		break;
+		case DriverDetails::VENDOR_ARM:
+			if (std::string::npos != srenderer.find("Mali-T6"))
+				devfamily = 600;
+			else if(std::string::npos != srenderer.find("Mali-4"))
+				devfamily = 400;
+		break;
 		// We don't care about these
 		default:
 		break;
@@ -664,6 +670,7 @@ void Renderer::DrawDebugInfo()
 	if (g_ActiveConfig.bShowInputDisplay)
 		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
 
+#ifndef USE_GLES3
 	if (g_ActiveConfig.bShowEFBCopyRegions)
 	{
 		// Set Line Size
@@ -783,6 +790,7 @@ void Renderer::DrawDebugInfo()
 		// Clear stored regions
 		stats.efb_regions.clear();
 	}
+#endif
 
 	if (g_ActiveConfig.bOverlayStats)
 		p = Statistics::ToString(p);

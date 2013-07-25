@@ -62,6 +62,16 @@ namespace DriverDetails
 		// The "workaround" is calling swapbuffers every single time we flush
 		// This causes flickering, but it is the only known way to work around it
 		BUG_BROKENBUFFERS,
+		// Bug: Uploading data without swapping causes issues
+		// Affected devices: Mali-T6xx
+		// Started Version: -1
+		// Ended Version: -1
+		// This is similar to the Adreno rendering bug where uploading the data
+		// to the GPU causes the device to quickly run out of RAM.
+		// Unlike the Adreno workaround though, this can be fixed by calling 
+		// either glFlush() or glFinish() after flushing.
+		// glFlush tends to take 0-1Ms on each call
+		BUG_MALIBROKENBUFFERS,
 	};
 	
 	// Initializes our internal vendor, device family, and driver version	
