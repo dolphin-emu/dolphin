@@ -40,6 +40,7 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 void LoadPatches(const char *gameID);
 void ApplyFramePatches();
 void ApplyARPatches();
+void Shutdown();
 
 inline int GetPatchTypeCharLength(PatchType type)
 {

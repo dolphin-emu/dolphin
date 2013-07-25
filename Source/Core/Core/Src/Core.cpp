@@ -56,6 +56,7 @@
 
 #include "State.h"
 #include "Movie.h"
+#include "PatchEngine.h"
 
 // TODO: ugly, remove
 bool g_aspect_wide;
@@ -278,6 +279,8 @@ void Stop()  // - Hammertime!
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 	Movie::Shutdown();
+	PatchEngine::Shutdown();
+
 	g_bStopping = false;
 }
 
