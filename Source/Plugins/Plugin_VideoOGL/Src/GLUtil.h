@@ -31,6 +31,7 @@
 #define GL_SRC1_ALPHA 0
 #define GL_BGRA GL_RGBA
 #define glDrawElementsBaseVertex
+#define glDrawRangeElementsBaseVertex
 #define GLRENDERBUFFERFORMAT 0x8058 /* RGBA8_OES */ 
 #endif
 #else

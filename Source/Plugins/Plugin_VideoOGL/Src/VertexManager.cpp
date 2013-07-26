@@ -120,33 +120,33 @@ void VertexManager::Draw(u32 stride)
 	if(g_ogl_config.bSupportsGLBaseVertex) {
 		if (triangle_index_size > 0)
 		{
-			glDrawElementsBaseVertex(triangle_mode, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
+			glDrawRangeElementsBaseVertex(triangle_mode, 0, IndexGenerator::GetNumTriangles() * 3, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
 		{
-			glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
+			glDrawRangeElementsBaseVertex(GL_LINES, 0, IndexGenerator::GetNumLines() * 2, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (point_index_size > 0)
 		{
-			glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
+			glDrawRangeElementsBaseVertex(GL_POINTS, 0, IndexGenerator::GetNumPoints(), point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 	} else {
 		if (triangle_index_size > 0)
 		{
-			glDrawElements(triangle_mode, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
+			glDrawRangeElements(triangle_mode, 0, IndexGenerator::GetNumTriangles() * 3, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
 		{
-			glDrawElements(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1]);
+			glDrawRangeElements(GL_LINES, 0, IndexGenerator::GetNumLines() * 2, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (point_index_size > 0)
 		{
-			glDrawElements(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
+			glDrawRangeElements(GL_POINTS, 0, IndexGenerator::GetNumPoints(), point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 	}
