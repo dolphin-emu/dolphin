@@ -101,7 +101,8 @@ public class PrefsFragment extends PreferenceFragment {
 
 		boolean mSupportsGLES3 = false;
 
-		if (m_GLVersion.contains("OpenGL ES 3.0")) // 3.0 support
+		if (m_GLVersion.contains("OpenGL ES 3.0") ||
+				m_GLVersion.equals("OpenGL ES 3.0")) // 3.0 support
 			mSupportsGLES3 = true;
 		if (!mSupportsGLES3 && m_GLVendor.equals("Qualcomm"))
 		{
