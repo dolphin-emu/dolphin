@@ -350,7 +350,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsPrimitiveRestart = false; 
 	g_Config.backend_info.bSupportsEarlyZ = false;
 	
-	g_ogl_config.bSupportsGLSLCache = false; // XXX: Reenable once shaders compile correctly  
+	g_ogl_config.bSupportsGLSLCache = true; 
 	g_ogl_config.bSupportsGLPinnedMemory = false; 
 	g_ogl_config.bSupportsGLSync = true; 
 	g_ogl_config.bSupportsGLBaseVertex = false; 
