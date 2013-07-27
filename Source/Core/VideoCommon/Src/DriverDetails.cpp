@@ -31,8 +31,6 @@ namespace DriverDetails
 		{BUG_BROKENINFOLOG, 300, -1.0, -1.0},
 		{BUG_BROKENBUFFERS, 300, 14.0, -1.0},
 	};
-	BugInfo m_armbugs[] = {
-	};
 
 	std::map<std::pair<Vendor, Bug>, BugInfo> m_bugs;
 	
@@ -46,8 +44,6 @@ namespace DriverDetails
 					m_bugs[std::make_pair(m_vendor, m_qualcommbugs[a].m_bug)] = m_qualcommbugs[a];
 			break;
 			case VENDOR_ARM:
-				for (unsigned int a = 0; a < (sizeof(m_armbugs) / sizeof(BugInfo)); ++a)
-					m_bugs[std::make_pair(m_vendor, m_armbugs[a].m_bug)] = m_armbugs[a];
 			default:
 			break;
 		}
