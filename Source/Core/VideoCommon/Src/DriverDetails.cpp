@@ -32,7 +32,6 @@ namespace DriverDetails
 		{BUG_BROKENBUFFERS, 300, 14.0, -1.0},
 	};
 	BugInfo m_armbugs[] = {
-		{BUG_MALIBROKENBUFFERS, 600, -1.0, -1.0},
 	};
 
 	std::map<std::pair<Vendor, Bug>, BugInfo> m_bugs;
