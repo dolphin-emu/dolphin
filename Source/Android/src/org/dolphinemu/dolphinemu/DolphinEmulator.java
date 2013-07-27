@@ -159,11 +159,8 @@ public class DolphinEmulator<MainActivity> extends Activity
 			GLview = new NativeGLSurfaceView(this);
 			this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 			String backend = NativeLibrary.GetConfig("Dolphin.ini", "Core", "GFXBackend", "Software Renderer");
-			if (backend.equals("OGL"))
-				GLview.SetDimensions(screenHeight, screenWidth);
-			else
-				GLview.SetDimensions(screenWidth, screenHeight);
-			GLview.SetFileName(FileName);
+			NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
+			NativeLibrary.SetFilename(FileName);
 			setContentView(GLview);
 			Running = true;
 		}

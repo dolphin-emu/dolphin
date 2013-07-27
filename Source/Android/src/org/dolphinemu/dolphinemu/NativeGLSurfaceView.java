@@ -5,12 +5,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class NativeGLSurfaceView extends SurfaceView {
-	static private String FileName;
 	static private Thread myRun;
 	static private boolean Running = false;
 	static private boolean Created = false;
-	static private float width;
-	static private float height;
 
 	public NativeGLSurfaceView(Context context) {
 		super(context);
@@ -20,7 +17,7 @@ public class NativeGLSurfaceView extends SurfaceView {
 			{
 				@Override
 	      		public void run() {
-	    	  		NativeLibrary.Run(FileName, getHolder().getSurface(), (int)width, (int)height);
+	    	  		NativeLibrary.Run(getHolder().getSurface());
 	      		}	
 			};
 			getHolder().addCallback(new SurfaceHolder.Callback() {
@@ -46,16 +43,5 @@ public class NativeGLSurfaceView extends SurfaceView {
 			 });
 			Created = true;
 		}
-	}
-	
-	public void SetFileName(String file)
-	{
-		FileName = file;
-	}
-	
-	public void SetDimensions(float screenWidth, float screenHeight)
-	{
-		width = screenWidth;
-		height = screenHeight;
 	}
 }
