@@ -156,6 +156,7 @@ void Init()
 	{
 		ReadHeader();
 		std::thread md5thread(CheckMD5);
+		md5thread.detach();
 		if ((strncmp((char *)tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)))
 		{
 			PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
@@ -167,6 +168,7 @@ void Init()
 	{
 		GetSettings();
 		std::thread md5thread(GetMD5);
+		md5thread.detach();
 	}
 
 	g_frameSkipCounter = g_framesToSkip;
