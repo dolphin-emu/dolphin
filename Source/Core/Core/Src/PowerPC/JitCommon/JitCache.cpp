@@ -120,10 +120,12 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	// is full and when saving and loading states.
 	void JitBaseBlockCache::Clear()
 	{
+#if defined(_DEBUG) || defined(DEBUGFAST)
 		if (IsFull())
 			Core::DisplayMessage("Clearing block cache.", 3000);
 		else
 			Core::DisplayMessage("Clearing code cache.", 3000);
+#endif
 
 		for (int i = 0; i < num_blocks; i++)
 		{
