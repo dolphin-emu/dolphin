@@ -230,7 +230,7 @@ static void BuildSwapModeTable()
 }
 
 template<class T> static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4]);
-template<class T> static void SampleTexture(T& out, const char *destination, const int dest_index, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
+template<class T> static void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 template<class T> static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
 template<class T> static void WriteFog(T& out, pixel_shader_uid_data& uid_data);
 
@@ -558,7 +558,8 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 			else
 				out.Write("\ttempcoord = float2(0.0f, 0.0f);\n");
 
-			SampleTexture<T>(out, "float3 indtex", i, "tempcoord", "abg", texmap, ApiType);
+			out.Write("float3 indtex%d = ", i);
+			SampleTexture<T>(out, "tempcoord", "abg", texmap, ApiType);
 		}
 	}
 
@@ -886,7 +887,9 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		uid_data.SetTevindrefTexmap(i, texmap);
-		SampleTexture<T>(out, "textemp", -1, "tevcoord", texswap, texmap, ApiType);
+		
+		out.Write("textemp = ");
+		SampleTexture<T>(out, "tevcoord", texswap, texmap, ApiType);
 	}
 	else
 	{
@@ -1108,14 +1111,9 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 }
 
 template<class T>
-void SampleTexture(T& out, const char *destination, const int dest_index, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
+void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
-	
-	if(dest_index >= 0)
-		out.Write("%s%d = ", destination, dest_index);
-	else
-		out.Write("%s = ", destination);
 	
 	if (ApiType == API_D3D11)
 		out.Write("Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", texmap,texmap, texcoords, texmap, texswap);
