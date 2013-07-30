@@ -67,7 +67,10 @@ static const struct {
 	{ "Wiimote4Connect",	347 /* WXK_F8 */,	1 /* wxMOD_ALT */ },
 	{ "BalanceBoardConnect",348 /* WXK_F9 */,	1 /* wxMOD_ALT */ },
 #endif
-
+	{ "ToggleIR",			0,	0 /* wxMOD_NONE */ },
+	{ "ToggleAspectRatio",	0,	0 /* wxMOD_NONE */ },
+	{ "ToggleEFBCopies",	0,	0 /* wxMOD_NONE */ },
+	{ "ToggleFog",			0,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot1",	340 /* WXK_F1 */,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot2",	341 /* WXK_F2 */,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot3",	342 /* WXK_F3 */,	0 /* wxMOD_NONE */ },

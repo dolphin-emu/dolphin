@@ -1581,7 +1581,11 @@ void CFrame::UpdateGUI()
 
 	// Update Menu Accelerators
 	for (unsigned int i = 0; i < NUM_HOTKEYS; i++)
+	{
+		if (GetCmdForHotkey(i) == -1)
+			continue;
 		GetMenuBar()->FindItem(GetCmdForHotkey(i))->SetItemLabel(GetMenuLabel(i));
+	}
 
 	GetMenuBar()->FindItem(IDM_LOADSTATE)->Enable(Initialized);
 	GetMenuBar()->FindItem(IDM_SAVESTATE)->Enable(Initialized);

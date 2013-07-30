@@ -846,6 +846,38 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			WiimoteId = 3;
 		else if (IsHotkey(event, HK_BALANCEBOARD_CONNECT))
 			WiimoteId = 4;
+		if (IsHotkey(event, HK_INTERNAL_RES))
+		{
+			OSDChoice = 1;
+			// Toggle native resolution
+			if (++g_Config.iEFBScale > SCALE_4X)
+				g_Config.iEFBScale = SCALE_AUTO;
+		}
+		else if (IsHotkey(event, HK_ASPECT_RATIO))
+		{
+			OSDChoice = 2;
+			// Toggle aspect ratio
+			g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
+		}
+		else if (IsHotkey(event, HK_EFB_COPIES))
+		{
+			OSDChoice = 3;
+			// Toggle EFB copy
+			if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
+			{
+				g_Config.bEFBCopyEnable ^= true;
+				g_Config.bCopyEFBToTexture = false;
+			}
+			else
+			{
+				g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+			}
+		}
+		else if (IsHotkey(event, HK_FOG))
+		{
+			OSDChoice = 4;
+			g_Config.bDisableFog = !g_Config.bDisableFog;
+		}
 		else
 		{
 			unsigned int i = NUM_HOTKEYS;
@@ -889,43 +921,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			bool connect = !GetMenuBar()->IsChecked(IDM_CONNECT_WIIMOTE1 + WiimoteId);
 			ConnectWiimote(WiimoteId, connect);
-		}
-
-		if (g_Config.bOSDHotKey && event.GetModifiers() == wxMOD_NONE)
-		{
-			switch (event.GetKeyCode())
-			{
-			case '3':
-				OSDChoice = 1;
-				// Toggle native resolution
-				g_Config.iEFBScale = g_Config.iEFBScale + 1;
-				if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
-				break;
-			case '4':
-				OSDChoice = 2;
-				// Toggle aspect ratio
-				g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
-				break;
-			case '5':
-				OSDChoice = 3;
-				// Toggle EFB copy
-				if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
-				{
-					g_Config.bEFBCopyEnable ^= true;
-					g_Config.bCopyEFBToTexture = false;
-				}
-				else
-				{
-					g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
-				}
-				break;
-			case '6':
-				OSDChoice = 4;
-				g_Config.bDisableFog = !g_Config.bDisableFog;
-				break;
-			default:
-				break;
-			}
 		}
 
 		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
