@@ -846,20 +846,20 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			WiimoteId = 3;
 		else if (IsHotkey(event, HK_BALANCEBOARD_CONNECT))
 			WiimoteId = 4;
-		if (IsHotkey(event, HK_INTERNAL_RES))
+		if (IsHotkey(event, HK_TOGGLE_IR))
 		{
 			OSDChoice = 1;
 			// Toggle native resolution
 			if (++g_Config.iEFBScale > SCALE_4X)
 				g_Config.iEFBScale = SCALE_AUTO;
 		}
-		else if (IsHotkey(event, HK_ASPECT_RATIO))
+		else if (IsHotkey(event, HK_TOGGLE_AR))
 		{
 			OSDChoice = 2;
 			// Toggle aspect ratio
 			g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
 		}
-		else if (IsHotkey(event, HK_EFB_COPIES))
+		else if (IsHotkey(event, HK_TOGGLE_EFBCOPIES))
 		{
 			OSDChoice = 3;
 			// Toggle EFB copy
@@ -873,10 +873,20 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
 			}
 		}
-		else if (IsHotkey(event, HK_FOG))
+		else if (IsHotkey(event, HK_TOGGLE_FOG))
 		{
 			OSDChoice = 4;
 			g_Config.bDisableFog = !g_Config.bDisableFog;
+		}
+		else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
+		{
+			if (++SConfig::GetInstance().m_Framelimit > 0x19)
+				SConfig::GetInstance().m_Framelimit = 0;
+		}
+		else if (IsHotkey(event, HK_DECREASE_FRAME_LIMIT))
+		{
+			if (--SConfig::GetInstance().m_Framelimit > 0x19)
+				SConfig::GetInstance().m_Framelimit = 0x19;
 		}
 		else
 		{
