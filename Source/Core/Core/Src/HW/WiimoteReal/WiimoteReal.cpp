@@ -570,6 +570,7 @@ void Initialize(bool wait)
 	g_real_wiimotes_initialized = true;
 }
 
+// called on emulation shutdown
 void Stop(void)
 {
 	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
@@ -577,6 +578,7 @@ void Stop(void)
 			g_wiimotes[i]->EmuStop();
 }
 
+// called when the dolphin app exits
 void Shutdown(void)
 {
 	g_wiimote_scanner.StopScanning();
