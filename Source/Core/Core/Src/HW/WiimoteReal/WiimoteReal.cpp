@@ -570,15 +570,15 @@ void Initialize(bool wait)
 	g_real_wiimotes_initialized = true;
 }
 
-void Shutdown(void)
+void Stop(void)
 {
 	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		if (g_wiimotes[i] && g_wiimotes[i]->IsConnected())
 			g_wiimotes[i]->EmuStop();
+}
 
-	// WiimoteReal is shutdown on app exit
-	return;
-
+void Shutdown(void)
+{
 	g_wiimote_scanner.StopScanning();
 
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
@@ -589,9 +589,6 @@ void Shutdown(void)
 	NOTICE_LOG(WIIMOTE, "WiimoteReal::Shutdown");
 
 	g_real_wiimotes_initialized = false;
-
-	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
-		HandleWiimoteDisconnect(i);
 }
 
 void Resume()

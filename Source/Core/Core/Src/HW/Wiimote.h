@@ -54,6 +54,7 @@ namespace WiimoteReal
 {
 
 void Initialize(bool wait = false);
+void Stop();
 void Shutdown();
 void Resume();
 void Pause();
