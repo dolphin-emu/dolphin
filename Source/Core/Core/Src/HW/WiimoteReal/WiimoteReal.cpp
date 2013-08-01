@@ -570,15 +570,17 @@ void Initialize(bool wait)
 	g_real_wiimotes_initialized = true;
 }
 
-void Shutdown(void)
+// called on emulation shutdown
+void Stop(void)
 {
 	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		if (g_wiimotes[i] && g_wiimotes[i]->IsConnected())
 			g_wiimotes[i]->EmuStop();
+}
 
-	// WiimoteReal is shutdown on app exit
-	return;
-
+// called when the dolphin app exits
+void Shutdown(void)
+{
 	g_wiimote_scanner.StopScanning();
 
 	std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);

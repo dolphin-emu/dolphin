@@ -32,7 +32,7 @@ void Shutdown()
 		delete *i;
 	g_plugin.controllers.clear();
 
-	WiimoteReal::Shutdown();
+	WiimoteReal::Stop();
 
 	g_controller_interface.Shutdown();
 }
