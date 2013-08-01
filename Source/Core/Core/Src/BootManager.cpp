@@ -43,7 +43,7 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT,
+	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
 		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2;
 	int iTLBHack, iCPUCore;
 	std::string strBackend;
@@ -106,6 +106,7 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "FastDiscSpeed",		&StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
 		game_ini.Get("Core", "BlockMerging",		&StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		game_ini.Get("Core", "DSPHLE",				&StartUp.bDSPHLE, StartUp.bDSPHLE);
+		game_ini.Get("Core", "DSPThread",			&StartUp.bCPUThread, StartUp.bDSPThread);
 		game_ini.Get("Core", "GFXBackend", &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend.c_str());
 		game_ini.Get("Core", "CPUCore",				&StartUp.iCPUCore, StartUp.iCPUCore);
 		game_ini.Get("Core", "HLE_BS2",				&StartUp.bHLE_BS2, StartUp.bHLE_BS2);
@@ -176,6 +177,7 @@ void Stop()
 		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
 		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
+		StartUp.bDSPThread = config_cache.bDSPThread;
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
