@@ -591,6 +591,9 @@ void Shutdown(void)
 	NOTICE_LOG(WIIMOTE, "WiimoteReal::Shutdown");
 
 	g_real_wiimotes_initialized = false;
+
+	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
+		HandleWiimoteDisconnect(i);
 }
 
 void Resume()
