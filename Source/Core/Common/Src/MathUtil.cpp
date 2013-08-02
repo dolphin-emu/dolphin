@@ -13,54 +13,61 @@ namespace MathUtil
 {
 
 u32 ClassifyDouble(double dvalue)
-    {
-        // TODO: Optimize the below to be as fast as possible.
-        u64 exp  = *(u64*)(&dvalue) & DOUBLE_EXP;
-        if (exp != DOUBLE_ZERO && exp != DOUBLE_EXP)
-        {
-            // Nice normalized number.
-            return *(u64*)(&dvalue)&DOUBLE_SIGN ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
-        }
-        else
-        {
-            if (*(u64*)(&dvalue) & DOUBLE_FRAC)
-            {
-                if (exp)
-                {
-                    return PPC_FPCLASS_QNAN;
-                }
-                else
-                {
-                    // Denormalized number.
-                    return *(u64*)(&dvalue)&DOUBLE_SIGN ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
-                }
-            }
-            else if (exp)
-            {
-                //Infinite
-                return *(u64*)(&dvalue)&DOUBLE_SIGN ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
-            }
-            else
-            {
-                //Zero
-                return *(u64*)(&dvalue)&DOUBLE_SIGN ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
-            }
-        }
-    }
-
+{
+	// TODO: Optimize the below to be as fast as possible.
+	IntDouble value;
+	value.d = dvalue;
+	u64 sign = value.i & DOUBLE_SIGN;
+	u64 exp  = value.i & DOUBLE_EXP;
+	if (exp > DOUBLE_ZERO && exp < DOUBLE_EXP) 
+	{
+		// Nice normalized number.
+		return sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
+	}
+	else
+	{
+		u64 mantissa = value.i & DOUBLE_FRAC;
+		if (mantissa)
+		{
+			if (exp)
+			{
+				return PPC_FPCLASS_QNAN;
+			}
+			else
+			{
+				// Denormalized number.
+				return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
+			}
+		}
+		else if (exp)
+		{
+			//Infinite
+			return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
+		}
+		else
+		{
+			//Zero
+			return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
+		}
+	}
+}
 
 u32 ClassifyFloat(float fvalue)
 {
 	// TODO: Optimize the below to be as fast as possible.
-	u32 exp  = *(u32*)(&fvalue) & FLOAT_EXP;
+	IntFloat value;
+	value.f = fvalue;
+	u32 sign = value.i & FLOAT_SIGN;
+	u32 exp  = value.i & FLOAT_EXP;
 	if (exp > FLOAT_ZERO && exp < FLOAT_EXP) 
 	{
 		// Nice normalized number.
-		return *(u32*)(&fvalue) & FLOAT_SIGN ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
+		return sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
 	}
 	else
 	{
-		if (*(u32*)(&fvalue) & FLOAT_FRAC)
+		u32 mantissa = value.i & FLOAT_FRAC;
+		if (mantissa)
 		{
 			if (exp)
 			{
@@ -69,18 +76,18 @@ u32 ClassifyFloat(float fvalue)
 			else
 			{
 				// Denormalized number.
-				return *(u32*)(&fvalue) & FLOAT_SIGN ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
+				return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
 			}
 		} 
 		else if (exp) 
 		{
 			// Infinite
-			return *(u32*)(&fvalue) & FLOAT_SIGN ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
+			return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
 		} 
 		else 
 		{
 			//Zero
-			return *(u32*)(&fvalue) & FLOAT_SIGN ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
+			return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
 		}
 	}
 }

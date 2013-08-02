@@ -30,6 +30,9 @@
 #include "State.h"
 #include "VolumeHandler.h"
 #include "Movie.h"
+#include "RenderBase.h"
+#include "VideoConfig.h"
+#include "VertexShaderManager.h"
 
 #include "VideoBackendBase.h"
 
@@ -215,7 +218,7 @@ EVT_MENU_RANGE(IDM_LOADLAST1, IDM_LOADLAST8, CFrame::OnLoadLastState)
 EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT8, CFrame::OnSaveState)
 EVT_MENU_RANGE(IDM_FRAMESKIP0, IDM_FRAMESKIP9, CFrame::OnFrameSkip)
 EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
-EVT_MENU_RANGE(IDM_CONNECT_WIIMOTE1, IDM_CONNECT_WIIMOTE4, CFrame::OnConnectWiimote)
+EVT_MENU_RANGE(IDM_CONNECT_WIIMOTE1, IDM_CONNECT_BALANCEBOARD, CFrame::OnConnectWiimote)
 EVT_MENU_RANGE(IDM_LISTWAD, IDM_LISTDRIVES, CFrame::GameListChanged)
 
 // Other
@@ -324,7 +327,11 @@ CFrame::CFrame(wxFrame* parent,
 	m_LogWindow->Hide();
 	m_LogWindow->Disable();
 
-	g_TASInputDlg = new TASInputDlg(this);
+	g_TASInputDlg[0] = new TASInputDlg(this);
+	g_TASInputDlg[1] = new TASInputDlg(this);
+	g_TASInputDlg[2] = new TASInputDlg(this);
+	g_TASInputDlg[3] = new TASInputDlg(this);
+
 	Movie::SetInputManip(TASManipFunction);
 
 	State::SetOnAfterLoadCallback(OnAfterLoadCallback);
@@ -739,6 +746,7 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_WIIMOTE2_CONNECT: return IDM_CONNECT_WIIMOTE2;
 	case HK_WIIMOTE3_CONNECT: return IDM_CONNECT_WIIMOTE3;
 	case HK_WIIMOTE4_CONNECT: return IDM_CONNECT_WIIMOTE4;
+	case HK_BALANCEBOARD_CONNECT: return IDM_CONNECT_BALANCEBOARD;
 
 	case HK_LOAD_STATE_SLOT_1: return IDM_LOADSLOT1;
 	case HK_LOAD_STATE_SLOT_2: return IDM_LOADSLOT2;
@@ -770,6 +778,8 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_SAVE_FIRST_STATE: return IDM_SAVEFIRSTSTATE;
 	case HK_UNDO_LOAD_STATE: return IDM_UNDOLOADSTATE;
 	case HK_UNDO_SAVE_STATE: return IDM_UNDOSAVESTATE;
+	case HK_LOAD_STATE_FILE: return IDM_LOADSTATEFILE;
+	case HK_SAVE_STATE_FILE: return IDM_SAVESTATEFILE;
 	}
 
 	return -1;
@@ -778,7 +788,7 @@ int GetCmdForHotkey(unsigned int key)
 void OnAfterLoadCallback()
 {
 	// warning: this gets called from the CPU thread, so we should only queue things to do on the proper thread
-	if(main_frame)
+	if (main_frame)
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
 		main_frame->GetEventHandler()->AddPendingEvent(event);
@@ -788,13 +798,24 @@ void OnAfterLoadCallback()
 void TASManipFunction(SPADStatus *PadStatus, int controllerID)
 {
 	if (main_frame)
-		main_frame->g_TASInputDlg->GetValues(PadStatus, controllerID);
+		main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus, controllerID);
 }
+
+bool TASInputHasFocus()
+{
+	for (int i = 0; i < 4; i++)
+	{
+		if (main_frame->g_TASInputDlg[i]->HasFocus())
+			return true;
+	}
+	return false;
+}
+
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED &&
-			(RendererHasFocus() || g_TASInputDlg->HasFocus()))
+			(RendererHasFocus() || TASInputHasFocus()))
 	{
 		int WiimoteId = -1;
 		// Toggle fullscreen
@@ -823,10 +844,54 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			WiimoteId = 2;
 		else if (IsHotkey(event, HK_WIIMOTE4_CONNECT))
 			WiimoteId = 3;
+		else if (IsHotkey(event, HK_BALANCEBOARD_CONNECT))
+			WiimoteId = 4;
+		if (IsHotkey(event, HK_TOGGLE_IR))
+		{
+			OSDChoice = 1;
+			// Toggle native resolution
+			if (++g_Config.iEFBScale > SCALE_4X)
+				g_Config.iEFBScale = SCALE_AUTO;
+		}
+		else if (IsHotkey(event, HK_TOGGLE_AR))
+		{
+			OSDChoice = 2;
+			// Toggle aspect ratio
+			g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
+		}
+		else if (IsHotkey(event, HK_TOGGLE_EFBCOPIES))
+		{
+			OSDChoice = 3;
+			// Toggle EFB copy
+			if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
+			{
+				g_Config.bEFBCopyEnable ^= true;
+				g_Config.bCopyEFBToTexture = false;
+			}
+			else
+			{
+				g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+			}
+		}
+		else if (IsHotkey(event, HK_TOGGLE_FOG))
+		{
+			OSDChoice = 4;
+			g_Config.bDisableFog = !g_Config.bDisableFog;
+		}
+		else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
+		{
+			if (++SConfig::GetInstance().m_Framelimit > 0x19)
+				SConfig::GetInstance().m_Framelimit = 0;
+		}
+		else if (IsHotkey(event, HK_DECREASE_FRAME_LIMIT))
+		{
+			if (--SConfig::GetInstance().m_Framelimit > 0x19)
+				SConfig::GetInstance().m_Framelimit = 0x19;
+		}
 		else
 		{
 			unsigned int i = NUM_HOTKEYS;
-			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || g_TASInputDlg->HasFocus())
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain || TASInputHasFocus())
 			{
 				for (i = 0; i < NUM_HOTKEYS; i++)
 				{
@@ -868,28 +933,41 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			ConnectWiimote(WiimoteId, connect);
 		}
 
-		// Send the OSD hotkeys to the video backend
-		if (event.GetKeyCode() >= '3' && event.GetKeyCode() <= '7' && event.GetModifiers() == wxMOD_NONE)
+		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)
 		{
-#ifdef _WIN32
-			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
-#elif defined(HAVE_X11) && HAVE_X11
-			X11Utils::SendKeyEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetKeyCode());
-#endif
-		}
-		// Send the freelook hotkeys to the video backend
-		if ((event.GetKeyCode() == ')' || event.GetKeyCode() == '(' ||
-					event.GetKeyCode() == '0' || event.GetKeyCode() == '9' ||
-					event.GetKeyCode() == 'W' || event.GetKeyCode() == 'S' ||
-					event.GetKeyCode() == 'A' || event.GetKeyCode() == 'D' ||
-					event.GetKeyCode() == 'R')
-				&& event.GetModifiers() == wxMOD_SHIFT)
-		{
-#ifdef _WIN32
-			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
-#elif defined(HAVE_X11) && HAVE_X11
-			X11Utils::SendKeyEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetKeyCode());
-#endif
+			static float debugSpeed = 1.0f;
+			switch (event.GetKeyCode())
+			{
+			case '9':
+				debugSpeed /= 2.0f;
+				break;
+			case '0':
+				debugSpeed *= 2.0f;
+				break;
+			case 'W':
+				VertexShaderManager::TranslateView(0.0f, debugSpeed);
+				break;
+			case 'S':
+				VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+				break;
+			case 'A':
+				VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+				break;
+			case 'D':
+				VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+				break;
+			case 'Q':
+				VertexShaderManager::TranslateView(0.0f, 0.0f, debugSpeed);
+				break;
+			case 'E':
+				VertexShaderManager::TranslateView(0.0f, 0.0f, -debugSpeed);
+				break;
+			case 'R':
+				VertexShaderManager::ResetView();
+				break;
+			default:
+				break;
+			}
 		}
 	}
 	else

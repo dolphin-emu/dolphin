@@ -43,9 +43,6 @@
 namespace X11Utils
 {
 
-void SendClientEvent(Display *dpy, const char *message,
-	   	int data1, int data2, int data3, int data4);
-void SendKeyEvent(Display *dpy, int key);
 void SendButtonEvent(Display *dpy, int button, int x, int y, bool pressed);
 void SendMotionEvent(Display *dpy, int x, int y);
 void EWMH_Fullscreen(Display *dpy, int action);

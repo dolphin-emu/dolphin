@@ -47,6 +47,9 @@
 #include <android/native_window_jni.h>
 ANativeWindow* surf;
 int g_width, g_height;
+std::string g_filename;
+static std::thread g_run_thread;
+
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "Dolphinemu", __VA_ARGS__))
 
 void Host_NotifyMapLoaded() {}
@@ -66,7 +69,10 @@ void* Host_GetRenderHandle()
 
 void* Host_GetInstance() { return NULL; }
 
-void Host_UpdateTitle(const char* title){};
+void Host_UpdateTitle(const char* title)
+{
+	LOGI(title);
+};
 
 void Host_UpdateLogDisplay(){}
 
@@ -254,6 +260,10 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetTitle(
 	env->ReleaseStringUTFChars(jFile, File);
 	return env->NewStringUTF(Name.c_str());
 }
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv *env, jobject obj)
+{
+	return env->NewStringUTF(scm_rev_str);
+}
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig(JNIEnv *env, jobject obj, jstring jFile, jstring jKey, jstring jValue, jstring jDefault)
 {
 	IniFile ini;
@@ -293,12 +303,23 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(JN
 	env->ReleaseStringUTFChars(jDefault, Default);
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jstring jFile, jobject _surf, jint _width, jint _height)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(JNIEnv *env, jobject obj, jstring jFile)
 {
-	surf = ANativeWindow_fromSurface(env, _surf);
+	const char *File = env->GetStringUTFChars(jFile, NULL);
+
+	g_filename = std::string(File);
+
+	env->ReleaseStringUTFChars(jFile, File);
+}
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetDimensions(JNIEnv *env, jobject obj, jint _width, jint _height)
+{
 	g_width = (int)_width;
 	g_height = (int)_height;
+}
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)
+{
+	surf = ANativeWindow_fromSurface(env, _surf);
 	// Install our callbacks
 	OSD::AddCallback(OSD::OSD_INIT, OSDCallbacks, 0);
 	OSD::AddCallback(OSD::OSD_SHUTDOWN, OSDCallbacks, 2);
@@ -318,9 +339,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	if (onscreencontrols)
 		OSD::AddCallback(OSD::OSD_ONFRAME, OSDCallbacks, 1);
 
-	const char *File = env->GetStringUTFChars(jFile, NULL);
 	// No use running the loop when booting fails
-	if ( BootManager::BootCore( File ) )
+	if ( BootManager::BootCore( g_filename.c_str() ) )
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 			updateMainFrameEvent.Wait();
 
@@ -329,7 +349,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	SConfig::Shutdown();
 	LogManager::Shutdown();
 }
-	  
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -31,7 +31,7 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 {
 	A_turbo = B_turbo = X_turbo = Y_turbo = Z_turbo = L_turbo = R_turbo = START_turbo = DL_turbo = DR_turbo = DD_turbo = DU_turbo = false;
 	xaxis = yaxis = c_xaxis = c_yaxis = 128;
-	A_cont = B_cont = X_cont = Y_cont = Z_cont = L_cont = R_cont = START_cont = DL_cont = DR_cont = DD_cont = DU_cont = mstickx = msticky = cstickx = csticky = false;
+	A_cont = B_cont = X_cont = Y_cont = Z_cont = L_cont = L_button_cont = R_cont = R_button_cont = START_cont = DL_cont = DR_cont = DD_cont = DU_cont = mstickx = msticky = cstickx = csticky = false;
 	
 	wxBoxSizer* const top_box = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* const bottom_box = new wxBoxSizer(wxHORIZONTAL);
@@ -41,7 +41,8 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	wxBoxSizer* const main_stick_box = new wxBoxSizer(wxVERTICAL);
 
 	static_bitmap_main = new wxStaticBitmap(this, ID_MAIN_STICK, TASInputDlg::CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
-	static_bitmap_main->Bind(wxEVT_LEFT_UP, &TASInputDlg::OnMouseUpL, this);
+	static_bitmap_main->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::OnMouseDownL, this);
+	static_bitmap_main->Bind(wxEVT_MOTION, &TASInputDlg::OnMouseDownL, this);
 	static_bitmap_main->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
 	wx_mainX_s = new wxSlider(this, ID_MAIN_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
 	wx_mainX_s->SetMinSize(wxSize(120,-1));
@@ -67,7 +68,8 @@ TASInputDlg::TASInputDlg(wxWindow *parent, wxWindowID id, const wxString &title,
 	wxBoxSizer* const c_stick_box = new wxBoxSizer(wxVERTICAL);
 	
 	static_bitmap_c = new wxStaticBitmap(this, ID_C_STICK, TASInputDlg::CreateStickBitmap(128,128), wxDefaultPosition, wxDefaultSize);
-	static_bitmap_c->Bind(wxEVT_LEFT_UP, &TASInputDlg::OnMouseUpL, this);
+	static_bitmap_c->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::OnMouseDownL, this);
+	static_bitmap_c->Bind(wxEVT_MOTION, &TASInputDlg::OnMouseDownL, this);
 	static_bitmap_c->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
 	wx_cX_s = new wxSlider(this, ID_C_X_SLIDER, 128, 0, 255, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
 	wx_cX_s->SetMinSize(wxSize(120,-1));
@@ -362,25 +364,53 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		Y_cont = false;
 	}
 
-	if(((PadStatus->button & PAD_TRIGGER_L) != 0))
+	if(((PadStatus->triggerLeft) != 0))
 	{
-		wx_l_button->SetValue(true);
+		if (PadStatus->triggerLeft == 255)
+		{
+			wx_l_button->SetValue(true);
+			L_button_cont = true;
+		}
+		else if (L_button_cont)
+		{
+			wx_l_button->SetValue(false);
+			L_button_cont = false;
+		}
+
+		wx_l_s->SetValue(PadStatus->triggerLeft);
+		wx_l_t->SetValue(wxString::Format(wxT("%i"), PadStatus->triggerLeft));
 		L_cont = true;
 	}
 	else if(L_cont)
 	{
 		wx_l_button->SetValue(false);
+		wx_l_s->SetValue(0);
+		wx_l_t->SetValue(wxT("0"));
 		L_cont = false;
 	}
 	
-	if(((PadStatus->button & PAD_TRIGGER_R) != 0))
+	if(((PadStatus->triggerRight) != 0))
 	{
-		wx_r_button->SetValue(true);
+		if (PadStatus->triggerRight == 255)
+		{
+			wx_r_button->SetValue(true);
+			R_button_cont = true;
+		}
+		else if (R_button_cont)
+		{
+			wx_r_button->SetValue(false);
+			R_button_cont = false;
+		}
+
+		wx_r_s->SetValue(PadStatus->triggerRight);
+		wx_r_t->SetValue(wxString::Format(wxT("%i"), PadStatus->triggerRight));
 		R_cont = true;
 	}
 	else if(R_cont)
 	{
 		wx_r_button->SetValue(false);
+		wx_r_s->SetValue(0);
+		wx_r_t->SetValue(wxT("0"));
 		R_cont = false;
 	}
 
@@ -407,6 +437,19 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 	}
 }
 
+void TASInputDlg::SetLandRTriggers()
+{
+	if (wx_l_button->GetValue())
+		lTrig = 255;
+	else
+		lTrig = wx_l_s->GetValue();
+
+	if (wx_r_button->GetValue())
+		rTrig = 255;
+	else
+		rTrig = wx_r_s->GetValue();
+}
+
 void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 {
 	if (!IsShown())
@@ -414,10 +457,7 @@ void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 	
 	//TODO:: Make this instant not when polled.
 	GetKeyBoardInput(PadStatus);
-
-	// TODO: implement support for more controllers
-	if (controllerID != 0)
-		return;
+	SetLandRTriggers();
 
 	PadStatus->stickX = mainX;
 	PadStatus->stickY = mainY;
@@ -477,16 +517,6 @@ void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 		PadStatus->button |= PAD_BUTTON_Y;
 	else
 		PadStatus->button &= ~PAD_BUTTON_Y;
-
-	if(wx_l_button->IsChecked())
-		PadStatus->button |= PAD_TRIGGER_L;
-	else
-		PadStatus->button &= ~PAD_TRIGGER_L;
-
-	if(wx_r_button->IsChecked())
-		PadStatus->button |= PAD_TRIGGER_R;
-	else
-		PadStatus->button &= ~PAD_TRIGGER_R;
 
 	if(wx_z_button->IsChecked())
 		PadStatus->button |= PAD_TRIGGER_Z;
@@ -752,8 +782,11 @@ void TASInputDlg::OnMouseUpR(wxMouseEvent& event)
 
 }
 
-void TASInputDlg::OnMouseUpL(wxMouseEvent& event)
+void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 {
+	if (event.GetEventType() == wxEVT_MOTION && !event.LeftIsDown())
+		return;
+
 	wxSlider *sliderX,*sliderY;
 	wxStaticBitmap *sbitmap;
 	wxTextCtrl *textX, *textY;

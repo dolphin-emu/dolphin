@@ -3,8 +3,10 @@ package org.dolphinemu.dolphinemu;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.InputDevice;
@@ -77,21 +79,26 @@ public class DolphinEmulator<MainActivity> extends Activity
 		if (savedInstanceState == null)
 		{
 
-			Intent ListIntent = new Intent(this, GameListView.class);
+			Intent ListIntent = new Intent(this, GameListActivity.class);
 			startActivityForResult(ListIntent, 1);
 			
 			// Make the assets directory
-			String strDir = Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu";
-			File directory = new File(strDir);
+			String BaseDir = Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu";
+			File directory = new File(BaseDir);
 			directory.mkdirs();
 			
-			strDir += File.separator+"Config";
-			directory = new File(strDir);
+			String ConfigDir = BaseDir + File.separator + "Config";
+			directory = new File(ConfigDir);
 			directory.mkdirs();
-			
+
+			String GCDir = BaseDir + File.separator + "GC";
+			directory = new File(GCDir);
+			directory.mkdirs();
+
 			// Copy assets if needed
 			java.io.File file = new java.io.File(
-					Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu" + File.separator + "NoBanner.png");
+					Environment.getExternalStorageDirectory()+File.separator+
+							"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_coef.bin");
 			if(!file.exists())
 			{
 				CopyAsset("ButtonA.png", 
@@ -108,7 +115,29 @@ public class DolphinEmulator<MainActivity> extends Activity
 						"dolphin-emu" + File.separator + "NoBanner.png");
 				CopyAsset("GCPadNew.ini", 
 						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator +"Config"+ File.separator +"GCPadNew.ini");
+						"dolphin-emu" + File.separator + "Config" + File.separator + "GCPadNew.ini");
+				CopyAsset("Dolphin.ini",
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "Config" + File.separator + "Dolphin.ini");
+				CopyAsset("dsp_coef.bin",
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_coef.bin");
+				CopyAsset("dsp_rom.bin",
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_rom.bin");
+				CopyAsset("font_ansi.bin",
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "GC" + File.separator + "font_ansi.bin");
+				CopyAsset("font_sjis.bin",
+						Environment.getExternalStorageDirectory()+File.separator+
+						"dolphin-emu" + File.separator + "GC" + File.separator + "font_sjis.bin");
+
+				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+				SharedPreferences.Editor editor = prefs.edit();
+				editor.putString("cpupref", NativeLibrary.GetConfig("Dolphin.ini", "Core", "CPUCore", "3"));
+				editor.putBoolean("dualcorepref", NativeLibrary.GetConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True") ? true : false);
+				editor.putString("gpupref", NativeLibrary.GetConfig("Dolphin.ini", "Core", "GFXBackend ", "Software Renderer"));
+				editor.commit();
 			}
 		}
 	}
@@ -129,8 +158,9 @@ public class DolphinEmulator<MainActivity> extends Activity
 			String FileName = data.getStringExtra("Select");
 			GLview = new NativeGLSurfaceView(this);
 			this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-			GLview.SetDimensions(screenWidth, screenHeight);
-			GLview.SetFileName(FileName);
+			String backend = NativeLibrary.GetConfig("Dolphin.ini", "Core", "GFXBackend", "Software Renderer");
+			NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
+			NativeLibrary.SetFilename(FileName);
 			setContentView(GLview);
 			Running = true;
 		}
@@ -158,24 +188,46 @@ public class DolphinEmulator<MainActivity> extends Activity
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event) {
 		int action = 0;
-		switch (event.getAction()) {
-			case KeyEvent.ACTION_DOWN:
-				action = 0;
-				break;
-			case KeyEvent.ACTION_UP:
-				action = 1;
-				break;
-			default:
-				break;
+
+		// Special catch for the back key
+		// Currently disabled because stopping and starting emulation is broken.
+		/*
+		if (    event.getSource() == InputDevice.SOURCE_KEYBOARD
+				&& event.getKeyCode() == KeyEvent.KEYCODE_BACK
+				&& event.getAction() == KeyEvent.ACTION_UP
+				)
+		{
+			if (Running)
+				NativeLibrary.StopEmulation();
+			Running = false;
+			Intent ListIntent = new Intent(this, GameListActivity.class);
+			startActivityForResult(ListIntent, 1);
+			return true;
 		}
-		InputDevice input = event.getDevice();
-		NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
-		return true;
+		*/
+
+		if (Running)
+		{
+			switch (event.getAction()) {
+				case KeyEvent.ACTION_DOWN:
+					action = 0;
+					break;
+				case KeyEvent.ACTION_UP:
+					action = 1;
+					break;
+				default:
+					return false;
+			}
+			InputDevice input = event.getDevice();
+			NativeLibrary.onGamePadEvent(InputConfigFragment.getInputDesc(input), event.getKeyCode(), action);
+			return true;
+		}
+		return false;
 	}
 
 	@Override
 	public boolean dispatchGenericMotionEvent(MotionEvent event) {
-		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)) {
+		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0) || !Running) {
 			return super.dispatchGenericMotionEvent(event);
 		}
 
@@ -185,7 +237,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 		{
 			InputDevice.MotionRange range;
 			range = motions.get(a);
-			NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), range.getAxis(), event.getAxisValue(range.getAxis()));
+			NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
 		}
 
 		return true;

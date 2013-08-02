@@ -23,12 +23,23 @@
 #define TEXFUNC "texture2D"
 #ifdef USE_GLES3
 #include "GLFunctions.h"
+#define GLAPIENTRY GL_APIENTRY
+#define GL_SAMPLES_PASSED GL_ANY_SAMPLES_PASSED
+#define GL_READ_ONLY                      0x88B8
+#define GL_WRITE_ONLY                     0x88B9
+#define GL_READ_WRITE                     0x88BA
+#define GL_SRC1_ALPHA 0
+#define GL_BGRA GL_RGBA
+#define glDrawElementsBaseVertex
+#define glDrawRangeElementsBaseVertex
+#define GLRENDERBUFFERFORMAT 0x8058 /* RGBA8_OES */ 
 #endif
 #else
 #define TEX2D	GL_TEXTURE_RECTANGLE_ARB
 #define PREC 
 #define TEXTYPE "sampler2DRect"
 #define TEXFUNC "texture2DRect"
+#define GLRENDERBUFFERFORMAT GL_RGBA
 #endif
 
 

@@ -10,7 +10,7 @@ namespace WiimoteEmu
 class Turntable : public Attachment
 {
 public:
-	Turntable();
+	Turntable(WiimoteEmu::ExtensionReg& _reg);
 	void GetState(u8* const data, const bool focus);
 
 	enum

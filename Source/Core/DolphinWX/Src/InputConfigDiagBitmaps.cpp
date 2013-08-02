@@ -107,12 +107,12 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 							, d_of = box / 256.0
 							, x_of = box / 2.0;
 
-						if ((*g)->control_group->name == "Main Stick")
+						if (strcmp((*g)->control_group->name, "Main Stick") == 0)
 						{
 							max = (87.0 / 127.0) * 100;
 							diagonal = (55.0 / 127.0) * 100.0;
 						}
-						else if ((*g)->control_group->name == "C-Stick")
+						else if (strcmp((*g)->control_group->name,"C-Stick") == 0)
 						{
 							max = (74.0 / 127.0) * 100;
 							diagonal = (46.0 / 127.0) * 100;

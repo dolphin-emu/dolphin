@@ -63,6 +63,7 @@ static std::map<u64,VBOCache> s_VBO;
 
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
+#ifndef USE_GLES3
 	int width = std::max(virtual_width >> level, 1);
 	int height = std::max(virtual_height >> level, 1);
 	std::vector<u32> data(width * height);
@@ -80,6 +81,9 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width
 	}
 
 	return SaveTGA(filename, width, height, &data[0]);
+#else
+	return false;
+#endif
 }
 
 TextureCache::TCacheEntry::~TCacheEntry()
@@ -158,7 +162,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 			gl_iformat = GL_RGBA;
 			gl_type = GL_UNSIGNED_BYTE;
 			break;
-
+#ifndef USE_GLES3
 		case PC_TEX_FMT_I4_AS_I8:
 			gl_format = GL_LUMINANCE;
 			gl_iformat = GL_INTENSITY4;
@@ -182,7 +186,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 			gl_iformat = GL_LUMINANCE8_ALPHA8;
 			gl_type = GL_UNSIGNED_BYTE;
 			break;
-
+#endif
 		case PC_TEX_FMT_RGB565:
 			gl_format = GL_RGB;
 			gl_iformat = GL_RGB;
@@ -296,7 +300,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		GL_REPORT_ERRORD();
 
 		glActiveTexture(GL_TEXTURE0+9);
-		glBindTexture(GL_TEXTURE_RECTANGLE, read_texture);
+		glBindTexture(getFbType(), read_texture);
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
@@ -359,8 +363,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 		glBindVertexArray(vbo_it->second.vao);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 
 		GL_REPORT_ERRORD();
 	}

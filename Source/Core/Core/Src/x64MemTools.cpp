@@ -7,7 +7,9 @@
 #else
 #include <stdio.h>
 #include <signal.h>
+#ifndef ANDROID
 #include <sys/ucontext.h>   // Look in here for the context definition.
+#endif
 #endif
 
 #ifdef __APPLE__
@@ -150,6 +152,7 @@ void InstallExceptionHandler()
 
 #else  // _WIN32
 
+#ifndef ANDROID
 #if defined __APPLE__ || defined __linux__ || defined __FreeBSD__ || defined _WIN32
 #ifndef _WIN32
 #include <execinfo.h>
@@ -235,19 +238,21 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	}
 #endif
 }
+#endif
 
 void InstallExceptionHandler()
 {
 #ifdef _M_IX86
 	PanicAlertT("InstallExceptionHandler called, but this platform does not yet support it.");
 	return;
-#endif
+#else
 	struct sigaction sa;
 	sa.sa_handler = 0;
 	sa.sa_sigaction = &sigsegv_handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGSEGV, &sa, NULL);
+#endif
 }
 
 #endif

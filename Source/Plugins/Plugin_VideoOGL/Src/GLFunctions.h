@@ -45,6 +45,9 @@ typedef void (*PFNGLGETQUERYOBJECTUIVPROC) (GLuint id, GLenum pname, GLuint* par
 typedef void (*PFNGLDELETEQUERIESPROC) (GLsizei n, const GLuint* ids);
 typedef void (*PFNGLGENQUERIESPROC) (GLsizei n, GLuint* ids);
 
+// glDraw*
+typedef void (*PFNGLDRAWRANGEELEMENTSPROC) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid* indices);
+
 // ptrs
 extern PFNGLBEGINQUERYPROC glBeginQuery;
 extern PFNGLENDQUERYPROC glEndQuery;
@@ -70,6 +73,8 @@ extern PFNGLFENCESYNCPROC glFenceSync;
 extern PFNGLGETPROGRAMBINARYPROC glGetProgramBinary;
 extern PFNGLPROGRAMBINARYPROC glProgramBinary;
 extern PFNGLPROGRAMPARAMETERIPROC glProgramParameteri;
+
+extern PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements;
 
 //Sampler
 extern PFNGLSAMPLERPARAMETERFPROC glSamplerParameterf;

@@ -113,9 +113,6 @@
     <ClCompile Include="Src\VertexManagerBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LightingShaderGen.cpp">
-      <Filter>Shader Generators</Filter>
-    </ClCompile>
     <ClCompile Include="Src\FPSCounter.cpp">
       <Filter>Util</Filter>
     </ClCompile>

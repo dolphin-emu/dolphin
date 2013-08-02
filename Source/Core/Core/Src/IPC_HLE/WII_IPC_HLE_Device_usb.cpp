@@ -138,27 +138,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 
 	for (unsigned int i = 0; i < MAX_BBMOTES; i++)
 		m_WiiMotes[i].DoState(p);
-
-	// Reset the connection of real and hybrid wiimotes
-	if (p.GetMode() == PointerWrap::MODE_READ && SConfig::GetInstance().m_WiimoteReconnectOnLoad)
-	{
-		for (unsigned int i = 0; i < MAX_BBMOTES; i++)
-		{
-			if (WIIMOTE_SRC_EMU == g_wiimote_sources[i] || WIIMOTE_SRC_NONE == g_wiimote_sources[i])
-				continue;
-			// TODO: Selectively clear real wiimote messages if possible. Or create a real wiimote channel and reporting mode pre-setup to vacate the need for m_WiimoteReconnectOnLoad.
-			m_EventQueue.clear();
-			if (!m_WiiMotes[i].IsInactive())
-			{
-				m_WiiMotes[i].Activate(false);
-				m_WiiMotes[i].Activate(true);
-			}
-			else
-			{
-				m_WiiMotes[i].Activate(false);
-			}
-		}
-	}
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::RemoteDisconnect(u16 _connectionHandle)
@@ -508,18 +487,16 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 	// The Real Wiimote sends report every ~5ms (200 Hz).
 	const u64 interval = SystemTimers::GetTicksPerSecond() / 200;
-	const u64 each_wiimote_interval = interval / m_WiiMotes.size();
 	const u64 now = CoreTiming::GetTicks();
 
-	if (now - m_last_ticks > each_wiimote_interval)
+	if (now - m_last_ticks > interval)
 	{
-		static int wiimote_to_update = 0;
-		if (m_WiiMotes[wiimote_to_update].IsConnected())
-		{
-			NetPlay_WiimoteUpdate(wiimote_to_update);
-			Wiimote::Update(wiimote_to_update);
-		}
-		wiimote_to_update = (wiimote_to_update + 1) % m_WiiMotes.size();
+		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+			if (m_WiiMotes[i].IsConnected())
+			{
+				NetPlay_WiimoteUpdate(i);
+				Wiimote::Update(i);
+			}
 		m_last_ticks = now;
 	}
 

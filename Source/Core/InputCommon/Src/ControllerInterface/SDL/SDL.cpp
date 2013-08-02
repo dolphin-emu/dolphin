@@ -1,9 +1,10 @@
-#include "../ControllerInterface.h"
-
-#ifdef CIFACE_USE_SDL
 
 #include "SDL.h"
 #include <StringUtil.h>
+
+#include <map>
+#include <sstream>
+#include <algorithm>
 
 #ifdef _WIN32
 	#if SDL_VERSION_ATLEAST(1, 3, 0)
@@ -27,7 +28,7 @@ std::string GetJoystickName(int index)
 #endif
 }
 
-void Init( std::vector<ControllerInterface::Device*>& devices )
+void Init( std::vector<Core::Device*>& devices )
 {	
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
@@ -399,5 +400,3 @@ ControlState Joystick::Hat::GetState() const
 
 }
 }
-
-#endif

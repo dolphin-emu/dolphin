@@ -51,7 +51,7 @@ u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
 bool bSaveConfig, bSkipIdle, bDualCore, bProgressive, bDSPHLE, bFastDiscSpeed = false;
-bool bMemcard, g_bClearSave = false;
+bool bMemcard, g_bClearSave, bSyncGPU = false;
 std::string videoBackend = "unknown";
 int iCPUCore = 1;
 bool g_bDiscChange = false;
@@ -156,6 +156,7 @@ void Init()
 	{
 		ReadHeader();
 		std::thread md5thread(CheckMD5);
+		md5thread.detach();
 		if ((strncmp((char *)tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6)))
 		{
 			PanicAlert("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str());
@@ -167,6 +168,7 @@ void Init()
 	{
 		GetSettings();
 		std::thread md5thread(GetMD5);
+		md5thread.detach();
 	}
 
 	g_frameSkipCounter = g_framesToSkip;
@@ -353,6 +355,10 @@ bool IsUsingMemcard()
 {
 	return bMemcard;
 }
+bool IsSyncGPU()
+{
+	return bSyncGPU;
+}
 
 void ChangePads(bool instantly)
 {
@@ -428,9 +434,9 @@ bool BeginRecordingInput(int controllers)
 				Movie::g_bClearSave = true;
 		}
 		std::thread md5thread(GetMD5);
+		GetSettings();
 	}
 	g_playMode = MODE_RECORDING;
-	GetSettings();
 	author = SConfig::GetInstance().m_strMovieAuthor;
 	EnsureTmpInputSize(1);
 
@@ -675,6 +681,7 @@ void ReadHeader()
 		g_bClearSave = tmpHeader.bClearSave;
 		bMemcard = tmpHeader.bMemcard;
 		bongos = tmpHeader.bongos;
+		bSyncGPU = tmpHeader.bSyncGPU;
 		memcpy(revision, tmpHeader.revision, ARRAYSIZE(revision));
 	}
 	else
@@ -682,23 +689,9 @@ void ReadHeader()
 		GetSettings();
 	}
 
-	videoBackend.resize(ARRAYSIZE(tmpHeader.videoBackend));
-	for (unsigned int i = 0; i < ARRAYSIZE(tmpHeader.videoBackend);i++)
-	{
-		videoBackend[i] = tmpHeader.videoBackend[i];
-	}
-
-	g_discChange.resize(ARRAYSIZE(tmpHeader.discChange));
-	for (unsigned int i = 0; i < ARRAYSIZE(tmpHeader.discChange);i++)
-	{
-		g_discChange[i] = tmpHeader.discChange[i];
-	}
-
-	author.resize(ARRAYSIZE(tmpHeader.author));
-	for (unsigned int i = 0; i < ARRAYSIZE(tmpHeader.author);i++)
-	{
-		author[i] = tmpHeader.author[i];
-	}
+	videoBackend = (char*) tmpHeader.videoBackend;
+	g_discChange = (char*) tmpHeader.discChange;
+	author = (char*) tmpHeader.author;
 	memcpy(MD5, tmpHeader.md5, 16);
 }
 
@@ -845,6 +838,7 @@ void LoadInput(const char *filename)
 					{ 
 						// TODO: more detail
 						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i+256, i+256);
+						memcpy(tmpInput, movInput, g_currentByte);
 					}
 					else
 					{
@@ -866,6 +860,8 @@ void LoadInput(const char *filename)
 							(int)curPadState.Start, (int)curPadState.A, (int)curPadState.B, (int)curPadState.X, (int)curPadState.Y, (int)curPadState.Z, (int)curPadState.DPadUp, (int)curPadState.DPadDown, (int)curPadState.DPadLeft, (int)curPadState.DPadRight, (int)curPadState.L, (int)curPadState.R, (int)curPadState.TriggerL, (int)curPadState.TriggerR, (int)curPadState.AnalogStickX, (int)curPadState.AnalogStickY, (int)curPadState.CStickX, (int)curPadState.CStickY,
 							(int)frame,
 							(int)movPadState.Start, (int)movPadState.A, (int)movPadState.B, (int)movPadState.X, (int)movPadState.Y, (int)movPadState.Z, (int)movPadState.DPadUp, (int)movPadState.DPadDown, (int)movPadState.DPadLeft, (int)movPadState.DPadRight, (int)movPadState.L, (int)movPadState.R, (int)movPadState.TriggerL, (int)movPadState.TriggerR, (int)movPadState.AnalogStickX, (int)movPadState.AnalogStickY, (int)movPadState.CStickX, (int)movPadState.CStickY);
+
+						memcpy(tmpInput, movInput, g_currentByte);
 					}
 					break;
 				}
@@ -1067,7 +1063,7 @@ void EndPlayInput(bool cont)
 		g_currentByte = 0;
 		g_playMode = MODE_NONE;
 		Core::DisplayMessage("Movie End.", 2000);
-		g_bRecordingFromSaveState = 0;
+		g_bRecordingFromSaveState = false;
 		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
 		//g_totalFrames = g_totalBytes = 0;
 		//delete tmpInput;
@@ -1111,6 +1107,7 @@ void SaveRecording(const char *filename)
 	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
 	header.bMemcard = bMemcard;
 	header.bClearSave = g_bClearSave;
+	header.bSyncGPU = bSyncGPU;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 	memcpy(header.md5,MD5,16);
@@ -1169,14 +1166,16 @@ void GetSettings()
 	bDSPHLE = SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE;
 	bFastDiscSpeed = SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed;
 	videoBackend = g_video_backend->GetName();
+	bSyncGPU = SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU;
 	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
-
+	u8 tmp[21];
 	for (int i = 0; i < 20; ++i)
 	{
-		sscanf(SCM_REV_STR + 2 * i, "%02x", &revision[i]);
+		sscanf(SCM_REV_STR + 2 * i, "%02hhx", &tmp[i]);
+		revision[i] = tmp[i];
 	}
 }
 
@@ -1206,8 +1205,7 @@ void CheckMD5()
 void GetMD5()
 {
 	Core::DisplayMessage("Calculating checksum of game file...", 2000);
-	for (int i = 0; i < 16; i++)
-		MD5[i] = 0;
+	memset(MD5, 0, sizeof(MD5));
 	char game[255];
 	memcpy(game, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.c_str(),SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename.size());
 	md5_file(game, MD5);

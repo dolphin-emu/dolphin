@@ -336,11 +336,26 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 		u8 buf[MAX_PAYLOAD] = {0};
 
 		u8 const req_status_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REQUEST_STATUS, 0};
+		// The new way to initialize the extension is by writing 0x55 to 0x(4)A400F0, then writing 0x00 to 0x(4)A400FB
+		// 52 16 04 A4 00 F0 01 55
+		// 52 16 04 A4 00 FB 01 00
+		u8 const disable_enc_pt1_report[MAX_PAYLOAD] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_WRITE_DATA, 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
+		u8 const disable_enc_pt2_report[MAX_PAYLOAD] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_WRITE_DATA, 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
 
+		rc = CheckDeviceType_Write(dev_handle, 
+									disable_enc_pt1_report, 
+									sizeof(disable_enc_pt1_report), 
+									1);
+		rc = CheckDeviceType_Write(dev_handle, 
+									disable_enc_pt2_report, 
+									sizeof(disable_enc_pt2_report), 
+									1);
+		
 		rc = CheckDeviceType_Write(dev_handle, 
 									req_status_report, 
 									sizeof(req_status_report), 
 									1);
+
 		while (rc > 0 && --max_cycles > 0)
 		{
 			if ((rc = CheckDeviceType_Read(dev_handle, buf, 1)) <= 0)
@@ -397,9 +412,7 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 						// DEBUG_LOG(WIIMOTE, 
 						//		  "CheckDeviceType: GOT EXT TYPE %llX", 
 						//		  ext_type);
-						is_bb = (ext_type == 0x020420A40000ULL) ||
-									((ext_type & 0xf00000000000ULL) && 
-										ext_type != 0xffffffffffffULL);
+						is_bb = (ext_type == 0x020420A40000ULL);
 					}
 					else
 					{
@@ -597,6 +610,8 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 		}
 	}
 
+	WiimoteEmu::Spy(NULL, buf, bytes + 1);
+
 	return bytes + 1;
 }
 
@@ -611,6 +626,8 @@ int Wiimote::IORead(u8* buf)
 
 int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, int len)
 {
+	WiimoteEmu::Spy(NULL, buf, len);
+
 	switch (stack)
 	{
 		case MSBT_STACK_UNKNOWN:

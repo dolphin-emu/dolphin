@@ -185,6 +185,14 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		_("Connect Wiimote 2"),
 		_("Connect Wiimote 3"),
 		_("Connect Wiimote 4"),
+		_("Connect Balance Board"),
+
+		_("Toggle IR"),
+		_("Toggle Aspect Ratio"),
+		_("Toggle EFB Copies"),
+		_("Toggle Fog"),
+		_("Increase Frame limit"),
+		_("Decrease Frame limit"),
 
 		_("Load State Slot 1"),
 		_("Load State Slot 2"),
@@ -215,7 +223,9 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 
 		_("Save Oldest State"),
 		_("Undo Load State"),
-		_("Undo Save State")
+		_("Undo Save State"),
+		_("Save State"),
+		_("Load State"),
 	};
 
 	const int page_breaks[3] = {HK_OPEN, HK_LOAD_STATE_SLOT_1, NUM_HOTKEYS};

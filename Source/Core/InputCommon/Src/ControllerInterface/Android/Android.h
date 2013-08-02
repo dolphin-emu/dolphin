@@ -17,7 +17,7 @@
 #ifndef _CIFACE_ANDROID_H_
 #define _CIFACE_ANDROID_H_
 
-#include "../ControllerInterface.h"
+#include "../Device.h"
 #include "Android/ButtonManager.h"
 
 namespace ciface
@@ -25,8 +25,8 @@ namespace ciface
 namespace Android
 {
 
-void Init( std::vector<ControllerInterface::Device*>& devices );
-class Touchscreen : public ControllerInterface::Device
+void Init( std::vector<Core::Device*>& devices );
+class Touchscreen : public Core::Device
 {
 private:
 	class Button : public Input

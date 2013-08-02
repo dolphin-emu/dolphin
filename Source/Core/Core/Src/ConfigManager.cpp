@@ -41,6 +41,7 @@ static const struct {
 	{ "Wiimote2Connect",	50 /* '2' */,		2 /* wxMOD_CMD */ },
 	{ "Wiimote3Connect",	51 /* '3' */,		2 /* wxMOD_CMD */ },
 	{ "Wiimote4Connect",	52 /* '4' */,		2 /* wxMOD_CMD */ },
+	{ "BalanceBoardConnect",53 /* '4' */,		2 /* wxMOD_CMD */ },
 #else
 	{ "Open",		79 /* 'O' */,		2 /* wxMOD_CONTROL */},
 	{ "ChangeDisc",		0,			0 /* wxMOD_NONE */ },
@@ -64,8 +65,14 @@ static const struct {
 	{ "Wiimote2Connect",	345 /* WXK_F6 */,	1 /* wxMOD_ALT */ },
 	{ "Wiimote3Connect",	346 /* WXK_F7 */,	1 /* wxMOD_ALT */ },
 	{ "Wiimote4Connect",	347 /* WXK_F8 */,	1 /* wxMOD_ALT */ },
+	{ "BalanceBoardConnect",348 /* WXK_F9 */,	1 /* wxMOD_ALT */ },
 #endif
-
+	{ "ToggleIR",			0,	0 /* wxMOD_NONE */ },
+	{ "ToggleAspectRatio",	0,	0 /* wxMOD_NONE */ },
+	{ "ToggleEFBCopies",	0,	0 /* wxMOD_NONE */ },
+	{ "ToggleFog",			0,	0 /* wxMOD_NONE */ },
+	{ "IncreaseFrameLimit",	0,	0 /* wxMOD_NONE */ },
+	{ "DecreaseFrameLimit",	0,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot1",	340 /* WXK_F1 */,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot2",	341 /* WXK_F2 */,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot3",	342 /* WXK_F3 */,	0 /* wxMOD_NONE */ },
@@ -96,6 +103,8 @@ static const struct {
 	{ "SaveFirstState",	0,	0 /* wxMOD_NONE */ },
 	{ "UndoLoadState",	351 /* WXK_F12 */,	0 /* wxMOD_NONE */ },
 	{ "UndoSaveState",	351 /* WXK_F12 */,	4 /* wxMOD_SHIFT */ },
+	{ "SaveStateFile",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadStateFile",	0,	0 /* wxMOD_NONE */ },
 };
 
 SConfig::SConfig()
@@ -243,7 +252,6 @@ void SConfig::SaveSettings()
 
 	ini.Set("Core", "WiiSDCard", m_WiiSDCard);
 	ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
-	ini.Set("Core", "WiimoteReconnectOnLoad", m_WiimoteReconnectOnLoad);
 	ini.Set("Core", "WiimoteContinuousScanning", m_WiimoteContinuousScanning);
 	ini.Set("Core", "WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
 	ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
@@ -306,7 +314,7 @@ void SConfig::LoadSettings()
 
 	{
 		// Interface
-		ini.Get("Interface", "ConfirmStop",			&m_LocalCoreStartupParameter.bConfirmStop,		false);
+		ini.Get("Interface", "ConfirmStop",			&m_LocalCoreStartupParameter.bConfirmStop,		true);
 		ini.Get("Interface", "UsePanicHandlers",	&m_LocalCoreStartupParameter.bUsePanicHandlers,	true);
 		ini.Get("Interface", "OnScreenDisplayMessages",	&m_LocalCoreStartupParameter.bOnScreenDisplayMessages,	true);
 		ini.Get("Interface", "HideCursor",			&m_LocalCoreStartupParameter.bHideCursor,		false);
@@ -400,13 +408,13 @@ void SConfig::LoadSettings()
 
 		ini.Get("Core", "WiiSDCard",		&m_WiiSDCard,									false);
 		ini.Get("Core", "WiiKeyboard",		&m_WiiKeyboard,									false);
-		ini.Get("Core", "WiimoteReconnectOnLoad",	&m_WiimoteReconnectOnLoad,				true);
 		ini.Get("Core", "WiimoteContinuousScanning", &m_WiimoteContinuousScanning,			false);
 		ini.Get("Core", "WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker,					true);
 		ini.Get("Core", "RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
+		ini.Get("Core", "BBDumpPort",		&m_LocalCoreStartupParameter.iBBDumpPort,		-1);
 		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeamSpeedHack,			false);
 		ini.Get("Core", "SyncGPU",			&m_LocalCoreStartupParameter.bSyncGPU,			false);
 		ini.Get("Core", "FastDiscSpeed",	&m_LocalCoreStartupParameter.bFastDiscSpeed,	false);

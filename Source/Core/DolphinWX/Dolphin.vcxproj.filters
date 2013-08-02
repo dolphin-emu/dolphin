@@ -135,6 +135,7 @@
     <ClCompile Include="Src\GCMicDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="Src\GLInterface\WGL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Main.h" />
@@ -264,6 +265,9 @@
     <ClInclude Include="Src\GCMicDlg.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Src\GLInterface.h" />
+    <ClInclude Include="Src\GLInterface\InterfaceBase.h" />
+    <ClInclude Include="Src\GLInterface\WGL.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

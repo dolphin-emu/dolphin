@@ -1,7 +1,7 @@
 #ifndef _CIFACE_XLIB_H_
 #define _CIFACE_XLIB_H_
 
-#include "../ControllerInterface.h"
+#include "../Device.h"
 
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
@@ -11,9 +11,9 @@ namespace ciface
 namespace Xlib
 {
 
-void Init(std::vector<ControllerInterface::Device*>& devices, void* const hwnd);
+void Init(std::vector<Core::Device*>& devices, void* const hwnd);
 
-class KeyboardMouse : public ControllerInterface::Device
+class KeyboardMouse : public Core::Device
 {
 
 private:

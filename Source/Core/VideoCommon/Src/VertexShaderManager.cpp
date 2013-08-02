@@ -63,6 +63,15 @@ inline void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count,
 	g_renderer->SetMultiVSConstant4fv(const_number, count, f);
 }
 
+struct ProjectionHack
+{
+	float sign;
+	float value;
+	ProjectionHack() { }
+	ProjectionHack(float new_sign, float new_value)
+		: sign(new_sign), value(new_value) {}
+};
+
 namespace
 {
 // Control Variables
@@ -610,10 +619,10 @@ void VertexShaderManager::SetMaterialColorChanged(int index)
 	nMaterialsChanged  |= (1 << index);
 }
 
-void VertexShaderManager::TranslateView(float x, float y)
+void VertexShaderManager::TranslateView(float x, float y, float z)
 {
 	float result[3];
-	float vector[3] = { x,0,y };
+	float vector[3] = { x,z,y };
 
 	Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
 

@@ -89,7 +89,6 @@ Make AA apply instantly during gameplay if possible
 
 namespace OGL
 {
-static void* m_windowhandle; 
 
 std::string VideoBackend::GetName()
 {
@@ -130,9 +129,10 @@ void InitBackendInfo()
 	g_Config.backend_info.bUseRGBATextures = true;
 	g_Config.backend_info.bUseMinimalMipCount = false;
 	g_Config.backend_info.bSupports3DVision = false;
-	//g_Config.backend_info.bSupportsDualSourceBlend = true; // is gpu depenend and must be set in renderer
-	g_Config.backend_info.bSupportsFormatReinterpretation = false;
+	//g_Config.backend_info.bSupportsDualSourceBlend = true; // is gpu dependent and must be set in renderer
+	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
+	//g_Config.backend_info.bSupportsEarlyZ = true; // is gpu dependent and must be set in renderer
 
 	// aamodes
 	const char* caamodes[] = {_trans("None"), "2x", "4x", "8x", "8x CSAA", "8xQ CSAA", "16x CSAA", "16xQ CSAA", "4x SSAA"};
@@ -150,12 +150,12 @@ void VideoBackend::ShowConfig(void *_hParent)
 	diag.ShowModal();
 #endif
 }
+
 bool VideoBackend::Initialize(void *&window_handle)
 {
 	InitializeShared();
 	InitBackendInfo();
-	
-	m_windowhandle = window_handle;
+
 	frameCount = 0;
 
 	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini").c_str());
@@ -164,7 +164,13 @@ bool VideoBackend::Initialize(void *&window_handle)
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
-	
+	InitInterface();
+	if (!GLInterface->Create(window_handle))
+		return false;
+
+	// Do our OSD callbacks	
+	OSD::DoCallbacks(OSD::OSD_INIT);
+
 	s_BackendInitialized = true;
 
 	return true;
@@ -174,16 +180,6 @@ bool VideoBackend::Initialize(void *&window_handle)
 // Run from the graphics thread
 void VideoBackend::Video_Prepare()
 {
-	InitInterface();
-	if (!GLInterface->Create(m_windowhandle))
-	{
-		INFO_LOG(VIDEO, "%s", "GLInterface::Create failed\n");
-		return;
-	}
-
-	// Do our OSD callbacks	
-	OSD::DoCallbacks(OSD::OSD_INIT);
-
 	GLInterface->MakeCurrent();
 
 	g_renderer = new Renderer;

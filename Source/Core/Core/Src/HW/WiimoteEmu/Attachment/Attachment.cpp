@@ -13,20 +13,30 @@ static const u8 nothing_id[]	= { 0x00, 0x00, 0x00, 0x00, 0x2e, 0x2e };
 // The id for a partially inserted extension
 static const u8 partially_id[]	= { 0x00, 0x00, 0x00, 0x00, 0xff, 0xff };
 
-Attachment::Attachment( const char* const _name ) : name( _name )
+Attachment::Attachment( const char* const _name, WiimoteEmu::ExtensionReg& _reg )
+	: name( _name ), reg( _reg )
 {
-	reg.resize( WIIMOTE_REG_EXT_SIZE, 0);
+	memset(id, 0, sizeof(id));
+	memset(calibration, 0, sizeof(calibration));
 }
 
-None::None() : Attachment( "None" )
+None::None( WiimoteEmu::ExtensionReg& _reg ) : Attachment( "None", _reg )
 {
 	// set up register
-	memcpy( &reg[0xfa], nothing_id, sizeof(nothing_id) );
+	memcpy(&id, nothing_id, sizeof(nothing_id));
 }
 
 std::string Attachment::GetName() const
 {
 	return name;
+}
+
+void Attachment::Reset()
+{
+	// set up register
+	memset( &reg, 0, WIIMOTE_REG_EXT_SIZE );
+	memcpy( &reg.constant_id, id, sizeof(id) );
+	memcpy( &reg.calibration, calibration, sizeof(calibration) );
 }
 
 }

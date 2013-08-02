@@ -106,7 +106,6 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	wxSlider* const WiiSensBarSens = new wxSlider(this, wxID_ANY, 0, 0, 4, wxDefaultPosition, wxDefaultSize, wxSL_HORIZONTAL);
 	wxSlider* const WiimoteSpkVolume = new wxSlider(this, wxID_ANY, 0, 0, 127);
 	wxCheckBox* const WiimoteMotor = new wxCheckBox(this, wxID_ANY, _("Wiimote Motor"));
-	wxCheckBox* const WiimoteReconnectOnLoad = new wxCheckBox(this, wxID_ANY, _("Reconnect Wiimote on State Loading"));
 
 	wxStaticText* const WiiSensBarPosText = new wxStaticText(this, wxID_ANY, _("Sensor Bar Position:"));
 	wxStaticText* const WiiSensBarSensText = new wxStaticText(this, wxID_ANY, _("IR Sensitivity:"));
@@ -143,13 +142,11 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 	WiiSensBarSens->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u32>("BT.SENS"));
 	WiimoteSpkVolume->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.SPKV"));
 	WiimoteMotor->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<bool>("BT.MOT"));
-	WiimoteReconnectOnLoad->SetValue(SConfig::GetInstance().m_WiimoteReconnectOnLoad);
 
 	WiiSensBarPos->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &WiimoteConfigDiag::OnSensorBarPos, this);
 	WiiSensBarSens->Bind(wxEVT_COMMAND_SLIDER_UPDATED, &WiimoteConfigDiag::OnSensorBarSensitivity, this);
 	WiimoteSpkVolume->Bind(wxEVT_COMMAND_SLIDER_UPDATED, &WiimoteConfigDiag::OnSpeakerVolume, this);
 	WiimoteMotor->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &WiimoteConfigDiag::OnMotor, this);
-	WiimoteReconnectOnLoad->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &WiimoteConfigDiag::OnReconnectOnLoad, this);
 
 
 	// "General Settings" layout
@@ -175,7 +172,6 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 
 	wxGridSizer* const general_wiimote_sizer = new wxGridSizer(1, 5, 5);
 	general_wiimote_sizer->Add(WiimoteMotor);
-	general_wiimote_sizer->Add(WiimoteReconnectOnLoad);
 
 	general_sizer->Add(choice_sizer);
 	general_sizer->Add(general_wiimote_sizer);

@@ -211,4 +211,9 @@ void ApplyARPatches()
 	ActionReplay::RunAllActive();
 }
 
+void Shutdown()
+{
+	onFrame.clear();
+}
+
 }  // namespace

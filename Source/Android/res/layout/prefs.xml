@@ -3,13 +3,8 @@
         >
     <PreferenceCategory
             android:summary="Settings"
-            android:title="CPU Settings" >
-        <ListPreference
-                android:entries="@array/cpuOptions"
-                android:entryValues="@array/cpuValues"
-                android:key="cpupref"
-                android:summary="Emulation core to use"
-                android:title="CPU Core" />
+            android:title="CPU Settings"
+            android:key="cpuprefcat">
         <CheckBoxPreference
                 android:key="dualcorepref"
                 android:summary="On/Off"
@@ -17,7 +12,8 @@
     </PreferenceCategory>
     <PreferenceCategory
             android:summary="Settings"
-            android:title="Video Settings" >
+            android:title="Video Settings"
+            android:key="videoprefcat">
         <ListPreference
                 android:entries="@array/gpuOptions"
                 android:entryValues="@array/gpuValues"

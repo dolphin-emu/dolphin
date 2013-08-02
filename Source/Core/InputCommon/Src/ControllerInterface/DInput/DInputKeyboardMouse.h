@@ -1,7 +1,7 @@
 #ifndef _CIFACE_DINPUT_KBM_H_
 #define _CIFACE_DINPUT_KBM_H_
 
-#include "../ControllerInterface.h"
+#include "../Device.h"
 
 #define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN
@@ -14,9 +14,9 @@ namespace ciface
 namespace DInput
 {
 
-void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices, HWND _hwnd);
+void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND _hwnd);
 
-class KeyboardMouse : public ControllerInterface::Device
+class KeyboardMouse : public Core::Device
 {
 private:
 	struct State

@@ -217,7 +217,7 @@ void ApplySSAASettings() {
 #endif
 }
 
-void ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, void* userParam)
+void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, void* userParam)
 {
 	// GLES3 doesn't natively support this
 	// XXX: Include GLES2 extensions header so we can use this
@@ -255,6 +255,18 @@ void ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsi
 #endif
 }
 
+#ifndef USE_GLES3
+// Two small Fallbacks to avoid GL_ARB_ES2_compatibility
+void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
+{
+	glDepthRange(neardepth, fardepth);
+}
+void GLAPIENTRY ClearDepthf(GLfloat depthval)
+{
+	glClearDepth(depthval);
+}
+#endif
+
 void InitDriverInfo()
 {
 	// Get Vendor
@@ -277,7 +289,7 @@ void InitDriverInfo()
 		vendor = DriverDetails::VENDOR_QUALCOMM;
 	else if (svendor == "Imagination Technologies")
 		vendor = DriverDetails::VENDOR_IMGTEC;
-	else if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
+	else if (svendor == "NVIDIA Corporation" && srenderer == "NVIDIA Tegra")
 		vendor = DriverDetails::VENDOR_TEGRA;
 	else if (svendor == "Vivante Corporation")
 		vendor = DriverDetails::VENDOR_VIVANTE;
@@ -294,6 +306,12 @@ void InitDriverInfo()
 			double glVersion;
 			sscanf(g_ogl_config.gl_version, "OpenGL ES %lg V@%lg", &glVersion, &version);
 		}
+		break;
+		case DriverDetails::VENDOR_ARM:
+			if (std::string::npos != srenderer.find("Mali-T6"))
+				devfamily = 600;
+			else if(std::string::npos != srenderer.find("Mali-4"))
+				devfamily = 400;
 		break;
 		// We don't care about these
 		default:
@@ -330,8 +348,9 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsGLSLUBO = true; 
 	g_Config.backend_info.bSupportsPrimitiveRestart = false; 
+	g_Config.backend_info.bSupportsEarlyZ = false;
 	
-	g_ogl_config.bSupportsGLSLCache = false; // XXX: Reenable once shaders compile correctly  
+	g_ogl_config.bSupportsGLSLCache = true; 
 	g_ogl_config.bSupportsGLPinnedMemory = false; 
 	g_ogl_config.bSupportsGLSync = true; 
 	g_ogl_config.bSupportsGLBaseVertex = false; 
@@ -404,6 +423,16 @@ Renderer::Renderer()
 	}
 	if (!GLEW_ARB_texture_non_power_of_two)
 		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
+	
+	// OpenGL 3 doesn't provide GLES like float functions for depth.
+	// They are in core in OpenGL 4.1, so almost every driver should support them.
+	// But for the oldest ones, we provide fallbacks to the old double functions.
+	if (!GLEW_ARB_ES2_compatibility)
+	{
+		glDepthRangef = DepthRangef;
+		glClearDepthf = ClearDepthf;
+		
+	}
 
 	if (!bSuccess)
 		return;	// TODO: fail
@@ -411,6 +440,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
 	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
 	g_Config.backend_info.bSupportsPrimitiveRestart = GLEW_VERSION_3_1 || GLEW_NV_primitive_restart;
+	g_Config.backend_info.bSupportsEarlyZ = GLEW_ARB_shader_image_load_store;
 	
 	g_ogl_config.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
 	g_ogl_config.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
@@ -431,14 +461,21 @@ Renderer::Renderer()
 	{
 		g_ogl_config.eSupportedGLSLVersion = GLSL_120;
 		g_Config.backend_info.bSupportsDualSourceBlend = false; //TODO: implement dual source blend
+		g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 	}
 	else if(strstr(g_ogl_config.glsl_version, "1.30"))
 	{
 		g_ogl_config.eSupportedGLSLVersion = GLSL_130;
+		g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+	}
+	else if(strstr(g_ogl_config.glsl_version, "1.40"))
+	{
+		g_ogl_config.eSupportedGLSLVersion = GLSL_140;
+		g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 	}
 	else
 	{
-		g_ogl_config.eSupportedGLSLVersion = GLSL_140;
+		g_ogl_config.eSupportedGLSLVersion = GLSL_150;
 	}
 #endif	
 	
@@ -467,10 +504,11 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version).c_str(), 5000);
 	
-	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
 			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
+			g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
 			g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
 			g_ogl_config.bSupportsGLSLCache ? "" : "ShaderCache ",
 			g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
@@ -514,13 +552,6 @@ Renderer::Renderer()
 	// Because of the fixed framebuffer size we need to disable the resolution
 	// options while running
 	g_Config.bRunning = true;
-
-	if (GL_REPORT_ERROR() != GL_NO_ERROR)
-		bSuccess = false;
-
-	// Initialize the FramebufferManager
-	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
-			s_MSAASamples, s_MSAACoverageSamples);
 
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
@@ -569,12 +600,12 @@ Renderer::~Renderer()
 	if (scrshotThread.joinable())
 		scrshotThread.join();
 #endif
-
-	delete g_framebuffer_manager;
 }
 
 void Renderer::Shutdown()
 {
+	delete g_framebuffer_manager;
+	
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
 	
@@ -589,6 +620,10 @@ void Renderer::Shutdown()
 
 void Renderer::Init()
 {
+	// Initialize the FramebufferManager
+	g_framebuffer_manager = new FramebufferManager(s_target_width, s_target_height,
+			s_MSAASamples, s_MSAACoverageSamples);
+	
 	s_pfont = new RasterFont();
 	
 	ProgramShaderCache::CompileShader(s_ShowEFBCopyRegions, 
@@ -596,8 +631,8 @@ void Renderer::Init()
 		"ATTRIN vec3 color0;\n"
 		"VARYOUT vec4 c;\n"
 		"void main(void) {\n"
-		"	gl_Position = vec4(rawpos,0,1);\n"
-		"	c = vec4(color0, 1.0);\n"
+		"	gl_Position = vec4(rawpos, 0.0f, 1.0f);\n"
+		"	c = vec4(color0, 1.0f);\n"
 		"}\n",
 		"VARYIN vec4 c;\n"
 		"COLOROUT(ocol0)\n"
@@ -635,6 +670,7 @@ void Renderer::DrawDebugInfo()
 	if (g_ActiveConfig.bShowInputDisplay)
 		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
 
+#ifndef USE_GLES3
 	if (g_ActiveConfig.bShowEFBCopyRegions)
 	{
 		// Set Line Size
@@ -754,6 +790,7 @@ void Renderer::DrawDebugInfo()
 		// Clear stored regions
 		stats.efb_regions.clear();
 	}
+#endif
 
 	if (g_ActiveConfig.bOverlayStats)
 		p = Statistics::ToString(p);
@@ -962,7 +999,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 #ifdef USE_GLES3
 				// XXX: Swap colours
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-				             GL_RGBA, GL_UNSIGNED_INT, colorMap);
+				             GL_RGBA, GL_UNSIGNED_BYTE, colorMap);
 #else
 				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
 				             GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap);
@@ -1091,7 +1128,14 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
-	// TODO
+	if (convtype == 0 || convtype == 2)
+	{
+		FramebufferManager::ReinterpretPixelData(convtype);
+	}
+	else
+	{
+		ERROR_LOG(VIDEO, "Trying to reinterpret pixel data with unsupported conversion type %d", convtype);
+	}
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)
@@ -1537,7 +1581,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();
-	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget,
+	// SaveTexture("tex.tga", GL_TEXTURE_2D, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;

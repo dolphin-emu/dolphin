@@ -509,7 +509,6 @@ void ProgramShaderCache::CreateHeader ( void )
 	snprintf(s_glsl_header, sizeof(s_glsl_header), 
 		"#version %s\n"
 		"%s\n" // default precision
-		"%s\n" // tex_rect
 		"%s\n" // ubo
 		
 		"\n"// A few required defines and ones that will make our lives a lot easier
@@ -524,9 +523,8 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define float4 vec4\n"
 
 		// hlsl to glsl function translation
-		"#define frac(x) fract(x)\n"
-		"#define saturate(x) clamp(x, 0.0f, 1.0f)\n"
-		"#define lerp(x, y, z) mix(x, y, z)\n"
+		"#define frac fract\n"
+		"#define lerp mix\n"
 
 		// glsl 120 hack
 		"%s\n"
@@ -535,10 +533,14 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n"
 		"%s\n"
 		"#define COLOROUT(name) %s\n"
+		
+		// texture2d hack
+		"%s\n"
+		"%s\n"
+		"%s\n"
 				
-		, v==GLSLES3 ? "300 es" : v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : "140"
+		, v==GLSLES3 ? "300 es" : v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : v==GLSL_140 ? "140" : "150"
 		, v==GLSLES3 ? "precision highp float;" : ""
-		, v==GLSLES3 ? "" : v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
 		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, v==GLSL_120 ? "attribute" : "in"
 		, v==GLSL_120 ? "attribute" : "out"
@@ -550,6 +552,9 @@ void ProgramShaderCache::CreateHeader ( void )
 		, v==GLSL_120 ? "#define ocol0 gl_FragColor" : ""
 		, v==GLSL_120 ? "#define ocol1 gl_FragColor" : "" //TODO: implement dual source blend
 		, v==GLSL_120 ? "" : "out vec4 name;"
+		, v==GLSL_120 ? "#extension GL_ARB_texture_rectangle : enable" : ""
+		, v==GLSL_120 ? "" : "#define texture2DRect(samp, uv)  texelFetch(samp, ivec2(floor(uv)), 0)"
+		, v==GLSL_120 ? "" : "#define sampler2DRect sampler2D"
 	);
 }
 

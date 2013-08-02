@@ -30,6 +30,8 @@ PFNGLGETPROGRAMBINARYPROC glGetProgramBinary;
 PFNGLPROGRAMBINARYPROC glProgramBinary;
 PFNGLPROGRAMPARAMETERIPROC glProgramParameteri;
 
+PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements;
+
 PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
 PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
 
@@ -86,6 +88,8 @@ namespace GLFunc
 		LoadFunction("glGetProgramBinary", (void**)&glGetProgramBinary);
 		LoadFunction("glProgramBinary", (void**)&glProgramBinary);
 		LoadFunction("glProgramParameteri", (void**)&glProgramParameteri);
+		
+		LoadFunction("glDrawRangeElements", (void**)&glDrawRangeElements);
 
 		LoadFunction("glGetUniformBlockIndex", (void**)&glGetUniformBlockIndex);
 		LoadFunction("glUniformBlockBinding", (void**)&glUniformBlockBinding);

@@ -36,7 +36,7 @@ static const u16 guitar_strum_bitmasks[] =
 	Guitar::BAR_DOWN,
 };
 
-Guitar::Guitar() : Attachment(_trans("Guitar"))
+Guitar::Guitar(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Guitar"), _reg)
 {
 	// frets
 	groups.push_back(m_frets = new Buttons(_trans("Frets")));
@@ -62,7 +62,7 @@ Guitar::Guitar() : Attachment(_trans("Guitar"))
 
 	// set up register
 	// id
-	memcpy(&reg[0xfa], guitar_id, sizeof(guitar_id));
+	memcpy(&id, guitar_id, sizeof(guitar_id));
 }
 
 void Guitar::GetState(u8* const data, const bool focus)

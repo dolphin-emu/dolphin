@@ -1,7 +1,7 @@
 #ifndef _CIFACE_DINPUT_JOYSTICK_H_
 #define _CIFACE_DINPUT_JOYSTICK_H_
 
-#include "../ControllerInterface.h"
+#include "../Device.h"
 
 #define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN
@@ -11,21 +11,14 @@
 
 #include <list>
 
-#ifdef CIFACE_USE_XINPUT
-	// this takes so long, idk if it should be enabled :(
-	#define NO_DUPLICATE_DINPUT_XINPUT
-	#include <wbemidl.h>
-	#include <oleauto.h>
-#endif
-
 namespace ciface
 {
 namespace DInput
 {
 
-void InitJoystick(IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices, HWND hwnd);
+void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND hwnd);
 
-class Joystick : public ControllerInterface::Device
+class Joystick : public Core::Device
 {
 private:
 	struct EffectState

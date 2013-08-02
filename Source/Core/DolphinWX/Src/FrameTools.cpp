@@ -149,12 +149,12 @@ void CFrame::CreateMenu()
 	emulationMenu->Append(IDM_LOADSTATE, _("&Load State"), loadMenu);
 	emulationMenu->Append(IDM_SAVESTATE, _("Sa&ve State"), saveMenu);
 
-	saveMenu->Append(IDM_SAVESTATEFILE, _("Save State..."));
+	saveMenu->Append(IDM_SAVESTATEFILE, GetMenuLabel(HK_SAVE_STATE_FILE));
 	saveMenu->Append(IDM_SAVEFIRSTSTATE, GetMenuLabel(HK_SAVE_FIRST_STATE));
 	loadMenu->Append(IDM_UNDOSAVESTATE, GetMenuLabel(HK_UNDO_SAVE_STATE));
 	saveMenu->AppendSeparator();
 
-	loadMenu->Append(IDM_LOADSTATEFILE, _("Load State..."));
+	loadMenu->Append(IDM_LOADSTATEFILE,  GetMenuLabel(HK_LOAD_STATE_FILE));
 	
 	loadMenu->Append(IDM_UNDOLOADSTATE, GetMenuLabel(HK_UNDO_LOAD_STATE));
 	loadMenu->AppendSeparator();
@@ -205,6 +205,7 @@ void CFrame::CreateMenu()
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, GetMenuLabel(HK_WIIMOTE2_CONNECT));
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE3, GetMenuLabel(HK_WIIMOTE3_CONNECT));
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE4, GetMenuLabel(HK_WIIMOTE4_CONNECT));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_BALANCEBOARD, GetMenuLabel(HK_BALANCEBOARD_CONNECT));
 
 	m_MenuBar->Append(toolsMenu, _("&Tools"));
 
@@ -370,7 +371,9 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = wxString::Format(_("Connect Wiimote %i"),
 					Id - HK_WIIMOTE1_CONNECT + 1);
 			break;
-
+		case HK_BALANCEBOARD_CONNECT:
+			Label = _("Connect Balance Board");
+			break;
 		case HK_LOAD_STATE_SLOT_1:
 		case HK_LOAD_STATE_SLOT_2:
 		case HK_LOAD_STATE_SLOT_3:
@@ -394,6 +397,9 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = wxString::Format(_("Slot %i"), 
 					Id - HK_SAVE_STATE_SLOT_1 + 1);
 			break;
+		case HK_SAVE_STATE_FILE:
+			Label = _("Save State...");
+			break;
 
 		case HK_LOAD_LAST_STATE_1:
 		case HK_LOAD_LAST_STATE_2:
@@ -405,6 +411,9 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_LOAD_LAST_STATE_8:
 			Label = wxString::Format(_("Last %i"),
 				Id - HK_LOAD_LAST_STATE_1 + 1);
+			break;
+		case HK_LOAD_STATE_FILE:
+			Label = _("Load State...");
 			break;
 
 		case HK_SAVE_FIRST_STATE: Label = wxString("Save Oldest State"); break;
@@ -638,7 +647,16 @@ void CFrame::OnRecordReadOnly(wxCommandEvent& event)
 
 void CFrame::OnTASInput(wxCommandEvent& event)
 {
-	g_TASInputDlg->Show(true);
+	std::string number[4] = {"1","2","3","4"};
+
+	for (int i = 0; i < 4; ++i)
+	{
+		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
+		{
+			g_TASInputDlg[i]->Show(true);
+			g_TASInputDlg[i]->SetTitle("TAS Input - Controller " + number[i]);
+		}
+	}
 }
 
 void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED (event))
@@ -786,8 +804,10 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 		}
 #if defined(HAVE_X11) && HAVE_X11
 		wxRect client_rect = m_RenderParent->GetClientRect();
-		X11Utils::SendClientEvent(X11Utils::XDisplayFromHandle(GetHandle()),
-				"RESIZE", client_rect.x, client_rect.y, client_rect.width, client_rect.height);
+		XMoveResizeWindow(X11Utils::XDisplayFromHandle(GetHandle()),
+				  (Window) Core::GetWindowHandle(),
+				  client_rect.x, client_rect.y,
+				  client_rect.width, client_rect.height);
 #endif
 		m_LogWindow->Refresh();
 		m_LogWindow->Update();
@@ -1561,7 +1581,11 @@ void CFrame::UpdateGUI()
 
 	// Update Menu Accelerators
 	for (unsigned int i = 0; i < NUM_HOTKEYS; i++)
+	{
+		if (GetCmdForHotkey(i) == -1)
+			continue;
 		GetMenuBar()->FindItem(GetCmdForHotkey(i))->SetItemLabel(GetMenuLabel(i));
+	}
 
 	GetMenuBar()->FindItem(IDM_LOADSTATE)->Enable(Initialized);
 	GetMenuBar()->FindItem(IDM_SAVESTATE)->Enable(Initialized);
@@ -1577,6 +1601,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Enable(RunningWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Enable(RunningWii);
 	GetMenuBar()->FindItem(IDM_CONFIG_WIIMOTE_PLUGIN)->Enable(!RunningGamecube);
 	if (RunningWii)
 	{
@@ -1588,6 +1613,8 @@ void CFrame::UpdateGUI()
 				AccessWiiMote(0x0102)->IsConnected());
 		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Check(GetUsbPointer()->
 				AccessWiiMote(0x0103)->IsConnected());
+		GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Check(GetUsbPointer()->
+				AccessWiiMote(0x0104)->IsConnected());
 	}
 
 	if (Running)

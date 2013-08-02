@@ -254,9 +254,6 @@ void Renderer::SetScreenshot(const char *filename)
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
-	if (!g_Config.bOSDHotKey)
-		return;
-
 	// OSD Menu messages
 	if (OSDChoice > 0)
 	{

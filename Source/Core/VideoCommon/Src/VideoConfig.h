@@ -112,7 +112,6 @@ struct VideoConfig
 	bool bEFBCopyEnable;
 	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;
-	bool bOSDHotKey;
 	bool bCopyEFBToTexture;	
 	bool bCopyEFBScaled;
 	int iSafeTextureCache_ColorSamples;
@@ -155,7 +154,8 @@ struct VideoConfig
 		bool bSupportsPixelLighting;
 		bool bSupportsPrimitiveRestart;
 		bool bSupportsSeparateAlphaFunction;
-		bool bSupportsGLSLUBO; // needed by pixelShaderGen, so must stay in videoCommon
+		bool bSupportsGLSLUBO; // needed by PixelShaderGen, so must stay in VideoCommon
+		bool bSupportsEarlyZ; // needed by PixelShaderGen, so must stay in VideoCommon
 	} backend_info;
 
 	// Utility

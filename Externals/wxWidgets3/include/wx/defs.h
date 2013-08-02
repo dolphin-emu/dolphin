@@ -577,6 +577,14 @@ typedef short int WXTYPE;
 #include <stddef.h>
 #endif
 
+
+#if defined(__GNUC__)
+    #define WX_ATTRIBUTE_UNUSED __attribute__ ((unused))
+#else
+    #define WX_ATTRIBUTE_UNUSED
+#endif
+
+
 #ifdef __cplusplus
 
 // everybody gets the assert and other debug macros
@@ -586,7 +594,7 @@ typedef short int WXTYPE;
     template <typename T>
     inline void wxDELETE(T*& ptr)
     {
-        typedef char TypeIsCompleteCheck[sizeof(T)];
+        typedef char TypeIsCompleteCheck[sizeof(T)] WX_ATTRIBUTE_UNUSED;
 
         if ( ptr != NULL )
         {
@@ -599,7 +607,7 @@ typedef short int WXTYPE;
     template <typename T>
     inline void wxDELETEA(T*& ptr)
     {
-        typedef char TypeIsCompleteCheck[sizeof(T)];
+        typedef char TypeIsCompleteCheck[sizeof(T)] WX_ATTRIBUTE_UNUSED;
 
         if ( ptr != NULL )
         {
@@ -3337,7 +3345,7 @@ typedef const void* WXWidget;
     "/manifestdependency:\"type='win32'         \
      name='Microsoft.Windows.Common-Controls'   \
      version='6.0.0.0'                          \
-     processorArchitecture='"cpu"'              \
+     processorArchitecture='" cpu "'            \
      publicKeyToken='6595b64144ccf1df'          \
      language='*'\""
 

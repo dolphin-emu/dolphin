@@ -59,7 +59,7 @@ static const char *VProgram =
 	"void main()\n"
 	"{\n"
 	"	uv0 = tex0;\n"
-	"	gl_Position = vec4(rawpos,0,1);\n"
+	"	gl_Position = vec4(rawpos, 0.0f, 1.0f);\n"
 	"}\n";
 
 void CreatePrograms()
@@ -162,16 +162,15 @@ void Init()
 	glGenRenderbuffers(1, &s_dstRenderBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, s_dstRenderBuffer);
 	
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, renderBufferWidth, renderBufferHeight);
+	glRenderbufferStorage(GL_RENDERBUFFER, GLRENDERBUFFERFORMAT, renderBufferWidth, renderBufferHeight);
 
 	s_srcTextureWidth = 0;
 	s_srcTextureHeight = 0;
 
+	glActiveTexture(GL_TEXTURE0 + 9);
 	glGenTextures(1, &s_srcTexture);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+	glBindTexture(getFbType(), s_srcTexture);
+	glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
 	
 	CreatePrograms();
 }
@@ -213,17 +212,17 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 
 	// set source texture
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(GL_TEXTURE_RECTANGLE, srcTexture);
+	glBindTexture(getFbType(), srcTexture);
 
 	if (linearFilter)
 	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(getFbType(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(getFbType(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 	else
 	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(getFbType(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(getFbType(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
 
 	GL_REPORT_ERRORD();
@@ -250,8 +249,6 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 
 	glBindVertexArray( s_encode_VAO );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	
 	GL_REPORT_ERRORD();
 
@@ -386,17 +383,17 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 	// activate source texture
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(GL_TEXTURE_RECTANGLE, s_srcTexture);
+	glBindTexture(getFbType(), s_srcTexture);
 
 	// TODO: make this less slow.  (How?)
 	if ((GLsizei)s_srcTextureWidth == (GLsizei)srcFmtWidth && (GLsizei)s_srcTextureHeight == (GLsizei)srcHeight)
 	{
-		glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0,0,0,s_srcTextureWidth, s_srcTextureHeight,
+		glTexSubImage2D(getFbType(), 0,0,0,s_srcTextureWidth, s_srcTextureHeight,
 				GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 	}
 	else
 	{
-		glTexImage2D(GL_TEXTURE_RECTANGLE, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight,
+		glTexImage2D(getFbType(), 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight,
 				0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 		s_srcTextureWidth = (GLsizei)srcFmtWidth;
 		s_srcTextureHeight = (GLsizei)srcHeight;
@@ -430,9 +427,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	
 	GL_REPORT_ERRORD();
-
-	// reset state
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 
 	VertexShaderManager::SetViewportChanged();
 

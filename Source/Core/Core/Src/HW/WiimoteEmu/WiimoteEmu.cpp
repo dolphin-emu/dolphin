@@ -286,12 +286,12 @@ Wiimote::Wiimote( const unsigned int index )
 
 	// extension
 	groups.push_back(m_extension = new Extension(_trans("Extension")));
-	m_extension->attachments.push_back(new WiimoteEmu::None());
-	m_extension->attachments.push_back(new WiimoteEmu::Nunchuk(m_udp));
-	m_extension->attachments.push_back(new WiimoteEmu::Classic());
-	m_extension->attachments.push_back(new WiimoteEmu::Guitar());
-	m_extension->attachments.push_back(new WiimoteEmu::Drums());
-	m_extension->attachments.push_back(new WiimoteEmu::Turntable());
+	m_extension->attachments.push_back(new WiimoteEmu::None(m_reg_ext));
+	m_extension->attachments.push_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext));
+	m_extension->attachments.push_back(new WiimoteEmu::Classic(m_reg_ext));
+	m_extension->attachments.push_back(new WiimoteEmu::Guitar(m_reg_ext));
+	m_extension->attachments.push_back(new WiimoteEmu::Drums(m_reg_ext));
+	m_extension->attachments.push_back(new WiimoteEmu::Turntable(m_reg_ext));
 
 	m_extension->settings.push_back(new ControlGroup::Setting(_trans("Motion Plus"), 0, 0, 1));
 
@@ -781,7 +781,10 @@ void Wiimote::Update()
 
 	// send data report
 	if (rptf_size)
+	{
+		WiimoteEmu::Spy(this, data, rptf_size);
 		Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, rptf_size);
+	}
 }
 
 void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size) 
@@ -853,13 +856,15 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 			{
 				const wm_report* const sr = (wm_report*)hidp->data;
 
-				if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index])
+				if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index])
 				{
 					switch (sr->wm)
 					{
 						// these two types are handled in RequestStatus() & ReadData()
 					case WM_REQUEST_STATUS :
 					case WM_READ_DATA :
+						if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
+							WiimoteReal::InterruptChannel(m_index, _channelID, _pData, _Size);
 						break;
 
 					default :

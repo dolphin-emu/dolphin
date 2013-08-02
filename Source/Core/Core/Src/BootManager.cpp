@@ -34,6 +34,7 @@
 #include "Host.h"
 #include "VideoBackendBase.h"
 #include "Movie.h"
+#include "NetPlay.h"
 
 namespace BootManager
 {
@@ -42,7 +43,7 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF,
+	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
 		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2;
 	int iTLBHack, iCPUCore;
 	std::string strBackend;
@@ -91,6 +92,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bDSPHLE = StartUp.bDSPHLE;
 		config_cache.strBackend = StartUp.m_strVideoBackend;
 		config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
+		config_cache.m_EnableJIT = SConfig::GetInstance().m_EnableJIT;
 
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
@@ -104,6 +106,7 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "FastDiscSpeed",		&StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
 		game_ini.Get("Core", "BlockMerging",		&StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		game_ini.Get("Core", "DSPHLE",				&StartUp.bDSPHLE, StartUp.bDSPHLE);
+		game_ini.Get("Core", "DSPThread",			&StartUp.bDSPThread, StartUp.bDSPThread);
 		game_ini.Get("Core", "GFXBackend", &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend.c_str());
 		game_ini.Get("Core", "CPUCore",				&StartUp.iCPUCore, StartUp.iCPUCore);
 		game_ini.Get("Core", "HLE_BS2",				&StartUp.bHLE_BS2, StartUp.bHLE_BS2);
@@ -126,11 +129,19 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bProgressive = Movie::IsProgressive();
 		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
 		StartUp.iCPUCore = Movie::GetCPUMode();
+		StartUp.bSyncGPU = Movie::IsSyncGPU();
 		if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
 		{
-			if (File::Exists("Movie.raw"))
-				File::Delete("Movie.raw");
+			if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + "Movie.raw"))
+				File::Delete(File::GetUserPath(D_GCUSER_IDX) + "Movie.raw");
 		}
+	}
+
+	if (NetPlay::GetNetPlayPtr())
+	{
+		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
+		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
+		SConfig::GetInstance().m_EnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
 	}
 
 	// Run the game
@@ -166,9 +177,11 @@ void Stop()
 		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;
 		StartUp.bMergeBlocks = config_cache.bMergeBlocks;
 		StartUp.bDSPHLE = config_cache.bDSPHLE;
+		StartUp.bDSPThread = config_cache.bDSPThread;
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
+		SConfig::GetInstance().m_EnableJIT = config_cache.m_EnableJIT;
 	}
 }
 

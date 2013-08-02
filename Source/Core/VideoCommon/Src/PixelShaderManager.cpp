@@ -29,45 +29,19 @@ static u32 lastTexDims[8]; // width | height << 16 | wrap_s << 28 | wrap_t << 30
 static u32 lastZBias;
 static int nMaterialsChanged;
 
-static float s_constant_cache[C_PENVCONST_END*4];
-
 inline void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-//	if (s_constant_cache[const_number*4] == f1 && s_constant_cache[const_number*4+1] == f2 &&
-//	    s_constant_cache[const_number*4+2] == f3 && s_constant_cache[const_number*4+3] == f4)
-//		return;
-
 	g_renderer->SetPSConstant4f(const_number, f1, f2, f3, f4);
-	s_constant_cache[const_number*4] = f1;
-	s_constant_cache[const_number*4+1] = f2;
-	s_constant_cache[const_number*4+2] = f3;
-	s_constant_cache[const_number*4+3] = f4;
 }
 
 inline void SetPSConstant4fv(unsigned int const_number, const float *f)
 {
-//	if (s_constant_cache[const_number*4] == f[0] && s_constant_cache[const_number*4+1] == f[1] &&
-//	    s_constant_cache[const_number*4+2] == f[2] && s_constant_cache[const_number*4+3] == f[3])
-//		return;
-
 	g_renderer->SetPSConstant4fv(const_number, f);
-	s_constant_cache[const_number*4] = f[0];
-	s_constant_cache[const_number*4+1] = f[1];
-	s_constant_cache[const_number*4+2] = f[2];
-	s_constant_cache[const_number*4+3] = f[3];
 }
 
 inline void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-//	for (unsigned int i = 0; i < 4*count; ++i)
-//		if (s_constant_cache[const_number*4+i] != f[i])
-//			break;
-//		else if (i == 4*count-1)
-//			return;
-
 	g_renderer->SetMultiPSConstant4fv(const_number, count, f);
-	for (unsigned int i = 0; i < 4*count; ++i)
-		s_constant_cache[const_number*4+i] = f[i];
 }
 
 void PixelShaderManager::Init()
@@ -76,7 +50,6 @@ void PixelShaderManager::Init()
 	memset(lastTexDims, 0, sizeof(lastTexDims));
 	lastZBias = 0;
 	memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
-	memset(s_constant_cache, 0, sizeof(s_constant_cache)); // TODO: Should reflect that on the GPU side....
 	Dirty();
 }
 
@@ -102,19 +75,6 @@ void PixelShaderManager::SetConstants(u32 components)
 	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		Dirty();
 
-	// TODO: Probably broken in the non-UBO path
-	PixelShaderConstantProfile constant_profile(C_PENVCONST_END);
-	/// TODO: dst alpha/api/components type parameter...
-	GetPixelShaderConstantProfile(constant_profile, DSTALPHA_DUAL_SOURCE_BLEND, API_OPENGL, components);
-
-	static int saved_updates = 0;
-	static int necessary_updates = 0;
-
-// TODO: Remove this!
-#define IncStuff() { \
-	saved_updates++; \
-	/*printf("Saved a constant update at line %d! Saved %d against %d now!\n", __LINE__, saved_updates, necessary_updates);*/ }
-
 	for (int i = 0; i < 2; ++i)
 	{
 		if (s_nColorsChanged[i])
@@ -122,12 +82,11 @@ void PixelShaderManager::SetConstants(u32 components)
 			int baseind = i ? C_KCOLORS : C_COLORS;
 			for (int j = 0; j < 4; ++j)
 			{
-				if ((s_nColorsChanged[i] & (1 << j)) && constant_profile.ConstantIsUsed(baseind+j))
+				if ((s_nColorsChanged[i] & (1 << j)))
 				{
 					SetPSConstant4fv(baseind+j, &lastRGBAfull[i][j][0]);
 					s_nColorsChanged[i] &= ~(1<<j);
-					++necessary_updates;
-				} else if ((s_nColorsChanged[i] & (1 << j))) IncStuff();
+				}
 			}
 		}
 	}
@@ -136,23 +95,21 @@ void PixelShaderManager::SetConstants(u32 components)
 	{
 		for (int i = 0; i < 8; ++i)
 		{
-            if ((s_nTexDimsChanged & (1<<i)) && constant_profile.ConstantIsUsed(C_TEXDIMS+i))
+            if ((s_nTexDimsChanged & (1<<i)))
 			{
-				++necessary_updates;
 				SetPSTextureDims(i);
 				s_nTexDimsChanged &= ~(1<<i);
-			}else if (s_nTexDimsChanged & (1<<i)) IncStuff();
+			}
         }
     }
 
-    if (s_bAlphaChanged && constant_profile.ConstantIsUsed(C_ALPHA))
+    if (s_bAlphaChanged)
 	{
-		++necessary_updates;
 		SetPSConstant4f(C_ALPHA, (lastAlpha&0xff)/255.0f, ((lastAlpha>>8)&0xff)/255.0f, 0, ((lastAlpha>>16)&0xff)/255.0f);
 		s_bAlphaChanged = false;
-    } else if (s_bAlphaChanged) IncStuff();
+    }
 
-	if (s_bZTextureTypeChanged && constant_profile.ConstantIsUsed(C_ZBIAS))
+	if (s_bZTextureTypeChanged)
 	{
 		float ftemp[4];
 		switch (bpmem.ztex2.type)
@@ -170,12 +127,11 @@ void PixelShaderManager::SetConstants(u32 components)
 				ftemp[0] = 16711680.0f/16777215.0f; ftemp[1] = 65280.0f/16777215.0f; ftemp[2] = 255.0f/16777215.0f; ftemp[3] = 0;
                 break;
         }
-		++necessary_updates;
 		SetPSConstant4fv(C_ZBIAS, ftemp);
 		s_bZTextureTypeChanged = false;
-	} else if (s_bZTextureTypeChanged) IncStuff();
+	}
 
-	if ((s_bZBiasChanged || s_bDepthRangeChanged) && constant_profile.ConstantIsUsed(C_ZBIAS+1))
+	if (s_bZBiasChanged || s_bDepthRangeChanged)
 	{
 		// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 		// [0] = width/2
@@ -186,10 +142,9 @@ void PixelShaderManager::SetConstants(u32 components)
 		// [5] = 16777215 * farz
 
 		//ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);
-					++necessary_updates;
 		SetPSConstant4f(C_ZBIAS+1, xfregs.viewport.farZ / 16777216.0f, xfregs.viewport.zRange / 16777216.0f, 0, (float)(lastZBias)/16777215.0f);
 		s_bZBiasChanged = s_bDepthRangeChanged = false;
-    }else if ((s_bZBiasChanged || s_bDepthRangeChanged)) IncStuff();
+	}
 
 	// indirect incoming texture scales
 	if (s_nIndTexScaleChanged)
@@ -197,7 +152,7 @@ void PixelShaderManager::SetConstants(u32 components)
 		// set as two sets of vec4s, each containing S and T of two ind stages.
 		float f[8];
 
-        if ((s_nIndTexScaleChanged & 0x03) && constant_profile.ConstantIsUsed(C_INDTEXSCALE))
+        if (s_nIndTexScaleChanged & 0x03)
 		{
 			for (u32 i = 0; i < 2; ++i)
 			{
@@ -205,13 +160,10 @@ void PixelShaderManager::SetConstants(u32 components)
                 f[2 * i + 1] = bpmem.texscale[0].getScaleT(i & 1);
                 PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
             }
-			++necessary_updates;
 			SetPSConstant4fv(C_INDTEXSCALE, f);
-			s_nIndTexScaleChanged &= ~0x03;
         }
-        else if ((s_nIndTexScaleChanged & 0x03)) IncStuff();
 
-        if ((s_nIndTexScaleChanged & 0x0c) && constant_profile.ConstantIsUsed(C_INDTEXSCALE+1))
+		if (s_nIndTexScaleChanged & 0x0c)
 		{
             for (u32 i = 2; i < 4; ++i)
 			{
@@ -219,18 +171,16 @@ void PixelShaderManager::SetConstants(u32 components)
                 f[2 * i + 1] = bpmem.texscale[1].getScaleT(i & 1);
                 PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
             }
-			++necessary_updates;
 			SetPSConstant4fv(C_INDTEXSCALE+1, &f[4]);
-			s_nIndTexScaleChanged &= ~0x0c;
         }
-        else if ((s_nIndTexScaleChanged & 0x0c)) IncStuff();
+		s_nIndTexScaleChanged = 0;
     }
 
 	if (s_nIndTexMtxChanged)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
-            if ((s_nIndTexMtxChanged & (1 << i)) && (constant_profile.ConstantIsUsed(C_INDTEXMTX+2*i) || constant_profile.ConstantIsUsed(C_INDTEXMTX+2*i+1)))
+            if (s_nIndTexMtxChanged & (1 << i))
 			{
                 int scale = ((u32)bpmem.indmtx[i].col0.s0 << 0) |
 					        ((u32)bpmem.indmtx[i].col1.s1 << 2) |
@@ -240,8 +190,6 @@ void PixelShaderManager::SetConstants(u32 components)
                 // xyz - static matrix
                 // TODO w - dynamic matrix scale / 256...... somehow / 4 works better
                 // rev 2972 - now using / 256.... verify that this works
-					++necessary_updates;
-					++necessary_updates;
 				SetPSConstant4f(C_INDTEXMTX + 2 * i,
 					bpmem.indmtx[i].col0.ma * fscale,
 					bpmem.indmtx[i].col1.mc * fscale,
@@ -259,20 +207,18 @@ void PixelShaderManager::SetConstants(u32 components)
                 	bpmem.indmtx[i].col0.mb * fscale, bpmem.indmtx[i].col1.md * fscale, bpmem.indmtx[i].col2.mf * fscale);
 
 				s_nIndTexMtxChanged &= ~(1 << i);
-            }else if ((s_nIndTexMtxChanged & (1 << i))) {IncStuff();IncStuff();}
+			}
         }
     }
 
-    if (s_bFogColorChanged && constant_profile.ConstantIsUsed(C_FOG))
+    if (s_bFogColorChanged)
 	{
-					++necessary_updates;
 		SetPSConstant4f(C_FOG, bpmem.fog.color.r / 255.0f, bpmem.fog.color.g / 255.0f, bpmem.fog.color.b / 255.0f, 0);
 		s_bFogColorChanged = false;
-    }else if (s_bFogColorChanged) IncStuff();
+    }
 
-    if (s_bFogParamChanged && constant_profile.ConstantIsUsed(C_FOG+1))
+    if (s_bFogParamChanged)
 	{
-					++necessary_updates;
 		if(!g_ActiveConfig.bDisableFog)
 		{
 			//downscale magnitude to 0.24 bits
@@ -285,11 +231,10 @@ void PixelShaderManager::SetConstants(u32 components)
 			SetPSConstant4f(C_FOG + 1, 0.0, 1.0, 0.0, 1.0);
 
         s_bFogParamChanged = false;
-    }else if ( s_bFogParamChanged) IncStuff();
+    }
 
-	if (s_bFogRangeAdjustChanged && constant_profile.ConstantIsUsed(C_FOG+2))
+	if (s_bFogRangeAdjustChanged)
 	{
-					++necessary_updates;
 		if(!g_ActiveConfig.bDisableFog && bpmem.fogRange.Base.Enabled == 1)
 		{
 			//bpmem.fogRange.Base.Center : center of the viewport in x axis. observation: bpmem.fogRange.Base.Center = realcenter + 342;
@@ -310,9 +255,8 @@ void PixelShaderManager::SetConstants(u32 components)
 		}
 
 		s_bFogRangeAdjustChanged = false;
-	}else if ( s_bFogRangeAdjustChanged) IncStuff();
+	}
 
-	// TODO: use constant profile here!
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)  // config check added because the code in here was crashing for me inside SetPSConstant4f
 	{
 		if (nLightsChanged[0] >= 0)
@@ -372,7 +316,7 @@ void PixelShaderManager::SetConstants(u32 components)
 					SetPSConstant4fv(C_PMATERIALS + i, material);
 				}
 			}
-			
+
 			for (int i = 0; i < 2; ++i)
 			{
 				if (nMaterialsChanged & (1 << (i + 2)))

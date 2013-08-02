@@ -56,6 +56,7 @@
 
 #include "State.h"
 #include "Movie.h"
+#include "PatchEngine.h"
 
 // TODO: ugly, remove
 bool g_aspect_wide;
@@ -80,7 +81,6 @@ void Stop();
 bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bStarted = false;
-bool g_bRealWiimote = false;
 void *g_pWindowHandle = NULL;
 std::string g_stateFileName;
 std::thread g_EmuThread;
@@ -279,6 +279,8 @@ void Stop()  // - Hammertime!
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 	Movie::Shutdown();
+	PatchEngine::Shutdown();
+
 	g_bStopping = false;
 }
 
@@ -391,7 +393,7 @@ void EmuThread()
 	// Load and Init Wiimotes - only if we are booting in wii mode	
 	if (g_CoreStartupParameter.bWii)
 	{
-		Wiimote::Initialize(g_pWindowHandle);
+		Wiimote::Initialize(g_pWindowHandle, !g_stateFileName.empty());
 
 		// Activate wiimotes which don't have source set to "None"
 		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
@@ -504,9 +506,11 @@ void SetState(EState _State)
 		break;
 	case CORE_PAUSE:
 		CCPU::EnableStepping(true);  // Break
+		Wiimote::Pause();
 		break;
 	case CORE_RUN:
 		CCPU::EnableStepping(false);
+		Wiimote::Resume();
 		break;
 	default:
 		PanicAlertT("Invalid state");

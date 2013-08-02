@@ -40,8 +40,8 @@ public class InputConfigAdapter extends ArrayAdapter<InputConfigItem> {
 		}
 		final InputConfigItem o = items.get(position);
 		if (o != null) {
-			TextView t1 = (TextView) v.findViewById(R.id.TextView01);
-			TextView t2 = (TextView) v.findViewById(R.id.TextView02);
+			TextView t1 = (TextView) v.findViewById(R.id.FolderTitle);
+			TextView t2 = (TextView) v.findViewById(R.id.FolderSubTitle);
 
 			if(t1!=null)
 				t1.setText(o.getName());
