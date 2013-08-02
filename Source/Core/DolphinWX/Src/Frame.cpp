@@ -846,7 +846,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			WiimoteId = 3;
 		else if (IsHotkey(event, HK_BALANCEBOARD_CONNECT))
 			WiimoteId = 4;
-		if (IsHotkey(event, HK_TOGGLE_IR))
+		else if (IsHotkey(event, HK_TOGGLE_IR))
 		{
 			OSDChoice = 1;
 			// Toggle native resolution
