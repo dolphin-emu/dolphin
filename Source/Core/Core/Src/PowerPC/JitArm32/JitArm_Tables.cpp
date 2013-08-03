@@ -84,7 +84,7 @@ static GekkoOPTemplate primarytable[] =
 	{35, &JitArm::Default}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{40, &JitArm::lhz}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{41, &JitArm::Default}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{42, &JitArm::Default}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{42, &JitArm::lha}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{43, &JitArm::Default}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 
 	{44, &JitArm::sth}, //"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},

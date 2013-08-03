@@ -36,7 +36,6 @@ void JitArm::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
-	Default(inst); return;
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -60,9 +59,8 @@ void JitArm::lfs(UGeckoInstruction inst)
 	PUSH(4, R0, R1, R2, R3);
 	MOV(R0, rB);
 	BL(rA);
-	// XXX: Need to use VCVT here.
-	VMOV(v0, D0);
-	VMOV(v1, D0);
+	VCVT(v0, S0, 0);
+	VCVT(v1, S0, 0);
 	POP(4, R0, R1, R2, R3);
 	
 	gpr.Unlock(rA, rB);

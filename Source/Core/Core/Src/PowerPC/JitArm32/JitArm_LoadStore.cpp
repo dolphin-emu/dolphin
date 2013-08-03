@@ -453,6 +453,55 @@ void JitArm::lhz(UGeckoInstruction inst)
 #endif
 	SetJumpTarget(DoNotLoad);
 }
+void JitArm::lha(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
+	ARMReg rA = gpr.GetReg();
+	ARMReg rB = gpr.GetReg();
+	ARMReg RD = gpr.R(inst.RD);
+	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
+	CMP(rA, EXCEPTION_DSI);
+	FixupBranch DoNotLoad = B_CC(CC_EQ);
+#if 0 // FASTMEM
+	// Backpatch route
+	// Gets loaded in to RD
+	// Address is in R10
+	gpr.Unlock(rA, rB);
+	if (inst.RA)
+	{
+		ARMReg RA = gpr.R(inst.RA);
+		MOV(R10, RA); // - 4
+	}
+	else
+		MOV(R10, 0); // - 4
+
+	LoadToReg(RD, R10, 16, (u32)inst.SIMM_16);	
+#else
+
+	if (inst.RA)
+	{
+		MOVI2R(rB, inst.SIMM_16);
+		ARMReg RA = gpr.R(inst.RA);
+		ADD(rB, rB, RA);
+	}
+	else	
+		MOVI2R(rB, (u32)inst.SIMM_16);
+	
+	MOVI2R(rA, (u32)&Memory::Read_U16);	
+	PUSH(4, R0, R1, R2, R3);
+	MOV(R0, rB);
+	BL(rA);
+	MOV(rA, R0);
+	SXTH(rA, rA);
+	POP(4, R0, R1, R2, R3);
+	MOV(RD, rA);
+	gpr.Unlock(rA, rB);
+#endif
+	SetJumpTarget(DoNotLoad);
+}
+
 void JitArm::lwz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
