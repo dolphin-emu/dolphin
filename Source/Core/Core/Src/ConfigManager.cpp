@@ -81,6 +81,8 @@ static const struct {
 	{ "LoadStateSlot6",	345 /* WXK_F6 */,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot7",	346 /* WXK_F7 */,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot8",	347 /* WXK_F8 */,	0 /* wxMOD_NONE */ },
+	{ "LoadStateSlot9",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadStateSlot10",0,	0 /* wxMOD_NONE */ },
 
 	{ "SaveStateSlot1",	340 /* WXK_F1 */,	4 /* wxMOD_SHIFT */ },
 	{ "SaveStateSlot2",	341 /* WXK_F2 */,	4 /* wxMOD_SHIFT */ },
@@ -90,6 +92,8 @@ static const struct {
 	{ "SaveStateSlot6",	345 /* WXK_F6 */,	4 /* wxMOD_SHIFT */ },
 	{ "SaveStateSlot7",	346 /* WXK_F7 */,	4 /* wxMOD_SHIFT */ },
 	{ "SaveStateSlot8",	347 /* WXK_F8 */,	4 /* wxMOD_SHIFT */ },
+	{ "SaveStateSlot9",	0,	0 /* wxMOD_NONE */ },
+	{ "SaveStateSlot10",0,	0 /* wxMOD_NONE */ },
 
 	{ "LoadLastState1",	0,	0 /* wxMOD_NONE */ },
 	{ "LoadLastState2",	0,	0 /* wxMOD_NONE */ },

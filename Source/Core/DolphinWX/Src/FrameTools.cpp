@@ -382,6 +382,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_LOAD_STATE_SLOT_6:
 		case HK_LOAD_STATE_SLOT_7:
 		case HK_LOAD_STATE_SLOT_8:
+		case HK_LOAD_STATE_SLOT_9:
+		case HK_LOAD_STATE_SLOT_10:
 			Label = wxString::Format(_("Slot %i"), 
 					Id - HK_LOAD_STATE_SLOT_1 + 1);
 			break;
@@ -394,6 +396,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_SAVE_STATE_SLOT_6:
 		case HK_SAVE_STATE_SLOT_7:
 		case HK_SAVE_STATE_SLOT_8:
+		case HK_SAVE_STATE_SLOT_9:
+		case HK_SAVE_STATE_SLOT_10:
 			Label = wxString::Format(_("Slot %i"), 
 					Id - HK_SAVE_STATE_SLOT_1 + 1);
 			break;

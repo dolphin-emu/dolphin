@@ -15,7 +15,7 @@ namespace State
 {
 
 // number of states
-static const u32 NUM_STATES = 8;
+static const u32 NUM_STATES = 10;
 
 struct StateHeader
 {

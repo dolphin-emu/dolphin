@@ -193,6 +193,8 @@ void GCMicDialog::CreateHotkeyGUIControls(void)
 		_("Load State Slot 6"),
 		_("Load State Slot 7"),
 		_("Load State Slot 8"),
+		_("Load State Slot 9"),
+		_("Load State Slot 10"),
 
 		_("Save State Slot 1"),
 		_("Save State Slot 2"),
@@ -201,7 +203,9 @@ void GCMicDialog::CreateHotkeyGUIControls(void)
 		_("Save State Slot 5"),
 		_("Save State Slot 6"),
 		_("Save State Slot 7"),
-		_("Save State Slot 8")
+		_("Save State Slot 8"),
+		_("Save State Slot 9"),
+		_("Save State Slot 10")
 	};
 
 	const int page_breaks[3] = {HK_OPEN, HK_LOAD_STATE_SLOT_1, NUM_HOTKEYS};
