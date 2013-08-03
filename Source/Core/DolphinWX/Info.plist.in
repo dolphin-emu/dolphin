@@ -28,7 +28,7 @@
 	<key>CFBundleIconFile</key>
 	<string>Dolphin.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.dolphin-emulator.dolphin</string>
+	<string>org.dolphin-emu.dolphin</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleLocalizations</key>
