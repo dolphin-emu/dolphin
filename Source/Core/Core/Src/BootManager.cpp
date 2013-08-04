@@ -93,6 +93,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.strBackend = StartUp.m_strVideoBackend;
 		config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
 		config_cache.m_EnableJIT = SConfig::GetInstance().m_EnableJIT;
+		config_cache.bDSPThread = StartUp.bDSPThread;
 
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
