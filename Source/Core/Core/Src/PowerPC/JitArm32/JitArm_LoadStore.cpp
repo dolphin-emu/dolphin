@@ -464,21 +464,6 @@ void JitArm::lha(UGeckoInstruction inst)
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 	CMP(rA, EXCEPTION_DSI);
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
-#if 0 // FASTMEM
-	// Backpatch route
-	// Gets loaded in to RD
-	// Address is in R10
-	gpr.Unlock(rA, rB);
-	if (inst.RA)
-	{
-		ARMReg RA = gpr.R(inst.RA);
-		MOV(R10, RA); // - 4
-	}
-	else
-		MOV(R10, 0); // - 4
-
-	LoadToReg(RD, R10, 16, (u32)inst.SIMM_16);	
-#else
 
 	if (inst.RA)
 	{
@@ -498,7 +483,6 @@ void JitArm::lha(UGeckoInstruction inst)
 	POP(4, R0, R1, R2, R3);
 	MOV(RD, rA);
 	gpr.Unlock(rA, rB);
-#endif
 	SetJumpTarget(DoNotLoad);
 }
 
