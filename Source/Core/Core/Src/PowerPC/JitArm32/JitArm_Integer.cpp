@@ -232,6 +232,28 @@ void JitArm::cmpi(UGeckoInstruction inst)
 	}
 	ComputeRC(crf);
 }
+void JitArm::cmpl(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+
+	ARMReg RA = gpr.R(inst.RA);
+	ARMReg RB = gpr.R(inst.RB);
+	ARMReg rA = gpr.GetReg();
+	int crf = inst.CRFD;
+
+	CMP(RA, RB);
+	// Unsigned GenerateRC()
+	
+	MOV(rA, 0x2); // Result == 0
+	SetCC(CC_LO); MOV(rA, 0x8); // Result < 0
+	SetCC(CC_HI); MOV(rA, 0x4); // Result > 0
+	SetCC();
+
+	STRB(rA, R9, PPCSTATE_OFF(cr_fast) + crf);
+	gpr.Unlock(rA);
+}
+
 void JitArm::cmpli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

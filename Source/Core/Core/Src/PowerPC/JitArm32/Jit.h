@@ -149,6 +149,7 @@ public:
 	void addx(UGeckoInstruction _inst);
 	void cmp (UGeckoInstruction _inst);
 	void cmpi(UGeckoInstruction _inst);
+	void cmpl(UGeckoInstruction _inst);
 	void cmpli(UGeckoInstruction _inst);
 	void negx(UGeckoInstruction _inst);
 	void mulli(UGeckoInstruction _inst);
