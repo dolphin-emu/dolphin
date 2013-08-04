@@ -212,7 +212,7 @@ static GekkoOPTemplate table31[] =
 	{824, &JitArm::Default}, //"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 	{24,  &JitArm::Default}, //"slwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 
-	{54,   &JitArm::Default}, //"dcbst",  OPTYPE_DCACHE, 0, 4}},
+	{54,   &JitArm::dcbst}, //"dcbst",  OPTYPE_DCACHE, 0, 4}},
 	{86,   &JitArm::Default}, //"dcbf",   OPTYPE_DCACHE, 0, 4}},
 	{246,  &JitArm::Default}, //"dcbtst", OPTYPE_DCACHE, 0, 1}},
 	{278,  &JitArm::Default}, //"dcbt",   OPTYPE_DCACHE, 0, 1}},

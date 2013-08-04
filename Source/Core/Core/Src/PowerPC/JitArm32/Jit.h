@@ -172,6 +172,7 @@ public:
 
 	// LoadStore
 	void icbi(UGeckoInstruction _inst);
+	void dcbst(UGeckoInstruction _inst);
 	void lbz(UGeckoInstruction _inst);
 	void lhz(UGeckoInstruction _inst);
 	void lha(UGeckoInstruction _inst);

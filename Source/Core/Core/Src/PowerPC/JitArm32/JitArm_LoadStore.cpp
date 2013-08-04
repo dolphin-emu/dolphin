@@ -615,6 +615,21 @@ void JitArm::lwzx(UGeckoInstruction inst)
 	SetJumpTarget(DoNotLoad);
 	////	u32 temp = Memory::Read_U32(_inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB]);
 }
+
+void JitArm::dcbst(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
+	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
+	// memory location.  Do not invalidate the JIT cache in this case as the memory
+	// will be the same.
+	// dcbt = 0x7c00022c
+	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
+	{
+		Default(inst); return;
+	}
+}
 void JitArm::icbi(UGeckoInstruction inst)
 {
 	Default(inst);
