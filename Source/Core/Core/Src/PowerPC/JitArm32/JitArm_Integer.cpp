@@ -123,12 +123,11 @@ void JitArm::mulli(UGeckoInstruction inst)
 	MUL(RD, RA, rA);
 	gpr.Unlock(rA);
 }
-// Wrong 04-08-2013. Breaks Wind Waker booting
+
 void JitArm::ori(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-	Default(inst); return;
 
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg RS = gpr.R(inst.RS);
@@ -283,7 +282,7 @@ void JitArm::cmpli(UGeckoInstruction inst)
 	gpr.Unlock(rA);
 
 }
-// Wrong - 27/10/2012
+
 void JitArm::negx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

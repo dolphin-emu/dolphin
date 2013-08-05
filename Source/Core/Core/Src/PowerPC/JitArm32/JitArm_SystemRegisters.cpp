@@ -105,6 +105,10 @@ void JitArm::mtmsr(UGeckoInstruction inst)
 	//JITDISABLE(SystemRegisters)
 	
 	STR(gpr.R(inst.RS), R9, PPCSTATE_OFF(msr));
+	
+	gpr.Flush();
+	fpr.Flush();
+
 	WriteExit(js.compilerPC + 4, 0);
 }
 void JitArm::mfmsr(UGeckoInstruction inst)
