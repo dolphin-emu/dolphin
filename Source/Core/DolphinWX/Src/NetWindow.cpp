@@ -6,7 +6,7 @@
 #include <IniFile.h>
 
 #include "WxUtils.h"
-#include "NetPlay.h"
+#include "NetPlayClient.h"
 #include "NetPlayServer.h"
 #include "NetWindow.h"
 #include "Frame.h"

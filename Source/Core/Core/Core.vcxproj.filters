@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="Src\ConfigManager.cpp" />
@@ -529,9 +529,6 @@
     <ClCompile Include="Src\HW\Wiimote.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
     </ClCompile>
-    <ClCompile Include="Src\NetPlay.cpp">
-      <Filter>NetPlay</Filter>
-    </ClCompile>
     <ClCompile Include="Src\NetPlayServer.cpp">
       <Filter>NetPlay</Filter>
     </ClCompile>
@@ -1014,9 +1011,6 @@
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
-    <ClInclude Include="Src\NetPlay.h">
-      <Filter>NetPlay</Filter>
-    </ClInclude>
     <ClInclude Include="Src\BootManager.h" />
     <ClInclude Include="Src\FifoPlayer\FifoDataFile.h">
       <Filter>FifoPlayer</Filter>
@@ -1176,9 +1170,6 @@
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Real">
       <UniqueIdentifier>{1c21a3e1-b791-4a23-b0d5-ed2b2c34007f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="NetPlay">
-      <UniqueIdentifier>{231ceb02-1122-402a-87a8-094a9ed768c2}</UniqueIdentifier>
     </Filter>
     <Filter Include="FifoPlayer">
       <UniqueIdentifier>{ca7d56f7-4e84-4d15-9aea-7ae6fa7d6586}</UniqueIdentifier>

@@ -23,7 +23,7 @@
 
 #include "FifoQueue.h"
 
-#include "NetPlay.h"
+#include "NetPlayClient.h"
 
 enum
 {

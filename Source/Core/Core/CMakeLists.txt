@@ -10,7 +10,6 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/GeckoCodeConfig.cpp
 			Src/GeckoCode.cpp
 			Src/Movie.cpp
-			Src/NetPlay.cpp
 			Src/NetPlayClient.cpp
 			Src/NetPlayServer.cpp
 			Src/PatchEngine.cpp
