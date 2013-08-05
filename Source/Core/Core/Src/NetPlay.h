@@ -50,33 +50,32 @@ public:
 
 extern NetSettings g_NetPlaySettings;
 
-class NetPlay
+class NetPlayClient
 {
 public:
-	NetPlay(NetPlayUI* _dialog);
-	virtual ~NetPlay();
-	//virtual void ThreadFunc() = 0;
+	void ThreadFunc();
+
+	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name);
+	~NetPlayClient();
+
+	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
 
 	bool is_connected;
-	
+
+	bool StartGame(const std::string &path);
+	bool StopGame();
+	bool ChangeGame(const std::string& game);
+	void SendChatMessage(const std::string& msg);
+
 	// Send and receive pads values
 	void WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size);
 	void WiimoteUpdate(int _number);
 	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
-	virtual bool ChangeGame(const std::string& game) = 0;
-	virtual void GetPlayerList(std::string& list, std::vector<int>& pid_list) = 0;
-	virtual void SendChatMessage(const std::string& msg) = 0;
-
-	virtual bool StartGame(const std::string &path);
-	virtual bool StopGame();
 
 	u8 GetPadNum(u8 numPAD);
-	static NetPlay* GetNetPlayPtr();
 
 protected:
-	//void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
 	void ClearBuffers();
-	virtual void SendPadState(const PadMapping local_nb, const NetPad& np) = 0;
 
 	struct
 	{
@@ -116,26 +115,6 @@ protected:
 	Player*		m_local_player;
 
 	u32		m_current_game;
-};
-
-void NetPlay_Enable(NetPlay* const np);
-void NetPlay_Disable();
-
-class NetPlayClient : public NetPlay
-{
-public:
-	void ThreadFunc();
-
-	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name);
-	~NetPlayClient();
-
-	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
-
-	// Send and receive pads values
-	//bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
-	bool StartGame(const std::string &path);
-	bool ChangeGame(const std::string& game);
-	void SendChatMessage(const std::string& msg);
 
 private:
 	void SendPadState(const PadMapping local_nb, const NetPad& np);
@@ -144,5 +123,12 @@ private:
 	PlayerId		m_pid;
 	std::map<PlayerId, Player>	m_players;
 };
+
+namespace NetPlay {
+	bool IsNetPlayRunning();
+};
+
+void NetPlay_Enable(NetPlayClient* const np);
+void NetPlay_Disable();
 
 #endif

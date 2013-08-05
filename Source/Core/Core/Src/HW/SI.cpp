@@ -262,7 +262,7 @@ void Init()
 
 		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
 			AddDevice(Movie::IsUsingPad(i) ?  (Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
-		else if (NetPlay::GetNetPlayPtr())
+		else if (NetPlay::IsNetPlayRunning())
 			AddDevice((SIDevices) g_NetPlaySettings.m_Controllers[i], i);
 		else
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
@@ -644,7 +644,7 @@ void RunSIBuffer()
 int GetTicksToNextSIPoll()
 {
 	// Poll for input at regular intervals (once per frame) when playing or recording a movie
-	if (Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::GetNetPlayPtr())
+	if (Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::IsNetPlayRunning())
 	{
 		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
 	}

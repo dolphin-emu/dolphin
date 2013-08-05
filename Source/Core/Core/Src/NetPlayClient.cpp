@@ -7,16 +7,23 @@
 // called from ---GUI--- thread
 NetPlayClient::~NetPlayClient()
 {
+	// not perfect
+	if (m_is_running)
+		StopGame();
+
 	if (is_connected)
 	{
 		m_do_loop = false;
 		m_thread.join();
-	}	
+	}
 }
 
 // called from ---GUI--- thread
-NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name) : NetPlay(dialog)
+NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name) : m_dialog(dialog), m_is_running(false), m_do_loop(true)
 {
+	m_target_buffer_size = 20;
+	ClearBuffers();
+
 	is_connected = false;
 
 	// why is false successful? documentation says true is
@@ -328,11 +335,30 @@ bool NetPlayClient::StartGame(const std::string &path)
 	spac << m_current_game;
 	spac << (char *)&g_NetPlaySettings;
 
-	if (false == NetPlay::StartGame(path))
-		return false;
-
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 	m_socket.Send(spac);
+
+	if (m_is_running)
+	{
+		PanicAlertT("Game is already running!");
+		return false;
+	}
+
+	m_dialog->AppendChat(" -- STARTING GAME -- ");
+
+	m_is_running = true;
+	NetPlay_Enable(this);
+
+	ClearBuffers();
+
+	// boot game
+	m_dialog->BootGame(path);
+
+	// temporary
+	NetWiimote nw;
+	for (unsigned int i = 0; i<4; ++i)
+		for (unsigned int f = 0; f<2; ++f)
+			m_wiimote_buffer[i].Push(nw);
 
 	return true;
 }

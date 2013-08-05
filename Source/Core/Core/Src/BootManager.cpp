@@ -138,7 +138,7 @@ bool BootCore(const std::string& _rFilename)
 		}
 	}
 
-	if (NetPlay::GetNetPlayPtr())
+	if (NetPlay::IsNetPlayRunning())
 	{
 		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
 		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
