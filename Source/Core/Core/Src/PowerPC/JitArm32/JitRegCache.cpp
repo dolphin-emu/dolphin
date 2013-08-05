@@ -183,8 +183,12 @@ ARMReg ArmRegCache::BindToRegister(u32 preg)
 	{
 		emit->STR(ArmCRegs[lastRegIndex].Reg, R9, PPCSTATE_OFF(gpr) + ArmCRegs[lastRegIndex].PPCReg * 4);
 		emit->MOVI2R(ArmCRegs[lastRegIndex].Reg, regs[preg].GetImm());
+
+		regs[ArmCRegs[lastRegIndex].PPCReg].Flush();
+
 		ArmCRegs[lastRegIndex].PPCReg = preg;
 		ArmCRegs[lastRegIndex].LastLoad = 0;
+
 		regs[preg].LoadToReg(lastRegIndex);
 		return ArmCRegs[lastRegIndex].Reg;
 	}
@@ -202,7 +206,6 @@ void ArmRegCache::Flush()
 			emit->STR(ArmCRegs[regindex].Reg, R9, PPCSTATE_OFF(gpr) + a * 4);
 			ArmCRegs[regindex].PPCReg = 33;
 			ArmCRegs[regindex].LastLoad = 0;
-
 		}
 		
 		regs[a].Flush();
