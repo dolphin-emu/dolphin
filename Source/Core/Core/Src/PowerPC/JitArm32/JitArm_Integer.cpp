@@ -59,18 +59,18 @@ void JitArm::addi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
+
 	u32 d = inst.RD, a = inst.RA;
 	if (a)
 	{
-
-		if (gpr.IsImm(a) && gpr.IsImm(d))
+		if (gpr.IsImm(a))
 		{
-			gpr.SetImmediate(d, gpr.GetImm(d) + gpr.GetImm(a) + inst.SIMM_16);
+			gpr.SetImmediate(d, gpr.GetImm(a) + inst.SIMM_16);
 			return;
 		}
 		ARMReg rA = gpr.GetReg(false);
-		ARMReg RA = gpr.R(inst.RA);
-		ARMReg RD = gpr.R(inst.RD);
+		ARMReg RA = gpr.R(a);
+		ARMReg RD = gpr.R(d);
 		MOVI2R(rA, (u32)inst.SIMM_16);
 		ADD(RD, RA, rA);
 	}
@@ -81,17 +81,23 @@ void JitArm::addis(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-	
-	ARMReg RD = gpr.R(inst.RD);
-	if (inst.RA)
+
+	u32 d = inst.RD, a = inst.RA;
+	if (a)
 	{
+		if (gpr.IsImm(a))
+		{
+			gpr.SetImmediate(d, gpr.GetImm(a) + (inst.SIMM_16 << 16));
+			return;
+		}
 		ARMReg rA = gpr.GetReg(false);
-		ARMReg RA = gpr.R(inst.RA);
+		ARMReg RA = gpr.R(a);
+		ARMReg RD = gpr.R(d);
 		MOVI2R(rA, inst.SIMM_16 << 16);
 		ADD(RD, RA, rA);
 	}
 	else
-		MOVI2R(RD, inst.SIMM_16 << 16);
+		gpr.SetImmediate(d, inst.SIMM_16 << 16);
 }
 void JitArm::addx(UGeckoInstruction inst)
 {
@@ -120,9 +126,15 @@ void JitArm::mulli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
+	u32 a = inst.RA, d = inst.RD;
 
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RD = gpr.R(inst.RD);
+	if (gpr.IsImm(a))
+	{
+		gpr.SetImmediate(d, gpr.GetImm(a) * inst.SIMM_16);
+		return;
+	}
+	ARMReg RA = gpr.R(a);
+	ARMReg RD = gpr.R(d);
 	ARMReg rA = gpr.GetReg();
 	MOVI2R(rA, inst.SIMM_16);
 	MUL(RD, RA, rA);
@@ -133,9 +145,15 @@ void JitArm::ori(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RS = gpr.R(inst.RS);
+	u32 a = inst.RA, s = inst.RS;
+	
+	if (gpr.IsImm(s))
+	{
+		gpr.SetImmediate(s, gpr.GetImm(a) | inst.UIMM);
+		return;
+	}
+	ARMReg RA = gpr.R(a);
+	ARMReg RS = gpr.R(s);
 	ARMReg rA = gpr.GetReg();
 	MOVI2R(rA, inst.UIMM);
 	ORR(RA, RS, rA);
