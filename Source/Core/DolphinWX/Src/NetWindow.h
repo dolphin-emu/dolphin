@@ -23,7 +23,7 @@
 
 #include "FifoQueue.h"
 
-#include "NetPlay.h"
+#include "NetPlayClient.h"
 
 enum
 {
@@ -41,6 +41,8 @@ private:
 	void OnJoin(wxCommandEvent& event);
 	void OnHost(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
+
+	void MakeNetPlayDiag(int port, const std::string &game, bool is_hosting);
 
 	wxTextCtrl		*m_nickname_text,
 		*m_host_port_text,
@@ -85,11 +87,12 @@ private:
 
 	void OnChat(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
-	void OnMemcardWriteCheck(wxCommandEvent& event);
 	void OnThread(wxCommandEvent& event);
 	void OnChangeGame(wxCommandEvent& event);
 	void OnAdjustBuffer(wxCommandEvent& event);
 	void OnConfigPads(wxCommandEvent& event);
+	void GetNetSettings(NetSettings &settings);
+	const std::string& FindGame();
 
 	wxListBox*		m_player_lbox;
 	wxTextCtrl*		m_chat_text;
