@@ -200,7 +200,6 @@ public:
 	bool GetPadMapping(const int pid, int map[]);
 	bool SetPadMapping(const int pid, const int map[]);
 
-	u64 CalculateMinimumBufferTime();
 	void AdjustPadBufferSize(unsigned int size);
 
 #ifdef USE_UPNP

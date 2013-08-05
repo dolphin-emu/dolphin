@@ -381,29 +381,6 @@ void NetPlayServer::UpdatePadMapping()
 }
 
 // called from ---GUI--- thread and ---NETPLAY--- thread
-u64 NetPlayServer::CalculateMinimumBufferTime()
-{
-	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-
-	std::map<sf::SocketTCP, Client>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	std::priority_queue<unsigned int>	pings;
-	for ( ;i!=e; ++i)
-		pings.push(i->second.ping/2);
-
-	unsigned int required_ms = pings.top();
-	// if there is more than 1 client, buffersize must be >= (2 highest ping times combined)
-	if (pings.size() > 1)
-	{
-		pings.pop();
-		required_ms += pings.top();
-	}
-
-	return required_ms;
-}
-
-// called from ---GUI--- thread and ---NETPLAY--- thread
 void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 {
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
