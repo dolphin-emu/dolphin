@@ -59,18 +59,23 @@ void JitArm::addi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-
-	ARMReg RD = gpr.R(inst.RD);
-
-	if (inst.RA)
+	u32 d = inst.RD, a = inst.RA;
+	if (a)
 	{
+
+		if (gpr.IsImm(a) && gpr.IsImm(d))
+		{
+			gpr.SetImmediate(d, gpr.GetImm(d) + gpr.GetImm(a) + inst.SIMM_16);
+			return;
+		}
 		ARMReg rA = gpr.GetReg(false);
 		ARMReg RA = gpr.R(inst.RA);
+		ARMReg RD = gpr.R(inst.RD);
 		MOVI2R(rA, (u32)inst.SIMM_16);
 		ADD(RD, RA, rA);
 	}
 	else
-		MOVI2R(RD, inst.SIMM_16);
+		gpr.SetImmediate(d, inst.SIMM_16);
 }
 void JitArm::addis(UGeckoInstruction inst)
 {

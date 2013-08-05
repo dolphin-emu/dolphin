@@ -134,7 +134,7 @@ public:
 	ARMReg R(u32 preg); // Returns a cached register
 	bool IsImm(u32 preg) { return regs[preg].GetType() == REG_IMM; }
 	u32 GetImm(u32 preg) { return regs[preg].GetImm(); }
-	void SetImmediate(u32 preg, u32 imm) { regs[preg].LoadToImm(imm); }
+	void SetImmediate(u32 preg, u32 imm); 
 	ARMReg BindToRegister(u32 preg);
 };
 

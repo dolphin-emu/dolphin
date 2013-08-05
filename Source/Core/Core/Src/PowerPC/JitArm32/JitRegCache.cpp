@@ -194,6 +194,18 @@ ARMReg ArmRegCache::BindToRegister(u32 preg)
 	}
 }
 
+void ArmRegCache::SetImmediate(u32 preg, u32 imm)
+{
+	if (regs[preg].GetType() == REG_REG)
+	{
+		// Dump real reg at this point
+		u32 regindex = regs[preg].GetRegIndex();
+		ArmCRegs[regindex].PPCReg = 33;
+		ArmCRegs[regindex].LastLoad = 0;
+	}
+	regs[preg].LoadToImm(imm);
+}
+
 void ArmRegCache::Flush()
 {
 	for (u8 a = 0; a < 32; ++a)
