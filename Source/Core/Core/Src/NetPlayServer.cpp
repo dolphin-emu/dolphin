@@ -26,6 +26,7 @@ NetPlayServer::~NetPlayServer()
 	{
 		m_do_loop = false;
 		m_thread.join();
+		m_socket.Close();
 	}
 
 #ifdef USE_UPNP
