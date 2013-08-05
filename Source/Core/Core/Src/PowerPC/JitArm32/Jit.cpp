@@ -48,13 +48,8 @@ void JitArm::Init()
 	AllocCodeSpace(CODE_SIZE);
 	blocks.Init();
 	asm_routines.Init();
-	// TODO: Investigate why the register cache crashes when only doing Init with
-	// the pointer to this. Seems for some reason it doesn't set the emitter pointer
-	// In the class for some reason?
 	gpr.Init(this);
-	gpr.SetEmitter(this);
 	fpr.Init(this);
-	fpr.SetEmitter(this);
 	jo.enableBlocklink = true;
 	jo.optimizeGatherPipe = false;
 }

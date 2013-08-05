@@ -33,7 +33,6 @@ void JitArm::mtspr(UGeckoInstruction inst)
 	JITDISABLE(SystemRegisters)
 
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-	ARMReg RD = gpr.R(inst.RD);
 
 	switch (iIndex)
 	{
@@ -70,6 +69,7 @@ void JitArm::mtspr(UGeckoInstruction inst)
 	}
 
 	// OK, this is easy.
+	ARMReg RD = gpr.R(inst.RD);
 	STR(RD, R9,  PPCSTATE_OFF(spr) + iIndex * 4);
 }
 void JitArm::mftb(UGeckoInstruction inst)
@@ -115,7 +115,6 @@ void JitArm::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(SystemRegisters)
-	Default(inst); return;
 	
 	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(msr));
 }
