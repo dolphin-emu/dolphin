@@ -94,6 +94,7 @@ protected:
 		std::string		name;
 		PadMapping		pad_map[4];
 		std::string		revision;
+		u32                     ping;
 	};
 
 	Common::FifoQueue<NetPad>		m_pad_buffer[4];

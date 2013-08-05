@@ -61,7 +61,7 @@ private:
 		std::string		revision;
 
 		sf::SocketTCP	socket;
-		u64 ping;
+		u32 ping;
 		u32 current_game;
 	};
 

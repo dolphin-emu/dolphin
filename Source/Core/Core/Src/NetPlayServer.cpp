@@ -456,6 +456,14 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 
 			if (m_ping_key == ping_key)
 				player.ping = ping;
+
+			sf::Packet spac;
+			spac << (MessageId)NP_MSG_PLAYER_PING_DATA;
+			spac << player.pid;
+			spac << player.ping;
+
+			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+			SendToClients(spac);
 		}
 		break;
 

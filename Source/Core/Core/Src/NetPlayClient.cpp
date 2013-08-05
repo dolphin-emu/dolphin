@@ -35,7 +35,7 @@ std::string NetPlayClient::Player::ToString() const
 	ss << name << '[' << (char)(pid+'0') << "] : " << revision << " |";
 	for (unsigned int i=0; i<4; ++i)
 		ss << (pad_map[i]>=0 ? (char)(pad_map[i]+'1') : '-');
-	ss << '|';
+	ss << " | " << ping << "ms";
 	return ss.str();
 }
 
@@ -290,6 +290,21 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 			m_socket.Send(spac);
+		}
+		break;
+
+	case NP_MSG_PLAYER_PING_DATA:
+		{
+			PlayerId pid;
+			packet >> pid;
+
+			{
+			std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+			Player& player = m_players[pid];
+			packet >> player.ping;
+			}
+
+			m_dialog->Update();
 		}
 		break;
 

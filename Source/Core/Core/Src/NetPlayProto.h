@@ -23,7 +23,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<Rpt>	NetWiimote;
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2013-07-19"
+#define NETPLAY_VERSION		"Dolphin NetPlay 2013-08-05"
 
 // messages
 enum
@@ -50,6 +50,7 @@ enum
 
 	NP_MSG_PING			= 0xE0,
 	NP_MSG_PONG			= 0xE1,
+	NP_MSG_PLAYER_PING_DATA		= 0xE2,
 };
 
 typedef u8	MessageId;
