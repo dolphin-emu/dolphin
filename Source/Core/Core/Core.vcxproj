@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="DebugFast|Win32">
@@ -539,6 +539,9 @@
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.h" />
     <ClInclude Include="Src\MemTools.h" />
     <ClInclude Include="Src\Movie.h" />
+    <ClInclude Include="Src\NetPlayClient.h" />
+    <ClInclude Include="Src\NetPlayProto.h" />
+    <ClInclude Include="Src\NetPlayServer.h" />
     <ClInclude Include="Src\PatchEngine.h" />
     <ClInclude Include="Src\DSPEmulator.h" />
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h" />
