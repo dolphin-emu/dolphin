@@ -100,8 +100,6 @@ protected:
 	Common::FifoQueue<NetPad>		m_pad_buffer[4];
 	Common::FifoQueue<NetWiimote>	m_wiimote_buffer[4];
 
-	NetWiimote		m_wiimote_input[4];
-
 	NetPlayUI*		m_dialog;
 	sf::SocketTCP	m_socket;
 	std::thread		m_thread;

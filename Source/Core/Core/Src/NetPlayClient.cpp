@@ -500,8 +500,6 @@ void NetPlayClient::ClearBuffers()
 
 		while (m_wiimote_buffer[i].Size())
 			m_wiimote_buffer[i].Pop();
-
-		m_wiimote_input[i].data.clear();
 	}
 }
 
@@ -565,6 +563,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 // called from ---CPU--- thread
 bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 {
+	NetWiimote nw;
 	{
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
@@ -579,25 +578,24 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 		if (previousSize != size && m_wiimote_buffer[in_game_num].Size() > 0)
 		{
 			// Reporting mode changed, so previous buffer is no good.
-			m_wiimote_buffer[_number].Clear();
+			m_wiimote_buffer[in_game_num].Clear();
 		}
 
-		m_wiimote_input[in_game_num].data.assign(data, data + size);
-		m_wiimote_input[in_game_num].size = size;
+		nw.data.assign(data, data + size);
+		nw.size = size;
 		while (m_wiimote_buffer[in_game_num].Size() <= m_target_buffer_size)
 		{
 			// add to buffer
-			m_wiimote_buffer[in_game_num].Push(m_wiimote_input[in_game_num]);
+			m_wiimote_buffer[in_game_num].Push(nw);
 
 			// send
-			SendWiimoteState(_number, m_wiimote_input[_number]);
+			SendWiimoteState(_number, nw);
 		}
 		previousSize = size;
 	}
 
 	} // unlock players
 
-	NetWiimote nw;
 	while (!m_wiimote_buffer[_number].Pop(nw))
 	{
 		// wait for receiving thread to push some data
