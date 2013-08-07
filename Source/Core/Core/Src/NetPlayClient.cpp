@@ -263,7 +263,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			delete[] data;
 
 			// trusting server for good map value (>=0 && <4)
-			// add to pad buffer
+			// add to wiimote buffer
 			m_wiimote_buffer[(unsigned)map].Push(nw);
 		}
 		break;
@@ -455,13 +455,6 @@ bool NetPlayClient::StartGame(const std::string &path)
 {
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 
-	//wtf?
-	if (m_target_buffer_size > 100)
-	{
-		m_target_buffer_size = 20;
-		NOTICE_LOG(NETPLAY,"WHYYYYYYYYYYYY");
-	}
-
 	// tell server i started the game
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_START_GAME;
@@ -486,12 +479,6 @@ bool NetPlayClient::StartGame(const std::string &path)
 
 	// boot game
 	m_dialog->BootGame(path);
-
-	// temporary
-	//NetWiimote nw;
-	//for (unsigned int i = 0; i<4; ++i)
-		//for (unsigned int f = 0; f<2; ++f)
-			//m_wiimote_buffer[i].Push(nw);
 
 	return true;
 }
@@ -584,7 +571,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 	// in game mapping for this local wiimote
 	unsigned int in_game_num = m_local_player->wiimote_map[_number];
 
-	// does this local pad map in game?
+	// does this local wiimote map in game?
 	if (in_game_num < 4)
 	{
 		static u8 previousSize = 0;
@@ -594,8 +581,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 			// Reporting mode changed, so previous buffer is no good.
 			m_wiimote_buffer[_number].Clear();
 		}
-		
-		//m_wiimote_input[in_game_num].data.resize(m_wiimote_input[_number].size + 1);
+
 		m_wiimote_input[in_game_num].data.assign(data, data + size);
 		m_wiimote_input[in_game_num].size = size;
 		while (m_wiimote_buffer[in_game_num].Size() <= m_target_buffer_size)
@@ -623,15 +609,19 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 	// This is either a desync, or the reporting mode changed. No way to really be sure...
 	if (size != nw.size)
 	{
+		u8 tries = 0;
 		// Clear the buffer and wait for new input, in case it was just the reporting mode changing as expected.
 		do
 		{
-			m_wiimote_buffer[_number].Pop(nw);
-			Common::SleepCurrentThread(1);
-			if (false == m_is_running)
-				return false;
-
-			// TODO: break if this runs too long; it probably desynced if it runs for longer than the buffer size
+			while (!m_wiimote_buffer[_number].Pop(nw))
+			{
+				Common::SleepCurrentThread(1);
+				if (false == m_is_running)
+					return false;
+			}
+			++tries;
+			if (tries > m_target_buffer_size)
+				break;
 		} while (nw.size != size);
 
 		// If it still mismatches, it surely desynced
@@ -744,43 +734,6 @@ u8 CSIDevice_GCSteeringWheel::NetPlay_GetPadNum(u8 numPAD)
 u8 CSIDevice_DanceMat::NetPlay_GetPadNum(u8 numPAD)
 {
 	return CSIDevice_GCController::NetPlay_GetPadNum(numPAD);
-}
-
-// called from ---CPU--- thread
-//
-int CWII_IPC_HLE_WiiMote::NetPlay_GetWiimoteNum(int _number)
-{
-//	std::lock_guard<std::mutex> lk(crit_netplay_client);
-
-//	if (netplay_client)
-//		return netplay_client->GetPadNum(_number+4);
-//	else
-		return _number;
-}
-
-// called from ---CPU--- thread
-// intercept wiimote input callback
-//bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32& _Size)
-bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int, u16, const void*, u32&)
-{
-	std::lock_guard<std::mutex> lk(crit_netplay_client);
-
-	if (netplay_client)
-	//{
-	//	if (_Size >= RPT_SIZE_HACK)
-	//	{
-	//		_Size -= RPT_SIZE_HACK;
-	//		return false;
-	//	}
-	//	else
-	//	{
-	//		netplay_client->WiimoteInput(_number, _channelID, _pData, _Size);
-	//		// don't use this packet
-			return true;
-	//	}
-	//}
-	else
-		return false;
 }
 
 bool NetPlay::IsNetPlayRunning()

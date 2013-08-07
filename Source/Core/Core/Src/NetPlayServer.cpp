@@ -49,6 +49,7 @@ NetPlayServer::NetPlayServer(const u16 port) : is_connected(false), m_is_running
 		m_do_loop = true;
 		m_selector.Add(m_socket);
 		m_thread = std::thread(std::mem_fun(&NetPlayServer::ThreadFunc), this);
+		m_target_buffer_size = 20;
 	}
 }
 

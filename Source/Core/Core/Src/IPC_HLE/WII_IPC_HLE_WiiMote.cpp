@@ -265,7 +265,7 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 			_dbg_assert_msg_(WII_IPC_WIIMOTE, DoesChannelExist(pHeader->dcid), "L2CAP: SendACLPacket to unknown channel %i", pHeader->dcid);
 			CChannelMap::iterator  itr= m_Channel.find(pHeader->dcid);
 
-			const int number = NetPlay_GetWiimoteNum(m_ConnectionHandle & 0xFF);
+			const int number = m_ConnectionHandle & 0xFF;
 
 			if (itr != m_Channel.end())
 			{
