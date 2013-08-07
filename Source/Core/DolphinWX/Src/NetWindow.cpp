@@ -106,11 +106,11 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 		" - DSP Emulator Engine Must be the same on all computers!\n"
 		" - DSP on Dedicated Thread [OFF]\n"
 		" - Framelimit NOT set to [Audio]\n"
-		" - Manually set the exact number of controllers to be used to [Standard Controller]\n"
+		" - Manually set the exact number of wiimotes to be used to [Emulated Wiimote]\n"
 		"\n"
 		"All players should use the same Dolphin version and settings.\n"
 		"All memory cards must be identical between players or disabled.\n"
-		"Wiimote support has not been implemented!\n"
+		"Wiimote support is probably terrible. Don't use it.\n"
 		"\n"
 		"The host must have the chosen TCP port open/forwarded!\n"),
 		wxDefaultPosition, wxDefaultSize);
@@ -560,6 +560,7 @@ void NetPlayDiag::OnChangeGame(wxCommandEvent&)
 void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 {
 	int mapping[4];
+	int wiimotemapping[4];
 
 	// get selected player id
 	int pid = m_player_lbox->GetSelection();
@@ -569,11 +570,13 @@ void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 
 	if (false == netplay_server->GetPadMapping(pid, mapping))
 		return;
+	if (false == netplay_server->GetWiimoteMapping(pid, wiimotemapping))
+		return;
 
-	PadMapDiag pmd(this, mapping);
+	PadMapDiag pmd(this, mapping, wiimotemapping);
 	pmd.ShowModal();
 
-	if (false == netplay_server->SetPadMapping(pid, mapping))
+	if (false == netplay_server->SetPadMapping(pid, mapping) || false == netplay_server->SetWiimoteMapping(pid, wiimotemapping))
 		PanicAlertT("Could not set pads. The player left or the game is currently running!\n"
 				"(setting pads while the game is running is not yet supported)");
 }
@@ -605,9 +608,9 @@ void ChangeGameDiag::OnPick(wxCommandEvent& event)
 	EndModal(wxID_OK);
 }
 
-PadMapDiag::PadMapDiag(wxWindow* const parent, int map[])
+PadMapDiag::PadMapDiag(wxWindow* const parent, int map[], int wiimotemap[])
 	: wxDialog(parent, wxID_ANY, _("Configure Pads"), wxDefaultPosition, wxDefaultSize)
-	, m_mapping(map)
+	, m_mapping(map), m_wiimapping(wiimotemap)
 {
 	wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
 
@@ -627,6 +630,11 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, int map[])
 	for (unsigned int i=1; i<5; ++i)
 		pad_names[i] = wxString(_("Pad ")) + (wxChar)(wxT('0')+i);
 
+	wxString wiimote_names[5];
+	wiimote_names[0] = _("None");
+	for (unsigned int i=1; i < 5; ++i)
+		wiimote_names[i] = wxString(_("Wiimote ")) + (wxChar)(wxT('0')+i);
+
 	for (unsigned int i=0; i<4; ++i)
 	{
 		wxChoice* const pad_cbox = m_map_cbox[i]
@@ -638,6 +646,21 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, int map[])
 		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
 		v_szr->Add(new wxStaticText(this,wxID_ANY, pad_names[i + 1]), 1, wxALIGN_CENTER_HORIZONTAL);
 		v_szr->Add(pad_cbox, 1);
+
+		h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
+	}
+
+	for (unsigned int i=0; i<4; ++i)
+	{
+		wxChoice* const wiimote_cbox = m_map_cbox[i+4]
+			= new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 5, wiimote_names);
+		wiimote_cbox->Select(m_wiimapping[i] + 1);
+
+		wiimote_cbox->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &PadMapDiag::OnAdjust, this);
+
+		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
+		v_szr->Add(new wxStaticText(this,wxID_ANY, wiimote_names[i + 1]), 1, wxALIGN_CENTER_HORIZONTAL);
+		v_szr->Add(wiimote_cbox, 1);
 
 		h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
 	}
@@ -657,5 +680,8 @@ void PadMapDiag::OnAdjust(wxCommandEvent& event)
 {
 	(void)event;
 	for (unsigned int i=0; i<4; ++i)
+	{
 		m_mapping[i] = m_map_cbox[i]->GetSelection() - 1;
+		m_wiimapping[i] = m_map_cbox[i+4]->GetSelection() - 1;
+	}
 }

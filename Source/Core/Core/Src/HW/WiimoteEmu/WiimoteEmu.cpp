@@ -27,6 +27,7 @@ inline double round(double x) { return (x-floor(x))>0.5 ? ceil(x) : floor(x); } 
 #include "MatrixMath.h"
 
 #include "../../Movie.h"
+#include "NetPlayClient.h"
 
 namespace
 {
@@ -339,7 +340,7 @@ bool Wiimote::Step()
 	m_rumble->controls[0]->control_ref->State(m_rumble_on);
 
 	// when a movie is active, this button status update is disabled (moved), because movies only record data reports.
-	if(!(Movie::IsPlayingInput() || Movie::IsRecordingInput()))
+	if(!(Movie::IsPlayingInput() || Movie::IsRecordingInput()) || NetPlay::IsNetPlayRunning())
 	{
 		UpdateButtonsStatus(has_focus);
 	}
@@ -397,7 +398,7 @@ void Wiimote::UpdateButtonsStatus(bool has_focus)
 void Wiimote::GetCoreData(u8* const data)
 {
 	// when a movie is active, the button update happens here instead of Wiimote::Step, to avoid potential desync issues.
-	if(Movie::IsPlayingInput() || Movie::IsRecordingInput())
+	if(Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::IsNetPlayRunning())
 	{
 		UpdateButtonsStatus(HAS_FOCUS);
 	}
@@ -769,6 +770,12 @@ void Wiimote::Update()
 				}
 			}
 		}
+	}
+	if (NetPlay::IsNetPlayRunning())
+	{
+		NetPlay_GetWiimoteData(m_index, data, rptf.size);
+		if (rptf.core)
+			m_status.buttons = *(wm_core*)(data + rptf.core);
 	}
 	if (!Movie::IsPlayingInput())
 	{

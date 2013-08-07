@@ -68,8 +68,7 @@ public:
 	void SendChatMessage(const std::string& msg);
 
 	// Send and receive pads values
-	void WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size);
-	void WiimoteUpdate(int _number);
+	bool WiimoteUpdate(int _number, u8* data, u8 size);
 	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
 
 	u8 GetPadNum(u8 numPAD);
@@ -93,6 +92,7 @@ protected:
 		PlayerId		pid;
 		std::string		name;
 		PadMapping		pad_map[4];
+		PadMapping		wiimote_map[4];
 		std::string		revision;
 		u32                     ping;
 	};
@@ -119,6 +119,7 @@ protected:
 
 private:
 	void SendPadState(const PadMapping local_nb, const NetPad& np);
+	void SendWiimoteState(const PadMapping local_nb, const NetWiimote& nw);
 	unsigned int OnData(sf::Packet& packet);
 
 	PlayerId		m_pid;

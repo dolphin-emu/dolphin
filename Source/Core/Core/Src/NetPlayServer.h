@@ -40,6 +40,9 @@ public:
 	bool GetPadMapping(const int pid, int map[]);
 	bool SetPadMapping(const int pid, const int map[]);
 
+	bool GetWiimoteMapping(const int pid, int map[]);
+	bool SetWiimoteMapping(const int pid, const int map[]);
+
 	void AdjustPadBufferSize(unsigned int size);
 
 	bool is_connected;
@@ -58,6 +61,7 @@ private:
 		PlayerId		pid;
 		std::string		name;
 		PadMapping		pad_map[4];
+		PadMapping		wiimote_map[4];
 		std::string		revision;
 
 		sf::SocketTCP	socket;
@@ -70,6 +74,7 @@ private:
 	unsigned int OnDisconnect(sf::SocketTCP& socket);
 	unsigned int OnData(sf::Packet& packet, sf::SocketTCP& socket);
 	void UpdatePadMapping();
+	void UpdateWiimoteMapping();
 
 	NetSettings     m_settings;
 

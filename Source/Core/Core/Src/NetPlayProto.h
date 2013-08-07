@@ -16,14 +16,13 @@ struct NetSettings
 	u8 m_Controllers[4];
 };
 
-struct Rpt : public std::vector<u8>
+struct NetWiimote
 {
-	u16		channel;
+	u8 size;
+	std::vector<u8> data;
 };
 
-typedef std::vector<Rpt>	NetWiimote;
-
-#define NETPLAY_VERSION		"Dolphin NetPlay 2013-08-05"
+#define NETPLAY_VERSION		"Dolphin NetPlay 2013-08-06 now with wiimote(TM)"
 
 // messages
 enum
@@ -38,7 +37,7 @@ enum
 	NP_MSG_PAD_BUFFER		= 0x62,
 
 	NP_MSG_WIIMOTE_DATA		= 0x70,
-	NP_MSG_WIIMOTE_MAPPING		= 0x71,	// just using pad mapping for now
+	NP_MSG_WIIMOTE_MAPPING	= 0x71,
 
 	NP_MSG_START_GAME		= 0xA0,
 	NP_MSG_CHANGE_GAME		= 0xA1,

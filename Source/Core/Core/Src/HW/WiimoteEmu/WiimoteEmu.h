@@ -158,6 +158,7 @@ private:
 	void WriteData(const wm_write_data* const wd);
 	void SendReadDataReply(ReadRequest& _request);
 	void SpeakerData(wm_speaker_data* sd);
+	bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size);
 
 	// control groups
 	Buttons		*m_buttons, *m_dpad, *m_shake;

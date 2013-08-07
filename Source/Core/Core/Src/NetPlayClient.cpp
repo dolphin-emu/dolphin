@@ -16,6 +16,7 @@
 // for wiimote/ OSD messages
 #include "Core.h"
 #include "ConfigManager.h"
+#include "HW/WiimoteEmu/WiimoteEmu.h"
 
 std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = NULL;
@@ -26,6 +27,7 @@ NetSettings g_NetPlaySettings;
 NetPlayClient::Player::Player()
 {
 	memset(pad_map, -1, sizeof(pad_map));
+	memset(wiimote_map, -1, sizeof(wiimote_map));
 }
 
 // called from ---GUI--- thread
@@ -35,6 +37,8 @@ std::string NetPlayClient::Player::ToString() const
 	ss << name << '[' << (char)(pid+'0') << "] : " << revision << " |";
 	for (unsigned int i=0; i<4; ++i)
 		ss << (pad_map[i]>=0 ? (char)(pad_map[i]+'1') : '-');
+	for (unsigned int i=0; i<4; ++i)
+		ss << (wiimote_map[i]>=0 ? (char)(wiimote_map[i]+'1') : '-');
 	ss << " | " << ping << "ms";
 	return ss.str();
 }
@@ -215,6 +219,23 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		}
 		break;
 
+	case NP_MSG_WIIMOTE_MAPPING :
+		{
+			PlayerId pid;
+			packet >> pid;
+
+			{
+			std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+			Player& player = m_players[pid];
+
+			for (unsigned int i=0; i<4; ++i)
+				packet >> player.wiimote_map[i];
+			}
+
+			m_dialog->Update();
+		}
+		break;
+
 	case NP_MSG_PAD_DATA :
 		{
 			PadMapping map = 0;
@@ -226,6 +247,27 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			m_pad_buffer[(unsigned)map].Push(np);
 		}
 		break;
+
+	case NP_MSG_WIIMOTE_DATA :
+		{
+			PadMapping map = 0;
+			NetWiimote nw;
+			u8 size;
+			packet >> map >> size;
+
+			nw.size = size;
+			u8* data = new u8[size];
+			for (unsigned int i = 0; i < size; ++i)
+				packet >> data[i];
+			nw.data.assign(data,data+size);
+			delete[] data;
+
+			// trusting server for good map value (>=0 && <4)
+			// add to pad buffer
+			m_wiimote_buffer[(unsigned)map].Push(nw);
+		}
+		break;
+
 
 	case NP_MSG_PAD_BUFFER :
 		{
@@ -392,10 +434,33 @@ void NetPlayClient::SendPadState(const PadMapping local_nb, const NetPad& np)
 	m_socket.Send(spac);
 }
 
+// called from ---CPU--- thread
+void NetPlayClient::SendWiimoteState(const PadMapping local_nb, const NetWiimote& nw)
+{
+	// send to server
+	sf::Packet spac;
+	spac << (MessageId)NP_MSG_WIIMOTE_DATA;
+	spac << local_nb;	// local pad num
+	u8 size = nw.size;
+	spac << size;
+	for (unsigned int i = 0; i < size; ++i)
+		spac << nw.data.data()[i];
+
+	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+	m_socket.Send(spac);
+}
+
 // called from ---GUI--- thread
 bool NetPlayClient::StartGame(const std::string &path)
 {
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+
+	//wtf?
+	if (m_target_buffer_size > 100)
+	{
+		m_target_buffer_size = 20;
+		NOTICE_LOG(NETPLAY,"WHYYYYYYYYYYYY");
+	}
 
 	// tell server i started the game
 	sf::Packet spac;
@@ -423,10 +488,10 @@ bool NetPlayClient::StartGame(const std::string &path)
 	m_dialog->BootGame(path);
 
 	// temporary
-	NetWiimote nw;
-	for (unsigned int i = 0; i<4; ++i)
-		for (unsigned int f = 0; f<2; ++f)
-			m_wiimote_buffer[i].Push(nw);
+	//NetWiimote nw;
+	//for (unsigned int i = 0; i<4; ++i)
+		//for (unsigned int f = 0; f<2; ++f)
+			//m_wiimote_buffer[i].Push(nw);
 
 	return true;
 }
@@ -449,7 +514,7 @@ void NetPlayClient::ClearBuffers()
 		while (m_wiimote_buffer[i].Size())
 			m_wiimote_buffer[i].Pop();
 
-		m_wiimote_input[i].clear();
+		m_wiimote_input[i].data.clear();
 	}
 }
 
@@ -509,55 +574,77 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 	return true;
 }
 
-// called from ---CPU--- thread
-void NetPlayClient::WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size)
-{
-	//// in game mapping for this local wiimote
-	unsigned int in_game_num = m_local_player->pad_map[_number];	// just using gc pad_map for now
-
-	// does this local pad map in game?
-	if (in_game_num < 4)
-	{		
-		m_wiimote_input[_number].resize(m_wiimote_input[_number].size() + 1);
-		m_wiimote_input[_number].back().assign((char*)_pData, (char*)_pData + _Size);
-		m_wiimote_input[_number].back().channel = _channelID;
-	}
-}
 
 // called from ---CPU--- thread
-void NetPlayClient::WiimoteUpdate(int _number)
+bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 {
 	{
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
 	// in game mapping for this local wiimote
-	unsigned int in_game_num = m_local_player->pad_map[_number];	// just using gc pad_map for now
+	unsigned int in_game_num = m_local_player->wiimote_map[_number];
 
 	// does this local pad map in game?
 	if (in_game_num < 4)
 	{
-		m_wiimote_buffer[in_game_num].Push(m_wiimote_input[_number]);
+		static u8 previousSize = 0;
 
-		// TODO: send it
+		if (previousSize != size && m_wiimote_buffer[in_game_num].Size() > 0)
+		{
+			// Reporting mode changed, so previous buffer is no good.
+			m_wiimote_buffer[_number].Clear();
+		}
+		
+		//m_wiimote_input[in_game_num].data.resize(m_wiimote_input[_number].size + 1);
+		m_wiimote_input[in_game_num].data.assign(data, data + size);
+		m_wiimote_input[in_game_num].size = size;
+		while (m_wiimote_buffer[in_game_num].Size() <= m_target_buffer_size)
+		{
+			// add to buffer
+			m_wiimote_buffer[in_game_num].Push(m_wiimote_input[in_game_num]);
 
-		m_wiimote_input[_number].clear();
+			// send
+			SendWiimoteState(_number, m_wiimote_input[_number]);
+		}
+		previousSize = size;
 	}
 
 	} // unlock players
 
-	if (0 == m_wiimote_buffer[_number].Size())
+	NetWiimote nw;
+	while (!m_wiimote_buffer[_number].Pop(nw))
 	{
-		//PanicAlert("PANIC");
-		return;
+		// wait for receiving thread to push some data
+		Common::SleepCurrentThread(1);
+		if (false == m_is_running)
+			return false;
 	}
 
-	NetWiimote nw;
-	m_wiimote_buffer[_number].Pop(nw);
+	// This is either a desync, or the reporting mode changed. No way to really be sure...
+	if (size != nw.size)
+	{
+		// Clear the buffer and wait for new input, in case it was just the reporting mode changing as expected.
+		do
+		{
+			m_wiimote_buffer[_number].Pop(nw);
+			Common::SleepCurrentThread(1);
+			if (false == m_is_running)
+				return false;
 
-	NetWiimote::const_iterator
-		i = nw.begin(), e = nw.end();
-	for ( ; i!=e; ++i)
-		Core::Callback_WiimoteInterruptChannel(_number, i->channel, &(*i)[0], (u32)i->size() + RPT_SIZE_HACK);
+			// TODO: break if this runs too long; it probably desynced if it runs for longer than the buffer size
+		} while (nw.size != size);
+
+		// If it still mismatches, it surely desynced
+		if (size != nw.size)
+		{
+			PanicAlert("Netplay has desynced. There is no way to handle this. Self destructing in 3...2...1...");
+			StopGame();
+			return false;
+		}
+	}
+
+	memcpy(data, nw.data.data(), size);
+	return true;
 }
 
 // called from ---GUI--- thread and ---NETPLAY--- thread (client side)
@@ -586,12 +673,9 @@ bool NetPlayClient::StopGame()
 u8 NetPlayClient::GetPadNum(u8 numPAD)
 {
 	// TODO: i don't like that this loop is running everytime there is rumble
-	unsigned int i = 0;
-	for (; i<4; ++i)
+	for (unsigned int i = 0; i<4; ++i)
 		if (numPAD == m_local_player->pad_map[i])
-			break;
-
-	return i;
+			return i;
 }
 
 // stuff hacked into dolphin
@@ -604,6 +688,16 @@ bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u
 
 	if (netplay_client)
 		return netplay_client->GetNetPads(numPAD, &PadStatus, (NetPad*)PADStatus);
+	else
+		return false;
+}
+
+bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
+{
+	std::lock_guard<std::mutex> lk(crit_netplay_client);
+
+	if (netplay_client)
+		return netplay_client->WiimoteUpdate(wiimote, data, size);
 	else
 		return false;
 }
@@ -653,25 +747,14 @@ u8 CSIDevice_DanceMat::NetPlay_GetPadNum(u8 numPAD)
 }
 
 // called from ---CPU--- thread
-// wiimote update / used for frame counting
-//void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int _number)
-void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int)
-{
-	//CritLocker crit(crit_netplay_client);
-
-	//if (netplay_client)
-	//	netplay_client->WiimoteUpdate(_number);
-}
-
-// called from ---CPU--- thread
 //
 int CWII_IPC_HLE_WiiMote::NetPlay_GetWiimoteNum(int _number)
 {
-	//CritLocker crit(crit_netplay_client);
+//	std::lock_guard<std::mutex> lk(crit_netplay_client);
 
-	//if (netplay_client)
-	//	return netplay_client->GetPadNum(_number);		// just using gcpad mapping for now
-	//else
+//	if (netplay_client)
+//		return netplay_client->GetPadNum(_number+4);
+//	else
 		return _number;
 }
 

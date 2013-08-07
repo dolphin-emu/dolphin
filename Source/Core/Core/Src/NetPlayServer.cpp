@@ -7,6 +7,7 @@
 NetPlayServer::Client::Client()
 {
 	memset(pad_map, -1, sizeof(pad_map));
+	memset(wiimote_map, -1, sizeof(wiimote_map));
 }
 
 // called from ---GUI--- thread
@@ -16,6 +17,8 @@ std::string NetPlayServer::Client::ToString() const
 	ss << name << '[' << (char)(pid+'0') << "] : " << revision << " |";
 	for (unsigned int i=0; i<4; ++i)
 		ss << (pad_map[i]>=0 ? (char)(pad_map[i]+'1') : '-');
+	for (unsigned int i=0; i<4; ++i)
+		ss << (wiimote_map[i]>=0 ? (char)(wiimote_map[i]+'1') : '-');
 	ss << '|';
 	return ss.str();
 }
@@ -311,6 +314,27 @@ bool NetPlayServer::GetPadMapping(const int pid, int map[])
 	return true;
 }
 
+bool NetPlayServer::GetWiimoteMapping(const int pid, int map[])
+{
+	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+	std::map<sf::SocketTCP, Client>::const_iterator
+		i = m_players.begin(),
+		e = m_players.end();
+	for (; i!=e; ++i)
+		if (pid == i->second.pid)
+			break;
+
+	// player not found
+	if (i == e)
+		return false;
+
+	// get pad mapping
+	for (unsigned int m = 0; m<4; ++m)
+		map[m] = i->second.wiimote_map[m];
+
+	return true;
+}
+
 // called from ---GUI--- thread
 bool NetPlayServer::SetPadMapping(const int pid, const int map[])
 {
@@ -351,6 +375,46 @@ bool NetPlayServer::SetPadMapping(const int pid, const int map[])
 	return true;
 }
 
+// called from ---GUI--- thread
+bool NetPlayServer::SetWiimoteMapping(const int pid, const int map[])
+{
+	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+	if (m_is_running)
+		return false;
+
+	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+	std::map<sf::SocketTCP, Client>::iterator
+		i = m_players.begin(),
+		e = m_players.end();
+	for (; i!=e; ++i)
+		if (pid == i->second.pid)
+			break;
+
+	// player not found
+	if (i == e)
+		return false;
+
+	Client& player = i->second;
+
+	// set pad mapping
+	for (unsigned int m = 0; m<4; ++m)
+	{
+		player.wiimote_map[m] = (PadMapping)map[m];
+
+		// remove duplicate mappings
+		for (i = m_players.begin(); i!=e; ++i)
+			for (unsigned int p = 0; p<4; ++p)
+				if (p != m || i->second.pid != pid)
+					if (player.wiimote_map[m] == i->second.wiimote_map[p])
+						i->second.wiimote_map[p] = -1;
+	}
+
+	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+	UpdateWiimoteMapping();	// sync pad mappings with everyone
+
+	return true;
+}
+
 // called from ---NETPLAY--- thread
 void NetPlayServer::UpdatePadMapping()
 {
@@ -364,6 +428,24 @@ void NetPlayServer::UpdatePadMapping()
 		spac << i->second.pid;
 		for (unsigned int pm = 0; pm<4; ++pm)
 			spac << i->second.pad_map[pm];
+		SendToClients(spac);
+	}
+
+}
+
+// called from ---NETPLAY--- thread
+void NetPlayServer::UpdateWiimoteMapping()
+{
+	std::map<sf::SocketTCP, Client>::const_iterator
+		i = m_players.begin(),
+		e = m_players.end();
+	for (; i!=e; ++i)
+	{
+		sf::Packet spac;
+		spac << (MessageId)NP_MSG_WIIMOTE_MAPPING;
+		spac << i->second.pid;
+		for (unsigned int pm = 0; pm<4; ++pm)
+			spac << i->second.wiimote_map[pm];
 		SendToClients(spac);
 	}
 
@@ -431,18 +513,57 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 				map = player.pad_map[(unsigned)map];
 			else
 				map = -1;
-			
+
 			// if not, they are hacking, so disconnect them
 			// this could happen right after a pad map change, but that isn't implemented yet
 			if (map < 0)
 				return 1;
-				
+
 
 			// relay to clients
 			sf::Packet spac;
 			spac << (MessageId)NP_MSG_PAD_DATA;
 			spac << map;	// in game mapping
 			spac << hi << lo;
+
+			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+			SendToClients(spac, player.pid);
+		}
+		break;
+
+		case NP_MSG_WIIMOTE_DATA :
+		{
+			// if this is pad data from the last game still being received, ignore it
+			if (player.current_game != m_current_game)
+				break;
+
+			PadMapping map = 0;
+			u8 size;
+			packet >> map >> size;
+			u8* data = new u8[size];
+			for (unsigned int i = 0; i < size; ++i)
+				packet >> data[i];
+
+			// check if client's pad indeed maps in game
+			if (map >= 0 && map < 4)
+				map = player.wiimote_map[(unsigned)map];
+			else
+				map = -1;
+
+			// if not, they are hacking, so disconnect them
+			// this could happen right after a pad map change, but that isn't implemented yet
+			if (map < 0)
+				return 1;
+
+			// relay to clients
+			sf::Packet spac;
+			spac << (MessageId)NP_MSG_WIIMOTE_DATA;
+			spac << map;	// in game mapping
+			spac << size;
+			for (unsigned int i = 0; i < size; ++i)
+				spac << data[i];
+
+			delete[] data;
 
 			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 			SendToClients(spac, player.pid);

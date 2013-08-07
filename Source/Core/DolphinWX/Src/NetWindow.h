@@ -124,13 +124,14 @@ private:
 class PadMapDiag : public wxDialog
 {
 public:
-	PadMapDiag(wxWindow* const parent, int map[]);
+	PadMapDiag(wxWindow* const parent, int map[], int wiimotemap[]);
 
 private:
 	void OnAdjust(wxCommandEvent& event);
 
-	wxChoice*	m_map_cbox[4];
+	wxChoice*	m_map_cbox[8];
 	int* const	m_mapping;
+	int* const	m_wiimapping;
 };
 
 #endif // _NETWINDOW_H_

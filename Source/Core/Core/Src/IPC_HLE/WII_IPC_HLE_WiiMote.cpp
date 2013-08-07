@@ -862,8 +862,6 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 
 void CWII_IPC_HLE_WiiMote::ReceiveL2capData(u16 scid, const void* _pData, u32 _Size)
 {
-	if (NetPlay_WiimoteInput(m_ConnectionHandle & 0xFF, scid, _pData, _Size))
-		return;
 
 	// Allocate DataFrame
 	u8 DataFrame[1024];
