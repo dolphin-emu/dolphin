@@ -136,7 +136,6 @@ static BOOL GetModuleNameFromAddress( UINT address, LPTSTR lpszModule )
 static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, LPTSTR lpszSymbol )
 {
 	BOOL              ret = FALSE;
-	DWORD             dwDisp = 0;
 	DWORD             dwSymSize = 10000;
 	TCHAR             lpszUnDSymbol[BUFFERSIZE]=_T("?");
 	CHAR              lpszNonUnicodeUnDSymbol[BUFFERSIZE]="?";
@@ -153,9 +152,11 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 
 	// Get symbol info for IP
 #ifndef _M_X64
+	DWORD             dwDisp = 0;
 	if ( SymGetSymFromAddr( GetCurrentProcess(), (ULONG)fnAddress, &dwDisp, pSym ) )
 #else 
 	//makes it compile but hell im not sure if this works...
+	DWORD64           dwDisp = 0;
 	if ( SymGetSymFromAddr( GetCurrentProcess(), (ULONG)fnAddress, (PDWORD64)&dwDisp, pSym ) )
 #endif
 	{
