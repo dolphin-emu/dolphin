@@ -34,7 +34,39 @@ bool AsciiToHex(const char* _szValue, u32& result)
 
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
 {
-	int writtenCount = vsnprintf(out, outsize, format, args);
+	int writtenCount;
+
+#ifdef _WIN32
+	// You would think *printf are simple, right? Iterate on each character,
+	// if it's a format specifier handle it properly, etc.
+	//
+	// Nooooo. Not according to the C standard.
+	//
+	// According to the C99 standard (7.19.6.1 "The fprintf function")
+	//     The format shall be a multibyte character sequence
+	//
+	// Because some character encodings might have '%' signs in the middle of
+	// a multibyte sequence (SJIS for example only specifies that the first
+	// byte of a 2 byte sequence is "high", the second byte can be anything),
+	// printf functions have to decode the multibyte sequences and try their
+	// best to not screw up.
+	//
+	// Unfortunately, on Windows, the locale for most languages is not UTF-8
+	// as we would need. Notably, for zh_TW, Windows chooses EUC-CN as the
+	// locale, and completely fails when trying to decode UTF-8 as EUC-CN.
+	//
+	// On the other hand, the fix is simple: because we use UTF-8, no such
+	// multibyte handling is required as we can simply assume that no '%' char
+	// will be present in the middle of a multibyte sequence.
+	//
+	// This is why we lookup an ANSI (cp1252) locale here and use _vsnprintf_l.
+	static locale_t c_locale = NULL;
+	if (!c_locale)
+		c_locale = _create_locale(LC_ALL, ".1252");
+	writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
+#else
+	writtenCount = vsnprintf(out, outsize, format, args);
+#endif
 
 	if (writtenCount > 0 && writtenCount < outsize)
 	{
@@ -58,10 +90,9 @@ std::string StringFromFormat(const char* format, ...)
 	va_start(args, format);
 	required = _vscprintf(format, args);
 	buf = new char[required + 1];
-	vsnprintf(buf, required, format, args);
+	CharArrayFromFormatV(buf, required + 1, format, args);
 	va_end(args);
 
-	buf[required] = '\0';
 	std::string temp = buf;
 	delete[] buf;
 #else
