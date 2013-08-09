@@ -549,10 +549,7 @@ ExpressionParseStatus ParseExpressionInner(std::string str, ControlFinder &finde
 	Parser p(tokens, finder);
 	status = p.Parse(&expr);
 	if (status != EXPRESSION_PARSE_SUCCESS)
-	{
-		delete expr;
 		return status;
-	}
 
 	*expr_out = expr;
 	return EXPRESSION_PARSE_SUCCESS;
