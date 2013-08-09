@@ -60,6 +60,7 @@ var isMaster    = +("master" == branch);
 
 // remove hash from description
 describe = describe.replace(/-[^-]+(-dirty)?$/, '$1');
+describe = describe.replace("-0","")
 
 var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +
