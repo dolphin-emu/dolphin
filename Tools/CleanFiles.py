@@ -1,5 +1,4 @@
 
-import chardet
 import codecs
 import os
 import glob
@@ -101,11 +100,7 @@ def main():
     for name in glob.glob(pattern):
         in__name = name
         out_name = name + '.new'
-
-        in_str = open(in__name, 'r').read()
-        encoding = chardet.detect(in_str)
-
-        in_ = codecs.open(in__name, 'r', encoding['encoding'])
+        in_ = codecs.open(in__name, 'r', 'utf8')
         out = codecs.open(out_name, 'w', 'utf8')
         normalize_ini_file(in_, out)
         os.rename(out_name, in__name)
