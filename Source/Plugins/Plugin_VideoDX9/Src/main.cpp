@@ -93,7 +93,21 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsPrimitiveRestart = false; // TODO: figure out if it does
 	g_Config.backend_info.bSupportsSeparateAlphaFunction = device_caps.PrimitiveMiscCaps & D3DPMISCCAPS_SEPARATEALPHABLEND;
 	// Dual source blend disabled by default until a proper method to test for support is found	
-	g_Config.backend_info.bSupportsDualSourceBlend = false;
+    g_Config.backend_info.bSupports3DVision = true;
+    OSVERSIONINFO info;
+    ZeroMemory(&info, sizeof(OSVERSIONINFO));
+    info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    if (GetVersionEx(&info))
+    {
+            // dual source blending is only supported in windows 7 o newer. sorry xp users
+            // we cannot test for device caps because most drivers just declare the minimun caps
+            // and don't expose their support for some functionalities              
+            g_Config.backend_info.bSupportsDualSourceBlend = info.dwPlatformId == VER_PLATFORM_WIN32_NT && ((info.dwMajorVersion > 6) || ((info.dwMajorVersion == 6) && info.dwMinorVersion >= 1));
+    }
+    else
+    {
+            g_Config.backend_info.bSupportsDualSourceBlend = false;
+    }
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
 	g_Config.backend_info.bSupportsEarlyZ = false;
@@ -139,6 +153,9 @@ bool VideoBackend::Initialize(void *&window_handle)
 	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();
+    // as only some driver/hardware configurations support dual source blending only enable it if is 
+    // configured by user
+    g_Config.backend_info.bSupportsDualSourceBlend &= g_Config.bForceDualSourceBlend;
 	UpdateActiveConfig();
 
 	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Loading - Please wait."));
