@@ -25,7 +25,7 @@ public:
 		bool Exists(const char *key) const;
 		bool Delete(const char *key);
 
-		std::string* GetLine(const char* key, std::string* valueOut, std::string* commentOut);
+		std::string* GetLine(const char* key, std::string* valueOut);
 		void Set(const char* key, const char* newValue);
 		void Set(const char* key, const std::string& newValue, const std::string& defaultValue);
 
