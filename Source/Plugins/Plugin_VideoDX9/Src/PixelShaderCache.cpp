@@ -177,12 +177,14 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 		         "in float uv1 : TEXCOORD1){\n"
 		         "float4 texcol = tex2D(samp0,uv0.xy);\n");
 		break;
-	case 1: // 1 Samples SSAA
-		WRITE(p, "in float2 uv0 : TEXCOORD0,\n"
-		         "in float uv1 : TEXCOORD1){\n"
-		         "float4 texcol = tex2D(samp0,uv0.xy);\n");
+	case 1: // 4 Samples in 4x SSAA buffer
+		WRITE(p, "in float4 uv0 : TEXCOORD0,\n"
+		         "in float uv1 : TEXCOORD1,\n"
+		         "in float4 uv2 : TEXCOORD2,\n"
+		         "in float4 uv3 : TEXCOORD3){\n"
+		         "float4 texcol = (tex2D(samp0,uv2.xy) + tex2D(samp0,uv2.wz) + tex2D(samp0,uv3.xy) + tex2D(samp0,uv3.wz))*0.25f;\n");
 		break;
-	case 2: // 4 Samples SSAA
+	case 2: // 4 Samples in 9x SSAA buffer
 		WRITE(p, "in float4 uv0 : TEXCOORD0,\n"
 		         "in float uv1 : TEXCOORD1,\n"
 		         "in float4 uv2 : TEXCOORD2,\n"
