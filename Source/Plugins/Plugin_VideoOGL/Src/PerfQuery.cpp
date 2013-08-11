@@ -23,6 +23,9 @@ PerfQuery::~PerfQuery()
 
 void PerfQuery::EnableQuery(PerfQueryGroup type)
 {
+	if (!ShouldEmulate())
+		return;
+
 	// Is this sane?
 	if (m_query_count > ARRAYSIZE(m_query_buffer) / 2)
 		WeakFlush();
@@ -47,6 +50,9 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 
 void PerfQuery::DisableQuery(PerfQueryGroup type)
 {
+	if (!ShouldEmulate())
+		return;
+
 	// stop query
 	if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
 	{
@@ -56,11 +62,17 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
 
 bool PerfQuery::IsFlushed() const
 {
+	if (!ShouldEmulate())
+		return true;
+
 	return 0 == m_query_count;
 }
 
 void PerfQuery::FlushOne()
 {
+	if (!ShouldEmulate())
+		return;
+
 	auto& entry = m_query_buffer[m_query_read_pos];
 
 	GLuint result = 0;
@@ -76,12 +88,18 @@ void PerfQuery::FlushOne()
 // TODO: could selectively flush things, but I don't think that will do much
 void PerfQuery::FlushResults()
 {
+	if (!ShouldEmulate())
+		return;
+
 	while (!IsFlushed())
 		FlushOne();
 }
 
 void PerfQuery::WeakFlush()
 {
+	if (!ShouldEmulate())
+		return;
+
 	while (!IsFlushed())
 	{
 		auto& entry = m_query_buffer[m_query_read_pos];
@@ -108,6 +126,9 @@ void PerfQuery::ResetQuery()
 
 u32 PerfQuery::GetQueryResult(PerfQueryType type)
 {
+	if (!ShouldEmulate())
+		return 0;
+
 	u32 result = 0;
 	
 	if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
