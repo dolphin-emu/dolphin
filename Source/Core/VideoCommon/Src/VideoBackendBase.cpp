@@ -19,6 +19,8 @@ VideoBackend* g_video_backend = NULL;
 static VideoBackend* s_default_backend = NULL;
 
 #ifdef _WIN32
+#include <windows.h>
+
 // http://msdn.microsoft.com/en-us/library/ms725491.aspx
 static bool IsGteVista() 
 {
