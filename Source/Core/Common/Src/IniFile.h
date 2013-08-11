@@ -70,7 +70,6 @@ public:
 	protected:
 		std::vector<std::string> lines;
 		std::string name;
-		std::string comment;
 	};
 
 	bool Load(const char* filename);

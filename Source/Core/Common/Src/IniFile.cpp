@@ -406,11 +406,6 @@ bool IniFile::Load(const char* filename)
 					// New section!
 					std::string sub = line.substr(1, endpos - 1);
 					sections.push_back(Section(sub));
-
-					if (endpos + 1 < line.size())
-					{
-						sections[sections.size() - 1].comment = line.substr(endpos + 1);
-					}
 				}
 			}
 			else
@@ -444,7 +439,7 @@ bool IniFile::Save(const char* filename)
 
 		if (section.name != "")
 		{
-			out << "[" << section.name << "]" << section.comment << std::endl;
+			out << "[" << section.name << "]" << std::endl;
 		}
 
 		for (std::vector<std::string>::const_iterator liter = section.lines.begin(); liter != section.lines.end(); ++liter)
