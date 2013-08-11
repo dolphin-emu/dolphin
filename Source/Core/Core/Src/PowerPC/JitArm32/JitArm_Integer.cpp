@@ -246,6 +246,68 @@ void JitArm::xorx(UGeckoInstruction inst)
 	if (inst.Rc)
 		ComputeRC();
 }
+
+void JitArm::andx(UGeckoInstruction inst)
+{
+	u32 a = inst.RA, b = inst.RB, s = inst.RS;
+
+	if (gpr.IsImm(s) && gpr.IsImm(b))
+	{
+		gpr.SetImmediate(a, gpr.GetImm(s) & gpr.GetImm(b));
+		if (inst.Rc) ComputeRC(gpr.GetImm(a), 0); 
+		return;
+	}
+	ARMReg rA = gpr.R(a);
+	ARMReg rB = gpr.R(b);
+	ARMReg rS = gpr.R(s);
+
+	ANDS(rA, rS, rB);
+
+	if (inst.Rc) ComputeRC();
+}
+
+void JitArm::andi_rc(UGeckoInstruction inst)
+{
+	u32 a = inst.RA, s = inst.RS;
+
+	if (gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, gpr.GetImm(s) & inst.UIMM);
+		ComputeRC(gpr.GetImm(a), 0); 
+		return;
+	}
+	ARMReg rA = gpr.R(a);
+	ARMReg rS = gpr.R(s);
+	ARMReg RA = gpr.GetReg();
+
+	MOVI2R(RA, inst.UIMM);
+	ANDS(rA, rS, RA);
+
+	ComputeRC();
+	gpr.Unlock(RA);
+}
+
+void JitArm::andis_rc(UGeckoInstruction inst)
+{
+	u32 a = inst.RA, s = inst.RS;
+
+	if (gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, gpr.GetImm(s) & ((u32)inst.UIMM << 16));
+		ComputeRC(gpr.GetImm(a), 0); 
+		return;
+	}
+	ARMReg rA = gpr.R(a);
+	ARMReg rS = gpr.R(s);
+	ARMReg RA = gpr.GetReg();
+
+	MOVI2R(RA, (u32)inst.UIMM << 16);
+	ANDS(rA, rS, RA);
+
+	ComputeRC();
+	gpr.Unlock(RA);
+}
+
 void JitArm::extshx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
