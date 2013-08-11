@@ -263,6 +263,9 @@ bool DolphinApp::OnInit()
 	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
 	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP USA_DIR);
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP EUR_DIR);
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP JAP_DIR);
 
 	LogManager::Init();
 	SConfig::Init();
