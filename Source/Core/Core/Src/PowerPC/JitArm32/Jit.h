@@ -116,6 +116,7 @@ public:
 
 	void GenerateRC(int cr = 0);
 	void ComputeRC(int cr = 0);
+	void ComputeRC(s32 value, int cr);
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
