@@ -96,7 +96,9 @@ def normalize_ini_file(in_, out):
         out.write('\n')
 
 def main():
-    for name in glob.glob("??????.ini"):
+    base_path = os.path.dirname(__file__)
+    pattern = os.path.join(base_path, "../Data/User/GameConfig/??????.ini")
+    for name in glob.glob(pattern):
         in__name = name
         out_name = name + '.new'
 
