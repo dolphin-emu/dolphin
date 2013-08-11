@@ -149,7 +149,7 @@ void JitArm::ori(UGeckoInstruction inst)
 	
 	if (gpr.IsImm(s))
 	{
-		gpr.SetImmediate(s, gpr.GetImm(a) | inst.UIMM);
+		gpr.SetImmediate(a, gpr.GetImm(s) | inst.UIMM);
 		return;
 	}
 	ARMReg RA = gpr.R(a);
