@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu;
 
+import java.util.HashMap;
+
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
@@ -138,36 +140,28 @@ public class PrefsFragment extends PreferenceFragment {
         addPreferencesFromResource(R.layout.prefs);
 
         final ListPreference etp = new ListPreference(m_activity);
-        CharSequence[] _entries;
-        CharSequence[] _entryvalues;
+        final HashMap<CharSequence, CharSequence> entries = new HashMap<CharSequence, CharSequence>();
 
         if (Build.CPU_ABI.contains("x86"))
         {
-	        _entries = new CharSequence[] {
-		        "Interpreter",
-		        "JIT64 Recompiler",
-		        "JITIL Recompiler",
-	        };
-	        _entryvalues = new CharSequence[] {"0", "1", "2"};
+	        entries.put("Interpreter", "0");
+	        entries.put("JIT64 Recompiler", "1");
+	        entries.put("JITIL Recompiler", "2");
         }
         else if (Build.CPU_ABI.contains("arm"))
         {
-	        _entries = new CharSequence[] {
-			        "Interpreter",
-			        "JIT ARM Recompiler",
-	        };
-	        _entryvalues = new CharSequence[] {"0", "3"};
+	        entries.put("Interpreter", "0");
+	        entries.put("JIT ARM Recompiler", "3");
         }
         else
         {
-	        _entries = new CharSequence[] {
-			        "Interpreter",
-	        };
-	        _entryvalues = new CharSequence[] {"0"};
+            entries.put("Interpreter", "0");
         }
-
-        etp.setEntries(_entries);
-        etp.setEntryValues(_entryvalues);
+        
+        // Convert the key/value sections to arrays respectively so the list can be set.
+        // If Java had proper generics it wouldn't look this disgusting.
+        etp.setEntries(entries.keySet().toArray(new CharSequence[entries.size()]));
+        etp.setEntryValues(entries.values().toArray(new CharSequence[entries.size()]));
         etp.setKey("cpupref");
         etp.setTitle("CPU Core");
         etp.setSummary("Emulation core to use");
@@ -185,17 +179,16 @@ public class PrefsFragment extends PreferenceFragment {
 
 	        final ListPreference videobackend = new ListPreference(m_activity);
 
-	        _entries = new CharSequence[] {
-			        "Software Renderer",
-	        };
-	        _entryvalues = new CharSequence[] {"Software Renderer"};
+	        // Add available graphics renderers to the hashmap to add to the list.
+	        entries.clear();
+	        entries.put("Software Renderer", "Software Renderer"); // TODO: I think this is a bug? The value shouldn't be the same as the key?
 
 	        videobackend.setKey("gpupref");
 	        videobackend.setTitle("Video Backend");
 	        videobackend.setSummary("Video backend to use");
 
-	        videobackend.setEntries(_entries);
-	        videobackend.setEntryValues(_entryvalues);
+	        videobackend.setEntries(entries.keySet().toArray(new CharSequence[entries.size()]));
+	        videobackend.setEntryValues(entries.values().toArray(new CharSequence[entries.size()]));
 
 	        mCategory.addPreference(videobackend);
         }
