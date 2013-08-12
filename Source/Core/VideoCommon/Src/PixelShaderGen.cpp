@@ -216,7 +216,7 @@ static char swapModeTable[4][5];
 
 static char text[16384];
 
-static void BuildSwapModeTable()
+static inline void BuildSwapModeTable()
 {
 	static const char *swapColors = "rgba";
 	for (int i = 0; i < 4; i++)
@@ -229,13 +229,13 @@ static void BuildSwapModeTable()
 	}
 }
 
-template<class T> static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4]);
-template<class T> static void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
-template<class T> static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
-template<class T> static void WriteFog(T& out, pixel_shader_uid_data& uid_data);
+template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4]);
+template<class T> static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
+template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
+template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data);
 
 template<class T>
-static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
@@ -762,7 +762,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 };
 
 template<class T>
-static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4])
+static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4])
 {
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
 	bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
@@ -1160,7 +1160,7 @@ static const char *tevAlphaFunclogicTable[] =
 };
 
 template<class T>
-static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth)
+static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth)
 {
 	static const char *alphaRef[2] =
 	{
@@ -1231,7 +1231,7 @@ static const char *tevFogFuncsTable[] =
 };
 
 template<class T>
-static void WriteFog(T& out, pixel_shader_uid_data& uid_data)
+static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 {
 	uid_data.fog_fsel = bpmem.fog.c_proj_fsel.fsel;
 	if(bpmem.fog.c_proj_fsel.fsel == 0)
