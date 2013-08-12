@@ -331,7 +331,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 
 		out.Write("VARYIN float4 colors_02;\n");
 		out.Write("VARYIN float4 colors_12;\n");
-		
+
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
 		if (xfregs.numTexGen.numTexGens < 7)
@@ -500,7 +500,6 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		uid_data.xfregs_numTexGen_numTexGens = xfregs.numTexGen.numTexGens;
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
 			out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
