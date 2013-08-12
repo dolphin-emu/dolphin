@@ -20,7 +20,7 @@
 static char text[16768];
 
 template<class T>
-static void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
+static inline void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
 {
 	object.Write("  %s %s", type, name);
 	if (var_index != -1)
@@ -38,7 +38,7 @@ static void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char*
 }
 
 template<class T>
-static void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
+static inline void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
 {
 	object.Write("struct VS_OUTPUT {\n");
 	DefineVSOutputStructMember(object, api_type, "float4", "pos", -1, "POSITION");
@@ -67,7 +67,7 @@ static void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
 }
 
 template<class T>
-static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
+static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	vertex_shader_uid_data dummy_data;
@@ -353,7 +353,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 					// transform the light dir into tangent space
 					uid_data.texMtxInfo[i].embosslightshift = xfregs.texMtxInfo[i].embosslightshift;
 					uid_data.texMtxInfo[i].embosssourceshift = xfregs.texMtxInfo[i].embosssourceshift;
-					out.Write("ldir = normalize(%s.xyz - pos.xyz);\n", LightPos(I_LIGHTS, texinfo.embosslightshift));
+					out.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(I_LIGHTS, texinfo.embosslightshift));
 					out.Write("o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
 				}
 				else

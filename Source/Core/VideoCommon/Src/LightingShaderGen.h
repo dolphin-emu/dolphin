@@ -9,40 +9,22 @@
 #include "NativeVertexFormat.h"
 #include "XFMemory.h"
 
-static const char* LightCol(const char* lightsName, unsigned int index, const char* swizzle)
-{
-	static char result[32];
-	snprintf(result, sizeof(result), "%s[5*%d].%s", lightsName, index, swizzle);
-	return result;
-}
 
-static const char* LightCosAtt(const char* lightsName, unsigned int index)
-{
-	static char result[32];
-	snprintf(result, sizeof(result), "%s[5*%d+1]", lightsName, index);
-	return result;
-}
+#define LIGHT_COL "%s[5*%d].%s"
+#define LIGHT_COL_PARAMS(lightsName, index, swizzle) (lightsName), (index), (swizzle)
 
-static const char* LightDistAtt(const char* lightsName, unsigned int index)
-{
-	static char result[32];
-	snprintf(result, sizeof(result), "%s[5*%d+2]", lightsName, index);
-	return result;
-}
+#define LIGHT_COSATT "%s[5*%d+1]"
+#define LIGHT_COSATT_PARAMS(lightsName, index) (lightsName), (index)
 
-static const char* LightPos(const char* lightsName, unsigned int index)
-{
-	static char result[32];
-	snprintf(result, sizeof(result), "%s[5*%d+3]", lightsName, index);
-	return result;
-}
+#define LIGHT_DISTATT "%s[5*%d+2]"
+#define LIGHT_DISTATT_PARAMS(lightsName, index) (lightsName), (index)
 
-static const char* LightDir(const char* lightsName, unsigned int index)
-{
-	static char result[32];
-	snprintf(result, sizeof(result), "%s[5*%d+4]", lightsName, index);
-	return result;
-}
+#define LIGHT_POS "%s[5*%d+3]"
+#define LIGHT_POS_PARAMS(lightsName, index) (lightsName), (index)
+
+#define LIGHT_DIR "%s[5*%d+4]"
+#define LIGHT_DIR_PARAMS(lightsName, index) (lightsName), (index)
+
 
 template<class T>
 static void GenerateLightShader(T& object, LightingUidData& uid_data, int index, int litchan_index, const char* lightsName, int coloralpha)
@@ -62,13 +44,13 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 		switch (chan.diffusefunc)
 		{
 			case LIGHTDIF_NONE:
-				object.Write("lacc.%s += %s;\n", swizzle, LightCol(lightsName, index, swizzle));
+				object.Write("lacc.%s += " LIGHT_COL";\n", swizzle, LIGHT_COL_PARAMS(lightsName, index, swizzle));
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				object.Write("ldir = normalize(%s.xyz - pos.xyz);\n", LightPos(lightsName, index));
-				object.Write("lacc.%s += %sdot(ldir, _norm0)) * %s;\n",
-					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", LightCol(lightsName, index, swizzle));
+				object.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(lightsName, index));
+				object.Write("lacc.%s += %sdot(ldir, _norm0)) * " LIGHT_COL";\n",
+					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", LIGHT_COL_PARAMS(lightsName, index, swizzle));
 				break;
 			default: _assert_(0);
 		}
@@ -77,31 +59,34 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 	{
 		if (chan.attnfunc == 3)
 		{ // spot
-			object.Write("ldir = %s.xyz - pos.xyz;\n", LightPos(lightsName, index));
+			object.Write("ldir = " LIGHT_POS".xyz - pos.xyz;\n", LIGHT_POS_PARAMS(lightsName, index));
 			object.Write("dist2 = dot(ldir, ldir);\n"
 						"dist = sqrt(dist2);\n"
 						"ldir = ldir / dist;\n"
-						"attn = max(0.0f, dot(ldir, %s.xyz));\n", LightDir(lightsName, index));
-			object.Write("attn = max(0.0f, dot(%s.xyz, float3(1.0f, attn, attn*attn))) / dot(%s.xyz, float3(1.0f,dist,dist2));\n", LightCosAtt(lightsName, index), LightDistAtt(lightsName, index));
+						"attn = max(0.0f, dot(ldir, " LIGHT_DIR".xyz));\n",
+						LIGHT_DIR_PARAMS(lightsName, index));
+			object.Write("attn = max(0.0f, dot(" LIGHT_COSATT".xyz, float3(1.0f, attn, attn*attn))) / dot(" LIGHT_DISTATT".xyz, float3(1.0f,dist,dist2));\n",
+						LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_DISTATT_PARAMS(lightsName, index));
 		}
 		else if (chan.attnfunc == 1)
 		{ // specular
-			object.Write("ldir = normalize(%s.xyz);\n", LightPos(lightsName, index));
-			object.Write("attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, %s.xyz)) : 0.0f;\n", LightDir(lightsName, index));
-			object.Write("attn = max(0.0f, dot(%s.xyz, float3(1,attn,attn*attn))) / dot(%s.xyz, float3(1,attn,attn*attn));\n", LightCosAtt(lightsName, index), LightDistAtt(lightsName, index));
+			object.Write("ldir = normalize(" LIGHT_POS".xyz);\n", LIGHT_POS_PARAMS(lightsName, index));
+			object.Write("attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, " LIGHT_DIR".xyz)) : 0.0f;\n", LIGHT_DIR_PARAMS(lightsName, index));
+			object.Write("attn = max(0.0f, dot(" LIGHT_COSATT".xyz, float3(1,attn,attn*attn))) / dot(" LIGHT_DISTATT".xyz, float3(1,attn,attn*attn));\n",
+						LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_DISTATT_PARAMS(lightsName, index));
 		}
 
 		switch (chan.diffusefunc)
 		{
 			case LIGHTDIF_NONE:
-				object.Write("lacc.%s += attn * %s;\n", swizzle, LightCol(lightsName, index, swizzle));
+				object.Write("lacc.%s += attn * " LIGHT_COL";\n", swizzle, LIGHT_COL_PARAMS(lightsName, index, swizzle));
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
-				object.Write("lacc.%s += attn * %sdot(ldir, _norm0)) * %s;\n",
+				object.Write("lacc.%s += attn * %sdot(ldir, _norm0)) * " LIGHT_COL";\n",
 					swizzle,
 					chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(",
-					LightCol(lightsName, index, swizzle));
+					LIGHT_COL_PARAMS(lightsName, index, swizzle));
 				break;
 			default: _assert_(0);
 		}
