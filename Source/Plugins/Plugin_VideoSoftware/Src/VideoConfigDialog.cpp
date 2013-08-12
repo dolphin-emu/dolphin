@@ -51,7 +51,7 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 			it = g_available_video_backends.begin(),
 			itend = g_available_video_backends.end();
 	for (; it != itend; ++it)
-		choice_backend->AppendString(StrToWxStr((*it)->GetName()));
+		choice_backend->AppendString(StrToWxStr((*it)->GetDisplayName()));
 
 	// TODO: How to get the translated plugin name?
 	choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName()));
