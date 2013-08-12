@@ -243,17 +243,19 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 										? out.template GetUidData<pixel_shader_uid_data>() : dummy_data;
 
 	out.SetBuffer(text);
+	const bool is_writing_shadercode = (out.GetBuffer() != NULL);
 #ifndef ANDROID
 	locale_t locale;
 	locale_t old_locale;
-	if (out.GetBuffer() != NULL)
+	if (is_writing_shadercode)
 	{
 		locale = newlocale(LC_NUMERIC_MASK, "C", NULL); // New locale for compilation
 		old_locale = uselocale(locale); // Apply the locale for this thread
 	}
 #endif
 
-	text[sizeof(text) - 1] = 0x7C;  // canary
+	if (is_writing_shadercode)
+		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	unsigned int numStages = bpmem.genMode.numtevstages + 1;
 	unsigned int numTexgen = bpmem.genMode.numtexgens;
@@ -372,7 +374,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			// It just allows it, but it seems that all drivers do.
 			out.Write("layout(early_fragment_tests) in;\n");
 		}
-		else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED))
+		else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
 		{
 			static bool warn_once = true;
 			if (warn_once)
@@ -388,7 +390,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			out.Write("[earlydepthstencil]\n");
 		}
-		else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED))
+		else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
 		{
 			static bool warn_once = true;
 			if (warn_once)
@@ -705,16 +707,16 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	out.Write("}\n");
 
-	if (text[sizeof(text) - 1] != 0x7C)
-		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
+	if (is_writing_shadercode)
+	{
+		if (text[sizeof(text) - 1] != 0x7C)
+			PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
 
 #ifndef ANDROID
-	if (out.GetBuffer() != NULL)
-	{
 		uselocale(old_locale); // restore locale
 		freelocale(locale);
-	}
 #endif
+	}
 }
 
 
@@ -905,7 +907,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		uid_data.SetTevindrefTexmap(i, texmap);
-		
+
 		out.Write("textemp = ");
 		SampleTexture<T>(out, "tevcoord", texswap, texmap, ApiType);
 	}
@@ -1132,7 +1134,7 @@ template<class T>
 void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
-	
+
 	if (ApiType == API_D3D11)
 		out.Write("Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", texmap,texmap, texcoords, texmap, texswap);
 	else
@@ -1273,7 +1275,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	}
 	else
 	{
-		if (bpmem.fog.c_proj_fsel.fsel != 2)
+		if (bpmem.fog.c_proj_fsel.fsel != 2 && out.GetBuffer() != NULL)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 

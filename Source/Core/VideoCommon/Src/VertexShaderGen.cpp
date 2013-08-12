@@ -20,7 +20,7 @@
 static char text[16768];
 
 template<class T>
-static inline void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
+static void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char* type, const char* name, int var_index, const char* semantic, int semantic_index = -1)
 {
 	object.Write("  %s %s", type, name);
 	if (var_index != -1)
@@ -75,16 +75,19 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 											? out.template GetUidData<vertex_shader_uid_data>() : dummy_data;
 
 	out.SetBuffer(text);
+	const bool is_writing_shadercode = (out.GetBuffer() != NULL);
 #ifndef ANDROID
 	locale_t locale;
 	locale_t old_locale;
-	if (out.GetBuffer() != NULL)
+	if (is_writing_shadercode)
 	{
 		locale = newlocale(LC_NUMERIC_MASK, "C", NULL); // New locale for compilation
 		old_locale = uselocale(locale); // Apply the locale for this thread
 	}
 #endif
-	text[sizeof(text) - 1] = 0x7C;  // canary
+
+	if (is_writing_shadercode)
+		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
@@ -225,7 +228,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			out.Write("int posmtx = int(fposmtx);\n");
 		}
 
-		if (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS))
+		if (is_writing_shadercode && DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS))
 		{
 			// This'll cause issues, but  it can't be helped
 			out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[0], rawpos), dot(" I_TRANSFORMMATRICES"[1], rawpos), dot(" I_TRANSFORMMATRICES"[2], rawpos), 1);\n");
@@ -547,16 +550,16 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		out.Write("return o;\n}\n");
 	}
 
-	if (text[sizeof(text) - 1] != 0x7C)
-		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
+	if (is_writing_shadercode)
+	{
+		if (text[sizeof(text) - 1] != 0x7C)
+			PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
 
 #ifndef ANDROID
-	if (out.GetBuffer() != NULL)
-	{
 		uselocale(old_locale); // restore locale
 		freelocale(locale);
-	}
 #endif
+	}
 }
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type)
