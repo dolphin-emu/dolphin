@@ -67,6 +67,45 @@ void JitArm::ComputeRC(s32 value, int cr) {
 	STRB(rB, R9, PPCSTATE_OFF(cr_fast) + cr);
 	gpr.Unlock(rB);
 }
+
+void JitArm::ComputeCarry()
+{
+	ARMReg tmp = gpr.GetReg();
+	Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+	LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	SetCC(CC_CS);
+	ORR(tmp, tmp, mask);
+	SetCC(CC_CC);
+	BIC(tmp, tmp, mask);
+	SetCC();
+	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	gpr.Unlock(tmp);
+}
+
+void JitArm::GetCarryAndClear(ARMReg reg)
+{
+	ARMReg tmp = gpr.GetReg();
+	Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+	LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	AND(reg, tmp, mask);
+	BIC(tmp, tmp, mask);
+	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	gpr.Unlock(tmp);
+}
+
+void JitArm::FinalizeCarry(ARMReg reg)
+{
+	ARMReg tmp = gpr.GetReg();
+	Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+	SetCC(CC_CS);
+	ORR(reg, reg, mask);
+	SetCC();
+	LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	ORR(tmp, tmp, reg);
+	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	gpr.Unlock(tmp);
+}
+
 void JitArm::addi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -129,6 +168,37 @@ void JitArm::addx(UGeckoInstruction inst)
 	ADDS(RD, RA, RB);
 	if (inst.Rc) ComputeRC();
 }
+
+void JitArm::addcx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+	u32 a = inst.RA, b = inst.RB, d = inst.RD;
+	
+	ARMReg RA = gpr.R(a);
+	ARMReg RB = gpr.R(b);
+	ARMReg RD = gpr.R(d);
+	ADDS(RD, RA, RB);
+	ComputeCarry();
+	if (inst.Rc) ComputeRC();
+}
+void JitArm::addex(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+	u32 a = inst.RA, b = inst.RB, d = inst.RD;
+	Default(inst); return;
+	ARMReg RA = gpr.R(a);
+	ARMReg RB = gpr.R(b);
+	ARMReg RD = gpr.R(d);
+	ARMReg rA = gpr.GetReg();
+	GetCarryAndClear(rA);
+	ADDS(RD, RA, RB);
+	FinalizeCarry(rA);
+	if (inst.Rc) ComputeRC();
+	gpr.Unlock(rA);
+}
+
 void JitArm::subfx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

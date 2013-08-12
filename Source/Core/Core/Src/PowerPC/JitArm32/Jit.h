@@ -118,6 +118,10 @@ public:
 	void ComputeRC(int cr = 0);
 	void ComputeRC(s32 value, int cr);
 
+	void ComputeCarry();
+	void GetCarryAndClear(ARMReg reg);
+	void FinalizeCarry(ARMReg reg);
+
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
 	void Default(UGeckoInstruction _inst);
@@ -144,6 +148,8 @@ public:
 	void addi(UGeckoInstruction _inst);
 	void addis(UGeckoInstruction _inst);
 	void addx(UGeckoInstruction _inst);
+	void addcx(UGeckoInstruction _inst);
+	void addex(UGeckoInstruction _inst);
 	void cmp (UGeckoInstruction _inst);
 	void cmpi(UGeckoInstruction _inst);
 	void cmpl(UGeckoInstruction _inst);
@@ -187,12 +193,22 @@ public:
 
 	// Floating point
 	void fabsx(UGeckoInstruction _inst);
+	void faddsx(UGeckoInstruction _inst);
 	void faddx(UGeckoInstruction _inst);
+	void fsubsx(UGeckoInstruction _inst);
+	void fsubx(UGeckoInstruction _inst);
+	void fmulsx(UGeckoInstruction _inst);
+	void fmulx(UGeckoInstruction _inst);
 	void fmrx(UGeckoInstruction _inst);
 
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);
 	void lfd(UGeckoInstruction _inst);
+
+	// Paired Singles
+	void ps_add(UGeckoInstruction _inst);
+	void ps_sub(UGeckoInstruction _inst);
+	void ps_mul(UGeckoInstruction _inst);
 };
 
 #endif // _JIT64_H
