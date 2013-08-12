@@ -38,13 +38,18 @@ public class PrefsFragment extends PreferenceFragment {
 					EGL10.EGL_RENDERABLE_TYPE, 4,
 					EGL10.EGL_NONE
 			};
+			int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
+			int[] ctx_attribs = new int[] {
+					EGL_CONTEXT_CLIENT_VERSION, 2,
+					EGL10.EGL_NONE
+			};
 
 			// No error checking performed, minimum required code to elucidate logic
 			mEGL = (EGL10) EGLContext.getEGL();
 			mEGLDisplay = mEGL.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
 			mEGL.eglInitialize(mEGLDisplay, version);
 			mEGLConfig = chooseConfig(); // Choosing a config is a little more complicated
-			mEGLContext = mEGL.eglCreateContext(mEGLDisplay, mEGLConfig, EGL10.EGL_NO_CONTEXT, null);
+			mEGLContext = mEGL.eglCreateContext(mEGLDisplay, mEGLConfig, EGL10.EGL_NO_CONTEXT, ctx_attribs);
 			mEGLSurface = mEGL.eglCreatePbufferSurface(mEGLDisplay, mEGLConfig,  attribList);
 			mEGL.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext);
 			mGL = (GL10) mEGLContext.getGL();

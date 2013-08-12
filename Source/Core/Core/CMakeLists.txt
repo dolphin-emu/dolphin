@@ -210,6 +210,7 @@ if(_M_ARM)
 			Src/PowerPC/JitArm32/JitArm_Integer.cpp
 			Src/PowerPC/JitArm32/JitArm_LoadStore.cpp
 			Src/PowerPC/JitArm32/JitArm_FloatingPoint.cpp
+			Src/PowerPC/JitArm32/JitArm_Paired.cpp
 			Src/PowerPC/JitArm32/JitArm_SystemRegisters.cpp
 			Src/PowerPC/JitArm32/JitArm_LoadStoreFloating.cpp)
 endif()

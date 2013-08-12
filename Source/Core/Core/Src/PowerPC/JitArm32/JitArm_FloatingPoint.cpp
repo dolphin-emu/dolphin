@@ -51,6 +51,21 @@ void JitArm::fabsx(UGeckoInstruction inst)
 	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
+void JitArm::faddsx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+
+	ARMReg vD0 = fpr.R0(inst.FD);
+	ARMReg vD1 = fpr.R1(inst.FD);
+	ARMReg vA = fpr.R0(inst.FA);
+	ARMReg vB = fpr.R0(inst.FB);
+
+	VADD(vD0, vA, vB);
+	VADD(vD1, vA, vB);
+	if (inst.Rc) Helper_UpdateCR1(vD0);
+}
+
 void JitArm::faddx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -64,6 +79,65 @@ void JitArm::faddx(UGeckoInstruction inst)
 	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
+// Breaks Animal crossing
+void JitArm::fsubsx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+
+	Default(inst); return;
+
+	ARMReg vD0 = fpr.R0(inst.FD);
+	ARMReg vD1 = fpr.R1(inst.FD);
+	ARMReg vA = fpr.R0(inst.FA);
+	ARMReg vB = fpr.R0(inst.FB);
+
+	VSUB(vD0, vA, vB);
+	VSUB(vD1, vA, vB);
+	if (inst.Rc) Helper_UpdateCR1(vD0);
+}
+
+void JitArm::fsubx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+
+	ARMReg vD = fpr.R0(inst.FD);
+	ARMReg vA = fpr.R0(inst.FA);
+	ARMReg vB = fpr.R0(inst.FB);
+
+	VSUB(vD, vA, vB);
+	if (inst.Rc) Helper_UpdateCR1(vD);
+}
+// Breaks animal crossing
+void JitArm::fmulsx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+
+	Default(inst); return;
+
+	ARMReg vD0 = fpr.R0(inst.FD);
+	ARMReg vD1 = fpr.R1(inst.FD);
+	ARMReg vA = fpr.R0(inst.FA);
+	ARMReg vC = fpr.R0(inst.FC);
+
+	VMUL(vD0, vA, vC);
+	VMUL(vD1, vA, vC);
+	if (inst.Rc) Helper_UpdateCR1(vD0);
+}
+void JitArm::fmulx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+
+	ARMReg vD0 = fpr.R0(inst.FD);
+	ARMReg vA = fpr.R0(inst.FA);
+	ARMReg vC = fpr.R0(inst.FC);
+
+	VMUL(vD0, vA, vC);
+	if (inst.Rc) Helper_UpdateCR1(vD0);
+}
 void JitArm::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
