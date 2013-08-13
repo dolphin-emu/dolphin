@@ -885,7 +885,40 @@ union AlphaTest
 		PASS = 2,
 	};
 
-	TEST_RESULT TestResult();
+	inline TEST_RESULT TestResult() const
+	{
+		switch(logic)
+		{
+		case 0: // AND
+			if (comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_ALWAYS)
+				return PASS;
+			if (comp0 == ALPHACMP_NEVER || comp1 == ALPHACMP_NEVER)
+				return FAIL;
+			break;
+
+		case 1: // OR
+			if (comp0 == ALPHACMP_ALWAYS || comp1 == ALPHACMP_ALWAYS)
+				return PASS;
+			if (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_NEVER)
+				return FAIL;
+			break;
+
+		case 2: // XOR
+			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_NEVER) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_ALWAYS))
+				return PASS;
+			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_ALWAYS) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_NEVER))
+				return FAIL;
+			break;
+
+		case 3: // XNOR
+			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_NEVER) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_ALWAYS))
+				return FAIL;
+			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_ALWAYS) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_NEVER))
+				return PASS;
+			break;
+		}
+		return UNDETERMINED;
+	}
 };
 
 union UPE_Copy
