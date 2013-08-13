@@ -143,11 +143,9 @@ public class DolphinEmulator<MainActivity> extends Activity
 	@Override
 	public boolean onTouchEvent(MotionEvent event)
 	{
-		float X, Y;
-		int Action;
-		X = event.getX();
-		Y = event.getY();
-		Action = event.getActionMasked();
+		float X = event.getX();
+		float Y = event.getY();
+		int Action = event.getActionMasked();
 		
 		// Converts button locations 0 - 1 to OGL screen coords -1.0 - 1.0
 		float ScreenX = ((X / screenWidth) * 2.0f) - 1.0f;
@@ -207,14 +205,13 @@ public class DolphinEmulator<MainActivity> extends Activity
 
 		InputDevice input = event.getDevice();
 		List<InputDevice.MotionRange> motions = input.getMotionRanges();
-		for (int a = 0; a < motions.size(); ++a)
+		
+		for (InputDevice.MotionRange range : motions)
 		{
-			InputDevice.MotionRange range;
-			range = motions.get(a);
-			NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
+		    NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
 		}
 
 		return true;
 	}
 
-}                                
+}
