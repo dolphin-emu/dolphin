@@ -26,8 +26,8 @@ public class FolderBrowser extends Fragment {
     {
 	    m_activity.setTitle(getString(R.string.current_dir) + currDir.getName());
 		File[] dirs = currDir.listFiles();
-		List<GameListItem>dir = new ArrayList<GameListItem>();
-		List<GameListItem>fls = new ArrayList<GameListItem>();
+		List<FolderBrowserItem>dir = new ArrayList<FolderBrowserItem>();
+		List<FolderBrowserItem>fls = new ArrayList<FolderBrowserItem>();
 
 		// Supported extensions to filter by
 		Set<String> validExts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf", ".dff"));
@@ -44,17 +44,17 @@ public class FolderBrowser extends Fragment {
 				{
 					if(entry.isDirectory())
 					{
-						dir.add(new GameListItem(m_activity, entryName, getString(R.string.folder), entry.getAbsolutePath(), true));
+						dir.add(new FolderBrowserItem(m_activity, entryName, getString(R.string.folder), entry.getAbsolutePath(), true));
 					}
 					else
 					{
 						if (validExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 						{
-							fls.add(new GameListItem(m_activity, entryName,getString(R.string.file_size)+entry.length(),entry.getAbsolutePath(), true));
+							fls.add(new FolderBrowserItem(m_activity, entryName,getString(R.string.file_size)+entry.length(),entry.getAbsolutePath(), true));
 						}
 						else if (invalidExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 						{
-							fls.add(new GameListItem(m_activity, entryName,getString(R.string.file_size)+entry.length(),entry.getAbsolutePath(), false));
+							fls.add(new FolderBrowserItem(m_activity, entryName,getString(R.string.file_size)+entry.length(),entry.getAbsolutePath(), false));
 						}
 					}
 				}
@@ -70,7 +70,7 @@ public class FolderBrowser extends Fragment {
 
 		// Check for a parent directory to the one we're currently in.
 		if (!currDir.getPath().equalsIgnoreCase("/"))
-			dir.add(0, new GameListItem(m_activity, "..", getString(R.string.parent_directory), currDir.getParent(), true));
+			dir.add(0, new FolderBrowserItem(m_activity, "..", getString(R.string.parent_directory), currDir.getParent(), true));
 
 		adapter = new FolderBrowserAdapter(m_activity, R.layout.folderbrowser, dir);
 	    mDrawerList = (ListView) rootView.findViewById(R.id.gamelist);
@@ -94,15 +94,15 @@ public class FolderBrowser extends Fragment {
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 		{
-			GameListItem o = adapter.getItem(position);
-			if(o.getData().equalsIgnoreCase(getString(R.string.folder)) || o.getData().equalsIgnoreCase(getString(R.string.parent_directory)))
+			FolderBrowserItem o = adapter.getItem(position);
+			if(o.isDirectory() || o.getSubtitle().equalsIgnoreCase(getString(R.string.parent_directory)))
 			{
 				currentDir = new File(o.getPath());
 				Fill(currentDir);
 			}
 			else
 			{
-				if (o.isValid())
+				if (o.isValidItem())
 					FolderSelected();
 				else
 					Toast.makeText(m_activity, getString(R.string.cant_use_compressed_filetypes), Toast.LENGTH_LONG).show();

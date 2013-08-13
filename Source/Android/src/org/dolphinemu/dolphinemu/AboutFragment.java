@@ -22,7 +22,6 @@ public class AboutFragment extends Fragment {
 	private ListView mMainList;
 
 	private FolderBrowserAdapter adapter;
-	private int configPosition = 0;
 	boolean Configuring = false;
 	boolean firstEvent = true;
 
@@ -39,11 +38,11 @@ public class AboutFragment extends Fragment {
 		String yes = getString(R.string.yes);
 		String no = getString(R.string.no);
 
-		List<GameListItem> Input = new ArrayList<GameListItem>();
-		Input.add(new GameListItem(m_activity, getString(R.string.build_revision), NativeLibrary.GetVersionString(), "", true));
-		Input.add(new GameListItem(m_activity, getString(R.string.supports_gles3), PrefsFragment.SupportsGLES3() ? yes : no, "", true));
+		List<FolderBrowserItem> Input = new ArrayList<FolderBrowserItem>();
+		Input.add(new FolderBrowserItem(m_activity, getString(R.string.build_revision), NativeLibrary.GetVersionString(), "", true));
+		Input.add(new FolderBrowserItem(m_activity, getString(R.string.supports_gles3), PrefsFragment.SupportsGLES3() ? yes : no, "", true));
 
-		adapter = new FolderBrowserAdapter(m_activity, R.layout.folderbrowser, Input);
+		adapter = new FolderBrowserAdapter(m_activity, R.layout.about_layout, Input);
 		mMainList.setAdapter(adapter);
 
 		return mMainList;
