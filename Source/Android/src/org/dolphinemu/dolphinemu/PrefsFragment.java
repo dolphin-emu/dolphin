@@ -144,18 +144,18 @@ public class PrefsFragment extends PreferenceFragment {
 
         if (Build.CPU_ABI.contains("x86"))
         {
-	        entries.put("Interpreter", "0");
-	        entries.put("JIT64 Recompiler", "1");
-	        entries.put("JITIL Recompiler", "2");
+	        entries.put(getString(R.string.interpreter), "0");
+	        entries.put(getString(R.string.jit64_recompiler), "1");
+	        entries.put(getString(R.string.jitil_recompiler), "2");
         }
         else if (Build.CPU_ABI.contains("arm"))
         {
-	        entries.put("Interpreter", "0");
-	        entries.put("JIT ARM Recompiler", "3");
+	        entries.put(getString(R.string.interpreter), "0");
+	        entries.put(getString(R.string.jit_arm_recompiler), "3");
         }
         else
         {
-            entries.put("Interpreter", "0");
+            entries.put(getString(R.string.interpreter), "0");
         }
         
         // Convert the key/value sections to arrays respectively so the list can be set.
@@ -163,8 +163,8 @@ public class PrefsFragment extends PreferenceFragment {
         etp.setEntries(entries.keySet().toArray(new CharSequence[entries.size()]));
         etp.setEntryValues(entries.values().toArray(new CharSequence[entries.size()]));
         etp.setKey("cpupref");
-        etp.setTitle("CPU Core");
-        etp.setSummary("Emulation core to use");
+        etp.setTitle(getString(R.string.cpu_core));
+        etp.setSummary(getString(R.string.emu_core_to_use));
 
         PreferenceCategory mCategory = (PreferenceCategory) findPreference("cpuprefcat");
         mCategory.addPreference(etp);
@@ -181,11 +181,11 @@ public class PrefsFragment extends PreferenceFragment {
 
 	        // Add available graphics renderers to the hashmap to add to the list.
 	        entries.clear();
-	        entries.put("Software Renderer", "Software Renderer"); // TODO: I think this is a bug? The value shouldn't be the same as the key?
+	        entries.put(getString(R.string.software_renderer), "Software Renderer");
 
 	        videobackend.setKey("gpupref");
-	        videobackend.setTitle("Video Backend");
-	        videobackend.setSummary("Video backend to use");
+	        videobackend.setTitle(getString(R.string.video_backend));
+	        videobackend.setSummary(getString(R.string.video_backend_to_use));
 
 	        videobackend.setEntries(entries.keySet().toArray(new CharSequence[entries.size()]));
 	        videobackend.setEntryValues(entries.values().toArray(new CharSequence[entries.size()]));

@@ -38,7 +38,7 @@ public class DolphinEmulator<MainActivity> extends Activity
           out.close();
           out = null;
         } catch(IOException e) {
-            Log.e("tag", "Failed to copy asset file: " + asset, e);
+            Log.e("DolphinEmulator", "Failed to copy asset file: " + asset, e);
         }       
 	}
 
