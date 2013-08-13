@@ -49,7 +49,7 @@ public class GameListFragment extends Fragment
 
 		for (int a = 0; a < intDirectories; ++a)
 		{
-			String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(a), "");
+			String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPath" + a, "");
 			File currentDir = new File(BrowseDir);
 			File[]dirs = currentDir.listFiles();
 			try
