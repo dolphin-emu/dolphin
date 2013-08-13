@@ -92,7 +92,7 @@ private:
 	void OnAdjustBuffer(wxCommandEvent& event);
 	void OnConfigPads(wxCommandEvent& event);
 	void GetNetSettings(NetSettings &settings);
-	const std::string& FindGame();
+	std::string FindGame();
 
 	wxListBox*		m_player_lbox;
 	wxTextCtrl*		m_chat_text;
