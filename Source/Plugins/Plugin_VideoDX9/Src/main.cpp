@@ -102,7 +102,7 @@ void InitBackendInfo()
             // dual source blending is only supported in windows 7 o newer. sorry xp users
             // we cannot test for device caps because most drivers just declare the minimun caps
             // and don't expose their support for some functionalities              
-            g_Config.backend_info.bSupportsDualSourceBlend = info.dwPlatformId == VER_PLATFORM_WIN32_NT && ((info.dwMajorVersion > 6) || ((info.dwMajorVersion == 6) && info.dwMinorVersion >= 1));
+            g_Config.backend_info.bSupportsDualSourceBlend = g_Config.backend_info.bSupportsSeparateAlphaFunction && (info.dwPlatformId == VER_PLATFORM_WIN32_NT) && ((info.dwMajorVersion > 6) || ((info.dwMajorVersion == 6) && info.dwMinorVersion >= 1));
     }
     else
     {
