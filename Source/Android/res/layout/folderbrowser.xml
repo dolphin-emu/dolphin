@@ -38,6 +38,6 @@
         android:layout_alignWithParentIfMissing="true"
                 
         android:gravity="center_vertical"
-        android:text="Title" />
-	
+        android:text="Title"
+        android:textStyle="bold" />/>
 </RelativeLayout>
