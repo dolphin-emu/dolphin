@@ -49,7 +49,7 @@ public class GameListFragment extends Fragment
 
 		for (int a = 0; a < intDirectories; ++a)
 		{
-			String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(a), "");
+			String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPath" + a, "");
 			File currentDir = new File(BrowseDir);
 			File[]dirs = currentDir.listFiles();
 			try
@@ -63,7 +63,7 @@ public class GameListFragment extends Fragment
 						if(!entry.isDirectory())
 						{
 							if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
-								fls.add(new GameListItem(mMe.getApplicationContext(), entryName,"File Size: "+entry.length(),entry.getAbsolutePath(), true));
+								fls.add(new GameListItem(mMe.getApplicationContext(), entryName, getString(R.string.file_size)+entry.length(),entry.getAbsolutePath(), true));
 						}
 					}
 				}
@@ -96,7 +96,7 @@ public class GameListFragment extends Fragment
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 		{
 			GameListItem o = mGameAdapter.getItem(position);
-			if(!(o.getData().equalsIgnoreCase("folder")||o.getData().equalsIgnoreCase("parent directory")))
+			if(!(o.getData().equalsIgnoreCase(getString(R.string.folder))||o.getData().equalsIgnoreCase(getString(R.string.parent_directory))))
 			{
 				onFileClick(o.getPath());
 			}
@@ -104,7 +104,7 @@ public class GameListFragment extends Fragment
 	};
 	private void onFileClick(String o)
 	{
-		Toast.makeText(mMe, "File Clicked: " + o, Toast.LENGTH_SHORT).show();
+		Toast.makeText(mMe, getString(R.string.file_clicked) + o, Toast.LENGTH_SHORT).show();
 
 		Intent intent = new Intent();
 		intent.putExtra("Select", o);

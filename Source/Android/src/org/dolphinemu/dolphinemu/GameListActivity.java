@@ -52,11 +52,11 @@ public class GameListActivity extends Activity
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
 		List<SideMenuItem> dir = new ArrayList<SideMenuItem>();
-		dir.add(new SideMenuItem("Game List", 0));
-		dir.add(new SideMenuItem("Browse Folder", 1));
-		dir.add(new SideMenuItem("Settings", 2));
-		dir.add(new SideMenuItem("Gamepad Config", 3));
-		dir.add(new SideMenuItem("About", 4));
+		dir.add(new SideMenuItem(getString(R.string.game_list), 0));
+		dir.add(new SideMenuItem(getString(R.string.browse_folder), 1));
+		dir.add(new SideMenuItem(getString(R.string.settings), 2));
+		dir.add(new SideMenuItem(getString(R.string.gamepad_config), 3));
+		dir.add(new SideMenuItem(getString(R.string.about), 4));
 
 		mDrawerAdapter = new SideMenuAdapter(this, R.layout.sidemenu, dir);
 		mDrawerList.setAdapter(mDrawerAdapter);
@@ -179,7 +179,7 @@ public class GameListActivity extends Activity
 			break;
 			case 1:
 			{
-				Toast.makeText(mMe, "Loading up the browser", Toast.LENGTH_SHORT).show();
+				Toast.makeText(mMe, getString(R.string.loading_browser), Toast.LENGTH_SHORT).show();
 				mCurFragmentNum = 1;
 				mCurFragment = new FolderBrowser();
 				FragmentManager fragmentManager = getFragmentManager();
@@ -188,7 +188,7 @@ public class GameListActivity extends Activity
 			break;
 			case 2:
 			{
-				Toast.makeText(mMe, "Loading up settings", Toast.LENGTH_SHORT).show();
+				Toast.makeText(mMe, getString(R.string.loading_settings), Toast.LENGTH_SHORT).show();
 				mCurFragmentNum = 2;
 				mCurFragment = new PrefsFragment();
 				FragmentManager fragmentManager = getFragmentManager();
@@ -197,7 +197,7 @@ public class GameListActivity extends Activity
 			break;
 			case 3:
 			{
-				Toast.makeText(mMe, "Loading up gamepad config", Toast.LENGTH_SHORT).show();
+				Toast.makeText(mMe, getString(R.string.loading_gamepad), Toast.LENGTH_SHORT).show();
 				mCurFragmentNum = 3;
 				mCurFragment = new InputConfigFragment();
 				FragmentManager fragmentManager = getFragmentManager();
@@ -206,7 +206,7 @@ public class GameListActivity extends Activity
 			break;
 			case 4:
 			{
-				Toast.makeText(mMe, "Loading up About", Toast.LENGTH_SHORT).show();
+				Toast.makeText(mMe, getString(R.string.about), Toast.LENGTH_SHORT).show();
 				mCurFragmentNum = 4;
 				mCurFragment = new AboutFragment();
 				FragmentManager fragmentManager = getFragmentManager();

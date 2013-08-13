@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Title of the app -->
+    <string name="app_name">Dolphin Emulator</string>
+    
+    <!-- Navigation-related Strings -->
+    <string name="drawer_open">ナビゲーションウィンドウを開く</string>
+    <string name="drawer_close">ナビゲーションウィンドウを閉じる</string>
+    
+    <!-- About Fragment -->
+    <string name="build_revision">ビルドのバージョン：</string>
+    <string name="supports_gles3">サポートのOpenGL ES 3：</string>
+    
+    <!-- Folder Browser -->
+    <string name="current_dir">現在のディレクトリ： </string>
+    <string name="parent_directory">親ディレクトリ</string>
+    <string name="folder">フォルダ</string>
+    <string name="file_size">ファイルサイズ: </string>
+    <string name="cant_use_compressed_filetypes">圧縮ファイル形式はサポートされていません</string>
+    
+    <!-- Game List Activity -->
+    <string name="game_list">ゲームリスト</string>
+    <string name="browse_folder">フォルダの参照</string>
+    <string name="settings">設定</string>
+    <string name="gamepad_config">ゲームパッド設定</string>
+    <string name="about">について</string>
+    <string name="loading_browser">ファイルブラウザのロード</string>
+    <string name="loading_settings">設定のロード</string>
+    <string name="loading_gamepad">ゲームパッド設定のロード</string>
+    <string name="loading_about">メニューについてのロード</string>
+
+    <!-- Game List Fragment -->
+    <string name="file_clicked">クリックされたファイル： </string>
+    
+    <!-- Input Config Fragment -->
+    <string name="draw_onscreen_controls">画面上のコントロールを描画</string>
+    <string name="button_a">Aボタン</string>
+    <string name="button_b">Bボタン</string>
+    <string name="button_start">スタートボタン</string>
+    <string name="button_x">Xボタン</string>
+    <string name="button_y">Yボタン</string>
+    <string name="button_z">Zボタン</string>
+    <string name="dpad_up">D-Pad: ↑</string>
+    <string name="dpad_down">D-Pad: ↓</string>
+    <string name="dpad_left">D-Pad: ←</string>
+    <string name="dpad_right">D-Pad: →</string>
+    <string name="main_stick_up">コントロールスティック: ↑</string>
+    <string name="main_stick_down">コントロールスティック: ↓</string>
+    <string name="main_stick_left">コントロールスティック: ←</string>
+    <string name="main_stick_right">コントロールスティック: →</string>
+    <string name="c_stick_up">C-スティック: ↑</string>
+    <string name="c_stick_down">C-スティック: ↓</string>
+    <string name="c_stick_left">C-スティック: ←</string>
+    <string name="c_stick_right">C-スティック: →</string>
+    <string name="trigger_left">左のトリガー</string>
+    <string name="trigger_right">右のトリガー</string>
+    
+    <string name="not_drawing_onscreen_controls">コントロールは画面上に描画されていない</string>
+    <string name="drawing_onscreen_controls">コントロールは画面上に描画されています</string>
+    <string name="press_button_to_config">%1$sを設定するにはボタンを押して</string>   
+    
+    <!-- Prefs Fragment -->
+    <string name="interpreter">Interpreter</string>
+    <string name="jit64_recompiler">JIT64 Recompiler</string>
+    <string name="jitil_recompiler">JITIL Recompiler</string>
+    <string name="jit_arm_recompiler">JIT ARM Recompiler</string>
+    <string name="cpu_core">CPUコア</string>
+    <string name="cpu_settings">CPU設定</string>
+    <string name="emu_core_to_use">使用するエミュレーションコア</string>
+    <string name="dual_core">デュアルコア</string>
+    <string name="on_off">有効/無効</string>
+    
+    <string name="video_settings">ビデオ設定</string>
+    <string name="software_renderer">Software Renderer</string>
+    <string name="video_backend">ビデオレンダラ</string>
+    <string name="video_backend_to_use">使用するビデオレンダラー</string>
+    
+    <!-- Miscellaneous -->
+    <string name="yes">はい</string>
+    <string name="no">いいえ</string>
+
+</resources>

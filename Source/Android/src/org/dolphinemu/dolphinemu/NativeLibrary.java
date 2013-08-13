@@ -1,12 +1,17 @@
+/*
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu;
 
 import android.util.Log;
 import android.view.Surface;
 
 /**
- * Copyright 2013 Dolphin Emulator Project
- * Licensed under GPLv2
- * Refer to the license.txt file included.
+ * Class which contains methods that interact
+ * with the native side of the Dolphin code.
  */
 public class NativeLibrary {
 	public static native void onTouchEvent(int Action, float X, float Y);

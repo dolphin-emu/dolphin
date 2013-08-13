@@ -1,29 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical" >
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="vertical" >
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:padding="3dip">
+    
+    <ImageView
+        android:id="@+id/ImageIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="6dip"/>
 
-            <TextView
-                android:id="@+id/FolderTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dip"
-                android:layout_marginTop="5dip"
-                android:singleLine="true"
-                android:text="Title"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/FolderSubTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="10dip"
-                android:text="Subtitle" />
-
-        </LinearLayout>
-</LinearLayout>
+    <TextView
+        android:id="@+id/FolderSubTitle"
+        android:layout_width="fill_parent"
+        android:layout_height="26dip" 
+        
+        android:layout_toRightOf="@id/ImageIcon"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:text="Subtitle" />
+    
+    <TextView
+        android:id="@+id/FolderTitle"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        
+        android:layout_toRightOf="@id/ImageIcon"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_above="@id/FolderSubTitle"
+        android:layout_alignWithParentIfMissing="true"
+                
+        android:gravity="center_vertical"
+        android:text="Title"
+        android:textStyle="bold" />/>
+</RelativeLayout>

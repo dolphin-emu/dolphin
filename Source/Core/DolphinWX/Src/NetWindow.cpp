@@ -409,7 +409,7 @@ void NetPlayDiag::GetNetSettings(NetSettings &settings)
 		settings.m_Controllers[i] = SConfig::GetInstance().m_SIDevice[i];
 }
 
-const std::string& NetPlayDiag::FindGame()
+std::string NetPlayDiag::FindGame()
 {
 	// find path for selected game, sloppy..
 	for (u32 i = 0 ; auto game = m_game_list->GetISO(i); ++i)

@@ -33,12 +33,9 @@ public class DolphinEmulator<MainActivity> extends Activity
           out = new FileOutputStream(output);
           copyFile(in, out);
           in.close();
-          in = null;
-          out.flush();
           out.close();
-          out = null;
         } catch(IOException e) {
-            Log.e("tag", "Failed to copy asset file: " + asset, e);
+            Log.e("DolphinEmulator", "Failed to copy asset file: " + asset, e);
         }       
 	}
 
@@ -78,7 +75,6 @@ public class DolphinEmulator<MainActivity> extends Activity
 		super.onCreate(savedInstanceState);
 		if (savedInstanceState == null)
 		{
-
 			Intent ListIntent = new Intent(this, GameListActivity.class);
 			startActivityForResult(ListIntent, 1);
 			
@@ -96,41 +92,19 @@ public class DolphinEmulator<MainActivity> extends Activity
 			directory.mkdirs();
 
 			// Copy assets if needed
-			java.io.File file = new java.io.File(
-					Environment.getExternalStorageDirectory()+File.separator+
-							"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_coef.bin");
+			File file = new File(GCDir + File.separator + "dsp_coef.bin");
 			if(!file.exists())
 			{
-				CopyAsset("ButtonA.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "ButtonA.png");
-				CopyAsset("ButtonB.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "ButtonB.png");
-				CopyAsset("ButtonStart.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "ButtonStart.png");
-				CopyAsset("NoBanner.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "NoBanner.png");
-				CopyAsset("GCPadNew.ini", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Config" + File.separator + "GCPadNew.ini");
-				CopyAsset("Dolphin.ini",
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Config" + File.separator + "Dolphin.ini");
-				CopyAsset("dsp_coef.bin",
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_coef.bin");
-				CopyAsset("dsp_rom.bin",
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_rom.bin");
-				CopyAsset("font_ansi.bin",
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "GC" + File.separator + "font_ansi.bin");
-				CopyAsset("font_sjis.bin",
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "GC" + File.separator + "font_sjis.bin");
+				CopyAsset("ButtonA.png",     BaseDir + File.separator + "ButtonA.png");
+				CopyAsset("ButtonB.png",     BaseDir + File.separator + "ButtonB.png");
+				CopyAsset("ButtonStart.png", BaseDir + File.separator + "ButtonStart.png");
+				CopyAsset("NoBanner.png",    BaseDir + File.separator + "NoBanner.png");
+				CopyAsset("GCPadNew.ini",    ConfigDir + File.separator + "GCPadNew.ini");
+				CopyAsset("Dolphin.ini",     ConfigDir + File.separator + "Dolphin.ini");
+				CopyAsset("dsp_coef.bin",    GCDir + File.separator + "dsp_coef.bin");
+				CopyAsset("dsp_rom.bin",     GCDir + File.separator + "dsp_rom.bin");
+				CopyAsset("font_ansi.bin",   GCDir + File.separator + "font_ansi.bin");
+				CopyAsset("font_sjis.bin",   GCDir + File.separator + "font_sjis.bin");
 
 				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 				SharedPreferences.Editor editor = prefs.edit();
@@ -169,11 +143,9 @@ public class DolphinEmulator<MainActivity> extends Activity
 	@Override
 	public boolean onTouchEvent(MotionEvent event)
 	{
-		float X, Y;
-		int Action;
-		X = event.getX();
-		Y = event.getY();
-		Action = event.getActionMasked();
+		float X = event.getX();
+		float Y = event.getY();
+		int Action = event.getActionMasked();
 		
 		// Converts button locations 0 - 1 to OGL screen coords -1.0 - 1.0
 		float ScreenX = ((X / screenWidth) * 2.0f) - 1.0f;
@@ -233,14 +205,13 @@ public class DolphinEmulator<MainActivity> extends Activity
 
 		InputDevice input = event.getDevice();
 		List<InputDevice.MotionRange> motions = input.getMotionRanges();
-		for (int a = 0; a < motions.size(); ++a)
+		
+		for (InputDevice.MotionRange range : motions)
 		{
-			InputDevice.MotionRange range;
-			range = motions.get(a);
-			NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
+		    NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
 		}
 
 		return true;
 	}
 
-}                                
+}
