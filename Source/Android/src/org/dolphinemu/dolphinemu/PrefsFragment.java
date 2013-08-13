@@ -97,33 +97,35 @@ public class PrefsFragment extends PreferenceFragment {
 	}
 	static public boolean SupportsGLES3()
 	{
-		String m_GLVersion;
-		String m_GLVendor;
-		String m_GLRenderer;
-
 		VersionCheck mbuffer = new VersionCheck();
-		m_GLVersion = mbuffer.getVersion();
-		m_GLVendor = mbuffer.getVendor();
-		m_GLRenderer = mbuffer.getRenderer();
+		String m_GLVersion = mbuffer.getVersion();
+		String m_GLVendor = mbuffer.getVendor();
+		String m_GLRenderer = mbuffer.getRenderer();
 
 		boolean mSupportsGLES3 = false;
 
-		if (m_GLVersion.contains("OpenGL ES 3.0") ||
-				m_GLVersion.equals("OpenGL ES 3.0")) // 3.0 support
+		// Check for OpenGL ES 3 support (General case).
+		if (m_GLVersion.contains("OpenGL ES 3.0") || m_GLVersion.equals("OpenGL ES 3.0"))
 			mSupportsGLES3 = true;
+		
+		// Checking for OpenGL ES 3 support for certain Qualcomm devices.
 		if (!mSupportsGLES3 && m_GLVendor.equals("Qualcomm"))
 		{
 			if (m_GLRenderer.contains("Adreno (TM) 3"))
 			{
-				int mVStart, mVEnd = 0;
+				int mVStart = m_GLVersion.indexOf("V@") + 2;
+				int mVEnd = 0;
 				float mVersion;
-				mVStart = m_GLVersion.indexOf("V@") + 2;
+				
 				for (int a = mVStart; a < m_GLVersion.length(); ++a)
+				{
 					if (m_GLVersion.charAt(a) == ' ')
 					{
 						mVEnd = a;
 						break;
 					}
+				}
+				
 				mVersion = Float.parseFloat(m_GLVersion.substring(mVStart, mVEnd));
 
 				if (mVersion >= 14.0f)
