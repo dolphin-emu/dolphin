@@ -33,10 +33,7 @@ public class DolphinEmulator<MainActivity> extends Activity
           out = new FileOutputStream(output);
           copyFile(in, out);
           in.close();
-          in = null;
-          out.flush();
           out.close();
-          out = null;
         } catch(IOException e) {
             Log.e("DolphinEmulator", "Failed to copy asset file: " + asset, e);
         }       
@@ -78,7 +75,6 @@ public class DolphinEmulator<MainActivity> extends Activity
 		super.onCreate(savedInstanceState);
 		if (savedInstanceState == null)
 		{
-
 			Intent ListIntent = new Intent(this, GameListActivity.class);
 			startActivityForResult(ListIntent, 1);
 			
