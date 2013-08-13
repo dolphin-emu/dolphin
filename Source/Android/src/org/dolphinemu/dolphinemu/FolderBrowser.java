@@ -31,7 +31,7 @@ public class FolderBrowser extends Fragment {
 
 		// Supported extensions to filter by
 		Set<String> validExts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf", ".dff"));
-		Set<String> archiveExts = new HashSet<String>(Arrays.asList(".zip", ".rar", ".7z"));
+		Set<String> invalidExts = new HashSet<String>(Arrays.asList(".zip", ".rar", ".7z"));
 
 		// Search for any directories or supported files within the current dir.
 		try
@@ -52,7 +52,7 @@ public class FolderBrowser extends Fragment {
 						{
 							fls.add(new GameListItem(m_activity, entryName,getString(R.string.file_size)+entry.length(),entry.getAbsolutePath(), true));
 						}
-						else if (archiveExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
+						else if (invalidExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 						{
 							fls.add(new GameListItem(m_activity, entryName,getString(R.string.file_size)+entry.length(),entry.getAbsolutePath(), false));
 						}
