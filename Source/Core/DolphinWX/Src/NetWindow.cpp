@@ -17,6 +17,7 @@
 #include <string>
 
 #define NETPLAY_TITLEBAR	"Dolphin NetPlay"
+#define INITIAL_PAD_BUFFER_SIZE 20
 
 BEGIN_EVENT_TABLE(NetPlayDiag, wxFrame)
 	EVT_COMMAND(wxID_ANY, wxEVT_THREAD, NetPlayDiag::OnThread)
@@ -246,6 +247,7 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	m_host_port_text->GetValue().ToULong(&port);
 	netplay_server = new NetPlayServer(u16(port));
 	netplay_server->ChangeGame(game);
+	netplay_server->AdjustPadBufferSize(INITIAL_PAD_BUFFER_SIZE);
 	if (netplay_server->is_connected)
 	{
 #ifdef USE_UPNP
@@ -346,7 +348,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		bottom_szr->Add(stop_btn);
 		bottom_szr->Add(new wxStaticText(panel, wxID_ANY, _("Buffer:")), 0, wxLEFT | wxCENTER, 5 );
 		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, wxT("20")
-			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, 20);
+			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
 		padbuf_spin->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &NetPlayDiag::OnAdjustBuffer, this);
 		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
 	}
