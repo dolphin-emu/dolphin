@@ -111,9 +111,9 @@ public final class InputConfigFragment extends Fragment
 		}
 	};
 
-	static ArrayList<Float> m_values = new ArrayList<Float>();
+	private static ArrayList<Float> m_values = new ArrayList<Float>();
 
-	void AssignBind(String bind)
+	private void AssignBind(String bind)
 	{
 		InputConfigItem o = adapter.getItem(configPosition);
 		adapter.remove(o);
@@ -149,8 +149,8 @@ public final class InputConfigFragment extends Fragment
 			{
 				for (int a = 0; a < motions.size(); ++a)
 				{
-					InputDevice.MotionRange range;
-					range = motions.get(a);
+					InputDevice.MotionRange range = motions.get(a);
+					
 					if (m_values.get(a) > (event.getAxisValue(range.getAxis()) + 0.5f))
 					{
 						AssignBind("Device '" + InputConfigFragment.getInputDesc(input) + "'-Axis " + range.getAxis() + "-");
