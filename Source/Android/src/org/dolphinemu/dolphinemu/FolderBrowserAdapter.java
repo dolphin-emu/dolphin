@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,7 +59,15 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 			
 			if(subtitleText != null)
 			{
-				subtitleText.setText(item.getSubtitle());
+				// Remove the subtitle for all folders, except for the parent directory folder.
+				if (item.isDirectory() && !item.getSubtitle().equals(c.getResources().getString(R.string.parent_directory)))
+				{
+					subtitleText.setVisibility(View.GONE);
+				}
+				else
+				{
+					subtitleText.setText(item.getSubtitle());
+				}
 			}
 			
 			if (iconView != null)

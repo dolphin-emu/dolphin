@@ -45,7 +45,7 @@ public final class FolderBrowser extends Fragment
 				{
 					if(entry.isDirectory())
 					{
-						dir.add(new FolderBrowserItem(m_activity, entryName, getString(R.string.folder), entry.getAbsolutePath(), true));
+						dir.add(new FolderBrowserItem(m_activity, entryName, entry.getAbsolutePath(), true));
 					}
 					else
 					{

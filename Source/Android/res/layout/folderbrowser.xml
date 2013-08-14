@@ -39,5 +39,5 @@
                 
         android:gravity="center_vertical"
         android:text="Title"
-        android:textStyle="bold" />/>
+        android:textStyle="bold" />
 </RelativeLayout>
