@@ -198,12 +198,12 @@ static const char *tevRasTable[] =
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
 static const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
-//static const char *tevIndAlphaScale[] = {"", "*32", "*16", "*8"};
-static const char *tevIndAlphaScale[] = {"*(248.0/255.0)", "*(224.0/255.0)", "*(240.0/255.0)", "*(248.0/255.0)"};
+static const char *tevIndAlphaMask[] = {"0xF8", "0xE0", "0xF0", "0xF8"};
 static const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
-static const char *tevIndBiasAdd[]    = {"-128.0", "1.0", "1.0", "1.0" }; // indexed by fmt
+static const char *tevIndBiasAdd[]    = {"-128", "1", "1", "1" }; // indexed by fmt
 static const char *tevIndWrapStart[]  = {"0.0", "256.0", "128.0", "64.0", "32.0", "16.0", "0.001" };
 static const char *tevIndFmtScale[]   = {"255.0", "31.0", "15.0", "7.0" };
+static const char *tevIndFmtMask[]   = {"0xFF", "0x1F", "0x0F", "0x07" };
 
 struct RegisterState
 {
@@ -491,7 +491,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 			out.Write("\tint3 iindtex%d = ", i);
 			SampleTexture<T>(out, "tempcoord", "abg", texmap, ApiType);
-			out.Write("\tfloat3 indtex%d = float3(iindtex%d) / 255.0f;\n", i, i);
 		}
 	}
 
@@ -698,20 +697,24 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		uid_data.stagehash[n].tevind = bpmem.tevind[n].hex & 0x7FFFFF;
 
 		out.Write("// indirect op\n");
-		// perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
+		// perform the indirect op on the incoming regular coordinates using iindtex%d as the offset coords
 		if (bpmem.tevind[n].bs != ITBA_OFF)
 		{
-			out.Write("alphabump = indtex%d.%s %s;\n",
+			out.Write("alphabump = float(iindtex%d.%s & %s) / 255.0;\n",
 					bpmem.tevind[n].bt,
 					tevIndAlphaSel[bpmem.tevind[n].bs],
-					tevIndAlphaScale[bpmem.tevind[n].fmt]);
+					tevIndAlphaMask[bpmem.tevind[n].fmt]);
 		}
 		// format
-		out.Write("float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
+		out.Write("int3 iindtevcrd%d = iindtex%d & %s;\n", n, bpmem.tevind[n].bt, tevIndFmtMask[bpmem.tevind[n].fmt]);
 
-		// bias
-		if (bpmem.tevind[n].bias != ITB_NONE )
-			out.Write("indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
+		// bias - TODO: Check if this needs to be this complicated..
+		if (bpmem.tevind[n].bias == ITB_S || bpmem.tevind[n].bias == ITB_T || bpmem.tevind[n].bias == ITB_U)
+			out.Write("iindtevcrd%d.%s += int(%s);\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
+		else if (bpmem.tevind[n].bias == ITB_ST || bpmem.tevind[n].bias == ITB_SU || bpmem.tevind[n].bias == ITB_TU)
+			out.Write("iindtevcrd%d.%s += int2(%s, %s);\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt], tevIndBiasAdd[bpmem.tevind[n].fmt]);
+		else if (bpmem.tevind[n].bias == ITB_STU)
+			out.Write("iindtevcrd%d.%s += int3(%s, %s, %s);\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt], tevIndBiasAdd[bpmem.tevind[n].fmt], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 
 		// multiply by offset matrix and scale
 		if (bpmem.tevind[n].mid != 0)
@@ -720,7 +723,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 			{
 				int mtxidx = 2*(bpmem.tevind[n].mid-1);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
-				out.Write("float2 indtevtrans%d = float2(dot(" I_INDTEXMTX"[%d].xyz, indtevcrd%d), dot(" I_INDTEXMTX"[%d].xyz, indtevcrd%d));\n",
+				out.Write("float2 indtevtrans%d = float2(dot(" I_INDTEXMTX"[%d].xyz, float3(iindtevcrd%d)), dot(" I_INDTEXMTX"[%d].xyz, float3(iindtevcrd%d)));\n",
 							n, mtxidx, n, mtxidx+1, n);
 			}
 			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord)
@@ -728,14 +731,14 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 				_assert_(bpmem.tevind[n].mid >= 5);
 				int mtxidx = 2*(bpmem.tevind[n].mid-5);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
-				out.Write("float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
+				out.Write("float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * float3(iindtevcrd%d.xx);\n", n, mtxidx, texcoord, n);
 			}
 			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord)
 			{ // t matrix
 				_assert_(bpmem.tevind[n].mid >= 9);
 				int mtxidx = 2*(bpmem.tevind[n].mid-9);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
-				out.Write("float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
+				out.Write("float2 indtevtrans%d = " I_INDTEXMTX"[%d].ww * uv%d.xy * float3(iindtevcrd%d.yy);\n", n, mtxidx, texcoord, n);
 			}
 			else
 			{
