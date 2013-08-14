@@ -133,5 +133,10 @@ private:
 	int* const	m_mapping;
 };
 
+namespace NetPlay
+{
+	void StopGame();
+}
+
 #endif // _NETWINDOW_H_
 

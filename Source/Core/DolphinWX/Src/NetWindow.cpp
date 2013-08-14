@@ -432,7 +432,7 @@ void NetPlayDiag::OnStart(wxCommandEvent&)
 
 void NetPlayDiag::OnStop(wxCommandEvent&)
 {
-	netplay_server->StopGame();
+	NetPlay::StopGame();
 }
 
 void NetPlayDiag::BootGame(const std::string& filename)
@@ -660,4 +660,12 @@ void PadMapDiag::OnAdjust(wxCommandEvent& event)
 	(void)event;
 	for (unsigned int i=0; i<4; ++i)
 		m_mapping[i] = m_map_cbox[i]->GetSelection() - 1;
+}
+
+void NetPlay::StopGame()
+{
+	if (netplay_server != NULL)
+		netplay_server->StopGame();
+
+	// TODO: allow non-hosting clients to close the window
 }

@@ -1049,6 +1049,7 @@ void CFrame::DoStop()
 			DoRecordingSave();
 		if(Movie::IsPlayingInput() || Movie::IsRecordingInput())
 			Movie::EndPlayInput(false);
+		NetPlay::StopGame();
 
 		wxBeginBusyCursor();
 		BootManager::Stop();
