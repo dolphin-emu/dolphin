@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class SideMenuAdapter extends ArrayAdapter<SideMenuItem>{
+public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>{
 
 	private Context c;
 	private int id;

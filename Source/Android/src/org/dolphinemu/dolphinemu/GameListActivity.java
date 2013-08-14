@@ -22,7 +22,7 @@ import java.util.List;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class GameListActivity extends Activity
+public final class GameListActivity extends Activity
 		implements GameListFragment.OnGameListZeroListener{
 
 	private int mCurFragmentNum = 0;

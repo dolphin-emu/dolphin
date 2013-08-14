@@ -14,7 +14,7 @@ import java.util.List;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class InputConfigAdapter extends ArrayAdapter<InputConfigItem> {
+public final class InputConfigAdapter extends ArrayAdapter<InputConfigItem> {
 	private Context c;
 	private int id;
 	private List<InputConfigItem> items;

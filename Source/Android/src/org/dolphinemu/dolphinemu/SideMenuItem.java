@@ -10,7 +10,7 @@ package org.dolphinemu.dolphinemu;
 /**
  * Represents an item that goes in the sidemenu of the app.
  */
-public class SideMenuItem implements Comparable<SideMenuItem>
+public final class SideMenuItem implements Comparable<SideMenuItem>
 {
     private String m_name;
     private int m_id;

@@ -18,7 +18,7 @@ import java.util.List;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class InputConfigFragment extends Fragment
+public final class InputConfigFragment extends Fragment
 		implements GameListActivity.OnGameConfigListener{
 	private Activity m_activity;
 	private ListView mDrawerList;

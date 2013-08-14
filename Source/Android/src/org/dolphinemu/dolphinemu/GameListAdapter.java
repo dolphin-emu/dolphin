@@ -10,7 +10,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class GameListAdapter extends ArrayAdapter<GameListItem>{
+public final class GameListAdapter extends ArrayAdapter<GameListItem>{
 
     private Context c;
     private int id;

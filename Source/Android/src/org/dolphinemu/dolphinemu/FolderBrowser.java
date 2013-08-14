@@ -14,7 +14,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.*;
 
-public class FolderBrowser extends Fragment {
+public final class FolderBrowser extends Fragment {
 	private Activity m_activity;
 	private FolderBrowserAdapter adapter;
 	private ListView mDrawerList;

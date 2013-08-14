@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>{
+public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>{
 
 	private Context c;
 	private int id;

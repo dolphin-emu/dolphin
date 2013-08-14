@@ -16,7 +16,7 @@ import java.util.List;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class AboutFragment extends Fragment {
+public final class AboutFragment extends Fragment {
 	private static Activity m_activity;
 
 	private ListView mMainList;

@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class GameListItem implements Comparable<GameListItem>{
+public final class GameListItem implements Comparable<GameListItem>{
     private String name;
     private String data;
     private String path;

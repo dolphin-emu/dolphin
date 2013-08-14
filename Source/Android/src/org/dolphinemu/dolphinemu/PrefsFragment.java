@@ -17,7 +17,7 @@ import javax.microedition.khronos.opengles.GL10;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class PrefsFragment extends PreferenceFragment {
+public final class PrefsFragment extends PreferenceFragment {
 	private Activity m_activity;
 
 	static public class VersionCheck {

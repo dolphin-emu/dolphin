@@ -17,7 +17,7 @@ import android.view.WindowManager;
 import java.io.*;
 import java.util.List;
 
-public class DolphinEmulator<MainActivity> extends Activity 
+public final class DolphinEmulator<MainActivity> extends Activity 
 {	
 	static private NativeGLSurfaceView GLview = null;
 	static private boolean Running = false;

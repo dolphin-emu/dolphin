@@ -4,7 +4,7 @@ import android.content.Context;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class NativeGLSurfaceView extends SurfaceView {
+public final class NativeGLSurfaceView extends SurfaceView {
 	static private Thread myRun;
 	static private boolean Running = false;
 	static private boolean Created = false;

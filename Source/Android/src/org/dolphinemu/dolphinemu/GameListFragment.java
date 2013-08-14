@@ -24,7 +24,7 @@ import java.util.Set;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class GameListFragment extends Fragment
+public final class GameListFragment extends Fragment
 {
 	private ListView mMainList;
 	private GameListAdapter mGameAdapter;
