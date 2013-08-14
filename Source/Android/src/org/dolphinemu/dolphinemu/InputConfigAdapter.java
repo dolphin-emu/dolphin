@@ -36,7 +36,7 @@ public final class InputConfigAdapter extends ArrayAdapter<InputConfigItem> {
 		View v = convertView;
 		if (v == null) {
 			LayoutInflater vi = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			v = vi.inflate(id, null);
+			v = vi.inflate(id, parent, false);
 		}
 		final InputConfigItem o = items.get(position);
 		if (o != null) {
