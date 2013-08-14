@@ -1040,7 +1040,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 }
 
 template<class T>
-void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
+static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 
