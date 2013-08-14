@@ -29,50 +29,50 @@
 
 static const char *tevKSelTableC[] = // KCSEL
 {
-	"1.0,1.0,1.0",       // 1   = 0x00
-	"0.875,0.875,0.875", // 7_8 = 0x01
-	"0.75,0.75,0.75",    // 3_4 = 0x02
-	"0.625,0.625,0.625", // 5_8 = 0x03
-	"0.5,0.5,0.5",       // 1_2 = 0x04
-	"0.375,0.375,0.375", // 3_8 = 0x05
-	"0.25,0.25,0.25",    // 1_4 = 0x06
-	"0.125,0.125,0.125", // 1_8 = 0x07
+	"255,255,255",  // 1   = 0x00
+	"223,223,223",  // 7_8 = 0x01
+	"191,191,191",  // 3_4 = 0x02
+	"159,159,159",  // 5_8 = 0x03
+	"127,127,127",  // 1_2 = 0x04
+	"95,95,95",     // 3_8 = 0x05
+	"63,63,63",     // 1_4 = 0x06
+	"31,31,31",     // 1_8 = 0x07
 	"ERROR1", // 0x08
 	"ERROR2", // 0x09
 	"ERROR3", // 0x0a
 	"ERROR4", // 0x0b
-	I_KCOLORS"[0].rgb", // K0 = 0x0C
-	I_KCOLORS"[1].rgb", // K1 = 0x0D
-	I_KCOLORS"[2].rgb", // K2 = 0x0E
-	I_KCOLORS"[3].rgb", // K3 = 0x0F
-	I_KCOLORS"[0].rrr", // K0_R = 0x10
-	I_KCOLORS"[1].rrr", // K1_R = 0x11
-	I_KCOLORS"[2].rrr", // K2_R = 0x12
-	I_KCOLORS"[3].rrr", // K3_R = 0x13
-	I_KCOLORS"[0].ggg", // K0_G = 0x14
-	I_KCOLORS"[1].ggg", // K1_G = 0x15
-	I_KCOLORS"[2].ggg", // K2_G = 0x16
-	I_KCOLORS"[3].ggg", // K3_G = 0x17
-	I_KCOLORS"[0].bbb", // K0_B = 0x18
-	I_KCOLORS"[1].bbb", // K1_B = 0x19
-	I_KCOLORS"[2].bbb", // K2_B = 0x1A
-	I_KCOLORS"[3].bbb", // K3_B = 0x1B
-	I_KCOLORS"[0].aaa", // K0_A = 0x1C
-	I_KCOLORS"[1].aaa", // K1_A = 0x1D
-	I_KCOLORS"[2].aaa", // K2_A = 0x1E
-	I_KCOLORS"[3].aaa", // K3_A = 0x1F
+	"int3(round(" I_KCOLORS"[0].rgb * 255.0))", // K0 = 0x0C
+	"int3(round(" I_KCOLORS"[1].rgb * 255.0))", // K1 = 0x0D
+	"int3(round(" I_KCOLORS"[2].rgb * 255.0))", // K2 = 0x0E
+	"int3(round(" I_KCOLORS"[3].rgb * 255.0))", // K3 = 0x0F
+	"int3(round(" I_KCOLORS"[0].rrr * 255.0))", // K0_R = 0x10
+	"int3(round(" I_KCOLORS"[1].rrr * 255.0))", // K1_R = 0x11
+	"int3(round(" I_KCOLORS"[2].rrr * 255.0))", // K2_R = 0x12
+	"int3(round(" I_KCOLORS"[3].rrr * 255.0))", // K3_R = 0x13
+	"int3(round(" I_KCOLORS"[0].ggg * 255.0))", // K0_G = 0x14
+	"int3(round(" I_KCOLORS"[1].ggg * 255.0))", // K1_G = 0x15
+	"int3(round(" I_KCOLORS"[2].ggg * 255.0))", // K2_G = 0x16
+	"int3(round(" I_KCOLORS"[3].ggg * 255.0))", // K3_G = 0x17
+	"int3(round(" I_KCOLORS"[0].bbb * 255.0))", // K0_B = 0x18
+	"int3(round(" I_KCOLORS"[1].bbb * 255.0))", // K1_B = 0x19
+	"int3(round(" I_KCOLORS"[2].bbb * 255.0))", // K2_B = 0x1A
+	"int3(round(" I_KCOLORS"[3].bbb * 255.0))", // K3_B = 0x1B
+	"int3(round(" I_KCOLORS"[0].aaa * 255.0))", // K0_A = 0x1C
+	"int3(round(" I_KCOLORS"[1].aaa * 255.0))", // K1_A = 0x1D
+	"int3(round(" I_KCOLORS"[2].aaa * 255.0))", // K2_A = 0x1E
+	"int3(round(" I_KCOLORS"[3].aaa * 255.0))", // K3_A = 0x1F
 };
 
 static const char *tevKSelTableA[] = // KASEL
 {
-	"1.0",  // 1   = 0x00
-	"0.875",// 7_8 = 0x01
-	"0.75", // 3_4 = 0x02
-	"0.625",// 5_8 = 0x03
-	"0.5",  // 1_2 = 0x04
-	"0.375",// 3_8 = 0x05
-	"0.25", // 1_4 = 0x06
-	"0.125",// 1_8 = 0x07
+	"255",  // 1   = 0x00
+	"223",  // 7_8 = 0x01
+	"191",  // 3_4 = 0x02
+	"159",  // 5_8 = 0x03
+	"127",  // 1_2 = 0x04
+	"95",   // 3_8 = 0x05
+	"63",   // 1_4 = 0x06
+	"31",   // 1_8 = 0x07
 	"ERROR5", // 0x08
 	"ERROR6", // 0x09
 	"ERROR7", // 0x0a
@@ -81,22 +81,22 @@ static const char *tevKSelTableA[] = // KASEL
 	"ERROR10", // 0x0d
 	"ERROR11", // 0x0e
 	"ERROR12", // 0x0f
-	I_KCOLORS"[0].r", // K0_R = 0x10
-	I_KCOLORS"[1].r", // K1_R = 0x11
-	I_KCOLORS"[2].r", // K2_R = 0x12
-	I_KCOLORS"[3].r", // K3_R = 0x13
-	I_KCOLORS"[0].g", // K0_G = 0x14
-	I_KCOLORS"[1].g", // K1_G = 0x15
-	I_KCOLORS"[2].g", // K2_G = 0x16
-	I_KCOLORS"[3].g", // K3_G = 0x17
-	I_KCOLORS"[0].b", // K0_B = 0x18
-	I_KCOLORS"[1].b", // K1_B = 0x19
-	I_KCOLORS"[2].b", // K2_B = 0x1A
-	I_KCOLORS"[3].b", // K3_B = 0x1B
-	I_KCOLORS"[0].a", // K0_A = 0x1C
-	I_KCOLORS"[1].a", // K1_A = 0x1D
-	I_KCOLORS"[2].a", // K2_A = 0x1E
-	I_KCOLORS"[3].a", // K3_A = 0x1F
+	"int(round(" I_KCOLORS"[0].r * 255.0))", // K0_R = 0x10
+	"int(round(" I_KCOLORS"[1].r * 255.0))", // K1_R = 0x11
+	"int(round(" I_KCOLORS"[2].r * 255.0))", // K2_R = 0x12
+	"int(round(" I_KCOLORS"[3].r * 255.0))", // K3_R = 0x13
+	"int(round(" I_KCOLORS"[0].g * 255.0))", // K0_G = 0x14
+	"int(round(" I_KCOLORS"[1].g * 255.0))", // K1_G = 0x15
+	"int(round(" I_KCOLORS"[2].g * 255.0))", // K2_G = 0x16
+	"int(round(" I_KCOLORS"[3].g * 255.0))", // K3_G = 0x17
+	"int(round(" I_KCOLORS"[0].b * 255.0))", // K0_B = 0x18
+	"int(round(" I_KCOLORS"[1].b * 255.0))", // K1_B = 0x19
+	"int(round(" I_KCOLORS"[2].b * 255.0))", // K2_B = 0x1A
+	"int(round(" I_KCOLORS"[3].b * 255.0))", // K3_B = 0x1B
+	"int(round(" I_KCOLORS"[0].a * 255.0))", // K0_A = 0x1C
+	"int(round(" I_KCOLORS"[1].a * 255.0))", // K1_A = 0x1D
+	"int(round(" I_KCOLORS"[2].a * 255.0))", // K2_A = 0x1E
+	"int(round(" I_KCOLORS"[3].a * 255.0))", // K3_A = 0x1F
 };
 
 static const char *tevScaleTable[] = // CS
@@ -136,7 +136,7 @@ static const char *tevCInputTable[] = // CC
 	"(float3(irastemp.aaa)/255.0)",      // RASA,
 	"float3(1.0, 1.0, 1.0)",              // ONE
 	"float3(0.5, 0.5, 0.5)",              // HALF
-	"(konsttemp.rgb)", //"konsttemp.rgb",    // KONST
+	"(float3(ikonsttemp.rgb)/255.0)", //"konsttemp.rgb",    // KONST
 	"float3(0.0, 0.0, 0.0)",              // ZERO
 	///added extra values to map clamped values
 	"(cprev.rgb)",        // CPREV,
@@ -153,7 +153,7 @@ static const char *tevCInputTable[] = // CC
 	"(float3(icrastemp.aaa)/255.0)",     // RASA,
 	"float3(1.0, 1.0, 1.0)",              // ONE
 	"float3(0.5, 0.5, 0.5)",              // HALF
-	"(ckonsttemp.rgb)", //"konsttemp.rgb",   // KONST
+	"(float3(ickonsttemp.rgb)/255.0)", //"konsttemp.rgb",   // KONST
 	"float3(0.0, 0.0, 0.0)",              // ZERO
 	"PADERROR1", "PADERROR2", "PADERROR3", "PADERROR4"
 };
@@ -166,7 +166,7 @@ static const char *tevAInputTable[] = // CA
 	"c2",              // A2,
 	"(float4(itextemp) / 255.0)",         // TEXA,
 	"(float4(irastemp) / 255.0)",         // RASA,
-	"konsttemp",       // KONST,  (hw1 had quarter)
+	"(float4(ikonsttemp) / 255.0)",       // KONST,  (hw1 had quarter)
 	"float4(0.0, 0.0, 0.0, 0.0)", // ZERO
 	///added extra values to map clamped values
 	"cprev",            // APREV,
@@ -175,7 +175,7 @@ static const char *tevAInputTable[] = // CA
 	"cc2",              // A2,
 	"(float4(itextemp) / 255.0)",          // TEXA,
 	"(float4(icrastemp) / 255.0)",         // RASA,
-	"ckonsttemp",       // KONST,  (hw1 had quarter)
+	"(float4(ickonsttemp) / 255.0)",       // KONST,  (hw1 had quarter)
 	"float4(0.0, 0.0, 0.0, 0.0)", // ZERO
 	"PADERROR5", "PADERROR6", "PADERROR7", "PADERROR8",
 	"PADERROR9", "PADERROR10", "PADERROR11", "PADERROR12",
@@ -389,15 +389,15 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("        ) {\n");
 	}
 
-	out.Write("  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0, 0.0, 0.0, 0.0), konsttemp = float4(0.0, 0.0, 0.0, 0.0);\n"
-			"  int4 irastemp = int4(0, 0, 0, 0), icrastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0);\n"
+	out.Write("  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0, 0.0, 0.0, 0.0);\n"
+			"  int4 irastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0), ikonsttemp = int4(0, 0, 0, 0);\n"
 			"  float3 comp16 = float3(1.0, 255.0, 0.0), comp24 = float3(1.0, 255.0, 255.0*255.0);\n"
 			"  float alphabump=0.0;\n"
 			"  float3 tevcoord=float3(0.0, 0.0, 0.0);\n"
 			"  float2 wrappedcoord=float2(0.0,0.0), tempcoord=float2(0.0,0.0);\n"
 			"  float4 cc0=float4(0.0,0.0,0.0,0.0), cc1=float4(0.0,0.0,0.0,0.0);\n"
 			"  float4 cc2=float4(0.0,0.0,0.0,0.0), cprev=float4(0.0,0.0,0.0,0.0);\n"
-			"  float4 ckonsttemp=float4(0.0,0.0,0.0,0.0);\n\n");
+			"  int4 icrastemp = int4(0, 0, 0, 0), ickonsttemp = int4(0, 0, 0, 0);\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -845,15 +845,9 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 		uid_data.stagehash[n].tevksel_kc = kc;
 		uid_data.stagehash[n].tevksel_ka = ka;
-		out.Write("konsttemp = float4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
-		if (kc > 7 || ka > 7)
-		{
-			out.Write("ckonsttemp = frac(konsttemp * (255.0/256.0)) * (256.0/255.0);\n");
-		}
-		else
-		{
-			out.Write("ckonsttemp = konsttemp;\n");
-		}
+		out.Write("ikonsttemp = int4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
+		out.Write("ickonsttemp = ikonsttemp & 0xFF;\n");
+
 		if (kc > 7)
 			out.SetConstantsUsed(C_KCOLORS+((kc-0xc)%4),C_KCOLORS+((kc-0xc)%4));
 		if (ka > 7)
