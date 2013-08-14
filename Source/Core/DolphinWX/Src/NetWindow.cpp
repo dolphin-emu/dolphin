@@ -283,6 +283,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
 	, m_selected_game(game)
 	, m_game_list(game_list)
+	, m_start_btn(NULL)
 {
 	wxPanel* const panel = new wxPanel(this);
 
@@ -340,9 +341,10 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	wxBoxSizer* const bottom_szr = new wxBoxSizer(wxHORIZONTAL);
 	if (is_hosting)
 	{
-		wxButton* const start_btn = new wxButton(panel, wxID_ANY, _("Start"));
-		start_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDiag::OnStart, this);
-		bottom_szr->Add(start_btn);
+		m_start_btn = new wxButton(panel, wxID_ANY, _("Start"));
+		m_start_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDiag::OnStart, this);
+		bottom_szr->Add(m_start_btn);
+
 		bottom_szr->Add(new wxStaticText(panel, wxID_ANY, _("Buffer:")), 0, wxLEFT | wxCENTER, 5 );
 		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, wxT("20")
 			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
@@ -463,12 +465,16 @@ void NetPlayDiag::OnMsgStartGame()
 {
 	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
 	GetEventHandler()->AddPendingEvent(evt);
+	if (m_start_btn)
+		m_start_btn->Disable();
 }
 
 void NetPlayDiag::OnMsgStopGame()
 {
 	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
 	GetEventHandler()->AddPendingEvent(evt);
+	if (m_start_btn)
+		m_start_btn->Enable();
 }
 
 void NetPlayDiag::OnAdjustBuffer(wxCommandEvent& event)

@@ -100,6 +100,7 @@ private:
 
 	std::string		m_selected_game;
 	wxButton*		m_game_btn;
+	wxButton*		m_start_btn;
 
 	std::vector<int>	m_playerids;
 
