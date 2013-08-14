@@ -343,9 +343,6 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		wxButton* const start_btn = new wxButton(panel, wxID_ANY, _("Start"));
 		start_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDiag::OnStart, this);
 		bottom_szr->Add(start_btn);
-		wxButton* const stop_btn = new wxButton(panel, wxID_ANY, _("Stop"));
-		stop_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDiag::OnStop, this);
-		bottom_szr->Add(stop_btn);
 		bottom_szr->Add(new wxStaticText(panel, wxID_ANY, _("Buffer:")), 0, wxLEFT | wxCENTER, 5 );
 		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, wxT("20")
 			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
@@ -428,11 +425,6 @@ void NetPlayDiag::OnStart(wxCommandEvent&)
 	GetNetSettings(settings);
 	netplay_server->SetNetSettings(settings);
 	netplay_server->StartGame(FindGame());
-}
-
-void NetPlayDiag::OnStop(wxCommandEvent&)
-{
-	NetPlay::StopGame();
 }
 
 void NetPlayDiag::BootGame(const std::string& filename)

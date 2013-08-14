@@ -67,7 +67,6 @@ public:
 	Common::FifoQueue<std::string>	chat_msgs;
 
 	void OnStart(wxCommandEvent& event);
-	void OnStop(wxCommandEvent& event);
 
 	// implementation of NetPlayUI methods
 	void BootGame(const std::string& filename);
