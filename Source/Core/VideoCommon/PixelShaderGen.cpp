@@ -132,8 +132,8 @@ static const char *tevCInputTable[] = // CC
 	"(c2.aaa)",           // A2,
 	"(textemp.rgb)",      // TEXC,
 	"(textemp.aaa)",      // TEXA,
-	"(rastemp.rgb)",      // RASC,
-	"(rastemp.aaa)",      // RASA,
+	"(float3(irastemp.rgb)/255.0)",      // RASC,
+	"(float3(irastemp.aaa)/255.0)",      // RASA,
 	"float3(1.0, 1.0, 1.0)",              // ONE
 	"float3(0.5, 0.5, 0.5)",              // HALF
 	"(konsttemp.rgb)", //"konsttemp.rgb",    // KONST
@@ -149,8 +149,8 @@ static const char *tevCInputTable[] = // CC
 	"(cc2.aaa)",          // A2,
 	"(textemp.rgb)",      // TEXC,
 	"(textemp.aaa)",      // TEXA,
-	"(crastemp.rgb)",     // RASC,
-	"(crastemp.aaa)",     // RASA,
+	"(float3(icrastemp.rgb)/255.0)",     // RASC,
+	"(float3(icrastemp.aaa)/255.0)",     // RASA,
 	"float3(1.0, 1.0, 1.0)",              // ONE
 	"float3(0.5, 0.5, 0.5)",              // HALF
 	"(ckonsttemp.rgb)", //"konsttemp.rgb",   // KONST
@@ -165,7 +165,7 @@ static const char *tevAInputTable[] = // CA
 	"c1",              // A1,
 	"c2",              // A2,
 	"textemp",         // TEXA,
-	"rastemp",         // RASA,
+	"(float4(irastemp) / 255.0)",         // RASA,
 	"konsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0, 0.0, 0.0, 0.0)", // ZERO
 	///added extra values to map clamped values
@@ -174,7 +174,7 @@ static const char *tevAInputTable[] = // CA
 	"cc1",              // A1,
 	"cc2",              // A2,
 	"textemp",          // TEXA,
-	"crastemp",         // RASA,
+	"(float4(icrastemp) / 255.0)",         // RASA,
 	"ckonsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0, 0.0, 0.0, 0.0)", // ZERO
 	"PADERROR5", "PADERROR6", "PADERROR7", "PADERROR8",
@@ -183,14 +183,14 @@ static const char *tevAInputTable[] = // CA
 
 static const char *tevRasTable[] =
 {
-	"colors_0",
-	"colors_1",
+	"int4(round(colors_0 * 255.0))",
+	"int4(round(colors_1 * 255.0))",
 	"ERROR13", //2
 	"ERROR14", //3
 	"ERROR15", //4
-	"float4(alphabump,alphabump,alphabump,alphabump)", // use bump alpha
-	"(float4(alphabump,alphabump,alphabump,alphabump)*(255.0/248.0))", //normalized
-	"float4(0.0, 0.0, 0.0, 0.0)", // zero
+	"int4(1,1,1,1) * int(round(alphabump * 255.0))", // use bump alpha
+	"int4(1,1,1,1) * int(round(alphabump * 255.0)) * 255 / 248)", //normalized
+	"int4(0, 0, 0, 0)", // zero
 };
 
 //static const char *tevTexFunc[] = { "tex2D", "texRECT" };
@@ -389,15 +389,15 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("        ) {\n");
 	}
 
-	out.Write("  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0, 0.0, 0.0, 0.0), textemp = float4(0.0, 0.0, 0.0, 0.0), rastemp = float4(0.0, 0.0, 0.0, 0.0), konsttemp = float4(0.0, 0.0, 0.0, 0.0);\n"
-			"  int4 itextemp = int4(0, 0, 0, 0);\n"
+	out.Write("  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0, 0.0, 0.0, 0.0), textemp = float4(0.0, 0.0, 0.0, 0.0), konsttemp = float4(0.0, 0.0, 0.0, 0.0);\n"
+			"  int4 irastemp = int4(0, 0, 0, 0), icrastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0);\n"
 			"  float3 comp16 = float3(1.0, 255.0, 0.0), comp24 = float3(1.0, 255.0, 255.0*255.0);\n"
 			"  float alphabump=0.0;\n"
 			"  float3 tevcoord=float3(0.0, 0.0, 0.0);\n"
 			"  float2 wrappedcoord=float2(0.0,0.0), tempcoord=float2(0.0,0.0);\n"
 			"  float4 cc0=float4(0.0,0.0,0.0,0.0), cc1=float4(0.0,0.0,0.0,0.0);\n"
 			"  float4 cc2=float4(0.0,0.0,0.0,0.0), cprev=float4(0.0,0.0,0.0,0.0);\n"
-			"  float4 crastemp=float4(0.0,0.0,0.0,0.0),ckonsttemp=float4(0.0,0.0,0.0,0.0);\n\n");
+			"  float4 ckonsttemp=float4(0.0,0.0,0.0,0.0);\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -798,8 +798,8 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		uid_data.stagehash[n].tevorders_colorchan = bpmem.tevorders[n / 2].getColorChan(n & 1);
 
 		const char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
-		out.Write("rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
-		out.Write("crastemp = frac(rastemp * (255.0/256.0)) * (256.0/255.0);\n");
+		out.Write("irastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
+		out.Write("icrastemp = irastemp & 0xFF;\n");
 	}
 
 	uid_data.stagehash[n].tevorders_enable = bpmem.tevorders[n / 2].getEnable(n & 1);
