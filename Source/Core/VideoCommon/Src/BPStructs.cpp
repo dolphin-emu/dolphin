@@ -153,7 +153,10 @@ void BPWritten(const BPCmd& bp)
 			bpmem.genMode.numtexgens, bpmem.genMode.numcolchans,
 			bpmem.genMode.multisampling, bpmem.genMode.numtevstages+1, bpmem.genMode.cullmode,
 			bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
-			SetGenerationMode();
+
+			// Only call SetGenerationMode when cull mode changes.
+			if (bp.changes & 0xC000)
+				SetGenerationMode();
 			break;
 		}
 	case BPMEM_IND_MTXA: // Index Matrix Changed
