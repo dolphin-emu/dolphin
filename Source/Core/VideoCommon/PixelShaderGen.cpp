@@ -130,8 +130,8 @@ static const char *tevCInputTable[] = // CC
 	"(c1.aaa)",           // A1,
 	"(c2.rgb)",           // C2,
 	"(c2.aaa)",           // A2,
-	"(textemp.rgb)",      // TEXC,
-	"(textemp.aaa)",      // TEXA,
+	"(float3(itextemp.rgb)/255.0)",      // TEXC,
+	"(float3(itextemp.aaa)/255.0)",      // TEXA,
 	"(float3(irastemp.rgb)/255.0)",      // RASC,
 	"(float3(irastemp.aaa)/255.0)",      // RASA,
 	"float3(1.0, 1.0, 1.0)",              // ONE
@@ -147,8 +147,8 @@ static const char *tevCInputTable[] = // CC
 	"(cc1.aaa)",          // A1,
 	"(cc2.rgb)",          // C2,
 	"(cc2.aaa)",          // A2,
-	"(textemp.rgb)",      // TEXC,
-	"(textemp.aaa)",      // TEXA,
+	"(float3(itextemp.rgb)/255.0)",      // TEXC,
+	"(float3(itextemp.aaa)/255.0)",      // TEXA,
 	"(float3(icrastemp.rgb)/255.0)",     // RASC,
 	"(float3(icrastemp.aaa)/255.0)",     // RASA,
 	"float3(1.0, 1.0, 1.0)",              // ONE
@@ -164,7 +164,7 @@ static const char *tevAInputTable[] = // CA
 	"c0",              // A0,
 	"c1",              // A1,
 	"c2",              // A2,
-	"textemp",         // TEXA,
+	"(float4(itextemp) / 255.0)",         // TEXA,
 	"(float4(irastemp) / 255.0)",         // RASA,
 	"konsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0, 0.0, 0.0, 0.0)", // ZERO
@@ -173,7 +173,7 @@ static const char *tevAInputTable[] = // CA
 	"cc0",              // A0,
 	"cc1",              // A1,
 	"cc2",              // A2,
-	"textemp",          // TEXA,
+	"(float4(itextemp) / 255.0)",          // TEXA,
 	"(float4(icrastemp) / 255.0)",         // RASA,
 	"ckonsttemp",       // KONST,  (hw1 had quarter)
 	"float4(0.0, 0.0, 0.0, 0.0)", // ZERO
@@ -389,7 +389,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("        ) {\n");
 	}
 
-	out.Write("  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0, 0.0, 0.0, 0.0), textemp = float4(0.0, 0.0, 0.0, 0.0), konsttemp = float4(0.0, 0.0, 0.0, 0.0);\n"
+	out.Write("  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0, 0.0, 0.0, 0.0), konsttemp = float4(0.0, 0.0, 0.0, 0.0);\n"
 			"  int4 irastemp = int4(0, 0, 0, 0), icrastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0);\n"
 			"  float3 comp16 = float3(1.0, 255.0, 0.0), comp24 = float3(1.0, 255.0, 255.0*255.0);\n"
 			"  float alphabump=0.0;\n"
@@ -834,7 +834,6 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	{
 		out.Write("itextemp = int4(255, 255, 255, 255);\n");
 	}
-	out.Write("textemp = float4(itextemp) / 255.0f;\n");
 
 
 	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST ||
