@@ -390,6 +390,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	}
 
 	out.Write("  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0, 0.0, 0.0, 0.0), textemp = float4(0.0, 0.0, 0.0, 0.0), rastemp = float4(0.0, 0.0, 0.0, 0.0), konsttemp = float4(0.0, 0.0, 0.0, 0.0);\n"
+			"  int4 itextemp = int4(0, 0, 0, 0);\n"
 			"  float3 comp16 = float3(1.0, 255.0, 0.0), comp24 = float3(1.0, 255.0, 255.0*255.0);\n"
 			"  float alphabump=0.0;\n"
 			"  float3 tevcoord=float3(0.0, 0.0, 0.0);\n"
@@ -488,8 +489,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			else
 				out.Write("\ttempcoord = float2(0.0, 0.0);\n");
 
-			out.Write("float3 indtex%d = ", i);
+			out.Write("\tint3 iindtex%d = ", i);
 			SampleTexture<T>(out, "tempcoord", "abg", texmap, ApiType);
+			out.Write("\tfloat3 indtex%d = float3(iindtex%d) / 255.0f;\n", i, i);
 		}
 	}
 
@@ -583,9 +585,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// theoretical final depth value is used for fog calculation, though, so we have to emulate ztextures anyway
 	if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !skip_ztexture)
 	{
-		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
+		// use the texture input of the last texture stage (itextemp), hopefully this has been read and is in correct format...
 		out.SetConstantsUsed(C_ZBIAS, C_ZBIAS+1);
-		out.Write("zCoord = dot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
+		out.Write("zCoord = dot(" I_ZBIAS"[0].xyzw, float4(itextemp.xyzw)/255.0) + " I_ZBIAS"[1].w %s;\n",
 									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
 
 		// U24 overflow emulation
@@ -822,13 +824,14 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		uid_data.SetTevindrefTexmap(i, texmap);
 
-		out.Write("textemp = ");
+		out.Write("itextemp = ");
 		SampleTexture<T>(out, "tevcoord", texswap, texmap, ApiType);
 	}
 	else
 	{
-		out.Write("textemp = float4(1.0, 1.0, 1.0, 1.0);\n");
+		out.Write("itextemp = int4(255, 255, 255, 255);\n");
 	}
+	out.Write("textemp = float4(itextemp) / 255.0f;\n");
 
 
 	if (cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST ||
@@ -1056,9 +1059,9 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 
 	if (ApiType == API_D3D)
-		out.Write("Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", texmap,texmap, texcoords, texmap, texswap);
-	else // OGL
-		out.Write("texture(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", texmap, texcoords, texmap, texswap);
+		out.Write("int4(round(255.0 * Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy))).%s;\n", texmap,texmap, texcoords, texmap, texswap);
+	else
+		out.Write("int4(round(255.0 * texture(samp%d,%s.xy * " I_TEXDIMS"[%d].xy))).%s;\n", texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
