@@ -8,36 +8,44 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-public final class GameListItem implements Comparable<GameListItem>{
-    private String name;
-    private String data;
-    private String path;
+public final class GameListItem implements Comparable<GameListItem>
+{
+    private final String name;
+    private final String data;
+    private final String path;
+    private final boolean isValid;
     private Bitmap image;
-	private boolean m_valid;
 
-    public GameListItem(Context ctx, String n,String d,String p, boolean valid)
+    public GameListItem(Context ctx, String name, String data, String path, boolean isValid)
     {
-        name = n;
-        data = d;
-        path = p;
-	    m_valid = valid;
+        this.name = name;
+        this.data = data;
+        this.path = path;
+	    this.isValid = isValid;
+	    
         File file = new File(path);
         if (!file.isDirectory() && !path.equals(""))
         {
         	int[] Banner = NativeLibrary.GetBanner(path);
         	if (Banner[0] == 0)
         	{
-        		try {
-					InputStream path = ctx.getAssets().open("NoBanner.png");
-					image = BitmapFactory.decodeStream(path);
-				} catch (IOException e) {
+        		try
+        		{
+					InputStream noBannerPath = ctx.getAssets().open("NoBanner.png");
+					image = BitmapFactory.decodeStream(noBannerPath);
+				}
+        		catch (IOException e)
+				{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
         		
         	}
         	else
+        	{
         		image = Bitmap.createBitmap(Banner, 96, 32, Bitmap.Config.ARGB_8888);
+        	}
+        	
         	name = NativeLibrary.GetTitle(path);
         }
     }
@@ -56,13 +64,15 @@ public final class GameListItem implements Comparable<GameListItem>{
     {
         return path;
     }
+    
     public Bitmap getImage()
     {
     	return image;
     }
+    
 	public boolean isValid()
 	{
-		return m_valid;
+		return isValid;
 	}
     
     public int compareTo(GameListItem o) 

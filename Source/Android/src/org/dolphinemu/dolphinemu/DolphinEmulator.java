@@ -25,24 +25,32 @@ public final class DolphinEmulator<MainActivity> extends Activity
 	private float screenWidth;
 	private float screenHeight;
 
-	private void CopyAsset(String asset, String output) {
+	private void CopyAsset(String asset, String output)
+	{
         InputStream in = null;
         OutputStream out = null;
-        try {
+        
+        try
+        {
           in = getAssets().open(asset);
           out = new FileOutputStream(output);
           copyFile(in, out);
           in.close();
           out.close();
-        } catch(IOException e) {
+        }
+        catch(IOException e)
+        {
             Log.e("DolphinEmulator", "Failed to copy asset file: " + asset, e);
         }       
 	}
 
-	private void copyFile(InputStream in, OutputStream out) throws IOException {
+	private void copyFile(InputStream in, OutputStream out) throws IOException
+	{
 	    byte[] buffer = new byte[1024];
 	    int read;
-	    while((read = in.read(buffer)) != -1){
+	    
+	    while((read = in.read(buffer)) != -1)
+	    {
 	      out.write(buffer, 0, read);
 	    }
 	}
@@ -54,6 +62,7 @@ public final class DolphinEmulator<MainActivity> extends Activity
 		if (Running)
 			NativeLibrary.StopEmulation();
 	}
+	
 	@Override
 	public void onPause()
 	{
@@ -61,6 +70,7 @@ public final class DolphinEmulator<MainActivity> extends Activity
 		if (Running)
 			NativeLibrary.PauseEmulation();
 	}
+	
 	@Override
 	public void onResume()
 	{
@@ -71,7 +81,8 @@ public final class DolphinEmulator<MainActivity> extends Activity
 
     /** Called when the activity is first created. */
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 		if (savedInstanceState == null)
 		{
@@ -158,7 +169,8 @@ public final class DolphinEmulator<MainActivity> extends Activity
 
 	// Gets button presses
 	@Override
-	public boolean dispatchKeyEvent(KeyEvent event) {
+	public boolean dispatchKeyEvent(KeyEvent event)
+	{
 		int action = 0;
 
 		// Special catch for the back key
@@ -180,7 +192,8 @@ public final class DolphinEmulator<MainActivity> extends Activity
 
 		if (Running)
 		{
-			switch (event.getAction()) {
+			switch (event.getAction())
+			{
 				case KeyEvent.ACTION_DOWN:
 					action = 0;
 					break;
@@ -198,8 +211,10 @@ public final class DolphinEmulator<MainActivity> extends Activity
 	}
 
 	@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent event) {
-		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0) || !Running) {
+	public boolean dispatchGenericMotionEvent(MotionEvent event)
+	{
+		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0) || !Running)
+		{
 			return super.dispatchGenericMotionEvent(event);
 		}
 
@@ -213,5 +228,4 @@ public final class DolphinEmulator<MainActivity> extends Activity
 
 		return true;
 	}
-
 }

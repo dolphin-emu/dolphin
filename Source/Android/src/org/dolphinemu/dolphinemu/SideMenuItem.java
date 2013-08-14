@@ -12,8 +12,8 @@ package org.dolphinemu.dolphinemu;
  */
 public final class SideMenuItem implements Comparable<SideMenuItem>
 {
-    private String m_name;
-    private int m_id;
+    private final String m_name;
+    private final int m_id;
 
     /**
      * Constructor

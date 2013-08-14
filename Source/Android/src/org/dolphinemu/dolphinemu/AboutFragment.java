@@ -16,7 +16,8 @@ import java.util.List;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public final class AboutFragment extends Fragment {
+public final class AboutFragment extends Fragment
+{
 	private static Activity m_activity;
 
 	private ListView mMainList;
@@ -25,13 +26,14 @@ public final class AboutFragment extends Fragment {
 	boolean Configuring = false;
 	boolean firstEvent = true;
 
-	public AboutFragment() {
+	public AboutFragment()
+	{
 		// Empty constructor required for fragment subclasses
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-	                         Bundle savedInstanceState) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+	{
 		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
 		mMainList = (ListView) rootView.findViewById(R.id.gamelist);
 		
@@ -47,15 +49,20 @@ public final class AboutFragment extends Fragment {
 
 		return mMainList;
 	}
+	
 	@Override
-	public void onAttach(Activity activity) {
+	public void onAttach(Activity activity)
+	{
 		super.onAttach(activity);
 
 		// This makes sure that the container activity has implemented
 		// the callback interface. If not, it throws an exception
-		try {
+		try
+		{
 			m_activity = activity;
-		} catch (ClassCastException e) {
+		}
+		catch (ClassCastException e)
+		{
 			throw new ClassCastException(activity.toString()
 					+ " must implement OnGameListZeroListener");
 		}

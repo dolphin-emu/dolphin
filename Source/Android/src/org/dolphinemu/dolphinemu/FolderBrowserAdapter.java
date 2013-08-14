@@ -1,7 +1,6 @@
 package org.dolphinemu.dolphinemu;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,13 +10,14 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>{
+public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
+{
+	private final Context c;
+	private final int id;
+	private final List<FolderBrowserItem> items;
 
-	private Context c;
-	private int id;
-	private List<FolderBrowserItem> items;
-
-	public FolderBrowserAdapter(Context context, int textViewResourceId, List<FolderBrowserItem> objects) {
+	public FolderBrowserAdapter(Context context, int textViewResourceId, List<FolderBrowserItem> objects)
+	{
 		super(context, textViewResourceId, objects);
 		c = context;
 		id = textViewResourceId;

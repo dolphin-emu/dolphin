@@ -31,13 +31,16 @@ public final class GameListFragment extends Fragment
 	private static GameListActivity mMe;
 	OnGameListZeroListener mCallback;
 
-	public interface OnGameListZeroListener {
+	public interface OnGameListZeroListener
+	{
 		public void onZeroFiles();
 	}
 
-	public GameListFragment() {
+	public GameListFragment()
+	{
 		// Empty constructor required for fragment subclasses
 	}
+	
 	private void Fill()
 	{
 		List<GameListItem> fls = new ArrayList<GameListItem>();
@@ -51,7 +54,7 @@ public final class GameListFragment extends Fragment
 		{
 			String BrowseDir = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPath" + a, "");
 			File currentDir = new File(BrowseDir);
-			File[]dirs = currentDir.listFiles();
+			File[] dirs = currentDir.listFiles();
 			try
 			{
 				for(File entry : dirs)
@@ -81,8 +84,8 @@ public final class GameListFragment extends Fragment
 	}
 
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-	                         Bundle savedInstanceState) {
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+	{
 		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
 		mMainList = (ListView) rootView.findViewById(R.id.gamelist);
 		mMainList.setOnItemClickListener(mGameItemClickListener);
@@ -91,6 +94,7 @@ public final class GameListFragment extends Fragment
 
 		return mMainList;
 	}
+	
 	private AdapterView.OnItemClickListener mGameItemClickListener = new AdapterView.OnItemClickListener()
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
@@ -102,6 +106,7 @@ public final class GameListFragment extends Fragment
 			}
 		}
 	};
+	
 	private void onFileClick(String o)
 	{
 		Toast.makeText(mMe, getString(R.string.file_clicked) + o, Toast.LENGTH_SHORT).show();
@@ -111,16 +116,21 @@ public final class GameListFragment extends Fragment
 		mMe.setResult(Activity.RESULT_OK, intent);
 		mMe.finish();
 	}
+	
 	@Override
-	public void onAttach(Activity activity) {
+	public void onAttach(Activity activity)
+	{
 		super.onAttach(activity);
 
 		// This makes sure that the container activity has implemented
 		// the callback interface. If not, it throws an exception
-		try {
+		try
+		{
 			mCallback = (OnGameListZeroListener) activity;
 			mMe = (GameListActivity) activity;
-		} catch (ClassCastException e) {
+		}
+		catch (ClassCastException e)
+		{
 			throw new ClassCastException(activity.toString()
 					+ " must implement OnGameListZeroListener");
 		}

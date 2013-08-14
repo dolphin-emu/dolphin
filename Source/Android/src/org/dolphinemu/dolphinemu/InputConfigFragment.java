@@ -19,7 +19,8 @@ import java.util.List;
  * Refer to the license.txt file included.
  */
 public final class InputConfigFragment extends Fragment
-		implements GameListActivity.OnGameConfigListener{
+		implements GameListActivity.OnGameConfigListener
+{
 	private Activity m_activity;
 	private ListView mDrawerList;
 	private InputConfigAdapter adapter;
@@ -31,20 +32,24 @@ public final class InputConfigFragment extends Fragment
 	{
 		if (input == null)
 			return "null"; // Happens when the inputdevice is from an unknown source
+		
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+		{
 			return input.getDescriptor();
+		}
 		else
 		{
 			List<InputDevice.MotionRange> motions = input.getMotionRanges();
 			String fakeid = "";
+			
 			for (InputDevice.MotionRange range : motions)
 				fakeid += range.getAxis();
+			
 			return fakeid;
 		}
 	}
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-	                         Bundle savedInstanceState)
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
 		List<InputConfigItem> Input = new ArrayList<InputConfigItem>();
 		Input.add(new InputConfigItem(getString(R.string.draw_onscreen_controls), "Android-ScreenControls", "True"));
@@ -77,6 +82,7 @@ public final class InputConfigFragment extends Fragment
 		mDrawerList.setOnItemClickListener(mMenuItemClickListener);
 		return mDrawerList;
 	}
+	
 	private AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
@@ -100,6 +106,7 @@ public final class InputConfigFragment extends Fragment
 					o.setBind(newBind);
 					adapter.insert(o, position);
 					break;
+					
 				default: // gamepad controls
 				    
 					Toast.makeText(m_activity, getString(R.string.press_button_to_config, o.getName()), Toast.LENGTH_SHORT).show();
@@ -120,10 +127,12 @@ public final class InputConfigFragment extends Fragment
 		o.setBind(bind);
 		adapter.insert(o, configPosition);
 	}
+	
 	public InputConfigAdapter getAdapter()
 	{
 		return adapter;
 	}
+	
 	// Called from GameListActivity
 	public boolean onMotionEvent(MotionEvent event)
 	{
@@ -166,10 +175,12 @@ public final class InputConfigFragment extends Fragment
 		}
 		return true;
 	}
+	
 	public boolean onKeyEvent(KeyEvent event)
 	{
 		Log.w("InputConfigFragment", "Got Event " + event.getAction());
-		switch (event.getAction()) {
+		switch (event.getAction())
+		{
 			case KeyEvent.ACTION_DOWN:
 			case KeyEvent.ACTION_UP:
 				if (Configuring)
@@ -179,6 +190,7 @@ public final class InputConfigFragment extends Fragment
 					Configuring = false;
 					return true;
 				}
+				
 			default:
 				break;
 		}
@@ -187,14 +199,18 @@ public final class InputConfigFragment extends Fragment
 	}
 
 	@Override
-	public void onAttach(Activity activity) {
+	public void onAttach(Activity activity)
+	{
 		super.onAttach(activity);
 
 		// This makes sure that the container activity has implemented
 		// the callback interface. If not, it throws an exception
-		try {
+		try
+		{
 			m_activity = activity;
-		} catch (ClassCastException e) {
+		}
+		catch (ClassCastException e)
+		{
 			throw new ClassCastException(activity.toString()
 					+ " must implement OnGameListZeroListener");
 		}

@@ -9,14 +9,13 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>{
-
-	private Context c;
-	private int id;
-	private List<SideMenuItem>items;
+public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>
+{
+	private final Context c;
+	private final int id;
+	private final List<SideMenuItem>items;
 	
-	public SideMenuAdapter(Context context, int textViewResourceId,
-			List<SideMenuItem> objects)
+	public SideMenuAdapter(Context context, int textViewResourceId, List<SideMenuItem> objects)
 	{
 		super(context, textViewResourceId, objects);
 		c = context;
@@ -28,6 +27,7 @@ public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>{
 	{
 		 return items.get(i);
 	}
+	
 	@Override
     public View getView(int position, View convertView, ViewGroup parent)
 	{
@@ -38,13 +38,13 @@ public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>{
              v = vi.inflate(id, null);
          }
           
-         final SideMenuItem o = items.get(position);
-         if (o != null)
+         final SideMenuItem item = items.get(position);
+         if (item != null)
          {
-             TextView t1 = (TextView) v.findViewById(R.id.SideMenuTitle);
+             TextView title = (TextView) v.findViewById(R.id.SideMenuTitle);
               
-             if(t1!=null)
-             	t1.setText(o.getName());
+             if(title != null)
+             	title.setText(item.getName());
          }
           
          return v;

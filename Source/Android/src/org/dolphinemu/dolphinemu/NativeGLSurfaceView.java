@@ -4,12 +4,14 @@ import android.content.Context;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public final class NativeGLSurfaceView extends SurfaceView {
+public final class NativeGLSurfaceView extends SurfaceView
+{
 	static private Thread myRun;
 	static private boolean Running = false;
 	static private boolean Created = false;
 
-	public NativeGLSurfaceView(Context context) {
+	public NativeGLSurfaceView(Context context)
+	{
 		super(context);
 		if (!Created)
 		{
@@ -20,8 +22,10 @@ public final class NativeGLSurfaceView extends SurfaceView {
 	    	  		NativeLibrary.Run(getHolder().getSurface());
 	      		}	
 			};
+			
 			getHolder().addCallback(new SurfaceHolder.Callback() {
-		            public void surfaceCreated(SurfaceHolder holder) {
+		            public void surfaceCreated(SurfaceHolder holder)
+		            {
 		                // TODO Auto-generated method stub
 		            	if (!Running)
 		            	{
@@ -30,17 +34,17 @@ public final class NativeGLSurfaceView extends SurfaceView {
 		            	}
 		            }
 
-					public void surfaceChanged(SurfaceHolder arg0, int arg1,
-							int arg2, int arg3) {
+					public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3)
+					{
 						// TODO Auto-generated method stub
-						
 					}
 
-					public void surfaceDestroyed(SurfaceHolder arg0) {
+					public void surfaceDestroyed(SurfaceHolder arg0)
+					{
 						// TODO Auto-generated method stub
-						
 					}
 			 });
+			
 			Created = true;
 		}
 	}
