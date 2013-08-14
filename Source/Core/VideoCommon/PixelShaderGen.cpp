@@ -188,8 +188,8 @@ static const char *tevRasTable[] =
 	"ERROR13", //2
 	"ERROR14", //3
 	"ERROR15", //4
-	"int4(1,1,1,1) * int(round(alphabump * 255.0))", // use bump alpha
-	"int4(1,1,1,1) * int(round(alphabump * 255.0)) * 255 / 248)", //normalized
+	"(int4(1,1,1,1) * alphabump)", // use bump alpha
+	"(int4(1,1,1,1) * (alphabump | (alphabump >> 5)))", //normalized
 	"int4(0, 0, 0, 0)", // zero
 };
 
@@ -205,16 +205,9 @@ static const char *tevIndWrapStart[]  = {"0.0", "256.0", "128.0", "64.0", "32.0"
 static const char *tevIndFmtScale[]   = {"255.0", "31.0", "15.0", "7.0" };
 static const char *tevIndFmtMask[]   = {"0xFF", "0x1F", "0x0F", "0x07" };
 
-struct RegisterState
-{
-	bool ColorNeedOverflowControl;
-	bool AlphaNeedOverflowControl;
-	bool AuxStored;
-};
-
 static char text[16384];
 
-template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4], const char swapModeTable[4][5]);
+template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, const char swapModeTable[4][5]);
 template<class T> static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data);
@@ -392,7 +385,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	out.Write("  int4 ic0 = int4(round(" I_COLORS"[1] * 255.0)), ic1 = int4(round(" I_COLORS"[2] * 255.0)), ic2 = int4(round(" I_COLORS"[3] * 255.0)), iprev = int4(0, 0, 0, 0);\n"
 			"  int4 irastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0), ikonsttemp = int4(0, 0, 0, 0);\n"
 			"  int3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
-			"  float alphabump=0.0;\n"
+			"  int alphabump=0;\n"
 			"  float3 tevcoord=float3(0.0, 0.0, 0.0);\n"
 			"  float2 wrappedcoord=float2(0.0,0.0), tempcoord=float2(0.0,0.0);\n"
 			"  int4 icc0=int4(0, 0, 0, 0), icc1=int4(0, 0, 0, 0);\n"
@@ -494,17 +487,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		}
 	}
 
-	RegisterState RegisterStates[4];
-	RegisterStates[0].AlphaNeedOverflowControl = false;
-	RegisterStates[0].ColorNeedOverflowControl = false;
-	RegisterStates[0].AuxStored = false;
-	for (int i = 1; i < 4; i++)
-	{
-		RegisterStates[i].AlphaNeedOverflowControl = true;
-		RegisterStates[i].ColorNeedOverflowControl = true;
-		RegisterStates[i].AuxStored = false;
-	}
-
 	// Uid fields for BuildSwapModeTable are set in WriteStage
 	char swapModeTable[4][5];
 	const char* swapColors = "rgba";
@@ -518,7 +500,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	}
 
 	for (unsigned int i = 0; i < numStages; i++)
-		WriteStage<T>(out, uid_data, i, ApiType, RegisterStates, swapModeTable); // build the equation for this stage
+		WriteStage<T>(out, uid_data, i, ApiType, swapModeTable); // build the equation for this stage
 
 #define MY_STRUCT_OFFSET(str,elem) ((u32)((u64)&(str).elem-(u64)&(str)))
 	bool enable_pl = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
@@ -531,15 +513,11 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// regardless of the used destination register
 		if (bpmem.combiners[numStages - 1].colorC.dest != 0)
 		{
-			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].AuxStored;
-			out.Write("\tiprev.rgb = %s;\n", tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest + (retrieveFromAuxRegister)?4:0]);
-			RegisterStates[0].ColorNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].colorC.dest].ColorNeedOverflowControl;
+			out.Write("\tiprev.rgb = %s;\n", tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
 		}
 		if (bpmem.combiners[numStages - 1].alphaC.dest != 0)
 		{
-			bool retrieveFromAuxRegister = !RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl && RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AuxStored;
-			out.Write("\tiprev.a = %s;\n", tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest + (retrieveFromAuxRegister)?4:0]);
-			RegisterStates[0].AlphaNeedOverflowControl = RegisterStates[bpmem.combiners[numStages - 1].alphaC.dest].AlphaNeedOverflowControl;
+			out.Write("\tiprev.a = %s;\n", tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
 		}
 	}
 	out.Write("\tiprev = iprev & 0xFF;\n");
@@ -647,14 +625,14 @@ static const char *TEVCMPColorOPTable[16] =
 	"float3(0.0, 0.0, 0.0)",//5
 	"float3(0.0, 0.0, 0.0)",//6
 	"float3(0.0, 0.0, 0.0)",//7
-	"   %s + ((%s.r > %s.r) ? %s : int3(0,0,0))",//#define TEVCMP_R8_GT 8
-	"   %s + ((%s.r == %s.r) ? %s : int3(0,0,0))",//#define TEVCMP_R8_EQ 9
-	"   %s + ((idot(%s.rgb, comp16) >  idot(%s.rgb, comp16)) ? %s : int3(0,0,0))",//#define TEVCMP_GR16_GT 10
-	"   %s + ((idot(%s.rgb, comp16) == idot(%s.rgb, comp16)) ? %s : int3(0,0,0))",//#define TEVCMP_GR16_EQ 11
-	"   %s + ((idot(%s.rgb, comp24) >  idot(%s.rgb, comp24)) ? %s : int3(0,0,0))",//#define TEVCMP_BGR24_GT 12
-	"   %s + ((idot(%s.rgb, comp24) == idot(%s.rgb, comp24)) ? %s : int3(0,0,0))",//#define TEVCMP_BGR24_EQ 13
-	"   %s + int3(max(sign(int3(%s.rgb) - int3(%s.rgb)), int3(0,0,0)) * %s)",//#define TEVCMP_RGB8_GT  14
-	"   %s + int3((int3(255,255,255) - max(sign(abs(int3(%s.rgb) - int3(%s.rgb))), int3(0,0,0))) * %s)"//#define TEVCMP_RGB8_EQ  15
+	"   %s + (((%s.r&0xFF) > %s.r) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_R8_GT 8
+	"   %s + (((%s.r&0xFF) == %s.r) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_R8_EQ 9
+	"   %s + ((idot((%s.rgb&0xFF), comp16) >  idot((%s.rgb&0xFF), comp16)) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_GR16_GT 10
+	"   %s + ((idot((%s.rgb&0xFF), comp16) == idot((%s.rgb&0xFF), comp16)) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_GR16_EQ 11
+	"   %s + ((idot((%s.rgb&0xFF), comp24) >  idot((%s.rgb&0xFF), comp24)) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_BGR24_GT 12
+	"   %s + ((idot((%s.rgb&0xFF), comp24) == idot((%s.rgb&0xFF), comp24)) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_BGR24_EQ 13
+	"   %s + int3(max(sign(int3((%s.rgb&0xFF)) - int3((%s.rgb&0xFF))), int3(0,0,0)) * (%s&0xFF))",//#define TEVCMP_RGB8_GT  14
+	"   %s + int3((int3(255,255,255) - max(sign(abs(int3((%s.rgb&0xFF)) - int3((%s.rgb&0xFF)))), int3(0,0,0))) * (%s&0xFF))"//#define TEVCMP_RGB8_EQ  15
 };
 
 //table with the alpha compare operations
@@ -668,18 +646,18 @@ static const char *TEVCMPAlphaOPTable[16] =
 	"0.0",//5
 	"0.0",//6
 	"0.0",//7
-	"   %s.a + ((%s.r > %s.r) ? %s.a : 0)",//#define TEVCMP_R8_GT 8
-	"   %s.a + ((%s.r == %s.r) ? %s.a : 0)",//#define TEVCMP_R8_EQ 9
-	"   %s.a + ((idot(%s.rgb, comp16) >  idot(%s.rgb, comp16)) ? %s.a : 0)",//#define TEVCMP_GR16_GT 10
-	"   %s.a + ((idot(%s.rgb, comp16) == idot(%s.rgb, comp16)) ? %s.a : 0)",//#define TEVCMP_GR16_EQ 11
-	"   %s.a + ((idot(%s.rgb, comp24) >  idot(%s.rgb, comp24)) ? %s.a : 0)",//#define TEVCMP_BGR24_GT 12
-	"   %s.a + ((idot(%s.rgb, comp24) == idot(%s.rgb, comp24)) ? %s.a : 0)",//#define TEVCMP_BGR24_EQ 13
-	"   %s.a + ((%s.a >  %s.a) ? %s.a : 0)",//#define TEVCMP_A8_GT 14
-	"   %s.a + ((%s.a == %s.a) ? %s.a : 0)" //#define TEVCMP_A8_EQ 15
+	"   %s.a + (((%s.r&0xFF) > (%s.r&0xFF)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_R8_GT 8
+	"   %s.a + (((%s.r&0xFF) == (%s.r&0xFF)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_R8_EQ 9
+	"   %s.a + ((idot((%s.rgb&0xFF), comp16) >  idot((%s.rgb&0xFF), comp16)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_GR16_GT 10
+	"   %s.a + ((idot((%s.rgb&0xFF), comp16) == idot((%s.rgb&0xFF), comp16)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_GR16_EQ 11
+	"   %s.a + ((idot((%s.rgb&0xFF), comp24) >  idot((%s.rgb&0xFF), comp24)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_BGR24_GT 12
+	"   %s.a + ((idot((%s.rgb&0xFF), comp24) == idot((%s.rgb&0xFF), comp24)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_BGR24_EQ 13
+	"   %s.a + (((%s.a&0xFF) >  (%s.a&0xFF)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_A8_GT 14
+	"   %s.a + (((%s.a&0xFF) == (%s.a&0xFF)) ? (%s.a&0xFF) : 0)" //#define TEVCMP_A8_EQ 15
 };
 
 template<class T>
-static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4], const char swapModeTable[4][5])
+static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, const char swapModeTable[4][5])
 {
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
 	bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
@@ -700,7 +678,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		// perform the indirect op on the incoming regular coordinates using iindtex%d as the offset coords
 		if (bpmem.tevind[n].bs != ITBA_OFF)
 		{
-			out.Write("alphabump = float(iindtex%d.%s & %s) / 255.0;\n",
+			out.Write("alphabump = iindtex%d.%s & %s;\n",
 					bpmem.tevind[n].bt,
 					tevIndAlphaSel[bpmem.tevind[n].bs],
 					tevIndAlphaMask[bpmem.tevind[n].fmt]);
@@ -799,7 +777,6 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 
 		const char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		out.Write("irastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
-		out.Write("icrastemp = irastemp & 0xFF;\n");
 	}
 
 	uid_data.stagehash[n].tevorders_enable = bpmem.tevorders[n / 2].getEnable(n & 1);
@@ -846,95 +823,12 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		uid_data.stagehash[n].tevksel_kc = kc;
 		uid_data.stagehash[n].tevksel_ka = ka;
 		out.Write("ikonsttemp = int4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
-		out.Write("ickonsttemp = ikonsttemp & 0xFF;\n");
 
 		if (kc > 7)
 			out.SetConstantsUsed(C_KCOLORS+((kc-0xc)%4),C_KCOLORS+((kc-0xc)%4));
 		if (ka > 7)
 			out.SetConstantsUsed(C_KCOLORS+((ka-0xc)%4),C_KCOLORS+((ka-0xc)%4));
 	}
-
-	if (cc.a == TEVCOLORARG_CPREV || cc.a == TEVCOLORARG_APREV ||
-	    cc.b == TEVCOLORARG_CPREV || cc.b == TEVCOLORARG_APREV ||
-	    cc.c == TEVCOLORARG_CPREV || cc.c == TEVCOLORARG_APREV ||
-	    ac.a == TEVALPHAARG_APREV || ac.b == TEVALPHAARG_APREV ||
-	    ac.c == TEVALPHAARG_APREV)
-	{
-		if (RegisterStates[0].AlphaNeedOverflowControl || RegisterStates[0].ColorNeedOverflowControl)
-		{
-			out.Write("icprev = iprev & 0xFF;\n");
-			RegisterStates[0].AlphaNeedOverflowControl = false;
-			RegisterStates[0].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			out.Write("icprev = iprev;\n");
-		}
-		RegisterStates[0].AuxStored = true;
-	}
-
-	if (cc.a == TEVCOLORARG_C0 || cc.a == TEVCOLORARG_A0 ||
-	    cc.b == TEVCOLORARG_C0 || cc.b == TEVCOLORARG_A0 ||
-	    cc.c == TEVCOLORARG_C0 || cc.c == TEVCOLORARG_A0 ||
-	    ac.a == TEVALPHAARG_A0 || ac.b == TEVALPHAARG_A0 ||
-	    ac.c == TEVALPHAARG_A0)
-	{
-		out.SetConstantsUsed(C_COLORS+1,C_COLORS+1);
-		if (RegisterStates[1].AlphaNeedOverflowControl || RegisterStates[1].ColorNeedOverflowControl)
-		{
-			out.Write("icc0 = ic0 & 0xFF;\n");
-			RegisterStates[1].AlphaNeedOverflowControl = false;
-			RegisterStates[1].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			out.Write("icc0 = ic0;\n");
-		}
-		RegisterStates[1].AuxStored = true;
-	}
-
-	if (cc.a == TEVCOLORARG_C1 || cc.a == TEVCOLORARG_A1 ||
-	    cc.b == TEVCOLORARG_C1 || cc.b == TEVCOLORARG_A1 ||
-	    cc.c == TEVCOLORARG_C1 || cc.c == TEVCOLORARG_A1 ||
-	    ac.a == TEVALPHAARG_A1 || ac.b == TEVALPHAARG_A1 ||
-	    ac.c == TEVALPHAARG_A1)
-	{
-		out.SetConstantsUsed(C_COLORS+2,C_COLORS+2);
-		if (RegisterStates[2].AlphaNeedOverflowControl || RegisterStates[2].ColorNeedOverflowControl)
-		{
-			out.Write("icc1 = ic1 & 0xFF;\n");
-			RegisterStates[2].AlphaNeedOverflowControl = false;
-			RegisterStates[2].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			out.Write("icc1 = ic1;\n");
-		}
-		RegisterStates[2].AuxStored = true;
-	}
-
-	if (cc.a == TEVCOLORARG_C2 || cc.a == TEVCOLORARG_A2 ||
-	    cc.b == TEVCOLORARG_C2 || cc.b == TEVCOLORARG_A2 ||
-	    cc.c == TEVCOLORARG_C2 || cc.c == TEVCOLORARG_A2 ||
-	    ac.a == TEVALPHAARG_A2 || ac.b == TEVALPHAARG_A2 ||
-	    ac.c == TEVALPHAARG_A2)
-	{
-		out.SetConstantsUsed(C_COLORS+3,C_COLORS+3);
-		if (RegisterStates[3].AlphaNeedOverflowControl || RegisterStates[3].ColorNeedOverflowControl)
-		{
-			out.Write("icc2 = ic2 & 0xFF;\n");
-			RegisterStates[3].AlphaNeedOverflowControl = false;
-			RegisterStates[3].ColorNeedOverflowControl = false;
-		}
-		else
-		{
-			out.Write("icc2 = ic2;\n");
-		}
-		RegisterStates[3].AuxStored = true;
-	}
-
-	RegisterStates[cc.dest].ColorNeedOverflowControl = (cc.clamp == 0);
-	RegisterStates[cc.dest].AuxStored = false;
 
 	if (cc.d == TEVCOLORARG_C0 || cc.d == TEVCOLORARG_A0 || ac.d == TEVALPHAARG_A0)
 		out.SetConstantsUsed(C_COLORS+1,C_COLORS+1);
@@ -955,7 +849,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	if (cc.clamp)
 		out.Write("%s = clamp(", tevCOutputTable[cc.dest]);
 	else
-		out.Write("%s = (", tevCOutputTable[cc.dest]);
+		out.Write("%s = ", tevCOutputTable[cc.dest]);
 
 	// combine the color channel
 	if (cc.bias != TevBias_COMPARE) // if not compare
@@ -967,7 +861,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
 			out.Write("%s %s ", tevCInputTable[cc.d], tevOpTable[cc.op]);
 
-		out.Write("(%s * %s + %s * (int3(255,255,255) - %s)) / 255", tevCInputTable[cc.a + 16], tevCInputTable[cc.c + 16], tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
+		out.Write("((%s&0xFF) * (int3(255,255,255) - (%s&0xFF)) + (%s&0xFF) * (%s&0xFF)) / 255", tevCInputTable[cc.a], tevCInputTable[cc.c], tevCInputTable[cc.b], tevCInputTable[cc.c]);
 
 		out.Write("%s", tevBiasTable[cc.bias]);
 
@@ -979,22 +873,19 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		int cmp = (cc.shift<<1)|cc.op|8; // comparemode stored here
 		out.Write(TEVCMPColorOPTable[cmp],//lookup the function from the op table
 				tevCInputTable[cc.d],
-				tevCInputTable[cc.a + 16],
-				tevCInputTable[cc.b + 16],
-				tevCInputTable[cc.c + 16]);
+				tevCInputTable[cc.a],
+				tevCInputTable[cc.b],
+				tevCInputTable[cc.c]);
 	}
 	if (cc.clamp)
-		out.Write(", int3(0,0,0), int3(255,255,255)");
-	out.Write(");\n");
-
-	RegisterStates[ac.dest].AlphaNeedOverflowControl = (ac.clamp == 0);
-	RegisterStates[ac.dest].AuxStored = false;
+		out.Write(", int3(0,0,0), int3(255,255,255))");
+	out.Write(";\n");
 
 	out.Write("// alpha combine\n");
 	if (ac.clamp)
 		out.Write("%s = clamp(", tevAOutputTable[ac.dest]);
 	else
-		out.Write("%s = (", tevAOutputTable[ac.dest]);
+		out.Write("%s = ", tevAOutputTable[ac.dest]);
 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
@@ -1005,7 +896,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
 			out.Write("%s.a %s ", tevAInputTable[ac.d], tevOpTable[ac.op]);
 
-		out.Write("(%s.a * %s.a + %s.a * (255 - %s.a)) / 255", tevAInputTable[ac.a + 8], tevAInputTable[ac.c + 8], tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
+		out.Write("((%s.a&0xFF) * (255 - (%s.a&0xFF)) + (%s.a&0xFF) * (%s.a&0xFF)) / 255", tevAInputTable[ac.a], tevAInputTable[ac.c], tevAInputTable[ac.b], tevAInputTable[ac.c]);
 
 		out.Write("%s",tevBiasTable[ac.bias]);
 
@@ -1019,13 +910,13 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		int cmp = (ac.shift<<1)|ac.op|8; // comparemode stored here
 		out.Write(TEVCMPAlphaOPTable[cmp],
 				tevAInputTable[ac.d],
-				tevAInputTable[ac.a + 8],
-				tevAInputTable[ac.b + 8],
-				tevAInputTable[ac.c + 8]);
+				tevAInputTable[ac.a],
+				tevAInputTable[ac.b],
+				tevAInputTable[ac.c]);
 	}
 	if (ac.clamp)
-		out.Write(", 0, 255");
-	out.Write(");\n\n");
+		out.Write(", 0, 255)");
+	out.Write(";\n\n");
 	out.Write("// TEV done\n");
 }
 
