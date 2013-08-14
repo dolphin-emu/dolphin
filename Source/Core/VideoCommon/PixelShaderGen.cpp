@@ -101,17 +101,17 @@ static const char *tevKSelTableA[] = // KASEL
 
 static const char *tevScaleTable[] = // CS
 {
-	"1.0",  // SCALE_1
-	"2.0",  // SCALE_2
-	"4.0",  // SCALE_4
-	"0.5",  // DIVIDE_2
+	"*1",     // SCALE_1
+	"*2",     // SCALE_2
+	"*4",     // SCALE_4
+	"/ 2",  // DIVIDE_2
 };
 
 static const char *tevBiasTable[] = // TB
 {
 	"",       // ZERO,
-	"+0.5",  // ADDHALF,
-	"-0.5",  // SUBHALF,
+	"+ 128",  // ADDHALF,
+	"- 128",  // SUBHALF,
 	"",
 };
 
@@ -122,61 +122,61 @@ static const char *tevOpTable[] = { // TEV
 
 static const char *tevCInputTable[] = // CC
 {
-	"(float3(iprev.rgb)/255.0)",         // CPREV,
-	"(float3(iprev.aaa)/255.0)",         // APREV,
-	"(float3(ic0.rgb)/255.0)",           // C0,
-	"(float3(ic0.aaa)/255.0)",           // A0,
-	"(float3(ic1.rgb)/255.0)",           // C1,
-	"(float3(ic1.aaa)/255.0)",           // A1,
-	"(float3(ic2.rgb)/255.0)",           // C2,
-	"(float3(ic2.aaa)/255.0)",           // A2,
-	"(float3(itextemp.rgb)/255.0)",      // TEXC,
-	"(float3(itextemp.aaa)/255.0)",      // TEXA,
-	"(float3(irastemp.rgb)/255.0)",      // RASC,
-	"(float3(irastemp.aaa)/255.0)",      // RASA,
-	"float3(1.0, 1.0, 1.0)",              // ONE
-	"float3(0.5, 0.5, 0.5)",              // HALF
-	"(float3(ikonsttemp.rgb)/255.0)", //"konsttemp.rgb",    // KONST
-	"float3(0.0, 0.0, 0.0)",              // ZERO
+	"iprev.rgb",         // CPREV,
+	"iprev.aaa",         // APREV,
+	"ic0.rgb",           // C0,
+	"ic0.aaa",           // A0,
+	"ic1.rgb",           // C1,
+	"ic1.aaa",           // A1,
+	"ic2.rgb",           // C2,
+	"ic2.aaa",           // A2,
+	"itextemp.rgb",      // TEXC,
+	"itextemp.aaa",      // TEXA,
+	"irastemp.rgb",      // RASC,
+	"irastemp.aaa",      // RASA,
+	"int3(255,255,255)", // ONE
+	"int3(127,127,127)", // HALF
+	"ikonsttemp.rgb",    // KONST
+	"int3(0,0,0)",       // ZERO
 	///added extra values to map clamped values
-	"(float3(icprev.rgb)/255.0)",        // CPREV,
-	"(float3(icprev.aaa)/255.0)",        // APREV,
-	"(float3(icc0.rgb)/255.0)",          // C0,
-	"(float3(icc0.aaa)/255.0)",          // A0,
-	"(float3(icc1.rgb)/255.0)",          // C1,
-	"(float3(icc1.aaa)/255.0)",          // A1,
-	"(float3(icc2.rgb)/255.0)",          // C2,
-	"(float3(icc2.aaa)/255.0)",          // A2,
-	"(float3(itextemp.rgb)/255.0)",      // TEXC,
-	"(float3(itextemp.aaa)/255.0)",      // TEXA,
-	"(float3(icrastemp.rgb)/255.0)",     // RASC,
-	"(float3(icrastemp.aaa)/255.0)",     // RASA,
-	"float3(1.0, 1.0, 1.0)",              // ONE
-	"float3(0.5, 0.5, 0.5)",              // HALF
-	"(float3(ickonsttemp.rgb)/255.0)", //"konsttemp.rgb",   // KONST
-	"float3(0.0, 0.0, 0.0)",              // ZERO
+	"icprev.rgb",        // CPREV,
+	"icprev.aaa",        // APREV,
+	"icc0.rgb",          // C0,
+	"icc0.aaa",          // A0,
+	"icc1.rgb",          // C1,
+	"icc1.aaa",          // A1,
+	"icc2.rgb",          // C2,
+	"icc2.aaa",          // A2,
+	"itextemp.rgb",      // TEXC,
+	"itextemp.aaa",      // TEXA,
+	"icrastemp.rgb",     // RASC,
+	"icrastemp.aaa",     // RASA,
+	"int3(255,255,255)", // ONE
+	"int3(127,127,127)", // HALF
+	"ickonsttemp.rgb",   // KONST
+	"int3(0,0,0)",       // ZERO
 	"PADERROR1", "PADERROR2", "PADERROR3", "PADERROR4"
 };
 
 static const char *tevAInputTable[] = // CA
 {
-	"(float4(iprev)/255.0)",            // APREV,
-	"(float4(ic0)/255.0)",              // A0,
-	"(float4(ic1)/255.0)",              // A1,
-	"(float4(ic2)/255.0)",              // A2,
-	"(float4(itextemp) / 255.0)",         // TEXA,
-	"(float4(irastemp) / 255.0)",         // RASA,
-	"(float4(ikonsttemp) / 255.0)",       // KONST,  (hw1 had quarter)
-	"float4(0.0, 0.0, 0.0, 0.0)", // ZERO
+	"iprev",            // APREV,
+	"ic0",              // A0,
+	"ic1",              // A1,
+	"ic2",              // A2,
+	"itextemp",         // TEXA,
+	"irastemp",         // RASA,
+	"ikonsttemp",       // KONST,  (hw1 had quarter)
+	"int4(0,0,0,0)",    // ZERO
 	///added extra values to map clamped values
-	"(float4(icprev)/255.0)",            // APREV,
-	"(float4(icc0)/255.0)",              // A0,
-	"(float4(icc1)/255.0)",              // A1,
-	"(float4(icc2)/255.0)",              // A2,
-	"(float4(itextemp) / 255.0)",          // TEXA,
-	"(float4(icrastemp) / 255.0)",         // RASA,
-	"(float4(ickonsttemp) / 255.0)",       // KONST,  (hw1 had quarter)
-	"float4(0.0, 0.0, 0.0, 0.0)", // ZERO
+	"icprev",            // APREV,
+	"icc0",              // A0,
+	"icc1",              // A1,
+	"icc2",              // A2,
+	"itextemp",          // TEXA,
+	"icrastemp",         // RASA,
+	"ickonsttemp",       // KONST,  (hw1 had quarter)
+	"int4(0,0,0,0)",     // ZERO
 	"PADERROR5", "PADERROR6", "PADERROR7", "PADERROR8",
 	"PADERROR9", "PADERROR10", "PADERROR11", "PADERROR12",
 };
@@ -391,7 +391,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	out.Write("  int4 ic0 = int4(round(" I_COLORS"[1] * 255.0)), ic1 = int4(round(" I_COLORS"[2] * 255.0)), ic2 = int4(round(" I_COLORS"[3] * 255.0)), iprev = int4(0, 0, 0, 0);\n"
 			"  int4 irastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0), ikonsttemp = int4(0, 0, 0, 0);\n"
-			"  float3 comp16 = float3(1.0, 255.0, 0.0), comp24 = float3(1.0, 255.0, 255.0*255.0);\n"
+			"  int3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
 			"  float alphabump=0.0;\n"
 			"  float3 tevcoord=float3(0.0, 0.0, 0.0);\n"
 			"  float2 wrappedcoord=float2(0.0,0.0), tempcoord=float2(0.0,0.0);\n"
@@ -647,14 +647,14 @@ static const char *TEVCMPColorOPTable[16] =
 	"float3(0.0, 0.0, 0.0)",//5
 	"float3(0.0, 0.0, 0.0)",//6
 	"float3(0.0, 0.0, 0.0)",//7
-	"   %s + ((%s.r >= %s.r + (0.25/255.0)) ? %s : float3(0.0, 0.0, 0.0))",//#define TEVCMP_R8_GT 8
-	"   %s + ((abs(%s.r - %s.r) < (0.5/255.0)) ? %s : float3(0.0, 0.0, 0.0))",//#define TEVCMP_R8_EQ 9
-	"   %s + (( dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (0.25/255.0))) ? %s : float3(0.0, 0.0, 0.0))",//#define TEVCMP_GR16_GT 10
-	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (0.5/255.0) ? %s : float3(0.0, 0.0, 0.0))",//#define TEVCMP_GR16_EQ 11
-	"   %s + (( dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (0.25/255.0))) ? %s : float3(0.0, 0.0, 0.0))",//#define TEVCMP_BGR24_GT 12
-	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5/255.0) ? %s : float3(0.0, 0.0, 0.0))",//#define TEVCMP_BGR24_EQ 13
-	"   %s + (max(sign(%s.rgb - %s.rgb - (0.25/255.0)), float3(0.0, 0.0, 0.0)) * %s)",//#define TEVCMP_RGB8_GT  14
-	"   %s + ((float3(1.0, 1.0, 1.0) - max(sign(abs(%s.rgb - %s.rgb) - (0.5/255.0)), float3(0.0, 0.0, 0.0))) * %s)"//#define TEVCMP_RGB8_EQ  15
+	"   %s + ((%s.r > %s.r) ? %s : int3(0,0,0))",//#define TEVCMP_R8_GT 8
+	"   %s + ((%s.r == %s.r) ? %s : int3(0,0,0))",//#define TEVCMP_R8_EQ 9
+	"   %s + ((idot(%s.rgb, comp16) >  idot(%s.rgb, comp16)) ? %s : int3(0,0,0))",//#define TEVCMP_GR16_GT 10
+	"   %s + ((idot(%s.rgb, comp16) == idot(%s.rgb, comp16)) ? %s : int3(0,0,0))",//#define TEVCMP_GR16_EQ 11
+	"   %s + ((idot(%s.rgb, comp24) >  idot(%s.rgb, comp24)) ? %s : int3(0,0,0))",//#define TEVCMP_BGR24_GT 12
+	"   %s + ((idot(%s.rgb, comp24) == idot(%s.rgb, comp24)) ? %s : int3(0,0,0))",//#define TEVCMP_BGR24_EQ 13
+	"   %s + int3(max(sign(int3(%s.rgb) - int3(%s.rgb)), int3(0,0,0)) * %s)",//#define TEVCMP_RGB8_GT  14
+	"   %s + int3((int3(255,255,255) - max(sign(abs(int3(%s.rgb) - int3(%s.rgb))), int3(0,0,0))) * %s)"//#define TEVCMP_RGB8_EQ  15
 };
 
 //table with the alpha compare operations
@@ -668,14 +668,14 @@ static const char *TEVCMPAlphaOPTable[16] =
 	"0.0",//5
 	"0.0",//6
 	"0.0",//7
-	"   %s.a + ((%s.r >= (%s.r + (0.25/255.0))) ? %s.a : 0.0)",//#define TEVCMP_R8_GT 8
-	"   %s.a + (abs(%s.r - %s.r) < (0.5/255.0) ? %s.a : 0.0)",//#define TEVCMP_R8_EQ 9
-	"   %s.a + ((dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (0.25/255.0))) ? %s.a : 0.0)",//#define TEVCMP_GR16_GT 10
-	"   %s.a + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (0.5/255.0) ? %s.a : 0.0)",//#define TEVCMP_GR16_EQ 11
-	"   %s.a + ((dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (0.25/255.0))) ? %s.a : 0.0)",//#define TEVCMP_BGR24_GT 12
-	"   %s.a + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5/255.0) ? %s.a : 0.0)",//#define TEVCMP_BGR24_EQ 13
-	"   %s.a + ((%s.a >= (%s.a + (0.25/255.0))) ? %s.a : 0.0)",//#define TEVCMP_A8_GT 14
-	"   %s.a + (abs(%s.a - %s.a) < (0.5/255.0) ? %s.a : 0.0)"//#define TEVCMP_A8_EQ 15
+	"   %s.a + ((%s.r > %s.r) ? %s.a : 0)",//#define TEVCMP_R8_GT 8
+	"   %s.a + ((%s.r == %s.r) ? %s.a : 0)",//#define TEVCMP_R8_EQ 9
+	"   %s.a + ((idot(%s.rgb, comp16) >  idot(%s.rgb, comp16)) ? %s.a : 0)",//#define TEVCMP_GR16_GT 10
+	"   %s.a + ((idot(%s.rgb, comp16) == idot(%s.rgb, comp16)) ? %s.a : 0)",//#define TEVCMP_GR16_EQ 11
+	"   %s.a + ((idot(%s.rgb, comp24) >  idot(%s.rgb, comp24)) ? %s.a : 0)",//#define TEVCMP_BGR24_GT 12
+	"   %s.a + ((idot(%s.rgb, comp24) == idot(%s.rgb, comp24)) ? %s.a : 0)",//#define TEVCMP_BGR24_EQ 13
+	"   %s.a + ((%s.a >  %s.a) ? %s.a : 0)",//#define TEVCMP_A8_GT 14
+	"   %s.a + ((%s.a == %s.a) ? %s.a : 0)" //#define TEVCMP_A8_EQ 15
 };
 
 template<class T>
@@ -955,37 +955,24 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	if (cc.clamp)
 		out.Write("%s = clamp(", tevCOutputTable[cc.dest]);
 	else
-		out.Write("%s = ", tevCOutputTable[cc.dest]);
-
-	out.Write("int3(");
+		out.Write("%s = (", tevCOutputTable[cc.dest]);
 
 	// combine the color channel
 	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal color combiner goes here
 		if (cc.shift > TEVSCALE_1)
-			out.Write("%s*(", tevScaleTable[cc.shift]);
+			out.Write("(");
 
 		if (!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
-			out.Write("%s%s", tevCInputTable[cc.d], tevOpTable[cc.op]);
+			out.Write("%s %s ", tevCInputTable[cc.d], tevOpTable[cc.op]);
 
-		if (cc.a == cc.b)
-			out.Write("%s", tevCInputTable[cc.a + 16]);
-		else if (cc.c == TEVCOLORARG_ZERO)
-			out.Write("%s", tevCInputTable[cc.a + 16]);
-		else if (cc.c == TEVCOLORARG_ONE)
-			out.Write("%s", tevCInputTable[cc.b + 16]);
-		else if (cc.a == TEVCOLORARG_ZERO)
-			out.Write("%s*%s", tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
-		else if (cc.b == TEVCOLORARG_ZERO)
-			out.Write("%s*(float3(1.0, 1.0, 1.0)-%s)", tevCInputTable[cc.a + 16], tevCInputTable[cc.c + 16]);
-		else
-			out.Write("lerp(%s, %s, %s)", tevCInputTable[cc.a + 16], tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
+		out.Write("(%s * %s + %s * (int3(255,255,255) - %s)) / 255", tevCInputTable[cc.a + 16], tevCInputTable[cc.c + 16], tevCInputTable[cc.b + 16], tevCInputTable[cc.c + 16]);
 
 		out.Write("%s", tevBiasTable[cc.bias]);
 
 		if (cc.shift > TEVSCALE_1)
-			out.Write(")");
+			out.Write(")%s", tevScaleTable[cc.shift]);
 	}
 	else
 	{
@@ -996,10 +983,9 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 				tevCInputTable[cc.b + 16],
 				tevCInputTable[cc.c + 16]);
 	}
-	out.Write(" * 255.0f)");
 	if (cc.clamp)
-		out.Write(", 0, 255)");
-	out.Write(";\n");
+		out.Write(", int3(0,0,0), int3(255,255,255)");
+	out.Write(");\n");
 
 	RegisterStates[ac.dest].AlphaNeedOverflowControl = (ac.clamp == 0);
 	RegisterStates[ac.dest].AuxStored = false;
@@ -1008,34 +994,23 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	if (ac.clamp)
 		out.Write("%s = clamp(", tevAOutputTable[ac.dest]);
 	else
-		out.Write("%s = ", tevAOutputTable[ac.dest]);
-
-	out.Write("int(");
+		out.Write("%s = (", tevAOutputTable[ac.dest]);
 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal alpha combiner goes here
-		if (ac.shift > TEVSCALE_1)
-			out.Write("%s*(", tevScaleTable[ac.shift]);
+		if (ac.shift > 0)
+			out.Write("(");
 
 		if (!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
-			out.Write("%s.a%s", tevAInputTable[ac.d], tevOpTable[ac.op]);
+			out.Write("%s.a %s ", tevAInputTable[ac.d], tevOpTable[ac.op]);
 
-		if (ac.a == ac.b)
-			out.Write("%s.a", tevAInputTable[ac.a + 8]);
-		else if (ac.c == TEVALPHAARG_ZERO)
-			out.Write("%s.a", tevAInputTable[ac.a + 8]);
-		else if (ac.a == TEVALPHAARG_ZERO)
-			out.Write("%s.a*%s.a", tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
-		else if (ac.b == TEVALPHAARG_ZERO)
-			out.Write("%s.a*(1.0-%s.a)", tevAInputTable[ac.a + 8], tevAInputTable[ac.c + 8]);
-		else
-			out.Write("lerp(%s.a, %s.a, %s.a)", tevAInputTable[ac.a + 8], tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
+		out.Write("(%s.a * %s.a + %s.a * (255 - %s.a)) / 255", tevAInputTable[ac.a + 8], tevAInputTable[ac.c + 8], tevAInputTable[ac.b + 8], tevAInputTable[ac.c + 8]);
 
 		out.Write("%s",tevBiasTable[ac.bias]);
 
 		if (ac.shift>0)
-			out.Write(")");
+			out.Write(")%s", tevScaleTable[ac.shift]);
 
 	}
 	else
@@ -1048,10 +1023,9 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 				tevAInputTable[ac.b + 8],
 				tevAInputTable[ac.c + 8]);
 	}
-	out.Write(" * 255.0f)");
 	if (ac.clamp)
-		out.Write(", 0, 255)");
-	out.Write(";\n\n");
+		out.Write(", 0, 255");
+	out.Write(");\n\n");
 	out.Write("// TEV done\n");
 }
 
