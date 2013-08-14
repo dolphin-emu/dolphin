@@ -382,7 +382,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("        ) {\n");
 	}
 
-	out.Write("  int4 ic0 = int4(round(" I_COLORS"[1] * 255.0)), ic1 = int4(round(" I_COLORS"[2] * 255.0)), ic2 = int4(round(" I_COLORS"[3] * 255.0)), iprev = int4(0, 0, 0, 0);\n"
+	out.Write("  int4 ic0 = int4(round(" I_COLORS"[1] * 255.0)), ic1 = int4(round(" I_COLORS"[2] * 255.0)), ic2 = int4(round(" I_COLORS"[3] * 255.0)), iprev = int4(round(" I_COLORS"[0] * 255.0));\n"
 			"  int4 irastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0), ikonsttemp = int4(0, 0, 0, 0);\n"
 			"  int3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
 			"  int alphabump=0;\n"
@@ -846,10 +846,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		out.SetConstantsUsed(C_COLORS+ac.dest, C_COLORS+ac.dest);
 
 	out.Write("// color combine\n");
-	if (cc.clamp)
-		out.Write("%s = clamp(", tevCOutputTable[cc.dest]);
-	else
-		out.Write("%s = ", tevCOutputTable[cc.dest]);
+	out.Write("%s = clamp(", tevCOutputTable[cc.dest]);
 
 	// combine the color channel
 	if (cc.bias != TevBias_COMPARE) // if not compare
@@ -879,13 +876,12 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	}
 	if (cc.clamp)
 		out.Write(", int3(0,0,0), int3(255,255,255))");
+	else
+		out.Write(", int3(-1024,-1024,-1024), int3(1023,1023,1023))");
 	out.Write(";\n");
 
-	out.Write("// alpha combine\n");
-	if (ac.clamp)
-		out.Write("%s = clamp(", tevAOutputTable[ac.dest]);
-	else
-		out.Write("%s = ", tevAOutputTable[ac.dest]);
+	out.Write("\t// alpha combine\n");
+	out.Write("\t%s = clamp(", tevAOutputTable[ac.dest]);
 
 	if (ac.bias != TevBias_COMPARE) // if not compare
 	{
@@ -916,6 +912,9 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	}
 	if (ac.clamp)
 		out.Write(", 0, 255)");
+	else
+		out.Write(", -1024, 1023)");
+
 	out.Write(";\n\n");
 	out.Write("// TEV done\n");
 }
