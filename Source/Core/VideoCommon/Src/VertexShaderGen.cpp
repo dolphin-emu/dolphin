@@ -92,8 +92,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
 
-	bool is_d3d = (api_type & API_D3D9 || api_type == API_D3D11);
-
 	// uniforms
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		out.Write("layout(std140) uniform VSBlock {\n");
@@ -177,19 +175,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (components & VB_HAS_NRM0)
 			out.Write("  float3 rawnorm0 : NORMAL0,\n");
 		if (components & VB_HAS_NRM1)
-		{
-			if (is_d3d)
-				out.Write("  float3 rawnorm1 : NORMAL1,\n");
-			else
-				out.Write("  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
-		}
+			out.Write("  float3 rawnorm1 : NORMAL1,\n");
 		if (components & VB_HAS_NRM2)
-		{
-			if (is_d3d)
-				out.Write("  float3 rawnorm2 : NORMAL2,\n");
-			else
-				out.Write("  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
-		}
+			out.Write("  float3 rawnorm2 : NORMAL2,\n");
 		if (components & VB_HAS_COL0)
 			out.Write("  float4 color0 : COLOR0,\n");
 		if (components & VB_HAS_COL1)
@@ -201,12 +189,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
 		}
 		if (components & VB_HAS_POSMTXIDX)
-		{
-			if (is_d3d)
-				out.Write("  float4 blend_indices : BLENDINDICES,\n");
-			else
-				out.Write("  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
-		}
+			out.Write("  float4 blend_indices : BLENDINDICES,\n");
 		out.Write("  float4 rawpos : POSITION) {\n");
 	}
 	out.Write("VS_OUTPUT o;\n");
@@ -471,7 +454,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
 	//if not early z culling will improve speed
-	if (is_d3d)
+	if (api_type & API_D3D9 || api_type == API_D3D11)
 	{
 		out.Write("o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
 	}

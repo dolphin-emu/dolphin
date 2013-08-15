@@ -33,6 +33,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/VertexManagerBase.cpp
 			Src/VertexShaderGen.cpp
 			Src/VertexShaderManager.cpp
+			Src/VideoBackendBase.cpp
 			Src/VideoConfig.cpp
 			Src/VideoState.cpp
 			Src/XFMemory.cpp

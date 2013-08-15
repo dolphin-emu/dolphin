@@ -22,8 +22,9 @@ import java.util.List;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class GameListActivity extends Activity
-		implements GameListFragment.OnGameListZeroListener{
+public final class GameListActivity extends Activity
+		implements GameListFragment.OnGameListZeroListener
+{
 
 	private int mCurFragmentNum = 0;
 	private Fragment mCurFragment;
@@ -43,7 +44,8 @@ public class GameListActivity extends Activity
 	}
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.gamelist_activity);
 		mMe = this;
@@ -94,16 +96,19 @@ public class GameListActivity extends Activity
 		FragmentManager fragmentManager = getFragmentManager();
 		fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 	}
+	
 	public void SwitchPage(int toPage)
 	{
 		if (mCurFragmentNum == toPage)
 			return;
+		
 		switch (mCurFragmentNum)
 		{
 			// Folder browser
 			case 1:
 				recreateFragment();
-			break;
+				break;
+				
 			// Settings
 			case 2:
 			{
@@ -147,6 +152,7 @@ public class GameListActivity extends Activity
 				}
 			}
 			break;
+			
 			case 3: // Gamepad settings
 			{
 				InputConfigAdapter adapter = ((InputConfigFragment)mCurFragment).getAdapter();
@@ -162,11 +168,13 @@ public class GameListActivity extends Activity
 				}
 			}
 			break;
+			
 			case 0: // Game List
 			case 4: // About
 	        /* Do Nothing */
 				break;
 		}
+		
 		switch(toPage)
 		{
 			case 0:
@@ -177,6 +185,7 @@ public class GameListActivity extends Activity
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
+			
 			case 1:
 			{
 				Toast.makeText(mMe, getString(R.string.loading_browser), Toast.LENGTH_SHORT).show();
@@ -186,6 +195,7 @@ public class GameListActivity extends Activity
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
+			
 			case 2:
 			{
 				Toast.makeText(mMe, getString(R.string.loading_settings), Toast.LENGTH_SHORT).show();
@@ -195,6 +205,7 @@ public class GameListActivity extends Activity
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
+			
 			case 3:
 			{
 				Toast.makeText(mMe, getString(R.string.loading_gamepad), Toast.LENGTH_SHORT).show();
@@ -204,6 +215,7 @@ public class GameListActivity extends Activity
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
+			
 			case 4:
 			{
 				Toast.makeText(mMe, getString(R.string.about), Toast.LENGTH_SHORT).show();
@@ -213,10 +225,12 @@ public class GameListActivity extends Activity
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
+			
 			default:
 				break;
 		}
 	}
+	
 	private AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
@@ -232,57 +246,75 @@ public class GameListActivity extends Activity
 	 */
 
 	@Override
-	protected void onPostCreate(Bundle savedInstanceState) {
+	protected void onPostCreate(Bundle savedInstanceState)
+	{
 		super.onPostCreate(savedInstanceState);
 		// Sync the toggle state after onRestoreInstanceState has occurred.
 		mDrawerToggle.syncState();
 	}
 
 	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
+	public void onConfigurationChanged(Configuration newConfig)
+	{
 		super.onConfigurationChanged(newConfig);
-		// Pass any configuration change to the drawer toggls
+		// Pass any configuration change to the drawer toggle
 		mDrawerToggle.onConfigurationChanged(newConfig);
 	}
 
 	/* Called whenever we call invalidateOptionsMenu() */
 	@Override
-	public boolean onPrepareOptionsMenu(Menu menu) {
+	public boolean onPrepareOptionsMenu(Menu menu)
+	{
 		return super.onPrepareOptionsMenu(menu);
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
 		// The action bar home/up action should open or close the drawer.
 		// ActionBarDrawerToggle will take care of this.
-		if (mDrawerToggle.onOptionsItemSelected(item)) {
+		if (mDrawerToggle.onOptionsItemSelected(item))
+		{
 			return true;
 		}
+		
 		return super.onOptionsItemSelected(item);
 	}
+	
 	public void onBackPressed()
 	{
 		SwitchPage(0);
 	}
 
-	public interface OnGameConfigListener {
+	public interface OnGameConfigListener
+	{
 		public boolean onMotionEvent(MotionEvent event);
 		public boolean onKeyEvent(KeyEvent event);
 	}
+	
 	// Gets move(triggers, joystick) events
 	@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent event) {
+	public boolean dispatchGenericMotionEvent(MotionEvent event)
+	{
 		if (mCurFragmentNum == 3)
+		{
 			if (((OnGameConfigListener)mCurFragment).onMotionEvent(event))
 				return true;
+		}
+		
 		return super.dispatchGenericMotionEvent(event);
 	}
+	
 	// Gets button presses
 	@Override
-	public boolean dispatchKeyEvent(KeyEvent event) {
+	public boolean dispatchKeyEvent(KeyEvent event)
+	{
 		if (mCurFragmentNum == 3)
+		{
 			if (((OnGameConfigListener)mCurFragment).onKeyEvent(event))
 				return true;
+		}
+		
 		return super.dispatchKeyEvent(event);
 	}
 

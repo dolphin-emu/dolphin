@@ -39,5 +39,15 @@
                 
         android:gravity="center_vertical"
         android:text="Title"
-        android:textStyle="bold" />/>
+        android:textStyle="bold" />
+    
+    <ImageView
+        android:src="@android:drawable/divider_horizontal_dark"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scaleType="fitXY"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:paddingBottom="2dp"
+        android:paddingTop="2dp" />
 </RelativeLayout>

@@ -195,7 +195,6 @@
     <ClCompile Include="Src\Thread.cpp" />
     <ClCompile Include="Src\Timer.cpp" />
     <ClCompile Include="Src\Version.cpp" />
-    <ClCompile Include="Src\VideoBackendBase.cpp" />
     <ClCompile Include="Src\x64ABI.cpp" />
     <ClCompile Include="Src\x64Analyzer.cpp" />
     <ClCompile Include="Src\x64CPUDetect.cpp" />
@@ -250,7 +249,6 @@
     <ClInclude Include="Src\Thread.h" />
     <ClInclude Include="Src\Thunk.h" />
     <ClInclude Include="Src\Timer.h" />
-    <ClInclude Include="Src\VideoBackendBase.h" />
     <ClInclude Include="Src\x64ABI.h" />
     <ClInclude Include="Src\x64Analyzer.h" />
     <ClInclude Include="Src\x64Emitter.h" />

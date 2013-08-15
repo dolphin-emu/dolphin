@@ -17,10 +17,12 @@ import javax.microedition.khronos.opengles.GL10;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class PrefsFragment extends PreferenceFragment {
+public final class PrefsFragment extends PreferenceFragment
+{
 	private Activity m_activity;
 
-	static public class VersionCheck {
+	static public class VersionCheck
+	{
 		EGL10 mEGL;
 		EGLDisplay mEGLDisplay;
 		EGLConfig[] mEGLConfigs;
@@ -31,8 +33,8 @@ public class PrefsFragment extends PreferenceFragment {
 
 		String mThreadOwner;
 
-		public VersionCheck() {
-
+		public VersionCheck()
+		{
 			int[] version = new int[2];
 			int[] attribList = new int[] {
 					EGL10.EGL_WIDTH, 1,
@@ -69,11 +71,14 @@ public class PrefsFragment extends PreferenceFragment {
 		{
 			return mGL.glGetString(GL10.GL_VENDOR);
 		}
+		
 		public String getRenderer()
 		{
 			return mGL.glGetString(GL10.GL_RENDERER);
 		}
-		private EGLConfig chooseConfig() {
+		
+		private EGLConfig chooseConfig()
+		{
 			int[] attribList = new int[] {
 					EGL10.EGL_DEPTH_SIZE, 0,
 					EGL10.EGL_STENCIL_SIZE, 0,
@@ -95,6 +100,7 @@ public class PrefsFragment extends PreferenceFragment {
 			return mEGLConfigs[0];  // Best match is probably the first configuration
 		}
 	}
+	
 	static public boolean SupportsGLES3()
 	{
 		VersionCheck mbuffer = new VersionCheck();
@@ -134,8 +140,10 @@ public class PrefsFragment extends PreferenceFragment {
 		}
 		return mSupportsGLES3;
 	}
+	
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
 
         // Load the preferences from an XML resource
@@ -197,14 +205,18 @@ public class PrefsFragment extends PreferenceFragment {
     }
 
 	@Override
-	public void onAttach(Activity activity) {
+	public void onAttach(Activity activity)
+	{
 		super.onAttach(activity);
 
 		// This makes sure that the container activity has implemented
 		// the callback interface. If not, it throws an exception
-		try {
+		try
+		{
 			m_activity = activity;
-		} catch (ClassCastException e) {
+		}
+		catch (ClassCastException e)
+		{
 			throw new ClassCastException(activity.toString()
 					+ " must implement OnGameListZeroListener");
 		}

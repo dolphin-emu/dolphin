@@ -9,7 +9,8 @@ package org.dolphinemu.dolphinemu;
 /**
  * Represents a controller input item (button, stick, etc).
  */
-public class InputConfigItem implements Comparable<InputConfigItem>{
+public final class InputConfigItem implements Comparable<InputConfigItem>
+{
 	private String m_name;
 	private String m_Config;
 	private String m_bind;

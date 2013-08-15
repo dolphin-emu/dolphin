@@ -38,6 +38,24 @@ public final class FolderBrowserItem implements Comparable<FolderBrowserItem>
     }
     
     /**
+     * Constructor. Initializes a FolderBrowserItem with an empty subtitle.
+     * 
+     * @param ctx      Context this FolderBrowserItem is being used in.
+     * @param name     The name of the file/folder represented by this item.
+     * @param path     The path of the file/folder represented by this item.
+     * @param isValid  Whether or not this item represents a file type that can be handled.
+     */
+    public FolderBrowserItem(Context ctx, String name, String path, boolean isValid)
+    {
+        this.ctx = ctx;
+        this.name = name;
+        this.subtitle = "";
+        this.path = path;
+        this.isValid = isValid;
+        this.underlyingFile = new File(path);
+    }
+    
+    /**
      * Gets the name of the file/folder represented by this FolderBrowserItem.
      * 
      * @return the name of the file/folder represented by this FolderBrowserItem.
