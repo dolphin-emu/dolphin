@@ -333,12 +333,28 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.BufferDesc.Width = xres;
 	swap_chain_desc.BufferDesc.Height = yres;
 
-	D3D11_CREATE_DEVICE_FLAG device_flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
-	hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, device_flags,
-										supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
-										D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
-										&featlevel, &context);
-	if (FAILED(hr) || !device || !context || !swapchain)
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	// Creating debug devices can sometimes fail if the user doesn't have the correct
+	// version of the DirectX SDK. If it does, simply fallback to a non-debug device.
+	{
+		hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL,
+											D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
+											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
+											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
+											&featlevel, &context);
+	}
+
+	if (FAILED(hr))
+#endif
+	{
+		hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL,
+											D3D11_CREATE_DEVICE_SINGLETHREADED,
+											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
+											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
+											&featlevel, &context);
+	}
+
+	if (FAILED(hr))
 	{
 		MessageBox(wnd, _T("Failed to initialize Direct3D.\nMake sure your video card supports at least D3D 10.0"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 		SAFE_RELEASE(device);
