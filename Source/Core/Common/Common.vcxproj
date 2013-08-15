@@ -129,6 +129,9 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib />
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile />
@@ -147,6 +150,9 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib />
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile />
@@ -166,8 +172,6 @@
     <ClCompile Include="Src\Crypto\aes_core.cpp" />
     <ClCompile Include="Src\Crypto\bn.cpp" />
     <ClCompile Include="Src\Crypto\ec.cpp" />
-    <ClCompile Include="Src\Crypto\md5.cpp" />
-    <ClCompile Include="Src\Crypto\sha1.cpp" />
     <ClCompile Include="Src\ExtendedTrace.cpp" />
     <ClCompile Include="Src\FileSearch.cpp" />
     <ClCompile Include="Src\FileUtil.cpp" />
@@ -220,8 +224,6 @@
     <ClInclude Include="Src\CPUDetect.h" />
     <ClInclude Include="Src\Crypto\aes.h" />
     <ClInclude Include="Src\Crypto\aes_locl.h" />
-    <ClInclude Include="Src\Crypto\md5.h" />
-    <ClInclude Include="Src\Crypto\sha1.h" />
     <ClInclude Include="Src\Crypto\tools.h" />
     <ClInclude Include="Src\DebugInterface.h" />
     <ClInclude Include="Src\ExtendedTrace.h" />

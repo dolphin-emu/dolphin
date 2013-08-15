@@ -4,7 +4,7 @@
 
 #ifndef _TOOLS_H
 #define _TOOLS_H
-#include "polarssl/sha1.h"
+#include <polarssl/sha1.h>
 
 // bignum
 int bn_compare(u8 *a, u8 *b, u32 n);
