@@ -6,7 +6,7 @@
 #include <string.h>
 #include "Common.h"
 #include "Crypto/aes.h"
-#include "Crypto/sha1.h"
+#include "polarssl/sha1.h"
 #include "Crypto/tools.h"
 #include "FileUtil.h"
 #include "ec_wii.h"

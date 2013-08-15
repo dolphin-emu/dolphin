@@ -217,12 +217,11 @@ if(_M_ARM)
 			Src/PowerPC/JitArm32/JitArm_LoadStoreFloating.cpp)
 endif()
 
-set(LIBS bdisasm inputcommon videosoftware sfml-network ${OPENSSL_LIBRARIES})
+set(LIBS bdisasm inputcommon videosoftware sfml-network)
 
 if(NOT USE_GLES)
 	set(LIBS ${LIBS} videoogl)
 endif()
-
 
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
@@ -230,15 +229,7 @@ if(LIBUSB_FOUND)
 	set(SRCS	${SRCS}	Src/IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
 endif(LIBUSB_FOUND)
 
-set(GNUTLS_MIN_VERSION "3.1.9")
-set(GNUTLS_FIND_REQUIRED 1)
-find_package(GnuTLS)
-set(LIBS	${LIBS}	${GNUTLS_LIBRARIES})
-
-
-if(NOT GNUTLS_FOUND)
-	message(FATAL_ERROR "GnuTLS not found")
-endif(NOT GNUTLS_FOUND)
+set(LIBS	${LIBS}	polarssl)
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp

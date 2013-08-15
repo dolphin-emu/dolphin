@@ -22,7 +22,7 @@
 #include "HW/EXI_Channel.h"
 #include "HW/DVDInterface.h"
 #include "../../Common/Src/NandPaths.h"
-#include "Crypto/md5.h"
+#include "polarssl/md5.h"
 #include "scmrev.h"
 
 // The chunk to allocate movie data in multiples of.

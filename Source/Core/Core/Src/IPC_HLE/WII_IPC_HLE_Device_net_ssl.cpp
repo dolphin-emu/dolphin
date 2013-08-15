@@ -115,7 +115,8 @@ _verify_certificate_callback (void *data, x509_cert *crt, int depth, int *flags)
 {
 	char buf[1024];
     ((void) data);
-	std::string verify_info = StringFromFormat("Verify requested for (Depth %d):\n");
+	std::string verify_info = StringFromFormat(
+		"Verify requested for (Depth %d):\n", depth);
 
     x509parse_cert_info( buf, sizeof( buf ) - 1, "", crt );
 	verify_info += buf;
@@ -144,7 +145,7 @@ _verify_certificate_callback (void *data, x509_cert *crt, int depth, int *flags)
     if ( ( *flags ) == 0 )
         verify_info += "  This certificate has no flags\n";
 	
-    WARN_LOG(WII_IPC_SSL, verify_info.c_str() );
+    WARN_LOG(WII_IPC_SSL, "%s", verify_info.c_str() );
 
     return( 0 );
 }
@@ -485,8 +486,10 @@ _SSL_NEW_ERROR:
 		if (SSLID_VALID(sslID))
 		{
 			int ret = ssl_write( &_SSL[sslID].ctx, Memory::GetPointer(_BufferOut2), BufferOutSize2);
-				
+			
+#ifdef DEBUG_SSL
 			File::IOFile("ssl_write.bin", "ab").WriteBytes(Memory::GetPointer(_BufferOut2), BufferOutSize2);
+#endif
 			if (ret >= 0)
 			{
 				// Return bytes written or SSL_ERR_ZERO if none
@@ -530,11 +533,12 @@ _SSL_NEW_ERROR:
 		if (SSLID_VALID(sslID))
 		{
 			ret = ssl_read( &_SSL[sslID].ctx, Memory::GetPointer(_BufferIn2), BufferInSize2);
+#ifdef DEBUG_SSL
 			if (ret > 0)
 			{
 				File::IOFile("ssl_read.bin", "ab").WriteBytes(Memory::GetPointer(_BufferIn2), ret);
 			}
-
+#endif
 			if (ret >= 0)
 			{
 				// Return bytes read or SSL_ERR_ZERO if none

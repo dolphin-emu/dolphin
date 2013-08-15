@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 project(POLARSSL C)
 
-enable_testing()
-
 if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement")
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
@@ -35,14 +33,5 @@ if(ENABLE_ZLIB_SUPPORT)
 endif(ENABLE_ZLIB_SUPPORT)
 
 add_subdirectory(library)
-add_subdirectory(include)
 
-if(CMAKE_COMPILER_IS_GNUCC)
-  add_subdirectory(tests)
-endif(CMAKE_COMPILER_IS_GNUCC)
-
-add_subdirectory(programs)
-
-ADD_CUSTOM_TARGET(apidoc
-                  COMMAND doxygen doxygen/polarssl.doxyfile
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+                  

@@ -5,7 +5,7 @@
 #include "VolumeWiiCrypted.h"
 #include "VolumeGC.h"
 #include "StringUtil.h"
-#include "Crypto/sha1.h"
+#include "polarssl/sha1.h"
 
 namespace DiscIO
 {

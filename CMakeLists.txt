@@ -564,6 +564,11 @@ else()
        include_directories(Externals/SFML/include)
 endif()
 
+
+message("Using PolarSSL from Externals")
+add_subdirectory(Externals/polarssl/)
+include_directories(Externals/polarssl/include)
+
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
 	check_lib(SOIL SOIL SOIL/SOIL.h QUIET)
 endif()
