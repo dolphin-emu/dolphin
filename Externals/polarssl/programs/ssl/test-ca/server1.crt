@@ -1,0 +1,77 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1 (0x1)
+        Signature Algorithm: sha1WithRSAEncryption
+        Issuer: C=NL, O=PolarSSL, CN=PolarSSL Test CA
+        Validity
+            Not Before: Feb 12 14:44:06 2011 GMT
+            Not After : Feb 12 14:44:06 2021 GMT
+        Subject: C=NL, O=PolarSSL, CN=PolarSSL Server 1
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+            RSA Public Key: (2048 bit)
+                Modulus (2048 bit):
+                    00:a9:02:1f:3d:40:6a:d5:55:53:8b:fd:36:ee:82:
+                    65:2e:15:61:5e:89:bf:b8:e8:45:90:db:ee:88:16:
+                    52:d3:f1:43:50:47:96:12:59:64:87:6b:fd:2b:e0:
+                    46:f9:73:be:dd:cf:92:e1:91:5b:ed:66:a0:6f:89:
+                    29:79:45:80:d0:83:6a:d5:41:43:77:5f:39:7c:09:
+                    04:47:82:b0:57:39:70:ed:a3:ec:15:19:1e:a8:33:
+                    08:47:c1:05:42:a9:fd:4c:c3:b4:df:dd:06:1f:4d:
+                    10:51:40:67:73:13:0f:40:f8:6d:81:25:5f:0a:b1:
+                    53:c6:30:7e:15:39:ac:f9:5a:ee:7f:92:9e:a6:05:
+                    5b:e7:13:97:85:b5:23:92:d9:d4:24:06:d5:09:25:
+                    89:75:07:dd:a6:1a:8f:3f:09:19:be:ad:65:2c:64:
+                    eb:95:9b:dc:fe:41:5e:17:a6:da:6c:5b:69:cc:02:
+                    ba:14:2c:16:24:9c:4a:dc:cd:d0:f7:52:67:73:f1:
+                    2d:a0:23:fd:7e:f4:31:ca:2d:70:ca:89:0b:04:db:
+                    2e:a6:4f:70:6e:9e:ce:bd:58:89:e2:53:59:9e:6e:
+                    5a:92:65:e2:88:3f:0c:94:19:a3:dd:e5:e8:9d:95:
+                    13:ed:29:db:ab:70:12:dc:5a:ca:6b:17:ab:52:82:
+                    54:b1
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            X509v3 Subject Key Identifier: 
+                1F:74:D6:3F:29:C1:74:74:45:3B:05:12:2C:3D:A8:BD:43:59:02:A6
+            X509v3 Authority Key Identifier: 
+                keyid:B4:5A:E4:A5:B3:DE:D2:52:F6:B9:D5:A6:95:0F:EB:3E:BC:C7:FD:FF
+
+    Signature Algorithm: sha1WithRSAEncryption
+        bd:cf:96:c1:95:1e:9a:c2:6e:d8:88:88:d8:2a:7a:96:20:3e:
+        50:0b:c8:c7:df:1d:41:ed:e4:66:cd:b3:02:81:7d:57:04:1b:
+        5d:c6:33:59:0f:c1:20:b9:23:34:89:8a:6c:f2:fd:c7:48:36:
+        8c:80:e7:e1:9b:c6:60:5c:b0:33:02:0e:fd:df:be:61:bc:18:
+        89:0c:38:db:fb:fb:46:23:32:f7:8c:c1:3e:7c:de:1e:2f:3a:
+        77:2f:f4:8e:93:8e:25:4c:77:21:74:6c:18:b7:72:8d:bf:f5:
+        4f:5d:64:95:c1:6a:1a:70:11:88:af:bc:55:8a:25:30:f3:fa:
+        69:f2:af:2d:75:fb:2b:89:22:52:9b:05:42:15:29:13:95:5e:
+        33:9a:55:d4:c7:22:d8:44:ce:25:ab:b6:70:ee:34:14:9b:c8:
+        fc:2f:56:ff:04:7e:18:00:2b:31:ac:36:7f:11:bb:ec:4d:e5:
+        69:a6:b4:2c:03:a5:7b:13:3a:03:82:8e:6f:97:f9:70:64:cc:
+        e4:88:7a:b4:41:79:15:5a:b7:ff:db:f3:34:86:0c:6b:51:6a:
+        cd:a7:01:2d:91:7c:cd:21:d8:2c:48:a6:5c:17:73:8c:1a:0d:
+        e2:a0:d4:fd:6c:d1:c9:84:41:46:30:08:e3:d9:b3:1d:7e:ab:
+        6a:57:aa:9f
+-----BEGIN CERTIFICATE-----
+MIIDPzCCAiegAwIBAgIBATANBgkqhkiG9w0BAQUFADA7MQswCQYDVQQGEwJOTDER
+MA8GA1UEChMIUG9sYXJTU0wxGTAXBgNVBAMTEFBvbGFyU1NMIFRlc3QgQ0EwHhcN
+MTEwMjEyMTQ0NDA2WhcNMjEwMjEyMTQ0NDA2WjA8MQswCQYDVQQGEwJOTDERMA8G
+A1UEChMIUG9sYXJTU0wxGjAYBgNVBAMTEVBvbGFyU1NMIFNlcnZlciAxMIIBIjAN
+BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqQIfPUBq1VVTi/027oJlLhVhXom/
+uOhFkNvuiBZS0/FDUEeWEllkh2v9K+BG+XO+3c+S4ZFb7Wagb4kpeUWA0INq1UFD
+d185fAkER4KwVzlw7aPsFRkeqDMIR8EFQqn9TMO0390GH00QUUBncxMPQPhtgSVf
+CrFTxjB+FTms+Vruf5KepgVb5xOXhbUjktnUJAbVCSWJdQfdphqPPwkZvq1lLGTr
+lZvc/kFeF6babFtpzAK6FCwWJJxK3M3Q91Jnc/EtoCP9fvQxyi1wyokLBNsupk9w
+bp7OvViJ4lNZnm5akmXiiD8MlBmj3eXonZUT7Snbq3AS3FrKaxerUoJUsQIDAQAB
+o00wSzAJBgNVHRMEAjAAMB0GA1UdDgQWBBQfdNY/KcF0dEU7BRIsPai9Q1kCpjAf
+BgNVHSMEGDAWgBS0WuSls97SUva51aaVD+s+vMf9/zANBgkqhkiG9w0BAQUFAAOC
+AQEAvc+WwZUemsJu2IiI2Cp6liA+UAvIx98dQe3kZs2zAoF9VwQbXcYzWQ/BILkj
+NImKbPL9x0g2jIDn4ZvGYFywMwIO/d++YbwYiQw42/v7RiMy94zBPnzeHi86dy/0
+jpOOJUx3IXRsGLdyjb/1T11klcFqGnARiK+8VYolMPP6afKvLXX7K4kiUpsFQhUp
+E5VeM5pV1Mci2ETOJau2cO40FJvI/C9W/wR+GAArMaw2fxG77E3laaa0LAOlexM6
+A4KOb5f5cGTM5Ih6tEF5FVq3/9vzNIYMa1FqzacBLZF8zSHYLEimXBdzjBoN4qDU
+/WzRyYRBRjAI49mzHX6raleqnw==
+-----END CERTIFICATE-----

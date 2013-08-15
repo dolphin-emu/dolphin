@@ -198,17 +198,17 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 			}
 			else
 			{
-				Memory::Write_U32(nwc24_err_t::WC24_ERR_FATAL, BufferOut);	
+				Memory::Write_U32(WC24_ERR_FATAL, BufferOut);	
 			}
 			
 		}
 		else if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_GENERATED)
 		{
-			Memory::Write_U32(nwc24_err_t::WC24_ERR_ID_GENERATED, BufferOut);
+			Memory::Write_U32(WC24_ERR_ID_GENERATED, BufferOut);
 		}
 		else if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_REGISTERED)
 		{
-			Memory::Write_U32(nwc24_err_t::WC24_ERR_ID_REGISTERED, BufferOut);
+			Memory::Write_U32(WC24_ERR_ID_REGISTERED, BufferOut);
 		}
 		Memory::Write_U64(config.Id(), BufferOut + 4);
 		Memory::Write_U32(config.CreationStage(), BufferOut + 0xC);
@@ -334,9 +334,9 @@ s32 CWII_IPC_HLE_Device_net_kd_request::NWC24MakeUserID(u64* nwc24_id, u32 holly
 	*nwc24_id = mix_id;
 	
 	if (mix_id > 9999999999999999ULL)
-		return nwc24_err_t::WC24_ERR_FATAL;
+		return WC24_ERR_FATAL;
 	
-	return nwc24_err_t::WC24_OK;
+	return WC24_OK;
 }
 // **********************************************************************************
 // Handle /dev/net/ncd/manage requests

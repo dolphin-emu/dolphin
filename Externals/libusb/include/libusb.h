@@ -23,7 +23,9 @@
 
 #ifdef _MSC_VER
 /* on MS environments, the inline keyword is available in C++ only */
+#if !defined(inline)
 #define inline __inline
+#endif
 /* ssize_t is also not available (copy/paste from MinGW) */
 #ifndef _SSIZE_T_DEFINED
 #define _SSIZE_T_DEFINED

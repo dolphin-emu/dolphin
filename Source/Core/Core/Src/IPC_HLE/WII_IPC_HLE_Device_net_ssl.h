@@ -25,13 +25,14 @@
 
 #include "WII_IPC_HLE_Device.h"
 
-#include <gnutls/gnutls.h>
-#include <gnutls/x509.h>
+#include <polarssl/net.h>
+#include <polarssl/ssl.h>
+#include <polarssl/havege.h>
 
 #define MAX_HOSTNAME_LEN 256
 #define NET_SSL_MAXINSTANCES 4
 
-#define SSLID_VALID(x) (x >= 0 && x < NET_SSL_MAXINSTANCES && _SSL[x].session != NULL)
+#define SSLID_VALID(x) (x >= 0 && x < NET_SSL_MAXINSTANCES && _SSL[x].active)
 
 class CWII_IPC_HLE_Device_net_ssl : public IWII_IPC_HLE_Device
 {
@@ -50,10 +51,17 @@ public:
 	int getSSLFreeID();
 
 private:
+	
 	struct _SSL{
-		gnutls_session_t session;
-		gnutls_certificate_credentials_t xcred;
+		ssl_context ctx;
+		ssl_session session;
+		havege_state hs;
+		x509_cert cacert;
+		x509_cert clicert;
+		rsa_context rsa;
+		int sockfd;
 		char hostname[MAX_HOSTNAME_LEN];
+		bool active;
 	} _SSL[NET_SSL_MAXINSTANCES];
 	
 	enum

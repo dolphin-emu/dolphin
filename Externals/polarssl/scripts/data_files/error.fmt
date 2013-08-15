@@ -1,0 +1,109 @@
+/*
+ *  Error message information
+ *
+ *  Copyright (C) 2006-2012, Brainspark B.V.
+ *
+ *  This file is part of PolarSSL (http://www.polarssl.org)
+ *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
+ *
+ *  All rights reserved.
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#include "polarssl/config.h"
+
+#if defined(POLARSSL_ERROR_C)
+
+#include "polarssl/error.h"
+
+HEADER_INCLUDED
+
+#include <string.h>
+
+#if defined _MSC_VER && !defined  snprintf
+#define  snprintf  _snprintf
+#endif
+
+void error_strerror( int ret, char *buf, size_t buflen )
+{
+    size_t len;
+    int use_ret;
+
+    memset( buf, 0x00, buflen );
+     
+    if( ret < 0 )
+        ret = -ret;
+
+    if( ret & 0xFF80 )
+    {
+        use_ret = ret & 0xFF80;
+
+        // High level error codes
+        //
+HIGH_LEVEL_CODE_CHECKS
+        if( strlen( buf ) == 0 )
+            snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+    }
+
+    use_ret = ret & ~0xFF80;
+
+    if( use_ret == 0 )
+        return;
+
+    // If high level code is present, make a concatenation between both
+    // error strings.
+    //
+    len = strlen( buf );
+
+    if( len > 0 )
+    {
+        if( buflen - len < 5 )
+            return;
+
+        snprintf( buf + len, buflen - len, " : " );
+
+        buf += len + 3;
+        buflen -= len + 3;
+    }
+
+    // Low level error codes
+    //
+LOW_LEVEL_CODE_CHECKS
+    if( strlen( buf ) != 0 )
+        return;
+
+    snprintf( buf, buflen, "UNKNOWN ERROR CODE (%04X)", use_ret );
+}
+
+#else /* POLARSSL_ERROR_C */
+
+#if defined(POLARSSL_ERROR_STRERROR_DUMMY)
+
+#include <string.h>
+
+/*
+ * Provide an non-function in case POLARSSL_ERROR_C is not defined
+ */
+void error_strerror( int ret, char *buf, size_t buflen )
+{
+    ((void) ret);
+
+    if( buflen > 0 )
+        buf[0] = '\0';
+}
+
+#endif /* POLARSSL_ERROR_STRERROR_DUMMY */
+#endif /* POLARSSL_ERROR_C */
