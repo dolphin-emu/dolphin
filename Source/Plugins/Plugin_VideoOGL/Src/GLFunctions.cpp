@@ -72,7 +72,11 @@ namespace GLFunc
 		LoadFunction("glDeleteQueries", (void**)&glDeleteQueries);
 		LoadFunction("glGenQueries", (void**)&glGenQueries);
 		{
+#ifdef USE_GLES
 			LoadFunction("glMapBufferOES", (void**)&glMapBuffer);	
+#else
+			LoadFunction("glMapBuffer", (void**)&glMapBuffer);	
+#endif
 			LoadFunction("glUnmapBuffer", (void**)&glUnmapBuffer);
 			LoadFunction("glMapBufferRange", (void**)&glMapBufferRange);
 			LoadFunction("glBindBufferRange", (void**)&glBindBufferRange);
