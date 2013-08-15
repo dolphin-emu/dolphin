@@ -17,6 +17,7 @@
 #include <string>
 
 #define NETPLAY_TITLEBAR	"Dolphin NetPlay"
+#define INITIAL_PAD_BUFFER_SIZE 20
 
 BEGIN_EVENT_TABLE(NetPlayDiag, wxFrame)
 	EVT_COMMAND(wxID_ANY, wxEVT_THREAD, NetPlayDiag::OnThread)
@@ -246,6 +247,7 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	m_host_port_text->GetValue().ToULong(&port);
 	netplay_server = new NetPlayServer(u16(port));
 	netplay_server->ChangeGame(game);
+	netplay_server->AdjustPadBufferSize(INITIAL_PAD_BUFFER_SIZE);
 	if (netplay_server->is_connected)
 	{
 #ifdef USE_UPNP
@@ -281,6 +283,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
 	, m_selected_game(game)
 	, m_game_list(game_list)
+	, m_start_btn(NULL)
 {
 	wxPanel* const panel = new wxPanel(this);
 
@@ -338,15 +341,13 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	wxBoxSizer* const bottom_szr = new wxBoxSizer(wxHORIZONTAL);
 	if (is_hosting)
 	{
-		wxButton* const start_btn = new wxButton(panel, wxID_ANY, _("Start"));
-		start_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDiag::OnStart, this);
-		bottom_szr->Add(start_btn);
-		wxButton* const stop_btn = new wxButton(panel, wxID_ANY, _("Stop"));
-		stop_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDiag::OnStop, this);
-		bottom_szr->Add(stop_btn);
+		m_start_btn = new wxButton(panel, wxID_ANY, _("Start"));
+		m_start_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDiag::OnStart, this);
+		bottom_szr->Add(m_start_btn);
+
 		bottom_szr->Add(new wxStaticText(panel, wxID_ANY, _("Buffer:")), 0, wxLEFT | wxCENTER, 5 );
 		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, wxT("20")
-			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, 20);
+			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
 		padbuf_spin->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &NetPlayDiag::OnAdjustBuffer, this);
 		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
 	}
@@ -409,7 +410,7 @@ void NetPlayDiag::GetNetSettings(NetSettings &settings)
 		settings.m_Controllers[i] = SConfig::GetInstance().m_SIDevice[i];
 }
 
-const std::string& NetPlayDiag::FindGame()
+std::string NetPlayDiag::FindGame()
 {
 	// find path for selected game, sloppy..
 	for (u32 i = 0 ; auto game = m_game_list->GetISO(i); ++i)
@@ -426,11 +427,6 @@ void NetPlayDiag::OnStart(wxCommandEvent&)
 	GetNetSettings(settings);
 	netplay_server->SetNetSettings(settings);
 	netplay_server->StartGame(FindGame());
-}
-
-void NetPlayDiag::OnStop(wxCommandEvent&)
-{
-	netplay_server->StopGame();
 }
 
 void NetPlayDiag::BootGame(const std::string& filename)
@@ -469,12 +465,16 @@ void NetPlayDiag::OnMsgStartGame()
 {
 	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
 	GetEventHandler()->AddPendingEvent(evt);
+	if (m_start_btn)
+		m_start_btn->Disable();
 }
 
 void NetPlayDiag::OnMsgStopGame()
 {
 	wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
 	GetEventHandler()->AddPendingEvent(evt);
+	if (m_start_btn)
+		m_start_btn->Enable();
 }
 
 void NetPlayDiag::OnAdjustBuffer(wxCommandEvent& event)
@@ -684,4 +684,12 @@ void PadMapDiag::OnAdjust(wxCommandEvent& event)
 		m_mapping[i] = m_map_cbox[i]->GetSelection() - 1;
 		m_wiimapping[i] = m_map_cbox[i+4]->GetSelection() - 1;
 	}
+}
+
+void NetPlay::StopGame()
+{
+	if (netplay_server != NULL)
+		netplay_server->StopGame();
+
+	// TODO: allow non-hosting clients to close the window
 }

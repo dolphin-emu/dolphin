@@ -25,8 +25,11 @@ enum PerfQueryGroup
 class PerfQueryBase
 {
 public:
-	PerfQueryBase() {};
+	PerfQueryBase() {}
 	virtual ~PerfQueryBase() {}
+
+	// Checks if performance queries are enabled in the gameini configuration.
+	bool ShouldEmulate() const;
 
 	// Begin querying the specified value for the following host GPU commands
 	virtual void EnableQuery(PerfQueryGroup type) {}

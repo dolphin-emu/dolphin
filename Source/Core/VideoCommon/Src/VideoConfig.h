@@ -108,6 +108,7 @@ struct VideoConfig
 	// Hacks
 	bool bEFBAccessEnable;
 	bool bDlistCachingEnable;
+	bool bPerfQueriesEnable;
 
 	bool bEFBCopyEnable;
 	bool bEFBCopyCacheEnable;

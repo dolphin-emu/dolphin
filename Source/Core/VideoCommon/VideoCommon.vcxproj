@@ -213,6 +213,7 @@
     <ClCompile Include="Src\VertexManagerBase.cpp" />
     <ClCompile Include="Src\VertexShaderGen.cpp" />
     <ClCompile Include="Src\VertexShaderManager.cpp" />
+    <ClCompile Include="Src\VideoBackendBase.cpp" />
     <ClCompile Include="Src\VideoConfig.cpp" />
     <ClCompile Include="Src\VideoState.cpp" />
     <ClCompile Include="Src\x64DLCache.cpp" />
@@ -266,6 +267,7 @@
     <ClInclude Include="Src\VertexShaderGen.h" />
     <ClInclude Include="Src\VertexShaderManager.h" />
     <ClInclude Include="Src\VideoCommon.h" />
+    <ClInclude Include="Src\VideoBackendBase.h" />
     <ClInclude Include="Src\VideoConfig.h" />
     <ClInclude Include="Src\VideoState.h" />
     <ClInclude Include="Src\XFMemory.h" />

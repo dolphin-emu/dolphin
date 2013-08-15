@@ -67,7 +67,6 @@ public:
 	Common::FifoQueue<std::string>	chat_msgs;
 
 	void OnStart(wxCommandEvent& event);
-	void OnStop(wxCommandEvent& event);
 
 	// implementation of NetPlayUI methods
 	void BootGame(const std::string& filename);
@@ -92,7 +91,7 @@ private:
 	void OnAdjustBuffer(wxCommandEvent& event);
 	void OnConfigPads(wxCommandEvent& event);
 	void GetNetSettings(NetSettings &settings);
-	const std::string& FindGame();
+	std::string FindGame();
 
 	wxListBox*		m_player_lbox;
 	wxTextCtrl*		m_chat_text;
@@ -101,6 +100,7 @@ private:
 
 	std::string		m_selected_game;
 	wxButton*		m_game_btn;
+	wxButton*		m_start_btn;
 
 	std::vector<int>	m_playerids;
 
@@ -133,6 +133,11 @@ private:
 	int* const	m_mapping;
 	int* const	m_wiimapping;
 };
+
+namespace NetPlay
+{
+	void StopGame();
+}
 
 #endif // _NETWINDOW_H_
 

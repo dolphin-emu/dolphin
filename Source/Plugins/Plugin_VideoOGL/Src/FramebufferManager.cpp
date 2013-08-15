@@ -226,8 +226,13 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	ocol0 = float4(dst6) / 63.f;\n"
 		"}";
 	
-	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6);
-	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8);
+	if(g_ogl_config.eSupportedGLSLVersion != GLSL_120)
+	{
+		// HACK: This shaders aren't glsl120 compatible as glsl120 don't support bit operations
+		// it could be workaround by floor + frac + tons off additions, but I think it isn't worth 
+		ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6);
+		ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8);
+	}
 
 }
 
@@ -359,6 +364,11 @@ GLuint FramebufferManager::ResolveAndGetDepthTarget(const EFBRectangle &source_r
 
 void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 {
+	if(g_ogl_config.eSupportedGLSLVersion == GLSL_120) {
+		// This feature isn't supported by glsl120
+		return;
+	}
+	
 	g_renderer->ResetAPIState();
 	
 	GLuint src_texture = 0;

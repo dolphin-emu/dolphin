@@ -20,7 +20,6 @@ set(SRCS	Src/BreakPoints.cpp
 			Src/Thread.cpp
 			Src/Timer.cpp
 			Src/Version.cpp
-			Src/VideoBackendBase.cpp
 			Src/x64ABI.cpp
 			Src/x64Analyzer.cpp
 			Src/x64Emitter.cpp

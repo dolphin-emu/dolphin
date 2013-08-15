@@ -18,8 +18,9 @@ import java.util.List;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class InputConfigFragment extends Fragment
-		implements GameListActivity.OnGameConfigListener{
+public final class InputConfigFragment extends Fragment
+		implements GameListActivity.OnGameConfigListener
+{
 	private Activity m_activity;
 	private ListView mDrawerList;
 	private InputConfigAdapter adapter;
@@ -31,45 +32,47 @@ public class InputConfigFragment extends Fragment
 	{
 		if (input == null)
 			return "null"; // Happens when the inputdevice is from an unknown source
+		
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
+		{
 			return input.getDescriptor();
+		}
 		else
 		{
 			List<InputDevice.MotionRange> motions = input.getMotionRanges();
 			String fakeid = "";
+			
 			for (InputDevice.MotionRange range : motions)
 				fakeid += range.getAxis();
+			
 			return fakeid;
 		}
 	}
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-	                         Bundle savedInstanceState)
+	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
 		List<InputConfigItem> Input = new ArrayList<InputConfigItem>();
-		int a = 0;
-
-		Input.add(a++, new InputConfigItem("Draw on-screen controls", "Android-ScreenControls", "True"));
-		Input.add(a++, new InputConfigItem("Button A", "Android-InputA"));
-		Input.add(a++, new InputConfigItem("Button B", "Android-InputB"));
-		Input.add(a++, new InputConfigItem("Button Start", "Android-InputStart"));
-		Input.add(a++, new InputConfigItem("Button X", "Android-InputX"));
-		Input.add(a++, new InputConfigItem("Button Y", "Android-InputY"));
-		Input.add(a++, new InputConfigItem("Button Z", "Android-InputZ"));
-		Input.add(a++, new InputConfigItem("D-Pad Up", "Android-DPadUp"));
-		Input.add(a++, new InputConfigItem("D-Pad Down", "Android-DPadDown"));
-		Input.add(a++, new InputConfigItem("D-Pad Left", "Android-DPadLeft"));
-		Input.add(a++, new InputConfigItem("D-Pad Right", "Android-DPadRight"));
-		Input.add(a++, new InputConfigItem("Main Stick Up", "Android-MainUp"));
-		Input.add(a++, new InputConfigItem("Main Stick Down", "Android-MainDown"));
-		Input.add(a++, new InputConfigItem("Main Stick Left", "Android-MainLeft"));
-		Input.add(a++, new InputConfigItem("Main Stick Right", "Android-MainRight"));
-		Input.add(a++, new InputConfigItem("C Stick Up", "Android-CStickUp"));
-		Input.add(a++, new InputConfigItem("C Stick Down", "Android-CStickDown"));
-		Input.add(a++, new InputConfigItem("C Stick Left", "Android-CStickLeft"));
-		Input.add(a++, new InputConfigItem("C Stick Right", "Android-CStickRight"));
-		Input.add(a++, new InputConfigItem("Trigger L", "Android-InputL"));
-		Input.add(a++, new InputConfigItem("Trigger R", "Android-InputR"));
+		Input.add(new InputConfigItem(getString(R.string.draw_onscreen_controls), "Android-ScreenControls", "True"));
+		Input.add(new InputConfigItem(getString(R.string.button_a), "Android-InputA"));
+		Input.add(new InputConfigItem(getString(R.string.button_b), "Android-InputB"));
+		Input.add(new InputConfigItem(getString(R.string.button_start), "Android-InputStart"));
+		Input.add(new InputConfigItem(getString(R.string.button_x), "Android-InputX"));
+		Input.add(new InputConfigItem(getString(R.string.button_y), "Android-InputY"));
+		Input.add(new InputConfigItem(getString(R.string.button_z), "Android-InputZ"));
+		Input.add(new InputConfigItem(getString(R.string.dpad_up), "Android-DPadUp"));
+		Input.add(new InputConfigItem(getString(R.string.dpad_down), "Android-DPadDown"));
+		Input.add(new InputConfigItem(getString(R.string.dpad_left), "Android-DPadLeft"));
+		Input.add(new InputConfigItem(getString(R.string.dpad_right), "Android-DPadRight"));
+		Input.add(new InputConfigItem(getString(R.string.main_stick_up), "Android-MainUp"));
+		Input.add(new InputConfigItem(getString(R.string.main_stick_down), "Android-MainDown"));
+		Input.add(new InputConfigItem(getString(R.string.main_stick_left), "Android-MainLeft"));
+		Input.add(new InputConfigItem(getString(R.string.main_stick_right), "Android-MainRight"));
+		Input.add(new InputConfigItem(getString(R.string.c_stick_up), "Android-CStickUp"));
+		Input.add(new InputConfigItem(getString(R.string.c_stick_down), "Android-CStickDown"));
+		Input.add(new InputConfigItem(getString(R.string.c_stick_left), "Android-CStickLeft"));
+		Input.add(new InputConfigItem(getString(R.string.c_stick_right), "Android-CStickRight"));
+		Input.add(new InputConfigItem(getString(R.string.trigger_left), "Android-InputL"));
+		Input.add(new InputConfigItem(getString(R.string.trigger_right), "Android-InputR"));
 
 		adapter = new InputConfigAdapter(m_activity, R.layout.folderbrowser, Input);
 		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
@@ -79,6 +82,7 @@ public class InputConfigFragment extends Fragment
 		mDrawerList.setOnItemClickListener(mMenuItemClickListener);
 		return mDrawerList;
 	}
+	
 	private AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
@@ -90,20 +94,22 @@ public class InputConfigFragment extends Fragment
 					String newBind;
 					if (o.getBind().equals("True"))
 					{
-						Toast.makeText(m_activity, "Not Drawing on screen controls", Toast.LENGTH_SHORT).show();
+						Toast.makeText(m_activity, getString(R.string.not_drawing_onscreen_controls), Toast.LENGTH_SHORT).show();
 						newBind = "False";
 					}
 					else
 					{
-						Toast.makeText(m_activity, "Drawing on screen controls", Toast.LENGTH_SHORT).show();
+						Toast.makeText(m_activity, getString(R.string.drawing_onscreen_controls), Toast.LENGTH_SHORT).show();
 						newBind = "True";
 					}
 					adapter.remove(o);
 					o.setBind(newBind);
 					adapter.insert(o, position);
 					break;
+					
 				default: // gamepad controls
-					Toast.makeText(m_activity, "Press button to configure " + o.getName(), Toast.LENGTH_SHORT).show();
+				    
+					Toast.makeText(m_activity, getString(R.string.press_button_to_config, o.getName()), Toast.LENGTH_SHORT).show();
 					configPosition = position;
 					Configuring = true;
 					firstEvent = true;
@@ -112,19 +118,21 @@ public class InputConfigFragment extends Fragment
 		}
 	};
 
-	static ArrayList<Float> m_values = new ArrayList<Float>();
+	private static ArrayList<Float> m_values = new ArrayList<Float>();
 
-	void AssignBind(String bind)
+	private void AssignBind(String bind)
 	{
 		InputConfigItem o = adapter.getItem(configPosition);
 		adapter.remove(o);
 		o.setBind(bind);
 		adapter.insert(o, configPosition);
 	}
+	
 	public InputConfigAdapter getAdapter()
 	{
 		return adapter;
 	}
+	
 	// Called from GameListActivity
 	public boolean onMotionEvent(MotionEvent event)
 	{
@@ -138,17 +146,20 @@ public class InputConfigFragment extends Fragment
 			if (firstEvent)
 			{
 				m_values.clear();
-				for (InputDevice.MotionRange range : motions) {
+				
+				for (InputDevice.MotionRange range : motions)
+				{
 					m_values.add(event.getAxisValue(range.getAxis()));
 				}
+				
 				firstEvent = false;
 			}
 			else
 			{
 				for (int a = 0; a < motions.size(); ++a)
 				{
-					InputDevice.MotionRange range;
-					range = motions.get(a);
+					InputDevice.MotionRange range = motions.get(a);
+					
 					if (m_values.get(a) > (event.getAxisValue(range.getAxis()) + 0.5f))
 					{
 						AssignBind("Device '" + InputConfigFragment.getInputDesc(input) + "'-Axis " + range.getAxis() + "-");
@@ -164,10 +175,12 @@ public class InputConfigFragment extends Fragment
 		}
 		return true;
 	}
+	
 	public boolean onKeyEvent(KeyEvent event)
 	{
-		Log.w("Dolphinemu", "Got Event " + event.getAction());
-		switch (event.getAction()) {
+		Log.w("InputConfigFragment", "Got Event " + event.getAction());
+		switch (event.getAction())
+		{
 			case KeyEvent.ACTION_DOWN:
 			case KeyEvent.ACTION_UP:
 				if (Configuring)
@@ -177,6 +190,7 @@ public class InputConfigFragment extends Fragment
 					Configuring = false;
 					return true;
 				}
+				
 			default:
 				break;
 		}
@@ -185,14 +199,18 @@ public class InputConfigFragment extends Fragment
 	}
 
 	@Override
-	public void onAttach(Activity activity) {
+	public void onAttach(Activity activity)
+	{
 		super.onAttach(activity);
 
 		// This makes sure that the container activity has implemented
 		// the callback interface. If not, it throws an exception
-		try {
+		try
+		{
 			m_activity = activity;
-		} catch (ClassCastException e) {
+		}
+		catch (ClassCastException e)
+		{
 			throw new ClassCastException(activity.toString()
 					+ " must implement OnGameListZeroListener");
 		}

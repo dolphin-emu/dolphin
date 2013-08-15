@@ -17,7 +17,7 @@ import android.view.WindowManager;
 import java.io.*;
 import java.util.List;
 
-public class DolphinEmulator<MainActivity> extends Activity 
+public final class DolphinEmulator<MainActivity> extends Activity 
 {	
 	static private NativeGLSurfaceView GLview = null;
 	static private boolean Running = false;
@@ -25,27 +25,32 @@ public class DolphinEmulator<MainActivity> extends Activity
 	private float screenWidth;
 	private float screenHeight;
 
-	private void CopyAsset(String asset, String output) {
+	private void CopyAsset(String asset, String output)
+	{
         InputStream in = null;
         OutputStream out = null;
-        try {
+        
+        try
+        {
           in = getAssets().open(asset);
           out = new FileOutputStream(output);
           copyFile(in, out);
           in.close();
-          in = null;
-          out.flush();
           out.close();
-          out = null;
-        } catch(IOException e) {
-            Log.e("tag", "Failed to copy asset file: " + asset, e);
+        }
+        catch(IOException e)
+        {
+            Log.e("DolphinEmulator", "Failed to copy asset file: " + asset, e);
         }       
 	}
 
-	private void copyFile(InputStream in, OutputStream out) throws IOException {
+	private void copyFile(InputStream in, OutputStream out) throws IOException
+	{
 	    byte[] buffer = new byte[1024];
 	    int read;
-	    while((read = in.read(buffer)) != -1){
+	    
+	    while((read = in.read(buffer)) != -1)
+	    {
 	      out.write(buffer, 0, read);
 	    }
 	}
@@ -57,6 +62,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 		if (Running)
 			NativeLibrary.StopEmulation();
 	}
+	
 	@Override
 	public void onPause()
 	{
@@ -64,6 +70,7 @@ public class DolphinEmulator<MainActivity> extends Activity
 		if (Running)
 			NativeLibrary.PauseEmulation();
 	}
+	
 	@Override
 	public void onResume()
 	{
@@ -74,11 +81,11 @@ public class DolphinEmulator<MainActivity> extends Activity
 
     /** Called when the activity is first created. */
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 		if (savedInstanceState == null)
 		{
-
 			Intent ListIntent = new Intent(this, GameListActivity.class);
 			startActivityForResult(ListIntent, 1);
 			
@@ -96,41 +103,19 @@ public class DolphinEmulator<MainActivity> extends Activity
 			directory.mkdirs();
 
 			// Copy assets if needed
-			java.io.File file = new java.io.File(
-					Environment.getExternalStorageDirectory()+File.separator+
-							"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_coef.bin");
+			File file = new File(GCDir + File.separator + "dsp_coef.bin");
 			if(!file.exists())
 			{
-				CopyAsset("ButtonA.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "ButtonA.png");
-				CopyAsset("ButtonB.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "ButtonB.png");
-				CopyAsset("ButtonStart.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "ButtonStart.png");
-				CopyAsset("NoBanner.png", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "NoBanner.png");
-				CopyAsset("GCPadNew.ini", 
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Config" + File.separator + "GCPadNew.ini");
-				CopyAsset("Dolphin.ini",
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "Config" + File.separator + "Dolphin.ini");
-				CopyAsset("dsp_coef.bin",
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_coef.bin");
-				CopyAsset("dsp_rom.bin",
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "GC" + File.separator + "dsp_rom.bin");
-				CopyAsset("font_ansi.bin",
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "GC" + File.separator + "font_ansi.bin");
-				CopyAsset("font_sjis.bin",
-						Environment.getExternalStorageDirectory()+File.separator+
-						"dolphin-emu" + File.separator + "GC" + File.separator + "font_sjis.bin");
+				CopyAsset("ButtonA.png",     BaseDir + File.separator + "ButtonA.png");
+				CopyAsset("ButtonB.png",     BaseDir + File.separator + "ButtonB.png");
+				CopyAsset("ButtonStart.png", BaseDir + File.separator + "ButtonStart.png");
+				CopyAsset("NoBanner.png",    BaseDir + File.separator + "NoBanner.png");
+				CopyAsset("GCPadNew.ini",    ConfigDir + File.separator + "GCPadNew.ini");
+				CopyAsset("Dolphin.ini",     ConfigDir + File.separator + "Dolphin.ini");
+				CopyAsset("dsp_coef.bin",    GCDir + File.separator + "dsp_coef.bin");
+				CopyAsset("dsp_rom.bin",     GCDir + File.separator + "dsp_rom.bin");
+				CopyAsset("font_ansi.bin",   GCDir + File.separator + "font_ansi.bin");
+				CopyAsset("font_sjis.bin",   GCDir + File.separator + "font_sjis.bin");
 
 				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 				SharedPreferences.Editor editor = prefs.edit();
@@ -169,11 +154,9 @@ public class DolphinEmulator<MainActivity> extends Activity
 	@Override
 	public boolean onTouchEvent(MotionEvent event)
 	{
-		float X, Y;
-		int Action;
-		X = event.getX();
-		Y = event.getY();
-		Action = event.getActionMasked();
+		float X = event.getX();
+		float Y = event.getY();
+		int Action = event.getActionMasked();
 		
 		// Converts button locations 0 - 1 to OGL screen coords -1.0 - 1.0
 		float ScreenX = ((X / screenWidth) * 2.0f) - 1.0f;
@@ -186,7 +169,8 @@ public class DolphinEmulator<MainActivity> extends Activity
 
 	// Gets button presses
 	@Override
-	public boolean dispatchKeyEvent(KeyEvent event) {
+	public boolean dispatchKeyEvent(KeyEvent event)
+	{
 		int action = 0;
 
 		// Special catch for the back key
@@ -208,7 +192,8 @@ public class DolphinEmulator<MainActivity> extends Activity
 
 		if (Running)
 		{
-			switch (event.getAction()) {
+			switch (event.getAction())
+			{
 				case KeyEvent.ACTION_DOWN:
 					action = 0;
 					break;
@@ -226,21 +211,21 @@ public class DolphinEmulator<MainActivity> extends Activity
 	}
 
 	@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent event) {
-		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0) || !Running) {
+	public boolean dispatchGenericMotionEvent(MotionEvent event)
+	{
+		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0) || !Running)
+		{
 			return super.dispatchGenericMotionEvent(event);
 		}
 
 		InputDevice input = event.getDevice();
 		List<InputDevice.MotionRange> motions = input.getMotionRanges();
-		for (int a = 0; a < motions.size(); ++a)
+		
+		for (InputDevice.MotionRange range : motions)
 		{
-			InputDevice.MotionRange range;
-			range = motions.get(a);
-			NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
+		    NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
 		}
 
 		return true;
 	}
-
-}                                
+}

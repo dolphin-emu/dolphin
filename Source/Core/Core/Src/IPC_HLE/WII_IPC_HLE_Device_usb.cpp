@@ -1255,8 +1255,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandInquiry(u8* _Input)
 {
 	// Inquiry should not be called normally
-	PanicAlertT("HCI_CMD_INQUIRY is called, please report!");
-
 	hci_inquiry_cp* pInquiry = (hci_inquiry_cp*)_Input;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_INQUIRY:");
@@ -1862,8 +1860,6 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const b
 	}
 
 	ERROR_LOG(WII_IPC_WIIMOTE,"Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
-		_rAddr.b[0], _rAddr.b[1], _rAddr.b[2], _rAddr.b[3], _rAddr.b[4], _rAddr.b[5]); 
-	PanicAlertT("Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		_rAddr.b[0], _rAddr.b[1], _rAddr.b[2], _rAddr.b[3], _rAddr.b[4], _rAddr.b[5]);
 	return NULL;
 }

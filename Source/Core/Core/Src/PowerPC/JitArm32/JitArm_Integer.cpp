@@ -54,6 +54,57 @@ void JitArm::ComputeRC(int cr) {
 	STRB(rB, R9, PPCSTATE_OFF(cr_fast) + cr);
 	gpr.Unlock(rB);
 }
+void JitArm::ComputeRC(s32 value, int cr) {
+	ARMReg rB = gpr.GetReg();
+
+	if (value < 0)
+		MOV(rB, 0x8);
+	else if (value > 0)
+		MOV(rB, 0x4);
+	else
+		MOV(rB, 0x2);
+
+	STRB(rB, R9, PPCSTATE_OFF(cr_fast) + cr);
+	gpr.Unlock(rB);
+}
+
+void JitArm::ComputeCarry()
+{
+	ARMReg tmp = gpr.GetReg();
+	Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+	LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	SetCC(CC_CS);
+	ORR(tmp, tmp, mask);
+	SetCC(CC_CC);
+	BIC(tmp, tmp, mask);
+	SetCC();
+	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	gpr.Unlock(tmp);
+}
+
+void JitArm::GetCarryAndClear(ARMReg reg)
+{
+	ARMReg tmp = gpr.GetReg();
+	Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+	LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	AND(reg, tmp, mask);
+	BIC(tmp, tmp, mask);
+	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	gpr.Unlock(tmp);
+}
+
+void JitArm::FinalizeCarry(ARMReg reg)
+{
+	ARMReg tmp = gpr.GetReg();
+	Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+	SetCC(CC_CS);
+	ORR(reg, reg, mask);
+	SetCC();
+	LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	ORR(tmp, tmp, reg);
+	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+	gpr.Unlock(tmp);
+}
 
 void JitArm::addi(UGeckoInstruction inst)
 {
@@ -103,23 +154,70 @@ void JitArm::addx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RB = gpr.R(inst.RB);
-	ARMReg RD = gpr.R(inst.RD);
+	u32 a = inst.RA, b = inst.RB, d = inst.RD;
+	
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		gpr.SetImmediate(d, gpr.GetImm(a) + gpr.GetImm(b));
+		if (inst.Rc) ComputeRC(gpr.GetImm(d), 0); 
+		return;
+	}
+	ARMReg RA = gpr.R(a);
+	ARMReg RB = gpr.R(b);
+	ARMReg RD = gpr.R(d);
 	ADDS(RD, RA, RB);
 	if (inst.Rc) ComputeRC();
 }
+
+void JitArm::addcx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+	u32 a = inst.RA, b = inst.RB, d = inst.RD;
+	
+	ARMReg RA = gpr.R(a);
+	ARMReg RB = gpr.R(b);
+	ARMReg RD = gpr.R(d);
+	ADDS(RD, RA, RB);
+	ComputeCarry();
+	if (inst.Rc) ComputeRC();
+}
+void JitArm::addex(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+	u32 a = inst.RA, b = inst.RB, d = inst.RD;
+	Default(inst); return;
+	ARMReg RA = gpr.R(a);
+	ARMReg RB = gpr.R(b);
+	ARMReg RD = gpr.R(d);
+	ARMReg rA = gpr.GetReg();
+	GetCarryAndClear(rA);
+	ADDS(RD, RA, RB);
+	FinalizeCarry(rA);
+	if (inst.Rc) ComputeRC();
+	gpr.Unlock(rA);
+}
+
 void JitArm::subfx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RB = gpr.R(inst.RB);
-	ARMReg RD = gpr.R(inst.RD);
-	SUBS(RD, RB, RA);
+	u32 a = inst.RA, b = inst.RB, d = inst.RD;
+	
 	if (inst.OE) PanicAlert("OE: subfx");
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		gpr.SetImmediate(d, gpr.GetImm(b) - gpr.GetImm(a));
+		if (inst.Rc) ComputeRC(gpr.GetImm(d), 0); 
+		return;
+	}
+	ARMReg RA = gpr.R(a);
+	ARMReg RB = gpr.R(b);
+	ARMReg RD = gpr.R(d);
+	SUBS(RD, RB, RA);
 	if (inst.Rc) GenerateRC();
 }
 void JitArm::mulli(UGeckoInstruction inst)
@@ -149,7 +247,7 @@ void JitArm::ori(UGeckoInstruction inst)
 	
 	if (gpr.IsImm(s))
 	{
-		gpr.SetImmediate(s, gpr.GetImm(a) | inst.UIMM);
+		gpr.SetImmediate(a, gpr.GetImm(s) | inst.UIMM);
 		return;
 	}
 	ARMReg RA = gpr.R(a);
@@ -163,9 +261,15 @@ void JitArm::oris(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
+	u32 a = inst.RA, s = inst.RS;
 
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RS = gpr.R(inst.RS);
+	if (gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, gpr.GetImm(s) | (inst.UIMM << 16));
+		return;
+	}
+	ARMReg RA = gpr.R(a);
+	ARMReg RS = gpr.R(s);
 	ARMReg rA = gpr.GetReg();
 	MOVI2R(rA, inst.UIMM << 16);
 	ORR(RA, RS, rA);
@@ -176,10 +280,17 @@ void JitArm::orx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
+	u32 a = inst.RA, b = inst.RB, s = inst.RS;
 
-	ARMReg rA = gpr.R(inst.RA);
-	ARMReg rS = gpr.R(inst.RS);
-	ARMReg rB = gpr.R(inst.RB);
+	if (gpr.IsImm(b) && gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, gpr.GetImm(s) | gpr.GetImm(b));
+		if (inst.Rc) ComputeRC(gpr.GetImm(a), 0); 
+		return;
+	}
+	ARMReg rA = gpr.R(a);
+	ARMReg rB = gpr.R(b);
+	ARMReg rS = gpr.R(s);
 	ORRS(rA, rS, rB);
 	if (inst.Rc)
 		ComputeRC();
@@ -190,23 +301,100 @@ void JitArm::xorx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 
-	ARMReg rA = gpr.R(inst.RA);
-	ARMReg rS = gpr.R(inst.RS);
-	ARMReg rB = gpr.R(inst.RB);
+	u32 a = inst.RA, b = inst.RB, s = inst.RS;
+
+	if (gpr.IsImm(b) && gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, gpr.GetImm(s) ^ gpr.GetImm(b));
+		if (inst.Rc) ComputeRC(gpr.GetImm(a), 0); 
+		return;
+	}
+	ARMReg rA = gpr.R(a);
+	ARMReg rB = gpr.R(b);
+	ARMReg rS = gpr.R(s);
 	EORS(rA, rS, rB);
 	if (inst.Rc)
 		ComputeRC();
 }
+
+void JitArm::andx(UGeckoInstruction inst)
+{
+	u32 a = inst.RA, b = inst.RB, s = inst.RS;
+
+	if (gpr.IsImm(s) && gpr.IsImm(b))
+	{
+		gpr.SetImmediate(a, gpr.GetImm(s) & gpr.GetImm(b));
+		if (inst.Rc) ComputeRC(gpr.GetImm(a), 0); 
+		return;
+	}
+	ARMReg rA = gpr.R(a);
+	ARMReg rB = gpr.R(b);
+	ARMReg rS = gpr.R(s);
+
+	ANDS(rA, rS, rB);
+
+	if (inst.Rc) ComputeRC();
+}
+
+void JitArm::andi_rc(UGeckoInstruction inst)
+{
+	u32 a = inst.RA, s = inst.RS;
+
+	if (gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, gpr.GetImm(s) & inst.UIMM);
+		ComputeRC(gpr.GetImm(a), 0); 
+		return;
+	}
+	ARMReg rA = gpr.R(a);
+	ARMReg rS = gpr.R(s);
+	ARMReg RA = gpr.GetReg();
+
+	MOVI2R(RA, inst.UIMM);
+	ANDS(rA, rS, RA);
+
+	ComputeRC();
+	gpr.Unlock(RA);
+}
+
+void JitArm::andis_rc(UGeckoInstruction inst)
+{
+	u32 a = inst.RA, s = inst.RS;
+
+	if (gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, gpr.GetImm(s) & ((u32)inst.UIMM << 16));
+		ComputeRC(gpr.GetImm(a), 0); 
+		return;
+	}
+	ARMReg rA = gpr.R(a);
+	ARMReg rS = gpr.R(s);
+	ARMReg RA = gpr.GetReg();
+
+	MOVI2R(RA, (u32)inst.UIMM << 16);
+	ANDS(rA, rS, RA);
+
+	ComputeRC();
+	gpr.Unlock(RA);
+}
+
 void JitArm::extshx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-	ARMReg RA, RS;
-	RA = gpr.R(inst.RA);
-	RS = gpr.R(inst.RS);
-	SXTH(RA, RS);
+	u32 a = inst.RA, s = inst.RS;
+
+	if (gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, (u32)(s32)(s16)gpr.GetImm(s));
+		if (inst.Rc) ComputeRC(gpr.GetImm(a), 0); 
+		return;
+	}
+	ARMReg rA = gpr.R(a);
+	ARMReg rS = gpr.R(s);
+	SXTH(rA, rS);
 	if (inst.Rc){
-		CMP(RA, 0);
+		CMP(rA, 0);
 		ComputeRC();
 	}
 }
@@ -214,12 +402,19 @@ void JitArm::extsbx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-	ARMReg RA, RS;
-	RA = gpr.R(inst.RA);
-	RS = gpr.R(inst.RS);
-	SXTB(RA, RS);
+	u32 a = inst.RA, s = inst.RS;
+
+	if (gpr.IsImm(s))
+	{
+		gpr.SetImmediate(a, (u32)(s32)(s8)gpr.GetImm(s));
+		if (inst.Rc) ComputeRC(gpr.GetImm(a), 0); 
+		return;
+	}
+	ARMReg rA = gpr.R(a);
+	ARMReg rS = gpr.R(s);
+	SXTB(rA, rS);
 	if (inst.Rc){
-		CMP(RA, 0);
+		CMP(rA, 0);
 		ComputeRC();
 	}
 }
@@ -228,31 +423,43 @@ void JitArm::cmp (UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RB = gpr.R(inst.RB);
 	int crf = inst.CRFD;
+	u32 a = inst.RA, b = inst.RB;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		ComputeRC((s32)gpr.GetImm(a) - (s32)gpr.GetImm(b), crf); 
+		return;
+	}
+
+	ARMReg RA = gpr.R(a);
+	ARMReg RB = gpr.R(b);
 	CMP(RA, RB);
+
 	ComputeRC(crf);
 }
 void JitArm::cmpi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-
-	ARMReg RA = gpr.R(inst.RA);
+	u32 a = inst.RA;
 	int crf = inst.CRFD;
-	if (inst.SIMM_16 >= 0 && inst.SIMM_16 < 256)
-	{
-		CMP(RA, inst.SIMM_16);
-	}
+	if (gpr.IsImm(a))
+		ComputeRC((s32)gpr.GetImm(a) - inst.SIMM_16, crf);
 	else
 	{
-		ARMReg rA = gpr.GetReg();
-		MOVI2R(rA, inst.SIMM_16);
-		CMP(RA, rA);
-		gpr.Unlock(rA);
+		ARMReg RA = gpr.R(a);
+		if (inst.SIMM_16 >= 0 && inst.SIMM_16 < 256)
+			CMP(RA, inst.SIMM_16);
+		else
+		{
+			ARMReg rA = gpr.GetReg();
+			MOVI2R(rA, inst.SIMM_16);
+			CMP(RA, rA);
+			gpr.Unlock(rA);
+		}
+		ComputeRC(crf);
 	}
-	ComputeRC(crf);
 }
 void JitArm::cmpl(UGeckoInstruction inst)
 {

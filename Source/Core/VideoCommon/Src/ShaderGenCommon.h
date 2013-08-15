@@ -173,7 +173,7 @@ private:
 };
 
 template<class T>
-static void WriteRegister(T& object, API_TYPE ApiType, const char *prefix, const u32 num)
+static inline void WriteRegister(T& object, API_TYPE ApiType, const char *prefix, const u32 num)
 {
 	if (ApiType == API_OPENGL)
 		return; // Nothing to do here
@@ -182,7 +182,7 @@ static void WriteRegister(T& object, API_TYPE ApiType, const char *prefix, const
 }
 
 template<class T>
-static void WriteLocation(T& object, API_TYPE ApiType, bool using_ubos)
+static inline void WriteLocation(T& object, API_TYPE ApiType, bool using_ubos)
 {
 	if (using_ubos)
 		return;
@@ -191,7 +191,7 @@ static void WriteLocation(T& object, API_TYPE ApiType, bool using_ubos)
 }
 
 template<class T>
-static void DeclareUniform(T& object, API_TYPE api_type, bool using_ubos, const u32 num, const char* type, const char* name)
+static inline void DeclareUniform(T& object, API_TYPE api_type, bool using_ubos, const u32 num, const char* type, const char* name)
 {
 	WriteLocation(object, api_type, using_ubos);
 	object.Write("%s %s ", type, name);

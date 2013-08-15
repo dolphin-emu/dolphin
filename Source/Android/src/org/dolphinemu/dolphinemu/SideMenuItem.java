@@ -1,25 +1,47 @@
-package org.dolphinemu.dolphinemu;
-
-/**
+/*
  * Copyright 2013 Dolphin Emulator Project
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
 
-public class SideMenuItem implements Comparable<SideMenuItem>{
-    private String m_name;
-    private int m_id;
+package org.dolphinemu.dolphinemu;
 
-    public SideMenuItem(String n, int id)
+
+/**
+ * Represents an item that goes in the sidemenu of the app.
+ */
+public final class SideMenuItem implements Comparable<SideMenuItem>
+{
+    private final String m_name;
+    private final int m_id;
+
+    /**
+     * Constructor
+     * 
+     * @param name The name of the SideMenuItem.
+     * @param id   ID number of this specific SideMenuItem.
+     */
+    public SideMenuItem(String name, int id)
     {
-        m_name = n;
+        m_name = name;
         m_id = id;
     }
     
+    /**
+     * Gets the name of this SideMenuItem.
+     * 
+     * @return the name of this SideMenuItem.
+     */
     public String getName()
     {
         return m_name;
     }
+    
+    /**
+     * Gets the ID of this SideMenuItem.
+     * 
+     * @return the ID of this SideMenuItem.
+     */
     public int getID()
     {
     	return m_id;

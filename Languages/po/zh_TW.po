@@ -5503,7 +5503,7 @@ msgstr "您必須輸入一個有效的設定檔名稱。"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:917
 msgid "You must restart Dolphin in order for the change to take effect."
-msgstr "You must restart Dolphin in order for the change to take effect."
+msgstr "您必須重新啟動 Dolphin 使更改生效。"
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
 msgid ""

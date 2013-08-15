@@ -2,23 +2,23 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
         >
     <PreferenceCategory
-            android:summary="Settings"
-            android:title="CPU Settings"
+            android:summary="@string/settings"
+            android:title="@string/cpu_settings"
             android:key="cpuprefcat">
         <CheckBoxPreference
                 android:key="dualcorepref"
-                android:summary="On/Off"
-                android:title="Dual Core" />
+                android:summary="@string/on_off"
+                android:title="@string/dual_core" />
     </PreferenceCategory>
     <PreferenceCategory
-            android:summary="Settings"
-            android:title="Video Settings"
+            android:summary="@string/settings"
+            android:title="@string/video_settings"
             android:key="videoprefcat">
         <ListPreference
                 android:entries="@array/gpuOptions"
                 android:entryValues="@array/gpuValues"
                 android:key="gpupref"
-                android:summary="Video backend to use"
-                android:title="Video Backend" />
+                android:summary="@string/video_backend_to_use"
+                android:title="@string/video_backend" />
     </PreferenceCategory>
 </PreferenceScreen>

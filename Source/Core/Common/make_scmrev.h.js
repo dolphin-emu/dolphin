@@ -58,8 +58,8 @@ var describe	= GetFirstStdOutLine(gitexe + cmd_describe);
 var branch		= GetFirstStdOutLine(gitexe + cmd_branch);
 var isMaster    = +("master" == branch);
 
-// remove hash from description
-describe = describe.replace(/-[^-]+(-dirty)?$/, '$1');
+// remove hash (and trailing "-0" if needed) from description
+describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
 
 var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +

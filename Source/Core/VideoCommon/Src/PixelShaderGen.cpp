@@ -216,7 +216,7 @@ static char swapModeTable[4][5];
 
 static char text[16384];
 
-static void BuildSwapModeTable()
+static inline void BuildSwapModeTable()
 {
 	static const char *swapColors = "rgba";
 	for (int i = 0; i < 4; i++)
@@ -229,13 +229,13 @@ static void BuildSwapModeTable()
 	}
 }
 
-template<class T> static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4]);
-template<class T> static void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
-template<class T> static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
-template<class T> static void WriteFog(T& out, pixel_shader_uid_data& uid_data);
+template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4]);
+template<class T> static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
+template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
+template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data);
 
 template<class T>
-static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
+static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	pixel_shader_uid_data dummy_data;
@@ -243,23 +243,25 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 										? out.template GetUidData<pixel_shader_uid_data>() : dummy_data;
 
 	out.SetBuffer(text);
+	const bool is_writing_shadercode = (out.GetBuffer() != NULL);
 #ifndef ANDROID
 	locale_t locale;
 	locale_t old_locale;
-	if (out.GetBuffer() != NULL)
+	if (is_writing_shadercode)
 	{
 		locale = newlocale(LC_NUMERIC_MASK, "C", NULL); // New locale for compilation
 		old_locale = uselocale(locale); // Apply the locale for this thread
 	}
 #endif
 
-	text[sizeof(text) - 1] = 0x7C;  // canary
+	if (is_writing_shadercode)
+		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	unsigned int numStages = bpmem.genMode.numtevstages + 1;
 	unsigned int numTexgen = bpmem.genMode.numtexgens;
 
-	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.zcontrol.early_ztest && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
-	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest && bpmem.zmode.testenable) || (!g_ActiveConfig.bFastDepthCalc && !forced_early_z);
+	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED);
+	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z);
 
 	out.Write("//Pixel Shader for TEV stages\n");
 	out.Write("//%i TEV stages, %i texgens, %i IND stages\n",
@@ -331,7 +333,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 
 		out.Write("VARYIN float4 colors_02;\n");
 		out.Write("VARYIN float4 colors_12;\n");
-		
+
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
 		if (xfregs.numTexGen.numTexGens < 7)
@@ -365,18 +367,37 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 			}
 			out.Write("float4 clipPos;\n");
 		}
-		
+
 		if (forced_early_z)
 		{
 			// HACK: This doesn't force the driver to write to depth buffer if alpha test fails.
 			// It just allows it, but it seems that all drivers do.
 			out.Write("layout(early_fragment_tests) in;\n");
 		}
-		
+		else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
+		{
+			static bool warn_once = true;
+			if (warn_once)
+				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to use the D3D11 or OpenGL backend and enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU which supports D3D 11.0 / OGL 4.2 is required).");
+			warn_once = false;
+		}
+
 		out.Write("void main()\n{\n");
 	}
 	else
 	{
+		if (forced_early_z)
+		{
+			out.Write("[earlydepthstencil]\n");
+		}
+		else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED) && is_writing_shadercode)
+		{
+			static bool warn_once = true;
+			if (warn_once)
+				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to use the D3D11 or OpenGL backend and enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU which supports D3D 11.0 / OGL 4.2 is required).");
+			warn_once = false;
+		}
+
 		out.Write("void main(\n");
 		if(ApiType != API_D3D11)
 		{
@@ -481,7 +502,6 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		uid_data.xfregs_numTexGen_numTexGens = xfregs.numTexGen.numTexGens;
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
 			out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
@@ -630,11 +650,11 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 	uid_data.per_pixel_depth = per_pixel_depth;
 	uid_data.forced_early_z = forced_early_z;
 	uid_data.fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
-	uid_data.early_ztest = bpmem.zcontrol.early_ztest;
+	uid_data.early_ztest = bpmem.UseEarlyDepthTest();
 	uid_data.fog_fsel = bpmem.fog.c_proj_fsel.fsel;
 
 	// Note: z-textures are not written to depth buffer if early depth test is used
-	if (per_pixel_depth && bpmem.zcontrol.early_ztest)
+	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
 		out.Write("depth = zCoord;\n");
 
 	// Note: depth texture output is only written to depth buffer if late depth test is used
@@ -652,7 +672,7 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 		out.Write("zCoord = zCoord * (16777216.0f/16777215.0f);\n");
 	}
 
-	if (per_pixel_depth && !bpmem.zcontrol.early_ztest)
+	if (per_pixel_depth && bpmem.UseLateDepthTest())
 		out.Write("depth = zCoord;\n");
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
@@ -687,16 +707,16 @@ static void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_TYPE Api
 
 	out.Write("}\n");
 
-	if (text[sizeof(text) - 1] != 0x7C)
-		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
+	if (is_writing_shadercode)
+	{
+		if (text[sizeof(text) - 1] != 0x7C)
+			PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
 
 #ifndef ANDROID
-	if (out.GetBuffer() != NULL)
-	{
 		uselocale(old_locale); // restore locale
 		freelocale(locale);
-	}
 #endif
+	}
 }
 
 
@@ -744,7 +764,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 };
 
 template<class T>
-static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4])
+static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4])
 {
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
 	bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
@@ -887,7 +907,7 @@ static void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE 
 		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		uid_data.SetTevindrefTexmap(i, texmap);
-		
+
 		out.Write("textemp = ");
 		SampleTexture<T>(out, "tevcoord", texswap, texmap, ApiType);
 	}
@@ -1114,7 +1134,7 @@ template<class T>
 void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType)
 {
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
-	
+
 	if (ApiType == API_D3D11)
 		out.Write("Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", texmap,texmap, texcoords, texmap, texswap);
 	else
@@ -1142,7 +1162,7 @@ static const char *tevAlphaFunclogicTable[] =
 };
 
 template<class T>
-static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth)
+static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType, DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth)
 {
 	static const char *alphaRef[2] =
 	{
@@ -1185,11 +1205,11 @@ static void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE Api
 	// We implement "depth test before texturing" by disabling alpha test when early-z is in use.
 	// It seems to be less buggy than not to update the depth buffer if alpha test fails,
 	// but both ways wouldn't be accurate.
-	
+
 	// OpenGL 4.2 has a flag which allows the driver to still update the depth buffer 
 	// if alpha test fails. The driver doesn't have to, but I assume they all do because
 	// it's the much faster code path for the GPU.
-	uid_data.alpha_test_use_zcomploc_hack = bpmem.zcontrol.early_ztest && bpmem.zmode.updateenable && !g_ActiveConfig.backend_info.bSupportsEarlyZ;
+	uid_data.alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest() && bpmem.zmode.updateenable && !g_ActiveConfig.backend_info.bSupportsEarlyZ;
 	if (!uid_data.alpha_test_use_zcomploc_hack)
 	{
 		out.Write("\t\tdiscard;\n");
@@ -1213,7 +1233,7 @@ static const char *tevFogFuncsTable[] =
 };
 
 template<class T>
-static void WriteFog(T& out, pixel_shader_uid_data& uid_data)
+static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 {
 	uid_data.fog_fsel = bpmem.fog.c_proj_fsel.fsel;
 	if(bpmem.fog.c_proj_fsel.fsel == 0)
@@ -1255,7 +1275,7 @@ static void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	}
 	else
 	{
-		if (bpmem.fog.c_proj_fsel.fsel != 2)
+		if (bpmem.fog.c_proj_fsel.fsel != 2 && out.GetBuffer() != NULL)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 

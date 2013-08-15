@@ -14,13 +14,14 @@ import java.util.List;
  * Licensed under GPLv2
  * Refer to the license.txt file included.
  */
-public class InputConfigAdapter extends ArrayAdapter<InputConfigItem> {
-	private Context c;
-	private int id;
-	private List<InputConfigItem> items;
+public final class InputConfigAdapter extends ArrayAdapter<InputConfigItem>
+{
+	private final Context c;
+	private final int id;
+	private final List<InputConfigItem> items;
 
-	public InputConfigAdapter(Context context, int textViewResourceId,
-	                       List<InputConfigItem> objects) {
+	public InputConfigAdapter(Context context, int textViewResourceId, List<InputConfigItem> objects)
+	{
 		super(context, textViewResourceId, objects);
 		c = context;
 		id = textViewResourceId;
@@ -31,26 +32,30 @@ public class InputConfigAdapter extends ArrayAdapter<InputConfigItem> {
 	{
 		return items.get(i);
 	}
+	
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {
+	public View getView(int position, View convertView, ViewGroup parent)
+	{
 		View v = convertView;
-		if (v == null) {
+		if (v == null)
+		{
 			LayoutInflater vi = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			v = vi.inflate(id, null);
+			v = vi.inflate(id, parent, false);
 		}
-		final InputConfigItem o = items.get(position);
-		if (o != null) {
-			TextView t1 = (TextView) v.findViewById(R.id.FolderTitle);
-			TextView t2 = (TextView) v.findViewById(R.id.FolderSubTitle);
+		
+		final InputConfigItem item = items.get(position);
+		if (item != null)
+		{
+			TextView title    = (TextView) v.findViewById(R.id.FolderTitle);
+			TextView subtitle = (TextView) v.findViewById(R.id.FolderSubTitle);
 
-			if(t1!=null)
-				t1.setText(o.getName());
-			if(t2!=null)
-				t2.setText(o.getBind());
+			if(title != null)
+			   title.setText(item.getName());
+			
+			if(subtitle != null)
+			   subtitle.setText(item.getBind());
 		}
+		
 		return v;
 	}
-
-
-
 }

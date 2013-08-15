@@ -703,6 +703,8 @@ bool NetPlayServer::StopGame()
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 	SendToClients(spac);
 
+	m_is_running = false;
+
 	return true;
 }
 
