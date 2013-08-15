@@ -333,7 +333,11 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.BufferDesc.Width = xres;
 	swap_chain_desc.BufferDesc.Height = yres;
 
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	D3D11_CREATE_DEVICE_FLAG device_flags = (D3D11_CREATE_DEVICE_FLAG)(D3D11_CREATE_DEVICE_DEBUG|D3D11_CREATE_DEVICE_SINGLETHREADED);
+#else
 	D3D11_CREATE_DEVICE_FLAG device_flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
+#endif
 	hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, device_flags,
 										supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
 										D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
