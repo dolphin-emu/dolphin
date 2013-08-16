@@ -10,7 +10,7 @@ import java.io.InputStream;
 
 public final class GameListItem implements Comparable<GameListItem>
 {
-    private final String name;
+    private String name;
     private final String data;
     private final String path;
     private final boolean isValid;
@@ -46,7 +46,7 @@ public final class GameListItem implements Comparable<GameListItem>
         		image = Bitmap.createBitmap(Banner, 96, 32, Bitmap.Config.ARGB_8888);
         	}
         	
-        	name = NativeLibrary.GetTitle(path);
+        	this.name = NativeLibrary.GetTitle(path);
         }
     }
     
