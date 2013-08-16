@@ -575,10 +575,10 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 	{
 		static u8 previousSize = 0;
 
-		if (previousSize != size && m_wiimote_buffer[in_game_num].Size() > 0)
+		while (previousSize != size && m_wiimote_buffer[in_game_num].Size() > 0)
 		{
 			// Reporting mode changed, so previous buffer is no good.
-			m_wiimote_buffer[in_game_num].Clear();
+			m_wiimote_buffer[in_game_num].Pop();
 		}
 
 		nw.data.assign(data, data + size);
@@ -618,7 +618,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 					return false;
 			}
 			++tries;
-			if (tries > m_target_buffer_size)
+			if (tries > m_target_buffer_size +1)
 				break;
 		} while (nw.size != size);
 
