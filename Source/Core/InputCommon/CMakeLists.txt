@@ -2,7 +2,9 @@ set(SRCS	Src/ControllerEmu.cpp
 			Src/InputConfig.cpp
 			Src/UDPWiimote.cpp
 			Src/UDPWrapper.cpp
-			Src/ControllerInterface/ControllerInterface.cpp)
+			Src/ControllerInterface/ControllerInterface.cpp
+			Src/ControllerInterface/Device.cpp
+			Src/ControllerInterface/ExpressionParser.cpp)
 
 if(WIN32)
 	set(SRCS	${SRCS}
@@ -21,10 +23,13 @@ elseif(X11_FOUND)
 	set(SRCS	${SRCS}
 				Src/ControllerInterface/SDL/SDL.cpp
 				Src/ControllerInterface/Xlib/Xlib.cpp)
+	if(XINPUT2_FOUND)
+		set(SRCS	${SRCS}
+					Src/ControllerInterface/Xlib/XInput2.cpp)
+	endif()
 elseif(ANDROID)
 	set(SRCS	${SRCS}
-				Src/ControllerInterface/Android/Android.cpp
-				Src/Android/ButtonManager.cpp)
+				Src/ControllerInterface/Android/Android.cpp)
 endif()
 
 add_library(inputcommon ${SRCS})

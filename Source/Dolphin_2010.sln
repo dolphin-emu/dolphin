@@ -116,6 +116,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoundTouch", "..\Externals\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PolarSSL", "..\Externals\polarssl\visualc\VS2010\PolarSSL.vcxproj", "{46CF2D25-6A36-4189-B59C-E4815388E554}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTests", "UnitTests\UnitTests.vcxproj", "{40C636FA-B5BF-4D67-ABC8-376B524A7551}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "miniupnpc", "..\Externals\miniupnpc\miniupnpc.vcxproj", "{A680190D-0764-485B-9CF3-A82C5EDD5715}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -414,6 +418,29 @@ Global
 		{46CF2D25-6A36-4189-B59C-E4815388E554}.Release|Win32.Build.0 = Release|Win32
 		{46CF2D25-6A36-4189-B59C-E4815388E554}.Release|x64.ActiveCfg = Release|x64
 		{46CF2D25-6A36-4189-B59C-E4815388E554}.Release|x64.Build.0 = Release|x64
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.Debug|Win32.ActiveCfg = Debug|Win32
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.Debug|Win32.Build.0 = Debug|Win32
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.Debug|x64.ActiveCfg = Debug|x64
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.Debug|x64.Build.0 = Debug|x64
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.DebugFast|Win32.ActiveCfg = Debug|x64
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.DebugFast|x64.ActiveCfg = Debug|x64
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.DebugFast|x64.Build.0 = Debug|x64
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.Release|Win32.ActiveCfg = Release|Win32
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.Release|Win32.Build.0 = Release|Win32
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.Release|x64.ActiveCfg = Release|x64
+		{40C636FA-B5BF-4D67-ABC8-376B524A7551}.Release|x64.Build.0 = Release|x64
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.Debug|Win32.Build.0 = Debug|Win32
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.Debug|x64.ActiveCfg = Debug|x64
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.Debug|x64.Build.0 = Debug|x64
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.DebugFast|Win32.ActiveCfg = Debug|Win32
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.DebugFast|Win32.Build.0 = Debug|Win32
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.DebugFast|x64.ActiveCfg = Debug|x64
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.DebugFast|x64.Build.0 = Debug|x64
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.Release|Win32.ActiveCfg = Release|Win32
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.Release|Win32.Build.0 = Release|Win32
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.Release|x64.ActiveCfg = Release|x64
+		{A680190D-0764-485B-9CF3-A82C5EDD5715}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

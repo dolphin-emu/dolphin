@@ -1,13 +1,13 @@
 package org.dolphinemu.dolphinemu;
 
-import java.util.List;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
+
+import java.util.List;
 
 public class SideMenuAdapter extends ArrayAdapter<SideMenuItem>{
 
@@ -35,7 +35,7 @@ public class SideMenuAdapter extends ArrayAdapter<SideMenuItem>{
               }
               final SideMenuItem o = items.get(position);
               if (o != null) {
-                      TextView t1 = (TextView) v.findViewById(R.id.TextView01);
+                      TextView t1 = (TextView) v.findViewById(R.id.SideMenuTitle);
                       
                       if(t1!=null)
                       	t1.setText(o.getName());

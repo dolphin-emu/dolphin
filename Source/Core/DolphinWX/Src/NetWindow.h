@@ -48,6 +48,9 @@ private:
 		*m_connect_ip_text;
 
 	wxListBox*		m_game_lbox;
+#ifdef USE_UPNP
+	wxCheckBox*		m_upnp_chk;
+#endif
 
 	const CGameListCtrl* const m_game_list;
 };

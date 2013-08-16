@@ -1,8 +1,9 @@
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 
-#include "../ControllerInterface.h"
 #include "OSXJoystick.h"
+
+#include <sstream>
 
 namespace ciface
 {

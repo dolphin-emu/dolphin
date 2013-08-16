@@ -170,7 +170,10 @@ void EventDoState(PointerWrap &p, BaseEvent* ev)
 
 	// we can't savestate ev->type directly because events might not get registered in the same order (or at all) every time.
 	// so, we savestate the event's type's name, and derive ev->type from that when loading.
-	std::string name = event_types[ev->type].name;
+	std::string name;
+	if (p.GetMode() != PointerWrap::MODE_READ)
+		name = event_types[ev->type].name;
+
 	p.Do(name);
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{

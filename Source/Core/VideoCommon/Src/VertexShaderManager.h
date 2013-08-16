@@ -9,15 +9,6 @@
 
 class PointerWrap;
 
-struct ProjectionHack
-{
-	float sign;
-	float value;
-	ProjectionHack() { }
-	ProjectionHack(float new_sign, float new_value)
-		: sign(new_sign), value(new_value) {}
-};
-
 void UpdateProjectionHack(int iParams[], std::string sParams[]);
 
 void UpdateViewportWithCorrection();
@@ -41,7 +32,7 @@ public:
 	static void SetProjectionChanged();
 	static void SetMaterialColorChanged(int index);
 
-	static void TranslateView(float x, float y);
+	static void TranslateView(float x, float y, float z = 0.0f);
 	static void RotateView(float x, float y);
 	static void ResetView();
 };

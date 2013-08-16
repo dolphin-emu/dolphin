@@ -407,6 +407,30 @@ u64 Read_U64(const u32 _Address)
 	return _var;
 }
 
+double Read_F64(const u32 _Address)
+{
+	union
+	{
+		u64 i;
+		double d;
+	} cvt;
+	
+	cvt.i = Read_U64(_Address);
+	return cvt.d;
+}
+
+float Read_F32(const u32 _Address)
+{
+	union
+	{
+		u32 i;
+		float d;
+	} cvt;
+
+	cvt.i = Read_U32(_Address);
+	return cvt.d;
+}
+
 u32 Read_U8_ZX(const u32 _Address)
 {
 	return (u32)Read_U8(_Address);
@@ -602,9 +626,6 @@ union UPTE2
 	u32 Hex;
 };
 
-u32 pagetable_base = 0;
-u32 pagetable_hashmask = 0;
-
 void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite)
 {
 	if (_bWrite)
@@ -648,8 +669,8 @@ void SDRUpdated()
 	{
 		return;
 	}
-	pagetable_base = htaborg<<16;
-	pagetable_hashmask = ((xx<<10)|0x3ff);
+	PowerPC::ppcState.pagetable_base = htaborg<<16;
+	PowerPC::ppcState.pagetable_hashmask = ((xx<<10)|0x3ff);
 } 
 
 
@@ -660,10 +681,10 @@ void SDRUpdated()
 #define TLB_WAYS 2
 #define NUM_TLBS 2
 
-#define PAGE_SIZE 4096
-#define PAGE_INDEX_SHIFT 12
-#define PAGE_INDEX_MASK 0x3f
-#define PAGE_TAG_SHIFT 18
+#define HW_PAGE_SIZE 4096
+#define HW_PAGE_INDEX_SHIFT 12
+#define HW_PAGE_INDEX_MASK 0x3f
+#define HW_PAGE_TAG_SHIFT 18
 
 #define TLB_FLAG_MOST_RECENT 0x01
 #define TLB_FLAG_INVALID 0x02
@@ -683,7 +704,7 @@ static tlb_entry tlb[NUM_TLBS][TLB_SIZE/TLB_WAYS][TLB_WAYS];
 u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 {
 #ifdef FAST_TLB_CACHE
-	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>PAGE_INDEX_SHIFT)&PAGE_INDEX_MASK];
+	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
 	if(tlbe[0].tag == (vpa & ~0xfff) && !(tlbe[0].flags & TLB_FLAG_INVALID))
 	{
 		tlbe[0].flags |= TLB_FLAG_MOST_RECENT;
@@ -732,19 +753,19 @@ u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 {
 #ifdef FAST_TLB_CACHE
-	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>PAGE_INDEX_SHIFT)&PAGE_INDEX_MASK];
+	tlb_entry *tlbe = tlb[_Flag == FLAG_OPCODE][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
 	if((tlbe[0].flags & TLB_FLAG_MOST_RECENT) == 0)
 	{
 		tlbe[0].flags = TLB_FLAG_MOST_RECENT;
 		tlbe[1].flags &= ~TLB_FLAG_MOST_RECENT;
-		tlbe[0].paddr = PTE2.RPN << PAGE_INDEX_SHIFT;
+		tlbe[0].paddr = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
 		tlbe[0].tag = vpa & ~0xfff;
 	}
 	else
 	{
 		tlbe[1].flags = TLB_FLAG_MOST_RECENT;
 		tlbe[0].flags &= ~TLB_FLAG_MOST_RECENT;
-		tlbe[1].paddr = PTE2.RPN << PAGE_INDEX_SHIFT;
+		tlbe[1].paddr = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
 		tlbe[1].tag = vpa & ~0xfff;
 	}
 #else
@@ -753,7 +774,7 @@ void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 		// ITLB cache
 		PowerPC::ppcState.itlb_last++;
 		PowerPC::ppcState.itlb_last &= 127;
-		PowerPC::ppcState.itlb_pa[PowerPC::ppcState.itlb_last] = PTE2.RPN << PAGE_INDEX_SHIFT;
+		PowerPC::ppcState.itlb_pa[PowerPC::ppcState.itlb_last] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
 		PowerPC::ppcState.itlb_va[PowerPC::ppcState.itlb_last] = vpa & ~0xfff;	
 	}
 	else
@@ -761,7 +782,7 @@ void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 		// DTLB cache
 		PowerPC::ppcState.dtlb_last++;
 		PowerPC::ppcState.dtlb_last &= 127;
-		PowerPC::ppcState.dtlb_pa[PowerPC::ppcState.dtlb_last] = PTE2.RPN << PAGE_INDEX_SHIFT;
+		PowerPC::ppcState.dtlb_pa[PowerPC::ppcState.dtlb_last] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
 		PowerPC::ppcState.dtlb_va[PowerPC::ppcState.dtlb_last] = vpa & ~0xfff;	
 	}
 #endif
@@ -770,7 +791,7 @@ void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 void InvalidateTLBEntry(u32 vpa)
 {
 #ifdef FAST_TLB_CACHE
-	tlb_entry *tlbe = tlb[0][(vpa>>PAGE_INDEX_SHIFT)&PAGE_INDEX_MASK];
+	tlb_entry *tlbe = tlb[0][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
 	if(tlbe[0].tag == (vpa & ~0xfff))
 	{
 		tlbe[0].flags |= TLB_FLAG_INVALID;
@@ -779,7 +800,7 @@ void InvalidateTLBEntry(u32 vpa)
 	{
 		tlbe[1].flags |= TLB_FLAG_INVALID;
 	}
-	tlb_entry *tlbe_i = tlb[1][(vpa>>PAGE_INDEX_SHIFT)&PAGE_INDEX_MASK];
+	tlb_entry *tlbe_i = tlb[1][(vpa>>HW_PAGE_INDEX_SHIFT)&HW_PAGE_INDEX_MASK];
 	if(tlbe_i[0].tag == (vpa & ~0xfff))
 	{
 		tlbe_i[0].flags |= TLB_FLAG_INVALID;
@@ -825,7 +846,7 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 
 	// hash function no 1 "xor" .360
 	u32 hash1 = (VSID ^ page_index);
-	u32 pteg_addr = ((hash1 & pagetable_hashmask) << 6) | pagetable_base;
+	u32 pteg_addr = ((hash1 & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
 
 	// hash1
 	for (int i = 0; i < 8; i++)
@@ -860,7 +881,7 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 
 	// hash function no 2 "not" .360
 	hash1 = ~hash1;
-	pteg_addr = ((hash1 & pagetable_hashmask) << 6) | pagetable_base;
+	pteg_addr = ((hash1 & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
 	for (int i = 0; i < 8; i++) 
 	{
 		u32 pte = bswap(*(u32*)&pRAM[pteg_addr]);

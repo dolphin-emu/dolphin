@@ -147,6 +147,7 @@ protected:
 	void SetMainLR(u32 src_addr);
 	void OutputSamples(u32 out_addr, u32 surround_addr);
 	void MixAUXBLR(u32 ul_addr, u32 dl_addr);
+	void SetOppositeLR(u32 src_addr);
 	void SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
 	                   u32 main_r_dl, u32 auxb_l_dl, u32 auxb_r_dl);
 
@@ -173,7 +174,7 @@ private:
 		CMD_OUTPUT = 0x0E,
 		CMD_END = 0x0F,
 		CMD_MIX_AUXB_LR = 0x10,
-		CMD_UNK_11 = 0x11,
+		CMD_SET_OPPOSITE_LR = 0x11,
 		CMD_UNK_12 = 0x12,
 		CMD_SEND_AUX_AND_MIX = 0x13,
 	};

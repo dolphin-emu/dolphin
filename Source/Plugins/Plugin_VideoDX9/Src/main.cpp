@@ -72,7 +72,7 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 
 std::string VideoBackend::GetName()
 {
-	return "Direct3D9";
+	return "DX9";
 }
 
 std::string VideoBackend::GetDisplayName()
@@ -96,6 +96,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = C_PLIGHTS + 40 <= maxConstants && C_PMATERIALS + 4 <= maxConstants;
+	g_Config.backend_info.bSupportsEarlyZ = false;
 
 	// adapters
 	g_Config.backend_info.Adapters.clear();

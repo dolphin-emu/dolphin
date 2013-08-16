@@ -457,13 +457,20 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		if (Core::g_CoreStartupParameter.bEnableDebugging)
 		{
 			// Add run count
+			static const u64 One = 1;
 			ARMReg RA = gpr.GetReg();
 			ARMReg RB = gpr.GetReg();
+			ARMReg VA = fpr.GetReg();
+			ARMReg VB = fpr.GetReg();
 			MOVI2R(RA, (u32)&opinfo->runCount);
-			LDR(RB, RA);
-			ADD(RB, RB, 1);
-			STR(RB, RA);
+			MOVI2R(RB, (u32)&One);
+			VLDR(VA, RA, 0);
+			VLDR(VB, RB, 0);
+			VADD(I_I64, VA, VA, VB);
+			VSTR(VA, RA, 0);
 			gpr.Unlock(RA, RB);
+			fpr.Unlock(VA);
+			fpr.Unlock(VB);
 		}
 		if (!ops[i].skip)
 		{

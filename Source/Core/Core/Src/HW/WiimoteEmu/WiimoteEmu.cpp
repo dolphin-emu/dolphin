@@ -86,6 +86,7 @@ const ReportFeatures reporting_mode_features[] =
 };
 
 void EmulateShake(AccelData* const accel
+	  , accel_cal* const calib
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step )
 {
@@ -94,7 +95,7 @@ void EmulateShake(AccelData* const accel
 	auto const shake_step_max = 15;
 
 	// peak G-force
-	auto const shake_intensity = 3.f;
+	double shake_intensity;
 	
 	// shake is a bitfield of X,Y,Z shake button states
 	static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
@@ -105,6 +106,9 @@ void EmulateShake(AccelData* const accel
 	{
 		if (shake & (1 << i))
 		{
+			double zero = double((&(calib->zero_g.x))[i]);
+			double one = double((&(calib->one_g.x))[i]);
+			shake_intensity = max(zero / (one - zero), (255.f - zero) / (one - zero));
 			(&(accel->x))[i] = std::sin(TAU * shake_step[i] / shake_step_max) * shake_intensity;
 			shake_step[i] = (shake_step[i] + 1) % shake_step_max;
 		}
@@ -406,6 +410,7 @@ void Wiimote::GetAccelData(u8* const data, u8* const buttons)
 	const bool has_focus = HAS_FOCUS;
 	const bool is_sideways = m_options->settings[1]->value != 0;
 	const bool is_upright = m_options->settings[2]->value != 0;
+	accel_cal* calib = (accel_cal*)&m_eeprom[0x16];
 
 	// ----TILT----
 	EmulateTilt(&m_accel, m_tilt, has_focus, is_sideways, is_upright);
@@ -415,11 +420,10 @@ void Wiimote::GetAccelData(u8* const data, u8* const buttons)
 	if (has_focus)
 	{
 		EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
-		EmulateShake(&m_accel, m_shake, m_shake_step);
+		EmulateShake(&m_accel, calib, m_shake, m_shake_step);
 		UDPTLayer::GetAcceleration(m_udp, &m_accel);
 	}
 	wm_accel* dt = (wm_accel*)data;
-	accel_cal* calib = (accel_cal*)&m_eeprom[0x16];
 	double cx,cy,cz;
 	cx=trim(m_accel.x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x);
 	cy=trim(m_accel.y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y);
@@ -777,7 +781,10 @@ void Wiimote::Update()
 
 	// send data report
 	if (rptf_size)
+	{
+		WiimoteEmu::Spy(this, data, rptf_size);
 		Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, rptf_size);
+	}
 }
 
 void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size) 
@@ -849,13 +856,15 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 			{
 				const wm_report* const sr = (wm_report*)hidp->data;
 
-				if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index])
+				if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index])
 				{
 					switch (sr->wm)
 					{
 						// these two types are handled in RequestStatus() & ReadData()
 					case WM_REQUEST_STATUS :
 					case WM_READ_DATA :
+						if (WIIMOTE_SRC_REAL == g_wiimote_sources[m_index])
+							WiimoteReal::InterruptChannel(m_index, _channelID, _pData, _Size);
 						break;
 
 					default :

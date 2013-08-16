@@ -155,15 +155,19 @@ public:
 	void ori(UGeckoInstruction _inst);	
 	void oris(UGeckoInstruction _inst);	
 	void orx(UGeckoInstruction _inst);
+	void xorx(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);
 	void rlwinmx(UGeckoInstruction _inst);
+	void subfx(UGeckoInstruction _inst);
 	void extshx(UGeckoInstruction inst);
 	void extsbx(UGeckoInstruction inst);
 
 	// System Registers
 	void mtmsr(UGeckoInstruction _inst);
+	void mfmsr(UGeckoInstruction _inst);
 	void mtspr(UGeckoInstruction _inst);
 	void mfspr(UGeckoInstruction _inst);
+	void mftb(UGeckoInstruction _inst);
 
 	// LoadStore
 	void icbi(UGeckoInstruction _inst);
@@ -171,6 +175,7 @@ public:
 	void lhz(UGeckoInstruction _inst);
 	void lwz(UGeckoInstruction _inst);
 	void lwzx(UGeckoInstruction _inst);
+	void stb(UGeckoInstruction _inst);
 	void stbu(UGeckoInstruction _inst);
 	void sth(UGeckoInstruction _inst);
 	void sthu(UGeckoInstruction _inst);
@@ -184,6 +189,7 @@ public:
 
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);
+	void lfd(UGeckoInstruction _inst);
 };
 
 #endif // _JIT64_H

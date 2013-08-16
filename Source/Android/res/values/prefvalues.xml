@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="gpuOptions">
+        <item>Software Renderer</item>
+        <item>OpenGL ES 3</item>
+    </string-array>
+
+    <string-array name="gpuValues">
+        <item>Software Renderer</item>
+        <item>OGL</item>
+    </string-array>
+</resources>

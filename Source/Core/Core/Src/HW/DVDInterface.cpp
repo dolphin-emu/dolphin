@@ -530,6 +530,9 @@ void UpdateInterrupts()
 	{
 		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, false);
 	}
+
+	// Required for Summoner: A Goddess Reborn
+	CoreTiming::ForceExceptionCheck(50);
 }
 
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)

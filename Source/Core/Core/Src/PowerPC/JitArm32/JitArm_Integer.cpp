@@ -99,6 +99,18 @@ void JitArm::addx(UGeckoInstruction inst)
 	ADDS(RD, RA, RB);
 	if (inst.Rc) ComputeRC();
 }
+void JitArm::subfx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+
+	ARMReg RA = gpr.R(inst.RA);
+	ARMReg RB = gpr.R(inst.RB);
+	ARMReg RD = gpr.R(inst.RD);
+	SUBS(RD, RB, RA);
+	if (inst.OE) PanicAlert("OE: subfx");
+	if (inst.Rc) GenerateRC();
+}
 void JitArm::mulli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -135,6 +147,7 @@ void JitArm::oris(UGeckoInstruction inst)
 	ORR(RA, RS, rA);
 	gpr.Unlock(rA);
 }
+
 void JitArm::orx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -148,6 +161,18 @@ void JitArm::orx(UGeckoInstruction inst)
 		ComputeRC();
 }
 
+void JitArm::xorx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+
+	ARMReg rA = gpr.R(inst.RA);
+	ARMReg rS = gpr.R(inst.RS);
+	ARMReg rB = gpr.R(inst.RB);
+	EORS(rA, rS, rB);
+	if (inst.Rc)
+		ComputeRC();
+}
 void JitArm::extshx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

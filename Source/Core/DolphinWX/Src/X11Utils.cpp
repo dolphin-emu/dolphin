@@ -32,42 +32,6 @@ extern char **environ;
 namespace X11Utils
 {
 
-void SendClientEvent(Display *dpy, const char *message,
-	   	int data1, int data2, int data3, int data4)
-{
-	XEvent event;
-	Window win = (Window)Core::GetWindowHandle();
-
-	// Init X event structure for client message
-	event.xclient.type = ClientMessage;
-	event.xclient.format = 32;
-	event.xclient.data.l[0] = XInternAtom(dpy, message, False);
-	event.xclient.data.l[1] = data1;
-	event.xclient.data.l[2] = data2;
-	event.xclient.data.l[3] = data3;
-	event.xclient.data.l[4] = data4;
-
-	// Send the event
-	if (!XSendEvent(dpy, win, False, False, &event))
-		ERROR_LOG(VIDEO, "Failed to send message %s to the emulator window.", message);
-}
-
-void SendKeyEvent(Display *dpy, int key)
-{
-	XEvent event;
-	Window win = (Window)Core::GetWindowHandle();
-
-	// Init X event structure for key press event
-	event.xkey.type = KeyPress;
-	// WARNING:  This works for ASCII keys.  If in the future other keys are needed
-	// convert with InputCommon::wxCharCodeWXToX from X11InputBase.cpp.
-	event.xkey.keycode = XKeysymToKeycode(dpy, key);
-
-	// Send the event
-	if (!XSendEvent(dpy, win, False, False, &event))
-		ERROR_LOG(VIDEO, "Failed to send key press event to the emulator window.");
-}
-
 void SendButtonEvent(Display *dpy, int button, int x, int y, bool pressed)
 {
 	XEvent event;
@@ -200,6 +164,9 @@ XRRConfiguration::~XRRConfiguration()
 
 void XRRConfiguration::Update()
 {
+	if(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution == "Auto")
+		return;
+	
 	if (!bValid)
 		return;
 

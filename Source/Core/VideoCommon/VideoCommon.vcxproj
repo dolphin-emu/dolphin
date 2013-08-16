@@ -182,6 +182,7 @@
     <ClCompile Include="Src\CommandProcessor.cpp" />
     <ClCompile Include="Src\CPMemory.cpp" />
     <ClCompile Include="Src\Debugger.cpp" />
+    <ClCompile Include="Src\DriverDetails.cpp" />
     <ClCompile Include="Src\EmuWindow.cpp" />
     <ClCompile Include="Src\Fifo.cpp" />
     <ClCompile Include="Src\FPSCounter.cpp" />
@@ -189,7 +190,6 @@
     <ClCompile Include="Src\HiresTextures.cpp" />
     <ClCompile Include="Src\ImageWrite.cpp" />
     <ClCompile Include="Src\IndexGenerator.cpp" />
-    <ClCompile Include="Src\LightingShaderGen.cpp" />
     <ClCompile Include="Src\MainBase.cpp" />
     <ClCompile Include="Src\memcpy_amd.cpp" />
     <ClCompile Include="Src\OnScreenDisplay.cpp" />
@@ -229,6 +229,7 @@
     <ClInclude Include="Src\CPMemory.h" />
     <ClInclude Include="Src\DataReader.h" />
     <ClInclude Include="Src\Debugger.h" />
+    <ClInclude Include="Src\DriverDetails.h" />
     <ClInclude Include="Src\DLCache.h" />
     <ClInclude Include="Src\EmuWindow.h" />
     <ClInclude Include="Src\Fifo.h" />
@@ -250,6 +251,7 @@
     <ClInclude Include="Src\PixelShaderGen.h" />
     <ClInclude Include="Src\PixelShaderManager.h" />
     <ClInclude Include="Src\RenderBase.h" />
+    <ClInclude Include="Src\ShaderGenCommon.h" />
     <ClInclude Include="Src\Statistics.h" />
     <ClInclude Include="Src\TextureCacheBase.h" />
     <ClInclude Include="Src\TextureConversionShader.h" />

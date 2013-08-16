@@ -32,30 +32,41 @@ void Shutdown()
 		delete *i;
 	g_plugin.controllers.clear();
 
-	// WiimoteReal is shutdown on app exit
-	//WiimoteReal::Shutdown();
+	WiimoteReal::Shutdown();
 
 	g_controller_interface.Shutdown();
 }
 
 // if plugin isn't initialized, init and load config
-void Initialize(void* const hwnd)
+void Initialize(void* const hwnd, bool wait)
 {
 	// add 4 wiimotes
-	for (unsigned int i = 0; i<4; ++i)
+	for (unsigned int i = WIIMOTE_CHAN_0; i<MAX_BBMOTES; ++i)
 		g_plugin.controllers.push_back(new WiimoteEmu::Wiimote(i));
-
+	
+	
 	g_controller_interface.SetHwnd(hwnd);
 	g_controller_interface.Initialize();
 
 	g_plugin.LoadConfig(false);
 
-	WiimoteReal::Initialize();
+	WiimoteReal::Initialize(wait);
 	
 	// reload Wiimotes with our settings
 	if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
 		Movie::ChangeWiiPads();
 }
+
+void Resume()
+{
+	WiimoteReal::Resume();
+}
+
+void Pause()
+{
+	WiimoteReal::Pause();
+}
+
 
 // __________________________________________________________________________________________________
 // Function: ControlChannel
@@ -71,11 +82,8 @@ void Initialize(void* const hwnd)
 //
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+	if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->ControlChannel(_channelID, _pData, _Size);
-
-	if (WIIMOTE_SRC_REAL & g_wiimote_sources[_number])
-		WiimoteReal::ControlChannel(_number, _channelID, _pData, _Size);
 }
 
 // __________________________________________________________________________________________________
@@ -92,10 +100,8 @@ void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 //
 void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	if (WIIMOTE_SRC_EMU & g_wiimote_sources[_number])
+	if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[_number])
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->InterruptChannel(_channelID, _pData, _Size);
-	else
-		WiimoteReal::InterruptChannel(_number, _channelID, _pData, _Size);
 }
 
 // __________________________________________________________________________________________________
@@ -134,7 +140,7 @@ void Update(int _number)
 unsigned int GetAttached()
 {
 	unsigned int attached = 0;
-	for (unsigned int i=0; i<4; ++i)
+	for (unsigned int i=0; i<MAX_BBMOTES; ++i)
 		if (g_wiimote_sources[i])
 			attached |= (1 << i);
 	return attached;
@@ -151,7 +157,7 @@ void DoState(u8 **ptr, PointerWrap::Mode mode)
 	// TODO:
 
 	PointerWrap p(ptr, mode);
-	for (unsigned int i=0; i<4; ++i)
+	for (unsigned int i=0; i<MAX_BBMOTES; ++i)
 		((WiimoteEmu::Wiimote*)g_plugin.controllers[i])->DoState(p);
 }
 

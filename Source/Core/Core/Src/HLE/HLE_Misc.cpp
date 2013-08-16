@@ -20,6 +20,7 @@
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCSymbolDB.h"
 #include "CommonPaths.h"
+#include "TextureCacheBase.h"
 
 namespace HLE_Misc
 {
@@ -310,6 +311,7 @@ void ExecuteDOL(u8* dolFile, u32 fileSize)
 	}
 
 	PowerPC::ppcState.iCache.Reset();
+	TextureCache::RequestInvalidateTextureCache();
 
 	CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
 	size_t size = s_Usb->m_WiiMotes.size();

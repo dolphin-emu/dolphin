@@ -66,9 +66,8 @@ void CUCode_AX::LoadResamplingCoefficients()
 
 	WARN_LOG(DSPHLE, "Loading polyphase resampling coeffs from %s", filename.c_str());
 
-	FILE* fp = fopen(filename.c_str(), "rb");
-	fread(m_coeffs, 1, 0x1000, fp);
-	fclose(fp);
+	File::IOFile fp(filename, "rb");
+	fp.ReadBytes(m_coeffs, 0x1000);
 
 	for (u32 i = 0; i < 0x800; ++i)
 		m_coeffs[i] = Common::swap16(m_coeffs[i]);
@@ -240,7 +239,11 @@ void CUCode_AX::HandleCommandList()
 				MixAUXBLR(HILO_TO_32(addr), HILO_TO_32(addr2));
 				break;
 
-			case CMD_UNK_11: curr_idx += 2; break;
+			case CMD_SET_OPPOSITE_LR:
+				addr_hi = m_cmdlist[curr_idx++];
+				addr_lo = m_cmdlist[curr_idx++];
+				SetOppositeLR(HILO_TO_32(addr));
+				break;
 
 			case CMD_UNK_12:
 			{
@@ -587,6 +590,18 @@ void CUCode_AX::MixAUXBLR(u32 ul_addr, u32 dl_addr)
 		int samp = Common::swap32(*ptr++);
 		m_samples_auxB_right[i] = samp;
 		m_samples_right[i] += samp;
+	}
+}
+
+void CUCode_AX::SetOppositeLR(u32 src_addr)
+{
+	int* ptr = (int*)HLEMemory_Get_Pointer(src_addr);
+	for (u32 i = 0; i < 5 * 32; ++i)
+	{
+		int inp = Common::swap32(*ptr++);
+		m_samples_left[i] = -inp;
+		m_samples_right[i] = inp;
+		m_samples_surround[i] = 0;
 	}
 }
 

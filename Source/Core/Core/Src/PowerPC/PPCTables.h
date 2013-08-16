@@ -77,7 +77,11 @@ struct GekkoOPInfo
 	int type;
 	int flags;
 	int numCyclesMinusOne;
+#ifdef _M_ARM
+	u64 runCount;
+#else
 	int runCount;
+#endif
 	int compileCount;
 	u32 lastUse;
 };

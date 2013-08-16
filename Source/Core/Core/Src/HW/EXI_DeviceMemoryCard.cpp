@@ -48,7 +48,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 {
 	m_strFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA : SConfig::GetInstance().m_strMemoryCardB;
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave())
-		m_strFilename = "Movie.raw";
+		m_strFilename = File::GetUserPath(D_GCUSER_IDX) + "Movie.raw";
 
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
 	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);

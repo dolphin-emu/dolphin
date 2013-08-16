@@ -89,9 +89,10 @@ public:
 	
 	wxStaticBoxSizer* CreateControlChooser(GamepadPage* const parent);
 
+	virtual bool Validate();
+
 	void DetectControl(wxCommandEvent& event);
 	void ClearControl(wxCommandEvent& event);
-	void SetControl(wxCommandEvent& event);
 	void SetDevice(wxCommandEvent& event);
 
 	void UpdateGUI();
@@ -112,7 +113,9 @@ public:
 private:
 	GamepadPage* const		m_parent;
 	wxStaticText*		m_bound_label;
-	ControllerInterface::DeviceQualifier	m_devq;
+	wxStaticText*		m_error_label;
+	DeviceQualifier	m_devq;
+	bool GetExpressionForSelectedControl(wxString &expr);
 };
 
 class ExtensionButton : public wxButton

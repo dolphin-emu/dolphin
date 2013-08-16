@@ -64,6 +64,11 @@ void VideoBackend::UpdateFPSDisplay(const char *text)
 
 std::string VideoBackend::GetName()
 {
+	return "DX11";
+}
+
+std::string VideoBackend::GetDisplayName()
+{
 	return "Direct3D11";
 }
 
@@ -85,6 +90,7 @@ void InitBackendInfo()
 	g_Config.backend_info.bSupportsFormatReinterpretation = true;
 	g_Config.backend_info.bSupportsPixelLighting = true;
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
+	g_Config.backend_info.bSupportsEarlyZ = false;
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;

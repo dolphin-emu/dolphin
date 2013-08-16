@@ -687,12 +687,29 @@ void UpdateAudioDMA()
 
 void Do_ARAM_DMA()
 {
-	g_dspState.DSPControl.DMAState = 1;
-	CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
-
-	// Force an early exception check on large transfers. Fixes RE2 audio.
-	if (g_arDMA.Cnt.count > 2048 && g_arDMA.Cnt.count <= 6144)
+	if (g_arDMA.Cnt.count == 32)
+	{
+		// Beyond Good and Evil (GGEE41) sends count 32
+		// Lost Kingdoms 2 needs the exception check here in DSP HLE mode
+		GenerateDSPInterrupt(INT_ARAM);
 		CoreTiming::ForceExceptionCheck(100);
+	}
+	else
+	{
+		g_dspState.DSPControl.DMAState = 1;
+		CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDSPInterrupt, INT_ARAM | (1<<16));
+
+		// Force an early exception check on large transfers. Fixes RE2 audio.
+		// NFS:HP2 (<= 6144)
+		// Viewtiful Joe (<= 6144)
+		// Sonic Mega Collection (> 2048)
+		// Paper Mario battles (> 32)
+		// Mario Super Baseball (> 32)
+		// Knockout Kings 2003 loading (> 32)
+		// WWE DOR (> 32)
+		if (g_arDMA.Cnt.count > 2048 && g_arDMA.Cnt.count <= 6144)
+			CoreTiming::ForceExceptionCheck(100);
+	}
 
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)

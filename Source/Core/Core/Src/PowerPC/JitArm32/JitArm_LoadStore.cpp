@@ -36,6 +36,55 @@
 #else
 #define FASTMEM 0
 #endif
+void JitArm::stb(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+
+	ARMReg RS = gpr.R(inst.RS);
+#if 0 // FASTMEM
+	// R10 contains the dest address
+	ARMReg Value = R11;
+	ARMReg RA;
+	if (inst.RA)
+		RA = gpr.R(inst.RA);
+	MOV(Value, RS);
+	if (inst.RA)
+	{
+		MOVI2R(R10, inst.SIMM_16, false);
+		ADD(R10, R10, RA);
+	}
+	else
+	{
+		MOVI2R(R10, (u32)inst.SIMM_16, false);
+		NOP(1);
+	}
+	StoreFromReg(R10, Value, 16, 0);
+#else
+	ARMReg ValueReg = gpr.GetReg();
+	ARMReg Addr = gpr.GetReg();
+	ARMReg Function = gpr.GetReg();
+
+	MOV(ValueReg, RS);
+	if (inst.RA)
+	{
+		MOVI2R(Addr, inst.SIMM_16);
+		ARMReg RA = gpr.R(inst.RA);
+		ADD(Addr, Addr, RA);
+	}
+	else
+		MOVI2R(Addr, (u32)inst.SIMM_16);
+	
+	MOVI2R(Function, (u32)&Memory::Write_U8);	
+	PUSH(4, R0, R1, R2, R3);
+	MOV(R0, ValueReg);
+	MOV(R1, Addr);
+	BL(Function);
+	POP(4, R0, R1, R2, R3);
+	gpr.Unlock(ValueReg, Addr, Function);
+#endif
+}
+
 void JitArm::stbu(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

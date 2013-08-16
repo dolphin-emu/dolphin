@@ -115,7 +115,10 @@ out:
 #if HAVE_X11
 	if (selected_platform != EGL_PLATFORM_X11) {
 		if (GLWin.dpy)
+		{
 			XCloseDisplay(GLWin.dpy);
+			XCloseDisplay(GLWin.evdpy);
+		}
 	}
 #endif
 	if (selected_platform == EGL_PLATFORM_NONE)

@@ -1,7 +1,7 @@
 #ifndef _CIFACE_XINPUT_H_
 #define _CIFACE_XINPUT_H_
 
-#include "../ControllerInterface.h"
+#include "../Device.h"
 
 #define NOMINMAX
 #include <Windows.h>
@@ -12,12 +12,12 @@ namespace ciface
 namespace XInput
 {
 
-void Init(DeviceList& devices);
+void Init(std::vector<Core::Device*>& devices);
 
-class Device : public ControllerInterface::Device
+class Device : public Core::Device
 {
 private:
-	class Button : public Input
+	class Button : public Core::Device::Input
 	{
 	public:
 		std::string GetName() const;
@@ -28,7 +28,7 @@ private:
 		u8 m_index;
 	};
 
-	class Axis : public Input
+	class Axis : public Core::Device::Input
 	{
 	public:
 		std::string GetName() const;
@@ -40,7 +40,7 @@ private:
 		const u8 m_index;
 	};
 
-	class Trigger : public Input
+	class Trigger : public Core::Device::Input
 	{
 	public:
 		std::string GetName() const;
@@ -52,7 +52,7 @@ private:
 		const u8 m_index;
 	};
 
-	class Motor : public Output
+	class Motor : public Core::Device::Output
 	{
 	public:
 		std::string GetName() const;

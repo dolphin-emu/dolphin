@@ -9,6 +9,7 @@
 
 #include "Fifo.h"
 
+#include "DriverDetails.h"
 #include "VideoConfig.h"
 #include "Statistics.h"
 #include "MemoryUtil.h"
@@ -104,6 +105,9 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	{
 		s_offset[2] = s_indexBuffer->Upload((u8*)GetPointIndexBuffer(), point_index_size * sizeof(u16));
 	}
+	
+	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertex_data_size);
+	ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_size);
 }
 
 void VertexManager::Draw(u32 stride)
@@ -254,7 +258,7 @@ void VertexManager::vFlush()
 
 	// set global constants
 	VertexShaderManager::SetConstants();
-	PixelShaderManager::SetConstants();
+	PixelShaderManager::SetConstants(g_nativeVertexFmt->m_components);
 	ProgramShaderCache::UploadConstants();
 	
 	// setup the pointers
@@ -264,6 +268,10 @@ void VertexManager::vFlush()
 
 	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw(stride);
+	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERS))
+		GLInterface->Swap();
+	if(DriverDetails::HasBug(DriverDetails::BUG_MALIBROKENBUFFERS))
+		glFlush();
 	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	//ERROR_LOG(VIDEO, "PerfQuery result: %d", g_perf_query->GetQueryResult(bpmem.zcontrol.early_ztest ? PQ_ZCOMP_OUTPUT_ZCOMPLOC : PQ_ZCOMP_OUTPUT));
 
@@ -275,7 +283,7 @@ void VertexManager::vFlush()
 		{
 			// Need to set these again, if we don't support UBO
 			VertexShaderManager::SetConstants();
-			PixelShaderManager::SetConstants();
+			PixelShaderManager::SetConstants(g_nativeVertexFmt->m_components);
 		}
 	
 		// only update alpha

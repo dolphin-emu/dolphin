@@ -87,6 +87,7 @@ static const wxLanguage langIds[] =
 
 #define SIDEV_STDCONT_STR	_trans("Standard Controller")
 #define SIDEV_STEERING_STR	_trans("Steering Wheel")
+#define SIDEV_DANCEMAT_STR	_trans("Dance Mat")
 #define SIDEV_BONGO_STR		_trans("TaruKonga (Bongos)")
 #define SIDEV_GBA_STR		"GBA"
 #define SIDEV_AM_BB_STR		_trans("AM-Baseboard")
@@ -388,6 +389,7 @@ void CConfigMain::InitializeGUIValues()
 		SIDevices.Add(_(DEV_NONE_STR));
 		SIDevices.Add(_(SIDEV_STDCONT_STR));
 		SIDevices.Add(_(SIDEV_STEERING_STR));
+		SIDevices.Add(_(SIDEV_DANCEMAT_STR));
 		SIDevices.Add(_(SIDEV_BONGO_STR));
 		SIDevices.Add(_(SIDEV_GBA_STR));
 		SIDevices.Add(_(SIDEV_AM_BB_STR));
@@ -443,14 +445,17 @@ void CConfigMain::InitializeGUIValues()
 		case SIDEVICE_GC_STEERING:
 			GCSIDevice[i]->SetStringSelection(SIDevices[2]);
 			break;
-		case SIDEVICE_GC_TARUKONGA:
+		case SIDEVICE_DANCEMAT:
 			GCSIDevice[i]->SetStringSelection(SIDevices[3]);
 			break;
-		case SIDEVICE_GC_GBA:
+		case SIDEVICE_GC_TARUKONGA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[4]);
 			break;
-		case SIDEVICE_AM_BASEBOARD:
+		case SIDEVICE_GC_GBA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[5]);
+			break;
+		case SIDEVICE_AM_BASEBOARD:
+			GCSIDevice[i]->SetStringSelection(SIDevices[6]);
 			break;
 		default:
 			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
@@ -1103,6 +1108,8 @@ void CConfigMain::ChooseSIDevice(wxString deviceName, int deviceNum)
 		tempType = SIDEVICE_GC_CONTROLLER;
 	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_STEERING_STR)))
 		tempType = SIDEVICE_GC_STEERING;
+	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_DANCEMAT_STR)))
+		tempType = SIDEVICE_DANCEMAT;
 	else if (!deviceName.compare(WXSTR_TRANS(SIDEV_BONGO_STR)))
 		tempType = SIDEVICE_GC_TARUKONGA;
 	else if (!deviceName.compare(wxT(SIDEV_GBA_STR)))

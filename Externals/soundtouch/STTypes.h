@@ -8,10 +8,10 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2012-12-28 16:53:56 +0200 (Fri, 28 Dec 2012) $
+// Last changed  : $Date: 2013-06-12 15:24:44 +0000 (Wed, 12 Jun 2013) $
 // File revision : $Revision: 3 $
 //
-// $Id: STTypes.h 162 2012-12-28 14:53:56Z oparviai $
+// $Id: STTypes.h 171 2013-06-12 15:24:44Z oparviai $
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -62,11 +62,9 @@ typedef unsigned long   ulong;
 
 #ifndef _WINDEF_
     // if these aren't defined already by Windows headers, define now
-#if defined(__APPLE__)
-	typedef signed char BOOL;
-#else
+
     typedef int BOOL;
-#endif
+
     #define FALSE   0
     #define TRUE    1
 
@@ -79,6 +77,13 @@ namespace soundtouch
     /// setting inherited from some other header file:
     #undef SOUNDTOUCH_INTEGER_SAMPLES
     #undef SOUNDTOUCH_FLOAT_SAMPLES
+
+    /// If following flag is defined, always uses multichannel processing 
+    /// routines also for mono and stero sound. This is for routine testing 
+    /// purposes; output should be same with either routines, yet disabling 
+    /// the dedicated mono/stereo processing routines will result in slower 
+    /// runtime performance so recommendation is to keep this off.
+    // #define USE_MULTICH_ALWAYS
 
     #if (defined(__SOFTFP__))
         // For Android compilation: Force use of Integer samples in case that
@@ -149,9 +154,7 @@ namespace soundtouch
 
         #ifdef SOUNDTOUCH_ALLOW_X86_OPTIMIZATIONS
             // Allow MMX optimizations
-#ifndef _M_X64
             #define SOUNDTOUCH_ALLOW_MMX   1
-#endif
         #endif
 
     #else
@@ -171,7 +174,7 @@ namespace soundtouch
 };
 
 // define ST_NO_EXCEPTION_HANDLING switch to disable throwing std exceptions:
-#define ST_NO_EXCEPTION_HANDLING    1
+   #define ST_NO_EXCEPTION_HANDLING    1
 #ifdef ST_NO_EXCEPTION_HANDLING
     // Exceptions disabled. Throw asserts instead if enabled.
     #include <assert.h>

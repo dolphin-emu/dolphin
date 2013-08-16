@@ -149,6 +149,10 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
 	top_szr->Add(port_lbl, 0, wxCENTER | wxRIGHT, 5);
 	top_szr->Add(m_host_port_text, 0);
+#ifdef USE_UPNP
+	m_upnp_chk = new wxCheckBox(host_tab, wxID_ANY, _("Forward port (UPnP)"));
+	top_szr->Add(m_upnp_chk, 0, wxALL | wxALIGN_RIGHT, 5);
+#endif
 
 	wxBoxSizer* const host_szr = new wxBoxSizer(wxVERTICAL);
 	host_szr->Add(top_szr, 0, wxALL | wxEXPAND, 5);
@@ -216,10 +220,14 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 	npd = new NetPlayDiag(m_parent, m_game_list, game, true);
 	unsigned long port = 0;
 	m_host_port_text->GetValue().ToULong(&port);
-	netplay_ptr = new NetPlayServer(u16(port)
-		, WxStrToStr(m_nickname_text->GetValue()), npd, game);
+	netplay_ptr = new NetPlayServer(u16(port), WxStrToStr(m_nickname_text->GetValue()), npd);
+	netplay_ptr->ChangeGame(game);
 	if (netplay_ptr->is_connected)
 	{
+#ifdef USE_UPNP
+		if(m_upnp_chk->GetValue())
+			((NetPlayServer*)netplay_ptr)->TryPortmapping(port);
+#endif
 		npd->Show();
 		Destroy();
 	}

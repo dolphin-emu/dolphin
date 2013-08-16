@@ -70,7 +70,7 @@ void PixelShaderManager::Shutdown()
 
 }
 
-void PixelShaderManager::SetConstants()
+void PixelShaderManager::SetConstants(u32 components)
 {
 	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		Dirty();
@@ -82,28 +82,32 @@ void PixelShaderManager::SetConstants()
 			int baseind = i ? C_KCOLORS : C_COLORS;
 			for (int j = 0; j < 4; ++j)
 			{
-				if (s_nColorsChanged[i] & (1 << j))
+				if ((s_nColorsChanged[i] & (1 << j)))
+				{
 					SetPSConstant4fv(baseind+j, &lastRGBAfull[i][j][0]);
+					s_nColorsChanged[i] &= ~(1<<j);
+				}
 			}
-			s_nColorsChanged[i] = 0;
 		}
 	}
 
-	if (s_nTexDimsChanged)
+    if (s_nTexDimsChanged)
 	{
 		for (int i = 0; i < 8; ++i)
 		{
-			if (s_nTexDimsChanged & (1<<i))
+            if ((s_nTexDimsChanged & (1<<i)))
+			{
 				SetPSTextureDims(i);
-		}
-		s_nTexDimsChanged = 0;
-	}
+				s_nTexDimsChanged &= ~(1<<i);
+			}
+        }
+    }
 
-	if (s_bAlphaChanged)
+    if (s_bAlphaChanged)
 	{
 		SetPSConstant4f(C_ALPHA, (lastAlpha&0xff)/255.0f, ((lastAlpha>>8)&0xff)/255.0f, 0, ((lastAlpha>>16)&0xff)/255.0f);
 		s_bAlphaChanged = false;
-	}
+    }
 
 	if (s_bZTextureTypeChanged)
 	{
@@ -121,8 +125,8 @@ void PixelShaderManager::SetConstants()
 			case 2:
 				// 24 bits
 				ftemp[0] = 16711680.0f/16777215.0f; ftemp[1] = 65280.0f/16777215.0f; ftemp[2] = 255.0f/16777215.0f; ftemp[3] = 0;
-				break;
-		}
+                break;
+        }
 		SetPSConstant4fv(C_ZBIAS, ftemp);
 		s_bZTextureTypeChanged = false;
 	}
@@ -148,45 +152,44 @@ void PixelShaderManager::SetConstants()
 		// set as two sets of vec4s, each containing S and T of two ind stages.
 		float f[8];
 
-		if (s_nIndTexScaleChanged & 0x03)
+        if (s_nIndTexScaleChanged & 0x03)
 		{
 			for (u32 i = 0; i < 2; ++i)
 			{
-				f[2 * i] = bpmem.texscale[0].getScaleS(i & 1);
-				f[2 * i + 1] = bpmem.texscale[0].getScaleT(i & 1);
-				PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
-			}
+                f[2 * i] = bpmem.texscale[0].getScaleS(i & 1);
+                f[2 * i + 1] = bpmem.texscale[0].getScaleT(i & 1);
+                PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
+            }
 			SetPSConstant4fv(C_INDTEXSCALE, f);
-		}
+        }
 
 		if (s_nIndTexScaleChanged & 0x0c)
 		{
-			for (u32 i = 2; i < 4; ++i)
+            for (u32 i = 2; i < 4; ++i)
 			{
-				f[2 * i] = bpmem.texscale[1].getScaleS(i & 1);
-				f[2 * i + 1] = bpmem.texscale[1].getScaleT(i & 1);
-				PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
-			}
+                f[2 * i] = bpmem.texscale[1].getScaleS(i & 1);
+                f[2 * i + 1] = bpmem.texscale[1].getScaleT(i & 1);
+                PRIM_LOG("tex indscale%d: %f %f\n", i, f[2 * i], f[2 * i + 1]);
+            }
 			SetPSConstant4fv(C_INDTEXSCALE+1, &f[4]);
-		}
-
+        }
 		s_nIndTexScaleChanged = 0;
-	}
+    }
 
 	if (s_nIndTexMtxChanged)
 	{
 		for (int i = 0; i < 3; ++i)
 		{
-			if (s_nIndTexMtxChanged & (1 << i))
+            if (s_nIndTexMtxChanged & (1 << i))
 			{
-				int scale = ((u32)bpmem.indmtx[i].col0.s0 << 0) |
-							((u32)bpmem.indmtx[i].col1.s1 << 2) |
-							((u32)bpmem.indmtx[i].col2.s2 << 4);
-				float fscale = powf(2.0f, (float)(scale - 17)) / 1024.0f;
+                int scale = ((u32)bpmem.indmtx[i].col0.s0 << 0) |
+					        ((u32)bpmem.indmtx[i].col1.s1 << 2) |
+					        ((u32)bpmem.indmtx[i].col2.s2 << 4);
+                float fscale = powf(2.0f, (float)(scale - 17)) / 1024.0f;
 
-				// xyz - static matrix
-				// TODO w - dynamic matrix scale / 256...... somehow / 4 works better
-				// rev 2972 - now using / 256.... verify that this works
+                // xyz - static matrix
+                // TODO w - dynamic matrix scale / 256...... somehow / 4 works better
+                // rev 2972 - now using / 256.... verify that this works
 				SetPSConstant4f(C_INDTEXMTX + 2 * i,
 					bpmem.indmtx[i].col0.ma * fscale,
 					bpmem.indmtx[i].col1.mc * fscale,
@@ -198,22 +201,23 @@ void PixelShaderManager::SetConstants()
 					bpmem.indmtx[i].col2.mf * fscale,
 					fscale * 4.0f);
 
-				PRIM_LOG("indmtx%d: scale=%f, mat=(%f %f %f; %f %f %f)\n",
-					i, 1024.0f*fscale,
-					bpmem.indmtx[i].col0.ma * fscale, bpmem.indmtx[i].col1.mc * fscale, bpmem.indmtx[i].col2.me * fscale,
-					bpmem.indmtx[i].col0.mb * fscale, bpmem.indmtx[i].col1.md * fscale, bpmem.indmtx[i].col2.mf * fscale);
-			}
-		}
-		s_nIndTexMtxChanged = 0;
-	}
+                PRIM_LOG("indmtx%d: scale=%f, mat=(%f %f %f; %f %f %f)\n",
+                	i, 1024.0f*fscale,
+                	bpmem.indmtx[i].col0.ma * fscale, bpmem.indmtx[i].col1.mc * fscale, bpmem.indmtx[i].col2.me * fscale,
+                	bpmem.indmtx[i].col0.mb * fscale, bpmem.indmtx[i].col1.md * fscale, bpmem.indmtx[i].col2.mf * fscale);
 
-	if (s_bFogColorChanged)
+				s_nIndTexMtxChanged &= ~(1 << i);
+			}
+        }
+    }
+
+    if (s_bFogColorChanged)
 	{
 		SetPSConstant4f(C_FOG, bpmem.fog.color.r / 255.0f, bpmem.fog.color.g / 255.0f, bpmem.fog.color.b / 255.0f, 0);
 		s_bFogColorChanged = false;
-	}
+    }
 
-	if (s_bFogParamChanged)
+    if (s_bFogParamChanged)
 	{
 		if(!g_ActiveConfig.bDisableFog)
 		{
@@ -226,8 +230,8 @@ void PixelShaderManager::SetConstants()
 		else
 			SetPSConstant4f(C_FOG + 1, 0.0, 1.0, 0.0, 1.0);
 
-		s_bFogParamChanged = false;
-	}
+        s_bFogParamChanged = false;
+    }
 
 	if (s_bFogRangeAdjustChanged)
 	{
@@ -312,7 +316,7 @@ void PixelShaderManager::SetConstants()
 					SetPSConstant4fv(C_PMATERIALS + i, material);
 				}
 			}
-			
+
 			for (int i = 0; i < 2; ++i)
 			{
 				if (nMaterialsChanged & (1 << (i + 2)))
@@ -349,8 +353,10 @@ void PixelShaderManager::SetPSTextureDims(int texid)
 	SetPSConstant4fv(C_TEXDIMS + texid, fdims);
 }
 
-// This one is high in profiles (0.5%). TODO: Move conversion out, only store the raw color value
+// This one is high in profiles (0.5%).
+// TODO: Move conversion out, only store the raw color value
 // and update it when the shader constant is set, only.
+// TODO: Conversion should be checked in the context of tev_fixes..
 void PixelShaderManager::SetColorChanged(int type, int num, bool high)
 {
 	float *pf = &lastRGBAfull[type][num][0];

@@ -179,11 +179,13 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 
 		_("Toggle Fullscreen"),
 		_("Take Screenshot"),
+		_("Exit"),
 
 		_("Connect Wiimote 1"),
 		_("Connect Wiimote 2"),
 		_("Connect Wiimote 3"),
 		_("Connect Wiimote 4"),
+		_("Connect Balance Board"),
 
 		_("Load State Slot 1"),
 		_("Load State Slot 2"),
@@ -201,7 +203,22 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		_("Save State Slot 5"),
 		_("Save State Slot 6"),
 		_("Save State Slot 7"),
-		_("Save State Slot 8")
+		_("Save State Slot 8"),
+
+		_("Load State Last 1"),
+		_("Load State Last 2"),
+		_("Load State Last 3"),
+		_("Load State Last 4"),
+		_("Load State Last 5"),
+		_("Load State Last 6"),
+		_("Load State Last 7"),
+		_("Load State Last 8"),
+
+		_("Save Oldest State"),
+		_("Undo Load State"),
+		_("Undo Save State"),
+		_("Save State"),
+		_("Load State"),
 	};
 
 	const int page_breaks[3] = {HK_OPEN, HK_LOAD_STATE_SLOT_1, NUM_HOTKEYS};

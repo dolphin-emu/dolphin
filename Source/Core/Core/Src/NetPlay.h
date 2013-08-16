@@ -31,6 +31,15 @@ public:
 	u32 nLo;
 };
 
+struct NetSettings
+{
+	bool m_DSPHLE;
+	bool m_DSPEnableJIT;
+	bool m_WriteToMemcard;
+	u8 m_Controllers[4];
+};
+extern NetSettings g_NetPlaySettings;
+
 struct Rpt : public std::vector<u8>
 {
 	u16		channel;
@@ -38,7 +47,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<Rpt>	NetWiimote;
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2013-04-11"
+#define NETPLAY_VERSION		"Dolphin NetPlay 2013-07-22"
 
 // messages
 enum
@@ -119,10 +128,12 @@ public:
 	//void PushPadStates(unsigned int count);
 
 	u8 GetPadNum(u8 numPAD);
+	static NetPlay* GetNetPlayPtr();
 
 protected:
 	//void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
 	void ClearBuffers();
+	void GetNetSettings();
 	virtual void SendPadState(const PadMapping local_nb, const NetPad& np) = 0;
 
 	struct
@@ -173,7 +184,7 @@ class NetPlayServer : public NetPlay
 public:
 	void ThreadFunc();
 
-	NetPlayServer(const u16 port, const std::string& name, NetPlayUI* dialog, const std::string& game = "");
+	NetPlayServer(const u16 port, const std::string& name, NetPlayUI* dialog);
 	~NetPlayServer();
 
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
@@ -191,6 +202,10 @@ public:
 
 	u64 CalculateMinimumBufferTime();
 	void AdjustPadBufferSize(unsigned int size);
+
+#ifdef USE_UPNP
+	void TryPortmapping(u16 port);
+#endif
 
 private:
 	class Client : public Player
@@ -215,6 +230,22 @@ private:
 	Common::Timer	m_ping_timer;
 	u32		m_ping_key;
 	bool	m_update_pings;
+	
+#ifdef USE_UPNP
+	static void mapPortThread(const u16 port);
+	static void unmapPortThread();
+
+	static bool initUPnP();
+	static bool UPnPMapPort(const std::string& addr, const u16 port);
+	static bool UPnPUnmapPort(const u16 port);
+
+	static struct UPNPUrls m_upnp_urls;
+	static struct IGDdatas m_upnp_data;
+	static u16 m_upnp_mapped;
+	static bool m_upnp_inited;
+	static bool m_upnp_error;
+	static std::thread m_upnp_thread;
+#endif
 };
 
 class NetPlayClient : public NetPlay

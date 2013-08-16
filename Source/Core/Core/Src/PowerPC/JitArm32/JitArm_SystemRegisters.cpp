@@ -72,7 +72,12 @@ void JitArm::mtspr(UGeckoInstruction inst)
 	// OK, this is easy.
 	STR(RD, R9,  PPCSTATE_OFF(spr) + iIndex * 4);
 }
-
+void JitArm::mftb(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(SystemRegisters)
+	mfspr(inst);
+}
 void JitArm::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -102,3 +107,12 @@ void JitArm::mtmsr(UGeckoInstruction inst)
 	STR(gpr.R(inst.RS), R9, PPCSTATE_OFF(msr));
 	WriteExit(js.compilerPC + 4, 0);
 }
+void JitArm::mfmsr(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(SystemRegisters)
+	Default(inst); return;
+	
+	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(msr));
+}
+

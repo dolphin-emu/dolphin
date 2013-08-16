@@ -4,13 +4,13 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/CPMemory.cpp
 			Src/CommandProcessor.cpp
 			Src/Debugger.cpp
+			Src/DriverDetails.cpp
 			Src/Fifo.cpp
 			Src/FPSCounter.cpp
 			Src/FramebufferManagerBase.cpp
 			Src/HiresTextures.cpp
 			Src/ImageWrite.cpp
 			Src/IndexGenerator.cpp
-			Src/LightingShaderGen.cpp
 			Src/MainBase.cpp
 			Src/OnScreenDisplay.cpp
 			Src/OpcodeDecoding.cpp

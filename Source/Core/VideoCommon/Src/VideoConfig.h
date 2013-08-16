@@ -123,6 +123,7 @@ struct VideoConfig
 	bool bUseBBox;
 	bool bEnablePixelLighting;
 	bool bHackedBufferUpload;
+	bool bFastDepthCalc;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
@@ -154,7 +155,8 @@ struct VideoConfig
 		bool bSupportsPixelLighting;
 		bool bSupportsPrimitiveRestart;
 		bool bSupportsSeparateAlphaFunction;
-		bool bSupportsGLSLUBO; // needed by pixelShaderGen, so must stay in videoCommon
+		bool bSupportsGLSLUBO; // needed by PixelShaderGen, so must stay in VideoCommon
+		bool bSupportsEarlyZ; // needed by PixelShaderGen, so must stay in VideoCommon
 	} backend_info;
 
 	// Utility

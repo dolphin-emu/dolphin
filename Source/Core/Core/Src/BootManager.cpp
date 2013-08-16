@@ -34,6 +34,7 @@
 #include "Host.h"
 #include "VideoBackendBase.h"
 #include "Movie.h"
+#include "NetPlay.h"
 
 namespace BootManager
 {
@@ -42,7 +43,7 @@ namespace BootManager
 // Apply fire liberally
 struct ConfigCache
 {
-	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF,
+	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT,
 		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2;
 	int iTLBHack, iCPUCore;
 	std::string strBackend;
@@ -60,6 +61,7 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
 	SConfig::GetInstance().m_LastFilename = _rFilename;
+	SConfig::GetInstance().SaveSettings();
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
 
@@ -90,6 +92,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bDSPHLE = StartUp.bDSPHLE;
 		config_cache.strBackend = StartUp.m_strVideoBackend;
 		config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
+		config_cache.m_EnableJIT = SConfig::GetInstance().m_EnableJIT;
 
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
@@ -108,20 +111,6 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "HLE_BS2",				&StartUp.bHLE_BS2, StartUp.bHLE_BS2);
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 
-		if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
-		{
-			StartUp.bCPUThread = Movie::IsDualCore();
-			StartUp.bSkipIdle = Movie::IsSkipIdle();
-			StartUp.bDSPHLE = Movie::IsDSPHLE();
-			StartUp.bProgressive = Movie::IsProgressive();
-			StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
-			StartUp.iCPUCore = Movie::GetCPUMode();
-			if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
-			{
-				if (File::Exists("Movie.raw"))
-					File::Delete("Movie.raw");
-			}
-		}
 		// Wii settings
 		if (StartUp.bWii)
 		{
@@ -129,6 +118,30 @@ bool BootCore(const std::string& _rFilename)
 			SConfig::GetInstance().m_SYSCONF->Save();
 		}
 	} 
+
+	// movie settings
+	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+	{
+		StartUp.bCPUThread = Movie::IsDualCore();
+		StartUp.bSkipIdle = Movie::IsSkipIdle();
+		StartUp.bDSPHLE = Movie::IsDSPHLE();
+		StartUp.bProgressive = Movie::IsProgressive();
+		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
+		StartUp.iCPUCore = Movie::GetCPUMode();
+		StartUp.bSyncGPU = Movie::IsSyncGPU();
+		if (Movie::IsUsingMemcard() && Movie::IsStartingFromClearSave() && !StartUp.bWii)
+		{
+			if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + "Movie.raw"))
+				File::Delete(File::GetUserPath(D_GCUSER_IDX) + "Movie.raw");
+		}
+	}
+
+	if (NetPlay::GetNetPlayPtr())
+	{
+		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
+		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
+		SConfig::GetInstance().m_EnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
+	}
 
 	// Run the game
 	// Init the core
@@ -166,6 +179,7 @@ void Stop()
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
+		SConfig::GetInstance().m_EnableJIT = config_cache.m_EnableJIT;
 	}
 }
 

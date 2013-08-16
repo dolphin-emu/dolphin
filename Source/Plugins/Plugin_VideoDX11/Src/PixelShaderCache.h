@@ -22,7 +22,7 @@ public:
 	static void Clear();
 	static void Shutdown();
 	static bool SetShader(DSTALPHA_MODE dstAlphaMode, u32 components); // TODO: Should be renamed to LoadShader
-	static bool InsertByteCode(const PIXELSHADERUID &uid, const void* bytecode, unsigned int bytecodelen);
+	static bool InsertByteCode(const PixelShaderUid &uid, const void* bytecode, unsigned int bytecodelen);
 
 	static ID3D11PixelShader* GetActiveShader() { return last_entry->shader; }
 	static ID3D11Buffer* &GetConstantBuffer();
@@ -41,18 +41,19 @@ private:
 	{
 		ID3D11PixelShader* shader;
 
-		PIXELSHADERUIDSAFE safe_uid;
 		std::string code;
 
 		PSCacheEntry() : shader(NULL) {}
 		void Destroy() { SAFE_RELEASE(shader); }
 	};
 
-	typedef std::map<PIXELSHADERUID, PSCacheEntry> PSCache;
+	typedef std::map<PixelShaderUid, PSCacheEntry> PSCache;
 
 	static PSCache PixelShaders;
 	static const PSCacheEntry* last_entry;
-	static PIXELSHADERUID last_uid;
+	static PixelShaderUid last_uid;
+
+	static UidChecker<PixelShaderUid,PixelShaderCode> pixel_uid_checker;
 };
 
 }  // namespace DX11

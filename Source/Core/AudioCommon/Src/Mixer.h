@@ -23,7 +23,6 @@ public:
 		, m_channels(2)
 		, m_HLEready(false)
 		, m_logAudio(0)
-		, m_numSamples(0)
 		, m_indexW(0)
 		, m_indexR(0)
 		, m_AIplaying(true)
@@ -97,9 +96,8 @@ protected:
 	bool m_throttle;
 
 	short m_buffer[MAX_SAMPLES * 2];
-	volatile u32 m_numSamples;
-	u32 m_indexW;
-	u32 m_indexR;
+	volatile u32 m_indexW;
+	volatile u32 m_indexR;
 
 	bool m_AIplaying;
 	std::mutex m_csMixing;

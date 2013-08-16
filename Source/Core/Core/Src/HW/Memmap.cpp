@@ -113,18 +113,18 @@ void HW_Default_Write(const T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, 
 template <class T>
 void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Read%lu %08x", (unsigned long)sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
 
-#define PAGE_SHIFT 10
-#define PAGE_SIZE (1 << PAGE_SHIFT)
-#define PAGE_MASK (PAGE_SHIFT - 1)
+#define HW_PAGE_SHIFT 10
+#define HW_PAGE_SIZE (1 << HW_PAGE_SHIFT)
+#define HW_PAGE_MASK (HW_PAGE_SHIFT - 1)
 
 template <class T, u8 *P> void HW_Read_Memory(T &_Data, const u32 _Address)
 {
-	_Data = *(T *)&P[_Address & PAGE_MASK];
+	_Data = *(T *)&P[_Address & HW_PAGE_MASK];
 }
 
 template <class T, u8 *P> void HW_Write_Memory(T _Data, const u32 _Address)
 {
-	*(T *)&P[_Address & PAGE_MASK] = _Data;
+	*(T *)&P[_Address & HW_PAGE_MASK] = _Data;
 }
 
 // Create shortcuts to the hardware devices' read and write functions.

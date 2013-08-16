@@ -193,6 +193,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			{
 			std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 			packet >> m_current_game;
+			packet >> g_NetPlaySettings.m_DSPEnableJIT;
+			packet >> g_NetPlaySettings.m_DSPHLE;
+			packet >> g_NetPlaySettings.m_WriteToMemcard;
+			for (unsigned int i = 0; i < 4; ++i)
+				packet >> g_NetPlaySettings.m_Controllers[i];
 			}
 
 			m_dialog->OnMsgStartGame();
@@ -317,13 +322,14 @@ bool NetPlayClient::StartGame(const std::string &path)
 {
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 
-	if (false == NetPlay::StartGame(path))
-		return false;
-
 	// tell server i started the game
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_START_GAME;
 	spac << m_current_game;
+	spac << (char *)&g_NetPlaySettings;
+
+	if (false == NetPlay::StartGame(path))
+		return false;
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 	m_socket.Send(spac);

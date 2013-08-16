@@ -112,6 +112,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/SI.cpp
 			Src/HW/SI_DeviceAMBaseboard.cpp
 			Src/HW/SI_Device.cpp
+			Src/HW/SI_DeviceDanceMat.cpp
 			Src/HW/SI_DeviceGBA.cpp
 			Src/HW/SI_DeviceGCController.cpp
 			Src/HW/SI_DeviceGCSteeringWheel.cpp
@@ -219,7 +220,7 @@ endif()
 
 set(LIBS bdisasm inputcommon videosoftware sfml-network)
 
-if(NOT USE_GLES)
+if(NOT USE_GLES OR USE_GLES3)
 	set(LIBS ${LIBS} videoogl)
 endif()
 

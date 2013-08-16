@@ -80,14 +80,10 @@ template <bool pr> __forceinline void IndexGenerator::WriteTriangle(u32 index1, 
 
 template <bool pr> void IndexGenerator::AddList(u32 const numVerts)
 {
-	auto const numTris = numVerts / 3;
-	for (u32 i = 0; i != numTris; ++i)
+	for (u32 i = 2; i < numVerts; i+=3)
 	{
-		WriteTriangle<pr>(index + i * 3, index + i * 3 + 1, index + i * 3 + 2);
+		WriteTriangle<pr>(index + i - 2, index + i - 1, index + i);
 	}
-	u32 remainingVerts = numVerts - numTris*3;
-	if(remainingVerts)
-		ERROR_LOG(VIDEO, "AddList: unknown count of vertices found");
 }
 
 template <bool pr> void IndexGenerator::AddStrip(u32 const numVerts)
@@ -142,7 +138,7 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
 	
 	if(pr)
 	{
-		for(; i<=numVerts-3; i+=3)
+		for(; i+3<=numVerts; i+=3)
 		{
 			*Tptr++ = index + i - 1;
 			*Tptr++ = index + i + 0;
@@ -153,7 +149,7 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
 			numT += 3;
 		}
 		
-		for(; i<=numVerts-2; i+=2)
+		for(; i+2<=numVerts; i+=2)
 		{
 			*Tptr++ = index + i - 1;
 			*Tptr++ = index + i + 0;
@@ -189,50 +185,41 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
  */
 template <bool pr> void IndexGenerator::AddQuads(u32 numVerts)
 {
-	auto const numQuads = numVerts / 4;
-	for (u32 i = 0; i != numQuads; ++i)
+	u32 i = 3;
+	for (; i < numVerts; i+=4)
 	{
 		if(pr)
 		{
-			*Tptr++ = index + i * 4 + 1;
-			*Tptr++ = index + i * 4 + 2;
-			*Tptr++ = index + i * 4 + 0;
-			*Tptr++ = index + i * 4 + 3;
+			*Tptr++ = index + i - 2;
+			*Tptr++ = index + i - 1;
+			*Tptr++ = index + i - 3;
+			*Tptr++ = index + i - 0;
 			*Tptr++ = s_primitive_restart;
 			numT += 2;
 		}
 		else
 		{
-			WriteTriangle<pr>(index + i * 4, index + i * 4 + 1, index + i * 4 + 2);
-			WriteTriangle<pr>(index + i * 4, index + i * 4 + 2, index + i * 4 + 3);
+			WriteTriangle<pr>(index + i - 3, index + i - 2, index + i - 1);
+			WriteTriangle<pr>(index + i - 3, index + i - 1, index + i - 0);
 		}
 	}
 
 	// three vertices remaining, so render a triangle
-	u32 remainingVerts = numVerts - numQuads*4;
-	if(remainingVerts == 3)
+	if(i == numVerts)
 	{
 		WriteTriangle<pr>(index+numVerts-3, index+numVerts-2, index+numVerts-1);
-	}
-	else if(remainingVerts)
-	{
-		ERROR_LOG(VIDEO, "AddQuads: unknown count of vertices found");
 	}
 }
 
 // Lines
 void IndexGenerator::AddLineList(u32 numVerts)
 {
-	auto const numLines = numVerts / 2;
-	for (u32 i = 0; i != numLines; ++i)
+	for (u32 i = 1; i < numVerts; i+=2)
 	{
-		*Lptr++ = index + i * 2;
-		*Lptr++ = index + i * 2 + 1;
+		*Lptr++ = index + i - 1;
+		*Lptr++ = index + i;
 		++numL;
 	}
-	u32 remainingVerts = numVerts - numLines*2;
-	if(remainingVerts)
-		ERROR_LOG(VIDEO, "AddLineList: unknown count of vertices found");
 	
 }
 

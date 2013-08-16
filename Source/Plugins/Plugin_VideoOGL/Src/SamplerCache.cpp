@@ -95,13 +95,15 @@ void SamplerCache::SetParameters(GLuint sampler_id, const Params& params)
 	glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, wrap_settings[tm0.wrap_s]);
 	glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, wrap_settings[tm0.wrap_t]);
 	
-	glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, tm0.lod_bias / 32.f);
-	
 	glSamplerParameterf(sampler_id, GL_TEXTURE_MIN_LOD, tm1.min_lod / 16.f);
 	glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_LOD, tm1.max_lod / 16.f);
 
+#ifndef USE_GLES3
+	glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, (s32)tm0.lod_bias / 32.f);
+
 	if (g_ActiveConfig.iMaxAnisotropy > 0)
 		glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)(1 << g_ActiveConfig.iMaxAnisotropy));
+#endif
 }
 
 void SamplerCache::Clear()

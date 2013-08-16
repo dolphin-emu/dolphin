@@ -86,7 +86,7 @@ bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool *negated)
 Operand2 AssumeMakeOperand2(u32 imm) {
 	Operand2 op2;
 	bool result = TryMakeOperand2(imm, op2);
-	_dbg_assert_msg_(JIT, result, "Could not make assumed Operand2.");
+	_assert_msg_(DYNA_REC, result, "Could not make assumed Operand2.");
 	return op2;
 }
 
@@ -868,7 +868,7 @@ void ARMXEmitter::VADD(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 
 	Write32((0xF2 << 24) | ((Vd & 0x10) << 18) | (Size << 20) | ((Vn & 0xF) << 16) \
 		| ((Vd & 0xF) << 12) | (0x8 << 8) | ((Vn & 0x10) << 3) | (register_quad << 6) \
-		| ((Vm & 0x10) << 2) | (Vm & 0xF)); 
+		| ((Vm & 0x10) << 1) | (Vm & 0xF)); 
 
 }
 void ARMXEmitter::VSUB(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)

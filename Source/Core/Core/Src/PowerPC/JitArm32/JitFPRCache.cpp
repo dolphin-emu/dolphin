@@ -56,9 +56,9 @@ ARMReg *ArmFPRCache::GetPPCAllocationOrder(int &count)
 	// the ppc side.
 	static ARMReg allocationOrder[] = 
 	{
-		D0, D1, D2, D3, D4, D5, D6, D7, D8, D9, D10,
-		D11, D12, D13, D14, D15, D16, D17, D18, D19,
-		D20, D21, D22, D23, D24, D25, D26, D27
+		D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, 
+		D14, D15, D16, D17, D18, D19, D20, D21, D22, 
+		D23, D24, D25, D26, D27, D28, D29, D30, D31
 	};
 	count = sizeof(allocationOrder) / sizeof(const int);
 	return allocationOrder;
@@ -69,7 +69,7 @@ ARMReg *ArmFPRCache::GetAllocationOrder(int &count)
 	// the host side.
 	static ARMReg allocationOrder[] = 
 	{
-		D31, D30, D29, D28
+		D0, D1, D2, D3
 	};
 	count = sizeof(allocationOrder) / sizeof(const int);
 	return allocationOrder;

@@ -1563,6 +1563,7 @@ void DSPEmitter::lsrn(const UDSPInstruction opc)
 	FixupBranch noShift = J_CC(CC_Z);
 //CL gets automatically masked with 0x3f on IA32/AMD64
 	//MOVZX(64, 16, RCX, R(RAX));
+	MOV(64, R(RCX), R(RAX));
 	//AND(16, R(RCX), Imm16(0x3f));
 	TEST(16, R(RAX), Imm16(0x40));
 	FixupBranch shiftLeft = J_CC(CC_Z);

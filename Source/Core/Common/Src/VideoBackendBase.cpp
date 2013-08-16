@@ -9,7 +9,7 @@
 #include "../../../Plugins/Plugin_VideoDX9/Src/VideoBackend.h"
 #include "../../../Plugins/Plugin_VideoDX11/Src/VideoBackend.h"
 #endif
-#ifndef USE_GLES
+#if !defined(USE_GLES) || USE_GLES3
 #include "../../../Plugins/Plugin_VideoOGL/Src/VideoBackend.h"
 #endif
 #include "../../../Plugins/Plugin_VideoSoftware/Src/VideoBackend.h"
@@ -45,7 +45,7 @@ void VideoBackend::PopulateList()
 	if (IsGteVista())
 		g_available_video_backends.push_back(backends[0] = new DX11::VideoBackend);
 #endif
-#ifndef USE_GLES
+#if !defined(USE_GLES) || USE_GLES3
 	g_available_video_backends.push_back(backends[1] = new OGL::VideoBackend);
 #endif
 	g_available_video_backends.push_back(backends[3] = new SW::VideoSoftware);

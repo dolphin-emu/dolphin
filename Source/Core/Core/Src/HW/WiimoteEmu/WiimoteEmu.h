@@ -24,6 +24,11 @@
 #define WIIMOTE_REG_EXT_SIZE		0x100
 #define WIIMOTE_REG_IR_SIZE			0x34
 
+namespace WiimoteReal
+{
+class Wiimote;
+}
+
 namespace WiimoteEmu
 {
 
@@ -45,6 +50,7 @@ struct ADPCMState
 extern const ReportFeatures reporting_mode_features[];
 
 void EmulateShake(AccelData* const accel_data
+	  , accel_cal* const calib
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step);
 
@@ -65,6 +71,8 @@ inline double trim(double a)
 
 class Wiimote : public ControllerEmu
 {
+friend class WiimoteReal::Wiimote;
+friend void Spy(Wiimote* wm_, const void* data_, int size_);
 public:
 
 	enum
@@ -91,6 +99,7 @@ public:
 	void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
 
 	void DoState(PointerWrap& p);
+	void RealState();
 
 	void LoadDefaults(const ControllerInterface& ciface);
 
@@ -233,6 +242,8 @@ private:
 
 	}	m_reg_speaker;
 };
+
+void Spy(Wiimote* wm_, const void* data_, int size_);
 
 }
 
