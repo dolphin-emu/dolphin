@@ -152,7 +152,7 @@ u8* MemArena::Find4GBBase()
 		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
 		return 0;
 	}
-	munmap(base, 0x31000000);
+	munmap(base, MemSize);
 	return static_cast<u8*>(base);
 #endif
 #endif
