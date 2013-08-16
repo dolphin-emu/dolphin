@@ -20,6 +20,7 @@
 
 SCoreStartupParameter::SCoreStartupParameter()
 : hInstance(0),
+  bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),
   bJITNoBlockCache(false), bJITBlockLinking(true),
   bJITOff(false),
   bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),
@@ -54,6 +55,8 @@ SCoreStartupParameter::SCoreStartupParameter()
 void SCoreStartupParameter::LoadDefaults()
 {
 	bEnableDebugging = false;
+	bAutomaticStart = false;
+	bBootToPause = false;
 	iCPUCore = 1;
 	bCPUThread = false;
 	bSkipIdle = false;

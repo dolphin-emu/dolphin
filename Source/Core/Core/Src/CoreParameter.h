@@ -94,6 +94,7 @@ struct SCoreStartupParameter
 	// 0 = Interpreter
 	// 1 = Jit
 	// 2 = JitIL
+	// 3 = JIT ARM
 	int iCPUCore;
 
 	// JIT (shared between JIT and JITIL)
