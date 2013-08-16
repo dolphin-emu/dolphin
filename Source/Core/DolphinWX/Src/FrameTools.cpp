@@ -1010,6 +1010,8 @@ void CFrame::DoPause()
 // Stop the emulation
 void CFrame::DoStop()
 {
+	if (!Core::IsRunningAndStarted())
+		return;
 	if (confirmStop)
 		return;
 
