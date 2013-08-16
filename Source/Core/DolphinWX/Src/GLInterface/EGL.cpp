@@ -132,17 +132,6 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		exit(1);
 	}
 
-	if (!eglMakeCurrent(GLWin.egl_dpy, GLWin.egl_surf, GLWin.egl_surf, GLWin.egl_ctx)) {
-
-		INFO_LOG(VIDEO, "Error: eglMakeCurrent() failed\n");
-		return false;
-	}
-
-	INFO_LOG(VIDEO, "GL_VENDOR: %s\n", glGetString(GL_VENDOR));
-	INFO_LOG(VIDEO, "GL_RENDERER: %s\n", glGetString(GL_RENDERER));
-	INFO_LOG(VIDEO, "GL_VERSION: %s\n", glGetString(GL_VERSION));
-	INFO_LOG(VIDEO, "GL_EXTENSIONS: %s\n", glGetString(GL_EXTENSIONS));
-
 	Platform.ToggleFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 
 	window_handle = (void *)GLWin.native_window;
