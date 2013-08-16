@@ -33,7 +33,7 @@ if (APPLE)
 	endif()
 endif()
 project(dolphin-emu)
-set(CMAKE_MODULE_PATH ${dCMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 set(DOLPHIN_IS_STABLE FALSE)
 
 # Set up paths
