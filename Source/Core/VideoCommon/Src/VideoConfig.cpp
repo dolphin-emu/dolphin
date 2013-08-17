@@ -11,6 +11,7 @@
 #include "FileUtil.h"
 #include "Core.h"
 #include "Movie.h"
+#include "OnScreenDisplay.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
@@ -104,6 +105,18 @@ void VideoConfig::Load(const char *ini_file)
 	bool bTmp;
 	iniFile.Get("Interface", "UsePanicHandlers", &bTmp, true);
 	SetEnableAlert(bTmp);
+
+	// Shader Debugging causes a huge slowdown and it's easy to forget about it
+	// since it's not exposed in the settings dialog. It's only used by
+	// developers, so displaying an obnoxious message avoids some confusion and
+	// is not too annoying/confusing for users.
+	//
+	// XXX(delroth): This is kind of a bad place to put this, but the current
+	// VideoCommon is a mess and we don't have a central initialization
+	// function to do these kind of checks. Instead, the init code is
+	// triplicated for each video backend.
+	if (bEnableShaderDebugging)
+		OSD::AddMessage("Warning: Shader Debugging is enabled, performance will suffer heavily", 15000);
 }
 
 void VideoConfig::GameIniLoad(const char *ini_file)
