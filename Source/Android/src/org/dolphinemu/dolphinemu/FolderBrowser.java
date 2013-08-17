@@ -95,15 +95,15 @@ public final class FolderBrowser extends Fragment
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 		{
-			FolderBrowserItem o = adapter.getItem(position);
-			if(o.isDirectory() || o.getSubtitle().equalsIgnoreCase(getString(R.string.parent_directory)))
+			FolderBrowserItem item = adapter.getItem(position);
+			if(item.isDirectory() || item.getSubtitle().equalsIgnoreCase(getString(R.string.parent_directory)))
 			{
-				currentDir = new File(o.getPath());
+				currentDir = new File(item.getPath());
 				Fill(currentDir);
 			}
 			else
 			{
-				if (o.isValidItem())
+				if (item.isValid())
 					FolderSelected();
 				else
 					Toast.makeText(m_activity, getString(R.string.cant_use_compressed_filetypes), Toast.LENGTH_LONG).show();

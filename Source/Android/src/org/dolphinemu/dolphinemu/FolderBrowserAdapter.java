@@ -50,7 +50,7 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 			{
 				mainText.setText(item.getName());
 				
-				if (!item.isValidItem())
+				if (!item.isValid())
 				{
 					mainText.setTextColor(0xFFFF0000);
 				}

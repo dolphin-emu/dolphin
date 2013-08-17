@@ -86,7 +86,7 @@ public final class FolderBrowserItem implements Comparable<FolderBrowserItem>
      * by this FolderBrowserItem is supported
      * and can be handled correctly.
      */
-    public boolean isValidItem()
+    public boolean isValid()
     {
         return isValid;
     }
