@@ -96,7 +96,7 @@ public final class FolderBrowser extends Fragment
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 		{
 			FolderBrowserItem item = adapter.getItem(position);
-			if(item.isDirectory() || item.getSubtitle().equalsIgnoreCase(getString(R.string.parent_directory)))
+			if(item.isDirectory())
 			{
 				currentDir = new File(item.getPath());
 				Fill(currentDir);
