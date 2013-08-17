@@ -350,10 +350,10 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
 		padbuf_spin->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &NetPlayDiag::OnAdjustBuffer, this);
 		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
-	}
 
-	m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write memcards (GC)"));
-	bottom_szr->Add(m_memcard_write, 0, wxCENTER);
+		m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write memcards (GC)"));
+		bottom_szr->Add(m_memcard_write, 0, wxCENTER);
+	}
 
 	bottom_szr->AddStretchSpacer(1);
 	bottom_szr->Add(quit_btn);
