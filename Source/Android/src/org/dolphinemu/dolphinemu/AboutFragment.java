@@ -41,8 +41,8 @@ public final class AboutFragment extends Fragment
 		String no = getString(R.string.no);
 
 		List<FolderBrowserItem> Input = new ArrayList<FolderBrowserItem>();
-		Input.add(new FolderBrowserItem(m_activity, getString(R.string.build_revision), NativeLibrary.GetVersionString(), "", true));
-		Input.add(new FolderBrowserItem(m_activity, getString(R.string.supports_gles3), PrefsFragment.SupportsGLES3() ? yes : no, "", true));
+		Input.add(new FolderBrowserItem(getString(R.string.build_revision), NativeLibrary.GetVersionString(), "", true));
+		Input.add(new FolderBrowserItem(getString(R.string.supports_gles3), PrefsFragment.SupportsGLES3() ? yes : no, "", true));
 
 		adapter = new FolderBrowserAdapter(m_activity, R.layout.about_layout, Input);
 		mMainList.setAdapter(adapter);

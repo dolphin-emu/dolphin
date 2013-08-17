@@ -2,16 +2,11 @@ package org.dolphinemu.dolphinemu;
 
 import java.io.File;
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-
 /**
  * Represents an item in the folder browser list.
  */
 public final class FolderBrowserItem implements Comparable<FolderBrowserItem>
 {
-    private final Context ctx;
     private final String name;
     private final String subtitle;
     private final String path;
@@ -21,15 +16,13 @@ public final class FolderBrowserItem implements Comparable<FolderBrowserItem>
     /**
      * Constructor
      * 
-     * @param ctx      Context this FolderBrowserItem is being used in.
      * @param name     The name of the file/folder represented by this item.
      * @param subtitle The subtitle of this FolderBrowserItem to display.
      * @param path     The path of the file/folder represented by this item.
      * @param isValid  Whether or not this item represents a file type that can be handled.
      */
-    public FolderBrowserItem(Context ctx, String name, String subtitle, String path, boolean isValid)
+    public FolderBrowserItem(String name, String subtitle, String path, boolean isValid)
     {
-        this.ctx = ctx;
         this.name = name;
         this.subtitle = subtitle;
         this.path = path;
@@ -45,9 +38,8 @@ public final class FolderBrowserItem implements Comparable<FolderBrowserItem>
      * @param path     The path of the file/folder represented by this item.
      * @param isValid  Whether or not this item represents a file type that can be handled.
      */
-    public FolderBrowserItem(Context ctx, String name, String path, boolean isValid)
+    public FolderBrowserItem(String name, String path, boolean isValid)
     {
-        this.ctx = ctx;
         this.name = name;
         this.subtitle = "";
         this.path = path;
