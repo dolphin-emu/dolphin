@@ -36,7 +36,7 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
         if (v == null)
         {
             LayoutInflater vi = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            v = vi.inflate(id, null);
+            v = vi.inflate(id, parent, false);
         }
 
         final GameListItem item = items.get(position);
