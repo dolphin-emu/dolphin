@@ -28,11 +28,6 @@ was unavailable and prevent if from looking for shared2/wc24 files (and do a PPC
 it failed)
 */
 
-#ifdef _MSC_VER
-#pragma warning(disable: 4748)
-#pragma optimize("",off)
-#endif
-
 #include "WII_IPC_HLE_Device_es.h"
 #include "WII_IPC_HLE_Device_net.h"
 #include "../ConfigManager.h"
@@ -1807,7 +1802,3 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 	Memory::Write_U32(return_value, CommandAddress + 4);
 	return true; 
 }
-
-#ifdef _MSC_VER
-#pragma optimize("",off)
-#endif

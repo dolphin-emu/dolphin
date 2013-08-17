@@ -18,11 +18,6 @@
 #ifndef _WII_IPC_HLE_DEVICE_NET_SSL_H_
 #define _WII_IPC_HLE_DEVICE_NET_SSL_H_
 
-#ifdef _MSC_VER
-#pragma warning(disable: 4748)
-#pragma optimize("",off)
-#endif
-
 #include "WII_IPC_HLE_Device.h"
 
 #include <polarssl/net.h>
@@ -105,9 +100,5 @@ private:
 	u32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
 	u32 ExecuteCommandV(u32 _Parameter, SIOCtlVBuffer CommandBuffer);
 };
-
-#ifdef _MSC_VER
-#pragma optimize("",off)
-#endif
 
 #endif

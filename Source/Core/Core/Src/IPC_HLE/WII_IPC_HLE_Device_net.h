@@ -5,11 +5,6 @@
 #ifndef _WII_IPC_HLE_DEVICE_NET_H_
 #define _WII_IPC_HLE_DEVICE_NET_H_
 
-#ifdef _MSC_VER
-#pragma warning(disable: 4748)
-#pragma optimize("",off)
-#endif
-
 #include "WII_IPC_HLE_Device.h"
 
 #ifdef _WIN32
@@ -738,9 +733,5 @@ private:
 	};
 	#pragma pack(pop)
 };
-
-#ifdef _MSC_VER
-#pragma optimize("",on)
-#endif
 
 #endif

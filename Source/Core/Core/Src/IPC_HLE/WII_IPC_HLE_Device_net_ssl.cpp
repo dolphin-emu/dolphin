@@ -15,11 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifdef _MSC_VER
-#pragma warning(disable: 4748)
-#pragma optimize("",off)
-#endif
-
 #include "FileUtil.h"
 #include "WII_IPC_HLE_Device_net_ssl.h"
 #include "../Debugger/Debugger_SymbolMap.h"
@@ -640,7 +635,3 @@ u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommand(u32 _Command,
 		_BufferIn, BufferInSize, _BufferOut, BufferOutSize);
 	return 0;
 }
-
-#ifdef _MSC_VER
-#pragma optimize("",on)
-#endif
