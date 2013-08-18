@@ -276,6 +276,9 @@ void SConfig::SaveSettings()
 	ini.Set("DSP", "Backend", sBackend);
 	ini.Set("DSP", "Volume", m_Volume);
 
+	// Fifo Player
+	ini.Set("FifoPlayer", "LoopReplay", m_LocalCoreStartupParameter.bLoopFifoReplay);
+
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
 }
@@ -448,6 +451,8 @@ void SConfig::LoadSettings()
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_NULLSOUND);
 	#endif
 		ini.Get("DSP", "Volume", &m_Volume, 100);
+
+		ini.Get("FifoPlayer", "LoopReplay", &m_LocalCoreStartupParameter.bLoopFifoReplay, true);
 	}
 
 	m_SYSCONF = new SysConf();

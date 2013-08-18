@@ -6,7 +6,10 @@
 #include "FifoPlayer.h"
 
 #include "Common.h"
+#include "ConfigManager.h"
+#include "Core.h"
 #include "CoreTiming.h"
+#include "Host.h"
 
 #include "HW/GPFifo.h"
 #include "HW/Memmap.h"
@@ -68,10 +71,18 @@ bool FifoPlayer::Play()
 		{
 			if (m_CurrentFrame >= m_FrameRangeEnd)
 			{
-				m_CurrentFrame = m_FrameRangeStart;
+				if (m_Loop)
+				{
+					m_CurrentFrame = m_FrameRangeStart;
 
-				CoreTiming::downcount = 0;
-				CoreTiming::Advance();
+					CoreTiming::downcount = 0;
+					CoreTiming::Advance();
+				}
+				else
+				{
+					PowerPC::Stop();
+					Host_Message(WM_USER_STOP);
+				}
 			}
 			else
 			{
@@ -150,6 +161,7 @@ FifoPlayer::FifoPlayer() :
 	m_FrameWrittenCb(NULL),
 	m_File(NULL)
 {
+	m_Loop = SConfig::GetInstance().m_LocalCoreStartupParameter.bLoopFifoReplay;
 }
 
 void FifoPlayer::WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo &info)

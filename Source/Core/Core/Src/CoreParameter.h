@@ -162,6 +162,9 @@ struct SCoreStartupParameter
 
 	int iPosX, iPosY, iWidth, iHeight;
 
+	// Fifo Player related settings
+	bool bLoopFifoReplay;
+
 	enum EBootBS2
 	{
 		BOOT_DEFAULT,
