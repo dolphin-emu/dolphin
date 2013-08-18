@@ -193,7 +193,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	{
 	bool is_mapped[4] = {false,false,false,false};
 
-	for ( unsigned int m = 0; m<4; ++m)
+	for (unsigned int m = 0; m<4; ++m)
 	{
 		for (i = m_players.begin(); i!=e; ++i)
 		{
@@ -202,7 +202,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 		}
 	}
 
-	for ( unsigned int m = 0; m<4; ++m)
+	for (unsigned int m = 0; m<4; ++m)
 		if (false == is_mapped[m])
 		{
 			player.pad_map[0] = m;
@@ -252,6 +252,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	m_players[socket] = player;
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 	UpdatePadMapping();	// sync pad mappings with everyone
+	UpdateWiimoteMapping();
 	}
 	
 
@@ -329,7 +330,7 @@ bool NetPlayServer::GetWiimoteMapping(const int pid, int map[])
 	if (i == e)
 		return false;
 
-	// get pad mapping
+	// get wiimote mapping
 	for (unsigned int m = 0; m<4; ++m)
 		map[m] = i->second.wiimote_map[m];
 
@@ -397,7 +398,7 @@ bool NetPlayServer::SetWiimoteMapping(const int pid, const int map[])
 
 	Client& player = i->second;
 
-	// set pad mapping
+	// set wiimote mapping
 	for (unsigned int m = 0; m<4; ++m)
 	{
 		player.wiimote_map[m] = (PadMapping)map[m];
@@ -411,7 +412,7 @@ bool NetPlayServer::SetWiimoteMapping(const int pid, const int map[])
 	}
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	UpdateWiimoteMapping();	// sync pad mappings with everyone
+	UpdateWiimoteMapping();	// sync wiimote mappings with everyone
 
 	return true;
 }
@@ -534,7 +535,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 
 		case NP_MSG_WIIMOTE_DATA :
 		{
-			// if this is pad data from the last game still being received, ignore it
+			// if this is wiimote data from the last game still being received, ignore it
 			if (player.current_game != m_current_game)
 				break;
 
@@ -545,14 +546,14 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 			for (unsigned int i = 0; i < size; ++i)
 				packet >> data[i];
 
-			// check if client's pad indeed maps in game
+			// check if client's wiimote indeed maps in game
 			if (map >= 0 && map < 4)
 				map = player.wiimote_map[(unsigned)map];
 			else
 				map = -1;
 
 			// if not, they are hacking, so disconnect them
-			// this could happen right after a pad map change, but that isn't implemented yet
+			// this could happen right after a wiimote map change, but that isn't implemented yet
 			if (map < 0)
 				return 1;
 
