@@ -18,6 +18,7 @@ class CWiiSaveCrypted
 public:
 	bool static ImportWiiSave(const char* FileName);
 	bool static ExportWiiSave(u64 TitleID);
+	void static ExportAllSaves();
 
 private:
 	CWiiSaveCrypted(const char* FileName, u64 TitleID = 0);

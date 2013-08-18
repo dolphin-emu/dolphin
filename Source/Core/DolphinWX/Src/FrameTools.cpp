@@ -190,7 +190,8 @@ void CFrame::CreateMenu()
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
 	toolsMenu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
-	toolsMenu->Append(IDM_IMPORTSAVE, _("Wii Save Import"));
+	toolsMenu->Append(IDM_IMPORTSAVE, _("Import Wii Save"));
+	toolsMenu->Append(IDM_EXPORTALLSAVE, _("Export All Wii Saves"));
 	toolsMenu->Append(IDM_CHEATS, _("&Cheats Manager"));
 
 	toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
@@ -1308,6 +1309,11 @@ void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 {
 	CMemcardManager MemcardManager(this);
 	MemcardManager.ShowModal();
+}
+
+void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED (event)) 
+{
+	CWiiSaveCrypted::ExportAllSaves();
 }
 
 void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event)) 

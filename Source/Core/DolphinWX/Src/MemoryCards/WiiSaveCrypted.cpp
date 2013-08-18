@@ -11,6 +11,7 @@
 #include "FileUtil.h"
 #include "MathUtil.h"
 #include "NandPaths.h"
+#include "FileUtil.h"
 #include <algorithm>
 
 static Common::replace_v replacements;
@@ -33,6 +34,41 @@ bool CWiiSaveCrypted::ExportWiiSave(u64 TitleID)
 	return exportSave.b_valid;
 }
 
+void CWiiSaveCrypted::ExportAllSaves()
+{
+	std::string titleFolder = File::GetUserPath(D_WIIUSER_IDX) + "title";
+	std::vector<u64> titles;
+	u32 pathMask = 0x00010000;
+	for (int i = 0; i < 8; ++i)
+	{		
+		File::FSTEntry FST_Temp;
+		std::string folder = StringFromFormat("%s/%08x/", titleFolder.c_str(), pathMask | i);
+		File::ScanDirectoryTree(folder, FST_Temp);
+		
+		for (u32 j = 0; j < FST_Temp.children.size(); j++)
+		{
+			if (FST_Temp.children[j].isDirectory)
+			{
+				u32 gameid;
+				if (AsciiToHex(FST_Temp.children[j].virtualName.c_str(), gameid))
+				{
+					std::string bannerPath = StringFromFormat("%s%08x/data/banner.bin", folder.c_str(), gameid);
+					if (File::Exists(bannerPath))
+					{
+						u64 titleID = (((u64)pathMask | i) << 32) | gameid;
+						titles.push_back(titleID);
+					}
+				}
+			}
+		}
+	}	
+	SuccessAlertT("Found  %llx save files", titles.size());
+	for (u32 i = 0; i < titles.size(); ++i)
+	{
+		CWiiSaveCrypted* exportSave = new CWiiSaveCrypted("", titles[i]);
+		delete exportSave;
+	}
+}
 CWiiSaveCrypted::CWiiSaveCrypted(const char* FileName, u64 TitleID)
  : m_TitleID(TitleID)
 {
