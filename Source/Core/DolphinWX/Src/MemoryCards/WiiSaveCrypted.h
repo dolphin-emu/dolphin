@@ -16,6 +16,10 @@
 class CWiiSaveCrypted
 {
 public:
+	bool static ImportWiiSave(const char* FileName);
+	bool static ExportWiiSave(u64 TitleID);
+
+private:
 	CWiiSaveCrypted(const char* FileName, u64 TitleID = 0);
 	~CWiiSaveCrypted();
 	void ReadHDR();
@@ -30,33 +34,26 @@ public:
 	bool getPaths(bool forExport = false);
 	void ScanForFiles(std::string savDir, std::vector<std::string>&FilesList, u32 *_numFiles, u32 *_sizeFiles);
 
-private:
+
 	AES_KEY m_AES_KEY;
 	u8 SD_IV[0x10];
 	std::vector<std::string> FilesList;
 
-	char pathData_bin[2048];
+	std::string encryptedSavePath;
 
 	std::string BannerFilePath,
 				WiiTitlePath;
 
-	u8  IV[0x10],
-		*_encryptedData,
-		*_data,
-		md5_file[16],
-		md5_calc[16];
-
-	u32 _bannerSize,
+	u8  IV[0x10];
+	
+	u32 //_bannerSize,
 		_numberOfFiles,
 		_sizeOfFiles,
-		_totalSize,
-		_fileSize,
-		_roundedfileSize;
+		_totalSize;
 
 	u64 m_TitleID;
 
-	bool b_valid,
-		b_tryAgain;
+	bool b_valid;
 
 	enum
 	{

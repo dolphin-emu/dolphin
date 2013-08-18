@@ -1320,9 +1320,7 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 
 	if (!path.IsEmpty())
 	{
-		// TODO: Does this actually need to be dynamically allocated for some reason?
-		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(WxStrToStr(path).c_str());
-		delete saveFile;
+		CWiiSaveCrypted::ImportWiiSave(WxStrToStr(path).c_str());
 	}
 }
 
