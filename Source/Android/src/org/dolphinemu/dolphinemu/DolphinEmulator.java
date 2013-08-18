@@ -102,8 +102,12 @@ public final class DolphinEmulator<MainActivity> extends Activity
 			directory = new File(GCDir);
 			directory.mkdirs();
 
+			String WiiDir = BaseDir + File.separator + "Wii";
+			directory = new File(WiiDir);
+			directory.mkdirs();
+
 			// Copy assets if needed
-			File file = new File(GCDir + File.separator + "dsp_coef.bin");
+			File file = new File(WiiDir + File.separator + "setting-usa.txt");
 			if(!file.exists())
 			{
 				CopyAsset("ButtonA.png",     BaseDir + File.separator + "ButtonA.png");
@@ -116,6 +120,10 @@ public final class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("dsp_rom.bin",     GCDir + File.separator + "dsp_rom.bin");
 				CopyAsset("font_ansi.bin",   GCDir + File.separator + "font_ansi.bin");
 				CopyAsset("font_sjis.bin",   GCDir + File.separator + "font_sjis.bin");
+				CopyAsset("setting-eur.txt",   WiiDir + File.separator + "setting-eur.txt");
+				CopyAsset("setting-jpn.txt",   WiiDir + File.separator + "setting-jpn.txt");
+				CopyAsset("setting-kor.txt",   WiiDir + File.separator + "setting-kor.txt");
+				CopyAsset("setting-usa.txt",   WiiDir + File.separator + "setting-usa.txt");
 
 				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 				SharedPreferences.Editor editor = prefs.edit();
