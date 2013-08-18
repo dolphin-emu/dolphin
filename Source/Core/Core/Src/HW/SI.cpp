@@ -644,10 +644,12 @@ void RunSIBuffer()
 int GetTicksToNextSIPoll()
 {
 	// Poll for input at regular intervals (once per frame) when playing or recording a movie
-	if (Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::IsNetPlayRunning())
+	if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
 	{
 		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
 	}
+	if (NetPlay::IsNetPlayRunning())
+		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
 
 	if (!g_Poll.Y && g_Poll.X)
 		return VideoInterface::GetTicksPerLine() * g_Poll.X;

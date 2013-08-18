@@ -10,6 +10,7 @@
 
 struct NetSettings
 {
+	bool m_CPUthread;
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
 	bool m_WriteToMemcard;
