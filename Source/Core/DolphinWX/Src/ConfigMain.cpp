@@ -513,9 +513,7 @@ void CConfigMain::InitializeGUITooltips()
 
 #if defined(__APPLE__)
 	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OSX."));
-#elif defined(__linux__)
-	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."));
-#elif defined(_WIN32)
+#else
 	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."));
 #endif
 
