@@ -24,7 +24,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<Rpt>	NetWiimote;
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2013-08-05"
+#define NETPLAY_VERSION		"Dolphin NetPlay 2013-08-18"
 
 // messages
 enum
