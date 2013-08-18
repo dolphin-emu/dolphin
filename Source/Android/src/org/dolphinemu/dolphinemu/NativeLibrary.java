@@ -37,9 +37,9 @@ public final class NativeLibrary
 		{
 			System.loadLibrary("main");
 		}
-		catch (Exception ex)
+		catch (UnsatisfiedLinkError ex)
 		{
-			Log.w("me", ex.toString());
+			Log.w("NativeLibrary", ex.toString());
 		}
 	}
 }
