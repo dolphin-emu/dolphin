@@ -65,34 +65,30 @@ void JitArmAsmRoutineManager::Generate()
 		// It runs though to the compiling portion if it isn't found
 			LDR(R12, R9, PPCSTATE_OFF(pc));// Load the current PC into R12
 
-			MOVI2R(R14, JIT_ICACHE_MASK); // Potential for optimization
-			AND(R12, R12, R14); // R12 contains PC & JIT_ICACHE_MASK here.
-			// Confirmed good to this point 08-03-12
+			Operand2 iCacheMask = Operand2(0xE, 2); // JIT_ICACHE_MASK
+			BIC(R12, R12, iCacheMask); // R12 contains PC & JIT_ICACHE_MASK here.
 
 			MOVI2R(R14, (u32)jit->GetBlockCache()->GetICache());
-			// Confirmed That this loads the base iCache Location correctly 08-04-12
 
 			LDR(R12, R14, R12); // R12 contains iCache[PC & JIT_ICACHE_MASK] here
 			// R12 Confirmed this is the correct iCache Location loaded.
 			TST(R12, 0xFC); // Test  to see if it is a JIT block.
 
-			SetCC(CC_EQ); // Only run next part if R12 is zero
-			// Success, it is our Jitblock.
-			MOVI2R(R14, (u32)jit->GetBlockCache()->GetCodePointers());
-			// LDR R14 right here to get CodePointers()[0] pointer.
-			REV(R12, R12); // Reversing this gives us our JITblock.
-			LSL(R12, R12, 2); // Multiply by four because address locations are u32 in size 
-			LDR(R14, R14, R12); // Load the block address in to R14 
+			SetCC(CC_EQ);
+				// Success, it is our Jitblock.
+				MOVI2R(R14, (u32)jit->GetBlockCache()->GetCodePointers());
+				// LDR R14 right here to get CodePointers()[0] pointer.
+				REV(R12, R12); // Reversing this gives us our JITblock.
+				LSL(R12, R12, 2); // Multiply by four because address locations are u32 in size 
+				LDR(R14, R14, R12); // Load the block address in to R14 
 
-			B(R14);
-			
-			FixupBranch NextBlock = B(); // Jump to end so we can start a new block
-			SetCC(); // Return to always executing codes
+				B(R14);
+				// No need to jump anywhere after here, the block will go back to dispatcher start
+			SetCC();
 
 		// If we get to this point, that means that we don't have the block cached to execute
 		// So call ArmJit to compile the block and then execute it.
 		MOVI2R(R14, (u32)&Jit);	
-		LDR(R0, R9, PPCSTATE_OFF(pc));
 		BL(R14);
 			
 		B(dispatcherNoCheck);
@@ -129,7 +125,6 @@ void JitArmAsmRoutineManager::Generate()
 			TST(R0, R1);
 			FixupBranch Exit = B_CC(CC_NEQ);
 
-		SetJumpTarget(NextBlock);
 	B(dispatcher);
 	
 	SetJumpTarget(Exit);
