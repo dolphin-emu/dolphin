@@ -27,8 +27,6 @@ public:
 	NetPlayServer(const u16 port);
 	~NetPlayServer();
 
-	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
-
 	bool ChangeGame(const std::string& game);
 	void SendChatMessage(const std::string& msg);
 
@@ -53,7 +51,6 @@ private:
 	{
 	public:
 		Client();
-		std::string ToString() const;
 
 		PlayerId		pid;
 		std::string		name;

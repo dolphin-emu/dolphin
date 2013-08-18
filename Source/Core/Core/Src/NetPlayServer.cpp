@@ -9,17 +9,6 @@ NetPlayServer::Client::Client()
 	memset(pad_map, -1, sizeof(pad_map));
 }
 
-// called from ---GUI--- thread
-std::string NetPlayServer::Client::ToString() const
-{
-	std::ostringstream ss;
-	ss << name << '[' << (char)(pid+'0') << "] : " << revision << " |";
-	for (unsigned int i=0; i<4; ++i)
-		ss << (pad_map[i]>=0 ? (char)(pad_map[i]+'1') : '-');
-	ss << '|';
-	return ss.str();
-}
-
 NetPlayServer::~NetPlayServer()
 {
 	if (is_connected)
@@ -482,25 +471,6 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 	}
 
 	return 0;
-}
-
-// called from ---GUI--- thread
-void NetPlayServer::GetPlayerList(std::string& list, std::vector<int>& pid_list)
-{
-	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-
-	std::ostringstream ss;
-
-	std::map<sf::SocketTCP, Client>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for ( ; i!=e; ++i)
-	{
-		ss << i->second.ToString() << " " << i->second.ping <<  "ms\n";
-		pid_list.push_back(i->second.pid);
-	}
-
-	list = ss.str();
 }
 
 // called from ---GUI--- thread / and ---NETPLAY--- thread
