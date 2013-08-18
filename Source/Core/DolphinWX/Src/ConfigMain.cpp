@@ -516,7 +516,7 @@ void CConfigMain::InitializeGUITooltips()
 #elif defined(__linux__)
 	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."));
 #elif defined(_WIN32)
-	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."));
+	DPL2Decoder->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."));
 #endif
 
 	Latency->SetToolTip(_("Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL backend only."));
