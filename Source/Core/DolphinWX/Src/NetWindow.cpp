@@ -559,23 +559,13 @@ void NetPlayDiag::OnChangeGame(wxCommandEvent&)
 
 void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 {
-	int mapping[4];
-
-	// get selected player id
-	int pid = m_player_lbox->GetSelection();
-	if (pid < 0)
-		return;
-	pid = m_playerids.at(pid);
-
-	if (false == netplay_server->GetPadMapping(pid, mapping))
-		return;
-
-	PadMapDiag pmd(this, mapping);
+	PadMapping mapping[4];
+	std::vector<const Player *> player_list;
+	netplay_server->GetPadMapping(mapping);
+	netplay_client->GetPlayers(player_list);
+	PadMapDiag pmd(this, mapping, player_list);
 	pmd.ShowModal();
-
-	if (false == netplay_server->SetPadMapping(pid, mapping))
-		PanicAlertT("Could not set pads. The player left or the game is currently running!\n"
-				"(setting pads while the game is running is not yet supported)");
+	netplay_server->SetPadMapping(mapping);
 }
 
 ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* const game_list, wxString& game_name)
@@ -605,44 +595,38 @@ void ChangeGameDiag::OnPick(wxCommandEvent& event)
 	EndModal(wxID_OK);
 }
 
-PadMapDiag::PadMapDiag(wxWindow* const parent, int map[])
+PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], std::vector<const Player *>& player_list)
 	: wxDialog(parent, wxID_ANY, _("Configure Pads"), wxDefaultPosition, wxDefaultSize)
 	, m_mapping(map)
+	, m_player_list(player_list)
 {
 	wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
 
-	h_szr->AddSpacer(20);
-
-	// labels
-	wxBoxSizer* const label_szr = new wxBoxSizer(wxVERTICAL);
-	label_szr->Add(new wxStaticText(this, wxID_ANY, _("Local")), 0, wxALIGN_TOP);
-	label_szr->AddStretchSpacer(1);
-	label_szr->Add(new wxStaticText(this, wxID_ANY, _("In-Game")), 0, wxALIGN_BOTTOM);
-
-	h_szr->Add(label_szr, 1, wxTOP | wxEXPAND, 20);
-
-	// set up choices
-	wxString pad_names[5];
-	pad_names[0] = _("None");
-	for (unsigned int i=1; i<5; ++i)
-		pad_names[i] = wxString(_("Pad ")) + (wxChar)(wxT('0')+i);
+	wxArrayString player_names;
+	player_names.Add(_("None"));
+	for (unsigned int i = 0; i < m_player_list.size(); i++)
+		player_names.Add(m_player_list[i]->name);
 
 	for (unsigned int i=0; i<4; ++i)
 	{
-		wxChoice* const pad_cbox = m_map_cbox[i]
-			= new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 5, pad_names);
-		pad_cbox->Select(m_mapping[i] + 1);
-
-		pad_cbox->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &PadMapDiag::OnAdjust, this);
-
 		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-		v_szr->Add(new wxStaticText(this,wxID_ANY, pad_names[i + 1]), 1, wxALIGN_CENTER_HORIZONTAL);
-		v_szr->Add(pad_cbox, 1);
+		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Pad ")) + (wxChar)(wxT('0')+i))),
+					    1, wxALIGN_CENTER_HORIZONTAL);
+
+		m_map_cbox[i] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
+		m_map_cbox[i]->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &PadMapDiag::OnAdjust, this);
+		if (m_mapping[i] == -1)
+			m_map_cbox[i]->Select(0);
+		else
+			for (unsigned int j = 0; j < m_player_list.size(); j++)
+				if (m_mapping[i] == m_player_list[j]->pid)
+					m_map_cbox[i]->Select(j + 1);
+
+		v_szr->Add(m_map_cbox[i], 1);
 
 		h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
+		h_szr->AddSpacer(10);
 	}
-
-	h_szr->AddSpacer(20);
 
 	wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
 	main_szr->Add(h_szr);
@@ -656,8 +640,14 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, int map[])
 void PadMapDiag::OnAdjust(wxCommandEvent& event)
 {
 	(void)event;
-	for (unsigned int i=0; i<4; ++i)
-		m_mapping[i] = m_map_cbox[i]->GetSelection() - 1;
+	for (unsigned int i = 0; i < 4; i++)
+	{
+		int player_idx = m_map_cbox[i]->GetSelection();
+		if (player_idx > 0)
+			m_mapping[i] = m_player_list[player_idx - 1]->pid;
+		else
+			m_mapping[i] = -1;
+	}
 }
 
 void NetPlay::StopGame()

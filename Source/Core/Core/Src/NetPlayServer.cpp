@@ -4,11 +4,6 @@
 
 #include "NetPlayServer.h"
 
-NetPlayServer::Client::Client()
-{
-	memset(pad_map, -1, sizeof(pad_map));
-}
-
 NetPlayServer::~NetPlayServer()
 {
 	if (is_connected)
@@ -29,6 +24,7 @@ NetPlayServer::~NetPlayServer()
 // called from ---GUI--- thread
 NetPlayServer::NetPlayServer(const u16 port) : is_connected(false), m_is_running(false)
 {
+	memset(m_pad_map, -1, sizeof(m_pad_map));
 	if (m_socket.Listen(port))
 	{
 		is_connected = true;
@@ -155,45 +151,16 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	rpac >> player.name;
 
 	// give new client first available id
-	player.pid = 0;
-	std::map<sf::SocketTCP, Client>::const_iterator
-		i,
-		e = m_players.end();
-	for (PlayerId p = 1; 0 == player.pid; ++p)
-	{
-		for (i = m_players.begin(); ; ++i)
-		{
-			if (e == i)
-			{
-				player.pid = p;
-				break;
-			}
-			if (p == i->second.pid)
-				break;
-		}
-	}
+	player.pid = m_players.size() + 1;
 
-	// TODO: this is crappy
 	// try to automatically assign new user a pad
+	for (unsigned int m = 0; m < 4; ++m)
 	{
-	bool is_mapped[4] = {false,false,false,false};
-
-	for ( unsigned int m = 0; m<4; ++m)
-	{
-		for (i = m_players.begin(); i!=e; ++i)
+		if (m_pad_map[m] == -1)
 		{
-			if (i->second.pad_map[m] >= 0)
-				is_mapped[(unsigned)i->second.pad_map[m]] = true;
-		}
-	}
-
-	for ( unsigned int m = 0; m<4; ++m)
-		if (false == is_mapped[m])
-		{
-			player.pad_map[0] = m;
+			m_pad_map[m] = player.pid;
 			break;
 		}
-
 	}
 
 	{
@@ -221,6 +188,9 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	}
 
 	// sync values with new client
+	std::map<sf::SocketTCP, Client>::const_iterator
+		i,
+		e = m_players.end();
 	for (i = m_players.begin(); i!=e; ++i)
 	{
 		spac.Clear();
@@ -279,83 +249,28 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 }
 
 // called from ---GUI--- thread
-bool NetPlayServer::GetPadMapping(const int pid, int map[])
+void NetPlayServer::GetPadMapping(PadMapping map[4])
 {
-	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-	std::map<sf::SocketTCP, Client>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for (; i!=e; ++i)
-		if (pid == i->second.pid)
-			break;
-
-	// player not found
-	if (i == e)
-		return false;
-
-	// get pad mapping
-	for (unsigned int m = 0; m<4; ++m)
-		map[m] = i->second.pad_map[m];
-
-	return true;
+	for (int i = 0; i < 4; i++)
+		map[i] = m_pad_map[i];
 }
 
 // called from ---GUI--- thread
-bool NetPlayServer::SetPadMapping(const int pid, const int map[])
+void NetPlayServer::SetPadMapping(const PadMapping map[4])
 {
-	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-	if (m_is_running)
-		return false;
-
-	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-	std::map<sf::SocketTCP, Client>::iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for (; i!=e; ++i)
-		if (pid == i->second.pid)
-			break;
-
-	// player not found
-	if (i == e)
-		return false;
-
-	Client& player = i->second;
-
-	// set pad mapping
-	for (unsigned int m = 0; m<4; ++m)
-	{
-		player.pad_map[m] = (PadMapping)map[m];
-
-		// remove duplicate mappings
-		for (i = m_players.begin(); i!=e; ++i)
-			for (unsigned int p = 0; p<4; ++p)
-				if (p != m || i->second.pid != pid)
-					if (player.pad_map[m] == i->second.pad_map[p])
-						i->second.pad_map[p] = -1;
-	}
-
-	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	UpdatePadMapping();	// sync pad mappings with everyone
-
-	return true;
+	for (int i = 0; i < 4; i++)
+		m_pad_map[i] = map[i];
+	UpdatePadMapping();
 }
 
-// called from ---NETPLAY--- thread
+// called from ---GUI--- thread and ---NETPLAY--- thread
 void NetPlayServer::UpdatePadMapping()
 {
-	std::map<sf::SocketTCP, Client>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for (; i!=e; ++i)
-	{
-		sf::Packet spac;
-		spac << (MessageId)NP_MSG_PAD_MAPPING;
-		spac << i->second.pid;
-		for (unsigned int pm = 0; pm<4; ++pm)
-			spac << i->second.pad_map[pm];
-		SendToClients(spac);
-	}
-
+	sf::Packet spac;
+	spac << (MessageId)NP_MSG_PAD_MAPPING;
+	for (int i = 0; i < 4; i++)
+		spac << m_pad_map[i];
+	SendToClients(spac);
 }
 
 // called from ---GUI--- thread and ---NETPLAY--- thread
@@ -415,23 +330,15 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 			int hi, lo;
 			packet >> map >> hi >> lo;
 
-			// check if client's pad indeed maps in game
-			if (map >= 0 && map < 4)
-				map = player.pad_map[(unsigned)map];
-			else
-				map = -1;
-			
-			// if not, they are hacking, so disconnect them
-			// this could happen right after a pad map change, but that isn't implemented yet
-			if (map < 0)
+			// If the data is not from the correct player,
+			// then disconnect them.
+			if (m_pad_map[map] != player.pid)
 				return 1;
 				
-
-			// relay to clients
+			// Relay to clients
 			sf::Packet spac;
 			spac << (MessageId)NP_MSG_PAD_DATA;
-			spac << map;	// in game mapping
-			spac << hi << lo;
+			spac << map << hi << lo;
 
 			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 			SendToClients(spac, player.pid);
