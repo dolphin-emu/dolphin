@@ -55,7 +55,6 @@ extern PFNGLGETQUERYOBJECTUIVPROC glGetQueryObjectuiv;
 extern PFNGLDELETEQUERIESPROC glDeleteQueries;
 extern PFNGLGENQUERIESPROC glGenQueries;
 
-extern PFNGLMAPBUFFERPROC glMapBuffer;
 extern PFNGLUNMAPBUFFERPROC glUnmapBuffer;
 extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
 extern PFNGLBINDBUFFERRANGEPROC glBindBufferRange;

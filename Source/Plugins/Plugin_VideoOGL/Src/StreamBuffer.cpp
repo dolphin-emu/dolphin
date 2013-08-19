@@ -194,7 +194,7 @@ void StreamBuffer::Init()
 	case MAP_AND_RISK:
 		glBindBuffer(m_buffertype, m_buffer);
 		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
-		pointer = (u8*)glMapBuffer(m_buffertype, GL_WRITE_ONLY);
+		pointer = (u8*)glMapBufferRange(m_buffertype, 0, m_size, GL_MAP_WRITE_BIT);
 		glUnmapBuffer(m_buffertype);
 		if(!pointer)
 			ERROR_LOG(VIDEO, "Buffer allocation failed");
