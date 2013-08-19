@@ -96,6 +96,7 @@ struct JRCPPC
 	bool PS1;
 	ARMReg Reg; // Tied to which ARM Register
 	u32 LastLoad;
+	bool Away; // Only used in FPR cache
 };
 struct JRCReg
 {

@@ -35,6 +35,7 @@ void ArmFPRCache::Init(ARMXEmitter *emitter)
 		ArmCRegs[a].Reg = PPCRegs[a];
 		ArmCRegs[a].LastLoad = 0;
 		ArmCRegs[a].PS1 = false;
+		ArmCRegs[a].Away = true;
 	}
 	for(u8 a = 0; a < NUMARMREG; ++a)
 	{
@@ -117,30 +118,40 @@ ARMReg ArmFPRCache::GetPPCReg(u32 preg, bool PS1, bool preLoad)
 		if (ArmCRegs[a].PPCReg == preg && ArmCRegs[a].PS1 == PS1)
 		{
 			ArmCRegs[a].LastLoad = 0;
+			// Check if the value is actually in the reg
+			if (ArmCRegs[a].Away && preLoad)
+			{
+				// Load it now since we want it
+				s16 offset = PPCSTATE_OFF(ps) + (preg * 16) + (PS1 ? 8 : 0);
+				emit->VLDR(ArmCRegs[a].Reg, R9, offset);
+				ArmCRegs[a].Away = false;
+			}
 			return ArmCRegs[a].Reg;
 		}
 	// Check if we have a free register
 	for (u8 a = 0; a < NUMPPCREG; ++a)
 		if (ArmCRegs[a].PPCReg == 33)
 		{
-			u16 offset = PPCSTATE_OFF(ps) + (preg * 16) + (PS1 ? 8 : 0);
+			s16 offset = PPCSTATE_OFF(ps) + (preg * 16) + (PS1 ? 8 : 0);
 			if (preLoad)
 				emit->VLDR(ArmCRegs[a].Reg, R9, offset);
 			ArmCRegs[a].PPCReg = preg;
 			ArmCRegs[a].LastLoad = 0;
 			ArmCRegs[a].PS1 = PS1;
+			ArmCRegs[a].Away = !preLoad;
 			return ArmCRegs[a].Reg;
 		}
 	// Alright, we couldn't get a free space, dump that least used register
-	u16 offsetOld = PPCSTATE_OFF(ps) + (ArmCRegs[Num].PPCReg * 16) + (ArmCRegs[Num].PS1 ? 8 : 0);
+	s16 offsetOld = PPCSTATE_OFF(ps) + (ArmCRegs[Num].PPCReg * 16) + (ArmCRegs[Num].PS1 ? 8 : 0);
 	emit->VSTR(ArmCRegs[Num].Reg, R9, offsetOld);
 	
-	u16 offsetNew = PPCSTATE_OFF(ps) + (preg * 16) + (PS1 ? 8 : 0);
+	s16 offsetNew = PPCSTATE_OFF(ps) + (preg * 16) + (PS1 ? 8 : 0);
 	if (preLoad)
 		emit->VLDR(ArmCRegs[Num].Reg, R9, offsetNew);
 	ArmCRegs[Num].PPCReg = preg;
 	ArmCRegs[Num].LastLoad = 0;
 	ArmCRegs[Num].PS1 = PS1;
+	ArmCRegs[Num].Away = !preLoad;
 	return ArmCRegs[Num].Reg;		 
 
 }
@@ -160,10 +171,11 @@ void ArmFPRCache::Flush()
 	for(u8 a = 0; a < NUMPPCREG; ++a)
 		if (ArmCRegs[a].PPCReg != 33)
 		{
-			u16 offset =  PPCSTATE_OFF(ps) + (ArmCRegs[a].PPCReg * 16) + (ArmCRegs[a].PS1 ? 8 : 0);
+			s16 offset =  PPCSTATE_OFF(ps) + (ArmCRegs[a].PPCReg * 16) + (ArmCRegs[a].PS1 ? 8 : 0);
 			emit->VSTR(ArmCRegs[a].Reg, R9, offset);
 			ArmCRegs[a].PPCReg = 33;
 			ArmCRegs[a].LastLoad = 0;
+			ArmCRegs[a].Away = true;
 		}
 }
 
