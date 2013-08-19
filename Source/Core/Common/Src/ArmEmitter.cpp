@@ -612,6 +612,8 @@ void ARMXEmitter::LSLS(ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedData
 void ARMXEmitter::LSL (ARMReg dest, ARMReg src, ARMReg op2)	  { WriteShiftedDataOp(1, false, dest, src, op2);} 
 void ARMXEmitter::LSLS(ARMReg dest, ARMReg src, ARMReg op2)	  { WriteShiftedDataOp(1, true, dest, src, op2);}
 void ARMXEmitter::LSR (ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(3, false, dest, src, op2);}
+void ARMXEmitter::ASR (ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(4, false, dest, src, op2);}
+void ARMXEmitter::ASRS(ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(4, true, dest, src, op2);}
 void ARMXEmitter::MUL (ARMReg dest,	ARMReg src, ARMReg op2)
 {
 	Write32(condition | (dest << 16) | (src << 8) | (9 << 4) | op2);
@@ -628,6 +630,11 @@ void ARMXEmitter::Write4OpMultiply(u32 op, ARMReg destLo, ARMReg destHi, ARMReg 
 void ARMXEmitter::UMULL(ARMReg destLo, ARMReg destHi, ARMReg rm, ARMReg rn)
 {
 	Write4OpMultiply(0x8, destLo, destHi, rn, rm);
+}
+
+void ARMXEmitter::UMULLS(ARMReg destLo, ARMReg destHi, ARMReg rm, ARMReg rn)
+{
+	Write4OpMultiply(0x9, destLo, destHi, rn, rm);
 }
 
 void ARMXEmitter::SMULL(ARMReg destLo, ARMReg destHi, ARMReg rm, ARMReg rn)
