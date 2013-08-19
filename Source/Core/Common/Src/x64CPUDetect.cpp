@@ -72,6 +72,14 @@ static void __cpuid(int info[4], int x)
 #endif
 }
 
+#define _XCR_XFEATURE_ENABLED_MASK 0
+static unsigned long long _xgetbv(unsigned int index)
+{
+	unsigned int eax, edx;
+	__asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(index));
+	return ((unsigned long long)edx << 32) | eax;
+}
+
 #endif
 
 #include "Common.h"
@@ -149,8 +157,17 @@ void CPUInfo::Detect()
 		if ((cpu_id[2] >> 9)  & 1) bSSSE3 = true;
 		if ((cpu_id[2] >> 19) & 1) bSSE4_1 = true;
 		if ((cpu_id[2] >> 20) & 1) bSSE4_2 = true;
-		if ((cpu_id[2] >> 28) & 1) bAVX = true;
 		if ((cpu_id[2] >> 25) & 1) bAES = true;
+
+		// AVX support requires 3 separate checks:
+		//  - Is the AVX bit set in CPUID?
+		//  - Is the XSAVE bit set in CPUID?
+		//  - XGETBV result has the XCR bit set.
+		if (((cpu_id[2] >> 28) & 1) && ((cpu_id[2] >> 27) & 1))
+		{
+			if (_xgetbv(_XCR_XFEATURE_ENABLED_MASK) & 0x6)
+				bAVX = true;
+		}
 	}
 	if (max_ex_fn >= 0x80000004) {
 		// Extract brand string
