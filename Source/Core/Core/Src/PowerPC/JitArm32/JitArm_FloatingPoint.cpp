@@ -51,10 +51,13 @@ void JitArm::fabsx(UGeckoInstruction inst)
 	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
+// Broken in Crazy Taxi, sparks constantly fly from the car, messes with camera
 void JitArm::faddsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
+	
+	Default(inst); return;
 
 	ARMReg vD0 = fpr.R0(inst.FD);
 	ARMReg vD1 = fpr.R1(inst.FD);
@@ -62,7 +65,7 @@ void JitArm::faddsx(UGeckoInstruction inst)
 	ARMReg vB = fpr.R0(inst.FB);
 
 	VADD(vD0, vA, vB);
-	VADD(vD1, vA, vB);
+	VMOV(vD1, vD0);
 	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 
