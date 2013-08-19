@@ -480,6 +480,19 @@ bool NetPlayClient::StartGame(const std::string &path)
 	// boot game
 	m_dialog->BootGame(path);
 
+	// Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
+	NetWiimote nw;
+	nw.size = 4;
+	nw.data.resize(4);
+	memset(nw.data.data(), 0, 4);
+
+	for (unsigned int w = 0; w < 4; ++w)
+	{
+		// probably overkill, but whatever
+		for (unsigned int i = 0; i < 7; ++i)
+			m_wiimote_buffer[w].Push(nw);
+	}
+
 	return true;
 }
 
@@ -561,9 +574,10 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 
 
 // called from ---CPU--- thread
-bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
+bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 {
 	NetWiimote nw;
+	static u8 previousSize[4] = {4,4,4,4};
 	{
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
@@ -573,30 +587,39 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 	// does this local wiimote map in game?
 	if (in_game_num < 4)
 	{
-		static u8 previousSize = 0;
-
-		while (previousSize != size && m_wiimote_buffer[in_game_num].Size() > 0)
-		{
-			// Reporting mode changed, so previous buffer is no good.
-			m_wiimote_buffer[in_game_num].Pop();
-		}
-
 		nw.data.assign(data, data + size);
 		nw.size = size;
-		while (m_wiimote_buffer[in_game_num].Size() <= m_target_buffer_size)
-		{
-			// add to buffer
-			m_wiimote_buffer[in_game_num].Push(nw);
+		if (previousSize[in_game_num] == size)
+			do
+			{
+				// add to buffer
+				m_wiimote_buffer[in_game_num].Push(nw);
 
-			// send
-			SendWiimoteState(_number, nw);
+				SendWiimoteState(_number, nw);
+			} while (m_wiimote_buffer[in_game_num].Size() <= m_target_buffer_size /*&& previousSize[in_game_num] == size*/);
+
+		if (previousSize[in_game_num] != size)
+		{
+			
+			while (m_wiimote_buffer[in_game_num].Size() > 0)
+			{
+				// Reporting mode changed, so previous buffer is no good.
+				m_wiimote_buffer[in_game_num].Pop();
+			}
+
+			nw.data.resize(size);
+			memset(nw.data.data(), 0, size);
+			// Not sure if this is necessary, but it might be.
+			m_wiimote_buffer[in_game_num].Push(nw);
+			m_wiimote_buffer[in_game_num].Push(nw);
+			m_wiimote_buffer[in_game_num].Push(nw);
+			previousSize[in_game_num] = size;
 		}
-		previousSize = size;
 	}
 
 	} // unlock players
 
-	while (!m_wiimote_buffer[_number].Pop(nw))
+	while (previousSize[_number] == size && !m_wiimote_buffer[_number].Pop(nw))
 	{
 		// wait for receiving thread to push some data
 		Common::SleepCurrentThread(1);
@@ -604,12 +627,22 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 			return false;
 	}
 
-	// This is either a desync, or the reporting mode changed. No way to really be sure...
-	if (size != nw.size)
+	// Use a blank input.
+	if (previousSize[_number] != size)
+	{
+		nw.size = size;
+		nw.data.resize(size);
+		memset(nw.data.data(), 0, size);
+		m_wiimote_buffer[_number].Push(nw);
+		m_wiimote_buffer[_number].Push(nw);
+	}
+
+	// We should have used a blank input last time, so now we just need to pop through the old buffer, until we reach a good input
+	if (nw.size != size)
 	{
 		u8 tries = 0;
 		// Clear the buffer and wait for new input, in case it was just the reporting mode changing as expected.
-		do
+		while (nw.size != size)
 		{
 			while (!m_wiimote_buffer[_number].Pop(nw))
 			{
@@ -618,19 +651,20 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, u8 size)
 					return false;
 			}
 			++tries;
-			if (tries > m_target_buffer_size +1)
-				break;
-		} while (nw.size != size);
+			//if (tries > m_target_buffer_size)
+				//break;
+		}
 
 		// If it still mismatches, it surely desynced
 		if (size != nw.size)
 		{
-			PanicAlert("Netplay has desynced. There is no way to handle this. Self destructing in 3...2...1...");
-			StopGame();
-			return false;
+			//PanicAlert("Netplay has desynced. There is no way to handle this. Self destructing in 3...2...1...");
+			//StopGame();
+			//return false;
 		}
 	}
 
+	previousSize[_number] = size;
 	memcpy(data, nw.data.data(), size);
 	return true;
 }

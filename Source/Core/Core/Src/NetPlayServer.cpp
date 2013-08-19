@@ -197,15 +197,15 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	{
 		for (i = m_players.begin(); i!=e; ++i)
 		{
-			if (i->second.pad_map[m] >= 0)
-				is_mapped[(unsigned)i->second.pad_map[m]] = true;
+			if (i->second.wiimote_map[m] >= 0)
+				is_mapped[(unsigned)i->second.wiimote_map[m]] = true;
 		}
 	}
 
 	for (unsigned int m = 0; m<4; ++m)
 		if (false == is_mapped[m])
 		{
-			player.pad_map[0] = m;
+			player.wiimote_map[0] = m;
 			break;
 		}
 
