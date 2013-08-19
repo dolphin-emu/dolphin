@@ -239,6 +239,36 @@ void JitArm::mulli(UGeckoInstruction inst)
 	gpr.Unlock(rA);
 }
 
+void JitArm::mullwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+
+	u32 a = inst.RA, b = inst.RB, d = inst.RD;
+
+	ARMReg RA = gpr.R(a);
+	ARMReg RB = gpr.R(b);
+	ARMReg RD = gpr.R(d);
+	MULS(RD, RA, RB);
+	if (inst.OE) PanicAlert("OE: mullwx");
+	if (inst.Rc) ComputeRC();
+}
+
+void JitArm::mulhwux(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+
+	u32 a = inst.RA, b = inst.RB, d = inst.RD;
+
+	ARMReg RA = gpr.R(a);
+	ARMReg RB = gpr.R(b);
+	ARMReg RD = gpr.R(d);
+	ARMReg rA = gpr.GetReg(false);
+	UMULLS(rA, RD, RA, RB);
+	if (inst.Rc) ComputeRC();
+}
+
 void JitArm::ori(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -582,5 +612,50 @@ void JitArm::rlwinmx(UGeckoInstruction inst)
 	gpr.Unlock(rA);
 
 	//m_GPR[inst.RA] = _rotl(m_GPR[inst.RS],inst.SH) & mask;
+}
+void JitArm::srawix(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
+	int a = inst.RA;
+	int s = inst.RS;
+	int amount = inst.SH;
+	if (amount != 0)
+	{
+		Default(inst); return;
+		ARMReg RA = gpr.R(a);
+		ARMReg RS = gpr.R(s);
+		ARMReg tmp = gpr.GetReg();
+		Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+		
+		MOV(tmp, RS);
+		ASRS(RA, RS, amount);
+		if (inst.Rc)
+			GenerateRC();
+		LSL(tmp, tmp, 32 - amount);
+		TST(tmp, RA);
+
+		LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+		BIC(tmp, tmp, mask);
+		SetCC(CC_EQ);
+		ORR(tmp, tmp, mask);
+		SetCC();
+		STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+		gpr.Unlock(tmp);
+	}
+	else
+	{
+		ARMReg RA = gpr.R(a);
+		ARMReg RS = gpr.R(s);
+		MOV(RA, RS);
+
+		ARMReg tmp = gpr.GetReg();
+		Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+		LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+		BIC(tmp, tmp, mask);
+		STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+		gpr.Unlock(tmp);
+
+	}
 }
 

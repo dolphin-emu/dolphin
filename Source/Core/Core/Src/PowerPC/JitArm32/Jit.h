@@ -156,6 +156,8 @@ public:
 	void cmpli(UGeckoInstruction _inst);
 	void negx(UGeckoInstruction _inst);
 	void mulli(UGeckoInstruction _inst);
+	void mullwx(UGeckoInstruction _inst);
+	void mulhwux(UGeckoInstruction _inst);
 	void ori(UGeckoInstruction _inst);	
 	void oris(UGeckoInstruction _inst);	
 	void orx(UGeckoInstruction _inst);
@@ -166,6 +168,7 @@ public:
 	void rlwimix(UGeckoInstruction _inst);
 	void rlwinmx(UGeckoInstruction _inst);
 	void subfx(UGeckoInstruction _inst);
+	void srawix(UGeckoInstruction _inst);
 	void extshx(UGeckoInstruction inst);
 	void extsbx(UGeckoInstruction inst);
 

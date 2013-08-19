@@ -87,13 +87,13 @@ void JitArm::fsubsx(UGeckoInstruction inst)
 
 	Default(inst); return;
 
-	ARMReg vD0 = fpr.R0(inst.FD);
-	ARMReg vD1 = fpr.R1(inst.FD);
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
+	ARMReg vD0 = fpr.R0(inst.FD);
+	ARMReg vD1 = fpr.R1(inst.FD);
 
 	VSUB(vD0, vA, vB);
-	VSUB(vD1, vA, vB);
+	VMOV(vD1, vD0);
 	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 
@@ -117,13 +117,13 @@ void JitArm::fmulsx(UGeckoInstruction inst)
 
 	Default(inst); return;
 
-	ARMReg vD0 = fpr.R0(inst.FD);
-	ARMReg vD1 = fpr.R1(inst.FD);
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vC = fpr.R0(inst.FC);
+	ARMReg vD0 = fpr.R0(inst.FD);
+	ARMReg vD1 = fpr.R1(inst.FD);
 
 	VMUL(vD0, vA, vC);
-	VMUL(vD1, vA, vC);
+	VMOV(vD1, vD0);
 	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 void JitArm::fmulx(UGeckoInstruction inst)
