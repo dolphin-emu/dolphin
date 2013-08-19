@@ -51,18 +51,15 @@ void JitArm::fabsx(UGeckoInstruction inst)
 	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
-// Broken in Crazy Taxi, sparks constantly fly from the car, messes with camera
 void JitArm::faddsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
-	
-	Default(inst); return;
 
-	ARMReg vD0 = fpr.R0(inst.FD);
-	ARMReg vD1 = fpr.R1(inst.FD);
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
+	ARMReg vD0 = fpr.R0(inst.FD);
+	ARMReg vD1 = fpr.R1(inst.FD);
 
 	VADD(vD0, vA, vB);
 	VMOV(vD1, vD0);
@@ -82,14 +79,11 @@ void JitArm::faddx(UGeckoInstruction inst)
 	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
-// Breaks Animal crossing
 void JitArm::fsubsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
-
-	Default(inst); return;
-
+	
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD0 = fpr.R0(inst.FD);
@@ -112,14 +106,15 @@ void JitArm::fsubx(UGeckoInstruction inst)
 	VSUB(vD, vA, vB);
 	if (inst.Rc) Helper_UpdateCR1(vD);
 }
-// Breaks animal crossing
+
+// Breaks Animal Crossing
 void JitArm::fmulsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
-
+	
 	Default(inst); return;
-
+	
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vC = fpr.R0(inst.FC);
 	ARMReg vD0 = fpr.R0(inst.FD);
