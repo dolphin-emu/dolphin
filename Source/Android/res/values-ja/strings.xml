@@ -73,6 +73,7 @@
     
     <string name="video_settings">ビデオ設定</string>
     <string name="software_renderer">Software Renderer</string>
+    <string name="opengl_es3">OpenGL ES 3</string>
     <string name="video_backend">ビデオレンダラ</string>
     <string name="video_backend_to_use">使用するビデオレンダラー</string>
     

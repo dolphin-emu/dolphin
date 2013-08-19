@@ -1,12 +1,9 @@
 package org.dolphinemu.dolphinemu;
 
-import java.util.HashMap;
-
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
-import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 
 import javax.microedition.khronos.egl.*;
@@ -111,11 +108,11 @@ public final class PrefsFragment extends PreferenceFragment
 		boolean mSupportsGLES3 = false;
 
 		// Check for OpenGL ES 3 support (General case).
-		if (m_GLVersion.contains("OpenGL ES 3.0") || m_GLVersion.equals("OpenGL ES 3.0"))
+		if (m_GLVersion != null && (m_GLVersion.contains("OpenGL ES 3.0") || m_GLVersion.equals("OpenGL ES 3.0")))
 			mSupportsGLES3 = true;
 		
 		// Checking for OpenGL ES 3 support for certain Qualcomm devices.
-		if (!mSupportsGLES3 && m_GLVendor.equals("Qualcomm"))
+		if (!mSupportsGLES3 && m_GLVendor != null && m_GLVendor.equals("Qualcomm"))
 		{
 			if (m_GLRenderer.contains("Adreno (TM) 3"))
 			{
@@ -149,58 +146,43 @@ public final class PrefsFragment extends PreferenceFragment
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.layout.prefs);
 
-        final ListPreference etp = new ListPreference(m_activity);
-        final HashMap<CharSequence, CharSequence> entries = new HashMap<CharSequence, CharSequence>();
+        final ListPreference cpuCores = (ListPreference) findPreference("cpuCorePref");
 
+        //
+        // Set valid emulation cores depending on the CPU architecture
+        // that the Android device is running on.
+        //
         if (Build.CPU_ABI.contains("x86"))
         {
-	        entries.put(getString(R.string.interpreter), "0");
-	        entries.put(getString(R.string.jit64_recompiler), "1");
-	        entries.put(getString(R.string.jitil_recompiler), "2");
+	        cpuCores.setEntries(R.array.emuCoreEntriesX86);
+	        cpuCores.setEntryValues(R.array.emuCoreValuesX86);
         }
         else if (Build.CPU_ABI.contains("arm"))
         {
-	        entries.put(getString(R.string.interpreter), "0");
-	        entries.put(getString(R.string.jit_arm_recompiler), "3");
+            cpuCores.setEntries(R.array.emuCoreEntriesARM);
+            cpuCores.setEntryValues(R.array.emuCoreValuesARM);
         }
         else
         {
-            entries.put(getString(R.string.interpreter), "0");
+           cpuCores.setEntries(R.array.emuCoreEntriesOther);
+           cpuCores.setEntryValues(R.array.emuCoreValuesOther);
         }
-        
-        // Convert the key/value sections to arrays respectively so the list can be set.
-        // If Java had proper generics it wouldn't look this disgusting.
-        etp.setEntries(entries.keySet().toArray(new CharSequence[entries.size()]));
-        etp.setEntryValues(entries.values().toArray(new CharSequence[entries.size()]));
-        etp.setKey("cpupref");
-        etp.setTitle(getString(R.string.cpu_core));
-        etp.setSummary(getString(R.string.emu_core_to_use));
 
-        PreferenceCategory mCategory = (PreferenceCategory) findPreference("cpuprefcat");
-        mCategory.addPreference(etp);
+        //
+        // Setting valid video backends.
+        //
+        final ListPreference videoBackends = (ListPreference) findPreference("gpuPref");
+	    final boolean deviceSupportsGLES3 = SupportsGLES3();
 
-	    boolean mSupportsGLES3 = SupportsGLES3();
-
-        if (!mSupportsGLES3)
+        if (deviceSupportsGLES3)
         {
-	        mCategory = (PreferenceCategory) findPreference("videoprefcat");
-	        ListPreference mPref = (ListPreference) findPreference("gpupref");
-	        mCategory.removePreference(mPref);
-
-	        final ListPreference videobackend = new ListPreference(m_activity);
-
-	        // Add available graphics renderers to the hashmap to add to the list.
-	        entries.clear();
-	        entries.put(getString(R.string.software_renderer), "Software Renderer");
-
-	        videobackend.setKey("gpupref");
-	        videobackend.setTitle(getString(R.string.video_backend));
-	        videobackend.setSummary(getString(R.string.video_backend_to_use));
-
-	        videobackend.setEntries(entries.keySet().toArray(new CharSequence[entries.size()]));
-	        videobackend.setEntryValues(entries.values().toArray(new CharSequence[entries.size()]));
-
-	        mCategory.addPreference(videobackend);
+            videoBackends.setEntries(R.array.videoBackendEntriesGLES3);
+            videoBackends.setEntryValues(R.array.videoBackendValuesGLES3);
+        }
+        else
+        {
+            videoBackends.setEntries(R.array.videoBackendEntriesNoGLES3);
+            videoBackends.setEntryValues(R.array.videoBackendValuesNoGLES3);
         }
     }
 

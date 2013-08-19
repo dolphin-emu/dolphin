@@ -113,9 +113,9 @@ public final class GameListActivity extends Activity
 			case 2:
 			{
 				String Keys[] = {
-						"cpupref",
-						"dualcorepref",
-						"gpupref",
+						"cpuCorePref",
+						"dualCorePref",
+						"gpuPref",
 				};
 				String ConfigKeys[] = {
 						"Core-CPUCore",

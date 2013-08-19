@@ -1,24 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-        >
-    <PreferenceCategory
-            android:summary="@string/settings"
-            android:title="@string/cpu_settings"
-            android:key="cpuprefcat">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- CPU Settings -->
+    <PreferenceScreen
+        android:title="@string/cpu_settings">
+	            
         <CheckBoxPreference
-                android:key="dualcorepref"
-                android:summary="@string/on_off"
-                android:title="@string/dual_core" />
-    </PreferenceCategory>
-    <PreferenceCategory
-            android:summary="@string/settings"
-            android:title="@string/video_settings"
-            android:key="videoprefcat">
+               android:key="dualCorePref"
+               android:summary="@string/on_off"
+               android:title="@string/dual_core" />
+        
         <ListPreference
-                android:entries="@array/gpuOptions"
-                android:entryValues="@array/gpuValues"
-                android:key="gpupref"
-                android:summary="@string/video_backend_to_use"
-                android:title="@string/video_backend" />
-    </PreferenceCategory>
+            android:key="cpuCorePref"
+            android:summary="@string/emu_core_to_use"
+            android:title="@string/cpu_core" />
+	        
+    </PreferenceScreen>
+    
+    <!-- Video Settings -->
+    <PreferenceScreen
+        android:title="@string/video_settings">
+	        
+        <ListPreference
+               android:key="gpuPref"
+               android:summary="@string/video_backend_to_use"
+               android:title="@string/video_backend" />
+	        
+    </PreferenceScreen>
 </PreferenceScreen>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- All lists for ListPreference keys/values are placed here -->
+<resources>
+    
+    <!-- CPU core selection - X86 -->
+    <string-array name="emuCoreEntriesX86" translatable="false">
+        <item>@string/interpreter</item>
+        <item>@string/jit64_recompiler</item>
+        <item>@string/jitil_recompiler</item>
+    </string-array>
+    <string-array name="emuCoreValuesX86" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    
+    <!-- CPU core selection - ARM -->
+    <string-array name="emuCoreEntriesARM" translatable="false">
+        <item>@string/interpreter</item>
+        <item>@string/jit_arm_recompiler</item>
+    </string-array>
+    <string-array name="emuCoreValuesARM" translatable="false">
+        <item>0</item>
+        <item>3</item>
+    </string-array>
+    
+    <!-- CPU core selection - Other -->
+    <string-array name="emuCoreEntriesOther" translatable="false">
+        <item>@string/interpreter</item>
+    </string-array>
+    <string-array name="emuCoreValuesOther" translatable="false">
+        <item>0</item>
+    </string-array>
+    
+    
+    <!-- Video Backend Selection - Supports OpenGL ES 3 -->
+    <string-array name="videoBackendEntriesGLES3" translatable="false">
+        <item>@string/software_renderer</item>
+        <item>@string/opengl_es3</item>
+    </string-array>
+    <string-array name="videoBackendValuesGLES3" translatable="false">
+        <item>Software Renderer</item>
+        <item>OGL</item>
+    </string-array>
+    
+    <!-- Video Backend Selection - No OpenGL ES 3 support -->
+    <string-array name="videoBackendEntriesNoGLES3">
+        <item>@string/software_renderer</item>
+    </string-array>
+    <string-array name="videoBackendValuesNoGLES3">
+        <item>Software Renderer</item>
+    </string-array>
+    
+</resources>
