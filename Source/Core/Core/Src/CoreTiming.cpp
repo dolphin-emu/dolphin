@@ -10,6 +10,7 @@
 #include "Core.h"
 #include "StringUtil.h"
 #include "VideoBackendBase.h"
+#include "FifoQueue.h"
 
 #define MAX_SLICE_LENGTH 20000
 
@@ -29,20 +30,17 @@ struct BaseEvent
 	s64 time;
 	u64 userdata;
 	int type;
-//	Event *next;
 };
 
 typedef LinkedListItem<BaseEvent> Event;
 
 // STATE_TO_SAVE
-Event *first;
-Event *tsFirst;
-Event *tsLast;
+static Event *first;
+static std::mutex tsWriteLock;
+Common::FifoQueue<BaseEvent, false> tsQueue;
 
 // event pools
 Event *eventPool = 0;
-Event *eventTsPool = 0;
-int allocatedTsEvents = 0;
 
 int downcount, slicelength;
 int maxSliceLength = MAX_SLICE_LENGTH;
@@ -57,7 +55,6 @@ u64 fakeTBStartTicks;
 
 int ev_lost;
 
-static std::recursive_mutex externalEventSection;
 
 void (*advanceCallback)(int cyclesExecuted) = NULL;
 
@@ -71,29 +68,10 @@ Event* GetNewEvent()
 	return ev;
 }
 
-Event* GetNewTsEvent()
-{
-	allocatedTsEvents++;
-
-	if(!eventTsPool)
-		return new Event;
-
-	Event* ev = eventTsPool;
-	eventTsPool = ev->next;
-	return ev;
-}
-
 void FreeEvent(Event* ev)
 {
 	ev->next = eventPool;
 	eventPool = ev;
-}
-
-void FreeTsEvent(Event* ev)
-{
-	ev->next = eventTsPool;
-	eventTsPool = ev;
-	allocatedTsEvents--;
 }
 
 static void EmptyTimedCallback(u64 userdata, int cyclesLate) {}
@@ -141,6 +119,7 @@ void Init()
 
 void Shutdown()
 {
+	std::lock_guard<std::mutex> lk(tsWriteLock);
 	MoveEvents();
 	ClearPendingEvents();
 	UnregisterAllEvents();
@@ -149,14 +128,6 @@ void Shutdown()
 	{
 		Event *ev = eventPool;
 		eventPool = ev->next;
-		delete ev;
-	}
-
-	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
-	while(eventTsPool)
-	{
-		Event *ev = eventTsPool;
-		eventTsPool = ev->next;
 		delete ev;
 	}
 }
@@ -197,7 +168,7 @@ void EventDoState(PointerWrap &p, BaseEvent* ev)
 
 void DoState(PointerWrap &p)
 {
-	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
+	std::lock_guard<std::mutex> lk(tsWriteLock);
 	p.Do(downcount);
 	p.Do(slicelength);
 	p.Do(globalTimer);
@@ -208,11 +179,10 @@ void DoState(PointerWrap &p)
 	p.Do(fakeTBStartTicks);
 	p.DoMarker("CoreTimingData");
 
+	MoveEvents();
+
 	p.DoLinkedList<BaseEvent, GetNewEvent, FreeEvent, EventDoState>(first);
 	p.DoMarker("CoreTimingEvents");
-
-	p.DoLinkedList<BaseEvent, GetNewTsEvent, FreeTsEvent, EventDoState>(tsFirst, &tsLast);
-	p.DoMarker("CoreTimingTsEvents");
 }
 
 u64 GetTicks()
@@ -229,17 +199,12 @@ u64 GetIdleTicks()
 // schedule things to be executed on the main thread.
 void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata)
 {
-	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
-	Event *ne = GetNewTsEvent();
-	ne->time = globalTimer + cyclesIntoFuture;
-	ne->type = event_type;
-	ne->next = 0;
-	ne->userdata = userdata;
-	if(!tsFirst)
-		tsFirst = ne;
-	if(tsLast)
-		tsLast->next = ne;
-	tsLast = ne;
+	std::lock_guard<std::mutex> lk(tsWriteLock);
+	Event ne;
+	ne.time = globalTimer + cyclesIntoFuture;
+	ne.type = event_type;
+	ne.userdata = userdata;
+	tsQueue.Push(ne);
 }
 
 // Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the CPU thread
@@ -248,7 +213,6 @@ void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 {
 	if(Core::IsCPUThread())
 	{
-		std::lock_guard<std::recursive_mutex> lk(externalEventSection);
 		event_types[event_type].callback(userdata, 0);
 	}
 	else
@@ -357,51 +321,18 @@ void RemoveEvent(int event_type)
 
 void RemoveThreadsafeEvent(int event_type)
 {
-	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
-	if (!tsFirst)
+	std::lock_guard<std::mutex> lk(tsWriteLock);
+	for (Common::FifoQueue<BaseEvent, false>::iterator itr = tsQueue.begin(); itr != tsQueue.end(); ++itr)
 	{
-		return;
-	}
-
-	while(tsFirst)
-	{
-		if (tsFirst->type == event_type)
+		if (itr->type == event_type)
 		{
-			Event *next = tsFirst->next;
-			FreeTsEvent(tsFirst);
-			tsFirst = next;
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	if (!tsFirst)
-	{
-		return;
-	}
-
-	Event *prev = tsFirst;
-	Event *ptr = prev->next;
-	while (ptr)
-	{
-		if (ptr->type == event_type)
-		{
-			prev->next = ptr->next;
-			FreeTsEvent(ptr);
-			ptr = prev->next;
-		}
-		else
-		{
-			prev = ptr;
-			ptr = ptr->next;
+			itr = tsQueue.erase(itr);
 		}
 	}
 }
 
 void RemoveAllEvents(int event_type)
-{	
+{
 	RemoveThreadsafeEvent(event_type);
 	RemoveEvent(event_type);
 }
@@ -447,34 +378,24 @@ void ProcessFifoWaitEvents()
 		{
 			break;
 		}
-	}	
+	}
 }
 
 void MoveEvents()
 {
-	std::lock_guard<std::recursive_mutex> lk(externalEventSection);
-	// Move events from async queue into main queue
-	while (tsFirst)
+	BaseEvent sevt;
+	while (tsQueue.Pop(sevt))
 	{
-		Event *next = tsFirst->next;
-		AddEventToQueue(tsFirst);
-		tsFirst = next;
-	}
-	tsLast = NULL;
-
-	// Move free events to threadsafe pool
-	while(allocatedTsEvents > 0 && eventPool)
-	{
-		Event *ev = eventPool;
-		eventPool = ev->next;
-		ev->next = eventTsPool;
-		eventTsPool = ev;
-		allocatedTsEvents--;
+		Event *evt = GetNewEvent();
+		evt->time = sevt.time;
+		evt->userdata = sevt.userdata;
+		evt->type = sevt.type;
+		AddEventToQueue(evt);
 	}
 }
 
 void Advance()
-{	
+{
 	MoveEvents();
 
 	int cyclesExecuted = slicelength - downcount;
@@ -606,3 +527,4 @@ void SetFakeTBStartTicks(u64 val)
 }
 
 }  // namespace
+

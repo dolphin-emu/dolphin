@@ -10,7 +10,7 @@
 namespace Common
 {
 
-template <typename T>
+template <typename T, bool NeedSize = true>
 class FifoQueue
 {
 public:
@@ -27,37 +27,39 @@ public:
 
 	u32 Size() const
 	{
+		static_assert(NeedSize, "using Size() on FifoQueue without NeedSize");
 		return m_size;
 	}
 
 	bool Empty() const
 	{
-		//return (m_read_ptr == m_write_ptr);
-		return (0 == m_size);
+		return !m_read_ptr->next;
 	}
 
 	T& Front() const
 	{
-		return *m_read_ptr->current;
+		return m_read_ptr->current;
 	}
 
 	template <typename Arg>
 	void Push(Arg&& t)
 	{
 		// create the element, add it to the queue
-		m_write_ptr->current = new T(std::forward<Arg>(t));
+		m_write_ptr->current = std::move(t);
 		// set the next pointer to a new element ptr
 		// then advance the write pointer 
 		m_write_ptr = m_write_ptr->next = new ElementPtr();
-		Common::AtomicIncrement(m_size);
+		if (NeedSize)
+			Common::AtomicIncrement(m_size);
 	}
 
 	void Pop()
 	{
-		Common::AtomicDecrement(m_size);
-		ElementPtr *const tmpptr = m_read_ptr;
+		if (NeedSize)
+			Common::AtomicDecrement(m_size);
+		ElementPtr *tmpptr = m_read_ptr;
 		// advance the read pointer
-		m_read_ptr = m_read_ptr->next;
+		m_read_ptr = tmpptr->next;
 		// set the next element to NULL to stop the recursive deletion
 		tmpptr->next = NULL;
 		delete tmpptr;	// this also deletes the element
@@ -83,30 +85,62 @@ public:
 	}
 
 private:
+	class ElementPtr;
+
+public:
+	class iterator
+	{
+	public:
+		iterator() {}
+		bool operator==(iterator other) { return other.m_pp == m_pp; }
+		bool operator!=(iterator other) { return !(*this == other); }
+		T *operator->() { return &**this; }
+		T& operator*() { return (*m_pp)->current; }
+		void operator++() { m_pp = &(*m_pp)->next; }
+	protected:
+		iterator(ElementPtr *volatile *pp) : m_pp(pp) {}
+		ElementPtr *volatile *m_pp;
+		friend class FifoQueue<T, NeedSize>;
+	};
+
+	iterator begin()
+	{
+		return iterator(&m_read_ptr);
+	}
+
+	iterator end()
+	{
+		return iterator(&m_write_ptr->next);
+	}
+
+	iterator erase(iterator itr)
+	{
+		ElementPtr *elp = *itr.m_pp;
+		*itr.m_pp = elp->next;
+		delete elp;
+		return itr;
+	}
+
+private:
 	// stores a pointer to element
 	// and a pointer to the next ElementPtr
 	class ElementPtr
 	{
 	public:
-		ElementPtr() : current(NULL), next(NULL) {}
+		ElementPtr() : next(NULL) {}
 
 		~ElementPtr()
 		{
-			if (current)
-			{
-				delete current;
-				// recusion ftw
-				if (next)
-					delete next;
-			}
+			if (next)
+				delete next;
 		}
 
-		T *volatile current;
+		T current;
 		ElementPtr *volatile next;
 	};
 
-	ElementPtr *volatile m_write_ptr;
-	ElementPtr *volatile m_read_ptr;
+	ElementPtr *m_write_ptr;
+	ElementPtr *m_read_ptr;
 	volatile u32 m_size;
 };
 
