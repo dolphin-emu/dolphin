@@ -43,12 +43,71 @@ void JitArm::ps_add(UGeckoInstruction inst)
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vB1 = fpr.R1(b);
-	ARMReg vD0 = fpr.R0(d, false);
-	ARMReg vD1 = fpr.R1(d, false);
+	ARMReg vD0 = fpr.R0(d);
+	ARMReg vD1 = fpr.R1(d);
 
 	VADD(vD0, vA0, vB0);
 	VADD(vD1, vA1, vB1);
 }
+
+// Wrong, THP videos like SMS and Ikaruga show artifacts
+void JitArm::ps_madd(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Paired)
+	
+	Default(inst); return;
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	if (inst.Rc) {
+		Default(inst); return;
+	}
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vA1 = fpr.R1(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vB1 = fpr.R1(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vC1 = fpr.R1(c);
+	ARMReg vD0 = fpr.R0(d);
+	ARMReg vD1 = fpr.R1(d);
+
+	ARMReg V0 = fpr.GetReg();
+	ARMReg V1 = fpr.GetReg();
+
+	VMOV(V0, vC0);
+	VMOV(V1, vC1);
+	
+	VMLA(V0, vA0, vB0);
+	VMLA(V1, vA1, vB1);
+
+	VMOV(vD0, V0);
+	VMOV(vD1, V1);
+
+	fpr.Unlock(V0);
+	fpr.Unlock(V1);
+}
+
+void JitArm::ps_sum0(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Paired)
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	if (inst.Rc) {
+		Default(inst); return;
+	}
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vB1 = fpr.R1(b);
+	ARMReg vC1 = fpr.R1(c);
+	ARMReg vD0 = fpr.R0(d);
+	ARMReg vD1 = fpr.R1(d);
+	
+	VADD(vD0, vA0, vB1);
+	VMOV(vD1, vC1);
+}
+
 void JitArm::ps_sub(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -62,8 +121,8 @@ void JitArm::ps_sub(UGeckoInstruction inst)
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vB1 = fpr.R1(b);
-	ARMReg vD0 = fpr.R0(d, false);
-	ARMReg vD1 = fpr.R1(d, false);
+	ARMReg vD0 = fpr.R0(d);
+	ARMReg vD1 = fpr.R1(d);
 
 	VSUB(vD0, vA0, vB0);
 	VSUB(vD1, vA1, vB1);
@@ -81,8 +140,8 @@ void JitArm::ps_mul(UGeckoInstruction inst)
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vC0 = fpr.R0(c);
 	ARMReg vC1 = fpr.R1(c);
-	ARMReg vD0 = fpr.R0(d, false);
-	ARMReg vD1 = fpr.R1(d, false);
+	ARMReg vD0 = fpr.R0(d);
+	ARMReg vD1 = fpr.R1(d);
 
 	VMUL(vD0, vA0, vC0);
 	VMUL(vD1, vA1, vC1);
