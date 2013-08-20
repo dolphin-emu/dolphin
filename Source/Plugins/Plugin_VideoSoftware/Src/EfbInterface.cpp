@@ -514,8 +514,13 @@ namespace EfbInterface
 		yuv444 scanline[640+2];
 
 		// our internal yuv444 type is not normalized, so black is {0, 0, 0} instead of {16, 128, 128}
-		scanline[0] = {0, 0, 0}; // black border at start
-		scanline[right+1] = {0, 0, 0}; // black border at end
+		yuv444 black;
+		black.Y = 0;
+		black.U = 0;
+		black.V = 0;
+
+		scanline[0] = black; // black border at start
+		scanline[right+1] = black; // black border at end
 
 		for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
 		{
