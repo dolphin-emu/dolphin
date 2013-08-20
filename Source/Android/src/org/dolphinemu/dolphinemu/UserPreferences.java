@@ -12,46 +12,22 @@ import android.preference.PreferenceManager;
  * aren't made necessary.
  */
 public final class UserPreferences
-{ 
-    // The cached shared preferences.
-    private final SharedPreferences mPrefs;
-    
-    // Whether or not the user is using dual core.
-    private final boolean isUsingDualCore;
-    
-    // The current CPU core being used.
-    private final String currentEmuCore;
-    
-    // The current video back-end being used.
-    private final String currentVideoBackend;
-    
-    /**
-     * Constructor
-     * 
-     * @param ctx The context to use an instance of this class in.
-     *            This allows the class to retrieve the SharedPreferences
-     *            instance from the given context, which, in turn allows
-     *            this class to function for its intended purpose.
-     */
-    public UserPreferences(Context ctx)
-    {
-        // Get an instance of all of our stored preferences.
-        this.mPrefs = PreferenceManager.getDefaultSharedPreferences(ctx);
-        
-        //-- Assign to the variables to cache the settings. --//
-        
-        this.isUsingDualCore = mPrefs.getBoolean("dualCorePref", true);
-        
-        // Fall back to interpreter if it somehow can't find a CPU core.
-        this.currentEmuCore = mPrefs.getString("cpuCorePref", "0");
-        
-        // Fall back to using software rendering if another valid backend can't be found.
-        this.currentVideoBackend = mPrefs.getString("gpuPref", "Software Renderer");
-    }
-    
+{  
     /** Writes the config to the Dolphin ini file. */
-    public void SaveConfigToDolphinIni()
+    public static void SaveConfigToDolphinIni(Context ctx)
     {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
+        
+        // Whether or not the user is using dual core.
+        boolean isUsingDualCore = prefs.getBoolean("dualCorePref", true);
+        
+        // Current CPU core being used. Falls back to interpreter upon error.
+        String currentEmuCore   = prefs.getString("cpuCorePref", "0");
+        
+        // Current video backend being used. Falls back to software rendering upon error
+        String currentVideoBackend = prefs.getString("gpuPref", "Software Rendering");
+        
+        
         NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUCore", currentEmuCore);
         NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUThread", isUsingDualCore ? "True" : "False");
         NativeLibrary.SetConfig("Dolphin.ini", "Core", "GFXBackend", currentVideoBackend);

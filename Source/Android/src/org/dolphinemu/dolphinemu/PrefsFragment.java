@@ -208,9 +208,7 @@ public final class PrefsFragment extends PreferenceFragment
 	{
 	    super.onDestroy();
 	    
-	    // When the fragment is done being used, save the settings
-	    // to the Dolphin ini file.
-	    UserPreferences userPrefs = new UserPreferences(m_activity);
-	    userPrefs.SaveConfigToDolphinIni();
+	    // When the fragment is done being used, save the settings to the Dolphin ini file.
+	    UserPreferences.SaveConfigToDolphinIni(m_activity);
 	}
 }
