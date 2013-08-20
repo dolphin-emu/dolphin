@@ -115,38 +115,39 @@ void VertexManager::Draw(u32 stride)
 	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
 	u32 line_index_size = IndexGenerator::GetLineindexLen();
 	u32 point_index_size = IndexGenerator::GetPointindexLen();
+	u32 max_index = IndexGenerator::GetNumVerts();
 	GLenum triangle_mode = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart?GL_TRIANGLE_STRIP:GL_TRIANGLES;
 	
 	if(g_ogl_config.bSupportsGLBaseVertex) {
 		if (triangle_index_size > 0)
 		{
-			glDrawRangeElementsBaseVertex(triangle_mode, 0, IndexGenerator::GetNumTriangles() * 3, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
+			glDrawRangeElementsBaseVertex(triangle_mode, 0, max_index, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
 		{
-			glDrawRangeElementsBaseVertex(GL_LINES, 0, IndexGenerator::GetNumLines() * 2, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
+			glDrawRangeElementsBaseVertex(GL_LINES, 0, max_index, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (point_index_size > 0)
 		{
-			glDrawRangeElementsBaseVertex(GL_POINTS, 0, IndexGenerator::GetNumPoints(), point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
+			glDrawRangeElementsBaseVertex(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 	} else {
 		if (triangle_index_size > 0)
 		{
-			glDrawRangeElements(triangle_mode, 0, IndexGenerator::GetNumTriangles() * 3, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
+			glDrawRangeElements(triangle_mode, 0, max_index, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
 		{
-			glDrawRangeElements(GL_LINES, 0, IndexGenerator::GetNumLines() * 2, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1]);
+			glDrawRangeElements(GL_LINES, 0, max_index, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (point_index_size > 0)
 		{
-			glDrawRangeElements(GL_POINTS, 0, IndexGenerator::GetNumPoints(), point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
+			glDrawRangeElements(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 	}
