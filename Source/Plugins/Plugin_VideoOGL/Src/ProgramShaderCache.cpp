@@ -106,25 +106,16 @@ void SHADER::SetProgramVariables()
 
 void SHADER::SetProgramBindings()
 {
-#ifndef USE_GLES3
 	if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
 	{
 		// So we do support extended blending
 		// So we need to set a few more things here.
 		// Bind our out locations
+#ifndef USE_GLES3
 		glBindFragDataLocationIndexed(glprogid, 0, 0, "ocol0");
 		glBindFragDataLocationIndexed(glprogid, 0, 1, "ocol1");
-	}
-	else if(g_ogl_config.eSupportedGLSLVersion > GLSL_120)
-	{
-		glBindFragDataLocation(glprogid, 0, "ocol0");
-	}
-	else
-	{
-		// ogl2 shaders don't need to bind output colors.
-		// gl_FragColor already point to color channel
-	}
 #endif
+	}
 	// Need to set some attribute locations
 	glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
 	
