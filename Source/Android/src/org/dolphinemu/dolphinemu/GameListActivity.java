@@ -3,17 +3,13 @@ package org.dolphinemu.dolphinemu;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.view.*;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,8 +29,6 @@ public final class GameListActivity extends Activity
 	private SideMenuAdapter mDrawerAdapter;
 	private ListView mDrawerList;
 
-	private static GameListActivity mMe;
-
 	// Called from the game list fragment
 	public void onZeroFiles()
 	{
@@ -46,7 +40,6 @@ public final class GameListActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.gamelist_activity);
-		mMe = this;
 
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -143,7 +136,6 @@ public final class GameListActivity extends Activity
 			
 			case 1:
 			{
-				Toast.makeText(mMe, getString(R.string.loading_browser), Toast.LENGTH_SHORT).show();
 				mCurFragmentNum = 1;
 				mCurFragment = new FolderBrowser();
 				FragmentManager fragmentManager = getFragmentManager();
@@ -153,7 +145,6 @@ public final class GameListActivity extends Activity
 			
 			case 2:
 			{
-				Toast.makeText(mMe, getString(R.string.loading_settings), Toast.LENGTH_SHORT).show();
 				mCurFragmentNum = 2;
 				mCurFragment = new PrefsFragment();
 				FragmentManager fragmentManager = getFragmentManager();
@@ -163,7 +154,6 @@ public final class GameListActivity extends Activity
 			
 			case 3:
 			{
-				Toast.makeText(mMe, getString(R.string.loading_gamepad), Toast.LENGTH_SHORT).show();
 				mCurFragmentNum = 3;
 				mCurFragment = new InputConfigFragment();
 				FragmentManager fragmentManager = getFragmentManager();
@@ -173,7 +163,6 @@ public final class GameListActivity extends Activity
 			
 			case 4:
 			{
-				Toast.makeText(mMe, getString(R.string.about), Toast.LENGTH_SHORT).show();
 				mCurFragmentNum = 4;
 				mCurFragment = new AboutFragment();
 				FragmentManager fragmentManager = getFragmentManager();

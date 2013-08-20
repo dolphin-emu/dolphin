@@ -25,10 +25,6 @@
     <string name="settings">設定</string>
     <string name="gamepad_config">ゲームパッド設定</string>
     <string name="about">について</string>
-    <string name="loading_browser">ファイルブラウザのロード</string>
-    <string name="loading_settings">設定のロード</string>
-    <string name="loading_gamepad">ゲームパッド設定のロード</string>
-    <string name="loading_about">メニューについてのロード</string>
 
     <!-- Game List Fragment -->
     <string name="file_clicked">クリックされたファイル： </string>

@@ -25,10 +25,6 @@
     <string name="settings">Settings</string>
     <string name="gamepad_config">Gamepad Config</string>
     <string name="about">About</string>
-    <string name="loading_browser">Loading up the browser</string>
-    <string name="loading_settings">Loading up settings</string>
-    <string name="loading_gamepad">Loading up gamepad config</string>
-    <string name="loading_about">Loading about menu</string>
 
     <!-- Game List Fragment -->
     <string name="file_clicked">File clicked: </string>
