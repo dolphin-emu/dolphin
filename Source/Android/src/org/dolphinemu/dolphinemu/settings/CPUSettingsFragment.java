@@ -65,8 +65,7 @@ public final class CPUSettingsFragment extends PreferenceFragment
         }
         catch (ClassCastException e)
         {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnGameListZeroListener");
+            throw new ClassCastException(activity.toString());
         }
     }
     
