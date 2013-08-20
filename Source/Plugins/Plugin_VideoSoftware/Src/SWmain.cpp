@@ -31,6 +31,7 @@
 #include "SWStatistics.h"
 #include "HW/VideoInterface.h"
 #include "HW/Memmap.h"
+#include "ConfigManager.h"
 
 #include "OnScreenDisplay.h"
 #define VSYNC_ENABLED 0
