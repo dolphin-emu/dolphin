@@ -5,7 +5,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
-
 import javax.microedition.khronos.egl.*;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -202,5 +201,16 @@ public final class PrefsFragment extends PreferenceFragment
 			throw new ClassCastException(activity.toString()
 					+ " must implement OnGameListZeroListener");
 		}
+	}
+	
+	@Override
+	public void onDestroy()
+	{
+	    super.onDestroy();
+	    
+	    // When the fragment is done being used, save the settings
+	    // to the Dolphin ini file.
+	    UserPreferences userPrefs = new UserPreferences(m_activity);
+	    userPrefs.SaveConfigToDolphinIni();
 	}
 }

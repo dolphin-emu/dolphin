@@ -106,19 +106,6 @@ public final class GameListActivity extends Activity
 			case 1:
 				recreateFragment();
 				break;
-				
-			// Settings
-			case 2:
-			{
-			    // Saves the settings that the user has set in the settings menu to the Dolphin ini files.
-			    // This is done so that changes can be reflected when the emulator is run next.
-				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-
-				NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUCore", prefs.getString("cpuCorePref", ""));
-				NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUThread", prefs.getBoolean("dualCorePref", true) ? "True" : "False");
-				NativeLibrary.SetConfig("Dolphin.ini", "Core", "GFXBackend", prefs.getString("gpuPref", ""));
-			}
-			break;
 			
 			case 3: // Gamepad settings
 			{
@@ -137,6 +124,7 @@ public final class GameListActivity extends Activity
 			break;
 			
 			case 0: // Game List
+			case 2: // Settings
 			case 4: // About
 	        /* Do Nothing */
 				break;
