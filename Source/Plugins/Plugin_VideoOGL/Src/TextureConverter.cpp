@@ -32,7 +32,7 @@ static GLuint s_texConvFrameBuffer = 0;
 static GLuint s_srcTexture = 0;			// for decoding from RAM
 static GLuint s_srcTextureWidth = 0;
 static GLuint s_srcTextureHeight = 0;
-static GLuint s_dstRenderBuffer = 0;	// for encoding to RAM
+static GLuint s_dstTexture = 0;		// for encoding to RAM
 
 const int renderBufferWidth = 1024;
 const int renderBufferHeight = 1024;
@@ -159,11 +159,6 @@ void Init()
 	glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
 	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 
-	glGenRenderbuffers(1, &s_dstRenderBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, s_dstRenderBuffer);
-	
-	glRenderbufferStorage(GL_RENDERBUFFER, GLRENDERBUFFERFORMAT, renderBufferWidth, renderBufferHeight);
-
 	s_srcTextureWidth = 0;
 	s_srcTextureHeight = 0;
 
@@ -171,6 +166,11 @@ void Init()
 	glGenTextures(1, &s_srcTexture);
 	glBindTexture(getFbType(), s_srcTexture);
 	glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
+
+	glGenTextures(1, &s_dstTexture);
+	glBindTexture(GL_TEXTURE_2D, s_dstTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	
 	CreatePrograms();
 }
@@ -178,7 +178,7 @@ void Init()
 void Shutdown()
 {
 	glDeleteTextures(1, &s_srcTexture);
-	glDeleteRenderbuffers(1, &s_dstRenderBuffer);
+	glDeleteTextures(1, &s_dstTexture);
 	glDeleteFramebuffers(1, &s_texConvFrameBuffer);
 	glDeleteBuffers(1, &s_encode_VBO );
 	glDeleteVertexArrays(1, &s_encode_VAO );
@@ -192,7 +192,7 @@ void Shutdown()
 		s_encodingPrograms[i].Destroy();
 
 	s_srcTexture = 0;
-	s_dstRenderBuffer = 0;
+	s_dstTexture = 0;
 	s_texConvFrameBuffer = 0;
 }
 
@@ -206,8 +206,7 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	// attach render buffer as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
 
-	glBindRenderbuffer(GL_RENDERBUFFER, s_dstRenderBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, s_dstRenderBuffer);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_dstTexture, 0);
 	GL_REPORT_ERRORD();
 
 	// set source texture
@@ -360,7 +359,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 
 
 // Should be scale free.
-void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRenderbuf)
+void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTexture)
 {
 	u8* srcAddr = Memory::GetPointer(xfbAddr);
 	if (!srcAddr)
@@ -376,7 +375,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destRender
 	// switch to texture converter frame buffer
 	// attach destTexture as color destination
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, destRenderbuf);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, destTexture, 0);
 
 	GL_REPORT_FBO_ERROR();
 

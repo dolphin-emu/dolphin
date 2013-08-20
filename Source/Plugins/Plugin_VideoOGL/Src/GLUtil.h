@@ -32,14 +32,12 @@
 #define GL_BGRA GL_RGBA
 #define glDrawElementsBaseVertex
 #define glDrawRangeElementsBaseVertex
-#define GLRENDERBUFFERFORMAT 0x8058 /* RGBA8_OES */ 
 #endif
 #else
 #define TEX2D	GL_TEXTURE_RECTANGLE_ARB
 #define PREC 
 #define TEXTYPE "sampler2DRect"
 #define TEXFUNC "texture2DRect"
-#define GLRENDERBUFFERFORMAT GL_RGBA
 #endif
 
 
