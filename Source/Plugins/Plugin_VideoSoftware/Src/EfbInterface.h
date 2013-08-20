@@ -15,13 +15,15 @@ namespace EfbInterface
 	enum { ALP_C, BLU_C, GRN_C, RED_C };
 
 	// packed so the compiler doesn't mess with alignment
-	typedef struct __attribute__ ((packed)) {
+#pragma pack(push,1)
+	typedef struct {
 		u8 Y;
 		u8 UV;
 	} yuv422_packed;
+#pragma pack(pop)
 
-	// But this one is only used internally, so we can let the compiler pack it however it likes.
-	typedef struct __attribute__ ((aligned (4))){
+	// But this struct is only used internally, so we could optimise alignment
+	typedef struct {
 		u8 Y;
 		s8 U;
 		s8 V;
