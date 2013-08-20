@@ -67,16 +67,19 @@
             <PreferenceCategory android:title="@string/embedded_frame_buffer">
                 
 	            <CheckBoxPreference
+	                android:defaultValue="false"
 	                android:key="skipEFBAccess"
 	                android:summary="@string/skip_efb_access_descrip"
 	                android:title="@string/skip_efb_access"/>
 	            
-	            <CheckBoxPreference 
+	            <CheckBoxPreference
+	                android:defaultValue="true"
 	                android:key="ignoreFormatChanges"
 	                android:summary="@string/ignore_format_changes_descrip" 
 	                android:title="@string/ignore_format_changes"/>
 	            
 	            <ListPreference
+	                android:defaultValue="Texture"
 	                android:entries="@array/efbCopyMethodEntries"
 	                android:entryValues="@array/efbCopyMethodValues"
 	                android:key="efbCopyMethod"
@@ -88,6 +91,7 @@
             <!-- Texture Cache -->
             <PreferenceCategory android:title="@string/texture_cache">
 	            <ListPreference
+	                android:defaultValue="Low"
 	                android:entries="@array/textureCacheAccuracyEntries"
 	                android:entryValues="@array/textureCacheAccuracyValues"
 	                android:key="textureCacheAccuracy"
@@ -98,6 +102,7 @@
             <!-- External Frame Buffer -->
             <PreferenceCategory android:title="@string/external_frame_buffer">
             <ListPreference
+                android:defaultValue="Disabled"
                 android:entries="@array/externalFrameBufferEntries"
                 android:entryValues="@array/externalFrameBufferValues"
                 android:key="externalFrameBuffer"

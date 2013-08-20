@@ -3,10 +3,8 @@ package org.dolphinemu.dolphinemu;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.InputDevice;
@@ -124,13 +122,8 @@ public final class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("setting-jpn.txt",   WiiDir + File.separator + "setting-jpn.txt");
 				CopyAsset("setting-kor.txt",   WiiDir + File.separator + "setting-kor.txt");
 				CopyAsset("setting-usa.txt",   WiiDir + File.separator + "setting-usa.txt");
-
-				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-				SharedPreferences.Editor editor = prefs.edit();
-				editor.putString("cpuCorePref", NativeLibrary.GetConfig("Dolphin.ini", "Core", "CPUCore", "3"));
-				editor.putBoolean("dualCorePref", NativeLibrary.GetConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True") ? true : false);
-				editor.putString("gpuPref", NativeLibrary.GetConfig("Dolphin.ini", "Core", "GFXBackend ", "Software Renderer"));
-				editor.commit();
+				
+				UserPreferences.LoadDolphinConfigToPrefs(this);
 			}
 		}
 	}

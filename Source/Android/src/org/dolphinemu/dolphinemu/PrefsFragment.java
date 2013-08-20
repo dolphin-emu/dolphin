@@ -8,6 +8,18 @@ import android.preference.PreferenceFragment;
 import javax.microedition.khronos.egl.*;
 import javax.microedition.khronos.opengles.GL10;
 
+// 
+// TODO: It would be nice to situate the preferences in a ViewPager.
+//       In such a way that the video settings are divided into sections like
+//       [General | Enhancements | Hacks]
+//
+// However I do not know how to correctly get ViewPagers to work with PreferenceFragments
+// (at the time of writing), so if anyone else can implement this (AND document it nicely)
+// that would be awesome
+//
+// - Lioncash
+//
+
 /**
  * Copyright 2013 Dolphin Emulator Project
  * Licensed under GPLv2
@@ -143,7 +155,7 @@ public final class PrefsFragment extends PreferenceFragment
         super.onCreate(savedInstanceState);
 
         // Load the preferences from an XML resource
-        addPreferencesFromResource(R.layout.prefs);
+        addPreferencesFromResource(R.xml.prefs);
 
         final ListPreference cpuCores = (ListPreference) findPreference("cpuCorePref");
 

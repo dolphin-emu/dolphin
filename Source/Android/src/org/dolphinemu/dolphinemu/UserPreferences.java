@@ -13,6 +13,85 @@ import android.preference.PreferenceManager;
  */
 public final class UserPreferences
 {
+    /**
+     * Loads the set config items from the Dolphin config files to the shared preferences of this front-end
+     * 
+     * @param ctx The context used to retrieve the SharedPreferences instance.
+     */
+    public static void LoadDolphinConfigToPrefs(Context ctx)
+    {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
+        
+        // Get an editor.
+        SharedPreferences.Editor editor = prefs.edit();
+        
+        // Add the settings.
+        editor.putString("cpuCorePref",   getConfig("Dolphin.ini", "Core", "CPUCore", "3"));
+        editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True"));
+        editor.putString("gpuPref",       getConfig("Dolphin.ini", "Core", "GFXBackend ", "Software Renderer"));
+        
+        editor.putString("internalResolution",     getConfig("gfx_opengl.ini", "Settings", "EFBScale", "2") );
+        editor.putString("anisotropicFiltering",   getConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", "0"));
+        editor.putBoolean("scaledEFBCopy",         getConfig("gfx_opengl.ini", "Hacks", "EFBScaleCopy", "True").equals("True"));
+        editor.putBoolean("perPixelLighting",      getConfig("gfx_opengl.ini", "Settings", "EnablePixelLighting", "False").equals("True"));
+        editor.putBoolean("forceTextureFiltering", getConfig("gfx_opengl.ini", "Enhancements", "ForceFiltering", "False").equals("True"));
+        editor.putBoolean("disableFog",            getConfig("gfx_opengl.ini", "Settings", "DisableFog", "False").equals("True"));
+        editor.putBoolean("skipEFBAccess",         getConfig("gfx_opengl.ini", "Hacks", "EFBAccessEnable", "False").equals("True"));
+        editor.putBoolean("ignoreFormatChanges",   getConfig("gfx_opengl.ini", "Hacks", "EFBEmulateFormatChanges", "False").equals("False"));
+        
+        String efbCopyOn     = getConfig("gfx_opengl.ini", "Hacks", "EFBCopyEnable", "False");
+        String efbToTexture  = getConfig("gfx_opengl.ini", "Hacks", "EFBToTextureEnable", "False");
+        String efbCopyCache  = getConfig("gfx_opengl.ini", "Hacks", "EFBCopyCacheEnable", "False");
+        
+        if (efbCopyOn.equals("False"))
+        {
+            editor.putString("efbCopyMethod", "Off");
+        }
+        else if (efbCopyOn.equals("True") && efbToTexture.equals("True"))
+        {
+            editor.putString("efbCopyMethod", "Texture");
+        }
+        else if(efbCopyOn.equals("True") && efbToTexture.equals("False") && efbCopyCache.equals("False"))
+        {
+            editor.putString("efbCopyMethod", "RAM (uncached)");
+        }
+        else if(efbCopyOn.equals("True") && efbToTexture.equals("False") && efbCopyCache.equals("True"))
+        {
+            editor.putString("efbCopyMethod", "RAM (cached)");
+        }
+        
+        editor.putString("textureCacheAccuracy", getConfig("gfx_opengl.ini", "Settings", "SafeTextureCacheColorSamples", "128"));
+
+        String usingXFB = getConfig("gfx_opengl.ini", "Settings", "UseXFB", "False");
+        String usingRealXFB = getConfig("gfx_opengl.ini", "Settings", "UseRealXFB", "False");
+        
+        if (usingXFB.equals("False"))
+        {
+            editor.putString("externalFrameBuffer", "Disabled");
+        }
+        else if (usingXFB.equals("True") && usingRealXFB.equals("False"))
+        {
+            editor.putString("externalFrameBuffer", "Virtual");
+        }
+        else if (usingXFB.equals("True") && usingRealXFB.equals("True"))
+        {
+            editor.putString("externalFrameBuffer", "Real");
+        }
+        
+        editor.putBoolean("cacheDisplayLists",       getConfig("gfx_opengl.ini", "Hacks", "DlistCachingEnable", "False").equals("True"));
+        editor.putBoolean("disableDestinationAlpha", getConfig("gfx_opengl.ini", "Settings", "DstAlphaPass", "False").equals("True"));
+        editor.putBoolean("fastDepthCalculation",    getConfig("gfx_opengl.ini", "Settings", "FastDepthCalc", "True").equals("True"));
+        
+        // Apply the changes.
+        editor.commit();
+    }
+    
+    // Small utility method that shortens calls to NativeLibrary.GetConfig.
+    private static String getConfig(String ini, String section, String key, String defaultValue)
+    {
+        return NativeLibrary.GetConfig(ini, section, key, defaultValue);
+    }
+    
     /** 
      * Writes the config to the Dolphin ini file. 
      * 
@@ -134,9 +213,9 @@ public final class UserPreferences
         //-- Enhancement Settings --//
         NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "EFBScale", internalResolution);
         NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", anisotropicFiltLevel);
-        NativeLibrary.SetConfig("gfx.opengl.ini", "Hacks", "EFBScaledCopy", usingScaledEFBCopy ? "True" : "False");
-        NativeLibrary.SetConfig("gfx.opengl.ini", "Settings", "EnablePixelLighting", usingPerPixelLighting ? "True" : "False");
-        NativeLibrary.SetConfig("gfx.opengl.ini", "Enhancements", "ForceFiltering", isForcingTextureFiltering ? "True" : "False");
-        NativeLibrary.SetConfig("gfx.opengl.ini", "Settings", "DisableFog", fogIsDisabled ? "True" : "False");
+        NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBScaledCopy", usingScaledEFBCopy ? "True" : "False");
+        NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "EnablePixelLighting", usingPerPixelLighting ? "True" : "False");
+        NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "ForceFiltering", isForcingTextureFiltering ? "True" : "False");
+        NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "DisableFog", fogIsDisabled ? "True" : "False");
     }
 }
