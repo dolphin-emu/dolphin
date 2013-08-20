@@ -13,7 +13,11 @@ import android.preference.PreferenceManager;
  */
 public final class UserPreferences
 {  
-    /** Writes the config to the Dolphin ini file. */
+    /** 
+     * Writes the config to the Dolphin ini file. 
+     * 
+     * @param ctx The context used to retrieve the user settings.
+     * */
     public static void SaveConfigToDolphinIni(Context ctx)
     {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
