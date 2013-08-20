@@ -5,10 +5,12 @@
 #include "Common.h"
 #include <math.h>
 
+#include "Core.h"
 #include "../../Plugin_VideoOGL/Src/GLUtil.h"
 #include "RasterFont.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
+#include "SWCommandProcessor.h"
 
 #include "OnScreenDisplay.h"
 
@@ -18,6 +20,9 @@ static GLint attr_pos = -1, attr_tex = -1;
 static GLint uni_tex = -1;
 static GLuint program;
 
+static u8 s_xfbColorTexture[2][EFB_WIDTH*EFB_HEIGHT*4];
+static int s_currentColorTexture = 0;
+
 // Rasterfont isn't compatible with GLES
 // degasus: I think it does, but I can't test it
 #ifndef USE_GLES
@@ -26,6 +31,7 @@ RasterFont* s_pfont = NULL;
 
 void SWRenderer::Init()
 {
+    GLInterface->SetBackBufferDimensions(EFB_WIDTH, EFB_HEIGHT);
 }
 
 void SWRenderer::Shutdown()
@@ -68,6 +74,9 @@ void CreateShaders()
 
 void SWRenderer::Prepare()
 {
+	memset(s_xfbColorTexture, 0, sizeof(s_xfbColorTexture));
+	s_currentColorTexture = 0;
+
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 	glGenTextures(1, &s_RenderTarget);
@@ -162,10 +171,58 @@ void DrawButton(GLuint tex, float *coords)
         glBindTexture(TEX2D, 0); 
 }
 #endif
+
+void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb)
+{
+	u32 offset = 0;
+	u8 *TexturePointer = s_xfbColorTexture[!s_currentColorTexture];
+
+	for (u16 y = 0; y < EFB_HEIGHT; y++)
+	{
+		for (u16 x = 0; x < EFB_WIDTH; x+=2)
+		{
+			// We do this one color sample (aka 2 RGB pixles) at a time
+			int Y1 = xfb[x].Y - 16;
+			int Y2 = xfb[x+1].Y - 16;
+			int U  = int(xfb[x].UV) - 128;
+			int V  = int(xfb[x+1].UV) - 128;
+
+			// We do the inverse BT.601 conversion for YCbCr to RGB
+			// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y1              + 1.596f * V));
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y1 - 0.392f * U - 0.813f * V));
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y1 + 2.017f * U             ));
+			TexturePointer[offset++] = 255;
+
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y2              + 1.596f * V));
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y2 - 0.392f * U - 0.813f * V));
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y2 + 2.017f * U             ));
+			TexturePointer[offset++] = 255;
+		}
+		xfb += EFB_WIDTH;
+	}
+	s_currentColorTexture = !s_currentColorTexture;
+}
+
+// Called on the GPU thread
+void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
+{
+	GLInterface->Update(); // just updates the render window position and the backbuffer size
+	if (!g_SWVideoConfig.bHwRasterizer)
+		SWRenderer::DrawTexture(s_xfbColorTexture[s_currentColorTexture], fbWidth, fbHeight);
+
+	swstats.frameCount++;
+	SWRenderer::SwapBuffer();
+	Core::Callback_VideoCopiedToXFB(true); // FIXME: should this function be called FrameRendered?
+}
+
 void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 {
+	// FIXME: This should add black bars when the game has set the VI to render less than the full xfb.
+
 	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
 	GLsizei glHeight = (GLsizei)GLInterface->GetBackBufferHeight();
+
 
 	// Update GLViewPort
 	glViewport(0, 0, glWidth, glHeight);

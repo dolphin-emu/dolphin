@@ -6,6 +6,7 @@
 #define _RENDERER_H_
 
 #include "CommonTypes.h"
+#include "EfbInterface.h"
 
 namespace SWRenderer
 {
@@ -16,8 +17,10 @@ namespace SWRenderer
 	void RenderText(const char* pstr, int left, int top, u32 color);
 	void DrawDebugText();
 
+	void UpdateColorTexture(EfbInterface::yuv422_packed *xfb);
 	void DrawTexture(u8 *texture, int width, int height);
 
+	void Swap(u32 fbWidth, u32 fbHeight);
 	void SwapBuffer();
 }
 

@@ -15,20 +15,26 @@
 #include "HW/Memmap.h"
 #include "Core.h"
 
+static const float s_gammaLUT[] =
+{
+	1.0f,
+	1.7f,
+	2.2f,
+	1.0f
+};
+
 namespace EfbCopy
 {
-	void CopyToXfb()
+	void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 	{
-		GLInterface->Update(); // just updates the render window position and the backbuffer size	
-
 		if (!g_SWVideoConfig.bHwRasterizer)
 		{
-			// copy to open gl for rendering
-			EfbInterface::UpdateColorTexture();
-			SWRenderer::DrawTexture(EfbInterface::efbColorTexture, EFB_WIDTH, EFB_HEIGHT);
-		}
+			INFO_LOG(VIDEO, "xfbaddr: %x, fbwidth: %i, fbheight: %i, source: (%i, %i, %i, %i), Gamma %f",
+					 xfbAddr, fbWidth, fbHeight, sourceRc.top, sourceRc.left, sourceRc.bottom, sourceRc.right, Gamma);
+			EfbInterface::yuv422_packed* xfb_in_ram = (EfbInterface::yuv422_packed *) Memory::GetPointer(xfbAddr);
 
-		SWRenderer::SwapBuffer();
+			EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma);
+		}
 	}
 
 	void CopyToRam()
@@ -47,8 +53,8 @@ namespace EfbCopy
 
 		int left   = bpmem.copyTexSrcXY.x;
 		int top    = bpmem.copyTexSrcXY.y;
-		int right  = left + bpmem.copyTexSrcWH.x;
-		int bottom = top + bpmem.copyTexSrcWH.y;
+		int right  = left + bpmem.copyTexSrcWH.x + 1;
+		int bottom = top + bpmem.copyTexSrcWH.y + 1;
 
 		for (u16 y = top; y <= bottom; y++)
 		{
@@ -62,21 +68,47 @@ namespace EfbCopy
 
 	void CopyEfb()
 	{
-		if (bpmem.triggerEFBCopy.copy_to_xfb)
-			DebugUtil::OnFrameEnd();
+		EFBRectangle rc;
+		rc.left = (int)bpmem.copyTexSrcXY.x;
+		rc.top = (int)bpmem.copyTexSrcXY.y;
+
+		// Here Width+1 like Height, otherwise some textures are corrupted already since the native resolution.
+		rc.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
+		rc.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
+
+		//if (bpmem.triggerEFBCopy.copy_to_xfb)
+		//    DebugUtil::OnFrameEnd(); // FIXME: not actually frame end
 
 		if (!g_bSkipCurrentFrame)
 		{
 			if (bpmem.triggerEFBCopy.copy_to_xfb)
 			{
-				CopyToXfb();
-				Core::Callback_VideoCopiedToXFB(true);
+				float yScale;
+				if (bpmem.triggerEFBCopy.scale_invert)
+					yScale = 256.0f / (float)bpmem.dispcopyyscale;
+				else
+					yScale = (float)bpmem.dispcopyyscale / 256.0f;
 
-				swstats.frameCount++;
+				float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
+
+				if (yScale != 1.0)
+					WARN_LOG(VIDEO, "yScale of %f is currently unsupported", yScale);
+
+				if ((u32)xfbLines > MAX_XFB_HEIGHT)
+				{
+					INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines (%f)", xfbLines);
+					xfbLines = MAX_XFB_HEIGHT;
+				}
+
+				CopyToXfb(bpmem.copyTexDest << 5,
+						  bpmem.copyMipMapStrideChannels << 4,
+						  (u32)xfbLines,
+						  rc,
+						  s_gammaLUT[bpmem.triggerEFBCopy.gamma]);
 			}
 			else
 			{
-				CopyToRam();
+				CopyToRam(); // FIXME: should use the rectangle we have already created above
 			}
 
 			if (bpmem.triggerEFBCopy.clear)
@@ -85,14 +117,6 @@ namespace EfbCopy
 					HwRasterizer::Clear();
 				else
 					ClearEfb();
-			}
-		}
-		else
-		{
-			if (bpmem.triggerEFBCopy.copy_to_xfb)
-			{
-				// no frame rendered but tell that a frame has finished for frame skip counter
-				Core::Callback_VideoCopiedToXFB(false);
 			}
 		}
 	}
