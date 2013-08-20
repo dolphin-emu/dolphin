@@ -25,10 +25,8 @@ import java.util.List;
 public final class GameListActivity extends Activity
 		implements GameListFragment.OnGameListZeroListener
 {
-
 	private int mCurFragmentNum = 0;
 	private Fragment mCurFragment;
-	enum keyTypes {TYPE_STRING, TYPE_BOOL};
 
 	private ActionBarDrawerToggle mDrawerToggle;
 	private DrawerLayout mDrawerLayout;
@@ -112,44 +110,13 @@ public final class GameListActivity extends Activity
 			// Settings
 			case 2:
 			{
-				String Keys[] = {
-						"cpuCorePref",
-						"dualCorePref",
-						"gpuPref",
-				};
-				String ConfigKeys[] = {
-						"Core-CPUCore",
-						"Core-CPUThread",
-						"Core-GFXBackend",
-				};
-
-				keyTypes KeysTypes[] = {
-						keyTypes.TYPE_STRING,
-						keyTypes.TYPE_BOOL,
-						keyTypes.TYPE_STRING,
-				};
+			    // Saves the settings that the user has set in the settings menu to the Dolphin ini files.
+			    // This is done so that changes can be reflected when the emulator is run next.
 				SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
-				// Set our preferences here
-				for (int a = 0; a < Keys.length; ++a)
-				{
-					String ConfigValues[] = ConfigKeys[a].split("-");
-					String Key = ConfigValues[0];
-					String Value = ConfigValues[1];
-
-					switch(KeysTypes[a])
-					{
-						case TYPE_STRING:
-							String strPref = prefs.getString(Keys[a], "");
-							NativeLibrary.SetConfig("Dolphin.ini", Key, Value, strPref);
-							break;
-						case TYPE_BOOL:
-							boolean boolPref = prefs.getBoolean(Keys[a], true);
-							NativeLibrary.SetConfig("Dolphin.ini", Key, Value, boolPref ? "True" : "False");
-							break;
-					}
-
-				}
+				NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUCore", prefs.getString("cpuCorePref", ""));
+				NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUThread", prefs.getBoolean("dualCorePref", true) ? "True" : "False");
+				NativeLibrary.SetConfig("Dolphin.ini", "Core", "GFXBackend", prefs.getString("gpuPref", ""));
 			}
 			break;
 			
