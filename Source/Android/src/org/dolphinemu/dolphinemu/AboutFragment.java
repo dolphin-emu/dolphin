@@ -11,6 +11,10 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.dolphinemu.dolphinemu.folderbrowser.FolderBrowserAdapter;
+import org.dolphinemu.dolphinemu.folderbrowser.FolderBrowserItem;
+import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
+
 /**
  * Copyright 2013 Dolphin Emulator Project
  * Licensed under GPLv2
@@ -42,7 +46,7 @@ public final class AboutFragment extends Fragment
 
 		List<FolderBrowserItem> Input = new ArrayList<FolderBrowserItem>();
 		Input.add(new FolderBrowserItem(getString(R.string.build_revision), NativeLibrary.GetVersionString(), "", true));
-		Input.add(new FolderBrowserItem(getString(R.string.supports_gles3), PrefsFragment.SupportsGLES3() ? yes : no, "", true));
+		Input.add(new FolderBrowserItem(getString(R.string.supports_gles3), VideoSettingsFragment.SupportsGLES3() ? yes : no, "", true));
 
 		adapter = new FolderBrowserAdapter(m_activity, R.layout.about_layout, Input);
 		mMainList.setAdapter(adapter);

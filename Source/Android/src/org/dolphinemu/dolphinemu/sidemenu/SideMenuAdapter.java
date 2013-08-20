@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.sidemenu;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,6 +8,8 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import java.util.List;
+
+import org.dolphinemu.dolphinemu.R;
 
 public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>
 {

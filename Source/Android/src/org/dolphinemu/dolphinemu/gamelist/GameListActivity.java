@@ -1,8 +1,9 @@
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.gamelist;
 
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -12,6 +13,17 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.dolphinemu.dolphinemu.AboutFragment;
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.folderbrowser.FolderBrowser;
+import org.dolphinemu.dolphinemu.inputconfig.InputConfigAdapter;
+import org.dolphinemu.dolphinemu.inputconfig.InputConfigFragment;
+import org.dolphinemu.dolphinemu.inputconfig.InputConfigItem;
+import org.dolphinemu.dolphinemu.settings.PrefsActivity;
+import org.dolphinemu.dolphinemu.sidemenu.SideMenuAdapter;
+import org.dolphinemu.dolphinemu.sidemenu.SideMenuItem;
 
 /**
  * Copyright 2013 Dolphin Emulator Project
@@ -144,11 +156,9 @@ public final class GameListActivity extends Activity
 			break;
 			
 			case 2:
-			{
-				mCurFragmentNum = 2;
-				mCurFragment = new PrefsFragment();
-				FragmentManager fragmentManager = getFragmentManager();
-				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+			{	
+				Intent intent = new Intent(this, PrefsActivity.class);
+				startActivity(intent);
 			}
 			break;
 			

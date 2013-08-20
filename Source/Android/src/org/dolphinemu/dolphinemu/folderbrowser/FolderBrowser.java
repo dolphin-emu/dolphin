@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.folderbrowser;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -13,6 +13,10 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.util.*;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
 
 public final class FolderBrowser extends Fragment
 {

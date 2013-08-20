@@ -3,22 +3,22 @@
 
     <!-- Title of the app -->
     <string name="app_name">Dolphin Emulator</string>
-    
+
     <!-- Navigation-related Strings -->
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
-    
+
     <!-- About Fragment -->
     <string name="build_revision">Build Revision:</string>
     <string name="supports_gles3">Supports OpenGL ES 3:</string>
-    
+
     <!-- Folder Browser -->
     <string name="current_dir">Current Dir: </string>
     <string name="parent_directory">Parent Directory</string>
     <string name="folder">Folder</string>
     <string name="file_size">File Size: </string>
     <string name="cant_use_compressed_filetypes">Can not use compressed file types</string>
-    
+
     <!-- Game List Activity -->
     <string name="game_list">Game List</string>
     <string name="browse_folder">Browse Folder</string>
@@ -28,7 +28,7 @@
 
     <!-- Game List Fragment -->
     <string name="file_clicked">File clicked: </string>
-    
+
     <!-- Input Config Fragment -->
     <string name="draw_onscreen_controls">Draw on-screen controls</string>
     <string name="button_a">Button A</string>
@@ -51,11 +51,10 @@
     <string name="c_stick_right">C Stick Right</string>
     <string name="trigger_left">Trigger L</string>
     <string name="trigger_right">Trigger R</string>
-    
     <string name="not_drawing_onscreen_controls">Not drawing on-screen controls</string>
     <string name="drawing_onscreen_controls">Drawing on-screen controls</string>
     <string name="press_button_to_config">Press button to configure %1$s</string>
-    
+
     <!-- Prefs Fragment -->
     <string name="interpreter">Interpreter</string>
     <string name="jit64_recompiler">JIT64 Recompiler</string>
@@ -66,7 +65,6 @@
     <string name="emu_core_to_use">Emulation core to use</string>
     <string name="dual_core">Dual Core</string>
     <string name="on_off">On/Off</string>
-    
     <string name="video_settings">Video Settings</string>
     <string name="software_renderer">Software Renderer</string>
     <string name="opengl_es3">OpenGL ES 3</string>
@@ -121,5 +119,6 @@
     <string name="no">No</string>
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>
+    
 
 </resources>

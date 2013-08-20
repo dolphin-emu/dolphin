@@ -1,4 +1,12 @@
-package org.dolphinemu.dolphinemu;
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
+package org.dolphinemu.dolphinemu.settings;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
 
 import android.content.Context;
 import android.content.SharedPreferences;

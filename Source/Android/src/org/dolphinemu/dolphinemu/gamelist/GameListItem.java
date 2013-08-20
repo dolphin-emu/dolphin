@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.gamelist;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -7,6 +7,8 @@ import android.graphics.BitmapFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
 
 public final class GameListItem implements Comparable<GameListItem>
 {

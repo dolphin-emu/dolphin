@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.inputconfig;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -12,6 +12,9 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
 
 /**
  * Copyright 2013 Dolphin Emulator Project

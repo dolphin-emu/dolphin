@@ -4,7 +4,7 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.sidemenu;
 
 
 /**

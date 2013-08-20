@@ -4,7 +4,9 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.inputconfig;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
 
 /**
  * Represents a controller input item (button, stick, etc).
