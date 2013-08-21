@@ -269,17 +269,17 @@ void GLAPIENTRY ClearDepthf(GLfloat depthval)
 
 void InitDriverInfo()
 {
-	// Get Vendor
 	std::string svendor = std::string(g_ogl_config.gl_vendor);
 	std::string srenderer = std::string(g_ogl_config.gl_renderer);
 	DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
+	DriverDetails::Driver driver = DriverDetails::DRIVER_UNKNOWN;
 	u32 devfamily = 0;
 	double version = 0.0;
 
-	// Get Vendor first
+	// Get the vendor first
 	if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
 		vendor = DriverDetails::VENDOR_NVIDIA; 
-	else if (svendor == "ATI Technologies Inc.")
+	else if (svendor == "ATI Technologies Inc." || svendor == "Advanced Micro Devices, Inc.")
 		vendor = DriverDetails::VENDOR_ATI;
 	else if (std::string::npos != svendor.find("Intel"))
 		vendor = DriverDetails::VENDOR_INTEL;
@@ -317,7 +317,7 @@ void InitDriverInfo()
 		default:
 		break;
 	}
-	DriverDetails::Init(vendor, devfamily, version);
+	DriverDetails::Init(vendor, driver, devfamily, version);
 }
 
 // Init functions

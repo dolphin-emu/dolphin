@@ -21,6 +21,23 @@ namespace DriverDetails
 		VENDOR_UNKNOWN
 	};
 
+	// Enum of known drivers
+	enum Driver
+	{
+		DRIVER_NVIDIA = 0, // Official Nvidia, including mobile GPU
+		DRIVER_NOUVEAU, // OSS nouveau
+		DRIVER_ATI, // Official Nvidia
+		DRIVER_RADEONHD, // OSS Radeon
+		DRIVER_INTEL, // Official Intel
+		DRIVER_ARM, // Official Mali driver
+		DRIVER_LIMA, // OSS Mali driver
+		DRIVER_QUALCOMM, // Official Adreno driver
+		DRIVER_FREEDRENO, // OSS Adreno driver
+		DRIVER_IMGTEC, // OSS PowerVR driver
+		DRIVER_VIVANTE, // Official vivante driver
+		DRIVER_UNKNOWN // Unknown driver, default to official hardware driver
+	};
+
 	// Enum of known bugs
 	// These can be vendor specific, but we put them all in here
 	// For putting a new bug in here, make sure to put a detailed comment above the enum
@@ -55,7 +72,7 @@ namespace DriverDetails
 	};
 	
 	// Initializes our internal vendor, device family, and driver version	
-	void Init(Vendor vendor, const u32 devfamily, const double version);
+	void Init(Vendor vendor, Driver driver, const u32 devfamily, const double version);
 	
 	// Once Vendor and driver version is set, this will return if it has the applicable bug passed to it.
 	bool HasBug(Bug bug);
