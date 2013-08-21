@@ -152,7 +152,11 @@ u8* MemArena::Find4GBBase()
 		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
 		return 0;
 	}
+#ifndef ANDROID
+	// Android 4.3 changes how munmap works which causes crashes.
+	// Keep the memory space after allocating it...
 	munmap(base, MemSize);
+#endif
 	return static_cast<u8*>(base);
 #endif
 #endif
