@@ -55,7 +55,6 @@ public final class InputConfigFragment extends Fragment
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
 		List<InputConfigItem> Input = new ArrayList<InputConfigItem>();
-		Input.add(new InputConfigItem(getString(R.string.draw_onscreen_controls), "Android-ScreenControls", "True"));
 		Input.add(new InputConfigItem(getString(R.string.button_a), "Android-InputA"));
 		Input.add(new InputConfigItem(getString(R.string.button_b), "Android-InputB"));
 		Input.add(new InputConfigItem(getString(R.string.button_start), "Android-InputStart"));

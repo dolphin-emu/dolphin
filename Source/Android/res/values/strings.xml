@@ -30,7 +30,6 @@
     <string name="file_clicked">File clicked: </string>
 
     <!-- Input Config Fragment -->
-    <string name="draw_onscreen_controls">Draw on-screen controls</string>
     <string name="button_a">Button A</string>
     <string name="button_b">Button B</string>
     <string name="button_start">Button Start</string>
@@ -55,7 +54,7 @@
     <string name="drawing_onscreen_controls">Drawing on-screen controls</string>
     <string name="press_button_to_config">Press button to configure %1$s</string>
 
-    <!-- Prefs Fragment -->
+    <!-- Preference Related -->
     <string name="interpreter">Interpreter</string>
     <string name="jit64_recompiler">JIT64 Recompiler</string>
     <string name="jitil_recompiler">JITIL Recompiler</string>
@@ -70,6 +69,7 @@
     <string name="opengl_es3">OpenGL ES 3</string>
     <string name="video_backend">Video Backend</string>
     <string name="video_backend_to_use">Video backend to use</string>
+    <string name="draw_onscreen_controls">Draw on-screen controls</string>
     
     <string name="enhancements">Enhancements</string>
     <string name="internal_resolution">Internal Resolution</string>

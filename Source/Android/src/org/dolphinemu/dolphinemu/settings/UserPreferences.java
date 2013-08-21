@@ -36,7 +36,9 @@ public final class UserPreferences
         // Add the settings.
         editor.putString("cpuCorePref",   getConfig("Dolphin.ini", "Core", "CPUCore", "3"));
         editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True"));
-        editor.putString("gpuPref",       getConfig("Dolphin.ini", "Core", "GFXBackend ", "Software Renderer"));
+        
+        editor.putString("gpuPref",              getConfig("Dolphin.ini", "Core", "GFXBackend ", "Software Renderer"));
+        editor.putString("drawOnscreenControls", getConfig("Dolphin.ini", "Android", "ScreenControls", "True"));
         
         editor.putString("internalResolution",     getConfig("gfx_opengl.ini", "Settings", "EFBScale", "2") );
         editor.putString("anisotropicFiltering",   getConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", "0"));
@@ -118,6 +120,9 @@ public final class UserPreferences
         // Current video backend being used. Falls back to software rendering upon error.
         String currentVideoBackend = prefs.getString("gpuPref", "Software Rendering");
         
+        // Whether or not to draw on-screen controls.
+        boolean drawingOnscreenControls = prefs.getBoolean("drawOnscreenControls", true);
+        
         // Whether or not to ignore all EFB access requests from the CPU.
         boolean skipEFBAccess = prefs.getBoolean("skipEFBAccess", false);
         
@@ -167,6 +172,7 @@ public final class UserPreferences
         
         // General Video Settings
         NativeLibrary.SetConfig("Dolphin.ini", "Core", "GFXBackend", currentVideoBackend);
+        NativeLibrary.SetConfig("Dolphin.ini", "Android", "ScreenControls", drawingOnscreenControls ? "True" : "False");
         
         // Video Hack Settings
         NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBAccessEnable", skipEFBAccess ? "False" : "True");

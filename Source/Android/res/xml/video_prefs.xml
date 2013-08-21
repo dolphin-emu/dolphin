@@ -124,4 +124,9 @@
            android:key="gpuPref"
            android:summary="@string/video_backend_to_use"
            android:title="@string/video_backend" />
+    
+    <CheckBoxPreference
+        android:defaultValue="true"
+        android:key="drawOnscreenControls"
+        android:title="@string/draw_onscreen_controls"/>
 </PreferenceScreen>

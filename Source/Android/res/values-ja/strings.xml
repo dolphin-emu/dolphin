@@ -30,7 +30,6 @@
     <string name="file_clicked">クリックされたファイル： </string>
     
     <!-- Input Config Fragment -->
-    <string name="draw_onscreen_controls">画面上のコントロールを描画</string>
     <string name="button_a">Aボタン</string>
     <string name="button_b">Bボタン</string>
     <string name="button_start">スタートボタン</string>
@@ -66,12 +65,12 @@
     <string name="emu_core_to_use">使用するエミュレーションコア</string>
     <string name="dual_core">デュアルコア</string>
     <string name="on_off">有効/無効</string>
-    
     <string name="video_settings">ビデオ設定</string>
     <string name="software_renderer">Software Renderer</string>
     <string name="opengl_es3">OpenGL ES 3</string>
     <string name="video_backend">ビデオレンダラ</string>
     <string name="video_backend_to_use">使用するビデオレンダラー</string>
+    <string name="draw_onscreen_controls">画面上のコントロールを描画</string>
     
     <string name="enhancements">画質向上の設定</string>
     <string name="internal_resolution">内部解像度の変更</string>
