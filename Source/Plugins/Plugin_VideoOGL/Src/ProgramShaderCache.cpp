@@ -501,6 +501,7 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#version %s\n"
 		"%s\n" // default precision
 		"%s\n" // ubo
+		"%s\n" // early-z
 		
 		"\n"// A few required defines and ones that will make our lives a lot easier
 		"#define ATTRIN %s\n"
@@ -533,16 +534,20 @@ void ProgramShaderCache::CreateHeader ( void )
 		, v==GLSLES3 ? "300 es" : v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : v==GLSL_140 ? "140" : "150"
 		, v==GLSLES3 ? "precision highp float;" : ""
 		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
+		, g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
+		
 		, v==GLSL_120 ? "attribute" : "in"
 		, v==GLSL_120 ? "attribute" : "out"
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "in" : v==GLSL_120 ? "varying" : "centroid in"
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "out" : v==GLSL_120 ? "varying" : "centroid out"
+		
 		, v==GLSL_120 ? "#define texture texture2D" : ""
 		, v==GLSL_120 ? "#define round(x) floor((x)+0.5f)" : ""
 		, v==GLSL_120 ? "#define out " : ""
 		, v==GLSL_120 ? "#define ocol0 gl_FragColor" : ""
 		, v==GLSL_120 ? "#define ocol1 gl_FragColor" : "" //TODO: implement dual source blend
 		, v==GLSL_120 ? "" : "out vec4 name;"
+		
 		, v==GLSL_120 ? "#extension GL_ARB_texture_rectangle : enable" : ""
 		, v==GLSL_120 ? "" : "#define texture2DRect(samp, uv)  texelFetch(samp, ivec2(floor(uv)), 0)"
 		, v==GLSL_120 ? "" : "#define sampler2DRect sampler2D"
