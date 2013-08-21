@@ -284,7 +284,15 @@ void InitDriverInfo()
 	else if (std::string::npos != svendor.find("Intel"))
 		vendor = DriverDetails::VENDOR_INTEL;
 	else if (svendor == "ARM")
+	{
 		vendor = DriverDetails::VENDOR_ARM;
+		driver = DriverDetails::DRIVER_ARM;
+	}
+	else if (svendor == "http://limadriver.org/")
+	{
+		vendor = DriverDetails::VENDOR_ARM;
+		driver = DriverDetails::DRIVER_LIMA;
+	}
 	else if (svendor == "Qualcomm")
 		vendor = DriverDetails::VENDOR_QUALCOMM;
 	else if (svendor == "Imagination Technologies")

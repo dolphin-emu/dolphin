@@ -26,7 +26,7 @@ namespace DriverDetails
 	{
 		DRIVER_NVIDIA = 0, // Official Nvidia, including mobile GPU
 		DRIVER_NOUVEAU, // OSS nouveau
-		DRIVER_ATI, // Official Nvidia
+		DRIVER_ATI, // Official ATI
 		DRIVER_RADEONHD, // OSS Radeon
 		DRIVER_INTEL, // Official Intel
 		DRIVER_ARM, // Official Mali driver
