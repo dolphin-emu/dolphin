@@ -126,9 +126,9 @@ public final class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("setting-jpn.txt",   WiiDir + File.separator + "setting-jpn.txt");
 				CopyAsset("setting-kor.txt",   WiiDir + File.separator + "setting-kor.txt");
 				CopyAsset("setting-usa.txt",   WiiDir + File.separator + "setting-usa.txt");
-				
-				UserPreferences.LoadDolphinConfigToPrefs(this);
 			}
+
+			UserPreferences.LoadDolphinConfigToPrefs(this);
 		}
 	}
 
