@@ -38,7 +38,7 @@ public final class UserPreferences
         editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True"));
         
         editor.putString("gpuPref",              getConfig("Dolphin.ini", "Core", "GFXBackend ", "Software Renderer"));
-        editor.putString("drawOnscreenControls", getConfig("Dolphin.ini", "Android", "ScreenControls", "True"));
+        editor.putBoolean("drawOnscreenControls", getConfig("Dolphin.ini", "Android", "ScreenControls", "True").equals("True"));
         
         editor.putString("internalResolution",     getConfig("gfx_opengl.ini", "Settings", "EFBScale", "2") );
         editor.putString("anisotropicFiltering",   getConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", "0"));
