@@ -2,7 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.dolphinemu.dolphinemu"
     android:versionCode="10"
-    android:versionName="0.10" >
+    android:versionName="0.10" 
+    android:installLocation="auto">
 
     <uses-sdk
         android:minSdkVersion="14"
