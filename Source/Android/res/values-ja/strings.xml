@@ -98,7 +98,7 @@
     <string name="efb_copy_ram_uncached">RAM (キャッシュない)</string>
     <string name="efb_copy_ram_cached">RAM (キャッシュ)</string>
     <string name="texture_cache">テクスチャキャッシュ</string>
-    <string name="texture_cache_accuracy"></string>
+    <string name="texture_cache_accuracy">テクスチャキャッシュ確度</string>
     <string name="texture_cache_accuracy_descrip">この選択をSafe設定しておくと、RAMからのテクスチャ更新に 失敗しにくなります。</string>
     <string name="texture_cache_accuracy_low">低</string>
     <string name="texture_cache_accuracy_medium">平</string>
