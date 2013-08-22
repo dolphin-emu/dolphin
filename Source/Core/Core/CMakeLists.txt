@@ -140,6 +140,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_fs.cpp
+			Src/IPC_HLE/WII_Socket.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_net.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
