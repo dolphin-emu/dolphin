@@ -45,7 +45,7 @@ s32 WiiSockMan::getNetErrorCode(s32 ret, std::string caller, bool isRW)
 	if (ret >= 0)
 		return ret;
 
-	WARN_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d",
+	DEBUG_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d",
 		caller.c_str(), errorCode, DecodeError(errorCode), ret);
 
 	switch (errorCode)
@@ -506,7 +506,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 			|| (!it->is_ssl && ReturnValue != -SO_EAGAIN && ReturnValue != -SO_EINPROGRESS && ReturnValue != -SO_EALREADY)
 			|| (it->is_ssl && ReturnValue != SSL_ERR_WAGAIN && ReturnValue != SSL_ERR_RAGAIN))
 		{
-			WARN_LOG(WII_IPC_NET, "IOCTL(V) Sock: %d ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", 
+			DEBUG_LOG(WII_IPC_NET, "IOCTL(V) Sock: %d ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", 
 				fd, it->is_ssl ? it->ssl_type : it->net_type, ReturnValue, nonBlock, forceNonBlock);
 			WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue);
 			it = pending_sockops.erase(it);
