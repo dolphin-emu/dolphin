@@ -50,8 +50,6 @@
     <string name="c_stick_right">C Stick Right</string>
     <string name="trigger_left">Trigger L</string>
     <string name="trigger_right">Trigger R</string>
-    <string name="not_drawing_onscreen_controls">Not drawing on-screen controls</string>
-    <string name="drawing_onscreen_controls">Drawing on-screen controls</string>
     <string name="press_button_to_config">Press button to configure %1$s</string>
 
     <!-- Preference Related -->
@@ -93,7 +91,6 @@
     <string name="ignore_format_changes_descrip">Ignore any changes to the EFB format.</string>
     <string name="efb_copy_method">EFB Copy Method</string>
     <string name="efb_copy_method_descrip">Determines how EFB copies will be emulated.</string>
-    <string name="efb_copy_off">Off</string>
     <string name="efb_copy_texture">Texture</string>
     <string name="efb_copy_ram_uncached">RAM (uncached)</string>
     <string name="efb_copy_ram_cached">RAM (cached)</string>

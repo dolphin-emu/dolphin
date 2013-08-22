@@ -50,10 +50,7 @@
     <string name="c_stick_right">C-スティック: →</string>
     <string name="trigger_left">左のトリガー</string>
     <string name="trigger_right">右のトリガー</string>
-    
-    <string name="not_drawing_onscreen_controls">コントロールは画面上に描画されていない</string>
-    <string name="drawing_onscreen_controls">コントロールは画面上に描画されています</string>
-    <string name="press_button_to_config">%1$sを設定するにはボタンを押して</string>   
+    <string name="press_button_to_config">%1$sを設定するにはボタンを押して</string>
     
     <!-- Prefs Fragment -->
     <string name="interpreter">Interpreter</string>
