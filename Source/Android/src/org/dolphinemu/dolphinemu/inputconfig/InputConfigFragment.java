@@ -90,33 +90,11 @@ public final class InputConfigFragment extends Fragment
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 		{
 			InputConfigItem o = adapter.getItem(position);
-			switch(position)
-			{
-				case 0: // On screen controls
-					String newBind;
-					if (o.getBind().equals("True"))
-					{
-						Toast.makeText(m_activity, getString(R.string.not_drawing_onscreen_controls), Toast.LENGTH_SHORT).show();
-						newBind = "False";
-					}
-					else
-					{
-						Toast.makeText(m_activity, getString(R.string.drawing_onscreen_controls), Toast.LENGTH_SHORT).show();
-						newBind = "True";
-					}
-					adapter.remove(o);
-					o.setBind(newBind);
-					adapter.insert(o, position);
-					break;
-					
-				default: // gamepad controls
-				    
-					Toast.makeText(m_activity, getString(R.string.press_button_to_config, o.getName()), Toast.LENGTH_SHORT).show();
-					configPosition = position;
-					Configuring = true;
-					firstEvent = true;
-					break;
-			}
+ 
+			Toast.makeText(m_activity, getString(R.string.press_button_to_config, o.getName()), Toast.LENGTH_SHORT).show();
+			configPosition = position;
+			Configuring = true;
+			firstEvent = true;
 		}
 	};
 
