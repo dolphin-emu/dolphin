@@ -75,9 +75,6 @@ s32 WiiSockMan::getNetErrorCode(s32 ret, std::string caller, bool isRW)
 		}else{
 			return -SO_EINPROGRESS; // EINPROGRESS
 		}
-	// TODO: remove as this should no longer be a problem once blocking is supported.
-	case EITHER(WSA_INVALID_HANDLE, EBADF):
-		return -SO_EINPROGRESS; // EINPROGRESS
 	default:
 		return -1;
 	}
@@ -126,7 +123,7 @@ s32 WiiSocket::closeFd()
 #ifdef _WIN32
 		s32 ret = closesocket(fd);
 #else
-		s32 ret = close(sock);
+		s32 ret = close(fd);
 #endif
 		ReturnValue = WiiSockMan::getNetErrorCode(ret, "delSocket", false);
 	}
