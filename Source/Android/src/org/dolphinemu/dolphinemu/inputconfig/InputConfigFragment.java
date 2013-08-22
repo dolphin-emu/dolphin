@@ -28,8 +28,8 @@ public final class InputConfigFragment extends Fragment
 	private ListView mDrawerList;
 	private InputConfigAdapter adapter;
 	private int configPosition = 0;
-	boolean Configuring = false;
-	boolean firstEvent = true;
+	private boolean Configuring = false;
+	private boolean firstEvent = true;
 
 	static public String getInputDesc(InputDevice input)
 	{
