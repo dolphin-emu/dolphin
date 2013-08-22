@@ -31,21 +31,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="org.dolphinemu.dolphinemu.folderbrowser.FolderBrowser"
-            android:configChanges="orientation|locale|keyboard|keyboardHidden|navigation|fontScale|uiMode"
-            android:label="@string/app_name" >
-        </activity>
-        <activity
-            android:name="org.dolphinemu.dolphinemu.inputconfig.InputConfigFragment"
-            android:configChanges="orientation|locale|keyboard|keyboardHidden|navigation|fontScale|uiMode"
-            android:label="@string/app_name" >
-        </activity>
-        <activity android:name="org.dolphinemu.dolphinemu.settings.PrefsFragment" >
-        </activity>
         <activity android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity" >
-        </activity>
-        <activity android:name="org.dolphinemu.dolphinemu.AboutFragment" >
         </activity>
         <activity
             android:name="org.dolphinemu.dolphinemu.settings.PrefsActivity"
