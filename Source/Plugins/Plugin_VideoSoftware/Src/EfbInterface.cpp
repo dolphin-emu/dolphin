@@ -536,13 +536,13 @@ namespace EfbInterface
 			{
 				// YU pixel
 				xfb_in_ram[x].Y = scanline[i].Y;
-				// U[i] = 1/4 * U[i-1] + 1/2 * U[i] + 1/4 U[i+1]
-				// we add in 10 bit space so it will round more accurately
+				// we mix our color difrences in 10 bit space so it will round more accurately
+				// U[i] = 1/4 * U[i-1] + 1/2 * U[i] + 1/4 * U[i+1]
 				xfb_in_ram[x].UV = 128 + ((scanline[i-1].U + (scanline[i].U << 1) + scanline[i+1].U) >> 2);
 
 				// YV pixel
 				xfb_in_ram[x+1].Y = scanline[i+1].Y;
-				// V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 V[i+1]
+				// V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 * V[i+1]
 				xfb_in_ram[x+1].UV = 128 + ((scanline[i].V + (scanline[i+1].V << 1) + scanline[i+2].V) >> 2);
 			}
 			xfb_in_ram += 640;

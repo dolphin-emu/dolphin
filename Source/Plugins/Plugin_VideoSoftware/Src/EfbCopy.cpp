@@ -53,8 +53,8 @@ namespace EfbCopy
 
 		int left   = bpmem.copyTexSrcXY.x;
 		int top    = bpmem.copyTexSrcXY.y;
-		int right  = left + bpmem.copyTexSrcWH.x + 1;
-		int bottom = top + bpmem.copyTexSrcWH.y + 1;
+		int right  = left + bpmem.copyTexSrcWH.x;
+		int bottom = top + bpmem.copyTexSrcWH.y;
 
 		for (u16 y = top; y <= bottom; y++)
 		{
@@ -72,12 +72,10 @@ namespace EfbCopy
 		rc.left = (int)bpmem.copyTexSrcXY.x;
 		rc.top = (int)bpmem.copyTexSrcXY.y;
 
-		// Here Width+1 like Height, otherwise some textures are corrupted already since the native resolution.
-		rc.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
-		rc.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
-
-		//if (bpmem.triggerEFBCopy.copy_to_xfb)
-		//    DebugUtil::OnFrameEnd(); // FIXME: not actually frame end
+		// flipper represents the widths internally as last pixel minus starting pixel, so
+		// these are zero indexed.
+		rc.right = rc.left + (int)bpmem.copyTexSrcWH.x + 1;
+		rc.bottom = rc.top + (int)bpmem.copyTexSrcWH.y + 1;
 
 		if (!g_bSkipCurrentFrame)
 		{
