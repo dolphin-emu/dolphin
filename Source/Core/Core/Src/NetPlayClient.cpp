@@ -255,11 +255,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			u8 size;
 			packet >> map >> size;
 
-			nw.size = size;
+			nw.resize(size);
 			u8* data = new u8[size];
 			for (unsigned int i = 0; i < size; ++i)
 				packet >> data[i];
-			nw.data.assign(data,data+size);
+			nw.assign(data,data+size);
 			delete[] data;
 
 			// trusting server for good map value (>=0 && <4)
@@ -441,10 +441,10 @@ void NetPlayClient::SendWiimoteState(const PadMapping local_nb, const NetWiimote
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_WIIMOTE_DATA;
 	spac << local_nb;	// local pad num
-	u8 size = nw.size;
+	u8 size = nw.size();
 	spac << size;
 	for (unsigned int i = 0; i < size; ++i)
-		spac << nw.data.data()[i];
+		spac << nw.data()[i];
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 	m_socket.Send(spac);
@@ -482,9 +482,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 
 	// Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
 	NetWiimote nw;
-	nw.size = 4;
-	nw.data.resize(4);
-	memset(nw.data.data(), 0, 4);
+	nw.resize(4, 0);
 
 	for (unsigned int w = 0; w < 4; ++w)
 	{
@@ -587,29 +585,26 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 	// does this local wiimote map in game?
 	if (in_game_num < 4)
 	{
-		nw.data.assign(data, data + size);
-		nw.size = size;
 		if (previousSize[in_game_num] == size)
+		{
+			nw.assign(data, data + size);
 			do
 			{
 				// add to buffer
 				m_wiimote_buffer[in_game_num].Push(nw);
 
 				SendWiimoteState(_number, nw);
-			} while (m_wiimote_buffer[in_game_num].Size() <= m_target_buffer_size /*&& previousSize[in_game_num] == size*/);
-
-		if (previousSize[in_game_num] != size)
+			} while (m_wiimote_buffer[in_game_num].Size() <= m_target_buffer_size * 200 / 120); // TODO: add a seperate setting for wiimote buffer
+		}
+		else
 		{
-			
 			while (m_wiimote_buffer[in_game_num].Size() > 0)
 			{
 				// Reporting mode changed, so previous buffer is no good.
 				m_wiimote_buffer[in_game_num].Pop();
 			}
+			nw.resize(size, 0);
 
-			nw.data.resize(size);
-			memset(nw.data.data(), 0, size);
-			// Not sure if this is necessary, but it might be.
 			m_wiimote_buffer[in_game_num].Push(nw);
 			m_wiimote_buffer[in_game_num].Push(nw);
 			m_wiimote_buffer[in_game_num].Push(nw);
@@ -627,22 +622,20 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 			return false;
 	}
 
-	// Use a blank input.
+	// Use a blank input, since we may not have any valid input.
 	if (previousSize[_number] != size)
 	{
-		nw.size = size;
-		nw.data.resize(size);
-		memset(nw.data.data(), 0, size);
+		nw.resize(size, 0);
 		m_wiimote_buffer[_number].Push(nw);
 		m_wiimote_buffer[_number].Push(nw);
 	}
 
 	// We should have used a blank input last time, so now we just need to pop through the old buffer, until we reach a good input
-	if (nw.size != size)
+	if (nw.size() != size)
 	{
 		u8 tries = 0;
-		// Clear the buffer and wait for new input, in case it was just the reporting mode changing as expected.
-		while (nw.size != size)
+		// Clear the buffer and wait for new input, since we probably just changed reporting mode.
+		while (nw.size() != size)
 		{
 			while (!m_wiimote_buffer[_number].Pop(nw))
 			{
@@ -651,21 +644,20 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 					return false;
 			}
 			++tries;
-			//if (tries > m_target_buffer_size)
-				//break;
+			if (tries > m_target_buffer_size)
+				break;
 		}
 
 		// If it still mismatches, it surely desynced
-		if (size != nw.size)
+		if (size != nw.size())
 		{
-			//PanicAlert("Netplay has desynced. There is no way to handle this. Self destructing in 3...2...1...");
-			//StopGame();
-			//return false;
+			PanicAlert("Netplay has desynced. There is no way to recover from this.");
+			return false;
 		}
 	}
 
 	previousSize[_number] = size;
-	memcpy(data, nw.data.data(), size);
+	memcpy(data, nw.data(), size);
 	return true;
 }
 

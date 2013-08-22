@@ -190,6 +190,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 
 	// TODO: this is crappy
 	// try to automatically assign new user a pad
+	// TODO: change back to assigning pads instead of wiimotes before merging wiimote-netplay
 	{
 	bool is_mapped[4] = {false,false,false,false};
 

@@ -16,11 +16,7 @@ struct NetSettings
 	u8 m_Controllers[4];
 };
 
-struct NetWiimote
-{
-	u8 size;
-	std::vector<u8> data;
-};
+typedef std::vector<u8> NetWiimote;
 
 #define NETPLAY_VERSION		"Dolphin NetPlay 2013-08-06 now with wiimote(TM)"
 
