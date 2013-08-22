@@ -7,7 +7,7 @@
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
 #include "../Movie.h"
-#include "../NetPlay.h"
+#include "../NetPlayClient.h"
 
 #include "SystemTimers.h"
 #include "ProcessorInterface.h"
@@ -262,7 +262,7 @@ void Init()
 
 		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
 			AddDevice(Movie::IsUsingPad(i) ?  (Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
-		else if (NetPlay::GetNetPlayPtr())
+		else if (NetPlay::IsNetPlayRunning())
 			AddDevice((SIDevices) g_NetPlaySettings.m_Controllers[i], i);
 		else
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
@@ -644,10 +644,12 @@ void RunSIBuffer()
 int GetTicksToNextSIPoll()
 {
 	// Poll for input at regular intervals (once per frame) when playing or recording a movie
-	if (Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::GetNetPlayPtr())
+	if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
 	{
 		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
 	}
+	if (NetPlay::IsNetPlayRunning())
+		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
 
 	if (!g_Poll.Y && g_Poll.X)
 		return VideoInterface::GetTicksPerLine() * g_Poll.X;

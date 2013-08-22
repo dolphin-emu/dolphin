@@ -805,6 +805,7 @@ union PE_CONTROL
 		u32 unused : 17;
 		u32 rid : 8;
 	};
+
 	u32 hex;
 };
 
@@ -884,7 +885,40 @@ union AlphaTest
 		PASS = 2,
 	};
 
-	TEST_RESULT TestResult();
+	inline TEST_RESULT TestResult() const
+	{
+		switch(logic)
+		{
+		case 0: // AND
+			if (comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_ALWAYS)
+				return PASS;
+			if (comp0 == ALPHACMP_NEVER || comp1 == ALPHACMP_NEVER)
+				return FAIL;
+			break;
+
+		case 1: // OR
+			if (comp0 == ALPHACMP_ALWAYS || comp1 == ALPHACMP_ALWAYS)
+				return PASS;
+			if (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_NEVER)
+				return FAIL;
+			break;
+
+		case 2: // XOR
+			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_NEVER) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_ALWAYS))
+				return PASS;
+			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_ALWAYS) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_NEVER))
+				return FAIL;
+			break;
+
+		case 3: // XNOR
+			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_NEVER) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_ALWAYS))
+				return FAIL;
+			if ((comp0 == ALPHACMP_ALWAYS && comp1 == ALPHACMP_ALWAYS) || (comp0 == ALPHACMP_NEVER && comp1 == ALPHACMP_NEVER))
+				return PASS;
+			break;
+		}
+		return UNDETERMINED;
+	}
 };
 
 union UPE_Copy
@@ -1005,6 +1039,9 @@ struct BPMemory
 	TevKSel tevksel[8];//0xf6,0xf7,f8,f9,fa,fb,fc,fd
 	u32 bpMask; //0xFE
 	u32 unknown18; //ff
+
+	bool UseEarlyDepthTest() const { return zcontrol.early_ztest && zmode.testenable; }
+	bool UseLateDepthTest() const { return !zcontrol.early_ztest && zmode.testenable; }
 };
 
 #pragma pack()

@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 #include "GLFunctions.h"
 #include "Log.h"
+#include <dlfcn.h>
 #ifdef USE_GLES3
-PFNGLMAPBUFFERPROC glMapBuffer;
 PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
 PFNGLUNMAPBUFFERPROC glUnmapBuffer;
 PFNGLBINDBUFFERRANGEPROC glBindBufferRange;
@@ -30,6 +30,8 @@ PFNGLGETPROGRAMBINARYPROC glGetProgramBinary;
 PFNGLPROGRAMBINARYPROC glProgramBinary;
 PFNGLPROGRAMPARAMETERIPROC glProgramParameteri;
 
+PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements;
+
 PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
 PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
 
@@ -41,27 +43,34 @@ PFNGLGENQUERIESPROC glGenQueries;
 #endif
 namespace GLFunc
 {
+	void *self;
 	void LoadFunction(const char *name, void **func)
 	{
 #ifdef USE_GLES3
 		*func = (void*)eglGetProcAddress(name);
 		if (*func == NULL)
 		{
-			ERROR_LOG(VIDEO, "Couldn't load function %s", name);
-			exit(0);
+			// Fall back to trying dlsym
+			if (self) // Just in case dlopen fails
+				*func = dlsym(self, name);
+			if (*func == NULL)
+			{
+				ERROR_LOG(VIDEO, "Couldn't load function %s", name);
+				exit(0);
+			}
 		}
 #endif
 	}
 
 	void Init()
 	{
+		self = dlopen(NULL, RTLD_LAZY);
 		LoadFunction("glBeginQuery", (void**)&glBeginQuery);
 		LoadFunction("glEndQuery", (void**)&glEndQuery);
 		LoadFunction("glGetQueryObjectuiv", (void**)&glGetQueryObjectuiv);
 		LoadFunction("glDeleteQueries", (void**)&glDeleteQueries);
 		LoadFunction("glGenQueries", (void**)&glGenQueries);
 		{
-			LoadFunction("glMapBuffer", (void**)&glMapBuffer);	
 			LoadFunction("glUnmapBuffer", (void**)&glUnmapBuffer);
 			LoadFunction("glMapBufferRange", (void**)&glMapBufferRange);
 			LoadFunction("glBindBufferRange", (void**)&glBindBufferRange);
@@ -86,8 +95,11 @@ namespace GLFunc
 		LoadFunction("glGetProgramBinary", (void**)&glGetProgramBinary);
 		LoadFunction("glProgramBinary", (void**)&glProgramBinary);
 		LoadFunction("glProgramParameteri", (void**)&glProgramParameteri);
+		
+		LoadFunction("glDrawRangeElements", (void**)&glDrawRangeElements);
 
 		LoadFunction("glGetUniformBlockIndex", (void**)&glGetUniformBlockIndex);
 		LoadFunction("glUniformBlockBinding", (void**)&glUniformBlockBinding);
+		dlclose(self);
 	}
 }

@@ -20,45 +20,30 @@
 
 namespace {
 
-static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut, std::string* commentOut)
+static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut)
 {
+	if (line[0] == '#')
+		return;
+
 	int FirstEquals = (int)line.find("=", 0);
-	int FirstCommentChar = -1;
 
-	// Comments
-	if (FirstCommentChar < 0)
-		FirstCommentChar =
-			(int)line.find("#", FirstEquals > 0 ? FirstEquals : 0);
-	if (FirstCommentChar < 0 && line[0] == ';')
-		FirstCommentChar = 0;
-
-	// Allow preservation of spacing before comment
-	if (FirstCommentChar > 0)
-	{
-		while (line[FirstCommentChar - 1] == ' ' || line[FirstCommentChar - 1] == 9) // 9 == tab
-		{
-			FirstCommentChar--;
-		}
-	}
-
-	if ((FirstEquals >= 0) && ((FirstCommentChar < 0) || (FirstEquals < FirstCommentChar)))
+	if (FirstEquals >= 0)
 	{
 		// Yes, a valid line!
 		*keyOut = StripSpaces(line.substr(0, FirstEquals));
-		if (commentOut) *commentOut = FirstCommentChar > 0 ? line.substr(FirstCommentChar) : std::string("");
-		if (valueOut) *valueOut = StripQuotes(StripSpaces(line.substr(FirstEquals + 1, FirstCommentChar - FirstEquals - 1)));
+		if (valueOut) *valueOut = StripQuotes(StripSpaces(line.substr(FirstEquals + 1, std::string::npos)));
 	}
 }
 
 }
 
-std::string* IniFile::Section::GetLine(const char* key, std::string* valueOut, std::string* commentOut)
+std::string* IniFile::Section::GetLine(const char* key, std::string* valueOut)
 {
 	for (std::vector<std::string>::iterator iter = lines.begin(); iter != lines.end(); ++iter)
 	{
 		std::string& line = *iter;
 		std::string lineKey;
-		ParseLine(line, &lineKey, valueOut, commentOut);
+		ParseLine(line, &lineKey, valueOut);
 		if (!strcasecmp(lineKey.c_str(), key))
 			return &line;
 	}
@@ -67,12 +52,12 @@ std::string* IniFile::Section::GetLine(const char* key, std::string* valueOut, s
 
 void IniFile::Section::Set(const char* key, const char* newValue)
 {
-	std::string value, commented;
-	std::string* line = GetLine(key, &value, &commented);
+	std::string value;
+	std::string* line = GetLine(key, &value);
 	if (line)
 	{
 		// Change the value - keep the key and comment
-		*line = StripSpaces(key) + " = " + newValue + commented;
+		*line = StripSpaces(key) + " = " + newValue;
 	}
 	else
 	{
@@ -91,7 +76,7 @@ void IniFile::Section::Set(const char* key, const std::string& newValue, const s
 
 bool IniFile::Section::Get(const char* key, std::string* value, const char* defaultValue)
 {
-	std::string* line = GetLine(key, value, 0);
+	std::string* line = GetLine(key, value);
 	if (!line)
 	{
 		if (defaultValue)
@@ -224,7 +209,7 @@ bool IniFile::Section::Exists(const char *key) const
 	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
 	{
 		std::string lineKey;
-		ParseLine(*iter, &lineKey, NULL, NULL);
+		ParseLine(*iter, &lineKey, NULL);
 		if (!strcasecmp(lineKey.c_str(), key))
 			return true;
 	}
@@ -233,7 +218,7 @@ bool IniFile::Section::Exists(const char *key) const
 
 bool IniFile::Section::Delete(const char *key)
 {
-	std::string* line = GetLine(key, 0, 0);
+	std::string* line = GetLine(key, 0);
 	for (std::vector<std::string>::iterator liter = lines.begin(); liter != lines.end(); ++liter)
 	{
 		if (line == &*liter)
@@ -313,7 +298,7 @@ bool IniFile::DeleteKey(const char* sectionName, const char* key)
 	Section* section = GetSection(sectionName);
 	if (!section)
 		return false;
-	std::string* line = section->GetLine(key, 0, 0);
+	std::string* line = section->GetLine(key, 0);
 	for (std::vector<std::string>::iterator liter = section->lines.begin(); liter != section->lines.end(); ++liter)
 	{
 		if (line == &(*liter))
@@ -335,7 +320,7 @@ bool IniFile::GetKeys(const char* sectionName, std::vector<std::string>& keys) c
 	for (std::vector<std::string>::const_iterator liter = section->lines.begin(); liter != section->lines.end(); ++liter)
 	{
 		std::string key;
-		ParseLine(*liter, &key, 0, 0);
+		ParseLine(*liter, &key, 0);
 		keys.push_back(key);
 	}
 	return true;
@@ -421,11 +406,6 @@ bool IniFile::Load(const char* filename)
 					// New section!
 					std::string sub = line.substr(1, endpos - 1);
 					sections.push_back(Section(sub));
-
-					if (endpos + 1 < line.size())
-					{
-						sections[sections.size() - 1].comment = line.substr(endpos + 1);
-					}
 				}
 			}
 			else
@@ -459,7 +439,7 @@ bool IniFile::Save(const char* filename)
 
 		if (section.name != "")
 		{
-			out << "[" << section.name << "]" << section.comment << std::endl;
+			out << "[" << section.name << "]" << std::endl;
 		}
 
 		for (std::vector<std::string>::const_iterator liter = section.lines.begin(); liter != section.lines.end(); ++liter)

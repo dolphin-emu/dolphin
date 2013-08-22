@@ -851,11 +851,8 @@ void Wiimote::HandleExtensionSwap()
 			// set the wanted extension
 			m_extension->active_extension = m_extension->switch_extension;
 
-		// set register, I hate this
-		const std::vector<u8> &reg = ((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension])->reg;
-		memset(&m_reg_ext, 0, WIIMOTE_REG_EXT_SIZE);
-		memcpy(&m_reg_ext, &reg[0], reg.size());
-
+		// reset register
+		((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension])->Reset();
 	}
 }
 

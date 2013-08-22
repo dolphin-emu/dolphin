@@ -23,7 +23,7 @@
 
 #include "FifoQueue.h"
 
-#include "NetPlay.h"
+#include "NetPlayClient.h"
 
 enum
 {
@@ -41,6 +41,8 @@ private:
 	void OnJoin(wxCommandEvent& event);
 	void OnHost(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
+
+	void MakeNetPlayDiag(int port, const std::string &game, bool is_hosting);
 
 	wxTextCtrl		*m_nickname_text,
 		*m_host_port_text,
@@ -65,7 +67,6 @@ public:
 	Common::FifoQueue<std::string>	chat_msgs;
 
 	void OnStart(wxCommandEvent& event);
-	void OnStop(wxCommandEvent& event);
 
 	// implementation of NetPlayUI methods
 	void BootGame(const std::string& filename);
@@ -85,11 +86,12 @@ private:
 
 	void OnChat(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
-	void OnMemcardWriteCheck(wxCommandEvent& event);
 	void OnThread(wxCommandEvent& event);
 	void OnChangeGame(wxCommandEvent& event);
 	void OnAdjustBuffer(wxCommandEvent& event);
 	void OnConfigPads(wxCommandEvent& event);
+	void GetNetSettings(NetSettings &settings);
+	std::string FindGame();
 
 	wxListBox*		m_player_lbox;
 	wxTextCtrl*		m_chat_text;
@@ -98,6 +100,7 @@ private:
 
 	std::string		m_selected_game;
 	wxButton*		m_game_btn;
+	wxButton*		m_start_btn;
 
 	std::vector<int>	m_playerids;
 
@@ -129,6 +132,11 @@ private:
 	wxChoice*	m_map_cbox[4];
 	int* const	m_mapping;
 };
+
+namespace NetPlay
+{
+	void StopGame();
+}
 
 #endif // _NETWINDOW_H_
 

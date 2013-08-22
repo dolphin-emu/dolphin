@@ -187,6 +187,13 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		_("Connect Wiimote 4"),
 		_("Connect Balance Board"),
 
+		_("Toggle IR"),
+		_("Toggle Aspect Ratio"),
+		_("Toggle EFB Copies"),
+		_("Toggle Fog"),
+		_("Increase Frame limit"),
+		_("Decrease Frame limit"),
+
 		_("Load State Slot 1"),
 		_("Load State Slot 2"),
 		_("Load State Slot 3"),
@@ -195,6 +202,8 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		_("Load State Slot 6"),
 		_("Load State Slot 7"),
 		_("Load State Slot 8"),
+		_("Load State Slot 9"),
+		_("Load State Slot 10"),
 
 		_("Save State Slot 1"),
 		_("Save State Slot 2"),
@@ -204,6 +213,8 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		_("Save State Slot 6"),
 		_("Save State Slot 7"),
 		_("Save State Slot 8"),
+		_("Save State Slot 9"),
+		_("Save State Slot 10"),
 
 		_("Load State Last 1"),
 		_("Load State Last 2"),

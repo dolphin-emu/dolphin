@@ -63,18 +63,30 @@ struct pixel_shader_uid_data
 	u32 num_values; // TODO: Shouldn't be a u32
 	u32 NumValues() const { return num_values; }
 
-	u32 components;
+	u32 components : 23;
 	u32 dstAlphaMode : 2;
 	u32 Pretest : 2;
+	u32 nIndirectStagesUsed : 4;
+	u32 pad0 : 1;
 
 	u32 genMode_numtexgens : 4;
 	u32 genMode_numtevstages : 4;
 	u32 genMode_numindstages : 3;
-
-	u32 nIndirectStagesUsed : 8;
+	u32 alpha_test_comp0 : 3;
+	u32 alpha_test_comp1 : 3;
+	u32 alpha_test_logic : 2;
+	u32 alpha_test_use_zcomploc_hack : 1;
+	u32 fog_proj : 1;
+	u32 fog_fsel : 3;
+	u32 fog_RangeBaseEnabled : 1;
+	u32 ztex_op : 2;
+	u32 fast_depth_calc : 1;
+	u32 per_pixel_depth : 1;
+	u32 forced_early_z : 1;
+	u32 early_ztest : 1;
+	u32 pad1 : 1;
 
 	u32 texMtxInfo_n_projection : 8; // 8x1 bit
-
 	u32 tevindref_bi0 : 3;
 	u32 tevindref_bc0 : 3;
 	u32 tevindref_bi1 : 3;
@@ -83,6 +95,7 @@ struct pixel_shader_uid_data
 	u32 tevindref_bc3 : 3;
 	u32 tevindref_bi4 : 3;
 	u32 tevindref_bc4 : 3;
+
 	inline void SetTevindrefValues(int index, u32 texcoord, u32 texmap)
 	{
 		if (index == 0) { tevindref_bc0 = texcoord; tevindref_bi0 = texmap; }
@@ -97,25 +110,6 @@ struct pixel_shader_uid_data
 		else if (index == 2) { tevindref_bi2 = texmap; }
 		else if (index == 3) { tevindref_bi4 = texmap; }
 	}
-
-	u32 alpha_test_comp0 : 3;
-	u32 alpha_test_comp1 : 3;
-	u32 alpha_test_logic : 2;
-
-	u32 alpha_test_use_zcomploc_hack : 1;
-
-	u32 fog_proj : 1;
-	u32 fog_fsel : 3;
-	u32 fog_RangeBaseEnabled : 1;
-
-	u32 ztex_op : 2;
-
-	u32 fast_depth_calc : 1;
-	u32 per_pixel_depth : 1;
-	u32 forced_early_z : 1;
-	u32 early_ztest : 1;
-
-	u32 xfregs_numTexGen_numTexGens : 4;
 
 	struct {
 		// TODO: Can save a lot space by removing the padding bits

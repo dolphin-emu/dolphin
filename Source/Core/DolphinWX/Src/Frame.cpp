@@ -213,9 +213,9 @@ EVT_MENU(IDM_UNDOSAVESTATE,     CFrame::OnUndoSaveState)
 EVT_MENU(IDM_LOADSTATEFILE, CFrame::OnLoadStateFromFile)
 EVT_MENU(IDM_SAVESTATEFILE, CFrame::OnSaveStateToFile)
 
-EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT8, CFrame::OnLoadState)
+EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT10, CFrame::OnLoadState)
 EVT_MENU_RANGE(IDM_LOADLAST1, IDM_LOADLAST8, CFrame::OnLoadLastState)
-EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT8, CFrame::OnSaveState)
+EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT10, CFrame::OnSaveState)
 EVT_MENU_RANGE(IDM_FRAMESKIP0, IDM_FRAMESKIP9, CFrame::OnFrameSkip)
 EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
 EVT_MENU_RANGE(IDM_CONNECT_WIIMOTE1, IDM_CONNECT_BALANCEBOARD, CFrame::OnConnectWiimote)
@@ -756,6 +756,8 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_LOAD_STATE_SLOT_6: return IDM_LOADSLOT6;
 	case HK_LOAD_STATE_SLOT_7: return IDM_LOADSLOT7;
 	case HK_LOAD_STATE_SLOT_8: return IDM_LOADSLOT8;
+	case HK_LOAD_STATE_SLOT_9: return IDM_LOADSLOT9;
+	case HK_LOAD_STATE_SLOT_10: return IDM_LOADSLOT10;
 
 	case HK_SAVE_STATE_SLOT_1: return IDM_SAVESLOT1;
 	case HK_SAVE_STATE_SLOT_2: return IDM_SAVESLOT2;
@@ -765,6 +767,8 @@ int GetCmdForHotkey(unsigned int key)
 	case HK_SAVE_STATE_SLOT_6: return IDM_SAVESLOT6;
 	case HK_SAVE_STATE_SLOT_7: return IDM_SAVESLOT7;
 	case HK_SAVE_STATE_SLOT_8: return IDM_SAVESLOT8;
+	case HK_SAVE_STATE_SLOT_9: return IDM_SAVESLOT9;
+	case HK_SAVE_STATE_SLOT_10: return IDM_SAVESLOT10;
 
 	case HK_LOAD_LAST_STATE_1: return IDM_LOADLAST1;
 	case HK_LOAD_LAST_STATE_2: return IDM_LOADLAST2;
@@ -846,6 +850,48 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			WiimoteId = 3;
 		else if (IsHotkey(event, HK_BALANCEBOARD_CONNECT))
 			WiimoteId = 4;
+		else if (IsHotkey(event, HK_TOGGLE_IR))
+		{
+			OSDChoice = 1;
+			// Toggle native resolution
+			if (++g_Config.iEFBScale > SCALE_4X)
+				g_Config.iEFBScale = SCALE_AUTO;
+		}
+		else if (IsHotkey(event, HK_TOGGLE_AR))
+		{
+			OSDChoice = 2;
+			// Toggle aspect ratio
+			g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
+		}
+		else if (IsHotkey(event, HK_TOGGLE_EFBCOPIES))
+		{
+			OSDChoice = 3;
+			// Toggle EFB copy
+			if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
+			{
+				g_Config.bEFBCopyEnable ^= true;
+				g_Config.bCopyEFBToTexture = false;
+			}
+			else
+			{
+				g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+			}
+		}
+		else if (IsHotkey(event, HK_TOGGLE_FOG))
+		{
+			OSDChoice = 4;
+			g_Config.bDisableFog = !g_Config.bDisableFog;
+		}
+		else if (IsHotkey(event, HK_INCREASE_FRAME_LIMIT))
+		{
+			if (++SConfig::GetInstance().m_Framelimit > 0x19)
+				SConfig::GetInstance().m_Framelimit = 0;
+		}
+		else if (IsHotkey(event, HK_DECREASE_FRAME_LIMIT))
+		{
+			if (--SConfig::GetInstance().m_Framelimit > 0x19)
+				SConfig::GetInstance().m_Framelimit = 0x19;
+		}
 		else
 		{
 			unsigned int i = NUM_HOTKEYS;
@@ -889,43 +935,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		{
 			bool connect = !GetMenuBar()->IsChecked(IDM_CONNECT_WIIMOTE1 + WiimoteId);
 			ConnectWiimote(WiimoteId, connect);
-		}
-
-		if (g_Config.bOSDHotKey && event.GetModifiers() == wxMOD_NONE)
-		{
-			switch (event.GetKeyCode())
-			{
-			case '3':
-				OSDChoice = 1;
-				// Toggle native resolution
-				g_Config.iEFBScale = g_Config.iEFBScale + 1;
-				if (g_Config.iEFBScale > 7) g_Config.iEFBScale = 0;
-				break;
-			case '4':
-				OSDChoice = 2;
-				// Toggle aspect ratio
-				g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
-				break;
-			case '5':
-				OSDChoice = 3;
-				// Toggle EFB copy
-				if (!g_Config.bEFBCopyEnable || g_Config.bCopyEFBToTexture)
-				{
-					g_Config.bEFBCopyEnable ^= true;
-					g_Config.bCopyEFBToTexture = false;
-				}
-				else
-				{
-					g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
-				}
-				break;
-			case '6':
-				OSDChoice = 4;
-				g_Config.bDisableFog = !g_Config.bDisableFog;
-				break;
-			default:
-				break;
-			}
 		}
 
 		if (g_Config.bFreeLook && event.GetModifiers() == wxMOD_SHIFT)

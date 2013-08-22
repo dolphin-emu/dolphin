@@ -34,6 +34,14 @@ enum Hotkey
 	HK_WIIMOTE4_CONNECT,
 	HK_BALANCEBOARD_CONNECT,
 
+	HK_TOGGLE_IR,
+	HK_TOGGLE_AR,
+	HK_TOGGLE_EFBCOPIES,
+	HK_TOGGLE_FOG,
+
+	HK_INCREASE_FRAME_LIMIT,
+	HK_DECREASE_FRAME_LIMIT,
+
 	HK_LOAD_STATE_SLOT_1,
 	HK_LOAD_STATE_SLOT_2,
 	HK_LOAD_STATE_SLOT_3,
@@ -42,6 +50,8 @@ enum Hotkey
 	HK_LOAD_STATE_SLOT_6,
 	HK_LOAD_STATE_SLOT_7,
 	HK_LOAD_STATE_SLOT_8,
+	HK_LOAD_STATE_SLOT_9,
+	HK_LOAD_STATE_SLOT_10,
 
 	HK_SAVE_STATE_SLOT_1,
 	HK_SAVE_STATE_SLOT_2,
@@ -51,6 +61,8 @@ enum Hotkey
 	HK_SAVE_STATE_SLOT_6,
 	HK_SAVE_STATE_SLOT_7,
 	HK_SAVE_STATE_SLOT_8,
+	HK_SAVE_STATE_SLOT_9,
+	HK_SAVE_STATE_SLOT_10,
 
 	HK_LOAD_LAST_STATE_1,
 	HK_LOAD_LAST_STATE_2,
@@ -85,6 +97,7 @@ struct SCoreStartupParameter
 	// 0 = Interpreter
 	// 1 = Jit
 	// 2 = JitIL
+	// 3 = JIT ARM
 	int iCPUCore;
 
 	// JIT (shared between JIT and JITIL)
@@ -151,6 +164,9 @@ struct SCoreStartupParameter
 	bool bProgressive, bDisableScreenSaver;
 
 	int iPosX, iPosY, iWidth, iHeight;
+
+	// Fifo Player related settings
+	bool bLoopFifoReplay;
 
 	enum EBootBS2
 	{

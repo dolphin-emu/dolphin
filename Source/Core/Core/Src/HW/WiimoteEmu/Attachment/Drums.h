@@ -10,7 +10,7 @@ namespace WiimoteEmu
 class Drums : public Attachment
 {
 public:
-	Drums();
+	Drums(WiimoteEmu::ExtensionReg& _reg);
 	void GetState( u8* const data, const bool focus );
 
 	enum

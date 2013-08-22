@@ -338,7 +338,6 @@
     <ClCompile Include="Src\IPC_HLE\WII_Socket.cpp" />
     <ClCompile Include="Src\x64MemTools.cpp" />
     <ClCompile Include="Src\Movie.cpp" />
-    <ClCompile Include="Src\NetPlay.cpp" />
     <ClCompile Include="Src\NetPlayClient.cpp" />
     <ClCompile Include="Src\NetPlayServer.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
@@ -550,7 +549,9 @@
     <ClInclude Include="Src\IPC_HLE\WII_Socket.h" />
     <ClInclude Include="Src\MemTools.h" />
     <ClInclude Include="Src\Movie.h" />
-    <ClInclude Include="Src\NetPlay.h" />
+    <ClInclude Include="Src\NetPlayClient.h" />
+    <ClInclude Include="Src\NetPlayProto.h" />
+    <ClInclude Include="Src\NetPlayServer.h" />
     <ClInclude Include="Src\ec_wii.h" />
     <ClInclude Include="Src\PatchEngine.h" />
     <ClInclude Include="Src\DSPEmulator.h" />

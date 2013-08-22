@@ -23,7 +23,9 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 	
 	if(m_uploadtype & STREAM_DETECT)
 	{
-		if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA))
+		if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERDATA))
+			m_uploadtype = BUFFERDATA;
+		else if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA))
 			m_uploadtype = BUFFERSUBDATA;
 		else if(g_ogl_config.bSupportsGLSync && g_Config.bHackedBufferUpload && (m_uploadtype & MAP_AND_RISK))
 			m_uploadtype = MAP_AND_RISK;
@@ -109,6 +111,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		}
 		break;
 	case BUFFERSUBDATA:
+	case BUFFERDATA:
 		m_iterator_aligned = 0;
 		break;
 	case STREAM_DETECT:
@@ -138,6 +141,9 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 		break;
 	case BUFFERSUBDATA:
 		glBufferSubData(m_buffertype, m_iterator, size, data);
+		break;
+	case BUFFERDATA:
+		glBufferData(m_buffertype, size, data, GL_STREAM_DRAW);
 		break;
 	case STREAM_DETECT:
 	case DETECT_MASK: // Just to shutup warnings
@@ -188,11 +194,14 @@ void StreamBuffer::Init()
 	case MAP_AND_RISK:
 		glBindBuffer(m_buffertype, m_buffer);
 		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
-		pointer = (u8*)glMapBuffer(m_buffertype, GL_WRITE_ONLY);
+		pointer = (u8*)glMapBufferRange(m_buffertype, 0, m_size, GL_MAP_WRITE_BIT);
 		glUnmapBuffer(m_buffertype);
 		if(!pointer)
 			ERROR_LOG(VIDEO, "Buffer allocation failed");
-		
+		break;
+	case BUFFERDATA:
+		glBindBuffer(m_buffertype, m_buffer);
+		break;
 	case STREAM_DETECT:
 	case DETECT_MASK: // Just to shutup warnings
 		break;
@@ -211,6 +220,7 @@ void StreamBuffer::Shutdown()
 	case MAP_AND_RISK:
 	case MAP_AND_ORPHAN:
 	case BUFFERSUBDATA:
+	case BUFFERDATA:
 		break;
 	case PINNED_MEMORY:
 		for(u32 i=0; i<SYNC_POINTS; i++)

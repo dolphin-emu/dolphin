@@ -170,6 +170,7 @@ if(USE_UPNP)
 endif()
 
 if(ANDROID)
+	set(DOLPHIN_EXE main)
 	add_library(${DOLPHIN_EXE} SHARED ${SRCS})
 	target_link_libraries(${DOLPHIN_EXE} 
 	log
@@ -181,8 +182,11 @@ if(ANDROID)
 	if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "mips")
 		set (SO_TARGET "mips")
 	endif()
-	if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
+	if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv7-a")
 		set (SO_TARGET "armeabi-v7a")
+	endif()
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "armv5te")
+		set (SO_TARGET "armeabi")
 	endif()
 	if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "i686")
 		set (SO_TARGET "x86")
@@ -195,6 +199,9 @@ if(ANDROID)
 	)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/
+	)
+	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
+		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/Wii/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/
 	)
 else()
 	add_executable(${DOLPHIN_EXE} ${SRCS})

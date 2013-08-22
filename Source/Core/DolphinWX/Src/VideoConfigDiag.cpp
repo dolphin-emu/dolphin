@@ -86,7 +86,7 @@ wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual q
 wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis makes the rendered picture look less blocky.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select None.");
 wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render to texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly decreases performance and possibly causes issues (although unlikely).\n\nIf unsure, leave this checked.");
 wxString pixel_lighting_desc = wxTRANSLATE("Calculate lighting of 3D graphics per-pixel rather than per vertex.\nDecreases emulation speed by some percent (depending on your GPU).\nThis usually is a safe enhancement, but might cause issues sometimes.\n\nIf unsure, leave this unchecked.");
-wxString hacked_buffer_upload_desc = wxTRANSLATE("Use a hacked upload strategy to stream vertices.\nThis usually speed up, but is forbidden by OpenGL specification and may causes heavy glitches.\n\nIf unsure, leave this unchecked.");
+wxString hacked_buffer_upload_desc = wxTRANSLATE("Speed up vertex streaming by using unsafe OpenGL code. Enabling this option might cause heavy glitches or even crash the emulator.\n\nIf unsure, leave this unchecked.");
 wxString fast_depth_calc_desc = wxTRANSLATE("Use a less accurate algorithm to calculate depth values.\nCauses issues in a few games but might give a decent speedup.\n\nIf unsure, leave this checked.");
 wxString force_filtering_desc = wxTRANSLATE("Force texture filtering even if the emulated game explicitly disabled it.\nImproves texture quality slightly but causes glitches in some games.\n\nIf unsure, leave this unchecked.");
 wxString _3d_vision_desc = wxTRANSLATE("Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's supported by your GPU.\nPossibly causes issues.\nRequires fullscreen to work.\n\nIf unsure, leave this unchecked.");
@@ -121,7 +121,6 @@ wxString crop_desc = wxTRANSLATE("Crop the picture from 4:3 to 5:4 or from 16:9 
 wxString opencl_desc = wxTRANSLATE("[EXPERIMENTAL]\nAims to speed up emulation by offloading texture decoding to the GPU using the OpenCL framework.\nHowever, right now it's known to cause texture defects in various games. Also it's slower than regular CPU texture decoding in most cases.\n\nIf unsure, leave this unchecked.");
 wxString dlc_desc = wxTRANSLATE("[EXPERIMENTAL]\nSpeeds up emulation a bit by caching display lists.\nPossibly causes issues though.\n\nIf unsure, leave this unchecked.");
 wxString omp_desc = wxTRANSLATE("Use multiple threads to decode textures.\nMight result in a speedup (especially on CPUs with more than two cores).\n\nIf unsure, leave this unchecked.");
-wxString hotkeys_desc = wxTRANSLATE("Allows toggling certain options via the hotkeys 3 (Internal Resolution), 4 (Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n\nIf unsure, leave this unchecked.");
 wxString ppshader_desc = wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
 wxString cache_efb_copies_desc = wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nSometimes also increases visual quality.\nIf you're experiencing any issues, try raising texture cache accuracy or disable this option.\n\nIf unsure, leave this unchecked.");
 wxString shader_errors_desc = wxTRANSLATE("Usually if shader compilation fails, an error message is displayed.\nHowever, one may skip the popups to allow interruption free gameplay by checking this option.\n\nIf unsure, leave this unchecked.");
@@ -503,7 +502,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenCL Texture Decoder"), wxGetTranslation(opencl_desc), vconfig.bEnableOpenCL));
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_desc), vconfig.bOMPDecoder));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Fast Depth Calculation"), wxGetTranslation(fast_depth_calc_desc), vconfig.bFastDepthCalc));
-	szr_other->Add(hacked_buffer_upload = CreateCheckBox(page_hacks, _("Hacked Buffer Upload"), wxGetTranslation(hacked_buffer_upload_desc), vconfig.bHackedBufferUpload));
+	szr_other->Add(hacked_buffer_upload = CreateCheckBox(page_hacks, _("Vertex Streaming Hack"), wxGetTranslation(hacked_buffer_upload_desc), vconfig.bHackedBufferUpload));
 	
 	wxStaticBoxSizer* const group_other = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Other"));
 	group_other->Add(szr_other, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
@@ -559,7 +558,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	szr_misc->Add(CreateCheckBox(page_advanced, _("Show Input Display"), wxGetTranslation(show_input_display_desc), vconfig.bShowInputDisplay));
 	szr_misc->Add(CreateCheckBox(page_advanced, _("Crop"), wxGetTranslation(crop_desc), vconfig.bCrop));
-	szr_misc->Add(CreateCheckBox(page_advanced, _("Enable Hotkeys"), wxGetTranslation(hotkeys_desc), vconfig.bOSDHotKey));
 
 	// Progressive Scan
 	{

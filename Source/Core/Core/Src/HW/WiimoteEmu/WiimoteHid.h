@@ -54,7 +54,7 @@ struct wm_ir_basic
 };
 
 // Three bytes for one object
-struct wm_ir_extended 
+struct wm_ir_extended
 {
 	u8 x;
 	u8 y;
@@ -150,9 +150,9 @@ struct wm_turntable_extension
 struct wm_motionplus_data
 {
 	u8 yaw1;
-	
+
 	u8 roll1;
-	
+
 	u8 pitch1;
 
 	u8 yaw2 : 6;
@@ -230,7 +230,7 @@ struct wm_status_report
 };
 
 #define WM_WRITE_DATA 0x16
-struct wm_write_data 
+struct wm_write_data
 {
 	u8 rumble : 1;
 	u8 space : 2;	//see WM_SPACE_*
@@ -241,7 +241,7 @@ struct wm_write_data
 };
 
 #define WM_ACK_DATA 0x22
-struct wm_acknowledge 
+struct wm_acknowledge
 {
 	wm_core buttons;
 	u8 reportID;
@@ -276,7 +276,7 @@ struct wm_read_data_reply
 #define WM_RDERR_WOREG 7
 #define WM_RDERR_NOMEM 8
 
-	
+
 // Data reports
 
 #define WM_REPORT_CORE 0x30
@@ -304,20 +304,20 @@ struct wm_report_core_accel_ir12
 
 #define WM_REPORT_CORE_EXT19 0x34
 #define WM_REPORT_CORE_ACCEL_EXT16 0x35
-struct wm_report_core_accel_ext16 
+struct wm_report_core_accel_ext16
 {
 	wm_core c;
 	wm_accel a;
 	wm_extension ext;
 	//wm_ir_basic ir[2];
 	u8 pad[10];
-	
+
 };
 
 #define WM_REPORT_CORE_IR10_EXT9 0x36
 
 #define WM_REPORT_CORE_ACCEL_IR10_EXT6 0x37
-struct wm_report_core_accel_ir10_ext6 
+struct wm_report_core_accel_ir10_ext6
 {
 	wm_core c;
 	wm_accel a;
@@ -336,7 +336,7 @@ struct wm_report_ext21
 #define WM_REPORT_INTERLEAVE2 0x3f
 
 #define WM_SPEAKER_ENABLE 0x14
-#define WM_SPEAKER_MUTE 0x19 
+#define WM_SPEAKER_MUTE 0x19
 #define WM_WRITE_SPEAKER_DATA 0x18
 struct wm_speaker_data
 {
@@ -383,9 +383,12 @@ struct cc_trigger
 struct nu_cal
 {
 	wm_accel cal_zero;		// zero calibration
+	u8 pad1;
 	wm_accel cal_g;			// g size
+	u8 pad2;
 	nu_js jx;				//
 	nu_js jy;				//
+	u8 sum[2];
 };
 
 struct cc_cal

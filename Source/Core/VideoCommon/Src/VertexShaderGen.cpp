@@ -38,7 +38,7 @@ static void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char*
 }
 
 template<class T>
-static void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
+static inline void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
 {
 	object.Write("struct VS_OUTPUT {\n");
 	DefineVSOutputStructMember(object, api_type, "float4", "pos", -1, "POSITION");
@@ -67,7 +67,7 @@ static void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
 }
 
 template<class T>
-static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
+static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 {
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	vertex_shader_uid_data dummy_data;
@@ -75,21 +75,22 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 											? out.template GetUidData<vertex_shader_uid_data>() : dummy_data;
 
 	out.SetBuffer(text);
+	const bool is_writing_shadercode = (out.GetBuffer() != NULL);
 #ifndef ANDROID
 	locale_t locale;
 	locale_t old_locale;
-	if (out.GetBuffer() != NULL)
+	if (is_writing_shadercode)
 	{
 		locale = newlocale(LC_NUMERIC_MASK, "C", NULL); // New locale for compilation
 		old_locale = uselocale(locale); // Apply the locale for this thread
 	}
 #endif
-	text[sizeof(text) - 1] = 0x7C;  // canary
+
+	if (is_writing_shadercode)
+		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	_assert_(bpmem.genMode.numtexgens == xfregs.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
-
-	bool is_d3d = (api_type & API_D3D9 || api_type == API_D3D11);
 
 	// uniforms
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
@@ -174,19 +175,9 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 		if (components & VB_HAS_NRM0)
 			out.Write("  float3 rawnorm0 : NORMAL0,\n");
 		if (components & VB_HAS_NRM1)
-		{
-			if (is_d3d)
-				out.Write("  float3 rawnorm1 : NORMAL1,\n");
-			else
-				out.Write("  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
-		}
+			out.Write("  float3 rawnorm1 : NORMAL1,\n");
 		if (components & VB_HAS_NRM2)
-		{
-			if (is_d3d)
-				out.Write("  float3 rawnorm2 : NORMAL2,\n");
-			else
-				out.Write("  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
-		}
+			out.Write("  float3 rawnorm2 : NORMAL2,\n");
 		if (components & VB_HAS_COL0)
 			out.Write("  float4 color0 : COLOR0,\n");
 		if (components & VB_HAS_COL1)
@@ -198,12 +189,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 				out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
 		}
 		if (components & VB_HAS_POSMTXIDX)
-		{
-			if (is_d3d)
-				out.Write("  float4 blend_indices : BLENDINDICES,\n");
-			else
-				out.Write("  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
-		}
+			out.Write("  float4 blend_indices : BLENDINDICES,\n");
 		out.Write("  float4 rawpos : POSITION) {\n");
 	}
 	out.Write("VS_OUTPUT o;\n");
@@ -225,7 +211,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 			out.Write("int posmtx = int(fposmtx);\n");
 		}
 
-		if (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS))
+		if (is_writing_shadercode && DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS))
 		{
 			// This'll cause issues, but  it can't be helped
 			out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES"[0], rawpos), dot(" I_TRANSFORMMATRICES"[1], rawpos), dot(" I_TRANSFORMMATRICES"[2], rawpos), 1);\n");
@@ -353,7 +339,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 					// transform the light dir into tangent space
 					uid_data.texMtxInfo[i].embosslightshift = xfregs.texMtxInfo[i].embosslightshift;
 					uid_data.texMtxInfo[i].embosssourceshift = xfregs.texMtxInfo[i].embosssourceshift;
-					out.Write("ldir = normalize(%s.xyz - pos.xyz);\n", LightPos(I_LIGHTS, texinfo.embosslightshift));
+					out.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(I_LIGHTS, texinfo.embosslightshift));
 					out.Write("o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
 				}
 				else
@@ -468,7 +454,7 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
 	//if not early z culling will improve speed
-	if (is_d3d)
+	if (api_type & API_D3D9 || api_type == API_D3D11)
 	{
 		out.Write("o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
 	}
@@ -547,16 +533,16 @@ static void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
 		out.Write("return o;\n}\n");
 	}
 
-	if (text[sizeof(text) - 1] != 0x7C)
-		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
+	if (is_writing_shadercode)
+	{
+		if (text[sizeof(text) - 1] != 0x7C)
+			PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
 
 #ifndef ANDROID
-	if (out.GetBuffer() != NULL)
-	{
 		uselocale(old_locale); // restore locale
 		freelocale(locale);
-	}
 #endif
+	}
 }
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type)

@@ -127,17 +127,6 @@ void Init(int cpu_core)
 	ppcState.itlb_last = 0;
 	memset(ppcState.itlb_va, 0, sizeof(ppcState.itlb_va));
 	memset(ppcState.itlb_pa, 0, sizeof(ppcState.itlb_pa));
-
-	memset(ppcState.mojs, 0, sizeof(ppcState.mojs));
-	memset(ppcState.sr, 0, sizeof(ppcState.sr));
-	ppcState.DebugCount = 0;
-	ppcState.dtlb_last = 0;
-	ppcState.dtlb_last = 0;
-	memset(ppcState.dtlb_va, 0, sizeof(ppcState.dtlb_va));
-	memset(ppcState.dtlb_pa, 0, sizeof(ppcState.dtlb_pa));
-	ppcState.itlb_last = 0;
-	memset(ppcState.itlb_va, 0, sizeof(ppcState.itlb_va));
-	memset(ppcState.itlb_pa, 0, sizeof(ppcState.itlb_pa));
 	ppcState.pagetable_base = 0;
 	ppcState.pagetable_hashmask = 0;
 

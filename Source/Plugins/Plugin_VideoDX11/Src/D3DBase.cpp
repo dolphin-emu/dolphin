@@ -245,6 +245,13 @@ std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
 	return aa_modes;
 }
 
+D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
+{
+	D3D_FEATURE_LEVEL feat_level = D3D_FEATURE_LEVEL_9_1;
+	PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, NULL, &feat_level, NULL);
+	return feat_level;
+}
+
 DXGI_SAMPLE_DESC GetAAMode(int index)
 {
 	return aa_modes[index];
@@ -327,15 +334,27 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.BufferDesc.Height = yres;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	D3D11_CREATE_DEVICE_FLAG device_flags = (D3D11_CREATE_DEVICE_FLAG)(D3D11_CREATE_DEVICE_DEBUG|D3D11_CREATE_DEVICE_SINGLETHREADED);
-#else
-	D3D11_CREATE_DEVICE_FLAG device_flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
+	// Creating debug devices can sometimes fail if the user doesn't have the correct
+	// version of the DirectX SDK. If it does, simply fallback to a non-debug device.
+	{
+		hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL,
+											D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
+											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
+											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
+											&featlevel, &context);
+	}
+
+	if (FAILED(hr))
 #endif
-	hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, device_flags,
-										supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
-										D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
-										&featlevel, &context);
-	if (FAILED(hr) || !device || !context || !swapchain)
+	{
+		hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL,
+											D3D11_CREATE_DEVICE_SINGLETHREADED,
+											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
+											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
+											&featlevel, &context);
+	}
+
+	if (FAILED(hr))
 	{
 		MessageBox(wnd, _T("Failed to initialize Direct3D.\nMake sure your video card supports at least D3D 10.0"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 		SAFE_RELEASE(device);

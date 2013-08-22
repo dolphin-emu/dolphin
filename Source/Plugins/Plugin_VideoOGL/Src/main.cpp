@@ -250,6 +250,8 @@ void VideoBackend::Video_Cleanup() {
 		ProgramShaderCache::Shutdown();
 		VertexShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();
+		delete g_perf_query;
+		g_perf_query = NULL;
 		delete g_vertex_manager;
 		g_vertex_manager = NULL;
 		OpcodeDecoder_Shutdown();

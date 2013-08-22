@@ -151,9 +151,6 @@ void RunGpuLoop()
 		// check if we are able to run this buffer	
 		while (GpuRunningState && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 		{
-			if (!GpuRunningState)
-				break;
-
 			fifo.isGpuReadingData = true;
 			CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable ? true : false;
 

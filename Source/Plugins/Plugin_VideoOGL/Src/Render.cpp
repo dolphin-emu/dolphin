@@ -269,22 +269,30 @@ void GLAPIENTRY ClearDepthf(GLfloat depthval)
 
 void InitDriverInfo()
 {
-	// Get Vendor
 	std::string svendor = std::string(g_ogl_config.gl_vendor);
 	std::string srenderer = std::string(g_ogl_config.gl_renderer);
 	DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
+	DriverDetails::Driver driver = DriverDetails::DRIVER_UNKNOWN;
 	u32 devfamily = 0;
 	double version = 0.0;
 
-	// Get Vendor first
+	// Get the vendor first
 	if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
 		vendor = DriverDetails::VENDOR_NVIDIA; 
-	else if (svendor == "ATI Technologies Inc.")
+	else if (svendor == "ATI Technologies Inc." || svendor == "Advanced Micro Devices, Inc.")
 		vendor = DriverDetails::VENDOR_ATI;
 	else if (std::string::npos != svendor.find("Intel"))
 		vendor = DriverDetails::VENDOR_INTEL;
 	else if (svendor == "ARM")
+	{
 		vendor = DriverDetails::VENDOR_ARM;
+		driver = DriverDetails::DRIVER_ARM;
+	}
+	else if (svendor == "http://limadriver.org/")
+	{
+		vendor = DriverDetails::VENDOR_ARM;
+		driver = DriverDetails::DRIVER_LIMA;
+	}
 	else if (svendor == "Qualcomm")
 		vendor = DriverDetails::VENDOR_QUALCOMM;
 	else if (svendor == "Imagination Technologies")
@@ -317,7 +325,7 @@ void InitDriverInfo()
 		default:
 		break;
 	}
-	DriverDetails::Init(vendor, devfamily, version);
+	DriverDetails::Init(vendor, driver, devfamily, version);
 }
 
 // Init functions
@@ -350,7 +358,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsPrimitiveRestart = false; 
 	g_Config.backend_info.bSupportsEarlyZ = false;
 	
-	g_ogl_config.bSupportsGLSLCache = false; // XXX: Reenable once shaders compile correctly  
+	g_ogl_config.bSupportsGLSLCache = true; 
 	g_ogl_config.bSupportsGLPinnedMemory = false; 
 	g_ogl_config.bSupportsGLSync = true; 
 	g_ogl_config.bSupportsGLBaseVertex = false; 
@@ -677,9 +685,10 @@ void Renderer::DrawDebugInfo()
 		glLineWidth(3.0f);
 
 		// 2*Coords + 3*Color
+		u32 length = stats.efb_regions.size() * sizeof(GLfloat) * (2+3)*2*6;
 		glBindBuffer(GL_ARRAY_BUFFER, s_ShowEFBCopyRegions_VBO);
-		glBufferData(GL_ARRAY_BUFFER, stats.efb_regions.size() * sizeof(GLfloat) * (2+3)*2*6, NULL, GL_STREAM_DRAW);
-		GLfloat *Vertices = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		glBufferData(GL_ARRAY_BUFFER, length, NULL, GL_STREAM_DRAW);
+		GLfloat *Vertices = (GLfloat*)glMapBufferRange(GL_ARRAY_BUFFER, 0, length, GL_MAP_WRITE_BIT);
 
 		// Draw EFB copy regions rectangles
 		int a = 0;
@@ -1542,7 +1551,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if(!g_ActiveConfig.bAnaglyphStereo)
 	{
 		glClearColor(0, 0, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
 	GL_REPORT_ERRORD();

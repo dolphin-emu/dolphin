@@ -67,7 +67,12 @@ static const struct {
 	{ "Wiimote4Connect",	347 /* WXK_F8 */,	1 /* wxMOD_ALT */ },
 	{ "BalanceBoardConnect",348 /* WXK_F9 */,	1 /* wxMOD_ALT */ },
 #endif
-
+	{ "ToggleIR",			0,	0 /* wxMOD_NONE */ },
+	{ "ToggleAspectRatio",	0,	0 /* wxMOD_NONE */ },
+	{ "ToggleEFBCopies",	0,	0 /* wxMOD_NONE */ },
+	{ "ToggleFog",			0,	0 /* wxMOD_NONE */ },
+	{ "IncreaseFrameLimit",	0,	0 /* wxMOD_NONE */ },
+	{ "DecreaseFrameLimit",	0,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot1",	340 /* WXK_F1 */,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot2",	341 /* WXK_F2 */,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot3",	342 /* WXK_F3 */,	0 /* wxMOD_NONE */ },
@@ -76,6 +81,8 @@ static const struct {
 	{ "LoadStateSlot6",	345 /* WXK_F6 */,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot7",	346 /* WXK_F7 */,	0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot8",	347 /* WXK_F8 */,	0 /* wxMOD_NONE */ },
+	{ "LoadStateSlot9",	0,	0 /* wxMOD_NONE */ },
+	{ "LoadStateSlot10",0,	0 /* wxMOD_NONE */ },
 
 	{ "SaveStateSlot1",	340 /* WXK_F1 */,	4 /* wxMOD_SHIFT */ },
 	{ "SaveStateSlot2",	341 /* WXK_F2 */,	4 /* wxMOD_SHIFT */ },
@@ -85,6 +92,8 @@ static const struct {
 	{ "SaveStateSlot6",	345 /* WXK_F6 */,	4 /* wxMOD_SHIFT */ },
 	{ "SaveStateSlot7",	346 /* WXK_F7 */,	4 /* wxMOD_SHIFT */ },
 	{ "SaveStateSlot8",	347 /* WXK_F8 */,	4 /* wxMOD_SHIFT */ },
+	{ "SaveStateSlot9",	0,	0 /* wxMOD_NONE */ },
+	{ "SaveStateSlot10",0,	0 /* wxMOD_NONE */ },
 
 	{ "LoadLastState1",	0,	0 /* wxMOD_NONE */ },
 	{ "LoadLastState2",	0,	0 /* wxMOD_NONE */ },
@@ -270,6 +279,9 @@ void SConfig::SaveSettings()
 	ini.Set("DSP", "Backend", sBackend);
 	ini.Set("DSP", "Volume", m_Volume);
 
+	// Fifo Player
+	ini.Set("FifoPlayer", "LoopReplay", m_LocalCoreStartupParameter.bLoopFifoReplay);
+
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
 }
@@ -445,6 +457,8 @@ void SConfig::LoadSettings()
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_NULLSOUND);
 	#endif
 		ini.Get("DSP", "Volume", &m_Volume, 100);
+
+		ini.Get("FifoPlayer", "LoopReplay", &m_LocalCoreStartupParameter.bLoopFifoReplay, true);
 	}
 
 	m_SYSCONF = new SysConf();

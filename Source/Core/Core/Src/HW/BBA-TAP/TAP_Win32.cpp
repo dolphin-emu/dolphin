@@ -193,7 +193,7 @@ bool CEXIETHERNET::Activate()
 	}
 	if (mHAdapter == INVALID_HANDLE_VALUE)
 	{
-		ERROR_LOG(SP1, "Failed to open any TAP");
+		PanicAlert("Failed to open any TAP");
 		return false;
 	}
 

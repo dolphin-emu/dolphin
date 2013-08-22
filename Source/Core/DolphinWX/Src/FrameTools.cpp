@@ -382,6 +382,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_LOAD_STATE_SLOT_6:
 		case HK_LOAD_STATE_SLOT_7:
 		case HK_LOAD_STATE_SLOT_8:
+		case HK_LOAD_STATE_SLOT_9:
+		case HK_LOAD_STATE_SLOT_10:
 			Label = wxString::Format(_("Slot %i"), 
 					Id - HK_LOAD_STATE_SLOT_1 + 1);
 			break;
@@ -394,6 +396,8 @@ wxString CFrame::GetMenuLabel(int Id)
 		case HK_SAVE_STATE_SLOT_6:
 		case HK_SAVE_STATE_SLOT_7:
 		case HK_SAVE_STATE_SLOT_8:
+		case HK_SAVE_STATE_SLOT_9:
+		case HK_SAVE_STATE_SLOT_10:
 			Label = wxString::Format(_("Slot %i"), 
 					Id - HK_SAVE_STATE_SLOT_1 + 1);
 			break;
@@ -1006,6 +1010,8 @@ void CFrame::DoPause()
 // Stop the emulation
 void CFrame::DoStop()
 {
+	if (!Core::IsRunningAndStarted())
+		return;
 	if (confirmStop)
 		return;
 
@@ -1045,6 +1051,7 @@ void CFrame::DoStop()
 			DoRecordingSave();
 		if(Movie::IsPlayingInput() || Movie::IsRecordingInput())
 			Movie::EndPlayInput(false);
+		NetPlay::StopGame();
 
 		wxBeginBusyCursor();
 		BootManager::Stop();
@@ -1581,7 +1588,11 @@ void CFrame::UpdateGUI()
 
 	// Update Menu Accelerators
 	for (unsigned int i = 0; i < NUM_HOTKEYS; i++)
+	{
+		if (GetCmdForHotkey(i) == -1)
+			continue;
 		GetMenuBar()->FindItem(GetCmdForHotkey(i))->SetItemLabel(GetMenuLabel(i));
+	}
 
 	GetMenuBar()->FindItem(IDM_LOADSTATE)->Enable(Initialized);
 	GetMenuBar()->FindItem(IDM_SAVESTATE)->Enable(Initialized);

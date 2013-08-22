@@ -116,10 +116,11 @@ public:
 
 	void GenerateRC(int cr = 0);
 	void ComputeRC(int cr = 0);
+	void ComputeRC(s32 value, int cr);
 
-	// TODO: This shouldn't be here
-	void StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset);
-	void LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset);
+	void ComputeCarry();
+	void GetCarryAndClear(ARMReg reg);
+	void FinalizeCarry(ARMReg reg);
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
@@ -147,18 +148,27 @@ public:
 	void addi(UGeckoInstruction _inst);
 	void addis(UGeckoInstruction _inst);
 	void addx(UGeckoInstruction _inst);
+	void addcx(UGeckoInstruction _inst);
+	void addex(UGeckoInstruction _inst);
 	void cmp (UGeckoInstruction _inst);
 	void cmpi(UGeckoInstruction _inst);
+	void cmpl(UGeckoInstruction _inst);
 	void cmpli(UGeckoInstruction _inst);
 	void negx(UGeckoInstruction _inst);
 	void mulli(UGeckoInstruction _inst);
+	void mullwx(UGeckoInstruction _inst);
+	void mulhwux(UGeckoInstruction _inst);
 	void ori(UGeckoInstruction _inst);	
 	void oris(UGeckoInstruction _inst);	
 	void orx(UGeckoInstruction _inst);
 	void xorx(UGeckoInstruction _inst);
+	void andx(UGeckoInstruction _inst);
+	void andi_rc(UGeckoInstruction _inst);
+	void andis_rc(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);
 	void rlwinmx(UGeckoInstruction _inst);
 	void subfx(UGeckoInstruction _inst);
+	void srawix(UGeckoInstruction _inst);
 	void extshx(UGeckoInstruction inst);
 	void extsbx(UGeckoInstruction inst);
 
@@ -171,8 +181,10 @@ public:
 
 	// LoadStore
 	void icbi(UGeckoInstruction _inst);
+	void dcbst(UGeckoInstruction _inst);
 	void lbz(UGeckoInstruction _inst);
 	void lhz(UGeckoInstruction _inst);
+	void lha(UGeckoInstruction _inst);
 	void lwz(UGeckoInstruction _inst);
 	void lwzx(UGeckoInstruction _inst);
 	void stb(UGeckoInstruction _inst);
@@ -184,12 +196,24 @@ public:
 
 	// Floating point
 	void fabsx(UGeckoInstruction _inst);
+	void faddsx(UGeckoInstruction _inst);
 	void faddx(UGeckoInstruction _inst);
+	void fsubsx(UGeckoInstruction _inst);
+	void fsubx(UGeckoInstruction _inst);
+	void fmulsx(UGeckoInstruction _inst);
+	void fmulx(UGeckoInstruction _inst);
 	void fmrx(UGeckoInstruction _inst);
 
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);
 	void lfd(UGeckoInstruction _inst);
+
+	// Paired Singles
+	void ps_add(UGeckoInstruction _inst);
+	void ps_sum0(UGeckoInstruction _inst);
+	void ps_madd(UGeckoInstruction _inst);
+	void ps_sub(UGeckoInstruction _inst);
+	void ps_mul(UGeckoInstruction _inst);
 };
 
 #endif // _JIT64_H

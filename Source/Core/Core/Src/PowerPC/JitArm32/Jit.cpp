@@ -48,15 +48,10 @@ void JitArm::Init()
 	AllocCodeSpace(CODE_SIZE);
 	blocks.Init();
 	asm_routines.Init();
-	// TODO: Investigate why the register cache crashes when only doing Init with
-	// the pointer to this. Seems for some reason it doesn't set the emitter pointer
-	// In the class for some reason?
 	gpr.Init(this);
-	gpr.SetEmitter(this);
 	fpr.Init(this);
-	fpr.SetEmitter(this);
 	jo.enableBlocklink = true;
-	jo.optimizeGatherPipe = false;
+	jo.optimizeGatherPipe = true;
 }
 
 void JitArm::ClearCache() 
@@ -137,7 +132,11 @@ static void ImHere()
 void JitArm::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+	{
+		PUSH(4, R0, R1, R2, R3);
 		QuickCallFunction(R14, (void*)&GPFifo::CheckGatherPipe);
+		POP(4, R0, R1, R2, R3);
+	}
 }
 void JitArm::DoDownCount()
 {
@@ -290,9 +289,9 @@ void STACKALIGN JitArm::Jit(u32 em_address)
 		ClearCache();
 	}
 
-	int block_num = blocks.AllocateBlock(em_address);
+	int block_num = blocks.AllocateBlock(PowerPC::ppcState.pc);
 	JitBlock *b = blocks.GetBlock(block_num);
-	const u8* BlockPtr = DoJit(em_address, &code_buffer, b);
+	const u8* BlockPtr = DoJit(PowerPC::ppcState.pc, &code_buffer, b);
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, BlockPtr);
 }
 void JitArm::Break(UGeckoInstruction inst)
@@ -360,13 +359,13 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 
 	// Downcount flag check, Only valid for linked blocks
 	{
-		FixupBranch skip = B_CC(CC_PL);
+		SetCC(CC_MI);
 		ARMReg rA = gpr.GetReg(false);
 		MOVI2R(rA, js.blockStart);
 		STR(rA, R9, PPCSTATE_OFF(pc));
 		MOVI2R(rA, (u32)asm_routines.doTiming);
 		B(rA);
-		SetJumpTarget(skip);
+		SetCC();
 	}
 
 	const u8 *normalEntry = GetCodePtr();
@@ -384,11 +383,11 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		MOVI2R(C, js.blockStart); // R3
 		LDR(A, R9, PPCSTATE_OFF(msr));
 		TST(A, Shift);
-		FixupBranch b1 = B_CC(CC_NEQ);
+		SetCC(CC_EQ);
 		STR(C, R9, PPCSTATE_OFF(pc));
 		MOVI2R(A, (u32)asm_routines.fpException);
 		B(A);
-		SetJumpTarget(b1);
+		SetCC();
 		gpr.Unlock(A, C);	
 	}
 	// Conditionally add profiling code.
@@ -451,8 +450,9 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 		{
 			js.fifoBytesThisBlock -= 32;
-			// TODO: This needs thunkmanager for ARM
-			//ARMABI_CallFunction(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
+			PUSH(4, R0, R1, R2, R3);
+			QuickCallFunction(R14, (void*)&GPFifo::CheckGatherPipe);
+			POP(4, R0, R1, R2, R3);
 		}
 		if (Core::g_CoreStartupParameter.bEnableDebugging)
 		{

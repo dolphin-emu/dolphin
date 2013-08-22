@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- CPU Settings -->             
+    <CheckBoxPreference
+           android:key="dualCorePref"
+           android:summary="@string/on_off"
+           android:title="@string/dual_core" />
+    
+    <ListPreference
+        android:key="cpuCorePref"
+        android:summary="@string/emu_core_to_use"
+        android:title="@string/cpu_core" />
+        
+</PreferenceScreen>

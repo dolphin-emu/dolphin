@@ -10,7 +10,7 @@ namespace WiimoteEmu
 class Classic : public Attachment
 {
 public:
-	Classic();
+	Classic(WiimoteEmu::ExtensionReg& _reg);
 	void GetState( u8* const data, const bool focus );
 
 	enum

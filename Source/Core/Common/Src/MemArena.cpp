@@ -20,6 +20,7 @@
 #include <linux/ashmem.h>
 #endif
 #endif
+#include <set>
 
 #if defined(__APPLE__)
 static const char* ram_temp_file = "/tmp/gc_mem.tmp";
@@ -151,7 +152,11 @@ u8* MemArena::Find4GBBase()
 		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
 		return 0;
 	}
-	munmap(base, 0x31000000);
+#ifndef ANDROID
+	// Android 4.3 changes how munmap works which causes crashes.
+	// Keep the memory space after allocating it...
+	munmap(base, MemSize);
+#endif
 	return static_cast<u8*>(base);
 #endif
 #endif
@@ -214,27 +219,7 @@ static bool Memory_TryBase(u8 *base, const MemoryView *views, int num_views, u32
 
 bail:
 	// Argh! ERROR! Free what we grabbed so far so we can try again.
-	for (int j = 0; j <= i; j++)
-	{
-		SKIP(flags, views[i].flags);
-		if (views[j].out_ptr_low && *views[j].out_ptr_low)
-		{
-			arena->ReleaseView(*views[j].out_ptr_low, views[j].size);
-			*views[j].out_ptr_low = NULL;
-		}
-		if (*views[j].out_ptr)
-		{
-#ifdef _M_X64
-			arena->ReleaseView(*views[j].out_ptr, views[j].size);
-#else
-			if (!(views[j].flags & MV_MIRROR_PREVIOUS))
-			{
-				arena->ReleaseView(*views[j].out_ptr, views[j].size);
-			}
-#endif
-			*views[j].out_ptr = NULL;
-		}
-	}
+	MemoryMap_Shutdown(views, i+1, flags, arena);
 	return false;
 }
 
@@ -300,15 +285,20 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 
 void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
+	std::set<void*> freeset;
 	for (int i = 0; i < num_views; i++)
 	{
-		SKIP(flags, views[i].flags);
-		if (views[i].out_ptr_low && *views[i].out_ptr_low)
-			arena->ReleaseView(*views[i].out_ptr_low, views[i].size);
-		if (*views[i].out_ptr && (views[i].out_ptr_low && *views[i].out_ptr != *views[i].out_ptr_low))
-			arena->ReleaseView(*views[i].out_ptr, views[i].size);
-		*views[i].out_ptr = NULL;
-		if (views[i].out_ptr_low) 
-			*views[i].out_ptr_low = NULL;
+		const MemoryView* view = &views[i];
+		u8** outptrs[2] = {view->out_ptr_low, view->out_ptr};
+		for (int j = 0; j < 2; j++)
+		{
+			u8** outptr = outptrs[j];
+			if (outptr && *outptr && !freeset.count(*outptr))
+			{
+				arena->ReleaseView(*outptr, view->size);
+				freeset.insert(*outptr);
+				*outptr = NULL;
+			}
+		}
 	}
 }

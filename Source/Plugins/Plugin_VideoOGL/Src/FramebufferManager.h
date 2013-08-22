@@ -46,7 +46,7 @@ namespace OGL {
 
 struct XFBSource : public XFBSourceBase
 {
-	XFBSource(GLuint rbuf) : renderbuf(rbuf) {}
+	XFBSource(GLuint tex) : texture(tex) {}
 	~XFBSource();
 
 	void CopyEFB(float Gamma);
@@ -54,7 +54,7 @@ struct XFBSource : public XFBSourceBase
 	void Draw(const MathUtil::Rectangle<float> &sourcerc,
 		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
 
-	const GLuint renderbuf;
+	const GLuint texture;
 };
 
 inline GLenum getFbType()

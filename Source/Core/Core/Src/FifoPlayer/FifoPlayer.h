@@ -86,6 +86,8 @@ private:
 
 	bool ShouldLoadBP(u8 address);
 
+	bool m_Loop;
+
 	u32 m_CurrentFrame;
 	u32 m_FrameRangeStart;
 	u32 m_FrameRangeEnd;

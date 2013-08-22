@@ -20,6 +20,7 @@
 
 SCoreStartupParameter::SCoreStartupParameter()
 : hInstance(0),
+  bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),
   bJITNoBlockCache(false), bJITBlockLinking(true),
   bJITOff(false),
   bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),
@@ -46,7 +47,8 @@ SCoreStartupParameter::SCoreStartupParameter()
   bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
   bFullscreen(false), bRenderToMain(false),
   bProgressive(false), bDisableScreenSaver(false),
-  iPosX(100), iPosY(100), iWidth(800), iHeight(600)
+  iPosX(100), iPosY(100), iWidth(800), iHeight(600),
+  bLoopFifoReplay(true)
 {
 	LoadDefaults();
 }
@@ -54,9 +56,13 @@ SCoreStartupParameter::SCoreStartupParameter()
 void SCoreStartupParameter::LoadDefaults()
 {
 	bEnableDebugging = false;
+	bAutomaticStart = false;
+	bBootToPause = false;
+
 	#ifdef USE_GDBSTUB
 	iGDBPort = -1;
 	#endif
+
 	iCPUCore = 1;
 	bCPUThread = false;
 	bSkipIdle = false;
@@ -83,6 +89,8 @@ void SCoreStartupParameter::LoadDefaults()
 	iPosY = 100;
 	iWidth = 800;
 	iHeight = 600;
+
+	bLoopFifoReplay = true;
 
 	bJITOff = false; // debugger only settings
 	bJITLoadStoreOff = false;
@@ -314,7 +322,10 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 	m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
 	if (!bWii)
 	{
-		m_strBootROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
+		m_strBootROM = File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + Region + DIR_SEP GC_IPL;
+		if (!File::Exists(m_strBootROM))
+			m_strBootROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
+
 		if (!bHLE_BS2)
 		{
 			if (!File::Exists(m_strBootROM))

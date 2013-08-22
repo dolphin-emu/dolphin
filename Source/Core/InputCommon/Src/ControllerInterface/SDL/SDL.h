@@ -106,6 +106,7 @@ private:
 		EffectIDState& m_effect;
 	};
 
+#ifdef SDL_HAPTIC_SQUARE
 	class SquareEffect : public Output
 	{
 	public:
@@ -115,6 +116,7 @@ private:
 	private:
 		EffectIDState& m_effect;
 	};
+#endif // defined(SDL_HAPTIC_SQUARE)
 
 	class TriangleEffect : public Output
 	{

@@ -108,11 +108,11 @@ struct VideoConfig
 	// Hacks
 	bool bEFBAccessEnable;
 	bool bDlistCachingEnable;
+	bool bPerfQueriesEnable;
 
 	bool bEFBCopyEnable;
 	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;
-	bool bOSDHotKey;
 	bool bCopyEFBToTexture;	
 	bool bCopyEFBScaled;
 	int iSafeTextureCache_ColorSamples;

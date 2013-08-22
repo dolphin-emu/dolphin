@@ -529,15 +529,6 @@
     <ClCompile Include="Src\HW\Wiimote.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
     </ClCompile>
-    <ClCompile Include="Src\NetPlay.cpp">
-      <Filter>NetPlay</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\NetPlayServer.cpp">
-      <Filter>NetPlay</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\NetPlayClient.cpp">
-      <Filter>NetPlay</Filter>
-    </ClCompile>
     <ClCompile Include="Src\BootManager.cpp" />
     <ClCompile Include="Src\FifoPlayer\FifoDataFile.cpp">
       <Filter>FifoPlayer</Filter>
@@ -567,6 +558,8 @@
     <ClCompile Include="Src\PowerPC\JitInterface.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
+    <ClCompile Include="Src\NetPlayClient.cpp" />
+    <ClCompile Include="Src\NetPlayServer.cpp" />
     <ClCompile Include="Src\IPC_HLE\ICMPWin.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClCompile>
@@ -1027,9 +1020,6 @@
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
-    <ClInclude Include="Src\NetPlay.h">
-      <Filter>NetPlay</Filter>
-    </ClInclude>
     <ClInclude Include="Src\BootManager.h" />
     <ClInclude Include="Src\FifoPlayer\FifoDataFile.h">
       <Filter>FifoPlayer</Filter>
@@ -1059,6 +1049,9 @@
     <ClInclude Include="Src\PowerPC\JitInterface.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
+    <ClInclude Include="Src\NetPlayClient.h" />
+    <ClInclude Include="Src\NetPlayProto.h" />
+    <ClInclude Include="Src\NetPlayServer.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_net_ssl.h">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
@@ -1205,9 +1198,6 @@
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Real">
       <UniqueIdentifier>{1c21a3e1-b791-4a23-b0d5-ed2b2c34007f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="NetPlay">
-      <UniqueIdentifier>{231ceb02-1122-402a-87a8-094a9ed768c2}</UniqueIdentifier>
     </Filter>
     <Filter Include="FifoPlayer">
       <UniqueIdentifier>{ca7d56f7-4e84-4d15-9aea-7ae6fa7d6586}</UniqueIdentifier>

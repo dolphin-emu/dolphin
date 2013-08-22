@@ -950,7 +950,6 @@ GL_APICALL void           GL_APIENTRY glViewport (GLint x, GLint y, GLsizei widt
 /* OpenGL ES 3.0 */
 
 GL_APICALL void           GL_APIENTRY glReadBuffer (GLenum mode);
-GL_APICALL void           GL_APIENTRY glDrawRangeElements (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid* indices);
 GL_APICALL void           GL_APIENTRY glTexImage3D (GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid* pixels);
 GL_APICALL void           GL_APIENTRY glTexSubImage3D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const GLvoid* pixels);
 GL_APICALL void           GL_APIENTRY glCopyTexSubImage3D (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);

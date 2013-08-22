@@ -35,17 +35,68 @@ using namespace ArmGen;
 // it
 // So we have R14, R12, R11, R10 to work with instructions
 
-struct PPCCachedReg
+enum RegType
 {
-	const u8 *location;
-	u32 UsesLeft;
+	REG_NOTLOADED = 0,
+	REG_REG,
+	REG_IMM,
 };
+
+class OpArg 
+{
+	private:
+	class Reg{
+		public:
+		RegType m_type;
+		u8 m_reg; // index to register
+		u32 m_value;
+		Reg()
+		{
+			m_type = REG_NOTLOADED;
+			m_reg = 33;
+			m_value = 0;
+		}
+	} Reg;
+
+	public:
+	OpArg(){}
+	
+	RegType GetType()
+	{
+		return Reg.m_type;
+	}
+
+	u8 GetRegIndex()
+	{
+		return Reg.m_reg;
+	}
+	u32 GetImm()
+	{
+		return Reg.m_value;
+	}
+	void LoadToReg(u8 reg)
+	{
+		Reg.m_type = REG_REG;
+		Reg.m_reg = reg;
+	}
+	void LoadToImm(u32 imm)
+	{
+		Reg.m_type = REG_IMM;
+		Reg.m_value = imm;
+	}
+	void Flush()
+	{
+		Reg.m_type = REG_NOTLOADED;
+	}
+};
+
 struct JRCPPC
 {
 	u32 PPCReg; // Tied to which PPC Register
 	bool PS1;
 	ARMReg Reg; // Tied to which ARM Register
 	u32 LastLoad;
+	bool Away; // Only used in FPR cache
 };
 struct JRCReg
 {
@@ -55,7 +106,7 @@ struct JRCReg
 class ArmRegCache
 {
 private:
-	PPCCachedReg regs[32];
+	OpArg regs[32];
 	JRCPPC ArmCRegs[ARMREGS];
 	JRCReg ArmRegs[ARMREGS]; // Four registers remaining
 
@@ -64,7 +115,9 @@ private:
 
 	ARMReg *GetAllocationOrder(int &count);
 	ARMReg *GetPPCAllocationOrder(int &count);
-
+	
+	u32 GetLeastUsedRegister(bool increment);
+	bool FindFreeRegister(u32 &regindex);
 protected:
 	ARMXEmitter *emit;
 	
@@ -74,16 +127,16 @@ public:
 
 	void Init(ARMXEmitter *emitter);
 	void Start(PPCAnalyst::BlockRegStats &stats);
-
-	void SetEmitter(ARMXEmitter *emitter) {emit = emitter;}
 	
 	ARMReg GetReg(bool AutoLock = true); // Return a ARM register we can use.
-	void Lock(ARMReg reg);
 	void Unlock(ARMReg R0, ARMReg R1 = INVALID_REG, ARMReg R2 = INVALID_REG, ARMReg R3 =
 	INVALID_REG);
 	void Flush();
 	ARMReg R(u32 preg); // Returns a cached register
-
+	bool IsImm(u32 preg) { return regs[preg].GetType() == REG_IMM; }
+	u32 GetImm(u32 preg) { return regs[preg].GetImm(); }
+	void SetImmediate(u32 preg, u32 imm); 
+	ARMReg BindToRegister(u32 preg);
 };
 
 

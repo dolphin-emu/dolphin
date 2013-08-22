@@ -61,6 +61,10 @@ void VertexManager::CreateDeviceObjects()
 {
 	s_vertexBuffer = new StreamBuffer(GL_ARRAY_BUFFER, MAX_VBUFFER_SIZE);
 	m_vertex_buffers = s_vertexBuffer->getBuffer();
+	
+	// Pinned memory is disabled for index buffer as the amd driver (the only one with pinned memory support) seems
+	// to be broken. We just get flickering/black rendering when using pinned memory here -- degasus - 2013/08/20
+	// Please see issue #6105 on google code. Let's hope buffer storage solves this issues.
 	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE, (StreamType)(DETECT_MASK & ~PINNED_MEMORY));
 	m_index_buffers = s_indexBuffer->getBuffer();
 	
@@ -115,38 +119,39 @@ void VertexManager::Draw(u32 stride)
 	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
 	u32 line_index_size = IndexGenerator::GetLineindexLen();
 	u32 point_index_size = IndexGenerator::GetPointindexLen();
+	u32 max_index = IndexGenerator::GetNumVerts();
 	GLenum triangle_mode = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart?GL_TRIANGLE_STRIP:GL_TRIANGLES;
 	
 	if(g_ogl_config.bSupportsGLBaseVertex) {
 		if (triangle_index_size > 0)
 		{
-			glDrawElementsBaseVertex(triangle_mode, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
+			glDrawRangeElementsBaseVertex(triangle_mode, 0, max_index, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
 		{
-			glDrawElementsBaseVertex(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
+			glDrawRangeElementsBaseVertex(GL_LINES, 0, max_index, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (point_index_size > 0)
 		{
-			glDrawElementsBaseVertex(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
+			glDrawRangeElementsBaseVertex(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 	} else {
 		if (triangle_index_size > 0)
 		{
-			glDrawElements(triangle_mode, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
+			glDrawRangeElements(triangle_mode, 0, max_index, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
 		{
-			glDrawElements(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1]);
+			glDrawRangeElements(GL_LINES, 0, max_index, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (point_index_size > 0)
 		{
-			glDrawElements(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
+			glDrawRangeElements(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 	}
@@ -268,10 +273,6 @@ void VertexManager::vFlush()
 
 	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw(stride);
-	if (DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERS))
-		GLInterface->Swap();
-	if(DriverDetails::HasBug(DriverDetails::BUG_MALIBROKENBUFFERS))
-		glFlush();
 	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	//ERROR_LOG(VIDEO, "PerfQuery result: %d", g_perf_query->GetQueryResult(bpmem.zcontrol.early_ztest ? PQ_ZCOMP_OUTPUT_ZCOMPLOC : PQ_ZCOMP_OUTPUT));
 

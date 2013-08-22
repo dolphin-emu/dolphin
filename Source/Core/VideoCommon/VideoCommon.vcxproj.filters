@@ -4,6 +4,7 @@
     <ClCompile Include="Src\CommandProcessor.cpp" />
     <ClCompile Include="Src\memcpy_amd.cpp" />
     <ClCompile Include="Src\PixelEngine.cpp" />
+    <ClCompile Include="Src\VideoBackendBase.cpp" />
     <ClCompile Include="Src\VideoConfig.cpp" />
     <ClCompile Include="Src\VertexLoader.cpp">
       <Filter>Vertex Loading</Filter>
@@ -128,6 +129,7 @@
     <ClInclude Include="Src\NativeVertexFormat.h" />
     <ClInclude Include="Src\PixelEngine.h" />
     <ClInclude Include="Src\VideoCommon.h" />
+    <ClInclude Include="Src\VideoBackendBase.h" />
     <ClInclude Include="Src\VideoConfig.h" />
     <ClInclude Include="Src\DataReader.h">
       <Filter>Vertex Loading</Filter>

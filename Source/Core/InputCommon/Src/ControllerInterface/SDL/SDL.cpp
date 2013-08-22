@@ -131,12 +131,14 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 			AddOutput(new SineEffect(m_state_out.back()));
 		}
 
+#ifdef SDL_HAPTIC_SQUARE
 		// square effect
 		if (supported_effects & SDL_HAPTIC_SQUARE)
 		{
 			m_state_out.push_back(EffectIDState());
 			AddOutput(new SquareEffect(m_state_out.back()));
 		}
+#endif // defined(SDL_HAPTIC_SQUARE)
 
 		// triangle effect
 		if (supported_effects & SDL_HAPTIC_TRIANGLE)
@@ -187,10 +189,12 @@ std::string Joystick::SineEffect::GetName() const
 	return "Sine";
 }
 
+#ifdef SDL_HAPTIC_SQUARE
 std::string Joystick::SquareEffect::GetName() const
 {
 	return "Square";
 }
+#endif // defined(SDL_HAPTIC_SQUARE)
 
 std::string Joystick::TriangleEffect::GetName() const
 {
@@ -255,6 +259,7 @@ void Joystick::SineEffect::SetState(const ControlState state)
 		m_effect.changed = true;
 }
 
+#ifdef SDL_HAPTIC_SQUARE
 void Joystick::SquareEffect::SetState(const ControlState state)
 {
 	if (state)
@@ -276,6 +281,7 @@ void Joystick::SquareEffect::SetState(const ControlState state)
 	if (old != m_effect.effect.periodic.magnitude)
 		m_effect.changed = true;
 }
+#endif // defined(SDL_HAPTIC_SQUARE)
 
 void Joystick::TriangleEffect::SetState(const ControlState state)
 {

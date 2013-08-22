@@ -20,6 +20,7 @@ namespace DriverDetails
 
 	// Local members
 	Vendor	m_vendor = VENDOR_UNKNOWN;
+	Driver	m_driver = DRIVER_UNKNOWN;
 	u32	m_devfamily = 0;
 	double	m_version = 0.0;
 
@@ -29,10 +30,6 @@ namespace DriverDetails
 		{BUG_NODYNUBOACCESS, 300, 14.0, -1.0},
 		{BUG_BROKENCENTROID, 300, 14.0, -1.0},
 		{BUG_BROKENINFOLOG, 300, -1.0, -1.0},
-		{BUG_BROKENBUFFERS, 300, 14.0, -1.0},
-	};
-	BugInfo m_armbugs[] = {
-		{BUG_MALIBROKENBUFFERS, 600, -1.0, -1.0},
 	};
 
 	std::map<std::pair<Vendor, Bug>, BugInfo> m_bugs;
@@ -40,26 +37,52 @@ namespace DriverDetails
 	// Private function
 	void InitBugMap()
 	{
-		switch(m_vendor)
+		switch(m_driver)
 		{
-			case VENDOR_QUALCOMM:
+			case DRIVER_QUALCOMM:
 				for (unsigned int a = 0; a < (sizeof(m_qualcommbugs) / sizeof(BugInfo)); ++a)
 					m_bugs[std::make_pair(m_vendor, m_qualcommbugs[a].m_bug)] = m_qualcommbugs[a];
 			break;
-			case VENDOR_ARM:
-				for (unsigned int a = 0; a < (sizeof(m_armbugs) / sizeof(BugInfo)); ++a)
-					m_bugs[std::make_pair(m_vendor, m_armbugs[a].m_bug)] = m_armbugs[a];
 			default:
 			break;
 		}
 	}
 
-	void Init(Vendor vendor, const u32 devfamily, const double version)
+	void Init(Vendor vendor, Driver driver, const u32 devfamily, const double version)
 	{
 		m_vendor = vendor;
+		m_driver = driver;
 		m_devfamily = devfamily;
 		m_version = version;
-		InitBugMap();
+		InitBugMap();	
+		if (driver == DRIVER_UNKNOWN)
+			switch(vendor)
+			{
+				case VENDOR_NVIDIA:
+				case VENDOR_TEGRA:
+					m_driver = DRIVER_NVIDIA;
+				break;
+				case VENDOR_ATI:
+					m_driver = DRIVER_ATI;
+				break;
+				case VENDOR_INTEL:
+					m_driver = DRIVER_INTEL;
+				break;
+				case VENDOR_ARM:
+					m_driver = DRIVER_ARM;
+				break;
+				case VENDOR_QUALCOMM:
+					m_driver = DRIVER_QUALCOMM;
+				break;
+				case VENDOR_IMGTEC:
+					m_driver = DRIVER_IMGTEC;
+				break;
+				case VENDOR_VIVANTE:
+					m_driver = DRIVER_VIVANTE;
+				break;
+				default:
+				break;
+			}
 
 		for (auto it = m_bugs.begin(); it != m_bugs.end(); ++it)
 			if (it->second.m_devfamily == m_devfamily)

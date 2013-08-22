@@ -79,8 +79,6 @@ void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _
 // Function declarations
 void EmuThread();
 
-void Stop();
-
 bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bStarted = false;
@@ -520,9 +518,6 @@ void SetState(EState _State)
 {
 	switch (_State)
 	{
-	case CORE_UNINITIALIZED:
-		Stop();
-		break;
 	case CORE_PAUSE:
 		CCPU::EnableStepping(true);  // Break
 		Wiimote::Pause();
