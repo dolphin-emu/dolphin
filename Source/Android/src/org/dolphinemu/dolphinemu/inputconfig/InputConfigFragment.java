@@ -1,3 +1,9 @@
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu.inputconfig;
 
 import android.app.Activity;
@@ -17,9 +23,8 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
 
 /**
- * Copyright 2013 Dolphin Emulator Project
- * Licensed under GPLv2
- * Refer to the license.txt file included.
+ * The {@link Fragment} responsible for implementing the functionality
+ * within the input control mapping config.
  */
 public final class InputConfigFragment extends Fragment
 		implements GameListActivity.OnGameConfigListener
@@ -31,7 +36,14 @@ public final class InputConfigFragment extends Fragment
 	private boolean Configuring = false;
 	private boolean firstEvent = true;
 
-	static public String getInputDesc(InputDevice input)
+	/**
+	 * Gets the descriptor for the given {@link InputDevice}.
+	 * 
+	 * @param input The {@link InputDevice} to get the descriptor of.
+	 * 
+	 * @return the descriptor for the given {@link InputDevice}.
+	 */
+	public static String getInputDesc(InputDevice input)
 	{
 		if (input == null)
 			return "null"; // Happens when the inputdevice is from an unknown source
@@ -109,6 +121,11 @@ public final class InputConfigFragment extends Fragment
 		adapter.insert(o, configPosition);
 	}
 
+	/**
+	 * Gets the current {@link InputConfigAdapter}
+	 * 
+	 * @return the current {@link InputConfigAdapter}.
+	 */
 	public InputConfigAdapter getAdapter()
 	{
 		return adapter;
@@ -157,6 +174,7 @@ public final class InputConfigFragment extends Fragment
 		return true;
 	}
 
+	// Called from GameListActivity
 	public boolean onKeyEvent(KeyEvent event)
 	{
 		Log.w("InputConfigFragment", "Got Event " + event.getAction());

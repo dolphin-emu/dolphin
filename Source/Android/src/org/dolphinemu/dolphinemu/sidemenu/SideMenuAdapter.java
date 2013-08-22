@@ -1,3 +1,9 @@
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu.sidemenu;
 
 import android.content.Context;
@@ -11,6 +17,11 @@ import java.util.List;
 
 import org.dolphinemu.dolphinemu.R;
 
+/**
+ * Adapter that backs the sidebar menu.
+ * <p>
+ * Responsible for handling the elements of each sidebar item.
+ */
 public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>
 {
 	private final Context c;
@@ -25,6 +36,7 @@ public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>
 		items = objects;
 	}
 
+	@Override
 	public SideMenuItem getItem(int i)
 	{
 		return items.get(i);

@@ -19,6 +19,19 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
 
+/**
+ * A basic folder browser {@link Fragment} that allows
+ * the user to select ISOs/ROMs for playing within the
+ * emulator.
+ * <p>
+ * Any valid ISO/ROM selected in this will be added to
+ * the game list for easy browsing the next time the
+ * application is used.
+ * <p>
+ * Note that invalid items will be shown in the color red. <br/>
+ * Also note that this file browser does not display files 
+ * or directories that are hidden
+ */
 public final class FolderBrowser extends Fragment
 {
 	private Activity m_activity;
@@ -69,7 +82,7 @@ public final class FolderBrowser extends Fragment
 			}
 			catch (Exception ex)
 			{
-				Log.d("EXCEPTION", ex.toString());
+				Log.e("Exception-FolderBrowser", ex.toString());
 			}
 		}
 
@@ -136,6 +149,8 @@ public final class FolderBrowser extends Fragment
 					+ " must implement OnGameListZeroListener");
 		}
 	}
+	
+	
 	private void FolderSelected()
 	{
 		String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");

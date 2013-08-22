@@ -1,3 +1,9 @@
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu.inputconfig;
 
 import android.content.Context;
@@ -12,9 +18,9 @@ import java.util.List;
 import org.dolphinemu.dolphinemu.R;
 
 /**
- * Copyright 2013 Dolphin Emulator Project
- * Licensed under GPLv2
- * Refer to the license.txt file included.
+ * The adapter backing the input mapping configuration.
+ * <p>
+ * Responsible for handling the list items.
  */
 public final class InputConfigAdapter extends ArrayAdapter<InputConfigItem>
 {
@@ -30,6 +36,7 @@ public final class InputConfigAdapter extends ArrayAdapter<InputConfigItem>
 		items = objects;
 	}
 
+	@Override
 	public InputConfigItem getItem(int i)
 	{
 		return items.get(i);

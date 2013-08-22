@@ -7,7 +7,6 @@
 package org.dolphinemu.dolphinemu.settings;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.inputconfig.InputConfigFragment;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
@@ -31,12 +30,12 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 	 * keep every loaded fragment in memory. If this becomes too memory intensive, it may be best to
 	 * switch to a {@link android.support.v4.app.FragmentStatePagerAdapter}.
 	 */
-	SectionsPagerAdapter mSectionsPagerAdapter;
+	private SectionsPagerAdapter mSectionsPagerAdapter;
 
 	/**
 	 * The {@link ViewPager} that will host the section contents.
 	 */
-	ViewPager mViewPager;
+	private ViewPager mViewPager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -73,7 +72,6 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		// the TabListener interface, as the callback (listener) for when
 		// this tab is selected.
 		actionBar.addTab(actionBar.newTab().setText(R.string.cpu_settings).setTabListener(this));
-		actionBar.addTab(actionBar.newTab().setText("Input Settings").setTabListener(this));
 		actionBar.addTab(actionBar.newTab().setText(R.string.video_settings).setTabListener(this));
 	}
 
@@ -94,8 +92,8 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 	}
 
 	/**
-	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to one of the
-	 * sections/tabs/pages.
+	 * A {@link FragmentPagerAdapter} that returns a fragment 
+	 * corresponding to one of the sections/tabs/pages.
 	 */
 	public final class SectionsPagerAdapter extends FragmentPagerAdapter
 	{
@@ -113,9 +111,6 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 					return new CPUSettingsFragment();
 
 				case 1:
-					return new InputConfigFragment();
-
-				case 2:
 					return new VideoSettingsFragment();
 
 				default: // Should never happen.
@@ -127,7 +122,7 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		public int getCount()
 		{
 			// Show total pages.
-			return 3;
+			return 2;
 		}
 
 		@Override
@@ -139,9 +134,6 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 					return getString(R.string.cpu_settings).toUpperCase();
 
 				case 1:
-					return "Input Settings";//getString(R.string)
-
-				case 2:
 					return getString(R.string.video_settings).toUpperCase();
 
 				default: // Should never happen.

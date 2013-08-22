@@ -27,15 +27,19 @@ public final class VideoSettingsFragment extends PreferenceFragment
 {
 	private Activity m_activity;
 
-	public static class VersionCheck
+	/**
+	 * Class which provides a means to check various
+	 * info about the OpenGL ES support for a device.
+	 */
+	public static final class VersionCheck
 	{
-		EGL10 mEGL;
-		EGLDisplay mEGLDisplay;
-		EGLConfig[] mEGLConfigs;
-		EGLConfig mEGLConfig;
-		EGLContext mEGLContext;
-		EGLSurface mEGLSurface;
-		GL10 mGL;
+		private EGL10 mEGL;
+		private EGLDisplay mEGLDisplay;
+		private EGLConfig[] mEGLConfigs;
+		private EGLConfig mEGLConfig;
+		private EGLContext mEGLContext;
+		private EGLSurface mEGLSurface;
+		private GL10 mGL;
 
 		String mThreadOwner;
 
@@ -68,16 +72,31 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			mThreadOwner = Thread.currentThread().getName();
 		}
 
+		/**
+		 * Gets the OpenGL ES version string.
+		 * 
+		 * @return  the OpenGL ES version string.
+		 */
 		public String getVersion()
 		{
 			return mGL.glGetString(GL10.GL_VERSION);
 		}
 
+		/**
+		 * Gets the OpenGL ES vendor string.
+		 * 
+		 * @return the OpenGL ES vendor string.
+		 */
 		public String getVendor()
 		{
 			return mGL.glGetString(GL10.GL_VENDOR);
 		}
 
+		/**
+		 * Gets the name of the OpenGL ES renderer.
+		 * 
+		 * @return the name of the OpenGL ES renderer.
+		 */
 		public String getRenderer()
 		{
 			return mGL.glGetString(GL10.GL_RENDERER);
@@ -107,6 +126,11 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		}
 	}
 
+	/**
+	 * Checks if this device supports OpenGL ES 3.
+	 * 
+	 * @return true if this device supports OpenGL ES 3; false otherwise.
+	 */
 	public static boolean SupportsGLES3()
 	{
 		VersionCheck mbuffer = new VersionCheck();

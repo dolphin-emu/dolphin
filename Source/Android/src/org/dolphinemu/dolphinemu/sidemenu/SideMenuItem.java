@@ -12,8 +12,8 @@ package org.dolphinemu.dolphinemu.sidemenu;
  */
 public final class SideMenuItem implements Comparable<SideMenuItem>
 {
-	private final String m_name;
-	private final int m_id;
+	private final String name;
+	private final int id;
 
 	/**
 	 * Constructor
@@ -23,8 +23,8 @@ public final class SideMenuItem implements Comparable<SideMenuItem>
 	 */
 	public SideMenuItem(String name, int id)
 	{
-		m_name = name;
-		m_id = id;
+		this.name = name;
+		this.id = id;
 	}
 
 	/**
@@ -34,7 +34,7 @@ public final class SideMenuItem implements Comparable<SideMenuItem>
 	 */
 	public String getName()
 	{
-		return m_name;
+		return name;
 	}
 
 	/**
@@ -44,13 +44,13 @@ public final class SideMenuItem implements Comparable<SideMenuItem>
 	 */
 	public int getID()
 	{
-		return m_id;
+		return id;
 	}
 
 	public int compareTo(SideMenuItem o) 
 	{
-		if (this.m_name != null)
-			return this.m_name.toLowerCase().compareTo(o.getName().toLowerCase()); 
+		if (name != null)
+			return this.name.toLowerCase().compareTo(o.getName().toLowerCase()); 
 		else 
 			throw new IllegalArgumentException();
 	}

@@ -4,12 +4,20 @@ import android.content.Context;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+/**
+ * The surface that rendering is done to.
+ */
 public final class NativeGLSurfaceView extends SurfaceView
 {
 	private static Thread myRun;
 	private static boolean Running = false;
 	private static boolean Created = false;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param context The current {@link Context}.
+	 */
 	public NativeGLSurfaceView(Context context)
 	{
 		super(context);

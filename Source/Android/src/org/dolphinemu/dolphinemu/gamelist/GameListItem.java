@@ -1,8 +1,15 @@
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu.gamelist;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +17,9 @@ import java.io.InputStream;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 
+/**
+ * Represents an item in the game list.
+ */
 public final class GameListItem implements Comparable<GameListItem>
 {
 	private String name;
@@ -18,6 +28,15 @@ public final class GameListItem implements Comparable<GameListItem>
 	private final boolean isValid;
 	private Bitmap image;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param ctx     The current {@link Context}
+	 * @param name    The name of this GameListItem.
+	 * @param data    The subtitle for this GameListItem
+	 * @param path    The file path for the game represented by this GameListItem.
+	 * @param isValid Whether or not the emulator can handle this file.
+	 */
 	public GameListItem(Context ctx, String name, String data, String path, boolean isValid)
 	{
 		this.name = name;
@@ -44,8 +63,7 @@ public final class GameListItem implements Comparable<GameListItem>
 				}
 				catch (IOException e)
 				{
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Log.e("Exception-GameListItem", e.toString());
 				}
 			}
 			else
@@ -57,26 +75,51 @@ public final class GameListItem implements Comparable<GameListItem>
 		}
 	}
 
+	/**
+	 * Gets the name of this GameListItem.
+	 * 
+	 * @return the name of this GameListItem.
+	 */
 	public String getName()
 	{
 		return name;
 	}
 
+	/**
+	 * Gets the subtitle of this GameListItem.
+	 * 
+	 * @return the subtitle of this GameListItem.
+	 */
 	public String getData()
 	{
 		return data;
 	}
 
+	/**
+	 * Gets the file path of the game represented by this GameListItem.
+	 * 
+	 * @return the file path of the game represented by this GameListItem.
+	 */
 	public String getPath()
 	{
 		return path;
 	}
 
+	/**
+	 * Gets the image data for this game as a {@link Bitmap}.
+	 * 
+	 * @return the image data for this game as a {@link Bitmap}.
+	 */
 	public Bitmap getImage()
 	{
 		return image;
 	}
 
+	/**
+	 * Gets whether or not the emulator can handle this GameListItem.
+	 * 
+	 * @return true, if this GameListItem can be handled by the emulator; false, otherwise.
+	 */
 	public boolean isValid()
 	{
 		return isValid;

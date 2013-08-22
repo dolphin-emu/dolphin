@@ -1,3 +1,9 @@
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu.gamelist;
 
 import android.app.Activity;
@@ -26,9 +32,8 @@ import org.dolphinemu.dolphinemu.sidemenu.SideMenuAdapter;
 import org.dolphinemu.dolphinemu.sidemenu.SideMenuItem;
 
 /**
- * Copyright 2013 Dolphin Emulator Project
- * Licensed under GPLv2
- * Refer to the license.txt file included.
+ * The activity that implements all of the functions
+ * for the game list.
  */
 public final class GameListActivity extends Activity
 		implements GameListFragment.OnGameListZeroListener
@@ -40,8 +45,24 @@ public final class GameListActivity extends Activity
 	private DrawerLayout mDrawerLayout;
 	private SideMenuAdapter mDrawerAdapter;
 	private ListView mDrawerList;
+	
+	/**
+	 * Interface defining methods which handle
+	 * the binding of specific key presses within
+	 * the input mapping settings.
+	 */
+	public interface OnGameConfigListener
+	{
+		boolean onMotionEvent(MotionEvent event);
+		boolean onKeyEvent(KeyEvent event);
+	}
 
-	// Called from the game list fragment
+	/**
+	 * Called from the {@link GameListFragment}.
+	 * <p>
+	 * This is called when there are no games
+	 * currently present within the game list.
+	 */
 	public void onZeroFiles()
 	{
 		mDrawerLayout.openDrawer(mDrawerList);
@@ -100,6 +121,12 @@ public final class GameListActivity extends Activity
 		fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 	}
 
+	/**
+	 * Switches to the {@link Fragment} represented
+	 * by the given ID number.
+	 * 
+	 * @param toPage the number representing the {@link Fragment} to switch to.l
+	 */
 	public void SwitchPage(int toPage)
 	{
 		if (mCurFragmentNum == toPage)
@@ -194,11 +221,11 @@ public final class GameListActivity extends Activity
 			SwitchPage(o.getID());
 		}
 	};
+
 	/**
 	 * When using the ActionBarDrawerToggle, you must call it during
 	 * onPostCreate() and onConfigurationChanged()...
 	 */
-
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState)
 	{
@@ -235,15 +262,10 @@ public final class GameListActivity extends Activity
 		return super.onOptionsItemSelected(item);
 	}
 	
+	@Override
 	public void onBackPressed()
 	{
 		SwitchPage(0);
-	}
-
-	public interface OnGameConfigListener
-	{
-		public boolean onMotionEvent(MotionEvent event);
-		public boolean onKeyEvent(KeyEvent event);
 	}
 
 	// Gets move(triggers, joystick) events

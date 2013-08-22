@@ -1,3 +1,9 @@
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu.gamelist;
 
 import android.content.Context;
@@ -12,6 +18,11 @@ import java.util.List;
 
 import org.dolphinemu.dolphinemu.R;
 
+/**
+ * The adapter backing the game list.
+ * <p>
+ * Responsible for handling each game list item individually.
+ */
 public final class GameListAdapter extends ArrayAdapter<GameListItem>
 {
 	private final Context c;
@@ -26,6 +37,7 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 		items = objects;
 	}
 
+	@Override
 	public GameListItem getItem(int i)
 	{
 		return items.get(i);

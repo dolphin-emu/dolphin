@@ -12,6 +12,12 @@ import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.R;
 
+/**
+ * The {@link ArrayAdapter} that backs the file browser.
+ * <p>
+ * This is responsible for correctly handling the display
+ * of the items for the UI.
+ */
 public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 {
 	private final Context c;
@@ -26,6 +32,7 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 		items = objects;
 	}
 
+	@Override
 	public FolderBrowserItem getItem(int i)
 	{
 		return items.get(i);

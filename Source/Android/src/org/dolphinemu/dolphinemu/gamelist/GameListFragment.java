@@ -1,3 +1,9 @@
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu.gamelist;
 
 import android.app.Activity;
@@ -22,26 +28,28 @@ import java.util.Set;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 
+
 /**
- * Copyright 2013 Dolphin Emulator Project
- * Licensed under GPLv2
- * Refer to the license.txt file included.
+ * The {@link Fragment} responsible for displaying the game list.
  */
 public final class GameListFragment extends Fragment
 {
 	private ListView mMainList;
 	private GameListAdapter mGameAdapter;
 	private static GameListActivity mMe;
-	OnGameListZeroListener mCallback;
+	private OnGameListZeroListener mCallback;
 
+	/**
+	 * Interface that defines how to handle the case
+	 * when there are zero game.
+	 */
 	public interface OnGameListZeroListener
 	{
-		public void onZeroFiles();
-	}
-
-	public GameListFragment()
-	{
-		// Empty constructor required for fragment subclasses
+		/**
+		 * This is called when there are no games
+		 * currently present within the game list.
+		 */
+		void onZeroFiles();
 	}
 
 	private void Fill()
@@ -97,8 +105,11 @@ public final class GameListFragment extends Fragment
 
 		mGameAdapter = new GameListAdapter(mMe, R.layout.gamelist_layout, fls);
 		mMainList.setAdapter(mGameAdapter);
-		if (fls.size() == 0)
+
+		if (fls.isEmpty())
+		{
 			mCallback.onZeroFiles();
+		}
 	}
 
 	@Override

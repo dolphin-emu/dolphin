@@ -23,17 +23,8 @@ import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
 public final class AboutFragment extends Fragment
 {
 	private static Activity m_activity;
-
 	private ListView mMainList;
-
 	private FolderBrowserAdapter adapter;
-	boolean Configuring = false;
-	boolean firstEvent = true;
-
-	public AboutFragment()
-	{
-		// Empty constructor required for fragment subclasses
-	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
