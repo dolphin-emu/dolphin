@@ -99,19 +99,19 @@ public final class GameListActivity extends Activity
 		FragmentManager fragmentManager = getFragmentManager();
 		fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 	}
-	
+
 	public void SwitchPage(int toPage)
 	{
 		if (mCurFragmentNum == toPage)
 			return;
-		
+
 		switch (mCurFragmentNum)
 		{
 			// Folder browser
 			case 1:
 				recreateFragment();
 				break;
-			
+
 			case 3: // Gamepad settings
 			{
 				InputConfigAdapter adapter = ((InputConfigFragment)mCurFragment).getAdapter();
@@ -127,14 +127,14 @@ public final class GameListActivity extends Activity
 				}
 			}
 			break;
-			
+
 			case 0: // Game List
 			case 2: // Settings
 			case 4: // About
-	        /* Do Nothing */
+			/* Do Nothing */
 				break;
 		}
-		
+
 		switch(toPage)
 		{
 			case 0:
@@ -145,7 +145,7 @@ public final class GameListActivity extends Activity
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
-			
+
 			case 1:
 			{
 				mCurFragmentNum = 1;
@@ -154,14 +154,14 @@ public final class GameListActivity extends Activity
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
-			
+
 			case 2:
-			{	
+			{
 				Intent intent = new Intent(this, PrefsActivity.class);
 				startActivity(intent);
 			}
 			break;
-			
+
 			case 3:
 			{
 				mCurFragmentNum = 3;
@@ -170,7 +170,7 @@ public final class GameListActivity extends Activity
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
-			
+
 			case 4:
 			{
 				mCurFragmentNum = 4;
@@ -179,12 +179,12 @@ public final class GameListActivity extends Activity
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
 			}
 			break;
-			
+
 			default:
 				break;
 		}
 	}
-	
+
 	private AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
@@ -231,7 +231,7 @@ public final class GameListActivity extends Activity
 		{
 			return true;
 		}
-		
+
 		return super.onOptionsItemSelected(item);
 	}
 	
@@ -245,7 +245,7 @@ public final class GameListActivity extends Activity
 		public boolean onMotionEvent(MotionEvent event);
 		public boolean onKeyEvent(KeyEvent event);
 	}
-	
+
 	// Gets move(triggers, joystick) events
 	@Override
 	public boolean dispatchGenericMotionEvent(MotionEvent event)
@@ -255,10 +255,10 @@ public final class GameListActivity extends Activity
 			if (((OnGameConfigListener)mCurFragment).onMotionEvent(event))
 				return true;
 		}
-		
+
 		return super.dispatchGenericMotionEvent(event);
 	}
-	
+
 	// Gets button presses
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event)
@@ -268,8 +268,7 @@ public final class GameListActivity extends Activity
 			if (((OnGameConfigListener)mCurFragment).onKeyEvent(event))
 				return true;
 		}
-		
+
 		return super.dispatchKeyEvent(event);
 	}
-
 }

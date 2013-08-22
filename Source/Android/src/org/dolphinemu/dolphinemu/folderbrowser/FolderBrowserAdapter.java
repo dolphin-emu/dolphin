@@ -30,7 +30,7 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 	{
 		return items.get(i);
 	}
-	
+
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
@@ -40,11 +40,11 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 			LayoutInflater vi = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			v = vi.inflate(id, parent, false);
 		}
-		
+
 		final FolderBrowserItem item = items.get(position);
 		if (item != null)
 		{
-		    ImageView iconView = (ImageView) v.findViewById(R.id.ImageIcon);
+			ImageView iconView = (ImageView) v.findViewById(R.id.ImageIcon);
 			TextView mainText = (TextView) v.findViewById(R.id.FolderTitle);
 			TextView subtitleText = (TextView) v.findViewById(R.id.FolderSubTitle);
 
@@ -57,7 +57,7 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 					mainText.setTextColor(0xFFFF0000);
 				}
 			}
-			
+
 			if(subtitleText != null)
 			{
 				// Remove the subtitle for all folders, except for the parent directory folder.
@@ -70,19 +70,18 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 					subtitleText.setText(item.getSubtitle());
 				}
 			}
-			
+
 			if (iconView != null)
 			{
-			    if (item.isDirectory())
-			    {
-			        iconView.setImageResource(R.drawable.ic_menu_folder);
-			    }
-			    else
-			    {
-			        iconView.setImageResource(R.drawable.ic_menu_file);
-			    }
+				if (item.isDirectory())
+				{
+					iconView.setImageResource(R.drawable.ic_menu_folder);
+				}
+				else
+				{
+					iconView.setImageResource(R.drawable.ic_menu_file);
+				}
 			}
-
 		}
 		return v;
 	}

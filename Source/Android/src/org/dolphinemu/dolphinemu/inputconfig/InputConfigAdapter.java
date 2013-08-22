@@ -34,7 +34,7 @@ public final class InputConfigAdapter extends ArrayAdapter<InputConfigItem>
 	{
 		return items.get(i);
 	}
-	
+
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
@@ -44,20 +44,20 @@ public final class InputConfigAdapter extends ArrayAdapter<InputConfigItem>
 			LayoutInflater vi = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			v = vi.inflate(id, parent, false);
 		}
-		
+
 		final InputConfigItem item = items.get(position);
 		if (item != null)
 		{
 			TextView title    = (TextView) v.findViewById(R.id.FolderTitle);
 			TextView subtitle = (TextView) v.findViewById(R.id.FolderSubTitle);
 
-			if(title != null)
-			   title.setText(item.getName());
-			
-			if(subtitle != null)
-			   subtitle.setText(item.getBind());
+			if (title != null)
+				title.setText(item.getName());
+
+			if (subtitle != null)
+				subtitle.setText(item.getBind());
 		}
-		
+
 		return v;
 	}
 }

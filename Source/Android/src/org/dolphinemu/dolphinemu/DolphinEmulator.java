@@ -20,43 +20,43 @@ import org.dolphinemu.dolphinemu.inputconfig.InputConfigFragment;
 import org.dolphinemu.dolphinemu.settings.UserPreferences;
 
 public final class DolphinEmulator<MainActivity> extends Activity 
-{	
-	static private NativeGLSurfaceView GLview = null;
-	static private boolean Running = false;
-	
+{
+	private static NativeGLSurfaceView GLview = null;
+	private static boolean Running = false;
+
 	private float screenWidth;
 	private float screenHeight;
 
 	private void CopyAsset(String asset, String output)
 	{
-        InputStream in = null;
-        OutputStream out = null;
-        
-        try
-        {
-          in = getAssets().open(asset);
-          out = new FileOutputStream(output);
-          copyFile(in, out);
-          in.close();
-          out.close();
-        }
-        catch(IOException e)
-        {
-            Log.e("DolphinEmulator", "Failed to copy asset file: " + asset, e);
-        }       
+		InputStream in = null;
+		OutputStream out = null;
+
+		try
+		{
+			in = getAssets().open(asset);
+			out = new FileOutputStream(output);
+			copyFile(in, out);
+			in.close();
+			out.close();
+		}
+		catch (IOException e)
+		{
+			Log.e("DolphinEmulator", "Failed to copy asset file: " + asset, e);
+		}
 	}
 
 	private void copyFile(InputStream in, OutputStream out) throws IOException
 	{
-	    byte[] buffer = new byte[1024];
-	    int read;
-	    
-	    while((read = in.read(buffer)) != -1)
-	    {
-	      out.write(buffer, 0, read);
-	    }
+		byte[] buffer = new byte[1024];
+		int read;
+
+		while ((read = in.read(buffer)) != -1)
+		{
+			out.write(buffer, 0, read);
+		}
 	}
-	
+
 	@Override
 	public void onStop()
 	{
@@ -64,7 +64,7 @@ public final class DolphinEmulator<MainActivity> extends Activity
 		if (Running)
 			NativeLibrary.StopEmulation();
 	}
-	
+
 	@Override
 	public void onPause()
 	{
@@ -72,7 +72,7 @@ public final class DolphinEmulator<MainActivity> extends Activity
 		if (Running)
 			NativeLibrary.PauseEmulation();
 	}
-	
+
 	@Override
 	public void onResume()
 	{
@@ -81,7 +81,7 @@ public final class DolphinEmulator<MainActivity> extends Activity
 			NativeLibrary.UnPauseEmulation();
 	}
 
-    /** Called when the activity is first created. */
+	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
@@ -90,12 +90,12 @@ public final class DolphinEmulator<MainActivity> extends Activity
 		{
 			Intent ListIntent = new Intent(this, GameListActivity.class);
 			startActivityForResult(ListIntent, 1);
-			
+
 			// Make the assets directory
 			String BaseDir = Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu";
 			File directory = new File(BaseDir);
 			directory.mkdirs();
-			
+
 			String ConfigDir = BaseDir + File.separator + "Config";
 			directory = new File(ConfigDir);
 			directory.mkdirs();
@@ -144,7 +144,7 @@ public final class DolphinEmulator<MainActivity> extends Activity
 			wm.getDefaultDisplay().getMetrics(displayMetrics);
 			screenWidth = displayMetrics.widthPixels;
 			screenHeight = displayMetrics.heightPixels;
-			
+
 			String FileName = data.getStringExtra("Select");
 			GLview = new NativeGLSurfaceView(this);
 			this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -155,14 +155,14 @@ public final class DolphinEmulator<MainActivity> extends Activity
 			Running = true;
 		}
 	}
-	
+
 	@Override
 	public boolean onTouchEvent(MotionEvent event)
 	{
 		float X = event.getX();
 		float Y = event.getY();
 		int Action = event.getActionMasked();
-		
+
 		// Converts button locations 0 - 1 to OGL screen coords -1.0 - 1.0
 		float ScreenX = ((X / screenWidth) * 2.0f) - 1.0f;
 		float ScreenY = ((Y / screenHeight) * -2.0f) + 1.0f;
@@ -228,7 +228,7 @@ public final class DolphinEmulator<MainActivity> extends Activity
 		
 		for (InputDevice.MotionRange range : motions)
 		{
-		    NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
+			NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));
 		}
 
 		return true;

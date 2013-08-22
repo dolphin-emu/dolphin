@@ -6,9 +6,9 @@ import android.view.SurfaceView;
 
 public final class NativeGLSurfaceView extends SurfaceView
 {
-	static private Thread myRun;
-	static private boolean Running = false;
-	static private boolean Created = false;
+	private static Thread myRun;
+	private static boolean Running = false;
+	private static boolean Created = false;
 
 	public NativeGLSurfaceView(Context context)
 	{
@@ -18,21 +18,22 @@ public final class NativeGLSurfaceView extends SurfaceView
 			myRun = new Thread() 
 			{
 				@Override
-	      		public void run() {
-	    	  		NativeLibrary.Run(getHolder().getSurface());
-	      		}	
+				public void run() {
+					NativeLibrary.Run(getHolder().getSurface());
+				}
 			};
-			
-			getHolder().addCallback(new SurfaceHolder.Callback() {
-		            public void surfaceCreated(SurfaceHolder holder)
-		            {
-		                // TODO Auto-generated method stub
-		            	if (!Running)
-		            	{
-		            		myRun.start();
-		            		Running = true;
-		            	}
-		            }
+
+			getHolder().addCallback(new SurfaceHolder.Callback()
+			{
+					public void surfaceCreated(SurfaceHolder holder)
+					{
+						// TODO Auto-generated method stub
+						if (!Running)
+						{
+							myRun.start();
+							Running = true;
+						}
+					}
 
 					public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3)
 					{
@@ -44,7 +45,7 @@ public final class NativeGLSurfaceView extends SurfaceView
 						// TODO Auto-generated method stub
 					}
 			 });
-			
+
 			Created = true;
 		}
 	}

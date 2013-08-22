@@ -41,7 +41,7 @@ public final class InputConfigItem implements Comparable<InputConfigItem>
 
 	/**
 	 * Constructor that creates an InputConfigItem
-	 * that has a default binding of "None"
+	 * that has a default binding of "None".
 	 * 
 	 * @param name   Name of the input config item.
 	 * @param config Name of the key in the configuration file that this control modifies.
@@ -50,7 +50,7 @@ public final class InputConfigItem implements Comparable<InputConfigItem>
 	{
 		Init(name, config, "None");
 	}
-	
+
 	/**
 	 * Gets the name of this InputConfigItem.
 	 * 
@@ -60,7 +60,7 @@ public final class InputConfigItem implements Comparable<InputConfigItem>
 	{
 		return m_name;
 	}
-	
+
 	/**
 	 * Gets the config key this InputConfigItem modifies.
 	 * 
@@ -70,9 +70,9 @@ public final class InputConfigItem implements Comparable<InputConfigItem>
 	{
 		return m_Config;
 	}
-	
+
 	/**
-	 * Gets the currently set binding of this InputConfigItem
+	 * Gets the currently set binding of this InputConfigItem.
 	 * 
 	 * @return the currently set binding of this InputConfigItem
 	 */
@@ -80,7 +80,7 @@ public final class InputConfigItem implements Comparable<InputConfigItem>
 	{
 		return m_bind;
 	}
-	
+
 	/**
 	 * Sets a new binding for this InputConfigItem.
 	 * 
@@ -93,7 +93,7 @@ public final class InputConfigItem implements Comparable<InputConfigItem>
 
 	public int compareTo(InputConfigItem o)
 	{
-		if(this.m_name != null)
+		if (this.m_name != null)
 			return this.m_name.toLowerCase().compareTo(o.getName().toLowerCase());
 		else
 			throw new IllegalArgumentException();

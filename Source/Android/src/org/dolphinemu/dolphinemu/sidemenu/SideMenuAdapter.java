@@ -16,7 +16,7 @@ public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>
 	private final Context c;
 	private final int id;
 	private final List<SideMenuItem>items;
-	
+
 	public SideMenuAdapter(Context context, int textViewResourceId, List<SideMenuItem> objects)
 	{
 		super(context, textViewResourceId, objects);
@@ -24,32 +24,32 @@ public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>
 		id = textViewResourceId;
 		items = objects;
 	}
-	
+
 	public SideMenuItem getItem(int i)
 	{
-		 return items.get(i);
+		return items.get(i);
 	}
-	
+
 	@Override
-    public View getView(int position, View convertView, ViewGroup parent)
+	public View getView(int position, View convertView, ViewGroup parent)
 	{
-        View v = convertView;
-         if (v == null)
-         {
-             LayoutInflater vi = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-             v = vi.inflate(id, null);
-         }
-          
-         final SideMenuItem item = items.get(position);
-         if (item != null)
-         {
-             TextView title = (TextView) v.findViewById(R.id.SideMenuTitle);
-              
-             if(title != null)
-             	title.setText(item.getName());
-         }
-          
-         return v;
+		View v = convertView;
+		if (v == null)
+		{
+			LayoutInflater vi = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			v = vi.inflate(id, null);
+		}
+
+		final SideMenuItem item = items.get(position);
+		if (item != null)
+		{
+			TextView title = (TextView) v.findViewById(R.id.SideMenuTitle);
+
+			if (title != null)
+				title.setText(item.getName());
+		}
+
+		return v;
 	}
 }
 

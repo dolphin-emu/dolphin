@@ -43,7 +43,7 @@ public final class GameListFragment extends Fragment
 	{
 		// Empty constructor required for fragment subclasses
 	}
-	
+
 	private void Fill()
 	{
 		List<GameListItem> fls = new ArrayList<GameListItem>();
@@ -60,13 +60,13 @@ public final class GameListFragment extends Fragment
 			File[] dirs = currentDir.listFiles();
 			try
 			{
-				for(File entry : dirs)
+				for (File entry : dirs)
 				{
 					String entryName = entry.getName();
 
 					if (entryName.charAt(0) != '.')
 					{
-						if(!entry.isDirectory())
+						if (!entry.isDirectory())
 						{
 							if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 								fls.add(new GameListItem(mMe.getApplicationContext(), entryName, getString(R.string.file_size)+entry.length(),entry.getAbsolutePath(), true));
@@ -74,12 +74,12 @@ public final class GameListFragment extends Fragment
 					}
 				}
 			}
-			catch(Exception ignored)
+			catch (Exception ignored)
 			{
 			}
 		}
 		Collections.sort(fls);
-		
+
 		// Remove any duplicate items from the list.
 		// We don't need to index these in the game list more than once.
 		//
@@ -87,12 +87,12 @@ public final class GameListFragment extends Fragment
 		// so there should be no worries about accidentally removing a valid game.
 		for (int i = 0; i < fls.size(); i++)
 		{
-		    int indexNext = i+1;
-		    
-		    if (indexNext < fls.size() && fls.get(indexNext).getPath().contains(fls.get(i).getPath()))
-		    {
-		        fls.remove(indexNext);
-		    }
+			int indexNext = i+1;
+
+			if (indexNext < fls.size() && fls.get(indexNext).getPath().contains(fls.get(i).getPath()))
+			{
+				fls.remove(indexNext);
+			}
 		}
 
 		mGameAdapter = new GameListAdapter(mMe, R.layout.gamelist_layout, fls);
@@ -112,19 +112,19 @@ public final class GameListFragment extends Fragment
 
 		return mMainList;
 	}
-	
+
 	private AdapterView.OnItemClickListener mGameItemClickListener = new AdapterView.OnItemClickListener()
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 		{
 			GameListItem o = mGameAdapter.getItem(position);
-			if(!(o.getData().equalsIgnoreCase(getString(R.string.folder))||o.getData().equalsIgnoreCase(getString(R.string.parent_directory))))
+			if (!(o.getData().equalsIgnoreCase(getString(R.string.folder))||o.getData().equalsIgnoreCase(getString(R.string.parent_directory))))
 			{
 				onFileClick(o.getPath());
 			}
 		}
 	};
-	
+
 	private void onFileClick(String o)
 	{
 		Toast.makeText(mMe, getString(R.string.file_clicked) + o, Toast.LENGTH_SHORT).show();
@@ -134,7 +134,7 @@ public final class GameListFragment extends Fragment
 		mMe.setResult(Activity.RESULT_OK, intent);
 		mMe.finish();
 	}
-	
+
 	@Override
 	public void onAttach(Activity activity)
 	{
