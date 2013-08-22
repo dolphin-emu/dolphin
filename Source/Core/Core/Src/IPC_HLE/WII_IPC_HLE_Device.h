@@ -36,6 +36,61 @@
 //#define	FS_EFATAL		(u32)-119		// Fatal error not used by IOS as fatal ERROR
 #define	FS_EESEXHAUSTED	(u32)-1016	// Max of 2 ES handles at a time
 
+// A struct for IOS ioctlv calls
+struct SIOCtlVBuffer
+{
+	SIOCtlVBuffer(u32 _Address) : m_Address(_Address)
+	{
+		// These are the Ioctlv parameters in the IOS communication. The BufferVector
+		// is a memory address offset at where the in and out buffer addresses are
+		// stored.
+		Parameter			= Memory::Read_U32(m_Address + 0x0C); // command 3, arg0
+		NumberInBuffer		= Memory::Read_U32(m_Address + 0x10); // 4, arg1
+		NumberPayloadBuffer	= Memory::Read_U32(m_Address + 0x14); // 5, arg2
+		BufferVector		= Memory::Read_U32(m_Address + 0x18); // 6, arg3
+
+		// The start of the out buffer
+		u32 BufferVectorOffset = BufferVector;
+
+		// Write the address and size for all in messages
+		for (u32 i = 0; i < NumberInBuffer; i++)
+		{
+			SBuffer Buffer;
+			Buffer.m_Address	= Memory::Read_U32(BufferVectorOffset);
+			BufferVectorOffset += 4;
+			Buffer.m_Size		= Memory::Read_U32(BufferVectorOffset);
+			BufferVectorOffset += 4;
+			InBuffer.push_back(Buffer);
+			DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer in%i: 0x%08x, 0x%x",
+						i, Buffer.m_Address, Buffer.m_Size);
+		}
+
+		// Write the address and size for all out or in-out messages
+		for (u32 i = 0; i < NumberPayloadBuffer; i++)
+		{
+			SBuffer Buffer;
+			Buffer.m_Address	= Memory::Read_U32(BufferVectorOffset);
+			BufferVectorOffset += 4;
+			Buffer.m_Size		= Memory::Read_U32(BufferVectorOffset);
+			BufferVectorOffset += 4;
+			PayloadBuffer.push_back(Buffer);
+			DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer io%i: 0x%08x, 0x%x",
+						i, Buffer.m_Address, Buffer.m_Size);
+		}
+	}
+
+	const u32 m_Address;
+
+	u32 Parameter;
+	u32 NumberInBuffer;
+	u32 NumberPayloadBuffer;
+	u32 BufferVector;
+
+	struct SBuffer { u32 m_Address, m_Size; };
+	std::vector<SBuffer> InBuffer;
+	std::vector<SBuffer> PayloadBuffer;
+};
+
 class IWII_IPC_HLE_Device
 {
 public:
@@ -103,61 +158,6 @@ protected:
 	u32 m_DeviceID;
 	bool m_Hardware;
 	bool m_Active;
-
-	// A struct for IOS ioctlv calls
-	struct SIOCtlVBuffer
-	{
-		SIOCtlVBuffer(u32 _Address) : m_Address(_Address)
-		{
-			// These are the Ioctlv parameters in the IOS communication. The BufferVector
-			// is a memory address offset at where the in and out buffer addresses are
-			// stored.
-			Parameter			= Memory::Read_U32(m_Address + 0x0C); // command 3, arg0
-			NumberInBuffer		= Memory::Read_U32(m_Address + 0x10); // 4, arg1
-			NumberPayloadBuffer	= Memory::Read_U32(m_Address + 0x14); // 5, arg2
-			BufferVector		= Memory::Read_U32(m_Address + 0x18); // 6, arg3
-
-			// The start of the out buffer
-			u32 BufferVectorOffset = BufferVector;
-
-			// Write the address and size for all in messages
-			for (u32 i = 0; i < NumberInBuffer; i++)
-			{
-				SBuffer Buffer;
-				Buffer.m_Address	= Memory::Read_U32(BufferVectorOffset);
-				BufferVectorOffset += 4;
-				Buffer.m_Size		= Memory::Read_U32(BufferVectorOffset);
-				BufferVectorOffset += 4;
-				InBuffer.push_back(Buffer);
-				DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer in%i: 0x%08x, 0x%x",
-							i, Buffer.m_Address, Buffer.m_Size);
-			}
-
-			// Write the address and size for all out or in-out messages
-			for (u32 i = 0; i < NumberPayloadBuffer; i++)
-			{
-				SBuffer Buffer;
-				Buffer.m_Address	= Memory::Read_U32(BufferVectorOffset);
-				BufferVectorOffset += 4;
-				Buffer.m_Size		= Memory::Read_U32(BufferVectorOffset);
-				BufferVectorOffset += 4;
-				PayloadBuffer.push_back(Buffer);
-				DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer io%i: 0x%08x, 0x%x",
-							i, Buffer.m_Address, Buffer.m_Size);
-			}
-		}
-
-		const u32 m_Address;
-
-		u32 Parameter;
-		u32 NumberInBuffer;
-		u32 NumberPayloadBuffer;
-		u32 BufferVector;
-
-		struct SBuffer { u32 m_Address, m_Size; };
-		std::vector<SBuffer> InBuffer;
-		std::vector<SBuffer> PayloadBuffer;
-	};
 
 	// Write out the IPC struct from _CommandAddress to _NumberOfCommands numbers
 	// of 4 byte commands.

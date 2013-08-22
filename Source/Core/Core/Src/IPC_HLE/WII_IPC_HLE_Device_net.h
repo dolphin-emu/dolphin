@@ -135,7 +135,7 @@ struct nwc24_config_t
 		NWC24_IDCS_GENERATED = 1,
 		NWC24_IDCS_REGISTERED = 2
 	};
-	
+
 	enum
 	{
 		URL_COUNT = 0x05,
@@ -143,7 +143,7 @@ struct nwc24_config_t
 		MAX_EMAIL_LENGTH = 0x40,
 		MAX_PASSWORD_LENGTH = 0x20,
 	};
-	
+
 	u32 magic;		/* 'WcCf' 0x57634366 */
 	u32 _unk_04;	/* must be 8 */
 	u64 nwc24_id;
@@ -167,21 +167,21 @@ class NWC24Config
 private:
 	std::string path;
 	nwc24_config_t config;
-	
+
 public:
 	NWC24Config()
 	{
 		path = File::GetUserPath(D_WIIWC24_IDX) + "nwc24msg.cfg";
 		ReadConfig();
 	}
-	
+
 	void ResetConfig()
 	{
 		int i;
-		
+
 		if (File::Exists(path))
 			File::Delete(path);
-		
+
 		const char* urls[5] = {
 			"https://amw.wc24.wii.com/cgi-bin/account.cgi",
 			"http://rcw.wc24.wii.com/cgi-bin/check.cgi",
@@ -189,25 +189,25 @@ public:
 			"http://mtw.wc24.wii.com/cgi-bin/delete.cgi",
 			"http://mtw.wc24.wii.com/cgi-bin/send.cgi",
 		};
-		
+
 		memset(&config, 0, sizeof(config));
-		
+
 		SetMagic(0x57634366);
 		SetUnk(8);
 		SetCreationStage(nwc24_config_t::NWC24_IDCS_INITIAL);
 		SetEnableBooting(0);
 		SetEmail("@wii.com");
-		
+
 		for(i=0; i<nwc24_config_t::URL_COUNT; i++)
 		{
 			strncpy(config.http_urls[i], urls[i], nwc24_config_t::MAX_URL_LENGTH);
 		}
-		
+
 		SetChecksum(CalculateNwc24ConfigChecksum());
-		
+
 		WriteConfig();
 	}
-	
+
 	void WriteConfig()
 	{
 		if (!File::Exists(path))
@@ -217,11 +217,11 @@ public:
 				ERROR_LOG(WII_IPC_WC24, "Failed to create directory for WC24");
 			}
 		}
-		
+
 		File::IOFile(path, "wb").WriteBytes((void*)&config, sizeof(config));
 	}
-	
-	
+
+
 	void ReadConfig()
 	{
 		if (File::Exists(path))
@@ -240,7 +240,7 @@ public:
 			ResetConfig();
 		}
 	}
-	
+
 	u32 CalculateNwc24ConfigChecksum(void)
 	{
 		u32* ptr = (u32*)&config;
@@ -252,7 +252,7 @@ public:
 		}
 		return sum;
 	}
-	
+
 	s32 CheckNwc24Config(void)
 	{
 		if (Magic() != 0x57634366)	/* 'WcCf' magic */
@@ -274,16 +274,16 @@ public:
 		}
 		if (Unk() != 8)
 			return -27;
-		
+
 		return 0;
 	}	
-	
+
 	u32 Magic(){return Common::swap32(config.magic);}
 	void SetMagic(u32 magic){config.magic = Common::swap32(magic);}
-	
+
 	u32 Unk(){return Common::swap32(config._unk_04);}
 	void SetUnk(u32 _unk_04){config._unk_04 = Common::swap32(_unk_04);}
-	
+
 	u32 IdGen(){return Common::swap32(config.id_generation);}
 	void SetIdGen(u32 id_generation){config.id_generation = Common::swap32(id_generation);}
 	void IncrementIdGen(){
@@ -292,26 +292,26 @@ public:
 		id_ctr &= 0x1F;
 		SetIdGen(id_ctr);
 	}
-	
+
 	u32 Checksum(){return Common::swap32(config.checksum);}
 	void SetChecksum(u32 checksum){config.checksum = Common::swap32(checksum);}
-	
+
 	u32 CreationStage(){return Common::swap32(config.creation_stage);}
 	void SetCreationStage(u32 creation_stage){config.creation_stage = Common::swap32(creation_stage);}
-	
+
 	u32 EnableBooting(){return Common::swap32(config.enable_booting);}
 	void SetEnableBooting(u32 enable_booting){config.enable_booting = Common::swap32(enable_booting);}
-	
+
 	u64 Id(){return Common::swap64(config.nwc24_id);}
 	void SetId(u64 nwc24_id){config.nwc24_id = Common::swap64(nwc24_id);}
-	
+
 	const char * Email(){return config.email;}
 	void SetEmail(const char * email)
 	{
 		strncpy(config.email, email, nwc24_config_t::MAX_EMAIL_LENGTH); 
 		config.email[nwc24_config_t::MAX_EMAIL_LENGTH-1] = '\0';
 	}
-	
+
 };
 
 class WiiNetConfig
@@ -390,7 +390,7 @@ public:
 class CWII_IPC_HLE_Device_net_kd_request : public IWII_IPC_HLE_Device
 {
 public:
-    CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName);
+	CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
@@ -399,32 +399,32 @@ public:
 	virtual bool IOCtl(u32 _CommandAddress);
 
 private:
-    enum
-    {
-        IOCTL_NWC24_SUSPEND_SCHEDULAR               = 0x01,
-        IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR      = 0x02,
-        IOCTL_NWC24_EXEC_RESUME_SCHEDULAR           = 0x03,
-        IOCTL_NWC24_KD_GET_TIME_TRIGGERS            = 0x04,
-        IOCTL_NWC24_SET_SCHEDULE_SPAN               = 0x05,
-        IOCTL_NWC24_STARTUP_SOCKET                  = 0x06,
-        IOCTL_NWC24_CLEANUP_SOCKET                  = 0x07,
-        IOCTL_NWC24_LOCK_SOCKET                     = 0x08,
-        IOCTL_NWC24_UNLOCK_SOCKET                   = 0x09,
-        IOCTL_NWC24_CHECK_MAIL_NOW                  = 0x0A,
-        IOCTL_NWC24_SEND_MAIL_NOW                   = 0x0B,
-        IOCTL_NWC24_RECEIVE_MAIL_NOW                = 0x0C,
-        IOCTL_NWC24_SAVE_MAIL_NOW                   = 0x0D,
-        IOCTL_NWC24_DOWNLOAD_NOW_EX                 = 0x0E,
-        IOCTL_NWC24_REQUEST_GENERATED_USER_ID       = 0x0F,
-        IOCTL_NWC24_REQUEST_REGISTER_USER_ID        = 0x10,
-        IOCTL_NWC24_GET_SCHEDULAR_STAT              = 0x1E,
-        IOCTL_NWC24_SET_FILTER_MODE                 = 0x1F,
-        IOCTL_NWC24_SET_DEBUG_MODE                  = 0x20,
-        IOCTL_NWC24_KD_SET_NEXT_WAKEUP              = 0x21,
-        IOCTL_NWC24_SET_SCRIPT_MODE                 = 0x22,
-        IOCTL_NWC24_REQUEST_SHUTDOWN                = 0x28,
-    };
-	
+	enum
+	{
+		IOCTL_NWC24_SUSPEND_SCHEDULAR               = 0x01,
+		IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR      = 0x02,
+		IOCTL_NWC24_EXEC_RESUME_SCHEDULAR           = 0x03,
+		IOCTL_NWC24_KD_GET_TIME_TRIGGERS            = 0x04,
+		IOCTL_NWC24_SET_SCHEDULE_SPAN               = 0x05,
+		IOCTL_NWC24_STARTUP_SOCKET                  = 0x06,
+		IOCTL_NWC24_CLEANUP_SOCKET                  = 0x07,
+		IOCTL_NWC24_LOCK_SOCKET                     = 0x08,
+		IOCTL_NWC24_UNLOCK_SOCKET                   = 0x09,
+		IOCTL_NWC24_CHECK_MAIL_NOW                  = 0x0A,
+		IOCTL_NWC24_SEND_MAIL_NOW                   = 0x0B,
+		IOCTL_NWC24_RECEIVE_MAIL_NOW                = 0x0C,
+		IOCTL_NWC24_SAVE_MAIL_NOW                   = 0x0D,
+		IOCTL_NWC24_DOWNLOAD_NOW_EX                 = 0x0E,
+		IOCTL_NWC24_REQUEST_GENERATED_USER_ID       = 0x0F,
+		IOCTL_NWC24_REQUEST_REGISTER_USER_ID        = 0x10,
+		IOCTL_NWC24_GET_SCHEDULAR_STAT              = 0x1E,
+		IOCTL_NWC24_SET_FILTER_MODE                 = 0x1F,
+		IOCTL_NWC24_SET_DEBUG_MODE                  = 0x20,
+		IOCTL_NWC24_KD_SET_NEXT_WAKEUP              = 0x21,
+		IOCTL_NWC24_SET_SCRIPT_MODE                 = 0x22,
+		IOCTL_NWC24_REQUEST_SHUTDOWN                = 0x28,
+	};
+
 	enum {
 		MODEL_RVT = 0,
 		MODEL_RVV = 0,
@@ -432,14 +432,15 @@ private:
 		MODEL_RVD = 2,
 		MODEL_ELSE = 7
 	};
-	
+
 	u8 GetAreaCode(const char * area);
 	u8 GetHardwareModel(const char * model);
-	
+
 	s32 NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_model, u8 area_code);
-	
+
 	NWC24Config config;
 };
+
 
 //////////////////////////////////////////////////////////////////////////
 class CWII_IPC_HLE_Device_net_kd_time : public IWII_IPC_HLE_Device
@@ -457,14 +458,14 @@ public:
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode)
 	{
-        INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
+		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		return true;
 	}
 
 	virtual bool Close(u32 _CommandAddress, bool _bForce)
 	{
-        INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
+		INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress + 4);
 		return true;
@@ -472,9 +473,9 @@ public:
 
 	virtual bool IOCtl(u32 _CommandAddress) 
 	{
-        u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
-        u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-        u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
+		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
+		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
+		u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
 		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
 		u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 
@@ -483,8 +484,8 @@ public:
 		// TODO Writes stuff to /shared2/nwc24/misc.bin
 		u32 update_misc = 0;
 
-        switch (Parameter)
-        {
+		switch (Parameter)
+		{
 		case IOCTL_NW24_GET_UNIVERSAL_TIME:
 			Memory::Write_U64(GetAdjustedUTC(), BufferOut + 4);
 			break;
@@ -494,7 +495,7 @@ public:
 			update_misc = Memory::Read_U32(BufferIn + 8);
 			break;
 
-        case IOCTL_NW24_SET_RTC_COUNTER:
+		case IOCTL_NW24_SET_RTC_COUNTER:
 			rtc = Memory::Read_U32(BufferIn);
 			update_misc = Memory::Read_U32(BufferIn + 4);
 			break;
@@ -507,11 +508,11 @@ public:
 			result = -9;
 			break;
 
-        default:
+		default:
 			ERROR_LOG(WII_IPC_NET, "%s - unknown IOCtl: %x\n",
 				GetDeviceName().c_str(), Parameter);
-            break;
-        }
+			break;
+		}
 
 		// write return values
 		Memory::Write_U32(common_result, BufferOut);
@@ -520,14 +521,14 @@ public:
 	}
 
 private:
-    enum
-    {
+	enum
+	{
 		IOCTL_NW24_GET_UNIVERSAL_TIME	= 0x14,
 		IOCTL_NW24_SET_UNIVERSAL_TIME	= 0x15,
 		IOCTL_NW24_UNIMPLEMENTED		= 0x16,
 		IOCTL_NW24_SET_RTC_COUNTER		= 0x17,
 		IOCTL_NW24_GET_TIME_DIFF		= 0x18,
-    };
+	};
 
 	u64 rtc;
 	s64 utcdiff;
@@ -550,6 +551,75 @@ private:
 	}
 };
 
+
+struct bind_params
+{
+	u32 socket;
+	u32 has_name;
+	u8 name[28];
+};
+
+struct GC_sockaddr
+{
+	u8 sa_len;
+	u8 sa_family;
+	s8 sa_data[14];
+};
+
+struct GC_in_addr
+{
+	// this cannot be named s_addr under windows - collides with some crazy define.
+	u32 s_addr_;
+};
+
+struct GC_sockaddr_in
+{
+	u8 sin_len;
+	u8 sin_family;
+	u16 sin_port;
+	struct GC_in_addr sin_addr;
+	s8 sin_zero[8];
+};
+
+enum NET_IOCTL
+{
+	IOCTL_SO_ACCEPT = 1,
+	IOCTL_SO_BIND,
+	IOCTL_SO_CLOSE,
+	IOCTL_SO_CONNECT,
+	IOCTL_SO_FCNTL,
+	IOCTL_SO_GETPEERNAME,
+	IOCTL_SO_GETSOCKNAME,
+	IOCTL_SO_GETSOCKOPT,
+	IOCTL_SO_SETSOCKOPT,  
+	IOCTL_SO_LISTEN,
+	IOCTL_SO_POLL,
+	IOCTLV_SO_RECVFROM,
+	IOCTLV_SO_SENDTO,
+	IOCTL_SO_SHUTDOWN,
+	IOCTL_SO_SOCKET,
+	IOCTL_SO_GETHOSTID,
+	IOCTL_SO_GETHOSTBYNAME,
+	IOCTL_SO_GETHOSTBYADDR,
+	IOCTLV_SO_GETNAMEINFO,
+	IOCTL_SO_UNK14,
+	IOCTL_SO_INETATON,
+	IOCTL_SO_INETPTON,
+	IOCTL_SO_INETNTOP,
+	IOCTLV_SO_GETADDRINFO,
+	IOCTL_SO_SOCKATMARK,
+	IOCTLV_SO_UNK1A,
+	IOCTLV_SO_UNK1B,
+	IOCTLV_SO_GETINTERFACEOPT,
+	IOCTLV_SO_SETINTERFACEOPT,
+	IOCTL_SO_SETINTERFACE,
+	IOCTL_SO_STARTUP,
+	IOCTL_SO_ICMPSOCKET = 0x30,
+	IOCTLV_SO_ICMPPING,
+	IOCTL_SO_ICMPCANCEL,
+	IOCTL_SO_ICMPCLOSE
+};
+
 //////////////////////////////////////////////////////////////////////////
 class CWII_IPC_HLE_Device_net_ip_top : public IWII_IPC_HLE_Device
 {
@@ -562,51 +632,13 @@ public:
 	virtual bool Close(u32 _CommandAddress, bool _bForce);
 	virtual bool IOCtl(u32 _CommandAddress);
 	virtual bool IOCtlV(u32 _CommandAddress);
-	
+
+	virtual u32 Update();
+
 private:
 #ifdef _WIN32
 	WSADATA InitData;
 #endif
-	
-    enum
-	{
-        IOCTL_SO_ACCEPT = 1,
-        IOCTL_SO_BIND,
-        IOCTL_SO_CLOSE,
-        IOCTL_SO_CONNECT,
-        IOCTL_SO_FCNTL,
-        IOCTL_SO_GETPEERNAME,
-        IOCTL_SO_GETSOCKNAME,
-        IOCTL_SO_GETSOCKOPT,
-        IOCTL_SO_SETSOCKOPT,  
-        IOCTL_SO_LISTEN,
-        IOCTL_SO_POLL,
-        IOCTLV_SO_RECVFROM,
-        IOCTLV_SO_SENDTO,
-        IOCTL_SO_SHUTDOWN,
-        IOCTL_SO_SOCKET,
-        IOCTL_SO_GETHOSTID,
-        IOCTL_SO_GETHOSTBYNAME,
-        IOCTL_SO_GETHOSTBYADDR,
-        IOCTLV_SO_GETNAMEINFO,
-        IOCTL_SO_UNK14,
-        IOCTL_SO_INETATON,
-        IOCTL_SO_INETPTON,
-        IOCTL_SO_INETNTOP,
-        IOCTLV_SO_GETADDRINFO,
-        IOCTL_SO_SOCKATMARK,
-        IOCTLV_SO_UNK1A,
-        IOCTLV_SO_UNK1B,
-        IOCTLV_SO_GETINTERFACEOPT,
-        IOCTLV_SO_SETINTERFACEOPT,
-        IOCTL_SO_SETINTERFACE,
-        IOCTL_SO_STARTUP,
-        IOCTL_SO_ICMPSOCKET = 0x30,
-        IOCTLV_SO_ICMPPING,
-        IOCTL_SO_ICMPCANCEL,
-        IOCTL_SO_ICMPCLOSE
-    };
-
 	u32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
 	u32 ExecuteCommandV(SIOCtlVBuffer& CommandBuffer);
 };
@@ -628,7 +660,7 @@ private:
 	enum
 	{
 		IOCTLV_NCD_LOCKWIRELESSDRIVER		= 0x1,  // NCDLockWirelessDriver
-		IOCTLV_NCD_UNLOCKWIRELESSDRIVER	= 0x2,  // NCDUnlockWirelessDriver
+		IOCTLV_NCD_UNLOCKWIRELESSDRIVER		= 0x2,  // NCDUnlockWirelessDriver
 		IOCTLV_NCD_GETCONFIG				= 0x3,  // NCDiGetConfig
 		IOCTLV_NCD_SETCONFIG				= 0x4,  // NCDiSetConfig
 		IOCTLV_NCD_READCONFIG				= 0x5,
@@ -687,7 +719,7 @@ private:
 		SCAN_PASSIVE
 	};
 
-	#pragma pack(push, 1)
+#pragma pack(push, 1)
 	struct ScanInfo
 	{
 		u16 channel_bitmap;
@@ -731,7 +763,7 @@ private:
 		char wlversion[0x50];
 		u8 unk[0x30];
 	};
-	#pragma pack(pop)
+#pragma pack(pop)
 };
 
 #endif
