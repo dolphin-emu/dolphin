@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,8 +29,8 @@ public final class FolderBrowser extends Fragment
 
 	// Populates the FolderView with the given currDir's contents.
 	private void Fill(File currDir)
-    {
-	    m_activity.setTitle(getString(R.string.current_dir) + currDir.getName());
+	{
+		m_activity.setTitle(getString(R.string.current_dir) + currDir.getName());
 		File[] dirs = currDir.listFiles();
 		List<FolderBrowserItem>dir = new ArrayList<FolderBrowserItem>();
 		List<FolderBrowserItem>fls = new ArrayList<FolderBrowserItem>();
@@ -38,20 +39,22 @@ public final class FolderBrowser extends Fragment
 		Set<String> validExts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf", ".dff"));
 		Set<String> invalidExts = new HashSet<String>(Arrays.asList(".zip", ".rar", ".7z"));
 
-		// Search for any directories or supported files within the current dir.
-		try
+		// Search for any directories or files within the current dir.
+		for(File entry : dirs)
 		{
-			for(File entry : dirs)
+			try
 			{
 				String entryName = entry.getName();
+				boolean hasExtension = (entryName.lastIndexOf(".") != -1) ? true : false;
 
+				// Skip hidden folders/files.
 				if (entryName.charAt(0) != '.')
 				{
 					if(entry.isDirectory())
 					{
 						dir.add(new FolderBrowserItem(entryName, entry.getAbsolutePath(), true));
 					}
-					else
+					else if (entry.isFile() && hasExtension)
 					{
 						if (validExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 						{
@@ -64,9 +67,10 @@ public final class FolderBrowser extends Fragment
 					}
 				}
 			}
-		}
-		catch(Exception ignored)
-		{
+			catch (Exception ex)
+			{
+				Log.d("EXCEPTION", ex.toString());
+			}
 		}
 
 		Collections.sort(dir);
@@ -78,11 +82,11 @@ public final class FolderBrowser extends Fragment
 			dir.add(0, new FolderBrowserItem("..", getString(R.string.parent_directory), currDir.getParent(), true));
 
 		adapter = new FolderBrowserAdapter(m_activity, R.layout.folderbrowser, dir);
-	    mDrawerList = (ListView) rootView.findViewById(R.id.gamelist);
-	    mDrawerList.setAdapter(adapter);
-	    mDrawerList.setOnItemClickListener(mMenuItemClickListener);
-    }
-	
+		mDrawerList = (ListView) rootView.findViewById(R.id.gamelist);
+		mDrawerList.setAdapter(adapter);
+		mDrawerList.setOnItemClickListener(mMenuItemClickListener);
+	}
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
