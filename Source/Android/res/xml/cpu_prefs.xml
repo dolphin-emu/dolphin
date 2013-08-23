@@ -3,7 +3,7 @@
     <!-- CPU Settings -->             
     <CheckBoxPreference
            android:key="dualCorePref"
-           android:summary="@string/on_off"
+           android:summary="@string/dual_core_descrip"
            android:title="@string/dual_core" />
     
     <ListPreference
