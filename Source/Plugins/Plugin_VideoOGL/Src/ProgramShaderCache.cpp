@@ -78,17 +78,35 @@ void SHADER::SetProgramVariables()
 			glUniformBlockBinding(glprogid, VSBlock_id, 2);
 	}
 	
-	// We cache our uniform locations for now
-	// Once we move up to a newer version of GLSL, ~1.30
-	// We can remove this
+	// UBO workaround
+	for (int a = 0; a < NUM_UNIFORMS; ++a)
+	{
+		UniformLocations[a] = glGetUniformLocation(glprogid, UniformNames[a]);
+		UniformSize[a] = 0;
+		if(g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+			break;
+	}
+	if(!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		int max_uniforms = 0;
+		char name[50];
+		int size;
+		
+		glGetProgramiv(glprogid, GL_ACTIVE_UNIFORMS, &max_uniforms);
+		for(int i=0; i<max_uniforms; i++)
+		{
+			glGetActiveUniform(glprogid, i, sizeof(name), NULL, &size, NULL, name);
+			for (int a = 0; a < NUM_UNIFORMS; ++a)
+			{
+				if(strstr(name, UniformNames[a]))
+				{
+					UniformSize[a] = size;
+					break;
+				}
+			}
+		}
+	}
 
-	// (Sonicadvance): For some reason this fails on my hardware
-	//glGetUniformIndices(glprogid, NUM_UNIFORMS, UniformNames, UniformLocations);
-	// Got to do it this crappy way.
-	UniformLocations[0] = glGetUniformLocation(glprogid, UniformNames[0]);
-	if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		for (int a = 1; a < NUM_UNIFORMS; ++a)
-			UniformLocations[a] = glGetUniformLocation(glprogid, UniformNames[a]);
 
 	// Bind Texture Sampler
 	for (int a = 0; a <= 9; ++a)
