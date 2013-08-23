@@ -50,7 +50,6 @@ public final class FolderBrowser extends Fragment
 
 		// Supported extensions to filter by
 		Set<String> validExts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf", ".dff"));
-		Set<String> invalidExts = new HashSet<String>(Arrays.asList(".zip", ".rar", ".7z"));
 
 		// Search for any directories or files within the current dir.
 		for(File entry : dirs)
@@ -72,10 +71,6 @@ public final class FolderBrowser extends Fragment
 						if (validExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 						{
 							fls.add(new FolderBrowserItem(entryName, getString(R.string.file_size)+entry.length(), entry.getAbsolutePath(), true));
-						}
-						else if (invalidExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
-						{
-							fls.add(new FolderBrowserItem(entryName, getString(R.string.file_size)+entry.length(), entry.getAbsolutePath(), false));
 						}
 					}
 				}
