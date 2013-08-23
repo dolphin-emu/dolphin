@@ -538,8 +538,8 @@ void ProgramShaderCache::CreateHeader ( void )
 		
 		, v==GLSL_120 ? "attribute" : "in"
 		, v==GLSL_120 ? "attribute" : "out"
-		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "in" : v==GLSL_120 ? "varying" : "centroid in"
-		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "out" : v==GLSL_120 ? "varying" : "centroid out"
+		, v==GLSL_120 ? "varying" : DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "in" : "centroid in"
+		, v==GLSL_120 ? "varying" : DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "out" : "centroid out"
 		
 		, v==GLSL_120 ? "#define texture texture2D" : ""
 		, v==GLSL_120 ? "#define round(x) floor((x)+0.5f)" : ""

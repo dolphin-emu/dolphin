@@ -271,9 +271,9 @@ void InitDriverInfo()
 {
 	std::string svendor = std::string(g_ogl_config.gl_vendor);
 	std::string srenderer = std::string(g_ogl_config.gl_renderer);
+	std::string sversion = std::string(g_ogl_config.gl_version);
 	DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
 	DriverDetails::Driver driver = DriverDetails::DRIVER_UNKNOWN;
-	u32 devfamily = 0;
 	double version = 0.0;
 
 	// Get the vendor first
@@ -281,13 +281,12 @@ void InitDriverInfo()
 		vendor = DriverDetails::VENDOR_NVIDIA; 
 	else if (svendor == "ATI Technologies Inc." || svendor == "Advanced Micro Devices, Inc.")
 		vendor = DriverDetails::VENDOR_ATI;
+	else if (std::string::npos != sversion.find("Mesa"))
+		vendor = DriverDetails::VENDOR_MESA;
 	else if (std::string::npos != svendor.find("Intel"))
 		vendor = DriverDetails::VENDOR_INTEL;
 	else if (svendor == "ARM")
-	{
 		vendor = DriverDetails::VENDOR_ARM;
-		driver = DriverDetails::DRIVER_ARM;
-	}
 	else if (svendor == "http://limadriver.org/")
 	{
 		vendor = DriverDetails::VENDOR_ARM;
@@ -308,24 +307,40 @@ void InitDriverInfo()
 		case DriverDetails::VENDOR_QUALCOMM:
 		{
 			if (std::string::npos != srenderer.find("Adreno (TM) 3"))
-				devfamily = 300;
+				driver = DriverDetails::DRIVER_QUALCOMM_3XX;
 			else
-				devfamily = 200;
+				driver = DriverDetails::DRIVER_QUALCOMM_2XX;
 			double glVersion;
 			sscanf(g_ogl_config.gl_version, "OpenGL ES %lg V@%lg", &glVersion, &version);
 		}
 		break;
 		case DriverDetails::VENDOR_ARM:
 			if (std::string::npos != srenderer.find("Mali-T6"))
-				devfamily = 600;
+				driver = DriverDetails::DRIVER_ARM_T6XX;
 			else if(std::string::npos != srenderer.find("Mali-4"))
-				devfamily = 400;
+				driver = DriverDetails::DRIVER_ARM_4XX;
+		break;
+		case DriverDetails::VENDOR_MESA:
+		{
+			if(svendor == "nouveau")
+				driver = DriverDetails::DRIVER_NOUVEAU;
+			else if(svendor == "Intel Open Source Technology Center")
+				driver = DriverDetails::DRIVER_I965;
+			else if(std::string::npos != srenderer.find("AMD") || std::string::npos != srenderer.find("ATI"))
+				driver = DriverDetails::DRIVER_R600;
+			
+			int major = 0;
+			int minor = 0;
+			int release = 0;
+			sscanf(g_ogl_config.gl_version, "%*s Mesa %d.%d.%d", &major, &minor, &release);
+			version = 100*major + 10*minor + release;
+		}
 		break;
 		// We don't care about these
 		default:
 		break;
 	}
-	DriverDetails::Init(vendor, driver, devfamily, version);
+	DriverDetails::Init(vendor, driver, version);
 }
 
 // Init functions
@@ -491,18 +506,12 @@ Renderer::Renderer()
 	if(g_ogl_config.max_samples < 1) 
 		g_ogl_config.max_samples = 1;
 	
-	if(g_Config.backend_info.bSupportsGLSLUBO && (
-		// hd3000 get corruption, hd4000 also and a big slowdown
-		!strcmp(g_ogl_config.gl_vendor, "Intel Open Source Technology Center") && (
-			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.0.0") || 
-			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.0.1") || 
-			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.0.2") || 
-			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.0.3") || 
-			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.1.0") || 
-			!strcmp(g_ogl_config.gl_version, "3.0 Mesa 9.1.1") )
-	)) {
+	if(g_Config.backend_info.bSupportsGLSLUBO && DriverDetails::HasBug(DriverDetails::BUG_BROKENUBO))
+	{
 		g_Config.backend_info.bSupportsGLSLUBO = false;
 		ERROR_LOG(VIDEO, "Buggy driver detected. Disable UBO");
+		OSD::AddMessage("Major performance warning: Buggy GPU driver detected.", 20000);
+		OSD::AddMessage("Please either install the closed-source GPU driver or update your Mesa 3D version.", 20000);
 	}
 	
 	UpdateActiveConfig();
