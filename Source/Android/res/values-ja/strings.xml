@@ -17,7 +17,6 @@
     <string name="parent_directory">親ディレクトリ</string>
     <string name="folder">フォルダ</string>
     <string name="file_size">ファイルサイズ: </string>
-    <string name="cant_use_compressed_filetypes">圧縮ファイル形式はサポートされていません</string>
     
     <!-- Game List Activity -->
     <string name="game_list">ゲームリスト</string>

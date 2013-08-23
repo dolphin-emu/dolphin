@@ -10,7 +10,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import java.io.File;
 import java.util.*;
@@ -64,13 +63,13 @@ public final class FolderBrowser extends Fragment
 				{
 					if(entry.isDirectory())
 					{
-						dir.add(new FolderBrowserItem(entryName, entry.getAbsolutePath(), true));
+						dir.add(new FolderBrowserItem(entryName, entry.getAbsolutePath()));
 					}
 					else if (entry.isFile() && hasExtension)
 					{
 						if (validExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 						{
-							fls.add(new FolderBrowserItem(entryName, getString(R.string.file_size)+entry.length(), entry.getAbsolutePath(), true));
+							fls.add(new FolderBrowserItem(entryName, getString(R.string.file_size)+entry.length(), entry.getAbsolutePath()));
 						}
 					}
 				}
@@ -87,7 +86,7 @@ public final class FolderBrowser extends Fragment
 
 		// Check for a parent directory to the one we're currently in.
 		if (!currDir.getPath().equalsIgnoreCase("/"))
-			dir.add(0, new FolderBrowserItem("..", getString(R.string.parent_directory), currDir.getParent(), true));
+			dir.add(0, new FolderBrowserItem("..", getString(R.string.parent_directory), currDir.getParent()));
 
 		adapter = new FolderBrowserAdapter(m_activity, R.layout.folderbrowser, dir);
 		mDrawerList = (ListView) rootView.findViewById(R.id.gamelist);
@@ -119,10 +118,7 @@ public final class FolderBrowser extends Fragment
 			}
 			else
 			{
-				if (item.isValid())
-					FolderSelected();
-				else
-					Toast.makeText(m_activity, getString(R.string.cant_use_compressed_filetypes), Toast.LENGTH_LONG).show();
+				FolderSelected();
 			}
 		}
 	};

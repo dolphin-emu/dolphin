@@ -17,7 +17,6 @@
     <string name="parent_directory">Parent Directory</string>
     <string name="folder">Folder</string>
     <string name="file_size">File Size: </string>
-    <string name="cant_use_compressed_filetypes">Can not use compressed file types</string>
 
     <!-- Game List Activity -->
     <string name="game_list">Game List</string>
