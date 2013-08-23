@@ -519,7 +519,7 @@ Renderer::Renderer()
 	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s",
 				g_ogl_config.gl_vendor,
 				g_ogl_config.gl_renderer,
-				g_ogl_config.gl_version).c_str(), 5000);
+				g_ogl_config.gl_version), 5000);
 	
 	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
@@ -1814,7 +1814,7 @@ void TakeScreenshot(ScrStrct* threadStruct)
 
 	// Show success messages
 	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", (int)FloatW, (int)FloatH,
-		threadStruct->filename.c_str()).c_str(), 2000);
+		threadStruct->filename.c_str()), 2000);
 	delete threadStruct;
 }
 #endif
