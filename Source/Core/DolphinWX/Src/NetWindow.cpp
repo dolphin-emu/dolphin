@@ -601,6 +601,7 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], std::vector<con
 	, m_player_list(player_list)
 {
 	wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
+	h_szr->AddSpacer(10);
 
 	wxArrayString player_names;
 	player_names.Add(_("None"));
