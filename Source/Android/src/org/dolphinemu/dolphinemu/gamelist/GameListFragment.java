@@ -95,11 +95,12 @@ public final class GameListFragment extends Fragment
 		// so there should be no worries about accidentally removing a valid game.
 		for (int i = 0; i < fls.size(); i++)
 		{
-			int indexNext = i+1;
-
-			if (indexNext < fls.size() && fls.get(indexNext).getPath().contains(fls.get(i).getPath()))
+			for (int j = i+1; j < fls.size(); j++)
 			{
-				fls.remove(indexNext);
+				if (fls.get(j).getPath().equals(fls.get(i).getPath()))
+				{
+					fls.remove(j);
+				}
 			}
 		}
 

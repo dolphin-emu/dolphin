@@ -128,6 +128,8 @@ public final class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("setting-usa.txt",   WiiDir + File.separator + "setting-usa.txt");
 			}
 
+			// Load the configuration keys set in the Dolphin ini and gfx ini files
+			// into the application's shared preferences.
 			UserPreferences.LoadDolphinConfigToPrefs(this);
 		}
 	}
@@ -148,7 +150,6 @@ public final class DolphinEmulator<MainActivity> extends Activity
 			String FileName = data.getStringExtra("Select");
 			GLview = new NativeGLSurfaceView(this);
 			this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-			String backend = NativeLibrary.GetConfig("Dolphin.ini", "Core", "GFXBackend", "Software Renderer");
 			NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
 			NativeLibrary.SetFilename(FileName);
 			setContentView(GLview);
