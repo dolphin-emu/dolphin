@@ -742,6 +742,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 		PanicAlert("Error saving screen.");
 		return false;
 	}
+	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", dst_rect.GetWidth(), dst_rect.GetHeight(), filename.c_str()));
 
 	return true;
 }

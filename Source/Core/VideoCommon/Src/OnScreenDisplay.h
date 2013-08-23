@@ -5,11 +5,14 @@
 #ifndef _OSD_H_
 #define _OSD_H_
 
-namespace OSD 
+#include <string>
+
+namespace OSD
 {
 
 // On-screen message display
 void AddMessage(const char* str, u32 ms = 2000);
+void AddMessage(const std::string& str, u32 ms = 2000);
 void DrawMessages(); // draw the current messages on the screen. Only call once per frame.
 void ClearMessages();
 

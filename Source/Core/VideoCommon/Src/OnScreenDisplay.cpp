@@ -58,6 +58,11 @@ void AddMessage(const char* pstr, u32 ms)
 	s_listMsgs.push_back(MESSAGE(pstr, Common::Timer::GetTimeMs() + ms));
 }
 
+void AddMessage(const std::string& str, u32 ms)
+{
+	AddMessage(str.c_str(), ms);
+}
+
 void DrawMessages()
 {
 	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages)
