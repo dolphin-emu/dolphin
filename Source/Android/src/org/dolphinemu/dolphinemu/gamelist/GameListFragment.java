@@ -51,6 +51,16 @@ public final class GameListFragment extends Fragment
 		 */
 		void onZeroFiles();
 	}
+	
+	/**
+	 * Gets the adapter for this fragment.
+	 * 
+	 * @return the adapter for this fragment.
+	 */
+	public GameListAdapter getAdapter()
+	{
+	    return mGameAdapter;
+	}
 
 	private void Fill()
 	{

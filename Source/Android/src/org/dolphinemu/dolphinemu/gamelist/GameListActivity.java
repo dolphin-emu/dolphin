@@ -7,8 +7,10 @@
 package org.dolphinemu.dolphinemu.gamelist;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.view.*;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
@@ -248,6 +251,20 @@ public final class GameListActivity extends Activity
 	{
 		return super.onPrepareOptionsMenu(menu);
 	}
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		// Only show this in the game list.
+		if (this.mCurFragmentNum == 0)
+		{
+			MenuInflater inflater = getMenuInflater();
+			inflater.inflate(R.menu.gamelist_menu, menu);
+			return true;
+		}
+
+		return false;
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
@@ -257,6 +274,38 @@ public final class GameListActivity extends Activity
 		if (mDrawerToggle.onOptionsItemSelected(item))
 		{
 			return true;
+		}
+
+		// If clear game list is pressed.
+		if (item.getItemId() == R.id.clearGameList)
+		{
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(R.string.clear_game_list);
+			builder.setMessage(getString(R.string.clear_game_list_confirm));
+			builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener(){
+				public void onClick(DialogInterface dialog, int which)
+				{
+					String directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
+					int intDirs = Integer.parseInt(directories);
+
+					for (int i = 0; i < intDirs; i++)
+					{
+						NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + i, "");
+					}
+
+					ArrayAdapter<GameListItem> adapter = ((GameListFragment)GameListActivity.this.mCurFragment).getAdapter();
+					adapter.clear();
+					adapter.notifyDataSetChanged();
+				}
+			});
+			builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which)
+				{
+					// Do nothing. This just make "No" appear.
+				}
+			});
+
+			builder.show();
 		}
 
 		return super.onOptionsItemSelected(item);

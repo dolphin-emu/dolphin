@@ -19,6 +19,8 @@
     <string name="file_size">File Size: </string>
 
     <!-- Game List Activity -->
+    <string name="clear_game_list">Clear game list</string>
+    <string name="clear_game_list_confirm">Do you want to clear the game list?</string>
     <string name="game_list">Game List</string>
     <string name="browse_folder">Browse Folder</string>
     <string name="settings">Settings</string>

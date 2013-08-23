@@ -19,6 +19,8 @@
     <string name="file_size">ファイルサイズ: </string>
     
     <!-- Game List Activity -->
+    <string name="clear_game_list">クリア</string>
+    <string name="clear_game_list_confirm">ゲームリストからすべての項目を削除しますか？</string>
     <string name="game_list">ゲームリスト</string>
     <string name="browse_folder">フォルダの参照</string>
     <string name="settings">設定</string>
