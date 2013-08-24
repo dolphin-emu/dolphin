@@ -137,15 +137,38 @@ public final class FolderBrowser extends Fragment
 		// Cache the activity instance.
 		m_activity = activity;
 	}
-	
-	
+
+
 	private void FolderSelected()
 	{
 		String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
 		int intDirectories = Integer.parseInt(Directories);
 		Directories = Integer.toString(intDirectories + 1);
-		NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPathes", Directories);
-		NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(intDirectories), currentDir.getPath());
+
+		// Check to see if a path set in the Dolphin config
+		// matches the one the user is trying to add. If it's
+		// already set, then don't add it to the list again.
+		boolean pathNotPresent = true;
+		for (int i = 0; i < intDirectories; i++)
+		{
+			String gcmPath = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPath" + i, "");
+
+			if (gcmPath.equals(currentDir.getPath()))
+			{
+				pathNotPresent = false;
+			}
+			else
+			{
+				pathNotPresent = true;
+			}
+		}
+
+		// User doesn't have this path in the config, so add it.
+		if (pathNotPresent)
+		{
+			NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPathes", Integer.toString(intDirectories+1));
+			NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(intDirectories), currentDir.getPath());
+		}
 
 		((GameListActivity)m_activity).SwitchPage(0);
 	}

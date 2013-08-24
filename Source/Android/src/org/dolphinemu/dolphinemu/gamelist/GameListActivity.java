@@ -293,6 +293,8 @@ public final class GameListActivity extends Activity
 						NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + i, "");
 					}
 
+					NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPathes", "0");
+
 					ArrayAdapter<GameListItem> adapter = ((GameListFragment)GameListActivity.this.mCurFragment).getAdapter();
 					adapter.clear();
 					adapter.notifyDataSetChanged();
