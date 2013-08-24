@@ -14,7 +14,6 @@ struct NetSettings
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
 	bool m_WriteToMemcard;
-	u8 m_Controllers[4];
 };
 
 struct Rpt : public std::vector<u8>

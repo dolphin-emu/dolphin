@@ -8,6 +8,7 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "IPC_HLE/WII_IPC_HLE_WiiMote.h"
 // for gcpad
+#include "HW/SI.h"
 #include "HW/SI_DeviceGCController.h"
 #include "HW/SI_DeviceGCSteeringWheel.h"
 #include "HW/SI_DeviceDanceMat.h"
@@ -187,6 +188,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			for (PadMapping i = 0; i < 4; i++)
 				packet >> m_pad_map[i];
 
+			UpdateDevices();
+
 			m_dialog->Update();
 		}
 		break;
@@ -233,8 +236,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> g_NetPlaySettings.m_DSPEnableJIT;
 			packet >> g_NetPlaySettings.m_DSPHLE;
 			packet >> g_NetPlaySettings.m_WriteToMemcard;
-			for (unsigned int i = 0; i < 4; ++i)
-				packet >> g_NetPlaySettings.m_Controllers[i];
 			}
 
 			m_dialog->OnMsgStartGame();
@@ -422,6 +423,8 @@ bool NetPlayClient::StartGame(const std::string &path)
 	// boot game
 	m_dialog->BootGame(path);
 
+	UpdateDevices();
+
 	// temporary
 	NetWiimote nw;
 	for (unsigned int i = 0; i<4; ++i)
@@ -435,6 +438,16 @@ bool NetPlayClient::StartGame(const std::string &path)
 bool NetPlayClient::ChangeGame(const std::string&)
 {
 	return true;
+}
+
+// called from ---NETPLAY--- thread
+void NetPlayClient::UpdateDevices()
+{
+	for (PadMapping i = 0; i < 4; i++)
+	{
+		// XXX: add support for other device types? does it matter?
+		SerialInterface::AddDevice(m_pad_map[i] > 0 ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
+	}
 }
 
 // called from ---NETPLAY--- thread

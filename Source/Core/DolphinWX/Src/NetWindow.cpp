@@ -107,7 +107,6 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 		" - DSP Emulator Engine Must be the same on all computers!\n"
 		" - DSP on Dedicated Thread [OFF]\n"
 		" - Framelimit NOT set to [Audio]\n"
-		" - Manually set the exact number of controllers to be used to [Standard Controller]\n"
 		"\n"
 		"All players should use the same Dolphin version and settings.\n"
 		"All memory cards must be identical between players or disabled.\n"
@@ -405,9 +404,6 @@ void NetPlayDiag::GetNetSettings(NetSettings &settings)
 	settings.m_DSPHLE = instance.m_LocalCoreStartupParameter.bDSPHLE;
 	settings.m_DSPEnableJIT = instance.m_EnableJIT;
 	settings.m_WriteToMemcard = m_memcard_write->GetValue();
-
-	for (unsigned int i = 0; i < 4; ++i)
-		settings.m_Controllers[i] = SConfig::GetInstance().m_SIDevice[i];
 }
 
 std::string NetPlayDiag::FindGame()

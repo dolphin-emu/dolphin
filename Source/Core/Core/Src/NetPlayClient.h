@@ -117,6 +117,7 @@ protected:
 	PadMapping	m_pad_map[4];
 
 private:
+	void UpdateDevices();
 	void SendPadState(const PadMapping in_game_pad, const NetPad& np);
 	unsigned int OnData(sf::Packet& packet);
 
