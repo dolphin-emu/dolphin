@@ -1,3 +1,9 @@
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu;
 
 import android.app.Activity;
@@ -15,11 +21,7 @@ import org.dolphinemu.dolphinemu.folderbrowser.FolderBrowserAdapter;
 import org.dolphinemu.dolphinemu.folderbrowser.FolderBrowserItem;
 import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
 
-/**
- * Copyright 2013 Dolphin Emulator Project
- * Licensed under GPLv2
- * Refer to the license.txt file included.
- */
+
 public final class AboutFragment extends Fragment
 {
 	private static Activity m_activity;
