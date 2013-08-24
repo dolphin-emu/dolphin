@@ -173,6 +173,7 @@ public final class GameListActivity extends Activity
 				mCurFragment = new GameListFragment();
 				FragmentManager fragmentManager = getFragmentManager();
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+				invalidateOptionsMenu();
 			}
 			break;
 
@@ -182,6 +183,7 @@ public final class GameListActivity extends Activity
 				mCurFragment = new FolderBrowser();
 				FragmentManager fragmentManager = getFragmentManager();
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+				invalidateOptionsMenu();
 			}
 			break;
 
@@ -198,6 +200,7 @@ public final class GameListActivity extends Activity
 				mCurFragment = new InputConfigFragment();
 				FragmentManager fragmentManager = getFragmentManager();
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+				invalidateOptionsMenu();
 			}
 			break;
 
@@ -207,6 +210,7 @@ public final class GameListActivity extends Activity
 				mCurFragment = new AboutFragment();
 				FragmentManager fragmentManager = getFragmentManager();
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+				invalidateOptionsMenu();
 			}
 			break;
 
