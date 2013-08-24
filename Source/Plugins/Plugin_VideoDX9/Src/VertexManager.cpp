@@ -37,15 +37,15 @@ inline void DumpBadShaders()
 {
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	// TODO: Reimplement!
-/*	std::string error_shaders;
+	/*	std::string error_shaders;
 	error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
 	error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
 	char filename[512] = "bad_shader_combo_0.txt";
 	int which = 0;
 	while (File::Exists(filename))
 	{
-		which++;
-		sprintf(filename, "bad_shader_combo_%i.txt", which);
+	which++;
+	sprintf(filename, "bad_shader_combo_%i.txt", which);
 	}
 	File::WriteStringToFile(true, error_shaders, filename);
 	PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to %s", filename);*/
@@ -64,7 +64,7 @@ void VertexManager::CreateDeviceObjects()
 	m_index_buffer_size = (IBUFFER_SIZE > DeviceCaps.MaxVertexIndex) ? DeviceCaps.MaxVertexIndex : IBUFFER_SIZE;
 	//if device caps are not enough for Vbuffer fall back to vertex arrays
 	if (m_index_buffer_size < MAXIBUFFERSIZE || m_vertex_buffer_size < MAXVBUFFERSIZE) return;
-	
+
 	m_vertex_buffers = new LPDIRECT3DVERTEXBUFFER9[MAX_VBUFFER_COUNT];
 	m_index_buffers = new LPDIRECT3DINDEXBUFFER9[MAX_VBUFFER_COUNT];
 
@@ -144,59 +144,61 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	int datasize = IndexGenerator::GetNumVerts() * stride;
 	int TdataSize = IndexGenerator::GetTriangleindexLen();
 	int LDataSize = IndexGenerator::GetLineindexLen();
-	int PDataSize = IndexGenerator::GetPointindexLen();
 	int IndexDataSize = TdataSize + LDataSize;
-	DWORD LockMode = D3DLOCK_NOOVERWRITE;
-	m_vertex_buffer_cursor--;
-	m_vertex_buffer_cursor = m_vertex_buffer_cursor - (m_vertex_buffer_cursor % stride) + stride;
-	if (m_vertex_buffer_cursor > m_vertex_buffer_size - datasize)
+	if(IndexDataSize)
 	{
-		LockMode = D3DLOCK_DISCARD;
-		m_vertex_buffer_cursor = 0;
-		m_current_vertex_buffer = (m_current_vertex_buffer + 1) % m_buffers_count;		
-	}	
-	if(FAILED(m_vertex_buffers[m_current_vertex_buffer]->Lock(m_vertex_buffer_cursor, datasize,(VOID**)(&pVertices), LockMode))) 
-	{
-		DestroyDeviceObjects();
-		return;
-	}
-	memcpy(pVertices, s_pBaseBufferPointer, datasize);
-	m_vertex_buffers[m_current_vertex_buffer]->Unlock();
+		DWORD LockMode = D3DLOCK_NOOVERWRITE;
+		m_vertex_buffer_cursor--;
+		m_vertex_buffer_cursor = m_vertex_buffer_cursor - (m_vertex_buffer_cursor % stride) + stride;
+		if (m_vertex_buffer_cursor > m_vertex_buffer_size - datasize)
+		{
+			LockMode = D3DLOCK_DISCARD;
+			m_vertex_buffer_cursor = 0;
+			m_current_vertex_buffer = (m_current_vertex_buffer + 1) % m_buffers_count;		
+		}	
+		if(FAILED(m_vertex_buffers[m_current_vertex_buffer]->Lock(m_vertex_buffer_cursor, datasize,(VOID**)(&pVertices), LockMode))) 
+		{
+			DestroyDeviceObjects();
+			return;
+		}
+		memcpy(pVertices, s_pBaseBufferPointer, datasize);
+		m_vertex_buffers[m_current_vertex_buffer]->Unlock();
 
-	LockMode = D3DLOCK_NOOVERWRITE;
-	if (m_index_buffer_cursor > m_index_buffer_size - IndexDataSize)
-	{
-		LockMode = D3DLOCK_DISCARD;
-		m_index_buffer_cursor = 0;
-		m_current_index_buffer = (m_current_index_buffer + 1) % m_buffers_count;		
-	}	
-	
-	if(FAILED(m_index_buffers[m_current_index_buffer]->Lock(m_index_buffer_cursor * sizeof(u16), IndexDataSize * sizeof(u16), (VOID**)(&pIndices), LockMode ))) 
-	{
-		DestroyDeviceObjects();
-		return;
+		LockMode = D3DLOCK_NOOVERWRITE;
+		if (m_index_buffer_cursor > m_index_buffer_size - IndexDataSize)
+		{
+			LockMode = D3DLOCK_DISCARD;
+			m_index_buffer_cursor = 0;
+			m_current_index_buffer = (m_current_index_buffer + 1) % m_buffers_count;		
+		}	
+
+		if(FAILED(m_index_buffers[m_current_index_buffer]->Lock(m_index_buffer_cursor * sizeof(u16), IndexDataSize * sizeof(u16), (VOID**)(&pIndices), LockMode ))) 
+		{
+			DestroyDeviceObjects();
+			return;
+		}
+		if(TdataSize)
+		{		
+			memcpy(pIndices, GetTriangleIndexBuffer(), TdataSize * sizeof(u16));
+			pIndices += TdataSize;
+		}
+		if(LDataSize)
+		{		
+			memcpy(pIndices, GetLineIndexBuffer(), LDataSize * sizeof(u16));
+			pIndices += LDataSize;
+		}
+		m_index_buffers[m_current_index_buffer]->Unlock();
 	}
-	if(TdataSize)
-	{		
-		memcpy(pIndices, GetTriangleIndexBuffer(), TdataSize * sizeof(u16));
-		pIndices += TdataSize;
-	}
-	if(LDataSize)
-	{		
-		memcpy(pIndices, GetLineIndexBuffer(), LDataSize * sizeof(u16));
-		pIndices += LDataSize;
-	}
-	m_index_buffers[m_current_index_buffer]->Unlock();
 	if(m_current_stride != stride || m_vertex_buffer_cursor == 0)
 	{
 		m_current_stride = stride;
-		D3D::SetStreamSource( 0, m_vertex_buffers[m_current_vertex_buffer], 0, stride);
+		D3D::SetStreamSource( 0, m_vertex_buffers[m_current_vertex_buffer], 0, m_current_stride);
 	}
 	if (m_index_buffer_cursor == 0)
 	{
 		D3D::SetIndices(m_index_buffers[m_current_index_buffer]);
 	}
-	
+
 	ADDSTAT(stats.thisFrame.bytesVertexStreamed, datasize);
 	ADDSTAT(stats.thisFrame.bytesIndexStreamed, IndexDataSize);
 }
@@ -241,22 +243,28 @@ void VertexManager::DrawVertexBuffer(int stride)
 	}
 	if (points > 0)
 	{
-		//DrawIndexedPrimitive does not support point list so we have to draw the points one by one
-		for (int i = 0; i < points; i++)
+		//DrawIndexedPrimitive does not support point list so we have to draw them using DrawPrimitive
+		u16* PointIndexBuffer = GetPointIndexBuffer();
+		int i  = 0;        
+		do
 		{
+			int count = i + 1;
+			while (count < points && PointIndexBuffer[count - 1] + 1 == PointIndexBuffer[count])
+			{
+				count++;
+			}
 			if (FAILED(D3D::dev->DrawPrimitive(
-			D3DPT_POINTLIST, 
-			basevertex + GetPointIndexBuffer()[i],
-			1)))
+				D3DPT_POINTLIST, 
+				basevertex + PointIndexBuffer[i],
+				count - i)))
 			{
 				DumpBadShaders();
 			}
 			INCSTAT(stats.thisFrame.numDrawCalls);
-		}
-		
-		
+			i = count;
+		} while (i < points);		
 	}
-	
+
 }
 
 void VertexManager::DrawVertexArray(int stride)
@@ -351,7 +359,7 @@ void VertexManager::vFlush()
 	PixelShaderManager::SetConstants(g_nativeVertexFmt->m_components);
 	u32 stride = g_nativeVertexFmt->GetVertexStride();
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-						bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+		bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 	bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 	DSTALPHA_MODE AlphaMode = useDualSource ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE;	
 

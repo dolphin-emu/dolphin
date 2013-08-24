@@ -124,7 +124,8 @@ struct VideoConfig
 	bool bEnablePixelLighting;
 	bool bHackedBufferUpload;
 	bool bFastDepthCalc;
-
+	//for dx9-backend
+	bool bForceDualSourceBlend;
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
 

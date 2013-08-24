@@ -117,30 +117,30 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::ReinterpRGB8ToRGBA6()
 	/* old code here for reference
 	const char code[] =
 	{
-		"uniform sampler samp0 : register(s0);\n"
-		"void main(\n"
-		"			out float4 ocol0 : COLOR0,\n"
-		"			in float2 uv0 : TEXCOORD0){\n"
-		"	ocol0 = tex2D(samp0,uv0);\n"
-		"	float4 src8 = round(ocol0*255.f);\n"
-		"	ocol0.r = floor(src8.r/4.f);\n" // dst6r = src8r>>2;
-		"	ocol0.g = frac(src8.r/4.f)*4.f*16.f + floor(src8.g/16.f);\n" // dst6g = ((src8r&0x3)<<4)|(src8g>>4);
-		"	ocol0.b = frac(src8.g/16.f)*16.f*4.f + floor(src8.b/64.f);\n" // dst6b = ((src8g&0xF)<<2)|(src8b>>6);
-		"	ocol0.a = frac(src8.b/64.f)*64.f;\n" // dst6a = src8b&0x3F;
-		"	ocol0 /= 63.f;\n"
-		"}\n"
+	"uniform sampler samp0 : register(s0);\n"
+	"void main(\n"
+	"			out float4 ocol0 : COLOR0,\n"
+	"			in float2 uv0 : TEXCOORD0){\n"
+	"	ocol0 = tex2D(samp0,uv0);\n"
+	"	float4 src8 = round(ocol0*255.f);\n"
+	"	ocol0.r = floor(src8.r/4.f);\n" // dst6r = src8r>>2;
+	"	ocol0.g = frac(src8.r/4.f)*4.f*16.f + floor(src8.g/16.f);\n" // dst6g = ((src8r&0x3)<<4)|(src8g>>4);
+	"	ocol0.b = frac(src8.g/16.f)*16.f*4.f + floor(src8.b/64.f);\n" // dst6b = ((src8g&0xF)<<2)|(src8b>>6);
+	"	ocol0.a = frac(src8.b/64.f)*64.f;\n" // dst6a = src8b&0x3F;
+	"	ocol0 /= 63.f;\n"
+	"}\n"
 	};
 	*/
 	const char code[] =
 	{
 		"uniform sampler samp0 : register(s0);\n"
 		"void main(\n"
-					"out float4 ocol0 : COLOR0,\n"
-					"in float2 uv0 : TEXCOORD0){\n"
-			"float4 temp1 = float4(1.0f/4.0f,1.0f/16.0f,1.0f/64.0f,0.0f);\n"
-			"float4 temp2 = float4(1.0f,64.0f,255.0f,1.0f/63.0f);\n"
-			"float4 src8 = round(tex2D(samp0,uv0)*temp2.z) * temp1;\n"
-			"ocol0 = (frac(src8.wxyz) * temp2.xyyy + floor(src8)) * temp2.w;\n"
+		"out float4 ocol0 : COLOR0,\n"
+		"in float2 uv0 : TEXCOORD0){\n"
+		"float4 temp1 = float4(1.0f/4.0f,1.0f/16.0f,1.0f/64.0f,0.0f);\n"
+		"float4 temp2 = float4(1.0f,64.0f,255.0f,1.0f/63.0f);\n"
+		"float4 src8 = round(tex2D(samp0,uv0)*temp2.z) * temp1;\n"
+		"ocol0 = (frac(src8.wxyz) * temp2.xyyy + floor(src8)) * temp2.w;\n"
 		"}\n"
 	};
 	if (!s_rgb8_to_rgba6) s_rgb8_to_rgba6 = D3D::CompileAndCreatePixelShader(code, (int)strlen(code));
@@ -168,26 +168,28 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 	if(copyMatrixType == COPY_TYPE_MATRIXCOLOR)
 		WRITE(p, "uniform float4 cColMatrix[7] : register(c%d);\n", C_COLORMATRIX);
 	WRITE(p, "void main(\n"
-	         "out float4 ocol0 : COLOR0,\n");
+		"out float4 ocol0 : COLOR0,\n");
 
 	switch(SSAAMode % MAX_SSAA_SHADERS)
 	{
 	case 0: // 1 Sample
 		WRITE(p, "in float2 uv0 : TEXCOORD0,\n"
-		         "in float uv1 : TEXCOORD1){\n"
-		         "float4 texcol = tex2D(samp0,uv0.xy);\n");
+			"in float uv1 : TEXCOORD1){\n"
+			"float4 texcol = tex2D(samp0,uv0.xy);\n");
 		break;
-	case 1: // 1 Samples SSAA
-		WRITE(p, "in float2 uv0 : TEXCOORD0,\n"
-		         "in float uv1 : TEXCOORD1){\n"
-		         "float4 texcol = tex2D(samp0,uv0.xy);\n");
-		break;
-	case 2: // 4 Samples SSAA
+	case 1: // 4 Samples in 4x SSAA buffer
 		WRITE(p, "in float4 uv0 : TEXCOORD0,\n"
-		         "in float uv1 : TEXCOORD1,\n"
-		         "in float4 uv2 : TEXCOORD2,\n"
-		         "in float4 uv3 : TEXCOORD3){\n"
-		         "float4 texcol = (tex2D(samp0,uv2.xy) + tex2D(samp0,uv2.wz) + tex2D(samp0,uv3.xy) + tex2D(samp0,uv3.wz))*0.25f;\n");
+			"in float uv1 : TEXCOORD1,\n"
+			"in float4 uv2 : TEXCOORD2,\n"
+			"in float4 uv3 : TEXCOORD3){\n"
+			"float4 texcol = (tex2D(samp0,uv2.xy) + tex2D(samp0,uv2.wz) + tex2D(samp0,uv3.xy) + tex2D(samp0,uv3.wz))*0.25f;\n");
+		break;
+	case 2: // 4 Samples in 9x SSAA buffer
+		WRITE(p, "in float4 uv0 : TEXCOORD0,\n"
+			"in float uv1 : TEXCOORD1,\n"
+			"in float4 uv2 : TEXCOORD2,\n"
+			"in float4 uv3 : TEXCOORD3){\n"
+			"float4 texcol = (tex2D(samp0,uv2.xy) + tex2D(samp0,uv2.wz) + tex2D(samp0,uv3.xy) + tex2D(samp0,uv3.wz))*0.25f;\n");
 		break;
 	}
 
@@ -196,7 +198,7 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 		// Watch out for the fire fumes effect in Metroid it's really sensitive to this,
 		// the lighting in RE0 is also way beyond sensitive since the "good value" is hardcoded and Dolphin is almost always off.
 		WRITE(p, "float4 EncodedDepth = frac(texcol.r * (16777215.f/16777216.f) * float4(1.0f,256.0f,256.0f*256.0f,1.0f));\n"
-		         "texcol = floor(EncodedDepth * float4(256.f,256.f,256.f,15.0f)) / float4(255.0f,255.0f,255.0f,15.0f);\n");
+			"texcol = floor(EncodedDepth * float4(256.f,256.f,256.f,15.0f)) / float4(255.0f,255.0f,255.0f,15.0f);\n");
 	}
 	else
 	{
@@ -217,7 +219,7 @@ static LPDIRECT3DPIXELSHADER9 CreateCopyShader(int copyMatrixType, int depthConv
 	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShaderCache copy shader generator - buffer too small, canary has been eaten!");
-	
+
 	uselocale(old_locale); // restore locale
 	freelocale(locale);
 	return D3D::CompileAndCreatePixelShader(text, (int)strlen(text));
@@ -231,10 +233,10 @@ void PixelShaderCache::Init()
 	{
 		char pprog[3072];
 		sprintf(pprog, "void main(\n"
-							"out float4 ocol0 : COLOR0,\n"
-							" in float4 incol0 : COLOR0){\n"
-							"ocol0 = incol0;\n"
-							"}\n");
+			"out float4 ocol0 : COLOR0,\n"
+			" in float4 incol0 : COLOR0){\n"
+			"ocol0 = incol0;\n"
+			"}\n");
 		s_ClearProgram = D3D::CompileAndCreatePixelShader(pprog, (int)strlen(pprog));
 	}
 
@@ -299,27 +301,27 @@ void PixelShaderCache::Shutdown()
 		for(int depthType = 0; depthType < NUM_DEPTH_CONVERSION_TYPES; depthType++)
 			for(int ssaaMode = 0; ssaaMode < MAX_SSAA_SHADERS; ssaaMode++)
 				if(s_CopyProgram[copyMatrixType][depthType][ssaaMode]
-					&& (copyMatrixType == 0 || s_CopyProgram[copyMatrixType][depthType][ssaaMode] != s_CopyProgram[copyMatrixType-1][depthType][ssaaMode]))
+				&& (copyMatrixType == 0 || s_CopyProgram[copyMatrixType][depthType][ssaaMode] != s_CopyProgram[copyMatrixType-1][depthType][ssaaMode]))
 					s_CopyProgram[copyMatrixType][depthType][ssaaMode]->Release();
 
-	for(int copyMatrixType = 0; copyMatrixType < NUM_COPY_TYPES; copyMatrixType++)
-		for(int depthType = 0; depthType < NUM_DEPTH_CONVERSION_TYPES; depthType++)
-			for(int ssaaMode = 0; ssaaMode < MAX_SSAA_SHADERS; ssaaMode++)
-				s_CopyProgram[copyMatrixType][depthType][ssaaMode] = NULL;
+				for(int copyMatrixType = 0; copyMatrixType < NUM_COPY_TYPES; copyMatrixType++)
+					for(int depthType = 0; depthType < NUM_DEPTH_CONVERSION_TYPES; depthType++)
+						for(int ssaaMode = 0; ssaaMode < MAX_SSAA_SHADERS; ssaaMode++)
+							s_CopyProgram[copyMatrixType][depthType][ssaaMode] = NULL;
 
-	if (s_ClearProgram) s_ClearProgram->Release();
-	s_ClearProgram = NULL;
-	if (s_rgb8_to_rgba6) s_rgb8_to_rgba6->Release();
-	s_rgb8_to_rgba6 = NULL;
-	if (s_rgba6_to_rgb8) s_rgba6_to_rgb8->Release();
-	s_rgba6_to_rgb8 = NULL;
+				if (s_ClearProgram) s_ClearProgram->Release();
+				s_ClearProgram = NULL;
+				if (s_rgb8_to_rgba6) s_rgb8_to_rgba6->Release();
+				s_rgb8_to_rgba6 = NULL;
+				if (s_rgba6_to_rgb8) s_rgba6_to_rgb8->Release();
+				s_rgba6_to_rgb8 = NULL;
 
 
-	Clear();
-	g_ps_disk_cache.Sync();
-	g_ps_disk_cache.Close();
+				Clear();
+				g_ps_disk_cache.Sync();
+				g_ps_disk_cache.Close();
 
-	unique_shaders.clear();
+				unique_shaders.clear();
 }
 
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)

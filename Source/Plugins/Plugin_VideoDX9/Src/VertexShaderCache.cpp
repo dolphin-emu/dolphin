@@ -59,72 +59,76 @@ void VertexShaderCache::Init()
 {
 	char* vProg = new char[2048];
 	sprintf(vProg,"struct VSOUTPUT\n"
-						"{\n"
-							"float4 vPosition : POSITION;\n"
-							"float2 vTexCoord : TEXCOORD0;\n"
-							"float vTexCoord1 : TEXCOORD1;\n"
-						"};\n"
-						"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inTEX1 : TEXCOORD1,float inTEX2 : TEXCOORD2)\n"
-						"{\n"
-							"VSOUTPUT OUT;\n"
-							"OUT.vPosition = inPosition;\n"
-							"OUT.vTexCoord = inTEX0;\n"
-							"OUT.vTexCoord1 = inTEX2;\n"
-							"return OUT;\n"
-						"}\n");
+		"{\n"
+		"float4 vPosition : POSITION;\n"
+		"float2 vTexCoord : TEXCOORD0;\n"
+		"float vTexCoord1 : TEXCOORD1;\n"
+		"};\n"
+		"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inTEX1 : TEXCOORD1,float inTEX2 : TEXCOORD2)\n"
+		"{\n"
+		"VSOUTPUT OUT;\n"
+		"OUT.vPosition = inPosition;\n"
+		"OUT.vTexCoord = inTEX0;\n"
+		"OUT.vTexCoord1 = inTEX2;\n"
+		"return OUT;\n"
+		"}\n");
 
 	SimpleVertexShader[0] = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));
 
 	sprintf(vProg,"struct VSOUTPUT\n"
-						"{\n"
-							"float4 vPosition   : POSITION;\n"
-							"float4 vColor0   : COLOR0;\n"
-						"};\n"
-						"VSOUTPUT main(float4 inPosition : POSITION,float4 inColor0: COLOR0)\n"
-						"{\n"
-							"VSOUTPUT OUT;\n"
-							"OUT.vPosition = inPosition;\n"
-							"OUT.vColor0 = inColor0;\n"
-							"return OUT;\n"
-						"}\n");
+		"{\n"
+		"float4 vPosition   : POSITION;\n"
+		"float4 vColor0   : COLOR0;\n"
+		"};\n"
+		"VSOUTPUT main(float4 inPosition : POSITION,float4 inColor0: COLOR0)\n"
+		"{\n"
+		"VSOUTPUT OUT;\n"
+		"OUT.vPosition = inPosition;\n"
+		"OUT.vColor0 = inColor0;\n"
+		"return OUT;\n"
+		"}\n");
 
 	ClearVertexShader = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));
 	sprintf(vProg,	"struct VSOUTPUT\n"
-						"{\n"
-							"float4 vPosition   : POSITION;\n"
-							"float2 vTexCoord   : TEXCOORD0;\n"
-							"float vTexCoord1   : TEXCOORD1;\n"
-						"};\n"
-						"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inInvTexSize : TEXCOORD1,float inTEX2 : TEXCOORD2)\n"
-						"{\n"
-							"VSOUTPUT OUT;"
-							"OUT.vPosition = inPosition;\n"
-							"OUT.vTexCoord  = inTEX0;\n"
-							"OUT.vTexCoord1 = inTEX2;\n"
-							"return OUT;\n"
-						"}\n");
+		"{\n"
+		"float4 vPosition   : POSITION;\n"
+		"float4 vTexCoord   : TEXCOORD0;\n"
+		"float  vTexCoord1   : TEXCOORD1;\n"
+		"float4 vTexCoord2   : TEXCOORD2;\n"   
+		"float4 vTexCoord3   : TEXCOORD3;\n"
+		"};\n"
+		"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inTEX1 : TEXCOORD1,float inTEX2 : TEXCOORD2)\n"
+		"{\n"
+		"VSOUTPUT OUT;"
+		"OUT.vPosition = inPosition;\n"
+		"OUT.vTexCoord  = inTEX0.xyyx;\n"
+		"OUT.vTexCoord1 = inTEX2.x;\n"
+		"OUT.vTexCoord2 = inTEX0.xyyx + (float4(-0.495f,-0.495f, 0.495f,-0.495f) * inTEX1.xyyx);\n"
+		"OUT.vTexCoord3 = inTEX0.xyyx + (float4( 0.495f, 0.495f,-0.495f, 0.495f) * inTEX1.xyyx);\n"	
+		"return OUT;\n"
+		"}\n");
 	SimpleVertexShader[1] = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));
 
 	sprintf(vProg,	"struct VSOUTPUT\n"
-						"{\n"
-							"float4 vPosition   : POSITION;\n"
-							"float4 vTexCoord   : TEXCOORD0;\n"
-							"float  vTexCoord1   : TEXCOORD1;\n"
-							"float4 vTexCoord2   : TEXCOORD2;\n"   
-							"float4 vTexCoord3   : TEXCOORD3;\n"
-						"};\n"
-						"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inTEX1 : TEXCOORD1,float inTEX2 : TEXCOORD2)\n"
-						"{\n"
-							"VSOUTPUT OUT;"
-							"OUT.vPosition = inPosition;\n"
-							"OUT.vTexCoord  = inTEX0.xyyx;\n"
-							"OUT.vTexCoord1 = inTEX2.x;\n"
-							"OUT.vTexCoord2 = inTEX0.xyyx + (float4(-1.0f,-0.5f, 1.0f,-0.5f) * inTEX1.xyyx);\n"
-							"OUT.vTexCoord3 = inTEX0.xyyx + (float4( 1.0f, 0.5f,-1.0f, 0.5f) * inTEX1.xyyx);\n"	
-							"return OUT;\n"
-						"}\n");
+		"{\n"
+		"float4 vPosition   : POSITION;\n"
+		"float4 vTexCoord   : TEXCOORD0;\n"
+		"float  vTexCoord1   : TEXCOORD1;\n"
+		"float4 vTexCoord2   : TEXCOORD2;\n"   
+		"float4 vTexCoord3   : TEXCOORD3;\n"
+		"};\n"
+		"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inTEX1 : TEXCOORD1,float inTEX2 : TEXCOORD2)\n"
+		"{\n"
+		"VSOUTPUT OUT;"
+		"OUT.vPosition = inPosition;\n"
+		"OUT.vTexCoord  = inTEX0.xyyx;\n"
+		"OUT.vTexCoord1 = inTEX2.x;\n"
+		"OUT.vTexCoord2 = inTEX0.xyyx + (float4(-0.9f,-0.45f, 0.9f,-0.45f) * inTEX1.xyyx);\n"
+		"OUT.vTexCoord3 = inTEX0.xyyx + (float4( 0.9f, 0.45f,-0.9f, 0.45f) * inTEX1.xyyx);\n"	
+		"return OUT;\n"
+		"}\n");
 	SimpleVertexShader[2] = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));	
-	
+
 	Clear();
 	delete [] vProg;
 
@@ -136,7 +140,7 @@ void VertexShaderCache::Init()
 
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx9-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str());
 	VertexShaderCacheInserter inserter;
 	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
 
@@ -168,7 +172,7 @@ void VertexShaderCache::Shutdown()
 	if (ClearVertexShader)
 		ClearVertexShader->Release();
 	ClearVertexShader = NULL;
-	
+
 	Clear();
 	g_vs_disk_cache.Sync();
 	g_vs_disk_cache.Close();
@@ -251,10 +255,16 @@ bool VertexShaderCache::InsertByteCode(const VertexShaderUid &uid, const u8 *byt
 	return false;
 }
 
+float VSConstantbuffer[4*C_VENVCONST_END];
+
 void Renderer::SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	const float f[4] = { f1, f2, f3, f4 };
-	DX9::D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+	float* VSConstantbuffer_pointer = &VSConstantbuffer[const_number];
+	VSConstantbuffer_pointer[0] = f1;
+	VSConstantbuffer_pointer[1] = f2;
+	VSConstantbuffer_pointer[2] = f3;
+	VSConstantbuffer_pointer[3] = f4;
+	DX9::D3D::dev->SetVertexShaderConstantF(const_number, VSConstantbuffer_pointer, 1);
 }
 
 void Renderer::SetVSConstant4fv(unsigned int const_number, const float *f)
@@ -264,15 +274,15 @@ void Renderer::SetVSConstant4fv(unsigned int const_number, const float *f)
 
 void Renderer::SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	float buf[4*C_VENVCONST_END];
+	float* VSConstantbuffer_pointer = &VSConstantbuffer[const_number];
 	for (unsigned int i = 0; i < count; i++)
 	{
-		buf[4*i  ] = *f++;
-		buf[4*i+1] = *f++;
-		buf[4*i+2] = *f++;
-		buf[4*i+3] = 0.f;
+		*VSConstantbuffer_pointer++ = *f++;
+		*VSConstantbuffer_pointer++ = *f++;
+		*VSConstantbuffer_pointer++ = *f++;
+		*VSConstantbuffer_pointer++ = 0.f;
 	}
-	DX9::D3D::dev->SetVertexShaderConstantF(const_number, buf, count);
+	DX9::D3D::dev->SetVertexShaderConstantF(const_number, &VSConstantbuffer[const_number], count);
 }
 
 void Renderer::SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
