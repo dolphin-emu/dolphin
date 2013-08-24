@@ -215,7 +215,7 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 			ssl_set_verify(&_SSL[sslID].ctx, _verify_certificate_callback, NULL);
 				
 			ssl_set_endpoint(&_SSL[sslID].ctx, SSL_IS_CLIENT);
-			ssl_set_authmode(&_SSL[sslID].ctx, SSL_VERIFY_OPTIONAL);
+			ssl_set_authmode(&_SSL[sslID].ctx, SSL_VERIFY_NONE);
 			ssl_set_renegotiation(&_SSL[sslID].ctx, SSL_RENEGOTIATION_ENABLED);
 
 			memcpy(_SSL[sslID].hostname, hostname, min((int)BufferOutSize2, NET_SSL_MAX_HOSTNAME_LEN));
