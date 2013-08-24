@@ -33,9 +33,12 @@ void SetVSConstant4fvByName(const char * name, unsigned int offset, const float 
 		{
 			if (tmp.shader.UniformLocations[a] == -1)
 				return;
+			else if (tmp.shader.UniformSize[a] <= offset)
+				return;
 			else
 			{
-				glUniform4fv(tmp.shader.UniformLocations[a] + offset, count, f);
+				unsigned int maxcount= tmp.shader.UniformSize[a]-offset;
+				glUniform4fv(tmp.shader.UniformLocations[a] + offset, std::min(count, maxcount), f);
 				return;
 			}
 		}

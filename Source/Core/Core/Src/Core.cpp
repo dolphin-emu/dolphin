@@ -388,7 +388,7 @@ void EmuThread()
 		return;
 	}
 
-	OSD::AddMessage(("Dolphin " + g_video_backend->GetName() + " Video Backend.").c_str(), 5000);
+	OSD::AddMessage("Dolphin " + g_video_backend->GetName() + " Video Backend.", 5000);
 
 	if (!DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
 				_CoreParameter.bWii, _CoreParameter.bDSPThread))

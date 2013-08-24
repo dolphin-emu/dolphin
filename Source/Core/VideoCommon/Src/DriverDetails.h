@@ -10,7 +10,8 @@ namespace DriverDetails
 	// Tegra and Nvidia are separated out due to such substantial differences
 	enum Vendor
 	{
-		VENDOR_NVIDIA = 0,
+		VENDOR_ALL = 0,
+		VENDOR_NVIDIA,
 		VENDOR_ATI,
 		VENDOR_INTEL,
 		VENDOR_ARM,
@@ -18,20 +19,25 @@ namespace DriverDetails
 		VENDOR_IMGTEC,
 		VENDOR_TEGRA,
 		VENDOR_VIVANTE,
+		VENDOR_MESA,
 		VENDOR_UNKNOWN
 	};
 
 	// Enum of known drivers
 	enum Driver
 	{
-		DRIVER_NVIDIA = 0, // Official Nvidia, including mobile GPU
+		DRIVER_ALL = 0,
+		DRIVER_NVIDIA, // Official Nvidia, including mobile GPU
 		DRIVER_NOUVEAU, // OSS nouveau
 		DRIVER_ATI, // Official ATI
-		DRIVER_RADEONHD, // OSS Radeon
+		DRIVER_R600, // OSS Radeon
 		DRIVER_INTEL, // Official Intel
-		DRIVER_ARM, // Official Mali driver
+		DRIVER_I965, // OSS Intel
+		DRIVER_ARM_4XX, // Official Mali driver
+		DRIVER_ARM_T6XX, // Official Mali driver
 		DRIVER_LIMA, // OSS Mali driver
-		DRIVER_QUALCOMM, // Official Adreno driver
+		DRIVER_QUALCOMM_3XX, // Official Adreno driver 3xx
+		DRIVER_QUALCOMM_2XX, // Official Adreno driver 2xx
 		DRIVER_FREEDRENO, // OSS Adreno driver
 		DRIVER_IMGTEC, // OSS PowerVR driver
 		DRIVER_VIVANTE, // Official vivante driver
@@ -69,10 +75,18 @@ namespace DriverDetails
 		// Adreno devices /always/ return 0 when querying GL_INFO_LOG_LENGTH
 		// They also max out at 1024 bytes(1023 characters + null terminator) for the log
 		BUG_BROKENINFOLOG,
+		// Bug: UBO buffer offset broken
+		// Affected devices: all mesa drivers
+		// Started Version: 9.0 (mesa doesn't support ubo before)
+		// Ended Version: up to 9.2
+		// The offset of glBindBufferRange was ignored on all Mesa Gallium3D drivers until 9.1.3
+		// Nouveau stored the offset as u16 which isn't enough for all cases with range until 9.1.6
+		// I965 has broken data fetches from uniform buffers which results in a dithering until 9.2.0
+		BUG_BROKENUBO,
 	};
 	
 	// Initializes our internal vendor, device family, and driver version	
-	void Init(Vendor vendor, Driver driver, const u32 devfamily, const double version);
+	void Init(Vendor vendor, Driver driver, const double version);
 	
 	// Once Vendor and driver version is set, this will return if it has the applicable bug passed to it.
 	bool HasBug(Bug bug);

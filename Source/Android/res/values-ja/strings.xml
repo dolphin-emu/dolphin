@@ -17,9 +17,10 @@
     <string name="parent_directory">親ディレクトリ</string>
     <string name="folder">フォルダ</string>
     <string name="file_size">ファイルサイズ: </string>
-    <string name="cant_use_compressed_filetypes">圧縮ファイル形式はサポートされていません</string>
     
     <!-- Game List Activity -->
+    <string name="clear_game_list">クリア</string>
+    <string name="clear_game_list_confirm">ゲームリストからすべての項目を削除しますか？</string>
     <string name="game_list">ゲームリスト</string>
     <string name="browse_folder">フォルダの参照</string>
     <string name="settings">設定</string>
@@ -61,7 +62,7 @@
     <string name="cpu_settings">CPU設定</string>
     <string name="emu_core_to_use">使用するエミュレーションコア</string>
     <string name="dual_core">デュアルコア</string>
-    <string name="on_off">有効/無効</string>
+    <string name="dual_core_descrip">処理のための2つのCPUコアを使用して。速度が向上します。</string>
     <string name="video_settings">ビデオ設定</string>
     <string name="software_renderer">Software Renderer</string>
     <string name="opengl_es3">OpenGL ES 3</string>

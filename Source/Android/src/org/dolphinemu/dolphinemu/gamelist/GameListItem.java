@@ -25,7 +25,6 @@ public final class GameListItem implements Comparable<GameListItem>
 	private String name;
 	private final String data;
 	private final String path;
-	private final boolean isValid;
 	private Bitmap image;
 
 	/**
@@ -37,12 +36,11 @@ public final class GameListItem implements Comparable<GameListItem>
 	 * @param path    The file path for the game represented by this GameListItem.
 	 * @param isValid Whether or not the emulator can handle this file.
 	 */
-	public GameListItem(Context ctx, String name, String data, String path, boolean isValid)
+	public GameListItem(Context ctx, String name, String data, String path)
 	{
 		this.name = name;
 		this.data = data;
 		this.path = path;
-		this.isValid = isValid;
 
 		File file = new File(path);
 		if (!file.isDirectory() && !path.equals(""))
@@ -113,16 +111,6 @@ public final class GameListItem implements Comparable<GameListItem>
 	public Bitmap getImage()
 	{
 		return image;
-	}
-
-	/**
-	 * Gets whether or not the emulator can handle this GameListItem.
-	 * 
-	 * @return true, if this GameListItem can be handled by the emulator; false, otherwise.
-	 */
-	public boolean isValid()
-	{
-		return isValid;
 	}
 
 	public int compareTo(GameListItem o) 

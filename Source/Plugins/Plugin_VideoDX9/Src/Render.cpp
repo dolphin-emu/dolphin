@@ -70,7 +70,7 @@ void SetupDeviceObjects()
 	VertexShaderManager::Dirty();
 	PixelShaderManager::Dirty();
 	TextureConverter::Init();
-	
+
 	// To avoid shader compilation stutters, read back all shaders from cache.
 	VertexShaderCache::Init();
 	PixelShaderCache::Init();
@@ -122,7 +122,7 @@ Renderer::Renderer()
 		fullScreenRes = 0;
 
 	D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), 
-				fullScreenRes, backbuffer_ms_mode, false);
+		fullScreenRes, backbuffer_ms_mode, false);
 
 	IS_AMD = D3D::IsATIDevice();
 
@@ -165,7 +165,7 @@ Renderer::Renderer()
 	vp.MaxZ = 1.0f;
 	D3D::dev->SetViewport(&vp);
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 0, 0);
-	
+
 	D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 	vp.X = 0;
@@ -189,7 +189,7 @@ Renderer::~Renderer()
 	D3D::EndFrame();
 	D3D::Present();
 	D3D::Close();
-	
+
 	delete[] st;
 }
 
@@ -267,7 +267,7 @@ bool Renderer::CheckForResize()
 
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -400,7 +400,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		colmat[0] = colmat[5] = colmat[10] = 1.0f;
 		PixelShaderManager::SetColorMatrix(colmat); // set transformation
 		LPDIRECT3DTEXTURE9 read_texture = FramebufferManager::GetEFBDepthTexture();
-		
+
 		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 
 		D3DFORMAT bformat = FramebufferManager::GetEFBDepthRTSurfaceFormat();
@@ -484,10 +484,10 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// TODO: Speed this up by batching pokes?
 		ResetAPIState();
 		D3D::drawColorQuad(poke_data,
-							  (float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
-							- (float)RectToLock.top    * 2.f / (float)Renderer::GetTargetHeight() + 1.f,
-							  (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
-							- (float)RectToLock.bottom * 2.f / (float)Renderer::GetTargetHeight() + 1.f);
+			(float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
+			- (float)RectToLock.top    * 2.f / (float)Renderer::GetTargetHeight() + 1.f,
+			(float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
+			- (float)RectToLock.bottom * 2.f / (float)Renderer::GetTargetHeight() + 1.f);
 		RestoreAPIState();
 		return 0;
 	}
@@ -742,6 +742,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 		PanicAlert("Error saving screen.");
 		return false;
 	}
+	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", dst_rect.GetWidth(), dst_rect.GetHeight(), filename.c_str()));
 
 	return true;
 }
@@ -796,7 +797,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Prepare to copy the XFBs to our backbuffer
 	D3D::dev->SetDepthStencilSurface(NULL);
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
-	
+
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	D3DVIEWPORT9 vp;
 
@@ -855,7 +856,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			xfbSource = xfbSourceList[i];
 
 			MathUtil::Rectangle<float> sourceRc;
-			
+
 			sourceRc.left = 0;
 			sourceRc.top = 0;
 			sourceRc.right = (float)xfbSource->texWidth;
@@ -904,7 +905,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			Width,Height,
 			PixelShaderCache::GetColorCopyProgram(g_ActiveConfig.iMultisampleMode),
 			VertexShaderCache::GetSimpleVertexShader(g_ActiveConfig.iMultisampleMode),Gamma);		
-		
+
 	}
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
@@ -952,7 +953,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			{
 				char msg [255];
 				sprintf_s(msg,255, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), s_recordWidth, s_recordHeight);
+					File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), s_recordWidth, s_recordHeight);
 				OSD::AddMessage(msg, 2000);
 			}
 		}
@@ -1058,7 +1059,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		s_LastAA = newAA;
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-		
+
 		int SupersampleCoeficient = (s_LastAA % 3) + 1;
 
 		s_LastEFBScale = g_ActiveConfig.iEFBScale;
@@ -1080,6 +1081,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		D3D::dev->SetRenderTarget(0, FramebufferManager::GetEFBColorRTSurface());
 		D3D::dev->SetDepthStencilSurface(FramebufferManager::GetEFBDepthRTSurface());
 		D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, D3DCOLOR_XRGB(0,0,0), 1.0f, 0);
+		SetLineWidth();
 	}
 
 	if (XFBWrited)
@@ -1140,8 +1142,8 @@ void Renderer::RestoreState()
 		D3D::RefreshRenderState(D3DRS_ZFUNC);
 	}
 	// TODO: Enable this code. Caused glitches for me however (neobrain)
-//	for (unsigned int i = 0; i < 8; ++i)
-//		D3D::dev->SetTexture(i, NULL);
+	//	for (unsigned int i = 0; i < 8; ++i)
+	//		D3D::dev->SetTexture(i, NULL);
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
@@ -1315,9 +1317,8 @@ void Renderer::SetLineWidth()
 {
 	// We can't change line width in D3D unless we use ID3DXLine
 	float fratio = xfregs.viewport.wd != 0 ? Renderer::EFBToScaledXf(1.f) : 1.0f;
-	float psize = bpmem.lineptwidth.linesize * fratio / 6.0f;
-	//little hack to compensate scaling problems in dx9 must be taken out when scaling is fixed.
-	psize *= 2.0f;
+	float psize = bpmem.lineptwidth.pointsize * fratio / 6.0f;
+	psize = psize > 0 ? psize : 1.0;    
 	if (psize > m_fMaxPointSize)
 	{
 		psize = m_fMaxPointSize;
@@ -1347,7 +1348,7 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	const FourTexUnits &tex = bpmem.tex[texindex];
 	const TexMode0 &tm0 = tex.texMode0[stage];
 	const TexMode1 &tm1 = tex.texMode1[stage];
-	
+
 	D3DTEXTUREFILTERTYPE min, mag, mip;
 	if (g_ActiveConfig.bForceFiltering)
 	{
@@ -1369,7 +1370,7 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	D3D::SetSamplerState(stage, D3DSAMP_MINFILTER, min);
 	D3D::SetSamplerState(stage, D3DSAMP_MAGFILTER, mag);
 	D3D::SetSamplerState(stage, D3DSAMP_MIPFILTER, mip);
-	
+
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
 

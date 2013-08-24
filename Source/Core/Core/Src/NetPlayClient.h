@@ -50,6 +50,15 @@ public:
 
 extern NetSettings g_NetPlaySettings;
 
+class Player
+{
+ public:
+	PlayerId		pid;
+	std::string		name;
+	std::string		revision;
+	u32                     ping;
+};
+
 class NetPlayClient
 {
 public:
@@ -59,6 +68,7 @@ public:
 	~NetPlayClient();
 
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
+	void GetPlayers(std::vector<const Player *>& player_list);
 
 	bool is_connected;
 
@@ -84,19 +94,6 @@ protected:
 		std::recursive_mutex players, send;
 	} m_crit;
 
-	class Player
-	{
-	public:
-		Player();
-		std::string ToString() const;
-
-		PlayerId		pid;
-		std::string		name;
-		PadMapping		pad_map[4];
-		std::string		revision;
-		u32                     ping;
-	};
-
 	Common::FifoQueue<NetPad>		m_pad_buffer[4];
 	Common::FifoQueue<NetWiimote>	m_wiimote_buffer[4];
 
@@ -117,8 +114,10 @@ protected:
 
 	u32		m_current_game;
 
+	PadMapping	m_pad_map[4];
+
 private:
-	void SendPadState(const PadMapping local_nb, const NetPad& np);
+	void SendPadState(const PadMapping in_game_pad, const NetPad& np);
 	unsigned int OnData(sf::Packet& packet);
 
 	PlayerId		m_pid;

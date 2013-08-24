@@ -51,6 +51,16 @@ public final class GameListFragment extends Fragment
 		 */
 		void onZeroFiles();
 	}
+	
+	/**
+	 * Gets the adapter for this fragment.
+	 * 
+	 * @return the adapter for this fragment.
+	 */
+	public GameListAdapter getAdapter()
+	{
+	    return mGameAdapter;
+	}
 
 	private void Fill()
 	{
@@ -77,7 +87,7 @@ public final class GameListFragment extends Fragment
 						if (!entry.isDirectory())
 						{
 							if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
-								fls.add(new GameListItem(mMe.getApplicationContext(), entryName, getString(R.string.file_size)+entry.length(),entry.getAbsolutePath(), true));
+								fls.add(new GameListItem(mMe.getApplicationContext(), entryName, getString(R.string.file_size)+entry.length(),entry.getAbsolutePath()));
 						}
 					}
 				}
@@ -95,11 +105,12 @@ public final class GameListFragment extends Fragment
 		// so there should be no worries about accidentally removing a valid game.
 		for (int i = 0; i < fls.size(); i++)
 		{
-			int indexNext = i+1;
-
-			if (indexNext < fls.size() && fls.get(indexNext).getPath().contains(fls.get(i).getPath()))
+			for (int j = i+1; j < fls.size(); j++)
 			{
-				fls.remove(indexNext);
+				if (fls.get(j).getPath().equals(fls.get(i).getPath()))
+				{
+					fls.remove(j);
+				}
 			}
 		}
 

@@ -56,6 +56,7 @@ struct SHADER
 	
 	std::string strvprog, strpprog;
 	GLint UniformLocations[NUM_UNIFORMS];
+	u32 UniformSize[NUM_UNIFORMS];
 	
 	void SetProgramVariables();
 	void SetProgramBindings();
