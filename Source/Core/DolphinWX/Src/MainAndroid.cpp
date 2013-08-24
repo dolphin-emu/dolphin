@@ -132,25 +132,6 @@ void Host_SysMessage(const char *fmt, ...)
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
-void OSDCallbacks(u32 UserData)
-{
-	switch(UserData)
-	{
-		case 0: // Init
-			ButtonManager::Init();
-		break;
-		case 1: // Draw
-			ButtonManager::DrawButtons();
-		break;
-		case 2: // Shutdown
-			ButtonManager::Shutdown();
-		break;
-		default:
-			WARN_LOG(COMMON, "Error, wrong OSD type");
-		break;
-	}
-}
-
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
 std::vector<std::string> m_volume_names;
@@ -321,8 +302,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 {
 	surf = ANativeWindow_fromSurface(env, _surf);
 	// Install our callbacks
-	OSD::AddCallback(OSD::OSD_INIT, OSDCallbacks, 0);
-	OSD::AddCallback(OSD::OSD_SHUTDOWN, OSDCallbacks, 2);
+	OSD::AddCallback(OSD::OSD_INIT, ButtonManager::Init);
+	OSD::AddCallback(OSD::OSD_SHUTDOWN, ButtonManager::Shutdown);
 
 	LogManager::Init();
 	SConfig::Init();
@@ -337,7 +318,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	ini.Get("Android", "ScreenControls", &onscreencontrols, true);
 
 	if (onscreencontrols)
-		OSD::AddCallback(OSD::OSD_ONFRAME, OSDCallbacks, 1);
+		OSD::AddCallback(OSD::OSD_ONFRAME, ButtonManager::DrawButtons);
 
 	// No use running the loop when booting fails
 	if ( BootManager::BootCore( g_filename.c_str() ) )
