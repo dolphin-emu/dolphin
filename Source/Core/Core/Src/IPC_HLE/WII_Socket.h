@@ -21,7 +21,11 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#if defined(ANDROID)
+#include <fcntl.h>
+#else
 #include <sys/fcntl.h>
+#endif
 #include <netinet/in.h>
 #include <net/if.h>
 #include <errno.h>
