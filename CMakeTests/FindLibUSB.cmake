@@ -8,7 +8,10 @@
 #
 # vim: expandtab sw=4 ts=4 sts=4:
 
-if (NOT LIBUSB_FOUND)
+if(ANDROID)
+       set(LIBUSB_FOUND FALSE CACHE INTERNAL "libusb-1.0 found")
+       message(STATUS "libusb-1.0 not found.")
+elseif (NOT LIBUSB_FOUND)
     pkg_check_modules (LIBUSB_PKG libusb-1.0)
 
     find_path(LIBUSB_INCLUDE_DIR NAMES libusb.h
