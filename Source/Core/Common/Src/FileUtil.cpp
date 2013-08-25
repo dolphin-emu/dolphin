@@ -710,22 +710,77 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 
 	if (!newPath.empty())
 	{
-		if(DirIDX != D_WIIROOT_IDX)
-			PanicAlert("Trying to change user path other than Wii root");
-
 		if (!File::IsDirectory(newPath))
 		{
-			WARN_LOG(COMMON, "Invalid path specified %s, Wii user path will be set to default", newPath.c_str());
-			paths[D_WIIROOT_IDX] = paths[D_USER_IDX] + WII_USER_DIR;
+			WARN_LOG(COMMON, "Invalid path specified %s", newPath.c_str());
+			return paths[DirIDX];
 		}
 		else
 		{
-			paths[D_WIIROOT_IDX] = newPath;
+			paths[DirIDX] = newPath;
 		}
 
-		paths[D_WIIUSER_IDX] = paths[D_WIIROOT_IDX] + DIR_SEP;
-		paths[D_WIISYSCONF_IDX]	= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP; 
-		paths[F_WIISYSCONF_IDX]	= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
+		switch (DirIDX)
+		{
+		case D_WIIROOT_IDX:
+			paths[D_WIIUSER_IDX] = paths[D_WIIROOT_IDX] + DIR_SEP;
+			paths[D_WIISYSCONF_IDX]	= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP;
+			paths[F_WIISYSCONF_IDX]	= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
+			break;
+
+		case D_USER_IDX:
+			paths[D_GCUSER_IDX]			= paths[D_USER_IDX] + GC_USER_DIR DIR_SEP;
+			paths[D_WIIROOT_IDX]		= paths[D_USER_IDX] + WII_USER_DIR;
+			paths[D_WIIUSER_IDX]		= paths[D_WIIROOT_IDX] + DIR_SEP;
+			paths[D_CONFIG_IDX]			= paths[D_USER_IDX] + CONFIG_DIR DIR_SEP;
+			paths[D_GAMECONFIG_IDX]		= paths[D_USER_IDX] + GAMECONFIG_DIR DIR_SEP;
+			paths[D_MAPS_IDX]			= paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
+			paths[D_CACHE_IDX]			= paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
+			paths[D_SHADERCACHE_IDX]	= paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP;
+			paths[D_SHADERS_IDX]		= paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
+			paths[D_STATESAVES_IDX]		= paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
+			paths[D_SCREENSHOTS_IDX]	= paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
+			paths[D_OPENCL_IDX]			= paths[D_USER_IDX] + OPENCL_DIR DIR_SEP;
+			paths[D_HIRESTEXTURES_IDX]	= paths[D_USER_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
+			paths[D_DUMP_IDX]			= paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
+			paths[D_DUMPFRAMES_IDX]		= paths[D_USER_IDX] + DUMP_FRAMES_DIR DIR_SEP;
+			paths[D_DUMPAUDIO_IDX]		= paths[D_USER_IDX] + DUMP_AUDIO_DIR DIR_SEP;
+			paths[D_DUMPTEXTURES_IDX]	= paths[D_USER_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
+			paths[D_DUMPDSP_IDX]		= paths[D_USER_IDX] + DUMP_DSP_DIR DIR_SEP;
+			paths[D_LOGS_IDX]			= paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
+			paths[D_MAILLOGS_IDX]		= paths[D_USER_IDX] + MAIL_LOGS_DIR DIR_SEP;
+			paths[D_THEMES_IDX]			= paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
+			paths[D_WIISYSCONF_IDX]		= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
+			paths[F_DOLPHINCONFIG_IDX]	= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+			paths[F_DEBUGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
+			paths[F_LOGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+			paths[F_MAINLOG_IDX]		= paths[D_LOGS_IDX] + MAIN_LOG;
+			paths[F_WIISYSCONF_IDX]		= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
+			paths[F_RAMDUMP_IDX]		= paths[D_DUMP_IDX] + RAM_DUMP;
+			paths[F_ARAMDUMP_IDX]		= paths[D_DUMP_IDX] + ARAM_DUMP;
+			paths[F_FAKEVMEMDUMP_IDX]	= paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
+			paths[F_GCSRAM_IDX]			= paths[D_GCUSER_IDX] + GC_SRAM;
+			break;
+
+		case D_CONFIG_IDX:
+			paths[F_DOLPHINCONFIG_IDX]	= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
+			paths[F_DEBUGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
+			paths[F_LOGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+			break;
+
+		case D_GCUSER_IDX:
+			paths[F_GCSRAM_IDX]			= paths[D_GCUSER_IDX] + GC_SRAM;
+			break;
+
+		case D_DUMP_IDX:
+			paths[F_RAMDUMP_IDX]		= paths[D_DUMP_IDX] + RAM_DUMP;
+			paths[F_ARAMDUMP_IDX]		= paths[D_DUMP_IDX] + ARAM_DUMP;
+			paths[F_FAKEVMEMDUMP_IDX]	= paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
+			break;
+		case D_LOGS_IDX:
+			paths[F_MAINLOG_IDX]		= paths[D_LOGS_IDX] + MAIN_LOG;
+		}
+
 	}
 	return paths[DirIDX];
 }
