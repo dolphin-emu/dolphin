@@ -97,48 +97,6 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
 	return true;
 }
 
-
-
-static int
-_verify_certificate_callback (void *data, x509_cert *crt, int depth, int *flags)
-{
-	char buf[1024];
-	((void) data);
-	std::string verify_info = StringFromFormat(
-		"Verify requested for (Depth %d):\n", depth);
-
-	x509parse_cert_info( buf, sizeof( buf ) - 1, "", crt );
-	verify_info += buf;
-
-	if ( ( (*flags) & BADCERT_EXPIRED ) != 0 )
-		verify_info += "  ! server certificate has expired";
-
-	if ( ( (*flags) & BADCERT_REVOKED ) != 0 )
-		verify_info += "  ! server certificate has been revoked";
-
-	if ( ( (*flags) & BADCERT_CN_MISMATCH ) != 0 )
-		verify_info += "  ! CN mismatch\n";
-
-	if ( ( (*flags) & BADCERT_NOT_TRUSTED ) != 0 )
-		verify_info += "  ! self-signed or not signed by a trusted CA\n";
-
-	if ( ( (*flags) & BADCRL_NOT_TRUSTED ) != 0 )
-		verify_info += "  ! CRL not trusted\n";
-
-	if ( ( (*flags) & BADCRL_EXPIRED ) != 0 )
-		verify_info += "  ! CRL expired\n";
-
-	if ( ( (*flags) & BADCERT_OTHER ) != 0 )
-		verify_info += "  ! other (unknown) flag\n";
-
-	if ( ( *flags ) == 0 )
-		verify_info += "  This certificate has no flags\n";
-
-	WARN_LOG(WII_IPC_SSL, "%s", verify_info.c_str() );
-
-	return( 0 );
-}
-
 bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 {
 	u32 ReturnValue = 0;
@@ -211,8 +169,6 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 
 			ssl_set_ciphersuites(&_SSL[sslID].ctx, ssl_default_ciphersuites);
 			ssl_set_session(&_SSL[sslID].ctx, &_SSL[sslID].session);
-
-			ssl_set_verify(&_SSL[sslID].ctx, _verify_certificate_callback, NULL);
 
 			ssl_set_endpoint(&_SSL[sslID].ctx, SSL_IS_CLIENT);
 			ssl_set_authmode(&_SSL[sslID].ctx, SSL_VERIFY_NONE);
