@@ -665,7 +665,52 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 	if (paths[D_USER_IDX].empty())
 	{
 #ifdef _WIN32
-		paths[D_USER_IDX] = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+		// Detect where the User directory is. There are four different cases (on top of the
+		// command line flag, which overrides all this):
+		// 1. HKCU\Software\Dolphin Emulator\LocalUserConfig exists and is true
+		//    -> Use GetExeDirectory()\User
+		// 2. HKCU\Software\Dolphin Emulator\UserConfigPath exists
+		//    -> Use this as the user directory path
+		// 3. My Documents exists
+		//    -> Use My Documents\Dolphin Emulator as the User directory path
+		// 4. Default
+		//    -> Use GetExeDirectory()\User
+
+		// Check our registry keys
+		HKEY hkey;
+		DWORD local = 0;
+		TCHAR configPath[MAX_PATH] = {0};
+		if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), NULL, KEY_QUERY_VALUE, &hkey) == ERROR_SUCCESS)
+		{
+			DWORD size = 4;
+			if (RegQueryValueEx(hkey, TEXT("LocalUserConfig"), NULL, NULL, reinterpret_cast<LPBYTE>(&local), &size) != ERROR_SUCCESS)
+				local = 0;
+
+			size = MAX_PATH;
+			if (RegQueryValueEx(hkey, TEXT("UserConfigPath"), NULL, NULL, (LPBYTE)configPath, &size) != ERROR_SUCCESS)
+				configPath[0] = 0;
+			RegCloseKey(hkey);
+		}
+
+		// Get Program Files path in case we need it.
+		TCHAR my_documents[MAX_PATH];
+		bool my_documents_found = SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, my_documents));
+
+		if (local) // Case 1
+			paths[D_USER_IDX] = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+		else if (configPath[0]) // Case 2
+			paths[D_USER_IDX] = TStrToUTF8(configPath);
+		else if (my_documents_found) // Case 3
+			paths[D_USER_IDX] = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
+		else // Case 4
+			paths[D_USER_IDX] = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
+
+		// Prettify the path: it will be displayed in some places, we don't want a mix of \ and /.
+		paths[D_USER_IDX] = ReplaceAll(paths[D_USER_IDX], "\\", DIR_SEP);
+
+		// Make sure it ends in DIR_SEP.
+		if (*paths[D_USER_IDX].rbegin() != DIR_SEP_CHR)
+			paths[D_USER_IDX] += DIR_SEP;
 #else
 		if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
 			paths[D_USER_IDX] = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;

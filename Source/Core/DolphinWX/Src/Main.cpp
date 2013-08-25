@@ -268,6 +268,7 @@ bool DolphinApp::OnInit()
 	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP),
 			File::GetUserPath(D_OPENCL_IDX));
 #endif
+	File::CreateFullPath(File::GetUserPath(D_USER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
