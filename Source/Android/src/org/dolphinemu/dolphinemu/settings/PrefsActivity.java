@@ -17,6 +17,8 @@ import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 
 /**
  * Main activity that manages all of the preference fragments used to display
@@ -24,6 +26,16 @@ import android.support.v4.view.ViewPager;
  */
 public final class PrefsActivity extends Activity implements ActionBar.TabListener
 {
+	/**
+	 * Interface defining methods which handle
+	 * the binding of specific key presses within
+	 * the input mapping settings.
+	 */
+	public interface OnMotionConfigListener
+	{
+		boolean onMotionEvent(MotionEvent event);
+	}
+
 	/**
 	 * The {@link android.support.v4.view.PagerAdapter} that will provide org.dolphinemu.dolphinemu.settings for each of the
 	 * sections. We use a {@link android.support.v4.app.FragmentPagerAdapter} derivative, which will
@@ -72,6 +84,7 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		// the TabListener interface, as the callback (listener) for when
 		// this tab is selected.
 		actionBar.addTab(actionBar.newTab().setText(R.string.cpu_settings).setTabListener(this));
+		actionBar.addTab(actionBar.newTab().setText(R.string.input_settings).setTabListener(this));
 		actionBar.addTab(actionBar.newTab().setText(R.string.video_settings).setTabListener(this));
 	}
 
@@ -89,6 +102,36 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 	public void onTabUnselected(Tab tab, FragmentTransaction ft)
 	{
 		// Do nothing.
+	}
+
+
+	// TODO: Eventually make correct implementations of these.
+	// Gets move(triggers, joystick) events
+	@Override
+	public boolean dispatchGenericMotionEvent(MotionEvent event)
+	{
+		if (mViewPager.getCurrentItem() == 1)
+		{
+			InputConfigFragment fragment = (InputConfigFragment) getFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":1");
+			if (fragment.dialog != null && ((OnMotionConfigListener) fragment.dialog).onMotionEvent(event))
+				return true;
+		}
+
+		return super.dispatchGenericMotionEvent(event);
+	}
+
+	// Gets button presses
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent event)
+	{
+		if (mViewPager.getCurrentItem() == 1 && event.getKeyCode() != KeyEvent.KEYCODE_BACK)
+		{
+			InputConfigFragment fragment = (InputConfigFragment) getFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":1");
+			if (fragment.dialog != null && fragment.dialog.onKeyDown(event.getKeyCode(), event))
+				return true;
+		}
+
+		return super.dispatchKeyEvent(event);
 	}
 
 	/**
@@ -111,6 +154,9 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 					return new CPUSettingsFragment();
 
 				case 1:
+					return new InputConfigFragment();
+
+				case 2:
 					return new VideoSettingsFragment();
 
 				default: // Should never happen.
@@ -122,7 +168,7 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		public int getCount()
 		{
 			// Show total pages.
-			return 2;
+			return 3;
 		}
 
 		@Override
@@ -134,6 +180,9 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 					return getString(R.string.cpu_settings).toUpperCase();
 
 				case 1:
+					return getString(R.string.input_settings).toUpperCase();
+
+				case 2:
 					return getString(R.string.video_settings).toUpperCase();
 
 				default: // Should never happen.

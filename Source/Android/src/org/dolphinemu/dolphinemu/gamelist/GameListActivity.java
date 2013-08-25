@@ -27,9 +27,6 @@ import org.dolphinemu.dolphinemu.AboutFragment;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.folderbrowser.FolderBrowser;
-import org.dolphinemu.dolphinemu.inputconfig.InputConfigAdapter;
-import org.dolphinemu.dolphinemu.inputconfig.InputConfigFragment;
-import org.dolphinemu.dolphinemu.inputconfig.InputConfigItem;
 import org.dolphinemu.dolphinemu.settings.PrefsActivity;
 import org.dolphinemu.dolphinemu.sidemenu.SideMenuAdapter;
 import org.dolphinemu.dolphinemu.sidemenu.SideMenuItem;
@@ -49,16 +46,7 @@ public final class GameListActivity extends Activity
 	private SideMenuAdapter mDrawerAdapter;
 	private ListView mDrawerList;
 	
-	/**
-	 * Interface defining methods which handle
-	 * the binding of specific key presses within
-	 * the input mapping settings.
-	 */
-	public interface OnGameConfigListener
-	{
-		boolean onMotionEvent(MotionEvent event);
-		boolean onKeyEvent(KeyEvent event);
-	}
+	
 
 	/**
 	 * Called from the {@link GameListFragment}.
@@ -84,8 +72,7 @@ public final class GameListActivity extends Activity
 		dir.add(new SideMenuItem(getString(R.string.game_list), 0));
 		dir.add(new SideMenuItem(getString(R.string.browse_folder), 1));
 		dir.add(new SideMenuItem(getString(R.string.settings), 2));
-		dir.add(new SideMenuItem(getString(R.string.gamepad_config), 3));
-		dir.add(new SideMenuItem(getString(R.string.about), 4));
+		dir.add(new SideMenuItem(getString(R.string.about), 3));
 
 		mDrawerAdapter = new SideMenuAdapter(this, R.layout.sidemenu, dir);
 		mDrawerList.setAdapter(mDrawerAdapter);
@@ -142,25 +129,9 @@ public final class GameListActivity extends Activity
 				recreateFragment();
 				break;
 
-			case 3: // Gamepad settings
-			{
-				InputConfigAdapter adapter = ((InputConfigFragment)mCurFragment).getAdapter();
-				for (int a = 0; a < adapter.getCount(); ++a)
-				{
-					InputConfigItem o = adapter.getItem(a);
-					String config = o.getConfig();
-					String bind = o.getBind();
-					String ConfigValues[] = config.split("-");
-					String Key = ConfigValues[0];
-					String Value = ConfigValues[1];
-					NativeLibrary.SetConfig("Dolphin.ini", Key, Value, bind);
-				}
-			}
-			break;
-
 			case 0: // Game List
 			case 2: // Settings
-			case 4: // About
+			case 3: // About
 			/* Do Nothing */
 				break;
 		}
@@ -197,16 +168,6 @@ public final class GameListActivity extends Activity
 			case 3:
 			{
 				mCurFragmentNum = 3;
-				mCurFragment = new InputConfigFragment();
-				FragmentManager fragmentManager = getFragmentManager();
-				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
-				invalidateOptionsMenu();
-			}
-			break;
-
-			case 4:
-			{
-				mCurFragmentNum = 4;
 				mCurFragment = new AboutFragment();
 				FragmentManager fragmentManager = getFragmentManager();
 				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
@@ -321,31 +282,5 @@ public final class GameListActivity extends Activity
 	public void onBackPressed()
 	{
 		SwitchPage(0);
-	}
-
-	// Gets move(triggers, joystick) events
-	@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent event)
-	{
-		if (mCurFragmentNum == 3)
-		{
-			if (((OnGameConfigListener)mCurFragment).onMotionEvent(event))
-				return true;
-		}
-
-		return super.dispatchGenericMotionEvent(event);
-	}
-
-	// Gets button presses
-	@Override
-	public boolean dispatchKeyEvent(KeyEvent event)
-	{
-		if (mCurFragmentNum == 3)
-		{
-			if (((OnGameConfigListener)mCurFragment).onKeyEvent(event))
-				return true;
-		}
-
-		return super.dispatchKeyEvent(event);
 	}
 }
