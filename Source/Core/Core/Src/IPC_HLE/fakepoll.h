@@ -20,11 +20,6 @@
 #ifndef _FAKE_POLL_H
 #define _FAKE_POLL_H
 
-#ifdef _MSC_VER
-#pragma warning(disable: 4748)
-#pragma optimize("",off)
-#endif
-
 #include <limits.h>
 #include <sys/types.h>
 #include <stdlib.h>
@@ -162,11 +157,6 @@ inline int poll(struct pollfd *pollSet, int pollCount, int pollTimeout)
 	}
 	return result;
 }
-
-#ifdef _MSC_VER
-#pragma optimize("",on)
-#endif
-
 
 #endif
 
