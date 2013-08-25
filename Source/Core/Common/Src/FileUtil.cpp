@@ -689,14 +689,14 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 		paths[D_OPENCL_IDX]			= paths[D_USER_IDX] + OPENCL_DIR DIR_SEP;
 		paths[D_HIRESTEXTURES_IDX]	= paths[D_USER_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
 		paths[D_DUMP_IDX]			= paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
-		paths[D_DUMPFRAMES_IDX]		= paths[D_USER_IDX] + DUMP_FRAMES_DIR DIR_SEP;
-		paths[D_DUMPAUDIO_IDX]		= paths[D_USER_IDX] + DUMP_AUDIO_DIR DIR_SEP;
-		paths[D_DUMPTEXTURES_IDX]	= paths[D_USER_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
-		paths[D_DUMPDSP_IDX]		= paths[D_USER_IDX] + DUMP_DSP_DIR DIR_SEP;
+		paths[D_DUMPFRAMES_IDX]		= paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
+		paths[D_DUMPAUDIO_IDX]		= paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
+		paths[D_DUMPTEXTURES_IDX]	= paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
+		paths[D_DUMPDSP_IDX]		= paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
 		paths[D_LOGS_IDX]			= paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
-		paths[D_MAILLOGS_IDX]		= paths[D_USER_IDX] + MAIL_LOGS_DIR DIR_SEP;
-		paths[D_THEMES_IDX]			= paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
+		paths[D_MAILLOGS_IDX]		= paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
 		paths[D_WIISYSCONF_IDX]		= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
+		paths[D_THEMES_IDX]			= paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
 		paths[F_DOLPHINCONFIG_IDX]	= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
 		paths[F_DEBUGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
 		paths[F_LOGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + LOGGER_CONFIG;
@@ -743,14 +743,14 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 			paths[D_OPENCL_IDX]			= paths[D_USER_IDX] + OPENCL_DIR DIR_SEP;
 			paths[D_HIRESTEXTURES_IDX]	= paths[D_USER_IDX] + HIRES_TEXTURES_DIR DIR_SEP;
 			paths[D_DUMP_IDX]			= paths[D_USER_IDX] + DUMP_DIR DIR_SEP;
-			paths[D_DUMPFRAMES_IDX]		= paths[D_USER_IDX] + DUMP_FRAMES_DIR DIR_SEP;
-			paths[D_DUMPAUDIO_IDX]		= paths[D_USER_IDX] + DUMP_AUDIO_DIR DIR_SEP;
-			paths[D_DUMPTEXTURES_IDX]	= paths[D_USER_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
-			paths[D_DUMPDSP_IDX]		= paths[D_USER_IDX] + DUMP_DSP_DIR DIR_SEP;
+			paths[D_DUMPFRAMES_IDX]		= paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
+			paths[D_DUMPAUDIO_IDX]		= paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
+			paths[D_DUMPTEXTURES_IDX]	= paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
+			paths[D_DUMPDSP_IDX]		= paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
 			paths[D_LOGS_IDX]			= paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
-			paths[D_MAILLOGS_IDX]		= paths[D_USER_IDX] + MAIL_LOGS_DIR DIR_SEP;
-			paths[D_THEMES_IDX]			= paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
+			paths[D_MAILLOGS_IDX]		= paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
 			paths[D_WIISYSCONF_IDX]		= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
+			paths[D_THEMES_IDX]			= paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
 			paths[F_DOLPHINCONFIG_IDX]	= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
 			paths[F_DEBUGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
 			paths[F_LOGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + LOGGER_CONFIG;
@@ -773,15 +773,21 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 			break;
 
 		case D_DUMP_IDX:
+			paths[D_DUMPFRAMES_IDX]		= paths[D_DUMP_IDX] + DUMP_FRAMES_DIR DIR_SEP;
+			paths[D_DUMPAUDIO_IDX]		= paths[D_DUMP_IDX] + DUMP_AUDIO_DIR DIR_SEP;
+			paths[D_DUMPTEXTURES_IDX]	= paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
+			paths[D_DUMPDSP_IDX]		= paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
 			paths[F_RAMDUMP_IDX]		= paths[D_DUMP_IDX] + RAM_DUMP;
 			paths[F_ARAMDUMP_IDX]		= paths[D_DUMP_IDX] + ARAM_DUMP;
 			paths[F_FAKEVMEMDUMP_IDX]	= paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
 			break;
 		case D_LOGS_IDX:
+			paths[D_MAILLOGS_IDX]		= paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
 			paths[F_MAINLOG_IDX]		= paths[D_LOGS_IDX] + MAIN_LOG;
 		}
 
 	}
+
 	return paths[DirIDX];
 }
 
