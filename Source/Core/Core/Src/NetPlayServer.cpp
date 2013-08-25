@@ -187,6 +187,12 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 		socket.Send(spac);
 	}
 
+	// send the pad buffer value
+	spac.Clear();
+	spac << (MessageId)NP_MSG_PAD_BUFFER;
+	spac << (u32)m_target_buffer_size;
+	socket.Send(spac);
+
 	// sync values with new client
 	std::map<sf::SocketTCP, Client>::const_iterator
 		i,
