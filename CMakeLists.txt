@@ -569,11 +569,8 @@ endif()
 include(FindLibUSB OPTIONAL)
 if(LIBUSB_FOUND)
 	message("Using shared LibUSB")
-	
 	add_definitions(-D__LIBUSB__)
 	include_directories(${LIBUSB_INCLUDE_DIR})
-else(LIBUSB_FOUND)
-	
 endif(LIBUSB_FOUND)
 
 set(SFML_FIND_VERSION TRUE)
@@ -665,7 +662,7 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
 
 	if(wxWidgets_FOUND)
-		EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
+		EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 			COMMAND sh "${wxWidgets_CONFIG_EXECUTABLE}"
 			${wxWidgets_CONFIG_OPTIONS} --version
 			OUTPUT_VARIABLE wxWidgets_VERSION
@@ -772,7 +769,7 @@ if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 endif()
 include(FindGettext)
 if(GETTEXT_FOUND AND NOT DISABLE_WX)
-	file(GLOB LINGUAS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Languages/po/*.po) 
+	file(GLOB LINGUAS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Languages/po/*.po)
 	GETTEXT_CREATE_TRANSLATIONS(Languages/po/dolphin-emu.pot ALL ${LINGUAS})
 endif()
 if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin"))

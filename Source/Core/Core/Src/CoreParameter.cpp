@@ -30,7 +30,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bJITPairedOff(false), bJITSystemRegistersOff(false),
   bJITBranchOff(false), bJITProfiledReJIT(false),
   bJITILTimeProfiling(false), bJITILOutputIR(false),
-  bEnableFPRF(false), 
+  bEnableFPRF(false),
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
@@ -105,26 +105,26 @@ void SCoreStartupParameter::LoadDefaults()
 	m_strUniqueID = "00000000";
 }
 
-bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2) 
+bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 {
 	std::string Region(EUR_DIR);
-	
+
 	switch (_BootBS2)
 	{
 	case BOOT_DEFAULT:
 		{
 			bool bootDrive = cdio_is_cdrom(m_strFilename);
 			// Check if the file exist, we may have gotten it from a --elf command line
-			// that gave an incorrect file name 
+			// that gave an incorrect file name
 			if (!bootDrive && !File::Exists(m_strFilename))
 			{
 				PanicAlertT("The specified file \"%s\" does not exist", m_strFilename.c_str());
 				return false;
 			}
-			
+
 			std::string Extension;
 			SplitPath(m_strFilename, NULL, NULL, &Extension);
-			if (!strcasecmp(Extension.c_str(), ".gcm") || 
+			if (!strcasecmp(Extension.c_str(), ".gcm") ||
 				!strcasecmp(Extension.c_str(), ".iso") ||
 				!strcasecmp(Extension.c_str(), ".wbfs") ||
 				!strcasecmp(Extension.c_str(), ".ciso") ||
@@ -147,48 +147,48 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				}
 				m_strName = pVolume->GetName();
 				m_strUniqueID = pVolume->GetUniqueID();
-				
+
 				// Check if we have a Wii disc
 				bWii = DiscIO::IsVolumeWiiDisc(pVolume);
 				switch (pVolume->GetCountry())
 				{
 				case DiscIO::IVolume::COUNTRY_USA:
 					bNTSC = true;
-					Region = USA_DIR; 
+					Region = USA_DIR;
 					break;
-				
+
 				case DiscIO::IVolume::COUNTRY_TAIWAN:
 				case DiscIO::IVolume::COUNTRY_KOREA:
 					// TODO: Should these have their own Region Dir?
 				case DiscIO::IVolume::COUNTRY_JAPAN:
 					bNTSC = true;
-					Region = JAP_DIR; 
+					Region = JAP_DIR;
 					break;
-				
+
 				case DiscIO::IVolume::COUNTRY_EUROPE:
 				case DiscIO::IVolume::COUNTRY_FRANCE:
 				case DiscIO::IVolume::COUNTRY_ITALY:
 				case DiscIO::IVolume::COUNTRY_RUSSIA:
 					bNTSC = false;
-					Region = EUR_DIR; 
+					Region = EUR_DIR;
 					break;
-				
+
 				default:
 					if (PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
 								   "\nContinue with PAL region?"))
 					{
 						bNTSC = false;
-						Region = EUR_DIR; 
+						Region = EUR_DIR;
 						break;
 					}else return false;
 				}
-				
+
 				delete pVolume;
 			}
 			else if (!strcasecmp(Extension.c_str(), ".elf"))
 			{
 				bWii = CBoot::IsElfWii(m_strFilename.c_str());
-				Region = USA_DIR; 
+				Region = USA_DIR;
 				m_BootType = BOOT_ELF;
 				bNTSC = true;
 			}
@@ -196,7 +196,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 			{
 				CDolLoader dolfile(m_strFilename.c_str());
 				bWii = dolfile.IsWii();
-				Region = USA_DIR; 
+				Region = USA_DIR;
 				m_BootType = BOOT_DOL;
 				bNTSC = true;
 			}
@@ -219,7 +219,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 			{
 				const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
 				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
-		
+
 				if (ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex()) == NULL)
 				{
 					//WAD is valid yet cannot be booted. Install instead.
@@ -233,9 +233,9 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				{
 				case DiscIO::IVolume::COUNTRY_USA:
 					bNTSC = true;
-					Region = USA_DIR; 
+					Region = USA_DIR;
 					break;
-				
+
 				case DiscIO::IVolume::COUNTRY_TAIWAN:
 				case DiscIO::IVolume::COUNTRY_KOREA:
 					// TODO: Should these have their own Region Dir?
@@ -243,15 +243,15 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 					bNTSC = true;
 					Region = JAP_DIR;
 					break;
-				
+
 				case DiscIO::IVolume::COUNTRY_EUROPE:
 				case DiscIO::IVolume::COUNTRY_FRANCE:
 				case DiscIO::IVolume::COUNTRY_ITALY:
 				case DiscIO::IVolume::COUNTRY_RUSSIA:
 					bNTSC = false;
-					Region = EUR_DIR; 
+					Region = EUR_DIR;
 					break;
-				
+
 				default:
 					bNTSC = false;
 					Region = EUR_DIR;
@@ -278,7 +278,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				// or if it is not ascii characters (specifically sysmenu could potentially apply to other things)
 				char titleidstr[17];
 				snprintf(titleidstr, 17, "%016llx", ContentLoader.GetTitleID());
-					
+
 				if (!m_strName.length())
 				{
 					m_strName = titleidstr;
@@ -309,7 +309,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 		bNTSC = true;
 		break;
 
-	case BOOT_BS2_EUR:  
+	case BOOT_BS2_EUR:
 		Region = EUR_DIR;
 		m_strFilename.clear();
 		bNTSC = false;

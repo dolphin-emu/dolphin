@@ -40,7 +40,7 @@ void HLE_GeneralDebugPrint()
 	NPC = LR;
 
 	//PanicAlert("(%08x->%08x) %s", LR, PC, ReportMessage.c_str());
-	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());	
+	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());
 }
 
 void HLE_VPrintf()
@@ -53,13 +53,13 @@ void HLE_VPrintf()
 	for(int i = 4; i<= 10; i++){
 		GPR(i) = Memory::Read_U32(offset+(i-(check == 0x01000000? 3 : 2))*4);
 		//NOTICE_LOG(OSREPORT, "r%d: %08X",i, GPR(i));
-	}	
+	}
 
 	GetStringVA(ReportMessage);
-	
+
 	NPC = LR;
 
-	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());	
+	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());
 }
 // Generalized func for just printing string pointed to by r3.
 void HLE_GeneralDebugPrintWithInt()
@@ -69,7 +69,7 @@ void HLE_GeneralDebugPrintWithInt()
 	NPC = LR;
 
 	//PanicAlert("(%08x->%08x) %s", LR, PC, ReportMessage.c_str());
-	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());	
+	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());
 }
 
 // __write_console is slightly abnormal
@@ -80,14 +80,14 @@ void HLE_write_console()
 	NPC = LR;
 
 	//PanicAlert("(%08x->%08x) %s", LR, PC, ReportMessage.c_str());
-	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());	
+	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());
 }
 
 void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 {
 	_rOutBuffer = "";
 	char ArgumentBuffer[256];
-	u32 ParameterCounter = strReg+1;    
+	u32 ParameterCounter = strReg+1;
 	u32 FloatingParameterCounter = 1;
 	char *pString = (char*)Memory::GetPointer(GPR(strReg));
 	if (!pString)
@@ -143,10 +143,10 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 				_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
 				break;
 			}
-			
+
 			case 'f':
 			{
-				_rOutBuffer += StringFromFormat(ArgumentBuffer, 
+				_rOutBuffer += StringFromFormat(ArgumentBuffer,
 												rPS0(FloatingParameterCounter));
 				FloatingParameterCounter++;
 				ParameterCounter--;
@@ -166,7 +166,7 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 		}
 		else
 		{
-			_rOutBuffer += StringFromFormat("%c", *pString); 
+			_rOutBuffer += StringFromFormat("%c", *pString);
 			pString++;
 		}
 	}

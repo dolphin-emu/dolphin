@@ -35,7 +35,7 @@ void CBoot::RunFunction(u32 _iAddr)
 }
 
 // __________________________________________________________________________________________________
-// GameCube Bootstrap 2 HLE: 
+// GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
 bool CBoot::EmulatedBS2_GC()
@@ -119,7 +119,7 @@ bool CBoot::EmulatedBS2_GC()
 	DEBUG_LOG(MASTER_LOG, "Call iAppLoaderInit");
 	PowerPC::ppcState.gpr[3] = 0x81300000;
 	RunFunction(iAppLoaderInit);
-	
+
 	// iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
 	// To give you an idea about where the stuff is located on the disc take a look at yagcd
 	// ch 13.
@@ -135,7 +135,7 @@ bool CBoot::EmulatedBS2_GC()
 		u32 iRamAddress	= Memory::ReadUnchecked_U32(0x81300004);
 		u32 iLength		= Memory::ReadUnchecked_U32(0x81300008);
 		u32 iDVDOffset	= Memory::ReadUnchecked_U32(0x8130000c);
-		
+
 		INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
 		DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength);
 
@@ -151,7 +151,7 @@ bool CBoot::EmulatedBS2_GC()
 	// Load patches
 	std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();
 	PatchEngine::LoadPatches(gameID.c_str());
-	
+
 	PowerPC::ppcState.DebugCount = 0;
 
 	// If we have any patches that need to be applied very early, here's a good place
@@ -167,7 +167,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	// Write the 256 byte setting.txt to memory.
 	std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
 	std::string area, model, code, video, game;
-	
+
 
 	switch((DiscIO::IVolume::ECountry)_CountryCode)
 	{
@@ -176,8 +176,8 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 		video = "NTSC";
 		game = "KR";
 		code = "LKH";
-		break;   
-	case DiscIO::IVolume::COUNTRY_TAIWAN: 
+		break;
+	case DiscIO::IVolume::COUNTRY_TAIWAN:
 		// TODO: Determine if Taiwan have their own specific settings.
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		area = "JPN";
@@ -221,7 +221,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 		}
 		File::Delete(settings_Filename);
 	}
-	
+
 	if (serno.empty() || serno == "000000000")
 	{
 		serno = gen.generateSerialNumber();
@@ -246,10 +246,10 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 
 	{
 		File::IOFile settingsFileHandle(settings_Filename, "wb");
-		
+
 		if (!settingsFileHandle.WriteBytes(gen.GetData(), SettingsHandler::SETTINGS_SIZE))
 		{
-			PanicAlertT("SetupWiiMem: Cant create setting file");	
+			PanicAlertT("SetupWiiMem: Cant create setting file");
 			return false;
 		}
 		Memory::WriteBigEData(gen.GetData(), 0x3800, SettingsHandler::SETTINGS_SIZE);
@@ -310,7 +310,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
 	Memory::Write_U32(0x80000000, 0x00003184);		// GameID Address
 
-	// Fake the VI Init of the IPL 
+	// Fake the VI Init of the IPL
 	Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);
 
 	// Clear exception handler. Why? Don't we begin with only zeros?
@@ -322,7 +322,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 }
 
 // __________________________________________________________________________________________________
-// Wii Bootstrap 2 HLE: 
+// Wii Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader
 bool CBoot::EmulatedBS2_Wii()
@@ -339,12 +339,12 @@ bool CBoot::EmulatedBS2_Wii()
 	// This is some kind of consistency check that is compared to the 0x00
 	// values as the game boots. This location keep the 4 byte ID for as long
 	// as the game is running. The 6 byte ID at 0x00 is overwritten sometime
-	// after this check during booting. 
+	// after this check during booting.
 	VolumeHandler::ReadToPtr(Memory::GetPointer(0x3180), 0, 4);
 
 	// Execute the apploader
 	bool apploaderRan = false;
-	if (VolumeHandler::IsValid() && VolumeHandler::IsWii())	
+	if (VolumeHandler::IsValid() && VolumeHandler::IsWii())
 	{
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 		m_MSR.FP = 1;
@@ -362,7 +362,7 @@ bool CBoot::EmulatedBS2_Wii()
 		// Load Apploader to Memory
 		u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10);
 		u32 iAppLoaderSize = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
-		if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1)) 
+		if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
 		{
 			ERROR_LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");
 			return false;
@@ -375,7 +375,7 @@ bool CBoot::EmulatedBS2_Wii()
 		u32 iAppLoaderFuncAddr = 0x80004000;
 		PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
 		PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
-		PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;	
+		PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
 		RunFunction(iAppLoaderEntry);
 		u32 iAppLoaderInit = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+0);
 		u32 iAppLoaderMain = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+4);
@@ -383,14 +383,14 @@ bool CBoot::EmulatedBS2_Wii()
 
 		// iAppLoaderInit
 		DEBUG_LOG(BOOT, "Run iAppLoaderInit");
-		PowerPC::ppcState.gpr[3] = 0x81300000; 
+		PowerPC::ppcState.gpr[3] = 0x81300000;
 		RunFunction(iAppLoaderInit);
 
 		// Let the apploader load the exe to memory. At this point I get an unknown IPC command
 		// (command zero) when I load Wii Sports or other games a second time. I don't notice
 		// any side effects however. It's a little disconcerting however that Start after Stop
 		// behaves differently than the first Start after starting Dolphin. It means something
-		// was not reset correctly. 
+		// was not reset correctly.
 		DEBUG_LOG(BOOT, "Run iAppLoaderMain");
 		do
 		{

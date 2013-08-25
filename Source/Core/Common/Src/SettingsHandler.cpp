@@ -75,7 +75,7 @@ void SettingsHandler::Decrypt()
 {
 	const u8 *str = m_buffer;
 	while (*str != 0)
-	{	
+	{
 		if (m_position >= SETTINGS_SIZE)
 			return;
 		decoded.push_back((u8)(m_buffer[m_position] ^ m_key));

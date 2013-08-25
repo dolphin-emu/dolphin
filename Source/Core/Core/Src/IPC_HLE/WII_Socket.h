@@ -12,7 +12,7 @@
 #include <iphlpapi.h>
 
 #include "fakepoll.h"
-#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x)) 
+#define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
 #elif defined(__linux__) or defined(__APPLE__)
@@ -170,7 +170,7 @@ public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();
 	void operator=(WiiSocket const&);	// Don't implement
-	
+
 };
 
 class WiiSockMan
@@ -196,7 +196,7 @@ public:
 	{
 		if (WiiSockets.find(sock) == WiiSockets.end())
 		{
-			ERROR_LOG(WII_IPC_NET, 
+			ERROR_LOG(WII_IPC_NET,
 				"doSock: Error, fd not found (%08x, %08X, %08X)",
 				sock, CommandAddress, type);
 			EnqueueReply(CommandAddress, -SO_EBADF);

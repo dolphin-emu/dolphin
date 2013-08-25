@@ -44,7 +44,7 @@ enum ssl_err_t
 	SSL_ERR_VCHAIN			=  -11, // verify failed: certificate chain
 	SSL_ERR_VDATE			=  -12, // verify failed: date invalid
 	SSL_ERR_SERVER_CERT		=  -13, // certificate cert invalid
-};	
+};
 
 enum SSL_IOCTL
 {
@@ -83,7 +83,7 @@ class CWII_IPC_HLE_Device_net_ssl : public IWII_IPC_HLE_Device
 {
 public:
 
-	CWII_IPC_HLE_Device_net_ssl(u32 _DeviceID, const std::string& _rDeviceName);    
+	CWII_IPC_HLE_Device_net_ssl(u32 _DeviceID, const std::string& _rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_net_ssl();
 

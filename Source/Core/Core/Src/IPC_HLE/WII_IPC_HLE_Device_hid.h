@@ -28,7 +28,7 @@
 
 #define HIDERR_NO_DEVICE_FOUND -4
 
-/* Connection timed out */ 
+/* Connection timed out */
 
 class CWII_IPC_HLE_Device_hid : public IWII_IPC_HLE_Device
 {
@@ -131,21 +131,21 @@ private:
 	int Align(int num, int alignment);
 	static void checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid);
 	static void LIBUSB_CALL handleUsbUpdates(struct libusb_transfer *transfer);
-	
+
 	struct libusb_device_handle * GetDeviceByDevNum(u32 devNum);
 	std::map<u32,libusb_device_handle*> open_devices;
 	std::mutex s_open_devices;
 	std::map<std::string,int> device_identifiers;
-	
+
 	std::thread usb_thread;
 	bool usb_thread_running;
-	
+
 	typedef struct
 	{
 		u32 enq_address;
 		u32 type;
 		void * context;
 	} _hidevent;
-	
+
 	std::list<_hidevent> event_list;
 };

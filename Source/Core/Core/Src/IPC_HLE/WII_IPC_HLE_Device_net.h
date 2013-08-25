@@ -276,7 +276,7 @@ public:
 			return -27;
 
 		return 0;
-	}	
+	}
 
 	u32 Magic(){return Common::swap32(config.magic);}
 	void SetMagic(u32 magic){config.magic = Common::swap32(magic);}
@@ -308,7 +308,7 @@ public:
 	const char * Email(){return config.email;}
 	void SetEmail(const char * email)
 	{
-		strncpy(config.email, email, nwc24_config_t::MAX_EMAIL_LENGTH); 
+		strncpy(config.email, email, nwc24_config_t::MAX_EMAIL_LENGTH);
 		config.email[nwc24_config_t::MAX_EMAIL_LENGTH-1] = '\0';
 	}
 
@@ -471,7 +471,7 @@ public:
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress) 
+	virtual bool IOCtl(u32 _CommandAddress)
 	{
 		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
@@ -591,7 +591,7 @@ enum NET_IOCTL
 	IOCTL_SO_GETPEERNAME,
 	IOCTL_SO_GETSOCKNAME,
 	IOCTL_SO_GETSOCKOPT,
-	IOCTL_SO_SETSOCKOPT,  
+	IOCTL_SO_SETSOCKOPT,
 	IOCTL_SO_LISTEN,
 	IOCTL_SO_POLL,
 	IOCTLV_SO_RECVFROM,

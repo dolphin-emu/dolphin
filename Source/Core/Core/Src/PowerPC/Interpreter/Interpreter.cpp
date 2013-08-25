@@ -113,28 +113,28 @@ int Interpreter::SingleStepInner(void)
 	{
 		#ifdef USE_GDBSTUB
 		if (gdb_active() && gdb_bp_x(PC)) {
-			
+
 			Host_UpdateDisasmDialog();
-			
+
 			gdb_signal(SIGTRAP);
 			gdb_handle_exception();
 		}
 		#endif
-		
+
 		NPC = PC + sizeof(UGeckoInstruction);
 		instCode.hex = Memory::Read_Opcode(PC);
-		
+
 		// Uncomment to trace the interpreter
 		//if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
 		//	startTrace = 1;
 		//else
 		//	startTrace = 0;
-		
+
 		if (startTrace)
 		{
 			Trace(instCode);
 		}
-		
+
 		if (instCode.hex != 0)
 		{
 			UReg_MSR& msr = (UReg_MSR&)MSR;
@@ -176,7 +176,7 @@ int Interpreter::SingleStepInner(void)
 	}
 	last_pc = PC;
 	PC = NPC;
-	
+
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (PowerPC::ppcState.gpr[1] == 0)
 	{
@@ -191,9 +191,9 @@ int Interpreter::SingleStepInner(void)
 }
 
 void Interpreter::SingleStep()
-{	
+{
 	SingleStepInner();
-	
+
 	CoreTiming::slicelength = 1;
 	CoreTiming::downcount = 0;
 	CoreTiming::Advance();
@@ -240,8 +240,8 @@ void Interpreter::Run()
 						if (PCVec.size() > ShowSteps)
 							PCVec.erase(PCVec.begin());
 					#endif
-					
-							
+
+
 					//2: check for breakpoint
 					if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
 					{

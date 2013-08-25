@@ -14,7 +14,7 @@ enum
 
 #pragma pack(push, 1)
 struct icmp_hdr
-{ 
+{
 	u8 type;
 	u8 code;
 	u16 checksum;

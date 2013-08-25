@@ -88,7 +88,7 @@ void EnqueReplyCallback(u64 userdata, int)
 
 void Init()
 {
-	
+
 	_dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isn't empty on init");
 	CWII_IPC_HLE_Device_es::m_ContentFile = "";
 	u32 i;
@@ -129,15 +129,15 @@ void Init()
 	#endif
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/oh1")); i++;
 	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, std::string("_Unimplemented_Device_")); i++;
-	
+
 	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
 }
 
 void Reset(bool _bHard)
 {
-	
+
 	CoreTiming::RemoveAllEvents(enque_reply);
-	
+
 	u32 i;
 	for (i=0; i<IPC_MAX_FDS; i++)
 	{
@@ -168,7 +168,7 @@ void Reset(bool _bHard)
 		g_DeviceMap.erase(g_DeviceMap.begin(), g_DeviceMap.end());
 	}
 	request_queue.clear();
-	
+
 	// lock due to using reply_queue
 	{
 		std::lock_guard<std::mutex> lk(s_reply_queue);
@@ -257,7 +257,7 @@ IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName
 void DoState(PointerWrap &p)
 {
 	std::lock_guard<std::mutex> lk(s_reply_queue);
-	
+
 	p.Do(request_queue);
 	p.Do(reply_queue);
 	p.Do(last_reply_time);
@@ -359,11 +359,11 @@ void ExecuteCommand(u32 _Address)
 	{
 		u32 Mode = Memory::Read_U32(_Address + 0x10);
 		DeviceID = getFreeDeviceId();
-		
+
 		std::string DeviceName;
 		Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
 
-		
+
 		WARN_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
 		if (DeviceID >= 0)
 		{
@@ -529,7 +529,7 @@ void ExecuteCommand(u32 _Address)
 	if (CmdSuccess)
 	{
 		// It seems that the original hardware overwrites the command after it has been
-		// executed. We write 8 which is not any valid command, and what IOS does 
+		// executed. We write 8 which is not any valid command, and what IOS does
 		Memory::Write_U32(8, _Address);
 		// IOS seems to write back the command that was responded to
 		Memory::Write_U32(Command, _Address + 8);
@@ -537,14 +537,14 @@ void ExecuteCommand(u32 _Address)
 		// Ensure replies happen in order, fairly ugly
 		// Without this, tons of games fail now that DI commands have different reply delays
 		int reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
-		
+
 		const s64 ticks_til_last_reply = last_reply_time - CoreTiming::GetTicks();
-		
+
 		if (ticks_til_last_reply > 0)
 			reply_delay = ticks_til_last_reply;
-		
+
 		last_reply_time = CoreTiming::GetTicks() + reply_delay;
-	
+
 		// Generate a reply to the IPC command
 		EnqReply(_Address, reply_delay);
 	}
@@ -594,7 +594,7 @@ void Update()
 		Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
 #endif
 	}
-	
+
 	// lock due to using reply_queue
 	{
 		std::lock_guard<std::mutex> lk(s_reply_queue);
