@@ -31,6 +31,9 @@
     <string name="file_clicked">クリックされたファイル： </string>
     
     <!-- Input Config Fragment -->
+    <string name="input_settings">入力設定</string>
+    <string name="input_binding">入力バインディング</string>
+    <string name="input_binding_descrip">このコントロールにバインドするための入力を移動または押してください。</string>
     <string name="button_a">Aボタン</string>
     <string name="button_b">Bボタン</string>
     <string name="button_start">スタートボタン</string>
@@ -115,6 +118,7 @@
     <!-- Miscellaneous -->
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
+    <string name="cancel">キャンセル</string>
     <string name="disabled">無効</string>
     <string name="other">その他</string>
 
