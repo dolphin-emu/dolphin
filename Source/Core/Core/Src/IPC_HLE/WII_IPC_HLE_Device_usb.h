@@ -286,8 +286,7 @@ private:
 	{
 		u8 num_registered;
 		_conf_pad_device registered[CONF_PAD_MAX_REGISTERED];
-		_conf_pad_device active[MAX_WIIMOTES];
-		_conf_pad_device balance_board;
+		_conf_pad_device active[MAX_BBMOTES];
 		u8 unknown[0x45];
 	};
 #pragma pack(pop)
