@@ -30,9 +30,9 @@
 #include <stdlib.h>
 
 typedef struct pollfd {
-    int fd;                         /* file desc to poll */
-    int events;                   /* events of interest on fd */
-    int revents;                  /* events that occurred on fd */
+	int fd;                         /* file desc to poll */
+	int events;                   /* events of interest on fd */
+	int revents;                  /* events that occurred on fd */
 } pollfd_t;
 
 #define EINVAL 22
@@ -55,112 +55,112 @@ typedef struct pollfd {
 
 inline int poll(struct pollfd *pollSet, int pollCount, int pollTimeout)
 {
-    struct timeval tv;
-    struct timeval *tvp;
-    fd_set readFDs, writeFDs, exceptFDs;
-    fd_set *readp, *writep, *exceptp;
-    struct pollfd *pollEnd, *p;
-    int selected;
-    int result;
-    int maxFD;
+	struct timeval tv;
+	struct timeval *tvp;
+	fd_set readFDs, writeFDs, exceptFDs;
+	fd_set *readp, *writep, *exceptp;
+	struct pollfd *pollEnd, *p;
+	int selected;
+	int result;
+	int maxFD;
 
-    if (!pollSet) {
-        pollEnd = NULL;
-        readp = NULL;
-        writep = NULL;
-        exceptp = NULL;
-        maxFD = 0;
-    } 
-    else {
-        pollEnd = pollSet + pollCount;
-        readp = &readFDs;
-        writep = &writeFDs;
-        exceptp = &exceptFDs;
+	if (!pollSet) {
+		pollEnd = NULL;
+		readp = NULL;
+		writep = NULL;
+		exceptp = NULL;
+		maxFD = 0;
+	} 
+	else {
+		pollEnd = pollSet + pollCount;
+		readp = &readFDs;
+		writep = &writeFDs;
+		exceptp = &exceptFDs;
 
-        FD_ZERO(readp);
-        FD_ZERO(writep);
-        FD_ZERO(exceptp);
-        
-        // Find the biggest fd in the poll set
-        maxFD = 0;
-        for (p = pollSet; p < pollEnd; p++) {
-            if (p->fd > maxFD) maxFD = p->fd;
-        }
-        
-        // Transcribe flags from the poll set to the fd sets
-        for (p = pollSet; p < pollEnd; p++) {
-            if (p->fd < 0) {
-                // Negative fd checks nothing and always reports zero
-            } else {
-                if (p->events & POLLIN)  FD_SET(p->fd, readp);
-                if (p->events & POLLOUT)  FD_SET(p->fd, writep);
-                if (p->events != 0)      FD_SET(p->fd, exceptp);
-                // POLLERR is never set coming in; poll() always reports errors
-                // But don't report if we're not listening to anything at all.
-            }
-        }
-    }
-        
-    // poll timeout is in milliseconds. Convert to struct timeval.
-    // poll timeout == -1 : wait forever : select timeout of NULL
-    // poll timeout == 0  : return immediately : select timeout of zero
-    if (pollTimeout >= 0) {
-        tv.tv_sec = pollTimeout / 1000;
-        tv.tv_usec = (pollTimeout % 1000) * 1000;
-        tvp = &tv;
-    } else {
-        tvp = NULL;
-    }
-    
-    
-    selected = select(maxFD+1, readp, writep, exceptp, tvp);
+		FD_ZERO(readp);
+		FD_ZERO(writep);
+		FD_ZERO(exceptp);
 
+		// Find the biggest fd in the poll set
+		maxFD = 0;
+		for (p = pollSet; p < pollEnd; p++) {
+			if (p->fd > maxFD) maxFD = p->fd;
+		}
 
-    if (selected < 0) {
-        // Error during select
-        result = -1;
-    } 
-    else if (selected > 0) {
-        // Select found something
-        // Transcribe result from fd sets to poll set.
-        // Also count the number of selected fds. poll returns the 
-        // number of ready fds; select returns the number of bits set.
-        int polled = 0;
-        for (p = pollSet; p < pollEnd; p++) {
-			p->revents = 0;
-            if (p->fd < 0) {
-                // Negative fd always reports zero
-            } else {
-				int isToRead = FD_ISSET(p->fd, readp);
-                if ((p->events & POLLIN)   &&  isToRead) {
-                    p->revents |= POLLIN;
-                }
-
-                int isToWrite = FD_ISSET(p->fd, writep);
-                if ((p->events & POLLOUT)  &&  isToWrite) {
-                    p->revents |= POLLOUT;
-                }
-
-                int isToError = FD_ISSET(p->fd, exceptp);
-                if ((p->events != 0)       &&  isToError) {
-                    p->revents |= POLLERR;
-                }
-
-                if (p->revents) polled++;
-            }
+		// Transcribe flags from the poll set to the fd sets
+		for (p = pollSet; p < pollEnd; p++) {
+			if (p->fd < 0) {
+				// Negative fd checks nothing and always reports zero
+			} else {
+				if (p->events & POLLIN)  FD_SET(p->fd, readp);
+				if (p->events & POLLOUT)  FD_SET(p->fd, writep);
+				if (p->events != 0)      FD_SET(p->fd, exceptp);
+				// POLLERR is never set coming in; poll() always reports errors
+				// But don't report if we're not listening to anything at all.
+			}
+		}
 	}
-        result = polled;
-    }
-    else {
-	// selected == 0, select timed out before anything happened
-        // Clear all result bits and return zero.
-        for (p = pollSet; p < pollEnd; p++) {
-            p->revents = 0;
 
-        }
-        result = 0;
-    }
-    return result;
+	// poll timeout is in milliseconds. Convert to struct timeval.
+	// poll timeout == -1 : wait forever : select timeout of NULL
+	// poll timeout == 0  : return immediately : select timeout of zero
+	if (pollTimeout >= 0) {
+		tv.tv_sec = pollTimeout / 1000;
+		tv.tv_usec = (pollTimeout % 1000) * 1000;
+		tvp = &tv;
+	} else {
+		tvp = NULL;
+	}
+
+
+	selected = select(maxFD+1, readp, writep, exceptp, tvp);
+
+
+	if (selected < 0) {
+		// Error during select
+		result = -1;
+	} 
+	else if (selected > 0) {
+		// Select found something
+		// Transcribe result from fd sets to poll set.
+		// Also count the number of selected fds. poll returns the 
+		// number of ready fds; select returns the number of bits set.
+		int polled = 0;
+		for (p = pollSet; p < pollEnd; p++) {
+			p->revents = 0;
+			if (p->fd < 0) {
+				// Negative fd always reports zero
+			} else {
+				int isToRead = FD_ISSET(p->fd, readp);
+				if ((p->events & POLLIN)   &&  isToRead) {
+					p->revents |= POLLIN;
+				}
+
+				int isToWrite = FD_ISSET(p->fd, writep);
+				if ((p->events & POLLOUT)  &&  isToWrite) {
+					p->revents |= POLLOUT;
+				}
+
+				int isToError = FD_ISSET(p->fd, exceptp);
+				if ((p->events != 0)       &&  isToError) {
+					p->revents |= POLLERR;
+				}
+
+				if (p->revents) polled++;
+			}
+		}
+		result = polled;
+	}
+	else {
+		// selected == 0, select timed out before anything happened
+		// Clear all result bits and return zero.
+		for (p = pollSet; p < pollEnd; p++) {
+			p->revents = 0;
+
+		}
+		result = 0;
+	}
+	return result;
 }
 
 #ifdef _MSC_VER

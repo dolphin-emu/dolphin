@@ -169,7 +169,7 @@ private:
 public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();
-    void operator=(WiiSocket const&);	// Don't implement
+	void operator=(WiiSocket const&);	// Don't implement
 	
 };
 
@@ -208,9 +208,9 @@ public:
 	}
 
 private:
-    WiiSockMan() {};                   // Constructor? (the {} brackets) are needed here.
-    WiiSockMan(WiiSockMan const&);     // Don't Implement
-    void operator=(WiiSockMan const&); // Don't implement
+	WiiSockMan() {};                   // Constructor? (the {} brackets) are needed here.
+	WiiSockMan(WiiSockMan const&);     // Don't Implement
+	void operator=(WiiSockMan const&); // Don't implement
 
 	std::unordered_map<s32, WiiSocket> WiiSockets;
 };

@@ -29,7 +29,7 @@
 	0x12: Mario Kart
 	0x14: Mario Kart: But only if we don't return a zeroed out buffer for the 0x12 question,
 		and instead answer for example 1 will this question appear.
- 
+
 */
 // =============
 
@@ -57,10 +57,10 @@
 std::string CWII_IPC_HLE_Device_es::m_ContentFile;
 
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName) 
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-    , m_pContentLoader(NULL)
-    , m_TitleID(-1)
-    , AccessIdentID(0x6000000)
+	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+	, m_pContentLoader(NULL)
+	, m_TitleID(-1)
+	, AccessIdentID(0x6000000)
 {
 }
 
@@ -392,10 +392,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		}
 		break;
 
-    case IOCTL_ES_SETUID:
-        {
-            _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_SETUID no in buffer");
-            _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0, "IOCTL_ES_SETUID has a payload, it shouldn't");
+	case IOCTL_ES_SETUID:
+		{
+			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_SETUID no in buffer");
+			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0, "IOCTL_ES_SETUID has a payload, it shouldn't");
 			// TODO: fs permissions based on this
 			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID>>32), (u32)TitleID);
@@ -849,51 +849,52 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT , _CommandAddress + 0x4);
 		return true;
 
-    case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
-	{
-        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
-        _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
-		u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-		
-		EcWii &ec = EcWii::GetInstance();
-		get_ng_cert(destination, ec.getNgId(), ec.getNgKeyId(), ec.getNgPriv(), ec.getNgSig());
-		
-        break;
-	}
+	case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
+		{
+			WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
+			_dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
+			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+
+			EcWii &ec = EcWii::GetInstance();
+			get_ng_cert(destination, ec.getNgId(), ec.getNgKeyId(), ec.getNgPriv(), ec.getNgSig());
+		}
+		break;
+
 	case IOCTL_ES_SIGN:
-	{
-		WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
-		u8 *ap_cert_out = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
-		u8 *data = Memory::GetPointer(Buffer.InBuffer[0].m_Address);
-		u32 data_size = Buffer.InBuffer[0].m_Size;
-		u8 *sig_out =  Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-		
-		EcWii &ec = EcWii::GetInstance();
-		get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.getNgPriv(), ec.getNgId());
-		
+		{
+			WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
+			u8 *ap_cert_out = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+			u8 *data = Memory::GetPointer(Buffer.InBuffer[0].m_Address);
+			u32 data_size = Buffer.InBuffer[0].m_Size;
+			u8 *sig_out =  Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+
+			EcWii &ec = EcWii::GetInstance();
+			get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.getNgPriv(), ec.getNgId());
+		}
 		break;
-	}
+
 	case IOCTL_ES_GETBOOT2VERSION:
-	{
-        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETBOOT2VERSION");
-		
-		Memory::Write_U32(4, Buffer.PayloadBuffer[0].m_Address); // as of 26/02/2012, this was latest bootmii version
+		{
+			WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETBOOT2VERSION");
+
+			Memory::Write_U32(4, Buffer.PayloadBuffer[0].m_Address); // as of 26/02/2012, this was latest bootmii version
+		}
 		break;
-	}
-    // ===============================================================================================
-    // unsupported functions 
-    // ===============================================================================================
+
+	// ===============================================================================================
+	// unsupported functions
+	// ===============================================================================================
 	case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes) bug crediar :D
 		WARN_LOG(WII_IPC_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
 		break;
+
 	case IOCTL_ES_GETOWNEDTITLECNT:
-        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETOWNEDTITLECNT");
-		
+		WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETOWNEDTITLECNT");
 		Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
 		break;
-    default:
-        WARN_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
 
+	default:
+		WARN_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
 		DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_ES);
 		INFO_LOG(WII_IPC_ES, "command.Parameter: 0x%08x", Buffer.Parameter);
 		break;

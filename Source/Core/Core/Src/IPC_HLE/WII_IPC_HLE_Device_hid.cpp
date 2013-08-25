@@ -381,7 +381,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 		OffsetBuffer += Align(wii_device.bLength, 4);
 		bool deviceValid = true;
 		
-    	for (c = 0; deviceValid && c < desc.bNumConfigurations; c++)
+		for (c = 0; deviceValid && c < desc.bNumConfigurations; c++)
 		{
 			struct libusb_config_descriptor *config = NULL;
 			int cRet = libusb_get_config_descriptor(device, c, &config);

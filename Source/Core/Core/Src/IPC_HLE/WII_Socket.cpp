@@ -99,8 +99,8 @@ void WiiSocket::setFd(s32 s)
 
 // TODO: Remove on completion of async
 #ifdef _WIN32
-    u_long iMode = 1;
-    int ioctlret = ioctlsocket(fd, FIONBIO, &iMode);
+	u_long iMode = 1;
+	int ioctlret = ioctlsocket(fd, FIONBIO, &iMode);
 	u32 millis = 3000;
 #else
 	int flags;

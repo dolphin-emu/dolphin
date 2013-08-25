@@ -103,40 +103,40 @@ static int
 _verify_certificate_callback (void *data, x509_cert *crt, int depth, int *flags)
 {
 	char buf[1024];
-    ((void) data);
+	((void) data);
 	std::string verify_info = StringFromFormat(
 		"Verify requested for (Depth %d):\n", depth);
 
-    x509parse_cert_info( buf, sizeof( buf ) - 1, "", crt );
+	x509parse_cert_info( buf, sizeof( buf ) - 1, "", crt );
 	verify_info += buf;
 
-    if ( ( (*flags) & BADCERT_EXPIRED ) != 0 )
-        verify_info += "  ! server certificate has expired";
+	if ( ( (*flags) & BADCERT_EXPIRED ) != 0 )
+		verify_info += "  ! server certificate has expired";
 
-    if ( ( (*flags) & BADCERT_REVOKED ) != 0 )
-        verify_info += "  ! server certificate has been revoked";
+	if ( ( (*flags) & BADCERT_REVOKED ) != 0 )
+		verify_info += "  ! server certificate has been revoked";
 
-    if ( ( (*flags) & BADCERT_CN_MISMATCH ) != 0 )
-        verify_info += "  ! CN mismatch\n";
+	if ( ( (*flags) & BADCERT_CN_MISMATCH ) != 0 )
+		verify_info += "  ! CN mismatch\n";
 
-    if ( ( (*flags) & BADCERT_NOT_TRUSTED ) != 0 )
-        verify_info += "  ! self-signed or not signed by a trusted CA\n";
+	if ( ( (*flags) & BADCERT_NOT_TRUSTED ) != 0 )
+		verify_info += "  ! self-signed or not signed by a trusted CA\n";
 
-    if ( ( (*flags) & BADCRL_NOT_TRUSTED ) != 0 )
-        verify_info += "  ! CRL not trusted\n";
+	if ( ( (*flags) & BADCRL_NOT_TRUSTED ) != 0 )
+		verify_info += "  ! CRL not trusted\n";
 
-    if ( ( (*flags) & BADCRL_EXPIRED ) != 0 )
-        verify_info += "  ! CRL expired\n";
+	if ( ( (*flags) & BADCRL_EXPIRED ) != 0 )
+		verify_info += "  ! CRL expired\n";
 
-    if ( ( (*flags) & BADCERT_OTHER ) != 0 )
-        verify_info += "  ! other (unknown) flag\n";
+	if ( ( (*flags) & BADCERT_OTHER ) != 0 )
+		verify_info += "  ! other (unknown) flag\n";
 
-    if ( ( *flags ) == 0 )
-        verify_info += "  This certificate has no flags\n";
-	
-    WARN_LOG(WII_IPC_SSL, "%s", verify_info.c_str() );
+	if ( ( *flags ) == 0 )
+		verify_info += "  This certificate has no flags\n";
 
-    return( 0 );
+	WARN_LOG(WII_IPC_SSL, "%s", verify_info.c_str() );
+
+	return( 0 );
 }
 
 bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress) 

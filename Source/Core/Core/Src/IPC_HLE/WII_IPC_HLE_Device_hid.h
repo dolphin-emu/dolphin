@@ -43,21 +43,20 @@ public:
 
 	virtual bool IOCtlV(u32 _CommandAddress);
 	virtual bool IOCtl(u32 _CommandAddress);
-private:	
 
-
+private:
 	enum
-    {
-        IOCTL_HID_GET_ATTACHED		= 0x00,
-        IOCTL_HID_SET_SUSPEND		= 0x01,
-        IOCTL_HID_CONTROL			= 0x02,
-        IOCTL_HID_INTERRUPT_IN		= 0x03,
-        IOCTL_HID_INTERRUPT_OUT	= 0x04,
-        IOCTL_HID_GET_US_STRING	= 0x05,
-        IOCTL_HID_OPEN				= 0x06,
-        IOCTL_HID_SHUTDOWN			= 0x07,
-        IOCTL_HID_CANCEL_INTERRUPT	= 0x08,
-    };
+	{
+		IOCTL_HID_GET_ATTACHED		= 0x00,
+		IOCTL_HID_SET_SUSPEND		= 0x01,
+		IOCTL_HID_CONTROL			= 0x02,
+		IOCTL_HID_INTERRUPT_IN		= 0x03,
+		IOCTL_HID_INTERRUPT_OUT	= 0x04,
+		IOCTL_HID_GET_US_STRING	= 0x05,
+		IOCTL_HID_OPEN				= 0x06,
+		IOCTL_HID_SHUTDOWN			= 0x07,
+		IOCTL_HID_CANCEL_INTERRUPT	= 0x08,
+	};
 
 	/* Device descriptor */
 	typedef struct
@@ -119,11 +118,9 @@ private:
 		 u8 pad[1];
 	} WiiHIDEndpointDescriptor;
 
-	
 	u32 deviceCommandAddress;
 	void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
 	int GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check);
-	
 	bool ClaimDevice(libusb_device_handle * dev);
 
 	void ConvertDeviceToWii(WiiHIDDeviceDescriptor *dest, const struct libusb_device_descriptor *src);
