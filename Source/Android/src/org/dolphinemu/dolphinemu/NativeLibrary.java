@@ -15,10 +15,33 @@ import android.view.Surface;
  */
 public final class NativeLibrary
 {
+	/**
+	 * Handles touch events.
+	 * 
+	 * @param Action Mask for the action being performed.
+	 * @param X      Location on the screen's X-axis that the touch event occurred.
+	 * @param Y      Location on the screen's Y-axis that the touch event occurred.
+	 */
 	public static native void onTouchEvent(int Action, float X, float Y);
+
+	/**
+	 * Handles button press events for a gamepad.
+	 * 
+	 * @param Device The input descriptor of the gamepad.
+	 * @param Button Key code identifying which button was pressed.
+	 * @param Action Mask identifying which action is happing (button pressed down, or button released).
+	 */
 	public static native void onGamePadEvent(String Device, int Button, int Action);
+
+	/**
+	 * Handles gamepad movement events.
+	 * 
+	 * @param Device The device ID of the gamepad.
+	 * @param Axis   The axis ID
+	 * @param Value  The value of the axis represented by the given ID.
+	 */
 	public static native void onGamePadMoveEvent(String Device, int Axis, float Value);
-	
+
 	/**
 	 * Gets a value from a key in the given ini-based config file.
 	 * 
@@ -30,7 +53,7 @@ public final class NativeLibrary
 	 * @return the value stored at the key, or a default value if it doesn't exist.
 	 */
 	public static native String GetConfig(String configFile, String Section, String Key, String Default);
-	
+
 	/**
 	 * Sets a value to a key in the given ini config file.
 	 * 
@@ -40,14 +63,14 @@ public final class NativeLibrary
 	 * @param Value      The string to set the ini key to.
 	 */
 	public static native void SetConfig(String configFile, String Section, String Key, String Value);
-	
+
 	/**
 	 * Sets the filename to be run during emulation.
 	 * 
 	 * @param filename The filename to be run during emulation.
 	 */
 	public static native void SetFilename(String filename);
-	
+
 	/**
 	 * Sets the dimensions of the rendering window.
 	 * 
@@ -55,7 +78,7 @@ public final class NativeLibrary
 	 * @param height The new height of the rendering window (in pixels).
 	 */
 	public static native void SetDimensions(int width, int height);
-	
+
 	/**
 	 * Gets the embedded banner within the given ISO/ROM.
 	 * 
@@ -64,7 +87,7 @@ public final class NativeLibrary
 	 * @return an integer array containing the color data for the banner.
 	 */
 	public static native int[] GetBanner(String filename);
-	
+
 	/**
 	 * Gets the embedded title of the given ISO/ROM.
 	 * 
@@ -73,7 +96,7 @@ public final class NativeLibrary
 	 * @return the embedded title of the ISO/ROM.
 	 */
 	public static native String GetTitle(String filename);
-	
+
 	/**
 	 * Gets the Dolphin version string.
 	 * 
@@ -87,13 +110,13 @@ public final class NativeLibrary
 	 * @param surf The surface to render to.
 	 */
 	public static native void Run(Surface surf);
-	
+
 	/** Unpauses emulation from a paused state. */
 	public static native void UnPauseEmulation();
-	
+
 	/** Pauses emulation. */
 	public static native void PauseEmulation();
-	
+
 	/** Stops emulation. */
 	public static native void StopEmulation();
 
