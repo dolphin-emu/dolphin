@@ -112,7 +112,7 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 	//
 	// This class is a hydro-electric station that provides 'electricity' (key/motion events)
 	// to a series of 'houses' (in this case, fragments that implement the OnMotionConfigListener interface, or 
-	// fragments that are housed within the ViewPager of this activity. So in a sense, the handline of 
+	// fragments that are housed within the ViewPager of this activity. So in a sense, the handling of 
 	// key/motion events 'flows' from this class to the fragments housed in the ViewPager.
 	//
 	// While every single key/motion event is intercepted, every single intercepted event DOES NOT
