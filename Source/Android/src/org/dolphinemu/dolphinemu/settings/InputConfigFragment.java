@@ -156,17 +156,18 @@ public final class InputConfigFragment extends PreferenceFragment
 							String bindStr = "Device '" + InputConfigFragment.getInputDesc(input) + "'-Axis " + range.getAxis() + "-";
 							NativeLibrary.SetConfig("Dolphin.ini", "Android", pref.getKey(), bindStr);
 							pref.setSummary(bindStr);
+							dialog.dismiss();
 						}
 						else if (m_values.get(a) < (event.getAxisValue(range.getAxis()) - 0.5f))
 						{
 							String bindStr = "Device '" + InputConfigFragment.getInputDesc(input) + "'-Axis " + range.getAxis() + "+";
 							NativeLibrary.SetConfig("Dolphin.ini", "Android", pref.getKey(), bindStr);
 							pref.setSummary(bindStr);
+							dialog.dismiss();
 						}
 					}
 				}
 
-				dialog.dismiss();
 				return true;
 			}
 		});
