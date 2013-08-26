@@ -97,16 +97,25 @@ CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::strin
 {
 	deviceCommandAddress = 0;
 	memset(hidDeviceAliases, 0, sizeof(hidDeviceAliases));
-	libusb_init(NULL);
-
-	usb_thread_running = true;
-	usb_thread = std::thread(checkUsbUpdates, this);
+	int ret = libusb_init(NULL);
+	if (ret)
+	{
+		ERROR_LOG(WII_IPC_HID, "libusb_init failed with error: %d", ret);
+	}
+	else
+	{
+		usb_thread_running = true;
+		usb_thread = std::thread(checkUsbUpdates, this);
+	}
 }
 
 CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
 {
-	usb_thread_running = false;
-	usb_thread.join();
+	if (usb_thread_running)
+	{
+		usb_thread_running = false;
+		usb_thread.join();
+	}
 
 	for ( std::map<u32,libusb_device_handle*>::const_iterator iter = open_devices.begin(); iter != open_devices.end(); ++iter )
 	{
