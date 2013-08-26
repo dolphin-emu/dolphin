@@ -611,7 +611,6 @@ bool CWII_IPC_HLE_Device_net_ip_top::Close(u32 _CommandAddress, bool _bForce)
 
 static int inet_pton(const char *src, unsigned char *dst)
 {
-	static const char digits[] = "0123456789";
 	int saw_digit, octets;
 	char ch;
 	unsigned char tmp[4], *tp;
@@ -917,9 +916,9 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_SO_INETNTOP:
 	{
-		u32 af = Memory::Read_U32(BufferIn);
+		//u32 af = Memory::Read_U32(BufferIn);
 		//u32 validAddress = Memory::Read_U32(BufferIn + 4);
-		u32 src = Memory::Read_U32(BufferIn + 8);
+		//u32 src = Memory::Read_U32(BufferIn + 8);
 		char ip_s[16];
 		sprintf(ip_s, "%i.%i.%i.%i",
 			Memory::Read_U8(BufferIn + 8),
@@ -1126,8 +1125,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 	u32 _BufferIn = 0, _BufferIn2 = 0, _BufferIn3 = 0;
 	u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
 
-	u32 _BufferOut = 0, _BufferOut2 = 0, _BufferOut3 = 0;
-	u32 BufferOutSize = 0, BufferOutSize2 = 0, BufferOutSize3 = 0;
+	u32 _BufferOut = 0, _BufferOut2 = 0;
+	u32 BufferOutSize = 0, BufferOutSize2 = 0;
 
 	if (CommandBuffer.InBuffer.size() > 0)
 	{
@@ -1155,12 +1154,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		_BufferOut2 = CommandBuffer.PayloadBuffer.at(1).m_Address;
 		BufferOutSize2 = CommandBuffer.PayloadBuffer.at(1).m_Size;
 	}
-	if (CommandBuffer.PayloadBuffer.size() > 2)
-	{
-		_BufferOut3 = CommandBuffer.PayloadBuffer.at(2).m_Address;
-		BufferOutSize3 = CommandBuffer.PayloadBuffer.at(2).m_Size;
-	}
-
+	
 	u32 param = 0, param2 = 0, param3, param4, param5 = 0;
 
 	switch (CommandBuffer.Parameter)

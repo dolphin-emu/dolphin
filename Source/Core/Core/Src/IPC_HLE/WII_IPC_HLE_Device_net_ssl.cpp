@@ -91,18 +91,18 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
 	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
 	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 	u32 Command			= Memory::Read_U32(_CommandAddress + 0x0C);
-
-	u32 ReturnValue = ExecuteCommand(Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
-	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+	
+	WARN_LOG(WII_IPC_SSL, "%s unknown %i "
+	"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			 GetDeviceName().c_str(), Command,
+			 BufferIn, BufferInSize, BufferOut, BufferOutSize);
+	Memory::Write_U32(0, _CommandAddress + 0x4);
 	return true;
 }
 
 bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 {
-	u32 ReturnValue = 0;
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
-
-	s32 returnValue = 0;
 
 	u32 _BufferIn = 0, _BufferIn2 = 0, _BufferIn3 = 0;
 	u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
@@ -507,18 +507,10 @@ _SSL_NEW_ERROR:
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 		break;
 	}
-
-	Memory::Write_U32(ReturnValue, _CommandAddress+4);
+	
+	// SSL return codes are written to BufferIn
+	Memory::Write_U32(0, _CommandAddress+4);
+	
 	return true;
 }
 
-u32 CWII_IPC_HLE_Device_net_ssl::ExecuteCommand(u32 _Command,
-												u32 _BufferIn, u32 BufferInSize,
-												u32 BufferOut, u32 BufferOutSize)
-{
-	WARN_LOG(WII_IPC_SSL, "%s unknown %i "
-		"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-		GetDeviceName().c_str(), _Command,
-		_BufferIn, BufferInSize, BufferOut, BufferOutSize);
-	return 0;
-}
