@@ -138,28 +138,6 @@ s32 WiiSocket::closeFd()
 	return ReturnValue;
 }
 
-s32 WiiSocket::_connect(sockaddr_in* name, s32 namelen)
-{
-	int ret = connect(fd, (sockaddr*)name, namelen);
-	ret = WiiSockMan::getNetErrorCode(ret, "SO_CONNECT", false);
-
-	WARN_LOG(WII_IPC_NET,"IOCTL_SO_CONNECT (%08x, %s:%d)",
-		fd, inet_ntoa(name->sin_addr), Common::swap16(name->sin_port));
-
-	return ret;
-}
-
-s32 WiiSocket::_bind(sockaddr_in* name, s32 namelen)
-{
-	int ret = bind(fd, (sockaddr*)name, namelen);
-	ret = WiiSockMan::getNetErrorCode(ret, "SO_BIND", false);
-
-	WARN_LOG(WII_IPC_NET, "IOCTL_SO_BIND (%08X %s:%d) = %d ", fd, 
-		inet_ntoa(name->sin_addr), Common::swap16(name->sin_port), ret);
-	
-	return ret;
-}
-
 s32 WiiSocket::_fcntl(u32 cmd, u32 arg)
 {
 #define F_GETFL			3
@@ -215,7 +193,12 @@ void WiiSocket::update(bool read, bool write, bool except)
 				address.sin_family = addrPC.sin_family;
 				address.sin_addr.s_addr = addrPC.sin_addr.s_addr_;
 				address.sin_port = addrPC.sin_port;
-				ReturnValue = _bind(&address, sizeof(address));
+				
+				int ret = bind(fd, (sockaddr*)&address, sizeof(address));
+				ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_BIND", false);
+
+				WARN_LOG(WII_IPC_NET, "IOCTL_SO_BIND (%08X %s:%d) = %d ", fd, 
+					inet_ntoa(address.sin_addr), Common::swap16(address.sin_port), ret);
 				break;
 			}
 			case IOCTL_SO_CONNECT:
@@ -238,8 +221,12 @@ void WiiSocket::update(bool read, bool write, bool except)
 				memcpy(&serverAddr, addr, addr[0]);
 				// GC/Wii sockets have a length param as well, we dont really care :)
 				serverAddr.sin_family = serverAddr.sin_family >> 8;
+				
+				int ret = connect(fd, (sockaddr*)&serverAddr, sizeof(serverAddr));
+				ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_CONNECT", false);
 
-				ReturnValue = _connect(&serverAddr, sizeof(serverAddr));
+				WARN_LOG(WII_IPC_NET,"IOCTL_SO_CONNECT (%08x, %s:%d)",
+					fd, inet_ntoa(serverAddr.sin_addr), Common::swap16(serverAddr.sin_port));
 				break;
 			}
 			default:

@@ -152,7 +152,7 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_NWC24_REQUEST_GENERATED_USER_ID: // (Input: none, Output: 32 bytes)
 		WARN_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
-		if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_INITIAL)
+		if (config.CreationStage() == nwc24_config_t::NWC24_IDCS_INITIAL)
 		{
 			std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
 			SettingsHandler gen;
@@ -195,11 +195,11 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 			}
 
 		}
-		else if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_GENERATED)
+		else if (config.CreationStage() == nwc24_config_t::NWC24_IDCS_GENERATED)
 		{
 			Memory::Write_U32(WC24_ERR_ID_GENERATED, BufferOut);
 		}
-		else if(config.CreationStage() == nwc24_config_t::NWC24_IDCS_REGISTERED)
+		else if (config.CreationStage() == nwc24_config_t::NWC24_IDCS_REGISTERED)
 		{
 			Memory::Write_U32(WC24_ERR_ID_REGISTERED, BufferOut);
 		}
@@ -678,25 +678,15 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 	}
 	case IOCTL_SO_SOCKET:
 	{
-		u32 AF		= Memory::Read_U32(BufferIn);
-		u32 TYPE	= Memory::Read_U32(BufferIn + 0x04);
-		u32 PROT	= Memory::Read_U32(BufferIn + 0x08);
+		u32 af		= Memory::Read_U32(BufferIn);
+		u32 type	= Memory::Read_U32(BufferIn + 0x04);
+		u32 prot	= Memory::Read_U32(BufferIn + 0x08);
 
 		WiiSockMan &sm = WiiSockMan::getInstance();
-		ReturnValue = sm.newSocket(AF, TYPE, PROT);
+		ReturnValue = sm.newSocket(af, type, prot);
 		WARN_LOG(WII_IPC_NET, "IOCTL_SO_SOCKET "
 			"Socket: %08x (%d,%d,%d), BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			ReturnValue, AF, TYPE, PROT, BufferIn, BufferInSize, BufferOut, BufferOutSize);
-		break;
-	}
-	case IOCTL_SO_CLOSE:
-	{
-		u32 sock = Memory::Read_U32(BufferIn);
-
-		WiiSockMan &sm = WiiSockMan::getInstance();
-		ReturnValue = sm.delSocket(sock);
-
-		WARN_LOG(WII_IPC_NET, "IOCTL_SO_CLOSE (%08x)", ReturnValue);
+			ReturnValue, af, type, prot, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		break;
 	}
 	case IOCTL_SO_ICMPSOCKET:
@@ -708,39 +698,28 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		WARN_LOG(WII_IPC_NET, "IOCTL_SO_ICMPSOCKET(%x) %d", pf, ReturnValue);
 		break;
 	}
+	case IOCTL_SO_CLOSE:
 	case IOCTL_SO_ICMPCLOSE:
 	{
 		u32 sock = Memory::Read_U32(BufferIn);
 		WiiSockMan &sm = WiiSockMan::getInstance();
 		ReturnValue = sm.delSocket(sock);
-		DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_ICMPCLOSE(%x) %x", sock, ReturnValue);
+		DEBUG_LOG(WII_IPC_NET, "%s(%x) %x", 
+			Command == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE", 
+			sock, 
+			ReturnValue);
 		break;
 	}
+	case IOCTL_SO_BIND:
+	case IOCTL_SO_CONNECT:
 	case IOCTL_SO_FCNTL:
 	{
 		u32 sock	= Memory::Read_U32(BufferIn);
 		WiiSockMan &sm = WiiSockMan::getInstance();
-		sm.doSock(sock, _CommandAddress, IOCTL_SO_FCNTL);
+		sm.doSock(sock, _CommandAddress, (NET_IOCTL)Command);
 		return false;
 		break;
 	}
-	case IOCTL_SO_BIND:
-	{
-		u32 sock	= Memory::Read_U32(BufferIn);
-		WiiSockMan &sm = WiiSockMan::getInstance();
-		sm.doSock(sock, _CommandAddress, IOCTL_SO_BIND);
-		return false;
-		break;
-	}
-	case IOCTL_SO_CONNECT:
-	{
-		u32 sock	= Memory::Read_U32(BufferIn);
-		WiiSockMan &sm = WiiSockMan::getInstance();
-		sm.doSock(sock, _CommandAddress, IOCTL_SO_CONNECT);
-		return false;
-		break;
-	}
-
 	case IOCTL_SO_ACCEPT:
 	{
 		WARN_LOG(WII_IPC_NET, "IOCTL_SO_ACCEPT "
@@ -821,7 +800,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		Memory::Write_U32(optlen, BufferOut + 0xC);
 		Memory::WriteBigEData((u8 *) optval, BufferOut + 0x10, optlen);
 
-		if(optname == 0x1007){
+		if (optname == 0x1007){
 			s32 errorcode = Memory::Read_U32(BufferOut + 0x10);
 			WARN_LOG(WII_IPC_NET,"IOCTL_SO_GETSOCKOPT error code = %i", errorcode);
 		}
@@ -1189,20 +1168,6 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		BufferOutSize3 = CommandBuffer.PayloadBuffer.at(2).m_Size;
 	}
 
-	//struct ifreq {  /* BUGBUG: reduced form of ifreq just for this hack */
-	//	char ifr_name[16];
-	//	struct sockaddr ifr_addr;
-	//};
-
-	//struct ifreq ifr; struct sockaddr_in saddr;
-	//int fd;
-
-#ifdef _WIN32
-	PIP_ADAPTER_ADDRESSES AdapterAddresses = NULL;
-	ULONG OutBufferLength = 0;
-	ULONG RetVal = 0, i;
-#endif
-
 	u32 param = 0, param2 = 0, param3, param4, param5 = 0;
 
 	switch (CommandBuffer.Parameter)
@@ -1228,12 +1193,10 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		case 0xb003: // dns server table
 		{
 			u32 address = 0;
-			/*fd=socket(PF_INET,SOCK_STREAM,0);
-			strcpy(ifr.ifr_name,"name of interface");
-			ioctl(fd,SIOCGIFADDR,&ifr);
-			saddr=*((struct sockaddr_in *)(&(ifr.ifr_addr)));
-			*/
 #ifdef _WIN32
+			PIP_ADAPTER_ADDRESSES AdapterAddresses = NULL;
+			ULONG OutBufferLength = 0;
+			ULONG RetVal = 0, i;
 			for (i = 0; i < 5; i++)
 			{
 				RetVal = GetAdaptersAddresses(
@@ -1292,7 +1255,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 				address = 0x08080808;
 
 			Memory::Write_U32(address, _BufferOut);
-			Memory::Write_U32(0x08080808, _BufferOut+4);
+			Memory::Write_U32(0x08080404, _BufferOut+4);
 			break;
 		}
 		case 0x1003: // error

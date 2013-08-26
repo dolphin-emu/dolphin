@@ -159,8 +159,6 @@ private:
 	void setFd(s32 s);
 	s32 closeFd();
 	s32 _fcntl(u32 cmd, u32 arg);
-	s32 _bind(sockaddr_in* name, s32 namelen);
-	s32 _connect(sockaddr_in* name, s32 namelen);
 
 	void doSock(u32 _CommandAddress, NET_IOCTL type);
 	void doSock(u32 _CommandAddress, SSL_IOCTL type);
