@@ -111,10 +111,12 @@ CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::strin
 
 CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
 {
+	bool deinit_libusb = false;
 	if (usb_thread_running)
 	{
 		usb_thread_running = false;
 		usb_thread.join();
+		deinit_libusb = true;
 	}
 
 	for ( std::map<u32,libusb_device_handle*>::const_iterator iter = open_devices.begin(); iter != open_devices.end(); ++iter )
@@ -123,8 +125,8 @@ CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
 	}
 	open_devices.clear();
 
-
-	libusb_exit(NULL);
+	if (deinit_libusb)
+		libusb_exit(NULL);
 }
 
 bool CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
