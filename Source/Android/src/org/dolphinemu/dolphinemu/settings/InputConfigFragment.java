@@ -35,7 +35,6 @@ public final class InputConfigFragment extends PreferenceFragment
 	private Activity m_activity;
 	private boolean firstEvent = true;
 	private static ArrayList<Float> m_values = new ArrayList<Float>();
-	protected MotionAlertDialog dialog;
 
 	/**
 	 * Gets the descriptor for the given {@link InputDevice}.
@@ -47,7 +46,7 @@ public final class InputConfigFragment extends PreferenceFragment
 	public static String getInputDesc(InputDevice input)
 	{
 		if (input == null)
-			return "null"; // Happens when the inputdevice is from an unknown source
+			return "null"; // Happens when the InputDevice is from an unknown source
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
 		{
@@ -97,7 +96,7 @@ public final class InputConfigFragment extends PreferenceFragment
 	public boolean onPreferenceTreeClick(final PreferenceScreen screen, final Preference pref)
 	{
 		// Begin the creation of the input alert.
-		dialog = new MotionAlertDialog(m_activity);
+		final MotionAlertDialog dialog = new MotionAlertDialog(m_activity);
 
 		// Set the key listener
 		dialog.setOnKeyEventListener(new MotionAlertDialog.OnKeyEventListener()
@@ -205,7 +204,9 @@ public final class InputConfigFragment extends PreferenceFragment
 
 
 	/**
-	 * {@link AlertDialog} class derivative that can handle motion events.
+	 * {@link AlertDialog} class derivative that allows the motion listener
+	 * to be set anonymously, so the creation of an explicit class for
+	 * providing functionality is not necessary.
 	 */
 	protected static final class MotionAlertDialog extends AlertDialog
 	{
