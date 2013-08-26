@@ -435,6 +435,8 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 
 void XFBSource::CopyEFB(float Gamma)
 {
+	g_renderer->ResetAPIState();
+	
 	// Copy EFB data to XFB and restore render target again
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
@@ -451,6 +453,8 @@ void XFBSource::CopyEFB(float Gamma)
 
 	// Return to EFB.
 	FramebufferManager::SetFramebuffer(0);
+	
+	g_renderer->RestoreAPIState();
 
 }
 
