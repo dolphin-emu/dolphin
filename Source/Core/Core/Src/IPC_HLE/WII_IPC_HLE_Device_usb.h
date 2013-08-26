@@ -39,13 +39,6 @@ struct SQueuedEvent
 	}
 };
 
-// Hacks for ChunkFile to accept SQueuedEvent as POD
-namespace std
-{
-template <>
-struct is_pod<SQueuedEvent> : std::true_type {};
-}
-
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
 // /dev/usb/oh1 -> internal usb bus
 // 57e/305 -> VendorID/ProductID of device on usb bus
