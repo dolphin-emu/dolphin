@@ -5,6 +5,9 @@
 #include "WII_Socket.h"
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
+// No Wii socket support while using NetPlay or TAS
+#include "NetPlayClient.h"
+#include "Movie.h"
 
 using WII_IPC_HLE_Interface::ECommandType;
 using WII_IPC_HLE_Interface::COMMAND_IOCTL;
@@ -531,6 +534,13 @@ void WiiSocket::doSock(u32 _CommandAddress, SSL_IOCTL type)
 
 s32 WiiSockMan::newSocket(s32 af, s32 type, s32 protocol)
 {
+	if (NetPlay::IsNetPlayRunning()
+		|| Movie::IsRecordingInput()
+		|| Movie::IsPlayingInput())
+	{
+		return SO_ENOMEM;
+	}
+
 	s32 s = (s32)socket(af, type, protocol);
 	s32 ret = getNetErrorCode(s, "newSocket", false);
 	if (ret >= 0)
