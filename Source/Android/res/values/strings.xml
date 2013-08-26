@@ -31,6 +31,9 @@
     <string name="file_clicked">File clicked: </string>
 
     <!-- Input Config Fragment -->
+    <string name="input_settings">Input</string>
+    <string name="input_binding">Input Binding</string>
+    <string name="input_binding_descrip">Press or move an input to bind it to this control.</string>
     <string name="button_a">Button A</string>
     <string name="button_b">Button B</string>
     <string name="button_start">Button Start</string>
@@ -115,6 +118,7 @@
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="cancel">Cancel</string>
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>
     
