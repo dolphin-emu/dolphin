@@ -17,8 +17,6 @@ import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
 
 /**
  * Main activity that manages all of the preference fragments used to display
@@ -26,16 +24,6 @@ import android.view.MotionEvent;
  */
 public final class PrefsActivity extends Activity implements ActionBar.TabListener
 {
-	/**
-	 * Interface defining methods which handle
-	 * the binding of specific key presses within
-	 * the input mapping settings.
-	 */
-	public interface OnMotionConfigListener
-	{
-		boolean onMotionEvent(MotionEvent event);
-	}
-
 	/**
 	 * The {@link android.support.v4.view.PagerAdapter} that will provide org.dolphinemu.dolphinemu.settings for each of the
 	 * sections. We use a {@link android.support.v4.app.FragmentPagerAdapter} derivative, which will
@@ -102,66 +90,6 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 	public void onTabUnselected(Tab tab, FragmentTransaction ft)
 	{
 		// Do nothing.
-	}
-
-	// How the event callback system works. The way dispatchGenericMotionEvent and dispatchKeyEvent
-	// work, is that they intercept ANY motion event or key event (respectively) and then follow the
-	// defined behavior in the overridden method.
-	//
-	// Now, to make this easier to understand, consider the following analogy:
-	//
-	// This class is a hydro-electric station that provides 'electricity' (key/motion events)
-	// to a series of 'houses' (in this case, fragments that implement the OnMotionConfigListener interface, or 
-	// fragments that are housed within the ViewPager of this activity. So in a sense, the handling of 
-	// key/motion events 'flows' from this class to the fragments housed in the ViewPager.
-	//
-	// While every single key/motion event is intercepted, every single intercepted event DOES NOT
-	// have to be handled by every fragment. Consider the fact that the only reason the InputConfigFragment
-	// requires the use of these, is so key binding events can be caught and handled. Other fragments
-	// have no need to use this.
-	//
-	// Consider the following representation of this activity as a ViewPager
-	//
-	// ╔══PrefsActivity═════════════════════════════════════╗
-	// ║   ╔══════════╗     ╔══════════╗     ╔══════════╗   ║
-	// ║   ║ Fragment ║     ║ Fragment ║     ║ Fragment ║   ║
-	// ║   ║    0     ║     ║    1     ║     ║    2     ║   ║
-	// ║   ╚══════════╝     ╚══════════╝     ╚══════════╝   ║
-	// ╚════════════════════════════════════════════════════╝
-	//
-	// Since fragments are NOT considered to be fully-fledged activities, but more of as a UI 'component'
-	// they do not have dispatch methods like Activities to override. So, in order to simulate this,
-	// simply implement the OnMotionConfigListener interface in the fragment, and then add the
-	// conditions of when it's acceptable to call those implemented methods in the fragment to
-	// the appropriate dispatch method.
-
-	// TODO: Eventually make correct implementations of these.
-	// Gets move(triggers, joystick) events
-	@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent event)
-	{
-		if (mViewPager.getCurrentItem() == 1)
-		{
-			InputConfigFragment fragment = (InputConfigFragment) getFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":1");
-			if (fragment.dialog != null && ((OnMotionConfigListener) fragment.dialog).onMotionEvent(event))
-				return true;
-		}
-
-		return super.dispatchGenericMotionEvent(event);
-	}
-
-	// Gets button presses
-	@Override
-	public boolean dispatchKeyEvent(KeyEvent event)
-	{
-		if (mViewPager.getCurrentItem() == 1 && event.getKeyCode() != KeyEvent.KEYCODE_BACK)
-		{
-			InputConfigFragment fragment = (InputConfigFragment) getFragmentManager().findFragmentByTag("android:switcher:"+R.id.pager+":1");
-			if (fragment.dialog != null && fragment.dialog.onKeyDown(event.getKeyCode(), event))
-				return true;
-		}
-
-		return super.dispatchKeyEvent(event);
 	}
 
 	/**

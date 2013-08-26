@@ -207,7 +207,7 @@ public final class InputConfigFragment extends PreferenceFragment
 	/**
 	 * {@link AlertDialog} class derivative that can handle motion events.
 	 */
-	protected static final class MotionAlertDialog extends AlertDialog implements PrefsActivity.OnMotionConfigListener
+	protected static final class MotionAlertDialog extends AlertDialog
 	{
 		private OnKeyEventListener keyListener;
 		private OnMotionEventListener motionListener;
@@ -236,17 +236,23 @@ public final class InputConfigFragment extends PreferenceFragment
 		{
 			this.motionListener = listener;
 		}
-
+		
 		@Override
-		public boolean onKeyDown(int keycode, KeyEvent event)
+		public boolean dispatchKeyEvent(KeyEvent event)
 		{
-			return keyListener.onKey(event);
+			if (keyListener.onKey(event))
+				return true;
+
+			return super.dispatchKeyEvent(event);
 		}
-
+		
 		@Override
-		public boolean onMotionEvent(MotionEvent event)
+		public boolean dispatchGenericMotionEvent(MotionEvent event)
 		{
-			return motionListener.onMotion(event);
+			if (motionListener.onMotion(event))
+				return true;
+			
+			return super.dispatchGenericMotionEvent(event);
 		}
 	}
 }
