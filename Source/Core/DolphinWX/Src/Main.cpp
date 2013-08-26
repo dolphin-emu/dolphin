@@ -128,6 +128,7 @@ bool DolphinApp::OnInit()
 
 	wxString videoBackendName;
 	wxString audioEmulationName;
+	wxString userPath;
 
 #if wxUSE_CMDLINE_PARSER // Parse command lines
 	wxCmdLineEntryDesc cmdLineDesc[] =
@@ -173,6 +174,11 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
+			wxCMD_LINE_OPTION, "U", "user",
+			"User folder path",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
 			wxCMD_LINE_NONE, NULL, NULL, NULL, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
@@ -193,6 +199,12 @@ bool DolphinApp::OnInit()
 	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
 		&audioEmulationName);
 	playMovie = parser.Found(wxT("movie"), &movieFile);
+
+	if (parser.Found(wxT("user"), &userPath))
+	{
+		File::CreateFullPath(WxStrToStr(userPath) + DIR_SEP);
+		File::GetUserPath(D_USER_IDX, userPath.ToStdString() + DIR_SEP);
+	}
 #endif // wxUSE_CMDLINE_PARSER
 
 #if defined _DEBUG && defined _WIN32

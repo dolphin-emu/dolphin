@@ -98,22 +98,6 @@ public final class GameListFragment extends Fragment
 		}
 		Collections.sort(fls);
 
-		// Remove any duplicate items from the list.
-		// We don't need to index these in the game list more than once.
-		//
-		// This works by comparing the paths of items in the file list for equality,
-		// so there should be no worries about accidentally removing a valid game.
-		for (int i = 0; i < fls.size(); i++)
-		{
-			for (int j = i+1; j < fls.size(); j++)
-			{
-				if (fls.get(j).getPath().equals(fls.get(i).getPath()))
-				{
-					fls.remove(j);
-				}
-			}
-		}
-
 		mGameAdapter = new GameListAdapter(mMe, R.layout.gamelist_layout, fls);
 		mMainList.setAdapter(mGameAdapter);
 
