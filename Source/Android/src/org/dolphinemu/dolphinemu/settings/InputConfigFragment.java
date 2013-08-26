@@ -99,9 +99,9 @@ public final class InputConfigFragment extends PreferenceFragment
 		final MotionAlertDialog dialog = new MotionAlertDialog(m_activity);
 
 		// Set the key listener
-		dialog.setOnKeyEventListener(new MotionAlertDialog.OnKeyEventListener()
+		dialog.setOnKeyListener(new AlertDialog.OnKeyListener()
 		{
-			public boolean onKey(KeyEvent event)
+			public boolean onKey(DialogInterface dlg, int keyCode, KeyEvent event)
 			{
 				Log.d("InputConfigFragment", "Received key event: " + event.getAction());
 				switch (event.getAction())
@@ -211,38 +211,42 @@ public final class InputConfigFragment extends PreferenceFragment
 	 */
 	protected static final class MotionAlertDialog extends AlertDialog
 	{
-		private OnKeyEventListener keyListener;
 		private OnMotionEventListener motionListener;
 
+		/**
+		 * Constructor
+		 * 
+		 * @param ctx context to use this dialog in.
+		 */
 		public MotionAlertDialog(Context ctx)
 		{
 			super(ctx);
 		}
 
-		public interface OnKeyEventListener
-		{
-			boolean onKey(KeyEvent event);
-		}
-
+		/**
+		 * Interface which defines a callback method for general
+		 * motion events. This allows motion event code to be set
+		 * in the event anonymous classes of this dialog are used.
+		 */
 		public interface OnMotionEventListener
 		{
 			boolean onMotion(MotionEvent event);
 		}
 
-		public void setOnKeyEventListener(OnKeyEventListener listener)
-		{
-			this.keyListener = listener;
-		}
-
+		/**
+		 * Sets the motion listener.
+		 * 
+		 * @param listener The motion listener to set.
+		 */
 		public void setOnMotionEventListener(OnMotionEventListener listener)
 		{
 			this.motionListener = listener;
 		}
-		
+
 		@Override
 		public boolean dispatchKeyEvent(KeyEvent event)
 		{
-			if (keyListener.onKey(event))
+			if (this.onKeyDown(event.getKeyCode(), event))
 				return true;
 
 			return super.dispatchKeyEvent(event);
