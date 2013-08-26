@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright 2013 Dolphin Emulator Project
  * Licensed under GPLv2
  * Refer to the license.txt file included.
@@ -104,6 +104,36 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		// Do nothing.
 	}
 
+	// How the event callback system works. The way dispatchGenericMotionEvent and dispatchKeyEvent
+	// work, is that they intercept ANY motion event or key event (respectively) and then follow the
+	// defined behavior in the overridden method.
+	//
+	// Now, to make this easier to understand, consider the following analogy:
+	//
+	// This class is a hydro-electric station that provides 'electricity' (key/motion events)
+	// to a series of 'houses' (in this case, fragments that implement the OnMotionConfigListener interface, or 
+	// fragments that are housed within the ViewPager of this activity. So in a sense, the handline of 
+	// key/motion events 'flows' from this class to the fragments housed in the ViewPager.
+	//
+	// While every single key/motion event is intercepted, every single intercepted event DOES NOT
+	// have to be handled by every fragment. Consider the fact that the only reason the InputConfigFragment
+	// requires the use of these, is so key binding events can be caught and handled. Other fragments
+	// have no need to use this.
+	//
+	// Consider the following representation of this activity as a ViewPager
+	//
+	// ╔══PrefsActivity═════════════════════════════════════╗
+	// ║   ╔══════════╗     ╔══════════╗     ╔══════════╗   ║
+	// ║   ║ Fragment ║     ║ Fragment ║     ║ Fragment ║   ║
+	// ║   ║    0     ║     ║    1     ║     ║    2     ║   ║
+	// ║   ╚══════════╝     ╚══════════╝     ╚══════════╝   ║
+	// ╚════════════════════════════════════════════════════╝
+	//
+	// Since fragments are NOT considered to be fully-fledged activities, but more of as a UI 'component'
+	// they do not have dispatch methods like Activities to override. So, in order to simulate this,
+	// simply implement the OnMotionConfigListener interface in the fragment, and then add the
+	// conditions of when it's acceptable to call those implemented methods in the fragment to
+	// the appropriate dispatch method.
 
 	// TODO: Eventually make correct implementations of these.
 	// Gets move(triggers, joystick) events
