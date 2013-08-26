@@ -54,7 +54,7 @@ public final class FolderBrowser extends Fragment
 		List<FolderBrowserItem>fls = new ArrayList<FolderBrowserItem>();
 
 		// Supported extensions to filter by
-		Set<String> validExts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf", ".dff"));
+		Set<String> validExts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf", ".dff", ".wad"));
 
 		// Search for any directories or files within the current dir.
 		for(File entry : dirs)
