@@ -100,22 +100,16 @@ void WiiSocket::setFd(s32 s)
 	nonBlock = false;
 	fd = s;
 
-// TODO: Remove on completion of async
+	// Set socket to NON-BLOCK
 #ifdef _WIN32
 	u_long iMode = 1;
-	int ioctlret = ioctlsocket(fd, FIONBIO, &iMode);
-	u32 millis = 3000;
+	ioctlsocket(fd, FIONBIO, &iMode);
 #else
 	int flags;
 	if (-1 == (flags = fcntl(fd, F_GETFL, 0)))
 		flags = 0;
 	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-
-	struct timeval millis;
-	millis.tv_sec = 3;
-	millis.tv_usec = 0;
 #endif
-		setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (const char *)&millis,sizeof(millis));
 }
 
 s32 WiiSocket::closeFd()
@@ -528,8 +522,8 @@ s32 WiiSockMan::newSocket(s32 af, s32 type, s32 protocol)
 		return SO_ENOMEM;
 	}
 
-	s32 s = (s32)socket(af, type, protocol);
-	s32 ret = getNetErrorCode(s, "newSocket", false);
+	s32 fd = (s32)socket(af, type, protocol);
+	s32 ret = getNetErrorCode(fd, "newSocket", false);
 	if (ret >= 0)
 	{
 		WiiSocket& sock = WiiSockets[ret];
