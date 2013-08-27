@@ -618,14 +618,14 @@ void WiiSockMan::EnqueueReply(u32 CommandAddress, s32 ReturnValue)
 }
 
 
-void WiiSockMan::Convert(WiiSockAddrIn& from, sockaddr_in& to)
+void WiiSockMan::Convert(WiiSockAddrIn const & from, sockaddr_in& to)
 {
 	to.sin_addr.s_addr = from.addr.addr;
 	to.sin_family = from.family;
 	to.sin_port = from.port;
 }
 
-void WiiSockMan::Convert(sockaddr_in& from, WiiSockAddrIn& to, s32 addrlen)
+void WiiSockMan::Convert(sockaddr_in const & from, WiiSockAddrIn& to, s32 addrlen)
 {
 	to.addr.addr = from.sin_addr.s_addr;
 	to.family = from.sin_family;

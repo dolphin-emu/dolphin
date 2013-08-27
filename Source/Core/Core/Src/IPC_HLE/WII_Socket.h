@@ -206,8 +206,8 @@ public:
 	}
 	void Update();
 	static void EnqueueReply(u32 CommandAddress, s32 ReturnValue);
-	static void Convert(WiiSockAddrIn& const from, sockaddr_in& to);
-	static void Convert(sockaddr_in& const from, WiiSockAddrIn& to, s32 addrlen=-1);
+	static void Convert(WiiSockAddrIn const & from, sockaddr_in& to);
+	static void Convert(sockaddr_in const & from, WiiSockAddrIn& to, s32 addrlen=-1);
 	// NON-BLOCKING FUNCTIONS
 	s32 newSocket(s32 af, s32 type, s32 protocol);
 	s32 delSocket(s32 s);
