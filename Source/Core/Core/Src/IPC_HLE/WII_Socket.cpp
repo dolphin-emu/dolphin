@@ -157,7 +157,7 @@ s32 WiiSocket::_fcntl(u32 cmd, u32 arg)
 		ERROR_LOG(WII_IPC_NET, "SO_FCNTL unknown command");
 	}
 
-	WARN_LOG(WII_IPC_NET, "IOCTL_SO_FCNTL(%08x, %08X, %08X)",
+	INFO_LOG(WII_IPC_NET, "IOCTL_SO_FCNTL(%08x, %08X, %08X)",
 		fd, cmd, arg);
 
 	return ret;
@@ -197,7 +197,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 				int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
 				ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_BIND", false);
 
-				WARN_LOG(WII_IPC_NET, "IOCTL_SO_BIND (%08X %s:%d) = %d ", fd, 
+				INFO_LOG(WII_IPC_NET, "IOCTL_SO_BIND (%08X %s:%d) = %d ", fd, 
 					inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port), ret);
 				break;
 			}
@@ -211,7 +211,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 				int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
 				ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_CONNECT", false);
 
-				WARN_LOG(WII_IPC_NET,"IOCTL_SO_CONNECT (%08x, %s:%d)",
+				INFO_LOG(WII_IPC_NET,"IOCTL_SO_CONNECT (%08x, %s:%d)",
 					fd, inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port));
 				break;
 			}
@@ -236,7 +236,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", false);
 				}
 		
-				WARN_LOG(WII_IPC_NET, "IOCTL_SO_ACCEPT "
+				INFO_LOG(WII_IPC_NET, "IOCTL_SO_ACCEPT "
 					"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 					BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
@@ -319,7 +319,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 							break;
 						}
 					
-						WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE = (%d) "
+						INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE = (%d) "
 							"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 							"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
 							ret,
@@ -433,7 +433,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 						has_destaddr ? sizeof(sockaddr) :  0);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_SENDTO", true);
 
-					WARN_LOG(WII_IPC_NET,
+					INFO_LOG(WII_IPC_NET,
 						"%s = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
 						has_destaddr ? "IOCTLV_SO_SENDTO " : "IOCTLV_SO_SEND ",
 						ReturnValue, fd, BufferIn, BufferInSize,
@@ -480,7 +480,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, fromlen ? "SO_RECVFROM" : "SO_RECV", true);
 
 			
-					WARN_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
+					INFO_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
 					"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 					"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)", 
 					fromlen ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ",

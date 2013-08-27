@@ -1,7 +1,12 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
 // Based off of twintig http://git.infradead.org/?p=users/segher/wii.git
 // Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+
 #include <stdio.h>
 #include <string.h>
 #include "Common.h"
@@ -41,7 +46,7 @@ static u8 default_NG_sig[] = {
 void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, const u8* NG_sig)
 {
 	char name[64];
-	if((NG_id==0)||(NG_key_id==0)||(NG_priv==NULL)||(NG_sig==NULL))
+	if ((NG_id==0)||(NG_key_id==0)||(NG_priv==NULL)||(NG_sig==NULL))
 	{
 		NG_id = default_NG_id;
 		NG_key_id = default_NG_key_id;
@@ -72,7 +77,7 @@ void get_ap_sig_and_cert(u8 *sig_out, u8 *ap_cert_out, u64 title_id, u8 *data, u
 	char signer[64];
 	char name[64];
 
-	if((NG_id==0)||(NG_priv == NULL))
+	if ((NG_id==0)||(NG_priv == NULL))
 	{
 		NG_priv = default_NG_priv;
 		NG_id = default_NG_id;
@@ -119,7 +124,7 @@ void make_blanksig_ec_cert(u8 *cert_out, const char *signer, const char *name, c
 // if NG_priv is NULL, default builtin will be used
 void get_shared_secret(u8* shared_secret_out, u8* remote_public_key, u8* NG_priv)
 {
-	if(NG_priv==NULL)
+	if (NG_priv==NULL)
 	{
 		NG_priv = default_NG_priv;
 	}
@@ -138,9 +143,9 @@ EcWii::EcWii()
 	if (File::Exists(keys_path))
 	{
 		File::IOFile keys_f(keys_path, "rb");
-		if(keys_f.IsOpen())
+		if (keys_f.IsOpen())
 		{
-			if(keys_f.ReadBytes(&BootMiiKeysBin, sizeof(BootMiiKeysBin)))
+			if (keys_f.ReadBytes(&BootMiiKeysBin, sizeof(BootMiiKeysBin)))
 			{
 				init = false;
 
@@ -161,7 +166,7 @@ EcWii::EcWii()
 		ERROR_LOG(WII_IPC_ES, "%s could not be found. Using default values. We recommend you grab keys.bin from BootMii.", keys_path.c_str());
 	}
 
-	if(init)
+	if (init)
 		InitDefaults();
 }
 

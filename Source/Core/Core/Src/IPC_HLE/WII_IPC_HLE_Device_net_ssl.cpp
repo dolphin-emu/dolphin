@@ -5,7 +5,6 @@
 #include "FileUtil.h"
 #include "WII_IPC_HLE_Device_net_ssl.h"
 #include "WII_Socket.h"
-#include "../Debugger/Debugger_SymbolMap.h"
 
 WII_SSL CWII_IPC_HLE_Device_net_ssl::_SSL[NET_SSL_MAXINSTANCES];
 
@@ -79,7 +78,7 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
 	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 	u32 Command			= Memory::Read_U32(_CommandAddress + 0x0C);
 	
-	WARN_LOG(WII_IPC_SSL, "%s unknown %i "
+	INFO_LOG(WII_IPC_SSL, "%s unknown %i "
 	"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 			 GetDeviceName().c_str(), Command,
 			 BufferIn, BufferInSize, BufferOut, BufferOutSize);
@@ -174,7 +173,7 @@ _SSL_NEW_ERROR:
 			Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 		}
 
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_NEW (%d, %s) "
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_NEW (%d, %s) "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -209,7 +208,7 @@ _SSL_NEW_ERROR:
 		{
 			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 		}
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SHUTDOWN "
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SHUTDOWN "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -220,7 +219,7 @@ _SSL_NEW_ERROR:
 	}
 	case IOCTLV_NET_SSL_SETROOTCA:
 	{
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCA "
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCA "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -247,7 +246,7 @@ _SSL_NEW_ERROR:
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 
-			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCA = %d", ret);
+			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCA = %d", ret);
 		}
 		else
 		{
@@ -257,7 +256,7 @@ _SSL_NEW_ERROR:
 	}
 	case IOCTLV_NET_SSL_SETBUILTINCLIENTCERT:
 	{
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT "
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -285,18 +284,18 @@ _SSL_NEW_ERROR:
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 
-			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = (%d, %d)", ret, rsa_ret);
+			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = (%d, %d)", ret, rsa_ret);
 		}
 		else
 		{
 			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
-			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
+			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
 		}
 		break;
 	}
 	case IOCTLV_NET_SSL_REMOVECLIENTCERT:
 	{
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_REMOVECLIENTCERT "
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_REMOVECLIENTCERT "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -318,7 +317,7 @@ _SSL_NEW_ERROR:
 		else
 		{
 			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
-			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
+			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
 		}
 		break;
 	}
@@ -340,13 +339,13 @@ _SSL_NEW_ERROR:
 				ssl_set_ca_chain(&_SSL[sslID].ctx, &_SSL[sslID].cacert, NULL, _SSL[sslID].hostname);
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
-			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);
+			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);
 		}
 		else
 		{
 			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 		}
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA "
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -361,7 +360,7 @@ _SSL_NEW_ERROR:
 		if (SSLID_VALID(sslID))
 		{
 			_SSL[sslID].sockfd = Memory::Read_U32(BufferOut2);
-			WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", _SSL[sslID].sockfd);
+			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", _SSL[sslID].sockfd);
 			ssl_set_bio(&_SSL[sslID].ctx, net_recv, &_SSL[sslID].sockfd, net_send, &_SSL[sslID].sockfd);
 			Memory::Write_U32(SSL_OK, _BufferIn);
 		}
@@ -369,7 +368,7 @@ _SSL_NEW_ERROR:
 		{
 			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 		}
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT "
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -406,14 +405,14 @@ _SSL_NEW_ERROR:
 		{
 			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 		}
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_WRITE "
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_WRITE "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
 			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2,
 			_BufferIn3, BufferInSize3, BufferOut, BufferOutSize,
 			BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
-		WARN_LOG(WII_IPC_SSL, "%s", Memory::GetPointer(BufferOut2));
+		INFO_LOG(WII_IPC_SSL, "%s", Memory::GetPointer(BufferOut2));
 		break;
 	}
 	case IOCTLV_NET_SSL_READ:
@@ -432,7 +431,7 @@ _SSL_NEW_ERROR:
 			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 		}
 
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_READ(%d)"
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_READ(%d)"
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -453,7 +452,7 @@ _SSL_NEW_ERROR:
 		{
 			Memory::Write_U32(SSL_ERR_ID, _BufferIn);
 		}
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCADEFAULT "
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCADEFAULT "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
@@ -464,7 +463,7 @@ _SSL_NEW_ERROR:
 	}
 	case IOCTLV_NET_SSL_SETCLIENTCERTDEFAULT:
 	{
-		WARN_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETCLIENTCERTDEFAULT "
+		INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETCLIENTCERTDEFAULT "
 			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 			"BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
 			"BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
