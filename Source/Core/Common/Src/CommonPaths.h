@@ -82,6 +82,7 @@
 #define MAIL_LOGS_DIR		"Mail"
 #define SHADERS_DIR 		"Shaders"
 #define WII_SYSCONF_DIR		"shared2" DIR_SEP "sys"
+#define WII_WC24CONF_DIR	"shared2" DIR_SEP "wc24"
 #define THEMES_DIR			"Themes"
 
 // Filenames
@@ -118,10 +119,6 @@
 #define WII_STATE	"state.dat"
 
 #define WII_SETTING		"setting.txt"
-#define WII_EUR_SETTING "setting-eur.txt"
-#define WII_USA_SETTING "setting-usa.txt"
-#define WII_JAP_SETTING "setting-jpn.txt"
-#define WII_KOR_SETTING "setting-kor.txt"
 
 #define GECKO_CODE_HANDLER "codehandler.bin"
 

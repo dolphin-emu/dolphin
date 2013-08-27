@@ -533,6 +533,9 @@
     <ClCompile Include="Src\FifoPlayer\FifoDataFile.cpp">
       <Filter>FifoPlayer</Filter>
     </ClCompile>
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
     <ClCompile Include="Src\FifoPlayer\FifoPlayer.cpp">
       <Filter>FifoPlayer</Filter>
     </ClCompile>
@@ -557,6 +560,16 @@
     </ClCompile>
     <ClCompile Include="Src\NetPlayClient.cpp" />
     <ClCompile Include="Src\NetPlayServer.cpp" />
+    <ClCompile Include="Src\IPC_HLE\ICMPWin.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_hid.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ec_wii.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_Socket.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ConfigManager.h" />
@@ -1039,6 +1052,22 @@
     <ClInclude Include="Src\NetPlayClient.h" />
     <ClInclude Include="Src\NetPlayProto.h" />
     <ClInclude Include="Src\NetPlayServer.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_net_ssl.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\IPC_HLE\fakepoll.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\IPC_HLE\ICMP.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_hid.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ec_wii.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_Socket.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
@@ -1175,6 +1204,9 @@
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\GCMemcard">
       <UniqueIdentifier>{3e9e6e83-c1bf-45f9-aeff-231f98f60d29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\USB">
+      <UniqueIdentifier>{321a9af5-9b3d-4620-888c-fe9d02e9559e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

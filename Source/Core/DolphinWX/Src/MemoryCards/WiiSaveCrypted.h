@@ -8,7 +8,7 @@
 #include "StringUtil.h"
 #include "Crypto/aes.h"
 #include "Crypto/tools.h"
-#include "Crypto/md5.h"
+#include "polarssl/md5.h"
 
 // --- this is used for encrypted Wii save files
 

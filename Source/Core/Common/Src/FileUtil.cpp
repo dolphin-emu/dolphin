@@ -696,6 +696,7 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 		paths[D_LOGS_IDX]			= paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
 		paths[D_MAILLOGS_IDX]		= paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
 		paths[D_WIISYSCONF_IDX]		= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR DIR_SEP;
+		paths[D_WIIWC24_IDX]		= paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP;
 		paths[D_THEMES_IDX]			= paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
 		paths[F_DOLPHINCONFIG_IDX]	= paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
 		paths[F_DEBUGGERCONFIG_IDX]	= paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
@@ -786,6 +787,10 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 			paths[F_MAINLOG_IDX]		= paths[D_LOGS_IDX] + MAIN_LOG;
 		}
 
+		paths[D_WIIUSER_IDX] = paths[D_WIIROOT_IDX] + DIR_SEP;
+		paths[D_WIIWC24_IDX] = paths[D_WIIUSER_IDX] + WII_WC24CONF_DIR DIR_SEP;
+		paths[D_WIISYSCONF_IDX]	= paths[D_WIIUSER_IDX] + WII_SYSCONF_DIR + DIR_SEP; 
+		paths[F_WIISYSCONF_IDX]	= paths[D_WIISYSCONF_IDX] + WII_SYSCONF;
 	}
 
 	return paths[DirIDX];

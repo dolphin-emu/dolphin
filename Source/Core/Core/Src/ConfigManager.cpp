@@ -169,8 +169,11 @@ void SConfig::SaveSettings()
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
 	ini.Set("General", "NANDRoot",			m_NANDPath);
 	ini.Set("General", "WirelessMac",		m_WirelessMac);
-
-	// Interface
+	#ifdef USE_GDBSTUB
+	ini.Set("General", "GDBPort", m_LocalCoreStartupParameter.iGDBPort);
+	#endif
+	
+	// Interface		
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
 	ini.Set("Interface", "UsePanicHandlers",	m_LocalCoreStartupParameter.bUsePanicHandlers);
 	ini.Set("Interface", "OnScreenDisplayMessages",	m_LocalCoreStartupParameter.bOnScreenDisplayMessages);
@@ -294,6 +297,9 @@ void SConfig::LoadSettings()
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
 		ini.Get("General", "ShowLag", &m_ShowLag, false);
+		#ifdef USE_GDBSTUB
+		ini.Get("General", "GDBPort", &(m_LocalCoreStartupParameter.iGDBPort), -1);
+		#endif
 
 		m_ISOFolder.clear();
 		int numGCMPaths;
@@ -316,7 +322,7 @@ void SConfig::LoadSettings()
 		m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
 		DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 		DiscIO::CSharedContent::AccessInstance().UpdateLocation();
-		ini.Get("General", "WirelessMac",			&m_WirelessMac);
+		ini.Get("General", "WirelessMac",	&m_WirelessMac);
 	}
 
 	{

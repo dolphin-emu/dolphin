@@ -58,6 +58,7 @@ static const SPatch OSPatches[] =
 	//{ "DCZeroRange",		HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
 	// debug out is very nice ;)
+
 	{ "OSReport",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
 	{ "DEBUGPrint",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
 	{ "WUD_DEBUGPrint",		HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
