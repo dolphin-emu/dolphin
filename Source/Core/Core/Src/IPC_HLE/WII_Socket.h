@@ -212,6 +212,11 @@ public:
 	s32 newSocket(s32 af, s32 type, s32 protocol);
 	s32 delSocket(s32 s);
 
+	void clean()
+	{
+		WiiSockets.clear();
+	}
+
 	template <typename T>
 	void doSock(s32 sock, u32 CommandAddress, T type)
 	{

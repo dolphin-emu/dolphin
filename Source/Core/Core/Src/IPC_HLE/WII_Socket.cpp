@@ -628,7 +628,7 @@ void WiiSockMan::Convert(WiiSockAddrIn const & from, sockaddr_in& to)
 void WiiSockMan::Convert(sockaddr_in const & from, WiiSockAddrIn& to, s32 addrlen)
 {
 	to.addr.addr = from.sin_addr.s_addr;
-	to.family = from.sin_family;
+	to.family = from.sin_family & 0xFF;
 	to.port = from.sin_port;
 	if (addrlen < 0 || addrlen > sizeof(WiiSockAddrIn))
 		to.len = sizeof(WiiSockAddrIn);

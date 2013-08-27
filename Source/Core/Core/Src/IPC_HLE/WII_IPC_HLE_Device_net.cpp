@@ -55,6 +55,7 @@ CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _Devi
 
 CWII_IPC_HLE_Device_net_kd_request::~CWII_IPC_HLE_Device_net_kd_request()
 {
+	WiiSockMan::getInstance().clean();
 }
 
 bool CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
@@ -680,6 +681,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 			fd, ReturnValue);
 		break;
 	}
+	case IOCTL_SO_ACCEPT:
 	case IOCTL_SO_BIND:
 	case IOCTL_SO_CONNECT:
 	case IOCTL_SO_FCNTL:
@@ -690,20 +692,9 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		return false;
 		break;
 	}
-	case IOCTL_SO_ACCEPT:
-	{
-		u32 fd = Memory::Read_U32(BufferIn);
-		WiiSockMan &sm = WiiSockMan::getInstance();
-		sm.doSock(fd, _CommandAddress, (NET_IOCTL)Command);
-		return false;
-		break;
-	}
-
 	/////////////////////////////////////////////////////////////
-	//                  TODO: ALL BELOW                        //
+	//                  TODO: Tidy all below                   //
 	/////////////////////////////////////////////////////////////
-
-
 	case IOCTL_SO_SHUTDOWN:
 	{
 		WARN_LOG(WII_IPC_NET, "IOCTL_SO_SHUTDOWN "
