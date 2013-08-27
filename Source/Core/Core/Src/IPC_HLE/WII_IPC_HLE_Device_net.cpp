@@ -692,19 +692,10 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 	}
 	case IOCTL_SO_ACCEPT:
 	{
-		WARN_LOG(WII_IPC_NET, "IOCTL_SO_ACCEPT "
-			"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			BufferIn, BufferInSize, BufferOut, BufferOutSize);
-
 		u32 fd = Memory::Read_U32(BufferIn);
-		socklen_t addrlen;
-
-		struct sockaddr* addr = (struct sockaddr*) Memory::GetPointer(BufferOut);
-		int ret = (s32)accept(fd, addr, &addrlen);
-		ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", false);
-		addr->sa_family = ((addr->sa_family&0xFF) << 8) | (u8)addrlen;
-		Memory::Write_U32(addrlen, BufferOut + 0x04);
-
+		WiiSockMan &sm = WiiSockMan::getInstance();
+		sm.doSock(fd, _CommandAddress, (NET_IOCTL)Command);
+		return false;
 		break;
 	}
 

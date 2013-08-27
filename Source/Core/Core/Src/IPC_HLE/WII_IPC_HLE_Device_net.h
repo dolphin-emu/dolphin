@@ -551,36 +551,6 @@ private:
 	}
 };
 
-
-struct bind_params
-{
-	u32 socket;
-	u32 has_name;
-	u8 name[28];
-};
-
-struct GC_sockaddr
-{
-	u8 sa_len;
-	u8 sa_family;
-	s8 sa_data[14];
-};
-
-struct GC_in_addr
-{
-	// this cannot be named s_addr under windows - collides with some crazy define.
-	u32 s_addr_;
-};
-
-struct GC_sockaddr_in
-{
-	u8 sin_len;
-	u8 sin_family;
-	u16 sin_port;
-	struct GC_in_addr sin_addr;
-	s8 sin_zero[8];
-};
-
 enum NET_IOCTL
 {
 	IOCTL_SO_ACCEPT = 1,

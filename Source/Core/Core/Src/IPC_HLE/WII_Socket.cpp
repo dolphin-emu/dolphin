@@ -174,6 +174,10 @@ void WiiSocket::update(bool read, bool write, bool except)
 		if (!it->is_ssl && ct == COMMAND_IOCTL)
 		{
 			u32 BufferIn = Memory::Read_U32(it->_CommandAddress + 0x10);
+			u32 BufferInSize = Memory::Read_U32(it->_CommandAddress + 0x14);
+			u32 BufferOut = Memory::Read_U32(it->_CommandAddress + 0x18);
+			u32 BufferOutSize = Memory::Read_U32(it->_CommandAddress + 0x1C);
+
 			switch(it->net_type)
 			{
 			case IOCTL_SO_FCNTL:
@@ -185,48 +189,57 @@ void WiiSocket::update(bool read, bool write, bool except)
 			}
 			case IOCTL_SO_BIND:
 			{
-				//TODO: tidy
-				bind_params *addr = (bind_params*)Memory::GetPointer(BufferIn);
-				GC_sockaddr_in addrPC;
-				memcpy(&addrPC, addr->name, sizeof(GC_sockaddr_in));
-				sockaddr_in address;
-				address.sin_family = addrPC.sin_family;
-				address.sin_addr.s_addr = addrPC.sin_addr.s_addr_;
-				address.sin_port = addrPC.sin_port;
-				
-				int ret = bind(fd, (sockaddr*)&address, sizeof(address));
+				//u32 has_addr = Memory::Read_U32(BufferIn + 0x04);
+				sockaddr_in local_name;
+				WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferIn + 0x08);
+				WiiSockMan::Convert(*wii_name, local_name);
+
+				int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
 				ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_BIND", false);
 
 				WARN_LOG(WII_IPC_NET, "IOCTL_SO_BIND (%08X %s:%d) = %d ", fd, 
-					inet_ntoa(address.sin_addr), Common::swap16(address.sin_port), ret);
+					inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port), ret);
 				break;
 			}
 			case IOCTL_SO_CONNECT:
 			{
+				//u32 has_addr = Memory::Read_U32(BufferIn + 0x04);
+				sockaddr_in local_name;
+				WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferIn + 0x08);
+				WiiSockMan::Convert(*wii_name, local_name);
 				
-				//struct sockaddr_in echoServAddr;
-				u32 has_addr = Memory::Read_U32(BufferIn + 0x04);
-				sockaddr_in serverAddr;
-
-				u8 addr[28];
-				Memory::ReadBigEData(addr, BufferIn + 0x08, sizeof(addr));
-
-				if (has_addr != 1)
-				{
-					ReturnValue = -1;
-					break;
-				}
-
-				memset(&serverAddr, 0, sizeof(serverAddr));
-				memcpy(&serverAddr, addr, addr[0]);
-				// GC/Wii sockets have a length param as well, we dont really care :)
-				serverAddr.sin_family = serverAddr.sin_family >> 8;
-				
-				int ret = connect(fd, (sockaddr*)&serverAddr, sizeof(serverAddr));
+				int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
 				ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_CONNECT", false);
 
 				WARN_LOG(WII_IPC_NET,"IOCTL_SO_CONNECT (%08x, %s:%d)",
-					fd, inet_ntoa(serverAddr.sin_addr), Common::swap16(serverAddr.sin_port));
+					fd, inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port));
+				break;
+			}
+			case IOCTL_SO_ACCEPT:
+			{
+		
+				if (BufferOutSize > 0)
+				{
+					sockaddr_in local_name;
+					WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut);
+					WiiSockMan::Convert(*wii_name, local_name);
+					
+					socklen_t addrlen = wii_name->len;
+					int ret = (s32)accept(fd, (sockaddr*)&local_name, &addrlen);
+					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", false);
+
+					WiiSockMan::Convert(local_name, *wii_name, addrlen);
+				}
+				else
+				{
+					int ret = (s32)accept(fd, NULL, 0);
+					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", false);
+				}
+		
+				WARN_LOG(WII_IPC_NET, "IOCTL_SO_ACCEPT "
+					"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+					BufferIn, BufferInSize, BufferOut, BufferOutSize);
+
 				break;
 			}
 			default:
@@ -604,6 +617,24 @@ void WiiSockMan::EnqueueReply(u32 CommandAddress, s32 ReturnValue)
 	WII_IPC_HLE_Interface::EnqReply(CommandAddress);
 }
 
+
+void WiiSockMan::Convert(WiiSockAddrIn& from, sockaddr_in& to)
+{
+	to.sin_addr.s_addr = from.addr.addr;
+	to.sin_family = from.family;
+	to.sin_port = from.port;
+}
+
+void WiiSockMan::Convert(sockaddr_in& from, WiiSockAddrIn& to, s32 addrlen)
+{
+	to.addr.addr = from.sin_addr.s_addr;
+	to.family = from.sin_family;
+	to.port = from.sin_port;
+	if (addrlen < 0 || addrlen > sizeof(WiiSockAddrIn))
+		to.len = sizeof(WiiSockAddrIn);
+	else
+		to.len = addrlen;
+}
 
 #undef ERRORCODE
 #undef EITHER
