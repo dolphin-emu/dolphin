@@ -34,7 +34,6 @@ public final class GameListItem implements Comparable<GameListItem>
 	 * @param name    The name of this GameListItem.
 	 * @param data    The subtitle for this GameListItem
 	 * @param path    The file path for the game represented by this GameListItem.
-	 * @param isValid Whether or not the emulator can handle this file.
 	 */
 	public GameListItem(Context ctx, String name, String data, String path)
 	{
