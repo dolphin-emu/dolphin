@@ -7,6 +7,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/CoreParameter.cpp
 			Src/CoreTiming.cpp
 			Src/DSPEmulator.cpp
+			Src/ec_wii.cpp
 			Src/GeckoCodeConfig.cpp
 			Src/GeckoCode.cpp
 			Src/Movie.cpp
@@ -132,12 +133,15 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/WiimoteEmu/Encryption.cpp
 			Src/HW/WiimoteEmu/Speaker.cpp
 			Src/HW/WiimoteReal/WiimoteReal.cpp
+			Src/IPC_HLE/ICMPLin.cpp
 			Src/IPC_HLE/WII_IPC_HLE.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_fs.cpp
+			Src/IPC_HLE/WII_Socket.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_net.cpp
+			Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
@@ -221,6 +225,14 @@ if(NOT USE_GLES OR USE_GLES3)
 	set(LIBS ${LIBS} videoogl)
 endif()
 
+if(LIBUSB_FOUND)
+	# Using shared LibUSB
+	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
+	set(SRCS	${SRCS}	Src/IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
+endif(LIBUSB_FOUND)
+
+set(LIBS	${LIBS}	polarssl)
+
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp
 		Src/HW/WiimoteReal/IOWin.cpp)
@@ -243,6 +255,10 @@ endif(PORTAUDIO_FOUND)
 if(OPROFILE_FOUND)
 	set(LIBS ${LIBS} opagent bfd)
 endif(OPROFILE_FOUND)
+
+if(GDBSTUB)
+	set(SRCS ${SRCS} Src/PowerPC/GDBStub.cpp)
+endif(GDBSTUB)
 
 add_library(core STATIC ${SRCS})
 target_link_libraries(core ${LIBS})

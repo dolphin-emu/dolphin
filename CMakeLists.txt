@@ -255,9 +255,16 @@ if(NOT CMAKE_BUILD_TYPE)
 		"Build type (Release/Debug/RelWithDebInfo/MinSizeRe)" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
+
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	add_definitions(-D_DEBUG -ggdb)
 	set(wxWidgets_USE_DEBUG ON CACHE BOOL "Use wxWidgets Debugging")
+
+	option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
+	if(ENABLE_GPROF)
+		add_definitions(-pg)
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+	endif()
 endif(CMAKE_BUILD_TYPE STREQUAL Debug)
 
 if(CMAKE_BUILD_TYPE STREQUAL Release AND NOT APPLE)
@@ -267,6 +274,11 @@ endif()
 if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
 endif()
+
+option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
+if(GDBSTUB)
+	add_definitions(-DUSE_GDBSTUB)
+endif(GDBSTUB)
 
 if(ANDROID)
 	message("Building for Android")
@@ -470,6 +482,7 @@ if(NOT ANDROID)
 		endif()
 	endif()
 endif()
+
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
 #
@@ -553,6 +566,13 @@ if(NOT ANDROID)
 	endif(SDL2_FOUND)
 endif()
 
+include(FindLibUSB OPTIONAL)
+if(LIBUSB_FOUND)
+	message("Using shared LibUSB")
+	add_definitions(-D__LIBUSB__)
+	include_directories(${LIBUSB_INCLUDE_DIR})
+endif(LIBUSB_FOUND)
+
 set(SFML_FIND_VERSION TRUE)
 set(SFML_FIND_VERSION_MAJOR 1)
 set(SFML_FIND_VERSION_MINOR 5)
@@ -581,6 +601,11 @@ if(USE_UPNP)
 	endif()
 	add_definitions(-DUSE_UPNP)
 endif()
+
+
+message("Using PolarSSL from Externals")
+add_subdirectory(Externals/polarssl/)
+include_directories(Externals/polarssl/include)
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
 	check_lib(SOIL SOIL SOIL/SOIL.h QUIET)
@@ -637,7 +662,7 @@ if(NOT DISABLE_WX AND NOT ANDROID)
 	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
 
 	if(wxWidgets_FOUND)
-		EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} 
+		EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 			COMMAND sh "${wxWidgets_CONFIG_EXECUTABLE}"
 			${wxWidgets_CONFIG_OPTIONS} --version
 			OUTPUT_VARIABLE wxWidgets_VERSION
@@ -744,7 +769,7 @@ if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 endif()
 include(FindGettext)
 if(GETTEXT_FOUND AND NOT DISABLE_WX)
-	file(GLOB LINGUAS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Languages/po/*.po) 
+	file(GLOB LINGUAS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} Languages/po/*.po)
 	GETTEXT_CREATE_TRANSLATIONS(Languages/po/dolphin-emu.pot ALL ${LINGUAS})
 endif()
 if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin"))

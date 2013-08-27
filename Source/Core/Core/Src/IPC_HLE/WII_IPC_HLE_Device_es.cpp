@@ -29,7 +29,7 @@
 	0x12: Mario Kart
 	0x14: Mario Kart: But only if we don't return a zeroed out buffer for the 0x12 question,
 		and instead answer for example 1 will this question appear.
- 
+
 */
 // =============
 
@@ -39,6 +39,7 @@
 #include "../VolumeHandler.h"
 #include "FileUtil.h"
 #include "Crypto/aes.h"
+#include "ConfigManager.h"
 
 #include "../Boot/Boot_DOL.h"
 #include "NandPaths.h"
@@ -46,6 +47,8 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "../Movie.h"
 #include "StringUtil.h"
+
+#include "ec_wii.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -58,7 +61,27 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
 	, m_pContentLoader(NULL)
 	, m_TitleID(-1)
 	, AccessIdentID(0x6000000)
-{}
+{
+}
+
+static u8 key_sd   [0x10]	= {0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08, 0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d};
+static u8 key_ecc  [0x1e]	= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+static u8 key_empty[0x10]	= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+// default key table
+u8* CWII_IPC_HLE_Device_es::keyTable[11] = {
+	key_ecc,	// ECC Private Key
+	key_empty,	// Console ID
+	key_empty,	// NAND AES Key
+	key_empty,	// NAND HMAC
+	key_empty,	// Common Key
+	key_empty,	// PRNG seed
+	key_sd,		// SD Key
+	key_empty,	// Unknown
+	key_empty,	// Unknown
+	key_empty,	// Unknown
+	key_empty,	// Unknown
+};
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
 {}
@@ -135,30 +158,15 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			Buffer.PayloadBuffer[i].m_Size);
 	}
 
-	// Uhh just put this here for now
-	u8 keyTable[11][16] = {
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // ECC Private Key
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Console ID
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // NAND AES Key
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // NAND HMAC
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Common Key
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // PRNG seed
-		{0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08, 0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d,}, // SD Key
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
-		{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,}, // Unknown
-	};
-
 	switch (Buffer.Parameter)
 	{
 	case IOCTL_ES_GETDEVICEID:
 		{
 			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETDEVICEID no out buffer");
-
-			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID");
-			// Return arbitrary device ID - TODO allow user to set value?
-			Memory::Write_U32(0x31337f11, Buffer.PayloadBuffer[0].m_Address);
+			
+			EcWii &ec = EcWii::GetInstance();
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID %08X", ec.getNgId());
+			Memory::Write_U32(ec.getNgId(), Buffer.PayloadBuffer[0].m_Address);
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 			return true;
 		}
@@ -386,7 +394,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 	case IOCTL_ES_SETUID:
 		{
 			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_SETUID no in buffer");
-			_dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
+			_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0, "IOCTL_ES_SETUID has a payload, it shouldn't");
 			// TODO: fs permissions based on this
 			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID>>32), (u32)TitleID);
@@ -840,20 +848,52 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT , _CommandAddress + 0x4);
 		return true;
 
+	case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
+		{
+			WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
+			_dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
+			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+
+			EcWii &ec = EcWii::GetInstance();
+			get_ng_cert(destination, ec.getNgId(), ec.getNgKeyId(), ec.getNgPriv(), ec.getNgSig());
+		}
+		break;
+
+	case IOCTL_ES_SIGN:
+		{
+			WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
+			u8 *ap_cert_out = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+			u8 *data = Memory::GetPointer(Buffer.InBuffer[0].m_Address);
+			u32 data_size = Buffer.InBuffer[0].m_Size;
+			u8 *sig_out =  Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+
+			EcWii &ec = EcWii::GetInstance();
+			get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.getNgPriv(), ec.getNgId());
+		}
+		break;
+
+	case IOCTL_ES_GETBOOT2VERSION:
+		{
+			WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETBOOT2VERSION");
+
+			Memory::Write_U32(4, Buffer.PayloadBuffer[0].m_Address); // as of 26/02/2012, this was latest bootmii version
+		}
+		break;
+
 	// ===============================================================================================
-	// unsupported functions 
+	// unsupported functions
 	// ===============================================================================================
-		case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes) bug crediar :D
+	case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes) bug crediar :D
 		WARN_LOG(WII_IPC_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
 		break;
 
-	case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
-		WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT: this looks really wrong...");
+	case IOCTL_ES_GETOWNEDTITLECNT:
+		WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETOWNEDTITLECNT");
+		Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
 		break;
 
 	default:
 		WARN_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
-
 		DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_ES);
 		INFO_LOG(WII_IPC_ES, "command.Parameter: 0x%08x", Buffer.Parameter);
 		break;

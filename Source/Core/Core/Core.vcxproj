@@ -115,7 +115,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -127,7 +127,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -139,7 +139,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -153,7 +153,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -167,7 +167,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -181,7 +181,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -321,23 +321,28 @@
     <ClCompile Include="Src\HW\WiimoteReal\WiimoteReal.cpp" />
     <ClCompile Include="Src\HW\WII_IOB.cpp" />
     <ClCompile Include="Src\HW\WII_IPC.cpp" />
+    <ClCompile Include="Src\IPC_HLE\ICMPWin.cpp" />
     <ClCompile Include="Src\IPC_HLE\WiiMote_HID_Attr.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_DI.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_es.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_fs.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_hid.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_net.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
+    <ClCompile Include="Src\IPC_HLE\WII_Socket.cpp" />
     <ClCompile Include="Src\x64MemTools.cpp" />
     <ClCompile Include="Src\Movie.cpp" />
     <ClCompile Include="Src\NetPlayClient.cpp" />
     <ClCompile Include="Src\NetPlayServer.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
     <ClCompile Include="Src\DSPEmulator.cpp" />
+    <ClCompile Include="Src\ec_wii.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Branch.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_FloatingPoint.cpp" />
@@ -523,6 +528,8 @@
     <ClInclude Include="Src\HW\WII_IOB.h" />
     <ClInclude Include="Src\HW\WII_IPC.h" />
     <ClInclude Include="Src\IPC_HLE\hci.h" />
+    <ClInclude Include="Src\IPC_HLE\fakepoll.h" />
+    <ClInclude Include="Src\IPC_HLE\ICMP.h" />
     <ClInclude Include="Src\IPC_HLE\l2cap.h" />
     <ClInclude Include="Src\IPC_HLE\WiiMote_HID_Attr.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE.h" />
@@ -531,17 +538,21 @@
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_es.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_FileIO.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_fs.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_hid.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_net.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_net_ssl.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_stm.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_Socket.h" />
     <ClInclude Include="Src\MemTools.h" />
     <ClInclude Include="Src\Movie.h" />
     <ClInclude Include="Src\NetPlayClient.h" />
     <ClInclude Include="Src\NetPlayProto.h" />
     <ClInclude Include="Src\NetPlayServer.h" />
+    <ClInclude Include="Src\ec_wii.h" />
     <ClInclude Include="Src\PatchEngine.h" />
     <ClInclude Include="Src\DSPEmulator.h" />
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h" />

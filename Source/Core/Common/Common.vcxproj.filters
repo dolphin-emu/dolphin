@@ -43,12 +43,7 @@
     <ClCompile Include="Src\Crypto\ec.cpp">
       <Filter>Crypto</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Crypto\md5.cpp">
-      <Filter>Crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Crypto\sha1.cpp">
-      <Filter>Crypto</Filter>
-    </ClCompile>
+    <ClCompile Include="Src\SettingsHandler.cpp" />
     <ClCompile Include="Src\x64ABI.cpp" />
     <ClCompile Include="Src\x64CPUDetect.cpp" />
     <ClCompile Include="Src\x64FPURoundMode.cpp" />
@@ -108,17 +103,12 @@
     <ClInclude Include="Src\Crypto\aes_locl.h">
       <Filter>Crypto</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Crypto\md5.h">
-      <Filter>Crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Crypto\sha1.h">
-      <Filter>Crypto</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Crypto\tools.h">
       <Filter>Crypto</Filter>
     </ClInclude>
     <ClInclude Include="Src\StdMutex.h" />
     <ClInclude Include="Src\StdConditionVariable.h" />
+    <ClInclude Include="Src\SettingsHandler.h" />
     <ClInclude Include="Src\x64ABI.h" />
   </ItemGroup>
   <ItemGroup>

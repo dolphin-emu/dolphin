@@ -1,3 +1,7 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
 // Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
@@ -40,7 +44,7 @@ static u8 ec_G[60] =
 	printf("\n");
 }*/
 
-static void elt_copy(u8 *d, u8 *a)
+static void elt_copy(u8 *d, const u8 *a)
 {
 	memcpy(d, a, 30);
 }
@@ -303,7 +307,7 @@ static void point_add(u8 *r, u8 *p, u8 *q)
 	elt_add(ry, s, rx);
 }
 
-static void point_mul(u8 *d, u8 *a, u8 *b)	// a is bignum
+void point_mul(u8 *d, const u8 *a, u8 *b)	// a is bignum
 {
 	u32 i;
 	u8 mask;
@@ -330,7 +334,7 @@ void silly_random(u8 * rndArea, u8 count)
 	} 
 }
 
-void generate_ecdsa(u8 *R, u8 *S, u8 *k, u8 *hash)
+void generate_ecdsa(u8 *R, u8 *S, const u8 *k, u8 *hash)
 {
 	u8 e[30];
 	u8 kk[30];
@@ -394,7 +398,7 @@ int check_ecdsa(u8 *Q, u8 *R, u8 *S, u8 *hash)
 	return (bn_compare(r1, R, 30) == 0);
 }
 
-void ec_priv_to_pub(u8 *k, u8 *Q)
+void ec_priv_to_pub(const u8 *k, u8 *Q)
 {
 	point_mul(Q, k, ec_G);
 }

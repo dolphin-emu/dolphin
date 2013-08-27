@@ -88,6 +88,9 @@ struct SCoreStartupParameter
 
 	// Settings
 	bool bEnableDebugging;
+	#ifdef USE_GDBSTUB
+	int  iGDBPort;
+	#endif
 	bool bAutomaticStart;
 	bool bBootToPause;
 

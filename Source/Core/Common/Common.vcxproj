@@ -113,6 +113,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib />
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile />
@@ -120,6 +123,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib />
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile />
@@ -129,6 +135,9 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib />
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile />
@@ -138,6 +147,9 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib />
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile />
@@ -147,6 +159,9 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib />
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile />
@@ -156,6 +171,9 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib />
+    <ClCompile>
+      <AdditionalIncludeDirectories>..\..\..\Externals\polarssl\include</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Src\BreakPoints.cpp" />
@@ -166,8 +184,6 @@
     <ClCompile Include="Src\Crypto\aes_core.cpp" />
     <ClCompile Include="Src\Crypto\bn.cpp" />
     <ClCompile Include="Src\Crypto\ec.cpp" />
-    <ClCompile Include="Src\Crypto\md5.cpp" />
-    <ClCompile Include="Src\Crypto\sha1.cpp" />
     <ClCompile Include="Src\ExtendedTrace.cpp" />
     <ClCompile Include="Src\FileSearch.cpp" />
     <ClCompile Include="Src\FileUtil.cpp" />
@@ -181,6 +197,7 @@
     <ClCompile Include="Src\MsgHandler.cpp" />
     <ClCompile Include="Src\NandPaths.cpp" />
     <ClCompile Include="Src\SDCardUtil.cpp" />
+    <ClCompile Include="Src\SettingsHandler.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -218,8 +235,6 @@
     <ClInclude Include="Src\CPUDetect.h" />
     <ClInclude Include="Src\Crypto\aes.h" />
     <ClInclude Include="Src\Crypto\aes_locl.h" />
-    <ClInclude Include="Src\Crypto\md5.h" />
-    <ClInclude Include="Src\Crypto\sha1.h" />
     <ClInclude Include="Src\Crypto\tools.h" />
     <ClInclude Include="Src\DebugInterface.h" />
     <ClInclude Include="Src\ExtendedTrace.h" />
@@ -238,6 +253,7 @@
     <ClInclude Include="Src\MsgHandler.h" />
     <ClInclude Include="Src\NandPaths.h" />
     <ClInclude Include="Src\SDCardUtil.h" />
+    <ClInclude Include="Src\SettingsHandler.h" />
     <ClInclude Include="Src\Setup.h" />
     <ClInclude Include="Src\stdafx.h" />
     <ClInclude Include="Src\StdConditionVariable.h" />

@@ -116,45 +116,57 @@ File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 {
 	u32 ReturnValue	= FS_RESULT_FATAL;
-	const u32 SeekOffset = Memory::Read_U32(_CommandAddress + 0xC);
-	const u32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
+	const s32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
+	const s32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
 
 	if (auto file = OpenFile())
 	{
 		ReturnValue = FS_RESULT_FATAL;
 
 		const u64 fileSize = file.GetSize();
-		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekOffset, Mode, m_Name.c_str(), fileSize);
-		u64 wantedPos = 0;
+		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), fileSize);
+
 		switch (Mode)
 		{
-		case 0:
-			wantedPos = SeekOffset;
-			break;
-			
-		case 1:
-			wantedPos = m_SeekPos + SeekOffset;
-			break;
-			
-		case 2:
-			wantedPos = fileSize + (s32)SeekOffset;
-			break;
-			
-		default:
-			PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
-			ReturnValue = FS_RESULT_FATAL;
-			break;
-		}
-		
-		if (wantedPos <= fileSize)
-		{
-			m_SeekPos = wantedPos;
-			ReturnValue = m_SeekPos;
+			case 0:
+			{
+				if ((SeekPosition >=0) && (SeekPosition <= fileSize))
+				{
+					m_SeekPos = SeekPosition;
+					ReturnValue = m_SeekPos;
+				}
+				break;
+			}
+			case 1:
+			{
+				s32 wantedPos = SeekPosition+m_SeekPos;
+				if (wantedPos >=0 && wantedPos <= fileSize)
+				{
+					m_SeekPos = wantedPos;
+					ReturnValue = m_SeekPos;
+				}
+				break;
+			}
+			case 2:
+			{
+				s32 wantedPos = fileSize+m_SeekPos;
+				if (wantedPos >=0 && wantedPos <= fileSize)
+				{
+					m_SeekPos = wantedPos;
+					ReturnValue = m_SeekPos;
+				}
+				break;
+			}
+			default:
+			{
+				PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
+				ReturnValue = FS_RESULT_FATAL;
+				break;
+			}
 		}
 	}
 	else
 	{
-		// TODO: This can't be right.
 		ReturnValue = FS_FILE_NOT_EXIST;
 	}
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -253,7 +265,6 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 				u32 m_FileLength = (u32)file.GetSize();
 
 				const u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-				INFO_LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
 				INFO_LOG(WII_IPC_FILEIO, "  File: %s, Length: %i, Pos: %i", m_Name.c_str(), m_FileLength, m_SeekPos);
 
 				Memory::Write_U32(m_FileLength, BufferOut);

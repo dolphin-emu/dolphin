@@ -18,20 +18,20 @@
 namespace
 {
 	static Common::Event m_StepEvent;
-	static Common::Event *m_SyncEvent;
+	static Common::Event *m_SyncEvent = NULL;
 	static std::mutex m_csCpuOccupied;
 }
 
 void CCPU::Init(int cpu_core)
 {
 	PowerPC::Init(cpu_core);
-	m_SyncEvent = 0;
+	m_SyncEvent = NULL;
 }
 
 void CCPU::Shutdown()
 {
 	PowerPC::Shutdown();
-	m_SyncEvent = 0;
+	m_SyncEvent = NULL;
 }
 
 void CCPU::Run()
@@ -68,7 +68,7 @@ reswitch:
 			if (m_SyncEvent)
 			{
 				m_SyncEvent->Set();
-				m_SyncEvent = 0;
+				m_SyncEvent = NULL;
 			}
 			Host_UpdateDisasmDialog();
 			break;

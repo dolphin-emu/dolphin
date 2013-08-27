@@ -11,6 +11,7 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
+    <Link />
   </ItemDefinitionGroup>
   <ItemGroup />
 </Project>

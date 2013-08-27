@@ -13,6 +13,7 @@ set(SRCS	Src/BreakPoints.cpp
 			Src/Misc.cpp
 			Src/MsgHandler.cpp
 			Src/NandPaths.cpp
+			Src/SettingsHandler.cpp
 			Src/SDCardUtil.cpp
 			Src/StringUtil.cpp
 			Src/SymbolDB.cpp
@@ -26,9 +27,7 @@ set(SRCS	Src/BreakPoints.cpp
 			Src/Crypto/aes_cbc.cpp
 			Src/Crypto/aes_core.cpp
 			Src/Crypto/bn.cpp
-			Src/Crypto/ec.cpp
-			Src/Crypto/md5.cpp
-			Src/Crypto/sha1.cpp)
+			Src/Crypto/ec.cpp)
 
 if(_M_ARM) #ARM
 	set(SRCS	${SRCS}
