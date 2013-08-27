@@ -72,6 +72,7 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		// the TabListener interface, as the callback (listener) for when
 		// this tab is selected.
 		actionBar.addTab(actionBar.newTab().setText(R.string.cpu_settings).setTabListener(this));
+		actionBar.addTab(actionBar.newTab().setText(R.string.input_settings).setTabListener(this));
 		actionBar.addTab(actionBar.newTab().setText(R.string.video_settings).setTabListener(this));
 	}
 
@@ -111,6 +112,9 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 					return new CPUSettingsFragment();
 
 				case 1:
+					return new InputConfigFragment();
+
+				case 2:
 					return new VideoSettingsFragment();
 
 				default: // Should never happen.
@@ -122,7 +126,7 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		public int getCount()
 		{
 			// Show total pages.
-			return 2;
+			return 3;
 		}
 
 		@Override
@@ -134,6 +138,9 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 					return getString(R.string.cpu_settings).toUpperCase();
 
 				case 1:
+					return getString(R.string.input_settings).toUpperCase();
+
+				case 2:
 					return getString(R.string.video_settings).toUpperCase();
 
 				default: // Should never happen.

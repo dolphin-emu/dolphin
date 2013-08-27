@@ -5,6 +5,7 @@
 #include "Globals.h"
 #include "FramebufferManager.h"
 #include "VertexShaderGen.h"
+#include "OnScreenDisplay.h"
 
 #include "TextureConverter.h"
 #include "Render.h"
@@ -366,6 +367,13 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 {
 	if(g_ogl_config.eSupportedGLSLVersion == GLSL_120) {
 		// This feature isn't supported by glsl120
+		
+		// TODO: move this to InitBackendInfo
+		// We have to disable both the active and the stored config. Else we would either
+		// show this line per format change in one frame or once per frame.
+		OSD::AddMessage("Format Change Emulation isn't supported by your GPU.", 10000);
+		g_ActiveConfig.bEFBEmulateFormatChanges = false;
+		g_Config.bEFBEmulateFormatChanges = false;
 		return;
 	}
 	
@@ -435,6 +443,8 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 
 void XFBSource::CopyEFB(float Gamma)
 {
+	g_renderer->ResetAPIState();
+	
 	// Copy EFB data to XFB and restore render target again
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer());
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::GetXFBFramebuffer());
@@ -451,6 +461,8 @@ void XFBSource::CopyEFB(float Gamma)
 
 	// Return to EFB.
 	FramebufferManager::SetFramebuffer(0);
+	
+	g_renderer->RestoreAPIState();
 
 }
 

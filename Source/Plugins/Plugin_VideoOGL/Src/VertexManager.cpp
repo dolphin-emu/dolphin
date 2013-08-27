@@ -62,10 +62,7 @@ void VertexManager::CreateDeviceObjects()
 	s_vertexBuffer = new StreamBuffer(GL_ARRAY_BUFFER, MAX_VBUFFER_SIZE);
 	m_vertex_buffers = s_vertexBuffer->getBuffer();
 	
-	// Pinned memory is disabled for index buffer as the amd driver (the only one with pinned memory support) seems
-	// to be broken. We just get flickering/black rendering when using pinned memory here -- degasus - 2013/08/20
-	// Please see issue #6105 on google code. Let's hope buffer storage solves this issues.
-	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE, (StreamType)(DETECT_MASK & ~PINNED_MEMORY));
+	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
 	m_index_buffers = s_indexBuffer->getBuffer();
 	
 	m_CurrentVertexFmt = NULL;

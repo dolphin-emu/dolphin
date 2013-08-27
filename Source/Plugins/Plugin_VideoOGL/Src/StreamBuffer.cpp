@@ -7,6 +7,8 @@
 #include "StreamBuffer.h"
 #include "MemoryUtil.h"
 #include "Render.h"
+#include "DriverDetails.h"
+#include "OnScreenDisplay.h"
 
 namespace OGL
 {
@@ -23,13 +25,21 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 	
 	if(m_uploadtype & STREAM_DETECT)
 	{
+		// TODO: move this to InitBackendInfo
+		if(g_ActiveConfig.bHackedBufferUpload && !DriverDetails::HasBug(DriverDetails::BUG_BROKENHACKEDBUFFER))
+		{
+			OSD::AddMessage("Vertex Streaming Hack isn't supported by your GPU.", 10000);
+			g_ActiveConfig.bHackedBufferUpload = false;
+			g_Config.bHackedBufferUpload = false;
+		}
+		
 		if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERDATA))
 			m_uploadtype = BUFFERDATA;
 		else if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA))
 			m_uploadtype = BUFFERSUBDATA;
-		else if(g_ogl_config.bSupportsGLSync && g_Config.bHackedBufferUpload && (m_uploadtype & MAP_AND_RISK))
+		else if(g_ogl_config.bSupportsGLSync && g_ActiveConfig.bHackedBufferUpload && (m_uploadtype & MAP_AND_RISK))
 			m_uploadtype = MAP_AND_RISK;
-		else if(g_ogl_config.bSupportsGLSync && g_ogl_config.bSupportsGLPinnedMemory && (m_uploadtype & PINNED_MEMORY))
+		else if(g_ogl_config.bSupportsGLSync && g_ogl_config.bSupportsGLPinnedMemory && (!DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) || type != GL_ELEMENT_ARRAY_BUFFER) && (m_uploadtype & PINNED_MEMORY))
 			m_uploadtype = PINNED_MEMORY;
 		else if(nvidia && (m_uploadtype & BUFFERSUBDATA))
 			m_uploadtype = BUFFERSUBDATA;

@@ -22,7 +22,7 @@ import java.io.*;
 import java.util.List;
 
 import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
-import org.dolphinemu.dolphinemu.inputconfig.InputConfigFragment;
+import org.dolphinemu.dolphinemu.settings.InputConfigFragment;
 import org.dolphinemu.dolphinemu.settings.UserPreferences;
 
 public final class DolphinEmulator<MainActivity> extends Activity 
