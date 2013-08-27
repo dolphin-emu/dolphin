@@ -173,7 +173,8 @@ int GetNumMSAASamples(int MSAAMode)
 	
 	if(samples <= g_ogl_config.max_samples) return samples;
 	
-	ERROR_LOG(VIDEO, "MSAA Bug: %d samples selected, but only %d supported by GPU.", samples, g_ogl_config.max_samples);
+	// TODO: move this to InitBackendInfo
+	OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.", samples, g_ogl_config.max_samples), 10000);
 	return g_ogl_config.max_samples;
 }
 
@@ -197,7 +198,8 @@ int GetNumMSAACoverageSamples(int MSAAMode)
 	}
 	if(g_ogl_config.bSupportCoverageMSAA || samples == 0) return samples;
 	
-	ERROR_LOG(VIDEO, "MSAA Bug: CSAA selected, but not supported by GPU.");
+	// TODO: move this to InitBackendInfo
+	OSD::AddMessage("CSAA Anti Aliasing isn't supported by your GPU.", 10000);
 	return 0;
 }
 
@@ -209,7 +211,8 @@ void ApplySSAASettings() {
 			glEnable(GL_SAMPLE_SHADING_ARB);
 			glMinSampleShadingARB(s_MSAASamples);
 		} else {
-			ERROR_LOG(VIDEO, "MSAA Bug: SSAA selected, but not supported by GPU.");
+			// TODO: move this to InitBackendInfo
+			OSD::AddMessage("SSAA Anti Aliasing isn't supported by your GPU.", 10000);
 		}
 	} else if(g_ogl_config.bSupportSampleShading) {
 		glDisable(GL_SAMPLE_SHADING_ARB);
