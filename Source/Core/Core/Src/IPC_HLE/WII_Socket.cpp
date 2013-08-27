@@ -72,8 +72,14 @@ s32 WiiSockMan::getNetErrorCode(s32 ret, std::string caller, bool isRW)
 		return -SO_EALREADY;
 	case ERRORCODE(EACCES):
 		return -SO_EACCES;
+	case ERRORCODE(ECONNREFUSED):
+		return -SO_ECONNREFUSED;
+	case ERRORCODE(ENETUNREACH):
+		return -SO_ENETUNREACH;
+	case ERRORCODE(EHOSTUNREACH):
+		return -SO_EHOSTUNREACH;
 	case EITHER(WSAEWOULDBLOCK, EAGAIN):
-		if(isRW){
+		if (isRW){
 			return -SO_EAGAIN;  // EAGAIN
 		}else{
 			return -SO_EINPROGRESS; // EINPROGRESS
@@ -347,7 +353,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 #ifdef DEBUG_SSL
 						if (ret > 0)
 						{
-							File::IOFile("ssl_read.bin", "ab").WriteBytes(Memory::GetPointer(_BufferIn2), ret);
+							File::IOFile("ssl_read.bin", "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
 						}
 #endif
 						if (ret >= 0)
@@ -448,7 +454,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 					// recv/recvfrom only handles PEEK
 					flags &= SO_MSG_PEEK | SO_MSG_OOB;
 #ifdef _WIN32
-					if(flags & MSG_PEEK){
+					if (flags & MSG_PEEK){
 						unsigned long totallen = 0;
 						ioctlsocket(sock, FIONREAD, &totallen);
 						ReturnValue = totallen;
@@ -565,7 +571,7 @@ void WiiSockMan::Update()
 	}
 	s32 ret = select(nfds, &read_fds, &write_fds, &except_fds, &t);
 
-	if(ret >= 0)
+	if (ret >= 0)
 	{
 		for (auto it = WiiSockets.begin(); it != WiiSockets.end(); ++it)
 		{

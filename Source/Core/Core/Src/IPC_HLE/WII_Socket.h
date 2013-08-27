@@ -139,6 +139,26 @@ enum {
 	SO_EXDEV
 };
 
+struct WiiInAddr
+{
+	u32 addr;
+};
+
+struct WiiSockAddr
+{
+    u8 len;
+    u8 family;
+    u8 data[6];
+};
+
+struct WiiSockAddrIn
+{
+    u8 len;
+    u8 family;
+    u16 port;
+    WiiInAddr addr;
+};
+
 class WiiSocket
 {
 	struct sockop{

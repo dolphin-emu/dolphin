@@ -2,32 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-/*
-The /dev/net/kd/request requests are part of what is called WiiConnect24,
-it's used by for example SSBB, Mario Kart, Metroid Prime 3
-
-0x01 SuspendScheduler (Input: none, Output: 32 bytes)
-0x02 ExecTrySuspendScheduler (Input: 32 bytes, Output: 32 bytes) // Sounds like it will
-check if it should suspend the updates scheduler or not. If I returned
-(OutBuffer: 0, Ret: -1) to Metroid Prime 3 it got stuck in an endless loops of
-requests, probably harmless but I changed it to (OutBuffer: 1, Ret: 0) to stop
-the calls. However then it also calls 0x3 and then changes its error message
-to a Wii Memory error message from just a general Error message.
-
-0x03 ? (Input: none, Output: 32 bytes) // This is only called if 0x02
-does not return -1
-0x0f NWC24iRequestGenerateUserId (Input: none, Output: 32 bytes)
-
-Requests are made in this order by these games
-Mario Kart: 2, 1, f, 3
-SSBB: 2, 3
-
-For Mario Kart I had to return -1 from at least 2, f and 3 to convince it that the network
-was unavailable and prevent if from looking for shared2/wc24 files (and do a PPCHalt when
-it failed)
-*/
-
 #include "WII_IPC_HLE_Device_es.h"
 #include "WII_IPC_HLE_Device_net.h"
 #include "../ConfigManager.h"
@@ -225,9 +199,7 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 		break;
 	}
 
-	// g_ReplyQueueLater.push(std::pair<u32, std::string>(_CommandAddress, GetDeviceName()));
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-
 	return true;
 }
 
@@ -1313,7 +1285,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 		int ret = getaddrinfo(pNodeName, pServiceName, BufferInSize3 ? &hints : NULL, &result);
 		u32 addr = _BufferOut;
 		u32 sockoffset = addr + 0x460;
-		if (ret >= 0)
+		if (ret == 0)
 		{
 			while (result != NULL)
 			{
@@ -1349,6 +1321,11 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 				addr += sizeof(addrinfo);
 				result = result->ai_next;
 			}
+		}
+		else
+		{
+			// Host not found
+			ret = -305;
 		}
 
 		WARN_LOG(WII_IPC_NET, "IOCTLV_SO_GETADDRINFO "
