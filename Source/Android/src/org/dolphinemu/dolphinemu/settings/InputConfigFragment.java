@@ -128,9 +128,10 @@ public final class InputConfigFragment extends PreferenceFragment
 		{
 			public boolean onMotion(MotionEvent event)
 			{
-				Log.d("InputConfigFragment", "Received motion event: " + event.getAction());
 				if (event == null || (event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)
 					return false;
+
+				Log.d("InputConfigFragment", "Received motion event: " + event.getAction());
 
 				InputDevice input = event.getDevice();
 				List<InputDevice.MotionRange> motions = input.getMotionRanges();
