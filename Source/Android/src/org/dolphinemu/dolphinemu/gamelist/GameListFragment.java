@@ -123,11 +123,8 @@ public final class GameListFragment extends Fragment
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 		{
-			GameListItem o = mGameAdapter.getItem(position);
-			if (!(o.getData().equalsIgnoreCase(getString(R.string.folder))||o.getData().equalsIgnoreCase(getString(R.string.parent_directory))))
-			{
-				onFileClick(o.getPath());
-			}
+			GameListItem item = mGameAdapter.getItem(position);
+			onFileClick(item.getPath());
 		}
 	};
 
