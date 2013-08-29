@@ -33,11 +33,12 @@ public:
 
 	bool Empty() const
 	{
-		return !m_read_ptr->next;
+		return !AtomicLoad(m_read_ptr->next);
 	}
 
 	T& Front() const
 	{
+		AtomicLoadAcquire(m_read_ptr->next);
 		return m_read_ptr->current;
 	}
 
@@ -48,7 +49,9 @@ public:
 		m_write_ptr->current = std::move(t);
 		// set the next pointer to a new element ptr
 		// then advance the write pointer 
-		m_write_ptr = m_write_ptr->next = new ElementPtr();
+		ElementPtr* new_ptr = new ElementPtr();
+		AtomicStoreRelease(m_write_ptr->next, new_ptr);
+		m_write_ptr = new_ptr;
 		if (NeedSize)
 			Common::AtomicIncrement(m_size);
 	}
@@ -59,7 +62,7 @@ public:
 			Common::AtomicDecrement(m_size);
 		ElementPtr *tmpptr = m_read_ptr;
 		// advance the read pointer
-		m_read_ptr = tmpptr->next;
+		m_read_ptr = AtomicLoad(tmpptr->next);
 		// set the next element to NULL to stop the recursive deletion
 		tmpptr->next = NULL;
 		delete tmpptr;	// this also deletes the element
@@ -70,9 +73,14 @@ public:
 		if (Empty())
 			return false;
 
-		t = std::move(Front());
-		Pop();
+		if (NeedSize)
+			Common::AtomicDecrement(m_size);
 
+		ElementPtr *tmpptr = m_read_ptr;
+		m_read_ptr = AtomicLoadAcquire(tmpptr->next);
+		t = std::move(tmpptr->current);
+		tmpptr->next = NULL;
+		delete tmpptr;
 		return true;
 	}
 
@@ -94,7 +102,7 @@ public:
 		iterator() {}
 		bool operator==(iterator other) { return other.m_pp == m_pp; }
 		bool operator!=(iterator other) { return !(*this == other); }
-		T *operator->() { return &**this; }
+		T* operator->() { return &**this; }
 		T& operator*() { return (*m_pp)->current; }
 		void operator++() { m_pp = &(*m_pp)->next; }
 	protected:
@@ -116,7 +124,7 @@ public:
 	iterator erase(iterator itr)
 	{
 		ElementPtr *elp = *itr.m_pp;
-		*itr.m_pp = elp->next;
+		*itr.m_pp = AtomicLoadAcquire(elp->next);
 		delete elp;
 		return itr;
 	}
