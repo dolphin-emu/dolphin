@@ -1,6 +1,5 @@
 set(LIBS	core
 			${LZO}
-			iconv
 			discio
 			bdisasm
 			inputcommon
@@ -9,6 +8,11 @@ set(LIBS	core
 			z
 			sfml-network
 			${GTK2_LIBRARIES})
+
+if(NOT ICONV)
+	set(LIBS ${LIBS} iconv)
+endif()
+
 if(NOT ANDROID)
 	if(USE_X11)
 	  set(LIBS  ${LIBS} ${X11_LIBRARIES}
