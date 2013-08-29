@@ -57,37 +57,37 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 		final FolderBrowserItem item = items.get(position);
 		if (item != null)
 		{
-			ImageView iconView = (ImageView) v.findViewById(R.id.ImageIcon);
-			TextView mainText = (TextView) v.findViewById(R.id.FolderTitle);
-			TextView subtitleText = (TextView) v.findViewById(R.id.FolderSubTitle);
+			ImageView icon    = (ImageView) v.findViewById(R.id.ListItemIcon);
+			TextView title    = (TextView) v.findViewById(R.id.ListItemTitle);
+			TextView subtitle = (TextView) v.findViewById(R.id.ListItemSubTitle);
 
-			if(mainText != null)
+			if(title != null)
 			{
-				mainText.setText(item.getName());
+				title.setText(item.getName());
 			}
 
-			if(subtitleText != null)
+			if(subtitle != null)
 			{
 				// Remove the subtitle for all folders, except for the parent directory folder.
 				if (item.isDirectory() && !item.getSubtitle().equals(c.getResources().getString(R.string.parent_directory)))
 				{
-					subtitleText.setVisibility(View.GONE);
+					subtitle.setVisibility(View.GONE);
 				}
 				else
 				{
-					subtitleText.setText(item.getSubtitle());
+					subtitle.setText(item.getSubtitle());
 				}
 			}
 
-			if (iconView != null)
+			if (icon != null)
 			{
 				if (item.isDirectory())
 				{
-					iconView.setImageResource(R.drawable.ic_menu_folder);
+					icon.setImageResource(R.drawable.ic_menu_folder);
 				}
 				else
 				{
-					iconView.setImageResource(R.drawable.ic_menu_file);
+					icon.setImageResource(R.drawable.ic_menu_file);
 				}
 			}
 		}
