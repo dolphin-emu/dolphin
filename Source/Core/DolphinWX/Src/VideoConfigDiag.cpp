@@ -154,32 +154,32 @@ wxArrayString GetListOfResolutions()
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->AddResolutions(retlist);
 #elif defined(__APPLE__)
-	CFArrayRef modes = CGDisplayAvailableModes(CGMainDisplayID());
+	CFArrayRef modes = CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
 	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
 	{
 		std::stringstream res;
-		CFDictionaryRef mode;
-		CFNumberRef ref;
-		int w, h, d;
+		CGDisplayModeRef mode;
+		CFStringRef encoding;
+		size_t w, h;
+		bool is32;
 
-		mode = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, i);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayWidth);
-		CFNumberGetValue(ref, kCFNumberIntType, &w);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayHeight);
-		CFNumberGetValue(ref, kCFNumberIntType, &h);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode,
-			kCGDisplayBitsPerPixel);
-		CFNumberGetValue(ref, kCFNumberIntType, &d);
+		mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, i);
+		w = CGDisplayModeGetWidth(mode);
+		h = CGDisplayModeGetHeight(mode);
+		encoding = CGDisplayModeCopyPixelEncoding(mode);
+		is32 = CFEqual(encoding, CFSTR(IO32BitDirectPixels));
+		CFRelease(encoding);
 
-		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsStretched))
+		if (!is32)
 			continue;
-		if (d != 32)
+		if (CGDisplayModeGetIOFlags(mode) & kDisplayModeStretchedFlag)
 			continue;
 
 		res << w << "x" << h;
 
 		retlist.Add(res.str());
 	}
+	CFRelease(modes);
 #endif
 	return retlist;
 }
