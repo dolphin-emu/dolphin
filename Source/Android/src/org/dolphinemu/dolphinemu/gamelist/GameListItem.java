@@ -51,10 +51,10 @@ public final class GameListItem implements Comparable<GameListItem>
 				{
 					// Open the no banner icon.
 					InputStream noBannerPath = ctx.getAssets().open("NoBanner.png");
-					
+
 					// Decode the bitmap.
 					image = BitmapFactory.decodeStream(noBannerPath);
-					
+
 					// Scale the bitmap to match other banners.
 					image = Bitmap.createScaledBitmap(image, 96, 32, false);
 				}
@@ -114,8 +114,8 @@ public final class GameListItem implements Comparable<GameListItem>
 
 	public int compareTo(GameListItem o) 
 	{
-		if (this.name != null)
-			return this.name.toLowerCase().compareTo(o.getName().toLowerCase()); 
+		if (name != null)
+			return name.toLowerCase().compareTo(o.getName().toLowerCase()); 
 		else 
 			throw new IllegalArgumentException();
 	}

@@ -50,7 +50,7 @@ public final class SideMenuItem implements Comparable<SideMenuItem>
 	public int compareTo(SideMenuItem o) 
 	{
 		if (name != null)
-			return this.name.toLowerCase().compareTo(o.getName().toLowerCase()); 
+			return name.toLowerCase().compareTo(o.getName().toLowerCase()); 
 		else 
 			throw new IllegalArgumentException();
 	}

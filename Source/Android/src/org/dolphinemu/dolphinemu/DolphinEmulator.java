@@ -128,10 +128,10 @@ public final class DolphinEmulator<MainActivity> extends Activity
 				CopyAsset("dsp_rom.bin",     GCDir + File.separator + "dsp_rom.bin");
 				CopyAsset("font_ansi.bin",   GCDir + File.separator + "font_ansi.bin");
 				CopyAsset("font_sjis.bin",   GCDir + File.separator + "font_sjis.bin");
-				CopyAsset("setting-eur.txt",   WiiDir + File.separator + "setting-eur.txt");
-				CopyAsset("setting-jpn.txt",   WiiDir + File.separator + "setting-jpn.txt");
-				CopyAsset("setting-kor.txt",   WiiDir + File.separator + "setting-kor.txt");
-				CopyAsset("setting-usa.txt",   WiiDir + File.separator + "setting-usa.txt");
+				CopyAsset("setting-eur.txt", WiiDir + File.separator + "setting-eur.txt");
+				CopyAsset("setting-jpn.txt", WiiDir + File.separator + "setting-jpn.txt");
+				CopyAsset("setting-kor.txt", WiiDir + File.separator + "setting-kor.txt");
+				CopyAsset("setting-usa.txt", WiiDir + File.separator + "setting-usa.txt");
 			}
 
 			// Load the configuration keys set in the Dolphin ini and gfx ini files
@@ -188,10 +188,9 @@ public final class DolphinEmulator<MainActivity> extends Activity
 		// Special catch for the back key
 		// Currently disabled because stopping and starting emulation is broken.
 		/*
-		if (    event.getSource() == InputDevice.SOURCE_KEYBOARD
-				&& event.getKeyCode() == KeyEvent.KEYCODE_BACK
-				&& event.getAction() == KeyEvent.ACTION_UP
-				)
+		if (event.getSource() == InputDevice.SOURCE_KEYBOARD
+			&& event.getKeyCode() == KeyEvent.KEYCODE_BACK
+			&& event.getAction() == KeyEvent.ACTION_UP)
 		{
 			if (Running)
 				NativeLibrary.StopEmulation();
@@ -232,7 +231,7 @@ public final class DolphinEmulator<MainActivity> extends Activity
 
 		InputDevice input = event.getDevice();
 		List<InputDevice.MotionRange> motions = input.getMotionRanges();
-		
+
 		for (InputDevice.MotionRange range : motions)
 		{
 			NativeLibrary.onGamePadMoveEvent(InputConfigFragment.getInputDesc(input), range.getAxis(), event.getAxisValue(range.getAxis()));

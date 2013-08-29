@@ -47,8 +47,8 @@ public final class CPUSettingsFragment extends PreferenceFragment
 		}
 		else
 		{
-		   cpuCores.setEntries(R.array.emuCoreEntriesOther);
-		   cpuCores.setEntryValues(R.array.emuCoreValuesOther);
+			cpuCores.setEntries(R.array.emuCoreEntriesOther);
+			cpuCores.setEntryValues(R.array.emuCoreValuesOther);
 		}
 	}
 

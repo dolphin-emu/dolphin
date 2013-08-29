@@ -91,7 +91,7 @@ public final class InputConfigFragment extends PreferenceFragment
 			pref.setSummary(binding);
 		}
 	}
-	
+
 	@Override
 	public boolean onPreferenceTreeClick(final PreferenceScreen screen, final Preference pref)
 	{
@@ -204,7 +204,6 @@ public final class InputConfigFragment extends PreferenceFragment
 		m_activity = activity;
 	}
 
-
 	/**
 	 * {@link AlertDialog} class derivative that allows the motion listener
 	 * to be set anonymously, so the creation of an explicit class for
@@ -258,7 +257,7 @@ public final class InputConfigFragment extends PreferenceFragment
 		{
 			if (motionListener.onMotion(event))
 				return true;
-			
+
 			return super.dispatchGenericMotionEvent(event);
 		}
 	}

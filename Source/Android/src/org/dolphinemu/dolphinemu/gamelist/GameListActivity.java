@@ -45,8 +45,6 @@ public final class GameListActivity extends Activity
 	private DrawerLayout mDrawerLayout;
 	private SideMenuAdapter mDrawerAdapter;
 	private ListView mDrawerList;
-	
-	
 
 	/**
 	 * Called from the {@link GameListFragment}.

@@ -33,7 +33,7 @@ public final class AboutFragment extends Fragment
 	{
 		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
 		mMainList = (ListView) rootView.findViewById(R.id.gamelist);
-		
+
 		String yes = getString(R.string.yes);
 		String no = getString(R.string.no);
 
@@ -46,7 +46,7 @@ public final class AboutFragment extends Fragment
 
 		return mMainList;
 	}
-	
+
 	@Override
 	public void onAttach(Activity activity)
 	{
