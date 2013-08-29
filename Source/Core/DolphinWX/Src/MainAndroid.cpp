@@ -26,6 +26,7 @@
 #include "CPUDetect.h"
 #include "Thread.h"
 
+#include "State.h"
 #include "PowerPC/PowerPC.h"
 #include "HW/Wiimote.h"
 
@@ -296,6 +297,16 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetDimension
 {
 	g_width = (int)_width;
 	g_height = (int)_height;
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv *env, jobject obj, jint slot)
+{
+	State::Save(slot);
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv *env, jobject obj, jint slot)
+{
+	State::Load(slot);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)

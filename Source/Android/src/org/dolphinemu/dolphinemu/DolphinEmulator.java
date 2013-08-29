@@ -11,11 +11,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-
-import java.io.*;
-
 import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
 import org.dolphinemu.dolphinemu.settings.UserPreferences;
+
+import java.io.*;
 
 /**
  * The main activity of this emulator.

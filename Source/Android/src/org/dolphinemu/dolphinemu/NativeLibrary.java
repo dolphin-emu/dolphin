@@ -105,6 +105,22 @@ public final class NativeLibrary
 	public static native String GetVersionString();
 
 	/**
+	 * Saves a game state to the slot number.
+	 *
+	 * @param slot  The slot location to save state to.
+	 */
+	public static native void SaveState(int slot);
+
+	/**
+	 * Loads a game state from the slot number.
+	 *
+	 * @param slot  The slot location to load state from.
+	 */
+	public static native void LoadState(int slot);
+
+
+
+	/**
 	 * Begins emulation.
 	 * 
 	 * @param surf The surface to render to.
