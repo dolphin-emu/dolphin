@@ -83,7 +83,6 @@ private:
 	bool m_Valid;
 	bool m_BlobCompressed;
 	std::vector<u8> m_pImage;
-	u32 m_ImageSize;
 	bool m_IsDiscTwo;
 
 	bool LoadFromCache();

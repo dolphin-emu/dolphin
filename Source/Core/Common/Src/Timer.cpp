@@ -39,10 +39,6 @@ Timer::Timer()
 	: m_LastTime(0), m_StartTime(0), m_Running(false)
 {
 	Update();
-
-#ifdef _WIN32
-	QueryPerformanceFrequency((LARGE_INTEGER*)&m_frequency);
-#endif
 }
 
 // Write the starting time

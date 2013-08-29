@@ -73,10 +73,7 @@ private:
 
 	u32 selection;
 	u32 oldSelection;
-	bool selectionChanged;
 	bool selecting;
-	bool hasFocus;
-	bool showHex;
 
 	int lx, ly;
 	void _MoveTo(int x, int y) {lx = x; ly = y;}

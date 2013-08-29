@@ -27,7 +27,6 @@ private:
 	Elf32_Phdr *segments;
 	Elf32_Shdr *sections;
 	
-	u32 *sectionOffsets;
 	u32 *sectionAddrs;
 	bool bRelocate;
 	u32 entryPoint;

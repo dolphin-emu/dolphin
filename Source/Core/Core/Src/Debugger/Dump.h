@@ -32,7 +32,6 @@ private:
 
 	u8 *m_pData;
 
-	bool m_bInit;
 	size_t m_size;
 
 	u32 Read32(u32 _pos);

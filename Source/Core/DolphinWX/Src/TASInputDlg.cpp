@@ -697,7 +697,7 @@ void TASInputDlg::OnCloseWindow(wxCloseEvent& event)
 	}
 }
 
-bool TASInputDlg::HasFocus()
+bool TASInputDlg::TASHasFocus()
 {	
 	//allows numbers to be used as hotkeys
 	if(TextBoxHasFocus())

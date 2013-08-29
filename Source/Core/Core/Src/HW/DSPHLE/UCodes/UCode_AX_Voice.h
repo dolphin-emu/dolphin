@@ -103,6 +103,7 @@ bool WritePB(u32 addr, const PB_TYPE& pb)
 	return true;
 }
 
+#if 0
 // Dump the value of a PB for debugging
 #define DUMP_U16(field) WARN_LOG(DSPHLE, "    %04x (%s)", pb.field, #field)
 #define DUMP_U32(field) WARN_LOG(DSPHLE, "    %08x (%s)", HILO_TO_32(pb.field), #field)
@@ -122,6 +123,7 @@ void DumpPB(const PB_TYPE& pb)
 
 	// TODO: complete as needed
 }
+#endif
 
 // Simulated accelerator state.
 static u32 acc_loop_addr, acc_end_addr;

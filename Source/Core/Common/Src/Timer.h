@@ -38,7 +38,6 @@ public:
 private:
 	u64 m_LastTime;
 	u64 m_StartTime;
-	u64 m_frequency;
 	bool m_Running;
 };
 

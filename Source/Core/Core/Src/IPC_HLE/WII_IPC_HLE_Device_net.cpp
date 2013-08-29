@@ -472,7 +472,8 @@ bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 	case IOCTLV_WD_SCAN:
 		{
 		// Gives parameters detailing type of scan and what to match
-		ScanInfo *scan = (ScanInfo *)Memory::GetPointer(CommandBuffer.InBuffer.at(0).m_Address);
+		// XXX - unused
+		// ScanInfo *scan = (ScanInfo *)Memory::GetPointer(CommandBuffer.InBuffer.at(0).m_Address);
 
 		u16 *results = (u16 *)Memory::GetPointer(CommandBuffer.PayloadBuffer.at(0).m_Address);
 		// first u16 indicates number of BSSInfo following

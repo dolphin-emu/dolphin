@@ -475,9 +475,7 @@ public:
 	{
 		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
 		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-		u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 
 		u32 result = 0;
 		u32 common_result = 0;

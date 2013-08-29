@@ -16,7 +16,6 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index, void *win
 	: m_device(device)
 	, m_device_name(name)
 	, m_index(index)
-	, m_window(window)
 {
 	// This class should only recieve Keyboard or Keypad devices
 	// Now, filter on just the buttons we can handle sanely

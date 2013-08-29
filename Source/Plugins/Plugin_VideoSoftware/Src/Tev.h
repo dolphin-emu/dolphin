@@ -40,7 +40,6 @@ class Tev
 	s16 *m_ColorInputLUT[16][3];
 	s16 *m_AlphaInputLUT[8];        // values must point to ABGR color
 	s16 *m_KonstLUT[32][4];
-	u8 *m_RasColorLUT[8];
 	s16 m_BiasLUT[4];
 	u8 m_ScaleLShiftLUT[4];
 	u8 m_ScaleRShiftLUT[4];
