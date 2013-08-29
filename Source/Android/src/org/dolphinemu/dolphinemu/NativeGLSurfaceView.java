@@ -7,6 +7,7 @@
 package org.dolphinemu.dolphinemu;
 
 import android.content.Context;
+import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -24,9 +25,10 @@ public final class NativeGLSurfaceView extends SurfaceView
 	 * 
 	 * @param context The current {@link Context}.
 	 */
-	public NativeGLSurfaceView(Context context)
+	public NativeGLSurfaceView(Context context, AttributeSet attribs)
 	{
-		super(context);
+		super(context, attribs);
+
 		if (!Created)
 		{
 			myRun = new Thread() 

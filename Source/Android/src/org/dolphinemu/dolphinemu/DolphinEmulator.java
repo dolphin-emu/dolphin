@@ -27,7 +27,6 @@ import org.dolphinemu.dolphinemu.settings.UserPreferences;
 
 public final class DolphinEmulator<MainActivity> extends Activity 
 {
-	private static NativeGLSurfaceView GLview = null;
 	private static boolean Running = false;
 
 	private float screenWidth;
@@ -154,11 +153,10 @@ public final class DolphinEmulator<MainActivity> extends Activity
 			screenHeight = displayMetrics.heightPixels;
 
 			String FileName = data.getStringExtra("Select");
-			GLview = new NativeGLSurfaceView(this);
 			this.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 			NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
 			NativeLibrary.SetFilename(FileName);
-			setContentView(GLview);
+			setContentView(R.layout.emulation_view);
 			Running = true;
 		}
 	}
