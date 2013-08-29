@@ -11,9 +11,11 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
 
 /**
  * This is the activity where all of the emulation handling happens.
@@ -22,6 +24,7 @@ import android.view.WindowManager;
 public final class EmulationActivity extends Activity
 {
 	private boolean Running;
+	private boolean IsActionBarHidden = false;
 	private float screenWidth;
 	private float screenHeight;
 
@@ -38,8 +41,8 @@ public final class EmulationActivity extends Activity
 		this.screenWidth = displayMetrics.widthPixels;
 
 		// Request window features for the emulation view.
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+		getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
+		getWindow().addFlags(LayoutParams.FLAG_FULLSCREEN);
 		getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
 
 		// Set the native rendering screen width/height.
@@ -51,10 +54,13 @@ public final class EmulationActivity extends Activity
 		NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
 		NativeLibrary.SetFilename(gameToEmulate.getStringExtra("SelectedGame"));
 		Running = true;
-		
+
 		// Set the emulation window.
 		setContentView(R.layout.emulation_view);
-		
+
+		// Hide the action bar by default so it doesn't get in the way.
+		getActionBar().hide();
+		IsActionBarHidden = true;
 	}
 
 	@Override
@@ -96,6 +102,29 @@ public final class EmulationActivity extends Activity
 		
 		return false;
 	}
+	
+	@Override
+	public void onBackPressed()
+	{
+		// The back button in the emulation
+		// window is the toggle for the action bar.
+		if (IsActionBarHidden)
+		{
+			IsActionBarHidden = false;
+			getActionBar().show();
+		}
+		else
+		{
+			IsActionBarHidden = true;
+			getActionBar().hide();
+		}
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		return true;
+	}
 
 	// Gets button presses
 	@Override
@@ -124,6 +153,14 @@ public final class EmulationActivity extends Activity
 			switch (event.getAction())
 			{
 				case KeyEvent.ACTION_DOWN:
+					// Handling the case where the back button is pressed.
+					if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
+					{
+						onBackPressed();
+						return true;
+					}
+
+					// Normal key events.
 					action = 0;
 					break;
 				case KeyEvent.ACTION_UP:
