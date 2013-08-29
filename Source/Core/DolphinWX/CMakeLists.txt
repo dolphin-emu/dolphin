@@ -1,5 +1,6 @@
 set(LIBS	core
 			${LZO}
+			iconv
 			discio
 			bdisasm
 			inputcommon
