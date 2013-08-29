@@ -222,20 +222,15 @@ void StreamBuffer::Shutdown()
 {
 	switch(m_uploadtype) {
 	case MAP_AND_SYNC:
-		for(u32 i=0; i<SYNC_POINTS; i++)
-			glDeleteSync(fences[i]);
-		delete [] fences;
+		DeleteFences();
 		break;
-		
 	case MAP_AND_RISK:
 	case MAP_AND_ORPHAN:
 	case BUFFERSUBDATA:
 	case BUFFERDATA:
 		break;
 	case PINNED_MEMORY:
-		for(u32 i=0; i<SYNC_POINTS; i++)
-			glDeleteSync(fences[i]);
-		delete [] fences;
+		DeleteFences();
 		glBindBuffer(m_buffertype, 0);
 		glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
 		FreeAlignedMemory(pointer);
@@ -244,6 +239,15 @@ void StreamBuffer::Shutdown()
 	case DETECT_MASK: // Just to shutup warnings
 		break;
 	}
+}
+
+void StreamBuffer::DeleteFences()
+{
+	for(u32 i=SLOT(m_free_iterator)+1; i < SYNC_POINTS; i++)
+		glDeleteSync(fences[i]);
+	for(u32 i=0; i<SLOT(m_iterator); i++)
+		glDeleteSync(fences[i]);
+	delete [] fences;
 }
 
 }

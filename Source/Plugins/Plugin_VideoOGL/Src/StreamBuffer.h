@@ -42,6 +42,7 @@ public:
 private:
 	void Init();
 	void Shutdown();
+	void DeleteFences();
 	
 	StreamType m_uploadtype;
 	u32 m_buffer;
