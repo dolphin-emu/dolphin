@@ -46,7 +46,7 @@ void SleepCurrentThread(int ms)
 {
 	Sleep(ms);
 }
-	
+
 void SwitchCurrentThread()
 {
 	SwitchToThread();
@@ -109,42 +109,25 @@ void SetCurrentThreadAffinity(u32 mask)
 	SetThreadAffinity(pthread_self(), mask);
 }
 
-static pthread_key_t threadname_key;
-static pthread_once_t threadname_key_once = PTHREAD_ONCE_INIT;
-
 void SleepCurrentThread(int ms)
 {
 	usleep(1000 * ms);
 }
-	
+
 void SwitchCurrentThread()
 {
 	usleep(1000 * 1);
 }
 
-static void FreeThreadName(void* threadname)
-{
-	free(threadname);
-}
-
-static void ThreadnameKeyAlloc()
-{
-	pthread_key_create(&threadname_key, FreeThreadName);
-}
-
 void SetCurrentThreadName(const char* szThreadName)
 {
-	pthread_once(&threadname_key_once, ThreadnameKeyAlloc);
-
-	void* threadname;
-	if ((threadname = pthread_getspecific(threadname_key)) != NULL)
-		free(threadname);
-
-	pthread_setspecific(threadname_key, strdup(szThreadName));
-
-	INFO_LOG(COMMON, "%s(%s)\n", __FUNCTION__, szThreadName);
+#ifdef __APPLE__
+	pthread_setname_np(szThreadName);
+#else
+	pthread_setname_np(pthread_self(), szThreadName);
+#endif
 }
 
 #endif
-	
+
 } // namespace Common
