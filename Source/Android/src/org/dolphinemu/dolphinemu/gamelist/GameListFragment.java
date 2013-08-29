@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.dolphinemu.dolphinemu.EmulationActivity;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 
@@ -132,9 +133,9 @@ public final class GameListFragment extends Fragment
 	{
 		Toast.makeText(mMe, getString(R.string.file_clicked) + o, Toast.LENGTH_SHORT).show();
 
-		Intent intent = new Intent();
-		intent.putExtra("Select", o);
-		mMe.setResult(Activity.RESULT_OK, intent);
+		Intent intent = new Intent(mMe, EmulationActivity.class);
+		intent.putExtra("SelectedGame", o);
+		mMe.startActivity(intent);
 		mMe.finish();
 	}
 

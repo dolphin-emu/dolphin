@@ -32,8 +32,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity" >
-        </activity>
+        <activity android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity" />
+        <activity android:name="org.dolphinemu.dolphinemu.EmulationActivity" />
         <activity
             android:name="org.dolphinemu.dolphinemu.settings.PrefsActivity"
             android:label="@string/settings" >
