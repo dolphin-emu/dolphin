@@ -328,8 +328,9 @@ add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
 # TODO: We should have options for dependencies included in the externals to
 # override autodetection of system libraries and force the usage of the
 # externals.
+include(CheckLib)
+include(CheckCXXSourceRuns)
 if(NOT ANDROID)
-	include(CheckLib)
 
 	include(FindOpenGL)
 	include_directories(${OPENGL_INCLUDE_DIR})
@@ -454,7 +455,6 @@ if(NOT ANDROID)
 		check_libav()
 	endif()
 
-	include(CheckCXXSourceRuns)
 	set(CMAKE_REQUIRED_LIBRARIES portaudio)
 	CHECK_CXX_SOURCE_RUNS(
 		"#include <portaudio.h>
@@ -647,6 +647,12 @@ else()
 			include_directories(Externals/GLew/include)
 		endif(NOT GLEW_FOUND)
 	endif()
+endif()
+
+if (ANDROID)
+	message("Using static iconv from Externals")
+	include_directories(Externals/libiconv-1.14/include)
+	add_subdirectory(Externals/libiconv-1.14)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
