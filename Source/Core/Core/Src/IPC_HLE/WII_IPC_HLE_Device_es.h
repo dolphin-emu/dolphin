@@ -19,6 +19,10 @@ public:
 
 	void LoadWAD(const std::string& _rContentFile);
 
+	void OpenInternal();
+
+	virtual void DoState(PointerWrap& p);
+
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
 
 	virtual bool Close(u32 _CommandAddress, bool _bForce);
@@ -108,10 +112,12 @@ private:
 		ES_HASH_SIZE_WRONG                   = -2014, // HASH !=20
 	};
 
-	struct SContentAccess 
+	struct SContentAccess : public NonCopyable
 	{
 		u32 m_Position;
+		u64 m_TitleID;
 		const DiscIO::SNANDContent* m_pContent;
+		File::IOFile m_File;
 	};
 
 	typedef std::map<u32, SContentAccess> CContentAccessMap;
@@ -124,13 +130,14 @@ private:
 
 	std::vector<u64> m_TitleIDs;
 	u64 m_TitleID;
-	u32 AccessIdentID;
+	u32 m_AccessIdentID;
 
 	static u8 *keyTable[11];
 
 	u64 GetCurrentTitleID() const;
 
 	const DiscIO::INANDContentLoader& AccessContentDevice(u64 _TitleID);
+	u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 
 	bool IsValid(u64 _TitleID) const;
 

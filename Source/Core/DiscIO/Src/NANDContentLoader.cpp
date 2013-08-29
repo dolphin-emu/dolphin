@@ -5,7 +5,7 @@
 #include "NANDContentLoader.h"
 
 #include <algorithm>
-#include <cctype> 
+#include <cctype>
 #include "Crypto/aes.h"
 #include "MathUtil.h"
 #include "FileUtil.h"
@@ -42,7 +42,7 @@ void CSharedContent::UpdateLocation()
 CSharedContent::~CSharedContent()
 {}
 
-std::string CSharedContent::GetFilenameFromSHA1(u8* _pHash)
+std::string CSharedContent::GetFilenameFromSHA1(const u8* _pHash)
 {
 	for (size_t i=0; i<m_Elements.size(); i++)
 	{
@@ -58,7 +58,7 @@ std::string CSharedContent::GetFilenameFromSHA1(u8* _pHash)
 	return "unk";
 }
 
-std::string CSharedContent::AddSharedContent(u8* _pHash)
+std::string CSharedContent::AddSharedContent(const u8* _pHash)
 {
 	std::string szFilename = GetFilenameFromSHA1(_pHash);
 	if (strcasecmp(szFilename.c_str(), "unk") == 0)
@@ -170,8 +170,11 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 {
 	for (size_t i=0; i<m_Content.size(); i++)
 	{
-		if (m_Content[i].m_Index == _Index)
-			return &m_Content[i];
+		const SNANDContent* pContent = &m_Content[i];
+		if (pContent->m_Index == _Index)
+		{
+			return pContent;
+		}
 	}
 	return NULL;
 }
@@ -262,36 +265,18 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		}
 
 		rContent.m_pData = NULL;
-		char szFilename[1024];
 
 		if (rContent.m_Type & 0x8000)  // shared app
 		{
-			std::string Filename = CSharedContent::AccessInstance().GetFilenameFromSHA1(rContent.m_SHA1Hash);
-			strcpy(szFilename, Filename.c_str());
+			rContent.m_Filename = CSharedContent::AccessInstance().GetFilenameFromSHA1(rContent.m_SHA1Hash);
 		}
 		else
 		{
-			sprintf(szFilename, "%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
+			rContent.m_Filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), rContent.m_ContentID);
 		}
 
-		INFO_LOG(DISCIO, "NANDContentLoader: load %s", szFilename);
-
-		File::IOFile pFile(szFilename, "rb");
-		if (pFile)
-		{
-			const u64 ContentSize = File::GetSize(szFilename);
-			rContent.m_pData = new u8[(u32)ContentSize];
-
-			_dbg_assert_msg_(BOOT, rContent.m_Size==ContentSize, "TMDLoader: Incorrect filesize (%s %i).  Your NAND dump may be corrupt.", szFilename, i);
-
-			pFile.ReadBytes(rContent.m_pData, (size_t)ContentSize);
-		} 
-		else 
-		{
-			ERROR_LOG(DISCIO, "NANDContentLoader: error opening %s", szFilename);
-			delete [] pTMD;
-			return false;
-		}
+		// Be graceful about incorrect tmds.
+		rContent.m_Size = (u32) File::GetSize(rContent.m_Filename);
 	}
 
 	delete [] pTMD;
@@ -493,7 +478,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	
 	for (u32 i = 0; i < ContentLoader.GetContentSize(); i++)
 	{
-		SNANDContent Content = ContentLoader.GetContent()[i];
+		const SNANDContent& Content = ContentLoader.GetContent()[i];
 
 		pTMDFile.WriteBytes(Content.m_Header, INANDContentLoader::CONTENT_HEADER_SIZE);
 
