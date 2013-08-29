@@ -26,7 +26,7 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 	if(m_uploadtype & STREAM_DETECT)
 	{
 		// TODO: move this to InitBackendInfo
-		if(g_ActiveConfig.bHackedBufferUpload && !DriverDetails::HasBug(DriverDetails::BUG_BROKENHACKEDBUFFER))
+		if(g_ActiveConfig.bHackedBufferUpload && DriverDetails::HasBug(DriverDetails::BUG_BROKENHACKEDBUFFER))
 		{
 			OSD::AddMessage("Vertex Streaming Hack isn't supported by your GPU.", 10000);
 			g_ActiveConfig.bHackedBufferUpload = false;
