@@ -22,8 +22,8 @@
 	device: (IOBluetoothDevice *) device
 {
 	NOTICE_LOG(WIIMOTE, "Discovered bluetooth device at %s: %s",
-		[[device getAddressString] UTF8String],
-		[[device getName] UTF8String]);
+		[[device addressString] UTF8String],
+		[[device name] UTF8String]);
 
 	if ([[sender foundDevices] count] == maxDevices)
 		[sender stop];
@@ -38,7 +38,7 @@
 	data: (unsigned char *) data
 	length: (NSUInteger) length
 {
-	IOBluetoothDevice *device = [l2capChannel getDevice];
+	IOBluetoothDevice *device = [l2capChannel device];
 	WiimoteReal::Wiimote *wm = NULL;
 	
 	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
@@ -78,7 +78,7 @@
 
 - (void) l2capChannelClosed: (IOBluetoothL2CAPChannel *) l2capChannel
 {
-	IOBluetoothDevice *device = [l2capChannel getDevice];
+	IOBluetoothDevice *device = [l2capChannel device];
 	WiimoteReal::Wiimote *wm = NULL;
 	
 	std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
@@ -211,7 +211,7 @@ bool Wiimote::Connect()
     [cchan retain];
 
 	NOTICE_LOG(WIIMOTE, "Connected to wiimote %i at %s",
-		index + 1, [[btd getAddressString] UTF8String]);
+		index + 1, [[btd addressString] UTF8String]);
 
 	m_connected = true;
 
