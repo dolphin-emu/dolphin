@@ -9,10 +9,6 @@ set(LIBS	core
 			sfml-network
 			${GTK2_LIBRARIES})
 
-if(NOT ICONV)
-	set(LIBS ${LIBS} iconv)
-endif()
-
 if(NOT ANDROID)
 	if(USE_X11)
 	  set(LIBS  ${LIBS} ${X11_LIBRARIES}
@@ -39,7 +35,7 @@ if(NOT ANDROID)
 		endif()
 	endif()
 else()
-	set(LIBS ${LIBS} png)
+	set(LIBS ${LIBS} png iconv)
 endif()
 
 if(LIBAV_FOUND)

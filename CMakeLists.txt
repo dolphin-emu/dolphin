@@ -649,16 +649,7 @@ else()
 	endif()
 endif()
 
-CHECK_CXX_SOURCE_RUNS(
-        "#include <iconv.h>
-	int main(int argc, char **argv)
-	{
-		iconv_t const conv_desc = iconv_open(""UTF-8"", fromcode);
-		if ((iconv_t)-1 == conv_desc) return 0; else return 1;
-	}"
-	ICONV)
-
-if (NOT ICONV)
+if (ANDROID)
 	message("Using static iconv from Externals")
 	include_directories(Externals/libiconv-1.14/include)
 	add_subdirectory(Externals/libiconv-1.14)
