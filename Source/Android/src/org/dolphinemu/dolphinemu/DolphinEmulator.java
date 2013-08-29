@@ -63,27 +63,16 @@ public final class DolphinEmulator<MainActivity> extends Activity
 			Intent ListIntent = new Intent(this, GameListActivity.class);
 			startActivityForResult(ListIntent, 1);
 
-			// Make the assets directory
 			String BaseDir = Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu";
-			File directory = new File(BaseDir);
-			directory.mkdirs();
-
 			String ConfigDir = BaseDir + File.separator + "Config";
-			directory = new File(ConfigDir);
-			directory.mkdirs();
-
 			String GCDir = BaseDir + File.separator + "GC";
-			directory = new File(GCDir);
-			directory.mkdirs();
-
 			String WiiDir = BaseDir + File.separator + "Wii";
-			directory = new File(WiiDir);
-			directory.mkdirs();
 
 			// Copy assets if needed
 			File file = new File(WiiDir + File.separator + "setting-usa.txt");
 			if(!file.exists())
 			{
+				NativeLibrary.CreateUserFolders();
 				CopyAsset("ButtonA.png",     BaseDir + File.separator + "ButtonA.png");
 				CopyAsset("ButtonB.png",     BaseDir + File.separator + "ButtonB.png");
 				CopyAsset("ButtonStart.png", BaseDir + File.separator + "ButtonStart.png");

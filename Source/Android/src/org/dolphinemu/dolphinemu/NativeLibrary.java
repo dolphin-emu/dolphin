@@ -118,7 +118,11 @@ public final class NativeLibrary
 	 */
 	public static native void LoadState(int slot);
 
-
+	/**
+	 * Creates the initial folder structure in /sdcard/dolphin-emu/
+	 *
+	 */
+	public static native void CreateUserFolders();
 
 	/**
 	 * Begins emulation.
