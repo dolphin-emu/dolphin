@@ -83,7 +83,7 @@ public final class AboutFragment extends Fragment
 	}
 
 	// The adapter that manages the displaying of items in this AboutFragment.
-	private static class AboutFragmentAdapter extends ArrayAdapter<AboutFragmentItem>
+	private static final class AboutFragmentAdapter extends ArrayAdapter<AboutFragmentItem>
 	{
 		private final Context ctx;
 		private final int id;
