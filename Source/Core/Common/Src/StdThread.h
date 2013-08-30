@@ -9,7 +9,7 @@
 #define __has_include(s) 0
 #endif
 
-#if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__ && !ANDROID
+#if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__
 // GCC 4.4 provides <thread>
 #ifndef _GLIBCXX_USE_SCHED_YIELD
 #define _GLIBCXX_USE_SCHED_YIELD
