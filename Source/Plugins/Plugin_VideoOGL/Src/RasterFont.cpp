@@ -189,8 +189,8 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 	int usage = 0;
 	GLfloat delta_x = GLfloat(2*char_width)/GLfloat(bbWidth);
 	GLfloat delta_y = GLfloat(2*char_height)/GLfloat(bbHeight);
-	GLfloat border_x = 2.0/GLfloat(bbWidth);
-	GLfloat border_y = 4.0/GLfloat(bbHeight);
+	GLfloat border_x = 2.0f/GLfloat(bbWidth);
+	GLfloat border_y = 4.0f/GLfloat(bbHeight);
 
 	GLfloat x = GLfloat(start_x);
 	GLfloat y = GLfloat(start_y);
@@ -199,7 +199,7 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 		u8 c = text[i];
 
 		if(c == '\n') {
-			x = start_x;
+			x = GLfloat(start_x);
 			y -= delta_y + border_y;
 			continue;
 		}

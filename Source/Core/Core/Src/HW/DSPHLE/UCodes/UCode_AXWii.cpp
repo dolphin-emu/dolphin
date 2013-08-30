@@ -364,7 +364,7 @@ void CUCode_AXWii::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nv
 	for (size_t i = 0; i < nvals; ++i)
 	{
 		curr += (vol2 - vol1) / (float)nvals;
-		output[i] = curr;
+		output[i] = (u16) curr;
 	}
 }
 

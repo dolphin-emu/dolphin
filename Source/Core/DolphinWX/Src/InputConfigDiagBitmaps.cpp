@@ -109,18 +109,18 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
 						if (strcmp((*g)->control_group->name, "Main Stick") == 0)
 						{
-							max = (87.0 / 127.0) * 100;
-							diagonal = (55.0 / 127.0) * 100.0;
+							max = (87.0f / 127.0f) * 100;
+							diagonal = (55.0f / 127.0f) * 100.0;
 						}
 						else if (strcmp((*g)->control_group->name,"C-Stick") == 0)
 						{
-							max = (74.0 / 127.0) * 100;
-							diagonal = (46.0 / 127.0) * 100;
+							max = (74.0f / 127.0f) * 100;
+							diagonal = (46.0f / 127.0f) * 100;
 						}
 						else
 						{
-							max = (82.0 / 127.0) * 100;
-							diagonal = (58.0 / 127.0) * 100;
+							max = (82.0f / 127.0f) * 100;
+							diagonal = (58.0f / 127.0f) * 100;
 						}
 
 						// polygon corners

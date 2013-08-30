@@ -119,7 +119,7 @@ void GCPad::GetInput(SPADStatus* const pad)
 void GCPad::SetMotor(const u8 on)
 {
 	float state = (float)on / 255;
-	float force = abs(state - 0.5) * 2;
+	float force = abs(state - 0.5f) * 2;
 	if (state < 0.5)
 		force = -force;
 
