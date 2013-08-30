@@ -18,10 +18,8 @@ import java.io.*;
 
 /**
  * The main activity of this emulator.
- *
- * @param <MainActivity> Main activity.
  */
-public final class DolphinEmulator<MainActivity> extends Activity 
+public final class DolphinEmulator extends Activity 
 {
 	private void CopyAsset(String asset, String output)
 	{
