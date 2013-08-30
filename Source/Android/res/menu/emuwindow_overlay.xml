@@ -42,4 +42,10 @@
                   android:title="@string/overlay_slot5"/>
         </menu>
     </item>
+
+    <item
+        android:id="@+id/exitEmulation"
+        android:showAsAction="always"
+        android:title="@string/overlay_exit_emulation">
+    </item>
 </menu>

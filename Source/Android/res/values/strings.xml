@@ -33,6 +33,8 @@
     <!-- Emulation Overlay -->
     <string name="overlay_savestate">Save State</string>
     <string name="overlay_loadstate">Load State</string>
+    <string name="overlay_exit_emulation">Exit</string>
+    <string name="overlay_exit_emulation_confirm">Are you sure you wish to exit this game?</string>
     <string name="overlay_slot1">Slot 1</string>
     <string name="overlay_slot2">Slot 2</string>
     <string name="overlay_slot3">Slot 3</string>

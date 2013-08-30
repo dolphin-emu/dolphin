@@ -136,7 +136,6 @@ public final class GameListFragment extends Fragment
 		Intent intent = new Intent(mMe, EmulationActivity.class);
 		intent.putExtra("SelectedGame", o);
 		mMe.startActivity(intent);
-		mMe.finish();
 	}
 
 	@Override
