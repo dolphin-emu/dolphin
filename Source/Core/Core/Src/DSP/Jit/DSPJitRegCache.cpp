@@ -932,12 +932,12 @@ void DSPJitRegCache::writeReg(int dreg, OpArg arg)
 	{
 		switch(regs[dreg].size)
 		{
-		case 2: emitter.MOV(16, reg, Imm16(arg.offset)); break;
-		case 4: emitter.MOV(32, reg, Imm32(arg.offset)); break;
+		case 2: emitter.MOV(16, reg, Imm16((u16) arg.offset)); break;
+		case 4: emitter.MOV(32, reg, Imm32((u32) arg.offset)); break;
 #ifdef _M_X64
 		case 8:
-			if ((s32)arg.offset == (s64)arg.offset)
-				emitter.MOV(64, reg, Imm32(arg.offset));
+			if ((u32) arg.offset == arg.offset)
+				emitter.MOV(64, reg, Imm32((u32) arg.offset));
 			else
 				emitter.MOV(64, reg, Imm64(arg.offset));
 			break;

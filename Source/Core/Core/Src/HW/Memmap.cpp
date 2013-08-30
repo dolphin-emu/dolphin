@@ -410,7 +410,7 @@ u32 Read_Instruction(const u32 em_address)
 	return inst.hex;
 }
 
-void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 _iSize)
+void WriteBigEData(const u8 *_pData, const u32 _Address, const size_t _iSize)
 {
 	memcpy(GetPointer(_Address), _pData, _iSize);
 }

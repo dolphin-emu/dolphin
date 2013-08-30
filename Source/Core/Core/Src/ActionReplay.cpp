@@ -878,7 +878,7 @@ bool ConditionalCode(const ARAddr addr, const u32 data, int* const pSkipCount)
 		// Skip lines until a "00000000 40000000" line is reached
 		case CONDTIONAL_ALL_LINES:
 		case CONDTIONAL_ALL_LINES_UNTIL:
-			*pSkipCount = -addr.subtype;
+			*pSkipCount = -(int) addr.subtype;
 			break;
 
 		default:

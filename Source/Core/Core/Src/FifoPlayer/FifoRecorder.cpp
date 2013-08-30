@@ -75,14 +75,14 @@ void FifoRecorder::WriteGPCommand(u8 *data, u32 size)
 		m_RecordAnalyzer.AnalyzeGPCommand(data);
 
 		// Copy data to buffer
-		u32 currentSize = m_FifoData.size();
+		size_t currentSize = m_FifoData.size();
 		m_FifoData.resize(currentSize + size);
 		memcpy(&m_FifoData[currentSize], data, size);
 	}
 
 	if (m_FrameEnded && m_FifoData.size() > 0)
 	{
-		u32 dataSize = m_FifoData.size();
+		size_t dataSize = m_FifoData.size();
 		m_CurrentFrame.fifoDataSize = dataSize;
 		m_CurrentFrame.fifoData = new u8[dataSize];
 		memcpy(m_CurrentFrame.fifoData, &m_FifoData[0], dataSize);

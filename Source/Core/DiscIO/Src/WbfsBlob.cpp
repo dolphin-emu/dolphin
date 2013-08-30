@@ -81,7 +81,7 @@ bool WbfsFileReader::ReadHeader()
 	hd_sector_count = Common::swap32(hd_sector_count);
 
 	m_files[0]->file.ReadBytes(&hd_sector_shift, 1);
-	hd_sector_size = 1 << hd_sector_shift;
+	hd_sector_size = 1ull << hd_sector_shift;
 
 	if(m_size != hd_sector_count * hd_sector_size)
 	{
@@ -91,7 +91,7 @@ bool WbfsFileReader::ReadHeader()
 
 	// Read wbfs cluster info
 	m_files[0]->file.ReadBytes(&wbfs_sector_shift, 1);
-	wbfs_sector_size = 1 << wbfs_sector_shift;
+	wbfs_sector_size = 1ull << wbfs_sector_shift;
 	wbfs_sector_count = m_size / wbfs_sector_size;
 
 	if(wbfs_sector_size < wii_sector_size)

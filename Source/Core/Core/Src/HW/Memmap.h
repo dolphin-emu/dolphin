@@ -160,7 +160,7 @@ void Write_U64_Swap(const u64 _Data, const u32 _Address);
 void WriteHW_U32(const u32 _Data, const u32 _Address);
 void GetString(std::string& _string, const u32 _Address);
 
-void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 size);
+void WriteBigEData(const u8 *_pData, const u32 _Address, const size_t size);
 void ReadBigEData(u8 *_pDest, const u32 _Address, const u32 size);
 u8* GetPointer(const u32 _Address);
 void DMA_LCToMemory(const u32 _iMemAddr, const u32 _iCacheAddr, const u32 _iNumBlocks);
