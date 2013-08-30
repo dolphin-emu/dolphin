@@ -34,6 +34,7 @@
     <string name="overlay_savestate">ステートセーブ</string>
     <string name="overlay_loadstate">ステートロード</string>
     <string name="overlay_exit_emulation">終了</string>
+    <string name="overlay_exit_emulation_confirm">このゲームを終了してもよろしいですか？</string>
     <string name="overlay_slot1">スロット 1</string>
     <string name="overlay_slot2">スロット 2</string>
     <string name="overlay_slot3">スロット 3</string>
