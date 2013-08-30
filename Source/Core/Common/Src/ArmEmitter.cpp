@@ -1155,9 +1155,9 @@ void ARMXEmitter::VMOV(ARMReg Dest, ARMReg Src)
 			{
 				// Move 64bit from Arm reg
 				ARMReg Src2 = (ARMReg)(Src + 1);
-				Dest = (ARMReg)(Dest - S0); 
+				Dest = SubBase(Dest); 
 				Write32(condition | (0xC4 << 20) | (Src2 << 16) | (Src << 12) \
-						| (0xB << 8) | ((Dest & 0x10) << 1) | (1 << 4) | ((Dest & 0xF) >> 1)); 
+						| (0xB << 8) | ((Dest & 0x10) << 1) | (1 << 4) | (Dest & 0xF)); 
 				return;
 			}
 		}
