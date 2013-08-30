@@ -61,6 +61,9 @@ void JitArm::lfs(UGeckoInstruction inst)
 
 	ARMReg v0 = fpr.R0(inst.FD);
 	ARMReg v1 = fpr.R1(inst.FD);
+#if !defined(__ARM_PCS_VFP) // SoftFP returns in R0
+	VMOV(S0, R0);	
+#endif
 
 	VCVT(v0, S0, 0);
 	VCVT(v1, S0, 0);
@@ -98,8 +101,12 @@ void JitArm::lfd(UGeckoInstruction inst)
 	BL(rA);
 
 	ARMReg v0 = fpr.R0(inst.FD);
-
+#if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
+	VMOV(v0, R0);
+#else
 	VMOV(v0, D0);
+#endif
+
 	POP(4, R0, R1, R2, R3);
 
 	gpr.Unlock(rA, rB);
