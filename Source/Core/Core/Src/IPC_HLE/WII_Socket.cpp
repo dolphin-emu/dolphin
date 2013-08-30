@@ -518,7 +518,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 			|| (it->is_ssl && ReturnValue != SSL_ERR_WAGAIN && ReturnValue != SSL_ERR_RAGAIN))
 		{
 			DEBUG_LOG(WII_IPC_NET, "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", 
-				fd, it->is_ssl ? it->ssl_type : it->net_type, ReturnValue, nonBlock, forceNonBlock);
+				fd, it->is_ssl ? (int) it->ssl_type : (int) it->net_type, ReturnValue, nonBlock, forceNonBlock);
 			WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue);
 			it = pending_sockops.erase(it);
 		}
@@ -646,7 +646,7 @@ void WiiSockMan::Convert(sockaddr_in const & from, WiiSockAddrIn& to, s32 addrle
 	to.addr.addr = from.sin_addr.s_addr;
 	to.family = from.sin_family & 0xFF;
 	to.port = from.sin_port;
-	if (addrlen < 0 || addrlen > sizeof(WiiSockAddrIn))
+	if (addrlen < 0 || addrlen > (s32) sizeof(WiiSockAddrIn))
 		to.len = sizeof(WiiSockAddrIn);
 	else
 		to.len = addrlen;

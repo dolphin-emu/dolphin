@@ -123,8 +123,8 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	{
 		ReturnValue = FS_RESULT_FATAL;
 
-		const u64 fileSize = file.GetSize();
-		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08llx)", SeekPosition, Mode, m_Name.c_str(), fileSize);
+		const s32 fileSize = (s32) file.GetSize();
+		INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), fileSize);
 
 		switch (Mode)
 		{

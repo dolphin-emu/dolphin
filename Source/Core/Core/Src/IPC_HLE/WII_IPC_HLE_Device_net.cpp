@@ -1090,7 +1090,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 	u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
 
 	u32 _BufferOut = 0, _BufferOut2 = 0;
-	u32 BufferOutSize = 0, BufferOutSize2 = 0;
+	u32 BufferOutSize = 0;
 
 	if (CommandBuffer.InBuffer.size() > 0)
 	{
@@ -1116,9 +1116,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 	if (CommandBuffer.PayloadBuffer.size() > 1)
 	{
 		_BufferOut2 = CommandBuffer.PayloadBuffer.at(1).m_Address;
-		BufferOutSize2 = CommandBuffer.PayloadBuffer.at(1).m_Size;
 	}
-	
+
 	u32 param = 0, param2 = 0, param3, param4, param5 = 0;
 
 	switch (CommandBuffer.Parameter)
@@ -1134,9 +1133,9 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			param5 = Memory::Read_U32(_BufferOut+4);
 		}
 
-		INFO_LOG(WII_IPC_NET,"IOCTLV_SO_GETINTERFACEOPT(%08X, %08X) "
-			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i)",
-			param, param2,
+		INFO_LOG(WII_IPC_NET,"IOCTLV_SO_GETINTERFACEOPT(%08X, %08X, %X, %X, %X) "
+			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i) ",
+			param, param2, param3, param4, param5,
 			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2);
 
 		switch (param2)

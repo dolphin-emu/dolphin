@@ -480,7 +480,7 @@ public:
 		u32 result = 0;
 		u32 common_result = 0;
 		// TODO Writes stuff to /shared2/nwc24/misc.bin
-		u32 update_misc = 0;
+		//u32 update_misc = 0;
 
 		switch (Parameter)
 		{
@@ -490,12 +490,12 @@ public:
 
 		case IOCTL_NW24_SET_UNIVERSAL_TIME:
 			SetAdjustedUTC(Memory::Read_U64(BufferIn));
-			update_misc = Memory::Read_U32(BufferIn + 8);
+			//update_misc = Memory::Read_U32(BufferIn + 8);
 			break;
 
 		case IOCTL_NW24_SET_RTC_COUNTER:
 			rtc = Memory::Read_U32(BufferIn);
-			update_misc = Memory::Read_U32(BufferIn + 4);
+			//update_misc = Memory::Read_U32(BufferIn + 4);
 			break;
 
 		case IOCTL_NW24_GET_TIME_DIFF:
