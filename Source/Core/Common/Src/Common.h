@@ -25,15 +25,20 @@ extern const char *netplay_dolphin_ver;
 
 #define STACKALIGN
 
+#if __cplusplus >= 201103 || defined(_MSC_VER) || defined(__GXX_EXPERIMENTAL_CXX0X__)
+#define HAVE_CXX11_SYNTAX 1
+#endif
+
+#if HAVE_CXX11_SYNTAX
 // An inheritable class to disallow the copy constructor and operator= functions
 class NonCopyable
 {
 protected:
 	NonCopyable() {}
-private:
-	NonCopyable(const NonCopyable&);
-	void operator=(const NonCopyable&);
+	NonCopyable(const NonCopyable&&) {}
+	void operator=(const NonCopyable&&) {}
 };
+#endif
 
 #include "Log.h"
 #include "CommonTypes.h"
