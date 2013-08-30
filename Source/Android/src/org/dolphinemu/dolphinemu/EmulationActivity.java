@@ -7,11 +7,16 @@ import org.dolphinemu.dolphinemu.settings.InputConfigFragment;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.Window;
 import android.view.WindowManager;
@@ -44,6 +49,11 @@ public final class EmulationActivity extends Activity
 		getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);
 		getWindow().addFlags(LayoutParams.FLAG_FULLSCREEN);
 		getWindow().requestFeature(Window.FEATURE_ACTION_BAR_OVERLAY);
+
+		// Set the transparency for the action bar.
+		ColorDrawable actionBarBackground = new ColorDrawable(Color.parseColor("#303030"));
+		actionBarBackground.setAlpha(175);
+		getActionBar().setBackgroundDrawable(actionBarBackground);
 
 		// Set the native rendering screen width/height.
 		// Also get the intent passed from the GameList when the game
@@ -123,7 +133,63 @@ public final class EmulationActivity extends Activity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.emuwindow_overlay, menu);
 		return true;
+	}
+
+	@Override
+	public boolean onMenuItemSelected(int itemId, MenuItem item)
+	{
+		switch(item.getItemId())
+		{
+			// Save state slots
+			case R.id.saveSlot1:
+				NativeLibrary.SaveState(0);
+				return true;
+
+			case R.id.saveSlot2:
+				NativeLibrary.SaveState(1);
+				return true;
+
+			case R.id.saveSlot3:
+				NativeLibrary.SaveState(2);
+				return true;
+
+			case R.id.saveSlot4:
+				NativeLibrary.SaveState(3);
+				return true;
+
+			case R.id.saveSlot5:
+				NativeLibrary.SaveState(4);
+				return true;
+
+			// Load state slot
+			case R.id.loadSlot1:
+				NativeLibrary.LoadState(0);
+				return true;
+
+			case R.id.loadSlot2:
+				NativeLibrary.LoadState(1);
+				return true;
+
+			case R.id.loadSlot3:
+				NativeLibrary.LoadState(2);
+				return true;
+
+			case R.id.loadSlot4:
+				NativeLibrary.LoadState(3);
+				return true;
+
+			case R.id.loadSlot5:
+				NativeLibrary.LoadState(4);
+				return true;
+
+			default:
+				Log.d("EMU", "ID: " + item.getGroupId());
+				Log.d("EMU", "NOPE");
+				return super.onOptionsItemSelected( item );
+		}
 	}
 
 	// Gets button presses

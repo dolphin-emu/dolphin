@@ -29,7 +29,16 @@
 
     <!-- Game List Fragment -->
     <string name="file_clicked">クリックされたファイル： </string>
-    
+
+    <!-- Emulation Window Overlay -->
+    <string name="overlay_savestate">ステートセーブ</string>
+    <string name="overlay_loadstate">ステートロード</string>
+    <string name="overlay_slot1">スロット 1</string>
+    <string name="overlay_slot2">スロット 2</string>
+    <string name="overlay_slot3">スロット 3</string>
+    <string name="overlay_slot4">スロット 4</string>
+    <string name="overlay_slot5">スロット 5</string>
+
     <!-- Input Config Fragment -->
     <string name="input_settings">入力設定</string>
     <string name="input_binding">入力バインディング</string>

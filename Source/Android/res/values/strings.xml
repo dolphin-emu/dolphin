@@ -30,6 +30,15 @@
     <!-- Game List Fragment -->
     <string name="file_clicked">File clicked: </string>
 
+    <!-- Emulation Overlay -->
+    <string name="overlay_savestate">Save State</string>
+    <string name="overlay_loadstate">Load State</string>
+    <string name="overlay_slot1">Slot 1</string>
+    <string name="overlay_slot2">Slot 2</string>
+    <string name="overlay_slot3">Slot 3</string>
+    <string name="overlay_slot4">Slot 4</string>
+    <string name="overlay_slot5">Slot 5</string>
+
     <!-- Input Config Fragment -->
     <string name="input_settings">Input</string>
     <string name="input_binding">Input Binding</string>
