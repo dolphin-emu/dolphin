@@ -122,6 +122,10 @@ public:
 	void GetCarryAndClear(ARMReg reg);
 	void FinalizeCarry(ARMReg reg);
 
+	// TODO: This shouldn't be here
+	void StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset);
+	void LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset);
+
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
 	void Default(UGeckoInstruction _inst);
