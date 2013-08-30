@@ -186,8 +186,6 @@ public final class EmulationActivity extends Activity
 				return true;
 
 			default:
-				Log.d("EMU", "ID: " + item.getGroupId());
-				Log.d("EMU", "NOPE");
 				return super.onOptionsItemSelected( item );
 		}
 	}
