@@ -1261,9 +1261,9 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			hints.ai_socktype	= Memory::Read_U32(_BufferIn3 + 0x8);
 			hints.ai_protocol	= Memory::Read_U32(_BufferIn3 + 0xC);
 			hints.ai_addrlen	= Memory::Read_U32(_BufferIn3 + 0x10);
-			hints.ai_canonname	= (char*)Memory::Read_U32(_BufferIn3 + 0x14);
-			hints.ai_addr		= (sockaddr *)Memory::Read_U32(_BufferIn3 + 0x18);
-			hints.ai_next		= (addrinfo *)Memory::Read_U32(_BufferIn3 + 0x1C);
+			hints.ai_canonname	= NULL;
+			hints.ai_addr		= NULL;
+			hints.ai_next		= NULL;
 		}
 
 		char* pNodeName = NULL;
