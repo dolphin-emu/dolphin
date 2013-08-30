@@ -37,7 +37,6 @@ void JitArm::lfs(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
 
-	Default(inst); return;
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
@@ -53,13 +52,16 @@ void JitArm::lfs(UGeckoInstruction inst)
 	else
 		MOVI2R(rB, (u32)inst.SIMM_16);
 
-	ARMReg v0 = fpr.R0(inst.FD);
-	ARMReg v1 = fpr.R1(inst.FD);
-
+	fpr.Flush();
+	
 	MOVI2R(rA, (u32)&Memory::Read_F32);	
 	PUSH(4, R0, R1, R2, R3);
 	MOV(R0, rB);
 	BL(rA);
+
+	ARMReg v0 = fpr.R0(inst.FD);
+	ARMReg v1 = fpr.R1(inst.FD);
+
 	VCVT(v0, S0, 0);
 	VCVT(v1, S0, 0);
 	POP(4, R0, R1, R2, R3);
@@ -72,7 +74,6 @@ void JitArm::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
-	Default(inst); return;
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -89,12 +90,15 @@ void JitArm::lfd(UGeckoInstruction inst)
 	else
 		MOVI2R(rB, (u32)inst.SIMM_16);
 
-	ARMReg v0 = fpr.R0(inst.FD);
+	fpr.Flush();
 
 	MOVI2R(rA, (u32)&Memory::Read_F64);	
 	PUSH(4, R0, R1, R2, R3);
 	MOV(R0, rB);
 	BL(rA);
+
+	ARMReg v0 = fpr.R0(inst.FD);
+
 	VMOV(v0, D0);
 	POP(4, R0, R1, R2, R3);
 
