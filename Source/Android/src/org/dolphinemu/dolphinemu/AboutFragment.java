@@ -28,14 +28,12 @@ import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
 public final class AboutFragment extends Fragment
 {
 	private static Activity m_activity;
-	private ListView mMainList;
-	private AboutFragmentAdapter adapter;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
 		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
-		mMainList = (ListView) rootView.findViewById(R.id.gamelist);
+		ListView mMainList = (ListView) rootView.findViewById(R.id.gamelist);
 
 		String yes = getString(R.string.yes);
 		String no = getString(R.string.no);
@@ -44,7 +42,7 @@ public final class AboutFragment extends Fragment
 		Input.add(new AboutFragmentItem(getString(R.string.build_revision), NativeLibrary.GetVersionString()));
 		Input.add(new AboutFragmentItem(getString(R.string.supports_gles3), VideoSettingsFragment.SupportsGLES3() ? yes : no));
 
-		adapter = new AboutFragmentAdapter(m_activity, R.layout.about_layout, Input);
+		AboutFragmentAdapter adapter = new AboutFragmentAdapter(m_activity, R.layout.about_layout, Input);
 		mMainList.setAdapter(adapter);
 
 		return mMainList;

@@ -178,7 +178,7 @@ public final class GameListActivity extends Activity
 		}
 	}
 
-	private AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
+	private final AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 		{
