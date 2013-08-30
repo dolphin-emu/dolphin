@@ -277,8 +277,10 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			{
 			u32 dest = AddrToBranch(selection);
 			if (dest)
+			{
 				Center(dest);
 				RaiseEvent();
+			}
 			}
 			break;
 	
