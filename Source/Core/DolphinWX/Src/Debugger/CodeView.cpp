@@ -216,39 +216,39 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 		case IDM_COPYCODE:
 			{
-			char disasm[256];
-			debugger->disasm(selection, disasm, 256);
-			wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(disasm)));
+				char disasm[256];
+				debugger->disasm(selection, disasm, 256);
+				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(disasm)));
 			}
 			break;
 
 		case IDM_COPYHEX:
 			{
-			char temp[24];
-			sprintf(temp, "%08x", debugger->readInstruction(selection));
-			wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
+				char temp[24];
+				sprintf(temp, "%08x", debugger->readInstruction(selection));
+				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(temp)));
 			}
 			break;
 
 
 		case IDM_COPYFUNCTION:
 			{
-			Symbol *symbol = symbol_db->GetSymbolFromAddr(selection);
-			if (symbol)
-			{
-				std::string text;
-				text = text + symbol->name + "\r\n";
-				// we got a function
-				u32 start = symbol->address;
-				u32 end = start + symbol->size;
-				for (u32 addr = start; addr != end; addr += 4)
+				Symbol *symbol = symbol_db->GetSymbolFromAddr(selection);
+				if (symbol)
 				{
-					char disasm[256];
-					debugger->disasm(addr, disasm, 256);
-					text = text + StringFromFormat("%08x: ", addr) + disasm + "\r\n";
+					std::string text;
+					text = text + symbol->name + "\r\n";
+					// we got a function
+					u32 start = symbol->address;
+					u32 end = start + symbol->size;
+					for (u32 addr = start; addr != end; addr += 4)
+					{
+						char disasm[256];
+						debugger->disasm(addr, disasm, 256);
+						text = text + StringFromFormat("%08x: ", addr) + disasm + "\r\n";
+					}
+					wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(text)));
 				}
-				wxTheClipboard->SetData(new wxTextDataObject(StrToWxStr(text)));
-			}
 			}
 			break;
 #endif
@@ -275,12 +275,12 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			
 		case IDM_FOLLOWBRANCH:
 			{
-			u32 dest = AddrToBranch(selection);
-			if (dest)
-			{
-				Center(dest);
-				RaiseEvent();
-			}
+				u32 dest = AddrToBranch(selection);
+				if (dest)
+				{
+					Center(dest);
+					RaiseEvent();
+				}
 			}
 			break;
 	
@@ -291,19 +291,19 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 		case IDM_RENAMESYMBOL:
 			{
-			Symbol *symbol = symbol_db->GetSymbolFromAddr(selection);
-			if (symbol)
-			{
-				wxTextEntryDialog input_symbol(this, StrToWxStr("Rename symbol:"),
-						wxGetTextFromUserPromptStr,
-						StrToWxStr(symbol->name));
-				if (input_symbol.ShowModal() == wxID_OK)
+				Symbol *symbol = symbol_db->GetSymbolFromAddr(selection);
+				if (symbol)
 				{
-					symbol->name = WxStrToStr(input_symbol.GetValue());
-					Refresh(); // Redraw to show the renamed symbol
+					wxTextEntryDialog input_symbol(this, StrToWxStr("Rename symbol:"),
+							wxGetTextFromUserPromptStr,
+							StrToWxStr(symbol->name));
+					if (input_symbol.ShowModal() == wxID_OK)
+					{
+						symbol->name = WxStrToStr(input_symbol.GetValue());
+						Refresh(); // Redraw to show the renamed symbol
+					}
+					Host_NotifyMapLoaded();
 				}
-				Host_NotifyMapLoaded();
-			}
 			}
 			break;
 
