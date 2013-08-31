@@ -297,6 +297,7 @@ void CFrame::CreateMenu()
 	// Re-enable when there's something useful to display */
 	// helpMenu->Append(wxID_HELP, _("&Help"));
 	helpMenu->Append(IDM_HELPWEBSITE, _("Dolphin &Web Site"));
+	helpMenu->Append(IDM_HELPONLINEDOCS, _("Online &Documentation"));
 	helpMenu->Append(IDM_HELPGOOGLECODE, _("Dolphin at &Google Code"));
 	helpMenu->AppendSeparator();
 	helpMenu->Append(wxID_ABOUT, _("&About..."));
@@ -1255,10 +1256,13 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		}
 		break;
 	case IDM_HELPWEBSITE:
-		WxUtils::Launch("http://dolphin-emu.org/");
+		WxUtils::Launch("https://dolphin-emu.org/");
+		break;
+	case IDM_HELPONLINEDOCS:
+		WxUtils::Launch("https://dolphin-emu.org/docs/guides/");
 		break;
 	case IDM_HELPGOOGLECODE:
-		WxUtils::Launch("http://code.google.com/p/dolphin-emu/");
+		WxUtils::Launch("https://code.google.com/p/dolphin-emu/");
 		break;
 	}
 }
