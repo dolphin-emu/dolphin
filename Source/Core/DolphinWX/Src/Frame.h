@@ -324,6 +324,7 @@ private:
 
 	void OnMemcard(wxCommandEvent& event); // Misc
 	void OnImportSave(wxCommandEvent& event);
+	void OnExportAllSaves(wxCommandEvent& event);
 
 	void OnNetPlay(wxCommandEvent& event);
 

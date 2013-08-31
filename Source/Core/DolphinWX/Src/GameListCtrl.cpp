@@ -969,8 +969,7 @@ void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
 		if (Iso->GetTitleID((u8*)&title))
 		{
 			title = Common::swap64(title);
-			CWiiSaveCrypted* exportSave = new CWiiSaveCrypted("", title);
-			delete exportSave;
+			CWiiSaveCrypted::ExportWiiSave(title);
 		}
 		delete Iso;
 	}

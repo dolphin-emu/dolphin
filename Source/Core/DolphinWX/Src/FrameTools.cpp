@@ -190,7 +190,8 @@ void CFrame::CreateMenu()
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
 	toolsMenu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
-	toolsMenu->Append(IDM_IMPORTSAVE, _("Wii Save Import"));
+	toolsMenu->Append(IDM_IMPORTSAVE, _("Import Wii Save"));
+	toolsMenu->Append(IDM_EXPORTALLSAVE, _("Export All Wii Saves"));
 	toolsMenu->Append(IDM_CHEATS, _("&Cheats Manager"));
 
 	toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
@@ -1310,6 +1311,11 @@ void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 	MemcardManager.ShowModal();
 }
 
+void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED (event)) 
+{
+	CWiiSaveCrypted::ExportAllSaves();
+}
+
 void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event)) 
 {
 	wxString path = wxFileSelector(_("Select the save file"),
@@ -1320,9 +1326,7 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 
 	if (!path.IsEmpty())
 	{
-		// TODO: Does this actually need to be dynamically allocated for some reason?
-		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(WxStrToStr(path).c_str());
-		delete saveFile;
+		CWiiSaveCrypted::ImportWiiSave(WxStrToStr(path).c_str());
 	}
 }
 
