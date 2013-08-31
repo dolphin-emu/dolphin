@@ -847,12 +847,19 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					if (pContent)
 					{
 						LoadWAD(Common::GetTitleContentPath(TitleID));
-						CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
-						DolLoader.Load(); // TODO: Check why sysmenu does not load the DOL correctly
-						PC = DolLoader.GetEntryPoint() | 0x80000000;
+						std::unique_ptr<CDolLoader> pDolLoader;
+						if (pContent->m_pData)
+						{
+							pDolLoader.reset(new CDolLoader(pContent->m_pData, pContent->m_Size));
+						}
+						else
+						{
+							pDolLoader.reset(new CDolLoader(pContent->m_Filename.c_str()));
+						}
+						pDolLoader->Load(); // TODO: Check why sysmenu does not load the DOL correctly
+						PC = pDolLoader->GetEntryPoint() | 0x80000000;
 						IOSv = ContentLoader.GetIosVersion();
 						bSuccess = true;
-						
 					}
 				}
 			}

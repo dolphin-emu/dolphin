@@ -19,6 +19,8 @@
 #include "VolumeCreator.h"
 #include "CommonPaths.h"
 
+#include <memory>
+
 static u32 state_checksum(u32 *buf, int len)
 {
 	u32 checksum = 0;
@@ -89,9 +91,17 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
 	WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
 
-	CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
-	DolLoader.Load();
-	PC = DolLoader.GetEntryPoint() | 0x80000000;
+	std::unique_ptr<CDolLoader> pDolLoader;
+	if (pContent->m_pData)
+	{
+		pDolLoader.reset(new CDolLoader(pContent->m_pData, pContent->m_Size));
+	}
+	else
+	{
+		pDolLoader.reset(new CDolLoader(pContent->m_Filename.c_str()));
+	}
+	pDolLoader->Load();
+	PC = pDolLoader->GetEntryPoint() | 0x80000000;
 
 	// Pass the "#002 check"
 	// Apploader should write the IOS version and revision to 0x3140, and compare it
