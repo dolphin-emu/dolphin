@@ -210,6 +210,7 @@ public:
 	static void Convert(sockaddr_in const & from, WiiSockAddrIn& to, s32 addrlen=-1);
 	// NON-BLOCKING FUNCTIONS
 	s32 newSocket(s32 af, s32 type, s32 protocol);
+	void addSocket(s32 fd);
 	s32 delSocket(s32 s);
 
 	void clean()

@@ -224,7 +224,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 					WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut);
 					WiiSockMan::Convert(*wii_name, local_name);
 					
-					socklen_t addrlen = wii_name->len;
+					socklen_t addrlen = sizeof(sockaddr_in);
 					int ret = (s32)accept(fd, (sockaddr*)&local_name, &addrlen);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", false);
 
@@ -235,7 +235,9 @@ void WiiSocket::update(bool read, bool write, bool except)
 					int ret = (s32)accept(fd, NULL, 0);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", false);
 				}
-		
+
+				WiiSockMan::getInstance().addSocket(ReturnValue);
+
 				INFO_LOG(WII_IPC_NET, "IOCTL_SO_ACCEPT "
 					"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 					BufferIn, BufferInSize, BufferOut, BufferOutSize);
@@ -506,7 +508,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 			|| (!it->is_ssl && ReturnValue != -SO_EAGAIN && ReturnValue != -SO_EINPROGRESS && ReturnValue != -SO_EALREADY)
 			|| (it->is_ssl && ReturnValue != SSL_ERR_WAGAIN && ReturnValue != SSL_ERR_RAGAIN))
 		{
-			DEBUG_LOG(WII_IPC_NET, "IOCTL(V) Sock: %d ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", 
+			DEBUG_LOG(WII_IPC_NET, "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", 
 				fd, it->is_ssl ? it->ssl_type : it->net_type, ReturnValue, nonBlock, forceNonBlock);
 			WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue);
 			it = pending_sockops.erase(it);
@@ -532,6 +534,15 @@ void WiiSocket::doSock(u32 _CommandAddress, SSL_IOCTL type)
 	pending_sockops.push_back(so);
 }
 
+void WiiSockMan::addSocket(s32 fd)
+{
+	if (fd >= 0)
+	{
+		WiiSocket& sock = WiiSockets[fd];
+		sock.setFd(fd);
+	}
+}
+
 s32 WiiSockMan::newSocket(s32 af, s32 type, s32 protocol)
 {
 	if (NetPlay::IsNetPlayRunning()
@@ -543,11 +554,7 @@ s32 WiiSockMan::newSocket(s32 af, s32 type, s32 protocol)
 
 	s32 fd = (s32)socket(af, type, protocol);
 	s32 ret = getNetErrorCode(fd, "newSocket", false);
-	if (ret >= 0)
-	{
-		WiiSocket& sock = WiiSockets[ret];
-		sock.setFd(ret);
-	}
+	addSocket(ret);
 	return ret;
 }
 

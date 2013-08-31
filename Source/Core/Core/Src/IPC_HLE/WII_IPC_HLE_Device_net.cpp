@@ -709,14 +709,14 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 	}
 	case IOCTL_SO_LISTEN:
 	{
-		INFO_LOG(WII_IPC_NET, "IOCTL_SO_LISTEN "
-			"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-			BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 		u32 fd = Memory::Read_U32(BufferIn);
 		u32 BACKLOG = Memory::Read_U32(BufferIn + 0x04);
 		u32 ret = listen(fd, BACKLOG);
 		ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_LISTEN", false);
+		INFO_LOG(WII_IPC_NET, "IOCTL_SO_LISTEN = %d "
+			"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			ReturnValue, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		break;
 	}
 	case IOCTL_SO_GETSOCKOPT:
