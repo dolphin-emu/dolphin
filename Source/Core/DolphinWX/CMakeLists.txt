@@ -263,8 +263,8 @@ else()
 
 		if(GETTEXT_FOUND AND wxWidgets_FOUND)
 			file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/copy_translations_into_bundle.cmake "
-				file(GLOB TRANSLATION_FILES RELATIVE ${CMAKE_BINARY_DIR}
-					${CMAKE_BINARY_DIR}/*.gmo
+				file(GLOB TRANSLATION_FILES RELATIVE ${CMAKE_CURRENT_BINARY_DIR}
+					${CMAKE_CURRENT_BINARY_DIR}/*.gmo
 					)
 				foreach(TRANSLATION_FILE \${TRANSLATION_FILES})
 					string(REPLACE \".gmo\" \".lproj\" TRANSLATION_DIR
@@ -272,7 +272,7 @@ else()
 						)
 					# It would be better to copy to the new name as a single action,
 					# but I can't figure out a way to let CMake do that.
-					file(COPY ${CMAKE_BINARY_DIR}/\${TRANSLATION_FILE}
+					file(COPY ${CMAKE_CURRENT_BINARY_DIR}/\${TRANSLATION_FILE}
 						DESTINATION ${BUNDLE_PATH}/Contents/Resources/\${TRANSLATION_DIR}
 						NO_SOURCE_PERMISSIONS
 						)
