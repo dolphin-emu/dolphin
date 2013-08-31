@@ -417,8 +417,8 @@ void WiiSocket::update(bool read, bool write, bool except)
 					// Act as non blocking when SO_MSG_NONBLOCK is specified
 					forceNonBlock = ((flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK);
 
-					// send/sendto only handles PEEK
-					flags &= SO_MSG_PEEK | SO_MSG_OOB;
+					// send/sendto only handles MSG_OOB
+					flags &= SO_MSG_OOB;
 					
 					u8 destaddr[28];
 					struct sockaddr_in* addr = (struct sockaddr_in*)&destaddr;
