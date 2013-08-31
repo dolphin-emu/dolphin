@@ -34,7 +34,7 @@
 #ifdef ANDROID
 #define FASTMEM 0
 #else
-#define FASTMEM 0
+#define FASTMEM 1
 #endif
 void JitArm::stb(UGeckoInstruction inst)
 {
@@ -282,6 +282,40 @@ void JitArm::stwu(UGeckoInstruction inst)
 
 	gpr.Unlock(ValueReg, Addr, Function);
 }
+void JitArm::stwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+	u32 a = inst.RA, b = inst.RB, s = inst.RB;	
+
+	if (a) {
+		// Doesn't work
+		Default(inst); return;
+	}
+	
+	ARMReg RB = gpr.R(b);
+	ARMReg RS = gpr.R(s);
+	ARMReg ValueReg = gpr.GetReg();
+	ARMReg Addr = gpr.GetReg();
+	ARMReg Function = gpr.GetReg();
+	
+	if (a)
+		ADD(Addr, gpr.R(a), RB);
+	else
+		MOV(Addr, RB);
+
+	MOV(ValueReg, RS);
+	fpr.Flush();	
+	MOVI2R(Function, (u32)&Memory::Write_U32);	
+	PUSH(4, R0, R1, R2, R3);
+	MOV(R0, ValueReg);
+	MOV(R1, Addr);
+	BL(Function);
+	POP(4, R0, R1, R2, R3);
+
+	gpr.Unlock(ValueReg, Addr, Function);
+}
+
 void JitArm::StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
 {
 	ARMReg rA = gpr.GetReg();
@@ -417,7 +451,7 @@ void JitArm::lhz(UGeckoInstruction inst)
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 	CMP(rA, EXCEPTION_DSI);
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
-#if 0 // FASTMEM
+#if FASTMEM
 	// Backpatch route
 	// Gets loaded in to RD
 	// Address is in R10

@@ -102,7 +102,7 @@ static GekkoOPTemplate primarytable[] =
 	{50, &JitArm::lfd}, //"lfd",  OPTYPE_LOADFP, FL_IN_A}},
 	{51, &JitArm::Default}, //"lfdu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
 
-	{52, &JitArm::Default}, //"stfs",  OPTYPE_STOREFP, FL_IN_A}},
+	{52, &JitArm::stfs}, //"stfs",  OPTYPE_STOREFP, FL_IN_A}},
 	{53, &JitArm::Default}, //"stfsu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 	{54, &JitArm::Default}, //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
 	{55, &JitArm::Default}, //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
@@ -249,7 +249,7 @@ static GekkoOPTemplate table31[] =
 	{597, &JitArm::Default}, //"lswi",  OPTYPE_LOAD, FL_EVIL | FL_IN_AB | FL_OUT_D}},
 
 	//store word
-	{151, &JitArm::Default}, //"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{151, &JitArm::stwx}, //"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
 	{183, &JitArm::Default}, //"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store halfword
@@ -293,7 +293,7 @@ static GekkoOPTemplate table31[] =
 	{659, &JitArm::Default}, //"mfsrin", OPTYPE_SYSTEM, FL_OUT_D, 2}},
 
 	{4,   &JitArm::Break}, //"tw",     OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
-	{598, &JitArm::Default}, //"sync",   OPTYPE_SYSTEM, 0, 2}},
+	{598, &JitArm::DoNothing}, //"sync",   OPTYPE_SYSTEM, 0, 2}},
 	{982, &JitArm::icbi}, //"icbi",   OPTYPE_SYSTEM, FL_ENDBLOCK, 3}},
 
 	// Unused instructions on GC

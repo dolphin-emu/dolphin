@@ -107,13 +107,10 @@ void JitArm::fsubx(UGeckoInstruction inst)
 	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
-// Breaks Animal Crossing
 void JitArm::fmulsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
-	
-	Default(inst); return;
 	
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vC = fpr.R0(inst.FC);
@@ -122,6 +119,7 @@ void JitArm::fmulsx(UGeckoInstruction inst)
 
 	VMUL(vD0, vA, vC);
 	VMOV(vD1, vD0);
+	fpr.Flush(); // Shouldn't be needed. Missing a flush somewhere
 	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 void JitArm::fmulx(UGeckoInstruction inst)

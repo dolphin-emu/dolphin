@@ -39,6 +39,9 @@ void JitArm::lfs(UGeckoInstruction inst)
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
+
+	fpr.Flush();
+	
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 	CMP(rA, EXCEPTION_DSI);
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
@@ -52,7 +55,6 @@ void JitArm::lfs(UGeckoInstruction inst)
 	else
 		MOVI2R(rB, (u32)inst.SIMM_16);
 
-	fpr.Flush();
 	
 	MOVI2R(rA, (u32)&Memory::Read_F32);	
 	PUSH(4, R0, R1, R2, R3);
@@ -80,6 +82,9 @@ void JitArm::lfd(UGeckoInstruction inst)
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
+
+	fpr.Flush();
+
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 	CMP(rA, EXCEPTION_DSI);
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
@@ -93,7 +98,6 @@ void JitArm::lfd(UGeckoInstruction inst)
 	else
 		MOVI2R(rB, (u32)inst.SIMM_16);
 
-	fpr.Flush();
 
 	MOVI2R(rA, (u32)&Memory::Read_F64);	
 	PUSH(4, R0, R1, R2, R3);
@@ -112,3 +116,37 @@ void JitArm::lfd(UGeckoInstruction inst)
 	gpr.Unlock(rA, rB);
 	SetJumpTarget(DoNotLoad);
 }
+
+void JitArm::stfs(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
+
+	ARMReg rA = gpr.GetReg();
+	ARMReg rB = gpr.GetReg();
+	ARMReg v0 = fpr.R0(inst.FS);
+	VCVT(S0, v0, 0);
+	fpr.Flush();
+	
+	if (inst.RA)
+	{
+		MOVI2R(rB, inst.SIMM_16);
+		ARMReg RA = gpr.R(inst.RA);
+		ADD(rB, rB, RA);
+	}
+	else
+		MOVI2R(rB, (u32)inst.SIMM_16);
+
+	
+	MOVI2R(rA, (u32)&Memory::Write_U32);	
+	PUSH(4, R0, R1, R2, R3);
+	VMOV(R0, S0);
+	MOV(R1, rB);
+
+	BL(rA);
+
+	POP(4, R0, R1, R2, R3);
+	
+	gpr.Unlock(rA, rB);
+}
+
