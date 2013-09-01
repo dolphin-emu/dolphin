@@ -197,7 +197,15 @@ bool CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
 
 u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 {
-	const DiscIO::SNANDContent* pContent = AccessContentDevice(TitleID).GetContentByIndex(Index);
+	const DiscIO::INANDContentLoader& Loader = AccessContentDevice(TitleID);
+
+	if (!Loader.IsValid())
+	{
+		WARN_LOG(WII_IPC_ES, "ES: loader not valid for %llx", TitleID);
+		return 0xffffffff;
+	}
+
+	const DiscIO::SNANDContent* pContent = Loader.GetContentByIndex(Index);
 
 	if (pContent == NULL)
 	{
@@ -375,7 +383,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			if (Size > 0)
 			{
-				if (pDest) {
+				if (pDest)
+				{
 					if (rContent.m_pContent->m_pData)
 					{
 						u8* pSrc = &rContent.m_pContent->m_pData[rContent.m_Position];
@@ -384,8 +393,15 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					else
 					{
 						File::IOFile* pFile = &rContent.m_File;
-						pFile->Seek(rContent.m_Position, SEEK_SET);
-						pFile->ReadBytes(pDest, Size);
+						if (!pFile->Seek(rContent.m_Position, SEEK_SET))
+						{
+							ERROR_LOG(WII_IPC_ES, "ES: couldn't seek!");
+						}
+						WARN_LOG(WII_IPC_ES, "2 %p", pFile->GetHandle());
+						if (!pFile->ReadBytes(pDest, Size))
+						{
+							ERROR_LOG(WII_IPC_ES, "ES: short read; returning uninitialized data!");
+						}
 					}
 					rContent.m_Position += Size;
 				} else {

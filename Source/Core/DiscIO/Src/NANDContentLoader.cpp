@@ -213,8 +213,8 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		File::IOFile pTMDFile(TMDFileName, "rb");
 		if (!pTMDFile)
 		{
-			DEBUG_LOG(DISCIO, "CreateFromDirectory: error opening %s", 
-					  TMDFileName.c_str());
+			WARN_LOG(DISCIO, "CreateFromDirectory: error opening %s",
+					 TMDFileName.c_str());
 			return false;
 		}
 		u32 pTMDSize = (u32)File::GetSize(TMDFileName);
@@ -222,8 +222,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		pTMDFile.ReadBytes(pTMD, (size_t)pTMDSize);
 		pTMDFile.Close();
 	}
-	if (!pTMD)
-		return false;
+
 	memcpy(m_TMDView, pTMD + 0x180, TMD_VIEW_SIZE);
 	memcpy(m_TMDHeader, pTMD, TMD_HEADER_SIZE);
 
@@ -276,7 +275,10 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		}
 
 		// Be graceful about incorrect tmds.
-		rContent.m_Size = (u32) File::GetSize(rContent.m_Filename);
+		if (File::Exists(rContent.m_Filename))
+		{
+			rContent.m_Size = (u32) File::GetSize(rContent.m_Filename);
+		}
 	}
 
 	delete [] pTMD;
