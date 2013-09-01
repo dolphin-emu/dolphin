@@ -37,21 +37,9 @@ char* WiiSockMan::DecodeError(s32 ErrorCode)
 #endif
 }
 
-
-s32 WiiSockMan::getNetErrorCode(s32 ret, std::string caller, bool isRW)
+s32 translateErrorCode(s32 native_error, bool isRW)
 {
-#ifdef _WIN32
-	s32 errorCode = WSAGetLastError();
-#else
-	s32 errorCode = errno;
-#endif
-	if (ret >= 0)
-		return ret;
-
-	DEBUG_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d",
-		caller.c_str(), errorCode, DecodeError(errorCode), ret);
-
-	switch (errorCode)
+	switch (native_error)
 	{
 	case ERRORCODE(EMSGSIZE):
 		ERROR_LOG(WII_IPC_NET, "Find out why this happened, looks like PEEK failure?");
@@ -87,7 +75,29 @@ s32 WiiSockMan::getNetErrorCode(s32 ret, std::string caller, bool isRW)
 	default:
 		return -1;
 	}
+}
 
+s32 WiiSockMan::getNetErrorCode(s32 ret, std::string caller, bool isRW)
+{
+#ifdef _WIN32
+	s32 errorCode = WSAGetLastError();
+#else
+	s32 errorCode = errno;
+#endif
+
+	if (ret >= 0)
+	{
+		WiiSockMan::getInstance().setLastNetError(ret);
+		return ret;
+	}
+
+	INFO_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d",
+		caller.c_str(), errorCode, DecodeError(errorCode), ret);
+
+	s32 ReturnValue = translateErrorCode(errorCode, isRW);
+	WiiSockMan::getInstance().setLastNetError(ReturnValue);
+
+	return ReturnValue;
 }
 
 WiiSocket::~WiiSocket()
@@ -224,7 +234,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 					WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut);
 					WiiSockMan::Convert(*wii_name, local_name);
 					
-					socklen_t addrlen = wii_name->len;
+					socklen_t addrlen = sizeof(sockaddr_in);
 					int ret = (s32)accept(fd, (sockaddr*)&local_name, &addrlen);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", false);
 
@@ -235,7 +245,9 @@ void WiiSocket::update(bool read, bool write, bool except)
 					int ret = (s32)accept(fd, NULL, 0);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", false);
 				}
-		
+
+				WiiSockMan::getInstance().addSocket(ReturnValue);
+
 				INFO_LOG(WII_IPC_NET, "IOCTL_SO_ACCEPT "
 					"BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
 					BufferIn, BufferInSize, BufferOut, BufferOutSize);
@@ -410,26 +422,25 @@ void WiiSocket::update(bool read, bool write, bool except)
 				{
 				case IOCTLV_SO_SENDTO:
 				{
-
+				
+					u32 flags = Memory::Read_U32(BufferIn2 + 0x04);
+					u32 has_destaddr = Memory::Read_U32(BufferIn2 + 0x08);
 					char * data = (char*)Memory::GetPointer(BufferIn);
-					u32 flags = Common::swap32(BufferIn2 + 0x04);
-					u32 has_destaddr = Common::swap32(BufferIn2 + 0x08);
+					
 					// Act as non blocking when SO_MSG_NONBLOCK is specified
 					forceNonBlock = ((flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK);
-
-					// send/sendto only handles PEEK
-					flags &= SO_MSG_PEEK | SO_MSG_OOB;
+					// send/sendto only handles MSG_OOB
+					flags &= SO_MSG_OOB;
 					
-					u8 destaddr[28];
-					struct sockaddr_in* addr = (struct sockaddr_in*)&destaddr;
+					sockaddr_in local_name;
 					if (has_destaddr)
-					{
-						Memory::ReadBigEData((u8*)&destaddr, BufferIn2 + 0x0C, BufferInSize2 - 0x0C);
-						addr->sin_family = addr->sin_family >> 8;
+					{						
+						WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferIn2 + 0x0C);
+						WiiSockMan::Convert(*wii_name, local_name);
 					}
 
 					int ret = sendto(fd, data, BufferInSize, flags, 
-						has_destaddr ? (struct sockaddr*)addr : NULL, 
+						has_destaddr ? (struct sockaddr*)&local_name : NULL, 
 						has_destaddr ? sizeof(sockaddr) :  0);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_SENDTO", true);
 
@@ -438,60 +449,60 @@ void WiiSocket::update(bool read, bool write, bool except)
 						has_destaddr ? "IOCTLV_SO_SENDTO " : "IOCTLV_SO_SEND ",
 						ReturnValue, fd, BufferIn, BufferInSize,
 						BufferIn2, BufferInSize2,
-						addr->sin_addr.s_addr & 0xFF,
-						(addr->sin_addr.s_addr >> 8) & 0xFF,
-						(addr->sin_addr.s_addr >> 16) & 0xFF,
-						(addr->sin_addr.s_addr >> 24) & 0xFF
+						local_name.sin_addr.s_addr & 0xFF,
+						(local_name.sin_addr.s_addr >> 8) & 0xFF,
+						(local_name.sin_addr.s_addr >> 16) & 0xFF,
+						(local_name.sin_addr.s_addr >> 24) & 0xFF
 						);
 					break;
 				}
 				case IOCTLV_SO_RECVFROM:
 				{
-					u32 sock	= Memory::Read_U32(BufferIn);
-					u32 flags	= Memory::Read_U32(BufferIn + 4);
-			
-					char *buf	= (char *)Memory::GetPointer(BufferOut);
-					int len		= BufferOutSize;
-					struct sockaddr_in addr;
-					memset(&addr, 0, sizeof(sockaddr_in));
-					socklen_t fromlen = 0;
+					u32 flags = Memory::Read_U32(BufferIn + 0x04);
+					char * data = (char *)Memory::GetPointer(BufferOut);
+					int data_len = BufferOutSize;
+
+					sockaddr_in local_name;
+					memset(&local_name, 0, sizeof(sockaddr_in));
 			
 					if (BufferOutSize2 != 0)
 					{
-						fromlen = BufferOutSize2 >= sizeof(struct sockaddr) ? BufferOutSize2 : sizeof(struct sockaddr);
+						WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut2);
+						WiiSockMan::Convert(*wii_name, local_name);
 					}
 
 					// Act as non blocking when SO_MSG_NONBLOCK is specified
 					forceNonBlock = ((flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK);
 			
-					// recv/recvfrom only handles PEEK
+					// recv/recvfrom only handles PEEK/OOB
 					flags &= SO_MSG_PEEK | SO_MSG_OOB;
 #ifdef _WIN32
-					if (flags & MSG_PEEK){
+					if (flags & SO_MSG_PEEK){
 						unsigned long totallen = 0;
-						ioctlsocket(sock, FIONREAD, &totallen);
+						ioctlsocket(fd, FIONREAD, &totallen);
 						ReturnValue = totallen;
 						break;
 					}
 #endif
-					int ret = recvfrom(sock, buf, len, flags,
-									fromlen ? (struct sockaddr*) &addr : NULL,
-									fromlen ? &fromlen : 0);
-					ReturnValue = WiiSockMan::getNetErrorCode(ret, fromlen ? "SO_RECVFROM" : "SO_RECV", true);
+					socklen_t addrlen = sizeof(sockaddr_in);
+					int ret = recvfrom(fd, data, data_len, flags,
+									BufferOutSize2 ? (struct sockaddr*) &local_name : NULL,
+									BufferOutSize2 ? &addrlen : 0);
+					ReturnValue = WiiSockMan::getNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
 
 			
 					INFO_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
 					"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 					"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)", 
-					fromlen ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ",
-					ReturnValue, buf, sock, flags,
+					BufferOutSize2 ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ",
+					ReturnValue, data, fd, flags,
 					BufferIn, BufferInSize, BufferIn2, BufferInSize2,
 					BufferOut, BufferOutSize, BufferOut2, BufferOutSize2);
 
 					if (BufferOutSize2 != 0)
 					{
-						addr.sin_family = (addr.sin_family << 8) | (BufferOutSize2&0xFF);
-						Memory::WriteBigEData((u8*)&addr, BufferOut2, BufferOutSize2);
+						WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut2);
+						WiiSockMan::Convert(local_name, *wii_name, addrlen);
 					}
 					break;
 				}
@@ -506,7 +517,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 			|| (!it->is_ssl && ReturnValue != -SO_EAGAIN && ReturnValue != -SO_EINPROGRESS && ReturnValue != -SO_EALREADY)
 			|| (it->is_ssl && ReturnValue != SSL_ERR_WAGAIN && ReturnValue != SSL_ERR_RAGAIN))
 		{
-			DEBUG_LOG(WII_IPC_NET, "IOCTL(V) Sock: %d ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", 
+			DEBUG_LOG(WII_IPC_NET, "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", 
 				fd, it->is_ssl ? it->ssl_type : it->net_type, ReturnValue, nonBlock, forceNonBlock);
 			WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue);
 			it = pending_sockops.erase(it);
@@ -532,6 +543,15 @@ void WiiSocket::doSock(u32 _CommandAddress, SSL_IOCTL type)
 	pending_sockops.push_back(so);
 }
 
+void WiiSockMan::addSocket(s32 fd)
+{
+	if (fd >= 0)
+	{
+		WiiSocket& sock = WiiSockets[fd];
+		sock.setFd(fd);
+	}
+}
+
 s32 WiiSockMan::newSocket(s32 af, s32 type, s32 protocol)
 {
 	if (NetPlay::IsNetPlayRunning()
@@ -543,11 +563,7 @@ s32 WiiSockMan::newSocket(s32 af, s32 type, s32 protocol)
 
 	s32 fd = (s32)socket(af, type, protocol);
 	s32 ret = getNetErrorCode(fd, "newSocket", false);
-	if (ret >= 0)
-	{
-		WiiSocket& sock = WiiSockets[ret];
-		sock.setFd(ret);
-	}
+	addSocket(ret);
 	return ret;
 }
 

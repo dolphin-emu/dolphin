@@ -122,6 +122,10 @@ public:
 	void GetCarryAndClear(ARMReg reg);
 	void FinalizeCarry(ARMReg reg);
 
+	// TODO: This shouldn't be here
+	void StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset);
+	void LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset);
+
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
 	void Default(UGeckoInstruction _inst);
@@ -193,6 +197,7 @@ public:
 	void sthu(UGeckoInstruction _inst);
 	void stw(UGeckoInstruction _inst);
 	void stwu(UGeckoInstruction _inst);
+	void stwx(UGeckoInstruction _inst);
 
 	// Floating point
 	void fabsx(UGeckoInstruction _inst);
@@ -207,6 +212,7 @@ public:
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);
 	void lfd(UGeckoInstruction _inst);
+	void stfs(UGeckoInstruction _inst);
 
 	// Paired Singles
 	void ps_add(UGeckoInstruction _inst);

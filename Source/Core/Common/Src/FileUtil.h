@@ -143,7 +143,7 @@ bool ReadFileToString(bool text_file, const char *filename, std::string &str);
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
 // and make forgetting an fclose() harder
-class IOFile
+class IOFile : public NonCopyable
 {
 public:
 	IOFile();
@@ -209,12 +209,11 @@ public:
 	// clear error state
 	void Clear() { m_good = true; std::clearerr(m_file); }
 
-private:
-	IOFile(const IOFile&) /*= delete*/;
-	IOFile& operator=(const IOFile&) /*= delete*/;
-
 	std::FILE* m_file;
 	bool m_good;
+private:
+	IOFile(IOFile&);
+	IOFile& operator=(IOFile& other);
 };
 
 }  // namespace

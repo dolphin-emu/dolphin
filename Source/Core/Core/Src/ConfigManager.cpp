@@ -450,7 +450,7 @@ void SConfig::LoadSettings()
 	#elif defined __APPLE__
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_COREAUDIO);
 	#elif defined _WIN32
-		ini.Get("DSP", "Backend", &sBackend, BACKEND_DIRECTSOUND);
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_XAUDIO2);
 	#elif defined ANDROID
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_OPENSLES);
 	#else

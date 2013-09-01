@@ -112,7 +112,7 @@ public final class FolderBrowser extends Fragment
 		return mDrawerList;
 	}
 
-	private AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
+	private final AdapterView.OnItemClickListener mMenuItemClickListener = new AdapterView.OnItemClickListener()
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 		{
@@ -143,7 +143,6 @@ public final class FolderBrowser extends Fragment
 	{
 		String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
 		int intDirectories = Integer.parseInt(Directories);
-		Directories = Integer.toString(intDirectories + 1);
 
 		// Check to see if a path set in the Dolphin config
 		// matches the one the user is trying to add. If it's

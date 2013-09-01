@@ -441,8 +441,6 @@ bool NetPlayServer::StartGame(const std::string &path)
 	spac << m_settings.m_DSPEnableJIT;
 	spac << m_settings.m_DSPHLE;
 	spac << m_settings.m_WriteToMemcard;
-	for (unsigned int i = 0; i < 4; ++i)
-		spac << m_settings.m_Controllers[i];
 
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);

@@ -120,7 +120,7 @@ public final class GameListFragment extends Fragment
 		return mMainList;
 	}
 
-	private AdapterView.OnItemClickListener mGameItemClickListener = new AdapterView.OnItemClickListener()
+	private final AdapterView.OnItemClickListener mGameItemClickListener = new AdapterView.OnItemClickListener()
 	{
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
 		{

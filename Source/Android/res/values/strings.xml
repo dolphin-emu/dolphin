@@ -82,6 +82,8 @@
     <string name="opengl_es3">OpenGL ES 3</string>
     <string name="video_backend">Video Backend</string>
     <string name="video_backend_to_use">Video backend to use</string>
+    <string name="show_fps">Show FPS</string>
+    <string name="show_fps_descrip">Show the number of frames rendered per second as a measure of emulation speed.</string>
     <string name="draw_onscreen_controls">Draw on-screen controls</string>
     
     <string name="enhancements">Enhancements</string>

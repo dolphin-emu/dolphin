@@ -30,11 +30,10 @@ import org.dolphinemu.dolphinemu.R;
  * within the input control mapping config.
  */
 public final class InputConfigFragment extends PreferenceFragment
-		//implements PrefsActivity.OnGameConfigListener
 {
 	private Activity m_activity;
 	private boolean firstEvent = true;
-	private static ArrayList<Float> m_values = new ArrayList<Float>();
+	private static final ArrayList<Float> m_values = new ArrayList<Float>();
 
 	/**
 	 * Gets the descriptor for the given {@link InputDevice}.

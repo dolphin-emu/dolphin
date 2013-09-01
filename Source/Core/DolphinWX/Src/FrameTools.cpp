@@ -190,7 +190,8 @@ void CFrame::CreateMenu()
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
 	toolsMenu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
-	toolsMenu->Append(IDM_IMPORTSAVE, _("Wii Save Import"));
+	toolsMenu->Append(IDM_IMPORTSAVE, _("Import Wii Save"));
+	toolsMenu->Append(IDM_EXPORTALLSAVE, _("Export All Wii Saves"));
 	toolsMenu->Append(IDM_CHEATS, _("&Cheats Manager"));
 
 	toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
@@ -296,6 +297,7 @@ void CFrame::CreateMenu()
 	// Re-enable when there's something useful to display */
 	// helpMenu->Append(wxID_HELP, _("&Help"));
 	helpMenu->Append(IDM_HELPWEBSITE, _("Dolphin &Web Site"));
+	helpMenu->Append(IDM_HELPONLINEDOCS, _("Online &Documentation"));
 	helpMenu->Append(IDM_HELPGOOGLECODE, _("Dolphin at &Google Code"));
 	helpMenu->AppendSeparator();
 	helpMenu->Append(wxID_ABOUT, _("&About..."));
@@ -1254,10 +1256,13 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		}
 		break;
 	case IDM_HELPWEBSITE:
-		WxUtils::Launch("http://dolphin-emu.org/");
+		WxUtils::Launch("https://dolphin-emu.org/");
+		break;
+	case IDM_HELPONLINEDOCS:
+		WxUtils::Launch("https://dolphin-emu.org/docs/guides/");
 		break;
 	case IDM_HELPGOOGLECODE:
-		WxUtils::Launch("http://code.google.com/p/dolphin-emu/");
+		WxUtils::Launch("https://code.google.com/p/dolphin-emu/");
 		break;
 	}
 }
@@ -1310,6 +1315,11 @@ void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 	MemcardManager.ShowModal();
 }
 
+void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED (event)) 
+{
+	CWiiSaveCrypted::ExportAllSaves();
+}
+
 void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event)) 
 {
 	wxString path = wxFileSelector(_("Select the save file"),
@@ -1320,9 +1330,7 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 
 	if (!path.IsEmpty())
 	{
-		// TODO: Does this actually need to be dynamically allocated for some reason?
-		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(WxStrToStr(path).c_str());
-		delete saveFile;
+		CWiiSaveCrypted::ImportWiiSave(WxStrToStr(path).c_str());
 	}
 }
 

@@ -44,7 +44,12 @@ JitArmAsmRoutineManager asm_routines;
 void JitArmAsmRoutineManager::Generate()
 {
 	enterCode = GetCodePtr();
-	PUSH(2, R11, _LR); // R11 is frame pointer in Debug.
+	PUSH(9, R4, R5, R6, R7, R8, R9, R10, R11, _LR);
+	// Take care to 8-byte align stack for function calls.
+	// We are misaligned here because of an odd number of args for PUSH.
+	// It's not like x86 where you need to account for an extra 4 bytes
+	// consumed by CALL.
+	SUB(_SP, _SP, 4);
 
 	MOVI2R(R0, (u32)&CoreTiming::downcount);
 	MOVI2R(R9, (u32)&PowerPC::ppcState.spr[0]);
@@ -129,7 +134,9 @@ void JitArmAsmRoutineManager::Generate()
 	
 	SetJumpTarget(Exit);
 
-	POP(2, R11, _PC);
+	ADD(_SP, _SP, 4);
+
+	POP(9, R4, R5, R6, R7, R8, R9, R10, R11, _PC);  // Returns
 	FlushIcache();
 }
 

@@ -60,7 +60,7 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 	, m_pContentLoader(NULL)
 	, m_TitleID(-1)
-	, AccessIdentID(0x6000000)
+	, m_AccessIdentID(0x6000000)
 {
 }
 
@@ -91,7 +91,7 @@ void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile)
 	m_ContentFile = _rContentFile;
 }
 
-bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
+void CWII_IPC_HLE_Device_es::OpenInternal()
 {
 	m_pContentLoader = &DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
 
@@ -119,6 +119,57 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 	}
 
 	INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID);
+}
+
+void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
+{
+	IWII_IPC_HLE_Device::DoState(p);
+	p.Do(m_ContentFile);
+	OpenInternal();
+	p.Do(m_AccessIdentID);
+	p.Do(m_TitleIDs);
+
+	u32 Count = m_ContentAccessMap.size();
+	p.Do(Count);
+
+	u32 CFD, Position;
+	u64 TitleID;
+	u16 Index;
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		for (u32 i = 0; i < Count; i++)
+		{
+			p.Do(CFD);
+			p.Do(Position);
+			p.Do(TitleID);
+			p.Do(Index);
+			CFD = OpenTitleContent(CFD, TitleID, Index);
+			if (CFD != 0xffffffff)
+			{
+				m_ContentAccessMap[CFD].m_Position = Position;
+			}
+		}
+	}
+	else
+	{
+		for (auto itr = m_ContentAccessMap.begin(); itr != m_ContentAccessMap.end(); ++itr)
+		{
+			CFD = itr->first;
+			SContentAccess& Access = itr->second;
+			Position = Access.m_Position;
+			TitleID = Access.m_TitleID;
+			Index = Access.m_pContent->m_Index;
+			p.Do(CFD);
+			p.Do(Position);
+			p.Do(TitleID);
+			p.Do(Index);
+		}
+	}
+}
+
+bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
+{
+	OpenInternal();
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	if (m_Active)
@@ -131,17 +182,60 @@ bool CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
 {
 	// Leave deletion of the INANDContentLoader objects to CNANDContentManager, don't do it here!
 	m_NANDContent.clear();
+	for (auto itr = m_ContentAccessMap.begin(); itr != m_ContentAccessMap.end(); ++itr)
+	{
+		delete itr->second.m_pFile;
+	}
 	m_ContentAccessMap.clear();
 	m_pContentLoader = NULL;
 	m_TitleIDs.clear();
 	m_TitleID = -1;
-	AccessIdentID = 0x6000000;
+	m_AccessIdentID = 0x6000000;
 
 	INFO_LOG(WII_IPC_ES, "ES: Close");
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
 	return true;
+}
+
+u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
+{
+	const DiscIO::INANDContentLoader& Loader = AccessContentDevice(TitleID);
+
+	if (!Loader.IsValid())
+	{
+		WARN_LOG(WII_IPC_ES, "ES: loader not valid for %llx", TitleID);
+		return 0xffffffff;
+	}
+
+	const DiscIO::SNANDContent* pContent = Loader.GetContentByIndex(Index);
+
+	if (pContent == NULL)
+	{
+		return 0xffffffff; //TODO: what is the correct error value here?
+	}
+
+	SContentAccess Access;
+	Access.m_Position = 0;
+	Access.m_pContent = pContent;
+	Access.m_TitleID = TitleID;
+
+	if (!pContent->m_pData)
+	{
+		std::string Filename = pContent->m_Filename;
+		INFO_LOG(WII_IPC_ES, "ES: load %s", Filename.c_str());
+
+		Access.m_pFile = new File::IOFile(Filename, "rb");
+		if (!Access.m_pFile->IsGood())
+		{
+			WARN_LOG(WII_IPC_ES, "ES: couldn't load %s", Filename.c_str());
+			return 0xffffffff;
+		}
+	}
+
+	m_ContentAccessMap[CFD] = Access;
+	return CFD;
 }
 
 bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress) 
@@ -242,16 +336,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 			u32 Index = Memory::Read_U32(Buffer.InBuffer[2].m_Address);
 
-			u32 CFD = AccessIdentID++;
-			m_ContentAccessMap[CFD].m_Position = 0;
-			m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(TitleID).GetContentByIndex(Index);
-			_dbg_assert_msg_(WII_IPC_ES, m_ContentAccessMap[CFD].m_pContent != NULL, "No Content for TitleID: %08x/%08x at Index %x", (u32)(TitleID>>32), (u32)TitleID, Index);
-			// Fix for DLC by itsnotmailmail
-			if (m_ContentAccessMap[CFD].m_pContent == NULL)
-				CFD = 0xffffffff; //TODO: what is the correct error value here?
+			u32 CFD = OpenTitleContent(m_AccessIdentID++, TitleID, Index);
 			Memory::Write_U32(CFD, _CommandAddress + 0x4);
 
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x", (u32)(TitleID>>32), (u32)TitleID, Index, CFD);
+
 			return true;
 		}
 		break;
@@ -260,19 +349,12 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		{
 			_dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
 			_dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
-
-			u32 CFD = AccessIdentID++;
 			u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
-			m_ContentAccessMap[CFD].m_Position = 0;
-			m_ContentAccessMap[CFD].m_pContent = AccessContentDevice(m_TitleID).GetContentByIndex(Index);
-			
-			if (m_ContentAccessMap[CFD].m_pContent == NULL)
-				CFD = 0xffffffff; //TODO: what is the correct error value here?
-
+			u32 CFD = OpenTitleContent(m_AccessIdentID++, m_TitleID, Index);
 			Memory::Write_U32(CFD, _CommandAddress + 0x4);
-
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
+
 			return true;
 		}
 		break;
@@ -286,12 +368,16 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u32 Size = Buffer.PayloadBuffer[0].m_Size;
 			u32 Addr = Buffer.PayloadBuffer[0].m_Address;
 
-			_dbg_assert_(WII_IPC_ES, m_ContentAccessMap.find(CFD) != m_ContentAccessMap.end());
-			SContentAccess& rContent = m_ContentAccessMap[CFD];
+			auto itr = m_ContentAccessMap.find(CFD);
+			if (itr == m_ContentAccessMap.end())
+			{
+				Memory::Write_U32(-1, _CommandAddress + 0x4);
+				return true;
+			}
+			SContentAccess& rContent = itr->second;
 
 			_dbg_assert_(WII_IPC_ES, rContent.m_pContent->m_pData != NULL);
 
-			u8* pSrc = &rContent.m_pContent->m_pData[rContent.m_Position];
 			u8* pDest = Memory::GetPointer(Addr);
 
 			if (rContent.m_Position + Size > rContent.m_pContent->m_Size) 
@@ -301,8 +387,26 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			if (Size > 0)
 			{
-				if (pDest) {
-					memcpy(pDest, pSrc, Size);
+				if (pDest)
+				{
+					if (rContent.m_pContent->m_pData)
+					{
+						u8* pSrc = &rContent.m_pContent->m_pData[rContent.m_Position];
+						memcpy(pDest, pSrc, Size);
+					}
+					else
+					{
+						auto& pFile = rContent.m_pFile;
+						if (!pFile->Seek(rContent.m_Position, SEEK_SET))
+						{
+							ERROR_LOG(WII_IPC_ES, "ES: couldn't seek!");
+						}
+						WARN_LOG(WII_IPC_ES, "2 %p", pFile->GetHandle());
+						if (!pFile->ReadBytes(pDest, Size))
+						{
+							ERROR_LOG(WII_IPC_ES, "ES: short read; returning uninitialized data!");
+						}
+					}
 					rContent.m_Position += Size;
 				} else {
 					PanicAlertT("IOCTL_ES_READCONTENT - bad destination");
@@ -323,10 +427,17 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u32 CFD = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
-			CContentAccessMap::iterator itr = m_ContentAccessMap.find(CFD);
-			m_ContentAccessMap.erase(itr);
-
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_CLOSECONTENT: CFD %x", CFD);
+
+			auto itr = m_ContentAccessMap.find(CFD);
+			if (itr == m_ContentAccessMap.end())
+			{
+				Memory::Write_U32(-1, _CommandAddress + 0x4);
+				return true;
+			}
+
+			delete itr->second.m_pFile;
+			m_ContentAccessMap.erase(itr);
 
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 			return true;
@@ -342,8 +453,13 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u32 Addr = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
 			u32 Mode = Memory::Read_U32(Buffer.InBuffer[2].m_Address);
 
-			_dbg_assert_(WII_IPC_ES, m_ContentAccessMap.find(CFD) != m_ContentAccessMap.end());
-			SContentAccess& rContent = m_ContentAccessMap[CFD];
+			auto itr = m_ContentAccessMap.find(CFD);
+			if (itr == m_ContentAccessMap.end())
+			{
+				Memory::Write_U32(-1, _CommandAddress + 0x4);
+				return true;
+			}
+			SContentAccess& rContent = itr->second;
 
 			switch (Mode)
 			{
@@ -759,12 +875,19 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					if (pContent)
 					{
 						LoadWAD(Common::GetTitleContentPath(TitleID));
-						CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
-						DolLoader.Load(); // TODO: Check why sysmenu does not load the DOL correctly
-						PC = DolLoader.GetEntryPoint() | 0x80000000;
+						std::unique_ptr<CDolLoader> pDolLoader;
+						if (pContent->m_pData)
+						{
+							pDolLoader.reset(new CDolLoader(pContent->m_pData, pContent->m_Size));
+						}
+						else
+						{
+							pDolLoader.reset(new CDolLoader(pContent->m_Filename.c_str()));
+						}
+						pDolLoader->Load(); // TODO: Check why sysmenu does not load the DOL correctly
+						PC = pDolLoader->GetEntryPoint() | 0x80000000;
 						IOSv = ContentLoader.GetIosVersion();
 						bSuccess = true;
-						
 					}
 				}
 			}
@@ -908,7 +1031,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 const DiscIO::INANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 _TitleID)
 {
 	if (m_pContentLoader->IsValid() && m_pContentLoader->GetTitleID() == _TitleID)
-		return* m_pContentLoader;
+		return *m_pContentLoader;
 
 	CTitleToContentMap::iterator itr = m_NANDContent.find(_TitleID);
 	if (itr != m_NANDContent.end())

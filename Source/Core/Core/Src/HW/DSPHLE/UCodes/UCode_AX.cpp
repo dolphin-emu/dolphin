@@ -14,7 +14,7 @@ CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
 	, m_work_available(false)
 	, m_cmdlist_size(0)
-	, m_run_on_thread(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread)
+	, m_run_on_thread(false)
 {
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AX: crc=%08x", crc);
 	m_rMailHandler.PushMail(DSP_INIT);
@@ -22,6 +22,9 @@ CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 
 	LoadResamplingCoefficients();
 
+	// DSP HLE on thread is always disabled because it causes audio
+	// issues/glitching (different timing characteristics). m_run_on_thread is
+	// always false.
 	if (m_run_on_thread)
 		m_axthread = std::thread(SpawnAXThread, this);
 }
