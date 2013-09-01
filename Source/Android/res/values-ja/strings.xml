@@ -80,6 +80,8 @@
     <string name="opengl_es3">OpenGL ES 3</string>
     <string name="video_backend">ビデオレンダラ</string>
     <string name="video_backend_to_use">使用するビデオレンダラー</string>
+    <string name="show_fps">FPSを表示</string>
+    <string name="show_fps_descrip">エミュレーション速度の指標として、画面左上に毎秒レンダリングされた フレーム数を表示します。</string>
     <string name="draw_onscreen_controls">画面上のコントロールを描画</string>
     
     <string name="enhancements">画質向上の設定</string>

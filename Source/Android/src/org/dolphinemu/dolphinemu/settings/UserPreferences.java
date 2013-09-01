@@ -37,7 +37,8 @@ public final class UserPreferences
 		editor.putString("cpuCorePref",   getConfig("Dolphin.ini", "Core", "CPUCore", "3"));
 		editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True"));
 
-		editor.putString("gpuPref",              getConfig("Dolphin.ini", "Core", "GFXBackend ", "Software Renderer"));
+		editor.putString("gpuPref",               getConfig("Dolphin.ini", "Core", "GFXBackend ", "Software Renderer"));
+		editor.putBoolean("showFPS",              getConfig("gfx_opengl.ini", "Settings", "ShowFPS", "False").equals("True"));
 		editor.putBoolean("drawOnscreenControls", getConfig("Dolphin.ini", "Android", "ScreenControls", "True").equals("True"));
 
 		editor.putString("internalResolution",     getConfig("gfx_opengl.ini", "Settings", "EFBScale", "2") );
@@ -120,6 +121,9 @@ public final class UserPreferences
 		// Current video backend being used. Falls back to software rendering upon error.
 		String currentVideoBackend = prefs.getString("gpuPref", "Software Rendering");
 
+		// Whether or not FPS will be displayed on-screen.
+		boolean showingFPS = prefs.getBoolean("showFPS", false);
+
 		// Whether or not to draw on-screen controls.
 		boolean drawingOnscreenControls = prefs.getBoolean("drawOnscreenControls", true);
 
@@ -172,6 +176,7 @@ public final class UserPreferences
 
 		// General Video Settings
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "GFXBackend", currentVideoBackend);
+		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "ShowFPS", showingFPS ? "True" : "False");
 		NativeLibrary.SetConfig("Dolphin.ini", "Android", "ScreenControls", drawingOnscreenControls ? "True" : "False");
 
 		// Video Hack Settings
