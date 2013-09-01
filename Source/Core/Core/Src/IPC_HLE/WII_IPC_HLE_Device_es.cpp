@@ -220,6 +220,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 	Access.m_Position = 0;
 	Access.m_pContent = pContent;
 	Access.m_TitleID = TitleID;
+	Access.m_pFile = NULL;
 
 	if (!pContent->m_pData)
 	{
