@@ -212,6 +212,8 @@ public:
 	s32 newSocket(s32 af, s32 type, s32 protocol);
 	void addSocket(s32 fd);
 	s32 delSocket(s32 s);
+	s32 getLastNetError() {return errono_last;}
+	void setLastNetError(s32 error) {errono_last = error;}
 
 	void clean()
 	{
@@ -238,8 +240,9 @@ private:
 	WiiSockMan() {};                   // Constructor? (the {} brackets) are needed here.
 	WiiSockMan(WiiSockMan const&);     // Don't Implement
 	void operator=(WiiSockMan const&); // Don't implement
-
 	std::unordered_map<s32, WiiSocket> WiiSockets;
+
+	s32 errono_last;
 };
 
 #endif
