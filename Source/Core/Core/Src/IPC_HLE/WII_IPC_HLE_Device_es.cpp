@@ -182,6 +182,10 @@ bool CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
 {
 	// Leave deletion of the INANDContentLoader objects to CNANDContentManager, don't do it here!
 	m_NANDContent.clear();
+	for (auto itr = m_ContentAccessMap.begin(); itr != m_ContentAccessMap.end(); ++itr)
+	{
+		delete itr->second.m_pFile;
+	}
 	m_ContentAccessMap.clear();
 	m_pContentLoader = NULL;
 	m_TitleIDs.clear();
@@ -222,15 +226,15 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 		std::string Filename = pContent->m_Filename;
 		INFO_LOG(WII_IPC_ES, "ES: load %s", Filename.c_str());
 
-		Access.m_File.Open(Filename, "rb");
-		if (!Access.m_File.IsGood())
+		Access.m_pFile = new File::IOFile(Filename, "rb");
+		if (!Access.m_pFile->IsGood())
 		{
 			WARN_LOG(WII_IPC_ES, "ES: couldn't load %s", Filename.c_str());
 			return 0xffffffff;
 		}
 	}
 
-	m_ContentAccessMap[CFD] = std::move(Access);
+	m_ContentAccessMap[CFD] = Access;
 	return CFD;
 }
 
@@ -392,7 +396,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					}
 					else
 					{
-						File::IOFile* pFile = &rContent.m_File;
+						auto& pFile = rContent.m_pFile;
 						if (!pFile->Seek(rContent.m_Position, SEEK_SET))
 						{
 							ERROR_LOG(WII_IPC_ES, "ES: couldn't seek!");
@@ -423,9 +427,17 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u32 CFD = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
-			m_ContentAccessMap.erase(CFD);
-
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_CLOSECONTENT: CFD %x", CFD);
+
+			auto itr = m_ContentAccessMap.find(CFD);
+			if (itr == m_ContentAccessMap.end())
+			{
+				Memory::Write_U32(-1, _CommandAddress + 0x4);
+				return true;
+			}
+
+			delete itr->second.m_pFile;
+			m_ContentAccessMap.erase(itr);
 
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 			return true;

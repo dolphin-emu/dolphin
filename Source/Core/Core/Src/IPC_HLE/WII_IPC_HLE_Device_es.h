@@ -8,6 +8,7 @@
 #include <map>
 #include "WII_IPC_HLE_Device.h"
 #include "NANDContentLoader.h"
+#include <memory>
 
 class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
 {
@@ -112,12 +113,13 @@ private:
 		ES_HASH_SIZE_WRONG                   = -2014, // HASH !=20
 	};
 
-	struct SContentAccess : public NonCopyable
+	struct SContentAccess
 	{
 		u32 m_Position;
 		u64 m_TitleID;
 		const DiscIO::SNANDContent* m_pContent;
-		File::IOFile m_File;
+		// This is a (raw) pointer to work around a MSVC bug.
+		File::IOFile* m_pFile;
 	};
 
 	typedef std::map<u32, SContentAccess> CContentAccessMap;

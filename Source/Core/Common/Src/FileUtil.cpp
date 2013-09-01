@@ -853,7 +853,7 @@ IOFile::IOFile(IOFile&& other)
 
 IOFile& IOFile::operator=(IOFile&& other)
 {
-	IOFile((IOFile&&)other).Swap(*this);
+	Swap(other);
 	return *this;
 }
 

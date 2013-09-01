@@ -37,6 +37,9 @@ protected:
 	NonCopyable() {}
 	NonCopyable(const NonCopyable&&) {}
 	void operator=(const NonCopyable&&) {}
+private:
+	NonCopyable(NonCopyable&);
+	NonCopyable& operator=(NonCopyable& other);
 };
 #endif
 
