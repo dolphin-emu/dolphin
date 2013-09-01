@@ -16,9 +16,13 @@ import javax.microedition.khronos.opengles.GL10;
 import org.dolphinemu.dolphinemu.R;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 
 /**
  * Responsible for handling the loading of the video preferences.
@@ -195,6 +199,58 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			videoBackends.setEntries(R.array.videoBackendEntriesNoGLES3);
 			videoBackends.setEntryValues(R.array.videoBackendValuesNoGLES3);
 		}
+		
+		//
+		// Disable all options if Software Rendering is used.
+		//
+		// Note that the numeric value in 'getPreference()'
+		// denotes the placement on the UI. So if more elements are
+		// added to the video settings, these may need to change.
+		//
+		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		final PreferenceScreen mainScreen = getPreferenceScreen();
+
+		if (videoBackends.getValue().equals("Software Renderer"))
+		{
+			mainScreen.getPreference(0).setEnabled(false);
+			mainScreen.getPreference(1).setEnabled(false);
+			mainScreen.getPreference(3).setEnabled(false);
+			mainScreen.getPreference(4).setEnabled(false);
+		}
+		else if (videoBackends.getValue().equals("OGL"))
+		{
+			mainScreen.getPreference(0).setEnabled(true);
+			mainScreen.getPreference(1).setEnabled(true);
+			mainScreen.getPreference(3).setEnabled(true);
+			mainScreen.getPreference(4).setEnabled(true);
+		}
+
+		// Also set a listener, so that if someone changes the video backend, it will disable
+		// the video settings, upon the user choosing "Software Rendering".
+		sPrefs.registerOnSharedPreferenceChangeListener(new OnSharedPreferenceChangeListener()
+		{
+			@Override
+			public void onSharedPreferenceChanged(SharedPreferences preference, String key)
+			{
+				if (key.equals("gpuPref"))
+				{
+					if (preference.getString(key, "Software Renderer").equals("Software Renderer"))
+					{
+						mainScreen.getPreference(0).setEnabled(false);
+						mainScreen.getPreference(1).setEnabled(false);
+						mainScreen.getPreference(3).setEnabled(false);
+						mainScreen.getPreference(4).setEnabled(false);
+					}
+					else if (preference.getString(key, "Software Renderer").equals("OGL"))
+					{
+						mainScreen.getPreference(0).setEnabled(true);
+						mainScreen.getPreference(1).setEnabled(true);
+						mainScreen.getPreference(3).setEnabled(true);
+						mainScreen.getPreference(4).setEnabled(true);
+					}
+				}
+			}
+		});
 	}
 
 	@Override
