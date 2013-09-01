@@ -412,26 +412,25 @@ void WiiSocket::update(bool read, bool write, bool except)
 				{
 				case IOCTLV_SO_SENDTO:
 				{
-
+				
+					u32 flags	= Memory::Read_U32(BufferIn2 + 4);
+					u32 has_destaddr = Memory::Read_U32(BufferIn2 + 0x08);
 					char * data = (char*)Memory::GetPointer(BufferIn);
-					u32 flags = Common::swap32(BufferIn2 + 0x04);
-					u32 has_destaddr = Common::swap32(BufferIn2 + 0x08);
+					
 					// Act as non blocking when SO_MSG_NONBLOCK is specified
 					forceNonBlock = ((flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK);
-
 					// send/sendto only handles MSG_OOB
 					flags &= SO_MSG_OOB;
 					
-					u8 destaddr[28];
-					struct sockaddr_in* addr = (struct sockaddr_in*)&destaddr;
+					sockaddr_in local_name;
 					if (has_destaddr)
-					{
-						Memory::ReadBigEData((u8*)&destaddr, BufferIn2 + 0x0C, BufferInSize2 - 0x0C);
-						addr->sin_family = addr->sin_family >> 8;
+					{						
+						WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferIn2 + 0x0C);
+						WiiSockMan::Convert(*wii_name, local_name);
 					}
 
 					int ret = sendto(fd, data, BufferInSize, flags, 
-						has_destaddr ? (struct sockaddr*)addr : NULL, 
+						has_destaddr ? (struct sockaddr*)&local_name : NULL, 
 						has_destaddr ? sizeof(sockaddr) :  0);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_SENDTO", true);
 
@@ -440,16 +439,15 @@ void WiiSocket::update(bool read, bool write, bool except)
 						has_destaddr ? "IOCTLV_SO_SENDTO " : "IOCTLV_SO_SEND ",
 						ReturnValue, fd, BufferIn, BufferInSize,
 						BufferIn2, BufferInSize2,
-						addr->sin_addr.s_addr & 0xFF,
-						(addr->sin_addr.s_addr >> 8) & 0xFF,
-						(addr->sin_addr.s_addr >> 16) & 0xFF,
-						(addr->sin_addr.s_addr >> 24) & 0xFF
+						local_name.sin_addr.s_addr & 0xFF,
+						(local_name.sin_addr.s_addr >> 8) & 0xFF,
+						(local_name.sin_addr.s_addr >> 16) & 0xFF,
+						(local_name.sin_addr.s_addr >> 24) & 0xFF
 						);
 					break;
 				}
 				case IOCTLV_SO_RECVFROM:
 				{
-					u32 sock	= Memory::Read_U32(BufferIn);
 					u32 flags	= Memory::Read_U32(BufferIn + 4);
 			
 					char *buf	= (char *)Memory::GetPointer(BufferOut);
@@ -471,12 +469,12 @@ void WiiSocket::update(bool read, bool write, bool except)
 #ifdef _WIN32
 					if (flags & MSG_PEEK){
 						unsigned long totallen = 0;
-						ioctlsocket(sock, FIONREAD, &totallen);
+						ioctlsocket(fd, FIONREAD, &totallen);
 						ReturnValue = totallen;
 						break;
 					}
 #endif
-					int ret = recvfrom(sock, buf, len, flags,
+					int ret = recvfrom(fd, buf, len, flags,
 									fromlen ? (struct sockaddr*) &addr : NULL,
 									fromlen ? &fromlen : 0);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, fromlen ? "SO_RECVFROM" : "SO_RECV", true);
@@ -486,7 +484,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 					"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 					"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)", 
 					fromlen ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ",
-					ReturnValue, buf, sock, flags,
+					ReturnValue, buf, fd, flags,
 					BufferIn, BufferInSize, BufferIn2, BufferInSize2,
 					BufferOut, BufferOutSize, BufferOut2, BufferOutSize2);
 
