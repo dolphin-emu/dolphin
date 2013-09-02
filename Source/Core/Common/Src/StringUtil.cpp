@@ -270,7 +270,7 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 	while(1)
 	{
 		size_t pos = result.find(src);
-		if (pos == -1) break;
+		if (pos == std::string::npos) break;
 		result.replace(pos, src.size(), dest);
 	}
 	return result;

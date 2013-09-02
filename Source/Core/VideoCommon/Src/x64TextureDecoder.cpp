@@ -28,6 +28,12 @@
 #include <tmmintrin.h>
 #endif
 
+// This avoids a harmless warning from a system header in Clang;
+// see http://llvm.org/bugs/show_bug.cgi?id=16093
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wshadow"
+#endif
+
 bool TexFmt_Overlay_Enable=false;
 bool TexFmt_Overlay_Center=false;
 

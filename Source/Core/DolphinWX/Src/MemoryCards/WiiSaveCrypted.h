@@ -42,8 +42,7 @@ private:
 
 	std::string encryptedSavePath;
 
-	std::string BannerFilePath,
-				WiiTitlePath;
+	std::string WiiTitlePath;
 
 	u8  IV[0x10];
 	

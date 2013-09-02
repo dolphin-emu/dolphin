@@ -30,8 +30,8 @@
 #define GL_READ_WRITE                     0x88BA
 #define GL_SRC1_ALPHA 0
 #define GL_BGRA GL_RGBA
-#define glDrawElementsBaseVertex
-#define glDrawRangeElementsBaseVertex
+#define glDrawElementsBaseVertex(...)
+#define glDrawRangeElementsBaseVertex(...)
 #endif
 #else
 #define TEX2D	GL_TEXTURE_RECTANGLE_ARB

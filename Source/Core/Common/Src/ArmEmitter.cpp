@@ -86,6 +86,7 @@ bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool *negated)
 Operand2 AssumeMakeOperand2(u32 imm) {
 	Operand2 op2;
 	bool result = TryMakeOperand2(imm, op2);
+	(void) result;
 	_dbg_assert_msg_(DYNA_REC, result, "Could not make assumed Operand2.");
 	return op2;
 }
@@ -958,7 +959,7 @@ extern const VFPEnc VFPOps[16][2] = {
 	{{  -1,   -1}, {0x3B, 0x30}}, // 14: VABSi
 	};
 
-extern const char *VFPOpNames[16] = {
+const char *VFPOpNames[16] = {
 	"VMLA",
 	"VNMLA",
 	"VMLS",
@@ -1189,6 +1190,7 @@ void ARMXEmitter::VMOV(ARMReg Dest, ARMReg Src)
 	}
 	// Moving NEON registers
 	int SrcSize = Src < D0 ? 1 : Src < Q0 ? 2 : 4;
+	(void) SrcSize;
 	int DestSize = Dest < D0 ? 1 : Dest < Q0 ? 2 : 4;
 	bool Single = DestSize == 1;
 	bool Quad = DestSize == 4;
