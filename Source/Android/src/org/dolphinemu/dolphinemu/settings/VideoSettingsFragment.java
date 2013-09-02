@@ -215,14 +215,14 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			mainScreen.getPreference(0).setEnabled(false);
 			mainScreen.getPreference(1).setEnabled(false);
 			mainScreen.getPreference(3).setEnabled(false);
-			mainScreen.getPreference(4).setEnabled(true);
+			//mainScreen.getPreference(4).setEnabled(true);
 		}
 		else if (videoBackends.getValue().equals("OGL"))
 		{
 			mainScreen.getPreference(0).setEnabled(true);
 			mainScreen.getPreference(1).setEnabled(true);
 			mainScreen.getPreference(3).setEnabled(true);
-			mainScreen.getPreference(4).setEnabled(false);
+			//mainScreen.getPreference(4).setEnabled(false);
 		}
 
 		// Also set a listener, so that if someone changes the video backend, it will disable
@@ -239,14 +239,14 @@ public final class VideoSettingsFragment extends PreferenceFragment
 						mainScreen.getPreference(0).setEnabled(false);
 						mainScreen.getPreference(1).setEnabled(false);
 						mainScreen.getPreference(3).setEnabled(false);
-						mainScreen.getPreference(4).setEnabled(true);
+						//mainScreen.getPreference(4).setEnabled(true);
 					}
 					else if (preference.getString(key, "Software Renderer").equals("OGL"))
 					{
 						mainScreen.getPreference(0).setEnabled(true);
 						mainScreen.getPreference(1).setEnabled(true);
 						mainScreen.getPreference(3).setEnabled(true);
-						mainScreen.getPreference(4).setEnabled(false);
+						//mainScreen.getPreference(4).setEnabled(false);
 					}
 				}
 			}
