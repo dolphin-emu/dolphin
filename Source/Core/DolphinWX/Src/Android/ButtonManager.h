@@ -70,12 +70,9 @@ namespace ButtonManager
 		{
 			u32 width, height;
 			char *image;
-			image = LoadPNG((std::string(DOLPHIN_DATA_DIR "/") + filename).c_str(), width, height);
+			// image = LoadPNG((std::string(DOLPHIN_DATA_DIR "/") + filename).c_str(), width, height);
+			// XXX: Make platform specific drawing
 			
-			m_tex = g_video_backend->Video_LoadTexture(image, width, height);
-
-			free(image);
-
 			m_button = button;
 			memcpy(m_coords, coords, sizeof(float) * 8);
 			m_state = BUTTON_RELEASED;
@@ -91,7 +88,7 @@ namespace ButtonManager
 		GLuint GetTexture() { return m_tex; }
 		float *GetCoords() { return m_coords; }
 			
-		~Button() {  g_video_backend->Video_DeleteTexture(m_tex); }
+		~Button() { }
 	};
 
 	struct sBind

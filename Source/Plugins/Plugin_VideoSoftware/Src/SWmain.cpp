@@ -242,32 +242,6 @@ bool VideoSoftware::Video_Screenshot(const char *_szFilename)
 	return false;
 }
 
-int VideoSoftware::Video_LoadTexture(char *image, u32 width, u32 height)
-{
-	GLuint Texture = 0;
-	glGenTextures(1, &Texture);
-
-	glBindTexture(GL_TEXTURE_2D, Texture);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, 
-				GL_RGBA, GL_UNSIGNED_BYTE, image);
-
-	return (int) Texture;
-}
-void VideoSoftware::Video_DeleteTexture(int texID)
-{
-	if (texID == -1) return;
-	glDeleteTextures(1, (GLuint*)&texID);
-}
-void VideoSoftware::Video_DrawTexture(int texID, float *coords)
-{
-	if (texID == -1) return;
-	SWRenderer::DrawButton(texID, coords);
-}
 // -------------------------------
 // Enter and exit the video loop
 // -------------------------------

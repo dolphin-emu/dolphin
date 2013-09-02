@@ -123,36 +123,6 @@ void SWRenderer::DrawDebugText()
 	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
 }
 
-// XXX: We should /really/ be outputting textures to the texture image instead of this way.
-void SWRenderer::DrawButton(int texID, float *coords)
-{
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        static const GLfloat texverts[4][2] = {
-                {0, 1},
-                {0, 0},
-                {1, 0},
-                {1, 1}
-        };
-
-        glBindTexture(GL_TEXTURE_2D, texID);
-
-        glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, coords);
-        glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
-        glEnableVertexAttribArray(attr_pos);
-        glEnableVertexAttribArray(attr_tex);
-                glActiveTexture(GL_TEXTURE0); 
-                glUniform1i(uni_tex, 0);
-                glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-        glDisableVertexAttribArray(attr_pos);
-        glDisableVertexAttribArray(attr_tex);
-
-        glBindTexture(GL_TEXTURE_2D, 0); 
-
-	glDisable(GL_BLEND);
-}
-
 void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 {
 	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();

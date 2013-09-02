@@ -181,8 +181,7 @@ namespace ButtonManager
 
 	void DrawButtons()
 	{
-		for(auto it = m_buttons.begin(); it != m_buttons.end(); ++it)
-			g_video_backend->Video_DrawTexture((*it)->GetTexture(), (*it)->GetCoords());	
+		// XXX: Make platform specific drawing
 	}
 	
 	// InputDevice

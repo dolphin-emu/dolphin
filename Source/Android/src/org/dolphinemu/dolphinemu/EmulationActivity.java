@@ -1,9 +1,5 @@
 package org.dolphinemu.dolphinemu;
 
-import java.util.List;
-
-import org.dolphinemu.dolphinemu.settings.InputConfigFragment;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -11,15 +7,11 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
-import android.view.InputDevice;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.*;
 import android.view.WindowManager.LayoutParams;
+import org.dolphinemu.dolphinemu.settings.InputConfigFragment;
+
+import java.util.List;
 
 /**
  * This is the activity where all of the emulation handling happens.
