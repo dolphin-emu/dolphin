@@ -143,20 +143,20 @@ u8* MemArena::Find4GBBase()
 	return base;
 #else
 #ifdef ANDROID
-	const u32 MemSize = 0x04000000;
+	// Android 4.3 changed how mmap works.
+	// if we map it private and then munmap it, we can't use the base returned.
+	// This may be due to changes in them support a full SELinux implementation.
+	const int flags = MAP_ANON;
 #else
-	const u32 MemSize = 0x31000000; 
+	const int flags = MAP_ANON | MAP_PRIVATE;
 #endif
-	void* base = mmap(0, MemSize, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+	const u32 MemSize = 0x31000000;
+	void* base = mmap(0, MemSize, PROT_NONE, flags, -1, 0);
 	if (base == MAP_FAILED) {
 		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
 		return 0;
 	}
-#ifndef ANDROID
-	// Android 4.3 changes how munmap works which causes crashes.
-	// Keep the memory space after allocating it...
 	munmap(base, MemSize);
-#endif
 	return static_cast<u8*>(base);
 #endif
 #endif
