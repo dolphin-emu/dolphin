@@ -401,6 +401,7 @@ void NetPlayDiag::OnChat(wxCommandEvent&)
 void NetPlayDiag::GetNetSettings(NetSettings &settings)
 {
 	SConfig &instance = SConfig::GetInstance();
+	settings.m_CPUthread = instance.m_LocalCoreStartupParameter.bCPUThread;
 	settings.m_DSPHLE = instance.m_LocalCoreStartupParameter.bDSPHLE;
 	settings.m_DSPEnableJIT = instance.m_EnableJIT;
 	settings.m_WriteToMemcard = m_memcard_write->GetValue();
