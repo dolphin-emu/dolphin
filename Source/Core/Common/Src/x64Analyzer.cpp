@@ -4,7 +4,7 @@
 
 #include "x64Analyzer.h"
 
-bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int accessType)
+bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 {
 	unsigned const char *startCodePtr = codePtr;
 	u8 rex = 0;
@@ -12,11 +12,11 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	u8 codeByte2 = 0;
 	
 	//Check for regular prefix
-	info.operandSize = 4;
-	info.zeroExtend = false;
-	info.signExtend = false;
-	info.hasImmediate = false;
-	info.isMemoryWrite = false;
+	info->operandSize = 4;
+	info->zeroExtend = false;
+	info->signExtend = false;
+	info->hasImmediate = false;
+	info->isMemoryWrite = false;
 
 	u8 modRMbyte = 0;
 	u8 sibByte = 0;
@@ -26,7 +26,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 
 	if (*codePtr == 0x66)
 	{
-		info.operandSize = 2;
+		info->operandSize = 2;
 		codePtr++;
 	} 
 	else if (*codePtr == 0x67)
@@ -40,7 +40,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 		rex = *codePtr;
 		if (rex & 8) //REX.W
 		{
-			info.operandSize = 8;
+			info->operandSize = 8;
 		}
 		codePtr++;
 	}
@@ -72,11 +72,11 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 			(codeByte2 & 0xF0) == 0x80 || 
 			((codeByte2 & 0xF0) == 0xA0 && (codeByte2 & 0x07) <= 0x02) || 
 			(codeByte2 & 0xF8) == 0xC8) 
-		{ 
+		{
 			// No mod R/M byte 
-		} 
+		}
 		else 
-		{ 
+		{
 			modRMbyte = *codePtr++;
 			hasModRM = true;
 		} 
@@ -85,21 +85,21 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	if (hasModRM)
 	{
 		ModRM mrm(modRMbyte, rex);
-		info.regOperandReg = mrm.reg;
+		info->regOperandReg = mrm.reg;
 		if (mrm.mod < 3)
 		{
 			if (mrm.rm == 4)
 			{
 				//SIB byte
 				sibByte = *codePtr++;
-				info.scaledReg = (sibByte >> 3) & 7;
-				info.otherReg = (sibByte & 7);
-				if (rex & 2) info.scaledReg += 8;
-				if (rex & 1) info.otherReg += 8;
+				info->scaledReg = (sibByte >> 3) & 7;
+				info->otherReg = (sibByte & 7);
+				if (rex & 2) info->scaledReg += 8;
+				if (rex & 1) info->otherReg += 8;
 			}
 			else
 			{
-				//info.scaledReg = 
+				//info->scaledReg = 
 			}
 		}
 		if (mrm.mod == 1 || mrm.mod == 2)
@@ -112,100 +112,103 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	}
 
 	if (displacementSize == 1)
-		info.displacement = (s32)(s8)*codePtr;
+		info->displacement = (s32)(s8)*codePtr;
 	else
-		info.displacement = *((s32 *)codePtr);
+		info->displacement = *((s32 *)codePtr);
 	codePtr += displacementSize;
 
 
-	if (accessType == 1)
+	switch (codeByte)
 	{
-		info.isMemoryWrite = true;
-		//Write access
-		switch (codeByte)
+	// writes
+	case 0xC6: // mem <- imm8
 		{
-		case MOVE_8BIT: //move 8-bit immediate
-			{
-				info.hasImmediate = true;
-				info.immediate = *codePtr;
-				codePtr++; //move past immediate
-			}
-			break;
-
-		case MOVE_16_32BIT: //move 16 or 32-bit immediate, easiest case for writes
-			{
-				if (info.operandSize == 2)
-				{
-					info.hasImmediate = true;
-					info.immediate = *(u16*)codePtr;
-					codePtr += 2;
-				}
-				else if (info.operandSize == 4)
-				{
-					info.hasImmediate = true;
-					info.immediate = *(u32*)codePtr;
-					codePtr += 4;
-				}
-				else if (info.operandSize == 8)
-				{
-					info.zeroExtend = true;
-					info.immediate = *(u32*)codePtr;
-					codePtr += 4;
-				}
-			}
-			break;
-		case MOVE_REG_TO_MEM: //move reg to memory
-			break;
-
-		default:
-			PanicAlert("Unhandled disasm case in write handler!\n\nPlease implement or avoid.");
-			return false;
+			info->isMemoryWrite = true;
+			info->hasImmediate = true;
+			info->immediate = *codePtr;
+			codePtr++; //move past immediate
 		}
-	}
-	else
-	{
-		// Memory read
+		break;
 
-		//mov eax, dword ptr [rax]   == 8b 00
-		switch (codeByte)
+	case 0xC7: // mem <- imm16/32
 		{
-		case 0x0F:
+			info->isMemoryWrite = true;
+			if (info->operandSize == 2)
+			{
+				info->hasImmediate = true;
+				info->immediate = *(u16*)codePtr;
+				codePtr += 2;
+			}
+			else if (info->operandSize == 4)
+			{
+				info->hasImmediate = true;
+				info->immediate = *(u32*)codePtr;
+				codePtr += 4;
+			}
+			else if (info->operandSize == 8)
+			{
+				info->zeroExtend = true;
+				info->immediate = *(u32*)codePtr;
+				codePtr += 4;
+			}
+		}
+
+	case 0x89: // mem <- r16/32/64
+		{
+			info->isMemoryWrite = true;
+			break;
+		}
+
+	case 0x0F: // two-byte escape
+		{
+			info->isMemoryWrite = false;
 			switch (codeByte2)
 			{
-			case MOVZX_BYTE: //movzx on byte
-				info.zeroExtend = true;
-				info.operandSize = 1;
+			case 0xB6: // movzx on byte
+				info->zeroExtend = true;
+				info->operandSize = 1;
 				break;
-			case MOVZX_SHORT: //movzx on short
-				info.zeroExtend = true;
-				info.operandSize = 2;
+			case 0xB7: // movzx on short
+				info->zeroExtend = true;
+				info->operandSize = 2;
 				break;
-			case MOVSX_BYTE: //movsx on byte
-				info.signExtend = true;
-				info.operandSize = 1;
+			case 0xBE: // movsx on byte
+				info->signExtend = true;
+				info->operandSize = 1;
 				break;
-			case MOVSX_SHORT: //movsx on short
-				info.signExtend = true;
-				info.operandSize = 2;
+			case 0xBF: // movsx on short
+				info->signExtend = true;
+				info->operandSize = 2;
 				break;
 			default:
 				return false;
 			}
 			break;
-		case 0x8a: 
-			if (info.operandSize == 4)
+		}
+
+	case 0x8A: // r8 <- mem
+		{
+			info->isMemoryWrite = false;
+			if (info->operandSize == 4)
 			{
-				info.operandSize = 1;
+				info->operandSize = 1;
 				break;
 			}
-			else 
+			else
 				return false;
-		case 0x8b: 
-			break; //it's OK don't need to do anything
-		default:
-			return false;
 		}
+
+	case 0x8B: // r16/32/64 <- mem
+		{
+			info->isMemoryWrite = false;
+			break;
+		}
+
+		break;
+
+	default:
+		return false;
 	}
-	info.instructionSize = (int)(codePtr - startCodePtr);
+	info->instructionSize = (int)(codePtr - startCodePtr);
 	return true;
 }

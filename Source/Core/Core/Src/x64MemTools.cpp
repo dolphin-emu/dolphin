@@ -99,7 +99,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
 			//We could emulate the memory accesses here, but then they would still be around to take up
 			//execution resources. Instead, we backpatch into a generic memory call and retry.
-			const u8 *new_rip = JitInterface::BackPatch(codePtr, accessType, emAddress, ctx);
+			const u8 *new_rip = JitInterface::BackPatch(codePtr, emAddress, ctx);
 
 			// Rip/Eip needs to be updated.
 			if (new_rip)
@@ -214,7 +214,6 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	// Backpatch time.
 	// Seems we'll need to disassemble to get access_type - that work is probably
 	// best done and debugged on the Windows side.
-	int access_type = 0;
 
 	CONTEXT fake_ctx;
 
@@ -225,7 +224,7 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	fake_ctx.Eax = CREG_EAX(ctx);
 	fake_ctx.Eip = CREG_EIP(ctx);
 #endif
-	const u8 *new_rip = jit->BackPatch(fault_instruction_ptr, access_type, em_address, &fake_ctx);
+	const u8 *new_rip = jit->BackPatch(fault_instruction_ptr, em_address, &fake_ctx);
 	if (new_rip)
 	{
 #ifdef _M_X64

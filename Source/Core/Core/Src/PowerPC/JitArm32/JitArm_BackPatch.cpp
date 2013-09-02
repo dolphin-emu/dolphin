@@ -96,7 +96,7 @@ bool DisamLoadStore(const u32 inst, ARMReg &rD, u8 &accessSize, bool &Store)
 	}
 	return true;
 }
-const u8 *JitArm::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ctx_void)
+const u8 *JitArm::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 {
 	// TODO: This ctx needs to be filled with our information
 	CONTEXT *ctx = (CONTEXT *)ctx_void;
