@@ -752,11 +752,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		Memory::Write_U32(optlen, BufferOut + 0xC);
 		Memory::WriteBigEData((u8 *) optval, BufferOut + 0x10, optlen);
 
-		if (optname == 0x1007){
-			s32 errorcode = Memory::Read_U32(BufferOut + 0x10);
-			INFO_LOG(WII_IPC_NET,"IOCTL_SO_GETSOCKOPT error code = %i", errorcode);
-		}
-		else if (optname == SO_ERROR)
+		if (optname == SO_ERROR)
 		{
 			s32 last_error = WiiSockMan::getInstance().getLastNetError();
 			
