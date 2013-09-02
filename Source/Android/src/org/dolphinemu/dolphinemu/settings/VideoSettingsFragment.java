@@ -215,6 +215,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			mainScreen.getPreference(0).setEnabled(false);
 			mainScreen.getPreference(1).setEnabled(false);
 			mainScreen.getPreference(3).setEnabled(false);
+			mainScreen.getPreference(4).setEnabled(true);
 		}
 		else if (videoBackends.getValue().equals("OGL"))
 		{
@@ -238,6 +239,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 						mainScreen.getPreference(0).setEnabled(false);
 						mainScreen.getPreference(1).setEnabled(false);
 						mainScreen.getPreference(3).setEnabled(false);
+						mainScreen.getPreference(4).setEnabled(true);
 					}
 					else if (preference.getString(key, "Software Renderer").equals("OGL"))
 					{
