@@ -17,5 +17,5 @@
 
 #include "GLInterface.h"
 
-GLuint LoadPNG(const char *filename);
+char* LoadPNG(const char *filename, u32 &width, u32 &height);
 

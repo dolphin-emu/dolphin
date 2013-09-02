@@ -16,6 +16,7 @@ namespace SWRenderer
 	void RenderText(const char* pstr, int left, int top, u32 color);
 	void DrawDebugText();
 
+	void DrawButton(int texId, float *coords);
 	void DrawTexture(u8 *texture, int width, int height);
 
 	void SwapBuffer();

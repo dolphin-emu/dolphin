@@ -35,6 +35,10 @@ class VideoSoftware : public VideoBackend
 	void Video_ClearMessages();
 	bool Video_Screenshot(const char* filename);
 
+	int Video_LoadTexture(char *imagedata, u32 width, u32 height);
+	void Video_DeleteTexture(int texID);
+	void Video_DrawTexture(int texID, float *coords);
+
 	void Video_SetRendering(bool bEnabled);
 
 	void Video_GatherPipeBursted();

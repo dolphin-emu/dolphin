@@ -122,12 +122,13 @@ void SWRenderer::DrawDebugText()
 	SWRenderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
 	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
 }
-#ifdef ANDROID
-// XXX: This /really/ shouldn't be here
-// But for now, we don't have a generic way for all backends to draw the buttons on screen.
-// Once that is implemented, we can remove this
-void DrawButton(GLuint tex, float *coords)
+
+// XXX: We should /really/ be outputting textures to the texture image instead of this way.
+void SWRenderer::DrawButton(int texID, float *coords)
 {
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         //Texture rectangle uses pixel coordinates
 #ifndef USE_GLES
         GLfloat u_max = (GLfloat)width;
@@ -147,7 +148,7 @@ void DrawButton(GLuint tex, float *coords)
                 {1, 1}
         };
 #endif
-        glBindTexture(TEX2D, tex);
+        glBindTexture(TEX2D, texID);
 
         glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, coords);
         glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
@@ -160,8 +161,10 @@ void DrawButton(GLuint tex, float *coords)
         glDisableVertexAttribArray(attr_tex);
 
         glBindTexture(TEX2D, 0); 
+
+	glDisable(GL_BLEND);
 }
-#endif
+
 void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 {
 	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();

@@ -181,13 +181,8 @@ namespace ButtonManager
 
 	void DrawButtons()
 	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		for(auto it = m_buttons.begin(); it != m_buttons.end(); ++it)
-			DrawButton((*it)->GetTexture(), (*it)->GetCoords());	
-
-		glDisable(GL_BLEND);
+			g_video_backend->Video_DrawTexture((*it)->GetTexture(), (*it)->GetCoords());	
 	}
 	
 	// InputDevice

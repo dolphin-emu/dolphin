@@ -103,6 +103,14 @@ public:
 	virtual void Video_ClearMessages() = 0;
 	virtual bool Video_Screenshot(const char* filename) = 0;
 
+	// Loads a texture, -1 on not loaded
+	// Texture is passed in as RGBA data
+	virtual int Video_LoadTexture(char *imagedata, u32 width, u32 height) = 0;
+	// Deletes a texture loaded from LoadTexture
+	virtual void Video_DeleteTexture(int texID) = 0;
+	// Draws a texture, arg1 is the value returned by LoadTexture, arg2 is the screen coordinates
+	virtual void Video_DrawTexture(int texID, float *coords) = 0;
+	
 	virtual void Video_SetRendering(bool bEnabled) = 0;
 
 	virtual void Video_GatherPipeBursted() = 0;
@@ -154,6 +162,10 @@ class VideoBackendHardware : public VideoBackend
 	void Video_AddMessage(const char* pstr, unsigned int milliseconds);
 	void Video_ClearMessages();
 	bool Video_Screenshot(const char* filename);
+
+	int Video_LoadTexture(char *imagedata, u32 width, u32 height) { return -1; }
+	void Video_DeleteTexture(int texID) {}
+	void Video_DrawTexture(int texID, float *coords) {}
 
 	void Video_SetRendering(bool bEnabled);
 
