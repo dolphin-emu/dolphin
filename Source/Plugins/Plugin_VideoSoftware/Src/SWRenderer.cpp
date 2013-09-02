@@ -129,26 +129,14 @@ void SWRenderer::DrawButton(int texID, float *coords)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        //Texture rectangle uses pixel coordinates
-#ifndef USE_GLES
-        GLfloat u_max = (GLfloat)width;
-        GLfloat v_max = (GLfloat)height;
-
-        static const GLfloat texverts[4][2] = {
-                {0, v_max},
-                {0, 0},
-                {u_max, 0},
-                {u_max, v_max}
-        };
-#else
         static const GLfloat texverts[4][2] = {
                 {0, 1},
                 {0, 0},
                 {1, 0},
                 {1, 1}
         };
-#endif
-        glBindTexture(TEX2D, texID);
+
+        glBindTexture(GL_TEXTURE_2D, texID);
 
         glVertexAttribPointer(attr_pos, 2, GL_FLOAT, GL_FALSE, 0, coords);
         glVertexAttribPointer(attr_tex, 2, GL_FLOAT, GL_FALSE, 0, texverts);
@@ -160,7 +148,7 @@ void SWRenderer::DrawButton(int texID, float *coords)
         glDisableVertexAttribArray(attr_pos);
         glDisableVertexAttribArray(attr_tex);
 
-        glBindTexture(TEX2D, 0); 
+        glBindTexture(GL_TEXTURE_2D, 0); 
 
 	glDisable(GL_BLEND);
 }
