@@ -119,6 +119,7 @@ public:
 	void ComputeRC(s32 value, int cr);
 
 	void ComputeCarry();
+	void ComputeCarry(bool Carry);
 	void GetCarryAndClear(ARMReg reg);
 	void FinalizeCarry(ARMReg reg);
 
@@ -149,29 +150,17 @@ public:
 	void bcctrx(UGeckoInstruction _inst);
 		
 	// Integer
-	void addi(UGeckoInstruction _inst);
-	void addis(UGeckoInstruction _inst);
-	void addx(UGeckoInstruction _inst);
-	void addcx(UGeckoInstruction _inst);
+	void arith(UGeckoInstruction _inst);
+
 	void addex(UGeckoInstruction _inst);
 	void cmp (UGeckoInstruction _inst);
 	void cmpi(UGeckoInstruction _inst);
 	void cmpl(UGeckoInstruction _inst);
 	void cmpli(UGeckoInstruction _inst);
 	void negx(UGeckoInstruction _inst);
-	void mulli(UGeckoInstruction _inst);
-	void mullwx(UGeckoInstruction _inst);
 	void mulhwux(UGeckoInstruction _inst);
-	void ori(UGeckoInstruction _inst);	
-	void oris(UGeckoInstruction _inst);	
-	void orx(UGeckoInstruction _inst);
-	void xorx(UGeckoInstruction _inst);
-	void andx(UGeckoInstruction _inst);
-	void andi_rc(UGeckoInstruction _inst);
-	void andis_rc(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);
 	void rlwinmx(UGeckoInstruction _inst);
-	void subfx(UGeckoInstruction _inst);
 	void srawix(UGeckoInstruction _inst);
 	void extshx(UGeckoInstruction inst);
 	void extsbx(UGeckoInstruction inst);
