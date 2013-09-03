@@ -217,6 +217,186 @@ void JitArm::stX(UGeckoInstruction inst)
 	}
 }
 
+void JitArm::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse)
+{
+	ARMReg RD = gpr.R(dest);
+	ARMReg rA = gpr.GetReg();
+	ARMReg rB = gpr.GetReg();
+
+	if (offsetReg == -1)
+		MOVI2R(rA, offset);
+	else
+		MOV(rA, gpr.R(offsetReg));
+
+	if (addr != -1)
+		ADD(rA, rA, gpr.R(addr));
+	
+	switch (accessSize)
+	{
+		case 8:
+			MOVI2R(rB, (u32)&Memory::Read_U8);	
+		break;
+		case 16:
+			MOVI2R(rB, (u32)&Memory::Read_U16);	
+		break;
+		case 32:
+			MOVI2R(rB, (u32)&Memory::Read_U32);	
+		break;
+	}
+	PUSH(4, R0, R1, R2, R3);
+	MOV(R0, rA);
+	BL(rB);
+	MOV(rA, R0);
+	POP(4, R0, R1, R2, R3);
+	MOV(RD, rA);
+	if (signExtend) // Only on 16 loads
+		SXTH(RD, RD);
+	if (reverse)
+	{
+		if (accessSize == 32)
+			REV(RD, RD);
+		else if (accessSize == 16)
+			REV16(RD, RD);
+	}
+	gpr.Unlock(rA, rB);
+}
+
+void JitArm::lXX(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(LoadStore)
+	u32 a = inst.RA, b = inst.RB, d = inst.RD;
+	s32 offset = inst.SIMM_16;
+	u32 accessSize = 0;
+	s32 offsetReg = -1;
+	bool zeroA = true;
+	bool update = false;	
+	bool signExtend = false;
+	bool reverse = false;
+	
+	switch(inst.OPCD)
+	{
+		case 31:
+			switch(inst.SUBOP10)
+			{
+				case 55: // lwzux
+					zeroA = false;
+					update = true;
+				case 23: // lwzx
+					accessSize = 32;
+					offsetReg = b; 
+				break;
+				case 119: //lbzux
+					zeroA = false;
+					update = true;
+				case 87: // lbzx
+					accessSize = 8;
+					offsetReg = b;
+				break;
+				case 311: // lhzux
+					zeroA = false;
+					update = true;
+				case 279: // lhzx
+					accessSize = 16;
+					offsetReg = b;
+				break;
+				case 375: // lhaux
+					zeroA = false;
+					update = true;
+				case 343: // lhax
+					accessSize = 16;
+					signExtend = true;
+					offsetReg = b;
+				break;
+				case 534: // lwbrx
+					accessSize = 32;
+					reverse = true;
+				break;
+				case 790: // lhbrx
+					accessSize = 16;
+					reverse = true;
+				break;
+			}
+		break;
+		case 33: // lwzu
+			zeroA = false;
+			update = true;
+		case 32: // lwz
+			accessSize = 32;
+		break;
+		case 35: // lbzu
+			zeroA = false;
+			update = true;
+		case 34: // lbz
+			accessSize = 8;
+		break;
+		case 41: // lhzu
+			zeroA = false;
+			update = true;
+		case 40: // lhz
+			accessSize = 16;
+		break;
+		case 43: // lhau
+			zeroA = false;
+			update = true;
+		case 42: // lha
+			signExtend = true;
+			accessSize = 16;
+		break;
+	}
+
+	// Check for exception before loading
+	ARMReg rA = gpr.GetReg(false);
+	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
+	CMP(rA, EXCEPTION_DSI);
+	FixupBranch DoNotLoad = B_CC(CC_EQ);
+
+	SafeLoadToReg(d, zeroA ? a ? a : -1 : a, offsetReg, accessSize, offset, signExtend, reverse);
+	
+	if (update)
+	{
+		rA = gpr.GetReg(false);
+		ARMReg RA = gpr.R(a);
+		if (offsetReg == -1)
+			MOVI2R(rA, offset);	
+		else
+			MOV(RA, gpr.R(offsetReg));
+		ADD(RA, RA, rA);
+	}
+
+	SetJumpTarget(DoNotLoad);
+
+	// LWZ idle skipping
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
+		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
+		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
+		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
+	{
+		ARMReg RD = gpr.R(d);
+		gpr.Flush();
+		fpr.Flush();
+		
+		// if it's still 0, we can wait until the next event
+		TST(RD, RD);
+		FixupBranch noIdle = B_CC(CC_NEQ);
+		rA = gpr.GetReg();	
+		
+		MOVI2R(rA, (u32)&PowerPC::OnIdle);
+		MOVI2R(R0, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16); 
+		BL(rA);
+
+		gpr.Unlock(rA);
+		WriteExceptionExit();
+
+		SetJumpTarget(noIdle);
+
+		//js.compilerPC += 8;
+		return;
+	}
+
+}
+
 void JitArm::LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
 {
 	ARMReg rA = gpr.GetReg();
@@ -254,270 +434,6 @@ void JitArm::LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
 
 	}
 	gpr.Unlock(rA);
-}
-void JitArm::lbz(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-	ARMReg RD = gpr.R(inst.RD);
-	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-	CMP(rA, EXCEPTION_DSI);
-	FixupBranch DoNotLoad = B_CC(CC_EQ);
-#if FASTMEM
-	// Backpatch route
-	// Gets loaded in to RD
-	// Address is in R10
-	if (Core::g_CoreStartupParameter.bFastmem)
-	{
-		gpr.Unlock(rA, rB);
-		if (inst.RA)
-		{
-			ARMReg RA = gpr.R(inst.RA);
-			MOV(R10, RA); // - 4
-		}
-		else
-			MOV(R10, 0); // - 4
-		LoadToReg(RD, R10, 8, inst.SIMM_16);	
-	}
-	else
-#endif
-	{
-		if (inst.RA)
-		{
-			MOVI2R(rB, inst.SIMM_16);
-			ARMReg RA = gpr.R(inst.RA);
-			ADD(rB, rB, RA);
-		}
-		else	
-			MOVI2R(rB, (u32)inst.SIMM_16);
-		
-		MOVI2R(rA, (u32)&Memory::Read_U8);	
-		PUSH(4, R0, R1, R2, R3);
-		MOV(R0, rB);
-		BL(rA);
-		MOV(rA, R0);
-		POP(4, R0, R1, R2, R3);
-		MOV(RD, rA);
-		gpr.Unlock(rA, rB);
-	}
-	SetJumpTarget(DoNotLoad);
-}
-
-void JitArm::lhz(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-	ARMReg RD = gpr.R(inst.RD);
-	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-	CMP(rA, EXCEPTION_DSI);
-	FixupBranch DoNotLoad = B_CC(CC_EQ);
-#if FASTMEM
-	// Backpatch route
-	// Gets loaded in to RD
-	// Address is in R10
-	if (Core::g_CoreStartupParameter.bFastmem)
-	{
-		if (inst.RA)
-		{
-			ARMReg RA = gpr.R(inst.RA);
-			MOV(R10, RA); // - 4
-		}
-		else
-			MOV(R10, 0); // - 4
-
-		LoadToReg(RD, R10, 16, (u32)inst.SIMM_16);	
-	}
-	else
-#endif
-	{
-		if (inst.RA)
-		{
-			MOVI2R(rB, inst.SIMM_16);
-			ARMReg RA = gpr.R(inst.RA);
-			ADD(rB, rB, RA);
-		}
-		else	
-			MOVI2R(rB, (u32)inst.SIMM_16);
-		
-		MOVI2R(rA, (u32)&Memory::Read_U16);	
-		PUSH(4, R0, R1, R2, R3);
-		MOV(R0, rB);
-		BL(rA);
-		MOV(rA, R0);
-		POP(4, R0, R1, R2, R3);
-		MOV(RD, rA);
-	}
-
-	gpr.Unlock(rA, rB);
-	SetJumpTarget(DoNotLoad);
-}
-void JitArm::lha(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-	ARMReg RD = gpr.R(inst.RD);
-	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-	CMP(rA, EXCEPTION_DSI);
-	FixupBranch DoNotLoad = B_CC(CC_EQ);
-
-	if (inst.RA)
-	{
-		MOVI2R(rB, inst.SIMM_16);
-		ARMReg RA = gpr.R(inst.RA);
-		ADD(rB, rB, RA);
-	}
-	else	
-		MOVI2R(rB, (u32)inst.SIMM_16);
-	
-	MOVI2R(rA, (u32)&Memory::Read_U16);	
-	PUSH(4, R0, R1, R2, R3);
-	MOV(R0, rB);
-	BL(rA);
-	MOV(rA, R0);
-	SXTH(rA, rA);
-	POP(4, R0, R1, R2, R3);
-	MOV(RD, rA);
-	gpr.Unlock(rA, rB);
-	SetJumpTarget(DoNotLoad);
-}
-
-void JitArm::lwz(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-	ARMReg RD = gpr.R(inst.RD);
-	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-	CMP(rA, EXCEPTION_DSI);
-	FixupBranch DoNotLoad = B_CC(CC_EQ);
-	
-#if FASTMEM
-	// Backpatch route
-	// Gets loaded in to RD
-	// Address is in R10
-	if (Core::g_CoreStartupParameter.bFastmem)
-	{
-		gpr.Unlock(rA, rB);
-		if (inst.RA)
-		{
-			ARMReg RA = gpr.R(inst.RA);
-			MOV(R10, RA); // - 4
-		}
-		else
-			MOV(R10, 0); // - 4
-		LoadToReg(RD, R10, 32, (u32)inst.SIMM_16);	
-	}
-	else
-#endif
-	{
-		if (inst.RA)
-		{
-			MOVI2R(rB, inst.SIMM_16);
-			ARMReg RA = gpr.R(inst.RA);
-			ADD(rB, rB, RA);
-		}
-		else
-			MOVI2R(rB, (u32)inst.SIMM_16);
-
-		MOVI2R(rA, (u32)&Memory::Read_U32);	
-		PUSH(4, R0, R1, R2, R3);
-		MOV(R0, rB);
-		BL(rA);
-		MOV(rA, R0);
-		POP(4, R0, R1, R2, R3);
-		MOV(RD, rA);
-		gpr.Unlock(rA, rB);
-	}
-	SetJumpTarget(DoNotLoad);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
-		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
-		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
-		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
-	{
-		gpr.Flush();
-		fpr.Flush();
-		
-		// if it's still 0, we can wait until the next event
-		TST(RD, RD);
-		FixupBranch noIdle = B_CC(CC_NEQ);
-		rA = gpr.GetReg();	
-		
-		MOVI2R(rA, (u32)&PowerPC::OnIdle);
-		MOVI2R(R0, PowerPC::ppcState.gpr[inst.RA] + (s32)(s16)inst.SIMM_16); 
-		BL(rA);
-
-		gpr.Unlock(rA);
-		WriteExceptionExit();
-
-		SetJumpTarget(noIdle);
-
-		//js.compilerPC += 8;
-		return;
-	}
-}
-void JitArm::lwzx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-
-	ARMReg RB = gpr.R(inst.RB);
-	ARMReg RD = gpr.R(inst.RD);
-	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-	CMP(rA, EXCEPTION_DSI);
-	FixupBranch DoNotLoad = B_CC(CC_EQ);
-#if FASTMEM
-	// Backpatch route
-	// Gets loaded in to RD
-	// Address is in R10
-	if (Core::g_CoreStartupParameter.bFastmem)
-	{
-		gpr.Unlock(rA, rB);
-		if (inst.RA)
-		{
-			ARMReg RA = gpr.R(inst.RA);
-			ADD(R10, RA, RB); // - 4
-		}
-		else
-			MOV(R10, RB); // -4
-		LoadToReg(RD, R10, 32, 0);	
-	}
-	else
-#endif
-	{
-		if (inst.RA)
-		{
-			ARMReg RA = gpr.R(inst.RA);
-			ADD(rB, RA, RB);
-		}
-		else
-			MOV(rB, RB);
-		
-		MOVI2R(rA, (u32)&Memory::Read_U32);	
-		PUSH(4, R0, R1, R2, R3);
-		MOV(R0, rB);
-		BL(rA);
-		MOV(rA, R0);
-		POP(4, R0, R1, R2, R3);
-		MOV(RD, rA);
-		gpr.Unlock(rA, rB);
-	}
-	SetJumpTarget(DoNotLoad);
-	////	u32 temp = Memory::Read_U32(_inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB]);
 }
 
 void JitArm::dcbst(UGeckoInstruction inst)

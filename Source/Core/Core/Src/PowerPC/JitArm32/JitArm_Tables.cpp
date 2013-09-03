@@ -78,14 +78,14 @@ static GekkoOPTemplate primarytable[] =
 	{28, &JitArm::arith}, //"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 	{29, &JitArm::arith}, //"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 
-	{32, &JitArm::lwz}, //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{33, &JitArm::Default}, //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{34, &JitArm::lbz}, //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{35, &JitArm::Default}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{40, &JitArm::lhz}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{41, &JitArm::Default}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{42, &JitArm::lha}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{43, &JitArm::Default}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{32, &JitArm::lXX}, //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{33, &JitArm::lXX}, //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{34, &JitArm::lXX}, //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{35, &JitArm::lXX}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{40, &JitArm::lXX}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{41, &JitArm::lXX}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{42, &JitArm::lXX}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{43, &JitArm::lXX}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 
 	{44, &JitArm::stX}, //"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
 	{45, &JitArm::stX}, //"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
@@ -221,24 +221,24 @@ static GekkoOPTemplate table31[] =
 	{1014, &JitArm::Default}, //"dcbz",   OPTYPE_DCACHE, 0, 4}},
 
 	//load word
-	{23,  &JitArm::lwzx}, //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{55,  &JitArm::Default}, //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{23,  &JitArm::lXX}, //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{55,  &JitArm::lXX}, //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword
-	{279, &JitArm::Default}, //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{311, &JitArm::Default}, //"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{279, &JitArm::lXX}, //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{311, &JitArm::lXX}, //"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword signextend
-	{343, &JitArm::Default}, //"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{375, &JitArm::Default}, //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{343, &JitArm::lXX}, //"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{375, &JitArm::lXX}, //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte
-	{87,  &JitArm::Default}, //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{119, &JitArm::Default}, //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{87,  &JitArm::lXX}, //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{119, &JitArm::lXX}, //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte reverse
-	{534, &JitArm::Default}, //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{790, &JitArm::Default}, //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{534, &JitArm::lXX}, //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{790, &JitArm::lXX}, //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 
 	// Conditional load/store (Wii SMP)
 	{150, &JitArm::Default}, //"stwcxd", OPTYPE_STORE, FL_EVIL | FL_SET_CR0}},

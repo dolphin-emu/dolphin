@@ -126,6 +126,8 @@ public:
 	// TODO: This shouldn't be here
 	void UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset);
 	void SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 offsetReg, int accessSize, s32 offset);
+
+	void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse);
 	void LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset);
 
 
@@ -176,14 +178,10 @@ public:
 
 	// LoadStore
 	void stX(UGeckoInstruction _inst);
+	void lXX(UGeckoInstruction _inst);
 
 	void icbi(UGeckoInstruction _inst);
 	void dcbst(UGeckoInstruction _inst);
-	void lbz(UGeckoInstruction _inst);
-	void lhz(UGeckoInstruction _inst);
-	void lha(UGeckoInstruction _inst);
-	void lwz(UGeckoInstruction _inst);
-	void lwzx(UGeckoInstruction _inst);
 
 	// Floating point
 	void fabsx(UGeckoInstruction _inst);
