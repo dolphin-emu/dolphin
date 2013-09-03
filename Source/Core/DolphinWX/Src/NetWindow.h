@@ -81,6 +81,8 @@ public:
 
 	static NetPlayDiag *&GetInstance() { return npd; };
 
+	bool IsRecording();
+
 private:
     DECLARE_EVENT_TABLE()
 
@@ -97,6 +99,7 @@ private:
 	wxTextCtrl*		m_chat_text;
 	wxTextCtrl*		m_chat_msg_text;
 	wxCheckBox*		m_memcard_write;
+	wxCheckBox*		m_record_chkbox;
 
 	std::string		m_selected_game;
 	wxButton*		m_game_btn;

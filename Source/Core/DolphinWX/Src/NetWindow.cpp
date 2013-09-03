@@ -354,6 +354,9 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		bottom_szr->Add(m_memcard_write, 0, wxCENTER);
 	}
 
+	m_record_chkbox = new wxCheckBox(panel, wxID_ANY, _("Record input"));
+	bottom_szr->Add(m_record_chkbox, 0, wxCENTER);
+
 	bottom_szr->AddStretchSpacer(1);
 	bottom_szr->Add(quit_btn);
 
@@ -563,6 +566,11 @@ void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 	PadMapDiag pmd(this, mapping, player_list);
 	pmd.ShowModal();
 	netplay_server->SetPadMapping(mapping);
+}
+
+bool NetPlayDiag::IsRecording()
+{
+	return m_record_chkbox->GetValue();
 }
 
 ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* const game_list, wxString& game_name)

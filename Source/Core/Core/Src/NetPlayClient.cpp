@@ -17,6 +17,7 @@
 // for wiimote/ OSD messages
 #include "Core.h"
 #include "ConfigManager.h"
+#include "Movie.h"
 
 std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = NULL;
@@ -420,6 +421,21 @@ bool NetPlayClient::StartGame(const std::string &path)
 
 	ClearBuffers();
 
+	if (m_dialog->IsRecording())
+	{
+
+		if (Movie::IsReadOnly())
+			Movie::SetReadOnly(false);
+
+		u8 controllers_mask = 0;
+		for (unsigned int i = 0; i < 4; ++i)
+		{
+			if (m_pad_map[i] > 0)
+				controllers_mask |= (1 << i);
+		}
+		Movie::BeginRecordingInput(controllers_mask);
+	}
+
 	// boot game
 	m_dialog->BootGame(path);
 
@@ -526,6 +542,18 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 		// TODO: use a condition instead of sleeping
 		Common::SleepCurrentThread(1);
 	}
+
+	SPADStatus tmp;
+	tmp.stickY = ((u8*)&netvalues->nHi)[0];
+	tmp.stickX = ((u8*)&netvalues->nHi)[1];
+	tmp.button = ((u16*)&netvalues->nHi)[1];
+
+	tmp.substickX =  ((u8*)&netvalues->nLo)[3];
+	tmp.substickY =  ((u8*)&netvalues->nLo)[2];
+	tmp.triggerLeft = ((u8*)&netvalues->nLo)[1];
+	tmp.triggerRight = ((u8*)&netvalues->nLo)[0];
+	Movie::RecordInput(&tmp, pad_nb);
+	Movie::InputUpdate();
 
 	return true;
 }
@@ -634,7 +662,7 @@ u32 CEXIIPL::NetPlay_GetGCTime()
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
 
 	if (netplay_client)
-		return 1272737767;	// watev
+		return NETPLAY_INITIAL_GCTIME;	// watev
 	else
 		return 0;
 }

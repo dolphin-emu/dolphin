@@ -24,6 +24,7 @@
 #include "../../Common/Src/NandPaths.h"
 #include "polarssl/md5.h"
 #include "scmrev.h"
+#include "NetPlayClient.h"
 
 // The chunk to allocate movie data in multiples of.
 #define DTM_BASE_LENGTH (1024)
@@ -50,8 +51,8 @@ u64 g_currentFrame = 0, g_totalFrames = 0; // VI
 u64 g_currentLagCount = 0, g_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 u64 g_recordingStartTime; // seconds since 1970 that recording started
-bool bSaveConfig, bSkipIdle, bDualCore, bProgressive, bDSPHLE, bFastDiscSpeed = false;
-bool bMemcard, g_bClearSave, bSyncGPU = false;
+bool bSaveConfig = false, bSkipIdle = false, bDualCore = false, bProgressive = false, bDSPHLE = false, bFastDiscSpeed = false;
+bool bMemcard = false, g_bClearSave = false, bSyncGPU = false, bNetPlay = false;
 std::string videoBackend = "unknown";
 int iCPUCore = 1;
 bool g_bDiscChange = false;
@@ -360,6 +361,11 @@ bool IsSyncGPU()
 	return bSyncGPU;
 }
 
+bool IsNetPlayRecording()
+{
+	return bNetPlay;
+}
+
 void ChangePads(bool instantly)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
@@ -409,7 +415,14 @@ bool BeginRecordingInput(int controllers)
 	g_currentFrame = g_totalFrames = 0;
 	g_currentLagCount = g_totalLagCount = 0;
 	g_currentInputCount = g_totalInputCount = 0;
-	g_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();
+	if (NetPlay::IsNetPlayRunning())
+	{
+		bNetPlay = true;
+		g_recordingStartTime = NETPLAY_INITIAL_GCTIME;
+	}
+	else
+		g_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();
+
 	g_rerecords = 0;
 
 	for (int i = 0; i < 4; i++)
@@ -682,6 +695,7 @@ void ReadHeader()
 		bMemcard = tmpHeader.bMemcard;
 		bongos = tmpHeader.bongos;
 		bSyncGPU = tmpHeader.bSyncGPU;
+		bNetPlay = tmpHeader.bNetPlay;
 		memcpy(revision, tmpHeader.revision, ARRAYSIZE(revision));
 	}
 	else
@@ -1108,6 +1122,7 @@ void SaveRecording(const char *filename)
 	header.bMemcard = bMemcard;
 	header.bClearSave = g_bClearSave;
 	header.bSyncGPU = bSyncGPU;
+	header.bNetPlay = bNetPlay;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
 	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
 	memcpy(header.md5,MD5,16);
@@ -1168,6 +1183,7 @@ void GetSettings()
 	videoBackend = g_video_backend->GetName();
 	bSyncGPU = SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU;
 	iCPUCore = SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore;
+	bNetPlay = NetPlay::IsNetPlayRunning();
 	if (!Core::g_CoreStartupParameter.bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	bMemcard = SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD;
