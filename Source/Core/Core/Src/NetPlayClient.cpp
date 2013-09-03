@@ -566,6 +566,8 @@ bool NetPlayClient::StopGame()
 
 void NetPlayClient::Stop()
 {
+	if (m_is_running == false)
+		return;
 	bool isPadMapped = false;
 	for (unsigned int i = 0; i < 4; ++i)
 	{
