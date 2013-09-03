@@ -650,8 +650,6 @@ void PadMapDiag::OnAdjust(wxCommandEvent& event)
 
 void NetPlay::StopGame()
 {
-	if (netplay_server != NULL)
-		netplay_server->StopGame();
-
-	// TODO: allow non-hosting clients to close the window
+	if (netplay_client != NULL)
+		netplay_client->Stop();
 }

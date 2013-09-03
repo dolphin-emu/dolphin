@@ -74,6 +74,7 @@ public:
 
 	bool StartGame(const std::string &path);
 	bool StopGame();
+	void Stop();
 	bool ChangeGame(const std::string& game);
 	void SendChatMessage(const std::string& msg);
 
