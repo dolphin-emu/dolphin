@@ -1017,6 +1017,9 @@ void CFrame::DoStop()
 	if (confirmStop)
 		return;
 
+	// don't let this function run again until it finishes, or is aborted.
+	confirmStop = true;
+
 	m_bGameLoading = false;
 	if (Core::GetState() != Core::CORE_UNINITIALIZED ||
 			m_RenderParent != NULL)
@@ -1030,7 +1033,6 @@ void CFrame::DoStop()
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
 			Core::EState state = Core::GetState();
-			confirmStop = true;
 			Core::SetState(Core::CORE_PAUSE);
 			wxMessageDialog m_StopDlg(
 				this,
@@ -1040,10 +1042,10 @@ void CFrame::DoStop()
 				wxDefaultPosition);
 
 			int Ret = m_StopDlg.ShowModal();
-			confirmStop = false;
 			if (Ret != wxID_YES)
 			{
 				Core::SetState(state);
+				confirmStop = false;
 				return;
 			}
 		}
@@ -1058,6 +1060,7 @@ void CFrame::DoStop()
 		wxBeginBusyCursor();
 		BootManager::Stop();
 		wxEndBusyCursor();
+		confirmStop = false;
 
 #if defined(HAVE_X11) && HAVE_X11
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bDisableScreenSaver)
