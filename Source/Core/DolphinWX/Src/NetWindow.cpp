@@ -408,6 +408,8 @@ void NetPlayDiag::GetNetSettings(NetSettings &settings)
 	settings.m_DSPHLE = instance.m_LocalCoreStartupParameter.bDSPHLE;
 	settings.m_DSPEnableJIT = instance.m_EnableJIT;
 	settings.m_WriteToMemcard = m_memcard_write->GetValue();
+	settings.m_EXIDevice[0] = instance.m_EXIDevice[0];
+	settings.m_EXIDevice[1] = instance.m_EXIDevice[1];
 }
 
 std::string NetPlayDiag::FindGame()
