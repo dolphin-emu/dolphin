@@ -436,6 +436,30 @@ void JitArm::LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
 	gpr.Unlock(rA);
 }
 
+// Some games use this heavily in video codecs
+// We make the assumption that this pulls from main RAM at /all/ times
+void JitArm::lmw(UGeckoInstruction inst)
+{
+	u32 a = inst.RA;
+	ARMReg rA = gpr.GetReg();
+	ARMReg rB = gpr.GetReg();
+	MOVI2R(rA, inst.SIMM_16);
+	if (a)
+		ADD(rA, rA, gpr.R(a));
+	MOVI2R(rB, Memory::MEMVIEW32_MASK, false); // 1-2 
+	AND(rA, rA, rB); // 3
+	MOVI2R(rB, (u32)Memory::base, false); // 4-5
+	ADD(rA, rA, rB); // 6
+
+	for (int i = inst.RD; i < 32; i++)
+	{
+		ARMReg RX = gpr.R(i);
+		LDR(RX, rA, (i - inst.RD) * 4);
+		REV(RX, RX);
+	}
+	gpr.Unlock(rA, rB);
+}
+
 void JitArm::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
