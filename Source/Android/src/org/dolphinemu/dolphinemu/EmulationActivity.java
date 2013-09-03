@@ -177,7 +177,7 @@ public final class EmulationActivity extends Activity
 				return true;
 
 			default:
-				return super.onOptionsItemSelected( item );
+				return super.onMenuItemSelected(itemId, item);
 		}
 	}
 
