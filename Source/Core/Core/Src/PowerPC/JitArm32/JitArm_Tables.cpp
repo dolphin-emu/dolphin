@@ -87,12 +87,12 @@ static GekkoOPTemplate primarytable[] =
 	{42, &JitArm::lha}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{43, &JitArm::Default}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 
-	{44, &JitArm::sth}, //"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
-	{45, &JitArm::sthu}, //"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
-	{36, &JitArm::stw}, //"stw",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
-	{37, &JitArm::stwu}, //"stwu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
-	{38, &JitArm::stb}, //"stb",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
-	{39, &JitArm::stbu}, //"stbu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
+	{44, &JitArm::stX}, //"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
+	{45, &JitArm::stX}, //"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
+	{36, &JitArm::stX}, //"stw",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
+	{37, &JitArm::stX}, //"stwu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
+	{38, &JitArm::stX}, //"stb",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
+	{39, &JitArm::stX}, //"stbu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
 
 	{46, &JitArm::Default}, //"lmw",   OPTYPE_SYSTEM, FL_EVIL, 10}},
 	{47, &JitArm::Default}, //"stmw",  OPTYPE_SYSTEM, FL_EVIL, 10}},
@@ -249,16 +249,16 @@ static GekkoOPTemplate table31[] =
 	{597, &JitArm::Default}, //"lswi",  OPTYPE_LOAD, FL_EVIL | FL_IN_AB | FL_OUT_D}},
 
 	//store word
-	{151, &JitArm::stwx}, //"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{183, &JitArm::Default}, //"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{151, &JitArm::stX}, //"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{183, &JitArm::stX}, //"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store halfword
-	{407, &JitArm::Default}, //"sthx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{439, &JitArm::Default}, //"sthux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{407, &JitArm::stX}, //"sthx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{439, &JitArm::stX}, //"sthux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store byte
-	{215, &JitArm::Default}, //"stbx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{247, &JitArm::Default}, //"stbux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{215, &JitArm::stX}, //"stbx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{247, &JitArm::stX}, //"stbux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store bytereverse
 	{662, &JitArm::Default}, //"stwbrx", OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
