@@ -564,6 +564,23 @@ bool NetPlayClient::StopGame()
 	return true;
 }
 
+void NetPlayClient::Stop()
+{
+	bool isPadMapped = false;
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		if (m_pad_map[i] == m_local_player->pid)
+			isPadMapped = true;
+	}
+	// tell the server to stop if we have a pad mapped in game.
+	if (isPadMapped)
+	{
+		sf::Packet spac;
+		spac << (MessageId)NP_MSG_STOP_GAME;
+		m_socket.Send(spac);
+	}
+}
+
 // called from ---CPU--- thread
 u8 NetPlayClient::GetPadNum(u8 numPAD)
 {
