@@ -33,13 +33,12 @@
 
 void JitArm::UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
 {
-	ARMReg rA = R11;
 
 	// All this gets replaced on backpatch
-	MOVI2R(rA, Memory::MEMVIEW32_MASK, false); // 1-2 
-	AND(dest, dest, rA); // 3
-	MOVI2R(rA, (u32)Memory::base, false); // 4-5
-	ADD(dest, dest, rA); // 6
+	MOVI2R(R14, Memory::MEMVIEW32_MASK, false); // 1-2 
+	AND(dest, dest, R14); // 3
+	MOVI2R(R14, (u32)Memory::base, false); // 4-5
+	ADD(dest, dest, R14); // 6
 	switch (accessSize)
 	{
 		case 32:
@@ -70,28 +69,29 @@ void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, 
 {
 	if (Core::g_CoreStartupParameter.bFastmem && fastmem)
 	{
-		ARMReg rA = R10;
-		ARMReg rB = R12;
 		ARMReg RA;
 		ARMReg RB;
 		ARMReg RS = gpr.R(value);
 
+		if (dest != -1)
+			RA = gpr.R(dest);
+
 		if (regOffset != -1)
 		{
 			RB = gpr.R(regOffset);
-			MOV(rA, RB);
+			MOV(R10, RB);
+			NOP(1);
 		}
 		else
-			MOVI2R(rA, offset);
+			MOVI2R(R10, (u32)offset, false);
 
 		if (dest != -1)
-		{
-			RA = gpr.R(dest);
-			ADD(rA, rA, RA);
-		}
+			ADD(R10, R10, RA);
+		else
+			NOP(1);
 
-		MOV(rB, RS);
-		UnsafeStoreFromReg(rA, rB, accessSize, 0);
+		MOV(R12, RS);
+		UnsafeStoreFromReg(R10, R12, accessSize, 0);
 		return;
 	}
 	ARMReg rA = gpr.GetReg();
@@ -155,6 +155,7 @@ void JitArm::stX(UGeckoInstruction inst)
 					zeroA = false;
 					update = true;
 				case 151: // stwx
+					fastmem = true;
 					accessSize = 32;
 					regOffset = b;
 				break;
@@ -177,6 +178,7 @@ void JitArm::stX(UGeckoInstruction inst)
 		case 37: // stwu
 			update = true;
 		case 36: // stw
+			fastmem = true;
 			accessSize = 32;
 		break;
 		case 39: // stbu
