@@ -376,6 +376,20 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 		}
 		break;
 
+	case NP_MSG_STOP_GAME:
+		{
+			// tell clients to stop game
+			sf::Packet spac;
+			spac << (MessageId)NP_MSG_STOP_GAME;
+
+			std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+			SendToClients(spac);
+
+			m_is_running = false;
+		}
+		break;
+
 	default :
 		PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid, player.pid);
 		// unknown message, kick the client
@@ -447,23 +461,6 @@ bool NetPlayServer::StartGame(const std::string &path)
 	SendToClients(spac);
 
 	m_is_running = true;
-
-	return true;
-}
-
-
-// called from ---GUI--- thread
-bool NetPlayServer::StopGame()
-{
-	// tell clients to stop game
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_STOP_GAME;
-
-	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	SendToClients(spac);
-
-	m_is_running = false;
 
 	return true;
 }
