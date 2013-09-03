@@ -465,23 +465,6 @@ bool NetPlayServer::StartGame(const std::string &path)
 	return true;
 }
 
-
-// called from ---GUI--- thread
-bool NetPlayServer::StopGame()
-{
-	// tell clients to stop game
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_STOP_GAME;
-
-	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	SendToClients(spac);
-
-	m_is_running = false;
-
-	return true;
-}
-
 // called from multiple threads
 void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
 {
