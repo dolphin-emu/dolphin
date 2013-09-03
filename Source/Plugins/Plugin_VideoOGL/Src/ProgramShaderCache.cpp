@@ -566,9 +566,9 @@ void ProgramShaderCache::CreateHeader ( void )
 		, v==GLSL_120 ? "#define ocol1 gl_FragColor" : "" //TODO: implement dual source blend
 		, v==GLSL_120 ? "" : "out vec4 name;"
 		
-		, v==GLSL_120 ? "#extension GL_ARB_texture_rectangle : enable" : ""
-		, v==GLSL_120 ? "" : "#define texture2DRect(samp, uv)  texelFetch(samp, ivec2(floor(uv)), 0)"
-		, v==GLSL_120 ? "" : "#define sampler2DRect sampler2D"
+		, v==GLSLES3 ? "" : v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
+		, v==GLSLES3 ? "#define texture2DRect(samp, uv)  texelFetch(samp, ivec2(floor(uv)), 0)" : ""
+		, v==GLSLES3 ? "#define sampler2DRect sampler2D" : ""
 	);
 }
 

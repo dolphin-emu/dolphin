@@ -60,10 +60,7 @@ struct XFBSource : public XFBSourceBase
 inline GLenum getFbType()
 {
 #ifndef USE_GLES3
-	if(g_ogl_config.eSupportedGLSLVersion == GLSL_120)
-	{
-		return GL_TEXTURE_RECTANGLE;
-	}
+	return GL_TEXTURE_RECTANGLE;
 #endif
 	return GL_TEXTURE_2D;
 }
