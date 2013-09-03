@@ -495,18 +495,12 @@ Renderer::Renderer()
 	g_ogl_config.bSupportSampleShading = GLEW_ARB_sample_shading;
 	g_ogl_config.bSupportOGL31 = GLEW_VERSION_3_1;
 
-	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10"))
+	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
 	{
-		PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.20\n"
-				"GPU: Does your video card support OpenGL 2.1?\n"
+		PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.30\n"
+				"GPU: Does your video card support OpenGL 3.0?\n"
 				"GPU: Your driver supports GLSL %s", g_ogl_config.glsl_version);
 		bSuccess = false;
-	}
-	else if(strstr(g_ogl_config.glsl_version, "1.20"))
-	{
-		g_ogl_config.eSupportedGLSLVersion = GLSL_120;
-		g_Config.backend_info.bSupportsDualSourceBlend = false; //TODO: implement dual source blend
-		g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 	}
 	else if(strstr(g_ogl_config.glsl_version, "1.30"))
 	{
@@ -669,7 +663,7 @@ void Renderer::Init()
 		"	c = vec4(color0, 1.0f);\n"
 		"}\n",
 		"VARYIN vec4 c;\n"
-		"COLOROUT(ocol0)\n"
+		"out vec4 ocol0;\n"
 		"void main(void) {\n"
 		"	ocol0 = c;\n"
 		"}\n");

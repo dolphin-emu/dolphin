@@ -309,9 +309,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	if (ApiType == API_OPENGL)
 	{
-		out.Write("COLOROUT(ocol0)\n");
+		out.Write("out vec4 ocol0;\n");
 		if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-			out.Write("COLOROUT(ocol1)\n");
+			out.Write("out vec4 ocol1;\n");
 
 		if (per_pixel_depth)
 			out.Write("#define depth gl_FragDepth\n");

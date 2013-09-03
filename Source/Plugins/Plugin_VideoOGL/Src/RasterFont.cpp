@@ -127,7 +127,7 @@ static const char *s_fragmentShaderSrc =
 	"uniform sampler2D samp8;\n"
 	"uniform vec4 color;\n"
 	"VARYIN vec2 uv0;\n"
-	"COLOROUT(ocol0)\n"
+	"out vec4 ocol0;\n"
 	"void main(void) {\n"
 	"	ocol0 = texture(samp8,uv0) * color;\n"
 	"}\n";
