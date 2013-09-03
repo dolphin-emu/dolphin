@@ -124,8 +124,10 @@ public:
 	void FinalizeCarry(ARMReg reg);
 
 	// TODO: This shouldn't be here
-	void StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset);
+	void UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset);
+	void SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 offsetReg, int accessSize, s32 offset);
 	void LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset);
+
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
@@ -173,6 +175,8 @@ public:
 	void mftb(UGeckoInstruction _inst);
 
 	// LoadStore
+	void stX(UGeckoInstruction _inst);
+
 	void icbi(UGeckoInstruction _inst);
 	void dcbst(UGeckoInstruction _inst);
 	void lbz(UGeckoInstruction _inst);
@@ -180,13 +184,6 @@ public:
 	void lha(UGeckoInstruction _inst);
 	void lwz(UGeckoInstruction _inst);
 	void lwzx(UGeckoInstruction _inst);
-	void stb(UGeckoInstruction _inst);
-	void stbu(UGeckoInstruction _inst);
-	void sth(UGeckoInstruction _inst);
-	void sthu(UGeckoInstruction _inst);
-	void stw(UGeckoInstruction _inst);
-	void stwu(UGeckoInstruction _inst);
-	void stwx(UGeckoInstruction _inst);
 
 	// Floating point
 	void fabsx(UGeckoInstruction _inst);
