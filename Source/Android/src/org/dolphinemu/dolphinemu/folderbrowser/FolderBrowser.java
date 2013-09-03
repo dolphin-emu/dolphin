@@ -33,8 +33,7 @@ import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
  * the game list for easy browsing the next time the
  * application is used.
  * <p>
- * Note that invalid items will be shown in the color red. <br/>
- * Also note that this file browser does not display files 
+ * Note that this file browser does not display files 
  * or directories that are hidden
  */
 public final class FolderBrowser extends Fragment
