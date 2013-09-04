@@ -58,6 +58,9 @@ bool Wiimote::IsConnected() const
 	return false;
 }
 
+void Wiimote::IOWakeup()
+{}
+
 int Wiimote::IORead(u8* buf)
 {
 	return 0;

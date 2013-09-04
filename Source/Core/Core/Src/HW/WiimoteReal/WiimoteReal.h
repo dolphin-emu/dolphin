@@ -84,6 +84,7 @@ public:
 	bdaddr_t bdaddr;					// Bluetooth address
 	int cmd_sock;						// Command socket
 	int int_sock;						// Interrupt socket
+	int wakeup_pipe_w, wakeup_pipe_r;
 
 #elif defined(_WIN32)
 	std::basic_string<TCHAR> devicepath;	// Unique wiimote reference
@@ -103,6 +104,7 @@ private:
 	
 	int IORead(u8* buf);
 	int IOWrite(u8 const* buf, int len);
+	void IOWakeup();
 
 	void ThreadFunc();
 	void SetReady();

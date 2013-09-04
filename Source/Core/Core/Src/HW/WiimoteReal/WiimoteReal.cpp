@@ -52,6 +52,14 @@ Wiimote::Wiimote()
 	, m_need_prepare()
 {
 #if defined(__linux__) && HAVE_BLUEZ
+	int fds[2];
+	if (pipe(fds))
+	{
+		ERROR_LOG(WIIMOTE, "pipe failed");
+		abort();
+	}
+	wakeup_pipe_w = fds[1];
+	wakeup_pipe_r = fds[0];
 	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
 #endif
 }
@@ -59,9 +67,12 @@ Wiimote::Wiimote()
 Wiimote::~Wiimote()
 {
 	StopThread();
-
 	ClearReadQueue();
 	m_write_reports.Clear();
+#if defined(__linux__) && HAVE_BLUEZ
+	close(wakeup_pipe_w);
+	close(wakeup_pipe_r);
+#endif
 }
 
 // to be called from CPU thread
@@ -82,6 +93,7 @@ void Wiimote::WriteReport(Report rpt)
 	}
 
 	m_write_reports.Push(std::move(rpt));
+	IOWakeup();
 }
 
 // to be called from CPU thread

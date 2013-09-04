@@ -181,23 +181,40 @@ bool Wiimote::IsConnected() const
 	return cmd_sock != -1;// && int_sock != -1;
 }
 
+void Wiimote::IOWakeup()
+{
+	char c = 0;
+	if (write(wakeup_pipe_w, &c, 1) != 1)
+	{
+		ERROR_LOG(WIIMOTE, "Unable to write to wakeup pipe.");
+	}
+}
+
 // positive = read packet
 // negative = didn't read packet
 // zero = error
 int Wiimote::IORead(u8* buf)
 {
 	// Block select for 1/2000th of a second
-	timeval tv;
-	tv.tv_sec = 0;
-	tv.tv_usec = WIIMOTE_DEFAULT_TIMEOUT * 1000;
 
 	fd_set fds;
 	FD_ZERO(&fds);
 	FD_SET(int_sock, &fds);
+	FD_SET(wakeup_pipe_r, &fds);
 
-	if (select(int_sock + 1, &fds, NULL, NULL, &tv) == -1)
+	if (select(int_sock + 1, &fds, NULL, NULL, NULL) == -1)
 	{
 		ERROR_LOG(WIIMOTE, "Unable to select wiimote %i input socket.", index + 1);
+		return -1;
+	}
+
+	if (FD_ISSET(wakeup_pipe_r, &fds))
+	{
+		char c;
+		if (read(wakeup_pipe_r, &c, 1) != 1)
+		{
+			ERROR_LOG(WIIMOTE, "Unable to read from wakeup pipe.");
+		}
 		return -1;
 	}
 

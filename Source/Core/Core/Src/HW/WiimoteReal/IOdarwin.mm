@@ -247,6 +247,11 @@ bool Wiimote::IsConnected() const
 	return m_connected;
 }
 
+void Wiimote::IOWakeup()
+{
+	CFRunLoopStop(m_wiimote_thread_run_loop);
+}
+
 int Wiimote::IORead(unsigned char *buf)
 {
 	input = buf;
