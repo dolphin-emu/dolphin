@@ -25,6 +25,19 @@
 #define LIGHT_DIR "%s[5*%d+4]"
 #define LIGHT_DIR_PARAMS(lightsName, index) (lightsName), (index)
 
+/**
+ * Common uid data used for shader generators that use lighting calculations.
+ */
+struct LightingUidData
+{
+	u32 matsource : 4; // 4x1 bit
+	u32 enablelighting : 4; // 4x1 bit
+	u32 ambsource : 4; // 4x1 bit
+	u32 diffusefunc : 8; // 4x2 bits
+	u32 attnfunc : 8; // 4x2 bits
+	u32 light_mask : 32; // 4x8 bits
+};
+
 
 template<class T>
 static void GenerateLightShader(T& object, LightingUidData& uid_data, int index, int litchan_index, const char* lightsName, int coloralpha)
