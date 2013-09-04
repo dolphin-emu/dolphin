@@ -7,6 +7,7 @@
 @interface SearchBT: NSObject {
 @public
 	unsigned int maxDevices;
+	bool done;
 }
 @end
 
@@ -15,6 +16,7 @@
 	error: (IOReturn) error
 	aborted: (BOOL) aborted
 {
+	done = true;
 	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
@@ -144,9 +146,12 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	else
 		ERROR_LOG(WIIMOTE, "Unable to do bluetooth discovery");
 
-	CFRunLoopRun();
+	do
+	{
+		CFRunLoopRun();
+	}
+	while(!sbt->done);
 
-	[bti stop];
 	int found_devices = [[bti foundDevices] count];
 
 	if (found_devices)
