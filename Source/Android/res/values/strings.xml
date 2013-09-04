@@ -15,7 +15,6 @@
     <!-- Folder Browser -->
     <string name="current_dir">Current Dir: </string>
     <string name="parent_directory">Parent Directory</string>
-    <string name="folder">Folder</string>
     <string name="file_size">File Size: </string>
 
     <!-- Game List Activity -->
@@ -24,7 +23,6 @@
     <string name="game_list">Game List</string>
     <string name="browse_folder">Browse Folder</string>
     <string name="settings">Settings</string>
-    <string name="gamepad_config">Gamepad Config</string>
     <string name="about">About</string>
 
     <!-- Game List Fragment -->
@@ -63,7 +61,6 @@
     <string name="c_stick_right">C Stick Right</string>
     <string name="trigger_left">Trigger L</string>
     <string name="trigger_right">Trigger R</string>
-    <string name="press_button_to_config">Press button to configure %1$s</string>
 
     <!-- Preference Related -->
     <string name="interpreter">Interpreter</string>
