@@ -7,7 +7,6 @@
 
 #include "Common.h"
 #include "CommonTypes.h"
-#include "HW/EXI_Device.h"
 
 struct NetSettings
 {
@@ -15,7 +14,6 @@ struct NetSettings
 	bool m_DSPHLE;
 	bool m_DSPEnableJIT;
 	bool m_WriteToMemcard;
-	TEXIDevices m_EXIDevice[2];
 };
 
 struct Rpt : public std::vector<u8>
@@ -25,7 +23,7 @@ struct Rpt : public std::vector<u8>
 
 typedef std::vector<Rpt>	NetWiimote;
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2013-09-03"
+#define NETPLAY_VERSION		"Dolphin NetPlay 2013-08-31"
 
 // messages
 enum

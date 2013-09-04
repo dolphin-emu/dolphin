@@ -237,11 +237,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> g_NetPlaySettings.m_DSPEnableJIT;
 			packet >> g_NetPlaySettings.m_DSPHLE;
 			packet >> g_NetPlaySettings.m_WriteToMemcard;
-			int tmp;
-			packet >> tmp;
-			g_NetPlaySettings.m_EXIDevice[0] = (TEXIDevices) tmp;
-			packet >> tmp;
-			g_NetPlaySettings.m_EXIDevice[1] = (TEXIDevices) tmp;
 			}
 
 			m_dialog->OnMsgStartGame();

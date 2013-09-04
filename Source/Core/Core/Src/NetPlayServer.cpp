@@ -455,8 +455,6 @@ bool NetPlayServer::StartGame(const std::string &path)
 	spac << m_settings.m_DSPEnableJIT;
 	spac << m_settings.m_DSPHLE;
 	spac << m_settings.m_WriteToMemcard;
-	spac << m_settings.m_EXIDevice[0];
-	spac << m_settings.m_EXIDevice[1];
 
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
