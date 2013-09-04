@@ -212,24 +212,9 @@ struct RegisterState
 	bool AuxStored;
 };
 
-static char swapModeTable[4][5];
-
 static char text[16384];
 
-static inline void BuildSwapModeTable()
-{
-	static const char *swapColors = "rgba";
-	for (int i = 0; i < 4; i++)
-	{
-		swapModeTable[i][0] = swapColors[bpmem.tevksel[i*2].swap1];
-		swapModeTable[i][1] = swapColors[bpmem.tevksel[i*2].swap2];
-		swapModeTable[i][2] = swapColors[bpmem.tevksel[i*2+1].swap1];
-		swapModeTable[i][3] = swapColors[bpmem.tevksel[i*2+1].swap2];
-		swapModeTable[i][4] = '\0';
-	}
-}
-
-template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4]);
+template<class T> static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4], const char swapModeTable[4][5]);
 template<class T> static inline void SampleTexture(T& out, const char *texcoords, const char *texswap, int texmap, API_TYPE ApiType);
 template<class T> static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_TYPE ApiType,DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
 template<class T> static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data);
@@ -595,9 +580,19 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	}
 
 	// Uid fields for BuildSwapModeTable are set in WriteStage
-	BuildSwapModeTable();
+	char swapModeTable[4][5];
+	const char* swapColors = "rgba";
+	for (int i = 0; i < 4; i++)
+	{
+		swapModeTable[i][0] = swapColors[bpmem.tevksel[i*2].swap1];
+		swapModeTable[i][1] = swapColors[bpmem.tevksel[i*2].swap2];
+		swapModeTable[i][2] = swapColors[bpmem.tevksel[i*2+1].swap1];
+		swapModeTable[i][3] = swapColors[bpmem.tevksel[i*2+1].swap2];
+		swapModeTable[i][4] = '\0';
+	}
+
 	for (unsigned int i = 0; i < numStages; i++)
-		WriteStage<T>(out, uid_data, i, ApiType, RegisterStates); // build the equation for this stage
+		WriteStage<T>(out, uid_data, i, ApiType, RegisterStates, swapModeTable); // build the equation for this stage
 
 #define MY_STRUCT_OFFSET(str,elem) ((u32)((u64)&(str).elem-(u64)&(str)))
 	bool enable_pl = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
@@ -767,7 +762,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 };
 
 template<class T>
-static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4])
+static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, RegisterState RegisterStates[4], const char swapModeTable[4][5])
 {
 	int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
 	bool bHasTexCoord = (u32)texcoord < bpmem.genMode.numtexgens;
@@ -881,7 +876,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		uid_data.stagehash[n].tevksel_swap2b = bpmem.tevksel[i*2+1].swap2;
 		uid_data.stagehash[n].tevorders_colorchan = bpmem.tevorders[n / 2].getColorChan(n & 1);
 
-		char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
+		const char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 		out.Write("rastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
 		out.Write("crastemp = frac(rastemp * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 	}
@@ -907,7 +902,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 
 		uid_data.stagehash[n].tevorders_texmap= bpmem.tevorders[n/2].getTexMap(n&1);
 
-		char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
+		const char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		uid_data.SetTevindrefTexmap(i, texmap);
 
