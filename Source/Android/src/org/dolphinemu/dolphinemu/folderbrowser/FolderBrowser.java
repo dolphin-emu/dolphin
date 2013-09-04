@@ -81,7 +81,7 @@ public final class FolderBrowser extends Fragment
 			}
 			catch (Exception ex)
 			{
-				Log.e("Exception-FolderBrowser", ex.toString());
+				Log.e("FolderBrowser", ex.toString());
 			}
 		}
 
