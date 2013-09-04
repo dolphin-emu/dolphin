@@ -510,6 +510,10 @@ void Wiimote::StopThread()
 {
 	if (m_wiimote_thread.joinable())
 		m_wiimote_thread.join();
+#if defined(__APPLE__)
+	CFRelease(m_wiimote_thread_run_loop);
+	m_wiimote_thread_run_loop = NULL;
+#endif
 }
 
 void Wiimote::SetReady()
@@ -536,6 +540,10 @@ void Wiimote::WaitReady()
 void Wiimote::ThreadFunc()
 {
 	Common::SetCurrentThreadName("Wiimote Device Thread");
+#if defined(__APPLE__)
+	m_wiimote_thread_run_loop = (CFRunLoopRef) CFRetain(CFRunLoopGetCurrent());
+#endif
+
 	bool ok = ConnectInternal();
 
 	SetReady();
