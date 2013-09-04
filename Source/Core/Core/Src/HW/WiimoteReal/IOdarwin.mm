@@ -140,10 +140,11 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	[bti setDelegate: sbt];
 	[bti setInquiryLength: 2];
 
-	if ([bti start] == kIOReturnSuccess)
-		[bti retain];
-	else
+	if ([bti start] != kIOReturnSuccess)
+	{
 		ERROR_LOG(WIIMOTE, "Unable to do bluetooth discovery");
+		return;
+	}
 
 	do
 	{
@@ -164,7 +165,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 			continue;
 
 		Wiimote *wm = new Wiimote();
-		wm->btd = dev;
+		wm->btd = [dev retain];
 		
 		if(IsBalanceBoardName([[dev name] UTF8String]))
 		{
@@ -195,17 +196,27 @@ bool Wiimote::ConnectInternal()
 
 	ConnectBT *cbt = [[ConnectBT alloc] init];
 
+	cchan = ichan = nil;
+
 	[btd openL2CAPChannelSync: &cchan
 		withPSM: kBluetoothL2CAPPSMHIDControl delegate: cbt];
 	[btd openL2CAPChannelSync: &ichan
 		withPSM: kBluetoothL2CAPPSMHIDInterrupt delegate: cbt];
-	if (ichan == NULL || cchan == NULL)
+	// Apple docs claim:
+	// "The L2CAP channel object is already retained when this function returns
+	// success; the channel must be released when the caller is done with it."
+	// But without this, the channels get over-autoreleased, even though the
+	// refcounting behavior here is clearly correct.
+	[ichan retain];
+	[cchan retain];
+	if (ichan == nil || cchan == nil)
 	{
 		ERROR_LOG(WIIMOTE, "Unable to open L2CAP channels "
 			"for wiimote %i", index + 1);
 		DisconnectInternal();
-		
 		[cbt release];
+		[ichan release];
+		[cchan release];
 		return false;
 	}
 
@@ -221,18 +232,17 @@ bool Wiimote::ConnectInternal()
 // Disconnect a wiimote.
 void Wiimote::DisconnectInternal()
 {
-	if (ichan != NULL)
-		[ichan release];
-
-	if (cchan != NULL)
-		[cchan release];
-
-	if (btd != NULL)
-		[btd closeConnection];
-
-	btd = NULL;
-	cchan = NULL;
+	[ichan closeChannel];
+	[ichan release];
 	ichan = NULL;
+
+	[cchan closeChannel];
+	[cchan release];
+	cchan = NULL;
+
+	[btd closeConnection];
+	[btd release];
+	btd = NULL;
 
 	if (!IsConnected())
 		return;
