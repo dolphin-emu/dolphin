@@ -183,7 +183,7 @@ public final class InputConfigFragment extends PreferenceFragment
 
 		// Set the title and description message.
 		dialog.setTitle(R.string.input_binding);
-		dialog.setMessage(getString(R.string.input_binding_descrip));
+		dialog.setMessage(String.format(getString(R.string.input_binding_descrip), pref.getTitle()));
 
 		// Don't allow the dialog to close when a user taps
 		// outside of it. They must press cancel or provide an input.

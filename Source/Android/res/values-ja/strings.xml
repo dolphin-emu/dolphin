@@ -40,7 +40,7 @@
     <!-- Input Config Fragment -->
     <string name="input_settings">入力設定</string>
     <string name="input_binding">入力バインディング</string>
-    <string name="input_binding_descrip">このコントロールにバインドするための入力を移動または押してください。</string>
+    <string name="input_binding_descrip">%1$sにバインドするための入力を移動または押してください。</string>
     <string name="button_a">Aボタン</string>
     <string name="button_b">Bボタン</string>
     <string name="button_start">スタートボタン</string>
