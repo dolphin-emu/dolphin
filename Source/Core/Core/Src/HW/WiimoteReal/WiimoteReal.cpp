@@ -503,11 +503,14 @@ bool Wiimote::Connect()
 
 void Wiimote::StartThread()
 {
+	m_run_thread = true;
 	m_wiimote_thread = std::thread(std::mem_fun(&Wiimote::ThreadFunc), this);
 }
 
 void Wiimote::StopThread()
 {
+	m_run_thread = false;
+	IOWakeup();
 	if (m_wiimote_thread.joinable())
 		m_wiimote_thread.join();
 #if defined(__APPLE__)
@@ -554,7 +557,7 @@ void Wiimote::ThreadFunc()
 	}
 
 	// main loop
-	while (IsConnected())
+	while (IsConnected() && m_run_thread)
 	{
 		if (m_need_prepare)
 		{

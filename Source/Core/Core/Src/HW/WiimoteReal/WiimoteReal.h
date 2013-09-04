@@ -113,8 +113,12 @@ private:
 	bool m_rumble_state;
 	
 	std::thread               m_wiimote_thread;
-	volatile bool             m_thread_ready;
+	// Whether to keep running the thread.
+	volatile bool             m_run_thread;
+	// Whether to call PrepareOnThread.
 	volatile bool             m_need_prepare;
+	// Whether the thread has finished ConnectInternal.
+	volatile bool             m_thread_ready;
 	std::mutex                m_thread_ready_mutex;
 	std::condition_variable   m_thread_ready_cond;
 
