@@ -459,7 +459,7 @@ bool WiimoteScanner::IsReady() const
 }
 
 // Connect to a wiimote with a known device path.
-bool Wiimote::Connect()
+bool Wiimote::ConnectInternal()
 {
 	if (IsConnected())
 		return false;
@@ -535,7 +535,7 @@ bool Wiimote::Connect()
 	return true;
 }
 
-void Wiimote::Disconnect()
+void Wiimote::DisconnectInternal()
 {
 	if (!IsConnected())
 		return;

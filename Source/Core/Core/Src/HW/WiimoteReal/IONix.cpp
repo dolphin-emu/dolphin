@@ -27,8 +27,7 @@ namespace WiimoteReal
 {
 
 WiimoteScanner::WiimoteScanner()
-	: m_run_thread()
-	, m_want_wiimotes()
+	: m_want_wiimotes()
 	, device_id(-1)
 	, device_sock(-1)
 {
@@ -135,7 +134,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 }
 
 // Connect to a wiimote with a known address.
-bool Wiimote::Connect()
+bool Wiimote::ConnectInternal()
 {
 	sockaddr_l2 addr;
 	addr.l2_family = AF_BLUETOOTH;
@@ -168,7 +167,7 @@ bool Wiimote::Connect()
 	return true;
 }
 
-void Wiimote::Disconnect()
+void Wiimote::DisconnectInternal()
 {
 	close(cmd_sock);
 	close(int_sock);

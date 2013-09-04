@@ -64,7 +64,7 @@
 		return;
 	}
 
-	if (wm->inputlen != 0) {
+	if (wm->inputlen != -1) {
 		WARN_LOG(WIIMOTE, "Dropping packet for wiimote %i, queue full",
 				wm->index + 1);
 		return;
@@ -73,9 +73,8 @@
 	memcpy(wm->input, data, length);
 	wm->inputlen = length;
 
-	(void)wm->Read();
-
 	(void)UpdateSystemActivity(UsrActivity);
+	CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
 - (void) l2capChannelClosed: (IOBluetoothL2CAPChannel *) l2capChannel
@@ -100,7 +99,7 @@
 
 	WARN_LOG(WIIMOTE, "Lost channel to wiimote %i", wm->index + 1);
 
-	wm->Disconnect();
+	wm->DisconnectInternal();
 }
 @end
 
@@ -189,7 +188,7 @@ bool WiimoteScanner::IsReady() const
 }
 
 // Connect to a wiimote with a known address.
-bool Wiimote::Connect()
+bool Wiimote::ConnectInternal()
 {
 	if (IsConnected())
 		return false;
@@ -204,12 +203,12 @@ bool Wiimote::Connect()
 	{
 		ERROR_LOG(WIIMOTE, "Unable to open L2CAP channels "
 			"for wiimote %i", index + 1);
-		Disconnect();
+		DisconnectInternal();
 		
 		[cbt release];
 		return false;
 	}
-    
+
 	NOTICE_LOG(WIIMOTE, "Connected to wiimote %i at %s",
 		index + 1, [[btd addressString] UTF8String]);
 
@@ -220,7 +219,7 @@ bool Wiimote::Connect()
 }
 
 // Disconnect a wiimote.
-void Wiimote::Disconnect()
+void Wiimote::DisconnectInternal()
 {
 	if (ichan != NULL)
 		[ichan release];
@@ -250,16 +249,12 @@ bool Wiimote::IsConnected() const
 
 int Wiimote::IORead(unsigned char *buf)
 {
-	int bytes;
+	input = buf;
+	inputlen = -1;
 
-	if (!IsConnected())
-		return 0;
+	CFRunLoopRun();
 
-	bytes = inputlen;
-	memcpy(buf, input, bytes);
-	inputlen = 0;
-
-	return bytes;
+	return inputlen;
 }
 
 int Wiimote::IOWrite(const unsigned char *buf, int len)
