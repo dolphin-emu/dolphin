@@ -22,7 +22,7 @@
     </item>
 
     <item
-        android:id="@+id/loadtateRoot"
+        android:id="@+id/loadStateRoot"
         android:showAsAction="always"
         android:title="@string/overlay_loadstate">
         <menu>
