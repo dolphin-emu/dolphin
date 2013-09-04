@@ -214,7 +214,8 @@ bool cdio_is_cdrom(std::string device)
 #ifdef __linux__
 	// Resolve symbolic links. This allows symbolic links to valid
 	// drives to be passed from the command line with the -e flag.
-	char *devname = realpath(device.c_str(), NULL);
+	char resolved_path[MAX_PATH];
+	char *devname = realpath(device.c_str(), resolved_path);
 	if (!devname)
 		return false;
 #endif
@@ -233,11 +234,6 @@ bool cdio_is_cdrom(std::string device)
 			break;
 		}
 	}
-
-#ifdef __linux__
-	if (devname)
-		free(devname);
-#endif
 
 	devices.clear();
 	return res;
