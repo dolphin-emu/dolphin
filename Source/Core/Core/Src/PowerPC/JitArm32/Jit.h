@@ -127,8 +127,8 @@ public:
 	void UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset);
 	void SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 offsetReg, int accessSize, s32 offset);
 
-	void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse);
-	void LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset);
+	void UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset);
+	void SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse);
 
 
 	// OPCODES

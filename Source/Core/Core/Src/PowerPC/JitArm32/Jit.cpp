@@ -296,6 +296,7 @@ void STACKALIGN JitArm::Jit(u32 em_address)
 }
 void JitArm::Break(UGeckoInstruction inst)
 {
+	ERROR_LOG(DYNA_REC, "%s called a Break instruction!", PPCTables::GetInstructionName(inst));
 	BKPT(0x4444);
 }
 

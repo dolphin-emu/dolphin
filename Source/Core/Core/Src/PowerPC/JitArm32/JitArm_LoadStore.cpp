@@ -217,9 +217,58 @@ void JitArm::stX(UGeckoInstruction inst)
 	}
 }
 
-void JitArm::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse)
+void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
+{
+	ARMReg rA = gpr.GetReg();
+	MOVI2R(rA, offset, false); // -3
+	ADD(addr, addr, rA); // - 1
+
+	// All this gets replaced on backpatch
+	MOVI2R(rA, Memory::MEMVIEW32_MASK, false); // 2 
+	AND(addr, addr, rA); // 3
+	MOVI2R(rA, (u32)Memory::base, false); // 5
+	ADD(addr, addr, rA); // 6
+	switch (accessSize)
+	{
+		case 32:
+			LDR(dest, addr); // 7
+		break;
+		case 16:
+			LDRH(dest, addr);
+		break;
+		case 8:
+			LDRB(dest, addr);
+		break;
+	}
+	switch (accessSize)
+	{
+		case 32:
+			REV(dest, dest); // 9
+		break;
+		case 16:
+			REV16(dest, dest);
+		break;
+		case 8:
+			NOP(1);
+		break;
+
+	}
+	gpr.Unlock(rA);
+}
+
+void JitArm::SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse)
 {
 	ARMReg RD = gpr.R(dest);
+	if (Core::g_CoreStartupParameter.bFastmem && fastmem)
+	{
+		if (addr != -1)
+			MOV(R10, gpr.R(addr));
+		else
+			MOV(R10, 0);
+		
+		UnsafeLoadToReg(RD, R10, accessSize, offset);	
+		return;
+	}
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
 
@@ -273,7 +322,8 @@ void JitArm::lXX(UGeckoInstruction inst)
 	bool update = false;	
 	bool signExtend = false;
 	bool reverse = false;
-	
+	bool fastmem = false;
+
 	switch(inst.OPCD)
 	{
 		case 31:
@@ -322,18 +372,21 @@ void JitArm::lXX(UGeckoInstruction inst)
 			zeroA = false;
 			update = true;
 		case 32: // lwz
+			fastmem = true;
 			accessSize = 32;
 		break;
 		case 35: // lbzu
 			zeroA = false;
 			update = true;
 		case 34: // lbz
+			fastmem = true;
 			accessSize = 8;
 		break;
 		case 41: // lhzu
 			zeroA = false;
 			update = true;
 		case 40: // lhz
+			fastmem = true;
 			accessSize = 16;
 		break;
 		case 43: // lhau
@@ -351,7 +404,7 @@ void JitArm::lXX(UGeckoInstruction inst)
 	CMP(rA, EXCEPTION_DSI);
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
 
-	SafeLoadToReg(d, zeroA ? a ? a : -1 : a, offsetReg, accessSize, offset, signExtend, reverse);
+	SafeLoadToReg(fastmem, d, zeroA ? a ? a : -1 : a, offsetReg, accessSize, offset, signExtend, reverse);
 	
 	if (update)
 	{
@@ -395,45 +448,6 @@ void JitArm::lXX(UGeckoInstruction inst)
 		return;
 	}
 
-}
-
-void JitArm::LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
-{
-	ARMReg rA = gpr.GetReg();
-	MOVI2R(rA, offset, false); // -3
-	ADD(addr, addr, rA); // - 1
-
-	// All this gets replaced on backpatch
-	MOVI2R(rA, Memory::MEMVIEW32_MASK, false); // 2 
-	AND(addr, addr, rA); // 3
-	MOVI2R(rA, (u32)Memory::base, false); // 5
-	ADD(addr, addr, rA); // 6
-	switch (accessSize)
-	{
-		case 32:
-			LDR(dest, addr); // 7
-		break;
-		case 16:
-			LDRH(dest, addr);
-		break;
-		case 8:
-			LDRB(dest, addr);
-		break;
-	}
-	switch (accessSize)
-	{
-		case 32:
-			REV(dest, dest); // 9
-		break;
-		case 16:
-			REV16(dest, dest);
-		break;
-		case 8:
-			NOP(1);
-		break;
-
-	}
-	gpr.Unlock(rA);
 }
 
 // Some games use this heavily in video codecs
