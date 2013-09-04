@@ -10,7 +10,7 @@ package org.dolphinemu.dolphinemu.sidemenu;
 /**
  * Represents an item that goes in the sidemenu of the app.
  */
-public final class SideMenuItem implements Comparable<SideMenuItem>
+public final class SideMenuItem
 {
 	private final String name;
 	private final int id;
@@ -45,14 +45,6 @@ public final class SideMenuItem implements Comparable<SideMenuItem>
 	public int getID()
 	{
 		return id;
-	}
-
-	public int compareTo(SideMenuItem o) 
-	{
-		if (name != null)
-			return name.toLowerCase().compareTo(o.getName().toLowerCase()); 
-		else 
-			throw new IllegalArgumentException();
 	}
 }
 
