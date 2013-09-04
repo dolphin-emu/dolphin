@@ -27,13 +27,10 @@
 #include "JitRegCache.h"
 #include "JitAsm.h"
 
-// Wrong, THP videos like SMS and Ikaruga show artifacts
 void JitArm::ps_add(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Paired)
-
-	Default(inst); return;
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
 	if (inst.Rc){
@@ -45,9 +42,10 @@ void JitArm::ps_add(UGeckoInstruction inst)
 	ARMReg vB1 = fpr.R1(b);
 	ARMReg vD0 = fpr.R0(d);
 	ARMReg vD1 = fpr.R1(d);
-
+	
 	VADD(vD0, vA0, vB0);
 	VADD(vD1, vA1, vB1);
+	fpr.Flush();
 }
 
 // Wrong, THP videos like SMS and Ikaruga show artifacts
@@ -106,6 +104,7 @@ void JitArm::ps_sum0(UGeckoInstruction inst)
 	
 	VADD(vD0, vA0, vB1);
 	VMOV(vD1, vC1);
+	fpr.Flush();
 }
 
 void JitArm::ps_sub(UGeckoInstruction inst)
@@ -126,12 +125,14 @@ void JitArm::ps_sub(UGeckoInstruction inst)
 
 	VSUB(vD0, vA0, vB0);
 	VSUB(vD1, vA1, vB1);
+	fpr.Flush();
 }
 
 void JitArm::ps_mul(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Paired)
+
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
 	if (inst.Rc){
 		Default(inst); return;
@@ -145,5 +146,6 @@ void JitArm::ps_mul(UGeckoInstruction inst)
 
 	VMUL(vD0, vA0, vC0);
 	VMUL(vD1, vA1, vC1);
+	fpr.Flush();
 }
 
