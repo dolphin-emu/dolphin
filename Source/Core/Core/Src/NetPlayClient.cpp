@@ -557,8 +557,15 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 	tmp.substickY =  ((u8*)&netvalues->nLo)[2];
 	tmp.triggerLeft = ((u8*)&netvalues->nLo)[1];
 	tmp.triggerRight = ((u8*)&netvalues->nLo)[0];
-	Movie::RecordInput(&tmp, pad_nb);
-	Movie::InputUpdate();
+	if (Movie::IsRecordingInput())
+	{
+		Movie::RecordInput(&tmp, pad_nb);
+		Movie::InputUpdate();
+	}
+	else
+	{
+		Movie::CheckPadStatus(&tmp, pad_nb);
+	}
 
 	return true;
 }
