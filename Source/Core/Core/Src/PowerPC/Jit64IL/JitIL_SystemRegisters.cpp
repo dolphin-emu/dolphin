@@ -21,7 +21,7 @@
 void JitIL::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-		JITDISABLE(SystemRegisters)
+		JITDISABLE(bJITSystemRegistersOff)
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	switch(iIndex) {
 		case SPR_TL:
@@ -57,7 +57,7 @@ void JitIL::mtspr(UGeckoInstruction inst)
 void JitIL::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-		JITDISABLE(SystemRegisters)
+		JITDISABLE(bJITSystemRegistersOff)
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	switch (iIndex)
 	{
@@ -102,21 +102,21 @@ void JitIL::mtmsr(UGeckoInstruction inst)
 void JitIL::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-		JITDISABLE(SystemRegisters)
+		JITDISABLE(bJITSystemRegistersOff)
 		ibuild.EmitStoreGReg(ibuild.EmitLoadMSR(), inst.RD);
 }
 
 void JitIL::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 		mfspr(inst);
 }
 
 void JitIL::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 
 	IREmitter::InstLoc d = ibuild.EmitIntConst(0);
 	for (int i = 0; i < 8; ++i)
@@ -130,7 +130,7 @@ void JitIL::mfcr(UGeckoInstruction inst)
 void JitIL::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 
 	IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
 	for (int i = 0; i < 8; ++i)
@@ -148,7 +148,7 @@ void JitIL::mtcrf(UGeckoInstruction inst)
 void JitIL::mcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 
 	if (inst.CRFS != inst.CRFD)
 	{

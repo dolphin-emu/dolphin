@@ -41,7 +41,7 @@ void JitArm::Helper_UpdateCR1(ARMReg value)
 void JitArm::fabsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 
 	ARMReg vD = fpr.R0(inst.FD);
 	ARMReg vB = fpr.R0(inst.FB);
@@ -54,7 +54,7 @@ void JitArm::fabsx(UGeckoInstruction inst)
 void JitArm::faddsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
@@ -69,7 +69,7 @@ void JitArm::faddsx(UGeckoInstruction inst)
 void JitArm::faddx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 
 	ARMReg vD = fpr.R0(inst.FD);
 	ARMReg vA = fpr.R0(inst.FA);
@@ -82,7 +82,7 @@ void JitArm::faddx(UGeckoInstruction inst)
 void JitArm::fsubsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 	
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
@@ -97,7 +97,7 @@ void JitArm::fsubsx(UGeckoInstruction inst)
 void JitArm::fsubx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 
 	ARMReg vD = fpr.R0(inst.FD);
 	ARMReg vA = fpr.R0(inst.FA);
@@ -110,7 +110,7 @@ void JitArm::fsubx(UGeckoInstruction inst)
 void JitArm::fmulsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 	
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vC = fpr.R0(inst.FC);
@@ -125,7 +125,7 @@ void JitArm::fmulsx(UGeckoInstruction inst)
 void JitArm::fmulx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 
 	ARMReg vD0 = fpr.R0(inst.FD);
 	ARMReg vA = fpr.R0(inst.FA);
@@ -137,7 +137,7 @@ void JitArm::fmulx(UGeckoInstruction inst)
 void JitArm::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 
 	ARMReg vD = fpr.R0(inst.FD);
 	ARMReg vB = fpr.R0(inst.FB);

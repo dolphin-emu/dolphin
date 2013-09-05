@@ -32,9 +32,9 @@
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
 
-#define JITDISABLE(type) \
+#define JITDISABLE(setting) \
 	if (Core::g_CoreStartupParameter.bJITOff || \
-		Core::g_CoreStartupParameter.bJIT##type##Off) \
+		Core::g_CoreStartupParameter.setting) \
 		{Default(inst); return;}
 
 #ifdef _M_X64

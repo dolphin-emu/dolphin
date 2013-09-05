@@ -75,7 +75,7 @@ static const double one_const = 1.0f;
 void Jit64::fp_arith_s(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -124,7 +124,7 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 void Jit64::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -181,7 +181,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 void Jit64::fsign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -212,7 +212,7 @@ void Jit64::fsign(UGeckoInstruction inst)
 void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -228,7 +228,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(FloatingPoint)
+	JITDISABLE(bJITFloatingPointOff)
 	if (jo.fpAccurateFcmp) {
 		Default(inst); return; // turn off from debugger
 	}

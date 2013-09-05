@@ -43,9 +43,9 @@
 // #define INSTRUCTION_START Default(inst); return;
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
-#define JITDISABLE(type) \
+#define JITDISABLE(setting) \
 	if (Core::g_CoreStartupParameter.bJITOff || \
-	Core::g_CoreStartupParameter.bJIT##type##Off) \
+	Core::g_CoreStartupParameter.setting) \
 	{Default(inst); return;}
 #define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0])) 
 class JitArm : public JitBase, public ArmGen::ARMXCodeBlock 

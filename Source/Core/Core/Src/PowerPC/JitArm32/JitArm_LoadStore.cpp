@@ -313,7 +313,7 @@ void JitArm::SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int 
 void JitArm::lXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
 	s32 offset = inst.SIMM_16;
 	u32 accessSize = 0;
@@ -477,7 +477,7 @@ void JitArm::lmw(UGeckoInstruction inst)
 void JitArm::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
 	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
 	// memory location.  Do not invalidate the JIT cache in this case as the memory

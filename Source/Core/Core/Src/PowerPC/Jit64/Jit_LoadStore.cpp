@@ -24,7 +24,7 @@
 void Jit64::lXXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
@@ -224,7 +224,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 void Jit64::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
 	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
 	// memory location.  Do not invalidate the JIT cache in this case as the memory
@@ -240,7 +240,7 @@ void Jit64::dcbst(UGeckoInstruction inst)
 void Jit64::dcbz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
 	Default(inst); return;
 
@@ -262,7 +262,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 void Jit64::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
 	int s = inst.RS;
 	int a = inst.RA;
@@ -397,7 +397,7 @@ void Jit64::stX(UGeckoInstruction inst)
 void Jit64::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	if (!a || a == s || a == b)
@@ -439,7 +439,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 void Jit64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
 #ifdef _M_X64
 	gpr.FlushLockX(ECX);
@@ -462,7 +462,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 void Jit64::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
 #ifdef _M_X64
 	gpr.FlushLockX(ECX);

@@ -43,7 +43,7 @@ using namespace ArmGen;
 void JitArm::sc(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush();
 	fpr.Flush();
@@ -62,7 +62,7 @@ void JitArm::sc(UGeckoInstruction inst)
 void JitArm::rfi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush();
 	fpr.Flush();
@@ -110,7 +110,7 @@ void JitArm::rfi(UGeckoInstruction inst)
 void JitArm::bx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 	// We must always process the following sentence
 	// even if the blocks are merged by PPCAnalyst::Flatten().
 	if (inst.LK)
@@ -155,7 +155,7 @@ void JitArm::bx(UGeckoInstruction inst)
 void JitArm::bcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 	// USES_CR
 	_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
 
@@ -216,7 +216,7 @@ void JitArm::bcx(UGeckoInstruction inst)
 void JitArm::bcctrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush();
 	fpr.Flush();
@@ -283,7 +283,7 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 void JitArm::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 	if (!js.isLastInstruction &&
 		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {
 		if (inst.LK)

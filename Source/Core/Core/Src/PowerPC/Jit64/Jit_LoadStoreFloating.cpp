@@ -39,7 +39,7 @@ u32 GC_ALIGNED16(temp32);
 void Jit64::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	int d = inst.RD;
 	int a = inst.RA;
@@ -72,7 +72,7 @@ void Jit64::lfs(UGeckoInstruction inst)
 void Jit64::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	if (js.memcheck) { Default(inst); return; }
 
@@ -150,7 +150,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 void Jit64::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	if (js.memcheck) { Default(inst); return; }
 
@@ -235,7 +235,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 void Jit64::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
@@ -297,7 +297,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 void Jit64::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
 	gpr.FlushLockX(ABI_PARAM1);
@@ -317,7 +317,7 @@ void Jit64::stfsx(UGeckoInstruction inst)
 void Jit64::lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)

@@ -29,7 +29,7 @@ const double GC_ALIGNED16(psZeroZero[2]) = {0.0, 0.0};
 void Jit64::ps_mr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -44,7 +44,7 @@ void Jit64::ps_mr(UGeckoInstruction inst)
 void Jit64::ps_sel(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 
 	Default(inst); return;
 
@@ -76,7 +76,7 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 void Jit64::ps_sign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -113,7 +113,7 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 void Jit64::ps_rsqrte(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -186,7 +186,7 @@ void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X6
 void Jit64::ps_arith(UGeckoInstruction inst)
 {		
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -206,7 +206,7 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 void Jit64::ps_sum(UGeckoInstruction inst)
 {	
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	// TODO: (inst.SUBOP5 == 10) breaks Sonic Colours (black screen) 
 	if (inst.Rc || (inst.SUBOP5 == 10)) {
 		Default(inst); return;
@@ -248,7 +248,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 void Jit64::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -287,7 +287,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 void Jit64::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -324,7 +324,7 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 void Jit64::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}

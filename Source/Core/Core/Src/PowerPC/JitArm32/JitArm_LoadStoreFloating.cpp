@@ -35,7 +35,7 @@
 void JitArm::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -78,7 +78,7 @@ void JitArm::lfs(UGeckoInstruction inst)
 void JitArm::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -120,7 +120,7 @@ void JitArm::lfd(UGeckoInstruction inst)
 void JitArm::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();

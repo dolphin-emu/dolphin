@@ -31,7 +31,7 @@ using namespace Gen;
 void Jit64::sc(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -44,7 +44,7 @@ void Jit64::sc(UGeckoInstruction inst)
 void Jit64::rfi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -64,7 +64,7 @@ void Jit64::rfi(UGeckoInstruction inst)
 void Jit64::bx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	// We must always process the following sentence
 	// even if the blocks are merged by PPCAnalyst::Flatten().
@@ -107,7 +107,7 @@ void Jit64::bx(UGeckoInstruction inst)
 void Jit64::bcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	// USES_CR
 	_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
@@ -155,7 +155,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 void Jit64::bcctrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -204,7 +204,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 void Jit64::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	if (!js.isLastInstruction &&
 		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {

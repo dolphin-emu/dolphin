@@ -30,7 +30,7 @@
 void JitArm::ps_add(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
 	if (inst.Rc){
@@ -52,7 +52,7 @@ void JitArm::ps_add(UGeckoInstruction inst)
 void JitArm::ps_madd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	
 	Default(inst); return;
 
@@ -89,7 +89,7 @@ void JitArm::ps_madd(UGeckoInstruction inst)
 void JitArm::ps_sum0(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
@@ -110,7 +110,7 @@ void JitArm::ps_sum0(UGeckoInstruction inst)
 void JitArm::ps_sub(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
 	if (inst.Rc){
@@ -131,7 +131,7 @@ void JitArm::ps_sub(UGeckoInstruction inst)
 void JitArm::ps_mul(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
 	if (inst.Rc){

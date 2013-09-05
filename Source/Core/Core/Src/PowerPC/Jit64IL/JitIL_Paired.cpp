@@ -35,7 +35,7 @@ void JitIL::ps_rsqrte(UGeckoInstruction inst)
 void JitIL::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc || (inst.SUBOP5 != 21 && inst.SUBOP5 != 20 && inst.SUBOP5 != 25)) {
 		Default(inst); return;
 	}
@@ -68,7 +68,7 @@ void JitIL::ps_sum(UGeckoInstruction inst)
 	// TODO: ps_sum breaks Sonic Colours (black screen) 
 	Default(inst); return;
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc || inst.SUBOP5 != 10) {
 		Default(inst); return;
 	}
@@ -87,7 +87,7 @@ void JitIL::ps_sum(UGeckoInstruction inst)
 void JitIL::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -112,7 +112,7 @@ void JitIL::ps_muls(UGeckoInstruction inst)
 void JitIL::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -145,7 +145,7 @@ void JitIL::ps_mergeXX(UGeckoInstruction inst)
 void JitIL::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Paired)
+	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
