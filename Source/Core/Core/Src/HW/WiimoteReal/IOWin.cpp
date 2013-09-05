@@ -142,6 +142,7 @@ namespace WiimoteReal
 	
 int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, int len);
 int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index);
+void _IOWakeup(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read);
 
 template <typename T>
 void ProcessWiimotes(bool new_scan, T& callback);
@@ -459,7 +460,7 @@ bool WiimoteScanner::IsReady() const
 }
 
 // Connect to a wiimote with a known device path.
-bool Wiimote::Connect()
+bool Wiimote::ConnectInternal()
 {
 	if (IsConnected())
 		return false;
@@ -535,7 +536,7 @@ bool Wiimote::Connect()
 	return true;
 }
 
-void Wiimote::Disconnect()
+void Wiimote::DisconnectInternal()
 {
 	if (!IsConnected())
 		return;
@@ -557,6 +558,11 @@ bool Wiimote::IsConnected() const
 	return dev_handle != 0;
 }
 
+void _IOWakeup(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read)
+{
+	CancelIoEx(dev_handle, &hid_overlap_read);
+}
+
 // positive = read packet
 // negative = didn't read packet
 // zero = error
@@ -575,7 +581,7 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 
 		if (ERROR_IO_PENDING == read_err)
 		{
-			auto const wait_result = WaitForSingleObject(hid_overlap_read.hEvent, WIIMOTE_DEFAULT_TIMEOUT);
+			auto const wait_result = WaitForSingleObject(hid_overlap_read.hEvent, INFINITE);
 			if (WAIT_TIMEOUT == wait_result)
 			{
 				CancelIo(dev_handle);
@@ -592,10 +598,10 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 
 				if (ERROR_OPERATION_ABORTED == overlapped_err)
 				{
+					/*
 					if (buf[1] != 0)
-						WARN_LOG(WIIMOTE, "Packet ignored. This may indicate a problem (timeout is %i ms).",
-							WIIMOTE_DEFAULT_TIMEOUT);
-
+						WARN_LOG(WIIMOTE, "Packet ignored. This may indicate a problem.");
+					*/
 					return -1;
 				}
 
@@ -614,6 +620,12 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 
 	return bytes + 1;
 }
+
+void Wiimote::IOWakeup()
+{
+	_IOWakeup(dev_handle, hid_overlap_read);
+}
+
 
 // positive = read packet
 // negative = didn't read packet

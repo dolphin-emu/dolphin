@@ -52,13 +52,17 @@ public:
 
 	// connecting and disconnecting from physical devices
 	// (using address inserted by FindWiimotes)
+	// these are called from the wiimote's thread.
+	bool ConnectInternal();
+	void DisconnectInternal();
+
 	bool Connect();
-	void Disconnect();
 
 	// TODO: change to something like IsRelevant
 	bool IsConnected() const;
 
-	bool Prepare(int index);
+	void Prepare(int index);
+	bool PrepareOnThread();
 
 	void DisableDataReporting();
 	void EnableDataReporting(u8 mode);
@@ -72,13 +76,15 @@ public:
 	IOBluetoothDevice *btd;
 	IOBluetoothL2CAPChannel *ichan;
 	IOBluetoothL2CAPChannel *cchan;
-	char input[MAX_PAYLOAD];
+	unsigned char* input;
 	int inputlen;
 	bool m_connected;
+	CFRunLoopRef m_wiimote_thread_run_loop;
 #elif defined(__linux__) && HAVE_BLUEZ
 	bdaddr_t bdaddr;					// Bluetooth address
 	int cmd_sock;						// Command socket
 	int int_sock;						// Interrupt socket
+	int wakeup_pipe_w, wakeup_pipe_r;
 
 #elif defined(_WIN32)
 	std::basic_string<TCHAR> devicepath;	// Unique wiimote reference
@@ -98,14 +104,24 @@ private:
 	
 	int IORead(u8* buf);
 	int IOWrite(u8 const* buf, int len);
+	void IOWakeup();
 
 	void ThreadFunc();
+	void SetReady();
+	void WaitReady();
 
 	bool m_rumble_state;
 	
-	bool				m_run_thread;
-	std::thread			m_wiimote_thread;
-	
+	std::thread               m_wiimote_thread;
+	// Whether to keep running the thread.
+	volatile bool             m_run_thread;
+	// Whether to call PrepareOnThread.
+	volatile bool             m_need_prepare;
+	// Whether the thread has finished ConnectInternal.
+	volatile bool             m_thread_ready;
+	std::mutex                m_thread_ready_mutex;
+	std::condition_variable   m_thread_ready_cond;
+
 	Common::FifoQueue<Report>	m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;
 	
