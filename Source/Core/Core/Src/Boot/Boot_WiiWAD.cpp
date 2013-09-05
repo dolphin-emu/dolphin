@@ -79,7 +79,9 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	u64 titleID = ContentLoader.GetTitleID();
 	// create data directory
 	File::CreateFullPath(Common::GetTitleDataPath(titleID));
-
+	
+	if (titleID == TITLEID_SYSMENU)
+		HLE_IPC_CreateVirtualFATFilesystem();
 	// setup wii mem
 	if (!SetupWiiMemory(ContentLoader.GetCountry()))
 		return false;
