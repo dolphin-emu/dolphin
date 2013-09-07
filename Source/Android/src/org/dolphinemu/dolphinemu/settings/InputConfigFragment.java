@@ -208,7 +208,7 @@ public final class InputConfigFragment extends PreferenceFragment
 	 * to be set anonymously, so the creation of an explicit class for
 	 * providing functionality is not necessary.
 	 */
-	protected static final class MotionAlertDialog extends AlertDialog
+	private static final class MotionAlertDialog extends AlertDialog
 	{
 		private OnMotionEventListener motionListener;
 
@@ -229,6 +229,13 @@ public final class InputConfigFragment extends PreferenceFragment
 		 */
 		public interface OnMotionEventListener
 		{
+			/**
+			 * Denotes the behavior that should happen when a motion event occurs.
+			 * 
+			 * @param event Reference to the {@link MotionEvent} that occurred.
+			 * 
+			 * @return true if the {@link MotionEvent} is consumed in this call; false otherwise.
+			 */
 			boolean onMotion(MotionEvent event);
 		}
 
@@ -245,7 +252,7 @@ public final class InputConfigFragment extends PreferenceFragment
 		@Override
 		public boolean dispatchKeyEvent(KeyEvent event)
 		{
-			if (this.onKeyDown(event.getKeyCode(), event))
+			if (onKeyDown(event.getKeyCode(), event))
 				return true;
 
 			return super.dispatchKeyEvent(event);
