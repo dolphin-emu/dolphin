@@ -15,6 +15,7 @@
 namespace Gecko
 {
 
+// TODO: Support loading codes from default game inis.
 void LoadCodes(const IniFile& inifile, std::vector<GeckoCode>& gcodes)
 {
 	std::vector<std::string> lines;
@@ -96,7 +97,7 @@ void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcode)
 	}
 
 	lines.push_back(name);
-	
+
 	// save all the code lines
 	std::vector<GeckoCode::Code>::const_iterator
 		codes_iter = gcode.codes.begin(),

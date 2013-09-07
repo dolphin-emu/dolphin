@@ -253,15 +253,12 @@ bool DolphinApp::OnInit()
 	File::CopyDir(File::GetSysDirectory() + WII_USER_DIR,
 	              File::GetUserPath(D_WIIUSER_IDX));
 
-	// TODO: replace these with overlays
-	File::CopyDir(std::string(File::GetSysDirectory() + GAMECONFIG_DIR DIR_SEP),
-	              File::GetUserPath(D_GAMECONFIG_IDX));
-
 	File::CreateFullPath(File::GetUserPath(D_USER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
 	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
 	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GAMESETTINGS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);

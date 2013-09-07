@@ -50,7 +50,7 @@ struct VideoConfig
 {
 	VideoConfig();
 	void Load(const char *ini_file);
-	void GameIniLoad(const char *ini_file);
+	void GameIniLoad(const char* default_ini, const char* game_ini);
 	void VerifyValidity();
 	void Save(const char *ini_file);
 	void GameIniSave(const char* default_ini, const char* game_ini);

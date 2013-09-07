@@ -120,13 +120,13 @@ void VideoConfig::Load(const char *ini_file)
 		OSD::AddMessage("Warning: Shader Debugging is enabled, performance will suffer heavily", 15000);
 }
 
-void VideoConfig::GameIniLoad(const char *ini_file)
+void VideoConfig::GameIniLoad(const char* default_ini_file, const char* local_ini_file)
 {
 	bool gfx_override_exists = false;
 
 	// XXX: Again, bad place to put OSD messages at (see delroth's comment above)
 	// XXX: This will add an OSD message for each projection hack value... meh
-#define CHECK_SETTING(section, key, var) { \
+#define CHECK_SETTING(section, key, var) do { \
 		decltype(var) temp = var; \
 		if (iniFile.GetIfExists(section, key, &var) && var != temp) { \
 			char buf[256]; \
@@ -134,10 +134,11 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 			OSD::AddMessage(buf, 7500); \
 			gfx_override_exists = true; \
 		} \
-	}
+	} while (0)
 
 	IniFile iniFile;
-	iniFile.Load(ini_file);
+	iniFile.Load(default_ini_file);
+	iniFile.Load(local_ini_file, true);
 
 	CHECK_SETTING("Video_Hardware", "VSync", bVSync);
 
@@ -279,7 +280,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	iniFile.Set("Hacks", "DlistCachingEnable", bDlistCachingEnable);
 	iniFile.Set("Hacks", "EFBCopyEnable", bEFBCopyEnable);
-	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToTexture);	
+	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
 	iniFile.Set("Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	iniFile.Set("Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	iniFile.Set("Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
@@ -288,60 +289,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hardware", "Adapter", iAdapter);
 
 	iniFile.Save(ini_file);
-}
-
-void VideoConfig::GameIniSave(const char* default_ini, const char* game_ini)
-{
-	// wxWidgets doesn't provide us with a nice way to change 3-state checkboxes into 2-state ones
-	// This would allow us to make the "default config" dialog layout to be 2-state based, but the
-	// "game config" layout to be 3-state based (with the 3rd state being "use default")
-	// Since we can't do that, we instead just save anything which differs from the default config
-	// TODO: Make this less ugly
-
-	VideoConfig defCfg;
-	defCfg.Load(default_ini);
-
-	IniFile iniFile;
-	iniFile.Load(game_ini);
-
-	#define SET_IF_DIFFERS(section, key, member) { if ((member) != (defCfg.member)) iniFile.Set((section), (key), (member)); else iniFile.DeleteKey((section), (key)); }
-
-	SET_IF_DIFFERS("Video_Hardware", "VSync", bVSync);
-
-	SET_IF_DIFFERS("Video_Settings", "wideScreenHack", bWidescreenHack);
-	SET_IF_DIFFERS("Video_Settings", "AspectRatio", iAspectRatio);
-	SET_IF_DIFFERS("Video_Settings", "Crop", bCrop);
-	SET_IF_DIFFERS("Video_Settings", "UseXFB", bUseXFB);
-	SET_IF_DIFFERS("Video_Settings", "UseRealXFB", bUseRealXFB);
-	SET_IF_DIFFERS("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
-	SET_IF_DIFFERS("Video_Settings", "DLOptimize", iCompileDLsLevel);
-	SET_IF_DIFFERS("Video_Settings", "HiresTextures", bHiresTextures);
-	SET_IF_DIFFERS("Video_Settings", "AnaglyphStereo", bAnaglyphStereo);
-	SET_IF_DIFFERS("Video_Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
-	SET_IF_DIFFERS("Video_Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
-	SET_IF_DIFFERS("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
-	SET_IF_DIFFERS("Video_Settings", "FastDepthCalc", bFastDepthCalc);
-	SET_IF_DIFFERS("Video_Settings", "MSAA", iMultisampleMode);
-	SET_IF_DIFFERS("Video_Settings", "EFBScale", iEFBScale); // integral
-	SET_IF_DIFFERS("Video_Settings", "DstAlphaPass", bDstAlphaPass);
-	SET_IF_DIFFERS("Video_Settings", "DisableFog", bDisableFog);
-	SET_IF_DIFFERS("Video_Settings", "EnableOpenCL", bEnableOpenCL);
-	SET_IF_DIFFERS("Video_Settings", "OMPDecoder", bOMPDecoder);
-
-	SET_IF_DIFFERS("Video_Enhancements", "ForceFiltering", bForceFiltering);
-	SET_IF_DIFFERS("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
-	SET_IF_DIFFERS("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
-	SET_IF_DIFFERS("Video_Enhancements", "Enable3dVision", b3DVision);
-
-	SET_IF_DIFFERS("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
-	SET_IF_DIFFERS("Video_Hacks", "DlistCachingEnable", bDlistCachingEnable);
-	SET_IF_DIFFERS("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
-	SET_IF_DIFFERS("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
-	SET_IF_DIFFERS("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
-	SET_IF_DIFFERS("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
-	SET_IF_DIFFERS("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-
-	iniFile.Save(game_ini);
 }
 
 bool VideoConfig::IsVSync()
