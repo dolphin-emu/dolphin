@@ -107,7 +107,7 @@ static GekkoOPTemplate primarytable[] =
 	{54, &JitArm::Default}, //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
 	{55, &JitArm::Default}, //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 
-	{56, &JitArm::Default}, //"psq_l",   OPTYPE_PS, FL_IN_A}},
+	{56, &JitArm::psq_l}, //"psq_l",   OPTYPE_PS, FL_IN_A}},
 	{57, &JitArm::Default}, //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
 	{60, &JitArm::Default}, //"psq_st",  OPTYPE_PS, FL_IN_A}},
 	{61, &JitArm::Default}, //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},

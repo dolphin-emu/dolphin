@@ -218,6 +218,9 @@ public:
 	void ps_neg(UGeckoInstruction _inst);
 	void ps_abs(UGeckoInstruction _inst);
 	void ps_nabs(UGeckoInstruction _inst);
+
+	// LoadStore paired
+	void psq_l(UGeckoInstruction _inst);
 };
 
 #endif // _JIT64_H

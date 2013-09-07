@@ -137,40 +137,73 @@ void JitArmAsmRoutineManager::Generate()
 	ADD(_SP, _SP, 4);
 
 	POP(9, R4, R5, R6, R7, R8, R9, R10, R11, _PC);  // Returns
+	
+	GenerateCommon();
+
 	FlushIcache();
 }
 
 void JitArmAsmRoutineManager::GenerateCommon()
 {
-/*	fifoDirectWrite8 = AlignCode4();
-	GenFifoWrite(8);
-	fifoDirectWrite16 = AlignCode4();
-	GenFifoWrite(16);
-	fifoDirectWrite32 = AlignCode4();
-	GenFifoWrite(32);
-	fifoDirectWriteFloat = AlignCode4();
-	GenFifoFloatWrite();
-	fifoDirectWriteXmm64 = AlignCode4(); 
-	GenFifoXmm64Write();
+	const u8* loadPairedIllegal = GetCodePtr();
+	BKPT(0x10);
 
-	GenQuantizedLoads();
-	GenQuantizedStores();
-	GenQuantizedSingleStores();
-*/
-	//CMPSD(R(XMM0), M(&zero), 
-	// TODO
+	const u8* loadPairedFloatTwo = GetCodePtr();
+	PUSH(2, R12, _LR);
+	// R12, R14 is scratch
+	// R10 is the address
+	MOVI2R(R14, Memory::MEMVIEW32_MASK); 
+	AND(R10, R10, R14);
+	MOVI2R(R14, (u32)Memory::base);
+	ADD(R10, R10, R14);
 
-	// Fast write routines - special case the most common hardware write
-	// TODO: use this.
-	// Even in x86, the param values will be in the right registers.
-	/*
-	const u8 *fastMemWrite8 = AlignCode16();
-	CMP(32, R(ABI_PARAM2), Imm32(0xCC008000));
-	FixupBranch skip_fast_write = J_CC(CC_NE, false);
-	MOV(32, EAX, M(&m_gatherPipeCount));
-	MOV(8, MDisp(EAX, (u32)&m_gatherPipe), ABI_PARAM1);
-	ADD(32, 1, M(&m_gatherPipeCount));
-	RET();
-	SetJumpTarget(skip_fast_write);
-	CALL((void *)&Memory::Write_U8);*/
+	LDR(R12, R10);
+	REV(R12, R12);
+	VMOV(S0, R12);
+
+	LDR(R12, R10, 4);
+	REV(R12, R12);
+	VMOV(S1, R12);
+
+	POP(2, R12, _PC);
+	const u8* loadPairedFloatOne = GetCodePtr();
+	BKPT(0x12);
+	const u8* loadPairedU8Two = GetCodePtr();
+	BKPT(0x13);
+	const u8* loadPairedU8One = GetCodePtr();
+	BKPT(0x14);
+	const u8* loadPairedS8Two = GetCodePtr();
+	BKPT(0x15);
+	const u8* loadPairedS8One = GetCodePtr();
+	BKPT(0x16);
+	const u8* loadPairedU16Two = GetCodePtr();
+	BKPT(0x17);
+	const u8* loadPairedU16One = GetCodePtr();
+	BKPT(0x18);
+	const u8* loadPairedS16Two = GetCodePtr();
+	BKPT(0x19);
+	const u8* loadPairedS16One = GetCodePtr();
+	BKPT(0x20);
+
+	pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+	ReserveCodeSpace(16 * sizeof(u8*));
+
+	pairedLoadQuantized[0] = loadPairedFloatTwo;
+	pairedLoadQuantized[1] = loadPairedIllegal;
+	pairedLoadQuantized[2] = loadPairedIllegal;
+	pairedLoadQuantized[3] = loadPairedIllegal;
+	pairedLoadQuantized[4] = loadPairedU8Two;
+	pairedLoadQuantized[5] = loadPairedU16Two;
+	pairedLoadQuantized[6] = loadPairedS8Two;
+	pairedLoadQuantized[7] = loadPairedS16Two;
+
+	pairedLoadQuantized[8] = loadPairedFloatOne;
+	pairedLoadQuantized[9] = loadPairedIllegal;
+	pairedLoadQuantized[10] = loadPairedIllegal;
+	pairedLoadQuantized[11] = loadPairedIllegal;
+	pairedLoadQuantized[12] = loadPairedU8One;
+	pairedLoadQuantized[13] = loadPairedU16One;
+	pairedLoadQuantized[14] = loadPairedS8One;
+	pairedLoadQuantized[15] = loadPairedS16One;
+
 }
