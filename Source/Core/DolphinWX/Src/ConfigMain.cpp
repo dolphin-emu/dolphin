@@ -30,6 +30,7 @@
 #include "HotkeyDlg.h"
 #include "Main.h"
 #include "VideoBackendBase.h"
+#include "NetPlayClient.h"
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
 
@@ -740,6 +741,8 @@ void CConfigMain::CreateGUIControls()
 		sbGamecubeEXIDevSettings->Add(GCEXIDeviceText[i], wxGBPosition(i, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
 		sbGamecubeEXIDevSettings->Add(GCEXIDevice[i], wxGBPosition(i, 1), wxGBSpan(1, (i < 2)?1:2), wxALIGN_CENTER_VERTICAL);
 		if (i < 2) sbGamecubeEXIDevSettings->Add(GCMemcardPath[i], wxGBPosition(i, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+		if (NetPlay::IsNetPlayRunning())
+			GCEXIDevice[i]->Disable();
 	}
 	sbGamecubeDeviceSettings->Add(sbGamecubeEXIDevSettings, 0, wxALL, 5);
 
@@ -748,6 +751,10 @@ void CConfigMain::CreateGUIControls()
 	{
 		sbGamecubeDevSettings->Add(GCSIDeviceText[i], 1, wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxBOTTOM, 0);
 		sbGamecubeDevSettings->Add(GCSIDevice[i], 1, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 0);
+		if (NetPlay::IsNetPlayRunning() || Movie::IsRecordingInput() || Movie::IsPlayingInput())
+		{
+			GCSIDevice[i]->Disable();
+		}
 	}
 	sbGamecubeDeviceSettings->Add(sbGamecubeDevSettings, 0, wxALL, 5);
 
