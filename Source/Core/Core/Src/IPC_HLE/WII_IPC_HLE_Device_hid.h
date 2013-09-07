@@ -123,6 +123,7 @@ private:
 	struct libusb_device_handle * GetDeviceByDevNum(u32 devNum);
 	std::map<u32,libusb_device_handle*> open_devices;
 	std::mutex s_open_devices;
+	std::mutex s_device_list_reply;
 	std::map<std::string,int> device_identifiers;
 
 	std::thread usb_thread;
