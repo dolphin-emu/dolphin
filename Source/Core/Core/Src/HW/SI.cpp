@@ -7,7 +7,7 @@
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
 #include "../Movie.h"
-#include "../NetPlayClient.h"
+#include "../NetPlayProto.h"
 
 #include "SystemTimers.h"
 #include "ProcessorInterface.h"

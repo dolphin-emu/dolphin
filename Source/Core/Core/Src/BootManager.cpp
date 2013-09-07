@@ -34,7 +34,7 @@
 #include "Host.h"
 #include "VideoBackendBase.h"
 #include "Movie.h"
-#include "NetPlayClient.h"
+#include "NetPlayProto.h"
 
 namespace BootManager
 {

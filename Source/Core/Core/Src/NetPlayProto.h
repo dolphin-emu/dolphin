@@ -18,6 +18,8 @@ struct NetSettings
 	TEXIDevices m_EXIDevice[2];
 };
 
+extern NetSettings g_NetPlaySettings;
+
 struct Rpt : public std::vector<u8>
 {
 	u16		channel;
@@ -26,6 +28,8 @@ struct Rpt : public std::vector<u8>
 typedef std::vector<Rpt>	NetWiimote;
 
 #define NETPLAY_VERSION		"Dolphin NetPlay 2013-09-03"
+
+const int NETPLAY_INITIAL_GCTIME = 1272737767;
 
 // messages
 enum
@@ -65,6 +69,10 @@ enum
 	CON_ERR_SERVER_FULL = 1,
 	CON_ERR_GAME_RUNNING,
 	CON_ERR_VERSION_MISMATCH
+};
+
+namespace NetPlay {
+	bool IsNetPlayRunning();
 };
 
 #endif

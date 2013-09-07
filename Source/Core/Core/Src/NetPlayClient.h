@@ -22,8 +22,6 @@
 
 #include "FifoQueue.h"
 
-const int NETPLAY_INITIAL_GCTIME = 1272737767;
-
 class NetPad
 {
 public:
@@ -50,8 +48,6 @@ public:
 	virtual void OnMsgStopGame() = 0;
 	virtual bool IsRecording() = 0;
 };
-
-extern NetSettings g_NetPlaySettings;
 
 class Player
 {
@@ -129,10 +125,6 @@ private:
 
 	PlayerId		m_pid;
 	std::map<PlayerId, Player>	m_players;
-};
-
-namespace NetPlay {
-	bool IsNetPlayRunning();
 };
 
 void NetPlay_Enable(NetPlayClient* const np);

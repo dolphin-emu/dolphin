@@ -6,7 +6,7 @@
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
 // No Wii socket support while using NetPlay or TAS
-#include "NetPlayClient.h"
+#include "NetPlayProto.h"
 #include "Movie.h"
 
 using WII_IPC_HLE_Interface::ECommandType;

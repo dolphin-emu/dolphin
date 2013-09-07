@@ -24,7 +24,7 @@
 #include "../../Common/Src/NandPaths.h"
 #include "polarssl/md5.h"
 #include "scmrev.h"
-#include "NetPlayClient.h"
+#include "NetPlayProto.h"
 
 // The chunk to allocate movie data in multiples of.
 #define DTM_BASE_LENGTH (1024)
