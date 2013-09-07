@@ -353,12 +353,9 @@ void JitArm::ps_nabs(UGeckoInstruction inst)
 	ARMReg vB1 = fpr.R1(b);
 	ARMReg vD0 = fpr.R0(d, false);
 	ARMReg vD1 = fpr.R1(d, false);
-	ARMReg V0 = fpr.GetReg();
 	
 	VABS(vD0, vB0);
 	VNEG(vD0, vD0);
 	VABS(vD1, vB1);
 	VNEG(vD1, vD1);
-	
-	fpr.Unlock(V0);
 }
