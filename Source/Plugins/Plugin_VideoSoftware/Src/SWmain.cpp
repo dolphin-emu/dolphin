@@ -39,7 +39,6 @@ namespace SW
 static volatile bool fifoStateRun = false;
 static volatile bool emuRunningState = false;
 static std::mutex m_csSWVidOccupied;
-static void* m_windowhandle; 
 
 std::string VideoSoftware::GetName()
 {
@@ -64,7 +63,11 @@ bool VideoSoftware::Initialize(void *&window_handle)
 	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
 	InitInterface();	
 	
-	m_windowhandle = window_handle;
+	if (!GLInterface->Create(window_handle))
+	{
+		INFO_LOG(VIDEO, "%s", "SWRenderer::Create failed\n");
+		return false;
+	}
 
 	InitBPMemory();
 	InitXFMemory();
@@ -160,12 +163,6 @@ void VideoSoftware::Video_Cleanup()
 // This is called after Video_Initialize() from the Core
 void VideoSoftware::Video_Prepare()
 {
-	if (!GLInterface->Create(m_windowhandle))
-	{
-		INFO_LOG(VIDEO, "%s", "SWRenderer::Create failed\n");
-		return;
-	}
-
 	GLInterface->MakeCurrent();
 	// Init extension support.
 #ifndef USE_GLES
