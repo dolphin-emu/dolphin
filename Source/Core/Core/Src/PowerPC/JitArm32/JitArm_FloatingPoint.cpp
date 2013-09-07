@@ -60,11 +60,8 @@ void JitArm::fnabsx(UGeckoInstruction inst)
 	ARMReg vD = fpr.R0(inst.FD, false);
 	ARMReg V0 = fpr.GetReg();
 
-	// XXX: Could be done quicker
 	VABS(vD, vB);
-	VMOV(V0, vD);
-	VSUB(vD, vD, V0);
-	VSUB(vD, vD, V0);
+	VNEG(vD, vD);
 
 	fpr.Unlock(V0);
 	if (inst.Rc) Helper_UpdateCR1(vD);
