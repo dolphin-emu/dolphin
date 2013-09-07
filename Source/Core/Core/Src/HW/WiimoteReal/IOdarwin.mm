@@ -188,6 +188,22 @@ bool WiimoteScanner::IsReady() const
 	return true;
 }
 
+void Wiimote::InitInternal()
+{
+	inputlen = 0;
+	m_connected = false;
+	m_wiimote_thread_run_loop = NULL;
+}
+
+void Wiimote::TeardownInternal()
+{
+	if (m_wiimote_thread_run_loop)
+	{
+		CFRelease(m_wiimote_thread_run_loop);
+		m_wiimote_thread_run_loop = NULL;
+	}
+}
+
 // Connect to a wiimote with a known address.
 bool Wiimote::ConnectInternal()
 {
@@ -226,6 +242,9 @@ bool Wiimote::ConnectInternal()
 	m_connected = true;
 
 	[cbt release];
+
+	m_wiimote_thread_run_loop = (CFRunLoopRef) CFRetain(CFRunLoopGetCurrent());
+
 	return true;
 }
 
@@ -259,7 +278,10 @@ bool Wiimote::IsConnected() const
 
 void Wiimote::IOWakeup()
 {
-	CFRunLoopStop(m_wiimote_thread_run_loop);
+	if (m_wiimote_thread_run_loop)
+	{
+		CFRunLoopStop(m_wiimote_thread_run_loop);
+	}
 }
 
 int Wiimote::IORead(unsigned char *buf)

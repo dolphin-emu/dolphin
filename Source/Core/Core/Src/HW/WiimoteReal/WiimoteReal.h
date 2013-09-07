@@ -56,6 +56,9 @@ public:
 	bool ConnectInternal();
 	void DisconnectInternal();
 
+	void InitInternal();
+	void TeardownInternal();
+
 	bool Connect();
 
 	// TODO: change to something like IsRelevant

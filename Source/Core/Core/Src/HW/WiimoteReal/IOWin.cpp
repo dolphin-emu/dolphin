@@ -514,12 +514,6 @@ bool Wiimote::ConnectInternal()
 	}
 #endif
 
-	hid_overlap_read = OVERLAPPED();
-	hid_overlap_read.hEvent = CreateEvent(NULL, true, false, NULL);
-
-	hid_overlap_write = OVERLAPPED();
-	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
-
 	// TODO: thread isn't started here now, do this elsewhere
 	// This isn't as drastic as it sounds, since the process in which the threads
 	// reside is normal priority. Needed for keeping audio reports at a decent rate
@@ -544,13 +538,28 @@ void Wiimote::DisconnectInternal()
 	CloseHandle(dev_handle);
 	dev_handle = 0;
 
-	CloseHandle(hid_overlap_read.hEvent);
-	CloseHandle(hid_overlap_write.hEvent);
-
 #ifdef SHARE_WRITE_WIIMOTES
 	std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
 	g_connected_wiimotes.erase(devicepath);
 #endif
+}
+
+void Wiimote::InitInternal()
+{
+	dev_handle = 0;
+	stack = MSBT_STACK_UNKNOWN;
+
+	hid_overlap_read = OVERLAPPED();
+	hid_overlap_read.hEvent = CreateEvent(NULL, true, false, NULL);
+
+	hid_overlap_write = OVERLAPPED();
+	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
+}
+
+void Wiimote::TeardownInternal()
+{
+	CloseHandle(hid_overlap_read.hEvent);
+	CloseHandle(hid_overlap_write.hEvent);
 }
 
 bool Wiimote::IsConnected() const
