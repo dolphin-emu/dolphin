@@ -186,6 +186,8 @@ public:
 
 	// Floating point
 	void fabsx(UGeckoInstruction _inst);
+	void fnabsx(UGeckoInstruction _inst);
+	void fnegx(UGeckoInstruction _inst);
 	void faddsx(UGeckoInstruction _inst);
 	void faddx(UGeckoInstruction _inst);
 	void fsubsx(UGeckoInstruction _inst);
@@ -202,9 +204,20 @@ public:
 	// Paired Singles
 	void ps_add(UGeckoInstruction _inst);
 	void ps_sum0(UGeckoInstruction _inst);
+	void ps_sum1(UGeckoInstruction _inst);
 	void ps_madd(UGeckoInstruction _inst);
 	void ps_sub(UGeckoInstruction _inst);
 	void ps_mul(UGeckoInstruction _inst);
+	void ps_muls0(UGeckoInstruction _inst);
+	void ps_muls1(UGeckoInstruction _inst);
+	void ps_merge00(UGeckoInstruction _inst);
+	void ps_merge01(UGeckoInstruction _inst);
+	void ps_merge10(UGeckoInstruction _inst);
+	void ps_merge11(UGeckoInstruction _inst);
+	void ps_mr(UGeckoInstruction _inst);
+	void ps_neg(UGeckoInstruction _inst);
+	void ps_abs(UGeckoInstruction _inst);
+	void ps_nabs(UGeckoInstruction _inst);
 };
 
 #endif // _JIT64_H

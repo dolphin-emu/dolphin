@@ -43,10 +43,42 @@ void JitArm::fabsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	ARMReg vD = fpr.R0(inst.FD);
 	ARMReg vB = fpr.R0(inst.FB);
+	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VABS(vD, vB);
+
+	if (inst.Rc) Helper_UpdateCR1(vD);
+}
+
+void JitArm::fnabsx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+
+	ARMReg vB = fpr.R0(inst.FB);
+	ARMReg vD = fpr.R0(inst.FD, false);
+	ARMReg V0 = fpr.GetReg();
+
+	// XXX: Could be done quicker
+	VABS(vD, vB);
+	VMOV(V0, vD);
+	VSUB(vD, vD, V0);
+	VSUB(vD, vD, V0);
+
+	fpr.Unlock(V0);
+	if (inst.Rc) Helper_UpdateCR1(vD);
+}
+
+void JitArm::fnegx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+
+	ARMReg vB = fpr.R0(inst.FB);
+	ARMReg vD = fpr.R0(inst.FD, false);
+
+	VNEG(vD, vB);
 
 	if (inst.Rc) Helper_UpdateCR1(vD);
 }
@@ -58,8 +90,8 @@ void JitArm::faddsx(UGeckoInstruction inst)
 
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
-	ARMReg vD0 = fpr.R0(inst.FD);
-	ARMReg vD1 = fpr.R1(inst.FD);
+	ARMReg vD0 = fpr.R0(inst.FD, false);
+	ARMReg vD1 = fpr.R1(inst.FD, false);
 
 	VADD(vD0, vA, vB);
 	VMOV(vD1, vD0);
@@ -71,9 +103,9 @@ void JitArm::faddx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	ARMReg vD = fpr.R0(inst.FD);
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
+	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VADD(vD, vA, vB);
 	if (inst.Rc) Helper_UpdateCR1(vD);
@@ -86,8 +118,8 @@ void JitArm::fsubsx(UGeckoInstruction inst)
 	
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
-	ARMReg vD0 = fpr.R0(inst.FD);
-	ARMReg vD1 = fpr.R1(inst.FD);
+	ARMReg vD0 = fpr.R0(inst.FD, false);
+	ARMReg vD1 = fpr.R1(inst.FD, false);
 
 	VSUB(vD0, vA, vB);
 	VMOV(vD1, vD0);
@@ -99,9 +131,9 @@ void JitArm::fsubx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	ARMReg vD = fpr.R0(inst.FD);
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
+	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VSUB(vD, vA, vB);
 	if (inst.Rc) Helper_UpdateCR1(vD);
@@ -114,8 +146,8 @@ void JitArm::fmulsx(UGeckoInstruction inst)
 	
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vC = fpr.R0(inst.FC);
-	ARMReg vD0 = fpr.R0(inst.FD);
-	ARMReg vD1 = fpr.R1(inst.FD);
+	ARMReg vD0 = fpr.R0(inst.FD, false);
+	ARMReg vD1 = fpr.R1(inst.FD, false);
 
 	VMUL(vD0, vA, vC);
 	VMOV(vD1, vD0);
@@ -127,9 +159,9 @@ void JitArm::fmulx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	ARMReg vD0 = fpr.R0(inst.FD);
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vC = fpr.R0(inst.FC);
+	ARMReg vD0 = fpr.R0(inst.FD, false);
 
 	VMUL(vD0, vA, vC);
 	if (inst.Rc) Helper_UpdateCR1(vD0);
@@ -139,8 +171,8 @@ void JitArm::fmrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	ARMReg vD = fpr.R0(inst.FD);
 	ARMReg vB = fpr.R0(inst.FB);
+	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VMOV(vD, vB);
 	

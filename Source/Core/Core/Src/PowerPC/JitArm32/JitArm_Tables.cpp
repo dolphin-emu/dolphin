@@ -127,16 +127,16 @@ static GekkoOPTemplate table4[] =
 {    //SUBOP10
 	{0,    &JitArm::Default}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
 	{32,   &JitArm::Default}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
-	{40,   &JitArm::Default}, //"ps_neg",     OPTYPE_PS, FL_RC_BIT}},
-	{136,  &JitArm::Default}, //"ps_nabs",    OPTYPE_PS, FL_RC_BIT}},
-	{264,  &JitArm::Default}, //"ps_abs",     OPTYPE_PS, FL_RC_BIT}},
+	{40,   &JitArm::ps_neg}, //"ps_neg",     OPTYPE_PS, FL_RC_BIT}},
+	{136,  &JitArm::ps_nabs}, //"ps_nabs",    OPTYPE_PS, FL_RC_BIT}},
+	{264,  &JitArm::ps_abs}, //"ps_abs",     OPTYPE_PS, FL_RC_BIT}},
 	{64,   &JitArm::Default}, //"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
-	{72,   &JitArm::Default}, //"ps_mr",      OPTYPE_PS, FL_RC_BIT}},
+	{72,   &JitArm::ps_mr}, //"ps_mr",      OPTYPE_PS, FL_RC_BIT}},
 	{96,   &JitArm::Default}, //"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
-	{528,  &JitArm::Default}, //"ps_merge00", OPTYPE_PS, FL_RC_BIT}},
-	{560,  &JitArm::Default}, //"ps_merge01", OPTYPE_PS, FL_RC_BIT}},
-	{592,  &JitArm::Default}, //"ps_merge10", OPTYPE_PS, FL_RC_BIT}},
-	{624,  &JitArm::Default}, //"ps_merge11", OPTYPE_PS, FL_RC_BIT}},
+	{528,  &JitArm::ps_merge00}, //"ps_merge00", OPTYPE_PS, FL_RC_BIT}},
+	{560,  &JitArm::ps_merge01}, //"ps_merge01", OPTYPE_PS, FL_RC_BIT}},
+	{592,  &JitArm::ps_merge10}, //"ps_merge10", OPTYPE_PS, FL_RC_BIT}},
+	{624,  &JitArm::ps_merge11}, //"ps_merge11", OPTYPE_PS, FL_RC_BIT}},
 
 	{1014, &JitArm::Default}, //"dcbz_l",     OPTYPE_SYSTEM, 0}},
 };		
@@ -144,9 +144,9 @@ static GekkoOPTemplate table4[] =
 static GekkoOPTemplate table4_2[] = 
 {
 	{10, &JitArm::ps_sum0}, //"ps_sum0",   OPTYPE_PS, 0}},
-	{11, &JitArm::Default}, //"ps_sum1",   OPTYPE_PS, 0}},
-	{12, &JitArm::Default}, //"ps_muls0",  OPTYPE_PS, 0}},
-	{13, &JitArm::Default}, //"ps_muls1",  OPTYPE_PS, 0}},
+	{11, &JitArm::ps_sum1}, //"ps_sum1",   OPTYPE_PS, 0}},
+	{12, &JitArm::ps_muls0}, //"ps_muls0",  OPTYPE_PS, 0}},
+	{13, &JitArm::ps_muls1}, //"ps_muls1",  OPTYPE_PS, 0}},
 	{14, &JitArm::Default}, //"ps_madds0", OPTYPE_PS, 0}},
 	{15, &JitArm::Default}, //"ps_madds1", OPTYPE_PS, 0}},
 	{18, &JitArm::Default}, //"ps_div",    OPTYPE_PS, 0, 16}},
@@ -352,8 +352,8 @@ static GekkoOPTemplate table63[] =
 	{14,  &JitArm::Default}, //"fctiwx",  OPTYPE_FPU, FL_RC_BIT_F}},
 	{15,  &JitArm::Default}, //"fctiwzx", OPTYPE_FPU, FL_RC_BIT_F}},
 	{72,  &JitArm::fmrx},    //"fmrx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{136, &JitArm::Default},   //"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{40,  &JitArm::Default},   //"fnegx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{136, &JitArm::fnabsx},   //"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{40,  &JitArm::fnegx},   //"fnegx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{12,  &JitArm::Default}, //"frspx",   OPTYPE_FPU, FL_RC_BIT_F}},
 
 	{64,  &JitArm::Default}, //"mcrfs",   OPTYPE_SYSTEMFP, 0}},
