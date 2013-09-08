@@ -145,25 +145,37 @@ void JitArmAsmRoutineManager::Generate()
 
 void JitArmAsmRoutineManager::GenerateCommon()
 {
+	// R14 is LR
+	// R12 is scratch
+	// R11 is scale
+	// R10 is the address
+	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	NEONXEmitter nemit(this);
+
 	const u8* loadPairedIllegal = GetCodePtr();
 	BKPT(0x10);
 
 	const u8* loadPairedFloatTwo = GetCodePtr();
-	PUSH(2, R12, _LR);
-	// R12, R14 is scratch
-	// R10 is the address
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
 	BIC(R10, R10, mask);
-	MOVI2R(R14, (u32)Memory::base);
-	ADD(R10, R10, R14);
+	MOVI2R(R12, (u32)Memory::base);
+	ADD(R10, R10, R12);
 
-	NEONXEmitter nemit(this);
 	nemit.VLD1(I_32, D0, R10);
 	nemit.VREV32(I_8, D0, D0);
+	
+	MOV(_PC, _LR);
 
-	POP(2, R12, _PC);
 	const u8* loadPairedFloatOne = GetCodePtr();
-	BKPT(0x12);
+	BIC(R10, R10, mask);
+	MOVI2R(R12, (u32)Memory::base);
+	ADD(R10, R10, R12);
+
+	nemit.VLD1(I_32, D0, R10);
+	nemit.VREV32(I_8, D0, D0);
+	
+	MOVI2F(S1, 1.0f, INVALID_REG); // Temp reg isn't used for 1.0f
+	MOV(_PC, _LR);
+
 	const u8* loadPairedU8Two = GetCodePtr();
 	BKPT(0x13);
 	const u8* loadPairedU8One = GetCodePtr();

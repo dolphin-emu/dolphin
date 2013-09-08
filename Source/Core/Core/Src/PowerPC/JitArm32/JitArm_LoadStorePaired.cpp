@@ -28,26 +28,18 @@ void JitArm::psq_l(UGeckoInstruction inst)
 	
 	if (js.memcheck) { Default(inst); return; }
 	
-	if (inst.W) {
-		// Enable when supporting single loads
-		Default(inst);
-		return;
-	}
-
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
-	//UBFX(R12, R11, 2, 6); // Scale
-	UBFX(R11, R11, 13, 3); // Type
+	UBFX(R12, R11, 13, 3); // Type
+	UBFX(R11, R11, 2, 6); // Scale
 
 	MOVI2R(R10, (u32)offset);
 	if (inst.RA)
 		ADD(R10, R10, gpr.R(inst.RA));
 	if (update)
 		MOV(gpr.R(inst.RA), R10);
-	if (inst.W)
-		ADD(R11, R11, 8);
 	MOVI2R(R14, (u32)asm_routines.pairedLoadQuantized);
-	ADD(R14, R14, R11);
-	LDR(R14, R14);
+	ADD(R14, R14, R12);
+	LDR(R14, R14, inst.W ? 8 * 4 : 0);
 
 	// Values returned in S0, S1
 	BL(R14); // Jump to the quantizer Load
