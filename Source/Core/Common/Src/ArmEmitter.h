@@ -630,8 +630,12 @@ public:
 	void VREV32(NEONElementType Size, ARMReg Vd, ARMReg Vm);
 	void VREV16(NEONElementType Size, ARMReg Vd, ARMReg Vm);
 
+	void VEOR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+
 	void VLD1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
 	void VLD2(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
+
+	void VST1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
 };
 
 // Everything that needs to generate X86 code should inherit from this.

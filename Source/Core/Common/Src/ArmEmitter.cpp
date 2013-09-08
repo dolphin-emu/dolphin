@@ -1077,7 +1077,8 @@ void ARMXEmitter::VMSR(ARMReg Rt) {
 void ARMXEmitter::VMOV(ARMReg Dest, Operand2 op2)
 {
 	_dbg_assert_msg_(DYNA_REC, cpu_info.bVFPv3, "VMOV #imm requires VFPv3");
-	Write32(condition | (0xEB << 20) | EncodeVd(Dest) | (0xA << 8) | op2.Imm8VFP());
+	bool double_reg = Dest >= D0;
+	Write32(condition | (0xEB << 20) | EncodeVd(Dest) | (0x5 << 9) | (double_reg << 8) | op2.Imm8VFP());
 }
 void ARMXEmitter::VMOV(ARMReg Dest, ARMReg Src, bool high)
 {
@@ -1234,7 +1235,7 @@ void NEONXEmitter::VABD(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 
 	Write32((0xF3 << 24) | ((Vd & 0x10) << 18) | (encodedSize(Size) << 20) | ((Vn & 0xF) << 16) \
 		| ((Vd & 0xF) << 12) | (0xD << 8) | ((Vn & 0x10) << 3) | (register_quad << 6) \
-		| ((Vm & 0x10) << 2) | (Vm & 0xF));
+		| ((Vm & 0x10) << 1) | (Vm & 0xF));
 }
 void NEONXEmitter::VADD(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 {
@@ -1265,7 +1266,7 @@ void NEONXEmitter::VSUB(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 
 	Write32((0xF3 << 24) | ((Vd & 0x10) << 18) | (encodedSize(Size) << 20) | ((Vn & 0xF) << 16) \
 		| ((Vd & 0xF) << 12) | (0x8 << 8) | ((Vn & 0x10) << 3) | (1 << 6) \
-		| ((Vm & 0x10) << 2) | (Vm & 0xF));
+		| ((Vm & 0x10) << 1) | (Vm & 0xF));
 }
 
 void NEONXEmitter::VLD1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align, ARMReg Rm)
@@ -1290,6 +1291,18 @@ void NEONXEmitter::VLD2(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignmen
 			| (align << 4) | Rm);
 }
 
+void NEONXEmitter::VST1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align, ARMReg Rm)
+{
+	u32 spacing = 0x7; // Single spaced registers
+	// Gets encoded as a double register
+	Vd = SubBase(Vd);
+
+	Write32((0xF4 << 24) | ((Vd & 0x10) << 18) | (Rn << 16) 
+			| ((Vd & 0xF) << 12) | (spacing << 8) | (encodedSize(Size) << 6)
+			| (align << 4) | Rm);
+}
+
+
 void NEONXEmitter::VREVX(u32 size, NEONElementType Size, ARMReg Vd, ARMReg Vm)
 {
 	bool register_quad = Vd >= Q0;
@@ -1298,7 +1311,7 @@ void NEONXEmitter::VREVX(u32 size, NEONElementType Size, ARMReg Vd, ARMReg Vm)
 
 	Write32((0xF3 << 24) | (1 << 23) | ((Vd & 0x10) << 18) | (0x3 << 20)
 			| (encodedSize(Size) << 18) | ((Vd & 0xF) << 12) | (size << 7)
-			| (register_quad << 6) | ((Vm & 0x10) << 2) | (Vm & 0xF));
+			| (register_quad << 6) | ((Vm & 0x10) << 1) | (Vm & 0xF));
 }
 
 void NEONXEmitter::VREV64(NEONElementType Size, ARMReg Vd, ARMReg Vm)
@@ -1314,6 +1327,17 @@ void NEONXEmitter::VREV32(NEONElementType Size, ARMReg Vd, ARMReg Vm)
 void NEONXEmitter::VREV16(NEONElementType Size, ARMReg Vd, ARMReg Vm)
 {
 	VREVX(0, Size, Vd, Vm);
+}
+
+void NEONXEmitter::VEOR(ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	bool register_quad = Vd >= Q0;
+	Vd = SubBase(Vd);
+	Vm = SubBase(Vm);
+
+	Write32((0xF3 << 24) | ((Vd & 0x10) << 18) | ((Vn & 0xF) << 16)
+			| ((Vd & 0xF) << 12) | (1 << 8) | ((Vn & 0x10) << 3) 
+			| (register_quad << 6) | ((Vm & 0x10) << 1) | (1 << 4) | (Vm & 0xF));
 }
 
 }
