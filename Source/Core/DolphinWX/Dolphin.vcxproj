@@ -374,9 +374,6 @@ xcopy "$(SolutionDir)..\Externals\msvcrt\$(PlatformName)\*.dll" "$(TargetDir)" /
     <ProjectReference Include="..\..\Plugins\Plugin_VideoDX11\Plugin_VideoDX11.vcxproj">
       <Project>{9a4c733c-bade-4ac6-b58a-6e274395e90e}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\Plugins\Plugin_VideoDX9\Plugin_VideoDX9.vcxproj">
-      <Project>{dc7d7af4-ce47-49e8-8b63-265cb6233a49}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\Plugins\Plugin_VideoOGL\Plugin_VideoOGL.vcxproj">
       <Project>{1909cd2d-1707-456f-86ca-0df42a727c99}</Project>
     </ProjectReference>
