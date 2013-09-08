@@ -64,7 +64,7 @@ public final class FolderBrowser extends Fragment
 				boolean hasExtension = (entryName.lastIndexOf(".") != -1);
 
 				// Skip hidden folders/files.
-				if (entryName.charAt(0) != '.')
+				if (!entry.isHidden())
 				{
 					if(entry.isDirectory())
 					{

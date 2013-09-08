@@ -83,13 +83,10 @@ public final class GameListFragment extends Fragment
 				{
 					String entryName = entry.getName();
 
-					if (entryName.charAt(0) != '.')
+					if (!entry.isHidden() && !entry.isDirectory())
 					{
-						if (!entry.isDirectory())
-						{
-							if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
-								fls.add(new GameListItem(mMe.getApplicationContext(), entryName, getString(R.string.file_size)+entry.length(),entry.getAbsolutePath()));
-						}
+						if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
+							fls.add(new GameListItem(mMe, entryName, getString(R.string.file_size)+entry.length(),entry.getAbsolutePath()));
 					}
 				}
 			}
