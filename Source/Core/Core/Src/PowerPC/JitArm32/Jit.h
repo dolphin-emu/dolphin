@@ -221,6 +221,8 @@ public:
 
 	// LoadStore paired
 	void psq_l(UGeckoInstruction _inst);
+	void psq_st(UGeckoInstruction _inst);
+
 };
 
 #endif // _JIT64_H
