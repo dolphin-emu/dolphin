@@ -225,14 +225,6 @@ bool Wiimote::ConnectInternal()
 		return false;
 	}
 
-	ret = [btd requestAuthentication];
-	if (ret)
-	{
-		WARN_LOG(WIIMOTE, "Unable to request authentication for wiimote %i: %x",
-		         index + 1, ret);
-		goto bad;
-	}
-
 	ret = [btd openL2CAPChannelSync: &cchan
 	           withPSM: kBluetoothL2CAPPSMHIDControl delegate: cbt];
 	if (ret)
