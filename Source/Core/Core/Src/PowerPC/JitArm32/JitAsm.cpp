@@ -152,8 +152,8 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	PUSH(2, R12, _LR);
 	// R12, R14 is scratch
 	// R10 is the address
-	MOVI2R(R14, Memory::MEMVIEW32_MASK); 
-	AND(R10, R10, R14);
+	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	BIC(R10, R10, mask);
 	MOVI2R(R14, (u32)Memory::base);
 	ADD(R10, R10, R14);
 
