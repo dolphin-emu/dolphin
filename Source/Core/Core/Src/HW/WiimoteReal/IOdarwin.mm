@@ -193,6 +193,7 @@ void Wiimote::InitInternal()
 	inputlen = 0;
 	m_connected = false;
 	m_wiimote_thread_run_loop = NULL;
+	btd = nil;
 }
 
 void Wiimote::TeardownInternal()
@@ -202,6 +203,8 @@ void Wiimote::TeardownInternal()
 		CFRelease(m_wiimote_thread_run_loop);
 		m_wiimote_thread_run_loop = NULL;
 	}
+	[btd release];
+	btd = nil;
 }
 
 // Connect to a wiimote with a known address.
@@ -214,30 +217,49 @@ bool Wiimote::ConnectInternal()
 
 	cchan = ichan = nil;
 
-	[btd openL2CAPChannelSync: &cchan
-		withPSM: kBluetoothL2CAPPSMHIDControl delegate: cbt];
-	[btd openL2CAPChannelSync: &ichan
-		withPSM: kBluetoothL2CAPPSMHIDInterrupt delegate: cbt];
+	IOReturn ret = [btd openConnection];
+	if (ret)
+	{
+		ERROR_LOG(WIIMOTE, "Unable to open Bluetooth connection to wiimote %i: %x",
+		          index + 1, ret);
+		return false;
+	}
+
+	ret = [btd requestAuthentication];
+	if (ret)
+	{
+		WARN_LOG(WIIMOTE, "Unable to request authentication for wiimote %i: %x",
+		         index + 1, ret);
+		goto bad;
+	}
+
+	ret = [btd openL2CAPChannelSync: &cchan
+	           withPSM: kBluetoothL2CAPPSMHIDControl delegate: cbt];
+	if (ret)
+	{
+		ERROR_LOG(WIIMOTE, "Unable to open control channel for wiimote %i: %x",
+		          index + 1, ret);
+		goto bad;
+	}
 	// Apple docs claim:
 	// "The L2CAP channel object is already retained when this function returns
 	// success; the channel must be released when the caller is done with it."
 	// But without this, the channels get over-autoreleased, even though the
 	// refcounting behavior here is clearly correct.
-	[ichan retain];
 	[cchan retain];
-	if (ichan == nil || cchan == nil)
+
+	ret = [btd openL2CAPChannelSync: &ichan
+	           withPSM: kBluetoothL2CAPPSMHIDInterrupt delegate: cbt];
+	if (ret)
 	{
-		ERROR_LOG(WIIMOTE, "Unable to open L2CAP channels "
-			"for wiimote %i", index + 1);
-		DisconnectInternal();
-		[cbt release];
-		[ichan release];
-		[cchan release];
-		return false;
+		WARN_LOG(WIIMOTE, "Unable to open interrupt channel for wiimote %i: %x",
+		         index + 1, ret);
+		goto bad;
 	}
+	[ichan retain];
 
 	NOTICE_LOG(WIIMOTE, "Connected to wiimote %i at %s",
-		index + 1, [[btd addressString] UTF8String]);
+	           index + 1, [[btd addressString] UTF8String]);
 
 	m_connected = true;
 
@@ -246,6 +268,11 @@ bool Wiimote::ConnectInternal()
 	m_wiimote_thread_run_loop = (CFRunLoopRef) CFRetain(CFRunLoopGetCurrent());
 
 	return true;
+
+bad:
+	DisconnectInternal();
+	[cbt release];
+	return false;
 }
 
 // Disconnect a wiimote.
@@ -253,15 +280,13 @@ void Wiimote::DisconnectInternal()
 {
 	[ichan closeChannel];
 	[ichan release];
-	ichan = NULL;
+	ichan = nil;
 
 	[cchan closeChannel];
 	[cchan release];
-	cchan = NULL;
+	cchan = nil;
 
 	[btd closeConnection];
-	[btd release];
-	btd = NULL;
 
 	if (!IsConnected())
 		return;
