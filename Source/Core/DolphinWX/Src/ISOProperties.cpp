@@ -286,6 +286,14 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 		new wxButton(this, ID_EDITCONFIG, _("Edit Config"), wxDefaultPosition, wxDefaultSize);
 	EditConfig->SetToolTip(_("This will let you Manually Edit the INI config file"));
 
+	wxButton * const EditConfigDefault =
+		new wxButton(this, ID_EDITCONFIG, _("Show Defaults"), wxDefaultPosition, wxDefaultSize);
+	EditConfigDefault->SetToolTip(_("Opens the default (read-only) configuration for this game in an external text editor."));
+
+	wxButton * const EditConfigLocal =
+		new wxButton(this, ID_EDITCONFIG, _("Edit Local Overrides"), wxDefaultPosition, wxDefaultSize);
+	EditConfigLocal->SetToolTip(_("Opens the user specified overrides in an external text editor."));
+
 	// Notebook
 	wxNotebook * const m_Notebook =
 		new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
@@ -558,6 +566,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	}
 
 	wxSizer* sButtons = CreateButtonSizer(wxNO_DEFAULT);
+	sButtons->Prepend(EditConfigDefault);
+	sButtons->Prepend(EditConfigLocal);
 	sButtons->Prepend(EditConfig);
 	sButtons->Add(new wxButton(this, wxID_OK, _("Close")));
 
