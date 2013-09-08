@@ -157,13 +157,9 @@ void JitArmAsmRoutineManager::GenerateCommon()
 	MOVI2R(R14, (u32)Memory::base);
 	ADD(R10, R10, R14);
 
-	LDR(R12, R10);
-	REV(R12, R12);
-	VMOV(S0, R12);
-
-	LDR(R12, R10, 4);
-	REV(R12, R12);
-	VMOV(S1, R12);
+	NEONXEmitter nemit(this);
+	nemit.VLD1(I_32, D0, R10);
+	nemit.VREV32(I_8, D0, D0);
 
 	POP(2, R12, _PC);
 	const u8* loadPairedFloatOne = GetCodePtr();

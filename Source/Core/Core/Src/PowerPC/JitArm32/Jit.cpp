@@ -467,7 +467,8 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			MOVI2R(RB, (u32)&One);
 			VLDR(VA, RA, 0);
 			VLDR(VB, RB, 0);
-			VADD(I_I64, VA, VA, VB);
+			NEONXEmitter nemit(this);
+			nemit.VADD(I_64, VA, VA, VB);
 			VSTR(VA, RA, 0);
 			gpr.Unlock(RA, RB);
 			fpr.Unlock(VA);
