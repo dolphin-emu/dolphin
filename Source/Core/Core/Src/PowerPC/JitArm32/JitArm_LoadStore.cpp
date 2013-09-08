@@ -33,16 +33,15 @@
 
 void JitArm::UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
 {
-
 	// All this gets replaced on backpatch
-	MOVI2R(R14, Memory::MEMVIEW32_MASK, false); // 1-2 
-	AND(dest, dest, R14); // 3
-	MOVI2R(R14, (u32)Memory::base, false); // 4-5
-	ADD(dest, dest, R14); // 6
+	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	BIC(dest, dest, mask); // 1
+	MOVI2R(R14, (u32)Memory::base, false); // 2-3
+	ADD(dest, dest, R14); // 4
 	switch (accessSize)
 	{
 		case 32:
-			REV(value, value); // 7
+			REV(value, value); // 5
 		break;
 		case 16:
 			REV16(value, value);
@@ -54,7 +53,7 @@ void JitArm::UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 o
 	switch (accessSize)
 	{
 		case 32:
-			STR(value, dest); // 8
+			STR(value, dest); // 6
 		break;
 		case 16:
 			STRH(value, dest);
@@ -63,6 +62,7 @@ void JitArm::UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 o
 			STRB(value, dest);
 		break;
 	}
+	NOP(1); // 7
 }
 
 void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, int accessSize, s32 offset)
@@ -224,14 +224,14 @@ void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offse
 	ADD(addr, addr, rA); // - 1
 
 	// All this gets replaced on backpatch
-	MOVI2R(rA, Memory::MEMVIEW32_MASK, false); // 2 
-	AND(addr, addr, rA); // 3
-	MOVI2R(rA, (u32)Memory::base, false); // 5
-	ADD(addr, addr, rA); // 6
+	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	BIC(addr, addr, mask); // 1
+	MOVI2R(rA, (u32)Memory::base, false); // 2-3
+	ADD(addr, addr, rA); // 4
 	switch (accessSize)
 	{
 		case 32:
-			LDR(dest, addr); // 7
+			LDR(dest, addr); // 5
 		break;
 		case 16:
 			LDRH(dest, addr);
@@ -243,7 +243,7 @@ void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offse
 	switch (accessSize)
 	{
 		case 32:
-			REV(dest, dest); // 9
+			REV(dest, dest); // 6
 		break;
 		case 16:
 			REV16(dest, dest);
@@ -253,6 +253,7 @@ void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offse
 		break;
 
 	}
+	NOP(2); // 7-8
 	gpr.Unlock(rA);
 }
 
@@ -460,8 +461,8 @@ void JitArm::lmw(UGeckoInstruction inst)
 	MOVI2R(rA, inst.SIMM_16);
 	if (a)
 		ADD(rA, rA, gpr.R(a));
-	MOVI2R(rB, Memory::MEMVIEW32_MASK, false); // 1-2 
-	AND(rA, rA, rB); // 3
+	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	BIC(rA, rA, mask); // 3
 	MOVI2R(rB, (u32)Memory::base, false); // 4-5
 	ADD(rA, rA, rB); // 6
 

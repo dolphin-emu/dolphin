@@ -96,7 +96,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 
 	if (Store)
 	{
-		const u32 ARMREGOFFSET = 4 * 7;
+		const u32 ARMREGOFFSET = 4 * 5;
 		ARMXEmitter emitter(codePtr - ARMREGOFFSET);
 		switch (accessSize)
 		{
@@ -117,7 +117,6 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 		emitter.MOV(R1, R10); // Addr- 5 
 		emitter.BL(R14); // 6
 		emitter.POP(4, R0, R1, R2, R3); // 7
-		emitter.NOP(1); // 8
 		u32 newPC = ctx->reg_pc - (ARMREGOFFSET + 4 * 4);
 		ctx->reg_pc = newPC;
 		emitter.FlushIcache();
@@ -125,7 +124,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 	}
 	else
 	{
-		const u32 ARMREGOFFSET = 4 * 6;
+		const u32 ARMREGOFFSET = 4 * 4;
 		ARMXEmitter emitter(codePtr - ARMREGOFFSET);
 		switch (accessSize)
 		{
