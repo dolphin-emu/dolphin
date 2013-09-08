@@ -70,7 +70,7 @@ public final class GameListFragment extends Fragment
 		int intDirectories = Integer.parseInt(Directories);
 
 		// Extensions to filter by.
-		Set<String> exts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf", ".dff", ".wad"));
+		Set<String> exts = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
 
 		for (int a = 0; a < intDirectories; ++a)
 		{
