@@ -515,7 +515,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 	// We should add this split between "in-game" pads and "local"
 	// pads higher up.
 
-	int in_game_num = InGamePadToLocalPad(pad_nb);
+	int in_game_num = LocalPadToInGamePad(pad_nb);
 
 	// If this in-game pad is one of ours, then update from the
 	// information given.
