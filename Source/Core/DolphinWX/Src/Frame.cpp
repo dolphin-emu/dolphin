@@ -389,8 +389,6 @@ CFrame::~CFrame()
 	#endif
 
 	ClosePages();
-
-	delete m_Mgr;
 }
 
 bool CFrame::RendererIsFullscreen()
