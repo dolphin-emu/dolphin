@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-17 09:30-0500\n"
+"POT-Creation-Date: 2013-09-09 06:28-0500\n"
 "PO-Revision-Date: 2013-04-04 08:13+0000\n"
 "Last-Translator: Delayline <hamed.khakbiz@gmail.com>\n"
 "Language-Team: Persian (http://www.transifex.com/projects/p/dolphin-emu/"
@@ -23,9 +23,9 @@ msgstr ""
 msgid " (too many to display)"
 msgstr "(برای نمایش دادن بسیار زیاد است)"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:292
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:519
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:556
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:291
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:521
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:558
 msgid " Game : "
 msgstr "بازی :"
 
@@ -42,7 +42,7 @@ msgstr ""
 "\"%s\" وجود ندارد.\n"
 "یک کارت حافظه ۱۶ مگا بایتی جدید ساخته شود؟"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:136
+#: Source/Core/Core/Src/CoreParameter.cpp:144
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr ""
@@ -69,8 +69,8 @@ msgstr ""
 msgid "%d samples (quality level %d)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:121
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:289
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:165
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:337
 #, c-format
 msgid "%s already exists, overwrite?"
 msgstr "%s وجود دارد، بازنویسی شود؟"
@@ -107,12 +107,17 @@ msgstr ""
 "%s بارگذاری بعنوان کارت حافظه با شکست مواجه شد \n"
 "فایل به اندازه کافی بزرگ نیست که یک فایل کارت حافظه معتبر باشد (0x%x بایت)"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:359
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:410
 #, c-format
 msgid "%s failed to open"
 msgstr "%s بازکردن با شکست مواجه شد"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:352
+#: Source/Core/Core/Src/x64MemTools.cpp:182
+#, fuzzy, c-format
+msgid "%s failed: kr=%x"
+msgstr "%s بازکردن با شکست مواجه شد"
+
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:403
 #, c-format
 msgid "%s is a 0 byte file"
 msgstr "%s یک فایل با حجم ۰ بایت است"
@@ -122,7 +127,7 @@ msgstr "%s یک فایل با حجم ۰ بایت است"
 msgid "%s is already compressed! Cannot compress it further."
 msgstr "%s فشرده شده است! توان فشرده سازی بیشتر را ندارد."
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:337
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:388
 #, c-format
 msgid "%s is too long for the filename, max chars is 45"
 msgstr "%s برای اسم فایل بسیار دراز است، حداکثر تعداد کاراکترها ۴۵ است"
@@ -151,7 +156,7 @@ msgstr "%u بلوک های آزاد; %u ورودی های پوشه آزاد"
 msgid "&& AND"
 msgstr "&& و"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:301
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:303
 msgid "&About..."
 msgstr "&درباره..."
 
@@ -159,7 +164,7 @@ msgstr "&درباره..."
 msgid "&Boot from DVD Drive..."
 msgstr "&بوت شدن از درایو دی وی دی..."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:234
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:235
 msgid "&Breakpoints"
 msgstr "&نقاط انفصال"
 
@@ -167,7 +172,7 @@ msgstr "&نقاط انفصال"
 msgid "&Browse for ISOs..."
 msgstr "&مرور برای فایل های آیزو..."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:194
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:195
 msgid "&Cheats Manager"
 msgstr "مدیریت کدهای &تقلب"
 
@@ -191,11 +196,11 @@ msgstr "&برابرسازی"
 msgid "&File"
 msgstr "&فایل"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:341
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:343
 msgid "&Frame Advance"
 msgstr "&پيشروى فریم"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:358
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:360
 msgid "&Fullscreen"
 msgstr "&تمام صفحه"
 
@@ -203,7 +208,7 @@ msgstr "&تمام صفحه"
 msgid "&Graphics Settings"
 msgstr "تنظیمات &گرافیک"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:302
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:304
 msgid "&Help"
 msgstr "&کمک"
 
@@ -211,7 +216,7 @@ msgstr "&کمک"
 msgid "&Hotkey Settings"
 msgstr "تنظیم &شرت کاتها"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:236
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:237
 msgid "&JIT"
 msgstr "&جیت"
 
@@ -223,11 +228,11 @@ msgstr "&بارگذاری وضعیت"
 msgid "&Memcard Manager (GC)"
 msgstr "مدیر &کارت حافظه (گیم کیوب)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:235
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:236
 msgid "&Memory"
 msgstr "&حافظه"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:319
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:321
 msgid "&Open..."
 msgstr "&باز کردن..."
 
@@ -235,11 +240,11 @@ msgstr "&باز کردن..."
 msgid "&Options"
 msgstr "&گزینه ها"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:330
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:332
 msgid "&Pause"
 msgstr "مکث"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:332
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:334
 msgid "&Play"
 msgstr "&شروع بازی"
 
@@ -247,39 +252,39 @@ msgstr "&شروع بازی"
 msgid "&Properties"
 msgstr "خواص"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:354
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:356
 msgid "&Read-only mode"
 msgstr "&حالت فقط خواندنی"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:325
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:327
 msgid "&Refresh List"
 msgstr "&به روز کردن لیست"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:233
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:234
 msgid "&Registers"
 msgstr "ثبت کردن"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:338
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:340
 msgid "&Reset"
 msgstr "شروع &دوباره"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:237
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:238
 msgid "&Sound"
 msgstr "&صدا"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:335
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:337
 msgid "&Stop"
 msgstr "&توقف"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:210
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:211
 msgid "&Tools"
 msgstr "&ابزارها"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:238
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:239
 msgid "&Video"
 msgstr "&ویدیو"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:287
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:288
 msgid "&View"
 msgstr "&دیدگاه"
 
@@ -368,7 +373,7 @@ msgstr "<اسم را اینجا وارد کنید>"
 msgid "<No resolutions found>"
 msgstr "<سایز تصویر پیدا نشد>"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:85
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:86
 msgid "<Nothing>"
 msgstr "<هیچ>"
 
@@ -376,7 +381,7 @@ msgstr "<هیچ>"
 msgid "<Press Key>"
 msgstr "<تکمه فشارى>"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:288
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:289
 msgid "<System>"
 msgstr "<سیستم>"
 
@@ -384,8 +389,8 @@ msgstr "<سیستم>"
 msgid "A"
 msgstr "A"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:234
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:267
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:233
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:266
 msgid "A NetPlay window is already open!!"
 msgstr "پنجره نت پلی از قبل باز است!!"
 
@@ -410,8 +415,6 @@ msgid ""
 " - DSP Emulator Engine Must be the same on all computers!\n"
 " - DSP on Dedicated Thread [OFF]\n"
 " - Framelimit NOT set to [Audio]\n"
-" - Manually set the exact number of controllers to be used to [Standard "
-"Controller]\n"
 "\n"
 "All players should use the same Dolphin version and settings.\n"
 "All memory cards must be identical between players or disabled.\n"
@@ -436,13 +439,13 @@ msgstr ""
 "\n"
 "شما باید درگاه TCP را به میزبان ارسال کنید!!"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:93
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:98
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:94
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:99
 msgid "AM-Baseboard"
 msgstr "بُردِ مادر ای ام"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:105
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:300
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:308
 msgid "AR Codes"
 msgstr "کدهای اکشن ریپلی"
 
@@ -571,11 +574,11 @@ msgstr "آداپتور:"
 msgid "Add"
 msgstr "اضافه کردن"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1320
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1330
 msgid "Add ActionReplay Code"
 msgstr "اضافه کردن کد اکشن ریپلی"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1249
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1259
 msgid "Add Patch"
 msgstr "اضافه کردن وصله"
 
@@ -583,9 +586,9 @@ msgstr "اضافه کردن وصله"
 msgid "Add new pane"
 msgstr "اضافه کردن تکه جدید"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:408
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:430
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:799
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:416
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:438
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:804
 msgid "Add..."
 msgstr "اضافه کردن..."
 
@@ -637,36 +640,36 @@ msgstr "تنظیم فشار کنترل آنالوگ برای فعال کردن �
 msgid "Advanced"
 msgstr "پیشرفته"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:568
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:567
 msgid "Advanced Settings"
 msgstr "تنظیمات پیشرفته"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:618
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:620
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "همه فایل های گیم کیوب/وی (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:804
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:809
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "همه ایمیجهای گیم کیوب/وی (gcm, iso, wbfs, ciso, gcz)"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1193
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1192
 msgid "All Gamecube GCM files (gcm)"
 msgstr "همه فایل های گیم کیوب جی سی ام (gcm)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1464
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1478
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1475
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1489
 msgid "All Save States (sav, s##)"
 msgstr "همه وضعیت های ذخیره (sav, s##)"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1191
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1190
 msgid "All Wii ISO files (iso)"
 msgstr "همه فایل های آیزو وی (iso)"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1211
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1210
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "همه فایل های آیزو فشرده شده گیم کیوب/وی (gcz)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:106
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:107
 msgid "All files (*.*)|*.*"
 msgstr "همه فایل ها  (*.*)|*.*"
 
@@ -694,7 +697,7 @@ msgstr "سایز بارگذار برنامه اشتباه است...آیا این
 msgid "Apploader unable to load from file"
 msgstr "بارگذار برنامه ناتوان در بارگذاری از فایل"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:829
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:834
 msgid "Apploader:"
 msgstr "بار گذار برنامه:"
 
@@ -712,7 +715,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، (خاموش) را انتخاب کنید."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:289
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:290
 msgid "Arabic"
 msgstr "عربی"
 
@@ -721,7 +724,7 @@ msgstr "عربی"
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "آیا شما مطمئن هستید که میخواهید \"%s\" را حذف کنید؟"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1016
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1015
 msgid ""
 "Are you sure you want to delete these files?\n"
 "They will be gone forever!"
@@ -729,17 +732,17 @@ msgstr ""
 "آیا شما مطمئن هستید که میخواهید این فایلها را حذف کنید؟\n"
 "این فایل ها برای همیشه از بین خواهند رفت!"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1007
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1006
 msgid "Are you sure you want to delete this file?  It will be gone forever!"
 msgstr ""
 "آیا شما مطمئن هستید که میخواهید این فایل را حذف کنید؟  این فایل برای همیشه "
 "از بین خواهند رفت!"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:44
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:45
 msgid "Arm JIT (experimental)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:777
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:782
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:286
 msgid "Aspect Ratio:"
 msgstr "نسبت طول به عرض تصویر:"
@@ -748,12 +751,12 @@ msgstr "نسبت طول به عرض تصویر:"
 msgid "At least one pane must remain open."
 msgstr "حداقل یک قطه می بایست باز بماند."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:247
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:248
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:539
 msgid "Audio"
 msgstr "صدا"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:682
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:681
 msgid "Audio Backend:"
 msgstr "پشتوانه صدا:"
 
@@ -761,7 +764,7 @@ msgstr "پشتوانه صدا:"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: خطا در باز کردن دستگاه خروجی صدا.\n"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:246
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:247
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:284
 msgid "Auto"
 msgstr "اتوماتیک"
@@ -800,7 +803,7 @@ msgstr "ثبت اشاره گر پایه"
 msgid "Back"
 msgstr "برگشت"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:686
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:685
 msgid "Backend Settings"
 msgstr "تنظیمات پشتوانه"
 
@@ -818,7 +821,7 @@ msgstr "ورودی پس زمینه"
 msgid "Backward"
 msgstr "به عقب"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:257
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:305
 msgid "Bad File Header"
 msgstr "سرخط ناصحیح فایل"
 
@@ -831,11 +834,11 @@ msgstr ""
 msgid "Banner"
 msgstr "نشان"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:529
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:537
 msgid "Banner Details"
 msgstr "جزئیات نشان"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:491
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:499
 msgid "Banner:"
 msgstr "نشان:"
 
@@ -847,7 +850,7 @@ msgstr "نوار"
 msgid "Basic"
 msgstr "بنیانی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:562
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:561
 msgid "Basic Settings"
 msgstr "تنظیمات بنیانی"
 
@@ -876,7 +879,7 @@ msgid "Blue Right"
 msgstr "آبی راست"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:104
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:272
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
 msgid "Bottom"
 msgstr "پائین"
 
@@ -885,11 +888,11 @@ msgstr "پائین"
 msgid "Bound Controls: %lu"
 msgstr "کنترل های محدودیت: %lu"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:356
 msgid "Broken"
 msgstr "خراب"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:459
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:461
 msgid "Browse"
 msgstr "مرور"
 
@@ -897,15 +900,15 @@ msgstr "مرور"
 msgid "Browse for a directory to add"
 msgstr "مرور برای پوشه جهت اضافه کردن"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:459
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:461
 msgid "Browse for an ISO directory..."
 msgstr "مرور برای پوشه آیزو..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1083
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1082
 msgid "Browse for output directory"
 msgstr "مرور برای پوشه خروجی"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:348
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:347
 msgid "Buffer:"
 msgstr "حافظه موقت:"
 
@@ -915,7 +918,7 @@ msgstr "حافظه موقت:"
 msgid "Buttons"
 msgstr "دکمه ها"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:317
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:325
 msgid ""
 "Bypass the clearing of the data cache by the DCBZ instruction. Usually leave "
 "this option disabled."
@@ -939,7 +942,7 @@ msgstr "استیک سی"
 msgid "CP reg"
 msgstr "ثبت سی پی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:554
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:553
 msgid "CPU Emulator Engine"
 msgstr "موتور پردازشگر برابرساز"
 
@@ -961,7 +964,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1877
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1848
 #, c-format
 msgid "Can't find WiiMote by connection handle %02x"
 msgstr ""
@@ -976,9 +979,9 @@ msgstr ""
 msgid "Cancel"
 msgstr "لغو کردن"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:84
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:171
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:233
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:124
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:219
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:281
 #, c-format
 msgid "Cannot open %s"
 msgstr "قادر به باز گشایی نیست %s"
@@ -987,7 +990,7 @@ msgstr "قادر به باز گشایی نیست %s"
 msgid "Cannot unregister events with events pending"
 msgstr "رویدادهایی را که معوق اند نمی تواند از ثبت درآورد."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1068
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1073
 #, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
@@ -998,7 +1001,7 @@ msgstr ""
 "%s\n"
 "این یک فایل کارت حافظه معتبر گیم کیوب نیست"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1098
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1103
 msgid ""
 "Cannot use that file as a memory card.\n"
 "Are you trying to use the same file in both slots?"
@@ -1010,7 +1013,7 @@ msgstr ""
 msgid "Caps Lock"
 msgstr "کپس لاک"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:290
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:291
 msgid "Catalan"
 msgstr "کاتالان"
 
@@ -1018,11 +1021,11 @@ msgstr "کاتالان"
 msgid "Center"
 msgstr "مرکز"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:590
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:587
 msgid "Change"
 msgstr "تعویض"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:322
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:324
 msgid "Change &Disc..."
 msgstr "تعویض &دیسک..."
 
@@ -1030,11 +1033,11 @@ msgstr "تعویض &دیسک..."
 msgid "Change Disc"
 msgstr "تعویض دیسک"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:582
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:579
 msgid "Change Game"
 msgstr "تعویض بازی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:502
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:503
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -1050,12 +1053,12 @@ msgstr "تغییرات علامت به پارامتر z دور (بعد از تص
 msgid "Changes sign to zNear Parameter (after correction)"
 msgstr "تغییرات علامت به پارامتر z نزدیک (بعد از تصحیح)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:506
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:507
 msgid "Changing this will have no effect while the emulator is running!"
 msgstr ""
 "تغییر دادن این مورد در حالی که برابرساز در حال اجراست اثری نخواهد داشت!"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:317
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:316
 msgid "Chat"
 msgstr "گپ زدن"
 
@@ -1071,39 +1074,39 @@ msgstr "جستجوی کد تقلب"
 msgid "Cheats Manager"
 msgstr "مدیر کدهای تقلب"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:635
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:645
 msgid "Check Partition Integrity"
 msgstr "برسی عدم نقص پارتیشن"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:899
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:909
 msgid "Checking integrity..."
 msgstr "برسی عدم نقص..."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:291
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 msgid "Chinese (Simplified)"
 msgstr "چینی (ساده شده)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
 msgid "Chinese (Traditional)"
 msgstr "چینی (سنتی)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:806
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:811
 msgid "Choose a DVD root directory:"
 msgstr "انتخاب یک پوشه ریشه برای دی وی دی:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:810
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:815
 msgid "Choose a NAND root directory:"
 msgstr "انتخاب یک پوشه ریشه برای نند:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:803
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:808
 msgid "Choose a default ISO:"
 msgstr "انتخاب آیزو پیش فرض:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1228
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1233
 msgid "Choose a directory to add"
 msgstr "انتخاب پوشه برای اضافه کردن"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1055
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1060
 msgid "Choose a file to open"
 msgstr "انتخاب فایل برای باز کردن"
 
@@ -1111,7 +1114,7 @@ msgstr "انتخاب فایل برای باز کردن"
 msgid "Choose a memory card:"
 msgstr "انتخاب کارت حافظه:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:807
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:812
 msgid ""
 "Choose file to use as apploader: (applies to discs constructed from "
 "directories only)"
@@ -1119,8 +1122,8 @@ msgstr ""
 "انتخاب فایل برای استفاده بعنوان بارگذار برنامه: (به دیسک هایی که فقط از پوشه "
 "ها ساخته شده اند اعمال می کند)"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:783
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:824
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:793
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:834
 msgid "Choose the folder to extract to"
 msgstr "انتخاب پوشه برای استخراج به آن"
 
@@ -1139,7 +1142,7 @@ msgstr "کلاسیک"
 msgid "Clear"
 msgstr "پاک کردن"
 
-#: Source/Core/Core/Src/NetPlayServer.cpp:265
+#: Source/Core/Core/Src/NetPlayServer.cpp:230
 msgid ""
 "Client disconnect while game is running!! NetPlay is disabled. You must "
 "manually stop the game."
@@ -1149,7 +1152,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:284
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:234
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:562
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:572
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:587
 msgid "Close"
 msgstr "بستن"
@@ -1174,7 +1177,7 @@ msgstr "دستور"
 msgid "Comment"
 msgstr "توضیح"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:489
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:497
 msgid "Comment:"
 msgstr "توضیح:"
 
@@ -1186,12 +1189,12 @@ msgstr "فشرده کردن آیزو..."
 msgid "Compress selected ISOs..."
 msgstr "فشرده کردن آیزو های انتخاب شده..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1092
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1228
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1091
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1227
 msgid "Compressing ISO"
 msgstr "در حال فشرده کردن آیزو"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:466
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:468
 msgid "Config"
 msgstr "پیکربندی"
 
@@ -1205,22 +1208,22 @@ msgstr "پیکربندی"
 msgid "Configure Control"
 msgstr "کنترل پیکربندی"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:328
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:609
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:327
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:606
 msgid "Configure Pads"
 msgstr "پیکربندی گیم پدها"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:466
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:468
 msgid "Configure..."
 msgstr "پیکربندی..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1123
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1151
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1221
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1122
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1150
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1220
 msgid "Confirm File Overwrite"
 msgstr "تائید بازنویسی فایل"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:584
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:583
 msgid "Confirm on Stop"
 msgstr "تائید برای توقف"
 
@@ -1229,17 +1232,17 @@ msgstr "تائید برای توقف"
 msgid "Connect"
 msgstr "اتصال"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:375
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:377
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
 #, fuzzy
 msgid "Connect Balance Board"
 msgstr "اتصال کیبورد USB"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:771
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:776
 msgid "Connect USB Keyboard"
 msgstr "اتصال کیبورد USB"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:371
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:373
 #, c-format
 msgid "Connect Wiimote %i"
 msgstr "اتصال ویموت %i"
@@ -1260,7 +1263,7 @@ msgstr "اتصال ویموت ۳"
 msgid "Connect Wiimote 4"
 msgstr "اتصال ویموت ۴"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:658
+#: Source/Core/DolphinWX/Src/Main.cpp:670
 msgid "Connecting..."
 msgstr "در حال اتصال..."
 
@@ -1280,7 +1283,7 @@ msgstr "کنترل"
 msgid "Convert to GCI"
 msgstr "تبدیل به جی سی آی"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:376
+#: Source/Core/Core/Src/CoreParameter.cpp:384
 msgid "Copy failed"
 msgstr "کپی با شکست مواجه شد"
 
@@ -1289,7 +1292,7 @@ msgstr "کپی با شکست مواجه شد"
 msgid "Copy to Memcard %c"
 msgstr "کپی به کارت حافظه %c"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:359
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:367
 msgid "Core"
 msgstr "هسته"
 
@@ -1303,7 +1306,7 @@ msgstr "قادر به ساخت نیست %s"
 msgid "Could not initialize backend %s."
 msgstr "قادر به نصب پشتوانه نیست %s"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:131
+#: Source/Core/Core/Src/CoreParameter.cpp:139
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
@@ -1314,24 +1317,15 @@ msgstr ""
 "نیست. لطفا توجه داشته باشید که دیسک های اصلی گیم کیوب/وی توسط اکثر دی وی دی "
 "درایوهای کامپیوتر قابل خواندن نیستند."
 
-#: Source/Core/Core/Src/CoreParameter.cpp:286
+#: Source/Core/Core/Src/CoreParameter.cpp:294
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "قادر به تشخیص فایل آیزو %s نبود"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:579
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:589
 #, c-format
 msgid "Could not save %s"
 msgstr "قادر به ذخیره کردن نیست %s"
-
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:577
-msgid ""
-"Could not set pads. The player left or the game is currently running!\n"
-"(setting pads while the game is running is not yet supported)"
-msgstr ""
-"قادر به ست کردن گیم پدها نیست. بازی کن بازی را ترک کرده و یا بازی در حال "
-"اجرا است!\n"
-"(ست کردن گیم پدها در حالی که بازی در حال اجرا است فعلا پشتیبانی نمی شود)"
 
 #: Source/Core/Core/Src/HW/EXI_DeviceMemoryCard.cpp:119
 #, c-format
@@ -1346,11 +1340,11 @@ msgid ""
 "options."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1152
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1162
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "قادر به یافتن دستور باز برای پسوند 'ini' نیست!"
 
-#: Source/Core/Core/Src/BootManager.cpp:152
+#: Source/Core/Core/Src/BootManager.cpp:158
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -1363,7 +1357,7 @@ msgstr ""
 msgid "Count:"
 msgstr "شماردن:"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:456
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:464
 msgid "Country:"
 msgstr "کشور:"
 
@@ -1403,12 +1397,12 @@ msgstr ""
 msgid "Crossfade"
 msgstr "ضرب دری"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:631
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:633
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:339
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
 msgid "Custom Projection Hack"
 msgstr "هک کردن دستی تصویر"
 
@@ -1416,11 +1410,11 @@ msgstr "هک کردن دستی تصویر"
 msgid "Custom Projection Hack Settings"
 msgstr "تنظیمات مربوط به هک کردن دستی تصویر"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:342
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:350
 msgid "Customize some Orthographic Projection parameters."
 msgstr "دستکاری برخی از پارامتر های خطوط عمودی تصویر."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:293
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
 msgid "Czech"
 msgstr "چکوسلواکی"
 
@@ -1432,36 +1426,36 @@ msgstr "D"
 msgid "D-Pad"
 msgstr "پد هدایتی"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:468
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:470
 msgid "DSP"
 msgstr "پردازشگر صدای دلفین"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:646
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:645
 msgid "DSP Emulator Engine"
 msgstr "موتور برابرساز پردازشگر صدای دلفین"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:325
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:256
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:333
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:257
 msgid "DSP HLE emulation (fast)"
 msgstr "برابرسازی سطح بالای پردازشگر صدای دلفین (سریع)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:258
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:259
 msgid "DSP LLE interpreter (slow)"
 msgstr "مفسر سطح پائین پردازشگر صدای دلفین (کند)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:257
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:258
 msgid "DSP LLE recompiler"
 msgstr "ری کامپایلر سطح پائین پردازشگر صدای دلفین"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:648
-msgid "DSP on Dedicated Thread"
-msgstr ""
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:468
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:470
 msgid "DSP settings"
 msgstr "تنظیمات پردازشگر صدای دلفین"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:826
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:647
+msgid "DSPLLE on Separate Thread"
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:831
 msgid "DVD Root:"
 msgstr "ریشه دی وی دی:"
 
@@ -1476,7 +1470,7 @@ msgstr ""
 "خواندن سطح پائین کد گشایی شده دی وی دی - خطای مهلک: خواندن از روی دیسک با "
 "شکست مواجه شد"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:90
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:91
 msgid "Dance Mat"
 msgstr ""
 
@@ -1484,7 +1478,7 @@ msgstr ""
 msgid "Data Size"
 msgstr "اندازه داده"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:468
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
 msgid "Date:"
 msgstr "تاریخ:"
 
@@ -1521,8 +1515,8 @@ msgstr "ناهمفشرده کردن آیزو..."
 msgid "Decompress selected ISOs..."
 msgstr "ناهمفشرده کردن آیزو های انتخاب شده..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1092
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1228
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1091
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1227
 msgid "Decompressing ISO"
 msgstr "در حال ناهمفشرده کردن آیزو"
 
@@ -1535,7 +1529,7 @@ msgstr "به روز کردن لیست بازی"
 msgid "Default"
 msgstr "پیش فرز"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:823
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:828
 msgid "Default ISO:"
 msgstr "آیزو پیش فرز:"
 
@@ -1579,8 +1573,8 @@ msgstr ""
 msgid "Device"
 msgstr "دستگاه"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:738
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:786
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:737
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:791
 msgid "Device Settings"
 msgstr "تنظیمات دستگاه"
 
@@ -1592,7 +1586,7 @@ msgstr "شماره گیری"
 msgid "Direct3D11"
 msgstr "Direct3D ۱۱"
 
-#: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:126
+#: Source/Plugins/Plugin_VideoDX9/Src/main.cpp:140
 msgid "Direct3D9"
 msgstr "Direct3D ۹"
 
@@ -1661,7 +1655,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:553
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:561
 msgid "Disc"
 msgstr "دیسک"
 
@@ -1688,24 +1682,60 @@ msgstr ""
 msgid "Divide"
 msgstr "تقسیم"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1035
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1039
 msgid "Do you want to stop the current emulation?"
 msgstr "آیا می خواهید برابرسازی فعلی را متوقف کنید؟"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:651
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:650
 msgid "Dolby Pro Logic II decoder"
 msgstr "کدبردار دالبی پرو لاجیک دو"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:899
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:901
 msgid "Dolphin"
 msgstr "دلفین"
+
+#: Source/Core/DolphinWX/Src/AboutDolphin.cpp:21
+#, c-format
+msgid ""
+"Dolphin %s\n"
+"Copyright (c) 2003-2013+ Dolphin Team\n"
+"\n"
+"Branch: %s\n"
+"Revision: %s\n"
+"Compiled: %s @ %s\n"
+"\n"
+"Dolphin is a Gamecube/Wii emulator, which was\n"
+"originally written by F|RES and ector.\n"
+"Today Dolphin is an open source project with many\n"
+"contributors, too many to list.\n"
+"If interested, just go check out the project page at\n"
+"http://code.google.com/p/dolphin-emu/ .\n"
+"\n"
+"Special thanks to Bushing, Costis, CrowTRobo,\n"
+"Marcan, Segher, Titanik, or9 and Hotquik for their\n"
+"reverse engineering and docs/demos.\n"
+"\n"
+"Big thanks to Gilles Mouchard whose Microlib PPC\n"
+"emulator gave our development a kickstart.\n"
+"\n"
+"Thanks to Frank Wille for his PowerPC disassembler,\n"
+"which or9 and we modified to include Gekko specifics.\n"
+"\n"
+"Thanks to hcs/destop for their GC ADPCM decoder.\n"
+"\n"
+"We are not affiliated with Nintendo in any way.\n"
+"Gamecube and Wii are trademarks of Nintendo.\n"
+"The emulator is for educational purposes only\n"
+"and should not be used to play games you do\n"
+"not legally own."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:189
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "دلفین %s پیکربندی گرافیک"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:298
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:299
 msgid "Dolphin &Web Site"
 msgstr "&وب سایت دلفین"
 
@@ -1721,12 +1751,12 @@ msgstr "پیکربندی ویمیوت برابرسازی شده دلفین"
 msgid "Dolphin FIFO"
 msgstr "دلفین فیفو"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1200
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1205
 msgid "Dolphin GCPad Configuration"
 msgstr "پیکربندی گیم پد گیم کیوب دلفین"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:725
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1135
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:727
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1140
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "فیلم های تاس دلفین (*.dtm)"
 
@@ -1734,7 +1764,7 @@ msgstr "فیلم های تاس دلفین (*.dtm)"
 msgid "Dolphin Wiimote Configuration"
 msgstr "پیکربندی ویموت دلفین"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:299
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:301
 msgid "Dolphin at &Google Code"
 msgstr "دلفین در &گوگل کد"
 
@@ -1754,12 +1784,12 @@ msgstr ""
 "دلفین در حال حاضر ست شده است که همه بازی ها را مخفی کند. برای نمایش بازی ها "
 "دو بار اینجا کلیک کنید..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1163
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1249
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1162
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1248
 msgid "Dolphin was unable to complete the requested action."
 msgstr "دلفین نتوانست عمل خواسته شده را تکمیل کند."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
 #, fuzzy
 msgid ""
 "Doubles the emulated GPU clock rate. May speed up some games (ON = Fast, OFF "
@@ -1786,11 +1816,11 @@ msgstr "%lu کد دانلود شد. (%lu عدد اضافه شد)"
 msgid "Drums"
 msgstr "طبل ها"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:86
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:87
 msgid "Dummy"
 msgstr "مصنوعی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:649
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:648
 msgid "Dump Audio"
 msgstr "نسخه برداری صدا"
 
@@ -1838,9 +1868,9 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:482
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:294
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:490
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:268
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
 msgid "Dutch"
 msgstr "هلندی"
 
@@ -1873,7 +1903,7 @@ msgstr "اروپا"
 msgid "Early Memory Updates"
 msgstr "به روز شدن های اولیه حافظه"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:484
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:486
 msgid "Edit"
 msgstr "ویرایش"
 
@@ -1885,16 +1915,20 @@ msgstr "ویرایش کدهای اکشن ریپلی"
 msgid "Edit Config"
 msgstr "ویرایش پیکربندی"
 
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:294
+msgid "Edit Local Overrides"
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/PatchAddEdit.h:17
 msgid "Edit Patch"
 msgstr "ویرایش وصله"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:484
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:486
 msgid "Edit current perspective"
 msgstr "ویرایش چشم انداز جاری"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:407
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:429
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:415
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:437
 msgid "Edit..."
 msgstr "ویرایش..."
 
@@ -1906,7 +1940,7 @@ msgstr "افکت"
 msgid "Embedded Frame Buffer"
 msgstr "حافظه میانجی فریم جاساز شده"
 
-#: Source/Core/Core/Src/Core.cpp:188
+#: Source/Core/Core/Src/Core.cpp:191
 msgid "Emu Thread already running"
 msgstr "ریسمان شبیه ساز قبلا اجرا شده است"
 
@@ -1945,7 +1979,7 @@ msgstr ""
 msgid "Emulated Wiimote"
 msgstr "ویموت برابرسازی شده"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:346
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:354
 msgid "Emulation State: "
 msgstr "وضعیت برابرساز:"
 
@@ -1973,11 +2007,11 @@ msgstr ""
 msgid "Enable AR Logging"
 msgstr "فعال کردن واقعه نگاری اکشن ریپلی"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:332
 msgid "Enable Block Merging"
 msgstr "فعال کردن ادغام بلوک"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:339
 msgid "Enable Bounding Box Calculation"
 msgstr "فعال کردن محاسبه حد جعبه"
 
@@ -1985,27 +2019,27 @@ msgstr "فعال کردن محاسبه حد جعبه"
 msgid "Enable Cache"
 msgstr "فعال کردن حافظه ميانى"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:549
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
 msgid "Enable Cheats"
 msgstr "فعال کردن کدهای تقلب"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:310
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:318
 msgid "Enable Dual Core"
 msgstr "فعال کردن پردازنده با دو هسته یا بیشتر"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:547
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:546
 msgid "Enable Dual Core (speedup)"
 msgstr "فعال کردن پردازنده با دو هسته یا بیشتر (بالا بردن سرعت)"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:311
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:319
 msgid "Enable Idle Skipping"
 msgstr "فعال کردن جهش بیکاری"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:548
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:547
 msgid "Enable Idle Skipping (speedup)"
 msgstr "فعال کردن جهش بیکاری (بالا بردن سرعت)"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:312
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
 msgid "Enable MMU"
 msgstr "فعال کردن واحد مدیریت حافظه"
 
@@ -2013,7 +2047,7 @@ msgstr "فعال کردن واحد مدیریت حافظه"
 msgid "Enable Progressive Scan"
 msgstr "فعال کردن پويش تصاعدی (Progressive Scan)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:764
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:769
 msgid "Enable Screen Saver"
 msgstr "فعال کردن اسکیرین سیور"
 
@@ -2021,7 +2055,7 @@ msgstr "فعال کردن اسکیرین سیور"
 msgid "Enable Speaker Data"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:336
 msgid "Enable WideScreen"
 msgstr "فعال کردن صفحه عریض"
 
@@ -2043,7 +2077,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، حالت 1x را انتخاب کنید."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:331
 msgid ""
 "Enable fast disc access.  Needed for a few games. (ON = Fast, OFF = "
 "Compatible)"
@@ -2079,7 +2113,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:335
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:343
 msgid ""
 "Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for "
 "ANY other game."
@@ -2087,11 +2121,11 @@ msgstr ""
 "برای بالا بردن سرعت بازی افسانه زلدا: شاهدخت سپیده دم این گزینه را فعال "
 "کنید. غیرفعال برای هر بازی دیگر."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:340
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:348
 msgid "Enables Custom Projection Hack"
 msgstr "فعال کردن پروژه هک دستی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:515
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:516
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on "
 "OSX."
@@ -2099,21 +2133,12 @@ msgstr ""
 "فعال کردن برابر سازی دالبی پرو لاجیک دو توسط خروجی فراگیر 5.1 (Surround). در "
 "OSX موجود نیست."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:517
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:518
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."
 msgstr ""
 "فعال کردن برابر سازی دالبی پرو لاجیک دو توسط خروجی فراگیر 5.1 (Surround). "
 "فقط پشتوانه اپن ای ال (OpenAL)."
-
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:519
-msgid ""
-"Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
-"only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
-msgstr ""
-"فعال کردن برابر سازی دالبی پرو لاجیک دو توسط خروجی فراگیر 5.1 (Surround). "
-"فقط پشتوانه اپن ای ال (OpenAL). شاید تغییر نام soft_oal.dll به OpenAL32.dll "
-"برای به کار انداختن این امکان احتیاج باشد."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:81
 msgid ""
@@ -2127,7 +2152,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:321
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)"
@@ -2149,9 +2174,9 @@ msgstr ""
 msgid "End"
 msgstr "پایان"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:477
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:262
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:295
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
 msgid "English"
 msgstr "انگلیسی"
 
@@ -2180,11 +2205,11 @@ msgstr "همگن"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:32
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:150
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1235
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1240
 msgid "Error"
 msgstr "خطا"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:412
+#: Source/Core/DolphinWX/Src/Main.cpp:424
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "بارگذاری زبان انتخاب شده با شکست مواجه شد. برگشت به زبان پیش فرض سیستم."
@@ -2216,7 +2241,6 @@ msgid "Euphoria"
 msgstr "خوشی"
 
 #: Source/Core/Core/Src/ArmMemTools.cpp:78
-#: Source/Core/Core/Src/x64MemTools.cpp:209
 #, c-format
 msgid "Exception handler - access below memory space. %08llx%08llx"
 msgstr "دستگذار استثناء - دسترسی فضای پایینی حافظه. %08llx%08llx"
@@ -2225,16 +2249,21 @@ msgstr "دستگذار استثناء - دسترسی فضای پایینی حا�
 msgid "Execute"
 msgstr "اجرا کردن"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:364
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:366
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
 msgid "Exit"
 msgstr ""
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:194
+#, fuzzy
+msgid "Export All Wii Saves"
+msgstr "صادر کردن همه ذخیره ها"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:446
 msgid "Export Failed"
 msgstr "صادر کردن با شکست مواجه شد"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:651
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:661
 msgid "Export File"
 msgstr "صادر کردن فایل"
 
@@ -2242,7 +2271,7 @@ msgstr "صادر کردن فایل"
 msgid "Export Recording"
 msgstr "صادر کردن ضبط"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:351
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:353
 msgid "Export Recording..."
 msgstr "صادر کردن ضبط..."
 
@@ -2258,9 +2287,10 @@ msgstr "صادر کردن فایل ذخیره وی (آزمایشی)"
 msgid "Export all saves"
 msgstr "صادر کردن همه ذخیره ها"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:72
-msgid "Export failed, try again?"
-msgstr "صادر کردن با شکست مواجه شد، کوشش دوباره؟"
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:113
+#, fuzzy
+msgid "Export failed"
+msgstr "صادر کردن با شکست مواجه شد"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:552
 msgid "Export save as..."
@@ -2282,44 +2312,44 @@ msgstr "پارامتر اضافی"
 msgid "Extra Parameter useful in ''Metroid: Other M'' only."
 msgstr "پارامترهای یدکی مفید تنها برای \"Metroid Other M\"."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:626
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:636
 msgid "Extract All Files..."
 msgstr "استخراج همه فایل ها..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:632
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:642
 msgid "Extract Apploader..."
 msgstr "استخراج بارگذار برنامه..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:633
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:643
 msgid "Extract DOL..."
 msgstr "استخراج دال..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:622
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:632
 msgid "Extract Directory..."
 msgstr "استخراج پوشه..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:624
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:634
 msgid "Extract File..."
 msgstr "استخراج فایل..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:619
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:629
 msgid "Extract Partition..."
 msgstr "استخراج پارتیشن..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:740
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:750
 #, c-format
 msgid "Extracting %s"
 msgstr "استخراج کردن %s"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:723
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:733
 msgid "Extracting All Files"
 msgstr "استخراج کردن همه فایل ها"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:723
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:733
 msgid "Extracting Directory"
 msgstr "استخراج کردن پوشه"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:726
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:736
 msgid "Extracting..."
 msgstr "استخراج کردن..."
 
@@ -2335,11 +2365,11 @@ msgstr "پخش کننده فیفو"
 msgid "FRANCE"
 msgstr "فرانسه"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:472
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
 msgid "FST Size:"
 msgstr "اندازه اف اس تی:"
 
-#: Source/Core/Core/Src/NetPlayClient.cpp:141
+#: Source/Core/Core/Src/NetPlayClient.cpp:127
 msgid "Failed to Connect!"
 msgstr "اتصال با شکست مواجه شد!"
 
@@ -2347,7 +2377,7 @@ msgstr "اتصال با شکست مواجه شد!"
 msgid "Failed to download codes."
 msgstr "دانلود کدها با شکست مواجه شد."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:862
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:872
 #, c-format
 msgid "Failed to extract to %s!"
 msgstr "استخراج به %s با شکست مواجه شد!"
@@ -2388,16 +2418,16 @@ msgid ""
 "might crash unexpectedly!"
 msgstr ""
 
-#: Source/Core/Core/Src/Movie.cpp:771
+#: Source/Core/Core/Src/Movie.cpp:785
 #, c-format
 msgid "Failed to read %s"
 msgstr "خواندن %s با شکست مواجه شد"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:144
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:189
 msgid "Failed to read banner.bin"
 msgstr "خواندن banner.bin با شکست مواجه شد"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:178
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:226
 msgid "Failed to read bk header"
 msgstr ""
 
@@ -2428,12 +2458,12 @@ msgstr ""
 "خواندن صحیح جدول تخصیص بلوک با شکست مواجه شد\n"
 "(0x6000-0x7FFF)"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:279
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:328
 #, c-format
 msgid "Failed to read data from file %d"
 msgstr "خواندن داده از فایل با شکست مواجه شد %d"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:367
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:420
 #, c-format
 msgid "Failed to read data from file: %s"
 msgstr ""
@@ -2454,7 +2484,7 @@ msgstr ""
 "خواندن صحیح پوشه با شکست مواجه شد\n"
 "(0x2000-0x3FFF)"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:90
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:130
 msgid "Failed to read header"
 msgstr ""
 
@@ -2466,29 +2496,34 @@ msgstr ""
 "خواندن سرخط با شکست مواجه شد\n"
 "(0x0000-0x1FFF)"
 
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:299
+#, fuzzy, c-format
+msgid "Failed to read header for file %d"
+msgstr "نوشتن سرخط برای فایل %d با شکست مواجه شد"
+
 #: Source/Core/DiscIO/Src/VolumeGC.cpp:48
 msgid "Failed to read unique ID from disc image"
 msgstr "خواندن آی دی یگانه از ایمیج دیسک با شکست مواجه شد"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:103
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:74
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "نوشتن BT.DINF به SYSCONF با شکست مواجه شد"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:221
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:269
 msgid "Failed to write bkhdr"
 msgstr "نوشتن bkhdr با شکست مواجه شد"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:157
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:428
+#, fuzzy, c-format
+msgid "Failed to write data to file: %s"
+msgstr "خواندن داده از فایل با شکست مواجه شد %d"
+
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:205
 #, c-format
 msgid "Failed to write header for %s"
 msgstr "نوشتن سرخط برای %s با شکست مواجه شد"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:251
-#, c-format
-msgid "Failed to write header for file %d"
-msgstr "نوشتن سرخط برای فایل %d با شکست مواجه شد"
-
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:296
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
 msgid "Farsi"
 msgstr "پارسی"
 
@@ -2500,18 +2535,18 @@ msgstr "سریع"
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:315
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid "Fast version of the MMU.  Does not work for every game."
 msgstr "نسخه سریع واحد مدیریت حافظه. برای همه بازی ها عمل نمی کند."
 
-#: Source/Core/Core/Src/Movie.cpp:1028
+#: Source/Core/Core/Src/Movie.cpp:1042
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
 msgstr ""
 "همگاه سازی مجدد مهلک. خروج نمایش. (خطا در ویموت پخش: %u !=%u, بایت %u.)%s"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:201
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:202
 msgid "Fifo Player"
 msgstr "پخش کننده فیفو"
 
@@ -2552,16 +2587,16 @@ msgstr "فایل به عنوان کارت حافظه شناخته نشده اس�
 msgid "File not compressed"
 msgstr "فایل فشرده نیست"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp:109
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp:142
 #, c-format
 msgid "FileIO: Unknown open mode : 0x%02x"
 msgstr "ورودی/خروجی فایل: حالت گشودن ناشناس : 0x%02x"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:541
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:549
 msgid "Filesystem"
 msgstr "فایل سیستم"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1145
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1155
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "نوع فایل 'ini' ناشناس است! باز نخواهد شد!"
 
@@ -2589,7 +2624,7 @@ msgstr "۱۶:۹ اجباری"
 msgid "Force 4:3"
 msgstr "۴:۳ اجباری"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:555
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:554
 msgid "Force Console as NTSC-J"
 msgstr "کنسول به عنوان NTSC-J اجباری"
 
@@ -2622,7 +2657,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:495
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:496
 msgid ""
 "Forces NTSC-J mode for using the Japanese ROM font.\n"
 "Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
@@ -2644,7 +2679,7 @@ msgstr ""
 msgid "Forward"
 msgstr "جلو"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:157
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:156
 msgid "Forward port (UPnP)"
 msgstr ""
 
@@ -2652,6 +2687,11 @@ msgstr ""
 #, c-format
 msgid "Found %d results for '"
 msgstr "پیدا کردن نتایج %d برای '"
+
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:65
+#, fuzzy, c-format
+msgid "Found %x save files"
+msgstr "قادر به ذخیره کردن نیست %s"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:869
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:937
@@ -2682,7 +2722,7 @@ msgstr "محدوده فریم"
 msgid "Frame S&kipping"
 msgstr "پری&دن از روی فریم"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:559
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:558
 msgid "Framelimit:"
 msgstr "حد فریم:"
 
@@ -2694,9 +2734,9 @@ msgstr "فریم ها برای ضبط شدن"
 msgid "Free Look"
 msgstr "نگاه آزاد"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:479
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:297
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:487
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
 msgid "French"
 msgstr "فرانسوی"
 
@@ -2709,7 +2749,7 @@ msgstr "تحریک"
 msgid "From"
 msgstr "از"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:463
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:465
 msgid "FullScr"
 msgstr "تمام صفحه"
 
@@ -2721,7 +2761,7 @@ msgstr "وضوح حالت تمام صفحه:"
 msgid "GCI File(*.gci)"
 msgstr "فایل جی سی آی(*.gci)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:469
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:471
 msgid "GCPad"
 msgstr "گیم پد گیم کیوب"
 
@@ -2729,27 +2769,27 @@ msgstr "گیم پد گیم کیوب"
 msgid "GX_CMD_INVL_VC"
 msgstr "GX_CMD_INVL_VC"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:452
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:460
 msgid "Game ID:"
 msgstr "آی دی بازی:"
 
-#: Source/Core/Core/Src/NetPlayClient.cpp:411
+#: Source/Core/Core/Src/NetPlayClient.cpp:418
 msgid "Game is already running!"
 msgstr "بازی قبلا اجرا شده است!"
 
-#: Source/Core/Core/Src/NetPlayClient.cpp:570
+#: Source/Core/Core/Src/NetPlayClient.cpp:592
 msgid "Game isn't running!"
 msgstr "بازی اجرا نشده است!"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:420
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:422
 msgid "Game not found!"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:389
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:397
 msgid "Game-Specific Settings"
 msgstr "تنظیمات مشخصات بازی"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:294
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:302
 msgid "GameConfig"
 msgstr "پیکربندی بازی"
 
@@ -2757,7 +2797,7 @@ msgstr "پیکربندی بازی"
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
 msgstr "فایل های ذخیره بازی گیم کیوب(*.gci;*.gcs;*.sav)"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:541
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:540
 msgid "Gamecube"
 msgstr "گیم کیوب"
 
@@ -2766,16 +2806,16 @@ msgid "Gamecube &Pad Settings"
 msgstr "تنظیمات &دسته گیم کیوب"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:205
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1059
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1064
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "کارت های حافظه گیم کیوب (*.raw.*.gcp)"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:469
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:471
 msgid "Gamecube Pad settings"
 msgstr "تنظیمات دسته گیم کیوب"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:107
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:302
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:310
 msgid "Gecko Codes"
 msgstr "کدهای گیکو"
 
@@ -2793,7 +2833,7 @@ msgstr ""
 "استفاده کنید.)"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:160
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:538
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:537
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:203
 msgid "General"
 msgstr "کلی"
@@ -2802,9 +2842,9 @@ msgstr "کلی"
 msgid "General Settings"
 msgstr "تنظیمات جامع"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:478
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:263
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:298
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:486
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:264
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
 msgid "German"
 msgstr "آلمانی"
 
@@ -2813,11 +2853,11 @@ msgstr "آلمانی"
 msgid "GetARCode: Index is greater than ar code list size %lu"
 msgstr "گرفتن کد اکشن ریپلی: فهرست بزرگتر از سایز لیست است %lu"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:467
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:469
 msgid "Graphics"
 msgstr "گرافیک"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:467
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:469
 msgid "Graphics settings"
 msgstr "تنظیمات گرافیک"
 
@@ -2842,7 +2882,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را رها کنید."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:299
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
 msgid "Greek"
 msgstr "یونانی"
 
@@ -2870,7 +2910,7 @@ msgstr "هک"
 msgid "Header checksum failed"
 msgstr "چک کردن سر خط برای یافتن خطا با شکست مواجه شد"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:300
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
 msgid "Hebrew"
 msgstr "عبری"
 
@@ -2882,7 +2922,7 @@ msgstr "ارتفاع"
 msgid "Help"
 msgstr "کمک"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:229
+#: Source/Core/DolphinWX/Src/Main.cpp:241
 msgid ""
 "Hi,\n"
 "\n"
@@ -2894,7 +2934,7 @@ msgid ""
 "Sayonara!\n"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:220
+#: Source/Core/DolphinWX/Src/Main.cpp:232
 msgid ""
 "Hi,\n"
 "\n"
@@ -2935,7 +2975,7 @@ msgid "Home"
 msgstr "خانه"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:80
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:145
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:144
 msgid "Host"
 msgstr "میزبان"
 
@@ -2944,11 +2984,11 @@ msgid "Hotkey Configuration"
 msgstr "پیکربندی شرت کات"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:288
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:581
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:580
 msgid "Hotkeys"
 msgstr "شرت کاتها"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:301
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
 msgid "Hungarian"
 msgstr "مجارستانی"
 
@@ -2956,13 +2996,13 @@ msgstr "مجارستانی"
 msgid "Hybrid Wiimote"
 msgstr "ویموت مخلوط"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:519
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:644
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 "IOCTL_ES_GETVIEWS: آزمایش برای گرفتن داده از یک بلیط ناشناخته: %08x/%08x"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:773
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:905
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload an IOS or a title that is not "
@@ -2971,11 +3011,11 @@ msgid ""
 " Dolphin will likely hang now."
 msgstr ""
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:300
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:413
 msgid "IOCTL_ES_READCONTENT - bad destination"
 msgstr "IOCTL_ES_READCONTENT - مقصد ناصحیح"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:736
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:735
 msgid "IPL Settings"
 msgstr "تنظیمات آی پی ال"
 
@@ -2991,11 +3031,11 @@ msgstr "اشاره گر فروسرخ"
 msgid "IR Sensitivity:"
 msgstr "میزان حساسیت فروسرخ"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:512
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:520
 msgid "ISO Details"
 msgstr "جزئیات آیزو"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:818
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:823
 msgid "ISO Directories"
 msgstr "پوشه های آیزو"
 
@@ -3007,7 +3047,7 @@ msgstr "ایتالیا"
 msgid "Icon"
 msgstr "تندیس"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:332
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:340
 msgid ""
 "If checked, the bounding box registers will be updated. Used by the Paper "
 "Mario games."
@@ -3051,9 +3091,15 @@ msgstr ""
 msgid "Import Save"
 msgstr "وارد کردن ذخیره"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:48
-msgid "Import failed, try again?"
-msgstr "وارد کردن با شکست مواجه شد، سعی دوباره؟"
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:193
+#, fuzzy
+msgid "Import Wii Save"
+msgstr "وارد کردن ذخیره"
+
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:93
+#, fuzzy
+msgid "Import failed"
+msgstr "صادر کردن با شکست مواجه شد"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid ""
@@ -3075,12 +3121,8 @@ msgstr ""
 "پسوند فایل وارد شده اس ای وی می باشد\n"
 "اما دارای سرخط صحیح نمی باشد"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:350
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:358
 msgid "In Game"
-msgstr "در بازی"
-
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:620
-msgid "In-Game"
 msgstr "در بازی"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
@@ -3089,7 +3131,7 @@ msgid "Increase Frame limit"
 msgstr "حد فریم:"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:34
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:305
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
 msgid "Info"
 msgstr "مشخصات"
 
@@ -3109,7 +3151,7 @@ msgstr "درج"
 msgid "Insert Encrypted or Decrypted code here..."
 msgstr "درج کد رمز شده و یا کشف شده..."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:770
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:775
 msgid "Insert SD Card"
 msgstr "درج کارت اس دی"
 
@@ -3117,7 +3159,7 @@ msgstr "درج کارت اس دی"
 msgid "Insert name here.."
 msgstr "درج اسم..."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:198
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:199
 msgid "Install WAD"
 msgstr "نصب واد"
 
@@ -3125,30 +3167,31 @@ msgstr "نصب واد"
 msgid "Install to Wii Menu"
 msgstr "نصب به فهرست انتخاب وی"
 
-#: Source/Core/Core/Src/x64MemTools.cpp:246
+#: Source/Core/Core/Src/x64MemTools.cpp:288
+#: Source/Core/Core/Src/x64MemTools.cpp:357
 msgid ""
 "InstallExceptionHandler called, but this platform does not yet support it."
 msgstr ""
 "نصب دستگذار استثناء فراخوانده شد، اما این پلتفورم هنوز از این امکان پشتیبانی "
 "نمی کند."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1371
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1382
 msgid "Installing WAD..."
 msgstr "در حال نصب واد..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:920
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:930
 msgid "Integrity Check Error"
 msgstr "خطای بررسی درست بودن"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:926
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:936
 msgid "Integrity check completed"
 msgstr "بررسی درست بودن به پایان رسید"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:925
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:935
 msgid "Integrity check completed. No errors have been found."
 msgstr "بررسی درست بودن به پایان رسید. خطایی پیدا نشد."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:917
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:927
 #, c-format
 msgid ""
 "Integrity check for partition %d failed. Your dump is most likely corrupted "
@@ -3157,11 +3200,11 @@ msgstr ""
 "بررسی درست بودن پارتیشن %d با شکست مواجه شد. نسخه برداری شما به احتمال زیاد "
 "خراب یا نادرست وصله خورده است."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:539
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:538
 msgid "Interface"
 msgstr "واسط گرافیک"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:634
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:633
 msgid "Interface Settings"
 msgstr "تنظیمات واسط گرافیک"
 
@@ -3186,15 +3229,15 @@ msgstr "خطای داخلی LZO - lzo_init() با شکست مواجه شد"
 msgid "Internal Resolution:"
 msgstr "وضوح داخلی:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:42
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:43
 msgid "Interpreter (VERY slow)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:349
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:357
 msgid "Intro"
 msgstr "صفحه نخست"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:187
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:235
 #, c-format
 msgid "Invalid Size(%x) or Magic word (%x)"
 msgstr "سایز نا معتبر (%x) یا کلمه جادو (%x)"
@@ -3227,7 +3270,7 @@ msgstr ""
 "%s\n"
 "شاید لازم باشد شما مجدد از این بازی نسخه برداری کنید."
 
-#: Source/Core/Core/Src/Movie.cpp:714
+#: Source/Core/Core/Src/Movie.cpp:728
 msgid "Invalid recording file"
 msgstr "فایل ضبط نامعتبر"
 
@@ -3243,13 +3286,13 @@ msgstr "رشته جستجوی نامعتبر (قادر به تبدیل به عد
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "رشته جستجوی نامعتبر (فقط رشته های با طول زوج پشتیبانی می شود)"
 
-#: Source/Core/Core/Src/Core.cpp:511
+#: Source/Core/Core/Src/Core.cpp:530
 msgid "Invalid state"
 msgstr "وضعیت نامعتبر"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:481
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:302
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:489
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:267
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:303
 msgid "Italian"
 msgstr "ایتالیایی"
 
@@ -3257,16 +3300,16 @@ msgstr "ایتالیایی"
 msgid "JAPAN"
 msgstr "ژاپن"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:46
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:47
 msgid "JIT Recompiler (recommended)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:47
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:48
 msgid "JITIL experimental recompiler"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:281
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:303
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:282
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:304
 msgid "Japanese"
 msgstr "ژاپنی"
 
@@ -3292,8 +3335,8 @@ msgstr "بر راس نگه داشتن پنجره"
 msgid "Key"
 msgstr "کلید"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:284
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:304
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:285
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
 msgid "Korean"
 msgstr "کره ای"
 
@@ -3311,16 +3354,16 @@ msgstr "دکمه ال"
 msgid "L-Analog"
 msgstr "ال آنالوگ"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:592
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:591
 msgid "Language:"
 msgstr "زبان:"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:416
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:418
 #, c-format
 msgid "Last %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:684
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:683
 msgid "Latency:"
 msgstr "زمان بيکارى:"
 
@@ -3363,7 +3406,7 @@ msgstr ""
 msgid "Less Than"
 msgstr "کمتر از"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:552
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:551
 msgid "Limit by FPS"
 msgstr "محدود کردن توسط تعداد فریم ها بر ثانیه"
 
@@ -3462,15 +3505,15 @@ msgstr "بارگذاری وضعیت - شکاف ۸"
 msgid "Load State Slot 9"
 msgstr "بارگذاری وضعیت - شکاف ۱"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:420
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:422
 msgid "Load State..."
 msgstr "بارگذاری وضعیت..."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1406
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1417
 msgid "Load Wii System Menu"
 msgstr "بارگذاری منوی سیستم وی"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1401
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1412
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "بارگذاری منوی سیستم وی %d%c"
@@ -3488,10 +3531,6 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:37
 msgid "Load preset values from hack patterns available."
 msgstr "بارگذاری مقدار های از پیش تنظیم شده از الگوهای هک موجود است."
-
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:618
-msgid "Local"
-msgstr "محلی"
 
 #: Source/Core/DolphinWX/Src/LogWindow.h:38
 msgid "Log"
@@ -3526,11 +3565,11 @@ msgid "Logger Outputs"
 msgstr "خروجی های واقعه نگار"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:109
-#: Source/Core/DolphinWX/Src/Frame.cpp:318
+#: Source/Core/DolphinWX/Src/Frame.cpp:320
 msgid "Logging"
 msgstr "واقعه نگاری"
 
-#: Source/Core/Core/Src/NetPlayClient.cpp:339
+#: Source/Core/Core/Src/NetPlayClient.cpp:323
 msgid "Lost connection to server!"
 msgstr "ارتباط با سرور قطع شد!"
 
@@ -3538,7 +3577,7 @@ msgstr "ارتباط با سرور قطع شد!"
 msgid "M Button"
 msgstr "دکمه ام"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:112
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:155
 #, c-format
 msgid ""
 "MD5 mismatch\n"
@@ -3547,7 +3586,7 @@ msgstr ""
 "چک سام MD5 ناهمسان است\n"
 " %016llx%016llx != %016llx%016llx"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:314
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:322
 msgid "MMU Speed Hack"
 msgstr "هک کردن سرعت واحد مدیریت حافظه"
 
@@ -3561,11 +3600,11 @@ msgstr "فایل های گیم شارک مد کتذ (*.gcs)"
 msgid "Main Stick"
 msgstr "استیک اصلی"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:460
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:468
 msgid "Maker ID:"
 msgstr "آی دی سازنده"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:487
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:495
 msgid "Maker:"
 msgstr "سازنده"
 
@@ -3596,7 +3635,7 @@ msgid "Memory Byte"
 msgstr "بایت حافظه"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:212
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:95
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:96
 msgid "Memory Card"
 msgstr "کارت حافظه"
 
@@ -3608,7 +3647,7 @@ msgstr ""
 "اخطار: قبل از استفاده از کارت حافظه بک آپ بگیرید، شاید درست شود اما اطلاعات "
 "از بین خواهد رفت!"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:368
+#: Source/Core/Core/Src/CoreParameter.cpp:376
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -3633,7 +3672,7 @@ msgstr "سایز کارت حافظه با سرخط تطابق ندارد"
 msgid "Menu"
 msgstr "فهرست انتخاب"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:96
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:97
 msgid "Mic"
 msgstr "میکروفن"
 
@@ -3646,7 +3685,7 @@ msgstr "حداقل"
 msgid "Misc"
 msgstr "متفرقه"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:783
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:788
 msgid "Misc Settings"
 msgstr "تنظیمات متفرقه"
 
@@ -3795,7 +3834,7 @@ msgstr "تب ان پی"
 msgid "NP Up"
 msgstr "بالا ان پی"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:448
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:456
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:46
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:37
 msgid "Name:"
@@ -3842,7 +3881,7 @@ msgstr "هیچ آیزو یا وادی پیدا نشد"
 msgid "No audio output"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:501
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:552
 #, c-format
 msgid "No banner file found for title  %s"
 msgstr "فایل نشان برای عنوان %s پیدا نشد"
@@ -3868,7 +3907,7 @@ msgstr "بدون مقادیر اطلاعاتی فهرست پوشه آزاد"
 msgid "No recorded file"
 msgstr "بدون فایل ضبط شده"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:494
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:545
 #, c-format
 msgid "No save folder found for title %s"
 msgstr "پوشه فایل ذخیره برای عنوان %s پیدا نشد"
@@ -3877,11 +3916,11 @@ msgstr "پوشه فایل ذخیره برای عنوان %s پیدا نشد"
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:118
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:23
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:64
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:626
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:614
 msgid "None"
 msgstr "هیچ"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:305
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:306
 msgid "Norwegian Bokmaal"
 msgstr "بوکمال نروژی"
 
@@ -3889,17 +3928,17 @@ msgstr "بوکمال نروژی"
 msgid "Not Equal"
 msgstr "برابر نیست"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:347
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:355
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:797
 msgid "Not Set"
 msgstr "ست نشده است"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:101
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:141
 #, c-format
 msgid "Not a Wii save or read failure for file header size %x"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/Main.cpp:657
+#: Source/Core/DolphinWX/Src/Main.cpp:669
 msgid "Not connected"
 msgstr "متصل نشده است"
 
@@ -3945,7 +3984,7 @@ msgstr "شیی"
 msgid "Object Range"
 msgstr "محدوده شیی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:245
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:246
 msgid "Off"
 msgstr "خاموش"
 
@@ -3953,16 +3992,20 @@ msgstr "خاموش"
 msgid "Offset:"
 msgstr "افست:"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:589
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:588
 msgid "On-Screen Display Messages"
 msgstr "پیام های روی صفحه نمایش"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:300
+msgid "Online &Documentation"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:423
 #, c-format
 msgid "Only %d blocks available"
 msgstr "فقط بلوک های %d موجود است"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:457
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:459
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:166
 msgid "Open"
 msgstr "گشودن"
@@ -3975,7 +4018,7 @@ msgstr "باز کردن پوشه &شامل"
 msgid "Open Wii &save folder"
 msgstr "باز کردن پوشه &ذخیره وی"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:457
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:459
 msgid "Open file..."
 msgstr "گشودن فایل..."
 
@@ -4000,6 +4043,16 @@ msgstr "کدبرداری بافت اشیاء توسط OpenCL"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:503
 msgid "OpenMP Texture Decoder"
 msgstr "کدبرداری بافت اشیاء توسط OpenMP"
+
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:291
+msgid ""
+"Opens the default (read-only) configuration for this game in an external "
+"text editor."
+msgstr ""
+
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:295
+msgid "Opens the user specified overrides in an external text editor."
+msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:308
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:81
@@ -4026,7 +4079,7 @@ msgstr ""
 msgid "Other"
 msgstr "غیره"
 
-#: Source/Core/Core/Src/NetPlayClient.cpp:275
+#: Source/Core/Core/Src/NetPlayClient.cpp:259
 msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "manually stop the game."
@@ -4038,7 +4091,7 @@ msgstr ""
 msgid "Output"
 msgstr "خروجی"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:348
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:350
 msgid "P&lay Recording..."
 msgstr "ض&بط کردن بازی..."
 
@@ -4046,7 +4099,7 @@ msgstr "ض&بط کردن بازی..."
 msgid "Pad"
 msgstr "گیم پد"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:628
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:621
 msgid "Pad "
 msgstr "گیم پد"
 
@@ -4075,21 +4128,21 @@ msgstr "پارامترها"
 msgid "Partition %i"
 msgstr "پارتیشن %i"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:842
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:852
 #, c-format
 msgid "Partition doesn't exist: %lu"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:297
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:305
 msgid "Patches"
 msgstr "وصله ها"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:543
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:542
 msgid "Paths"
 msgstr "مسیرها"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1632
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1633
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1643
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1644
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:38
 msgid "Pause"
 msgstr "مکث"
@@ -4102,7 +4155,7 @@ msgstr "مکث در پایان فیلم"
 msgid "Per-Pixel Lighting"
 msgstr "نورپردازی به ازای هر پیکسل"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:352
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:360
 msgid "Perfect"
 msgstr "کامل"
 
@@ -4112,9 +4165,9 @@ msgid "Perspective %d"
 msgstr "چشم انداز %d"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:152
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:461
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1641
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1642
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:463
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1652
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1653
 msgid "Play"
 msgstr "شروع بازی"
 
@@ -4126,7 +4179,7 @@ msgstr "شروع ضبط"
 msgid "Play/Pause"
 msgstr "شروع بازی/مکث"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:351
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:359
 msgid "Playable"
 msgstr "قابل بازی"
 
@@ -4134,11 +4187,11 @@ msgstr "قابل بازی"
 msgid "Playback Options"
 msgstr "گزینه های بازنواخت"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:323
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:322
 msgid "Players"
 msgstr "بازی کنان"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1036
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1040
 msgid "Please confirm..."
 msgstr "لطفا تایید کنید..."
 
@@ -4150,36 +4203,36 @@ msgstr "لطفا قبل از ذخیره کردن یک چشم انداز بساز
 msgid "Plus-Minus"
 msgstr "مینوس پلاس"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:306
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:307
 msgid "Polish"
 msgstr "لهستانی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:720
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:719
 msgid "Port 1"
 msgstr "درگاه ۱"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:721
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:720
 msgid "Port 2"
 msgstr "درگاه ۲"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:722
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:721
 msgid "Port 3"
 msgstr "درگاه ۳"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:723
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:722
 msgid "Port 4"
 msgstr "درگاه ۴"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:92
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:137
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:136
 msgid "Port :"
 msgstr "درگاه :"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:307
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:308
 msgid "Portuguese"
 msgstr "پرتقالی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:308
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:309
 msgid "Portuguese (Brazilian)"
 msgstr "پرتقالی (برزیلی)"
 
@@ -4187,17 +4240,17 @@ msgstr "پرتقالی (برزیلی)"
 msgid "Post-Processing Effect:"
 msgstr "افکت ها:"
 
-#: Source/Core/Core/Src/Movie.cpp:918
+#: Source/Core/Core/Src/Movie.cpp:932
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "پایان نابهنگام فیلم در کنترل کننده پخش. %u + 8 > %u"
 
-#: Source/Core/Core/Src/Movie.cpp:1037
+#: Source/Core/Core/Src/Movie.cpp:1051
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "پایان نابهنگام فیلم در ویموت پخش. %u + %d > %u"
 
-#: Source/Core/Core/Src/Movie.cpp:1014
+#: Source/Core/Core/Src/Movie.cpp:1028
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "پایان نابهنگام فیلم در ویموت پخش. %u > %u"
@@ -4230,7 +4283,7 @@ msgstr "پروفایل"
 msgid "Properties"
 msgstr "خواص"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:286
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:287
 msgid "Purge Cache"
 msgstr "پاکسازی حافظه ميانى"
 
@@ -4238,8 +4291,8 @@ msgstr "پاکسازی حافظه ميانى"
 msgid "Question"
 msgstr "سوال"
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:170
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:338
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:169
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:337
 msgid "Quit"
 msgstr "خارج شدن"
 
@@ -4300,6 +4353,11 @@ msgstr "ویموت های واقعی"
 msgid "Record"
 msgstr "ضبط"
 
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:357
+#, fuzzy
+msgid "Record input"
+msgstr "گزینه های ضبط"
+
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:161
 msgid "Recording Info"
 msgstr "اطلاعات ضبط"
@@ -4336,7 +4394,7 @@ msgstr ""
 "اگر در این مورد اطمینان ندارید، \"هیچ\" را انتخاب کنید."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:77
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:458
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:460
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:958
 msgid "Refresh"
 msgstr "به روز کردن"
@@ -4345,14 +4403,14 @@ msgstr "به روز کردن"
 msgid "Refresh List"
 msgstr "به روز کردن لیست"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:458
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:460
 msgid "Refresh game list"
 msgstr "به روز کردن لیست بازی"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:409
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:431
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:417
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:439
 #: Source/Core/DolphinWX/Src/PatchAddEdit.cpp:64
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:800
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:805
 msgid "Remove"
 msgstr "پاک کردن"
 
@@ -4383,7 +4441,7 @@ msgstr "نتایج"
 msgid "Return"
 msgstr "برگشت"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:464
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:472
 msgid "Revision:"
 msgstr ""
 
@@ -4401,13 +4459,12 @@ msgstr "استیک راست"
 msgid "Rumble"
 msgstr "شوک"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:505
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:506
 msgid ""
-"Run DSP HLE and LLE on a dedicated thread (not recommended: might cause "
-"audio glitches with HLE and freezes with LLE)."
+"Run DSP LLE on a dedicated thread (not recommended: might cause freezes)."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:309
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
 msgid "Russian"
 msgstr "روسی"
 
@@ -4420,7 +4477,7 @@ msgid "Safe"
 msgstr "بی خطر"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:183
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:483
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:485
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:980
 msgid "Save"
 msgstr "ذخیره"
@@ -4481,28 +4538,28 @@ msgstr "ذخیره وضعیت - شکاف ۸"
 msgid "Save State Slot 9"
 msgstr "ذخیره وضعیت - شکاف ۱"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:405
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:407
 msgid "Save State..."
 msgstr "ذخیره وضعیت..."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:592
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:602
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:612
 msgid "Save as..."
 msgstr "ذخیره بعنوان..."
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1207
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1206
 msgid "Save compressed GCM/ISO"
 msgstr "ذخیره جی سی ام/آیزو فشرده شده"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:483
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:485
 msgid "Save current perspective"
 msgstr "دخیره چشم انداز فعلی"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1196
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1195
 msgid "Save decompressed GCM/ISO"
 msgstr "ذخیره جی سی ام/آیزو ناهمفشرده شده"
 
-#: Source/Core/Core/Src/Movie.cpp:780
+#: Source/Core/Core/Src/Movie.cpp:794
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "ذخیره وضعیت فیلم %s خراب است، ضبط فیلم میایستد..."
@@ -4524,7 +4581,7 @@ msgstr "پویش برای فایل های آیزو"
 msgid "Scanning..."
 msgstr "در حال پویش..."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:464
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:466
 msgid "ScrShot"
 msgstr "عکس فوری"
 
@@ -4540,7 +4597,7 @@ msgstr "جستجو"
 msgid "Search Filter"
 msgstr "فیلتر جستجو"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:798
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:803
 msgid "Search Subfolders"
 msgstr "جستجوی پوشه های فرعی"
 
@@ -4563,12 +4620,12 @@ msgstr "بخش %s در SYSCONF پیدا نشد"
 msgid "Select"
 msgstr "انتخاب"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:723
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1133
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:725
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1138
 msgid "Select The Recording File"
 msgstr "انتخاب فایل ضبط شده"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1359
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1370
 msgid "Select a Wii WAD file to install"
 msgstr "انتخاب فایل وی واد برای نصب"
 
@@ -4590,19 +4647,19 @@ msgstr "یک فایل ذخیره برای وارد کردن انتخاب کنی�
 msgid "Select floating windows"
 msgstr "انتخاب پنجره های شناور"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:616
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:618
 msgid "Select the file to load"
 msgstr "انتخاب فایل برای بارگذاری"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1315
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1328
 msgid "Select the save file"
 msgstr "انتخاب فایل ذخیره"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1462
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
 msgid "Select the state to load"
 msgstr "انتخاب وضعیت برای بارگذاری"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1476
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1487
 msgid "Select the state to save"
 msgstr "انتخاب وضعیت برای ذخیره"
 
@@ -4670,7 +4727,7 @@ msgid ""
 "If unsure, use OpenGL."
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:310
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:309
 msgid "Send"
 msgstr "فرستادن"
 
@@ -4682,11 +4739,11 @@ msgstr "موقعیت سنسور بار:"
 msgid "Separator"
 msgstr "جدا کننده"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
 msgid "Serbian"
 msgstr "صربستانی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:509
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:510
 msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use"
 msgstr ""
@@ -4709,7 +4766,7 @@ msgstr ""
 "ست کردن کد اکشن ریپلی_فعال است: فهرست بزرگتر از سایز لیست کد اکشن ریپلی است "
 "%lu"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:522
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:521
 msgid ""
 "Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL "
 "backend only."
@@ -4717,19 +4774,20 @@ msgstr ""
 "ست کردن زمان بيکارى (بر حسب میلی ثانیه). مقادیر بالاتر این زمان می تواند "
 "صدای ترق و تروق را کاهش دهد. فقط پشتوانه اپن ای ال (OpenAL)."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:341
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:349
 msgid "Settings..."
 msgstr "تنظیمات..."
 
-#: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:209
-msgid "SetupWiiMem: Cant find setting file"
+#: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:252
+#, fuzzy
+msgid "SetupWiiMem: Cant create setting file"
 msgstr "برپاکردن حافظه وی: ناتوان در پیدا کردن فایل تنظیم"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
 msgstr "لرزش"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:485
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:493
 msgid "Short Name:"
 msgstr "اسم کوتاه:"
 
@@ -4737,23 +4795,28 @@ msgstr "اسم کوتاه:"
 msgid "Shoulder Buttons"
 msgstr "دکمه های شانه"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:220
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:221
 msgid "Show &Console"
 msgstr "نمایش &میز فرمان"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:218
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:219
 msgid "Show &Log"
 msgstr "نمایش &ثبت وقایع"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:215
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:216
 msgid "Show &Statusbar"
 msgstr "نمایش نوار &وضعیت"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:213
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:214
 msgid "Show &Toolbar"
 msgstr "نمایش نوار &ابزار"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:284
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:290
+#, fuzzy
+msgid "Show Defaults"
+msgstr "پیش فرز"
+
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:285
 msgid "Show Drives"
 msgstr "نمایش درایوها"
 
@@ -4765,11 +4828,11 @@ msgstr "نمایش مناطق کپی ای اف بی"
 msgid "Show FPS"
 msgstr "نمایش فریم بر ثانیه"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:274
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:275
 msgid "Show France"
 msgstr "نمایش فرانسه"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:260
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:261
 msgid "Show GameCube"
 msgstr "نمایش گیم کیوب"
 
@@ -4777,35 +4840,35 @@ msgstr "نمایش گیم کیوب"
 msgid "Show Input Display"
 msgstr "نمایش ورودی تصویر"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:276
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:277
 msgid "Show Italy"
 msgstr "نمایش ایتالیا"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:267
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:268
 msgid "Show JAP"
 msgstr "نمایش ژاپن"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:278
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:279
 msgid "Show Korea"
 msgstr "نمایش کره"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:476
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:484
 msgid "Show Language:"
 msgstr "نمایش زبان:"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:219
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:220
 msgid "Show Log &Configuration"
 msgstr "نمایش &پیکربندی ثبت وقایع"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:269
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:270
 msgid "Show PAL"
 msgstr "نمایش پال"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:257
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:258
 msgid "Show Platforms"
 msgstr "نمایش پایگاه ها"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:266
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:267
 msgid "Show Regions"
 msgstr "نمایش مناطق"
 
@@ -4813,27 +4876,27 @@ msgstr "نمایش مناطق"
 msgid "Show Statistics"
 msgstr "نمایش آمار"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:280
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:281
 msgid "Show Taiwan"
 msgstr "نمایش تایوان"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:271
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:272
 msgid "Show USA"
 msgstr "نمایش ایالات متحده آمریکا"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:262
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:263
 msgid "Show Wad"
 msgstr "نمایش واد"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:258
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:259
 msgid "Show Wii"
 msgstr "نمایش وی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:498
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:499
 msgid "Show a confirmation box before stopping a game."
 msgstr "نمایش پنجره تایید قبل از متوقف کردن بازی."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:499
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:500
 msgid ""
 "Show a message box when a potentially serious error has occurred.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may also "
@@ -4852,7 +4915,7 @@ msgstr "نمایش بلوک اول"
 msgid "Show lag counter"
 msgstr "نمایش شمارنده تاخیر"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:500
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:501
 msgid ""
 "Show messages on the emulation screen area.\n"
 "These messages include memory card writes, video backend and CPU "
@@ -4889,7 +4952,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:282
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:283
 msgid "Show unknown"
 msgstr "نمایش ناشناخته"
 
@@ -4907,7 +4970,7 @@ msgstr ""
 msgid "Sideways Wiimote"
 msgstr "ویموت فرعی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:282
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:283
 msgid "Simplified Chinese"
 msgstr "چینی ساده شده"
 
@@ -4915,11 +4978,11 @@ msgstr "چینی ساده شده"
 msgid "Size"
 msgstr "سایز"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:703
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:702
 msgid "Skip BIOS"
 msgstr "جهش از روی بایوس"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:316
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:324
 msgid "Skip DCBZ clearing"
 msgstr "از قلم انداختن پاکسازی DCBZ"
 
@@ -4944,17 +5007,17 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:387
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:401
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:389
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:403
 #, c-format
 msgid "Slot %i"
 msgstr "شکاف %i"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:707
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:706
 msgid "Slot A"
 msgstr "شکاف ای"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:708
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:707
 msgid "Slot B"
 msgstr "شکاف بی"
 
@@ -4962,7 +5025,7 @@ msgstr "شکاف بی"
 msgid "Snapshot"
 msgstr "عکس فوری"
 
-#: Source/Plugins/Plugin_VideoSoftware/Src/SWmain.cpp:46
+#: Source/Plugins/Plugin_VideoSoftware/Src/SWmain.cpp:45
 msgid "Software Renderer"
 msgstr "ارائه دهنده نرم افزاری"
 
@@ -4979,7 +5042,7 @@ msgstr ""
 "آیا شما واقعا قصد فعال کردن این گزینه را دارید؟ اگر در این مورد اطمینان "
 "ندارید، 'نه' را انتخاب کنید."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:671
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:670
 msgid "Sound Settings"
 msgstr "تنظیمات صدا"
 
@@ -4997,9 +5060,9 @@ msgstr "ایجاد حافظه میانجی صدا با شکست مواجه شد:
 msgid "Space"
 msgstr "فضا"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:480
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:488
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:266
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:312
 msgid "Spanish"
 msgstr "اسپانیایی"
 
@@ -5026,37 +5089,29 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه \"۶۴۰x۵۲۸\" را انتخاب کنید."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:322
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:330
 msgid "Speed up Disc Transfer Rate"
 msgstr "بالا بردن نرخ نقل و انتقال دادهای دیسک"
-
-#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:89
-msgid ""
-"Speed up vertex streaming by using unsafe OpenGL code. Enabling this option "
-"might cause heavy glitches or even crash the emulator.\n"
-"\n"
-"If unsure, leave this unchecked."
-msgstr ""
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:231
 msgid "Square Stick"
 msgstr "استیک مربع"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:88
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:89
 msgid "Standard Controller"
 msgstr "کنترولر استاندارد"
 
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:37
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:25
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:344
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:343
 msgid "Start"
 msgstr "شروع"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:196
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:197
 msgid "Start &NetPlay"
 msgstr "شروع &نت پلی"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:345
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:347
 msgid "Start Re&cording"
 msgstr "شروع &ضبط"
 
@@ -5072,7 +5127,7 @@ msgstr "وضعیت"
 msgid "State Saves"
 msgstr "ذخیره های وضعیت"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:89
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:90
 msgid "Steering Wheel"
 msgstr "چرخ فرمان"
 
@@ -5081,7 +5136,7 @@ msgid "Stick"
 msgstr "استیک"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:418
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:462
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:464
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:171
 msgid "Stop"
 msgstr "توقف"
@@ -5112,16 +5167,16 @@ msgstr "مرتعش کردن"
 msgid "Subtract"
 msgstr "کاستن"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:67
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:109
 #, c-format
 msgid "Successfully exported file to %s"
 msgstr "صادر کردن فایل به %s با موفقیت انجام شد"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:43
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:89
 msgid "Successfully imported save files"
 msgstr "فایل های ذخیره با موفقیت وارد شدند"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:312
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:313
 msgid "Swedish"
 msgstr ""
 
@@ -5129,18 +5184,18 @@ msgstr ""
 msgid "Swing"
 msgstr "نوسان"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:320
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
 msgid "Synchronize GPU thread"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:321
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:329
 msgid ""
 "Synchronizes the GPU and CPU threads to help prevent random freezes in Dual "
 "Core mode. (ON = Compatible, OFF = Fast)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:732
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:780
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:731
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:785
 msgid "System Language:"
 msgstr "زبان سیستم:"
 
@@ -5169,13 +5224,13 @@ msgstr "جدول چپ"
 msgid "Table Right"
 msgstr "جدول راست"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:361
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:464
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:363
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:466
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:181
 msgid "Take Screenshot"
 msgstr "گرفتن عکس فوری"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:91
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:92
 msgid "TaruKonga (Bongos)"
 msgstr "تارو کونگا (بنگوس)"
 
@@ -5195,7 +5250,7 @@ msgstr "حافظه ميانى بافت اشیاء"
 msgid "Texture Format Overlay"
 msgstr "قالب بندی بافت اشیاء"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:220
+#: Source/Core/Core/Src/CoreParameter.cpp:228
 msgid "The WAD has been installed successfully"
 msgstr "واد با موفقیت نصب شد"
 
@@ -5207,13 +5262,13 @@ msgstr "آدرس بی اعتبار است"
 msgid "The checksum was successfully fixed"
 msgstr "چک سام با موفقیت درست شد"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1235
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:1240
 msgid "The chosen directory is already in the list"
 msgstr "پوشه برگزیده قبلا در لیست بوده است"
 
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1121
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1149
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1220
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1120
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1148
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1219
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -5269,30 +5324,30 @@ msgstr ""
 msgid "The save you are trying to copy has an invalid file size"
 msgstr "سایز فایل ذخیره ای که سعی در کپی کردن آن دارید بی اعتبار است"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:419
+#: Source/Core/DolphinWX/Src/Main.cpp:431
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
 msgstr ""
 "زبان انتخاب شده توسط سیستم شما پشتیبانی نمی شود. برگشت به زبان پیش فرض سیستم."
 
-#: Source/Core/Core/Src/NetPlayClient.cpp:107
+#: Source/Core/Core/Src/NetPlayClient.cpp:93
 msgid "The server and client's NetPlay versions are incompatible!"
 msgstr "نسخه سرور و نت پلی مشتری نا سازگار است!"
 
-#: Source/Core/Core/Src/NetPlayClient.cpp:104
+#: Source/Core/Core/Src/NetPlayClient.cpp:90
 msgid "The server is full!"
 msgstr "سرور پر شده است!"
 
-#: Source/Core/Core/Src/NetPlayClient.cpp:110
+#: Source/Core/Core/Src/NetPlayClient.cpp:96
 msgid "The server responded: the game is currently running!"
 msgstr "سرور پاسخ داد: بازی در حال اجراست!"
 
-#: Source/Core/Core/Src/NetPlayClient.cpp:113
+#: Source/Core/Core/Src/NetPlayClient.cpp:99
 msgid "The server sent an unknown error message!"
 msgstr "سرور یک پیغام خطای ناشناخته فرستاد!"
 
-#: Source/Core/Core/Src/CoreParameter.cpp:113
+#: Source/Core/Core/Src/CoreParameter.cpp:121
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "فایل مشخص شده \"%s\" وجود ندارد"
@@ -5301,11 +5356,11 @@ msgstr "فایل مشخص شده \"%s\" وجود ندارد"
 msgid "The value is invalid"
 msgstr "مقدار بی اعتبار است"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:630
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:629
 msgid "Theme:"
 msgstr "تم:"
 
-#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:463
+#: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:588
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -5313,7 +5368,7 @@ msgstr ""
 "باید بلیطی برای ۰۰۰۰۰۰۰۱/۰۰۰۰۰۰۰۲ وجود داشته باشد. نسخه برداری نند شما "
 "احتمالا ناقص است."
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:308
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:316
 msgid ""
 "These settings override core Dolphin settings.\n"
 "Undetermined means the game uses Dolphin's setting."
@@ -5329,7 +5384,7 @@ msgstr ""
 "این شبیه ساز اکشن ریپلی از کدهایی که توسط خود اکشن ریپلی پیراسته شده باشد "
 "پشتیبانی نمی کند."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:512
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:513
 msgid "This could cause slow down in Wii Menu and some games."
 msgstr "این مورد میتواند سبب کند شدن منوی وی و تعدادی از بازی ها شود."
 
@@ -5353,7 +5408,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:492
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:493
 #, fuzzy
 msgid ""
 "This limits the game speed to the specified number of frames per second "
@@ -5365,7 +5420,7 @@ msgstr ""
 "استفاده کنید از دریچه صدا با استفاده از پردازشگر صدای دلفین (شاید صدا های "
 "تیک را درست کند اما همچنین می تواند موجب نویز ثابت بسته به بازی شود)."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:491
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:492
 msgid ""
 "This splits the Video and CPU threads, so they can be run on separate "
 "cores.\n"
@@ -5419,7 +5474,7 @@ msgstr "کپی های ای اف بی"
 msgid "Toggle Fog"
 msgstr "تبدیل انواع ثبت وقایع"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:463
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:465
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:180
 msgid "Toggle Fullscreen"
 msgstr "تبدیل حالت تمام صفحه"
@@ -5429,11 +5484,11 @@ msgid "Toggle IR"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:104
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:273
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
 msgid "Top"
 msgstr "بالا"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:283
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:284
 msgid "Traditional Chinese"
 msgstr "چینی سنتی"
 
@@ -5457,7 +5512,7 @@ msgstr ""
 "تلاش برای خواندن از SYSCONF نامعتبر\n"
 "آی دی های بلوتوث ویموت موجود نیست"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:313
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:314
 msgid "Turkish"
 msgstr "ترکی"
 
@@ -5510,7 +5565,7 @@ msgstr ""
 "معتبر. وارسی کنید که کد را درست وارد کرده باشید.\n"
 "آیا مایل هستید که این خط را نادیده بگیرید و به تجزیه ادامه دهید؟"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:428
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:430
 #, c-format
 msgid "Undefined %i"
 msgstr "تعریف نشده %i"
@@ -5547,12 +5602,12 @@ msgstr ""
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "نوع ورودی ناشناخته %i در SYSCONF (%s@%x)!"
 
-#: Source/Core/Core/Src/NetPlayClient.cpp:312
+#: Source/Core/Core/Src/NetPlayClient.cpp:296
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "پیام ناشناخته با آی دی %d دریافت شد"
 
-#: Source/Core/Core/Src/NetPlayServer.cpp:478
+#: Source/Core/Core/Src/NetPlayServer.cpp:394
 #, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr "پیام ناشناخته با آی دی:%d از بازیکن:%d بیرون انداختن بازیکن!"
@@ -5571,7 +5626,7 @@ msgstr "به روز کردن"
 msgid "Upright Wiimote"
 msgstr "ویموت عمودی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:765
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:770
 msgid "Use EuRGB60 Mode (PAL60)"
 msgstr "استفاده از حالت پال ۶۰ هرتز (PAL60)"
 
@@ -5583,7 +5638,7 @@ msgstr "استفاده از حالت تمام صفحه"
 msgid "Use Hex"
 msgstr "استفاده از حالت  شانزده شانزدهی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:587
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:586
 msgid "Use Panic Handlers"
 msgstr "استفاده از دستگذار پنیک"
 
@@ -5608,6 +5663,15 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
+#: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:89
+msgid ""
+"Uses unsafe operations to speed up vertex streaming in OpenGL. There are no "
+"known problems on supported GPUs, but it will cause severe stability and "
+"graphical issues otherwise.\n"
+"\n"
+"If unsure, leave this unchecked."
+msgstr ""
+
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:126
 msgid ""
 "Usually if shader compilation fails, an error message is displayed.\n"
@@ -5630,7 +5694,7 @@ msgstr "کاربردی"
 msgid "V-Sync"
 msgstr "هماهنگ کردن فرکانس عمودی بازی با صفحه نمایش"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:318
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
 #, fuzzy
 msgid "VBeam Speed Hack"
 msgstr "هک کردن سرعت واحد مدیریت حافظه"
@@ -5655,7 +5719,7 @@ msgstr "دراز نویسی"
 msgid "Vertex Streaming Hack"
 msgstr ""
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:381
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:389
 msgid "Video"
 msgstr "ویدیو"
 
@@ -5663,17 +5727,17 @@ msgstr "ویدیو"
 msgid "Virtual"
 msgstr "مجازی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:677
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:676
 msgid "Volume"
 msgstr "حجم صدا"
 
-#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:488
-#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:517
+#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:475
+#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:504
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "نصب واد با شکست مواجه شد: خطای ایجاد %s"
 
-#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:537
+#: Source/Core/DiscIO/Src/NANDContentLoader.cpp:524
 msgid "WAD installation failed: error creating ticket"
 msgstr "نصب واد با شکست مواجه شد: خطای ایجاد بلیط"
 
@@ -5706,7 +5770,7 @@ msgstr "اخطار - شروع ای ال اف در حالت کنسول اشتبا
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "اخطار - شروع آیزو در حالت کنسول اشتباه!"
 
-#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:512
+#: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:563
 #, c-format
 msgid ""
 "Warning! it is advised to backup all files in the folder:\n"
@@ -5730,7 +5794,7 @@ msgstr ""
 "و داشتن اسم یکسان مانند یک فایل در کارت حافظه شما\n"
 "ادامه می دهید؟"
 
-#: Source/Core/Core/Src/Movie.cpp:823
+#: Source/Core/Core/Src/Movie.cpp:837
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -5742,7 +5806,7 @@ msgstr ""
 "دیگری را بارگذاری کنید، یا این وضعیت را با حالت فقط خواندنی خاموش بارگذاری "
 "کنید."
 
-#: Source/Core/Core/Src/Movie.cpp:840
+#: Source/Core/Core/Src/Movie.cpp:854
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -5753,7 +5817,7 @@ msgstr ""
 "ندارد. قبل از ادامه شما باید ذخیره دیگری را بارگذاری کنید، یا این وضعیت را "
 "با حالت فقط خواندنی خاموش بارگذاری کنید. وگرنه شاید شما دچار نا همزمانی شوید."
 
-#: Source/Core/Core/Src/Movie.cpp:850
+#: Source/Core/Core/Src/Movie.cpp:864
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -5803,23 +5867,19 @@ msgstr "هک کردن صفحه عریض"
 msgid "Width"
 msgstr "عرض"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:542
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:541
 msgid "Wii"
 msgstr "وی"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:372
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:380
 msgid "Wii Console"
 msgstr "میز فرمان وی"
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:832
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:837
 msgid "Wii NAND Root:"
 msgstr "ریشه وی نند:"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:193
-msgid "Wii Save Import"
-msgstr "وارد کردن فایل ذخیره وی"
-
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1317
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1330
 msgid "Wii save files (*.bin)|*.bin"
 msgstr "فایل های ذخیره وی (*.bin)|*.bin"
 
@@ -5828,7 +5888,7 @@ msgid "WiiWAD: Could not read from file"
 msgstr "وی واد: ناتوان در خواندن از فایل"
 
 #: Source/Core/Core/Src/HW/Wiimote.cpp:20
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:470
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:472
 msgid "Wiimote"
 msgstr "ویموت"
 
@@ -5837,7 +5897,7 @@ msgstr "ویموت"
 msgid "Wiimote %i"
 msgstr "ویموت %i"
 
-#: Source/Core/DolphinWX/Src/Main.cpp:659
+#: Source/Core/DolphinWX/Src/Main.cpp:671
 msgid "Wiimote Connected"
 msgstr "ویموت متصل شد"
 
@@ -5845,7 +5905,7 @@ msgstr "ویموت متصل شد"
 msgid "Wiimote Motor"
 msgstr "موتور ویموت"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:470
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:472
 msgid "Wiimote settings"
 msgstr "تنظیمات ویموت"
 
@@ -5869,14 +5929,14 @@ msgstr "پنجره ها راست"
 msgid "Word Wrap"
 msgstr "پیچیدن کلمه"
 
-#: Source/Core/DolphinWX/Src/FrameTools.cpp:1372
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:899
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1093
-#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1229
+#: Source/Core/DolphinWX/Src/FrameTools.cpp:1383
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:909
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1092
+#: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1228
 msgid "Working..."
 msgstr "در حال کار..."
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:354
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:353
 msgid "Write memcards (GC)"
 msgstr ""
 
@@ -5936,7 +5996,7 @@ msgstr ""
 msgid "You can't close panes that have pages in them."
 msgstr "شما نمی توانید قطعاتی که حاوی صفحات می باشند را ببندید."
 
-#: Source/Core/DolphinWX/Src/NetWindow.cpp:240
+#: Source/Core/DolphinWX/Src/NetWindow.cpp:239
 msgid "You must choose a game!!"
 msgstr "شما باید یک بازی انتخاب کنید!!"
 
@@ -5952,7 +6012,7 @@ msgstr "شما باید یک مقدار صحیح برای دسیمال، هگز�
 msgid "You must enter a valid profile name."
 msgstr "شما باید یک اسم معتبر برای پروفایل وارد کنید."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:924
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:929
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "برای اعمال تغییرات شما باید دلفین را از نو اجرا کنید."
 
@@ -5963,7 +6023,7 @@ msgid ""
 "If you select \"No\", audio might be garbled."
 msgstr ""
 
-#: Source/Core/Core/Src/CoreParameter.cpp:169
+#: Source/Core/Core/Src/CoreParameter.cpp:177
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -5982,7 +6042,7 @@ msgstr ""
 "سایز فایل باید 0x%04x باشد (اما سایز این فایل 0x%04llx است)\n"
 "آیا میخواهید یک فایل جدید تولید شود؟"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:334
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:342
 msgid "ZTP hack"
 msgstr "هک افسانه زلدا: شاهدخت سپیده دم"
 
@@ -6049,7 +6109,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/Src/ConfigMain.cpp:808
+#: Source/Core/DolphinWX/Src/ConfigMain.cpp:813
 msgid "apploader (.img)"
 msgstr "بارگذار برنامه (.img)"
 
@@ -6062,7 +6122,17 @@ msgstr "خطای iCacheJIT: خواندن شناسنده از %x. لطفا گزا
 msgid "s"
 msgstr "s"
 
-#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1155
+#: Source/Core/Core/Src/x64MemTools.cpp:242
+#, c-format
+msgid "unknown flavor %d (expected %d)"
+msgstr ""
+
+#: Source/Core/Core/Src/x64MemTools.cpp:236
+#, fuzzy
+msgid "unknown message received"
+msgstr "پیام ناشناخته با آی دی %d دریافت شد"
+
+#: Source/Core/DolphinWX/Src/ISOProperties.cpp:1165
 msgid "wxExecute returned -1 on application run!"
 msgstr "خطای 1- wxExecute در اجرای برنامه!"
 
@@ -6092,8 +6162,27 @@ msgstr "| یا"
 #~ "\n"
 #~ "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
+#~ msgid ""
+#~ "Could not set pads. The player left or the game is currently running!\n"
+#~ "(setting pads while the game is running is not yet supported)"
+#~ msgstr ""
+#~ "قادر به ست کردن گیم پدها نیست. بازی کن بازی را ترک کرده و یا بازی در حال "
+#~ "اجرا است!\n"
+#~ "(ست کردن گیم پدها در حالی که بازی در حال اجرا است فعلا پشتیبانی نمی شود)"
+
 #~ msgid "Enable Hotkeys"
 #~ msgstr "فعال کردن شرت کاتها"
+
+#~ msgid ""
+#~ "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
+#~ "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
+#~ msgstr ""
+#~ "فعال کردن برابر سازی دالبی پرو لاجیک دو توسط خروجی فراگیر 5.1 (Surround). "
+#~ "فقط پشتوانه اپن ای ال (OpenAL). شاید تغییر نام soft_oal.dll به OpenAL32."
+#~ "dll برای به کار انداختن این امکان احتیاج باشد."
+
+#~ msgid "Export failed, try again?"
+#~ msgstr "صادر کردن با شکست مواجه شد، کوشش دوباره؟"
 
 #~ msgid "Failed to Listen!!"
 #~ msgstr "پذیرفتن با شکست مواجه شد!!"
@@ -6116,11 +6205,20 @@ msgstr "| یا"
 #~ "اگر تعداد فریم های نمایش داده شده بر ثانیه نامنظم است، شاید این گزینه به "
 #~ "رفع آن کمک کند. (روشن = سازگار، خاموش = سریع)"
 
+#~ msgid "Import failed, try again?"
+#~ msgstr "وارد کردن با شکست مواجه شد، سعی دوباره؟"
+
+#~ msgid "In-Game"
+#~ msgstr "در بازی"
+
 #~ msgid "Last Overwritten State"
 #~ msgstr "آخرین وضعیت بازنویسی شده"
 
 #~ msgid "Last Saved State"
 #~ msgstr "آخرین وضعیت ذخیره شده"
+
+#~ msgid "Local"
+#~ msgstr "محلی"
 
 #~ msgid "Reconnect Wiimote on State Loading"
 #~ msgstr "برقراری ارتباط مجدد ویموت در بارگذاری وضعیت"
@@ -6130,3 +6228,6 @@ msgstr "| یا"
 
 #~ msgid "Skip Dest. Alpha Pass"
 #~ msgstr "از قلم انداختن مقصد آلفا پاس"
+
+#~ msgid "Wii Save Import"
+#~ msgstr "وارد کردن فایل ذخیره وی"
