@@ -82,8 +82,7 @@ public:
 	void WiimoteUpdate(int _number);
 	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
 
-	u8 LocalPadToInGamePad(u8 localPad);
-	u8 InGamePadToLocalPad(u8 localPad);
+	u8 GetPadNum(u8 numPAD);
 
 protected:
 	void ClearBuffers();

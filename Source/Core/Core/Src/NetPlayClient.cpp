@@ -515,7 +515,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 	// We should add this split between "in-game" pads and "local"
 	// pads higher up.
 
-	int in_game_num = InGamePadToLocalPad(pad_nb);
+	int in_game_num = GetPadNum(pad_nb);
 
 	// If this in-game pad is one of ours, then update from the
 	// information given.
@@ -623,25 +623,8 @@ void NetPlayClient::Stop()
 	}
 }
 
-u8 NetPlayClient::InGamePadToLocalPad(u8 ingame_pad)
-{
-	// not our pad
-	if (m_pad_map[ingame_pad] != m_local_player->pid)
-		return 4;
-
-	int local_pad = 0;
-	int pad = 0;
-
-	for (; pad < ingame_pad; pad++)
-	{
-		if (m_pad_map[pad] == m_local_player->pid)
-			local_pad++;
-	}
-
-	return local_pad;
-}
-
-u8 NetPlayClient::LocalPadToInGamePad(u8 local_pad)
+// called from ---CPU--- thread
+u8 NetPlayClient::GetPadNum(u8 numPAD)
 {
 	// Figure out which in-game pad maps to which local pad.
 	// The logic we have here is that the local slots always
@@ -653,7 +636,7 @@ u8 NetPlayClient::LocalPadToInGamePad(u8 local_pad)
 		if (m_pad_map[ingame_pad] == m_local_player->pid)
 			local_pad_count++;
 
-		if (local_pad_count == local_pad)
+		if (local_pad_count == numPAD)
 			break;
 	}
 
@@ -698,24 +681,24 @@ u32 CEXIIPL::NetPlay_GetGCTime()
 
 // called from ---CPU--- thread
 // return the local pad num that should rumble given a ingame pad num
-u8 CSIDevice_GCController::NetPlay_InGamePadToLocalPad(u8 numPAD)
+u8 CSIDevice_GCController::NetPlay_GetPadNum(u8 numPAD)
 {
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
 
 	if (netplay_client)
-		return netplay_client->InGamePadToLocalPad(numPAD);
+		return netplay_client->GetPadNum(numPAD);
 	else
 		return numPAD;
 }
 
-u8 CSIDevice_GCSteeringWheel::NetPlay_InGamePadToLocalPad(u8 numPAD)
+u8 CSIDevice_GCSteeringWheel::NetPlay_GetPadNum(u8 numPAD)
 {
-	return CSIDevice_GCController::NetPlay_InGamePadToLocalPad(numPAD);
+	return CSIDevice_GCController::NetPlay_GetPadNum(numPAD);
 }
 
-u8 CSIDevice_DanceMat::NetPlay_InGamePadToLocalPad(u8 numPAD)
+u8 CSIDevice_DanceMat::NetPlay_GetPadNum(u8 numPAD)
 {
-	return CSIDevice_GCController::NetPlay_InGamePadToLocalPad(numPAD);
+	return CSIDevice_GCController::NetPlay_GetPadNum(numPAD);
 }
 
 // called from ---CPU--- thread
