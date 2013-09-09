@@ -1633,6 +1633,9 @@ void Renderer::ResetAPIState()
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
+#ifndef USE_GLES3
+	glDisable(GL_COLOR_LOGIC_OP);
+#endif
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
@@ -1646,6 +1649,7 @@ void Renderer::RestoreAPIState()
 	SetColorMask();
 	SetDepthMode();
 	SetBlendMode(true);
+	SetLogicOpMode();
 	VertexShaderManager::SetViewportChanged();
 
 #ifndef USE_GLES3
