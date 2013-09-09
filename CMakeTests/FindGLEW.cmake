@@ -20,7 +20,7 @@ macro(test_glew)
 endmacro()
 
 if(PKG_CONFIG_FOUND AND NOT ${var}_FOUND)
-	pkg_search_module(GLEW REQUIRED glew>=1.8)
+	pkg_search_module(GLEW glew>=1.8)
 endif()
 
 if(GLEW_FOUND)
