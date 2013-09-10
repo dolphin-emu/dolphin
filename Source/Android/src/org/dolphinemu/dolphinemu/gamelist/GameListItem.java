@@ -117,7 +117,7 @@ public final class GameListItem implements Comparable<GameListItem>
 		if (name != null)
 			return name.toLowerCase().compareTo(o.getName().toLowerCase()); 
 		else 
-			throw new IllegalArgumentException();
+			throw new NullPointerException("The name of this GameListItem is null");
 	}
 }
 

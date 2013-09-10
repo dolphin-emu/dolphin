@@ -104,6 +104,6 @@ public final class FolderBrowserItem implements Comparable<FolderBrowserItem>
 		if(name != null)
 			return name.toLowerCase().compareTo(other.getName().toLowerCase()); 
 		else 
-			throw new IllegalArgumentException();
+			throw new NullPointerException("The name of this FolderBrowserItem is null");
 	}
 }
