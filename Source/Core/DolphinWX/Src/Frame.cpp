@@ -387,6 +387,10 @@ CFrame::~CFrame()
 	#if defined(HAVE_XRANDR) && HAVE_XRANDR
 		delete m_XRRConfig;
 	#endif
+
+	ClosePages();
+
+	delete m_Mgr;
 }
 
 bool CFrame::RendererIsFullscreen()
@@ -472,7 +476,6 @@ void CFrame::OnClose(wxCloseEvent& event)
 		m_LogWindow = NULL;
 	}
 
-	ClosePages();
 
 	// Uninit
 	m_Mgr->UnInit();
