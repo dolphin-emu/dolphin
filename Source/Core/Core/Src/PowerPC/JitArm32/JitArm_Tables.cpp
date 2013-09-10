@@ -268,7 +268,7 @@ static GekkoOPTemplate table31[] =
 	{725, &JitArm::Default}, //"stswi",  OPTYPE_STORE, FL_EVIL}},
 
 	// fp load/store	
-	{535, &JitArm::Default}, //"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
+	{535, &JitArm::lfsx}, //"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
 	{567, &JitArm::Default}, //"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
 	{599, &JitArm::Default}, //"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
 	{631, &JitArm::Default}, //"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
