@@ -247,10 +247,23 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 	// Prepare the out buffer(s) with zeroes as a safety precaution
 	// to avoid returning bad values
+	// XXX: is this still necessary?
 	for (u32 i = 0; i < Buffer.NumberPayloadBuffer; i++)
 	{
-		Memory::Memset(Buffer.PayloadBuffer[i].m_Address, 0,
-			Buffer.PayloadBuffer[i].m_Size);
+		u32 j;
+		for (j = 0; j < Buffer.NumberInBuffer; j++)
+		{
+			if (Buffer.InBuffer[j].m_Address == Buffer.PayloadBuffer[i].m_Address)
+			{
+				// The out buffer is the same as one of the in buffers.  Don't zero it.
+				break;
+			}
+		}
+		if (j == Buffer.NumberInBuffer)
+		{
+			Memory::Memset(Buffer.PayloadBuffer[i].m_Address, 0,
+				Buffer.PayloadBuffer[i].m_Size);
+		}
 	}
 
 	switch (Buffer.Parameter)
@@ -825,11 +838,13 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8* IV			= Memory::GetPointer(Buffer.InBuffer[1].m_Address);
 			u8* source		= Memory::GetPointer(Buffer.InBuffer[2].m_Address);
 			u32 size		= Buffer.InBuffer[2].m_Size;
+			u8* newIV		= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
 			AES_KEY AESKey;
 			AES_set_encrypt_key(keyTable[keyIndex], 128, &AESKey);
-			AES_cbc_encrypt(source, destination, size, &AESKey, IV, AES_ENCRYPT);
+			memcpy(newIV, IV, 16);
+			AES_cbc_encrypt(source, destination, size, &AESKey, newIV, AES_ENCRYPT);
 
 			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_ENCRYPT: Key type is not SD, data will be crap");
 		}
@@ -841,11 +856,13 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8* IV			= Memory::GetPointer(Buffer.InBuffer[1].m_Address);
 			u8* source		= Memory::GetPointer(Buffer.InBuffer[2].m_Address);
 			u32 size		= Buffer.InBuffer[2].m_Size;
+			u8* newIV		= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
 			AES_KEY AESKey;
 			AES_set_decrypt_key(keyTable[keyIndex], 128, &AESKey);
-			AES_cbc_encrypt(source, destination, size, &AESKey, IV, AES_DECRYPT);
+			memcpy(newIV, IV, 16);
+			AES_cbc_encrypt(source, destination, size, &AESKey, newIV, AES_DECRYPT);
 
 			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");
 		}
