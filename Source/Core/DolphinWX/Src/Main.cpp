@@ -71,6 +71,8 @@ IMPLEMENT_APP(DolphinApp)
 
 BEGIN_EVENT_TABLE(DolphinApp, wxApp)
 	EVT_TIMER(wxID_ANY, DolphinApp::AfterInit)
+	EVT_QUERY_END_SESSION(DolphinApp::OnEndSession)
+	EVT_END_SESSION(DolphinApp::OnEndSession)
 END_EVENT_TABLE()
 
 #include <wx/stdpaths.h>
@@ -430,6 +432,15 @@ void DolphinApp::InitLanguageSupport()
 	{
 		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
 		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+	}
+}
+
+void DolphinApp::OnEndSession(wxCloseEvent& event)
+{
+	// Close if we've recieved wxEVT_END_SESSION (ignore wxEVT_QUERY_END_SESSION)
+	if (!event.CanVeto())
+	{
+		main_frame->Close(true);
 	}
 }
 

@@ -539,9 +539,24 @@ void CFrame::OnResize(wxSizeEvent& event)
 WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
 	if (WM_SYSCOMMAND == nMsg && (SC_SCREENSAVE == wParam || SC_MONITORPOWER == wParam))
+	{
 		return 0;
+	}
+	else if (nMsg == WM_QUERYENDSESSION)
+	{
+		// Indicate that the application will be able to close
+		return 1;
+	}
+	else if (nMsg == WM_ENDSESSION)
+	{
+		// Actually trigger the close now
+		Close(true);
+		return 0;
+	}
 	else
+	{
 		return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
+	}
 }
 #endif
 
