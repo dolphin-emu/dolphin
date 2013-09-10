@@ -7,10 +7,10 @@
 
     <uses-sdk
         android:minSdkVersion="14"
-        android:targetSdkVersion="14" />
+        android:targetSdkVersion="18" />
 
-    <uses-feature android:glEsVersion="0x00020000" >
-    </uses-feature>
+    <uses-feature android:glEsVersion="0x00020000" />
+
     <uses-feature android:name="android.hardware.screen.landscape" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -40,8 +40,8 @@
 
         <activity
             android:name="org.dolphinemu.dolphinemu.settings.PrefsActivity"
-            android:label="@string/settings" >
-        </activity>
+            android:label="@string/settings" />
+
     </application>
 
 </manifest>
