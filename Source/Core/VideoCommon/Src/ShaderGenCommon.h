@@ -88,26 +88,18 @@ public:
 
 	bool operator == (const ShaderUid& obj) const
 	{
-		return memcmp(this->values, obj.values, sizeof(values)) == 0;
+		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) == 0;
 	}
 
 	bool operator != (const ShaderUid& obj) const
 	{
-		return memcmp(this->values, obj.values, sizeof(values)) != 0;
+		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) != 0;
 	}
 
 	// determines the storage order inside STL containers
 	bool operator < (const ShaderUid& obj) const
 	{
-		// TODO: Store last frame used and order by that? makes much more sense anyway...
-		for (unsigned int i = 0; i < data.NumValues(); ++i)
-		{
-			if (this->values[i] < obj.values[i])
-				return true;
-			else if (this->values[i] > obj.values[i])
-				return false;
-		}
-		return false;
+		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) < 0;
 	}
 
 	template<class T>
