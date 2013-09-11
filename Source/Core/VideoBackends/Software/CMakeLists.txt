@@ -36,7 +36,7 @@ if(USE_EGL)
 endif()
 
 if(USE_GLES)
-	set(SRCS ${SRCS} ../Plugin_VideoOGL/Src/GLUtil.cpp)
+	set(SRCS ${SRCS} ../OGL/Src/GLUtil.cpp)
 	set(LIBS ${LIBS}
 		GLESv2)
 else()

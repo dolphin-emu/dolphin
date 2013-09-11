@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../../Plugin_VideoOGL/Src/GLUtil.h"
+#include "../../OGL/Src/GLUtil.h"
 
 #include <string.h>
 

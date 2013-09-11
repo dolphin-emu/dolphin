@@ -6,12 +6,12 @@
 
 // TODO: ugly
 #ifdef _WIN32
-#include "../../../Plugins/Plugin_VideoDX11/Src/VideoBackend.h"
+#include "../../VideoBackends/D3D/Src/VideoBackend.h"
 #endif
 #if !defined(USE_GLES) || USE_GLES3
-#include "../../../Plugins/Plugin_VideoOGL/Src/VideoBackend.h"
+#include "../../VideoBackends/OGL/Src/VideoBackend.h"
 #endif
-#include "../../../Plugins/Plugin_VideoSoftware/Src/VideoBackend.h"
+#include "../../VideoBackends/Software/Src/VideoBackend.h"
 
 std::vector<VideoBackend*> g_available_video_backends;
 VideoBackend* g_video_backend = NULL;

@@ -1,5 +1,4 @@
 add_subdirectory(Core)
-add_subdirectory(Plugins)
 
 if (DSPTOOL)
 	add_subdirectory(DSPTool)

@@ -5,7 +5,7 @@
 #include "Common.h"
 #include <math.h>
 
-#include "../../Plugin_VideoOGL/Src/GLUtil.h"
+#include "../../OGL/Src/GLUtil.h"
 #include "RasterFont.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
