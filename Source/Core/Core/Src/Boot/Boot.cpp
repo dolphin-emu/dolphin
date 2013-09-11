@@ -71,59 +71,73 @@ void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
 	Host_NotifyMapLoaded();
 }
 
-std::string CBoot::GenerateMapFilename()
+bool CBoot::FindMapFile(std::string* existing_map_file,
+                        std::string* writable_map_file)
 {
+	std::string title_id_str;
+
 	SCoreStartupParameter& _StartupPara = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	switch (_StartupPara.m_BootType)
 	{
 	case SCoreStartupParameter::BOOT_WII_NAND:
 	{
-		const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
+		const DiscIO::INANDContentLoader& Loader =
+				DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
 		if (Loader.IsValid())
 		{
 			u64 TitleID = Loader.GetTitleID();
-			char tmpBuffer[32];
-			sprintf(tmpBuffer, "%08x_%08x", (u32)(TitleID >> 32) & 0xFFFFFFFF , (u32)TitleID & 0xFFFFFFFF );
-			return File::GetUserPath(D_MAPS_IDX) + std::string(tmpBuffer) + ".map";
+			title_id_str = StringFromFormat("%08X_%08X",
+					(u32)(TitleID >> 32) & 0xFFFFFFFF,
+					(u32)TitleID & 0xFFFFFFFF);
 		}
 		break;
 	}
 
 	case SCoreStartupParameter::BOOT_ELF:
 	case SCoreStartupParameter::BOOT_DOL:
-		return _StartupPara.m_strFilename.substr(0, _StartupPara.m_strFilename.size()-4) + ".map";
+		// Strip the .elf/.dol file extension
+		title_id_str = _StartupPara.m_strFilename.substr(
+				0, _StartupPara.m_strFilename.size() - 4);
+		break;
+
 	default:
-		return File::GetUserPath(D_MAPS_IDX) + _StartupPara.GetUniqueID() + ".map";
+		title_id_str = _StartupPara.GetUniqueID();
+		break;
 	}
 
-	return std::string("unknown map");
-}
+	if (writable_map_file)
+		*writable_map_file = File::GetUserPath(D_MAPS_IDX) + title_id_str + ".map";
 
-bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_gameID)
-{
-	if (_rFilename.size() == 0)
-		return false;
-
-	std::string strMapFilename = GenerateMapFilename();
-
-	bool success = false;
-	if (!g_symbolDB.LoadMap(strMapFilename.c_str()))
+	bool found = false;
+	static const std::string maps_directories[] = {
+		File::GetUserPath(D_MAPS_IDX),
+		File::GetSysDirectory() + MAPS_DIR DIR_SEP
+	};
+	for (size_t i = 0; !found && i < ArraySize(maps_directories); ++i)
 	{
-		if (_gameID != NULL)
+		std::string path = maps_directories[i] + title_id_str + ".map";
+		if (File::Exists(path))
 		{
-			BuildCompleteFilename(strMapFilename, "maps", std::string(_gameID) + ".map");
-			success = g_symbolDB.LoadMap(strMapFilename.c_str());
+			found = true;
+			if (existing_map_file)
+				*existing_map_file = path;
 		}
 	}
-	else
+
+	return found;
+}
+
+bool CBoot::LoadMapFromFilename()
+{
+	std::string strMapFilename;
+	bool found = FindMapFile(&strMapFilename, NULL);
+	if (found && g_symbolDB.LoadMap(strMapFilename.c_str()))
 	{
-		success = true;
+		UpdateDebugger_MapLoaded();
+		return true;
 	}
 
-	if (success)
-		UpdateDebugger_MapLoaded();
-
-	return success;
+	return false;
 }
 
 // If ipl.bin is not found, this function does *some* of what BS1 does: 
@@ -201,10 +215,6 @@ bool CBoot::BootUp()
 			PanicAlertT("Warning - starting ISO in wrong console mode!");
 		}
 
-		char gameID[7];
-		memcpy(gameID, pVolume->GetUniqueID().c_str(), 6);
-		gameID[6] = 0;
-
 		// setup the map from ISOFile ID
 		VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
 
@@ -252,7 +262,7 @@ bool CBoot::BootUp()
 
 		/* Try to load the symbol map if there is one, and then scan it for
 			and eventually replace code */
-		if (LoadMapFromFilename(_StartupPara.m_strFilename, gameID))
+		if (LoadMapFromFilename())
 			HLE::PatchFunctions();
 
 		// We don't need the volume any more
@@ -298,7 +308,7 @@ bool CBoot::BootUp()
 			PC = dolLoader.GetEntryPoint();
 		}
 
-		if (LoadMapFromFilename(_StartupPara.m_strFilename))
+		if (LoadMapFromFilename())
 			HLE::PatchFunctions();
 
 		break;
@@ -368,7 +378,7 @@ bool CBoot::BootUp()
 	case SCoreStartupParameter::BOOT_WII_NAND:
 		Boot_WiiWAD(_StartupPara.m_strFilename.c_str());
 
-		if (LoadMapFromFilename(_StartupPara.m_strFilename))
+		if (LoadMapFromFilename())
 			HLE::PatchFunctions();
 
 		// load default image or create virtual drive from directory
@@ -387,7 +397,7 @@ bool CBoot::BootUp()
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 		if (Load_BS2(_StartupPara.m_strBootROM))
 		{
-			if (LoadMapFromFilename(_StartupPara.m_strFilename))
+			if (LoadMapFromFilename())
 				HLE::PatchFunctions();
 		}
 		else
