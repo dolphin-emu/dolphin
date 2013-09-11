@@ -196,7 +196,7 @@ bool ControllerInterface::UpdateOutput(const bool force)
 ControlState ControllerInterface::InputReference::State( const ControlState ignore )
 {
 	if (parsed_expression)
-		return parsed_expression->GetValue();
+		return parsed_expression->GetValue() * range;
 	else
 		return 0.0f;
 }
