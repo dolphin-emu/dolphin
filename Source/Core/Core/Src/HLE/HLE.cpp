@@ -42,57 +42,7 @@ static const SPatch OSPatches[] =
 {	
 	{ "FAKE_TO_SKIP_0",		HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
-	// speedup
-	//{ "OSProtectRange", HLE_Misc::UnimplementedFunctionFalse, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ "THPPlayerGetState", HLE_Misc:THPPlayerGetState, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ "memcpy",				HLE_Misc::gc_memcpy, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
-	//{ "memcmp",				HLE_Misc::gc_memcmp, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
-	//{ "memset",				HLE_Misc::gc_memset, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
-	//{ "memmove",			HLE_Misc::gc_memmove, HLE_HOOK_REPLACE, HLE_TYPE_MEMORY },
-
-	//{ "__div2i",			HLE_Misc::div2i, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC }, // Slower?
-	//{ "__div2u",			HLE_Misc::div2u, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC }, // Slower?
-
-	//{ "DCFlushRange",		HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ "DCInvalidateRange",	HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ "DCZeroRange",		HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-
-	// debug out is very nice ;)
-
-	{ "OSReport",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "DEBUGPrint",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "WUD_DEBUGPrint",		HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "OSPanic",			HLE_OS::HLE_OSPanic, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "vprintf",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "printf",				HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "puts",				HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // gcc-optimized printf?
-	{ "___blank(char *,...)", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used for early init things (normally)
-	{ "___blank",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "__write_console",	HLE_OS::HLE_write_console, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used by sysmenu (+more?)
-
-	// wii only
-	//{ "__OSInitAudioSystem", HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-
-	// Super Monkey Ball - no longer needed.
-	//{ ".evil_vec_cosine", HLE_Misc::SMB_EvilVecCosine, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ ".evil_normalize", HLE_Misc::SMB_EvilNormalize, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ ".evil_vec_setlength", HLE_Misc::SMB_evil_vec_setlength, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ ".evil_vec_something", HLE_Misc::FZero_evil_vec_normalize, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 	{ "PanicAlert",			HLE_Misc::HLEPanicAlert, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	//{ ".sqrt_internal_needs_cr1", HLE_Misc::SMB_sqrt_internal, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ ".rsqrt_internal_needs_cr1", HLE_Misc::SMB_rsqrt_internal, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ ".atan2", HLE_Misc::SMB_atan2HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ ".sqrt_fz", HLE_Misc::FZ_sqrtHLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-
-	// F-zero still isn't working correctly, but these aren't really helping.
-
-	//{ ".sqrt_internal_fz", HLE_Misc::FZ_sqrt_internal, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	//{ ".rsqrt_internal_fz", HLE_Misc::FZ_rsqrt_internal, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-
-	//{ ".kill_infinites", HLE_Misc::FZero_kill_infinites, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	// special
-	// { "GXPeekZ", HLE_Misc::GXPeekZHLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	// { "GXPeekARGB", HLE_Misc::GXPeekARGBHLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
 	// Name doesn't matter, installed in CBoot::BootUp()
 	{ "HBReload",			HLE_Misc::HBReload, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
@@ -101,11 +51,23 @@ static const SPatch OSPatches[] =
 	{ "__OSBootDol",		HLE_Misc::OSBootDol, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 	{ "OSGetResetCode",		HLE_Misc::OSGetResetCode, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
+	// Debug/OS Support
+	{ "OSPanic",			HLE_OS::HLE_OSPanic, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+
+	{ "OSReport",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "DEBUGPrint",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "WUD_DEBUGPrint",		HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "vprintf",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "printf",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "puts",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // gcc-optimized printf?
+	{ "___blank(char *,...)",	HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used for early init things (normally)
+	{ "___blank",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "__write_console",		HLE_OS::HLE_write_console, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used by sysmenu (+more?)
 };
 
 static const SPatch OSBreakPoints[] =
 {
-	{ "FAKE_TO_SKIP_0",									HLE_Misc::UnimplementedFunction },
+	{ "FAKE_TO_SKIP_0",		HLE_Misc::UnimplementedFunction },
 };
 
 void Patch(u32 addr, const char *hle_func_name)
