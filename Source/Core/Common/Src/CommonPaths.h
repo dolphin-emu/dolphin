@@ -38,6 +38,7 @@
 // Shared data dirs (Sys and shared User for linux)
 #ifdef _WIN32
 	#define SYSDATA_DIR "Sys"
+	#define SHARED_USER_DIR File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP
 #elif defined __APPLE__
 	#define SYSDATA_DIR "Contents/Resources/Sys"
 	#define SHARED_USER_DIR	File::GetBundleDirectory() + \

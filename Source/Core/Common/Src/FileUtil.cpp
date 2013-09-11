@@ -551,11 +551,24 @@ bool DeleteDirRecursively(const std::string &directory)
 // Create directory and copy contents (does not overwrite existing files)
 void CopyDir(const std::string &source_path, const std::string &dest_path)
 {
-#ifndef _WIN32
 	if (source_path == dest_path) return;
 	if (!File::Exists(source_path)) return;
 	if (!File::Exists(dest_path)) File::CreateFullPath(dest_path);
 
+#ifdef _WIN32
+	WIN32_FIND_DATA ffd;
+	HANDLE hFind = FindFirstFile(UTF8ToTStr(source_path + "\\*").c_str(), &ffd);
+
+	if (hFind == INVALID_HANDLE_VALUE)
+	{
+		FindClose(hFind);
+		return;
+	}
+
+	do
+	{
+		const std::string virtualName(TStrToUTF8(ffd.cFileName));
+#else
 	struct dirent dirent, *result = NULL;
 	DIR *dirp = opendir(source_path.c_str());
 	if (!dirp) return;
@@ -563,10 +576,9 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 	while (!readdir_r(dirp, &dirent, &result) && result)
 	{
 		const std::string virtualName(result->d_name);
+#endif
 		// check for "." and ".."
-		if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
-			((virtualName[0] == '.') && (virtualName[1] == '.') &&
-			(virtualName[2] == '\0')))
+		if (virtualName == "." || virtualName == "..")
 			continue;
 
 		std::string source, dest;
@@ -580,6 +592,10 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 			CopyDir(source, dest);
 		}
 		else if (!File::Exists(dest)) File::Copy(source, dest);
+#ifdef _WIN32
+	} while (FindNextFile(hFind, &ffd) != 0);
+	FindClose(hFind);
+#else
 	}
 	closedir(dirp);
 #endif
@@ -643,9 +659,9 @@ std::string GetSysDirectory()
 	std::string sysDir;
 
 #if defined (__APPLE__)
-	sysDir = GetBundleDirectory();
-	sysDir += DIR_SEP;
-	sysDir += SYSDATA_DIR;
+	sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
+#elif defined (_WIN32)
+	sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
 #else
 	sysDir = SYSDATA_DIR;
 #endif

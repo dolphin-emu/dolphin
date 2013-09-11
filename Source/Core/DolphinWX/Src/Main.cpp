@@ -249,12 +249,6 @@ bool DolphinApp::OnInit()
 	}
 #endif
 
-#ifdef _WIN32
-	if (!wxSetWorkingDirectory(StrToWxStr(File::GetExeDirectory())))
-	{
-		INFO_LOG(CONSOLE, "Set working directory failed");
-	}
-#else
 	//create all necessary directories in user directory
 	//TODO : detect the revision and upgrade where necessary
 	File::CopyDir(std::string(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP),
@@ -267,7 +261,7 @@ bool DolphinApp::OnInit()
 			File::GetUserPath(D_WIIUSER_IDX));
 	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP),
 			File::GetUserPath(D_OPENCL_IDX));
-#endif
+
 	File::CreateFullPath(File::GetUserPath(D_USER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
