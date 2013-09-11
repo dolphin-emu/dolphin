@@ -447,6 +447,7 @@ bool BeginRecordingInput(int controllers)
 				Movie::g_bClearSave = true;
 		}
 		std::thread md5thread(GetMD5);
+		md5thread.detach();
 		GetSettings();
 	}
 	g_playMode = MODE_RECORDING;
