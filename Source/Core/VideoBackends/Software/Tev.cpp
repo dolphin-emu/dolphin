@@ -478,7 +478,7 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 		case ITBA_OFF:
 			AlphaBump = 0;
 			break;
-			case ITBA_S:
+		case ITBA_S:
 			AlphaBump = indmap[TextureSampler::ALP_SMP];
 			break;
 		case ITBA_T:
