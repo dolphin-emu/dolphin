@@ -696,7 +696,7 @@ void ReadHeader()
 		bongos = tmpHeader.bongos;
 		bSyncGPU = tmpHeader.bSyncGPU;
 		bNetPlay = tmpHeader.bNetPlay;
-		memcpy(revision, tmpHeader.revision, ARRAYSIZE(revision));
+		memcpy(revision, tmpHeader.revision, ArraySize(revision));
 	}
 	else
 	{
@@ -1110,7 +1110,7 @@ void SaveRecording(const char *filename)
 	header.bProgressive = bProgressive;
 	header.bDSPHLE = bDSPHLE;
 	header.bFastDiscSpeed = bFastDiscSpeed;
-	strncpy((char *)header.videoBackend, videoBackend.c_str(),ARRAYSIZE(header.videoBackend));
+	strncpy((char *)header.videoBackend, videoBackend.c_str(),ArraySize(header.videoBackend));
 	header.CPUCore = iCPUCore;
 	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
 	header.bEFBCopyEnable = g_ActiveConfig.bEFBCopyEnable;
@@ -1123,11 +1123,11 @@ void SaveRecording(const char *filename)
 	header.bClearSave = g_bClearSave;
 	header.bSyncGPU = bSyncGPU;
 	header.bNetPlay = bNetPlay;
-	strncpy((char *)header.discChange, g_discChange.c_str(),ARRAYSIZE(header.discChange));
-	strncpy((char *)header.author, author.c_str(),ARRAYSIZE(header.author));
+	strncpy((char *)header.discChange, g_discChange.c_str(),ArraySize(header.discChange));
+	strncpy((char *)header.author, author.c_str(),ArraySize(header.author));
 	memcpy(header.md5,MD5,16);
 	header.bongos = bongos;
-	memcpy(header.revision, revision, ARRAYSIZE(header.revision));
+	memcpy(header.revision, revision, ArraySize(header.revision));
 
 	// TODO
 	header.uniqueID = 0; 

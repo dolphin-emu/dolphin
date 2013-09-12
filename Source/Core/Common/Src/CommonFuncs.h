@@ -12,6 +12,18 @@
 #define SLEEP(x) usleep(x*1000)
 #endif
 
+#include <cstddef>
+
+// TODO: make into function when type_traits and constexpr are available
+template <typename T, std::size_t N = 0>
+struct ArraySizeImpl {};
+
+template <typename T, std::size_t N>
+struct ArraySizeImpl<T[N], 0> { static const std::size_t size = N; };
+
+// Will fail to compile on a non-array:
+#define ArraySize(x) ArraySizeImpl<decltype(x)>::size
+
 template <bool> struct CompileTimeAssert;
 template<> struct CompileTimeAssert<true> {};
 
@@ -52,7 +64,7 @@ _mm_shuffle_epi8(__m128i a, __m128i mask)
 	#else
 		#define Crash() {asm ("int $3");}
 	#endif
-	#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
+
 // GCC 4.8 defines all the rotate functions now
 // Small issue with GCC's lrotl/lrotr intrinsics is they are still 32bit while we require 64bit
 #ifndef _rotl
