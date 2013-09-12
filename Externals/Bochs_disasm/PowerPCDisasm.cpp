@@ -39,11 +39,6 @@
 
 #include "PowerPCDisasm.h"
 
-#ifndef _MSC_VER
-// Pull in rotate functions for non-msvc
-#include "Common.h"
-#endif
-
 namespace PPCDisasm
 {
 
@@ -580,7 +575,8 @@ typedef unsigned int ppc_word;
 		if (me < mb) 
 			mask = ~mask;
 		//rotate the mask so it can be applied to source reg
-		return _rotl(mask, 32 - r);
+		//return _rotl(mask, 32 - r);
+		return (mask << (32 - r)) | (mask >> r);
 	}
 
 
