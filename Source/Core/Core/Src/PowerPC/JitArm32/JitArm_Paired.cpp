@@ -234,8 +234,9 @@ void JitArm::ps_merge00(UGeckoInstruction inst)
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vD0 = fpr.R0(d, false);
 	ARMReg vD1 = fpr.R1(d, false);
-	VMOV(vD0, vA0);
+
 	VMOV(vD1, vB0);
+	VMOV(vD0, vA0);
 }
 
 void JitArm::ps_merge01(UGeckoInstruction inst)
@@ -268,8 +269,13 @@ void JitArm::ps_merge10(UGeckoInstruction inst)
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vD0 = fpr.R0(d, false);
 	ARMReg vD1 = fpr.R1(d, false);
+	ARMReg V0 = fpr.GetReg();
+	
+	VMOV(V0, vB0);
 	VMOV(vD0, vA1);
-	VMOV(vD1, vB0);
+	VMOV(vD1, V0);
+
+	fpr.Unlock(V0);
 }
 
 void JitArm::ps_merge11(UGeckoInstruction inst)
