@@ -38,21 +38,15 @@
 // Shared data dirs (Sys and shared User for linux)
 #ifdef _WIN32
 	#define SYSDATA_DIR "Sys"
-	#define SHARED_USER_DIR File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP
 #elif defined __APPLE__
 	#define SYSDATA_DIR "Contents/Resources/Sys"
-	#define SHARED_USER_DIR	File::GetBundleDirectory() + \
-				DIR_SEP USERDATA_DIR DIR_SEP
 #elif defined ANDROID
 	#define SYSDATA_DIR "/sdcard/dolphin-emu"
-	#define SHARED_USER_DIR SYSDATA_DIR
 #else
 	#ifdef DATA_DIR
 		#define SYSDATA_DIR DATA_DIR "sys"
-		#define SHARED_USER_DIR  DATA_DIR USERDATA_DIR DIR_SEP
 	#else
 		#define SYSDATA_DIR "sys"
-		#define SHARED_USER_DIR  ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP
 	#endif
 #endif
 

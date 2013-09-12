@@ -244,14 +244,14 @@ else()
 
 		# Copy data files into application bundle.
 		file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/copy_data_into_bundle.cmake "
-			file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys ${CMAKE_SOURCE_DIR}/Data/User
+			file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys
 				DESTINATION ${BUNDLE_PATH}/Contents/Resources
 				)
 			file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle \"\")
 			")
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle
 			COMMAND ${CMAKE_COMMAND} -P copy_data_into_bundle.cmake
-			DEPENDS ${CMAKE_SOURCE_DIR}/Data/Sys ${CMAKE_SOURCE_DIR}/Data/User
+			DEPENDS ${CMAKE_SOURCE_DIR}/Data/Sys
 			VERBATIM
 			)
 		add_custom_target(CopyDataIntoBundle ALL
@@ -288,7 +288,7 @@ else()
 			add_custom_command(OUTPUT ${BUNDLE_PATH}/Contents/Resources/en.lproj
 				COMMAND ${CMAKE_COMMAND} -P copy_translations_into_bundle.cmake
 				DEPENDS ${GMO_FILES}
-				${CMAKE_SOURCE_DIR}/Data/Sys ${CMAKE_SOURCE_DIR}/Data/User
+				${CMAKE_SOURCE_DIR}/Data/Sys
 				VERBATIM
 				)
 			add_custom_target(CopyTranslationsIntoBundle ALL
