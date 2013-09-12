@@ -146,7 +146,6 @@ void JitArm::fmulsx(UGeckoInstruction inst)
 
 	VMUL(vD0, vA, vC);
 	VMOV(vD1, vD0);
-	fpr.Flush(); // Shouldn't be needed. Missing a flush somewhere
 	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 void JitArm::fmulx(UGeckoInstruction inst)
