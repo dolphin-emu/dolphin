@@ -13,16 +13,15 @@
 #endif
 
 #include <cstddef>
-
-// TODO: make into function when type_traits and constexpr are available
-template <typename T, std::size_t N = 0>
-struct ArraySizeImpl {};
-
-template <typename T, std::size_t N>
-struct ArraySizeImpl<T[N], 0> { static const std::size_t size = N; };
+#include <type_traits>
 
 // Will fail to compile on a non-array:
-#define ArraySize(x) ArraySizeImpl<decltype(x)>::size
+// TODO: make this a function when constexpr is available
+template <typename T>
+struct ArraySizeImpl : public std::extent<T>
+{ static_assert(std::is_array<T>::value, "is array"); };
+
+#define ArraySize(x) ArraySizeImpl<decltype(x)>::value
 
 #define b2(x)   (   (x) | (   (x) >> 1) )
 #define b4(x)   ( b2(x) | ( b2(x) >> 2) )
