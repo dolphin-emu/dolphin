@@ -273,6 +273,7 @@ bool DolphinApp::OnInit()
 	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
 
 	LogManager::Init();
 	SConfig::Init();

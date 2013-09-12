@@ -861,12 +861,10 @@ std::string GetThemeDir(const std::string& theme_name)
 {
 	std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
 
-#if !defined(_WIN32)
 	// If theme does not exist in user's dir load from shared directory
 	if (!File::Exists(dir))
-		dir = SHARED_USER_DIR THEMES_DIR "/" + theme_name + "/";
-#endif
-	
+		dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
+
 	return dir;
 }
 
