@@ -256,8 +256,6 @@ bool DolphinApp::OnInit()
 	// TODO: replace these with overlays
 	File::CopyDir(std::string(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP),
 			File::GetUserPath(D_GAMECONFIG_IDX));
-	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP),
-			File::GetUserPath(D_OPENCL_IDX));
 
 	File::CreateFullPath(File::GetUserPath(D_USER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
@@ -271,6 +269,7 @@ bool DolphinApp::OnInit()
 	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
 	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_OPENCL_IDX));
 	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
