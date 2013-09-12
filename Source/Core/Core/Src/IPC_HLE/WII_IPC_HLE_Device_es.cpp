@@ -594,13 +594,18 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					ViewCount = FileSize / DiscIO::INANDContentLoader::TICKET_SIZE;
 					_dbg_assert_msg_(WII_IPC_ES, (ViewCount>0) && (ViewCount<=4), "IOCTL_ES_GETVIEWCNT ticket count seems to be wrong");
 				}
+				else if (TitleID >> 32 == 0x00000001)
+				{
+					// Fake a ticket view to make IOS reload work.
+					ViewCount = 1;
+				}
 				else
 				{
+					ViewCount = 0;
 					if (TitleID == TITLEID_SYSMENU)
 					{
 						PanicAlertT("There must be a ticket for 00000001/00000002. Your NAND dump is probably incomplete.");
 					}
-					ViewCount = 0;
 					//retVal = ES_NO_TICKET_INSTALLED;
 				}
 			}
@@ -650,6 +655,19 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 							Memory::WriteBigEData(FileTicket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
 						}
 					}
+				}
+				else if (TitleID >> 32 == 0x00000001)
+				{
+					// For IOS titles, the ticket view isn't normally parsed by either the
+					// SDK or libogc, just passed to LaunchTitle, so this
+					// shouldn't matter at all.  Just fill out some fields just
+					// to be on the safe side.
+					u32 Address = Buffer.PayloadBuffer[0].m_Address;
+					memset(Memory::GetPointer(Address), 0, 0xD8);
+					Memory::Write_U64(TitleID, Address + 4 + (0x1dc - 0x1d0)); // title ID
+					Memory::Write_U16(0xffff, Address + 4 + (0x1e4 - 0x1d0)); // unnnown
+					Memory::Write_U32(0xff00, Address + 4 + (0x1ec - 0x1d0)); // access mask
+					memset(Memory::GetPointer(Address + 4 + (0x222 - 0x1d0)), 0xff, 0x20); // content permissions
 				}
 				else
 				{
