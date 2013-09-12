@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "CommonPaths.h"
 #include "FileUtil.h"
 #include "VideoCommon.h"
 #include "VideoConfig.h"
@@ -150,7 +151,12 @@ void ApplyShader()
 	
 	// loading shader code
 	std::string code;
-	std::string path = File::GetUserPath(D_SHADERS_IDX) + g_ActiveConfig.sPostProcessingShader + ".txt";
+	std::string path = File::GetUserPath(D_SHADERS_IDX) + g_ActiveConfig.sPostProcessingShader + ".glsl";
+	if (!File::Exists(path))
+	{
+		// Fallback to shared user dir
+		path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + g_ActiveConfig.sPostProcessingShader + ".glsl";
+	}
 	if(!File::ReadFileToString(true, path.c_str(), code)) {
 		ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
 		return;

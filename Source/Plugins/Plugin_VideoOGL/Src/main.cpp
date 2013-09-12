@@ -38,6 +38,7 @@ Make AA apply instantly during gameplay if possible
 
 #include "Globals.h"
 #include "Atomic.h"
+#include "CommonPaths.h"
 #include "Thread.h"
 #include "LogManager.h"
 
@@ -102,25 +103,37 @@ std::string VideoBackend::GetDisplayName()
 
 void GetShaders(std::vector<std::string> &shaders)
 {
+	std::set<std::string> already_found;
+
 	shaders.clear();
-	if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX)))
+	static const std::string directories[] = {
+		File::GetUserPath(D_SHADERS_IDX),
+		File::GetSysDirectory() + SHADERS_DIR DIR_SEP,
+	};
+	for (size_t i = 0; i < ArraySize(directories); ++i)
 	{
+		if (!File::IsDirectory(directories[i]))
+			continue;
+
 		File::FSTEntry entry;
-		File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
-		for (u32 i = 0; i < entry.children.size(); i++) 
+		File::ScanDirectoryTree(directories[i], entry);
+		for (u32 j = 0; j < entry.children.size(); j++)
 		{
-			std::string name = entry.children[i].virtualName.c_str();
-			if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt")) {
-				name = name.substr(0, name.size() - 4);
-				shaders.push_back(name);
-			}
+			std::string name = entry.children[j].virtualName.c_str();
+			if (name.size() < 5)
+				continue;
+			if (strcasecmp(name.substr(name.size() - 5).c_str(), ".glsl"))
+				continue;
+
+			name = name.substr(0, name.size() - 5);
+			if (already_found.find(name) != already_found.end())
+				continue;
+
+			already_found.insert(name);
+			shaders.push_back(name);
 		}
-		std::sort(shaders.begin(), shaders.end());
 	}
-	else
-	{
-		File::CreateDir(File::GetUserPath(D_SHADERS_IDX).c_str());
-	}
+	std::sort(shaders.begin(), shaders.end());
 }
 
 void InitBackendInfo()
