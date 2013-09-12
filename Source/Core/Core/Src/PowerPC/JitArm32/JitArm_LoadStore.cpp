@@ -318,6 +318,7 @@ void JitArm::lXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
+
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
 	s32 offset = inst.SIMM_16;
 	u32 accessSize = 0;
@@ -401,9 +402,16 @@ void JitArm::lXX(UGeckoInstruction inst)
 			accessSize = 16;
 		break;
 	}
+	
+	if (update)
+	{
+		Default(inst);
+		return;
+	}
 
 	// Check for exception before loading
 	ARMReg rA = gpr.GetReg(false);
+
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 	CMP(rA, EXCEPTION_DSI);
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
@@ -422,9 +430,10 @@ void JitArm::lXX(UGeckoInstruction inst)
 	}
 
 	SetJumpTarget(DoNotLoad);
-
+	
 	// LWZ idle skipping
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+		inst.OPCD == 32 &&
 		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
 		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
 		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
