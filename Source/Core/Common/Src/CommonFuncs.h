@@ -24,9 +24,6 @@ struct ArraySizeImpl<T[N], 0> { static const std::size_t size = N; };
 // Will fail to compile on a non-array:
 #define ArraySize(x) ArraySizeImpl<decltype(x)>::size
 
-template <bool> struct CompileTimeAssert;
-template<> struct CompileTimeAssert<true> {};
-
 #define b2(x)   (   (x) | (   (x) >> 1) )
 #define b4(x)   ( b2(x) | ( b2(x) >> 2) )
 #define b8(x)   ( b4(x) | ( b4(x) >> 4) )

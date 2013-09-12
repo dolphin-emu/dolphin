@@ -219,8 +219,7 @@ void PrintObject(const T &Obj)
 
 	// If this miscompiles, adjust the size of
 	// ZeldaVoicePB to 0x180 bytes (0xc0 shorts).
-	CompileTimeAssert<sizeof(ZeldaVoicePB) == 0x180> ensure_zpb_size_correct;
-	(void)ensure_zpb_size_correct;
+	static_assert(sizeof(ZeldaVoicePB) == 0x180, "ZeldaVoicePB incorrectly defined.");
 
 	ss << std::hex;
 	for (size_t i = 0; i < sizeof(T); i++)
