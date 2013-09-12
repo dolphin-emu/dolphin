@@ -150,6 +150,12 @@ void Reset(bool _bHard)
 		g_FdMap[i] = NULL;
 	}
 
+	u32 j;
+	for (j=0; j<ES_MAX_COUNT; j++)
+	{
+		es_inuse[j] = false;
+	}
+
 	TDeviceMap::iterator itr = g_DeviceMap.begin();
 	while (itr != g_DeviceMap.end())
 	{
