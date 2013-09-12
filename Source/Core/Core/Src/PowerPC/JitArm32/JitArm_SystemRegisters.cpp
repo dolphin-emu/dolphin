@@ -71,7 +71,6 @@ void JitArm::mfspr(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff)
 
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-	ARMReg RD = gpr.R(inst.RD);
 	switch (iIndex)
 	{
 	case SPR_WPAR:
@@ -81,6 +80,7 @@ void JitArm::mfspr(UGeckoInstruction inst)
 		Default(inst);
 		return;
 	default:
+		ARMReg RD = gpr.R(inst.RD);
 		LDR(RD, R9, PPCSTATE_OFF(spr) + iIndex * 4);
 		break;
 	}

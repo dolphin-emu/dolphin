@@ -134,6 +134,9 @@ void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, 
 
 void JitArm::stX(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff)
+
 	u32 a = inst.RA, b = inst.RB, s = inst.RS;
 	s32 offset = inst.SIMM_16;
 	u32 accessSize = 0;
@@ -455,6 +458,12 @@ void JitArm::lXX(UGeckoInstruction inst)
 // We make the assumption that this pulls from main RAM at /all/ times
 void JitArm::lmw(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff)
+	if (!Core::g_CoreStartupParameter.bFastmem){
+		Default(inst); return;
+	}
+
 	u32 a = inst.RA;
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
