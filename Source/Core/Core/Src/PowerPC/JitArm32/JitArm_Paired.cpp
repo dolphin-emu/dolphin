@@ -53,8 +53,6 @@ void JitArm::ps_madd(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
 	
-	Default(inst); return;
-
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
 	if (inst.Rc) {
@@ -72,11 +70,11 @@ void JitArm::ps_madd(UGeckoInstruction inst)
 	ARMReg V0 = fpr.GetReg();
 	ARMReg V1 = fpr.GetReg();
 
-	VMOV(V0, vC0);
-	VMOV(V1, vC1);
+	VMOV(V0, vB0);
+	VMOV(V1, vB1);
 	
-	VMLA(V0, vA0, vB0);
-	VMLA(V1, vA1, vB1);
+	VMLA(V0, vA0, vC0);
+	VMLA(V1, vA1, vC1);
 
 	VMOV(vD0, V0);
 	VMOV(vD1, V1);
