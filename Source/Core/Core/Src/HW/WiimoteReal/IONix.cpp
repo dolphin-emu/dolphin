@@ -133,6 +133,28 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 }
 
+void Wiimote::InitInternal()
+{
+	cmd_sock = -1;
+	int_sock = -1;
+
+	int fds[2];
+	if (pipe(fds))
+	{
+		ERROR_LOG(WIIMOTE, "pipe failed");
+		abort();
+	}
+	wakeup_pipe_w = fds[1];
+	wakeup_pipe_r = fds[0];
+	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
+}
+
+void Wiimote::TeardownInternal()
+{
+	close(wakeup_pipe_w);
+	close(wakeup_pipe_r);
+}
+
 // Connect to a wiimote with a known address.
 bool Wiimote::ConnectInternal()
 {

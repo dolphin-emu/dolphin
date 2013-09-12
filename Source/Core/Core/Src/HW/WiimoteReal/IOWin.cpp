@@ -514,12 +514,6 @@ bool Wiimote::ConnectInternal()
 	}
 #endif
 
-	hid_overlap_read = OVERLAPPED();
-	hid_overlap_read.hEvent = CreateEvent(NULL, true, false, NULL);
-
-	hid_overlap_write = OVERLAPPED();
-	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
-
 	// TODO: thread isn't started here now, do this elsewhere
 	// This isn't as drastic as it sounds, since the process in which the threads
 	// reside is normal priority. Needed for keeping audio reports at a decent rate
@@ -544,13 +538,28 @@ void Wiimote::DisconnectInternal()
 	CloseHandle(dev_handle);
 	dev_handle = 0;
 
-	CloseHandle(hid_overlap_read.hEvent);
-	CloseHandle(hid_overlap_write.hEvent);
-
 #ifdef SHARE_WRITE_WIIMOTES
 	std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
 	g_connected_wiimotes.erase(devicepath);
 #endif
+}
+
+void Wiimote::InitInternal()
+{
+	dev_handle = 0;
+	stack = MSBT_STACK_UNKNOWN;
+
+	hid_overlap_read = OVERLAPPED();
+	hid_overlap_read.hEvent = CreateEvent(NULL, true, false, NULL);
+
+	hid_overlap_write = OVERLAPPED();
+	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
+}
+
+void Wiimote::TeardownInternal()
+{
+	CloseHandle(hid_overlap_read.hEvent);
+	CloseHandle(hid_overlap_write.hEvent);
 }
 
 bool Wiimote::IsConnected() const
@@ -560,7 +569,7 @@ bool Wiimote::IsConnected() const
 
 void _IOWakeup(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read)
 {
-	CancelIoEx(dev_handle, &hid_overlap_read);
+	SetEvent(hid_overlap_read.hEvent);
 }
 
 // positive = read packet
@@ -582,26 +591,22 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 		if (ERROR_IO_PENDING == read_err)
 		{
 			auto const wait_result = WaitForSingleObject(hid_overlap_read.hEvent, INFINITE);
-			if (WAIT_TIMEOUT == wait_result)
-			{
-				CancelIo(dev_handle);
-			}
-			else if (WAIT_FAILED == wait_result)
+
+			// In case the event was signalled by _IOWakeup before the read completed, cancel it.
+			CancelIo(dev_handle);
+
+			if (WAIT_FAILED == wait_result)
 			{
 				WARN_LOG(WIIMOTE, "A wait error occurred on reading from Wiimote %i.", index + 1);
-				CancelIo(dev_handle);
 			}
 
-			if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, TRUE))
+			if (!GetOverlappedResult(dev_handle, &hid_overlap_read, &bytes, FALSE))
 			{
 				auto const overlapped_err = GetLastError();
 
 				if (ERROR_OPERATION_ABORTED == overlapped_err)
 				{
-					/*
-					if (buf[1] != 0)
-						WARN_LOG(WIIMOTE, "Packet ignored. This may indicate a problem.");
-					*/
+					// It was.
 					return -1;
 				}
 

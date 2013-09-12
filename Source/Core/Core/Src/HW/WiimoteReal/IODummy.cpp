@@ -43,6 +43,12 @@ bool WiimoteScanner::IsReady() const
 	return false;
 }
 
+void Wiimote::InitInternal()
+{}
+
+void Wiimote::TeardownInternal()
+{}
+
 bool Wiimote::ConnectInternal()
 {
 	return 0;

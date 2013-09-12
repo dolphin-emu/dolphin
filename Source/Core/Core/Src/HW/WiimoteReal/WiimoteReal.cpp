@@ -39,29 +39,12 @@ WiimoteScanner g_wiimote_scanner;
 
 Wiimote::Wiimote()
 	: index()
-#ifdef __APPLE__
-	, btd(), ichan(), cchan(), input(), inputlen(), m_connected()
-#elif defined(__linux__) && HAVE_BLUEZ
-	, cmd_sock(-1), int_sock(-1)
-#elif defined(_WIN32)
-	, dev_handle(0), stack(MSBT_STACK_UNKNOWN)
-#endif
 	, m_last_input_report()
 	, m_channel(0)
 	, m_rumble_state()
 	, m_need_prepare()
 {
-#if defined(__linux__) && HAVE_BLUEZ
-	int fds[2];
-	if (pipe(fds))
-	{
-		ERROR_LOG(WIIMOTE, "pipe failed");
-		abort();
-	}
-	wakeup_pipe_w = fds[1];
-	wakeup_pipe_r = fds[0];
-	bdaddr = (bdaddr_t){{0, 0, 0, 0, 0, 0}};
-#endif
+	InitInternal();
 }
 
 Wiimote::~Wiimote()
@@ -69,10 +52,7 @@ Wiimote::~Wiimote()
 	StopThread();
 	ClearReadQueue();
 	m_write_reports.Clear();
-#if defined(__linux__) && HAVE_BLUEZ
-	close(wakeup_pipe_w);
-	close(wakeup_pipe_r);
-#endif
+	TeardownInternal();
 }
 
 // to be called from CPU thread
@@ -514,8 +494,6 @@ void Wiimote::StopThread()
 	if (m_wiimote_thread.joinable())
 		m_wiimote_thread.join();
 #if defined(__APPLE__)
-	CFRelease(m_wiimote_thread_run_loop);
-	m_wiimote_thread_run_loop = NULL;
 #endif
 }
 
@@ -543,9 +521,6 @@ void Wiimote::WaitReady()
 void Wiimote::ThreadFunc()
 {
 	Common::SetCurrentThreadName("Wiimote Device Thread");
-#if defined(__APPLE__)
-	m_wiimote_thread_run_loop = (CFRunLoopRef) CFRetain(CFRunLoopGetCurrent());
-#endif
 
 	bool ok = ConnectInternal();
 
@@ -565,7 +540,7 @@ void Wiimote::ThreadFunc()
 			if (!PrepareOnThread())
 			{
 				ERROR_LOG(WIIMOTE, "Wiimote::PrepareOnThread failed.  Disconnecting Wiimote %d.", index + 1);
-				DisconnectInternal();
+				break;
 			}
 		}
 		Write();
