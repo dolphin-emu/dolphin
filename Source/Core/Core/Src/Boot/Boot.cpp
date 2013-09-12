@@ -192,6 +192,10 @@ bool CBoot::BootUp()
 		Memory::WriteBigEData(stubstr, 0x80001804, 8);
 	}
 
+	// Not part of the binary itself, but either we or Gecko OS might insert
+	// this, and it doesn't clear the icache properly.
+	HLE::Patch(0x800018a8, "GeckoCodehandler");
+
 	g_symbolDB.Clear();
 	VideoInterface::Preset(_StartupPara.bNTSC);
 	switch (_StartupPara.m_BootType)
