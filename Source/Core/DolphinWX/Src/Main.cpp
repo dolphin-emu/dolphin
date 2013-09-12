@@ -249,12 +249,13 @@ bool DolphinApp::OnInit()
 	}
 #endif
 
-	//create all necessary directories in user directory
-	//TODO : detect the revision and upgrade where necessary
+	// Copy initial Wii NAND data from Sys to User.
+	File::CopyDir(File::GetSysDirectory() + WII_USER_DIR,
+	              File::GetUserPath(D_WIIUSER_IDX));
+
+	// TODO: replace these with overlays
 	File::CopyDir(std::string(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP),
 			File::GetUserPath(D_GAMECONFIG_IDX));
-	File::CopyDir(std::string(SHARED_USER_DIR WII_USER_DIR DIR_SEP),
-			File::GetUserPath(D_WIIUSER_IDX));
 	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP),
 			File::GetUserPath(D_OPENCL_IDX));
 
