@@ -139,8 +139,7 @@ void JitArm::arith(UGeckoInstruction inst)
 	bool carry = false;
 	bool isUnsigned = false;
 	bool shiftedImm = false;
-	// printf("inst %s has OPCD %d subop10 %d\n",  PPCTables::GetInstructionName(inst), inst.OPCD, inst.SUBOP10);
-
+	
 	switch (inst.OPCD)
 	{
 		case 7: // mulli
@@ -481,7 +480,7 @@ void JitArm::arith(UGeckoInstruction inst)
 					RS = gpr.R(s);
 					RB = gpr.R(b);
 					MVN(rA, RB);
-					ANDS(RA, RS, rA);
+					ORRS(RA, RS, rA);
 					gpr.Unlock(rA);
 				}
 				break;
