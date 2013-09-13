@@ -10,5 +10,9 @@
         android:key="cpuCorePref"
         android:summary="@string/emu_core_to_use"
         android:title="@string/cpu_core" />
+    <CheckBoxPreference
+            android:key="fastmemPref"
+            android:summary="@string/fastmem_desc"
+            android:title="@string/fastmem" />
         
 </PreferenceScreen>
