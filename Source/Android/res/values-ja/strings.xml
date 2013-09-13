@@ -72,6 +72,8 @@
     <string name="emu_core_to_use">使用するエミュレーションコア</string>
     <string name="dual_core">デュアルコア</string>
     <string name="dual_core_descrip">処理のための2つのCPUコアを使用して。速度が向上します。</string>
+    <string name="fastmem">Fastmem</string>
+    <string name="fastmem_desc">メモリアクセスのために潜在的に危険な最適化を使用して。</string>
     <string name="video_settings">ビデオ</string>
     <string name="software_renderer">Software Renderer</string>
     <string name="opengl_es3">OpenGL ES 3</string>
