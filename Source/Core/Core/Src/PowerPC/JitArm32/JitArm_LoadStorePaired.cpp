@@ -25,8 +25,7 @@ void JitArm::psq_l(UGeckoInstruction inst)
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-
-	if (js.memcheck) { Default(inst); return; }
+	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
 	
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 16, 3); // Type
@@ -66,8 +65,8 @@ void JitArm::psq_st(UGeckoInstruction inst)
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck) { Default(inst); return; }
-	
+	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
+
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 0, 3); // Type
 	LSL(R12, R12, 2);
