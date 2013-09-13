@@ -106,10 +106,20 @@ int Interpreter::SingleStepInner(void)
 			if (HLE::IsEnabled(flags))
 			{
 				HLEFunction(function);
+				if (type == HLE::HLE_HOOK_START)
+				{
+					// Run the original.
+					function = 0;
+				}
+			}
+			else
+			{
+				function = 0;
 			}
 		}
 	}
-	else
+
+	if (function == 0)
 	{
 		#ifdef USE_GDBSTUB
 		if (gdb_active() && gdb_bp_x(PC)) {
