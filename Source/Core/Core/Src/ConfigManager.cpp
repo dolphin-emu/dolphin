@@ -167,7 +167,7 @@ void SConfig::SaveSettings()
 	}
 
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
-	ini.Set("General", "NANDRoot",			m_NANDPath);
+	ini.Set("General", "NANDRootPath",		m_NANDPath);
 	ini.Set("General", "WirelessMac",		m_WirelessMac);
 	#ifdef USE_GDBSTUB
 	ini.Set("General", "GDBPort", m_LocalCoreStartupParameter.iGDBPort);
@@ -244,8 +244,8 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "SelectedLanguage",	m_LocalCoreStartupParameter.SelectedLanguage);
 	ini.Set("Core", "DPL2Decoder",		m_LocalCoreStartupParameter.bDPL2Decoder);
 	ini.Set("Core", "Latency",			m_LocalCoreStartupParameter.iLatency);
-	ini.Set("Core", "MemcardA",			m_strMemoryCardA);
-	ini.Set("Core", "MemcardB",			m_strMemoryCardB);
+	ini.Set("Core", "MemcardAPath",		m_strMemoryCardA);
+	ini.Set("Core", "MemcardBPath",		m_strMemoryCardB);
 	ini.Set("Core", "SlotA",			m_EXIDevice[0]);
 	ini.Set("Core", "SlotB",			m_EXIDevice[1]);
 	ini.Set("Core", "SerialPort1",		m_EXIDevice[2]);
@@ -318,7 +318,7 @@ void SConfig::LoadSettings()
 
 		ini.Get("General", "RecursiveGCMPaths",		&m_RecursiveISOFolder,							false);
 
-		ini.Get("General", "NANDRoot",		&m_NANDPath);
+		ini.Get("General", "NANDRootPath",		&m_NANDPath);
 		m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
 		DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 		DiscIO::CSharedContent::AccessInstance().UpdateLocation();
@@ -403,8 +403,8 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage,		0);
 		ini.Get("Core", "DPL2Decoder",	&m_LocalCoreStartupParameter.bDPL2Decoder,	false);
 		ini.Get("Core", "Latency",		&m_LocalCoreStartupParameter.iLatency,		2);
-		ini.Get("Core", "MemcardA",		&m_strMemoryCardA);
-		ini.Get("Core", "MemcardB",		&m_strMemoryCardB);
+		ini.Get("Core", "MemcardAPath",	&m_strMemoryCardA);
+		ini.Get("Core", "MemcardBPath",	&m_strMemoryCardB);
 		ini.Get("Core", "SlotA",		(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
 		ini.Get("Core", "SlotB",		(int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 		ini.Get("Core", "SerialPort1",	(int*)&m_EXIDevice[2], EXIDEVICE_NONE);
