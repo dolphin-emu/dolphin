@@ -154,8 +154,9 @@ bool InstallCodeHandler()
 	// Turn off Pause on start
 	Memory::Write_U32(0, 0x80002774);
 
-	// Write the Game ID into the location expected by WiiRD
-	Memory::WriteBigEData(Memory::GetPointer(0x80000000), 0x80001800, 6);
+	// Write a magic value to 'gameid' (codehandleronly does not actually read this).
+	// For the purpose of this, see HLEGeckoCodehandler.
+	Memory::Write_U32(0xd01f1bad, 0x80001800);
 
 	// Create GCT in memory
 	Memory::Write_U32(0x00d0c0de, codelist_location);
@@ -279,10 +280,7 @@ void RunCodeHandler()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats && active_codes.size() > 0)
 	{
-		u8 *gameId = Memory::GetPointer(0x80000000);
-		u8 *wiirdId = Memory::GetPointer(0x80001800);
-
-		if (!code_handler_installed || memcmp(gameId, wiirdId, 6))
+		if (!code_handler_installed || Memory::Read_U32(0x80001800) - 0xd01f1bad > 5)
 			code_handler_installed = InstallCodeHandler();
 
 		if (code_handler_installed)
