@@ -150,6 +150,12 @@ void Reset(bool _bHard)
 		g_FdMap[i] = NULL;
 	}
 
+	u32 j;
+	for (j=0; j<ES_MAX_COUNT; j++)
+	{
+		es_inuse[j] = false;
+	}
+
 	TDeviceMap::iterator itr = g_DeviceMap.begin();
 	while (itr != g_DeviceMap.end())
 	{
@@ -547,17 +553,6 @@ void ExecuteCommand(u32 _Address)
 
 		// Generate a reply to the IPC command
 		EnqReply(_Address, reply_delay);
-	}
-	else
-	{
-		if (pDevice)
-		{
-			INFO_LOG(WII_IPC_HLE, "<<-- Reply Failed to %s IPC Request %i @ 0x%08x ", pDevice->GetDeviceName().c_str(), Command, _Address);
-		}
-		else
-		{
-			INFO_LOG(WII_IPC_HLE, "<<-- Reply Failed to Unknown (%08x) IPC Request %i @ 0x%08x ", DeviceID, Command, _Address);
-		}
 	}
 }
 

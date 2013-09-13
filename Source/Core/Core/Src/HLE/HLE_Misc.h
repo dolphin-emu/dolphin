@@ -12,6 +12,7 @@ namespace HLE_Misc
 	void HBReload();
 	void OSBootDol();
 	void OSGetResetCode();
+	void HLEGeckoCodehandler();
 }
 
 #endif

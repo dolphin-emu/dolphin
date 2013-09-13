@@ -594,13 +594,18 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					ViewCount = FileSize / DiscIO::INANDContentLoader::TICKET_SIZE;
 					_dbg_assert_msg_(WII_IPC_ES, (ViewCount>0) && (ViewCount<=4), "IOCTL_ES_GETVIEWCNT ticket count seems to be wrong");
 				}
+				else if (TitleID >> 32 == 0x00000001)
+				{
+					// Fake a ticket view to make IOS reload work.
+					ViewCount = 1;
+				}
 				else
 				{
+					ViewCount = 0;
 					if (TitleID == TITLEID_SYSMENU)
 					{
 						PanicAlertT("There must be a ticket for 00000001/00000002. Your NAND dump is probably incomplete.");
 					}
-					ViewCount = 0;
 					//retVal = ES_NO_TICKET_INSTALLED;
 				}
 			}
@@ -650,6 +655,19 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 							Memory::WriteBigEData(FileTicket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
 						}
 					}
+				}
+				else if (TitleID >> 32 == 0x00000001)
+				{
+					// For IOS titles, the ticket view isn't normally parsed by either the
+					// SDK or libogc, just passed to LaunchTitle, so this
+					// shouldn't matter at all.  Just fill out some fields just
+					// to be on the safe side.
+					u32 Address = Buffer.PayloadBuffer[0].m_Address;
+					memset(Memory::GetPointer(Address), 0, 0xD8);
+					Memory::Write_U64(TitleID, Address + 4 + (0x1dc - 0x1d0)); // title ID
+					Memory::Write_U16(0xffff, Address + 4 + (0x1e4 - 0x1d0)); // unnnown
+					Memory::Write_U32(0xff00, Address + 4 + (0x1ec - 0x1d0)); // access mask
+					memset(Memory::GetPointer(Address + 4 + (0x222 - 0x1d0)), 0xff, 0x20); // content permissions
 				}
 				else
 				{
@@ -916,10 +934,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				// Lie to mem about loading a different IOS
 				// someone with an affected game should test
 				IOSv = TitleID & 0xffff;
+				bSuccess = true;
 			}
-			if (!bSuccess && IOSv >= 30 && IOSv != 0xffff)
+			if (!bSuccess)
 			{
-				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload an IOS or a title that is not available in your NAND dump\n"
+				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your NAND dump\n"
 					"TitleID %016llx.\n Dolphin will likely hang now.", TitleID);
 			}
 			else
@@ -966,14 +985,13 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016llx %08x %016llx %08x %016llx %04x", TitleID,view,ticketid,devicetype,titleid,access);
 			//					   IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000 0001000248414341 ffff
 
-			//We have to handle the reply ourselves as this handle is not valid anymore
-			
+			// This is necessary because Reset(true) above deleted this object.  Ew.
 			
 			// It seems that the original hardware overwrites the command after it has been
 			// executed. We write 8 which is not any valid command, and what IOS does 
 			Memory::Write_U32(8, _CommandAddress);
 			// IOS seems to write back the command that was responded to
-			Memory::Write_U32(6, _CommandAddress + 8);
+			Memory::Write_U32(7, _CommandAddress + 8);
 			
 			// Generate a reply to the IPC command
 			WII_IPC_HLE_Interface::EnqReply(_CommandAddress, 0);

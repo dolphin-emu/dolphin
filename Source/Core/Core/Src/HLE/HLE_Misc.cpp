@@ -17,6 +17,7 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "HLE.h"
 #include "PowerPC/PPCAnalyst.h"
+#include "PowerPC/PPCCache.h"
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCSymbolDB.h"
 #include "CommonPaths.h"
@@ -240,6 +241,28 @@ void OSBootDol()
 	}
 	HLE::UnPatch("__OSBootDol");
 	NPC = PC;
+}
+
+void HLEGeckoCodehandler()
+{
+	// Work around the codehandler not properly invalidating the icache, but
+	// only the first few frames.
+	// (Project M uses a conditional to only apply patches after something has
+	// been read into memory, or such, so we do the first 5 frames.  More
+	// robust alternative would be to actually detect memory writes, but that
+	// would be even uglier.)
+	u32 magic = 0xd01f1bad;
+	u32 existing = Memory::Read_U32(0x80001800);
+	if (existing - magic == 5)
+	{
+		return;
+	}
+	else if(existing - magic > 5)
+	{
+		existing = magic;
+	}
+	Memory::Write_U32(existing + 1, 0x80001800);
+	PowerPC::ppcState.iCache.Reset();
 }
 
 }
