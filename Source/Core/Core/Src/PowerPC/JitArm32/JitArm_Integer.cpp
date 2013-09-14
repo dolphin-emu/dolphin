@@ -757,9 +757,9 @@ void JitArm::srawix(UGeckoInstruction inst)
 	int a = inst.RA;
 	int s = inst.RS;
 	int amount = inst.SH;
+
 	if (amount != 0)
 	{
-		Default(inst); return;
 		ARMReg RA = gpr.R(a);
 		ARMReg RS = gpr.R(s);
 		ARMReg tmp = gpr.GetReg();
@@ -774,7 +774,7 @@ void JitArm::srawix(UGeckoInstruction inst)
 
 		LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
 		BIC(tmp, tmp, mask);
-		SetCC(CC_EQ);
+		SetCC(CC_NEQ);
 		ORR(tmp, tmp, mask);
 		SetCC();
 		STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
