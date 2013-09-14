@@ -75,7 +75,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 {
 	// Load ISO data
 	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
-	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	bool IsWad = DiscIO::IsVolumeWadFile(OpenISO);
+	bool IsWiiDisc = DiscIO::IsVolumeWiiDisc(OpenISO);
+	if (IsWiiDisc)
 	{
 		for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
 		{
@@ -97,7 +99,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	else
 	{
 		// TODO : Should we add a way to browse the wad file ?
-		if (!DiscIO::IsVolumeWadFile(OpenISO))
+		if (!IsWad)
 		{
 			GCFiles.clear();
 			pFileSystem = DiscIO::CreateFileSystem(OpenISO);
@@ -132,7 +134,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	bRefreshList = false;
 
-	CreateGUIControls(DiscIO::IsVolumeWadFile(OpenISO));
+	CreateGUIControls(IsWad);
 
 	LoadGameConfig();
 
@@ -156,21 +158,33 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
 		m_Country->SetValue(_("USA"));
-		m_Lang->SetSelection(0);
-		m_Lang->Disable(); // For NTSC Games, there's no multi lang
+		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
+		{
+			m_Lang->SetSelection(0);
+			m_Lang->Disable();
+		}
+
 		break;
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		m_Country->SetValue(_("JAPAN"));
-		m_Lang->SetSelection(-1);
-		m_Lang->Disable(); // For NTSC Games, there's no multi lang
+		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
+		{
+			m_Lang->Insert(_("Japanese"), 0);
+			m_Lang->SetSelection(0);
+			m_Lang->Disable();
+		}
 		break;
 	case DiscIO::IVolume::COUNTRY_KOREA:
 		m_Country->SetValue(_("KOREA"));
 		break;
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
 		m_Country->SetValue(_("TAIWAN"));
-		m_Lang->SetSelection(-1);
-		m_Lang->Disable(); // For NTSC Games, there's no multi lang
+		if (!IsWad) // For (non wad) NTSC Games, there's no multi lang
+		{
+			m_Lang->Insert(_("TAIWAN"), 0);
+			m_Lang->SetSelection(0);
+			m_Lang->Disable();
+		}
 		break;
 	case DiscIO::IVolume::COUNTRY_SDK:
 		m_Country->SetValue(_("No Country (SDK)"));
@@ -179,6 +193,13 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		m_Country->SetValue(_("UNKNOWN"));
 		break;
 	}
+	
+	if (IsWiiDisc) // Only one language with wii banners
+	{
+		m_Lang->SetSelection(0);
+		m_Lang->Disable();
+	}
+
 	wxString temp = _T("0x") + StrToWxStr(OpenISO->GetMakerID());
 	m_MakerID->SetValue(temp);
 	m_Revision->SetValue(wxString::Format(wxT("%u"), OpenISO->GetRevision()));
@@ -186,7 +207,15 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	m_FST->SetValue(wxString::Format(wxT("%u"), OpenISO->GetFSTSize()));
 
 	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
-	ChangeBannerDetails((int)SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
+	if (!IsWad)
+	{
+		ChangeBannerDetails((int)SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
+	}
+	else
+	{
+		ChangeBannerDetails(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
+	}
+	
 	m_Banner->SetBitmap(OpenGameListItem->GetImage());
 	m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
 
@@ -480,8 +509,19 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_Lang.Add(_("Spanish"));
 	arrayStringFor_Lang.Add(_("Italian"));
 	arrayStringFor_Lang.Add(_("Dutch"));
+	int language = (int)SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+	if (IsWad)
+	{
+		arrayStringFor_Lang.Insert(_("Japanese"), 0);
+		arrayStringFor_Lang.Add(_("Simplified Chinese"));
+		arrayStringFor_Lang.Add(_("Traditional Chinese"));
+		arrayStringFor_Lang.Add(_("Korean"));
+		
+		language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+	}
 	m_Lang = new wxChoice(m_Information, ID_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_Lang);
-	m_Lang->SetSelection((int)SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
+	m_Lang->SetSelection(language);
+	
 	wxStaticText * const m_ShortText = new wxStaticText(m_Information, wxID_ANY, _("Short Name:"));
 	m_ShortName = new wxTextCtrl(m_Information, ID_SHORTNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText * const m_MakerText = new wxStaticText(m_Information, wxID_ANY, _("Maker:"));
@@ -1342,23 +1382,7 @@ void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 
 void CISOProperties::ChangeBannerDetails(int lang)
 {
-	// why?
-	switch (OpenGameListItem->GetCountry())
-	{
-	case DiscIO::IVolume::COUNTRY_TAIWAN:
-	case DiscIO::IVolume::COUNTRY_JAPAN:
-		lang = -1;
-		break;
-		
-	case DiscIO::IVolume::COUNTRY_USA:
-		lang = 0;
-		break;
-		
-	default:
-		break;
-	}
-	
-	wxString const shortName = StrToWxStr(OpenGameListItem->GetBannerName(lang));
+	wxString const shortName = StrToWxStr(OpenGameListItem->GetName(lang));
 	wxString const comment = StrToWxStr(OpenGameListItem->GetDescription(lang));
 	wxString const maker = StrToWxStr(OpenGameListItem->GetCompany());
 
