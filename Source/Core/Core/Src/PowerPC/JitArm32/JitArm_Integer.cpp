@@ -219,6 +219,7 @@ void JitArm::arith(UGeckoInstruction inst)
 		case 31: // addcx, addx, subfx
 			switch(inst.SUBOP10)
 			{
+				case 24: // slwx
 				case 28: // andx
 				case 60: // andcx
 				case 124: // norx 
@@ -227,6 +228,8 @@ void JitArm::arith(UGeckoInstruction inst)
 				case 412: // orcx 
 				case 444: // orx
 				case 476: // nandx
+				case 536: // srwx 
+				case 792: // srawx
 					if (gpr.IsImm(s))
 					{
 						isImm[0] = true;
@@ -239,6 +242,7 @@ void JitArm::arith(UGeckoInstruction inst)
 					}
 					Rc = inst.Rc;
 				break;
+
 				case 10: // addcx
 					carry = true;
 				case 40: // subfx
@@ -302,6 +306,10 @@ void JitArm::arith(UGeckoInstruction inst)
 			case 31: // addcx, addx, subfx
 				switch(inst.SUBOP10)
 				{
+					case 24:
+						gpr.SetImmediate(a, Imm[0] << Imm[1]);
+						dest = a;
+					break;
 					case 28:
 						gpr.SetImmediate(a, And(Imm[0], Imm[1]));
 						dest = a;
@@ -338,6 +346,14 @@ void JitArm::arith(UGeckoInstruction inst)
 					break;
 					case 476:
 						gpr.SetImmediate(a, ~And(Imm[1], Imm[0]));
+						dest = a;
+					break;
+					case 536:
+						gpr.SetImmediate(a, Imm[0] >> Imm[1]);
+						dest = a;
+					break;
+					case 792:
+						gpr.SetImmediate(a, ((s32)Imm[0]) >> Imm[1]);
 						dest = a;
 					break;
 					case 10: // addcx
@@ -428,6 +444,12 @@ void JitArm::arith(UGeckoInstruction inst)
 		case 31: 
 			switch(inst.SUBOP10)
 			{
+				case 24:
+					RA = gpr.R(a);
+					RS = gpr.R(s);
+					RB = gpr.R(b);
+					LSLS(RA, RS, RB);
+				break;
 				case 28:
 					RA = gpr.R(a);
 					RS = gpr.R(s);
@@ -496,7 +518,18 @@ void JitArm::arith(UGeckoInstruction inst)
 					AND(RA, RS, RB);
 					MVNS(RA, RA);
 				break;
-
+				case 536:
+					RA = gpr.R(a);
+					RS = gpr.R(s);
+					RB = gpr.R(b);
+					LSRS(RA,  RS, RB);	
+				break;
+				case 792:
+					RA = gpr.R(a);
+					RS = gpr.R(s);
+					RB = gpr.R(b);
+					ASRS(RA,  RS, RB);	
+				break;
 				case 10: // addcx
 				case 266:
 				case 778: // both addx
