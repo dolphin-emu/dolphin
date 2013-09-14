@@ -210,6 +210,8 @@ public:
 	void ps_sum0(UGeckoInstruction _inst);
 	void ps_sum1(UGeckoInstruction _inst);
 	void ps_madd(UGeckoInstruction _inst);
+	void ps_madds0(UGeckoInstruction _inst);
+	void ps_madds1(UGeckoInstruction _inst);
 	void ps_sub(UGeckoInstruction _inst);
 	void ps_mul(UGeckoInstruction _inst);
 	void ps_muls0(UGeckoInstruction _inst);
