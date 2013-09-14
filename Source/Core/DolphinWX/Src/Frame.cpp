@@ -106,7 +106,7 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 {
 	// Give it an icon
 	wxIcon IconTemp;
-	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(dolphin_ico32x32));
+	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(Dolphin_png));
 	SetIcon(IconTemp);
 }
 
