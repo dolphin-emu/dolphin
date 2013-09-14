@@ -173,3 +173,54 @@ void JitArm::fmrx(UGeckoInstruction inst)
 	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
+void JitArm::fmaddsx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vD0 = fpr.R0(d, false);
+	ARMReg vD1 = fpr.R1(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+
+	VMOV(V0, vB0);
+	
+	VMLA(V0, vA0, vC0);
+
+	VMOV(vD0, V0);
+	VMOV(vD1, V0);
+
+	fpr.Unlock(V0);
+
+	if (inst.Rc) Helper_UpdateCR1(vD0);
+}
+
+void JitArm::fmaddx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vD0 = fpr.R0(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+
+	VMOV(V0, vB0);
+	
+	VMLA(V0, vA0, vC0);
+
+	VMOV(vD0, V0);
+
+	fpr.Unlock(V0);
+
+	if (inst.Rc) Helper_UpdateCR1(vD0);
+}

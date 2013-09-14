@@ -197,6 +197,9 @@ public:
 	void fmulsx(UGeckoInstruction _inst);
 	void fmulx(UGeckoInstruction _inst);
 	void fmrx(UGeckoInstruction _inst);
+	void fmaddsx(UGeckoInstruction _inst);
+	void fmaddx(UGeckoInstruction _inst);
+
 
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);
