@@ -598,9 +598,7 @@ void CConfigMain::CreateGUIControls()
 
 	CFileSearch::XStringVector theme_dirs;
 	theme_dirs.push_back(File::GetUserPath(D_THEMES_IDX));
-#if !defined(_WIN32)
-	theme_dirs.push_back(SHARED_USER_DIR THEMES_DIR);
-#endif
+	theme_dirs.push_back(File::GetSysDirectory() + THEMES_DIR);
 
 	CFileSearch cfs(CFileSearch::XStringVector(1, "*"), theme_dirs);
 	auto const& sv = cfs.GetFileNames();

@@ -21,8 +21,8 @@ enum {
 	D_GCUSER_IDX,
 	D_WIIROOT_IDX,
 	D_WIIUSER_IDX,
-	D_CONFIG_IDX,
-	D_GAMECONFIG_IDX,
+	D_CONFIG_IDX, // global settings
+	D_GAMESETTINGS_IDX, // user-specified settings which override both the global and the default settings (per game)
 	D_MAPS_IDX,
 	D_CACHE_IDX,
 	D_SHADERCACHE_IDX,

@@ -64,10 +64,9 @@ public final class DolphinEmulator extends Activity
 			String BaseDir = Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu";
 			String ConfigDir = BaseDir + File.separator + "Config";
 			String GCDir = BaseDir + File.separator + "GC";
-			String WiiDir = BaseDir + File.separator + "Wii";
 
 			// Copy assets if needed
-			File file = new File(WiiDir + File.separator + "setting-usa.txt");
+			File file = new File(GCDir + File.separator + "font_sjis.bin");
 			if(!file.exists())
 			{
 				NativeLibrary.CreateUserFolders();
@@ -81,10 +80,6 @@ public final class DolphinEmulator extends Activity
 				CopyAsset("dsp_rom.bin",     GCDir + File.separator + "dsp_rom.bin");
 				CopyAsset("font_ansi.bin",   GCDir + File.separator + "font_ansi.bin");
 				CopyAsset("font_sjis.bin",   GCDir + File.separator + "font_sjis.bin");
-				CopyAsset("setting-eur.txt", WiiDir + File.separator + "setting-eur.txt");
-				CopyAsset("setting-jpn.txt", WiiDir + File.separator + "setting-jpn.txt");
-				CopyAsset("setting-kor.txt", WiiDir + File.separator + "setting-kor.txt");
-				CopyAsset("setting-usa.txt", WiiDir + File.separator + "setting-usa.txt");
 			}
 
 			// Load the configuration keys set in the Dolphin ini and gfx ini files

@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "Common.h"
+#include "CommonPaths.h"
 #include "IniFile.h"
 #include "BootManager.h"
 #include "Volume.h"
@@ -73,11 +74,16 @@ bool BootCore(const std::string& _rFilename)
 		return false;
 
 	// Load game specific settings
-	IniFile game_ini;
 	std::string unique_id = StartUp.GetUniqueID();
-	StartUp.m_strGameIni = File::GetUserPath(D_GAMECONFIG_IDX) + unique_id + ".ini";
-	if (unique_id.size() == 6 && game_ini.Load(StartUp.m_strGameIni.c_str()))
+	StartUp.m_strGameIniDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + unique_id + ".ini";
+	StartUp.m_strGameIniLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + unique_id + ".ini";
+
+	if (unique_id.size() == 6)
 	{
+		IniFile game_ini;
+		game_ini.Load(StartUp.m_strGameIniDefault);
+		game_ini.Load(StartUp.m_strGameIniLocal, true);
+
 		config_cache.valid = true;
 		config_cache.bCPUThread = StartUp.bCPUThread;
 		config_cache.bSkipIdle = StartUp.bSkipIdle;

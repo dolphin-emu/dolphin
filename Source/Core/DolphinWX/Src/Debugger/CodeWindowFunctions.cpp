@@ -211,7 +211,9 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
 	if (Core::GetState() == Core::CORE_UNINITIALIZED) return;
 
-	std::string mapfile = CBoot::GenerateMapFilename();
+	std::string existing_map_file, writable_map_file;
+	bool map_exists = CBoot::FindMapFile(&existing_map_file,
+	                                     &writable_map_file);
 	switch (event.GetId())
 	{
 	case IDM_CLEARSYMBOLS:
@@ -238,28 +240,28 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		break;
 		}
 	case IDM_LOADMAPFILE:
-		if (!File::Exists(mapfile))
+		if (!map_exists)
 		{
 			g_symbolDB.Clear();
 			PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
 			SignatureDB db;
 			if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
 				db.Apply(&g_symbolDB);
-			Parent->StatusBarMessage("'%s' not found, scanning for common functions instead", mapfile.c_str());
+			Parent->StatusBarMessage("'%s' not found, scanning for common functions instead", writable_map_file.c_str());
 		}
 		else
 		{
-			g_symbolDB.LoadMap(mapfile.c_str());
-			Parent->StatusBarMessage("Loaded symbols from '%s'", mapfile.c_str());
+			g_symbolDB.LoadMap(existing_map_file.c_str());
+			Parent->StatusBarMessage("Loaded symbols from '%s'", existing_map_file.c_str());
 		}
 		HLE::PatchFunctions();
 		NotifyMapLoaded();
 		break;
 	case IDM_SAVEMAPFILE:
-		g_symbolDB.SaveMap(mapfile.c_str());
+		g_symbolDB.SaveMap(writable_map_file.c_str());
 		break;
 	case IDM_SAVEMAPFILEWITHCODES:
-		g_symbolDB.SaveMap(mapfile.c_str(), true);
+		g_symbolDB.SaveMap(writable_map_file.c_str(), true);
 		break;
 
 	case IDM_RENAME_SYMBOLS:
