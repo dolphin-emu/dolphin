@@ -198,6 +198,7 @@ public:
 
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);
+	void lfsu(UGeckoInstruction _inst);
 	void lfsx(UGeckoInstruction _inst);
 	void lfd(UGeckoInstruction _inst);
 	void stfs(UGeckoInstruction _inst);

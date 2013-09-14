@@ -27,7 +27,6 @@
 #include "JitRegCache.h"
 #include "JitAsm.h"
 extern u32 Helper_Mask(u8 mb, u8 me);
-// ADDI and RLWINMX broken for now
 
 // Assumes that Sign and Zero flags were set by the last operation. Preserves all flags and registers.
 // Jit64 ComputerRC is signed
@@ -204,9 +203,9 @@ void JitArm::arith(UGeckoInstruction inst)
 			isImm[1] = true;
 			Imm[1] = inst.UIMM << (shiftedImm ? 16 : 0); 
 		break;
-		case 29: // addis_rc
+		case 29: // andis_rc
 			shiftedImm = true;
-		case 28: // addi_rc
+		case 28: // andi_rc
 			if (gpr.IsImm(s))
 			{
 				isImm[0] = true;
