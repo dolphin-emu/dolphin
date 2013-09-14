@@ -286,3 +286,66 @@ void JitArm::stfsu(UGeckoInstruction inst)
 	gpr.Unlock(rA, rB);
 }
 
+void JitArm::stfd(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreFloatingOff)
+
+	ARMReg rA = gpr.GetReg();
+	ARMReg rB = gpr.GetReg();
+	ARMReg v0 = fpr.R0(inst.FS);
+	
+	if (inst.RA)
+	{
+		MOVI2R(rB, inst.SIMM_16);
+		ARMReg RA = gpr.R(inst.RA);
+		ADD(rB, rB, RA);
+	}
+	else
+		MOVI2R(rB, (u32)inst.SIMM_16);
+
+	
+	MOVI2R(rA, (u32)&Memory::Write_F64);	
+	PUSH(4, R0, R1, R2, R3);
+	VMOV(D0, v0);
+	MOV(R0, rB);
+
+	BL(rA);
+
+	POP(4, R0, R1, R2, R3);
+	
+	gpr.Unlock(rA, rB);
+}
+
+void JitArm::stfdu(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreFloatingOff)
+
+	ARMReg RA = gpr.R(inst.RA);
+	ARMReg rA = gpr.GetReg();
+	ARMReg rB = gpr.GetReg();
+	ARMReg v0 = fpr.R0(inst.FS);
+	
+	MOVI2R(rB, inst.SIMM_16);
+	ADD(rB, rB, RA);
+	
+	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
+	CMP(rA, EXCEPTION_DSI);
+	
+	SetCC(CC_NEQ);
+	MOV(RA, rB);
+	SetCC();
+
+	MOVI2R(rA, (u32)&Memory::Write_F64);	
+	PUSH(4, R0, R1, R2, R3);
+	VMOV(D0, v0);
+	MOV(R0, rB);
+
+	BL(rA);
+
+	POP(4, R0, R1, R2, R3);
+	
+	gpr.Unlock(rA, rB);
+}
+

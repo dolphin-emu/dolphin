@@ -205,6 +205,8 @@ public:
 	void lfdu(UGeckoInstruction _inst);
 	void stfs(UGeckoInstruction _inst);
 	void stfsu(UGeckoInstruction _inst);
+	void stfd(UGeckoInstruction _inst);
+	void stfdu(UGeckoInstruction _inst);
 
 	// Paired Singles
 	void ps_add(UGeckoInstruction _inst);
