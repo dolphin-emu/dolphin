@@ -238,9 +238,11 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 		SendToClients(spac);
 	}
 
+	int pid = m_players[socket].pid;
+
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_PLAYER_LEAVE;
-	spac << m_players[socket].pid;
+	spac << pid;
 
 	m_selector.Remove(socket);
 	
@@ -250,6 +252,11 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 	// alert other players of disconnect
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 	SendToClients(spac);
+
+	for (int i = 0; i < 4; i++)
+		if (m_pad_map[i] == pid)
+			m_pad_map[i] = -1;
+	UpdatePadMapping();
 
 	return 0;
 }
