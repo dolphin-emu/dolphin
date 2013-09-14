@@ -95,7 +95,7 @@ static GekkoOPTemplate primarytable[] =
 	{39, &JitArm::stX}, //"stbu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
 
 	{46, &JitArm::lmw}, //"lmw",   OPTYPE_SYSTEM, FL_EVIL, 10}},
-	{47, &JitArm::Default}, //"stmw",  OPTYPE_SYSTEM, FL_EVIL, 10}},
+	{47, &JitArm::stmw}, //"stmw",  OPTYPE_SYSTEM, FL_EVIL, 10}},
 
 	{48, &JitArm::lfs}, //"lfs",  OPTYPE_LOADFP, FL_IN_A}},
 	{49, &JitArm::lfsu}, //"lfsu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},

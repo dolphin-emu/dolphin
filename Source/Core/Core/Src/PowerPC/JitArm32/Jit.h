@@ -181,6 +181,7 @@ public:
 	void stX(UGeckoInstruction _inst);
 	void lXX(UGeckoInstruction _inst);
 	void lmw(UGeckoInstruction _inst);
+	void stmw(UGeckoInstruction _inst);
 
 	void icbi(UGeckoInstruction _inst);
 	void dcbst(UGeckoInstruction _inst);

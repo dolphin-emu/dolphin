@@ -493,6 +493,34 @@ void JitArm::lmw(UGeckoInstruction inst)
 	gpr.Unlock(rA, rB);
 }
 
+void JitArm::stmw(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff)
+	if (!Core::g_CoreStartupParameter.bFastmem){
+		Default(inst); return;
+	}
+
+	u32 a = inst.RA;
+	ARMReg rA = gpr.GetReg();
+	ARMReg rB = gpr.GetReg();
+	ARMReg rC = gpr.GetReg();
+	MOVI2R(rA, inst.SIMM_16);
+	if (a)
+		ADD(rA, rA, gpr.R(a));
+	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	BIC(rA, rA, mask); // 3
+	MOVI2R(rB, (u32)Memory::base, false); // 4-5
+	ADD(rA, rA, rB); // 6
+
+	for (int i = inst.RD; i < 32; i++)
+	{
+		ARMReg RX = gpr.R(i);
+		REV(rC, RX);
+		STR(rC, rA, (i - inst.RD) * 4);
+	}
+	gpr.Unlock(rA, rB, rC);
+}
 void JitArm::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
