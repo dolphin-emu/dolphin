@@ -529,6 +529,22 @@ void JitArm::addex(UGeckoInstruction inst)
 	gpr.Unlock(rA);
 }
 
+void JitArm::cntlzwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff)
+	u32 a = inst.RA, s = inst.RS;
+	
+	ARMReg RA = gpr.R(a);
+	ARMReg RS = gpr.R(s);
+	CLZ(RA, RS);
+	if (inst.Rc)
+	{
+		CMP(RA, 0);
+		ComputeRC();
+	}
+}
+
 void JitArm::mulhwux(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
