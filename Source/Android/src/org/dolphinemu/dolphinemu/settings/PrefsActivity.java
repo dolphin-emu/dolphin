@@ -76,7 +76,7 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		actionBar.addTab(actionBar.newTab().setText(R.string.video_settings).setTabListener(this));
 	}
 
-	public void onTabReselected(Tab arg0, FragmentTransaction arg1)
+	public void onTabReselected(Tab tab, FragmentTransaction ft)
 	{
 		// Do nothing.
 	}
