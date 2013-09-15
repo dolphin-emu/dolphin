@@ -1077,8 +1077,8 @@ bool CISOProperties::SaveGameConfig()
 	bool success = GameIniLocal.Save(GameIniFileLocal.c_str());
 
 	// If the resulting file is empty, delete it. Kind of a hack, but meh.
-	//if (success && File::GetSize(GameIniFileLocal) == 0)
-	//	File::Delete(GameIniFileLocal);
+	if (success && File::GetSize(GameIniFileLocal) == 0)
+		File::Delete(GameIniFileLocal);
 
 	return success;
 }
@@ -1122,7 +1122,7 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 	// Create blank file to prevent editor from prompting to create it.
 	if (!File::Exists(GameIniFileLocal))
 	{
-		std::fstream blankFile(GameIniFileLocal);
+		std::fstream blankFile(GameIniFileLocal, std::ios::out);
 		blankFile.close();
 	}
 	LaunchExternalEditor(GameIniFileLocal);
