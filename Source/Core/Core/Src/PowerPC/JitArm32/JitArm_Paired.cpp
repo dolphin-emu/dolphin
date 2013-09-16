@@ -47,6 +47,39 @@ void JitArm::ps_add(UGeckoInstruction inst)
 	VADD(vD1, vA1, vB1);
 }
 
+void JitArm::ps_nmadd(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITPairedOff)
+	
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	if (inst.Rc) {
+		Default(inst); return;
+	}
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vA1 = fpr.R1(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vB1 = fpr.R1(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vC1 = fpr.R1(c);
+	ARMReg vD0 = fpr.R0(d, false);
+	ARMReg vD1 = fpr.R1(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+	ARMReg V1 = fpr.GetReg();
+
+	VMUL(V0, vA0, vC0);
+	VMUL(V1, vA1, vC1);
+	VADD(vD0, V0, vB0);
+	VADD(vD1, V1, vB1);
+	VNEG(vD0, vD0);
+	VNEG(vD1, vD1);
+
+	fpr.Unlock(V0);
+	fpr.Unlock(V1);
+}
+
 void JitArm::ps_madd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -73,6 +106,39 @@ void JitArm::ps_madd(UGeckoInstruction inst)
 	VMUL(V1, vA1, vC1);
 	VADD(vD0, V0, vB0);
 	VADD(vD1, V1, vB1);
+
+	fpr.Unlock(V0);
+	fpr.Unlock(V1);
+}
+
+void JitArm::ps_nmsub(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITPairedOff)
+	
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	if (inst.Rc) {
+		Default(inst); return;
+	}
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vA1 = fpr.R1(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vB1 = fpr.R1(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vC1 = fpr.R1(c);
+	ARMReg vD0 = fpr.R0(d, false);
+	ARMReg vD1 = fpr.R1(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+	ARMReg V1 = fpr.GetReg();
+
+	VMUL(V0, vA0, vC0);
+	VMUL(V1, vA1, vC1);
+	VSUB(vD0, V0, vB0);
+	VSUB(vD1, V1, vB1);
+	VNEG(vD0, vD0);
+	VNEG(vD1, vD1);
 
 	fpr.Unlock(V0);
 	fpr.Unlock(V1);

@@ -221,7 +221,9 @@ public:
 	void ps_sum0(UGeckoInstruction _inst);
 	void ps_sum1(UGeckoInstruction _inst);
 	void ps_madd(UGeckoInstruction _inst);
+	void ps_nmadd(UGeckoInstruction _inst);
 	void ps_msub(UGeckoInstruction _inst);
+	void ps_nmsub(UGeckoInstruction _inst);
 	void ps_madds0(UGeckoInstruction _inst);
 	void ps_madds1(UGeckoInstruction _inst);
 	void ps_sub(UGeckoInstruction _inst);
