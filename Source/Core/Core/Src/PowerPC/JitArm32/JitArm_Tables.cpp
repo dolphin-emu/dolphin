@@ -156,7 +156,7 @@ static GekkoOPTemplate table4_2[] =
 	{24, &JitArm::Default}, //"ps_res",    OPTYPE_PS, 0}},
 	{25, &JitArm::ps_mul}, //"ps_mul",    OPTYPE_PS, 0}},
 	{26, &JitArm::Default}, //"ps_rsqrte", OPTYPE_PS, 0, 1}},
-	{28, &JitArm::Default}, //"ps_msub",   OPTYPE_PS, 0}},
+	{28, &JitArm::ps_msub}, //"ps_msub",   OPTYPE_PS, 0}},
 	{29, &JitArm::ps_madd}, //"ps_madd",   OPTYPE_PS, 0}},
 	{30, &JitArm::Default}, //"ps_nmsub",  OPTYPE_PS, 0}},
 	{31, &JitArm::Default}, //"ps_nmadd",  OPTYPE_PS, 0}},
