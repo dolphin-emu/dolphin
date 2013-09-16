@@ -681,15 +681,17 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 	if (paths[D_USER_IDX].empty())
 	{
 #ifdef _WIN32
-		// Detect where the User directory is. There are four different cases (on top of the
+		// Detect where the User directory is. There are five different cases (on top of the
 		// command line flag, which overrides all this):
-		// 1. HKCU\Software\Dolphin Emulator\LocalUserConfig exists and is true
+		// 1. GetExeDirectory()\portable.txt exists
 		//    -> Use GetExeDirectory()\User
-		// 2. HKCU\Software\Dolphin Emulator\UserConfigPath exists
+		// 2. HKCU\Software\Dolphin Emulator\LocalUserConfig exists and is true
+		//    -> Use GetExeDirectory()\User
+		// 3. HKCU\Software\Dolphin Emulator\UserConfigPath exists
 		//    -> Use this as the user directory path
-		// 3. My Documents exists
+		// 4. My Documents exists
 		//    -> Use My Documents\Dolphin Emulator as the User directory path
-		// 4. Default
+		// 5. Default
 		//    -> Use GetExeDirectory()\User
 
 		// Check our registry keys
@@ -708,17 +710,19 @@ const std::string& GetUserPath(const unsigned int DirIDX, const std::string &new
 			RegCloseKey(hkey);
 		}
 
+		local = local || File::Exists(GetExeDirectory() + DIR_SEP "portable.txt");
+
 		// Get Program Files path in case we need it.
 		TCHAR my_documents[MAX_PATH];
 		bool my_documents_found = SUCCEEDED(SHGetFolderPath(NULL, CSIDL_MYDOCUMENTS, NULL, SHGFP_TYPE_CURRENT, my_documents));
 
-		if (local) // Case 1
+		if (local) // Case 1-2
 			paths[D_USER_IDX] = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
-		else if (configPath[0]) // Case 2
+		else if (configPath[0]) // Case 3
 			paths[D_USER_IDX] = TStrToUTF8(configPath);
-		else if (my_documents_found) // Case 3
+		else if (my_documents_found) // Case 4
 			paths[D_USER_IDX] = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
-		else // Case 4
+		else // Case 5
 			paths[D_USER_IDX] = GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 
 		// Prettify the path: it will be displayed in some places, we don't want a mix of \ and /.
