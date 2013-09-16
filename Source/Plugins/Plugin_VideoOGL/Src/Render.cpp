@@ -373,7 +373,7 @@ Renderer::Renderer()
 	WARN_LOG(VIDEO, "Running the OpenGL ES 3 backend!");
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsGLSLUBO = true; 
-	g_Config.backend_info.bSupportsPrimitiveRestart = false; 
+	g_Config.backend_info.bSupportsPrimitiveRestart = true; 
 	g_Config.backend_info.bSupportsEarlyZ = false;
 	
 	g_ogl_config.bSupportsGLSLCache = true; 
@@ -603,9 +603,11 @@ Renderer::Renderer()
 	glBlendColor(0, 0, 0, 0.5f);
 	glClearDepthf(1.0f);
 
-#ifndef USE_GLES3	
 	if(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
 	{
+#ifdef USE_GLES3
+		glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+#else
 		if(g_ogl_config.bSupportOGL31)
 		{
 			glEnable(GL_PRIMITIVE_RESTART);
@@ -616,8 +618,8 @@ Renderer::Renderer()
 			glEnableClientState(GL_PRIMITIVE_RESTART_NV);
 			glPrimitiveRestartIndexNV(65535);
 		}
-	}
 #endif
+	}
 	UpdateActiveConfig();
 }
 
