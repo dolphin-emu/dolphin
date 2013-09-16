@@ -68,6 +68,7 @@ private:
 	void PrintDebug(UGeckoInstruction inst, u32 level);
 
 	void Helper_UpdateCR1(ARMReg value);
+	void SetFPException(ARMReg Reg, u32 Exception);
 public:
 	JitArm() : code_buffer(32000) {}
 	~JitArm() {}
@@ -199,7 +200,7 @@ public:
 	void fmrx(UGeckoInstruction _inst);
 	void fmaddsx(UGeckoInstruction _inst);
 	void fmaddx(UGeckoInstruction _inst);
-
+	void fctiwzx(UGeckoInstruction inst);
 
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);

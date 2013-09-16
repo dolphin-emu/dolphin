@@ -25,17 +25,134 @@
 #include "../PPCTables.h"
 #include "ArmEmitter.h"
 #include "../../HW/Memmap.h"
-
+#include "../Interpreter/Interpreter_FPUtils.h"
 
 #include "Jit.h"
 #include "JitRegCache.h"
 #include "JitFPRCache.h"
 #include "JitAsm.h"
 
+static const double minmaxFloat[2] = {-(double)0x80000000, (double)0x7FFFFFFF};
+static const double doublenum = 0xfff8000000000000ull;
+static Operand2 FRFIMask(5, 0x8); // 0x60000
+static Operand2 FIMask(2, 8); // 0x20000
+static Operand2 FRMask(4, 8); // 0x40000
+static Operand2 FXMask(2, 1); // 0x80000000
+
+static Operand2 XXException(2, 4); // 0x2000000
+static Operand2 CVIException(1, 0xC); // 0x100 
+
 void JitArm::Helper_UpdateCR1(ARMReg value)
 {
 	// Should just update exception flags, not do any compares.
 	PanicAlert("CR1");
+}
+
+void JitArm::SetFPException(ARMReg Reg, u32 Exception)
+{
+	Operand2 *ExceptionMask;
+	switch(Exception)
+	{
+		case FPSCR_VXCVI:
+			ExceptionMask = &CVIException;
+		break;
+		case FPSCR_XX:
+			ExceptionMask = &XXException;
+		break;
+		default:
+			_assert_msg_(DYNA_REC, false, "Passed unsupported FPexception: 0x%08x", Exception);
+			return;
+		break;
+	}
+	ARMReg rB = gpr.GetReg();
+	MOV(rB, Reg);
+	ORR(Reg, Reg, *ExceptionMask);
+	CMP(rB, Reg);
+	SetCC(CC_NEQ);
+	ORR(Reg, Reg, FXMask); // If exception is set, set exception bit	
+	SetCC();
+	BIC(Reg, Reg, FRFIMask);
+	gpr.Unlock(rB);
+}
+
+void JitArm::fctiwzx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+	u32 b = inst.FB;
+	u32 d = inst.FD;
+
+	ARMReg vB = fpr.R0(b);
+	ARMReg vD = fpr.R0(d);
+	ARMReg V0 = fpr.GetReg();
+	ARMReg V1 = fpr.GetReg();
+	ARMReg V2 = fpr.GetReg();
+
+	ARMReg rA = gpr.GetReg();
+	ARMReg fpscrReg = gpr.GetReg();
+
+	FixupBranch DoneMax, DoneMin;
+	LDR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+	MOVI2R(rA, (u32)minmaxFloat);
+
+	// Check if greater than max float
+	{
+		VLDR(V0, rA, 8); // Load Max
+		VCMPE(vB, V0);
+		VMRS(_PC); // Loads in to APSR
+		FixupBranch noException = B_CC(CC_LE);
+		VMOV(vD, V0); // Set to max
+		SetFPException(fpscrReg, FPSCR_VXCVI);
+		DoneMax = B();
+		SetJumpTarget(noException);
+	}
+	// Check if less than min float
+	{
+		VLDR(V0, rA, 0);
+		VCMPE(vB, V0);
+		VMRS(_PC);
+		FixupBranch noException = B_CC(CC_GE);
+		VMOV(vD, V0);
+		SetFPException(fpscrReg, FPSCR_VXCVI);
+		DoneMin = B();
+		SetJumpTarget(noException);
+	}
+	// Within ranges, convert to integer
+	VCVT(vD, vB, TO_INT | IS_SIGNED | ROUND_TO_ZERO); 
+	VCMPE(vD, vB);
+	VMRS(_PC);
+
+	SetCC(CC_EQ);
+		BIC(fpscrReg, fpscrReg, FRFIMask);
+		FixupBranch DoneEqual = B();
+	SetCC();
+	SetFPException(fpscrReg, FPSCR_XX);	
+	ORR(fpscrReg, fpscrReg, FIMask);
+	VABS(V1, vB);
+	VABS(V2, vD);
+	VCMPE(V2, V1);
+	VMRS(_PC);
+	SetCC(CC_GT);
+		ORR(fpscrReg, fpscrReg, FRMask);
+	SetCC();
+	SetJumpTarget(DoneEqual);
+
+	SetJumpTarget(DoneMax);
+	SetJumpTarget(DoneMin);
+
+	MOVI2R(rA, (u32)&doublenum);
+	VLDR(V0, rA, 0);
+	NEONXEmitter nemit(this);
+	nemit.VORR(vD, vD, V0);
+
+	if (inst.Rc) Helper_UpdateCR1(vD);
+
+	STR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+	gpr.Unlock(rA);
+	gpr.Unlock(fpscrReg);
+	fpr.Unlock(V0);
+	fpr.Unlock(V1);
+	fpr.Unlock(V2);
 }
 
 void JitArm::fabsx(UGeckoInstruction inst)
