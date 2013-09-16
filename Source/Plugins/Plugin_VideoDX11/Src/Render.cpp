@@ -940,7 +940,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				h = s_recordHeight;
 			}
 			formatBufferDump((u8*)map.pData, &frame_data[0], s_recordWidth, s_recordHeight, map.RowPitch);
-			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
+			AVIDump::AddFrame(&frame_data[0], GetTargetRectangle().GetWidth(), GetTargetRectangle().GetHeight());
 			D3D::context->Unmap(s_screenshot_texture, 0);
 		}
 		bLastFrameDumped = true;

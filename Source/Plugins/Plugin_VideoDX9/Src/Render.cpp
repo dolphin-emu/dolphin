@@ -969,7 +969,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 					h = s_recordHeight;
 				}
 				formatBufferDump((const u8*)rect.pBits, &frame_data[0], s_recordWidth, s_recordHeight, rect.Pitch);
-				AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
+				AVIDump::AddFrame(&frame_data[0], GetTargetRectangle().GetWidth(), GetTargetRectangle().GetHeight());
 				ScreenShootMEMSurface->UnlockRect();
 			}
 		}
