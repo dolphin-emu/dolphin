@@ -1069,9 +1069,6 @@ void ARMXEmitter::VSTR(ARMReg Src, ARMReg Base, s16 offset)
 	}
 }
 
-void ARMXEmitter::VMRS_APSR() {
-	Write32(condition | 0xEF10A10 | (15 << 12));
-}
 void ARMXEmitter::VMRS(ARMReg Rt) {
 	Write32(condition | (0xEF << 20) | (1 << 16) | (Rt << 12) | 0xA10);
 }
@@ -1339,12 +1336,25 @@ void NEONXEmitter::VEOR(ARMReg Vd, ARMReg Vn, ARMReg Vm)
 {
 	bool register_quad = Vd >= Q0;
 	Vd = SubBase(Vd);
+	Vn = SubBase(Vn);
 	Vm = SubBase(Vm);
 
 	Write32((0xF3 << 24) | ((Vd & 0x10) << 18) | ((Vn & 0xF) << 16)
 			| ((Vd & 0xF) << 12) | (1 << 8) | ((Vn & 0x10) << 3) 
 			| (register_quad << 6) | ((Vm & 0x10) << 1) | (1 << 4) | (Vm & 0xF));
 }
+void NEONXEmitter::VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	bool register_quad = Vd >= Q0;
+	Vd = SubBase(Vd);
+	Vn = SubBase(Vn);
+	Vm = SubBase(Vm);
+
+	Write32((0xF2 << 24) | (0x1 << 21) | ((Vd & 0x10) << 18) | ((Vn & 0xF) << 16)
+			| ((Vd & 0xF) << 12) | (1 << 8) | ((Vn & 0x10) << 3) 
+			| (register_quad << 6) | ((Vm & 0x10) << 1) | (1 << 4) | (Vm & 0xF));
+}
+
 
 }
 

@@ -561,7 +561,6 @@ public:
 	void VMOV(ARMReg Dest, ARMReg Src);
 	void VCVT(ARMReg Dest, ARMReg Src, int flags);
 
-	void VMRS_APSR();
 	void VMRS(ARMReg Rt);
 	void VMSR(ARMReg Rt);
 
@@ -636,6 +635,7 @@ public:
 	void VREV16(NEONElementType Size, ARMReg Vd, ARMReg Vm);
 
 	void VEOR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 
 	void VLD1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
 	void VLD2(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
