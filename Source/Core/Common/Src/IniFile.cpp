@@ -351,8 +351,6 @@ bool IniFile::Load(const char* filename, bool keep_current_data)
 		}
 #endif
 
-		if (in.eof()) break;
-
 		if (line.size() > 0)
 		{
 			if (line[0] == '[')
