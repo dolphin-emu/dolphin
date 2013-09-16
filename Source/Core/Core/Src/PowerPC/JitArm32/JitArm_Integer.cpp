@@ -775,6 +775,7 @@ void JitArm::rlwimix(UGeckoInstruction inst)
 	}
 	gpr.Unlock(rA, rB);
 }
+
 void JitArm::rlwinmx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -798,6 +799,34 @@ void JitArm::rlwinmx(UGeckoInstruction inst)
 
 	//m_GPR[inst.RA] = _rotl(m_GPR[inst.RS],inst.SH) & mask;
 }
+void JitArm::rlwnmx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff)
+
+	u32 mask = Helper_Mask(inst.MB,inst.ME);
+	ARMReg RA = gpr.R(inst.RA);
+	ARMReg RS = gpr.R(inst.RS);
+	ARMReg RB = gpr.R(inst.RB);
+	ARMReg rA = gpr.GetReg();
+	ARMReg rB = gpr.GetReg();
+	MOVI2R(rA, mask);
+
+	// PPC rotates left, ARM rotates right. Swap it
+	MOV(rB, 32);
+	SUB(rB, rB, RB);
+
+	Operand2 Shift(RS, ST_ROR, rB); // Register shifted register	
+	if (inst.Rc)
+	{
+		ANDS(RA, rA, Shift);
+		GenerateRC();	
+	}
+	else
+		AND (RA, rA, Shift);
+	gpr.Unlock(rA, rB);
+}
+
 void JitArm::srawix(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

@@ -167,6 +167,7 @@ public:
 	void mulhwux(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);
 	void rlwinmx(UGeckoInstruction _inst);
+	void rlwnmx(UGeckoInstruction _inst);
 	void srawix(UGeckoInstruction _inst);
 	void extshx(UGeckoInstruction inst);
 	void extsbx(UGeckoInstruction inst);
