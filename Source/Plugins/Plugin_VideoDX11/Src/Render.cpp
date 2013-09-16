@@ -168,9 +168,9 @@ void TeardownDeviceObjects()
 	s_television.Shutdown();
 }
 
-void CreateScreenshotTexture()
+void CreateScreenshotTexture(const TargetRectangle& rc)
 {
-	D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
+	D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, rc.GetWidth(), rc.GetHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
 	HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, NULL, &s_screenshot_texture);
 	CHECK(hr==S_OK, "Create screenshot staging texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
@@ -721,21 +721,22 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 }
 
-bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &rc)
+bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle& rc)
 {
 	if (!s_screenshot_texture)
-		CreateScreenshotTexture();
+		CreateScreenshotTexture(rc);
 
 	// copy back buffer to system memory
-	D3D::context->CopyResource(s_screenshot_texture, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
+	D3D11_BOX box = CD3D11_BOX(rc.left, rc.top, 0, rc.right, rc.bottom, 1);
+	D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0, &box);
 
 	// D3DX11SaveTextureToFileA doesn't allow us to ignore the alpha channel, so we need to strip it out ourselves
 	D3D11_MAPPED_SUBRESOURCE map;
 	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
-	for (unsigned int y = 0; y < D3D::GetBackBufferHeight(); ++y)
+	for (unsigned int y = 0; y < rc.GetHeight(); ++y)
 	{
 		u8* ptr = (u8*)map.pData + y * map.RowPitch + 3;
-		for (unsigned int x = 0; x < D3D::GetBackBufferWidth(); ++x)
+		for (unsigned int x = 0; x < rc.GetWidth(); ++x)
 		{
 			*ptr = 0xFF;
 			ptr += 4;
@@ -747,8 +748,8 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	HRESULT hr = PD3DX11SaveTextureToFileA(D3D::context, s_screenshot_texture, D3DX11_IFF_PNG, filename.c_str());
 	if (SUCCEEDED(hr))
 	{
-		OSD::AddMessage(StringFromFormat("Saved %i x %i %s", D3D::GetBackBufferWidth(),
-		                                 D3D::GetBackBufferHeight(), filename.c_str()));
+		OSD::AddMessage(StringFromFormat("Saved %i x %i %s", rc.GetWidth(),
+		                                 rc.GetHeight(), filename.c_str()));
 	}
 	else
 	{
@@ -906,9 +907,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		static int s_recordHeight;
 
 		if (!s_screenshot_texture)
-			CreateScreenshotTexture();
+			CreateScreenshotTexture(GetTargetRectangle());
 
-		D3D::context->CopyResource(s_screenshot_texture, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
+		D3D11_BOX box = CD3D11_BOX(GetTargetRectangle().left, GetTargetRectangle().top, 0, GetTargetRectangle().right, GetTargetRectangle().bottom, 1);
+		D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0, &box);
 		if (!bLastFrameDumped)
 		{
 			s_recordWidth = GetTargetRectangle().GetWidth();
@@ -937,8 +939,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 				w = s_recordWidth;
 				h = s_recordHeight;
 			}
-			auto source_ptr = (const u8*)map.pData + GetTargetRectangle().left*4 + GetTargetRectangle().top*map.RowPitch;
-			formatBufferDump(source_ptr, &frame_data[0], s_recordWidth, s_recordHeight, map.RowPitch);
+			formatBufferDump((u8*)map.pData, &frame_data[0], s_recordWidth, s_recordHeight, map.RowPitch);
 			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
 			D3D::context->Unmap(s_screenshot_texture, 0);
 		}
