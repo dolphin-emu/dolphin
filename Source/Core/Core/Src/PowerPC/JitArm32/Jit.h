@@ -67,7 +67,8 @@ private:
 
 	void PrintDebug(UGeckoInstruction inst, u32 level);
 
-	void Helper_UpdateCR1(ARMReg value);
+	void Helper_UpdateCR1(ARMReg value);	
+
 	void SetFPException(ARMReg Reg, u32 Exception);
 public:
 	JitArm() : code_buffer(32000) {}
@@ -238,6 +239,7 @@ public:
 	void ps_neg(UGeckoInstruction _inst);
 	void ps_abs(UGeckoInstruction _inst);
 	void ps_nabs(UGeckoInstruction _inst);
+	void ps_rsqrte(UGeckoInstruction _inst);
 
 	// LoadStore paired
 	void psq_l(UGeckoInstruction _inst);

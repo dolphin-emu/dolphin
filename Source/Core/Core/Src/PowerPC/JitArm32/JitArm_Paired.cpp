@@ -22,10 +22,75 @@
 #include "../../CoreTiming.h"
 #include "../PPCTables.h"
 #include "ArmEmitter.h"
+#include "JitArm_FPUtils.h"
 
 #include "Jit.h"
 #include "JitRegCache.h"
 #include "JitAsm.h"
+
+void JitArm::ps_rsqrte(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITPairedOff)
+
+	u32 b = inst.FB, d = inst.FD;
+	if (inst.Rc){
+		Default(inst); return;
+	}
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vB1 = fpr.R1(b);
+	ARMReg vD0 = fpr.R0(d, false);
+	ARMReg vD1 = fpr.R1(d, false);
+	ARMReg fpscrReg = gpr.GetReg();
+	ARMReg V0 = D1;
+	ARMReg rA = gpr.GetReg();
+
+	MOVI2R(fpscrReg, (u32)&PPC_NAN);
+	VLDR(V0, fpscrReg, 0);
+	LDR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+
+	VCMP(vB0);
+	VMRS(_PC);
+	FixupBranch Less0 = B_CC(CC_LT);
+		VMOV(vD0, V0);	
+		SetFPException(fpscrReg, FPSCR_VXSQRT);
+		FixupBranch SkipOrr0 = B();
+	SetJumpTarget(Less0);
+	SetCC(CC_EQ);
+		ORR(rA, rA, 1);
+	SetCC();
+	SetJumpTarget(SkipOrr0);
+
+	VCMP(vB1);
+	VMRS(_PC);
+	FixupBranch Less1 = B_CC(CC_LT);
+		VMOV(vD1, V0);
+		SetFPException(fpscrReg, FPSCR_VXSQRT);
+		FixupBranch SkipOrr1 = B();
+	SetJumpTarget(Less1);
+	SetCC(CC_EQ);
+		ORR(rA, rA, 2);
+	SetCC();
+	SetJumpTarget(SkipOrr1);
+
+	CMP(rA, 0);
+	FixupBranch noException = B_CC(CC_EQ);
+	SetFPException(fpscrReg, FPSCR_ZX);
+	SetJumpTarget(noException);
+	
+	VCVT(S0, vB0, 0);
+	VCVT(S1, vB1, 0);
+
+	NEONXEmitter nemit(this);
+	nemit.VRSQRTE(F_32, D0, D0);
+	VCVT(vD0, S0, 0);
+	VCVT(vD1, S1, 0);
+	BKPT(1);
+
+	STR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+	gpr.Unlock(fpscrReg, rA);
+	fpr.Unlock(V0);
+}
 
 void JitArm::ps_add(UGeckoInstruction inst)
 {
