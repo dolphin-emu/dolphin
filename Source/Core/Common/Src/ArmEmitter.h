@@ -634,6 +634,8 @@ public:
 	void VREV32(NEONElementType Size, ARMReg Vd, ARMReg Vm);
 	void VREV16(NEONElementType Size, ARMReg Vd, ARMReg Vm);
 
+	void VRSQRTE(NEONElementType Size, ARMReg Vd, ARMReg Vm);
+
 	void VEOR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 

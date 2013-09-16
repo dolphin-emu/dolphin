@@ -1332,6 +1332,17 @@ void NEONXEmitter::VREV16(NEONElementType Size, ARMReg Vd, ARMReg Vm)
 	VREVX(0, Size, Vd, Vm);
 }
 
+void NEONXEmitter::VRSQRTE(NEONElementType Size, ARMReg Vd, ARMReg Vm)
+{
+	bool register_quad = Vd >= Q0;
+	Vd = SubBase(Vd);
+	Vm = SubBase(Vm);
+
+	Write32((0xF3 << 24) | (0xB << 20) | ((Vd & 0x10) << 18) | (0xB << 16)
+			| ((Vd & 0xF) << 12) | (9 << 7) | (Size & F_32 ? (1 << 8) : 0) | (register_quad << 6)
+			| ((Vm & 0x10) << 1) | (Vm & 0xF));
+}
+
 void NEONXEmitter::VEOR(ARMReg Vd, ARMReg Vn, ARMReg Vm)
 {
 	bool register_quad = Vd >= Q0;
