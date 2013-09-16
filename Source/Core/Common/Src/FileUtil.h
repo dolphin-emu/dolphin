@@ -161,10 +161,14 @@ public:
 	bool Close();
 
 	template <typename T>
-	bool ReadArray(T* data, size_t length)
+	bool ReadArray(T* data, size_t length, size_t* pReadBytes = NULL)
 	{
-		if (!IsOpen() || length != std::fread(data, sizeof(T), length, m_file))
+		size_t read_bytes = 0;
+		if (!IsOpen() || length != (read_bytes = std::fread(data, sizeof(T), length, m_file)))
 			m_good = false;
+
+		if (pReadBytes)
+			*pReadBytes = read_bytes;
 
 		return m_good;
 	}

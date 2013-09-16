@@ -885,8 +885,34 @@ bool ReadFileToString(bool text_file, const char *filename, std::string &str)
 	if (!f)
 		return false;
 
+	size_t read_size;
 	str.resize(GetSize(f));
-	return file.ReadArray(&str[0], str.size());
+	bool retval = file.ReadArray(&str[0], str.size(), &read_size);
+
+	// On Windows, reading a text file automatically translates \r\n to \n.
+	// This means we will read less characters than the expected size of the
+	// file. In that case, ignore the return value and count ourselves.
+#ifdef _WIN32
+	if (text_file)
+	{
+		size_t count = 0;
+		for (size_t i = 0; i < read_size; ++i)
+		{
+			if (str[i] == '\n')
+				count += 2;
+			else
+				count += 1;
+		}
+
+		if (count != str.size())
+			return false;
+
+		str.resize(read_size);
+		return true;
+	}
+#endif
+
+	return retval;
 }
 
 IOFile::IOFile()
