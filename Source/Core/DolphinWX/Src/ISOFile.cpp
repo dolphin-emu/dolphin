@@ -78,7 +78,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 				{
 					if (pBannerLoader->IsValid())
 					{
-						m_names = pBannerLoader->GetNames();
+						if (m_Platform != WII_WAD)
+							m_names = pBannerLoader->GetNames();
 						m_company = pBannerLoader->GetCompany();
 						m_descriptions = pBannerLoader->GetDescriptions();
 						
