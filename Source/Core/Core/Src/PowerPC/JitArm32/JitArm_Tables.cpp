@@ -214,10 +214,10 @@ static GekkoOPTemplate table31[] =
 
 	{54,   &JitArm::dcbst}, //"dcbst",  OPTYPE_DCACHE, 0, 4}},
 	{86,   &JitArm::Default}, //"dcbf",   OPTYPE_DCACHE, 0, 4}},
-	{246,  &JitArm::Default}, //"dcbtst", OPTYPE_DCACHE, 0, 1}},
-	{278,  &JitArm::Default}, //"dcbt",   OPTYPE_DCACHE, 0, 1}},
+	{246,  &JitArm::DoNothing}, //"dcbtst", OPTYPE_DCACHE, 0, 1}},
+	{278,  &JitArm::DoNothing}, //"dcbt",   OPTYPE_DCACHE, 0, 1}},
 	{470,  &JitArm::Default}, //"dcbi",   OPTYPE_DCACHE, 0, 4}},
-	{758,  &JitArm::Default}, //"dcba",   OPTYPE_DCACHE, 0, 4}},
+	{758,  &JitArm::DoNothing}, //"dcba",   OPTYPE_DCACHE, 0, 4}},
 	{1014, &JitArm::Default}, //"dcbz",   OPTYPE_DCACHE, 0, 4}},
 
 	//load word
