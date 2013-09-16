@@ -200,7 +200,9 @@ public:
 	void fmrx(UGeckoInstruction _inst);
 	void fmaddsx(UGeckoInstruction _inst);
 	void fmaddx(UGeckoInstruction _inst);
-	void fctiwzx(UGeckoInstruction inst);
+	void fctiwzx(UGeckoInstruction _inst);
+	void fcmpo(UGeckoInstruction _inst);
+	void fcmpu(UGeckoInstruction _inst);
 
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);
