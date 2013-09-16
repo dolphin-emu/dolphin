@@ -152,7 +152,7 @@ static GekkoOPTemplate table4_2[] =
 	{18, &JitArm::Default}, //"ps_div",    OPTYPE_PS, 0, 16}},
 	{20, &JitArm::ps_sub}, //"ps_sub",    OPTYPE_PS, 0}},
 	{21, &JitArm::ps_add}, //"ps_add",    OPTYPE_PS, 0}},
-	{23, &JitArm::Default}, //"ps_sel",    OPTYPE_PS, 0}},
+	{23, &JitArm::ps_sel}, //"ps_sel",    OPTYPE_PS, 0}},
 	{24, &JitArm::Default}, //"ps_res",    OPTYPE_PS, 0}},
 	{25, &JitArm::ps_mul}, //"ps_mul",    OPTYPE_PS, 0}},
 	{26, &JitArm::ps_rsqrte}, //"ps_rsqrte", OPTYPE_PS, 0, 1}},

@@ -240,6 +240,7 @@ public:
 	void ps_abs(UGeckoInstruction _inst);
 	void ps_nabs(UGeckoInstruction _inst);
 	void ps_rsqrte(UGeckoInstruction _inst);
+	void ps_sel(UGeckoInstruction _inst);
 
 	// LoadStore paired
 	void psq_l(UGeckoInstruction _inst);

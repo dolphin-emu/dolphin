@@ -90,6 +90,45 @@ void JitArm::ps_rsqrte(UGeckoInstruction inst)
 	gpr.Unlock(fpscrReg, rA);
 }
 
+void JitArm::ps_sel(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITPairedOff)
+	
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	if (inst.Rc) {
+		Default(inst); return;
+	}
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vA1 = fpr.R1(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vB1 = fpr.R1(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vC1 = fpr.R1(c);
+	ARMReg vD0 = fpr.R0(d, false);
+	ARMReg vD1 = fpr.R1(d, false);
+	
+	VCMP(vA0);
+	VMRS(_PC);
+
+	FixupBranch GT0 = B_CC(CC_GE);
+	VMOV(vD0, vB0);
+	FixupBranch EQ0 = B();
+	SetJumpTarget(GT0);
+	VMOV(vD0, vC0);
+	SetJumpTarget(EQ0);
+
+	VCMP(vA1);
+	VMRS(_PC);
+	FixupBranch GT1 = B_CC(CC_GE);
+	VMOV(vD1, vB1);
+	FixupBranch EQ1 = B();
+	SetJumpTarget(GT1);
+	VMOV(vD1, vC1);
+	SetJumpTarget(EQ1);
+}
+
 void JitArm::ps_add(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
