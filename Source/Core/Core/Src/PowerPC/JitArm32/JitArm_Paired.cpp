@@ -85,11 +85,9 @@ void JitArm::ps_rsqrte(UGeckoInstruction inst)
 	nemit.VRSQRTE(F_32, D0, D0);
 	VCVT(vD0, S0, 0);
 	VCVT(vD1, S1, 0);
-	BKPT(1);
 
 	STR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
 	gpr.Unlock(fpscrReg, rA);
-	fpr.Unlock(V0);
 }
 
 void JitArm::ps_add(UGeckoInstruction inst)
