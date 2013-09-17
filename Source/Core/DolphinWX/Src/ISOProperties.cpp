@@ -1016,16 +1016,21 @@ void CISOProperties::LoadGameConfig()
 		PHackEnable->SetValue(bTemp);
 
 	GameIniDefault.Get("Video", "PH_SZNear", &PHack_Data.PHackSZNear);
-	GameIniLocal.Get("Video", "PH_SZNear", &PHack_Data.PHackSZNear);
+	if (GameIniLocal.Get("Video", "PH_SZNear", &bTemp))
+		PHack_Data.PHackSZNear = bTemp;
 	GameIniDefault.Get("Video", "PH_SZFar", &PHack_Data.PHackSZFar);
-	GameIniLocal.Get("Video", "PH_SZFar", &PHack_Data.PHackSZFar);
+	if (GameIniLocal.Get("Video", "PH_SZFar", &bTemp))
+		PHack_Data.PHackSZFar = bTemp;
 	GameIniDefault.Get("Video", "PH_ExtraParam", &PHack_Data.PHackExP);
-	GameIniLocal.Get("Video", "PH_ExtraParam", &PHack_Data.PHackExP);
+	if (GameIniLocal.Get("Video", "PH_ExtraParam", &bTemp))
+		PHack_Data.PHackExP = bTemp;
 
 	GameIniDefault.Get("Video", "PH_ZNear", &PHack_Data.PHZNear);
-	GameIniLocal.Get("Video", "PH_ZNear", &PHack_Data.PHZNear);
+	if (GameIniLocal.Get("Video", "PH_ZNear", &bTemp))
+		PHack_Data.PHZNear = bTemp;
 	GameIniDefault.Get("Video", "PH_ZFar", &PHack_Data.PHZFar);
-	GameIniLocal.Get("Video", "PH_ZFar", &PHack_Data.PHZFar);
+	if (GameIniLocal.Get("Video", "PH_ZFar", &bTemp))
+		PHack_Data.PHZFar = bTemp;
 
 	int iTemp;
 	GameIniDefault.Get("EmuState", "EmulationStateId", &iTemp, 0/*Not Set*/);
