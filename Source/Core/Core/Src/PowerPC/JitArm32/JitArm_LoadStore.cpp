@@ -403,12 +403,6 @@ void JitArm::lXX(UGeckoInstruction inst)
 		break;
 	}
 	
-	if (update)
-	{
-		Default(inst);
-		return;
-	}
-
 	// Check for exception before loading
 	ARMReg rA = gpr.GetReg(false);
 
