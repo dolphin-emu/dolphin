@@ -1025,12 +1025,13 @@ void CISOProperties::LoadGameConfig()
 	if (GameIniLocal.Get("Video", "PH_ExtraParam", &bTemp))
 		PHack_Data.PHackExP = bTemp;
 
+	std::string sTemp;
 	GameIniDefault.Get("Video", "PH_ZNear", &PHack_Data.PHZNear);
-	if (GameIniLocal.Get("Video", "PH_ZNear", &bTemp))
-		PHack_Data.PHZNear = bTemp;
+	if (GameIniLocal.Get("Video", "PH_ZNear", &sTemp))
+		PHack_Data.PHZNear = sTemp;
 	GameIniDefault.Get("Video", "PH_ZFar", &PHack_Data.PHZFar);
-	if (GameIniLocal.Get("Video", "PH_ZFar", &bTemp))
-		PHack_Data.PHZFar = bTemp;
+	if (GameIniLocal.Get("Video", "PH_ZFar", &sTemp))
+		PHack_Data.PHZFar = sTemp;
 
 	int iTemp;
 	GameIniDefault.Get("EmuState", "EmulationStateId", &iTemp, 0/*Not Set*/);
@@ -1038,7 +1039,6 @@ void CISOProperties::LoadGameConfig()
 	if (GameIniLocal.Get("EmuState", "EmulationStateId", &iTemp, 0/*Not Set*/))
 		EmuState->SetSelection(iTemp);
 
-	std::string sTemp;
 	GameIniDefault.Get("EmuState", "EmulationIssues", &sTemp);
 	if (!sTemp.empty())
 		EmuIssues->SetValue(StrToWxStr(sTemp));
