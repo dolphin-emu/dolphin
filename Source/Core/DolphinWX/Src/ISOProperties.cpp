@@ -125,7 +125,6 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	GameIniFileDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + _iniFilename + ".ini";
 	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + _iniFilename + ".ini";
 
-	printf("Loading\n");
 	GameIniDefault.Load(GameIniFileDefault);
 	GameIniLocal.Load(GameIniFileLocal);
 
