@@ -179,6 +179,13 @@ public:
 	void mtspr(UGeckoInstruction _inst);
 	void mfspr(UGeckoInstruction _inst);
 	void mftb(UGeckoInstruction _inst);
+	void crXXX(UGeckoInstruction _inst);
+	void mcrf(UGeckoInstruction _inst);
+	void mfcr(UGeckoInstruction _inst);
+	void mtcrf(UGeckoInstruction _inst);
+	void mtsr(UGeckoInstruction _inst);
+	void mfsr(UGeckoInstruction _inst);
+	void mcrxr(UGeckoInstruction _inst);
 
 	// LoadStore
 	void stX(UGeckoInstruction _inst);
