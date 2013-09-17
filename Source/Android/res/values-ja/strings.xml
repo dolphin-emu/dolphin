@@ -9,8 +9,8 @@
     <string name="drawer_close">ナビゲーションウィンドウを閉じる</string>
     
     <!-- About Fragment -->
-    <string name="build_revision">ビルドのバージョン：</string>
-    <string name="supports_gles3">サポートのOpenGL ES 3：</string>
+    <string name="build_revision">ビルドのバージョン</string>
+    <string name="supports_gles3">サポートのOpenGL ES 3</string>
     
     <!-- Folder Browser -->
     <string name="current_dir">現在のディレクトリ： </string>

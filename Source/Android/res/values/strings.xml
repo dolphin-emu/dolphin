@@ -9,8 +9,8 @@
     <string name="drawer_close">Close navigation drawer</string>
 
     <!-- About Fragment -->
-    <string name="build_revision">Build Revision:</string>
-    <string name="supports_gles3">Supports OpenGL ES 3:</string>
+    <string name="build_revision">Build Revision</string>
+    <string name="supports_gles3">Supports OpenGL ES 3</string>
 
     <!-- Folder Browser -->
     <string name="current_dir">Current Dir: </string>
