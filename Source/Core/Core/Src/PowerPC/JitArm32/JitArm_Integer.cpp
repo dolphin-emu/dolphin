@@ -249,6 +249,7 @@ void JitArm::arith(UGeckoInstruction inst)
 					isUnsigned = true;
 				case 235: // mullwx
 				case 266:
+				case 747: // mullwox
 				case 778: // both addx
 					if (gpr.IsImm(a))
 					{
@@ -325,6 +326,7 @@ void JitArm::arith(UGeckoInstruction inst)
 						gpr.SetImmediate(a, ~Or(Imm[0], Imm[1]));
 						dest = a;
 					break;
+					case 747:
 					case 235:
 						gpr.SetImmediate(d, Mul(Imm[0], Imm[1]));
 					break;
@@ -475,6 +477,7 @@ void JitArm::arith(UGeckoInstruction inst)
 					ORR(RA, RS, RB);
 					MVNS(RA, RA);
 				break;
+				case 747:
 				case 235:
 					RD = gpr.R(d);
 					RA = gpr.R(a);

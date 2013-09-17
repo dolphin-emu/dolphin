@@ -53,8 +53,8 @@ ARMReg *ArmFPRCache::GetPPCAllocationOrder(int &count)
 	// the ppc side.
 	static ARMReg allocationOrder[] = 
 	{
-		D4, D5, D6, D7, D8, D9, D10, D11, D12, D13, 
-		D14, D15, D16, D17, D18, D19, D20, D21, D22, 
+		D4, D5, D6, D7, D8, D9, D10, D11, D12, D13,
+		D14, D15, D16,  D17, D18, D19, D20, D21, D22,
 		D23, D24, D25, D26, D27, D28, D29, D30, D31
 	};
 	count = sizeof(allocationOrder) / sizeof(const int);
@@ -126,17 +126,11 @@ bool ArmFPRCache::FindFreeRegister(u32 &regindex)
 ARMReg ArmFPRCache::GetPPCReg(u32 preg, bool PS1, bool preLoad)
 {
 	u32 lastRegIndex = GetLeastUsedRegister(true);
-
+	
 	if (_regs[preg][PS1].GetType() != REG_NOTLOADED)
 	{
 		u8 a = _regs[preg][PS1].GetRegIndex();
 		ArmCRegs[a].LastLoad = 0;
-		if (_regs[preg][PS1].GetType() == REG_AWAY && preLoad)
-		{
-			s16 offset = PPCSTATE_OFF(ps) + (preg * 16) + (PS1 ? 8 : 0);
-			emit->VLDR(ArmCRegs[a].Reg, R9, offset);
-			_regs[preg][PS1].LoadToReg(a);
-		}
 		return ArmCRegs[a].Reg;
 	}
 
@@ -144,12 +138,13 @@ ARMReg ArmFPRCache::GetPPCReg(u32 preg, bool PS1, bool preLoad)
 	if (FindFreeRegister(regindex))
 	{
 		s16 offset = PPCSTATE_OFF(ps) + (preg * 16) + (PS1 ? 8 : 0);
-		emit->VLDR(ArmCRegs[regindex].Reg, R9, offset);
 
 		ArmCRegs[regindex].PPCReg = preg;
 		ArmCRegs[regindex].LastLoad = 0;
+		ArmCRegs[regindex].PS1 = PS1;
 
 		_regs[preg][PS1].LoadToReg(regindex);
+		emit->VLDR(ArmCRegs[regindex].Reg, R9, offset);
 		return ArmCRegs[regindex].Reg;
 	}
 	
@@ -158,16 +153,15 @@ ARMReg ArmFPRCache::GetPPCReg(u32 preg, bool PS1, bool preLoad)
 	s16 offsetNew = PPCSTATE_OFF(ps) + (preg * 16) + (PS1 ? 8 : 0);
 
 	emit->VSTR(ArmCRegs[lastRegIndex].Reg, R9, offsetOld);
-	emit->VLDR(ArmCRegs[lastRegIndex].Reg, R9, offsetNew);
 
-	_regs[ArmCRegs[lastRegIndex].PPCReg][PS1].Flush();
+	_regs[ArmCRegs[lastRegIndex].PPCReg][ArmCRegs[lastRegIndex].PS1].Flush();
 	
 	ArmCRegs[lastRegIndex].PPCReg = preg;
 	ArmCRegs[lastRegIndex].LastLoad = 0;
 	ArmCRegs[lastRegIndex].PS1 = PS1;
 
 	_regs[preg][PS1].LoadToReg(lastRegIndex);
-
+	emit->VLDR(ArmCRegs[lastRegIndex].Reg, R9, offsetNew);
 	return ArmCRegs[lastRegIndex].Reg;		 
 }
 
@@ -185,7 +179,7 @@ void ArmFPRCache::Flush()
 {
 	for (u8 a = 0; a < 32; ++a)
 	{
-		if (_regs[a][0].GetType() == REG_REG)
+		if (_regs[a][0].GetType() != REG_NOTLOADED)
 		{
 			s16 offset =  PPCSTATE_OFF(ps) + (a * 16);
 			u32 regindex = _regs[a][0].GetRegIndex();
@@ -195,7 +189,7 @@ void ArmFPRCache::Flush()
 			ArmCRegs[regindex].LastLoad = 0;
 			_regs[a][0].Flush();
 		}
-		if (_regs[a][1].GetType() == REG_REG)
+		if (_regs[a][1].GetType() != REG_NOTLOADED)
 		{
 			s16 offset =  PPCSTATE_OFF(ps) + (a * 16) + 8;
 			u32 regindex = _regs[a][1].GetRegIndex();
