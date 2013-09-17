@@ -527,6 +527,16 @@ void TASInputDlg::GetValues(SPADStatus *PadStatus, int controllerID)
 		PadStatus->button |= PAD_BUTTON_START;
 	else
 		PadStatus->button &= ~PAD_BUTTON_START;
+
+	if(wx_r_button->IsChecked() || rTrig >= 255)
+		PadStatus->button |= PAD_TRIGGER_R;
+	else
+		PadStatus->button &= ~PAD_TRIGGER_R;
+
+	if(wx_l_button->IsChecked() || lTrig >= 255)
+		PadStatus->button |= PAD_TRIGGER_L;
+	else
+		PadStatus->button &= ~PAD_TRIGGER_L;
 	
 	ButtonTurbo();
 }
