@@ -359,6 +359,7 @@ private:
 	u32 EncodeVn(ARMReg Vn);
 	u32 EncodeVm(ARMReg Vm);
 	void WriteVFPDataOp(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void WriteVFPDataOp6bit(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm, u32 bit6);
 
 	void Write4OpMultiply(u32 op, ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
 
