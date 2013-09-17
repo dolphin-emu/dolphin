@@ -7,7 +7,7 @@
 package org.dolphinemu.dolphinemu;
 
 import android.app.Activity;
-import android.app.Fragment;
+import android.app.ListFragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -25,7 +25,7 @@ import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
 /**
  * Represents the about screen.
  */
-public final class AboutFragment extends Fragment
+public final class AboutFragment extends ListFragment
 {
 	private static Activity m_activity;
 
@@ -44,6 +44,7 @@ public final class AboutFragment extends Fragment
 
 		AboutFragmentAdapter adapter = new AboutFragmentAdapter(m_activity, R.layout.about_layout, Input);
 		mMainList.setAdapter(adapter);
+		mMainList.setEnabled(false);  // Makes the list view non-clickable.
 
 		return mMainList;
 	}
@@ -108,7 +109,7 @@ public final class AboutFragment extends Fragment
 			View v = convertView;
 			if (v == null)
 			{
-				LayoutInflater vi = (LayoutInflater)ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+				LayoutInflater vi = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				v = vi.inflate(id, parent, false);
 			}
 			
