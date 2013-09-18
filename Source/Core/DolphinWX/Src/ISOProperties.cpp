@@ -1008,40 +1008,39 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Video", "ZTPSpeedupHack", UseZTPSpeedupHack);
 
 	// First set values from default gameini, then apply values from local gameini
-	bool bTemp;
-	GameIniDefault.Get("Video", "ProjectionHack", &bTemp);
-	PHackEnable->SetValue(bTemp);
-	if (GameIniLocal.Get("Video", "ProjectionHack", &bTemp))
-		PHackEnable->SetValue(bTemp);
+	int iTemp;
+	GameIniDefault.Get("Video", "ProjectionHack", &iTemp);
+	PHackEnable->SetValue(iTemp);
+	if (GameIniLocal.Get("Video", "ProjectionHack", &iTemp))
+		PHackEnable->SetValue(iTemp);
 
 	GameIniDefault.Get("Video", "PH_SZNear", &PHack_Data.PHackSZNear);
-	if (GameIniLocal.Get("Video", "PH_SZNear", &bTemp))
-		PHack_Data.PHackSZNear = bTemp;
+	if (GameIniLocal.GetIfExists("Video", "PH_SZNear", &iTemp))
+		PHack_Data.PHackSZNear = iTemp;
 	GameIniDefault.Get("Video", "PH_SZFar", &PHack_Data.PHackSZFar);
-	if (GameIniLocal.Get("Video", "PH_SZFar", &bTemp))
-		PHack_Data.PHackSZFar = bTemp;
+	if (GameIniLocal.GetIfExists("Video", "PH_SZFar", &iTemp))
+		PHack_Data.PHackSZFar = iTemp;
 	GameIniDefault.Get("Video", "PH_ExtraParam", &PHack_Data.PHackExP);
-	if (GameIniLocal.Get("Video", "PH_ExtraParam", &bTemp))
-		PHack_Data.PHackExP = bTemp;
+	if (GameIniLocal.GetIfExists("Video", "PH_ExtraParam", &iTemp))
+		PHack_Data.PHackExP = iTemp;
 
 	std::string sTemp;
 	GameIniDefault.Get("Video", "PH_ZNear", &PHack_Data.PHZNear);
-	if (GameIniLocal.Get("Video", "PH_ZNear", &sTemp))
+	if (GameIniLocal.GetIfExists("Video", "PH_ZNear", &sTemp))
 		PHack_Data.PHZNear = sTemp;
 	GameIniDefault.Get("Video", "PH_ZFar", &PHack_Data.PHZFar);
-	if (GameIniLocal.Get("Video", "PH_ZFar", &sTemp))
+	if (GameIniLocal.GetIfExists("Video", "PH_ZFar", &sTemp))
 		PHack_Data.PHZFar = sTemp;
 
-	int iTemp;
 	GameIniDefault.Get("EmuState", "EmulationStateId", &iTemp, 0/*Not Set*/);
 	EmuState->SetSelection(iTemp);
-	if (GameIniLocal.Get("EmuState", "EmulationStateId", &iTemp, 0/*Not Set*/))
+	if (GameIniLocal.GetIfExists("EmuState", "EmulationStateId", &iTemp))
 		EmuState->SetSelection(iTemp);
 
 	GameIniDefault.Get("EmuState", "EmulationIssues", &sTemp);
 	if (!sTemp.empty())
 		EmuIssues->SetValue(StrToWxStr(sTemp));
-	if (GameIniLocal.Get("EmuState", "EmulationIssues", &sTemp))
+	if (GameIniLocal.GetIfExists("EmuState", "EmulationIssues", &sTemp))
 		EmuIssues->SetValue(StrToWxStr(sTemp));
 
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
@@ -1103,7 +1102,7 @@ bool CISOProperties::SaveGameConfig()
 			GameIniLocal.DeleteKey((section), (key)); \
 	} while (0)
 
-	SAVE_IF_NOT_DEFAULT("Video", "ProjectionHack", PHackEnable->GetValue(), false);
+	SAVE_IF_NOT_DEFAULT("Video", "ProjectionHack", (int)PHackEnable->GetValue(), 0);
 	SAVE_IF_NOT_DEFAULT("Video", "PH_SZNear", (PHack_Data.PHackSZNear ? 1 : 0), 0);
 	SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (PHack_Data.PHackSZFar ? 1 : 0), 0);
 	SAVE_IF_NOT_DEFAULT("Video", "PH_ExtraParam", (PHack_Data.PHackExP ? 1 : 0), 0);
