@@ -3,13 +3,16 @@ package org.dolphinemu.dolphinemu;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.view.*;
 import android.view.WindowManager.LayoutParams;
 import org.dolphinemu.dolphinemu.settings.InputConfigFragment;
+import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
 
 import java.util.List;
 
@@ -52,7 +55,18 @@ public final class EmulationActivity extends Activity
 		// and set on the native side of the code so the emulator can actually
 		// load the game.
 		Intent gameToEmulate = getIntent();
-		NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
+
+		// Due to a bug in Adreno, it renders the screen rotated 90 degrees when using OpenGL
+		// Flip the width and height when on Adreno to work around this.
+		// Mali isn't affected by this bug.
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		if (prefs.getString("gpuPref", "Software Rendering").equals("OGL")
+				&& VideoSettingsFragment.SupportsGLES3()
+				&& VideoSettingsFragment.m_GLVendor.equals("Qualcomm"))
+			NativeLibrary.SetDimensions((int)screenHeight, (int)screenWidth);
+		else
+			NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
+
 		NativeLibrary.SetFilename(gameToEmulate.getStringExtra("SelectedGame"));
 		Running = true;
 

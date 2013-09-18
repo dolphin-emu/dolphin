@@ -372,11 +372,15 @@ Renderer::Renderer()
 	GLFunc::Init();
 	WARN_LOG(VIDEO, "Running the OpenGL ES 3 backend!");
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
-	g_Config.backend_info.bSupportsGLSLUBO = true; 
+	g_Config.backend_info.bSupportsGLSLUBO = !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS); 
 	g_Config.backend_info.bSupportsPrimitiveRestart = true; 
 	g_Config.backend_info.bSupportsEarlyZ = false;
-	
+
+#ifdef ANDROID	
+	g_ogl_config.bSupportsGLSLCache = false; 
+#else
 	g_ogl_config.bSupportsGLSLCache = true; 
+#endif
 	g_ogl_config.bSupportsGLPinnedMemory = false; 
 	g_ogl_config.bSupportsGLSync = true; 
 	g_ogl_config.bSupportsGLBaseVertex = false; 
@@ -1557,31 +1561,35 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (XFBWrited)
 		s_fps = UpdateFPSCounter();
 	// ---------------------------------------------------------------------
-	GL_REPORT_ERRORD();
-	
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
+	{
+		GL_REPORT_ERRORD();
 
-	DrawDebugInfo();
-	DrawDebugText();
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	GL_REPORT_ERRORD();
- 
-	// Do our OSD callbacks	
-	OSD::DoCallbacks(OSD::OSD_ONFRAME);
-	OSD::DrawMessages();
-	GL_REPORT_ERRORD();
+		DrawDebugInfo();
+		DrawDebugText();
 
+		GL_REPORT_ERRORD();
+
+		// Do our OSD callbacks
+		OSD::DoCallbacks(OSD::OSD_ONFRAME);
+		OSD::DrawMessages();
+		GL_REPORT_ERRORD();
+	}
 	// Copy the rendered frame to the real window
 	GLInterface->Swap();
 
 	GL_REPORT_ERRORD();
 
 	// Clear framebuffer
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-	GL_REPORT_ERRORD();
+	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
+	{
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		GL_REPORT_ERRORD();
+	}
 
 	if(s_vsync != g_ActiveConfig.IsVSync())
 	{

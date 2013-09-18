@@ -6,15 +6,6 @@
 
 package org.dolphinemu.dolphinemu.settings;
 
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.egl.EGLContext;
-import javax.microedition.khronos.egl.EGLDisplay;
-import javax.microedition.khronos.egl.EGLSurface;
-import javax.microedition.khronos.opengles.GL10;
-
-import org.dolphinemu.dolphinemu.R;
-
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -23,12 +14,19 @@ import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import org.dolphinemu.dolphinemu.R;
+
+import javax.microedition.khronos.egl.*;
+import javax.microedition.khronos.opengles.GL10;
 
 /**
  * Responsible for handling the loading of the video preferences.
  */
 public final class VideoSettingsFragment extends PreferenceFragment
 {
+	public static String m_GLVersion;
+	public static String m_GLVendor;
+	public static String m_GLRenderer;
 	private Activity m_activity;
 
 	/**
@@ -138,9 +136,9 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	public static boolean SupportsGLES3()
 	{
 		VersionCheck mbuffer = new VersionCheck();
-		String m_GLVersion = mbuffer.getVersion();
-		String m_GLVendor = mbuffer.getVendor();
-		String m_GLRenderer = mbuffer.getRenderer();
+		m_GLVersion = mbuffer.getVersion();
+		m_GLVendor = mbuffer.getVendor();
+		m_GLRenderer = mbuffer.getRenderer();
 
 		boolean mSupportsGLES3 = false;
 
