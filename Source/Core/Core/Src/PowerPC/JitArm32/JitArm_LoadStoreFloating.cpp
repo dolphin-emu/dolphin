@@ -307,8 +307,13 @@ void JitArm::stfd(UGeckoInstruction inst)
 	
 	MOVI2R(rA, (u32)&Memory::Write_F64);	
 	PUSH(4, R0, R1, R2, R3);
+#if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
+	VMOV(R0, v0);
+	MOV(R2, rB);
+#else
 	VMOV(D0, v0);
 	MOV(R0, rB);
+#endif
 
 	BL(rA);
 
@@ -321,7 +326,6 @@ void JitArm::stfdu(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff)
-
 	ARMReg RA = gpr.R(inst.RA);
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
@@ -339,8 +343,13 @@ void JitArm::stfdu(UGeckoInstruction inst)
 
 	MOVI2R(rA, (u32)&Memory::Write_F64);	
 	PUSH(4, R0, R1, R2, R3);
+#if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
+	VMOV(R0, v0);
+	MOV(R2, rB);
+#else
 	VMOV(D0, v0);
 	MOV(R0, rB);
+#endif
 
 	BL(rA);
 
