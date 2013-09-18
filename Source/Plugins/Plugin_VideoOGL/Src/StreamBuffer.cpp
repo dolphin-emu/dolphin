@@ -21,12 +21,8 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 {
 	glGenBuffers(1, &m_buffer);
 	
-	bool nvidia = false;
+	bool nvidia = !strcmp(g_ogl_config.gl_vendor, "NVIDIA Corporation");
 	
-#ifndef __APPLE__
-	// OSX also reports to be nvidia, but the driver is self written and doesn't act like the windows nvidia driver.
-	nvidia = !strcmp(g_ogl_config.gl_vendor, "NVIDIA Corporation");
-#endif
 	if(m_uploadtype & STREAM_DETECT)
 	{
 		// TODO: move this to InitBackendInfo
