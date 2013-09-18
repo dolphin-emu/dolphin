@@ -59,7 +59,7 @@ public final class DolphinEmulator extends Activity
 		if (savedInstanceState == null)
 		{
 			Intent GameListIntent = new Intent(this, GameListActivity.class);
-			startActivity(GameListIntent, savedInstanceState);
+			startActivity(GameListIntent);
 
 			String BaseDir = Environment.getExternalStorageDirectory()+File.separator+"dolphin-emu";
 			String ConfigDir = BaseDir + File.separator + "Config";
