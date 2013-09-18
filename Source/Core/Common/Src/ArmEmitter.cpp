@@ -1150,7 +1150,10 @@ void ARMXEmitter::VMOV(ARMReg Dest, ARMReg Src)
 			else
 			{
 				// Move 64bit To Arm reg
-				_dbg_assert_msg_(DYNA_REC, false, "This VMOV doesn't support moving 64bit ARM From NEON");
+				ARMReg Dest2 = (ARMReg)(Dest + 1);
+				Src = SubBase(Src);
+				Write32(condition | (0xC5 << 20) | (Dest2 << 16) | (Dest << 12) \
+						| (0xB << 8) | ((Dest & 0x10) << 1) | (1 << 4) | (Src & 0xF)); 
 				return;
 			}
 		}
