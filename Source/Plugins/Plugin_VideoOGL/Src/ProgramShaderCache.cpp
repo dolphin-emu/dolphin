@@ -308,12 +308,13 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		file << s_glsl_header << vcode << s_glsl_header << pcode << infoLog;
 		file.close();
 		
-		PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
-			szTemp,
-			g_ogl_config.gl_vendor,
-			g_ogl_config.gl_renderer,
-			g_ogl_config.gl_version,
-			infoLog);
+		if(linkStatus != GL_TRUE)
+			PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
+				szTemp,
+				g_ogl_config.gl_vendor,
+				g_ogl_config.gl_renderer,
+				g_ogl_config.gl_version,
+				infoLog);
 		
 		delete [] infoLog;
 	}
@@ -365,13 +366,14 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		file << s_glsl_header << code << infoLog;
 		file.close();
 		
-		PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
-			type==GL_VERTEX_SHADER ? "vertex" : "pixel",
-			szTemp,
-			g_ogl_config.gl_vendor,
-			g_ogl_config.gl_renderer,
-			g_ogl_config.gl_version,
-			infoLog);
+		if(compileStatus != GL_TRUE)
+			PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
+				type==GL_VERTEX_SHADER ? "vertex" : "pixel",
+				szTemp,
+				g_ogl_config.gl_vendor,
+				g_ogl_config.gl_renderer,
+				g_ogl_config.gl_version,
+				infoLog);
 		
 		delete[] infoLog;
 	}
