@@ -178,11 +178,11 @@ bool ControllerInterface::UpdateOutput(const bool force)
 
 	size_t ok_count = 0;
 
-	std::vector<Device*>::const_iterator
-		d = m_devices.begin(),
-		e = m_devices.end();
-	for (;d != e; ++d)
-		(*d)->UpdateOutput();
+	for (auto d = m_devices.cbegin(); d != m_devices.cend(); ++d)
+	{
+		if ((*d)->UpdateOutput())
+			++ok_count;
+	}
 
 	return (m_devices.size() == ok_count);
 }
