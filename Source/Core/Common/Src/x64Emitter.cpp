@@ -38,28 +38,28 @@ static const NormalOpDef nops[11] =
 
 enum NormalSSEOps
 {
-	sseCMP =		 0xC2, 
-	sseADD =		 0x58, //ADD
-	sseSUB =		 0x5C, //SUB
-	sseAND =		 0x54, //AND
-	sseANDN =		 0x55, //ANDN
-	sseOR  =		 0x56, 
-	sseXOR  =		 0x57,
-	sseMUL =		 0x59, //MUL,
-	sseDIV =		 0x5E, //DIV
-	sseMIN =		 0x5D, //MIN
-	sseMAX =		 0x5F, //MAX
-	sseCOMIS =		 0x2F, //COMIS
-	sseUCOMIS =		 0x2E, //UCOMIS
-	sseSQRT =		 0x51, //SQRT
-	sseRSQRT =		 0x52, //RSQRT (NO DOUBLE PRECISION!!!)
+	sseCMP         = 0xC2,
+	sseADD         = 0x58, //ADD
+	sseSUB         = 0x5C, //SUB
+	sseAND         = 0x54, //AND
+	sseANDN        = 0x55, //ANDN
+	sseOR          = 0x56,
+	sseXOR         = 0x57,
+	sseMUL         = 0x59, //MUL
+	sseDIV         = 0x5E, //DIV
+	sseMIN         = 0x5D, //MIN
+	sseMAX         = 0x5F, //MAX
+	sseCOMIS       = 0x2F, //COMIS
+	sseUCOMIS      = 0x2E, //UCOMIS
+	sseSQRT        = 0x51, //SQRT
+	sseRSQRT       = 0x52, //RSQRT (NO DOUBLE PRECISION!!!)
 	sseMOVAPfromRM = 0x28, //MOVAP from RM
-	sseMOVAPtoRM =	 0x29, //MOVAP to RM
+	sseMOVAPtoRM   = 0x29, //MOVAP to RM
 	sseMOVUPfromRM = 0x10, //MOVUP from RM
-	sseMOVUPtoRM =	 0x11, //MOVUP to RM
-	sseMASKMOVDQU =  0xF7,
-	sseLDDQU      =  0xF0,
-	sseSHUF       =  0xC6,
+	sseMOVUPtoRM   = 0x11, //MOVUP to RM
+	sseMASKMOVDQU  = 0xF7,
+	sseLDDQU       = 0xF0,
+	sseSHUF        = 0xC6,
 	sseMOVNTDQ     = 0xE7,
 	sseMOVNTP      = 0x2B,
 };
@@ -155,7 +155,7 @@ void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 }
 
 void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
-    bool warn_64bit_offset) const
+	bool warn_64bit_offset) const
 {
 	if (_operandReg == 0xff)
 		_operandReg = (X64Reg)this->operandReg;
@@ -1276,7 +1276,7 @@ void XEmitter::CVTPD2PS(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5A, true, reg
 
 void XEmitter::CVTSD2SS(X64Reg regOp, OpArg arg) {WriteSSEOp(64, 0x5A, false, regOp, arg);}
 void XEmitter::CVTSS2SD(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x5A, false, regOp, arg);}
-void XEmitter::CVTSD2SI(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0xF2, false, regOp, arg);}
+void XEmitter::CVTSD2SI(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x2D, false, regOp, arg);}
 
 void XEmitter::CVTDQ2PD(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0xE6, false, regOp, arg);}
 void XEmitter::CVTDQ2PS(X64Reg regOp, OpArg arg) {WriteSSEOp(32, 0x5B, true, regOp, arg);}
