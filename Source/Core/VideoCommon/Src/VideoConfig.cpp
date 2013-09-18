@@ -202,7 +202,10 @@ void VideoConfig::GameIniLoad(const char* default_ini_file, const char* local_in
 	CHECK_SETTING("Video_Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
 
-	CHECK_SETTING("Video", "ProjectionHack", iPhackvalue[0]);
+	// XXX: iPhackvalue[0] aka. projection hack enabled is an integer. WTF.
+	bool phack_enabled = iPhackvalue[0];
+	CHECK_SETTING("Video", "ProjectionHack", phack_enabled);
+	iPhackvalue[0] = phack_enabled;
 	CHECK_SETTING("Video", "PH_SZNear", iPhackvalue[1]);
 	CHECK_SETTING("Video", "PH_SZFar", iPhackvalue[2]);
 	CHECK_SETTING("Video", "PH_ExtraParam", iPhackvalue[3]);
