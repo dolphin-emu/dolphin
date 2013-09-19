@@ -52,7 +52,9 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	: m_valid(false)
 	, m_fileName(filename)
 {
-	File::IOFile mcdFile(m_fileName, "r+b");
+	// Currently there is a string freeze. instead of adding a new message about needing r/w
+	// open file read only, if write is denied the error will be reported at that point
+	File::IOFile mcdFile(m_fileName, "rb");
 	if (!mcdFile.IsOpen())
 	{
 		if (!forceCreation && !AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
