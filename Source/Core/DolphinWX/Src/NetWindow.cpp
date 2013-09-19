@@ -254,9 +254,12 @@ void NetPlaySetupDiag::OnHost(wxCommandEvent&)
 		if(m_upnp_chk->GetValue())
 			netplay_server->TryPortmapping(port);
 #endif
+		MakeNetPlayDiag(port, game, true);
 	}
-
-	MakeNetPlayDiag(port, game, true);
+	else
+	{
+		PanicAlertT("Failed to listen.  Is another instance of the NetPlay server running?");
+	}
 }
 
 void NetPlaySetupDiag::OnJoin(wxCommandEvent&)
