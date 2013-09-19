@@ -244,11 +244,11 @@ void JitArm::crXXX(UGeckoInstruction inst)
 	{
 	case 33:	// crnor
 		ORR(rA, rA, rB);
-		RBIT(rA, rA);
+		MVN(rA, rA);
 		break;
 
 	case 129:	// crandc
-		RBIT(rB, rB);
+		MVN(rB, rB);
 		AND(rA, rA, rB);
 		break;
 
@@ -258,7 +258,7 @@ void JitArm::crXXX(UGeckoInstruction inst)
 
 	case 225:	// crnand
 		AND(rA, rA, rB);
-		RBIT(rA, rA);
+		MVN(rA, rA);
 		break;
 
 	case 257:	// crand
@@ -267,11 +267,11 @@ void JitArm::crXXX(UGeckoInstruction inst)
 
 	case 289:	// creqv
 		EOR(rA, rA, rB);
-		RBIT(rA, rA);
+		MVN(rA, rA);
 		break;
 
 	case 417:	// crorc
-		RBIT(rB, rB);
+		MVN(rA, rA);
 		ORR(rA, rA, rB);
 		break;
 
