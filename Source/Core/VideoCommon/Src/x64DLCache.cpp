@@ -4,7 +4,7 @@
 
 // TODO: Handle cache-is-full condition :p
 
-#include <map>
+#include <unordered_map>
 
 #include "Common.h"
 #include "VideoCommon.h"
@@ -216,7 +216,7 @@ inline u64 CreateVMapId(u32 VATUSED)
 	return vmap_id;
 }
 
-typedef std::map<u64, CachedDisplayList> DLMap;
+typedef std::unordered_map<u64, CachedDisplayList> DLMap;
 
 struct VDlist
 {
@@ -225,7 +225,7 @@ struct VDlist
 	u32 count;
 };
 
-typedef std::map<u64, VDlist> VDLMap;
+typedef std::unordered_map<u64, VDlist> VDLMap;
 
 static VDLMap dl_map;
 static u8* dlcode_cache;
