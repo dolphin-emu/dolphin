@@ -241,7 +241,7 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 		SendToClients(spac);
 	}
 
-	int pid = m_players[socket].pid;
+	PlayerId pid = m_players[socket].pid;
 
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_PLAYER_LEAVE;
