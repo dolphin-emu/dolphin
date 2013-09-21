@@ -250,7 +250,7 @@ bool DolphinApp::OnInit()
 #endif
 
 	// Copy initial Wii NAND data from Sys to User.
-	File::CopyDir(File::GetSysDirectory() + WII_USER_DIR,
+	File::CopyDir(File::GetSysDirectory() + WII_USER_DIR DIR_SEP,
 	              File::GetUserPath(D_WIIUSER_IDX));
 
 	File::CreateFullPath(File::GetUserPath(D_USER_IDX));
