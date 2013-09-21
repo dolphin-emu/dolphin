@@ -196,7 +196,6 @@ private:
 		Toolbar_ConfigDSP,
 		Toolbar_ConfigPAD,
 		Toolbar_Wiimote,
-		Toolbar_Help,
 		EToolbar_Max
 	};
 

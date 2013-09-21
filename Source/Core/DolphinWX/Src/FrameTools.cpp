@@ -549,7 +549,6 @@ void CFrame::InitBitmaps()
 	m_Bitmaps[Toolbar_Wiimote].LoadFile(dir + "wiimote.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Screenshot].LoadFile(dir + "screenshot.png", wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_FullScreen].LoadFile(dir + "fullscreen.png", wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Help].LoadFile(dir + "help.png", wxBITMAP_TYPE_PNG);
 
 	// Update in case the bitmap has been updated
 	if (m_ToolBar != NULL)
