@@ -9,9 +9,10 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-09-09 06:28-0500\n"
-"PO-Revision-Date: 2013-04-04 08:13+0000\n"
+"PO-Revision-Date: 2013-09-10 08:16+0000\n"
 "Last-Translator: delroth <delroth@gmail.com>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language-Team: Serbian (http://www.transifex.com/projects/p/dolphin-emu/"
+"language/sr/)\n"
 "Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -105,9 +106,9 @@ msgid "%s failed to open"
 msgstr "%s nije uspelo da otvori"
 
 #: Source/Core/Core/Src/x64MemTools.cpp:182
-#, fuzzy, c-format
+#, c-format
 msgid "%s failed: kr=%x"
-msgstr "%s nije uspelo da otvori"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:403
 #, c-format
@@ -309,9 +310,8 @@ msgid "(off)"
 msgstr "(iskljucen/o)"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:559
-#, fuzzy
 msgid "+ ADD"
-msgstr "^ DODAJ"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:663
 msgid "0x44"
@@ -2096,9 +2096,8 @@ msgid "Export all saves"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:113
-#, fuzzy
 msgid "Export failed"
-msgstr "Kopiranje neuspesno "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:552
 msgid "Export save as..."
@@ -2829,9 +2828,8 @@ msgid "Import Wii Save"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:93
-#, fuzzy
 msgid "Import failed"
-msgstr "Kopiranje neuspesno "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid ""
@@ -3127,58 +3125,48 @@ msgid "Load Custom Textures"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:232
-#, fuzzy
 msgid "Load State"
-msgstr "Loaduj Savestate"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:219
-#, fuzzy
 msgid "Load State Last 1"
-msgstr "Ucitaj State Slot 1"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:220
-#, fuzzy
 msgid "Load State Last 2"
-msgstr "Ucitaj State Slot 2"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:221
-#, fuzzy
 msgid "Load State Last 3"
-msgstr "Ucitaj State Slot 3"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:222
-#, fuzzy
 msgid "Load State Last 4"
-msgstr "Ucitaj State Slot 4"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:223
-#, fuzzy
 msgid "Load State Last 5"
-msgstr "Ucitaj State Slot 5"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:224
-#, fuzzy
 msgid "Load State Last 6"
-msgstr "Uci State Slot 6"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:225
-#, fuzzy
 msgid "Load State Last 7"
-msgstr "Ucitaj State Slot 7"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:226
-#, fuzzy
 msgid "Load State Last 8"
-msgstr "Ucitaj State Slot 8"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
 msgid "Load State Slot 1"
 msgstr "Ucitaj State Slot 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:206
-#, fuzzy
 msgid "Load State Slot 10"
-msgstr "Ucitaj State Slot 1"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:198
 msgid "Load State Slot 2"
@@ -3209,9 +3197,8 @@ msgid "Load State Slot 8"
 msgstr "Ucitaj State Slot 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:205
-#, fuzzy
 msgid "Load State Slot 9"
-msgstr "Ucitaj State Slot 1"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:422
 msgid "Load State..."
@@ -4027,9 +4014,8 @@ msgid "Record"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:357
-#, fuzzy
 msgid "Record input"
-msgstr "Pokreni snimanje "
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:161
 msgid "Recording Info"
@@ -4151,23 +4137,20 @@ msgid "Save GCI as..."
 msgstr "Snimaj GCI kao..."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:228
-#, fuzzy
 msgid "Save Oldest State"
-msgstr "Snimaj state..."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:231
-#, fuzzy
 msgid "Save State"
-msgstr "Snimaj state..."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:208
 msgid "Save State Slot 1"
 msgstr "Snimaj State Slot 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:217
-#, fuzzy
 msgid "Save State Slot 10"
-msgstr "Snimaj State Slot 1"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:209
 msgid "Save State Slot 2"
@@ -4198,9 +4181,8 @@ msgid "Save State Slot 8"
 msgstr "Snimaj State Slot 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:216
-#, fuzzy
 msgid "Save State Slot 9"
-msgstr "Snimaj State Slot 1"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:407
 msgid "Save State..."
@@ -5135,9 +5117,8 @@ msgid "Undo Load State"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:230
-#, fuzzy
 msgid "Undo Save State"
-msgstr "Snimaj state..."
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:726
 msgid "Unexpected 0x80 call? Aborting..."
@@ -5647,6 +5628,3 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| ILI"
-
-#~ msgid "Accurate VBeam emulation"
-#~ msgstr "Tacna VBeam emulacija"

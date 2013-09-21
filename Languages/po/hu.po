@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-09-09 06:28-0500\n"
-"PO-Revision-Date: 2013-04-04 08:13+0000\n"
-"Last-Translator: Delirious <delirious@freemail.hu>\n"
+"PO-Revision-Date: 2013-09-10 08:16+0000\n"
+"Last-Translator: delroth <delroth@gmail.com>\n"
 "Language-Team: Hungarian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/hu/)\n"
 "Language: hu\n"
@@ -113,9 +113,9 @@ msgid "%s failed to open"
 msgstr "%s megnyitása sikertelen"
 
 #: Source/Core/Core/Src/x64MemTools.cpp:182
-#, fuzzy, c-format
+#, c-format
 msgid "%s failed: kr=%x"
-msgstr "%s megnyitása sikertelen"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:403
 #, c-format
@@ -317,9 +317,8 @@ msgid "(off)"
 msgstr "(ki)"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:559
-#, fuzzy
 msgid "+ ADD"
-msgstr "^ HOZZÁADÁS"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:663
 msgid "0x44"
@@ -408,7 +407,6 @@ msgstr ""
 "Kézileg kell csatlakoztatni a Wiimote irányítókat."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:104
-#, fuzzy
 msgid ""
 "ALERT:\n"
 "\n"
@@ -424,22 +422,6 @@ msgid ""
 "\n"
 "The host must have the chosen TCP port open/forwarded!\n"
 msgstr ""
-"FIGYELEM:\n"
-"\n"
-"A NetPlay jelenleg csak a következő beállítások használatával működik "
-"megfelelően:\n"
-" - Kétmagos mód [KI]\n"
-" - Hang szabályozás [KI]\n"
-" - DSP-HLE  \"Null Audio\" használatával vagy DSP-LLE\n"
-" - Kézileg legyen beállítva az irányítók pontos száma, amik használva "
-"lesznek, mint [szabvány irányító]\n"
-"\n"
-"Minden játékosnak azonos Dolphin verziót és beállításokat kell használnia.\n"
-"Legyen minden memóriakártya kikapcsolva vagy mindenkinek továbbítani kell a "
-"játék megkezdése előtt.\n"
-"Wiimote támogatás még nem működik.\n"
-"\n"
-"Továbbítani kell a TCP portot a host számára!!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:94
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:99
@@ -1240,9 +1222,8 @@ msgstr "Csatlakozás"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:377
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
-#, fuzzy
 msgid "Connect Balance Board"
-msgstr "USB billentyűzet csatlakoztatása"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:776
 msgid "Connect USB Keyboard"
@@ -1524,9 +1505,8 @@ msgid "Decompressing ISO"
 msgstr "ISO kitömörítés"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:195
-#, fuzzy
 msgid "Decrease Frame limit"
-msgstr "Játéklista frissítése"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:967
 msgid "Default"
@@ -1647,17 +1627,12 @@ msgstr ""
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:102
-#, fuzzy
 msgid ""
 "Disables emulation of a hardware feature called destination alpha, which is "
 "used in many games for various graphical effects.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"A sok játékban különféle grafikai effektusokhoz használt destination alpha "
-"pass figyelmen kívül hagyása.\n"
-"\n"
-"Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:561
 msgid "Disc"
@@ -1794,13 +1769,10 @@ msgid "Dolphin was unable to complete the requested action."
 msgstr "A Dolphin nem tudta elvégezni a kívánt műveletet."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
-#, fuzzy
 msgid ""
 "Doubles the emulated GPU clock rate. May speed up some games (ON = Fast, OFF "
 "= Compatible)"
 msgstr ""
-"Gyors lemez hozzáférés használata. Szükséges néhány játékhoz. (BE = gyors, "
-"KI = kompatibilis)"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:263
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:45
@@ -2260,9 +2232,8 @@ msgid "Exit"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:194
-#, fuzzy
 msgid "Export All Wii Saves"
-msgstr "Minden mentés exportálása"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:446
 msgid "Export Failed"
@@ -2293,9 +2264,8 @@ msgid "Export all saves"
 msgstr "Minden mentés exportálása"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:113
-#, fuzzy
 msgid "Export failed"
-msgstr "Exportálás sikertelen"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:552
 msgid "Export save as..."
@@ -2502,9 +2472,9 @@ msgstr ""
 "(0x0000-0x1FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:299
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read header for file %d"
-msgstr "Fejléc írása sikertelen a(z) %d fájl számára"
+msgstr ""
 
 #: Source/Core/DiscIO/Src/VolumeGC.cpp:48
 msgid "Failed to read unique ID from disc image"
@@ -2519,9 +2489,9 @@ msgid "Failed to write bkhdr"
 msgstr "A bkhdr írása sikertelen"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:428
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to write data to file: %s"
-msgstr "%d fájlból történő adatok kiolvasása nem sikerült"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:205
 #, c-format
@@ -2695,9 +2665,9 @@ msgid "Found %d results for '"
 msgstr "Találat: %d eredmény ehhez: '"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:65
-#, fuzzy, c-format
+#, c-format
 msgid "Found %x save files"
-msgstr "%s nem menthető el"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:869
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:937
@@ -3100,14 +3070,12 @@ msgid "Import Save"
 msgstr "Mentés importálása"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:193
-#, fuzzy
 msgid "Import Wii Save"
-msgstr "Mentés importálása"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:93
-#, fuzzy
 msgid "Import failed"
-msgstr "Exportálás sikertelen"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid ""
@@ -3134,9 +3102,8 @@ msgid "In Game"
 msgstr "Elindul"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
-#, fuzzy
 msgid "Increase Frame limit"
-msgstr "Képkocka korlát:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:34
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
@@ -3429,58 +3396,48 @@ msgid "Load Custom Textures"
 msgstr "Egyedi textúrák betöltése"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:232
-#, fuzzy
 msgid "Load State"
-msgstr "&Állás betöltése"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:219
-#, fuzzy
 msgid "Load State Last 1"
-msgstr "Állás betöltése az 1. helyről"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:220
-#, fuzzy
 msgid "Load State Last 2"
-msgstr "Állás betöltése a 2. helyről"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:221
-#, fuzzy
 msgid "Load State Last 3"
-msgstr "Állás betöltése a 3. helyről"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:222
-#, fuzzy
 msgid "Load State Last 4"
-msgstr "Állás betöltése a 4. helyről"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:223
-#, fuzzy
 msgid "Load State Last 5"
-msgstr "Állás betöltése az 5. helyről"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:224
-#, fuzzy
 msgid "Load State Last 6"
-msgstr "Állás betöltése a 6. helyről"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:225
-#, fuzzy
 msgid "Load State Last 7"
-msgstr "Állás betöltése a 7. helyről"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:226
-#, fuzzy
 msgid "Load State Last 8"
-msgstr "Állás betöltése a 8. helyről"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
 msgid "Load State Slot 1"
 msgstr "Állás betöltése az 1. helyről"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:206
-#, fuzzy
 msgid "Load State Slot 10"
-msgstr "Állás betöltése az 1. helyről"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:198
 msgid "Load State Slot 2"
@@ -3511,9 +3468,8 @@ msgid "Load State Slot 8"
 msgstr "Állás betöltése a 8. helyről"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:205
-#, fuzzy
 msgid "Load State Slot 9"
-msgstr "Állás betöltése az 1. helyről"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:422
 msgid "Load State..."
@@ -4081,15 +4037,11 @@ msgid "Orange"
 msgstr "Narancs"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:455
-#, fuzzy
 msgid ""
 "Order of files in the File Directory do not match the block order\n"
 "Right click and export all of the saves,\n"
 "and import the saves to a new memcard\n"
 msgstr ""
-"A fájlok sorrendje a fájl könyvtárban nem azonos a blokkok sorrendjével\n"
-"Jobb kattintás az összes fájl exportálásához,\n"
-"és az állásmentések importálásához az új memóriakártyára\n"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:325
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:507
@@ -4371,9 +4323,8 @@ msgid "Record"
 msgstr "Rögzítés"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:357
-#, fuzzy
 msgid "Record input"
-msgstr "Rögzítési beállítások"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:161
 msgid "Recording Info"
@@ -4503,23 +4454,20 @@ msgid "Save GCI as..."
 msgstr "GCI mentése másként..."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:228
-#, fuzzy
 msgid "Save Oldest State"
-msgstr "Ál&lás mentése"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:231
-#, fuzzy
 msgid "Save State"
-msgstr "Ál&lás mentése"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:208
 msgid "Save State Slot 1"
 msgstr "Állás mentés az 1. helyre"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:217
-#, fuzzy
 msgid "Save State Slot 10"
-msgstr "Állás mentés az 1. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:209
 msgid "Save State Slot 2"
@@ -4550,9 +4498,8 @@ msgid "Save State Slot 8"
 msgstr "Állás mentés a 8. helyre"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:216
-#, fuzzy
 msgid "Save State Slot 9"
-msgstr "Állás mentés az 1. helyre"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:407
 msgid "Save State..."
@@ -4803,9 +4750,8 @@ msgid "Settings..."
 msgstr "Beállítások..."
 
 #: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:252
-#, fuzzy
 msgid "SetupWiiMem: Cant create setting file"
-msgstr "SetupWiiMem: Nem található a beállítási fájl"
+msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -4836,9 +4782,8 @@ msgid "Show &Toolbar"
 msgstr "Eszközsor &mutatása"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:290
-#, fuzzy
 msgid "Show Defaults"
-msgstr "Alap"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:285
 msgid "Show Drives"
@@ -5439,17 +5384,12 @@ msgstr ""
 "Ha bizonytalan vagy, hagyd kijelöletlenül."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:493
-#, fuzzy
 msgid ""
 "This limits the game speed to the specified number of frames per second "
 "(full speed is 60 for NTSC and 50 for PAL). Alternatively, use Audio to "
 "throttle using the DSP (might fix audio clicks but can also cause constant "
 "noise depending on the game)."
 msgstr ""
-"Ha a képkocka korlátozást magasabbra állítottad a játék teljes sebességénél "
-"(NTSC: 60, PAL: 50), akkor válaszd a Hang lehetőséget a lassításhoz a DSP "
-"használatával (javíthatja a hang kattogást, de ugyanakkor folyamatos zajt is "
-"okozhat játékfüggően).  "
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:492
 msgid ""
@@ -5491,19 +5431,16 @@ msgid "Toggle All Log Types"
 msgstr "Minden napló típus kijelölése"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:191
-#, fuzzy
 msgid "Toggle Aspect Ratio"
-msgstr "Képarány:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:192
-#, fuzzy
 msgid "Toggle EFB Copies"
-msgstr "EFB másolatok"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
-#, fuzzy
 msgid "Toggle Fog"
-msgstr "Minden napló típus kijelölése"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:465
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:180
@@ -5606,9 +5543,8 @@ msgid "Undo Load State"
 msgstr "Állás betöltés törlése"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:230
-#, fuzzy
 msgid "Undo Save State"
-msgstr "Állás betöltés törlése"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:726
 msgid "Unexpected 0x80 call? Aborting..."
@@ -5729,9 +5665,8 @@ msgid "V-Sync"
 msgstr "V-Sync"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
-#, fuzzy
 msgid "VBeam Speed Hack"
-msgstr "MMU sebesség növelő hack"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:186
 msgid "Value"
@@ -6177,9 +6112,8 @@ msgid "unknown flavor %d (expected %d)"
 msgstr ""
 
 #: Source/Core/Core/Src/x64MemTools.cpp:236
-#, fuzzy
 msgid "unknown message received"
-msgstr "Ismeretlen üzenet érkezett ezzel az azonosítóval : %d"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1165
 msgid "wxExecute returned -1 on application run!"
@@ -6196,104 +6130,3 @@ msgstr "zNear javítás: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| VAGY"
-
-#~ msgid "Accurate VBeam emulation"
-#~ msgstr "Pontos VBeam emuláció"
-
-#~ msgid ""
-#~ "Allows toggling certain options via the hotkeys 3 (Internal Resolution), "
-#~ "4 (Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Bizonyos opciók elérhetővé válnak gyorsbillentyűkkel: 3. (Belső "
-#~ "felbontás), 4. (Képarány), 5. (EFB másolat) és 6. (Köd) a emulációs "
-#~ "ablakon belül.\n"
-#~ "\n"
-#~ "Ha bizonytalan vagy, hagyd kijelöletlenül."
-
-#~ msgid ""
-#~ "Could not set pads. The player left or the game is currently running!\n"
-#~ "(setting pads while the game is running is not yet supported)"
-#~ msgstr ""
-#~ "Irányítók beállítása nem sikerült. A játékos kilépett vagy a játék épp "
-#~ "fut!\n"
-#~ "(irányítók beállítása még nem támogatott miközben a játék fut)"
-
-#~ msgid "Enable Hotkeys"
-#~ msgstr "Gyorsbillentyűk használata"
-
-#~ msgid ""
-#~ "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
-#~ "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
-#~ msgstr ""
-#~ "Dolby Pro Logic II emuláció bekapcsolása 5.1 surround hanggal. Csak "
-#~ "OpenAl feldolgozó esetén. Működéshez szükség lehet a soft_oal.dll "
-#~ "átnevezésére OpenAL32.dll névre."
-
-#~ msgid "Export failed, try again?"
-#~ msgstr "Exportálás sikertelen. Újra megpróbálod?"
-
-#~ msgid "Failed to Listen!!"
-#~ msgstr "Meghallgatás sikertelen!"
-
-#~ msgid "Failed to load bthprops.cpl"
-#~ msgstr "A bthprops.cpl betöltése sikertelen"
-
-#~ msgid "Failed to load hid.dll"
-#~ msgstr "A hid.dll betöltése sikertelen"
-
-#~ msgid "GCMic Configuration"
-#~ msgstr "GCMic beállítások"
-
-#~ msgid "HCI_CMD_INQUIRY is called, please report!"
-#~ msgstr "HCI_CMD_INQUIRY kiadva, kérlek jelentsd!"
-
-#~ msgid "Hacked Buffer Upload"
-#~ msgstr "Hekkelt puffer feltöltés"
-
-#~ msgid ""
-#~ "If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Ha az FPS értéke szabálytalan, akkor ez a beállítás segíthet. (BE = "
-#~ "kompatibilis, KI = gyors)"
-
-#~ msgid "Import failed, try again?"
-#~ msgstr "Importálás sikertelen, megpróbálod újra?"
-
-#~ msgid "In-Game"
-#~ msgstr "Elindul"
-
-#~ msgid "Last Overwritten State"
-#~ msgstr "Az utolsó felülírt mentés"
-
-#~ msgid "Last Saved State"
-#~ msgstr "Utolsó mentett állás"
-
-#~ msgid "Local"
-#~ msgstr "Helyi"
-
-#~ msgid "Reconnect Wiimote on State Loading"
-#~ msgstr "Wiimote újracsatlakoztatása állás betöltéskor"
-
-#~ msgid "Set"
-#~ msgstr "Beáll."
-
-#~ msgid "Skip Dest. Alpha Pass"
-#~ msgstr "Dest. Alpha Pass kihagyása"
-
-#~ msgid ""
-#~ "Use a hacked upload strategy to stream vertices.\n"
-#~ "This usually speed up, but is forbidden by OpenGL specification and may "
-#~ "causes heavy glitches.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Egy hekkelt feltöltési stratégiát használ az adatfolyam tetőpontokhoz.\n"
-#~ "Ez többnyire gyorsítás, de nem engedélyezett az OpenGL kikötések által és "
-#~ "komoly hibákat okozhat.\n"
-#~ "\n"
-#~ "Ha bizonytalan vagy, hagyd kijelöletlenül."
-
-#~ msgid "Wii Save Import"
-#~ msgstr "Wii mentés importálása"

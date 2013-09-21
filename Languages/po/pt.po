@@ -3,15 +3,17 @@
 # This file is distributed under the same license as the dolphin-emu package.
 #
 # Translators:
+# 100tpt <100nome.portugal@gmail.com>, 2013
 # Zilaan <nunogomesrebelo@hotmail.com>, 2011
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-09-09 06:28-0500\n"
-"PO-Revision-Date: 2013-04-04 08:13+0000\n"
-"Last-Translator: delroth <delroth@gmail.com>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2013-09-16 18:55+0000\n"
+"Last-Translator: 100tpt <100nome.portugal@gmail.com>\n"
+"Language-Team: Portuguese (http://www.transifex.com/projects/p/dolphin-emu/"
+"language/pt/)\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -59,12 +61,12 @@ msgstr "%1$sCopiar%1$s"
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:120
 #, c-format
 msgid "%d samples"
-msgstr ""
+msgstr "%d amostras"
 
 #: Source/Plugins/Plugin_VideoDX11/Src/main.cpp:119
 #, c-format
 msgid "%d samples (quality level %d)"
-msgstr ""
+msgstr "%d amostras (nível de qualidade %d)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:165
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:337
@@ -104,9 +106,9 @@ msgid "%s failed to open"
 msgstr "%s falha ao abrir"
 
 #: Source/Core/Core/Src/x64MemTools.cpp:182
-#, fuzzy, c-format
+#, c-format
 msgid "%s failed: kr=%x"
-msgstr "%s falha ao abrir"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:403
 #, c-format
@@ -309,9 +311,8 @@ msgid "(off)"
 msgstr "(desligado)"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:559
-#, fuzzy
 msgid "+ ADD"
-msgstr "^ ADD"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:663
 msgid "0x44"
@@ -398,7 +399,6 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:104
-#, fuzzy
 msgid ""
 "ALERT:\n"
 "\n"
@@ -414,22 +414,6 @@ msgid ""
 "\n"
 "The host must have the chosen TCP port open/forwarded!\n"
 msgstr ""
-"ALERTA:\n"
-"\n"
-"NetPlay só irá funcionar correctamente se utilizar as definições seguintes:\n"
-" - Dual Core [OFF]\n"
-" - Regulador Áudio [OFF]\n"
-" - DSP-HLE com \"Null Audio\" ou DSP-LLE\n"
-" - Defina manualmente o número exacto de comandos que serão usados [Comando "
-"Padrão]\n"
-"\n"
-"Todos os jogadores devem tentar usar a mesma versão e definições do "
-"Dolphin.\n"
-"Desactive todos os cartões de memória ou atribua-os aos jogadores todos "
-"antes de começar.\n"
-"suporte Wiimote ainda não foi implementado.\n"
-"\n"
-"Tem que fazer forward TCP para ser host!!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:94
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:99
@@ -664,11 +648,11 @@ msgstr "Todos os ficheiros (*.*)|*.*"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:271
 msgid "Analyze"
-msgstr ""
+msgstr "Analisar"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:286
 msgid "Angle"
-msgstr ""
+msgstr "Ângulo"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:376
 msgid "Anisotropic Filtering:"
@@ -1066,7 +1050,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:909
 msgid "Checking integrity..."
-msgstr ""
+msgstr "A verificar integridade..."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:292
 msgid "Chinese (Simplified)"
@@ -1220,9 +1204,8 @@ msgstr "Conectar"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:377
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
-#, fuzzy
 msgid "Connect Balance Board"
-msgstr "Conectar Teclado USB"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:776
 msgid "Connect USB Keyboard"
@@ -1363,7 +1346,7 @@ msgstr "Criador:"
 
 #: Source/Core/Common/Src/MsgHandler.cpp:54
 msgid "Critical"
-msgstr ""
+msgstr "Crítico"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:560
 msgid "Crop"
@@ -1504,9 +1487,8 @@ msgid "Decompressing ISO"
 msgstr "A descomprimir ISO"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:195
-#, fuzzy
 msgid "Decrease Frame limit"
-msgstr "Actualizar lista de Jogos"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:967
 msgid "Default"
@@ -1625,17 +1607,12 @@ msgstr ""
 "Em caso de dúvida, mantenha esta opção desactivada."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:102
-#, fuzzy
 msgid ""
 "Disables emulation of a hardware feature called destination alpha, which is "
 "used in many games for various graphical effects.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Salta a passagem de destino alfa utilizada em muitos jogos para diversos "
-"efeitos gráficos.\n"
-"\n"
-"Em caso de dúvida, mantenha esta opção desactivada."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:561
 msgid "Disc"
@@ -1772,13 +1749,10 @@ msgid "Dolphin was unable to complete the requested action."
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
-#, fuzzy
 msgid ""
 "Doubles the emulated GPU clock rate. May speed up some games (ON = Fast, OFF "
 "= Compatible)"
 msgstr ""
-"Activar acesso rápido ao disco.  Necessário para alguns jogos. (ON = Rápido, "
-"OFF = Compatível)"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:263
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:45
@@ -2225,12 +2199,11 @@ msgstr "Executar"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:366
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
 msgid "Exit"
-msgstr ""
+msgstr "Sair"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:194
-#, fuzzy
 msgid "Export All Wii Saves"
-msgstr "Exportar todos os jogos guardados"
+msgstr "Exportar Todos os Jogos Guardados Wii"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:446
 msgid "Export Failed"
@@ -2261,9 +2234,8 @@ msgid "Export all saves"
 msgstr "Exportar todos os jogos guardados"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:113
-#, fuzzy
 msgid "Export failed"
-msgstr "A Exportação Falhou"
+msgstr "A exportação falhou"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:552
 msgid "Export save as..."
@@ -2457,7 +2429,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:130
 msgid "Failed to read header"
-msgstr ""
+msgstr "Falha ao ler cabeçalho"
 
 #: Source/Core/Core/Src/HW/GCMemcard.cpp:107
 msgid ""
@@ -2468,9 +2440,9 @@ msgstr ""
 "(0x0000-0x1FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:299
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read header for file %d"
-msgstr "Falha ao escrever cabeçalho para o ficheiro %d"
+msgstr ""
 
 #: Source/Core/DiscIO/Src/VolumeGC.cpp:48
 msgid "Failed to read unique ID from disc image"
@@ -2485,9 +2457,9 @@ msgid "Failed to write bkhdr"
 msgstr "Falha ao escrever bkhdr"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:428
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to write data to file: %s"
-msgstr "Falha ao ler dados do ficheiro %d"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:205
 #, c-format
@@ -2572,11 +2544,11 @@ msgstr "Tipo de ficheiro 'ini' é desconhecido! Não será aberto!"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:253
 msgid "Find next"
-msgstr ""
+msgstr "Procurar seguinte"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:254
 msgid "Find previous"
-msgstr ""
+msgstr "Procurar anterior"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:626
 msgid "First Block"
@@ -2656,12 +2628,12 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:501
 #, c-format
 msgid "Found %d results for '"
-msgstr ""
+msgstr "Encontrados %d resultados para '"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:65
-#, fuzzy, c-format
+#, c-format
 msgid "Found %x save files"
-msgstr "Não foi possível guardar %s"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:869
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:937
@@ -2753,7 +2725,7 @@ msgstr "O jogo não está a correr!"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:422
 msgid "Game not found!"
-msgstr ""
+msgstr "Jogo não encontrado!"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:397
 msgid "Game-Specific Settings"
@@ -3049,14 +3021,12 @@ msgid "Import Save"
 msgstr "Importar Jogo Guardado"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:193
-#, fuzzy
 msgid "Import Wii Save"
-msgstr "Importar Jogo Guardado"
+msgstr "Importar Jogo Guardado Wii"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:93
-#, fuzzy
 msgid "Import failed"
-msgstr "A Exportação Falhou"
+msgstr "A importação falhou"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid ""
@@ -3083,9 +3053,8 @@ msgid "In Game"
 msgstr "Em Jogo"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
-#, fuzzy
 msgid "Increase Frame limit"
-msgstr "Limite de Quadros:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:34
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
@@ -3370,58 +3339,48 @@ msgid "Load Custom Textures"
 msgstr "Carregar Texturas Personalizadas"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:232
-#, fuzzy
 msgid "Load State"
-msgstr "&Carregar Estado"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:219
-#, fuzzy
 msgid "Load State Last 1"
-msgstr "Carregar Estado Slot 1"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:220
-#, fuzzy
 msgid "Load State Last 2"
-msgstr "Carregar Estado Slot 2"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:221
-#, fuzzy
 msgid "Load State Last 3"
-msgstr "Carregar Estado Slot 3"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:222
-#, fuzzy
 msgid "Load State Last 4"
-msgstr "Carregar Estado Slot 4"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:223
-#, fuzzy
 msgid "Load State Last 5"
-msgstr "Carregar Estado Slot 5"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:224
-#, fuzzy
 msgid "Load State Last 6"
-msgstr "Carregar Estado Slot 6"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:225
-#, fuzzy
 msgid "Load State Last 7"
-msgstr "Carregar Estado Slot 7"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:226
-#, fuzzy
 msgid "Load State Last 8"
-msgstr "Carregar Estado Slot 8"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
 msgid "Load State Slot 1"
 msgstr "Carregar Estado Slot 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:206
-#, fuzzy
 msgid "Load State Slot 10"
-msgstr "Carregar Estado Slot 1"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:198
 msgid "Load State Slot 2"
@@ -3452,9 +3411,8 @@ msgid "Load State Slot 8"
 msgstr "Carregar Estado Slot 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:205
-#, fuzzy
 msgid "Load State Slot 9"
-msgstr "Carregar Estado Slot 1"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:422
 msgid "Load State..."
@@ -3826,7 +3784,7 @@ msgstr "Nenhum ISO ou WAD encontrado"
 
 #: Source/Core/Core/Src/ConfigManager.h:17
 msgid "No audio output"
-msgstr ""
+msgstr "Sem saída de áudio"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:552
 #, c-format
@@ -3836,7 +3794,7 @@ msgstr "Nenhum ficheiro banner foi encontrado para o título  %s"
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:771
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:778
 msgid "No description available"
-msgstr ""
+msgstr "Nenhuma descrição disponível"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:535
 msgid "No docking"
@@ -3945,7 +3903,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:300
 msgid "Online &Documentation"
-msgstr ""
+msgstr "Online e documentação"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:423
 #, c-format
@@ -4011,15 +3969,11 @@ msgid "Orange"
 msgstr "Laranja"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:455
-#, fuzzy
 msgid ""
 "Order of files in the File Directory do not match the block order\n"
 "Right click and export all of the saves,\n"
 "and import the saves to a new memcard\n"
 msgstr ""
-"A ordem dos ficheiros na pasta não combina com a ordem dos blocos\n"
-"Botão direito e exporte todos os jogos guardados,\n"
-"e importe os jogos guardados para um novo cartão de memória\n"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:325
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:507
@@ -4096,7 +4050,7 @@ msgstr "Pausa"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:129
 msgid "Pause at end of movie"
-msgstr ""
+msgstr "Fazer pausa no fim do filme"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:406
 msgid "Per-Pixel Lighting"
@@ -4291,7 +4245,7 @@ msgstr "Wiimote Real"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:80
 msgid "Real Wiimotes"
-msgstr ""
+msgstr "Wiimotes Reais"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:180
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:205
@@ -4301,9 +4255,8 @@ msgid "Record"
 msgstr "Gravar"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:357
-#, fuzzy
 msgid "Record input"
-msgstr "Opções de Gravação"
+msgstr "Gravar entradas"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:161
 msgid "Recording Info"
@@ -4390,7 +4343,7 @@ msgstr "Return"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:472
 msgid "Revision:"
-msgstr ""
+msgstr "Revisão:"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:265
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:44
@@ -4434,23 +4387,20 @@ msgid "Save GCI as..."
 msgstr "Guardar GCI como..."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:228
-#, fuzzy
 msgid "Save Oldest State"
-msgstr "Gua&rdar Estado"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:231
-#, fuzzy
 msgid "Save State"
-msgstr "Gua&rdar Estado"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:208
 msgid "Save State Slot 1"
 msgstr "Guardar Estado Slot 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:217
-#, fuzzy
 msgid "Save State Slot 10"
-msgstr "Guardar Estado Slot 1"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:209
 msgid "Save State Slot 2"
@@ -4481,9 +4431,8 @@ msgid "Save State Slot 8"
 msgstr "Guardar Estado Slot 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:216
-#, fuzzy
 msgid "Save State Slot 9"
-msgstr "Guardar Estado Slot 1"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:407
 msgid "Save State..."
@@ -4720,9 +4669,8 @@ msgid "Settings..."
 msgstr "Definições..."
 
 #: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:252
-#, fuzzy
 msgid "SetupWiiMem: Cant create setting file"
-msgstr "SetupWiiMem: Não consegue encontrar o ficheiro de definições"
+msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -4753,9 +4701,8 @@ msgid "Show &Toolbar"
 msgstr "Mostrar Barra de Ferramen&tas"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:290
-#, fuzzy
 msgid "Show Defaults"
-msgstr "Padrão"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:285
 msgid "Show Drives"
@@ -5297,7 +5244,7 @@ msgstr "O valor é inválido"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:629
 msgid "Theme:"
-msgstr ""
+msgstr "Tema:"
 
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_es.cpp:588
 msgid ""
@@ -5387,19 +5334,16 @@ msgid "Toggle All Log Types"
 msgstr "Alternar Todos os Tipos de Relatório"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:191
-#, fuzzy
 msgid "Toggle Aspect Ratio"
-msgstr "Proporção de ecrã:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:192
-#, fuzzy
 msgid "Toggle EFB Copies"
-msgstr "Cópias EFB"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
-#, fuzzy
 msgid "Toggle Fog"
-msgstr "Alternar Todos os Tipos de Relatório"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:465
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:180
@@ -5500,9 +5444,8 @@ msgid "Undo Load State"
 msgstr "Retroceder Carregamento de Estado"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:230
-#, fuzzy
 msgid "Undo Save State"
-msgstr "Retroceder Carregamento de Estado"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:726
 msgid "Unexpected 0x80 call? Aborting..."
@@ -5520,7 +5463,7 @@ msgstr "Comando de DVD desconhecido %08x - Erro fatal"
 #: Source/Core/Core/Src/IPC_HLE/WII_IPC_HLE_Device_DI.cpp:444
 #, c-format
 msgid "Unknown command 0x%08x"
-msgstr ""
+msgstr "Comando desconhecido 0x%08x"
 
 #: Source/Core/Common/Src/SysConf.cpp:132
 #, c-format
@@ -5623,9 +5566,8 @@ msgid "V-Sync"
 msgstr "V-Sync"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
-#, fuzzy
 msgid "VBeam Speed Hack"
-msgstr "MMU Hack de velocidade"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:186
 msgid "Value"
@@ -5821,7 +5763,7 @@ msgstr "Definições de Wiimote"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:48
 msgid "Wiimotes"
-msgstr ""
+msgstr "Wiimotes"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:121
 msgid "Windows Left"
@@ -6039,9 +5981,8 @@ msgid "unknown flavor %d (expected %d)"
 msgstr ""
 
 #: Source/Core/Core/Src/x64MemTools.cpp:236
-#, fuzzy
 msgid "unknown message received"
-msgstr "Mensagem desconhecida recebida com a id : %d"
+msgstr "mensagem desconhecida recebida"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1165
 msgid "wxExecute returned -1 on application run!"
@@ -6058,66 +5999,3 @@ msgstr "Correcção zNear: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| OU"
-
-#~ msgid "Accurate VBeam emulation"
-#~ msgstr "Emulação VBeam precisa"
-
-#~ msgid ""
-#~ "Could not set pads. The player left or the game is currently running!\n"
-#~ "(setting pads while the game is running is not yet supported)"
-#~ msgstr ""
-#~ "Não foi possível definir os comandos. O jogador saiu ou o jogo está em "
-#~ "execução!\n"
-#~ "(definir os controlos enquanto o jogo está em execução ainda não é "
-#~ "suportado)"
-
-#~ msgid "Enable Hotkeys"
-#~ msgstr "Activar Teclas de Atalho"
-
-#~ msgid "Export failed, try again?"
-#~ msgstr "Exportação falhou, tentar novamente?"
-
-#~ msgid "Failed to Listen!!"
-#~ msgstr "A Escuta Falhou!!"
-
-#~ msgid "Failed to load bthprops.cpl"
-#~ msgstr "Falha ao carregar bthprops.cpl"
-
-#~ msgid "Failed to load hid.dll"
-#~ msgstr "Falha ao carregar hid.dll"
-
-#~ msgid "HCI_CMD_INQUIRY is called, please report!"
-#~ msgstr "HCI_CMD_INQUIRY é chamada, Por favor reporte!"
-
-#~ msgid ""
-#~ "If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Se os FPS são erráticos, esta opção poderá ajudar. (ON = Compatível, OFF "
-#~ "= Rápido)"
-
-#~ msgid "Import failed, try again?"
-#~ msgstr "Importação falhou, tentar novamente?"
-
-#~ msgid "In-Game"
-#~ msgstr "Em-Jogo"
-
-#~ msgid "Last Overwritten State"
-#~ msgstr "Último estado Substituído"
-
-#~ msgid "Last Saved State"
-#~ msgstr "Último Estado Guardado"
-
-#~ msgid "Local"
-#~ msgstr "Local"
-
-#~ msgid "Reconnect Wiimote on State Loading"
-#~ msgstr "Reconectar Wiimote ao Carregar Estado"
-
-#~ msgid "Set"
-#~ msgstr "Definir"
-
-#~ msgid "Skip Dest. Alpha Pass"
-#~ msgstr "Saltar Dest. Alpha Pass"
-
-#~ msgid "Wii Save Import"
-#~ msgstr "Importação de Jogo Guardado Wii"

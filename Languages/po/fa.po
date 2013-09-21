@@ -9,8 +9,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-09-09 06:28-0500\n"
-"PO-Revision-Date: 2013-04-04 08:13+0000\n"
-"Last-Translator: Delayline <hamed.khakbiz@gmail.com>\n"
+"PO-Revision-Date: 2013-09-10 08:16+0000\n"
+"Last-Translator: delroth <delroth@gmail.com>\n"
 "Language-Team: Persian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/fa/)\n"
 "Language: fa\n"
@@ -113,9 +113,9 @@ msgid "%s failed to open"
 msgstr "%s بازکردن با شکست مواجه شد"
 
 #: Source/Core/Core/Src/x64MemTools.cpp:182
-#, fuzzy, c-format
+#, c-format
 msgid "%s failed: kr=%x"
-msgstr "%s بازکردن با شکست مواجه شد"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:403
 #, c-format
@@ -317,9 +317,8 @@ msgid "(off)"
 msgstr "(خاموش)"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:559
-#, fuzzy
 msgid "+ ADD"
-msgstr "^ اضافه کردن"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:663
 msgid "0x44"
@@ -406,7 +405,6 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:104
-#, fuzzy
 msgid ""
 "ALERT:\n"
 "\n"
@@ -422,22 +420,6 @@ msgid ""
 "\n"
 "The host must have the chosen TCP port open/forwarded!\n"
 msgstr ""
-"اخطار:\n"
-"\n"
-"در حال حاضر نت پلی تنها زمانی به درستی کار خواهد کرد که از تنظیمات زیر "
-"استفاده می کند:\n"
-"- پردازنده با دو هسته یا بیشتر [خاموش]\n"
-"- دریچه صدا [خاموش]\n"
-"- برابرسازی سطح بالای پردازشگر صدای دلفین با \"Null Audio\" یا برابرسازی سطح "
-"پائین پردازشگر صدای دلفین\n"
-"- تعداد دقیق کنترولر هایی که استفاده خواهند شد را به صورت دستی تنظیم کنید "
-"[کنترولر استاندارد]\n"
-"تمام بازیکنان باید سعی کنند که از همان تنظیمات و نسخه دلفین استفاده کنند.\n"
-"تمام کارت های حافظه را از کار بیاندازید یا پیش از شروع آنها را به تمام "
-"بازیکنان بفرستید.\n"
-"پشتیبانی ویموت اجرا نشده است.\n"
-"\n"
-"شما باید درگاه TCP را به میزبان ارسال کنید!!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:94
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:99
@@ -1234,9 +1216,8 @@ msgstr "اتصال"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:377
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
-#, fuzzy
 msgid "Connect Balance Board"
-msgstr "اتصال کیبورد USB"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:776
 msgid "Connect USB Keyboard"
@@ -1521,9 +1502,8 @@ msgid "Decompressing ISO"
 msgstr "در حال ناهمفشرده کردن آیزو"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:195
-#, fuzzy
 msgid "Decrease Frame limit"
-msgstr "به روز کردن لیست بازی"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:967
 msgid "Default"
@@ -1643,17 +1623,12 @@ msgstr ""
 "اگر در این مورد اطمینان ندارید، این گزینه را رها کنید."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:102
-#, fuzzy
 msgid ""
 "Disables emulation of a hardware feature called destination alpha, which is "
 "used in many games for various graphical effects.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"از قلم انداختن مقصد آلفا پاس در بسیاری از بازی ها برای افکت های متفرقه "
-"گرافیک استفاده می شود.\n"
-"\n"
-"اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:561
 msgid "Disc"
@@ -1790,13 +1765,10 @@ msgid "Dolphin was unable to complete the requested action."
 msgstr "دلفین نتوانست عمل خواسته شده را تکمیل کند."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
-#, fuzzy
 msgid ""
 "Doubles the emulated GPU clock rate. May speed up some games (ON = Fast, OFF "
 "= Compatible)"
 msgstr ""
-"فعال کردن دسترسی سریع به دیسک. این امر برای اجرای تعداد محدودی از بازی ها "
-"لازم است. (ON=سریع، OFF=سازگار)"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:263
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:45
@@ -2255,9 +2227,8 @@ msgid "Exit"
 msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:194
-#, fuzzy
 msgid "Export All Wii Saves"
-msgstr "صادر کردن همه ذخیره ها"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:446
 msgid "Export Failed"
@@ -2288,9 +2259,8 @@ msgid "Export all saves"
 msgstr "صادر کردن همه ذخیره ها"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:113
-#, fuzzy
 msgid "Export failed"
-msgstr "صادر کردن با شکست مواجه شد"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:552
 msgid "Export save as..."
@@ -2497,9 +2467,9 @@ msgstr ""
 "(0x0000-0x1FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:299
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read header for file %d"
-msgstr "نوشتن سرخط برای فایل %d با شکست مواجه شد"
+msgstr ""
 
 #: Source/Core/DiscIO/Src/VolumeGC.cpp:48
 msgid "Failed to read unique ID from disc image"
@@ -2514,9 +2484,9 @@ msgid "Failed to write bkhdr"
 msgstr "نوشتن bkhdr با شکست مواجه شد"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:428
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to write data to file: %s"
-msgstr "خواندن داده از فایل با شکست مواجه شد %d"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:205
 #, c-format
@@ -2689,9 +2659,9 @@ msgid "Found %d results for '"
 msgstr "پیدا کردن نتایج %d برای '"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:65
-#, fuzzy, c-format
+#, c-format
 msgid "Found %x save files"
-msgstr "قادر به ذخیره کردن نیست %s"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:869
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:937
@@ -3092,14 +3062,12 @@ msgid "Import Save"
 msgstr "وارد کردن ذخیره"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:193
-#, fuzzy
 msgid "Import Wii Save"
-msgstr "وارد کردن ذخیره"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:93
-#, fuzzy
 msgid "Import failed"
-msgstr "صادر کردن با شکست مواجه شد"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid ""
@@ -3126,9 +3094,8 @@ msgid "In Game"
 msgstr "در بازی"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
-#, fuzzy
 msgid "Increase Frame limit"
-msgstr "حد فریم:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:34
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
@@ -3419,58 +3386,48 @@ msgid "Load Custom Textures"
 msgstr "بارگذاری بافت اشیاء دلخواه"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:232
-#, fuzzy
 msgid "Load State"
-msgstr "&بارگذاری وضعیت"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:219
-#, fuzzy
 msgid "Load State Last 1"
-msgstr "بارگذاری وضعیت - شکاف ۱"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:220
-#, fuzzy
 msgid "Load State Last 2"
-msgstr "بارگذاری وضعیت - شکاف ۲"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:221
-#, fuzzy
 msgid "Load State Last 3"
-msgstr "بارگذاری وضعیت - شکاف ۳"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:222
-#, fuzzy
 msgid "Load State Last 4"
-msgstr "بارگذاری وضعیت - شکاف ۴"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:223
-#, fuzzy
 msgid "Load State Last 5"
-msgstr "بارگذاری وضعیت - شکاف ۵"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:224
-#, fuzzy
 msgid "Load State Last 6"
-msgstr "بارگذاری وضعیت - شکاف ۶"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:225
-#, fuzzy
 msgid "Load State Last 7"
-msgstr "بارگذاری وضعیت - شکاف ۷"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:226
-#, fuzzy
 msgid "Load State Last 8"
-msgstr "بارگذاری وضعیت - شکاف ۸"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
 msgid "Load State Slot 1"
 msgstr "بارگذاری وضعیت - شکاف ۱"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:206
-#, fuzzy
 msgid "Load State Slot 10"
-msgstr "بارگذاری وضعیت - شکاف ۱"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:198
 msgid "Load State Slot 2"
@@ -3501,9 +3458,8 @@ msgid "Load State Slot 8"
 msgstr "بارگذاری وضعیت - شکاف ۸"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:205
-#, fuzzy
 msgid "Load State Slot 9"
-msgstr "بارگذاری وضعیت - شکاف ۱"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:422
 msgid "Load State..."
@@ -4064,15 +4020,11 @@ msgid "Orange"
 msgstr "نارنجی"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:455
-#, fuzzy
 msgid ""
 "Order of files in the File Directory do not match the block order\n"
 "Right click and export all of the saves,\n"
 "and import the saves to a new memcard\n"
 msgstr ""
-"ترتیب فایل ها در پوشه فایل با ترتیب بلوک یکسان نیست\n"
-"کلیک راست کنید و تمام ذخیره ها را صادر کنید،\n"
-"و ذخیره ها را به کارت حافظه ای جدید وارد کنید\n"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:325
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:507
@@ -4354,9 +4306,8 @@ msgid "Record"
 msgstr "ضبط"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:357
-#, fuzzy
 msgid "Record input"
-msgstr "گزینه های ضبط"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:161
 msgid "Recording Info"
@@ -4487,23 +4438,20 @@ msgid "Save GCI as..."
 msgstr "ذخیره جی سی آی بعنوان..."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:228
-#, fuzzy
 msgid "Save Oldest State"
-msgstr "ذخ&یره وضعیت"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:231
-#, fuzzy
 msgid "Save State"
-msgstr "ذخ&یره وضعیت"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:208
 msgid "Save State Slot 1"
 msgstr "ذخیره وضعیت - شکاف ۱"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:217
-#, fuzzy
 msgid "Save State Slot 10"
-msgstr "ذخیره وضعیت - شکاف ۱"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:209
 msgid "Save State Slot 2"
@@ -4534,9 +4482,8 @@ msgid "Save State Slot 8"
 msgstr "ذخیره وضعیت - شکاف ۸"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:216
-#, fuzzy
 msgid "Save State Slot 9"
-msgstr "ذخیره وضعیت - شکاف ۱"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:407
 msgid "Save State..."
@@ -4779,9 +4726,8 @@ msgid "Settings..."
 msgstr "تنظیمات..."
 
 #: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:252
-#, fuzzy
 msgid "SetupWiiMem: Cant create setting file"
-msgstr "برپاکردن حافظه وی: ناتوان در پیدا کردن فایل تنظیم"
+msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -4812,9 +4758,8 @@ msgid "Show &Toolbar"
 msgstr "نمایش نوار &ابزار"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:290
-#, fuzzy
 msgid "Show Defaults"
-msgstr "پیش فرز"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:285
 msgid "Show Drives"
@@ -5409,16 +5354,12 @@ msgstr ""
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:493
-#, fuzzy
 msgid ""
 "This limits the game speed to the specified number of frames per second "
 "(full speed is 60 for NTSC and 50 for PAL). Alternatively, use Audio to "
 "throttle using the DSP (might fix audio clicks but can also cause constant "
 "noise depending on the game)."
 msgstr ""
-"اگر شما حد فریم را بالاتر از سرعت کامل بازی تنظیم کنید (NTSC:۶۰، PAL:۵۰). "
-"استفاده کنید از دریچه صدا با استفاده از پردازشگر صدای دلفین (شاید صدا های "
-"تیک را درست کند اما همچنین می تواند موجب نویز ثابت بسته به بازی شود)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:492
 msgid ""
@@ -5460,19 +5401,16 @@ msgid "Toggle All Log Types"
 msgstr "تبدیل انواع ثبت وقایع"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:191
-#, fuzzy
 msgid "Toggle Aspect Ratio"
-msgstr "نسبت طول به عرض تصویر:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:192
-#, fuzzy
 msgid "Toggle EFB Copies"
-msgstr "کپی های ای اف بی"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
-#, fuzzy
 msgid "Toggle Fog"
-msgstr "تبدیل انواع ثبت وقایع"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:465
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:180
@@ -5575,9 +5513,8 @@ msgid "Undo Load State"
 msgstr "خنثی کردن وضعیت بارگذاری"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:230
-#, fuzzy
 msgid "Undo Save State"
-msgstr "خنثی کردن وضعیت بارگذاری"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:726
 msgid "Unexpected 0x80 call? Aborting..."
@@ -5695,9 +5632,8 @@ msgid "V-Sync"
 msgstr "هماهنگ کردن فرکانس عمودی بازی با صفحه نمایش"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
-#, fuzzy
 msgid "VBeam Speed Hack"
-msgstr "هک کردن سرعت واحد مدیریت حافظه"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:186
 msgid "Value"
@@ -6128,9 +6064,8 @@ msgid "unknown flavor %d (expected %d)"
 msgstr ""
 
 #: Source/Core/Core/Src/x64MemTools.cpp:236
-#, fuzzy
 msgid "unknown message received"
-msgstr "پیام ناشناخته با آی دی %d دریافت شد"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1165
 msgid "wxExecute returned -1 on application run!"
@@ -6147,87 +6082,3 @@ msgstr "اصلاح z نزدیک:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| یا"
-
-#~ msgid "Accurate VBeam emulation"
-#~ msgstr "برابرسازی دقیق وی بیم"
-
-#~ msgid ""
-#~ "Allows toggling certain options via the hotkeys 3 (Internal Resolution), "
-#~ "4 (Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "اجازه کنترل برخی گزینه ها توسط کلیدهای میانبر  ۳ (وضوح داخلی)، ۴ (نسبت "
-#~ "طول به عرض)، ۵ (کپی ای اف بی) و ۶ (مه) در داخل پنجره برابرساز را میدهد.\n"
-#~ "\n"
-#~ "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
-
-#~ msgid ""
-#~ "Could not set pads. The player left or the game is currently running!\n"
-#~ "(setting pads while the game is running is not yet supported)"
-#~ msgstr ""
-#~ "قادر به ست کردن گیم پدها نیست. بازی کن بازی را ترک کرده و یا بازی در حال "
-#~ "اجرا است!\n"
-#~ "(ست کردن گیم پدها در حالی که بازی در حال اجرا است فعلا پشتیبانی نمی شود)"
-
-#~ msgid "Enable Hotkeys"
-#~ msgstr "فعال کردن شرت کاتها"
-
-#~ msgid ""
-#~ "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
-#~ "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
-#~ msgstr ""
-#~ "فعال کردن برابر سازی دالبی پرو لاجیک دو توسط خروجی فراگیر 5.1 (Surround). "
-#~ "فقط پشتوانه اپن ای ال (OpenAL). شاید تغییر نام soft_oal.dll به OpenAL32."
-#~ "dll برای به کار انداختن این امکان احتیاج باشد."
-
-#~ msgid "Export failed, try again?"
-#~ msgstr "صادر کردن با شکست مواجه شد، کوشش دوباره؟"
-
-#~ msgid "Failed to Listen!!"
-#~ msgstr "پذیرفتن با شکست مواجه شد!!"
-
-#~ msgid "Failed to load bthprops.cpl"
-#~ msgstr "بارگذاری bthprops.cpl با شکست مواجه شد"
-
-#~ msgid "Failed to load hid.dll"
-#~ msgstr "بارگذاری hid.dll با شکست مواجه شد"
-
-#~ msgid "GCMic Configuration"
-#~ msgstr "پیکربندی میکروفن گیم کیوب"
-
-#~ msgid "HCI_CMD_INQUIRY is called, please report!"
-#~ msgstr "HCI_CMD_INQUIY فرا خوانده شد، لطفا گزارش دهید!"
-
-#~ msgid ""
-#~ "If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "اگر تعداد فریم های نمایش داده شده بر ثانیه نامنظم است، شاید این گزینه به "
-#~ "رفع آن کمک کند. (روشن = سازگار، خاموش = سریع)"
-
-#~ msgid "Import failed, try again?"
-#~ msgstr "وارد کردن با شکست مواجه شد، سعی دوباره؟"
-
-#~ msgid "In-Game"
-#~ msgstr "در بازی"
-
-#~ msgid "Last Overwritten State"
-#~ msgstr "آخرین وضعیت بازنویسی شده"
-
-#~ msgid "Last Saved State"
-#~ msgstr "آخرین وضعیت ذخیره شده"
-
-#~ msgid "Local"
-#~ msgstr "محلی"
-
-#~ msgid "Reconnect Wiimote on State Loading"
-#~ msgstr "برقراری ارتباط مجدد ویموت در بارگذاری وضعیت"
-
-#~ msgid "Set"
-#~ msgstr "ست"
-
-#~ msgid "Skip Dest. Alpha Pass"
-#~ msgstr "از قلم انداختن مقصد آلفا پاس"
-
-#~ msgid "Wii Save Import"
-#~ msgstr "وارد کردن فایل ذخیره وی"

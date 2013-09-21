@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-09-09 06:28-0500\n"
-"PO-Revision-Date: 2013-04-11 01:47+0000\n"
-"Last-Translator: Siegfried <iori3000@hanafos.com>\n"
+"PO-Revision-Date: 2013-09-10 08:16+0000\n"
+"Last-Translator: delroth <delroth@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ko/)\n"
 "Language: ko\n"
@@ -112,9 +112,9 @@ msgid "%s failed to open"
 msgstr "%s가 열기에 실패했습니다"
 
 #: Source/Core/Core/Src/x64MemTools.cpp:182
-#, fuzzy, c-format
+#, c-format
 msgid "%s failed: kr=%x"
-msgstr "%s가 열기에 실패했습니다"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:403
 #, c-format
@@ -316,9 +316,8 @@ msgid "(off)"
 msgstr "(끔)"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:559
-#, fuzzy
 msgid "+ ADD"
-msgstr "^ ADD"
+msgstr "+ ADD"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:663
 msgid "0x44"
@@ -407,7 +406,6 @@ msgstr ""
 "위모트를 수동으로 연결해야합니다."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:104
-#, fuzzy
 msgid ""
 "ALERT:\n"
 "\n"
@@ -423,21 +421,6 @@ msgid ""
 "\n"
 "The host must have the chosen TCP port open/forwarded!\n"
 msgstr ""
-"알림:\n"
-"\n"
-"넷플레이는 다음 설정들을 사용할 때만이 현재 제대로 작동할 겁니다:\n"
-" - 듀얼 코어 [끔]\n"
-" - 오디오 병목 [끔]\n"
-" - DSP-HLE \"소리 없음\"으로 혹은 DSP-LLE\n"
-" - 수동으로 [스텐다드 컨트롤러]에 사용되어질 정확한 컨트롤러들의 수를 설정하"
-"세요\n"
-"\n"
-"모든 플레이어들은 같은 돌핀 버전과 설정들을 사용하도록 시도해야합니다.\n"
-"모든 메모리 카드를 끄거나 시작하기전에 그것들을 모든 플레이어들에게 보내세"
-"요.\n"
-"위모트 지원은 시행되지 않었습니다.\n"
-"\n"
-"TCP 포트를 호스트에 전달해야합니다!!"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:94
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:99
@@ -826,7 +809,7 @@ msgstr "배드 파일 헤더"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:60
 msgid "Balance Board"
-msgstr ""
+msgstr "밸런스 보드"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:621
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:293
@@ -1230,9 +1213,8 @@ msgstr "연결"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:377
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
-#, fuzzy
 msgid "Connect Balance Board"
-msgstr "USB 키보드 연결"
+msgstr "밸런스 보드 연결"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:776
 msgid "Connect USB Keyboard"
@@ -1454,9 +1436,8 @@ msgid "DSP settings"
 msgstr "DSP 설정"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:647
-#, fuzzy
 msgid "DSPLLE on Separate Thread"
-msgstr "전용 쓰레드상에 DSP"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:831
 msgid "DVD Root:"
@@ -1472,7 +1453,7 @@ msgstr "DVD저수준비암호화읽기 - 치명적 에러: 볼륨에서 읽기�
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:91
 msgid "Dance Mat"
-msgstr ""
+msgstr "댄스 매트"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:153
 msgid "Data Size"
@@ -1521,9 +1502,8 @@ msgid "Decompressing ISO"
 msgstr "ISO 압축해제하기"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:195
-#, fuzzy
 msgid "Decrease Frame limit"
-msgstr "게임 목록 새로 고침"
+msgstr "프레임 제한 감소"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:967
 msgid "Default"
@@ -1605,7 +1585,7 @@ msgstr "비활성"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:501
 msgid "Disable Destination Alpha"
-msgstr ""
+msgstr "목적지 알파 비활성"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:410
 msgid "Disable Fog"
@@ -1640,15 +1620,14 @@ msgstr ""
 "모르겠으면, 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:102
-#, fuzzy
 msgid ""
 "Disables emulation of a hardware feature called destination alpha, which is "
 "used in many games for various graphical effects.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"다양한 그래픽 효과들을 위해 많은 게임들에서 사용되는 \"목표 알파 패스\"를 스"
-"킵합니다.\n"
+"다양한 그래픽 효과들을 위해 많은 게임들에서 사용되는, 목적지 알파라 불리는 하"
+"드웨어 특성의 에뮬레이션을 비활성화합니다.\n"
 "\n"
 "모르겠으면, 이것을 언체크로 두세요."
 
@@ -1787,12 +1766,12 @@ msgid "Dolphin was unable to complete the requested action."
 msgstr "돌핀이 요청된 액션을 완수할 수 없었습니다."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
-#, fuzzy
 msgid ""
 "Doubles the emulated GPU clock rate. May speed up some games (ON = Fast, OFF "
 "= Compatible)"
 msgstr ""
-"빠른 디스크 엑세스 활성. 일부 게임들에서 요구됨. (켬 = 빠른, 끔 = 호환성)"
+"에뮬된 GPU 클럭 속도를 두배로 합니다. 일부 게임들이 빨라질지도 (켬 = 빠름, "
+"끔 = 호환성)"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:263
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:45
@@ -2239,12 +2218,11 @@ msgstr "실행"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:366
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
 msgid "Exit"
-msgstr ""
+msgstr "나가기"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:194
-#, fuzzy
 msgid "Export All Wii Saves"
-msgstr "모든 저장들을 내보내기"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:446
 msgid "Export Failed"
@@ -2275,9 +2253,8 @@ msgid "Export all saves"
 msgstr "모든 저장들을 내보내기"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:113
-#, fuzzy
 msgid "Export failed"
-msgstr "내보내기 실패했습니다"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:552
 msgid "Export save as..."
@@ -2396,6 +2373,8 @@ msgid ""
 "Failed to load bthprops.cpl! Connecting real Wiimotes won't work and Dolphin "
 "might crash unexpectedly!"
 msgstr ""
+"bthprops.cpl 로드에 실패했습니다! 리얼 위모트 연결이 작동하지 않습니다 그래"
+"서 돌핀이 갑자기 깨질지도 모릅니다!"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:90
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:101
@@ -2403,6 +2382,8 @@ msgid ""
 "Failed to load hid.dll! Connecting real Wiimotes won't work and Dolphin "
 "might crash unexpectedly!"
 msgstr ""
+"hid.dll 로드에 실패했습니다! 리얼 위모트 연결이 작동하지 않습니다 그래서 돌핀"
+"이 갑자기 깨질지도 모릅니다!"
 
 #: Source/Core/Core/Src/Movie.cpp:785
 #, c-format
@@ -2483,9 +2464,9 @@ msgstr ""
 "(0x0000-0x1FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:299
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read header for file %d"
-msgstr "%d 파일에 대한 헤더 쓰기에 실패했습니다"
+msgstr ""
 
 #: Source/Core/DiscIO/Src/VolumeGC.cpp:48
 msgid "Failed to read unique ID from disc image"
@@ -2500,9 +2481,9 @@ msgid "Failed to write bkhdr"
 msgstr "bkhdr를 쓰기에 실패"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:428
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to write data to file: %s"
-msgstr "파일: %s 에서 데이터 읽기에 실패했습니다"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:205
 #, c-format
@@ -2519,7 +2500,7 @@ msgstr "빠름"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:504
 msgid "Fast Depth Calculation"
-msgstr ""
+msgstr "빠른 깊이 계산"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid "Fast version of the MMU.  Does not work for every game."
@@ -2667,7 +2648,7 @@ msgstr "앞으로"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:156
 msgid "Forward port (UPnP)"
-msgstr ""
+msgstr "앞 포트(UPnP)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:501
 #, c-format
@@ -2675,9 +2656,9 @@ msgid "Found %d results for '"
 msgstr "%d 개 찾았습니다 '"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:65
-#, fuzzy, c-format
+#, c-format
 msgid "Found %x save files"
-msgstr "%s 를 저장할 수 없었습니다"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:869
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:937
@@ -3089,14 +3070,12 @@ msgid "Import Save"
 msgstr "저장을 가져오기"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:193
-#, fuzzy
 msgid "Import Wii Save"
-msgstr "저장을 가져오기"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:93
-#, fuzzy
 msgid "Import failed"
-msgstr "내보내기 실패했습니다"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid ""
@@ -3123,9 +3102,8 @@ msgid "In Game"
 msgstr "게임안"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
-#, fuzzy
 msgid "Increase Frame limit"
-msgstr "프레임제한:"
+msgstr "프레임 제한 증가"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:34
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
@@ -3358,7 +3336,7 @@ msgstr "언어:"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:418
 #, c-format
 msgid "Last %i"
-msgstr ""
+msgstr "최근 %i"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:683
 msgid "Latency:"
@@ -3416,58 +3394,48 @@ msgid "Load Custom Textures"
 msgstr "커스텀 텍스처 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:232
-#, fuzzy
 msgid "Load State"
-msgstr "상태 로드(&L)"
+msgstr "상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:219
-#, fuzzy
 msgid "Load State Last 1"
-msgstr "슬롯1 상태 로드"
+msgstr "최근 1 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:220
-#, fuzzy
 msgid "Load State Last 2"
-msgstr "슬롯2 상태 로드"
+msgstr "최근 2 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:221
-#, fuzzy
 msgid "Load State Last 3"
-msgstr "슬롯3 상태 로드"
+msgstr "최근 3 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:222
-#, fuzzy
 msgid "Load State Last 4"
-msgstr "슬롯4 상태 로드"
+msgstr "최근 4 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:223
-#, fuzzy
 msgid "Load State Last 5"
-msgstr "슬롯5 상태 로드"
+msgstr "최근 5 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:224
-#, fuzzy
 msgid "Load State Last 6"
-msgstr "슬롯6 상태 로드"
+msgstr "최근 6 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:225
-#, fuzzy
 msgid "Load State Last 7"
-msgstr "슬롯7 상태 로드"
+msgstr "최근 7 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:226
-#, fuzzy
 msgid "Load State Last 8"
-msgstr "슬롯8 상태 로드"
+msgstr "최근 8 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
 msgid "Load State Slot 1"
 msgstr "슬롯1 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:206
-#, fuzzy
 msgid "Load State Slot 10"
-msgstr "슬롯1 상태 로드"
+msgstr "최근 10 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:198
 msgid "Load State Slot 2"
@@ -3498,9 +3466,8 @@ msgid "Load State Slot 8"
 msgstr "슬롯8 상태 로드"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:205
-#, fuzzy
 msgid "Load State Slot 9"
-msgstr "슬롯1 상태 로드"
+msgstr "최근 9 상태 로드"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:422
 msgid "Load State..."
@@ -4066,12 +4033,14 @@ msgid "Orange"
 msgstr "주황"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:455
-#, fuzzy
 msgid ""
 "Order of files in the File Directory do not match the block order\n"
 "Right click and export all of the saves,\n"
 "and import the saves to a new memcard\n"
-msgstr "파일 디렉토리안에 파일의 순서가 블럭 순서와 맞지 않습니다\n"
+msgstr ""
+"파일 디렉토리 안에 파일들 순서가 블럭 순서와 맞지 않습니다\n"
+"우클릭하시고 모든 세이브들을 내보네세요,\n"
+"그리고 새로운 메모리카드로 세이브들을 가져오세요\n"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:325
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:507
@@ -4130,7 +4099,7 @@ msgstr "파티션 %i"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:852
 #, c-format
 msgid "Partition doesn't exist: %lu"
-msgstr ""
+msgstr "파티션이 존재하지 않습니다: %lu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:305
 msgid "Patches"
@@ -4319,7 +4288,7 @@ msgstr "러시아"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:229
 msgid "Radius"
-msgstr ""
+msgstr "반지름"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:577
 msgid "Range"
@@ -4335,7 +4304,7 @@ msgstr "실제"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:64
 msgid "Real Balance Board"
-msgstr ""
+msgstr "리얼 밸런스 보드"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:24
 msgid "Real Wiimote"
@@ -4353,9 +4322,8 @@ msgid "Record"
 msgstr "녹화"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:357
-#, fuzzy
 msgid "Record input"
-msgstr "녹화 옵션"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:161
 msgid "Recording Info"
@@ -4441,7 +4409,7 @@ msgstr "Enter"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:472
 msgid "Revision:"
-msgstr ""
+msgstr "개정판:"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:265
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:44
@@ -4458,12 +4426,9 @@ msgid "Rumble"
 msgstr "진동"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:506
-#, fuzzy
 msgid ""
 "Run DSP LLE on a dedicated thread (not recommended: might cause freezes)."
 msgstr ""
-"DSP HLE와 LLE를 전용 쓰레드상에서 구동합니다 (권장되지 않습니다: HLE로는 오디"
-"오 결함들을 유발하고 LLE로는 얼어버릴지 모릅니다)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
 msgid "Russian"
@@ -4488,23 +4453,20 @@ msgid "Save GCI as..."
 msgstr "다른 이름으로 GCI 저장..."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:228
-#, fuzzy
 msgid "Save Oldest State"
-msgstr "상태 저장(&v) "
+msgstr "가장 오래된 상태 저장"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:231
-#, fuzzy
 msgid "Save State"
-msgstr "상태 저장(&v) "
+msgstr "상태 저장"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:208
 msgid "Save State Slot 1"
 msgstr "슬롯1 상태 저장"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:217
-#, fuzzy
 msgid "Save State Slot 10"
-msgstr "슬롯1 상태 저장"
+msgstr "슬롯 10 상태 저장"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:209
 msgid "Save State Slot 2"
@@ -4535,9 +4497,8 @@ msgid "Save State Slot 8"
 msgstr "슬롯8 상태 저장"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:216
-#, fuzzy
 msgid "Save State Slot 9"
-msgstr "슬롯1 상태 저장"
+msgstr "슬롯 9 상태 저장"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:407
 msgid "Save State..."
@@ -4786,9 +4747,8 @@ msgid "Settings..."
 msgstr "설정..."
 
 #: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:252
-#, fuzzy
 msgid "SetupWiiMem: Cant create setting file"
-msgstr "SetupWiiMem: 설정 파일을 찾을 수 없음"
+msgstr ""
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -4819,9 +4779,8 @@ msgid "Show &Toolbar"
 msgstr "툴바 표시(&T)"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:290
-#, fuzzy
 msgid "Show Defaults"
-msgstr "기본"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:285
 msgid "Show Drives"
@@ -5181,7 +5140,7 @@ msgstr "세이브 파일들을 성공적으로 가져왔음"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:313
 msgid "Swedish"
-msgstr ""
+msgstr "스웨덴어"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:276
 msgid "Swing"
@@ -5414,16 +5373,15 @@ msgstr ""
 "모르겠으면. 이것을 언체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:493
-#, fuzzy
 msgid ""
 "This limits the game speed to the specified number of frames per second "
 "(full speed is 60 for NTSC and 50 for PAL). Alternatively, use Audio to "
 "throttle using the DSP (might fix audio clicks but can also cause constant "
 "noise depending on the game)."
 msgstr ""
-"프레임제한을 게임 풀 스피드 (NTSC:60, PAL:50)보다 더 높게 설정하려면, DSP를 "
-"이용해 오디오 병목을 사용하세요 (게임에 따라서는 소리 끊김들을 고칠지 모르지"
-"만 또한 지속적인 잡음을 유발할 수도 있습니다)."
+"이것은 게임 스피드를 명시된 초당 프레임 수치로 제한합니다 (풀 스피드는 NTSC "
+"60 PAL 50 입니다). 대안으로, DSP (오디오 클릭들을 고치나 또한 게임에 따라서"
+"는 지속적인 노이즈를 유발할 수 있는)를 이용하는 오디오 병목을 사용합니다."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:492
 msgid ""
@@ -5465,19 +5423,16 @@ msgid "Toggle All Log Types"
 msgstr "모든 로그 타입 토글"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:191
-#, fuzzy
 msgid "Toggle Aspect Ratio"
-msgstr "종횡비:"
+msgstr "화면 비율 토글"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:192
-#, fuzzy
 msgid "Toggle EFB Copies"
-msgstr "EFB 복사"
+msgstr "EFB 복사 토글"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
-#, fuzzy
 msgid "Toggle Fog"
-msgstr "모든 로그 타입 토글"
+msgstr "안개 토글"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:465
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:180
@@ -5486,7 +5441,7 @@ msgstr "전체화면 토글"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:190
 msgid "Toggle IR"
-msgstr ""
+msgstr "IR 토글"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:104
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
@@ -5580,9 +5535,8 @@ msgid "Undo Load State"
 msgstr "상태 로드 되돌림"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:230
-#, fuzzy
 msgid "Undo Save State"
-msgstr "상태 로드 되돌림"
+msgstr "상태 저장 풀기"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:726
 msgid "Unexpected 0x80 call? Aborting..."
@@ -5655,6 +5609,10 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"깊이 값들을 계산하기 위해 덜 적확한 알고리즘을 사용합니다.\n"
+"소수 게임들에서 이슈들을 유발하지만  괜찮은 속도증가를 줄것입니다.\n"
+"\n"
+"모르겠으면, 이것을 체크로 두세요."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:123
 msgid ""
@@ -5700,9 +5658,8 @@ msgid "V-Sync"
 msgstr "수직-동기화"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
-#, fuzzy
 msgid "VBeam Speed Hack"
-msgstr "MMU 스피드 핵"
+msgstr "VBeam 스피드 핵"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:186
 msgid "Value"
@@ -5722,7 +5679,7 @@ msgstr "상세설명"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:505
 msgid "Vertex Streaming Hack"
-msgstr ""
+msgstr "버텍스 스트리밍 핵"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:389
 msgid "Video"
@@ -5943,7 +5900,7 @@ msgstr "작동중..."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:353
 msgid "Write memcards (GC)"
-msgstr ""
+msgstr "메모리카드를 기록합니다 (GC)"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:46
 msgid "Write to Console"
@@ -6140,9 +6097,8 @@ msgid "unknown flavor %d (expected %d)"
 msgstr ""
 
 #: Source/Core/Core/Src/x64MemTools.cpp:236
-#, fuzzy
 msgid "unknown message received"
-msgstr "id : %d의 알려지지 않은 메시지를 받었다"
+msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1165
 msgid "wxExecute returned -1 on application run!"
@@ -6159,105 +6115,3 @@ msgstr "z근거리 정정:"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "Accurate VBeam emulation"
-#~ msgstr "정확한 VBeam 에뮬레이션"
-
-#~ msgid ""
-#~ "Allows toggling certain options via the hotkeys 3 (Internal Resolution), "
-#~ "4 (Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "에뮬레이션 창안에서 3(내부 해상도), 4(종횡비), 5(EFB 복사), 6(안개) 핫키들"
-#~ "을 통해 특정 옵션들 토글을 허용합니다.\\n\n"
-#~ "\\n\n"
-#~ "모르겠으면, 이것을 언체크로 두세요."
-
-#~ msgid "Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x"
-#~ msgstr "bd: %02x:%02x:%02x:%02x:%02x:%02x 에 의해 위모트를 찾을 수 없음"
-
-#~ msgid ""
-#~ "Could not set pads. The player left or the game is currently running!\n"
-#~ "(setting pads while the game is running is not yet supported)"
-#~ msgstr ""
-#~ "패드들을 설정할 수 없었습니다. 플레이어가 떠났거나 게임이 현재 구동중!\n"
-#~ "(게임이 구동중일 때 패드들을 설정하기는 아직 지원되지 않습니다)"
-
-#~ msgid "Enable Hotkeys"
-#~ msgstr "단축키 활성(그래픽 컨트롤)"
-
-#~ msgid ""
-#~ "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
-#~ "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
-#~ msgstr ""
-#~ "5.1 서라운드를 이용한 돌비 프로 로직 II 에뮬레이션을 켭니다. OpenAL 백엔"
-#~ "드 전용. 작동시키려면 soft_oal.dll 을 OpenAL32.dll 로 이름바꾸기가 필요할 "
-#~ "지도."
-
-#~ msgid "Export failed, try again?"
-#~ msgstr "내보내기 실패했습니다, 다시 시도?"
-
-#~ msgid "Failed to Listen!!"
-#~ msgstr "듣기에 실패했습니다!!"
-
-#~ msgid "Failed to load bthprops.cpl"
-#~ msgstr "bthprops.cpl 로드에 실패했습니다."
-
-#~ msgid "Failed to load hid.dll"
-#~ msgstr "hid.dll 로드에 실패했습니다"
-
-#~ msgid "GCMic Configuration"
-#~ msgstr "GCMic 환경설정"
-
-#~ msgid "HCI_CMD_INQUIRY is called, please report!"
-#~ msgstr "HCI_CMD_INQUIRY가 호출됨, 보고해주세요!"
-
-#~ msgid "Hacked Buffer Upload"
-#~ msgstr "핵 버퍼 업로드"
-
-#~ msgid ""
-#~ "If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "FPS가 불규칙적이면, 이 옵션이 도움이 될 수도 있습니다. (켬 = 호환성, 끔 = "
-#~ "빠름)"
-
-#~ msgid "Import failed, try again?"
-#~ msgstr "가져오기 실패했습니다, 재시도?"
-
-#~ msgid "In-Game"
-#~ msgstr "게임-안"
-
-#~ msgid "Last Overwritten State"
-#~ msgstr "마지막 덮어써진 상태"
-
-#~ msgid "Last Saved State"
-#~ msgstr "마지막 저장된 상태"
-
-#~ msgid "Local"
-#~ msgstr "지역"
-
-#~ msgid "Reconnect Wiimote on State Loading"
-#~ msgstr "상태 로딩시 위모트 재연결"
-
-#~ msgid "Set"
-#~ msgstr "설정"
-
-#~ msgid "Skip Dest. Alpha Pass"
-#~ msgstr "목적지. 알파 패스 스킵"
-
-#~ msgid ""
-#~ "Use a hacked upload strategy to stream vertices.\n"
-#~ "This usually speed up, but is forbidden by OpenGL specification and may "
-#~ "causes heavy glitches.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "버텍스들을 스트림하기 위해 핵 업로드를 사용합니다.\n"
-#~ "이것은 보통 스피드가 올라갑니다, 하지만 OpenGL 사양에 의해 금지되고 엄청"
-#~ "난 결함들을 유발할지도 모릅니다.\n"
-#~ "\n"
-#~ "모르겠으면, 이것을 언체크로 두세요."
-
-#~ msgid "Wii Save Import"
-#~ msgstr "Wii 저장 가져오기"

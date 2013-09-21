@@ -4,12 +4,13 @@
 #
 # Translators:
 # DolphinPhoenix <anton_r_3@hotmail.com>, 2013
+# DolphinPhoenix <anton_r_3@hotmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-09-09 06:28-0500\n"
-"PO-Revision-Date: 2013-04-23 06:37-0500\n"
+"PO-Revision-Date: 2013-09-11 20:36+0000\n"
 "Last-Translator: DolphinPhoenix <anton_r_3@hotmail.com>\n"
 "Language-Team: Swedish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/sv/)\n"
@@ -103,7 +104,7 @@ msgid ""
 "file is not large enough to be a valid memory card file (0x%x bytes)"
 msgstr ""
 "%s misslyckades att läsas in som ett minneskort.\n"
-"Filen är inte tillräckligt stor för att vara en riktig minneskortsfil (0x%x "
+"Filen är inte tillräckligt stor för att vara en giltig minneskortsfil (0x%x "
 "bytes)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:410
@@ -112,9 +113,9 @@ msgid "%s failed to open"
 msgstr "%s misslyckades att öppnas"
 
 #: Source/Core/Core/Src/x64MemTools.cpp:182
-#, fuzzy, c-format
+#, c-format
 msgid "%s failed: kr=%x"
-msgstr "%s misslyckades att öppnas"
+msgstr "%s misslyckades: kr=%x"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:403
 #, c-format
@@ -205,7 +206,7 @@ msgstr "&Helskärm"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:178
 msgid "&Graphics Settings"
-msgstr "&Grafikinställningar"
+msgstr "G&rafikinställningar"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:304
 msgid "&Help"
@@ -213,7 +214,7 @@ msgstr "&Hjälp"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:182
 msgid "&Hotkey Settings"
-msgstr "&Kortkommandoinställningar"
+msgstr "&Kortkommandosinställningar"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:237
 msgid "&JIT"
@@ -221,7 +222,7 @@ msgstr "&JIT"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:149
 msgid "&Load State"
-msgstr "&Läs in snabbsparning"
+msgstr "L&äs in snabbsparning"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:192
 msgid "&Memcard Manager (GC)"
@@ -253,7 +254,7 @@ msgstr "&Egenskaper"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:356
 msgid "&Read-only mode"
-msgstr "&Skrivskyddat läge"
+msgstr "S&krivskyddat läge"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:327
 msgid "&Refresh List"
@@ -273,7 +274,7 @@ msgstr "&Ljud"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:337
 msgid "&Stop"
-msgstr "&Stoppa"
+msgstr "S&toppa"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:211
 msgid "&Tools"
@@ -316,9 +317,8 @@ msgid "(off)"
 msgstr "(av)"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:559
-#, fuzzy
 msgid "+ ADD"
-msgstr "^ LÄGG TILL"
+msgstr "+ ADDERA"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:663
 msgid "0x44"
@@ -407,7 +407,6 @@ msgstr ""
 "Du måste ansluta dina wiimotes manuellt."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:104
-#, fuzzy
 msgid ""
 "ALERT:\n"
 "\n"
@@ -423,15 +422,13 @@ msgid ""
 "\n"
 "The host must have the chosen TCP port open/forwarded!\n"
 msgstr ""
-"!!FUZZY!!VARNING:\n"
+"VARNING:\n"
 "\n"
 "Nätspel kommer bara fungera med följande inställningar:\n"
 " - Aktivera dubbla kärnor [AV]\n"
 " - DSP-emulatormotorn måste vara likadana på alla datorer!\n"
 " - DSP på tillägnad tråd [AV]\n"
 " - Bildrutegränsen ska inte vara inställd på [Ljud]\n"
-" - Manuellt angivit det exakta antalet kontroller som ska användas som "
-"[Standardkontroll]\n"
 "\n"
 "Alla spelare bör ha samma inställningar och version av Dolphin.\n"
 "Alla minneskort måste antingen vara identiska mellan spelare eller "
@@ -727,7 +724,7 @@ msgstr "Arabiska"
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:667
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
-msgstr "Vill du verkligen raders \"%s\"?"
+msgstr "Vill du verkligen radera \"%s\"?"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:1015
 msgid ""
@@ -831,7 +828,7 @@ msgstr "Dålig headerfil"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:60
 msgid "Balance Board"
-msgstr ""
+msgstr "Balansbräda"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:621
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:293
@@ -1033,7 +1030,7 @@ msgstr "Byt"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:324
 msgid "Change &Disc..."
-msgstr "Byt &skiva"
+msgstr "Byt s&kiva"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:167
 msgid "Change Disc"
@@ -1109,11 +1106,11 @@ msgstr "Välj en standard-ISO:"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1233
 msgid "Choose a directory to add"
-msgstr "Välj en filkatalog att läggas till"
+msgstr "Välj en filkatalog att lägga till"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1060
 msgid "Choose a file to open"
-msgstr "Välj en fil som ska öppnas"
+msgstr "Välj en fil att öppna"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:204
 msgid "Choose a memory card:"
@@ -1130,7 +1127,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:793
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:834
 msgid "Choose the folder to extract to"
-msgstr "Välj extraheringsmappen"
+msgstr "Välj mappen att extrahera till"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:285
 msgid "Circle Stick"
@@ -1152,8 +1149,8 @@ msgid ""
 "Client disconnect while game is running!! NetPlay is disabled. You must "
 "manually stop the game."
 msgstr ""
-"Klienten avröt anslutningen medan spelet körs!! Nätspel är inaktiverat. Du "
-"måste stoppa spelet manuellt."
+"Klienten avbryter anslutningen medan spelet körs!! Nätspel är inaktiverat. "
+"Du måste stoppa spelet manuellt."
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:284
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:234
@@ -1239,9 +1236,8 @@ msgstr "Anslut"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:377
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
-#, fuzzy
 msgid "Connect Balance Board"
-msgstr "Anslut USB-tangentbord"
+msgstr "Anslut balansbräda"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:776
 msgid "Connect USB Keyboard"
@@ -1465,9 +1461,8 @@ msgid "DSP settings"
 msgstr "DSP-inställningar"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:647
-#, fuzzy
 msgid "DSPLLE on Separate Thread"
-msgstr "DSP på tillägnad tråd"
+msgstr "DSPLLE på separat tråd"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:831
 msgid "DVD Root:"
@@ -1484,7 +1479,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:91
 msgid "Dance Mat"
-msgstr ""
+msgstr "Dansmatta"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:153
 msgid "Data Size"
@@ -1533,9 +1528,8 @@ msgid "Decompressing ISO"
 msgstr "Avkomprimerar ISO"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:195
-#, fuzzy
 msgid "Decrease Frame limit"
-msgstr "Uppdatera spellista"
+msgstr "Sänk bildrutegräns"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:967
 msgid "Default"
@@ -1561,7 +1555,7 @@ msgstr "Radera sparning"
 #: Source/Core/VideoCommon/Src/AVIDump.cpp:64
 #, c-format
 msgid "Delete the existing file '%s'?"
-msgstr "Radera existerande filen '%s'?"
+msgstr "Radera den existerande filen '%s'?"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:680
 msgid "Description"
@@ -1621,7 +1615,7 @@ msgstr "Inaktivera Destination Alpha"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:410
 msgid "Disable Fog"
-msgstr "Inaktivera moln"
+msgstr "Inaktivera dimma"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:109
 msgid ""
@@ -1676,7 +1670,7 @@ msgstr "Diskläsningsfel"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:321
 msgid "Display"
-msgstr "Visa"
+msgstr "Skärm"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:105
 msgid ""
@@ -1739,11 +1733,42 @@ msgid ""
 "and should not be used to play games you do\n"
 "not legally own."
 msgstr ""
+"Dolphin %s\n"
+"Copyright (c) 2003-2013+ Dolphin-teamet\n"
+"\n"
+"Förgrening: %s\n"
+"Version: %s\n"
+"Kompilerad: %s, kl %s\n"
+"\n"
+"Dolphin är en emulator för Gamecube/Wii, som\n"
+"skrevs ursprungligen av F|RES och ector.\n"
+"Idag är Dolphin ett projekt med öppen källkod med\n"
+"många bidragsgivare, för många för att kunna lista upp.\n"
+"Om du är intresserad kan du gå till projektsidan på\n"
+"http://code.google.com/p/dolphin-emu/.\n"
+"\n"
+"Jättestort tack till Bushing, Costis, CrowTRobo,\n"
+"Marcan, Segher, Titanik, or9 och Hotquik för deras\n"
+"omvända ingenjörskonst och dokumentation/demos.\n"
+"\n"
+"Stort tack till Gilles Mouchard, vars Microlib PPC-\n"
+"emulator som gav vår utveckling en rivstart.\n"
+"\n"
+"Tack till Frank Wille för hans PowerPC-dissambler, som\n"
+"or9 och vi modifierade för att inkludera detaljer om Gekko.\n"
+"\n"
+"Tack till hcs/destop för deras GC ADPCM-dekoder.\n"
+"\n"
+"Vi har ingen koppling till Nintendo på något sätt.\n"
+"Gamecube och Wii är varumärken som tillhör Nintendo.\n"
+"Emulatorn är endast för utbildningsändamål och bör\n"
+"inte användas för att spela spel som du inte äger \n"
+"på ett lagligt sätt."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:189
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
-msgstr "Dolphin %s grafikkonfiguration"
+msgstr "Dolphin %s-grafikkonfiguration"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:299
 msgid "Dolphin &Web Site"
@@ -1755,7 +1780,7 @@ msgstr "Dolphin-konfiguration"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:197
 msgid "Dolphin Emulated Wiimote Configuration"
-msgstr "Dolphin emulerad Wiimote-konfiguration"
+msgstr "Dolphin konfiguration för emulerad Wiimote"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:382
 msgid "Dolphin FIFO"
@@ -1772,7 +1797,7 @@ msgstr "Dolphin TAS-filmer (*.dtm)"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:8
 msgid "Dolphin Wiimote Configuration"
-msgstr "Dolphin Wiimote-konfiguration"
+msgstr "Dolphin konfiguration för Wiimote"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:301
 msgid "Dolphin at &Google Code"
@@ -1924,7 +1949,7 @@ msgstr "Redigera konfig."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:294
 msgid "Edit Local Overrides"
-msgstr ""
+msgstr "Redigera lokala upphävanden"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.h:17
 msgid "Edit Patch"
@@ -2031,7 +2056,7 @@ msgstr "Aktivera fusk"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:318
 msgid "Enable Dual Core"
-msgstr "Aktivera dubbel kärna"
+msgstr "Aktivera dubbla kärnor"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:546
 msgid "Enable Dual Core (speedup)"
@@ -2191,7 +2216,7 @@ msgstr "Engelska"
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:338
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:418
 msgid "Enhancements"
-msgstr "Förbättring"
+msgstr "Förbättringar"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:640
 msgid "Enter a name for the new perspective:"
@@ -2220,7 +2245,8 @@ msgstr "Fel"
 #: Source/Core/DolphinWX/Src/Main.cpp:424
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
-"Fel uppstod när valt språk lästes in. Byter tillbaka till systemstandard."
+"Fel uppstod när valt språk skulle läsas in. Byter tillbaka till "
+"systemstandard."
 
 #: Source/Core/Common/Src/ChunkFile.h:221
 #, c-format
@@ -2260,12 +2286,11 @@ msgstr "Utför"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:366
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
 msgid "Exit"
-msgstr ""
+msgstr "Avsluta"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:194
-#, fuzzy
 msgid "Export All Wii Saves"
-msgstr "Exportera alla sparningar"
+msgstr "Exportera alla Wii-sparningar"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:446
 msgid "Export Failed"
@@ -2296,7 +2321,6 @@ msgid "Export all saves"
 msgstr "Exportera alla sparningar"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:113
-#, fuzzy
 msgid "Export failed"
 msgstr "Exportering misslyckades"
 
@@ -2418,6 +2442,8 @@ msgid ""
 "Failed to load bthprops.cpl! Connecting real Wiimotes won't work and Dolphin "
 "might crash unexpectedly!"
 msgstr ""
+"Misslyckades att läsa in bthprops.cpl! Det går inte att ansluta riktiga "
+"Wiimotes och Dolphin kan krascha utan förvarning!"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:90
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:101
@@ -2425,6 +2451,8 @@ msgid ""
 "Failed to load hid.dll! Connecting real Wiimotes won't work and Dolphin "
 "might crash unexpectedly!"
 msgstr ""
+"Misslyckades att läsa in hid.dll! Det går inte att ansluta riktiga Wiimotes "
+"och Dolphin kan krascha utan förvarning!"
 
 #: Source/Core/Core/Src/Movie.cpp:785
 #, c-format
@@ -2506,9 +2534,9 @@ msgstr ""
 "(0x0000-0x1FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:299
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read header for file %d"
-msgstr "Misslyckades att skriva header för filen %d"
+msgstr "Misslyckades att läsa header för filen %d"
 
 #: Source/Core/DiscIO/Src/VolumeGC.cpp:48
 msgid "Failed to read unique ID from disc image"
@@ -2523,9 +2551,9 @@ msgid "Failed to write bkhdr"
 msgstr "Misslyckades att skriva bkhdr"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:428
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to write data to file: %s"
-msgstr "Misslyckades att läsa data från fil: %s"
+msgstr "Misslyckades att skriva data till fil: %s"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:205
 #, c-format
@@ -2542,7 +2570,7 @@ msgstr "Snabb"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:504
 msgid "Fast Depth Calculation"
-msgstr ""
+msgstr "Snabb kalkylering av djup"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid "Fast version of the MMU.  Does not work for every game."
@@ -2661,7 +2689,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Tvingar spelets grafikutdata att visas i bredskärmsupplösning.\n"
+"Tvingar spelets grafikutdata att visas i bredbildsupplösning.\n"
 "Orsakar grafikbuggar i några spel.\n"
 "\n"
 "Om du är osäker kan du lämna detta omarkerat."
@@ -2691,17 +2719,17 @@ msgstr "Framåt"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:156
 msgid "Forward port (UPnP)"
-msgstr ""
+msgstr "Framåtport (UPnP)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:501
 #, c-format
 msgid "Found %d results for '"
-msgstr "HIttade  %d resultar för '"
+msgstr "Hittade %d resultat för '"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:65
-#, fuzzy, c-format
+#, c-format
 msgid "Found %x save files"
-msgstr "Kunde inte spara %s"
+msgstr "Hittade %x sparningsfiler"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:869
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:937
@@ -2813,7 +2841,7 @@ msgstr "GameCube"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:180
 msgid "Gamecube &Pad Settings"
-msgstr "Inställningar för GameCube-&kontroller"
+msgstr "Inställningar för &GameCube-kontroller"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:205
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:1064
@@ -2885,12 +2913,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"Höjer kraftigt kvaliteten på texturer som generaras med hjälp av "
+"Höjer kraftigt kvaliteten på texturer som genereras med hjälp av "
 "textureffekter.\n"
 "Att höja den interna upplösningen kommer att förbättra effekten av denna "
 "inställning.\n"
-"Slightly decreases performance and possibly causes issues (although "
-"unlikely).\n"
+"Sänker prestandan en aning och kan orsaka fel (vilket är osannolikt).\n"
 "\n"
 "Om du är osäker kan du lämna detta markerat."
 
@@ -3000,7 +3027,7 @@ msgstr "Värd"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.h:31
 msgid "Hotkey Configuration"
-msgstr "Kortkommandokonfiguration"
+msgstr "Kortkommandoskonfiguration"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:288
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:580
@@ -3060,7 +3087,7 @@ msgstr "ISO-detaljer"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:823
 msgid "ISO Directories"
-msgstr "ISO-filkatalog"
+msgstr "ISO-filmapp"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:166
 msgid "ITALY"
@@ -3113,17 +3140,15 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:791
 msgid "Import Save"
-msgstr "Importera sparningar"
+msgstr "Importera sparning"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:193
-#, fuzzy
 msgid "Import Wii Save"
-msgstr "Importera sparningar"
+msgstr "Importera Wii-sparning"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:93
-#, fuzzy
 msgid "Import failed"
-msgstr "Exportering misslyckades"
+msgstr "Importering misslyckades"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid ""
@@ -3150,9 +3175,8 @@ msgid "In Game"
 msgstr "I spelet"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
-#, fuzzy
 msgid "Increase Frame limit"
-msgstr "Bildrutegräns:"
+msgstr "Höj bildrutegräns"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:34
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
@@ -3173,7 +3197,7 @@ msgstr "Sätt in"
 
 #: Source/Core/DolphinWX/Src/ARCodeAddEdit.cpp:166
 msgid "Insert Encrypted or Decrypted code here..."
-msgstr "Sätt in krypterad eller dekrypterad kod här..."
+msgstr "Skriv in krypterad eller dekrypterad kod här..."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:775
 msgid "Insert SD Card"
@@ -3263,7 +3287,7 @@ msgstr "Intro"
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:235
 #, c-format
 msgid "Invalid Size(%x) or Magic word (%x)"
-msgstr "Ogiltig stolek (%x) eller magiskt ord (%x)"
+msgstr "Ogiltig storlek (%x) eller magiskt ord (%x)"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:617
 msgid "Invalid Value!"
@@ -3384,7 +3408,7 @@ msgstr "Språk:"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:418
 #, c-format
 msgid "Last %i"
-msgstr ""
+msgstr "Senaste %i"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:683
 msgid "Latency:"
@@ -3442,58 +3466,48 @@ msgid "Load Custom Textures"
 msgstr "Läs in anpassade texturer"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:232
-#, fuzzy
 msgid "Load State"
-msgstr "&Läs in snabbsparning"
+msgstr "Läs in snabbsparning"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:219
-#, fuzzy
 msgid "Load State Last 1"
-msgstr "Läs in snabbsparningsspår 1"
+msgstr "Läs in senaste snabbsparning 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:220
-#, fuzzy
 msgid "Load State Last 2"
-msgstr "Läs in snabbsparningsspår 2"
+msgstr "Läs in senaste snabbsparning 2"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:221
-#, fuzzy
 msgid "Load State Last 3"
-msgstr "Läs in snabbsparningsspår 3"
+msgstr "Läs in senaste snabbsparning 3"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:222
-#, fuzzy
 msgid "Load State Last 4"
-msgstr "Läs in snabbsparningsspår 4"
+msgstr "Läs in senaste snabbsparning 4"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:223
-#, fuzzy
 msgid "Load State Last 5"
-msgstr "Läs in snabbsparningsspår 5"
+msgstr "Läs in senaste snabbsparning 5"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:224
-#, fuzzy
 msgid "Load State Last 6"
-msgstr "Läs in snabbsparningsspår 6"
+msgstr "Läs in senaste snabbsparning 6"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:225
-#, fuzzy
 msgid "Load State Last 7"
-msgstr "Läs in snabbsparningsspår 7"
+msgstr "Läs in senaste snabbsparning 7"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:226
-#, fuzzy
 msgid "Load State Last 8"
-msgstr "Läs in snabbsparningsspår 8"
+msgstr "Läs in senaste snabbsparning 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
 msgid "Load State Slot 1"
 msgstr "Läs in snabbsparningsspår 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:206
-#, fuzzy
 msgid "Load State Slot 10"
-msgstr "Läs in snabbsparningsspår 1"
+msgstr "Läs in snabbsparningsspår 10"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:198
 msgid "Load State Slot 2"
@@ -3524,9 +3538,8 @@ msgid "Load State Slot 8"
 msgstr "Läs in snabbsparningsspår 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:205
-#, fuzzy
 msgid "Load State Slot 9"
-msgstr "Läs in snabbsparningsspår 1"
+msgstr "Läs in snabbsparningsspår 9"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:422
 msgid "Load State..."
@@ -3579,7 +3592,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Logga antalet renderade bildrutor per sekund till User/Logs/fps.txt. Använd "
-"denna funktion när du vill mäta på Dolphins prestanda.\n"
+"denna funktion när du vill mäta Dolphins prestanda.\n"
 "\n"
 "Om du är osäker kan du lämna detta omarkerat."
 
@@ -3703,7 +3716,7 @@ msgstr "Meny"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:97
 msgid "Mic"
-msgstr "Mikr"
+msgstr "Mikrofon"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:112
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:115
@@ -3926,7 +3939,7 @@ msgstr "Ingen dockning"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:871
 msgid "No file loaded"
-msgstr "Ingen fil inläst"
+msgstr "Ingen fil lästes in"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:426
 msgid "No free dir index entries"
@@ -4027,7 +4040,7 @@ msgstr "Visningsmeddelanden på skärmen"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:300
 msgid "Online &Documentation"
-msgstr ""
+msgstr "&Dokumentation online "
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:423
 #, c-format
@@ -4078,10 +4091,12 @@ msgid ""
 "Opens the default (read-only) configuration for this game in an external "
 "text editor."
 msgstr ""
+"Öppnar standardkonfigurationen (skrivskyddat) för detta spel i en extern "
+"textredigerare."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:295
 msgid "Opens the user specified overrides in an external text editor."
-msgstr ""
+msgstr "Öppnar användarens specifika upphävanden i en extern textredigerare."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:308
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:81
@@ -4159,7 +4174,7 @@ msgstr "Partition %i"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:852
 #, c-format
 msgid "Partition doesn't exist: %lu"
-msgstr ""
+msgstr "Partition finns inte: %lu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:305
 msgid "Patches"
@@ -4177,7 +4192,7 @@ msgstr "Pausa"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:129
 msgid "Pause at end of movie"
-msgstr "Pausa vid slutet av filmen"
+msgstr "Pausa vid slutet av film"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:406
 msgid "Per-Pixel Lighting"
@@ -4348,7 +4363,7 @@ msgstr "RYSSLAND"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:229
 msgid "Radius"
-msgstr ""
+msgstr "Radie"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:577
 msgid "Range"
@@ -4364,7 +4379,7 @@ msgstr "Riktig"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:64
 msgid "Real Balance Board"
-msgstr ""
+msgstr "Riktig balansbräda"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:24
 msgid "Real Wiimote"
@@ -4382,9 +4397,8 @@ msgid "Record"
 msgstr "Spela in"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:357
-#, fuzzy
 msgid "Record input"
-msgstr "Inspelningsinställningar"
+msgstr "Inspelningsinmatning"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:161
 msgid "Recording Info"
@@ -4487,12 +4501,10 @@ msgid "Rumble"
 msgstr "Vibration"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:506
-#, fuzzy
 msgid ""
 "Run DSP LLE on a dedicated thread (not recommended: might cause freezes)."
 msgstr ""
-"Kör DSP HLE och LLE på en tillägnad tråd (rekommenderas inte; kan orsaka "
-"ljudbuggar med HLE och fryser sig med LLE)."
+"Kör DSP LLE på en tillägnad tråd (rekommenderas inte; kan orsaka frysningar)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
 msgid "Russian"
@@ -4517,23 +4529,20 @@ msgid "Save GCI as..."
 msgstr "Spara GCI som..."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:228
-#, fuzzy
 msgid "Save Oldest State"
-msgstr "Spa&ra snabbsparning"
+msgstr "Spara äldsta snabbsparning"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:231
-#, fuzzy
 msgid "Save State"
-msgstr "Spa&ra snabbsparning"
+msgstr "Spara snabbsparning"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:208
 msgid "Save State Slot 1"
 msgstr "Spara snabbsparningsspår 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:217
-#, fuzzy
 msgid "Save State Slot 10"
-msgstr "Spara snabbsparningsspår 1"
+msgstr "Spara snabbsparningsspår 10"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:209
 msgid "Save State Slot 2"
@@ -4564,9 +4573,8 @@ msgid "Save State Slot 8"
 msgstr "Spara snabbsparningsspår 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:216
-#, fuzzy
 msgid "Save State Slot 9"
-msgstr "Spara snabbsparningsspår 1"
+msgstr "Spara snabbsparningsspår 9"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:407
 msgid "Save State..."
@@ -4605,7 +4613,7 @@ msgstr "Skannar %s"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:529
 msgid "Scanning for ISOs"
-msgstr "Söker efter ISOs"
+msgstr "Skannar efter ISOs"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:530
 msgid "Scanning..."
@@ -4671,7 +4679,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:510
 msgid "Select a save file to import"
-msgstr "Välj en sparningsfil som ska importeras"
+msgstr "Välj en sparningsfil att importera"
 
 #: Source/Core/DolphinWX/Src/FrameAui.cpp:366
 msgid "Select floating windows"
@@ -4683,7 +4691,7 @@ msgstr "Öppna fil"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1328
 msgid "Select the save file"
-msgstr "Välj snabbsparning"
+msgstr "Välj sparningsfilen"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:1473
 msgid "Select the state to load"
@@ -4705,9 +4713,9 @@ msgid ""
 msgstr ""
 "Välj vilket bildformat som ska användas vid rendering:\n"
 "Auto: Använd det ursprungliga bildförhållandet.\n"
-"Tvinga 16:9: Skräcker bilden till ett bildformat på 16:9.\n"
-"Tvinga 4:3: Skräcker bilden till ett bildformat på 4:3.\n"
-"Skräck till fönster: Sträcker bilden till fönsterstorleken.\n"
+"Tvinga 16:9: Sträcker bilden till ett bildformat på 16:9.\n"
+"Tvinga 4:3: Sträcker bilden till ett bildformat på 4:3.\n"
+"Skräck ut till fönster: Sträcker bilden till fönsterstorleken.\n"
 "\n"
 "Om du är osäker kan du välja Auto."
 
@@ -4774,7 +4782,7 @@ msgstr "Skicka"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:110
 msgid "Sensor Bar Position:"
-msgstr "Position av Sensor Bar:"
+msgstr "Position för Sensor Bar:"
 
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:64
 msgid "Separator"
@@ -4782,7 +4790,7 @@ msgstr "Avskiljare"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:311
 msgid "Serbian"
-msgstr "Serbiriska"
+msgstr "Serbiska"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:510
 msgid ""
@@ -4811,16 +4819,15 @@ msgid ""
 "backend only."
 msgstr ""
 "Anger latensen (i millisekunder). Högre värden kan reducera ljudknaster. "
-"Endast OpenAL backend."
+"Endast för OpenAL-backend."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:349
 msgid "Settings..."
 msgstr "Inställningar..."
 
 #: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:252
-#, fuzzy
 msgid "SetupWiiMem: Cant create setting file"
-msgstr "SetupWiiMem: Kan inte hitta filinställningar"
+msgstr "SetupWiiMem: Kan inte skapa inställningsfil"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -4836,7 +4843,7 @@ msgstr "Avtyckarknappar"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:221
 msgid "Show &Console"
-msgstr "Visa &kommandotolk"
+msgstr "Visa kommando&tolk"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:219
 msgid "Show &Log"
@@ -4851,9 +4858,8 @@ msgid "Show &Toolbar"
 msgstr "Visa &verktygsfält"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:290
-#, fuzzy
 msgid "Show Defaults"
-msgstr "Standard"
+msgstr "Visa standardvärden"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:285
 msgid "Show Drives"
@@ -5002,7 +5008,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Visa blandade statistiker.\n"
+"Visa blandad statistik.\n"
 "\n"
 "Om du är osäker kan du lämna detta omarkerat."
 
@@ -5154,11 +5160,11 @@ msgstr "Starta &nätspel"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:347
 msgid "Start Re&cording"
-msgstr "&Börja spela in"
+msgstr "Starta &inspelning"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:175
 msgid "Start Recording"
-msgstr "Börja spela in"
+msgstr "Starta inspelning"
 
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:302
 msgid "State"
@@ -5170,7 +5176,7 @@ msgstr "Snabbsparningar"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:90
 msgid "Steering Wheel"
-msgstr "Styrhjul"
+msgstr "Ratt"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/Attachment/Guitar.cpp:57
 msgid "Stick"
@@ -5219,11 +5225,11 @@ msgstr "Lyckades importera sparningsfiler"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:313
 msgid "Swedish"
-msgstr ""
+msgstr "Svenska"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:276
 msgid "Swing"
-msgstr "Svinga"
+msgstr "Svängning "
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:328
 msgid "Synchronize GPU thread"
@@ -5288,11 +5294,11 @@ msgstr "Textur"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:462
 msgid "Texture Cache"
-msgstr "Textur-cache"
+msgstr "Texturcache"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:530
 msgid "Texture Format Overlay"
-msgstr "Lägg över texturformat"
+msgstr "Överlägg för texturformat"
 
 #: Source/Core/Core/Src/CoreParameter.cpp:228
 msgid "The WAD has been installed successfully"
@@ -5399,7 +5405,7 @@ msgstr "Den valda filen \"%s\" finns inte"
 
 #: Source/Core/Core/Src/ActionReplay.cpp:186
 msgid "The value is invalid"
-msgstr "Värdet är felaktigt"
+msgstr "Värdet är ogiltigt"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:629
 msgid "Theme:"
@@ -5505,19 +5511,16 @@ msgid "Toggle All Log Types"
 msgstr "Markera/avmarkera alla loggtyper"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:191
-#, fuzzy
 msgid "Toggle Aspect Ratio"
-msgstr "Bildförhållande:"
+msgstr "Slå på/av bildförhållande"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:192
-#, fuzzy
 msgid "Toggle EFB Copies"
-msgstr "EFB-kopior"
+msgstr "Slå på/av EFB-kopior"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
-#, fuzzy
 msgid "Toggle Fog"
-msgstr "Markera/avmarkera alla loggtyper"
+msgstr "Slå på/av dimma"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:465
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:180
@@ -5526,7 +5529,7 @@ msgstr "Skifta mellan helskärm- och fönsterläge"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:190
 msgid "Toggle IR"
-msgstr ""
+msgstr "Slå på/av IR"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:104
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
@@ -5620,9 +5623,8 @@ msgid "Undo Load State"
 msgstr "Ångra inläsning av snabbsparning"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:230
-#, fuzzy
 msgid "Undo Save State"
-msgstr "Ångra inläsning av snabbsparning"
+msgstr "Ångra snabbsparning"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:726
 msgid "Unexpected 0x80 call? Aborting..."
@@ -5695,6 +5697,10 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Använd en mindre exakt algoritm för att beräkna djupvärden.\n"
+"Orsakar fel i några spel med kan ge en hyfsad prestandaacceleration.\n"
+"\n"
+"Om du är osäker kan du lämna detta markerat."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:123
 msgid ""
@@ -5717,6 +5723,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Använder osäkra åtgärder för att snabba upp hörnströmning i OpenGL. Det "
+"finns inga kända problem på stödjande grafikprocessorer, men det kan annars "
+"orsaka allvarlig stabilitet och grafikproblem."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:126
 msgid ""
@@ -5762,7 +5771,7 @@ msgstr "Avlusningsnivå"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:505
 msgid "Vertex Streaming Hack"
-msgstr ""
+msgstr "Hörnströmningshack"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:389
 msgid "Video"
@@ -6069,8 +6078,7 @@ msgstr "Du måste ange ett giltigt profilnamn."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:929
 msgid "You must restart Dolphin in order for the change to take effect."
-msgstr ""
-"Du måste starta om Dolphin för att ändringarna ska kunna träda i kraft."
+msgstr "Du måste starta om Dolphin för att ändringarna ska träda i kraft."
 
 #: Source/Core/Core/Src/DSP/DSPCore.cpp:109
 msgid ""
@@ -6184,12 +6192,11 @@ msgstr "s"
 #: Source/Core/Core/Src/x64MemTools.cpp:242
 #, c-format
 msgid "unknown flavor %d (expected %d)"
-msgstr ""
+msgstr "okänd funktion %d (förväntade %d)"
 
 #: Source/Core/Core/Src/x64MemTools.cpp:236
-#, fuzzy
 msgid "unknown message received"
-msgstr "Tog emot ett okänt meddelande med id: %d"
+msgstr "fick ett okänt meddelande"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1165
 msgid "wxExecute returned -1 on application run!"
@@ -6206,95 +6213,3 @@ msgstr "zNear-korrektion: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| ELLER"
-
-#~ msgid ""
-#~ "Allows toggling certain options via the hotkeys 3 (Internal Resolution), "
-#~ "4 (Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Tillåter att växla mellan vissa inställningar med snabbtangenterna 3 "
-#~ "(Intern upplösning), 4 (Bildförhållande), 5 (Kopiera EFB) och 6 (Dimma) "
-#~ "inom emulatorfönstret.\n"
-#~ "\n"
-#~ "Om du är osäker kan du lämna detta omarkerat."
-
-#~ msgid "Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x"
-#~ msgstr "Kan inte hitta Wiimote med bd: %02x:%02x:%02x:%02x:%02x:%02x"
-
-#~ msgid ""
-#~ "Could not set pads. The player left or the game is currently running!\n"
-#~ "(setting pads while the game is running is not yet supported)"
-#~ msgstr ""
-#~ "Kunde inte konfigurera kontroller. Spelaren lämnade spelet eller så körs "
-#~ "spelet för tillfället!\n"
-#~ "(Att konfigurera kontroller när spelet körs stöds inte ännu)"
-
-#~ msgid "Enable Hotkeys"
-#~ msgstr "Aktivera "
-
-#~ msgid ""
-#~ "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
-#~ "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
-#~ msgstr ""
-#~ "Aktiverar emulation av Dolby Pro Logic II med hjälp av 5.1 surround. "
-#~ "Endast OpenAL-backend. Kanske behöver byta namn på soft_oal.dll till "
-#~ "OpenAL32.dll för att det ska fungera."
-
-#~ msgid "Export failed, try again?"
-#~ msgstr "Exportering misslyckades, vill du försöka igen?"
-
-#~ msgid "Failed to Listen!!"
-#~ msgstr "Misslyckades att lyssna!!"
-
-#~ msgid "Failed to load bthprops.cpl"
-#~ msgstr "Misslyckades att läsa bthprops.cpl"
-
-#~ msgid "Failed to load hid.dll"
-#~ msgstr "Misslyckades att läsa in hid.dll"
-
-#~ msgid "GCMic Configuration"
-#~ msgstr "Konfiguration av GC-Mikrofon"
-
-#~ msgid "HCI_CMD_INQUIRY is called, please report!"
-#~ msgstr "HCI_CMD_INQUIRY anropade, var god rapportera!"
-
-#~ msgid "Hacked Buffer Upload"
-#~ msgstr "Hackad bufferuppladdning"
-
-#~ msgid "Import failed, try again?"
-#~ msgstr "Importering misslyckades, försöka igen?"
-
-#~ msgid "In-Game"
-#~ msgstr "I spelet"
-
-#~ msgid "Last Overwritten State"
-#~ msgstr "Senast överskrivna snabbsparning"
-
-#~ msgid "Last Saved State"
-#~ msgstr "Senast sparade snabbsparning"
-
-#~ msgid "Local"
-#~ msgstr "Lokal"
-
-#~ msgid "Reconnect Wiimote on State Loading"
-#~ msgstr "Återanslut Wiimote när en snabbsparning läser in"
-
-#~ msgid "Set"
-#~ msgstr "Ange"
-
-#~ msgid ""
-#~ "Use a hacked upload strategy to stream vertices.\n"
-#~ "This usually speed up, but is forbidden by OpenGL specification and may "
-#~ "causes heavy glitches.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Använd en hackad uppladdningsstrategi för att strömma hörn.\n"
-#~ "Detta höjer vanligtvis hastigheten, men är förbjuden enligt OpenGL:s "
-#~ "specifikationer och kan orsaka en del större buggar.\n"
-#~ "\n"
-#~ "Om du är osäker kan du lämna detta omarkerat."
-
-#~ msgid "Wii Save Import"
-#~ msgstr "Importera Wii-sparningar"

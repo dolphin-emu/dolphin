@@ -5,12 +5,13 @@
 # Translators:
 # Gpower2 <gpower2@yahoo.com>, 2011
 # link_to_the_past <kostamarino@gmail.com>, 2013
+# Godfath3r <galatsanosp@gmail.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2013-09-09 06:28-0500\n"
-"PO-Revision-Date: 2013-04-04 19:05+0000\n"
+"PO-Revision-Date: 2013-09-18 14:27+0000\n"
 "Last-Translator: link_to_the_past <kostamarino@gmail.com>\n"
 "Language-Team: Greek (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/el/)\n"
@@ -115,9 +116,9 @@ msgid "%s failed to open"
 msgstr "αποτυχία ανοίγματος %s"
 
 #: Source/Core/Core/Src/x64MemTools.cpp:182
-#, fuzzy, c-format
+#, c-format
 msgid "%s failed: kr=%x"
-msgstr "αποτυχία ανοίγματος %s"
+msgstr "%s απέτυχε: kr=%x"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:403
 #, c-format
@@ -321,9 +322,8 @@ msgid "(off)"
 msgstr "(ανενεργό)"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:559
-#, fuzzy
 msgid "+ ADD"
-msgstr "^ ADD"
+msgstr "+ ADD"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:663
 msgid "0x44"
@@ -401,7 +401,7 @@ msgstr "Ένα παράθυρο NetPlay είναι ήδη ανοιχτό!!"
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:370
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:404
 msgid "A game is not currently running."
-msgstr "Αυτή τη στιγμή δεν εκτελείται κάπιο παιχνίδι."
+msgstr "Αυτή τη στιγμή δεν εκτελείται κάποιο παιχνίδι."
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:85
 msgid ""
@@ -412,7 +412,6 @@ msgstr ""
 "Θα πρέπει να συνδέσετε χειροκίνητα τα wiimotes."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:104
-#, fuzzy
 msgid ""
 "ALERT:\n"
 "\n"
@@ -431,18 +430,18 @@ msgstr ""
 "ΠΡΟΣΟΧΗ:\n"
 "\n"
 "Η λειτουργία NetPlay λειτουργεί σωστά μόνο με τις παρακάτω ρυθμίσεις:\n"
-" - Δύο Πυρήνες [ΑΝΕΝΕΡΓΟ]\n"
-" - Throttle Ήχου [ΑΝΕΝΕΡΓΟ]\n"
-" - DSP-HLE με \"Null Audio\" ή DSP-LLE\n"
-" - Χειροκίνητη εισαγωγή του ακριβούς αριθμού των ελεγκτών που θα "
-"χρησιμοποιηθούν σαν [Τυπικός Ελεγκτής]\n"
+" - Ενεργοποίηση Διπλού Πυρήνα [ΑΝΕΝΕΡΓΟ]\n"
+" - Η Μηχανή Εξομοίωσης DSP πρέπει να είναι η ίδια σε όλους τους "
+"υπολογιστές!\n"
+" - DSP σε Ξεχωριστό Νήμα [ΑΝΕΝΕΡΓΟ]\n"
+" - Ο Περιορισμός των Καρέ να ΜΗΝ έχει οριστεί σε [Ήχο]\n"
 "\n"
 "Όλοι οι παίκτες πρέπει να έχουν την ίδια έκδοση και ρυθμίσεις του Dolphin.\n"
-"Απενεργοποιήστε όλες τις κάρτες μνήμης ή στείλτε τες σε όλους τους παίκτες "
-"πριν την εκκίνηση.\n"
-"Η υποστήριξη Wiimote δεν έχει ακόμα υλοποιηθεί.\n"
+"Όλες οι κάρτες μνήμης πρέπει να είναι ίδιες ανάμεσα στους παίκτες ή "
+"απενεργοποιημένες.\n"
+"Η υποστήριξη Wiimote δεν έχει ακόμα υλοποιηθεί!\n"
 "\n"
-"Θα πρέπει να έχετε κάνει προώθηση της πόρτας TCP στον host!!"
+"Ο host θα πρέπει να έχει την επιλεγμένη TCP port ανοιχτή/προωθημένη!\n"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:94
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:99
@@ -825,7 +824,7 @@ msgstr "Μη Έγκυρη Κεφαλίδα Αρχείου"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:60
 msgid "Balance Board"
-msgstr ""
+msgstr "Σανίδα Ισορροπίας"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:621
 #: Source/Core/DolphinWX/Src/GameListCtrl.cpp:293
@@ -1047,11 +1046,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:47
 msgid "Changes sign to zFar Parameter (after correction)"
-msgstr ""
+msgstr "Αλλαγή προσήμου της παραμέτρου zFar (μετά την διόρθωση)"
 
 #: Source/Core/DolphinWX/Src/PHackSettings.cpp:42
 msgid "Changes sign to zNear Parameter (after correction)"
-msgstr ""
+msgstr "Αλλαγή προσήμου της παραμέτρου zNear (μετά την διόρθωση)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:507
 msgid "Changing this will have no effect while the emulator is running!"
@@ -1233,9 +1232,8 @@ msgstr "Σύνδεση"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:377
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:188
-#, fuzzy
 msgid "Connect Balance Board"
-msgstr "Σύνδεση Πληκτρολογίου USB"
+msgstr "Σύνδεση Σανίδας Ισορροπίας"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:776
 msgid "Connect USB Keyboard"
@@ -1460,9 +1458,8 @@ msgid "DSP settings"
 msgstr "Ρυθμίσεις ήχου (DSP)"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:647
-#, fuzzy
 msgid "DSPLLE on Separate Thread"
-msgstr "DSP σε Ξεχωριστό Νήμα"
+msgstr "DSPLLE σε Ξεχωριστό Νήμα"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:831
 msgid "DVD Root:"
@@ -1479,7 +1476,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:91
 msgid "Dance Mat"
-msgstr ""
+msgstr "Χαλάκι Χορού"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:153
 msgid "Data Size"
@@ -1528,9 +1525,8 @@ msgid "Decompressing ISO"
 msgstr "Γίνεται αποσυμπίεση ISO"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:195
-#, fuzzy
 msgid "Decrease Frame limit"
-msgstr "Ανανέωση λίστας παιχνιδιών"
+msgstr "Μείωση Ορίου Καρέ"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:967
 msgid "Default"
@@ -1612,7 +1608,7 @@ msgstr "Απενεργοποίηση"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:501
 msgid "Disable Destination Alpha"
-msgstr ""
+msgstr "Απενεργοποίηση Destination Alpha"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:410
 msgid "Disable Fog"
@@ -1649,15 +1645,15 @@ msgstr ""
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:102
-#, fuzzy
 msgid ""
 "Disables emulation of a hardware feature called destination alpha, which is "
 "used in many games for various graphical effects.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Παράλειψη του destination alpha pass που χρησιμοποιείται από πολλά παιχνίδια "
-"σε διάφορα γραφικά εφέ.\n"
+"Απενεργοποιεί την εξομοίωση ενός χαρακτηριστικού του υλικού που ονομάζεται "
+"destination alpha pass, και το οποίο χρησιμοποιείται από πολλά παιχνίδια για "
+"διάφορα γραφικά εφέ.\n"
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
@@ -1735,6 +1731,38 @@ msgid ""
 "and should not be used to play games you do\n"
 "not legally own."
 msgstr ""
+"Dolphin %s\n"
+"Copyright (c) 2003-2013+ Dolphin Team\n"
+"\n"
+"Branch: %s\n"
+"Revision: %s\n"
+"Compiled: %s @ %s\n"
+"\n"
+"Το Dolphin είναι ένας Gamecube/Wii εξομοιωτής, ο οποίος\n"
+"γράφτηκε αρχικά από τον F|RES και τον ector.\n"
+"Σήμερα το Dolphin είναι ένα έργο ανοιχτού κώδικα με πολλούς\n"
+"να συνεισφέρουν, πάρα πολλούς για να αναφερθούν εδώ.\n"
+"Εάν σας ενδιαφέρει, απλά ελέγξτε την σελίδα του έργου στο\n"
+"http://code.google.com/p/dolphin-emu/ .\n"
+"\n"
+"Ιδιαίτερες ευχαριστίες  στον Bushing, Costis, CrowTRobo,\n"
+"Marcan, Segher, Titanik, or9 και Hotquik για το\n"
+"reverse engineering και τα docs/demos.\n"
+"\n"
+"Ένα μεγάλο ευχαριστώ στον Gilles Mouchard του οποίου ο\n"
+" Microlib PPC εξομοιωτής έδωσε έναυσμα στην ανάπτυξη.\n"
+"\n"
+"Ευχαριστώ τον Frank Wille για τον PowerPC disassembler,\n"
+"τον οποίο ο or9 και εμείς τροποποιήσαμε για να συμπεριληφθούν \n"
+"λεπτομέρειες για τον Gekko.\n"
+"\n"
+"Ευχαριστούμε τους hcs/destop για τον GC ADPCM decoder.\n"
+"\n"
+"Εμείς δεν συνδεόμαστε με την Nintendo με οποιονδήποτε τρόπο.\n"
+"Gamecube και Wii είναι εμπορικά σήματα της Nintendo.\n"
+"Ο εξομοιωτής είναι για εκπαιδευτικούς σκοπούς μόνο\n"
+"και δεν πρέπει να χρησιμοποιηθεί για να παίξετε παιχνίδια \n"
+"τα οποία δεν κατέχετε νόμιμα."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:189
 #, c-format
@@ -1796,13 +1824,12 @@ msgid "Dolphin was unable to complete the requested action."
 msgstr "Το Dolphin δεν μπόρεσε να ολοκληρώσει την ζητούμενη ενέργεια."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:327
-#, fuzzy
 msgid ""
 "Doubles the emulated GPU clock rate. May speed up some games (ON = Fast, OFF "
 "= Compatible)"
 msgstr ""
-"Ενεργοποιεί τη γρήγορη πρόσβαση δίσκου. Απαραίτητο για μερικά παιχνίδια. "
-"(ΕΝΕΡΓΟ = Γρήγορο, ΑΝΕΝΕΡΓΟ = Συμβατό)"
+"Διπλασιάζει την συχνότητα του ρολογιού της εξομοιωμένης GPU. Μπορεί να "
+"επιταχύνει ορισμένα παιχνίδια (ΕΝΕΡΓΟ = Ταχύτητα, ΑΝΕΝΕΡΓΟ = Συμβατότητα)"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:263
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:45
@@ -1923,7 +1950,7 @@ msgstr "Επεξεργασία Ρυθμίσεων"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:294
 msgid "Edit Local Overrides"
-msgstr ""
+msgstr "Επεξεργασία Τοπικών Ρυθμίσεων"
 
 #: Source/Core/DolphinWX/Src/PatchAddEdit.h:17
 msgid "Edit Patch"
@@ -2263,12 +2290,11 @@ msgstr "Εκτέλεση"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:366
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:182
 msgid "Exit"
-msgstr ""
+msgstr "Έξοδος"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:194
-#, fuzzy
 msgid "Export All Wii Saves"
-msgstr "Εξαγωγή όλων των αποθηκεύσεων"
+msgstr "Εξαγωγή Όλων Των Αποθηκεύσεων Wii"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:446
 msgid "Export Failed"
@@ -2299,9 +2325,8 @@ msgid "Export all saves"
 msgstr "Εξαγωγή όλων των αποθηκεύσεων"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:113
-#, fuzzy
 msgid "Export failed"
-msgstr "Αποτυχία Εξαγωγής"
+msgstr "Αποτυχία εξαγωγής"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:552
 msgid "Export save as..."
@@ -2422,6 +2447,8 @@ msgid ""
 "Failed to load bthprops.cpl! Connecting real Wiimotes won't work and Dolphin "
 "might crash unexpectedly!"
 msgstr ""
+"Αποτυχία φόρτωσης του bthprops.cpl! Δεν θα δουλέψει η σύνδεση πραγματικών "
+"Wiimotes και το Dolphin μπορεί να τερματιστεί αναπάντεχα!"
 
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:90
 #: Source/Core/Core/Src/HW/WiimoteReal/IOWin.cpp:101
@@ -2429,6 +2456,8 @@ msgid ""
 "Failed to load hid.dll! Connecting real Wiimotes won't work and Dolphin "
 "might crash unexpectedly!"
 msgstr ""
+"Αποτυχία φόρτωσης του hid.dll! Δεν θα δουλέψει η σύνδεση πραγματικών "
+"Wiimotes και το Dolphin μπορεί να τερματιστεί αναπάντεχα!"
 
 #: Source/Core/Core/Src/Movie.cpp:785
 #, c-format
@@ -2509,9 +2538,9 @@ msgstr ""
 "(0x0000-0x1FFF)"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:299
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to read header for file %d"
-msgstr "Αποτυχία εγγραφής της κεφαλίδας για το αρχείο %d"
+msgstr "Αποτυχία ανάγνωσης της κεφαλίδας για το αρχείο %d"
 
 #: Source/Core/DiscIO/Src/VolumeGC.cpp:48
 msgid "Failed to read unique ID from disc image"
@@ -2526,9 +2555,9 @@ msgid "Failed to write bkhdr"
 msgstr "Αποτυχία εγγραφής του bkhdr"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:428
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to write data to file: %s"
-msgstr "Αποτυχία ανάγνωσης δεδομένων από το αρχείο: %s"
+msgstr "Αποτυχία εγγραφής δεδομένων στο αρχείο: %s"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:205
 #, c-format
@@ -2545,7 +2574,7 @@ msgstr "Γρήγορη"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:504
 msgid "Fast Depth Calculation"
-msgstr ""
+msgstr "Γρήγορος Υπολογισμός Βάθους"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:323
 msgid "Fast version of the MMU.  Does not work for every game."
@@ -2695,7 +2724,7 @@ msgstr "Μπροστά"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:156
 msgid "Forward port (UPnP)"
-msgstr ""
+msgstr "Προώθηση θύρας (UPnP)"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:501
 #, c-format
@@ -2703,9 +2732,9 @@ msgid "Found %d results for '"
 msgstr "Βρέθηκαν %d αποτελέσματα για '"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:65
-#, fuzzy, c-format
+#, c-format
 msgid "Found %x save files"
-msgstr "Αποτυχία αποθήκευσης του %s"
+msgstr "Βρέθηκαν %x αρχεία αποθήκευσης"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:869
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:937
@@ -3124,14 +3153,12 @@ msgid "Import Save"
 msgstr "Εισαγωγή Αποθήκευσης"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:193
-#, fuzzy
 msgid "Import Wii Save"
-msgstr "Εισαγωγή Αποθήκευσης"
+msgstr "Εισαγωγή Αποθήκευσης Wii"
 
 #: Source/Core/DolphinWX/Src/MemoryCards/WiiSaveCrypted.cpp:93
-#, fuzzy
 msgid "Import failed"
-msgstr "Αποτυχία Εξαγωγής"
+msgstr "Η εισαγωγή απέτυχε"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:441
 msgid ""
@@ -3158,9 +3185,8 @@ msgid "In Game"
 msgstr "Εντός Παιχνιδιού"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:194
-#, fuzzy
 msgid "Increase Frame limit"
-msgstr "Περιορισμός Καρέ:"
+msgstr "Αύξηση Ορίου Καρέ"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:34
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:313
@@ -3393,7 +3419,7 @@ msgstr "Γλώσσα:"
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:418
 #, c-format
 msgid "Last %i"
-msgstr ""
+msgstr "Τελευταίο %i"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:683
 msgid "Latency:"
@@ -3451,58 +3477,48 @@ msgid "Load Custom Textures"
 msgstr "Φόρτωση Τροποποιημένων Υφών"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:232
-#, fuzzy
 msgid "Load State"
-msgstr "&Φόρτωση Σημείου Αποθήκευσης"
+msgstr "Φόρτωση Σημείου Αποθήκευσης"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:219
-#, fuzzy
 msgid "Load State Last 1"
-msgstr "Φόρτωση Σημείου Αποθήκευσης 1"
+msgstr "Φόρτωση Τελευταίας Αποθήκευσης 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:220
-#, fuzzy
 msgid "Load State Last 2"
-msgstr "Φόρτωση Σημείου Αποθήκευσης 2"
+msgstr "Φόρτωση Τελευταίας Αποθήκευσης 2"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:221
-#, fuzzy
 msgid "Load State Last 3"
-msgstr "Φόρτωση Σημείου Αποθήκευσης 3"
+msgstr "Φόρτωση Τελευταίας Αποθήκευσης 3"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:222
-#, fuzzy
 msgid "Load State Last 4"
-msgstr "Φόρτωση Σημείου Αποθήκευσης 4"
+msgstr "Φόρτωση Τελευταίας Αποθήκευσης 4"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:223
-#, fuzzy
 msgid "Load State Last 5"
-msgstr "Φόρτωση Σημείου Αποθήκευσης 5"
+msgstr "Φόρτωση Τελευταίας Αποθήκευσης 5"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:224
-#, fuzzy
 msgid "Load State Last 6"
-msgstr "Φόρτωση Σημείου Αποθήκευσης 6"
+msgstr "Φόρτωση Τελευταίας Αποθήκευσης 6"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:225
-#, fuzzy
 msgid "Load State Last 7"
-msgstr "Φόρτωση Σημείου Αποθήκευσης 7"
+msgstr "Φόρτωση Τελευταίας Αποθήκευσης 7"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:226
-#, fuzzy
 msgid "Load State Last 8"
-msgstr "Φόρτωση Σημείου Αποθήκευσης 8"
+msgstr "Φόρτωση Τελευταίας Αποθήκευσης 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:197
 msgid "Load State Slot 1"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:206
-#, fuzzy
 msgid "Load State Slot 10"
-msgstr "Φόρτωση Σημείου Αποθήκευσης 1"
+msgstr "Φόρτωση Σημείου Αποθήκευσης 10"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:198
 msgid "Load State Slot 2"
@@ -3533,9 +3549,8 @@ msgid "Load State Slot 8"
 msgstr "Φόρτωση Σημείου Αποθήκευσης 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:205
-#, fuzzy
 msgid "Load State Slot 9"
-msgstr "Φόρτωση Σημείου Αποθήκευσης 1"
+msgstr "Φόρτωση Σημείου Αποθήκευσης 9"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:422
 msgid "Load State..."
@@ -3621,7 +3636,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:322
 msgid "MMU Speed Hack"
-msgstr "MMU Speed Hack"
+msgstr "MMU Hack Ταχύτητας"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:517
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:556
@@ -4042,7 +4057,7 @@ msgstr "Απεικόνιση Μηνυμάτων Στην Οθόνη"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:300
 msgid "Online &Documentation"
-msgstr ""
+msgstr "Online &Εγχειρίδια "
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:423
 #, c-format
@@ -4093,10 +4108,14 @@ msgid ""
 "Opens the default (read-only) configuration for this game in an external "
 "text editor."
 msgstr ""
+"Ανοίγει τις προεπιλεγμένες (μόνο για ανάγνωση) ρυθμίσεις για αυτό το "
+"παιχνίδι σε έναν εξωτερικό επεξεργαστή κειμένου."
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:295
 msgid "Opens the user specified overrides in an external text editor."
 msgstr ""
+"Ανοίγει τις τοπικές ρυθμίσεις του χρήστη σε έναν εξωτερικό επεξεργαστή "
+"κειμένου."
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:308
 #: Source/Core/Core/Src/HW/GCPadEmu.cpp:81
@@ -4108,7 +4127,6 @@ msgid "Orange"
 msgstr "Πορτοκαλί"
 
 #: Source/Core/DolphinWX/Src/MemcardManager.cpp:455
-#, fuzzy
 msgid ""
 "Order of files in the File Directory do not match the block order\n"
 "Right click and export all of the saves,\n"
@@ -4176,7 +4194,7 @@ msgstr "Κατάτμηση %i"
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:852
 #, c-format
 msgid "Partition doesn't exist: %lu"
-msgstr ""
+msgstr "Η κατάτμηση δεν υπάρχει: %lu"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:305
 msgid "Patches"
@@ -4365,7 +4383,7 @@ msgstr "ΡΩΣΙΑ"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:229
 msgid "Radius"
-msgstr ""
+msgstr "Ακτίνα"
 
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:577
 msgid "Range"
@@ -4381,7 +4399,7 @@ msgstr "Πραγματικό"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:64
 msgid "Real Balance Board"
-msgstr ""
+msgstr "Πραγματική Σανίδα Ισορροπίας"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:24
 msgid "Real Wiimote"
@@ -4399,9 +4417,8 @@ msgid "Record"
 msgstr "Εγγραφή"
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:357
-#, fuzzy
 msgid "Record input"
-msgstr "Ρυθμίσεις Εγγραφής"
+msgstr "Εγγραφή χειρισμών"
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:161
 msgid "Recording Info"
@@ -4487,7 +4504,7 @@ msgstr "Return"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:472
 msgid "Revision:"
-msgstr ""
+msgstr "Revision:"
 
 #: Source/Core/InputCommon/Src/ControllerEmu.cpp:265
 #: Source/Core/DolphinWX/Src/WXInputBase.cpp:44
@@ -4504,12 +4521,11 @@ msgid "Rumble"
 msgstr "Δόνηση"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:506
-#, fuzzy
 msgid ""
 "Run DSP LLE on a dedicated thread (not recommended: might cause freezes)."
 msgstr ""
-"Εκτέλεση DSP HLE και LLE σε ξεχωριστό νήμα (δεν προτείνεται: μπορεί να "
-"προκαλέσει προβλήματα στον ήχο με HLE και κολλήματα με LLE)."
+"Εκτέλεση DSP LLE σε ξεχωριστό νήμα (δεν προτείνεται: μπορεί να προκαλέσει "
+"κολλήματα)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:310
 msgid "Russian"
@@ -4534,23 +4550,20 @@ msgid "Save GCI as..."
 msgstr "Αποθήκευση GCI ως..."
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:228
-#, fuzzy
 msgid "Save Oldest State"
-msgstr "Απ&οθήκευση Σημείου Αποθήκευσης"
+msgstr "Αποθήκευση Παλαιότερου Σημείου"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:231
-#, fuzzy
 msgid "Save State"
-msgstr "Απ&οθήκευση Σημείου Αποθήκευσης"
+msgstr "Αποθήκευση Σημείου"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:208
 msgid "Save State Slot 1"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 1"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:217
-#, fuzzy
 msgid "Save State Slot 10"
-msgstr "Αποθήκευση Σημείου Αποθήκευσης 1"
+msgstr "Αποθήκευση Σημείου Αποθήκευσης 10"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:209
 msgid "Save State Slot 2"
@@ -4581,9 +4594,8 @@ msgid "Save State Slot 8"
 msgstr "Αποθήκευση Σημείου Αποθήκευσης 8"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:216
-#, fuzzy
 msgid "Save State Slot 9"
-msgstr "Αποθήκευση Σημείου Αποθήκευσης 1"
+msgstr "Αποθήκευση Σημείου Αποθήκευσης 9"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:407
 msgid "Save State..."
@@ -4840,9 +4852,8 @@ msgid "Settings..."
 msgstr "Ρυθμίσεις..."
 
 #: Source/Core/Core/Src/Boot/Boot_BS2Emu.cpp:252
-#, fuzzy
 msgid "SetupWiiMem: Cant create setting file"
-msgstr "SetupWiiMem:Αδυναμία εύρεσης αρχείου ρυθμίσεων"
+msgstr "SetupWiiMem: Αδυναμία δημιουργίας αρχείου ρυθμίσεων"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Shake"
@@ -4873,9 +4884,8 @@ msgid "Show &Toolbar"
 msgstr "Εμφάνιση Γραμμής &Εργαλείων"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:290
-#, fuzzy
 msgid "Show Defaults"
-msgstr "Προεπιλ."
+msgstr "Εμφάνιση Προεπιλογών"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:285
 msgid "Show Drives"
@@ -5243,7 +5253,7 @@ msgstr "Επιτυχής εισαγωγή σημείων αποθήκευσης"
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:313
 msgid "Swedish"
-msgstr ""
+msgstr "Σουηδικά"
 
 #: Source/Core/Core/Src/HW/WiimoteEmu/WiimoteEmu.cpp:276
 msgid "Swing"
@@ -5486,17 +5496,17 @@ msgstr ""
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:493
-#, fuzzy
 msgid ""
 "This limits the game speed to the specified number of frames per second "
 "(full speed is 60 for NTSC and 50 for PAL). Alternatively, use Audio to "
 "throttle using the DSP (might fix audio clicks but can also cause constant "
 "noise depending on the game)."
 msgstr ""
-"Αν θέσετε τιμή υψηλότερη από την πλήρη ταχύτητα του παιχνιδιού (NTSC:60, "
-"PAL:50), χρησιμοποιήστε τον ήχο για να κάνετε Throttle μέσω DSP (μπορεί να "
+"Περιορίζει την ταχύτητα του παιχνιδιού στο προκαθορισμένο αριθμό των καρέ "
+"ανά δευτερόλεπτο (η πλήρης ταχύτητα είναι 60 για NTSC και 50 για PAL). "
+"Εναλλακτικά, επιλέξτε το \"Ήχος\" για να κάνετε Throttle μέσω DSP (μπορεί να "
 "διορθώσει ορισμένα κλικαρίσματα στον ήχο άλλα και να προκαλέσει συνεχές "
-"θόρυβο αναλόγα με το παιχνίδι)."
+"θόρυβο ανάλογα με το παιχνίδι)."
 
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:492
 msgid ""
@@ -5539,19 +5549,16 @@ msgid "Toggle All Log Types"
 msgstr "Εναλλαγή Όλων Τύπων Καταγραφής "
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:191
-#, fuzzy
 msgid "Toggle Aspect Ratio"
-msgstr "Αναλογία Οθόνης:"
+msgstr "Εναλλαγή Αναλογίας Οθόνης"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:192
-#, fuzzy
 msgid "Toggle EFB Copies"
-msgstr "EFB Αντίγραφα"
+msgstr "Εναλλαγή EFB Αντίγραφα"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:193
-#, fuzzy
 msgid "Toggle Fog"
-msgstr "Εναλλαγή Όλων Τύπων Καταγραφής "
+msgstr "Εναλλαγή Ομίχλης"
 
 #: Source/Core/DolphinWX/Src/FrameTools.cpp:465
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:180
@@ -5560,7 +5567,7 @@ msgstr "Εναλλαγή Πλήρους Οθόνης"
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:190
 msgid "Toggle IR"
-msgstr ""
+msgstr "Εναλλαγή Εσωτερικής Ανάλυσης"
 
 #: Source/Core/DolphinWX/Src/WiimoteConfigDiag.cpp:104
 #: Source/Core/DolphinWX/Src/ConfigMain.cpp:274
@@ -5655,9 +5662,8 @@ msgid "Undo Load State"
 msgstr "Αναίρεση Φόρτωσης Σημείου Αποθ. "
 
 #: Source/Core/DolphinWX/Src/HotkeyDlg.cpp:230
-#, fuzzy
 msgid "Undo Save State"
-msgstr "Αναίρεση Φόρτωσης Σημείου Αποθ. "
+msgstr "Αναίρεση Αποθήκευσης Σημείου Αποθ. "
 
 #: Source/Core/DolphinWX/Src/FifoPlayerDlg.cpp:726
 msgid "Unexpected 0x80 call? Aborting..."
@@ -5729,6 +5735,12 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Χρησιμοποιήστε έναν λιγότερο ακριβή αλγόριθμο για τον υπολογισμό των τιμών "
+"βάθους.\n"
+"Προκαλεί προβλήματα σε μερικά παιχνίδια, αλλά μπορεί να δώσει μια αξιοπρεπή "
+"επιτάχυνση.\n"
+"\n"
+"Αν δεν είστε σίγουροι, αφήστε το επιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:123
 msgid ""
@@ -5751,6 +5763,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Χρησιμοποιεί μη ασφαλείς πράξεις για να επιταχύνει την ροή των κορυφών στο "
+"OpenGL. Δεν υπάρχουν γνωστά προβλήματα σε GPUs που το υποστηρίζουν, αλλά θα "
+"προκαλέσει σοβαρά προβλήματα σταθερότητας και στα γραφικά διαφορετικά.\n"
+"\n"
+"Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:126
 msgid ""
@@ -5776,9 +5793,8 @@ msgid "V-Sync"
 msgstr "Κάθετος Συγχρονισμός"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:326
-#, fuzzy
 msgid "VBeam Speed Hack"
-msgstr "MMU Speed Hack"
+msgstr "VBeam Hack Ταχύτητας"
 
 #: Source/Core/DolphinWX/Src/CheatsWindow.cpp:186
 msgid "Value"
@@ -5798,7 +5814,7 @@ msgstr "Αναλυτικότητα"
 
 #: Source/Core/DolphinWX/Src/VideoConfigDiag.cpp:505
 msgid "Vertex Streaming Hack"
-msgstr ""
+msgstr "Hack Ροής Κορυφών"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:389
 msgid "Video"
@@ -6027,7 +6043,7 @@ msgstr "Σε εργασία..."
 
 #: Source/Core/DolphinWX/Src/NetWindow.cpp:353
 msgid "Write memcards (GC)"
-msgstr ""
+msgstr "Εγγραφή Καρτών Μνήμης (GC)"
 
 #: Source/Core/DolphinWX/Src/LogConfigWindow.cpp:46
 msgid "Write to Console"
@@ -6226,12 +6242,11 @@ msgstr "."
 #: Source/Core/Core/Src/x64MemTools.cpp:242
 #, c-format
 msgid "unknown flavor %d (expected %d)"
-msgstr ""
+msgstr "άγνωστο flavor %d (αναμενόταν %d)"
 
 #: Source/Core/Core/Src/x64MemTools.cpp:236
-#, fuzzy
 msgid "unknown message received"
-msgstr "Ελήφθη άγνωστο μήνυμα με id : %d"
+msgstr "ελήφθη άγνωστο μήνυμα"
 
 #: Source/Core/DolphinWX/Src/ISOProperties.cpp:1165
 msgid "wxExecute returned -1 on application run!"
@@ -6248,109 +6263,3 @@ msgstr "zNear Διόρθωση: "
 #: Source/Core/DolphinWX/Src/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "Accurate VBeam emulation"
-#~ msgstr "Ακριβής VBeam εξομοίωση"
-
-#~ msgid ""
-#~ "Allows toggling certain options via the hotkeys 3 (Internal Resolution), "
-#~ "4 (Aspect Ratio), 5 (Copy EFB) and 6 (Fog) within the emulation window.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Επιτρέπει την εναλλαγή ορισμένων επιλογών με τα πλήκτρα συντόμευσης 3 "
-#~ "(Εσωτερική Ανάλυση), 4 (Αναλογία Οθόνης), 5 (EFB Αντίγραφα) και 6 "
-#~ "(Ομίχλη) μέσα από το παράθυρο εξομοίωσης.\n"
-#~ "\n"
-#~ " Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
-
-#~ msgid "Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x"
-#~ msgstr "Αποτυχία εύρεσης WiiMote με bd: %02x:%02x:%02x:%02x:%02x:%02x"
-
-#~ msgid ""
-#~ "Could not set pads. The player left or the game is currently running!\n"
-#~ "(setting pads while the game is running is not yet supported)"
-#~ msgstr ""
-#~ "Αδυναμία καθορισμού χειριστηρίων. Ο παίκτης εγκατέλειψε ή το παιχνίδι "
-#~ "τρέχει!\n"
-#~ "(ο καθορισμός των χειριστηρίων ενώ το παιχνίδι τρέχει δεν υποστηρίζεται "
-#~ "προς το παρόν)"
-
-#~ msgid "Enable Hotkeys"
-#~ msgstr "Ενεργοποίηση Συντομεύσεων"
-
-#~ msgid ""
-#~ "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend "
-#~ "only. May need to rename soft_oal.dll to OpenAL32.dll to make it work."
-#~ msgstr ""
-#~ "Ενεργοποιεί την Dolby Pro Logic II εξομοίωση χρησιμοποιώντας 5.1 "
-#~ "surround. Μόνο για OpenAL backend. Μπορεί να χρειαστεί να μετονομάσετε το "
-#~ "soft_oal.dll σε OpenAL32.dll για να λειτουργήσει."
-
-#~ msgid "Export failed, try again?"
-#~ msgstr "Αποτυχία εξαγωγής, προσπάθεια ξανά;"
-
-#~ msgid "Failed to Listen!!"
-#~ msgstr "Αποτυχία ακρόασης!!"
-
-#~ msgid "Failed to load bthprops.cpl"
-#~ msgstr "Αποτυχία φόρτωσης bthprops.cpl"
-
-#~ msgid "Failed to load hid.dll"
-#~ msgstr "Αποτυχία φόρτωσης hid.dll"
-
-#~ msgid "GCMic Configuration"
-#~ msgstr "Ρυθμίσεις Μικροφώνου GC"
-
-#~ msgid "HCI_CMD_INQUIRY is called, please report!"
-#~ msgstr "Γίνεται κλήση του HCI_CMD_INQUIRY, παρακαλώ αναφέρετε!"
-
-#~ msgid "Hacked Buffer Upload"
-#~ msgstr "Χακαρισμένο Ανέβασμα Buffer"
-
-#~ msgid ""
-#~ "If the FPS is erratic, this option may help. (ON = Compatible, OFF = Fast)"
-#~ msgstr ""
-#~ "Αν τα FPS διακυμαίνονται, αυτή η επιλογή μπορείο να βοηθήσει. (Ενεργό = "
-#~ "Συμβατό, Ανενεργό = Γρήγορο)"
-
-#~ msgid "Import failed, try again?"
-#~ msgstr "Αποτυχία εισαγωγής, δοκιμή ξανά;"
-
-#~ msgid "In-Game"
-#~ msgstr "Εντός Παιχνιδιού"
-
-#~ msgid "Last Overwritten State"
-#~ msgstr "Τελευταίο Επαναγραμμένο Σημείο Αποθ."
-
-#~ msgid "Last Saved State"
-#~ msgstr "Τελευταίο Αποθηκευμένο Σημείο Αποθ."
-
-#~ msgid "Local"
-#~ msgstr "Τοπικό"
-
-#~ msgid "Reconnect Wiimote on State Loading"
-#~ msgstr "Επανασύνδεση Wiimote Κατά Την Φόρτωση Σημείου Αποθήκευσης"
-
-#~ msgid "Set"
-#~ msgstr "Ορισμός"
-
-#~ msgid "Skip Dest. Alpha Pass"
-#~ msgstr "Παράλειψη Dest. Alpha Pass"
-
-#~ msgid ""
-#~ "Use a hacked upload strategy to stream vertices.\n"
-#~ "This usually speed up, but is forbidden by OpenGL specification and may "
-#~ "causes heavy glitches.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "Χρησιμοποιείται μια χακαρισμένη στρατηγική ανεβάσματος για την ροή των "
-#~ "γωνιών.\n"
-#~ "Αυτό συνήθως αυξάνει την ταχύτητα, αλλά απαγορεύεται απο τις προδιαγραφές "
-#~ "του OpenGL και μπορεί να προκαλέσει μεγάλα προβλήματα.\n"
-#~ "\n"
-#~ "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
-
-#~ msgid "Wii Save Import"
-#~ msgstr "Εισαγωγή Αποθήκευσης Wii"
