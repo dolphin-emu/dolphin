@@ -407,7 +407,7 @@ void DolphinApp::InitLanguageSupport()
 		m_locale = new wxLocale(language);
 
 #ifdef _WIN32
-		m_locale->AddCatalogLookupPathPrefix(wxT("Languages"));
+		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetExeDirectory() + DIR_SEP "Languages"));
 #endif
 
 		m_locale->AddCatalog(wxT("dolphin-emu"));
