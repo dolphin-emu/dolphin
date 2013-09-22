@@ -491,6 +491,8 @@ bool NetPlayClient::StartGame(const std::string &path)
 		{
 			if (m_pad_map[i] > 0)
 				controllers_mask |= (1 << i);
+			if (m_wiimote_map[i] > 0)
+				controllers_mask |= (1 << i + 4);
 		}
 		Movie::BeginRecordingInput(controllers_mask);
 	}
