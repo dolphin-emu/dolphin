@@ -2,7 +2,6 @@
 // Name:        src/common/imagtiff.cpp
 // Purpose:     wxImage TIFF handler
 // Author:      Robert Roebling
-// RCS-ID:      $Id: imagtiff.cpp 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -552,7 +551,7 @@ bool wxTIFFHandler::LoadFile( wxImage *image, wxInputStream& stream, bool verbos
 
     /*
     Set the image resolution if it's available. Resolution tag is not
-    dependant on RESOLUTIONUNIT != RESUNIT_NONE (according to TIFF spec).
+    dependent on RESOLUTIONUNIT != RESUNIT_NONE (according to TIFF spec).
     */
     float resX, resY;
 

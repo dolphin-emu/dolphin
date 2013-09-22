@@ -3,7 +3,6 @@
 // Purpose:     class allowing to show notification messages to the user
 // Author:      Vadim Zeitlin
 // Created:     2007-11-19
-// RCS-ID:      $Id: notifmsg.h 62071 2009-09-24 12:36:34Z JS $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -127,13 +126,14 @@ private:
     wxDECLARE_NO_COPY_CLASS(wxNotificationMessageBase);
 };
 
-#if defined(__WXGTK__) && (wxUSE_LIBHILDON || wxUSE_LIBHILDON2)
-    #include "wx/gtk/hildon/notifmsg.h"
 /*
-    TODO: provide support for
-        - libnotify (Gnome)
-        - Growl (http://growl.info/, OS X)
+    TODO: Implement under OS X using notification centre (10.8+) or
+          Growl (http://growl.info/) for the previous versions.
  */
+#if defined(__WXGTK__) && wxUSE_LIBNOTIFY
+    #include "wx/gtk/notifmsg.h"
+#elif defined(__WXGTK__) && (wxUSE_LIBHILDON || wxUSE_LIBHILDON2)
+    #include "wx/gtk/hildon/notifmsg.h"
 #elif defined(__WXMSW__) && wxUSE_TASKBARICON && wxUSE_TASKBARICON_BALLOONS
     #include "wx/msw/notifmsg.h"
 #else

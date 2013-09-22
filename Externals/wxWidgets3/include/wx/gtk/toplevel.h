@@ -2,7 +2,6 @@
 // Name:        wx/gtk/toplevel.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: toplevel.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -95,6 +94,8 @@ public:
 
     virtual void GTKHandleRealized();
 
+    void GTKConfigureEvent(int x, int y);
+
     // do *not* call this to iconize the frame, this is a private function!
     void SetIconizeState(bool iconic);
 
@@ -109,7 +110,11 @@ public:
                   m_gdkDecor;
 
     // size of WM decorations
-    wxSize m_decorSize;
+    struct DecorSize
+    {
+        int left, right, top, bottom;
+    };
+    DecorSize m_decorSize;
 
     // private gtk_timeout_add result for mimicing wxUSER_ATTENTION_INFO and
     // wxUSER_ATTENTION_ERROR difference, -2 for no hint, -1 for ERROR hint, rest for GtkTimeout handle.
@@ -120,7 +125,7 @@ public:
     // return the size of the window without WM decorations
     void GTKDoGetSize(int *width, int *height) const;
 
-    void GTKUpdateDecorSize(const wxSize& decorSize);
+    void GTKUpdateDecorSize(const DecorSize& decorSize);
 
 protected:
     // give hints to the Window Manager for how the size
@@ -128,9 +133,6 @@ protected:
     virtual void DoSetSizeHints( int minW, int minH,
                                  int maxW, int maxH,
                                  int incW, int incH);
-    // common part of all ctors
-    void Init();
-
     // move the window to the specified location and resize it
     virtual void DoMoveWindow(int x, int y, int width, int height);
 
@@ -148,7 +150,11 @@ protected:
     bool m_deferShow;
 
 private:
-    wxSize& GetCachedDecorSize();
+    void Init();
+    DecorSize& GetCachedDecorSize();
+
+    // size hint increments
+    int m_incWidth, m_incHeight;
 
     // is the frame currently iconized?
     bool m_isIconized;

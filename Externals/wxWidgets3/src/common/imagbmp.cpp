@@ -2,7 +2,6 @@
 // Name:        src/common/imagbmp.cpp
 // Purpose:     wxImage BMP,ICO and CUR handlers
 // Author:      Robert Roebling, Chris Elliott
-// RCS-ID:      $Id: imagbmp.cpp 68766 2011-08-17 21:01:09Z DS $
 // Copyright:   (c) Robert Roebling, Chris Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -229,10 +228,10 @@ bool wxBMPHandler::SaveDib(wxImage *image,
         if (// VS: looks ugly but compilers tend to do ugly things with structs,
             //     like aligning hdr.filesize's ofset to dword :(
             // VZ: we should add padding then...
-            !stream.Write(&hdr.magic, 2) ||
-            !stream.Write(&hdr.filesize, 4) ||
-            !stream.Write(&hdr.reserved, 4) ||
-            !stream.Write(&hdr.data_offset, 4)
+            !stream.WriteAll(&hdr.magic, 2) ||
+            !stream.WriteAll(&hdr.filesize, 4) ||
+            !stream.WriteAll(&hdr.reserved, 4) ||
+            !stream.WriteAll(&hdr.data_offset, 4)
            )
         {
             if (verbose)
@@ -245,17 +244,17 @@ bool wxBMPHandler::SaveDib(wxImage *image,
     if ( !IsMask )
     {
         if (
-            !stream.Write(&hdr.bih_size, 4) ||
-            !stream.Write(&hdr.width, 4) ||
-            !stream.Write(&hdr.height, 4) ||
-            !stream.Write(&hdr.planes, 2) ||
-            !stream.Write(&hdr.bpp, 2) ||
-            !stream.Write(&hdr.compression, 4) ||
-            !stream.Write(&hdr.size_of_bmp, 4) ||
-            !stream.Write(&hdr.h_res, 4) ||
-            !stream.Write(&hdr.v_res, 4) ||
-            !stream.Write(&hdr.num_clrs, 4) ||
-            !stream.Write(&hdr.num_signif_clrs, 4)
+            !stream.WriteAll(&hdr.bih_size, 4) ||
+            !stream.WriteAll(&hdr.width, 4) ||
+            !stream.WriteAll(&hdr.height, 4) ||
+            !stream.WriteAll(&hdr.planes, 2) ||
+            !stream.WriteAll(&hdr.bpp, 2) ||
+            !stream.WriteAll(&hdr.compression, 4) ||
+            !stream.WriteAll(&hdr.size_of_bmp, 4) ||
+            !stream.WriteAll(&hdr.h_res, 4) ||
+            !stream.WriteAll(&hdr.v_res, 4) ||
+            !stream.WriteAll(&hdr.num_clrs, 4) ||
+            !stream.WriteAll(&hdr.num_signif_clrs, 4)
            )
         {
             if (verbose)
@@ -332,7 +331,7 @@ bool wxBMPHandler::SaveDib(wxImage *image,
     {
         if ( !IsMask )
         {
-            if ( !stream.Write(rgbquad, palette_size*4) )
+            if ( !stream.WriteAll(rgbquad, palette_size*4) )
             {
                 if (verbose)
                 {
@@ -467,7 +466,7 @@ bool wxBMPHandler::SaveDib(wxImage *image,
             }
         }
 
-        if ( !stream.Write(buffer, row_width) )
+        if ( !stream.WriteAll(buffer, row_width) )
         {
             if (verbose)
             {
@@ -586,7 +585,9 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
         {
             if (hasPalette)
             {
-                stream.Read(bbuf, 4);
+                if ( !stream.ReadAll(bbuf, 4) )
+                    return false;
+
                 cmap[j].b = bbuf[0];
                 cmap[j].g = bbuf[1];
                 cmap[j].r = bbuf[2];
@@ -618,7 +619,9 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
         if ( comp == BI_BITFIELDS )
         {
             int bit;
-            stream.Read(dbuf, 4 * 3);
+            if ( !stream.ReadAll(dbuf, 4 * 3) )
+                return false;
+
             rmask = wxINT32_SWAP_ON_BE(dbuf[0]);
             gmask = wxINT32_SWAP_ON_BE(dbuf[1]);
             bmask = wxINT32_SWAP_ON_BE(dbuf[2]);
@@ -680,9 +683,10 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
         // NOTE: seeking a positive amount in wxFromCurrent mode allows us to
         //       load even non-seekable streams (see wxInputStream::SeekI docs)!
         const wxFileOffset pos = stream.TellI();
-        if (pos != wxInvalidOffset && bmpOffset > pos)
-            if (stream.SeekI(bmpOffset - pos, wxFromCurrent) == wxInvalidOffset)
-                return false;
+        if ( pos == wxInvalidOffset ||
+             (bmpOffset > pos &&
+              stream.SeekI(bmpOffset - pos, wxFromCurrent) == wxInvalidOffset) )
+            return false;
         //else: icon, just carry on
     }
 
@@ -721,6 +725,9 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
             {
                 linepos++;
                 aByte = stream.GetC();
+                if ( !stream.IsOk() )
+                    return false;
+
                 if ( bpp == 1 )
                 {
                     for (int bit = 0; bit < 8 && column < width; bit++)
@@ -739,6 +746,9 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
                         wxUint8 first;
                         first = aByte;
                         aByte = stream.GetC();
+                        if ( !stream.IsOk() )
+                            return false;
+
                         if ( first == 0 )
                         {
                             if ( aByte == 0 )
@@ -757,9 +767,13 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
                             {
                                 // delta marker, move in image
                                 aByte = stream.GetC();
+                                if ( !stream.IsOk() )
+                                    return false;
                                 column += aByte;
                                 linepos = column * bpp / 4;
                                 aByte = stream.GetC();
+                                if ( !stream.IsOk() )
+                                    return false;
                                 row += aByte; // upside down
                             }
                             else
@@ -773,6 +787,8 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
                                     {
                                         ++readBytes ;
                                         aByte = stream.GetC();
+                                        if ( !stream.IsOk() )
+                                            return false;
                                         nibble[0] = (wxUint8)( (aByte & 0xF0) >> 4 ) ;
                                         nibble[1] = (wxUint8)( aByte & 0x0F ) ;
                                     }
@@ -784,7 +800,11 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
                                         linepos++;
                                 }
                                 if ( readBytes & 0x01 )
+                                {
                                     aByte = stream.GetC();
+                                    if ( !stream.IsOk() )
+                                        return false;
+                                }
                             }
                         }
                         else
@@ -825,6 +845,9 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
                         unsigned char first;
                         first = aByte;
                         aByte = stream.GetC();
+                        if ( !stream.IsOk() )
+                            return false;
+
                         if ( first == 0 )
                         {
                             if ( aByte == 0 )
@@ -843,9 +866,13 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
                             {
                                 // delta marker, move in image
                                 aByte = stream.GetC();
+                                if ( !stream.IsOk() )
+                                    return false;
                                 column += aByte;
                                 linepos = column * bpp / 8;
                                 aByte = stream.GetC();
+                                if ( !stream.IsOk() )
+                                    return false;
                                 row -= aByte;
                             }
                             else
@@ -855,13 +882,19 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
                                 {
                                     linepos++;
                                     aByte = stream.GetC();
+                                    if ( !stream.IsOk() )
+                                        return false;
                                     ptr[poffset    ] = cmap[aByte].r;
                                     ptr[poffset + 1] = cmap[aByte].g;
                                     ptr[poffset + 2] = cmap[aByte].b;
                                     column++;
                                 }
                                 if ( absolute & 0x01 )
+                                {
                                     aByte = stream.GetC();
+                                    if ( !stream.IsOk() )
+                                        return false;
+                                }
                             }
                         }
                         else
@@ -888,7 +921,8 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
             }
             else if ( bpp == 24 )
             {
-                stream.Read(bbuf, 3);
+                if ( !stream.ReadAll(bbuf, 3) )
+                    return false;
                 linepos += 3;
                 ptr[poffset    ] = (unsigned char)bbuf[2];
                 ptr[poffset + 1] = (unsigned char)bbuf[1];
@@ -898,7 +932,8 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
             else if ( bpp == 16 )
             {
                 unsigned char temp;
-                stream.Read(&aWord, 2);
+                if ( !stream.ReadAll(&aWord, 2) )
+                    return false;
                 aWord = wxUINT16_SWAP_ON_BE(aWord);
                 linepos += 2;
                 /* Use the masks and calculated amount of shift
@@ -916,7 +951,9 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
             else
             {
                 unsigned char temp;
-                stream.Read(&aDword, 4);
+                if ( !stream.ReadAll(&aDword, 4) )
+                    return false;
+
                 aDword = wxINT32_SWAP_ON_BE(aDword);
                 linepos += 4;
                 temp = (unsigned char)((aDword & rmask) >> rshift);
@@ -938,9 +975,8 @@ bool wxBMPHandler::DoLoadDib(wxImage * image, int width, int height,
         }
         while ( (linepos < linesize) && (comp != 1) && (comp != 2) )
         {
-            stream.Read(&aByte, 1);
-            linepos += 1;
-            if ( !stream )
+            ++linepos;
+            if ( !stream.ReadAll(&aByte, 1) )
                 break;
         }
     }
@@ -968,19 +1004,23 @@ bool wxBMPHandler::LoadDib(wxImage *image, wxInputStream& stream,
     if ( IsBmp )
     {
         // read the header off the .BMP format file
-        stream.Read(bbuf, 2);
-        stream.Read(dbuf, 16);
+        if ( !stream.ReadAll(bbuf, 2) ||
+             !stream.ReadAll(dbuf, 16) )
+            return false;
     }
     else
     {
-        stream.Read(dbuf, 4);
+        if ( !stream.ReadAll(dbuf, 4) )
+            return false;
     }
     #if 0 // unused
         wxInt32 size = wxINT32_SWAP_ON_BE(dbuf[0]);
     #endif
     wxFileOffset offset = wxINT32_SWAP_ON_BE(dbuf[2]);
 
-    stream.Read(dbuf, 4 * 2);
+    if ( !stream.ReadAll(dbuf, 4 * 2) )
+        return false;
+
     int width = wxINT32_SWAP_ON_BE((int)dbuf[0]);
     int height = wxINT32_SWAP_ON_BE((int)dbuf[1]);
     if ( !IsBmp)height = height  / 2; // for icons divide by 2
@@ -1002,12 +1042,16 @@ bool wxBMPHandler::LoadDib(wxImage *image, wxInputStream& stream,
         return false;
     }
 
-    stream.Read(&aWord, 2);
+    if ( !stream.ReadAll(&aWord, 2) )
+        return false;
+
     /*
             TODO
             int planes = (int)wxUINT16_SWAP_ON_BE( aWord );
         */
-    stream.Read(&aWord, 2);
+    if ( !stream.ReadAll(&aWord, 2) )
+        return false;
+
     int bpp = wxUINT16_SWAP_ON_BE((int)aWord);
     if ( bpp != 1 && bpp != 4 && bpp != 8 && bpp != 16 && bpp != 24 && bpp != 32 )
     {
@@ -1018,7 +1062,9 @@ bool wxBMPHandler::LoadDib(wxImage *image, wxInputStream& stream,
         return false;
     }
 
-    stream.Read(dbuf, 4 * 4);
+    if ( !stream.ReadAll(dbuf, 4 * 4) )
+        return false;
+
     int comp = wxINT32_SWAP_ON_BE((int)dbuf[0]);
     if ( comp != BI_RGB && comp != BI_RLE4 && comp != BI_RLE8 &&
          comp != BI_BITFIELDS )
@@ -1030,7 +1076,8 @@ bool wxBMPHandler::LoadDib(wxImage *image, wxInputStream& stream,
         return false;
     }
 
-    stream.Read(dbuf, 4 * 2);
+    if ( !stream.ReadAll(dbuf, 4 * 2) )
+        return false;
 
     int ncolors = wxINT32_SWAP_ON_BE( (int)dbuf[0] );
     if (ncolors == 0)
@@ -1095,7 +1142,7 @@ bool wxBMPHandler::DoCanRead(wxInputStream& stream)
 {
     unsigned char hdr[2];
 
-    if ( !stream.Read(hdr, WXSIZEOF(hdr)) )     // it's ok to modify the stream position here
+    if ( !stream.ReadAll(hdr, WXSIZEOF(hdr)) )     // it's ok to modify the stream position here
         return false;
 
     // do we have the BMP file signature?
@@ -1177,10 +1224,9 @@ bool wxICOHandler::SaveFile(wxImage *image,
     IconDir.idReserved = 0;
     IconDir.idType = wxUINT16_SWAP_ON_BE((wxUint16)type);
     IconDir.idCount = wxUINT16_SWAP_ON_BE((wxUint16)images);
-    stream.Write(&IconDir.idReserved, sizeof(IconDir.idReserved));
-    stream.Write(&IconDir.idType, sizeof(IconDir.idType));
-    stream.Write(&IconDir.idCount, sizeof(IconDir.idCount));
-    if ( !stream.IsOk() )
+    if ( !stream.WriteAll(&IconDir.idReserved, sizeof(IconDir.idReserved)) ||
+         !stream.WriteAll(&IconDir.idType, sizeof(IconDir.idType)) ||
+         !stream.WriteAll(&IconDir.idCount, sizeof(IconDir.idCount)) )
     {
         if ( verbose )
         {
@@ -1303,15 +1349,14 @@ bool wxICOHandler::SaveFile(wxImage *image,
         offset += Size;
 
         // write to stream:
-        stream.Write(&icondirentry.bWidth, sizeof(icondirentry.bWidth));
-        stream.Write(&icondirentry.bHeight, sizeof(icondirentry.bHeight));
-        stream.Write(&icondirentry.bColorCount, sizeof(icondirentry.bColorCount));
-        stream.Write(&icondirentry.bReserved, sizeof(icondirentry.bReserved));
-        stream.Write(&icondirentry.wPlanes, sizeof(icondirentry.wPlanes));
-        stream.Write(&icondirentry.wBitCount, sizeof(icondirentry.wBitCount));
-        stream.Write(&icondirentry.dwBytesInRes, sizeof(icondirentry.dwBytesInRes));
-        stream.Write(&icondirentry.dwImageOffset, sizeof(icondirentry.dwImageOffset));
-        if ( !stream.IsOk() )
+        if ( !stream.WriteAll(&icondirentry.bWidth, sizeof(icondirentry.bWidth)) ||
+             !stream.WriteAll(&icondirentry.bHeight, sizeof(icondirentry.bHeight)) ||
+             !stream.WriteAll(&icondirentry.bColorCount, sizeof(icondirentry.bColorCount)) ||
+             !stream.WriteAll(&icondirentry.bReserved, sizeof(icondirentry.bReserved)) ||
+             !stream.WriteAll(&icondirentry.wPlanes, sizeof(icondirentry.wPlanes)) ||
+             !stream.WriteAll(&icondirentry.wBitCount, sizeof(icondirentry.wBitCount)) ||
+             !stream.WriteAll(&icondirentry.dwBytesInRes, sizeof(icondirentry.dwBytesInRes)) ||
+             !stream.WriteAll(&icondirentry.dwImageOffset, sizeof(icondirentry.dwImageOffset)) )
         {
             if ( verbose )
             {
@@ -1367,7 +1412,9 @@ bool wxICOHandler::DoLoadFile(wxImage *image, wxInputStream& stream,
 
     ICONDIR IconDir;
 
-    stream.Read(&IconDir, sizeof(IconDir));
+    if ( !stream.ReadAll(&IconDir, sizeof(IconDir)) )
+        return false;
+
     wxUint16 nIcons = wxUINT16_SWAP_ON_BE(IconDir.idCount);
 
     // nType is 1 for Icons, 2 for Cursors:
@@ -1385,7 +1432,10 @@ bool wxICOHandler::DoLoadFile(wxImage *image, wxInputStream& stream,
 
     for (unsigned int i = 0; i < nIcons; i++ )
     {
-        alreadySeeked += stream.Read(pCurrentEntry, sizeof(ICONDIRENTRY)).LastRead();
+        if ( !stream.ReadAll(pCurrentEntry, sizeof(ICONDIRENTRY)) )
+            return false;
+
+        alreadySeeked += stream.LastRead();
 
         // bHeight and bColorCount are wxUint8
         if ( pCurrentEntry->bWidth >= wMax )
@@ -1453,7 +1503,7 @@ int wxICOHandler::DoGetImageCount(wxInputStream& stream)
 
     ICONDIR IconDir;
 
-    if (stream.Read(&IconDir, sizeof(IconDir)).LastRead() != sizeof(IconDir))
+    if ( !stream.ReadAll(&IconDir, sizeof(IconDir)) )
         return 0;
 
     return (int)wxUINT16_SWAP_ON_BE(IconDir.idCount);
@@ -1527,7 +1577,7 @@ static bool CanReadICOOrCUR(wxInputStream *stream, wxUint16 resourceType)
     }
 
     ICONDIR iconDir;
-    if ( !stream->Read(&iconDir, sizeof(iconDir)) )
+    if ( !stream->ReadAll(&iconDir, sizeof(iconDir)) )
     {
         return false;
     }

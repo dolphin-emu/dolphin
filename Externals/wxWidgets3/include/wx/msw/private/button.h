@@ -3,7 +3,6 @@
 // Purpose:     helper functions used with native BUTTON control
 // Author:      Vadim Zeitlin
 // Created:     2008-06-07
-// RCS-ID:      $Id: button.h 68922 2011-08-27 14:11:28Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -3,7 +3,6 @@
 // Purpose:     Declaration of wxTimePickerCtrl class.
 // Author:      Vadim Zeitlin
 // Created:     2011-09-22
-// RCS-ID:      $Id: timectrl.h 70071 2011-12-20 21:27:14Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,9 +49,42 @@ public:
     /*
         We also inherit Set/GetValue() methods from the base class which define
         our public API. Notice that the date portion of the date passed as
-        input is ignored and for the result date it's always today, but only
-        the time part of wxDateTime objects is really significant here.
+        input or received as output is or should be ignored, only the time part
+        of wxDateTime objects is really significant here. Use Set/GetTime()
+        below for possibly simpler interface.
      */
+
+    // Set the given time.
+    bool SetTime(int hour, int min, int sec)
+    {
+        // Notice that we should use a date on which DST doesn't change to
+        // avoid any problems with time discontinuity so use a fixed date (on
+        // which nobody changes DST) instead of e.g. today.
+        wxDateTime dt(1, wxDateTime::Jan, 2012, hour, min, sec);
+        if ( !dt.IsValid() )
+        {
+            // No need to assert here, wxDateTime already does it for us.
+            return false;
+        }
+
+        SetValue(dt);
+
+        return true;
+    }
+
+    // Get the current time components. All pointers must be non-NULL.
+    bool GetTime(int* hour, int* min, int* sec) const
+    {
+        wxCHECK_MSG( hour && min && sec, false,
+                     wxS("Time component pointers must be non-NULL") );
+
+        const wxDateTime::Tm tm = GetValue().GetTm();
+        *hour = tm.hour;
+        *min = tm.min;
+        *sec = tm.sec;
+
+        return true;
+    }
 };
 
 #if defined(__WXMSW__) && !defined(__WXUNIVERSAL__)

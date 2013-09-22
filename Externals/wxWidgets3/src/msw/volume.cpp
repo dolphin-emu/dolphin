@@ -4,7 +4,6 @@
 // Author:      George Policello
 // Modified by:
 // Created:     28 Jan 02
-// RCS-ID:      $Id: volume.cpp 64202 2010-05-02 12:19:19Z VZ $
 // Copyright:   (c) 2002 George Policello
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -288,7 +287,7 @@ static void BuildListFromNN(wxArrayString& list, NETRESOURCE* pResSrc,
                         // The filter function will not know mounted from unmounted, and neither do we unless
                         // we are iterating using RESOURCE_CONNECTED, in which case they all are mounted.
                         // Volumes on disconnected servers, however, will correctly show as unmounted.
-                        FilteredAdd(list, filename.wx_str(), flagsSet, flagsUnset&~wxFS_VOL_MOUNTED);
+                        FilteredAdd(list, filename.t_str(), flagsSet, flagsUnset&~wxFS_VOL_MOUNTED);
                         if (scope == RESOURCE_GLOBALNET)
                             s_fileInfo[filename].m_flags &= ~wxFS_VOL_MOUNTED;
                     }
@@ -502,16 +501,17 @@ bool wxFSVolumeBase::Create(const wxString& name)
 
     // Display name.
     SHFILEINFO fi;
-    long rc = SHGetFileInfo(m_volName.wx_str(), 0, &fi, sizeof(fi), SHGFI_DISPLAYNAME);
+    long rc = SHGetFileInfo(m_volName.t_str(), 0, &fi, sizeof(fi), SHGFI_DISPLAYNAME);
     if (!rc)
     {
         wxLogError(_("Cannot read typename from '%s'!"), m_volName.c_str());
-        return m_isOk;
+        return false;
     }
     m_dispName = fi.szDisplayName;
 
     // all tests passed.
-    return m_isOk = true;
+    m_isOk = true;
+    return true;
 } // Create
 
 //=============================================================================
@@ -584,6 +584,7 @@ wxIcon wxFSVolume::GetIcon(wxFSIconType type) const
     wxCHECK_MSG( type >= 0 && (size_t)type < m_icons.GetCount(), wxNullIcon,
                  wxT("wxFSIconType::GetIcon(): invalid icon index") );
 
+#ifdef __WXMSW__
     // Load on demand.
     if (m_icons[type].IsNull())
     {
@@ -612,7 +613,7 @@ wxIcon wxFSVolume::GetIcon(wxFSIconType type) const
         }
 
         SHFILEINFO fi;
-        long rc = SHGetFileInfo(m_volName.wx_str(), 0, &fi, sizeof(fi), flags);
+        long rc = SHGetFileInfo(m_volName.t_str(), 0, &fi, sizeof(fi), flags);
         m_icons[type].SetHICON((WXHICON)fi.hIcon);
         if (!rc || !fi.hIcon)
         {
@@ -621,6 +622,10 @@ wxIcon wxFSVolume::GetIcon(wxFSIconType type) const
     }
 
     return m_icons[type];
+#else
+    wxFAIL_MSG(wxS("Can't convert HICON to wxIcon in this port."));
+    return wxNullIcon;
+#endif
 } // GetIcon
 
 #endif // wxUSE_GUI

@@ -3,7 +3,6 @@
 // Purpose:     wxSpinButton
 // Author:      Robert
 // Modified by:
-// RCS-ID:      $Id: spinbutt.cpp 66555 2011-01-04 08:31:53Z SC $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,7 +37,7 @@ gtk_value_changed(GtkSpinButton* spinbutton, wxSpinButton* win)
     const double value = gtk_spin_button_get_value(spinbutton);
     const int pos = int(value);
     const int oldPos = win->m_pos;
-    if (!win->m_hasVMT || g_blockEventsOnDrag || pos == oldPos)
+    if (g_blockEventsOnDrag || pos == oldPos)
     {
         win->m_pos = pos;
         return;
@@ -198,7 +197,12 @@ void wxSpinButton::GtkEnableEvents() const
 
 GdkWindow *wxSpinButton::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
 {
+#ifdef __WXGTK3__
+    // no access to internal GdkWindows
+    return NULL;
+#else
     return GTK_SPIN_BUTTON(m_widget)->panel;
+#endif
 }
 
 wxSize wxSpinButton::DoGetBestSize() const
@@ -212,9 +216,7 @@ wxSize wxSpinButton::DoGetBestSize() const
 wxVisualAttributes
 wxSpinButton::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-    // TODO: overload to accept functions like gtk_spin_button_new?
-    // Until then use a similar type
-    return GetDefaultAttributesFromGTKWidget(gtk_button_new);
+    return GetDefaultAttributesFromGTKWidget(gtk_spin_button_new_with_range(0, 100, 1));
 }
 
 #endif

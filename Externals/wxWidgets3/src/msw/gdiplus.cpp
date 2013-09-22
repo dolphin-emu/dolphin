@@ -3,7 +3,6 @@
 // Purpose:     implements wrappers for GDI+ flat API
 // Author:      Vadim Zeitlin
 // Created:     2007-03-14
-// RCS-ID:      $Id: gdiplus.cpp 67973 2011-06-17 21:53:32Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

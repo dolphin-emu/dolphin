@@ -3,7 +3,6 @@
 // Purpose:     kqueue-based wxFileSystemWatcher implementation
 // Author:      Bartosz Bekier
 // Created:     2009-05-26
-// RCS-ID:      $Id: fswatcher_kqueue.cpp 67677 2011-05-03 10:40:28Z VZ $
 // Copyright:   (c) 2009 Bartosz Bekier <bartosz.bekier@gmail.com>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -149,8 +148,7 @@ public:
         // TODO more error conditions according to man
         // XXX closing file descriptor removes the watch. The logic resides in
         // the watch which is not nice, but effective and simple
-        bool ret = watch->Close();
-        if (ret == -1)
+        if ( !watch->Close() )
         {
             wxLogSysError(_("Unable to remove kqueue watch"));
             return false;

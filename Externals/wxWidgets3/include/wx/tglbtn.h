@@ -5,7 +5,6 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,7 +21,7 @@
 
 extern WXDLLIMPEXP_DATA_CORE(const char) wxCheckBoxNameStr[];
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TOGGLEBUTTON, wxCommandEvent );
 
 // ----------------------------------------------------------------------------
 // wxToggleButtonBase
@@ -72,7 +71,7 @@ protected:
 
 
 #define EVT_TOGGLEBUTTON(id, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, id, wxCommandEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_TOGGLEBUTTON, id, wxCommandEventHandler(fn))
 
 #if defined(__WXUNIVERSAL__)
     #include "wx/univ/tglbtn.h"
@@ -92,6 +91,9 @@ protected:
 #elif defined(__WXPM__)
     #include "wx/os2/tglbtn.h"
 #endif
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_TOGGLEBUTTON_CLICKED   wxEVT_TOGGLEBUTTON
 
 #endif // wxUSE_TOGGLEBTN
 

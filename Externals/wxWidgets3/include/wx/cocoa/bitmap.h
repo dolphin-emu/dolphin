@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2003/07/19
-// RCS-ID:      $Id: bitmap.h 59526 2009-03-14 13:57:51Z FM $
 // Copyright:   (c) 2003 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,7 +63,8 @@ protected:
 // wxBitmap
 // ========================================================================
 
-class WXDLLIMPEXP_CORE wxBitmap: public wxGDIObject
+class WXDLLIMPEXP_CORE wxBitmap: public wxGDIObject,
+                                 public wxBitmapHelpers
 {
 // ------------------------------------------------------------------------
 // initialization

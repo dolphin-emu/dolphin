@@ -4,7 +4,6 @@
 // Author:      Paul Gammans, Roger Gammans
 // Modified by:
 // Created:     11/04/2001
-// RCS-ID:      $Id: gridctrl.h 69856 2011-11-28 13:23:33Z VZ $
 // Copyright:   (c) The Computer Surgery (paul@compsurg.co.uk)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -248,6 +247,28 @@ private:
                                 const wxGridCellAttr& attr,
                                 const wxRect& rect,
                                 int row, int col);
+
+    // Helper methods of GetTextLines()
+
+    // Break a single logical line of text into several physical lines, all of
+    // which are added to the lines array. The lines are broken at maxWidth and
+    // the dc is used for measuring text extent only.
+    void BreakLine(wxDC& dc,
+                   const wxString& logicalLine,
+                   wxCoord maxWidth,
+                   wxArrayString& lines);
+
+    // Break a word, which is supposed to be wider than maxWidth, into several
+    // lines, which are added to lines array and the last, incomplete, of which
+    // is returned in line output parameter.
+    //
+    // Returns the width of the last line.
+    wxCoord BreakWord(wxDC& dc,
+                      const wxString& word,
+                      wxCoord maxWidth,
+                      wxArrayString& lines,
+                      wxString& line);
+
 
 };
 

@@ -3,7 +3,6 @@
 // Purpose:     wxGIFDecoder, GIF reader for wxImage and wxAnimation
 // Author:      Guillermo Rodriguez Garcia <guille@iies.es>
 // Version:     3.04
-// RCS-ID:      $Id: gifdecod.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -354,7 +353,7 @@ wxGIFDecoder::dgif(wxInputStream& stream, GIFImage *img, int interl, int bits)
     ab_clr = (1 << bits);
     ab_fin = (1 << bits) + 1;
 
-    // these will change through the decompression proccess
+    // these will change through the decompression process
     ab_bits  = bits + 1;
     ab_free  = (1 << bits) + 2;
     ab_max   = (1 << ab_bits) - 1;

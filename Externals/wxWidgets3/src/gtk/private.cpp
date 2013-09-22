@@ -4,7 +4,6 @@
 // Author:      Marcin Malich
 // Modified by:
 // Created:     28.06.2008
-// RCS-ID:      $Id: private.cpp 64940 2010-07-13 13:29:13Z VZ $
 // Copyright:   (c) 2008 Marcin Malich <me@malcom.pl>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,6 +27,7 @@
     #include "wx/module.h"
 #endif
 
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 
 // ----------------------------------------------------------------------------
@@ -62,6 +62,20 @@ GtkWidget *GetButtonWidget()
     }
 
     return s_button;
+}
+
+GtkWidget *GetNotebookWidget()
+{
+    static GtkWidget *s_notebook = NULL;
+
+    if ( !s_notebook )
+    {
+        s_notebook = gtk_notebook_new();
+        gtk_container_add(GetContainer(), s_notebook);
+        gtk_widget_realize(s_notebook);
+    }
+
+    return s_notebook;
 }
 
 GtkWidget *GetCheckButtonWidget()
@@ -125,15 +139,28 @@ static void CreateHeaderButtons()
 
         GtkTreeViewColumn *column = gtk_tree_view_column_new();
         gtk_tree_view_append_column(GTK_TREE_VIEW(treewidget), column);
+#ifdef __WXGTK3__
+        s_first_button = gtk_tree_view_column_get_button(column);
+#else
         s_first_button = column->button;
+#endif
+        wxASSERT(s_first_button);
 
         column = gtk_tree_view_column_new();
         gtk_tree_view_append_column(GTK_TREE_VIEW(treewidget), column);
+#ifdef __WXGTK3__
+        s_other_button = gtk_tree_view_column_get_button(column);
+#else
         s_other_button = column->button;
+#endif
 
         column = gtk_tree_view_column_new();
         gtk_tree_view_append_column(GTK_TREE_VIEW(treewidget), column);
+#ifdef __WXGTK3__
+        s_last_button = gtk_tree_view_column_get_button(column);
+#else
         s_last_button = column->button;
+#endif
 }
 
 GtkWidget *GetHeaderButtonWidgetFirst()
@@ -177,13 +204,22 @@ GtkWidget * GetRadioButtonWidget()
     return s_button;
 }
 
-GtkWidget* GetSplitterWidget()
+GtkWidget* GetSplitterWidget(wxOrientation orient)
 {
-    static GtkWidget* widget;
-
+    static GtkWidget* widgets[2];
+    const GtkOrientation gtkOrient =
+        orient == wxHORIZONTAL ? GTK_ORIENTATION_HORIZONTAL : GTK_ORIENTATION_VERTICAL;
+    GtkWidget*& widget = widgets[gtkOrient];
     if (widget == NULL)
     {
-        widget = gtk_vpaned_new();
+#ifdef __WXGTK3__
+        widget = gtk_paned_new(gtkOrient);
+#else
+        if (orient == wxHORIZONTAL)
+            widget = gtk_hpaned_new();
+        else
+            widget = gtk_vpaned_new();
+#endif
         gtk_container_add(GetContainer(), widget);
         gtk_widget_realize(widget);
     }
@@ -221,7 +257,6 @@ GtkWidget *GetTreeWidget()
 
     return s_tree;
 }
-
 
 // Module for destroying created widgets
 class WidgetsCleanupModule : public wxModule

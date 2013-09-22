@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     18.10.99
-// RCS-ID:      $Id: appcmn.cpp 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -84,6 +83,27 @@ wxAppBase::wxAppBase()
 
 bool wxAppBase::Initialize(int& argcOrig, wxChar **argvOrig)
 {
+#ifdef __WXOSX__
+    // Mac OS X passes a process serial number command line argument when
+    // the application is launched from the Finder. This argument must be
+    // removed from the command line arguments before being handled by the
+    // application (otherwise applications would need to handle it)
+    //
+    // Notice that this has to be done for all ports that can be used under OS
+    // X (e.g. wxGTK) and not just wxOSX itself, hence this code is here and
+    // not in a port-specific file.
+    if ( argcOrig > 1 )
+    {
+        static const wxChar *ARG_PSN = wxT("-psn_");
+        if ( wxStrncmp(argvOrig[1], ARG_PSN, wxStrlen(ARG_PSN)) == 0 )
+        {
+            // remove this argument
+            --argcOrig;
+            memmove(argvOrig + 1, argvOrig + 2, argcOrig * sizeof(wxChar*));
+        }
+    }
+#endif // __WXOSX__
+
     if ( !wxAppConsole::Initialize(argcOrig, argvOrig) )
         return false;
 

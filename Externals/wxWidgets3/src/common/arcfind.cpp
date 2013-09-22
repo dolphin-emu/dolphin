@@ -2,7 +2,6 @@
 // Name:        src/common/arcfind.cpp
 // Purpose:     Streams for archive formats
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: arcfind.cpp 46391 2007-06-10 17:42:41Z VS $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

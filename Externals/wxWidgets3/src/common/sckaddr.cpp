@@ -4,7 +4,6 @@
 // Author:      Guilhem Lavaux
 // Created:     26/04/97
 // Modified by: Vadim Zeitlin to use wxSockAddressImpl on 2008-12-28
-// RCS-ID:      $Id: sckaddr.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1997, 1998 Guilhem Lavaux
 //              (c) 2008 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -37,9 +36,7 @@
     #include <stdlib.h>
     #include <ctype.h>
 
-    #if !defined(__MWERKS__)
-        #include <memory.h>
-    #endif
+    #include <memory.h>
 #endif // !WX_PRECOMP
 
 #include "wx/socket.h"
@@ -49,7 +46,7 @@
 
 #include <errno.h>
 
-#if defined(__UNIX__) && !defined(__CYGWIN__)
+#if defined(__UNIX__) && !defined(__WXMSW__)
     #include <netdb.h>
     #include <arpa/inet.h>
 #endif // __UNIX__
@@ -94,19 +91,20 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
     #define wxHAS_MT_SAFE_GETBY_FUNCS
 
     #if wxUSE_IPV6
-        // this header does dynamic dispatching of getaddrinfo/freeaddrinfo()
-        // by implementing them in its own code if the system versions are not
-        // available (as is the case for anything < XP)
-        //
-        // NB: if this is not available for the other compilers (so far tested
-        //      with MSVC only) we should just use wxDynamicLibrary "manually"
         #ifdef __VISUALC__
-            // disable a warning occurring in Microsoft own version of this file
+            // this header does dynamic dispatching of getaddrinfo/freeaddrinfo()
+            // by implementing them in its own code if the system versions are
+            // not available (as is the case for anything < XP)
+            #pragma warning(push)
             #pragma warning(disable:4706)
-        #endif
-        #include <wspiapi.h>
-        #ifdef __VISUALC__
-            #pragma warning(default:4706)
+            #include <wspiapi.h>
+            #pragma warning(pop)
+        #else
+            // TODO: Use wxDynamicLibrary to bind to these functions
+            //       dynamically on older Windows systems, currently a program
+            //       built with wxUSE_IPV6==1 won't even start there, even if
+            //       it doesn't actually use the socket stuff.
+            #include <ws2tcpip.h>
         #endif
     #endif
 #endif // __WINDOWS__

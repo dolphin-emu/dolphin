@@ -2,7 +2,6 @@
 // Name:        src/common/filtall.cpp
 // Purpose:     Link all filter streams
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: filtall.cpp 42412 2006-10-25 20:41:12Z MW $
 // Copyright:   (c) 2006 Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: frame.h 70511 2012-02-05 14:18:22Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -77,7 +76,6 @@ public:
     // event handlers
     bool HandleSize(int x, int y, WXUINT flag);
     bool HandleCommand(WXWORD id, WXWORD cmd, WXHWND control);
-    bool HandleMenuSelect(WXWORD nItem, WXWORD nFlags, WXHMENU hMenu);
 
     // tooltip management
 #if wxUSE_TOOLTIPS
@@ -105,6 +103,9 @@ public:
     // get the currently active menu: this is the same as the frame menu for
     // normal frames but is overridden by wxMDIParentFrame
     virtual WXHMENU MSWGetActiveMenu() const { return m_hMenu; }
+
+    // Look up the menu in the menu bar.
+    virtual wxMenu* MSWFindMenuFromHMENU(WXHMENU hMenu);
 #endif // wxUSE_MENUS
 
 protected:
@@ -130,18 +131,6 @@ protected:
     // the real implementation of MSWTranslateMessage(), also used by
     // wxMDIChildFrame
     bool MSWDoTranslateMessage(wxFrame *frame, WXMSG *msg);
-
-#if wxUSE_MENUS
-    // handle WM_EXITMENULOOP message for Win95 only
-    bool HandleExitMenuLoop(WXWORD isPopup);
-
-    // handle WM_(UN)INITMENUPOPUP message to generate wxEVT_MENU_OPEN/CLOSE
-    bool HandleMenuPopup(wxEventType evtType, WXHMENU hMenu);
-
-    // Command part of HandleMenuPopup() and HandleExitMenuLoop().
-    bool DoSendMenuOpenCloseEvent(wxEventType evtType, wxMenu* menu, bool popup);
-#endif // wxUSE_MENUS
-
 
     virtual bool IsMDIChild() const { return false; }
 

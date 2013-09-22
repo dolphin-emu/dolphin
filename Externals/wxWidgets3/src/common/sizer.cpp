@@ -5,7 +5,6 @@
 //              Dirk Holtwick, Ron Lee
 // Modified by: Ron Lee
 // Created:
-// RCS-ID:      $Id: sizer.cpp 69172 2011-09-21 15:07:37Z VZ $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -207,6 +206,33 @@ void wxSizerItem::DoSetSpacer(const wxSize& size)
     SetRatio(size);
 }
 
+wxSize wxSizerItem::AddBorderToSize(const wxSize& size) const
+{
+    wxSize result = size;
+
+    // Notice that we shouldn't modify the unspecified component(s) of the
+    // size, it's perfectly valid to have either min or max size specified in
+    // one direction only and it shouldn't be applied in the other one then.
+
+    if ( result.x != wxDefaultCoord )
+    {
+        if (m_flag & wxWEST)
+            result.x += m_border;
+        if (m_flag & wxEAST)
+            result.x += m_border;
+    }
+
+    if ( result.y != wxDefaultCoord )
+    {
+        if (m_flag & wxNORTH)
+            result.y += m_border;
+        if (m_flag & wxSOUTH)
+            result.y += m_border;
+    }
+
+    return result;
+}
+
 wxSizerItem::wxSizerItem(int width,
                          int height,
                          int proportion,
@@ -397,20 +423,13 @@ wxSize wxSizerItem::CalcMin()
 
 wxSize wxSizerItem::GetMinSizeWithBorder() const
 {
-    wxSize ret = m_minSize;
-
-    if (m_flag & wxWEST)
-        ret.x += m_border;
-    if (m_flag & wxEAST)
-        ret.x += m_border;
-    if (m_flag & wxNORTH)
-        ret.y += m_border;
-    if (m_flag & wxSOUTH)
-        ret.y += m_border;
-
-    return ret;
+    return AddBorderToSize(m_minSize);
 }
 
+wxSize wxSizerItem::GetMaxSizeWithBorder() const
+{
+    return AddBorderToSize(GetMaxSize());
+}
 
 void wxSizerItem::SetDimension( const wxPoint& pos_, const wxSize& size_ )
 {
@@ -486,7 +505,7 @@ void wxSizerItem::SetDimension( const wxPoint& pos_, const wxSize& size_ )
             // have changed alignment or some other property which would
             // not change the size of the window. In such a case, no
             // wxSizeEvent would normally be generated and thus the
-            // control wouldn't get layed out correctly here.
+            // control wouldn't get laid out correctly here.
 #if 1
             m_window->SetSize(pos.x, pos.y, size.x, size.y,
                               wxSIZE_ALLOW_MINUS_ONE|wxSIZE_FORCE_EVENT );
@@ -582,20 +601,10 @@ bool wxSizerItem::IsShown() const
             return m_window->IsShown();
 
         case Item_Sizer:
-        {
             // arbitrarily decide that if at least one of our elements is
             // shown, so are we (this arbitrariness is the reason for
             // deprecating this function)
-            for ( wxSizerItemList::compatibility_iterator
-                    node = m_sizer->GetChildren().GetFirst();
-                  node;
-                  node = node->GetNext() )
-            {
-                if ( node->GetData()->IsShown() )
-                    return true;
-            }
-            return false;
-        }
+            return m_sizer->AreAnyItemsShown();
 
         case Item_Spacer:
             return m_spacer->IsShown();
@@ -966,6 +975,8 @@ void wxSizer::Layout()
     CalcMin();
 
     // Applies the layout and repositions/resizes the items
+    wxWindow::ChildrenRepositioningGuard repositionGuard(m_containingWindow);
+
     RecalcSizes();
 }
 
@@ -1268,6 +1279,19 @@ void wxSizer::ShowItems( bool show )
         node->GetData()->Show( show );
         node = node->GetNext();
     }
+}
+
+bool wxSizer::AreAnyItemsShown() const
+{
+    wxSizerItemList::compatibility_iterator node = m_children.GetFirst();
+    while (node)
+    {
+        if ( node->GetData()->IsShown() )
+            return true;
+        node = node->GetNext();
+    }
+
+    return false;
 }
 
 bool wxSizer::IsShown( wxWindow *window ) const
@@ -2082,9 +2106,8 @@ void wxBoxSizer::RecalcSizes()
         minMajorSize += GetSizeInMajorDir(item->GetMinSizeWithBorder());
     }
 
-    // update our min size and delta which may have changed
+    // update our min size have changed
     SizeInMajorDir(m_minSize) = minMajorSize;
-    delta = totalMajorSize - minMajorSize;
 
 
     // space and sum of proportions for the remaining items, both may change
@@ -2220,6 +2243,66 @@ void wxBoxSizer::RecalcSizes()
             nonFixedSpaceChanged = true;
         }
 
+        // Similar to the previous loop, but dealing with items whose max size
+        // is less than what we would allocate to them taking their proportion
+        // into account.
+        nonFixedSpaceChanged = false;
+        for ( i = m_children.begin(), n = 0; ; ++i, ++n )
+        {
+            if ( nonFixedSpaceChanged )
+            {
+                i = m_children.begin();
+                n = 0;
+                nonFixedSpaceChanged = false;
+            }
+
+            // check for the end of the loop only after the check above as
+            // otherwise we wouldn't do another pass if the last child resulted
+            // in non fixed space reduction
+            if ( i == m_children.end() )
+                break;
+
+            wxSizerItem * const item = *i;
+
+            if ( !item->IsShown() )
+                continue;
+
+            // don't check the item which we had already dealt with during a
+            // previous pass (this is more than an optimization, the code
+            // wouldn't work correctly if we kept adjusting for the same item
+            // over and over again)
+            if ( majorSizes[n] != wxDefaultCoord )
+                continue;
+
+            wxCoord maxMajor = GetSizeInMajorDir(item->GetMaxSizeWithBorder());
+
+            // must be nonzero, fixed-size items were dealt with in previous loop
+            const int propItem = item->GetProportion();
+
+            // is the desired size of this item small enough?
+            if ( maxMajor < 0 ||
+                    (remaining*propItem)/totalProportion <= maxMajor )
+            {
+                // yes, it is, we'll determine the real size of this
+                // item later, for now just leave it as wxDefaultCoord
+                continue;
+            }
+
+            // the proportion of this item won't count, it has
+            // effectively become fixed
+            totalProportion -= propItem;
+
+            // we can already allocate space for this item
+            majorSizes[n] = maxMajor;
+
+            // change the amount of the space remaining to the other items,
+            // as this can result in not being able to satisfy their
+            // proportions any more we will need to redo another loop
+            // iteration
+            remaining -= maxMajor;
+
+            nonFixedSpaceChanged = true;
+        }
 
         // Last by one pass: distribute the remaining space among the non-fixed
         // items whose size weren't fixed yet according to their proportions.
@@ -2271,8 +2354,15 @@ void wxBoxSizer::RecalcSizes()
             // its minimal size which is bad but better than not showing parts
             // of the window at all
             minorSize = totalMinorSize;
+
+            // do not allow the size in the minor direction to grow beyond the max
+            // size of the item in the minor direction
+            const wxCoord maxMinorSize = GetSizeInMinorDir(item->GetMaxSizeWithBorder());
+            if ( maxMinorSize >= 0 && minorSize > maxMinorSize )
+                minorSize = maxMinorSize;
         }
-        else if ( flag & (IsVertical() ? wxALIGN_RIGHT : wxALIGN_BOTTOM) )
+
+        if ( flag & (IsVertical() ? wxALIGN_RIGHT : wxALIGN_BOTTOM) )
         {
             PosInMinorDir(posChild) += totalMinorSize - minorSize;
         }
@@ -2404,9 +2494,10 @@ void wxStaticBoxSizer::RecalcSizes()
         m_position.x = m_position.y = 0;
 #elif defined(__WXOSX__) && wxOSX_USE_COCOA
         // the distance from the 'inner' content view to the embedded controls
+        // this is independent of the title, therefore top_border is not relevant
         m_position.x = m_position.y = 10;
 #else
-        // if the wxStaticBox has childrens, then these windows must be placed
+        // if the wxStaticBox has children, then these windows must be placed
         // by the wxBoxSizer::RecalcSizes() call below using coordinates relative
         // to the top-left corner of the staticbox (but unlike wxGTK, we need
         // to keep in count the static borders here!):
@@ -2452,6 +2543,16 @@ void wxStaticBoxSizer::ShowItems( bool show )
 {
     m_staticBox->Show( show );
     wxBoxSizer::ShowItems( show );
+}
+
+bool wxStaticBoxSizer::AreAnyItemsShown() const
+{
+    // We don't need to check the status of our child items: if the box is
+    // shown, this sizer should be considered shown even if all its elements
+    // are hidden (or, more prosaically, there are no elements at all). And,
+    // conversely, if the box is hidden then all our items, which are its
+    // children, are hidden too.
+    return m_staticBox->IsShown();
 }
 
 bool wxStaticBoxSizer::Detach( wxWindow *window )

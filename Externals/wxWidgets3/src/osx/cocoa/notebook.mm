@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: notebook.mm 67887 2011-06-08 22:48:29Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -94,6 +93,84 @@
 
 @end
 
+// ========================================================================
+// WXCTabViewImageItem
+// ========================================================================
+@interface WXCTabViewImageItem : NSTabViewItem
+{
+    NSImage *m_image;
+}
+- (id)init;
+- (void)dealloc;
+- (NSSize)sizeOfLabel:(BOOL)shouldTruncateLabel;
+- (void)drawLabel:(BOOL)shouldTruncateLabel inRect:(NSRect)tabRect;
+- (NSImage*)image;
+- (void)setImage:(NSImage*)image;
+@end // interface WXCTabViewImageItem : NSTabViewItem
+
+
+@implementation WXCTabViewImageItem : NSTabViewItem
+- (id)init
+{
+    m_image = nil;
+    return [super initWithIdentifier:nil];
+}
+- (void)dealloc
+{
+    [m_image release];
+    [super dealloc];
+}
+- (NSSize)sizeOfLabel:(BOOL)shouldTruncateLabel
+{
+    NSSize labelSize = [super sizeOfLabel:shouldTruncateLabel];
+    if(!m_image)
+        return labelSize;
+    NSSize imageSize = [m_image size];
+    // scale image size
+    if(imageSize.height > labelSize.height)
+    {
+        imageSize.width *= labelSize.height/imageSize.height;
+        imageSize.height *= labelSize.height/imageSize.height;
+        [m_image setScalesWhenResized:YES];
+        [m_image setSize: imageSize];
+    }
+    labelSize.width += imageSize.width;
+    return labelSize;
+}
+- (void)drawLabel:(BOOL)shouldTruncateLabel inRect:(NSRect)tabRect
+{
+    if(m_image)
+    {
+        NSSize imageSize = [m_image size];
+        [m_image compositeToPoint:NSMakePoint(tabRect.origin.x,
+                tabRect.origin.y+imageSize.height)
+            operation:NSCompositeSourceOver];
+        tabRect.size.width -= imageSize.width;
+        tabRect.origin.x += imageSize.width;
+    }
+    [super drawLabel:shouldTruncateLabel inRect:tabRect];
+}
+- (NSImage*)image
+{
+    return m_image;
+}
+- (void)setImage:(NSImage*)image
+{
+    [image retain];
+    [m_image release];
+    m_image = image;
+    if(!m_image)
+        return;
+    [[NSPasteboard generalPasteboard]
+        declareTypes:[NSArray arrayWithObject:NSTIFFPboardType]
+        owner:nil];
+    [[NSPasteboard generalPasteboard]
+        setData:[m_image TIFFRepresentation]
+        forType:NSTIFFPboardType];
+}
+@end // implementation WXCTabViewImageItem : NSTabViewItem
+
+
 class wxCocoaTabView : public wxWidgetCocoaImpl
 {
 public:
@@ -143,7 +220,7 @@ public:
         {
             for ( int i = cocoacount ; i < maximum ; ++i )
             {
-                NSTabViewItem* item = [[NSTabViewItem alloc] init];
+                NSTabViewItem* item = [[WXCTabViewImageItem alloc] init];
                 [slf addTabViewItem:item];
                 [item release];
             }
@@ -177,10 +254,32 @@ public:
                 const wxBitmap bmap = notebook.GetImageList()->GetBitmap( notebook.GetPageImage( i ) ) ;
                 if ( bmap.IsOk() )
                 {
-                    // TODO how to set an image on a tab
+                    [(WXCTabViewImageItem*) item setImage: bmap.GetNSImage()];
                 }
             }
         }
+    }
+
+    int TabHitTest(const wxPoint & pt, long* flags)
+    {
+        int retval = wxNOT_FOUND;
+        
+        NSPoint nspt = wxToNSPoint( m_osxView, pt );
+        
+        wxNSTabView* slf = (wxNSTabView*) m_osxView;
+        
+        NSTabViewItem* hitItem = [slf tabViewItemAtPoint:nspt];
+        
+        if (!hitItem) {
+            if ( flags )
+                *flags = wxBK_HITTEST_NOWHERE;
+        } else {
+            retval = [slf indexOfTabViewItem:hitItem];
+            if ( flags )
+                *flags = wxBK_HITTEST_ONLABEL;
+        }
+        
+        return retval; 
     }
 };
 

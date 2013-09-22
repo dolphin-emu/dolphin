@@ -2,7 +2,6 @@
 // Name:        wx/editlbox.h
 // Purpose:     ListBox with editable items
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: editlbox.h 56651 2008-11-02 22:16:14Z FM $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -89,6 +88,10 @@ protected:
 
     DECLARE_CLASS(wxEditableListBox)
     DECLARE_EVENT_TABLE()
+
+private:
+    void SwapItems(long i1, long i2);
+
 };
 
 #endif  // wxUSE_EDITABLELISTBOX

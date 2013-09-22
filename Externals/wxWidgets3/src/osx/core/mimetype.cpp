@@ -4,7 +4,6 @@
 // Author:      Neil Perkins
 // Modified by:
 // Created:     2010-05-15
-// RCS-ID:      $Id: mimetype.cpp 68563 2011-08-05 19:02:26Z VZ $
 // Copyright:   (C) 2010 Neil Perkins
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -244,7 +243,7 @@ wxMimeTypesManagerImpl::~wxMimeTypesManagerImpl()
 // Init / shutdown functions
 //
 // The Launch Services / UTI API provides no helpful way of getting a list
-// of all registered types. Instead the API is focused arround looking up
+// of all registered types. Instead the API is focused around looking up
 // information for a particular file type once you already have some
 // identifying piece of information. In order to get a list of registered
 // types it would first be necessary to get a list of all bundles exporting

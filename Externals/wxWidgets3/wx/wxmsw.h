@@ -1634,5 +1634,8 @@
 #define wxUSE_CRASHREPORT 1
 /* --- end MSW options --- */
 
+#define wxUSE_COMPILER_TLS 1
+#define wxUSE_PREFERENCES_EDITOR 1
+
 #endif // _WX_SETUP_H_
 

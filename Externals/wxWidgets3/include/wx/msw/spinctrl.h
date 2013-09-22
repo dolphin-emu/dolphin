@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.07.99
-// RCS-ID:      $Id: spinctrl.h 70799 2012-03-04 00:29:48Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -62,6 +61,11 @@ public:
     // another wxTextCtrl-like method
     void SetSelection(long from, long to);
 
+    // wxSpinCtrlBase methods
+    virtual int GetBase() const;
+    virtual bool SetBase(int base);
+
+
     // implementation only from now on
     // -------------------------------
 
@@ -111,6 +115,7 @@ protected:
     virtual void DoGetPosition(int *x, int *y) const;
     virtual void DoMoveWindow(int x, int y, int width, int height);
     virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const;
     virtual void DoGetSize(int *width, int *height) const;
     virtual void DoGetClientSize(int *x, int *y) const;
 #if wxUSE_TOOLTIPS
@@ -147,6 +152,12 @@ protected:
 private:
     // Common part of all ctors.
     void Init();
+
+    // Adjust the text control style depending on whether we need to enter only
+    // digits or may need to enter something else (e.g. "-" sign, "x"
+    // hexadecimal prefix, ...) in it.
+    void UpdateBuddyStyle();
+
 
     DECLARE_DYNAMIC_CLASS(wxSpinCtrl)
     DECLARE_EVENT_TABLE()

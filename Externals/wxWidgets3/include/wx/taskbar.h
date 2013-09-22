@@ -5,7 +5,6 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: taskbar.h 70345 2012-01-15 01:05:28Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -19,6 +18,21 @@
 #include "wx/event.h"
 
 class WXDLLIMPEXP_FWD_ADV wxTaskBarIconEvent;
+
+// ----------------------------------------------------------------------------
+
+// type of taskbar item to create.  Only applicable in wxOSX_COCOA
+enum wxTaskBarIconType
+{
+    wxTBI_DOCK,
+    wxTBI_CUSTOM_STATUSITEM,
+#if defined(wxOSX_USE_COCOA) && wxOSX_USE_COCOA
+    wxTBI_DEFAULT_TYPE = wxTBI_CUSTOM_STATUSITEM
+#else
+    wxTBI_DEFAULT_TYPE = wxTBI_DOCK
+#endif
+};
+
 
 // ----------------------------------------------------------------------------
 // wxTaskBarIconBase: define wxTaskBarIcon interface

@@ -2,7 +2,6 @@
 // Name:        include/wx/msw/webviewhistoryitem.h
 // Purpose:     wxWebViewHistoryItem header for MSW
 // Author:      Steven Lamerton
-// Id:          $Id: webviewhistoryitem_ie.h 69074 2011-09-12 18:35:39Z SJL $
 // Copyright:   (c) 2011 Steven Lamerton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,7 +16,7 @@
 class WXDLLIMPEXP_WEBVIEW wxWebViewHistoryItem
 {
 public:
-    wxWebViewHistoryItem(const wxString& url, const wxString& title) : 
+    wxWebViewHistoryItem(const wxString& url, const wxString& title) :
                      m_url(url), m_title(title) {}
     wxString GetUrl() { return m_url; }
     wxString GetTitle() { return m_title; }

@@ -3,7 +3,6 @@
 // Purpose:     wxRichMessageDialogBase
 // Author:      Rickard Westerlund
 // Created:     2010-07-03
-// RCS-ID:      $Id: richmsgdlg.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,8 +26,8 @@ public:
                              const wxString& caption,
                              long style )
         : wxGenericMessageDialog( parent, message, caption, style ),
-          m_detailsExpanderCollapsedLabel( _("&See details") ),
-          m_detailsExpanderExpandedLabel( _("&Hide details") ),
+          m_detailsExpanderCollapsedLabel( wxGetTranslation("&See details") ),
+          m_detailsExpanderExpandedLabel( wxGetTranslation("&Hide details") ),
           m_checkBoxValue( false )
         { }
 

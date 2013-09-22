@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: icon.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -381,7 +380,7 @@ bool wxIcon::LoadIconFromFile(const wxString& filename, int desiredWidth, int de
 
     if( err == noErr )
     {
-        // If everthing is OK, assign m_refData
+        // If everything is OK, assign m_refData
         m_refData = new wxIconRefData( (WXHICON) iconRef, desiredWidth, desiredHeight );
         result = true;
     }

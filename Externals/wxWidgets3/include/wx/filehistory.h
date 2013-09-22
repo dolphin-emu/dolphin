@@ -3,7 +3,6 @@
 // Purpose:     wxFileHistory class
 // Author:      Julian Smart, Vaclav Slavik
 // Created:     2010-05-03
-// RCS-ID:      $Id: filehistory.h 70503 2012-02-03 17:27:13Z VZ $
 // Copyright:   (c) Julian Smart, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

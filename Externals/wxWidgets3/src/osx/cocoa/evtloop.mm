@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin, Stefan Csomor
 // Modified by:
 // Created:     2006-01-12
-// RCS-ID:      $Id: evtloop.mm 70786 2012-03-03 13:09:54Z SC $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,6 +31,7 @@
 #endif // WX_PRECOMP
 
 #include "wx/log.h"
+#include "wx/scopeguard.h"
 
 #include "wx/osx/private.h"
 
@@ -109,6 +109,7 @@ wxGUIEventLoop::wxGUIEventLoop()
     m_dummyWindow = nil;
     m_modalNestedLevel = 0;
     m_modalWindow = NULL;
+    m_osxLowLevelWakeUp = false;
 }
 
 wxGUIEventLoop::~wxGUIEventLoop()
@@ -239,28 +240,124 @@ int wxGUIEventLoop::DoDispatchTimeout(unsigned long timeout)
     }
 }
 
-void wxGUIEventLoop::DoRun()
+static int gs_loopNestingLevel = 0;
+
+void wxGUIEventLoop::OSXDoRun()
 {
-    wxMacAutoreleasePool autoreleasepool;
-    [NSApp run];
+    /*
+       In order to properly nest GUI event loops in Cocoa, it is important to
+       have [NSApp run] only as the main/outermost event loop.  There are many
+       problems if [NSApp run] is used as an inner event loop.  The main issue
+       is that a call to [NSApp stop] is needed to exit an [NSApp run] event
+       loop. But the [NSApp stop] has some side effects that we do not want -
+       such as if there was a modal dialog box with a modal event loop running,
+       that event loop would also get exited, and the dialog would be closed.
+       The call to [NSApp stop] would also cause the enclosing event loop to
+       exit as well.
+
+       webkit's webcore library uses CFRunLoopRun() for nested event loops. See
+       the log of the commit log about the change in webkit's webcore module:
+       http://www.mail-archive.com/webkit-changes@lists.webkit.org/msg07397.html
+
+       See here for the latest run loop that is used in webcore:
+       https://github.com/WebKit/webkit/blob/master/Source/WebCore/platform/mac/RunLoopMac.mm
+
+       CFRunLoopRun() was tried for the nested event loop here but it causes a
+       problem in that all user input is disabled - and there is no way to
+       re-enable it.  The caller of this event loop may not want user input
+       disabled (such as synchronous wxExecute with wxEXEC_NODISABLE flag).
+
+       In order to have an inner event loop where user input can be enabled,
+       the old wxCocoa code that used the [NSApp nextEventMatchingMask] was
+       borrowed but changed to use blocking instead of polling. By specifying
+       'distantFuture' in 'untildate', we can have it block until the next
+       event.  Then we can keep looping on each new event until m_shouldExit is
+       raised to exit the event loop.
+    */
+    gs_loopNestingLevel++;
+    wxON_BLOCK_EXIT_SET(gs_loopNestingLevel, gs_loopNestingLevel - 1);
+
+    while ( !m_shouldExit )
+    {
+        // By putting this inside the loop, we can drain it in each
+        // loop iteration.
+        wxMacAutoreleasePool autoreleasepool;
+
+        if ( gs_loopNestingLevel == 1 )
+        {
+            // Use -[NSApplication run] for the main run loop.
+            [NSApp run];
+        }
+        else
+        {
+            // We use this blocking call to [NSApp nextEventMatchingMask:...]
+            // because the other methods (such as CFRunLoopRun() and [runLoop
+            // runMode:beforeDate] were always disabling input to the windows
+            // (even if we wanted it enabled).
+            //
+            // Here are the other run loops which were tried, but always left
+            // user input disabled:
+            //
+            // [runLoop runMode:NSDefaultRunLoopMode beforeDate:date];
+            // CFRunLoopRun();
+            // CFRunLoopRunInMode(kCFRunLoopDefaultMode, 10 , true);
+            //
+            // Using [NSApp nextEventMatchingMask:...] would leave windows
+            // enabled if we wanted them to be, so that is why it is used.
+            NSEvent *event = [NSApp
+                    nextEventMatchingMask:NSAnyEventMask
+                    untilDate:[NSDate distantFuture]
+                    inMode:NSDefaultRunLoopMode
+                    dequeue: YES];
+
+            [NSApp sendEvent: event];
+
+            /**
+              The NSApplication documentation states that:
+
+              "
+              This method is invoked automatically in the main event loop
+              after each event when running in NSDefaultRunLoopMode or
+              NSModalRunLoopMode. This method is not invoked automatically
+              when running in NSEventTrackingRunLoopMode.
+              "
+
+              So to be safe, we also invoke it here in this event loop.
+
+              See: https://developer.apple.com/library/mac/#documentation/Cocoa/Reference/ApplicationKit/Classes/NSApplication_Class/Reference/Reference.html
+            */
+            [NSApp updateWindows];
+        }
+    }
+
+    // Wake up the enclosing loop so that it can check if it also needs
+    // to exit.
+    WakeUp();
 }
 
-void wxGUIEventLoop::DoStop()
+void wxGUIEventLoop::OSXDoStop()
 {
-    // only calling stop: is not enough when called from a runloop-observer,
-    // therefore add a dummy event, to make sure the runloop gets another round
-    [NSApp stop:0];
+    // We should only stop the top level event loop.
+    if ( gs_loopNestingLevel <= 1 )
+    {
+        [NSApp stop:0];
+    }
+
+    // For the top level loop only calling stop: is not enough when called from
+    // a runloop-observer, therefore add a dummy event, to make sure the
+    // runloop gets another round. And for the nested loops we need to wake it
+    // up to notice that it should exit, so do this unconditionally.
     WakeUp();
 }
 
 void wxGUIEventLoop::WakeUp()
 {
     // NSEvent* cevent = [NSApp currentEvent];
-    NSString* mode = [[NSRunLoop mainRunLoop] currentMode];
+    // NSString* mode = [[NSRunLoop mainRunLoop] currentMode];
     
     // when already in a mouse event handler, don't add higher level event
     // if ( cevent != nil && [cevent type] <= NSMouseMoved && )
-    if ( [NSEventTrackingRunLoopMode isEqualToString:mode] )
+    if ( m_osxLowLevelWakeUp /* [NSEventTrackingRunLoopMode isEqualToString:mode] */ )
     {
         // NSLog(@"event for wakeup %@ in mode %@",cevent,mode);
         wxCFEventLoop::WakeUp();        
@@ -304,7 +401,7 @@ wxModalEventLoop::wxModalEventLoop(WXWindow modalNativeWindow)
 
 // END move into a evtloop_osx.cpp
 
-void wxModalEventLoop::DoRun()
+void wxModalEventLoop::OSXDoRun()
 {
     wxMacAutoreleasePool pool;
 
@@ -323,7 +420,7 @@ void wxModalEventLoop::DoRun()
     [NSApp runModalForWindow:m_modalNativeWindow];
 }
 
-void wxModalEventLoop::DoStop()
+void wxModalEventLoop::OSXDoStop()
 {
     [NSApp abortModal];
 }

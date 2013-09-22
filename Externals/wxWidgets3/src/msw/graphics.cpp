@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2006-09-30
-// RCS-ID:      $Id: graphics.cpp 69911 2011-12-02 12:04:46Z VZ $
 // Copyright:   (c) 2006 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -76,6 +75,31 @@ inline double RadToDeg(double deg) { return (deg * 180.0) / M_PI; }
 inline Color wxColourToColor(const wxColour& col)
 {
     return Color(col.Alpha(), col.Red(), col.Green(), col.Blue());
+}
+
+// Do not use this pointer directly, it's only used by
+// GetDrawTextStringFormat() and the cleanup code in wxGDIPlusRendererModule.
+StringFormat* gs_drawTextStringFormat = NULL;
+
+// Get the string format used for the text drawing and measuring functions:
+// notice that it must be the same one for all of them, otherwise the drawn
+// text might be of different size than what measuring it returned.
+inline StringFormat* GetDrawTextStringFormat()
+{
+    if ( !gs_drawTextStringFormat )
+    {
+        gs_drawTextStringFormat = new StringFormat(StringFormat::GenericTypographic());
+
+        // This doesn't make any difference for DrawText() actually but we want
+        // this behaviour when measuring text.
+        gs_drawTextStringFormat->SetFormatFlags
+        (
+            gs_drawTextStringFormat->GetFormatFlags()
+                | StringFormatFlagsMeasureTrailingSpaces
+        );
+    }
+
+    return gs_drawTextStringFormat;
 }
 
 } // anonymous namespace
@@ -272,7 +296,7 @@ private:
     GraphicsPath* m_brushPath;
 };
 
-class WXDLLIMPEXP_CORE wxGDIPlusBitmapData : public wxGraphicsObjectRefData
+class WXDLLIMPEXP_CORE wxGDIPlusBitmapData : public wxGraphicsBitmapData
 {
 public:
     wxGDIPlusBitmapData( wxGraphicsRenderer* renderer, Bitmap* bitmap );
@@ -280,6 +304,7 @@ public:
     ~wxGDIPlusBitmapData ();
 
     virtual Bitmap* GetGDIPlusBitmap() { return m_bitmap; }
+    virtual void* GetNativeBitmap() const { return m_bitmap; }
 
 #if wxUSE_IMAGE
     wxImage ConvertToImage() const;
@@ -347,6 +372,13 @@ public:
     // stroke lines connecting each of the points
     virtual void StrokeLines( size_t n, const wxPoint2DDouble *points);
 
+    // We don't have any specific implementation for this one in wxMSW but
+    // override it just to avoid warnings about hiding the base class virtual.
+    virtual void StrokeLines( size_t n, const wxPoint2DDouble *beginPoints, const wxPoint2DDouble *endPoints)
+    {
+        wxGraphicsContext::StrokeLines(n, beginPoints, endPoints);
+    }
+
     // draws a polygon
     virtual void DrawLines( size_t n, const wxPoint2DDouble *points, wxPolygonFillMode fillStyle = wxODDEVEN_RULE );
 
@@ -396,10 +428,7 @@ protected:
     void Init(Graphics* graphics, int width, int height);
 
 private:
-    virtual void DoDrawText(const wxString& str, wxDouble x, wxDouble y)
-        { DoDrawFilledText(str, x, y, wxNullGraphicsBrush); }
-    virtual void DoDrawFilledText(const wxString& str, wxDouble x, wxDouble y,
-                                  const wxGraphicsBrush& backgroundBrush);
+    virtual void DoDrawText(const wxString& str, wxDouble x, wxDouble y);
 
     Graphics* m_context;
     wxStack<GraphicsState> m_stateStack;
@@ -946,13 +975,13 @@ wxGDIPlusFontData::~wxGDIPlusFontData()
 //-----------------------------------------------------------------------------
 
 wxGDIPlusBitmapData::wxGDIPlusBitmapData( wxGraphicsRenderer* renderer, Bitmap* bitmap ) :
-    wxGraphicsObjectRefData( renderer ), m_bitmap( bitmap )
+    wxGraphicsBitmapData( renderer ), m_bitmap( bitmap )
 {
     m_helper = NULL;
 }
 
 wxGDIPlusBitmapData::wxGDIPlusBitmapData( wxGraphicsRenderer* renderer,
-                        const wxBitmap &bmp) : wxGraphicsObjectRefData( renderer )
+                        const wxBitmap &bmp) : wxGraphicsBitmapData( renderer )
 {
     m_bitmap = NULL;
     m_helper = NULL;
@@ -1390,6 +1419,7 @@ void wxGDIPlusContext::Init(Graphics* graphics, int width, int height)
     m_context->SetTextRenderingHint(TextRenderingHintSystemDefault);
     m_context->SetPixelOffsetMode(PixelOffsetModeHalf);
     m_context->SetSmoothingMode(SmoothingModeHighQuality);
+    m_context->SetInterpolationMode(InterpolationModeHighQuality);
     m_state1 = m_context->Save();
     m_state2 = m_context->Save();
 }
@@ -1535,10 +1565,44 @@ bool wxGDIPlusContext::SetAntialiasMode(wxAntialiasMode antialias)
     return true;
 }
 
-bool wxGDIPlusContext::SetInterpolationQuality(wxInterpolationQuality WXUNUSED(interpolation))
+bool wxGDIPlusContext::SetInterpolationQuality(wxInterpolationQuality interpolation)
 {
-    // placeholder
-    return false;
+    if (m_interpolation == interpolation)
+        return true;
+
+    InterpolationMode interpolationMode = InterpolationModeDefault;
+    switch (interpolation)
+    {
+        case wxINTERPOLATION_DEFAULT:
+            interpolationMode = InterpolationModeDefault;
+            break;
+
+        case wxINTERPOLATION_NONE:
+            interpolationMode = InterpolationModeNearestNeighbor;
+            break;
+
+        case wxINTERPOLATION_FAST:
+            interpolationMode = InterpolationModeLowQuality;
+            break;
+
+        case wxINTERPOLATION_GOOD:
+            interpolationMode = InterpolationModeHighQuality;
+            break;
+
+        case wxINTERPOLATION_BEST:
+            interpolationMode = InterpolationModeHighQualityBicubic;
+            break;
+
+        default:
+            return false;
+    }
+
+    if ( m_context->SetInterpolationMode(interpolationMode) != Gdiplus::Ok )
+        return false;
+
+    m_interpolation = interpolation;
+
+    return true;
 }
 
 bool wxGDIPlusContext::SetCompositionMode(wxCompositionMode op)
@@ -1698,9 +1762,8 @@ void wxGDIPlusContext::DrawIcon( const wxIcon &icon, wxDouble x, wxDouble y, wxD
     DeleteObject(iconInfo.hbmMask);
 }
 
-void wxGDIPlusContext::DoDrawFilledText(const wxString& str,
-                                        wxDouble x, wxDouble y,
-                                        const wxGraphicsBrush& brush)
+void wxGDIPlusContext::DoDrawText(const wxString& str,
+                                        wxDouble x, wxDouble y )
 {
    if (m_composition == wxCOMPOSITION_DEST)
         return;
@@ -1713,18 +1776,15 @@ void wxGDIPlusContext::DoDrawFilledText(const wxString& str,
 
     wxGDIPlusFontData * const
         fontData = (wxGDIPlusFontData *)m_font.GetRefData();
-    wxGDIPlusBrushData * const
-        brushData = (wxGDIPlusBrushData *)brush.GetRefData();
-
+ 
     m_context->DrawString
                (
                     str.wc_str(*wxConvUI),  // string to draw, always Unicode
                     -1,                     // length: string is NUL-terminated
                     fontData->GetGDIPlusFont(),
                     PointF(x, y),
-                    StringFormat::GenericTypographic(),
-                    brushData ? brushData->GetGDIPlusBrush()
-                              : fontData->GetGDIPlusBrush()
+                    GetDrawTextStringFormat(),
+                    fontData->GetGDIPlusBrush()
                );
 }
 
@@ -1741,12 +1801,14 @@ void wxGDIPlusContext::GetTextExtent( const wxString &str, wxDouble *width, wxDo
 
     REAL factorY = m_fontScaleRatio;
 
-    REAL rDescent = ffamily.GetCellDescent(FontStyleRegular) *
-        f->GetSize() / ffamily.GetEmHeight(FontStyleRegular);
-    REAL rAscent = ffamily.GetCellAscent(FontStyleRegular) *
-        f->GetSize() / ffamily.GetEmHeight(FontStyleRegular);
-    REAL rHeight = ffamily.GetLineSpacing(FontStyleRegular) *
-        f->GetSize() / ffamily.GetEmHeight(FontStyleRegular);
+    // Notice that we must use the real font style or the results would be
+    // incorrect for italic/bold fonts.
+    const INT style = f->GetStyle();
+    const REAL size = f->GetSize();
+    const REAL emHeight = ffamily.GetEmHeight(style);
+    REAL rDescent = ffamily.GetCellDescent(style) * size / emHeight;
+    REAL rAscent = ffamily.GetCellAscent(style) * size / emHeight;
+    REAL rHeight = ffamily.GetLineSpacing(style) * size / emHeight;
 
     if ( height )
         *height = rHeight * factorY;
@@ -1763,11 +1825,9 @@ void wxGDIPlusContext::GetTextExtent( const wxString &str, wxDouble *width, wxDo
     else
     {
         RectF layoutRect(0,0, 100000.0f, 100000.0f);
-        StringFormat strFormat( StringFormat::GenericTypographic() );
-        strFormat.SetFormatFlags( StringFormatFlagsMeasureTrailingSpaces | strFormat.GetFormatFlags() );
 
         RectF bounds ;
-        m_context->MeasureString((const wchar_t *) s , wcslen(s) , f, layoutRect, &strFormat, &bounds ) ;
+        m_context->MeasureString((const wchar_t *) s , wcslen(s) , f, layoutRect, GetDrawTextStringFormat(), &bounds ) ;
         if ( width )
             *width = bounds.Width;
         if ( height )
@@ -1791,7 +1851,7 @@ void wxGDIPlusContext::GetPartialTextExtents(const wxString& text, wxArrayDouble
     wxASSERT_MSG(text.length() == len , wxT("GetPartialTextExtents not yet implemented for multichar situations"));
 
     RectF layoutRect(0,0, 100000.0f, 100000.0f);
-    StringFormat strFormat( StringFormat::GenericTypographic() );
+    StringFormat strFormat( GetDrawTextStringFormat() );
 
     size_t startPosition = 0;
     size_t remainder = len;
@@ -1809,7 +1869,6 @@ void wxGDIPlusContext::GetPartialTextExtents(const wxString& text, wxArrayDouble
             ranges[i].Length = startPosition+i+1 ;
         }
         strFormat.SetMeasurableCharacterRanges(span,ranges);
-        strFormat.SetFormatFlags( StringFormatFlagsMeasureTrailingSpaces | strFormat.GetFormatFlags() );
         m_context->MeasureCharacterRanges(ws, -1 , f,layoutRect, &strFormat,span,regions) ;
 
         RectF bbox ;
@@ -2223,8 +2282,19 @@ wxGraphicsBitmap wxGDIPlusRenderer::CreateSubBitmap( const wxGraphicsBitmap &bit
 class wxGDIPlusRendererModule : public wxModule
 {
 public:
+    wxGDIPlusRendererModule()
+    {
+        // We must be uninitialized before GDI+ DLL itself is unloaded.
+        AddDependency("wxGdiPlusModule");
+    }
+
     virtual bool OnInit() { return true; }
-    virtual void OnExit() { gs_GDIPlusRenderer.Unload(); }
+    virtual void OnExit()
+    {
+        wxDELETE(gs_drawTextStringFormat);
+
+        gs_GDIPlusRenderer.Unload();
+    }
 
 private:
     DECLARE_DYNAMIC_CLASS(wxGDIPlusRendererModule)

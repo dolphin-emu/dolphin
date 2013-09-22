@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.06.01
-// RCS-ID:      $Id: evtloop.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,7 +16,7 @@
 
 // TODO: implement wxEventLoopSource for MSW (it should wrap a HANDLE and be
 //       monitored using MsgWaitForMultipleObjects())
-#if defined(__WXOSX__) || (defined(__UNIX__) && !defined(__CYGWIN__))
+#if defined(__WXOSX__) || (defined(__UNIX__) && !defined(__WXMSW__))
     #define wxUSE_EVENTLOOP_SOURCE 1
 #else
     #define wxUSE_EVENTLOOP_SOURCE 0
@@ -79,16 +78,19 @@ public:
 
 #if wxUSE_EVENTLOOP_SOURCE
     // create a new event loop source wrapping the given file descriptor and
-    // start monitoring it
-    virtual wxEventLoopSource *
-      AddSourceForFD(int fd, wxEventLoopSourceHandler *handler, int flags) = 0;
+    // monitor it for events occurring on this descriptor in all event loops
+    static wxEventLoopSource *
+      AddSourceForFD(int fd, wxEventLoopSourceHandler *handler, int flags);
 #endif // wxUSE_EVENTLOOP_SOURCE
 
     // dispatch&processing
     // -------------------
 
     // start the event loop, return the exit code when it is finished
-    virtual int Run() = 0;
+    //
+    // notice that wx ports should override DoRun(), this method is virtual
+    // only to allow overriding it in the user code for custom event loops
+    virtual int Run();
 
     // is this event loop running now?
     //
@@ -97,7 +99,15 @@ public:
     bool IsRunning() const;
 
     // exit from the loop with the given exit code
-    virtual void Exit(int rc = 0) = 0;
+    //
+    // this can be only used to exit the currently running loop, use
+    // ScheduleExit() if this might not be the case
+    virtual void Exit(int rc = 0);
+
+    // ask the event loop to exit with the given exit code, can be used even if
+    // this loop is not running right now but the loop must have been started,
+    // i.e. Run() should have been already called
+    virtual void ScheduleExit(int rc = 0) = 0;
 
     // return true if any events are available
     virtual bool Pending() const = 0;
@@ -169,22 +179,38 @@ public:
 
 
 protected:
+    // real implementation of Run()
+    virtual int DoRun() = 0;
+
     // this function should be called before the event loop terminates, whether
     // this happens normally (because of Exit() call) or abnormally (because of
     // an exception thrown from inside the loop)
     virtual void OnExit();
 
+    // Return true if we're currently inside our Run(), even if another nested
+    // event loop is currently running, unlike IsRunning() (which should have
+    // been really called IsActive() but it's too late to change this now).
+    bool IsInsideRun() const { return m_isInsideRun; }
+
+
     // the pointer to currently active loop
     static wxEventLoopBase *ms_activeLoop;
+
+    // should we exit the loop?
+    bool m_shouldExit;
 
     // YieldFor() helpers:
     bool m_isInsideYield;
     long m_eventsToProcessInsideYield;
 
+private:
+    // this flag is set on entry into Run() and reset before leaving it
+    bool m_isInsideRun;
+
     wxDECLARE_NO_COPY_CLASS(wxEventLoopBase);
 };
 
-#if defined(__WXMSW__) || defined(__WXMAC__) || defined(__WXDFB__) || (defined(__UNIX__) && !defined(__WXOSX__))
+#if defined(__WINDOWS__) || defined(__WXMAC__) || defined(__WXDFB__) || (defined(__UNIX__) && !defined(__WXOSX__))
 
 // this class can be used to implement a standard event loop logic using
 // Pending() and Dispatch()
@@ -195,15 +221,15 @@ class WXDLLIMPEXP_BASE wxEventLoopManual : public wxEventLoopBase
 public:
     wxEventLoopManual();
 
-    // enters a loop calling OnNextIteration(), Pending() and Dispatch() and
-    // terminating when Exit() is called
-    virtual int Run();
-
     // sets the "should exit" flag and wakes up the loop so that it terminates
     // soon
-    virtual void Exit(int rc = 0);
+    virtual void ScheduleExit(int rc = 0);
 
 protected:
+    // enters a loop calling OnNextIteration(), Pending() and Dispatch() and
+    // terminating when Exit() is called
+    virtual int DoRun();
+
     // may be overridden to perform some action at the start of each new event
     // loop iteration
     virtual void OnNextIteration() { }
@@ -211,9 +237,6 @@ protected:
 
     // the loop exit code
     int m_exitcode;
-
-    // should we exit the loop?
-    bool m_shouldExit;
 
 private:
     // process all already pending events and dispatch a new one (blocking
@@ -233,19 +256,29 @@ private:
 // integration with MFC) but currently this is not done for all ports yet (e.g.
 // wxX11) so fall back to the old wxGUIEventLoop definition below for them
 
-#if defined(__WXMSW__)
-    // this header defines both console and GUI loops for MSW
-    #include "wx/msw/evtloop.h"
-#elif defined(__WXOSX__)
+#if defined(__DARWIN__)
     // CoreFoundation-based event loop is currently in wxBase so include it in
     // any case too (although maybe it actually shouldn't be there at all)
-    #include "wx/osx/evtloop.h"
-#elif wxUSE_GUI
+    #include "wx/osx/core/evtloop.h"
+#endif
+
+// include the header defining wxConsoleEventLoop
+#if defined(__UNIX__) && !defined(__WXMSW__)
+    #include "wx/unix/evtloop.h"
+#elif defined(__WINDOWS__)
+    #include "wx/msw/evtloopconsole.h"
+#endif
+
+#if wxUSE_GUI
 
 // include the appropriate header defining wxGUIEventLoop
 
-#if defined(__WXCOCOA__)
+#if defined(__WXMSW__)
+    #include "wx/msw/evtloop.h"
+#elif defined(__WXCOCOA__)
     #include "wx/cocoa/evtloop.h"
+#elif defined(__WXOSX__)
+    #include "wx/osx/evtloop.h"
 #elif defined(__WXDFB__)
     #include "wx/dfb/evtloop.h"
 #elif defined(__WXGTK20__)
@@ -262,21 +295,7 @@ public:
     wxGUIEventLoop() { m_impl = NULL; }
     virtual ~wxGUIEventLoop();
 
-#if wxUSE_EVENTLOOP_SOURCE
-    // We need to define a base class pure virtual method but we can't provide
-    // a generic implementation for it so simply fail.
-    virtual wxEventLoopSource *
-    AddSourceForFD(int WXUNUSED(fd),
-                   wxEventLoopSourceHandler * WXUNUSED(handler),
-                   int WXUNUSED(flags))
-    {
-        wxFAIL_MSG( "support for event loop sources not implemented" );
-        return NULL;
-    }
-#endif // wxUSE_EVENTLOOP_SOURCE
-
-    virtual int Run();
-    virtual void Exit(int rc = 0);
+    virtual void ScheduleExit(int rc = 0);
     virtual bool Pending() const;
     virtual bool Dispatch();
     virtual int DispatchTimeout(unsigned long timeout)
@@ -297,6 +316,8 @@ public:
     virtual bool YieldFor(long eventsToProcess);
 
 protected:
+    virtual int DoRun();
+
     // the pointer to the port specific implementation class
     wxEventLoopImpl *m_impl;
 
@@ -307,11 +328,6 @@ protected:
 
 #endif // wxUSE_GUI
 
-// include the header defining wxConsoleEventLoop for Unix systems
-#if defined(__UNIX__) && !defined(__CYGWIN__)
-#include "wx/unix/evtloop.h"
-#endif
-
 #if wxUSE_GUI
     // we use a class rather than a typedef because wxEventLoop is
     // forward-declared in many places
@@ -319,7 +335,7 @@ protected:
 #else // !wxUSE_GUI
     // we can't define wxEventLoop differently in GUI and base libraries so use
     // a #define to still allow writing wxEventLoop in the user code
-    #if wxUSE_CONSOLE_EVENTLOOP && (defined(__WXMSW__) || defined(__UNIX__))
+    #if wxUSE_CONSOLE_EVENTLOOP && (defined(__WINDOWS__) || defined(__UNIX__))
         #define wxEventLoop wxConsoleEventLoop
     #else // we still must define it somehow for the code below...
         #define wxEventLoop wxEventLoopBase

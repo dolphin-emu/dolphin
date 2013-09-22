@@ -4,7 +4,6 @@
 // Author:      Guilhem Lavaux, Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id: dynlib.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -232,7 +231,7 @@ public:
     static wxDllType         GetProgramHandle();
 
     // return the platform standard DLL extension (with leading dot)
-    static const wxString& GetDllExt() { return ms_dllext; }
+    static wxString GetDllExt(wxDynamicLibraryCategory cat = wxDL_LIBRARY);
 
     wxDynamicLibrary() : m_handle(0) { }
     wxDynamicLibrary(const wxString& libname, int flags = wxDL_DEFAULT)
@@ -359,7 +358,7 @@ public:
     // the returned handle reference count is not incremented so it doesn't
     // need to be freed using FreeLibrary() but it also means that it can
     // become invalid if the DLL is unloaded
-    static WXHMODULE MSWGetModuleHandle(const char *name, void *addr);
+    static WXHMODULE MSWGetModuleHandle(const wxString& name, void *addr);
 #endif // __WINDOWS__
 
 protected:
@@ -371,9 +370,6 @@ protected:
     static void Error();
 #endif // wxHAVE_DYNLIB_ERROR
 
-
-    // platform specific shared lib suffix.
-    static const wxString ms_dllext;
 
     // the handle to DLL or NULL
     wxDllType m_handle;

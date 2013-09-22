@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.12.99
-// RCS-ID:      $Id: calctrlg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -274,7 +273,7 @@ void wxGenericCalendarCtrl::CreateMonthComboBox()
                           wxDefaultCoord,
                           wxSIZE_AUTO_WIDTH|wxSIZE_AUTO_HEIGHT);
 
-    m_comboMonth->Connect(m_comboMonth->GetId(), wxEVT_COMMAND_COMBOBOX_SELECTED,
+    m_comboMonth->Connect(m_comboMonth->GetId(), wxEVT_COMBOBOX,
                           wxCommandEventHandler(wxGenericCalendarCtrl::OnMonthChange),
                           NULL, this);
 }
@@ -288,11 +287,11 @@ void wxGenericCalendarCtrl::CreateYearSpinCtrl()
                                 wxSP_ARROW_KEYS | wxCLIP_SIBLINGS,
                                 -4300, 10000, GetDate().GetYear());
 
-    m_spinYear->Connect(m_spinYear->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
+    m_spinYear->Connect(m_spinYear->GetId(), wxEVT_TEXT,
                         wxCommandEventHandler(wxGenericCalendarCtrl::OnYearTextChange),
                         NULL, this);
 
-    m_spinYear->Connect(m_spinYear->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+    m_spinYear->Connect(m_spinYear->GetId(), wxEVT_SPINCTRL,
                         wxSpinEventHandler(wxGenericCalendarCtrl::OnYearChange),
                         NULL, this);
 }

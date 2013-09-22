@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.01.01
-// RCS-ID:      $Id: popupcmn.cpp 69966 2011-12-09 15:20:55Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -116,7 +115,7 @@ BEGIN_EVENT_TABLE(wxPopupFocusHandler, wxEvtHandler)
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(wxPopupTransientWindow, wxPopupWindow)
-#if defined(__WXMSW__) ||(defined(__WXMAC__) && wxOSX_USE_CARBON)
+#if defined(__WXMSW__) || (defined(__WXMAC__) && wxOSX_USE_COCOA_OR_CARBON)
     EVT_IDLE(wxPopupTransientWindow::OnIdle)
 #endif
 END_EVENT_TABLE()
@@ -266,8 +265,16 @@ void wxPopupTransientWindow::PopHandlers()
 
 void wxPopupTransientWindow::Popup(wxWindow *winFocus)
 {
+    // If we have a single child, we suppose that it must cover the entire
+    // popup window and hence we give the mouse capture to it instead of
+    // keeping it for ourselves.
+    //
+    // Notice that this works best for combobox-like popups which have a single
+    // control inside them and not so well for popups containing a single
+    // wxPanel with multiple children inside it but OTOH it does no harm in
+    // this case neither and we can't reliably distinguish between them.
     const wxWindowList& children = GetChildren();
-    if ( children.GetCount() )
+    if ( children.GetCount() == 1 )
     {
         m_child = children.GetFirst()->GetData();
     }
@@ -298,7 +305,7 @@ void wxPopupTransientWindow::Popup(wxWindow *winFocus)
         m_focus->SetFocus();
     }
 
-#if defined( __WXMSW__ ) || (defined( __WXMAC__) && wxOSX_USE_CARBON)
+#if defined( __WXMSW__ ) || (defined( __WXMAC__) && wxOSX_USE_COCOA_OR_CARBON)
     // MSW doesn't allow to set focus to the popup window, but we need to
     // subclass the window which has the focus, and not winFocus passed in or
     // otherwise everything else breaks down
@@ -323,7 +330,14 @@ bool wxPopupTransientWindow::Show( bool show )
 #ifdef __WXGTK__
     if (!show)
     {
+#ifdef __WXGTK3__
+        GdkDisplay* display = gtk_widget_get_display(m_widget);
+        GdkDeviceManager* manager = gdk_display_get_device_manager(display);
+        GdkDevice* device = gdk_device_manager_get_client_pointer(manager);
+        gdk_device_ungrab(device, unsigned(GDK_CURRENT_TIME));
+#else
         gdk_pointer_ungrab( (guint32)GDK_CURRENT_TIME );
+#endif
 
         gtk_grab_remove( m_widget );
     }
@@ -350,15 +364,25 @@ bool wxPopupTransientWindow::Show( bool show )
     {
         gtk_grab_add( m_widget );
 
-        gdk_pointer_grab( gtk_widget_get_window(m_widget), true,
-                          (GdkEventMask)
-                            (GDK_BUTTON_PRESS_MASK |
-                             GDK_BUTTON_RELEASE_MASK |
-                             GDK_POINTER_MOTION_HINT_MASK |
-                             GDK_POINTER_MOTION_MASK),
+        const GdkEventMask mask = GdkEventMask(
+            GDK_BUTTON_PRESS_MASK |
+            GDK_BUTTON_RELEASE_MASK |
+            GDK_POINTER_MOTION_HINT_MASK |
+            GDK_POINTER_MOTION_MASK);
+        GdkWindow* window = gtk_widget_get_window(m_widget);
+#ifdef __WXGTK3__
+        GdkDisplay* display = gdk_window_get_display(window);
+        GdkDeviceManager* manager = gdk_display_get_device_manager(display);
+        GdkDevice* device = gdk_device_manager_get_client_pointer(manager);
+        gdk_device_grab(device, window,
+            GDK_OWNERSHIP_NONE, false, mask, NULL, unsigned(GDK_CURRENT_TIME));
+#else
+        gdk_pointer_grab( window, true,
+                          mask,
                           NULL,
                           NULL,
                           (guint32)GDK_CURRENT_TIME );
+#endif
     }
 #endif
 
@@ -426,28 +450,38 @@ bool wxPopupTransientWindow::ProcessLeftDown(wxMouseEvent& WXUNUSED(event))
     return false;
 }
 
-#if defined(__WXMSW__) ||(defined(__WXMAC__) && wxOSX_USE_CARBON)
+#if defined(__WXMSW__) ||(defined(__WXMAC__) && wxOSX_USE_COCOA_OR_CARBON)
 void wxPopupTransientWindow::OnIdle(wxIdleEvent& event)
 {
     event.Skip();
 
     if (IsShown() && m_child)
     {
-        wxPoint pos = ScreenToClient(wxGetMousePosition());
-        wxRect rect(GetSize());
+        // Store the last mouse position to minimize the number of calls to
+        // wxFindWindowAtPoint() which are quite expensive.
+        static wxPoint s_posLast;
+        const wxPoint pos = wxGetMousePosition();
+        if ( pos != s_posLast )
+        {
+            s_posLast = pos;
 
-        if ( rect.Contains(pos) )
-        {
-            if ( m_child->HasCapture() )
+            wxWindow* const winUnderMouse = wxFindWindowAtPoint(pos);
+
+            // We release the mouse capture while the mouse is inside the popup
+            // itself to allow using it normally with the controls inside it.
+            if ( wxGetTopLevelParent(winUnderMouse) == this )
             {
-                m_child->ReleaseMouse();
+                if ( m_child->HasCapture() )
+                {
+                    m_child->ReleaseMouse();
+                }
             }
-        }
-        else
-        {
-            if ( !m_child->HasCapture() )
+            else // And we reacquire it as soon as the mouse goes outside.
             {
-                m_child->CaptureMouse();
+                if ( !m_child->HasCapture() )
+                {
+                    m_child->CaptureMouse();
+                }
             }
         }
     }

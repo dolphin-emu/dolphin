@@ -4,7 +4,6 @@
 // Author:      Evgeniy Tarassov, Vadim Zeitlin
 // Modified by:
 // Created:     2005-09-15
-// RCS-ID:      $Id: treebook.h 68810 2011-08-21 14:08:49Z VZ $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,6 +16,7 @@
 #if wxUSE_TREEBOOK
 
 #include "wx/bookctrl.h"
+#include "wx/containr.h"
 #include "wx/treectrl.h"        // for wxArrayTreeItemIds
 
 typedef wxWindow wxTreebookPage;
@@ -27,7 +27,7 @@ class WXDLLIMPEXP_FWD_CORE wxTreeEvent;
 // wxTreebook
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_CORE wxTreebook : public wxBookCtrlBase
+class WXDLLIMPEXP_CORE wxTreebook : public wxNavigationEnabled<wxBookCtrlBase>
 {
 public:
     // Constructors and such
@@ -229,27 +229,33 @@ private:
 // ----------------------------------------------------------------------------
 
 // wxTreebookEvent is obsolete and defined for compatibility only
-typedef wxBookCtrlEvent wxTreebookEvent;
+#define wxTreebookEvent wxBookCtrlEvent
 typedef wxBookCtrlEventFunction wxTreebookEventFunction;
 #define wxTreebookEventHandler(func) wxBookCtrlEventHandler(func)
 
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREEBOOK_PAGE_CHANGED, wxBookCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREEBOOK_PAGE_CHANGING, wxBookCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREEBOOK_NODE_COLLAPSED, wxBookCtrlEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_TREEBOOK_NODE_EXPANDED, wxBookCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREEBOOK_PAGE_CHANGED, wxBookCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREEBOOK_PAGE_CHANGING, wxBookCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREEBOOK_NODE_COLLAPSED, wxBookCtrlEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_TREEBOOK_NODE_EXPANDED, wxBookCtrlEvent );
 
 #define EVT_TREEBOOK_PAGE_CHANGED(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_TREEBOOK_PAGE_CHANGED, winid, wxBookCtrlEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_TREEBOOK_PAGE_CHANGED, winid, wxBookCtrlEventHandler(fn))
 
 #define EVT_TREEBOOK_PAGE_CHANGING(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_TREEBOOK_PAGE_CHANGING, winid, wxBookCtrlEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_TREEBOOK_PAGE_CHANGING, winid, wxBookCtrlEventHandler(fn))
 
 #define EVT_TREEBOOK_NODE_COLLAPSED(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_TREEBOOK_NODE_COLLAPSED, winid, wxBookCtrlEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_TREEBOOK_NODE_COLLAPSED, winid, wxBookCtrlEventHandler(fn))
 
 #define EVT_TREEBOOK_NODE_EXPANDED(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_TREEBOOK_NODE_EXPANDED, winid, wxBookCtrlEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_TREEBOOK_NODE_EXPANDED, winid, wxBookCtrlEventHandler(fn))
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_TREEBOOK_PAGE_CHANGED     wxEVT_TREEBOOK_PAGE_CHANGED
+#define wxEVT_COMMAND_TREEBOOK_PAGE_CHANGING    wxEVT_TREEBOOK_PAGE_CHANGING
+#define wxEVT_COMMAND_TREEBOOK_NODE_COLLAPSED   wxEVT_TREEBOOK_NODE_COLLAPSED
+#define wxEVT_COMMAND_TREEBOOK_NODE_EXPANDED    wxEVT_TREEBOOK_NODE_EXPANDED
 
 
 #endif // wxUSE_TREEBOOK

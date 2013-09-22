@@ -4,7 +4,6 @@
 // Author:      Vaclav Slavik
 // Modified by: Paul Cornett
 // Created:     2004/05/29
-// RCS-ID:      $Id: taskbar.cpp 70701 2012-02-26 17:18:41Z VZ $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -22,8 +21,13 @@
     #include "wx/icon.h"
 #endif
 
-#include "eggtrayicon.h"
 #include <gtk/gtk.h>
+#ifdef GDK_WINDOWING_X11
+    #include <gdk/gdkx.h>
+#endif
+#ifndef __WXGTK3__
+    #include "eggtrayicon.h"
+#endif
 
 #if !GTK_CHECK_VERSION(2,10,0)
     typedef struct _GtkStatusIcon GtkStatusIcon;
@@ -41,20 +45,23 @@ public:
     wxTaskBarIcon* m_taskBarIcon;
     // used when GTK+ >= 2.10
     GtkStatusIcon* m_statusIcon;
-    // used when GTK+ < 2.10
-    GtkWidget* m_eggTrayIcon;
     // for PopupMenu
     wxWindow* m_win;
-    // for tooltip when GTK+ < 2.10
-    GtkTooltips* m_tooltips;
     wxBitmap m_bitmap;
     wxString m_tipText;
+#ifndef __WXGTK3__
+    // used when GTK+ < 2.10
+    GtkWidget* m_eggTrayIcon;
+    // for tooltip when GTK+ < 2.10
+    GtkTooltips* m_tooltips;
     // width and height of available space, only used when GTK+ < 2.10
     int m_size;
+#endif
 };
 //-----------------------------------------------------------------------------
 
 extern "C" {
+#ifndef __WXGTK3__
 static void
 icon_size_allocate(GtkWidget*, GtkAllocation* alloc, wxTaskBarIcon::Private* priv)
 {
@@ -69,6 +76,7 @@ icon_destroy(GtkWidget*, wxTaskBarIcon::Private* priv)
     priv->m_eggTrayIcon = NULL;
     priv->SetIcon();
 }
+#endif
 
 static void
 icon_activate(void*, wxTaskBarIcon* taskBarIcon)
@@ -91,6 +99,7 @@ icon_popup_menu(GtkWidget*, wxTaskBarIcon* taskBarIcon)
     return true;
 }
 
+#ifndef __WXGTK3__
 static gboolean
 icon_button_press_event(GtkWidget*, GdkEventButton* event, wxTaskBarIcon* taskBarIcon)
 {
@@ -103,6 +112,7 @@ icon_button_press_event(GtkWidget*, GdkEventButton* event, wxTaskBarIcon* taskBa
     }
     return false;
 }
+#endif
 
 #if GTK_CHECK_VERSION(2,10,0)
 static void
@@ -135,37 +145,43 @@ wxTaskBarIcon::Private::Private(wxTaskBarIcon* taskBarIcon)
 {
     m_taskBarIcon = taskBarIcon;
     m_statusIcon = NULL;
-    m_eggTrayIcon = NULL;
     m_win = NULL;
+#ifndef __WXGTK3__
+    m_eggTrayIcon = NULL;
     m_tooltips = NULL;
     m_size = 0;
+#endif
 }
 
 wxTaskBarIcon::Private::~Private()
 {
     if (m_statusIcon)
         g_object_unref(m_statusIcon);
+#ifndef __WXGTK3__
     else if (m_eggTrayIcon)
     {
         g_signal_handlers_disconnect_by_func(m_eggTrayIcon, (void*)icon_destroy, this);
         gtk_widget_destroy(m_eggTrayIcon);
     }
+#endif
     if (m_win)
     {
         m_win->PopEventHandler();
         m_win->Destroy();
     }
+#ifndef __WXGTK3__
     if (m_tooltips)
     {
         gtk_object_destroy(GTK_OBJECT(m_tooltips));
         g_object_unref(m_tooltips);
     }
+#endif
 }
 
 void wxTaskBarIcon::Private::SetIcon()
 {
 #if GTK_CHECK_VERSION(2,10,0)
-    if (gtk_check_version(2,10,0) == NULL)
+    if (GTK_CHECK_VERSION(3,0,0) || gtk_check_version(2,10,0) == NULL)
     {
         if (m_statusIcon)
             gtk_status_icon_set_from_pixbuf(m_statusIcon, m_bitmap.GetPixbuf());
@@ -181,6 +197,7 @@ void wxTaskBarIcon::Private::SetIcon()
     else
 #endif
     {
+#ifndef __WXGTK3__
         m_size = 0;
         if (m_eggTrayIcon)
         {
@@ -203,11 +220,12 @@ void wxTaskBarIcon::Private::SetIcon()
             gtk_container_add(GTK_CONTAINER(m_eggTrayIcon), image);
             gtk_widget_show_all(m_eggTrayIcon);
         }
+#endif
     }
 #if wxUSE_TOOLTIPS
     const char *tip_text = NULL;
     if (!m_tipText.empty())
-        tip_text = m_tipText.c_str();
+        tip_text = m_tipText.utf8_str();
 
 #if GTK_CHECK_VERSION(2,10,0)
     if (m_statusIcon)
@@ -218,7 +236,7 @@ void wxTaskBarIcon::Private::SetIcon()
         else
 #endif
         {
-#if !GTK_CHECK_VERSION(3,0,0) && !defined(GTK_DISABLE_DEPRECATED)
+#ifndef __WXGTK3__
             gtk_status_icon_set_tooltip(m_statusIcon, tip_text);
 #endif
         }
@@ -226,7 +244,7 @@ void wxTaskBarIcon::Private::SetIcon()
     else
 #endif // GTK_CHECK_VERSION(2,10,0)
     {
-#if !GTK_CHECK_VERSION(3,0,0) && !defined(GTK_DISABLE_DEPRECATED)
+#ifndef __WXGTK3__
         if (tip_text && m_tooltips == NULL)
         {
             m_tooltips = gtk_tooltips_new();
@@ -240,6 +258,7 @@ void wxTaskBarIcon::Private::SetIcon()
 #endif // wxUSE_TOOLTIPS
 }
 
+#ifndef __WXGTK3__
 void wxTaskBarIcon::Private::size_allocate(int width, int height)
 {
     int size = height;
@@ -262,11 +281,12 @@ void wxTaskBarIcon::Private::size_allocate(int width, int height)
         g_object_unref(pixbuf);
     }
 }
+#endif
 //-----------------------------------------------------------------------------
 
 IMPLEMENT_DYNAMIC_CLASS(wxTaskBarIcon, wxEvtHandler)
 
-wxTaskBarIcon::wxTaskBarIcon()
+wxTaskBarIcon::wxTaskBarIcon(wxTaskBarIconType WXUNUSED(iconType))
 {
     m_priv = new Private(this);
 }
@@ -293,7 +313,11 @@ bool wxTaskBarIcon::RemoveIcon()
 
 bool wxTaskBarIcon::IsIconInstalled() const
 {
+#ifdef __WXGTK3__
+    return m_priv->m_statusIcon != NULL;
+#else
     return m_priv->m_statusIcon || m_priv->m_eggTrayIcon;
+#endif
 }
 
 bool wxTaskBarIcon::PopupMenu(wxMenu* menu)

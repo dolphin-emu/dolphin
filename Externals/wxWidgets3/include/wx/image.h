@@ -2,7 +2,6 @@
 // Name:        wx/image.h
 // Purpose:     wxImage class
 // Author:      Robert Roebling
-// RCS-ID:      $Id: image.h 69760 2011-11-14 13:35:52Z VZ $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -71,7 +70,7 @@ enum wxImageResizeQuality
     wxIMAGE_QUALITY_NORMAL = wxIMAGE_QUALITY_NEAREST,
 
     // highest (but best) quality
-    wxIMAGE_QUALITY_HIGH
+    wxIMAGE_QUALITY_HIGH = 4
 };
 
 // alpha channel values: fully transparent, default threshold separating

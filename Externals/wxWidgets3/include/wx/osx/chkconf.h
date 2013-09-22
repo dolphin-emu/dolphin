@@ -4,7 +4,6 @@
  * Author:      Vadim Zeitlin
  * Modified by:
  * Created:     2005-04-05 (extracted from wx/chkconf.h)
- * RCS-ID:      $Id: chkconf.h 67497 2011-04-15 19:18:34Z DS $
  * Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */
@@ -13,27 +12,6 @@
 
 #ifndef _WX_OSX_CHKCONF_H_
 #define _WX_OSX_CHKCONF_H_
-
-
-#if wxUSE_STACKWALKER
-    /* not supported under Mac */
-#   undef wxUSE_STACKWALKER
-#   define wxUSE_STACKWALKER 0
-#endif /* wxUSE_STACKWALKER */
-
-/*
- * disable the settings which don't work for some compilers
- */
-
-#if defined(__MWERKS__)
-    #undef wxUSE_DEBUG_NEW_ALWAYS
-    #define wxUSE_DEBUG_NEW_ALWAYS      0
-
-    /* DS: Fixes compilation when wxUSE_ON_FATAL_EXCEPTION is 1 */
-    #ifndef wxTYPE_SA_HANDLER
-        #define wxTYPE_SA_HANDLER int
-    #endif
-#endif
 
 /*
  * check graphics context option, must be on for every os x platform

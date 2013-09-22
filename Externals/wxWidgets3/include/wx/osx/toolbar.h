@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: toolbar.h 70854 2012-03-10 00:01:09Z RD $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,7 +28,7 @@ class WXDLLIMPEXP_CORE wxToolBar: public wxToolBarBase
 
   inline wxToolBar(wxWindow *parent, wxWindowID id,
                    const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-                   long style = wxNO_BORDER|wxTB_HORIZONTAL,
+                   long style = wxTB_HORIZONTAL,
                    const wxString& name = wxToolBarNameStr)
   {
     Init();
@@ -38,7 +37,7 @@ class WXDLLIMPEXP_CORE wxToolBar: public wxToolBarBase
   virtual ~wxToolBar();
 
   bool Create(wxWindow *parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-            long style = wxNO_BORDER|wxTB_HORIZONTAL,
+            long style = wxTB_HORIZONTAL,
             const wxString& name = wxToolBarNameStr);
 
     virtual void SetWindowStyleFlag(long style);
@@ -72,6 +71,10 @@ class WXDLLIMPEXP_CORE wxToolBar: public wxToolBarBase
 #endif
 
 #if wxOSX_USE_NATIVE_TOOLBAR
+    // make all tools selectable
+    void OSXSetSelectableTools(bool set);
+    void OSXSelectTool(int toolId);
+
     bool MacInstallNativeToolbar(bool usesNative);
     void MacUninstallNativeToolbar();
     bool MacWantsNativeToolbar();

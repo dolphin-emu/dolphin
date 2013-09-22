@@ -4,7 +4,6 @@
 // Author:      Wolfram Gloger/adapted by Guilhem Lavaux
 // Modified by:
 // Created:     04/11/98
-// RCS-ID:      $Id: module.cpp 66630 2011-01-07 17:49:18Z SC $
 // Copyright:   (c) Wolfram Gloger and Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,7 +55,7 @@ void wxModule::RegisterModules()
     {
         const wxClassInfo* classInfo = *it;
 
-        if ( classInfo->IsKindOf(CLASSINFO(wxModule)) &&
+        if ( classInfo->IsKindOf(wxCLASSINFO(wxModule)) &&
              (classInfo != (& (wxModule::ms_classInfo))) )
         {
             wxLogTrace(TRACE_MODULE, wxT("Registering module %s"),

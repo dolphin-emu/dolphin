@@ -3,7 +3,6 @@
 // Purpose:     wxProgressDialog
 // Author:      Rickard Westerlund
 // Created:     2010-07-22
-// RCS-ID:      $Id: progdlg.h 69041 2011-09-10 03:26:37Z RD $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

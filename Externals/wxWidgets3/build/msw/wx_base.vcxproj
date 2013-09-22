@@ -309,9 +309,11 @@
     <ClInclude Include="..\..\include\wx\memtext.h" />
     <ClInclude Include="..\..\include\wx\menu.h" />
     <ClInclude Include="..\..\include\wx\menuitem.h" />
+    <ClInclude Include="..\..\include\wx\meta\removeref.h" />
     <ClInclude Include="..\..\include\wx\metafile.h" />
     <ClInclude Include="..\..\include\wx\mimetype.h" />
     <ClInclude Include="..\..\include\wx\minifram.h" />
+    <ClInclude Include="..\..\include\wx\modalhook.h" />
     <ClInclude Include="..\..\include\wx\module.h" />
     <ClInclude Include="..\..\include\wx\mousemanager.h" />
     <ClInclude Include="..\..\include\wx\mousestate.h" />
@@ -361,6 +363,7 @@
     <ClInclude Include="..\..\include\wx\msw\dragimag.h" />
     <ClInclude Include="..\..\include\wx\msw\enhmeta.h" />
     <ClInclude Include="..\..\include\wx\msw\evtloop.h" />
+    <ClInclude Include="..\..\include\wx\msw\evtloopconsole.h" />
     <ClInclude Include="..\..\include\wx\msw\fdrepdlg.h" />
     <ClInclude Include="..\..\include\wx\msw\filedlg.h" />
     <ClInclude Include="..\..\include\wx\msw\font.h" />
@@ -381,6 +384,7 @@
     <ClInclude Include="..\..\include\wx\msw\icon.h" />
     <ClInclude Include="..\..\include\wx\msw\imaglist.h" />
     <ClInclude Include="..\..\include\wx\msw\iniconf.h" />
+    <ClInclude Include="..\..\include\wx\msw\init.h" />
     <ClInclude Include="..\..\include\wx\msw\joystick.h" />
     <ClInclude Include="..\..\include\wx\msw\libraries.h" />
     <ClInclude Include="..\..\include\wx\msw\listbox.h" />
@@ -418,14 +422,21 @@
     <ClInclude Include="..\..\include\wx\msw\printwin.h" />
     <ClInclude Include="..\..\include\wx\msw\private.h" />
     <ClInclude Include="..\..\include\wx\msw\private\button.h" />
+    <ClInclude Include="..\..\include\wx\msw\private\comptr.h" />
     <ClInclude Include="..\..\include\wx\msw\private\datecontrols.h" />
     <ClInclude Include="..\..\include\wx\msw\private\dc.h" />
+    <ClInclude Include="..\..\include\wx\msw\private\eventloopsourcesmanager.h" />
+    <ClInclude Include="..\..\include\wx\msw\private\fdeventloopsourcesmanager.h" />
     <ClInclude Include="..\..\include\wx\msw\private\fswatcher.h" />
     <ClInclude Include="..\..\include\wx\msw\private\hiddenwin.h" />
     <ClInclude Include="..\..\include\wx\msw\private\keyboard.h" />
     <ClInclude Include="..\..\include\wx\msw\private\metrics.h" />
     <ClInclude Include="..\..\include\wx\msw\private\msgdlg.h" />
+    <ClInclude Include="..\..\include\wx\msw\private\preferences.h" />
+    <ClInclude Include="..\..\include\wx\msw\private\pipestream.h" />
     <ClInclude Include="..\..\include\wx\msw\private\sockmsw.h" />
+    <ClInclude Include="..\..\include\wx\msw\private\streamtempinput.h" />
+    <ClInclude Include="..\..\include\wx\msw\private\textmeasure.h" />
     <ClInclude Include="..\..\include\wx\msw\private\timer.h" />
     <ClInclude Include="..\..\include\wx\msw\progdlg.h" />
     <ClInclude Include="..\..\include\wx\msw\radiobox.h" />
@@ -479,6 +490,7 @@
     <ClInclude Include="..\..\include\wx\msw\uxthemep.h" />
     <ClInclude Include="..\..\include\wx\msw\webviewhistoryitem_ie.h" />
     <ClInclude Include="..\..\include\wx\msw\webview_ie.h" />
+    <ClInclude Include="..\..\include\wx\msw\webview_missing.h" />
     <ClInclude Include="..\..\include\wx\msw\window.h" />
     <ClInclude Include="..\..\include\wx\msw\winundef.h" />
     <ClInclude Include="..\..\include\wx\msw\wrapcctl.h" />
@@ -507,6 +519,7 @@
     <ClInclude Include="..\..\include\wx\popupwin.h" />
     <ClInclude Include="..\..\include\wx\position.h" />
     <ClInclude Include="..\..\include\wx\power.h" />
+    <ClInclude Include="..\..\include\wx\preferences.h" />
     <ClInclude Include="..\..\include\wx\print.h" />
     <ClInclude Include="..\..\include\wx\printdlg.h" />
     <ClInclude Include="..\..\include\wx\prntbase.h" />
@@ -543,6 +556,7 @@
     <ClInclude Include="..\..\include\wx\setup_inc.h" />
     <ClInclude Include="..\..\include\wx\setup_redirect.h" />
     <ClInclude Include="..\..\include\wx\sharedptr.h" />
+    <ClInclude Include="..\..\include\wx\simplebook.h" />
     <ClInclude Include="..\..\include\wx\sizer.h" />
     <ClInclude Include="..\..\include\wx\slider.h" />
     <ClInclude Include="..\..\include\wx\snglinst.h" />
@@ -575,6 +589,7 @@
     <ClInclude Include="..\..\include\wx\tarstrm.h" />
     <ClInclude Include="..\..\include\wx\taskbar.h" />
     <ClInclude Include="..\..\include\wx\tbarbase.h" />
+    <ClInclude Include="..\..\include\wx\testing.h" />
     <ClInclude Include="..\..\include\wx\textbuf.h" />
     <ClInclude Include="..\..\include\wx\textcompleter.h" />
     <ClInclude Include="..\..\include\wx\textctrl.h" />
@@ -627,9 +642,11 @@
     <ClInclude Include="..\..\include\wx\weakref.h" />
     <ClInclude Include="..\..\include\wx\webview.h" />
     <ClInclude Include="..\..\include\wx\webviewarchivehandler.h" />
+    <ClInclude Include="..\..\include\wx\webviewfshandler.h" />
     <ClInclude Include="..\..\include\wx\wfstream.h" />
     <ClInclude Include="..\..\include\wx\window.h" />
     <ClInclude Include="..\..\include\wx\windowid.h" />
+    <ClInclude Include="..\..\include\wx\windowptr.h" />
     <ClInclude Include="..\..\include\wx\withimages.h" />
     <ClInclude Include="..\..\include\wx\wizard.h" />
     <ClInclude Include="..\..\include\wx\wrapsizer.h" />
@@ -696,6 +713,7 @@
     <ClCompile Include="..\..\src\aui\dockart.cpp" />
     <ClCompile Include="..\..\src\aui\floatpane.cpp" />
     <ClCompile Include="..\..\src\aui\framemanager.cpp" />
+    <ClCompile Include="..\..\src\aui\tabart.cpp" />
     <ClCompile Include="..\..\src\aui\tabmdi.cpp" />
     <ClCompile Include="..\..\src\common\accelcmn.cpp" />
     <ClCompile Include="..\..\src\common\accesscmn.cpp">
@@ -967,6 +985,7 @@
     </ClCompile>
     <ClCompile Include="..\..\src\common\menucmn.cpp" />
     <ClCompile Include="..\..\src\common\mimecmn.cpp" />
+    <ClCompile Include="..\..\src\common\modalhook.cpp" />
     <ClCompile Include="..\..\src\common\module.cpp" />
     <ClCompile Include="..\..\src\common\mousemanager.cpp" />
     <ClCompile Include="..\..\src\common\msgout.cpp" />
@@ -984,6 +1003,7 @@
     <ClCompile Include="..\..\src\common\platinfo.cpp" />
     <ClCompile Include="..\..\src\common\popupcmn.cpp" />
     <ClCompile Include="..\..\src\common\powercmn.cpp" />
+    <ClCompile Include="..\..\src\common\preferencescmn.cpp" />
     <ClCompile Include="..\..\src\common\prntbase.cpp" />
     <ClCompile Include="..\..\src\common\process.cpp" />
     <ClCompile Include="..\..\src\common\protocol.cpp" />
@@ -1047,6 +1067,8 @@
     <ClCompile Include="..\..\src\common\textcmn.cpp" />
     <ClCompile Include="..\..\src\common\textentrycmn.cpp" />
     <ClCompile Include="..\..\src\common\textfile.cpp" />
+    <ClCompile Include="..\..\src\common\textmeasurecmn.cpp" />
+    <ClCompile Include="..\..\src\common\threadinfo.cpp" />
     <ClCompile Include="..\..\src\common\time.cpp" />
     <ClCompile Include="..\..\src\common\timercmn.cpp" />
     <ClCompile Include="..\..\src\common\timerimpl.cpp" />
@@ -1075,6 +1097,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\common\webviewarchivehandler.cpp" />
+    <ClCompile Include="..\..\src\common\webviewfshandler.cpp" />
     <ClCompile Include="..\..\src\common\wfstream.cpp" />
     <ClCompile Include="..\..\src\common\wincmn.cpp" />
     <ClCompile Include="..\..\src\common\windowid.cpp" />
@@ -1306,6 +1329,7 @@
     <ClCompile Include="..\..\src\generic\statusbr.cpp" />
     <ClCompile Include="..\..\src\generic\tabg.cpp" />
     <ClCompile Include="..\..\src\generic\textdlgg.cpp" />
+    <ClCompile Include="..\..\src\generic\textmeasure.cpp" />
     <ClCompile Include="..\..\src\generic\timectrlg.cpp" />
     <ClCompile Include="..\..\src\generic\timer.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -1370,6 +1394,7 @@
     <ClCompile Include="..\..\src\msw\dragimag.cpp" />
     <ClCompile Include="..\..\src\msw\enhmeta.cpp" />
     <ClCompile Include="..\..\src\msw\evtloop.cpp" />
+    <ClCompile Include="..\..\src\msw\evtloopconsole.cpp" />
     <ClCompile Include="..\..\src\msw\fdrepdlg.cpp" />
     <ClCompile Include="..\..\src\msw\filedlg.cpp" />
     <ClCompile Include="..\..\src\msw\font.cpp" />
@@ -1462,6 +1487,7 @@
     <ClCompile Include="..\..\src\msw\ole\dropsrc.cpp" />
     <ClCompile Include="..\..\src\msw\ole\droptgt.cpp" />
     <ClCompile Include="..\..\src\msw\ole\oleutils.cpp" />
+    <ClCompile Include="..\..\src\msw\ole\safearray.cpp" />
     <ClCompile Include="..\..\src\msw\ole\uuid.cpp" />
     <ClCompile Include="..\..\src\msw\ownerdrw.cpp" />
     <ClCompile Include="..\..\src\msw\palette.cpp" />
@@ -1499,6 +1525,7 @@
     <ClCompile Include="..\..\src\msw\taskbar.cpp" />
     <ClCompile Include="..\..\src\msw\textctrl.cpp" />
     <ClCompile Include="..\..\src\msw\textentry.cpp" />
+    <ClCompile Include="..\..\src\msw\textmeasure.cpp" />
     <ClCompile Include="..\..\src\msw\tglbtn.cpp" />
     <ClCompile Include="..\..\src\msw\thread.cpp" />
     <ClCompile Include="..\..\src\msw\timectrl.cpp" />
@@ -1512,6 +1539,7 @@
     <ClCompile Include="..\..\src\msw\utils.cpp" />
     <ClCompile Include="..\..\src\msw\utilsexc.cpp" />
     <ClCompile Include="..\..\src\msw\utilsgui.cpp" />
+    <ClCompile Include="..\..\src\msw\utilswin.cpp" />
     <ClCompile Include="..\..\src\msw\uxtheme.cpp" />
     <ClCompile Include="..\..\src\msw\volume.cpp" />
     <ClCompile Include="..\..\src\msw\webview_ie.cpp">

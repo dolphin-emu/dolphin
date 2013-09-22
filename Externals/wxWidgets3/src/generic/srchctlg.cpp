@@ -3,7 +3,6 @@
 // Purpose:     implements wxSearchCtrl as a composite control
 // Author:      Vince Harron
 // Created:     2006-02-19
-// RCS-ID:      $Id: srchctlg.cpp 69284 2011-10-02 11:28:40Z VZ $
 // Copyright:   Vince Harron
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,10 +66,15 @@ public:
 
         SetHint(_("Search"));
 
-        // remove the default minsize, the searchctrl will have one instead
-        SetSizeHints(wxDefaultCoord,wxDefaultCoord);
+        // Ensure that our best size is recomputed using our overridden
+        // DoGetBestSize().
+        InvalidateBestSize();
     }
 
+    virtual wxWindow* GetMainWindowOfCompositeControl()
+    {
+        return m_search;
+    }
 
     // provide access to the base class protected methods to wxSearchCtrl which
     // needs to forward to them
@@ -167,7 +171,11 @@ public:
           m_bmp(bmp)
     { }
 
-    void SetBitmapLabel(const wxBitmap& label) { m_bmp = label; }
+    void SetBitmapLabel(const wxBitmap& label)
+    {
+        m_bmp = label;
+        InvalidateBestSize();
+    }
 
     // The buttons in wxSearchCtrl shouldn't accept focus from keyboard because
     // this would interfere with the usual TAB processing: the user expects
@@ -176,6 +184,11 @@ public:
     // the search button can be already activated by pressing "Enter" so there
     // is really no reason for it to be able to get focus from keyboard.
     virtual bool AcceptsFocusFromKeyboard() const { return false; }
+
+    virtual wxWindow* GetMainWindowOfCompositeControl()
+    {
+        return m_search;
+    }
 
 protected:
     wxSize DoGetBestSize() const
@@ -188,7 +201,7 @@ protected:
         wxCommandEvent event(m_eventType, m_search->GetId());
         event.SetEventObject(m_search);
 
-        if ( m_eventType == wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN )
+        if ( m_eventType == wxEVT_SEARCHCTRL_SEARCH_BTN )
         {
             // it's convenient to have the string to search for directly in the
             // event instead of having to retrieve it from the control in the
@@ -201,7 +214,7 @@ protected:
         m_search->SetFocus();
 
 #if wxUSE_MENUS
-        if ( m_eventType == wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN )
+        if ( m_eventType == wxEVT_SEARCHCTRL_SEARCH_BTN )
         {
             // this happens automatically, just like on Mac OS X
             m_search->PopupSearchMenu();
@@ -230,7 +243,7 @@ BEGIN_EVENT_TABLE(wxSearchButton, wxControl)
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(wxSearchCtrl, wxSearchCtrlBase)
-    EVT_SEARCHCTRL_SEARCH_BTN(wxID_ANY, wxSearchCtrl::OnSearchButton)
+    EVT_SEARCHCTRL_CANCEL_BTN(wxID_ANY, wxSearchCtrl::OnCancelButton)
     EVT_SET_FOCUS(wxSearchCtrl::OnSetFocus)
     EVT_SIZE(wxSearchCtrl::OnSize)
 END_EVENT_TABLE()
@@ -315,13 +328,12 @@ bool wxSearchCtrl::Create(wxWindow *parent, wxWindowID id,
     m_text = new wxSearchTextCtrl(this, value, style);
 
     m_searchButton = new wxSearchButton(this,
-                                        wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN,
+                                        wxEVT_SEARCHCTRL_SEARCH_BTN,
                                         m_searchBitmap);
     m_cancelButton = new wxSearchButton(this,
-                                        wxEVT_COMMAND_SEARCHCTRL_CANCEL_BTN,
+                                        wxEVT_SEARCHCTRL_CANCEL_BTN,
                                         m_cancelBitmap);
 
-    SetForegroundColour( m_text->GetForegroundColour() );
     SetBackgroundColour( m_text->GetBackgroundColour() );
 
     RecalcBitmaps();
@@ -1172,8 +1184,9 @@ void wxSearchCtrl::RecalcBitmaps()
     }
 }
 
-void wxSearchCtrl::OnSearchButton( wxCommandEvent& event )
+void wxSearchCtrl::OnCancelButton( wxCommandEvent& event )
 {
+    m_text->Clear();
     event.Skip();
 }
 

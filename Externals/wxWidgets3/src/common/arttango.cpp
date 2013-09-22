@@ -3,7 +3,6 @@
 // Purpose:     art provider using embedded PNG versions of Tango icons
 // Author:      Vadim Zeitlin
 // Created:     2010-12-27
-// RCS-ID:      $Id: arttango.cpp 70154 2011-12-28 13:51:29Z VZ $
 // Copyright:   (c) 2010 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

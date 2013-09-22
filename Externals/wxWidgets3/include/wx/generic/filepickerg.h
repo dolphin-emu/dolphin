@@ -5,7 +5,6 @@
 // Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Francesco Montorsi
-// RCS-ID:      $Id: filepickerg.h 70043 2011-12-18 12:34:47Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -17,8 +16,8 @@
 #include "wx/dirdlg.h"
 
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_DIRPICKER_CHANGED, wxFileDirPickerEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_FILEPICKER_CHANGED, wxFileDirPickerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_DIRPICKER_CHANGED, wxFileDirPickerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_FILEPICKER_CHANGED, wxFileDirPickerEvent );
 
 
 //-----------------------------------------------------------------------------
@@ -148,17 +147,13 @@ public:     // overridable
     virtual wxDialog *CreateDialog();
 
     wxEventType GetEventType() const
-        { return wxEVT_COMMAND_FILEPICKER_CHANGED; }
+        { return wxEVT_FILEPICKER_CHANGED; }
 
 protected:
     void UpdateDialogPath(wxDialog *p)
         { wxStaticCast(p, wxFileDialog)->SetPath(m_path); }
     void UpdatePathFromDialog(wxDialog *p)
         { m_path = wxStaticCast(p, wxFileDialog)->GetPath(); }
-
-    // Set the initial directory for the dialog but without overriding the
-    // directory of the currently selected file, if any.
-    void DoSetInitialDirectory(wxFileDialog* dialog, const wxString& dir);
 
 private:
     DECLARE_DYNAMIC_CLASS(wxGenericFileButton)
@@ -207,7 +202,7 @@ public:     // overridable
     virtual wxDialog *CreateDialog();
 
     wxEventType GetEventType() const
-        { return wxEVT_COMMAND_DIRPICKER_CHANGED; }
+        { return wxEVT_DIRPICKER_CHANGED; }
 
 protected:
     void UpdateDialogPath(wxDialog *p)
@@ -219,5 +214,8 @@ private:
     DECLARE_DYNAMIC_CLASS(wxGenericDirButton)
 };
 
+// old wxEVT_COMMAND_* constants
+//#define wxEVT_COMMAND_DIRPICKER_CHANGED wxEVT_DIRPICKER_CHANGED
+//#define wxEVT_COMMAND_FILEPICKER_CHANGED wxEVT_FILEPICKER_CHANGED
 
 #endif // _WX_FILEDIRPICKER_H_

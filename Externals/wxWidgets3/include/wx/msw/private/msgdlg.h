@@ -3,7 +3,6 @@
 // Purpose:     helper functions used with native message dialog
 // Author:      Rickard Westerlund
 // Created:     2010-07-12
-// RCS-ID:      $Id: msgdlg.h 68537 2011-08-04 22:53:42Z VZ $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -19,10 +18,7 @@
 // by the task dialogs only. Also notice that task dialogs are available for
 // Unicode applications only.
 #if defined(TD_WARNING_ICON) && wxUSE_UNICODE
-// (shuffle2) This is turned off because as of wxW svn r70933,
-//  there is a bug with the wxPD_AUTO_HIDE style which can cause a non-dolphin
-//  window to come to the foreground after auto-closing of the TaskDialog.
-//    #define wxHAS_MSW_TASKDIALOG
+    #define wxHAS_MSW_TASKDIALOG
 #endif
 
 // Provides methods for creating a task dialog.

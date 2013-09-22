@@ -5,7 +5,6 @@
 // Modified by: Ron Lee
 //              Vadim Zeitlin: removed 90% of duplicated common code
 // Created:     01/02/97
-// RCS-ID:      $Id: scrolwin.cpp 68121 2011-07-01 17:44:49Z PC $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -181,6 +180,23 @@ GtkPolicyType GtkPolicyFromWX(wxScrollbarVisibility visibility)
 }
 
 } // anonymous namespace
+
+bool wxScrollHelper::IsScrollbarShown(int orient) const
+{
+    GtkScrolledWindow * const scrolled = GTK_SCROLLED_WINDOW(m_win->m_widget);
+    if ( !scrolled )
+    {
+        // By default, all windows are scrollable.
+        return true;
+    }
+
+    GtkPolicyType hpolicy, vpolicy;
+    gtk_scrolled_window_get_policy(scrolled, &hpolicy, &vpolicy);
+
+    GtkPolicyType policy = orient == wxHORIZONTAL ? hpolicy : vpolicy;
+
+    return policy != GTK_POLICY_NEVER;
+}
 
 void wxScrollHelper::DoShowScrollbars(wxScrollbarVisibility horz,
                                       wxScrollbarVisibility vert)

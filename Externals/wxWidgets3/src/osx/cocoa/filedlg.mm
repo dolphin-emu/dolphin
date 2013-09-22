@@ -4,7 +4,6 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-10-02
-// RCS-ID:      $Id: filedlg.mm 67897 2011-06-09 00:29:13Z SC $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,9 +33,13 @@
 
 #include "wx/filename.h"
 #include "wx/tokenzr.h"
+#include "wx/evtloop.h"
 
 #include "wx/osx/private.h"
 #include "wx/sysopt.h"
+#include "wx/modalhook.h"
+
+#include <mach-o/dyld.h>
 
 // ============================================================================
 // implementation
@@ -48,6 +51,32 @@
 // type choice will not be shown, but all possible file items will be shown, if a popup must be working
 // then the delegate method - (BOOL)panel:(id)sender shouldShowFilename:(NSString *)filename will have to
 // be implemented
+
+namespace
+{
+
+bool HasAppKit_10_6()
+{
+    // Even if we require 10.6, we might be loaded by an application that
+    // was linked against 10.5.  setAllowedFileTypes will still be ignored
+    // in this case.  From NSSavePanel.h:
+    // NSOpenPanel: On versions less than 10.6, this property is ignored.
+    // For applications that link against 10.6 and higher, this property will
+    // determine which files should be enabled in the open panel.
+    int32_t version = NSVersionOfLinkTimeLibrary("AppKit");
+    if (version == -1)
+    {
+        // If we're loaded by an application that doesn't link against AppKit,
+        // use the runtime version instead.  This check will not work for the
+        // case above.
+        version = NSVersionOfRunTimeLibrary("AppKit");
+    }
+
+    // Notice that this still works correctly even if version is -1.
+    return version >= 0x40e2400 /* version of 10.6 AppKit */;
+}
+
+} // anonymous namespace
 
 @interface wxOpenPanelDelegate : NSObject wxOSX_10_6_AND_LATER(<NSOpenSavePanelDelegate>)
 {
@@ -157,13 +186,20 @@
 
 IMPLEMENT_CLASS(wxFileDialog, wxFileDialogBase)
 
-wxFileDialog::wxFileDialog(
+void wxFileDialog::Init()
+{
+    m_filterIndex = -1;
+    m_delegate = nil;
+    m_sheetDelegate = nil;
+}
+
+void wxFileDialog::Create(
     wxWindow *parent, const wxString& message,
     const wxString& defaultDir, const wxString& defaultFileName, const wxString& wildCard,
     long style, const wxPoint& pos, const wxSize& sz, const wxString& name)
-    : wxFileDialogBase(parent, message, defaultDir, defaultFileName, wildCard, style, pos, sz, name)
 {
-    m_filterIndex = -1;
+    wxFileDialogBase::Create(parent, message, defaultDir, defaultFileName, wildCard, style, pos, sz, name);
+
     m_sheetDelegate = [[ModalDialogDelegate alloc] init];
     [(ModalDialogDelegate*)m_sheetDelegate setImplementation: this];
 }
@@ -367,7 +403,7 @@ wxWindow* wxFileDialog::CreateFilterPanel(wxWindow *extracontrol)
             if ( m_firstFileTypeFilter >= 0 )
                 m_filterChoice->SetSelection(m_firstFileTypeFilter);
         }
-        m_filterChoice->Connect(wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler(wxFileDialog::OnFilterSelected), NULL, this);
+        m_filterChoice->Connect(wxEVT_CHOICE, wxCommandEventHandler(wxFileDialog::OnFilterSelected), NULL, this);
     }
         
     if(extracontrol)
@@ -418,6 +454,11 @@ bool wxFileDialog::CheckFile( const wxString& filename )
 void wxFileDialog::SetupExtraControls(WXWindow nativeWindow)
 {
     NSSavePanel* panel = (NSSavePanel*) nativeWindow;
+    // for sandboxed app we cannot access the outer structures
+    // this leads to problems with extra controls, so as a temporary
+    // workaround for crashes we don't support those yet
+    if ( [panel contentView] == nil )
+        return;
     
     wxNonOwnedWindow::Create( GetParent(), nativeWindow );
     wxWindow* extracontrol = NULL;
@@ -428,7 +469,6 @@ void wxFileDialog::SetupExtraControls(WXWindow nativeWindow)
     }
 
     NSView* accView = nil;
-    m_delegate = nil;
 
     if ( m_useFileTypeFilter )
     {
@@ -436,7 +476,7 @@ void wxFileDialog::SetupExtraControls(WXWindow nativeWindow)
         accView = m_filterPanel->GetHandle();
         if( HasFlag(wxFD_OPEN) )
         {
-            if ( UMAGetSystemVersion() < 0x1060 )
+            if ( UMAGetSystemVersion() < 0x1060 || !HasAppKit_10_6() )
             {
                 wxOpenPanelDelegate* del = [[wxOpenPanelDelegate alloc]init];
                 [del setFileDialog:this];
@@ -466,6 +506,10 @@ void wxFileDialog::SetupExtraControls(WXWindow nativeWindow)
 
 int wxFileDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
+    wxCFEventLoopPauseIdleEvents pause;
+
     wxMacAutoreleasePool autoreleasepool;
     
     wxCFStringRef cf( m_message );
@@ -585,20 +629,22 @@ int wxFileDialog::ShowModal()
         [oPanel setMessage:cf.AsNSString()];
         [oPanel setAllowsMultipleSelection: (HasFlag(wxFD_MULTIPLE) ? YES : NO )];
 
-        if ( UMAGetSystemVersion() < 0x1060 )
-        {
-            returnCode = [oPanel runModalForDirectory:m_dir.IsEmpty() ? nil : dir.AsNSString()
-                                                 file:file.AsNSString() types:(m_delegate == nil ? types : nil)];
-        }
-        else 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
+        if ( UMAGetSystemVersion() >= 0x1060 && HasAppKit_10_6() )
         {
             [oPanel setAllowedFileTypes: (m_delegate == nil ? types : nil)];
             if ( !m_dir.IsEmpty() )
                 [oPanel setDirectoryURL:[NSURL fileURLWithPath:dir.AsNSString() 
-                                               isDirectory:YES]];
+                                                   isDirectory:YES]];
             returnCode = [oPanel runModal];
         }
-
+        else 
+#endif
+        {
+            returnCode = [oPanel runModalForDirectory:m_dir.IsEmpty() ? nil : dir.AsNSString()
+                                                 file:file.AsNSString() types:(m_delegate == nil ? types : nil)];
+        }
+            
         ModalFinishedCallback(oPanel, returnCode);
     }
 
@@ -615,7 +661,7 @@ void wxFileDialog::ModalFinishedCallback(void* panel, int returnCode)
             NSSavePanel* sPanel = (NSSavePanel*)panel;
             result = wxID_OK;
 
-            m_path = wxCFStringRef::AsString([sPanel filename]);
+            m_path = wxCFStringRef::AsStringWithNormalizationFormC([sPanel filename]);
             m_fileName = wxFileNameFromPath(m_path);
             m_dir = wxPathOnly( m_path );
             if (m_filterChoice)
@@ -634,7 +680,7 @@ void wxFileDialog::ModalFinishedCallback(void* panel, int returnCode)
             NSArray* filenames = [oPanel filenames];
             for ( size_t i = 0 ; i < [filenames count] ; ++ i )
             {
-                wxString fnstr = wxCFStringRef::AsString([filenames objectAtIndex:i]);
+                wxString fnstr = wxCFStringRef::AsStringWithNormalizationFormC([filenames objectAtIndex:i]);
                 m_paths.Add( fnstr );
                 m_fileNames.Add( wxFileNameFromPath(fnstr) );
                 if ( i == 0 )
@@ -657,7 +703,9 @@ void wxFileDialog::ModalFinishedCallback(void* panel, int returnCode)
     if (GetModality() == wxDIALOG_MODALITY_WINDOW_MODAL)
         SendWindowModalDialogEvent ( wxEVT_WINDOW_MODAL_DIALOG_CLOSED  );
     
-    UnsubclassWin();
+    // workaround for sandboxed app, see above
+    if ( m_isNativeWindowWrapper )
+        UnsubclassWin();
     [(NSSavePanel*) panel setAccessoryView:nil];
 }
 

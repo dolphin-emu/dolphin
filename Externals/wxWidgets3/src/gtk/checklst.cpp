@@ -3,7 +3,6 @@
 // Purpose:
 // Author:      Robert Roebling
 // Modified by: Ryan Norton (Native GTK2.0+ checklist)
-// Id:          $Id: checklst.cpp 66557 2011-01-04 09:13:49Z SC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,10 +13,7 @@
 #if wxUSE_CHECKLISTBOX
 
 #include "wx/checklst.h"
-#include "wx/gtk/private.h"
-#include "wx/gtk/treeentry_gtk.h"
 
-#include <gdk/gdk.h>
 #include <gtk/gtk.h>
 
 //-----------------------------------------------------------------------------
@@ -31,7 +27,7 @@ static void gtk_checklist_toggled(GtkCellRendererToggle * WXUNUSED(renderer),
     wxCHECK_RET( listbox->m_treeview != NULL, wxT("invalid listbox") );
 
     GtkTreePath* path = gtk_tree_path_new_from_string(stringpath);
-    wxCommandEvent new_event( wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,
+    wxCommandEvent new_event( wxEVT_CHECKLISTBOX,
                               listbox->GetId() );
     new_event.SetEventObject( listbox );
     new_event.SetInt( gtk_tree_path_get_indices(path)[0] );
@@ -46,7 +42,7 @@ static void gtk_checklist_toggled(GtkCellRendererToggle * WXUNUSED(renderer),
 // wxCheckListBox
 //-----------------------------------------------------------------------------
 
-wxCheckListBox::wxCheckListBox() : wxListBox()
+wxCheckListBox::wxCheckListBox() : wxCheckListBoxBase()
 {
     m_hasCheckBoxes = true;
 }
@@ -121,7 +117,7 @@ bool wxCheckListBox::IsChecked(unsigned int index) const
                              0, //column
                              &value);
 
-    return g_value_get_boolean(&value) == TRUE ? true : false;
+    return g_value_get_boolean(&value) != 0;
 }
 
 void wxCheckListBox::Check(unsigned int index, bool check)

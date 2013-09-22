@@ -1,9 +1,8 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        wx/generic/listctrl.h
+// Name:        wx/generic/private/listctrl.h
 // Purpose:     private definitions of wxListCtrl helpers
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.h 70285 2012-01-07 15:09:54Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -336,22 +335,27 @@ protected:
 public:
     wxListHeaderWindow();
 
-    wxListHeaderWindow( wxWindow *win,
-                        wxWindowID id,
-                        wxListMainWindow *owner,
-                        const wxPoint &pos = wxDefaultPosition,
-                        const wxSize &size = wxDefaultSize,
-                        long style = 0,
-                        const wxString &name = wxT("wxlistctrlcolumntitles") );
+    // We provide only Create(), not the ctor, because we need to create the
+    // C++ object before creating the window, see the explanations in
+    // CreateOrDestroyHeaderWindowAsNeeded()
+    bool Create( wxWindow *win,
+                 wxWindowID id,
+                 wxListMainWindow *owner,
+                 const wxPoint &pos = wxDefaultPosition,
+                 const wxSize &size = wxDefaultSize,
+                 long style = 0,
+                 const wxString &name = wxT("wxlistctrlcolumntitles") );
 
     virtual ~wxListHeaderWindow();
+
+    // We never need focus as we don't have any keyboard interface.
+    virtual bool AcceptsFocus() const { return false; }
 
     void DrawCurrent();
     void AdjustDC( wxDC& dc );
 
     void OnPaint( wxPaintEvent &event );
     void OnMouse( wxMouseEvent &event );
-    void OnSetFocus( wxFocusEvent &event );
 
     // needs refresh
     bool m_dirty;
@@ -386,6 +390,27 @@ private:
 public:
     wxListRenameTimer( wxListMainWindow *owner );
     void Notify();
+};
+
+//-----------------------------------------------------------------------------
+// wxListFindTimer (internal)
+//-----------------------------------------------------------------------------
+
+class wxListFindTimer: public wxTimer
+{
+public:
+    // reset the current prefix after half a second of inactivity
+    enum { DELAY = 500 };
+
+    wxListFindTimer( wxListMainWindow *owner )
+        : m_owner(owner)
+    {
+    }
+
+    virtual void Notify();
+
+private:
+    wxListMainWindow *m_owner;
 };
 
 //-----------------------------------------------------------------------------
@@ -448,10 +473,8 @@ public:
     wxListMainWindow();
     wxListMainWindow( wxWindow *parent,
                       wxWindowID id,
-                      const wxPoint& pos = wxDefaultPosition,
-                      const wxSize& size = wxDefaultSize,
-                      long style = 0,
-                      const wxString &name = wxT("listctrlmainwindow") );
+                      const wxPoint& pos,
+                      const wxSize& size );
 
     virtual ~wxListMainWindow();
 
@@ -556,6 +579,11 @@ public:
     bool OnRenameAccept(size_t itemEdit, const wxString& value);
     void OnRenameCancelled(size_t itemEdit);
 
+    void OnFindTimer();
+    // set whether or not to ring the find bell
+    // (does nothing on MSW - bell is always rung)
+    void EnableBellOnNoMatch( bool on );
+
     void OnMouse( wxMouseEvent &event );
 
     // called to switch the selection from the current item to newCurrent,
@@ -644,7 +672,7 @@ public:
     long FindItem( const wxPoint& pt );
     long HitTest( int x, int y, int &flags ) const;
     void InsertItem( wxListItem &item );
-    void InsertColumn( long col, const wxListItem &item );
+    long InsertColumn( long col, const wxListItem &item );
     int GetItemWidthWithImage(wxListItem * item);
     void SortItems( wxListCtrlCompare fn, wxIntPtr data );
 
@@ -729,6 +757,15 @@ protected:
 
     bool                 m_lastOnSame;
     wxTimer             *m_renameTimer;
+
+    // incremental search data
+    wxString             m_findPrefix;
+    wxTimer             *m_findTimer;
+    // This flag is set to 0 if the bell is disabled, 1 if it is enabled and -1
+    // if it is globally enabled but has been temporarily disabled because we
+    // had already beeped for this particular search.
+    int                  m_findBell;
+
     bool                 m_isCreated;
     int                  m_dragCount;
     wxPoint              m_dragStart;
@@ -778,6 +815,9 @@ protected:
 
     // force us to recalculate the range of visible lines
     void ResetVisibleLinesRange() { m_lineFrom = (size_t)-1; }
+
+    // find the first item starting with the given prefix after the given item
+    size_t PrefixFindItem(size_t item, const wxString& prefix) const;
 
     // get the colour to be used for drawing the rules
     wxColour GetRuleColour() const

@@ -3,7 +3,6 @@
 // Purpose:     Hildon implementation of wxNotificationMessage
 // Author:      Vadim Zeitlin
 // Created:     2007-11-21
-// RCS-ID:      $Id: notifmsg.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

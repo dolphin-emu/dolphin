@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: VZ at 05.02.00 to derive from wxStatusBarBase
 // Created:     01/02/97
-// RCS-ID:      $Id: statusbr.h 67384 2011-04-03 20:31:32Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -91,8 +90,9 @@ protected:
     // common part of all ctors
     void Init();
 
-    // the last known height of the client rect
-    int               m_lastClientHeight;
+    // the last known size, fields widths must be updated whenever it's out of
+    // date
+    wxSize m_lastClientSize;
 
     // the absolute widths of the status bar panes in pixels
     wxArrayInt        m_widthsAbs;
@@ -106,6 +106,9 @@ protected:
     virtual wxSize DoGetBestSize() const;
 
 private:
+    // Update m_lastClientSize and m_widthsAbs from the current size.
+    void DoUpdateFieldWidths();
+
     DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS_NO_COPY(wxStatusBarGeneric)
 };

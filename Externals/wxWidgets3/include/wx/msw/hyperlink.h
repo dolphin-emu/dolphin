@@ -3,7 +3,6 @@
 // Purpose:     Hyperlink control
 // Author:      Rickard Westerlund
 // Created:     2010-08-04
-// RCS-ID:      $Id: hyperlink.h 65334 2010-08-17 16:55:32Z VZ $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

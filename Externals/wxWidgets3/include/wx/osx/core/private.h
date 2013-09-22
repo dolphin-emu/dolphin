@@ -6,7 +6,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h 70354 2012-01-15 15:53:56Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,6 +29,23 @@
     #define wxOSX_10_6_AND_LATER(x) x
 #else
     #define wxOSX_10_6_AND_LATER(x)
+#endif
+
+// platform specific Clang analyzer support
+#ifndef NS_RETURNS_RETAINED
+#   if WX_HAS_CLANG_FEATURE(attribute_ns_returns_retained)
+#       define NS_RETURNS_RETAINED __attribute__((ns_returns_retained))
+#   else
+#       define NS_RETURNS_RETAINED
+#   endif
+#endif
+
+#ifndef CF_RETURNS_RETAINED
+#   if WX_HAS_CLANG_FEATURE(attribute_cf_returns_retained)
+#       define CF_RETURNS_RETAINED __attribute__((cf_returns_retained))
+#   else
+#       define CF_RETURNS_RETAINED
+#   endif
 #endif
 
 #if ( !wxUSE_GUI && !wxOSX_USE_IPHONE ) || wxOSX_USE_COCOA_OR_CARBON
@@ -105,7 +121,9 @@ WXDLLIMPEXP_CORE CGDataProviderRef wxMacCGDataProviderCreateWithCFData( CFDataRe
 WXDLLIMPEXP_CORE CGDataConsumerRef wxMacCGDataConsumerCreateWithCFData( CFMutableDataRef data );
 WXDLLIMPEXP_CORE CGDataProviderRef wxMacCGDataProviderCreateWithMemoryBuffer( const wxMemoryBuffer& buf );
 
-CGColorSpaceRef WXDLLIMPEXP_CORE wxMacGetGenericRGBColorSpace(void);
+WXDLLIMPEXP_CORE CGColorSpaceRef wxMacGetGenericRGBColorSpace(void);
+
+WXDLLIMPEXP_CORE double wxOSXGetMainScreenContentScaleFactor();
 
 class wxWindowMac;
 // to
@@ -242,7 +260,7 @@ public :
     virtual void        GetPosition( int &x, int &y ) const = 0;
     virtual void        GetSize( int &width, int &height ) const = 0;
     virtual void        SetControlSize( wxWindowVariant variant ) = 0;
-    virtual float       GetContentScaleFactor() const 
+    virtual double      GetContentScaleFactor() const
     {
         return 1.0;
     }
@@ -265,6 +283,8 @@ public :
 
     virtual bool        NeedsFrame() const;
     virtual void        SetNeedsFrame( bool needs );
+    
+    virtual void        SetDrawingEnabled(bool enabled);
 
     virtual bool        CanFocus() const = 0;
     // return true if successful
@@ -284,13 +304,16 @@ public :
     virtual void        SetCursor( const wxCursor & cursor ) = 0;
     virtual void        CaptureMouse() = 0;
     virtual void        ReleaseMouse() = 0;
+    
+    virtual void        SetDropTarget( wxDropTarget * WXUNUSED(dropTarget) ) {}
 
     virtual wxInt32     GetValue() const = 0;
     virtual void        SetValue( wxInt32 v ) = 0;
     virtual wxBitmap    GetBitmap() const = 0;
     virtual void        SetBitmap( const wxBitmap& bitmap ) = 0;
     virtual void        SetBitmapPosition( wxDirection dir ) = 0;
-    virtual void        SetupTabs( const wxNotebook &notebook ) =0;
+    virtual void        SetupTabs( const wxNotebook& WXUNUSED(notebook) ) {}
+    virtual int         TabHitTest( const wxPoint & WXUNUSED(pt), long *flags ) {*flags=1; return -1;};
     virtual void        GetBestRect( wxRect *r ) const = 0;
     virtual bool        IsEnabled() const = 0;
     virtual void        Enable( bool enable ) = 0;
@@ -319,9 +342,16 @@ public :
 
     // static methods for associating native controls and their implementations
 
+    // finds the impl associated with this native control
     static wxWidgetImpl*
                         FindFromWXWidget(WXWidget control);
 
+    // finds the impl associated with this native control, if the native control itself is not known
+    // also checks whether its parent is eg a registered scrollview, ie whether the control is a native subpart
+    // of a known control
+    static wxWidgetImpl*
+                        FindBestFromWXWidget(WXWidget control);
+    
     static void         RemoveAssociations( wxWidgetImpl* impl);
 
     static void         Associate( WXWidget control, wxWidgetImpl *impl );
@@ -844,7 +874,7 @@ public :
     virtual void ScreenToWindow( int *x, int *y ) = 0;
 
     virtual void WindowToScreen( int *x, int *y ) = 0;
-
+    
     virtual bool IsActive() = 0;
 
     wxNonOwnedWindow*   GetWXPeer() { return m_wxPeer; }

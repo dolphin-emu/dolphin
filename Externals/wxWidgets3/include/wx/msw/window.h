@@ -5,7 +5,6 @@
 // Modified by: Vadim Zeitlin on 13.05.99: complete refont of message handling,
 //              elimination of Default(), ...
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h 69348 2011-10-09 22:01:57Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -66,6 +65,9 @@ public:
 
     virtual void Raise();
     virtual void Lower();
+
+    virtual bool BeginRepositioningChildren();
+    virtual void EndRepositioningChildren();
 
     virtual bool Show(bool show = true);
     virtual bool ShowWithEffect(wxShowEffect effect,
@@ -345,12 +347,13 @@ public:
 
     bool HandleMouseEvent(WXUINT msg, int x, int y, WXUINT flags);
     bool HandleMouseMove(int x, int y, WXUINT flags);
-    bool HandleMouseWheel(WXWPARAM wParam, WXLPARAM lParam);
+    bool HandleMouseWheel(wxMouseWheelAxis axis,
+                          WXWPARAM wParam, WXLPARAM lParam);
 
     bool HandleChar(WXWPARAM wParam, WXLPARAM lParam);
     bool HandleKeyDown(WXWPARAM wParam, WXLPARAM lParam);
     bool HandleKeyUp(WXWPARAM wParam, WXLPARAM lParam);
-#if wxUSE_ACCEL
+#if wxUSE_HOTKEY
     bool HandleHotKey(WXWPARAM wParam, WXLPARAM lParam);
 #endif
 #ifdef __WIN32__
@@ -408,6 +411,17 @@ public:
     // function is called by MSWGetBgBrushForChild() which only exists for the
     // weird wxToolBar case and MSWGetBgBrushForChild() itself is used by
     // MSWGetBgBrush() to actually find the right brush to use.
+
+    // Adjust the origin for the brush returned by MSWGetBgBrushForChild().
+    //
+    // This needs to be overridden for scrolled windows to ensure that the
+    // scrolling of their associated DC is taken into account.
+    //
+    // Both parameters must be non-NULL.
+    virtual void MSWAdjustBrushOrg(int* WXUNUSED(xOrg),
+                                   int* WXUNUSED(yOrg)) const
+    {
+    }
 
     // The brush returned from here must remain valid at least until the next
     // event loop iteration. Returning 0, as is done by default, indicates

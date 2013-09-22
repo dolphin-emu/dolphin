@@ -4,7 +4,6 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: chartype.h 70345 2012-01-15 01:05:28Z VZ $
  * Copyright:   (c) 1998-2006 wxWidgets dev team
  * Licence:     wxWindows licence
  */
@@ -48,14 +47,9 @@
 
    Actually MinGW has tchar.h, but it does not include wchar.h
  */
-#if defined(__MWERKS__) || defined(__VISAGECPP__) || defined(__MINGW32__) || defined(__WATCOMC__)
+#if defined(__VISAGECPP__) || defined(__MINGW32__) || defined(__WATCOMC__)
     #ifndef HAVE_WCHAR_H
         #define HAVE_WCHAR_H
-    #endif
-#endif
-#if defined(__MWERKS__) && !defined(__MACH__)
-    #ifndef HAVE_WCSLEN
-        #define HAVE_WCSLEN
     #endif
 #endif
 

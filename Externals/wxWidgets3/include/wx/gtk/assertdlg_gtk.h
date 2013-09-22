@@ -2,7 +2,6 @@
 // Name:        wx/gtk/assertdlg_gtk.h
 // Purpose:     GtkAssertDialog
 // Author:      Francesco Montorsi
-// Id:          $Id: assertdlg_gtk.h 67338 2011-03-30 05:35:24Z PC $
 // Copyright:   (c) 2006 Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////// */
@@ -72,7 +71,6 @@ void gtk_assert_dialog_set_backtrace_callback(GtkAssertDialog *assertdlg,
 /* appends a stack frame to the dialog */
 void gtk_assert_dialog_append_stack_frame(GtkAssertDialog *dlg,
                                           const gchar *function,
-                                          const gchar *arguments,
                                           const gchar *sourcefile,
                                           guint line_number);
 

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils.mm 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,13 +38,6 @@
 
 #if 1 // wxUSE_BASE
 
-// Emit a beeeeeep
-void wxBell()
-{
-    // would be kSystemSoundID_UserPreferredAlert but since the headers aren't correct, add it manually
-    AudioServicesPlayAlertSound(0x00001000 );
-}
-
 // ----------------------------------------------------------------------------
 // Common Event Support
 // ----------------------------------------------------------------------------
@@ -57,13 +49,21 @@ void wxBell()
 
 @implementation wxAppDelegate
 
+- (BOOL)application:(UIApplication *)application willFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    wxUnusedVar(application);
+    wxUnusedVar(launchOptions);
+    wxTheApp->OSXOnWillFinishLaunching();
+    return YES;
+}
+
 - (void)applicationDidFinishLaunching:(UIApplication *)application {	
-	wxTheApp->OnInit();
+    wxTheApp->OSXOnDidFinishLaunching();
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application { 
-    wxCloseEvent event;
-    wxTheApp->OnEndSession(event);
+    wxUnusedVar(application);
+    wxTheApp->OSXOnWillTerminate();
 }
 
 - (void)dealloc {
@@ -91,6 +91,13 @@ void wxApp::DoCleanUp()
 
 #if wxUSE_GUI
 
+// Emit a beeeeeep
+void wxBell()
+{
+    // would be kSystemSoundID_UserPreferredAlert but since the headers aren't correct, add it manually
+    AudioServicesPlayAlertSound(0x00001000 );
+}
+
 // ----------------------------------------------------------------------------
 // Launch default browser
 // ----------------------------------------------------------------------------
@@ -116,6 +123,11 @@ extern wxFont* CreateSmallFont()
 extern UIFont* CreateUIFont( const wxFont& font )
 {
     return [UIFont fontWithName:wxCFStringRef(font.GetFaceName() ).AsNSString() size:font.GetPointSize()];
+}
+
+CFArrayRef CopyAvailableFontFamilyNames()
+{
+    return (CFArrayRef) [[UIFont familyNames] retain];
 }
 
 extern void DrawTextInContext( CGContextRef context, CGPoint where, UIFont *font, NSString* text )

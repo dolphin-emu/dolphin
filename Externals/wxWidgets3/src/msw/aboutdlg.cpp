@@ -3,7 +3,6 @@
 // Purpose:     implementation of wxAboutBox() for wxMSW
 // Author:      Vadim Zeitlin
 // Created:     2006-10-07
-// RCS-ID:      $Id: aboutdlg.cpp 64755 2010-06-26 11:44:05Z FM $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

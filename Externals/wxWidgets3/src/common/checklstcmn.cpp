@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     16.11.97
-// RCS-ID:      $Id: checklstcmn.cpp 66584 2011-01-05 06:56:36Z PC $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -87,7 +86,7 @@ wxEND_FLAGS( wxCheckListBoxStyle )
 wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxCheckListBox, wxListBox, "wx/checklst.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxCheckListBox)
-    wxEVENT_PROPERTY( Toggle, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, wxCommandEvent )
+    wxEVENT_PROPERTY( Toggle, wxEVT_CHECKLISTBOX, wxCommandEvent )
     wxPROPERTY_FLAGS( WindowStyle, wxCheckListBoxStyle, long, SetWindowStyleFlag, \
                       GetWindowStyleFlag, wxEMPTY_PARAMETER_VALUE, wxLB_OWNERDRAW /*flags*/, \
                       wxT("Helpstring"), wxT("group")) // style
@@ -98,5 +97,23 @@ wxEMPTY_HANDLERS_TABLE(wxCheckListBox)
 wxCONSTRUCTOR_4( wxCheckListBox, wxWindow*, Parent, wxWindowID, Id, \
                  wxPoint, Position, wxSize, Size )
 
+
+// ============================================================================
+// implementation
+// ============================================================================
+
+unsigned int wxCheckListBoxBase::GetCheckedItems(wxArrayInt& checkedItems) const
+{
+    unsigned int const numberOfItems = GetCount();
+
+    checkedItems.clear();
+    for ( unsigned int i = 0; i < numberOfItems; ++i )
+    {
+        if ( IsChecked(i) )
+            checkedItems.push_back(i);
+    }
+
+    return checkedItems.size();
+}
 
 #endif

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,13 +44,7 @@
 
 #include "wx/evtloop.h"
 
-#if defined(__MWERKS__) && wxUSE_UNICODE
-#if __MWERKS__ < 0x4100
-    #include <wtime.h>
-#endif
-#endif
-
-#if wxUSE_BASE
+#if wxUSE_GUI
 
 // Emit a beeeeeep
 void wxBell()
@@ -68,10 +61,6 @@ void wxBell()
     }
 #endif
 }
-
-#endif // wxUSE_BASE
-
-#if wxUSE_GUI
 
 wxTimerImpl* wxGUIAppTraits::CreateTimerImpl(wxTimer *timer)
 {

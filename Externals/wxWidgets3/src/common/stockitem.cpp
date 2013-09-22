@@ -4,7 +4,6 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004-08-15
-// RCS-ID:      $Id: stockitem.cpp 70412 2012-01-20 16:51:09Z DS $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -180,7 +179,7 @@ wxString wxGetStockLabel(wxWindowID id, long flags)
         STOCKITEM(wxID_OPEN,                _("&Open..."),            _("Open..."));
         STOCKITEM(wxID_PASTE,               _("&Paste"),              _("Paste"));
         STOCKITEM(wxID_PREFERENCES,         _("&Preferences"),        _("Preferences"));
-        STOCKITEM(wxID_PREVIEW,             _("&Preview..."),         _("Preview..."));
+        STOCKITEM(wxID_PREVIEW,             _("Print previe&w..."),   _("Print preview..."));
         STOCKITEM(wxID_PRINT,               _("&Print..."),           _("Print..."));
         STOCKITEM(wxID_PROPERTIES,          _("&Properties"),         _("Properties"));
         STOCKITEM(wxID_REDO,                _("&Redo"),               _("Redo"));

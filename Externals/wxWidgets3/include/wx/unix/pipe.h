@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.06.2003 (extracted from src/unix/utilsunx.cpp)
-// RCS-ID:      $Id: pipe.h 66152 2010-11-14 14:04:37Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -13,6 +12,7 @@
 #define _WX_UNIX_PIPE_H_
 
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "wx/log.h"
 #include "wx/intl.h"
@@ -44,7 +44,7 @@ public:
     {
         if ( pipe(m_fds) == -1 )
         {
-            wxLogSysError(_("Pipe creation failed"));
+            wxLogSysError(wxGetTranslation("Pipe creation failed"));
 
             return false;
         }
@@ -97,42 +97,6 @@ public:
 private:
     int m_fds[2];
 };
-
-#if wxUSE_STREAMS && wxUSE_FILE
-
-#include "wx/wfstream.h"
-
-// ----------------------------------------------------------------------------
-// wxPipeInputStream: stream for reading from a pipe
-// ----------------------------------------------------------------------------
-
-class wxPipeInputStream : public wxFileInputStream
-{
-public:
-    wxPipeInputStream(int fd) : wxFileInputStream(fd) { }
-
-    // return TRUE if the pipe is still opened
-    bool IsOpened() const { return !Eof(); }
-
-    // return TRUE if we have anything to read, don't block
-    virtual bool CanRead() const;
-};
-
-// ----------------------------------------------------------------------------
-// wxPipeOutputStream: stream for writing to a pipe
-// ----------------------------------------------------------------------------
-
-class wxPipeOutputStream : public wxFileOutputStream
-{
-public:
-    wxPipeOutputStream(int fd) : wxFileOutputStream(fd) { }
-
-    // Override the base class version to ignore "pipe full" errors: this is
-    // not an error for this class.
-    size_t OnSysWrite(const void *buffer, size_t size);
-};
-
-#endif // wxUSE_STREAMS && wxUSE_FILE
 
 #endif // _WX_UNIX_PIPE_H_
 

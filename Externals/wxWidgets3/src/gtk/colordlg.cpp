@@ -4,7 +4,6 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004/06/04
-// RCS-ID:      $Id: colordlg.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -19,12 +18,16 @@
 #if wxUSE_COLOURDLG
 
 #include "wx/colordlg.h"
+#include "wx/modalhook.h"
 
 #ifndef WX_PRECOMP
     #include "wx/intl.h"
 #endif
 
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
+#include "wx/gtk/private/gtk2-compat.h"
+#include "wx/gtk/private/dialogcount.h"
 
 #if wxUSE_LIBHILDON
     #include <hildon-widgets/hildon-color-selector.h>
@@ -80,7 +83,11 @@ bool wxColourDialog::Create(wxWindow *parent, wxColourData *data)
 
 int wxColourDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     ColourDataToDialog();
+
+    wxOpenModalDialogLocker modalLocker;
 
     gint result = gtk_dialog_run(GTK_DIALOG(m_widget));
     gtk_widget_hide(m_widget);
@@ -104,10 +111,11 @@ int wxColourDialog::ShowModal()
 
 void wxColourDialog::ColourDataToDialog()
 {
+#if wxUSE_LIBHILDON || wxUSE_LIBHILDON2
     const GdkColor * const
         col = m_data.GetColour().IsOk() ? m_data.GetColour().GetColor()
                                       : NULL;
-
+#endif
 #if wxUSE_LIBHILDON
     HildonColorSelector * const sel = HILDON_COLOR_SELECTOR(m_widget);
     hildon_color_selector_set_color(sel, const_cast<GdkColor *>(col));
@@ -128,14 +136,21 @@ void wxColourDialog::ColourDataToDialog()
         gtk_color_selection_dialog_get_color_selection(
         GTK_COLOR_SELECTION_DIALOG(m_widget)));
 
-    if ( col )
-        gtk_color_selection_set_current_color(sel, col);
+    const wxColour& color = m_data.GetColour();
+    if (color.IsOk())
+    {
+#ifdef __WXGTK3__
+        gtk_color_selection_set_current_rgba(sel, color);
+#else
+        gtk_color_selection_set_current_color(sel, color.GetColor());
+#endif
+    }
 
     // setup the palette:
 
-    GdkColor colors[16];
+    GdkColor colors[wxColourData::NUM_CUSTOM];
     gint n_colors = 0;
-    for (unsigned i = 0; i < 16; i++)
+    for (unsigned i = 0; i < WXSIZEOF(colors); i++)
     {
         wxColour c = m_data.GetCustomColour(i);
         if (c.IsOk())
@@ -182,8 +197,13 @@ void wxColourDialog::DialogToColourData()
         gtk_color_selection_dialog_get_color_selection(
         GTK_COLOR_SELECTION_DIALOG(m_widget)));
 
+#ifdef __WXGTK3__
+    GdkRGBA clr;
+    gtk_color_selection_get_current_rgba(sel, &clr);
+#else
     GdkColor clr;
     gtk_color_selection_get_current_color(sel, &clr);
+#endif
     m_data.SetColour(clr);
 
     // Extract custom palette:
@@ -196,7 +216,7 @@ void wxColourDialog::DialogToColourData()
     gint n_colors;
     if (gtk_color_selection_palette_from_string(pal, &colors, &n_colors))
     {
-        for (int i = 0; i < wxMin(n_colors, 16); i++)
+        for (int i = 0; i < n_colors && i < wxColourData::NUM_CUSTOM; i++)
         {
             m_data.SetCustomColour(i, wxColour(colors[i]));
         }

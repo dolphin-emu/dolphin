@@ -3,7 +3,6 @@
 // Purpose:     NSDate-related helpers
 // Author:      Vadim Zeitlin
 // Created:     2011-12-19
-// RCS-ID:      $Id: date.h 70070 2011-12-20 21:27:09Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

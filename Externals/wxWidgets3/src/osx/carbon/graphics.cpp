@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: graphics.cpp 70735 2012-02-28 14:39:32Z SC $
 // copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -113,10 +112,8 @@ extern "C"
 // constants
 //-----------------------------------------------------------------------------
 
-#if !defined( __DARWIN__ ) || defined(__MWERKS__)
 #ifndef M_PI
 const double M_PI = 3.14159265358979;
-#endif
 #endif
 
 static const double RAD2DEG = 180.0 / M_PI;
@@ -149,27 +146,13 @@ OSStatus wxMacDrawCGImage(
 
 CGColorRef wxMacCreateCGColor( const wxColour& col )
 {
-    CGColorRef retval = 0;
-#ifdef __WXMAC__
-    retval = col.CreateCGColor();
-#else
-// TODO add conversion NSColor - CGColorRef (obj-c)
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-    if ( CGColorCreateGenericRGB )
-        retval = CGColorCreateGenericRGB( col.Red() / 255.0 , col.Green() / 255.0, col.Blue() / 255.0, col.Alpha() / 255.0 );
-    else
-#endif
-    {
-        CGFloat components[4] = { col.Red() / 255.0, col.Green() / 255.0, col.Blue()  / 255.0, col.Alpha() / 255.0 } ;
-        retval = CGColorCreate( wxMacGetGenericRGBColorSpace() , components ) ;
-    }
+    CGColorRef retval = col.CreateCGColor();
 
-#endif
     wxASSERT(retval != NULL);
     return retval;
 }
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5 && wxOSX_USE_CORE_TEXT
+#if wxOSX_USE_CORE_TEXT
 
 CTFontRef wxMacCreateCTFont( const wxFont& font )
 {
@@ -971,13 +954,14 @@ wxMacCoreGraphicsFontData::~wxMacCoreGraphicsFontData()
 #endif
 }
 
-class wxMacCoreGraphicsBitmapData : public wxGraphicsObjectRefData
+class wxMacCoreGraphicsBitmapData : public wxGraphicsBitmapData
 {
 public:
     wxMacCoreGraphicsBitmapData( wxGraphicsRenderer* renderer, CGImageRef bitmap, bool monochrome );
     ~wxMacCoreGraphicsBitmapData();
 
     virtual CGImageRef GetBitmap() { return m_bitmap; }
+    virtual void* GetNativeBitmap() const { return m_bitmap; }
     bool IsMonochrome() { return m_monochrome; }
 
 #if wxUSE_IMAGE
@@ -992,7 +976,7 @@ private :
     bool m_monochrome;
 };
 
-wxMacCoreGraphicsBitmapData::wxMacCoreGraphicsBitmapData( wxGraphicsRenderer* renderer, CGImageRef bitmap, bool monochrome ) : wxGraphicsObjectRefData( renderer ),
+wxMacCoreGraphicsBitmapData::wxMacCoreGraphicsBitmapData( wxGraphicsRenderer* renderer, CGImageRef bitmap, bool monochrome ) : wxGraphicsBitmapData( renderer ),
     m_bitmap(bitmap), m_monochrome(monochrome)
 {
 }
@@ -1501,7 +1485,7 @@ public:
     // fast convenience methods
     
     
-    virtual void DrawRectangleX( wxDouble x, wxDouble y, wxDouble w, wxDouble h ); 
+    virtual void DrawRectangle( wxDouble x, wxDouble y, wxDouble w, wxDouble h ); 
 
     void SetNativeContext( CGContextRef cg );
 
@@ -1847,8 +1831,8 @@ bool wxMacCoreGraphicsContext::SetCompositionMode(wxCompositionMode op)
     if (m_composition == wxCOMPOSITION_DEST)
         return true;
 
-#if wxOSX_USE_COCOA_OR_CARBON
-    if ( UMAGetSystemVersion() < 0x1060 )
+    // TODO REMOVE if we don't need it because of bugs in 10.5
+#if 0
     {
         CGCompositeOperation cop = kCGCompositeOperationSourceOver;
         CGBlendMode mode = kCGBlendModeNormal;
@@ -1887,11 +1871,9 @@ bool wxMacCoreGraphicsContext::SetCompositionMode(wxCompositionMode op)
         case wxCOMPOSITION_XOR:
             cop = kCGCompositeOperationXOR;
             break;
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
         case wxCOMPOSITION_ADD:
             mode = kCGBlendModePlusLighter ;
             break;
-#endif
         default:
             return false;
         }
@@ -1901,8 +1883,6 @@ bool wxMacCoreGraphicsContext::SetCompositionMode(wxCompositionMode op)
             CGContextSetBlendMode(m_cgContext, mode);
     }
 #endif
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
-    else
     {
         CGBlendMode mode = kCGBlendModeNormal;
         switch( op )
@@ -1938,7 +1918,7 @@ bool wxMacCoreGraphicsContext::SetCompositionMode(wxCompositionMode op)
            mode = kCGBlendModeDestinationAtop;
             break;
         case wxCOMPOSITION_XOR:
-            mode = kCGBlendModeXOR;
+            mode = kCGBlendModeExclusion; // Not kCGBlendModeXOR!
             break;
 
         case wxCOMPOSITION_ADD:
@@ -1949,7 +1929,7 @@ bool wxMacCoreGraphicsContext::SetCompositionMode(wxCompositionMode op)
         }
         CGContextSetBlendMode(m_cgContext, mode);
     }
-#endif
+
     CheckInvariants();
     return true;
 }
@@ -2247,7 +2227,7 @@ void wxMacCoreGraphicsContext::DrawBitmap( const wxGraphicsBitmap &bmp, wxDouble
         return;
 
 #ifdef __WXMAC__
-    wxMacCoreGraphicsBitmapData* refdata  =static_cast<wxMacCoreGraphicsBitmapData*>(bmp.GetRefData());
+    wxMacCoreGraphicsBitmapData* refdata = static_cast<wxMacCoreGraphicsBitmapData*>(bmp.GetRefData());
     CGImageRef image = refdata->GetBitmap();
     CGRect r = CGRectMake( (CGFloat) x , (CGFloat) y , (CGFloat) w , (CGFloat) h );
     if ( refdata->IsMonochrome() == 1 )
@@ -2290,11 +2270,11 @@ void wxMacCoreGraphicsContext::DrawIcon( const wxIcon &icon, wxDouble x, wxDoubl
     if (m_composition == wxCOMPOSITION_DEST)
         return;
 
-    CGRect r = CGRectMake( (CGFloat) 0.0 , (CGFloat) 0.0 , (CGFloat) w , (CGFloat) h );
     CGContextSaveGState( m_cgContext );
     CGContextTranslateCTM( m_cgContext,(CGFloat) x ,(CGFloat) (y + h) );
     CGContextScaleCTM( m_cgContext, 1, -1 );
 #if wxOSX_USE_COCOA_OR_CARBON
+    CGRect r = CGRectMake( (CGFloat) 0.0 , (CGFloat) 0.0 , (CGFloat) w , (CGFloat) h );
     PlotIconRefInContext( m_cgContext , &r , kAlignNone , kTransformNone ,
         NULL , kPlotIconRefNormalFlags , icon.GetHICON() );
 #endif
@@ -2330,7 +2310,6 @@ void wxMacCoreGraphicsContext::DoDrawText( const wxString &str, wxDouble x, wxDo
         return;
 
 #if wxOSX_USE_CORE_TEXT
-    if ( UMAGetSystemVersion() >= 0x1050 )
     {
         wxMacCoreGraphicsFontData* fref = (wxMacCoreGraphicsFontData*)m_font.GetRefData();
         wxCFStringRef text(str, wxLocale::GetSystemEncoding() );
@@ -2376,7 +2355,7 @@ void wxMacCoreGraphicsContext::DoDrawText( const wxString &str, wxDouble x, wxDo
         
         CGContextRestoreGState(m_cgContext);
         CGContextSetTextMatrix(m_cgContext, textMatrix);
-        CFRelease( col );
+        CGColorRelease( col );
         CheckInvariants();
         return;
     }
@@ -2419,7 +2398,6 @@ void wxMacCoreGraphicsContext::DoDrawRotatedText(const wxString &str,
         return;
 
 #if wxOSX_USE_CORE_TEXT
-    if ( UMAGetSystemVersion() >= 0x1050 )
     {
         // default implementation takes care of rotation and calls non rotated DrawText afterwards
         wxGraphicsContext::DoDrawRotatedText( str, x, y, angle );
@@ -2533,16 +2511,19 @@ void wxMacCoreGraphicsContext::GetTextExtent( const wxString &str, wxDouble *wid
     if ( externalLeading )
         *externalLeading = 0;
 
+    // In wxWidgets (MSW-inspired) API it is possible to call GetTextExtent()
+    // with an empty string to get just the descent and the leading of the
+    // font, so support this (mis)use.
+    wxString strToMeasure(str);
     if (str.empty())
-        return;
+        strToMeasure = wxS(" ");
 
 #if wxOSX_USE_CORE_TEXT
-    if ( UMAGetSystemVersion() >= 0x1050 )
     {
         wxMacCoreGraphicsFontData* fref = (wxMacCoreGraphicsFontData*)m_font.GetRefData();
         CTFontRef font = fref->OSXGetCTFont();
 
-        wxCFStringRef text(str, wxLocale::GetSystemEncoding() );
+        wxCFStringRef text(strToMeasure, wxLocale::GetSystemEncoding() );
         CFStringRef keys[] = { kCTFontAttributeName  };
         CFTypeRef values[] = { font };
         wxCFRef<CFDictionaryRef> attributes( CFDictionaryCreate(kCFAllocatorDefault, (const void**) &keys, (const void**) &values,
@@ -2553,14 +2534,18 @@ void wxMacCoreGraphicsContext::GetTextExtent( const wxString &str, wxDouble *wid
         CGFloat a, d, l, w;
         w = CTLineGetTypographicBounds(line, &a, &d, &l);
 
-        if ( height )
-            *height = a+d+l;
+        if ( !str.empty() )
+        {
+            if ( width )
+                *width = w;
+            if ( height )
+                *height = a+d+l;
+        }
+
         if ( descent )
             *descent = d;
         if ( externalLeading )
             *externalLeading = l;
-        if ( width )
-            *width = w;
         return;
     }
 #endif
@@ -2569,7 +2554,7 @@ void wxMacCoreGraphicsContext::GetTextExtent( const wxString &str, wxDouble *wid
         OSStatus status = noErr;
 
         ATSUTextLayout atsuLayout;
-        wxMacUniCharBuffer unibuf( str );
+        wxMacUniCharBuffer unibuf( strToMeasure );
         UniCharCount chars = unibuf.GetChars();
 
         ATSUStyle style = (((wxMacCoreGraphicsFontData*)m_font.GetRefData())->GetATSUStyle());
@@ -2587,14 +2572,18 @@ void wxMacCoreGraphicsContext::GetTextExtent( const wxString &str, wxDouble *wid
         status = ::ATSUGetUnjustifiedBounds( atsuLayout, kATSUFromTextBeginning, kATSUToTextEnd,
                                             &textBefore , &textAfter, &textAscent , &textDescent );
 
-        if ( height )
-            *height = FixedToFloat(textAscent + textDescent);
+        if ( !str.empty() )
+        {
+            if ( width )
+                *width = FixedToFloat(textAfter - textBefore);
+            if ( height )
+                *height = FixedToFloat(textAscent + textDescent);
+        }
+
         if ( descent )
             *descent = FixedToFloat(textDescent);
         if ( externalLeading )
             *externalLeading = 0;
-        if ( width )
-            *width = FixedToFloat(textAfter - textBefore);
 
         ::ATSUDisposeTextLayout(atsuLayout);
 
@@ -2604,19 +2593,23 @@ void wxMacCoreGraphicsContext::GetTextExtent( const wxString &str, wxDouble *wid
 #if wxOSX_USE_IPHONE
     wxMacCoreGraphicsFontData* fref = (wxMacCoreGraphicsFontData*)m_font.GetRefData();
 
-    wxCFStringRef text(str, wxLocale::GetSystemEncoding() );
+    wxCFStringRef text(strToMeasure, wxLocale::GetSystemEncoding() );
     CGSize sz = MeasureTextInContext( fref->GetUIFont() , text.AsNSString() );
 
-    if ( height )
-        *height = sz.height;
+    if ( !str.empty() )
+    {
+        if ( width )
+            *width = sz.width;
+        if ( height )
+            *height = sz.height;
+    }
+
         /*
     if ( descent )
         *descent = FixedToFloat(textDescent);
     if ( externalLeading )
         *externalLeading = 0;
         */
-    if ( width )
-        *width = sz.width;
 #endif
     
     CheckInvariants();    
@@ -2728,10 +2721,20 @@ void * wxMacCoreGraphicsContext::GetNativeContext()
 }
 
 
-void wxMacCoreGraphicsContext::DrawRectangleX( wxDouble x, wxDouble y, wxDouble w, wxDouble h )
+void wxMacCoreGraphicsContext::DrawRectangle( wxDouble x, wxDouble y, wxDouble w, wxDouble h )
 {
+    if (!EnsureIsValid())
+        return;
+
     if (m_composition == wxCOMPOSITION_DEST) 
         return; 
+
+    // when using shading, we have to go back to drawing paths 
+    if ( !m_brush.IsNull() && ((wxMacCoreGraphicsBrushData*)m_brush.GetRefData())->IsShading() )
+    {
+        wxGraphicsContext::DrawRectangle( x,y,w,h );
+        return;
+    }
 
     CGRect rect = CGRectMake( (CGFloat) x , (CGFloat) y , (CGFloat) w , (CGFloat) h );
     if ( !m_brush.IsNull() )

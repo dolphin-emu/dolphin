@@ -4,7 +4,6 @@
 // Author:      Julian Smart (wxTimer), Sylvain Bougnoux (wxStopWatch),
 //              Vadim Zeitlin (time functions, current wxStopWatch)
 // Created:     26.06.03 (extracted from wx/timer.h)
-// RCS-ID:      $Id: stopwatch.h 69838 2011-11-27 19:50:27Z VZ $
 // Copyright:   (c) 1998-2003 Julian Smart, Sylvain Bougnoux
 //              (c) 2011 Vadim Zeitlin
 // Licence:     wxWindows licence

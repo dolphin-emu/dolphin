@@ -4,7 +4,6 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: combo.h 69942 2011-12-07 14:05:11Z VZ $
 // Copyright:   (c) Jaakko Salli
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -471,6 +470,10 @@ public:
     virtual wxWindow *GetMainWindowOfCompositeControl()
         { return m_mainCtrlWnd; }
 
+    // also set the embedded wxTextCtrl colours
+    virtual bool SetForegroundColour(const wxColour& colour);
+    virtual bool SetBackgroundColour(const wxColour& colour);
+
 protected:
 
     // Returns true if hint text should be drawn in the control
@@ -541,11 +544,10 @@ protected:
     void DestroyPopup();
 
     // override the base class virtuals involved in geometry calculations
+    // The common version only sets a default width, so the derived classes
+    // should override it and set the height and change the width as needed.
     virtual wxSize DoGetBestSize() const;
-
-    // also set the embedded wxTextCtrl colours
-    virtual bool SetForegroundColour(const wxColour& colour);
-    virtual bool SetBackgroundColour(const wxColour& colour);
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const;
 
     // NULL popup can be used to indicate default in a derived class
     virtual void DoSetPopupControl(wxComboPopup* popup);

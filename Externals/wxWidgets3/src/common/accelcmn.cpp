@@ -3,7 +3,6 @@
 // Purpose:     implementation of platform-independent wxAcceleratorEntry parts
 // Author:      Vadim Zeitlin
 // Created:     2007-05-05
-// RCS-ID:      $Id: accelcmn.cpp 69853 2011-11-28 10:24:13Z SC $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -302,30 +301,43 @@ bool wxAcceleratorEntry::FromString(const wxString& str)
     return ParseAccel(str, &m_flags, &m_keyCode);
 }
 
-wxString wxAcceleratorEntry::ToString() const
+namespace
+{
+
+wxString PossiblyLocalize(const wxString& str, bool localize)
+{
+    return localize ? wxGetTranslation(str) : str;
+}
+
+}
+
+wxString wxAcceleratorEntry::AsPossiblyLocalizedString(bool localized) const
 {
     wxString text;
 
     int flags = GetFlags();
     if ( flags & wxACCEL_ALT )
-        text += _("Alt+");
+        text += PossiblyLocalize(wxTRANSLATE("Alt+"), localized);
     if ( flags & wxACCEL_CTRL )
-        text += _("Ctrl+");
+        text += PossiblyLocalize(wxTRANSLATE("Ctrl+"), localized);
     if ( flags & wxACCEL_SHIFT )
-        text += _("Shift+");
+        text += PossiblyLocalize(wxTRANSLATE("Shift+"), localized);
 #if defined(__WXMAC__) || defined(__WXCOCOA__)
     if ( flags & wxACCEL_RAW_CTRL )
-        text += _("RawCtrl+");
+        text += PossiblyLocalize(wxTRANSLATE("RawCtrl+"), localized);
 #endif
     
     const int code = GetKeyCode();
 
     if ( code >= WXK_F1 && code <= WXK_F12 )
-        text << _("F") << code - WXK_F1 + 1;
+        text << PossiblyLocalize(wxTRANSLATE("F"), localized)
+             << code - WXK_F1 + 1;
     else if ( code >= WXK_NUMPAD0 && code <= WXK_NUMPAD9 )
-        text << _("KP_") << code - WXK_NUMPAD0;
+        text << PossiblyLocalize(wxTRANSLATE("KP_"), localized)
+             << code - WXK_NUMPAD0;
     else if ( code >= WXK_SPECIAL1 && code <= WXK_SPECIAL20 )
-        text << _("SPECIAL") << code - WXK_SPECIAL1 + 1;
+        text << PossiblyLocalize(wxTRANSLATE("SPECIAL"), localized)
+             << code - WXK_SPECIAL1 + 1;
     else // check the named keys
     {
         size_t n;
@@ -334,7 +346,7 @@ wxString wxAcceleratorEntry::ToString() const
             const wxKeyName& kn = wxKeyNames[n];
             if ( code == kn.code )
             {
-                text << wxGetTranslation(kn.name);
+                text << PossiblyLocalize(kn.name, localized);
                 break;
             }
         }

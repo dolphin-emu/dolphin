@@ -1267,5 +1267,8 @@
 /* define this when wxDC::Blit() respects SetDeviceOrigin() in wxGTK */
 /* #undef wxHAS_WORKING_GTK_DC_BLIT */
 
+#define wxUSE_COMPILER_TLS 1
+#define wxUSE_PREFERENCES_EDITOR 1
+
 #endif /* __WX_SETUP_H__ */
 

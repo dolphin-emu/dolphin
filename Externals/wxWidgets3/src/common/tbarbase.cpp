@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: VZ at 11.12.99 (wxScrollableToolBar split off)
 // Created:     04/01/98
-// RCS-ID:      $Id: tbarbase.cpp 70179 2011-12-29 22:05:31Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -631,7 +630,7 @@ bool wxToolBarBase::IsVertical() const
 // Only allow toggle if returns true
 bool wxToolBarBase::OnLeftClick(int toolid, bool toggleDown)
 {
-    wxCommandEvent event(wxEVT_COMMAND_TOOL_CLICKED, toolid);
+    wxCommandEvent event(wxEVT_TOOL, toolid);
     event.SetEventObject(this);
 
     // we use SetInt() to make wxCommandEvent::IsChecked() return toggleDown
@@ -651,7 +650,7 @@ void wxToolBarBase::OnRightClick(int toolid,
                                  long WXUNUSED(x),
                                  long WXUNUSED(y))
 {
-    wxCommandEvent event(wxEVT_COMMAND_TOOL_RCLICKED, toolid);
+    wxCommandEvent event(wxEVT_TOOL_RCLICKED, toolid);
     event.SetEventObject(this);
     event.SetInt(toolid);
 
@@ -665,7 +664,7 @@ void wxToolBarBase::OnRightClick(int toolid,
 // the tool toolid.
 void wxToolBarBase::OnMouseEnter(int toolid)
 {
-    wxCommandEvent event(wxEVT_COMMAND_TOOL_ENTER, GetId());
+    wxCommandEvent event(wxEVT_TOOL_ENTER, GetId());
     event.SetEventObject(this);
     event.SetInt(toolid);
 

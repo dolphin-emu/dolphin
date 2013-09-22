@@ -4,7 +4,6 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     15/04/2006
-// RCS-ID:      $Id: pickerbase.cpp 68921 2011-08-27 14:11:25Z VZ $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,7 +81,7 @@ bool wxPickerBase::CreateBase(wxWindow *parent,
             return false;
         }
 
-        // set the maximum lenght allowed for this textctrl.
+        // set the maximum length allowed for this textctrl.
         // This is very important since any change to it will trigger an update in
         // the m_picker; for very long strings, this real-time synchronization could
         // become a CPU-blocker and thus should be avoided.
@@ -92,7 +91,7 @@ bool wxPickerBase::CreateBase(wxWindow *parent,
         // set the initial contents of the textctrl
         m_text->SetValue(text);
 
-        m_text->Connect(m_text->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
+        m_text->Connect(m_text->GetId(), wxEVT_TEXT,
                 wxCommandEventHandler(wxPickerBase::OnTextCtrlUpdate),
                 NULL, this);
         m_text->Connect(m_text->GetId(), wxEVT_KILL_FOCUS,

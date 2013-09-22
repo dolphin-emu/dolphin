@@ -4,7 +4,6 @@
 // Author:      Wlodzimierz ABX Skiba
 // Modified by:
 // Created:     28.05.2004
-// RCS-ID:      $Id: menuce.cpp 64940 2010-07-13 13:29:13Z VZ $
 // Copyright:   (c) Wlodzimierz Skiba
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -248,7 +247,7 @@ bool wxTopLevelWindowMSW::HandleCommand(WXWORD id, WXWORD WXUNUSED(cmd), WXHWND 
     if ( id == IDM_LEFT || id == IDM_RIGHT )
     {
         int menuId = id == IDM_LEFT ? m_LeftButton.GetId() : m_RightButton.GetId() ;
-        wxCommandEvent commandEvent(wxEVT_COMMAND_MENU_SELECTED, menuId);
+        wxCommandEvent commandEvent(wxEVT_MENU, menuId);
         commandEvent.SetEventObject(this);
         GetEventHandler()->ProcessEvent(commandEvent);
         return true;

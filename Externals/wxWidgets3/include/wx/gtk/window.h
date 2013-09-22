@@ -2,7 +2,6 @@
 // Name:        wx/gtk/window.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: window.h 70569 2012-02-11 16:26:52Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,9 +11,16 @@
 
 #include "wx/dynarray.h"
 
-// helper structure that holds class that holds GtkIMContext object and
-// some additional data needed for key events processing
-struct wxGtkIMData;
+#ifdef __WXGTK3__
+    typedef struct _cairo cairo_t;
+    typedef struct _GtkStyleProvider GtkStyleProvider;
+    #define WXUNUSED_IN_GTK3(x)
+#else
+    #define WXUNUSED_IN_GTK3(x) x
+#endif
+
+typedef struct _GdkEventKey GdkEventKey;
+typedef struct _GtkIMContext GtkIMContext;
 
 WX_DEFINE_EXPORTED_ARRAY_PTR(GdkWindow *, wxArrayGdkWindows);
 
@@ -51,8 +57,6 @@ public:
 
     // implement base class (pure) virtual methods
     // -------------------------------------------
-
-    virtual bool Destroy();
 
     virtual void Raise();
     virtual void Lower();
@@ -140,12 +144,13 @@ public:
     // Internal addition of child windows
     void DoAddChild(wxWindowGTK *child);
 
-    // This methods sends wxPaintEvents to the window. It reads the
-    // update region, breaks it up into rects and sends an event
-    // for each rect. It is also responsible for background erase
-    // events and NC paint events. It is called from "draw" and
-    // "expose" handlers as well as from ::Update()
-    void GtkSendPaintEvents();
+    // This method sends wxPaintEvents to the window.
+    // It is also responsible for background erase events.
+#ifdef __WXGTK3__
+    void GTKSendPaintEvents(cairo_t* cr);
+#else
+    void GTKSendPaintEvents(const GdkRegion* region);
+#endif
 
     // The methods below are required because many native widgets
     // are composed of several subwidgets and setting a style for
@@ -177,11 +182,6 @@ public:
     static wxLayoutDirection GTKGetLayout(GtkWidget *widget);
     static void GTKSetLayout(GtkWidget *widget, wxLayoutDirection dir);
 
-    // return true if this window must have a non-NULL parent, false if it can
-    // be created without parent (normally only top level windows but in wxGTK
-    // there is also the exception of wxMenuBar)
-    virtual bool GTKNeedsParent() const { return !IsTopLevel(); }
-
     // This is called when capture is taken from the window. It will
     // fire off capture lost events.
     void GTKReleaseMouseAndNotify();
@@ -196,6 +196,7 @@ public:
     // Called when m_widget becomes realized. Derived classes must call the
     // base class method if they override it.
     virtual void GTKHandleRealized();
+    void GTKHandleUnrealize();
 
 protected:
     // for controls composed of multiple GTK widgets, return true to eliminate
@@ -247,7 +248,11 @@ public:
     // position and size of the window
     int                  m_x, m_y;
     int                  m_width, m_height;
-    int                  m_oldClientWidth,m_oldClientHeight;
+    int m_clientWidth, m_clientHeight;
+    // Whether the client size variables above are known to be correct
+    // (because they have been validated by a size-allocate) and should
+    // be used to report client size
+    bool m_useCachedClientSize;
 
     // see the docs in src/gtk/window.cpp
     GtkWidget           *m_widget;          // mostly the widget seen by the rest of GTK
@@ -265,7 +270,39 @@ public:
     void GTKDisableFocusOutEvent();
     void GTKEnableFocusOutEvent();
 
-    wxGtkIMData         *m_imData;
+
+    // Input method support
+
+    // The IM context used for generic, i.e. non-native, windows.
+    //
+    // It might be a good idea to avoid allocating it unless key events from
+    // this window are really needed but currently we do it unconditionally.
+    //
+    // For native widgets (i.e. those for which IsOfStandardClass() returns
+    // true) it is NULL.
+    GtkIMContext* m_imContext;
+
+    // Pointer to the event being currently processed by the IME or NULL if not
+    // inside key handling.
+    GdkEventKey* m_imKeyEvent;
+
+    // This method generalizes gtk_im_context_filter_keypress(): for the
+    // generic windows it does just that but it's overridden by the classes
+    // wrapping native widgets that use IM themselves and so provide specific
+    // methods for accessing it such gtk_entry_im_context_filter_keypress().
+    virtual int GTKIMFilterKeypress(GdkEventKey* event) const;
+
+    // This method must be called from the derived classes "insert-text" signal
+    // handlers to check if the text is not being inserted by the IM and, if
+    // this is the case, generate appropriate wxEVT_CHAR events for it.
+    //
+    // Returns true if we did generate and process events corresponding to this
+    // text or false if we didn't handle it.
+    bool GTKOnInsertText(const char* text);
+
+    // This is just a helper of GTKOnInsertText() which is also used by GTK+
+    // "commit" signal handler.
+    bool GTKDoInsertTextFromIM(const char* text);
 
 
     // indices for the arrays below
@@ -300,14 +337,11 @@ public:
     // extra (wxGTK-specific) flags
     bool                 m_noExpose:1;          // wxGLCanvas has its own redrawing
     bool                 m_nativeSizeEvent:1;   // wxGLCanvas sends wxSizeEvent upon "alloc_size"
-    bool                 m_hasVMT:1;            // set after PostCreation() is called
     bool                 m_isScrolling:1;       // dragging scrollbar thumb?
     bool                 m_clipPaintRegion:1;   // true after ScrollWindow()
     wxRegion             m_nativeUpdateRegion;  // not transformed for RTL
     bool                 m_dirtyTabOrder:1;     // tab order changed, GTK focus
                                                 // chain needs update
-    bool                 m_needsStyleChange:1;  // May not be able to change
-                                                // background style until OnIdle
     bool                 m_mouseButtonDown:1;
 
     bool                 m_showOnIdle:1;        // postpone showing the window until idle
@@ -344,13 +378,19 @@ protected:
 
     void GTKFreezeWidget(GtkWidget *w);
     void GTKThawWidget(GtkWidget *w);
+    void GTKDisconnect(void* instance);
 
 #if wxUSE_TOOLTIPS
     virtual void DoSetToolTip( wxToolTip *tip );
 #endif // wxUSE_TOOLTIPS
 
-    // common part of all ctors (not virtual because called from ctor)
-    void Init();
+    // Create a GtkScrolledWindow containing the given widget (usually
+    // m_wxwindow but not necessarily) and assigns it to m_widget. Also shows
+    // the widget passed to it.
+    //
+    // Can be only called if we have either wxHSCROLL or wxVSCROLL in our
+    // style.
+    void GTKCreateScrolledWindowWith(GtkWidget* view);
 
     virtual void DoMoveInTabOrder(wxWindow *win, WindowOrder move);
     virtual bool DoNavigateIn(int flags);
@@ -359,19 +399,20 @@ protected:
     // Copies m_children tab order to GTK focus chain:
     void RealizeTabOrder();
 
+#ifndef __WXGTK3__
     // Called by ApplyWidgetStyle (which is called by SetFont() and
     // SetXXXColour etc to apply style changed to native widgets) to create
-    // modified GTK style with non-standard attributes. If forceStyle=true,
-    // creates empty GtkRcStyle if there are no modifications, otherwise
-    // returns NULL in such case.
-    GtkRcStyle *GTKCreateWidgetStyle(bool forceStyle = false);
+    // modified GTK style with non-standard attributes.
+    GtkRcStyle* GTKCreateWidgetStyle();
+#endif
 
-    // Overridden in many GTK widgets who have to handle subwidgets
-    virtual void GTKApplyWidgetStyle(bool forceStyle = false);
+    void GTKApplyWidgetStyle(bool forceStyle = false);
 
     // helper function to ease native widgets wrapping, called by
     // ApplyWidgetStyle -- override this, not ApplyWidgetStyle
     virtual void DoApplyWidgetStyle(GtkRcStyle *style);
+
+    void GTKApplyStyle(GtkWidget* widget, GtkRcStyle* style);
 
     // sets the border of a given GtkScrolledWindow from a wx style
     static void GTKScrolledWindowSetBorder(GtkWidget* w, int style);
@@ -382,14 +423,16 @@ protected:
     // just as it does.
     unsigned long GTKConnectWidget(const char *signal, wxGTKCallback callback);
 
-    // Return true from here if PostCreation() should connect to size_request
-    // signal: this is done by default but doesn't work for some native
-    // controls which override this function to return false
-    virtual bool GTKShouldConnectSizeRequest() const { return !IsTopLevel(); }
-
     void ConstrainSize();
 
 private:
+    void Init();
+
+    // return true if this window must have a non-NULL parent, false if it can
+    // be created without parent (normally only top level windows but in wxGTK
+    // there is also the exception of wxMenuBar)
+    virtual bool GTKNeedsParent() const { return !IsTopLevel(); }
+
     enum ScrollUnit { ScrollUnit_Line, ScrollUnit_Page, ScrollUnit_Max };
 
     // common part of ScrollLines() and ScrollPages() and could be used, in the
@@ -399,6 +442,19 @@ private:
     // are already at the end)
     bool DoScrollByUnits(ScrollDir dir, ScrollUnit unit, int units);
     virtual void AddChildGTK(wxWindowGTK* child);
+
+#ifdef __WXGTK3__
+    // paint context is stashed here so wxPaintDC can use it
+    cairo_t* m_paintContext;
+    // style provider for "background-image"
+    GtkStyleProvider* m_styleProvider;
+
+public:
+    cairo_t* GTKPaintContext() const
+    {
+        return m_paintContext;
+    }
+#endif
 
     DECLARE_DYNAMIC_CLASS(wxWindowGTK)
     wxDECLARE_NO_COPY_CLASS(wxWindowGTK);

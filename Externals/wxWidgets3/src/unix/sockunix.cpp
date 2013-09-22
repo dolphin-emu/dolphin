@@ -4,7 +4,6 @@
 // Authors:     Guilhem Lavaux, Guillermo Rodriguez Garcia, David Elliott,
 //              Vadim Zeitlin
 // Created:     April 1997
-// RCS-ID:      $Id: sockunix.cpp 61813 2009-09-03 00:24:21Z VZ $
 // Copyright:   (c) 1997 Guilhem Lavaux
 //              (c) 2008 Vadim Zeitlin
 // Licence:     wxWindows licence

@@ -3,7 +3,6 @@
 // Purpose:     Classes mapping markup attributes to wxFont/wxColour.
 // Author:      Vadim Zeitlin
 // Created:     2011-02-18
-// RCS-ID:      $Id: markupparserattr.h 70447 2012-01-23 11:28:32Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

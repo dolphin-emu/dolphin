@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin (original code by Robert Roebling)
 // Modified by:
 // Created:     25.05.99
-// RCS-ID:      $Id: caret.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -78,6 +77,19 @@ int wxCaretBase::GetBlinkTime()
 void wxCaretBase::SetBlinkTime(int milliseconds)
 {
     gs_blinkTime = milliseconds;
+
+#ifdef _WXGTK__
+    GtkSettings *settings = gtk_settings_get_default();
+    if (millseconds == 0)
+    {
+        gtk_settings_set_long_property(settings, "gtk-cursor-blink", gtk_false, NULL);
+    }
+    else
+    {
+        gtk_settings_set_long_property(settings, "gtk-cursor-blink", gtk_true, NULL);
+        gtk_settings_set_long_property(settings, "gtk-cursor-time", milliseconds, NULL);
+    }
+#endif
 }
 
 // ----------------------------------------------------------------------------

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.mm 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -189,7 +188,7 @@ protected :
         wxWindow* wxpeer = (wxWindow*) impl->GetWXPeer();
         if ( wxpeer && wxpeer->GetWindowStyle() & wxTE_PROCESS_ENTER )
         {
-            wxCommandEvent event(wxEVT_COMMAND_TEXT_ENTER, wxpeer->GetId());
+            wxCommandEvent event(wxEVT_TEXT_ENTER, wxpeer->GetId());
             event.SetEventObject( wxpeer );
             event.SetString( static_cast<wxTextCtrl*>(wxpeer)->GetValue() );
             wxpeer->HandleWindowEvent( event );
@@ -663,7 +662,7 @@ void wxUITextFieldControl::controlAction(WXWidget WXUNUSED(slf),
     wxWindow* wxpeer = (wxWindow*) GetWXPeer();
     if ( wxpeer && (wxpeer->GetWindowStyle() & wxTE_PROCESS_ENTER) )
     {
-        wxCommandEvent event(wxEVT_COMMAND_TEXT_ENTER, wxpeer->GetId());
+        wxCommandEvent event(wxEVT_TEXT_ENTER, wxpeer->GetId());
         event.SetEventObject( wxpeer );
         event.SetString( static_cast<wxTextCtrl*>(wxpeer)->GetValue() );
         wxpeer->HandleWindowEvent( event );
@@ -674,6 +673,7 @@ bool wxUITextFieldControl::SetHint(const wxString& hint)
 {
     wxCFStringRef hintstring(hint);
     [m_textField setPlaceholder:hintstring.AsNSString()];
+    return true;
 }
 
 #endif

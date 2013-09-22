@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: utils.mm 68958 2011-08-30 09:02:11Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,7 +36,7 @@
 
 #if wxOSX_USE_COCOA
 
-#if wxUSE_BASE
+#if wxUSE_GUI
 
 // Emit a beeeeeep
 void wxBell()
@@ -45,13 +44,10 @@ void wxBell()
     NSBeep();
 }
 
-#endif // wxUSE_BASE
-
-#if wxUSE_GUI
-
 @implementation wxNSAppController
 
-- (void)applicationWillFinishLaunching:(NSNotification *)application {	
+- (void)applicationWillFinishLaunching:(NSNotification *)application
+{
     wxUnusedVar(application);
     
     // we must install our handlers later than setting the app delegate, because otherwise our handlers
@@ -65,6 +61,12 @@ void wxBell()
     [appleEventManager setEventHandler:self andSelector:@selector(handleOpenAppEvent:withReplyEvent:)
                          forEventClass:kCoreEventClass andEventID:kAEOpenApplication];
     
+    wxTheApp->OSXOnWillFinishLaunching();
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notification
+{
+    wxTheApp->OSXOnDidFinishLaunching();
 }
 
 - (void)application:(NSApplication *)sender openFiles:(NSArray *)fileNames
@@ -75,7 +77,7 @@ void wxBell()
     const size_t count = [fileNames count];
     for (i = 0; i < count; i++)
     {
-        fileList.Add( wxCFStringRef::AsString([fileNames objectAtIndex:i]) );
+        fileList.Add( wxCFStringRef::AsStringWithNormalizationFormC([fileNames objectAtIndex:i]) );
     }
 
     wxTheApp->MacOpenFiles(fileList);
@@ -123,9 +125,7 @@ void wxBell()
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
     wxUnusedVar(sender);
-    wxCloseEvent event;
-    wxTheApp->OnQueryEndSession(event);
-    if ( event.GetVeto() )
+    if ( !wxTheApp->OSXOnShouldTerminate() )
         return NSTerminateCancel;
     
     return NSTerminateNow;
@@ -133,9 +133,7 @@ void wxBell()
 
 - (void)applicationWillTerminate:(NSNotification *)application {
     wxUnusedVar(application);
-    wxCloseEvent event;
-    event.SetCanVeto(false);
-    wxTheApp->OnEndSession(event);
+    wxTheApp->OSXOnWillTerminate();
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender
@@ -241,15 +239,66 @@ void wxBell()
 }
 @end
 
+// here we subclass NSApplication, for the purpose of being able to override sendEvent.
+@interface wxNSApplication : NSApplication
+{
+    BOOL firstPass;
+}
+
+- (id)init;
+
+- (void)sendEvent:(NSEvent *)anEvent;
+
+@end
+
+@implementation wxNSApplication
+
+- (id)init
+{
+    self = [super init];
+    firstPass = YES;
+    return self;
+}
+
+/* This is needed because otherwise we don't receive any key-up events for command-key
+ combinations (an AppKit bug, apparently)			*/
+- (void)sendEvent:(NSEvent *)anEvent
+{
+    if ([anEvent type] == NSKeyUp && ([anEvent modifierFlags] & NSCommandKeyMask))
+        [[self keyWindow] sendEvent:anEvent];
+    else
+        [super sendEvent:anEvent];
+    
+    if ( firstPass )
+    {
+        [NSApp stop:nil];
+        firstPass = NO;
+        return;
+    }
+}
+
+@end
+
+WX_NSObject appcontroller = nil;
+
+NSLayoutManager* gNSLayoutManager = nil;
+
+WX_NSObject wxApp::OSXCreateAppController()
+{
+    return [[wxNSAppController alloc] init];
+}
+
 bool wxApp::DoInitGui()
 {
     wxMacAutoreleasePool pool;
-    [NSApplication sharedApplication];
 
     if (!sm_isEmbedded)
     {
-        wxNSAppController* controller = [[wxNSAppController alloc] init];
-        [NSApp setDelegate:controller];
+        [wxNSApplication sharedApplication];
+
+        appcontroller = OSXCreateAppController();
+        [NSApp setDelegate:appcontroller];
+        [NSColor setIgnoresAlpha:NO];
 
         // calling finishLaunching so early before running the loop seems to trigger some 'MenuManager compatibility' which leads
         // to the duplication of menus under 10.5 and a warning under 10.6
@@ -257,11 +306,32 @@ bool wxApp::DoInitGui()
         [NSApp finishLaunching];
 #endif
     }
+    gNSLayoutManager = [[NSLayoutManager alloc] init];
+    
     return true;
+}
+
+bool wxApp::CallOnInit()
+{
+    wxMacAutoreleasePool autoreleasepool;
+    m_onInitResult = false;
+    [NSApp run];
+    return m_onInitResult; 
 }
 
 void wxApp::DoCleanUp()
 {
+    if ( appcontroller != nil )
+    {
+        [NSApp setDelegate:nil];
+        [appcontroller release];
+        appcontroller = nil;
+    }
+    if ( gNSLayoutManager != nil )
+    {
+        [gNSLayoutManager release];
+        gNSLayoutManager = nil;
+    }
 }
 
 void wxClientDisplayRect(int *x, int *y, int *width, int *height)

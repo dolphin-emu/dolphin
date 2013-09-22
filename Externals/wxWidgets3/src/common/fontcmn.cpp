@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99
-// RCS-ID:      $Id: fontcmn.cpp 70564 2012-02-10 23:34:45Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -842,7 +841,7 @@ wxString wxNativeFontInfo::ToUserString() const
             // that the different words which compose this facename are
             // not different adjectives or other data but rather all parts
             // of the facename
-            desc << wxT(" '") << face << _("'");
+            desc << wxT(" '") << face << wxT("'");
         }
         else
             desc << wxT(' ') << face;

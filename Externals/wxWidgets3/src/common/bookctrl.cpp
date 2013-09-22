@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.cpp 70153 2011-12-28 13:51:25Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,27 +104,21 @@ void wxBookCtrlBase::DoInvalidateBestSize()
 
 wxSize wxBookCtrlBase::CalcSizeFromPage(const wxSize& sizePage) const
 {
-    // We need to add the size of the controller and the border between if it's
-    // shown. Notice that we don't use GetControllerSize() here as it returns
-    // the actual size while we want the best size here.
+    // Add the size of the controller and the border between if it's shown.
     if ( !m_bookctrl || !m_bookctrl->IsShown() )
         return sizePage;
 
-    const wxSize sizeController = m_bookctrl->GetBestSize();
+    // Notice that the controller size is its current size while we really want
+    // to have its best size. So we only take into account its size in the
+    // direction in which we should add it but not in the other one, where the
+    // controller size is determined by the size of wxBookCtrl itself.
+    const wxSize sizeController = GetControllerSize();
 
     wxSize size = sizePage;
     if ( IsVertical() )
-    {
-        if ( sizeController.x > sizePage.x )
-            size.x = sizeController.x;
         size.y += sizeController.y + GetInternalBorder();
-    }
     else // left/right aligned
-    {
         size.x += sizeController.x + GetInternalBorder();
-        if ( sizeController.y > sizePage.y )
-            size.y = sizeController.y;
-    }
 
     return size;
 }
@@ -139,25 +132,21 @@ wxSize wxBookCtrlBase::DoGetBestSize() const
 {
     wxSize bestSize;
 
-    // iterate over all pages, get the largest width and height
-    const size_t nCount = m_pages.size();
-    for ( size_t nPage = 0; nPage < nCount; nPage++ )
+    if (m_fitToCurrentPage && GetCurrentPage())
     {
-        const wxWindow * const pPage = m_pages[nPage];
-        if( pPage )
+        bestSize = GetCurrentPage()->GetBestSize();
+    }
+    else
+    {
+        // iterate over all pages, get the largest width and height
+        const size_t nCount = m_pages.size();
+        for ( size_t nPage = 0; nPage < nCount; nPage++ )
         {
-            wxSize childBestSize(pPage->GetBestSize());
-
-            if ( childBestSize.x > bestSize.x )
-                bestSize.x = childBestSize.x;
-
-            if ( childBestSize.y > bestSize.y )
-                bestSize.y = childBestSize.y;
+            const wxWindow * const pPage = m_pages[nPage];
+            if ( pPage )
+                bestSize.IncTo(pPage->GetBestSize());
         }
     }
-
-    if (m_fitToCurrentPage && GetCurrentPage())
-        bestSize = GetCurrentPage()->GetBestSize();
 
     // convert display area to window area, adding the size necessary for the
     // tabs
@@ -288,19 +277,19 @@ wxSize wxBookCtrlBase::GetControllerSize() const
     if ( !m_bookctrl || !m_bookctrl->IsShown() )
         return wxSize(0, 0);
 
-    const wxSize sizeClient = GetClientSize(),
-                 sizeCtrl = m_bookctrl->GetBestSize();
+    const wxSize sizeClient = GetClientSize();
 
     wxSize size;
 
+    // Ask for the best width/height considering the other direction.
     if ( IsVertical() )
     {
         size.x = sizeClient.x;
-        size.y = sizeCtrl.y;
+        size.y = m_bookctrl->GetBestHeight(sizeClient.x);
     }
     else // left/right aligned
     {
-        size.x = sizeCtrl.x;
+        size.x = m_bookctrl->GetBestWidth(sizeClient.y);
         size.y = sizeClient.y;
     }
 
@@ -441,6 +430,18 @@ int wxBookCtrlBase::GetNextPage(bool forward) const
     return nPage;
 }
 
+int wxBookCtrlBase::FindPage(const wxWindow* page) const
+{
+    const size_t nCount = m_pages.size();
+    for ( size_t nPage = 0; nPage < nCount; nPage++ )
+    {
+        if ( m_pages[nPage] == page )
+            return (int)nPage;
+    }
+
+    return wxNOT_FOUND;
+}
+
 bool wxBookCtrlBase::DoSetSelectionAfterInsertion(size_t n, bool bSelect)
 {
     if ( bSelect )
@@ -452,6 +453,26 @@ bool wxBookCtrlBase::DoSetSelectionAfterInsertion(size_t n, bool bSelect)
 
     // Return true to indicate that we selected this page.
     return true;
+}
+
+void wxBookCtrlBase::DoSetSelectionAfterRemoval(size_t n)
+{
+    if ( m_selection >= (int)n )
+    {
+        // ensure that the selection is valid
+        int sel;
+        if ( GetPageCount() == 0 )
+            sel = wxNOT_FOUND;
+        else
+            sel = m_selection ? m_selection - 1 : 0;
+
+        // if deleting current page we shouldn't try to hide it
+        m_selection = m_selection == (int)n ? wxNOT_FOUND
+                                            : m_selection - 1;
+
+        if ( sel != wxNOT_FOUND && sel != m_selection )
+            SetSelection(sel);
+    }
 }
 
 int wxBookCtrlBase::DoSetSelection(size_t n, int flags)
@@ -478,11 +499,11 @@ int wxBookCtrlBase::DoSetSelection(size_t n, int flags)
         if ( !(flags & SetSelection_SendEvent) || allowed)
         {
             if ( oldSel != wxNOT_FOUND )
-                m_pages[oldSel]->Hide();
+                DoShowPage(m_pages[oldSel], false);
 
             wxWindow *page = m_pages[n];
             page->SetSize(GetPageRect());
-            page->Show();
+            DoShowPage(page, true);
 
             // change selection now to ignore the selection change event
             UpdateSelectedPage(n);

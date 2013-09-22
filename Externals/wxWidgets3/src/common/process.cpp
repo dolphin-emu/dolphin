@@ -4,7 +4,6 @@
 // Author:      Guilhem Lavaux
 // Modified by: Vadim Zeitlin to check error codes, added Detach() method
 // Created:     24/06/98
-// RCS-ID:      $Id: process.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -50,6 +49,7 @@ void wxProcess::Init(wxEvtHandler *parent, int id, int flags)
 
     m_id         = id;
     m_pid        = 0;
+    m_priority   = wxPRIORITY_DEFAULT;
     m_redirect   = (flags & wxPROCESS_REDIRECT) != 0;
 
 #if wxUSE_STREAMS
@@ -176,3 +176,10 @@ bool wxProcess::Exists(int pid)
     }
 }
 
+void wxProcess::SetPriority(unsigned priority)
+{
+    wxCHECK_RET( priority <= wxPRIORITY_MAX,
+                 wxS("Invalid process priority value.") );
+
+    m_priority = priority;
+}

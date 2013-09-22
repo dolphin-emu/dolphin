@@ -3,7 +3,6 @@
 // Purpose:     declaration of wxInfoBarBase defining common API of wxInfoBar
 // Author:      Vadim Zeitlin
 // Created:     2009-07-28
-// RCS-ID:      $Id: infobar.h 64213 2010-05-05 12:20:08Z VZ $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

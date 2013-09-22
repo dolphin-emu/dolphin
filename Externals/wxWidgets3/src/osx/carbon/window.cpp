@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: window.cpp 69440 2011-10-16 15:59:31Z SJL $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,6 +84,12 @@ WXWidget wxWidgetImpl::FindFocus()
     ControlRef control = NULL ;
     GetKeyboardFocus( GetUserFocusWindow() , &control ) ;
     return control;
+}
+
+// no compositing to take into account under carbon
+wxWidgetImpl* wxWidgetImpl::FindBestFromWXWidget(WXWidget control)
+{
+    return FindFromWXWidget(control);
 }
 
 // ---------------------------------------------------------------------------
@@ -653,8 +658,7 @@ WXDLLEXPORT pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef ha
     I don't have time to look into that right now.
         -- CL
 */
-                    if ( wxTheApp->MacSendCharEvent(
-                                                    focus , message , 0 , when , 0 , 0 , uniChars[pos] ) )
+                    if ( wxTheApp->MacSendCharEvent( focus , message , 0 , when , uniChars[pos] ) )
                     {
                         result = noErr ;
                     }
@@ -666,15 +670,13 @@ WXDLLEXPORT pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef ha
         case kEventTextInputUnicodeForKeyEvent :
             {
                 UInt32 keyCode, modifiers ;
-                Point point ;
                 EventRef rawEvent ;
                 unsigned char charCode ;
 
                 GetEventParameter( event, kEventParamTextInputSendKeyboardEvent, typeEventRef, NULL, sizeof(rawEvent), NULL, &rawEvent ) ;
-                GetEventParameter( rawEvent, kEventParamKeyMacCharCodes, typeChar, NULL, sizeof(char), NULL, &charCode );
+                GetEventParameter( rawEvent, kEventParamKeyMacCharCodes, typeChar, NULL, 1, NULL, &charCode );
                 GetEventParameter( rawEvent, kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode );
                 GetEventParameter( rawEvent, kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers );
-                GetEventParameter( rawEvent, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Point), NULL, &point );
 
                 UInt32 message = (keyCode << 8) + charCode;
 
@@ -686,8 +688,7 @@ WXDLLEXPORT pascal OSStatus wxMacUnicodeTextEventHandler( EventHandlerCallRef ha
                     WXEVENTHANDLERCALLREF formerHandler = wxTheApp->MacGetCurrentEventHandlerCallRef() ;
                     wxTheApp->MacSetCurrentEvent( event , handler ) ;
 
-                    if ( wxTheApp->MacSendCharEvent(
-                        focus , message , modifiers , when , point.h , point.v , uniChars[pos] ) )
+                    if ( wxTheApp->MacSendCharEvent( focus , message , modifiers , when , uniChars[pos] ) )
                     {
                         result = noErr ;
                     }
@@ -1408,7 +1409,15 @@ void wxMacControl::Enable( bool enable )
 
 void wxMacControl::SetDrawingEnabled( bool enable )
 {
-    HIViewSetDrawingEnabled( m_controlRef , enable );
+    if ( enable )
+    {
+        HIViewSetDrawingEnabled( m_controlRef , true );
+        HIViewSetNeedsDisplay( m_controlRef, true);
+    }
+    else
+    {
+        HIViewSetDrawingEnabled( m_controlRef , false );
+    }
 }
 
 void wxMacControl::GetRectInWindowCoords( Rect *r )

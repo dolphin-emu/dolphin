@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.01.01
-// RCS-ID:      $Id: popupwin.h 70353 2012-01-15 14:46:41Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,7 +129,7 @@ protected:
     // get alerted when child gets deleted from under us
     void OnDestroy(wxWindowDestroyEvent& event);
 
-#if defined(__WXMSW__) ||(defined(__WXMAC__) && wxOSX_USE_CARBON)
+#if defined(__WXMSW__) ||(defined(__WXMAC__) && wxOSX_USE_COCOA_OR_CARBON)
     // Check if the mouse needs to be captured or released: we must release
     // when it's inside our window if we want the embedded controls to work.
     void OnIdle(wxIdleEvent& event);

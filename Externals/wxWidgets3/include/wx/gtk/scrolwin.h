@@ -4,7 +4,6 @@
 // Author:      Robert Roebling
 // Modified by: Vadim Zeitlin (2005-10-10): wxScrolledWindow is now common
 // Created:     01/02/97
-// RCS-ID:      $Id: scrolwin.h 58773 2009-02-08 20:51:44Z PC $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,6 +28,8 @@ public:
                                int xPos = 0, int yPos = 0,
                                bool noRefresh = false);
     virtual void AdjustScrollbars();
+
+    virtual bool IsScrollbarShown(int orient) const;
 
 protected:
     virtual void DoScroll(int x, int y);

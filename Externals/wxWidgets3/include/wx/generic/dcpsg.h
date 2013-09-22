@@ -3,7 +3,6 @@
 // Purpose:     wxPostScriptDC class
 // Author:      Julian Smart and others
 // Modified by:
-// RCS-ID:      $Id: dcpsg.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Julian Smart and Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -94,6 +93,8 @@ public:
     virtual int GetResolution() const;
     virtual wxRect GetPaperRect() const;
 
+    virtual void* GetHandle() const { return NULL; }
+    
 protected:
     bool DoFloodFill(wxCoord x1, wxCoord y1, const wxColour &col,
                      wxFloodFillStyle style = wxFLOOD_SURFACE);
@@ -103,11 +104,11 @@ protected:
     void DoDrawArc(wxCoord x1,wxCoord y1,wxCoord x2,wxCoord y2,wxCoord xc,wxCoord yc);
     void DoDrawEllipticArc(wxCoord x,wxCoord y,wxCoord w,wxCoord h,double sa,double ea);
     void DoDrawPoint(wxCoord x, wxCoord y);
-    void DoDrawLines(int n, wxPoint points[], wxCoord xoffset = 0, wxCoord yoffset = 0);
-    void DoDrawPolygon(int n, wxPoint points[],
+    void DoDrawLines(int n, const wxPoint points[], wxCoord xoffset = 0, wxCoord yoffset = 0);
+    void DoDrawPolygon(int n, const wxPoint points[],
                        wxCoord xoffset = 0, wxCoord yoffset = 0,
                        wxPolygonFillMode fillStyle = wxODDEVEN_RULE);
-    void DoDrawPolyPolygon(int n, int count[], wxPoint points[],
+    void DoDrawPolyPolygon(int n, const int count[], const wxPoint points[],
                            wxCoord xoffset = 0, wxCoord yoffset = 0,
                            wxPolygonFillMode fillStyle = wxODDEVEN_RULE);
     void DoDrawRectangle(wxCoord x, wxCoord y, wxCoord width, wxCoord height);

@@ -4,7 +4,6 @@
 // Author:      Diaa M. Sami
 // Modified by:
 // Created:     Jul-07-2007
-// RCS-ID:      $Id: filectrlg.h 52834 2008-03-26 15:06:00Z FM $
 // Copyright:   (c) Diaa M. Sami
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -14,7 +13,7 @@
 
 #if wxUSE_FILECTRL
 
-#include "wx/panel.h"
+#include "wx/containr.h"
 #include "wx/listctrl.h"
 #include "wx/filectrl.h"
 #include "wx/filename.h"
@@ -182,7 +181,7 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
-class WXDLLIMPEXP_CORE wxGenericFileCtrl : public wxPanel,
+class WXDLLIMPEXP_CORE wxGenericFileCtrl : public wxNavigationEnabled<wxControl>,
                                            public wxFileCtrlBase
 {
 public:

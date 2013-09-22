@@ -3,7 +3,6 @@
 // Purpose:     declaration of wxGUIEventLoop for wxCocoa
 // Author:      Vadim Zeitlin
 // Created:     2008-12-28
-// RCS-ID:      $Id: evtloop.h 58911 2009-02-15 14:25:08Z FM $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,8 +19,7 @@ class WXDLLIMPEXP_CORE wxGUIEventLoop : public wxEventLoopBase
 public:
     wxGUIEventLoop() { m_exitcode = 0; }
 
-    virtual int Run();
-    virtual void Exit(int rc = 0);
+    virtual void ScheduleExit(int rc = 0);
     virtual bool Pending() const;
     virtual bool Dispatch();
     virtual int DispatchTimeout(unsigned long timeout);
@@ -29,6 +27,8 @@ public:
     virtual bool YieldFor(long eventsToProcess);
 
 protected:
+    virtual int DoRun();
+
     int m_exitcode;
 
     wxDECLARE_NO_COPY_CLASS(wxGUIEventLoop);

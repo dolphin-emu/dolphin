@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/04/2003
-// RCS-ID:      $Id: taskbarcmn.cpp 62789 2009-12-05 19:57:58Z PC $
 // Copyright:   (c) Julian Smart, 2003
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////

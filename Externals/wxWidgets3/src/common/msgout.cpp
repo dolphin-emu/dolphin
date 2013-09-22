@@ -4,7 +4,6 @@
 // Author:      Mattia Barbon
 // Modified by:
 // Created:     17.07.02
-// RCS-ID:      $Id: msgout.cpp 70808 2012-03-04 20:31:42Z VZ $
 // Copyright:   (c) the wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -126,6 +125,8 @@ void wxMessageOutputBest::Output(const wxString& str)
 
     ::MessageBox(NULL, str.t_str(), title.t_str(), MB_ICONINFORMATION | MB_OK);
 #else // !__WINDOWS__
+    wxUnusedVar(m_flags);
+
     // TODO: use the native message box for the other ports too
     wxMessageOutputStderr::Output(str);
 #endif // __WINDOWS__/!__WINDOWS__

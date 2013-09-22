@@ -3,7 +3,6 @@
 // Purpose:     wxArchive file system
 // Author:      Vaclav Slavik, Mike Wetherell
 // Copyright:   (c) 1999 Vaclav Slavik, (c) 2006 Mike Wetherell
-// CVS-ID:      $Id: fs_arc.cpp 67254 2011-03-20 00:14:35Z DS $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -405,7 +404,7 @@ wxFSFile* wxArchiveFSHandler::OpenFile(
     }
 
 #if WXWIN_COMPATIBILITY_2_6 && wxUSE_ZIPSTREAM
-    if (factory->IsKindOf(CLASSINFO(wxZipClassFactory)))
+    if (wxDynamicCast(factory, wxZipClassFactory))
         ((wxZipInputStream*)s)->m_allowSeeking = true;
 #endif // WXWIN_COMPATIBILITY_2_6
 

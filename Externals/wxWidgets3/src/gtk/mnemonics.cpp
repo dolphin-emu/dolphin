@@ -3,7 +3,6 @@
 // Purpose:     implementation of GTK mnemonics conversion functions
 // Author:      Vadim Zeitlin
 // Created:     2007-11-12
-// RCS-ID:      $Id: mnemonics.cpp 67050 2011-02-27 12:46:55Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

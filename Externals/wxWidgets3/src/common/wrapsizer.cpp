@@ -3,7 +3,6 @@
 // Purpose:     provides wxWrapSizer class for layout
 // Author:      Arne Steinarson
 // Created:     2008-05-08
-// RCS-ID:      $Id: wrapsizer.cpp 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) Arne Steinarson
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -177,15 +176,6 @@ wxSize wxWrapSizer::CalcMin()
     //     layout, trying to maintain the possibility to re-arrange lines by
     //     sizing
 
-    wxSize szBoundary;    // Keep track of boundary so we don't overflow
-    if ( m_availSize > 0 )
-    {
-        if ( m_dirInform == m_orient )
-            szBoundary = SizeFromMajorMinor(m_availSize, m_availableOtherDir);
-        else
-            szBoundary = SizeFromMajorMinor(m_availableOtherDir, m_availSize);
-    }
-
     if ( !m_lastUsed )
     {
         // Case 1 above: InformFirstDirection() has just been called
@@ -195,21 +185,22 @@ wxSize wxWrapSizer::CalcMin()
         // a wrap sizer, depending on whether the first reported size component
         // is the opposite as our own orientation (the simpler case) or the same
         // one (more complicated).
-        wxSize szMinPrev = m_minSize;
         if ( m_dirInform == m_orient )
             CalcMinFromMajor(m_availSize);
         else
             CalcMinFromMinor(m_availSize);
-
-        // If overflowing given boundary, go back to previous min size
-        if ( m_minSize.x > szBoundary.x || m_minSize.y>szBoundary.y )
-            m_minSize = szMinPrev;
     }
     else // Case 2 above: not immediately after InformFirstDirection()
     {
         if ( m_availSize > 0 )
         {
-            CalcMinFittingSize(szBoundary);
+            wxSize szAvail;    // Keep track of boundary so we don't overflow
+            if ( m_dirInform == m_orient )
+                szAvail = SizeFromMajorMinor(m_availSize, m_availableOtherDir);
+            else
+                szAvail = SizeFromMajorMinor(m_availableOtherDir, m_availSize);
+
+            CalcMinFittingSize(szAvail);
         }
         else // Initial calculation, before we have size available to us
         {

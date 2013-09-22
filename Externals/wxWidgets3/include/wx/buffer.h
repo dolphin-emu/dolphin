@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     12.04.99
-// RCS-ID:      $Id: buffer.h 70417 2012-01-20 22:11:51Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -230,7 +229,8 @@ protected:
     static CharType *StrCopy(const CharType *src, size_t len)
     {
         CharType *dst = (CharType*)malloc(sizeof(CharType) * (len + 1));
-        memcpy(dst, src, sizeof(CharType) * (len + 1));
+        if ( dst )
+            memcpy(dst, src, sizeof(CharType) * (len + 1));
         return dst;
     }
 
@@ -438,7 +438,7 @@ public:
 
     friend class wxMemoryBuffer;
 
-    // everyting is private as it can only be used by wxMemoryBuffer
+    // everything is private as it can only be used by wxMemoryBuffer
 private:
     wxMemoryBufferData(size_t size = wxMemoryBufferData::DefBufSize)
         : m_data(size ? malloc(size) : NULL), m_size(size), m_len(0), m_ref(0)

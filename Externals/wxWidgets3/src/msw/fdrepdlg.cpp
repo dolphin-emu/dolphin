@@ -4,7 +4,6 @@
 // Author:      Markus Greither and Vadim Zeitlin
 // Modified by:
 // Created:     23/03/2001
-// RCS-ID:      $Id: fdrepdlg.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) Markus Greither
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -240,21 +239,21 @@ wxFindReplaceDialogImpl::FindMessageHandler(wxWindow * WXUNUSED(win),
         // 2 cases
         dialog->GetImpl()->SetClosedByUser();
 
-        evtType = wxEVT_COMMAND_FIND_CLOSE;
+        evtType = wxEVT_FIND_CLOSE;
     }
     else if ( pFR->Flags & FR_FINDNEXT )
     {
-        evtType = wxEVT_COMMAND_FIND_NEXT;
+        evtType = wxEVT_FIND_NEXT;
     }
     else if ( pFR->Flags & FR_REPLACE )
     {
-        evtType = wxEVT_COMMAND_FIND_REPLACE;
+        evtType = wxEVT_FIND_REPLACE;
 
         replace = true;
     }
     else if ( pFR->Flags & FR_REPLACEALL )
     {
-        evtType = wxEVT_COMMAND_FIND_REPLACE_ALL;
+        evtType = wxEVT_FIND_REPLACE_ALL;
 
         replace = true;
     }
@@ -310,7 +309,7 @@ wxFindReplaceDialogHookProc(HWND hwnd,
         FINDREPLACE *pFR = (FINDREPLACE *)lParam;
         wxFindReplaceDialog *dialog = (wxFindReplaceDialog *)pFR->lCustData;
 
-        ::SetWindowText(hwnd, dialog->GetTitle().wx_str());
+        ::SetWindowText(hwnd, dialog->GetTitle().t_str());
 
         // don't return FALSE from here or the dialog won't be shown
         return TRUE;

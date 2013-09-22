@@ -3,7 +3,6 @@
 // Purpose:     wxGenericStaticText header
 // Author:      Marcin Wojdyr
 // Created:     2008-06-26
-// Id:          $Id: stattextg.h 67067 2011-02-27 12:48:38Z VZ $
 // Copyright:   Marcin Wojdyr
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.10.99
-// RCS-ID:      $Id: lboxcmn.cpp 66592 2011-01-05 18:27:58Z PC $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,8 +89,8 @@ wxEND_FLAGS( wxListBoxStyle )
 wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListBox, wxControl, "wx/listbox.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxListBox)
-wxEVENT_PROPERTY( Select, wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEvent )
-wxEVENT_PROPERTY( DoubleClick, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, wxCommandEvent )
+wxEVENT_PROPERTY( Select, wxEVT_LISTBOX, wxCommandEvent )
+wxEVENT_PROPERTY( DoubleClick, wxEVT_LISTBOX_DCLICK, wxCommandEvent )
 
 wxPROPERTY( Font, wxFont, SetFont, GetFont , wxEMPTY_PARAMETER_VALUE, 0 /*flags*/, \
            wxT("Helpstring"), wxT("group"))
@@ -167,6 +166,14 @@ void wxListBoxBase::DeselectAll(int itemToLeaveSelected)
 
 void wxListBoxBase::UpdateOldSelections()
 {
+    // When the control becomes empty, any previously remembered selections are
+    // invalid anyhow, so just forget them.
+    if ( IsEmpty() )
+    {
+        m_oldSelections.clear();
+        return;
+    }
+
     // We need to remember the selection even in single-selection case on
     // Windows, so that we don't send an event when the user clicks on an
     // already selected item.
@@ -295,7 +302,7 @@ bool wxListBoxBase::CalcAndSendEvent()
 
     m_oldSelections = selections;
 
-    return SendEvent(wxEVT_COMMAND_LISTBOX_SELECTED, item, selected);
+    return SendEvent(wxEVT_LISTBOX, item, selected);
 }
 
 // ----------------------------------------------------------------------------

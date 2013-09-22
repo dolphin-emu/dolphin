@@ -3,7 +3,6 @@
 // Purpose:     wxGtkObject class declaration
 // Author:      Vadim Zeitlin
 // Created:     2008-08-27
-// RCS-ID:      $Id: object.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

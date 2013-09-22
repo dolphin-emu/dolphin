@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menuitem_osx.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -218,9 +217,9 @@ void wxMenuItem::UpdateItemText()
 // radio group stuff
 // -----------------
 
-void wxMenuItem::SetAsRadioGroupStart()
+void wxMenuItem::SetAsRadioGroupStart(bool start)
 {
-    m_isRadioGroupStart = true;
+    m_isRadioGroupStart = start;
 }
 
 void wxMenuItem::SetRadioGroupStart(int start)
@@ -237,6 +236,27 @@ void wxMenuItem::SetRadioGroupEnd(int end)
                   wxT("should only be called for the first radio item") );
 
     m_radioGroup.end = end;
+}
+
+bool wxMenuItem::IsRadioGroupStart() const
+{
+    return m_isRadioGroupStart;
+}
+
+int wxMenuItem::GetRadioGroupStart() const
+{
+    wxASSERT_MSG( !m_isRadioGroupStart,
+                  wxS("shouldn't be called for the first radio item") );
+
+    return m_radioGroup.start;
+}
+
+int wxMenuItem::GetRadioGroupEnd() const
+{
+    wxASSERT_MSG( m_isRadioGroupStart,
+                  wxS("shouldn't be called for the first radio item") );
+
+    return m_radioGroup.end;
 }
 
 // ----------------------------------------------------------------------------

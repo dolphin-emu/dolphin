@@ -3,7 +3,6 @@
 // Purpose:     wxDataViewRenderer for OS X wxDataViewCtrl implementations
 // Author:      Vadim Zeitlin
 // Created:     2009-11-07 (extracted from wx/osx/dataview.h)
-// RCS-ID:      $Id: dvrenderer.h 66403 2010-12-19 15:02:56Z VZ $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

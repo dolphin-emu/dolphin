@@ -3,7 +3,6 @@
 // Purpose:     Persistence support for wxSplitterWindow.
 // Author:      Vadim Zeitlin
 // Created:     2011-08-31
-// RCS-ID:      $Id: splitter.h 69582 2011-10-30 10:08:14Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

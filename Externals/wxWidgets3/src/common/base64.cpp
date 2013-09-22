@@ -3,7 +3,6 @@
 // Purpose:     implementation of BASE64 encoding/decoding functions
 // Author:      Charles Reimers, Vadim Zeitlin
 // Created:     2007-06-18
-// RCS-ID:      $Id: base64.cpp 61753 2009-08-23 22:25:12Z VZ $
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 

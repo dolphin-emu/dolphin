@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -227,17 +226,36 @@ wxString wxFileTypeImpl::GetCommand(const wxString& verb) const
     wxLogNull nolog;
     wxString strKey;
 
+    // Since Windows Vista the association used by Explorer is different from
+    // the association information stored in the traditional part of the
+    // registry. Unfortunately the new schema doesn't seem to be documented
+    // anywhere so using it involves a bit of guesswork:
+    //
+    // The information is stored under Explorer-specific key whose path is
+    // below. The interesting part is UserChoice subkey which is the only one
+    // we use so far but there is also OpenWithProgids subkey which can exist
+    // even if UserChoice doesn't. However in practice there doesn't seem to be
+    // any cases when OpenWithProgids values for the given extension are
+    // different from those found directly under HKCR\.ext, so for now we don't
+    // bother to use this, apparently the programs registering their file type
+    // associations do it in both places. We do use UserChoice because when the
+    // association is manually changed by the user it's only recorded there and
+    // so must override whatever value was created under HKCR by the setup
+    // program.
+
     {
-        wxRegKey explorerKey(wxRegKey::HKCU, wxT("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\") + m_ext);
-        if (explorerKey.Exists())
+        wxRegKey explorerKey
+                 (
+                    wxRegKey::HKCU,
+                    wxT("Software\\Microsoft\\Windows\\CurrentVersion\\")
+                    wxT("Explorer\\FileExts\\") +
+                    m_ext +
+                    wxT("\\UserChoice")
+                 );
+        if ( explorerKey.Open(wxRegKey::Read) &&
+                explorerKey.QueryValue(wxT("Progid"), strKey) )
         {
-            if (explorerKey.Open(wxRegKey::Read))
-            {
-                if (explorerKey.QueryValue(wxT("Progid"), strKey))
-                {
-                    strKey = wxFileTypeImplGetCurVer(strKey);
-                }
-            }
+            strKey = wxFileTypeImplGetCurVer(strKey);
         }
     }
 
@@ -273,23 +291,28 @@ wxString wxFileTypeImpl::GetCommand(const wxString& verb) const
             if ( keyDDE.Open(wxRegKey::Read) ) {
                 wxString ddeCommand, ddeServer, ddeTopic;
                 keyDDE.QueryValue(wxEmptyString, ddeCommand);
-                ddeCommand.Replace(wxT("%1"), wxT("%s"));
 
-                wxRegKey keyServer(wxRegKey::HKCR, strKey + wxT("\\Application"));
-                keyServer.QueryValue(wxEmptyString, ddeServer);
-                wxRegKey keyTopic(wxRegKey::HKCR, strKey + wxT("\\Topic"));
-                keyTopic.QueryValue(wxEmptyString, ddeTopic);
+                // in some cases "DDEExec" subkey exists but has no value, we
+                // shouldn't use DDE in this case
+                if ( !ddeCommand.empty() ) {
+                    ddeCommand.Replace(wxT("%1"), wxT("%s"));
 
-                if (ddeTopic.empty())
-                    ddeTopic = wxT("System");
+                    wxRegKey keyServer(wxRegKey::HKCR, strKey + wxT("\\Application"));
+                    keyServer.QueryValue(wxEmptyString, ddeServer);
+                    wxRegKey keyTopic(wxRegKey::HKCR, strKey + wxT("\\Topic"));
+                    keyTopic.QueryValue(wxEmptyString, ddeTopic);
 
-                // HACK: we use a special feature of wxExecute which exists
-                //       just because we need it here: it will establish DDE
-                //       conversation with the program it just launched
-                command.Prepend(wxT("WX_DDE#"));
-                command << wxT('#') << ddeServer
-                        << wxT('#') << ddeTopic
-                        << wxT('#') << ddeCommand;
+                    if (ddeTopic.empty())
+                        ddeTopic = wxT("System");
+
+                    // HACK: we use a special feature of wxExecute which exists
+                    //       just because we need it here: it will establish DDE
+                    //       conversation with the program it just launched
+                    command.Prepend(wxT("WX_DDE#"));
+                    command << wxT('#') << ddeServer
+                            << wxT('#') << ddeTopic
+                            << wxT('#') << ddeCommand;
+                }
             }
             else
 #endif // wxUSE_IPC
@@ -636,22 +659,23 @@ wxFileType *wxMimeTypesManagerImpl::Associate(const wxFileTypeInfo& ftInfo)
            extWithDot = wxT('.');
         extWithDot += ext;
 
-        wxRegKey key(wxRegKey::HKCR, extWithDot);
-        if ( !key.Exists() ) key.Create();
-        key.SetValue(wxEmptyString, filetype);
+        wxRegKey key2(wxRegKey::HKCR, extWithDot);
+        if ( !key2.Exists() )
+            key2.Create();
+        key2.SetValue(wxEmptyString, filetype);
 
         // now set any mimetypes we may have, but ignore it if none
-        const wxString& mimetype = ftInfo.GetMimeType();
-        if ( !mimetype.empty() )
+        const wxString& mimetype2 = ftInfo.GetMimeType();
+        if ( !mimetype2.empty() )
         {
             // set the MIME type
-            ok = key.SetValue(wxT("Content Type"), mimetype);
+            ok = key2.SetValue(wxT("Content Type"), mimetype2);
 
             if ( ok )
             {
                 // create the MIME key
                 wxString strKey = MIME_DATABASE_KEY;
-                strKey << mimetype;
+                strKey << mimetype2;
                 wxRegKey keyMIME(wxRegKey::HKCR, strKey);
                 ok = keyMIME.Create();
 

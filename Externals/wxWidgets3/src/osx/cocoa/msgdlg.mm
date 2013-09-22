@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: msgdlg.mm 70926 2012-03-17 10:52:34Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,6 +19,8 @@
 
 #include "wx/control.h"
 #include "wx/thread.h"
+#include "wx/evtloop.h"
+#include "wx/modalhook.h"
 #include "wx/osx/private.h"
 
 
@@ -61,6 +62,10 @@ wxMessageDialog::~wxMessageDialog()
 
 int wxMessageDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
+    wxCFEventLoopPauseIdleEvents pause;
+    
     int resultbutton = wxID_CANCEL;
 
     const long style = GetMessageDialogStyle();

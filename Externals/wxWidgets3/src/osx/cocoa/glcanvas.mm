@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: glcanvas.mm 67243 2011-03-19 08:36:23Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,7 +38,9 @@ WXGLContext WXGLCreateContext( WXGLPixelFormat pixelFormat, WXGLContext shareCon
 {
     WXGLContext context = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext: shareContext];
     if ( !context )
+    {
         wxFAIL_MSG("NSOpenGLContext creation failed");
+    }
     return context ;
 }
 

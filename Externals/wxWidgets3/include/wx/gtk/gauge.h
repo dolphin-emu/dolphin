@@ -2,7 +2,6 @@
 // Name:        wx/gtk/gauge.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: gauge.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -71,15 +70,14 @@ public:
         m_gaugePos;
 
 protected:
-    // common part of all ctors
-    void Init() { m_rangeMax = m_gaugePos = 0; }
-
     // set the gauge value to the value of m_gaugePos
     void DoSetGauge();
 
     virtual wxSize DoGetBestSize() const;
 
 private:
+    void Init() { m_rangeMax = m_gaugePos = 0; }
+
     DECLARE_DYNAMIC_CLASS(wxGauge)
 };
 

@@ -3,7 +3,6 @@
 // Purpose:     implementation of classes in wx/rearrangectrl.h
 // Author:      Vadim Zeitlin
 // Created:     2008-12-15
-// RCS-ID:      $Id: rearrangectrl.cpp 65844 2010-10-18 23:43:09Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

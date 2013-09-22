@@ -3,7 +3,6 @@
 // Purpose:     Declaration of a simple wxWithImages class.
 // Author:      Vadim Zeitlin
 // Created:     2011-08-17
-// RCS-ID:      $Id: withimages.h 68813 2011-08-21 14:52:16Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

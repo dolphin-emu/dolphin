@@ -3,7 +3,6 @@
 // Purpose:     wxGTK implementation of wxNonOwnedWindow.
 // Author:      Vadim Zeitlin
 // Created:     2011-10-12
-// RCS-ID:      $Id: nonownedwnd.cpp 69465 2011-10-18 22:59:16Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,17 +23,16 @@
 #endif
 
 #ifndef WX_PRECOMP
+    #include "wx/nonownedwnd.h"
     #include "wx/dcclient.h"
     #include "wx/dcmemory.h"
-    #include "wx/nonownedwnd.h"
     #include "wx/region.h"
 #endif // WX_PRECOMP
 
-#include "wx/gtk/private.h"
-
-#include <gdk/gdk.h>
-
 #include "wx/graphics.h"
+
+#include <gtk/gtk.h>
+#include "wx/gtk/private/gtk2-compat.h"
 
 // ----------------------------------------------------------------------------
 // wxNonOwnedWindowShapeImpl: base class for region and path-based classes.
@@ -96,7 +94,7 @@ public:
 private:
     virtual bool DoSetShape(GdkWindow* window)
     {
-        gdk_window_shape_combine_mask(window, NULL, 0, 0);
+        gdk_window_shape_combine_region(window, NULL, 0, 0);
 
         return true;
     }
@@ -176,7 +174,11 @@ private:
         dc.SetBackground(*wxBLACK);
         dc.Clear();
 
+#ifdef __WXGTK3__
+        wxGraphicsContext* context = dc.GetGraphicsContext();
+#else
         wxScopedPtr<wxGraphicsContext> context(wxGraphicsContext::Create(dc));
+#endif
         context->SetBrush(*wxWHITE);
         context->FillPath(path);
 
@@ -185,11 +187,16 @@ private:
 
     virtual bool DoSetShape(GdkWindow *window)
     {
-        GdkBitmap* bitmap = m_mask.GetBitmap();
-        if ( !bitmap )
+        if (!m_mask)
             return false;
 
-        gdk_window_shape_combine_mask(window, bitmap, 0, 0);
+#ifdef __WXGTK3__
+        cairo_region_t* region = gdk_cairo_region_create_from_surface(m_mask);
+        gdk_window_shape_combine_region(window, region, 0, 0);
+        cairo_region_destroy(region);
+#else
+        gdk_window_shape_combine_mask(window, m_mask, 0, 0);
+#endif
 
         return true;
     }
@@ -200,7 +207,11 @@ private:
         event.Skip();
 
         wxPaintDC dc(m_win);
+#ifdef __WXGTK3__
+        wxGraphicsContext* context = dc.GetGraphicsContext();
+#else
         wxScopedPtr<wxGraphicsContext> context(wxGraphicsContext::Create(dc));
+#endif
         context->SetPen(wxPen(*wxLIGHT_GREY, 2));
         context->StrokePath(m_path);
     }

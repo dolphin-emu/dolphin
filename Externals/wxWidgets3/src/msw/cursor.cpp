@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: cursor.cpp 70802 2012-03-04 00:29:58Z VZ $
 // Copyright:   (c) 1997-2003 Julian Smart and Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -240,6 +239,7 @@ wxCursor::wxCursor(const wxString& filename,
             break;
 
 #ifndef __WXWINCE__
+        case wxBITMAP_TYPE_ANI:
         case wxBITMAP_TYPE_CUR:
             hcursor = ::LoadCursorFromFile(filename.t_str());
             break;
@@ -274,6 +274,45 @@ wxCursor::wxCursor(const wxString& filename,
         m_refData = new wxCursorRefData(hcursor, true /* delete it later */);
     }
 }
+
+namespace
+{
+
+void ReverseBitmap(HBITMAP bitmap, int width, int height)
+{
+    MemoryHDC hdc;
+    SelectInHDC selBitmap(hdc, bitmap);
+    ::StretchBlt(hdc, width - 1, 0, -width, height,
+                 hdc, 0, 0, width, height, SRCCOPY);
+}
+
+HCURSOR CreateReverseCursor(HCURSOR cursor)
+{
+    ICONINFO info;
+    if ( !::GetIconInfo(cursor, &info) )
+        return NULL;
+
+    HCURSOR cursorRev = NULL;
+
+    BITMAP bmp;
+    if ( ::GetObject(info.hbmMask, sizeof(bmp), &bmp) )
+    {
+        ReverseBitmap(info.hbmMask, bmp.bmWidth, bmp.bmHeight);
+        if ( info.hbmColor )
+            ReverseBitmap(info.hbmColor, bmp.bmWidth, bmp.bmHeight);
+        info.xHotspot = (DWORD)bmp.bmWidth - 1 - info.xHotspot;
+
+        cursorRev = ::CreateIconIndirect(&info);
+    }
+
+    ::DeleteObject(info.hbmMask);
+    if ( info.hbmColor )
+        ::DeleteObject(info.hbmColor);
+
+    return cursorRev;
+}
+
+} // anonymous namespace
 
 // Cursors by stock number
 void wxCursor::InitFromStock(wxStockCursor idCursor)
@@ -337,6 +376,16 @@ void wxCursor::InitFromStock(wxStockCursor idCursor)
     {
         hcursor = ::LoadCursor(wxGetInstance(), wxT("WXCURSOR_HAND"));
         deleteLater = true;
+    }
+
+    if ( !hcursor && idCursor == wxCURSOR_RIGHT_ARROW)
+    {
+        hcursor = ::LoadCursor(NULL, IDC_ARROW);
+        if ( hcursor )
+        {
+            hcursor = CreateReverseCursor(hcursor);
+            deleteLater = true;
+        }
     }
 
     if ( !hcursor )

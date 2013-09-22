@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: menu.mm 70401 2012-01-19 14:59:35Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -67,8 +66,8 @@
 - (void)menuNeedsUpdate:(NSMenu*)smenu;
 #else
 - (void)menuWillOpen:(NSMenu *)menu;
-- (void)menuDidClose:(NSMenu *)menu;
 #endif
+- (void)menuDidClose:(NSMenu *)menu;
 - (void)menu:(NSMenu *)menu willHighlightItem:(NSMenuItem *)item;
 
 @end
@@ -105,6 +104,7 @@
             wxpeer->HandleMenuOpened();
     }
 }
+#endif
 
 - (void)menuDidClose:(NSMenu *)smenu
 {
@@ -117,7 +117,6 @@
             wxpeer->HandleMenuClosed();
     }
 }
-#endif
 
 - (void)menu:(NSMenu *)smenu willHighlightItem:(NSMenuItem *)item
 {
@@ -155,7 +154,6 @@ public :
         }
         [menu setDelegate:controller];
         [m_osxMenu setImplementation:this];
-        [menu setAutoenablesItems:NO];
         // gc aware
         if ( m_osxMenu )
             CFRetain(m_osxMenu);
@@ -167,7 +165,7 @@ public :
     virtual void InsertOrAppend(wxMenuItem *pItem, size_t pos)
     {
         NSMenuItem* nsmenuitem = (NSMenuItem*) pItem->GetPeer()->GetHMenuItem();
-        // make sure a call of SetSubMenu is also reflected (occuring after Create)
+        // make sure a call of SetSubMenu is also reflected (occurring after Create)
         // update the native menu item accordingly
         
         if ( pItem->IsSubMenu() )

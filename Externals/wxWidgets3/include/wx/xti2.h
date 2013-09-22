@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by: Francesco Montorsi
 // Created:     27/07/03
-// RCS-ID:      $Id: xti2.h 66651 2011-01-08 10:22:30Z SC $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2003 Stefan Csomor
 /////////////////////////////////////////////////////////////////////////////
@@ -124,7 +123,7 @@ wxObject* wxVariantOfPtrToObjectConverter##name ( const wxAny &data )        \
     _DEFAULT_CONSTRUCTOR(name)                                                  \
     _DEFAULT_CONVERTERS(name)                                                   \
     void wxVariantToObjectConverter##name ( const wxAny &data, wxObjectFunctor* fn )                 \
-{ (*fn)( &wxANY_AS(data, name) ); }                        \
+    { name o = wxANY_AS(data, name); (*fn)( &o ); }                        \
     \
     const wxClassInfo* name::ms_classParents[] = { &basename::ms_classInfo,NULL };  \
     wxClassInfo name::ms_classInfo(name::ms_classParents, wxT(unit),                \

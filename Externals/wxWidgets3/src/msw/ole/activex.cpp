@@ -4,7 +4,6 @@
 // Author:      Ryan Norton <wxprojects@comcast.net>, Lindsay Mathieson <???>
 // Modified by:
 // Created:     11/07/04
-// RCS-ID:      $Id: activex.cpp 70361 2012-01-15 19:05:34Z SJL $
 // Copyright:   (c) 2003 Lindsay Mathieson, (c) 2005 Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1110,28 +1109,28 @@ void wxActiveXContainer::CreateActiveX(REFIID iid, IUnknown* pUnk)
 
     m_oleObjectHWND = 0;
 
-    if (m_oleInPlaceObject.IsOk())
-    {
-        hret = m_oleInPlaceObject->GetWindow(&m_oleObjectHWND);
-        if (SUCCEEDED(hret))
-            ::SetActiveWindow(m_oleObjectHWND);
-    }
-
 
     if (! (dwMiscStatus & OLEMISC_INVISIBLEATRUNTIME))
     {
         RECT posRect;
         wxCopyRectToRECT(m_realparent->GetClientSize(), posRect);
 
+        hret = m_oleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL,
+            m_clientSite, 0, (HWND)m_realparent->GetHWND(), &posRect);
+        CHECK_HR(hret);
+
+        if (m_oleInPlaceObject.IsOk())
+        {
+            hret = m_oleInPlaceObject->GetWindow(&m_oleObjectHWND);
+            CHECK_HR(hret);
+            ::SetActiveWindow(m_oleObjectHWND);
+        }
+
         if (posRect.right > 0 && posRect.bottom > 0 &&
             m_oleInPlaceObject.IsOk())
         {
             m_oleInPlaceObject->SetObjectRects(&posRect, &posRect);
         }
-
-        hret = m_oleObject->DoVerb(OLEIVERB_INPLACEACTIVATE, NULL,
-            m_clientSite, 0, (HWND)m_realparent->GetHWND(), &posRect);
-        CHECK_HR(hret);
 
         hret = m_oleObject->DoVerb(OLEIVERB_SHOW, 0, m_clientSite, 0,
             (HWND)m_realparent->GetHWND(), &posRect);
@@ -1269,7 +1268,7 @@ void wxActiveXContainer::OnKillFocus(wxFocusEvent& event)
 // wxActiveXContainer::MSWTranslateMessage
 //
 // Called for every message that needs to be translated.
-// Some controls might need more keyboard keys to process (CTRL-C, CTRL-A ect),
+// Some controls might need more keyboard keys to process (CTRL-C, CTRL-A etc),
 // In that case TranslateAccelerator should always be called first.
 //---------------------------------------------------------------------------
 bool wxActiveXContainer::MSWTranslateMessage(WXMSG* pMsg)

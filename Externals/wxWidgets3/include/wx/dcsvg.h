@@ -5,7 +5,6 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Chris Elliott
-// RCS-ID:      $Id: dcsvg.h 61724 2009-08-21 10:41:26Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -54,10 +53,7 @@ public:
         wxFAIL_MSG(wxT("wxSVGFILEDC::Clear() Call not implemented \nNot sensible for an output file?"));
     }
 
-    virtual void DestroyClippingRegion()
-    {
-        wxFAIL_MSG(wxT("wxSVGFILEDC::void Call not yet implemented"));
-    }
+    virtual void DestroyClippingRegion();
 
     virtual wxCoord GetCharHeight() const;
     virtual wxCoord GetCharWidth() const;
@@ -96,6 +92,8 @@ public:
     virtual void SetFont(const wxFont& font);
     virtual void SetPen(const wxPen& pen);
 
+    virtual void* GetHandle() const { return NULL; }
+
 private:
    virtual bool DoGetPixel(wxCoord, wxCoord, wxColour *) const
    {
@@ -127,12 +125,12 @@ private:
 
    virtual void DoDrawLine (wxCoord x1, wxCoord y1, wxCoord x2, wxCoord y2);
 
-   virtual void DoDrawLines(int n, wxPoint points[],
+   virtual void DoDrawLines(int n, const wxPoint points[],
                             wxCoord xoffset = 0, wxCoord yoffset = 0);
 
    virtual void DoDrawPoint(wxCoord, wxCoord);
 
-   virtual void DoDrawPolygon(int n, wxPoint points[],
+   virtual void DoDrawPolygon(int n, const wxPoint points[],
                               wxCoord xoffset, wxCoord yoffset,
                               wxPolygonFillMode fillStyle);
 
@@ -173,10 +171,7 @@ private:
        wxFAIL_MSG(wxT("wxSVGFILEDC::DoSetDeviceClippingRegion not yet implemented"));
    }
 
-   virtual void DoSetClippingRegion( int WXUNUSED(x),  int WXUNUSED(y), int WXUNUSED(width), int WXUNUSED(height) )
-   {
-       wxFAIL_MSG(wxT("wxSVGFILEDC::DoSetClippingRegion not yet implemented"));
-   }
+   virtual void DoSetClippingRegion(int x,  int y, int width, int height);
 
    virtual void DoGetSizeMM( int *width, int *height ) const;
 
@@ -184,20 +179,33 @@ private:
 
    void Init (const wxString &filename, int width, int height, double dpi);
 
-   void NewGraphics();
-
    void write( const wxString &s );
 
 private:
+   // If m_graphics_changed is true, close the current <g> element and start a
+   // new one for the last pen/brush change.
+   void NewGraphicsIfNeeded();
+
+   // Open a new graphics group setting up all the attributes according to
+   // their current values in wxDC.
+   void DoStartNewGraphics();
+
    wxFileOutputStream *m_outfile;
    wxString            m_filename;
    int                 m_sub_images; // number of png format images we have
    bool                m_OK;
-   bool                m_graphics_changed;
+   bool                m_graphics_changed;  // set by Set{Brush,Pen}()
    int                 m_width, m_height;
    double              m_dpi;
 
-private:
+   // The clipping nesting level is incremented by every call to
+   // SetClippingRegion() and reset when DestroyClippingRegion() is called.
+   size_t m_clipNestingLevel;
+
+   // Unique ID for every clipping graphics group: this is simply always
+   // incremented in each SetClippingRegion() call.
+   size_t m_clipUniqueId;
+
    DECLARE_ABSTRACT_CLASS(wxSVGFileDCImpl)
 };
 

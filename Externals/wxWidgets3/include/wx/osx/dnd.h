@@ -2,7 +2,6 @@
 // Name:        wx/osx/dnd.h
 // Purpose:     Declaration of the wxDropTarget, wxDropSource class etc.
 // Author:      Stefan Csomor
-// RCS-ID:      $Id: dnd.h 64943 2010-07-13 13:29:58Z VZ $
 // Copyright:   (c) 1998 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

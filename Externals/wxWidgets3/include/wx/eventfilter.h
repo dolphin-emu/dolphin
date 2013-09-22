@@ -3,7 +3,6 @@
 // Purpose:     wxEventFilter class declaration.
 // Author:      Vadim Zeitlin
 // Created:     2011-11-21
-// RCS-ID:      $Id: eventfilter.h 70302 2012-01-09 14:04:25Z DS $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

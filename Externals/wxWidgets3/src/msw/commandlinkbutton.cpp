@@ -3,7 +3,6 @@
 // Purpose:     wxCommandLinkButton
 // Author:      Rickard Westerlund
 // Created:     2010-06-14
-// RCS-ID:      $Id: commandlinkbutton.cpp 65327 2010-08-17 14:48:50Z VZ $
 // Copyright:   (c) 2010 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -92,7 +91,7 @@ wxCommandLinkButton::SetMainLabelAndNote(const wxString& mainLabel,
     if ( HasNativeCommandLinkButton() )
     {
         wxButton::SetLabel(mainLabel);
-        ::SendMessage(m_hWnd, BCM_SETNOTE, 0, (LPARAM) note.wx_str());
+        ::SendMessage(m_hWnd, BCM_SETNOTE, 0, wxMSW_CONV_LPARAM(note));
 
         // Preserve the user-specified label for GetLabel()
         m_labelOrig = mainLabel;

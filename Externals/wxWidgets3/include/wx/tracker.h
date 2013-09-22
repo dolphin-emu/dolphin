@@ -3,7 +3,6 @@
 // Purpose:     Support class for object lifetime tracking (wxWeakRef<T>)
 // Author:      Arne Steinarson
 // Created:     28 Dec 07
-// RCS-ID:      $Id: tracker.h 51448 2008-01-29 17:41:10Z RD $
 // Copyright:   (c) 2007 Arne Steinarson
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

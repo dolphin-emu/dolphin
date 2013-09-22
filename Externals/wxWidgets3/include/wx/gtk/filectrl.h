@@ -4,7 +4,6 @@
 // Author:      Diaa M. Sami
 // Modified by:
 // Created:     Aug-10-2007
-// RCS-ID:      $Id: filectrl.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) Diaa M. Sami
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -88,9 +87,8 @@ public:
         Create( parent, id, defaultDirectory, defaultFilename, wildCard, style, pos, size, name );
     }
 
-    virtual ~wxGtkFileCtrl() {}
+    virtual ~wxGtkFileCtrl();
 
-    void Init();
     bool Create( wxWindow *parent,
                  wxWindowID id,
                  const wxString& defaultDirectory = wxEmptyString,
@@ -133,6 +131,9 @@ protected:
     GtkFileChooser     *m_fcWidget;
     wxGtkFileChooser    m_fc;
     wxString            m_wildCard;
+
+private:
+    void Init();
 
     DECLARE_DYNAMIC_CLASS( wxGtkFileCtrl )
 };

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin at 2008-03-01: refactoring, simplification
 // Created:     16/04/2000
-// RCS-ID:      $Id: helpchm.cpp 61508 2009-07-23 20:30:22Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -127,7 +126,7 @@ bool wxCHMHelpController::DisplaySection(const wxString& section)
     if ( section.Find(wxT(".htm")) != wxNOT_FOUND )
     {
         // interpret as a file name
-        return CallHtmlHelp(HH_DISPLAY_TOPIC, section.wx_str());
+        return CallHtmlHelp(HH_DISPLAY_TOPIC, wxMSW_CONV_LPCTSTR(section));
     }
 
     return KeywordSearch(section);
@@ -184,7 +183,7 @@ bool wxCHMHelpController::ShowContextHelpPopup(const wxString& text,
                                                const wxPoint& pos,
                                                wxWindow *window)
 {
-    return DoDisplayTextPopup(text.wx_str(), pos, 0, window);
+    return DoDisplayTextPopup(text.t_str(), pos, 0, window);
 }
 
 bool wxCHMHelpController::DisplayBlock(long block)
@@ -201,7 +200,7 @@ bool wxCHMHelpController::KeywordSearch(const wxString& k,
     HH_AKLINK link;
     link.cbStruct =     sizeof(HH_AKLINK);
     link.fReserved =    FALSE;
-    link.pszKeywords =  k.wx_str();
+    link.pszKeywords =  k.t_str();
     link.pszUrl =       NULL;
     link.pszMsgText =   NULL;
     link.pszMsgTitle =  NULL;

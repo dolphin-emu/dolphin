@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.06.2003
-// RCS-ID:      $Id: apptrait.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -76,12 +75,6 @@ public:
     // wxStandardPaths object is normally the same for wxBase and wxGUI
     // except in the case of wxMac and wxCocoa
     virtual wxStandardPaths& GetStandardPaths();
-
-#if wxUSE_INTL
-    // called during wxApp initialization to set the locale to correspond to
-    // the user default (i.e. system locale under Windows, LC_ALL under Unix)
-    virtual void SetLocale();
-#endif // wxUSE_INTL
 
 
     // functions abstracting differences between GUI and console modes

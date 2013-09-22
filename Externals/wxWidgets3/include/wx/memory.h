@@ -4,7 +4,6 @@
 // Author:      Arthur Seaton, Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: memory.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -43,14 +42,14 @@ WXDLLIMPEXP_BASE void wxDebugFree(void * buf, bool isVect = false);
 
 #if defined(__SUNCC__)
     #define wxUSE_ARRAY_MEMORY_OPERATORS 0
-#elif !( defined (__VISUALC__) && (__VISUALC__ <= 1020) ) || defined( __MWERKS__)
+#elif !( defined (__VISUALC__) && (__VISUALC__ <= 1020) )
     #define wxUSE_ARRAY_MEMORY_OPERATORS 1
 #elif defined (__SGI_CC_)
     // only supported by -n32 compilers
     #ifndef __EDG_ABI_COMPATIBILITY_VERSION
         #define wxUSE_ARRAY_MEMORY_OPERATORS 0
     #endif
-#elif !( defined (__VISUALC__) && (__VISUALC__ <= 1020) ) || defined( __MWERKS__)
+#elif !( defined (__VISUALC__) && (__VISUALC__ <= 1020) )
     #define wxUSE_ARRAY_MEMORY_OPERATORS 1
 #else
     // ::operator new[] is a recent C++ feature, so assume it's not supported
@@ -110,8 +109,8 @@ void operator delete[] (void * buf);
 #endif // wxUSE_ARRAY_MEMORY_OPERATORS
 #endif // defined(__WINDOWS__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE))
 
-// VC++ 6.0 and MWERKS
-#if ( defined(__VISUALC__) && (__VISUALC__ >= 1200) ) || defined(__MWERKS__)
+// VC++ 6.0
+#if ( defined(__VISUALC__) && (__VISUALC__ >= 1200) )
 inline void operator delete(void* pData, wxChar* /* fileName */, int /* lineNum */)
 {
     wxDebugFree(pData, false);

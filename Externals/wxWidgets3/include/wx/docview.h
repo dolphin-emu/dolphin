@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: docview.h 70098 2011-12-23 05:59:59Z PC $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,6 +20,7 @@
 #include "wx/string.h"
 #include "wx/frame.h"
 #include "wx/filehistory.h"
+#include "wx/vector.h"
 
 #if wxUSE_PRINTING_ARCHITECTURE
     #include "wx/print.h"
@@ -60,6 +60,10 @@ enum
 
 #define wxMAX_FILE_HISTORY 9
 
+typedef wxVector<wxDocument*> wxDocVector;
+typedef wxVector<wxView*> wxViewVector;
+typedef wxVector<wxDocTemplate*> wxDocTemplateVector;
+
 class WXDLLIMPEXP_CORE wxDocument : public wxEvtHandler
 {
 public:
@@ -80,6 +84,9 @@ public:
     // SetDocumentSaved() is only used internally, don't call it
     bool GetDocumentSaved() const { return m_savedYet; }
     void SetDocumentSaved(bool saved = true) { m_savedYet = saved; }
+
+    // activate the first view of the document if any
+    void Activate();
 
     // return true if the document hasn't been modified since the last time it
     // was saved (implying that it returns false if it was never saved, even if
@@ -140,8 +147,14 @@ public:
 
     virtual bool AddView(wxView *view);
     virtual bool RemoveView(wxView *view);
+
+#ifndef __VISUALC6__
+    wxViewVector GetViewsVector() const;
+#endif // !__VISUALC6__
+
     wxList& GetViews() { return m_documentViews; }
     const wxList& GetViews() const { return m_documentViews; }
+
     wxView *GetFirstView() const;
 
     virtual void UpdateAllViews(wxView *sender = NULL, wxObject *hint = NULL);
@@ -432,6 +445,9 @@ public:
     // Find template from document class info, may return NULL.
     wxDocTemplate* FindTemplate(const wxClassInfo* documentClassInfo);
 
+    // Find document from file name, may return NULL.
+    wxDocument* FindDocumentByPath(const wxString& path) const;
+
     wxDocument *GetCurrentDocument() const;
 
     void SetMaxDocsOpen(int n) { m_maxDocsOpen = n; }
@@ -454,6 +470,17 @@ public:
     // when a view is going in or out of focus
     virtual void ActivateView(wxView *view, bool activate = true);
     virtual wxView *GetCurrentView() const { return m_currentView; }
+
+    // This method tries to find an active view harder than GetCurrentView():
+    // if the latter is NULL, it also checks if we don't have just a single
+    // view and returns it then.
+    wxView *GetAnyUsableView() const;
+
+
+#ifndef __VISUALC6__
+    wxDocVector GetDocumentsVector() const;
+    wxDocTemplateVector GetTemplatesVector() const;
+#endif // !__VISUALC6__
 
     wxList& GetDocuments() { return m_docs; }
     wxList& GetTemplates() { return m_templates; }
@@ -528,15 +555,6 @@ protected:
 
     // return the command processor for the current document, if any
     wxCommandProcessor *GetCurrentCommandProcessor() const;
-
-    // this method tries to find an active view harder than GetCurrentView():
-    // if the latter is NULL, it also checks if we don't have just a single
-    // view and returns it then
-    wxView *GetActiveView() const;
-
-    // activate the first view of the given document if any
-    void ActivateDocument(wxDocument *doc);
-
 
     int               m_defaultDocumentNameCounter;
     int               m_maxDocsOpen;
@@ -624,10 +642,7 @@ protected:
     // we're not a wxEvtHandler but we provide this wxEvtHandler-like function
     // which is called from TryBefore() of the derived classes to give our view
     // a chance to process the message before the frame event handlers are used
-    bool TryProcessEvent(wxEvent& event)
-    {
-        return m_childView && m_childView->ProcessEventLocally(event);
-    }
+    bool TryProcessEvent(wxEvent& event);
 
     // called from EVT_CLOSE handler in the frame: check if we can close and do
     // cleanup if so; veto the event otherwise
@@ -811,11 +826,22 @@ private:
 class WXDLLIMPEXP_CORE wxDocParentFrameAnyBase
 {
 public:
-    wxDocParentFrameAnyBase() { m_docManager = NULL; }
+    wxDocParentFrameAnyBase(wxWindow* frame)
+        : m_frame(frame)
+    {
+        m_docManager = NULL;
+    }
 
     wxDocManager *GetDocumentManager() const { return m_docManager; }
 
 protected:
+    // This is similar to wxDocChildFrameAnyBase method with the same name:
+    // while we're not an event handler ourselves and so can't override
+    // TryBefore(), we provide a helper that the derived template class can use
+    // from its TryBefore() implementation.
+    bool TryProcessEvent(wxEvent& event);
+
+    wxWindow* const m_frame;
     wxDocManager *m_docManager;
 
     wxDECLARE_NO_COPY_CLASS(wxDocParentFrameAnyBase);
@@ -828,7 +854,7 @@ class WXDLLIMPEXP_CORE wxDocParentFrameAny : public BaseFrame,
                                              public wxDocParentFrameAnyBase
 {
 public:
-    wxDocParentFrameAny() { }
+    wxDocParentFrameAny() : wxDocParentFrameAnyBase(this) { }
     wxDocParentFrameAny(wxDocManager *manager,
                         wxFrame *frame,
                         wxWindowID id,
@@ -837,6 +863,7 @@ public:
                         const wxSize& size = wxDefaultSize,
                         long style = wxDEFAULT_FRAME_STYLE,
                         const wxString& name = wxFrameNameStr)
+        : wxDocParentFrameAnyBase(this)
     {
         Create(manager, frame, id, title, pos, size, style, name);
     }
@@ -855,7 +882,7 @@ public:
         if ( !BaseFrame::Create(frame, id, title, pos, size, style, name) )
             return false;
 
-        this->Connect(wxID_EXIT, wxEVT_COMMAND_MENU_SELECTED,
+        this->Connect(wxID_EXIT, wxEVT_MENU,
                       wxCommandEventHandler(wxDocParentFrameAny::OnExit));
         this->Connect(wxEVT_CLOSE_WINDOW,
                       wxCloseEventHandler(wxDocParentFrameAny::OnCloseWindow));
@@ -867,10 +894,7 @@ protected:
     // hook the document manager into event handling chain here
     virtual bool TryBefore(wxEvent& event)
     {
-        if ( m_docManager && m_docManager->ProcessEventLocally(event) )
-            return true;
-
-        return BaseFrame::TryBefore(event);
+        return TryProcessEvent(event) || BaseFrame::TryBefore(event);
     }
 
 private:
@@ -994,6 +1018,23 @@ enum
     wxDEFAULT_DOCMAN_FLAGS = wxDOC_SDI
 };
 #endif // WXWIN_COMPATIBILITY_2_8
+
+#ifndef __VISUALC6__
+inline wxViewVector wxDocument::GetViewsVector() const
+{
+    return m_documentViews.AsVector<wxView*>();
+}
+
+inline wxDocVector wxDocManager::GetDocumentsVector() const
+{
+    return m_docs.AsVector<wxDocument*>();
+}
+
+inline wxDocTemplateVector wxDocManager::GetTemplatesVector() const
+{
+    return m_templates.AsVector<wxDocTemplate*>();
+}
+#endif // !__VISUALC6__
 
 #endif // wxUSE_DOC_VIEW_ARCHITECTURE
 
