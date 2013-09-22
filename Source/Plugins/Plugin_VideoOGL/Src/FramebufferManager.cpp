@@ -99,7 +99,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		GL_REPORT_FBO_ERROR();
 	}
-#ifndef USE_GLES3
 	else
 	{
 		// EFB targets will be renderbuffers in MSAA mode (required by OpenGL).
@@ -150,7 +149,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindTexture(getFbType(), m_resolvedDepthTexture);
 		glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
-		glTexImage2D(getFbType(), 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(getFbType(), 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 
 		// Bind resolved textures to resolved framebuffer.
 
@@ -165,7 +164,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
 	}
-#endif
 	// Create XFB framebuffer; targets will be created elsewhere.
 
 	glGenFramebuffers(1, &m_xfbFramebuffer);
