@@ -40,7 +40,7 @@ void VideoBackend::PopulateList()
 {
 	VideoBackend* backends[4] = { NULL };
 
-	// D3D11 > OGL > D3D9 > SW
+	// D3D11 > OGL > SW
 #ifdef _WIN32
 	if (IsGteVista())
 		g_available_video_backends.push_back(backends[0] = new DX11::VideoBackend);
