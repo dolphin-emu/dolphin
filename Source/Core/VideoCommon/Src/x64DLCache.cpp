@@ -409,7 +409,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 
 		emitter.AlignCode4();
 		dl->compiled_code = emitter.GetCodePtr();
-		emitter.ABI_PushAllCalleeSavedRegsAndAdjustStack();
+		emitter.ABI_EmitPrologue(4);
 
 		while (g_pVideoData < end)
 		{
@@ -572,8 +572,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 				break;
 			}
 		}
-		emitter.ABI_PopAllCalleeSavedRegsAndAdjustStack();
-		emitter.RET();
+		emitter.ABI_EmitEpilogue(4);
 		INCSTAT(stats.numDListsCalled);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 		Statistics::SwapDL();
