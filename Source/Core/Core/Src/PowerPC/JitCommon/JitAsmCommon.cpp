@@ -167,7 +167,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	MOV(64, MComplex(RBX, RCX, SCALE_1, 0), R(RAX));
 	FixupBranch skip_complex = J();
 	SetJumpTarget(too_complex);
-	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&WriteDual32, 2), RAX, RCX); 
+	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&WriteDual32, 2), RAX, RCX, /* noProlog = */ true); 
 	SetJumpTarget(skip_complex);
 	RET();
 #else
@@ -184,10 +184,10 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	FixupBranch arg2 = J();
 	SetJumpTarget(argh);
 	MOV(32, R(EAX), M(((char*)&psTemp)));
-	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX); 
+	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX, /* noProlog = */ true); 
 	MOV(32, R(EAX), M(((char*)&psTemp)+4));
 	ADD(32, R(ECX), Imm32(4));
-	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX); 
+	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX, /* noProlog = */ true); 
 	SetJumpTarget(arg2);
 	RET();
 #endif
@@ -206,7 +206,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	PACKSSDW(XMM0, R(XMM0));
 	PACKUSWB(XMM0, R(XMM0));
 	MOVD_xmm(R(EAX), XMM0);
-	SafeWriteRegToReg(AX, ECX, 16, 0, false);
+	SafeWriteRegToReg(AX, ECX, 16, 0, false, true);
 	
 	RET();
 
@@ -225,7 +225,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	PACKSSWB(XMM0, R(XMM0));
 	MOVD_xmm(R(EAX), XMM0);
 
-	SafeWriteRegToReg(AX, ECX, 16, 0, false);
+	SafeWriteRegToReg(AX, ECX, 16, 0, false, true);
 	
 	RET();
 
@@ -251,7 +251,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	MOV(16, R(AX), M((char*)psTemp + 4));
 
 	BSWAP(32, EAX);
-	SafeWriteRegToReg(EAX, ECX, 32, 0, false);
+	SafeWriteRegToReg(EAX, ECX, 32, 0, false, true);
 	
 	RET();
 
@@ -271,7 +271,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	MOVD_xmm(R(EAX), XMM0);
 	BSWAP(32, EAX);
 	ROL(32, R(EAX), Imm8(16));
-	SafeWriteRegToReg(EAX, ECX, 32, 0, false);
+	SafeWriteRegToReg(EAX, ECX, 32, 0, false, true);
 	
 	RET();
 
@@ -303,11 +303,11 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 		// TODO: SafeWriteFloat
 		MOVSS(M(&psTemp[0]), XMM0);
 		MOV(32, R(EAX), M(&psTemp[0]));
-		SafeWriteRegToReg(EAX, ECX, 32, 0, false);
+		SafeWriteRegToReg(EAX, ECX, 32, 0, false, true);
 	} else {
 		MOVSS(M(&psTemp[0]), XMM0);
 		MOV(32, R(EAX), M(&psTemp[0]));
-		SafeWriteRegToReg(EAX, ECX, 32, 0, true);
+		SafeWriteRegToReg(EAX, ECX, 32, 0, true, true);
 	}*/
 
 	const u8* storeSingleU8 = AlignCode4();  // Used by MKWii
@@ -318,7 +318,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M((void *)&m_255));
 	CVTTSS2SI(EAX, R(XMM0));
-	SafeWriteRegToReg(AL, ECX, 8, 0, true);
+	SafeWriteRegToReg(AL, ECX, 8, 0, true, true);
 	RET();
 
 	const u8* storeSingleS8 = AlignCode4();
@@ -328,7 +328,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 	MAXSS(XMM0, M((void *)&m_m128));
 	MINSS(XMM0, M((void *)&m_127));
 	CVTTSS2SI(EAX, R(XMM0));
-	SafeWriteRegToReg(AL, ECX, 8, 0, true);
+	SafeWriteRegToReg(AL, ECX, 8, 0, true, true);
 	RET();
 
 	const u8* storeSingleU16 = AlignCode4();  // Used by MKWii
@@ -339,7 +339,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M((void *)&m_65535));
 	CVTTSS2SI(EAX, R(XMM0));
-	SafeWriteRegToReg(EAX, ECX, 16, 0, true);
+	SafeWriteRegToReg(EAX, ECX, 16, 0, true, true);
 	RET();
 
 	const u8* storeSingleS16 = AlignCode4();
@@ -349,7 +349,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 	MAXSS(XMM0, M((void *)&m_m32768));
 	MINSS(XMM0, M((void *)&m_32767));
 	CVTTSS2SI(EAX, R(XMM0));
-	SafeWriteRegToReg(EAX, ECX, 16, 0, true);
+	SafeWriteRegToReg(EAX, ECX, 16, 0, true, true);
 	RET();
 
 	singleStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
