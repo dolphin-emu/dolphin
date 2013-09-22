@@ -28,7 +28,7 @@ static void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char*
 
 	if (api_type == API_OPENGL)
 		object.Write(";\n");
-	else
+	else // D3D
 	{
 		if (semantic_index != -1)
 			object.Write(" : %s%d;\n", semantic, semantic_index);
@@ -167,7 +167,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 		out.Write("void main()\n{\n");
 	}
-	else
+	else // D3D
 	{
 		out.Write("VS_OUTPUT main(\n");
 
@@ -197,19 +197,10 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
 	{
-		if (api_type & API_D3D9)
-		{
-			out.Write("int4 indices = D3DCOLORtoUBYTE4(blend_indices);\n");
-			out.Write("int posmtx = indices.x;\n");
-		}
-		else if (api_type == API_D3D11)
-		{
-			out.Write("int posmtx = blend_indices.x * 255.0;\n");
-		}
+		if (api_type == API_D3D)
+			out.Write("int posmtx = blend_indices.x * 255.0;\n"); // TODO: Ugly, should use an integer instead
 		else
-		{
 			out.Write("int posmtx = int(fposmtx);\n");
-		}
 
 		if (is_writing_shadercode && (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS) && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS)) )
 		{
@@ -454,11 +445,11 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
 	//if not early z culling will improve speed
-	if (api_type & API_D3D9 || api_type == API_D3D11)
+	if (api_type == API_D3D)
 	{
 		out.Write("o.pos.z = " I_DEPTHPARAMS".x * o.pos.w + o.pos.z * " I_DEPTHPARAMS".y;\n");
 	}
-	else
+	else // OGL
 	{
 		// this results in a scale from -1..0 to -1..1 after perspective
 		// divide
@@ -480,13 +471,6 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 		//trying to get the correct semantic while not using glDepthRange
 		//seems to get rather complicated
-	}
-
-	if (api_type & API_D3D9)
-	{
-		// D3D9 is addressing pixel centers instead of pixel boundaries in clip space.
-		// Thus we need to offset the final position by half a pixel
-		out.Write("o.pos = o.pos + float4(" I_DEPTHPARAMS".z, " I_DEPTHPARAMS".w, 0.f, 0.f);\n");
 	}
 
 	if(api_type == API_OPENGL)
@@ -528,7 +512,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		out.Write("gl_Position = o.pos;\n");
 		out.Write("}\n");
 	}
-	else
+	else // D3D
 	{
 		out.Write("return o;\n}\n");
 	}

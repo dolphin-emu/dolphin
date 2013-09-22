@@ -83,38 +83,22 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	{
 		WRITE(p, "#define samp0 samp9\n");
 		WRITE(p, "uniform sampler2DRect samp0;\n");
-	}
-	else if (ApiType & API_D3D9)
-	{
-		WRITE(p,"uniform sampler samp0 : register(s0);\n");
-	}
-	else
-	{
-		WRITE(p,"sampler samp0 : register(s0);\n");
-		WRITE(p, "Texture2D Tex0 : register(t0);\n");
-	}
 
-	if (ApiType == API_OPENGL)
-	{
 		WRITE(p, "  out vec4 ocol0;\n");
 		WRITE(p, "  VARYIN float2 uv0;\n");
 		WRITE(p, "void main()\n");
 	}
-	else
+	else // D3D
 	{
+		WRITE(p,"sampler samp0 : register(s0);\n");
+		WRITE(p, "Texture2D Tex0 : register(t0);\n");
+
 		WRITE(p,"void main(\n");
-		if (ApiType != API_D3D11)
-		{
-			WRITE(p,"  out float4 ocol0 : COLOR0,\n");
-		}
-		else
-		{
-			WRITE(p,"  out float4 ocol0 : SV_Target,\n");
-		}
+		WRITE(p,"  out float4 ocol0 : SV_Target,\n");
 		WRITE(p,"  in float2 uv0 : TEXCOORD0)\n");
 	}
 
-	WRITE(p, "{\n"    
+	WRITE(p, "{\n"
 	"  float2 sampleUv;\n"
 	"  float2 uv1 = floor(uv0);\n");
 
@@ -142,15 +126,15 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	if (ApiType != API_OPENGL)
 	{
-		WRITE(p, "  sampleUv = sampleUv + float2(0.0,1.0);\n");// still to determine the reason for this
+		WRITE(p, "  sampleUv = sampleUv + float2(0.0,1.0);\n"); // still need to determine the reason for this
 		WRITE(p, "  sampleUv = sampleUv / " I_COLORS"[0].zw;\n");
 	}
 }
 
-// block dimensions : widthStride, heightStride 
+// block dimensions : widthStride, heightStride
 // texture dims : width, height, x offset, y offset
 void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
-{	
+{
 	// [0] left, top, right, bottom of source rectangle within source texture
 	// [1] width and height of destination texture in pixels
 	// Two were merged for GLSL
@@ -164,39 +148,23 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	{
 		WRITE(p, "#define samp0 samp9\n");
 		WRITE(p, "uniform sampler2DRect samp0;\n");
-	}
-	else if (ApiType & API_D3D9)
-	{
-		WRITE(p,"uniform sampler samp0 : register(s0);\n");
-	}
-	else
-	{
-		WRITE(p,"sampler samp0 : register(s0);\n");
-		WRITE(p, "Texture2D Tex0 : register(t0);\n");
-	}
 
-	if (ApiType == API_OPENGL)
-	{
 		WRITE(p, "  out float4 ocol0;\n");
 		WRITE(p, "  VARYIN float2 uv0;\n");
 		WRITE(p, "void main()\n");
 	}
 	else
 	{
+		WRITE(p,"sampler samp0 : register(s0);\n");
+		WRITE(p, "Texture2D Tex0 : register(t0);\n");
+
 		WRITE(p,"void main(\n");
-		if(ApiType != API_D3D11)
-		{
-			WRITE(p,"  out float4 ocol0 : COLOR0,\n");
-		}
-		else
-		{
-			WRITE(p,"  out float4 ocol0 : SV_Target,\n");
-		}
+		WRITE(p,"  out float4 ocol0 : SV_Target,\n");
 		WRITE(p,"  in float2 uv0 : TEXCOORD0)\n");
 	}
 
 
-	WRITE(p, "{\n"    
+	WRITE(p, "{\n"
 	"  float2 sampleUv;\n"
 	"  float2 uv1 = floor(uv0);\n");
 
@@ -232,18 +200,16 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYPE ApiType)
 {
 	const char* texSampleOpName;
-	if (ApiType & API_D3D9)
-		texSampleOpName = "tex2D";
-	else if (ApiType == API_D3D11)
+	if (ApiType == API_D3D)
 		texSampleOpName = "tex0.Sample";
-	else
+	else // OGL
 		texSampleOpName = "texture2DRect";
 
 	// the increment of sampleUv.x is delayed, so we perform it here. see WriteIncrementSampleX.
 	const char* texSampleIncrementUnit;
-	if (ApiType != API_OPENGL)
+	if (ApiType == API_D3D)
 		texSampleIncrementUnit = I_COLORS"[0].x / " I_COLORS"[0].z";
-	else
+	else // OGL
 		texSampleIncrementUnit = I_COLORS"[0].x";
 
 	WRITE(p, "  %s = %s(samp0, sampleUv + float2(%d.0 * (%s), 0.0)).%s;\n",
@@ -296,7 +262,7 @@ void WriteEncoderEnd(char* p, API_TYPE ApiType)
 void WriteI8Encoder(char* p, API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_I8, ApiType);
-	WRITE(p, "  float3 texSample;\n");	
+	WRITE(p, "  float3 texSample;\n");
 
 	WriteSampleColor(p, "rgb", "texSample", ApiType);
 	WriteColorToIntensity(p, "texSample", "ocol0.b");
@@ -430,7 +396,7 @@ void WriteRGB565Encoder(char* p,API_TYPE ApiType)
 	WRITE(p, "  float2 texRs = float2(texSample0.r, texSample1.r);\n");
 	WRITE(p, "  float2 texGs = float2(texSample0.g, texSample1.g);\n");
 	WRITE(p, "  float2 texBs = float2(texSample0.b, texSample1.b);\n");
-  
+
 	WriteToBitDepth(p, 6, "texGs", "float2 gInt");
 	WRITE(p, "  float2 gUpper = floor(gInt / 8.0);\n");
 	WRITE(p, "  float2 gLower = gInt - gUpper * 8.0;\n");
@@ -888,12 +854,12 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 		break;
 	default:
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
-		break;		
+		break;
 	}
 
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("TextureConversionShader generator - buffer too small, canary has been eaten!");
-	
+
 #ifndef ANDROID
 	uselocale(old_locale); // restore locale
 	freelocale(locale);

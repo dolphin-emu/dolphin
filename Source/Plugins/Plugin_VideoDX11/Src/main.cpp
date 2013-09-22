@@ -82,7 +82,7 @@ void InitBackendInfo()
 		return;
 	}
 
-	g_Config.backend_info.APIType = API_D3D11;
+	g_Config.backend_info.APIType = API_D3D;
 	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
 	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = false;
