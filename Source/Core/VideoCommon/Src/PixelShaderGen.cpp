@@ -1142,7 +1142,6 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 
 	out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 
-	// using discard then return works the same in cg and dx9 but not in dx11
 	out.Write("\tif(!( ");
 
 	uid_data.alpha_test_comp0 = bpmem.alpha_test.comp0;
