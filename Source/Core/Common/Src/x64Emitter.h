@@ -639,7 +639,7 @@ public:
 
 	// Pass a register as a parameter.
 	void ABI_CallFunctionR(void *func, Gen::X64Reg reg1);
-	void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2);
+	void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2, bool noProlog = false);
 
 	// A function that doesn't have any control over what it will do to regs,
 	// such as the dispatcher, should be surrounded by these.

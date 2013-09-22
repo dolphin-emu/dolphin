@@ -223,7 +223,7 @@ void EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int ac
 }
 
 // Destroys both arg registers
-void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
+void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap, bool noProlog)
 {
 	if (offset)
 		ADD(32, R(reg_addr), Imm32((u32)offset));
@@ -247,9 +247,9 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 	switch (accessSize)
 	{
-	case 32: ABI_CallFunctionRR(thunks.ProtectFunction(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), 2), reg_value, reg_addr); break;
-	case 16: ABI_CallFunctionRR(thunks.ProtectFunction(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), 2), reg_value, reg_addr); break;
-	case 8:  ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U8, 2), reg_value, reg_addr);  break;
+	case 32: ABI_CallFunctionRR(thunks.ProtectFunction(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), 2), reg_value, reg_addr, noProlog); break;
+	case 16: ABI_CallFunctionRR(thunks.ProtectFunction(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), 2), reg_value, reg_addr, noProlog); break;
+	case 8:  ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U8, 2), reg_value, reg_addr, noProlog);  break;
 	}
 	FixupBranch exit = J();
 	SetJumpTarget(fast);
