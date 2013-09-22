@@ -141,7 +141,6 @@ void OpenGL_ReportARBProgramError()
 
 bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 {
-#ifndef USE_GLES
 	unsigned int fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (fbo_status != GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -154,12 +153,14 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
 				error = "INCOMPLETE_MISSING_ATTACHMENT";
 				break;
+#ifndef USE_GLES
 			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
 				error = "INCOMPLETE_DRAW_BUFFER";
 				break;
 			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
 				error = "INCOMPLETE_READ_BUFFER";
 				break;
+#endif
 			case GL_FRAMEBUFFER_UNSUPPORTED:
 				error = "UNSUPPORTED";
 				break;
@@ -168,7 +169,6 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 				file, line, function, error);
 		return false;
 	}
-#endif
 	return true;
 }
 

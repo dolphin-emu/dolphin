@@ -32,6 +32,8 @@ PFNGLPROGRAMPARAMETERIPROC glProgramParameteri;
 
 PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements;
 
+PFNGLRENDERBUFFERSTORAGEMULTISAMPLE glRenderbufferStorageMultisample;
+
 PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
 PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
 
@@ -97,6 +99,8 @@ namespace GLFunc
 		LoadFunction("glProgramParameteri", (void**)&glProgramParameteri);
 		
 		LoadFunction("glDrawRangeElements", (void**)&glDrawRangeElements);
+
+		LoadFunction("glRenderbufferStorageMultisample", (void**)&glRenderbufferStorageMultisample);
 
 		LoadFunction("glGetUniformBlockIndex", (void**)&glGetUniformBlockIndex);
 		LoadFunction("glUniformBlockBinding", (void**)&glUniformBlockBinding);

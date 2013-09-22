@@ -965,7 +965,7 @@ GL_APICALL void           GL_APIENTRY glUniformMatrix2x4fv (GLint location, GLsi
 GL_APICALL void           GL_APIENTRY glUniformMatrix4x2fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
 GL_APICALL void           GL_APIENTRY glUniformMatrix3x4fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
 GL_APICALL void           GL_APIENTRY glUniformMatrix4x3fv (GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
-GL_APICALL void           GL_APIENTRY glRenderbufferStorageMultisample (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+//GL_APICALL void           GL_APIENTRY glRenderbufferStorageMultisample (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 GL_APICALL void           GL_APIENTRY glFramebufferTextureLayer (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
 GL_APICALL void           GL_APIENTRY glFlushMappedBufferRange (GLenum target, GLintptr offset, GLsizeiptr length);
 GL_APICALL GLboolean      GL_APIENTRY glIsVertexArray (GLuint array);
