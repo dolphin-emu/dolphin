@@ -30,7 +30,7 @@ typedef void (*PFNGLBINDSAMPLERPROC) (GLuint unit, GLuint sampler);
 typedef void (*PFNGLDELETESAMPLERSPROC) (GLsizei count, const GLuint * samplers);
 typedef void (*PFNGLGENSAMPLERSPROC) (GLsizei count, GLuint* samplers);
 
-//Program binar
+//Program binary
 typedef void (*PFNGLGETPROGRAMBINARYPROC) (GLuint program, GLsizei bufSize, GLsizei* length, GLenum *binaryFormat, GLvoid*binary);
 typedef void (*PFNGLPROGRAMBINARYPROC) (GLuint program, GLenum binaryFormat, const void* binary, GLsizei length);
 typedef void (*PFNGLPROGRAMPARAMETERIPROC) (GLuint program, GLenum pname, GLint value);
@@ -47,6 +47,9 @@ typedef void (*PFNGLGENQUERIESPROC) (GLsizei n, GLuint* ids);
 
 // glDraw*
 typedef void (*PFNGLDRAWRANGEELEMENTSPROC) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const GLvoid* indices);
+
+// Multisample buffer
+typedef void (*PFNGLRENDERBUFFERSTORAGEMULTISAMPLE) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
 
 // ptrs
 extern PFNGLBEGINQUERYPROC glBeginQuery;
@@ -74,6 +77,8 @@ extern PFNGLPROGRAMBINARYPROC glProgramBinary;
 extern PFNGLPROGRAMPARAMETERIPROC glProgramParameteri;
 
 extern PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements;
+
+extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLE glRenderbufferStorageMultisample;
 
 //Sampler
 extern PFNGLSAMPLERPARAMETERFPROC glSamplerParameterf;
