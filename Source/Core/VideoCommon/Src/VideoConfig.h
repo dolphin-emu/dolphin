@@ -123,8 +123,6 @@ struct VideoConfig
 	bool bEnablePixelLighting;
 	bool bHackedBufferUpload;
 	bool bFastDepthCalc;
-	//for dx9-backend
-	bool bForceDualSourceBlend;
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
 
@@ -143,14 +141,14 @@ struct VideoConfig
 	{
 		API_TYPE APIType;
 
-		std::vector<std::string> Adapters; // for D3D9 and D3D11
+		std::vector<std::string> Adapters; // for D3D
 		std::vector<std::string> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
 
-		bool bUseRGBATextures; // used for D3D11 in TextureCache
+		bool bUseRGBATextures; // used for D3D in TextureCache
 		bool bUseMinimalMipCount;
 		bool bSupports3DVision;
-		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
+		bool bSupportsDualSourceBlend;
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
 		bool bSupportsPrimitiveRestart;

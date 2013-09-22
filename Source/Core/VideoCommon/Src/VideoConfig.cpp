@@ -98,7 +98,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
 	iniFile.Get("Hacks", "EFBCopyCacheEnable", &bEFBCopyCacheEnable, false);
 	iniFile.Get("Hacks", "EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
-	iniFile.Get("Hacks", "ForceDualSourceBlend", &bForceDualSourceBlend, false);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 
@@ -283,7 +282,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	iniFile.Set("Hacks", "EFBCopyCacheEnable", bEFBCopyCacheEnable);
 	iniFile.Set("Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-	iniFile.Set("Hacks", "ForceDualSourceBlend", bForceDualSourceBlend);
 
 	iniFile.Set("Hardware", "Adapter", iAdapter);
 
