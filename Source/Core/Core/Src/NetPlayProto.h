@@ -25,11 +25,12 @@ struct Rpt : public std::vector<u8>
 	u16		channel;
 };
 
-typedef std::vector<Rpt>	NetWiimote;
+typedef std::vector<u8> NetWiimote;
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2013-09-03"
+#define NETPLAY_VERSION		"Dolphin NetPlay 2013-09-22"
 
 const int NETPLAY_INITIAL_GCTIME = 1272737767;
+
 
 // messages
 enum
@@ -44,7 +45,7 @@ enum
 	NP_MSG_PAD_BUFFER		= 0x62,
 
 	NP_MSG_WIIMOTE_DATA		= 0x70,
-	NP_MSG_WIIMOTE_MAPPING		= 0x71,	// just using pad mapping for now
+	NP_MSG_WIIMOTE_MAPPING	= 0x71,
 
 	NP_MSG_START_GAME		= 0xA0,
 	NP_MSG_CHANGE_GAME		= 0xA1,

@@ -107,10 +107,11 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 		" - DSP Emulator Engine Must be the same on all computers!\n"
 		" - DSP on Dedicated Thread [OFF]\n"
 		" - Framelimit NOT set to [Audio]\n"
+		" - Manually set the exact number of wiimotes to be used to [Emulated Wiimote]\n"
 		"\n"
 		"All players should use the same Dolphin version and settings.\n"
 		"All memory cards must be identical between players or disabled.\n"
-		"Wiimote support has not been implemented!\n"
+		"Wiimote support is probably terrible. Don't use it.\n"
 		"\n"
 		"The host must have the chosen TCP port open/forwarded!\n"),
 		wxDefaultPosition, wxDefaultSize);
@@ -562,12 +563,15 @@ void NetPlayDiag::OnChangeGame(wxCommandEvent&)
 void NetPlayDiag::OnConfigPads(wxCommandEvent&)
 {
 	PadMapping mapping[4];
+	PadMapping wiimotemapping[4];
 	std::vector<const Player *> player_list;
 	netplay_server->GetPadMapping(mapping);
+	netplay_server->GetWiimoteMapping(wiimotemapping);
 	netplay_client->GetPlayers(player_list);
-	PadMapDiag pmd(this, mapping, player_list);
+	PadMapDiag pmd(this, mapping, wiimotemapping, player_list);
 	pmd.ShowModal();
 	netplay_server->SetPadMapping(mapping);
+	netplay_server->SetWiimoteMapping(wiimotemapping);
 }
 
 bool NetPlayDiag::IsRecording()
@@ -602,9 +606,10 @@ void ChangeGameDiag::OnPick(wxCommandEvent& event)
 	EndModal(wxID_OK);
 }
 
-PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], std::vector<const Player *>& player_list)
+PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiimotemap[], std::vector<const Player *>& player_list)
 	: wxDialog(parent, wxID_ANY, _("Configure Pads"), wxDefaultPosition, wxDefaultSize)
 	, m_mapping(map)
+	, m_wiimapping (wiimotemap)
 	, m_player_list(player_list)
 {
 	wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -614,6 +619,11 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], std::vector<con
 	player_names.Add(_("None"));
 	for (unsigned int i = 0; i < m_player_list.size(); i++)
 		player_names.Add(m_player_list[i]->name);
+
+	wxString wiimote_names[5];
+	wiimote_names[0] = _("None");
+	for (unsigned int i=1; i < 5; ++i)
+		wiimote_names[i] = wxString(_("Wiimote ")) + (wxChar)(wxT('0')+i);
 
 	for (unsigned int i=0; i<4; ++i)
 	{
@@ -631,6 +641,27 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], std::vector<con
 					m_map_cbox[i]->Select(j + 1);
 
 		v_szr->Add(m_map_cbox[i], 1);
+
+		h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
+		h_szr->AddSpacer(10);
+	}
+
+	for (unsigned int i=0; i<4; ++i)
+	{
+		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
+		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Wiimote ")) + (wxChar)(wxT('0')+i))),
+					    1, wxALIGN_CENTER_HORIZONTAL);
+
+		m_map_cbox[i+4] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
+		m_map_cbox[i+4]->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &PadMapDiag::OnAdjust, this);
+		if (m_wiimapping[i] == -1)
+			m_map_cbox[i+4]->Select(0);
+		else
+			for (unsigned int j = 0; j < m_player_list.size(); j++)
+				if (m_wiimapping[i] == m_player_list[j]->pid)
+					m_map_cbox[i+4]->Select(j + 1);
+
+		v_szr->Add(m_map_cbox[i+4], 1);
 
 		h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
 		h_szr->AddSpacer(10);
@@ -655,6 +686,12 @@ void PadMapDiag::OnAdjust(wxCommandEvent& event)
 			m_mapping[i] = m_player_list[player_idx - 1]->pid;
 		else
 			m_mapping[i] = -1;
+
+		player_idx = m_map_cbox[i+4]->GetSelection();
+		if (player_idx > 0)
+			m_wiimapping[i] = m_player_list[player_idx - 1]->pid;
+		else
+			m_wiimapping[i] = -1;
 	}
 }
 

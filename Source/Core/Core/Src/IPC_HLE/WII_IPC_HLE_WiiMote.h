@@ -56,7 +56,6 @@ public:
 	void ReceiveL2capData(u16 scid, const void* _pData, u32 _Size);	// From wiimote
 
 	int NetPlay_GetWiimoteNum(int _number);
-	bool NetPlay_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32& _Size);
 
 	void EventConnectionAccepted();
 	void EventDisconnect();
