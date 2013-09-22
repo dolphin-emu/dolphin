@@ -86,6 +86,8 @@
     <string name="enhancements">画質向上の設定</string>
     <string name="internal_resolution">内部解像度の変更</string>
     <string name="internal_resolution_descrip">内部解像度の計算方式を設定します。高解像度に設定することで大きく 画質が向上します。 しかし、ゲームによっては非常に重くなったり描画バグの原因となります。 【ゲーム解像度の倍数】は【ウィンドウサイズに拡大】より少し重くなり ますが、描画バグは発生しにくくなります。 また一般的に内部解像度が低いほど、動作速度は向上します。</string>
+    <string name="FSAA">フルシーンアンチエイリアシング</string>
+    <string name="FSAA_descrip">3Dグラフィックスをラスタライズによって生じるエイリアシングの量が減少。 レンダリングされた画像はあまりギザギザになります。 抽選でエミュレーション速度を下げます。問題を引き起こす可能性があります。</string>
     <string name="anisotropic_filtering">異方性フィルタリング</string>
     <string name="anisotropic_filtering_descrip">異方性フィルタリングを適用します。 奥行きのあるテクスチャをより精細に描画することが出来ます。 特定のゲームでは描画バグの原因になることがあります。</string>
     <string name="scaled_efb_copy">Scaled EFB Copy</string>
