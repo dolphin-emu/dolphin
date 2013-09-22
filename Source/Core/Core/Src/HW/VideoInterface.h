@@ -333,8 +333,8 @@ union UVIDTVStatus
 	void Write32(const u32 _uValue, const u32 _uAddress);
 
 	// returns a pointer to the current visible xfb
-	u8* GetXFBPointerTop();
-	u8* GetXFBPointerBottom();
+	u32 GetXFBAddressTop();
+	u32 GetXFBAddressBottom();
 
 	// Update and draw framebuffer
 	void Update();
