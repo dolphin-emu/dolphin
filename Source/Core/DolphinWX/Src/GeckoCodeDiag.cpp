@@ -81,13 +81,13 @@ void CodeConfigPanel::UpdateCodeList(bool checkRunning)
 	UpdateInfoBox(evt);
 }
 
-void CodeConfigPanel::LoadCodes(const IniFile& inifile, const std::string& gameid, bool checkRunning)
+void CodeConfigPanel::LoadCodes(const IniFile& globalIni, const IniFile& localIni, const std::string& gameid, bool checkRunning)
 {
 	m_gameid = gameid;
 
 	m_gcodes.clear();
 	if (!checkRunning || Core::IsRunning())
-		Gecko::LoadCodes(inifile, m_gcodes);
+		Gecko::LoadCodes(globalIni, localIni, m_gcodes);
 
 	UpdateCodeList(checkRunning);
 }

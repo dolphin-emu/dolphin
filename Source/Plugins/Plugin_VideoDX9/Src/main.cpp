@@ -150,8 +150,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 	frameCount = 0;
 
 	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_dx9.ini").c_str());
-	g_Config.GameIniLoad(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniDefault.c_str(),
-	                     SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIniLocal.c_str());
+	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();
 	// as only some driver/hardware configurations support dual source blending only enable it if is 

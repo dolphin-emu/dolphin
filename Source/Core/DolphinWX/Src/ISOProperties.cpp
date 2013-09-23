@@ -110,6 +110,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	// Load game ini
 	std::string _iniFilename = OpenISO->GetUniqueID();
+	std::string _iniFilenameRevisionSpecific = OpenISO->GetRevisionSpecificUniqueID();
 
 	if (!_iniFilename.length())
 	{
@@ -123,9 +124,12 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	}
 
 	GameIniFileDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + _iniFilename + ".ini";
+	std::string GameIniFileDefaultRevisionSpecific = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + _iniFilenameRevisionSpecific + ".ini";
 	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + _iniFilename + ".ini";
 
 	GameIniDefault.Load(GameIniFileDefault);
+	if (_iniFilenameRevisionSpecific != "")
+		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific);
 	GameIniLocal.Load(GameIniFileLocal);
 
 	// Setup GUI
@@ -1047,7 +1051,7 @@ void CISOProperties::LoadGameConfig()
 
 	PatchList_Load();
 	ActionReplayList_Load();
-	m_geckocode_panel->LoadCodes(GameIniLocal, OpenISO->GetUniqueID());
+	m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, OpenISO->GetUniqueID());
 }
 
 void CISOProperties::SaveGameIniValueFrom3StateCheckbox(const char* section, const char* key, wxCheckBox* checkbox)

@@ -242,10 +242,9 @@ void wxCheatsWindow::OnEvent_Close(wxCloseEvent& ev)
 void wxCheatsWindow::UpdateGUI()
 {
 	// load code
-	m_gameini_default_path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + Core::g_CoreStartupParameter.GetUniqueID() + ".ini";
-	m_gameini_default.Load(m_gameini_default_path);
-	m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + Core::g_CoreStartupParameter.GetUniqueID() + ".ini";
-	m_gameini_local.Load(m_gameini_local_path, true);
+	m_gameini_default = Core::g_CoreStartupParameter.LoadDefaultGameIni();
+	m_gameini_local = Core::g_CoreStartupParameter.LoadLocalGameIni();
+	m_gameini_local_path = Core::g_CoreStartupParameter.m_strGameIniLocal;
 	Load_ARCodes();
 	Load_GeckoCodes();
 
@@ -286,7 +285,7 @@ void wxCheatsWindow::Load_ARCodes()
 
 void wxCheatsWindow::Load_GeckoCodes()
 {
-	m_geckocode_panel->LoadCodes(m_gameini_local, Core::g_CoreStartupParameter.GetUniqueID(), true);
+	m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, Core::g_CoreStartupParameter.GetUniqueID(), true);
 }
 
 void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (event))

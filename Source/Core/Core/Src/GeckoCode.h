@@ -65,7 +65,8 @@ namespace Gecko
 		std::string		name, creator;
 		std::vector<std::string>	notes;
 
-		bool	enabled;
+		bool enabled;
+		bool user_defined;
 
 		bool Compare(GeckoCode compare) const;
 		bool Exist(u32 address, u32 data);

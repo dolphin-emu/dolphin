@@ -157,7 +157,7 @@ bool VideoBackend::Initialize(void *&window_handle)
 	const SCoreStartupParameter& core_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_dx11.ini").c_str());
-	g_Config.GameIniLoad(core_params.m_strGameIniDefault.c_str(), core_params.m_strGameIniLocal.c_str());
+	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();

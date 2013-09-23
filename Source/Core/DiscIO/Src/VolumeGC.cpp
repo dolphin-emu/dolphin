@@ -54,6 +54,13 @@ std::string CVolumeGC::GetUniqueID() const
 	return ID;
 }
 
+std::string CVolumeGC::GetRevisionSpecificUniqueID() const
+{
+	char rev[16];
+	sprintf(rev, "r%d", GetRevision());
+	return GetUniqueID() + rev;
+}
+
 IVolume::ECountry CVolumeGC::GetCountry() const
 {
 	if (!m_pReader)

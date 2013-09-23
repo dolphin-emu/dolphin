@@ -75,14 +75,17 @@ bool BootCore(const std::string& _rFilename)
 
 	// Load game specific settings
 	std::string unique_id = StartUp.GetUniqueID();
+	std::string revision_specific = StartUp.m_strRevisionSpecificUniqueID;
 	StartUp.m_strGameIniDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + unique_id + ".ini";
+	if (revision_specific != "")
+		StartUp.m_strGameIniDefaultRevisionSpecific = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + revision_specific + ".ini";
+	else
+		StartUp.m_strGameIniDefaultRevisionSpecific = "";
 	StartUp.m_strGameIniLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + unique_id + ".ini";
 
 	if (unique_id.size() == 6)
 	{
-		IniFile game_ini;
-		game_ini.Load(StartUp.m_strGameIniDefault);
-		game_ini.Load(StartUp.m_strGameIniLocal, true);
+		IniFile game_ini = StartUp.LoadGameIni();
 
 		config_cache.valid = true;
 		config_cache.bCPUThread = StartUp.bCPUThread;

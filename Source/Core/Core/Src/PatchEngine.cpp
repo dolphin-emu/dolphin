@@ -28,6 +28,7 @@
 #include "GeckoCode.h"
 #include "GeckoCodeConfig.h"
 #include "FileUtil.h"
+#include "ConfigManager.h"
 
 using namespace Common;
 
@@ -166,22 +167,18 @@ int GetSpeedhackCycles(const u32 addr)
 		return iter->second;
 }
 
-void LoadPatches(const char *gameID)
+void LoadPatches()
 {
-	IniFile globalIni, localIni;
-	globalIni.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + gameID + ".ini");
-	localIni.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + gameID + ".ini", true);
-
-	IniFile merged;
-	merged.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + gameID + ".ini");
-	merged.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + gameID + ".ini", true);
+	IniFile merged = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadGameIni();
+	IniFile globalIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadDefaultGameIni();
+	IniFile localIni = SConfig::GetInstance().m_LocalCoreStartupParameter.LoadLocalGameIni();
 
 	LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
 	ActionReplay::LoadCodes(globalIni, localIni, false);
 
 	// lil silly
 	std::vector<Gecko::GeckoCode> gcodes;
-	Gecko::LoadCodes(localIni, gcodes);
+	Gecko::LoadCodes(globalIni, localIni, gcodes);
 	Gecko::SetActiveCodes(gcodes);
 
 	LoadSpeedhacks("Speedhacks", speedHacks, merged);

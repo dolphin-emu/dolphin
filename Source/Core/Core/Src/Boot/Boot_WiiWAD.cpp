@@ -118,7 +118,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	// Load patches and run startup patches
 	const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_pFilename);
 	if (pVolume != NULL)
-		PatchEngine::LoadPatches(pVolume->GetUniqueID().c_str());
+		PatchEngine::LoadPatches();
 
 	return true;
 }

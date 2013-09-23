@@ -204,9 +204,7 @@ bool Init()
 	g_aspect_wide = _CoreParameter.bWii;
 	if (g_aspect_wide)
 	{
-		IniFile gameIni;
-		gameIni.Load(_CoreParameter.m_strGameIniDefault.c_str());
-		gameIni.Load(_CoreParameter.m_strGameIniLocal.c_str(), true);
+		IniFile gameIni = _CoreParameter.LoadGameIni();
 		gameIni.Get("Wii", "Widescreen", &g_aspect_wide,
 			!!SConfig::GetInstance().m_SYSCONF->
 				GetData<u8>("IPL.AR"));

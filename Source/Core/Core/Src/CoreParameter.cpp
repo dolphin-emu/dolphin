@@ -147,6 +147,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				}
 				m_strName = pVolume->GetName();
 				m_strUniqueID = pVolume->GetUniqueID();
+				m_strRevisionSpecificUniqueID = pVolume->GetRevisionSpecificUniqueID();
 
 				// Check if we have a Wii disc
 				bWii = DiscIO::IsVolumeWiiDisc(pVolume);
@@ -389,4 +390,30 @@ void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::stri
 			memcardPath = filename.replace(filename.size()-ext.size(), ext.size(), ext);;
 		}
 	}
+}
+
+IniFile SCoreStartupParameter::LoadGameIni() const
+{
+	IniFile game_ini;
+	game_ini.Load(m_strGameIniDefault);
+	if (m_strGameIniDefaultRevisionSpecific != "")
+		game_ini.Load(m_strGameIniDefaultRevisionSpecific, true);
+	game_ini.Load(m_strGameIniLocal, true);
+	return game_ini;
+}
+
+IniFile SCoreStartupParameter::LoadDefaultGameIni() const
+{
+	IniFile game_ini;
+	game_ini.Load(m_strGameIniDefault);
+	if (m_strGameIniDefaultRevisionSpecific != "")
+		game_ini.Load(m_strGameIniDefaultRevisionSpecific, true);
+	return game_ini;
+}
+
+IniFile SCoreStartupParameter::LoadLocalGameIni() const
+{
+	IniFile game_ini;
+	game_ini.Load(m_strGameIniLocal);
+	return game_ini;
 }
