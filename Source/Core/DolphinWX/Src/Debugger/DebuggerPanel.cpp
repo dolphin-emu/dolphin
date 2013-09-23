@@ -99,32 +99,35 @@ struct PauseEventMap
 	const wxString ListStr;
 };
 
-static PauseEventMap pauseEventMap[] = {
-	{NEXT_FRAME,				_("Frame")},
-	{NEXT_FLUSH,				_("Flush")},
-
-	{NEXT_PIXEL_SHADER_CHANGE,	_("Pixel Shader")},
-	{NEXT_VERTEX_SHADER_CHANGE,	_("Vertex Shader")},
-	{NEXT_TEXTURE_CHANGE,		_("Texture")},
-	{NEXT_NEW_TEXTURE,			_("New Texture")},
-
-	{NEXT_XFB_CMD,				_("XFB Cmd")},
-	{NEXT_EFB_CMD,				_("EFB Cmd")},
-
-	{NEXT_MATRIX_CMD,			_("Matrix Cmd")},
-	{NEXT_VERTEX_CMD,			_("Vertex Cmd")},
-	{NEXT_TEXTURE_CMD,			_("Texture Cmd")},
-	{NEXT_LIGHT_CMD,			_("Light Cmd")},
-	{NEXT_FOG_CMD,				_("Fog Cmd")},
-
-	{NEXT_SET_TLUT,				_("TLUT Cmd")},
-
-	{NEXT_ERROR,				_("Error")}
-};
-static const int numPauseEventMap = sizeof(pauseEventMap)/sizeof(PauseEventMap);
+static PauseEventMap* pauseEventMap;
 
 void GFXDebuggerPanel::CreateGUIControls()
 {
+	static PauseEventMap map[] = {
+		{NEXT_FRAME,				_("Frame")},
+		{NEXT_FLUSH,				_("Flush")},
+
+		{NEXT_PIXEL_SHADER_CHANGE,	_("Pixel Shader")},
+		{NEXT_VERTEX_SHADER_CHANGE,	_("Vertex Shader")},
+		{NEXT_TEXTURE_CHANGE,		_("Texture")},
+		{NEXT_NEW_TEXTURE,			_("New Texture")},
+
+		{NEXT_XFB_CMD,				_("XFB Cmd")},
+		{NEXT_EFB_CMD,				_("EFB Cmd")},
+
+		{NEXT_MATRIX_CMD,			_("Matrix Cmd")},
+		{NEXT_VERTEX_CMD,			_("Vertex Cmd")},
+		{NEXT_TEXTURE_CMD,			_("Texture Cmd")},
+		{NEXT_LIGHT_CMD,			_("Light Cmd")},
+		{NEXT_FOG_CMD,				_("Fog Cmd")},
+
+		{NEXT_SET_TLUT,				_("TLUT Cmd")},
+
+		{NEXT_ERROR,				_("Error")}
+	};
+	pauseEventMap = map;
+	const int numPauseEventMap = sizeof(map)/sizeof(PauseEventMap);
+
 	// Basic settings
 	CenterOnParent();
 

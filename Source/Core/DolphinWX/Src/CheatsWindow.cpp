@@ -15,8 +15,6 @@
 #include "WxUtils.h"
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY	256
-const wxString title = _("Cheats Manager");
-
 extern std::vector<ActionReplay::ARCode> arCodes;
 extern CFrame* main_frame;
 
@@ -24,7 +22,7 @@ extern CFrame* main_frame;
 static wxCheatsWindow *g_cheat_window;
 
 wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
-	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxDIALOG_NO_PARENT)
+	: wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxDIALOG_NO_PARENT)
 {
 	::g_cheat_window = this;
 
@@ -253,6 +251,8 @@ void wxCheatsWindow::UpdateGUI()
 
 	// enable controls
 	button_apply->Enable(Core::IsRunning());
+
+	wxString title = _("Cheats Manager");
 
 	// write the ISO name in the title
 	if (Core::IsRunning())
