@@ -9,9 +9,6 @@
 #include "Common.h"
 #include <fstream>
 
-// defined in Version.cpp
-extern const char *scm_rev_git_str;
-
 // On disk format:
 //header{
 // u32 'DCAC';

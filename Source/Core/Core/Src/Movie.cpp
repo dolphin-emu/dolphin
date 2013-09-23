@@ -23,7 +23,6 @@
 #include "HW/DVDInterface.h"
 #include "../../Common/Src/NandPaths.h"
 #include "polarssl/md5.h"
-#include "scmrev.h"
 #include "NetPlayProto.h"
 
 // The chunk to allocate movie data in multiples of.
@@ -1192,7 +1191,7 @@ void GetSettings()
 	u8 tmp[21];
 	for (int i = 0; i < 20; ++i)
 	{
-		sscanf(&SCM_REV_STR[2 * i], "%02hhx", &tmp[i]);
+		sscanf(&scm_rev_git_str[2 * i], "%02hhx", &tmp[i]);
 		revision[i] = tmp[i];
 	}
 }
