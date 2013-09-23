@@ -177,6 +177,8 @@ namespace ButtonManager
 			delete *it;
 		for (auto it = m_controllers.begin(); it != m_controllers.end(); ++it)
 			delete it->second;
+		m_controllers.clear();
+		m_buttons.clear();
 	}
 
 	void DrawButtons()

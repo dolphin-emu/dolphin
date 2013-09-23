@@ -84,6 +84,10 @@ void DoCallbacks(CallbackType type)
 	{
 		it->second();
 	}
+
+	// Wipe all callbacks on shutdown
+	if (type == OSD_SHUTDOWN)
+		s_callbacks.clear();
 }
 
 }  // namespace

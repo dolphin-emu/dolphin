@@ -35,7 +35,10 @@ public final class NativeGLSurfaceView extends SurfaceView
 			{
 				@Override
 				public void run() {
+
 					NativeLibrary.Run(getHolder().getSurface());
+					Created = false;
+					Running = false;
 				}
 			};
 
