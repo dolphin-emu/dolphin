@@ -308,12 +308,13 @@ bool ProgramShaderCache::CompileShader ( SHADER& shader, const char* vcode, cons
 		file << s_glsl_header << vcode << s_glsl_header << pcode << infoLog;
 		file.close();
 		
-		PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
-			szTemp,
-			g_ogl_config.gl_vendor,
-			g_ogl_config.gl_renderer,
-			g_ogl_config.gl_version,
-			infoLog);
+		if(linkStatus != GL_TRUE)
+			PanicAlert("Failed to link shaders!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
+				szTemp,
+				g_ogl_config.gl_vendor,
+				g_ogl_config.gl_renderer,
+				g_ogl_config.gl_version,
+				infoLog);
 		
 		delete [] infoLog;
 	}
@@ -365,13 +366,14 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		file << s_glsl_header << code << infoLog;
 		file.close();
 		
-		PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
-			type==GL_VERTEX_SHADER ? "vertex" : "pixel",
-			szTemp,
-			g_ogl_config.gl_vendor,
-			g_ogl_config.gl_renderer,
-			g_ogl_config.gl_version,
-			infoLog);
+		if(compileStatus != GL_TRUE)
+			PanicAlert("Failed to compile %s shader!\nThis usually happens when trying to use Dolphin with an outdated GPU or integrated GPU like the Intel GMA series.\n\nIf you're sure this is Dolphin's error anyway, post the contents of %s along with this error message at the forums.\n\nDebug info (%s, %s, %s):\n%s",
+				type==GL_VERTEX_SHADER ? "vertex" : "pixel",
+				szTemp,
+				g_ogl_config.gl_vendor,
+				g_ogl_config.gl_renderer,
+				g_ogl_config.gl_version,
+				infoLog);
 		
 		delete[] infoLog;
 	}
@@ -522,10 +524,10 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n" // early-z
 		
 		"\n"// A few required defines and ones that will make our lives a lot easier
-		"#define ATTRIN %s\n"
-		"#define ATTROUT %s\n"
-		"#define VARYIN %s\n"
-		"#define VARYOUT %s\n"
+		"#define ATTRIN in\n"
+		"#define ATTROUT out\n"
+		"#define VARYIN %s in\n"
+		"#define VARYOUT %s out\n"
 
 		// Silly differences
 		"#define float2 vec2\n"
@@ -536,39 +538,22 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define frac fract\n"
 		"#define lerp mix\n"
 
-		// glsl 120 hack
-		"%s\n"
-		"%s\n"
-		"%s\n"
-		"%s\n"
-		"%s\n"
-		"#define COLOROUT(name) %s\n"
-		
 		// texture2d hack
 		"%s\n"
 		"%s\n"
 		"%s\n"
 				
-		, v==GLSLES3 ? "300 es" : v==GLSL_120 ? "120" : v==GLSL_130 ? "130" : v==GLSL_140 ? "140" : "150"
+		, v==GLSLES3 ? "300 es" : v==GLSL_130 ? "130" : v==GLSL_140 ? "140" : "150"
 		, v==GLSLES3 ? "precision highp float;" : ""
 		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
 		
-		, v==GLSL_120 ? "attribute" : "in"
-		, v==GLSL_120 ? "attribute" : "out"
-		, v==GLSL_120 ? "varying" : DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "in" : "centroid in"
-		, v==GLSL_120 ? "varying" : DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "out" : "centroid out"
+		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "" : "centroid"
+		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "" : "centroid"
 		
-		, v==GLSL_120 ? "#define texture texture2D" : ""
-		, v==GLSL_120 ? "#define round(x) floor((x)+0.5f)" : ""
-		, v==GLSL_120 ? "#define out " : ""
-		, v==GLSL_120 ? "#define ocol0 gl_FragColor" : ""
-		, v==GLSL_120 ? "#define ocol1 gl_FragColor" : "" //TODO: implement dual source blend
-		, v==GLSL_120 ? "" : "out vec4 name;"
-		
-		, v==GLSL_120 ? "#extension GL_ARB_texture_rectangle : enable" : ""
-		, v==GLSL_120 ? "" : "#define texture2DRect(samp, uv)  texelFetch(samp, ivec2(floor(uv)), 0)"
-		, v==GLSL_120 ? "" : "#define sampler2DRect sampler2D"
+		, v==GLSLES3 ? "" : v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
+		, v==GLSLES3 ? "#define texture2DRect(samp, uv)  texelFetch(samp, ivec2(floor(uv)), 0)" : ""
+		, v==GLSLES3 ? "#define sampler2DRect sampler2D" : ""
 	);
 }
 

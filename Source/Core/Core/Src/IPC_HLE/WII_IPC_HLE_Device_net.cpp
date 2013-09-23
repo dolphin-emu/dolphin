@@ -472,7 +472,8 @@ bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 	case IOCTLV_WD_SCAN:
 		{
 		// Gives parameters detailing type of scan and what to match
-		ScanInfo *scan = (ScanInfo *)Memory::GetPointer(CommandBuffer.InBuffer.at(0).m_Address);
+		// XXX - unused
+		// ScanInfo *scan = (ScanInfo *)Memory::GetPointer(CommandBuffer.InBuffer.at(0).m_Address);
 
 		u16 *results = (u16 *)Memory::GetPointer(CommandBuffer.PayloadBuffer.at(0).m_Address);
 		// first u16 indicates number of BSSInfo following
@@ -751,11 +752,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		Memory::Write_U32(optlen, BufferOut + 0xC);
 		Memory::WriteBigEData((u8 *) optval, BufferOut + 0x10, optlen);
 
-		if (optname == 0x1007){
-			s32 errorcode = Memory::Read_U32(BufferOut + 0x10);
-			INFO_LOG(WII_IPC_NET,"IOCTL_SO_GETSOCKOPT error code = %i", errorcode);
-		}
-		else if (optname == SO_ERROR)
+		if (optname == SO_ERROR)
 		{
 			s32 last_error = WiiSockMan::getInstance().getLastNetError();
 			
@@ -1089,7 +1086,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 	u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
 
 	u32 _BufferOut = 0, _BufferOut2 = 0;
-	u32 BufferOutSize = 0, BufferOutSize2 = 0;
+	u32 BufferOutSize = 0;
 
 	if (CommandBuffer.InBuffer.size() > 0)
 	{
@@ -1115,9 +1112,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 	if (CommandBuffer.PayloadBuffer.size() > 1)
 	{
 		_BufferOut2 = CommandBuffer.PayloadBuffer.at(1).m_Address;
-		BufferOutSize2 = CommandBuffer.PayloadBuffer.at(1).m_Size;
 	}
-	
+
 	u32 param = 0, param2 = 0, param3, param4, param5 = 0;
 
 	switch (CommandBuffer.Parameter)
@@ -1133,9 +1129,9 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			param5 = Memory::Read_U32(_BufferOut+4);
 		}
 
-		INFO_LOG(WII_IPC_NET,"IOCTLV_SO_GETINTERFACEOPT(%08X, %08X) "
-			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i)",
-			param, param2,
+		INFO_LOG(WII_IPC_NET,"IOCTLV_SO_GETINTERFACEOPT(%08X, %08X, %X, %X, %X) "
+			"BufferIn: (%08x, %i), BufferIn2: (%08x, %i) ",
+			param, param2, param3, param4, param5,
 			_BufferIn, BufferInSize, _BufferIn2, BufferInSize2);
 
 		switch (param2)
@@ -1260,9 +1256,9 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			hints.ai_socktype	= Memory::Read_U32(_BufferIn3 + 0x8);
 			hints.ai_protocol	= Memory::Read_U32(_BufferIn3 + 0xC);
 			hints.ai_addrlen	= Memory::Read_U32(_BufferIn3 + 0x10);
-			hints.ai_canonname	= (char*)Memory::Read_U32(_BufferIn3 + 0x14);
-			hints.ai_addr		= (sockaddr *)Memory::Read_U32(_BufferIn3 + 0x18);
-			hints.ai_next		= (addrinfo *)Memory::Read_U32(_BufferIn3 + 0x1C);
+			hints.ai_canonname	= NULL;
+			hints.ai_addr		= NULL;
+			hints.ai_next		= NULL;
 		}
 
 		char* pNodeName = NULL;

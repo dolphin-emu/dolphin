@@ -29,7 +29,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 		break;
 	// WiiMenu... no idea
 	case 0x24:
-		ERROR_LOG(WII_IOB, "IOP: Read32 from 0x18 = 0x%08x (WiiMenu)",  _Address);
+		ERROR_LOG(WII_IOB, "IOP: Read32 from 0x24 = 0x%08x (WiiMenu)",  _Address);
 		break;
 
 

@@ -25,6 +25,19 @@
 #define LIGHT_DIR "%s[5*%d+4]"
 #define LIGHT_DIR_PARAMS(lightsName, index) (lightsName), (index)
 
+/**
+ * Common uid data used for shader generators that use lighting calculations.
+ */
+struct LightingUidData
+{
+	u32 matsource : 4; // 4x1 bit
+	u32 enablelighting : 4; // 4x1 bit
+	u32 ambsource : 4; // 4x1 bit
+	u32 diffusefunc : 8; // 4x2 bits
+	u32 attnfunc : 8; // 4x2 bits
+	u32 light_mask : 32; // 4x8 bits
+};
+
 
 template<class T>
 static void GenerateLightShader(T& object, LightingUidData& uid_data, int index, int litchan_index, const char* lightsName, int coloralpha)
@@ -65,15 +78,18 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 						"ldir = ldir / dist;\n"
 						"attn = max(0.0f, dot(ldir, " LIGHT_DIR".xyz));\n",
 						LIGHT_DIR_PARAMS(lightsName, index));
-			object.Write("attn = max(0.0f, dot(" LIGHT_COSATT".xyz, float3(1.0f, attn, attn*attn))) / dot(" LIGHT_DISTATT".xyz, float3(1.0f,dist,dist2));\n",
-						LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_DISTATT_PARAMS(lightsName, index));
+			// attn*attn may overflow
+			object.Write("attn = max(0.0f, " LIGHT_COSATT".x + " LIGHT_COSATT".y*attn + " LIGHT_COSATT".z*attn*attn) / dot(" LIGHT_DISTATT".xyz, float3(1.0f,dist,dist2));\n",
+						LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_DISTATT_PARAMS(lightsName, index));
 		}
 		else if (chan.attnfunc == 1)
 		{ // specular
 			object.Write("ldir = normalize(" LIGHT_POS".xyz);\n", LIGHT_POS_PARAMS(lightsName, index));
 			object.Write("attn = (dot(_norm0,ldir) >= 0.0f) ? max(0.0f, dot(_norm0, " LIGHT_DIR".xyz)) : 0.0f;\n", LIGHT_DIR_PARAMS(lightsName, index));
-			object.Write("attn = max(0.0f, dot(" LIGHT_COSATT".xyz, float3(1,attn,attn*attn))) / dot(" LIGHT_DISTATT".xyz, float3(1,attn,attn*attn));\n",
-						LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_DISTATT_PARAMS(lightsName, index));
+			// attn*attn may overflow
+			object.Write("attn = max(0.0f, " LIGHT_COSATT".x + " LIGHT_COSATT".y*attn + " LIGHT_COSATT".z*attn*attn) / (" LIGHT_DISTATT".x + " LIGHT_DISTATT".y*attn + " LIGHT_DISTATT".z*attn*attn);\n",
+						LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_COSATT_PARAMS(lightsName, index), LIGHT_COSATT_PARAMS(lightsName, index),
+						LIGHT_DISTATT_PARAMS(lightsName, index), LIGHT_DISTATT_PARAMS(lightsName, index), LIGHT_DISTATT_PARAMS(lightsName, index));
 		}
 
 		switch (chan.diffusefunc)

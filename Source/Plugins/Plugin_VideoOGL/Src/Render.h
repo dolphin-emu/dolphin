@@ -10,7 +10,6 @@ namespace OGL
 void ClearEFBCache();
 
 enum GLSL_VERSION {
-	GLSL_120,
 	GLSL_130,
 	GLSL_140,
 	GLSL_150, // and above

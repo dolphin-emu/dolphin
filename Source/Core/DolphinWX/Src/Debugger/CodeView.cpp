@@ -57,10 +57,7 @@ CCodeView::CCodeView(DebugInterface* debuginterface, SymbolDB *symboldb,
 	  rowHeight(13),
 	  selection(0),
 	  oldSelection(0),
-	  selectionChanged(false),
 	  selecting(false),
-	  hasFocus(false),
-	  showHex(false),
 	  lx(-1),
 	  ly(-1)
 {

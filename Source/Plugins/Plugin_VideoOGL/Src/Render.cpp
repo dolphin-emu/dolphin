@@ -372,11 +372,15 @@ Renderer::Renderer()
 	GLFunc::Init();
 	WARN_LOG(VIDEO, "Running the OpenGL ES 3 backend!");
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
-	g_Config.backend_info.bSupportsGLSLUBO = true; 
-	g_Config.backend_info.bSupportsPrimitiveRestart = false; 
+	g_Config.backend_info.bSupportsGLSLUBO = !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS); 
+	g_Config.backend_info.bSupportsPrimitiveRestart = true; 
 	g_Config.backend_info.bSupportsEarlyZ = false;
-	
+
+#ifdef ANDROID	
+	g_ogl_config.bSupportsGLSLCache = false; 
+#else
 	g_ogl_config.bSupportsGLSLCache = true; 
+#endif
 	g_ogl_config.bSupportsGLPinnedMemory = false; 
 	g_ogl_config.bSupportsGLSync = true; 
 	g_ogl_config.bSupportsGLBaseVertex = false; 
@@ -385,22 +389,34 @@ Renderer::Renderer()
 	g_ogl_config.bSupportOGL31 = false; 
 	g_ogl_config.eSupportedGLSLVersion = GLSLES3;
 #else
-	GLint numvertexattribs = 0;
-	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
-	if (numvertexattribs < 16)
-	{
-		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Number of attributes %d not enough.\n"
-				"GPU: Does your video card support OpenGL 2.x?",
-				numvertexattribs);
-		bSuccess = false;
-	}
 #ifdef __APPLE__
 	glewExperimental = 1;
 #endif
 	if (glewInit() != GLEW_OK)
 	{
-		ERROR_LOG(VIDEO, "glewInit() failed! Does your video card support OpenGL 2.x?");
-		return;	// TODO: fail
+		PanicAlert("glewInit() failed! Does your video card support OpenGL 2.x?");
+		return;
+	}
+	
+	// check for the max vertex attributes
+	GLint numvertexattribs = 0;
+	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
+	if (numvertexattribs < 16)
+	{
+		PanicAlert("GPU: OGL ERROR: Number of attributes %d not enough.\n"
+				"GPU: Does your video card support OpenGL 2.x?",
+				numvertexattribs);
+		bSuccess = false;
+	}
+
+	// check the max texture width and height
+	GLint max_texture_size;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&max_texture_size);
+	if (max_texture_size < 1024)
+	{
+		PanicAlert("GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024.",
+				max_texture_size);
+		bSuccess = false;
 	}
 	
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -412,43 +428,49 @@ Renderer::Renderer()
 	}
 #endif
 
-	if (!GLEW_EXT_secondary_color)
+	if (!GLEW_VERSION_2_0)
 	{
-		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_EXT_secondary_color.\n"
-				"GPU: Does your video card support OpenGL 2.x?");
+		// OpenGL 2.0 is required for all shader based drawings. There is no way to get this by extensions
+		PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
 		bSuccess = false;
 	}
 
 	if (!GLEW_ARB_framebuffer_object)
 	{
-		ERROR_LOG(VIDEO, "GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
+		// We want the ogl3 framebuffer instead of the ogl2 one for better blitting support.
+		// It's also compatible with the gles3 one.
+		PanicAlert("GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
 				"GPU: Does your video card support OpenGL 3.0?");
 		bSuccess = false;
 	}
 
 	if (!GLEW_ARB_vertex_array_object)
 	{
-		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_vertex_array_object.\n"
+		// This extension is used to replace lots of pointer setting function.
+		// Also gles3 requires to use it.
+		PanicAlert("GPU: OGL ERROR: Need GL_ARB_vertex_array_object.\n"
 				"GPU: Does your video card support OpenGL 3.0?");
 		bSuccess = false;
 	}
 	
 	if (!GLEW_ARB_map_buffer_range)
 	{
-		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_map_buffer_range.\n"
+		// ogl3 buffer mapping for better streaming support.
+		// The ogl2 one also isn't in gles3.
+		PanicAlert("GPU: OGL ERROR: Need GL_ARB_map_buffer_range.\n"
 				"GPU: Does your video card support OpenGL 3.0?");
 		bSuccess = false;
 	}
 
 	if (!GLEW_ARB_sampler_objects && bSuccess)
 	{
-		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need GL_ARB_sampler_objects."
-				"GPU: Does your video card support OpenGL 3.2?"
+		// Our sampler cache uses this extension. It could easyly be workaround and it's by far the
+		// highest requirement, but it seems that no driver lacks support for it.
+		PanicAlert("GPU: OGL ERROR: Need GL_ARB_sampler_objects."
+				"GPU: Does your video card support OpenGL 3.3?"
 				"Please report this issue, then there will be a workaround");
 		bSuccess = false;
 	}
-	if (!GLEW_ARB_texture_non_power_of_two)
-		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
 	
 	// OpenGL 3 doesn't provide GLES like float functions for depth.
 	// They are in core in OpenGL 4.1, so almost every driver should support them.
@@ -459,9 +481,6 @@ Renderer::Renderer()
 		glClearDepthf = ClearDepthf;
 		
 	}
-
-	if (!bSuccess)
-		return;	// TODO: fail
 	
 	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
 	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
@@ -476,18 +495,12 @@ Renderer::Renderer()
 	g_ogl_config.bSupportSampleShading = GLEW_ARB_sample_shading;
 	g_ogl_config.bSupportOGL31 = GLEW_VERSION_3_1;
 
-	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10"))
+	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
 	{
-		ERROR_LOG(VIDEO, "GPU: OGL ERROR: Need at least GLSL 1.20\n"
-				"GPU: Does your video card support OpenGL 2.1?\n"
+		PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.30\n"
+				"GPU: Does your video card support OpenGL 3.0?\n"
 				"GPU: Your driver supports GLSL %s", g_ogl_config.glsl_version);
 		bSuccess = false;
-	}
-	else if(strstr(g_ogl_config.glsl_version, "1.20"))
-	{
-		g_ogl_config.eSupportedGLSLVersion = GLSL_120;
-		g_Config.backend_info.bSupportsDualSourceBlend = false; //TODO: implement dual source blend
-		g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
 	}
 	else if(strstr(g_ogl_config.glsl_version, "1.30"))
 	{
@@ -503,7 +516,13 @@ Renderer::Renderer()
 	{
 		g_ogl_config.eSupportedGLSLVersion = GLSL_150;
 	}
-#endif	
+#endif
+	if (!bSuccess)
+	{
+		// Not all needed extensions are supported, so we have to stop here.
+		// Else some of the next calls might crash.
+		return;
+	}
 	
 	glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
 	if(g_ogl_config.max_samples < 1) 
@@ -550,16 +569,6 @@ Renderer::Renderer()
 	s_vsync = g_ActiveConfig.IsVSync();
 	GLInterface->SwapInterval(s_vsync);
 
-	// check the max texture width and height
-	GLint max_texture_size;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&max_texture_size);
-	if (max_texture_size < 1024)
-		ERROR_LOG(VIDEO, "GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024.",
-				max_texture_size);
-
-	if (GL_REPORT_ERROR() != GL_NO_ERROR)
-		bSuccess = false;
-
 	// TODO: Move these somewhere else?
 	FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
 	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
@@ -572,9 +581,6 @@ Renderer::Renderer()
 	// Because of the fixed framebuffer size we need to disable the resolution
 	// options while running
 	g_Config.bRunning = true;
-
-	if (GL_REPORT_ERROR() != GL_NO_ERROR)
-		bSuccess = false;
 	
 	glStencilFunc(GL_ALWAYS, 0, 0);
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -595,9 +601,11 @@ Renderer::Renderer()
 	glBlendColor(0, 0, 0, 0.5f);
 	glClearDepthf(1.0f);
 
-#ifndef USE_GLES3	
 	if(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
 	{
+#ifdef USE_GLES3
+		glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+#else
 		if(g_ogl_config.bSupportOGL31)
 		{
 			glEnable(GL_PRIMITIVE_RESTART);
@@ -608,8 +616,8 @@ Renderer::Renderer()
 			glEnableClientState(GL_PRIMITIVE_RESTART_NV);
 			glPrimitiveRestartIndexNV(65535);
 		}
-	}
 #endif
+	}
 	UpdateActiveConfig();
 }
 
@@ -655,7 +663,7 @@ void Renderer::Init()
 		"	c = vec4(color0, 1.0f);\n"
 		"}\n",
 		"VARYIN vec4 c;\n"
-		"COLOROUT(ocol0)\n"
+		"out vec4 ocol0;\n"
 		"void main(void) {\n"
 		"	ocol0 = c;\n"
 		"}\n");
@@ -1547,34 +1555,35 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (XFBWrited)
 		s_fps = UpdateFPSCounter();
 	// ---------------------------------------------------------------------
-	GL_REPORT_ERRORD();
-	
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
+	{
+		GL_REPORT_ERRORD();
 
-	DrawDebugInfo();
-	DrawDebugText();
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	GL_REPORT_ERRORD();
- 
-	// Do our OSD callbacks	
-	OSD::DoCallbacks(OSD::OSD_ONFRAME);
-	OSD::DrawMessages();
-	GL_REPORT_ERRORD();
+		DrawDebugInfo();
+		DrawDebugText();
 
+		GL_REPORT_ERRORD();
+
+		// Do our OSD callbacks
+		OSD::DoCallbacks(OSD::OSD_ONFRAME);
+		OSD::DrawMessages();
+		GL_REPORT_ERRORD();
+	}
 	// Copy the rendered frame to the real window
 	GLInterface->Swap();
 
 	GL_REPORT_ERRORD();
 
 	// Clear framebuffer
-	if(!g_ActiveConfig.bAnaglyphStereo)
+	if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENSWAP))
 	{
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		GL_REPORT_ERRORD();
 	}
-
-	GL_REPORT_ERRORD();
 
 	if(s_vsync != g_ActiveConfig.IsVSync())
 	{
@@ -1628,6 +1637,9 @@ void Renderer::ResetAPIState()
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
+#ifndef USE_GLES3
+	glDisable(GL_COLOR_LOGIC_OP);
+#endif
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
@@ -1641,6 +1653,7 @@ void Renderer::RestoreAPIState()
 	SetColorMask();
 	SetDepthMode();
 	SetBlendMode(true);
+	SetLogicOpMode();
 	VertexShaderManager::SetViewportChanged();
 
 #ifndef USE_GLES3

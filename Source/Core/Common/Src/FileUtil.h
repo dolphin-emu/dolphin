@@ -21,8 +21,8 @@ enum {
 	D_GCUSER_IDX,
 	D_WIIROOT_IDX,
 	D_WIIUSER_IDX,
-	D_CONFIG_IDX,
-	D_GAMECONFIG_IDX,
+	D_CONFIG_IDX, // global settings
+	D_GAMESETTINGS_IDX, // user-specified settings which override both the global and the default settings (per game)
 	D_MAPS_IDX,
 	D_CACHE_IDX,
 	D_SHADERCACHE_IDX,
@@ -161,10 +161,14 @@ public:
 	bool Close();
 
 	template <typename T>
-	bool ReadArray(T* data, size_t length)
+	bool ReadArray(T* data, size_t length, size_t* pReadBytes = NULL)
 	{
-		if (!IsOpen() || length != std::fread(data, sizeof(T), length, m_file))
+		size_t read_bytes = 0;
+		if (!IsOpen() || length != (read_bytes = std::fread(data, sizeof(T), length, m_file)))
 			m_good = false;
+
+		if (pReadBytes)
+			*pReadBytes = read_bytes;
 
 		return m_good;
 	}

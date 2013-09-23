@@ -37,6 +37,7 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
 		static u16 timeToFill = 0;
 		if (timeToFill == 0)
 		{
+			std::lock_guard<std::mutex> lk(hid->s_device_list_reply);
 			if (hid->deviceCommandAddress != 0){
 				hid->FillOutDevices(Memory::Read_U32(hid->deviceCommandAddress + 0x18), Memory::Read_U32(hid->deviceCommandAddress + 0x1C));
 
@@ -253,6 +254,25 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		// It's the async way!
 		return false;
+		break;
+	}
+	case IOCTL_HID_SHUTDOWN:
+	{
+		std::lock_guard<std::mutex> lk(s_device_list_reply);
+		if (deviceCommandAddress != 0){
+			Memory::Write_U32(0xFFFFFFFF, Memory::Read_U32(deviceCommandAddress + 0x18));
+
+			Memory::Write_U32(8, deviceCommandAddress);
+			// IOS seems to write back the command that was responded to
+			Memory::Write_U32(/*COMMAND_IOCTL*/ 6, deviceCommandAddress + 8);
+
+			// Return value
+			Memory::Write_U32(-1, deviceCommandAddress + 4);
+			WII_IPC_HLE_Interface::EnqueReplyCallback(deviceCommandAddress);
+			deviceCommandAddress = 0;
+		}
+		DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Shutdown) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		break;
 	}
 	default:

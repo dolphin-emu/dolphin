@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "InputConfig.h"
+#include "CommonPaths.h"
 #include "../../Core/Src/ConfigManager.h"
 #include "../../Core/Src/HW/Wiimote.h"
 
@@ -37,7 +38,8 @@ bool InputPlugin::LoadConfig(bool isGC)
 			type = "Wiimote";
 			path = "Profiles/Wiimote/";
 		}
-		game_ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
+		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini");
+		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", true);
 		for (int i = 0; i < 4; i++)
 		{
 			if (game_ini.Exists("Controls", (type + "Profile" + num[i]).c_str()))
@@ -46,7 +48,10 @@ bool InputPlugin::LoadConfig(bool isGC)
 				if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
 					useProfile[i] = true;
 				else
+				{
+					// TODO: Having a PanicAlert for this is dumb.
 					PanicAlertT("Selected controller profile does not exist");
+				}
 			}
 		}
 	}
@@ -94,6 +99,6 @@ void InputPlugin::SaveConfig()
 		e = controllers.end();
 	for ( ; i!=e; ++i )
 		(*i)->SaveConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
-	
+
 	inifile.Save(ini_filename);
 }

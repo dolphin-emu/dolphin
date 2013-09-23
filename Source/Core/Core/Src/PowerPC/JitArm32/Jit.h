@@ -43,9 +43,9 @@
 // #define INSTRUCTION_START Default(inst); return;
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
-#define JITDISABLE(type) \
+#define JITDISABLE(setting) \
 	if (Core::g_CoreStartupParameter.bJITOff || \
-	Core::g_CoreStartupParameter.bJIT##type##Off) \
+	Core::g_CoreStartupParameter.setting) \
 	{Default(inst); return;}
 #define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0])) 
 class JitArm : public JitBase, public ArmGen::ARMXCodeBlock 
@@ -67,7 +67,9 @@ private:
 
 	void PrintDebug(UGeckoInstruction inst, u32 level);
 
-	void Helper_UpdateCR1(ARMReg value);
+	void Helper_UpdateCR1(ARMReg value);	
+
+	void SetFPException(ARMReg Reg, u32 Exception);
 public:
 	JitArm() : code_buffer(32000) {}
 	~JitArm() {}
@@ -82,7 +84,7 @@ public:
 	
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
-	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, void *ctx);
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx);
 
 	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
 
@@ -119,12 +121,17 @@ public:
 	void ComputeRC(s32 value, int cr);
 
 	void ComputeCarry();
+	void ComputeCarry(bool Carry);
 	void GetCarryAndClear(ARMReg reg);
 	void FinalizeCarry(ARMReg reg);
 
 	// TODO: This shouldn't be here
-	void StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset);
-	void LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset);
+	void UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset);
+	void SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 offsetReg, int accessSize, s32 offset);
+
+	void UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset);
+	void SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse);
+
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
@@ -149,29 +156,19 @@ public:
 	void bcctrx(UGeckoInstruction _inst);
 		
 	// Integer
-	void addi(UGeckoInstruction _inst);
-	void addis(UGeckoInstruction _inst);
-	void addx(UGeckoInstruction _inst);
-	void addcx(UGeckoInstruction _inst);
+	void arith(UGeckoInstruction _inst);
+
 	void addex(UGeckoInstruction _inst);
+	void cntlzwx(UGeckoInstruction _inst);
 	void cmp (UGeckoInstruction _inst);
 	void cmpi(UGeckoInstruction _inst);
 	void cmpl(UGeckoInstruction _inst);
 	void cmpli(UGeckoInstruction _inst);
 	void negx(UGeckoInstruction _inst);
-	void mulli(UGeckoInstruction _inst);
-	void mullwx(UGeckoInstruction _inst);
 	void mulhwux(UGeckoInstruction _inst);
-	void ori(UGeckoInstruction _inst);	
-	void oris(UGeckoInstruction _inst);	
-	void orx(UGeckoInstruction _inst);
-	void xorx(UGeckoInstruction _inst);
-	void andx(UGeckoInstruction _inst);
-	void andi_rc(UGeckoInstruction _inst);
-	void andis_rc(UGeckoInstruction _inst);
 	void rlwimix(UGeckoInstruction _inst);
 	void rlwinmx(UGeckoInstruction _inst);
-	void subfx(UGeckoInstruction _inst);
+	void rlwnmx(UGeckoInstruction _inst);
 	void srawix(UGeckoInstruction _inst);
 	void extshx(UGeckoInstruction inst);
 	void extsbx(UGeckoInstruction inst);
@@ -182,25 +179,27 @@ public:
 	void mtspr(UGeckoInstruction _inst);
 	void mfspr(UGeckoInstruction _inst);
 	void mftb(UGeckoInstruction _inst);
+	void crXXX(UGeckoInstruction _inst);
+	void mcrf(UGeckoInstruction _inst);
+	void mfcr(UGeckoInstruction _inst);
+	void mtcrf(UGeckoInstruction _inst);
+	void mtsr(UGeckoInstruction _inst);
+	void mfsr(UGeckoInstruction _inst);
+	void mcrxr(UGeckoInstruction _inst);
 
 	// LoadStore
+	void stX(UGeckoInstruction _inst);
+	void lXX(UGeckoInstruction _inst);
+	void lmw(UGeckoInstruction _inst);
+	void stmw(UGeckoInstruction _inst);
+
 	void icbi(UGeckoInstruction _inst);
 	void dcbst(UGeckoInstruction _inst);
-	void lbz(UGeckoInstruction _inst);
-	void lhz(UGeckoInstruction _inst);
-	void lha(UGeckoInstruction _inst);
-	void lwz(UGeckoInstruction _inst);
-	void lwzx(UGeckoInstruction _inst);
-	void stb(UGeckoInstruction _inst);
-	void stbu(UGeckoInstruction _inst);
-	void sth(UGeckoInstruction _inst);
-	void sthu(UGeckoInstruction _inst);
-	void stw(UGeckoInstruction _inst);
-	void stwu(UGeckoInstruction _inst);
-	void stwx(UGeckoInstruction _inst);
 
 	// Floating point
 	void fabsx(UGeckoInstruction _inst);
+	void fnabsx(UGeckoInstruction _inst);
+	void fnegx(UGeckoInstruction _inst);
 	void faddsx(UGeckoInstruction _inst);
 	void faddx(UGeckoInstruction _inst);
 	void fsubsx(UGeckoInstruction _inst);
@@ -208,18 +207,52 @@ public:
 	void fmulsx(UGeckoInstruction _inst);
 	void fmulx(UGeckoInstruction _inst);
 	void fmrx(UGeckoInstruction _inst);
+	void fmaddsx(UGeckoInstruction _inst);
+	void fmaddx(UGeckoInstruction _inst);
+	void fctiwzx(UGeckoInstruction _inst);
+	void fcmpo(UGeckoInstruction _inst);
+	void fcmpu(UGeckoInstruction _inst);
 
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);
+	void lfsu(UGeckoInstruction _inst);
+	void lfsx(UGeckoInstruction _inst);
 	void lfd(UGeckoInstruction _inst);
+	void lfdu(UGeckoInstruction _inst);
 	void stfs(UGeckoInstruction _inst);
+	void stfsu(UGeckoInstruction _inst);
+	void stfd(UGeckoInstruction _inst);
+	void stfdu(UGeckoInstruction _inst);
 
 	// Paired Singles
 	void ps_add(UGeckoInstruction _inst);
 	void ps_sum0(UGeckoInstruction _inst);
+	void ps_sum1(UGeckoInstruction _inst);
 	void ps_madd(UGeckoInstruction _inst);
+	void ps_nmadd(UGeckoInstruction _inst);
+	void ps_msub(UGeckoInstruction _inst);
+	void ps_nmsub(UGeckoInstruction _inst);
+	void ps_madds0(UGeckoInstruction _inst);
+	void ps_madds1(UGeckoInstruction _inst);
 	void ps_sub(UGeckoInstruction _inst);
 	void ps_mul(UGeckoInstruction _inst);
+	void ps_muls0(UGeckoInstruction _inst);
+	void ps_muls1(UGeckoInstruction _inst);
+	void ps_merge00(UGeckoInstruction _inst);
+	void ps_merge01(UGeckoInstruction _inst);
+	void ps_merge10(UGeckoInstruction _inst);
+	void ps_merge11(UGeckoInstruction _inst);
+	void ps_mr(UGeckoInstruction _inst);
+	void ps_neg(UGeckoInstruction _inst);
+	void ps_abs(UGeckoInstruction _inst);
+	void ps_nabs(UGeckoInstruction _inst);
+	void ps_rsqrte(UGeckoInstruction _inst);
+	void ps_sel(UGeckoInstruction _inst);
+
+	// LoadStore paired
+	void psq_l(UGeckoInstruction _inst);
+	void psq_st(UGeckoInstruction _inst);
+
 };
 
 #endif // _JIT64_H

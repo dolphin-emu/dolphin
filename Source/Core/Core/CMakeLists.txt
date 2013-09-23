@@ -215,6 +215,7 @@ if(_M_ARM)
 			Src/PowerPC/JitArm32/JitArm_LoadStore.cpp
 			Src/PowerPC/JitArm32/JitArm_FloatingPoint.cpp
 			Src/PowerPC/JitArm32/JitArm_Paired.cpp
+			Src/PowerPC/JitArm32/JitArm_LoadStorePaired.cpp
 			Src/PowerPC/JitArm32/JitArm_SystemRegisters.cpp
 			Src/PowerPC/JitArm32/JitArm_LoadStoreFloating.cpp)
 endif()
@@ -231,7 +232,7 @@ if(LIBUSB_FOUND)
 	set(SRCS	${SRCS}	Src/IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
 endif(LIBUSB_FOUND)
 
-set(LIBS	${LIBS}	polarssl)
+set(LIBS ${LIBS} ${POLARSSL_LIBRARY})
 
 if(WIN32)
 	set(SRCS ${SRCS} Src/HW/BBA-TAP/TAP_Win32.cpp Src/stdafx.cpp

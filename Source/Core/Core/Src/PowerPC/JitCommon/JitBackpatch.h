@@ -36,6 +36,13 @@
 
 #endif
 
+#if defined(_M_ARM)
+#define CONTEXT_PC(ctx) ((ctx)->reg_pc)
+#elif defined(_M_X64)
+#define CONTEXT_PC(ctx) ((ctx)->Rip)
+#else
+#define CONTEXT_PC(ctx) ((ctx)->Eip)
+#endif
 
 class TrampolineCache : public Gen::XCodeBlock
 {

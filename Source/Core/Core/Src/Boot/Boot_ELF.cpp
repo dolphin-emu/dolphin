@@ -68,7 +68,7 @@ bool CBoot::Boot_ELF(const char *filename)
 	reader.LoadInto(0x80000000);
 	if (!reader.LoadSymbols())
 	{
-		if (LoadMapFromFilename(filename))
+		if (LoadMapFromFilename())
 			HLE::PatchFunctions();
 	}
 	else

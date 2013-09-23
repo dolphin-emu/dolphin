@@ -9,8 +9,7 @@
 #include "FileUtil.h"
 
 CDump::CDump(const char* _szFilename) :
-	m_pData(NULL),
-	m_bInit(false)
+	m_pData(NULL)
 {
 	File::IOFile pStream(_szFilename, "rb");
 	if (pStream)

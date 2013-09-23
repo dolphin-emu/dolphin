@@ -25,7 +25,7 @@
 void JitIL::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA)
@@ -38,7 +38,7 @@ void JitIL::lhax(UGeckoInstruction inst)
 void JitIL::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
@@ -58,7 +58,7 @@ void JitIL::lXz(UGeckoInstruction inst)
 
 void JitIL::lbzu(UGeckoInstruction inst) {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 	const IREmitter::InstLoc uAddress = ibuild.EmitAdd(ibuild.EmitLoadGReg(inst.RA), ibuild.EmitIntConst((int)inst.SIMM_16));
 	const IREmitter::InstLoc temp = ibuild.EmitLoad8(uAddress);
 	ibuild.EmitStoreGReg(temp, inst.RD);
@@ -68,7 +68,7 @@ void JitIL::lbzu(UGeckoInstruction inst) {
 void JitIL::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr =
 		ibuild.EmitIntConst((s32)(s16)inst.SIMM_16);
@@ -82,7 +82,7 @@ void JitIL::lha(UGeckoInstruction inst)
 void JitIL::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA) {
@@ -104,7 +104,7 @@ void JitIL::lXzx(UGeckoInstruction inst)
 void JitIL::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
 	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
 	// memory location.  Do not invalidate the JIT cache in this case as the memory
@@ -145,7 +145,7 @@ void JitIL::dcbz(UGeckoInstruction inst)
 void JitIL::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   value = ibuild.EmitLoadGReg(inst.RS);
@@ -165,7 +165,7 @@ void JitIL::stX(UGeckoInstruction inst)
 void JitIL::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB),
 			   value = ibuild.EmitLoadGReg(inst.RS);
@@ -185,7 +185,7 @@ void JitIL::stXx(UGeckoInstruction inst)
 void JitIL::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
@@ -201,7 +201,7 @@ void JitIL::lmw(UGeckoInstruction inst)
 void JitIL::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)

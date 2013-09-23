@@ -9,6 +9,7 @@
 #include "XFMemory.h"
 #include "VideoCommon.h"
 #include "ShaderGenCommon.h"
+#include "LightingShaderGen.h"
 
 // TODO should be reordered
 #define SHADER_POSITION_ATTRIB  0

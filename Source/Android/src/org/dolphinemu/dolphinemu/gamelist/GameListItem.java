@@ -42,7 +42,7 @@ public final class GameListItem implements Comparable<GameListItem>
 		this.path = path;
 
 		File file = new File(path);
-		if (!file.isDirectory() && !path.equals(""))
+		if (!file.isDirectory() && !path.isEmpty())
 		{
 			int[] Banner = NativeLibrary.GetBanner(path);
 			if (Banner[0] == 0)
@@ -60,7 +60,7 @@ public final class GameListItem implements Comparable<GameListItem>
 				}
 				catch (IOException e)
 				{
-					Log.e("Exception-GameListItem", e.toString());
+					Log.e("GameListItem", e.toString());
 				}
 			}
 			else
@@ -117,7 +117,7 @@ public final class GameListItem implements Comparable<GameListItem>
 		if (name != null)
 			return name.toLowerCase().compareTo(o.getName().toLowerCase()); 
 		else 
-			throw new IllegalArgumentException();
+			throw new NullPointerException("The name of this GameListItem is null");
 	}
 }
 

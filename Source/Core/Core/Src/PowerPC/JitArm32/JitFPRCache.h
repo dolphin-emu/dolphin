@@ -29,6 +29,7 @@ using namespace ArmGen;
 class ArmFPRCache
 {
 private:
+	OpArg _regs[32][2]; // One for each FPR reg
 	JRCPPC ArmCRegs[ARMFPUREGS];
 	JRCReg ArmRegs[ARMFPUREGS]; 
 	
@@ -40,6 +41,8 @@ private:
 
 	ARMReg GetPPCReg(u32 preg, bool PS1, bool preLoad);
 
+	u32 GetLeastUsedRegister(bool increment); 
+	bool FindFreeRegister(u32 &regindex); 
 protected:
 	ARMXEmitter *emit;
 	

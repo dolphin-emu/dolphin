@@ -507,6 +507,16 @@ void Write_U64_Swap(const u64 _Data, const u32 _Address) {
 	Write_U64(Common::swap64(_Data), _Address);
 }
 
+void Write_F64(const double _Data, const u32 _Address)
+{
+	union
+	{
+		u64 i;
+		double d;
+	} cvt;
+	cvt.d = _Data;
+	Write_U64(cvt.i, _Address);
+}
 u8 ReadUnchecked_U8(const u32 _Address)
 {    
 	u8 _var = 0;

@@ -475,14 +475,12 @@ public:
 	{
 		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
 		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-		u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 
 		u32 result = 0;
 		u32 common_result = 0;
 		// TODO Writes stuff to /shared2/nwc24/misc.bin
-		u32 update_misc = 0;
+		//u32 update_misc = 0;
 
 		switch (Parameter)
 		{
@@ -492,12 +490,12 @@ public:
 
 		case IOCTL_NW24_SET_UNIVERSAL_TIME:
 			SetAdjustedUTC(Memory::Read_U64(BufferIn));
-			update_misc = Memory::Read_U32(BufferIn + 8);
+			//update_misc = Memory::Read_U32(BufferIn + 8);
 			break;
 
 		case IOCTL_NW24_SET_RTC_COUNTER:
 			rtc = Memory::Read_U32(BufferIn);
-			update_misc = Memory::Read_U32(BufferIn + 4);
+			//update_misc = Memory::Read_U32(BufferIn + 4);
 			break;
 
 		case IOCTL_NW24_GET_TIME_DIFF:

@@ -108,7 +108,19 @@
         <item>6</item>
         <item>7</item>
     </string-array>
-    
+
+    <!-- FSAA Preference -->
+    <string-array name="FSAAEntries" translatable="false">
+        <item>1x</item>
+        <item>2x</item>
+        <item>4x</item>
+    </string-array>
+    <string-array name="FSAAValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+
     <!-- Anisotropic Filtering Preference -->
     <string-array name="anisotropicFilteringEntries" translatable="false">
         <item>1x</item>

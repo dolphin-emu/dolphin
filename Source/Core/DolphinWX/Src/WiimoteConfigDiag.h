@@ -68,7 +68,6 @@ private:
 	void Cancel(wxCommandEvent& event);
 
 	InputPlugin&	m_plugin;
-	wxNotebook*		m_pad_notebook;
 
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
 	unsigned int m_orig_wiimote_sources[MAX_BBMOTES];

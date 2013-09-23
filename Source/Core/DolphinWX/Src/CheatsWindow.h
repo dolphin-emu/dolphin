@@ -130,8 +130,10 @@ class wxCheatsWindow : public wxDialog
 		std::vector<ARCodeIndex> indexList;
 
 		Gecko::CodeConfigPanel *m_geckocode_panel;
-		IniFile m_gameini;
-		std::string m_gameini_path;
+		IniFile m_gameini_default;
+		IniFile m_gameini_local;
+		std::string m_gameini_default_path;
+		std::string m_gameini_local_path;
 
 		void Init_ChildControls();
 

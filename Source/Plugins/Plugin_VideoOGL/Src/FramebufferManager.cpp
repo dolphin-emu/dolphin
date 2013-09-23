@@ -6,6 +6,7 @@
 #include "FramebufferManager.h"
 #include "VertexShaderGen.h"
 #include "OnScreenDisplay.h"
+#include "GLFunctions.h"
 
 #include "TextureConverter.h"
 #include "Render.h"
@@ -99,7 +100,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		GL_REPORT_FBO_ERROR();
 	}
-#ifndef USE_GLES3
 	else
 	{
 		// EFB targets will be renderbuffers in MSAA mode (required by OpenGL).
@@ -150,7 +150,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindTexture(getFbType(), m_resolvedDepthTexture);
 		glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
-		glTexImage2D(getFbType(), 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(getFbType(), 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 
 		// Bind resolved textures to resolved framebuffer.
 
@@ -165,7 +165,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer);
 	}
-#endif
 	// Create XFB framebuffer; targets will be created elsewhere.
 
 	glGenFramebuffers(1, &m_xfbFramebuffer);
@@ -201,7 +200,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	
 	char ps_rgba6_to_rgb8[] = 
 		"uniform sampler2DRect samp9;\n"
-		"COLOROUT(ocol0)\n"
+		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
 		"	ivec4 src6 = ivec4(round(texture2DRect(samp9, gl_FragCoord.xy) * 63.f));\n"
@@ -215,7 +214,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		
 	char ps_rgb8_to_rgba6[] = 
 		"uniform sampler2DRect samp9;\n"
-		"COLOROUT(ocol0)\n"
+		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
 		"	ivec4 src8 = ivec4(round(texture2DRect(samp9, gl_FragCoord.xy) * 255.f));\n"
@@ -227,13 +226,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	ocol0 = float4(dst6) / 63.f;\n"
 		"}";
 	
-	if(g_ogl_config.eSupportedGLSLVersion != GLSL_120)
-	{
-		// HACK: This shaders aren't glsl120 compatible as glsl120 don't support bit operations
-		// it could be workaround by floor + frac + tons off additions, but I think it isn't worth 
-		ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6);
-		ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8);
-	}
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6);
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8);
 
 }
 
@@ -365,18 +359,6 @@ GLuint FramebufferManager::ResolveAndGetDepthTarget(const EFBRectangle &source_r
 
 void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 {
-	if(g_ogl_config.eSupportedGLSLVersion == GLSL_120) {
-		// This feature isn't supported by glsl120
-		
-		// TODO: move this to InitBackendInfo
-		// We have to disable both the active and the stored config. Else we would either
-		// show this line per format change in one frame or once per frame.
-		OSD::AddMessage("Format Change Emulation isn't supported by your GPU.", 10000);
-		g_ActiveConfig.bEFBEmulateFormatChanges = false;
-		g_Config.bEFBEmulateFormatChanges = false;
-		return;
-	}
-	
 	g_renderer->ResetAPIState();
 	
 	GLuint src_texture = 0;

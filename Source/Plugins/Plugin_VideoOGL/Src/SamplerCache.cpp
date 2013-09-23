@@ -89,7 +89,7 @@ void SamplerCache::SetParameters(GLuint sampler_id, const Params& params)
 	auto& tm0 = params.tm0;
 	auto& tm1 = params.tm1;
 
-	glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, min_filters[tm0.min_filter % ARRAYSIZE(min_filters)]);
+	glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, min_filters[tm0.min_filter % ArraySize(min_filters)]);
 	glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, tm0.mag_filter ? GL_LINEAR : GL_NEAREST);
 
 	glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, wrap_settings[tm0.wrap_s]);

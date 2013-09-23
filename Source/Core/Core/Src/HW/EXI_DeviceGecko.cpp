@@ -116,7 +116,7 @@ void GeckoSockServer::ClientThread()
 		char data[128];
 		std::size_t got = 0;
 		
-		if (client.Receive(&data[0], ARRAYSIZE(data), got) == sf::Socket::Disconnected)
+		if (client.Receive(&data[0], ArraySize(data), got) == sf::Socket::Disconnected)
 			client_running = false;
 		
 		if (got != 0)

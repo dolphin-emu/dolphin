@@ -639,7 +639,7 @@ public:
 
 	// Pass a register as a parameter.
 	void ABI_CallFunctionR(void *func, Gen::X64Reg reg1);
-	void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2);
+	void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2, bool noProlog = false);
 
 	// A function that doesn't have any control over what it will do to regs,
 	// such as the dispatcher, should be surrounded by these.
@@ -652,14 +652,9 @@ public:
 	void ABI_PushAllCallerSavedRegsAndAdjustStack();
 	void ABI_PopAllCallerSavedRegsAndAdjustStack();
 
-	unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize);
-	void ABI_AlignStack(unsigned int frameSize);
-	void ABI_RestoreStack(unsigned int frameSize);
-
-	// Sets up a __cdecl function.
-	// Only x64 really needs the parameter count.
-	void ABI_EmitPrologue(int maxCallParams);
-	void ABI_EmitEpilogue(int maxCallParams);
+	unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize, bool noProlog = false);
+	void ABI_AlignStack(unsigned int frameSize, bool noProlog = false);
+	void ABI_RestoreStack(unsigned int frameSize, bool noProlog = false);
 
 	#ifdef _M_IX86
 	inline int ABI_GetNumXMMRegs() { return 8; }

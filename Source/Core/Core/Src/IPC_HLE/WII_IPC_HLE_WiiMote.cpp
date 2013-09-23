@@ -265,7 +265,7 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 			_dbg_assert_msg_(WII_IPC_WIIMOTE, DoesChannelExist(pHeader->dcid), "L2CAP: SendACLPacket to unknown channel %i", pHeader->dcid);
 			CChannelMap::iterator  itr= m_Channel.find(pHeader->dcid);
 
-			const int number = NetPlay_GetWiimoteNum(m_ConnectionHandle & 0xFF);
+			const int number = m_ConnectionHandle & 0xFF;
 
 			if (itr != m_Channel.end())
 			{
@@ -862,8 +862,6 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 
 void CWII_IPC_HLE_WiiMote::ReceiveL2capData(u16 scid, const void* _pData, u32 _Size)
 {
-	if (NetPlay_WiimoteInput(m_ConnectionHandle & 0xFF, scid, _pData, _Size))
-		return;
 
 	// Allocate DataFrame
 	u8 DataFrame[1024];

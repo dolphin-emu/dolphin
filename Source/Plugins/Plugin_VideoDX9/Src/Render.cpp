@@ -969,7 +969,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 					h = s_recordHeight;
 				}
 				formatBufferDump((const u8*)rect.pBits, &frame_data[0], s_recordWidth, s_recordHeight, rect.Pitch);
-				AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
+				AVIDump::AddFrame(&frame_data[0], GetTargetRectangle().GetWidth(), GetTargetRectangle().GetHeight());
 				ScreenShootMEMSurface->UnlockRect();
 			}
 		}
@@ -1318,7 +1318,7 @@ void Renderer::SetLineWidth()
 	// We can't change line width in D3D unless we use ID3DXLine
 	float fratio = xfregs.viewport.wd != 0 ? Renderer::EFBToScaledXf(1.f) : 1.0f;
 	float psize = bpmem.lineptwidth.pointsize * fratio / 6.0f;
-	psize = psize > 0 ? psize : 1.0;    
+	psize = psize > 0 ? psize : 1.0f;
 	if (psize > m_fMaxPointSize)
 	{
 		psize = m_fMaxPointSize;

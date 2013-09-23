@@ -8,6 +8,7 @@
 #include "VideoCommon.h"
 #include "ShaderGenCommon.h"
 #include "BPMemory.h"
+#include "LightingShaderGen.h"
 
 #define I_COLORS      "color"
 #define I_KCOLORS     "k"

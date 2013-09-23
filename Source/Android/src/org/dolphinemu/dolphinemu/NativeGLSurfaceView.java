@@ -51,12 +51,12 @@ public final class NativeGLSurfaceView extends SurfaceView
 						}
 					}
 
-					public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3)
+					public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
 					{
 						// TODO Auto-generated method stub
 					}
 
-					public void surfaceDestroyed(SurfaceHolder arg0)
+					public void surfaceDestroyed(SurfaceHolder holder)
 					{
 						// TODO Auto-generated method stub
 					}

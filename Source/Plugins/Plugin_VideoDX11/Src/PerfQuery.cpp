@@ -9,7 +9,7 @@ PerfQuery::PerfQuery()
 	: m_query_read_pos()
 	, m_query_count()
 {
-	for (int i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
+	for (int i = 0; i != ArraySize(m_query_buffer); ++i)
 	{
 		D3D11_QUERY_DESC qdesc = CD3D11_QUERY_DESC(D3D11_QUERY_OCCLUSION, 0);
 		D3D::device->CreateQuery(&qdesc, &m_query_buffer[i].query);
@@ -19,7 +19,7 @@ PerfQuery::PerfQuery()
 
 PerfQuery::~PerfQuery()
 {
-	for (int i = 0; i != ARRAYSIZE(m_query_buffer); ++i)
+	for (int i = 0; i != ArraySize(m_query_buffer); ++i)
 	{
 		// TODO: EndQuery?
 		m_query_buffer[i].query->Release();
@@ -32,10 +32,10 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 		return;
 
 	// Is this sane?
-	if (m_query_count > ARRAYSIZE(m_query_buffer) / 2)
+	if (m_query_count > ArraySize(m_query_buffer) / 2)
 		WeakFlush();
 
-	if (ARRAYSIZE(m_query_buffer) == m_query_count)
+	if (ArraySize(m_query_buffer) == m_query_count)
 	{
 		// TODO
 		FlushOne();
@@ -45,7 +45,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 	// start query
 	if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
 	{
-		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count) % ARRAYSIZE(m_query_buffer)];
+		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count) % ArraySize(m_query_buffer)];
 
 		D3D::context->Begin(entry.query);
 		entry.query_type = type;
@@ -62,7 +62,7 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
 	// stop query
 	if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
 	{
-		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count + ARRAYSIZE(m_query_buffer)-1) % ARRAYSIZE(m_query_buffer)];
+		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count + ArraySize(m_query_buffer)-1) % ArraySize(m_query_buffer)];
 		D3D::context->End(entry.query);
 	}
 }
@@ -70,7 +70,7 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
 void PerfQuery::ResetQuery()
 {
 	m_query_count = 0;
-	std::fill_n(m_results, ARRAYSIZE(m_results), 0);
+	std::fill_n(m_results, ArraySize(m_results), 0);
 }
 
 u32 PerfQuery::GetQueryResult(PerfQueryType type)
@@ -118,7 +118,7 @@ void PerfQuery::FlushOne()
 	// NOTE: Reported pixel metrics should be referenced to native resolution
 	m_results[entry.query_type] += (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
 
-	m_query_read_pos = (m_query_read_pos + 1) % ARRAYSIZE(m_query_buffer);
+	m_query_read_pos = (m_query_read_pos + 1) % ArraySize(m_query_buffer);
 	--m_query_count;
 }
 
@@ -149,7 +149,7 @@ void PerfQuery::WeakFlush()
 			// NOTE: Reported pixel metrics should be referenced to native resolution
 			m_results[entry.query_type] += (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
 
-			m_query_read_pos = (m_query_read_pos + 1) % ARRAYSIZE(m_query_buffer);
+			m_query_read_pos = (m_query_read_pos + 1) % ArraySize(m_query_buffer);
 			--m_query_count;
 		}
 		else

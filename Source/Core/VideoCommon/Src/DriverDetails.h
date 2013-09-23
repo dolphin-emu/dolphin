@@ -99,6 +99,22 @@ namespace DriverDetails
 		// to be broken. We just get flickering/black rendering when using pinned memory here -- degasus - 2013/08/20
 		// Please see issue #6105 on google code. Let's hope buffer storage solves this issues.
 		BUG_BROKENPINNEDMEMORY,
+		// Bug: Entirely broken UBOs
+		// Affected devices: Qualcomm/Adreno
+		// Started Version: ? (Noticed on v45)
+		// Ended Version: -1
+		// Uniform buffers are entirely broken on Qualcomm drivers with v45
+		// Trying to use the uniform buffers causes a malloc to fail inside the driver
+		// To be safe, blanket drivers from v41 - v45
+		BUG_ANNIHILATEDUBOS,
+		// Bug : Can't draw on screen text and clear correctly.
+		// Affected devices: Qualcomm/Adreno
+		// Started Version: ?
+		// Ended Version: ?
+		// Current code for drawing on screen text and clearing the framebuffer doesn't work on Adreno
+		// Drawing on screen text causes the whole screen to swizzle in a terrible fashion
+		// Clearing the framebuffer causes one to never see a frame.
+		BUG_BROKENSWAP,
 	};
 	
 	// Initializes our internal vendor, device family, and driver version	

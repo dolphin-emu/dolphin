@@ -52,7 +52,9 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	: m_valid(false)
 	, m_fileName(filename)
 {
-	File::IOFile mcdFile(m_fileName, "r+b");
+	// Currently there is a string freeze. instead of adding a new message about needing r/w
+	// open file read only, if write is denied the error will be reported at that point
+	File::IOFile mcdFile(m_fileName, "rb");
 	if (!mcdFile.IsOpen())
 	{
 		if (!forceCreation && !AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
@@ -1324,8 +1326,8 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 void GCMemcard::CARD_GetSerialNo(u32 *serial1,u32 *serial2)
 {
 	u32 serial[8];
-	int i;
-	for (i = 0; i < 8; i++)
+
+	for (int i = 0; i < 8; i++)
 	{
 		memcpy(&serial[i], (u8 *) &hdr+(i*4), 4);
 	}
@@ -1429,15 +1431,15 @@ s32 GCMemcard::PSO_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &Fi
 	for (i=0; i < 256; i++)
 	{
 		chksum = i;
-			for (j=8; j > 0; j--)
-			{
-				if (chksum & 1)
-					chksum = (chksum>>1)^0xEDB88320;
-				else
-					chksum >>= 1;
-			}
+		for (j=8; j > 0; j--)
+		{
+			if (chksum & 1)
+				chksum = (chksum>>1)^0xEDB88320;
+			else
+				chksum >>= 1;
+		}
 
-			crc32LUT[i] = chksum;
+		crc32LUT[i] = chksum;
 	}
 
 	// PSO initial crc32 value

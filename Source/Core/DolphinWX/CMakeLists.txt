@@ -175,7 +175,7 @@ if(USE_UPNP)
 endif()
 
 include(FindGettext)
-if(GETTEXT_FOUND AND wxWidgets_FOUND)
+if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
 	file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
 	add_custom_target(translations ALL)
 	GETTEXT_CREATE_TRANSLATIONS(${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot ${LINGUAS})
@@ -212,9 +212,6 @@ if(ANDROID)
 	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/
 	)
-	add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-		COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/Wii/* ${CMAKE_SOURCE_DIR}/Source/Android/assets/
-	)
 else()
 	add_executable(${DOLPHIN_EXE} ${SRCS})
 	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
@@ -247,21 +244,21 @@ else()
 
 		# Copy data files into application bundle.
 		file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/copy_data_into_bundle.cmake "
-			file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys ${CMAKE_SOURCE_DIR}/Data/User
+			file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys
 				DESTINATION ${BUNDLE_PATH}/Contents/Resources
 				)
 			file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle \"\")
 			")
 		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle
 			COMMAND ${CMAKE_COMMAND} -P copy_data_into_bundle.cmake
-			DEPENDS ${CMAKE_SOURCE_DIR}/Data/Sys ${CMAKE_SOURCE_DIR}/Data/User
+			DEPENDS ${CMAKE_SOURCE_DIR}/Data/Sys
 			VERBATIM
 			)
 		add_custom_target(CopyDataIntoBundle ALL
 			DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle
 			)
 
-		if(GETTEXT_FOUND AND wxWidgets_FOUND)
+		if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
 			file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/copy_translations_into_bundle.cmake "
 				file(GLOB TRANSLATION_FILES RELATIVE ${CMAKE_CURRENT_BINARY_DIR}
 					${CMAKE_CURRENT_BINARY_DIR}/*.gmo
@@ -291,7 +288,7 @@ else()
 			add_custom_command(OUTPUT ${BUNDLE_PATH}/Contents/Resources/en.lproj
 				COMMAND ${CMAKE_COMMAND} -P copy_translations_into_bundle.cmake
 				DEPENDS ${GMO_FILES}
-				${CMAKE_SOURCE_DIR}/Data/Sys ${CMAKE_SOURCE_DIR}/Data/User
+				${CMAKE_SOURCE_DIR}/Data/Sys
 				VERBATIM
 				)
 			add_custom_target(CopyTranslationsIntoBundle ALL

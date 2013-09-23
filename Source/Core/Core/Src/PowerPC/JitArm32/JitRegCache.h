@@ -38,55 +38,57 @@ using namespace ArmGen;
 enum RegType
 {
 	REG_NOTLOADED = 0,
-	REG_REG,
-	REG_IMM,
+	REG_REG, // Reg type is register
+	REG_IMM, // Reg is really a IMM
+	REG_AWAY, // Bound to a register, but not preloaded
 };
 
 class OpArg 
 {
 	private:
-	class Reg{
-		public:
-		RegType m_type;
-		u8 m_reg; // index to register
-		u32 m_value;
-		Reg()
-		{
-			m_type = REG_NOTLOADED;
-			m_reg = 33;
-			m_value = 0;
-		}
-	} Reg;
+	RegType m_type; // store type
+	u8 m_reg; // index to register
+	u32 m_value; // IMM value
 
 	public:
-	OpArg(){}
+	OpArg()
+	{
+		m_type = REG_NOTLOADED;
+		m_reg = 33;
+		m_value = 0;
+	}
 	
 	RegType GetType()
 	{
-		return Reg.m_type;
+		return m_type;
 	}
 
 	u8 GetRegIndex()
 	{
-		return Reg.m_reg;
+		return m_reg;
 	}
 	u32 GetImm()
 	{
-		return Reg.m_value;
+		return m_value;
+	}
+	void LoadToAway(u8 reg)
+	{
+		m_type = REG_AWAY;
+		m_reg = reg;
 	}
 	void LoadToReg(u8 reg)
 	{
-		Reg.m_type = REG_REG;
-		Reg.m_reg = reg;
+		m_type = REG_REG;
+		m_reg = reg;
 	}
 	void LoadToImm(u32 imm)
 	{
-		Reg.m_type = REG_IMM;
-		Reg.m_value = imm;
+		m_type = REG_IMM;
+		m_value = imm;
 	}
 	void Flush()
 	{
-		Reg.m_type = REG_NOTLOADED;
+		m_type = REG_NOTLOADED;
 	}
 };
 
@@ -96,7 +98,6 @@ struct JRCPPC
 	bool PS1;
 	ARMReg Reg; // Tied to which ARM Register
 	u32 LastLoad;
-	bool Away; // Only used in FPR cache
 };
 struct JRCReg
 {

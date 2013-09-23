@@ -40,7 +40,7 @@ static void WriteDual32(u64 value, u32 address)
 void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStorePaired)
+	JITDISABLE(bJITLoadStorePairedOff)
 
 	if (js.memcheck) { Default(inst); return; }
 
@@ -123,7 +123,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 void Jit64::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStorePaired)
+	JITDISABLE(bJITLoadStorePairedOff)
 
 	if (js.memcheck) { Default(inst); return; }
 

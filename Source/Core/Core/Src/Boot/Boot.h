@@ -16,14 +16,26 @@ public:
 
 	static bool BootUp();
 	static bool IsElfWii(const char *filename);
-	static std::string GenerateMapFilename();
+
+	// Tries to find a map file for the current game by looking first in the
+	// local user directory, then in the shared user directory.
+	//
+	// If existing_map_file is not NULL and a map file exists, it is set to the
+	// path to the existing map file.
+	//
+	// If writable_map_file is not NULL, it is set to the path to where a map
+	// file should be saved.
+	//
+	// Returns true if a map file exists, false if none could be found.
+	static bool FindMapFile(std::string* existing_map_file,
+	                        std::string* writable_map_file);
 
 private:
 	static void RunFunction(u32 _iAddr);
 
 	static void UpdateDebugger_MapLoaded(const char* _gameID = NULL);
 
-	static bool LoadMapFromFilename(const std::string& _rFilename, const char* _gameID = NULL);
+	static bool LoadMapFromFilename();
 	static bool Boot_ELF(const char *filename);
 	static bool Boot_WiiWAD(const char *filename);
 

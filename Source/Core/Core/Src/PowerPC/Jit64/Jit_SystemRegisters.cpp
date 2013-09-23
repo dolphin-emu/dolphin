@@ -20,7 +20,7 @@
 void Jit64::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	int d = inst.RD;
 
@@ -72,7 +72,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
 void Jit64::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	int d = inst.RD;
 	switch (iIndex)
@@ -100,7 +100,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
  	// Don't interpret this, if we do we get thrown out
-	//JITDISABLE(SystemRegisters)
+	//JITDISABLE(bJITSystemRegistersOff)
 	if (!gpr.R(inst.RS).IsImm())
 	{
 		gpr.Lock(inst.RS);
@@ -139,7 +139,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 void Jit64::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 	//Privileged?
 	gpr.Lock(inst.RD);
 	gpr.BindToRegister(inst.RD, false, true);
@@ -150,14 +150,14 @@ void Jit64::mfmsr(UGeckoInstruction inst)
 void Jit64::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 	mfspr(inst);
 }
 
 void Jit64::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 	// USES_CR
 	int d = inst.RD;
 	gpr.Lock(d);
@@ -177,7 +177,7 @@ void Jit64::mfcr(UGeckoInstruction inst)
 void Jit64::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 
 	// USES_CR
 	u32 crm = inst.CRM;
@@ -216,7 +216,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 void Jit64::mcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 
 	// USES_CR
 	if (inst.CRFS != inst.CRFD)
@@ -229,7 +229,7 @@ void Jit64::mcrf(UGeckoInstruction inst)
 void Jit64::mcrxr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 
 	// USES_CR
 
@@ -245,7 +245,7 @@ void Jit64::mcrxr(UGeckoInstruction inst)
 void Jit64::crXXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(SystemRegisters)
+	JITDISABLE(bJITSystemRegistersOff)
 	_dbg_assert_msg_(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
 
 	// USES_CR 

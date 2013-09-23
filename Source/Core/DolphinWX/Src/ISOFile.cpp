@@ -78,7 +78,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 				{
 					if (pBannerLoader->IsValid())
 					{
-						m_names = pBannerLoader->GetNames();
+						if (m_Platform != WII_WAD)
+							m_names = pBannerLoader->GetNames();
 						m_company = pBannerLoader->GetCompany();
 						m_descriptions = pBannerLoader->GetDescriptions();
 						
@@ -115,7 +116,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	if (IsValid())
 	{
 		IniFile ini;
-		ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + m_UniqueID + ".ini");
+		ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + m_UniqueID + ".ini");
+		ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_UniqueID + ".ini", true);
 		ini.Get("EmuState", "EmulationStateId", &m_emu_state);
 		ini.Get("EmuState", "EmulationIssues", &m_issues);
 	}

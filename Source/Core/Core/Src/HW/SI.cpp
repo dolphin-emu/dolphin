@@ -7,7 +7,7 @@
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
 #include "../Movie.h"
-#include "../NetPlayClient.h"
+#include "../NetPlayProto.h"
 
 #include "SystemTimers.h"
 #include "ProcessorInterface.h"
@@ -644,7 +644,10 @@ int GetTicksToNextSIPoll()
 	// Poll for input at regular intervals (once per frame) when playing or recording a movie
 	if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
 	{
-		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
+		if (Movie::IsNetPlayRecording())
+			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
+		else
+			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
 	}
 	if (NetPlay::IsNetPlayRunning())
 		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;

@@ -86,7 +86,7 @@ wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual q
 wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis makes the rendered picture look less blocky.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select None.");
 wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render to texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly decreases performance and possibly causes issues (although unlikely).\n\nIf unsure, leave this checked.");
 wxString pixel_lighting_desc = wxTRANSLATE("Calculate lighting of 3D graphics per-pixel rather than per vertex.\nDecreases emulation speed by some percent (depending on your GPU).\nThis usually is a safe enhancement, but might cause issues sometimes.\n\nIf unsure, leave this unchecked.");
-wxString hacked_buffer_upload_desc = wxTRANSLATE("Speed up vertex streaming by using unsafe OpenGL code. Enabling this option might cause heavy glitches or even crash the emulator.\n\nIf unsure, leave this unchecked.");
+wxString hacked_buffer_upload_desc = wxTRANSLATE("Uses unsafe operations to speed up vertex streaming in OpenGL. There are no known problems on supported GPUs, but it will cause severe stability and graphical issues otherwise.\n\nIf unsure, leave this unchecked.");
 wxString fast_depth_calc_desc = wxTRANSLATE("Use a less accurate algorithm to calculate depth values.\nCauses issues in a few games but might give a decent speedup.\n\nIf unsure, leave this checked.");
 wxString force_filtering_desc = wxTRANSLATE("Force texture filtering even if the emulated game explicitly disabled it.\nImproves texture quality slightly but causes glitches in some games.\n\nIf unsure, leave this unchecked.");
 wxString _3d_vision_desc = wxTRANSLATE("Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's supported by your GPU.\nPossibly causes issues.\nRequires fullscreen to work.\n\nIf unsure, leave this unchecked.");
@@ -154,32 +154,32 @@ wxArrayString GetListOfResolutions()
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->AddResolutions(retlist);
 #elif defined(__APPLE__)
-	CFArrayRef modes = CGDisplayAvailableModes(CGMainDisplayID());
+	CFArrayRef modes = CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
 	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
 	{
 		std::stringstream res;
-		CFDictionaryRef mode;
-		CFNumberRef ref;
-		int w, h, d;
+		CGDisplayModeRef mode;
+		CFStringRef encoding;
+		size_t w, h;
+		bool is32;
 
-		mode = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, i);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayWidth);
-		CFNumberGetValue(ref, kCFNumberIntType, &w);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayHeight);
-		CFNumberGetValue(ref, kCFNumberIntType, &h);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode,
-			kCGDisplayBitsPerPixel);
-		CFNumberGetValue(ref, kCFNumberIntType, &d);
+		mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, i);
+		w = CGDisplayModeGetWidth(mode);
+		h = CGDisplayModeGetHeight(mode);
+		encoding = CGDisplayModeCopyPixelEncoding(mode);
+		is32 = CFEqual(encoding, CFSTR(IO32BitDirectPixels));
+		CFRelease(encoding);
 
-		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsStretched))
+		if (!is32)
 			continue;
-		if (d != 32)
+		if (CGDisplayModeGetIOFlags(mode) & kDisplayModeStretchedFlag)
 			continue;
 
 		res << w << "x" << h;
 
 		retlist.Add(res.str());
 	}
+	CFRelease(modes);
 #endif
 	return retlist;
 }

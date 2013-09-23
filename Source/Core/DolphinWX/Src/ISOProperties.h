@@ -129,6 +129,7 @@ private:
 		ID_ENABLEPROGRESSIVESCAN,
 		ID_ENABLEWIDESCREEN,
 		ID_EDITCONFIG,
+		ID_SHOWDEFAULTCONFIG,
 		ID_EMUSTATE,
 		ID_EMU_ISSUES,
 		ID_PATCHES_LIST,
@@ -163,10 +164,13 @@ private:
 		IDM_BNRSAVEAS
 	};
 
+	void LaunchExternalEditor(const std::string& filename);
+
 	void CreateGUIControls(bool);
 	void OnClose(wxCloseEvent& event);
 	void OnCloseClick(wxCommandEvent& event);
 	void OnEditConfig(wxCommandEvent& event);
+	void OnShowDefaultConfig(wxCommandEvent& event);
 	void ListSelectionChanged(wxCommandEvent& event);
 	void PatchButtonClicked(wxCommandEvent& event);
 	void ActionReplayButtonClicked(wxCommandEvent& event);
@@ -193,13 +197,22 @@ private:
 	void ExportDir(const char* _rFullPath, const char* _rExportFilename,
 			const int partitionNum = 0);
 
-	IniFile GameIni;
-	std::string GameIniFile;
+	IniFile GameIniDefault;
+	IniFile GameIniLocal;
+	std::string GameIniFileDefault;
+	std::string GameIniFileLocal;
+
+	std::set<std::string> DefaultPatches;
+	std::set<std::string> DefaultCheats;
 
 	void LoadGameConfig();
 	void PatchList_Load();
 	void PatchList_Save();
 	void ActionReplayList_Save();
 	void ChangeBannerDetails(int lang);
+
+	long GetElementStyle(const char* section, const char* key);
+	void SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox);
+	void SaveGameIniValueFrom3StateCheckbox(const char* section, const char* key, wxCheckBox* checkbox);
 };
 #endif

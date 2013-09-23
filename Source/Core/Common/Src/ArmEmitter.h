@@ -104,13 +104,6 @@ enum ShiftType
 	ST_ROR = 3,
 	ST_RRX = 4
 };
-enum IntegerSize
-{
-	I_I8 = 0, 
-	I_I16,
-	I_I32,
-	I_I64
-};
 
 enum
 {
@@ -349,6 +342,7 @@ typedef const u8* JumpTarget;
 class ARMXEmitter
 {
 	friend struct OpArg;  // for Write8 etc
+	friend class NEONXEmitter;
 private:
 	u8 *code, *startcode;
 	u8 *lastCacheFlushEnd;
@@ -365,6 +359,7 @@ private:
 	u32 EncodeVn(ARMReg Vn);
 	u32 EncodeVm(ARMReg Vm);
 	void WriteVFPDataOp(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void WriteVFPDataOp6bit(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm, u32 bit6);
 
 	void Write4OpMultiply(u32 op, ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
 
@@ -454,8 +449,13 @@ public:
 	void LSLS(ARMReg dest, ARMReg src, Operand2 op2);
 	void LSLS(ARMReg dest, ARMReg src, ARMReg op2);
 	void LSR (ARMReg dest, ARMReg src, Operand2 op2);
+	void LSRS(ARMReg dest, ARMReg src, Operand2 op2);
+	void LSR (ARMReg dest, ARMReg src, ARMReg op2);
+	void LSRS(ARMReg dest, ARMReg src, ARMReg op2);
 	void ASR (ARMReg dest, ARMReg src, Operand2 op2);
 	void ASRS(ARMReg dest, ARMReg src, Operand2 op2);
+	void ASR (ARMReg dest, ARMReg src, ARMReg op2);
+	void ASRS(ARMReg dest, ARMReg src, ARMReg op2);
 	void SBC (ARMReg dest, ARMReg src, Operand2 op2);
 	void SBCS(ARMReg dest, ARMReg src, Operand2 op2);
 	void RBIT(ARMReg dest, ARMReg src);
@@ -533,11 +533,7 @@ public:
 
 	// Subtracts the base from the register to give us the real one
 	ARMReg SubBase(ARMReg Reg);	
-	// NEON Only
-	void VABD(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VADD(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VSUB(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-
+	
 	// VFP Only
 	void VLDR(ARMReg Dest, ARMReg Base, s16 offset);
 	void VSTR(ARMReg Src,  ARMReg Base, s16 offset);
@@ -566,7 +562,6 @@ public:
 	void VMOV(ARMReg Dest, ARMReg Src);
 	void VCVT(ARMReg Dest, ARMReg Src, int flags);
 
-	void VMRS_APSR();
 	void VMRS(ARMReg Rt);
 	void VMSR(ARMReg Rt);
 
@@ -584,6 +579,72 @@ public:
 
 };  // class ARMXEmitter
 
+enum NEONElementType
+{
+	I_8 = (1 << 0), 
+	I_16 = (1 << 1),
+	I_32 = (1 << 2),
+	I_64 = (1 << 3),
+	I_SIGNED = (1 << 4),
+	I_UNSIGNED = (1 << 5),
+	F_32 = (1 << 6)
+};
+
+enum NEONAlignment
+{
+	ALIGN_NONE = 0,
+	ALIGN_64 = 1,
+	ALIGN_128 = 2,
+	ALIGN_256 = 3
+};
+
+
+class NEONXEmitter
+{
+private:
+	ARMXEmitter *_emit;
+	ARMReg SubBase(ARMReg Reg) { return _emit->SubBase(Reg); }	
+	inline void Write32(u32 value) { _emit->Write32(value); }
+	
+	inline u32 encodedSize(u32 value)
+	{
+		if (value & I_8)
+			return 0;
+		else if (value & I_16)
+			return 1;
+		else if (value & I_32)
+			return 2;
+		else if (value & I_64)
+			return 3;
+		else
+			_dbg_assert_msg_(DYNA_REC, false, "Passed invalid size to integer NEON instruction");
+		return 0;
+	}
+	
+	void VREVX(u32 size, NEONElementType Size, ARMReg Vd, ARMReg Vm);
+
+public:
+	NEONXEmitter(ARMXEmitter *emit)
+		: _emit(emit)
+	{}
+
+	void VABD(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VADD(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSUB(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VREV64(NEONElementType Size, ARMReg Vd, ARMReg Vm);
+	void VREV32(NEONElementType Size, ARMReg Vd, ARMReg Vm);
+	void VREV16(NEONElementType Size, ARMReg Vd, ARMReg Vm);
+
+	void VRSQRTE(NEONElementType Size, ARMReg Vd, ARMReg Vm);
+
+	void VEOR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+
+	void VLD1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
+	void VLD2(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
+
+	void VST1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
+};
 
 // Everything that needs to generate X86 code should inherit from this.
 // You get memory management for free, plus, you can use all the MOV etc functions without

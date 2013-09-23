@@ -488,18 +488,22 @@ void SocketTCP::Create(SocketHelper::SocketType Descriptor)
     // Setup default options
     if (IsValid())
     {
-		/* We must disable this in order to detect if ports are being used by other apps, or 
-		   other instances of dolphin. This is also disabled in SFML 2.0, see
-		   http://www.sfml-dev.org/forum/viewtopic.php?t=3388
+		int Yes = 1;
+#ifndef SFML_SYSTEM_WINDOWS
+        /* We must disable this in order to detect if ports are being used by other apps, or 
+           other instances of dolphin. This is also disabled in SFML 2.0, see
+http://www.sfml-dev.org/forum/viewtopic.php?t=3388
+           ...In fact, SO_REUSEADDR is only unsafe on Windows.  See:
+           http://stackoverflow.com/questions/14388706
+        */
         // To avoid the "Address already in use" error message when trying to bind to the same port
         if (setsockopt(mySocket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&Yes), sizeof(Yes)) == -1)
         {
             std::cerr << "Failed to set socket option \"SO_REUSEADDR\" ; "
                       << "binding to a same port may fail if too fast" << std::endl;
         }
-		*/
+#endif
 
-		int Yes = 1;
         // Disable the Nagle algorithm (ie. removes buffering of TCP packets)
         if (setsockopt(mySocket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&Yes), sizeof(Yes)) == -1)
         {

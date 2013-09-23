@@ -755,7 +755,7 @@ void Tev::Draw()
 			// First, calculate the offset from the viewport center (normalized to 0..1)
 			float offset = (Position[0] - (bpmem.fogRange.Base.Center - 342)) / (float)swxfregs.viewport.wd;
 			// Based on that, choose the index such that points which are far away from the z-axis use the 10th "k" value and such that central points use the first value.
-			int index = 9 - std::abs(offset) * 9.f;
+			int index = (int) (9 - std::abs(offset) * 9.f);
 			index = (index < 0) ? 0 : (index > 9) ? 9 : index; // TODO: Shouldn't be necessary!
 			// Look up coefficient... Seems like multiplying by 4 makes Fortune Street work properly (fog is too strong without the factor)
 			float k = bpmem.fogRange.K[index/2].GetValue(index%2) * 4.f;

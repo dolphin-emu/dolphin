@@ -81,11 +81,9 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 
 	u32 em_address = (u32)(bad_address - memspace_bottom);
 
-	int access_type = 0;
-
 	CONTEXT fake_ctx;
 	fake_ctx.reg_pc = ctx->arm_pc;
-	const u8 *new_rip = jit->BackPatch(fault_instruction_ptr, access_type, em_address, &fake_ctx);
+	const u8 *new_rip = jit->BackPatch(fault_instruction_ptr, em_address, &fake_ctx);
 	if (new_rip) {
 		ctx->arm_pc = fake_ctx.reg_pc;
 	}

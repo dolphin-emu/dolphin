@@ -40,18 +40,13 @@
 	#define SYSDATA_DIR "Sys"
 #elif defined __APPLE__
 	#define SYSDATA_DIR "Contents/Resources/Sys"
-	#define SHARED_USER_DIR	File::GetBundleDirectory() + \
-				DIR_SEP USERDATA_DIR DIR_SEP
 #elif defined ANDROID
 	#define SYSDATA_DIR "/sdcard/dolphin-emu"
-	#define SHARED_USER_DIR SYSDATA_DIR
 #else
 	#ifdef DATA_DIR
 		#define SYSDATA_DIR DATA_DIR "sys"
-		#define SHARED_USER_DIR  DATA_DIR USERDATA_DIR DIR_SEP
 	#else
 		#define SYSDATA_DIR "sys"
-		#define SHARED_USER_DIR  ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP
 	#endif
 #endif
 
@@ -64,7 +59,7 @@
 #define GC_USER_DIR			"GC"
 #define WII_USER_DIR		"Wii"
 #define CONFIG_DIR			"Config"
-#define GAMECONFIG_DIR		"GameConfig"
+#define GAMESETTINGS_DIR	"GameSettings"
 #define MAPS_DIR			"Maps"
 #define CACHE_DIR			"Cache"
 #define SHADERCACHE_DIR		"ShaderCache"

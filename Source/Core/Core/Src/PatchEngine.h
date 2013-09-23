@@ -33,10 +33,12 @@ struct Patch
 	std::string name;
 	std::vector<PatchEntry> entries;
 	bool active;
+	bool user_defined; // False if this code is shipped with Dolphin.
 };
 
 int GetSpeedhackCycles(const u32 addr);
-void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini);
+void LoadPatchSection(const char *section, std::vector<Patch> &patches,
+                      IniFile &globalIni, IniFile &localIni);
 void LoadPatches(const char *gameID);
 void ApplyFramePatches();
 void ApplyARPatches();

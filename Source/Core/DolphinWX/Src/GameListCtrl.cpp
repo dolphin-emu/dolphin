@@ -62,24 +62,25 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	int indexOne = 0;
 	int indexOther = 0;
 
-	switch (iso1->GetCountry())
+	
+	// index only matters for WADS and PAL GC games, but invalid indicies for the others
+	// will return the (only) language in the list
+	if (iso1->GetPlatform() == GameListItem::WII_WAD)
 	{
-		case DiscIO::IVolume::COUNTRY_JAPAN:
-		case DiscIO::IVolume::COUNTRY_USA:
-			indexOne = 0;
-			break;
-		default:
-			indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+		indexOne = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+	}
+	else
+	{	// GC
+		indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 
-	switch (iso2->GetCountry())
+	if (iso2->GetPlatform() == GameListItem::WII_WAD)
 	{
-		case DiscIO::IVolume::COUNTRY_JAPAN:
-		case DiscIO::IVolume::COUNTRY_USA:
-			indexOther = 0;
-			break;
-		default:
-			indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
+		indexOther = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+	}
+	else
+	{	// GC
+		indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 
 	switch(sortData)
@@ -410,19 +411,9 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	
 	// Is this sane?
-	switch (rISOFile.GetCountry())
+	if  (rISOFile.GetPlatform() == GameListItem::WII_WAD)
 	{
-	case DiscIO::IVolume::COUNTRY_TAIWAN:
-	case DiscIO::IVolume::COUNTRY_JAPAN:
-		SelectedLanguage = -1;
-		break;
-		
-	case DiscIO::IVolume::COUNTRY_USA:
-		SelectedLanguage = 0;
-		break;
-		
-	default:
-		break;
+		SelectedLanguage = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
 	}
 	
 	std::string const name = rISOFile.GetName(SelectedLanguage);

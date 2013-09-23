@@ -71,6 +71,8 @@ IMPLEMENT_APP(DolphinApp)
 
 BEGIN_EVENT_TABLE(DolphinApp, wxApp)
 	EVT_TIMER(wxID_ANY, DolphinApp::AfterInit)
+	EVT_QUERY_END_SESSION(DolphinApp::OnEndSession)
+	EVT_END_SESSION(DolphinApp::OnEndSession)
 END_EVENT_TABLE()
 
 #include <wx/stdpaths.h>
@@ -247,37 +249,28 @@ bool DolphinApp::OnInit()
 	}
 #endif
 
-#ifdef _WIN32
-	if (!wxSetWorkingDirectory(StrToWxStr(File::GetExeDirectory())))
-	{
-		INFO_LOG(CONSOLE, "Set working directory failed");
-	}
-#else
-	//create all necessary directories in user directory
-	//TODO : detect the revision and upgrade where necessary
-	File::CopyDir(std::string(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP),
-			File::GetUserPath(D_GAMECONFIG_IDX));
-	File::CopyDir(std::string(SHARED_USER_DIR MAPS_DIR DIR_SEP),
-			File::GetUserPath(D_MAPS_IDX));
-	File::CopyDir(std::string(SHARED_USER_DIR SHADERS_DIR DIR_SEP),
-			File::GetUserPath(D_SHADERS_IDX));
-	File::CopyDir(std::string(SHARED_USER_DIR WII_USER_DIR DIR_SEP),
-			File::GetUserPath(D_WIIUSER_IDX));
-	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP),
-			File::GetUserPath(D_OPENCL_IDX));
-#endif
-	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
-	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+	// Copy initial Wii NAND data from Sys to User.
+	File::CopyDir(File::GetSysDirectory() + WII_USER_DIR DIR_SEP,
+	              File::GetUserPath(D_WIIUSER_IDX));
+
+	File::CreateFullPath(File::GetUserPath(D_USER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
 	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
 	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GAMESETTINGS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
+	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_OPENCL_IDX));
+	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
 
 	LogManager::Init();
 	SConfig::Init();
@@ -414,7 +407,7 @@ void DolphinApp::InitLanguageSupport()
 		m_locale = new wxLocale(language);
 
 #ifdef _WIN32
-		m_locale->AddCatalogLookupPathPrefix(wxT("Languages"));
+		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetExeDirectory() + DIR_SEP "Languages"));
 #endif
 
 		m_locale->AddCatalog(wxT("dolphin-emu"));
@@ -430,6 +423,15 @@ void DolphinApp::InitLanguageSupport()
 	{
 		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
 		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+	}
+}
+
+void DolphinApp::OnEndSession(wxCloseEvent& event)
+{
+	// Close if we've recieved wxEVT_END_SESSION (ignore wxEVT_QUERY_END_SESSION)
+	if (!event.CanVeto())
+	{
+		main_frame->Close(true);
 	}
 }
 

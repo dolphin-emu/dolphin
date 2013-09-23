@@ -13,6 +13,12 @@
 #endif
 
 #ifdef __APPLE__
+#include <mach/mach.h>
+#include <mach/message.h>
+#include "Thread.h"
+#endif
+
+#ifdef __APPLE__
 #define CREG_RAX(ctx) (*(ctx))->__ss.__rax
 #define CREG_RIP(ctx) (*(ctx))->__ss.__rip
 #define CREG_EAX(ctx) (*(ctx))->__ss.__eax
@@ -49,6 +55,53 @@
 namespace EMM
 {
 
+#if defined __APPLE__ || defined __linux__ || defined __FreeBSD__
+#include <execinfo.h>
+void print_trace(const char * msg)
+{
+	void *array[100];
+	size_t size;
+	char **strings;
+	size_t i;
+
+	size = backtrace(array, 100);
+	strings = backtrace_symbols(array, size);
+	printf("%s Obtained %u stack frames.\n", msg, (unsigned int)size);
+	for (i = 0; i < size; i++)
+		printf("--> %s\n", strings[i]);
+	free(strings);
+}
+#endif
+
+bool DoFault(u64 bad_address, CONTEXT *ctx)
+{
+	if (!JitInterface::IsInCodeSpace((u8*) CONTEXT_PC(ctx)))
+	{
+		// Let's not prevent debugging.
+		return false;
+	}
+
+	u64 memspace_bottom = (u64)Memory::base;
+	u64 memspace_top = memspace_bottom +
+#ifdef _M_X64
+		0x100000000ULL;
+#else
+		0x40000000;
+#endif
+
+	if (bad_address < memspace_bottom || bad_address >= memspace_top) {
+		return false;
+	}
+	u32 em_address = (u32)(bad_address - memspace_bottom);
+	const u8 *new_pc = jit->BackPatch((u8*) CONTEXT_PC(ctx), em_address, ctx);
+	if (new_pc)
+	{
+		CONTEXT_PC(ctx) = (u64) new_pc;
+	}
+
+	return true;
+}
+
 #ifdef _WIN32
 
 LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
@@ -62,54 +115,24 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			{
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
-			
+
 			//Where in the x86 code are we?
 			PVOID codeAddr = pPtrs->ExceptionRecord->ExceptionAddress;
 			unsigned char *codePtr = (unsigned char*)codeAddr;
-			
-			if (!JitInterface::IsInCodeSpace(codePtr))
+			u64 badAddress = (u64)pPtrs->ExceptionRecord->ExceptionInformation[1];
+			CONTEXT *ctx = pPtrs->ContextRecord;
+
+			if (DoFault(badAddress, ctx))
+			{
+				return (DWORD)EXCEPTION_CONTINUE_EXECUTION;
+			}
+			else
 			{
 				// Let's not prevent debugging.
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
 
-			//Figure out what address was hit
-			u64 badAddress = (u64)pPtrs->ExceptionRecord->ExceptionInformation[1];
-
-			//TODO: First examine the address, make sure it's within the emulated memory space
-			u64 memspaceBottom = (u64)Memory::base;
-#ifdef _M_X64
-			u64 memspaceTop = memspaceBottom + 0x100000000ULL;
-#else
-			u64 memspaceTop = memspaceBottom + 0x40000000;
-#endif
-			if (badAddress < memspaceBottom || badAddress >= memspaceTop)
-			{
-				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
-				//PanicAlert("Exception handler - access outside memory space. %08x%08x",
-				//	badAddress >> 32, badAddress);
-			}
-
-			u32 emAddress = (u32)(badAddress - memspaceBottom);
-
-			//Now we have the emulated address.
-
-			CONTEXT *ctx = pPtrs->ContextRecord;
-			//opportunity to play with the context - we can change the debug regs!
-
-			//We could emulate the memory accesses here, but then they would still be around to take up
-			//execution resources. Instead, we backpatch into a generic memory call and retry.
-			const u8 *new_rip = JitInterface::BackPatch(codePtr, accessType, emAddress, ctx);
-
-			// Rip/Eip needs to be updated.
-			if (new_rip)
-#ifdef _M_X64
-				ctx->Rip = (DWORD_PTR)new_rip;
-#else
-				ctx->Eip = (DWORD_PTR)new_rip;
-#endif
 		}
-		return (DWORD)EXCEPTION_CONTINUE_EXECUTION;
 
 	case EXCEPTION_STACK_OVERFLOW:
 		MessageBox(0, _T("Stack overflow!"), 0,0);
@@ -118,7 +141,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 	case EXCEPTION_ILLEGAL_INSTRUCTION:
 		//No SSE support? Or simply bad codegen?
 		return EXCEPTION_CONTINUE_SEARCH;
-		
+
 	case EXCEPTION_PRIV_INSTRUCTION:
 		//okay, dynarec codegen is obviously broken.
 		return EXCEPTION_CONTINUE_SEARCH;
@@ -150,33 +173,142 @@ void InstallExceptionHandler()
 #endif
 }
 
-#else  // _WIN32
+#elif defined(__APPLE__)
 
-#ifndef ANDROID
-#if defined __APPLE__ || defined __linux__ || defined __FreeBSD__ || defined _WIN32
-#ifndef _WIN32
-#include <execinfo.h>
-#endif
-void print_trace(const char * msg)
+void CheckKR(const char* name, kern_return_t kr)
 {
-	void *array[100];
-	size_t size;
-	char **strings;
-	size_t i;
+	if (kr)
+	{
+		PanicAlertT("%s failed: kr=%x", name, kr);
+	}
+}
 
-	size = backtrace(array, 100);
-	strings = backtrace_symbols(array, size);
-	printf("%s Obtained %u stack frames.\n", msg, (unsigned int)size);
-	for (i = 0; i < size; i++)
-		printf("--> %s\n", strings[i]);
-	free(strings);
+#ifdef _M_X64
+void ExceptionThread(mach_port_t port)
+{
+	Common::SetCurrentThreadName("Mach exception thread");
+	#pragma pack(4)
+	struct
+	{
+		mach_msg_header_t Head;
+		NDR_record_t NDR;
+		exception_type_t exception;
+		mach_msg_type_number_t codeCnt;
+		int64_t code[2];
+		int flavor;
+		mach_msg_type_number_t old_stateCnt;
+		natural_t old_state[x86_THREAD_STATE64_COUNT];
+		mach_msg_trailer_t trailer;
+	} msg_in;
+
+	struct
+	{
+		mach_msg_header_t Head;
+		NDR_record_t NDR;
+		kern_return_t RetCode;
+		int flavor;
+		mach_msg_type_number_t new_stateCnt;
+		natural_t new_state[x86_THREAD_STATE64_COUNT];
+	} msg_out;
+	#pragma pack()
+	memset(&msg_in, 0xee, sizeof(msg_in));
+	memset(&msg_out, 0xee, sizeof(msg_out));
+	mach_msg_header_t *send_msg = NULL;
+	mach_msg_size_t send_size = 0;
+	mach_msg_option_t option = MACH_RCV_MSG;
+	while (1)
+	{
+		// If this isn't the first run, send the reply message.  Then, receive
+		// a message: either a mach_exception_raise_state RPC due to
+		// thread_set_exception_ports, or MACH_NOTIFY_NO_SENDERS due to
+		// mach_port_request_notification.
+		CheckKR("mach_msg_overwrite", mach_msg_overwrite(send_msg, option, send_size, sizeof(msg_in), port, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL, &msg_in.Head, 0));
+
+		if (msg_in.Head.msgh_id == MACH_NOTIFY_NO_SENDERS)
+		{
+			// the other thread exited
+			mach_port_destroy(mach_task_self(), port);
+			return;
+		}
+
+		if (msg_in.Head.msgh_id != 2406)
+		{
+			PanicAlertT("unknown message received");
+			return;
+		}
+
+		if (msg_in.flavor != x86_THREAD_STATE64)
+		{
+			PanicAlertT("unknown flavor %d (expected %d)", msg_in.flavor, x86_THREAD_STATE64);
+			return;
+		}
+
+		x86_thread_state64_t *state = (x86_thread_state64_t *) msg_in.old_state;
+		CONTEXT fake_ctx;
+		fake_ctx.Rax = state->__rax;
+		fake_ctx.Rip = state->__rip;
+
+		bool ok = DoFault(msg_in.code[1], &fake_ctx);
+
+		state->__rax = fake_ctx.Rax;
+		state->__rip = fake_ctx.Rip;
+
+		// Set up the reply.
+		msg_out.Head.msgh_bits = MACH_MSGH_BITS(MACH_MSGH_BITS_REMOTE(msg_in.Head.msgh_bits), 0);
+		msg_out.Head.msgh_remote_port = msg_in.Head.msgh_remote_port;
+		msg_out.Head.msgh_local_port = MACH_PORT_NULL;
+		msg_out.Head.msgh_id = msg_in.Head.msgh_id + 100;
+		msg_out.NDR = msg_in.NDR;
+		if (ok)
+		{
+			msg_out.RetCode = KERN_SUCCESS;
+			msg_out.flavor = x86_THREAD_STATE64;
+			msg_out.new_stateCnt = x86_THREAD_STATE64_COUNT;
+			memcpy(msg_out.new_state, msg_in.old_state, x86_THREAD_STATE64_COUNT * sizeof(natural_t));
+		}
+		else
+		{
+			// Pass the exception to the next handler (debugger or crash).
+			msg_out.RetCode = KERN_FAILURE;
+			msg_out.flavor = 0;
+			msg_out.new_stateCnt = 0;
+		}
+		msg_out.Head.msgh_size = offsetof(typeof(msg_out), new_state) + msg_out.new_stateCnt * sizeof(natural_t);
+
+		send_msg = &msg_out.Head;
+		send_size = msg_out.Head.msgh_size;
+		option |= MACH_SEND_MSG;
+	}
 }
 #endif
 
-void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
+void InstallExceptionHandler()
+{
+#ifdef _M_IX86
+	PanicAlertT("InstallExceptionHandler called, but this platform does not yet support it.");
+#else
+	mach_port_t port;
+	CheckKR("mach_port_allocate", mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &port));
+	std::thread exc_thread(ExceptionThread, port);
+	exc_thread.detach();
+	// Obtain a send right for thread_set_exception_ports to copy...
+	CheckKR("mach_port_insert_right", mach_port_insert_right(mach_task_self(), port, port, MACH_MSG_TYPE_MAKE_SEND));
+	// Mach tries the following exception ports in order: thread, task, host.
+	// Debuggers set the task port, so we grab the thread port.
+	CheckKR("thread_set_exception_ports", thread_set_exception_ports(mach_thread_self(), EXC_MASK_BAD_ACCESS, port, EXCEPTION_STATE | MACH_EXCEPTION_CODES, x86_THREAD_STATE64));
+	// ...and get rid of our copy so that MACH_NOTIFY_NO_SENDERS works.
+	CheckKR("mach_port_mod_refs", mach_port_mod_refs(mach_task_self(), port, MACH_PORT_RIGHT_SEND, -1));
+	mach_port_t previous;
+	CheckKR("mach_port_request_notification", mach_port_request_notification(mach_task_self(), port, MACH_NOTIFY_NO_SENDERS, 0, port, MACH_MSG_TYPE_MAKE_SEND_ONCE, &previous));
+#endif
+}
+
+#elif !defined(ANDROID)
+
+void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 {
 #ifndef _M_GENERIC
-	if (signal != SIGSEGV)
+	if (sig != SIGSEGV)
 	{
 		// We are not interested in other signals - handle it as usual.
 		return;
@@ -188,36 +320,11 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 		// Huh? Return.
 		return;
 	}
-	void *fault_memory_ptr = (void *)info->si_addr;
+	u64 bad_address = (u64)info->si_addr;
 
 	// Get all the information we can out of the context.
 	mcontext_t *ctx = &context->uc_mcontext;
-#ifdef _M_X64
-	u8 *fault_instruction_ptr = (u8 *)CREG_RIP(ctx);
-#else
-	u8 *fault_instruction_ptr = (u8 *)CREG_EIP(ctx);
-#endif
-	if (!JitInterface::IsInCodeSpace(fault_instruction_ptr))
-	{
-		// Let's not prevent debugging.
-		return;
-	}
-	
-	u64 bad_address = (u64)fault_memory_ptr;
-	u64 memspace_bottom = (u64)Memory::base;
-	if (bad_address < memspace_bottom) {
-		PanicAlertT("Exception handler - access below memory space. %08llx%08llx",
-			bad_address >> 32, bad_address);
-	}
-	u32 em_address = (u32)(bad_address - memspace_bottom);
-
-	// Backpatch time.
-	// Seems we'll need to disassemble to get access_type - that work is probably
-	// best done and debugged on the Windows side.
-	int access_type = 0;
-
 	CONTEXT fake_ctx;
-
 #ifdef _M_X64
 	fake_ctx.Rax = CREG_RAX(ctx);
 	fake_ctx.Rip = CREG_RIP(ctx);
@@ -225,8 +332,8 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	fake_ctx.Eax = CREG_EAX(ctx);
 	fake_ctx.Eip = CREG_EIP(ctx);
 #endif
-	const u8 *new_rip = jit->BackPatch(fault_instruction_ptr, access_type, em_address, &fake_ctx);
-	if (new_rip)
+	// assume it's not a write
+	if (DoFault(bad_address, &fake_ctx))
 	{
 #ifdef _M_X64
 		CREG_RAX(ctx) = fake_ctx.Rax;
@@ -236,15 +343,18 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 		CREG_EIP(ctx) = fake_ctx.Eip;
 #endif
 	}
+	else
+	{
+		// retry and crash
+		signal(SIGSEGV, SIG_DFL);
+	}
 #endif
 }
-#endif
 
 void InstallExceptionHandler()
 {
 #ifdef _M_IX86
 	PanicAlertT("InstallExceptionHandler called, but this platform does not yet support it.");
-	return;
 #else
 	struct sigaction sa;
 	sa.sa_handler = 0;

@@ -45,7 +45,7 @@ const std::string SettingsHandler::GetValue(const std::string key)
 	else
 	{
 		toFind = key + "=";
-		size_t found = decoded.find(toFind);
+		found = decoded.find(toFind);
 		if (found == 0)
 		{
 			size_t delimFound = decoded.find(delim, found + toFind.length());

@@ -145,6 +145,7 @@ std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 		desc_count = 1;
 		break;
 
+	// English, German, French, Spanish, Italian, Dutch
 	case CBannerLoaderGC::BANNER_BNR2:
 		desc_count = 6;
 		break;

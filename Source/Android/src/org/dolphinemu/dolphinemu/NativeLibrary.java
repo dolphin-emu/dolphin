@@ -148,7 +148,7 @@ public final class NativeLibrary
 		}
 		catch (UnsatisfiedLinkError ex)
 		{
-			Log.w("NativeLibrary", ex.toString());
+			Log.e("NativeLibrary", ex.toString());
 		}
 	}
 }

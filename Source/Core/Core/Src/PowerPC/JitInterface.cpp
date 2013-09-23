@@ -175,9 +175,9 @@ namespace JitInterface
 	{
 		return jit->IsInCodeSpace(ptr);
 	}
-	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, void *ctx)
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx)
 	{
-		return jit->BackPatch(codePtr, accessType, em_address, ctx);
+		return jit->BackPatch(codePtr, em_address, ctx);
 	}
 
 	void ClearCache()

@@ -126,10 +126,8 @@ bool ArmRegCache::FindFreeRegister(u32 &regindex)
 ARMReg ArmRegCache::R(u32 preg)
 {	
 	if (regs[preg].GetType() == REG_IMM)
-	{
 		return BindToRegister(preg);
-		//asm ("bkpt #1;");
-	}
+
 	u32 lastRegIndex = GetLeastUsedRegister(true);
 
 	// Check if already Loaded

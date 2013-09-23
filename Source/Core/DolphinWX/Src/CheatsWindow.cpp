@@ -5,6 +5,7 @@
 #include "Globals.h"
 #include "CheatsWindow.h"
 #include "ActionReplay.h"
+#include "CommonPaths.h"
 #include "Core.h"
 #include "ConfigManager.h"
 #include "VolumeHandler.h"
@@ -243,8 +244,10 @@ void wxCheatsWindow::OnEvent_Close(wxCloseEvent& ev)
 void wxCheatsWindow::UpdateGUI()
 {
 	// load code
-	m_gameini_path = File::GetUserPath(D_GAMECONFIG_IDX) + Core::g_CoreStartupParameter.GetUniqueID() + ".ini";
-	m_gameini.Load(m_gameini_path);
+	m_gameini_default_path = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + Core::g_CoreStartupParameter.GetUniqueID() + ".ini";
+	m_gameini_default.Load(m_gameini_default_path);
+	m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + Core::g_CoreStartupParameter.GetUniqueID() + ".ini";
+	m_gameini_local.Load(m_gameini_local_path, true);
 	Load_ARCodes();
 	Load_GeckoCodes();
 
@@ -283,7 +286,7 @@ void wxCheatsWindow::Load_ARCodes()
 
 void wxCheatsWindow::Load_GeckoCodes()
 {
-	m_geckocode_panel->LoadCodes(m_gameini, Core::g_CoreStartupParameter.GetUniqueID(), true);
+	m_geckocode_panel->LoadCodes(m_gameini_local, Core::g_CoreStartupParameter.GetUniqueID(), true);
 }
 
 void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (event))
@@ -338,10 +341,10 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 	Gecko::SetActiveCodes(m_geckocode_panel->GetCodes());
 
 	// Save gameini, with changed gecko codes
-	if (m_gameini_path.size())
+	if (m_gameini_local_path.size())
 	{
-		Gecko::SaveCodes(m_gameini, m_geckocode_panel->GetCodes());
-		m_gameini.Save(m_gameini_path);
+		Gecko::SaveCodes(m_gameini_local, m_geckocode_panel->GetCodes());
+		m_gameini_local.Save(m_gameini_local_path);
 	}
 
 	ev.Skip();

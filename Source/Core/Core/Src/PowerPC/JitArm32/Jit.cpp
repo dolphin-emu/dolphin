@@ -296,6 +296,7 @@ void STACKALIGN JitArm::Jit(u32 em_address)
 }
 void JitArm::Break(UGeckoInstruction inst)
 {
+	ERROR_LOG(DYNA_REC, "%s called a Break instruction!", PPCTables::GetInstructionName(inst));
 	BKPT(0x4444);
 }
 
@@ -466,7 +467,8 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 			MOVI2R(RB, (u32)&One);
 			VLDR(VA, RA, 0);
 			VLDR(VB, RB, 0);
-			VADD(I_I64, VA, VA, VB);
+			NEONXEmitter nemit(this);
+			nemit.VADD(I_64, VA, VA, VB);
 			VSTR(VA, RA, 0);
 			gpr.Unlock(RA, RB);
 			fpr.Unlock(VA);
@@ -481,6 +483,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 					BKPT(0x7777);
 				}
 				JitArmTables::CompileInstruction(ops[i]);
+				fpr.Flush();
 				if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
 				{
 					// Don't do this yet

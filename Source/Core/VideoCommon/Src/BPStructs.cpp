@@ -200,19 +200,19 @@ void BPWritten(const BPCmd& bp)
 					bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
 
 				// Set LogicOp Blending Mode
-				if (bp.changes & 2)
+				if (bp.changes & 0xF002) // logicopenable | logicmode
 					SetLogicOpMode();
 
 				// Set Dithering Mode
-				if (bp.changes & 4)
+				if (bp.changes & 4) // dither
 					SetDitherMode();
 
 				// Set Blending Mode
-				if (bp.changes & 0xFF1)
+				if (bp.changes & 0xFF1) // blendenable | alphaupdate | dstfactor | srcfactor | subtract
 					SetBlendMode();
 
 				// Set Color Mask
-				if (bp.changes & 0x18)
+				if (bp.changes & 0x18) // colorupdate | alphaupdate
 					SetColorMask();
 			}
 			break;

@@ -220,6 +220,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 	Access.m_Position = 0;
 	Access.m_pContent = pContent;
 	Access.m_TitleID = TitleID;
+	Access.m_pFile = NULL;
 
 	if (!pContent->m_pData)
 	{
@@ -246,10 +247,23 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 	// Prepare the out buffer(s) with zeroes as a safety precaution
 	// to avoid returning bad values
+	// XXX: is this still necessary?
 	for (u32 i = 0; i < Buffer.NumberPayloadBuffer; i++)
 	{
-		Memory::Memset(Buffer.PayloadBuffer[i].m_Address, 0,
-			Buffer.PayloadBuffer[i].m_Size);
+		u32 j;
+		for (j = 0; j < Buffer.NumberInBuffer; j++)
+		{
+			if (Buffer.InBuffer[j].m_Address == Buffer.PayloadBuffer[i].m_Address)
+			{
+				// The out buffer is the same as one of the in buffers.  Don't zero it.
+				break;
+			}
+		}
+		if (j == Buffer.NumberInBuffer)
+		{
+			Memory::Memset(Buffer.PayloadBuffer[i].m_Address, 0,
+				Buffer.PayloadBuffer[i].m_Size);
+		}
 	}
 
 	switch (Buffer.Parameter)
@@ -580,13 +594,18 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					ViewCount = FileSize / DiscIO::INANDContentLoader::TICKET_SIZE;
 					_dbg_assert_msg_(WII_IPC_ES, (ViewCount>0) && (ViewCount<=4), "IOCTL_ES_GETVIEWCNT ticket count seems to be wrong");
 				}
+				else if (TitleID >> 32 == 0x00000001)
+				{
+					// Fake a ticket view to make IOS reload work.
+					ViewCount = 1;
+				}
 				else
 				{
+					ViewCount = 0;
 					if (TitleID == TITLEID_SYSMENU)
 					{
 						PanicAlertT("There must be a ticket for 00000001/00000002. Your NAND dump is probably incomplete.");
 					}
-					ViewCount = 0;
 					//retVal = ES_NO_TICKET_INSTALLED;
 				}
 			}
@@ -636,6 +655,19 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 							Memory::WriteBigEData(FileTicket+0x1D0, Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8, 212);
 						}
 					}
+				}
+				else if (TitleID >> 32 == 0x00000001)
+				{
+					// For IOS titles, the ticket view isn't normally parsed by either the
+					// SDK or libogc, just passed to LaunchTitle, so this
+					// shouldn't matter at all.  Just fill out some fields just
+					// to be on the safe side.
+					u32 Address = Buffer.PayloadBuffer[0].m_Address;
+					memset(Memory::GetPointer(Address), 0, 0xD8);
+					Memory::Write_U64(TitleID, Address + 4 + (0x1dc - 0x1d0)); // title ID
+					Memory::Write_U16(0xffff, Address + 4 + (0x1e4 - 0x1d0)); // unnnown
+					Memory::Write_U32(0xff00, Address + 4 + (0x1ec - 0x1d0)); // access mask
+					memset(Memory::GetPointer(Address + 4 + (0x222 - 0x1d0)), 0xff, 0x20); // content permissions
 				}
 				else
 				{
@@ -824,11 +856,13 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8* IV			= Memory::GetPointer(Buffer.InBuffer[1].m_Address);
 			u8* source		= Memory::GetPointer(Buffer.InBuffer[2].m_Address);
 			u32 size		= Buffer.InBuffer[2].m_Size;
+			u8* newIV		= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
 			AES_KEY AESKey;
 			AES_set_encrypt_key(keyTable[keyIndex], 128, &AESKey);
-			AES_cbc_encrypt(source, destination, size, &AESKey, IV, AES_ENCRYPT);
+			memcpy(newIV, IV, 16);
+			AES_cbc_encrypt(source, destination, size, &AESKey, newIV, AES_ENCRYPT);
 
 			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_ENCRYPT: Key type is not SD, data will be crap");
 		}
@@ -840,11 +874,13 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8* IV			= Memory::GetPointer(Buffer.InBuffer[1].m_Address);
 			u8* source		= Memory::GetPointer(Buffer.InBuffer[2].m_Address);
 			u32 size		= Buffer.InBuffer[2].m_Size;
+			u8* newIV		= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
 			AES_KEY AESKey;
 			AES_set_decrypt_key(keyTable[keyIndex], 128, &AESKey);
-			AES_cbc_encrypt(source, destination, size, &AESKey, IV, AES_DECRYPT);
+			memcpy(newIV, IV, 16);
+			AES_cbc_encrypt(source, destination, size, &AESKey, newIV, AES_DECRYPT);
 
 			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");
 		}
@@ -898,10 +934,11 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				// Lie to mem about loading a different IOS
 				// someone with an affected game should test
 				IOSv = TitleID & 0xffff;
+				bSuccess = true;
 			}
-			if (!bSuccess && IOSv >= 30 && IOSv != 0xffff)
+			if (!bSuccess)
 			{
-				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload an IOS or a title that is not available in your NAND dump\n"
+				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your NAND dump\n"
 					"TitleID %016llx.\n Dolphin will likely hang now.", TitleID);
 			}
 			else
@@ -948,14 +985,13 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016llx %08x %016llx %08x %016llx %04x", TitleID,view,ticketid,devicetype,titleid,access);
 			//					   IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000 0001000248414341 ffff
 
-			//We have to handle the reply ourselves as this handle is not valid anymore
-			
+			// This is necessary because Reset(true) above deleted this object.  Ew.
 			
 			// It seems that the original hardware overwrites the command after it has been
 			// executed. We write 8 which is not any valid command, and what IOS does 
 			Memory::Write_U32(8, _CommandAddress);
 			// IOS seems to write back the command that was responded to
-			Memory::Write_U32(6, _CommandAddress + 8);
+			Memory::Write_U32(7, _CommandAddress + 8);
 			
 			// Generate a reply to the IPC command
 			WII_IPC_HLE_Interface::EnqReply(_CommandAddress, 0);

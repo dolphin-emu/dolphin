@@ -36,12 +36,14 @@ public final class UserPreferences
 		// Add the settings.
 		editor.putString("cpuCorePref",   getConfig("Dolphin.ini", "Core", "CPUCore", "3"));
 		editor.putBoolean("dualCorePref", getConfig("Dolphin.ini", "Core", "CPUThread", "False").equals("True"));
+		editor.putBoolean("fastmemPref", getConfig("Dolphin.ini", "Core", "Fastmem", "False").equals("True"));
 
-		editor.putString("gpuPref",               getConfig("Dolphin.ini", "Core", "GFXBackend ", "Software Renderer"));
+		editor.putString("gpuPref",               getConfig("Dolphin.ini", "Core", "GFXBackend", "Software Renderer"));
 		editor.putBoolean("showFPS",              getConfig("gfx_opengl.ini", "Settings", "ShowFPS", "False").equals("True"));
 		editor.putBoolean("drawOnscreenControls", getConfig("Dolphin.ini", "Android", "ScreenControls", "True").equals("True"));
 
 		editor.putString("internalResolution",     getConfig("gfx_opengl.ini", "Settings", "EFBScale", "2") );
+		editor.putString("FSAA",                   getConfig("gfx_opengl.ini", "Settings", "MSAA", "0"));
 		editor.putString("anisotropicFiltering",   getConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", "0"));
 		editor.putBoolean("scaledEFBCopy",         getConfig("gfx_opengl.ini", "Hacks", "EFBScaleCopy", "True").equals("True"));
 		editor.putBoolean("perPixelLighting",      getConfig("gfx_opengl.ini", "Settings", "EnablePixelLighting", "False").equals("True"));
@@ -118,6 +120,9 @@ public final class UserPreferences
 		// Current CPU core being used. Falls back to interpreter upon error.
 		String currentEmuCore   = prefs.getString("cpuCorePref", "0");
 
+		// Fastmem JIT core usage
+		boolean isUsingFastmem = prefs.getBoolean("fastmemPref", false);
+
 		// Current video backend being used. Falls back to software rendering upon error.
 		String currentVideoBackend = prefs.getString("gpuPref", "Software Rendering");
 
@@ -154,6 +159,9 @@ public final class UserPreferences
 		// Internal resolution. Falls back to 1x Native upon error.
 		String internalResolution = prefs.getString("internalResolution", "2");
 
+		// FSAA Level. Falls back to 1x upon error.
+		String FSAALevel = prefs.getString("FSAA", "0");
+
 		// Anisotropic Filtering Level. Falls back to 1x upon error.
 		String anisotropicFiltLevel = prefs.getString("anisotropicFiltering", "0");
 
@@ -173,6 +181,7 @@ public final class UserPreferences
 		// CPU related Settings
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUCore", currentEmuCore);
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "CPUThread", isUsingDualCore ? "True" : "False");
+		NativeLibrary.SetConfig("Dolphin.ini", "Core", "Fastmem", isUsingFastmem ? "True" : "False");
 
 		// General Video Settings
 		NativeLibrary.SetConfig("Dolphin.ini", "Core", "GFXBackend", currentVideoBackend);
@@ -231,6 +240,7 @@ public final class UserPreferences
 
 		//-- Enhancement Settings --//
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "EFBScale", internalResolution);
+		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "MSAA", FSAALevel);
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Enhancements", "MaxAnisotropy", anisotropicFiltLevel);
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Hacks", "EFBScaledCopy", usingScaledEFBCopy ? "True" : "False");
 		NativeLibrary.SetConfig("gfx_opengl.ini", "Settings", "EnablePixelLighting", usingPerPixelLighting ? "True" : "False");

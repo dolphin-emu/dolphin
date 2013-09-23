@@ -14,6 +14,13 @@
             android:summary="@string/internal_resolution_descrip"
             android:title="@string/internal_resolution"/>
 
+        <ListPreference
+                android:entries="@array/FSAAEntries"
+                android:entryValues="@array/FSAAValues"
+                android:key="FSAA"
+                android:summary="@string/FSAA_descrip"
+                android:title="@string/FSAA"/>
+
         <ListPreference 
             android:entries="@array/anisotropicFilteringEntries"
             android:entryValues="@array/anisotropicFilteringValues"
@@ -129,9 +136,10 @@
        android:key="showFPS"
        android:summary="@string/show_fps_descrip"
        android:title="@string/show_fps"/>
-    
+    <!--
     <CheckBoxPreference
         android:defaultValue="true"
         android:key="drawOnscreenControls"
         android:title="@string/draw_onscreen_controls"/>
+        -->
 </PreferenceScreen>

@@ -86,6 +86,7 @@ bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool *negated)
 Operand2 AssumeMakeOperand2(u32 imm) {
 	Operand2 op2;
 	bool result = TryMakeOperand2(imm, op2);
+	(void) result;
 	_dbg_assert_msg_(DYNA_REC, result, "Could not make assumed Operand2.");
 	return op2;
 }
@@ -611,9 +612,15 @@ void ARMXEmitter::LSL (ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedData
 void ARMXEmitter::LSLS(ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(0, true, dest, src, op2);}
 void ARMXEmitter::LSL (ARMReg dest, ARMReg src, ARMReg op2)	  { WriteShiftedDataOp(1, false, dest, src, op2);} 
 void ARMXEmitter::LSLS(ARMReg dest, ARMReg src, ARMReg op2)	  { WriteShiftedDataOp(1, true, dest, src, op2);}
-void ARMXEmitter::LSR (ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(3, false, dest, src, op2);}
+void ARMXEmitter::LSR (ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(2, false, dest, src, op2);}
+void ARMXEmitter::LSRS(ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(2, true, dest, src, op2);}
+void ARMXEmitter::LSR (ARMReg dest, ARMReg src, ARMReg op2)	  { WriteShiftedDataOp(3, false, dest, src, op2);}
+void ARMXEmitter::LSRS(ARMReg dest, ARMReg src, ARMReg op2)   { WriteShiftedDataOp(3, true, dest, src, op2);}
 void ARMXEmitter::ASR (ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(4, false, dest, src, op2);}
 void ARMXEmitter::ASRS(ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(4, true, dest, src, op2);}
+void ARMXEmitter::ASR (ARMReg dest, ARMReg src, ARMReg op2)   { WriteShiftedDataOp(5, false, dest, src, op2);}
+void ARMXEmitter::ASRS(ARMReg dest, ARMReg src, ARMReg op2)   { WriteShiftedDataOp(5, true, dest, src, op2);}
+
 void ARMXEmitter::MUL (ARMReg dest,	ARMReg src, ARMReg op2)
 {
 	Write32(condition | (dest << 16) | (src << 8) | (9 << 4) | op2);
@@ -891,54 +898,6 @@ ARMReg ARMXEmitter::SubBase(ARMReg Reg)
 	return Reg;
 }
 
-// NEON Specific
-void ARMXEmitter::VABD(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
-{
-	_dbg_assert_msg_(DYNA_REC, Vd >= D0, "Pass invalid register to VABD(float)");
-	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use VABD(float) when CPU doesn't support it");
-	bool register_quad = Vd >= Q0;
-
-	// Gets encoded as a double register
-	Vd = SubBase(Vd);
-	Vn = SubBase(Vn);
-	Vm = SubBase(Vm);
-
-	Write32((0xF3 << 24) | ((Vd & 0x10) << 18) | (Size << 20) | ((Vn & 0xF) << 16) \
-		| ((Vd & 0xF) << 12) | (0xD << 8) | ((Vn & 0x10) << 3) | (register_quad << 6) \
-		| ((Vm & 0x10) << 2) | (Vm & 0xF));
-}
-void ARMXEmitter::VADD(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
-{
-	_dbg_assert_msg_(DYNA_REC, Vd >= D0, "Pass invalid register to VADD(integer)");
-	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use VADD(integer) when CPU doesn't support it");
-
-	bool register_quad = Vd >= Q0;
-
-	// Gets encoded as a double register
-	Vd = SubBase(Vd);
-	Vn = SubBase(Vn);
-	Vm = SubBase(Vm);
-
-	Write32((0xF2 << 24) | ((Vd & 0x10) << 18) | (Size << 20) | ((Vn & 0xF) << 16) \
-		| ((Vd & 0xF) << 12) | (0x8 << 8) | ((Vn & 0x10) << 3) | (register_quad << 6) \
-		| ((Vm & 0x10) << 1) | (Vm & 0xF));
-
-}
-void ARMXEmitter::VSUB(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
-{
-	_dbg_assert_msg_(DYNA_REC, Vd >= Q0, "Pass invalid register to VSUB(integer)");
-	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use VSUB(integer) when CPU doesn't support it");
-
-	// Gets encoded as a double register
-	Vd = SubBase(Vd);
-	Vn = SubBase(Vn);
-	Vm = SubBase(Vm);
-
-	Write32((0xF3 << 24) | ((Vd & 0x10) << 18) | (Size << 20) | ((Vn & 0xF) << 16) \
-		| ((Vd & 0xF) << 12) | (0x8 << 8) | ((Vn & 0x10) << 3) | (1 << 6) \
-		| ((Vm & 0x10) << 2) | (Vm & 0xF));
-}
-
 // Double/single, Neon
 extern const VFPEnc VFPOps[16][2] = {
 	{{0xE0, 0xA0}, {0x20, 0xD1}}, // 0: VMLA
@@ -958,7 +917,7 @@ extern const VFPEnc VFPOps[16][2] = {
 	{{  -1,   -1}, {0x3B, 0x30}}, // 14: VABSi
 	};
 
-extern const char *VFPOpNames[16] = {
+const char *VFPOpNames[16] = {
 	"VMLA",
 	"VNMLA",
 	"VMLS",
@@ -1013,10 +972,10 @@ u32 ARMXEmitter::EncodeVm(ARMReg Vm)
 	ARMReg Reg = SubBase(Vm);
 
 	if (quad_reg)
-		return ((Reg & 0x10) << 2) | (Reg & 0xF);
+		return ((Reg & 0x10) << 1) | (Reg & 0xF);
 	else
 		if (double_reg)
-			return ((Reg & 0x10) << 2) | (Reg & 0xF);
+			return ((Reg & 0x10) << 1) | (Reg & 0xF);
 		else
 			return ((Reg & 0x1) << 5) | (Reg >> 1);
 }
@@ -1036,6 +995,22 @@ void ARMXEmitter::WriteVFPDataOp(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 
 	Write32(cond | (enc.opc1 << 20) | VnEnc | VdEnc | (enc.opc2 << 4) | (quad_reg << 6) | (double_reg << 8) | VmEnc);
 }
+void ARMXEmitter::WriteVFPDataOp6bit(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm, u32 bit6)
+{
+	bool quad_reg = Vd >= Q0;
+	bool double_reg = Vd >= D0 && Vd < Q0;
+
+	VFPEnc enc = VFPOps[Op][quad_reg];
+	if (enc.opc1 == -1 && enc.opc2 == -1)
+		_dbg_assert_msg_(DYNA_REC, false, "%s does not support %s", VFPOpNames[Op], quad_reg ? "NEON" : "VFP"); 
+	u32 VdEnc = EncodeVd(Vd);
+	u32 VnEnc = EncodeVn(Vn);
+	u32 VmEnc = EncodeVm(Vm);
+	u32 cond = quad_reg ? (0xF << 28) : condition;
+
+	Write32(cond | (enc.opc1 << 20) | VnEnc | VdEnc | (enc.opc2 << 4) | (bit6 << 6) | (double_reg << 8) | VmEnc);
+}
+
 void ARMXEmitter::VMLA(ARMReg Vd, ARMReg Vn, ARMReg Vm){ WriteVFPDataOp(0, Vd, Vn, Vm); }
 void ARMXEmitter::VNMLA(ARMReg Vd, ARMReg Vn, ARMReg Vm){ WriteVFPDataOp(1, Vd, Vn, Vm); }
 void ARMXEmitter::VMLS(ARMReg Vd, ARMReg Vn, ARMReg Vm){ WriteVFPDataOp(2, Vd, Vn, Vm); }
@@ -1047,11 +1022,11 @@ void ARMXEmitter::VNMUL(ARMReg Vd, ARMReg Vn, ARMReg Vm){ WriteVFPDataOp(7, Vd, 
 void ARMXEmitter::VABS(ARMReg Vd, ARMReg Vm){ WriteVFPDataOp(8, Vd, D0, Vm); }
 void ARMXEmitter::VDIV(ARMReg Vd, ARMReg Vn, ARMReg Vm){ WriteVFPDataOp(9, Vd, Vn, Vm); }
 void ARMXEmitter::VNEG(ARMReg Vd, ARMReg Vm){ WriteVFPDataOp(10, Vd, D1, Vm); }
-void ARMXEmitter::VSQRT(ARMReg Vd, ARMReg Vm){ WriteVFPDataOp(11, Vd, D1, Vm); }
-void ARMXEmitter::VCMP(ARMReg Vd, ARMReg Vm){ WriteVFPDataOp(12, Vd, D4, Vm); }
-void ARMXEmitter::VCMPE(ARMReg Vd, ARMReg Vm){ WriteVFPDataOp(13, Vd, D4, Vm); }
-void ARMXEmitter::VCMP(ARMReg Vd){ WriteVFPDataOp(12, Vd, D5, D0); }
-void ARMXEmitter::VCMPE(ARMReg Vd){ WriteVFPDataOp(13, Vd, D5, D0); }
+void ARMXEmitter::VSQRT(ARMReg Vd, ARMReg Vm){ WriteVFPDataOp6bit(11, Vd, D1, Vm, 3); }
+void ARMXEmitter::VCMP(ARMReg Vd, ARMReg Vm){ WriteVFPDataOp6bit(12, Vd, D4, Vm, 1); }
+void ARMXEmitter::VCMPE(ARMReg Vd, ARMReg Vm){ WriteVFPDataOp6bit(13, Vd, D4, Vm, 1); }
+void ARMXEmitter::VCMP(ARMReg Vd){ WriteVFPDataOp6bit(12, Vd, D5, D0, 1); }
+void ARMXEmitter::VCMPE(ARMReg Vd){ WriteVFPDataOp6bit(13, Vd, D5, D0, 1); }
 
 void ARMXEmitter::VLDR(ARMReg Dest, ARMReg Base, s16 offset)
 {
@@ -1110,9 +1085,6 @@ void ARMXEmitter::VSTR(ARMReg Src, ARMReg Base, s16 offset)
 	}
 }
 
-void ARMXEmitter::VMRS_APSR() {
-	Write32(condition | 0xEF10A10 | (15 << 12));
-}
 void ARMXEmitter::VMRS(ARMReg Rt) {
 	Write32(condition | (0xEF << 20) | (1 << 16) | (Rt << 12) | 0xA10);
 }
@@ -1124,7 +1096,8 @@ void ARMXEmitter::VMSR(ARMReg Rt) {
 void ARMXEmitter::VMOV(ARMReg Dest, Operand2 op2)
 {
 	_dbg_assert_msg_(DYNA_REC, cpu_info.bVFPv3, "VMOV #imm requires VFPv3");
-	Write32(condition | (0xEB << 20) | EncodeVd(Dest) | (0xA << 8) | op2.Imm8VFP());
+	bool double_reg = Dest >= D0;
+	Write32(condition | (0xEB << 20) | EncodeVd(Dest) | (0x5 << 9) | (double_reg << 8) | op2.Imm8VFP());
 }
 void ARMXEmitter::VMOV(ARMReg Dest, ARMReg Src, bool high)
 {
@@ -1177,7 +1150,10 @@ void ARMXEmitter::VMOV(ARMReg Dest, ARMReg Src)
 			else
 			{
 				// Move 64bit To Arm reg
-				_dbg_assert_msg_(DYNA_REC, false, "This VMOV doesn't support moving 64bit ARM From NEON");
+				ARMReg Dest2 = (ARMReg)(Dest + 1);
+				Src = SubBase(Src);
+				Write32(condition | (0xC5 << 20) | (Dest2 << 16) | (Dest << 12) \
+						| (0xB << 8) | ((Dest & 0x10) << 1) | (1 << 4) | (Src & 0xF)); 
 				return;
 			}
 		}
@@ -1189,6 +1165,7 @@ void ARMXEmitter::VMOV(ARMReg Dest, ARMReg Src)
 	}
 	// Moving NEON registers
 	int SrcSize = Src < D0 ? 1 : Src < Q0 ? 2 : 4;
+	(void) SrcSize;
 	int DestSize = Dest < D0 ? 1 : Dest < Q0 ? 2 : 4;
 	bool Single = DestSize == 1;
 	bool Quad = DestSize == 4;
@@ -1267,4 +1244,147 @@ void ARMXEmitter::VCVT(ARMReg Dest, ARMReg Source, int flags)
 	}
 }
 
+void NEONXEmitter::VABD(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	_dbg_assert_msg_(DYNA_REC, Vd >= D0, "Pass invalid register to VABD(float)");
+	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use VABD(float) when CPU doesn't support it");
+	bool register_quad = Vd >= Q0;
+
+	// Gets encoded as a double register
+	Vd = SubBase(Vd);
+	Vn = SubBase(Vn);
+	Vm = SubBase(Vm);
+
+	Write32((0xF3 << 24) | ((Vd & 0x10) << 18) | (encodedSize(Size) << 20) | ((Vn & 0xF) << 16) \
+		| ((Vd & 0xF) << 12) | (0xD << 8) | ((Vn & 0x10) << 3) | (register_quad << 6) \
+		| ((Vm & 0x10) << 1) | (Vm & 0xF));
 }
+void NEONXEmitter::VADD(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	_dbg_assert_msg_(DYNA_REC, Vd >= D0, "Pass invalid register to VADD(integer)");
+	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use VADD(integer) when CPU doesn't support it");
+
+	bool register_quad = Vd >= Q0;
+
+	// Gets encoded as a double register
+	Vd = SubBase(Vd);
+	Vn = SubBase(Vn);
+	Vm = SubBase(Vm);
+
+	Write32((0xF2 << 24) | ((Vd & 0x10) << 18) | (encodedSize(Size) << 20) | ((Vn & 0xF) << 16) \
+		| ((Vd & 0xF) << 12) | (0x8 << 8) | ((Vn & 0x10) << 3) | (register_quad << 6) \
+		| ((Vm & 0x10) << 1) | (Vm & 0xF));
+
+}
+void NEONXEmitter::VSUB(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	_dbg_assert_msg_(DYNA_REC, Vd >= Q0, "Pass invalid register to VSUB(integer)");
+	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use VSUB(integer) when CPU doesn't support it");
+
+	// Gets encoded as a double register
+	Vd = SubBase(Vd);
+	Vn = SubBase(Vn);
+	Vm = SubBase(Vm);
+
+	Write32((0xF3 << 24) | ((Vd & 0x10) << 18) | (encodedSize(Size) << 20) | ((Vn & 0xF) << 16) \
+		| ((Vd & 0xF) << 12) | (0x8 << 8) | ((Vn & 0x10) << 3) | (1 << 6) \
+		| ((Vm & 0x10) << 1) | (Vm & 0xF));
+}
+
+void NEONXEmitter::VLD1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align, ARMReg Rm)
+{
+	u32 spacing = 0x7; // Only support loading to 1 reg 
+	// Gets encoded as a double register
+	Vd = SubBase(Vd);
+
+	Write32((0xF4 << 24) | ((Vd & 0x10) << 18) | (1 << 21) | (Rn << 16) 
+			| ((Vd & 0xF) << 12) | (spacing << 8) | (encodedSize(Size) << 6)
+			| (align << 4) | Rm);
+}
+
+void NEONXEmitter::VLD2(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align, ARMReg Rm)
+{
+	u32 spacing = 0x8; // Single spaced registers
+	// Gets encoded as a double register
+	Vd = SubBase(Vd);
+
+	Write32((0xF4 << 24) | ((Vd & 0x10) << 18) | (1 << 21) | (Rn << 16) 
+			| ((Vd & 0xF) << 12) | (spacing << 8) | (encodedSize(Size) << 6)
+			| (align << 4) | Rm);
+}
+
+void NEONXEmitter::VST1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align, ARMReg Rm)
+{
+	u32 spacing = 0x7; // Single spaced registers
+	// Gets encoded as a double register
+	Vd = SubBase(Vd);
+
+	Write32((0xF4 << 24) | ((Vd & 0x10) << 18) | (Rn << 16) 
+			| ((Vd & 0xF) << 12) | (spacing << 8) | (encodedSize(Size) << 6)
+			| (align << 4) | Rm);
+}
+
+
+void NEONXEmitter::VREVX(u32 size, NEONElementType Size, ARMReg Vd, ARMReg Vm)
+{
+	bool register_quad = Vd >= Q0;
+	Vd = SubBase(Vd);
+	Vm = SubBase(Vm);
+
+	Write32((0xF3 << 24) | (1 << 23) | ((Vd & 0x10) << 18) | (0x3 << 20)
+			| (encodedSize(Size) << 18) | ((Vd & 0xF) << 12) | (size << 7)
+			| (register_quad << 6) | ((Vm & 0x10) << 1) | (Vm & 0xF));
+}
+
+void NEONXEmitter::VREV64(NEONElementType Size, ARMReg Vd, ARMReg Vm)
+{
+	VREVX(2, Size, Vd, Vm);
+}
+
+void NEONXEmitter::VREV32(NEONElementType Size, ARMReg Vd, ARMReg Vm)
+{
+	VREVX(1, Size, Vd, Vm);
+}
+
+void NEONXEmitter::VREV16(NEONElementType Size, ARMReg Vd, ARMReg Vm)
+{
+	VREVX(0, Size, Vd, Vm);
+}
+
+void NEONXEmitter::VRSQRTE(NEONElementType Size, ARMReg Vd, ARMReg Vm)
+{
+	bool register_quad = Vd >= Q0;
+	Vd = SubBase(Vd);
+	Vm = SubBase(Vm);
+
+	Write32((0xF3 << 24) | (0xB << 20) | ((Vd & 0x10) << 18) | (0xB << 16)
+			| ((Vd & 0xF) << 12) | (9 << 7) | (Size & F_32 ? (1 << 8) : 0) | (register_quad << 6)
+			| ((Vm & 0x10) << 1) | (Vm & 0xF));
+}
+
+void NEONXEmitter::VEOR(ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	bool register_quad = Vd >= Q0;
+	Vd = SubBase(Vd);
+	Vn = SubBase(Vn);
+	Vm = SubBase(Vm);
+
+	Write32((0xF3 << 24) | ((Vd & 0x10) << 18) | ((Vn & 0xF) << 16)
+			| ((Vd & 0xF) << 12) | (1 << 8) | ((Vn & 0x10) << 3) 
+			| (register_quad << 6) | ((Vm & 0x10) << 1) | (1 << 4) | (Vm & 0xF));
+}
+void NEONXEmitter::VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	bool register_quad = Vd >= Q0;
+	Vd = SubBase(Vd);
+	Vn = SubBase(Vn);
+	Vm = SubBase(Vm);
+
+	Write32((0xF2 << 24) | (0x1 << 21) | ((Vd & 0x10) << 18) | ((Vn & 0xF) << 16)
+			| ((Vd & 0xF) << 12) | (1 << 8) | ((Vn & 0x10) << 3) 
+			| (register_quad << 6) | ((Vm & 0x10) << 1) | (1 << 4) | (Vm & 0xF));
+}
+
+
+}
+

@@ -210,7 +210,7 @@ unsigned int CMixer::GetNumSamples()
 	u32 numSamples = ((Common::AtomicLoad(m_indexW) - Common::AtomicLoad(m_indexR)) & INDEX_MASK) / 2;
 
 	if (AudioInterface::GetAIDSampleRate() == m_sampleRate)
-		numSamples = numSamples; // 1:1
+		; //numSamples = numSamples; // 1:1
 	else if (m_sampleRate == 48000 && AudioInterface::GetAIDSampleRate() == 32000)
 		numSamples = numSamples * 3 / 2 - 2; // most common case
 	else

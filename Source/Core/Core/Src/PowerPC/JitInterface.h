@@ -18,7 +18,7 @@ namespace JitInterface
 
 	// Memory Utilities
 	bool IsInCodeSpace(u8 *ptr);
-	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, void *ctx);
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx);
 
 	// used by JIT to read instructions
 	u32 Read_Opcode_JIT(const u32 _Address);

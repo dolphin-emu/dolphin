@@ -24,25 +24,6 @@
 #include "../JitCommon/JitBackpatch.h"
 #include "StringUtil.h"
 
-#ifdef _M_X64
-static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
-	u64 code_addr = (u64)codePtr;
-	disassembler disasm;
-	char disbuf[256];
-	memset(disbuf, 0, 256);
-#ifdef _M_IX86
-	disasm.disasm32(0, code_addr, codePtr, disbuf);
-#else
-	disasm.disasm64(0, code_addr, codePtr, disbuf);
-#endif
-	PanicAlert("%s\n\n"
-       "Error encountered accessing emulated address %08x.\n"
-	   "Culprit instruction: \n%s\nat %#llx",
-	   text.c_str(), emAddress, disbuf, code_addr);
-	return;
-}
-#endif
-
 // This generates some fairly heavy trampolines, but:
 // 1) It's really necessary. We don't know anything about the context.
 // 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be 
@@ -96,7 +77,7 @@ bool DisamLoadStore(const u32 inst, ARMReg &rD, u8 &accessSize, bool &Store)
 	}
 	return true;
 }
-const u8 *JitArm::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ctx_void)
+const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 {
 	// TODO: This ctx needs to be filled with our information
 	CONTEXT *ctx = (CONTEXT *)ctx_void;
@@ -115,7 +96,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ct
 
 	if (Store)
 	{
-		const u32 ARMREGOFFSET = 4 * 7;
+		const u32 ARMREGOFFSET = 4 * 5;
 		ARMXEmitter emitter(codePtr - ARMREGOFFSET);
 		switch (accessSize)
 		{
@@ -136,7 +117,6 @@ const u8 *JitArm::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ct
 		emitter.MOV(R1, R10); // Addr- 5 
 		emitter.BL(R14); // 6
 		emitter.POP(4, R0, R1, R2, R3); // 7
-		emitter.NOP(1); // 8
 		u32 newPC = ctx->reg_pc - (ARMREGOFFSET + 4 * 4);
 		ctx->reg_pc = newPC;
 		emitter.FlushIcache();
@@ -144,7 +124,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ct
 	}
 	else
 	{
-		const u32 ARMREGOFFSET = 4 * 6;
+		const u32 ARMREGOFFSET = 4 * 4;
 		ARMXEmitter emitter(codePtr - ARMREGOFFSET);
 		switch (accessSize)
 		{

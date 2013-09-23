@@ -1,28 +1,23 @@
 package org.dolphinemu.dolphinemu;
 
-import java.util.List;
-
-import org.dolphinemu.dolphinemu.settings.InputConfigFragment;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
-import android.view.InputDevice;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.Window;
-import android.view.WindowManager;
+import android.view.*;
 import android.view.WindowManager.LayoutParams;
+import org.dolphinemu.dolphinemu.settings.InputConfigFragment;
+import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
+
+import java.util.List;
 
 /**
  * This is the activity where all of the emulation handling happens.
@@ -63,7 +58,18 @@ public final class EmulationActivity extends Activity
 		// and set on the native side of the code so the emulator can actually
 		// load the game.
 		Intent gameToEmulate = getIntent();
-		NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
+
+		// Due to a bug in Adreno, it renders the screen rotated 90 degrees when using OpenGL
+		// Flip the width and height when on Adreno to work around this.
+		// Mali isn't affected by this bug.
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		if (prefs.getString("gpuPref", "Software Rendering").equals("OGL")
+				&& VideoSettingsFragment.SupportsGLES3()
+				&& VideoSettingsFragment.m_GLVendor.equals("Qualcomm"))
+			NativeLibrary.SetDimensions((int)screenHeight, (int)screenWidth);
+		else
+			NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
+
 		NativeLibrary.SetFilename(gameToEmulate.getStringExtra("SelectedGame"));
 		Running = true;
 
@@ -224,7 +230,7 @@ public final class EmulationActivity extends Activity
 			}
 
 			default:
-				return super.onOptionsItemSelected( item );
+				return super.onMenuItemSelected(itemId, item);
 		}
 	}
 

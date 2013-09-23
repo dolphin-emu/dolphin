@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "Common.h"
+#include "CommonPaths.h"
 #include "IniFile.h"
 #include "BootManager.h"
 #include "Volume.h"
@@ -34,7 +35,7 @@
 #include "Host.h"
 #include "VideoBackendBase.h"
 #include "Movie.h"
-#include "NetPlayClient.h"
+#include "NetPlayProto.h"
 
 namespace BootManager
 {
@@ -46,6 +47,7 @@ struct ConfigCache
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
 		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2;
 	int iTLBHack, iCPUCore;
+	TEXIDevices m_EXIDevice[2];
 	std::string strBackend;
 };
 static ConfigCache config_cache;
@@ -72,11 +74,16 @@ bool BootCore(const std::string& _rFilename)
 		return false;
 
 	// Load game specific settings
-	IniFile game_ini;
 	std::string unique_id = StartUp.GetUniqueID();
-	StartUp.m_strGameIni = File::GetUserPath(D_GAMECONFIG_IDX) + unique_id + ".ini";
-	if (unique_id.size() == 6 && game_ini.Load(StartUp.m_strGameIni.c_str()))
+	StartUp.m_strGameIniDefault = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + unique_id + ".ini";
+	StartUp.m_strGameIniLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + unique_id + ".ini";
+
+	if (unique_id.size() == 6)
 	{
+		IniFile game_ini;
+		game_ini.Load(StartUp.m_strGameIniDefault);
+		game_ini.Load(StartUp.m_strGameIniLocal, true);
+
 		config_cache.valid = true;
 		config_cache.bCPUThread = StartUp.bCPUThread;
 		config_cache.bSkipIdle = StartUp.bSkipIdle;
@@ -94,6 +101,8 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
 		config_cache.m_EnableJIT = SConfig::GetInstance().m_EnableJIT;
 		config_cache.bDSPThread = StartUp.bDSPThread;
+		config_cache.m_EXIDevice[0] = SConfig::GetInstance().m_EXIDevice[0];
+		config_cache.m_EXIDevice[1] = SConfig::GetInstance().m_EXIDevice[1];
 
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
@@ -144,6 +153,8 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
 		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
 		SConfig::GetInstance().m_EnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
+		SConfig::GetInstance().m_EXIDevice[0] = g_NetPlaySettings.m_EXIDevice[0];
+		SConfig::GetInstance().m_EXIDevice[1] = g_NetPlaySettings.m_EXIDevice[1];
 	}
 
 	// Run the game
@@ -184,6 +195,8 @@ void Stop()
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
 		SConfig::GetInstance().m_EnableJIT = config_cache.m_EnableJIT;
+		SConfig::GetInstance().m_EXIDevice[0] = config_cache.m_EXIDevice[0];
+		SConfig::GetInstance().m_EXIDevice[1] = config_cache.m_EXIDevice[1];
 	}
 }
 

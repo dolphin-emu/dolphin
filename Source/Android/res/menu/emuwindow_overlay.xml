@@ -1,7 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/saveStateRoot"
-        android:showAsAction="always"
+        android:showAsAction="ifRoom"
         android:title="@string/overlay_savestate">
         <menu>
             <item android:id="@+id/saveSlot1"
@@ -22,8 +22,8 @@
     </item>
 
     <item
-        android:id="@+id/loadtateRoot"
-        android:showAsAction="always"
+        android:id="@+id/loadStateRoot"
+        android:showAsAction="ifRoom"
         android:title="@string/overlay_loadstate">
         <menu>
             <item android:id="@+id/loadSlot1"

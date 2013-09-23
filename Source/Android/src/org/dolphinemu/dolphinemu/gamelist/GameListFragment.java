@@ -70,7 +70,7 @@ public final class GameListFragment extends Fragment
 		int intDirectories = Integer.parseInt(Directories);
 
 		// Extensions to filter by.
-		Set<String> exts = new HashSet<String>(Arrays.asList(".gcm", ".iso", ".wbfs", ".gcz", ".dol", ".elf", ".dff", ".wad"));
+		Set<String> exts = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
 
 		for (int a = 0; a < intDirectories; ++a)
 		{
@@ -83,13 +83,10 @@ public final class GameListFragment extends Fragment
 				{
 					String entryName = entry.getName();
 
-					if (entryName.charAt(0) != '.')
+					if (!entry.isHidden() && !entry.isDirectory())
 					{
-						if (!entry.isDirectory())
-						{
-							if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
-								fls.add(new GameListItem(mMe.getApplicationContext(), entryName, getString(R.string.file_size)+entry.length(),entry.getAbsolutePath()));
-						}
+						if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
+							fls.add(new GameListItem(mMe, entryName, getString(R.string.file_size)+entry.length(),entry.getAbsolutePath()));
 					}
 				}
 			}

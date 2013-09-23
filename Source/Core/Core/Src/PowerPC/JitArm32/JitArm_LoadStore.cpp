@@ -31,304 +31,17 @@
 #include "JitRegCache.h"
 #include "JitAsm.h"
 
-#ifdef ANDROID
-#define FASTMEM 0
-#else
-#define FASTMEM 1
-#endif
-void JitArm::stb(UGeckoInstruction inst)
+void JitArm::UnsafeStoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
 {
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg RS = gpr.R(inst.RS);
-#if 0 // FASTMEM
-	// R10 contains the dest address
-	ARMReg Value = R11;
-	ARMReg RA;
-	if (inst.RA)
-		RA = gpr.R(inst.RA);
-	MOV(Value, RS);
-	if (inst.RA)
-	{
-		MOVI2R(R10, inst.SIMM_16, false);
-		ADD(R10, R10, RA);
-	}
-	else
-	{
-		MOVI2R(R10, (u32)inst.SIMM_16, false);
-		NOP(1);
-	}
-	StoreFromReg(R10, Value, 16, 0);
-#else
-	ARMReg ValueReg = gpr.GetReg();
-	ARMReg Addr = gpr.GetReg();
-	ARMReg Function = gpr.GetReg();
-
-	MOV(ValueReg, RS);
-	if (inst.RA)
-	{
-		MOVI2R(Addr, inst.SIMM_16);
-		ARMReg RA = gpr.R(inst.RA);
-		ADD(Addr, Addr, RA);
-	}
-	else
-		MOVI2R(Addr, (u32)inst.SIMM_16);
-	
-	MOVI2R(Function, (u32)&Memory::Write_U8);	
-	PUSH(4, R0, R1, R2, R3);
-	MOV(R0, ValueReg);
-	MOV(R1, Addr);
-	BL(Function);
-	POP(4, R0, R1, R2, R3);
-	gpr.Unlock(ValueReg, Addr, Function);
-#endif
-}
-
-void JitArm::stbu(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RS = gpr.R(inst.RS);
-	ARMReg ValueReg = gpr.GetReg();
-	ARMReg Addr = gpr.GetReg();
-	ARMReg Function = gpr.GetReg();
-	
-	MOVI2R(Addr, inst.SIMM_16);
-	ADD(Addr, Addr, RA);
-
-	// Check for DSI exception prior to writing back address
-	LDR(Function, R9, PPCSTATE_OFF(Exceptions));
-	CMP(Function, EXCEPTION_DSI);
-	FixupBranch DoNotWrite = B_CC(CC_EQ);
-	MOV(RA, Addr);
-	SetJumpTarget(DoNotWrite);
-
-	MOV(ValueReg, RS);
-	
-	MOVI2R(Function, (u32)&Memory::Write_U8);	
-	PUSH(4, R0, R1, R2, R3);
-	MOV(R0, ValueReg);
-	MOV(R1, Addr);
-	BL(Function);
-	POP(4, R0, R1, R2, R3);
-
-	gpr.Unlock(ValueReg, Addr, Function);
-}
-void JitArm::sth(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg RS = gpr.R(inst.RS);
-#if 0 // FASTMEM
-	// R10 contains the dest address
-	ARMReg Value = R11;
-	ARMReg RA;
-	if (inst.RA)
-		RA = gpr.R(inst.RA);
-	MOV(Value, RS);
-	if (inst.RA)
-	{
-		MOVI2R(R10, inst.SIMM_16, false);
-		ADD(R10, R10, RA);
-	}
-	else
-	{
-		MOVI2R(R10, (u32)inst.SIMM_16, false);
-		NOP(1);
-	}
-	StoreFromReg(R10, Value, 16, 0);
-#else
-	ARMReg ValueReg = gpr.GetReg();
-	ARMReg Addr = gpr.GetReg();
-	ARMReg Function = gpr.GetReg();
-
-	MOV(ValueReg, RS);
-	if (inst.RA)
-	{
-		MOVI2R(Addr, inst.SIMM_16);
-		ARMReg RA = gpr.R(inst.RA);
-		ADD(Addr, Addr, RA);
-	}
-	else
-		MOVI2R(Addr, (u32)inst.SIMM_16);
-	
-	MOVI2R(Function, (u32)&Memory::Write_U16);	
-	PUSH(4, R0, R1, R2, R3);
-	MOV(R0, ValueReg);
-	MOV(R1, Addr);
-	BL(Function);
-	POP(4, R0, R1, R2, R3);
-	gpr.Unlock(ValueReg, Addr, Function);
-#endif
-}
-void JitArm::sthu(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RS = gpr.R(inst.RS);
-	ARMReg ValueReg = gpr.GetReg();
-	ARMReg Addr = gpr.GetReg();
-	ARMReg Function = gpr.GetReg();
-	
-	MOVI2R(Addr, inst.SIMM_16);
-	ADD(Addr, Addr, RA);
-
-	// Check for DSI exception prior to writing back address
-	LDR(Function, R9, PPCSTATE_OFF(Exceptions));
-	CMP(Function, EXCEPTION_DSI);
-	FixupBranch DoNotWrite = B_CC(CC_EQ);
-	MOV(RA, Addr);
-	SetJumpTarget(DoNotWrite);
-
-	MOV(ValueReg, RS);
-	
-	MOVI2R(Function, (u32)&Memory::Write_U16);	
-	PUSH(4, R0, R1, R2, R3);
-	MOV(R0, ValueReg);
-	MOV(R1, Addr);
-	BL(Function);
-	POP(4, R0, R1, R2, R3);
-
-	gpr.Unlock(ValueReg, Addr, Function);
-}
-
-void JitArm::stw(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg RS = gpr.R(inst.RS);
-#if FASTMEM
-	// R10 contains the dest address
-	if (Core::g_CoreStartupParameter.bFastmem)
-	{
-		ARMReg Value = R11;
-		ARMReg RA;
-		if (inst.RA)
-			RA = gpr.R(inst.RA);
-		MOV(Value, RS);
-		if (inst.RA)
-		{
-			MOVI2R(R10, inst.SIMM_16, false);
-			ADD(R10, R10, RA);
-		}
-		else
-		{
-			MOVI2R(R10, (u32)inst.SIMM_16, false);
-			NOP(1);
-		}
-		StoreFromReg(R10, Value, 32, 0);
-	}
-	else
-#endif
-	{
-		ARMReg ValueReg = gpr.GetReg();
-		ARMReg Addr = gpr.GetReg();
-		ARMReg Function = gpr.GetReg();
-
-		MOV(ValueReg, RS);
-		if (inst.RA)
-		{
-			MOVI2R(Addr, inst.SIMM_16);
-			ARMReg RA = gpr.R(inst.RA);
-			ADD(Addr, Addr, RA);
-		}
-		else
-			MOVI2R(Addr, (u32)inst.SIMM_16);
-		
-		MOVI2R(Function, (u32)&Memory::Write_U32);	
-		PUSH(4, R0, R1, R2, R3);
-		MOV(R0, ValueReg);
-		MOV(R1, Addr);
-		BL(Function);
-		POP(4, R0, R1, R2, R3);
-		gpr.Unlock(ValueReg, Addr, Function);
-	}
-}
-void JitArm::stwu(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg RA = gpr.R(inst.RA);
-	ARMReg RS = gpr.R(inst.RS);
-	ARMReg ValueReg = gpr.GetReg();
-	ARMReg Addr = gpr.GetReg();
-	ARMReg Function = gpr.GetReg();
-	
-	MOVI2R(Addr, inst.SIMM_16);
-	ADD(Addr, Addr, RA);
-
-	// Check for DSI exception prior to writing back address
-	LDR(Function, R9, PPCSTATE_OFF(Exceptions));
-	CMP(Function, EXCEPTION_DSI);
-	FixupBranch DoNotWrite = B_CC(CC_EQ);
-	MOV(RA, Addr);
-	SetJumpTarget(DoNotWrite);
-
-	MOV(ValueReg, RS);
-	
-	MOVI2R(Function, (u32)&Memory::Write_U32);	
-	PUSH(4, R0, R1, R2, R3);
-	MOV(R0, ValueReg);
-	MOV(R1, Addr);
-	BL(Function);
-	POP(4, R0, R1, R2, R3);
-
-	gpr.Unlock(ValueReg, Addr, Function);
-}
-void JitArm::stwx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-	u32 a = inst.RA, b = inst.RB, s = inst.RB;	
-
-	if (a) {
-		// Doesn't work
-		Default(inst); return;
-	}
-	
-	ARMReg RB = gpr.R(b);
-	ARMReg RS = gpr.R(s);
-	ARMReg ValueReg = gpr.GetReg();
-	ARMReg Addr = gpr.GetReg();
-	ARMReg Function = gpr.GetReg();
-	
-	if (a)
-		ADD(Addr, gpr.R(a), RB);
-	else
-		MOV(Addr, RB);
-
-	MOV(ValueReg, RS);
-	fpr.Flush();	
-	MOVI2R(Function, (u32)&Memory::Write_U32);	
-	PUSH(4, R0, R1, R2, R3);
-	MOV(R0, ValueReg);
-	MOV(R1, Addr);
-	BL(Function);
-	POP(4, R0, R1, R2, R3);
-
-	gpr.Unlock(ValueReg, Addr, Function);
-}
-
-void JitArm::StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
-{
-	ARMReg rA = gpr.GetReg();
-
 	// All this gets replaced on backpatch
-	MOVI2R(rA, Memory::MEMVIEW32_MASK, false); // 1-2 
-	AND(dest, dest, rA); // 3
-	MOVI2R(rA, (u32)Memory::base, false); // 4-5
-	ADD(dest, dest, rA); // 6
+	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	BIC(dest, dest, mask); // 1
+	MOVI2R(R14, (u32)Memory::base, false); // 2-3
+	ADD(dest, dest, R14); // 4
 	switch (accessSize)
 	{
 		case 32:
-			REV(value, value); // 7
+			REV(value, value); // 5
 		break;
 		case 16:
 			REV16(value, value);
@@ -340,7 +53,7 @@ void JitArm::StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
 	switch (accessSize)
 	{
 		case 32:
-			STR(value, dest); // 8
+			STR(value, dest); // 6
 		break;
 		case 16:
 			STRH(value, dest);
@@ -349,23 +62,179 @@ void JitArm::StoreFromReg(ARMReg dest, ARMReg value, int accessSize, s32 offset)
 			STRB(value, dest);
 		break;
 	}
-	gpr.Unlock(rA);
+	NOP(1); // 7
 }
-void JitArm::LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
+
+void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, int accessSize, s32 offset)
+{
+	if (Core::g_CoreStartupParameter.bFastmem && fastmem)
+	{
+		ARMReg RA;
+		ARMReg RB;
+		ARMReg RS = gpr.R(value);
+
+		if (dest != -1)
+			RA = gpr.R(dest);
+
+		if (regOffset != -1)
+		{
+			RB = gpr.R(regOffset);
+			MOV(R10, RB);
+			NOP(1);
+		}
+		else
+			MOVI2R(R10, (u32)offset, false);
+
+		if (dest != -1)
+			ADD(R10, R10, RA);
+		else
+			NOP(1);
+
+		MOV(R12, RS);
+		UnsafeStoreFromReg(R10, R12, accessSize, 0);
+		return;
+	}
+	ARMReg rA = gpr.GetReg();
+	ARMReg rB = gpr.GetReg();
+	ARMReg rC = gpr.GetReg();
+	ARMReg RA;
+	ARMReg RB;
+	if (dest != -1)
+		RA = gpr.R(dest);
+	if (regOffset != -1)
+		RB = gpr.R(regOffset);
+	ARMReg RS = gpr.R(value);
+	switch(accessSize)
+	{
+		case 32:
+			MOVI2R(rA, (u32)&Memory::Write_U32);	
+		break;
+		case 16:
+			MOVI2R(rA, (u32)&Memory::Write_U16);	
+		break;
+		case 8:
+			MOVI2R(rA, (u32)&Memory::Write_U8);	
+		break;
+	}
+	MOV(rB, RS);
+	if (regOffset == -1)
+		MOVI2R(rC, offset);
+	else
+		MOV(rC, RB);
+	if (dest != -1)
+		ADD(rC, rC, RA);
+
+	PUSH(4, R0, R1, R2, R3);
+	MOV(R0, rB);
+	MOV(R1, rC);
+	BL(rA);
+	POP(4, R0, R1, R2, R3);
+	gpr.Unlock(rA, rB, rC);
+}
+
+void JitArm::stX(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff)
+
+	u32 a = inst.RA, b = inst.RB, s = inst.RS;
+	s32 offset = inst.SIMM_16;
+	u32 accessSize = 0;
+	s32 regOffset = -1;
+	bool zeroA = true;
+	bool update = false;
+	bool fastmem = false;
+	switch(inst.OPCD)
+	{
+		case 45: // sthu
+			update = true;
+		case 44: // sth
+			accessSize = 16;
+		break;
+		case 31:
+			switch (inst.SUBOP10)
+			{
+				case 183: // stwux
+					zeroA = false;
+					update = true;
+				case 151: // stwx
+					fastmem = true;
+					accessSize = 32;
+					regOffset = b;
+				break;
+				case 247: // stbux
+					zeroA = false;
+					update = true;
+				case 215: // stbx
+					accessSize = 8;
+					regOffset = b;
+				break;
+				case 439: // sthux
+					zeroA = false;
+					update = true;
+				case 407: // sthx
+					accessSize = 16;
+					regOffset = b;
+				break;
+			}
+		break;
+		case 37: // stwu
+			update = true;
+		case 36: // stw
+			fastmem = true;
+			accessSize = 32;
+		break;
+		case 39: // stbu
+			update = true;
+		case 38: // stb
+			accessSize = 8;
+		break;
+	}
+	SafeStoreFromReg(fastmem, zeroA ? a ? a : -1 : a, s, regOffset, accessSize, offset); 
+	if (update)
+	{
+		ARMReg rA = gpr.GetReg();
+		ARMReg RB;
+		ARMReg RA = gpr.R(a);
+		if (regOffset != -1)
+			RB = gpr.R(regOffset);
+		// Check for DSI exception prior to writing back address
+		LDR(rA, R9, PPCSTATE_OFF(Exceptions));
+		CMP(rA, EXCEPTION_DSI);
+		FixupBranch DoNotWrite = B_CC(CC_EQ);
+		if (a)
+		{
+			if (regOffset == -1)
+				MOVI2R(rA, offset);
+			else
+				MOV(rA, RB);
+			ADD(RA, RA, rA);
+		}
+		else
+			if (regOffset == -1)
+				MOVI2R(RA, (u32)offset);
+			else
+				MOV(RA, RB);
+		SetJumpTarget(DoNotWrite);
+		gpr.Unlock(rA);
+	}
+}
+
+void JitArm::UnsafeLoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
 {
 	ARMReg rA = gpr.GetReg();
 	MOVI2R(rA, offset, false); // -3
 	ADD(addr, addr, rA); // - 1
 
 	// All this gets replaced on backpatch
-	MOVI2R(rA, Memory::MEMVIEW32_MASK, false); // 2 
-	AND(addr, addr, rA); // 3
-	MOVI2R(rA, (u32)Memory::base, false); // 5
-	ADD(addr, addr, rA); // 6
+	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	BIC(addr, addr, mask); // 1
+	MOVI2R(rA, (u32)Memory::base, false); // 2-3
+	ADD(addr, addr, rA); // 4
 	switch (accessSize)
 	{
 		case 32:
-			LDR(dest, addr); // 7
+			LDR(dest, addr); // 5
 		break;
 		case 16:
 			LDRH(dest, addr);
@@ -377,7 +246,7 @@ void JitArm::LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
 	switch (accessSize)
 	{
 		case 32:
-			REV(dest, dest); // 9
+			REV(dest, dest); // 6
 		break;
 		case 16:
 			REV16(dest, dest);
@@ -387,195 +256,184 @@ void JitArm::LoadToReg(ARMReg dest, ARMReg addr, int accessSize, s32 offset)
 		break;
 
 	}
+	NOP(2); // 7-8
 	gpr.Unlock(rA);
 }
-void JitArm::lbz(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
 
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-	ARMReg RD = gpr.R(inst.RD);
-	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-	CMP(rA, EXCEPTION_DSI);
-	FixupBranch DoNotLoad = B_CC(CC_EQ);
-#if FASTMEM
-	// Backpatch route
-	// Gets loaded in to RD
-	// Address is in R10
-	if (Core::g_CoreStartupParameter.bFastmem)
+void JitArm::SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int accessSize, s32 offset, bool signExtend, bool reverse)
+{
+	ARMReg RD = gpr.R(dest);
+	if (Core::g_CoreStartupParameter.bFastmem && fastmem)
 	{
-		gpr.Unlock(rA, rB);
-		if (inst.RA)
-		{
-			ARMReg RA = gpr.R(inst.RA);
-			MOV(R10, RA); // - 4
-		}
+		if (addr != -1)
+			MOV(R10, gpr.R(addr));
 		else
-			MOV(R10, 0); // - 4
-		LoadToReg(RD, R10, 8, inst.SIMM_16);	
-	}
-	else
-#endif
-	{
-		if (inst.RA)
-		{
-			MOVI2R(rB, inst.SIMM_16);
-			ARMReg RA = gpr.R(inst.RA);
-			ADD(rB, rB, RA);
-		}
-		else	
-			MOVI2R(rB, (u32)inst.SIMM_16);
+			MOV(R10, 0);
 		
-		MOVI2R(rA, (u32)&Memory::Read_U8);	
-		PUSH(4, R0, R1, R2, R3);
-		MOV(R0, rB);
-		BL(rA);
-		MOV(rA, R0);
-		POP(4, R0, R1, R2, R3);
-		MOV(RD, rA);
-		gpr.Unlock(rA, rB);
+		UnsafeLoadToReg(RD, R10, accessSize, offset);	
+		return;
 	}
-	SetJumpTarget(DoNotLoad);
-}
-
-void JitArm::lhz(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
-	ARMReg RD = gpr.R(inst.RD);
-	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-	CMP(rA, EXCEPTION_DSI);
-	FixupBranch DoNotLoad = B_CC(CC_EQ);
-#if FASTMEM
-	// Backpatch route
-	// Gets loaded in to RD
-	// Address is in R10
-	gpr.Unlock(rA, rB);
-	if (inst.RA)
-	{
-		ARMReg RA = gpr.R(inst.RA);
-		MOV(R10, RA); // - 4
-	}
+
+	if (offsetReg == -1)
+		MOVI2R(rA, offset);
 	else
-		MOV(R10, 0); // - 4
+		MOV(rA, gpr.R(offsetReg));
 
-	LoadToReg(RD, R10, 16, (u32)inst.SIMM_16);	
-#else
-
-	if (inst.RA)
-	{
-		MOVI2R(rB, inst.SIMM_16);
-		ARMReg RA = gpr.R(inst.RA);
-		ADD(rB, rB, RA);
-	}
-	else	
-		MOVI2R(rB, (u32)inst.SIMM_16);
+	if (addr != -1)
+		ADD(rA, rA, gpr.R(addr));
 	
-	MOVI2R(rA, (u32)&Memory::Read_U16);	
+	switch (accessSize)
+	{
+		case 8:
+			MOVI2R(rB, (u32)&Memory::Read_U8);	
+		break;
+		case 16:
+			MOVI2R(rB, (u32)&Memory::Read_U16);	
+		break;
+		case 32:
+			MOVI2R(rB, (u32)&Memory::Read_U32);	
+		break;
+	}
 	PUSH(4, R0, R1, R2, R3);
-	MOV(R0, rB);
-	BL(rA);
+	MOV(R0, rA);
+	BL(rB);
 	MOV(rA, R0);
 	POP(4, R0, R1, R2, R3);
 	MOV(RD, rA);
+	if (signExtend) // Only on 16 loads
+		SXTH(RD, RD);
+	if (reverse)
+	{
+		if (accessSize == 32)
+			REV(RD, RD);
+		else if (accessSize == 16)
+			REV16(RD, RD);
+	}
 	gpr.Unlock(rA, rB);
-#endif
-	SetJumpTarget(DoNotLoad);
 }
-void JitArm::lha(UGeckoInstruction inst)
+
+void JitArm::lXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-	ARMReg RD = gpr.R(inst.RD);
+	u32 a = inst.RA, b = inst.RB, d = inst.RD;
+	s32 offset = inst.SIMM_16;
+	u32 accessSize = 0;
+	s32 offsetReg = -1;
+	bool zeroA = true;
+	bool update = false;	
+	bool signExtend = false;
+	bool reverse = false;
+	bool fastmem = false;
+
+	switch(inst.OPCD)
+	{
+		case 31:
+			switch(inst.SUBOP10)
+			{
+				case 55: // lwzux
+					zeroA = false;
+					update = true;
+				case 23: // lwzx
+					accessSize = 32;
+					offsetReg = b; 
+				break;
+				case 119: //lbzux
+					zeroA = false;
+					update = true;
+				case 87: // lbzx
+					accessSize = 8;
+					offsetReg = b;
+				break;
+				case 311: // lhzux
+					zeroA = false;
+					update = true;
+				case 279: // lhzx
+					accessSize = 16;
+					offsetReg = b;
+				break;
+				case 375: // lhaux
+					zeroA = false;
+					update = true;
+				case 343: // lhax
+					accessSize = 16;
+					signExtend = true;
+					offsetReg = b;
+				break;
+				case 534: // lwbrx
+					accessSize = 32;
+					reverse = true;
+				break;
+				case 790: // lhbrx
+					accessSize = 16;
+					reverse = true;
+				break;
+			}
+		break;
+		case 33: // lwzu
+			zeroA = false;
+			update = true;
+		case 32: // lwz
+			fastmem = true;
+			accessSize = 32;
+		break;
+		case 35: // lbzu
+			zeroA = false;
+			update = true;
+		case 34: // lbz
+			fastmem = true;
+			accessSize = 8;
+		break;
+		case 41: // lhzu
+			zeroA = false;
+			update = true;
+		case 40: // lhz
+			fastmem = true;
+			accessSize = 16;
+		break;
+		case 43: // lhau
+			zeroA = false;
+			update = true;
+		case 42: // lha
+			signExtend = true;
+			accessSize = 16;
+		break;
+	}
+	
+	// Check for exception before loading
+	ARMReg rA = gpr.GetReg(false);
+
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 	CMP(rA, EXCEPTION_DSI);
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
 
-	if (inst.RA)
-	{
-		MOVI2R(rB, inst.SIMM_16);
-		ARMReg RA = gpr.R(inst.RA);
-		ADD(rB, rB, RA);
-	}
-	else	
-		MOVI2R(rB, (u32)inst.SIMM_16);
+	SafeLoadToReg(fastmem, d, zeroA ? a ? a : -1 : a, offsetReg, accessSize, offset, signExtend, reverse);
 	
-	MOVI2R(rA, (u32)&Memory::Read_U16);	
-	PUSH(4, R0, R1, R2, R3);
-	MOV(R0, rB);
-	BL(rA);
-	MOV(rA, R0);
-	SXTH(rA, rA);
-	POP(4, R0, R1, R2, R3);
-	MOV(RD, rA);
-	gpr.Unlock(rA, rB);
+	if (update)
+	{
+		rA = gpr.GetReg(false);
+		ARMReg RA = gpr.R(a);
+		if (offsetReg == -1)
+			MOVI2R(rA, offset);	
+		else
+			MOV(RA, gpr.R(offsetReg));
+		ADD(RA, RA, rA);
+	}
+
 	SetJumpTarget(DoNotLoad);
-}
-
-void JitArm::lwz(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(LoadStore)
-
-	ARMReg rA = gpr.GetReg();
-	ARMReg rB = gpr.GetReg();
-	ARMReg RD = gpr.R(inst.RD);
-	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-	CMP(rA, EXCEPTION_DSI);
-	FixupBranch DoNotLoad = B_CC(CC_EQ);
 	
-#if FASTMEM
-	// Backpatch route
-	// Gets loaded in to RD
-	// Address is in R10
-	if (Core::g_CoreStartupParameter.bFastmem)
-	{
-		gpr.Unlock(rA, rB);
-		if (inst.RA)
-		{
-			ARMReg RA = gpr.R(inst.RA);
-			MOV(R10, RA); // - 4
-		}
-		else
-			MOV(R10, 0); // - 4
-		LoadToReg(RD, R10, 32, (u32)inst.SIMM_16);	
-	}
-	else
-#endif
-	{
-		if (inst.RA)
-		{
-			MOVI2R(rB, inst.SIMM_16);
-			ARMReg RA = gpr.R(inst.RA);
-			ADD(rB, rB, RA);
-		}
-		else
-			MOVI2R(rB, (u32)inst.SIMM_16);
-
-		MOVI2R(rA, (u32)&Memory::Read_U32);	
-		PUSH(4, R0, R1, R2, R3);
-		MOV(R0, rB);
-		BL(rA);
-		MOV(rA, R0);
-		POP(4, R0, R1, R2, R3);
-		MOV(RD, rA);
-		gpr.Unlock(rA, rB);
-	}
-	SetJumpTarget(DoNotLoad);
+	// LWZ idle skipping
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
+		inst.OPCD == 32 &&
 		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
 		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
 		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
 		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
+		ARMReg RD = gpr.R(d);
 		gpr.Flush();
 		fpr.Flush();
 		
@@ -585,7 +443,7 @@ void JitArm::lwz(UGeckoInstruction inst)
 		rA = gpr.GetReg();	
 		
 		MOVI2R(rA, (u32)&PowerPC::OnIdle);
-		MOVI2R(R0, PowerPC::ppcState.gpr[inst.RA] + (s32)(s16)inst.SIMM_16); 
+		MOVI2R(R0, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16); 
 		BL(rA);
 
 		gpr.Unlock(rA);
@@ -596,64 +454,71 @@ void JitArm::lwz(UGeckoInstruction inst)
 		//js.compilerPC += 8;
 		return;
 	}
+
 }
-void JitArm::lwzx(UGeckoInstruction inst)
+
+// Some games use this heavily in video codecs
+// We make the assumption that this pulls from main RAM at /all/ times
+void JitArm::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
+	if (!Core::g_CoreStartupParameter.bFastmem){
+		Default(inst); return;
+	}
 
+	u32 a = inst.RA;
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
+	MOVI2R(rA, inst.SIMM_16);
+	if (a)
+		ADD(rA, rA, gpr.R(a));
+	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	BIC(rA, rA, mask); // 3
+	MOVI2R(rB, (u32)Memory::base, false); // 4-5
+	ADD(rA, rA, rB); // 6
 
-	ARMReg RB = gpr.R(inst.RB);
-	ARMReg RD = gpr.R(inst.RD);
-	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
-	CMP(rA, EXCEPTION_DSI);
-	FixupBranch DoNotLoad = B_CC(CC_EQ);
-#if FASTMEM
-	// Backpatch route
-	// Gets loaded in to RD
-	// Address is in R10
-	if (Core::g_CoreStartupParameter.bFastmem)
+	for (int i = inst.RD; i < 32; i++)
 	{
-		gpr.Unlock(rA, rB);
-		if (inst.RA)
-		{
-			ARMReg RA = gpr.R(inst.RA);
-			ADD(R10, RA, RB); // - 4
-		}
-		else
-			MOV(R10, RB); // -4
-		LoadToReg(RD, R10, 32, 0);	
+		ARMReg RX = gpr.R(i);
+		LDR(RX, rA, (i - inst.RD) * 4);
+		REV(RX, RX);
 	}
-	else
-#endif
-	{
-		if (inst.RA)
-		{
-			ARMReg RA = gpr.R(inst.RA);
-			ADD(rB, RA, RB);
-		}
-		else
-			MOV(rB, RB);
-		
-		MOVI2R(rA, (u32)&Memory::Read_U32);	
-		PUSH(4, R0, R1, R2, R3);
-		MOV(R0, rB);
-		BL(rA);
-		MOV(rA, R0);
-		POP(4, R0, R1, R2, R3);
-		MOV(RD, rA);
-		gpr.Unlock(rA, rB);
-	}
-	SetJumpTarget(DoNotLoad);
-	////	u32 temp = Memory::Read_U32(_inst.RA ? (m_GPR[_inst.RA] + m_GPR[_inst.RB]) : m_GPR[_inst.RB]);
+	gpr.Unlock(rA, rB);
 }
 
+void JitArm::stmw(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff)
+	if (!Core::g_CoreStartupParameter.bFastmem){
+		Default(inst); return;
+	}
+
+	u32 a = inst.RA;
+	ARMReg rA = gpr.GetReg();
+	ARMReg rB = gpr.GetReg();
+	ARMReg rC = gpr.GetReg();
+	MOVI2R(rA, inst.SIMM_16);
+	if (a)
+		ADD(rA, rA, gpr.R(a));
+	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+	BIC(rA, rA, mask); // 3
+	MOVI2R(rB, (u32)Memory::base, false); // 4-5
+	ADD(rA, rA, rB); // 6
+
+	for (int i = inst.RD; i < 32; i++)
+	{
+		ARMReg RX = gpr.R(i);
+		REV(rC, RX);
+		STR(rC, rA, (i - inst.RD) * 4);
+	}
+	gpr.Unlock(rA, rB, rC);
+}
 void JitArm::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStore)
+	JITDISABLE(bJITLoadStoreOff)
 
 	// If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
 	// memory location.  Do not invalidate the JIT cache in this case as the memory

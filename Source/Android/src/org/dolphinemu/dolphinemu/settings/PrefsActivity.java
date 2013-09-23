@@ -76,7 +76,7 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		actionBar.addTab(actionBar.newTab().setText(R.string.video_settings).setTabListener(this));
 	}
 
-	public void onTabReselected(Tab arg0, FragmentTransaction arg1)
+	public void onTabReselected(Tab tab, FragmentTransaction ft)
 	{
 		// Do nothing.
 	}
@@ -135,13 +135,13 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 			switch(position)
 			{
 				case 0:
-					return getString(R.string.cpu_settings).toUpperCase();
+					return getString(R.string.cpu_settings);
 
 				case 1:
-					return getString(R.string.input_settings).toUpperCase();
+					return getString(R.string.input_settings);
 
 				case 2:
-					return getString(R.string.video_settings).toUpperCase();
+					return getString(R.string.video_settings);
 
 				default: // Should never happen.
 					return null;

@@ -164,12 +164,11 @@ bool TryParse(const std::string &str, u32 *const output)
 	if (errno == ERANGE)
 		return false;
 
-	if (ULONG_MAX > UINT_MAX) {
-		// Note: The typecasts avoid GCC warnings when long is 32 bits wide.
-		if (value >= static_cast<unsigned long>(0x100000000ull)
-				&& value <= static_cast<unsigned long>(0xFFFFFFFF00000000ull))
-			return false;
-	}
+#if ULONG_MAX > UINT_MAX
+	if (value >= 0x100000000ull
+	    && value <= 0xFFFFFFFF00000000ull)
+		return false;
+#endif
 
 	*output = static_cast<u32>(value);
 	return true;
@@ -270,8 +269,8 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 {
 	while(1)
 	{
-		const int pos = result.find(src);
-		if (pos == -1) break;
+		size_t pos = result.find(src);
+		if (pos == std::string::npos) break;
 		result.replace(pos, src.size(), dest);
 	}
 	return result;
@@ -317,7 +316,7 @@ std::string UriDecode(const std::string & sSrc)
 	// for future extension"
 
 	const unsigned char * pSrc = (const unsigned char *)sSrc.c_str();
-	const int SRC_LEN = sSrc.length();
+	const size_t SRC_LEN = sSrc.length();
 	const unsigned char * const SRC_END = pSrc + SRC_LEN;
 	const unsigned char * const SRC_LAST_DEC = SRC_END - 2;   // last decodable '%' 
 
@@ -379,7 +378,7 @@ std::string UriEncode(const std::string & sSrc)
 {
 	const char DEC2HEX[16 + 1] = "0123456789ABCDEF";
 	const unsigned char * pSrc = (const unsigned char *)sSrc.c_str();
-	const int SRC_LEN = sSrc.length();
+	const size_t SRC_LEN = sSrc.length();
 	unsigned char * const pStart = new unsigned char[SRC_LEN * 3];
 	unsigned char * pEnd = pStart;
 	const unsigned char * const SRC_END = pSrc + SRC_LEN;

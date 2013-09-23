@@ -46,9 +46,8 @@ public:
 	virtual void OnMsgChangeGame(const std::string& filename) = 0;
 	virtual void OnMsgStartGame() = 0;
 	virtual void OnMsgStopGame() = 0;
+	virtual bool IsRecording() = 0;
 };
-
-extern NetSettings g_NetPlaySettings;
 
 class Player
 {
@@ -74,15 +73,18 @@ public:
 
 	bool StartGame(const std::string &path);
 	bool StopGame();
+	void Stop();
 	bool ChangeGame(const std::string& game);
 	void SendChatMessage(const std::string& msg);
 
 	// Send and receive pads values
-	void WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size);
-	void WiimoteUpdate(int _number);
+	bool WiimoteUpdate(int _number, u8* data, const u8 size);
 	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
 
-	u8 GetPadNum(u8 numPAD);
+	u8 LocalPadToInGamePad(u8 localPad);
+	u8 InGamePadToLocalPad(u8 localPad);
+
+	u8 LocalWiimoteToInGameWiimote(u8 local_pad);
 
 protected:
 	void ClearBuffers();
@@ -96,8 +98,6 @@ protected:
 
 	Common::FifoQueue<NetPad>		m_pad_buffer[4];
 	Common::FifoQueue<NetWiimote>	m_wiimote_buffer[4];
-
-	NetWiimote		m_wiimote_input[4];
 
 	NetPlayUI*		m_dialog;
 	sf::SocketTCP	m_socket;
@@ -115,18 +115,18 @@ protected:
 	u32		m_current_game;
 
 	PadMapping	m_pad_map[4];
+	PadMapping	m_wiimote_map[4];
+
+	bool m_is_recording;
 
 private:
 	void UpdateDevices();
 	void SendPadState(const PadMapping in_game_pad, const NetPad& np);
+	void SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw);
 	unsigned int OnData(sf::Packet& packet);
 
 	PlayerId		m_pid;
 	std::map<PlayerId, Player>	m_players;
-};
-
-namespace NetPlay {
-	bool IsNetPlayRunning();
 };
 
 void NetPlay_Enable(NetPlayClient* const np);
