@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.emulation;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -13,6 +13,9 @@ import android.preference.PreferenceManager;
 import android.util.DisplayMetrics;
 import android.view.*;
 import android.view.WindowManager.LayoutParams;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.settings.InputConfigFragment;
 import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
 

@@ -4,7 +4,9 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.emulation;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
 
 import android.content.Context;
 import android.util.AttributeSet;

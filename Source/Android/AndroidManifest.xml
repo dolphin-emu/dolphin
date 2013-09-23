@@ -35,7 +35,7 @@
 
         <activity android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity" />
 
-        <activity android:name="org.dolphinemu.dolphinemu.EmulationActivity"
+        <activity android:name="org.dolphinemu.dolphinemu.emulation.EmulationActivity"
                   android:screenOrientation="landscape" />
 
         <activity
