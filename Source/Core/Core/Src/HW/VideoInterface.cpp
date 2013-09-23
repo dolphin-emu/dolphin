@@ -834,7 +834,7 @@ static void BeginField(FieldType field)
 			  m_VerticalTimingRegister.ACV, fieldTypeNames[field]);
 
 	if (xfbAddr)
-		g_video_backend->Video_BeginField(xfbAddr, field, fbWidth, fbHeight);
+		g_video_backend->Video_BeginField(xfbAddr, fbWidth, fbHeight);
 }
 
 static void EndField()
