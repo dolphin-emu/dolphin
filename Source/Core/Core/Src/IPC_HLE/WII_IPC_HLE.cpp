@@ -135,7 +135,6 @@ void Init()
 
 void Reset(bool _bHard)
 {
-
 	CoreTiming::RemoveAllEvents(enque_reply);
 
 	u32 i;

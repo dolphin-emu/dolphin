@@ -319,21 +319,9 @@ void RemoveEvent(int event_type)
 	}
 }
 
-void RemoveThreadsafeEvent(int event_type)
-{
-	std::lock_guard<std::mutex> lk(tsWriteLock);
-	for (Common::FifoQueue<BaseEvent, false>::iterator itr = tsQueue.begin(); itr != tsQueue.end(); ++itr)
-	{
-		if (itr->type == event_type)
-		{
-			itr = tsQueue.erase(itr);
-		}
-	}
-}
-
 void RemoveAllEvents(int event_type)
 {
-	RemoveThreadsafeEvent(event_type);
+	MoveEvents();
 	RemoveEvent(event_type);
 }
 

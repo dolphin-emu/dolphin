@@ -93,43 +93,6 @@ public:
 	}
 
 private:
-	class ElementPtr;
-
-public:
-	class iterator
-	{
-	public:
-		iterator() {}
-		bool operator==(iterator other) { return other.m_pp == m_pp; }
-		bool operator!=(iterator other) { return !(*this == other); }
-		T* operator->() { return &**this; }
-		T& operator*() { return (*m_pp)->current; }
-		void operator++() { m_pp = &(*m_pp)->next; }
-	protected:
-		iterator(ElementPtr *volatile *pp) : m_pp(pp) {}
-		ElementPtr *volatile *m_pp;
-		friend class FifoQueue<T, NeedSize>;
-	};
-
-	iterator begin()
-	{
-		return iterator(&m_read_ptr);
-	}
-
-	iterator end()
-	{
-		return iterator(&m_write_ptr->next);
-	}
-
-	iterator erase(iterator itr)
-	{
-		ElementPtr *elp = *itr.m_pp;
-		*itr.m_pp = AtomicLoadAcquire(elp->next);
-		delete elp;
-		return itr;
-	}
-
-private:
 	// stores a pointer to element
 	// and a pointer to the next ElementPtr
 	class ElementPtr

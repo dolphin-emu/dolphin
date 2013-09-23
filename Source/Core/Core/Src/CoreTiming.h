@@ -49,7 +49,6 @@ void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata=0);
 
 // We only permit one event of each type in the queue at a time.
 void RemoveEvent(int event_type);
-void RemoveThreadsafeEvent(int event_type);
 void RemoveAllEvents(int event_type);
 bool IsScheduled(int event_type);
 void Advance();
