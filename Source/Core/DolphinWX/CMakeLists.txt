@@ -225,6 +225,8 @@ else()
 			MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 			)
 
+		# get rid of any old copies
+		file (REMOVE_RECURSE ${BUNDLE_PATH}/Contents/Resources/Sys)
 		if(NOT SKIP_POSTPROCESS_BUNDLE)
 			# Fix up the bundle after it is finished.
 			# There does not seem to be an easy way to run CMake commands post-build,
@@ -236,27 +238,22 @@ else()
 				message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
 				set(BU_CHMOD_BUNDLE_ITEMS ON)
 				fixup_bundle(\"${BUNDLE_PATH}\" \"\" \"\")
+				file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys
+					DESTINATION ${BUNDLE_PATH}/Contents/Resources
+					)
 				")
 			add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 				COMMAND ${CMAKE_COMMAND} -P postprocess_bundle.cmake
 				)
-		endif()
-
-		# Copy data files into application bundle.
-		file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/copy_data_into_bundle.cmake "
-			file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys
-				DESTINATION ${BUNDLE_PATH}/Contents/Resources
+		else()
+			add_custom_command(OUTPUT ${BUNDLE_PATH}/Contents/Resources/Sys
+				COMMAND ln -nfs ../../../../Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
+				VERBATIM
 				)
-			file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle \"\")
-			")
-		add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle
-			COMMAND ${CMAKE_COMMAND} -P copy_data_into_bundle.cmake
-			DEPENDS ${CMAKE_SOURCE_DIR}/Data/Sys
-			VERBATIM
-			)
-		add_custom_target(CopyDataIntoBundle ALL
-			DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/did_copy_data_into_bundle
-			)
+			add_custom_target(CopyDataIntoBundle ALL
+				DEPENDS ${BUNDLE_PATH}/Contents/Resources/Sys
+				)
+		endif()
 
 		if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
 			file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/copy_translations_into_bundle.cmake "
