@@ -56,6 +56,10 @@ _Atomic(T)* ToC11Atomic(volatile T* loc)
 #define __atomic_exchange_n(p, v, m) __c11_atomic_exchange(ToC11Atomic(p), v, m)
 #endif
 
+#ifndef __ATOMIC_RELAXED
+#error __ATOMIC_RELAXED not defined; your compiler version is too old.
+#endif
+
 template <typename T>
 inline T AtomicLoad(volatile T& src) {
 	return __atomic_load_n(&src, __ATOMIC_RELAXED);
@@ -82,50 +86,5 @@ inline T* AtomicExchangeAcquire(T* volatile& loc, U newval) {
 }
 
 }
-
-// Old code kept here for reference in case we need the parts with __asm__ __volatile__.
-#if 0
-LONG SyncInterlockedIncrement(LONG *Dest)
-{
-#if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
-  return  __sync_add_and_fetch(Dest, 1);
-#else
-  register int result;
-  __asm__ __volatile__("lock; xadd %0,%1"
-					   : "=r" (result), "=m" (*Dest)
-					   : "0" (1), "m" (*Dest)
-					   : "memory");
-  return result;
-#endif
-}
-
-LONG SyncInterlockedExchangeAdd(LONG *Dest, LONG Val)
-{
-#if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
-  return  __sync_add_and_fetch(Dest, Val);
-#else
-  register int result;
-  __asm__ __volatile__("lock; xadd %0,%1"
-					   : "=r" (result), "=m" (*Dest)
-					   : "0" (Val), "m" (*Dest)
-					   : "memory");
-  return result;
-#endif
-}
-
-LONG SyncInterlockedExchange(LONG *Dest, LONG Val)
-{
-#if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
-  return  __sync_lock_test_and_set(Dest, Val);
-#else
-  register int result;
-  __asm__ __volatile__("lock; xchg %0,%1"
-					   : "=r" (result), "=m" (*Dest)
-					   : "0" (Val), "m" (*Dest)
-					   : "memory");
-  return result;
-#endif
-}
-#endif
 
 #endif
