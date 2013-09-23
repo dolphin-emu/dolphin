@@ -502,10 +502,13 @@ bool NetPlayClient::StartGame(const std::string &path)
 
 	UpdateDevices();
 
-	for (unsigned int i = 0; i < 4; ++i)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
-		g_wiimote_sources[i] = m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
-		GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(m_wiimote_map[i] > 0);
+		for (unsigned int i = 0; i < 4; ++i)
+		{
+			g_wiimote_sources[i] = m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
+			GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(m_wiimote_map[i] > 0);
+		}
 	}
 
 	// Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
