@@ -125,14 +125,14 @@ static GekkoOPTemplate primarytable[] =
 
 static GekkoOPTemplate table4[] = 
 {    //SUBOP10
-	{0,    &JitArm::Default}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
-	{32,   &JitArm::Default}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
+	{0,    &JitArm::ps_cmpu0}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
+	{32,   &JitArm::ps_cmpo0}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
 	{40,   &JitArm::ps_neg}, //"ps_neg",     OPTYPE_PS, FL_RC_BIT}},
 	{136,  &JitArm::ps_nabs}, //"ps_nabs",    OPTYPE_PS, FL_RC_BIT}},
 	{264,  &JitArm::ps_abs}, //"ps_abs",     OPTYPE_PS, FL_RC_BIT}},
-	{64,   &JitArm::Default}, //"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
+	{64,   &JitArm::ps_cmpu1}, //"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
 	{72,   &JitArm::ps_mr}, //"ps_mr",      OPTYPE_PS, FL_RC_BIT}},
-	{96,   &JitArm::Default}, //"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
+	{96,   &JitArm::ps_cmpo1}, //"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
 	{528,  &JitArm::ps_merge00}, //"ps_merge00", OPTYPE_PS, FL_RC_BIT}},
 	{560,  &JitArm::ps_merge01}, //"ps_merge01", OPTYPE_PS, FL_RC_BIT}},
 	{592,  &JitArm::ps_merge10}, //"ps_merge10", OPTYPE_PS, FL_RC_BIT}},

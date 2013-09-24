@@ -246,6 +246,10 @@ public:
 	void ps_nabs(UGeckoInstruction _inst);
 	void ps_rsqrte(UGeckoInstruction _inst);
 	void ps_sel(UGeckoInstruction _inst);
+	void ps_cmpu0(UGeckoInstruction _inst);
+	void ps_cmpu1(UGeckoInstruction _inst);
+	void ps_cmpo0(UGeckoInstruction _inst);
+	void ps_cmpo1(UGeckoInstruction _inst);
 
 	// LoadStore paired
 	void psq_l(UGeckoInstruction _inst);
