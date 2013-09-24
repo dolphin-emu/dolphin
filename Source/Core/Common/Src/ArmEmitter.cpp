@@ -1338,7 +1338,7 @@ void NEONXEmitter::VREVX(u32 size, NEONElementType Size, ARMReg Vd, ARMReg Vm)
 
 void NEONXEmitter::VREV64(NEONElementType Size, ARMReg Vd, ARMReg Vm)
 {
-	VREVX(2, Size, Vd, Vm);
+	VREVX(0, Size, Vd, Vm);
 }
 
 void NEONXEmitter::VREV32(NEONElementType Size, ARMReg Vd, ARMReg Vm)
@@ -1348,7 +1348,7 @@ void NEONXEmitter::VREV32(NEONElementType Size, ARMReg Vd, ARMReg Vm)
 
 void NEONXEmitter::VREV16(NEONElementType Size, ARMReg Vd, ARMReg Vm)
 {
-	VREVX(0, Size, Vd, Vm);
+	VREVX(2, Size, Vd, Vm);
 }
 
 void NEONXEmitter::VRSQRTE(NEONElementType Size, ARMReg Vd, ARMReg Vm)

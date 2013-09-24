@@ -97,15 +97,15 @@ static GekkoOPTemplate primarytable[] =
 	{46, &JitArm::lmw}, //"lmw",   OPTYPE_SYSTEM, FL_EVIL, 10}},
 	{47, &JitArm::stmw}, //"stmw",  OPTYPE_SYSTEM, FL_EVIL, 10}},
 
-	{48, &JitArm::lfs}, //"lfs",  OPTYPE_LOADFP, FL_IN_A}},
-	{49, &JitArm::lfsu}, //"lfsu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
-	{50, &JitArm::lfd}, //"lfd",  OPTYPE_LOADFP, FL_IN_A}},
-	{51, &JitArm::lfdu}, //"lfdu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
+	{48, &JitArm::lfXX}, //"lfs",  OPTYPE_LOADFP, FL_IN_A}},
+	{49, &JitArm::lfXX}, //"lfsu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
+	{50, &JitArm::lfXX}, //"lfd",  OPTYPE_LOADFP, FL_IN_A}},
+	{51, &JitArm::lfXX}, //"lfdu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
 
 	{52, &JitArm::stfs}, //"stfs",  OPTYPE_STOREFP, FL_IN_A}},
-	{53, &JitArm::stfsu}, //"stfsu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
-	{54, &JitArm::stfd}, //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
-	{55, &JitArm::stfdu}, //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
+	{53, &JitArm::stfXX}, //"stfsu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
+	{54, &JitArm::stfXX}, //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
+	{55, &JitArm::stfXX}, //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 
 	{56, &JitArm::psq_l}, //"psq_l",   OPTYPE_PS, FL_IN_A}},
 	{57, &JitArm::psq_l}, //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
@@ -268,15 +268,15 @@ static GekkoOPTemplate table31[] =
 	{725, &JitArm::Default}, //"stswi",  OPTYPE_STORE, FL_EVIL}},
 
 	// fp load/store	
-	{535, &JitArm::lfsx}, //"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
-	{567, &JitArm::lfsux}, //"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
-	{599, &JitArm::lfdx}, //"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
-	{631, &JitArm::lfdux}, //"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
+	{535, &JitArm::lfXX}, //"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
+	{567, &JitArm::lfXX}, //"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
+	{599, &JitArm::lfXX}, //"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
+	{631, &JitArm::lfXX}, //"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
 
-	{663, &JitArm::stfsx}, //"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
-	{695, &JitArm::stfsux}, //"stfsux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
-	{727, &JitArm::stfdx}, //"stfdx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
-	{759, &JitArm::stfdux}, //"stfdux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
+	{663, &JitArm::stfXX}, //"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
+	{695, &JitArm::stfXX}, //"stfsux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
+	{727, &JitArm::stfXX}, //"stfdx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
+	{759, &JitArm::stfXX}, //"stfdux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
 	{983, &JitArm::Default}, //"stfiwx", OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
 
 	{19,  &JitArm::mfcr}, //"mfcr",   OPTYPE_SYSTEM, FL_OUT_D}},
