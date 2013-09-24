@@ -142,25 +142,54 @@ void JitArm::lfXX(UGeckoInstruction inst)
 	if (update)
 		MOV(RA, rB);
 
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
-	BIC(rB, rB, mask); // 1
-	MOVI2R(rA, (u32)Memory::base, false); // 2-3
-	ADD(rB, rB, rA); // 4
-
-	NEONXEmitter nemit(this);
-	if (single)
+	if (Core::g_CoreStartupParameter.bFastmem)
 	{
-		VLDR(S0, rB, 0);
-		nemit.VREV32(I_8, D0, D0); // Byte swap to result
-		VCVT(v0, S0, 0);
-		VCVT(v1, S0, 0);
-	}
+		Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+		BIC(rB, rB, mask); // 1
+		MOVI2R(rA, (u32)Memory::base, false); // 2-3
+		ADD(rB, rB, rA); // 4
+
+		NEONXEmitter nemit(this);
+		if (single)
+		{
+			VLDR(S0, rB, 0);
+			nemit.VREV32(I_8, D0, D0); // Byte swap to result
+			VCVT(v0, S0, 0);
+			VCVT(v1, S0, 0);
+		}
+		else
+		{
+			VLDR(v0, rB, 0);
+			nemit.VREV64(I_8, v0, v0); // Byte swap to result
+		}
+	}	
 	else
 	{
-		VLDR(v0, rB, 0);
-		nemit.VREV64(I_8, v0, v0); // Byte swap to result
+		PUSH(4, R0, R1, R2, R3);
+		MOV(R0, rB);
+		if (single)
+		{
+			MOVI2R(rA, (u32)&Memory::Read_U32);     
+			BL(rA);
+
+			VMOV(S0, R0);   
+
+			VCVT(v0, S0, 0);
+			VCVT(v1, S0, 0);
+		}
+		else
+		{
+			MOVI2R(rA, (u32)&Memory::Read_F64);     
+			BL(rA);
+
+#if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
+			VMOV(v0, R0);
+#else
+			VMOV(v0, D0);
+#endif
+		}
+		POP(4, R0, R1, R2, R3);
 	}
-	
 	gpr.Unlock(rA, rB);
 	SetJumpTarget(DoNotLoad);
 }
@@ -275,23 +304,52 @@ void JitArm::stfXX(UGeckoInstruction inst)
 		MOV(RA, rB);
 		SetCC();
 	}
-
-	Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
-	BIC(rB, rB, mask); // 1
-	MOVI2R(rA, (u32)Memory::base, false); // 2-3
-	ADD(rB, rB, rA); // 4
-
-	NEONXEmitter nemit(this);
-	if (single)
+	if (Core::g_CoreStartupParameter.bFastmem)
 	{
-		VCVT(S0, v0, 0);
-		nemit.VREV32(I_8, D0, D0);
-		VSTR(S0, rB, 0);
+		Operand2 mask(3, 1); // ~(Memory::MEMVIEW32_MASK)
+		BIC(rB, rB, mask); // 1
+		MOVI2R(rA, (u32)Memory::base, false); // 2-3
+		ADD(rB, rB, rA); // 4
+
+		NEONXEmitter nemit(this);
+		if (single)
+		{
+			VCVT(S0, v0, 0);
+			nemit.VREV32(I_8, D0, D0);
+			VSTR(S0, rB, 0);
+		}
+		else
+		{
+			nemit.VREV64(I_8, D0, v0);
+			VSTR(D0, rB, 0);
+		}
 	}
 	else
 	{
-		nemit.VREV64(I_8, D0, v0);
-		VSTR(D0, rB, 0);
+		PUSH(4, R0, R1, R2, R3);
+		if (single)
+		{
+			MOVI2R(rA, (u32)&Memory::Write_U32);    
+			VMOV(R0, S0);
+			MOV(R1, rB);
+
+			BL(rA);
+
+		}
+		else
+		{
+			MOVI2R(rA, (u32)&Memory::Write_F64);    
+#if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
+			VMOV(R0, v0);
+			MOV(R2, rB);
+#else
+			VMOV(D0, v0);
+			MOV(R0, rB);
+#endif
+
+			BL(rA);
+		}
+		POP(4, R0, R1, R2, R3);
 	}
 	gpr.Unlock(rA, rB);
 }
