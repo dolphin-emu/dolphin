@@ -28,7 +28,6 @@ static volatile bool s_perf_query_requested;
 static volatile struct
 {
 	u32 xfbAddr;
-	FieldType field;
 	u32 fbWidth;
 	u32 fbHeight;
 } s_beginFieldArgs;
@@ -73,7 +72,7 @@ void VideoFifo_CheckSwapRequest()
 		if (Common::AtomicLoadAcquire(s_swapRequested))
 		{
 			EFBRectangle rc;
-			g_renderer->Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight,rc);
+			g_renderer->Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight,rc);
 			Common::AtomicStoreRelease(s_swapRequested, false);
 		}
 	}
@@ -98,14 +97,13 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendHardware::Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
+void VideoBackendHardware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
 	if (s_BackendInitialized && g_ActiveConfig.bUseXFB)
 	{
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 			VideoFifo_CheckSwapRequest();
 		s_beginFieldArgs.xfbAddr = xfbAddr;
-		s_beginFieldArgs.field = field;
 		s_beginFieldArgs.fbWidth = fbWidth;
 		s_beginFieldArgs.fbHeight = fbHeight;
 	}
