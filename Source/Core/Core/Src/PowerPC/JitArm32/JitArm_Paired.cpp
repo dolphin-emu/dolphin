@@ -149,6 +149,26 @@ void JitArm::ps_add(UGeckoInstruction inst)
 	VADD(vD1, vA1, vB1);
 }
 
+void JitArm::ps_div(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITPairedOff)
+
+	u32 a = inst.FA, b = inst.FB, d = inst.FD;
+	if (inst.Rc){
+		Default(inst); return;
+	}
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vA1 = fpr.R1(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vB1 = fpr.R1(b);
+	ARMReg vD0 = fpr.R0(d, false);
+	ARMReg vD1 = fpr.R1(d, false);
+	
+	VDIV(vD0, vA0, vB0);
+	VDIV(vD1, vA1, vB1);
+}
+
 void JitArm::ps_nmadd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
