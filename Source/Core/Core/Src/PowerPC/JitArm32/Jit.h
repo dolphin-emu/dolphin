@@ -216,13 +216,20 @@ public:
 	// Floating point loadStore
 	void lfs(UGeckoInstruction _inst);
 	void lfsu(UGeckoInstruction _inst);
+	void lfsux(UGeckoInstruction _inst);
 	void lfsx(UGeckoInstruction _inst);
 	void lfd(UGeckoInstruction _inst);
+	void lfdx(UGeckoInstruction _inst);
 	void lfdu(UGeckoInstruction _inst);
+	void lfdux(UGeckoInstruction _inst);
 	void stfs(UGeckoInstruction _inst);
+	void stfsx(UGeckoInstruction _inst);
 	void stfsu(UGeckoInstruction _inst);
+	void stfsux(UGeckoInstruction _inst);
 	void stfd(UGeckoInstruction _inst);
+	void stfdx(UGeckoInstruction _inst);
 	void stfdu(UGeckoInstruction _inst);
+	void stfdux(UGeckoInstruction _inst);
 
 	// Paired Singles
 	void ps_add(UGeckoInstruction _inst);

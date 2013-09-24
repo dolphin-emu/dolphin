@@ -269,14 +269,14 @@ static GekkoOPTemplate table31[] =
 
 	// fp load/store	
 	{535, &JitArm::lfsx}, //"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
-	{567, &JitArm::Default}, //"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
-	{599, &JitArm::Default}, //"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
-	{631, &JitArm::Default}, //"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
+	{567, &JitArm::lfsux}, //"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
+	{599, &JitArm::lfdx}, //"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
+	{631, &JitArm::lfdux}, //"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
 
-	{663, &JitArm::Default}, //"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
-	{695, &JitArm::Default}, //"stfsux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
-	{727, &JitArm::Default}, //"stfdx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
-	{759, &JitArm::Default}, //"stfdux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
+	{663, &JitArm::stfsx}, //"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
+	{695, &JitArm::stfsux}, //"stfsux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
+	{727, &JitArm::stfdx}, //"stfdx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
+	{759, &JitArm::stfdux}, //"stfdux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
 	{983, &JitArm::Default}, //"stfiwx", OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
 
 	{19,  &JitArm::mfcr}, //"mfcr",   OPTYPE_SYSTEM, FL_OUT_D}},
