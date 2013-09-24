@@ -159,6 +159,7 @@ public:
 	void arith(UGeckoInstruction _inst);
 
 	void addex(UGeckoInstruction _inst);
+	void subfic(UGeckoInstruction _inst);
 	void cntlzwx(UGeckoInstruction _inst);
 	void cmp (UGeckoInstruction _inst);
 	void cmpi(UGeckoInstruction _inst);

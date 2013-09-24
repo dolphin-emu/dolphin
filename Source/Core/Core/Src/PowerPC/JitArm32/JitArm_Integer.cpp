@@ -117,6 +117,79 @@ void JitArm::FinalizeCarry(ARMReg reg)
 	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
 	gpr.Unlock(tmp);
 }
+void JitArm::subfic(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff)
+	int a = inst.RA, d = inst.RD;
+
+	int imm = inst.SIMM_16;
+	if (d == a)
+	{
+		if (imm == 0)
+		{
+			ARMReg tmp = gpr.GetReg();
+			Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+			LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+			BIC(tmp, tmp, mask);
+			// Flags act exactly like subtracting from 0
+			RSBS(gpr.R(d), gpr.R(d), 0);
+			// Output carry is inverted
+			SetCC(CC_CC);
+				ORR(tmp, tmp, mask);
+			SetCC();
+			STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+			gpr.Unlock(tmp);
+		}
+		else if (imm == -1)
+		{
+			// CA is always set in this case
+			ARMReg tmp = gpr.GetReg();
+			Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+			LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+			ORR(tmp, tmp, mask);
+			STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+			gpr.Unlock(tmp);
+
+			MVN(gpr.R(d), gpr.R(d));
+		}
+		else
+		{
+			ARMReg tmp = gpr.GetReg();
+			ARMReg rA = gpr.GetReg();
+			Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+			MOVI2R(rA, imm + 1);
+			LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+			BIC(tmp, tmp, mask);
+			// Flags act exactly like subtracting from 0
+			MVN(gpr.R(d), gpr.R(d));
+			ADDS(gpr.R(d), gpr.R(d), rA);
+			// Output carry is inverted
+			SetCC(CC_CS);
+				ORR(tmp, tmp, mask);
+			SetCC();
+			STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+			gpr.Unlock(tmp, rA);
+		}
+	}
+	else
+	{
+		ARMReg tmp = gpr.GetReg();
+		Operand2 mask = Operand2(2, 2); // XER_CA_MASK
+		MOVI2R(gpr.R(d), imm);
+		LDR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+		BIC(tmp, tmp, mask);
+		// Flags act exactly like subtracting from 0
+		SUBS(gpr.R(d), gpr.R(d), gpr.R(a));
+		// Output carry is inverted
+		SetCC(CC_CC);
+			ORR(tmp, tmp, mask);
+		SetCC();
+		STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
+		gpr.Unlock(tmp);
+	}
+	// This instruction has no RC flag
+}
 
 u32 Add(u32 a, u32 b) {return a + b;}
 u32 Sub(u32 a, u32 b) {return a - b;}
