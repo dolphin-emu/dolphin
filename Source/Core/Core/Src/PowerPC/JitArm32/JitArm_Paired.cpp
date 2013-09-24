@@ -169,6 +169,27 @@ void JitArm::ps_div(UGeckoInstruction inst)
 	VDIV(vD1, vA1, vB1);
 }
 
+void JitArm::ps_res(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITPairedOff)
+
+	u32 b = inst.FB, d = inst.FD;
+	if (inst.Rc){
+		Default(inst); return;
+	}
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vB1 = fpr.R1(b);
+	ARMReg vD0 = fpr.R0(d, false);
+	ARMReg vD1 = fpr.R1(d, false);
+	ARMReg V0 = fpr.GetReg();
+	MOVI2R(V0, 1.0, INVALID_REG); // temp reg not needed for 1.0
+		
+	VDIV(vD0, V0, vB0);
+	VDIV(vD1, V0, vB1);
+	fpr.Unlock(V0);
+}
+
 void JitArm::ps_nmadd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

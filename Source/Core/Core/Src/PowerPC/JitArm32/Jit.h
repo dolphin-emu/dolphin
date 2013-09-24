@@ -223,6 +223,7 @@ public:
 	// Paired Singles
 	void ps_add(UGeckoInstruction _inst);
 	void ps_div(UGeckoInstruction _inst);
+	void ps_res(UGeckoInstruction _inst);
 	void ps_sum0(UGeckoInstruction _inst);
 	void ps_sum1(UGeckoInstruction _inst);
 	void ps_madd(UGeckoInstruction _inst);
