@@ -14,6 +14,7 @@
 
 #include <cstddef>
 #include <type_traits>
+#include "Common.h"
 
 // Will fail to compile on a non-array:
 // TODO: make this a function when constexpr is available

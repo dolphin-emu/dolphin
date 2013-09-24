@@ -27,10 +27,10 @@ void DSPEmitter::dsp_reg_stack_push(int stack_reg)
 	gpr.getFreeXReg(tmp1);
 	//g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r[DSP_REG_ST0 + stack_reg];
 	MOV(16, R(tmp1), M(&g_dsp.r.st[stack_reg]));
-#ifdef _M_IX86 // All32
-	MOVZX(32, 8, EAX, R(AL));
-#else
+#ifdef _M_X64
 	MOVZX(64, 8, RAX, R(AL));
+#else
+	MOVZX(32, 8, EAX, R(AL));
 #endif
 	MOV(16, MComplex(EAX, EAX, 1,
 			 PtrOffset(&g_dsp.reg_stack[stack_reg][0],0)), R(tmp1));
@@ -46,10 +46,10 @@ void DSPEmitter::dsp_reg_stack_pop(int stack_reg)
 	MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
-#ifdef _M_IX86 // All32
-	MOVZX(32, 8, EAX, R(AL));
-#else
+#ifdef _M_X64
 	MOVZX(64, 8, RAX, R(AL));
+#else
+	MOVZX(32, 8, EAX, R(AL));
 #endif
 	MOV(16, R(tmp1), MComplex(EAX, EAX, 1,
 				  PtrOffset(&g_dsp.reg_stack[stack_reg][0],0)));
@@ -209,17 +209,17 @@ void DSPEmitter::dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg, D
 		switch(extend)
 		{
 		case SIGN:
-#ifdef _M_IX86 // All32
-			MOVSX(32, 16, host_dreg, R(host_dreg));
-#else
+#ifdef _M_X64
 			MOVSX(64, 16, host_dreg, R(host_dreg));
+#else
+			MOVSX(32, 16, host_dreg, R(host_dreg));
 #endif
 			break;
 		case ZERO:
-#ifdef _M_IX86 // All32
-			MOVZX(32, 16, host_dreg, R(host_dreg));
-#else
+#ifdef _M_X64
 			MOVZX(64, 16, host_dreg, R(host_dreg));
+#else
+			MOVZX(32, 16, host_dreg, R(host_dreg));
 #endif
 			break;
 		case NONE:
@@ -245,17 +245,17 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExten
 		switch(extend)
 		{
 		case SIGN:
-#ifdef _M_IX86 // All32
-			MOVSX(32, 16, host_dreg, R(host_dreg));
-#else
+#ifdef _M_X64
 			MOVSX(64, 16, host_dreg, R(host_dreg));
+#else
+			MOVSX(32, 16, host_dreg, R(host_dreg));
 #endif
 			break;
 		case ZERO:
-#ifdef _M_IX86 // All32
-			MOVZX(32, 16, host_dreg, R(host_dreg));
-#else
+#ifdef _M_X64
 			MOVZX(64, 16, host_dreg, R(host_dreg));
+#else
+			MOVZX(32, 16, host_dreg, R(host_dreg));
 #endif
 			break;
 		case NONE:
@@ -267,11 +267,11 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExten
 	case DSP_REG_ACM1:
 	{
 		//we already know this is ACCM0 or ACCM1
-#ifdef _M_IX86 // All32
-		gpr.readReg(reg, host_dreg, extend);
-#else
+#ifdef _M_X64
 		OpArg acc_reg;
 		gpr.getReg(reg-DSP_REG_ACM0+DSP_REG_ACC0_64, acc_reg);
+#else
+		gpr.readReg(reg, host_dreg, extend);
 #endif
 		OpArg sr_reg;
 		gpr.getReg(DSP_REG_SR,sr_reg);
@@ -280,7 +280,38 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExten
 		TEST(16, sr_reg, Imm16(SR_40_MODE_BIT));
 		FixupBranch not_40bit = J_CC(CC_Z, true);
 
-#ifdef _M_IX86 // All32
+
+#ifdef _M_X64
+		MOVSX(64,32,host_dreg,acc_reg);
+		CMP(64,R(host_dreg),acc_reg);
+		FixupBranch no_saturate = J_CC(CC_Z);
+
+		CMP(64,acc_reg,Imm32(0));
+		FixupBranch negative = J_CC(CC_LE);
+
+		MOV(64,R(host_dreg),Imm32(0x7fff));//this works for all extend modes
+		FixupBranch done_positive = J();
+
+		SetJumpTarget(negative);
+		if (extend == NONE || extend == ZERO)
+			MOV(64,R(host_dreg),Imm32(0x00008000));
+		else
+			MOV(64,R(host_dreg),Imm32(0xffff8000));
+		FixupBranch done_negative = J();
+
+		SetJumpTarget(no_saturate);
+		SetJumpTarget(not_40bit);
+
+		MOV(64, R(host_dreg), acc_reg);
+		if (extend == NONE || extend == ZERO)
+			SHR(64, R(host_dreg), Imm8(16));
+		else
+			SAR(64, R(host_dreg), Imm8(16));
+		SetJumpTarget(done_positive);
+		SetJumpTarget(done_negative);
+		gpr.flushRegs(c);
+		gpr.putReg(reg-DSP_REG_ACM0+DSP_REG_ACC0_64, false);
+#else
 		DSPJitRegCache c2(gpr);
 		gpr.putReg(DSP_REG_SR, false);
 		X64Reg tmp1;
@@ -315,37 +346,6 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExten
 		gpr.flushRegs(c2);
 		SetJumpTarget(not_40bit);
 		gpr.flushRegs(c);
-#else
-
-		MOVSX(64,32,host_dreg,acc_reg);
-		CMP(64,R(host_dreg),acc_reg);
-		FixupBranch no_saturate = J_CC(CC_Z);
-
-		CMP(64,acc_reg,Imm32(0));
-		FixupBranch negative = J_CC(CC_LE);
-
-		MOV(64,R(host_dreg),Imm32(0x7fff));//this works for all extend modes
-		FixupBranch done_positive = J();
-
-		SetJumpTarget(negative);
-		if (extend == NONE || extend == ZERO)
-			MOV(64,R(host_dreg),Imm32(0x00008000));
-		else
-			MOV(64,R(host_dreg),Imm32(0xffff8000));
-		FixupBranch done_negative = J();
-
-		SetJumpTarget(no_saturate);
-		SetJumpTarget(not_40bit);
-
-		MOV(64, R(host_dreg), acc_reg);
-		if (extend == NONE || extend == ZERO)
-			SHR(64, R(host_dreg), Imm8(16));
-		else
-			SAR(64, R(host_dreg), Imm8(16));
-		SetJumpTarget(done_positive);
-		SetJumpTarget(done_negative);
-		gpr.flushRegs(c);
-		gpr.putReg(reg-DSP_REG_ACM0+DSP_REG_ACC0_64, false);
 #endif
 
 		gpr.putReg(DSP_REG_SR, false);
@@ -612,11 +612,11 @@ void DSPEmitter::dmem_write_imm(u16 address, X64Reg value)
 	switch (address >> 12)
 	{
 	case 0x0: // 0xxx DRAM
-#ifdef _M_IX86 // All32
-		MOV(16, M(&g_dsp.dram[address & DSP_DRAM_MASK]), R(value));
-#else
+#ifdef _M_X64
 		MOV(64, R(RDX), ImmPtr(g_dsp.dram));
 		MOV(16, MDisp(RDX, (address & DSP_DRAM_MASK)*2), R(value));
+#else
+		MOV(16, M(&g_dsp.dram[address & DSP_DRAM_MASK]), R(value));
 #endif
 		break;
 
@@ -720,20 +720,20 @@ void DSPEmitter::dmem_read_imm(u16 address)
 	switch (address >> 12)
 	{
 	case 0x0:  // 0xxx DRAM
-#ifdef _M_IX86 // All32
-		MOV(16, R(EAX), M(&g_dsp.dram[address & DSP_DRAM_MASK]));
-#else
+#ifdef _M_X64
 		MOV(64, R(RDX), ImmPtr(g_dsp.dram));
 		MOV(16, R(EAX), MDisp(RDX, (address & DSP_DRAM_MASK)*2));
+#else
+		MOV(16, R(EAX), M(&g_dsp.dram[address & DSP_DRAM_MASK]));
 #endif
 		break;
 
 	case 0x1:  // 1xxx COEF
-#ifdef _M_IX86 // All32
-		MOV(16, R(EAX), Imm16(g_dsp.coef[address & DSP_COEF_MASK]));
-#else
+#ifdef _M_X64
 		MOV(64, R(RDX), ImmPtr(g_dsp.coef));
 		MOV(16, R(EAX), MDisp(RDX, (address & DSP_COEF_MASK)*2));
+#else
+		MOV(16, R(EAX), Imm16(g_dsp.coef[address & DSP_COEF_MASK]));
 #endif
 		break;
 

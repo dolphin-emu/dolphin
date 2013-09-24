@@ -36,7 +36,7 @@ enum DSPJitSignExtend
 
 #ifdef _M_X64
 #define NUMXREGS 16
-#elif _M_IX86
+#else
 #define NUMXREGS 8
 #endif
 

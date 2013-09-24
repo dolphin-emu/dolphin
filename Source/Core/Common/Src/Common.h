@@ -49,7 +49,6 @@ private:
 #include "Log.h"
 #include "CommonTypes.h"
 #include "MsgHandler.h"
-#include "CommonFuncs.h"
 
 #ifdef __APPLE__
 // The Darwin ABI requires that stack frames be aligned to 16-byte boundaries.
@@ -100,13 +99,23 @@ private:
 #endif
 
 // Windows compatibility
+#define _M_64BIT defined(_LP64) || defined(_WIN64)
 #ifndef _WIN32
 #include <limits.h>
 #define MAX_PATH PATH_MAX
-#ifdef _LP64
+#ifdef __x86_64__
 #define _M_X64 1
-#else
+#endif
+#ifdef __i386__
 #define _M_IX86 1
+#endif
+#ifdef __arm__
+#define _M_ARM 1
+#define _M_GENERIC 1
+#endif
+#ifdef __mips__
+#define _M_MIPS 1
+#define _M_GENERIC 1
 #endif
 #define __forceinline inline __attribute__((always_inline))
 #define GC_ALIGNED16(x) __attribute__((aligned(16))) x
@@ -163,5 +172,7 @@ enum EMUSTATE_CHANGE
 	EMUSTATE_CHANGE_PAUSE,
 	EMUSTATE_CHANGE_STOP
 };
+
+#include "CommonFuncs.h"
 
 #endif // _COMMON_H_

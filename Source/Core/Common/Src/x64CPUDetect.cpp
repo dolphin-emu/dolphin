@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <memory.h>
+#include "Common.h"
 
 #ifdef _WIN32
 #define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
