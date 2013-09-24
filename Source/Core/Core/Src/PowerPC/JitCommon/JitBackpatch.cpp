@@ -163,7 +163,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 {
 #ifdef _M_X64
-	CONTEXT *ctx = (CONTEXT *)ctx_void;
+	SContext *ctx = (SContext *)ctx_void;
 
 	if (!jit->IsInCodeSpace(codePtr))
 		return 0;  // this will become a regular crash real soon after this
@@ -206,7 +206,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		if (info.instructionSize < 3)
 			PanicAlert("Instruction too small");
 		// We entered here with a BSWAP-ed EAX. We'll have to swap it back.
-		ctx->Rax = Common::swap32((u32)ctx->Rax);
+		ctx->CTX_RAX = Common::swap32((u32)ctx->CTX_RAX);
 		return codePtr - 2;
 	}
 	return 0;

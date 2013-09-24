@@ -80,7 +80,7 @@ bool DisamLoadStore(const u32 inst, ARMReg &rD, u8 &accessSize, bool &Store)
 const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 {
 	// TODO: This ctx needs to be filled with our information
-	CONTEXT *ctx = (CONTEXT *)ctx_void;
+	SContext *ctx = (SContext *)ctx_void;
 	
 	// We need to get the destination register before we start
 	u32 Value = *(u32*)codePtr;
@@ -90,7 +90,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 
 	if (!DisamLoadStore(Value, rD, accessSize, Store))
 	{
-		printf("Invalid backpatch at location 0x%08x(0x%08x)\n", ctx->reg_pc, Value);
+		printf("Invalid backpatch at location 0x%08x(0x%08x)\n", ctx->CTX_PC, Value);
 		exit(0);
 	}
 
@@ -117,8 +117,8 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 		emitter.MOV(R1, R10); // Addr- 5 
 		emitter.BL(R14); // 6
 		emitter.POP(4, R0, R1, R2, R3); // 7
-		u32 newPC = ctx->reg_pc - (ARMREGOFFSET + 4 * 4);
-		ctx->reg_pc = newPC;
+		u32 newPC = ctx->CTX_PC - (ARMREGOFFSET + 4 * 4);
+		ctx->CTX_PC = newPC;
 		emitter.FlushIcache();
 		return codePtr;
 	}
@@ -144,7 +144,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 		emitter.MOV(R14, R0); // 6
 		emitter.POP(4, R0, R1, R2, R3); // 7
 		emitter.MOV(rD, R14); // 8
-		ctx->reg_pc -= ARMREGOFFSET + (4 * 4);
+		ctx->CTX_PC -= ARMREGOFFSET + (4 * 4);
 		emitter.FlushIcache();
 		return codePtr;
 	}

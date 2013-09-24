@@ -2,42 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifdef _WIN32
-#include <windows.h>
-#else
 #include <stdio.h>
-#include <signal.h>
-#ifndef ANDROID
-#include <sys/ucontext.h>   // Look in here for the context definition.
-#endif
-#endif
-
 #ifdef __APPLE__
-#include <mach/mach.h>
-#include <mach/message.h>
 #include "Thread.h"
-#endif
-
-#ifdef __APPLE__
-#define CREG_RAX(ctx) (*(ctx))->__ss.__rax
-#define CREG_RIP(ctx) (*(ctx))->__ss.__rip
-#define CREG_EAX(ctx) (*(ctx))->__ss.__eax
-#define CREG_EIP(ctx) (*(ctx))->__ss.__eip
-#elif defined __FreeBSD__
-#define CREG_RAX(ctx) (ctx)->mc_rax
-#define CREG_RIP(ctx) (ctx)->mc_rip
-#define CREG_EAX(ctx) (ctx)->mc_eax
-#define CREG_EIP(ctx) (ctx)->mc_eip
-#elif defined __linux__
-#define CREG_RAX(ctx) (ctx)->gregs[REG_RAX]
-#define CREG_RIP(ctx) (ctx)->gregs[REG_RIP]
-#define CREG_EAX(ctx) (ctx)->gregs[REG_EAX]
-#define CREG_EIP(ctx) (ctx)->gregs[REG_EIP]
-#elif defined __NetBSD__
-#define CREG_RAX(ctx) (ctx)->__gregs[_REG_RAX]
-#define CREG_RIP(ctx) (ctx)->__gregs[_REG_RIP]
-#define CREG_EAX(ctx) (ctx)->__gregs[_REG_EAX]
-#define CREG_EIP(ctx) (ctx)->__gregs[_REG_EIP]
 #endif
 
 #include <vector>
@@ -73,9 +40,9 @@ void print_trace(const char * msg)
 }
 #endif
 
-bool DoFault(u64 bad_address, CONTEXT *ctx)
+bool DoFault(u64 bad_address, SContext *ctx)
 {
-	if (!JitInterface::IsInCodeSpace((u8*) CONTEXT_PC(ctx)))
+	if (!JitInterface::IsInCodeSpace((u8*) ctx->CTX_PC))
 	{
 		// Let's not prevent debugging.
 		return false;
@@ -93,10 +60,10 @@ bool DoFault(u64 bad_address, CONTEXT *ctx)
 		return false;
 	}
 	u32 em_address = (u32)(bad_address - memspace_bottom);
-	const u8 *new_pc = jit->BackPatch((u8*) CONTEXT_PC(ctx), em_address, ctx);
+	const u8 *new_pc = jit->BackPatch((u8*) ctx->CTX_PC, em_address, ctx);
 	if (new_pc)
 	{
-		CONTEXT_PC(ctx) = (u64) new_pc;
+		ctx->CTX_PC = (u64) new_pc;
 	}
 
 	return true;
@@ -244,14 +211,8 @@ void ExceptionThread(mach_port_t port)
 		}
 
 		x86_thread_state64_t *state = (x86_thread_state64_t *) msg_in.old_state;
-		CONTEXT fake_ctx;
-		fake_ctx.Rax = state->__rax;
-		fake_ctx.Rip = state->__rip;
 
-		bool ok = DoFault(msg_in.code[1], &fake_ctx);
-
-		state->__rax = fake_ctx.Rax;
-		state->__rip = fake_ctx.Rip;
+		bool ok = DoFault(msg_in.code[1], state);
 
 		// Set up the reply.
 		msg_out.Head.msgh_bits = MACH_MSGH_BITS(MACH_MSGH_BITS_REMOTE(msg_in.Head.msgh_bits), 0);
@@ -324,26 +285,8 @@ void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 
 	// Get all the information we can out of the context.
 	mcontext_t *ctx = &context->uc_mcontext;
-	CONTEXT fake_ctx;
-#ifdef _M_X64
-	fake_ctx.Rax = CREG_RAX(ctx);
-	fake_ctx.Rip = CREG_RIP(ctx);
-#else
-	fake_ctx.Eax = CREG_EAX(ctx);
-	fake_ctx.Eip = CREG_EIP(ctx);
-#endif
 	// assume it's not a write
-	if (DoFault(bad_address, &fake_ctx))
-	{
-#ifdef _M_X64
-		CREG_RAX(ctx) = fake_ctx.Rax;
-		CREG_RIP(ctx) = fake_ctx.Rip;
-#else
-		CREG_EAX(ctx) = fake_ctx.Eax;
-		CREG_EIP(ctx) = fake_ctx.Eip;
-#endif
-	}
-	else
+	if (!DoFault(bad_address, ctx))
 	{
 		// retry and crash
 		signal(SIGSEGV, SIG_DFL);
