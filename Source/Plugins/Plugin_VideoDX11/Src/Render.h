@@ -40,7 +40,7 @@ public:
 
 	TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc);
 
-	void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma);
+	void Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma);
 
 	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z);
 
