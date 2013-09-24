@@ -119,7 +119,7 @@
 		#define CTX_EBP gregs[REG_EBP]
 		#define CTX_ESP gregs[REG_ESP]
 		#define CTX_EIP gregs[REG_EIP]
-	#elif defined(ANDROID)
+	#elif defined(_M_ARM)
 		// Add others if required.
 		typedef struct sigcontext SContext;
 		#define CTX_PC  arm_pc
