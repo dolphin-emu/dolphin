@@ -210,6 +210,7 @@ public:
 	void fmrx(UGeckoInstruction _inst);
 	void fmaddsx(UGeckoInstruction _inst);
 	void fmaddx(UGeckoInstruction _inst);
+	void fctiwx(UGeckoInstruction _inst);
 	void fctiwzx(UGeckoInstruction _inst);
 	void fcmpo(UGeckoInstruction _inst);
 	void fcmpu(UGeckoInstruction _inst);

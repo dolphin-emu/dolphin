@@ -38,6 +38,113 @@ void JitArm::Helper_UpdateCR1(ARMReg value)
 	PanicAlert("CR1");
 }
 
+void JitArm::fctiwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+	u32 b = inst.FB;
+	u32 d = inst.FD;
+
+	ARMReg vB = fpr.R0(b);
+	ARMReg vD = fpr.R0(d);
+	ARMReg V0 = fpr.GetReg();
+	ARMReg V1 = fpr.GetReg();
+	ARMReg V2 = fpr.GetReg();
+	
+	ARMReg rA = gpr.GetReg();
+	ARMReg fpscrReg = gpr.GetReg();
+
+	FixupBranch DoneMax, DoneMin;
+	LDR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+	MOVI2R(rA, (u32)minmaxFloat);
+
+	// Check if greater than max float
+	{
+		VLDR(V0, rA, 8); // Load Max
+		VCMPE(vB, V0);
+		VMRS(_PC); // Loads in to APSR
+		FixupBranch noException = B_CC(CC_LE);
+		VMOV(vD, V0); // Set to max
+		SetFPException(fpscrReg, FPSCR_VXCVI);
+		DoneMax = B();
+		SetJumpTarget(noException);
+	}
+	// Check if less than min float
+	{
+		VLDR(V0, rA, 0);
+		VCMPE(vB, V0);
+		VMRS(_PC);
+		FixupBranch noException = B_CC(CC_GE);
+		VMOV(vD, V0);
+		SetFPException(fpscrReg, FPSCR_VXCVI);
+		DoneMin = B();
+		SetJumpTarget(noException);
+	}
+	// Within ranges, convert to integer
+	// Set rounding mode first
+	// PPC <-> ARM rounding modes
+	// 0, 1, 2, 3 <-> 0, 3, 1, 2  
+	ARMReg rB = gpr.GetReg();
+	VMRS(rA);
+	// Bits 22-23
+	BIC(rA, rA, Operand2(3, 5));
+
+	LDR(rB, R9, PPCSTATE_OFF(fpscr));
+	AND(rB, rB, 0x3); // Get the FPSCR rounding bits
+	CMP(rB, 1);
+	SetCC(CC_EQ); // zero 
+		ORR(rA, rA, Operand2(3, 5));
+	SetCC(CC_NEQ);
+		CMP(rB, 2); // +inf
+		SetCC(CC_EQ);
+			ORR(rA, rA, Operand2(1, 5));
+		SetCC(CC_NEQ);
+			CMP(rB, 3); // -inf
+			SetCC(CC_EQ);
+				ORR(rA, rA, Operand2(2, 5));
+	SetCC();	
+	VMSR(rA);
+	ORR(rA, rA, Operand2(3, 5));
+	VCVT(vD, vB, TO_INT | IS_SIGNED); 
+	VMSR(rA);
+	gpr.Unlock(rB);
+	VCMPE(vD, vB);
+	VMRS(_PC);
+
+	SetCC(CC_EQ);
+		BIC(fpscrReg, fpscrReg, FRFIMask);
+		FixupBranch DoneEqual = B();
+	SetCC();
+	SetFPException(fpscrReg, FPSCR_XX);	
+	ORR(fpscrReg, fpscrReg, FIMask);
+	VABS(V1, vB);
+	VABS(V2, vD);
+	VCMPE(V2, V1);
+	VMRS(_PC);
+	SetCC(CC_GT);
+		ORR(fpscrReg, fpscrReg, FRMask);
+	SetCC();
+	SetJumpTarget(DoneEqual);
+
+	SetJumpTarget(DoneMax);
+	SetJumpTarget(DoneMin);
+
+	MOVI2R(rA, (u32)&doublenum);
+	VLDR(V0, rA, 0);
+	NEONXEmitter nemit(this);
+	nemit.VORR(vD, vD, V0);
+
+	if (inst.Rc) Helper_UpdateCR1(vD);
+
+	STR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+	gpr.Unlock(rA);
+	gpr.Unlock(fpscrReg);
+	fpr.Unlock(V0);
+	fpr.Unlock(V1);
+	fpr.Unlock(V2);
+}
+
+
 void JitArm::fctiwzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
