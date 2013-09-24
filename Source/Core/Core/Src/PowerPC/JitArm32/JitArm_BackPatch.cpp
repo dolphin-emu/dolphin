@@ -120,7 +120,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 		u32 newPC = ctx->CTX_PC - (ARMREGOFFSET + 4 * 4);
 		ctx->CTX_PC = newPC;
 		emitter.FlushIcache();
-		return codePtr;
+		return (u8*)ctx->CTX_PC;
 	}
 	else
 	{
@@ -146,7 +146,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 		emitter.MOV(rD, R14); // 8
 		ctx->CTX_PC -= ARMREGOFFSET + (4 * 4);
 		emitter.FlushIcache();
-		return codePtr;
+		return (u8*)ctx->CTX_PC;
 	}
 	return 0;
 }
