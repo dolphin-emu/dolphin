@@ -153,6 +153,19 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 			}
 		}
 
+	case 0x88: // mem <- r8
+		{
+			info->isMemoryWrite = true;
+			if (info->operandSize == 4)
+			{
+				info->operandSize = 1;
+				break;
+			}
+			else
+				return false;
+			break;
+		}
+
 	case 0x89: // mem <- r16/32/64
 		{
 			info->isMemoryWrite = true;

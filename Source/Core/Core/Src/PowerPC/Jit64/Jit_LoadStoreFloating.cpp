@@ -209,8 +209,6 @@ void Jit64::stfd(UGeckoInstruction inst)
 	MOVD_xmm(R(EAX), XMM0);
 	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
 
-	MOVAPD(XMM0, fpr.R(s));
-	MOVD_xmm(R(EAX), XMM0);
 	LEA(32, ABI_PARAM1, MDisp(gpr.R(a).GetSimpleReg(), offset));
 	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 4);
 

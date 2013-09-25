@@ -67,7 +67,10 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
 
 	// It's a read. Easy.
-	ABI_PushAllCallerSavedRegsAndAdjustStack();
+	// It ought to be necessary to align the stack here.  Since it seems to not
+	// affect anybody, I'm not going to add it just to be completely safe about
+	// performance.
+
 	if (addrReg != ABI_PARAM1)
 		MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
 	if (info.displacement) {
@@ -86,8 +89,6 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
 		CALL(thunks.ProtectFunction((void *)&Memory::Read_U8, 1));
 		break;
 	}
-
-	ABI_PopAllCallerSavedRegsAndAdjustStack();
 
 	if (dataReg != EAX)
 	{
@@ -109,32 +110,24 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 
 #ifdef _M_X64
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
-	if (dataReg != EAX)
-		PanicAlert("Backpatch write - not through EAX");
-
 	X64Reg addrReg = (X64Reg)info.scaledReg;
 
 	// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a 
 	// hardware access - we can take shortcuts.
-	//if (emAddress == 0xCC008000)
-	//	PanicAlert("Caught a FIFO write");
-	CMP(32, R(addrReg), Imm32(0xCC008000));
-	FixupBranch skip_fast = J_CC(CC_NE, false);
-	MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
-	CALL((void*)jit->GetAsmRoutines()->fifoDirectWrite32);
-	RET();
-	SetJumpTarget(skip_fast);
-	ABI_PushAllCallerSavedRegsAndAdjustStack();
+	// Don't treat FIFO writes specially for now because they require a burst
+	// check anyway.
 
+	if (dataReg == ABI_PARAM2)
+		PanicAlert("Incorrect use of SafeWriteRegToReg");
 	if (addrReg != ABI_PARAM1)
 	{
-		MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
-		MOV(32, R(ABI_PARAM2), R((X64Reg)addrReg));
+		MOV(64, R(ABI_PARAM1), R((X64Reg)dataReg));
+		MOV(64, R(ABI_PARAM2), R((X64Reg)addrReg));
 	}
 	else
 	{
-		MOV(32, R(ABI_PARAM2), R((X64Reg)addrReg));
-		MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
+		MOV(64, R(ABI_PARAM2), R((X64Reg)addrReg));
+		MOV(64, R(ABI_PARAM1), R((X64Reg)dataReg));
 	}
 
 	if (info.displacement)
@@ -142,13 +135,25 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 		ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
 	}
 
+	SUB(64, R(RSP), Imm8(8));
+
 	switch (info.operandSize)
 	{
+	case 8:
+		CALL(thunks.ProtectFunction((void *)&Memory::Write_U64, 2));
+		break;
 	case 4:
 		CALL(thunks.ProtectFunction((void *)&Memory::Write_U32, 2));
 		break;
+	case 2:
+		CALL(thunks.ProtectFunction((void *)&Memory::Write_U16, 2));
+		break;
+	case 1:
+		CALL(thunks.ProtectFunction((void *)&Memory::Write_U8, 2));
+		break;
 	}
-	ABI_PopAllCallerSavedRegsAndAdjustStack();
+
+	ADD(64, R(RSP), Imm8(8));
 	RET();
 #endif
 
@@ -193,21 +198,35 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 	}
 	else
 	{
-		PanicAlert("BackPatch : Currently only supporting reads."
-		           "\n\nAttempted to write to %08x.", emAddress);
-
 		// TODO: special case FIFO writes. Also, support 32-bit mode.
-		// Also, debug this so that it actually works correctly :P
-		XEmitter emitter(codePtr - 2);
-		// We know it's EAX so the BSWAP before will be two byte. Overwrite it.
+		// We entered here with a BSWAP-ed register. We'll have to swap it back.
+		u64 *ptr = ContextRN(ctx, info.regOperandReg);
+		int bswapSize = 0;
+		switch (info.operandSize)
+		{
+		case 1:
+			bswapSize = 0;
+			break;
+		case 2:
+			bswapSize = 4 + (info.regOperandReg >= 8 ? 1 : 0);
+			*ptr = Common::swap16((u16) *ptr);
+			break;
+		case 4:
+			bswapSize = 2 + (info.regOperandReg >= 8 ? 1 : 0);
+			*ptr = Common::swap32((u32) *ptr);
+			break;
+		case 8:
+			bswapSize = 3;
+			*ptr = Common::swap64(*ptr);
+			break;
+		}
+
+		u8 *start = codePtr - bswapSize;
+		XEmitter emitter(start);
 		const u8 *trampoline = trampolines.GetWriteTrampoline(info);
 		emitter.CALL((void *)trampoline);
-		emitter.NOP((int)info.instructionSize - 3);
-		if (info.instructionSize < 3)
-			PanicAlert("Instruction too small");
-		// We entered here with a BSWAP-ed EAX. We'll have to swap it back.
-		ctx->CTX_RAX = Common::swap32((u32)ctx->CTX_RAX);
-		return codePtr - 2;
+		emitter.NOP(codePtr + info.instructionSize - emitter.GetCodePtr());
+		return start;
 	}
 	return 0;
 #else

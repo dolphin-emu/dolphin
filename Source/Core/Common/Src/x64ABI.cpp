@@ -411,31 +411,6 @@ void XEmitter::ABI_CallFunctionA(void *func, const Gen::OpArg &arg1)
 	ABI_RestoreStack(0);
 }
 
-void XEmitter::ABI_PushAllCallerSavedRegsAndAdjustStack() {
-	PUSH(RCX);
-	PUSH(RDX);
-	PUSH(RSI); 
-	PUSH(RDI);
-	PUSH(R8);
-	PUSH(R9);
-	PUSH(R10);
-	PUSH(R11);
-	PUSH(R11);
-}
-
-void XEmitter::ABI_PopAllCallerSavedRegsAndAdjustStack() {
-	POP(R11);
-	POP(R11);
-	POP(R10);
-	POP(R9);
-	POP(R8);
-	POP(RDI); 
-	POP(RSI); 
-	POP(RDX);
-	POP(RCX);
-}
-
-
 #ifdef _WIN32
 // Win64 Specific Code
 

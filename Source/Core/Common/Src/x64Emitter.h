@@ -646,12 +646,6 @@ public:
 	void ABI_PushAllCalleeSavedRegsAndAdjustStack();
 	void ABI_PopAllCalleeSavedRegsAndAdjustStack();
 
-	// A function that doesn't know anything about it's surroundings, should
-	// be surrounded by these to establish a safe environment, where it can roam free.
-	// An example is a backpatch injected function.
-	void ABI_PushAllCallerSavedRegsAndAdjustStack();
-	void ABI_PopAllCallerSavedRegsAndAdjustStack();
-
 	unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize, bool noProlog = false);
 	void ABI_AlignStack(unsigned int frameSize, bool noProlog = false);
 	void ABI_RestoreStack(unsigned int frameSize, bool noProlog = false);

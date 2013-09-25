@@ -223,8 +223,27 @@ void EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int ac
 }
 
 // Destroys both arg registers
-void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap, bool noProlog)
+void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, int flags)
 {
+#if defined(_M_X64)
+	if (!Core::g_CoreStartupParameter.bMMU &&
+	    Core::g_CoreStartupParameter.bFastmem &&
+	    !(flags & (SAFE_WRITE_NO_SWAP | SAFE_WRITE_NO_FASTMEM))
+#ifdef ENABLE_MEM_CHECK
+	    && !Core::g_CoreStartupParameter.bEnableDebugging
+#endif
+	    )
+	{
+		UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, !(flags & SAFE_WRITE_NO_SWAP));
+		if (accessSize == 8)
+		{
+			NOP(1);
+			NOP(1);
+		}
+		return;
+	}
+#endif
+
 	if (offset)
 		ADD(32, R(reg_addr), Imm32((u32)offset));
 
@@ -245,6 +264,8 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	TEST(32, R(reg_addr), Imm32(mem_mask));
 	FixupBranch fast = J_CC(CC_Z);
 	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
+	bool noProlog = flags & SAFE_WRITE_NO_PROLOG;
+	bool swap = !(flags & SAFE_WRITE_NO_SWAP);
 	switch (accessSize)
 	{
 	case 32: ABI_CallFunctionRR(thunks.ProtectFunction(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), 2), reg_value, reg_addr, noProlog); break;
@@ -257,7 +278,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	SetJumpTarget(exit);
 }
 
-void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr)
+void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, int flags)
 {
 	if (false && cpu_info.bSSSE3) {
 		// This path should be faster but for some reason it causes errors so I've disabled it.
@@ -290,7 +311,7 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr)
 	} else {
 		MOVSS(M(&float_buffer), xmm_value);
 		MOV(32, R(EAX), M(&float_buffer));
-		SafeWriteRegToReg(EAX, reg_addr, 32, 0, true);
+		SafeWriteRegToReg(EAX, reg_addr, 32, 0, flags);
 	}
 }
 
