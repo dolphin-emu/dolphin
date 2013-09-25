@@ -50,7 +50,7 @@ void Jit64::lfs(UGeckoInstruction inst)
 	}
 	s32 offset = (s32)(s16)inst.SIMM_16;
 
-	SafeLoadToEAX(gpr.R(a), 32, offset, false);
+	SafeLoadToEAX(gpr.R(a), 32, offset, RegistersInUse(), false);
 
 	MEMCHECK_START
 	
@@ -207,10 +207,10 @@ void Jit64::stfd(UGeckoInstruction inst)
 	MOVAPD(XMM0, fpr.R(s));
 	PSRLQ(XMM0, 32);
 	MOVD_xmm(R(EAX), XMM0);
-	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
+	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0, RegistersInUse() | (1 << (16 + XMM0)));
 
 	LEA(32, ABI_PARAM1, MDisp(gpr.R(a).GetSimpleReg(), offset));
-	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 4);
+	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 4, RegistersInUse());
 
 	SetJumpTarget(exit);
 
@@ -282,7 +282,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 		MEMCHECK_END
 	}
 	CVTSD2SS(XMM0, fpr.R(s));
-	SafeWriteFloatToReg(XMM0, ABI_PARAM2);
+	SafeWriteFloatToReg(XMM0, ABI_PARAM2, RegistersInUse());
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
@@ -302,7 +302,7 @@ void Jit64::stfsx(UGeckoInstruction inst)
 		ADD(32, R(ABI_PARAM1), gpr.R(inst.RA));
 	CVTSD2SS(XMM0, fpr.R(inst.RS));
 	MOVD_xmm(R(EAX), XMM0);
-	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
+	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0, RegistersInUse());
 
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
@@ -337,7 +337,7 @@ void Jit64::lfsx(UGeckoInstruction inst)
 
 		MEMCHECK_END
 	} else {
-		SafeLoadToEAX(R(EAX), 32, 0, false);
+		SafeLoadToEAX(R(EAX), 32, 0, RegistersInUse(), false);
 
 		MEMCHECK_START
 

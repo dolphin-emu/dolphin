@@ -106,7 +106,11 @@ public:
 	void UnlockAll();
 	void UnlockAllX();
 
-	bool IsFreeX(int xreg) const;
+	bool IsFreeX(int xreg) const
+	{
+		return xregs[xreg].free && !xlocks[xreg];
+	}
+
 
 	X64Reg GetFreeXReg();
 

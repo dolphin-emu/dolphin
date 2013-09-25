@@ -77,6 +77,23 @@ struct RegInfo {
 		RegInfo(RegInfo&); // DO NOT IMPLEMENT
 };
 
+static u32 regsInUse(RegInfo& R) {
+#ifdef _M_X64
+	u32 result = 0;
+	for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
+	{
+		if (R.regs[i] != 0)
+			result |= (1 << i);
+		if (R.fregs[i] != 0)
+			result |= (1 << (16 + i));
+	}
+	return result;
+#else
+	// not needed
+	return 0;
+#endif
+}
+
 static void regMarkUse(RegInfo& R, InstLoc I, InstLoc Op, unsigned OpNum) {
 	unsigned& info = R.IInfo[Op - R.FirstI];
 	if (info == 0) R.IInfo[I - R.FirstI] |= 1 << (OpNum + 1);
@@ -634,7 +651,7 @@ static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size) {
 	if (RI.MakeProfile) {
 		RI.Jit->MOV(32, M(&ProfiledLoads[RI.numProfiledLoads++]), R(ECX));
 	}
-	RI.Jit->SafeWriteRegToReg(EAX, ECX, Size, 0);
+	RI.Jit->SafeWriteRegToReg(EAX, ECX, Size, 0, regsInUse(RI));
 	if (RI.IInfo[I - RI.FirstI] & 4)
 		regClearInst(RI, getOp1(I));
 }
@@ -1337,7 +1354,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 				Jit->MOV(32, R(EAX), loc1);
 			}
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-			RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0);
+			RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0, regsInUse(RI));
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
@@ -1400,12 +1417,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 				Jit->PSRLQ(XMM0, 32);
 				Jit->MOVD_xmm(R(EAX), XMM0);
 				Jit->MOV(32, R(ECX), address);
-				RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0);
+				RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0, regsInUse(RI));
 
 				Jit->MOVAPD(XMM0, value);
 				Jit->MOVD_xmm(R(EAX), XMM0);
 				Jit->MOV(32, R(ECX), address);
-				RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 4);
+				RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 4, regsInUse(RI));
 			Jit->SetJumpTarget(exit);
 
 			if (RI.IInfo[I - RI.FirstI] & 4)

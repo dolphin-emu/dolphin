@@ -737,3 +737,21 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	return normalEntry;
 }
+
+u32 Jit64::RegistersInUse()
+{
+#ifdef _M_X64
+	u32 result = 0;
+	for (int i = 0; i < NUMXREGS; i++)
+	{
+		if (!gpr.IsFreeX(i))
+			result |= (1 << i);
+		if (!fpr.IsFreeX(i))
+			result |= (1 << (16 + i));
+	}
+	return result;
+#else
+	// not needed
+	return 0;
+#endif
+}

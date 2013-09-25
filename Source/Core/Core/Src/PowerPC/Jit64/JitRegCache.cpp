@@ -76,11 +76,6 @@ void RegCache::LockX(int x1, int x2, int x3, int x4)
 	if (x4 != 0xFF) xlocks[x4] = true;
 }
 
-bool RegCache::IsFreeX(int xreg) const
-{
-	return xregs[xreg].free && !xlocks[xreg];
-}
-
 void RegCache::UnlockAll()
 {
 	for (int i = 0; i < 32; i++)

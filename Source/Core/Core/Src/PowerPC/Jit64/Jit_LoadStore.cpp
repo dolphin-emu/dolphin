@@ -121,7 +121,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		// do our job at first
 		s32 offset = (s32)(s16)inst.SIMM_16;
 		gpr.Lock(d);
-		SafeLoadToEAX(gpr.R(a), accessSize, offset, signExtend);
+		SafeLoadToEAX(gpr.R(a), accessSize, offset, RegistersInUse(), signExtend);
 		gpr.KillImmediate(d, false, true);
 		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
@@ -193,7 +193,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		}
 	}
 
-	SafeLoadToEAX(opAddress, accessSize, 0, signExtend);
+	SafeLoadToEAX(opAddress, accessSize, 0, RegistersInUse(), signExtend);
 
 	// We must flush immediate values from the following registers because
 	// they may change at runtime if no MMU exception has been raised
@@ -373,7 +373,7 @@ void Jit64::stX(UGeckoInstruction inst)
 		gpr.Lock(s, a);
 		MOV(32, R(EDX), gpr.R(a));
 		MOV(32, R(ECX), gpr.R(s));
-		SafeWriteRegToReg(ECX, EDX, accessSize, offset);
+		SafeWriteRegToReg(ECX, EDX, accessSize, offset, RegistersInUse());
 
 		if (update && offset)
 		{
@@ -429,7 +429,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 	}
 
 	MOV(32, R(ECX), gpr.R(s));
-	SafeWriteRegToReg(ECX, EDX, accessSize, 0);
+	SafeWriteRegToReg(ECX, EDX, accessSize, 0, RegistersInUse());
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();

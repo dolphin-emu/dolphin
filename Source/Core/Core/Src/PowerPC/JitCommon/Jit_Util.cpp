@@ -58,21 +58,25 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
 #endif
 }
 
-void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend)
+u8 *EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend)
 {
+	u8 *result;
 #ifdef _M_X64
 	if (opAddress.IsSimpleReg())
 	{
+		result = GetWritableCodePtr();
 		MOVZX(32, accessSize, EAX, MComplex(RBX, opAddress.GetSimpleReg(), SCALE_1, offset));
 	}
 	else
 	{
 		MOV(32, R(EAX), opAddress);
+		result = GetWritableCodePtr();
 		MOVZX(32, accessSize, EAX, MComplex(RBX, EAX, SCALE_1, offset));
 	}
 #else
 	if (opAddress.IsImm())
 	{
+		result = GetWritableCodePtr();
 		MOVZX(32, accessSize, EAX, M(Memory::base + (((u32)opAddress.offset + offset) & Memory::MEMVIEW32_MASK)));
 	}
 	else
@@ -80,6 +84,7 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 		if (!opAddress.IsSimpleReg(EAX))
 			MOV(32, R(EAX), opAddress);
 		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+		result = GetWritableCodePtr();
 		MOVZX(32, accessSize, EAX, MDisp(EAX, (u32)Memory::base + offset));
 	}
 #endif
@@ -105,9 +110,10 @@ void EmuCodeBlock::UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize,
 		// TODO: bake 8-bit into the original load.
 		MOVSX(32, accessSize, EAX, R(EAX));
 	}
+	return result;
 }
 
-void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend)
+void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend)
 {
 #if defined(_M_X64)
 #ifdef ENABLE_MEM_CHECK
@@ -116,7 +122,11 @@ void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s
 	if (!Core::g_CoreStartupParameter.bMMU && Core::g_CoreStartupParameter.bFastmem)
 #endif
 	{
-		UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
+		u8 *mov = UnsafeLoadToEAX(opAddress, accessSize, offset, signExtend);
+
+		// XXX: are these dead anyway?
+		registersInUse &= ~((1 << ABI_PARAM1) | (1 << ABI_PARAM2) | (1 << RAX));
+		registersInUseAtLoc[mov] = registersInUse;
 	}
 	else
 #endif
@@ -208,22 +218,26 @@ void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s
 	}
 }
 
-void EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
+u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
 {
+	u8 *result;
 	if (accessSize == 8 && reg_value >= 4) {
 		PanicAlert("WARNING: likely incorrect use of UnsafeWriteRegToReg!");
 	}
 	if (swap) BSWAP(accessSize, reg_value);
 #ifdef _M_X64
+	result = GetWritableCodePtr();
 	MOV(accessSize, MComplex(RBX, reg_addr, SCALE_1, offset), R(reg_value));
 #else
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
+	result = GetWritableCodePtr();
 	MOV(accessSize, MDisp(reg_addr, (u32)Memory::base + offset), R(reg_value));
 #endif
+	return result;
 }
 
 // Destroys both arg registers
-void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, int flags)
+void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags)
 {
 #if defined(_M_X64)
 	if (!Core::g_CoreStartupParameter.bMMU &&
@@ -234,12 +248,16 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 #endif
 	    )
 	{
-		UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, !(flags & SAFE_WRITE_NO_SWAP));
+		u8 *mov = UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, !(flags & SAFE_WRITE_NO_SWAP));
 		if (accessSize == 8)
 		{
 			NOP(1);
 			NOP(1);
 		}
+
+		// XXX: are these dead anyway?
+		registersInUse &= ~((1 << ABI_PARAM1) | (1 << ABI_PARAM2) | (1 << RAX));
+		registersInUseAtLoc[mov] = registersInUse;
 		return;
 	}
 #endif
@@ -278,7 +296,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	SetJumpTarget(exit);
 }
 
-void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, int flags)
+void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 registersInUse, int flags)
 {
 	if (false && cpu_info.bSSSE3) {
 		// This path should be faster but for some reason it causes errors so I've disabled it.
@@ -311,7 +329,7 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, int fl
 	} else {
 		MOVSS(M(&float_buffer), xmm_value);
 		MOV(32, R(EAX), M(&float_buffer));
-		SafeWriteRegToReg(EAX, reg_addr, 32, 0, flags);
+		SafeWriteRegToReg(EAX, reg_addr, 32, 0, registersInUse, flags);
 	}
 }
 

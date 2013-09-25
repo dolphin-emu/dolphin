@@ -56,7 +56,7 @@ void TrampolineCache::Shutdown()
 }
 
 // Extremely simplistic - just generate the requested trampoline. May reuse them in the future.
-const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
+const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 registersInUse)
 {
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
@@ -76,17 +76,18 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
 	if (info.displacement) {
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
 	}
+	PushRegistersAndAlignStack(registersInUse);
 	switch (info.operandSize)
 	{
 	case 4:
-		CALL(thunks.ProtectFunction((void *)&Memory::Read_U32, 1));
+		CALL((void *)&Memory::Read_U32);
 		break;
 	case 2:
-		CALL(thunks.ProtectFunction((void *)&Memory::Read_U16, 1));
+		CALL((void *)&Memory::Read_U16);
 		SHL(32, R(EAX), Imm8(16));
 		break;
 	case 1:
-		CALL(thunks.ProtectFunction((void *)&Memory::Read_U8, 1));
+		CALL((void *)&Memory::Read_U8);
 		break;
 	}
 
@@ -95,13 +96,14 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
 		MOV(32, R(dataReg), R(EAX));
 	}
 
+	PopRegistersAndAlignStack(registersInUse);
 	RET();
 #endif
 	return trampoline;
 }
 
 // Extremely simplistic - just generate the requested trampoline. May reuse them in the future.
-const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
+const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 registersInUse)
 {
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
@@ -135,25 +137,24 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 		ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
 	}
 
-	SUB(64, R(RSP), Imm8(8));
-
+	PushRegistersAndAlignStack(registersInUse);
 	switch (info.operandSize)
 	{
 	case 8:
-		CALL(thunks.ProtectFunction((void *)&Memory::Write_U64, 2));
+		CALL((void *)&Memory::Write_U64);
 		break;
 	case 4:
-		CALL(thunks.ProtectFunction((void *)&Memory::Write_U32, 2));
+		CALL((void *)&Memory::Write_U32);
 		break;
 	case 2:
-		CALL(thunks.ProtectFunction((void *)&Memory::Write_U16, 2));
+		CALL((void *)&Memory::Write_U16);
 		break;
 	case 1:
-		CALL(thunks.ProtectFunction((void *)&Memory::Write_U8, 2));
+		CALL((void *)&Memory::Write_U8);
 		break;
 	}
 
-	ADD(64, R(RSP), Imm8(8));
+	PopRegistersAndAlignStack(registersInUse);
 	RET();
 #endif
 
@@ -182,6 +183,11 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		PanicAlert("BackPatch : Base reg not RBX."
 		           "\n\nAttempted to access %08x.", emAddress);
 
+	auto it = registersInUseAtLoc.find(codePtr);
+	if (it == registersInUseAtLoc.end())
+		PanicAlert("BackPatch: no register use entry for address %p", codePtr);
+	u32 registersInUse = it->second;
+
 	if (!info.isMemoryWrite)
 	{
 		XEmitter emitter(codePtr);
@@ -191,7 +197,8 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 			bswapNopCount = 3;
 		else
 			bswapNopCount = 2;
-		const u8 *trampoline = trampolines.GetReadTrampoline(info);
+
+		const u8 *trampoline = trampolines.GetReadTrampoline(info, registersInUse);
 		emitter.CALL((void *)trampoline);
 		emitter.NOP((int)info.instructionSize + bswapNopCount - 5);
 		return codePtr;
@@ -223,7 +230,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 
 		u8 *start = codePtr - bswapSize;
 		XEmitter emitter(start);
-		const u8 *trampoline = trampolines.GetWriteTrampoline(info);
+		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse);
 		emitter.CALL((void *)trampoline);
 		emitter.NOP(codePtr + info.instructionSize - emitter.GetCodePtr());
 		return start;

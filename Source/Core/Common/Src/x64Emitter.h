@@ -691,6 +691,9 @@ public:
 
 	#define DECLARE_IMPORT(x) extern "C" void *__imp_##x
 
+	void PushRegistersAndAlignStack(u32 mask);
+	void PopRegistersAndAlignStack(u32 mask);
+
 #endif
 };  // class XEmitter
 
