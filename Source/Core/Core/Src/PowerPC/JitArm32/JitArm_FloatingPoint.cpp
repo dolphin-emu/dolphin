@@ -32,10 +32,10 @@
 #include "JitFPRCache.h"
 #include "JitAsm.h"
 
-void JitArm::Helper_UpdateCR1(ARMReg value)
+void JitArm::Helper_UpdateCR1(ARMReg fpscr, ARMReg temp)
 {
-	// Should just update exception flags, not do any compares.
-	PanicAlert("CR1");
+	UBFX(temp, fpscr, 28, 4);
+	STRB(temp, R9, PPCSTATE_OFF(cr_fast[1]));
 }
 
 void JitArm::fctiwx(UGeckoInstruction inst)
@@ -134,7 +134,7 @@ void JitArm::fctiwx(UGeckoInstruction inst)
 	NEONXEmitter nemit(this);
 	nemit.VORR(vD, vD, V0);
 
-	if (inst.Rc) Helper_UpdateCR1(vD);
+	if (inst.Rc) Helper_UpdateCR1(fpscrReg, rA);
 
 	STR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
 	gpr.Unlock(rA);
@@ -215,7 +215,7 @@ void JitArm::fctiwzx(UGeckoInstruction inst)
 	NEONXEmitter nemit(this);
 	nemit.VORR(vD, vD, V0);
 
-	if (inst.Rc) Helper_UpdateCR1(vD);
+	if (inst.Rc) Helper_UpdateCR1(fpscrReg, rA);
 
 	STR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
 	gpr.Unlock(rA);
@@ -360,12 +360,15 @@ void JitArm::fabsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
+
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VABS(vD, vB);
-
-	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
 void JitArm::fnabsx(UGeckoInstruction inst)
@@ -373,13 +376,16 @@ void JitArm::fnabsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
+
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VABS(vD, vB);
 	VNEG(vD, vD);
-
-	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
 void JitArm::fnegx(UGeckoInstruction inst)
@@ -387,18 +393,26 @@ void JitArm::fnegx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
+
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VNEG(vD, vB);
-
-	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
 void JitArm::faddsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
+
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
 
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
@@ -407,7 +421,6 @@ void JitArm::faddsx(UGeckoInstruction inst)
 
 	VADD(vD0, vA, vB);
 	VMOV(vD1, vD0);
-	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 
 void JitArm::faddx(UGeckoInstruction inst)
@@ -415,19 +428,28 @@ void JitArm::faddx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
+
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VADD(vD, vA, vB);
-	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
 void JitArm::fsubsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	
+
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
+
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD0 = fpr.R0(inst.FD, false);
@@ -435,7 +457,6 @@ void JitArm::fsubsx(UGeckoInstruction inst)
 
 	VSUB(vD0, vA, vB);
 	VMOV(vD1, vD0);
-	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 
 void JitArm::fsubx(UGeckoInstruction inst)
@@ -443,19 +464,28 @@ void JitArm::fsubx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
+
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VSUB(vD, vA, vB);
-	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
 void JitArm::fmulsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	
+
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
+
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vC = fpr.R0(inst.FC);
 	ARMReg vD0 = fpr.R0(inst.FD, false);
@@ -463,37 +493,48 @@ void JitArm::fmulsx(UGeckoInstruction inst)
 
 	VMUL(vD0, vA, vC);
 	VMOV(vD1, vD0);
-	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 void JitArm::fmulx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
+
 	ARMReg vA = fpr.R0(inst.FA);
 	ARMReg vC = fpr.R0(inst.FC);
 	ARMReg vD0 = fpr.R0(inst.FD, false);
 
 	VMUL(vD0, vA, vC);
-	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 void JitArm::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
+
 	ARMReg vB = fpr.R0(inst.FB);
 	ARMReg vD = fpr.R0(inst.FD, false);
 
 	VMOV(vD, vB);
-	
-	if (inst.Rc) Helper_UpdateCR1(vD);
 }
 
 void JitArm::fmaddsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
+
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
@@ -513,14 +554,17 @@ void JitArm::fmaddsx(UGeckoInstruction inst)
 	VMOV(vD1, V0);
 
 	fpr.Unlock(V0);
-
-	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 
 void JitArm::fmaddx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
+
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
@@ -538,8 +582,6 @@ void JitArm::fmaddx(UGeckoInstruction inst)
 	VMOV(vD0, V0);
 
 	fpr.Unlock(V0);
-
-	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 
 void JitArm::fnmaddx(UGeckoInstruction inst)
@@ -548,6 +590,11 @@ void JitArm::fnmaddx(UGeckoInstruction inst)
 	JITDISABLE(bJITFloatingPointOff)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
 
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -563,8 +610,6 @@ void JitArm::fnmaddx(UGeckoInstruction inst)
 	VNEG(vD0, V0);
 
 	fpr.Unlock(V0);
-
-	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 void JitArm::fnmaddsx(UGeckoInstruction inst)
 {
@@ -572,6 +617,11 @@ void JitArm::fnmaddsx(UGeckoInstruction inst)
 	JITDISABLE(bJITFloatingPointOff)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
 
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -589,8 +639,6 @@ void JitArm::fnmaddsx(UGeckoInstruction inst)
 	VNEG(vD1, V0);
 
 	fpr.Unlock(V0);
-
-	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 
 // XXX: Messes up Super Mario Sunshine title screen
@@ -600,6 +648,11 @@ void JitArm::fresx(UGeckoInstruction inst)
 	JITDISABLE(bJITFloatingPointOff)
 
 	u32 b = inst.FB, d = inst.FD;
+
+	if (inst.Rc) {
+		Default(inst);
+		return;
+	}
 
 	Default(inst); return;
 
@@ -613,8 +666,6 @@ void JitArm::fresx(UGeckoInstruction inst)
 	VDIV(vD1, V0, vB0);
 	VDIV(vD0, V0, vB0);
 	fpr.Unlock(V0);
-
-	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
 
 void JitArm::fselx(UGeckoInstruction inst)
