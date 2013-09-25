@@ -98,9 +98,11 @@
 /*
  * Bluetooth device address
  */
+#ifndef __BLUETOOTH_H
 typedef struct {
 	uint8_t	b[BLUETOOTH_BDADDR_SIZE];
 } bdaddr_t;
+#endif
 
 #define	BDADDR_ANY	{ { 0, 0, 0, 0, 0, 0 } }
 
