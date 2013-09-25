@@ -336,12 +336,12 @@ static GekkoOPTemplate table59[] =
 	{20, &JitArm::fsubsx}, //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
 	{21, &JitArm::faddsx}, //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
 //	{22, &JitArm::Default}, //"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
-	{24, &JitArm::Default}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}}, 
+	{24, &JitArm::fresx}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}}, 
 	{25, &JitArm::fmulsx}, //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
 	{28, &JitArm::Default}, //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
 	{29, &JitArm::fmaddsx}, //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
 	{30, &JitArm::Default}, //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{31, &JitArm::Default}, //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
+	{31, &JitArm::fnmaddsx}, //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
 };							    
 
 static GekkoOPTemplate table63[] = 
@@ -370,13 +370,13 @@ static GekkoOPTemplate table63_2[] =
 	{20, &JitArm::fsubx}, //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{21, &JitArm::faddx}, //"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{22, &JitArm::Default}, //"fsqrtx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{23, &JitArm::Default}, //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{23, &JitArm::fselx}, //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{25, &JitArm::fmulx}, //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{26, &JitArm::Default}, //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
+	{26, &JitArm::frsqrtex}, //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
 	{28, &JitArm::Default}, //"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{29, &JitArm::fmaddx}, //"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{30, &JitArm::Default}, //"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{31, &JitArm::Default}, //"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{31, &JitArm::fnmaddx}, //"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
 

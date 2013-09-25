@@ -214,6 +214,11 @@ public:
 	void fctiwzx(UGeckoInstruction _inst);
 	void fcmpo(UGeckoInstruction _inst);
 	void fcmpu(UGeckoInstruction _inst);
+	void fnmaddx(UGeckoInstruction _inst);
+	void fnmaddsx(UGeckoInstruction _inst);
+	void fresx(UGeckoInstruction _inst);
+	void fselx(UGeckoInstruction _inst);
+	void frsqrtex(UGeckoInstruction _inst);
 
 	// Floating point loadStore
 	void lfXX(UGeckoInstruction _inst);

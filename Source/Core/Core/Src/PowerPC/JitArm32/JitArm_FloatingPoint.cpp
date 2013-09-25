@@ -541,3 +541,146 @@ void JitArm::fmaddx(UGeckoInstruction inst)
 
 	if (inst.Rc) Helper_UpdateCR1(vD0);
 }
+
+void JitArm::fnmaddx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vD0 = fpr.R0(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+
+	VMOV(V0, vB0);
+	
+	VMLA(V0, vA0, vC0);
+
+	VNEG(vD0, V0);
+
+	fpr.Unlock(V0);
+
+	if (inst.Rc) Helper_UpdateCR1(vD0);
+}
+void JitArm::fnmaddsx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vD0 = fpr.R0(d, false);
+	ARMReg vD1 = fpr.R1(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+
+	VMOV(V0, vB0);
+	
+	VMLA(V0, vA0, vC0);
+
+	VNEG(vD0, V0);
+	VNEG(vD1, V0);
+
+	fpr.Unlock(V0);
+
+	if (inst.Rc) Helper_UpdateCR1(vD0);
+}
+
+// XXX: Messes up Super Mario Sunshine title screen
+void JitArm::fresx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+
+	u32 b = inst.FB, d = inst.FD;
+
+	Default(inst); return;
+
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vD0 = fpr.R0(d, false);
+	ARMReg vD1 = fpr.R1(d, false);
+
+	ARMReg V0 = fpr.GetReg();
+	MOVI2R(V0, 1.0, INVALID_REG); // temp reg isn't needed for 1.0
+	
+	VDIV(vD1, V0, vB0);
+	VDIV(vD0, V0, vB0);
+	fpr.Unlock(V0);
+
+	if (inst.Rc) Helper_UpdateCR1(vD0);
+}
+
+void JitArm::fselx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITPairedOff)
+	
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	if (inst.Rc) {
+		Default(inst); return;
+	}
+	ARMReg vA0 = fpr.R0(a);
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vC0 = fpr.R0(c);
+	ARMReg vD0 = fpr.R0(d, false);
+	
+	VCMP(vA0);
+	VMRS(_PC);
+
+	FixupBranch GT0 = B_CC(CC_GE);
+	VMOV(vD0, vB0);
+	FixupBranch EQ0 = B();
+	SetJumpTarget(GT0);
+	VMOV(vD0, vC0);
+	SetJumpTarget(EQ0);
+}
+
+void JitArm::frsqrtex(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITPairedOff)
+
+	u32 b = inst.FB, d = inst.FD;
+	if (inst.Rc){
+		Default(inst); return;
+	}
+	ARMReg vB0 = fpr.R0(b);
+	ARMReg vD0 = fpr.R0(d, false);
+	ARMReg fpscrReg = gpr.GetReg();
+	ARMReg V0 = D1;
+	ARMReg rA = gpr.GetReg();
+
+	MOVI2R(fpscrReg, (u32)&PPC_NAN);
+	VLDR(V0, fpscrReg, 0);
+	LDR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+
+	VCMP(vB0);
+	VMRS(_PC);
+	FixupBranch Less0 = B_CC(CC_LT);
+		VMOV(vD0, V0);	
+		SetFPException(fpscrReg, FPSCR_VXSQRT);
+		FixupBranch SkipOrr0 = B();
+	SetJumpTarget(Less0);
+		FixupBranch noException = B_CC(CC_EQ);
+		SetFPException(fpscrReg, FPSCR_ZX);
+		SetJumpTarget(noException);
+	SetJumpTarget(SkipOrr0);
+
+	VCVT(S0, vB0, 0);
+
+	NEONXEmitter nemit(this);
+	nemit.VRSQRTE(F_32, D0, D0);
+	VCVT(vD0, S0, 0);
+
+	STR(fpscrReg, R9, PPCSTATE_OFF(fpscr));
+	gpr.Unlock(fpscrReg, rA);
+}
+
