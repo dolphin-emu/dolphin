@@ -26,7 +26,7 @@ class IBannerLoader
 
 		virtual bool IsValid() = 0;
 
-		virtual bool GetBanner(u32* _pBannerImage) = 0;
+		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) = 0;
 
 		virtual std::vector<std::string> GetNames() = 0;
 		virtual std::string GetCompany() = 0;

@@ -41,7 +41,7 @@ public:
 	u64 GetVolumeSize() const {return m_VolumeSize;}
 	bool IsDiscTwo() const {return m_IsDiscTwo;}
 #if defined(HAVE_WX) && HAVE_WX
-	const wxImage& GetImage() const {return m_Image;}
+	const wxBitmap& GetBitmap() const {return m_Bitmap;}
 #endif
 
 	void DoState(PointerWrap &p);
@@ -78,11 +78,12 @@ private:
 	int m_Revision;
 
 #if defined(HAVE_WX) && HAVE_WX
-	wxImage m_Image;
+	wxBitmap m_Bitmap;
 #endif
 	bool m_Valid;
 	bool m_BlobCompressed;
 	std::vector<u8> m_pImage;
+	int m_ImageWidth, m_ImageHeight;
 	bool m_IsDiscTwo;
 
 	bool LoadFromCache();

@@ -98,38 +98,15 @@ bool CBannerLoaderWii::IsValid()
 	return m_IsValid;
 }
 
-static inline u32 Average32(u32 a, u32 b) {
-	return ((a >> 1) & 0x7f7f7f7f) + ((b >> 1) & 0x7f7f7f7f);
-}
-
-static inline u32 GetPixel(u32 *buffer, unsigned int x, unsigned int y) {
-	// thanks to unsignedness, these also check for <0 automatically.
-	if (x > 191) return 0;
-	if (y > 63) return 0;
-	return buffer[y * 192 + x];
-}
-
-bool CBannerLoaderWii::GetBanner(u32* _pBannerImage)
+std::vector<u32> CBannerLoaderWii::GetBanner(int* pWidth, int* pHeight)
 {
-	if (IsValid())
-	{
-		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
-		u32* Buffer = new u32[192 * 64];
-		decode5A3image(Buffer, (u16*)pBanner->m_BannerTexture, 192, 64);
-		for (int y = 0; y < 32; y++)
-		{
-			for (int x = 0; x < 96; x++)
-			{
-				// simplified plus-shaped "gaussian"
-				u32 surround = Average32(
-					Average32(GetPixel(Buffer, x*2 - 1, y*2), GetPixel(Buffer, x*2 + 1, y*2)),
-					Average32(GetPixel(Buffer, x*2, y*2 - 1), GetPixel(Buffer, x*2, y*2 + 1)));
-				_pBannerImage[y * 96 + x] = Average32(GetPixel(Buffer, x*2, y*2), surround);
-			}
-		}
-		delete[] Buffer;
-	}
-	return true;
+	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
+	std::vector<u32> Buffer;
+	Buffer.resize(192 * 64);
+	decode5A3image(&Buffer[0], (u16*)pBanner->m_BannerTexture, 192, 64);
+	*pWidth = 192;
+	*pHeight = 64;
+	return std::move(Buffer);
 }
 
 bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::string& result)

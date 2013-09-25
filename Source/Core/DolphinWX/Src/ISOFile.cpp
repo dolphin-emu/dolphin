@@ -24,12 +24,10 @@
 #include "ChunkFile.h"
 #include "ConfigManager.h"
 
-static const u32 CACHE_REVISION = 0x114;
+static const u32 CACHE_REVISION = 0x115;
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
-
-static u32 g_ImageTemp[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT];
 
 GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName)
@@ -38,6 +36,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_Revision(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
+	, m_ImageWidth(0)
+	, m_ImageHeight(0)
 {
 	if (LoadFromCache())
 	{
@@ -83,17 +83,16 @@ GameListItem::GameListItem(const std::string& _rFileName)
 						m_company = pBannerLoader->GetCompany();
 						m_descriptions = pBannerLoader->GetDescriptions();
 						
-						if (pBannerLoader->GetBanner(g_ImageTemp))
-						{
-							// resize vector to image size
-							m_pImage.resize(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3);
+						std::vector<u32> Buffer = pBannerLoader->GetBanner(&m_ImageWidth, &m_ImageHeight);
+						u32* pData = &Buffer[0];
+						// resize vector to image size
+						m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
 
-							for (size_t i = 0; i < DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT; i++)
-							{
-								m_pImage[i * 3 + 0] = (g_ImageTemp[i] & 0xFF0000) >> 16;
-								m_pImage[i * 3 + 1] = (g_ImageTemp[i] & 0x00FF00) >>  8;
-								m_pImage[i * 3 + 2] = (g_ImageTemp[i] & 0x0000FF) >>  0;
-							}
+						for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
+						{
+							m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
+							m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >>  8;
+							m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >>  0;
 						}
 					}
 					delete pBannerLoader;
@@ -124,12 +123,21 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 	if (!m_pImage.empty())
 	{
-		m_Image.Create(DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, &m_pImage[0], true);
+		wxImage Image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
+		double Scale = WxUtils::GetCurrentBitmapLogicalScale();
+		// Note: This uses nearest neighbor, which subjectively looks a lot
+		// better for GC banners than smooths caling.
+		Image.Rescale(DVD_BANNER_WIDTH * Scale, DVD_BANNER_HEIGHT * Scale);
+#ifdef __APPLE__
+		m_Bitmap = wxBitmap(Image, -1, Scale);
+#else
+		m_Bitmap = wxBitmap(Image, -1);
+#endif
 	}
 	else
 	{
 		// default banner
-		m_Image = wxImage(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
+		m_Bitmap.LoadFile(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 
@@ -164,6 +172,8 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_Country);
 	p.Do(m_BlobCompressed);
 	p.Do(m_pImage);
+	p.Do(m_ImageWidth);
+	p.Do(m_ImageHeight);
 	p.Do(m_Platform);
 	p.Do(m_IsDiscTwo);
 	p.Do(m_Revision);

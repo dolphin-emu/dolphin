@@ -402,8 +402,8 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Insert the platform's image in the first (visible) column
 	SetItemColumnImage(_Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.GetPlatform()]);
 
-	if (rISOFile.GetImage().IsOk())
-		ImageIndex = m_imageListSmall->Add(rISOFile.GetImage());
+	if (rISOFile.GetBitmap().IsOk())
+		ImageIndex = m_imageListSmall->Add(rISOFile.GetBitmap());
 
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);

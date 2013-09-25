@@ -138,6 +138,17 @@ void Host_SetWiiMoteConnectionState(int _State) {}
 std::vector<std::string> m_volume_names;
 std::vector<std::string> m_names;
 
+static inline u32 Average32(u32 a, u32 b) {
+	return ((a >> 1) & 0x7f7f7f7f) + ((b >> 1) & 0x7f7f7f7f);
+}
+
+static inline u32 GetPixel(u32 *buffer, unsigned int x, unsigned int y) {
+	// thanks to unsignedness, these also check for <0 automatically.
+	if (x > 191) return 0;
+	if (y > 63) return 0;
+	return buffer[y * 192 + x];
+}
+
 bool LoadBanner(std::string filename, u32 *Banner)
 {
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(filename);
@@ -161,8 +172,32 @@ bool LoadBanner(std::string filename, u32 *Banner)
 				if (pBannerLoader->IsValid())
 				{
 					m_names = pBannerLoader->GetNames();
-					if (pBannerLoader->GetBanner(Banner))
-						return true;
+					int Width, Height;
+					std::vector<u32> BannerVec = pBannerLoader->GetBanner(&Width, &Height);
+					// This code (along with above inlines) is moved from
+					// elsewhere.  Someone who knows anything about Android
+					// please get rid of it and use proper high-resolution
+					// images.
+					if (Height == 64)
+					{
+						u32* Buffer = &BannerVec[0];
+						for (int y = 0; y < 32; y++)
+						{
+							for (int x = 0; x < 96; x++)
+							{
+								// simplified plus-shaped "gaussian"
+								u32 surround = Average32(
+										Average32(GetPixel(Buffer, x*2 - 1, y*2), GetPixel(Buffer, x*2 + 1, y*2)),
+										Average32(GetPixel(Buffer, x*2, y*2 - 1), GetPixel(Buffer, x*2, y*2 + 1)));
+								Banner[y * 96 + x] = Average32(GetPixel(Buffer, x*2, y*2), surround);
+							}
+						}
+					}
+					else
+					{
+						memcpy(Banner, &BannerVec[0], 96 * 32 * 4);
+					}
+					return true;
 				}
 		}
 	}

@@ -1,3 +1,4 @@
+// XXX comex: scale support
 /////////////////////////////////////////////////////////////////////////////
 // Name:        src/generic/treectlg.cpp
 // Purpose:     generic tree control implementation

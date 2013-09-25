@@ -20,7 +20,7 @@ class CBannerLoaderWii
 
 		virtual bool IsValid();
 
-		virtual bool GetBanner(u32* _pBannerImage);
+		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight);
 
 		virtual std::vector<std::string> GetNames();
 		virtual std::string GetCompany();

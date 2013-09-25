@@ -215,7 +215,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		ChangeBannerDetails(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
 	}
 	
-	m_Banner->SetBitmap(OpenGameListItem->GetImage());
+	m_Banner->SetBitmap(OpenGameListItem->GetBitmap());
 	m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
 
 	// Filesystem browser/dumper

@@ -9,6 +9,10 @@
 
 #include "WxUtils.h"
 
+#ifdef __APPLE__
+#import <AppKit/AppKit.h>
+#endif
+
 namespace WxUtils {
 
 // Launch a file according to its mime type
@@ -38,6 +42,18 @@ void Explore(const char *path)
 	{
 		// WARN_LOG
 	}
+}
+
+double GetCurrentBitmapLogicalScale()
+{
+#ifdef __APPLE__
+	// wx doesn't expose this itself, unfortunately.
+    if ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
+	{
+        return [[NSScreen mainScreen] backingScaleFactor];
+	}
+#endif
+	return 1.0;
 }
 
 }  // namespace
