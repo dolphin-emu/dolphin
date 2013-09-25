@@ -1104,7 +1104,8 @@ bool wxTopLevelWindowMSW::ShowFullScreen(bool show, long style)
         // decorations (and are definitely not children) and while not using
         // this style doesn't seem to make any difference for most windows, it
         // breaks wxGLCanvas in some cases, see #15434, so just always use it.
-        newStyle |= WS_POPUP;
+        // XXX comex: this causes Dolphin issue 6651.
+        // newStyle |= WS_POPUP;
 
         // change our window style to be compatible with full-screen mode
         ::SetWindowLong(GetHwnd(), GWL_STYLE, newStyle);
