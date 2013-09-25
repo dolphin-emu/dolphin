@@ -1657,7 +1657,7 @@ void XEmitter::PushRegistersAndAlignStack(u32 mask)
 	}
 	size += shadow;
 	if (size)
-		SUB(64, R(RSP), size >= 0x100 ? Imm32(size) : Imm8(size));
+		SUB(64, R(RSP), size >= 0x80 ? Imm32(size) : Imm8(size));
 	int offset = shadow;
 	for (int x = 0; x < 16; x++)
 	{
@@ -1692,7 +1692,7 @@ void XEmitter::PopRegistersAndAlignStack(u32 mask)
 	size += (count & 1) ? 0 : 8;
 
 	if (size)
-		ADD(64, R(RSP), size >= 0x100 ? Imm32(size) : Imm8(size));
+		ADD(64, R(RSP), size >= 0x80 ? Imm32(size) : Imm8(size));
 	for (int r = 15; r >= 0; r--)
 	{
 		if (mask & (1 << r))
