@@ -305,7 +305,13 @@ wxBitmap::
 #endif
 ConvertToDisabled(unsigned char brightness) const
 {
-    return ConvertToImage().ConvertToDisabled(brightness);
+    // XXX comex: scale support
+    wxImage disabledImage = ConvertToImage().ConvertToDisabled(brightness);
+    #ifdef __APPLE__
+    return wxBitmap(disabledImage, -1, GetScaleFactor());
+    #else
+    return disabledImage;
+    #endif
 }
 #endif // wxUSE_IMAGE
 

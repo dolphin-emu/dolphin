@@ -1,3 +1,4 @@
+// XXX comex: scale support
 ///////////////////////////////////////////////////////////////////////////////
 
 // Name:        src/aui/auibar.cpp
@@ -279,11 +280,11 @@ void wxAuiDefaultToolBarArt::DrawButton(
     {
         bmpX = rect.x +
                 (rect.width/2) -
-                (item.GetBitmap().GetWidth()/2);
+                (item.GetBitmap().GetScaledWidth()/2);
 
         bmpY = rect.y +
                 ((rect.height-textHeight)/2) -
-                (item.GetBitmap().GetHeight()/2);
+                (item.GetBitmap().GetScaledHeight()/2);
 
         textX = rect.x + (rect.width/2) - (textWidth/2) + 1;
         textY = rect.y + rect.height - textHeight - 1;
@@ -294,9 +295,9 @@ void wxAuiDefaultToolBarArt::DrawButton(
 
         bmpY = rect.y +
                 (rect.height/2) -
-                (item.GetBitmap().GetHeight()/2);
+                (item.GetBitmap().GetScaledHeight()/2);
 
-        textX = bmpX + 3 + item.GetBitmap().GetWidth();
+        textX = bmpX + 3 + item.GetBitmap().GetScaledWidth();
         textY = rect.y +
                  (rect.height/2) -
                  (textHeight/2);
@@ -390,20 +391,20 @@ void wxAuiDefaultToolBarArt::DrawDropDownButton(
 
     dropBmpX = dropDownRect.x +
                 (dropDownRect.width/2) -
-                (m_buttonDropDownBmp.GetWidth()/2);
+                (m_buttonDropDownBmp.GetScaledWidth()/2);
     dropBmpY = dropDownRect.y +
                 (dropDownRect.height/2) -
-                (m_buttonDropDownBmp.GetHeight()/2);
+                (m_buttonDropDownBmp.GetScaledHeight()/2);
 
 
     if (m_textOrientation == wxAUI_TBTOOL_TEXT_BOTTOM)
     {
         bmpX = buttonRect.x +
                 (buttonRect.width/2) -
-                (item.GetBitmap().GetWidth()/2);
+                (item.GetBitmap().GetScaledWidth()/2);
         bmpY = buttonRect.y +
                 ((buttonRect.height-textHeight)/2) -
-                (item.GetBitmap().GetHeight()/2);
+                (item.GetBitmap().GetScaledHeight()/2);
 
         textX = rect.x + (rect.width/2) - (textWidth/2) + 1;
         textY = rect.y + rect.height - textHeight - 1;
@@ -414,9 +415,9 @@ void wxAuiDefaultToolBarArt::DrawDropDownButton(
 
         bmpY = rect.y +
                 (rect.height/2) -
-                (item.GetBitmap().GetHeight()/2);
+                (item.GetBitmap().GetScaledHeight()/2);
 
-        textX = bmpX + 3 + item.GetBitmap().GetWidth();
+        textX = bmpX + 3 + item.GetBitmap().GetScaledWidth();
         textY = rect.y +
                  (rect.height/2) -
                  (textHeight/2);
@@ -553,8 +554,8 @@ wxSize wxAuiDefaultToolBarArt::GetToolSize(
     if (!item.GetBitmap().IsOk() && !(m_flags & wxAUI_TB_TEXT))
         return wxSize(16,16);
 
-    int width = item.GetBitmap().GetWidth();
-    int height = item.GetBitmap().GetHeight();
+    int width = item.GetBitmap().GetScaledWidth();
+    int height = item.GetBitmap().GetScaledHeight();
 
     if (m_flags & wxAUI_TB_TEXT)
     {
@@ -694,8 +695,8 @@ void wxAuiDefaultToolBarArt::DrawOverflowButton(wxDC& dc,
         }
     }
 
-    int x = rect.x+1+(rect.width-m_overflowBmp.GetWidth())/2;
-    int y = rect.y+1+(rect.height-m_overflowBmp.GetHeight())/2;
+    int x = rect.x+1+(rect.width-m_overflowBmp.GetScaledWidth())/2;
+    int y = rect.y+1+(rect.height-m_overflowBmp.GetScaledHeight())/2;
     dc.DrawBitmap(m_overflowBmp, x, y, true);
 }
 
