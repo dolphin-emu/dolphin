@@ -165,10 +165,10 @@ static GekkoOPTemplate table4_2[] =
 
 static GekkoOPTemplate table4_3[] = 
 {
-	{6,  &JitArm::Default}, //"psq_lx",   OPTYPE_PS, 0}},
-	{7,  &JitArm::Default}, //"psq_stx",  OPTYPE_PS, 0}},
-	{38, &JitArm::Default}, //"psq_lux",  OPTYPE_PS, 0}},
-	{39, &JitArm::Default}, //"psq_stux", OPTYPE_PS, 0}}, 
+	{6,  &JitArm::psq_lx}, //"psq_lx",   OPTYPE_PS, 0}},
+	{7,  &JitArm::psq_stx}, //"psq_stx",  OPTYPE_PS, 0}},
+	{38, &JitArm::psq_lx}, //"psq_lux",  OPTYPE_PS, 0}},
+	{39, &JitArm::psq_stx}, //"psq_stux", OPTYPE_PS, 0}}, 
 };
 
 static GekkoOPTemplate table19[] = 
