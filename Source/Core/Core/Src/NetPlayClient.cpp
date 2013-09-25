@@ -19,6 +19,7 @@
 #include "ConfigManager.h"
 #include "Movie.h"
 #include "HW/WiimoteEmu/WiimoteEmu.h"
+#include "HW/WiimoteReal/WiimoteReal.h"
 
 std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = NULL;
@@ -498,6 +499,7 @@ bool NetPlayClient::StartGame(const std::string &path)
 	}
 
 	// boot game
+
 	m_dialog->BootGame(path);
 
 	UpdateDevices();
@@ -505,22 +507,19 @@ bool NetPlayClient::StartGame(const std::string &path)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		for (unsigned int i = 0; i < 4; ++i)
+			WiimoteReal::ChangeWiimoteSource(i, m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
+
+		// Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
+		NetWiimote nw;
+		nw.resize(4, 0);
+
+		for (unsigned int w = 0; w < 4; ++w)
 		{
-			g_wiimote_sources[i] = m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
-			GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(m_wiimote_map[i] > 0);
+			if (m_wiimote_map[w] != -1)
+				// probably overkill, but whatever
+				for (unsigned int i = 0; i < 7; ++i)
+					m_wiimote_buffer[w].Push(nw);
 		}
-	}
-
-	// Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
-	NetWiimote nw;
-	nw.resize(4, 0);
-
-	for (unsigned int w = 0; w < 4; ++w)
-	{
-		if (m_wiimote_map[w] != -1)
-			// probably overkill, but whatever
-			for (unsigned int i = 0; i < 7; ++i)
-				m_wiimote_buffer[w].Push(nw);
 	}
 
 	return true;
