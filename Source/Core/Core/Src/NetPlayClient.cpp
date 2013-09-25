@@ -5,6 +5,7 @@
 #include "NetPlayClient.h"
 
 // for wiimote
+#include "HW/WiimoteReal/WiimoteReal.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "IPC_HLE/WII_IPC_HLE_WiiMote.h"
 // for gcpad
@@ -19,7 +20,6 @@
 #include "ConfigManager.h"
 #include "Movie.h"
 #include "HW/WiimoteEmu/WiimoteEmu.h"
-#include "HW/WiimoteReal/WiimoteReal.h"
 
 std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = NULL;
