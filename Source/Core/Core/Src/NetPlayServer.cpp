@@ -406,7 +406,10 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 			// If the data is not from the correct player,
 			// then disconnect them.
 			if (m_wiimote_map[map] != player.pid)
+			{
+				delete[] data;
 				return 1;
+			}
 
 			// relay to clients
 			sf::Packet spac;
