@@ -31,8 +31,7 @@ void UpdateSSEState();
 // Star Wars : Rogue Leader spams that at some point :|
 void Interpreter::Helper_UpdateCR1(double _fValue)
 {
-	// Should just update exception flags, not do any compares.
-	PanicAlert("CR1");
+	SetCRField(1, (FPSCR.FX << 4) | (FPSCR.FEX << 3) | (FPSCR.VX << 2) | FPSCR.OX);
 }
 
 void Interpreter::fcmpo(UGeckoInstruction _inst)
