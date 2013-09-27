@@ -66,6 +66,7 @@ public final class GameListActivity extends Activity
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
+		// Construct list of items to add to the side menu.
 		List<SideMenuItem> dir = new ArrayList<SideMenuItem>();
 		dir.add(new SideMenuItem(getString(R.string.game_list), 0));
 		dir.add(new SideMenuItem(getString(R.string.browse_folder), 1));
@@ -76,16 +77,16 @@ public final class GameListActivity extends Activity
 		mDrawerList.setAdapter(mDrawerAdapter);
 		mDrawerList.setOnItemClickListener(mMenuItemClickListener);
 
-		// enable ActionBar app icon to behave as action to toggle nav drawer
+		// Enable ActionBar app icon to behave as action to toggle nav drawer
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
 
 		// ActionBarDrawerToggle ties together the the proper interactions
 		// between the sliding drawer and the action bar app icon
 		mDrawerToggle = new ActionBarDrawerToggle(
-				this,                  /* host Activity */
+				this,                  /* Host Activity */
 				mDrawerLayout,         /* DrawerLayout object */
-				R.drawable.ic_drawer,  /* nav drawer image to replace 'Up' caret */
+				R.drawable.ic_drawer,  /* Navigation drawer image to replace 'Up' caret */
 				R.string.drawer_open,  /* "open drawer" description for accessibility */
 				R.string.drawer_close  /* "close drawer" description for accessibility */
 		) {
@@ -99,11 +100,7 @@ public final class GameListActivity extends Activity
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-		recreateFragment();
-	}
-
-	private void recreateFragment()
-	{
+		// Display the game list fragment.
 		mCurFragment = new GameListFragment();
 		FragmentManager fragmentManager = getFragmentManager();
 		fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
@@ -120,23 +117,9 @@ public final class GameListActivity extends Activity
 		if (mCurFragmentNum == toPage)
 			return;
 
-		switch (mCurFragmentNum)
-		{
-			// Folder browser
-			case 1:
-				recreateFragment();
-				break;
-
-			case 0: // Game List
-			case 2: // Settings
-			case 3: // About
-			/* Do Nothing */
-				break;
-		}
-
 		switch(toPage)
 		{
-			case 0:
+			case 0: // Game list
 			{
 				mCurFragmentNum = 0;
 				mCurFragment = new GameListFragment();
@@ -146,7 +129,7 @@ public final class GameListActivity extends Activity
 			}
 			break;
 
-			case 1:
+			case 1: // Folder Browser
 			{
 				mCurFragmentNum = 1;
 				mCurFragment = new FolderBrowser();
@@ -156,14 +139,14 @@ public final class GameListActivity extends Activity
 			}
 			break;
 
-			case 2:
+			case 2: // Settings
 			{
 				Intent intent = new Intent(this, PrefsActivity.class);
 				startActivity(intent);
 			}
 			break;
 
-			case 3:
+			case 3: // About
 			{
 				mCurFragmentNum = 3;
 				mCurFragment = new AboutFragment();
