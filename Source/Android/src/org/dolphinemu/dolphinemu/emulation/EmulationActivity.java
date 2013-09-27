@@ -242,22 +242,6 @@ public final class EmulationActivity extends Activity
 	{
 		int action = 0;
 
-		// Special catch for the back key
-		// Currently disabled because stopping and starting emulation is broken.
-		/*
-		if (event.getSource() == InputDevice.SOURCE_KEYBOARD
-			&& event.getKeyCode() == KeyEvent.KEYCODE_BACK
-			&& event.getAction() == KeyEvent.ACTION_UP)
-		{
-			if (Running)
-				NativeLibrary.StopEmulation();
-			Running = false;
-			Intent ListIntent = new Intent(this, GameListActivity.class);
-			startActivityForResult(ListIntent, 1);
-			return true;
-		}
-		*/
-
 		if (Running)
 		{
 			switch (event.getAction())
