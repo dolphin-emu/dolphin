@@ -108,6 +108,19 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 	wxIcon IconTemp;
 	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(Dolphin_png));
 	SetIcon(IconTemp);
+
+	DragAcceptFiles(true);
+	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CRenderFrame::OnDropFiles), NULL, this);
+}
+
+void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
+{
+	if (event.GetNumberOfFiles() != 1)
+		return;
+	if (File::IsDirectory(event.GetFiles()[0].ToStdString()))
+		return;
+
+	State::LoadAs(event.GetFiles()[0].ToStdString());
 }
 
 #ifdef _WIN32

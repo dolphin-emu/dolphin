@@ -74,10 +74,12 @@ class CRenderFrame : public wxFrame
 			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
 	private:
+		void OnDropFiles(wxDropFilesEvent& event);
 		#ifdef _WIN32
 			// Receive WndProc messages
 			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 		#endif
+
 };
 
 class CFrame : public CRenderFrame
