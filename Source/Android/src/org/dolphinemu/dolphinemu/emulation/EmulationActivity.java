@@ -229,6 +229,7 @@ public final class EmulationActivity extends Activity
 					}
 				});
 				builder.show();
+				return true;
 			}
 
 			default:
