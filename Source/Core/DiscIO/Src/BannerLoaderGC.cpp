@@ -58,7 +58,7 @@ std::vector<u32> CBannerLoaderGC::GetBanner(int* pWidth, int* pHeight)
 	decode5A3image(&Buffer[0], pBanner->image, DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT);
 	*pWidth = DVD_BANNER_WIDTH;
 	*pHeight = DVD_BANNER_HEIGHT;
-	return std::move(Buffer);
+	return Buffer;
 }
 
 

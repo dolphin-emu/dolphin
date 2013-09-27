@@ -106,7 +106,7 @@ std::vector<u32> CBannerLoaderWii::GetBanner(int* pWidth, int* pHeight)
 	decode5A3image(&Buffer[0], (u16*)pBanner->m_BannerTexture, 192, 64);
 	*pWidth = 192;
 	*pHeight = 64;
-	return std::move(Buffer);
+	return Buffer;
 }
 
 bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::string& result)
