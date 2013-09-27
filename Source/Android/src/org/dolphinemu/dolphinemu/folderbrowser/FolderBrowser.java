@@ -48,39 +48,43 @@ public final class FolderBrowser extends ListFragment
 	{
 		m_activity.setTitle(getString(R.string.current_dir) + currDir.getName());
 		File[] dirs = currDir.listFiles();
-		List<FolderBrowserItem>dir = new ArrayList<FolderBrowserItem>();
-		List<FolderBrowserItem>fls = new ArrayList<FolderBrowserItem>();
+		List<FolderBrowserItem> dir = new ArrayList<FolderBrowserItem>();
+		List<FolderBrowserItem> fls = new ArrayList<FolderBrowserItem>();
 
 		// Supported extensions to filter by
 		Set<String> validExts = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
 
-		// Search for any directories or files within the current dir.
-		for(File entry : dirs)
+		// If dirs is null, then we don't have access permissions to the selected folder.
+		if (dirs != null)
 		{
-			try
+			// Search for any directories or files within the current dir.
+			for(File entry : dirs)
 			{
-				String entryName = entry.getName();
-				boolean hasExtension = (entryName.lastIndexOf(".") != -1);
-
-				// Skip hidden folders/files.
-				if (!entry.isHidden())
+				try
 				{
-					if(entry.isDirectory())
+					String entryName = entry.getName();
+					boolean hasExtension = (entryName.lastIndexOf(".") != -1);
+	
+					// Skip hidden folders/files.
+					if (!entry.isHidden())
 					{
-						dir.add(new FolderBrowserItem(entryName, entry.getAbsolutePath()));
-					}
-					else if (entry.isFile() && hasExtension)
-					{
-						if (validExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
+						if(entry.isDirectory())
 						{
-							fls.add(new FolderBrowserItem(entryName, getString(R.string.file_size)+entry.length(), entry.getAbsolutePath()));
+							dir.add(new FolderBrowserItem(entryName, entry.getAbsolutePath()));
+						}
+						else if (entry.isFile() && hasExtension)
+						{
+							if (validExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
+							{
+								fls.add(new FolderBrowserItem(entryName, getString(R.string.file_size)+entry.length(), entry.getAbsolutePath()));
+							}
 						}
 					}
 				}
-			}
-			catch (Exception ex)
-			{
-				Log.e("FolderBrowser", ex.toString());
+				catch (Exception ex)
+				{
+					Log.e("FolderBrowser", ex.toString());
+				}
 			}
 		}
 
