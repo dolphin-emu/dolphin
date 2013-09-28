@@ -45,8 +45,8 @@ namespace BootManager
 struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
-		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2;
-	int iTLBHack, iCPUCore;
+		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack;
+	int iCPUCore;
 	TEXIDevices m_EXIDevice[2];
 	std::string strBackend;
 };
@@ -91,7 +91,7 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bEnableFPRF = StartUp.bEnableFPRF;
 		config_cache.bMMU = StartUp.bMMU;
 		config_cache.bDCBZOFF = StartUp.bDCBZOFF;
-		config_cache.iTLBHack = StartUp.iTLBHack;
+		config_cache.bTLBHack = StartUp.bTLBHack;
 		config_cache.bVBeamSpeedHack = StartUp.bVBeamSpeedHack;
 		config_cache.bSyncGPU = StartUp.bSyncGPU;
 		config_cache.bFastDiscSpeed = StartUp.bFastDiscSpeed;
@@ -109,7 +109,7 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "SkipIdle",			&StartUp.bSkipIdle, StartUp.bSkipIdle);
 		game_ini.Get("Core", "EnableFPRF",			&StartUp.bEnableFPRF, StartUp.bEnableFPRF);
 		game_ini.Get("Core", "MMU",					&StartUp.bMMU, StartUp.bMMU);
-		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
+		game_ini.Get("Core", "TLBHack",				&StartUp.bTLBHack, StartUp.bTLBHack);
 		game_ini.Get("Core", "DCBZ",				&StartUp.bDCBZOFF, StartUp.bDCBZOFF);
 		game_ini.Get("Core", "VBeam",				&StartUp.bVBeamSpeedHack, StartUp.bVBeamSpeedHack);
 		game_ini.Get("Core", "SyncGPU",				&StartUp.bSyncGPU, StartUp.bSyncGPU);
@@ -184,7 +184,7 @@ void Stop()
 		StartUp.bEnableFPRF = config_cache.bEnableFPRF;
 		StartUp.bMMU = config_cache.bMMU;
 		StartUp.bDCBZOFF = config_cache.bDCBZOFF;
-		StartUp.iTLBHack = config_cache.iTLBHack;
+		StartUp.bTLBHack = config_cache.bTLBHack;
 		StartUp.bVBeamSpeedHack = config_cache.bVBeamSpeedHack;
 		StartUp.bSyncGPU = config_cache.bSyncGPU;
 		StartUp.bFastDiscSpeed = config_cache.bFastDiscSpeed;

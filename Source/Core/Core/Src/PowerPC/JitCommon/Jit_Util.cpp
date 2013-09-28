@@ -132,7 +132,7 @@ void EmuCodeBlock::SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s
 #endif
 	{
 		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 		{
 			mem_mask |= Memory::ADDR_MASK_MEM1;
 		}
@@ -267,7 +267,7 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 
-	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+	if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 	{
 		mem_mask |= Memory::ADDR_MASK_MEM1;
 	}
@@ -302,7 +302,7 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 re
 		// This path should be faster but for some reason it causes errors so I've disabled it.
 		u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 
-		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+		if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			mem_mask |= Memory::ADDR_MASK_MEM1;
 
 #ifdef ENABLE_MEM_CHECK

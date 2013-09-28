@@ -340,7 +340,7 @@ static const int num_views = sizeof(views) / sizeof(MemoryView);
 void Init()
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
-	bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack == 1;
+	bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack == true;
 	bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 
 	u32 flags = 0;
