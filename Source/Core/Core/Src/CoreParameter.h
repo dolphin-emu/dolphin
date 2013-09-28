@@ -137,7 +137,7 @@ struct SCoreStartupParameter
 
 	bool bMMU;
 	bool bDCBZOFF;
-	int iTLBHack;
+	bool bTLBHack;
 	int iBBDumpPort;
 	bool bVBeamSpeedHack;
 	bool bSyncGPU;

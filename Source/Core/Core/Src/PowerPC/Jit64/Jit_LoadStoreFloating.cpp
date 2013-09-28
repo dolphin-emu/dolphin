@@ -164,7 +164,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 	if (Core::g_CoreStartupParameter.bMMU ||
-		Core::g_CoreStartupParameter.iTLBHack) {
+		Core::g_CoreStartupParameter.bTLBHack) {
 			mem_mask |= Memory::ADDR_MASK_MEM1;
 	}
 #ifdef ENABLE_MEM_CHECK

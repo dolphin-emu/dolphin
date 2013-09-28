@@ -531,7 +531,7 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 	}
 	u32 mem_mask = 0;
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU || SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack)
 		mem_mask = 0x20000000;
 
 	RI.Jit->TEST(32, R(ECX), Imm32(0x0C000000 | mem_mask));
@@ -1352,7 +1352,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			// if SafeWriteRegToReg() is modified.
 			u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 			if (Core::g_CoreStartupParameter.bMMU ||
-				Core::g_CoreStartupParameter.iTLBHack) {
+				Core::g_CoreStartupParameter.bTLBHack) {
 				mem_mask |= Memory::ADDR_MASK_MEM1;
 			}
 #ifdef ENABLE_MEM_CHECK

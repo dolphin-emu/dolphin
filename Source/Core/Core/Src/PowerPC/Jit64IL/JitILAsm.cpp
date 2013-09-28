@@ -94,9 +94,9 @@ void JitILAsmRoutineManager::Generate()
 			FixupBranch exit_vmem;
 			if (Core::g_CoreStartupParameter.bWii)
 				mask = JIT_ICACHE_EXRAM_BIT;
-			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 				mask |= JIT_ICACHE_VMEM_BIT;
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
 				TEST(32, R(EAX), Imm32(mask));
 				no_mem = J_CC(CC_NZ);
@@ -108,12 +108,12 @@ void JitILAsmRoutineManager::Generate()
 			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICache()));
 			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
 				exit_mem = J();
 				SetJumpTarget(no_mem);
 			}
-			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
 				TEST(32, R(EAX), Imm32(JIT_ICACHE_VMEM_BIT));
 				FixupBranch no_vmem = J_CC(CC_Z);
@@ -140,9 +140,9 @@ void JitILAsmRoutineManager::Generate()
 #endif
 				SetJumpTarget(no_exram);
 			}
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 				SetJumpTarget(exit_mem);
-			if (Core::g_CoreStartupParameter.bWii && (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack))
+			if (Core::g_CoreStartupParameter.bWii && (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack))
 				SetJumpTarget(exit_vmem);
 #else
 #ifdef _M_IX86
