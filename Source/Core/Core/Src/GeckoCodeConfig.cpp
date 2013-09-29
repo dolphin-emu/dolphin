@@ -10,8 +10,6 @@
 #include <string>
 #include <sstream>
 
-#define GECKO_CODE_INI_SECTION	"Gecko"
-
 namespace Gecko
 {
 
@@ -21,7 +19,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 	for (size_t i = 0; i < ArraySize(inis); ++i)
 	{
 		std::vector<std::string> lines;
-		inis[i]->GetLines(GECKO_CODE_INI_SECTION, lines, false);
+		inis[i]->GetLines("Gecko", lines, false);
 
 		GeckoCode gcode;
 
@@ -74,19 +72,34 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 		// add the last code
 		if (gcode.name.size())
 			gcodes.push_back(gcode);
+
+		inis[i]->GetLines("Gecko_Enabled", lines, false);
+
+		for (auto lines_iter = lines.begin(); lines_iter!=lines.end(); ++lines_iter)
+		{
+			auto line = *lines_iter;
+			if (line.size() == 0 || line[0] != '$')
+				continue;
+			std::string name = line.substr(1);
+			for (auto gcodes_iter = gcodes.begin(); gcodes_iter != gcodes.end(); ++gcodes_iter)
+			{
+				if ((*gcodes_iter).name == name)
+					(*gcodes_iter).enabled = true;
+			}
+		}
 	}
 }
 
 // used by the SaveGeckoCodes function
-void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcode)
+void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::string>& enabledLines, const GeckoCode& gcode)
 {
+	if (gcode.enabled)
+		enabledLines.push_back("$" + gcode.name);
+
 	if (!gcode.user_defined)
 		return;
 
 	std::string name;
-
-	if (gcode.enabled)
-		name += '+';
 
 	// save the name
 	name += '$';
@@ -125,16 +138,18 @@ void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcode)
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 {
 	std::vector<std::string> lines;
+	std::vector<std::string> enabledLines;
 
 	std::vector<GeckoCode>::const_iterator
 		gcodes_iter = gcodes.begin(),
 		gcodes_end = gcodes.end();
 	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
 	{
-		SaveGeckoCode(lines, *gcodes_iter);
+		SaveGeckoCode(lines, enabledLines, *gcodes_iter);
 	}
 
-	inifile.SetLines(GECKO_CODE_INI_SECTION, lines);
+	inifile.SetLines("Gecko", lines);
+	inifile.SetLines("Gecko_Enabled", enabledLines);
 }
 
 };
