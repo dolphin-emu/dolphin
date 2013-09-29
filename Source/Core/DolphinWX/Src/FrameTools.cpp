@@ -873,6 +873,12 @@ void CFrame::StartGame(const std::string& filename)
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() | wxSTAY_ON_TOP);
 		else
 			m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
+
+		// No, I really don't want TAB_TRAVERSAL being set behind my back,
+		// thanks.  (Note that calling DisableSelfFocus would prevent this flag
+		// from being set for new children, but wouldn't reset the existing
+		// flag.)
+		m_RenderParent->SetWindowStyle(m_RenderParent->GetWindowStyle() & ~wxTAB_TRAVERSAL);
 	}
 	else
 	{
