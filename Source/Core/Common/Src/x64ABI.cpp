@@ -78,7 +78,7 @@ void XEmitter::ABI_CallFunctionCC16(void *func, u32 param1, u16 param2) {
 	PUSH(16, Imm16(param2));
 	PUSH(32, Imm32(param1));
 	CALL(func);
-	ABI_AlignStack(1 * 2 + 1 * 4);
+	ABI_RestoreStack(1 * 2 + 1 * 4);
 }
 
 void XEmitter::ABI_CallFunctionC(void *func, u32 param1) {
