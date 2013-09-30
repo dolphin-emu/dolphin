@@ -7,8 +7,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalLibraryDirectories>..\..\..\Externals\SDL\$(PlatformName);..\..\..\Externals\GLew;..\..\..\Externals\portaudio\$(PlatformName)\$(ConfigurationName);..\..\..\Externals\libusb\$(PlatformName);..\..\..\Externals\polarssl\visualc\VS2010\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>portaudio.lib;dsound.lib;dxerr.lib;iphlpapi.lib;winmm.lib;setupapi.lib;xinput.lib;vfw32.lib;opengl32.lib;glew32s.lib;glu32.lib;rpcrt4.lib;comctl32.lib;libusb-1.0.lib;PolarSSL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\Externals\SDL\$(PlatformName);..\..\..\Externals\GLew;..\..\..\Externals\portaudio\$(PlatformName)\$(ConfigurationName);..\..\..\Externals\libusbx\$(PlatformName)\$(ConfigurationName);..\..\..\Externals\polarssl\visualc\VS2010\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>portaudio.lib;dsound.lib;dxerr.lib;iphlpapi.lib;winmm.lib;setupapi.lib;xinput.lib;vfw32.lib;opengl32.lib;glew32s.lib;glu32.lib;rpcrt4.lib;comctl32.lib;PolarSSL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

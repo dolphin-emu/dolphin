@@ -348,6 +348,9 @@ xcopy "$(SolutionDir)..\Externals\msvcrt\$(PlatformName)\*.dll" "$(TargetDir)" /
     <ProjectReference Include="..\..\..\Externals\libpng\png\png.vcxproj">
       <Project>{01573c36-ac6e-49f6-94ba-572517eb9740}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\libusbx\msvc\libusb_static_2010.vcxproj">
+      <Project>{349ee8f9-7d25-4909-aaf5-ff3fade72187}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\LZO\LZO.vcxproj">
       <Project>{d8890b98-26f7-4cff-bbfb-b95f371b5f20}</Project>
     </ProjectReference>
@@ -356,6 +359,11 @@ xcopy "$(SolutionDir)..\Externals\msvcrt\$(PlatformName)\*.dll" "$(TargetDir)" /
     </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\SFML\build\vc2010\SFML_Network.vcxproj">
       <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\wxWidgets3\build\msw\wx_base.vcxproj">
       <Project>{1c8436c9-dbaf-42be-83bc-cf3ec9175abe}</Project>

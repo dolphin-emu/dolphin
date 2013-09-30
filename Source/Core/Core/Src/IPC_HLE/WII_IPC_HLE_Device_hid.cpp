@@ -9,19 +9,6 @@
 #include "WII_IPC_HLE_Device_hid.h"
 #include "errno.h"
 
-#if defined(_MSC_VER) || defined(__MINGW32__)
-#  include <time.h>
-#ifndef _TIMEVAL_DEFINED /* also in winsock[2].h */
-#define _TIMEVAL_DEFINED
-struct timeval {
-	long tv_sec;
-	long tv_usec;
-};
-#endif /* _TIMEVAL_DEFINED */
-#else
-#  include <sys/time.h>
-#endif
-
 #define MAX_DEVICE_DEVNUM 256
 static u64 hidDeviceAliases[MAX_DEVICE_DEVNUM];
 
@@ -535,6 +522,8 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 
 	if (cnt < 0)
 		return NULL;
+	
+	static bool has_warned_about_drivers = false;
 
 	for (i = 0; i < cnt; i++) {
 		libusb_device *device = list[i];
@@ -569,7 +558,12 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 #ifdef _WIN32
 				else if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
 				{
-					WARN_LOG(WII_IPC_HID, "Please install the libusb drivers for the device %04X:%04X", desc.idVendor, desc.idProduct);
+					if(!has_warned_about_drivers)
+					{
+						// Max of one warning.
+						has_warned_about_drivers = true;
+						WARN_LOG(WII_IPC_HID, "Please install the libusb drivers for the device %04X:%04X", desc.idVendor, desc.idProduct);
+					}
 				}
 #endif
 				else
