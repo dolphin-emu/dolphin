@@ -146,7 +146,7 @@ u8* MemArena::Find4GBBase()
 	// Android 4.3 changed how mmap works.
 	// if we map it private and then munmap it, we can't use the base returned.
 	// This may be due to changes in them support a full SELinux implementation.
-	const int flags = MAP_ANON;
+	const int flags = MAP_ANON | MAP_SHARED;
 #else
 	const int flags = MAP_ANON | MAP_PRIVATE;
 #endif
