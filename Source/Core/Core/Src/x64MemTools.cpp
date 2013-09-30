@@ -65,6 +65,11 @@ bool DoFault(u64 bad_address, SContext *ctx)
 	{
 		ctx->CTX_PC = (u64) new_pc;
 	}
+	else
+	{
+		// there was an error, give the debugger a chance
+		return false;
+	}
 
 	return true;
 }

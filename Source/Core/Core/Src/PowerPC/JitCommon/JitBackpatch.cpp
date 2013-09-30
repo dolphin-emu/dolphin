@@ -177,15 +177,23 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 	InstructionInfo info;
 	if (!DisassembleMov(codePtr, &info)) {
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
+		return 0;
 	}
 
 	if (info.otherReg != RBX)
+	{
 		PanicAlert("BackPatch : Base reg not RBX."
 		           "\n\nAttempted to access %08x.", emAddress);
+		return 0;
+	}
 
 	auto it = registersInUseAtLoc.find(codePtr);
 	if (it == registersInUseAtLoc.end())
+	{
 		PanicAlert("BackPatch: no register use entry for address %p", codePtr);
+		return 0;
+	}
+
 	u32 registersInUse = it->second;
 
 	if (!info.isMemoryWrite)
@@ -235,7 +243,6 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		emitter.NOP(codePtr + info.instructionSize - emitter.GetCodePtr());
 		return start;
 	}
-	return 0;
 #else
 	return 0;
 #endif
