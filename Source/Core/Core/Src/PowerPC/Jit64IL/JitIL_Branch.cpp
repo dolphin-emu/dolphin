@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-#include "Thunk.h"
 
 #include "../../ConfigManager.h"
 #include "../PowerPC.h"

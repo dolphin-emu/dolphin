@@ -13,7 +13,6 @@
 
 #include "x64Emitter.h"
 #include "x64ABI.h"
-#include "Thunk.h"
 #include "x64Analyzer.h"
 
 #include "StringUtil.h"
@@ -76,7 +75,7 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 	if (info.displacement) {
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
 	}
-	PushRegistersAndAlignStack(registersInUse);
+	ABI_PushRegistersAndAdjustStack(registersInUse, true);
 	switch (info.operandSize)
 	{
 	case 4:
@@ -96,7 +95,7 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 		MOV(32, R(dataReg), R(EAX));
 	}
 
-	PopRegistersAndAlignStack(registersInUse);
+	ABI_PopRegistersAndAdjustStack(registersInUse, true);
 	RET();
 #endif
 	return trampoline;
@@ -137,7 +136,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 		ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
 	}
 
-	PushRegistersAndAlignStack(registersInUse);
+	ABI_PushRegistersAndAdjustStack(registersInUse, true);
 	switch (info.operandSize)
 	{
 	case 8:
@@ -154,7 +153,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 		break;
 	}
 
-	PopRegistersAndAlignStack(registersInUse);
+	ABI_PopRegistersAndAdjustStack(registersInUse, true);
 	RET();
 #endif
 

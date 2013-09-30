@@ -13,7 +13,6 @@
 #include "CPUDetect.h"
 
 #include "x64ABI.h"
-#include "Thunk.h"
 
 #include "../../HW/GPFifo.h"
 #include "../../Core.h"

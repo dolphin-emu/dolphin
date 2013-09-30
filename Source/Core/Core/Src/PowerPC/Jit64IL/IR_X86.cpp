@@ -27,7 +27,6 @@ The register allocation is linear scan allocation.
 #include "IR.h"
 #include "../PPCTables.h"
 #include "../../CoreTiming.h"
-#include "Thunk.h"
 #include "../../HW/Memmap.h"
 #include "JitILAsm.h"
 #include "JitIL.h"
@@ -38,8 +37,6 @@ The register allocation is linear scan allocation.
 #include "MathUtil.h"
 #include "../../Core.h"
 #include "HW/ProcessorInterface.h"
-
-static ThunkManager thunks;
 
 using namespace IREmitter;
 using namespace Gen;
@@ -435,13 +432,14 @@ static void regMarkMemAddress(RegInfo& RI, InstLoc I, InstLoc AI, unsigned OpNum
 }
 
 // in 64-bit build, this returns a completely bizarre address sometimes!
-static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
-				unsigned OpNum,	unsigned Size, X64Reg* dest) {
+static std::pair<OpArg, u32> regBuildMemAddress(RegInfo& RI, InstLoc I,
+				InstLoc AI, unsigned OpNum,	unsigned Size, X64Reg* dest) {
 	if (isImm(*AI)) {
-		unsigned addr = RI.Build->GetImmValue(AI);	
+		unsigned addr = RI.Build->GetImmValue(AI);
 		if (Memory::IsRAMAddress(addr)) {
 			if (dest)
 				*dest = regFindFreeReg(RI);
+			return std::make_pair(Imm32(addr), 0);
 		}
 	}
 	unsigned offset;
@@ -473,38 +471,15 @@ static OpArg regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
 	} else {
 		baseReg = regEnsureInReg(RI, AddrBase);
 	}
-	return MDisp(baseReg, offset);
+
+	return std::make_pair(R(baseReg), offset);
 }
 
 static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 	X64Reg reg;
-	OpArg addr = regBuildMemAddress(RI, I, getOp1(I), 1, Size, &reg);
+	auto info = regBuildMemAddress(RI, I, getOp1(I), 1, Size, &reg);
 
-	RI.Jit->TEST(32, R(ECX), Imm32(0x0C000000 | mem_mask));
-	FixupBranch argh = RI.Jit->J_CC(CC_Z);
-
-	// Slow safe read using Memory::Read_Ux routines
-#ifdef _M_IX86  // we don't allocate EAX on x64 so no reason to save it.
-	if (reg != EAX) {
-		RI.Jit->PUSH(32, R(EAX));
-	}
-#endif
-	switch (Size)
-	{
-	case 32: RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U32, 1), ECX); break;
-	case 16: RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16_ZX, 1), ECX); break;
-	case 8:  RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8_ZX, 1), ECX);  break;
-	}
-	if (reg != EAX) {
-		RI.Jit->MOV(32, R(reg), R(EAX));
-#ifdef _M_IX86
-		RI.Jit->POP(32, R(EAX));
-#endif
-	}
-	FixupBranch arg2 = RI.Jit->J();
-	RI.Jit->SetJumpTarget(argh);
-	RI.Jit->UnsafeLoadRegToReg(ECX, reg, Size, 0, false);
-	RI.Jit->SetJumpTarget(arg2);
+	RI.Jit->SafeLoadToReg(reg, info.first, Size, info.second, regsInUse(RI), false);
 	if (regReadUse(RI, I))
 		RI.regs[reg] = I;
 }
@@ -521,8 +496,11 @@ static OpArg regImmForConst(RegInfo& RI, InstLoc I, unsigned Size) {
 }
 
 static void regEmitMemStore(RegInfo& RI, InstLoc I, unsigned Size) {
-	OpArg addr = regBuildMemAddress(RI, I, getOp2(I), 2, Size, 0);
-	RI.Jit->LEA(32, ECX, addr);
+	auto info = regBuildMemAddress(RI, I, getOp2(I), 2, Size, 0);
+	if (info.first.IsImm())
+		RI.Jit->MOV(32, R(ECX), info.first);
+	else
+		RI.Jit->LEA(32, ECX, MDisp(info.first.GetSimpleReg(), info.second));
 	regSpill(RI, EAX);
 	if (isImm(*getOp1(I))) {
 		RI.Jit->MOV(Size, R(EAX), regImmForConst(RI, getOp1(I), Size));

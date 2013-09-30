@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "x64ABI.h"
-#include "Thunk.h"
 #include "CPUDetect.h"
 #include "x64Emitter.h"
 
@@ -167,7 +166,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	MOV(64, MComplex(RBX, RCX, SCALE_1, 0), R(RAX));
 	FixupBranch skip_complex = J();
 	SetJumpTarget(too_complex);
-	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&WriteDual32, 2), RAX, RCX, /* noProlog = */ true); 
+	ABI_CallFunctionRR((void *)&WriteDual32, RAX, RCX, /* noProlog = */ true); 
 	SetJumpTarget(skip_complex);
 	RET();
 #else
@@ -184,10 +183,10 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	FixupBranch arg2 = J();
 	SetJumpTarget(argh);
 	MOV(32, R(EAX), M(((char*)&psTemp)));
-	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX, /* noProlog = */ true); 
+	ABI_CallFunctionRR((void *)&Memory::Write_U32, EAX, ECX, /* noProlog = */ true); 
 	MOV(32, R(EAX), M(((char*)&psTemp)+4));
 	ADD(32, R(ECX), Imm32(4));
-	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX, /* noProlog = */ true); 
+	ABI_CallFunctionRR((void *)&Memory::Write_U32, EAX, ECX, /* noProlog = */ true); 
 	SetJumpTarget(arg2);
 	RET();
 #endif

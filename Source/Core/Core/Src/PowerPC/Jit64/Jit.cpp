@@ -12,7 +12,6 @@
 #include "Common.h"
 #include "x64Emitter.h"
 #include "x64ABI.h"
-#include "Thunk.h"
 #include "../../HLE/HLE.h"
 #include "../../Core.h"
 #include "../../PatchEngine.h"
@@ -552,7 +551,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			js.fifoBytesThisBlock -= 32;
 			MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
-			ABI_CallFunction(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
+			u32 registersInUse = RegistersInUse();
+			ABI_PushRegistersAndAdjustStack(registersInUse, false);
+			ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+			ABI_PopRegistersAndAdjustStack(registersInUse, false);
 		}
 
 		u32 function = HLE::GetFunctionIndex(ops[i].address);

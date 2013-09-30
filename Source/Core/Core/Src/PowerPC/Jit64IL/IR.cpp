@@ -123,7 +123,6 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 #include "IR.h"
 #include "../PPCTables.h"
 #include "../../CoreTiming.h"
-#include "Thunk.h"
 #include "../../HW/Memmap.h"
 #include "JitILAsm.h"
 #include "JitIL.h"

@@ -8,7 +8,6 @@
 #include "Common.h"
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
-#include "Thunk.h"
 
 // meh.
 #if defined(_WIN32)
@@ -234,8 +233,6 @@ public:
 
 	const u8 *GetReadTrampoline(const InstructionInfo &info, u32 registersInUse);
 	const u8 *GetWriteTrampoline(const InstructionInfo &info, u32 registersInUse);
-private:
-	ThunkManager thunks;
 };
 
 #endif

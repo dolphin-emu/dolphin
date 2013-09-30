@@ -646,6 +646,10 @@ public:
 	void ABI_PushAllCalleeSavedRegsAndAdjustStack();
 	void ABI_PopAllCalleeSavedRegsAndAdjustStack();
 
+	// A more flexible version of the above.
+	void ABI_PushRegistersAndAdjustStack(u32 mask, bool noProlog);
+	void ABI_PopRegistersAndAdjustStack(u32 mask, bool noProlog);
+
 	unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize, bool noProlog = false);
 	void ABI_AlignStack(unsigned int frameSize, bool noProlog = false);
 	void ABI_RestoreStack(unsigned int frameSize, bool noProlog = false);
@@ -690,9 +694,6 @@ public:
 	#define CallCdeclFunction6_I(a,b,c,d,e,f,g) ___CallCdeclImport6(&__imp_##a,b,c,d,e,f,g)
 
 	#define DECLARE_IMPORT(x) extern "C" void *__imp_##x
-
-	void PushRegistersAndAlignStack(u32 mask);
-	void PopRegistersAndAlignStack(u32 mask);
 
 #endif
 };  // class XEmitter

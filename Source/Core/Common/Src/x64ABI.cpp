@@ -57,6 +57,86 @@ void XEmitter::ABI_RestoreStack(unsigned int frameSize, bool noProlog) {
 	}
 }
 
+void XEmitter::ABI_PushRegistersAndAdjustStack(u32 mask, bool noProlog)
+{
+	int regSize =
+#ifdef _M_X64
+		8;
+#else
+		4;
+#endif
+	int shadow = 0;
+#if defined(_WIN32) && defined(_M_X64)
+	shadow = 0x20;
+#endif
+	int count = 0;
+	for (int r = 0; r < 16; r++)
+	{
+		if (mask & (1 << r))
+		{
+			PUSH((X64Reg) r);
+			count++;
+		}
+	}
+	int size = ((noProlog ? -regSize : 0) - (count * regSize)) & 0xf;
+	for (int x = 0; x < 16; x++)
+	{
+		if (mask & (1 << (16 + x)))
+			size += 16;
+	}
+	size += shadow;
+	if (size)
+		SUB(regSize * 8, R(RSP), size >= 0x80 ? Imm32(size) : Imm8(size));
+	int offset = shadow;
+	for (int x = 0; x < 16; x++)
+	{
+		if (mask & (1 << (16 + x)))
+		{
+			MOVAPD(MDisp(RSP, offset), (X64Reg) x);
+			offset += 16;
+		}
+	}
+}
+
+void XEmitter::ABI_PopRegistersAndAdjustStack(u32 mask, bool noProlog)
+{
+	int regSize =
+#ifdef _M_X64
+		8;
+#else
+		4;
+#endif
+	int size = 0;
+#if defined(_WIN32) && defined(_M_X64)
+	size += 0x20;
+#endif
+	for (int x = 0; x < 16; x++)
+	{
+		if (mask & (1 << (16 + x)))
+		{
+			MOVAPD((X64Reg) x, MDisp(RSP, size));
+			size += 16;
+		}
+	}
+	int count = 0;
+	for (int r = 0; r < 16; r++)
+	{
+		if (mask & (1 << r))
+			count++;
+	}
+	size += ((noProlog ? -regSize : 0) - (count * regSize)) & 0xf;
+
+	if (size)
+		ADD(regSize * 8, R(RSP), size >= 0x80 ? Imm32(size) : Imm8(size));
+	for (int r = 15; r >= 0; r--)
+	{
+		if (mask & (1 << r))
+		{
+			POP((X64Reg) r);
+		}
+	}
+}
+
 #ifdef _M_IX86 // All32
 
 // Shared code between Win32 and Unix32
