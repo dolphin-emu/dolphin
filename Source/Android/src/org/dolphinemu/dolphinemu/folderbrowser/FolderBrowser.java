@@ -46,7 +46,7 @@ public final class FolderBrowser extends ListFragment
 	// Populates the FolderView with the given currDir's contents.
 	private void Fill(File currDir)
 	{
-		m_activity.setTitle(getString(R.string.current_dir) + currDir.getName());
+		m_activity.setTitle(String.format(getString(R.string.current_dir), currDir.getName()));
 		File[] dirs = currDir.listFiles();
 		List<FolderBrowserItem> dir = new ArrayList<FolderBrowserItem>();
 		List<FolderBrowserItem> fls = new ArrayList<FolderBrowserItem>();
@@ -76,7 +76,7 @@ public final class FolderBrowser extends ListFragment
 						{
 							if (validExts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
 							{
-								fls.add(new FolderBrowserItem(entryName, getString(R.string.file_size)+entry.length(), entry.getAbsolutePath()));
+								fls.add(new FolderBrowserItem(entryName, String.format(getString(R.string.file_size), entry.length()), entry.getAbsolutePath()));
 							}
 						}
 					}

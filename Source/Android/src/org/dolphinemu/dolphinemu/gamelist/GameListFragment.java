@@ -86,7 +86,7 @@ public final class GameListFragment extends Fragment
 					if (!entry.isHidden() && !entry.isDirectory())
 					{
 						if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
-							fls.add(new GameListItem(mMe, entryName, getString(R.string.file_size)+entry.length(),entry.getAbsolutePath()));
+							fls.add(new GameListItem(mMe, entryName, String.format(getString(R.string.file_size), entry.length()), entry.getAbsolutePath()));
 					}
 				}
 			}
@@ -128,7 +128,7 @@ public final class GameListFragment extends Fragment
 
 	private void onFileClick(String o)
 	{
-		Toast.makeText(mMe, getString(R.string.file_clicked) + o, Toast.LENGTH_SHORT).show();
+		Toast.makeText(mMe, String.format(getString(R.string.file_clicked), o), Toast.LENGTH_SHORT).show();
 
 		Intent intent = new Intent(mMe, EmulationActivity.class);
 		intent.putExtra("SelectedGame", o);

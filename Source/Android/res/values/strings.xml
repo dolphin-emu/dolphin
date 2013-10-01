@@ -13,9 +13,9 @@
     <string name="supports_gles3">Supports OpenGL ES 3</string>
 
     <!-- Folder Browser -->
-    <string name="current_dir">Current Dir: </string>
+    <string name="current_dir">Current Dir: %1$s</string>
     <string name="parent_directory">Parent Directory</string>
-    <string name="file_size">File Size: </string>
+    <string name="file_size">File Size: %1$s</string>
 
     <!-- Game List Activity -->
     <string name="clear_game_list">Clear game list</string>
@@ -26,7 +26,7 @@
     <string name="about">About</string>
 
     <!-- Game List Fragment -->
-    <string name="file_clicked">File clicked: </string>
+    <string name="file_clicked">File clicked: %1$s</string>
 
     <!-- Emulation Overlay -->
     <string name="overlay_savestate">Save State</string>

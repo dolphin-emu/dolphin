@@ -13,9 +13,9 @@
     <string name="supports_gles3">サポートのOpenGL ES 3</string>
     
     <!-- Folder Browser -->
-    <string name="current_dir">現在のディレクトリ： </string>
+    <string name="current_dir">現在のディレクトリ： %1$s</string>
     <string name="parent_directory">親ディレクトリ</string>
-    <string name="file_size">ファイルサイズ: </string>
+    <string name="file_size">ファイルサイズ: %1$s</string>
     
     <!-- Game List Activity -->
     <string name="clear_game_list">クリア</string>
@@ -26,7 +26,7 @@
     <string name="about">について</string>
 
     <!-- Game List Fragment -->
-    <string name="file_clicked">クリックされたファイル： </string>
+    <string name="file_clicked">クリックされたファイル： %1$s</string>
 
     <!-- Emulation Window Overlay -->
     <string name="overlay_savestate">ステートセーブ</string>
