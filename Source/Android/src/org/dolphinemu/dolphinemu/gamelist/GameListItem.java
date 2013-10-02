@@ -112,6 +112,7 @@ public final class GameListItem implements Comparable<GameListItem>
 		return image;
 	}
 
+	@Override
 	public int compareTo(GameListItem o) 
 	{
 		if (name != null)

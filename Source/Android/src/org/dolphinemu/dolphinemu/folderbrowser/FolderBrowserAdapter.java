@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.R;
@@ -22,7 +23,7 @@ import org.dolphinemu.dolphinemu.R;
  * The {@link ArrayAdapter} that backs the file browser.
  * <p>
  * This is responsible for correctly handling the display
- * of the items for the UI.
+ * of the items for the {@link FolderBrowser} UI.
  */
 public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 {
@@ -30,12 +31,20 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 	private final int id;
 	private final List<FolderBrowserItem> items;
 
-	public FolderBrowserAdapter(Context context, int textViewResourceId, List<FolderBrowserItem> objects)
+	/**
+	 * Constructor
+	 * 
+	 * @param context    The current {@link Context}.
+	 * @param resourceId The resource ID for a layout file containing a layout to use when instantiating views.
+	 * @param objects    The objects to represent in the {@link ListView}.
+	 */
+	public FolderBrowserAdapter(Context context, int resourceId, List<FolderBrowserItem> objects)
 	{
-		super(context, textViewResourceId, objects);
-		c = context;
-		id = textViewResourceId;
-		items = objects;
+		super(context, resourceId, objects);
+
+		this.c = context;
+		this.id = resourceId;
+		this.items = objects;
 	}
 
 	@Override

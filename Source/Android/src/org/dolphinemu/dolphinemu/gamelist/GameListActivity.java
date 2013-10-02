@@ -179,6 +179,7 @@ public final class GameListActivity extends Activity
 	protected void onPostCreate(Bundle savedInstanceState)
 	{
 		super.onPostCreate(savedInstanceState);
+
 		// Sync the toggle state after onRestoreInstanceState has occurred.
 		mDrawerToggle.syncState();
 	}
@@ -187,6 +188,7 @@ public final class GameListActivity extends Activity
 	public void onConfigurationChanged(Configuration newConfig)
 	{
 		super.onConfigurationChanged(newConfig);
+
 		// Pass any configuration change to the drawer toggle
 		mDrawerToggle.onConfigurationChanged(newConfig);
 	}
@@ -195,7 +197,7 @@ public final class GameListActivity extends Activity
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		// Only show this in the game list.
-		if (this.mCurFragmentNum == 0)
+		if (mCurFragmentNum == 0)
 		{
 			MenuInflater inflater = getMenuInflater();
 			inflater.inflate(R.menu.gamelist_menu, menu);

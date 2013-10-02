@@ -17,7 +17,7 @@ import org.dolphinemu.dolphinemu.settings.UserPreferences;
 import java.io.*;
 
 /**
- * The main activity of this emulator.
+ * The main activity of this emulator front-end.
  */
 public final class DolphinEmulator extends Activity 
 {
@@ -51,7 +51,6 @@ public final class DolphinEmulator extends Activity
 		}
 	}
 
-	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{

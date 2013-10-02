@@ -120,7 +120,6 @@ public final class NativeLibrary
 
 	/**
 	 * Creates the initial folder structure in /sdcard/dolphin-emu/
-	 *
 	 */
 	public static native void CreateUserFolders();
 

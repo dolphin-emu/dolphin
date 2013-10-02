@@ -14,7 +14,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 /**
- * The surface that rendering is done to.
+ * The {@link SurfaceView} that rendering is performed on.
  */
 public final class NativeGLSurfaceView extends SurfaceView
 {
@@ -26,6 +26,7 @@ public final class NativeGLSurfaceView extends SurfaceView
 	 * Constructor.
 	 * 
 	 * @param context The current {@link Context}.
+	 * @param attribs An AttributeSet for retrieving data from XML files.
 	 */
 	public NativeGLSurfaceView(Context context, AttributeSet attribs)
 	{

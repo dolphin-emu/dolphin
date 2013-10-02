@@ -9,7 +9,7 @@ package org.dolphinemu.dolphinemu.folderbrowser;
 import java.io.File;
 
 /**
- * Represents an item in the folder browser list.
+ * Represents an item in the {@link FolderBrowser} list.
  */
 public final class FolderBrowserItem implements Comparable<FolderBrowserItem>
 {
@@ -22,7 +22,7 @@ public final class FolderBrowserItem implements Comparable<FolderBrowserItem>
 	 * Constructor
 	 * 
 	 * @param name     The name of the file/folder represented by this item.
-	 * @param subtitle The subtitle of this FolderBrowserItem to display.
+	 * @param subtitle The subtitle of this FolderBrowserItem.
 	 * @param path     The path of the file/folder represented by this item.
 	 */
 	public FolderBrowserItem(String name, String subtitle, String path)
@@ -99,6 +99,7 @@ public final class FolderBrowserItem implements Comparable<FolderBrowserItem>
 		return underlyingFile.isDirectory();
 	}
 
+	@Override
 	public int compareTo(FolderBrowserItem other)
 	{
 		if(name != null)

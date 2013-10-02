@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -29,12 +30,20 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 	private final int id;
 	private final List<GameListItem>items;
 
-	public GameListAdapter(Context context, int textViewResourceId, List<GameListItem> objects)
+	/**
+	 * Constructor
+	 * 
+	 * @param context    The current {@link Context}.
+	 * @param resourceId The resource ID for a layout file containing a layout to use when instantiating views.
+	 * @param objects    The objects to represent in the {@link ListView}.
+	 */
+	public GameListAdapter(Context context, int resourceId, List<GameListItem> objects)
 	{
-		super(context, textViewResourceId, objects);
-		c = context;
-		id = textViewResourceId;
-		items = objects;
+		super(context, resourceId, objects);
+
+		this.c = context;
+		this.id = resourceId;
+		this.items = objects;
 	}
 
 	@Override

@@ -24,7 +24,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
 
 /**
- * A basic folder browser {@link Fragment} that allows
+ * A basic folder browser {@link ListFragment} that allows
  * the user to select ISOs/ROMs for playing within the
  * emulator.
  * <p>
