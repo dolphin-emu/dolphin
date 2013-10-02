@@ -7,13 +7,12 @@
 package org.dolphinemu.dolphinemu.gamelist;
 
 import android.app.Activity;
-import android.app.Fragment;
+import android.app.ListFragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -31,9 +30,9 @@ import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
 
 
 /**
- * The {@link Fragment} responsible for displaying the game list.
+ * The {@link ListFragment} responsible for displaying the game list.
  */
-public final class GameListFragment extends Fragment
+public final class GameListFragment extends ListFragment
 {
 	private ListView mMainList;
 	private GameListAdapter mGameAdapter;
@@ -60,7 +59,7 @@ public final class GameListFragment extends Fragment
 	 */
 	public GameListAdapter getAdapter()
 	{
-	    return mGameAdapter;
+		return mGameAdapter;
 	}
 
 	private void Fill()
@@ -110,28 +109,23 @@ public final class GameListFragment extends Fragment
 	{
 		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
 		mMainList = (ListView) rootView.findViewById(R.id.gamelist);
-		mMainList.setOnItemClickListener(mGameItemClickListener);
 
 		Fill();
 
 		return mMainList;
 	}
-
-	private final AdapterView.OnItemClickListener mGameItemClickListener = new AdapterView.OnItemClickListener()
+	
+	@Override
+	public void onListItemClick(ListView listView, View view, int position, long id)
 	{
-		public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-		{
-			GameListItem item = mGameAdapter.getItem(position);
-			onFileClick(item.getPath());
-		}
-	};
+		GameListItem item = mGameAdapter.getItem(position);
 
-	private void onFileClick(String o)
-	{
-		Toast.makeText(mMe, String.format(getString(R.string.file_clicked), o), Toast.LENGTH_SHORT).show();
+		// Show a toast indicating which game was clicked.
+		Toast.makeText(mMe, String.format(getString(R.string.file_clicked), item.getPath()), Toast.LENGTH_SHORT).show();
 
+		// Start the emulation activity and send the path of the clicked ROM to it.
 		Intent intent = new Intent(mMe, EmulationActivity.class);
-		intent.putExtra("SelectedGame", o);
+		intent.putExtra("SelectedGame", item.getPath());
 		mMe.startActivity(intent);
 	}
 
