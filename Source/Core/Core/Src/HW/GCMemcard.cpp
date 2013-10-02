@@ -11,43 +11,6 @@ static void ByteSwap(u8 *valueA, u8 *valueB)
 	*valueB = tmp;
 }
 
-void decode5A3image(u32* dst, u16* src, int width, int height)
-{
-	for (int y = 0; y < height; y += 4)
-	{
-		for (int x = 0; x < width; x += 4)
-		{
-			for (int iy = 0; iy < 4; iy++, src += 4)
-			{
-				for (int ix = 0; ix < 4; ix++)
-				{
-					u32 RGBA = ColorUtil::Decode5A3(Common::swap16(src[ix]));
-					dst[(y + iy) * width + (x + ix)] = RGBA;
-				}
-			}
-		}
-	}
-}
-
-void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
-{
-	for (int y = 0; y < height; y += 4)
-	{
-		for (int x = 0; x < width; x += 8)
-		{
-			for (int iy = 0; iy < 4; iy++, src += 8)
-			{
-				u32 *tdst = dst+(y+iy)*width+x;
-				for (int ix = 0; ix < 8; ix++)
-				{
-					// huh, this seems wrong. CI8, not 5A3, no?
-					tdst[ix] = ColorUtil::Decode5A3(Common::swap16(pal[src[ix]]));
-				}
-			}
-		}
-	}
-}
-
 GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	: m_valid(false)
 	, m_fileName(filename)
@@ -1083,13 +1046,13 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 		u8  *pxdata  = (u8* )(mc_data_blocks[DataBlock].block + DataOffset);
 		u16 *paldata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset + pixels);
 
-		decodeCI8image(buffer, pxdata, paldata, 96, 32);
+		ColorUtil::decodeCI8image(buffer, pxdata, paldata, 96, 32);
 	}
 	else
 	{
 		u16 *pxdata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset);
 
-		decode5A3image(buffer, pxdata, 96, 32);
+		ColorUtil::decode5A3image(buffer, pxdata, 96, 32);
 	}
 	return true;
 }
@@ -1185,16 +1148,16 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 			switch (fmts[i])
 			{
 			case CI8SHARED: // CI8 with shared palette
-				decodeCI8image(buffer,data[i],sharedPal,32,32);
+				ColorUtil::decodeCI8image(buffer,data[i],sharedPal,32,32);
 				buffer += 32*32;
 				break;
 			case RGB5A3: // RGB5A3
-				decode5A3image(buffer, (u16*)(data[i]), 32, 32);
+				ColorUtil::decode5A3image(buffer, (u16*)(data[i]), 32, 32);
 				buffer += 32*32;
 				break;
 			case CI8: // CI8 with own palette
 				u16 *paldata = (u16*)(data[i] + 32*32);
-				decodeCI8image(buffer, data[i], paldata, 32, 32);
+				ColorUtil::decodeCI8image(buffer, data[i], paldata, 32, 32);
 				buffer += 32*32;
 				break;
 			}
@@ -1211,15 +1174,15 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 					switch (fmts[j])
 					{
 					case CI8SHARED: // CI8 with shared palette
-						decodeCI8image(buffer,data[j],sharedPal,32,32);
+						ColorUtil::decodeCI8image(buffer,data[j],sharedPal,32,32);
 						break;
 					case RGB5A3: // RGB5A3
-						decode5A3image(buffer, (u16*)(data[j]), 32, 32);
+						ColorUtil::decode5A3image(buffer, (u16*)(data[j]), 32, 32);
 						buffer += 32*32;
 						break;
 					case CI8: // CI8 with own palette
 						u16 *paldata = (u16*)(data[j] + 32*32);
-						decodeCI8image(buffer, data[j], paldata, 32, 32);
+						ColorUtil::decodeCI8image(buffer, data[j], paldata, 32, 32);
 						buffer += 32*32;
 						break;
 					}

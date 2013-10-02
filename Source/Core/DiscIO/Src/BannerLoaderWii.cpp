@@ -103,7 +103,7 @@ std::vector<u32> CBannerLoaderWii::GetBanner(int* pWidth, int* pHeight)
 	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
 	std::vector<u32> Buffer;
 	Buffer.resize(192 * 64);
-	decode5A3image(&Buffer[0], (u16*)pBanner->m_BannerTexture, 192, 64);
+	ColorUtil::decode5A3image(&Buffer[0], (u16*)pBanner->m_BannerTexture, 192, 64);
 	*pWidth = 192;
 	*pHeight = 64;
 	return Buffer;
@@ -151,24 +151,6 @@ std::vector<std::string> CBannerLoaderWii::GetDescriptions()
 	if (!GetStringFromComments(DESC_IDX, result[0]))
 		result.clear();
 	return result;
-}
-
-void CBannerLoaderWii::decode5A3image(u32* dst, u16* src, int width, int height)
-{
-	for (int y = 0; y < height; y += 4)
-	{
-		for (int x = 0; x < width; x += 4)
-		{
-			for (int iy = 0; iy < 4; iy++, src += 4)
-			{
-				for (int ix = 0; ix < 4; ix++)
-				{
-					u32 RGBA = ColorUtil::Decode5A3(Common::swap16(src[ix]));
-					dst[(y + iy) * width + (x + ix)] = RGBA;
-				}
-			}
-		}
-	}
 }
 
 } // namespace

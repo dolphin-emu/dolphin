@@ -59,8 +59,6 @@ class CBannerLoaderWii
 
 		bool m_IsValid;
 
-		void decode5A3image(u32* dst, u16* src, int width, int height);
-
 		bool GetStringFromComments(const CommentIndex index, std::string& s);
 };
 } // namespace

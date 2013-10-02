@@ -75,9 +75,8 @@ class CBannerLoaderGC
 		bool m_IsValid;
 		BANNER_TYPE m_BNRType;
 
-		void decode5A3image(u32* dst, u16* src, int width, int height);
 		BANNER_TYPE getBannerType();
-		
+
 		DiscIO::IVolume::ECountry const m_country;
 };
 
