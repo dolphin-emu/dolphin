@@ -117,10 +117,12 @@ void JitArm::FinalizeCarry(ARMReg reg)
 	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
 	gpr.Unlock(tmp);
 }
+// Wrong - prevents WW from loading in to a game and also inverted intro logos
 void JitArm::subfic(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
+	Default(inst); return;
 	int a = inst.RA, d = inst.RD;
 
 	int imm = inst.SIMM_16;
