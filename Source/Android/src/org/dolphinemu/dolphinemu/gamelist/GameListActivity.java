@@ -110,7 +110,7 @@ public final class GameListActivity extends Activity
 	 * Switches to the {@link Fragment} represented
 	 * by the given ID number.
 	 * 
-	 * @param toPage the number representing the {@link Fragment} to switch to.l
+	 * @param toPage the number representing the {@link Fragment} to switch to.
 	 */
 	public void SwitchPage(int toPage)
 	{
@@ -121,6 +121,11 @@ public final class GameListActivity extends Activity
 		{
 			case 0: // Game list
 			{
+				// We use the title section as the browser directory tracker in the folder browser.
+				// Make sure we flip the title back if we're coming from that fragment.
+				if (mCurFragmentNum == 1)
+					setTitle(R.string.app_name);
+
 				mCurFragmentNum = 0;
 				mCurFragment = new GameListFragment();
 				FragmentManager fragmentManager = getFragmentManager();
