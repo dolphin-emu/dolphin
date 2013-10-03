@@ -45,7 +45,7 @@ public final class EmulationActivity extends Activity
 
 		// Retrieve screen dimensions.
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE); // the results will be higher than using the activity context object or the getWindowManager() shortcut
+		WindowManager wm = getWindowManager();
 		wm.getDefaultDisplay().getMetrics(displayMetrics);
 		this.screenHeight = displayMetrics.heightPixels;
 		this.screenWidth = displayMetrics.widthPixels;
