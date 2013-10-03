@@ -26,7 +26,7 @@ import org.dolphinemu.dolphinemu.R;
  */
 public final class GameListAdapter extends ArrayAdapter<GameListItem>
 {
-	private final Context c;
+	private final Context context;
 	private final int id;
 	private final List<GameListItem>items;
 
@@ -41,7 +41,7 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 	{
 		super(context, resourceId, objects);
 
-		this.c = context;
+		this.context = context;
 		this.id = resourceId;
 		this.items = objects;
 	}
@@ -58,7 +58,7 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 		View v = convertView;
 		if (v == null)
 		{
-			LayoutInflater vi = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			LayoutInflater vi = LayoutInflater.from(context);
 			v = vi.inflate(id, parent, false);
 		}
 
@@ -78,8 +78,8 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 			if (icon != null)
 			{
 				icon.setImageBitmap(item.getImage());
-				icon.getLayoutParams().width = (int) ((860 / c.getResources().getDisplayMetrics().density) + 0.5);
-				icon.getLayoutParams().height = (int)((340 / c.getResources().getDisplayMetrics().density) + 0.5);
+				icon.getLayoutParams().width = (int) ((860 / context.getResources().getDisplayMetrics().density) + 0.5);
+				icon.getLayoutParams().height = (int)((340 / context.getResources().getDisplayMetrics().density) + 0.5);
 			}
 		}
 

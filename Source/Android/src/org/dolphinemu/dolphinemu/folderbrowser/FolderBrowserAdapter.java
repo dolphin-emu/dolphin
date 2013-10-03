@@ -27,7 +27,7 @@ import org.dolphinemu.dolphinemu.R;
  */
 public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 {
-	private final Context c;
+	private final Context context;
 	private final int id;
 	private final List<FolderBrowserItem> items;
 
@@ -42,7 +42,7 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 	{
 		super(context, resourceId, objects);
 
-		this.c = context;
+		this.context = context;
 		this.id = resourceId;
 		this.items = objects;
 	}
@@ -59,7 +59,7 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 		View v = convertView;
 		if (v == null)
 		{
-			LayoutInflater vi = (LayoutInflater) c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			LayoutInflater vi = LayoutInflater.from(context);
 			v = vi.inflate(id, parent, false);
 		}
 
@@ -78,7 +78,7 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 			if(subtitle != null)
 			{
 				// Remove the subtitle for all folders, except for the parent directory folder.
-				if (item.isDirectory() && !item.getSubtitle().equals(c.getString(R.string.parent_directory)))
+				if (item.isDirectory() && !item.getSubtitle().equals(context.getString(R.string.parent_directory)))
 				{
 					subtitle.setVisibility(View.GONE);
 				}

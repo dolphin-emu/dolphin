@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -24,16 +25,24 @@ import org.dolphinemu.dolphinemu.R;
  */
 public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>
 {
-	private final Context c;
+	private final Context context;
 	private final int id;
 	private final List<SideMenuItem>items;
 
-	public SideMenuAdapter(Context context, int textViewResourceId, List<SideMenuItem> objects)
+	/**
+	 * Constructor
+	 * 
+	 * @param context    The current {@link Context}.
+	 * @param resourceId The resource ID for a layout file containing a layout to use when instantiating views.
+	 * @param objects    The objects to represent in the {@link ListView}.
+	 */
+	public SideMenuAdapter(Context context, int resourceId, List<SideMenuItem> objects)
 	{
-		super(context, textViewResourceId, objects);
-		c = context;
-		id = textViewResourceId;
-		items = objects;
+		super(context, resourceId, objects);
+
+		this.context = context;
+		this.id = resourceId;
+		this.items = objects;
 	}
 
 	@Override
@@ -48,7 +57,7 @@ public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>
 		View v = convertView;
 		if (v == null)
 		{
-			LayoutInflater vi = (LayoutInflater)c.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+			LayoutInflater vi = LayoutInflater.from(context);
 			v = vi.inflate(id, null);
 		}
 
