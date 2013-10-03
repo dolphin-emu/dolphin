@@ -78,7 +78,7 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 			if(subtitle != null)
 			{
 				// Remove the subtitle for all folders, except for the parent directory folder.
-				if (item.isDirectory() && !item.getSubtitle().equals(c.getResources().getString(R.string.parent_directory)))
+				if (item.isDirectory() && !item.getSubtitle().equals(c.getString(R.string.parent_directory)))
 				{
 					subtitle.setVisibility(View.GONE);
 				}
