@@ -233,13 +233,6 @@ void JitILAsmRoutineManager::GenerateCommon()
 	fifoDirectWriteXmm64 = AlignCode4();
 	GenFifoXmm64Write();
 
-	doReJit = AlignCode4();
-	ABI_AlignStack(0);
-	CALL(reinterpret_cast<void *>(&ProfiledReJit));
-	ABI_RestoreStack(0);
-	SUB(32, M(&CoreTiming::downcount), Imm8(0));
-	JMP(dispatcher, true);
-
 	GenQuantizedLoads();
 	GenQuantizedStores();
 	GenQuantizedSingleStores();

@@ -38,8 +38,6 @@ public:
 	void Shutdown() {
 		FreeCodeSpace();
 	}
-
-	const u8 *doReJit;
 };
 
 extern JitILAsmRoutineManager jitil_asm_routines;

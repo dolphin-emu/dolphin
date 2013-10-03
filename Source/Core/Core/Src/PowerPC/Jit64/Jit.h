@@ -234,6 +234,4 @@ public:
 	void icbi(UGeckoInstruction inst);
 };
 
-void ProfiledReJit();
-
 #endif // _JIT64_H
