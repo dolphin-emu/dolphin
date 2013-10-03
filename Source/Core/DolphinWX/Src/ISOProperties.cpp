@@ -887,7 +887,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 		}
 		else
 		{
-			PanicAlertT("Partition doesn't exist: %lu", partitionNum);
+			PanicAlertT("Partition doesn't exist: %u", (unsigned) partitionNum);
 			return;
 		}
 	}

@@ -108,9 +108,9 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 		}
 
 		// If the above-mentioned conditions weren't met, then something went wrong.
-		if (!PanicYesNoT("Unable to parse line %lu of the entered AR code as a valid "
+		if (!PanicYesNoT("Unable to parse line %u of the entered AR code as a valid "
 						"encrypted or decrypted code.  Make sure you typed it correctly.\n"
-						"Would you like to ignore this line and continue parsing?",  i + 1))
+						"Would you like to ignore this line and continue parsing?", (unsigned) (i + 1)))
 		{
 			return;
 		}
