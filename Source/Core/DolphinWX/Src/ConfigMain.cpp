@@ -1076,8 +1076,14 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 		#ifdef _WIN32
 			if (!strncmp(File::GetExeDirectory().c_str(), filename.c_str(), File::GetExeDirectory().size()))
 			{
-				filename.erase(0, File::GetExeDirectory().size() +1);
-				filename = "./" + filename;
+				// If the Exe Directory Matches the prefix of the filename, we still need to verify
+				// that the next character is a directory separator character, otherwise we may create an invalid path
+				char next_char = filename.at(File::GetExeDirectory().size())+1;
+				if (next_char == '/' || next_char == '\\')
+				{
+					filename.erase(0, File::GetExeDirectory().size() +1);
+					filename = "./" + filename;
+				}
 			}
 		#endif
 
