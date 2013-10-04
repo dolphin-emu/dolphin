@@ -311,14 +311,14 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 	bool noProlog = flags & SAFE_WRITE_NO_PROLOG;
 	bool swap = !(flags & SAFE_WRITE_NO_SWAP);
-	ABI_PushRegistersAndAdjustStack(registersInUse, false);
+	ABI_PushRegistersAndAdjustStack(registersInUse, noProlog);
 	switch (accessSize)
 	{
-	case 32: ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), reg_value, reg_addr, noProlog); break;
-	case 16: ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), reg_value, reg_addr, noProlog); break;
-	case 8:  ABI_CallFunctionRR((void *)&Memory::Write_U8, reg_value, reg_addr, noProlog);  break;
+	case 32: ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), reg_value, reg_addr, false); break;
+	case 16: ABI_CallFunctionRR(swap ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), reg_value, reg_addr, false); break;
+	case 8:  ABI_CallFunctionRR((void *)&Memory::Write_U8, reg_value, reg_addr, false);  break;
 	}
-	ABI_PopRegistersAndAdjustStack(registersInUse, false);
+	ABI_PopRegistersAndAdjustStack(registersInUse, noProlog);
 	FixupBranch exit = J();
 	SetJumpTarget(fast);
 	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);

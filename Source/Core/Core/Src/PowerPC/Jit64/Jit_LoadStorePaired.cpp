@@ -101,8 +101,6 @@ void Jit64::psq_st(UGeckoInstruction inst)
 #else
 	int addr_scale = SCALE_8;
 #endif
-	u32 registersInUse = RegistersInUse();
-	ABI_PushRegistersAndAdjustStack(registersInUse, false);
 	if (inst.W) {
 		// One value
 		XORPS(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
@@ -113,7 +111,6 @@ void Jit64::psq_st(UGeckoInstruction inst)
 		CVTPD2PS(XMM0, fpr.R(s));
 		CALLptr(MScaled(EDX, addr_scale, (u32)(u64)asm_routines.pairedStoreQuantized));
 	}
-	ABI_PopRegistersAndAdjustStack(registersInUse, false);
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
