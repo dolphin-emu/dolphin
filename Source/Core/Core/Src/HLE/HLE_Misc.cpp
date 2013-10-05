@@ -169,30 +169,38 @@ u32 GetDolFileSize(std::string dol)
 	return (u32)pFileSystem->GetFileSize(dolFile.c_str());
 }
 
-void OSGetResetCode()
-{
-	u32 resetCode = Memory::Read_U32(0xCC003024);
-
-	if ((resetCode & 0x1fffffff) != 0)
-	{
-		GPR(3) = resetCode | 0x80000000;
-	}
-	else
-	{
-		GPR(3) = 0;
-	}
-
-	NPC = LR;
-}
-
 u16 GetIOSVersion()
 {
 	return Memory::Read_U16(0x00003140);
 }
 
+void OSGetResetCode()
+{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && GetIOSVersion() >= 30)
+	{
+		u32 resetCode = Memory::Read_U32(0xCC003024);
+
+		if ((resetCode & 0x1fffffff) != 0)
+		{
+			GPR(3) = resetCode | 0x80000000;
+		}
+		else
+		{
+			GPR(3) = 0;
+		}
+
+		NPC = LR;
+	}
+	else
+	{
+		HLE::UnPatch("OSGetResetCode");
+		NPC = PC;
+	}
+}
+
 void OSBootDol()
 {
-	if (GetIOSVersion() >= 30)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && GetIOSVersion() >= 30)
 	{
 		if ((GPR(4) >> 28) == 0x8)
 		{
