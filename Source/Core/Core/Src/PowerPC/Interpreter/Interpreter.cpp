@@ -291,9 +291,9 @@ void Interpreter::Run()
 			while (CoreTiming::downcount > 0)
 			{
 				m_EndBlock = false;
-				int i;
+
 				int cycles = 0;
-				for (i = 0; !m_EndBlock; i++)
+				while (!m_EndBlock)
 				{
 					cycles += SingleStepInner();
 				}
