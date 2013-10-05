@@ -176,7 +176,7 @@ u16 GetIOSVersion()
 
 void OSGetResetCode()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && GetIOSVersion() >= 30)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		u32 resetCode = Memory::Read_U32(0xCC003024);
 
