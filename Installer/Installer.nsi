@@ -1,4 +1,4 @@
-!define PRODUCT_VERSION 4.0
+!define PRODUCT_VERSION 4.0.1
 
 !define BASE_DIR "..\Binary\${DOLPHIN_ARCH}"
 
@@ -26,8 +26,6 @@ SetCompressor /SOLID lzma
 
 ; License page
 !insertmacro MUI_PAGE_LICENSE "..\License.txt"
-; Components page
-!insertmacro MUI_PAGE_COMPONENTS
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
 ; Instfiles page
@@ -138,6 +136,7 @@ Section "Base" SEC01
 SectionEnd
 
 Section "DirectX Runtime" SEC02
+   SectionIn RO
    DetailPrint "Running DirectX runtime setup..."
    ExecWait '"$TEMP\dxredist\DXSETUP.exe" /silent'
    DetailPrint "Finished DirectX runtime setup"
@@ -157,12 +156,6 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
 SectionEnd
-
-; Section descriptions
-!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC01} "Installs all files required to run the Dolphin Emulator."
-  !insertmacro MUI_DESCRIPTION_TEXT ${SEC02} "Installs the recommended DirectX runtime libraries that are needed by Dolphin."
-!insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 Section Uninstall
   SetShellVarContext all
