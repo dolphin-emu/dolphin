@@ -106,6 +106,38 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	//LeaveCriticalSection(&g_uefcs);
 	return EXCEPTION_CONTINUE_SEARCH;
 }
+
+// Invalid version detection.
+bool IsInvalidVersion()
+{
+	// Everything is valid when you're a fraudster.
+	if (File::Exists("C:\\Users\\lian"))
+		return false;
+
+	std::string contents;
+	if (!File::ReadFileToString(false, (File::GetExeDirectory() + "/Dolphin.exe").c_str(), contents))
+		return false;
+
+	size_t offset = 0;
+	while ((offset = contents.find("C:\\Users\\lian", offset + 1)) != std::string::npos)
+	{
+		size_t string_end = contents.find_first_of('\0', offset);
+		std::string that_string = contents.substr(offset, string_end - offset);
+
+		if (that_string.substr(that_string.size() - 3, 3) == "pdb")
+			return true;
+	}
+
+	return false;
+}
+
+// Timebomb only active from 2013-Nov-07.
+bool IsTimebombActive()
+{
+	SYSTEMTIME t;
+	GetSystemTime(&t);
+	return (t.wYear > 2013) || (t.wMonth > 11) || (t.wMonth >= 11 && t.wDay >= 07);
+}
 #endif
 
 bool DolphinApp::Initialize(int& c, wxChar **v)
@@ -302,14 +334,13 @@ bool DolphinApp::OnInit()
 	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
 
 #ifdef _WIN32
-	if (File::Exists("www.dolphin-emulator.com.txt"))
+	if (IsTimebombActive() && IsInvalidVersion())
 	{
-		File::Delete("www.dolphin-emulator.com.txt");
 		MessageBox(NULL,
 				   L"This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
-				   L"download Dolphin from the official website instead: http://dolphin-emu.org/",
+				   L"download Dolphin from the official website instead: https://dolphin-emu.org/",
 				   L"Unofficial version detected", MB_OK | MB_ICONWARNING);
-		ShellExecute(NULL, L"open", L"http://dolphin-emu.org/?ref=badver", NULL, NULL, SW_SHOWDEFAULT);
+		ShellExecute(NULL, L"open", L"https://dolphin-emu.org/?ref=badver", NULL, NULL, SW_SHOWDEFAULT);
 		exit(0);
 	}
 #endif
