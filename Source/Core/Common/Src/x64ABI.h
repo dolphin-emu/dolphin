@@ -43,7 +43,8 @@
 // 32-bit bog standard cdecl, shared between linux and windows
 // MacOSX 32-bit is same as System V with a few exceptions that we probably don't care much about.
 
-#define ABI_ALL_CALLEE_SAVED ((1 << EAX) | (1 << ECX) | (1 << EDX))
+#define ABI_ALL_CALLEE_SAVED ((1 << EAX) | (1 << ECX) | (1 << EDX) | \
+                              0xff00 /* xmm0..7 */)
 
 #else // 64 bit calling convention
 
