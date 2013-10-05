@@ -293,7 +293,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 
 	// Easy!
 	const u8* storeSingleFloat = AlignCode4();
-	SafeWriteFloatToReg(XMM0, ECX, QUANTIZED_REGS_TO_SAVE, SAFE_WRITE_NO_FASTMEM);
+	SafeWriteFloatToReg(XMM0, ECX, QUANTIZED_REGS_TO_SAVE, SAFE_WRITE_NO_PROLOG | SAFE_WRITE_NO_FASTMEM);
 	RET();
 	/*
 	if (cpu_info.bSSSE3) {
