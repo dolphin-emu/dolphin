@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #include "Common.h"
-#include "Thunk.h"
 
 #include "../../Core.h"
 #include "../PowerPC.h"

@@ -13,7 +13,6 @@
 #include "CPUDetect.h"
 
 #include "x64ABI.h"
-#include "Thunk.h"
 
 #include "../../HW/GPFifo.h"
 #include "../../Core.h"
@@ -232,13 +231,6 @@ void JitILAsmRoutineManager::GenerateCommon()
 	GenFifoFloatWrite();
 	fifoDirectWriteXmm64 = AlignCode4();
 	GenFifoXmm64Write();
-
-	doReJit = AlignCode4();
-	ABI_AlignStack(0);
-	CALL(reinterpret_cast<void *>(&ProfiledReJit));
-	ABI_RestoreStack(0);
-	SUB(32, M(&CoreTiming::downcount), Imm8(0));
-	JMP(dispatcher, true);
 
 	GenQuantizedLoads();
 	GenQuantizedStores();

@@ -7,7 +7,6 @@
 
 #include "Common.h"
  
-#include "Thunk.h"
 #include "../PowerPC.h"
 #include "../../Core.h"
 #include "../../HW/GPFifo.h"
@@ -106,15 +105,11 @@ void Jit64::psq_st(UGeckoInstruction inst)
 		// One value
 		XORPS(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
 		CVTSD2SS(XMM0, fpr.R(s));
-		ABI_AlignStack(0);
 		CALLptr(MScaled(EDX, addr_scale, (u32)(u64)asm_routines.singleStoreQuantized));
-		ABI_RestoreStack(0);
 	} else {
 		// Pair of values
 		CVTPD2PS(XMM0, fpr.R(s));
-		ABI_AlignStack(0);
 		CALLptr(MScaled(EDX, addr_scale, (u32)(u64)asm_routines.pairedStoreQuantized));
-		ABI_RestoreStack(0);
 	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();

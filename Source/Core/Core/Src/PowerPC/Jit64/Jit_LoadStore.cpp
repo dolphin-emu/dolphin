@@ -6,7 +6,6 @@
 // Should give a very noticable speed boost to paired single heavy code.
 
 #include "Common.h"
-#include "Thunk.h"
 
 #include "../PowerPC.h"
 #include "../../Core.h"
@@ -120,20 +119,19 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 		// do our job at first
 		s32 offset = (s32)(s16)inst.SIMM_16;
-		gpr.Lock(d);
-		SafeLoadToEAX(gpr.R(a), accessSize, offset, RegistersInUse(), signExtend);
-		gpr.KillImmediate(d, false, true);
-		MOV(32, gpr.R(d), R(EAX));
-		gpr.UnlockAll();
+		gpr.BindToRegister(d, false, true);
+		SafeLoadToReg(gpr.RX(d), gpr.R(a), accessSize, offset, RegistersInUse(), signExtend);
 		
-		gpr.Flush(FLUSH_ALL);
-		fpr.Flush(FLUSH_ALL);
-
 		// if it's still 0, we can wait until the next event
-		TEST(32, R(EAX), R(EAX));
+		TEST(32, gpr.R(d), gpr.R(d));
 		FixupBranch noIdle = J_CC(CC_NZ);
 		
+		u32 registersInUse = RegistersInUse();
+		ABI_PushRegistersAndAdjustStack(registersInUse, false);
+
 		ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
+
+		ABI_PopRegistersAndAdjustStack(registersInUse, false);
 
 		// ! we must continue executing of the loop after exception handling, maybe there is still 0 in r0
 		//MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC));
@@ -174,18 +172,32 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	{
 		if ((inst.OPCD != 31) && gpr.R(a).IsImm())
 		{
-			opAddress = Imm32((u32)gpr.R(a).offset + (s32)inst.SIMM_16);
+			u32 val = (u32)gpr.R(a).offset + (s32)inst.SIMM_16;
+			opAddress = Imm32(val);
+			if (update)
+				gpr.SetImmediate32(a, val);
 		}
 		else if ((inst.OPCD == 31) && gpr.R(a).IsImm() && gpr.R(b).IsImm())
 		{
-			opAddress = Imm32((u32)gpr.R(a).offset + (u32)gpr.R(b).offset);
+			u32 val = (u32)gpr.R(a).offset + (u32)gpr.R(b).offset;
+			opAddress = Imm32(val);
+			if (update)
+				gpr.SetImmediate32(a, val);
 		}
 		else
 		{
-			gpr.FlushLockX(ABI_PARAM1);
-			opAddress = R(ABI_PARAM1);
-			MOV(32, opAddress, gpr.R(a));
-			
+			if (update || (inst.OPCD != 31 && inst.SIMM_16 == 0))
+			{
+				gpr.BindToRegister(a, true, update);
+				opAddress = gpr.R(a);
+			}
+			else
+			{
+				gpr.FlushLockX(ABI_PARAM1);
+				opAddress = R(ABI_PARAM1);
+				MOV(32, opAddress, gpr.R(a));
+			}
+
 			if (inst.OPCD == 31)
 				ADD(32, opAddress, gpr.R(b));
 			else
@@ -193,29 +205,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		}
 	}
 
-	SafeLoadToEAX(opAddress, accessSize, 0, RegistersInUse(), signExtend);
-
-	// We must flush immediate values from the following registers because
-	// they may change at runtime if no MMU exception has been raised
-	gpr.KillImmediate(d, true, true);
-	if (update)
-	{
-		gpr.Lock(a);
-		gpr.BindToRegister(a, true, true);
-	}
-	
-	MEMCHECK_START
-
-	if (update)
-	{
-		if (inst.OPCD == 31)
-			ADD(32, gpr.R(a), gpr.R(b));
-		else
-			ADD(32, gpr.R(a), Imm32((u32)(s32)inst.SIMM_16));
-	}
-	MOV(32, gpr.R(d), R(EAX));
-
-	MEMCHECK_END
+	gpr.Lock(a, b, d);
+	gpr.BindToRegister(d, false, true);
+	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, 0, RegistersInUse(), signExtend);
 	
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -318,12 +310,15 @@ void Jit64::stX(UGeckoInstruction inst)
 			else
 			{
 				MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
+				u32 registersInUse = RegistersInUse();
+				ABI_PushRegistersAndAdjustStack(registersInUse, false);
 				switch (accessSize)
 				{
-				case 32: ABI_CallFunctionAC(thunks.ProtectFunction(true ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), 2), gpr.R(s), addr); break;
-				case 16: ABI_CallFunctionAC(thunks.ProtectFunction(true ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), 2), gpr.R(s), addr); break;
-				case 8:  ABI_CallFunctionAC(thunks.ProtectFunction((void *)&Memory::Write_U8, 2), gpr.R(s), addr);  break;
+				case 32: ABI_CallFunctionAC(true ? ((void *)&Memory::Write_U32) : ((void *)&Memory::Write_U32_Swap), gpr.R(s), addr); break;
+				case 16: ABI_CallFunctionAC(true ? ((void *)&Memory::Write_U16) : ((void *)&Memory::Write_U16_Swap), gpr.R(s), addr); break;
+				case 8:  ABI_CallFunctionAC((void *)&Memory::Write_U8, gpr.R(s), addr);  break;
 				}
+				ABI_PopRegistersAndAdjustStack(registersInUse, false);
 				if (update)
 					gpr.SetImmediate32(a, addr);
 				return;

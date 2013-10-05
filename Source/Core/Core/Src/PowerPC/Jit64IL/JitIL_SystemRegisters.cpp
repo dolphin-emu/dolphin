@@ -11,7 +11,6 @@
 #include "../PPCTables.h"
 #include "x64Emitter.h"
 #include "x64ABI.h"
-#include "Thunk.h"
 
 #include "JitIL.h"
 

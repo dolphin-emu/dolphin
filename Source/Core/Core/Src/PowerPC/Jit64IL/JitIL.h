@@ -221,6 +221,4 @@ public:
 
 void Jit(u32 em_address);
 
-void ProfiledReJit();
-
 #endif  // _JITIL_H

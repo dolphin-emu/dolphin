@@ -13,7 +13,6 @@
 
 #include "x64Emitter.h"
 #include "x64ABI.h"
-#include "Thunk.h"
 #include "x64Analyzer.h"
 
 #include "StringUtil.h"
@@ -76,7 +75,7 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 	if (info.displacement) {
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
 	}
-	PushRegistersAndAlignStack(registersInUse);
+	ABI_PushRegistersAndAdjustStack(registersInUse, true);
 	switch (info.operandSize)
 	{
 	case 4:
@@ -96,7 +95,7 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info, u32 re
 		MOV(32, R(dataReg), R(EAX));
 	}
 
-	PopRegistersAndAlignStack(registersInUse);
+	ABI_PopRegistersAndAdjustStack(registersInUse, true);
 	RET();
 #endif
 	return trampoline;
@@ -137,7 +136,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 		ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
 	}
 
-	PushRegistersAndAlignStack(registersInUse);
+	ABI_PushRegistersAndAdjustStack(registersInUse, true);
 	switch (info.operandSize)
 	{
 	case 8:
@@ -154,7 +153,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 		break;
 	}
 
-	PopRegistersAndAlignStack(registersInUse);
+	ABI_PopRegistersAndAdjustStack(registersInUse, true);
 	RET();
 #endif
 
@@ -177,15 +176,23 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 	InstructionInfo info;
 	if (!DisassembleMov(codePtr, &info)) {
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
+		return 0;
 	}
 
 	if (info.otherReg != RBX)
+	{
 		PanicAlert("BackPatch : Base reg not RBX."
 		           "\n\nAttempted to access %08x.", emAddress);
+		return 0;
+	}
 
 	auto it = registersInUseAtLoc.find(codePtr);
 	if (it == registersInUseAtLoc.end())
+	{
 		PanicAlert("BackPatch: no register use entry for address %p", codePtr);
+		return 0;
+	}
+
 	u32 registersInUse = it->second;
 
 	if (!info.isMemoryWrite)
@@ -235,7 +242,6 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		emitter.NOP(codePtr + info.instructionSize - emitter.GetCodePtr());
 		return start;
 	}
-	return 0;
 #else
 	return 0;
 #endif

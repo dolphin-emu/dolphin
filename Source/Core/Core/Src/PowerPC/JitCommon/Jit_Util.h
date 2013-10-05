@@ -6,7 +6,6 @@
 #define _JITUTIL_H
 
 #include "x64Emitter.h"
-#include "Thunk.h"
 #include <unordered_map>
 
 // Like XCodeBlock but has some utilities for memory access.
@@ -16,8 +15,8 @@ public:
 	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset);
 	// these return the address of the MOV, for backpatching
 	u8 *UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true);
-	u8 *UnsafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, bool signExtend);
-	void SafeLoadToEAX(const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend);
+	u8 *UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend);
+	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend);
 	enum SafeWriteFlags
 	{
 		SAFE_WRITE_NO_SWAP = 1,
@@ -38,7 +37,6 @@ public:
 	void ForceSinglePrecisionS(Gen::X64Reg xmm);
 	void ForceSinglePrecisionP(Gen::X64Reg xmm);
 protected:
-	ThunkManager thunks;
 	std::unordered_map<u8 *, u32> registersInUseAtLoc;
 };
 

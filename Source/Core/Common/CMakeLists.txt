@@ -37,7 +37,6 @@ else()
 	if(NOT _M_GENERIC) #X86
 		set(SRCS	${SRCS}
 					Src/x64FPURoundMode.cpp
-					Src/x64Thunk.cpp
 					)
 	endif()
 	set(SRCS ${SRCS} Src/x64CPUDetect.cpp)

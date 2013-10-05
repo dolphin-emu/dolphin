@@ -6,7 +6,6 @@
 // Should give a very noticable speed boost to paired single heavy code.
 
 #include "Common.h"
-#include "Thunk.h"
 
 #include "../PowerPC.h"
 #include "../../Core.h"

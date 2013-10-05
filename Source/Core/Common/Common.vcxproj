@@ -217,7 +217,6 @@
     <ClCompile Include="Src\x64CPUDetect.cpp" />
     <ClCompile Include="Src\x64Emitter.cpp" />
     <ClCompile Include="Src\x64FPURoundMode.cpp" />
-    <ClCompile Include="Src\x64Thunk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Atomic.h" />
@@ -263,7 +262,6 @@
     <ClInclude Include="Src\SymbolDB.h" />
     <ClInclude Include="Src\SysConf.h" />
     <ClInclude Include="Src\Thread.h" />
-    <ClInclude Include="Src\Thunk.h" />
     <ClInclude Include="Src\Timer.h" />
     <ClInclude Include="Src\x64ABI.h" />
     <ClInclude Include="Src\x64Analyzer.h" />
