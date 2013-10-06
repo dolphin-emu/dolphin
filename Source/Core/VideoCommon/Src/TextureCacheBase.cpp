@@ -481,8 +481,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		// Sometimes, we can get around recreating a texture if only the number of mip levels changes
 		// e.g. if our texture cache entry got too many mipmap levels we can limit the number of used levels by setting the appropriate render states
 		// Thus, we don't update this member for every Load, but just whenever the texture gets recreated
-		// TODO: D3D9 doesn't support min_lod. We should add a workaround for that here!
-		
+
 		// TODO: This is the wrong value. We should be storing the number of levels our actual texture has.
 		// But that will currently make the above "existing entry" tests fail as "texLevels" is not calculated until after.
 		// Currently, we might try to reuse a texture which appears to have more levels than actual, maybe..

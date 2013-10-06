@@ -356,7 +356,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			static bool warn_once = true;
 			if (warn_once)
-				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to use the D3D11 or OpenGL backend and enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU which supports D3D 11.0 / OGL 4.2 is required).");
+				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
 			warn_once = false;
 		}
 
@@ -372,7 +372,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			static bool warn_once = true;
 			if (warn_once)
-				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to use the D3D11 or OpenGL backend and enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU which supports D3D 11.0 / OGL 4.2 is required).");
+				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
 			warn_once = false;
 		}
 
