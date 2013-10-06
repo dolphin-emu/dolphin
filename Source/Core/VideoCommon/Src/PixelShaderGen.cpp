@@ -529,6 +529,14 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		}
 	}
 
+	for (u32 i = 0; i < 8; ++i)
+	{
+		if (indmask & (1 << i))
+		{
+			// used for indirect stage, so initialize the thing...
+		}
+	}
+
 	// indirect texture map lookup
 	int nIndirectStagesUsed = 0;
 	if (bpmem.genMode.numindstages > 0)
@@ -900,6 +908,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
 		uid_data.SetTevindrefTexmap(i, texmap);
 
+		// TODO: Check for imask here... if imask&(1<<n), do not sample again...
 		out.Write("textemp = ");
 		SampleTexture<T>(out, "tevcoord", texswap, texmap, ApiType);
 	}
