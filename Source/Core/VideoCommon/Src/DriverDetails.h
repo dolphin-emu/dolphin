@@ -115,6 +115,13 @@ namespace DriverDetails
 		// Drawing on screen text causes the whole screen to swizzle in a terrible fashion
 		// Clearing the framebuffer causes one to never see a frame.
 		BUG_BROKENSWAP,
+		// Bug: Running on a Tegra 4 device
+		// Affected devices: Nvidia Tegra
+		// Started Version: 4
+		// Ended Version: 5
+		// Tegra 4 hardware limitations don't allow it to support OpenGL ES 3
+		// This is fixed in Tegra 5
+		BUG_ISTEGRA,
 	};
 	
 	// Initializes our internal vendor, device family, and driver version	

@@ -371,6 +371,7 @@ Renderer::Renderer()
 	// Set default GLES3 options
 	GLFunc::Init();
 	WARN_LOG(VIDEO, "Running the OpenGL ES 3 backend!");
+
 	g_Config.backend_info.bSupportsDualSourceBlend = false;
 	g_Config.backend_info.bSupportsGLSLUBO = !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS); 
 	g_Config.backend_info.bSupportsPrimitiveRestart = true; 
@@ -387,7 +388,10 @@ Renderer::Renderer()
 	g_ogl_config.bSupportCoverageMSAA = false; // XXX: GLES3 spec has MSAA
 	g_ogl_config.bSupportSampleShading = false; 
 	g_ogl_config.bSupportOGL31 = false; 
-	g_ogl_config.eSupportedGLSLVersion = GLSLES3;
+	if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
+		g_ogl_config.eSupportedGLSLVersion = GLSLES2;
+	else
+		g_ogl_config.eSupportedGLSLVersion = GLSLES3;
 #else
 #ifdef __APPLE__
 	glewExperimental = 1;
@@ -659,11 +663,11 @@ void Renderer::Init()
 		"ATTRIN vec3 color0;\n"
 		"VARYOUT vec4 c;\n"
 		"void main(void) {\n"
-		"	gl_Position = vec4(rawpos, 0.0f, 1.0f);\n"
-		"	c = vec4(color0, 1.0f);\n"
+		"	gl_Position = vec4(rawpos, 0.0, 1.0);\n"
+		"	c = vec4(color0, 1.0);\n"
 		"}\n",
 		"VARYIN vec4 c;\n"
-		"out vec4 ocol0;\n"
+		"COLOROUT(ocol0)\n"
 		"void main(void) {\n"
 		"	ocol0 = c;\n"
 		"}\n");

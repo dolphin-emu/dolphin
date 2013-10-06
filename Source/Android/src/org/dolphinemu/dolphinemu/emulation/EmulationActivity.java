@@ -76,7 +76,6 @@ public final class EmulationActivity extends Activity
 			NativeLibrary.SetDimensions((int)screenHeight, (int)screenWidth);
 		else
 			NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
-
 		NativeLibrary.SetFilename(gameToEmulate.getStringExtra("SelectedGame"));
 		Running = true;
 

@@ -33,7 +33,7 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 			g_Config.bHackedBufferUpload = false;
 		}
 		
-		if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERDATA))
+		if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERDATA) && !DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
 			m_uploadtype = BUFFERDATA;
 		else if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA))
 			m_uploadtype = BUFFERSUBDATA;
@@ -48,7 +48,7 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 		else 
 			m_uploadtype = MAP_AND_ORPHAN;
 	}
-	
+
 	Init();
 }
 

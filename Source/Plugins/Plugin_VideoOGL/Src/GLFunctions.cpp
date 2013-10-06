@@ -1,9 +1,12 @@
 // Copyright 2013 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
+
+#include "DriverDetails.h"
 #include "GLFunctions.h"
 #include "Log.h"
 #include <dlfcn.h>
+
 #ifdef USE_GLES3
 PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
 PFNGLUNMAPBUFFERPROC glUnmapBuffer;
@@ -67,16 +70,40 @@ namespace GLFunc
 	void Init()
 	{
 		self = dlopen(NULL, RTLD_LAZY);
-		LoadFunction("glBeginQuery", (void**)&glBeginQuery);
-		LoadFunction("glEndQuery", (void**)&glEndQuery);
-		LoadFunction("glGetQueryObjectuiv", (void**)&glGetQueryObjectuiv);
-		LoadFunction("glDeleteQueries", (void**)&glDeleteQueries);
-		LoadFunction("glGenQueries", (void**)&glGenQueries);
+
+		LoadFunction("glUnmapBuffer", (void**)&glUnmapBuffer);
+
+		if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
 		{
-			LoadFunction("glUnmapBuffer", (void**)&glUnmapBuffer);
+			LoadFunction("glBeginQueryEXT", (void**)&glBeginQuery);
+			LoadFunction("glEndQueryEXT", (void**)&glEndQuery);
+			LoadFunction("glGetQueryObjectuivEXT", (void**)&glGetQueryObjectuiv);
+			LoadFunction("glDeleteQueriesEXT", (void**)&glDeleteQueries);
+			LoadFunction("glGenQueriesEXT", (void**)&glGenQueries);
+
+			LoadFunction("glMapBufferRangeNV", (void**)&glMapBufferRange);
+			LoadFunction("glBindBufferRangeNV", (void**)&glBindBufferRange);
+			LoadFunction("glBlitFramebufferNV", (void**)&glBlitFramebuffer);
+
+			LoadFunction("glGenVertexArraysOES", (void**)&glGenVertexArrays);
+			LoadFunction("glDeleteVertexArraysOES", (void**)&glDeleteVertexArrays);
+			LoadFunction("glBindVertexArrayOES", (void**)&glBindVertexArray);
+
+			LoadFunction("glRenderbufferStorageMultisampleNV", (void**)&glRenderbufferStorageMultisample);
+
+			LoadFunction("glGetUniformBlockIndexNV", (void**)&glGetUniformBlockIndex);
+			LoadFunction("glUniformBlockBindingNV", (void**)&glUniformBlockBinding);
+		}
+		else
+		{
+			LoadFunction("glBeginQuery", (void**)&glBeginQuery);
+			LoadFunction("glEndQuery", (void**)&glEndQuery);
+			LoadFunction("glGetQueryObjectuiv", (void**)&glGetQueryObjectuiv);
+			LoadFunction("glDeleteQueries", (void**)&glDeleteQueries);
+			LoadFunction("glGenQueries", (void**)&glGenQueries);
+
 			LoadFunction("glMapBufferRange", (void**)&glMapBufferRange);
 			LoadFunction("glBindBufferRange", (void**)&glBindBufferRange);
-
 			LoadFunction("glBlitFramebuffer", (void**)&glBlitFramebuffer);
 
 			LoadFunction("glGenVertexArrays", (void**)&glGenVertexArrays);
@@ -86,24 +113,26 @@ namespace GLFunc
 			LoadFunction("glClientWaitSync", (void**)&glClientWaitSync);
 			LoadFunction("glDeleteSync", (void**)&glDeleteSync);
 			LoadFunction("glFenceSync", (void**)&glFenceSync);
+
 			LoadFunction("glSamplerParameterf", (void**)&glSamplerParameterf);
 			LoadFunction("glSamplerParameteri", (void**)&glSamplerParameteri);
 			LoadFunction("glSamplerParameterfv", (void**)&glSamplerParameterfv);
 			LoadFunction("glBindSampler", (void**)&glBindSampler);
 			LoadFunction("glDeleteSamplers", (void**)&glDeleteSamplers);
 			LoadFunction("glGenSamplers", (void**)&glGenSamplers);
-		}
+			      
+			LoadFunction("glGetProgramBinary", (void**)&glGetProgramBinary);
+			LoadFunction("glProgramBinary", (void**)&glProgramBinary);
+			LoadFunction("glProgramParameteri", (void**)&glProgramParameteri);
 			
-		LoadFunction("glGetProgramBinary", (void**)&glGetProgramBinary);
-		LoadFunction("glProgramBinary", (void**)&glProgramBinary);
-		LoadFunction("glProgramParameteri", (void**)&glProgramParameteri);
-		
-		LoadFunction("glDrawRangeElements", (void**)&glDrawRangeElements);
+			LoadFunction("glDrawRangeElements", (void**)&glDrawRangeElements);
 
-		LoadFunction("glRenderbufferStorageMultisample", (void**)&glRenderbufferStorageMultisample);
+			LoadFunction("glRenderbufferStorageMultisample", (void**)&glRenderbufferStorageMultisample);
 
-		LoadFunction("glGetUniformBlockIndex", (void**)&glGetUniformBlockIndex);
-		LoadFunction("glUniformBlockBinding", (void**)&glUniformBlockBinding);
+			LoadFunction("glGetUniformBlockIndex", (void**)&glGetUniformBlockIndex);
+			LoadFunction("glUniformBlockBinding", (void**)&glUniformBlockBinding);
+
+		}
 		dlclose(self);
 	}
 }

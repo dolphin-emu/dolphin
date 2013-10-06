@@ -78,7 +78,7 @@
     <string name="fastmem_desc">Uses potentially unsafe optimizations for memory access.</string>
     <string name="video_settings">Video</string>
     <string name="software_renderer">Software Renderer</string>
-    <string name="opengl_es3">OpenGL ES 3</string>
+    <string name="opengl_es3">OpenGL ES</string>
     <string name="video_backend">Video Backend</string>
     <string name="video_backend_to_use">Video backend to use</string>
     <string name="show_fps">Show FPS</string>

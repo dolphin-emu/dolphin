@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "DriverDetails.h"
 #include "SamplerCache.h"
 
 namespace OGL
@@ -15,11 +16,14 @@ SamplerCache::SamplerCache()
 
 SamplerCache::~SamplerCache()
 {
-	Clear();
+	if (!DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
+		Clear();
 }
 
 void SamplerCache::SetSamplerState(int stage, const TexMode0& tm0, const TexMode1& tm1)
 {
+	if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
+		return;
 	// TODO: can this go somewhere else?
 	if (m_last_max_anisotropy != g_ActiveConfig.iMaxAnisotropy)
 	{

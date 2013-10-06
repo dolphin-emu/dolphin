@@ -59,7 +59,7 @@ static const char *VProgram =
 	"void main()\n"
 	"{\n"
 	"	uv0 = tex0;\n"
-	"	gl_Position = vec4(rawpos, 0.0f, 1.0f);\n"
+	"	gl_Position = vec4(rawpos, 0.0, 1.0);\n"
 	"}\n";
 
 void CreatePrograms()
@@ -68,7 +68,7 @@ void CreatePrograms()
 	const char *FProgramRgbToYuyv =
 		"uniform sampler2DRect samp9;\n"
 		"VARYIN vec2 uv0;\n"
-		"out vec4 ocol0;\n"
+		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
 		"	vec3 c0 = texture2DRect(samp9, uv0).rgb;\n"
@@ -77,26 +77,26 @@ void CreatePrograms()
 		"	vec3 y_const = vec3(0.257,0.504,0.098);\n"
 		"	vec3 u_const = vec3(-0.148,-0.291,0.439);\n"
 		"	vec3 v_const = vec3(0.439,-0.368,-0.071);\n"
-		"	vec4 const3 = vec4(0.0625,0.5,0.0625f,0.5);\n"
+		"	vec4 const3 = vec4(0.0625,0.5,0.0625,0.5);\n"
 		"	ocol0 = vec4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
 		"}\n";
 
 	const char *FProgramYuyvToRgb =
 		"uniform sampler2DRect samp9;\n"
 		"VARYIN vec2 uv0;\n"
-		"out vec4 ocol0;\n"
+		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
 		"	vec4 c0 = texture2DRect(samp9, uv0).rgba;\n"
 		"	float f = step(0.5, fract(uv0.x));\n"
 		"	float y = mix(c0.b, c0.r, f);\n"
-		"	float yComp = 1.164f * (y - 0.0625f);\n"
-		"	float uComp = c0.g - 0.5f;\n"
-		"	float vComp = c0.a - 0.5f;\n"
-		"	ocol0 = vec4(yComp + (1.596f * vComp),\n"
-		"		yComp - (0.813f * vComp) - (0.391f * uComp),\n"
-		"		yComp + (2.018f * uComp),\n"
-		"		1.0f);\n"
+		"	float yComp = 1.164 * (y - 0.0625);\n"
+		"	float uComp = c0.g - 0.5;\n"
+		"	float vComp = c0.a - 0.5;\n"
+		"	ocol0 = vec4(yComp + (1.596 * vComp),\n"
+		"		yComp - (0.813 * vComp) - (0.391 * uComp),\n"
+		"		yComp + (2.018 * uComp),\n"
+		"		1.0);\n"
 		"}\n";
 
 	ProgramShaderCache::CompileShader(s_rgbToYuyvProgram, VProgram, FProgramRgbToYuyv);

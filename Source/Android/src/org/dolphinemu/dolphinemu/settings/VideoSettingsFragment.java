@@ -27,6 +27,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	public static String m_GLVersion;
 	public static String m_GLVendor;
 	public static String m_GLRenderer;
+	public static String m_GLExtensions;
 	private Activity m_activity;
 
 	/**
@@ -104,6 +105,16 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			return mGL.glGetString(GL10.GL_RENDERER);
 		}
 
+		/**
+		 * Gets the extension that the device supports
+		 *
+		 * @return String containing the extensions
+		 */
+		public String getExtensions()
+		{
+			return mGL.glGetString(GL10.GL_EXTENSIONS);
+		}
+
 		private EGLConfig chooseConfig()
 		{
 			int[] attribList = new int[] {
@@ -139,6 +150,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		m_GLVersion = mbuffer.getVersion();
 		m_GLVendor = mbuffer.getVendor();
 		m_GLRenderer = mbuffer.getRenderer();
+		m_GLExtensions = mbuffer.getExtensions();
 
 		boolean mSupportsGLES3 = false;
 
@@ -169,6 +181,14 @@ public final class VideoSettingsFragment extends PreferenceFragment
 				if (mVersion >= 14.0f)
 					mSupportsGLES3 = true;
 			}
+		}
+		if (!mSupportsGLES3 &&
+				m_GLVendor != null && m_GLVendor.equals("NVIDIA Corporation") &&
+				m_GLRenderer != null && m_GLRenderer.equals("NVIDIA Tegra") &&
+				m_GLExtensions != null && m_GLExtensions.contains("GL_OES_depth24"))
+		{
+			// Is a Tegra 4 since it supports 24bit depth
+			mSupportsGLES3 = true;
 		}
 		return mSupportsGLES3;
 	}
