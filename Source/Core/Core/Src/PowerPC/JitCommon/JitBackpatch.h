@@ -67,7 +67,7 @@
 		#define CTX_R15 __r15
 		#define CTX_RIP __rip
 	#elif defined(_M_IX86)
-		typedef x86_thread_state_t SContext;
+		typedef x86_thread_state32_t SContext;
 		#define CTX_EAX __eax
 		#define CTX_EBX __ebx
 		#define CTX_ECX __ecx

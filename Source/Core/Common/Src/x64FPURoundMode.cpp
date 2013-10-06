@@ -70,7 +70,7 @@ namespace FPURoundMode
 				3 << 8, // FPU_PREC_MASK
 			};
 			unsigned short _mode;
-			asm ("fstcw %0" : : "m" (_mode));
+			asm ("fstcw %0" : "=m" (_mode));
 			_mode = (_mode & ~table[3]) | table[mode];
 			asm ("fldcw %0" : : "m" (_mode));
 		#endif

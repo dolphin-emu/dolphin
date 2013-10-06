@@ -493,7 +493,6 @@ int CWII_IPC_HLE_Device_hid::Align(int num, int alignment)
 
 libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 {
-	u32 i;
 	libusb_device **list;
 	libusb_device_handle *handle = NULL;
 	ssize_t cnt;
@@ -527,7 +526,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 	static bool has_warned_about_drivers = false;
 #endif
 
-	for (i = 0; i < cnt; i++) {
+	for (ssize_t i = 0; i < cnt; i++) {
 		libusb_device *device = list[i];
 		struct libusb_device_descriptor desc;
 		int dRet = libusb_get_device_descriptor (device, &desc);

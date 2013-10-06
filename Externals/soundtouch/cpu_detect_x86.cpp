@@ -50,6 +50,9 @@
     #elif defined(_M_IX86)
         // windows non-gcc
         #include <intrin.h>
+    #endif
+    #ifndef bit_MMX
+        #define bit_MMX     (1 << 23)
         #define bit_MMX     (1 << 23)
         #define bit_SSE     (1 << 25)
         #define bit_SSE2    (1 << 26)
