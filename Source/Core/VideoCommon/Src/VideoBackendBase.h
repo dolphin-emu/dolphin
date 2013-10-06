@@ -128,14 +128,14 @@ public:
 
 	// the implementation needs not do synchronization logic, because calls to it are surrounded by PauseAndLock now
 	virtual void DoState(PointerWrap &p) = 0;
-	
+
 	virtual void CheckInvalidState() = 0;
 };
 
 extern std::vector<VideoBackend*> g_available_video_backends;
 extern VideoBackend* g_video_backend;
 
-// inherited by dx9/dx11/ogl backends
+// inherited by D3D/OGL backends
 class VideoBackendHardware : public VideoBackend
 {
 	void RunLoop(bool enable);
@@ -150,7 +150,7 @@ class VideoBackendHardware : public VideoBackend
 
 	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
 	u32 Video_GetQueryResult(PerfQueryType type);
-	
+
 	void Video_AddMessage(const char* pstr, unsigned int milliseconds);
 	void Video_ClearMessages();
 	bool Video_Screenshot(const char* filename);
@@ -171,9 +171,9 @@ class VideoBackendHardware : public VideoBackend
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 	void DoState(PointerWrap &p);
-	
+
 	bool m_invalid;
-	
+
 public:
 	 void CheckInvalidState();
 

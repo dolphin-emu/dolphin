@@ -58,18 +58,18 @@ unsigned int VideoBackend::PeekMessages()
 void VideoBackend::UpdateFPSDisplay(const char *text)
 {
 	TCHAR temp[512];
-	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs | DX11 | %hs"), scm_rev_str, text);
+	swprintf_s(temp, sizeof(temp)/sizeof(TCHAR), _T("%hs | D3D | %hs"), scm_rev_str, text);
 	EmuWindow::SetWindowText(temp);
 }
 
 std::string VideoBackend::GetName()
 {
-	return "DX11";
+	return "D3D";
 }
 
 std::string VideoBackend::GetDisplayName()
 {
-	return "Direct3D11";
+	return "Direct3D";
 }
 
 void InitBackendInfo()
@@ -82,7 +82,7 @@ void InitBackendInfo()
 		return;
 	}
 
-	g_Config.backend_info.APIType = API_D3D11;
+	g_Config.backend_info.APIType = API_D3D;
 	g_Config.backend_info.bUseRGBATextures = true; // the GX formats barely match any D3D11 formats
 	g_Config.backend_info.bUseMinimalMipCount = true;
 	g_Config.backend_info.bSupports3DVision = false;
@@ -142,7 +142,7 @@ void VideoBackend::ShowConfig(void *_hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	InitBackendInfo();
-	VideoConfigDiag diag((wxWindow*)_hParent, _trans("Direct3D11"), "gfx_dx11");
+	VideoConfigDiag diag((wxWindow*)_hParent, _trans("Direct3D"), "gfx_dx11");
 	diag.ShowModal();
 #endif
 }

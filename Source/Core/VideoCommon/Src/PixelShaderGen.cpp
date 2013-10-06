@@ -271,20 +271,15 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		for (int i = 0; i < 8; ++i)
 			out.Write("uniform sampler2D samp%d;\n", i);
 	}
-	else
+	else // D3D
 	{
 		// Declare samplers
 		for (int i = 0; i < 8; ++i)
-			out.Write("%s samp%d : register(s%d);\n", (ApiType == API_D3D11) ? "sampler" : "uniform sampler2D", i, i);
+			out.Write("sampler samp%d : register(s%d);\n", i, i);
 
-		if (ApiType == API_D3D11)
-		{
-			out.Write("\n");
-			for (int i = 0; i < 8; ++i)
-			{
-				out.Write("Texture2D Tex%d : register(t%d);\n", i, i);
-			}
-		}
+		out.Write("\n");
+		for (int i = 0; i < 8; ++i)
+			out.Write("Texture2D Tex%d : register(t%d);\n", i, i);
 	}
 	out.Write("\n");
 
@@ -361,13 +356,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			static bool warn_once = true;
 			if (warn_once)
-				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to use the D3D11 or OpenGL backend and enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU which supports D3D 11.0 / OGL 4.2 is required).");
+				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
 			warn_once = false;
 		}
 
 		out.Write("void main()\n{\n");
 	}
-	else
+	else // D3D
 	{
 		if (forced_early_z)
 		{
@@ -377,27 +372,17 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			static bool warn_once = true;
 			if (warn_once)
-				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to use the D3D11 or OpenGL backend and enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU which supports D3D 11.0 / OGL 4.2 is required).");
+				WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current configuration. Make sure to enable fast depth calculations. If this message still shows up your hardware isn't able to emulate the feature properly (a GPU with D3D 11.0 / OGL 4.2 support is required).");
 			warn_once = false;
 		}
 
 		out.Write("void main(\n");
-		if(ApiType != API_D3D11)
-		{
-			out.Write("  out float4 ocol0 : COLOR0,%s%s\n  in float4 rawpos : %s,\n",
-				dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : COLOR1," : "",
-				per_pixel_depth ? "\n  out float depth : DEPTH," : "",
-				ApiType & API_D3D9_SM20 ? "POSITION" : "VPOS");
-		}
-		else
-		{
-			out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
-				dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
-				per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
-		}
+		out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
+			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
+			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
-		// "centroid" attribute is only supported by D3D11
-		const char* optCentroid = (ApiType == API_D3D11 ? "centroid" : "");
+		// Use centroid sampling to make MSAA work properly
+		const char* optCentroid = "centroid";
 
 		out.Write("  in %s float4 colors_0 : COLOR0,\n", optCentroid);
 		out.Write("  in %s float4 colors_1 : COLOR1", optCentroid);
@@ -623,10 +608,11 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		WriteAlphaTest<T>(out, uid_data, ApiType, dstAlphaMode, per_pixel_depth);
 
 
+	// TODO: Make more sense out of this comment
 	// D3D9 doesn't support readback of depth in pixel shader, so we always have to calculate it again.
 	// This shouldn't be a performance issue as the written depth is usually still from perspective division
 	// but this isn't true for z-textures, so there will be depth issues between enabled and disabled z-textures fragments
-	if ((ApiType == API_OPENGL || ApiType == API_D3D11) && g_ActiveConfig.bFastDepthCalc)
+	if (g_ActiveConfig.bFastDepthCalc)
 		out.Write("float zCoord = rawpos.z;\n");
 	else
 	{
@@ -682,18 +668,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
 	{
 		out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-		if(ApiType & API_D3D9)
-		{
-			// alpha component must be 0 or the shader will not compile (Direct3D 9Ex restriction)
-			// Colors will be blended against the color from ocol1 in D3D 9...
-			out.Write("\tocol1 = float4(prev.a, prev.a, prev.a, 0.0);\n");
-		}
-		else
-		{
-			// Colors will be blended against the alpha from ocol1...
-			out.Write("\tocol1 = prev;\n");
-		}
-		// ...and the alpha from ocol0 will be written to the framebuffer.
+
+		// Colors will be blended against the alpha from ocol1 and
+		// the alpha from ocol0 will be written to the framebuffer.
+		out.Write("\tocol1 = prev;\n");
 		out.Write("\tocol0.a = " I_ALPHA"[0].a;\n");
 	}
 
@@ -1127,10 +1105,10 @@ void SampleTexture(T& out, const char *texcoords, const char *texswap, int texma
 {
 	out.SetConstantsUsed(C_TEXDIMS+texmap,C_TEXDIMS+texmap);
 
-	if (ApiType == API_D3D11)
+	if (ApiType == API_D3D)
 		out.Write("Tex%d.Sample(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", texmap,texmap, texcoords, texmap, texswap);
-	else
-		out.Write("%s(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", ApiType == API_OPENGL ? "texture" : "tex2D", texmap, texcoords, texmap, texswap);
+	else // OGL
+		out.Write("texture(samp%d,%s.xy * " I_TEXDIMS"[%d].xy).%s;\n", texmap, texcoords, texmap, texswap);
 }
 
 static const char *tevAlphaFuncsTable[] =
@@ -1164,7 +1142,6 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 
 	out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 
-	// using discard then return works the same in cg and dx9 but not in dx11
 	out.Write("\tif(!( ");
 
 	uid_data.alpha_test_comp0 = bpmem.alpha_test.comp0;
@@ -1198,14 +1175,14 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 	// It seems to be less buggy than not to update the depth buffer if alpha test fails,
 	// but both ways wouldn't be accurate.
 
-	// OpenGL 4.2 has a flag which allows the driver to still update the depth buffer 
+	// OpenGL 4.2 has a flag which allows the driver to still update the depth buffer
 	// if alpha test fails. The driver doesn't have to, but I assume they all do because
 	// it's the much faster code path for the GPU.
 	uid_data.alpha_test_use_zcomploc_hack = bpmem.UseEarlyDepthTest() && bpmem.zmode.updateenable && !g_ActiveConfig.backend_info.bSupportsEarlyZ;
 	if (!uid_data.alpha_test_use_zcomploc_hack)
 	{
 		out.Write("\t\tdiscard;\n");
-		if (ApiType != API_D3D11)
+		if (ApiType != API_D3D)
 			out.Write("\t\treturn;\n");
 	}
 
