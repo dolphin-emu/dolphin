@@ -158,9 +158,9 @@ void CommonAsmRoutines::GenQuantizedStores() {
 #ifdef _M_X64
 	SHUFPS(XMM0, R(XMM0), 1);
 	MOVQ_xmm(M(&psTemp[0]), XMM0);
-	MOV(64, R(RAX), M(&psTemp[0]));
 	TEST(32, R(ECX), Imm32(0x0C000000));
 	FixupBranch too_complex = J_CC(CC_NZ, true);
+	MOV(64, R(RAX), M(&psTemp[0]));
 	BSWAP(64, RAX);
 	MOV(64, MComplex(RBX, RCX, SCALE_1, 0), R(RAX));
 	FixupBranch skip_complex = J(true);
@@ -171,9 +171,9 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	SetJumpTarget(skip_complex);
 	RET();
 #else
-	MOVQ_xmm(M(&psTemp[0]), XMM0);
 	TEST(32, R(ECX), Imm32(0x0C000000));
 	FixupBranch argh = J_CC(CC_NZ, true);
+	MOVQ_xmm(M(&psTemp[0]), XMM0);
 	MOV(32, R(EAX), M(&psTemp));
 	BSWAP(32, EAX);
 	AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
@@ -183,6 +183,8 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	MOV(32, MDisp(ECX, 4+(u32)Memory::base), R(EAX));
 	FixupBranch arg2 = J(true);
 	SetJumpTarget(argh);
+	SHUFPS(XMM0, R(XMM0), 1);
+	MOVQ_xmm(M(&psTemp[0]), XMM0);
 	ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);
 	ABI_CallFunctionR((void *)&WriteDual32, ECX);
 	ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, true);

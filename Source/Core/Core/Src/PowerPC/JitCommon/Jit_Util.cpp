@@ -307,9 +307,9 @@ void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acce
 	}
 #endif
 
+	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 	TEST(32, R(reg_addr), Imm32(mem_mask));
 	FixupBranch fast = J_CC(CC_Z, true);
-	MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
 	bool noProlog = flags & SAFE_WRITE_NO_PROLOG;
 	bool swap = !(flags & SAFE_WRITE_NO_SWAP);
 	ABI_PushRegistersAndAdjustStack(registersInUse, noProlog);
