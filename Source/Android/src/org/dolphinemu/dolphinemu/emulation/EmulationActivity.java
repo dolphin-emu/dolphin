@@ -72,6 +72,7 @@ public final class EmulationActivity extends Activity
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		if (prefs.getString("gpuPref", "Software Rendering").equals("OGL")
 				&& VideoSettingsFragment.SupportsGLES3()
+				&& VideoSettingsFragment.m_GLVendor != null
 				&& VideoSettingsFragment.m_GLVendor.equals("Qualcomm"))
 			NativeLibrary.SetDimensions((int)screenHeight, (int)screenWidth);
 		else
