@@ -155,7 +155,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		boolean mSupportsGLES3 = false;
 
 		// Check for OpenGL ES 3 support (General case).
-		if (m_GLVersion != null && (m_GLVersion.contains("OpenGL ES 3.0") || m_GLVersion.equals("OpenGL ES 3.0")))
+		if (m_GLVersion != null && m_GLVersion.contains("OpenGL ES 3.0"))
 			mSupportsGLES3 = true;
 
 		// Checking for OpenGL ES 3 support for certain Qualcomm devices.
