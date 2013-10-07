@@ -576,8 +576,8 @@ void ProgramShaderCache::CreateHeader ( void )
 		, v==GLSLES2 ? "#define out " : ""
 		, v==GLSLES2 ? "#define ocol0 gl_FragColor" : ""
 		, v==GLSLES2 ? "#define ocol1 gl_FragColor" : "" 
-		, v==GLSLES2 ? "#extension GL_NV_uniform_buffer_object : enable" : ""
-		, v==GLSLES2 ? "#extension GL_NV_fragdepth : enable" : ""
+		, DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA) ? "#extension GL_NV_uniform_buffer_object : enable" : ""
+		, DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA) ? "#extension GL_NV_fragdepth : enable" : ""
 		, v==GLSLES2 ? "" : "out vec4 name;"
 	);
 }

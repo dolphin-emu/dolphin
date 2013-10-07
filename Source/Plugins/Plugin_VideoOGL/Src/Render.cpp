@@ -388,7 +388,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupportCoverageMSAA = false; // XXX: GLES3 spec has MSAA
 	g_ogl_config.bSupportSampleShading = false; 
 	g_ogl_config.bSupportOGL31 = false; 
-	if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
+	if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA) || DriverDetails::HasBug(DriverDetails::BUG_ISPOWERVR))
 		g_ogl_config.eSupportedGLSLVersion = GLSLES2;
 	else
 		g_ogl_config.eSupportedGLSLVersion = GLSLES3;

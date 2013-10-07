@@ -39,6 +39,7 @@ namespace DriverDetails
 		{VENDOR_MESA,      DRIVER_NOUVEAU,      BUG_BROKENHACKEDBUFFER, -1.0, -1.0, true},
 		{VENDOR_ATI,       DRIVER_ATI,          BUG_BROKENPINNEDMEMORY, -1.0, -1.0, true},
 		{VENDOR_TEGRA,     DRIVER_NVIDIA,       BUG_ISTEGRA,            -1.0, -1.0, true},
+		{VENDOR_IMGTEC,    DRIVER_IMGTEC,       BUG_ISPOWERVR,          -1.0, -1.0, true},
 	};
 
 	std::map<Bug, BugInfo> m_bugs;

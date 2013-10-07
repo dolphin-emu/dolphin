@@ -122,6 +122,13 @@ namespace DriverDetails
 		// Tegra 4 hardware limitations don't allow it to support OpenGL ES 3
 		// This is fixed in Tegra 5
 		BUG_ISTEGRA,
+		// Bug: Running on a PowerVR5 device
+		// Affected devices: PowerVR54x
+		// Started Version: 540
+		// Ended Version: 6xxx
+		// PowerVR 5 hardware limitations don't allow it to support OpenGL ES 3
+		// This is fixed in PowerVR6
+		BUG_ISPOWERVR,
 	};
 	
 	// Initializes our internal vendor, device family, and driver version	
