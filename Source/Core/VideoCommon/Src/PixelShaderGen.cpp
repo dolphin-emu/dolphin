@@ -319,7 +319,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
 			for (int i = 0; i < 8; ++i)
-				out.Write("VARYIN float3 uv%d_2;\n", i);
+				if(i < xfregs.numTexGen.numTexGens)
+					out.Write("VARYIN float3 uv%d_2;\n", i);
 			out.Write("VARYIN float4 clipPos_2;\n");
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			{
@@ -437,7 +438,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		{
 			if(numTexgen)
 				for (int i = 0; i < 8; ++i)
-					out.Write("float3 uv%d = uv%d_2;\n", i, i);
+					if(i < xfregs.numTexGen.numTexGens)
+						out.Write("float3 uv%d = uv%d_2;\n", i, i);
 			out.Write("float4 clipPos = clipPos_2;\n");
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			{

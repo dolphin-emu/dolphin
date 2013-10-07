@@ -143,7 +143,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
 			for (int i = 0; i < 8; ++i)
-				out.Write("VARYOUT  float3 uv%d_2;\n", i);
+				if (i < xfregs.numTexGen.numTexGens)
+					out.Write("VARYOUT  float3 uv%d_2;\n", i);
 			out.Write("VARYOUT   float4 clipPos_2;\n");
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 				out.Write("VARYOUT   float4 Normal_2;\n");
@@ -483,12 +484,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
 			for (unsigned int i = 0; i < 8; ++i)
-			{
 				if(i < xfregs.numTexGen.numTexGens)
 					out.Write(" uv%d_2.xyz =  o.tex%d;\n", i, i);
-				else
-					out.Write(" uv%d_2.xyz =  float3(0.0, 0.0, 0.0);\n", i);
-			}
 			out.Write("  clipPos_2 = o.clipPos;\n");
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 				out.Write("  Normal_2 = o.Normal;\n");
