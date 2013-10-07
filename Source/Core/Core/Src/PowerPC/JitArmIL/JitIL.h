@@ -31,6 +31,7 @@ private:
 	JitArmILAsmRoutineManager asm_routines;
 
 	void PrintDebug(UGeckoInstruction inst, u32 level);
+	void DoDownCount();
 
 public:
 	// Initialization, etc

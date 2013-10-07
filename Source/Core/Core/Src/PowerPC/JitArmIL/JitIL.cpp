@@ -70,9 +70,30 @@ void JitArmIL::DoNothing(UGeckoInstruction _inst)
 {
 	// Yup, just don't do anything.
 }
+void JitArmIL::DoDownCount()
+{
+	ARMReg rA = R14;
+	ARMReg rB = R12;
+	MOVI2R(rA, (u32)&CoreTiming::downcount);
+	LDR(rB, rA);
+	if(js.downcountAmount < 255) // We can enlarge this if we used rotations
+	{
+		SUBS(rB, rB, js.downcountAmount);
+		STR(rB, rA);
+	}
+	else
+	{
+		ARMReg rC = R11;
+		MOVI2R(rC, js.downcountAmount);
+		SUBS(rB, rB, rC);
+		STR(rB, rA);
+	}
+}
+
 void JitArmIL::WriteExitDestInReg(ARMReg Reg) 
 {
 	STR(Reg, R9, PPCSTATE_OFF(pc));
+	DoDownCount();
 	MOVI2R(Reg, (u32)asm_routines.dispatcher);
 	B(Reg);
 }
@@ -80,13 +101,14 @@ void JitArmIL::WriteExitDestInReg(ARMReg Reg)
 void JitArmIL::WriteRfiExitDestInR(ARMReg Reg) 
 {
 	STR(Reg, R9, PPCSTATE_OFF(pc));
-
+	DoDownCount();
 	MOVI2R(Reg, (u32)asm_routines.testExceptions);
 	B(Reg);
 }
 
 void JitArmIL::WriteExit(u32 destination, int exit_num)
 {
+	DoDownCount();
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
 	b->exitAddress[exit_num] = destination;

@@ -407,8 +407,14 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 		case BranchCond: {
 			if (isICmp(*getOp1(I)) &&
 			    isImm(*getOp2(getOp1(I)))) {
-				Jit->MOVI2R(R14, RI.Build->GetImmValue(getOp2(getOp1(I))));
-				Jit->CMP(regLocForInst(RI, getOp1(getOp1(I))), R14);
+				unsigned imm = RI.Build->GetImmValue(getOp2(getOp1(I)));
+				if (imm > 255)
+				{
+					Jit->MOVI2R(R14, imm);
+					Jit->CMP(regLocForInst(RI, getOp1(getOp1(I))), R14);
+				}
+				else
+					Jit->CMP(regLocForInst(RI, getOp1(getOp1(I))), imm);
 				CCFlags flag;
 				switch (getOpcode(*getOp1(I))) {
 					case ICmpEq: flag = CC_NEQ; break;
@@ -549,6 +555,11 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 			regEmitBinInst(RI, I, &JitArmIL::BIN_ADD, true);
 			break;
 		}
+		case Int3:
+			Jit->BKPT(0x321);
+			break;
+		case Tramp: break;
+		case Nop: break;
 		default:
 			PanicAlert("Unknown JIT instruction; aborting!");
 			ibuild->WriteToFile(0);
