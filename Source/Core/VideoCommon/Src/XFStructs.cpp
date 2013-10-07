@@ -60,8 +60,8 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 				if (xfregs.ambColor[chan] != newValue) 
 				{
 					VertexManager::Flush();
-					VertexShaderManager::SetMaterialColorChanged(chan);
-					PixelShaderManager::SetMaterialColorChanged(chan);
+					VertexShaderManager::SetMaterialColorChanged(chan, newValue);
+					PixelShaderManager::SetMaterialColorChanged(chan, newValue);
 				}
 				break;
 			}
@@ -73,8 +73,8 @@ void XFRegWritten(int transferSize, u32 baseAddress, u32 *pData)
 				if (xfregs.matColor[chan] != newValue)
 				{
 					VertexManager::Flush();
-					VertexShaderManager::SetMaterialColorChanged(chan + 2);
-					PixelShaderManager::SetMaterialColorChanged(chan + 2);
+					VertexShaderManager::SetMaterialColorChanged(chan + 2, newValue);
+					PixelShaderManager::SetMaterialColorChanged(chan + 2, newValue);
 				}
 				break;
 			}

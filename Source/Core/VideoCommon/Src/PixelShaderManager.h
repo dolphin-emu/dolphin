@@ -17,7 +17,6 @@ class PointerWrap;
 // The non-API dependent parts.
 class PixelShaderManager
 {
-	static void SetPSTextureDims(int texid);
 public:
 	static void Init();
 	static void Dirty();
@@ -41,9 +40,8 @@ public:
 	static void SetFogColorChanged();
 	static void SetFogParamChanged();
 	static void SetFogRangeAdjustChanged();
-	static void SetColorMatrix(const float* pmatrix);
 	static void InvalidateXFRange(int start, int end);
-	static void SetMaterialColorChanged(int index);
+	static void SetMaterialColorChanged(int index, u32 color);
 	
 	static PixelShaderConstants constants;
 	static bool dirty;

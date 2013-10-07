@@ -643,7 +643,7 @@ void VertexShaderManager::SetProjectionChanged()
 	bProjectionChanged = true;
 }
 
-void VertexShaderManager::SetMaterialColorChanged(int index)
+void VertexShaderManager::SetMaterialColorChanged(int index, u32 color)
 {
 	nMaterialsChanged  |= (1 << index);
 }
