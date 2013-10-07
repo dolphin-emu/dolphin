@@ -81,9 +81,6 @@ public:
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
 
-	void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
-	void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
-
 private:
 	void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data);
 };

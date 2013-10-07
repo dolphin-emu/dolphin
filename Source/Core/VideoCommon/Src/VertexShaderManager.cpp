@@ -517,12 +517,6 @@ void VertexShaderManager::SetConstants()
 			SetMultiVSConstant4fv(C_PROJECTION, 4, correctedMtx.data);
 		}
 	}
-	
-	if(dirty && g_ActiveConfig.backend_info.APIType != API_OPENGL)
-	{
-		dirty = false;
-		g_renderer->SetMultiVSConstant4fv(0, sizeof(constants)/16, (float*) &constants);	
-	}
 }
 
 void VertexShaderManager::InvalidateXFRange(int start, int end)

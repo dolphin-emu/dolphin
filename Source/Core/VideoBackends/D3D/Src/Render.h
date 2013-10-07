@@ -51,9 +51,6 @@ public:
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
 
 	static bool CheckForResize();
-
-	void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
-	void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
 };
 
 }

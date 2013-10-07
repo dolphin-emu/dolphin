@@ -12,13 +12,9 @@
 #include "D3DShader.h"
 #include "Globals.h"
 #include "VertexShaderCache.h"
+#include "VertexShaderManager.h"
 
 #include "ConfigManager.h"
-
-// See comment near the bottom of this file
-static unsigned int vs_constant_offset_table[C_VENVCONST_END];
-float vsconstants[C_VENVCONST_END*4];
-bool vscbufchanged = true;
 
 namespace DX11 {
 
@@ -44,15 +40,15 @@ ID3D11Buffer* vscbuf = NULL;
 ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 {
 	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
-	if (vscbufchanged)
+	if (VertexShaderManager::dirty)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(vscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, vsconstants, sizeof(vsconstants));
+		memcpy(map.pData, &VertexShaderManager::constants, sizeof(VertexShaderConstants));
 		D3D::context->Unmap(vscbuf, 0);
-		vscbufchanged = false;
+		VertexShaderManager::dirty = false;
 		
-		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(vsconstants));
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(VertexShaderConstants));
 	}
 	return vscbuf;
 }
@@ -116,7 +112,7 @@ void VertexShaderCache::Init()
 		{ "COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	unsigned int cbsize = ((sizeof(vsconstants))&(~0xf))+0x10; // must be a multiple of 16
+	unsigned int cbsize = ((sizeof(VertexShaderConstants))&(~0xf))+0x10; // must be a multiple of 16
 	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	HRESULT hr = D3D::device->CreateBuffer(&cbdesc, NULL, &vscbuf);
 	CHECK(hr==S_OK, "Create vertex shader constant buffer (size=%u)", cbsize);
@@ -140,19 +136,6 @@ void VertexShaderCache::Init()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearLayout, "clear input layout");
 
 	Clear();
-
-	// these values are hardcoded, they depend on internal D3DCompile behavior
-	// TODO: Do this with D3DReflect or something instead
-	unsigned int k;
-	for (k = 0;k <  6;k++) vs_constant_offset_table[C_POSNORMALMATRIX+k]       =   0+4*k;
-	for (k = 0;k <  4;k++) vs_constant_offset_table[C_PROJECTION+k]            =  24+4*k;
-	for (k = 0;k <  4;k++) vs_constant_offset_table[C_MATERIALS+k]             =  40+4*k;
-	for (k = 0;k < 40;k++) vs_constant_offset_table[C_LIGHTS+k]                =  56+4*k;
-	for (k = 0;k < 24;k++) vs_constant_offset_table[C_TEXMATRICES+k]           = 216+4*k;
-	for (k = 0;k < 64;k++) vs_constant_offset_table[C_TRANSFORMMATRICES+k]     = 312+4*k;	
-	for (k = 0;k < 32;k++) vs_constant_offset_table[C_NORMALMATRICES+k]        = 568+4*k;	
-	for (k = 0;k < 64;k++) vs_constant_offset_table[C_POSTTRANSFORMMATRICES+k] = 696+4*k;
-	vs_constant_offset_table[C_DEPTHPARAMS] = 952;
 
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX).c_str());
@@ -275,16 +258,6 @@ bool VertexShaderCache::InsertByteCode(const VertexShaderUid &uid, D3DBlob* bcod
 	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
 
 	return true;
-}
-
-// These are "callbacks" from VideoCommon and thus must be outside namespace DX11.
-// This will have to be changed when we merge.
-
-// TODO: fetch directly from VideoCommon
-void Renderer::SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
-{
-	memcpy(&vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4*count);
-	vscbufchanged = true;
 }
 
 }  // namespace DX11

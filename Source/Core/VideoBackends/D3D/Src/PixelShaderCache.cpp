@@ -14,14 +14,11 @@
 #include "Globals.h"
 #include "PixelShaderGen.h"
 #include "PixelShaderCache.h"
+#include "PixelShaderManager.h"
 
 #include "ConfigManager.h"
 
 extern int frameCount;
-
-// See comment near the bottom of this file.
-float psconstants[C_PENVCONST_END*4];
-bool pscbufchanged = true;
 
 namespace DX11
 {
@@ -339,15 +336,15 @@ ID3D11PixelShader* PixelShaderCache::GetClearProgram()
 ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 {
 	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
-	if (pscbufchanged)
+	if (PixelShaderManager::dirty)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(pscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		memcpy(map.pData, psconstants, sizeof(psconstants));
+		memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
 		D3D::context->Unmap(pscbuf, 0);
-		pscbufchanged = false;
+		PixelShaderManager::dirty = false;
 		
-		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(psconstants));
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants));
 	}
 	return pscbuf;
 }
@@ -364,7 +361,7 @@ public:
 
 void PixelShaderCache::Init()
 {
-	unsigned int cbsize = ((sizeof(psconstants))&(~0xf))+0x10; // must be a multiple of 16
+	unsigned int cbsize = ((sizeof(PixelShaderConstants))&(~0xf))+0x10; // must be a multiple of 16
 	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	D3D::device->CreateBuffer(&cbdesc, NULL, &pscbuf);
 	CHECK(pscbuf!=NULL, "Create pixel shader constant buffer");
@@ -534,14 +531,6 @@ bool PixelShaderCache::InsertByteCode(const PixelShaderUid &uid, const void* byt
 	INCSTAT(stats.numPixelShadersCreated);
 	SETSTAT(stats.numPixelShadersAlive, PixelShaders.size());
 	return true;
-}
-
-// These are "callbacks" from VideoCommon and thus must be outside namespace DX11.
-// This will have to be changed when we merge.
-void Renderer::SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
-{
-	memcpy(psconstants, f, sizeof(float)*4*count);
-	pscbufchanged = true;
 }
 
 }  // DX11

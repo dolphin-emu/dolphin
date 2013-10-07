@@ -355,12 +355,6 @@ void PixelShaderManager::SetConstants(u32 components)
 			nMaterialsChanged = 0;
 		}
 	}
-	
-	if(dirty && g_ActiveConfig.backend_info.APIType != API_OPENGL)
-	{
-		g_renderer->SetMultiPSConstant4fv(0, sizeof(constants)/16, (float*) &constants);
-		dirty = false;
-	}
 }
 
 void PixelShaderManager::SetPSTextureDims(int texid)

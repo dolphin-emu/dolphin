@@ -151,7 +151,6 @@
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\NativeVertexFormat.cpp" />
     <ClCompile Include="Src\PerfQuery.cpp" />
-    <ClCompile Include="Src\PixelShaderCache.cpp" />
     <ClCompile Include="Src\PostProcessing.cpp" />
     <ClCompile Include="Src\ProgramShaderCache.cpp" />
     <ClCompile Include="Src\RasterFont.cpp" />
@@ -169,7 +168,6 @@
     <ClCompile Include="Src\TextureCache.cpp" />
     <ClCompile Include="Src\TextureConverter.cpp" />
     <ClCompile Include="Src\VertexManager.cpp" />
-    <ClCompile Include="Src\VertexShaderCache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\FramebufferManager.h" />
