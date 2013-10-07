@@ -10,18 +10,16 @@
 #include "Statistics.h"
 #include "ImageWrite.h"
 #include "Render.h"
+#include "PixelShaderManager.h"
+#include "VertexShaderManager.h"
 
 namespace OGL
 {
 
 static const u32 UBO_LENGTH = 32*1024*1024;
 
-GLintptr ProgramShaderCache::s_vs_data_size;
-GLintptr ProgramShaderCache::s_ps_data_size;
-GLintptr ProgramShaderCache::s_vs_data_offset;
-u8 *ProgramShaderCache::s_ubo_buffer;
 u32 ProgramShaderCache::s_ubo_buffer_size;
-bool ProgramShaderCache::s_ubo_dirty;
+s32 ProgramShaderCache::s_ubo_align;
 
 static StreamBuffer *s_buffer;
 static int num_failures = 0;
@@ -35,6 +33,10 @@ UidChecker<PixelShaderUid,PixelShaderCode> ProgramShaderCache::pixel_uid_checker
 UidChecker<VertexShaderUid,VertexShaderCode> ProgramShaderCache::vertex_uid_checker;
 
 static char s_glsl_header[1024] = "";
+
+
+
+// Annoying sure, can be removed once we drop our UBO workaround
 
 const char *UniformNames[NUM_UNIFORMS] =
 {
@@ -60,6 +62,37 @@ const char *UniformNames[NUM_UNIFORMS] =
 	I_POSTTRANSFORMMATRICES,
 	I_DEPTHPARAMS,
 };
+
+struct s_svar
+{
+	const unsigned int reg;
+	const unsigned int size;
+};
+
+const s_svar PSVar_Loc[] = { {C_COLORS, 4 },
+						{C_KCOLORS, 4 },
+						{C_ALPHA, 1 },
+						{C_TEXDIMS, 8 },
+						{C_ZBIAS, 2  },
+						{C_INDTEXSCALE, 2  },
+						{C_INDTEXMTX, 6 },
+						{C_FOG, 3 },
+						{C_PLIGHTS, 40 },
+						{C_PMATERIALS, 4 },
+						};
+
+const s_svar VSVar_Loc[] = {  {C_POSNORMALMATRIX, 6 },
+						{C_PROJECTION, 4  },
+						{C_MATERIALS, 4 },
+						{C_LIGHTS, 40 },
+						{C_TEXMATRICES, 24 },
+						{C_TRANSFORMMATRICES, 64  },
+						{C_NORMALMATRICES, 32  },
+						{C_POSTTRANSFORMMATRICES, 64 },
+						{C_DEPTHPARAMS, 1 },
+						};
+
+// End of UBO workaround
 
 void SHADER::SetProgramVariables()
 {
@@ -162,30 +195,43 @@ void SHADER::Bind()
 	}
 }
 
-
-void ProgramShaderCache::SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count)
-{
-	s_ubo_dirty = true;
-	memcpy(s_ubo_buffer+(offset*4*sizeof(float)), f, count*4*sizeof(float));
-}
-
-void ProgramShaderCache::SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count)
-{
-	s_ubo_dirty = true;
-	memcpy(s_ubo_buffer+(offset*4*sizeof(float))+s_vs_data_offset, f, count*4*sizeof(float));
-}
-
 void ProgramShaderCache::UploadConstants()
 {
-	if(s_ubo_dirty) {
-		s_buffer->Alloc(s_ubo_buffer_size);
-		size_t offset = s_buffer->Upload(s_ubo_buffer, s_ubo_buffer_size);
-		glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, s_ps_data_size);
-		glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset + s_vs_data_offset, s_vs_data_size);
-		s_ubo_dirty = false;
+	if(g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	{
+		if(PixelShaderManager::dirty || VertexShaderManager::dirty)
+		{
+			s_buffer->Alloc(s_ubo_buffer_size);
+			
+			size_t offset = s_buffer->Upload((u8*)&PixelShaderManager::constants, ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align));
+			glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, sizeof(PixelShaderConstants));
+			offset = s_buffer->Upload((u8*)&VertexShaderManager::constants, ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align));
+			glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset, sizeof(VertexShaderConstants));
+	
+			PixelShaderManager::dirty = false;
+			VertexShaderManager::dirty = false;
+			
+			ADDSTAT(stats.thisFrame.bytesUniformStreamed, s_ubo_buffer_size);
+		}
+	}
+	else
+	{
+		// UBO workaround
+		// this must be updated per shader switch, so also update it when it's not dirty
+		for (unsigned int a = 0; a < 10; ++a)
+		{
+			if(last_entry->shader.UniformSize[a] > 0)
+				glUniform4fv(last_entry->shader.UniformLocations[a], last_entry->shader.UniformSize[a], (float*) &PixelShaderManager::constants + 4*PSVar_Loc[a].reg);
+		}
+		for (unsigned int a = 0; a < 9; ++a)
+		{
+			if(last_entry->shader.UniformSize[a+10] > 0)
+				glUniform4fv(last_entry->shader.UniformLocations[a+10], last_entry->shader.UniformSize[a+10], (float*) &VertexShaderManager::constants + 4*VSVar_Loc[a].reg);
+		}
 		
 		ADDSTAT(stats.thisFrame.bytesUniformStreamed, s_ubo_buffer_size);
 	}
+	
 }
 
 GLuint ProgramShaderCache::GetCurrentProgram(void)
@@ -419,22 +465,14 @@ void ProgramShaderCache::Init(void)
 	// then the UBO will fail.
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
-		GLint Align;
-		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &Align);
+		glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &s_ubo_align);
 
-		s_ps_data_size = C_PENVCONST_END * sizeof(float) * 4;
-		s_vs_data_size = C_VENVCONST_END * sizeof(float) * 4;
-		s_vs_data_offset = ROUND_UP(s_ps_data_size, Align);
-		s_ubo_buffer_size = ROUND_UP(s_ps_data_size, Align) + ROUND_UP(s_vs_data_size, Align);
+		s_ubo_buffer_size = ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) + ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align);
 
 		// We multiply by *4*4 because we need to get down to basic machine units.
 		// So multiply by four to get how many floats we have from vec4s
 		// Then once more to get bytes
 		s_buffer = new StreamBuffer(GL_UNIFORM_BUFFER, UBO_LENGTH);
-		
-		s_ubo_buffer = new u8[s_ubo_buffer_size];
-		memset(s_ubo_buffer, 0, s_ubo_buffer_size);
-		s_ubo_dirty = true;
 	}
 
 	// Read our shader cache, only if supported
@@ -509,8 +547,6 @@ void ProgramShaderCache::Shutdown(void)
 	{
 		delete s_buffer;
 		s_buffer = 0;
-		delete [] s_ubo_buffer;
-		s_ubo_buffer = 0;
 	}
 }
 

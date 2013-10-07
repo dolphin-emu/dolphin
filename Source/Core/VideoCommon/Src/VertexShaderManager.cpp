@@ -225,9 +225,6 @@ void VertexShaderManager::Dirty()
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
 void VertexShaderManager::SetConstants()
 {
-	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		dirty = true;
-
 	if (nTransformMatricesChanged[0] >= 0)
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
@@ -521,7 +518,7 @@ void VertexShaderManager::SetConstants()
 		}
 	}
 	
-	if(dirty)
+	if(dirty && g_ActiveConfig.backend_info.APIType != API_OPENGL)
 	{
 		dirty = false;
 		g_renderer->SetMultiVSConstant4fv(0, sizeof(constants)/16, (float*) &constants);	

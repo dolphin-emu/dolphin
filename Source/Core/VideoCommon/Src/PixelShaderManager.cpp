@@ -95,9 +95,6 @@ void PixelShaderManager::Shutdown()
 
 void PixelShaderManager::SetConstants(u32 components)
 {
-	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		dirty = true;
-	
 	for (int i = 0; i < 2; ++i)
 	{
 		if (s_nColorsChanged[i])
@@ -359,7 +356,7 @@ void PixelShaderManager::SetConstants(u32 components)
 		}
 	}
 	
-	if(dirty)
+	if(dirty && g_ActiveConfig.backend_info.APIType != API_OPENGL)
 	{
 		g_renderer->SetMultiPSConstant4fv(0, sizeof(constants)/16, (float*) &constants);
 		dirty = false;

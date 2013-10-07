@@ -53,17 +53,6 @@
 #define C_DEPTHPARAMS           (C_POSTTRANSFORMMATRICES + 64)
 #define C_VENVCONST_END			(C_DEPTHPARAMS + 1)
 
-const s_svar VSVar_Loc[] = {  {C_POSNORMALMATRIX, 6 },
-						{C_PROJECTION, 4  },
-						{C_MATERIALS, 4 },
-						{C_LIGHTS, 40 },
-						{C_TEXMATRICES, 24 },
-						{C_TRANSFORMMATRICES, 64  },
-						{C_NORMALMATRICES, 32  },
-						{C_POSTTRANSFORMMATRICES, 64 },
-						{C_DEPTHPARAMS, 1 },
-						};
-
 #pragma pack(1)
 
 struct vertex_shader_uid_data

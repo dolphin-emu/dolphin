@@ -43,19 +43,6 @@ enum DSTALPHA_MODE
 	DSTALPHA_DUAL_SOURCE_BLEND // Use dual-source blending
 };
 
-// Annoying sure, can be removed once we get up to GLSL ~1.3
-const s_svar PSVar_Loc[] = { {C_COLORS, 4 },
-						{C_KCOLORS, 4 },
-						{C_ALPHA, 1 },
-						{C_TEXDIMS, 8 },
-						{C_ZBIAS, 2  },
-						{C_INDTEXSCALE, 2  },
-						{C_INDTEXMTX, 6 },
-						{C_FOG, 3 },
-						{C_PLIGHTS, 40 },
-						{C_PMATERIALS, 4 },
-						};
-
 #pragma pack(1)
 struct pixel_shader_uid_data
 {
