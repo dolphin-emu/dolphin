@@ -511,7 +511,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			out.Write("\tiprev.a = %s;\n", tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
 		}
 	}
-	out.Write("\tiprev = iprev & 0xFF;\n");
+	out.Write("\tiprev = iprev & 255;\n");
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	uid_data.Pretest = Pretest;
@@ -616,14 +616,14 @@ static const char *TEVCMPColorOPTable[16] =
 	"float3(0.0, 0.0, 0.0)",//5
 	"float3(0.0, 0.0, 0.0)",//6
 	"float3(0.0, 0.0, 0.0)",//7
-	"   %s + (((%s.r&0xFF) > %s.r) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_R8_GT 8
-	"   %s + (((%s.r&0xFF) == %s.r) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_R8_EQ 9
-	"   %s + ((idot((%s.rgb&0xFF), comp16) >  idot((%s.rgb&0xFF), comp16)) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_GR16_GT 10
-	"   %s + ((idot((%s.rgb&0xFF), comp16) == idot((%s.rgb&0xFF), comp16)) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_GR16_EQ 11
-	"   %s + ((idot((%s.rgb&0xFF), comp24) >  idot((%s.rgb&0xFF), comp24)) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_BGR24_GT 12
-	"   %s + ((idot((%s.rgb&0xFF), comp24) == idot((%s.rgb&0xFF), comp24)) ? (%s&0xFF): int3(0,0,0))",//#define TEVCMP_BGR24_EQ 13
-	"   %s + int3(max(sign(int3((%s.rgb&0xFF)) - int3((%s.rgb&0xFF))), int3(0,0,0)) * (%s&0xFF))",//#define TEVCMP_RGB8_GT  14
-	"   %s + int3((int3(255,255,255) - max(sign(abs(int3((%s.rgb&0xFF)) - int3((%s.rgb&0xFF)))), int3(0,0,0))) * (%s&0xFF))"//#define TEVCMP_RGB8_EQ  15
+	"   %s + (((%s.r&255) > %s.r) ? (%s&255): int3(0,0,0))",//#define TEVCMP_R8_GT 8
+	"   %s + (((%s.r&255) == %s.r) ? (%s&255): int3(0,0,0))",//#define TEVCMP_R8_EQ 9
+	"   %s + ((idot((%s.rgb&255), comp16) >  idot((%s.rgb&255), comp16)) ? (%s&255): int3(0,0,0))",//#define TEVCMP_GR16_GT 10
+	"   %s + ((idot((%s.rgb&255), comp16) == idot((%s.rgb&255), comp16)) ? (%s&255): int3(0,0,0))",//#define TEVCMP_GR16_EQ 11
+	"   %s + ((idot((%s.rgb&255), comp24) >  idot((%s.rgb&255), comp24)) ? (%s&255): int3(0,0,0))",//#define TEVCMP_BGR24_GT 12
+	"   %s + ((idot((%s.rgb&255), comp24) == idot((%s.rgb&255), comp24)) ? (%s&255): int3(0,0,0))",//#define TEVCMP_BGR24_EQ 13
+	"   %s + int3(max(sign(int3((%s.rgb&255)) - int3((%s.rgb&255))), int3(0,0,0)) * (%s&255))",//#define TEVCMP_RGB8_GT  14
+	"   %s + int3((int3(255,255,255) - max(sign(abs(int3((%s.rgb&255)) - int3((%s.rgb&255)))), int3(0,0,0))) * (%s&255))"//#define TEVCMP_RGB8_EQ  15
 };
 
 //table with the alpha compare operations
@@ -637,14 +637,14 @@ static const char *TEVCMPAlphaOPTable[16] =
 	"0.0",//5
 	"0.0",//6
 	"0.0",//7
-	"   %s.a + (((%s.r&0xFF) > (%s.r&0xFF)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_R8_GT 8
-	"   %s.a + (((%s.r&0xFF) == (%s.r&0xFF)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_R8_EQ 9
-	"   %s.a + ((idot((%s.rgb&0xFF), comp16) >  idot((%s.rgb&0xFF), comp16)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_GR16_GT 10
-	"   %s.a + ((idot((%s.rgb&0xFF), comp16) == idot((%s.rgb&0xFF), comp16)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_GR16_EQ 11
-	"   %s.a + ((idot((%s.rgb&0xFF), comp24) >  idot((%s.rgb&0xFF), comp24)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_BGR24_GT 12
-	"   %s.a + ((idot((%s.rgb&0xFF), comp24) == idot((%s.rgb&0xFF), comp24)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_BGR24_EQ 13
-	"   %s.a + (((%s.a&0xFF) >  (%s.a&0xFF)) ? (%s.a&0xFF) : 0)",//#define TEVCMP_A8_GT 14
-	"   %s.a + (((%s.a&0xFF) == (%s.a&0xFF)) ? (%s.a&0xFF) : 0)" //#define TEVCMP_A8_EQ 15
+	"   %s.a + (((%s.r&255) > (%s.r&255)) ? (%s.a&255) : 0)",//#define TEVCMP_R8_GT 8
+	"   %s.a + (((%s.r&255) == (%s.r&255)) ? (%s.a&255) : 0)",//#define TEVCMP_R8_EQ 9
+	"   %s.a + ((idot((%s.rgb&255), comp16) >  idot((%s.rgb&255), comp16)) ? (%s.a&255) : 0)",//#define TEVCMP_GR16_GT 10
+	"   %s.a + ((idot((%s.rgb&255), comp16) == idot((%s.rgb&255), comp16)) ? (%s.a&255) : 0)",//#define TEVCMP_GR16_EQ 11
+	"   %s.a + ((idot((%s.rgb&255), comp24) >  idot((%s.rgb&255), comp24)) ? (%s.a&255) : 0)",//#define TEVCMP_BGR24_GT 12
+	"   %s.a + ((idot((%s.rgb&255), comp24) == idot((%s.rgb&255), comp24)) ? (%s.a&255) : 0)",//#define TEVCMP_BGR24_EQ 13
+	"   %s.a + (((%s.a&255) >  (%s.a&255)) ? (%s.a&255) : 0)",//#define TEVCMP_A8_GT 14
+	"   %s.a + (((%s.a&255) == (%s.a&255)) ? (%s.a&255) : 0)" //#define TEVCMP_A8_EQ 15
 };
 
 template<class T>
@@ -670,7 +670,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (bpmem.tevind[n].bs != ITBA_OFF)
 		{
 			const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
-			const char *tevIndAlphaMask[] = {"0xF8", "0xE0", "0xF0", "0xF8"};
+			const char *tevIndAlphaMask[] = {"248", "224", "240", "248"};
 			out.Write("alphabump = iindtex%d.%s & %s;\n",
 					bpmem.tevind[n].bt,
 					tevIndAlphaSel[bpmem.tevind[n].bs],
@@ -682,7 +682,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		}
 
 		// format
-		const char *tevIndFmtMask[]   = {"0xFF", "0x1F", "0x0F", "0x07" };
+		const char *tevIndFmtMask[]   = {"255", "31", "15", "7" };
 		out.Write("int3 iindtevcrd%d = iindtex%d & %s;\n", n, bpmem.tevind[n].bt, tevIndFmtMask[bpmem.tevind[n].fmt]);
 
 		// bias - TODO: Check if this needs to be this complicated..
@@ -865,7 +865,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
 			out.Write("%s %s ", tevCInputTable[cc.d], tevOpTable[cc.op]);
 
-		out.Write("((%s&0xFF) * (int3(255,255,255) - (%s&0xFF)) + (%s&0xFF) * (%s&0xFF)) / 255", tevCInputTable[cc.a], tevCInputTable[cc.c], tevCInputTable[cc.b], tevCInputTable[cc.c]);
+		out.Write("((%s&255) * (int3(255,255,255) - (%s&255)) + (%s&255) * (%s&255)) / 255", tevCInputTable[cc.a], tevCInputTable[cc.c], tevCInputTable[cc.b], tevCInputTable[cc.c]);
 
 		out.Write("%s", tevBiasTable[cc.bias]);
 
@@ -899,7 +899,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
 			out.Write("%s.a %s ", tevAInputTable[ac.d], tevOpTable[ac.op]);
 
-		out.Write("((%s.a&0xFF) * (255 - (%s.a&0xFF)) + (%s.a&0xFF) * (%s.a&0xFF)) / 255", tevAInputTable[ac.a], tevAInputTable[ac.c], tevAInputTable[ac.b], tevAInputTable[ac.c]);
+		out.Write("((%s.a&255) * (255 - (%s.a&255)) + (%s.a&255) * (%s.a&255)) / 255", tevAInputTable[ac.a], tevAInputTable[ac.c], tevAInputTable[ac.b], tevAInputTable[ac.c]);
 
 		out.Write("%s",tevBiasTable[ac.bias]);
 
