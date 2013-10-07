@@ -21,6 +21,8 @@
 #ifdef _M_ARM
 #include "JitArm32/Jit.h"
 #include "JitArm32/JitArm_Tables.h"
+#include "JitArmIL/JitIL.h"
+#include "JitArmIL/JitIL_Tables.h"
 #endif
 
 #include "Profiler.h"
@@ -64,6 +66,11 @@ namespace JitInterface
 				ptr = new JitArm();
 				break;
 			}
+			case 4:
+			{
+				ptr = new JitArmIL();
+				break;
+			}
 			#endif
 			default:
 			{
@@ -97,6 +104,11 @@ namespace JitInterface
 			case 3:
 			{
 				JitArmTables::InitTables();
+				break;
+			}
+			case 4:
+			{
+				JitArmILTables::InitTables();
 				break;
 			}
 			#endif
