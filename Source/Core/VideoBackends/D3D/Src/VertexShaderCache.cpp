@@ -280,32 +280,7 @@ bool VertexShaderCache::InsertByteCode(const VertexShaderUid &uid, D3DBlob* bcod
 // These are "callbacks" from VideoCommon and thus must be outside namespace DX11.
 // This will have to be changed when we merge.
 
-// maps the constant numbers to float indices in the constant buffer
-void Renderer::SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
-{
-	vsconstants[vs_constant_offset_table[const_number]  ] = f1;
-	vsconstants[vs_constant_offset_table[const_number]+1] = f2;
-	vsconstants[vs_constant_offset_table[const_number]+2] = f3;
-	vsconstants[vs_constant_offset_table[const_number]+3] = f4;
-	vscbufchanged = true;
-}
-
-void Renderer::SetVSConstant4fv(unsigned int const_number, const float* f)
-{
-	memcpy(&vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4);
-	vscbufchanged = true;
-}
-
-void Renderer::SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float* f)
-{
-	for (unsigned int i = 0; i < count; i++)
-	{
-		memcpy(&vsconstants[vs_constant_offset_table[const_number+i]], f+3*i, sizeof(float)*3);
-		vsconstants[vs_constant_offset_table[const_number+i]+3] = 0.f;		
-	}
-	vscbufchanged = true;
-}
-
+// TODO: fetch directly from VideoCommon
 void Renderer::SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
 	memcpy(&vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4*count);

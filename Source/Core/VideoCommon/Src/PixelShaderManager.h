@@ -8,8 +8,11 @@
 #include "BPMemory.h"
 #include "XFMemory.h"
 #include "PixelShaderGen.h"
+#include "ConstantManager.h"
 
 class PointerWrap;
+
+
 
 // The non-API dependent parts.
 class PixelShaderManager
@@ -41,6 +44,9 @@ public:
 	static void SetColorMatrix(const float* pmatrix);
 	static void InvalidateXFRange(int start, int end);
 	static void SetMaterialColorChanged(int index);
+	
+	static PixelShaderConstants constants;
+	static bool dirty;
 };
 
 

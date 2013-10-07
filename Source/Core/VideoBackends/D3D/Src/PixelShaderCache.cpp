@@ -538,47 +538,9 @@ bool PixelShaderCache::InsertByteCode(const PixelShaderUid &uid, const void* byt
 
 // These are "callbacks" from VideoCommon and thus must be outside namespace DX11.
 // This will have to be changed when we merge.
-
-// HACK to avoid some invasive VideoCommon changes
-// these values are hardcoded, they depend on internal D3DCompile behavior; TODO: Solve this with D3DReflect or something
-// offset given in floats, table index is float4
-static const unsigned int ps_constant_offset_table[] = {
-	0, 4, 8, 12,					// C_COLORS, 16
-	16, 20, 24, 28,					// C_KCOLORS, 16
-	32,								// C_ALPHA, 4
-	36, 40, 44, 48, 52, 56, 60, 64,	// C_TEXDIMS, 32
-	68, 72,							// C_ZBIAS, 8
-	76, 80,							// C_INDTEXSCALE, 8
-	84, 88, 92, 96, 100, 104,		// C_INDTEXMTX, 24
-	108, 112, 116,					// C_FOG, 12
-	120, 124, 128, 132, 136,		// C_PLIGHTS0, 20
-	140, 144, 148, 152, 156,		// C_PLIGHTS1, 20
-	160, 164, 168, 172,	176,		// C_PLIGHTS2, 20
-	180, 184, 188, 192, 196,		// C_PLIGHTS3, 20		
-	200, 204, 208, 212, 216,		// C_PLIGHTS4, 20
-	220, 224, 228, 232, 236,		// C_PLIGHTS5, 20
-	240, 244, 248, 252,	256,		// C_PLIGHTS6, 20
-	260, 264, 268, 272, 276,		// C_PLIGHTS7, 20
-	280, 284, 288, 292				// C_PMATERIALS, 16	
-};
-void Renderer::SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
-{
-	psconstants[ps_constant_offset_table[const_number]  ] = f1;
-	psconstants[ps_constant_offset_table[const_number]+1] = f2;
-	psconstants[ps_constant_offset_table[const_number]+2] = f3;
-	psconstants[ps_constant_offset_table[const_number]+3] = f4;
-	pscbufchanged = true;
-}
-
-void Renderer::SetPSConstant4fv(unsigned int const_number, const float* f)
-{
-	memcpy(&psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4);
-	pscbufchanged = true;
-}
-
 void Renderer::SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
-	memcpy(&psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count);
+	memcpy(psconstants, f, sizeof(float)*4*count);
 	pscbufchanged = true;
 }
 

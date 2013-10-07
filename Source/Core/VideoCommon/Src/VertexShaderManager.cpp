@@ -36,6 +36,9 @@ static Matrix33 s_viewInvRotationMatrix;
 static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
 
+VertexShaderConstants VertexShaderManager::constants;
+bool VertexShaderManager::dirty;
+
 void UpdateViewport(Matrix44& vpCorrection);
 
 void UpdateViewportWithCorrection()
@@ -45,22 +48,48 @@ void UpdateViewportWithCorrection()
 
 inline void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	g_renderer->SetVSConstant4f(const_number, f1, f2, f3, f4);
+	float4* c = (float4*) &VertexShaderManager::constants;
+	c[const_number][0] = f1;
+	c[const_number][1] = f2;
+	c[const_number][2] = f3;
+	c[const_number][3] = f4;
+	VertexShaderManager::dirty = true;
 }
 
 inline void SetVSConstant4fv(unsigned int const_number, const float *f)
 {
-	g_renderer->SetVSConstant4fv(const_number, f);
+	float4* c = (float4*) &VertexShaderManager::constants;
+	c[const_number][0] = f[0];
+	c[const_number][1] = f[1];
+	c[const_number][2] = f[2];
+	c[const_number][3] = f[3];
+	VertexShaderManager::dirty = true;
 }
 
 inline void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	g_renderer->SetMultiVSConstant3fv(const_number, count, f);
+	float4* c = (float4*) &VertexShaderManager::constants;
+	for(u32 i=0; i<count; i++)
+	{
+		c[const_number+i][0] = f[0 + 3*i];
+		c[const_number+i][1] = f[1 + 3*i];
+		c[const_number+i][2] = f[2 + 3*i];
+		c[const_number+i][3] = 0.0f;
+	}
+	VertexShaderManager::dirty = true;
 }
 
 inline void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	g_renderer->SetMultiVSConstant4fv(const_number, count, f);
+	float4* c = (float4*) &VertexShaderManager::constants;
+	for(u32 i=0; i<count; i++)
+	{
+		c[const_number+i][0] = f[0 + 4*i];
+		c[const_number+i][1] = f[1 + 4*i];
+		c[const_number+i][2] = f[2 + 4*i];
+		c[const_number+i][3] = f[3 + 4*i];
+	}
+	VertexShaderManager::dirty = true;
 }
 
 struct ProjectionHack
@@ -153,6 +182,7 @@ void VertexShaderManager::Init()
 
 	memset(&xfregs, 0, sizeof(xfregs));
 	memset(xfmem, 0, sizeof(xfmem));
+	memset(&constants, 0 , sizeof(constants));
 	ResetView();
 
 	// TODO: should these go inside ResetView()?
@@ -187,6 +217,8 @@ void VertexShaderManager::Dirty()
 	bProjectionChanged = true;
 
 	nMaterialsChanged = 15;
+	
+	dirty = true;
 }
 
 // Syncs the shader constant buffers with xfmem
@@ -194,7 +226,7 @@ void VertexShaderManager::Dirty()
 void VertexShaderManager::SetConstants()
 {
 	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		Dirty();
+		dirty = true;
 
 	if (nTransformMatricesChanged[0] >= 0)
 	{
@@ -488,6 +520,12 @@ void VertexShaderManager::SetConstants()
 			SetMultiVSConstant4fv(C_PROJECTION, 4, correctedMtx.data);
 		}
 	}
+	
+	if(dirty)
+	{
+		dirty = false;
+		g_renderer->SetMultiVSConstant4fv(0, sizeof(constants)/16, (float*) &constants);	
+	}
 }
 
 void VertexShaderManager::InvalidateXFRange(int start, int end)
@@ -669,6 +707,8 @@ void VertexShaderManager::DoState(PointerWrap &p)
 	p.Do(s_viewInvRotationMatrix);
 	p.Do(s_fViewTranslationVector);
 	p.Do(s_fViewRotation);
+	p.Do(constants);
+	p.Do(dirty);
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{

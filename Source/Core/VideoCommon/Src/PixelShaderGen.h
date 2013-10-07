@@ -44,16 +44,16 @@ enum DSTALPHA_MODE
 };
 
 // Annoying sure, can be removed once we get up to GLSL ~1.3
-const s_svar PSVar_Loc[] = { {I_COLORS, C_COLORS, 4 },
-						{I_KCOLORS, C_KCOLORS, 4 },
-						{I_ALPHA, C_ALPHA, 1 },
-						{I_TEXDIMS, C_TEXDIMS, 8 },
-						{I_ZBIAS , C_ZBIAS, 2  },
-						{I_INDTEXSCALE , C_INDTEXSCALE, 2  },
-						{I_INDTEXMTX, C_INDTEXMTX, 6 },
-						{I_FOG, C_FOG, 3 },
-						{I_PLIGHTS, C_PLIGHTS, 40 },
-						{I_PMATERIALS, C_PMATERIALS, 4 },
+const s_svar PSVar_Loc[] = { {C_COLORS, 4 },
+						{C_KCOLORS, 4 },
+						{C_ALPHA, 1 },
+						{C_TEXDIMS, 8 },
+						{C_ZBIAS, 2  },
+						{C_INDTEXSCALE, 2  },
+						{C_INDTEXMTX, 6 },
+						{C_FOG, 3 },
+						{C_PLIGHTS, 40 },
+						{C_PMATERIALS, 4 },
 						};
 
 #pragma pack(1)

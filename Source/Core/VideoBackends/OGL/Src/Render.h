@@ -81,13 +81,7 @@ public:
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
 
-	void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
-	void SetPSConstant4fv(unsigned int const_number, const float *f);
 	void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
-
-	void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
-	void SetVSConstant4fv(unsigned int const_number, const float *f);
-	void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f);
 	void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
 
 private:

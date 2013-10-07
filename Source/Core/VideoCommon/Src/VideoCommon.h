@@ -134,7 +134,6 @@ inline unsigned int GetPow2(unsigned int val)
 }
 struct s_svar
 {
-	const char *name;
 	const unsigned int reg;
 	const unsigned int size;
 };

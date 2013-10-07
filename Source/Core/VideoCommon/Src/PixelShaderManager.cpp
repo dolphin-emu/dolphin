@@ -29,19 +29,40 @@ static u32 lastTexDims[8]; // width | height << 16 | wrap_s << 28 | wrap_t << 30
 static u32 lastZBias;
 static int nMaterialsChanged;
 
+PixelShaderConstants PixelShaderManager::constants;
+bool PixelShaderManager::dirty;
+
 inline void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	g_renderer->SetPSConstant4f(const_number, f1, f2, f3, f4);
+	float4* c = (float4*) &PixelShaderManager::constants;
+	c[const_number][0] = f1;
+	c[const_number][1] = f2;
+	c[const_number][2] = f3;
+	c[const_number][3] = f4;
+	PixelShaderManager::dirty = true;
 }
 
 inline void SetPSConstant4fv(unsigned int const_number, const float *f)
 {
-	g_renderer->SetPSConstant4fv(const_number, f);
+	float4* c = (float4*) &PixelShaderManager::constants;
+	c[const_number][0] = f[0];
+	c[const_number][1] = f[1];
+	c[const_number][2] = f[2];
+	c[const_number][3] = f[3];
+	PixelShaderManager::dirty = true;
 }
 
 inline void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	g_renderer->SetMultiPSConstant4fv(const_number, count, f);
+	float4* c = (float4*) &PixelShaderManager::constants;
+	for(u32 i=0; i<count; i++)
+	{
+		c[const_number+i][0] = f[0 + 4*i];
+		c[const_number+i][1] = f[1 + 4*i];
+		c[const_number+i][2] = f[2 + 4*i];
+		c[const_number+i][3] = f[3 + 4*i];
+	}
+	PixelShaderManager::dirty = true;
 }
 
 void PixelShaderManager::Init()
@@ -50,6 +71,7 @@ void PixelShaderManager::Init()
 	memset(lastTexDims, 0, sizeof(lastTexDims));
 	lastZBias = 0;
 	memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
+	memset(&constants, 0, sizeof(constants));
 	Dirty();
 }
 
@@ -63,6 +85,7 @@ void PixelShaderManager::Dirty()
 	s_bFogRangeAdjustChanged = s_bFogColorChanged = s_bFogParamChanged = true;
 	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
 	nMaterialsChanged = 15;
+	dirty = true;
 }
 
 void PixelShaderManager::Shutdown()
@@ -73,8 +96,8 @@ void PixelShaderManager::Shutdown()
 void PixelShaderManager::SetConstants(u32 components)
 {
 	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		Dirty();
-
+		dirty = true;
+	
 	for (int i = 0; i < 2; ++i)
 	{
 		if (s_nColorsChanged[i])
@@ -335,6 +358,12 @@ void PixelShaderManager::SetConstants(u32 components)
 			nMaterialsChanged = 0;
 		}
 	}
+	
+	if(dirty)
+	{
+		g_renderer->SetMultiPSConstant4fv(0, sizeof(constants)/16, (float*) &constants);
+		dirty = false;
+	}
 }
 
 void PixelShaderManager::SetPSTextureDims(int texid)
@@ -495,7 +524,9 @@ void PixelShaderManager::DoState(PointerWrap &p)
 	p.Do(lastAlpha);
 	p.Do(lastTexDims);
 	p.Do(lastZBias);
-
+	p.Do(constants);
+	p.Do(dirty);
+	
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		Dirty();
