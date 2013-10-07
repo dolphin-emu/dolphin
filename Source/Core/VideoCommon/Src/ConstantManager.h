@@ -7,12 +7,8 @@
 
 // all constant buffer attributes must be 16 bytes aligned, so this are the only allowed components:
 typedef float float4[4];
-typedef u8 uchar16[16];
-typedef s8 schar16[16];
-typedef u16 ushort8[8];
-typedef s16 sshort8[8];
 typedef u32 uint4[4];
-typedef s32 sint4[4];
+typedef s32 int4[4];
 
 struct PixelShaderConstants
 {
