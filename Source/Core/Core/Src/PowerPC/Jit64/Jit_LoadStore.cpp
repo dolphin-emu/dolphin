@@ -149,7 +149,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		update = ((inst.SUBOP10 & 0x20) != 0);
 	else
 		update = ((inst.OPCD & 1) != 0);
-	
+
+	bool zeroOffset = inst.OPCD != 31 && inst.SIMM_16 == 0;
+
 	// Prepare address operand
 	Gen::OpArg opAddress;
 	if (!update && !a)
@@ -170,23 +172,23 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	}
 	else
 	{
-		if ((inst.OPCD != 31) && gpr.R(a).IsImm())
+		if ((inst.OPCD != 31) && gpr.R(a).IsImm() && !js.memcheck)
 		{
 			u32 val = (u32)gpr.R(a).offset + (s32)inst.SIMM_16;
 			opAddress = Imm32(val);
-			if (update)
+			if (update && !js.memcheck)
 				gpr.SetImmediate32(a, val);
 		}
-		else if ((inst.OPCD == 31) && gpr.R(a).IsImm() && gpr.R(b).IsImm())
+		else if ((inst.OPCD == 31) && gpr.R(a).IsImm() && gpr.R(b).IsImm() && !js.memcheck)
 		{
 			u32 val = (u32)gpr.R(a).offset + (u32)gpr.R(b).offset;
 			opAddress = Imm32(val);
-			if (update)
+			if (update && !js.memcheck)
 				gpr.SetImmediate32(a, val);
 		}
 		else
 		{
-			if (update || (inst.OPCD != 31 && inst.SIMM_16 == 0))
+			if ((update && !js.memcheck) || zeroOffset)
 			{
 				gpr.BindToRegister(a, true, update);
 				opAddress = gpr.R(a);
@@ -200,7 +202,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 			if (inst.OPCD == 31)
 				ADD(32, opAddress, gpr.R(b));
-			else
+			else if (inst.SIMM_16 != 0)
 				ADD(32, opAddress, Imm32((u32)(s32)inst.SIMM_16));
 		}
 	}
@@ -208,7 +210,15 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	gpr.Lock(a, b, d);
 	gpr.BindToRegister(d, false, true);
 	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, 0, RegistersInUse(), signExtend);
-	
+
+	if (update && js.memcheck && !zeroOffset)
+	{
+		gpr.BindToRegister(a, false, true);
+		MEMCHECK_START
+		MOV(32, gpr.R(a), opAddress);
+		MEMCHECK_END
+	}
+
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }
