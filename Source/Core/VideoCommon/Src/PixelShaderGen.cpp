@@ -658,12 +658,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 	{
 		out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-		out.Write("\tgl_FragColor = float4(prev.rgb, " I_ALPHA"[0].a);\n");
+		out.Write("\tocol0 = float4(prev.rgb, " I_ALPHA"[0].a);\n");
 	}
 	else
 	{
 		WriteFog<T>(out, uid_data);
-		out.Write("\tgl_FragColor = prev;\n");
+		out.Write("\tocol0 = prev;\n");
 	}
 
 	// Use dual-source color blending to perform dst alpha in a single pass
@@ -674,7 +674,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// Colors will be blended against the alpha from ocol1 and
 		// the alpha from ocol0 will be written to the framebuffer.
 		out.Write("\tocol1 = prev;\n");
-		out.Write("\tgl_FragColor.a = " I_ALPHA"[0].a;\n");
+		out.Write("\tocol0.a = " I_ALPHA"[0].a;\n");
 	}
 
 	out.Write("}\n");
