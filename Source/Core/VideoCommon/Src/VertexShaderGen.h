@@ -42,6 +42,7 @@
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
 #define I_DEPTHPARAMS           "cDepth" // farZ, zRange, scaled viewport width, scaled viewport height
 
+//TODO: get rid of them, they aren't used at all
 #define C_POSNORMALMATRIX        0
 #define C_PROJECTION            (C_POSNORMALMATRIX + 6)
 #define C_MATERIALS             (C_PROJECTION + 4)
