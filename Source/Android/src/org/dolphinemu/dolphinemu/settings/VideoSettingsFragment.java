@@ -31,8 +31,8 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	private Activity m_activity;
 
 	/**
-	 * Class which provides a means to check various
-	 * info about the OpenGL ES support for a device.
+	 * Class which provides a means to retrieve various
+	 * info about the OpenGL ES support/features within a device.
 	 */
 	public static final class VersionCheck
 	{
