@@ -298,18 +298,19 @@ void Jit64::WriteExit(u32 destination, int exit_num)
 	b->exitPtrs[exit_num] = GetWritableCodePtr();
 	
 	// Link opportunity!
-	int block = blocks.GetBlockNumberFromStartAddress(destination);
-	if (block >= 0 && jo.enableBlocklink) 
+	if (jo.enableBlocklink)
 	{
-		// It exists! Joy of joy!
-		JMP(blocks.GetBlock(block)->checkedEntry, true);
-		b->linkStatus[exit_num] = true;
+		int block = blocks.GetBlockNumberFromStartAddress(destination);
+		if (block >= 0)
+		{
+			// It exists! Joy of joy!
+			JMP(blocks.GetBlock(block)->checkedEntry, true);
+			b->linkStatus[exit_num] = true;
+			return;
+		}
 	}
-	else 
-	{
-		MOV(32, M(&PC), Imm32(destination));
-		JMP(asm_routines.dispatcher, true);
-	}
+	MOV(32, M(&PC), Imm32(destination));
+	JMP(asm_routines.dispatcher, true);
 }
 
 void Jit64::WriteExitDestInEAX() 
