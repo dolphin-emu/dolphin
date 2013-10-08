@@ -168,6 +168,13 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/JitCommon/JitBase.cpp
 			Src/PowerPC/JitCommon/JitCache.cpp
 			Src/PowerPC/JitILCommon/IR.cpp
+			Src/PowerPC/JitILCommon/JitILBase_Branch.cpp
+			Src/PowerPC/JitILCommon/JitILBase_LoadStore.cpp
+			Src/PowerPC/JitILCommon/JitILBase_SystemRegisters.cpp
+			Src/PowerPC/JitILCommon/JitILBase_LoadStoreFloating.cpp
+			Src/PowerPC/JitILCommon/JitILBase_LoadStorePaired.cpp
+			Src/PowerPC/JitILCommon/JitILBase_Paired.cpp
+			Src/PowerPC/JitILCommon/JitILBase_FloatingPoint.cpp
 			)
 
 if(NOT _M_GENERIC)

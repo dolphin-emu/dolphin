@@ -8,10 +8,7 @@
 #include "../PowerPC.h"
 #include "../../CoreTiming.h"
 #include "../PPCTables.h"
-#include "x64Emitter.h"
-
-#include "JitIL.h"
-#include "JitILAsm.h"
+#include "JitILBase.h"
 
 #include "../../HW/Memmap.h"
 
@@ -29,19 +26,17 @@
 //#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
 #define NORMALBRANCH_START
 
-using namespace Gen;
-
-void JitIL::sc(UGeckoInstruction inst)
+void JitILBase::sc(UGeckoInstruction inst)
 {
 	ibuild.EmitSystemCall(ibuild.EmitIntConst(js.compilerPC));
 }
 
-void JitIL::rfi(UGeckoInstruction inst)
+void JitILBase::rfi(UGeckoInstruction inst)
 {
 	ibuild.EmitRFIExit();
 }
 
-void JitIL::bx(UGeckoInstruction inst)
+void JitILBase::bx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 	INSTRUCTION_START;
@@ -109,7 +104,7 @@ static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruc
 	return Test;
 }
 
-void JitIL::bcx(UGeckoInstruction inst)
+void JitILBase::bcx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 	if (inst.LK)
@@ -140,7 +135,7 @@ void JitIL::bcx(UGeckoInstruction inst)
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
 }
 
-void JitIL::bcctrx(UGeckoInstruction inst)
+void JitILBase::bcctrx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 	if ((inst.BO & 4) == 0) {
@@ -169,7 +164,7 @@ void JitIL::bcctrx(UGeckoInstruction inst)
 	ibuild.EmitBranchUncond(destination);
 }
 
-void JitIL::bclrx(UGeckoInstruction inst)
+void JitILBase::bclrx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 

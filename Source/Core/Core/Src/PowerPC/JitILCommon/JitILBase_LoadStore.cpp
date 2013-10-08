@@ -2,9 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-// TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
-// Should give a very noticable speed boost to paired single heavy code.
-
 #include "Common.h"
 
 #include "../PowerPC.h"
@@ -12,16 +9,10 @@
 #include "../../HW/GPFifo.h"
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
 
-#include "JitIL.h"
-#include "JitILAsm.h"
+#include "JitILBase.h"
 
-//#define INSTRUCTION_START Default(inst); return;
-#define INSTRUCTION_START
-
-void JitIL::lhax(UGeckoInstruction inst)
+void JitILBase::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
@@ -34,7 +25,7 @@ void JitIL::lhax(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void JitIL::lXz(UGeckoInstruction inst)
+void JitILBase::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
@@ -55,7 +46,7 @@ void JitIL::lXz(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void JitIL::lbzu(UGeckoInstruction inst) {
+void JitILBase::lbzu(UGeckoInstruction inst) {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
 	const IREmitter::InstLoc uAddress = ibuild.EmitAdd(ibuild.EmitLoadGReg(inst.RA), ibuild.EmitIntConst((int)inst.SIMM_16));
@@ -64,7 +55,7 @@ void JitIL::lbzu(UGeckoInstruction inst) {
 	ibuild.EmitStoreGReg(uAddress, inst.RA);
 }
 
-void JitIL::lha(UGeckoInstruction inst)
+void JitILBase::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
@@ -78,7 +69,7 @@ void JitIL::lha(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void JitIL::lXzx(UGeckoInstruction inst)
+void JitILBase::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
@@ -100,7 +91,7 @@ void JitIL::lXzx(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void JitIL::dcbst(UGeckoInstruction inst)
+void JitILBase::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
@@ -116,7 +107,7 @@ void JitIL::dcbst(UGeckoInstruction inst)
 }
 
 // Zero cache line.
-void JitIL::dcbz(UGeckoInstruction inst)
+void JitILBase::dcbz(UGeckoInstruction inst)
 {
 	Default(inst); return;
 
@@ -141,7 +132,7 @@ void JitIL::dcbz(UGeckoInstruction inst)
 #endif
 }
 
-void JitIL::stX(UGeckoInstruction inst)
+void JitILBase::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
@@ -161,7 +152,7 @@ void JitIL::stX(UGeckoInstruction inst)
 	}
 }
 
-void JitIL::stXx(UGeckoInstruction inst)
+void JitILBase::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
@@ -181,7 +172,7 @@ void JitIL::stXx(UGeckoInstruction inst)
 }
 
 // A few games use these heavily in video codecs. (GFZP01 @ 0x80020E18)
-void JitIL::lmw(UGeckoInstruction inst)
+void JitILBase::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
@@ -197,7 +188,7 @@ void JitIL::lmw(UGeckoInstruction inst)
 	}
 }
 
-void JitIL::stmw(UGeckoInstruction inst)
+void JitILBase::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
@@ -213,7 +204,7 @@ void JitIL::stmw(UGeckoInstruction inst)
 	}
 }
 
-void JitIL::icbi(UGeckoInstruction inst)
+void JitILBase::icbi(UGeckoInstruction inst)
 {
 	Default(inst);
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));

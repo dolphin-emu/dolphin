@@ -24,7 +24,8 @@
 #include "../JitCommon/Jit_Util.h"
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
-#include "IR.h"
+#include "../JitILCommon/JitILBase.h"
+#include "../JitILCommon/IR.h"
 #include "../JitCommon/JitBase.h"
 #include "JitILAsm.h"
 
@@ -44,7 +45,7 @@
 #define DISABLE64
 #endif
 
-class JitIL : public Jitx86Base
+class JitIL : public JitILBase, public Jitx86Base
 {
 private:
 
@@ -125,98 +126,6 @@ public:
 	void DynaRunTable31(UGeckoInstruction _inst);
 	void DynaRunTable59(UGeckoInstruction _inst);
 	void DynaRunTable63(UGeckoInstruction _inst);
-
-	void addx(UGeckoInstruction inst);
-	void boolX(UGeckoInstruction inst);
-	void mulli(UGeckoInstruction inst);
-	void mulhwux(UGeckoInstruction inst);
-	void mullwx(UGeckoInstruction inst);
-	void divwux(UGeckoInstruction inst);
-	void srawix(UGeckoInstruction inst);
-	void srawx(UGeckoInstruction inst);
-	void addex(UGeckoInstruction inst);
-	void addzex(UGeckoInstruction inst);
-
-	void extsbx(UGeckoInstruction inst);
-	void extshx(UGeckoInstruction inst);
-
-	void sc(UGeckoInstruction _inst);
-	void rfi(UGeckoInstruction _inst);
-
-	void bx(UGeckoInstruction inst);
-	void bclrx(UGeckoInstruction _inst);
-	void bcctrx(UGeckoInstruction _inst);
-	void bcx(UGeckoInstruction inst);
-
-	void mtspr(UGeckoInstruction inst);
-	void mfspr(UGeckoInstruction inst);
-	void mtmsr(UGeckoInstruction inst);
-	void mfmsr(UGeckoInstruction inst);
-	void mftb(UGeckoInstruction inst);
-	void mtcrf(UGeckoInstruction inst);
-	void mfcr(UGeckoInstruction inst);
-	void mcrf(UGeckoInstruction inst);
-	void crXX(UGeckoInstruction inst);
-
-	void reg_imm(UGeckoInstruction inst);
-
-	void ps_sel(UGeckoInstruction inst);
-	void ps_mr(UGeckoInstruction inst);
-	void ps_sign(UGeckoInstruction inst); //aggregate
-	void ps_arith(UGeckoInstruction inst); //aggregate
-	void ps_mergeXX(UGeckoInstruction inst);
-	void ps_maddXX(UGeckoInstruction inst);
-	void ps_rsqrte(UGeckoInstruction inst);
-	void ps_sum(UGeckoInstruction inst);
-	void ps_muls(UGeckoInstruction inst);
-
-	void fp_arith_s(UGeckoInstruction inst);
-
-	void fcmpx(UGeckoInstruction inst);
-	void fmrx(UGeckoInstruction inst);
-
-	void cmpXX(UGeckoInstruction inst);
-
-	void cntlzwx(UGeckoInstruction inst);
-
-	void lfs(UGeckoInstruction inst);
-	void lfd(UGeckoInstruction inst);
-	void stfd(UGeckoInstruction inst);
-	void stfs(UGeckoInstruction inst);
-	void stfsx(UGeckoInstruction inst);
-	void psq_l(UGeckoInstruction inst);
-	void psq_st(UGeckoInstruction inst);
-
-	void fmaddXX(UGeckoInstruction inst);
-	void fsign(UGeckoInstruction inst);
-	void stX(UGeckoInstruction inst); //stw sth stb
-	void lXz(UGeckoInstruction inst);
-	void lbzu(UGeckoInstruction inst);
-	void lha(UGeckoInstruction inst);
-	void rlwinmx(UGeckoInstruction inst);
-	void rlwimix(UGeckoInstruction inst);
-	void rlwnmx(UGeckoInstruction inst);
-	void negx(UGeckoInstruction inst);
-	void slwx(UGeckoInstruction inst);
-	void srwx(UGeckoInstruction inst);
-	void dcbst(UGeckoInstruction inst);
-	void dcbz(UGeckoInstruction inst);
-	void lfsx(UGeckoInstruction inst);
-
-	void subfic(UGeckoInstruction inst);
-	void subfcx(UGeckoInstruction inst);
-	void subfx(UGeckoInstruction inst);
-	void subfex(UGeckoInstruction inst);
-
-	void lXzx(UGeckoInstruction inst);
-	void lhax(UGeckoInstruction inst);
-
-	void stXx(UGeckoInstruction inst);
-
-	void lmw(UGeckoInstruction inst);
-	void stmw(UGeckoInstruction inst);
-
-	void icbi(UGeckoInstruction inst);
 };
 
 void Jit(u32 em_address);

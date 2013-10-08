@@ -8,11 +8,10 @@
 #include "../PPCAnalyst.h"
 #include "ArmEmitter.h"
 #include "../JitArm32/JitArmCache.h"
+#include "../JitILCommon/JitILBase.h"
 #include "../JitILCommon/IR.h"
 #include "../JitCommon/JitBase.h"
 #include "JitILAsm.h"
-
-#define INSTRUCTION_START
 
 #define JITDISABLE(setting) \
 	if (Core::g_CoreStartupParameter.bJITOff || \
@@ -20,14 +19,10 @@
 		{Default(inst); return;}
 
 #define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0])) 
-class JitArmIL : public JitBase, public ArmGen::ARMXCodeBlock 
+class JitArmIL : public JitILBase, public ArmGen::ARMXCodeBlock 
 {
 private:
 	JitArmBlockCache blocks;
-
-	// The default code buffer. We keep it around to not have to alloc/dealloc a
-	// large chunk of memory for each recompiled block.
-	PPCAnalyst::CodeBuffer code_buffer;
 	JitArmILAsmRoutineManager asm_routines;
 
 	void PrintDebug(UGeckoInstruction inst, u32 level);
@@ -35,10 +30,8 @@ private:
 
 public:
 	// Initialization, etc
-	JitArmIL() : code_buffer(32000) {}
+	JitArmIL() {}
 	~JitArmIL() {}
-
-	IREmitter::IRBuilder ibuild;
 
 	void Init();
 	void Shutdown();
@@ -96,15 +89,10 @@ public:
 	void BIN_ADD(ARMReg reg, Operand2 op2);
 
 	// Branches
-	void icbi(UGeckoInstruction inst);
-	void sc(UGeckoInstruction inst);
-	void rfi(UGeckoInstruction inst);
 	void bx(UGeckoInstruction inst);
 	void bcx(UGeckoInstruction inst);
 	void bclrx(UGeckoInstruction inst);
 	void bcctrx(UGeckoInstruction inst);
-	// System Registers
-	void mtmsr(UGeckoInstruction inst);
 };
 
 #endif

@@ -519,6 +519,16 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 			Jit->WriteExceptionExit();
 			break;
 		}
+		case ShortIdleLoop: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+			Jit->MOVI2R(R14, (u32)&CoreTiming::Idle);
+			Jit->BL(R14);
+			Jit->MOVI2R(R14, InstLoc);
+			Jit->STR(R14, R9, PPCSTATE_OFF(pc));
+			Jit->MOVI2R(R14, (u32)Jit->GetAsmRoutines()->testExceptions);
+			Jit->B(R14);
+			break;
+		}
 		case InterpreterBranch: {
 			Jit->LDR(R14, R9, PPCSTATE_OFF(npc));
 			Jit->WriteExitDestInReg(R14);

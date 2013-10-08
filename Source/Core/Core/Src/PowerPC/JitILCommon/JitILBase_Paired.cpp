@@ -7,32 +7,31 @@
 #include "../../Core.h"
 #include "../PowerPC.h"
 #include "../PPCTables.h"
-#include "x64Emitter.h"
 #include "../../HW/GPFifo.h"
 
-#include "JitIL.h"
+#include "JitILBase.h"
 
-void JitIL::ps_mr(UGeckoInstruction inst)
+void JitILBase::ps_mr(UGeckoInstruction inst)
 {
 	Default(inst); return;
 }
 
-void JitIL::ps_sel(UGeckoInstruction inst)
+void JitILBase::ps_sel(UGeckoInstruction inst)
 {
 	Default(inst); return;
 }
 
-void JitIL::ps_sign(UGeckoInstruction inst)
+void JitILBase::ps_sign(UGeckoInstruction inst)
 {
 	Default(inst); return;
 }
 
-void JitIL::ps_rsqrte(UGeckoInstruction inst)
+void JitILBase::ps_rsqrte(UGeckoInstruction inst)
 {
 	Default(inst); return;
 }
 
-void JitIL::ps_arith(UGeckoInstruction inst)
+void JitILBase::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
@@ -61,7 +60,7 @@ void JitIL::ps_arith(UGeckoInstruction inst)
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void JitIL::ps_sum(UGeckoInstruction inst)
+void JitILBase::ps_sum(UGeckoInstruction inst)
 {
 	// TODO: This operation strikes me as a bit strange...
 	// perhaps we can optimize it depending on the users?
@@ -84,7 +83,7 @@ void JitIL::ps_sum(UGeckoInstruction inst)
 }
 
 
-void JitIL::ps_muls(UGeckoInstruction inst)
+void JitILBase::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
@@ -109,7 +108,7 @@ void JitIL::ps_muls(UGeckoInstruction inst)
 
 
 //TODO: find easy cases and optimize them, do a breakout like ps_arith
-void JitIL::ps_mergeXX(UGeckoInstruction inst)
+void JitILBase::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
@@ -142,7 +141,7 @@ void JitIL::ps_mergeXX(UGeckoInstruction inst)
 }
 
 
-void JitIL::ps_maddXX(UGeckoInstruction inst)
+void JitILBase::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)

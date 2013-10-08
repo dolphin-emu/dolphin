@@ -14,24 +14,10 @@
 
 #define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
 //#define NORMALBRANCH_START
-void JitArmIL::icbi(UGeckoInstruction inst)
-{
-	Default(inst);
-	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
-}
-void JitArmIL::sc(UGeckoInstruction inst)
-{
-	ibuild.EmitSystemCall(ibuild.EmitIntConst(js.compilerPC));
-}
-
-void JitArmIL::rfi(UGeckoInstruction inst)
-{
-	ibuild.EmitRFIExit();
-}
 
 void JitArmIL::bx(UGeckoInstruction inst)
 {
-	NORMALBRANCH_START
+	//NORMALBRANCH_START
 	INSTRUCTION_START;
 
 	// We must always process the following sentence
