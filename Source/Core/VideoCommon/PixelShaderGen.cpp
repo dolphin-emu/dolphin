@@ -257,6 +257,19 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	uid_data.genMode_numtevstages = bpmem.genMode.numtevstages;
 	uid_data.genMode_numtexgens = bpmem.genMode.numtexgens;
 
+	// dot product for integer vectors
+	out.Write(  "int idot(int3 x, int3 y)\n"
+				"{\n"
+				"\tint3 tmp = x * y;\n"
+				"\treturn tmp.x + tmp.y + tmp.z;\n"
+				"}\n");
+
+	out.Write(  "int idot(int4 x, int4 y)\n"
+				"{\n"
+				"\tint4 tmp = x * y;\n"
+				"\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
+				"}\n");
+
 	if (ApiType == API_OPENGL)
 	{
 		// Fmod implementation gleaned from Nvidia
