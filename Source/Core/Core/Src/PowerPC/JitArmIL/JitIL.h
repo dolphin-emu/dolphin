@@ -75,12 +75,14 @@ public:
 	void WriteExit(u32 destination, int exit_num);
 	void WriteExitDestInReg(ARMReg Reg);
 	void WriteRfiExitDestInR(ARMReg Reg);
+	void WriteExceptionExit();
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction inst);
 	void Default(UGeckoInstruction inst);
 	void DoNothing(UGeckoInstruction inst);
 	void HLEFunction(UGeckoInstruction inst);
+	void Break(UGeckoInstruction inst);
 
 	void DynaRunTable4(UGeckoInstruction inst);
 	void DynaRunTable19(UGeckoInstruction inst);
@@ -94,10 +96,13 @@ public:
 	void BIN_ADD(ARMReg reg, Operand2 op2);
 
 	// Branches
+	void icbi(UGeckoInstruction inst);
+	void sc(UGeckoInstruction inst);
 	void rfi(UGeckoInstruction inst);
 	void bx(UGeckoInstruction inst);
 	void bcx(UGeckoInstruction inst);
 	void bclrx(UGeckoInstruction inst);
+	void bcctrx(UGeckoInstruction inst);
 	// System Registers
 	void mtmsr(UGeckoInstruction inst);
 };

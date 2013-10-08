@@ -12,8 +12,17 @@
 
 #include "../../HW/Memmap.h"
 
-//#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
-#define NORMALBRANCH_START
+#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
+//#define NORMALBRANCH_START
+void JitArmIL::icbi(UGeckoInstruction inst)
+{
+	Default(inst);
+	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
+}
+void JitArmIL::sc(UGeckoInstruction inst)
+{
+	ibuild.EmitSystemCall(ibuild.EmitIntConst(js.compilerPC));
+}
 
 void JitArmIL::rfi(UGeckoInstruction inst)
 {
@@ -141,5 +150,34 @@ void JitArmIL::bcx(UGeckoInstruction inst)
 		ibuild.EmitBranchCond(Test, ibuild.EmitIntConst(destination));
 	}
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
+}
+
+void JitArmIL::bcctrx(UGeckoInstruction inst)
+{
+	NORMALBRANCH_START
+	if ((inst.BO & 4) == 0) {
+		IREmitter::InstLoc c = ibuild.EmitLoadCTR();
+		c = ibuild.EmitSub(c, ibuild.EmitIntConst(1));
+		ibuild.EmitStoreCTR(c);
+	}
+	IREmitter::InstLoc test;
+	if ((inst.BO & 16) == 0)  // Test a CR bit
+	{
+		IREmitter::InstLoc CRReg = ibuild.EmitLoadCR(inst.BI >> 2);
+		IREmitter::InstLoc CRCmp = ibuild.EmitIntConst(8 >> (inst.BI & 3));
+		test = ibuild.EmitAnd(CRReg, CRCmp);
+		if (!(inst.BO & 8))
+			test = ibuild.EmitXor(test, CRCmp);
+	} else {
+		test = ibuild.EmitIntConst(1);
+	}
+	test = ibuild.EmitICmpEq(test, ibuild.EmitIntConst(0));
+	ibuild.EmitBranchCond(test, ibuild.EmitIntConst(js.compilerPC + 4));
+
+	IREmitter::InstLoc destination = ibuild.EmitLoadCTR();
+	destination = ibuild.EmitAnd(destination, ibuild.EmitIntConst(-4));
+	if (inst.LK)
+		ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
+	ibuild.EmitBranchUncond(destination);
 }
 

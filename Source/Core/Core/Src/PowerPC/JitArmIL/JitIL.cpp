@@ -70,6 +70,11 @@ void JitArmIL::DoNothing(UGeckoInstruction _inst)
 {
 	// Yup, just don't do anything.
 }
+void JitArmIL::Break(UGeckoInstruction _inst)
+{
+	ibuild.EmitINT3();
+}
+
 void JitArmIL::DoDownCount()
 {
 	ARMReg rA = R14;
@@ -105,7 +110,13 @@ void JitArmIL::WriteRfiExitDestInR(ARMReg Reg)
 	MOVI2R(Reg, (u32)asm_routines.testExceptions);
 	B(Reg);
 }
+void JitArmIL::WriteExceptionExit()
+{
+	DoDownCount();
 
+	MOVI2R(R14, (u32)asm_routines.testExceptions);
+	B(R14);
+}
 void JitArmIL::WriteExit(u32 destination, int exit_num)
 {
 	DoDownCount();
@@ -183,7 +194,6 @@ void STACKALIGN JitArmIL::Jit(u32 em_address)
 
 const u8* JitArmIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
 {
-	printf("Doing a JIT in JITARMIL. Scream and shout.\n");
 	int blockSize = code_buf->GetSize();
 	// Memory exception on instruction fetch
 	bool memory_exception = false;
@@ -318,7 +328,7 @@ const u8* JitArmIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		}
 		if (!ops[i].skip)
 		{
-				PrintDebug(ops[i].inst, 1);
+				PrintDebug(ops[i].inst, 0);
 				if (js.memcheck && (opinfo->flags & FL_USE_FPU))
 				{
 					// Don't do this yet
@@ -349,7 +359,6 @@ const u8* JitArmIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 	{
 	}
-	printf("Done emitting block. size was 0x%08x\n", size);
 	FlushIcache();
 	return start;
 

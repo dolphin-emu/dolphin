@@ -509,6 +509,21 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 			Jit->BL(R14);
 			break;
 		}
+		case SystemCall: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+			Jit->MOVI2R(R14, InstLoc + 4);
+			Jit->STR(R14, R9, PPCSTATE_OFF(pc));
+			Jit->LDR(R14, R9, PPCSTATE_OFF(Exceptions));
+			Jit->ORR(R14, R14, EXCEPTION_SYSCALL);
+			Jit->STR(R14, R9, PPCSTATE_OFF(Exceptions));
+			Jit->WriteExceptionExit();
+			break;
+		}
+		case InterpreterBranch: {
+			Jit->LDR(R14, R9, PPCSTATE_OFF(npc));
+			Jit->WriteExitDestInReg(R14);
+			break;
+		}
 		case RFIExit: {
 			const u32 mask = 0x87C0FFFF;
 			const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]

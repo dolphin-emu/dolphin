@@ -40,10 +40,10 @@ static GekkoOPTemplate primarytable[] =
 	{16, &JitArmIL::bcx},		//"bcx", OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{18, &JitArmIL::bx},		//"bx",  OPTYPE_SYSTEM, FL_ENDBLOCK}},
 
-	{1,  &JitArmIL::Default},		//"HLEFunction", OPTYPE_SYSTEM, FL_ENDBLOCK}},
+	{1,  &JitArmIL::HLEFunction},		//"HLEFunction", OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{2,  &JitArmIL::Default},		//"DynaBlock",   OPTYPE_SYSTEM, 0}},
-	{3,  &JitArmIL::Default},		//"twi",         OPTYPE_SYSTEM, FL_ENDBLOCK}},
-	{17, &JitArmIL::Default},		//"sc",          OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
+	{3,  &JitArmIL::Break},		//"twi",         OPTYPE_SYSTEM, FL_ENDBLOCK}},
+	{17, &JitArmIL::sc},		//"sc",          OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
 
 	{7,  &JitArmIL::Default},		//"mulli",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_RC_BIT, 2}},
 	{8,  &JitArmIL::Default},		//"subfic",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_A |	FL_SET_CA}},
@@ -160,7 +160,7 @@ static GekkoOPTemplate table4_3[] =
 
 static GekkoOPTemplate table19[] = 
 {
-	{528, &JitArmIL::Default},		//"bcctrx", OPTYPE_BRANCH, FL_ENDBLOCK}},
+	{528, &JitArmIL::bcctrx},		//"bcctrx", OPTYPE_BRANCH, FL_ENDBLOCK}},
 	{16,  &JitArmIL::bclrx},		//"bclrx",  OPTYPE_BRANCH, FL_ENDBLOCK}},
 	{257, &JitArmIL::Default},		//"crand",  OPTYPE_CR, FL_EVIL}},
 	{129, &JitArmIL::Default},		//"crandc", OPTYPE_CR, FL_EVIL}},
@@ -175,7 +175,7 @@ static GekkoOPTemplate table19[] =
 	{0,   &JitArmIL::Default},		//"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
 												   
 	{50,  &JitArmIL::rfi},		//"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
-	{18,  &JitArmIL::Default},		//"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}
+	{18,  &JitArmIL::Break},		//"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}
 };
 
 
@@ -279,9 +279,9 @@ static GekkoOPTemplate table31[] =
 	{595, &JitArmIL::Default},		//"mfsr",   OPTYPE_SYSTEM, FL_OUT_D, 2}},
 	{659, &JitArmIL::Default},		//"mfsrin", OPTYPE_SYSTEM, FL_OUT_D, 2}},
 
-	{4,   &JitArmIL::Default},		//"tw",     OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
+	{4,   &JitArmIL::Break},		//"tw",     OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
 	{598, &JitArmIL::Default},		//"sync",   OPTYPE_SYSTEM, 0, 2}},
-	{982, &JitArmIL::Default},		//"icbi",   OPTYPE_SYSTEM, FL_ENDBLOCK, 3}},
+	{982, &JitArmIL::icbi},		//"icbi",   OPTYPE_SYSTEM, FL_ENDBLOCK, 3}},
 
 	// Unused instructions on GC
 	{310, &JitArmIL::Default},		//"eciwx",   OPTYPE_INTEGER, FL_RC_BIT}},
