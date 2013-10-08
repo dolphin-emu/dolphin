@@ -67,6 +67,6 @@ public final class CPUSettingsFragment extends PreferenceFragment
 		super.onDestroy();
 
 		// When this fragment is destroyed, force the settings to be saved to the ini file.
-		UserPreferences.SaveConfigToDolphinIni(m_activity);
+		UserPreferences.SavePrefsToIni(m_activity);
 	}
 }

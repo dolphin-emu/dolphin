@@ -294,6 +294,6 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		super.onDestroy();
 
 		// When the fragment is done being used, save the settings to the Dolphin ini file.
-		UserPreferences.SaveConfigToDolphinIni(m_activity);
+		UserPreferences.SavePrefsToIni(m_activity);
 	}
 }

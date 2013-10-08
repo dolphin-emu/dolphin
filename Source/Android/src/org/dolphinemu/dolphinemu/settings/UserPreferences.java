@@ -22,11 +22,11 @@ import android.preference.PreferenceManager;
 public final class UserPreferences
 {
 	/**
-	 * Loads the set config items from the Dolphin config files to the shared preferences of this front-end
+	 * Loads the settings stored in the Dolphin ini config files to the shared preferences of this front-end.
 	 * 
 	 * @param ctx The context used to retrieve the SharedPreferences instance.
 	 */
-	public static void LoadDolphinConfigToPrefs(Context ctx)
+	public static void LoadIniToPrefs(Context ctx)
 	{
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
 
@@ -106,11 +106,11 @@ public final class UserPreferences
 	}
 
 	/** 
-	 * Writes the config to the Dolphin ini file. 
+	 * Writes the preferences set in the front-end to the Dolphin ini files.
 	 * 
 	 * @param ctx The context used to retrieve the user settings.
 	 * */
-	public static void SaveConfigToDolphinIni(Context ctx)
+	public static void SavePrefsToIni(Context ctx)
 	{
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(ctx);
 

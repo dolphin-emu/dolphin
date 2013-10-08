@@ -83,7 +83,7 @@ public final class DolphinEmulator extends Activity
 
 			// Load the configuration keys set in the Dolphin ini and gfx ini files
 			// into the application's shared preferences.
-			UserPreferences.LoadDolphinConfigToPrefs(this);
+			UserPreferences.LoadIniToPrefs(this);
 		}
 	}
 }
