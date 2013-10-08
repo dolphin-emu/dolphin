@@ -1074,7 +1074,8 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}
 
-	out.Write("\tiprev.rgb = int3(round(lerp(float3(iprev.rgb), " I_FOG"[0].rgb*255.0, fog)));\n");
+	out.Write("\tint ifog = int(round(fog * 256.0));\n");
+	out.Write("\tiprev.rgb = (iprev.rgb * (256 - ifog) + int(" I_FOG"[0].rgb * 256.0 * ifog)) >> 8;\n");
 }
 
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
