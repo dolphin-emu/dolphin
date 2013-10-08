@@ -371,15 +371,6 @@ xcopy "$(SolutionDir)..\Externals\msvcrt\$(PlatformName)\*.dll" "$(TargetDir)" /
     <ProjectReference Include="..\..\..\Externals\zlib\zlib.vcxproj">
       <Project>{3e1339f5-9311-4122-9442-369702e8fcad}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\Plugins\Plugin_VideoDX11\Plugin_VideoDX11.vcxproj">
-      <Project>{9a4c733c-bade-4ac6-b58a-6e274395e90e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Plugins\Plugin_VideoOGL\Plugin_VideoOGL.vcxproj">
-      <Project>{1909cd2d-1707-456f-86ca-0df42a727c99}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Plugins\Plugin_VideoSoftware\Plugin_VideoSoftware.vcxproj">
-      <Project>{9e9da440-e9ad-413c-b648-91030e792211}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\AudioCommon\AudioCommon.vcxproj">
       <Project>{37d007bd-d66c-4eaf-b56c-bd1aac340a05}</Project>
     </ProjectReference>
@@ -394,6 +385,15 @@ xcopy "$(SolutionDir)..\Externals\msvcrt\$(PlatformName)\*.dll" "$(TargetDir)" /
     </ProjectReference>
     <ProjectReference Include="..\InputCommon\InputCommon.vcxproj">
       <Project>{b39ac394-5db5-4da9-9d98-09d46ca3701f}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\VideoBackends\D3D\D3D.vcxproj">
+      <Project>{9a4c733c-bade-4ac6-b58a-6e274395e90e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\VideoBackends\OGL\OGL.vcxproj">
+      <Project>{1909cd2d-1707-456f-86ca-0df42a727c99}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\VideoBackends\Software\Software.vcxproj">
+      <Project>{9e9da440-e9ad-413c-b648-91030e792211}</Project>
     </ProjectReference>
     <ProjectReference Include="..\VideoCommon\VideoCommon.vcxproj">
       <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="DebugFast|Win32">
@@ -117,7 +117,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -126,7 +126,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -135,7 +135,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -146,7 +146,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -157,7 +157,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -168,7 +168,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;..\..\..\Externals\wxWidgets3;..\..\..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
