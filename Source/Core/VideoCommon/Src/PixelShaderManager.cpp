@@ -188,14 +188,14 @@ void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
 	// xyz - static matrix
 	// TODO w - dynamic matrix scale / 256...... somehow / 4 works better
 	// rev 2972 - now using / 256.... verify that this works
-	constants.indtexmts[2*matrixidx][0] = bpmem.indmtx[matrixidx].col0.ma * fscale;
-	constants.indtexmts[2*matrixidx][1] = bpmem.indmtx[matrixidx].col1.mc * fscale;
-	constants.indtexmts[2*matrixidx][2] = bpmem.indmtx[matrixidx].col2.me * fscale;
-	constants.indtexmts[2*matrixidx][3] = fscale * 4.0f;
-	constants.indtexmts[2*matrixidx+1][0] = bpmem.indmtx[matrixidx].col0.mb * fscale;
-	constants.indtexmts[2*matrixidx+1][1] = bpmem.indmtx[matrixidx].col1.md * fscale;
-	constants.indtexmts[2*matrixidx+1][2] = bpmem.indmtx[matrixidx].col2.mf * fscale;
-	constants.indtexmts[2*matrixidx+1][3] = fscale * 4.0f;
+	constants.indtexmtx[2*matrixidx][0] = bpmem.indmtx[matrixidx].col0.ma * fscale;
+	constants.indtexmtx[2*matrixidx][1] = bpmem.indmtx[matrixidx].col1.mc * fscale;
+	constants.indtexmtx[2*matrixidx][2] = bpmem.indmtx[matrixidx].col2.me * fscale;
+	constants.indtexmtx[2*matrixidx][3] = fscale * 4.0f;
+	constants.indtexmtx[2*matrixidx+1][0] = bpmem.indmtx[matrixidx].col0.mb * fscale;
+	constants.indtexmtx[2*matrixidx+1][1] = bpmem.indmtx[matrixidx].col1.md * fscale;
+	constants.indtexmtx[2*matrixidx+1][2] = bpmem.indmtx[matrixidx].col2.mf * fscale;
+	constants.indtexmtx[2*matrixidx+1][3] = fscale * 4.0f;
 	dirty = true;
 
 	PRIM_LOG("indmtx%d: scale=%f, mat=(%f %f %f; %f %f %f)\n",

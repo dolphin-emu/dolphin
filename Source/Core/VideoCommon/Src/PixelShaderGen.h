@@ -21,6 +21,7 @@
 #define I_PLIGHTS     "cPLights"
 #define I_PMATERIALS  "cPmtrl"
 
+// TODO: get rid of them as they aren't used
 #define C_COLORMATRIX	0						// 0
 #define C_COLORS		0						// 0
 #define C_KCOLORS		(C_COLORS + 4)			// 4

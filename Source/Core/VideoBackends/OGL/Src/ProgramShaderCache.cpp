@@ -63,34 +63,30 @@ const char *UniformNames[NUM_UNIFORMS] =
 	I_DEPTHPARAMS,
 };
 
-struct s_svar
-{
-	const unsigned int reg;
-	const unsigned int size;
+const static int PSVar_Loc[] = {
+	offsetof(PixelShaderConstants, colors)/16,
+	offsetof(PixelShaderConstants, kcolors)/16,
+	offsetof(PixelShaderConstants, alpha)/16,
+	offsetof(PixelShaderConstants, texdims)/16,
+	offsetof(PixelShaderConstants, zbias)/16,
+	offsetof(PixelShaderConstants, indtexscale)/16,
+	offsetof(PixelShaderConstants, indtexmtx)/16,
+	offsetof(PixelShaderConstants, fog)/16,
+	offsetof(PixelShaderConstants, plights)/16,
+	offsetof(PixelShaderConstants, pmaterials)/16,
 };
 
-const s_svar PSVar_Loc[] = { {C_COLORS, 4 },
-						{C_KCOLORS, 4 },
-						{C_ALPHA, 1 },
-						{C_TEXDIMS, 8 },
-						{C_ZBIAS, 2  },
-						{C_INDTEXSCALE, 2  },
-						{C_INDTEXMTX, 6 },
-						{C_FOG, 3 },
-						{C_PLIGHTS, 40 },
-						{C_PMATERIALS, 4 },
-						};
-
-const s_svar VSVar_Loc[] = {  {C_POSNORMALMATRIX, 6 },
-						{C_PROJECTION, 4  },
-						{C_MATERIALS, 4 },
-						{C_LIGHTS, 40 },
-						{C_TEXMATRICES, 24 },
-						{C_TRANSFORMMATRICES, 64  },
-						{C_NORMALMATRICES, 32  },
-						{C_POSTTRANSFORMMATRICES, 64 },
-						{C_DEPTHPARAMS, 1 },
-						};
+const static int VSVar_Loc[] = {
+	offsetof(VertexShaderConstants, posnormalmatrix)/16,
+	offsetof(VertexShaderConstants, projection)/16,
+	offsetof(VertexShaderConstants, materials)/16,
+	offsetof(VertexShaderConstants, lights)/16,
+	offsetof(VertexShaderConstants, texmatrices)/16,
+	offsetof(VertexShaderConstants, transformmatrices)/16,
+	offsetof(VertexShaderConstants, normalmatrices)/16,
+	offsetof(VertexShaderConstants, posttransformmatrices)/16,
+	offsetof(VertexShaderConstants, depthparams)/16,
+};
 
 // End of UBO workaround
 
@@ -221,12 +217,12 @@ void ProgramShaderCache::UploadConstants()
 		for (unsigned int a = 0; a < 10; ++a)
 		{
 			if(last_entry->shader.UniformSize[a] > 0)
-				glUniform4fv(last_entry->shader.UniformLocations[a], last_entry->shader.UniformSize[a], (float*) &PixelShaderManager::constants + 4*PSVar_Loc[a].reg);
+				glUniform4fv(last_entry->shader.UniformLocations[a], last_entry->shader.UniformSize[a], (float*) &PixelShaderManager::constants + 4*PSVar_Loc[a]);
 		}
 		for (unsigned int a = 0; a < 9; ++a)
 		{
 			if(last_entry->shader.UniformSize[a+10] > 0)
-				glUniform4fv(last_entry->shader.UniformLocations[a+10], last_entry->shader.UniformSize[a+10], (float*) &VertexShaderManager::constants + 4*VSVar_Loc[a].reg);
+				glUniform4fv(last_entry->shader.UniformLocations[a+10], last_entry->shader.UniformSize[a+10], (float*) &VertexShaderManager::constants + 4*VSVar_Loc[a]);
 		}
 		
 		ADDSTAT(stats.thisFrame.bytesUniformStreamed, s_ubo_buffer_size);
