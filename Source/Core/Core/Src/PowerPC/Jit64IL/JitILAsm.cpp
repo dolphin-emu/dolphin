@@ -86,7 +86,6 @@ void JitILAsmRoutineManager::Generate()
 			MOV(32, R(EAX), M(&PowerPC::ppcState.pc));
 			dispatcherPcInEAX = GetCodePtr();
 
-#ifdef JIT_UNLIMITED_ICACHE
 			u32 mask = 0;
 			FixupBranch no_mem;
 			FixupBranch exit_mem;
@@ -143,15 +142,6 @@ void JitILAsmRoutineManager::Generate()
 				SetJumpTarget(exit_mem);
 			if (Core::g_CoreStartupParameter.bWii && (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack))
 				SetJumpTarget(exit_vmem);
-#else
-#ifdef _M_IX86
-			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-			MOV(32, R(EBX), Imm32((u32)Memory::base));
-			MOV(32, R(EAX), MComplex(EBX, EAX, SCALE_1, 0));
-#else
-			MOV(32, R(EAX), MComplex(RBX, RAX, SCALE_1, 0));
-#endif
-#endif
 
 			TEST(32, R(EAX), Imm32(0xFC));
 			FixupBranch notfound = J_CC(CC_NZ);

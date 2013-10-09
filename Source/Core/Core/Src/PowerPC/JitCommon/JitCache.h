@@ -39,7 +39,6 @@ struct JitBlock
 	u32 exitAddress[2];  // 0xFFFFFFFF == unknown
 
 	u32 originalAddress;
-	u32 originalFirstOpcode; //to be able to restore
 	u32 codeSize; 
 	u32 originalSize;
 	int runCount;  // for profiling.
@@ -74,11 +73,9 @@ class JitBaseBlockCache
 	std::multimap<u32, int> links_to;
 	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
 	std::bitset<0x20000000 / 32> valid_block;
-#ifdef JIT_UNLIMITED_ICACHE
 	u8 *iCache;
 	u8 *iCacheEx;
 	u8 *iCacheVMEM;
-#endif
 	int MAX_NUM_BLOCKS;
 
 	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
@@ -93,9 +90,7 @@ class JitBaseBlockCache
 public:
 	JitBaseBlockCache() :
 		blockCodePointers(0), blocks(0), num_blocks(0),
-#ifdef JIT_UNLIMITED_ICACHE	
 		iCache(0), iCacheEx(0), iCacheVMEM(0), 
-#endif
 		MAX_NUM_BLOCKS(0) { }
 	int AllocateBlock(u32 em_address);
 	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
@@ -112,11 +107,9 @@ public:
 	JitBlock *GetBlock(int block_num);
 	int GetNumBlocks() const;
 	const u8 **GetCodePointers();
-#ifdef JIT_UNLIMITED_ICACHE
 	u8 *GetICache();
 	u8 *GetICacheEx();
 	u8 *GetICacheVMEM();
-#endif
 
 	// Fast way to get a block. Only works on the first ppc instruction of a block.
 	int GetBlockNumberFromStartAddress(u32 em_address);

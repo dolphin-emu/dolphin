@@ -241,11 +241,6 @@ namespace JitInterface
 		}
 		inst = Common::swap32(inst);
 
-		if ((inst & 0xfc000000) == 0)
-		{
-			inst = jit->GetBlockCache()->GetOriginalFirstOp(inst);
-		}
-
 		return inst;
 	}
 
@@ -276,7 +271,6 @@ namespace JitInterface
 	// The following function is deprecated in favour of FAST_ICACHE
 	u32 Read_Opcode_JIT_LC(const u32 _Address)
 	{
-	#ifdef JIT_UNLIMITED_ICACHE	
 		if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000 &&
 			(_Address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
 			(_Address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (_Address & ~JIT_ICACHEEX_MASK) != 0x10000000)
@@ -307,9 +301,6 @@ namespace JitInterface
 			inst = Memory::ReadUnchecked_U32(_Address);
 		else
 			inst = Common::swap32(inst);
-	#else
-		u32 inst = Memory::ReadUnchecked_U32(_Address);
-	#endif
 		if ((inst & 0xfc000000) == 0)
 		{
 			inst = jit->GetBlockCache()->GetOriginalFirstOp(inst);
@@ -321,7 +312,6 @@ namespace JitInterface
 	// We assume that _Address is cached
 	void Write_Opcode_JIT(const u32 _Address, const u32 _Value)
 	{
-	#ifdef JIT_UNLIMITED_ICACHE
 		if (_Address & JIT_ICACHE_VMEM_BIT)
 		{
 			*(u32*)(jit->GetBlockCache()->GetICacheVMEM() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);		
@@ -332,9 +322,6 @@ namespace JitInterface
 		}
 		else
 			*(u32*)(jit->GetBlockCache()->GetICache() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);
-	#else
-		Memory::WriteUnchecked_U32(_Value, _Address);
-	#endif	
 	}
 
 	

@@ -67,7 +67,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 #endif
 		blocks = new JitBlock[MAX_NUM_BLOCKS];
 		blockCodePointers = new const u8*[MAX_NUM_BLOCKS];
-#ifdef JIT_UNLIMITED_ICACHE
 		if (iCache == 0 && iCacheEx == 0 && iCacheVMEM == 0)
 		{
 			iCache = new u8[JIT_ICACHE_SIZE];
@@ -85,7 +84,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		memset(iCache, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
 		memset(iCacheEx, JIT_ICACHE_INVALID_BYTE, JIT_ICACHEEX_SIZE);
 		memset(iCacheVMEM, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
-#endif
 		Clear();
 	}
 
@@ -93,7 +91,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	{
 		delete[] blocks;
 		delete[] blockCodePointers;
-#ifdef JIT_UNLIMITED_ICACHE		
 		if (iCache != 0)
 			delete[] iCache;
 		iCache = 0;
@@ -103,7 +100,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		if (iCacheVMEM != 0)
 			delete[] iCacheVMEM;
 		iCacheVMEM = 0;
-#endif
 		blocks = 0;
 		blockCodePointers = 0;
 		num_blocks = 0;
@@ -140,11 +136,9 @@ bool JitBlock::ContainsAddress(u32 em_address)
 
 	void JitBaseBlockCache::ClearSafe()
 	{
-#ifdef JIT_UNLIMITED_ICACHE
 		memset(iCache, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
 		memset(iCacheEx, JIT_ICACHE_INVALID_BYTE, JIT_ICACHEEX_SIZE);
 		memset(iCacheVMEM, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
-#endif
 	}
 
 	/*void JitBaseBlockCache::DestroyBlocksWithFlag(BlockFlag death_flag)
@@ -206,7 +200,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	{
 		blockCodePointers[block_num] = code_ptr;
 		JitBlock &b = blocks[block_num];
-		b.originalFirstOpcode = JitInterface::Read_Opcode_JIT(b.originalAddress);
 		JitInterface::Write_Opcode_JIT(b.originalAddress, (JIT_OPCODE << 26) | block_num);
 
 		// Convert the logical address to a physical address for the block map
@@ -256,7 +249,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		return blockCodePointers;
 	}
 
-#ifdef JIT_UNLIMITED_ICACHE
 	u8* JitBaseBlockCache::GetICache()
 	{
 		return iCache;
@@ -271,13 +263,11 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	{
 		return iCacheVMEM;
 	}
-#endif
 
 	int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr)
 	{
 		if (!blocks)
 			return -1;		
-#ifdef JIT_UNLIMITED_ICACHE
 		u32 inst;
 		if (addr & JIT_ICACHE_VMEM_BIT)
 		{
@@ -292,9 +282,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			inst = *(u32*)(iCache + (addr & JIT_ICACHE_MASK));
 		}
 		inst = Common::swap32(inst);
-#else
-		u32 inst = Memory::ReadFast32(addr);
-#endif
 		if (inst & 0xfc000000) // definitely not a JIT block
 			return -1;
 		if ((int)inst >= num_blocks)
@@ -309,16 +296,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		for (int i = 0; i < num_blocks; i++)
 			if (blocks[i].ContainsAddress(em_address))
 				block_numbers->push_back(i);
-	}
-
-	u32 JitBaseBlockCache::GetOriginalFirstOp(int block_num)
-	{
-		if (block_num >= num_blocks)
-		{
-			//PanicAlert("JitBaseBlockCache::GetOriginalFirstOp - block_num = %u is out of range", block_num);
-			return block_num;
-		}
-		return blocks[block_num].originalFirstOpcode;
 	}
 
 	CompiledCode JitBaseBlockCache::GetCompiledCodeFromBlock(int block_num)
@@ -404,12 +381,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			return;
 		}
 		b.invalid = true;
-#ifdef JIT_UNLIMITED_ICACHE
-		JitInterface::Write_Opcode_JIT(b.originalAddress, b.originalFirstOpcode?b.originalFirstOpcode:JIT_ICACHE_INVALID_WORD);
-#else
-		if (Memory::ReadFast32(b.originalAddress) == block_num)
-			Memory::WriteUnchecked_U32(b.originalFirstOpcode, b.originalAddress);
-#endif
+		JitInterface::Write_Opcode_JIT(b.originalAddress, JIT_ICACHE_INVALID_WORD);
 
 		UnlinkBlock(block_num);
 
@@ -441,7 +413,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(pAddr, 0)), it2 = it1;
 			while (it2 != block_map.end() && it2->first.second < pAddr + length)
 		{
-#ifdef JIT_UNLIMITED_ICACHE
 				JitBlock &b = blocks[it2->second];
 				if (b.originalAddress & JIT_ICACHE_VMEM_BIT)
 				{
@@ -458,7 +429,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 					u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
 					memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
 				}
-#endif
 				DestroyBlock(it2->second, true);
 				it2++;
 			}
@@ -468,7 +438,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			}
 		}
 
-#ifdef JIT_UNLIMITED_ICACHE
 		// invalidate iCache.
 		// icbi can be called with any address, so we should check
 		if ((address & ~JIT_ICACHE_MASK) != 0x80000000 && (address & ~JIT_ICACHE_MASK) != 0x00000000 &&
@@ -492,7 +461,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			u32 cacheaddr = address & JIT_ICACHE_MASK;
 			memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, length);
 		}
-#endif
 	}
 	void JitBlockCache::WriteLinkBlock(u8* location, const u8* address)
 	{
