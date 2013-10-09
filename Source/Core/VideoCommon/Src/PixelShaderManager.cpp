@@ -138,7 +138,7 @@ void PixelShaderManager::SetAlpha(const AlphaTest& alpha)
 
 void PixelShaderManager::SetDestAlpha(const ConstantAlpha& alpha)
 {
-	constants.alpha[3] = alpha.alpha;
+	constants.alpha[3] = alpha.alpha / 255.0f;
 	dirty = true;
 }
 
