@@ -237,10 +237,10 @@
     <None Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Externals\zlib\zlib.vcxproj">
+    <ProjectReference Include="..\..\..\..\Externals\zlib\zlib.vcxproj">
       <Project>{3e1339f5-9311-4122-9442-369702e8fcad}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\Core\VideoCommon\VideoCommon.vcxproj">
+    <ProjectReference Include="..\..\VideoCommon\VideoCommon.vcxproj">
       <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
     </ProjectReference>
   </ItemGroup>

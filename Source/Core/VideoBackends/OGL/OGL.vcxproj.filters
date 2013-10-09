@@ -45,6 +45,7 @@
     <ClCompile Include="Src\PerfQuery.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="Src\SamplerCache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Globals.h" />
@@ -81,6 +82,8 @@
     <ClInclude Include="Src\PerfQuery.h">
       <Filter>Render</Filter>
     </ClInclude>
+    <ClInclude Include="Src\SamplerCache.h" />
+    <ClInclude Include="Src\StreamBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />

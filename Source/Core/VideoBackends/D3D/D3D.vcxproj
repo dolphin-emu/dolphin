@@ -178,11 +178,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\VideoCommon\VideoCommon.vcxproj">
-      <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Src\D3DBase.cpp" />
     <ClCompile Include="Src\D3DBlob.cpp" />
     <ClCompile Include="Src\D3DShader.cpp" />
@@ -236,6 +231,11 @@
     <ClInclude Include="Src\VertexShaderCache.h" />
     <ClInclude Include="Src\VideoBackend.h" />
     <ClInclude Include="Src\XFBEncoder.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\VideoCommon\VideoCommon.vcxproj">
+      <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -231,12 +231,12 @@
     <ClInclude Include="Src\XFMemLoader.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\VideoCommon\VideoCommon.vcxproj">
-      <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
-    </ProjectReference>
+    <None Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CMakeLists.txt" />
+    <ProjectReference Include="..\..\VideoCommon\VideoCommon.vcxproj">
+      <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
