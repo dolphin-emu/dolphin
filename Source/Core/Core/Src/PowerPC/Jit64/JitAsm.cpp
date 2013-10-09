@@ -142,9 +142,8 @@ void Jit64AsmRoutineManager::Generate()
 			if (Core::g_CoreStartupParameter.bWii && (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack))
 				SetJumpTarget(exit_vmem);
 
-			TEST(32, R(EAX), Imm32(0xFC));
-			FixupBranch notfound = J_CC(CC_NZ);
-				BSWAP(32, EAX);
+			TEST(32, R(EAX), R(EAX));
+			FixupBranch notfound = J_CC(CC_L);
 				//IDEA - we have 26 bits, why not just use offsets from base of code?
 				if (enableDebug)
 				{

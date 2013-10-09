@@ -27,8 +27,8 @@
 #define JIT_ICACHE_EXRAM_BIT 0x10000000
 #define JIT_ICACHE_VMEM_BIT 0x20000000
 // this corresponds to opcode 5 which is invalid in PowerPC
-#define JIT_ICACHE_INVALID_BYTE 0x14
-#define JIT_ICACHE_INVALID_WORD 0x14141414
+#define JIT_ICACHE_INVALID_BYTE 0x80
+#define JIT_ICACHE_INVALID_WORD 0x80808080
 
 struct JitBlock
 {
@@ -109,6 +109,8 @@ public:
 	u8 *iCache;
 	u8 *iCacheEx;
 	u8 *iCacheVMEM;
+
+	u32* GetICachePtr(u32 addr);
 
 	// Fast way to get a block. Only works on the first ppc instruction of a block.
 	int GetBlockNumberFromStartAddress(u32 em_address);

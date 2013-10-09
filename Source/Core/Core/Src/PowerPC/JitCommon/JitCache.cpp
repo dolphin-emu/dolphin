@@ -198,7 +198,8 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	{
 		blockCodePointers[block_num] = code_ptr;
 		JitBlock &b = blocks[block_num];
-		JitInterface::Write_Opcode_JIT(b.originalAddress, (JIT_OPCODE << 26) | block_num);
+		u32* icp = GetICachePtr(b.originalAddress);
+		*icp = block_num;
 
 		// Convert the logical address to a physical address for the block map
 		u32 pAddr = b.originalAddress & 0x1FFFFFFF;
@@ -247,24 +248,22 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		return blockCodePointers;
 	}
 
+	u32* JitBaseBlockCache::GetICachePtr(u32 addr)
+	{
+		if (addr & JIT_ICACHE_VMEM_BIT)
+			return (u32*)(jit->GetBlockCache()->iCacheVMEM + (addr & JIT_ICACHE_MASK));
+		else if (addr & JIT_ICACHE_EXRAM_BIT)
+			return (u32*)(jit->GetBlockCache()->iCacheEx + (addr & JIT_ICACHEEX_MASK));
+		else
+			return (u32*)(jit->GetBlockCache()->iCache + (addr & JIT_ICACHE_MASK));
+	}
+
 	int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr)
 	{
 		if (!blocks)
 			return -1;		
 		u32 inst;
-		if (addr & JIT_ICACHE_VMEM_BIT)
-		{
-			inst = *(u32*)(iCacheVMEM + (addr & JIT_ICACHE_MASK));
-		}
-		else if (addr & JIT_ICACHE_EXRAM_BIT)
-		{
-			inst = *(u32*)(iCacheEx + (addr & JIT_ICACHEEX_MASK));
-		}
-		else
-		{
-			inst = *(u32*)(iCache + (addr & JIT_ICACHE_MASK));
-		}
-		inst = Common::swap32(inst);
+		inst = *GetICachePtr(addr);
 		if (inst & 0xfc000000) // definitely not a JIT block
 			return -1;
 		if ((int)inst >= num_blocks)
@@ -364,7 +363,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			return;
 		}
 		b.invalid = true;
-		JitInterface::Write_Opcode_JIT(b.originalAddress, JIT_ICACHE_INVALID_WORD);
+		*GetICachePtr(b.originalAddress) = JIT_ICACHE_INVALID_WORD;
 
 		UnlinkBlock(block_num);
 
@@ -397,21 +396,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			while (it2 != block_map.end() && it2->first.second < pAddr + length)
 		{
 				JitBlock &b = blocks[it2->second];
-				if (b.originalAddress & JIT_ICACHE_VMEM_BIT)
-				{
-					u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
-					memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-				}
-				else if (b.originalAddress & JIT_ICACHE_EXRAM_BIT)
-				{
-					u32 cacheaddr = b.originalAddress & JIT_ICACHEEX_MASK;
-					memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-				}
-				else
-				{
-					u32 cacheaddr = b.originalAddress & JIT_ICACHE_MASK;
-					memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 4);
-				}
+				*GetICachePtr(b.originalAddress) = JIT_ICACHE_INVALID_WORD;
 				DestroyBlock(it2->second, true);
 				it2++;
 			}

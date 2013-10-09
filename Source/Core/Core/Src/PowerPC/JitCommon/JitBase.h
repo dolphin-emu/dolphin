@@ -17,8 +17,6 @@
 
 #include <set>
 
-#define JIT_OPCODE 0
-
 class JitBase : public CPUCoreBase
 {
 protected:
