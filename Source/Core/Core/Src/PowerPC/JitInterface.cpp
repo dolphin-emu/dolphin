@@ -268,46 +268,6 @@ namespace JitInterface
 		return inst;
 	}
 
-	// The following function is deprecated in favour of FAST_ICACHE
-	u32 Read_Opcode_JIT_LC(const u32 _Address)
-	{
-		if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000 &&
-			(_Address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
-			(_Address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (_Address & ~JIT_ICACHEEX_MASK) != 0x10000000)
-		{
-			PanicAlertT("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
-			ERROR_LOG(MEMMAP, "iCacheJIT: Reading Opcode from %x. Please report.", _Address);
-			return 0;
-		}
-		u8* iCache;
-		u32 addr;
-		if (_Address & JIT_ICACHE_VMEM_BIT)
-		{		
-			iCache = jit->GetBlockCache()->iCacheVMEM;
-			addr = _Address & JIT_ICACHE_MASK;
-		}
-		else if (_Address & JIT_ICACHE_EXRAM_BIT)
-		{		
-			iCache = jit->GetBlockCache()->iCacheEx;
-			addr = _Address & JIT_ICACHEEX_MASK;
-		}
-		else
-		{
-			iCache = jit->GetBlockCache()->iCache;
-			addr = _Address & JIT_ICACHE_MASK;
-		}
-		u32 inst = *(u32*)(iCache + addr);
-		if (inst == JIT_ICACHE_INVALID_WORD)
-			inst = Memory::ReadUnchecked_U32(_Address);
-		else
-			inst = Common::swap32(inst);
-		if ((inst & 0xfc000000) == 0)
-		{
-			inst = jit->GetBlockCache()->GetOriginalFirstOp(inst);
-		}	
-		return inst;
-	}
-
 	// WARNING! No checks!
 	// We assume that _Address is cached
 	void Write_Opcode_JIT(const u32 _Address, const u32 _Value)

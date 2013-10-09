@@ -23,7 +23,6 @@ namespace JitInterface
 	// used by JIT to read instructions
 	u32 Read_Opcode_JIT(const u32 _Address);
 	// used by JIT. uses iCacheJIT. Reads in the "Locked cache" mode
-	u32 Read_Opcode_JIT_LC(const u32 _Address);
 	void Write_Opcode_JIT(const u32 _Address, const u32 _Value);
 
 	// Clearing CodeCache
