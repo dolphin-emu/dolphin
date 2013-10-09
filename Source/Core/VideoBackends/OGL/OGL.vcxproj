@@ -119,75 +119,31 @@
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;$(SolutionDir)..\Externals\GLew\include;$(SolutionDir)..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>
-    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;$(SolutionDir)..\Externals\GLew\include;$(SolutionDir)..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew64s.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>
-    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;$(SolutionDir)..\Externals\GLew\include;$(SolutionDir)..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>
-    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;$(SolutionDir)..\Externals\GLew\include;$(SolutionDir)..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew32s.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>
-    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;$(SolutionDir)..\Externals\GLew\include;$(SolutionDir)..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew64s.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>
-    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\..\Common\Src;..\..\Core\Src;..\..\VideoCommon\Src;..\..\DolphinWX\Src;$(SolutionDir)..\Externals\wxWidgets3;$(SolutionDir)..\Externals\wxWidgets3\include;$(SolutionDir)..\Externals\GLew\include;$(SolutionDir)..\Externals;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glew64s.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\Externals\GLew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>
-    <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Src\FramebufferManager.cpp" />
