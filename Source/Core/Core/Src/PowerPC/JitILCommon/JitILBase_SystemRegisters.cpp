@@ -9,15 +9,10 @@
 #include "../../HW/SystemTimers.h"
 #include "../PowerPC.h"
 #include "../PPCTables.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
 
-#include "JitIL.h"
+#include "JitILBase.h"
 
-//#define INSTRUCTION_START Default(inst); return;
-#define INSTRUCTION_START
-
-void JitIL::mtspr(UGeckoInstruction inst)
+void JitILBase::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 		JITDISABLE(bJITSystemRegistersOff)
@@ -53,7 +48,7 @@ void JitIL::mtspr(UGeckoInstruction inst)
 	}
 }
 
-void JitIL::mfspr(UGeckoInstruction inst)
+void JitILBase::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 		JITDISABLE(bJITSystemRegistersOff)
@@ -90,7 +85,7 @@ void JitIL::mfspr(UGeckoInstruction inst)
 // =======================================================================================
 // Don't interpret this, if we do we get thrown out
 // --------------
-void JitIL::mtmsr(UGeckoInstruction inst)
+void JitILBase::mtmsr(UGeckoInstruction inst)
 {
 	ibuild.EmitStoreMSR(ibuild.EmitLoadGReg(inst.RS), ibuild.EmitIntConst(js.compilerPC));
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
@@ -98,21 +93,21 @@ void JitIL::mtmsr(UGeckoInstruction inst)
 // ==============
 
 
-void JitIL::mfmsr(UGeckoInstruction inst)
+void JitILBase::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 		JITDISABLE(bJITSystemRegistersOff)
 		ibuild.EmitStoreGReg(ibuild.EmitLoadMSR(), inst.RD);
 }
 
-void JitIL::mftb(UGeckoInstruction inst)
+void JitILBase::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
 	JITDISABLE(bJITSystemRegistersOff)
 		mfspr(inst);
 }
 
-void JitIL::mfcr(UGeckoInstruction inst)
+void JitILBase::mfcr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
 	JITDISABLE(bJITSystemRegistersOff)
@@ -126,7 +121,7 @@ void JitIL::mfcr(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(d, inst.RD);
 }
 
-void JitIL::mtcrf(UGeckoInstruction inst)
+void JitILBase::mtcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
 	JITDISABLE(bJITSystemRegistersOff)
@@ -144,7 +139,7 @@ void JitIL::mtcrf(UGeckoInstruction inst)
 	}
 }
 
-void JitIL::mcrf(UGeckoInstruction inst)
+void JitILBase::mcrf(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff)
@@ -155,7 +150,7 @@ void JitIL::mcrf(UGeckoInstruction inst)
 	}
 }
 
-void JitIL::crXX(UGeckoInstruction inst)
+void JitILBase::crXX(UGeckoInstruction inst)
 {
 	// Ported from Jit_SystemRegister.cpp
 

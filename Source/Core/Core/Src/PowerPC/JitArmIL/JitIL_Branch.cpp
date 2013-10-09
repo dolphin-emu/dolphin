@@ -6,44 +6,18 @@
 
 #include "../../ConfigManager.h"
 #include "../PowerPC.h"
-#include "../../CoreTiming.h"
 #include "../PPCTables.h"
-#include "x64Emitter.h"
 
 #include "JitIL.h"
-#include "JitILAsm.h"
 
 #include "../../HW/Memmap.h"
 
-// The branches are known good, or at least reasonably good.
-// No need for a disable-mechanism.
+#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
+//#define NORMALBRANCH_START
 
-// If defined, clears CR0 at blr and bl-s. If the assumption that
-// flags never carry over between functions holds, then the task for 
-// an optimizer becomes much easier.
-
-// #define ACID_TEST
-
-// Zelda and many more games seem to pass the Acid Test. 
-
-//#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
-#define NORMALBRANCH_START
-
-using namespace Gen;
-
-void JitIL::sc(UGeckoInstruction inst)
+void JitArmIL::bx(UGeckoInstruction inst)
 {
-	ibuild.EmitSystemCall(ibuild.EmitIntConst(js.compilerPC));
-}
-
-void JitIL::rfi(UGeckoInstruction inst)
-{
-	ibuild.EmitRFIExit();
-}
-
-void JitIL::bx(UGeckoInstruction inst)
-{
-	NORMALBRANCH_START
+	//NORMALBRANCH_START
 	INSTRUCTION_START;
 
 	// We must always process the following sentence
@@ -71,7 +45,6 @@ void JitIL::bx(UGeckoInstruction inst)
 
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(destination));
 }
-
 static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruction inst) {
 	IREmitter::InstLoc CRTest = 0, CTRTest = 0;
 	if ((inst.BO & 16) == 0)  // Test a CR bit
@@ -109,7 +82,32 @@ static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruc
 	return Test;
 }
 
-void JitIL::bcx(UGeckoInstruction inst)
+void JitArmIL::bclrx(UGeckoInstruction inst)
+{
+	NORMALBRANCH_START
+
+	if (!js.isLastInstruction &&
+		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {
+		if (inst.LK)
+			ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
+		return;
+	}
+
+	if (inst.hex == 0x4e800020) {
+		ibuild.EmitBranchUncond(ibuild.EmitLoadLink());
+		return;
+	}
+	IREmitter::InstLoc test = TestBranch(ibuild, inst);
+	test = ibuild.EmitICmpEq(test, ibuild.EmitIntConst(0));
+	ibuild.EmitBranchCond(test, ibuild.EmitIntConst(js.compilerPC + 4));
+
+	IREmitter::InstLoc destination = ibuild.EmitLoadLink();
+	destination = ibuild.EmitAnd(destination, ibuild.EmitIntConst(-4));
+	if (inst.LK)
+		ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
+	ibuild.EmitBranchUncond(destination);
+}
+void JitArmIL::bcx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 	if (inst.LK)
@@ -140,7 +138,7 @@ void JitIL::bcx(UGeckoInstruction inst)
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
 }
 
-void JitIL::bcctrx(UGeckoInstruction inst)
+void JitArmIL::bcctrx(UGeckoInstruction inst)
 {
 	NORMALBRANCH_START
 	if ((inst.BO & 4) == 0) {
@@ -169,28 +167,3 @@ void JitIL::bcctrx(UGeckoInstruction inst)
 	ibuild.EmitBranchUncond(destination);
 }
 
-void JitIL::bclrx(UGeckoInstruction inst)
-{
-	NORMALBRANCH_START
-
-	if (!js.isLastInstruction &&
-		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {
-		if (inst.LK)
-			ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
-		return;
-	}
-
-	if (inst.hex == 0x4e800020) {
-		ibuild.EmitBranchUncond(ibuild.EmitLoadLink());
-		return;
-	}
-	IREmitter::InstLoc test = TestBranch(ibuild, inst);
-	test = ibuild.EmitICmpEq(test, ibuild.EmitIntConst(0));
-	ibuild.EmitBranchCond(test, ibuild.EmitIntConst(js.compilerPC + 4));
-
-	IREmitter::InstLoc destination = ibuild.EmitLoadLink();
-	destination = ibuild.EmitAnd(destination, ibuild.EmitIntConst(-4));
-	if (inst.LK)
-		ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
-	ibuild.EmitBranchUncond(destination);
-}

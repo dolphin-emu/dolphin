@@ -2,9 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-// TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
-// Should give a very noticable speed boost to paired single heavy code.
-
 #include "Common.h"
 
 #include "../PowerPC.h"
@@ -12,21 +9,14 @@
 #include "../../HW/GPFifo.h"
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
-#include "CPUDetect.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
 
-#include "JitIL.h"
-#include "JitILAsm.h"
-
-//#define INSTRUCTION_START Default(inst); return;
-#define INSTRUCTION_START
+#include "JitILBase.h"
 
 // TODO: Add peephole optimizations for multiple consecutive lfd/lfs/stfd/stfs since they are so common,
 // and pshufb could help a lot.
 // Also add hacks for things like lfs/stfs the same reg consecutively, that is, simple memory moves.
 
-void JitIL::lfs(UGeckoInstruction inst)
+void JitILBase::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff)
@@ -40,7 +30,7 @@ void JitIL::lfs(UGeckoInstruction inst)
 }
 
 
-void JitIL::lfd(UGeckoInstruction inst)
+void JitILBase::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff)
@@ -55,7 +45,7 @@ void JitIL::lfd(UGeckoInstruction inst)
 }
 
 
-void JitIL::stfd(UGeckoInstruction inst)
+void JitILBase::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff)
@@ -71,7 +61,7 @@ void JitIL::stfd(UGeckoInstruction inst)
 }
 
 
-void JitIL::stfs(UGeckoInstruction inst)
+void JitILBase::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff)
@@ -88,7 +78,7 @@ void JitIL::stfs(UGeckoInstruction inst)
 }
 
 
-void JitIL::stfsx(UGeckoInstruction inst)
+void JitILBase::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff)
@@ -103,7 +93,7 @@ void JitIL::stfsx(UGeckoInstruction inst)
 }
 
 
-void JitIL::lfsx(UGeckoInstruction inst)
+void JitILBase::lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff)

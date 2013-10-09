@@ -166,23 +166,24 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
 			Src/PowerPC/Interpreter/Interpreter_Tables.cpp
 			Src/PowerPC/JitCommon/JitBase.cpp
-			Src/PowerPC/JitCommon/JitCache.cpp)
+			Src/PowerPC/JitCommon/JitCache.cpp
+			Src/PowerPC/JitILCommon/IR.cpp
+			Src/PowerPC/JitILCommon/JitILBase_Branch.cpp
+			Src/PowerPC/JitILCommon/JitILBase_LoadStore.cpp
+			Src/PowerPC/JitILCommon/JitILBase_SystemRegisters.cpp
+			Src/PowerPC/JitILCommon/JitILBase_LoadStoreFloating.cpp
+			Src/PowerPC/JitILCommon/JitILBase_LoadStorePaired.cpp
+			Src/PowerPC/JitILCommon/JitILBase_Paired.cpp
+			Src/PowerPC/JitILCommon/JitILBase_FloatingPoint.cpp
+			Src/PowerPC/JitILCommon/JitILBase_Integer.cpp
+			)
 
 if(NOT _M_GENERIC)
 	set(SRCS ${SRCS}
 			Src/x64MemTools.cpp
-			Src/PowerPC/Jit64IL/IR.cpp
 			Src/PowerPC/Jit64IL/IR_X86.cpp
 			Src/PowerPC/Jit64IL/JitILAsm.cpp
-			Src/PowerPC/Jit64IL/JitIL_Branch.cpp
 			Src/PowerPC/Jit64IL/JitIL.cpp
-			Src/PowerPC/Jit64IL/JitIL_FloatingPoint.cpp
-			Src/PowerPC/Jit64IL/JitIL_Integer.cpp
-			Src/PowerPC/Jit64IL/JitIL_LoadStore.cpp
-			Src/PowerPC/Jit64IL/JitIL_LoadStoreFloating.cpp
-			Src/PowerPC/Jit64IL/JitIL_LoadStorePaired.cpp
-			Src/PowerPC/Jit64IL/JitIL_Paired.cpp
-			Src/PowerPC/Jit64IL/JitIL_SystemRegisters.cpp
 			Src/PowerPC/Jit64IL/JitIL_Tables.cpp
 			Src/PowerPC/Jit64/Jit64_Tables.cpp
 			Src/PowerPC/Jit64/JitAsm.cpp
@@ -217,7 +218,14 @@ if(_M_ARM)
 			Src/PowerPC/JitArm32/JitArm_Paired.cpp
 			Src/PowerPC/JitArm32/JitArm_LoadStorePaired.cpp
 			Src/PowerPC/JitArm32/JitArm_SystemRegisters.cpp
-			Src/PowerPC/JitArm32/JitArm_LoadStoreFloating.cpp)
+			Src/PowerPC/JitArm32/JitArm_LoadStoreFloating.cpp
+			#JitArmIL
+			Src/PowerPC/JitArmIL/JitIL.cpp
+			Src/PowerPC/JitArmIL/JitILAsm.cpp
+			Src/PowerPC/JitArmIL/JitIL_Tables.cpp
+			Src/PowerPC/JitArmIL/JitIL_Branch.cpp
+			Src/PowerPC/JitArmIL/IR_Arm.cpp
+			)
 endif()
 
 set(LIBS bdisasm inputcommon videosoftware sfml-network)

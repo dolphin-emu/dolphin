@@ -491,11 +491,10 @@ void ARMXEmitter::POP(const int num, ...)
 
 void ARMXEmitter::WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, Operand2 op2)
 {
-	Write32(condition | (13 << 21) | (SetFlags << 20) | (dest << 12) | op2.Imm5() | (op << 4) | src);
-}
-void ARMXEmitter::WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, ARMReg op2)
-{
-	Write32(condition | (13 << 21) | (SetFlags << 20) | (dest << 12) | (op2 << 8) | (op << 4) | src);
+	if (op2.GetType() == TYPE_REG)
+		Write32(condition | (13 << 21) | (SetFlags << 20) | (dest << 12) | (op2.GetData() << 8) | ((op + 1) << 4) | src);
+	else
+		Write32(condition | (13 << 21) | (SetFlags << 20) | (dest << 12) | op2.Imm5() | (op << 4) | src);
 }
 
 // IMM, REG, IMMSREG, RSR 
@@ -610,16 +609,10 @@ void ARMXEmitter::SDIV(ARMReg dest, ARMReg dividend, ARMReg divisor)
 }
 void ARMXEmitter::LSL (ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(0, false, dest, src, op2);}
 void ARMXEmitter::LSLS(ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(0, true, dest, src, op2);}
-void ARMXEmitter::LSL (ARMReg dest, ARMReg src, ARMReg op2)	  { WriteShiftedDataOp(1, false, dest, src, op2);} 
-void ARMXEmitter::LSLS(ARMReg dest, ARMReg src, ARMReg op2)	  { WriteShiftedDataOp(1, true, dest, src, op2);}
 void ARMXEmitter::LSR (ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(2, false, dest, src, op2);}
 void ARMXEmitter::LSRS(ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(2, true, dest, src, op2);}
-void ARMXEmitter::LSR (ARMReg dest, ARMReg src, ARMReg op2)	  { WriteShiftedDataOp(3, false, dest, src, op2);}
-void ARMXEmitter::LSRS(ARMReg dest, ARMReg src, ARMReg op2)   { WriteShiftedDataOp(3, true, dest, src, op2);}
 void ARMXEmitter::ASR (ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(4, false, dest, src, op2);}
 void ARMXEmitter::ASRS(ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(4, true, dest, src, op2);}
-void ARMXEmitter::ASR (ARMReg dest, ARMReg src, ARMReg op2)   { WriteShiftedDataOp(5, false, dest, src, op2);}
-void ARMXEmitter::ASRS(ARMReg dest, ARMReg src, ARMReg op2)   { WriteShiftedDataOp(5, true, dest, src, op2);}
 
 void ARMXEmitter::MUL (ARMReg dest,	ARMReg src, ARMReg op2)
 {

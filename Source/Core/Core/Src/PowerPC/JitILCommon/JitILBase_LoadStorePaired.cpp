@@ -9,17 +9,10 @@
 #include "../../HW/GPFifo.h"
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
-#include "CPUDetect.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
 
-#include "JitIL.h"
-#include "JitILAsm.h"
+#include "JitILBase.h"
 
-//#define INSTRUCTION_START Default(inst); return;
-#define INSTRUCTION_START
-
-void JitIL::psq_st(UGeckoInstruction inst)
+void JitILBase::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff)
@@ -35,7 +28,7 @@ void JitIL::psq_st(UGeckoInstruction inst)
 	ibuild.EmitStorePaired(val, addr, inst.I);
 }
 
-void JitIL::psq_l(UGeckoInstruction inst)
+void JitILBase::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff)
