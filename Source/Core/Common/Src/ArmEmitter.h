@@ -351,7 +351,6 @@ private:
 
 	void WriteStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 op2, bool RegAdd);
 	void WriteRegStoreOp(u32 op, ARMReg dest, bool WriteBack, u16 RegList);
-	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, ARMReg op2);
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, Operand2 op2);
 	void WriteSignedMultiply(u32 Op, u32 Op2, u32 Op3, ARMReg dest, ARMReg r1, ARMReg r2);
 
@@ -445,17 +444,11 @@ public:
 	void ADC (ARMReg dest, ARMReg src, Operand2 op2);
 	void ADCS(ARMReg dest, ARMReg src, Operand2 op2);
 	void LSL (ARMReg dest, ARMReg src, Operand2 op2);
-	void LSL (ARMReg dest, ARMReg src, ARMReg op2);
 	void LSLS(ARMReg dest, ARMReg src, Operand2 op2);
-	void LSLS(ARMReg dest, ARMReg src, ARMReg op2);
 	void LSR (ARMReg dest, ARMReg src, Operand2 op2);
 	void LSRS(ARMReg dest, ARMReg src, Operand2 op2);
-	void LSR (ARMReg dest, ARMReg src, ARMReg op2);
-	void LSRS(ARMReg dest, ARMReg src, ARMReg op2);
 	void ASR (ARMReg dest, ARMReg src, Operand2 op2);
 	void ASRS(ARMReg dest, ARMReg src, Operand2 op2);
-	void ASR (ARMReg dest, ARMReg src, ARMReg op2);
-	void ASRS(ARMReg dest, ARMReg src, ARMReg op2);
 	void SBC (ARMReg dest, ARMReg src, Operand2 op2);
 	void SBCS(ARMReg dest, ARMReg src, Operand2 op2);
 	void RBIT(ARMReg dest, ARMReg src);
