@@ -43,7 +43,7 @@ public:
 
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) {}
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return NULL; }
 
 	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
 

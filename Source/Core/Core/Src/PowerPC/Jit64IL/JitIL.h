@@ -45,10 +45,11 @@
 #define DISABLE64
 #endif
 
-class JitIL : public JitILBase, public Jitx86Base
+class JitIL : public JitILBase, public EmuCodeBlock
 {
 private:
-
+	JitBlockCache blocks;
+	TrampolineCache trampolines;	
 
 	// The default code buffer. We keep it around to not have to alloc/dealloc a
 	// large chunk of memory for each recompiled block.
@@ -73,6 +74,12 @@ public:
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
 
 	void Trace();
+
+	JitBlockCache *GetBlockCache() { return &blocks; }
+	
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return NULL; };
+
+	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
 
 	void ClearCache();
 	const u8 *GetDispatcher() {

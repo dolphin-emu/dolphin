@@ -24,7 +24,7 @@ The register allocation is linear scan allocation.
 #pragma warning(disable:4146)   // unary minus operator applied to unsigned type, result still unsigned
 #endif
 
-#include "IR.h"
+#include "../JitILCommon/IR.h"
 #include "../PPCTables.h"
 #include "../../CoreTiming.h"
 #include "../../HW/Memmap.h"

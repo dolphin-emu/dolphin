@@ -175,6 +175,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/PowerPC/JitILCommon/JitILBase_LoadStorePaired.cpp
 			Src/PowerPC/JitILCommon/JitILBase_Paired.cpp
 			Src/PowerPC/JitILCommon/JitILBase_FloatingPoint.cpp
+			Src/PowerPC/JitILCommon/JitILBase_Integer.cpp
 			)
 
 if(NOT _M_GENERIC)
@@ -182,15 +183,7 @@ if(NOT _M_GENERIC)
 			Src/x64MemTools.cpp
 			Src/PowerPC/Jit64IL/IR_X86.cpp
 			Src/PowerPC/Jit64IL/JitILAsm.cpp
-			Src/PowerPC/Jit64IL/JitIL_Branch.cpp
 			Src/PowerPC/Jit64IL/JitIL.cpp
-			Src/PowerPC/Jit64IL/JitIL_FloatingPoint.cpp
-			Src/PowerPC/Jit64IL/JitIL_Integer.cpp
-			Src/PowerPC/Jit64IL/JitIL_LoadStore.cpp
-			Src/PowerPC/Jit64IL/JitIL_LoadStoreFloating.cpp
-			Src/PowerPC/Jit64IL/JitIL_LoadStorePaired.cpp
-			Src/PowerPC/Jit64IL/JitIL_Paired.cpp
-			Src/PowerPC/Jit64IL/JitIL_SystemRegisters.cpp
 			Src/PowerPC/Jit64IL/JitIL_Tables.cpp
 			Src/PowerPC/Jit64/Jit64_Tables.cpp
 			Src/PowerPC/Jit64/JitAsm.cpp

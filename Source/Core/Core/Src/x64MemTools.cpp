@@ -22,7 +22,7 @@
 namespace EMM
 {
 
-#if defined __APPLE__ || defined __linux__ || defined __FreeBSD__
+#if (defined __APPLE__ || defined __linux__ || defined __FreeBSD__) && !defined(ANDROID)
 #include <execinfo.h>
 void print_trace(const char * msg)
 {
