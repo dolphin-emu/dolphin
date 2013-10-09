@@ -43,6 +43,7 @@ const CPUCore CPUCores[] = {
 	{0, wxTRANSLATE("Interpreter (VERY slow)")},
 #ifdef _M_ARM
 	{3, wxTRANSLATE("Arm JIT (experimental)")},
+	{4, wxTRANSLATE("Arm JITIL (experimental)")},
 #else
 	{1, wxTRANSLATE("JIT Recompiler (recommended)")},
 	{2, wxTRANSLATE("JITIL experimental recompiler")},
