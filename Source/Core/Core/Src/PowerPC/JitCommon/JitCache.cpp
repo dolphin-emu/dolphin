@@ -47,12 +47,6 @@ using namespace Gen;
 
 #define INVALID_EXIT 0xFFFFFFFF
 
-bool JitBlock::ContainsAddress(u32 em_address)
-{
-	// WARNING - THIS DOES NOT WORK WITH INLINING ENABLED.
-	return (em_address >= originalAddress && em_address < originalAddress + 4 * originalSize);
-}
-
 	bool JitBaseBlockCache::IsFull() const 
 	{
 		return GetNumBlocks() >= MAX_NUM_BLOCKS - 1;
@@ -189,7 +183,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		b.exitPtrs[1] = 0;
 		b.linkStatus[0] = false;
 		b.linkStatus[1] = false;
-		b.blockNum = num_blocks;
 		num_blocks++; //commit the current block
 		return num_blocks - 1;
 	}
@@ -271,13 +264,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		if (blocks[inst].originalAddress != addr)
 			return -1;		
 		return inst;
-	}
-
-	void JitBaseBlockCache::GetBlockNumbersFromAddress(u32 em_address, std::vector<int> *block_numbers)
-	{
-		for (int i = 0; i < num_blocks; i++)
-			if (blocks[i].ContainsAddress(em_address))
-				block_numbers->push_back(i);
 	}
 
 	CompiledCode JitBaseBlockCache::GetCompiledCodeFromBlock(int block_num)

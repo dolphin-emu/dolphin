@@ -42,12 +42,10 @@ struct JitBlock
 	u32 codeSize; 
 	u32 originalSize;
 	int runCount;  // for profiling.
-	int blockNum;
 	int flags;
 
 	bool invalid;
 	bool linkStatus[2];
-	bool ContainsAddress(u32 em_address);
 
 #ifdef _WIN32
 	// we don't really need to save start and stop
@@ -114,12 +112,6 @@ public:
 
 	// Fast way to get a block. Only works on the first ppc instruction of a block.
 	int GetBlockNumberFromStartAddress(u32 em_address);
-
-	// slower, but can get numbers from within blocks, not just the first instruction.
-	// WARNING! WILL NOT WORK WITH INLINING ENABLED (not yet a feature but will be soon)
-	// Returns a list of block numbers - only one block can start at a particular address, but they CAN overlap.
-	// This one is slow so should only be used for one-shots from the debugger UI, not for anything during runtime.
-	void GetBlockNumbersFromAddress(u32 em_address, std::vector<int> *block_numbers);
 
 	u32 GetOriginalFirstOp(int block_num);
 	CompiledCode GetCompiledCodeFromBlock(int block_num);
