@@ -28,11 +28,13 @@ void Launch(const char *filename)
 void Explore(const char *path)
 {
 	wxString wxPath = StrToWxStr(path);
+#ifndef _WIN32
 	// Default to file
 	if (! wxPath.Contains(wxT("://")))
 	{
 		wxPath = wxT("file://") + wxPath;
 	}
+#endif
 
 #ifdef __WXGTK__
 	wxPath.Replace(wxT(" "), wxT("\\ "));
