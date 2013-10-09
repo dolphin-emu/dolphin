@@ -11,10 +11,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+
 import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
 import org.dolphinemu.dolphinemu.settings.UserPreferences;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
 
 /**
  * The main activity of this emulator front-end.
@@ -23,31 +25,26 @@ public final class DolphinEmulator extends Activity
 {
 	private void CopyAsset(String asset, String output)
 	{
-		InputStream in = null;
-		OutputStream out = null;
-
 		try
 		{
-			in = getAssets().open(asset);
-			out = new FileOutputStream(output);
-			copyFile(in, out);
-			in.close();
-			out.close();
+			// Get input file channel.
+			FileInputStream inStream = getAssets().openFd(asset).createInputStream();
+			FileChannel in =  inStream.getChannel();
+
+			// Get output file channel.
+			FileOutputStream outStream = new FileOutputStream(output);
+			FileChannel out = outStream.getChannel();
+
+			// Copy over
+			in.transferTo(0, in.size(), out);
+
+			// Clean-up
+			inStream.close();
+			outStream.close();
 		}
 		catch (IOException e)
 		{
 			Log.e("DolphinEmulator", "Failed to copy asset file: " + asset, e);
-		}
-	}
-
-	private void copyFile(InputStream in, OutputStream out) throws IOException
-	{
-		byte[] buffer = new byte[1024];
-		int read;
-
-		while ((read = in.read(buffer)) != -1)
-		{
-			out.write(buffer, 0, read);
 		}
 	}
 
