@@ -224,7 +224,6 @@ if(_M_ARM)
 			Src/PowerPC/JitArmIL/JitILAsm.cpp
 			Src/PowerPC/JitArmIL/JitIL_Tables.cpp
 			Src/PowerPC/JitArmIL/JitIL_Branch.cpp
-			Src/PowerPC/JitArmIL/JitIL_SystemRegisters.cpp
 			Src/PowerPC/JitArmIL/IR_Arm.cpp
 			)
 endif()
