@@ -217,17 +217,17 @@ namespace JitInterface
 		u32 addr;
 		if (_Address & JIT_ICACHE_VMEM_BIT)
 		{
-			iCache = jit->GetBlockCache()->GetICacheVMEM();
+			iCache = jit->GetBlockCache()->iCacheVMEM;
 			addr = _Address & JIT_ICACHE_MASK;
 		}
 		else if (_Address & JIT_ICACHE_EXRAM_BIT)
 		{
-			iCache = jit->GetBlockCache()->GetICacheEx();
+			iCache = jit->GetBlockCache()->iCacheEx;
 			addr = _Address & JIT_ICACHEEX_MASK;
 		}
 		else
 		{
-			iCache = jit->GetBlockCache()->GetICache();
+			iCache = jit->GetBlockCache()->iCache;
 			addr = _Address & JIT_ICACHE_MASK;
 		}
 		u32 inst = *(u32*)(iCache + addr);
@@ -283,17 +283,17 @@ namespace JitInterface
 		u32 addr;
 		if (_Address & JIT_ICACHE_VMEM_BIT)
 		{		
-			iCache = jit->GetBlockCache()->GetICacheVMEM();
+			iCache = jit->GetBlockCache()->iCacheVMEM;
 			addr = _Address & JIT_ICACHE_MASK;
 		}
 		else if (_Address & JIT_ICACHE_EXRAM_BIT)
 		{		
-			iCache = jit->GetBlockCache()->GetICacheEx();
+			iCache = jit->GetBlockCache()->iCacheEx;
 			addr = _Address & JIT_ICACHEEX_MASK;
 		}
 		else
 		{
-			iCache = jit->GetBlockCache()->GetICache();
+			iCache = jit->GetBlockCache()->iCache;
 			addr = _Address & JIT_ICACHE_MASK;
 		}
 		u32 inst = *(u32*)(iCache + addr);
@@ -314,14 +314,14 @@ namespace JitInterface
 	{
 		if (_Address & JIT_ICACHE_VMEM_BIT)
 		{
-			*(u32*)(jit->GetBlockCache()->GetICacheVMEM() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);		
+			*(u32*)(jit->GetBlockCache()->iCacheVMEM + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);
 		}
 		else if (_Address & JIT_ICACHE_EXRAM_BIT)
 		{
-			*(u32*)(jit->GetBlockCache()->GetICacheEx() + (_Address & JIT_ICACHEEX_MASK)) = Common::swap32(_Value);		
+			*(u32*)(jit->GetBlockCache()->iCacheEx + (_Address & JIT_ICACHEEX_MASK)) = Common::swap32(_Value);
 		}
 		else
-			*(u32*)(jit->GetBlockCache()->GetICache() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);
+			*(u32*)(jit->GetBlockCache()->iCache + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);
 	}
 
 	

@@ -101,9 +101,9 @@ void JitILAsmRoutineManager::Generate()
 			}
 			AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
 #ifdef _M_IX86
-			MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICache()));
+			MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCache));
 #else
-			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICache()));
+			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCache));
 			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
 			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
@@ -117,9 +117,9 @@ void JitILAsmRoutineManager::Generate()
 				FixupBranch no_vmem = J_CC(CC_Z);
 				AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
 #ifdef _M_IX86
-				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICacheVMEM()));
+				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCacheVMEM));
 #else
-				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICacheVMEM()));
+				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
 				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
 				if (Core::g_CoreStartupParameter.bWii) exit_vmem = J();
@@ -131,9 +131,9 @@ void JitILAsmRoutineManager::Generate()
 				FixupBranch no_exram = J_CC(CC_Z);
 				AND(32, R(EAX), Imm32(JIT_ICACHEEX_MASK));
 #ifdef _M_IX86
-				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICacheEx()));
+				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCacheEx));
 #else
-				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICacheEx()));
+				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheEx));
 				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
 				SetJumpTarget(no_exram);

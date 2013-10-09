@@ -60,8 +60,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 
 	void JitBaseBlockCache::Init()
 	{
-		MAX_NUM_BLOCKS = 65536*2;
-
 #if defined USE_OPROFILE && USE_OPROFILE
 		agent = op_open_agent();
 #endif
@@ -247,21 +245,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	const u8 **JitBaseBlockCache::GetCodePointers()
 	{
 		return blockCodePointers;
-	}
-
-	u8* JitBaseBlockCache::GetICache()
-	{
-		return iCache;
-	}
-
-	u8* JitBaseBlockCache::GetICacheEx()
-	{
-		return iCacheEx;
-	}
-
-	u8* JitBaseBlockCache::GetICacheVMEM()
-	{
-		return iCacheVMEM;
 	}
 
 	int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr)
