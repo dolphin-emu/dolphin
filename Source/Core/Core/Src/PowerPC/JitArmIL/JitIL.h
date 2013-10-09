@@ -86,6 +86,7 @@ public:
 	// Binary ops
 	void BIN_AND(ARMReg reg, Operand2 op2);
 	void BIN_XOR(ARMReg reg, Operand2 op2);
+	void BIN_OR(ARMReg reg, Operand2 op2);
 	void BIN_ADD(ARMReg reg, Operand2 op2);
 
 	// Branches

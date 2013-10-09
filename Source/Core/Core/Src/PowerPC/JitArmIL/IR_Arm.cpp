@@ -56,7 +56,6 @@ static void regClearInst(RegInfo& RI, InstLoc I) {
 		if (RI.regs[RegAllocOrder[i]] == I)
 			RI.regs[RegAllocOrder[i]] = 0;
 }
-
 static void regNormalRegClear(RegInfo& RI, InstLoc I) {
 	if (RI.IInfo[I - RI.FirstI] & 4)
 		regClearInst(RI, getOp1(I));
@@ -125,6 +124,25 @@ static ARMReg regLocForInst(RegInfo& RI, InstLoc I) {
 	RI.Jit->LDR(reg, R14, 0);
 	return reg;
 }
+static ARMReg regBinLHSReg(RegInfo& RI, InstLoc I) {
+	ARMReg reg = regFindFreeReg(RI);
+	RI.Jit->MOV(reg, regLocForInst(RI, getOp1(I)));
+	return reg;
+}
+
+// If the lifetime of the register used by an operand ends at I,
+// return the register. Otherwise return a free register.
+static ARMReg regBinReg(RegInfo& RI, InstLoc I) {
+	// FIXME: When regLocForInst() is extracted as a local variable,
+	//        "Retrieving unknown spill slot?!" is shown.
+	if (RI.IInfo[I - RI.FirstI] & 4) 
+		return regLocForInst(RI, getOp1(I));
+	else if (RI.IInfo[I - RI.FirstI] & 8)
+		return regLocForInst(RI, getOp2(I));
+	
+	return regFindFreeReg(RI);
+}
+
 static void regSpillCallerSaved(RegInfo& RI) {
 	regSpill(RI, R0);
 	regSpill(RI, R1);
@@ -144,17 +162,28 @@ static void regWriteExit(RegInfo& RI, InstLoc dest) {
 	}
 }
 static void regStoreInstToPPCState(RegInfo& RI, unsigned width, InstLoc I, s32 offset) {
-	if (width != 32) {
-		PanicAlert("Not implemented!");
-		return;
+	void (JitArmIL::*op)(ARMReg, ARMReg, Operand2, bool);
+	switch(width)
+	{
+		case 32:
+			op = &JitArmIL::STR;
+		break;
+		case 8:
+			op = &JitArmIL::STRB;
+		break;
+		default:
+			PanicAlert("Not implemented!");
+			return;
+		break;
 	}
+
 	if (isImm(*I)) {
 		RI.Jit->MOVI2R(R12, RI.Build->GetImmValue(I));
-		RI.Jit->STR(R12, R9, offset);
+		(RI.Jit->*op)(R12, R9, offset, true);
 		return;
 	}
 	ARMReg reg = regEnsureInReg(RI, I);
-	RI.Jit->STR(reg, R9, offset);
+	(RI.Jit->*op)(reg, R9, offset, true);
 }
 
 //
@@ -177,6 +206,10 @@ void JitArmIL::BIN_XOR(ARMReg reg, Operand2 op2)
 {
 	EOR(reg, reg, op2);
 }
+void JitArmIL::BIN_OR(ARMReg reg, Operand2 op2)
+{
+	ORR(reg, reg, op2);
+}
 void JitArmIL::BIN_AND(ARMReg reg, Operand2 op2)
 {
 	AND(reg, reg, op2);
@@ -184,6 +217,19 @@ void JitArmIL::BIN_AND(ARMReg reg, Operand2 op2)
 void JitArmIL::BIN_ADD(ARMReg reg, Operand2 op2)
 {
 	ADD(reg, reg, op2);
+}
+static void regEmitShiftInst(RegInfo& RI, InstLoc I, void (JitArmIL::*op)(ARMReg, ARMReg, Operand2))
+{
+	ARMReg reg = regBinLHSReg(RI, I);
+	if (isImm(*getOp2(I))) {
+		unsigned RHS = RI.Build->GetImmValue(getOp2(I));
+		(RI.Jit->*op)(reg, reg, RHS);
+		RI.regs[reg] = I;
+		return;
+	}
+	(RI.Jit->*op)(reg, reg, regLocForInst(RI, getOp2(I)));
+	RI.regs[reg] = I;
+	regNormalRegClear(RI, I);
 }
 
 static void regEmitBinInst(RegInfo& RI, InstLoc I,
@@ -202,10 +248,13 @@ static void regEmitBinInst(RegInfo& RI, InstLoc I,
 	}
 	if (isImm(*getOp2(I))) {
 		unsigned RHS = RI.Build->GetImmValue(getOp2(I));
-		if (RHS + 128 < 256) {
-			(RI.Jit->*op)(reg, RHS);
-		} else {
-			(RI.Jit->*op)(reg, RHS);
+		Operand2 RHSop;
+		if (TryMakeOperand2(RHS, RHSop))
+			(RI.Jit->*op)(reg, RHSop);
+		else
+		{
+			RI.Jit->MOVI2R(R12, RHS);
+			(RI.Jit->*op)(reg, R12);
 		}
 	} else if (commuted) {
 		(RI.Jit->*op)(reg, regLocForInst(RI, getOp1(I)));
@@ -214,6 +263,22 @@ static void regEmitBinInst(RegInfo& RI, InstLoc I,
 	}
 	RI.regs[reg] = I;
 	regNormalRegClear(RI, I);
+}
+static void regEmitCmp(RegInfo& RI, InstLoc I) {
+	if (isImm(*getOp2(I))) {
+		unsigned RHS = RI.Build->GetImmValue(getOp2(I));
+		Operand2 op;
+		if (TryMakeOperand2(RHS, op))
+			RI.Jit->CMP(regLocForInst(RI, getOp1(I)), op);
+		else
+		{
+			RI.Jit->MOVI2R(R12, RHS);
+			RI.Jit->CMP(regLocForInst(RI, getOp1(I)), R12);
+		}
+	} else {
+		ARMReg reg = regEnsureInReg(RI, getOp1(I));
+		RI.Jit->CMP(reg, regLocForInst(RI, getOp2(I)));
+	}
 }
 
 static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
@@ -447,6 +512,18 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 			break;
 		}
 
+		case StoreGReg: {
+			unsigned ppcreg = *I >> 16;
+			regStoreInstToPPCState(RI, 32, getOp1(I), PPCSTATE_OFF(gpr[ppcreg]));
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case StoreCR: {
+			unsigned ppcreg = *I >> 16;
+			regStoreInstToPPCState(RI, 8, getOp1(I), PPCSTATE_OFF(cr_fast[ppcreg]));
+			regNormalRegClear(RI, I);
+			break;
+		}
 		case StoreLink: {
 			regStoreInstToPPCState(RI, 32, getOp1(I), PPCSTATE_OFF(spr[SPR_LR]));
 			regNormalRegClear(RI, I);
@@ -565,9 +642,37 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 			Jit->WriteRfiExitDestInR(rA); // rA gets unlocked here
 			break;
 		}
+		case Shl: {
+			if (!thisUsed) break;
+			regEmitShiftInst(RI, I, &JitArmIL::LSL);
+			break;
+		}
+		case Shrl: {
+			if (!thisUsed) break;
+			regEmitShiftInst(RI, I, &JitArmIL::LSR);
+			break;
+		}
+		case Sarl: {
+			if (!thisUsed) break;
+			regEmitShiftInst(RI, I, &JitArmIL::ASR);
+			break;
+		}
 		case And: {
 			if (!thisUsed) break;
 			regEmitBinInst(RI, I, &JitArmIL::BIN_AND, true);
+			break;
+		}
+		case Not: {
+			if (!thisUsed) break;
+			ARMReg reg = regBinLHSReg(RI, I);
+			Jit->MVN(reg, reg);
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case Or: {
+			if (!thisUsed) break;
+			regEmitBinInst(RI, I, &JitArmIL::BIN_OR, true);
 			break;
 		}
 		case Xor: {
@@ -578,6 +683,31 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 		case Add: {
 			if (!thisUsed) break;
 			regEmitBinInst(RI, I, &JitArmIL::BIN_ADD, true);
+			break;
+		}
+		case ICmpCRUnsigned: {
+			if (!thisUsed) break;
+			regEmitCmp(RI, I);
+			ARMReg reg = regBinReg(RI, I);
+			Jit->MOV(reg, 0x2); // Result == 0
+			Jit->SetCC(CC_LO); Jit->MOV(reg, 0x8); // Result < 0
+			Jit->SetCC(CC_HI); Jit->MOV(reg, 0x4); // Result > 0
+			Jit->SetCC();
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+
+		case ICmpCRSigned: {
+			if (!thisUsed) break;
+			regEmitCmp(RI, I);
+			ARMReg reg = regBinReg(RI, I);
+			Jit->MOV(reg, 0x2); // Result == 0
+			Jit->SetCC(CC_LT); Jit->MOV(reg, 0x8); // Result < 0
+			Jit->SetCC(CC_GT); Jit->MOV(reg, 0x4); // Result > 0
+			Jit->SetCC();
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
 			break;
 		}
 		case Int3:
