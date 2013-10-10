@@ -41,26 +41,26 @@ static const char *tevKSelTableC[] = // KCSEL
 	"ERROR2", // 0x09
 	"ERROR3", // 0x0a
 	"ERROR4", // 0x0b
-	"int3(round(" I_KCOLORS"[0].rgb * 255.0))", // K0 = 0x0C
-	"int3(round(" I_KCOLORS"[1].rgb * 255.0))", // K1 = 0x0D
-	"int3(round(" I_KCOLORS"[2].rgb * 255.0))", // K2 = 0x0E
-	"int3(round(" I_KCOLORS"[3].rgb * 255.0))", // K3 = 0x0F
-	"int3(round(" I_KCOLORS"[0].rrr * 255.0))", // K0_R = 0x10
-	"int3(round(" I_KCOLORS"[1].rrr * 255.0))", // K1_R = 0x11
-	"int3(round(" I_KCOLORS"[2].rrr * 255.0))", // K2_R = 0x12
-	"int3(round(" I_KCOLORS"[3].rrr * 255.0))", // K3_R = 0x13
-	"int3(round(" I_KCOLORS"[0].ggg * 255.0))", // K0_G = 0x14
-	"int3(round(" I_KCOLORS"[1].ggg * 255.0))", // K1_G = 0x15
-	"int3(round(" I_KCOLORS"[2].ggg * 255.0))", // K2_G = 0x16
-	"int3(round(" I_KCOLORS"[3].ggg * 255.0))", // K3_G = 0x17
-	"int3(round(" I_KCOLORS"[0].bbb * 255.0))", // K0_B = 0x18
-	"int3(round(" I_KCOLORS"[1].bbb * 255.0))", // K1_B = 0x19
-	"int3(round(" I_KCOLORS"[2].bbb * 255.0))", // K2_B = 0x1A
-	"int3(round(" I_KCOLORS"[3].bbb * 255.0))", // K3_B = 0x1B
-	"int3(round(" I_KCOLORS"[0].aaa * 255.0))", // K0_A = 0x1C
-	"int3(round(" I_KCOLORS"[1].aaa * 255.0))", // K1_A = 0x1D
-	"int3(round(" I_KCOLORS"[2].aaa * 255.0))", // K2_A = 0x1E
-	"int3(round(" I_KCOLORS"[3].aaa * 255.0))", // K3_A = 0x1F
+	I_KCOLORS"[0].rgb", // K0 = 0x0C
+	I_KCOLORS"[1].rgb", // K1 = 0x0D
+	I_KCOLORS"[2].rgb", // K2 = 0x0E
+	I_KCOLORS"[3].rgb", // K3 = 0x0F
+	I_KCOLORS"[0].rrr", // K0_R = 0x10
+	I_KCOLORS"[1].rrr", // K1_R = 0x11
+	I_KCOLORS"[2].rrr", // K2_R = 0x12
+	I_KCOLORS"[3].rrr", // K3_R = 0x13
+	I_KCOLORS"[0].ggg", // K0_G = 0x14
+	I_KCOLORS"[1].ggg", // K1_G = 0x15
+	I_KCOLORS"[2].ggg", // K2_G = 0x16
+	I_KCOLORS"[3].ggg", // K3_G = 0x17
+	I_KCOLORS"[0].bbb", // K0_B = 0x18
+	I_KCOLORS"[1].bbb", // K1_B = 0x19
+	I_KCOLORS"[2].bbb", // K2_B = 0x1A
+	I_KCOLORS"[3].bbb", // K3_B = 0x1B
+	I_KCOLORS"[0].aaa", // K0_A = 0x1C
+	I_KCOLORS"[1].aaa", // K1_A = 0x1D
+	I_KCOLORS"[2].aaa", // K2_A = 0x1E
+	I_KCOLORS"[3].aaa", // K3_A = 0x1F
 };
 
 static const char *tevKSelTableA[] = // KASEL
@@ -81,22 +81,22 @@ static const char *tevKSelTableA[] = // KASEL
 	"ERROR10", // 0x0d
 	"ERROR11", // 0x0e
 	"ERROR12", // 0x0f
-	"int(round(" I_KCOLORS"[0].r * 255.0))", // K0_R = 0x10
-	"int(round(" I_KCOLORS"[1].r * 255.0))", // K1_R = 0x11
-	"int(round(" I_KCOLORS"[2].r * 255.0))", // K2_R = 0x12
-	"int(round(" I_KCOLORS"[3].r * 255.0))", // K3_R = 0x13
-	"int(round(" I_KCOLORS"[0].g * 255.0))", // K0_G = 0x14
-	"int(round(" I_KCOLORS"[1].g * 255.0))", // K1_G = 0x15
-	"int(round(" I_KCOLORS"[2].g * 255.0))", // K2_G = 0x16
-	"int(round(" I_KCOLORS"[3].g * 255.0))", // K3_G = 0x17
-	"int(round(" I_KCOLORS"[0].b * 255.0))", // K0_B = 0x18
-	"int(round(" I_KCOLORS"[1].b * 255.0))", // K1_B = 0x19
-	"int(round(" I_KCOLORS"[2].b * 255.0))", // K2_B = 0x1A
-	"int(round(" I_KCOLORS"[3].b * 255.0))", // K3_B = 0x1B
-	"int(round(" I_KCOLORS"[0].a * 255.0))", // K0_A = 0x1C
-	"int(round(" I_KCOLORS"[1].a * 255.0))", // K1_A = 0x1D
-	"int(round(" I_KCOLORS"[2].a * 255.0))", // K2_A = 0x1E
-	"int(round(" I_KCOLORS"[3].a * 255.0))", // K3_A = 0x1F
+	I_KCOLORS"[0].r", // K0_R = 0x10
+	I_KCOLORS"[1].r", // K1_R = 0x11
+	I_KCOLORS"[2].r", // K2_R = 0x12
+	I_KCOLORS"[3].r", // K3_R = 0x13
+	I_KCOLORS"[0].g", // K0_G = 0x14
+	I_KCOLORS"[1].g", // K1_G = 0x15
+	I_KCOLORS"[2].g", // K2_G = 0x16
+	I_KCOLORS"[3].g", // K3_G = 0x17
+	I_KCOLORS"[0].b", // K0_B = 0x18
+	I_KCOLORS"[1].b", // K1_B = 0x19
+	I_KCOLORS"[2].b", // K2_B = 0x1A
+	I_KCOLORS"[3].b", // K3_B = 0x1B
+	I_KCOLORS"[0].a", // K0_A = 0x1C
+	I_KCOLORS"[1].a", // K1_A = 0x1D
+	I_KCOLORS"[2].a", // K2_A = 0x1E
+	I_KCOLORS"[3].a", // K3_A = 0x1F
 };
 
 static const char *tevScaleTable[] = // CS
@@ -283,8 +283,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (ApiType == API_OPENGL)
 		out.Write("layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportShadingLanguage420pack ? ", binding = 1" : "");
 
-	DeclareUniform(out, ApiType, C_COLORS, "float4", I_COLORS"[4]");
-	DeclareUniform(out, ApiType, C_KCOLORS, "float4", I_KCOLORS"[4]");
+	DeclareUniform(out, ApiType, C_COLORS, "int4", I_COLORS"[4]");
+	DeclareUniform(out, ApiType, C_KCOLORS, "int4", I_KCOLORS"[4]");
 	DeclareUniform(out, ApiType, C_ALPHA, "float4", I_ALPHA"[1]");  // TODO: Why is this an array...-.-
 	DeclareUniform(out, ApiType, C_TEXDIMS, "float4", I_TEXDIMS"[8]");
 	DeclareUniform(out, ApiType, C_ZBIAS, "float4", I_ZBIAS"[2]");
@@ -373,7 +373,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("        ) {\n");
 	}
 
-	out.Write("  int4 ic0 = int4(round(" I_COLORS"[1] * 255.0)), ic1 = int4(round(" I_COLORS"[2] * 255.0)), ic2 = int4(round(" I_COLORS"[3] * 255.0)), iprev = int4(round(" I_COLORS"[0] * 255.0));\n"
+	out.Write("  int4 ic0 = " I_COLORS"[1], ic1 = " I_COLORS"[2], ic2 = " I_COLORS"[3], iprev = " I_COLORS"[0];\n"
 			"  int4 irastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0), ikonsttemp = int4(0, 0, 0, 0);\n"
 			"  int3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
 			"  int alphabump=0;\n"
