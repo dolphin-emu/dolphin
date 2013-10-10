@@ -3,20 +3,20 @@
 
     <!-- Title of the app -->
     <string name="app_name">Dolphin Emulator</string>
-    
+
     <!-- Navigation-related Strings -->
     <string name="drawer_open">ナビゲーションウィンドウを開く</string>
     <string name="drawer_close">ナビゲーションウィンドウを閉じる</string>
-    
+
     <!-- About Fragment -->
     <string name="build_revision">ビルドのバージョン</string>
     <string name="supports_gles3">サポートのOpenGL ES 3</string>
-    
+
     <!-- Folder Browser -->
     <string name="current_dir">現在のディレクトリ： %1$s</string>
     <string name="parent_directory">親ディレクトリ</string>
     <string name="file_size">ファイルサイズ: %1$s</string>
-    
+
     <!-- Game List Activity -->
     <string name="clear_game_list">クリア</string>
     <string name="clear_game_list_confirm">ゲームリストからすべての項目を削除しますか？</string>
@@ -63,28 +63,31 @@
     <string name="c_stick_right">C-スティック: →</string>
     <string name="trigger_left">左のトリガー</string>
     <string name="trigger_right">右のトリガー</string>
-    
-    <!-- Prefs Fragment -->
+
+    <!-- CPU Preference Fragment -->
     <string name="interpreter">Interpreter</string>
     <string name="jit64_recompiler">JIT64 Recompiler</string>
     <string name="jitil_recompiler">JITIL Recompiler</string>
     <string name="jit_arm_recompiler">JIT ARM Recompiler</string>
-    <string name="cpu_core">CPUコア</string>
+    <string name="jitil_arm_recompiler">JITIL ARM Recompiler</string>
     <string name="cpu_settings">CPU</string>
-    <string name="emu_core_to_use">使用するエミュレーションコア</string>
+    <string name="cpu_core">CPUコア</string>
+    <string name="cpu_core_desc">%s</string>
     <string name="dual_core">デュアルコア</string>
     <string name="dual_core_descrip">処理のための2つのCPUコアを使用して。速度が向上します。</string>
     <string name="fastmem">Fastmem</string>
     <string name="fastmem_desc">メモリアクセスのために潜在的に危険な最適化を使用して。</string>
+
+    <!-- Video Preference Fragment -->
     <string name="video_settings">ビデオ</string>
     <string name="software_renderer">Software Renderer</string>
     <string name="opengl_es3">OpenGL ES</string>
     <string name="video_backend">ビデオレンダラ</string>
-    <string name="video_backend_to_use">使用するビデオレンダラー</string>
+    <string name="video_backend_desc">%s</string>
     <string name="show_fps">FPSを表示</string>
     <string name="show_fps_descrip">エミュレーション速度の指標として、画面左上に毎秒レンダリングされた フレーム数を表示します。</string>
     <string name="draw_onscreen_controls">画面上のコントロールを描画</string>
-    
+
     <string name="enhancements">画質向上の設定</string>
     <string name="internal_resolution">内部解像度の変更</string>
     <string name="internal_resolution_descrip">内部解像度の計算方式を設定します。高解像度に設定することで大きく 画質が向上します。 しかし、ゲームによっては非常に重くなったり描画バグの原因となります。 【ゲーム解像度の倍数】は【ウィンドウサイズに拡大】より少し重くなり ますが、描画バグは発生しにくくなります。 また一般的に内部解像度が低いほど、動作速度は向上します。</string>
@@ -100,7 +103,7 @@
     <string name="force_texture_filtering_descrip">ゲーム側でフィルタ無効を明示している場面でも、強制的にフィルタリングを行います。 特に高解像度出力時にテクスチャが綺麗になりますが、いくつかのゲームで描画バグを引き起こします。</string>
     <string name="disable_fog">霧を無効</string>
     <string name="disable_fog_descrip">フォグ処理を無効化します。これにより遠景の高精細化が期待できます。いくつかのタイトルではフォグ処理に頼った画面効果が正しく表示 されなくなります。</string>
-    
+
     <string name="hacks">高速化(Hacks)</string>
     <string name="embedded_frame_buffer">内蔵フレームバッファ</string>
     <string name="skip_efb_access">CPUからEFBアクセスをスキップ</string>
@@ -128,7 +131,7 @@
     <string name="disable_destination_alpha_descrip">多くのタイトルで画面効果に使用されている、アルファ透過処理をスキップ 。</string>
     <string name="fast_depth_calculation">高速奥行き計算</string>
     <string name="fast_depth_calculation_descrip">深度値を計算するために精度の低いアルゴリズムを使用します。</string>
-    
+
     <!-- Miscellaneous -->
     <string name="yes">はい</string>
     <string name="no">いいえ</string>

@@ -7,9 +7,9 @@
         android:summary="@string/dual_core_descrip"
         android:title="@string/dual_core" />
 
-    <ListPreference
+    <org.dolphinemu.dolphinemu.settings.custom.UpdatingListPreference
         android:key="cpuCorePref"
-        android:summary="@string/emu_core_to_use"
+        android:summary="@string/cpu_core_desc"
         android:title="@string/cpu_core" />
 
     <CheckBoxPreference

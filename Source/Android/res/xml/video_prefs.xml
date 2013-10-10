@@ -127,9 +127,9 @@
         </PreferenceCategory>
     </PreferenceScreen>
 
-    <ListPreference
+    <org.dolphinemu.dolphinemu.settings.custom.UpdatingListPreference
        android:key="gpuPref"
-       android:summary="@string/video_backend_to_use"
+       android:summary="@string/video_backend_desc"
        android:title="@string/video_backend" />
 
     <CheckBoxPreference

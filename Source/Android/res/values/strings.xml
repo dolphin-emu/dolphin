@@ -64,24 +64,26 @@
     <string name="trigger_left">Trigger L</string>
     <string name="trigger_right">Trigger R</string>
 
-    <!-- Preference Related -->
+    <!-- CPU Preference Fragment -->
     <string name="interpreter">Interpreter</string>
     <string name="jit64_recompiler">JIT64 Recompiler</string>
     <string name="jitil_recompiler">JITIL Recompiler</string>
     <string name="jit_arm_recompiler">JIT ARM Recompiler</string>
     <string name="jitil_arm_recompiler">JITIL ARM Recompiler</string>
-    <string name="cpu_core">CPU Core</string>
     <string name="cpu_settings">CPU</string>
-    <string name="emu_core_to_use">Emulation core to use</string>
+    <string name="cpu_core">CPU Core</string>
+    <string name="cpu_core_desc">%s</string>
     <string name="dual_core">Dual Core</string>
     <string name="dual_core_descrip">Split workload to two CPU cores instead of one. Increases speed.</string>
     <string name="fastmem">Fastmem</string>
     <string name="fastmem_desc">Uses potentially unsafe optimizations for memory access.</string>
+
+    <!-- Video Preference Fragment -->
     <string name="video_settings">Video</string>
     <string name="software_renderer">Software Renderer</string>
     <string name="opengl_es3">OpenGL ES</string>
     <string name="video_backend">Video Backend</string>
-    <string name="video_backend_to_use">Video backend to use</string>
+    <string name="video_backend_desc">%s</string>
     <string name="show_fps">Show FPS</string>
     <string name="show_fps_descrip">Show the number of frames rendered per second as a measure of emulation speed.</string>
     <string name="draw_onscreen_controls">Draw on-screen controls</string>
