@@ -34,14 +34,13 @@ import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
  */
 public final class GameListFragment extends ListFragment
 {
-	private ListView mMainList;
 	private GameListAdapter mGameAdapter;
 	private static GameListActivity mMe;
 	private OnGameListZeroListener mCallback;
 
 	/**
 	 * Interface that defines how to handle the case
-	 * when there are zero game.
+	 * when there are zero games in the game list.
 	 */
 	public interface OnGameListZeroListener
 	{
@@ -51,15 +50,15 @@ public final class GameListFragment extends ListFragment
 		 */
 		void onZeroFiles();
 	}
-	
+
 	/**
-	 * Gets the adapter for this fragment.
-	 * 
-	 * @return the adapter for this fragment.
+	 * Clears all entries from the {@link GameListAdapter}
+	 * backing this GameListFragment.
 	 */
-	public GameListAdapter getAdapter()
+	public void clearGameList()
 	{
-		return mGameAdapter;
+		mGameAdapter.clear();
+		mGameAdapter.notifyDataSetChanged();
 	}
 
 	private void Fill()
@@ -96,7 +95,7 @@ public final class GameListFragment extends ListFragment
 		Collections.sort(fls);
 
 		mGameAdapter = new GameListAdapter(mMe, R.layout.gamelist_folderbrowser_list, fls);
-		mMainList.setAdapter(mGameAdapter);
+		setListAdapter(mGameAdapter);
 
 		if (fls.isEmpty())
 		{
@@ -108,7 +107,7 @@ public final class GameListFragment extends ListFragment
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
 		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
-		mMainList = (ListView) rootView.findViewById(R.id.gamelist);
+		ListView mMainList = (ListView) rootView.findViewById(R.id.gamelist);
 
 		Fill();
 

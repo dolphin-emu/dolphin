@@ -18,8 +18,8 @@ import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.view.*;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -239,11 +239,11 @@ public final class GameListActivity extends Activity
 						NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + i, "");
 					}
 
+					// Since we flushed all paths, we signify this in the ini.
 					NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPathes", "0");
 
-					ArrayAdapter<GameListItem> adapter = ((GameListFragment)GameListActivity.this.mCurFragment).getAdapter();
-					adapter.clear();
-					adapter.notifyDataSetChanged();
+					// Now finally, clear the game list.
+					((GameListFragment) mCurFragment).clearGameList();
 				}
 			});
 			builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
