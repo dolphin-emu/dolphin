@@ -164,14 +164,14 @@ void PixelShaderManager::SetColorChanged(int type, int num)
 
 void PixelShaderManager::SetAlpha()
 {
-	constants.alpha[0] = bpmem.alpha_test.ref0 / 255.0f;
-	constants.alpha[1] = bpmem.alpha_test.ref1 / 255.0f;
+	constants.alpha[0] = bpmem.alpha_test.ref0;
+	constants.alpha[1] = bpmem.alpha_test.ref1;
 	dirty = true;
 }
 
 void PixelShaderManager::SetDestAlpha()
 {
-	constants.alpha[3] = bpmem.dstalpha.alpha / 255.0f;
+	constants.alpha[3] = bpmem.dstalpha.alpha;
 	dirty = true;
 }
 

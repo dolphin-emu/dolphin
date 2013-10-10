@@ -285,7 +285,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	DeclareUniform(out, ApiType, C_COLORS, "int4", I_COLORS"[4]");
 	DeclareUniform(out, ApiType, C_KCOLORS, "int4", I_KCOLORS"[4]");
-	DeclareUniform(out, ApiType, C_ALPHA, "float4", I_ALPHA"[1]");  // TODO: Why is this an array...-.-
+	DeclareUniform(out, ApiType, C_ALPHA, "int4", I_ALPHA"[1]");  // TODO: Why is this an array...-.-
 	DeclareUniform(out, ApiType, C_TEXDIMS, "float4", I_TEXDIMS"[8]");
 	DeclareUniform(out, ApiType, C_ZBIAS, "float4", I_ZBIAS"[2]");
 	DeclareUniform(out, ApiType, C_INDTEXSCALE, "float4", I_INDTEXSCALE"[2]");
@@ -570,7 +570,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 	{
 		out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-		out.Write("\tocol0 = float4(float3(iprev.rgb) / 255.0, " I_ALPHA"[0].a);\n");
+		out.Write("\tocol0 = float4(float3(iprev.rgb), float(" I_ALPHA".a)) / 255.0;\n");
 	}
 	else
 	{
@@ -586,7 +586,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// Colors will be blended against the alpha from ocol1 and
 		// the alpha from ocol0 will be written to the framebuffer.
 		out.Write("\tocol1 = float4(iprev) / 255.0;\n");
-		out.Write("\tocol0.a = " I_ALPHA"[0].a;\n");
+		out.Write("\tocol0.a = float(" I_ALPHA".a) / 255.0;\n");
 	}
 
 	out.Write("}\n");
@@ -962,8 +962,8 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 {
 	static const char *alphaRef[2] =
 	{
-		"int(round(" I_ALPHA"[0].r * 255.0))",
-		"int(round(" I_ALPHA"[0].g * 255.0))"
+		I_ALPHA".r",
+		I_ALPHA".g"
 	};
 
 	out.SetConstantsUsed(C_ALPHA, C_ALPHA);
