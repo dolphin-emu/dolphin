@@ -289,7 +289,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	DeclareUniform(out, ApiType, C_TEXDIMS, "float4", I_TEXDIMS"[8]");
 	DeclareUniform(out, ApiType, C_ZBIAS, "float4", I_ZBIAS"[2]");
 	DeclareUniform(out, ApiType, C_INDTEXSCALE, "float4", I_INDTEXSCALE"[2]");
-	DeclareUniform(out, ApiType, C_INDTEXMTX, "float4", I_INDTEXMTX"[6]");
+	DeclareUniform(out, ApiType, C_INDTEXMTX, "int4", I_INDTEXMTX"[6]");
 	DeclareUniform(out, ApiType, C_FOG, "float4", I_FOG"[3]");
 
 	// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
@@ -704,22 +704,30 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 				int mtxidx = 2*(bpmem.tevind[n].mid-1);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
 
-				out.Write("int2 indtevtrans%d = int2(round(dot(" I_INDTEXMTX"[%d].xyz, float3(iindtevcrd%d)), dot(" I_INDTEXMTX"[%d].xyz, float3(iindtevcrd%d))));\n",
-							n, mtxidx, n, mtxidx+1, n);
+				out.Write("int2 indtevtrans%d = int2(idot(" I_INDTEXMTX"[%d].xyz, iindtevcrd%d), idot(" I_INDTEXMTX"[%d].xyz, iindtevcrd%d)) >> 3;\n", n, mtxidx, n, mtxidx+1, n);
+
+				out.Write("if (" I_INDTEXMTX"[%d].w >= 0) indtevtrans%d = indtevtrans%d >> " I_INDTEXMTX"[%d].w;\n", mtxidx, n, n, mtxidx);
+				out.Write("else indtevtrans%d = indtevtrans%d << (-" I_INDTEXMTX"[%d].w);\n", n, n, mtxidx);
 			}
 			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord)
 			{ // s matrix
 				_assert_(bpmem.tevind[n].mid >= 5);
 				int mtxidx = 2*(bpmem.tevind[n].mid-5);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
-				out.Write("int2 indtevtrans%d = int2(round(" I_INDTEXMTX"[%d].ww * uv%d.xy * float3(iindtevcrd%d.xx)));\n", n, mtxidx, texcoord, n);
+				out.Write("int2 indtevtrans%d = int2(int2(round(uv%d.xy*255.0)) * iindtevcrd%d.xx) >> 8;\n", n, texcoord, n);
+
+				out.Write("if (" I_INDTEXMTX"[%d].w >= 0) indtevtrans%d = indtevtrans%d >> " I_INDTEXMTX"[%d].w;\n", mtxidx, n, n, mtxidx);
+				out.Write("else indtevtrans%d = indtevtrans%d << (-" I_INDTEXMTX"[%d].w);\n", n, n, mtxidx);
 			}
 			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord)
 			{ // t matrix
 				_assert_(bpmem.tevind[n].mid >= 9);
 				int mtxidx = 2*(bpmem.tevind[n].mid-9);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
-				out.Write("int2 indtevtrans%d = int2(round(" I_INDTEXMTX"[%d].ww * uv%d.xy * float3(iindtevcrd%d.yy)));\n", n, mtxidx, texcoord, n);
+				out.Write("int2 indtevtrans%d = int2(int2(round(uv%d.xy*255.0)) * iindtevcrd%d.yy) >> 8;\n", n, texcoord, n);
+
+				out.Write("if (" I_INDTEXMTX"[%d].w >= 0) indtevtrans%d = indtevtrans%d >> " I_INDTEXMTX"[%d].w;\n", mtxidx, n, n, mtxidx);
+				out.Write("else indtevtrans%d = indtevtrans%d << (-" I_INDTEXMTX"[%d].w);\n", n, n, mtxidx);
 			}
 			else
 			{
