@@ -19,6 +19,7 @@
 #include "Render.h"
 #include "FileUtil.h"
 #include "HW/Memmap.h"
+#include "DriverDetails.h"
 
 namespace OGL
 {
@@ -168,7 +169,7 @@ void Init()
 	glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
 
 	u32 rgbaType;
-	if (DriverDetails::HasBug(BUG_ISTEGRA))
+	if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
 		rgbaType = GL_RGBA;
 	else
 		rgbaType = GL_RGBA8;

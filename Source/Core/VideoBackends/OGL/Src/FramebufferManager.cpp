@@ -7,6 +7,7 @@
 #include "VertexShaderGen.h"
 #include "OnScreenDisplay.h"
 #include "GLFunctions.h"
+#include "DriverDetails.h"
 
 #include "TextureConverter.h"
 #include "Render.h"
@@ -66,7 +67,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 	// Create EFB target.
 	u32 depthType, rgbaType;
-	if (DriverDetails::HasBug(BUG_ISTEGRA))
+	if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
 	{
 		depthType = GL_DEPTH_COMPONENT;
 		rgbaType = GL_RGBA;

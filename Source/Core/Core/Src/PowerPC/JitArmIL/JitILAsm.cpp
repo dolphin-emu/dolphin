@@ -49,7 +49,7 @@ void JitArmILAsmRoutineManager::Generate()
 			Operand2 iCacheMask = Operand2(0xE, 2); // JIT_ICACHE_MASK
 			BIC(R12, R12, iCacheMask); // R12 contains PC & JIT_ICACHE_MASK here.
 
-			MOVI2R(R14, (u32)jit->GetBlockCache()->GetICache());
+			MOVI2R(R14, (u32)jit->GetBlockCache()->iCache);
 
 			LDR(R12, R14, R12); // R12 contains iCache[PC & JIT_ICACHE_MASK] here
 			// R12 Confirmed this is the correct iCache Location loaded.
