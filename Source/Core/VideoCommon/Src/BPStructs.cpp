@@ -173,11 +173,11 @@ void BPWritten(const BPCmd& bp)
 		break;
 	case BPMEM_RAS1_SS0: // Index Texture Coordinate Scale 0
 		if(bp.changes)
-			PixelShaderManager::SetIndTexScaleChanged(0x03);
+			PixelShaderManager::SetIndTexScaleChanged(false);
 		break;
 	case BPMEM_RAS1_SS1: // Index Texture Coordinate Scale 1
 		if(bp.changes)
-			PixelShaderManager::SetIndTexScaleChanged(0x0c);
+			PixelShaderManager::SetIndTexScaleChanged(true);
 		break;
 	// ----------------
 	// Scissor Control
@@ -225,7 +225,7 @@ void BPWritten(const BPCmd& bp)
 		{
 			PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
 			if(bp.changes & 0xFF)
-				PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
+				PixelShaderManager::SetDestAlpha();
 			if(bp.changes & 0x100)
 				SetBlendMode();
 			break;
@@ -364,14 +364,14 @@ void BPWritten(const BPCmd& bp)
 		PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d", bpmem.alpha_test.ref0,
 				bpmem.alpha_test.ref1, bpmem.alpha_test.comp0, bpmem.alpha_test.comp1, bpmem.alpha_test.logic);
 		if(bp.changes & 0xFFFF)
-			PixelShaderManager::SetAlpha(bpmem.alpha_test);
+			PixelShaderManager::SetAlpha();
 		if(bp.changes)
 			g_renderer->SetColorMask();
 		break;
 	case BPMEM_BIAS: // BIAS
 		PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);
 		if(bp.changes)
-			PixelShaderManager::SetZTextureBias(bpmem.ztex1.bias);
+			PixelShaderManager::SetZTextureBias();
 		break;
 	case BPMEM_ZTEX2: // Z Texture type
 		{
@@ -636,9 +636,9 @@ void BPWritten(const BPCmd& bp)
 				// don't compare with changes!
 				int num = (bp.address >> 1) & 0x3;
 				if ((bp.address & 1) == 0)
-					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].low.type, num, false);
+					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].low.type, num);
 				else
-					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num, true);
+					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
 			}
 			break;
 

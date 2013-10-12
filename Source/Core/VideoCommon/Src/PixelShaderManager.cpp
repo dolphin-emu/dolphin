@@ -27,7 +27,35 @@ void PixelShaderManager::Dirty()
 {
 	s_bFogRangeAdjustChanged = true;
 	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
-	dirty = true;
+	
+	SetColorChanged(0, 0);
+	SetColorChanged(0, 1);
+	SetColorChanged(0, 2);
+	SetColorChanged(0, 3);
+	SetColorChanged(1, 0);
+	SetColorChanged(1, 1);
+	SetColorChanged(1, 2);
+	SetColorChanged(1, 3);
+	SetAlpha();
+	SetDestAlpha();
+	SetZTextureBias();
+	SetViewportChanged();
+	SetIndTexScaleChanged(false);
+	SetIndTexScaleChanged(true);
+	SetIndMatrixChanged(0);
+	SetIndMatrixChanged(1);
+	SetIndMatrixChanged(2);
+	SetZTextureTypeChanged();
+	SetTexCoordChanged(0);
+	SetTexCoordChanged(1);
+	SetTexCoordChanged(2);
+	SetTexCoordChanged(3);
+	SetTexCoordChanged(4);
+	SetTexCoordChanged(5);
+	SetTexCoordChanged(6);
+	SetTexCoordChanged(7);
+	SetFogColorChanged();
+	SetFogParamChanged();
 }
 
 void PixelShaderManager::Shutdown()
@@ -111,34 +139,28 @@ void PixelShaderManager::SetConstants(u32 components)
 // TODO: Move conversion out, only store the raw color value
 // and update it when the shader constant is set, only.
 // TODO: Conversion should be checked in the context of tev_fixes..
-void PixelShaderManager::SetColorChanged(int type, int num, bool high)
+void PixelShaderManager::SetColorChanged(int type, int num)
 {
 	float4* c = type ? constants.kcolors : constants.colors;
-	if (!high)
-	{
-		c[num][0] = bpmem.tevregs[num].low.a / 255.0f;
-		c[num][3] = bpmem.tevregs[num].low.b / 255.0f;
-	}
-	else
-	{
-		c[num][2] = bpmem.tevregs[num].high.a / 255.0f;
-		c[num][1] = bpmem.tevregs[num].high.b / 255.0f;
-	}
+	c[num][0] = bpmem.tevregs[num].low.a / 255.0f;
+	c[num][3] = bpmem.tevregs[num].low.b / 255.0f;
+	c[num][2] = bpmem.tevregs[num].high.a / 255.0f;
+	c[num][1] = bpmem.tevregs[num].high.b / 255.0f;
 	dirty = true;
 	
 	PRIM_LOG("pixel %scolor%d: %f %f %f %f\n", type?"k":"", num, c[num][0], c[num][1], c[num][2], c[num][3]);
 }
 
-void PixelShaderManager::SetAlpha(const AlphaTest& alpha)
+void PixelShaderManager::SetAlpha()
 {
-	constants.alpha[0] = alpha.ref0 / 255.0f;
-	constants.alpha[1] = alpha.ref1 / 255.0f;
+	constants.alpha[0] = bpmem.alpha_test.ref0 / 255.0f;
+	constants.alpha[1] = bpmem.alpha_test.ref1 / 255.0f;
 	dirty = true;
 }
 
-void PixelShaderManager::SetDestAlpha(const ConstantAlpha& alpha)
+void PixelShaderManager::SetDestAlpha()
 {
-	constants.alpha[3] = alpha.alpha / 255.0f;
+	constants.alpha[3] = bpmem.dstalpha.alpha / 255.0f;
 	dirty = true;
 }
 
@@ -153,9 +175,9 @@ void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wra
 	constants.texdims[texmapid][1] = 1.0f/height;
 }
 
-void PixelShaderManager::SetZTextureBias(u32 bias)
+void PixelShaderManager::SetZTextureBias()
 {
-	constants.zbias[1][3] = bias/16777215.0f;
+	constants.zbias[1][3] = bpmem.ztex1.bias/16777215.0f;
 	dirty = true;
 }
 
@@ -168,13 +190,12 @@ void PixelShaderManager::SetViewportChanged()
 	s_bFogRangeAdjustChanged = true; // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
 }
 
-void PixelShaderManager::SetIndTexScaleChanged(u8 stagemask)
+void PixelShaderManager::SetIndTexScaleChanged(bool high)
 {
-	bool high_stage = stagemask == 0x0c;
-	constants.indtexscale[high_stage][0] = bpmem.texscale[high_stage].getScaleS(0);
-	constants.indtexscale[high_stage][1] = bpmem.texscale[high_stage].getScaleT(0);
-	constants.indtexscale[high_stage][2] = bpmem.texscale[high_stage].getScaleS(1);
-	constants.indtexscale[high_stage][3] = bpmem.texscale[high_stage].getScaleT(1);
+	constants.indtexscale[high][0] = bpmem.texscale[high].getScaleS(0);
+	constants.indtexscale[high][1] = bpmem.texscale[high].getScaleT(0);
+	constants.indtexscale[high][2] = bpmem.texscale[high].getScaleS(1);
+	constants.indtexscale[high][3] = bpmem.texscale[high].getScaleT(1);
 	dirty = true;
 }
 
