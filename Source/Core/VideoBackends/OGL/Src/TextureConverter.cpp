@@ -167,10 +167,16 @@ void Init()
 	glBindTexture(getFbType(), s_srcTexture);
 	glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
 
+	u32 rgbaType;
+	if (DriverDetails::HasBug(BUG_ISTEGRA))
+		rgbaType = GL_RGBA;
+	else
+		rgbaType = GL_RGBA8;
+
 	glGenTextures(1, &s_dstTexture);
 	glBindTexture(GL_TEXTURE_2D, s_dstTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, rgbaType, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	
 	CreatePrograms();
 }

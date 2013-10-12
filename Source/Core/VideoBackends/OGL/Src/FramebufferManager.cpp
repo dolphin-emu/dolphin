@@ -65,7 +65,17 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	// alpha channel should be ignored if the EFB does not have one.
 
 	// Create EFB target.
-
+	u32 depthType, rgbaType;
+	if (DriverDetails::HasBug(BUG_ISTEGRA))
+	{
+		depthType = GL_DEPTH_COMPONENT;
+		rgbaType = GL_RGBA;
+	}
+	else
+	{
+		depthType = GL_DEPTH_COMPONENT24;
+		rgbaType = GL_RGBA8;
+	}
 	glGenFramebuffers(1, &m_efbFramebuffer);
 	glActiveTexture(GL_TEXTURE0 + 9);
 
@@ -81,15 +91,15 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindTexture(getFbType(), m_efbColor);
 		glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
-		glTexImage2D(getFbType(), 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(getFbType(), 0, rgbaType, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(getFbType(), m_efbDepth);
 		glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
-		glTexImage2D(getFbType(), 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+		glTexImage2D(getFbType(), 0, depthType, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 		
 		glBindTexture(getFbType(), m_resolvedColorTexture);
 		glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
-		glTexImage2D(getFbType(), 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(getFbType(), 0, rgbaType, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 		// Bind target textures to the EFB framebuffer.
 
@@ -146,11 +156,11 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindTexture(getFbType(), m_resolvedColorTexture);
 		glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
-		glTexImage2D(getFbType(), 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(getFbType(), 0, rgbaType, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(getFbType(), m_resolvedDepthTexture);
 		glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
-		glTexImage2D(getFbType(), 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+		glTexImage2D(getFbType(), 0, depthType, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 
 		// Bind resolved textures to resolved framebuffer.
 
