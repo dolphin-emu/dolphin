@@ -51,7 +51,6 @@ volatile bool interruptSet= false;
 volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
 volatile bool interruptFinishWaiting = false;
-volatile bool waitingForPEInterruptDisable = false;
 
 volatile u32 VITicks = CommandProcessor::m_cpClockOrigin;
 
@@ -455,9 +454,7 @@ void STACKALIGN GatherPipeBursted()
 			if((ProcessorInterface::Fifo_CPUEnd == fifo.CPEnd) && (ProcessorInterface::Fifo_CPUBase == fifo.CPBase)
 				 && fifo.CPReadWriteDistance > 0)
 			{
-				waitingForPEInterruptDisable = true;
 				ProcessFifoAllDistance();
-				waitingForPEInterruptDisable = false;
 			}
 		}
 		return;
