@@ -609,11 +609,11 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (Pretest == AlphaTest::UNDETERMINED || (Pretest == AlphaTest::FAIL && bpmem.UseLateDepthTest()))
 		WriteAlphaTest<T>(out, uid_data, ApiType, dstAlphaMode, per_pixel_depth);
 
-
-	// TODO: Make more sense out of this comment
-	// D3D9 doesn't support readback of depth in pixel shader, so we always have to calculate it again.
-	// This shouldn't be a performance issue as the written depth is usually still from perspective division
-	// but this isn't true for z-textures, so there will be depth issues between enabled and disabled z-textures fragments
+	// FastDepth means to trust the depth generated in perspective division.
+	// It should be correct, but it seems not to be as accurate as required. TODO: Find out why
+	// So for disabled FastDepth, just calucate the depth value again.
+	// This performance lack of this division doesn't matter, but it's a major performance issue
+	// because of its forced off earlyZ.
 	if (g_ActiveConfig.bFastDepthCalc)
 		out.Write("float zCoord = rawpos.z;\n");
 	else
