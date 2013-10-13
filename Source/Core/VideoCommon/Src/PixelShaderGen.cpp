@@ -610,10 +610,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		WriteAlphaTest<T>(out, uid_data, ApiType, dstAlphaMode, per_pixel_depth);
 
 	// FastDepth means to trust the depth generated in perspective division.
-	// It should be correct, but it seems not to be as accurate as required. TODO: Find out why
-	// So for disabled FastDepth, just calucate the depth value again.
-	// This performance lack of this division doesn't matter, but it's a major performance issue
-	// because of its forced off earlyZ.
+	// It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
+	// For disabled FastDepth we just calculate the depth value again.
+	// The performance impact of this additional calculation doesn't matter, but it prevents
+	// the host GPU driver from performing any early depth test optimizations.
 	if (g_ActiveConfig.bFastDepthCalc)
 		out.Write("float zCoord = rawpos.z;\n");
 	else
