@@ -115,17 +115,6 @@ public:
 	static unsigned int GetPrevPixelFormat() { return prev_efb_format; }
 	static void StorePixelFormat(unsigned int new_format) { prev_efb_format = new_format; }
 
-	// TODO: doesn't belong here
-	virtual void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4) = 0;
-	virtual void SetPSConstant4fv(unsigned int const_number, const float *f) = 0;
-	virtual void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f) = 0;
-
-	// TODO: doesn't belong here
-	virtual void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4) = 0;
-	virtual void SetVSConstant4fv(unsigned int const_number, const float *f) = 0;
-	virtual void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f) = 0;
-	virtual void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f) = 0;
-
 protected:
 
 	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);

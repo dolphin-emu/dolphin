@@ -168,12 +168,16 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_IND_MTXA+6:
 	case BPMEM_IND_MTXB+6:
 	case BPMEM_IND_MTXC+6:
-		PixelShaderManager::SetIndMatrixChanged((bp.address - BPMEM_IND_MTXA) / 3);
+		if(bp.changes)
+			PixelShaderManager::SetIndMatrixChanged((bp.address - BPMEM_IND_MTXA) / 3);
 		break;
 	case BPMEM_RAS1_SS0: // Index Texture Coordinate Scale 0
-		PixelShaderManager::SetIndTexScaleChanged(0x03);
+		if(bp.changes)
+			PixelShaderManager::SetIndTexScaleChanged(false);
+		break;
 	case BPMEM_RAS1_SS1: // Index Texture Coordinate Scale 1
-		PixelShaderManager::SetIndTexScaleChanged(0x0c);
+		if(bp.changes)
+			PixelShaderManager::SetIndTexScaleChanged(true);
 		break;
 	// ----------------
 	// Scissor Control
@@ -220,7 +224,8 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_CONSTANTALPHA: // Set Destination Alpha
 		{
 			PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
-			PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
+			if(bp.changes & 0xFF)
+				PixelShaderManager::SetDestAlpha();
 			if(bp.changes & 0x100)
 				SetBlendMode();
 			break;
@@ -341,29 +346,32 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_FOGRANGE+3:
 	case BPMEM_FOGRANGE+4:
 	case BPMEM_FOGRANGE+5:
-		if (!GetConfig(CONFIG_DISABLEFOG))
+		if (!GetConfig(CONFIG_DISABLEFOG) && bp.changes)
 			PixelShaderManager::SetFogRangeAdjustChanged();
 		break;
 	case BPMEM_FOGPARAM0:
 	case BPMEM_FOGBMAGNITUDE:
 	case BPMEM_FOGBEXPONENT:
 	case BPMEM_FOGPARAM3:
-		if (!GetConfig(CONFIG_DISABLEFOG))
+		if (!GetConfig(CONFIG_DISABLEFOG) && bp.changes)
 			PixelShaderManager::SetFogParamChanged();
 		break;
 	case BPMEM_FOGCOLOR: // Fog Color
-		if (!GetConfig(CONFIG_DISABLEFOG))
+		if (!GetConfig(CONFIG_DISABLEFOG) && bp.changes)
 			PixelShaderManager::SetFogColorChanged();
 		break;
 	case BPMEM_ALPHACOMPARE: // Compare Alpha Values
 		PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d", bpmem.alpha_test.ref0,
 				bpmem.alpha_test.ref1, bpmem.alpha_test.comp0, bpmem.alpha_test.comp1, bpmem.alpha_test.logic);
-		PixelShaderManager::SetAlpha(bpmem.alpha_test);
-		g_renderer->SetColorMask();
+		if(bp.changes & 0xFFFF)
+			PixelShaderManager::SetAlpha();
+		if(bp.changes)
+			g_renderer->SetColorMask();
 		break;
 	case BPMEM_BIAS: // BIAS
 		PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);
-		PixelShaderManager::SetZTextureBias(bpmem.ztex1.bias);
+		if(bp.changes)
+			PixelShaderManager::SetZTextureBias();
 		break;
 	case BPMEM_ZTEX2: // Z Texture type
 		{
@@ -573,7 +581,8 @@ void BPWritten(const BPCmd& bp)
 		case BPMEM_SU_TSIZE+12:
 		case BPMEM_SU_SSIZE+14:
 		case BPMEM_SU_TSIZE+14:
-			PixelShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
+			if(bp.changes)
+				PixelShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
 			break;
 		// ------------------------
 		// BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS, DiagLoad, Min Filter, Mag Filter, Wrap T, S
@@ -627,9 +636,9 @@ void BPWritten(const BPCmd& bp)
 				// don't compare with changes!
 				int num = (bp.address >> 1) & 0x3;
 				if ((bp.address & 1) == 0)
-					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].low.type, num, false);
+					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].low.type, num);
 				else
-					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num, true);
+					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
 			}
 			break;
 

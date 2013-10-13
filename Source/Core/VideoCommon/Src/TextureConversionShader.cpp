@@ -867,10 +867,4 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 	return text;
 }
 
-void SetShaderParameters(float width, float height, float offsetX, float offsetY, float widthStride, float heightStride,float buffW,float buffH)
-{
-	g_renderer->SetPSConstant4f(C_COLORMATRIX, widthStride, heightStride, buffW, buffH);
-	g_renderer->SetPSConstant4f(C_COLORMATRIX + 1, width, (height - 1), offsetX, offsetY);
-}
-
 }  // namespace

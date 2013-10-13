@@ -87,9 +87,6 @@ public:
 	
 	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode);
 	static GLuint CompileSingleShader(GLuint type, const char *code);
-
-	static void SetMultiPSConstant4fv(unsigned int offset, const float *f, unsigned int count);
-	static void SetMultiVSConstant4fv(unsigned int offset, const float *f, unsigned int count);
 	static void UploadConstants();
 
 	static void Init(void);
@@ -110,12 +107,8 @@ private:
 	static UidChecker<PixelShaderUid,PixelShaderCode> pixel_uid_checker;
 	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
 
-	static GLintptr s_vs_data_size;
-	static GLintptr s_ps_data_size;
-	static GLintptr s_vs_data_offset;
-	static u8 *s_ubo_buffer;
 	static u32 s_ubo_buffer_size;
-	static bool s_ubo_dirty;
+	static s32 s_ubo_align;
 };
 
 }  // namespace OGL

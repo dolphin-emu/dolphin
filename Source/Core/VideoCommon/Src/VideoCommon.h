@@ -132,11 +132,5 @@ inline unsigned int GetPow2(unsigned int val)
 		++ret;
 	return ret;
 }
-struct s_svar
-{
-	const char *name;
-	const unsigned int reg;
-	const unsigned int size;
-};
 
 #endif  // _VIDEOCOMMON_H

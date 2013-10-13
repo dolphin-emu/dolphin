@@ -21,6 +21,7 @@
 #define I_PLIGHTS     "cPLights"
 #define I_PMATERIALS  "cPmtrl"
 
+// TODO: get rid of them as they aren't used
 #define C_COLORMATRIX	0						// 0
 #define C_COLORS		0						// 0
 #define C_KCOLORS		(C_COLORS + 4)			// 4
@@ -42,19 +43,6 @@ enum DSTALPHA_MODE
 	DSTALPHA_ALPHA_PASS, // Render normally first, then render again for alpha
 	DSTALPHA_DUAL_SOURCE_BLEND // Use dual-source blending
 };
-
-// Annoying sure, can be removed once we get up to GLSL ~1.3
-const s_svar PSVar_Loc[] = { {I_COLORS, C_COLORS, 4 },
-						{I_KCOLORS, C_KCOLORS, 4 },
-						{I_ALPHA, C_ALPHA, 1 },
-						{I_TEXDIMS, C_TEXDIMS, 8 },
-						{I_ZBIAS , C_ZBIAS, 2  },
-						{I_INDTEXSCALE , C_INDTEXSCALE, 2  },
-						{I_INDTEXMTX, C_INDTEXMTX, 6 },
-						{I_FOG, C_FOG, 3 },
-						{I_PLIGHTS, C_PLIGHTS, 40 },
-						{I_PMATERIALS, C_PMATERIALS, 4 },
-						};
 
 #pragma pack(1)
 struct pixel_shader_uid_data

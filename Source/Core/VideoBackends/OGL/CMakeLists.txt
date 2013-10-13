@@ -3,7 +3,6 @@ set(SRCS	Src/FramebufferManager.cpp
 			Src/main.cpp
 			Src/NativeVertexFormat.cpp
 			Src/PerfQuery.cpp
-			Src/PixelShaderCache.cpp
 			Src/PostProcessing.cpp
 			Src/ProgramShaderCache.cpp
 			Src/RasterFont.cpp
@@ -12,7 +11,6 @@ set(SRCS	Src/FramebufferManager.cpp
 			Src/StreamBuffer.cpp
 			Src/TextureCache.cpp
 			Src/TextureConverter.cpp
-			Src/VertexShaderCache.cpp
 			Src/VertexManager.cpp)
 
 set(LIBS	videocommon
