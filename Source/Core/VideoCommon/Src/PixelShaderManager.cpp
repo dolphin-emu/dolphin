@@ -12,6 +12,7 @@
 
 #include "RenderBase.h"
 static bool s_bFogRangeAdjustChanged;
+static bool s_bViewPortChanged;
 static int nLightsChanged[2]; // min,max
 
 PixelShaderConstants PixelShaderManager::constants;
@@ -26,6 +27,7 @@ void PixelShaderManager::Init()
 void PixelShaderManager::Dirty()
 {
 	s_bFogRangeAdjustChanged = true;
+	s_bViewPortChanged = true;
 	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
 	
 	SetColorChanged(0, 0);
@@ -133,6 +135,13 @@ void PixelShaderManager::SetConstants(u32 components)
 			nLightsChanged[0] = nLightsChanged[1] = -1;
 		}
 	}
+	
+	if(s_bViewPortChanged)
+	{
+		constants.zbias[1][0] = xfregs.viewport.farZ / 16777216.0f;
+		constants.zbias[1][1] = xfregs.viewport.zRange / 16777216.0f;
+		dirty = true;
+	}
 }
 
 // This one is high in profiles (0.5%).
@@ -183,10 +192,7 @@ void PixelShaderManager::SetZTextureBias()
 
 void PixelShaderManager::SetViewportChanged()
 {
-	constants.zbias[1][0] = xfregs.viewport.farZ / 16777216.0f;
-	constants.zbias[1][1] = xfregs.viewport.zRange / 16777216.0f;
-	dirty = true;
-	
+	s_bViewPortChanged = true;
 	s_bFogRangeAdjustChanged = true; // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
 }
 
