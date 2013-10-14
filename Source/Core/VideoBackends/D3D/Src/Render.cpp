@@ -1026,10 +1026,10 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	}
 
 	// begin next frame
-	Renderer::RestoreAPIState();
+	RestoreAPIState();
 	D3D::BeginFrame();
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-	VertexShaderManager::SetViewportChanged();
+	UpdateViewport();
 
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
@@ -1049,7 +1049,7 @@ void Renderer::RestoreAPIState()
 	D3D::stateman->PopBlendState();
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();
-	VertexShaderManager::SetViewportChanged();
+	UpdateViewport();
 	BPFunctions::SetScissor();
 }
 
