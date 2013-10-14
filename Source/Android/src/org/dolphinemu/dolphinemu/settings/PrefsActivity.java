@@ -14,7 +14,10 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 
@@ -22,15 +25,8 @@ import android.support.v4.view.ViewPager;
  * Main activity that manages all of the preference fragments used to display
  * the settings to the user.
  */
-public final class PrefsActivity extends Activity implements ActionBar.TabListener
+public final class PrefsActivity extends Activity implements ActionBar.TabListener, OnSharedPreferenceChangeListener
 {
-	/**
-	 * The {@link FragmentPagerAdapter} that will provide settings
-	 * fragments for each of the sections. This will also keep every
-	 * loaded fragment in memory.
-	 */
-	private SectionsPagerAdapter mSectionsPagerAdapter;
-
 	/**
 	 * The {@link ViewPager} that will host the section contents.
 	 */
@@ -40,19 +36,25 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+
+		// Set the ViewPager.
 		setContentView(R.layout.prefs_viewpager);
-		
+		mViewPager = (ViewPager) findViewById(R.id.pager);
+
+		// Set the ViewPager adapter.
+		final ViewPagerAdapter mSectionsPagerAdapter = new ViewPagerAdapter(getFragmentManager());
+		mViewPager.setAdapter(mSectionsPagerAdapter);
+
+		// Register the preference change listener.
+		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+		sPrefs.registerOnSharedPreferenceChangeListener(this);
+
 		// Set up the action bar.
 		final ActionBar actionBar = getActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-
-		// Create the adapter that will return a fragment for each of the three
-		// primary sections of the app.
-		mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
-
-		// Set up the ViewPager with the sections adapter.
-		mViewPager = (ViewPager) findViewById(R.id.pager);
-		mViewPager.setAdapter(mSectionsPagerAdapter);
+		actionBar.addTab(actionBar.newTab().setText(R.string.cpu_settings).setTabListener(this));
+		actionBar.addTab(actionBar.newTab().setText(R.string.input_settings).setTabListener(this));
+		actionBar.addTab(actionBar.newTab().setText(R.string.video_settings).setTabListener(this));
 
 		// When swiping between different sections, select the corresponding
 		// tab. We can also use ActionBar.Tab#select() to do this if we have
@@ -65,19 +67,6 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 				actionBar.setSelectedNavigationItem(position);
 			}
 		} );
-
-		// Create a tab with text corresponding to the page title defined by
-		// the adapter. Also specify this Activity object, which implements
-		// the TabListener interface, as the callback (listener) for when
-		// this tab is selected.
-		actionBar.addTab(actionBar.newTab().setText(R.string.cpu_settings).setTabListener(this));
-		actionBar.addTab(actionBar.newTab().setText(R.string.input_settings).setTabListener(this));
-		actionBar.addTab(actionBar.newTab().setText(R.string.video_settings).setTabListener(this));
-	}
-
-	public void onTabReselected(Tab tab, FragmentTransaction ft)
-	{
-		// Do nothing.
 	}
 
 	public void onTabSelected(Tab tab, FragmentTransaction ft)
@@ -86,18 +75,30 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		mViewPager.setCurrentItem(tab.getPosition());
 	}
 
+	public void onTabReselected(Tab tab, FragmentTransaction ft)
+	{
+		// Do nothing.
+	}
+
 	public void onTabUnselected(Tab tab, FragmentTransaction ft)
 	{
 		// Do nothing.
+	}
+	
+	@Override
+	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key)
+	{
+		// If any change is made to the preferences in the front-end, immediately save them.
+		UserPreferences.SavePrefsToIni(this);
 	}
 
 	/**
 	 * A {@link FragmentPagerAdapter} that returns a fragment 
 	 * corresponding to one of the sections/tabs/pages.
 	 */
-	public final class SectionsPagerAdapter extends FragmentPagerAdapter
+	private final class ViewPagerAdapter extends FragmentPagerAdapter
 	{
-		public SectionsPagerAdapter(FragmentManager fm)
+		public ViewPagerAdapter(FragmentManager fm)
 		{
 			super(fm);
 		}

@@ -287,13 +287,4 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		// Cache the activity instance.
 		m_activity = activity;
 	}
-
-	@Override
-	public void onDestroy()
-	{
-		super.onDestroy();
-
-		// When the fragment is done being used, save the settings to the Dolphin ini file.
-		UserPreferences.SavePrefsToIni(m_activity);
-	}
 }

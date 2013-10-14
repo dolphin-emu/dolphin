@@ -8,7 +8,6 @@ package org.dolphinemu.dolphinemu.settings;
 
 import org.dolphinemu.dolphinemu.R;
 
-import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
@@ -19,8 +18,6 @@ import android.preference.PreferenceFragment;
  */
 public final class CPUSettingsFragment extends PreferenceFragment
 {
-	private Activity m_activity;
-
 	@Override
 	public void onCreate(Bundle savedInstanceState)
 	{
@@ -50,23 +47,5 @@ public final class CPUSettingsFragment extends PreferenceFragment
 			cpuCores.setEntries(R.array.emuCoreEntriesOther);
 			cpuCores.setEntryValues(R.array.emuCoreValuesOther);
 		}
-	}
-
-	@Override
-	public void onAttach(Activity activity)
-	{
-		super.onAttach(activity);
-
-		// Cache the activity instance.
-		m_activity = activity;
-	}
-
-	@Override
-	public void onDestroy()
-	{
-		super.onDestroy();
-
-		// When this fragment is destroyed, force the settings to be saved to the ini file.
-		UserPreferences.SavePrefsToIni(m_activity);
 	}
 }
