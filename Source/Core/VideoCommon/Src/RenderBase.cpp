@@ -520,8 +520,8 @@ void Renderer::RecordVideoMemory()
 	FifoRecorder::GetInstance().SetVideoMemory(bpMem, cpMem, xfMem, xfRegs, sizeof(XFRegisters) / 4);
 }
 
-void UpdateViewport(Matrix44& vpCorrection)
+void UpdateViewport()
 {
 	if (xfregs.viewport.wd != 0 && xfregs.viewport.ht != 0)
-		g_renderer->UpdateViewport(vpCorrection);
+		g_renderer->UpdateViewport();
 }

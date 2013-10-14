@@ -1093,7 +1093,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 }
 
 // Called from VertexShaderManager
-void Renderer::UpdateViewport(Matrix44& vpCorrection)
+void Renderer::UpdateViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -1123,9 +1123,6 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 		Y += Height;
 		Height *= -1;
 	}
-
-	// OpenGL does not require any viewport correct
-	Matrix44::LoadIdentity(vpCorrection);
 
 	// Update the view port
 	if(g_ogl_config.bSupportViewportFloat)
