@@ -6,6 +6,7 @@
 #define _NULLSOUNDSTREAM_H_
 
 #include "SoundStream.h"
+#include "Thread.h"
 
 #define BUF_SIZE (48000 * 4 / 32)
 

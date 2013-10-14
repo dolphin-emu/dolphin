@@ -5,6 +5,8 @@
 #ifndef _GCPAD_H_INCLUDED__
 #define _GCPAD_H_INCLUDED__
 
+#include "CommonTypes.h"
+
 #define PAD_ERR_NONE            0
 #define PAD_ERR_NO_CONTROLLER   -1
 #define PAD_ERR_NOT_READY       -2
