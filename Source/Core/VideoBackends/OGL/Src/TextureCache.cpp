@@ -30,7 +30,6 @@
 #include "ImageWrite.h"
 #include "MemoryUtil.h"
 #include "ProgramShaderCache.h"
-#include "PixelShaderManager.h"
 #include "Render.h"
 #include "Statistics.h"
 #include "StringUtil.h"

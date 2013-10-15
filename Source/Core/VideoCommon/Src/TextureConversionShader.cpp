@@ -12,7 +12,6 @@
 
 #include "TextureConversionShader.h"
 #include "TextureDecoder.h"
-#include "PixelShaderManager.h"
 #include "PixelShaderGen.h"
 #include "BPMemory.h"
 #include "RenderBase.h"

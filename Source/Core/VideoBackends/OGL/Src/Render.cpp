@@ -33,7 +33,6 @@
 #include "RasterFont.h"
 #include "VertexShaderGen.h"
 #include "DLCache.h"
-#include "PixelShaderManager.h"
 #include "ProgramShaderCache.h"
 #include "VertexShaderManager.h"
 #include "VertexLoaderManager.h"
