@@ -25,32 +25,27 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEm
 		fpr.BindToRegister(d, true);
 		(this->*op)(fpr.RX(d), fpr.R(b));
 	}
-	else if (d == b && reversible)
+	else if (d == b)
 	{
-		fpr.BindToRegister(d, true);
-		(this->*op)(fpr.RX(d), fpr.R(a));
+		if (reversible)
+		{
+			fpr.BindToRegister(d, true);
+			(this->*op)(fpr.RX(d), fpr.R(a));
+		}
+		else
+		{
+			MOVSD(XMM0, fpr.R(b));
+			fpr.BindToRegister(d, !dupe);
+			MOVSD(fpr.RX(d), fpr.R(a));
+			(this->*op)(fpr.RX(d), Gen::R(XMM0));
+		}
 	}
-	else if (a != d && b != d) 
+	else
 	{
 		// Sources different from d, can use rather quick solution
 		fpr.BindToRegister(d, !dupe);
 		MOVSD(fpr.RX(d), fpr.R(a));
 		(this->*op)(fpr.RX(d), fpr.R(b));
-	}
-	else if (b != d)
-	{
-		fpr.BindToRegister(d, !dupe);
-		MOVSD(XMM0, fpr.R(b));
-		MOVSD(fpr.RX(d), fpr.R(a));
-		(this->*op)(fpr.RX(d), Gen::R(XMM0));
-	}
-	else // Other combo, must use two temps :(
-	{
-		MOVSD(XMM0, fpr.R(a));
-		MOVSD(XMM1, fpr.R(b));
-		fpr.BindToRegister(d, !dupe);
-		(this->*op)(XMM0, Gen::R(XMM1));
-		MOVSD(fpr.RX(d), Gen::R(XMM0));
 	}
 	if (dupe)
 	{
@@ -83,7 +78,7 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 	// Causing problems for GC - Starfox Assault (invisible boss at the end of level 1)
 	if (inst.SUBOP5 == 21) {
 		Default(inst); return;
-	}	
+	}
 
 	if (inst.SUBOP5 == 26) {
 		// frsqrtex

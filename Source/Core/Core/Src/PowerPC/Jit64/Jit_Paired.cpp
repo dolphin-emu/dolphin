@@ -152,32 +152,27 @@ void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X6
 		fpr.BindToRegister(d, true);
 		(this->*op)(fpr.RX(d), fpr.R(b));
 	}
-	else if (d == b && reversible)
+	else if (d == b)
 	{
-		fpr.BindToRegister(d, true);
-		(this->*op)(fpr.RX(d), fpr.R(a));
+		if (reversible)
+		{
+			fpr.BindToRegister(d, true);
+			(this->*op)(fpr.RX(d), fpr.R(a));
+		}
+		else
+		{
+			MOVAPD(XMM0, fpr.R(b));
+			fpr.BindToRegister(d, false);
+			MOVAPD(fpr.RX(d), fpr.R(a));
+			(this->*op)(fpr.RX(d), Gen::R(XMM0));
+		}
 	}
-	else if (a != d && b != d) 
+	else
 	{
 		//sources different from d, can use rather quick solution
 		fpr.BindToRegister(d, false);
 		MOVAPD(fpr.RX(d), fpr.R(a));
 		(this->*op)(fpr.RX(d), fpr.R(b));
-	}
-	else if (b != d)
-	{
-		fpr.BindToRegister(d, false);
-		MOVAPD(XMM0, fpr.R(b));
-		MOVAPD(fpr.RX(d), fpr.R(a));
-		(this->*op)(fpr.RX(d), Gen::R(XMM0));
-	}
-	else //Other combo, must use two temps :(
-	{
-		MOVAPD(XMM0, fpr.R(a));
-		MOVAPD(XMM1, fpr.R(b));
-		fpr.BindToRegister(d, false);
-		(this->*op)(XMM0, Gen::R(XMM1));
-		MOVAPD(fpr.RX(d), Gen::R(XMM0));
 	}
 	ForceSinglePrecisionP(fpr.RX(d));
 	fpr.UnlockAll();
