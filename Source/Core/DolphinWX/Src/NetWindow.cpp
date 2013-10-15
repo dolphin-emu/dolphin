@@ -473,6 +473,7 @@ void NetPlayDiag::OnMsgStartGame()
 	GetEventHandler()->AddPendingEvent(evt);
 	if (m_start_btn)
 		m_start_btn->Disable();
+	m_record_chkbox->Disable();
 }
 
 void NetPlayDiag::OnMsgStopGame()
@@ -481,6 +482,7 @@ void NetPlayDiag::OnMsgStopGame()
 	GetEventHandler()->AddPendingEvent(evt);
 	if (m_start_btn)
 		m_start_btn->Enable();
+	m_record_chkbox->Enable();
 }
 
 void NetPlayDiag::OnAdjustBuffer(wxCommandEvent& event)
