@@ -378,8 +378,6 @@ void VertexShaderManager::SetConstants()
 		bViewportChanged = false;
 		constants.depthparams[0] = xfregs.viewport.farZ / 16777216.0f;
 		constants.depthparams[1] = xfregs.viewport.zRange / 16777216.0f;
-		constants.depthparams[2] = -1.f / g_renderer->EFBToScaledX(ceilf(2.0f * xfregs.viewport.wd));
-		constants.depthparams[3] = 1.f / g_renderer->EFBToScaledY(ceilf(-2.0f * xfregs.viewport.ht));
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
 		UpdateViewport();
