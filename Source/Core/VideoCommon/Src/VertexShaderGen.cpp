@@ -483,9 +483,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
-			for (unsigned int i = 0; i < 8; ++i)
-				if(i < xfregs.numTexGen.numTexGens)
-					out.Write(" uv%d_2.xyz =  o.tex%d;\n", i, i);
+			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+				out.Write(" uv%d_2.xyz =  o.tex%d;\n", i, i);
 			out.Write("  clipPos_2 = o.clipPos;\n");
 			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 				out.Write("  Normal_2 = o.Normal;\n");

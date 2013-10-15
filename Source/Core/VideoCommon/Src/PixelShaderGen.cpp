@@ -318,9 +318,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// Let's set up attributes
 		if (xfregs.numTexGen.numTexGens < 7)
 		{
-			for (int i = 0; i < 8; ++i)
-				if(i < xfregs.numTexGen.numTexGens)
-					out.Write("VARYIN float3 uv%d_2;\n", i);
+			for (int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+				out.Write("VARYIN float3 uv%d_2;\n", i);
 			out.Write("VARYIN float4 clipPos_2;\n");
 			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			{
