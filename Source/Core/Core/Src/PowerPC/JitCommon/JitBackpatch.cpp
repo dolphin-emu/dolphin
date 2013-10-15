@@ -46,7 +46,7 @@ static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) 
 
 void TrampolineCache::Init()
 {
-	AllocCodeSpace(1024 * 1024);
+	AllocCodeSpace(4 * 1024 * 1024);
 }
 
 void TrampolineCache::Shutdown()
