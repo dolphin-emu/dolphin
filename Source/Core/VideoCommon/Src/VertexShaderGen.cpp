@@ -45,24 +45,14 @@ static inline void GenerateVSOutputStruct(T& object, u32 components, API_TYPE ap
 	DefineVSOutputStructMember(object, api_type, "float4", "colors_", 0, "COLOR", 0);
 	DefineVSOutputStructMember(object, api_type, "float4", "colors_", 1, "COLOR", 1);
 
-	if (xfregs.numTexGen.numTexGens < 7)
-	{
-		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-			DefineVSOutputStructMember(object, api_type, "float3", "tex", i, "TEXCOORD", i);
+	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+		DefineVSOutputStructMember(object, api_type, "float3", "tex", i, "TEXCOORD", i);
 
-		DefineVSOutputStructMember(object, api_type, "float4", "clipPos", -1, "TEXCOORD", xfregs.numTexGen.numTexGens);
+	DefineVSOutputStructMember(object, api_type, "float4", "clipPos", -1, "TEXCOORD", xfregs.numTexGen.numTexGens);
 
-		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			DefineVSOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfregs.numTexGen.numTexGens + 1);
-	}
-	else
-	{
-		// Store clip position in the w component of first 4 texcoords
-		bool ppl = g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting;
-		int num_texcoords = ppl ? 8 : xfregs.numTexGen.numTexGens;
-		for (int i = 0; i < num_texcoords; ++i)
-			DefineVSOutputStructMember(object, api_type, (ppl || i < 4) ? "float4" : "float3", "tex", i, "TEXCOORD", i);
-	}
+	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+		DefineVSOutputStructMember(object, api_type, "float4", "Normal", -1, "TEXCOORD", xfregs.numTexGen.numTexGens + 1);
+
 	object.Write("};\n");
 }
 
@@ -140,29 +130,13 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		}
 
 		// Let's set up attributes
-		if (xfregs.numTexGen.numTexGens < 7)
-		{
-			for (int i = 0; i < 8; ++i)
-				if (i < xfregs.numTexGen.numTexGens)
-					out.Write("VARYOUT  float3 uv%d_2;\n", i);
-			out.Write("VARYOUT   float4 clipPos_2;\n");
-			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				out.Write("VARYOUT   float4 Normal_2;\n");
-		}
-		else
-		{
-			// wpos is in w of first 4 texcoords
-			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			{
-				for (int i = 0; i < 8; ++i)
-					out.Write("VARYOUT   float4 uv%d_2;\n", i);
-			}
-			else
-			{
-				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-					out.Write("VARYOUT   float%d uv%d_2;\n", i < 4 ? 4 : 3 , i);
-			}
-		}
+		for (int i = 0; i < 8; ++i)
+			if (i < xfregs.numTexGen.numTexGens)
+				out.Write("VARYOUT  float3 uv%d_2;\n", i);
+		out.Write("VARYOUT   float4 clipPos_2;\n");
+		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			out.Write("VARYOUT   float4 Normal_2;\n");
+		
 		out.Write("VARYOUT   float4 colors_02;\n");
 		out.Write("VARYOUT   float4 colors_12;\n");
 
@@ -408,34 +382,11 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	}
 
 	// clipPos/w needs to be done in pixel shader, not here
-	if (xfregs.numTexGen.numTexGens < 7)
-	{
-		out.Write("o.clipPos = float4(pos.x,pos.y,o.pos.z,o.pos.w);\n");
-	}
-	else
-	{
-		out.Write("o.tex0.w = pos.x;\n");
-		out.Write("o.tex1.w = pos.y;\n");
-		out.Write("o.tex2.w = o.pos.z;\n");
-		out.Write("o.tex3.w = o.pos.w;\n");
-	}
+	out.Write("o.clipPos = float4(pos.x,pos.y,o.pos.z,o.pos.w);\n");
 
 	if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		if (xfregs.numTexGen.numTexGens < 7)
-		{
-			out.Write("o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
-		}
-		else
-		{
-			out.Write("o.tex4.w = _norm0.x;\n");
-			out.Write("o.tex5.w = _norm0.y;\n");
-			out.Write("o.tex6.w = _norm0.z;\n");
-			if (xfregs.numTexGen.numTexGens < 8)
-				out.Write("o.tex7 = pos.xyzz;\n");
-			else
-				out.Write("o.tex7.w = pos.z;\n");
-		}
+		out.Write("o.Normal = float4(_norm0.x,_norm0.y,_norm0.z,pos.z);\n");
 
 		if (components & VB_HAS_COL0)
 			out.Write("o.colors_0 = color0;\n");
@@ -481,28 +432,12 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		// Will look better when we bind uniforms in GLSL 1.3
 		// clipPos/w needs to be done in pixel shader, not here
 
-		if (xfregs.numTexGen.numTexGens < 7)
-		{
-			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-				out.Write(" uv%d_2.xyz =  o.tex%d;\n", i, i);
-			out.Write("  clipPos_2 = o.clipPos;\n");
-			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				out.Write("  Normal_2 = o.Normal;\n");
-		}
-		else
-		{
-			// clip position is in w of first 4 texcoords
-			if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			{
-				for (int i = 0; i < 8; ++i)
-					out.Write(" uv%d_2 = o.tex%d;\n", i, i);
-			}
-			else
-			{
-				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-					out.Write("  uv%d_2%s = o.tex%d;\n", i, i < 4 ? ".xyzw" : ".xyz" , i);
-			}
-		}
+		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+			out.Write(" uv%d_2.xyz =  o.tex%d;\n", i, i);
+		out.Write("  clipPos_2 = o.clipPos;\n");
+		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			out.Write("  Normal_2 = o.Normal;\n");
+
 		out.Write("colors_02 = o.colors_0;\n");
 		out.Write("colors_12 = o.colors_1;\n");
 		out.Write("gl_Position = o.pos;\n");
