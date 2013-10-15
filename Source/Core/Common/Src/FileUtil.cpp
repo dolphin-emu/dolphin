@@ -21,7 +21,9 @@
 #include <dirent.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <libgen.h>
 #endif
+#include <fcntl.h>
 
 #if defined(__APPLE__)
 #include <CoreFoundation/CFString.h>
@@ -242,14 +244,60 @@ bool Rename(const std::string &srcFilename, const std::string &destFilename)
 	INFO_LOG(COMMON, "Rename: %s --> %s", 
 			srcFilename.c_str(), destFilename.c_str());
 #ifdef _WIN32
-	if (_trename(UTF8ToTStr(srcFilename).c_str(), UTF8ToTStr(destFilename).c_str()) == 0)
+	auto sf = UTF8ToTStr(srcFilename).c_str();
+	auto df = UTF8ToTStr(destFilename).c_str();
+	// The Internet seems torn about whether ReplaceFile is atomic or not.
+	// Hopefully it's atomic enough...
+	if (ReplaceFile(df, sf, NULL, REPLACEFILE_IGNORE_MERGE_ERRORS, NULL, NULL))
+		return true;
+	// Might have failed because the destination doesn't exist.
+	if (GetLastError() == ERROR_FILE_NOT_FOUND)
+	{
+		if (MoveFile(sf, df))
+			return true;
+	}
 #else
 	if (rename(srcFilename.c_str(), destFilename.c_str()) == 0)
-#endif
 		return true;
+#endif
 	ERROR_LOG(COMMON, "Rename: failed %s --> %s: %s", 
 			  srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
 	return false;
+}
+
+#ifndef _WIN32
+static void FSyncPath(const char *path)
+{
+	int fd = open(path, O_RDONLY);
+	if (fd != -1)
+	{
+		fsync(fd);
+		close(fd);
+	}
+}
+#endif
+
+bool RenameSync(const std::string &srcFilename, const std::string &destFilename)
+{
+	if (!Rename(srcFilename, destFilename))
+		return false;
+#ifdef _WIN32
+	int fd = _topen(UTF8ToTStr(srcFilename).c_str(), _O_RDONLY);
+	if (fd != -1)
+	{
+		_commit(fd);
+		close(fd);
+	}
+#else
+	char *path = strdup(srcFilename.c_str());
+	FSyncPath(path);
+	FSyncPath(dirname(path));
+	free(path);
+	path = strdup(destFilename.c_str());
+	FSyncPath(dirname(path));
+	free(path);
+#endif
+	return true;
 }
 
 // copies file srcFilename to destFilename, returns true on success 
@@ -625,6 +673,21 @@ std::string GetCurrentDir()
 bool SetCurrentDir(const std::string &directory)
 {
 	return __chdir(directory.c_str()) == 0;
+}
+
+std::string GetTempFilenameForAtomicWrite(const std::string &path)
+{
+	std::string abs = path;
+#ifdef _WIN32
+	TCHAR absbuf[MAX_PATH];
+	if (_tfullpath(absbuf, UTF8ToTStr(path).c_str(), MAX_PATH) != NULL)
+		abs = TStrToUTF8(absbuf);
+#else
+	char absbuf[PATH_MAX];
+	if (realpath(path.c_str(), absbuf) != NULL)
+		abs = absbuf;
+#endif
+	return abs + ".xxx";
 }
 
 #if defined(__APPLE__)

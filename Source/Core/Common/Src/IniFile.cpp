@@ -391,7 +391,8 @@ bool IniFile::Load(const char* filename, bool keep_current_data)
 bool IniFile::Save(const char* filename)
 {
 	std::ofstream out;
-	OpenFStream(out, filename, std::ios::out);
+	std::string temp = File::GetTempFilenameForAtomicWrite(filename);
+	OpenFStream(out, temp, std::ios::out);
 
 	if (out.fail())
 	{
@@ -425,7 +426,7 @@ bool IniFile::Save(const char* filename)
 
 	out.close();
 
-	return true;
+	return File::RenameSync(temp, filename);
 }
 
 

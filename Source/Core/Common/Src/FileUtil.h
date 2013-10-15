@@ -97,6 +97,9 @@ bool DeleteDir(const std::string &filename);
 // renames file srcFilename to destFilename, returns true on success 
 bool Rename(const std::string &srcFilename, const std::string &destFilename);
 
+// ditto, but syncs the source file and, on Unix, syncs the directories after rename
+bool RenameSync(const std::string &srcFilename, const std::string &destFilename);
+
 // copies file srcFilename to destFilename, returns true on success 
 bool Copy(const std::string &srcFilename, const std::string &destFilename);
 
@@ -118,6 +121,9 @@ void CopyDir(const std::string &source_path, const std::string &dest_path);
 
 // Set the current directory to given directory
 bool SetCurrentDir(const std::string &directory);
+
+// Get a filename that can hopefully be atomically renamed to the given path.
+std::string GetTempFilenameForAtomicWrite(const std::string &path);
 
 // Returns a pointer to a string with a Dolphin data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
