@@ -366,31 +366,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("  in %s float4 colors_1 : COLOR1", optCentroid);
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
-		if (numTexgen < 7)
-		{
-			for (unsigned int i = 0; i < numTexgen; ++i)
-				out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", optCentroid, i, i);
-			out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", optCentroid, numTexgen);
-			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-				out.Write(",\n  in %s float4 Normal : TEXCOORD%d", optCentroid, numTexgen + 1);
-			out.Write("        ) {\n");
-		}
-		else
-		{
-			// wpos is in w of first 4 texcoords
-			if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			{
-				for (int i = 0; i < 8; ++i)
-					out.Write(",\n  in float4 uv%d : TEXCOORD%d", i, i);
-			}
-			else
-			{
-				for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-					out.Write(",\n  in float%d uv%d : TEXCOORD%d", i < 4 ? 4 : 3 , i, i);
-			}
-			out.Write("        ) {\n");
-			out.Write("\tfloat4 clipPos = float4(0.0, 0.0, 0.0, 0.0);");
-		}
+		for (unsigned int i = 0; i < numTexgen; ++i)
+			out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", optCentroid, i, i);
+		out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", optCentroid, numTexgen);
+		if(g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
+			out.Write(",\n  in %s float4 Normal : TEXCOORD%d", optCentroid, numTexgen + 1);
+		out.Write("        ) {\n");
 	}
 
 	out.Write("  float4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = float4(0.0, 0.0, 0.0, 0.0), textemp = float4(0.0, 0.0, 0.0, 0.0), rastemp = float4(0.0, 0.0, 0.0, 0.0), konsttemp = float4(0.0, 0.0, 0.0, 0.0);\n"
@@ -412,9 +393,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
 		if(numTexgen)
-			for (int i = 0; i < 8; ++i)
-				if(i < xfregs.numTexGen.numTexGens)
-					out.Write("float3 uv%d = uv%d_2;\n", i, i);
+			for (int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+				out.Write("float3 uv%d = uv%d_2;\n", i, i);
 		out.Write("float4 clipPos = clipPos_2;\n");
 		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
