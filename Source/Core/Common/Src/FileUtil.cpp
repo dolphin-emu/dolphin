@@ -244,16 +244,16 @@ bool Rename(const std::string &srcFilename, const std::string &destFilename)
 	INFO_LOG(COMMON, "Rename: %s --> %s", 
 			srcFilename.c_str(), destFilename.c_str());
 #ifdef _WIN32
-	auto sf = UTF8ToTStr(srcFilename).c_str();
-	auto df = UTF8ToTStr(destFilename).c_str();
+	auto sf = UTF8ToTStr(srcFilename);
+	auto df = UTF8ToTStr(destFilename);
 	// The Internet seems torn about whether ReplaceFile is atomic or not.
 	// Hopefully it's atomic enough...
-	if (ReplaceFile(df, sf, NULL, REPLACEFILE_IGNORE_MERGE_ERRORS, NULL, NULL))
+	if (ReplaceFile(df.c_str(), sf.c_str(), NULL, REPLACEFILE_IGNORE_MERGE_ERRORS, NULL, NULL))
 		return true;
 	// Might have failed because the destination doesn't exist.
 	if (GetLastError() == ERROR_FILE_NOT_FOUND)
 	{
-		if (MoveFile(sf, df))
+		if (MoveFile(sf.c_str(), df.c_str()))
 			return true;
 	}
 #else
