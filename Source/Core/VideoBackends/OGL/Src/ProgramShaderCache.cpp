@@ -198,12 +198,29 @@ void ProgramShaderCache::UploadConstants()
 		if(PixelShaderManager::dirty || VertexShaderManager::dirty)
 		{
 			s_buffer->Alloc(s_ubo_buffer_size);
-			
-			size_t offset = s_buffer->Upload((u8*)&PixelShaderManager::constants, ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align));
-			glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->getBuffer(), offset, sizeof(PixelShaderConstants));
-			offset = s_buffer->Upload((u8*)&VertexShaderManager::constants, ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align));
-			glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->getBuffer(), offset, sizeof(VertexShaderConstants));
-	
+			if (DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
+			{
+				// This is just a hack to support our BUFFERDATA upload method
+				// as it's broken to uploaded in a splited way
+				static u8 *tmpbuffer = new u8[s_ubo_buffer_size];
+				memcpy(tmpbuffer, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+				memcpy(tmpbuffer+ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align), &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+				size_t offset = s_buffer->Upload(tmpbuffer, s_ubo_buffer_size);
+				glBindBufferRange(GL_UNIFORM_BUFFER, 1, 
+						s_buffer->getBuffer(), offset, sizeof(PixelShaderConstants));
+				glBindBufferRange(GL_UNIFORM_BUFFER, 2, 
+						s_buffer->getBuffer(), offset+ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align), sizeof(VertexShaderConstants));
+			}
+			else
+			{
+				size_t offset = s_buffer->Upload((u8*)&PixelShaderManager::constants, ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align));
+				glBindBufferRange(GL_UNIFORM_BUFFER, 1, 
+						s_buffer->getBuffer(), offset, sizeof(PixelShaderConstants));
+				offset = s_buffer->Upload((u8*)&VertexShaderManager::constants, ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align));
+				glBindBufferRange(GL_UNIFORM_BUFFER, 2, 
+						s_buffer->getBuffer(), offset, sizeof(VertexShaderConstants));
+			}
+
 			PixelShaderManager::dirty = false;
 			VertexShaderManager::dirty = false;
 			

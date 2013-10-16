@@ -129,6 +129,14 @@ namespace DriverDetails
 		// PowerVR 5 hardware limitations don't allow it to support OpenGL ES 3
 		// This is fixed in PowerVR6
 		BUG_ISPOWERVR,
+		// Bug: glBufferSubData/glMapBufferRange stalls + OOM 
+		// Affected devices: Adreno a3xx/Mali-t6xx
+		// Started Version: -1
+		// Ended Version: -1
+		// Both Adreno and Mali have issues when you call glBufferSubData or glMapBufferRange
+		// The driver stalls in each instance no matter what you do
+		// Apparently Mali and Adreno share code in this regard since it was wrote by the same person.
+		BUG_BROKENBUFFERSTREAM,
 	};
 	
 	// Initializes our internal vendor, device family, and driver version	
