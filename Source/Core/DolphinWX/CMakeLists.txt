@@ -247,7 +247,7 @@ else()
 				)
 		else()
 			add_custom_command(OUTPUT ${BUNDLE_PATH}/Contents/Resources/Sys
-				COMMAND ln -nfs ../../../../Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
+				COMMAND ln -nfs ${CMAKE_SOURCE_DIR}/Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
 				VERBATIM
 				)
 			add_custom_target(CopyDataIntoBundle ALL
