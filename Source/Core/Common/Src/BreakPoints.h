@@ -8,7 +8,7 @@
 #include <vector>
 #include <string>
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 class DebugInterface;
 
@@ -67,7 +67,7 @@ public:
 	void Remove(u32 _iAddress);
 	void Clear();
 
-    void DeleteByAddress(u32 _Address);
+	void DeleteByAddress(u32 _Address);
 
 private:
 	TBreakPoints m_BreakPoints;
@@ -93,7 +93,7 @@ public:
 
 	// memory breakpoint
 	TMemCheck *GetMemCheck(u32 address);
-    void Remove(u32 _Address);
+	void Remove(u32 _Address);
 
 	void Clear() { m_MemChecks.clear(); };
 };

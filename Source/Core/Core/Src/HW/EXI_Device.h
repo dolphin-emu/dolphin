@@ -5,7 +5,7 @@
 #ifndef _EXIDEVICE_H
 #define _EXIDEVICE_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 #include "ChunkFile.h"
 
 enum TEXIDevices

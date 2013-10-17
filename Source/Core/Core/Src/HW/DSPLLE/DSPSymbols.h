@@ -8,8 +8,6 @@
 #include "Common.h"
 #include "SymbolDB.h"
 
-#include <stdio.h>
-
 namespace DSPSymbols {
 
 class DSPSymbolDB : public SymbolDB 

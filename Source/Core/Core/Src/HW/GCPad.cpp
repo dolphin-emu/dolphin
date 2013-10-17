@@ -10,7 +10,6 @@
 #include "../ConfigManager.h"
 
 #include "../../InputCommon/Src/InputConfig.h"
-#include "Host.h"
 
 namespace Pad
 {

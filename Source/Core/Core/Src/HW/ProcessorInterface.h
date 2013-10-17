@@ -5,7 +5,7 @@
 #ifndef _PROCESSORINTERFACE_H
 #define _PROCESSORINTERFACE_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 class PointerWrap;
 
 // Holds statuses of things like the write gatherer used for fifos, and interrupts from various sources

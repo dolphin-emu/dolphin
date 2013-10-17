@@ -15,6 +15,6 @@
 // Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 bool SDCardCreate(u64 disk_size /*in MB*/, const char* filename);

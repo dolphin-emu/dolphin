@@ -6,7 +6,6 @@
 #include "../DSPEmitter.h"
 #include "../DSPStacks.h"
 #include "../DSPAnalyzer.h"
-#include "DSPJitUtil.h"
 #include "x64Emitter.h"
 #include "x64ABI.h"
 

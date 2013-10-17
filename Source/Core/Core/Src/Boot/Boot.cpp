@@ -12,13 +12,11 @@
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/PPCAnalyst.h"
 #include "../Core.h"
-#include "../HW/HW.h"
 #include "../HW/EXI_DeviceIPL.h"
 #include "../HW/Memmap.h"
 #include "../HW/ProcessorInterface.h"
 #include "../HW/DVDInterface.h"
 #include "../HW/VideoInterface.h"
-#include "../HW/CPU.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
 
 #include "../Debugger/Debugger_SymbolMap.h" // Debugger
@@ -30,7 +28,6 @@
 #include "../PatchEngine.h"
 #include "../PowerPC/SignatureDB.h"
 #include "../PowerPC/PPCSymbolDB.h"
-#include "../MemTools.h"
 
 #include "../ConfigManager.h"
 #include "VolumeCreator.h" // DiscIO

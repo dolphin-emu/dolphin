@@ -8,7 +8,6 @@
 #include "HW/Memmap.h"
 #include "BreakpointDlg.h"
 #include "MemoryCheckDlg.h"
-#include "Host.h"
 #include "PowerPC/PowerPC.h"
 #include "FileUtil.h"
 

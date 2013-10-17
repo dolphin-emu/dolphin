@@ -13,7 +13,6 @@
 #include "BPFunctions.h"
 #include "BPStructs.h"
 #include "TextureDecoder.h"
-#include "OpcodeDecoding.h"
 #include "VertexLoader.h"
 #include "VertexShaderManager.h"
 #include "Thread.h"

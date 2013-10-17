@@ -12,7 +12,6 @@
 #include "MemoryWindow.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
-#include "Host.h"
 #include "FileUtil.h"
 
 #include "Debugger/PPCDebugInterface.h"

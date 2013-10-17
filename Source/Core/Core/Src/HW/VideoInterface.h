@@ -5,7 +5,7 @@
 #ifndef _VIDEOINTERFACE_H
 #define _VIDEOINTERFACE_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 class PointerWrap;
 
 namespace VideoInterface

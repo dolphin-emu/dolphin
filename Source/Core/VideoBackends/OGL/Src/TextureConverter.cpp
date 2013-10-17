@@ -5,8 +5,6 @@
 // Fast image conversion using OpenGL shaders.
 // This kind of stuff would be a LOT nicer with OpenCL.
 
-#include <math.h>
-
 #include "TextureConverter.h"
 #include "TextureConversionShader.h"
 #include "TextureCache.h"

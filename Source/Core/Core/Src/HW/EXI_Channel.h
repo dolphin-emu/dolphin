@@ -5,7 +5,7 @@
 #ifndef _EXICHANNEL_H
 #define _EXICHANNEL_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 #include "EXI_Device.h"
 

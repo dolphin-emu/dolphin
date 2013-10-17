@@ -3,18 +3,15 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>  // min
+#include <cstdlib>
 #include <string> // System: To be able to add strings with "+"
 #include <stdio.h>
 #include <math.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <array>
-#else
-#include <stdarg.h>
 #endif
 
-#include "Common.h"
-#include "LogManager.h" // Common
 #include "ConsoleListener.h" // Common
 
 ConsoleListener::ConsoleListener()

@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdarg.h>
-
 #include <list>
 #include <map>
 #include <string>

@@ -7,7 +7,6 @@
 
 #include "Common.h"
 #include "AudioCommon.h"
-#include <stdio.h>
 
 // TODO: Get rid of this file.
 

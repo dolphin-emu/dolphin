@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-#include <math.h>
 
 #include "../../OGL/Src/GLUtil.h"
 #include "RasterFont.h"

@@ -2,9 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "SI.h"
 #include "SI_Device.h"
 #include "SI_DeviceGCController.h"

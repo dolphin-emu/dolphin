@@ -8,10 +8,10 @@
 #include <vector>
 #include <map>
 
+#include <cstdlib>
 #include <string>
 
 #include "Common.h"
-#include "Gekko.h"
 #include "PPCTables.h"
 
 class PPCSymbolDB;
@@ -62,8 +62,8 @@ struct BlockRegStats
 
 	int GetTotalNumAccesses(int reg) {return numReads[reg] + numWrites[reg];}
 	int GetUseRange(int reg) {
-		return max(lastRead[reg], lastWrite[reg]) - 
-			   min(firstRead[reg], firstWrite[reg]);}
+		return std::max(lastRead[reg], lastWrite[reg]) - 
+			   std::min(firstRead[reg], firstWrite[reg]);}
 
 	inline void SetInputRegister(int reg, short opindex) {
 		if (firstRead[reg] == -1)

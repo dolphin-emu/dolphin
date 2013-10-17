@@ -2,7 +2,6 @@
 #define _DEBUGINTERFACE_H
 
 #include <string>
-#include <string.h>
 
 class DebugInterface
 {

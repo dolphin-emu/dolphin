@@ -36,7 +36,7 @@ distribution.
 #ifndef __SRAM_h__
 #define __SRAM_h__
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 #pragma pack(push,1)
 union SRAM

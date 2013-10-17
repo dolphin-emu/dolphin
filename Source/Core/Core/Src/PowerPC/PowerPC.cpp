@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <float.h>
-
 #include "Common.h"
 #include "Atomic.h"
 #include "MathUtil.h"

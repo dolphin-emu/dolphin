@@ -5,7 +5,6 @@
 #ifndef GCOGL_VERTEXSHADER_H
 #define GCOGL_VERTEXSHADER_H
 
-#include <stdarg.h>
 #include "XFMemory.h"
 #include "VideoCommon.h"
 #include "ShaderGenCommon.h"

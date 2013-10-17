@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 #ifndef FPU_ROUND_MODE_H_
 #define FPU_ROUND_MODE_H_
-#include "Common.h"
+#include "CommonTypes.h"
 
 namespace FPURoundMode
 {

@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <assert.h>
-
 #include "Common.h"
 #include "VideoCommon.h"
 #include "VideoConfig.h"

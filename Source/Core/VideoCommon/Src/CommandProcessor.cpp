@@ -8,7 +8,6 @@
 #include "MathUtil.h"
 #include "Thread.h"
 #include "Atomic.h"
-#include "OpcodeDecoding.h"
 #include "Fifo.h"
 #include "ChunkFile.h"
 #include "CommandProcessor.h"

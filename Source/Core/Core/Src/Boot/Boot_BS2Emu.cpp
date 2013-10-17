@@ -14,7 +14,6 @@
 #include "../HW/DVDInterface.h"
 #include "../HW/CPU.h"
 
-#include "../Host.h"
 #include "../VolumeHandler.h"
 #include "../PatchEngine.h"
 #include "../MemTools.h"

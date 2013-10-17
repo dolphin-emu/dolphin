@@ -5,9 +5,9 @@
 #ifndef _BOOT_H
 #define _BOOT_H
 
+#include <cstdlib>
 #include <string>
 
-#include "Common.h"
 #include "../CoreParameter.h"
 
 class CBoot

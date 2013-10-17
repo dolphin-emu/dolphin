@@ -5,7 +5,7 @@
 #ifndef _PPCCACHE_H
 #define _PPCCACHE_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 #define FAST_ICACHE
 

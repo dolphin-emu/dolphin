@@ -6,6 +6,7 @@
 #define _DSPDEBUGINTERFACE_H
 
 #include <string>
+#include <string.h>
 
 #include "DebugInterface.h"
 #include "Common.h"

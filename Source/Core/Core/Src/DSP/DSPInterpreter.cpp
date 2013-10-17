@@ -24,7 +24,6 @@
    ====================================================================*/
 
 #include "DSPTables.h"
-#include "DSPHost.h"
 #include "DSPCore.h"
 #include "DSPAnalyzer.h"
 

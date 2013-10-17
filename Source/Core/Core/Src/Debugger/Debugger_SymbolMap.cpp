@@ -10,7 +10,6 @@
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/PPCAnalyst.h"
 #include "../PowerPC/PPCSymbolDB.h"
-#include "PowerPCDisasm.h"
 
 namespace Dolphin_Debugger
 {

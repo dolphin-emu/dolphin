@@ -18,7 +18,7 @@
 #ifndef _SYSTEMTIMERS_H
 #define _SYSTEMTIMERS_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 namespace SystemTimers
 {
