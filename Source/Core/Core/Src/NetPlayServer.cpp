@@ -228,20 +228,27 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 // called from ---NETPLAY--- thread
 unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 {
+	PlayerId pid = m_players[socket].pid;
+
 	if (m_is_running)
 	{
-		PanicAlertT("Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game.");
-		std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-		m_is_running = false;
+		for (int i = 0; i < 4; i++)
+		{
+			if (m_pad_map[i] == pid)
+			{
+				PanicAlertT("Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game.");
+				std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+				m_is_running = false;
 
-		sf::Packet spac;
-		spac << (MessageId)NP_MSG_DISABLE_GAME;
-		// this thread doesn't need players lock
-		std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-		SendToClients(spac);
+				sf::Packet spac;
+				spac << (MessageId)NP_MSG_DISABLE_GAME;
+				// this thread doesn't need players lock
+				std::lock_guard<std::recursive_mutex> lks(m_crit.send);
+				SendToClients(spac);
+				break;
+			}
+		}
 	}
-
-	PlayerId pid = m_players[socket].pid;
 
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_PLAYER_LEAVE;
