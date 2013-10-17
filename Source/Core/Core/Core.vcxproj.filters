@@ -373,37 +373,10 @@
     <ClCompile Include="Src\PowerPC\Jit64\JitRegCache.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\IR.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
     <ClCompile Include="Src\PowerPC\Jit64IL\IR_X86.cpp">
       <Filter>PowerPC\JitIL</Filter>
     </ClCompile>
     <ClCompile Include="Src\PowerPC\Jit64IL\JitIL.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Branch.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_FloatingPoint.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Integer.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStore.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStoreFloating.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStorePaired.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Paired.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_SystemRegisters.cpp">
       <Filter>PowerPC\JitIL</Filter>
     </ClCompile>
     <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Tables.cpp">
@@ -569,6 +542,33 @@
     <ClCompile Include="Src\ec_wii.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_Socket.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_SystemRegisters.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_Paired.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_LoadStorePaired.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_LoadStoreFloating.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_LoadStore.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_FloatingPoint.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_Branch.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_Integer.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\IR.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -876,9 +876,6 @@
     <ClInclude Include="Src\PowerPC\Jit64IL\JitILAsm.h">
       <Filter>PowerPC\JitIL</Filter>
     </ClInclude>
-    <ClInclude Include="Src\PowerPC\Jit64IL\IR.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
     <ClInclude Include="Src\PowerPC\Jit64IL\JitIL.h">
       <Filter>PowerPC\JitIL</Filter>
     </ClInclude>
@@ -1068,6 +1065,12 @@
     <ClInclude Include="Src\IPC_HLE\WII_Socket.h">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
+    <ClInclude Include="Src\PowerPC\JitILCommon\JitILBase.h">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PowerPC\JitILCommon\IR.h">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CMakeLists.txt" />
@@ -1207,6 +1210,9 @@
     </Filter>
     <Filter Include="IPC HLE %28IOS/Starlet%29\USB">
       <UniqueIdentifier>{321a9af5-9b3d-4620-888c-fe9d02e9559e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\JitILCommon">
+      <UniqueIdentifier>{658f0a72-5b08-4241-9c01-31cdc4ab7057}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
