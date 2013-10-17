@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _OPCODEDECODER_H_
-#define _OPCODEDECODER_H_
+#ifndef _TEXTUREENCODER_H_
+#define _TEXTUREENCODER_H_
 
 #include "Common.h"
 
