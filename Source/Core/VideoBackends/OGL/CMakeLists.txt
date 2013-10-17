@@ -45,5 +45,4 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
 	set(LIBS	${LIBS} usbhid)
 endif()
 
-add_library(videoogl STATIC ${SRCS})
-target_link_libraries(videoogl ${LIBS})
+add_dolphin_library(videoogl "${SRCS}" "${LIBS}")

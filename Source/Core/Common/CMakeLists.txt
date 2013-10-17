@@ -51,5 +51,4 @@ endif(WIN32)
 
 enable_precompiled_headers(Src/stdafx.h Src/stdafx.cpp SRCS)
 
-add_library(common STATIC ${SRCS})
-target_link_libraries(common ${CMAKE_THREAD_LIBS_INIT})
+add_dolphin_library(common "${SRCS}" "${CMAKE_THREAD_LIBS_INIT}")

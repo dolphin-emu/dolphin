@@ -49,5 +49,4 @@ if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	set(LIBS	${LIBS} clrun)
 endif()
 
-add_library(videosoftware STATIC ${SRCS})
-target_link_libraries(videosoftware ${LIBS})
+add_dolphin_library(videosoftware "${SRCS}" "${LIBS}")

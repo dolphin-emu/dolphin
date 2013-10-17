@@ -269,5 +269,4 @@ if(GDBSTUB)
 	set(SRCS ${SRCS} Src/PowerPC/GDBStub.cpp)
 endif(GDBSTUB)
 
-add_library(core STATIC ${SRCS})
-target_link_libraries(core ${LIBS})
+add_dolphin_library(core "${SRCS}" "${LIBS}")
