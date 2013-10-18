@@ -2,12 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../DSPMemoryMap.h"
-#include "../DSPEmitter.h"
-#include "../DSPStacks.h"
 #include "../DSPAnalyzer.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
+#include "../DSPEmitter.h"
+#include "../DSPMemoryMap.h"
+#include "../DSPStacks.h"
 
 using namespace Gen;
 

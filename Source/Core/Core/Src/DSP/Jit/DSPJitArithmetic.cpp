@@ -4,12 +4,11 @@
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
+#include "../DSPAnalyzer.h"
+#include "../DSPEmitter.h"
 #include "../DSPIntCCUtil.h"
 #include "../DSPIntUtil.h"
-#include "../DSPEmitter.h"
-#include "../DSPAnalyzer.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
+
 using namespace Gen;
 
 // CLR $acR

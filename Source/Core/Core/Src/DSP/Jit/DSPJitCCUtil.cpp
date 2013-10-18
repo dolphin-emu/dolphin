@@ -4,13 +4,9 @@
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
-
-// HELPER FUNCTIONS
-
-#include "../DSPIntUtil.h"
 #include "../DSPEmitter.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
+#include "../DSPIntUtil.h" // Helper functions
+
 using namespace Gen;
 
 // In: RAX: s64 _Value

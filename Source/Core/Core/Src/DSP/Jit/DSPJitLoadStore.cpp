@@ -4,11 +4,10 @@
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
+#include "../DSPEmitter.h"
 #include "../DSPIntCCUtil.h"
 #include "../DSPIntUtil.h"
-#include "../DSPEmitter.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
+
 using namespace Gen;
 
 // SRS @M, $(0x18+S)

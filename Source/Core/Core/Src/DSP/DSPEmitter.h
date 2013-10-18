@@ -8,6 +8,7 @@
 #include <list>
 
 #include "DSPCommon.h"
+#include "x64ABI.h"
 #include "x64Emitter.h"
 #include "Jit/DSPJitRegCache.h"
 
