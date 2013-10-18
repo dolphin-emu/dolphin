@@ -5,9 +5,16 @@
 #ifndef _JITILBASE_H
 #define _JITILBASE_H
 
-#include "../PPCAnalyst.h"
 #include "IR.h"
+#include "../PowerPC.h"
+#include "../PPCAnalyst.h"
+#include "../PPCTables.h"
 #include "../JitCommon/JitBase.h"
+#include "../../ConfigManager.h"
+#include "../../Core.h"
+#include "../../CoreTiming.h"
+#include "../../HW/GPFifo.h"
+#include "../../HW/Memmap.h"
 
 #define INSTRUCTION_START
 

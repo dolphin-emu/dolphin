@@ -3,14 +3,10 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-
-#include "../../Core.h"
-#include "../../CoreTiming.h"
-#include "../../HW/SystemTimers.h"
-#include "../PowerPC.h"
-#include "../PPCTables.h"
-
 #include "JitILBase.h"
+
+#include "../../HW/SystemTimers.h"
+
 
 void JitILBase::mtspr(UGeckoInstruction inst)
 {

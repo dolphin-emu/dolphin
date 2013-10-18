@@ -3,13 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-
-#include "../PowerPC.h"
-#include "../../Core.h"
-#include "../../HW/GPFifo.h"
-#include "../../HW/Memmap.h"
-#include "../PPCTables.h"
-
 #include "JitILBase.h"
 
 void JitILBase::psq_st(UGeckoInstruction inst)

@@ -3,14 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-
-#include "../../ConfigManager.h"
-#include "../PowerPC.h"
-#include "../../CoreTiming.h"
-#include "../PPCTables.h"
 #include "JitILBase.h"
 
-#include "../../HW/Memmap.h"
 
 // The branches are known good, or at least reasonably good.
 // No need for a disable-mechanism.

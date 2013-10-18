@@ -3,13 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-
-#include "../PowerPC.h"
-#include "../../Core.h"
-#include "../../HW/GPFifo.h"
-#include "../../HW/Memmap.h"
-#include "../PPCTables.h"
-
 #include "JitILBase.h"
 
 void JitILBase::lhax(UGeckoInstruction inst)
@@ -46,7 +39,8 @@ void JitILBase::lXz(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void JitILBase::lbzu(UGeckoInstruction inst) {
+void JitILBase::lbzu(UGeckoInstruction inst)
+{
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
 	const IREmitter::InstLoc uAddress = ibuild.EmitAdd(ibuild.EmitLoadGReg(inst.RA), ibuild.EmitIntConst((int)inst.SIMM_16));
@@ -75,11 +69,14 @@ void JitILBase::lXzx(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStoreOff)
 	if (js.memcheck) { Default(inst); return; }
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
-	if (inst.RA) {
+
+	if (inst.RA)
+	{
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
 		if (inst.SUBOP10 & 32)
 			ibuild.EmitStoreGReg(addr, inst.RA);
 	}
+
 	IREmitter::InstLoc val;
 	switch (inst.SUBOP10 & ~32)
 	{

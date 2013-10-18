@@ -3,11 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-
-#include "../../Core.h"
-#include "../PowerPC.h"
-#include "../PPCTables.h"
-
 #include "JitILBase.h"
 
 void JitILBase::fp_arith_s(UGeckoInstruction inst)

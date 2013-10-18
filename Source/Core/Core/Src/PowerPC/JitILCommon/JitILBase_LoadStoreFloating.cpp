@@ -3,13 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-
-#include "../PowerPC.h"
-#include "../../Core.h" // include "Common.h", "CoreParameter.h"
-#include "../../HW/GPFifo.h"
-#include "../../HW/Memmap.h"
-#include "../PPCTables.h"
-
 #include "JitILBase.h"
 
 // TODO: Add peephole optimizations for multiple consecutive lfd/lfs/stfd/stfs since they are so common,
