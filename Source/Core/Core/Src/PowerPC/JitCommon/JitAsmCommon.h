@@ -5,7 +5,7 @@
 #ifndef _JITASMCOMMON_H
 #define _JITASMCOMMON_H
 
-#include "../JitCommon/Jit_Util.h"
+#include "Jit_Util.h"
 
 class CommonAsmRoutinesBase  {
 public:

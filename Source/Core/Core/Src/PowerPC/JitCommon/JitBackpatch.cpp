@@ -6,14 +6,8 @@
 
 #include "Common.h"
 #include "disasm.h"
-#include "../JitCommon/JitBase.h"
-#include "../JitCommon/JitBackpatch.h"
-
-#include "../../HW/Memmap.h"
-
-#include "x64Emitter.h"
-#include "x64ABI.h"
-#include "x64Analyzer.h"
+#include "JitBase.h"
+#include "JitBackpatch.h"
 
 #include "StringUtil.h"
 #ifdef _WIN32

@@ -2,23 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "x64ABI.h"
-#include "CPUDetect.h"
-#include "x64Emitter.h"
-
-#include "../../HW/Memmap.h"
-
-#include "../PowerPC.h"
-#include "../../CoreTiming.h"
-#include "MemoryUtil.h"
-
-#include "x64ABI.h"
-#include "../JitCommon/JitCache.h"
-
-#include "../../HW/GPFifo.h"
-#include "../../Core.h"
 #include "JitAsmCommon.h"
 #include "JitBase.h"
+
+#include "CPUDetect.h"
+#include "MemoryUtil.h"
+
 
 #define QUANTIZED_REGS_TO_SAVE (ABI_ALL_CALLEE_SAVED & ~((1 << RAX) | (1 << RCX) | (1 << RDX) | \
                                                          (1 << XMM0) | (1 << XMM1)))
@@ -150,7 +139,8 @@ static void WriteDual32(u32 address)
 }
 
 // See comment in header for in/outs.
-void CommonAsmRoutines::GenQuantizedStores() {
+void CommonAsmRoutines::GenQuantizedStores()
+{
 	const u8* storePairedIllegal = AlignCode4();
 	UD2();
 	const u8* storePairedFloat = AlignCode4();
@@ -289,7 +279,8 @@ void CommonAsmRoutines::GenQuantizedStores() {
 }
 
 // See comment in header for in/outs.
-void CommonAsmRoutines::GenQuantizedSingleStores() {
+void CommonAsmRoutines::GenQuantizedSingleStores()
+{
 	const u8* storeSingleIllegal = AlignCode4();
 	UD2();
 
@@ -365,7 +356,8 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 	singleStoreQuantized[7] = storeSingleS16;
 }
 
-void CommonAsmRoutines::GenQuantizedLoads() {
+void CommonAsmRoutines::GenQuantizedLoads()
+{
 	const u8* loadPairedIllegal = AlignCode4();
 	UD2();
 

@@ -15,21 +15,11 @@
 #include <windows.h>
 #endif
 
-#include "../../Core.h"
-#include "MemoryUtil.h"
-
-#include "../../HW/Memmap.h"
-#include "../JitInterface.h"
-#include "../../CoreTiming.h"
-
-#include "../PowerPC.h"
-#include "../PPCTables.h"
-#include "../PPCAnalyst.h"
-
-#include "JitCache.h"
 #include "JitBase.h"
-
+#include "MemoryUtil.h"
 #include "disasm.h"
+
+#include "../JitInterface.h"
 
 #if defined USE_OPROFILE && USE_OPROFILE
 #include <opagent.h>

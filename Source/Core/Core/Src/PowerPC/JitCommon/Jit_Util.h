@@ -9,7 +9,8 @@
 #include <unordered_map>
 
 // Like XCodeBlock but has some utilities for memory access.
-class EmuCodeBlock : public Gen::XCodeBlock {
+class EmuCodeBlock : public Gen::XCodeBlock
+{
 public:
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
 	void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset);

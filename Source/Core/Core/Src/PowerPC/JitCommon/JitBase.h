@@ -9,11 +9,21 @@
 //#define JIT_LOG_GPR     // Enables logging of the PPC general purpose regs
 //#define JIT_LOG_FPR     // Enables logging of the PPC floating point regs
 
-#include "../CPUCoreBase.h"
-#include "JitCache.h"
-#include "Jit_Util.h"  // for EmuCodeBlock
-#include "JitBackpatch.h"  // for EmuCodeBlock
 #include "JitAsmCommon.h"
+#include "JitCache.h"
+#include "Jit_Util.h"      // for EmuCodeBlock
+#include "JitBackpatch.h"  // for EmuCodeBlock
+#include "x64ABI.h"
+#include "x64Analyzer.h"
+#include "x64Emitter.h"
+#include "../CPUCoreBase.h"
+#include "../PowerPC.h"
+#include "../PPCAnalyst.h"
+#include "../PPCTables.h"
+#include "../../Core.h"
+#include "../../CoreTiming.h"
+#include "../../HW/GPFifo.h"
+#include "../../HW/Memmap.h"
 
 #include <set>
 

@@ -5,13 +5,6 @@
 #include "Common.h"
 
 #include "CPUDetect.h"
-#include "../PowerPC.h"
-#include "../../Core.h"
-#include "../../HW/GPFifo.h"
-#include "../../HW/Memmap.h"
-#include "../PPCTables.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
 #include "JitBase.h"
 #include "Jit_Util.h"
 
