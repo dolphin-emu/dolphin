@@ -9,7 +9,7 @@
 #include <vector>
 #include <map>
 
-#include "Common.h"
+#include "CommonTypes.h"
 #include "Blob.h"
 #include "Volume.h"
 

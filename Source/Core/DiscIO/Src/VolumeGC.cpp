@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "stdafx.h"
-
 #include "VolumeGC.h"
 #include "StringUtil.h"
 #include "FileMonitor.h"

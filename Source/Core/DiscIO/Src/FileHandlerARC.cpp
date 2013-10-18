@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-
 #include "FileHandlerARC.h"
 #include "StringUtil.h"
 #include "Blob.h"

@@ -36,8 +36,8 @@ DriveReader::DriveReader(const char *drive)
 		// removal while reading from it.
 		pmrLockCDROM.PreventMediaRemoval = TRUE;
 		DeviceIoControl(hDisc, IOCTL_CDROM_MEDIA_REMOVAL,
-                   &pmrLockCDROM, sizeof(pmrLockCDROM), NULL,
-                   0, &dwNotUsed, NULL);
+					&pmrLockCDROM, sizeof(pmrLockCDROM), NULL,
+					0, &dwNotUsed, NULL);
 	#endif
 #else
 	SectorReader::SetSectorSize(2048);
@@ -67,7 +67,7 @@ DriveReader::~DriveReader()
 	}
 #else
 	file_.Close();
-#endif	
+#endif
 }
 
 DriveReader *DriveReader::Create(const char *drive)

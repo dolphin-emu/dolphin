@@ -5,11 +5,11 @@
 #ifndef _VOLUME_DIRECTORY
 #define _VOLUME_DIRECTORY
 
-#include "Volume.h"
-#include "Common.h"
-#include "FileUtil.h"
-#include <string>
 #include <map>
+#include <string>
+
+#include "FileUtil.h"
+#include "Volume.h"
 
 //
 // --- this volume type is used for reading files directly from the hard drive ---

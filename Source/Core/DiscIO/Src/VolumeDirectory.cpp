@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "MathUtil.h"
 #include "CommonPaths.h"
-#include "VolumeDirectory.h"
 #include "FileBlob.h"
+#include "MathUtil.h"
+#include "VolumeDirectory.h"
 
 namespace DiscIO
 {
@@ -484,8 +483,7 @@ static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
 {
 	u32 nameSize = 0;
 	const std::vector<File::FSTEntry>& children = parentEntry.children;
-	for (std::vector<File::FSTEntry>::const_iterator it = children.begin();
-		it != children.end(); ++it)
+	for (auto it = children.cbegin(); it != children.cend(); ++it)
 	{
 		const File::FSTEntry& entry = *it;
 		if (entry.isDirectory)

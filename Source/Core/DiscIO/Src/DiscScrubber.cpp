@@ -13,7 +13,7 @@ namespace DiscIO
 namespace DiscScrubber
 {
 
-#define	CLUSTER_SIZE 0x8000
+#define CLUSTER_SIZE 0x8000
 
 u8* m_FreeTable = NULL;
 u64 m_FileSize;

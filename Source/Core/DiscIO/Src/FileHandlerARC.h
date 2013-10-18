@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "Common.h"
+#include "CommonTypes.h"
 #include "Filesystem.h"
 
 namespace DiscIO
