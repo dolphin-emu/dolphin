@@ -6,15 +6,7 @@
 // Should give a very noticeable speed boost to paired single heavy code.
 
 #include "Common.h"
- 
-#include "../PowerPC.h"
-#include "../../Core.h"
-#include "../../HW/GPFifo.h"
-#include "../../HW/Memmap.h"
-#include "../PPCTables.h"
 #include "CPUDetect.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
 
 #include "Jit.h"
 #include "JitAsm.h"

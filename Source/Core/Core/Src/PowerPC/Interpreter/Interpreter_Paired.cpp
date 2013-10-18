@@ -6,8 +6,6 @@
 #include "Common.h"
 #include "MathUtil.h"
 #include "Interpreter.h"
-#include "../../HW/Memmap.h"
-
 #include "Interpreter_FPUtils.h"
 
 using namespace MathUtil;

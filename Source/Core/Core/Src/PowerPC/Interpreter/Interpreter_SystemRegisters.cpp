@@ -15,16 +15,11 @@
 #endif
 
 #include "CPUDetect.h"
-#include "Atomic.h"
-#include "../../CoreTiming.h"
-#include "../../HW/Memmap.h"
+#include "Interpreter.h"
+#include "Interpreter_FPUtils.h"
+#include "FPURoundMode.h"
 #include "../../HW/GPFifo.h"
 #include "../../HW/SystemTimers.h"
-#include "../../Core.h"
-#include "Interpreter.h"
-#include "FPURoundMode.h"
-
-#include "Interpreter_FPUtils.h"
 
 /*
 

@@ -7,15 +7,6 @@
 
 #include "Common.h"
 
-#include "../PowerPC.h"
-#include "../../Core.h"
-#include "../../ConfigManager.h"
-#include "../../HW/GPFifo.h"
-#include "../../HW/Memmap.h"
-#include "../PPCTables.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
-
 #include "Jit.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"

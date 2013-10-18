@@ -19,15 +19,23 @@
 #ifndef _JIT64_H
 #define _JIT64_H
 
-#include "../PPCAnalyst.h"
-#include "../JitCommon/JitCache.h"
-#include "../JitCommon/Jit_Util.h"
-#include "JitRegCache.h"
-#include "x64Emitter.h"
-#include "x64Analyzer.h"
 #include "../JitCommon/JitBackpatch.h"
 #include "../JitCommon/JitBase.h"
+#include "../JitCommon/JitCache.h"
+#include "../JitCommon/Jit_Util.h"
+#include "../PowerPC.h"
+#include "../PPCAnalyst.h"
+#include "../PPCTables.h"
+#include "../../Core.h"
+#include "../../CoreTiming.h"
+#include "../../ConfigManager.h"
+#include "../../HW/Memmap.h"
+#include "../../HW/GPFifo.h"
 #include "JitAsm.h"
+#include "JitRegCache.h"
+#include "x64ABI.h"
+#include "x64Analyzer.h"
+#include "x64Emitter.h"
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START Default(inst); return;

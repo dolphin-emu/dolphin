@@ -2,9 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../PowerPC.h"
-#include "../PPCTables.h"
-#include "../PPCAnalyst.h"
 #include "Jit.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"

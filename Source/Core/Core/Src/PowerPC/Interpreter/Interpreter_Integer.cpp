@@ -3,8 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Interpreter.h"
-#include "../../Core.h"
-#include "Atomic.h"
 
 void Interpreter::Helper_UpdateCR0(u32 _uValue)
 {

@@ -3,10 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Interpreter.h"
-#include "../../HW/CPU.h"
-#include "../../HLE/HLE.h"
 #include "../PPCAnalyst.h"
-#include "Atomic.h"
 
 void Interpreter::bx(UGeckoInstruction _inst)
 {

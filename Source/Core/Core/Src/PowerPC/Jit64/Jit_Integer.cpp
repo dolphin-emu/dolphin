@@ -2,11 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../../Core.h" // include "Common.h", "CoreParameter.h", SCoreStartupParameter
-#include "../PowerPC.h"
-#include "../PPCTables.h"
-#include "x64Emitter.h"
-
 #include "Jit.h"
 #include "JitRegCache.h"
 #include "JitAsm.h"

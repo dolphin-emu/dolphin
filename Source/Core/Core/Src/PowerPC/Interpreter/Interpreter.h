@@ -5,9 +5,16 @@
 #ifndef _INTERPRETER_H
 #define _INTERPRETER_H
 
+#include "Atomic.h"
 #include "../Gekko.h"
 #include "../PowerPC.h"
 #include "../CPUCoreBase.h"
+#include "../../Core.h"
+#include "../../CoreTiming.h"
+#include "../../ConfigManager.h"
+#include "../../HLE/HLE.h"
+#include "../../HW/Memmap.h"
+#include "../../HW/CPU.h"
 
 class Interpreter : public CPUCoreBase
 {

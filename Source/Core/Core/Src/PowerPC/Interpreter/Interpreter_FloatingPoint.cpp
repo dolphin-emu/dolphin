@@ -17,10 +17,9 @@
 #undef _interlockedbittestandreset64
 #endif
 
-#include "../../Core.h"
 #include "Interpreter.h"
-#include "MathUtil.h"
 #include "Interpreter_FPUtils.h"
+#include "MathUtil.h"
 #include "../LUT_frsqrtex.h"
 
 using namespace MathUtil;

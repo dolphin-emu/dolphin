@@ -2,22 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "x64ABI.h"
-#include "x64Emitter.h"
+#include "JitIL.h"
+#include "JitILAsm.h"
 
-#include "../../HW/Memmap.h"
-
-#include "../PowerPC.h"
-#include "../../CoreTiming.h"
 #include "MemoryUtil.h"
 #include "CPUDetect.h"
 
-#include "x64ABI.h"
-
-#include "../../HW/GPFifo.h"
+#include "../PowerPC.h"
 #include "../../Core.h"
-#include "JitIL.h"
-#include "JitILAsm.h"
+#include "../../CoreTiming.h"
+#include "../../HW/GPFifo.h"
 
 using namespace Gen;
 

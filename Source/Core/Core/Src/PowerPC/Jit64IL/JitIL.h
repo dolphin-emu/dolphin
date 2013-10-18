@@ -17,17 +17,17 @@
 #ifndef _JITIL_H
 #define _JITIL_H
 
+#include "JitILAsm.h"
+#include "x64Emitter.h"
+#include "x64ABI.h"
+#include "x64Analyzer.h"
 #include "../PPCAnalyst.h"
 #include "../JitCommon/JitBase.h"
 #include "../JitCommon/JitCache.h"
 #include "../JitCommon/JitBackpatch.h"
 #include "../JitCommon/Jit_Util.h"
-#include "x64Emitter.h"
-#include "x64Analyzer.h"
 #include "../JitILCommon/JitILBase.h"
 #include "../JitILCommon/IR.h"
-#include "../JitCommon/JitBase.h"
-#include "JitILAsm.h"
 
 // #define INSTRUCTION_START Default(inst); return;
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);

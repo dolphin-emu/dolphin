@@ -4,12 +4,6 @@
 
 #include "Common.h"
 
-#include "../../Core.h"
-#include "../PowerPC.h"
-#include "../../CoreTiming.h"
-#include "../PPCTables.h"
-#include "x64Emitter.h"
-
 #include "Jit.h"
 #include "JitRegCache.h"
 #include "JitAsm.h"

@@ -3,17 +3,13 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-#include "Atomic.h"
 #include "MathUtil.h"
 
-#include "../../HW/Memmap.h"
-
 #include "Interpreter.h"
-#include "../../Core.h"
+#include "Interpreter_FPUtils.h"
 
 #include "../JitInterface.h"
 
-#include "Interpreter_FPUtils.h"
 
 bool Interpreter::g_bReserve;
 u32  Interpreter::g_reserveAddr;

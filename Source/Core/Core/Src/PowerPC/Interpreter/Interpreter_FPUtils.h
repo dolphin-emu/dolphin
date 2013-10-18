@@ -5,7 +5,6 @@
 #ifndef _INTERPRETER_FPUTILS_H
 #define _INTERPRETER_FPUTILS_H
 
-#include "../../Core.h"
 #include "Interpreter.h"
 #include "MathUtil.h"
 

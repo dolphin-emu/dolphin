@@ -18,7 +18,6 @@
 #include "../PPCAnalyst.h"
 #include "../../HW/Memmap.h"
 #include "../../HW/GPFifo.h"
-#include "../JitCommon/JitCache.h"
 #include "JitIL.h"
 #include "JitILAsm.h"
 #include "JitIL_Tables.h"
