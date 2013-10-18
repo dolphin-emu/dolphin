@@ -21,6 +21,8 @@
 #include "x64Emitter.h"
 #include "x64ABI.h"
 #include "x64Analyzer.h"
+#include "../PowerPC.h"
+#include "../PPCTables.h"
 #include "../PPCAnalyst.h"
 #include "../JitCommon/JitBase.h"
 #include "../JitCommon/JitCache.h"
@@ -28,6 +30,11 @@
 #include "../JitCommon/Jit_Util.h"
 #include "../JitILCommon/JitILBase.h"
 #include "../JitILCommon/IR.h"
+#include "../../ConfigManager.h"
+#include "../../Core.h"
+#include "../../CoreTiming.h"
+#include "../../HW/Memmap.h"
+#include "../../HW/GPFifo.h"
 
 // #define INSTRUCTION_START Default(inst); return;
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);

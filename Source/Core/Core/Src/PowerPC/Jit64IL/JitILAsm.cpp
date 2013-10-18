@@ -8,11 +8,6 @@
 #include "MemoryUtil.h"
 #include "CPUDetect.h"
 
-#include "../PowerPC.h"
-#include "../../Core.h"
-#include "../../CoreTiming.h"
-#include "../../HW/GPFifo.h"
-
 using namespace Gen;
 
 //static int temp32; // unused?
