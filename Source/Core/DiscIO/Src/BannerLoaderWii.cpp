@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <algorithm>
 
-#include "Common.h"
+#include "CommonTypes.h"
 #include "ColorUtil.h"
 #include "BannerLoaderWii.h"
 #include "VolumeCreator.h"
