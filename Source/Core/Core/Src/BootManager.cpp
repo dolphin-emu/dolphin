@@ -23,7 +23,7 @@
 #include <string>
 #include <vector>
 
-#include "Common.h"
+#include "CommonTypes.h"
 #include "CommonPaths.h"
 #include "IniFile.h"
 #include "BootManager.h"

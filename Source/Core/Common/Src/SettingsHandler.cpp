@@ -4,7 +4,6 @@
 
 // Thanks to Treeki for writing the original class - 29/01/2012
 
-#include "Common.h"
 #include "CommonPaths.h"
 #include "Timer.h"
 #include "SettingsHandler.h"

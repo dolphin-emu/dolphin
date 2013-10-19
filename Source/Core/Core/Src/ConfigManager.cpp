@@ -2,21 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <string>
-
 #include "Common.h"
 #include "CommonPaths.h"
-#include "IniFile.h"
 #include "ConfigManager.h"
+#include "IniFile.h"
 #include "FileUtil.h"
 #include "NANDContentLoader.h"
 
 SConfig* SConfig::m_Instance;
 
-static const struct {
-	const char*	IniText;
-	const int	DefaultKey;
-	const int	DefaultModifier;
+static const struct
+{
+	const char* IniText;
+	const int   DefaultKey;
+	const int   DefaultModifier;
 } g_HKData[] = {
 #ifdef __APPLE__
 	{ "Open",		79 /* 'O' */,		2 /* wxMOD_CMD */ },

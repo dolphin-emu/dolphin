@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#include "Common.h"
 #include "MathUtil.h"
 
 #include <cmath>
@@ -144,7 +142,7 @@ void Matrix33::RotateY(Matrix33 &mtx, float rad)
 	mtx.data[0] = c;
 	mtx.data[2] = s;
 	mtx.data[4] = 1;
-	mtx.data[6] = -s;    
+	mtx.data[6] = -s;
 	mtx.data[8] = c;
 }
 
@@ -155,9 +153,12 @@ void Matrix33::Multiply(const Matrix33 &a, const Matrix33 &b, Matrix33 &result)
 
 void Matrix33::Multiply(const Matrix33 &a, const float vec[3], float result[3])
 {
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 3; ++i)
+	{
 		result[i] = 0;
-		for (int k = 0; k < 3; ++k) {
+
+		for (int k = 0; k < 3; ++k)
+		{
 			result[i] += a.data[i * 3 + k] * vec[k];
 		}
 	}
@@ -192,7 +193,8 @@ void Matrix44::LoadMatrix33(Matrix44 &mtx, const Matrix33 &m33)
 
 void Matrix44::Set(Matrix44 &mtx, const float mtxArray[16])
 {
-	for(int i = 0; i < 16; ++i) {
+	for(int i = 0; i < 16; ++i)
+	{
 		mtx.data[i] = mtxArray[i];
 	}
 }

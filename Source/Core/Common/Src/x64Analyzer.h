@@ -5,7 +5,7 @@
 #ifndef _X64ANALYZER_H_
 #define _X64ANALYZER_H_
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 struct InstructionInfo
 {

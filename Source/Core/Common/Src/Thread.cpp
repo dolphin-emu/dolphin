@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Thread.h"
-#include "Common.h"
 
 #ifdef __APPLE__
 #include <mach/mach.h>

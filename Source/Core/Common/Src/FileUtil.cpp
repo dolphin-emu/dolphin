@@ -3,18 +3,16 @@
 // Refer to the license.txt file included.
 
 
-#include "Common.h"
 #include "CommonPaths.h"
 #include "FileUtil.h"
-#include "StringUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
-#include <shlobj.h>		// for SHGetFolderPath
+#include <shlobj.h>    // for SHGetFolderPath
 #include <shellapi.h>
-#include <commdlg.h>	// for GetSaveFileName
+#include <commdlg.h>   // for GetSaveFileName
 #include <io.h>
-#include <direct.h>		// getcwd
+#include <direct.h>    // getcwd
 #else
 #include <sys/param.h>
 #include <sys/types.h>
@@ -33,8 +31,6 @@
 
 #include <algorithm>
 #include <sys/stat.h>
-
-#include "StringUtil.h"
 
 #ifndef S_ISDIR
 #define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)

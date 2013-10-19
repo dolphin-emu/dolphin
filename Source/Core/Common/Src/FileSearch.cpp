@@ -12,11 +12,9 @@
 #include <windows.h>
 #endif
 
-#include <string>
 #include <algorithm>
 
 #include "FileSearch.h"
-
 #include "StringUtil.h"
 
 
@@ -46,7 +44,7 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 		bool bkeepLooping = true;
 
 		while (bkeepLooping)
-		{			
+		{
 			if (findData.cFileName[0] != '.')
 			{
 				std::string strFilename;

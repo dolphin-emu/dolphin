@@ -12,7 +12,6 @@
 #include <sys/time.h>
 #endif
 
-#include "Common.h"
 #include "Timer.h"
 #include "StringUtil.h"
 

@@ -5,16 +5,17 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
-#define	NOTICE_LEVEL  1  // VERY important information that is NOT errors. Like startup and OSReports.
-#define	ERROR_LEVEL   2  // Critical errors 
-#define	WARNING_LEVEL 3  // Something is suspicious.
-#define	INFO_LEVEL    4  // General information.
-#define	DEBUG_LEVEL   5  // Detailed debugging - might make things slow.
+#define NOTICE_LEVEL  1  // VERY important information that is NOT errors. Like startup and OSReports.
+#define ERROR_LEVEL   2  // Critical errors 
+#define WARNING_LEVEL 3  // Something is suspicious.
+#define INFO_LEVEL    4  // General information.
+#define DEBUG_LEVEL   5  // Detailed debugging - might make things slow.
 
 namespace LogTypes
 {
 
-enum LOG_TYPE {
+enum LOG_TYPE
+{
 	ACTIONREPLAY,
 	AUDIO,
 	AUDIO_INTERFACE,
@@ -67,12 +68,13 @@ enum LOG_TYPE {
 };
 
 // FIXME: should this be removed?
-enum LOG_LEVELS {
-	LNOTICE = NOTICE_LEVEL,
-	LERROR = ERROR_LEVEL,
+enum LOG_LEVELS
+{
+	LNOTICE  = NOTICE_LEVEL,
+	LERROR   = ERROR_LEVEL,
 	LWARNING = WARNING_LEVEL,
-	LINFO = INFO_LEVEL,
-	LDEBUG = DEBUG_LEVEL,
+	LINFO    = INFO_LEVEL,
+	LDEBUG   = DEBUG_LEVEL,
 };
 
 #define LOGTYPES_LEVELS LogTypes::LOG_LEVELS

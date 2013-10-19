@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <set>
 
-#include "Common.h"
 #include "MemoryUtil.h"
 #include "MemArena.h"
 
@@ -20,7 +20,6 @@
 #include <linux/ashmem.h>
 #endif
 #endif
-#include <set>
 
 #if defined(__APPLE__)
 static const char* ram_temp_file = "/tmp/gc_mem.tmp";

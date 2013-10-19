@@ -5,7 +5,6 @@
 #ifndef _OPENALSTREAM_H_
 #define _OPENALSTREAM_H_
 
-#include "CommonTypes.h"
 #include "SoundStream.h"
 #include "Thread.h"
 
