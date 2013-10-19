@@ -1689,12 +1689,6 @@
     <ClInclude Include="..\..\include\wx\msw\private\dc.h">
       <Filter>Headers\MSW\private</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\wx\msw\private\eventloopsourcesmanager.h">
-      <Filter>Headers\MSW\private</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\msw\private\fdeventloopsourcesmanager.h">
-      <Filter>Headers\MSW\private</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\private\fswatcher.h">
       <Filter>Headers\MSW\private</Filter>
     </ClInclude>
@@ -1710,17 +1704,11 @@
     <ClInclude Include="..\..\include\wx\msw\private\msgdlg.h">
       <Filter>Headers\MSW\private</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\wx\msw\private\preferences.h">
-      <Filter>Headers\MSW</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\private\pipestream.h">
       <Filter>Headers\MSW</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\private\sockmsw.h">
       <Filter>Headers\MSW\private</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\msw\private\streamtempinput.h">
-      <Filter>Headers\MSW</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\private\textmeasure.h">
       <Filter>Headers\MSW</Filter>
@@ -2756,9 +2744,6 @@
     <ClCompile Include="..\..\src\generic\aboutdlgg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\accel.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\generic\animateg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
@@ -2777,9 +2762,6 @@
     <ClCompile Include="..\..\src\generic\calctrlg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\caret.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\generic\choicbkg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
@@ -2790,9 +2772,6 @@
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\collpaneg.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\colour.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\colrdlgg.cpp">
@@ -2826,9 +2805,6 @@
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\editlbox.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\fdrepdlg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\filectrlg.cpp">
@@ -2876,12 +2852,6 @@
     <ClCompile Include="..\..\src\generic\hyperlinkg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\icon.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\imaglist.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\generic\infobar.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
@@ -2889,9 +2859,6 @@
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\listbkg.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\listctrl.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\logg.cpp">
@@ -2909,9 +2876,6 @@
     <ClCompile Include="..\..\src\generic\msgdlgg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\notebook.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\generic\notifmsgg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
@@ -2922,9 +2886,6 @@
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\paletteg.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\preferencesg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\printps.cpp">
@@ -2975,9 +2936,6 @@
     <ClCompile Include="..\..\src\generic\statbmpg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\statline.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\generic\stattextg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
@@ -2990,13 +2948,7 @@
     <ClCompile Include="..\..\src\generic\textdlgg.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\textmeasure.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\generic\timectrlg.cpp">
-      <Filter>Generic</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\generic\timer.cpp">
       <Filter>Generic</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\generic\tipdlg.cpp">
@@ -3488,6 +3440,9 @@
     <ClCompile Include="..\..\src\msw\ole\uuid.cpp">
       <Filter>MSW\ole</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\common\textmeasurecmn.cpp" />
+    <ClCompile Include="..\..\src\common\threadinfo.cpp" />
+    <ClCompile Include="..\..\src\msw\ole\safearray.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\common\unictabl.inc">

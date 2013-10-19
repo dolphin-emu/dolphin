@@ -16,7 +16,7 @@ class DSPHLE : public DSPEmulator {
 public:
 	DSPHLE();
 
-	virtual bool Initialize(void *hWnd, bool bWii, bool bDSPThread);
+	virtual bool Initialize(bool bWii, bool bDSPThread);
 	virtual void Shutdown();
 	virtual bool IsLLE() { return false; }
 

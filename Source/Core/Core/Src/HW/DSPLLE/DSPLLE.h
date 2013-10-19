@@ -14,7 +14,7 @@ class DSPLLE : public DSPEmulator {
 public:
 	DSPLLE();
 
-	virtual bool Initialize(void *hWnd, bool bWii, bool bDSPThread);
+	virtual bool Initialize(bool bWii, bool bDSPThread);
 	virtual void Shutdown();
 	virtual bool IsLLE() { return true; }
 
@@ -40,7 +40,6 @@ private:
 	std::thread m_hDSPThread;
 	std::mutex m_csDSPThreadActive;
 	bool m_InitMixer;
-	void *m_hWnd;
 	bool m_bWii;
 	bool m_bDSPThread;
 	bool m_bIsRunning;

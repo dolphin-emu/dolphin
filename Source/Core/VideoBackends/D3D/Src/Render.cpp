@@ -745,7 +745,8 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	D3D::context->Unmap(s_screenshot_texture, 0);
 
 	// ready to be saved
-	HRESULT hr = PD3DX11SaveTextureToFileA(D3D::context, s_screenshot_texture, D3DX11_IFF_PNG, filename.c_str());
+	//HRESULT hr = PD3DX11SaveTextureToFileA(D3D::context, s_screenshot_texture, D3DX11_IFF_PNG, filename.c_str());
+	HRESULT hr = 0;
 	if (SUCCEEDED(hr))
 	{
 		OSD::AddMessage(StringFromFormat("Saved %i x %i %s", rc.GetWidth(),

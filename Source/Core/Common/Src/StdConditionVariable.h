@@ -25,6 +25,11 @@
 #include <condition_variable>
 #define _(s) wxGetTranslation((s))
 
+#elif _MSC_VER >= 1700
+
+// The standard implementation is included since VS2012
+#include <condition_variable>
+
 #else
 
 // partial std::condition_variable implementation for win32/pthread

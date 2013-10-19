@@ -14,14 +14,8 @@ namespace DX11
 
 HINSTANCE hD3DCompilerDll = NULL;
 D3DREFLECT PD3DReflect = NULL;
+pD3DCompile PD3DCompile = NULL;
 int d3dcompiler_dll_ref = 0;
-
-HINSTANCE hD3DXDll = NULL;
-D3DX11COMPILEFROMMEMORYTYPE PD3DX11CompileFromMemory = NULL;
-D3DX11FILTERTEXTURETYPE PD3DX11FilterTexture = NULL;
-D3DX11SAVETEXTURETOFILEATYPE PD3DX11SaveTextureToFileA = NULL;
-D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW = NULL;
-int d3dx_dll_ref = 0;
 
 CREATEDXGIFACTORY PCreateDXGIFactory = NULL;
 HINSTANCE hDXGIDll = NULL;
@@ -97,44 +91,6 @@ HRESULT LoadD3D()
 	return S_OK;
 }
 
-HRESULT LoadD3DX()
-{
-	if (d3dx_dll_ref++ > 0) return S_OK;
-	if (hD3DXDll) return S_OK;
-
-	// try to load D3DX11 first to check whether we have proper runtime support
-	// try to use the dll the backend was compiled against first - don't bother about debug runtimes
-	hD3DXDll = LoadLibraryA(D3DX11_DLL_A);
-	if (!hD3DXDll)
-	{
-		// if that fails, use the dll which should be available in every SDK which officially supports DX11.
-		hD3DXDll = LoadLibraryA("d3dx11_42.dll");
-		if (!hD3DXDll)
-		{
-			MessageBoxA(NULL, "Failed to load d3dx11_42.dll, update your DX11 runtime, please", "Critical error", MB_OK | MB_ICONERROR);
-			return E_FAIL;
-		}
-		else
-		{
-			NOTICE_LOG(VIDEO, "Successfully loaded d3dx11_42.dll. If you're having trouble, try updating your DX runtime first.");
-		}
-	}
-
-	PD3DX11CompileFromMemory = (D3DX11COMPILEFROMMEMORYTYPE)GetProcAddress(hD3DXDll, "D3DX11CompileFromMemory");
-	if (PD3DX11CompileFromMemory == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11CompileFromMemory!", "Critical error", MB_OK | MB_ICONERROR);
-
-	PD3DX11FilterTexture = (D3DX11FILTERTEXTURETYPE)GetProcAddress(hD3DXDll, "D3DX11FilterTexture");
-	if (PD3DX11FilterTexture == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11FilterTexture!", "Critical error", MB_OK | MB_ICONERROR);
-
-	PD3DX11SaveTextureToFileA = (D3DX11SAVETEXTURETOFILEATYPE)GetProcAddress(hD3DXDll, "D3DX11SaveTextureToFileA");
-	if (PD3DX11SaveTextureToFileA == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11SaveTextureToFileA!", "Critical error", MB_OK | MB_ICONERROR);
-
-	PD3DX11SaveTextureToFileW = (D3DX11SAVETEXTURETOFILEWTYPE)GetProcAddress(hD3DXDll, "D3DX11SaveTextureToFileW");
-	if (PD3DX11SaveTextureToFileW == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11SaveTextureToFileW!", "Critical error", MB_OK | MB_ICONERROR);
-
-	return S_OK;
-}
-
 HRESULT LoadD3DCompiler()
 {
 	if (d3dcompiler_dll_ref++ > 0) return S_OK;
@@ -160,6 +116,8 @@ HRESULT LoadD3DCompiler()
 
 	PD3DReflect = (D3DREFLECT)GetProcAddress(hD3DCompilerDll, "D3DReflect");
 	if (PD3DReflect == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DReflect!", "Critical error", MB_OK | MB_ICONERROR);
+	PD3DCompile = (pD3DCompile)GetProcAddress(hD3DCompilerDll, "D3DCompile");
+	if (PD3DCompile == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DCompile!", "Critical error", MB_OK | MB_ICONERROR);
 
 	return S_OK;
 }
@@ -172,18 +130,6 @@ void UnloadDXGI()
 	if(hDXGIDll) FreeLibrary(hDXGIDll);
 	hDXGIDll = NULL;
 	PCreateDXGIFactory = NULL;
-}
-
-void UnloadD3DX()
-{
-	if (!d3dx_dll_ref) return;
-	if (--d3dx_dll_ref != 0) return;
-
-	if(hD3DXDll) FreeLibrary(hD3DXDll);
-	hD3DXDll = NULL;
-	PD3DX11FilterTexture = NULL;
-	PD3DX11SaveTextureToFileA = NULL;
-	PD3DX11SaveTextureToFileW = NULL;
 }
 
 void UnloadD3D()
@@ -269,13 +215,11 @@ HRESULT Create(HWND wnd)
 
 	hr = LoadDXGI();
 	if (SUCCEEDED(hr)) hr = LoadD3D();
-	if (SUCCEEDED(hr)) hr = LoadD3DX();
 	if (SUCCEEDED(hr)) hr = LoadD3DCompiler();
 	if (FAILED(hr))
 	{
 		UnloadDXGI();
 		UnloadD3D();
-		UnloadD3DX();
 		UnloadD3DCompiler();
 		return hr;
 	}
@@ -416,7 +360,6 @@ void Close()
 	device = NULL;
 
 	// unload DLLs
-	UnloadD3DX();
 	UnloadD3D();
 	UnloadDXGI();
 }

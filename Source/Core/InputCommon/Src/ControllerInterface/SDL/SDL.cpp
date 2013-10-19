@@ -7,11 +7,7 @@
 #include <algorithm>
 
 #ifdef _WIN32
-	#if SDL_VERSION_ATLEAST(1, 3, 0)
-		#pragma comment(lib, "SDL.1.3.lib")
-	#else
-		#pragma comment(lib, "SDL.lib")
-	#endif
+#pragma comment(lib, "SDL2.lib")
 #endif
 
 namespace ciface
@@ -201,7 +197,7 @@ std::string Joystick::TriangleEffect::GetName() const
 	return "Triangle";
 }
 
-void Joystick::ConstantEffect::SetState(const ControlState state)
+void Joystick::ConstantEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -219,7 +215,7 @@ void Joystick::ConstantEffect::SetState(const ControlState state)
 		m_effect.changed = true;
 }
 
-void Joystick::RampEffect::SetState(const ControlState state)
+void Joystick::RampEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -237,7 +233,7 @@ void Joystick::RampEffect::SetState(const ControlState state)
 		m_effect.changed = true;
 }
 
-void Joystick::SineEffect::SetState(const ControlState state)
+void Joystick::SineEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -260,7 +256,7 @@ void Joystick::SineEffect::SetState(const ControlState state)
 }
 
 #ifdef SDL_HAPTIC_SQUARE
-void Joystick::SquareEffect::SetState(const ControlState state)
+void Joystick::SquareEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -283,7 +279,7 @@ void Joystick::SquareEffect::SetState(const ControlState state)
 }
 #endif // defined(SDL_HAPTIC_SQUARE)
 
-void Joystick::TriangleEffect::SetState(const ControlState state)
+void Joystick::TriangleEffect::SetState(ControlState state)
 {
 	if (state)
 	{

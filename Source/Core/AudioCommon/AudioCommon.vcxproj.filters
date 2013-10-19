@@ -1,14 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="SoundStreams">
+      <UniqueIdentifier>{25ec8f16-fc60-4a63-bc3e-ad0272fd5942}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="Src\aldlist.cpp" />
     <ClCompile Include="Src\AudioCommon.cpp" />
+    <ClCompile Include="Src\DPL2Decoder.cpp" />
     <ClCompile Include="Src\Mixer.cpp" />
     <ClCompile Include="Src\WaveFile.cpp" />
-    <ClCompile Include="Src\AOSoundStream.cpp">
+    <ClCompile Include="Src\DSoundStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
-    <ClCompile Include="Src\DSoundStream.cpp">
+    <ClCompile Include="Src\NullSoundStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
     <ClCompile Include="Src\OpenALStream.cpp">
@@ -17,14 +23,15 @@
     <ClCompile Include="Src\XAudio2Stream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
-    <ClCompile Include="Src\NullSoundStream.cpp">
+    <ClCompile Include="Src\stdafx.cpp" />
+    <ClCompile Include="Src\XAudio2_7Stream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
-    <ClCompile Include="Src\DPL2Decoder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\aldlist.h" />
     <ClInclude Include="Src\AudioCommon.h" />
+    <ClInclude Include="Src\DPL2Decoder.h" />
     <ClInclude Include="Src\Mixer.h" />
     <ClInclude Include="Src\SoundStream.h" />
     <ClInclude Include="Src\WaveFile.h" />
@@ -43,14 +50,24 @@
     <ClInclude Include="Src\XAudio2Stream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
-    <ClInclude Include="Src\DPL2Decoder.h" />
+    <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\XAudio2_7Stream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PulseAudioStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\OpenSLESStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\CoreAudioSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\AlsaSoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="SoundStreams">
-      <UniqueIdentifier>{efb9f5b5-ab0c-455d-b78b-26df725386af}</UniqueIdentifier>
-    </Filter>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
 </Project>

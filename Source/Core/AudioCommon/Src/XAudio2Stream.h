@@ -2,43 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _XAUDIO2STREAM_H_
-#define _XAUDIO2STREAM_H_
+// This audio backend uses XAudio2 via XAUDIO2_DLL
+// It works on Windows 8+, where it is included as an OS component.
+// This backend is always compiled, but only available if running on Win8+
 
+#pragma once
+
+#include <memory>
+#include "Thread.h"
 #include "SoundStream.h"
 
 #ifdef _WIN32
-#include "Thread.h"
-#include <xaudio2.h>
-#include <memory>
 
-struct StreamingVoiceContext : public IXAudio2VoiceCallback
-{
-private:
-	CMixer* const m_mixer;
-	Common::Event& m_sound_sync_event;
-	IXAudio2SourceVoice* m_source_voice;
-	std::unique_ptr<BYTE[]> xaudio_buffer;
-
-	void SubmitBuffer(PBYTE buf_data);
-
-public:
-	StreamingVoiceContext(IXAudio2 *pXAudio2, CMixer *pMixer, Common::Event& pSyncEvent);
-	
-	~StreamingVoiceContext();
-	
-	void StreamingVoiceContext::Stop();
-	void StreamingVoiceContext::Play();
-	
-	STDMETHOD_(void, OnVoiceError) (THIS_ void* pBufferContext, HRESULT Error) {}
-	STDMETHOD_(void, OnVoiceProcessingPassStart) (UINT32) {}
-	STDMETHOD_(void, OnVoiceProcessingPassEnd) () {}
-	STDMETHOD_(void, OnBufferStart) (void*) {}
-	STDMETHOD_(void, OnLoopEnd) (void*) {}   
-	STDMETHOD_(void, OnStreamEnd) () {}
-
-	STDMETHOD_(void, OnBufferEnd) (void* context);
-};
+struct StreamingVoiceContext;
+struct IXAudio2;
+struct IXAudio2MasteringVoice;
 
 #endif
 
@@ -46,6 +24,7 @@ class XAudio2 : public SoundStream
 {
 #ifdef _WIN32
 
+private:
 	class Releaser
 	{
 	public:
@@ -56,7 +35,6 @@ class XAudio2 : public SoundStream
 		}
 	};
 
-private:
 	std::unique_ptr<IXAudio2, Releaser> m_xaudio2;
 	std::unique_ptr<StreamingVoiceContext> m_voice_context;
 	IXAudio2MasteringVoice *m_mastering_voice;
@@ -66,20 +44,14 @@ private:
 
 	const bool m_cleanup_com;
 
-public:
-	XAudio2(CMixer *mixer) 
-		: SoundStream(mixer)
-		, m_mastering_voice(nullptr)
-		, m_volume(1.0f)
-		, m_cleanup_com(SUCCEEDED(CoInitializeEx(NULL, COINIT_MULTITHREADED)))
-	{}
+	static HMODULE m_xaudio2_dll;
+	static void *PXAudio2Create;
 
-	virtual ~XAudio2()
-	{
-		Stop();
-		if (m_cleanup_com)
-			CoUninitialize();
-	}
+	static bool InitLibrary();
+
+public:
+	XAudio2(CMixer *mixer);
+	virtual ~XAudio2();
  
 	virtual bool Start();
 	virtual void Stop();
@@ -89,15 +61,14 @@ public:
 	virtual void SetVolume(int volume);
 	virtual bool usesMixer() const { return true; }
 
-	static bool isValid() { return true; }
+	static bool isValid() { return InitLibrary(); }
 
 #else
 
 public:
-	XAudio2(CMixer *mixer, void *hWnd = NULL)
+	XAudio2(CMixer *mixer)
 		: SoundStream(mixer)
 	{}
+
 #endif
 };
-
-#endif //_XAUDIO2STREAM_H_
