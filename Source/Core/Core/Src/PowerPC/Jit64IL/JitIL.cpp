@@ -149,6 +149,10 @@ ps_adds1
 #else
 #include <memory>
 #include <stdint.h>
+#include <x86intrin.h>
+
+#if defined(__clang__)
+#if !__has_builtin(__builtin_ia32_rdtsc)
 static inline uint64_t __rdtsc()
 {
 	uint32_t lo, hi;
@@ -168,6 +172,8 @@ static inline uint64_t __rdtsc()
 #endif
 	return (uint64_t)hi << 32 | lo;
 }
+#endif
+#endif
 #endif
 
 namespace JitILProfiler
