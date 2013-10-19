@@ -10,33 +10,35 @@
 #ifndef _COMMONTYPES_H_
 #define _COMMONTYPES_H_
 
+#include <cstdint>
+
 #ifdef _WIN32
 
 #include <tchar.h>
 
-typedef unsigned __int8 u8;
-typedef unsigned __int16 u16;
-typedef unsigned __int32 u32;
-typedef unsigned __int64 u64;
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
 
-typedef signed __int8 s8;
-typedef signed __int16 s16;
-typedef signed __int32 s32;
-typedef signed __int64 s64;
+typedef int8_t  s8;
+typedef int16_t s16;
+typedef int32_t s32;
+typedef int64_t s64;
 
 #else
 
 #ifndef GEKKO
 
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
-typedef unsigned long long u64;
+typedef uint8_t  u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
 
-typedef signed char s8;
-typedef signed short s16;
-typedef signed int s32;
-typedef signed long long s64;
+typedef int8_t  s8;
+typedef int16_t s16;
+typedef int32_t s32;
+typedef int64_t s64;
 
 #endif
 // For using windows lock code
