@@ -11,6 +11,7 @@
 #define _COMMONTYPES_H_
 
 #include <cstdint>
+#include <cstddef>
 
 #ifdef _WIN32
 
