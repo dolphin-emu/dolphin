@@ -11,7 +11,7 @@ option(USE_GLES "Enables GLES2 And EGL, disables OGL" OFF)
 option(USE_GLES3 "Enables GLES3 and EGL" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
-option(ENABLE_PCH "Use PCH to speed up compilation" OFF)
+option(ENABLE_PCH "Use PCH to speed up compilation" ON)
 
 option(FASTLOG "Enable all logs" OFF)
 option(OPROFILING "Enable profiling" OFF)
