@@ -829,17 +829,17 @@ endif()
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header
 #
-if(DOLPHIN_WC_BRANCH STREQUAL "master")
-	set(DOLPHIN_WC_IS_MASTER "1")
+if(DOLPHIN_WC_BRANCH STREQUAL "master" OR DOLPHIN_WC_BRANCH STREQUAL "stable")
+	set(DOLPHIN_WC_IS_STABLE "1")
 else()
-	set(DOLPHIN_WC_IS_MASTER "0")
+	set(DOLPHIN_WC_IS_STABLE "0")
 endif()
 
 file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h
 	"#define SCM_REV_STR \"" ${DOLPHIN_WC_REVISION} "\"\n"
 	"#define SCM_DESC_STR \"" ${DOLPHIN_WC_DESCRIBE} "\"\n"
 	"#define SCM_BRANCH_STR \"" ${DOLPHIN_WC_BRANCH} "\"\n"
-	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_MASTER} "\n"
+	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_STABLE} "\n"
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common")
 
