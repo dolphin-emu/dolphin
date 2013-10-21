@@ -76,9 +76,11 @@ static void __cpuid(int info[4], int x)
 #define _XCR_XFEATURE_ENABLED_MASK 0
 static unsigned long long _xgetbv(unsigned int index)
 {
+#ifndef _M_GENERIC
 	unsigned int eax, edx;
 	__asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(index));
 	return ((unsigned long long)edx << 32) | eax;
+#endif
 }
 
 #endif
