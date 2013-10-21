@@ -16,7 +16,9 @@
 #include <ctype.h>
 #include <deque>
 #include <errno.h>
+#ifndef ANDROID
 #include <execinfo.h>
+#endif
 #include <fcntl.h>
 #include <float.h>
 #include <fstream>
