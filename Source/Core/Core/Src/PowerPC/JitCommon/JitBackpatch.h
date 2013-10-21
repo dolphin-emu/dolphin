@@ -137,7 +137,7 @@
 		typedef struct sigcontext SContext;
 		#define CTX_PC  arm_pc
 	#else
-		#error No context definition for OS
+		#warning No context definition for OS
 	#endif
 #elif defined(__NetBSD__)
 	#include <ucontext.h>
