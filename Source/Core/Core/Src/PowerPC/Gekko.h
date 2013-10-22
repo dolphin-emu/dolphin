@@ -389,32 +389,59 @@ union UReg_FPSCR
 {
 	struct
 	{
+		// Rounding mode (towards: nearest, zero, +inf, -inf)
 		u32 RN		:	2;
+		// Non-IEEE mode enable (aka flush-to-zero)
 		u32 NI		:	1;
+		// Inexact exception enable
 		u32 XE		:	1;
+		// IEEE division by zero exception enable
 		u32 ZE		:	1;
+		// IEEE underflow exception enable
 		u32 UE		:	1;
+		// IEEE overflow exception enable
 		u32 OE		:	1;
+		// Invalid operation exception enable
 		u32 VE		:	1;
+		// Invalid operation exception for integer conversion (sticky)
 		u32 VXCVI	:	1;
+		// Invalid operation exception for square root (sticky)
 		u32 VXSQRT	:	1;
+		// Invalid operation exception for software request (sticky)
 		u32 VXSOFT	:	1;
+		// reserved
 		u32			:	1;
+		// Floating point result flags (not sticky)
 		u32 FPRF	:	5;
+		// Fraction inexact (not sticky)
 		u32 FI		:	1;
+		// Fraction rounded (not sticky)
 		u32 FR		:	1;
+		// Invalid operation exception for invalid comparison (sticky)
 		u32 VXVC	:	1;
+		// Invalid operation exception for inf * 0 (sticky)
 		u32 VXIMZ	:	1;
+		// Invalid operation exception for 0 / 0 (sticky)
 		u32 VXZDZ	:	1;
+		// Invalid operation exception for int / inf (sticky)
 		u32 VXIDI	:	1;
+		// Invalid operation exception for inf - inf (sticky)
 		u32 VXISI	:	1;
+		// Invalid operation exception for SNaN (sticky)
 		u32 VXSNAN	:	1;
+		// Inexact exception (sticky)
 		u32 XX		:	1;
+		// Division by zero exception (sticky)
 		u32 ZX		:	1;
+		// Underflow exception (sticky)
 		u32 UX		:	1;
+		// Overflow exception (sticky)
 		u32 OX		:	1;
+		// Invalid operation exception summary (not sticky)
 		u32 VX		:	1;
+		// Enabled exception summary (not sticky)
 		u32 FEX		:	1;
+		// Exception summary (sticky)
 		u32 FX		:	1;
 	};
 	u32 Hex;
