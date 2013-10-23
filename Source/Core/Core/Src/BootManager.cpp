@@ -45,8 +45,9 @@ namespace BootManager
 struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
-		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack;
+		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack, bUseFPS;
 	int iCPUCore, Volume;
+	unsigned int framelimit;
 	TEXIDevices m_EXIDevice[2];
 	std::string strBackend, sBackend;
 };
@@ -108,6 +109,8 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.m_EXIDevice[1] = SConfig::GetInstance().m_EXIDevice[1];
 		config_cache.Volume = SConfig::GetInstance().m_Volume;
 		config_cache.sBackend = SConfig::GetInstance().sBackend;
+		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
+		config_cache.bUseFPS = SConfig::GetInstance().b_UseFPS;
 
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
@@ -125,6 +128,8 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "GFXBackend", &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend.c_str());
 		game_ini.Get("Core", "CPUCore",				&StartUp.iCPUCore, StartUp.iCPUCore);
 		game_ini.Get("Core", "HLE_BS2",				&StartUp.bHLE_BS2, StartUp.bHLE_BS2);
+		game_ini.Get("Core", "FrameLimit",			&SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit);
+		game_ini.Get("Core", "UseFPS",				&SConfig::GetInstance().b_UseFPS,SConfig::GetInstance().b_UseFPS);
 		game_ini.Get("DSP", "Volume",				&SConfig::GetInstance().m_Volume, SConfig::GetInstance().m_Volume);
 		game_ini.Get("DSP", "EnableJIT",			&SConfig::GetInstance().m_EnableJIT, SConfig::GetInstance().m_EnableJIT);
 		game_ini.Get("DSP", "Backend",				&SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend.c_str());
@@ -202,6 +207,8 @@ void Stop()
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
+		SConfig::GetInstance().m_Framelimit = config_cache.framelimit;
+		SConfig::GetInstance().b_UseFPS = config_cache.bUseFPS;
 		SConfig::GetInstance().m_EnableJIT = config_cache.m_EnableJIT;
 		SConfig::GetInstance().m_EXIDevice[0] = config_cache.m_EXIDevice[0];
 		SConfig::GetInstance().m_EXIDevice[1] = config_cache.m_EXIDevice[1];
