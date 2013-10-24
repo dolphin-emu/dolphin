@@ -162,6 +162,28 @@ void CPUInfo::Detect()
 		if ((cpu_id[2] >> 20) & 1) bSSE4_2 = true;
 		if ((cpu_id[2] >> 25) & 1) bAES = true;
 
+		if ((cpu_id[3] >> 24) & 1)
+		{
+			// We can use FXSAVE.
+			bFXSR = true;
+
+			GC_ALIGNED16(u8 fx_state[512]);
+			memset(fx_state, 0, sizeof(fx_state));
+#ifdef _WIN32
+#ifdef _M_IX86
+			_fxsave(fx_state);
+#elif defined (_M_X64)
+			_fxsave64(fx_state);
+#endif
+#else
+			__asm__("fxsave %0" : "=m" (fx_state));
+#endif
+
+			// lowest byte of MXCSR_MASK
+			if ((fx_state[0x1C] >> 6) & 1)
+				bDAZ = true;
+		}
+
 		// AVX support requires 3 separate checks:
 		//  - Is the AVX bit set in CPUID?
 		//  - Is the XSAVE bit set in CPUID?
