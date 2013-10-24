@@ -182,7 +182,7 @@ public:
 	void ps_sum(UGeckoInstruction inst);
 	void ps_muls(UGeckoInstruction inst);
 
-	void fp_arith_s(UGeckoInstruction inst);
+	void fp_arith(UGeckoInstruction inst);
 	void frsqrtex(UGeckoInstruction inst);
 
 	void fcmpx(UGeckoInstruction inst);
