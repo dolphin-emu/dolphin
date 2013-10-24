@@ -162,6 +162,7 @@ void CPUInfo::Detect()
 		if ((cpu_id[2] >> 20) & 1) bSSE4_2 = true;
 		if ((cpu_id[2] >> 25) & 1) bAES = true;
 
+		// To check DAZ support, we first need to check FXSAVE support.
 		if ((cpu_id[3] >> 24) & 1)
 		{
 			// We can use FXSAVE.
@@ -181,7 +182,12 @@ void CPUInfo::Detect()
 
 			// lowest byte of MXCSR_MASK
 			if ((fx_state[0x1C] >> 6) & 1)
-				bDAZ = true;
+			{
+				// On x86, the FTZ field (supported since SSE1) only flushes denormal _outputs_ to zero,
+				// now that we checked DAZ support (flushing denormal _inputs_ to zero),
+				// we can set our generic flag.
+				bFlushToZero = true;
+			}
 		}
 
 		// AVX support requires 3 separate checks:

@@ -103,7 +103,7 @@ namespace FPURoundMode
 		};
 		if (nonIEEEMode)
 		{
-			csr |= denormalLUT[cpu_info.bDAZ];
+			csr |= denormalLUT[cpu_info.bFlushToZero];
 		}
 		_mm_setcsr(csr);
 	}
