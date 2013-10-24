@@ -1,5 +1,4 @@
 #define BLUETOOTH_VERSION_USE_CURRENT
-#import <IOBluetooth/IOBluetooth.h>
 
 #include "Common.h"
 #include "WiimoteReal.h"
