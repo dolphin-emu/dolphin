@@ -135,7 +135,8 @@ public final class InputConfigFragment extends PreferenceFragment
 		/**
 		 * Constructor
 		 * 
-		 * @param ctx context to use this dialog in.
+		 * @param ctx       The current {@link Context}.
+		 * @param inputPref The Preference to show this dialog for.
 		 */
 		public MotionAlertDialog(Context ctx, Preference inputPref)
 		{
@@ -167,7 +168,8 @@ public final class InputConfigFragment extends PreferenceFragment
 		}
 		
 
-		// Method that will be within dispatchGeneticMotionEvent that listens for joystick/controller movements.
+		// Method that will be called within dispatchGenericMotionEvent
+		// that handles joystick/controller movements.
 		private boolean onMotionEvent(MotionEvent event)
 		{
 			if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)
