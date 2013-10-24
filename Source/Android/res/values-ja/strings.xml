@@ -41,6 +41,7 @@
 
     <!-- Input Config Fragment -->
     <string name="input_settings">入力</string>
+    <string name="gamecube_bindings">ゲームキューブの入力バインディング</string>
     <string name="input_binding">入力バインディング</string>
     <string name="input_binding_descrip">%1$sにバインドするための入力を移動または押してください。</string>
     <string name="button_a">Aボタン</string>
