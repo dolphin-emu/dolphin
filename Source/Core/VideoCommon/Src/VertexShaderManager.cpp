@@ -175,13 +175,6 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 
 void UpdateViewport();
 
-void UpdateViewportWithCorrection()
-{
-	// TODO: get rid of this function
-	ViewportCorrectionMatrix(s_viewportCorrection);
-	UpdateViewport();
-}
-
 void VertexShaderManager::Init()
 {
 	Dirty();

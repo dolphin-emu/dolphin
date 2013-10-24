@@ -49,8 +49,6 @@ void SetScissor()
 
 	TargetRectangle trc = g_renderer->ConvertEFBRectangle(rc);
 	g_renderer->SetScissorRect(trc);
-
-	UpdateViewportWithCorrection();
 }
 
 void SetLineWidth()
