@@ -4,7 +4,7 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu.settings;
+package org.dolphinemu.dolphinemu.settings.cpu;
 
 import org.dolphinemu.dolphinemu.R;
 

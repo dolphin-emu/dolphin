@@ -11,4 +11,12 @@
         android:focusable="false"
         android:focusableInTouchMode="false"/>
 
+        <!-- This is the onscreen input overlay -->
+    <org.dolphinemu.dolphinemu.emulation.overlay.InputOverlay 
+        android:id="@+id/emulationControlOverlay"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"/>
+
 </merge>

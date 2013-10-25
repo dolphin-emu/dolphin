@@ -7,6 +7,9 @@
 package org.dolphinemu.dolphinemu.settings;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.settings.cpu.CPUSettingsFragment;
+import org.dolphinemu.dolphinemu.settings.input.InputConfigFragment;
+import org.dolphinemu.dolphinemu.settings.video.VideoSettingsFragment;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;

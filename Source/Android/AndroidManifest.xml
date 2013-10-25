@@ -38,6 +38,8 @@
         <activity android:name="org.dolphinemu.dolphinemu.emulation.EmulationActivity"
                   android:screenOrientation="landscape" />
 
+        <activity android:name="org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigActivity"/>
+
         <activity
             android:name="org.dolphinemu.dolphinemu.settings.PrefsActivity"
             android:label="@string/settings" />

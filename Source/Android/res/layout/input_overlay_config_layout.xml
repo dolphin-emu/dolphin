@@ -1,0 +1,32 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/inputLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigButton
+        android:id="@+id/buttonA"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/button_a" />
+
+    <org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigButton
+        android:id="@+id/buttonStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/buttonB"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/button_start" />
+
+    <org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigButton
+        android:id="@+id/buttonB"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/buttonStart"
+        android:background="@drawable/button_b" />
+
+</RelativeLayout>

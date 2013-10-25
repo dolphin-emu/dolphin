@@ -20,7 +20,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
+import org.dolphinemu.dolphinemu.settings.video.VideoSettingsFragment;
 
 /**
  * Represents the about screen.

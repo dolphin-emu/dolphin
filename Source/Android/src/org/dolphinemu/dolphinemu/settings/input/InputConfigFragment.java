@@ -4,12 +4,13 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu.settings;
+package org.dolphinemu.dolphinemu.settings.input;
 
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -115,9 +116,17 @@ public final class InputConfigFragment extends PreferenceFragment
 
 			// Everything is set, show the dialog.
 			dialog.show();
+			return true;
 		}
 
-		return true;
+		if (pref.getKey().equals("inputOverlayConfigPref"))
+		{
+			Intent inputOverlayConfig = new Intent(getActivity(), InputOverlayConfigActivity.class);
+			startActivity(inputOverlayConfig);
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

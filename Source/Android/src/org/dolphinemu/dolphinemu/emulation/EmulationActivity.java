@@ -21,8 +21,8 @@ import android.view.WindowManager.LayoutParams;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.settings.InputConfigFragment;
-import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
+import org.dolphinemu.dolphinemu.settings.input.InputConfigFragment;
+import org.dolphinemu.dolphinemu.settings.video.VideoSettingsFragment;
 
 import java.util.List;
 
