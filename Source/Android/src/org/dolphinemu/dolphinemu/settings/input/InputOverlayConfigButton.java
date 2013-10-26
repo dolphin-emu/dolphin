@@ -39,7 +39,7 @@ public final class InputOverlayConfigButton extends Button implements OnTouchLis
 
 		// Get the SharedPreferences instance.
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-		
+
 		// String ID of this button.
 		final String buttonId = getResources().getResourceEntryName(getId());
 
@@ -49,8 +49,6 @@ public final class InputOverlayConfigButton extends Button implements OnTouchLis
 
 		// If they are not -1, then they have a previous value set.
 		// Thus, we set those coordinate values.
-		// TODO: This is not always correct placement. Fix this.
-		// Likely something to do with the backing layout being a relative layout.
 		if (x != -1f && y != -1f)
 		{
 			setX(x);

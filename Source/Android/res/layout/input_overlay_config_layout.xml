@@ -1,16 +1,23 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/inputLayout"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="fill_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false" >
 
     <org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigButton
         android:id="@+id/button_a"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="false"
+        android:layout_alignParentEnd="false"
         android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentStart="false"
         android:layout_alignParentTop="false"
+        android:layout_alignWithParentIfMissing="false"
         android:layout_centerHorizontal="false"
+        android:layout_centerInParent="false"
         android:layout_centerVertical="false"
         android:background="@drawable/button_a" />
 
@@ -18,22 +25,32 @@
         android:id="@+id/button_b"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="false"
+        android:layout_alignParentEnd="false"
         android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentStart="false"
         android:layout_alignParentTop="false"
+        android:layout_alignWithParentIfMissing="false"
         android:layout_centerHorizontal="false"
+        android:layout_centerInParent="false"
         android:layout_centerVertical="false"
-        android:layout_toRightOf="@+id/button_a"
         android:background="@drawable/button_b" />
 
     <org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigButton
         android:id="@+id/button_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="false"
+        android:layout_alignParentEnd="false"
         android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentStart="false"
         android:layout_alignParentTop="false"
+        android:layout_alignWithParentIfMissing="false"
         android:layout_centerHorizontal="false"
+        android:layout_centerInParent="false"
         android:layout_centerVertical="false"
-        android:layout_toRightOf="@+id/button_b"
         android:background="@drawable/button_start" />
 
 </RelativeLayout>
