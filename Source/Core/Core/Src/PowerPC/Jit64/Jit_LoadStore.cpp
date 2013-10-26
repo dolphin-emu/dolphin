@@ -199,12 +199,12 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	}
 
 	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, false, true);
+	gpr.BindToRegister(d, js.memcheck, true);
 	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, 0, RegistersInUse(), signExtend);
 
 	if (update && js.memcheck && !zeroOffset)
 	{
-		gpr.BindToRegister(a, false, true);
+		gpr.BindToRegister(a, true, true);
 		MEMCHECK_START
 		MOV(32, gpr.R(a), opAddress);
 		MEMCHECK_END

@@ -8,6 +8,17 @@
 #include "x64Emitter.h"
 #include <unordered_map>
 
+#define MEMCHECK_START \
+	FixupBranch memException; \
+	if (jit->js.memcheck) \
+	{ TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI)); \
+	memException = J_CC(CC_NZ, true); }
+
+#define MEMCHECK_END \
+	if (jit->js.memcheck) \
+	SetJumpTarget(memException);
+
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::XCodeBlock
 {

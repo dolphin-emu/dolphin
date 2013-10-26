@@ -119,7 +119,10 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend)
 {
-	registersInUse &= ~(1 << RAX | 1 << reg_value);
+	if (!jit->js.memcheck)
+	{
+		registersInUse &= ~(1 << RAX | 1 << reg_value);
+	}
 #if defined(_M_X64)
 #ifdef ENABLE_MEM_CHECK
 	if (!Core::g_CoreStartupParameter.bMMU && !Core::g_CoreStartupParameter.bEnableDebugging && Core::g_CoreStartupParameter.bFastmem)
@@ -164,6 +167,9 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				case 8:  ABI_CallFunctionC((void *)&Memory::Read_U8_ZX, address); break;
 				}
 				ABI_PopRegistersAndAdjustStack(registersInUse, false);
+
+				MEMCHECK_START
+
 				if (signExtend && accessSize < 32)
 				{
 					// Need to sign extend values coming from the Read_U* functions.
@@ -173,6 +179,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				{
 					MOVZX(32, accessSize, reg_value, R(EAX));
 				}
+
+				MEMCHECK_END
 			}
 		}
 		else
@@ -192,6 +200,9 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				case 8:  ABI_CallFunctionR((void *)&Memory::Read_U8_ZX, EAX);  break;
 				}
 				ABI_PopRegistersAndAdjustStack(registersInUse, false);
+
+				MEMCHECK_START
+
 				if (signExtend && accessSize < 32)
 				{
 					// Need to sign extend values coming from the Read_U* functions.
@@ -201,6 +212,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				{
 					MOVZX(32, accessSize, reg_value, R(EAX));
 				}
+
+				MEMCHECK_END
 
 				FixupBranch exit = J();
 				SetJumpTarget(fast);
@@ -220,6 +233,9 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				case 8:  ABI_CallFunctionA((void *)&Memory::Read_U8_ZX, opAddress);  break;
 				}
 				ABI_PopRegistersAndAdjustStack(registersInUse, false);
+
+				MEMCHECK_START
+
 				if (signExtend && accessSize < 32)
 				{
 					// Need to sign extend values coming from the Read_U* functions.
@@ -229,6 +245,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 				{
 					MOVZX(32, accessSize, reg_value, R(EAX));
 				}
+
+				MEMCHECK_END
 
 				FixupBranch exit = J();
 				SetJumpTarget(fast);
