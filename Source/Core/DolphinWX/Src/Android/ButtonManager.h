@@ -61,32 +61,11 @@ namespace ButtonManager
 	class Button
 	{
 	private:
-		int m_tex;
-		ButtonType m_button;
 		ButtonState m_state;
-		float m_coords[8];
 	public:
-		Button(std::string filename, ButtonType button, float *coords)
-		{
-			u32 width, height;
-			char *image;
-			// image = LoadPNG((std::string(DOLPHIN_DATA_DIR "/") + filename).c_str(), width, height);
-			// XXX: Make platform specific drawing
-			
-			m_button = button;
-			memcpy(m_coords, coords, sizeof(float) * 8);
-			m_state = BUTTON_RELEASED;
-		}
-		Button(ButtonType button)
-		{
-			m_button = button;
-			m_state = BUTTON_RELEASED;
-		}
+		Button() : m_state(BUTTON_RELEASED) {}
 		void SetState(ButtonState state) { m_state = state; }
 		bool Pressed() { return m_state == BUTTON_PRESSED; }
-		ButtonType GetButtonType() { return m_button; }
-		GLuint GetTexture() { return m_tex; }
-		float *GetCoords() { return m_coords; }
 			
 		~Button() { }
 	};
@@ -131,7 +110,7 @@ namespace ButtonManager
 	void DrawButtons();
 	bool GetButtonPressed(ButtonType button);
 	float GetAxisValue(ButtonType axis);
-	void TouchEvent(int action, float x, float y);
+	void TouchEvent(int button, int action);
 	void GamepadEvent(std::string dev, int button, int action);
 	void GamepadAxisEvent(std::string dev, int axis, float value);
 	void Shutdown();

@@ -136,22 +136,6 @@ public final class EmulationActivity extends Activity
 	}
 	
 	@Override
-	public boolean onTouchEvent(MotionEvent event)
-	{
-		float X = event.getX();
-		float Y = event.getY();
-		int Action = event.getActionMasked();
-
-		// Converts button locations 0 - 1 to OGL screen coords -1.0 - 1.0
-		float ScreenX = ((X / screenWidth) * 2.0f) - 1.0f;
-		float ScreenY = ((Y / screenHeight) * -2.0f) + 1.0f;
-
-		NativeLibrary.onTouchEvent(Action, ScreenX, ScreenY);
-		
-		return false;
-	}
-	
-	@Override
 	public void onBackPressed()
 	{
 		// The back button in the emulation

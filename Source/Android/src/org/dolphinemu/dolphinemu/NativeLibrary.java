@@ -17,12 +17,11 @@ public final class NativeLibrary
 {
 	/**
 	 * Handles touch events.
-	 * 
+	 *
+	 * @param Button Key code identifying which button was pressed.
 	 * @param Action Mask for the action being performed.
-	 * @param X      Location on the screen's X-axis that the touch event occurred.
-	 * @param Y      Location on the screen's Y-axis that the touch event occurred.
 	 */
-	public static native void onTouchEvent(int Action, float X, float Y);
+	public static native void onTouchEvent(int Button, int Action);
 
 	/**
 	 * Handles button press events for a gamepad.

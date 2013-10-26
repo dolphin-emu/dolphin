@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <vector>
+#include <unordered_map>
 #include "GLInterface.h"
 #include "Android/TextureLoader.h"
 #include "Android/ButtonManager.h"
@@ -24,16 +24,8 @@ extern void DrawButton(GLuint tex, float *coords);
 
 namespace ButtonManager
 {
-	std::vector<Button*> m_buttons;
-	std::map<std::string, InputDevice*> m_controllers;
-	// XXX: This needs to not be here so we can load the locations from file
-	// This will allow customizable button locations in the future
-	// These are the OpenGL on screen coordinates
-	float m_coords[][8] =	{ // X, Y, X, EY, EX, EY, EX, Y
-				{0.75f, -1.0f, 0.75f, -0.75f, 1.0f, -0.75f, 1.0f, -1.0f}, // A
-				{0.50f, -1.0f, 0.50f, -0.75f, 0.75f, -0.75f, 0.75f, -1.0f}, // B
-				{-0.10f, -1.0f, -0.10f, -0.80f, 0.10f, -0.80f, 0.10f, -1.0f}, // Start
-				};
+	std::unordered_map<int, Button*> m_buttons;
+	std::unordered_map<std::string, InputDevice*> m_controllers;
 	const char *configStrings[] = {	"InputA",
 					"InputB",
 					"InputStart",
@@ -71,9 +63,17 @@ namespace ButtonManager
 	void Init()
 	{
 		// Initialize our touchscreen buttons
-		m_buttons.push_back(new Button("ButtonA.png", BUTTON_A, m_coords[0]));
-		m_buttons.push_back(new Button("ButtonB.png", BUTTON_B, m_coords[1]));
-		m_buttons.push_back(new Button("ButtonStart.png", BUTTON_START, m_coords[2]));
+		m_buttons[BUTTON_A] = new Button();
+		m_buttons[BUTTON_B] = new Button();
+		m_buttons[BUTTON_START] = new Button();
+		m_buttons[BUTTON_X] = new Button();
+		m_buttons[BUTTON_Y] = new Button();
+		m_buttons[BUTTON_Z] = new Button();
+		m_buttons[BUTTON_UP] = new Button();
+		m_buttons[BUTTON_DOWN] = new Button();
+		m_buttons[BUTTON_LEFT] = new Button();
+		m_buttons[BUTTON_RIGHT] = new Button();
+
 
 		// Init our controller bindings
 		IniFile ini;
@@ -109,9 +109,7 @@ namespace ButtonManager
 	bool GetButtonPressed(ButtonType button)
 	{
 		bool pressed = false;
-		for (auto it = m_buttons.begin(); it != m_buttons.end(); ++it)
-			if ((*it)->GetButtonType() == button)
-				pressed = (*it)->Pressed();
+		pressed = m_buttons[button]->Pressed();
 
 		for (auto it = m_controllers.begin(); it != m_controllers.end(); ++it)
 			pressed |= it->second->ButtonValue(button);
@@ -125,28 +123,13 @@ namespace ButtonManager
 			return 0.0f;
 		return it->second->AxisValue(axis); 
 	}
-	void TouchEvent(int action, float x, float y)
+	void TouchEvent(int button, int action)
 	{
 		// Actions
 		// 0 is press
 		// 1 is let go
 		// 2 is move
-		for (auto it = m_buttons.begin(); it != m_buttons.end(); ++it)
-		{
-			float *coords = (*it)->GetCoords();
-			if (	x >= coords[0] &&
-				x <= coords[4] &&
-				y >= coords[1] &&
-				y <= coords[3])
-			{
-				if (action == 0)
-					(*it)->SetState(BUTTON_PRESSED);
-				if (action == 1)
-					(*it)->SetState(BUTTON_RELEASED);
-				if (action == 2)
-					; // XXX: Be used later for analog stick
-			}
-		}
+		m_buttons[button]->SetState(action ? BUTTON_RELEASED : BUTTON_PRESSED);
 	}
 
 	void GamepadEvent(std::string dev, int button, int action)
@@ -174,7 +157,7 @@ namespace ButtonManager
 	void Shutdown()
 	{
 		for(auto it = m_buttons.begin(); it != m_buttons.end(); ++it)
-			delete *it;
+			delete it->second;
 		for (auto it = m_controllers.begin(); it != m_controllers.end(); ++it)
 			delete it->second;
 		m_controllers.clear();
