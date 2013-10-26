@@ -119,7 +119,8 @@ public final class InputConfigFragment extends PreferenceFragment
 			return true;
 		}
 
-		if (pref.getKey().equals("inputOverlayConfigPref"))
+		// If the user has clicked the option to configure the input overlay.
+		if (pref.getTitle().equals(getString(R.string.input_overlay_layout)))
 		{
 			Intent inputOverlayConfig = new Intent(getActivity(), InputOverlayConfigActivity.class);
 			startActivity(inputOverlayConfig);
