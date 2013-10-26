@@ -33,12 +33,16 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity" />
+        <activity android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"/>
 
-        <activity android:name="org.dolphinemu.dolphinemu.emulation.EmulationActivity"
-                  android:screenOrientation="landscape" />
+        <activity
+            android:name="org.dolphinemu.dolphinemu.emulation.EmulationActivity"
+            android:screenOrientation="landscape" />
 
-        <activity android:name="org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigActivity"/>
+        <activity
+            android:name="org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigActivity"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"/>
 
         <activity
             android:name="org.dolphinemu.dolphinemu.settings.PrefsActivity"
