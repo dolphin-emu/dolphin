@@ -29,6 +29,8 @@
     <string name="file_clicked">File clicked: %1$s</string>
 
     <!-- Emulation Overlay -->
+    <string name="enable_input_overlay">Enable Input Overlay</string>
+    <string name="disable_input_overlay">Disable Input Overlay</string>
     <string name="overlay_savestate">Save State</string>
     <string name="overlay_loadstate">Load State</string>
     <string name="overlay_exit_emulation">Exit</string>

@@ -1,4 +1,12 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Enable/Disabe Input Overlay -->
+    <item
+        android:id="@+id/enableInputOverlay"
+        android:showAsAction="ifRoom"
+        android:title="@string/disable_input_overlay"/>
+
+    <!-- Save State Slots -->
     <item
         android:id="@+id/saveStateRoot"
         android:showAsAction="ifRoom"
@@ -21,6 +29,7 @@
         </menu>
     </item>
 
+    <!-- Load State Slots -->
     <item
         android:id="@+id/loadStateRoot"
         android:showAsAction="ifRoom"
@@ -45,7 +54,7 @@
 
     <item
         android:id="@+id/exitEmulation"
-        android:showAsAction="always"
+        android:showAsAction="ifRoom"
         android:title="@string/overlay_exit_emulation">
     </item>
 </menu>
