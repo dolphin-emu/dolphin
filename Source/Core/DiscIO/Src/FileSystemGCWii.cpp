@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <cinttypes>
 
 #include "FileSystemGCWii.h"
 #include "StringUtil.h"
@@ -70,7 +71,7 @@ u64 CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _Max
 	if (pFileInfo->m_FileSize > _MaxBufferSize)
 		return 0;
 
-	DEBUG_LOG(DISCIO, "Filename: %s. Offset: %llx. Size: %llx",_rFullPath,
+	DEBUG_LOG(DISCIO, "Filename: %s. Offset: %" PRIx64 ". Size: %" PRIx64, _rFullPath,
 		pFileInfo->m_Offset, pFileInfo->m_FileSize);
 
 	m_rVolume->Read(pFileInfo->m_Offset, pFileInfo->m_FileSize, _pBuffer);

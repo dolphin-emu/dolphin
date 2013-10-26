@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cinttypes>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -171,12 +172,12 @@ namespace JitInterface
 				double percent = 100.0 * (double)stat.cost / (double)cost_sum;
 	#ifdef _WIN32
 				double timePercent = 100.0 * (double)block->ticCounter / (double)timecost_sum;
-				fprintf(f.GetHandle(), "%08x\t%s\t%llu\t%llu\t%.2lf\t%llf\t%lf\t%i\n",
+				fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t%" PRIu64 "\t%.2lf\t%llf\t%lf\t%i\n",
 						block->originalAddress, name.c_str(), stat.cost,
 						block->ticCounter, percent, timePercent,
 						(double)block->ticCounter*1000.0/(double)countsPerSec, block->codeSize);
 	#else
-				fprintf(f.GetHandle(), "%08x\t%s\t%llu\t???\t%.2lf\t???\t???\t%i\n",
+				fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t???\t%.2lf\t???\t???\t%i\n",
 						block->originalAddress, name.c_str(), stat.cost,  percent, block->codeSize);
 	#endif
 			}

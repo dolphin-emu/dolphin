@@ -9,6 +9,7 @@
 #include <vector>
 #include <cmath>
 #include <cstdio>
+#include <cinttypes>
 
 #include "GLUtil.h"
 #if defined(HAVE_WX) && HAVE_WX
@@ -709,7 +710,7 @@ void Renderer::DrawDebugInfo()
 		p+=sprintf(p, "FPS: %d\n", s_fps);
 
 	if (SConfig::GetInstance().m_ShowLag)
-		p+=sprintf(p, "Lag: %llu\n", Movie::g_currentLagCount);
+		p+=sprintf(p, "Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 
 	if (g_ActiveConfig.bShowInputDisplay)
 		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());

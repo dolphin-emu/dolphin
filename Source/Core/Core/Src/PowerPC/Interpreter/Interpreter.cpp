@@ -10,11 +10,11 @@
 #include "../../Host.h"
 #include "../../IPC_HLE/WII_IPC_HLE.h"
 
-
 #ifdef USE_GDBSTUB
 #include "../GDBStub.h"
 #endif
 
+#include <cinttypes>
 
 namespace {
 	u32 last_pc;
@@ -79,7 +79,7 @@ void Trace( UGeckoInstruction &instCode )
 	std::string fregs = "";
 	for (int i=0; i<32; i++)
 	{
-		sprintf(freg, "f%02d: %08llx %08llx ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
+		sprintf(freg, "f%02d: %08" PRIx64 " %08" PRIx64 " ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
 		fregs.append(freg);
 	}
 

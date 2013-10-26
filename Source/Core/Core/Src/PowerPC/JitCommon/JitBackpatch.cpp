@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <string>
+#include <cinttypes>
 
 #include "Common.h"
 #include "disasm.h"
@@ -32,7 +33,7 @@ static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) 
 #endif
 	PanicAlert("%s\n\n"
 		"Error encountered accessing emulated address %08x.\n"
-		"Culprit instruction: \n%s\nat %#llx",
+		"Culprit instruction: \n%s\nat %#" PRIx64,
 		text.c_str(), emAddress, disbuf, code_addr);
 	return;
 }

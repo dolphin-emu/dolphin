@@ -2,7 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <math.h>
+#include <cinttypes>
+#include <cmath>
 
 #include "Timer.h"
 
@@ -928,7 +929,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	if (SConfig::GetInstance().m_ShowLag)
 	{
 		char lag[10];
-		StringCchPrintfA(lag, 10, "Lag: %llu\n", Movie::g_currentLagCount);
+		StringCchPrintfA(lag, 10, "Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 		D3D::font.DrawTextScaled(0, 18, 20, 0.0f, 0xFF00FFFF, lag);
 	}
 

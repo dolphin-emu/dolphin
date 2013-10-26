@@ -118,6 +118,7 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 
 #include <algorithm>
 #include <memory>
+#include <cinttypes>
 #include <ctime>
 #include <set>
 #include "IR.h"
@@ -1279,7 +1280,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 	}
 
 	FILE* const file = writer->file.GetHandle();
-	fprintf(file, "\ncode hash:%016llx\n", codeHash);
+	fprintf(file, "\ncode hash:%016" PRIx64 "\n", codeHash);
 
 	const InstLoc lastCurReadPtr = curReadPtr;
 	StartForwardPass();

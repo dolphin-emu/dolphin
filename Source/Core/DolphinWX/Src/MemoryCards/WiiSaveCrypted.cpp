@@ -7,12 +7,14 @@
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
+#include <algorithm>
+#include <cinttypes>
+
 #include "WiiSaveCrypted.h"
 #include "FileUtil.h"
 #include "MathUtil.h"
 #include "NandPaths.h"
 #include "FileUtil.h"
-#include <algorithm>
 
 static Common::replace_v replacements;
 
@@ -152,7 +154,7 @@ void CWiiSaveCrypted::ReadHDR()
 	md5((u8*)&_header, HEADER_SZ, md5_calc);
 	if (memcmp(md5_file, md5_calc, 0x10))
 	{
-		PanicAlertT("MD5 mismatch\n %016llx%016llx != %016llx%016llx", Common::swap64(md5_file),Common::swap64(md5_file+8), Common::swap64(md5_calc), Common::swap64(md5_calc+8));
+		PanicAlertT("MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64, Common::swap64(md5_file),Common::swap64(md5_file+8), Common::swap64(md5_calc), Common::swap64(md5_calc+8));
 		b_valid= false;
 	}
 
@@ -244,7 +246,7 @@ void CWiiSaveCrypted::ReadBKHDR()
 	if (_sizeOfFiles + FULL_CERT_SZ != _totalSize)
 		WARN_LOG(CONSOLE, "Size(%x) + cert(%x) does not equal totalsize(%x)", _sizeOfFiles, FULL_CERT_SZ, _totalSize);
 	if (m_TitleID != Common::swap64(bkhdr.SaveGameTitle))
-		WARN_LOG(CONSOLE, "Encrypted title (%llx) does not match unencrypted title (%llx)", m_TitleID,  Common::swap64(bkhdr.SaveGameTitle));
+		WARN_LOG(CONSOLE, "Encrypted title (%" PRIx64 ") does not match unencrypted title (%" PRIx64 ")", m_TitleID,  Common::swap64(bkhdr.SaveGameTitle));
 }
 
 void CWiiSaveCrypted::WriteBKHDR()

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <cinttypes>
 
 #include "Common.h"
 #include "PPCTables.h"
@@ -213,7 +214,7 @@ void LogCompiledInstructions()
 	{
 		if (m_allInstructions[i]->compileCount > 0)
 		{
-			fprintf(f.GetHandle(), "%s\t%i\t%lld\t%08x\n", m_allInstructions[i]->opname,
+			fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\t%08x\n", m_allInstructions[i]->opname,
 				m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount, m_allInstructions[i]->lastUse);
 		}
 	}
@@ -223,7 +224,7 @@ void LogCompiledInstructions()
 	{
 		if (m_allInstructions[i]->compileCount == 0)
 		{
-			fprintf(f.GetHandle(), "%s\t%i\t%lld\n", m_allInstructions[i]->opname,
+			fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\n", m_allInstructions[i]->opname,
 				m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount);
 		}
 	}
