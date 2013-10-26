@@ -513,50 +513,38 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	// TODO: ceil, floor or just cast to int?
-	// TODO: Directly use the floats instead of rounding them?
-	int intendedX = Renderer::EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff));
-	int intendedY = Renderer::EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff));
-	int intendedWd = Renderer::EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd));
-	int intendedHt = Renderer::EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht));
-	if (intendedWd < 0)
+	float intendedX = Renderer::EFBToScaledXf(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff);
+	float intendedY = Renderer::EFBToScaledYf(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff);
+	float intendedWd = Renderer::EFBToScaledXf(2.0f * xfregs.viewport.wd);
+	float intendedHt = Renderer::EFBToScaledYf(-2.0f * xfregs.viewport.ht);
+	if (intendedWd < 0.f)
 	{
 		intendedX += intendedWd;
 		intendedWd = -intendedWd;
 	}
-	if (intendedHt < 0)
+	if (intendedHt < 0.f)
 	{
 		intendedY += intendedHt;
 		intendedHt = -intendedHt;
 	}
 
 	// In D3D, the viewport rectangle must fit within the render target.
-	int X = intendedX;
-	if (X < 0)
-		X = 0;
+	float X = (intendedX >= 0.f) ? intendedX : 0.f;
+	float Y = (intendedY >= 0.f) ? intendedY : 0.f;
+	float Wd = (X + intendedWd <= GetTargetWidth()) ? intendedWd : (GetTargetWidth() - X);
+	float Ht = (Y + intendedHt <= GetTargetHeight()) ? intendedHt : (GetTargetHeight() - Y);
 
-	int Y = intendedY;
-	if (Y < 0)
-		Y = 0;
-
-	int Wd = intendedWd;
-	if (X + Wd > GetTargetWidth())
-		Wd = GetTargetWidth() - X;
-	int Ht = intendedHt;
-	if (Y + Ht > GetTargetHeight())
-		Ht = GetTargetHeight() - Y;
-	
 	// If GX viewport is off the render target, we must clamp our viewport
 	// within the bounds. Use the correction matrix to compensate.
 	ViewportCorrectionMatrix(vpCorrection,
-		(float)intendedX, (float)intendedY,
-		(float)intendedWd, (float)intendedHt,
-		(float)X, (float)Y,
-		(float)Wd, (float)Ht);
+		intendedX, intendedY,
+		intendedWd, intendedHt,
+		X, Y,
+		Wd, Ht);
 
 	// Some games set invalid values for z-min and z-max so fix them to the max and min allowed and let the shaders do this work
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y,
-										(float)Wd, (float)Ht,
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y,
+										Wd, Ht,
 										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
 										1.f);   //  xfregs.viewport.farZ / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);
