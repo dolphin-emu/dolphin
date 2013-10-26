@@ -5,7 +5,7 @@
     android:layout_height="fill_parent" >
 
     <org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigButton
-        android:id="@+id/buttonA"
+        android:id="@+id/button_a"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -13,20 +13,20 @@
         android:background="@drawable/button_a" />
 
     <org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigButton
-        android:id="@+id/buttonB"
+        android:id="@+id/button_b"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/buttonA"
+        android:layout_toRightOf="@+id/button_a"
         android:background="@drawable/button_b" />
 
     <org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigButton
-        android:id="@+id/buttonStart"
+        android:id="@+id/button_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_toRightOf="@+id/buttonB"
+        android:layout_toRightOf="@+id/button_b"
         android:background="@drawable/button_start" />
 
 </RelativeLayout>

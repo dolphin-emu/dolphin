@@ -7,6 +7,8 @@
 package org.dolphinemu.dolphinemu.settings.input;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,6 +21,9 @@ import android.widget.Button;
  */
 public final class InputOverlayConfigButton extends Button implements OnTouchListener
 {
+	// SharedPreferences instance that the button positions are cached to.
+	private final SharedPreferences sharedPrefs;
+
 	/**
 	 * Constructor
 	 * 
@@ -31,6 +36,9 @@ public final class InputOverlayConfigButton extends Button implements OnTouchLis
 
 		// Set the button as its own OnTouchListener.
 		setOnTouchListener(this);
+
+		// Get the SharedPreferences instance.
+		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 	}
 
 	@Override
@@ -44,6 +52,20 @@ public final class InputOverlayConfigButton extends Button implements OnTouchLis
 				setX(getX() + event.getX());
 				setY(getY() + event.getY());
 				return true;
+			}
+
+			// Whenever the press event has ended
+			// is when we save all of the information.
+			case MotionEvent.ACTION_UP:
+			{
+				// String ID of this button.
+				String buttonId = getResources().getResourceEntryName(getId());
+
+				// Add the current X and Y positions of this button into SharedPreferences.
+				SharedPreferences.Editor editor = sharedPrefs.edit();
+				editor.putFloat(buttonId+"-X", getX());
+				editor.putFloat(buttonId+"-Y", getY());
+				editor.commit();
 			}
 		}
 
