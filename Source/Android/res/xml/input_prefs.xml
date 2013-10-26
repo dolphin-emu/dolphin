@@ -5,9 +5,12 @@
                   
     <Preference
         android:key="inputOverlayConfigPref"
-        android:title="Butts"/>
+        android:summary="@string/input_overlay_layout_desc"
+        android:title="@string/input_overlay_layout"/>
 
-    <PreferenceScreen android:title="@string/gamecube_bindings">
+    <PreferenceScreen
+        android:key="gamecube_bindings"
+        android:title="@string/gamecube_bindings">
         <Preference
             android:key="InputA"
             android:title="@string/button_a" />

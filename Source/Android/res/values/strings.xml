@@ -43,6 +43,8 @@
 
     <!-- Input Config Fragment -->
     <string name="input_settings">Input</string>
+    <string name="input_overlay_layout">Input Overlay Layout</string>
+    <string name="input_overlay_layout_desc">Button layout for the input overlay.</string>
     <string name="gamecube_bindings">Gamecube Input Bindings</string>
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_descrip">Press or move an input to bind it to %1$s.</string>
