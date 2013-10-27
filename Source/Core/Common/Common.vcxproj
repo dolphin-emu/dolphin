@@ -180,8 +180,6 @@
     <ClCompile Include="Src\CDUtils.cpp" />
     <ClCompile Include="Src\ColorUtil.cpp" />
     <ClCompile Include="Src\ConsoleListener.cpp" />
-    <ClCompile Include="Src\Crypto\aes_cbc.cpp" />
-    <ClCompile Include="Src\Crypto\aes_core.cpp" />
     <ClCompile Include="Src\Crypto\bn.cpp" />
     <ClCompile Include="Src\Crypto\ec.cpp" />
     <ClCompile Include="Src\ExtendedTrace.cpp" />
@@ -232,8 +230,6 @@
     <ClInclude Include="Src\CommonTypes.h" />
     <ClInclude Include="Src\ConsoleListener.h" />
     <ClInclude Include="Src\CPUDetect.h" />
-    <ClInclude Include="Src\Crypto\aes.h" />
-    <ClInclude Include="Src\Crypto\aes_locl.h" />
     <ClInclude Include="Src\Crypto\tools.h" />
     <ClInclude Include="Src\DebugInterface.h" />
     <ClInclude Include="Src\ExtendedTrace.h" />

@@ -18,7 +18,8 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset,
 	dataOffset(0x20000),
 	m_LastDecryptedBlockOffset(-1)
 {
-	AES_set_decrypt_key(_pVolumeKey, 128, &m_AES_KEY);
+	m_AES_ctx = new aes_context;
+	aes_setkey_dec(m_AES_ctx, _pVolumeKey, 128);
 	m_pBuffer = new u8[0x8000];
 }
 
@@ -29,6 +30,8 @@ CVolumeWiiCrypted::~CVolumeWiiCrypted()
 	m_pReader = NULL;
 	delete[] m_pBuffer;
 	m_pBuffer = NULL;
+	delete m_AES_ctx;
+	m_AES_ctx = NULL;
 }
 
 bool CVolumeWiiCrypted::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
@@ -67,7 +70,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 		if (m_LastDecryptedBlockOffset != Block)
 		{
 			memcpy(IV, m_pBuffer + 0x3d0, 16);
-			AES_cbc_encrypt(m_pBuffer + 0x400, m_LastDecryptedBlock, 0x7C00, &m_AES_KEY, IV, AES_DECRYPT);
+			aes_crypt_cbc(m_AES_ctx, AES_DECRYPT, 0x7C00, IV, m_pBuffer + 0x400, m_LastDecryptedBlock); 
 
 			m_LastDecryptedBlockOffset = Block;
 		}
@@ -250,7 +253,8 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
 			NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", clusterID);
 			return false;
 		}
-		AES_cbc_encrypt(clusterMDCrypted, clusterMD, 0x400, &m_AES_KEY, IV, AES_DECRYPT);
+		aes_crypt_cbc(m_AES_ctx, AES_DECRYPT, 0x400, IV, clusterMDCrypted, clusterMD); 
+
 
 		// Some clusters have invalid data and metadata because they aren't
 		// meant to be read by the game (for example, holes between files). To

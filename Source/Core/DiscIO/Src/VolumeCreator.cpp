@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "Crypto/aes.h"
+#include <polarssl/aes.h>
 
 #include "VolumeCreator.h"
 
@@ -183,11 +183,11 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 			memset(IV, 0, 16);
 			_rReader.Read(rPartition.Offset + 0x44c, 8, IV);
 
-			AES_KEY AES_KEY;
-			AES_set_decrypt_key((Korean ? g_MasterKeyK : g_MasterKey), 128, &AES_KEY);
+			aes_context AES_ctx;
+			aes_setkey_dec(&AES_ctx, (Korean ? g_MasterKeyK : g_MasterKey), 128); 
 
 			u8 VolumeKey[16];
-			AES_cbc_encrypt(SubKey, VolumeKey, 16, &AES_KEY, IV, AES_DECRYPT);
+			aes_crypt_cbc(&AES_ctx, AES_DECRYPT, 16, IV, SubKey, VolumeKey); 
 
 			// -1 means the caller just wanted the partition with matching type
 			if ((int)_VolumeNum == -1 || i == _VolumeNum)

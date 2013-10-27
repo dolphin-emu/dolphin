@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <cctype>
-#include "Crypto/aes.h"
+#include <polarssl/aes.h>
 #include "MathUtil.h"
 #include "FileUtil.h"
 #include "Log.h"
@@ -286,10 +286,10 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 }
 void CNANDContentLoader::AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest)
 {
-	AES_KEY AESKey;
+	aes_context AES_ctx;
 
-	AES_set_decrypt_key(_pKey, 128, &AESKey);
-	AES_cbc_encrypt(_pSrc, _pDest, _Size, &AESKey, _IV, AES_DECRYPT);
+	aes_setkey_dec(&AES_ctx, _pKey, 128);
+	aes_crypt_cbc(&AES_ctx, AES_DECRYPT, _Size, _IV, _pSrc, _pDest);
 }
 
 void CNANDContentLoader::GetKeyFromTicket(u8* pTicket, u8* pTicketKey)

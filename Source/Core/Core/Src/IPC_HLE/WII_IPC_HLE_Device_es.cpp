@@ -38,7 +38,7 @@
 #include "../PowerPC/PowerPC.h"
 #include "../VolumeHandler.h"
 #include "FileUtil.h"
-#include "Crypto/aes.h"
+#include <polarssl/aes.h>
 #include "ConfigManager.h"
 
 #include "../Boot/Boot_DOL.h"
@@ -860,10 +860,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8* newIV		= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
-			AES_KEY AESKey;
-			AES_set_encrypt_key(keyTable[keyIndex], 128, &AESKey);
+			aes_context AES_ctx;
+			aes_setkey_enc(&AES_ctx, keyTable[keyIndex], 128);
 			memcpy(newIV, IV, 16);
-			AES_cbc_encrypt(source, destination, size, &AESKey, newIV, AES_ENCRYPT);
+			aes_crypt_cbc(&AES_ctx, AES_ENCRYPT, size, newIV, source, destination);
 
 			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_ENCRYPT: Key type is not SD, data will be crap");
 		}
@@ -878,10 +878,10 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u8* newIV		= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
-			AES_KEY AESKey;
-			AES_set_decrypt_key(keyTable[keyIndex], 128, &AESKey);
+			aes_context AES_ctx;
+			aes_setkey_dec(&AES_ctx, keyTable[keyIndex], 128);
 			memcpy(newIV, IV, 16);
-			AES_cbc_encrypt(source, destination, size, &AESKey, newIV, AES_DECRYPT);
+			aes_crypt_cbc(&AES_ctx, AES_DECRYPT, size, newIV, source, destination);
 
 			_dbg_assert_msg_(WII_IPC_ES, keyIndex == 6, "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");
 		}

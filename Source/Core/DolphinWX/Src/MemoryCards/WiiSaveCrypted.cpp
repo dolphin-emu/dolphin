@@ -78,7 +78,7 @@ CWiiSaveCrypted::CWiiSaveCrypted(const char* FileName, u64 TitleID)
 
 	if (!TitleID) // Import
 	{
-		AES_set_decrypt_key(SDKey, 128, &m_AES_KEY);
+		aes_setkey_dec(&m_AES_ctx, SDKey, 128);
 			b_valid = true;
 			ReadHDR();
 			ReadBKHDR();
@@ -95,7 +95,7 @@ CWiiSaveCrypted::CWiiSaveCrypted(const char* FileName, u64 TitleID)
 	}
 	else
 	{
-		AES_set_encrypt_key(SDKey, 128, &m_AES_KEY);
+		aes_setkey_enc(&m_AES_ctx, SDKey, 128);
 		
 		if (getPaths(true))
 		{
@@ -133,7 +133,7 @@ void CWiiSaveCrypted::ReadHDR()
 	}
 	fpData_bin.Close();
 
-	AES_cbc_encrypt((const u8*)&_encryptedHeader, (u8*)&_header, HEADER_SZ, &m_AES_KEY, SD_IV, AES_DECRYPT);
+	aes_crypt_cbc(&m_AES_ctx, AES_DECRYPT, HEADER_SZ, SD_IV, (const u8*)&_encryptedHeader, (u8*)&_header); 
 	u32 bannerSize = Common::swap32(_header.hdr.BannerSize);
 	if ((bannerSize < FULL_BNR_MIN) || (bannerSize > FULL_BNR_MAX) ||
 		(((bannerSize - BNR_SZ) % ICON_SZ) != 0))
@@ -197,7 +197,7 @@ void CWiiSaveCrypted::WriteHDR()
 	md5((u8*)&_header, HEADER_SZ, md5_calc);
 	memcpy(_header.hdr.Md5, md5_calc, 0x10);
 
-	AES_cbc_encrypt((const unsigned char *)&_header, (u8*)&_encryptedHeader, HEADER_SZ, &m_AES_KEY, SD_IV, AES_ENCRYPT);
+	aes_crypt_cbc(&m_AES_ctx, AES_ENCRYPT, HEADER_SZ, SD_IV, (const u8*)&_header, (u8*)&_encryptedHeader);
 	
 	File::IOFile fpData_bin(encryptedSavePath, "wb");
 	if (!fpData_bin.WriteBytes(&_encryptedHeader, HEADER_SZ))
@@ -332,7 +332,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 				
 				
 				memcpy(IV, _tmpFileHDR.IV, 0x10);
-				AES_cbc_encrypt((const unsigned char *)&_encryptedData[0], &_data[0], RoundedFileSize, &m_AES_KEY, IV, AES_DECRYPT);
+				aes_crypt_cbc(&m_AES_ctx, AES_DECRYPT, RoundedFileSize, IV, (const u8*)&_encryptedData[0], &_data[0]);  
 	
 				if (!File::Exists(fullFilePath) || AskYesNoT("%s already exists, overwrite?", fullFilePath.c_str()))
 				{
@@ -421,7 +421,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 				b_valid = false;
 			}
 
-			AES_cbc_encrypt((const u8*)&_data[0], &_encryptedData[0], _roundedfileSize, &m_AES_KEY, tmpFileHDR.IV, AES_ENCRYPT);
+			aes_crypt_cbc(&m_AES_ctx, AES_ENCRYPT, _roundedfileSize, tmpFileHDR.IV, (const u8*)&_data[0], &_encryptedData[0]);
 			
 			File::IOFile fpData_bin(encryptedSavePath, "ab");
 			if (!fpData_bin.WriteBytes(&_encryptedData[0], _roundedfileSize))

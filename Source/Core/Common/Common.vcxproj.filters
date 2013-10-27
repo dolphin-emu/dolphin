@@ -31,12 +31,6 @@
     <ClCompile Include="Src\ConsoleListener.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Crypto\aes_cbc.cpp">
-      <Filter>Crypto</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Crypto\aes_core.cpp">
-      <Filter>Crypto</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Crypto\bn.cpp">
       <Filter>Crypto</Filter>
     </ClCompile>
@@ -94,12 +88,6 @@
     </ClInclude>
     <ClInclude Include="Src\ConsoleListener.h">
       <Filter>Logging</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Crypto\aes.h">
-      <Filter>Crypto</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Crypto\aes_locl.h">
-      <Filter>Crypto</Filter>
     </ClInclude>
     <ClInclude Include="Src\Crypto\tools.h">
       <Filter>Crypto</Filter>
