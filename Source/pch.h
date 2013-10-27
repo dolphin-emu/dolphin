@@ -1,4 +1,5 @@
 #include "Common.h"
+#include "Thread.h"
 #include <algorithm>
 #include <array>
 #include <assert.h>
