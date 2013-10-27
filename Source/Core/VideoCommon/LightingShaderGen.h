@@ -128,15 +128,15 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		if (color.matsource) // from vertex
 		{
 			if (components & (VB_HAS_COL0 << j))
-				object.Write("mat = %s%d;\n", inColorName, j);
+				object.Write("int4 mat = int4(round(%s%d * 255.0));\n", inColorName, j);
 			else if (components & VB_HAS_COL0)
-				object.Write("mat = %s0;\n", inColorName);
+				object.Write("int4 mat = int4(round(%s0 * 255.0));\n", inColorName);
 			else
-				object.Write("mat = float4(1.0, 1.0, 1.0, 1.0);\n");
+				object.Write("int4 mat = int4(255, 255, 255, 255);\n");
 		}
 		else // from color
 		{
-			object.Write("mat = float4(%s[%d])/255.0;\n", materialsName, j+2);
+			object.Write("int4 mat = %s[%d];\n", materialsName, j+2);
 		}
 
 		uid_data.enablelighting |= xfregs.color[j].enablelighting << j;
@@ -172,14 +172,14 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			if (alpha.matsource) // from vertex
 			{
 				if (components & (VB_HAS_COL0<<j))
-					object.Write("mat.w = %s%d.w;\n", inColorName, j);
+					object.Write("mat.w = int(round(%s%d.w * 255.0));\n", inColorName, j);
 				else if (components & VB_HAS_COL0)
-					object.Write("mat.w = %s0.w;\n", inColorName);
-				else object.Write("mat.w = 1.0;\n");
+					object.Write("mat.w = int(round(%s0.w * 255.0));\n", inColorName);
+				else object.Write("mat.w = 255;\n");
 			}
 			else // from color
 			{
-				object.Write("mat.w = float(%s[%d].w) / 255.0;\n", materialsName, j+2);
+				object.Write("mat.w = %s[%d].w;\n", materialsName, j+2);
 			}
 		}
 
@@ -255,7 +255,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 					GenerateLightShader<T>(object, uid_data, i, lit_index, lightsColName, lightsName, coloralpha);
 			}
 		}
-		object.Write("%s%d = mat * float4(clamp(lacc, 0, 255)) / 255.0;\n", dest, j);
+		object.Write("%s%d = float4(mat * clamp(lacc, 0, 255) / 255) / 255.0;\n", dest, j);
 		object.Write("}\n");
 	}
 }
