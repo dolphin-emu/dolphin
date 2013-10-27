@@ -295,10 +295,10 @@ void VertexShaderManager::SetConstants()
 			if (nMaterialsChanged & (1 << i))
 			{
 				u32 data = *(xfregs.ambColor + i);
-				constants.materials[i][0] = ((data >> 24) & 0xFF) / 255.0f;
-				constants.materials[i][1] = ((data >> 16) & 0xFF) / 255.0f;
-				constants.materials[i][2] = ((data >>  8) & 0xFF) / 255.0f;
-				constants.materials[i][3] = ( data        & 0xFF) / 255.0f;
+				constants.materials[i][0] = (data >> 24) & 0xFF;
+				constants.materials[i][1] = (data >> 16) & 0xFF;
+				constants.materials[i][2] = (data >>  8) & 0xFF;
+				constants.materials[i][3] =  data        & 0xFF;
 			}
 		}
 
@@ -307,10 +307,10 @@ void VertexShaderManager::SetConstants()
 			if (nMaterialsChanged & (1 << (i + 2)))
 			{
 				u32 data = *(xfregs.matColor + i);
-				constants.materials[i+2][0] = ((data >> 24) & 0xFF) / 255.0f;
-				constants.materials[i+2][1] = ((data >> 16) & 0xFF) / 255.0f;
-				constants.materials[i+2][2] = ((data >>  8) & 0xFF) / 255.0f;
-				constants.materials[i+2][3] = ( data        & 0xFF) / 255.0f;
+				constants.materials[i+2][0] = (data >> 24) & 0xFF;
+				constants.materials[i+2][1] = (data >> 16) & 0xFF;
+				constants.materials[i+2][2] = (data >>  8) & 0xFF;
+				constants.materials[i+2][3] =  data        & 0xFF;
 			}
 		}
 		dirty = true;

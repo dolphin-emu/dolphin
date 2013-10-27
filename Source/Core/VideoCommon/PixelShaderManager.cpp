@@ -326,10 +326,10 @@ void PixelShaderManager::SetMaterialColorChanged(int index, u32 color)
 {
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
-		constants.pmaterials[index][0] = ((color >> 24) & 0xFF) / 255.0f;
-		constants.pmaterials[index][1] = ((color >> 16) & 0xFF) / 255.0f;
-		constants.pmaterials[index][2] = ((color >>  8) & 0xFF) / 255.0f;
-		constants.pmaterials[index][3] = ( color        & 0xFF) / 255.0f;
+		constants.pmaterials[index][0] = (color >> 24) & 0xFF;
+		constants.pmaterials[index][1] = (color >> 16) & 0xFF;
+		constants.pmaterials[index][2] = (color >>  8) & 0xFF;
+		constants.pmaterials[index][3] = (color)       & 0xFF;
 		dirty = true;
 	}
 }

@@ -87,7 +87,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	DeclareUniform(out, api_type, C_POSNORMALMATRIX, "float4", I_POSNORMALMATRIX"[6]");
 	DeclareUniform(out, api_type, C_PROJECTION, "float4", I_PROJECTION"[4]");
-	DeclareUniform(out, api_type, C_MATERIALS, "float4", I_MATERIALS"[4]");
+	DeclareUniform(out, api_type, C_MATERIALS, "int4", I_MATERIALS"[4]");
 	DeclareUniform(out, api_type, C_LIGHT_COLORS,  "int4", I_LIGHT_COLORS"[8]");
 	DeclareUniform(out, api_type, C_LIGHTS,  "float4", I_LIGHTS"[32]");
 	DeclareUniform(out, api_type, C_TEXMATRICES, "float4", I_TEXMATRICES"[24]");
