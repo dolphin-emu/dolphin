@@ -16,6 +16,7 @@
 #define I_ZBIAS       "czbias"
 #define I_INDTEXSCALE "cindscale"
 #define I_INDTEXMTX   "cindmtx"
+#define I_FOGCOLOR    "cfogcolor"
 #define I_FOG         "cfog"
 #define I_PLIGHTS     "cPLights"
 #define I_PMATERIALS  "cPmtrl"
@@ -29,7 +30,8 @@
 #define C_ZBIAS         (C_TEXDIMS + 8)     //17
 #define C_INDTEXSCALE   (C_ZBIAS + 2)       //19
 #define C_INDTEXMTX     (C_INDTEXSCALE + 2) //21
-#define C_FOG           (C_INDTEXMTX + 6)   //27
+#define C_FOGCOLOR      (C_INDTEXMTX + 6)   //27
+#define C_FOG           (C_FOGCOLOR + 1)    //28
 
 #define C_PLIGHTS       (C_FOG + 3)
 #define C_PMATERIALS    (C_PLIGHTS + 40)

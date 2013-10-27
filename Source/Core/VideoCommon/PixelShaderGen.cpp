@@ -290,7 +290,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	DeclareUniform(out, ApiType, C_ZBIAS, "float4", I_ZBIAS"[2]");
 	DeclareUniform(out, ApiType, C_INDTEXSCALE, "float4", I_INDTEXSCALE"[2]");
 	DeclareUniform(out, ApiType, C_INDTEXMTX, "int4", I_INDTEXMTX"[6]");
-	DeclareUniform(out, ApiType, C_FOG, "float4", I_FOG"[3]");
+	DeclareUniform(out, ApiType, C_FOGCOLOR, "int4", I_FOGCOLOR);
+	DeclareUniform(out, ApiType, C_FOG, "float4", I_FOG"[2]");
 
 	// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
 	DeclareUniform(out, ApiType, C_PLIGHTS, "float4", I_PLIGHTS"[40]");
@@ -1044,18 +1045,19 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 
 	uid_data.fog_proj = bpmem.fog.c_proj_fsel.proj;
 
-	out.SetConstantsUsed(C_FOG, C_FOG+1);
+	out.SetConstantsUsed(C_FOGCOLOR, C_FOGCOLOR);
+	out.SetConstantsUsed(C_FOG, C_FOG);
 	if (bpmem.fog.c_proj_fsel.proj == 0)
 	{
 		// perspective
 		// ze = A/(B - (Zs >> B_SHF)
-		out.Write("\tfloat ze = " I_FOG"[1].x / (" I_FOG"[1].y - (zCoord / " I_FOG"[1].w));\n");
+		out.Write("\tfloat ze = " I_FOG"[0].x / (" I_FOG"[0].y - (zCoord / " I_FOG"[0].w));\n");
 	}
 	else
 	{
 		// orthographic
 		// ze = a*Zs    (here, no B_SHF)
-		out.Write("\tfloat ze = " I_FOG"[1].x * zCoord;\n");
+		out.Write("\tfloat ze = " I_FOG"[0].x * zCoord;\n");
 	}
 
 	// x_adjust = sqrt((x-center)^2 + k^2)/k
@@ -1064,13 +1066,13 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	uid_data.fog_RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
 	if (bpmem.fogRange.Base.Enabled)
 	{
-		out.SetConstantsUsed(C_FOG+2, C_FOG+2);
-		out.Write("\tfloat x_adjust = (2.0 * (clipPos.x / " I_FOG"[2].y)) - 1.0 - " I_FOG"[2].x;\n");
-		out.Write("\tx_adjust = sqrt(x_adjust * x_adjust + " I_FOG"[2].z * " I_FOG"[2].z) / " I_FOG"[2].z;\n");
+		out.SetConstantsUsed(C_FOG+1, C_FOG+1);
+		out.Write("\tfloat x_adjust = (2.0 * (clipPos.x / " I_FOG"[1].y)) - 1.0 - " I_FOG"[1].x;\n");
+		out.Write("\tx_adjust = sqrt(x_adjust * x_adjust + " I_FOG"[1].z * " I_FOG"[1].z) / " I_FOG"[1].z;\n");
 		out.Write("\tze *= x_adjust;\n");
 	}
 
-	out.Write("\tfloat fog = clamp(ze - " I_FOG"[1].z, 0.0, 1.0);\n");
+	out.Write("\tfloat fog = clamp(ze - " I_FOG"[0].z, 0.0, 1.0);\n");
 
 	if (bpmem.fog.c_proj_fsel.fsel > 3)
 	{
@@ -1083,7 +1085,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	}
 
 	out.Write("\tint ifog = int(round(fog * 256.0));\n");
-	out.Write("\tiprev.rgb = (iprev.rgb * (256 - ifog) + int(" I_FOG"[0].rgb * 256.0 * ifog)) >> 8;\n");
+	out.Write("\tiprev.rgb = (iprev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
 }
 
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
