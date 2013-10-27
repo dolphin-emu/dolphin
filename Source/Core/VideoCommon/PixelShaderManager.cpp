@@ -104,6 +104,7 @@ void PixelShaderManager::SetConstants()
 	{
 		if (nLightsChanged[0] >= 0)
 		{
+			// TODO: Outdated comment
 			// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 			int istart = nLightsChanged[0] / 0x10;
 			int iend = (nLightsChanged[1] + 15) / 0x10;
@@ -112,10 +113,10 @@ void PixelShaderManager::SetConstants()
 			for (int i = istart; i < iend; ++i)
 			{
 				u32 color = *(const u32*)(xfmemptr + 3);
-				constants.plights[5*i][0] = ((color >> 24) & 0xFF) / 255.0f;
-				constants.plights[5*i][1] = ((color >> 16) & 0xFF) / 255.0f;
-				constants.plights[5*i][2] = ((color >> 8)  & 0xFF) / 255.0f;
-				constants.plights[5*i][3] = ((color)       & 0xFF) / 255.0f;
+				constants.plight_colors[i][0] = (color >> 24) & 0xFF;
+				constants.plight_colors[i][1] = (color >> 16) & 0xFF;
+				constants.plight_colors[i][2] = (color >> 8)  & 0xFF;
+				constants.plight_colors[i][3] = (color)       & 0xFF;
 				xfmemptr += 4;
 
 				for (int j = 0; j < 4; ++j, xfmemptr += 3)
@@ -125,11 +126,11 @@ void PixelShaderManager::SetConstants()
 						fabs(xfmemptr[1]) < 0.00001f &&
 						fabs(xfmemptr[2]) < 0.00001f)
 						// dist attenuation, make sure not equal to 0!!!
-						constants.plights[5*i+j+1][0] = 0.00001f;
+						constants.plights[4*i+j][0] = 0.00001f;
 					else
-						constants.plights[5*i+j+1][0] = xfmemptr[0];
-					constants.plights[5*i+j+1][1] = xfmemptr[1];
-					constants.plights[5*i+j+1][2] = xfmemptr[2];
+						constants.plights[4*i+j][0] = xfmemptr[0];
+					constants.plights[4*i+j][1] = xfmemptr[1];
+					constants.plights[4*i+j][2] = xfmemptr[2];
 				}
 			}
 			dirty = true;

@@ -9,19 +9,19 @@
 #include "VideoCommon/XFMemory.h"
 
 
-#define LIGHT_COL "%s[5*%d].%s"
-#define LIGHT_COL_PARAMS(lightsName, index, swizzle) (lightsName), (index), (swizzle)
+#define LIGHT_COL "(float4(%s[%d]).%s / 255.0)"
+#define LIGHT_COL_PARAMS(lightsColName, index, swizzle) (lightsColName), (index), (swizzle)
 
-#define LIGHT_COSATT "%s[5*%d+1]"
+#define LIGHT_COSATT "%s[4*%d]"
 #define LIGHT_COSATT_PARAMS(lightsName, index) (lightsName), (index)
 
-#define LIGHT_DISTATT "%s[5*%d+2]"
+#define LIGHT_DISTATT "%s[4*%d+1]"
 #define LIGHT_DISTATT_PARAMS(lightsName, index) (lightsName), (index)
 
-#define LIGHT_POS "%s[5*%d+3]"
+#define LIGHT_POS "%s[4*%d+2]"
 #define LIGHT_POS_PARAMS(lightsName, index) (lightsName), (index)
 
-#define LIGHT_DIR "%s[5*%d+4]"
+#define LIGHT_DIR "%s[4*%d+3]"
 #define LIGHT_DIR_PARAMS(lightsName, index) (lightsName), (index)
 
 /**
@@ -39,7 +39,7 @@ struct LightingUidData
 
 
 template<class T>
-static void GenerateLightShader(T& object, LightingUidData& uid_data, int index, int litchan_index, const char* lightsName, int coloralpha)
+static void GenerateLightShader(T& object, LightingUidData& uid_data, int index, int litchan_index, const char* lightsColName, const char* lightsName, int coloralpha)
 {
 	const LitChannel& chan = (litchan_index > 1) ? xfregs.alpha[litchan_index-2] : xfregs.color[litchan_index];
 	const char* swizzle = "xyzw";
@@ -56,13 +56,13 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 		switch (chan.diffusefunc)
 		{
 			case LIGHTDIF_NONE:
-				object.Write("lacc.%s += " LIGHT_COL";\n", swizzle, LIGHT_COL_PARAMS(lightsName, index, swizzle));
+				object.Write("lacc.%s += " LIGHT_COL";\n", swizzle, LIGHT_COL_PARAMS(lightsColName, index, swizzle));
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
 				object.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(lightsName, index));
 				object.Write("lacc.%s += %sdot(ldir, _norm0)) * " LIGHT_COL";\n",
-					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0," :"(", LIGHT_COL_PARAMS(lightsName, index, swizzle));
+					swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0," :"(", LIGHT_COL_PARAMS(lightsColName, index, swizzle));
 				break;
 			default: _assert_(0);
 		}
@@ -94,14 +94,14 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 		switch (chan.diffusefunc)
 		{
 			case LIGHTDIF_NONE:
-				object.Write("lacc.%s += attn * " LIGHT_COL";\n", swizzle, LIGHT_COL_PARAMS(lightsName, index, swizzle));
+				object.Write("lacc.%s += attn * " LIGHT_COL";\n", swizzle, LIGHT_COL_PARAMS(lightsColName, index, swizzle));
 				break;
 			case LIGHTDIF_SIGN:
 			case LIGHTDIF_CLAMP:
 				object.Write("lacc.%s += attn * %sdot(ldir, _norm0)) * " LIGHT_COL";\n",
 					swizzle,
 					chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0," :"(",
-					LIGHT_COL_PARAMS(lightsName, index, swizzle));
+					LIGHT_COL_PARAMS(lightsColName, index, swizzle));
 				break;
 			default: _assert_(0);
 		}
@@ -115,7 +115,7 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 // inColorName is color in vs and colors_ in ps
 // dest is o.colors_ in vs and colors_ in ps
 template<class T>
-static void GenerateLightingShader(T& object, LightingUidData& uid_data, int components, const char* materialsName, const char* lightsName, const char* inColorName, const char* dest)
+static void GenerateLightingShader(T& object, LightingUidData& uid_data, int components, const char* materialsName, const char* lightsColName, const char* lightsName, const char* inColorName, const char* dest)
 {
 	for (unsigned int j = 0; j < xfregs.numChan.numColorChans; j++)
 	{
@@ -226,7 +226,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 					{
 						if (mask & (1<<i))
 						{
-							GenerateLightShader<T>(object, uid_data, i, j, lightsName, 3);
+							GenerateLightShader<T>(object, uid_data, i, j, lightsColName, lightsName, 3);
 						}
 					}
 				}
@@ -236,9 +236,9 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			for (int i = 0; i < 8; ++i)
 			{
 				if (!(mask&(1<<i)) && (color.GetFullLightMask() & (1<<i)))
-					GenerateLightShader<T>(object, uid_data, i, j, lightsName, 1);
+					GenerateLightShader<T>(object, uid_data, i, j, lightsColName, lightsName, 1);
 				if (!(mask&(1<<i)) && (alpha.GetFullLightMask() & (1<<i)))
-					GenerateLightShader<T>(object, uid_data, i, j+2, lightsName, 2);
+					GenerateLightShader<T>(object, uid_data, i, j+2, lightsColName, lightsName, 2);
 			}
 		}
 		else if (color.enablelighting || alpha.enablelighting)
@@ -252,7 +252,7 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			for (int i = 0; i < 8; ++i)
 			{
 				if (workingchannel.GetFullLightMask() & (1<<i))
-					GenerateLightShader<T>(object, uid_data, i, lit_index, lightsName, coloralpha);
+					GenerateLightShader<T>(object, uid_data, i, lit_index, lightsColName, lightsName, coloralpha);
 			}
 		}
 		object.Write("%s%d = mat * clamp(lacc, 0.0, 1.0);\n", dest, j);

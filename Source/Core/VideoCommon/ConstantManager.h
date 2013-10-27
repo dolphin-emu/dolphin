@@ -22,7 +22,8 @@ struct PixelShaderConstants
 	float4 fog[2];
 
 	// For pixel lighting
-	float4 plights[40];
+	int4 plight_colors[8];
+	float4 plights[32];
 	float4 pmaterials[4];
 };
 
@@ -31,7 +32,8 @@ struct VertexShaderConstants
 	float4 posnormalmatrix[6];
 	float4 projection[4];
 	float4 materials[4];
-	float4 lights[40];
+	int4 light_colors[8]; // 8 lights
+	float4 lights[32]; // 8 lights * 4 parameters
 	float4 texmatrices[24];
 	float4 transformmatrices[64];
 	float4 normalmatrices[32];

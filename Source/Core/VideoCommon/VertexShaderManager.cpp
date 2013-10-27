@@ -252,6 +252,7 @@ void VertexShaderManager::SetConstants()
 
 	if (nLightsChanged[0] >= 0)
 	{
+		// TODO: Outdated comment
 		// lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
 		int istart = nLightsChanged[0] / 0x10;
 		int iend = (nLightsChanged[1] + 15) / 0x10;
@@ -260,10 +261,10 @@ void VertexShaderManager::SetConstants()
 		for (int i = istart; i < iend; ++i)
 		{
 			u32 color = *(const u32*)(xfmemptr + 3);
-			constants.lights[5*i][0] = ((color >> 24) & 0xFF) / 255.0f;
-			constants.lights[5*i][1] = ((color >> 16) & 0xFF) / 255.0f;
-			constants.lights[5*i][2] = ((color >> 8)  & 0xFF) / 255.0f;
-			constants.lights[5*i][3] = ((color)       & 0xFF) / 255.0f;
+			constants.light_colors[i][0] = (color >> 24) & 0xFF;
+			constants.light_colors[i][1] = (color >> 16) & 0xFF;
+			constants.light_colors[i][2] = (color >> 8)  & 0xFF;
+			constants.light_colors[i][3] = (color)       & 0xFF;
 			xfmemptr += 4;
 
 			for (int j = 0; j < 4; ++j, xfmemptr += 3)
@@ -274,12 +275,12 @@ void VertexShaderManager::SetConstants()
 					fabs(xfmemptr[2]) < 0.00001f)
 				{
 					// dist attenuation, make sure not equal to 0!!!
-					constants.lights[5*i+j+1][0] = 0.00001f;
+					constants.lights[4*i+j][0] = 0.00001f;
 				}
 				else
-					constants.lights[5*i+j+1][0] = xfmemptr[0];
-				constants.lights[5*i+j+1][1] = xfmemptr[1];
-				constants.lights[5*i+j+1][2] = xfmemptr[2];
+					constants.lights[4*i+j][0] = xfmemptr[0];
+				constants.lights[4*i+j][1] = xfmemptr[1];
+				constants.lights[4*i+j][2] = xfmemptr[2];
 			}
 		}
 		dirty = true;

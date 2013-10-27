@@ -88,7 +88,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	DeclareUniform(out, api_type, C_POSNORMALMATRIX, "float4", I_POSNORMALMATRIX"[6]");
 	DeclareUniform(out, api_type, C_PROJECTION, "float4", I_PROJECTION"[4]");
 	DeclareUniform(out, api_type, C_MATERIALS, "float4", I_MATERIALS"[4]");
-	DeclareUniform(out, api_type, C_LIGHTS,  "float4", I_LIGHTS"[40]");
+	DeclareUniform(out, api_type, C_LIGHT_COLORS,  "int4", I_LIGHT_COLORS"[8]");
+	DeclareUniform(out, api_type, C_LIGHTS,  "float4", I_LIGHTS"[32]");
 	DeclareUniform(out, api_type, C_TEXMATRICES, "float4", I_TEXMATRICES"[24]");
 	DeclareUniform(out, api_type, C_TRANSFORMMATRICES, "float4", I_TRANSFORMMATRICES"[64]");
 	DeclareUniform(out, api_type, C_NORMALMATRICES, "float4", I_NORMALMATRICES"[32]");
@@ -230,7 +231,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
 	}
 
-	GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHTS, "color", "o.colors_");
+	GenerateLightingShader<T>(out, uid_data.lighting, components, I_MATERIALS, I_LIGHT_COLORS, I_LIGHTS, "color", "o.colors_");
 
 	if (xfregs.numChan.numColorChans < 2)
 	{

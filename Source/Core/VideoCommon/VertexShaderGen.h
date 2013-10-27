@@ -33,6 +33,7 @@
 #define I_POSNORMALMATRIX       "cpnmtx"
 #define I_PROJECTION            "cproj"
 #define I_MATERIALS             "cmtrl"
+#define I_LIGHT_COLORS          "clight_colors"
 #define I_LIGHTS                "clights"
 #define I_TEXMATRICES           "ctexmtx"
 #define I_TRANSFORMMATRICES     "ctrmtx"
@@ -44,8 +45,9 @@
 #define C_POSNORMALMATRIX        0
 #define C_PROJECTION            (C_POSNORMALMATRIX + 6)
 #define C_MATERIALS             (C_PROJECTION + 4)
-#define C_LIGHTS                (C_MATERIALS + 4)
-#define C_TEXMATRICES           (C_LIGHTS + 40)
+#define C_LIGHT_COLORS          (C_MATERIALS + 4)
+#define C_LIGHTS                (C_LIGHT_COLORS + 8)
+#define C_TEXMATRICES           (C_LIGHTS + 32)
 #define C_TRANSFORMMATRICES     (C_TEXMATRICES + 24)
 #define C_NORMALMATRICES        (C_TRANSFORMMATRICES + 64)
 #define C_POSTTRANSFORMMATRICES (C_NORMALMATRICES + 32)
