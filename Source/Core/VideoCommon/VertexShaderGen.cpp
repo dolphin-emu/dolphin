@@ -218,7 +218,8 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	out.Write("o.pos = float4(dot(" I_PROJECTION"[0], pos), dot(" I_PROJECTION"[1], pos), dot(" I_PROJECTION"[2], pos), dot(" I_PROJECTION"[3], pos));\n");
 
-	out.Write("float4 mat, lacc;\n"
+	out.Write("float4 mat;\n"
+			"int4 lacc;\n"
 			"float3 ldir, h;\n"
 			"float dist, dist2, attn;\n");
 
