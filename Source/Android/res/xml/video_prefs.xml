@@ -136,10 +136,4 @@
        android:key="showFPS"
        android:summary="@string/show_fps_descrip"
        android:title="@string/show_fps"/>
-    <!--
-    <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="drawOnscreenControls"
-        android:title="@string/draw_onscreen_controls"/>
-        -->
 </PreferenceScreen>
