@@ -9,13 +9,18 @@ package org.dolphinemu.dolphinemu.emulation.overlay;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.NativeLibrary.ButtonState;
+import org.dolphinemu.dolphinemu.NativeLibrary.ButtonType;
 import org.dolphinemu.dolphinemu.R;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -29,7 +34,7 @@ import android.view.View.OnTouchListener;
  */
 public final class InputOverlay extends SurfaceView implements OnTouchListener
 {
-	private final Set<BitmapDrawable> overlayItems = new HashSet<BitmapDrawable>();
+	private final Set<InputOverlayDrawable> overlayItems = new HashSet<InputOverlayDrawable>();
 
 	/**
 	 * Constructor
@@ -42,9 +47,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		super(context, attrs);
 
 		// Add all the overlay items to the HashSet.
-		overlayItems.add(initializeOverlayDrawable(context, R.drawable.button_a));
-		overlayItems.add(initializeOverlayDrawable(context, R.drawable.button_b));
-		overlayItems.add(initializeOverlayDrawable(context, R.drawable.button_start));
+		overlayItems.add(initializeOverlayDrawable(context, R.drawable.button_a,     ButtonType.BUTTON_A));
+		overlayItems.add(initializeOverlayDrawable(context, R.drawable.button_b,     ButtonType.BUTTON_B));
+		overlayItems.add(initializeOverlayDrawable(context, R.drawable.button_start, ButtonType.BUTTON_START));
+
+		// Set the on touch listener.
+		setOnTouchListener(this);
 
 		// Force draw
 		setWillNotDraw(false);
@@ -56,16 +64,35 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	@Override
 	public boolean onTouch(View v, MotionEvent event)
 	{
-		switch (event.getAction())
+		// Determine the button state to apply based on the MotionEvent action flag.
+		int buttonState = (event.getAction() == MotionEvent.ACTION_DOWN) ? ButtonState.PRESSED : ButtonState.RELEASED;
+
+		for (InputOverlayDrawable item : overlayItems)
 		{
-			case MotionEvent.ACTION_DOWN:
+			// Check if there was a touch within the bounds of a drawable.
+			if (item.getBounds().contains((int)event.getX(), (int)event.getY()))
 			{
-				// TODO: Handle down presses.
-				return true;
+				switch (item.getId())
+				{
+					case ButtonType.BUTTON_A:
+						NativeLibrary.onTouchEvent(ButtonType.BUTTON_A, buttonState);
+						break;
+
+					case ButtonType.BUTTON_B:
+						NativeLibrary.onTouchEvent(ButtonType.BUTTON_B, buttonState);
+						break;
+
+					case ButtonType.BUTTON_START:
+						NativeLibrary.onTouchEvent(ButtonType.BUTTON_START, buttonState);
+						break;
+
+					default:
+						break;
+				}
 			}
 		}
 
-		return false;
+		return true;
 	}
 
 	@Override
@@ -74,14 +101,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		super.onDraw(canvas);
 
 		// Draw all overlay items.
-		for (BitmapDrawable item : overlayItems)
+		for (InputOverlayDrawable item : overlayItems)
 		{
 			item.draw(canvas);
 		}
 	}
 
 	/**
-	 * Initializes a drawable, given by resId, with all of the
+	 * Initializes an InputOverlayDrawable, given by resId, with all of the
 	 * parameters set for it to be properly shown on the InputOverlay. 
 	 * <p>
 	 * This works due to the way the X and Y coordinates are stored within
@@ -101,46 +128,48 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	 * </ul>
 	 * <p>
 	 * Technically no modifications should need to be performed on the returned
-	 * BitmapDrawable. Simply add it to the HashSet of overlay items and wait
+	 * InputOverlayDrawable. Simply add it to the HashSet of overlay items and wait
 	 * for Android to call the onDraw method.
 	 * 
-	 * @param context The current {@link Context}.
-	 * @param resId   The resource ID of the {@link BitmapDrawable} to get.
+	 * @param context  The current {@link Context}.
+	 * @param resId    The resource ID of the {@link Drawable} to get the {@link Bitmap} of.
+	 * @param buttonId Identifier for determining what type of button the initialized InputOverlayDrawable represents.
 	 * 
-	 * @return A {@link BitmapDrawable} with the correct drawing bounds set.
+	 * @return An {@link InputOverlayDrawable} with the correct drawing bounds set.
 	 *
 	 */
-	private static BitmapDrawable initializeOverlayDrawable(Context context, int resId)
+	private static InputOverlayDrawable initializeOverlayDrawable(Context context, int resId, int buttonId)
 	{
-		// Resources handle for fetching the drawable, etc.
+		// Resources handle for fetching the initial Drawable resource.
 		final Resources res = context.getResources();
 
-		// SharedPreference to retrieve the X and Y coordinates for the drawable.
+		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawable.
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-		// Get the desired drawable.
-		BitmapDrawable drawable = (BitmapDrawable) res.getDrawable(resId);
+		// Initialize the InputOverlayDrawable.
+		final Bitmap bitmap = BitmapFactory.decodeResource(res, resId);
+		final InputOverlayDrawable overlayDrawable = new InputOverlayDrawable(res, bitmap, buttonId);
 
-		// String ID of the drawable. This is what is passed into SharedPreferences
+		// String ID of the Drawable. This is what is passed into SharedPreferences
 		// to check whether or not a value has been set.
-		String drawableId = res.getResourceEntryName(resId);
+		final String drawableId = res.getResourceEntryName(resId);
 
-		// The X and Y coordinates of the drawable on the InputOverlay.
+		// The X and Y coordinates of the InputOverlayDrawable on the InputOverlay.
 		// These were set in the input overlay configuration menu.
 		int drawableX = (int) sPrefs.getFloat(drawableId+"-X", 0f);
 		int drawableY = (int) sPrefs.getFloat(drawableId+"-Y", 0f);
 
-		// Intrinsic width and height of the drawable.
+		// Intrinsic width and height of the InputOverlayDrawable.
 		// For any who may not know, intrinsic width/height
 		// are the original unmodified width and height of the image.
-		int intrinWidth = drawable.getIntrinsicWidth();
-		int intrinHeight = drawable.getIntrinsicHeight();
+		int intrinWidth = overlayDrawable.getIntrinsicWidth();
+		int intrinHeight = overlayDrawable.getIntrinsicHeight();
 
-		// Now set the bounds for the drawable.
-		// This will dictate where on the screen (and the what the size) of the drawable will be.
-		drawable.setBounds(drawableX, drawableY, drawableX+intrinWidth, drawableY+intrinHeight);
+		// Now set the bounds for the InputOverlayDrawable.
+		// This will dictate where on the screen (and the what the size) the InputOverlayDrawable will be.
+		overlayDrawable.setBounds(drawableX, drawableY, drawableX+intrinWidth, drawableY+intrinHeight);
 
-		return drawable;
+		return overlayDrawable;
 	}
 	
 }

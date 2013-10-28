@@ -16,6 +16,42 @@ import android.view.Surface;
 public final class NativeLibrary
 {
 	/**
+	 * Button type for use in onTouchEvent
+	 */
+	public static final class ButtonType
+	{
+		public static final int BUTTON_A         = 0;
+		public static final int BUTTON_B         = 1;
+		public static final int BUTTON_START     = 2;
+		public static final int BUTTON_X         = 3;
+		public static final int BUTTON_Y         = 4;
+		public static final int BUTTON_Z         = 5;
+		public static final int BUTTON_UP        = 6;
+		public static final int BUTTON_DOWN      = 7;
+		public static final int BUTTON_LEFT      = 8;
+		public static final int BUTTON_RIGHT     = 9;
+		public static final int STICK_MAIN_UP    = 10;
+		public static final int STICK_MAIN_DOWN  = 11;
+		public static final int STICK_MAIN_LEFT  = 12;
+		public static final int STICK_MAIN_RIGHT = 13;
+		public static final int STICK_C_UP       = 14;
+		public static final int STICK_C_DOWN     = 15;
+		public static final int STICK_C_LEFT     = 16;
+		public static final int STICK_C_RIGHT    = 17;
+		public static final int TRIGGER_L        = 18;
+		public static final int TRIGGER_R        = 19;
+	}
+
+	/**
+	 * Button states
+	 */
+	public class ButtonState
+	{
+		public static final int RELEASED = 0;
+		public static final int PRESSED = 1;
+	}
+
+	/**
 	 * Handles touch events.
 	 *
 	 * @param Button Key code identifying which button was pressed.
