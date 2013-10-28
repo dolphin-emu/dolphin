@@ -65,6 +65,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	public boolean onTouch(View v, MotionEvent event)
 	{
 		// Determine the button state to apply based on the MotionEvent action flag.
+		// TODO: This will not work when Axis support is added. Make sure to refactor this when that time comes
+		// The reason it won't work is that when moving an axis, you would get the event MotionEvent.ACTION_MOVE.
 		int buttonState = (event.getAction() == MotionEvent.ACTION_DOWN) ? ButtonState.PRESSED : ButtonState.RELEASED;
 
 		for (InputOverlayDrawable item : overlayItems)
