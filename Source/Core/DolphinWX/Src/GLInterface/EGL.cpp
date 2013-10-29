@@ -45,12 +45,11 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	EGLint num_configs;
 
 	// attributes for a visual in RGBA format with at least
-	// 8 bits per color and a 24 bit depth buffer
+	// 8 bits per color
 	int attribs[] = {
 		EGL_RED_SIZE, 8,
 		EGL_GREEN_SIZE, 8,
 		EGL_BLUE_SIZE, 8,
-		EGL_DEPTH_SIZE, 24,
 #ifdef USE_GLES
 #ifdef USE_GLES3
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
