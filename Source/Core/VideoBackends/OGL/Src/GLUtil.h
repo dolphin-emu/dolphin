@@ -33,6 +33,7 @@
 #define glDrawElementsBaseVertex(...)
 #define glDrawRangeElementsBaseVertex(...)
 #define glRenderbufferStorageMultisampleCoverageNV(...) 
+#define glViewportIndexedf(...)
 #endif
 #else
 #define TEX2D	GL_TEXTURE_RECTANGLE_ARB
