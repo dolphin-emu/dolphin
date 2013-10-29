@@ -55,11 +55,11 @@ vec4 applyFXAA(vec2 fragCoord, sampler2D tex)
               dir * rcpDirMin)) * inverseVP;
      
     vec3 rgbA = 0.5 * (
-        texture2D(tex, fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
-        texture2D(tex, fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
+        texture(tex, fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
+        texture(tex, fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
     vec3 rgbB = rgbA * 0.5 + 0.25 * (
-        texture2D(tex, fragCoord * inverseVP + dir * -0.5).xyz +
-        texture2D(tex, fragCoord * inverseVP + dir * 0.5).xyz);
+        texture(tex, fragCoord * inverseVP + dir * -0.5).xyz +
+        texture(tex, fragCoord * inverseVP + dir * 0.5).xyz);
  
     float lumaB = dot(rgbB, luma);
     if ((lumaB < lumaMin) || (lumaB > lumaMax))
