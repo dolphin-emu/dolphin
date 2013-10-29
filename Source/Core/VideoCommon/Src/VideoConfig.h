@@ -153,6 +153,7 @@ struct VideoConfig
 		bool bSupportsPixelLighting;
 		bool bSupportsPrimitiveRestart;
 		bool bSupportsSeparateAlphaFunction;
+		bool bSupportsOversizedViewports;
 		bool bSupportsGLSLUBO; // needed by PixelShaderGen, so must stay in VideoCommon
 		bool bSupportsEarlyZ; // needed by PixelShaderGen, so must stay in VideoCommon
 	} backend_info;

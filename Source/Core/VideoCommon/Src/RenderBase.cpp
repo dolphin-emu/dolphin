@@ -30,7 +30,6 @@
 #include "XFMemory.h"
 #include "FifoPlayer/FifoRecorder.h"
 #include "AVIDump.h"
-#include "VertexShaderManager.h"
 
 #include <cmath>
 #include <string>
@@ -231,7 +230,6 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 	{
 		s_target_width  = newEFBWidth;
 		s_target_height = newEFBHeight;
-		VertexShaderManager::SetViewportChanged();
 		return true;
 	}
 	return false;
@@ -520,8 +518,8 @@ void Renderer::RecordVideoMemory()
 	FifoRecorder::GetInstance().SetVideoMemory(bpMem, cpMem, xfMem, xfRegs, sizeof(XFRegisters) / 4);
 }
 
-void UpdateViewport(Matrix44& vpCorrection)
+void UpdateViewport()
 {
 	if (xfregs.viewport.wd != 0 && xfregs.viewport.ht != 0)
-		g_renderer->UpdateViewport(vpCorrection);
+		g_renderer->UpdateViewport();
 }

@@ -30,14 +30,12 @@
 #include "ImageWrite.h"
 #include "MemoryUtil.h"
 #include "ProgramShaderCache.h"
-#include "PixelShaderManager.h"
 #include "Render.h"
 #include "Statistics.h"
 #include "StringUtil.h"
 #include "TextureCache.h"
 #include "TextureConverter.h"
 #include "TextureDecoder.h"
-#include "VertexShaderManager.h"
 #include "VideoConfig.h"
 
 namespace OGL
@@ -391,7 +389,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	}
 
 	FramebufferManager::SetFramebuffer(0);
-	VertexShaderManager::SetViewportChanged();
 
 	GL_REPORT_ERRORD();
 

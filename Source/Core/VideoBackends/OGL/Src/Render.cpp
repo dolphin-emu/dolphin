@@ -33,7 +33,6 @@
 #include "RasterFont.h"
 #include "VertexShaderGen.h"
 #include "DLCache.h"
-#include "PixelShaderManager.h"
 #include "ProgramShaderCache.h"
 #include "VertexShaderManager.h"
 #include "VertexLoaderManager.h"
@@ -1093,7 +1092,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 }
 
 // Called from VertexShaderManager
-void Renderer::UpdateViewport(Matrix44& vpCorrection)
+void Renderer::UpdateViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -1123,9 +1122,6 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 		Y += Height;
 		Height *= -1;
 	}
-
-	// OpenGL does not require any viewport correct
-	Matrix44::LoadIdentity(vpCorrection);
 
 	// Update the view port
 	if(g_ogl_config.bSupportViewportFloat)
@@ -1664,7 +1660,7 @@ void Renderer::RestoreAPIState()
 	SetDepthMode();
 	SetBlendMode(true);
 	SetLogicOpMode();
-	VertexShaderManager::SetViewportChanged();
+	UpdateViewport();
 
 #ifndef USE_GLES3
 	glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);

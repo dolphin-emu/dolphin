@@ -185,6 +185,7 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_SCISSORBR: // Scissor Rectable Bottom, Right
 	case BPMEM_SCISSOROFFSET: // Scissor Offset
 		SetScissor();
+		VertexShaderManager::SetViewportChanged();
 		break;
 	case BPMEM_LINEPTWIDTH: // Line Width
 		SetLineWidth();
