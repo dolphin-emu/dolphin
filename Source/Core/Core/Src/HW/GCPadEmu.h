@@ -20,9 +20,9 @@ public:
 
 	bool GetMicButton() const;
 
-	std::string GetName() const;
+	std::string GetName() const override;
 
-	void LoadDefaults(const ControllerInterface& ciface);
+	void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
 

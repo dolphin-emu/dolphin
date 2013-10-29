@@ -97,7 +97,7 @@ private:
 	class ProgramShaderCacheInserter : public LinearDiskCacheReader<SHADERUID, u8>
 	{
 	public:
-		void Read(const SHADERUID &key, const u8 *value, u32 value_size);
+		void Read(const SHADERUID &key, const u8 *value, u32 value_size) override;
 	};
 
 	static PCache pshaders;

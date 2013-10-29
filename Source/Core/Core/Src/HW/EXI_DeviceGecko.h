@@ -48,8 +48,8 @@ class CEXIGecko
 {
 public:
 	CEXIGecko() {}
-	bool IsPresent() { return true; }
-	void ImmReadWrite(u32 &_uData, u32 _uSize);
+	bool IsPresent() override { return true; }
+	void ImmReadWrite(u32 &_uData, u32 _uSize) override;
 
 private:
 	enum

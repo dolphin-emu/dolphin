@@ -62,30 +62,30 @@ public:
 	Jit64() : code_buffer(32000) {}
 	~Jit64() {}
 
-	void Init();
-	void Shutdown();
+	void Init() override;
+	void Shutdown() override;
 
 	// Jit!
 
-	void Jit(u32 em_address);
+	void Jit(u32 em_address) override;
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
 
 	u32 RegistersInUse();
 
-	JitBlockCache *GetBlockCache() { return &blocks; }
+	JitBlockCache *GetBlockCache() override { return &blocks; }
 
 	void Trace();
 
-	void ClearCache();
+	void ClearCache() override;
 
 	const u8 *GetDispatcher() {
 		return asm_routines.dispatcher;
 	}
-	const CommonAsmRoutines *GetAsmRoutines() {
+	const CommonAsmRoutines *GetAsmRoutines() override {
 		return &asm_routines;
 	}
 
-	const char *GetName() {
+	const char *GetName() override {
 #ifdef _M_X64
 		return "JIT64";
 #else
@@ -94,8 +94,8 @@ public:
 	}
 	// Run!
 
-	void Run();
-	void SingleStep();
+	void Run() override;
+	void SingleStep() override;
 
 	// Utilities for use by opcodes
 

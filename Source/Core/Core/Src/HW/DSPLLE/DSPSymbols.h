@@ -16,7 +16,7 @@ public:
 	DSPSymbolDB() {}
 	~DSPSymbolDB() {}
 
-	Symbol *GetSymbolFromAddr(u32 addr);
+	Symbol *GetSymbolFromAddr(u32 addr) override;
 
 };
 

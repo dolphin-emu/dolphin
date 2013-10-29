@@ -121,11 +121,11 @@ public:
 class GPRRegCache : public RegCache
 {
 public:
-	void Start(PPCAnalyst::BlockRegStats &stats);
-	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true);
-	void StoreFromRegister(int preg);
-	OpArg GetDefaultLocation(int reg) const;
-	const int *GetAllocationOrder(int &count);
+	void Start(PPCAnalyst::BlockRegStats &stats) override;
+	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) override;
+	void StoreFromRegister(int preg) override;
+	OpArg GetDefaultLocation(int reg) const override;
+	const int *GetAllocationOrder(int &count) override;
 	void SetImmediate32(int preg, u32 immValue);
 };
 
@@ -133,11 +133,11 @@ public:
 class FPURegCache : public RegCache
 {
 public:
-	void Start(PPCAnalyst::BlockRegStats &stats);
-	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true);
-	void StoreFromRegister(int preg);
-	const int *GetAllocationOrder(int &count);
-	OpArg GetDefaultLocation(int reg) const;
+	void Start(PPCAnalyst::BlockRegStats &stats) override;
+	void BindToRegister(int preg, bool doLoad = true, bool makeDirty = true) override;
+	void StoreFromRegister(int preg) override;
+	const int *GetAllocationOrder(int &count) override;
+	OpArg GetDefaultLocation(int reg) const override;
 };
 
 #endif  // _JIT64REGCACHE_H

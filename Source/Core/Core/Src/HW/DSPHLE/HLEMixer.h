@@ -15,7 +15,7 @@ public:
 	HLEMixer(DSPHLE *dsp_hle, unsigned int AISampleRate = 48000, unsigned int DACSampleRate = 48000, unsigned int BackendSampleRate = 32000)
 		: CMixer(AISampleRate, DACSampleRate, BackendSampleRate), m_DSPHLE(dsp_hle) {};
 
-	virtual void Premix(short *samples, unsigned int numSamples);
+	virtual void Premix(short *samples, unsigned int numSamples) override;
 private:
 	DSPHLE *m_DSPHLE;
 };

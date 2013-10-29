@@ -919,7 +919,7 @@ public:
 		Create();
 	}
 
-	virtual ExitCode Entry()
+	virtual ExitCode Entry() override
 	{
 		return (ExitCode)m_Partition.Partition->CheckIntegrity();
 	}

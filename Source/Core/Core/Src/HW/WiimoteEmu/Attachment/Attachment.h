@@ -18,7 +18,7 @@ public:
 
 	virtual void GetState( u8* const data, const bool focus = true ) {}
 	void Reset();
-	std::string GetName() const;
+	std::string GetName() const override;
 
 	const char*	const			name;
 	WiimoteEmu::ExtensionReg&	reg;

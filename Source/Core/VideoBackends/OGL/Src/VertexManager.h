@@ -19,8 +19,8 @@ namespace OGL
 		GLVertexFormat();
 		~GLVertexFormat();
 
-		virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
-		virtual void SetupVertexPointers();
+		virtual void Initialize(const PortableVertexDeclaration &_vtx_decl) override;
+		virtual void SetupVertexPointers() override;
 
 		GLuint VAO;
 	};
@@ -32,9 +32,9 @@ class VertexManager : public ::VertexManager
 public:
 	VertexManager();
 	~VertexManager();
-	NativeVertexFormat* CreateNativeVertexFormat();
-	void CreateDeviceObjects();
-	void DestroyDeviceObjects();
+	NativeVertexFormat* CreateNativeVertexFormat() override;
+	void CreateDeviceObjects() override;
+	void DestroyDeviceObjects() override;
 
 	// NativeVertexFormat use this
 	GLuint m_vertex_buffers;
@@ -42,7 +42,7 @@ public:
 	GLuint m_last_vao;
 private:
 	void Draw(u32 stride);
-	void vFlush();
+	void vFlush() override;
 	void PrepareDrawBuffers(u32 stride);
 	NativeVertexFormat *m_CurrentVertexFmt;
 };

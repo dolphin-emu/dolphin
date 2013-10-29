@@ -128,7 +128,7 @@ public:
 class JitBlockCache : public JitBaseBlockCache
 {
 private:
-	void WriteLinkBlock(u8* location, const u8* address);
-	void WriteDestroyBlock(const u8* location, u32 address);
+	void WriteLinkBlock(u8* location, const u8* address) override;
+	void WriteDestroyBlock(const u8* location, u32 address) override;
 };
 #endif

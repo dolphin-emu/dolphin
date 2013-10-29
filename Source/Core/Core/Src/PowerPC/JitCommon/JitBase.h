@@ -95,11 +95,11 @@ protected:
 	JitBlockCache blocks;
 	TrampolineCache trampolines;
 public:
-	JitBlockCache *GetBlockCache() { return &blocks; }
+	JitBlockCache *GetBlockCache() override { return &blocks; }
 
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx);
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) override;
 
-	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
+	bool IsInCodeSpace(u8 *ptr) override { return IsInSpace(ptr); }
 };
 
 extern JitBase *jit;

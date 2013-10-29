@@ -189,14 +189,14 @@ class CEXIETHERNET : public IEXIDevice
 public:
 	CEXIETHERNET();
 	virtual ~CEXIETHERNET();
-	void SetCS(int cs);
-	bool IsPresent();
-	bool IsInterruptSet();
-	void ImmWrite(u32 data,  u32 size);
-	u32  ImmRead(u32 size);
-	void DMAWrite(u32 addr, u32 size);
-	void DMARead(u32 addr, u32 size);
-	void DoState(PointerWrap &p);
+	void SetCS(int cs) override;
+	bool IsPresent() override;
+	bool IsInterruptSet() override;
+	void ImmWrite(u32 data,  u32 size) override;
+	u32  ImmRead(u32 size) override;
+	void DMAWrite(u32 addr, u32 size) override;
+	void DMARead(u32 addr, u32 size) override;
+	void DoState(PointerWrap &p) override;
 
 //private:
 	struct

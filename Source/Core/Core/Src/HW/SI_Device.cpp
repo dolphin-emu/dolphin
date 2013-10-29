@@ -44,15 +44,15 @@ public:
 	CSIDevice_Null(SIDevices device, int _iDeviceNumber) : ISIDevice(device, _iDeviceNumber) {}
 	virtual ~CSIDevice_Null() {}
 
-	int RunBuffer(u8* _pBuffer, int _iLength) {
+	int RunBuffer(u8* _pBuffer, int _iLength) override {
 		reinterpret_cast<u32*>(_pBuffer)[0] = SI_ERROR_NO_RESPONSE;
 		return 4;
 	}
-	bool GetData(u32& _Hi, u32& _Low) {
+	bool GetData(u32& _Hi, u32& _Low) override {
 		_Hi = 0x80000000;
 		return true;
 	}
-	void SendCommand(u32 _Cmd, u8 _Poll) {}
+	void SendCommand(u32 _Cmd, u8 _Poll) override {}
 };
 
 

@@ -120,20 +120,20 @@ class CUCode_Zelda : public IUCode
 public:
 	CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC);
 	virtual ~CUCode_Zelda();
-	u32 GetUpdateMs();
+	u32 GetUpdateMs() override;
 
-	void HandleMail(u32 _uMail);
+	void HandleMail(u32 _uMail) override;
 	void HandleMail_LightVersion(u32 _uMail);
 	void HandleMail_SMSVersion(u32 _uMail);
 	void HandleMail_NormalVersion(u32 _uMail);
 
-	void Update(int cycles);
-	void MixAdd(short* buffer, int size);
+	void Update(int cycles) override;
+	void MixAdd(short* buffer, int size) override;
 
 	void CopyPBsFromRAM();
 	void CopyPBsToRAM();
 
-	void DoState(PointerWrap &p);
+	void DoState(PointerWrap &p) override;
 
 	int *templbuffer;
 	int *temprbuffer;

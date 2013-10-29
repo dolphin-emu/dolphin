@@ -92,24 +92,24 @@ public:
 
 	virtual ~CNANDContentLoader();
 
-	bool IsValid() const	{ return m_Valid; }
-	void RemoveTitle(void) const;
-	u64 GetTitleID() const  { return m_TitleID; }
-	u16 GetIosVersion() const { return m_IosVersion; }
-	u32 GetBootIndex() const  { return m_BootIndex; }
-	size_t GetContentSize() const { return m_Content.size(); }
-	const SNANDContent* GetContentByIndex(int _Index) const;
-	const u8* GetTMDView() const { return m_TMDView; }
-	const u8* GetTMDHeader() const { return m_TMDHeader; }
-	u32 GetTIKSize() const { return m_TIKSize; }
-	const u8* GetTIK() const { return m_TIK; }
+	bool IsValid() const override	{ return m_Valid; }
+	void RemoveTitle(void) const override;
+	u64 GetTitleID() const override  { return m_TitleID; }
+	u16 GetIosVersion() const override { return m_IosVersion; }
+	u32 GetBootIndex() const override  { return m_BootIndex; }
+	size_t GetContentSize() const override { return m_Content.size(); }
+	const SNANDContent* GetContentByIndex(int _Index) const override;
+	const u8* GetTMDView() const override { return m_TMDView; }
+	const u8* GetTMDHeader() const override { return m_TMDHeader; }
+	u32 GetTIKSize() const override { return m_TIKSize; }
+	const u8* GetTIK() const override { return m_TIK; }
 
-	const std::vector<SNANDContent>& GetContent() const { return m_Content; }
+	const std::vector<SNANDContent>& GetContent() const override { return m_Content; }
 
-	u16 GetTitleVersion() const {return m_TitleVersion;}
-	u16 GetNumEntries() const {return m_numEntries;}
-	DiscIO::IVolume::ECountry GetCountry() const;
-	u8 GetCountryChar() const {return m_Country; }
+	u16 GetTitleVersion() const override {return m_TitleVersion;}
+	u16 GetNumEntries() const override {return m_numEntries;}
+	DiscIO::IVolume::ECountry GetCountry() const override;
+	u8 GetCountryChar() const override {return m_Country; }
 
 private:
 

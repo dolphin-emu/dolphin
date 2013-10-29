@@ -71,7 +71,7 @@ class CEXIDummy : public IEXIDevice
 {
 	std::string m_strName;
 
-	void TransferByte(u8& _byte) {}
+	void TransferByte(u8& _byte) override {}
 
 public:
 	CEXIDummy(const std::string& _strName) :
@@ -81,10 +81,10 @@ public:
 
 	virtual ~CEXIDummy(){}
 
-	void ImmWrite(u32 data, u32 size)	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmWrite: %08x", m_strName.c_str(), data);}
-	u32  ImmRead (u32 size)				{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
-	void DMAWrite(u32 addr, u32 size)	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_strName.c_str(), size, addr);}
-	void DMARead (u32 addr, u32 size)	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_strName.c_str(), size, addr);}
+	void ImmWrite(u32 data, u32 size) override	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmWrite: %08x", m_strName.c_str(), data);}
+	u32  ImmRead (u32 size) override				{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
+	void DMAWrite(u32 addr, u32 size) override	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_strName.c_str(), size, addr);}
+	void DMARead (u32 addr, u32 size) override	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_strName.c_str(), size, addr);}
 };
 
 

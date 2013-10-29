@@ -21,13 +21,13 @@ class CEXIMemoryCard : public IEXIDevice
 public:
 	CEXIMemoryCard(const int index);
 	virtual ~CEXIMemoryCard();
-	void SetCS(int cs);
-	void Update();
-	bool IsInterruptSet();
-	bool IsPresent();
-	void DoState(PointerWrap &p);
-	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
-	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1);
+	void SetCS(int cs) override;
+	void Update() override;
+	bool IsInterruptSet() override;
+	bool IsPresent() override;
+	void DoState(PointerWrap &p) override;
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
+	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) override;
 
 private:
 	// This is scheduled whenever a page write is issued. The this pointer is passed
@@ -89,7 +89,7 @@ private:
 	std::thread flushThread;
 
 protected:
-	virtual void TransferByte(u8 &byte);
+	virtual void TransferByte(u8 &byte) override;
 };
 
 #endif

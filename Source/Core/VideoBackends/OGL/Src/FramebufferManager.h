@@ -49,10 +49,10 @@ struct XFBSource : public XFBSourceBase
 	XFBSource(GLuint tex) : texture(tex) {}
 	~XFBSource();
 
-	void CopyEFB(float Gamma);
-	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
+	void CopyEFB(float Gamma) override;
+	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
 	void Draw(const MathUtil::Rectangle<float> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
+		const MathUtil::Rectangle<float> &drawrc, int width, int height) const override;
 
 	const GLuint texture;
 };
@@ -99,10 +99,10 @@ public:
 	static void ReinterpretPixelData(unsigned int convtype);
 
 private:
-	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
-	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
+	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;
+	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc) override;
 
-	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma);
+	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
 
 	static int m_targetWidth;
 	static int m_targetHeight;

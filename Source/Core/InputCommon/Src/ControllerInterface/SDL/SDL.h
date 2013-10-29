@@ -43,9 +43,9 @@ private:
 	class Button : public Core::Device::Input
 	{
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		Button(u8 index, SDL_Joystick* js) : m_js(js), m_index(index) {}
-		ControlState GetState() const;
+		ControlState GetState() const override;
 	private:
 		 SDL_Joystick* const m_js;
 		 const u8 m_index;
@@ -54,9 +54,9 @@ private:
 	class Axis : public Core::Device::Input
 	{
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		Axis(u8 index, SDL_Joystick* js, Sint16 range) : m_js(js), m_range(range), m_index(index) {}
-		ControlState GetState() const;
+		ControlState GetState() const override;
 	private:
 		SDL_Joystick* const m_js;
 		const Sint16 m_range;
@@ -66,9 +66,9 @@ private:
 	class Hat : public Input
 	{
 	public:
-		std::string GetName() const;
+		std::string GetName() const override;
 		Hat(u8 index, SDL_Joystick* js, u8 direction) : m_js(js), m_direction(direction), m_index(index) {}
-		ControlState GetState() const;
+		ControlState GetState() const override;
 	private:
 		SDL_Joystick* const m_js;
 		const u8 m_direction;
@@ -130,15 +130,15 @@ private:
 #endif
 
 public:
-	bool UpdateInput();
-	bool UpdateOutput();
+	bool UpdateInput() override;
+	bool UpdateOutput() override;
 
 	Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index);
 	~Joystick();
 
-	std::string GetName() const;
-	int GetId() const;
-	std::string GetSource() const;
+	std::string GetName() const override;
+	int GetId() const override;
+	std::string GetSource() const override;
 
 private:
 	SDL_Joystick* const			m_joystick;
