@@ -1134,7 +1134,7 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	}
 	else
 	{
-		glViewport(round(X), round(Y), round(Width), round(Height));
+		glViewport(ceil(X), ceil(Y), ceil(Width), ceil(Height));
 	}
 	glDepthRangef(GLNear, GLFar);
 }
