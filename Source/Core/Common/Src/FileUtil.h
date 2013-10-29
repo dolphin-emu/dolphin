@@ -56,7 +56,7 @@ enum {
 namespace File
 {
 
-// FileSystem tree node/ 
+// FileSystem tree node/
 struct FSTEntry
 {
 	bool isDirectory;
@@ -94,16 +94,16 @@ bool Delete(const std::string &filename);
 // Deletes a directory filename, returns true on success
 bool DeleteDir(const std::string &filename);
 
-// renames file srcFilename to destFilename, returns true on success 
+// renames file srcFilename to destFilename, returns true on success
 bool Rename(const std::string &srcFilename, const std::string &destFilename);
 
 // ditto, but syncs the source file and, on Unix, syncs the directories after rename
 bool RenameSync(const std::string &srcFilename, const std::string &destFilename);
 
-// copies file srcFilename to destFilename, returns true on success 
+// copies file srcFilename to destFilename, returns true on success
 bool Copy(const std::string &srcFilename, const std::string &destFilename);
 
-// creates an empty file filename, returns true on success 
+// creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string &filename);
 
 // Scans the directory tree gets, starting from _Directory and adds the
@@ -157,10 +157,10 @@ public:
 	IOFile(const std::string& filename, const char openmode[]);
 
 	~IOFile();
-	
+
 	IOFile(IOFile&& other);
 	IOFile& operator=(IOFile&& other);
-	
+
 	void Swap(IOFile& other);
 
 	bool Open(const std::string& filename, const char openmode[]);

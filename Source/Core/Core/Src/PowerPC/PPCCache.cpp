@@ -73,7 +73,7 @@ namespace PowerPC
 		memset(tags, 0, sizeof(tags));
 		memset(way_from_valid, 0, sizeof(way_from_valid));
 		memset(way_from_plru, 0, sizeof(way_from_plru));
-		
+
 		Reset();
 	}
 
@@ -100,7 +100,7 @@ namespace PowerPC
 	}
 
 	u32 InstructionCache::ReadInstruction(u32 addr)
-	{		
+	{
 		if (!HID0.ICE) // instruction cache is disabled
 			return Memory::ReadUnchecked_U32(addr);
 		u32 set = (addr >> 5) & 0x7f;

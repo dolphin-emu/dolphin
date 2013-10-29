@@ -60,7 +60,7 @@ using namespace PowerPC;
 // will be as small to be negligible, so I haven't dirtied up the code with that. AMD recommends it in their
 // optimization manuals, though.
 //
-// We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets 
+// We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets
 // from the starts of each block, marking the exits so that they can be nicely patched at any time.
 //
 // Blocks do NOT use call/ret, they only jmp to each other and to the dispatcher when necessary.
@@ -94,7 +94,7 @@ using namespace PowerPC;
     CR2-CR4 are non-volatile, rest of CR is volatile -> dropped on blr.
 	R5-R12 are volatile -> dropped on blr.
   * classic inlining across calls.
-  
+
 Low hanging fruit:
 stfd -- guaranteed in memory
 cmpl
@@ -183,7 +183,7 @@ void Jit64::Init()
 	asm_routines.Init();
 }
 
-void Jit64::ClearCache() 
+void Jit64::ClearCache()
 {
 	blocks.Clear();
 	trampolines.ClearCodeSpace();
@@ -286,7 +286,7 @@ void Jit64::WriteExit(u32 destination, int exit_num)
 	JitBlock *b = js.curBlock;
 	b->exitAddress[exit_num] = destination;
 	b->exitPtrs[exit_num] = GetWritableCodePtr();
-	
+
 	// Link opportunity!
 	if (jo.enableBlocklink)
 	{
@@ -303,21 +303,21 @@ void Jit64::WriteExit(u32 destination, int exit_num)
 	JMP(asm_routines.dispatcher, true);
 }
 
-void Jit64::WriteExitDestInEAX() 
+void Jit64::WriteExitDestInEAX()
 {
 	MOV(32, M(&PC), R(EAX));
 	Cleanup();
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
-void Jit64::WriteRfiExitDestInEAX() 
+void Jit64::WriteRfiExitDestInEAX()
 {
 	MOV(32, M(&PC), R(EAX));
 	MOV(32, M(&NPC), R(EAX));
 	Cleanup();
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -337,7 +337,7 @@ void Jit64::WriteExternalExceptionExit()
 	MOV(32, R(EAX), M(&PC));
 	MOV(32, M(&NPC), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -374,11 +374,11 @@ void Jit64::Trace()
 		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
 		strncat(fregs, reg, 750);
 	}
-#endif	
+#endif
 
-	DEBUG_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
-		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], 
-		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, 
+	DEBUG_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s",
+		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3],
+		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr,
 		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
 }
 
@@ -666,7 +666,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.skipnext = false;
 			i++; // Skip next instruction
 		}
-		
+
 		if (js.cancel)
 			break;
 	}

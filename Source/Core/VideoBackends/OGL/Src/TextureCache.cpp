@@ -119,7 +119,7 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 			glActiveTexture(GL_TEXTURE0 + stage);
 			s_ActiveTexture = stage;
 		}
-		
+
 		glBindTexture(GL_TEXTURE_2D, texture);
 		s_Textures[stage] = texture;
 	}
@@ -148,7 +148,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 		{
 		default:
 		case PC_TEX_FMT_NONE:
-			PanicAlert("Invalid PC texture format %i", pcfmt); 
+			PanicAlert("Invalid PC texture format %i", pcfmt);
 		case PC_TEX_FMT_BGRA32:
 			gl_format = GL_BGRA;
 			gl_iformat = GL_RGBA;
@@ -200,7 +200,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	entry.pcfmt = pcfmt;
 
 	entry.m_tex_levels = tex_levels;
-	
+
 	entry.Load(width, height, expanded_width, 0);
 
 	return &entry;
@@ -264,7 +264,7 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 
 	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	
+
 	glGenFramebuffers(1, &entry->framebuffer);
 	FramebufferManager::SetFramebuffer(entry->framebuffer);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, entry->texture, 0);
@@ -355,7 +355,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
 			glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-			
+
 			vbo_it->second.targetSource = targetSource;
 		}
 
@@ -370,10 +370,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		int encoded_size = TextureConverter::EncodeToRamFromTexture(
 			addr,
 			read_texture,
-			srcFormat == PIXELFMT_Z24, 
-			isIntensity, 
-			dstFormat, 
-			scaleByHalf, 
+			srcFormat == PIXELFMT_Z24,
+			isIntensity,
+			dstFormat,
+			scaleByHalf,
 			srcRect);
 
 		u8* dst = Memory::GetPointer(addr);
@@ -404,7 +404,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 
 TextureCache::TextureCache()
 {
-	const char *pColorMatrixProg = 
+	const char *pColorMatrixProg =
 		"uniform sampler2DRect samp9;\n"
 		"uniform vec4 colmat[7];\n"
 		"VARYIN vec2 uv0;\n"
@@ -458,7 +458,7 @@ TextureCache::~TextureCache()
 {
 	s_ColorMatrixProgram.Destroy();
 	s_DepthMatrixProgram.Destroy();
-	
+
 	for(auto& cache : s_VBO) {
 		glDeleteBuffers(1, &cache.second.vbo);
 		glDeleteVertexArrays(1, &cache.second.vao);

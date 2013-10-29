@@ -117,7 +117,7 @@ void CEXIMic::StreamStop()
 void CEXIMic::StreamReadOne()
 {
 	std::lock_guard<std::mutex> lk(ring_lock);
-	
+
 	if (samples_avail >= buff_size_samples)
 	{
 		s16 *last_buffer = &stream_buffer[stream_rpos];
@@ -149,10 +149,10 @@ CEXIMic::CEXIMic(int index)
 	sample_rate = rate_base;
 	buff_size = ring_base;
 	buff_size_samples = buff_size / sample_size;
-	
+
 	ring_pos = 0;
 	memset(ring_buffer, 0, sizeof(ring_buffer));
-	
+
 	next_int_ticks = 0;
 
 	StreamInit();
@@ -222,7 +222,7 @@ void CEXIMic::TransferByte(u8 &byte)
 			status.button = Pad::GetMicButton(slot);
 
 		byte = status.U8[pos ^ 1];
-		
+
 		if (pos == 1)
 			status.buff_ovrflw = 0;
 		break;
@@ -240,7 +240,7 @@ void CEXIMic::TransferByte(u8 &byte)
 			buff_size_samples = buff_size / sample_size;
 
 			UpdateNextInterruptTicks();
-			
+
 			StreamStart();
 		}
 		else if (wasactive && !status.is_active)
@@ -254,7 +254,7 @@ void CEXIMic::TransferByte(u8 &byte)
 		{
 		if (ring_pos == 0)
 			StreamReadOne();
-		
+
 		byte = ring_buffer[ring_pos ^ 1];
 		ring_pos = (ring_pos + 1) % buff_size;
 		}

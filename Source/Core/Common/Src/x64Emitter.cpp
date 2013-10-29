@@ -16,7 +16,7 @@ struct NormalOpDef
 	u8 toRm8, toRm32, fromRm8, fromRm32, imm8, imm32, simm8, ext;
 };
 
-static const NormalOpDef nops[11] = 
+static const NormalOpDef nops[11] =
 {
 	{0x00, 0x01, 0x02, 0x03, 0x80, 0x81, 0x83, 0}, //ADD
 	{0x10, 0x11, 0x12, 0x13, 0x80, 0x81, 0x83, 2}, //ADC
@@ -230,7 +230,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 				SIB = true;
 			}
 
-			if (scale == SCALE_ATREG && ((_offsetOrBaseReg & 7) == 4)) 
+			if (scale == SCALE_ATREG && ((_offsetOrBaseReg & 7) == 4))
 			{
 				SIB = true;
 				ireg = _offsetOrBaseReg;
@@ -255,7 +255,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 	int oreg = _offsetOrBaseReg;
 	if (SIB)
 		oreg = 4;
-	
+
 	// TODO(ector): WTF is this if about? I don't remember writing it :-)
 	//if (RIP)
 	//    oreg = 5;
@@ -268,7 +268,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		int ss;
 		switch (scale)
 		{
-		case SCALE_NONE: _offsetOrBaseReg = 4; ss = 0; break; //RSP 
+		case SCALE_NONE: _offsetOrBaseReg = 4; ss = 0; break; //RSP
 		case SCALE_1: ss = 0; break;
 		case SCALE_2: ss = 1; break;
 		case SCALE_4: ss = 2; break;
@@ -299,7 +299,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 // B = base register# upper bit
 void XEmitter::Rex(int w, int r, int x, int b)
 {
-	w = w ? 1 : 0;		
+	w = w ? 1 : 0;
 	r = r ? 1 : 0;
 	x = x ? 1 : 0;
 	b = b ? 1 : 0;
@@ -495,7 +495,7 @@ void XEmitter::NOP(int count)
 		}
 		break;
 	}
-} 
+}
 
 void XEmitter::PAUSE() {Write8(0xF3); NOP();} //use in tight spinloops for energy saving on some cpu
 void XEmitter::CLC()  {Write8(0xF8);} //clear carry
@@ -557,8 +557,8 @@ void XEmitter::CBW(int bits)
 void XEmitter::PUSH(X64Reg reg) {WriteSimple1Byte(32, 0x50, reg);}
 void XEmitter::POP(X64Reg reg)  {WriteSimple1Byte(32, 0x58, reg);}
 
-void XEmitter::PUSH(int bits, const OpArg &reg) 
-{ 
+void XEmitter::PUSH(int bits, const OpArg &reg)
+{
 	if (reg.IsSimpleReg())
 		PUSH(reg.GetSimpleReg());
 	else if (reg.IsImm())
@@ -594,7 +594,7 @@ void XEmitter::PUSH(int bits, const OpArg &reg)
 }
 
 void XEmitter::POP(int /*bits*/, const OpArg &reg)
-{ 
+{
 	if (reg.IsSimpleReg())
 		POP(reg.GetSimpleReg());
 	else
@@ -787,7 +787,7 @@ void XEmitter::WriteShift(int bits, OpArg dest, OpArg &shift, int ext)
 	}
 	if ((shift.IsSimpleReg() && shift.GetSimpleReg() != ECX) || (shift.IsImm() && shift.GetImmBits() != 8))
 	{
-		_assert_msg_(DYNA_REC, 0, "WriteShift - illegal argument"); 
+		_assert_msg_(DYNA_REC, 0, "WriteShift - illegal argument");
 	}
 	dest.operandReg = ext;
 	if (bits == 16) Write8(0x66);
@@ -834,7 +834,7 @@ void XEmitter::WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext)
 	}
 	if ((index.IsImm() && index.GetImmBits() != 8))
 	{
-		_assert_msg_(DYNA_REC, 0, "WriteBitTest - illegal argument"); 
+		_assert_msg_(DYNA_REC, 0, "WriteBitTest - illegal argument");
 	}
 	if (bits == 16) Write8(0x66);
 	if (index.IsImm())
@@ -871,7 +871,7 @@ void XEmitter::SHRD(int bits, OpArg dest, OpArg src, OpArg shift)
 	}
 	if ((shift.IsSimpleReg() && shift.GetSimpleReg() != ECX) || (shift.IsImm() && shift.GetImmBits() != 8))
 	{
-		_assert_msg_(DYNA_REC, 0, "SHRD - illegal shift"); 
+		_assert_msg_(DYNA_REC, 0, "SHRD - illegal shift");
 	}
 	if (bits == 16) Write8(0x66);
 	X64Reg operand = src.GetSimpleReg();
@@ -901,7 +901,7 @@ void XEmitter::SHLD(int bits, OpArg dest, OpArg src, OpArg shift)
 	}
 	if ((shift.IsSimpleReg() && shift.GetSimpleReg() != ECX) || (shift.IsImm() && shift.GetImmBits() != 8))
 	{
-		_assert_msg_(DYNA_REC, 0, "SHLD - illegal shift"); 
+		_assert_msg_(DYNA_REC, 0, "SHLD - illegal shift");
 	}
 	if (bits == 16) Write8(0x66);
 	X64Reg operand = src.GetSimpleReg();
@@ -954,13 +954,13 @@ void OpArg::WriteNormalOp(XEmitter *emit, bool toRM, NormalOp op, const OpArg &o
 			_assert_msg_(DYNA_REC, 0, "WriteNormalOp - Writing to Imm (!toRM)");
 		}
 
-		if (operand.scale == SCALE_IMM8 && bits == 8) 
+		if (operand.scale == SCALE_IMM8 && bits == 8)
 		{
 			emit->Write8(nops[op].imm8);
 			immToWrite = 8;
 		}
 		else if ((operand.scale == SCALE_IMM16 && bits == 16) ||
-				 (operand.scale == SCALE_IMM32 && bits == 32) || 
+				 (operand.scale == SCALE_IMM32 && bits == 32) ||
 				 (operand.scale == SCALE_IMM32 && bits == 64))
 		{
 			emit->Write8(nops[op].imm32);
@@ -1056,11 +1056,11 @@ void XEmitter::SBB (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(t
 void XEmitter::AND (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmAND, a1, a2);}
 void XEmitter::OR  (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmOR , a1, a2);}
 void XEmitter::XOR (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(this, bits, nrmXOR, a1, a2);}
-void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2) 
+void XEmitter::MOV (int bits, const OpArg &a1, const OpArg &a2)
 {
 #ifdef _DEBUG
-	_assert_msg_(DYNA_REC, !a1.IsSimpleReg() || !a2.IsSimpleReg() || a1.GetSimpleReg() != a2.GetSimpleReg(), "Redundant MOV @ %p - bug in JIT?", 
-				 code); 
+	_assert_msg_(DYNA_REC, !a1.IsSimpleReg() || !a2.IsSimpleReg() || a1.GetSimpleReg() != a2.GetSimpleReg(), "Redundant MOV @ %p - bug in JIT?",
+				 code);
 #endif
 	WriteNormalOp(this, bits, nrmMOV, a1, a2);
 }
@@ -1188,7 +1188,7 @@ void XEmitter::MOVQ_xmm(OpArg arg, X64Reg src) {
 
 void XEmitter::WriteMXCSR(OpArg arg, int ext)
 {
-	if (arg.IsImm() || arg.IsSimpleReg()) 
+	if (arg.IsImm() || arg.IsSimpleReg())
 		_assert_msg_(DYNA_REC, 0, "MXCSR - invalid operand");
 
 	arg.operandReg = ext;
@@ -1248,8 +1248,8 @@ void XEmitter::MAXPD(X64Reg regOp, OpArg arg)   {WriteSSEOp(64, sseMAX, true, re
 void XEmitter::SQRTPS(X64Reg regOp, OpArg arg)  {WriteSSEOp(32, sseSQRT, true, regOp, arg);}
 void XEmitter::SQRTPD(X64Reg regOp, OpArg arg)  {WriteSSEOp(64, sseSQRT, true, regOp, arg);}
 void XEmitter::RSQRTPS(X64Reg regOp, OpArg arg) {WriteSSEOp(32, sseRSQRT, true, regOp, arg);}
-void XEmitter::SHUFPS(X64Reg regOp, OpArg arg, u8 shuffle) {WriteSSEOp(32, sseSHUF, true, regOp, arg,1); Write8(shuffle);} 
-void XEmitter::SHUFPD(X64Reg regOp, OpArg arg, u8 shuffle) {WriteSSEOp(64, sseSHUF, true, regOp, arg,1); Write8(shuffle);} 
+void XEmitter::SHUFPS(X64Reg regOp, OpArg arg, u8 shuffle) {WriteSSEOp(32, sseSHUF, true, regOp, arg,1); Write8(shuffle);}
+void XEmitter::SHUFPD(X64Reg regOp, OpArg arg, u8 shuffle) {WriteSSEOp(64, sseSHUF, true, regOp, arg,1); Write8(shuffle);}
 
 void XEmitter::COMISS(X64Reg regOp, OpArg arg)  {WriteSSEOp(32, sseCOMIS, true, regOp, arg);} //weird that these should be packed
 void XEmitter::COMISD(X64Reg regOp, OpArg arg)  {WriteSSEOp(64, sseCOMIS, true, regOp, arg);} //ordered
@@ -1300,7 +1300,7 @@ void XEmitter::UNPCKHPS(X64Reg dest, OpArg arg) {WriteSSEOp(32, 0x15, true, dest
 void XEmitter::UNPCKLPD(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x14, true, dest, arg);}
 void XEmitter::UNPCKHPD(X64Reg dest, OpArg arg) {WriteSSEOp(64, 0x15, true, dest, arg);}
 
-void XEmitter::MOVDDUP(X64Reg regOp, OpArg arg) 
+void XEmitter::MOVDDUP(X64Reg regOp, OpArg arg)
 {
 	if (cpu_info.bSSE3)
 	{
@@ -1456,7 +1456,7 @@ void XEmitter::FWAIT()
 }
 
 void XEmitter::RTDSC() { Write8(0x0F); Write8(0x31); }
-	
+
 // helper routines for setting pointers
 void XEmitter::CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 {

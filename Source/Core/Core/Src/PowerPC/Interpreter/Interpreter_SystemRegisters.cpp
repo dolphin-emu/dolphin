@@ -40,7 +40,7 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 {
 
 	FPURoundMode::SetRoundMode(fp.RN);
-	
+
 	if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)
 	{
 		//PanicAlert("FPSCR - exceptions enabled. Please report. VE=%i OE=%i UE=%i ZE=%i XE=%i",
@@ -80,7 +80,7 @@ void Interpreter::mtfsb1x(UGeckoInstruction _inst)
 		SetFPException(b);
 	else
 		FPSCR.Hex |= b;
-	FPSCRtoFPUSettings(FPSCR);	
+	FPSCRtoFPUSettings(FPSCR);
 
 	if (_inst.Rc) PanicAlert("mtfsb1x: inst_.Rc");
 }
@@ -124,7 +124,7 @@ void Interpreter::mtfsfx(UGeckoInstruction _inst)
 void Interpreter::mcrxr(UGeckoInstruction _inst)
 {
 	// USES_XER
-	SetCRField(_inst.CRFD, PowerPC::ppcState.spr[SPR_XER] >> 28); 
+	SetCRField(_inst.CRFD, PowerPC::ppcState.spr[SPR_XER] >> 28);
 	PowerPC::ppcState.spr[SPR_XER] &= ~0xF0000000; // clear 0-3
 }
 
@@ -218,7 +218,7 @@ void Interpreter::mfspr(UGeckoInstruction _inst)
 	//XER LR CTR are the only ones available in user mode, time base can be read too.
 	//Gamecube games always run in superuser mode, but hey....
 
-	switch (iIndex) 
+	switch (iIndex)
 	{
 	case SPR_DEC:
 		if ((rSPR(iIndex) & 0x80000000) == 0) // We are still decrementing
@@ -241,7 +241,7 @@ void Interpreter::mfspr(UGeckoInstruction _inst)
 				rSPR(iIndex) |= 1;  // BNE = buffer not empty
 			else
 				rSPR(iIndex) &= ~1;
-		}		
+		}
 		break;
 	}
 	m_GPR[_inst.RD] = rSPR(iIndex);
@@ -343,13 +343,13 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
 	case SPR_DMAL:
 		// Locked cache<->Memory DMA
 		// Total fake, we ignore that DMAs take time.
-		if (DMAL.DMA_T) 
+		if (DMAL.DMA_T)
 		{
 			u32 dwMemAddress = DMAU.MEM_ADDR << 5;
 			u32 dwCacheAddress = DMAL.LC_ADDR << 5;
 			u32 iLength = ((DMAU.DMA_LEN_U << 2) | DMAL.DMA_LEN_L);
 			// INFO_LOG(POWERPC, "DMA: mem = %x, cache = %x, len = %u, LD = %d, PC=%x", dwMemAddress, dwCacheAddress, iLength, (int)DMAL.DMA_LD, PC);
-			if (iLength == 0) 
+			if (iLength == 0)
 				iLength = 128;
 			if (DMAL.DMA_LD)
 				Memory::DMA_MemoryToLC(dwCacheAddress, dwMemAddress, iLength);
@@ -465,7 +465,7 @@ void Interpreter::mcrfs(UGeckoInstruction _inst)
 		FPSCR.VXCVI = 0;
 		break;
 	}
-	SetCRField(_inst.CRFD, fpflags);	
+	SetCRField(_inst.CRFD, fpflags);
 }
 
 void Interpreter::mffsx(UGeckoInstruction _inst)

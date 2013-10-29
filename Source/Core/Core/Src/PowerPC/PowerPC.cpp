@@ -199,7 +199,7 @@ void SetMode(CoreMode new_mode)
 	}
 }
 
-void SingleStep() 
+void SingleStep()
 {
 	cpu_core_base->SingleStep();
 }
@@ -342,7 +342,7 @@ void CheckExceptions()
 
 		INFO_LOG(POWERPC, "EXCEPTION_PROGRAM");
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_PROGRAM);
-	} 
+	}
 	else if (exceptions & EXCEPTION_SYSCALL)
 	{
 		SRR0 = NPC;
@@ -355,7 +355,7 @@ void CheckExceptions()
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_SYSCALL);
 	}
 	else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
-	{			
+	{
 		//This happens a lot - Gamecube OS uses deferred FPU context switching
 		SRR0 = PC;	// re-execute the instruction
 		SRR1 = MSR & 0x87C0FFFF;
@@ -377,7 +377,7 @@ void CheckExceptions()
 
 		INFO_LOG(POWERPC, "EXCEPTION_DSI");
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_DSI);
-	} 
+	}
 	else if (exceptions & EXCEPTION_ALIGNMENT)
 	{
 		//This never happens ATM

@@ -1,17 +1,17 @@
 /*
  * Copyright (c) 2006, Creative Labs Inc.
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided
  * that the following conditions are met:
- * 
+ *
  *     * Redistributions of source code must retain the above copyright notice, this list of conditions and
  * 	     the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright notice, this list of conditions
  * 	     and the following disclaimer in the documentation and/or other materials provided with the distribution.
  *     * Neither the name of Creative Labs Inc. nor the names of its contributors may be used to endorse or
  * 	     promote products derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
  * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
@@ -36,7 +36,7 @@
 #endif
 
 
-/* 
+/*
  * Init call
  */
 ALDeviceList::ALDeviceList()
@@ -61,30 +61,30 @@ ALDeviceList::ALDeviceList()
 			defaultDeviceName = (char *)alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
 			index = 0;
 			// go through device list (each device terminated with a single NULL, list terminated with double NULL)
-			while (devices != NULL && strlen(devices) > 0) 
+			while (devices != NULL && strlen(devices) > 0)
 			{
-				if (strcmp(defaultDeviceName, devices) == 0) 
+				if (strcmp(defaultDeviceName, devices) == 0)
 				{
 					defaultDeviceIndex = index;
 				}
 				ALCdevice *device = alcOpenDevice(devices);
-				if (device) 
+				if (device)
 				{
 					ALCcontext *context = alcCreateContext(device, NULL);
-					if (context) 
+					if (context)
 					{
 						alcMakeContextCurrent(context);
 						// if new actual device name isn't already in the list, then add it...
 						actualDeviceName = alcGetString(device, ALC_DEVICE_SPECIFIER);
 						bool bNewName = true;
-						for (s32 i = 0; i < GetNumDevices(); i++) 
+						for (s32 i = 0; i < GetNumDevices(); i++)
 						{
-							if (strcmp(GetDeviceName(i), actualDeviceName) == 0) 
+							if (strcmp(GetDeviceName(i), actualDeviceName) == 0)
 							{
 								bNewName = false;
 							}
 						}
-						if ((bNewName) && (actualDeviceName != NULL) && (strlen(actualDeviceName) > 0)) 
+						if ((bNewName) && (actualDeviceName != NULL) && (strlen(actualDeviceName) > 0))
 						{
 							ALDeviceInfo.bSelected = true;
 							ALDeviceInfo.strDeviceName = actualDeviceName;
@@ -107,7 +107,7 @@ ALDeviceList::ALDeviceList()
 								ALDeviceInfo.pvstrExtensions->push_back("AL_EXT_LINEAR_DISTANCE");
 							if (alIsExtensionPresent("AL_EXT_EXPONENT_DISTANCE") == AL_TRUE)
 								ALDeviceInfo.pvstrExtensions->push_back("AL_EXT_EXPONENT_DISTANCE");
-							
+
 							if (alIsExtensionPresent("EAX2.0") == AL_TRUE)
 								ALDeviceInfo.pvstrExtensions->push_back("EAX2.0");
 							if (alIsExtensionPresent("EAX3.0") == AL_TRUE)
@@ -139,7 +139,7 @@ ALDeviceList::ALDeviceList()
 	ResetFilters();
 }
 
-/* 
+/*
  * Exit call
  */
 ALDeviceList::~ALDeviceList()
@@ -159,10 +159,10 @@ ALDeviceList::~ALDeviceList()
  */
 s32 ALDeviceList::GetNumDevices()
 {
-	return (s32)vDeviceInfo.size();	
+	return (s32)vDeviceInfo.size();
 }
 
-/* 
+/*
  * Returns the device name at an index in the complete device list
  */
 char * ALDeviceList::GetDeviceName(s32 index)
@@ -210,7 +210,7 @@ bool ALDeviceList::IsExtensionSupported(s32 index, char *szExtName)
 			if (!strcasecmp(ext.c_str(), szExtName)) {
 				bReturn = true;
 				break;
-			}				
+			}
 		}
 	}
 
@@ -225,7 +225,7 @@ s32 ALDeviceList::GetDefaultDevice()
 	return defaultDeviceIndex;
 }
 
-/* 
+/*
  * Deselects devices which don't have the specified minimum version
  */
 void ALDeviceList::FilterDevicesMinVer(s32 major, s32 minor)
@@ -239,7 +239,7 @@ void ALDeviceList::FilterDevicesMinVer(s32 major, s32 minor)
 	}
 }
 
-/* 
+/*
  * Deselects devices which don't have the specified maximum version
  */
 void ALDeviceList::FilterDevicesMaxVer(s32 major, s32 minor)

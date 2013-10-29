@@ -37,7 +37,7 @@ public:
 		bool scaleByHalf);
 
 private:
-	
+
 	bool m_ready;
 
 	ID3D11Texture2D* m_out;
@@ -73,7 +73,7 @@ private:
 
 	// Stuff only used for dynamic-linking mode (SM5.0+, available as soon as
 	// Microsoft fixes their bloody HLSL compiler)
-	
+
 	bool InitDynamicMode();
 	bool SetDynamicShader(unsigned int dstFormat, unsigned int srcFormat,
 		bool isIntensity, bool scaleByHalf);

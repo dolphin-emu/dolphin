@@ -43,7 +43,7 @@ __forceinline u16 DataPeek16(int _uOffset)
 	return DataPeek<u16>(_uOffset);
 }
 
-__forceinline u32 DataPeek32(int _uOffset)	
+__forceinline u32 DataPeek32(int _uOffset)
 {
 	return DataPeek<u32>(_uOffset);
 }

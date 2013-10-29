@@ -24,7 +24,7 @@ const u16 trigger_bitmasks[] =
 
 const u16 dpad_bitmasks[] =
 {
-	PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT 
+	PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT
 };
 
 const char* const named_buttons[] =

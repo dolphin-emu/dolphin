@@ -101,13 +101,13 @@ void LogConfigWindow::LoadSettings()
 	// Retrieve the verbosity value from the config ini file.
 	int verbosity;
 	ini.Get("Options", "Verbosity", &verbosity, 0);
-	
+
 	// Ensure the verbosity level is valid.
 	if (verbosity < 1)
 		verbosity = 1;
 	if (verbosity > MAX_LOGLEVEL)
 		verbosity = MAX_LOGLEVEL;
-	
+
 	// Actually set the logging verbosity.
 	m_verbosity->SetSelection(verbosity - 1);
 
@@ -136,10 +136,10 @@ void LogConfigWindow::LoadSettings()
 	{
 		bool log_enabled;
 		ini.Get("Logs", m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &log_enabled, true);
-		
+
 		if (log_enabled)
 			enableAll = false;
-		
+
 		m_checks->Check(i, log_enabled);
 	}
 }
@@ -175,7 +175,7 @@ void LogConfigWindow::OnVerbosityChange(wxCommandEvent& event)
 {
 	// Get the new verbosity
 	int v = m_verbosity->GetSelection() + 1;
-	
+
 	// Set all log types to that verbosity level
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{

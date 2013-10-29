@@ -158,7 +158,7 @@ struct Projection
 
 union TexMtxInfo
 {
-	struct 
+	struct
 	{
 		u32 unknown    : 1;
 		u32 projection : 1; // XF_TEXPROJ_X
@@ -173,7 +173,7 @@ union TexMtxInfo
 
 union PostMtxInfo
 {
-	struct 
+	struct
 	{
 		u32 index : 6; // base row of dual transform matrix
 		u32 unused : 2;

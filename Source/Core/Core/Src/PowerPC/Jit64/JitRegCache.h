@@ -16,7 +16,7 @@ enum FlushMode
 enum GrabMode
 {
 	M_READ = 1,
-	M_WRITE = 2, 
+	M_WRITE = 2,
 	M_READWRITE = 3,
 };
 
@@ -58,7 +58,7 @@ protected:
 	X64CachedReg saved_xregs[NUMXREGS];
 
 	virtual const int *GetAllocationOrder(int &count) = 0;
-	
+
 	XEmitter *emit;
 
 public:
@@ -70,7 +70,7 @@ public:
 	void DiscardRegContentsIfCached(int preg);
 	void SetEmitter(XEmitter *emitter) {emit = emitter;}
 
-	void FlushR(X64Reg reg); 
+	void FlushR(X64Reg reg);
 	void FlushR(X64Reg reg, X64Reg reg2) {FlushR(reg); FlushR(reg2);}
 	void FlushLockX(X64Reg reg) {
 		FlushR(reg);
@@ -93,9 +93,9 @@ public:
 	const OpArg &R(int preg) const {return regs[preg].location;}
 	X64Reg RX(int preg) const
 	{
-		if (regs[preg].away && regs[preg].location.IsSimpleReg()) 
-			return regs[preg].location.GetSimpleReg(); 
-		PanicAlert("Not so simple - %i", preg); 
+		if (regs[preg].away && regs[preg].location.IsSimpleReg())
+			return regs[preg].location.GetSimpleReg();
+		PanicAlert("Not so simple - %i", preg);
 		return (X64Reg)-1;
 	}
 	virtual OpArg GetDefaultLocation(int reg) const = 0;

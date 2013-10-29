@@ -27,7 +27,7 @@ void LabelMap::RegisterDefaults()
 void LabelMap::RegisterLabel(const std::string &label, u16 lval, LabelType type)
 {
 	u16 old_value;
-	if (GetLabelValue(label, &old_value) && old_value != lval) 
+	if (GetLabelValue(label, &old_value) && old_value != lval)
 	{
 		printf("WARNING: Redefined label %s to %04x - old value %04x\n",
 			   label.c_str(), lval, old_value);

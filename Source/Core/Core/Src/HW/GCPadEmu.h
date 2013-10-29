@@ -19,7 +19,7 @@ public:
 	void SetMotor(const u8 on);
 
 	bool GetMicButton() const;
-	
+
 	std::string GetName() const;
 
 	void LoadDefaults(const ControllerInterface& ciface);

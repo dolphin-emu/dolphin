@@ -385,7 +385,7 @@ void CWII_IPC_HLE_WiiMote::ReceiveConnectionReq(u8 _Ident, u8* _pData, u32 _Size
 
 	INFO_LOG(WII_IPC_WIIMOTE, "[L2CAP] SendConnectionResponse");
 	SendCommandToACL(_Ident, L2CAP_CONNECT_RSP, sizeof(l2cap_con_rsp_cp), (u8*)&Rsp);
-	
+
 	// update state machine
 	/*
 	if (rChannel.PSM == L2CAP_PSM_HID_CNTL)
@@ -613,7 +613,7 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16 MTU, u16 Flush
 		*(u16*)&Buffer[Offset] = MTU;					Offset += L2CAP_OPT_MTU_SIZE;
 		DEBUG_LOG(WII_IPC_WIIMOTE, "    MTU: 0x%04x", MTU);
 	}
-	
+
 	if (FlushTimeOut || rChannel.FlushTimeOut)
 	{
 		if (FlushTimeOut == 0)
@@ -650,7 +650,7 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceSearchResponse(u16 cid, u16 Transaction
 {
 	// verify block... we handle search pattern for HID service only
 	{
-		CBigEndianBuffer buffer(pServiceSearchPattern);		
+		CBigEndianBuffer buffer(pServiceSearchPattern);
 		_dbg_assert_(WII_IPC_WIIMOTE, buffer.Read8(0) == SDP_SEQ8);   // data sequence
 		_dbg_assert_(WII_IPC_WIIMOTE, buffer.Read8(1) == 0x03);       // sequence size
 
@@ -757,7 +757,7 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 Transact
 	int Offset = 0;
 	l2cap_hdr_t* pHeader = (l2cap_hdr_t*)&DataFrame[Offset];			Offset += sizeof(l2cap_hdr_t);
 	pHeader->dcid = cid;
-		
+
 	buffer.Write8 (Offset, 0x05);										Offset++;
 	buffer.Write16(Offset, TransactionID);								Offset += 2;			// transaction ID
 

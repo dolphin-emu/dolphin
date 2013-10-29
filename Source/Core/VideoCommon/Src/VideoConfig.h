@@ -6,7 +6,7 @@
 // IMPORTANT: UI etc should modify g_Config. Graphics code should read g_ActiveConfig.
 // The reason for this is to get rid of race conditions etc when the configuration
 // changes in the middle of a frame. This is done by copying g_Config to g_ActiveConfig
-// at the start of every frame. Noone should ever change members of g_ActiveConfig 
+// at the start of every frame. Noone should ever change members of g_ActiveConfig
 // directly.
 
 #ifndef _VIDEO_CONFIG_H_
@@ -112,7 +112,7 @@ struct VideoConfig
 	bool bEFBCopyEnable;
 	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;
-	bool bCopyEFBToTexture;	
+	bool bCopyEFBToTexture;
 	bool bCopyEFBScaled;
 	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[4];

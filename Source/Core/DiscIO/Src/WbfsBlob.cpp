@@ -138,13 +138,13 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
 {
 	u64 base_cluster = offset >> wbfs_sector_shift;
 	if(base_cluster < m_blocks_per_disc)
-	{	
+	{
 		u64 cluster_address = wbfs_sector_size * Common::swap16(m_wlba_table[base_cluster]);
 		u64 cluster_offset = offset & (wbfs_sector_size - 1);
 		u64 final_address = cluster_address + cluster_offset;
 
 		for(u32 i = 0; i != m_total_files; i ++)
-		{	
+		{
 			if(final_address < (m_files[i]->base_address + m_files[i]->size))
 			{
 				m_files[i]->file.Seek(final_address - m_files[i]->base_address, SEEK_SET);
@@ -187,7 +187,7 @@ bool IsWbfsBlob(const char* filename)
 	u8 magic[4] = {0, 0, 0, 0};
 	f.ReadBytes(&magic, 4);
 
-	return	(magic[0] == 'W') && 
+	return	(magic[0] == 'W') &&
 			(magic[1] == 'B') &&
 			(magic[2] == 'F') &&
 			(magic[3] == 'S');

@@ -53,7 +53,7 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 	GLuint programID = glCreateProgram();
-	
+
 	// compile vertex shader
 	glShaderSource(vertexShaderID, 1, &vertexShader, NULL);
 	glCompileShader(vertexShaderID);
@@ -72,7 +72,7 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 	}
 	bool shader_errors = !Result;
 #endif
-	
+
 	// compile fragment shader
 	glShaderSource(fragmentShaderID, 1, &fragmentShader, NULL);
 	glCompileShader(fragmentShaderID);
@@ -88,7 +88,7 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 	}
 	shader_errors |= !Result;
 #endif
-	
+
 	// link them
 	glAttachShader(programID, vertexShaderID);
 	glAttachShader(programID, fragmentShaderID);
@@ -102,11 +102,11 @@ GLuint OpenGL_CompileProgram ( const char* vertexShader, const char* fragmentSha
 		ERROR_LOG(VIDEO, "GLSL linker error:\n%s%s%s", stringBuffer, vertexShader, fragmentShader);
 	}
 #endif
-	
+
 	// cleanup
 	glDeleteShader(vertexShaderID);
 	glDeleteShader(fragmentShaderID);
-	
+
 	return programID;
 }
 

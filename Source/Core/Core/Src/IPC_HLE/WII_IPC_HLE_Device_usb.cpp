@@ -483,13 +483,13 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u
 		ERROR_LOG(WII_IPC_WIIMOTE, "ACL queue size reached 100 - current packet will be dropped!");
 		return;
 	}
-	
+
 	_dbg_assert_msg_(WII_IPC_WIIMOTE,
 		size < m_acl_pkt_size, "ACL packet too large for pool");
-	
+
 	m_queue.push_back(Packet());
 	auto& packet = m_queue.back();
-	
+
 	std::copy(data, data + size, packet.data);
 	packet.size = size;
 	packet.conn_handle = conn_handle;
@@ -498,7 +498,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::WriteToEndpoint(CtrlBuffer& endpoint)
 {
 	auto& packet = m_queue.front();
-	
+
 	const u8* const data = packet.data;
 	const u16 size = packet.size;
 	const u16 conn_handle = packet.conn_handle;
@@ -546,7 +546,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 
 	SQueuedEvent Event(static_cast<u32>(sizeof(SHCIEventInquiryResult) + m_WiiMotes.size()*sizeof(hci_inquiry_response)), 0);
 
-	SHCIEventInquiryResult* pInquiryResult = (SHCIEventInquiryResult*)Event.m_buffer;  
+	SHCIEventInquiryResult* pInquiryResult = (SHCIEventInquiryResult*)Event.m_buffer;
 
 	pInquiryResult->EventType = HCI_EVENT_INQUIRY_RESULT;
 	pInquiryResult->PayloadLength = (u8)(sizeof(SHCIEventInquiryResult) - 2 + (m_WiiMotes.size() * sizeof(hci_inquiry_response)));
@@ -558,7 +558,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 			continue;
 
 		u8* pBuffer = Event.m_buffer + sizeof(SHCIEventInquiryResult) + i*sizeof(hci_inquiry_response);
-		hci_inquiry_response* pResponse = (hci_inquiry_response*)pBuffer;   
+		hci_inquiry_response* pResponse = (hci_inquiry_response*)pBuffer;
 
 		pResponse->bdaddr = m_WiiMotes[i].GetBD();
 		pResponse->uclass[0]= m_WiiMotes[i].GetClass()[0];
@@ -757,7 +757,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadRemoteFeatures(u16 _conne
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventReadRemoteFeatures");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", pReadRemoteFeatures->ConnectionHandle);
-	DEBUG_LOG(WII_IPC_WIIMOTE, "  features: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",   
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  features: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 		pReadRemoteFeatures->features[0], pReadRemoteFeatures->features[1], pReadRemoteFeatures->features[2],
 		pReadRemoteFeatures->features[3], pReadRemoteFeatures->features[4], pReadRemoteFeatures->features[5],
 		pReadRemoteFeatures->features[6], pReadRemoteFeatures->features[7]);
@@ -830,7 +830,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandStatus(u16 _Opcode)
 	pHCIEvent->PacketIndicator = 0x01;
 	pHCIEvent->Opcode = _Opcode;
 
-	INFO_LOG(WII_IPC_WIIMOTE, "Event: Command Status (Opcode: 0x%04x)", pHCIEvent->Opcode); 
+	INFO_LOG(WII_IPC_WIIMOTE, "Event: Command Status (Opcode: 0x%04x)", pHCIEvent->Opcode);
 
 	AddEventToQueue(Event);
 
@@ -886,7 +886,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 		event->num_con_handles++;
 		info->compl_pkts = m_PacketCount[i];
 		info->con_handle = m_WiiMotes[i].GetConnectionHandle();
-		
+
 		DEBUG_LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", info->con_handle);
 		DEBUG_LOG(WII_IPC_WIIMOTE, "  Number_Of_Completed_Packets: %i", info->compl_pkts);
 
@@ -1733,7 +1733,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadLocalFeatures(u8* _Input)
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_READ_LOCAL_FEATURES:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "return:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "  features: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",   
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  features: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 		Reply.features[0], Reply.features[1], Reply.features[2],
 		Reply.features[3], Reply.features[4], Reply.features[5],
 		Reply.features[6], Reply.features[7]);

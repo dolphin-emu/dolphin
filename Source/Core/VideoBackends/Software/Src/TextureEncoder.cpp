@@ -359,7 +359,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			RGBA_to_RGBA8(src, dst[1], dst[32], dst[33], dst[0]); 
+			RGBA_to_RGBA8(src, dst[1], dst[32], dst[33], dst[0]);
 			src += readStride;
 			dst += 2;
 		}
@@ -563,7 +563,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 			boxfilterRGBA_to_RGB8(src, r, g, b);
 			src += readStride;
 
-			u16 val = ((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001e); 
+			u16 val = ((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001e);
 			*(u16*)dst = Common::swap16(val);
 			dst+=2;
 		}
@@ -595,7 +595,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGBA_to_RGBA8(src, dst[1], dst[32], dst[33], dst[0]); 
+			boxfilterRGBA_to_RGBA8(src, dst[1], dst[32], dst[33], dst[0]);
 			src += readStride;
 			dst += 2;
 		}
@@ -721,7 +721,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
 	default:
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
-		break;		
+		break;
 	}
 }
 
@@ -790,7 +790,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			u16 val = ((src[2] << 8) & 0xf800) | ((src[1] << 3) & 0x07e0) | ((src[0] >> 3) & 0x001e); 
+			u16 val = ((src[2] << 8) & 0xf800) | ((src[1] << 3) & 0x07e0) | ((src[0] >> 3) & 0x001e);
 			*(u16*)dst = Common::swap16(val);
 			src += readStride;
 			dst+=2;
@@ -935,7 +935,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
 	default:
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
-		break;		
+		break;
 	}
 }
 
@@ -1010,7 +1010,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 		ENCODE_LOOP_BLOCKS
 		{
 			boxfilterRGB_to_RGB8(src, r, g, b);
-			u16 val = ((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001e); 
+			u16 val = ((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001e);
 			*(u16*)dst = Common::swap16(val);
 			src += readStride;
 			dst+=2;
@@ -1166,7 +1166,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
 	default:
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
-		break;		
+		break;
 	}
 }
 
@@ -1270,7 +1270,7 @@ void EncodeZ24(u8 *dst, u8 *src, u32 format)
 
 	default:
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
-		break;		
+		break;
 	}
 }
 
@@ -1314,7 +1314,7 @@ void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 		SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
 		ENCODE_LOOP_BLOCKS
 		{
-			boxfilterRGB_to_RGB8(src, dst[33], dst[32], dst[1]); 
+			boxfilterRGB_to_RGB8(src, dst[33], dst[32], dst[1]);
 			dst[0] = 255;
 			src += readStride;
 			dst += 2;
@@ -1380,7 +1380,7 @@ void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 
 	default:
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
-		break;		
+		break;
 	}
 }
 
@@ -1389,7 +1389,7 @@ void Encode(u8 *dest_ptr)
 	int pixelformat = bpmem.zcontrol.pixel_format;
 	bool bFromZBuffer = pixelformat == PIXELFMT_Z24;
 	bool bIsIntensityFmt = bpmem.triggerEFBCopy.intensity_fmt > 0;
-	u32 copyfmt = ((bpmem.triggerEFBCopy.target_pixel_format / 2) + ((bpmem.triggerEFBCopy.target_pixel_format & 1) * 8));        
+	u32 copyfmt = ((bpmem.triggerEFBCopy.target_pixel_format / 2) + ((bpmem.triggerEFBCopy.target_pixel_format & 1) * 8));
 
 	// pack copy format information into a single variable
 	u32 format = copyfmt;

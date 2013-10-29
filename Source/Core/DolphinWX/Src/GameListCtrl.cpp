@@ -62,7 +62,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	int indexOne = 0;
 	int indexOther = 0;
 
-	
+
 	// index only matters for WADS and PAL GC games, but invalid indicies for the others
 	// will return the (only) language in the list
 	if (iso1->GetPlatform() == GameListItem::WII_WAD)
@@ -307,7 +307,7 @@ void CGameListCtrl::Update()
 #else
 		const int platform_padding = 8;
 #endif
-		
+
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_DUMMY,0);
 		SetColumnWidth(COLUMN_PLATFORM, 35 + platform_padding);
@@ -375,10 +375,10 @@ void CGameListCtrl::Update()
 wxString NiceSizeFormat(u64 _size)
 {
 	const char* const unit_symbols[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"};
-	
+
 	auto const unit = Log2(std::max<u64>(_size, 1)) / 10;
 	auto const unit_size = (1 << (unit * 10));
-	
+
 	// ugly rounding integer math
 	auto const value = (_size + unit_size / 2) / unit_size;
 	auto const frac = (_size % unit_size * 10 + unit_size / 2) / unit_size % 10;
@@ -409,13 +409,13 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 
 	int SelectedLanguage = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
-	
+
 	// Is this sane?
 	if  (rISOFile.GetPlatform() == GameListItem::WII_WAD)
 	{
 		SelectedLanguage = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
 	}
-	
+
 	std::string const name = rISOFile.GetName(SelectedLanguage);
 	SetItem(_Index, COLUMN_TITLE, StrToWxStr(name), -1);
 
@@ -826,7 +826,7 @@ void CGameListCtrl::OnLeftClick(wxMouseEvent& event)
 }
 
 void CGameListCtrl::OnRightClick(wxMouseEvent& event)
-{	
+{
 	// Focus the clicked item.
 	int flags;
 	long item = HitTest(event.GetPosition(), flags);
@@ -869,7 +869,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			{
 				if (selected_iso->IsCompressed())
 					popupMenu->Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
-				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso" 
+				else if (selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".ciso"
 						 && selected_iso->GetFileName().substr(selected_iso->GetFileName().find_last_of(".")) != ".wbfs")
 					popupMenu->Append(IDM_COMPRESSGCM, _("Compress ISO..."));
 			}
@@ -1105,7 +1105,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				if (wxFileExists(StrToWxStr(OutputFileName)) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
-								StrToWxStr(OutputFileName)), 
+								StrToWxStr(OutputFileName)),
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1133,7 +1133,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				if (wxFileExists(StrToWxStr(OutputFileName)) &&
 						wxMessageBox(
 							wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"),
-								StrToWxStr(OutputFileName)), 
+								StrToWxStr(OutputFileName)),
 							_("Confirm File Overwrite"),
 							wxYES_NO) == wxNO)
 					continue;
@@ -1194,7 +1194,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 					StrToWxStr(FilePath),
 					StrToWxStr(FileName) + _T(".gcz"),
 					wxEmptyString,
-					_("All compressed GC/Wii ISO files (gcz)") + 
+					_("All compressed GC/Wii ISO files (gcz)") +
 						wxString::Format(wxT("|*.gcz|%s"), wxGetTranslation(wxALL_FILES)),
 					wxFD_SAVE,
 					this);
@@ -1203,7 +1203,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 			return;
 	} while (wxFileExists(path) &&
 			wxMessageBox(
-				wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"), path.c_str()), 
+				wxString::Format(_("The file %s already exists.\nDo you wish to replace it?"), path.c_str()),
 				_("Confirm File Overwrite"),
 				wxYES_NO) == wxNO);
 

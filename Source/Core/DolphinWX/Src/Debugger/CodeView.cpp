@@ -269,7 +269,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		case IDM_JITRESULTS:
 			debugger->showJitResults(selection);
 			break;
-			
+
 		case IDM_FOLLOWBRANCH:
 			{
 				u32 dest = AddrToBranch(selection);
@@ -280,7 +280,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 				}
 			}
 			break;
-	
+
 		case IDM_ADDFUNCTION:
 			symbol_db->AddFunction(selection);
 			Host_NotifyMapLoaded();
@@ -378,7 +378,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
 	// --------------------------------------------------------------------
 	// Colors and brushes
-	// -------------------------	
+	// -------------------------
 	dc.SetBackgroundMode(wxTRANSPARENT); // the text background
 	const wxChar* bgColor = _T("#ffffff");
 	wxPen nullPen(bgColor);
@@ -387,7 +387,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	nullPen.SetStyle(wxTRANSPARENT);
 	currentPen.SetStyle(wxSOLID);
 	wxBrush currentBrush(_T("#FFEfE8")); // light gray
-	wxBrush pcBrush(_T("#70FF70")); // green	
+	wxBrush pcBrush(_T("#70FF70")); // green
 	wxBrush bpBrush(_T("#FF3311")); // red
 
 	wxBrush bgBrush(bgColor);
@@ -526,7 +526,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	// Colors and brushes
 	// -------------------------
 	dc.SetPen(currentPen);
-	
+
 	for (int i = 0; i < numBranches; i++)
 	{
 		int x = 17 + 49 * charWidth + (branches[i].srcAddr % 9) * 8;

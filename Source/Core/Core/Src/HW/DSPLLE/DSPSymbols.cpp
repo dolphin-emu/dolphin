@@ -108,7 +108,7 @@ bool IsAlpha(char c)
 
 void DisasssembleRange(u16 start, u16 end)
 {
-	
+
 }
 
 bool ReadAnnotatedAssembly(const char *filename)
@@ -120,9 +120,9 @@ bool ReadAnnotatedAssembly(const char *filename)
 		return false;
 	}
 	char line[512];
-	
+
 	int last_addr = 0;
-	
+
 	lines.reserve(3000);
 
 	// Symbol generation
@@ -229,7 +229,7 @@ bool ReadAnnotatedAssembly(const char *filename)
 					return false;
 				}
 			}
-			else 
+			else
 			{
 				// if (line_counter >= 200 && line_counter <= 220)
 				// 	NOTICE_LOG(DSPLLE, "Got Hex Digit %04x from %s, line %i", hex, line, line_counter);

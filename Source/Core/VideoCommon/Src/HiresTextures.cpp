@@ -27,7 +27,7 @@ void Init(const char *gameCode)
 	char szDir[MAX_PATH];
 	sprintf(szDir, "%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode);
 	Directories.push_back(std::string(szDir));
-	
+
 
 	for (u32 i = 0; i < Directories.size(); i++)
 	{

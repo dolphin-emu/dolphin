@@ -82,7 +82,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 							m_names = pBannerLoader->GetNames();
 						m_company = pBannerLoader->GetCompany();
 						m_descriptions = pBannerLoader->GetDescriptions();
-						
+
 						std::vector<u32> Buffer = pBannerLoader->GetBanner(&m_ImageWidth, &m_ImageHeight);
 						u32* pData = &Buffer[0];
 						// resize vector to image size
@@ -212,7 +212,7 @@ std::string GameListItem::GetDescription(int _index) const
 
 	if (index < m_descriptions.size())
 		return m_descriptions[index];
-	
+
 	if (!m_descriptions.empty())
 		return m_descriptions[0];
 
@@ -229,7 +229,7 @@ std::string GameListItem::GetVolumeName(int _index) const
 
 	if (!m_volume_names.empty())
 		return m_volume_names[0];
-	
+
 	return "";
 }
 
@@ -240,7 +240,7 @@ std::string GameListItem::GetBannerName(int _index) const
 
 	if (index < m_names.size() && !m_names[index].empty())
 		return m_names[index];
-	
+
 	if (!m_names.empty())
 		return m_names[0];
 
@@ -251,9 +251,9 @@ std::string GameListItem::GetBannerName(int _index) const
 std::string GameListItem::GetName(int _index) const
 {
 	// Prefer name from banner, fallback to name from volume, fallback to filename
-	
+
 	std::string name = GetBannerName(_index);
-	
+
 	if (name.empty())
 		name = GetVolumeName(_index);
 

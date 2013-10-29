@@ -51,7 +51,7 @@ namespace DriverDetails
 		m_vendor = vendor;
 		m_driver = driver;
 		m_version = version;
-		
+
 		if (driver == DRIVER_UNKNOWN)
 			switch(vendor)
 			{
@@ -74,7 +74,7 @@ namespace DriverDetails
 				default:
 				break;
 			}
-			
+
 		for(auto& bug : m_known_bugs)
 		{
 			if(
@@ -91,7 +91,7 @@ namespace DriverDetails
 	{
 		auto it = m_bugs.find(bug);
 		if (it == m_bugs.end())
-			return false;	
+			return false;
 		return it->second.m_hasbug;
 	}
 }

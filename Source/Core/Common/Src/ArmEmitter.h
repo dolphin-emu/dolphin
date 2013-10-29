@@ -66,7 +66,7 @@ enum ARMReg
 	D8, D9, D10, D11, D12, D13, D14, D15,
 	D16, D17, D18, D19, D20, D21, D22, D23,
 	D24, D25, D26, D27, D28, D29, D30, D31,
-	
+
 	// ASIMD Quad-Word registers
 	Q0, Q1, Q2, Q3, Q4, Q5, Q6, Q7,
 	Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15,
@@ -142,11 +142,11 @@ public:
 	{
 		return Type;
 	}
-	Operand2() {} 
+	Operand2() {}
 	Operand2(u32 imm, OpType type = TYPE_IMM)
-	{ 
-		Type = type; 
-		Value = imm; 
+	{
+		Type = type;
+		Value = imm;
 		Rotation = 0;
 	}
 
@@ -343,7 +343,7 @@ u32 EncodeVd(ARMReg Vd);
 u32 EncodeVn(ARMReg Vn);
 u32 EncodeVm(ARMReg Vm);
 // Subtracts the base from the register to give us the real one
-ARMReg SubBase(ARMReg Reg);	
+ARMReg SubBase(ARMReg Reg);
 
 class ARMXEmitter
 {
@@ -474,7 +474,7 @@ public:
 	void MOVW(ARMReg dest,             Operand2 op2);
 	void MOVT(ARMReg dest, Operand2 op2, bool TopBits = false);
 
-	// UDIV and SDIV are only available on CPUs that have 
+	// UDIV and SDIV are only available on CPUs that have
 	// the idiva hardare capacity
 	void UDIV(ARMReg dest, ARMReg dividend, ARMReg divisor);
 	void SDIV(ARMReg dest, ARMReg dividend, ARMReg divisor);
@@ -526,7 +526,7 @@ public:
 	// None of these will be created with conditional since ARM
 	// is deprecating conditional execution of ASIMD instructions.
 	// ASIMD instructions don't even have a conditional encoding.
-	
+
 	// VFP Only
 	void VLDR(ARMReg Dest, ARMReg Base, s16 offset);
 	void VSTR(ARMReg Src,  ARMReg Base, s16 offset);
@@ -574,7 +574,7 @@ public:
 
 enum NEONElementType
 {
-	I_8 = (1 << 0), 
+	I_8 = (1 << 0),
 	I_16 = (1 << 1),
 	I_32 = (1 << 2),
 	I_64 = (1 << 3),
@@ -597,7 +597,7 @@ class NEONXEmitter
 private:
 	ARMXEmitter *_emit;
 	inline void Write32(u32 value) { _emit->Write32(value); }
-	
+
 	inline u32 encodedSize(u32 value)
 	{
 		if (value & I_8)
@@ -612,7 +612,7 @@ private:
 			_dbg_assert_msg_(DYNA_REC, false, "Passed invalid size to integer NEON instruction");
 		return 0;
 	}
-	
+
 	void VREVX(u32 size, NEONElementType Size, ARMReg Vd, ARMReg Vm);
 
 public:
@@ -703,7 +703,7 @@ public:
 
 	// Always clear code space with breakpoints, so that if someone accidentally executes
 	// uninitialized, it just breaks into the debugger.
-	void ClearCodeSpace() 
+	void ClearCodeSpace()
 	{
 		// x86/64: 0xCC = breakpoint
 		memset(region, 0xCC, region_size);

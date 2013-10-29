@@ -103,7 +103,7 @@ std::vector<std::string> CBannerLoaderGC::GetNames()
 			names.push_back(GetDecodedString(data));
 		}
 	}
-	
+
 	return names;
 }
 

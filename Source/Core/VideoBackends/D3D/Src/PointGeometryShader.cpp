@@ -168,7 +168,7 @@ bool PointGeometryShader::SetShader(u32 components, float pointSize,
 		code.SetBuffer(buffer);
 		GenerateVSOutputStructForGS(code, components, API_D3D);
 		code.Write("\n%s", POINT_GS_COMMON);
-		
+
 		std::stringstream numTexCoordsStream;
 		numTexCoordsStream << xfregs.numTexGen.numTexGens;
 

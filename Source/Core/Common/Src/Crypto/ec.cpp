@@ -323,7 +323,7 @@ void point_mul(u8 *d, const u8 *a, u8 *b)	// a is bignum
 		}
 }
 
-void silly_random(u8 * rndArea, u8 count) 
+void silly_random(u8 * rndArea, u8 count)
 {
 	u16 i;
 	srand((unsigned) (time(NULL)));
@@ -331,7 +331,7 @@ void silly_random(u8 * rndArea, u8 count)
 	for(i=0;i<count;i++)
 	{
 		rndArea[i]=rand();
-	} 
+	}
 }
 
 void generate_ecdsa(u8 *R, u8 *S, const u8 *k, u8 *hash)

@@ -15,11 +15,11 @@
 
 union ZeldaVoicePB
 {
-	struct 
+	struct
 	{
 		// Read-Write part
 		u16 Status;						// 0x00 | 1 = play, 0 = stop
-		u16 KeyOff;						// 0x01 | writing 1 stops voice? 
+		u16 KeyOff;						// 0x01 | writing 1 stops voice?
 		u16 RatioInt;					// 0x02 | Position delta (playback speed)
 		u16 Unk03;						// 0x03 | unknown
 		u16 NeedsReset;					// 0x04 | indicates if some values in PB need to be reset
@@ -48,10 +48,10 @@ union ZeldaVoicePB
 		u16 Unk17;						// 0x17 | unknown
 
 		u16 Unk18[0x10];				// 0x18 | unknown
-		u16 Unk28;						// 0x28 | unknown  
+		u16 Unk28;						// 0x28 | unknown
 		u16 Unk29;						// 0x29 | unknown  // multiplied by 0x2a @ 0d21/ZWW
 		u16 Unk2a;						// 0x2A | unknown  // loaded at 0d2e/ZWW
-		u16 Unk2b;						// 0x2B | unknown  
+		u16 Unk2b;						// 0x2B | unknown
 		u16 VolumeMode;					// 0x2C | unknown  // See 0337/ZWW
 		u16 Unk2D;						// 0x2D | unknown
 		u16 Unk2E;						// 0x2E | unknown
@@ -75,7 +75,7 @@ union ZeldaVoicePB
 		u16 FilterState1;				// 0x78 | unknown  // ZWW: 0c84_FilterBufferInPlace loads and stores. Simply, the filter state.
 		u16 FilterState2;				// 0x79 | unknown  // ZWW: same as above.  these two are active if 0x04a8 != 0.
 		u16 Unk7A;						// 0x7A | unknown
-		u16 Unk7B;						// 0x7B | unknown  
+		u16 Unk7B;						// 0x7B | unknown
 		u16 Unk7C;						// 0x7C | unknown
 		u16 Unk7D;						// 0x7D | unknown
 		u16 Unk7E;						// 0x7E | unknown

@@ -90,7 +90,7 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 
 	switch (inst.SUBOP10)
 	{
-	case 40: //neg 
+	case 40: //neg
 		XORPD(fpr.RX(d), M((void*)&psSignBits));
 		break;
 	case 136: //nabs
@@ -173,7 +173,7 @@ void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X6
 }
 
 void Jit64::ps_arith(UGeckoInstruction inst)
-{		
+{
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
@@ -182,7 +182,7 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 	switch (inst.SUBOP5)
 	{
 	case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::DIVPD); break; //div
-	case 20: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::SUBPD); break; //sub 
+	case 20: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::SUBPD); break; //sub
 	case 21: tri_op(inst.FD, inst.FA, inst.FB, true,  &XEmitter::ADDPD); break; //add
 	case 23: Default(inst); break; //sel
 	case 24: Default(inst); break; //res
@@ -193,10 +193,10 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 }
 
 void Jit64::ps_sum(UGeckoInstruction inst)
-{	
+{
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	// TODO: (inst.SUBOP5 == 10) breaks Sonic Colours (black screen) 
+	// TODO: (inst.SUBOP5 == 10) breaks Sonic Colours (black screen)
 	if (inst.Rc || (inst.SUBOP5 == 10)) {
 		Default(inst); return;
 	}
@@ -222,7 +222,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 		MOVAPD(XMM1, fpr.R(b));
 		SHUFPD(XMM1, R(XMM1), 5); // copy higher to lower
 		ADDPD(XMM0, R(XMM1)); // sum lowers
-		MOVAPD(XMM1, fpr.R(c));  
+		MOVAPD(XMM1, fpr.R(c));
 		UNPCKLPD(XMM1, R(XMM0)); // merge
 		MOVAPD(fpr.R(d), XMM1);
 		break;
@@ -288,7 +288,7 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 	MOVAPD(XMM0, fpr.R(a));
 	switch (inst.SUBOP10)
 	{
-	case 528: 
+	case 528:
 		UNPCKLPD(XMM0, fpr.R(b)); //unpck is faster than shuf
 		break; //00
 	case 560:

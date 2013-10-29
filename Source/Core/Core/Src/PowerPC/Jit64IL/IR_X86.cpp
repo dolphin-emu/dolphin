@@ -266,7 +266,7 @@ static void regSpillCallerSaved(RegInfo& RI) {
 	// 64-bit
 	regSpill(RI, RCX);
 	regSpill(RI, RDX);
-	regSpill(RI, RSI); 
+	regSpill(RI, RSI);
 	regSpill(RI, RDI);
 	regSpill(RI, R8);
 	regSpill(RI, R9);
@@ -411,7 +411,7 @@ static void fregEmitBinInst(RegInfo& RI, InstLoc I,
 // Could be extended to unprofiled addresses.
 static void regMarkMemAddress(RegInfo& RI, InstLoc I, InstLoc AI, unsigned OpNum) {
 	if (isImm(*AI)) {
-		unsigned addr = RI.Build->GetImmValue(AI);	
+		unsigned addr = RI.Build->GetImmValue(AI);
 		if (Memory::IsRAMAddress(addr))
 			return;
 	}
@@ -594,7 +594,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 		case InterpreterFallback:
 		case SystemCall:
 		case RFIExit:
-		case InterpreterBranch:		
+		case InterpreterBranch:
 		case ShortIdleLoop:
 		case FPExceptionCheck:
 		case DSIExceptionCheck:
@@ -713,7 +713,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 			break;
 		case IdleBranch:
 			regMarkUse(RI, I, getOp1(getOp1(I)), 1);
-			break;						 
+			break;
 		case BranchCond: {
 			if (isICmp(*getOp1(I)) &&
 			    isImm(*getOp2(getOp1(I)))) {
@@ -1128,7 +1128,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
 			if (cpu_info.bSSSE3) {
-				static const u32 GC_ALIGNED16(maskSwapa64_1[4]) = 
+				static const u32 GC_ALIGNED16(maskSwapa64_1[4]) =
 				{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
 #ifdef _M_X64
 				// TODO: Remove regEnsureInReg() and use ECX
@@ -1213,7 +1213,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 			FixupBranch safe = Jit->J_CC(CC_NZ);
 				// Fast routine
 				if (cpu_info.bSSSE3) {
-					static const u32 GC_ALIGNED16(maskSwapa64_1[4]) = 
+					static const u32 GC_ALIGNED16(maskSwapa64_1[4]) =
 					{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
 
 					X64Reg value = fregBinLHSRegWithMov(RI, I);
@@ -1334,7 +1334,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 		case FSNeg: {
 			if (!thisUsed) break;
 			X64Reg reg = fregURegWithMov(RI, I);
-			static const u32 GC_ALIGNED16(ssSignBits[4]) = 
+			static const u32 GC_ALIGNED16(ssSignBits[4]) =
 				{0x80000000};
 			Jit->PXOR(reg, M((void*)&ssSignBits));
 			RI.fregs[reg] = I;
@@ -1344,7 +1344,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 		case FDNeg: {
 			if (!thisUsed) break;
 			X64Reg reg = fregURegWithMov(RI, I);
-			static const u64 GC_ALIGNED16(ssSignBits[2]) = 
+			static const u64 GC_ALIGNED16(ssSignBits[2]) =
 				{0x8000000000000000ULL};
 			Jit->PXOR(reg, M((void*)&ssSignBits));
 			RI.fregs[reg] = I;
@@ -1354,7 +1354,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 		case FPNeg: {
 			if (!thisUsed) break;
 			X64Reg reg = fregURegWithMov(RI, I);
-			static const u32 GC_ALIGNED16(psSignBits[4]) = 
+			static const u32 GC_ALIGNED16(psSignBits[4]) =
 				{0x80000000, 0x80000000};
 			Jit->PXOR(reg, M((void*)&psSignBits));
 			RI.fregs[reg] = I;
@@ -1384,7 +1384,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 			Jit->MOVAPD(reg, M(&PowerPC::ppcState.ps[ppcreg]));
 			RI.fregs[reg] = I;
 			break;
-		}	    
+		}
 		case LoadFRegDENToZero: {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
@@ -1623,14 +1623,14 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 		case BlockEnd:
 			break;
 
-		case IdleBranch: {			
+		case IdleBranch: {
 			Jit->CMP(32, regLocForInst(RI, getOp1(getOp1(I))),
-					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));			
+					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));
 			FixupBranch cont = Jit->J_CC(CC_NE);
 
-			RI.Jit->Cleanup(); // is it needed?			
+			RI.Jit->Cleanup(); // is it needed?
 			Jit->ABI_CallFunction((void *)&PowerPC::OnIdleIL);
-			
+
 			Jit->MOV(32, M(&PC), Imm32(ibuild->GetImmValue( getOp2(I) )));
 			Jit->JMP(((JitIL *)jit)->asm_routines.testExceptions, true);
 
@@ -1682,7 +1682,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 			regWriteExit(RI, getOp1(I));
 			regNormalRegClear(RI, I);
 			break;
-		}		
+		}
 		case ShortIdleLoop: {
 			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 			Jit->ABI_CallFunction((void *)&CoreTiming::Idle);
@@ -1711,11 +1711,11 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 			Jit->MOV(32, R(ECX), M(&SRR1));
 			Jit->AND(32, R(EAX), Imm32(~mask));
 			Jit->AND(32, R(ECX), Imm32(mask));
-			Jit->OR(32, R(EAX), R(ECX));       
+			Jit->OR(32, R(EAX), R(ECX));
 			// MSR &= 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
 			Jit->AND(32, R(EAX), Imm32(0xFFFBFFFF));
 			Jit->MOV(32, M(&MSR), R(EAX));
-			// NPC = SRR0; 
+			// NPC = SRR0;
 			Jit->MOV(32, R(EAX), M(&SRR0));
 			Jit->WriteRfiExitDestInOpArg(R(EAX));
 			break;
@@ -1729,7 +1729,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 			// If a FPU exception occurs, the exception handler will read
 			// from PC.  Update PC with the latest value in case that happens.
 			Jit->MOV(32, M(&PC), Imm32(InstLoc));
-			Jit->SUB(32, M(&CoreTiming::downcount), Jit->js.downcountAmount > 127 ? Imm32(Jit->js.downcountAmount) : Imm8(Jit->js.downcountAmount)); 
+			Jit->SUB(32, M(&CoreTiming::downcount), Jit->js.downcountAmount > 127 ? Imm32(Jit->js.downcountAmount) : Imm8(Jit->js.downcountAmount));
 			Jit->JMP(Jit->asm_routines.fpException, true);
 			Jit->SetJumpTarget(b1);
 			break;

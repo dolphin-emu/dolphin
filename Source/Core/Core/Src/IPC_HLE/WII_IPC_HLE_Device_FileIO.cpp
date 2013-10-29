@@ -79,7 +79,7 @@ CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
 
 bool CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
 {
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_Name.c_str(), m_DeviceID);	
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_Name.c_str(), m_DeviceID);
 	m_Mode = 0;
 
 	// Close always return 0 for success
@@ -89,11 +89,11 @@ bool CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)  
+bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 {
 	m_Mode = _Mode;
 	u32 ReturnValue = 0;
-	
+
 	static const char* const Modes[] =
 	{
 		"Unk Mode",
@@ -101,9 +101,9 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		"Write only",
 		"Read and Write"
 	};
-	
+
 	m_filepath = HLE_IPC_BuildFilename(m_Name, 64);
-	
+
 	// The file must exist before we can open it
 	// It should be created by ISFS_CreateFile, not here
 	if (File::Exists(m_filepath))
@@ -126,23 +126,23 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
 {
 	const char* open_mode = "";
-	
+
 	switch (m_Mode)
 	{
 	case ISFS_OPEN_READ:
 		open_mode = "rb";
 		break;
-	
+
 	case ISFS_OPEN_WRITE:
 	case ISFS_OPEN_RW:
 		open_mode = "r+b";
 		break;
-	
+
 	default:
 		PanicAlertT("FileIO: Unknown open mode : 0x%02x", m_Mode);
 		break;
 	}
-	
+
 	return File::IOFile(m_filepath, open_mode);
 }
 
@@ -207,8 +207,8 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress) 
-{	
+bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
+{
 	u32 ReturnValue = FS_EACCESS;
 	const u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Read to this memory address
 	const u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
@@ -233,12 +233,12 @@ bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 			{
 				m_SeekPos += Size;
 			}
-			
+
 		}
 	}
 	else
 	{
-		ERROR_LOG(WII_IPC_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could not be opened or does not exist", m_Name.c_str(), Address, Size);	
+		ERROR_LOG(WII_IPC_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could not be opened or does not exist", m_Name.c_str(), Address, Size);
 		ReturnValue = FS_FILE_NOT_EXIST;
 	}
 
@@ -246,8 +246,8 @@ bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress) 
-{		
+bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
+{
 	u32 ReturnValue = FS_EACCESS;
 	const u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Write data from this memory address
 	const u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
@@ -272,7 +272,7 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 	}
 	else
 	{
-		ERROR_LOG(WII_IPC_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could not be opened or does not exist", m_Name.c_str(), Address, Size);	
+		ERROR_LOG(WII_IPC_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could not be opened or does not exist", m_Name.c_str(), Address, Size);
 		ReturnValue = FS_FILE_NOT_EXIST;
 	}
 
@@ -280,13 +280,13 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 {
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", m_Name.c_str());
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	DumpCommands(_CommandAddress);
 #endif
-	const u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);	
+	const u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
 	u32 ReturnValue = 0;
 
 	switch (Parameter)
@@ -329,6 +329,6 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 
 	p.Do(m_Mode);
 	p.Do(m_SeekPos);
-	
+
 	m_filepath = HLE_IPC_BuildFilename(m_Name, 64);
 }

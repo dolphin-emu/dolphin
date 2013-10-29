@@ -42,7 +42,7 @@ struct GekkoOPTemplate
 	//GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
 };
 
-static GekkoOPTemplate primarytable[] = 
+static GekkoOPTemplate primarytable[] =
 {
 	{4,  &JitArm::DynaRunTable4}, //"RunTable4",  OPTYPE_SUBTABLE | (4<<24), 0}},
 	{19, &JitArm::DynaRunTable19}, //"RunTable19", OPTYPE_SUBTABLE | (19<<24), 0}},
@@ -123,7 +123,7 @@ static GekkoOPTemplate primarytable[] =
 	{58, &JitArm::Default}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
 };
 
-static GekkoOPTemplate table4[] = 
+static GekkoOPTemplate table4[] =
 {    //SUBOP10
 	{0,    &JitArm::ps_cmpu0}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
 	{32,   &JitArm::ps_cmpo0}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
@@ -139,9 +139,9 @@ static GekkoOPTemplate table4[] =
 	{624,  &JitArm::ps_merge11}, //"ps_merge11", OPTYPE_PS, FL_RC_BIT}},
 
 	{1014, &JitArm::Default}, //"dcbz_l",     OPTYPE_SYSTEM, 0}},
-};		
+};
 
-static GekkoOPTemplate table4_2[] = 
+static GekkoOPTemplate table4_2[] =
 {
 	{10, &JitArm::ps_sum0}, //"ps_sum0",   OPTYPE_PS, 0}},
 	{11, &JitArm::ps_sum1}, //"ps_sum1",   OPTYPE_PS, 0}},
@@ -163,15 +163,15 @@ static GekkoOPTemplate table4_2[] =
 };
 
 
-static GekkoOPTemplate table4_3[] = 
+static GekkoOPTemplate table4_3[] =
 {
 	{6,  &JitArm::psq_lx}, //"psq_lx",   OPTYPE_PS, 0}},
 	{7,  &JitArm::psq_stx}, //"psq_stx",  OPTYPE_PS, 0}},
 	{38, &JitArm::psq_lx}, //"psq_lux",  OPTYPE_PS, 0}},
-	{39, &JitArm::psq_stx}, //"psq_stux", OPTYPE_PS, 0}}, 
+	{39, &JitArm::psq_stx}, //"psq_stux", OPTYPE_PS, 0}},
 };
 
-static GekkoOPTemplate table19[] = 
+static GekkoOPTemplate table19[] =
 {
 	{528, &JitArm::bcctrx}, //"bcctrx", OPTYPE_BRANCH, FL_ENDBLOCK}},
 	{16,  &JitArm::bclrx}, //"bclrx",  OPTYPE_BRANCH, FL_ENDBLOCK}},
@@ -183,16 +183,16 @@ static GekkoOPTemplate table19[] =
 	{449, &JitArm::crXXX}, //"cror",   OPTYPE_CR, FL_EVIL}},
 	{417, &JitArm::crXXX}, //"crorc",  OPTYPE_CR, FL_EVIL}},
 	{193, &JitArm::crXXX}, //"crxor",  OPTYPE_CR, FL_EVIL}},
-												   
+
 	{150, &JitArm::DoNothing}, //"isync",  OPTYPE_ICACHE, FL_EVIL}},
 	{0,   &JitArm::mcrf}, //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
-												   
+
 	{50,  &JitArm::rfi}, //"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
 	{18,  &JitArm::Break}, //"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}
 };
 
 
-static GekkoOPTemplate table31[] = 
+static GekkoOPTemplate table31[] =
 {
 	{28,  &JitArm::arith}, //"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
 	{60,  &JitArm::arith}, //"andcx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
@@ -267,7 +267,7 @@ static GekkoOPTemplate table31[] =
 	{661, &JitArm::Default}, //"stswx",  OPTYPE_STORE, FL_EVIL}},
 	{725, &JitArm::Default}, //"stswi",  OPTYPE_STORE, FL_EVIL}},
 
-	// fp load/store	
+	// fp load/store
 	{535, &JitArm::lfXX}, //"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
 	{567, &JitArm::lfXX}, //"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
 	{599, &JitArm::lfXX}, //"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
@@ -305,8 +305,8 @@ static GekkoOPTemplate table31[] =
 	{566, &JitArm::Default}, //"tlbsync", OPTYPE_SYSTEM, 0}},
 };
 
-static GekkoOPTemplate table31_2[] = 
-{	
+static GekkoOPTemplate table31_2[] =
+{
 	{266,  &JitArm::arith}, //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{778,  &JitArm::arith}, //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{10,   &JitArm::arith}, //"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
@@ -330,21 +330,21 @@ static GekkoOPTemplate table31_2[] =
 	{200,  &JitArm::Default}, //"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 };
 
-static GekkoOPTemplate table59[] = 
+static GekkoOPTemplate table59[] =
 {
-	{18, &JitArm::Default},       //{"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}}, 
-	{20, &JitArm::fsubsx}, //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{21, &JitArm::faddsx}, //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
+	{18, &JitArm::Default},       //{"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}},
+	{20, &JitArm::fsubsx}, //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{21, &JitArm::faddsx}, //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 //	{22, &JitArm::Default}, //"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
-	{24, &JitArm::fresx}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{25, &JitArm::fmulsx}, //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{28, &JitArm::Default}, //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{29, &JitArm::fmaddsx}, //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{30, &JitArm::Default}, //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{31, &JitArm::fnmaddsx}, //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
-};							    
+	{24, &JitArm::fresx}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{25, &JitArm::fmulsx}, //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{28, &JitArm::Default}, //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{29, &JitArm::fmaddsx}, //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{30, &JitArm::Default}, //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}},
+	{31, &JitArm::fnmaddsx}, //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}},
+};
 
-static GekkoOPTemplate table63[] = 
+static GekkoOPTemplate table63[] =
 {
 	{264, &JitArm::fabsx},   //"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{32,  &JitArm::fcmpo},   //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
@@ -364,7 +364,7 @@ static GekkoOPTemplate table63[] =
 	{711, &JitArm::Default}, //"mtfsfx",  OPTYPE_SYSTEMFP, 0, 2}},
 };
 
-static GekkoOPTemplate table63_2[] = 
+static GekkoOPTemplate table63_2[] =
 {
 	{18, &JitArm::Default}, //"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
 	{20, &JitArm::fsubx}, //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
@@ -407,7 +407,7 @@ void InitTables()
 		return;
 
 	//clear
-	for (int i = 0; i < 32; i++) 
+	for (int i = 0; i < 32; i++)
 	{
 		dynaOpTable59[i] = &JitArm::unknown_instruction;
 	}
@@ -417,7 +417,7 @@ void InitTables()
 		dynaOpTable4 [i] = &JitArm::unknown_instruction;
 		dynaOpTable19[i] = &JitArm::unknown_instruction;
 		dynaOpTable31[i] = &JitArm::unknown_instruction;
-		dynaOpTable63[i] = &JitArm::unknown_instruction;	
+		dynaOpTable63[i] = &JitArm::unknown_instruction;
 	}
 
 	for (int i = 0; i < (int)(sizeof(primarytable) / sizeof(GekkoOPTemplate)); i++)

@@ -108,7 +108,7 @@ IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii,
 {
 	if (CVolumeDirectory::IsValidDirectory(_rDirectory))
 		return new CVolumeDirectory(_rDirectory, _bIsWii, _rApploader, _rDOL);
-	
+
 	return NULL;
 }
 
@@ -154,7 +154,7 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 		std::vector<SPartition> PartitionsVec;
 	};
 	SPartitionGroup PartitionGroup[4];
-	
+
 	// read all partitions
 	for (u32 x = 0; x < 4; x++)
 	{
@@ -184,10 +184,10 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 			_rReader.Read(rPartition.Offset + 0x44c, 8, IV);
 
 			aes_context AES_ctx;
-			aes_setkey_dec(&AES_ctx, (Korean ? g_MasterKeyK : g_MasterKey), 128); 
+			aes_setkey_dec(&AES_ctx, (Korean ? g_MasterKeyK : g_MasterKey), 128);
 
 			u8 VolumeKey[16];
-			aes_crypt_cbc(&AES_ctx, AES_DECRYPT, 16, IV, SubKey, VolumeKey); 
+			aes_crypt_cbc(&AES_ctx, AES_DECRYPT, 16, IV, SubKey, VolumeKey);
 
 			// -1 means the caller just wanted the partition with matching type
 			if ((int)_VolumeNum == -1 || i == _VolumeNum)

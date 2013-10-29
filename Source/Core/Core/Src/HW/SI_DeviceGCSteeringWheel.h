@@ -13,7 +13,7 @@
 class CSIDevice_GCSteeringWheel : public ISIDevice
 {
 private:
-	
+
 	// Commands
 	enum EBufferCommands
 	{
@@ -48,7 +48,7 @@ private:
 	union UCommand
 	{
 		u32 Hex;
-		struct  
+		struct
 		{
 			u32 Parameter1	:	8;
 			u32 Parameter2	:	8;

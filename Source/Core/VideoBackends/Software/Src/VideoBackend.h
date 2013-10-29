@@ -27,7 +27,7 @@ class VideoSoftware : public VideoBackend
 	void Video_ExitLoop();
 	void Video_BeginField(u32, u32, u32);
 	void Video_EndField();
-	
+
 	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
 	u32 Video_GetQueryResult(PerfQueryType type);
 
@@ -57,7 +57,7 @@ class VideoSoftware : public VideoBackend
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 	void DoState(PointerWrap &p);
-	
+
 public:
 	void CheckInvalidState();
 };

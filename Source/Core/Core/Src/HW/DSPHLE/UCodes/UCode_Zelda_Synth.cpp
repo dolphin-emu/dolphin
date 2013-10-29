@@ -18,9 +18,9 @@ void CUCode_Zelda::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Siz
 	s64 TrueSamplePosition = PB.CurSampleFrac;
 
 	// PB.Format == 0x3 -> Rectangular Wave, 0x0 -> Square Wave
-	unsigned int mask = PB.Format ? 3 : 1; 
+	unsigned int mask = PB.Format ? 3 : 1;
 	// int shift = PB.Format ? 2 : 1; // Unused?
-	
+
 	u32 pos[2] = {0, 0};
 	int i = 0;
 
@@ -55,7 +55,7 @@ _lRestart:
 		}
 	}
 
-	while(i < _Size) 
+	while(i < _Size)
 	{
 		s16 sample = ((pos[1] & mask) == mask) ? 0xc000 : 0x4000;
 
@@ -84,12 +84,12 @@ _lRestart:
 	PB.CurSampleFrac = TrueSamplePosition & 0xFFFF;
 }
 
-void CUCode_Zelda::RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size) 
+void CUCode_Zelda::RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
 	s32 ratio = (s32)ceil((float)PB.RatioInt / 3);
 	s64 pos = PB.CurSampleFrac;
 
-	for (int i = 0; i < _Size; i++) 
+	for (int i = 0; i < _Size; i++)
 	{
 		pos += ratio;
 		_Buffer[i] = pos & 0xFFFF;
@@ -161,10 +161,10 @@ void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Si
 	address = AddValueToReg(address, ((ACC0 >> 16) & 0xffff));
 	ACC0 &= 0xffff0000ffffULL;
 
-	for(int i = 0; i < 0x50; i++) 
+	for(int i = 0; i < 0x50; i++)
 	{
 		_Buffer[i] = m_MiscTable[address];
-	
+
 		ACC0 += PB.RatioInt << 5;
 		address = AddValueToReg(address, ((ACC0 >> 16) & 0xffff));
 

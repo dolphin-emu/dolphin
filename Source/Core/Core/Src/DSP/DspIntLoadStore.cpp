@@ -13,15 +13,15 @@ namespace DSPInterpreter {
 
 // SRS @M, $(0x18+S)
 // 0010 1sss mmmm mmmm
-// Move value from register $(0x18+D) to data memory pointed by address 
-// CR[0-7] | M. That is, the upper 8 bits of the address are the 
-// bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.  
+// Move value from register $(0x18+D) to data memory pointed by address
+// CR[0-7] | M. That is, the upper 8 bits of the address are the
+// bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.
 // Note: pc+=2 in duddie's doc seems wrong
 void srs(const UDSPInstruction opc)
 {
 	u8 reg   = ((opc >> 8) & 0x7) + 0x18;
 	u16 addr = (g_dsp.r.cr << 8) | (opc & 0xFF);
-	
+
 	if (reg >= DSP_REG_ACM0)
 		dsp_dmem_write(addr, dsp_op_read_reg_and_saturate(reg-DSP_REG_ACM0));
 	else
@@ -97,7 +97,7 @@ void lrr(const UDSPInstruction opc)
 // LRRD $D, @$S
 // 0001 1000 1ssd dddd
 // Move value from data memory pointed by addressing register $S toregister $D.
-// Decrement register $S. 
+// Decrement register $S.
 void lrrd(const UDSPInstruction opc)
 {
 	u8 sreg = (opc >> 5) & 0x3;
@@ -112,7 +112,7 @@ void lrrd(const UDSPInstruction opc)
 // LRRI $D, @$S
 // 0001 1001 0ssd dddd
 // Move value from data memory pointed by addressing register $S to register $D.
-// Increment register $S. 
+// Increment register $S.
 void lrri(const UDSPInstruction opc)
 {
 	u8 sreg = (opc >> 5) & 0x3;
@@ -127,7 +127,7 @@ void lrri(const UDSPInstruction opc)
 // LRRN $D, @$S
 // 0001 1001 1ssd dddd
 // Move value from data memory pointed by addressing register $S to register $D.
-// Add indexing register $(0x4+S) to register $S. 
+// Add indexing register $(0x4+S) to register $S.
 void lrrn(const UDSPInstruction opc)
 {
 	u8 sreg = (opc >> 5) & 0x3;
@@ -141,8 +141,8 @@ void lrrn(const UDSPInstruction opc)
 
 // SRR @$D, $S
 // 0001 1010 0dds ssss
-// Store value from source register $S to a memory location pointed by 
-// addressing register $D. 
+// Store value from source register $S to a memory location pointed by
+// addressing register $D.
 void srr(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 5) & 0x3;
@@ -157,7 +157,7 @@ void srr(const UDSPInstruction opc)
 // SRRD @$D, $S
 // 0001 1010 1dds ssss
 // Store value from source register $S to a memory location pointed by
-// addressing register $D. Decrement register $D. 
+// addressing register $D. Decrement register $D.
 void srrd(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 5) & 0x3;
@@ -174,7 +174,7 @@ void srrd(const UDSPInstruction opc)
 // SRRI @$D, $S
 // 0001 1011 0dds ssss
 // Store value from source register $S to a memory location pointed by
-// addressing register $D. Increment register $D. 
+// addressing register $D. Increment register $D.
 void srri(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 5) & 0x3;

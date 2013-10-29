@@ -44,8 +44,8 @@ void DSPEmitter::ir(const UDSPInstruction opc)
 // Add corresponding indexing register $ixR to addressing register $arR.
 void DSPEmitter::nr(const UDSPInstruction opc)
 {
-	u8 reg = opc & 0x3;	
-	
+	u8 reg = opc & 0x3;
+
 	increase_addr_reg(reg, reg);
 }
 
@@ -106,7 +106,7 @@ void DSPEmitter::sn(const UDSPInstruction opc)
 
 // L $axD.D, @$arS
 // xxxx xxxx 01dd d0ss
-// Load $axD.D/$acD.D with value from memory pointed by register $arS. 
+// Load $axD.D/$acD.D with value from memory pointed by register $arS.
 // Post increment register $arS.
 void DSPEmitter::l(const UDSPInstruction opc)
 {
@@ -130,7 +130,7 @@ void DSPEmitter::l(const UDSPInstruction opc)
 
 // LN $axD.D, @$arS
 // xxxx xxxx 01dd d0ss
-// Load $axD.D/$acD.D with value from memory pointed by register $arS. 
+// Load $axD.D/$acD.D with value from memory pointed by register $arS.
 // Add indexing register $ixS to register $arS.
 void DSPEmitter::ln(const UDSPInstruction opc)
 {
@@ -174,7 +174,7 @@ void DSPEmitter::ls(const UDSPInstruction opc)
 	pushExtValueFromMem(dreg, DSP_REG_AR0);
 
 	increment_addr_reg(DSP_REG_AR3);
-	increment_addr_reg(DSP_REG_AR0); 
+	increment_addr_reg(DSP_REG_AR0);
 }
 
 
@@ -199,7 +199,7 @@ void DSPEmitter::lsn(const UDSPInstruction opc)
 	gpr.putXReg(tmp1);
 
 	pushExtValueFromMem(dreg, DSP_REG_AR0);
-	
+
 	increment_addr_reg(DSP_REG_AR3);
 	increase_addr_reg(DSP_REG_AR0, DSP_REG_AR0);
 }

@@ -119,7 +119,7 @@ int et_PatchEngine;	// PatchEngine updates every 1/60th of a second by default
 // These are badly educated guesses
 // Feel free to experiment. Set these in Init below.
 int
-	// This is a fixed value, don't change it 
+	// This is a fixed value, don't change it
 	AUDIO_DMA_PERIOD,
 
 	// Regulates the speed of the Command Processor
@@ -200,7 +200,7 @@ void DecrementerSet()
 	{
 		CoreTiming::SetFakeDecStartTicks(CoreTiming::GetTicks());
 		CoreTiming::SetFakeDecStartValue(decValue);
-		
+
 		CoreTiming::ScheduleEvent(decValue * TIMER_RATIO, et_Dec);
 	}
 }

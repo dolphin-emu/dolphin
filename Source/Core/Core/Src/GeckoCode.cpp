@@ -764,7 +764,7 @@ bool RegisterOps()
 			dst_addr += new_data;
 		else
 			src_addr += new_data;
-		
+
 		while (count--)
 			Memory::Write_U8(Memory::Read_U8(src_addr++), dst_addr++);
 	}
@@ -922,7 +922,7 @@ bool SpecialIf()
 			result = (left_val < right_val);
 			break;
 		}
-	}	
+	}
 	else if (code.subtype & 0x4)
 	{
 		// counters get reset if code execution is off

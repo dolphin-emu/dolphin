@@ -95,7 +95,7 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
 
 	if (status != ERROR_SUCCESS)
 		return false;
-	
+
 	while (!found_all)
 	{
 		TCHAR enum_name[256];
@@ -240,7 +240,7 @@ void CEXIETHERNET::Deactivate()
 }
 
 bool CEXIETHERNET::IsActivated()
-{ 
+{
 	return mHAdapter != INVALID_HANDLE_VALUE;
 }
 
@@ -266,14 +266,14 @@ bool CEXIETHERNET::SendFrame(u8 *frame, u32 size)
 
 	// Always report the packet as being sent successfully, even though it might be a lie
 	SendComplete();
-	
+
 	return true;
 }
 
 VOID CALLBACK CEXIETHERNET::ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired)
 {
 	CEXIETHERNET* self = (CEXIETHERNET*)lpParameter;
-	
+
 	GetOverlappedResult(self->mHAdapter, &self->mReadOverlapped,
 		(LPDWORD)&self->mRecvBufferLength, false);
 
@@ -332,7 +332,7 @@ void CEXIETHERNET::RecvStop()
 		return;
 
 	UnregisterWaitEx(mHReadWait, INVALID_HANDLE_VALUE);
-	
+
 	CloseHandle(mHRecvEvent);
 	mHRecvEvent = INVALID_HANDLE_VALUE;
 }

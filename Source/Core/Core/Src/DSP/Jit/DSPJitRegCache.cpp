@@ -613,7 +613,7 @@ void DSPJitRegCache::movToHostReg(int reg, bool load)
 		tmp = regs[reg].host_reg;
 	else
 		tmp = findSpillFreeXReg();
-	
+
 	if (tmp == INVALID_REG)
 		return;
 

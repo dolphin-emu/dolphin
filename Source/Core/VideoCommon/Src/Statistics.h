@@ -21,7 +21,7 @@ struct Statistics
 
 	int numRenderTargetsCreated;
 	int numRenderTargetsAlive;
-	
+
 	int numDListsCalled;
 	int numDListsCreated;
 	int numDListsAlive;
@@ -44,11 +44,11 @@ struct Statistics
 		int numBPLoads;
 		int numCPLoads;
 		int numXFLoads;
-		
+
 		int numBPLoadsInDL;
 		int numCPLoadsInDL;
 		int numXFLoadsInDL;
-		
+
 		int numDLs;
 		int numPrims;
 		int numDLPrims;
@@ -60,7 +60,7 @@ struct Statistics
 		int numBufferSplits;
 
 		int numDListsCalled;
-		
+
 		int bytesVertexStreamed;
 		int bytesIndexStreamed;
 		int bytesUniformStreamed;

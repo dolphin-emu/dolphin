@@ -33,7 +33,7 @@ static u32 GetSpecialRegValue(int reg)
 	case 8: return PowerPC::ppcState.Exceptions;
 	case 9: return ProcessorInterface::GetMask();
 	case 10: return ProcessorInterface::GetCause();
-	default: return 0;	
+	default: return 0;
 	}
 }
 
@@ -154,7 +154,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 	switch (col)
 	{
 	case 1: red = row < 32 ? m_CachedRegHasChanged[row] : m_CachedSpecialRegHasChanged[row-32]; break;
-	case 3: 
+	case 3:
 	case 4: red = row < 32 ? m_CachedFRegHasChanged[row][col-3] : false; break;
 	}
 

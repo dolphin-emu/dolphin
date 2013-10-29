@@ -20,10 +20,10 @@ struct CISOHeader
 {
 	// "CISO"
 	char magic[4];
-	
+
 	// little endian
 	u32 block_size;
-	
+
 	// 0=unused, 1=used, others=invalid
 	u8 map[CISO_MAP_SIZE];
 };
@@ -39,10 +39,10 @@ public:
 
 private:
 	CISOFileReader(std::FILE* file);
-	
+
 	typedef u16 MapType;
 	static const MapType UNUSED_BLOCK_ID = -1;
-	
+
 	File::IOFile m_file;
 	u64 m_size;
 	u32 m_block_size;

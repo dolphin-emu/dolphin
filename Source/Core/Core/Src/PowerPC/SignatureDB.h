@@ -36,7 +36,7 @@ public:
 	void Clean(const char *prefix);
 	void Clear();
 	void List();
-	
+
 	void Initialize(PPCSymbolDB *func_db, const char *prefix = "");
 	void Apply(PPCSymbolDB *func_db);
 

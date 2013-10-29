@@ -37,7 +37,7 @@ private:
 	AnalogStick*	m_stick;
 
 	u8	m_shake_step[3];
-	
+
 	UDPWrapper* const m_udpWrap;
 };
 

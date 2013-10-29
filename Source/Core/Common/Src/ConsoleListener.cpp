@@ -87,7 +87,7 @@ bool ConsoleListener::IsOpen()
 
 /*
   LetterSpace: SetConsoleScreenBufferSize and SetConsoleWindowInfo are
-	dependent on each other, that's the reason for the additional checks.  
+	dependent on each other, that's the reason for the additional checks.
 */
 void ConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int ScreenWidth, int ScreenHeight, bool BufferFirst)
 {
@@ -226,7 +226,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 
 		BytesWritten += cAttrWritten;
 		coordScreen = GetCoordinates(BytesWritten, LBufWidth);
-	}	
+	}
 
 	const int OldCursor = ConInfo.dwCursorPosition.Y * ConInfo.dwSize.X + ConInfo.dwCursorPosition.X;
 	COORD Coo = GetCoordinates(OldCursor, LBufWidth);
@@ -311,23 +311,23 @@ void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
 }
 // Clear console screen
 void ConsoleListener::ClearScreen(bool Cursor)
-{ 
+{
 #if defined(_WIN32)
-	COORD coordScreen = { 0, 0 }; 
-	DWORD cCharsWritten; 
-	CONSOLE_SCREEN_BUFFER_INFO csbi; 
-	DWORD dwConSize; 
+	COORD coordScreen = { 0, 0 };
+	DWORD cCharsWritten;
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	DWORD dwConSize;
 
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); 
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	GetConsoleScreenBufferInfo(hConsole, &csbi); 
+	GetConsoleScreenBufferInfo(hConsole, &csbi);
 	dwConSize = csbi.dwSize.X * csbi.dwSize.Y;
 	// Write space to the entire console
-	FillConsoleOutputCharacter(hConsole, TEXT(' '), dwConSize, coordScreen, &cCharsWritten); 
-	GetConsoleScreenBufferInfo(hConsole, &csbi); 
+	FillConsoleOutputCharacter(hConsole, TEXT(' '), dwConSize, coordScreen, &cCharsWritten);
+	GetConsoleScreenBufferInfo(hConsole, &csbi);
 	FillConsoleOutputAttribute(hConsole, csbi.wAttributes, dwConSize, coordScreen, &cCharsWritten);
 	// Reset cursor
-	if (Cursor) SetConsoleCursorPosition(hConsole, coordScreen); 
+	if (Cursor) SetConsoleCursorPosition(hConsole, coordScreen);
 #endif
 }
 

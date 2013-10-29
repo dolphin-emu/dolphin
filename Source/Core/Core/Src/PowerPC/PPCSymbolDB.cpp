@@ -306,7 +306,7 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 		{
 			// Get the current and next address
 			LastAddress = rSymbol.address;
-			LastSymbolName = rSymbol.name;	
+			LastSymbolName = rSymbol.name;
 			++itr;
 
 			/* To make nice straight lines we fill out the name with spaces, we also cut off
@@ -326,7 +326,7 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 				space = itr->second.address - LastAddress;
 			else
 				space = 0;
-			
+
 			for (int i = 0; i < space; i += 4)
 			{
 				int Address = LastAddress + i;

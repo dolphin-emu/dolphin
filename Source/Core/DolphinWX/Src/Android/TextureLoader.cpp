@@ -40,7 +40,7 @@ char* LoadPNG(const char *filename, u32 &width, u32 &height)
 
 	/* Open the file. */
 	infile = fopen(filename, "rb");
-	if (!infile) 
+	if (!infile)
 		return NULL;
 
 	/*
@@ -55,8 +55,8 @@ char* LoadPNG(const char *filename, u32 &width, u32 &height)
 		return NULL;
 	}
 
-	/* 
-	* Set up the PNG structs 
+	/*
+	* Set up the PNG structs
 	*/
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png_ptr) {
@@ -73,7 +73,7 @@ char* LoadPNG(const char *filename, u32 &width, u32 &height)
 
 
 	/*
-	* block to handle libpng errors, 
+	* block to handle libpng errors,
 	* then check whether the PNG file had a bKGD chunk
 	*/
 	if (setjmp(png_jmpbuf(png_ptr))) {
@@ -82,16 +82,16 @@ char* LoadPNG(const char *filename, u32 &width, u32 &height)
 		return NULL;
 	}
 
-	/* 
-	* takes our file stream pointer (infile) and 
+	/*
+	* takes our file stream pointer (infile) and
 	* stores it in the png_ptr struct for later use.
 	*/
 	/* png_ptr->io_ptr = (png_voidp)infile;*/
 	png_init_io(png_ptr, infile);
 
 	/*
-	* lets libpng know that we already checked the 8 
-	* signature bytes, so it should not expect to find 
+	* lets libpng know that we already checked the 8
+	* signature bytes, so it should not expect to find
 	* them at the current file pointer location
 	*/
 	png_set_sig_bytes(png_ptr, 8);
@@ -99,25 +99,25 @@ char* LoadPNG(const char *filename, u32 &width, u32 &height)
 	/* Read the image */
 
 	/*
-	* reads and processes not only the PNG file's IHDR chunk 
-	* but also any other chunks up to the first IDAT 
+	* reads and processes not only the PNG file's IHDR chunk
+	* but also any other chunks up to the first IDAT
 	* (i.e., everything before the image data).
 	*/
 
 	/* read all the info up to the image data  */
 	png_read_info(png_ptr, info_ptr);
 
-	png_get_IHDR(png_ptr, info_ptr, &_width, &_height, &bit_depth, 
+	png_get_IHDR(png_ptr, info_ptr, &_width, &_height, &bit_depth,
 	&color_type, NULL, NULL, NULL);
 
 	/* Set up some transforms. */
-	if (bit_depth > 8) 
+	if (bit_depth > 8)
 		png_set_strip_16(png_ptr);
-	
-	if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA) 
+
+	if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 		png_set_gray_to_rgb(png_ptr);
 
-	if (color_type == PNG_COLOR_TYPE_PALETTE) 
+	if (color_type == PNG_COLOR_TYPE_PALETTE)
 		png_set_palette_to_rgb(png_ptr);
 
 	/* Update the png info struct.*/

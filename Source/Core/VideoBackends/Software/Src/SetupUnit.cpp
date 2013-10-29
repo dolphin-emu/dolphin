@@ -99,7 +99,7 @@ void SetupUnit::SetupTriStrip()
 	m_VertPointer[2 - (m_VertexCounter & 1)] = m_VertPointer[0];
 	m_VertWritePointer = m_VertPointer[0];
 
-	m_VertPointer[0] = &m_Vertices[(m_VertexCounter + 1) % 3];  
+	m_VertPointer[0] = &m_Vertices[(m_VertexCounter + 1) % 3];
 }
 
 void SetupUnit::SetupTriFan()

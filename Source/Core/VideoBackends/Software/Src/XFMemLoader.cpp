@@ -23,7 +23,7 @@ void XFWritten(u32 transferSize, u32 baseAddress)
 	if (baseAddress <= 0x1026 && topAddress >= 0x1020)
 		Clipper::SetViewOffset();
 
-	// fix lights so invalid values don't trash the lighting computations	
+	// fix lights so invalid values don't trash the lighting computations
 	if (baseAddress <= 0x067f && topAddress >= 0x0604)
 	{
 		u32* x = swxfregs.lights;

@@ -32,7 +32,7 @@ int CurrentThreadId();
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask);
 void SetCurrentThreadAffinity(u32 mask);
-	
+
 class Event
 {
 public:
@@ -137,7 +137,7 @@ private:
 	const size_t m_count;
 	volatile size_t m_waiting;
 };
-	
+
 void SleepCurrentThread(int ms);
 void SwitchCurrentThread();	// On Linux, this is equal to sleep 1ms
 
@@ -148,9 +148,9 @@ inline void YieldCPU()
 {
 	std::this_thread::yield();
 }
-	
+
 void SetCurrentThreadName(const char *name);
-	
+
 } // namespace Common
 
 #endif // _THREAD_H_

@@ -103,7 +103,7 @@ static const wxLanguage langIds[] =
 #define WXSTR_TRANS(a)		wxString(wxGetTranslation(wxT(a)))
 #ifdef WIN32
 //only used with xgettext to be picked up as translatable string.
-//win32 does not have wx on its path, the provided wxALL_FILES 
+//win32 does not have wx on its path, the provided wxALL_FILES
 //translation does not work there.
 #define unusedALL_FILES wxTRANSLATE("All files (*.*)|*.*");
 #endif
@@ -216,7 +216,7 @@ void CConfigMain::UpdateGUI()
 		CPUThread->Disable();
 		SkipIdle->Disable();
 		EnableCheats->Disable();
-		
+
 		CPUEngine->Disable();
 		_NTSCJ->Disable();
 
@@ -253,12 +253,12 @@ void CConfigMain::InitializeGUILists()
 	// Emulator Engine
 	for (auto& CPUCores_a : CPUCores)
 		arrayStringFor_CPUEngine.Add(wxGetTranslation(CPUCores_a.name));
-		
-	// DSP Engine 
+
+	// DSP Engine
 	arrayStringFor_DSPEngine.Add(_("DSP HLE emulation (fast)"));
 	arrayStringFor_DSPEngine.Add(_("DSP LLE recompiler"));
 	arrayStringFor_DSPEngine.Add(_("DSP LLE interpreter (slow)"));
-	
+
 	// Gamecube page
 	// GC Language arrayStrings
 	arrayStringFor_GCSystemLang.Add(_("English"));
@@ -268,16 +268,16 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_GCSystemLang.Add(_("Italian"));
 	arrayStringFor_GCSystemLang.Add(_("Dutch"));
 
-	
+
 	// Wii page
 	// Sensorbar Position
 	arrayStringFor_WiiSensBarPos.Add(_("Bottom"));
 	arrayStringFor_WiiSensBarPos.Add(_("Top"));
-	
+
 	// Aspect ratio
 	arrayStringFor_WiiAspectRatio.Add(wxT("4:3"));
 	arrayStringFor_WiiAspectRatio.Add(wxT("16:9"));
-	
+
 	// Wii Language arrayStrings
 	arrayStringFor_WiiSystemLang = arrayStringFor_GCSystemLang;
 	arrayStringFor_WiiSystemLang.Insert(_("Japanese"), 0);
@@ -318,7 +318,7 @@ void CConfigMain::InitializeGUILists()
 void CConfigMain::InitializeGUIValues()
 {
 	const SCoreStartupParameter& startup_params = SConfig::GetInstance().m_LocalCoreStartupParameter;
-	
+
 	// General - Basic
 	CPUThread->SetValue(startup_params.bCPUThread);
 	SkipIdle->SetValue(startup_params.bSkipIdle);
@@ -473,7 +473,7 @@ void CConfigMain::InitializeGUIValues()
 	WiiEuRGB60->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.E60"));
 	WiiAspectRatio->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	WiiSystemLang->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
-	
+
 	// Wii - Devices
 	WiiSDCard->SetValue(SConfig::GetInstance().m_WiiSDCard);
 	WiiKeyboard->SetValue(SConfig::GetInstance().m_WiiKeyboard);
@@ -525,7 +525,7 @@ void CConfigMain::InitializeGUITooltips()
 void CConfigMain::CreateGUIControls()
 {
 	InitializeGUILists();
-	
+
 	// Create the notebook and pages
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	wxPanel* const GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
@@ -613,7 +613,7 @@ void CConfigMain::CreateGUIControls()
 		if (-1 == theme_selection->FindString(wxname))
 			theme_selection->Append(wxname);
 	});
-	
+
 	theme_selection->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
 
 	// std::function = avoid error on msvc
@@ -639,7 +639,7 @@ void CConfigMain::CreateGUIControls()
 	sDisplayPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
 	DisplayPage->SetSizer(sDisplayPage);
 
-	
+
 	// Audio page
 	DSPEngine = new wxRadioBox(AudioPage, ID_DSPENGINE, _("DSP Emulator Engine"),
 				wxDefaultPosition, wxDefaultSize, arrayStringFor_DSPEngine, 0, wxRA_SPECIFY_ROWS);
@@ -796,7 +796,7 @@ void CConfigMain::CreateGUIControls()
 	sWiiPage->Add(sbWiiDeviceSettings, 0, wxEXPAND|wxALL, 5);
 	WiiPage->SetSizer(sWiiPage);
 
-	
+
 	// Paths page
 	ISOPaths = new wxListBox(PathsPage, ID_ISOPATHS, wxDefaultPosition, wxDefaultSize, arrayStringFor_ISOPaths, wxLB_SINGLE, wxDefaultValidator);
 	RecursiveISOPath = new wxCheckBox(PathsPage, ID_RECURSIVEISOPATH, _("Search Subfolders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -988,7 +988,7 @@ void CConfigMain::AddAudioBackends()
 {
 	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
 	// I'm sure Billiard will change this into an auto sometimes soon :P
-	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
+	for (std::vector<std::string>::const_iterator iter = backends.begin();
 		 iter != backends.end(); ++iter)
 	{
 		BackendSelection->Append(wxGetTranslation(StrToWxStr(*iter)));

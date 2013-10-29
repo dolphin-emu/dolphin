@@ -5,7 +5,7 @@
 #ifndef _TEXTUREDECODER_H
 #define _TEXTUREDECODER_H
 #include "Hash.h"
-enum 
+enum
 {
 	TMEM_SIZE = 1024*1024,
 	TMEM_LINE_SIZE = 32,

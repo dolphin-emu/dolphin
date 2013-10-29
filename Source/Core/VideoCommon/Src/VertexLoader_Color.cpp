@@ -100,7 +100,7 @@ void LOADERDECL Color_ReadDirect_24b_6666()
 // F|RES: i am not 100 percent sure, but the colElements seems to be important for rendering only
 // at least it fixes mario party 4
 //
-//	if (colElements[colIndex])	
+//	if (colElements[colIndex])
 //	else
 //		col |= 0xFF<<ASHIFT;
 //
@@ -110,7 +110,7 @@ void LOADERDECL Color_ReadDirect_32b_8888()
 	u32 col = DataReadU32Unswapped();
 
 	// "kill" the alpha
-	if (!colElements[colIndex])	
+	if (!colElements[colIndex])
 		col |= 0xFF << ASHIFT;
 
 	_SetCol(col);

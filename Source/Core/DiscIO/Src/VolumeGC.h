@@ -30,9 +30,9 @@ public:
 	u64 GetSize() const;
 	u64 GetRawSize() const;
 	bool IsDiscTwo() const;
-	
+
 	typedef std::string(*StringDecoder)(const std::string&);
-	
+
 	static StringDecoder GetStringDecoder(ECountry country);
 
 private:

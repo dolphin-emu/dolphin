@@ -257,7 +257,7 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	{
 		base_attempts++;
 		base = (u8 *)base_addr;
-		if (Memory_TryBase(base, views, num_views, flags, arena)) 
+		if (Memory_TryBase(base, views, num_views, flags, arena))
 		{
 			INFO_LOG(MEMMAP, "Found valid memory base at %p after %i tries.", base, base_attempts);
 			base_attempts = 0;

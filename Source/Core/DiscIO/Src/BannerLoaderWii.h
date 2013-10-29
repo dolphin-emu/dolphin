@@ -27,7 +27,7 @@ class CBannerLoaderWii
 		virtual std::vector<std::string> GetDescriptions();
 
 	private:
-		
+
 		enum
 		{
 			TEXTURE_SIZE = 192 * 64 * 2,

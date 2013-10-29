@@ -75,7 +75,7 @@ private:
 	void InsertItemInReportView(long _Index);
 	void SetBackgroundColor();
 	void ScanForISOs();
-	
+
 	DECLARE_EVENT_TABLE()
 
 	// events

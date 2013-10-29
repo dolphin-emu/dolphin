@@ -99,7 +99,7 @@ bool FifoDataFile::Save(const char *filename)
 		const FifoFrameInfo &srcFrame = m_Frames[i];
 
 		// Write FIFO data
-		file.Seek(0, SEEK_END);		
+		file.Seek(0, SEEK_END);
 		u64 dataOffset = file.Tell();
 		file.WriteBytes(srcFrame.fifoData, srcFrame.fifoDataSize);
 
@@ -116,7 +116,7 @@ bool FifoDataFile::Save(const char *filename)
 		// Write frame info
 		u64 frameOffset = frameListOffset + (i * sizeof(FileFrameInfo));
 		file.Seek(frameOffset, SEEK_SET);
-		file.WriteBytes(&dstFrame, sizeof(FileFrameInfo));		
+		file.WriteBytes(&dstFrame, sizeof(FileFrameInfo));
 	}
 
 	if (!file.Close())
@@ -150,7 +150,7 @@ FifoDataFile *FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 		file.Close();
 		return dataFile;
 	}
-	
+
 	u32 size = std::min((u32)BP_MEM_SIZE, header.bpMemSize);
 	file.Seek(header.bpMemOffset, SEEK_SET);
 	file.ReadArray(dataFile->m_BPMem, size);
@@ -230,7 +230,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates
 		file.Seek(0, SEEK_END);
 		u64 dataOffset = file.Tell();
 		file.WriteBytes(srcUpdate.data, srcUpdate.size);
-		
+
 		FileMemoryUpdate dstUpdate;
 		dstUpdate.address = srcUpdate.address;
 		dstUpdate.dataOffset = dataOffset;

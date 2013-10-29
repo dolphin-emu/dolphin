@@ -108,7 +108,7 @@ public:
 		return (0 != TryEnterCriticalSection(&m_handle));
 #else
 		return !pthread_mutex_trylock(&m_handle);
-#endif	
+#endif
 	}
 
 	native_handle_type native_handle()
@@ -283,10 +283,10 @@ public:
 		swap(other);
 		return *this;
 	}
-	
+
 #ifdef USE_RVALUE_REFERENCES
 	unique_lock(const unique_lock&) /*= delete*/;
-	
+
 	unique_lock(unique_lock&& other)
 		: pm(NULL), owns(false)
 	{
@@ -295,7 +295,7 @@ public:
 		: pm(NULL), owns(false)
 	{
 		// ugly const_cast to get around lack of rvalue references
-		unique_lock& other = const_cast<unique_lock&>(u);	
+		unique_lock& other = const_cast<unique_lock&>(u);
 #endif
 		swap(other);
 	}
@@ -316,7 +316,7 @@ public:
 	//bool try_lock_for(const chrono::duration<Rep, Period>& rel_time);
 	//template <class Clock, class Duration>
 	//bool try_lock_until(const chrono::time_point<Clock, Duration>& abs_time);
-	
+
 	void unlock()
 	{
 		mutex()->unlock();

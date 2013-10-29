@@ -57,7 +57,7 @@ static inline u16 dsp_increase_addr_reg(u16 reg, s16 _ix)
 	u32 ar = g_dsp.r.ar[reg];
 	u32 wr = g_dsp.r.wr[reg];
 	s32 ix = _ix;
-	
+
 	u32 mx = (wr | 1) << 1;
 	u32 nar = ar + ix;
 	u32 dar = (nar ^ ar ^ ix) & mx;
@@ -75,7 +75,7 @@ static inline u16 dsp_increase_addr_reg(u16 reg, s16 _ix)
 	return nar;
 }
 
-static inline u16 dsp_decrease_addr_reg(u16 reg, s16 _ix) 
+static inline u16 dsp_decrease_addr_reg(u16 reg, s16 _ix)
 {
 	u32 ar = g_dsp.r.ar[reg];
 	u32 wr = g_dsp.r.wr[reg];
@@ -98,23 +98,23 @@ static inline u16 dsp_decrease_addr_reg(u16 reg, s16 _ix)
 	return nar;
 }
 
-static inline u16 dsp_increment_addr_reg(u16 reg) 
+static inline u16 dsp_increment_addr_reg(u16 reg)
 {
 	u32 ar = g_dsp.r.ar[reg];
 	u32 wr = g_dsp.r.wr[reg];
 
 	u32 nar = ar + 1;
-	
+
 	if ((nar ^ ar) > ((wr | 1) << 1))
 		nar -= wr + 1;
 	return nar;
 }
 
-static inline u16 dsp_decrement_addr_reg(u16 reg) 
+static inline u16 dsp_decrement_addr_reg(u16 reg)
 {
 	u32 ar = g_dsp.r.ar[reg];
 	u32 wr = g_dsp.r.wr[reg];
-	
+
 	u32 nar = ar + wr;
 
 	if (((nar ^ ar) & ((wr | 1) << 1)) > wr)
@@ -244,9 +244,9 @@ static inline void dsp_op_write_reg(int _reg, u16 val)
 	}
 }
 
-static inline void dsp_conditional_extend_accum(int reg) 
+static inline void dsp_conditional_extend_accum(int reg)
 {
-	switch (reg) 
+	switch (reg)
 	{
 	case DSP_REG_ACM0:
 	case DSP_REG_ACM1:
@@ -344,12 +344,12 @@ inline u16 dsp_op_read_reg_and_saturate(u8 _reg)
 	if (g_dsp.r.sr & SR_40_MODE_BIT)
 	{
 		s64 acc = dsp_get_long_acc(_reg);
-	
-		if (acc != (s32)acc) 
+
+		if (acc != (s32)acc)
 		{
 			if (acc > 0)
 				return 0x7fff;
-			else 
+			else
 				return 0x8000;
 		}
 		else

@@ -64,7 +64,7 @@ ElfReader::ElfReader(void *ptr)
 	byteswapHeader(*header);
 
 	segments = (Elf32_Phdr *)(base + header->e_phoff);
-	sections = (Elf32_Shdr *)(base + header->e_shoff);	
+	sections = (Elf32_Shdr *)(base + header->e_shoff);
 
 	for (int i = 0; i < GetNumSegments(); i++)
 	{
@@ -98,7 +98,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 
 //	sectionOffsets = new u32[GetNumSections()];
 //	sectionAddrs = new u32[GetNumSections()];
-	
+
 	// Should we relocate?
 	bRelocate = (header->e_type != ET_EXEC);
 
@@ -123,7 +123,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 		Elf32_Phdr *p = segments + i;
 
 		INFO_LOG(MASTER_LOG, "Type: %i Vaddr: %08x Filesz: %i Memsz: %i ", p->p_type, p->p_vaddr, p->p_filesz, p->p_memsz);
-		
+
 		if (p->p_type == PT_LOAD)
 		{
 			segmentVAddr[i] = baseAddress + p->p_vaddr;
@@ -154,7 +154,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 	{
 		Elf32_Shdr *s = &sections[i];
 		const char *name = GetSectionName(i);
-		
+
 		u32 writeAddr = s->sh_addr + baseAddress;
 		sectionOffsets[i] = writeAddr - vaddr;
 		sectionAddrs[i] = writeAddr;
@@ -162,7 +162,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 		if (s->sh_flags & SHF_ALLOC)
 		{
 			LOG(MASTER_LOG,"Data Section found: %s     Sitting at %08x, size %08x", name, writeAddr, s->sh_size);
-	
+
 		}
 		else
 		{

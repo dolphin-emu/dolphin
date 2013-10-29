@@ -106,7 +106,7 @@ private:
 
 	FifoDataFile *m_File;
 
-	std::vector<AnalyzedFrameInfo> m_FrameInfo;	
+	std::vector<AnalyzedFrameInfo> m_FrameInfo;
 };
 
 #endif

@@ -130,7 +130,7 @@ u32 FifoCommandRunnable(u32 &command_size)
 	if (buffer_size == 0)
 		return 0;  // can't peek
 
-	u8 cmd_byte = DataPeek8(0);	
+	u8 cmd_byte = DataPeek8(0);
 
 	switch (cmd_byte)
 	{
@@ -340,14 +340,14 @@ static void Decode()
 			u32 address = DataReadU32();
 			u32 count = DataReadU32();
 			ExecuteDisplayList(address, count);
-		}			
+		}
 		break;
 
 	case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
 		DEBUG_LOG(VIDEO, "GX 0x44: %08x", cmd_byte);
 		break;
 
-	case GX_CMD_INVL_VC: // Invalidate Vertex Cache	
+	case GX_CMD_INVL_VC: // Invalidate Vertex Cache
 		DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
 		break;
 
@@ -359,7 +359,7 @@ static void Decode()
 		}
 		break;
 
-	// draw primitives 
+	// draw primitives
 	default:
 		if (cmd_byte & 0x80)
 		{
@@ -392,7 +392,7 @@ static void DecodeSemiNop()
 	switch (cmd_byte)
 	{
 	case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
-	case GX_CMD_INVL_VC: // Invalidate Vertex Cache	
+	case GX_CMD_INVL_VC: // Invalidate Vertex Cache
 	case GX_NOP:
 		break;
 
@@ -432,7 +432,7 @@ static void DecodeSemiNop()
 		break;
 
 	case GX_CMD_CALL_DL:
-		// Hm, wonder if any games put tokens in display lists - in that case, 
+		// Hm, wonder if any games put tokens in display lists - in that case,
 		// we'll have to parse them too.
 		DataSkip(8);
 		break;
@@ -447,7 +447,7 @@ static void DecodeSemiNop()
 		}
 		break;
 
-	// draw primitives 
+	// draw primitives
 	default:
 		if (cmd_byte & 0x80)
 		{

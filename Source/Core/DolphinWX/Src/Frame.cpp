@@ -446,7 +446,7 @@ void CFrame::OnActive(wxActivateEvent& event)
 #else
 			m_RenderParent->SetFocus();
 #endif
-			
+
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
 				m_RenderParent->SetCursor(wxCURSOR_BLANK);
@@ -609,7 +609,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		{
 			wxString caption = event.GetString().BeforeFirst(':');
 			wxString text = event.GetString().AfterFirst(':');
-			bPanicResult = (wxYES == wxMessageBox(text, 
+			bPanicResult = (wxYES == wxMessageBox(text,
 						caption, event.GetInt() ? wxYES_NO : wxOK, wxGetActiveWindow()));
 			panic_event.Set();
 		}
@@ -642,7 +642,7 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED ||
-			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize || 
+			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize ||
 			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
 		return;
 
@@ -933,7 +933,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 					{
 						int cmd = GetCmdForHotkey(i);
 						if (cmd >= 0)
-						{ 
+						{
 							wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, cmd);
 							wxMenuItem *item = GetMenuBar()->FindItem(cmd);
 							if (item && item->IsCheckable())

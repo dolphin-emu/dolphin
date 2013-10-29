@@ -223,7 +223,7 @@ public:
 	void twx(UGeckoInstruction inst);
 
 	void lXXx(UGeckoInstruction inst);
-	
+
 	void stXx(UGeckoInstruction inst);
 
 	void lmw(UGeckoInstruction inst);

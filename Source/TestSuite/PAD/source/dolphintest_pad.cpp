@@ -58,7 +58,7 @@ int main()
 				(pad[a].button & PAD_BUTTON_LEFT ? "Left " : "")<<
 				(pad[a].button & PAD_BUTTON_RIGHT ? "Right " : "")<<std::endl;
 			}
-	}	
+	}
 }
 
 void Initialise()

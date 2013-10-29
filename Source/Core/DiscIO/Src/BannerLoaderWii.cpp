@@ -15,7 +15,7 @@
 namespace DiscIO
 {
 
-CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)	
+CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 	: m_pBannerFile(NULL)
 	, m_IsValid(false)
 {
@@ -42,7 +42,7 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
 		if(!File::Exists(titleFolder))
 			File::CreateFullPath(titleFolder);
-		
+
 		// Extracting banner.bin from opening.bnr
 		sprintf(bnrFilename, "%stitle/%08x/%08x/data/opening.bnr",
 			File::GetUserPath(D_WIIUSER_IDX).c_str(), (u32)(TitleID>>32), (u32)TitleID);
@@ -61,7 +61,7 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 
 		// Now we have an LZ77-compressed file with a short IMD5 header
 		// TODO: Finish the job
-		
+
 		File::Delete(bnrFilename);
 #else
 		m_IsValid = false;
@@ -115,15 +115,15 @@ bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::stri
 	{
 		auto const banner = reinterpret_cast<const SWiiBanner*>(m_pBannerFile);
 		auto const src_ptr = banner->m_Comment[index];
-		
+
 		// Trim at first NULL
 		auto const length = std::find(src_ptr, src_ptr + COMMENT_SIZE, 0x0) - src_ptr;
-		
+
 		std::wstring src;
 		src.resize(length);
 		std::transform(src_ptr, src_ptr + src.size(), src.begin(), (u16(&)(u16))Common::swap16);
 		result = UTF16ToUTF8(src);
-		
+
 		return true;
 	}
 
@@ -133,7 +133,7 @@ bool CBannerLoaderWii::GetStringFromComments(const CommentIndex index, std::stri
 std::vector<std::string> CBannerLoaderWii::GetNames()
 {
 	std::vector<std::string> ret(1);
-	
+
 	if (!GetStringFromComments(NAME_IDX, ret[0]))
 		ret.clear();
 

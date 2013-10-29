@@ -6,7 +6,7 @@
 #define _LOG_H_
 
 #define NOTICE_LEVEL  1  // VERY important information that is NOT errors. Like startup and OSReports.
-#define ERROR_LEVEL   2  // Critical errors 
+#define ERROR_LEVEL   2  // Critical errors
 #define WARNING_LEVEL 3  // Something is suspicious.
 #define INFO_LEVEL    4  // General information.
 #define DEBUG_LEVEL   5  // Detailed debugging - might make things slow.
@@ -40,7 +40,7 @@ enum LOG_TYPE
 	MEMMAP,
 	MEMCARD_MANAGER,
 	OSREPORT,
-	PAD, 
+	PAD,
 	PROCESSORINTERFACE,
 	PIXELENGINE,
 	SERIALINTERFACE,

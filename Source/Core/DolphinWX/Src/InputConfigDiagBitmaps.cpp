@@ -263,7 +263,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					}
 
 					delete[] bitmasks;
-					
+
 				}
 				break;
 			case GROUP_TYPE_TRIGGERS :

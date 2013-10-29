@@ -103,7 +103,7 @@ void Television::Init()
 	D3D::SetDebugObjectName(m_pShader, "yuyv decoder pixel shader");
 
 	// Create sampler state and set border color
-	// 
+	//
 	// The default sampler border color of { 0.f, 0.f, 0.f, 0.f }
 	// creates a green border around the image - see issue 6483
 	// (remember, the XFB is being interpreted as YUYV, and 0,0,0,0

@@ -44,7 +44,7 @@ private:
 	std::string WiiTitlePath;
 
 	u8  IV[0x10];
-	
+
 	u32 //_bannerSize,
 		_numberOfFiles,
 		_sizeOfFiles,

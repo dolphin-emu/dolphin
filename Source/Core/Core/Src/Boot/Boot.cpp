@@ -41,11 +41,11 @@ void CBoot::Load_FST(bool _bIsWii)
 		return;
 
 	// copy first 20 bytes of disc to start of Mem 1
-	VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20);		
+	VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20);
 
 	// copy of game id
 	Memory::Write_U32(Memory::Read_U32(0x80000000), 0x80003180);
-		
+
 	u32 shift = 0;
 	if (_bIsWii)
 		shift = 2;
@@ -137,7 +137,7 @@ bool CBoot::LoadMapFromFilename()
 	return false;
 }
 
-// If ipl.bin is not found, this function does *some* of what BS1 does: 
+// If ipl.bin is not found, this function does *some* of what BS1 does:
 // loading IPL(BS2) and jumping to it.
 // It does not initialize the hardware or anything else like BS1 does.
 bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
@@ -190,7 +190,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
 bool CBoot::BootUp()
 {
-	SCoreStartupParameter& _StartupPara = 
+	SCoreStartupParameter& _StartupPara =
 	SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
@@ -295,7 +295,7 @@ bool CBoot::BootUp()
 			NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
 			VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, dolWii, _StartupPara.m_strApploader, _StartupPara.m_strFilename);
 			BS2Success = EmulatedBS2(dolWii);
-		} 
+		}
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
@@ -326,7 +326,7 @@ bool CBoot::BootUp()
 		if (elfWii != _StartupPara.bWii)
 		{
 			PanicAlertT("Warning - starting ELF in wrong console mode!");
-		}			
+		}
 
 		bool BS2Success = false;
 
@@ -347,7 +347,7 @@ bool CBoot::BootUp()
 			// TODO: auto-convert elf to dol, so we can load them :)
 			VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, elfWii);
 			BS2Success = EmulatedBS2(elfWii);
-		} 
+		}
 		else if (!_StartupPara.m_strDefaultGCM.empty())
 		{
 			NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultGCM.c_str());
@@ -364,7 +364,7 @@ bool CBoot::BootUp()
 		else // Poor man's bootup
 		{
 			Load_FST(elfWii);
-			Boot_ELF(_StartupPara.m_strFilename.c_str()); 
+			Boot_ELF(_StartupPara.m_strFilename.c_str());
 		}
 		UpdateDebugger_MapLoaded();
 		Dolphin_Debugger::AddAutoBreakpoints();

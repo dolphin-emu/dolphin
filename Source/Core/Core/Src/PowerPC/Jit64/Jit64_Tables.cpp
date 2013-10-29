@@ -27,7 +27,7 @@ struct GekkoOPTemplate
 	//GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
 };
 
-static GekkoOPTemplate primarytable[] = 
+static GekkoOPTemplate primarytable[] =
 {
 	{4,  &Jit64::DynaRunTable4}, //"RunTable4",  OPTYPE_SUBTABLE | (4<<24), 0}},
 	{19, &Jit64::DynaRunTable19}, //"RunTable19", OPTYPE_SUBTABLE | (19<<24), 0}},
@@ -108,7 +108,7 @@ static GekkoOPTemplate primarytable[] =
 	{58, &Jit64::Default}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
 };
 
-static GekkoOPTemplate table4[] = 
+static GekkoOPTemplate table4[] =
 {    //SUBOP10
 	{0,    &Jit64::Default}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
 	{32,   &Jit64::Default}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
@@ -124,9 +124,9 @@ static GekkoOPTemplate table4[] =
 	{624,  &Jit64::ps_mergeXX}, //"ps_merge11", OPTYPE_PS, FL_RC_BIT}},
 
 	{1014, &Jit64::Default}, //"dcbz_l",     OPTYPE_SYSTEM, 0}},
-};		
+};
 
-static GekkoOPTemplate table4_2[] = 
+static GekkoOPTemplate table4_2[] =
 {
 	{10, &Jit64::ps_sum}, //"ps_sum0",   OPTYPE_PS, 0}},
 	{11, &Jit64::ps_sum}, //"ps_sum1",   OPTYPE_PS, 0}},
@@ -148,15 +148,15 @@ static GekkoOPTemplate table4_2[] =
 };
 
 
-static GekkoOPTemplate table4_3[] = 
+static GekkoOPTemplate table4_3[] =
 {
 	{6,  &Jit64::Default}, //"psq_lx",   OPTYPE_PS, 0}},
 	{7,  &Jit64::Default}, //"psq_stx",  OPTYPE_PS, 0}},
 	{38, &Jit64::Default}, //"psq_lux",  OPTYPE_PS, 0}},
-	{39, &Jit64::Default}, //"psq_stux", OPTYPE_PS, 0}}, 
+	{39, &Jit64::Default}, //"psq_stux", OPTYPE_PS, 0}},
 };
 
-static GekkoOPTemplate table19[] = 
+static GekkoOPTemplate table19[] =
 {
 	{528, &Jit64::bcctrx}, //"bcctrx", OPTYPE_BRANCH, FL_ENDBLOCK}},
 	{16,  &Jit64::bclrx}, //"bclrx",  OPTYPE_BRANCH, FL_ENDBLOCK}},
@@ -168,16 +168,16 @@ static GekkoOPTemplate table19[] =
 	{449, &Jit64::crXXX}, //"cror",   OPTYPE_CR, FL_EVIL}},
 	{417, &Jit64::crXXX}, //"crorc",  OPTYPE_CR, FL_EVIL}},
 	{193, &Jit64::crXXX}, //"crxor",  OPTYPE_CR, FL_EVIL}},
-												   
+
 	{150, &Jit64::DoNothing}, //"isync",  OPTYPE_ICACHE, FL_EVIL}},
 	{0,   &Jit64::mcrf}, //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
-												   
+
 	{50,  &Jit64::rfi}, //"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
 	{18,  &Jit64::Default}, //"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}
 };
 
 
-static GekkoOPTemplate table31[] = 
+static GekkoOPTemplate table31[] =
 {
 	{28,  &Jit64::boolX}, //"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
 	{60,  &Jit64::boolX}, //"andcx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
@@ -252,7 +252,7 @@ static GekkoOPTemplate table31[] =
 	{661, &Jit64::Default}, //"stswx",  OPTYPE_STORE, FL_EVIL}},
 	{725, &Jit64::Default}, //"stswi",  OPTYPE_STORE, FL_EVIL}},
 
-	// fp load/store	
+	// fp load/store
 	{535, &Jit64::lfsx}, //"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
 	{567, &Jit64::Default}, //"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
 	{599, &Jit64::Default}, //"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
@@ -290,8 +290,8 @@ static GekkoOPTemplate table31[] =
 	{566, &Jit64::Default}, //"tlbsync", OPTYPE_SYSTEM, 0}},
 };
 
-static GekkoOPTemplate table31_2[] = 
-{	
+static GekkoOPTemplate table31_2[] =
+{
 	{266,  &Jit64::addx}, //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{778,  &Jit64::addx}, //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{10,   &Jit64::addcx}, //"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
@@ -318,21 +318,21 @@ static GekkoOPTemplate table31_2[] =
 	{200,  &Jit64::subfzex}, //"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 };
 
-static GekkoOPTemplate table59[] = 
+static GekkoOPTemplate table59[] =
 {
-	{18, &Jit64::Default},       //{"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}}, 
-	{20, &Jit64::fp_arith_s}, //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{21, &Jit64::fp_arith_s}, //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
+	{18, &Jit64::Default},       //{"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}},
+	{20, &Jit64::fp_arith_s}, //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{21, &Jit64::fp_arith_s}, //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 //	{22, &Jit64::Default}, //"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
-	{24, &Jit64::Default}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{25, &Jit64::fp_arith_s}, //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{28, &Jit64::fmaddXX}, //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{29, &Jit64::fmaddXX}, //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{30, &Jit64::fmaddXX}, //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{31, &Jit64::fmaddXX}, //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
-};							    
+	{24, &Jit64::Default}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{25, &Jit64::fp_arith_s}, //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{28, &Jit64::fmaddXX}, //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{29, &Jit64::fmaddXX}, //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{30, &Jit64::fmaddXX}, //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}},
+	{31, &Jit64::fmaddXX}, //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}},
+};
 
-static GekkoOPTemplate table63[] = 
+static GekkoOPTemplate table63[] =
 {
 	{264, &Jit64::fsign},   //"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{32,  &Jit64::fcmpx},   //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
@@ -352,7 +352,7 @@ static GekkoOPTemplate table63[] =
 	{711, &Jit64::Default}, //"mtfsfx",  OPTYPE_SYSTEMFP, 0, 2}},
 };
 
-static GekkoOPTemplate table63_2[] = 
+static GekkoOPTemplate table63_2[] =
 {
 	{18, &Jit64::Default}, //"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
 	{20, &Jit64::Default}, //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
@@ -394,7 +394,7 @@ void InitTables()
 		return;
 
 	//clear
-	for (auto& tpl : dynaOpTable59) 
+	for (auto& tpl : dynaOpTable59)
 	{
 		tpl = &Jit64::unknown_instruction;
 	}
@@ -404,7 +404,7 @@ void InitTables()
 		dynaOpTable4 [i] = &Jit64::unknown_instruction;
 		dynaOpTable19[i] = &Jit64::unknown_instruction;
 		dynaOpTable31[i] = &Jit64::unknown_instruction;
-		dynaOpTable63[i] = &Jit64::unknown_instruction;	
+		dynaOpTable63[i] = &Jit64::unknown_instruction;
 	}
 
 	for (auto& tpl : primarytable)

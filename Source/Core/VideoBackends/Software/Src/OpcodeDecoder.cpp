@@ -82,7 +82,7 @@ void DecodePrimitiveStream(u32 iBufferSize)
 
 void ReadXFData(u32 iBufferSize)
 {
-	_assert_msg_(VIDEO, iBufferSize >= (u32)(streamSize * 4), "Underflow during standard opcode decoding"); 
+	_assert_msg_(VIDEO, iBufferSize >= (u32)(streamSize * 4), "Underflow during standard opcode decoding");
 
 	u32 pData[16];
 	for (int i = 0; i < streamSize; i++)
@@ -109,7 +109,7 @@ void ExecuteDisplayList(u32 addr, u32 count)
 		u32 readCount = (u32)(g_pVideoData - dlStart);
 		dlStart = g_pVideoData;
 
-		_assert_msg_(VIDEO, count >= readCount, "Display list underrun"); 
+		_assert_msg_(VIDEO, count >= readCount, "Display list underrun");
 
 		count -= readCount;
 	}
@@ -119,7 +119,7 @@ void ExecuteDisplayList(u32 addr, u32 count)
 
 void DecodeStandard(u32 bufferSize)
 {
-	_assert_msg_(VIDEO, CommandRunnable(bufferSize), "Underflow during standard opcode decoding"); 
+	_assert_msg_(VIDEO, CommandRunnable(bufferSize), "Underflow during standard opcode decoding");
 
 	int Cmd = DataReadU8();
 
@@ -191,7 +191,7 @@ void DecodeStandard(u32 bufferSize)
 		// zelda 4 swords calls it and checks the metrics registers after that
 		break;
 
-	case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)	
+	case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)
 		DEBUG_LOG(VIDEO, "Invalidate	(vertex cache?)");
 		break;
 
@@ -202,7 +202,7 @@ void DecodeStandard(u32 bufferSize)
 		}
 		break;
 
-	// draw primitives 
+	// draw primitives
 	default:
 		if (Cmd & 0x80)
 		{
@@ -284,7 +284,7 @@ bool CommandRunnable(u32 iBufferSize)
 			minSize = 5;
 			break;
 
-		// draw primitives 
+		// draw primitives
 		default:
 			if (Cmd & 0x80)
 				minSize = 3;

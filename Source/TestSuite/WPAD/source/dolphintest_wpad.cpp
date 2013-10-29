@@ -131,7 +131,7 @@ void print_and_draw_wiimote_data(void *screen_buffer) {
 		std::cout<<"    @ "<<wd->ir.angle<<" deg\n";
 
 		drawdot(screen_buffer, rmode, rmode->fbWidth, rmode->xfbHeight, wd->ir.x, wd->ir.y, COLOR_RED);
-		drawdot(screen_buffer, rmode, rmode->fbWidth, rmode->xfbHeight, wd->ir.x + 10*sinf(theta), wd->ir.y - 10*cosf(theta), COLOR_BLUE);        
+		drawdot(screen_buffer, rmode, rmode->fbWidth, rmode->xfbHeight, wd->ir.x + 10*sinf(theta), wd->ir.y - 10*cosf(theta), COLOR_BLUE);
 	} else {
 		std::cout<<"  No Cursor\n\n";
 	}

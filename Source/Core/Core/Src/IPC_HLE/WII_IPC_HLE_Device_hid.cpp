@@ -521,7 +521,7 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 
 	if (cnt < 0)
 		return NULL;
-	
+
 #ifdef _WIN32
 	static bool has_warned_about_drivers = false;
 #endif

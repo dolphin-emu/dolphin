@@ -17,7 +17,7 @@ static const u8 nunchuck_id[] = { 0x00, 0x00, 0xa4, 0x20, 0x00, 0x00 };
 static const u8 nunchuck_calibration[] =
 {
 	0x80, 0x80, 0x80, 0x00, // accelerometer x, y, z neutral
-	0xb3, 0xb3, 0xb3, 0x00, //  x, y, z g-force values 
+	0xb3, 0xb3, 0xb3, 0x00, //  x, y, z g-force values
 
 	// 0x80 = analog stick x and y axis center
 	0xff, 0x00, 0x80,
@@ -121,10 +121,10 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 		// buttons
 		m_buttons->GetState(&ncdata->bt, nunchuk_button_bitmasks);
 	}
-	
+
 	// flip the button bits :/
 	ncdata->bt ^= 0x03;
-	
+
 	if (m_udpWrap->inst)
 	{
 		if (m_udpWrap->updNun)
@@ -151,7 +151,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 			accel.x = x;
 			accel.y = y;
 			accel.z = z;
-		}	
+		}
 	}
 
 	wm_accel* dt = (wm_accel*)&ncdata->ax;

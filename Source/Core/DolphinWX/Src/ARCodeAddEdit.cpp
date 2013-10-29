@@ -38,7 +38,7 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 	EditCheatName = new wxTextCtrl(this, ID_EDITCHEAT_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
 	EditCheatName->SetValue(currentName);
 	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
-	EntrySelection->SetRange(1, ((int)arCodes.size()) > 0 ? (int)arCodes.size() : 1); 
+	EntrySelection->SetRange(1, ((int)arCodes.size()) > 0 ? (int)arCodes.size() : 1);
 	EntrySelection->SetValue((int)(arCodes.size() - selection));
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxSize(300, 100), wxTE_MULTILINE);
 	UpdateTextCtrl(tempEntries);

@@ -264,7 +264,7 @@ private:
 	// The index of the last stored ext value (compile time).
 	int storeIndex;
 	int storeIndex2;
-	
+
 	// Counts down.
 	// int cycles;
 

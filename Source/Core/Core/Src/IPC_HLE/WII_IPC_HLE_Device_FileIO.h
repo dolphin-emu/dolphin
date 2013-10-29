@@ -64,7 +64,7 @@ private:
 
 	u32 m_Mode;
 	u32 m_SeekPos;
-	
+
 	std::string m_filepath;
 };
 

@@ -121,7 +121,7 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count)
 	if (count > BUF_SIZE * 2)
 		PanicAlert("WaveFileWriter - buffer too small (count = %u).", count);
 
-	if (skip_silence) 
+	if (skip_silence)
 	{
 		bool all_zero = true;
 

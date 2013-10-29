@@ -8,18 +8,18 @@ Copyright (c) 2007, 2008 Markus Trenkwalder
 
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without 
+Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
-* Redistributions of source code must retain the above copyright notice, 
+* Redistributions of source code must retain the above copyright notice,
   this list of conditions and the following disclaimer.
 
 * Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation 
+  this list of conditions and the following disclaimer in the documentation
   and/or other materials provided with the distribution.
 
-* Neither the name of the library's copyright owner nor the names of its 
-  contributors may be used to endorse or promote products derived from this 
+* Neither the name of the library's copyright owner nor the names of its
+  contributors may be used to endorse or promote products derived from this
   software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -190,7 +190,7 @@ namespace Clipper
 				inlist[1] = 1;
 				inlist[2] = 2;
 
-				// mark this triangle as unused in case it should be completely 
+				// mark this triangle as unused in case it should be completely
 				// clipped
 				indices[0] = SKIP_FLAG;
 				indices[1] = SKIP_FLAG;
@@ -229,13 +229,13 @@ namespace Clipper
 			mask |= clip_mask[i];
 		}
 
-		if (mask == 0) 
+		if (mask == 0)
 			return;
 
 		float t0 = 0;
 		float t1 = 0;
 
-		// Mark unused in case of early termination 
+		// Mark unused in case of early termination
 		// of the macros below. (When fully clipped)
 		indices[0] = SKIP_FLAG;
 		indices[1] = SKIP_FLAG;
@@ -247,7 +247,7 @@ namespace Clipper
 		LINE_CLIP(CLIP_POS_Z_BIT,  0,  0, -1, 1);
 		LINE_CLIP(CLIP_NEG_Z_BIT,  0,  0,  1, 1);
 
-		// Restore the old values as this line 
+		// Restore the old values as this line
 		// was not fully clipped.
 		indices[0] = 0;
 		indices[1] = 1;
@@ -305,7 +305,7 @@ namespace Clipper
 				PerspectiveDivide(Vertices[indices[i+1]]);
 				PerspectiveDivide(Vertices[indices[i+2]]);
 
-				Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]], Vertices[indices[i+1]], Vertices[indices[i+2]]);                
+				Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]], Vertices[indices[i+1]], Vertices[indices[i+2]]);
 			}
 		}
 	}
@@ -349,7 +349,7 @@ namespace Clipper
 
 			float dx = v1->screenPosition.x - v0->screenPosition.x;
 			float dy = v1->screenPosition.y - v0->screenPosition.y;
-			
+
 			float screenDx = 0;
 			float screenDy = 0;
 
@@ -405,7 +405,7 @@ namespace Clipper
 		float w1 = v1->projectedPosition.w;
 		float w2 = v2->projectedPosition.w;
 
-		float normalZDir = (x0*w2 - x2*w0)*y1 + (x2*y0 - x0*y2)*w1 + (y2*w0 - y0*w2)*x1; 
+		float normalZDir = (x0*w2 - x2*w0)*y1 + (x2*y0 - x0*y2)*w1 + (y2*w0 - y0*w2)*x1;
 
 		backface = normalZDir <= 0.0f;
 

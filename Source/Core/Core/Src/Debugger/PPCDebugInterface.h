@@ -14,7 +14,7 @@
 class PPCDebugInterface : public DebugInterface
 {
 public:
-	PPCDebugInterface(){} 
+	PPCDebugInterface(){}
 	virtual void disasm(unsigned int address, char *dest, int max_size);
 	virtual void getRawMemoryString(int memory, unsigned int address, char *dest, int max_size);
 	virtual int getInstructionSize(int /*instruction*/) {return 4;}

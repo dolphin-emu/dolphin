@@ -124,7 +124,7 @@ void LoadCPReg(u32 subCmd, u32 value, CPMemory &cpMem)
 u32 CalculateVertexSize(int vatIndex, const CPMemory &cpMem)
 {
 	u32 vertexSize = 0;
-	
+
 	int sizes[21];
 	CalculateVertexElementSizes(sizes, vatIndex, cpMem);
 
@@ -145,14 +145,14 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 
 	const u32 tcElements[8] =
 	{
-		vtxAttr.g0.Tex0CoordElements, vtxAttr.g1.Tex1CoordElements, vtxAttr.g1.Tex2CoordElements, 
+		vtxAttr.g0.Tex0CoordElements, vtxAttr.g1.Tex1CoordElements, vtxAttr.g1.Tex2CoordElements,
 		vtxAttr.g1.Tex3CoordElements, vtxAttr.g1.Tex4CoordElements, vtxAttr.g2.Tex5CoordElements,
 		vtxAttr.g2.Tex6CoordElements, vtxAttr.g2.Tex7CoordElements
 	};
 
 	const u32 tcFormat[8] =
 	{
-		vtxAttr.g0.Tex0CoordFormat, vtxAttr.g1.Tex1CoordFormat, vtxAttr.g1.Tex2CoordFormat, 
+		vtxAttr.g0.Tex0CoordFormat, vtxAttr.g1.Tex1CoordFormat, vtxAttr.g1.Tex2CoordFormat,
 		vtxAttr.g1.Tex3CoordFormat, vtxAttr.g1.Tex4CoordFormat, vtxAttr.g2.Tex5CoordFormat,
 		vtxAttr.g2.Tex6CoordFormat, vtxAttr.g2.Tex7CoordFormat
 	};
@@ -171,7 +171,7 @@ void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMe
 	// Normals
 	if (vtxDesc.Normal != NOT_PRESENT)
 	{
-		sizes[10] = VertexLoader_Normal::GetSize(vtxDesc.Normal, vtxAttr.g0.NormalFormat, vtxAttr.g0.NormalElements, vtxAttr.g0.NormalIndex3);		
+		sizes[10] = VertexLoader_Normal::GetSize(vtxDesc.Normal, vtxAttr.g0.NormalFormat, vtxAttr.g0.NormalElements, vtxAttr.g0.NormalIndex3);
 	}
 	else
 	{

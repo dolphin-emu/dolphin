@@ -677,8 +677,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		u32 fd = Memory::Read_U32(BufferIn);
 		WiiSockMan &sm = WiiSockMan::getInstance();
 		ReturnValue = sm.delSocket(fd);
-		DEBUG_LOG(WII_IPC_NET, "%s(%x) %x", 
-			Command == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE", 
+		DEBUG_LOG(WII_IPC_NET, "%s(%x) %x",
+			Command == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE",
 			fd, ReturnValue);
 		break;
 	}
@@ -755,7 +755,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		if (optname == SO_ERROR)
 		{
 			s32 last_error = WiiSockMan::getInstance().getLastNetError();
-			
+
 			Memory::Write_U32(sizeof(s32), BufferOut + 0xC);
 			Memory::Write_U32(last_error, BufferOut + 0x10);
 		}
@@ -775,7 +775,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 			"BufferIn: (%08x, %i), BufferOut: (%08x, %i)"
 			"%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx",
 			fd, level, optname, optlen, BufferIn, BufferInSize, BufferOut, BufferOutSize, optval[0], optval[1], optval[2], optval[3], optval[4], optval[5], optval[6], optval[7], optval[8], optval[9], optval[10], optval[11], optval[12], optval[13], optval[14], optval[15], optval[16], optval[17], optval[18], optval[19]);
-		
+
 		//TODO: bug booto about this, 0x2005 most likely timeout related, default value on wii is , 0x2001 is most likely tcpnodelay
 		if (level == 6 && (optname == 0x2005 || optname == 0x2001)){
 			ReturnValue = 0;

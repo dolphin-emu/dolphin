@@ -29,7 +29,7 @@ void PixelShaderManager::Dirty()
 	s_bFogRangeAdjustChanged = true;
 	s_bViewPortChanged = true;
 	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
-	
+
 	SetColorChanged(0, 0);
 	SetColorChanged(0, 1);
 	SetColorChanged(0, 2);
@@ -135,7 +135,7 @@ void PixelShaderManager::SetConstants(u32 components)
 			nLightsChanged[0] = nLightsChanged[1] = -1;
 		}
 	}
-	
+
 	if(s_bViewPortChanged)
 	{
 		constants.zbias[1][0] = xfregs.viewport.farZ / 16777216.0f;
@@ -156,7 +156,7 @@ void PixelShaderManager::SetColorChanged(int type, int num)
 	c[num][2] = bpmem.tevregs[num].high.a / 255.0f;
 	c[num][1] = bpmem.tevregs[num].high.b / 255.0f;
 	dirty = true;
-	
+
 	PRIM_LOG("pixel %scolor%d: %f %f %f %f\n", type?"k":"", num, c[num][0], c[num][1], c[num][2], c[num][3]);
 }
 
@@ -179,7 +179,7 @@ void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wra
 	// or better, use textureSize() in glsl
 	if(constants.texdims[texmapid][0] != 1.0f/width || constants.texdims[texmapid][1] != 1.0f/height)
 		dirty = true;
-	
+
 	constants.texdims[texmapid][0] = 1.0f/width;
 	constants.texdims[texmapid][1] = 1.0f/height;
 }
@@ -336,7 +336,7 @@ void PixelShaderManager::DoState(PointerWrap &p)
 {
 	p.Do(constants);
 	p.Do(dirty);
-	
+
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		Dirty();

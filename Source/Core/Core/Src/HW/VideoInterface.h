@@ -132,8 +132,8 @@ union UVIHorizontalTiming0
 {
 	u32 Hex;
 	struct { u16 Lo, Hi; };
-	struct  
-	{		
+	struct
+	{
 		u32 HLW		:	9; // Halfline Width (W*16 = Width (720))
 		u32			:	7;
 		u32 HCE		:	7; // Horizontal Sync Start to Color Burst End
@@ -147,8 +147,8 @@ union UVIHorizontalTiming1
 {
 	u32 Hex;
 	struct { u16 Lo, Hi; };
-	struct  
-	{		
+	struct
+	{
 		u32 HSY		:	 7; // Horizontal Sync Width
 		u32 HBE640	:	 9; // Horizontal Sync Start to horizontal blank end
 		u32			:	 1;
@@ -162,8 +162,8 @@ union UVIVBlankTimingRegister
 {
 	u32 Hex;
 	struct { u16 Lo, Hi; };
-	struct  
-	{		
+	struct
+	{
 		u32 PRB		:	10; // Pre-blanking in half lines
 		u32			:	 6;
 		u32 PSB		:	10; // Post blanking in half lines
@@ -176,8 +176,8 @@ union UVIBurstBlankingRegister
 {
 	u32 Hex;
 	struct { u16 Lo, Hi; };
-	struct  
-	{		
+	struct
+	{
 		u32 BS0		:	 5; // Field x start to burst blanking start in halflines
 		u32 BE0		:	11; // Field x start to burst blanking end in halflines
 		u32 BS2		:	 5; // Field x+2 start to burst blanking start in halflines
@@ -189,7 +189,7 @@ union UVIFBInfoRegister
 {
 	u32 Hex;
 	struct { u16 Lo, Hi; };
-	struct  
+	struct
 	{
 		// TODO: mask out lower 9bits/align to 9bits???
 		u32 FBB		:	24; // Base address of the framebuffer in external mem
@@ -205,8 +205,8 @@ union UVIInterruptRegister
 {
 	u32 Hex;
 	struct { u16 Lo, Hi; };
-	struct  
-	{		
+	struct
+	{
 		u32 HCT		:	11; // Horizontal Position
 		u32			:	 5;
 		u32 VCT		:	11; // Vertical Position
@@ -221,8 +221,8 @@ union UVILatchRegister
 {
 	u32 Hex;
 	struct { u16 Lo, Hi; };
-	struct  
-	{		
+	struct
+	{
 		u32 HCT		:	11; // Horizontal Count
 		u32			:	 5;
 		u32 VCT		:	11; // Vertical Count
@@ -307,7 +307,7 @@ union UVIBorderBlankRegister
 union UVIDTVStatus
 {
 	u16 Hex;
-	struct 
+	struct
 	{
 		u16 component_plugged	: 1;
 		u16 ntsc_j				: 1;

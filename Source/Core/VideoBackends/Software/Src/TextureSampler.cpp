@@ -124,7 +124,7 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 	int imageHeight = ti0.height;
 
 	int tlutAddress = texTlut.tmem_offset << 9;
-	
+
 	// reduce sample location and texture size to mip level
 	// move texture pointer to mip location
 	if (mip)

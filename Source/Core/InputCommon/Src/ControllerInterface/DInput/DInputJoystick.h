@@ -88,7 +88,7 @@ public:
 
 	Joystick(const LPDIRECTINPUTDEVICE8 device, const unsigned int index);
 	~Joystick();
-	
+
 	std::string GetName() const;
 	int GetId() const;
 	std::string GetSource() const;

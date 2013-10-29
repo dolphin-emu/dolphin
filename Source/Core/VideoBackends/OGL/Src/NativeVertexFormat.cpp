@@ -48,21 +48,21 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	vertex_stride = vtx_decl.stride;
 
 	// We will not allow vertex components causing uneven strides.
-	if (vertex_stride & 3) 
+	if (vertex_stride & 3)
 		PanicAlert("Uneven vertex stride: %i", vertex_stride);
-	
+
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
-	
+
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
-	
+
 	// the element buffer is bound directly to the vao, so we must it set for every vao
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vm->m_index_buffers);
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
 
 	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
 	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE, vtx_decl.stride, (u8*)NULL);
-	
+
 	for (int i = 0; i < 3; i++) {
 		if (vtx_decl.num_normals > i) {
 			glEnableVertexAttribArray(SHADER_NORM0_ATTRIB+i);

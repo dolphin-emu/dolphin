@@ -40,7 +40,7 @@ void VertexManager::CreateDeviceObjects()
 	m_line_draw_index = 0;
 	m_point_draw_index = 0;
 	m_index_buffers = new PID3D11Buffer[MAX_VBUFFER_COUNT];
-	m_vertex_buffers = new PID3D11Buffer[MAX_VBUFFER_COUNT];	
+	m_vertex_buffers = new PID3D11Buffer[MAX_VBUFFER_COUNT];
 	for (m_current_index_buffer = 0; m_current_index_buffer < MAX_VBUFFER_COUNT; m_current_index_buffer++)
 	{
 		m_index_buffers[m_current_index_buffer] = NULL;
@@ -74,7 +74,7 @@ void VertexManager::DestroyDeviceObjects()
 		SAFE_RELEASE(m_vertex_buffers[m_current_vertex_buffer]);
 		SAFE_RELEASE(m_index_buffers[m_current_vertex_buffer]);
 	}
-	
+
 }
 
 VertexManager::VertexManager()
@@ -96,7 +96,7 @@ void VertexManager::PrepareDrawBuffers()
 	if (m_vertex_buffer_cursor + vSize >= VBUFFER_SIZE)
 	{
 		// Wrap around
-		m_current_vertex_buffer = (m_current_vertex_buffer + 1) % MAX_VBUFFER_COUNT;		
+		m_current_vertex_buffer = (m_current_vertex_buffer + 1) % MAX_VBUFFER_COUNT;
 		m_vertex_buffer_cursor = 0;
 		MapType = D3D11_MAP_WRITE_DISCARD;
 	}
@@ -114,7 +114,7 @@ void VertexManager::PrepareDrawBuffers()
 	if (m_index_buffer_cursor + iCount >= (IBUFFER_SIZE / sizeof(u16)))
 	{
 		// Wrap around
-		m_current_index_buffer = (m_current_index_buffer + 1) % MAX_VBUFFER_COUNT;		
+		m_current_index_buffer = (m_current_index_buffer + 1) % MAX_VBUFFER_COUNT;
 		m_index_buffer_cursor = 0;
 		MapType = D3D11_MAP_WRITE_DISCARD;
 	}
@@ -128,7 +128,7 @@ void VertexManager::PrepareDrawBuffers()
 	memcpy((u16*)map.pData + m_point_draw_index, GetPointIndexBuffer(), sizeof(u16) * IndexGenerator::GetPointindexLen());
 	D3D::context->Unmap(m_index_buffers[m_current_index_buffer], 0);
 	m_index_buffer_cursor += iCount;
-	
+
 	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vSize);
 	ADDSTAT(stats.thisFrame.bytesIndexStreamed, iCount*sizeof(u16));
 }
@@ -141,7 +141,7 @@ void VertexManager::Draw(UINT stride)
 {
 	D3D::context->IASetVertexBuffers(0, 1, &m_vertex_buffers[m_current_vertex_buffer], &stride, &m_vertex_draw_offset);
 	D3D::context->IASetIndexBuffer(m_index_buffers[m_current_index_buffer], DXGI_FORMAT_R16_UINT, 0);
-	
+
 	if (IndexGenerator::GetNumTriangles() > 0)
 	{
 		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -217,10 +217,10 @@ void VertexManager::vFlush()
 		{
 			g_renderer->SetSamplerState(i & 3, i >> 2);
 			const FourTexUnits &tex = bpmem.tex[i >> 2];
-			const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
+			const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i,
 				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
-				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
+				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9,
 				tex.texTlut[i&3].tlut_format,
 				(tex.texMode0[i&3].min_filter & 3),
 				(tex.texMode1[i&3].max_lod + 0xf) / 0x10,

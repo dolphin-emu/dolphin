@@ -171,8 +171,8 @@ void SConfig::SaveSettings()
 	#ifdef USE_GDBSTUB
 	ini.Set("General", "GDBPort", m_LocalCoreStartupParameter.iGDBPort);
 	#endif
-	
-	// Interface		
+
+	// Interface
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
 	ini.Set("Interface", "UsePanicHandlers",	m_LocalCoreStartupParameter.bUsePanicHandlers);
 	ini.Set("Interface", "OnScreenDisplayMessages",	m_LocalCoreStartupParameter.bOnScreenDisplayMessages);

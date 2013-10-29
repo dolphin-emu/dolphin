@@ -197,16 +197,16 @@ void VertexShaderManager::Shutdown()
 
 void VertexShaderManager::Dirty()
 {
-	nTransformMatricesChanged[0] = 0; 
+	nTransformMatricesChanged[0] = 0;
 	nTransformMatricesChanged[1] = 256;
 
 	nNormalMatricesChanged[0] = 0;
 	nNormalMatricesChanged[1] = 96;
 
-	nPostTransformMatricesChanged[0] = 0; 
+	nPostTransformMatricesChanged[0] = 0;
 	nPostTransformMatricesChanged[1] = 256;
 
-	nLightsChanged[0] = 0; 
+	nLightsChanged[0] = 0;
 	nLightsChanged[1] = 0x80;
 
 	bPosNormalMatrixChanged = true;
@@ -216,7 +216,7 @@ void VertexShaderManager::Dirty()
 	bProjectionChanged = true;
 
 	nMaterialsChanged = 15;
-	
+
 	dirty = true;
 }
 
@@ -304,7 +304,7 @@ void VertexShaderManager::SetConstants()
 				constants.materials[i][3] = ( data        & 0xFF) / 255.0f;
 			}
 		}
-		
+
 		for (int i = 0; i < 2; ++i)
 		{
 			if (nMaterialsChanged & (1 << (i + 2)))
@@ -338,7 +338,7 @@ void VertexShaderManager::SetConstants()
 	if (bTexMatricesChanged[0])
 	{
 		bTexMatricesChanged[0] = false;
-		const float *fptrs[] = 
+		const float *fptrs[] =
 		{
 			(const float *)xfmem + MatrixIndexA.Tex0MtxIdx * 4, (const float *)xfmem + MatrixIndexA.Tex1MtxIdx * 4,
 			(const float *)xfmem + MatrixIndexA.Tex2MtxIdx * 4, (const float *)xfmem + MatrixIndexA.Tex3MtxIdx * 4
@@ -386,7 +386,7 @@ void VertexShaderManager::SetConstants()
 	if (bProjectionChanged)
 	{
 		bProjectionChanged = false;
-		
+
 		float *rawProjection = xfregs.projection.rawProjection;
 
 		switch(xfregs.projection.type)

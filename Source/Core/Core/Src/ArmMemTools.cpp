@@ -66,7 +66,7 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 
 	void *fault_memory_ptr = (void*)ctx->arm_r10;
 	u8 *fault_instruction_ptr = (u8 *)ctx->arm_pc;
-	
+
 	if (!JitInterface::IsInCodeSpace(fault_instruction_ptr)) {
 		// Let's not prevent debugging.
 		return;

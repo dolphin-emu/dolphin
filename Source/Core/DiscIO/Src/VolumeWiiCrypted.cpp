@@ -70,7 +70,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 		if (m_LastDecryptedBlockOffset != Block)
 		{
 			memcpy(IV, m_pBuffer + 0x3d0, 16);
-			aes_crypt_cbc(m_AES_ctx, AES_DECRYPT, 0x7C00, IV, m_pBuffer + 0x400, m_LastDecryptedBlock); 
+			aes_crypt_cbc(m_AES_ctx, AES_DECRYPT, 0x7C00, IV, m_pBuffer + 0x400, m_LastDecryptedBlock);
 
 			m_LastDecryptedBlockOffset = Block;
 		}
@@ -108,7 +108,7 @@ void CVolumeWiiCrypted::GetTMD(u8* _pBuffer, u32 * _sz) const
 	RAWRead(m_VolumeOffset + tmdAddr, tmdSz, _pBuffer);
 	*_sz = tmdSz;
 }
-	
+
 std::string CVolumeWiiCrypted::GetUniqueID() const
 {
 	if (m_pReader == NULL)
@@ -153,7 +153,7 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 	{
 		return std::string();
 	}
-	
+
 	makerID[2] = '\0';
 
 	return makerID;
@@ -162,7 +162,7 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 std::vector<std::string> CVolumeWiiCrypted::GetNames() const
 {
 	std::vector<std::string> names;
-	
+
 	auto const string_decoder = CVolumeGC::GetStringDecoder(GetCountry());
 
 	char name[0xFF] = {};
@@ -202,7 +202,7 @@ std::string CVolumeWiiCrypted::GetApploaderDate() const
 	{
 		return std::string();
 	}
-	
+
 	date[10] = '\0';
 
 	return date;
@@ -253,7 +253,7 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
 			NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", clusterID);
 			return false;
 		}
-		aes_crypt_cbc(m_AES_ctx, AES_DECRYPT, 0x400, IV, clusterMDCrypted, clusterMD); 
+		aes_crypt_cbc(m_AES_ctx, AES_DECRYPT, 0x400, IV, clusterMDCrypted, clusterMD);
 
 
 		// Some clusters have invalid data and metadata because they aren't

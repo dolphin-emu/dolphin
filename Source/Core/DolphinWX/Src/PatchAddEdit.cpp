@@ -74,7 +74,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
 	sgEntry->Add(EditPatchType, wxGBPosition(0, 0), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EditPatchOffsetText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sgEntry->Add(EditPatchOffset, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);	
+	sgEntry->Add(EditPatchOffset, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EditPatchValueText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sgEntry->Add(EditPatchValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(3, 1), wxEXPAND|wxALL, 5);
@@ -95,7 +95,7 @@ void CPatchAddEdit::ChangeEntry(wxSpinEvent& event)
 {
 	if (!UpdateTempEntryData(itCurEntry))
 		return;
-	
+
 	itCurEntry = tempEntries.end() - event.GetPosition() - 1;
 	currentItem = (int)tempEntries.size() - event.GetPosition();
 	UpdateEntryCtrls(*itCurEntry);
@@ -147,9 +147,9 @@ void CPatchAddEdit::AddRemoveEntry(wxCommandEvent& event)
 		}
 		break;
 	case ID_ENTRY_REMOVE:
-		{		
+		{
 			itCurEntry = tempEntries.erase(itCurEntry);
-			
+
 			if (itCurEntry != tempEntries.begin())
 			{
 				--itCurEntry;
@@ -159,8 +159,8 @@ void CPatchAddEdit::AddRemoveEntry(wxCommandEvent& event)
 			{
 				EntrySelection->SetValue(EntrySelection->GetValue() - 1);
 			}
-			
-			EntrySelection->SetRange(EntrySelection->GetMin(), EntrySelection->GetMax() - 1);			
+
+			EntrySelection->SetRange(EntrySelection->GetMin(), EntrySelection->GetMax() - 1);
 			UpdateEntryCtrls(*itCurEntry);
 
 			if ((int)tempEntries.size() <= 1)
@@ -193,7 +193,7 @@ bool CPatchAddEdit::UpdateTempEntryData(std::vector<PatchEngine::PatchEntry>::it
 	else
 		parsed_ok = false;
 
-	PatchEngine::PatchType tempType = 
+	PatchEngine::PatchType tempType =
 	(*iterEntry).type = (PatchEngine::PatchType)EditPatchType->GetSelection();
 
 	if (EditPatchValue->GetValue().ToULong(&value, 16))

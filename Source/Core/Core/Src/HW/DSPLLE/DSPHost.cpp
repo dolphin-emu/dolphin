@@ -58,7 +58,7 @@ void DSPHost_CodeLoaded(const u8 *ptr, int size)
 	DSPSymbols::Clear();
 
 	// Auto load text file - if none just disassemble.
-	
+
 	NOTICE_LOG(DSPLLE, "g_dsp.iram_crc: %08x", g_dsp.iram_crc);
 
 	DSPSymbols::Clear();

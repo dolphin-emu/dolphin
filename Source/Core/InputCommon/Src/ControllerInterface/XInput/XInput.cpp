@@ -10,7 +10,7 @@ static const struct
 {
 	const char* const name;
 	const WORD bitmask;
-} named_buttons[] = 
+} named_buttons[] =
 {
 	{ "Button A", XINPUT_GAMEPAD_A },
 	{ "Button B", XINPUT_GAMEPAD_B },
@@ -153,7 +153,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 
 void Device::ClearInputState()
 {
-	ZeroMemory(&m_state_in, sizeof(m_state_in));	
+	ZeroMemory(&m_state_in, sizeof(m_state_in));
 }
 
 std::string Device::GetName() const

@@ -81,7 +81,7 @@ void EnsureTmpInputSize(size_t bound)
 	size_t newAlloc = DTM_BASE_LENGTH;
 	while (newAlloc < bound)
 		newAlloc *= 2;
-	
+
 	u8* newTmpInput = new u8[newAlloc];
 	tmpInputAllocated = newAlloc;
 	if (tmpInput != NULL)
@@ -111,14 +111,14 @@ std::string GetInputDisplay()
 	for (int i = 0; i < 8; ++i)
 		if ((g_numPads & (1 << i)) != 0)
 			inputDisplay.append(g_InputDisplay[i]);
-	
-	return inputDisplay; 
+
+	return inputDisplay;
 }
 
 void FrameUpdate()
 {
 	g_currentFrame++;
-	if(!g_bPolled) 
+	if(!g_bPolled)
 		g_currentLagCount++;
 
 	if (IsRecordingInput())
@@ -131,7 +131,7 @@ void FrameUpdate()
 		Core::SetState(Core::CORE_PAUSE);
 		g_bFrameStep = false;
 	}
-	
+
 	// ("framestop") the only purpose of this is to cause interpreter/jit Run() to return temporarily.
 	// after that we set it back to CPU_RUNNING and continue as normal.
 	if (g_bFrameStop)
@@ -139,7 +139,7 @@ void FrameUpdate()
 
 	if(g_framesToSkip)
 		FrameSkipping();
-	
+
 	g_bPolled = false;
 }
 
@@ -203,10 +203,10 @@ void InputUpdate()
 void SetFrameSkipping(unsigned int framesToSkip)
 {
 	std::lock_guard<std::mutex> lk(cs_frameSkip);
-	
+
 	g_framesToSkip = framesToSkip;
 	g_frameSkipCounter = 0;
-	
+
 	// Don't forget to re-enable rendering in case it wasn't...
 	// as this won't be changed anymore when frameskip is turned off
 	if (framesToSkip == 0)
@@ -723,7 +723,7 @@ bool PlayInput(const char *filename)
 		return false;
 
 	g_recordfd.ReadArray(&tmpHeader, 1);
-	
+
 	if(tmpHeader.filetype[0] != 'D' || tmpHeader.filetype[1] != 'T' || tmpHeader.filetype[2] != 'M' || tmpHeader.filetype[3] != 0x1A) {
 		PanicAlertT("Invalid recording file");
 		goto cleanup;
@@ -738,7 +738,7 @@ bool PlayInput(const char *filename)
 	g_currentInputCount = 0;
 
 	g_playMode = MODE_PLAYING;
-	
+
 	g_totalBytes = g_recordfd.GetSize() - 256;
 	EnsureTmpInputSize((size_t)g_totalBytes);
 	g_recordfd.ReadArray(tmpInput, (size_t)g_totalBytes);
@@ -849,7 +849,7 @@ void LoadInput(const char *filename)
 					// this is a "you did something wrong" alert for the user's benefit.
 					// we'll try to say what's going on in excruciating detail, otherwise the user might not believe us.
 					if(IsUsingWiimote(0))
-					{ 
+					{
 						// TODO: more detail
 						PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.", i+256, i+256);
 						memcpy(tmpInput, movInput, g_currentByte);
@@ -942,7 +942,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 
 	memcpy(&g_padState, &(tmpInput[g_currentByte]), 8);
 	g_currentByte += 8;
-	
+
 	PadStatus->triggerLeft = g_padState.TriggerL;
 	PadStatus->triggerRight = g_padState.TriggerR;
 
@@ -953,7 +953,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 	PadStatus->substickY = g_padState.CStickY;
 
 	PadStatus->button |= PAD_USE_ORIGIN;
-	
+
 	if(g_padState.A)
 	{
 		PadStatus->button |= PAD_BUTTON_A;
@@ -972,7 +972,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 		PadStatus->button |= PAD_TRIGGER_Z;
 	if(g_padState.Start)
 		PadStatus->button |= PAD_BUTTON_START;
-	
+
 	if(g_padState.DPadUp)
 		PadStatus->button |= PAD_BUTTON_UP;
 	if(g_padState.DPadDown)
@@ -981,7 +981,7 @@ void PlayController(SPADStatus *PadStatus, int controllerID)
 		PadStatus->button |= PAD_BUTTON_LEFT;
 	if(g_padState.DPadRight)
 		PadStatus->button |= PAD_BUTTON_RIGHT;
-	
+
 	if(g_padState.L)
 		PadStatus->button |= PAD_TRIGGER_L;
 	if(g_padState.R)
@@ -1053,19 +1053,19 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, 
 		EndPlayInput(!g_bReadOnly);
 		return false;
 	}
-	
+
 	memcpy(data, &(tmpInput[g_currentByte]), size);
 	g_currentByte += size;
-	
+
 	SetWiiInputDisplayString(wiimote, coreData, accelData, irData);
 
 	g_currentInputCount++;
-	
+
 	CheckInputEnd();
 	return true;
 }
 
-void EndPlayInput(bool cont) 
+void EndPlayInput(bool cont)
 {
 	if (cont)
 	{
@@ -1092,12 +1092,12 @@ void SaveRecording(const char *filename)
 	// Create the real header now and write it
 	DTMHeader header;
 	memset(&header, 0, sizeof(DTMHeader));
-	
+
 	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
 	strncpy((char *)header.gameID, Core::g_CoreStartupParameter.GetUniqueID().c_str(), 6);
 	header.bWii = Core::g_CoreStartupParameter.bWii;
 	header.numControllers = g_numPads & (Core::g_CoreStartupParameter.bWii ? 0xFF : 0x0F);
-	
+
 	header.bFromSaveState = g_bRecordingFromSaveState;
 	header.frameCount = g_totalFrames;
 	header.lagCount = g_totalLagCount;
@@ -1131,7 +1131,7 @@ void SaveRecording(const char *filename)
 	memcpy(header.revision, revision, ArraySize(header.revision));
 
 	// TODO
-	header.uniqueID = 0; 
+	header.uniqueID = 0;
 	// header.audioEmulator;
 
 	save_record.WriteArray(&header, 1);
@@ -1144,7 +1144,7 @@ void SaveRecording(const char *filename)
 		stateFilename.append(".sav");
 		success = File::Copy(tmpStateFilename, stateFilename);
 	}
-	
+
 	if (success)
 		Core::DisplayMessage(StringFromFormat("DTM %s saved", filename).c_str(), 2000);
 	else

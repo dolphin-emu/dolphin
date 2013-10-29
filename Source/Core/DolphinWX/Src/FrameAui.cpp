@@ -38,7 +38,7 @@ void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 
 	if (!g_pCodeWindow)
 	{
-		if (nb->GetPage(0)->GetId() == IDM_LOGWINDOW || 
+		if (nb->GetPage(0)->GetId() == IDM_LOGWINDOW ||
 				nb->GetPage(0)->GetId() == IDM_LOGCONFIGWINDOW ||
 				nb->GetPage(0)->GetId() == IDM_CONSOLEWINDOW)
 		{
@@ -494,7 +494,7 @@ void CFrame::DoRemovePage(wxWindow *Win, bool bHide)
 void CFrame::DoAddPage(wxWindow *Win, int i, bool Float)
 {
 	if (!Win) return;
-	
+
 	// Ensure accessor remains within valid bounds.
 	if (i < 0 || i > GetNotebookCount()-1)
 		i = 0;
@@ -577,7 +577,7 @@ void CFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& event)
 				wxMenuItem* mItem = new wxMenuItem(menuPopup, IDM_PERSPECTIVES_0 + i,
 						StrToWxStr(Perspectives[i].Name),
 						wxT(""), wxITEM_CHECK);
-				
+
 				menuPopup->Append(mItem);
 
 				if (i == ActivePerspective)

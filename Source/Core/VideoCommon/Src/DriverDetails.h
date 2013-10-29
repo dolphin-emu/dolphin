@@ -69,7 +69,7 @@ namespace DriverDetails
 		// Affected devices: Qualcomm/Adreno
 		// Started Version: ? (Noticed on v14)
 		// Ended Version: -1
-		// When compiling a shader, it is important that when it fails, 
+		// When compiling a shader, it is important that when it fails,
 		// you first get the length of the information log prior to grabbing it.
 		// This allows you to allocate an array to store all of the log
 		// Adreno devices /always/ return 0 when querying GL_INFO_LOG_LENGTH
@@ -129,7 +129,7 @@ namespace DriverDetails
 		// PowerVR 5 hardware limitations don't allow it to support OpenGL ES 3
 		// This is fixed in PowerVR6
 		BUG_ISPOWERVR,
-		// Bug: glBufferSubData/glMapBufferRange stalls + OOM 
+		// Bug: glBufferSubData/glMapBufferRange stalls + OOM
 		// Affected devices: Adreno a3xx/Mali-t6xx
 		// Started Version: -1
 		// Ended Version: -1
@@ -138,10 +138,10 @@ namespace DriverDetails
 		// Apparently Mali and Adreno share code in this regard since it was wrote by the same person.
 		BUG_BROKENBUFFERSTREAM,
 	};
-	
-	// Initializes our internal vendor, device family, and driver version	
+
+	// Initializes our internal vendor, device family, and driver version
 	void Init(Vendor vendor, Driver driver, const double version);
-	
+
 	// Once Vendor and driver version is set, this will return if it has the applicable bug passed to it.
 	bool HasBug(Bug bug);
 }

@@ -93,8 +93,8 @@ public:
 	// Same as above but for the depth Target.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
 	static GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
-	
-	// Convert EFB content on pixel format change. 
+
+	// Convert EFB content on pixel format change.
 	// convtype=0 -> rgb8->rgba6, convtype=2 -> rgba6->rgb8
 	static void ReinterpretPixelData(unsigned int convtype);
 
@@ -119,7 +119,7 @@ private:
 	static GLuint m_resolvedDepthTexture;
 
 	static GLuint m_xfbFramebuffer; // Only used in MSAA mode
-	
+
 	// For pixel format draw
 	static GLuint m_pixel_format_vbo;
 	static GLuint m_pixel_format_vao;

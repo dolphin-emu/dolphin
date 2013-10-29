@@ -9,7 +9,7 @@
 #include "ChunkFile.h"
 
 class Tev
-{ 
+{
 	struct InputRegType
 	{
 		unsigned a : 8;
@@ -49,7 +49,7 @@ class Tev
 	{
 		BLU_INP,
 		GRN_INP,
-		RED_INP		
+		RED_INP
 	};
 
 	enum BufferBase

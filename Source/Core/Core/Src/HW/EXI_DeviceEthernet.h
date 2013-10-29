@@ -52,7 +52,7 @@ enum NWAYC
 	NWAYC_FD		= 0x01, // Full Duplex Mode
 	NWAYC_PS100_10	= 0x02, // Port Select 100/10
 	NWAYC_ANE		= 0x04, // Autonegotiate enable
-	
+
 	// Autonegotiation status bits...
 
 	NWAYC_NTTEST	= 0x40, // Reserved
@@ -99,13 +99,13 @@ enum
 {
 	BBA_NCRA		= 0x00,
 	BBA_NCRB		= 0x01,
-	
+
 	BBA_LTPS		= 0x04,
 	BBA_LRPS		= 0x05,
-	
+
 	BBA_IMR			= 0x08,
 	BBA_IR			= 0x09,
-	
+
 	BBA_BP			= 0x0a,
 	BBA_TLBP		= 0x0c,
 	BBA_TWP			= 0x0e,

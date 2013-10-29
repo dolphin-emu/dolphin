@@ -36,25 +36,25 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		accessSize = 32;
 		signExtend = false;
 		break;
-		
+
 	case 34: /* lbz */
 	case 35: /* lbzu */
 		accessSize = 8;
 		signExtend = false;
 		break;
-		
+
 	case 40: /* lhz */
 	case 41: /* lhzu */
 		accessSize = 16;
 		signExtend = false;
 		break;
-		
+
 	case 42: /* lha */
 	case 43: /* lhau */
 		accessSize = 16;
 		signExtend = true;
 		break;
-		
+
 	case 31:
 		switch (inst.SUBOP10)
 		{
@@ -63,7 +63,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 			accessSize = 32;
 			signExtend = false;
 			break;
-			
+
 		case 87:  /* lbzx */
 		case 119: /* lbzux */
 			accessSize = 8;
@@ -74,36 +74,36 @@ void Jit64::lXXx(UGeckoInstruction inst)
 			accessSize = 16;
 			signExtend = false;
 			break;
-			
+
 		case 343: /* lhax */
 		case 375: /* lhaux */
 			accessSize = 16;
 			signExtend = true;
 			break;
-			
+
 		default:
 			PanicAlert("Invalid instruction");
 		}
 		break;
-		
+
 	default:
 		PanicAlert("Invalid instruction");
 	}
 
 	// TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
 	// Will give nice boost to dual core mode
-	// (mb2): I agree, 
+	// (mb2): I agree,
 	// IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle methode
 	// ... maybe the throttle one already do that :p
 	// if (CommandProcessor::AllowIdleSkipping() && PixelEngine::AllowIdleSkipping())
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
-		inst.OPCD == 32 && 
+		inst.OPCD == 32 &&
 		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
 		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
 		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
 		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
-		// TODO(LinesPrower): 			
+		// TODO(LinesPrower):
 		// - Rewrite this!
 		// It seems to be ugly and inefficient, but I don't know JIT stuff enough to make it right
 		// It only demonstrates the idea
@@ -112,11 +112,11 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		s32 offset = (s32)(s16)inst.SIMM_16;
 		gpr.BindToRegister(d, false, true);
 		SafeLoadToReg(gpr.RX(d), gpr.R(a), accessSize, offset, RegistersInUse(), signExtend);
-		
+
 		// if it's still 0, we can wait until the next event
 		TEST(32, gpr.R(d), gpr.R(d));
 		FixupBranch noIdle = J_CC(CC_NZ);
-		
+
 		u32 registersInUse = RegistersInUse();
 		ABI_PushRegistersAndAdjustStack(registersInUse, false);
 
@@ -133,7 +133,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		//js.compilerPC += 8;
 		return;
 	}
-	
+
 	// Determine whether this instruction updates inst.RA
 	bool update;
 	if (inst.OPCD == 31)
@@ -263,7 +263,7 @@ void Jit64::stX(UGeckoInstruction inst)
 	bool update = inst.OPCD & 1;
 
 	s32 offset = (s32)(s16)inst.SIMM_16;
-	if (a || !update) 
+	if (a || !update)
 	{
 		int accessSize;
 		switch (inst.OPCD & ~1)
@@ -288,7 +288,7 @@ void Jit64::stX(UGeckoInstruction inst)
 				if (update)
 					gpr.SetImmediate32(a, addr);
 				switch (accessSize)
-				{	
+				{
 					// No need to protect these, they don't touch any state
 					// question - should we inline them instead? Pro: Lose a CALL   Con: Code bloat
 				case 8:  CALL((void *)asm_routines.fifoDirectWrite8);  break;
@@ -325,7 +325,7 @@ void Jit64::stX(UGeckoInstruction inst)
 				return;
 			}
 		}
-		
+
 		// Optimized stack access?
 		if (accessSize == 32 && !gpr.R(a).IsImm() && a == 1 && js.st.isFirstBlockOfFunction && jo.optimizeStack)
 		{
@@ -333,7 +333,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			MOV(32, R(ABI_PARAM1), gpr.R(a));
 			MOV(32, R(EAX), gpr.R(s));
 			BSWAP(32, EAX);
-#ifdef _M_X64	
+#ifdef _M_X64
 			MOV(accessSize, MComplex(RBX, ABI_PARAM1, SCALE_1, (u32)offset), R(EAX));
 #else
 			AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
@@ -375,7 +375,7 @@ void Jit64::stX(UGeckoInstruction inst)
 		{
 			gpr.KillImmediate(a, true, true);
 			MEMCHECK_START
-			
+
 			ADD(32, gpr.R(a), Imm32((u32)offset));
 
 			MEMCHECK_END
@@ -420,7 +420,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 		case 151: accessSize = 32; break;
 		case 407: accessSize = 16; break;
 		case 215: accessSize = 8; break;
-		default: PanicAlert("stXx: invalid access size"); 
+		default: PanicAlert("stXx: invalid access size");
 			accessSize = 0; break;
 	}
 

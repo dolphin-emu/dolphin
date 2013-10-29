@@ -47,8 +47,8 @@
 	if (Core::g_CoreStartupParameter.bJITOff || \
 	Core::g_CoreStartupParameter.setting) \
 	{Default(inst); return;}
-#define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0])) 
-class JitArm : public JitBase, public ArmGen::ARMXCodeBlock 
+#define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0]))
+class JitArm : public JitBase, public ArmGen::ARMXCodeBlock
 {
 private:
 	JitArmBlockCache blocks;
@@ -67,7 +67,7 @@ private:
 
 	void PrintDebug(UGeckoInstruction inst, u32 level);
 
-	void Helper_UpdateCR1(ARMReg fpscr, ARMReg temp);	
+	void Helper_UpdateCR1(ARMReg fpscr, ARMReg temp);
 
 	void SetFPException(ARMReg Reg, u32 Exception);
 public:
@@ -81,7 +81,7 @@ public:
 
 	void Jit(u32 em_address);
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b);
-	
+
 	JitBaseBlockCache *GetBlockCache() { return &blocks; }
 
 	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx);
@@ -93,10 +93,10 @@ public:
 	void ClearCache();
 
 	const u8 *GetDispatcher() {
-		return asm_routines.dispatcher; 
+		return asm_routines.dispatcher;
 	}
 	CommonAsmRoutinesBase *GetAsmRoutines() {
-		return &asm_routines; 
+		return &asm_routines;
 	}
 
 	const char *GetName() {
@@ -154,7 +154,7 @@ public:
 	void sc(UGeckoInstruction _inst);
 	void rfi(UGeckoInstruction _inst);
 	void bcctrx(UGeckoInstruction _inst);
-		
+
 	// Integer
 	void arith(UGeckoInstruction _inst);
 

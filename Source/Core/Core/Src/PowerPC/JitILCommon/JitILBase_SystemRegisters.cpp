@@ -171,12 +171,12 @@ void JitILBase::crXX(UGeckoInstruction inst)
 	switch (subop) {
 		case 257:
 			// crand
-			eax = ibuild.EmitAnd(eax, ecx);	
+			eax = ibuild.EmitAnd(eax, ecx);
 			break;
 		case 129:
 			// crandc
 			ecx = ibuild.EmitNot(ecx);
-			eax = ibuild.EmitAnd(eax, ecx);	
+			eax = ibuild.EmitAnd(eax, ecx);
 			break;
 		case 289:
 			// creqv

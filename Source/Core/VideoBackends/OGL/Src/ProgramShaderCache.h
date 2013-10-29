@@ -53,11 +53,11 @@ struct SHADER
 		glprogid = 0;
 	}
 	GLuint glprogid; // opengl program id
-	
+
 	std::string strvprog, strpprog;
 	GLint UniformLocations[NUM_UNIFORMS];
 	u32 UniformSize[NUM_UNIFORMS];
-	
+
 	void SetProgramVariables();
 	void SetProgramBindings();
 	void Bind();
@@ -84,7 +84,7 @@ public:
 	static GLuint GetCurrentProgram(void);
 	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components);
 	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components);
-	
+
 	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode);
 	static GLuint CompileSingleShader(GLuint type, const char *code);
 	static void UploadConstants();

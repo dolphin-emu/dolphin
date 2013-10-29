@@ -181,12 +181,12 @@ void VideoFifo_CheckPerfQueryRequest()
 	if (s_perf_query_requested)
 	{
 		g_perf_query->FlushResults();
-		
+
 		{
 		std::lock_guard<std::mutex> lk(s_perf_query_lock);
 		s_perf_query_requested = false;
 		}
-		
+
 		s_perf_query_cond.notify_one();
 	}
 }
@@ -262,7 +262,7 @@ void VideoBackendHardware::CheckInvalidState()
 	if (m_invalid)
 	{
 		m_invalid = false;
-		
+
 		BPReload();
 		TextureCache::Invalidate();
 	}

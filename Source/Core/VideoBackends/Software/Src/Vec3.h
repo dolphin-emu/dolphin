@@ -62,7 +62,7 @@ public:
 
 	Vec3 operator %(const Vec3 &v) const {
 		return Vec3(y*v.z-z*v.y, z*v.x-x*v.z, x*v.y-y*v.x);
-	}  
+	}
 	float length2() const {
 		return x*x+y*y+z*z;
 	}
@@ -88,11 +88,11 @@ public:
 	{
 		return *((&x) + i);
 	}
-	bool operator == (const Vec3 &other) const 
+	bool operator == (const Vec3 &other) const
 	{
 		if (x==other.x && y==other.y && z==other.z)
 			return true;
-		else 
+		else
 			return false;
 	}
 	void setZero()

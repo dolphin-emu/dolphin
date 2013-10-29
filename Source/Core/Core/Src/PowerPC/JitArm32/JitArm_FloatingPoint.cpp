@@ -49,7 +49,7 @@ void JitArm::fctiwx(UGeckoInstruction inst)
 	ARMReg V0 = fpr.GetReg();
 	ARMReg V1 = fpr.GetReg();
 	ARMReg V2 = fpr.GetReg();
-	
+
 	ARMReg rA = gpr.GetReg();
 	ARMReg fpscrReg = gpr.GetReg();
 
@@ -82,7 +82,7 @@ void JitArm::fctiwx(UGeckoInstruction inst)
 	// Within ranges, convert to integer
 	// Set rounding mode first
 	// PPC <-> ARM rounding modes
-	// 0, 1, 2, 3 <-> 0, 3, 1, 2  
+	// 0, 1, 2, 3 <-> 0, 3, 1, 2
 	ARMReg rB = gpr.GetReg();
 	VMRS(rA);
 	// Bits 22-23
@@ -91,7 +91,7 @@ void JitArm::fctiwx(UGeckoInstruction inst)
 	LDR(rB, R9, PPCSTATE_OFF(fpscr));
 	AND(rB, rB, 0x3); // Get the FPSCR rounding bits
 	CMP(rB, 1);
-	SetCC(CC_EQ); // zero 
+	SetCC(CC_EQ); // zero
 		ORR(rA, rA, Operand2(3, 5));
 	SetCC(CC_NEQ);
 		CMP(rB, 2); // +inf
@@ -101,10 +101,10 @@ void JitArm::fctiwx(UGeckoInstruction inst)
 			CMP(rB, 3); // -inf
 			SetCC(CC_EQ);
 				ORR(rA, rA, Operand2(2, 5));
-	SetCC();	
+	SetCC();
 	VMSR(rA);
 	ORR(rA, rA, Operand2(3, 5));
-	VCVT(vD, vB, TO_INT | IS_SIGNED); 
+	VCVT(vD, vB, TO_INT | IS_SIGNED);
 	VMSR(rA);
 	gpr.Unlock(rB);
 	VCMPE(vD, vB);
@@ -114,7 +114,7 @@ void JitArm::fctiwx(UGeckoInstruction inst)
 		BIC(fpscrReg, fpscrReg, FRFIMask);
 		FixupBranch DoneEqual = B();
 	SetCC();
-	SetFPException(fpscrReg, FPSCR_XX);	
+	SetFPException(fpscrReg, FPSCR_XX);
 	ORR(fpscrReg, fpscrReg, FIMask);
 	VABS(V1, vB);
 	VABS(V2, vD);
@@ -156,7 +156,7 @@ void JitArm::fctiwzx(UGeckoInstruction inst)
 	ARMReg V0 = fpr.GetReg();
 	ARMReg V1 = fpr.GetReg();
 	ARMReg V2 = fpr.GetReg();
-	
+
 	ARMReg rA = gpr.GetReg();
 	ARMReg fpscrReg = gpr.GetReg();
 
@@ -187,7 +187,7 @@ void JitArm::fctiwzx(UGeckoInstruction inst)
 		SetJumpTarget(noException);
 	}
 	// Within ranges, convert to integer
-	VCVT(vD, vB, TO_INT | IS_SIGNED | ROUND_TO_ZERO); 
+	VCVT(vD, vB, TO_INT | IS_SIGNED | ROUND_TO_ZERO);
 	VCMPE(vD, vB);
 	VMRS(_PC);
 
@@ -195,7 +195,7 @@ void JitArm::fctiwzx(UGeckoInstruction inst)
 		BIC(fpscrReg, fpscrReg, FRFIMask);
 		FixupBranch DoneEqual = B();
 	SetCC();
-	SetFPException(fpscrReg, FPSCR_XX);	
+	SetFPException(fpscrReg, FPSCR_XX);
 	ORR(fpscrReg, fpscrReg, FIMask);
 	VABS(V1, vB);
 	VABS(V2, vD);
@@ -247,29 +247,29 @@ void JitArm::fcmpo(UGeckoInstruction inst)
 	VCMPE(vA, vB);
 	VMRS(_PC);
 	SetCC(CC_LT);
-		ORR(fpscrReg, fpscrReg, LessThan);	
+		ORR(fpscrReg, fpscrReg, LessThan);
 		MOV(crReg,  8);
 		Done1 = B();
 	SetCC(CC_GT);
-		ORR(fpscrReg, fpscrReg, GreaterThan);	
+		ORR(fpscrReg, fpscrReg, GreaterThan);
 		MOV(crReg,  4);
 		Done2 = B();
 	SetCC(CC_EQ);
-		ORR(fpscrReg, fpscrReg, EqualTo);	
+		ORR(fpscrReg, fpscrReg, EqualTo);
 		MOV(crReg,  2);
 		Done3 = B();
 	SetCC();
-	
-	ORR(fpscrReg, fpscrReg, NANRes);	
+
+	ORR(fpscrReg, fpscrReg, NANRes);
 	MOV(crReg,  1);
-	
+
 	VCMPE(vA, vA);
 	VMRS(_PC);
-	FixupBranch NanA = B_CC(CC_NEQ);	
+	FixupBranch NanA = B_CC(CC_NEQ);
 	VCMPE(vB, vB);
 	VMRS(_PC);
 	FixupBranch NanB = B_CC(CC_NEQ);
-	
+
 	SetFPException(fpscrReg, FPSCR_VXVC);
 	FixupBranch Done4 = B();
 
@@ -277,9 +277,9 @@ void JitArm::fcmpo(UGeckoInstruction inst)
 	SetJumpTarget(NanB);
 
 	SetFPException(fpscrReg, FPSCR_VXSNAN);
-	
+
 	TST(fpscrReg, VEMask);
-	
+
 	FixupBranch noVXVC = B_CC(CC_NEQ);
 	SetFPException(fpscrReg, FPSCR_VXVC);
 
@@ -316,25 +316,25 @@ void JitArm::fcmpu(UGeckoInstruction inst)
 	VCMPE(vA, vB);
 	VMRS(_PC);
 	SetCC(CC_LT);
-		ORR(fpscrReg, fpscrReg, LessThan);	
+		ORR(fpscrReg, fpscrReg, LessThan);
 		MOV(crReg,  8);
 		Done1 = B();
 	SetCC(CC_GT);
-		ORR(fpscrReg, fpscrReg, GreaterThan);	
+		ORR(fpscrReg, fpscrReg, GreaterThan);
 		MOV(crReg,  4);
 		Done2 = B();
 	SetCC(CC_EQ);
-		ORR(fpscrReg, fpscrReg, EqualTo);	
+		ORR(fpscrReg, fpscrReg, EqualTo);
 		MOV(crReg,  2);
 		Done3 = B();
 	SetCC();
-	
-	ORR(fpscrReg, fpscrReg, NANRes);	
+
+	ORR(fpscrReg, fpscrReg, NANRes);
 	MOV(crReg,  1);
-	
+
 	VCMPE(vA, vA);
 	VMRS(_PC);
-	FixupBranch NanA = B_CC(CC_NEQ);	
+	FixupBranch NanA = B_CC(CC_NEQ);
 	VCMPE(vB, vB);
 	VMRS(_PC);
 	FixupBranch NanB = B_CC(CC_NEQ);
@@ -344,7 +344,7 @@ void JitArm::fcmpu(UGeckoInstruction inst)
 	SetJumpTarget(NanB);
 
 	SetFPException(fpscrReg, FPSCR_VXSNAN);
-	
+
 	SetJumpTarget(Done1);
 	SetJumpTarget(Done2);
 	SetJumpTarget(Done3);
@@ -546,7 +546,7 @@ void JitArm::fmaddsx(UGeckoInstruction inst)
 	ARMReg V0 = fpr.GetReg();
 
 	VMOV(V0, vB0);
-	
+
 	VMLA(V0, vA0, vC0);
 
 	VMOV(vD0, V0);
@@ -575,7 +575,7 @@ void JitArm::fmaddx(UGeckoInstruction inst)
 	ARMReg V0 = fpr.GetReg();
 
 	VMOV(V0, vB0);
-	
+
 	VMLA(V0, vA0, vC0);
 
 	VMOV(vD0, V0);
@@ -603,7 +603,7 @@ void JitArm::fnmaddx(UGeckoInstruction inst)
 	ARMReg V0 = fpr.GetReg();
 
 	VMOV(V0, vB0);
-	
+
 	VMLA(V0, vA0, vC0);
 
 	VNEG(vD0, V0);
@@ -631,7 +631,7 @@ void JitArm::fnmaddsx(UGeckoInstruction inst)
 	ARMReg V0 = fpr.GetReg();
 
 	VMOV(V0, vB0);
-	
+
 	VMLA(V0, vA0, vC0);
 
 	VNEG(vD0, V0);
@@ -661,7 +661,7 @@ void JitArm::fresx(UGeckoInstruction inst)
 
 	ARMReg V0 = fpr.GetReg();
 	MOVI2R(V0, 1.0, INVALID_REG); // temp reg isn't needed for 1.0
-	
+
 	VDIV(vD1, V0, vB0);
 	VDIV(vD0, V0, vB0);
 	fpr.Unlock(V0);
@@ -671,7 +671,7 @@ void JitArm::fselx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	
+
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
 	if (inst.Rc) {
@@ -681,7 +681,7 @@ void JitArm::fselx(UGeckoInstruction inst)
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vC0 = fpr.R0(c);
 	ARMReg vD0 = fpr.R0(d, false);
-	
+
 	VCMP(vA0);
 	VMRS(_PC);
 
@@ -715,7 +715,7 @@ void JitArm::frsqrtex(UGeckoInstruction inst)
 	VCMP(vB0);
 	VMRS(_PC);
 	FixupBranch Less0 = B_CC(CC_LT);
-		VMOV(vD0, V0);	
+		VMOV(vD0, V0);
 		SetFPException(fpscrReg, FPSCR_VXSQRT);
 		FixupBranch SkipOrr0 = B();
 	SetJumpTarget(Less0);

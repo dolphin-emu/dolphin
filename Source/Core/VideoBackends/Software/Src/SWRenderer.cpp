@@ -30,7 +30,7 @@ void SWRenderer::Init()
 void SWRenderer::Shutdown()
 {
 	glDeleteProgram(program);
-	glDeleteTextures(1, &s_RenderTarget);	
+	glDeleteTextures(1, &s_RenderTarget);
 #ifndef USE_GLES
 	delete s_pfont;
 	s_pfont = 0;
@@ -62,7 +62,7 @@ void CreateShaders()
 
 	uni_tex = glGetUniformLocation(program, "Texture");
 	attr_pos = glGetAttribLocation(program, "pos");
-	attr_tex = glGetAttribLocation(program, "TexCoordIn"); 
+	attr_tex = glGetAttribLocation(program, "TexCoordIn");
 }
 
 void SWRenderer::Prepare()
@@ -100,7 +100,7 @@ void SWRenderer::DrawDebugText()
 	char *p = debugtext_buffer;
 	p[0] = 0;
 
-	if (g_SWVideoConfig.bShowStats) 
+	if (g_SWVideoConfig.bShowStats)
 	{
 		p+=sprintf(p,"Objects: %i\n",swstats.thisFrame.numDrawnObjects);
 		p+=sprintf(p,"Primitives: %i\n",swstats.thisFrame.numPrimatives);
@@ -136,7 +136,7 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	 
+
 	glUseProgram(program);
 	static const GLfloat verts[4][2] = {
 		{ -1, -1}, // Left top
@@ -161,13 +161,13 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	glDisableVertexAttribArray(attr_pos);
 	glDisableVertexAttribArray(attr_tex);
 
-	glBindTexture(GL_TEXTURE_2D, 0); 
+	glBindTexture(GL_TEXTURE_2D, 0);
 	GL_REPORT_ERRORD();
 }
 
 void SWRenderer::SwapBuffer()
 {
-	// Do our OSD callbacks	
+	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_ONFRAME);
 
 	DrawDebugText();
@@ -177,7 +177,7 @@ void SWRenderer::SwapBuffer()
 	GLInterface->Swap();
 
 	swstats.ResetFrame();
-	
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	GL_REPORT_ERRORD();

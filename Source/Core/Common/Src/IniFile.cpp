@@ -81,10 +81,10 @@ void IniFile::Section::Set(const char* key, bool newValue, bool defaultValue)
 		Delete(key);
 }
 
-void IniFile::Section::Set(const char* key, const std::vector<std::string>& newValues) 
+void IniFile::Section::Set(const char* key, const std::vector<std::string>& newValues)
 {
 	std::string temp;
-	// Join the strings with , 
+	// Join the strings with ,
 	std::vector<std::string>::const_iterator it;
 	for (it = newValues.begin(); it != newValues.end(); ++it)
 	{
@@ -124,13 +124,13 @@ bool IniFile::Section::Get(const char* key, std::vector<std::string>& out)
 	size_t subStart = temp.find_first_not_of(",");
 	size_t subEnd;
 
-	// split by , 
+	// split by ,
 	while (subStart != std::string::npos)
 	{
-		// Find next , 
+		// Find next ,
 		subEnd = temp.find_first_of(",", subStart);
-		if (subStart != subEnd) 
-			// take from first char until next , 
+		if (subStart != subEnd)
+			// take from first char until next ,
 			out.push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
 		// Find the next non , char
 		subStart = temp.find_first_not_of(",", subEnd);
@@ -435,7 +435,7 @@ bool IniFile::Get(const char* sectionName, const char* key, std::string* value, 
 	return section->Get(key, value, defaultValue);
 }
 
-bool IniFile::Get(const char *sectionName, const char* key, std::vector<std::string>& values) 
+bool IniFile::Get(const char *sectionName, const char* key, std::vector<std::string>& values)
 {
 	Section *section = GetSection(sectionName);
 	if (!section)

@@ -78,7 +78,7 @@ static const char *err_string[] =
 	"Number out of range"
 };
 
-DSPAssembler::DSPAssembler(const AssemblerSettings &settings) :	
+DSPAssembler::DSPAssembler(const AssemblerSettings &settings) :
 	gdg_buffer(NULL),
 	m_cur_addr(0),
 	m_cur_pass(0),
@@ -150,7 +150,7 @@ void DSPAssembler::ShowError(err_t err_code, const char *extra_info)
 
 	if (m_current_param == 0)
 		buf_ptr += sprintf(buf_ptr, "ERROR: %s Line: %d : %s\n", err_string[err_code], code_line, extra_info);
-	else 
+	else
 		buf_ptr += sprintf(buf_ptr, "ERROR: %s Line: %d Param: %d : %s\n",
 						   err_string[err_code], code_line, m_current_param, extra_info);
 	last_error_str = error_buffer;
@@ -525,7 +525,7 @@ bool DSPAssembler::VerifyParams(const opc_t *opc, param_t *par, int count, bool 
 
 				// modified by Hermes: test the register range
 				switch ((unsigned)opc->params[i].type)
-				{ 
+				{
 				case P_REG18:
 				case P_REG19:
 				case P_REG1A:
@@ -775,27 +775,27 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		fsrc.getline(line, LINEBUF_SIZE);
 		if(fsrc.fail())
 			break;
-		
+
 		cur_line = line;
 		//printf("A: %s\n", line);
 		code_line++;
 
 		param_t params[10] = {{0, P_NONE, NULL}};
 		param_t params_ext[10] = {{0, P_NONE, NULL}};
-		
+
 		bool upper = true;
 		for (int i = 0; i < LINEBUF_SIZE; i++)
 		{
 			char c = line[i];
 			// This stuff handles /**/ and // comments.
-			// modified by Hermes : added // and /* */ for long commentaries 
+			// modified by Hermes : added // and /* */ for long commentaries
 			if (c == '/')
 			{
 				if (i < 1023)
 				{
 					if (line[i+1] == '/')
 						c = 0x00;
-					else if (line[i+1] == '*') 
+					else if (line[i+1] == '*')
 					{
 						// toggle comment mode.
 						disable_text = !disable_text;
@@ -916,7 +916,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 			{
 				char *tmpstr;
 				u32 thisCodeline = code_line;
-				
+
 				if (include_dir.size())
 				{
 					tmpstr = (char *)malloc(include_dir.size() + strlen(params[0].str) + 2);
@@ -927,7 +927,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 					tmpstr = (char *)malloc(strlen(params[0].str) + 1);
 					strcpy(tmpstr, params[0].str);
 				}
-				
+
 				AssembleFile(tmpstr, pass);
 
 				code_line = thisCodeline;

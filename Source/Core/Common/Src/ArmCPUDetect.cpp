@@ -34,7 +34,7 @@ char *GetCPUString()
 	auto const fp = file.GetHandle();
 	if (!fp)
 		return 0;
-	
+
 	while (fgets(buf, sizeof(buf), fp))
 	{
 		if (strncmp(buf, marker, sizeof(marker) - 1))
@@ -43,7 +43,7 @@ char *GetCPUString()
 		cpu_string = strndup(cpu_string, strlen(cpu_string) - 1); // Strip the newline
 		break;
 	}
-	
+
 	return cpu_string;
 }
 
@@ -110,7 +110,7 @@ bool CheckCPUFeature(const char *feature)
 	auto const fp = file.GetHandle();
 	if (!fp)
 		return 0;
-	
+
 	while (fgets(buf, sizeof(buf), fp))
 	{
 		if (strncmp(buf, marker, sizeof(marker) - 1))
@@ -120,11 +120,11 @@ bool CheckCPUFeature(const char *feature)
 		while (token != NULL)
 		{
 			if (strstr(token, feature))
-				return true; 
+				return true;
 			token = strtok(NULL, " ");
 		}
 	}
-	
+
 	return false;
 }
 #endif
@@ -144,14 +144,14 @@ int GetCoreCount()
 	auto const fp = file.GetHandle();
 	if (!fp)
 		return 0;
-	
+
 	while (fgets(buf, sizeof(buf), fp))
 	{
 		if (strncmp(buf, marker, sizeof(marker) - 1))
 			continue;
 		++cores;
 	}
-	
+
 	return cores;
 #endif
 }
@@ -170,10 +170,10 @@ void CPUInfo::Detect()
 	HTT = false;
 	OS64bit = false;
 	CPU64bit = false;
-	Mode64bit = false;				 
+	Mode64bit = false;
 	vendor = VENDOR_ARM;
-	
-	// Get the information about the CPU 
+
+	// Get the information about the CPU
 	num_cores = GetCoreCount();
 #if defined(__SYMBIAN32__) || defined(BLACKBERRY) || defined(IOS)
 	bool isVFP3 = false;

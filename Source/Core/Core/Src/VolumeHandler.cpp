@@ -15,7 +15,7 @@ DiscIO::IVolume *GetVolume()
 	return g_pVolume;
 }
 
-void EjectVolume() 
+void EjectVolume()
 {
 	if (g_pVolume)
 	{

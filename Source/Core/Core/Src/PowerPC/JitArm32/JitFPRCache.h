@@ -31,8 +31,8 @@ class ArmFPRCache
 private:
 	OpArg _regs[32][2]; // One for each FPR reg
 	JRCPPC ArmCRegs[ARMFPUREGS];
-	JRCReg ArmRegs[ARMFPUREGS]; 
-	
+	JRCReg ArmRegs[ARMFPUREGS];
+
 	int NUMPPCREG;
 	int NUMARMREG;
 
@@ -41,11 +41,11 @@ private:
 
 	ARMReg GetPPCReg(u32 preg, bool PS1, bool preLoad);
 
-	u32 GetLeastUsedRegister(bool increment); 
-	bool FindFreeRegister(u32 &regindex); 
+	u32 GetLeastUsedRegister(bool increment);
+	bool FindFreeRegister(u32 &regindex);
 protected:
 	ARMXEmitter *emit;
-	
+
 public:
 	ArmFPRCache();
 	~ArmFPRCache() {}
@@ -54,7 +54,7 @@ public:
 	void Start(PPCAnalyst::BlockRegStats &stats);
 
 	void SetEmitter(ARMXEmitter *emitter) {emit = emitter;}
-	
+
 	ARMReg GetReg(bool AutoLock = true); // Return a ARM register we can use.
 	void Unlock(ARMReg V0);
 	void Flush();

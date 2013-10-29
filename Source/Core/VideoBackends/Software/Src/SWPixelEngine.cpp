@@ -81,7 +81,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	switch (address)
 	{
-	case PE_CTRL_REGISTER:	
+	case PE_CTRL_REGISTER:
 		{
 			UPECtrlReg tmpCtrl(_iValue);
 
@@ -135,7 +135,7 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
-	g_bSignalFinishInterrupt = true;	
+	g_bSignalFinishInterrupt = true;
 	UpdateInterrupts();
 }
 

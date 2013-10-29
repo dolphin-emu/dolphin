@@ -238,10 +238,10 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 	m_Content.resize(m_numEntries);
 
 
-	for (u32 i=0; i<m_numEntries; i++) 
+	for (u32 i=0; i<m_numEntries; i++)
 	{
 		SNANDContent& rContent = m_Content[i];
-				
+
 		rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
 		rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
 		rContent.m_Type = Common::swap16(pTMD + 0x01ea + 0x24*i);
@@ -253,7 +253,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		{
 			u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
 			rContent.m_pData = new u8[RoundedSize];
-		
+
 			memset(IV, 0, sizeof IV);
 			memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
 			AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
@@ -293,7 +293,7 @@ void CNANDContentLoader::AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8*
 
 void CNANDContentLoader::GetKeyFromTicket(u8* pTicket, u8* pTicketKey)
 {
-	u8 CommonKey[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};	
+	u8 CommonKey[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};
 	u8 IV[16];
 	memset(IV, 0, sizeof IV);
 	memcpy(IV, pTicket + 0x01dc, 8);
@@ -385,7 +385,7 @@ void cUIDsys::UpdateLocation()
 	m_Elements.clear();
 	lastUID = 0x00001000;
 	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
-	
+
 	File::IOFile pFile(uidSys, "rb");
 	SElement Element;
 	while (pFile.ReadArray(&Element, 1))
@@ -476,7 +476,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	}
 
 	pTMDFile.WriteBytes(ContentLoader.GetTMDHeader(), INANDContentLoader::TMD_HEADER_SIZE);
-	
+
 	for (u32 i = 0; i < ContentLoader.GetContentSize(); i++)
 	{
 		const SNANDContent& Content = ContentLoader.GetContent()[i];
@@ -486,7 +486,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 		char APPFileName[1024];
 		if (Content.m_Type & 0x8000) //shared
 		{
-			sprintf(APPFileName, "%s", 
+			sprintf(APPFileName, "%s",
 				CSharedContent::AccessInstance().AddSharedContent(Content.m_SHA1Hash).c_str());
 		}
 		else
@@ -503,7 +503,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 				PanicAlertT("WAD installation failed: error creating %s", APPFileName);
 				return 0;
 			}
-			
+
 			pAPPFile.WriteBytes(Content.m_pData, Content.m_Size);
 		}
 		else
@@ -513,7 +513,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	}
 
 	pTMDFile.Close();
-	
+
 
 
 

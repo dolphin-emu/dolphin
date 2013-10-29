@@ -73,7 +73,7 @@ void wxCheatsWindow::Init_ChildControls()
 	sizer_tab_cheats->Add(m_CheckListBox_CheatsList, 1, wxEXPAND | wxTOP | wxBOTTOM | wxLEFT, 10);
 	sizer_tab_cheats->Add(sGroupBoxInfo, 0, wxALIGN_LEFT | wxEXPAND | wxALL, 5);
 
-	m_Tab_Cheats->SetSizerAndFit(sizer_tab_cheats);	
+	m_Tab_Cheats->SetSizerAndFit(sizer_tab_cheats);
 
 	// $ Cheat Search Tab
 	wxPanel* const tab_cheat_search = new CheatSearchTab(m_Notebook_Main);
@@ -594,7 +594,7 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	sizer_main->Add(textctrl_code, 0, wxALL, 5);
 	sizer_main->Add(sizer_value_label, 0, wxALL, 5);
 	sizer_main->Add(textctrl_value, 0, wxALL, 5);
-	sizer_main->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxALL, 5); 
+	sizer_main->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxALL, 5);
 
 	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CreateCodeDialog::PressOK, this, wxID_OK);
 	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CreateCodeDialog::PressCancel, this, wxID_CANCEL);

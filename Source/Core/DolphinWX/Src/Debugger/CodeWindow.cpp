@@ -348,20 +348,20 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	// CPU Mode
 	wxMenu* pCoreMenu = new wxMenu;
 
-	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _("&Interpreter core"), 
+	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _("&Interpreter core"),
 		StrToWxStr("This is necessary to get break points"
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
-		" slow, perhaps slower than 1 fps."), 
+		" slow, perhaps slower than 1 fps."),
 		wxITEM_CHECK);
 	interpreter->Check(_LocalCoreStartupParameter.iCPUCore == 0);
 	pCoreMenu->AppendSeparator();
 
 	pCoreMenu->Append(IDM_JITBLOCKLINKING, _("&JIT Block Linking off"),
-		_("Provide safer execution by not linking the JIT blocks."), 
+		_("Provide safer execution by not linking the JIT blocks."),
 		wxITEM_CHECK);
 
 	pCoreMenu->Append(IDM_JITNOBLOCKCACHE, _("&Disable JIT Cache"),
-		_("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing.\n[This option must be selected before a game is started.]"), 
+		_("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing.\n[This option must be selected before a game is started.]"),
 		wxITEM_CHECK);
 	pCoreMenu->Append(IDM_CLEARCODECACHE, _("&Clear JIT cache"));
 
@@ -412,17 +412,17 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 void CCodeWindow::CreateMenuOptions(wxMenu* pMenu)
 {
 	wxMenuItem* boottopause = pMenu->Append(IDM_BOOTTOPAUSE, _("Boot to pause"),
-		_("Start the game directly instead of booting to pause"), 
+		_("Start the game directly instead of booting to pause"),
 		wxITEM_CHECK);
 	boottopause->Check(bBootToPause);
 
-	wxMenuItem* automaticstart = pMenu->Append(IDM_AUTOMATICSTART, _("&Automatic start"), 
+	wxMenuItem* automaticstart = pMenu->Append(IDM_AUTOMATICSTART, _("&Automatic start"),
 		StrToWxStr(
 		"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
 		" if you have not given it an elf file with the --elf command line. [This can be"
 		" convenient if you are bug-testing with a certain game and want to rebuild"
 		" and retry it several times, either with changes to Dolphin or if you are"
-		" developing a homebrew game.]"), 
+		" developing a homebrew game.]"),
 		wxITEM_CHECK);
 	automaticstart->Check(bAutomaticStart);
 
@@ -480,7 +480,7 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 
 	// Clear the JIT cache to enable these changes
 	JitInterface::ClearCache();
-	
+
 	// Update
 	UpdateButtonStates();
 }

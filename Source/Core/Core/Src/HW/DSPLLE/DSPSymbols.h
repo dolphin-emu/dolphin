@@ -10,12 +10,12 @@
 
 namespace DSPSymbols {
 
-class DSPSymbolDB : public SymbolDB 
+class DSPSymbolDB : public SymbolDB
 {
 public:
 	DSPSymbolDB() {}
 	~DSPSymbolDB() {}
-	
+
 	Symbol *GetSymbolFromAddr(u32 addr);
 
 };

@@ -32,7 +32,7 @@ struct SPartitionHeader
 	u64 TMDOffset;
 	u32 CertChainSize;
 	u64 CertChainOffset;
-	// H3Size is always 0x18000 
+	// H3Size is always 0x18000
 	u64 H3Offset;
 	u64 DataOffset;
 	u64 DataSize;

@@ -11,7 +11,7 @@ PerfQuery::PerfQuery()
 {
 	for (u32 i = 0; i != ArraySize(m_query_buffer); ++i)
 		glGenQueries(1, &m_query_buffer[i].query_id);
-	
+
 	ResetQuery();
 }
 
@@ -29,21 +29,21 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 	// Is this sane?
 	if (m_query_count > ArraySize(m_query_buffer) / 2)
 		WeakFlush();
-	
+
 	if (ArraySize(m_query_buffer) == m_query_count)
 	{
 		FlushOne();
 		//ERROR_LOG(VIDEO, "Flushed query buffer early!");
 	}
-	
+
 	// start query
 	if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
 	{
 		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count) % ArraySize(m_query_buffer)];
-		
+
 		glBeginQuery(GL_SAMPLES_PASSED, entry.query_id);
 		entry.query_type = type;
-		
+
 		++m_query_count;
 	}
 }
@@ -103,10 +103,10 @@ void PerfQuery::WeakFlush()
 	while (!IsFlushed())
 	{
 		auto& entry = m_query_buffer[m_query_read_pos];
-		
+
 		GLuint result = GL_FALSE;
 		glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT_AVAILABLE, &result);
-		
+
 		if (GL_TRUE == result)
 		{
 			FlushOne();
@@ -130,7 +130,7 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
 		return 0;
 
 	u32 result = 0;
-	
+
 	if (type == PQ_ZCOMP_INPUT_ZCOMPLOC || type == PQ_ZCOMP_OUTPUT_ZCOMPLOC)
 	{
 		result = m_results[PQG_ZCOMP_ZCOMPLOC];
@@ -147,7 +147,7 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
 	{
 		result = m_results[PQG_EFB_COPY_CLOCKS];
 	}
-	
+
 	return result / 4;
 }
 

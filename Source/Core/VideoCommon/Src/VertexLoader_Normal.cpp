@@ -74,7 +74,7 @@ template <typename I, typename T, int N, int Offset>
 __forceinline void Normal_Index_Offset()
 {
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
-	
+
 	auto const index = DataRead<I>();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_NORMAL]
 		+ (index * arraystrides[ARRAY_NORMAL]) + sizeof(T) * 3 * Offset);

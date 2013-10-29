@@ -35,16 +35,16 @@ namespace Memory
 // EFB RE
 /*
 GXPeekZ
-80322de8: rlwinm	r0, r3, 2, 14, 29 (0003fffc)   a =  x << 2 & 0x3fffc      
+80322de8: rlwinm	r0, r3, 2, 14, 29 (0003fffc)   a =  x << 2 & 0x3fffc
 80322dec: oris	r0, r0, 0xC800                     a |= 0xc8000000
 80322df0: rlwinm	r3, r0, 0, 20, 9 (ffc00fff)    x = a & 0xffc00fff
-80322df4: rlwinm	r0, r4, 12, 4, 19 (0ffff000)   a = (y << 12) & 0x0ffff000; 
+80322df4: rlwinm	r0, r4, 12, 4, 19 (0ffff000)   a = (y << 12) & 0x0ffff000;
 80322df8: or	r0, r3, r0                         a |= x;
 80322dfc: rlwinm	r0, r0, 0, 10, 7 (ff3fffff)    a &= 0xff3fffff
 80322e00: oris	r3, r0, 0x0040                     x = a | 0x00400000
 80322e04: lwz	r0, 0 (r3)						   r0 = *r3
-80322e08: stw	r0, 0 (r5)						   z = 
-80322e0c: blr	
+80322e08: stw	r0, 0 (r5)						   z =
+80322e0c: blr
 */
 
 
@@ -128,7 +128,7 @@ inline void hwWriteIOBridge(u32 var, u32 addr) {WII_IOBridge::Write32(var, addr)
 inline void hwWriteIOBridge(u64 var, u32 addr) {PanicAlert("hwWriteIOBridge: There's no 64-bit HW write. %08x", addr);}
 
 // Nasty but necessary. Super Mario Galaxy pointer relies on this stuff.
-u32 EFB_Read(const u32 addr) 
+u32 EFB_Read(const u32 addr)
 {
 	u32 var = 0;
 	// Convert address to coordinates. It's possible that this should be done
@@ -327,7 +327,7 @@ u32 Read_Opcode(u32 _Address)
 		return 0x00000000;
 	}
 
-	if (Core::g_CoreStartupParameter.bMMU && 
+	if (Core::g_CoreStartupParameter.bMMU &&
 		!Core::g_CoreStartupParameter.bTLBHack &&
 		(_Address & ADDR_MASK_MEM1))
 	{
@@ -414,7 +414,7 @@ double Read_F64(const u32 _Address)
 		u64 i;
 		double d;
 	} cvt;
-	
+
 	cvt.i = Read_U64(_Address);
 	return cvt.d;
 }
@@ -441,7 +441,7 @@ u32 Read_U16_ZX(const u32 _Address)
 	return (u32)Read_U16(_Address);
 }
 
-void Write_U8(const u8 _Data, const u32 _Address)	
+void Write_U8(const u8 _Data, const u32 _Address)
 {
 #ifdef ENABLE_MEM_CHECK
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
@@ -474,7 +474,7 @@ void Write_U16_Swap(const u16 _Data, const u32 _Address) {
 
 
 void Write_U32(const u32 _Data, const u32 _Address)
-{	
+{
 #ifdef ENABLE_MEM_CHECK
 	TMemCheck *mc = PowerPC::memchecks.GetMemCheck(_Address);
 	if (mc)
@@ -518,7 +518,7 @@ void Write_F64(const double _Data, const u32 _Address)
 	Write_U64(cvt.i, _Address);
 }
 u8 ReadUnchecked_U8(const u32 _Address)
-{    
+{
 	u8 _var = 0;
 	ReadFromHardware<u8>(_var, _Address, _Address, FLAG_NO_EXCEPTION);
 	return _var;
@@ -546,7 +546,7 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 // *********************************************************************************
 // Warning: Test Area
 //
-// This code is for TESTING and it works in interpreter mode ONLY. Some games (like 
+// This code is for TESTING and it works in interpreter mode ONLY. Some games (like
 // COD iirc) work thanks to this basic TLB emulation.
 // It is just a small hack and we have never spend enough time to finalize it.
 // Cheers PearPC!
@@ -576,26 +576,26 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 
 #define PPC_EXC_DSISR_PAGE (1<<30)
 #define PPC_EXC_DSISR_PROT (1<<27)
-#define PPC_EXC_DSISR_STORE (1<<25) 
+#define PPC_EXC_DSISR_STORE (1<<25)
 
 #define SDR1_HTABORG(v) (((v)>>16)&0xffff)
 #define SDR1_HTABMASK(v) ((v)&0x1ff)
-#define SDR1_PAGETABLE_BASE(v) ((v)&0xffff) 
+#define SDR1_PAGETABLE_BASE(v) ((v)&0xffff)
 #define SR_T  (1<<31)
 #define SR_Ks (1<<30)
 #define SR_Kp (1<<29)
 #define SR_N  (1<<28)
 #define SR_VSID(v)       ((v)&0xffffff)
 #define SR_BUID(v)       (((v)>>20)&0x1ff)
-#define SR_CNTRL_SPEC(v) ((v)&0xfffff) 
+#define SR_CNTRL_SPEC(v) ((v)&0xfffff)
 
-#define EA_SR(v)         (((v)>>28)&0xf) 
-#define EA_PageIndex(v)  (((v)>>12)&0xffff) 
+#define EA_SR(v)         (((v)>>28)&0xf)
+#define EA_PageIndex(v)  (((v)>>12)&0xffff)
 #define EA_Offset(v)	((v)&0xfff)
-#define EA_API(v)		(((v)>>22)&0x3f) 
+#define EA_API(v)		(((v)>>22)&0x3f)
 
 #define PA_RPN(v)        (((v)>>12)&0xfffff)
-#define PA_Offset(v)     ((v)&0xfff) 
+#define PA_Offset(v)     ((v)&0xfff)
 
 #define PTE1_V       (1<<31)
 #define PTE1_VSID(v) (((v)>>7)&0xffffff)
@@ -611,7 +611,7 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 // Hey! these duplicate a structure in Gekko.h
 union UPTE1
 {
-	struct 
+	struct
 	{
 		u32 API    : 6;
 		u32 H      : 1;
@@ -623,7 +623,7 @@ union UPTE1
 
 union UPTE2
 {
-	struct 
+	struct
 	{
 		u32 PP     : 2;
 		u32        : 1;
@@ -664,24 +664,24 @@ void SDRUpdated()
 	u32 x = 1;
 	u32 xx = 0;
 	int n = 0;
-	while ((htabmask & x) && (n < 9)) 
+	while ((htabmask & x) && (n < 9))
 	{
 		n++;
 		xx|=x;
 		x<<=1;
 	}
-	if (htabmask & ~xx) 
+	if (htabmask & ~xx)
 	{
 		return;
 	}
 	u32 htaborg = SDR1_HTABORG(PowerPC::ppcState.spr[SPR_SDR]);
-	if (htaborg & xx) 
+	if (htaborg & xx)
 	{
 		return;
 	}
 	PowerPC::ppcState.pagetable_base = htaborg<<16;
 	PowerPC::ppcState.pagetable_hashmask = ((xx<<10)|0x3ff);
-} 
+}
 
 
 // TLB cache
@@ -785,7 +785,7 @@ void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 		PowerPC::ppcState.itlb_last++;
 		PowerPC::ppcState.itlb_last &= 127;
 		PowerPC::ppcState.itlb_pa[PowerPC::ppcState.itlb_last] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
-		PowerPC::ppcState.itlb_va[PowerPC::ppcState.itlb_last] = vpa & ~0xfff;	
+		PowerPC::ppcState.itlb_va[PowerPC::ppcState.itlb_last] = vpa & ~0xfff;
 	}
 	else
 	{
@@ -793,7 +793,7 @@ void UpdateTLBEntry(const XCheckTLBFlag _Flag, UPTE2 PTE2, const u32 vpa)
 		PowerPC::ppcState.dtlb_last++;
 		PowerPC::ppcState.dtlb_last &= 127;
 		PowerPC::ppcState.dtlb_pa[PowerPC::ppcState.dtlb_last] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
-		PowerPC::ppcState.dtlb_va[PowerPC::ppcState.dtlb_last] = vpa & ~0xfff;	
+		PowerPC::ppcState.dtlb_va[PowerPC::ppcState.dtlb_last] = vpa & ~0xfff;
 	}
 #endif
 }
@@ -845,12 +845,12 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 	if (LookupTLBPageAddress(_Flag, _Address, &translatedAddress))
 		return translatedAddress;
 
-	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)]; 
+	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)];
 
-	u32 offset = EA_Offset(_Address);			// 12 bit 
+	u32 offset = EA_Offset(_Address);			// 12 bit
 	u32 page_index = EA_PageIndex(_Address);	// 16 bit
-	u32 VSID = SR_VSID(sr);						// 24 bit 
-	u32 api = EA_API(_Address);					//  6 bit (part of page_index) 
+	u32 VSID = SR_VSID(sr);						// 24 bit
+	u32 api = EA_API(_Address);					//  6 bit (part of page_index)
 
 	u8* pRAM = GetPointer(0);
 
@@ -864,9 +864,9 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 		UPTE1 PTE1;
 		PTE1.Hex = bswap(*(u32*)&pRAM[pteg_addr]);
 
-		if (PTE1.V && !PTE1.H) 
+		if (PTE1.V && !PTE1.H)
 		{
-			if (VSID == PTE1.VSID && (api == PTE1.API)) 
+			if (VSID == PTE1.VSID && (api == PTE1.API))
 			{
 				UPTE2 PTE2;
 				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
@@ -886,13 +886,13 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 				return ((PTE2.RPN << 12) | offset);
 			}
 		}
-		pteg_addr+=8; 
+		pteg_addr+=8;
 	}
 
 	// hash function no 2 "not" .360
 	hash1 = ~hash1;
 	pteg_addr = ((hash1 & PowerPC::ppcState.pagetable_hashmask) << 6) | PowerPC::ppcState.pagetable_base;
-	for (int i = 0; i < 8; i++) 
+	for (int i = 0; i < 8; i++)
 	{
 		u32 pte = bswap(*(u32*)&pRAM[pteg_addr]);
 		if ((pte & PTE1_V) && (pte & PTE1_H))
@@ -910,13 +910,13 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 				case FLAG_WRITE:    PTE2.C = 1; break;
 				case FLAG_NO_EXCEPTION: break;
 				case FLAG_OPCODE: break;
-				}              
+				}
 				*(u32*)&pRAM[(pteg_addr + 4)] = bswap(PTE2.Hex);
 
 				return ((PTE2.RPN << 12) | offset);
 			}
 		}
-		pteg_addr+=8; 
+		pteg_addr+=8;
 	}
 	return 0;
 }

@@ -135,7 +135,7 @@ void SaveToBuffer(std::vector<u8>& buffer)
 	DoState(p);
 	const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 	buffer.resize(buffer_size);
-	
+
 	ptr = &buffer[0];
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
@@ -227,7 +227,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 		if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
-		else 
+		else
 			File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
 	}
 
@@ -360,8 +360,8 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 
 	StateHeader header;
 	f.ReadArray(&header, 1);
-	
-	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6)) 
+
+	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6))
 	{
 		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %.*s)",
 			6, header.gameID), 2000);
@@ -394,7 +394,7 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 					"Try loading the state again", res, i, new_len);
 				return;
 			}
-	
+
 			i += new_len;
 		}
 	}

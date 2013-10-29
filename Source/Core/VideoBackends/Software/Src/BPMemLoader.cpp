@@ -97,7 +97,7 @@ void SWBPWritten(int address, int newvalue)
 	case BPMEM_LOADTLUT1: // Load a Texture Look Up Table
 		{
 			u32 tlutTMemAddr = (newvalue & 0x3FF) << 9;
-			u32 tlutXferCount = (newvalue & 0x1FFC00) >> 5; 
+			u32 tlutXferCount = (newvalue & 0x1FFC00) >> 5;
 
 			u8 *ptr = 0;
 

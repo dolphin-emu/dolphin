@@ -13,7 +13,7 @@
 namespace Dolphin_Debugger
 {
 
-struct CallstackEntry 
+struct CallstackEntry
 {
     std::string Name;
     u32 vAddress;

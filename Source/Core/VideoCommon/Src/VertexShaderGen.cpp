@@ -136,7 +136,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		out.Write("VARYOUT   float4 clipPos_2;\n");
 		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			out.Write("VARYOUT   float4 Normal_2;\n");
-		
+
 		out.Write("VARYOUT   float4 colors_02;\n");
 		out.Write("VARYOUT   float4 colors_12;\n");
 

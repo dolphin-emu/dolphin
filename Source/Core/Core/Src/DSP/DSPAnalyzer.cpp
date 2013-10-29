@@ -43,20 +43,20 @@ const u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] =
 	{ 0x26fc,			// lrs         $AC0.M, @DMBH
 	  0x02a0, 0x8000,	// andf        $AC0.M, #0x8000
 	  0x029c, 0xFFFF,	// jlnz        0x????
-	  0, 0 }, 
+	  0, 0 },
 	{ 0x27fc,			// lrs         $AC1.M, @DMBH
 	  0x03a0, 0x8000,	// andf        $AC1.M, #0x8000
 	  0x029c, 0xFFFF,	// jlnz        0x????
-	  0, 0 }, 
+	  0, 0 },
 	// From Zelda:
 	{ 0x00de, 0xFFFE,  // LR $AC0.M, @CMBH
-	  0x02c0, 0x8000,  // ANDCF $AC0.M, #0x8000 
+	  0x02c0, 0x8000,  // ANDCF $AC0.M, #0x8000
 	  0x029c, 0xFFFF,  // JLNZ 0x05cf
 	  0 },
 	// From Zelda - experimental
 	{ 0x00da, 0x0352, // lr          $AX0.H, @0x0352
 	  0x8600,         // tstaxh      $AX0.H
-	  0x0295, 0xFFFF, // jz          0x???? 
+	  0x0295, 0xFFFF, // jz          0x????
 	  0, 0 }
 };
 
@@ -112,11 +112,11 @@ void AnalyzeRange(int start_addr, int end_addr)
 
 		// If an instruction potentially raises exceptions, mark the following
 		// instruction as needing to check for exceptions
-		if (opcode->opcode == 0x00c0 || 
-			opcode->opcode == 0x1800 || 
-			opcode->opcode == 0x1880 || 
-			opcode->opcode == 0x1900 || 
-			opcode->opcode == 0x1980 || 
+		if (opcode->opcode == 0x00c0 ||
+			opcode->opcode == 0x1800 ||
+			opcode->opcode == 0x1880 ||
+			opcode->opcode == 0x1900 ||
+			opcode->opcode == 0x1980 ||
 			opcode->opcode == 0x2000 ||
 			opcode->extended
 			)

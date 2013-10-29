@@ -169,7 +169,7 @@ void Init()
 	glBindTexture(GL_TEXTURE_2D, s_dstTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	
+
 	CreatePrograms();
 }
 
@@ -229,7 +229,7 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	GL_REPORT_ERRORD();
 	if(!(s_cached_sourceRc == sourceRc)) {
 		GLfloat vertices[] = {
-			-1.f, -1.f, 
+			-1.f, -1.f,
 			(float)sourceRc.left, (float)sourceRc.top,
 			-1.f, 1.f,
 			(float)sourceRc.left, (float)sourceRc.bottom,
@@ -240,13 +240,13 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 		};
 		glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
 		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-		
+
 		s_cached_sourceRc = sourceRc;
-	} 
+	}
 
 	glBindVertexArray( s_encode_VAO );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	
+
 	GL_REPORT_ERRORD();
 
 	// .. and then read back the results.
@@ -303,16 +303,16 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
 
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
-	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
-	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);	
+	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;
+	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);
 
 	// only copy on cache line boundaries
 	// extra pixels are copied but not displayed in the resulting texture
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
-		
+
 	float sampleStride = bScaleByHalf ? 2.f : 1.f;
-	
+
 	float params[] = {
 		Renderer::EFBToScaledXf(sampleStride), Renderer::EFBToScaledYf(sampleStride),
 		0.0f, 0.0f,
@@ -344,9 +344,9 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* destAddr, int dstWidth, int dstHeight)
 {
 	g_renderer->ResetAPIState();
-	
+
 	s_rgbToYuyvProgram.Bind();
-		
+
 	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 	FramebufferManager::SetFramebuffer(0);
 	TextureCache::DisableStage(0);
@@ -399,7 +399,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	s_yuyvToRgbProgram.Bind();
 
 	GL_REPORT_ERRORD();
-	
+
 	if(s_cached_srcHeight != srcHeight || s_cached_srcWidth != srcWidth) {
 		GLfloat vertices[] = {
 			1.f, -1.f,
@@ -411,17 +411,17 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 			-1.f, 1.f,
 			0.f, 0.f
 		};
-		
+
 		glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*4*4, vertices, GL_STREAM_DRAW);
-		
+
 		s_cached_srcHeight = srcHeight;
 		s_cached_srcWidth = srcWidth;
 	}
-	
+
 	glBindVertexArray( s_decode_VAO );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	
+
 	GL_REPORT_ERRORD();
 
 	FramebufferManager::SetFramebuffer(0);

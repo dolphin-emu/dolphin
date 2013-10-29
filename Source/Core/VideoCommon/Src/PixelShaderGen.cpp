@@ -529,7 +529,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	uid_data.Pretest = Pretest;
 
-	// NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled 
+	// NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
 	// (in this case we need to write a depth value if depth test passes regardless of the alpha testing result)
 	if (Pretest == AlphaTest::UNDETERMINED || (Pretest == AlphaTest::FAIL && bpmem.UseLateDepthTest()))
 		WriteAlphaTest<T>(out, uid_data, ApiType, dstAlphaMode, per_pixel_depth);

@@ -38,7 +38,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
 	{
 		int table = info->type>>24;
-		switch(table) 
+		switch(table)
 		{
 		case 4:  return m_infoTable4[_inst.SUBOP10];
 		case 19: return m_infoTable19[_inst.SUBOP10];
@@ -67,7 +67,7 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
 	{
 		int table = info->type>>24;
-		switch(table) 
+		switch(table)
 		{
 		case 4:  return Interpreter::m_opTable4[_inst.SUBOP10];
 		case 19: return Interpreter::m_opTable19[_inst.SUBOP10];
@@ -197,7 +197,7 @@ void PrintInstructionRunCounts()
 	std::sort(temp.begin(), temp.end());
 	for (int i = 0; i < m_numInstructions; i++)
 	{
-		if (temp[i].count == 0) 
+		if (temp[i].count == 0)
 			break;
 		DEBUG_LOG(POWERPC, "%s : %i", temp[i].name,temp[i].count);
 		//PanicAlert("%s : %i", temp[i].name,temp[i].count);

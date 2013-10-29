@@ -53,12 +53,12 @@ public:
 		void Set(const char* key, double newValue) {
 			Set(key, StringFromFormat("%f", newValue).c_str());
 		}
-		
+
 		void Set(const char* key, int newValue, int defaultValue);
 		void Set(const char* key, int newValue) {
 			Set(key, StringFromInt(newValue).c_str());
 		}
-		
+
 		void Set(const char* key, bool newValue, bool defaultValue);
 		void Set(const char* key, bool newValue) {
 			Set(key, StringFromBool(newValue).c_str());

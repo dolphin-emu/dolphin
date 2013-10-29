@@ -123,12 +123,12 @@ void JitArmIL::bcx(UGeckoInstruction inst)
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
-		inst.hex == 0x4182fff8 &&			
+		inst.hex == 0x4182fff8 &&
 		(Memory::ReadUnchecked_U32(js.compilerPC - 8) & 0xFFFF0000) == 0x800D0000 &&
 		(Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x28000000 ||
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x2C000000)) 
+		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x2C000000))
 		)
-	{			
+	{
 		ibuild.EmitIdleBranch(Test, ibuild.EmitIntConst(destination));
 	}
 	else

@@ -98,7 +98,7 @@ int CVolumeGC::GetRevision() const
 std::vector<std::string> CVolumeGC::GetNames() const
 {
 	std::vector<std::string> names;
-	
+
 	auto const string_decoder = GetStringDecoder(GetCountry());
 
 	char name[0x60 + 1] = {};

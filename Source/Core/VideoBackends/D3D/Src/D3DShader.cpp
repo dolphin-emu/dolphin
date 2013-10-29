@@ -39,7 +39,6 @@ bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob)
 #endif
 	HRESULT hr = PD3DCompile(code, len, NULL, NULL, NULL, "main", D3D::VertexShaderVersionString(),
 							flags, 0, &shaderBuffer, &errorBuffer);
-	
 	if (errorBuffer)
 	{
 		INFO_LOG(VIDEO, "Vertex shader compiler messages:\n%s\n",

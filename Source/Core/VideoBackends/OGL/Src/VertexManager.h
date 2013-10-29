@@ -21,7 +21,7 @@ namespace OGL
 
 		virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
 		virtual void SetupVertexPointers();
-		
+
 		GLuint VAO;
 	};
 
@@ -35,10 +35,10 @@ public:
 	NativeVertexFormat* CreateNativeVertexFormat();
 	void CreateDeviceObjects();
 	void DestroyDeviceObjects();
-	
+
 	// NativeVertexFormat use this
 	GLuint m_vertex_buffers;
-	GLuint m_index_buffers; 
+	GLuint m_index_buffers;
 	GLuint m_last_vao;
 private:
 	void Draw(u32 stride);

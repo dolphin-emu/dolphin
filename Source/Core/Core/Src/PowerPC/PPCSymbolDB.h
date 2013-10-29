@@ -19,7 +19,7 @@ private:
 
 public:
 	typedef void (*functionGetterCallback)(Symbol *f);
-	
+
 	PPCSymbolDB();
 	~PPCSymbolDB();
 

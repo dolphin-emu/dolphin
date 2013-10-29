@@ -44,7 +44,7 @@ public:
 	virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
 
 	virtual bool IsInCodeSpace(u8 *ptr) = 0;
-	
+
 	// OPCODES
 	virtual void unknown_instruction(UGeckoInstruction inst) = 0;
 	virtual void Default(UGeckoInstruction inst) = 0;
@@ -104,7 +104,7 @@ public:
 
 	void extsbx(UGeckoInstruction inst);
 	void extshx(UGeckoInstruction inst);
-	
+
 	void reg_imm(UGeckoInstruction inst);
 
 	void ps_sel(UGeckoInstruction inst);
@@ -147,7 +147,7 @@ public:
 	void subfic(UGeckoInstruction inst);
 	void subfcx(UGeckoInstruction inst);
 	void subfx(UGeckoInstruction inst);
-	void subfex(UGeckoInstruction inst);	
+	void subfex(UGeckoInstruction inst);
 
 };
 #endif

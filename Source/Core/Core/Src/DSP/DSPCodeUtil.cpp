@@ -54,7 +54,7 @@ bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &t
 }
 
 bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
-{		
+{
 	if (code1.size() != code2.size())
 		printf("Size difference! 1=%i 2=%i\n", (int)code1.size(), (int)code2.size());
 	u32 count_equal = 0;
@@ -94,7 +94,7 @@ bool Compare(const std::vector<u16> &code1, const std::vector<u16> &code2)
 	return code1.size() == code2.size() && code1.size() == count_equal;
 }
 
-void GenRandomCode(u32 size, std::vector<u16> &code) 
+void GenRandomCode(u32 size, std::vector<u16> &code)
 {
 	code.resize(size);
 	for (u32 i = 0; i < size; i++)
@@ -149,7 +149,7 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 		reserveSize += (u32)codes_padded.at(i).size();
 	}
 
-	
+
 	header.clear();
 	header.reserve(reserveSize * 4);
 	sprintf(buffer, "#define NUM_UCODES %u\n\n", numCodes);
@@ -172,7 +172,7 @@ void CodesToHeader(const std::vector<u16> *codes, const std::vector<std::string>
 			continue;
 
 		header.append("\t{\n\t\t");
-		for (u32 j = 0; j < codes_padded.at(i).size(); j++) 
+		for (u32 j = 0; j < codes_padded.at(i).size(); j++)
 		{
 			if (j && ((j & 15) == 0))
 				header.append("\n\t\t");

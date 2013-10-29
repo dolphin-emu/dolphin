@@ -58,7 +58,7 @@ struct ReferencedDataRegion
 	ReferencedDataRegion* NextRegion;
 	u32 size;
 	u32 MustClean;
-	
+
 
 	int IntersectsMemoryRange(u8* range_address, u32 range_size)
 	{
@@ -78,7 +78,7 @@ struct CachedDisplayList
 			uncachable(false),
 			num_xf_reg(0),
 			num_cp_reg(0),
-			num_bp_reg(0), 
+			num_bp_reg(0),
 			num_index_xf(0),
 			num_draw_call(0),
 			pass(DLPASS_ANALYZE),
@@ -96,7 +96,7 @@ struct CachedDisplayList
 	// Analytic data
 	u32 num_xf_reg;
 	u32 num_cp_reg;
-	u32 num_bp_reg; 
+	u32 num_bp_reg;
 	u32 num_index_xf;
 	u32 num_draw_call;
 	u32 pass;
@@ -142,7 +142,7 @@ struct CachedDisplayList
 			NewRegion = new ReferencedDataRegion;
 			NewRegion->MustClean = false;
 			NewRegion->size = Size;
-			NewRegion->start_address = RegionStartAddress; 
+			NewRegion->start_address = RegionStartAddress;
 			NewRegion->hash = GetHash64(RegionStartAddress, Size, DL_HASH_STEPS);
 			InsertRegion(NewRegion);
 		}
@@ -241,11 +241,11 @@ u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 	u8* startAddress = Memory::GetPointer(address);
 	u32 num_xf_reg = 0;
 	u32 num_cp_reg = 0;
-	u32 num_bp_reg = 0; 
+	u32 num_bp_reg = 0;
 	u32 num_index_xf = 0;
 	u32 num_draw_call = 0;
 	u32 result = 0;
-	
+
 
 	// Avoid the crash if Memory::GetPointer failed ..
 	if (startAddress != 0)
@@ -322,7 +322,7 @@ u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 			case GX_CMD_UNKNOWN_METRICS: // zelda 4 swords calls it and checks the metrics registers after that
 				DEBUG_LOG(VIDEO, "GX 0x44: %08x", cmd_byte);
 				break;
-			case GX_CMD_INVL_VC: // Invalidate Vertex Cache	
+			case GX_CMD_INVL_VC: // Invalidate Vertex Cache
 				DEBUG_LOG(VIDEO, "Invalidate (vertex cache?)");
 				break;
 			case GX_LOAD_BP_REG: //0x61
@@ -334,7 +334,7 @@ u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 				}
 				break;
 
-			// draw primitives 
+			// draw primitives
 			default:
 				if (cmd_byte & 0x80)
 				{
@@ -349,7 +349,7 @@ u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 							numVertices);
 						num_draw_call++;
 						const u32 tc[12] = {
-							g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
+							g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord,
 							g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const u32)((g_VtxDesc.Hex >> 31) & 3)
 						};
 						for(int i = 0; i < 12; i++)
@@ -380,11 +380,11 @@ u32 AnalyzeAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 	dl->num_index_xf = num_index_xf;
 	dl->num_xf_reg = num_xf_reg;
 	// reset to the old pointer
-	g_pVideoData = old_pVideoData;	
+	g_pVideoData = old_pVideoData;
 	return result;
 }
 
-// The only sensible way to detect changes to vertex data is to convert several times 
+// The only sensible way to detect changes to vertex data is to convert several times
 // and hash the output.
 
 // Second pass - compile
@@ -506,7 +506,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 				// zelda 4 swords calls it and checks the metrics registers after that
 				break;
 
-			case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)	
+			case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)
 				DEBUG_LOG(VIDEO, "Invalidate	(vertex cache?)");
 				break;
 
@@ -521,7 +521,7 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 				}
 				break;
 
-				// draw primitives 
+				// draw primitives
 			default:
 				if (cmd_byte & 0x80)
 				{
@@ -543,13 +543,13 @@ void CompileAndRunDisplayList(u32 address, u32 size, CachedDisplayList *dl)
 							ReferencedDataRegion* NewRegion = new ReferencedDataRegion;
 							NewRegion->MustClean = true;
 							NewRegion->size = Vdatasize;
-							NewRegion->start_address = (u8*)new u8[Vdatasize]; 
+							NewRegion->start_address = (u8*)new u8[Vdatasize];
 							NewRegion->hash = 0;
 							dl->InsertRegion(NewRegion);
 							memcpy(NewRegion->start_address, StartAddress, Vdatasize);
 							emitter.ABI_CallFunctionCCCP((void *)&VertexLoaderManager::RunCompiledVertices, cmd_byte & GX_VAT_MASK, (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices, NewRegion->start_address);
 							const u32 tc[12] = {
-							g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord, 
+							g_VtxDesc.Position, g_VtxDesc.Normal, g_VtxDesc.Color0, g_VtxDesc.Color1, g_VtxDesc.Tex0Coord, g_VtxDesc.Tex1Coord,
 							g_VtxDesc.Tex2Coord, g_VtxDesc.Tex3Coord, g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const u32)((g_VtxDesc.Hex >> 31) & 3)
 							};
 							for(int i = 0; i < 12; i++)
@@ -592,11 +592,11 @@ void Init()
 void Shutdown()
 {
 	Clear();
-	FreeMemoryPages(dlcode_cache, DL_CODE_CACHE_SIZE);	
+	FreeMemoryPages(dlcode_cache, DL_CODE_CACHE_SIZE);
 	dlcode_cache = NULL;
 }
 
-void Clear() 
+void Clear()
 {
 	VDLMap::iterator iter = dl_map.begin();
 	while (iter != dl_map.end())
@@ -625,7 +625,7 @@ void ProgressiveCleanup()
 	{
 		VDlist &ParentEntry = iter->second;
 		DLMap::iterator childiter = ParentEntry.dl_map.begin();
-		while (childiter != ParentEntry.dl_map.end()) 
+		while (childiter != ParentEntry.dl_map.end())
 		{
 			CachedDisplayList &entry = childiter->second;
 			int limit = 3600;
@@ -712,9 +712,9 @@ bool HandleDisplayList(u32 address, u32 size)
 				if (dl.check != CheckContextId)
 				{
 					dl.check = CheckContextId;
-					DlistChanged = !dl.CheckRegions() || dl.dl_hash != GetHash64(Memory::GetPointer(address), size, 0);					
+					DlistChanged = !dl.CheckRegions() || dl.dl_hash != GetHash64(Memory::GetPointer(address), size, 0);
 				}
-				if (DlistChanged) 
+				if (DlistChanged)
 				{
 					dl.uncachable = true;
 					dl.ClearRegions();
@@ -734,7 +734,7 @@ bool HandleDisplayList(u32 address, u32 size)
 
 				INCSTAT(stats.numDListsCalled);
 				INCSTAT(stats.thisFrame.numDListsCalled);
-				
+
 				Statistics::SwapDL();
 				g_pVideoData = old_datareader;
 				break;
@@ -744,7 +744,7 @@ bool HandleDisplayList(u32 address, u32 size)
 	}
 
 	DLCache::CachedDisplayList dl;
-	
+
 	u32 dlvatused = DLCache::AnalyzeAndRunDisplayList(address, size, &dl);
 	dl.dl_hash = GetHash64(Memory::GetPointer(address), size,0);
 	dl.pass = DLCache::DLPASS_COMPILE;
@@ -754,14 +754,14 @@ bool HandleDisplayList(u32 address, u32 size)
 	{
 		DLCache::VDlist &vdl = Parentiter->second;
 		vdl.dl_map[vhash] = dl;
-		vdl.VATUsed = dlvatused; 
+		vdl.VATUsed = dlvatused;
 		vdl.count++;
 	}
 	else
 	{
 		DLCache::VDlist vdl;
 		vdl.dl_map[vhash] = dl;
-		vdl.VATUsed = dlvatused; 
+		vdl.VATUsed = dlvatused;
 		vdl.count = 1;
 		DLCache::dl_map[dl_id] = vdl;
 	}

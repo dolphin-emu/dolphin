@@ -32,7 +32,7 @@ std::string BuildGameName(const GameListItem& game)
 {
 	// Lang needs to be consistent
 	auto const lang = 0;
-	
+
 	std::string name(game.GetBannerName(lang));
 	if (name.empty())
 		name = game.GetVolumeName(lang);
@@ -62,7 +62,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	// top row
 	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, _("Nickname :"),
 			wxDefaultPosition, wxDefaultSize);
-	
+
 	std::string nickname;
 	netplay_section.Get("Nickname", &nickname, "Player");
 	m_nickname_text = new wxTextCtrl(panel, wxID_ANY, StrToWxStr(nickname));
@@ -84,17 +84,17 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	{
 	wxStaticText* const ip_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Address :"),
 			wxDefaultPosition, wxDefaultSize);
-	
+
 	std::string address;
 	netplay_section.Get("Address", &address, "localhost");
 	m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(address));
 
 	wxStaticText* const port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port :"),
 			wxDefaultPosition, wxDefaultSize);
-	
+
 	// string? w/e
 	std::string port;
-	netplay_section.Get("ConnectPort", &port, "2626");	
+	netplay_section.Get("ConnectPort", &port, "2626");
 	m_connect_port_text = new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(port));
 
 	wxButton* const connect_btn = new wxButton(connect_tab, wxID_ANY, _("Connect"));
@@ -136,10 +136,10 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	{
 	wxStaticText* const port_lbl = new wxStaticText(host_tab, wxID_ANY, _("Port :"),
 			wxDefaultPosition, wxDefaultSize);
-	
+
 	// string? w/e
 	std::string port;
-	netplay_section.Get("HostPort", &port, "2626");	
+	netplay_section.Get("HostPort", &port, "2626");
 	m_host_port_text = new wxTextCtrl(host_tab, wxID_ANY, StrToWxStr(port));
 
 	wxButton* const host_btn = new wxButton(host_tab, wxID_ANY, _("Host"));
@@ -147,7 +147,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 
 	m_game_lbox = new wxListBox(host_tab, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SORT);
 	m_game_lbox->Bind(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, &NetPlaySetupDiag::OnHost, this);
-	
+
 	FillWithGameNames(m_game_lbox, *game_list);
 
 	wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -294,7 +294,7 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	m_game_btn = new wxButton(panel, wxID_ANY,
 			StrToWxStr(m_selected_game).Prepend(_(" Game : ")),
 			wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-	
+
 	if (is_hosting)
 		m_game_btn->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &NetPlayDiag::OnChangeGame, this);
 	else
@@ -422,7 +422,7 @@ std::string NetPlayDiag::FindGame()
 	for (u32 i = 0 ; auto game = m_game_list->GetISO(i); ++i)
 		if (m_selected_game == BuildGameName(*game))
 			return game->GetFileName();
-	
+
 	PanicAlertT("Game not found!");
 	return "";
 }

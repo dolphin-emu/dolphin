@@ -38,13 +38,13 @@ enum
 {
 	// Zero Code Types
 	ZCODE_END	= 0x00,
-	ZCODE_NORM	= 0x02, 
-	ZCODE_ROW	= 0x03, 
+	ZCODE_NORM	= 0x02,
+	ZCODE_ROW	= 0x03,
 	ZCODE_04	= 0x04,
 
 	// Conditional Codes
 	CONDTIONAL_EQUAL				= 0x01,
-	CONDTIONAL_NOT_EQUAL			= 0x02, 
+	CONDTIONAL_NOT_EQUAL			= 0x02,
 	CONDTIONAL_LESS_THAN_SIGNED		= 0x03,
 	CONDTIONAL_GREATER_THAN_SIGNED	= 0x04,
 	CONDTIONAL_LESS_THAN_UNSIGNED	= 0x05,
@@ -59,14 +59,14 @@ enum
 
 	// Data Types
 	DATATYPE_8BIT		= 0x00,
-	DATATYPE_16BIT		= 0x01, 
-	DATATYPE_32BIT		= 0x02, 
+	DATATYPE_16BIT		= 0x01,
+	DATATYPE_32BIT		= 0x02,
 	DATATYPE_32BIT_FLOAT	= 0x03,
 
 	// Normal Code 0 Subtypes
 	SUB_RAM_WRITE		= 0x00,
-	SUB_WRITE_POINTER	= 0x01, 
-	SUB_ADD_CODE		= 0x02, 
+	SUB_WRITE_POINTER	= 0x01,
+	SUB_ADD_CODE		= 0x02,
 	SUB_MASTER_CODE		= 0x03,
 };
 
@@ -114,8 +114,8 @@ bool CompareValues(const u32 val1, const u32 val2, const int type);
 void LoadCodes(IniFile &globalIni, IniFile &localIni, bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats 
-		&& !forceLoad) 
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats
+		&& !forceLoad)
 		return;
 
 	arCodes.clear();
@@ -196,7 +196,7 @@ void LoadCodes(IniFile &globalIni, IniFile &localIni, bool forceLoad)
 				else
 				{
 					SplitString(line, '-', pieces);
-					if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5) 
+					if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5)
 					{
 						// Encrypted AR code
 						// Decryption is done in "blocks", so we must push blocks into a vector,
@@ -231,7 +231,7 @@ void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalIni, IniFile& local
 
 void LogInfo(const char *format, ...)
 {
-	if (!b_RanOnce) 
+	if (!b_RanOnce)
 	{
 		if (LogManager::GetMaxLevel() >= LogTypes::LINFO || logSelf)
 		{
@@ -257,7 +257,7 @@ void RunAllActive()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
 	{
-		for (auto& activeCode : activeCodes) 
+		for (auto& activeCode : activeCodes)
 		{
 			if (activeCode.active)
 			{
@@ -390,7 +390,7 @@ bool RunCode(const ARCode &arcode)
 						doMemoryCopy = true;
 						val_last = data;
 					}
-					else 
+					else
 					{
 						LogInfo("ZCode: Fill And Slide");
 						doFillNSlide = true;
@@ -398,9 +398,9 @@ bool RunCode(const ARCode &arcode)
 					}
 					break;
 
-				default: 
+				default:
 					LogInfo("ZCode: Unknown");
-					PanicAlertT("Zero code unknown to dolphin: %08x", zcode); 
+					PanicAlertT("Zero code unknown to dolphin: %08x", zcode);
 					return false;
 					break;
 			}
@@ -702,7 +702,7 @@ bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr addr, const u32 data
 	case DATATYPE_8BIT:
 		LogInfo("8-bit Write");
 		LogInfo("--------");
-		for (int i = 0; i < write_num; ++i) 
+		for (int i = 0; i < write_num; ++i)
 		{
 			Memory::Write_U8(val & 0xFF, curr_addr);
 			curr_addr += addr_incr;
@@ -766,7 +766,7 @@ bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr addr, const u32 data)
 	LogInfo("Size: %08x", num_bytes);
 
 	if ((data & ~0x7FFF) == 0x0000)
-	{ 
+	{
 		if ((data >> 24) != 0x0)
 		{ // Memory Copy With Pointers Support
 			LogInfo("Memory Copy With Pointers Support");

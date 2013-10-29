@@ -248,7 +248,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 		float attn;
 
 		if (chan.attnfunc == 3) // spot
-		{ 
+		{
 			float dist2 = ldir.length2();
 			float dist = sqrtf(dist2);
 			ldir = ldir / dist;
@@ -259,7 +259,7 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
 			attn = SafeDivide(max(0.0f, cosAtt), distAtt);
 		}
 		else if (chan.attnfunc == 1) // specular
-		{ 
+		{
 			// donko - what is going on here?  655.36 is a guess but seems about right.
 			attn = (light->pos * normal) > -655.36 ? max(0.0f, (light->dir * normal)) : 0;
 			ldir.set(1.0f, attn, attn * attn);

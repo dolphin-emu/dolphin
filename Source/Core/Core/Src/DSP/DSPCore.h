@@ -222,7 +222,7 @@ struct SDSP
 #if PROFILE
 	u16 err_pc;
 #endif
-	
+
 	// This is NOT the same cr as r.cr.
 	// This register is shared with the main emulation, see DSP.cpp
 	// The engine has control over 0x0C07 of this reg.

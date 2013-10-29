@@ -83,10 +83,10 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 
 	// TODO: better debug names
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetTex(), "a texture of the TextureCache");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");	
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");
 
 	SAFE_RELEASE(pTexture);
-	
+
 	if (tex_levels != 1)
 		entry->Load(width, height, expanded_width, 0);
 
@@ -138,7 +138,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 			VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-	
+
 		g_renderer->RestoreAPIState();
 	}
 

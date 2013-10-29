@@ -38,11 +38,11 @@ static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 		emitter.TEST(16, R(EAX), Imm16(0x10));
 		break;
 	case 0x4: // NZ - Not Zero
-	case 0x5: // Z - Zero 
+	case 0x5: // Z - Zero
 		emitter.TEST(16, R(EAX), Imm16(SR_ARITH_ZERO));
 		break;
 	case 0x6: // NC - Not carry
-	case 0x7: // C - Carry 
+	case 0x7: // C - Carry
 		emitter.TEST(16, R(EAX), Imm16(SR_CARRY));
 		break;
 	case 0x8: // ? - Not over s32
@@ -200,8 +200,8 @@ void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
 // Generic callr implementation
 // CALLRcc $R
 // 0001 0111 rrr1 cccc
-// Call function if condition cc has been met. Push program counter of 
-// instruction following "call" to call stack $st0. Set program counter to 
+// Call function if condition cc has been met. Push program counter of
+// instruction following "call" to call stack $st0. Set program counter to
 // register $R.
 // NOTE: Cannot use Default(opc) here because of the need to write branch exit
 void DSPEmitter::callr(const UDSPInstruction opc)
@@ -261,7 +261,7 @@ void DSPEmitter::rti(const UDSPInstruction opc)
 }
 
 // HALT
-// 0000 0000 0020 0001 
+// 0000 0000 0020 0001
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
 void DSPEmitter::halt(const UDSPInstruction opc)
 {
@@ -429,7 +429,7 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
 //	u16 loop_pc = dsp_fetch_code();
 	u16 loop_pc = dsp_imem_read(compilePC + 1);
 
-	if (cnt) 
+	if (cnt)
 	{
 		MOV(16, R(RDX), Imm16(compilePC + 2));
 		dsp_reg_store_stack(0);

@@ -29,7 +29,7 @@ const char *scm_rev_str = "Dolphin "
 #else
 #ifdef _M_ARM
 #define NP_ARCH "ARM"
-#else	
+#else
 #define NP_ARCH "x86"
 #endif
 #endif

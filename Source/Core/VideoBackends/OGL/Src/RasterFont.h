@@ -15,7 +15,7 @@ public:
 
 	void printMultilineText(const char *text, double x, double y, double z, int bbWidth, int bbHeight, u32 color);
 private:
-	
+
 	u32 VBO;
 	u32 VAO;
 	u32 texture;

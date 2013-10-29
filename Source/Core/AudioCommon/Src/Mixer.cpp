@@ -52,7 +52,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	// interpolation loop.
 	u32 indexR = Common::AtomicLoad(m_indexR);
 	u32 indexW = Common::AtomicLoad(m_indexW);
-	
+
 	if (m_AIplaying) {
 		numLeft = (numLeft > numSamples) ? numSamples : numLeft;
 
@@ -125,8 +125,8 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 			*(u32*)(samples+i) = *(u32*)(s);
 //		memset(&samples[numLeft * 2], 0, (numSamples - numLeft) * 4);
 	}
-	
-	// Flush cached variable	
+
+	// Flush cached variable
 	Common::AtomicStore(m_indexR, indexR);
 
 	//when logging, also throttle HLE audio
@@ -158,13 +158,13 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 	// indexR isn't allowed to cache in the audio throttling loop as it
 	// needs to get updates to not deadlock.
 	u32 indexW = Common::AtomicLoad(m_indexW);
-	
+
 	if (m_throttle)
 	{
 		// The auto throttle function. This loop will put a ceiling on the CPU MHz.
 		while (num_samples * 2 + ((indexW - Common::AtomicLoad(m_indexR)) & INDEX_MASK) >= MAX_SAMPLES * 2)
 		{
-			if (*PowerPC::GetStatePtr() != PowerPC::CPU_RUNNING || soundStream->IsMuted()) 
+			if (*PowerPC::GetStatePtr() != PowerPC::CPU_RUNNING || soundStream->IsMuted())
 				break;
 			// Shortcut key for Throttle Skipping
 			if (Host_GetKeyState('\t'))
@@ -192,9 +192,9 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 	{
 		memcpy(&m_buffer[indexW & INDEX_MASK], samples, num_samples * 4);
 	}
-	
+
 	Common::AtomicAdd(m_indexW, num_samples * 2);
-	
+
 	return;
 }
 
@@ -206,7 +206,7 @@ unsigned int CMixer::GetNumSamples()
 	// We also can't say the current interpolation state (specially
 	// the frac), so to be sure, subtract one again to be sure not
 	// to underflow the fifo.
-	
+
 	u32 numSamples = ((Common::AtomicLoad(m_indexW) - Common::AtomicLoad(m_indexR)) & INDEX_MASK) / 2;
 
 	if (AudioInterface::GetAIDSampleRate() == m_sampleRate)

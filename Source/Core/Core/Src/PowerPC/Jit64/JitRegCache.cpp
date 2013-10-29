@@ -34,7 +34,7 @@ void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 		regs[i].location = GetDefaultLocation(i);
 		regs[i].away = false;
 	}
-	
+
 	// todo: sort to find the most popular regs
 	/*
 	int maxPreload = 2;
@@ -103,7 +103,7 @@ X64Reg RegCache::GetFreeXReg()
 	for (int i = 0; i < aCount; i++)
 	{
 		X64Reg xr = (X64Reg)aOrder[i];
-		if (xlocks[xr]) 
+		if (xlocks[xr])
 			continue;
 		int preg = xregs[xr].ppcReg;
 		if (!locks[preg])
@@ -197,7 +197,7 @@ void FPURegCache::Start(PPCAnalyst::BlockRegStats &stats)
 
 const int *GPRRegCache::GetAllocationOrder(int &count)
 {
-	static const int allocationOrder[] = 
+	static const int allocationOrder[] =
 	{
 		// R12, when used as base register, for example in a LEA, can generate bad code! Need to look into this.
 #ifdef _M_X64
@@ -216,7 +216,7 @@ const int *GPRRegCache::GetAllocationOrder(int &count)
 
 const int *FPURegCache::GetAllocationOrder(int &count)
 {
-	static const int allocationOrder[] = 
+	static const int allocationOrder[] =
 	{
 #ifdef _M_X64
 		XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5

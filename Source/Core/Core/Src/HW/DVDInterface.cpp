@@ -36,7 +36,7 @@ enum
 	DI_COMMAND_1				= 0x0C,
 	DI_COMMAND_2				= 0x10,
 	DI_DMA_ADDRESS_REGISTER		= 0x14,
-	DI_DMA_LENGTH_REGISTER		= 0x18, 
+	DI_DMA_LENGTH_REGISTER		= 0x18,
 	DI_DMA_CONTROL_REGISTER		= 0x1C,
 	DI_IMMEDIATE_DATA_BUFFER	= 0x20,
 	DI_CONFIG_REGISTER			= 0x24
@@ -62,7 +62,7 @@ enum
 };
 
 // DI Status Register
-union UDISR	
+union UDISR
 {
 	u32 Hex;
 	struct
@@ -284,7 +284,7 @@ void SetDiscInside(bool _DiscInside)
 }
 
 bool IsDiscInside()
-{	
+{
 	return g_bDiscInside;
 }
 
@@ -342,7 +342,7 @@ void SetLidOpen(bool _bOpen)
 }
 
 bool IsLidOpen()
-{	
+{
 	return (m_DICVR.CVR == 1);
 }
 
@@ -455,7 +455,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			{
 				_dbg_assert_(DVDINTERFACE, 0);
 			}
-			
+
 			UpdateInterrupts();
 		}
 		break;
@@ -487,14 +487,14 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			m_DILENGTH.Hex = _iValue & ~0x1f;
 		}
 		break;
-	case DI_DMA_CONTROL_REGISTER:	
+	case DI_DMA_CONTROL_REGISTER:
 		{
 			m_DICR.Hex = _iValue & 7;
 			if (m_DICR.TSTART)
 			{
 				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
 				{
-					u64 ticksUntilTC = m_DILENGTH.Length * 
+					u64 ticksUntilTC = m_DILENGTH.Length *
 						(SystemTimers::GetTicksPerSecond() / (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ? 1 : DISC_TRANSFER_RATE_GC)) +
 						(SystemTimers::GetTicksPerSecond() * DISC_ACCESS_TIME_MS / 1000);
 					CoreTiming::ScheduleEvent((int)ticksUntilTC, tc);
@@ -541,7 +541,7 @@ void UpdateInterrupts()
 
 void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
 {
-	switch(_DVDInterrupt) 
+	switch(_DVDInterrupt)
 	{
 	case INT_DEINT:		m_DISR.DEINT	= 1; break;
 	case INT_TCINT:		m_DISR.TCINT	= 1; break;
@@ -709,7 +709,7 @@ void ExecuteCommand(UDICR& _DICR)
 		{
 			ERROR_LOG(DVDINTERFACE, "GC-AM: 0xAA, DMABuffer=%08x, DMALength=%08x", m_DIMAR.Address, m_DILENGTH.Length);
 			u32 iDVDOffset = m_DICMDBUF[1].Hex << 2;
-			unsigned int len = m_DILENGTH.Length; 
+			unsigned int len = m_DILENGTH.Length;
 			int offset = iDVDOffset - 0x1F900000;
 			/*
 			if (iDVDOffset == 0x84800000)
@@ -794,7 +794,7 @@ void ExecuteCommand(UDICR& _DICR)
 					3 - "Testing a game program. %d%%"
 					4 - "Loading a game program. %d%%"
 					5  - go
-					6  - error xx 
+					6  - error xx
 					*/
 					media_buffer[8] = percentage;
 					media_buffer[4] = 0x05;
@@ -803,7 +803,7 @@ void ExecuteCommand(UDICR& _DICR)
 				}
 			case 0x101:
 				media_buffer[4] = 3; // version
-				media_buffer[5] = 3; 
+				media_buffer[5] = 3;
 				media_buffer[6] = 1; // xxx
 				media_buffer[8] = 1;
 				media_buffer[16] = 0xFF;
@@ -846,7 +846,7 @@ void ExecuteCommand(UDICR& _DICR)
 
 	// Audio Stream (Immediate)
 	//	m_DICMDBUF[0].CMDBYTE1		= subcommand
-	//	m_DICMDBUF[1].Hex << 2		= offset on disc 
+	//	m_DICMDBUF[1].Hex << 2		= offset on disc
 	//	m_DICMDBUF[2].Hex			= Length of the stream
 	case 0xE1:
 		{

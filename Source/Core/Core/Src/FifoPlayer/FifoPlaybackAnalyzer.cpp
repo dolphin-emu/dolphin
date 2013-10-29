@@ -45,7 +45,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 		FifoAnalyzer::LoadCPReg(0x80 + i, cpMem[0x80 + i], m_CpMem);
 		FifoAnalyzer::LoadCPReg(0x90 + i, cpMem[0x90 + i], m_CpMem);
 	}
-	
+
 	frameInfo.clear();
 	frameInfo.resize(file->GetFrameCount());
 
@@ -208,7 +208,7 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
 			BPCmd bp = FifoAnalyzer::DecodeBPCmd(cmd2, m_BpMem);
 
 			FifoAnalyzer::LoadBPReg(bp, m_BpMem);
-			
+
 			if (bp.address == BPMEM_TRIGGER_EFB_COPY)
 				StoreEfbCopyRegion();
 		}
@@ -284,7 +284,7 @@ void FifoPlaybackAnalyzer::StoreWrittenRegion(u32 address, u32 size)
 {
 	u32 end = address + size;
 	vector<MemoryRange>::iterator newRangeIter = m_WrittenMemory.end();
-	
+
 	// Search for overlapping memory regions and expand them to include the new region
 	for (vector<MemoryRange>::iterator iter = m_WrittenMemory.begin(); iter != m_WrittenMemory.end();)
 	{
@@ -293,7 +293,7 @@ void FifoPlaybackAnalyzer::StoreWrittenRegion(u32 address, u32 size)
 		if (range.begin < end && range.end > address)
 		{
 			// range at iterator and new range overlap
-			
+
 			if (newRangeIter == m_WrittenMemory.end())
 			{
 				// Expand range to include the written region

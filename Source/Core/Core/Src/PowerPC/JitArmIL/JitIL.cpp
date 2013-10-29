@@ -36,7 +36,7 @@ void JitArmIL::Init()
 	asm_routines.Init();
 }
 
-void JitArmIL::ClearCache() 
+void JitArmIL::ClearCache()
 {
 	ClearCodeSpace();
 	blocks.Clear();
@@ -95,7 +95,7 @@ void JitArmIL::DoDownCount()
 	}
 }
 
-void JitArmIL::WriteExitDestInReg(ARMReg Reg) 
+void JitArmIL::WriteExitDestInReg(ARMReg Reg)
 {
 	STR(Reg, R9, PPCSTATE_OFF(pc));
 	DoDownCount();
@@ -103,7 +103,7 @@ void JitArmIL::WriteExitDestInReg(ARMReg Reg)
 	B(Reg);
 }
 
-void JitArmIL::WriteRfiExitDestInR(ARMReg Reg) 
+void JitArmIL::WriteRfiExitDestInR(ARMReg Reg)
 {
 	STR(Reg, R9, PPCSTATE_OFF(pc));
 	DoDownCount();
@@ -124,21 +124,21 @@ void JitArmIL::WriteExit(u32 destination, int exit_num)
 	JitBlock *b = js.curBlock;
 	b->exitAddress[exit_num] = destination;
 	b->exitPtrs[exit_num] = GetWritableCodePtr();
-	
+
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);
-	if (block >= 0 && jo.enableBlocklink) 
+	if (block >= 0 && jo.enableBlocklink)
 	{
 		// It exists! Joy of joy!
 		B(blocks.GetBlock(block)->checkedEntry);
 		b->linkStatus[exit_num] = true;
 	}
-	else 
+	else
 	{
 		MOVI2R(R14, destination);
 		STR(R14, R9, PPCSTATE_OFF(pc));
 		MOVI2R(R14, (u32)asm_routines.dispatcher);
-		B(R14);	
+		B(R14);
 	}
 }
 void JitArmIL::PrintDebug(UGeckoInstruction inst, u32 level)
@@ -245,7 +245,7 @@ const u8* JitArmIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	}
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
-	const u8 *start = GetCodePtr(); 
+	const u8 *start = GetCodePtr();
 	b->checkedEntry = start;
 	b->runCount = 0;
 
@@ -349,7 +349,7 @@ const u8* JitArmIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		printf("Broken Block going to 0x%08x\n", nextPC);
 		WriteExit(nextPC, 0);
 	}
-	
+
 	// Perform actual code generation
 
 	WriteCode();

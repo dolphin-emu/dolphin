@@ -58,7 +58,7 @@ bool CheckTitleTMD(u64 _titleID)
 
 bool CheckTitleTIK(u64 _titleID)
 {
-	const std::string ticketFileName = Common::GetTicketFileName(_titleID);	
+	const std::string ticketFileName = Common::GetTicketFileName(_titleID);
 	if (File::Exists(ticketFileName))
 	{
 		File::IOFile pTIKFile(ticketFileName, "rb");

@@ -31,7 +31,7 @@ void JitILBase::lXz(UGeckoInstruction inst)
 	IREmitter::InstLoc val;
 	switch (inst.OPCD & ~0x1)
 	{
-	case 32: val = ibuild.EmitLoad32(addr); break; //lwz	
+	case 32: val = ibuild.EmitLoad32(addr); break; //lwz
 	case 40: val = ibuild.EmitLoad16(addr); break; //lhz
 	case 34: val = ibuild.EmitLoad8(addr);  break; //lbz
 	default: PanicAlert("lXz: invalid access size"); val = 0; break;
@@ -111,7 +111,7 @@ void JitILBase::dcbz(UGeckoInstruction inst)
 	// TODO!
 #if 0
 	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		{Default(inst); return;} // turn off from debugger	
+		{Default(inst); return;} // turn off from debugger
 	INSTRUCTION_START;
 		MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)

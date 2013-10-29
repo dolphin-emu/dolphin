@@ -56,7 +56,7 @@ class JitIL : public JitILBase, public EmuCodeBlock
 {
 private:
 	JitBlockCache blocks;
-	TrampolineCache trampolines;	
+	TrampolineCache trampolines;
 
 	// The default code buffer. We keep it around to not have to alloc/dealloc a
 	// large chunk of memory for each recompiled block.
@@ -81,7 +81,7 @@ public:
 	void Trace();
 
 	JitBlockCache *GetBlockCache() { return &blocks; }
-	
+
 	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return NULL; };
 
 	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
@@ -115,7 +115,7 @@ public:
 	void WriteRfiExitDestInOpArg(const Gen::OpArg& arg);
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
-	
+
 	void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
 	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 	void GenerateCarry(Gen::X64Reg temp_reg);

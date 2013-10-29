@@ -22,7 +22,7 @@
 SoundStream *soundStream = nullptr;
 
 namespace AudioCommon 
-{	
+{
 	SoundStream *InitSoundStream(CMixer *mixer) 
 	{
 		// TODO: possible memleak with mixer
@@ -51,7 +51,7 @@ namespace AudioCommon
 			soundStream = new PulseAudio(mixer);
 		else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
 			soundStream = new OpenSLESStream(mixer);
-		
+
 		if (!soundStream && NullSound::isValid())
 		{
 			WARN_LOG(DSPHLE, "Could not initialize backend %s, using %s instead.",
@@ -83,11 +83,11 @@ namespace AudioCommon
 		return nullptr;
 	}
 
-	void ShutdownSoundStream() 
+	void ShutdownSoundStream()
 	{
 		INFO_LOG(DSPHLE, "Shutting down sound stream");
 
-		if (soundStream) 
+		if (soundStream)
 		{
 			soundStream->Stop();
 			if (SConfig::GetInstance().m_DumpAudio)
@@ -97,10 +97,10 @@ namespace AudioCommon
 			soundStream = nullptr;
 		}
 
-		INFO_LOG(DSPHLE, "Done shutting down sound stream");	
+		INFO_LOG(DSPHLE, "Done shutting down sound stream");
 	}
 
-	std::vector<std::string> GetSoundBackends() 
+	std::vector<std::string> GetSoundBackends()
 	{
 		std::vector<std::string> backends;
 
@@ -125,7 +125,7 @@ namespace AudioCommon
 		return backends;
 	}
 
-	bool UseJIT() 
+	bool UseJIT()
 	{
 		if (!Movie::IsDSPHLE() && Movie::IsPlayingInput() && Movie::IsConfigSaved())
 		{

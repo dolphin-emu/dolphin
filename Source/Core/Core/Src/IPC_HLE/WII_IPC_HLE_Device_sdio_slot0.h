@@ -19,7 +19,7 @@ public:
 
 	bool Open(u32 _CommandAddress, u32 _Mode);
 	bool Close(u32 _CommandAddress, bool _bForce);
-	bool IOCtl(u32 _CommandAddress); 
+	bool IOCtl(u32 _CommandAddress);
 	bool IOCtlV(u32 _CommandAddress);
 
 	void EventNotify();
@@ -34,7 +34,7 @@ private:
 	};
 
 	// IOCtl
-	enum 
+	enum
 	{
 		IOCTL_WRITEHCR		= 0x01,
 		IOCTL_READHCR		= 0x02,

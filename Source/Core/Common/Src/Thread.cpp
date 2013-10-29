@@ -28,7 +28,7 @@ int CurrentThreadId()
 	return 0;
 #endif
 }
-	
+
 #ifdef _WIN32
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
@@ -55,7 +55,7 @@ void SwitchCurrentThread()
 // Sets the debugger-visible name of the current thread.
 // Uses undocumented (actually, it is now documented) trick.
 // http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vsdebug/html/vxtsksettingthreadname.asp
-	
+
 // This is implemented much nicer in upcoming msvc++, see:
 // http://msdn.microsoft.com/en-us/library/xcb2z8hs(VS.100).aspx
 void SetCurrentThreadName(const char* szThreadName)
@@ -84,7 +84,7 @@ void SetCurrentThreadName(const char* szThreadName)
 	__except(EXCEPTION_CONTINUE_EXECUTION)
 	{}
 }
-	
+
 #else // !WIN32, so must be POSIX threads
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)

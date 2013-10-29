@@ -50,7 +50,7 @@ static const char* const classic_trigger_names[] =
 
 static const u16 classic_dpad_bitmasks[] =
 {
-	Classic::PAD_UP, Classic::PAD_DOWN, Classic::PAD_LEFT, Classic::PAD_RIGHT 
+	Classic::PAD_UP, Classic::PAD_DOWN, Classic::PAD_LEFT, Classic::PAD_RIGHT
 };
 
 Classic::Classic(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Classic"), _reg)

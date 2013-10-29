@@ -253,7 +253,7 @@ public:
 			}
 		}
 	}
-	
+
 private:
 	std::map<UidT,std::string> m_shaders;
 	std::vector<UidT> m_uids;

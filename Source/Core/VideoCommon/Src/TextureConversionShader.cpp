@@ -66,7 +66,7 @@ const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 	return result;
 }
 
-// block dimensions : widthStride, heightStride 
+// block dimensions : widthStride, heightStride
 // texture dims : width, height, x offset, y offset
 void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 {
@@ -176,7 +176,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	WRITE(p, "  float xoff = xel - (xb * %f);\n", blkH);
 
 	WRITE(p, "  float x2 = uv1.x * 2.0;\n");
-	WRITE(p, "  float xl = floor(x2 / %f);\n", blkW);	
+	WRITE(p, "  float xl = floor(x2 / %f);\n", blkW);
 	WRITE(p, "  float xib = x2 - (xl * %f);\n", blkW);
 	WRITE(p, "  float halfxb = floor(xb / 2.0);\n");
 
@@ -334,12 +334,12 @@ void WriteI4Encoder(char* p, API_TYPE ApiType)
 void WriteIA8Encoder(char* p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_IA8, ApiType);
-	WRITE(p, "  float4 texSample;\n");	
+	WRITE(p, "  float4 texSample;\n");
 
 	WriteSampleColor(p, "rgba", "texSample", ApiType);
 	WRITE(p, "  ocol0.b = texSample.a;\n");
 	WriteColorToIntensity(p, "texSample", "ocol0.g");
-	WriteIncrementSampleX(p, ApiType);	
+	WriteIncrementSampleX(p, ApiType);
 
 	WriteSampleColor(p, "rgba", "texSample", ApiType);
 	WRITE(p, "  ocol0.r = texSample.a;\n");

@@ -114,7 +114,7 @@ void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 				function->name = iter->second.name;
 				INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", iter->second.name.c_str(), function->address, function->size);
 			}
-			else 
+			else
 			{
 				function->name = iter->second.name;
 				ERROR_LOG(OSHLE, "Wrong size! Found %s at %08x (size: %08x instead of %08x)!", iter->second.name.c_str(), function->address, function->size, iter->second.size);
@@ -142,18 +142,18 @@ void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const char *prefix)
 /*static*/ u32 SignatureDB::ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd)
 {
 	u32 sum = 0;
-	for (u32 offset = offsetStart; offset <= offsetEnd; offset += 4) 
+	for (u32 offset = offsetStart; offset <= offsetEnd; offset += 4)
 	{
 		u32 opcode = Memory::Read_Instruction(offset);
-		u32 op = opcode & 0xFC000000; 
+		u32 op = opcode & 0xFC000000;
 		u32 op2 = 0;
 		u32 op3 = 0;
 		u32 auxop = op >> 26;
-		switch (auxop) 
+		switch (auxop)
 		{
 		case 4: //PS instructions
 			op2 = opcode & 0x0000003F;
-			switch ( op2 ) 
+			switch ( op2 )
 			{
 			case 0:
 			case 8:
@@ -174,7 +174,7 @@ void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const char *prefix)
 		case 15:
 			op2 = opcode & 0x03FF0000;
 			break;
-		
+
 		case 19: // MCRF??
 		case 31: //integer
 		case 63: //fpu
@@ -190,7 +190,7 @@ void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const char *prefix)
 				op2 = opcode & 0x03FF0000;
 			break;
 		}
-		// Checksum only uses opcode, not opcode data, because opcode data changes 
+		// Checksum only uses opcode, not opcode data, because opcode data changes
 		// in all compilations, but opcodes don't!
 		sum = ( ( (sum << 17 ) & 0xFFFE0000 ) | ( (sum >> 15) & 0x0001FFFF ) );
 		sum = sum ^ (op | op2 | op3);

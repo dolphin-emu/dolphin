@@ -54,7 +54,7 @@ public:
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress) 
+	virtual bool IOCtl(u32 _CommandAddress)
 	{
 		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
@@ -117,7 +117,7 @@ class CWII_IPC_HLE_Device_stm_eventhook : public IWII_IPC_HLE_Device
 {
 public:
 
-	CWII_IPC_HLE_Device_stm_eventhook(u32 _DeviceID, const std::string& _rDeviceName) 
+	CWII_IPC_HLE_Device_stm_eventhook(u32 _DeviceID, const std::string& _rDeviceName)
 		: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 		, m_EventHookAddress(0)
 	{}
@@ -144,7 +144,7 @@ public:
 		return true;
 	}
 
-	virtual bool IOCtl(u32 _CommandAddress) 
+	virtual bool IOCtl(u32 _CommandAddress)
 	{
 		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
 		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);

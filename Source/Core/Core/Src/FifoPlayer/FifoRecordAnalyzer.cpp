@@ -60,7 +60,7 @@ void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
 			u32 value = ReadFifo32(data);
 			FifoAnalyzer::LoadCPReg(cmd2, value, m_CpMem);
 		}
-		
+
 		break;
 
 	case GX_LOAD_XF_REG:
@@ -98,7 +98,7 @@ void FifoRecordAnalyzer::DecodeOpcode(u8 *data)
 
 			u32 cmd2 = ReadFifo32(data);
 			BPCmd bp = FifoAnalyzer::DecodeBPCmd(cmd2, *m_BpMem);
-			
+
 			if (bp.address == BPMEM_LOADTLUT1)
 				ProcessLoadTlut1();
 			if (bp.address == BPMEM_PRELOAD_MODE)

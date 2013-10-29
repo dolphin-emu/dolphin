@@ -61,7 +61,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 }
 
 //TODO : check
-void Write16(const u16 _iValue, const u32 _iAddress) 
+void Write16(const u16 _iValue, const u32 _iAddress)
 {
 	INFO_LOG(MEMMAP, "(w16) 0x%04x @ 0x%08x", _iValue, _iAddress);
 	switch(_iAddress & 0xFFF)

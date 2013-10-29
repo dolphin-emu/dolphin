@@ -16,7 +16,7 @@ public:
 	{
 		Clear();
 	}
-	
+
 	// is address breakpoint
 	bool IsAddressBreakPoint(u32 addr)
 	{
@@ -27,7 +27,7 @@ public:
 	bool Add(u32 addr, bool temp=false)
 	{
 		bool was_one = b[addr] != 0;
-		
+
 		if (!was_one)
 		{
 			b[addr] = temp ? 2 : 1;

@@ -88,7 +88,7 @@ public:
 };
 
 
-// F A C T O R Y 
+// F A C T O R Y
 IEXIDevice* EXIDevice_Create(TEXIDevices device_type, const int channel_num)
 {
 	IEXIDevice* result = NULL;

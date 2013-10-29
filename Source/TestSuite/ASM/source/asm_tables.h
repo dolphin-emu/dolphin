@@ -32,7 +32,7 @@ struct inst
 	inst_type type;
 	void (*Call)(u32*, u32*, u32*, u32*);
 	void (*CallFP)(float*, float*, float*, float*);
-	
+
 };
 
 static inst instructions[] = {

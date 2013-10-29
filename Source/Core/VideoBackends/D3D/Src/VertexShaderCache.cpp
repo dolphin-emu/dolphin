@@ -47,7 +47,7 @@ ID3D11Buffer* &VertexShaderCache::GetConstantBuffer()
 		memcpy(map.pData, &VertexShaderManager::constants, sizeof(VertexShaderConstants));
 		D3D::context->Unmap(vscbuf, 0);
 		VertexShaderManager::dirty = false;
-		
+
 		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(VertexShaderConstants));
 	}
 	return vscbuf;
@@ -87,7 +87,7 @@ const char clear_shader_code[] = {
 	"struct VSOUTPUT\n"
 	"{\n"
 	"float4 vPosition   : POSITION;\n"
-	"float4 vColor0   : COLOR0;\n"						   
+	"float4 vColor0   : COLOR0;\n"
 	"};\n"
 	"VSOUTPUT main(float4 inPosition : POSITION,float4 inColor0: COLOR0)\n"
 	"{\n"
@@ -104,7 +104,7 @@ void VertexShaderCache::Init()
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		
+
 	};
 	const D3D11_INPUT_ELEMENT_DESC clearelems[2] =
 	{

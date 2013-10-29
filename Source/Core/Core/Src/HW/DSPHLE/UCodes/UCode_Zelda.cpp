@@ -18,7 +18,7 @@
 
 
 CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
-	: 
+	:
 	IUCode(dsp_hle, _CRC),
 
 	m_bSyncInProgress(false),
@@ -60,7 +60,7 @@ CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)
 	if (IsLightVersion())
 	{
 		NOTICE_LOG(DSPHLE, "Luigi Stylee!");
-		m_rMailHandler.PushMail(0x88881111);	
+		m_rMailHandler.PushMail(0x88881111);
 	}
 	else
 	{
@@ -125,7 +125,7 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 
 void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 {
-	//ERROR_LOG(DSPHLE, "Light version mail %08X, list in progress: %s, step: %i/%i", 
+	//ERROR_LOG(DSPHLE, "Light version mail %08X, list in progress: %s, step: %i/%i",
 	//	_uMail, m_bListInProgress ? "yes":"no", m_step, m_numSteps);
 
 	if (m_bSyncCmdPending)
@@ -322,7 +322,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 				m_rMailHandler.PushMail(DSP_SYNC);
 				DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 				m_rMailHandler.PushMail(0xF355FF00 | m_CurBuffer);
-					
+
 				m_CurVoice = 0;
 
 				if (m_CurBuffer == m_NumBuffers)
@@ -371,10 +371,10 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 	// - 00000000, 000X0000 - Sync mails
 	// - CDD1XXXX - comes after DsyncFrame completed, seems to be debugging stuff
 
-	if (_uMail == 0) 
+	if (_uMail == 0)
 	{
 		m_bSyncInProgress = true;
-	} 
+	}
 	else if ((_uMail >> 16) == 0)
 	{
 		m_bListInProgress = true;
@@ -542,7 +542,7 @@ void CUCode_Zelda::ExecuteList()
 	{
 		if (m_bSyncCmdPending)
 			m_rMailHandler.PushMail(0x80000000 | m_NumBuffers); // after CMD_2
-		else	
+		else
 			m_rMailHandler.PushMail(0x80000000 | Sync); // after CMD_0, CMD_1
 	}
 	else

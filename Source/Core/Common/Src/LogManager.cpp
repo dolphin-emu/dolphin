@@ -13,7 +13,7 @@
 #include "Thread.h"
 #include "FileUtil.h"
 
-void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
+void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		const char *file, int line, const char* fmt, ...)
 {
 	va_list args;
@@ -110,7 +110,7 @@ LogManager::~LogManager()
 	delete m_debuggerLog;
 }
 
-void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
+void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	const char *file, int line, const char *format, va_list args)
 {
 	char temp[MAX_MSGLEN];
@@ -128,7 +128,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		file, line, level_to_char[(int)level],
 		log->GetShortName(), temp);
 #ifdef ANDROID
-	Host_SysMessage(msg);	
+	Host_SysMessage(msg);
 #endif
 	log->Trigger(level, msg);
 }

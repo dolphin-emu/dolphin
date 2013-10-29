@@ -30,13 +30,13 @@ public:
 	u32 GetTMDSize() const { return m_TMDSize; }
 	u32 GetDataAppSize() const { return m_DataAppSize; }
 	u32 GetFooterSize() const { return m_FooterSize; }
-	
+
 	u8* GetCertificateChain() const { return m_pCertificateChain; }
 	u8* GetTicket() const { return m_pTicket; }
 	u8* GetTMD() const { return m_pTMD; }
 	u8* GetDataApp() const { return m_pDataApp; }
 	u8* GetFooter() const { return m_pFooter; }
-	
+
 	static bool IsWiiWAD(const std::string& _rName);
 
 private:

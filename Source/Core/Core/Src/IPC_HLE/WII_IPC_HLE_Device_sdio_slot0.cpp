@@ -93,7 +93,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress, bool _bForce)
 }
 
 // The front SD slot
-bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 {
 	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
 
@@ -101,11 +101,11 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
 	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
 	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
-	
+
 	// As a safety precaution we fill the out buffer with zeros to avoid
 	// returning nonsense values
 	Memory::Memset(BufferOut, 0, BufferOutSize);
-	
+
 	u32 ReturnValue = 0;
 	switch (Cmd) {
 	case IOCTL_WRITEHCR:

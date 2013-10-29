@@ -56,7 +56,7 @@ public:
 };
 
 
-// F A C T O R Y 
+// F A C T O R Y
 ISIDevice* SIDevice_Create(const SIDevices device, const int port_number)
 {
 	switch (device)

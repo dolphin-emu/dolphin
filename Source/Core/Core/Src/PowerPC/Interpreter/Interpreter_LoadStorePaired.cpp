@@ -24,7 +24,7 @@ const float m_dequantizeTable[] =
 	(1 << 12),	(1 << 11),	(1 << 10),	(1 <<  9),
 	(1 <<  8),	(1 <<  7),	(1 <<  6),	(1 <<  5),
 	(1 <<  4),	(1 <<  3),	(1 <<  2),	(1 <<  1),
-}; 
+};
 
 // quantize table
 const float m_quantizeTable[] =
@@ -45,7 +45,7 @@ const float m_quantizeTable[] =
 	1.0 / (1 << 12),	1.0 / (1 << 11),	1.0 / (1 << 10),	1.0 / (1 <<  9),
 	1.0 / (1 <<  8),	1.0 / (1 <<  7),	1.0 / (1 <<  6),	1.0 / (1 <<  5),
 	1.0 / (1 <<  4),	1.0 / (1 <<  3),	1.0 / (1 <<  2),	1.0 / (1 <<  1),
-}; 
+};
 
 template <class T>
 inline T CLAMP(T a, T bottom, T top) {
@@ -54,12 +54,12 @@ inline T CLAMP(T a, T bottom, T top) {
 	return a;
 }
 
-void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, 
+void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue,
 					 const EQuantizeType _quantizeType, const unsigned int _uScale)
 {
-	switch (_quantizeType) 
+	switch (_quantizeType)
 	{
-	case QUANTIZE_FLOAT:		
+	case QUANTIZE_FLOAT:
 		Memory::Write_U32( ConvertToSingleFTZ( *(u64*)&_fValue ), _Addr );
 		break;
 
@@ -67,28 +67,28 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue,
 	case QUANTIZE_U8:
 		{
 			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], 0.0f, 255.0f);
-			Memory::Write_U8((u8)fResult, _Addr); 
+			Memory::Write_U8((u8)fResult, _Addr);
 		}
 		break;
 
 	case QUANTIZE_U16:
 		{
 			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], 0.0f, 65535.0f);
-			Memory::Write_U16((u16)fResult, _Addr); 
+			Memory::Write_U16((u16)fResult, _Addr);
 		}
 		break;
 
 	case QUANTIZE_S8:
 		{
 			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], -128.0f, 127.0f);
-			Memory::Write_U8((u8)(s8)fResult, _Addr); 
+			Memory::Write_U8((u8)(s8)fResult, _Addr);
 		}
 		break;
 
 	case QUANTIZE_S16:
 		{
 			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], -32768.0f, 32767.0f);
-			Memory::Write_U16((u16)(s16)fResult, _Addr); 
+			Memory::Write_U16((u16)(s16)fResult, _Addr);
 		}
 		break;
 
@@ -98,7 +98,7 @@ void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue,
 	}
 }
 
-float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType, 
+float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType,
 									 const unsigned int _uScale)
 {
 	// dequantize the value
@@ -113,15 +113,15 @@ float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quant
 		break;
 
 	case QUANTIZE_U8:
-		fResult = static_cast<float>(Memory::Read_U8(_Addr)) * m_dequantizeTable[_uScale]; 
+		fResult = static_cast<float>(Memory::Read_U8(_Addr)) * m_dequantizeTable[_uScale];
 		break;
 
 	case QUANTIZE_U16:
-		fResult = static_cast<float>(Memory::Read_U16(_Addr)) * m_dequantizeTable[_uScale]; 
+		fResult = static_cast<float>(Memory::Read_U16(_Addr)) * m_dequantizeTable[_uScale];
 		break;
 
 	case QUANTIZE_S8:
-		fResult = static_cast<float>((s8)Memory::Read_U8(_Addr)) * m_dequantizeTable[_uScale]; 
+		fResult = static_cast<float>((s8)Memory::Read_U8(_Addr)) * m_dequantizeTable[_uScale];
 		break;
 
 		// used for THP player
@@ -137,7 +137,7 @@ float Interpreter::Helper_Dequantize(const u32 _Addr, const EQuantizeType _quant
 	return fResult;
 }
 
-void Interpreter::psq_l(UGeckoInstruction _inst) 
+void Interpreter::psq_l(UGeckoInstruction _inst)
 {
 	const UGQR gqr(rSPR(SPR_GQR0 + _inst.I));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);

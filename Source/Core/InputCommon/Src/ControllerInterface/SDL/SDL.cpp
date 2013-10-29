@@ -14,7 +14,7 @@ namespace ciface
 {
 namespace SDL
 {
-	
+
 std::string GetJoystickName(int index)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -25,7 +25,7 @@ std::string GetJoystickName(int index)
 }
 
 void Init( std::vector<Core::Device*>& devices )
-{	
+{
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
 	std::map<std::string, int>	name_counts;
@@ -79,7 +79,7 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	// get buttons
 	for (u8 i = 0; i != SDL_JoystickNumButtons(m_joystick); ++i)
 		AddInput(new Button(i, m_joystick));
-	
+
 	// get hats
 	for (u8 i = 0; i != SDL_JoystickNumHats(m_joystick); ++i)
 	{
@@ -151,7 +151,7 @@ Joystick::~Joystick()
 {
 #ifdef USE_SDL_HAPTIC
 	if (m_haptic)
-	{	
+	{
 		// stop/destroy all effects
 		SDL_HapticStopAll(m_haptic);
 		std::list<EffectIDState>::iterator
@@ -306,7 +306,7 @@ bool Joystick::UpdateInput()
 {
 	// each joystick is doin this, o well
 	SDL_JoystickUpdate();
-	
+
 	return true;
 }
 

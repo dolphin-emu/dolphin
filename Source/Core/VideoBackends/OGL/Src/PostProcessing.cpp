@@ -37,7 +37,7 @@ static char s_vertex_shader[] =
 	"void main(void) {\n"
 	"	gl_Position = vec4(rawpos,0,1);\n"
 	"	uv0 = tex0;\n"
-	"}\n"; 
+	"}\n";
 
 void Init()
 {
@@ -45,7 +45,7 @@ void Init()
 	s_enable = 0;
 	s_width = 0;
 	s_height = 0;
-	
+
 	glGenFramebuffers(1, &s_fbo);
 	glGenTextures(1, &s_texture);
 	glBindTexture(GL_TEXTURE_2D, s_texture);
@@ -56,17 +56,17 @@ void Init()
 	glBindFramebuffer(GL_FRAMEBUFFER, s_fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_texture, 0);
 	FramebufferManager::SetFramebuffer(0);
-	
+
 	glGenBuffers(1, &s_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
-	GLfloat vertices[] = { 
-		-1.f, -1.f, 0.f, 0.f, 
-		-1.f,  1.f, 0.f, 1.f, 
-		 1.f, -1.f, 1.f, 0.f, 
+	GLfloat vertices[] = {
+		-1.f, -1.f, 0.f, 0.f,
+		-1.f,  1.f, 0.f, 1.f,
+		 1.f, -1.f, 1.f, 0.f,
 		 1.f,  1.f, 1.f, 1.f
 	};
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	
+
 	glGenVertexArrays(1, &s_vao);
 	glBindVertexArray( s_vao );
 	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
@@ -78,10 +78,10 @@ void Init()
 void Shutdown()
 {
 	s_shader.Destroy();
-	
+
 	glDeleteFramebuffers(1, &s_vbo);
 	glDeleteTextures(1, &s_texture);
-	
+
 	glDeleteBuffers(1, &s_vbo);
 	glDeleteVertexArrays(1, &s_vao);
 }
@@ -99,22 +99,22 @@ void BindTargetFramebuffer ()
 void BlitToScreen()
 {
 	if(!s_enable) return;
-	
+
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glViewport(0, 0, s_width, s_height);
-	
+
 	glBindVertexArray(s_vao);
 	s_shader.Bind();
-	
+
 	glUniform4f(s_uniform_resolution, (float)s_width, (float)s_height, 1.0f/(float)s_width, 1.0f/(float)s_height);
-	
+
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_2D, s_texture);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	
+
 /*	glBindFramebuffer(GL_READ_FRAMEBUFFER, s_fbo);
-	
+
 	glBlitFramebuffer(rc.left, rc.bottom, rc.right, rc.top,
 			rc.left, rc.bottom, rc.right, rc.top,
 			GL_COLOR_BUFFER_BIT, GL_NEAREST);*/
@@ -127,7 +127,7 @@ void Update ( u32 width, u32 height )
 	if(s_enable && (width != s_width || height != s_height)) {
 		s_width = width;
 		s_height = height;
-		
+
 		// alloc texture for framebuffer
 		glActiveTexture(GL_TEXTURE0+9);
 		glBindTexture(GL_TEXTURE_2D, s_texture);
@@ -143,12 +143,12 @@ void ApplyShader()
 	s_currentShader = g_ActiveConfig.sPostProcessingShader;
 	s_enable = false;
 	s_shader.Destroy();
-	
+
 	// shader disabled
 	if (g_ActiveConfig.sPostProcessingShader == "") return;
-	
+
 	// so need to compile shader
-	
+
 	// loading shader code
 	std::string code;
 	std::string path = File::GetUserPath(D_SHADERS_IDX) + g_ActiveConfig.sPostProcessingShader + ".glsl";
@@ -161,16 +161,16 @@ void ApplyShader()
 		ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
 		return;
 	}
-	
+
 	// and compile it
 	if (!ProgramShaderCache::CompileShader(s_shader, s_vertex_shader, code.c_str())) {
 		ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", s_currentShader.c_str());
 		return;
 	}
-	
+
 	// read uniform locations
 	s_uniform_resolution = glGetUniformLocation(s_shader.glprogid, "resolution");
-	
+
 	// successful
 	s_enable = true;
 }

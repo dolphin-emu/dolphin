@@ -52,7 +52,7 @@ namespace Gecko
 				u32 data;
 				//struct
 				//{
-				//	
+				//
 				//};
 			};
 

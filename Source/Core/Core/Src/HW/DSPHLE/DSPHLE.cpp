@@ -252,7 +252,7 @@ void DSPHLE::DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short _Value)
 		m_dspState.CPUMailbox = (m_dspState.CPUMailbox & 0xFFFF0000) | _Value;
 		SendMailToDSP(m_dspState.CPUMailbox);
 		// Mail sent so clear MSB to show that it is progressed
-		m_dspState.CPUMailbox &= 0x7FFFFFFF; 
+		m_dspState.CPUMailbox &= 0x7FFFFFFF;
 	}
 	else
 	{
@@ -333,5 +333,5 @@ void DSPHLE::DSP_ClearAudioBuffer(bool mute)
 void DSPHLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
 	if (doLock || unpauseOnUnlock)
-		DSP_ClearAudioBuffer(doLock); 
+		DSP_ClearAudioBuffer(doLock);
 }

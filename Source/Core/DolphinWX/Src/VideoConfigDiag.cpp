@@ -101,7 +101,7 @@ wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf un
 wxString disable_fog_desc = wxTRANSLATE("Makes distant objects more visible by removing fog, thus increasing the overall detail.\nDisabling fog will break some games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
 wxString disable_dstalpha_desc = wxTRANSLATE("Disables emulation of a hardware feature called destination alpha, which is used in many games for various graphical effects.\n\nIf unsure, leave this unchecked.");
 wxString show_fps_desc = wxTRANSLATE("Show the number of frames rendered per second as a measure of emulation speed.\n\nIf unsure, leave this unchecked.");
-wxString log_fps_to_file_desc = wxTRANSLATE("Log the number of frames rendered per second to User/Logs/fps.txt. Use this feature when you want to measure the performance of Dolphin.\n\nIf unsure, leave this unchecked."); 
+wxString log_fps_to_file_desc = wxTRANSLATE("Log the number of frames rendered per second to User/Logs/fps.txt. Use this feature when you want to measure the performance of Dolphin.\n\nIf unsure, leave this unchecked.");
 wxString show_input_display_desc = wxTRANSLATE("Display the inputs read by the emulator.\n\nIf unsure, leave this unchecked.");
 wxString show_stats_desc = wxTRANSLATE("Show various statistics.\n\nIf unsure, leave this unchecked.");
 wxString texfmt_desc = wxTRANSLATE("Modify textures to show the format they're encoded in. Needs an emulation reset in most cases.\n\nIf unsure, leave this unchecked.");
@@ -344,7 +344,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// Internal resolution
 	{
 	const wxString efbscale_choices[] = { _("Auto (Window Size)"), _("Auto (Multiple of 640x528)"),
-		_("1x Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056)"), 
+		_("1x Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056)"),
 		_("2.5x Native (1600x1320)"), _("3x Native (1920x1584)"), _("4x Native (2560x2112)") };
 
 	wxChoice *const choice_efbscale = CreateChoice(page_enh,
@@ -503,7 +503,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_desc), vconfig.bOMPDecoder));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Fast Depth Calculation"), wxGetTranslation(fast_depth_calc_desc), vconfig.bFastDepthCalc));
 	szr_other->Add(hacked_buffer_upload = CreateCheckBox(page_hacks, _("Vertex Streaming Hack"), wxGetTranslation(hacked_buffer_upload_desc), vconfig.bHackedBufferUpload));
-	
+
 	wxStaticBoxSizer* const group_other = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Other"));
 	group_other->Add(szr_other, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	szr_hacks->Add(group_other, 0, wxEXPAND | wxALL, 5);

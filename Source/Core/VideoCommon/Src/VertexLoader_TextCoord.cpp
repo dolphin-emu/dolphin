@@ -67,7 +67,7 @@ template <typename I, typename T, int N>
 void LOADERDECL TexCoord_ReadIndex()
 {
 	static_assert(!std::numeric_limits<I>::is_signed, "Only unsigned I is sane!");
-	
+
 	auto const index = DataRead<I>();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
 		+ (index * arraystrides[ARRAY_TEXCOORD0 + tcIndex]));

@@ -281,7 +281,7 @@ public:
 	static void crxor(UGeckoInstruction _inst);
 	static void mcrf(UGeckoInstruction _inst);
 	static void rfi(UGeckoInstruction _inst);
-	static void rfid(UGeckoInstruction _inst);	
+	static void rfid(UGeckoInstruction _inst);
 //   static void sync(UGeckoInstruction _inst);
 	static void isync(UGeckoInstruction _inst);
 

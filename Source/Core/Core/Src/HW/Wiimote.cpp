@@ -43,15 +43,15 @@ void Initialize(void* const hwnd, bool wait)
 	// add 4 wiimotes
 	for (unsigned int i = WIIMOTE_CHAN_0; i<MAX_BBMOTES; ++i)
 		g_plugin.controllers.push_back(new WiimoteEmu::Wiimote(i));
-	
-	
+
+
 	g_controller_interface.SetHwnd(hwnd);
 	g_controller_interface.Initialize();
 
 	g_plugin.LoadConfig(false);
 
 	WiimoteReal::Initialize(wait);
-	
+
 	// reload Wiimotes with our settings
 	if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
 		Movie::ChangeWiiPads();

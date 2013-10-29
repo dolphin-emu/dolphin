@@ -55,7 +55,7 @@ namespace ButtonManager
 					"InputL",
 					"InputR" };
 	const int configStringNum = 20;
-	
+
 	void AddBind(std::string dev, sBind *bind)
 	{
 		auto it = m_controllers.find(dev);
@@ -93,9 +93,9 @@ namespace ButtonManager
 			{
 				hasbind = true;
 				type = BIND_AXIS;
-				sscanf(value.c_str(), "Device '%[^\']'-Axis %d%c", dev, &bindnum, &modifier);	
+				sscanf(value.c_str(), "Device '%[^\']'-Axis %d%c", dev, &bindnum, &modifier);
 			}
-			else if (std::string::npos != value.find("Button"))  
+			else if (std::string::npos != value.find("Button"))
 			{
 				hasbind = true;
 				type = BIND_BUTTON;
@@ -123,7 +123,7 @@ namespace ButtonManager
 		auto it = m_controllers.begin();
 		if (it == m_controllers.end())
 			return 0.0f;
-		return it->second->AxisValue(axis); 
+		return it->second->AxisValue(axis);
 	}
 	void TouchEvent(int action, float x, float y)
 	{
@@ -185,7 +185,7 @@ namespace ButtonManager
 	{
 		// XXX: Make platform specific drawing
 	}
-	
+
 	// InputDevice
 	void InputDevice::PressEvent(int button, int action)
 	{
@@ -212,8 +212,8 @@ namespace ButtonManager
 			return 0.0f;
 		if (it->second->m_bindtype == BIND_BUTTON)
 			return ButtonValue(axis);
-		else		
+		else
 			return m_axises[it->second->m_bind] * it->second->m_neg;
 	}
-	
+
 }

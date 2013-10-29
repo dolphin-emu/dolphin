@@ -49,7 +49,7 @@ private:
 	// Declarations and definitions
 	void *m_hWnd;
 	bool m_bWii;
-	
+
 	bool m_InitMixer;
 
 	// Fake mailbox utility

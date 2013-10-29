@@ -10,7 +10,7 @@
 
 enum
 {
-	FL_SET_CR0 = (1<<0), //  
+	FL_SET_CR0 = (1<<0), //
 	FL_SET_CR1 = (1<<1), //
 	FL_SET_CRn = (1<<2), //
 	FL_SET_CRx = FL_SET_CR0 | FL_SET_CR1 | FL_SET_CRn, //

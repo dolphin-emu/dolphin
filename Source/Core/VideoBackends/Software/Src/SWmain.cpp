@@ -61,8 +61,8 @@ void VideoSoftware::ShowConfig(void *_hParent)
 bool VideoSoftware::Initialize(void *&window_handle)
 {
 	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
-	InitInterface();	
-	
+	InitInterface();
+
 	if (!GLInterface->Create(window_handle))
 	{
 		INFO_LOG(VIDEO, "%s", "SWRenderer::Create failed\n");
@@ -150,7 +150,7 @@ void VideoSoftware::Shutdown()
 	HwRasterizer::Shutdown();
 	SWRenderer::Shutdown();
 
-	// Do our OSD callbacks	
+	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
 
 	GLInterface->Shutdown();
@@ -177,7 +177,7 @@ void VideoSoftware::Video_Prepare()
 	// Handle VSync on/off
 	GLInterface->SwapInterval(VSYNC_ENABLED);
 
-	// Do our OSD callbacks	
+	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_INIT);
 
 	HwRasterizer::Prepare();
@@ -188,7 +188,7 @@ void VideoSoftware::Video_Prepare()
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoSoftware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
-{	
+{
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -263,7 +263,7 @@ void VideoSoftware::Video_EnterLoop()
 			Common::SleepCurrentThread(1);
 			m_csSWVidOccupied.lock();
 		}
-	}	
+	}
 }
 
 void VideoSoftware::Video_ExitLoop()

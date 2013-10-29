@@ -107,7 +107,7 @@ void BreakPoints::Clear()
 			}
 		);
 	}
-	
+
 	m_BreakPoints.clear();
 }
 

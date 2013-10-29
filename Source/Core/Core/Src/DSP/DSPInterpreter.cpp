@@ -36,7 +36,7 @@ volatile u32 gdsp_running;
 
 // NOTE: These have nothing to do with g_dsp.r.cr !
 
-void WriteCR(u16 val) 
+void WriteCR(u16 val)
 {
 	// reset
 	if (val & 1)
@@ -96,7 +96,7 @@ void Step()
 
 	u16 opc = dsp_fetch_code();
 	ExecuteInstruction(UDSPInstruction(opc));
-	
+
 	if (DSPAnalyzer::code_flags[g_dsp.pc - 1] & DSPAnalyzer::CODE_LOOP_END)
 		HandleLoop();
 }
@@ -107,7 +107,7 @@ int RunCyclesThread(int cycles)
 	while (true)
 	{
 		if (g_dsp.cr & CR_HALT)
-			return 0; 
+			return 0;
 
 		if (g_dsp.external_interrupt_waiting)
 		{
@@ -129,7 +129,7 @@ int RunCyclesDebug(int cycles)
 	for (int i = 0; i < 8; i++)
 	{
 		if (g_dsp.cr & CR_HALT)
-			return 0; 
+			return 0;
 		if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
 		{
 			DSPCore_SetState(DSPCORE_STEPPING);
@@ -163,7 +163,7 @@ int RunCyclesDebug(int cycles)
 				return 0;
 		}
 
-		// Now, lets run some more without idle skipping. 
+		// Now, lets run some more without idle skipping.
 		for (int i = 0; i < 200; i++)
 		{
 			if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
@@ -189,7 +189,7 @@ int RunCycles(int cycles)
 	for (int i = 0; i < 8; i++)
 	{
 		if (g_dsp.cr & CR_HALT)
-			return 0; 
+			return 0;
 		Step();
 		cycles--;
 		if (cycles < 0)
@@ -213,8 +213,8 @@ int RunCycles(int cycles)
 				return 0;
 		}
 
-		// Now, lets run some more without idle skipping. 
-		for (int i = 0; i < 200; i++)	
+		// Now, lets run some more without idle skipping.
+		for (int i = 0; i < 200; i++)
 		{
 			Step();
 			cycles--;

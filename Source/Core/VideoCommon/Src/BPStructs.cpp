@@ -27,7 +27,7 @@ static int numWrites;
 
 extern volatile bool g_bSkipCurrentFrame;
 
-static const float s_gammaLUT[] = 
+static const float s_gammaLUT[] =
 {
 	1.0f,
 	1.7f,
@@ -67,7 +67,7 @@ void BPWritten(const BPCmd& bp)
 		  just stuff geometry in them and don't put state changes there
 	----------------------------------------------------------------------------------------------------------------
 	*/
-	
+
 	// check for invalid state, else unneeded configuration are built
 	g_video_backend->CheckInvalidState();
 
@@ -104,7 +104,7 @@ void BPWritten(const BPCmd& bp)
 			{
 				numWrites = 0;
 			}
-			else if (++numWrites >= 100)	// seem that if 100 consecutive BP writes are called to either of these addresses in ZTP, 
+			else if (++numWrites >= 100)	// seem that if 100 consecutive BP writes are called to either of these addresses in ZTP,
 			{								// then it is safe to assume the map texture address is currently loaded into the BP memory
 				mapTexAddress = bpmem.tex[0].texImage3[0].hex << 5;
 				mapTexFound = true;
@@ -119,7 +119,7 @@ void BPWritten(const BPCmd& bp)
 			FlushPipeline();
 		}
 	}  // END ZTP SPEEDUP HACK
-	else 
+	else
 	{
 		if (((s32*)&bpmem)[bp.address] == bp.newvalue)
 		{
@@ -143,7 +143,7 @@ void BPWritten(const BPCmd& bp)
 	}
 
 	((u32*)&bpmem)[bp.address] = bp.newvalue;
-	
+
 	switch (bp.address)
 	{
 	case BPMEM_GENMODE: // Set the Generation Mode
@@ -199,7 +199,7 @@ void BPWritten(const BPCmd& bp)
 		{
 			if (bp.changes & 0xFFFF)
 			{
-				PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d", 
+				PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d",
 					bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
 					bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
 
@@ -265,7 +265,7 @@ void BPWritten(const BPCmd& bp)
 			EFBRectangle rc;
 			rc.left = (int)bpmem.copyTexSrcXY.x;
 			rc.top = (int)bpmem.copyTexSrcXY.y;
-			
+
 			// Here Width+1 like Height, otherwise some textures are corrupted already since the native resolution.
 			rc.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
 			rc.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
@@ -287,7 +287,7 @@ void BPWritten(const BPCmd& bp)
 				// We should be able to get away with deactivating the current bbox tracking
 				// here. Not sure if there's a better spot to put this.
 				// the number of lines copied is determined by the y scale * source efb height
-			
+
 				PixelEngine::bbox_active = false;
 
 				float yScale;
@@ -303,8 +303,8 @@ void BPWritten(const BPCmd& bp)
 					xfbLines = MAX_XFB_HEIGHT;
 				}
 
-				RenderToXFB(bp, rc, yScale, xfbLines, 
-									 bpmem.copyTexDest << 5, 
+				RenderToXFB(bp, rc, yScale, xfbLines,
+									 bpmem.copyTexDest << 5,
 									 bpmem.copyMipMapStrideChannels << 4,
 									 (u32)xfbLines,
 									 s_gammaLUT[PE_copy.gamma]);
@@ -377,7 +377,7 @@ void BPWritten(const BPCmd& bp)
 		{
 			if (bp.changes & 3)
 				PixelShaderManager::SetZTextureTypeChanged();
-			#if defined(_DEBUG) || defined(DEBUGFAST) 
+			#if defined(_DEBUG) || defined(DEBUGFAST)
 			const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
 			const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
 			PRIM_LOG("ztex op=%s, type=%s", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
@@ -442,7 +442,7 @@ void BPWritten(const BPCmd& bp)
 				{
 					int right = bp.newvalue >> 10;
 					int left = bp.newvalue & 0x3ff;
-			
+
 					// We should only set these if bbox is calculated properly.
 					PixelEngine::bbox[0] = left;
 					PixelEngine::bbox[1] = right;
@@ -498,7 +498,7 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_IND_IMASK: // Index Mask ?
 	case BPMEM_REVBITS: // Always set to 0x0F when GX_InitRevBits() is called.
 		break;
- 
+
 	case BPMEM_CLEAR_PIXEL_PERF:
 		// GXClearPixMetric writes 0xAAA here, Sunshine alternates this register between values 0x000 and 0xAAA
 		g_perf_query->ResetQuery();

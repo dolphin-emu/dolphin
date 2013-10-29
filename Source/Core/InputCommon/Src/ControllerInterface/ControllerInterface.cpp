@@ -249,7 +249,7 @@ Device::Control* ControllerInterface::InputReference::Detect(const unsigned int 
 	if (device->Inputs().size() == 0)
 		return NULL;
 
-	// get starting state of all inputs, 
+	// get starting state of all inputs,
 	// so we can ignore those that were activated at time of Detect start
 	std::vector<Device::Input*>::const_iterator
 		i = device->Inputs().begin(),
@@ -308,7 +308,7 @@ Device::Control* ControllerInterface::OutputReference::Detect(const unsigned int
 			device->UpdateOutput();
 			Common::SleepCurrentThread(10);
 		}
-		
+
 		State(0);
 		device->UpdateOutput();
 	}

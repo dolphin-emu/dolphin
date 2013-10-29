@@ -17,7 +17,7 @@ enum X64Reg
 {
 	EAX = 0, EBX = 3, ECX = 1, EDX = 2,
 	ESI = 6, EDI = 7, EBP = 5, ESP = 4,
-	
+
 	RAX = 0, RBX = 3, RCX = 1, RDX = 2,
 	RSI = 6, RDI = 7, RBP = 5, RSP = 4,
 	R8  = 8, R9  = 9, R10 = 10,R11 = 11,
@@ -30,7 +30,7 @@ enum X64Reg
 	AX = 0, BX = 3, CX = 1, DX = 2,
 	SI = 6, DI = 7, BP = 5, SP = 4,
 
-	XMM0=0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7, 
+	XMM0=0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
 	XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15,
 
 	INVALID_REG = 0xFFFFFFFF
@@ -43,7 +43,7 @@ enum CCFlags
 	CC_B   = 2, CC_C  = 2, CC_NAE = 2,
 	CC_NB  = 3, CC_NC = 3, CC_AE  = 3,
 	CC_Z   = 4, CC_E   = 4,
-	CC_NZ  = 5,	CC_NE  = 5, 
+	CC_NZ  = 5,	CC_NE  = 5,
 	CC_BE  = 6, CC_NA  = 6,
 	CC_NBE = 7, CC_A   = 7,
 	CC_S   = 8,
@@ -264,7 +264,7 @@ public:
 	u8 *GetWritableCodePtr();
 
 	// Looking for one of these? It's BANNED!! Some instructions are slow on modern CPU
-	// INC, DEC, LOOP, LOOPNE, LOOPE, ENTER, LEAVE, XCHG, XLAT, REP MOVSB/MOVSD, REP SCASD + other string instr., 
+	// INC, DEC, LOOP, LOOPNE, LOOPE, ENTER, LEAVE, XCHG, XLAT, REP MOVSB/MOVSD, REP SCASD + other string instr.,
 	// INC and DEC are slow on Intel Core, but not on AMD. They create a
 	// false flag dependency because they only update a subset of the flags.
 	// XCHG is SLOW and should be avoided.
@@ -353,7 +353,7 @@ public:
 	void DIV(int bits, OpArg src);
 	void IDIV(int bits, OpArg src);
 
-	// Shift 
+	// Shift
 	void ROL(int bits, OpArg dest, OpArg shift);
 	void ROR(int bits, OpArg dest, OpArg shift);
 	void RCL(int bits, OpArg dest, OpArg shift);
@@ -408,7 +408,7 @@ public:
 
 	// Sign/zero extension
 	void MOVSX(int dbits, int sbits, X64Reg dest, OpArg src); //automatically uses MOVSXD if necessary
-	void MOVZX(int dbits, int sbits, X64Reg dest, OpArg src); 
+	void MOVZX(int dbits, int sbits, X64Reg dest, OpArg src);
 
 	// WARNING - These two take 11-13 cycles and are VectorPath! (AMD64)
 	void STMXCSR(OpArg memloc);
@@ -422,40 +422,40 @@ public:
 	void FWAIT();
 
 	// SSE/SSE2: Floating point arithmetic
-	void ADDSS(X64Reg regOp, OpArg arg);  
-	void ADDSD(X64Reg regOp, OpArg arg);  
-	void SUBSS(X64Reg regOp, OpArg arg);  
-	void SUBSD(X64Reg regOp, OpArg arg);  
-	void MULSS(X64Reg regOp, OpArg arg);  
-	void MULSD(X64Reg regOp, OpArg arg);  
-	void DIVSS(X64Reg regOp, OpArg arg);  
-	void DIVSD(X64Reg regOp, OpArg arg);  
-	void MINSS(X64Reg regOp, OpArg arg);  
-	void MINSD(X64Reg regOp, OpArg arg);  
-	void MAXSS(X64Reg regOp, OpArg arg);  
-	void MAXSD(X64Reg regOp, OpArg arg);  
-	void SQRTSS(X64Reg regOp, OpArg arg); 
-	void SQRTSD(X64Reg regOp, OpArg arg); 
+	void ADDSS(X64Reg regOp, OpArg arg);
+	void ADDSD(X64Reg regOp, OpArg arg);
+	void SUBSS(X64Reg regOp, OpArg arg);
+	void SUBSD(X64Reg regOp, OpArg arg);
+	void MULSS(X64Reg regOp, OpArg arg);
+	void MULSD(X64Reg regOp, OpArg arg);
+	void DIVSS(X64Reg regOp, OpArg arg);
+	void DIVSD(X64Reg regOp, OpArg arg);
+	void MINSS(X64Reg regOp, OpArg arg);
+	void MINSD(X64Reg regOp, OpArg arg);
+	void MAXSS(X64Reg regOp, OpArg arg);
+	void MAXSD(X64Reg regOp, OpArg arg);
+	void SQRTSS(X64Reg regOp, OpArg arg);
+	void SQRTSD(X64Reg regOp, OpArg arg);
 	void RSQRTSS(X64Reg regOp, OpArg arg);
 
 	// SSE/SSE2: Floating point bitwise (yes)
-	void CMPSS(X64Reg regOp, OpArg arg, u8 compare);  
-	void CMPSD(X64Reg regOp, OpArg arg, u8 compare);  
-	void ANDSS(X64Reg regOp, OpArg arg);  
-	void ANDSD(X64Reg regOp, OpArg arg);  
-	void ANDNSS(X64Reg regOp, OpArg arg); 
-	void ANDNSD(X64Reg regOp, OpArg arg); 
-	void ORSS(X64Reg regOp, OpArg arg);   
-	void ORSD(X64Reg regOp, OpArg arg);   
-	void XORSS(X64Reg regOp, OpArg arg);   
-	void XORSD(X64Reg regOp, OpArg arg);   
+	void CMPSS(X64Reg regOp, OpArg arg, u8 compare);
+	void CMPSD(X64Reg regOp, OpArg arg, u8 compare);
+	void ANDSS(X64Reg regOp, OpArg arg);
+	void ANDSD(X64Reg regOp, OpArg arg);
+	void ANDNSS(X64Reg regOp, OpArg arg);
+	void ANDNSD(X64Reg regOp, OpArg arg);
+	void ORSS(X64Reg regOp, OpArg arg);
+	void ORSD(X64Reg regOp, OpArg arg);
+	void XORSS(X64Reg regOp, OpArg arg);
+	void XORSD(X64Reg regOp, OpArg arg);
 
 	// SSE/SSE2: Floating point packed arithmetic (x4 for float, x2 for double)
-	void ADDPS(X64Reg regOp, OpArg arg); 
-	void ADDPD(X64Reg regOp, OpArg arg); 
-	void SUBPS(X64Reg regOp, OpArg arg); 
-	void SUBPD(X64Reg regOp, OpArg arg); 
-	void CMPPS(X64Reg regOp, OpArg arg, u8 compare);  
+	void ADDPS(X64Reg regOp, OpArg arg);
+	void ADDPD(X64Reg regOp, OpArg arg);
+	void SUBPS(X64Reg regOp, OpArg arg);
+	void SUBPD(X64Reg regOp, OpArg arg);
+	void CMPPS(X64Reg regOp, OpArg arg, u8 compare);
 	void CMPPD(X64Reg regOp, OpArg arg, u8 compare);
 	void MULPS(X64Reg regOp, OpArg arg);
 	void MULPD(X64Reg regOp, OpArg arg);
@@ -470,8 +470,8 @@ public:
 	void RSQRTPS(X64Reg regOp, OpArg arg);
 
 	// SSE/SSE2: Floating point packed bitwise (x4 for float, x2 for double)
-	void ANDPS(X64Reg regOp, OpArg arg); 
-	void ANDPD(X64Reg regOp, OpArg arg); 
+	void ANDPS(X64Reg regOp, OpArg arg);
+	void ANDPD(X64Reg regOp, OpArg arg);
 	void ANDNPS(X64Reg regOp, OpArg arg);
 	void ANDNPD(X64Reg regOp, OpArg arg);
 	void ORPS(X64Reg regOp, OpArg arg);
@@ -480,9 +480,9 @@ public:
 	void XORPD(X64Reg regOp, OpArg arg);
 
 	// SSE/SSE2: Shuffle components. These are tricky - see Intel documentation.
-	void SHUFPS(X64Reg regOp, OpArg arg, u8 shuffle);  
-	void SHUFPD(X64Reg regOp, OpArg arg, u8 shuffle);  
-	
+	void SHUFPS(X64Reg regOp, OpArg arg, u8 shuffle);
+	void SHUFPD(X64Reg regOp, OpArg arg, u8 shuffle);
+
 	// SSE/SSE2: Useful alternative to shuffle in some cases.
 	void MOVDDUP(X64Reg regOp, OpArg arg);
 
@@ -554,51 +554,51 @@ public:
 	void PUNPCKLDQ(X64Reg dest, const OpArg &arg);
 
 	void PAND(X64Reg dest, OpArg arg);
-	void PANDN(X64Reg dest, OpArg arg);   
-	void PXOR(X64Reg dest, OpArg arg);    
-	void POR(X64Reg dest, OpArg arg);     
+	void PANDN(X64Reg dest, OpArg arg);
+	void PXOR(X64Reg dest, OpArg arg);
+	void POR(X64Reg dest, OpArg arg);
 
 	void PADDB(X64Reg dest, OpArg arg);
-	void PADDW(X64Reg dest, OpArg arg);   
-	void PADDD(X64Reg dest, OpArg arg);   
-	void PADDQ(X64Reg dest, OpArg arg);   
+	void PADDW(X64Reg dest, OpArg arg);
+	void PADDD(X64Reg dest, OpArg arg);
+	void PADDQ(X64Reg dest, OpArg arg);
 
-	void PADDSB(X64Reg dest, OpArg arg);  
-	void PADDSW(X64Reg dest, OpArg arg);  
-	void PADDUSB(X64Reg dest, OpArg arg); 
-	void PADDUSW(X64Reg dest, OpArg arg); 
+	void PADDSB(X64Reg dest, OpArg arg);
+	void PADDSW(X64Reg dest, OpArg arg);
+	void PADDUSB(X64Reg dest, OpArg arg);
+	void PADDUSW(X64Reg dest, OpArg arg);
 
-	void PSUBB(X64Reg dest, OpArg arg);   
-	void PSUBW(X64Reg dest, OpArg arg);   
-	void PSUBD(X64Reg dest, OpArg arg);   
-	void PSUBQ(X64Reg dest, OpArg arg);   
+	void PSUBB(X64Reg dest, OpArg arg);
+	void PSUBW(X64Reg dest, OpArg arg);
+	void PSUBD(X64Reg dest, OpArg arg);
+	void PSUBQ(X64Reg dest, OpArg arg);
 
-	void PSUBSB(X64Reg dest, OpArg arg);  
-	void PSUBSW(X64Reg dest, OpArg arg);  
-	void PSUBUSB(X64Reg dest, OpArg arg); 
-	void PSUBUSW(X64Reg dest, OpArg arg); 
+	void PSUBSB(X64Reg dest, OpArg arg);
+	void PSUBSW(X64Reg dest, OpArg arg);
+	void PSUBUSB(X64Reg dest, OpArg arg);
+	void PSUBUSW(X64Reg dest, OpArg arg);
 
-	void PAVGB(X64Reg dest, OpArg arg);   
-	void PAVGW(X64Reg dest, OpArg arg);   
+	void PAVGB(X64Reg dest, OpArg arg);
+	void PAVGW(X64Reg dest, OpArg arg);
 
-	void PCMPEQB(X64Reg dest, OpArg arg); 
-	void PCMPEQW(X64Reg dest, OpArg arg); 
-	void PCMPEQD(X64Reg dest, OpArg arg); 
+	void PCMPEQB(X64Reg dest, OpArg arg);
+	void PCMPEQW(X64Reg dest, OpArg arg);
+	void PCMPEQD(X64Reg dest, OpArg arg);
 
-	void PCMPGTB(X64Reg dest, OpArg arg); 
-	void PCMPGTW(X64Reg dest, OpArg arg); 
-	void PCMPGTD(X64Reg dest, OpArg arg); 
+	void PCMPGTB(X64Reg dest, OpArg arg);
+	void PCMPGTW(X64Reg dest, OpArg arg);
+	void PCMPGTD(X64Reg dest, OpArg arg);
 
 	void PEXTRW(X64Reg dest, OpArg arg, u8 subreg);
 	void PINSRW(X64Reg dest, OpArg arg, u8 subreg);
 
-	void PMADDWD(X64Reg dest, OpArg arg); 
-	void PSADBW(X64Reg dest, OpArg arg);  
+	void PMADDWD(X64Reg dest, OpArg arg);
+	void PSADBW(X64Reg dest, OpArg arg);
 
-	void PMAXSW(X64Reg dest, OpArg arg);  
-	void PMAXUB(X64Reg dest, OpArg arg);  
-	void PMINSW(X64Reg dest, OpArg arg);  
-	void PMINUB(X64Reg dest, OpArg arg);  
+	void PMAXSW(X64Reg dest, OpArg arg);
+	void PMAXUB(X64Reg dest, OpArg arg);
+	void PMINSW(X64Reg dest, OpArg arg);
+	void PMINUB(X64Reg dest, OpArg arg);
 
 	void PMOVMSKB(X64Reg dest, OpArg arg);
 	void PSHUFB(X64Reg dest, OpArg arg);
@@ -625,7 +625,7 @@ public:
 
 	void ABI_CallFunctionC16(void *func, u16 param1);
 	void ABI_CallFunctionCC16(void *func, u32 param1, u16 param2);
-	
+
 	// These only support u32 parameters, but that's enough for a lot of uses.
 	// These will destroy the 1 or 2 first "parameter regs".
 	void ABI_CallFunctionC(void *func, u32 param1);
@@ -666,12 +666,12 @@ public:
 	void CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
 	void CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5);
 
-#if defined(_M_IX86) 
+#if defined(_M_IX86)
 
 	#define CallCdeclFunction3_I(a,b,c,d) CallCdeclFunction3((void *)(a), (b), (c), (d))
-	#define CallCdeclFunction4_I(a,b,c,d,e) CallCdeclFunction4((void *)(a), (b), (c), (d), (e)) 
-	#define CallCdeclFunction5_I(a,b,c,d,e,f) CallCdeclFunction5((void *)(a), (b), (c), (d), (e), (f)) 
-	#define CallCdeclFunction6_I(a,b,c,d,e,f,g) CallCdeclFunction6((void *)(a), (b), (c), (d), (e), (f), (g)) 
+	#define CallCdeclFunction4_I(a,b,c,d,e) CallCdeclFunction4((void *)(a), (b), (c), (d), (e))
+	#define CallCdeclFunction5_I(a,b,c,d,e,f) CallCdeclFunction5((void *)(a), (b), (c), (d), (e), (f))
+	#define CallCdeclFunction6_I(a,b,c,d,e,f,g) CallCdeclFunction6((void *)(a), (b), (c), (d), (e), (f), (g))
 
 	#define DECLARE_IMPORT(x)
 
@@ -722,7 +722,7 @@ public:
 
 	// Always clear code space with breakpoints, so that if someone accidentally executes
 	// uninitialized, it just breaks into the debugger.
-	void ClearCodeSpace() 
+	void ClearCodeSpace()
 	{
 		// x86/64: 0xCC = breakpoint
 		memset(region, 0xCC, region_size);

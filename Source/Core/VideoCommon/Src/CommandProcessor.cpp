@@ -108,7 +108,7 @@ void Init()
 	m_bboxbottom = 480;
 
 	m_tokenReg = 0;
-	
+
 	memset(&fifo,0,sizeof(fifo));
 	fifo.CPCmdIdle  = 1;
 	fifo.CPReadIdle = 1;
@@ -613,7 +613,7 @@ void ProcessFifoEvents()
 
 void Shutdown()
 {
- 
+
 }
 
 void SetCpStatusRegister()
@@ -656,7 +656,7 @@ void SetCpControlRegister()
 		ProcessorInterface::Fifo_CPUBase = fifo.CPBase;
 		ProcessorInterface::Fifo_CPUEnd = fifo.CPEnd;
 	}
-			
+
 	if(fifo.bFF_GPReadEnable && !m_CPCtrlReg.GPReadEnable)
 	{
 		fifo.bFF_GPReadEnable = m_CPCtrlReg.GPReadEnable;

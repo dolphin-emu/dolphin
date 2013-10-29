@@ -25,7 +25,7 @@ DSPEmitter::DSPEmitter() : gpr(*this), storeIndex(-1), storeIndex2(-1)
 	blocks = new DSPCompiledCode[MAX_BLOCKS];
 	blockLinks = new Block[MAX_BLOCKS];
 	blockSize = new u16[MAX_BLOCKS];
-	
+
 	compileSR = 0;
 	compileSR |= SR_INT_ENABLE;
 	compileSR |= SR_EXT_INT_ENABLE;
@@ -42,7 +42,7 @@ DSPEmitter::DSPEmitter() : gpr(*this), storeIndex(-1), storeIndex2(-1)
 	}
 }
 
-DSPEmitter::~DSPEmitter() 
+DSPEmitter::~DSPEmitter()
 {
 	delete[] blocks;
 	delete[] blockLinks;
@@ -62,7 +62,7 @@ void DSPEmitter::ClearIRAM()
 	g_dsp.reset_dspjit_codespace = true;
 }
 
-void DSPEmitter::ClearIRAMandDSPJITCodespaceReset() 
+void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
 {
 	ClearCodeSpace();
 	CompileDispatcher();
@@ -101,9 +101,9 @@ void DSPEmitter::checkExceptions(u32 retval)
 
 bool DSPEmitter::FlagsNeeded()
 {
-	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) || 
-		(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))	
-		return true; 
+	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) ||
+		(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
+		return true;
 	else
 		return false;
 }
@@ -168,7 +168,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 			}
 		}
 	}
-	
+
 	// Main instruction
 	if (!opTable[inst]->jitFunc)
 	{
@@ -352,7 +352,7 @@ void DSPEmitter::Compile(u16 start_addr)
 		}
 	}
 
-	if (blockSize[start_addr] == 0) 
+	if (blockSize[start_addr] == 0)
 	{
 		// just a safeguard, should never happen anymore.
 		// if it does we might get stuck over in RunForCycles.

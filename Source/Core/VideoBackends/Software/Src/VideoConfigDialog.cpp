@@ -28,7 +28,7 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 {
 	vconfig.Load((File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini").c_str());
 
-	wxNotebook* const notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize);	
+	wxNotebook* const notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize);
 
 	// -- GENERAL --
 	{
@@ -79,7 +79,7 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 
 	szr_info->Add(new SettingCheckBox(page_general, wxT("Various Statistics"), wxT(""), vconfig.bShowStats));
 	}
-	
+
 	// - utility
 	{
 	wxStaticBoxSizer* const group_utility = new wxStaticBoxSizer(wxVERTICAL, page_general, wxT("Utility"));

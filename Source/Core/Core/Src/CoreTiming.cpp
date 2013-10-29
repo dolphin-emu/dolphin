@@ -113,7 +113,7 @@ void Init()
 	slicelength = maxSliceLength;
 	globalTimer = 0;
 	idledCycles = 0;
-	
+
 	ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
 }
 
@@ -187,7 +187,7 @@ void DoState(PointerWrap &p)
 
 u64 GetTicks()
 {
-	return (u64)globalTimer; 
+	return (u64)globalTimer;
 }
 
 u64 GetIdleTicks()
@@ -251,7 +251,7 @@ void AddEventToQueue(Event* ne)
 
 // This must be run ONLY from within the cpu thread
 // cyclesIntoFuture may be VERY inaccurate if called from anything else
-// than Advance 
+// than Advance
 void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
 {
 	Event *ne = GetNewEvent();
@@ -266,7 +266,7 @@ void RegisterAdvanceCallback(void (*callback)(int cyclesExecuted))
 	advanceCallback = callback;
 }
 
-bool IsScheduled(int event_type) 
+bool IsScheduled(int event_type)
 {
 	if (!first)
 		return false;
@@ -297,7 +297,7 @@ void RemoveEvent(int event_type)
 			break;
 		}
 	}
-	
+
 	if (!first)
 		return;
 
@@ -394,7 +394,7 @@ void Advance()
 	{
 		if (first->time <= globalTimer)
 		{
-//			LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ", 
+//			LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
 //				event_types[first->type].name ? event_types[first->type].name : "?", (u64)globalTimer, (u64)first->time);
 			Event* evt = first;
 			first = first->next;
@@ -407,7 +407,7 @@ void Advance()
 		}
 	}
 
-	if (!first) 
+	if (!first)
 	{
 		WARN_LOG(POWERPC, "WARNING - no events in queue. Setting downcount to 10000");
 		downcount += 10000;
@@ -437,9 +437,9 @@ void LogPendingEvents()
 void Idle()
 {
 	//DEBUG_LOG(POWERPC, "Idle");
-	
+
 	//When the FIFO is processing data we must not advance because in this way
-	//the VI will be desynchronized. So, We are waiting until the FIFO finish and 
+	//the VI will be desynchronized. So, We are waiting until the FIFO finish and
 	//while we process only the events required by the FIFO.
 	while (g_video_backend->Video_IsPossibleWaitingSetDrawDone())
 	{
@@ -449,7 +449,7 @@ void Idle()
 
 	idledCycles += downcount;
 	downcount = 0;
-	
+
 	Advance();
 }
 
@@ -463,11 +463,11 @@ std::string GetScheduledEventsSummary()
 		unsigned int t = ptr->type;
 		if (t >= event_types.size())
 			PanicAlertT("Invalid event type %i", t);
-		
+
 		const char *name = event_types[ptr->type].name;
 		if (!name)
 			name = "[unknown]";
-		
+
 		text += StringFromFormat("%s : %i %08x%08x\n", event_types[ptr->type].name, ptr->time, ptr->userdata >> 32, ptr->userdata);
 		ptr = ptr->next;
 	}

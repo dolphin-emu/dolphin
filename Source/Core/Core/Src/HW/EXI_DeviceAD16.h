@@ -14,7 +14,7 @@ public:
 	virtual void DoState(PointerWrap &p);
 
 private:
-	enum 
+	enum
 	{
 		init	= 0x00,
 		write	= 0xa0,

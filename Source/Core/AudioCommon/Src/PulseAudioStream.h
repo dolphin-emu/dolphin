@@ -24,7 +24,7 @@ public:
 	PulseAudio(CMixer *mixer);
 
 	virtual bool Start();
-	virtual void Stop(); 
+	virtual void Stop();
 
 	static bool isValid() {return true;}
 

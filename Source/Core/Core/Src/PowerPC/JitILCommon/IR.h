@@ -182,7 +182,7 @@ unsigned inline isICmp(Inst i) {
 }
 
 unsigned inline isFResult(Inst i) {
-	return getOpcode(i) > FResult_Start && 
+	return getOpcode(i) > FResult_Start &&
 	       getOpcode(i) < FResult_End;
 }
 
@@ -406,7 +406,7 @@ public:
 	}
 	InstLoc EmitRFIExit() {
 		return FoldZeroOp(RFIExit, 0);
-	}		
+	}
 	InstLoc EmitShortIdleLoop(InstLoc pc) {
 		return FoldUOp(ShortIdleLoop, pc);
 	}

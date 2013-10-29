@@ -39,7 +39,7 @@ struct JitBlock
 	u32 exitAddress[2];  // 0xFFFFFFFF == unknown
 
 	u32 originalAddress;
-	u32 codeSize; 
+	u32 codeSize;
 	u32 originalSize;
 	int runCount;  // for profiling.
 	int flags;
@@ -80,7 +80,7 @@ class JitBaseBlockCache
 	void LinkBlockExits(int i);
 	void LinkBlock(int i);
 	void UnlinkBlock(int i);
-	
+
 	// Virtual for overloaded
 	virtual void WriteLinkBlock(u8* location, const u8* address) = 0;
 	virtual void WriteDestroyBlock(const u8* location, u32 address) = 0;

@@ -38,7 +38,7 @@ void JitILBase::ps_arith(UGeckoInstruction inst)
 	else
 		rhs = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
 	val = ibuild.EmitCompactMRegToPacked(val);
-	
+
 	switch (inst.SUBOP5)
 	{
 	case 20:
@@ -58,7 +58,7 @@ void JitILBase::ps_sum(UGeckoInstruction inst)
 {
 	// TODO: This operation strikes me as a bit strange...
 	// perhaps we can optimize it depending on the users?
-	// TODO: ps_sum breaks Sonic Colours (black screen) 
+	// TODO: ps_sum breaks Sonic Colours (black screen)
 	Default(inst); return;
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
@@ -115,7 +115,7 @@ void JitILBase::ps_mergeXX(UGeckoInstruction inst)
 
 	switch (inst.SUBOP10)
 	{
-	case 528: 
+	case 528:
 		val = ibuild.EmitFPMerge00(val, rhs);
 		break; //00
 	case 560:
@@ -142,7 +142,7 @@ void JitILBase::ps_maddXX(UGeckoInstruction inst)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
-	
+
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA), op2, op3;
 	val = ibuild.EmitCompactMRegToPacked(val);
 	switch (inst.SUBOP5)

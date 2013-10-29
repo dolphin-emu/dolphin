@@ -101,12 +101,12 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
 	//INFO_LOG(PROCESSORINTERFACE, "(r32) 0x%08x", _iAddress);
 
-	switch(_iAddress & 0xFFF) 
+	switch(_iAddress & 0xFFF)
 	{
 	case PI_INTERRUPT_CAUSE:
 		_uReturnValue = m_InterruptCause;
 		return;
-	
+
 	case PI_INTERRUPT_MASK:
 		_uReturnValue = m_InterruptMask;
 		return;
@@ -136,31 +136,31 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		INFO_LOG(PROCESSORINTERFACE, "Read flipper rev, 0x%08x", m_FlipperRev);
 		_uReturnValue = m_FlipperRev;
 		return;
-		
+
 	default:
 		ERROR_LOG(PROCESSORINTERFACE, "!!!!Unknown write!!!! 0x%08x", _iAddress);
 		break;
 	}
-	
+
 	_uReturnValue = 0xAFFE0000;
 }
 
 void Write32(const u32 _uValue, const u32 _iAddress)
 {
 	//INFO_LOG(PROCESSORINTERFACE, "(w32) 0x%08x @ 0x%08x", _uValue, _iAddress);
-	switch(_iAddress & 0xFFF) 
+	switch(_iAddress & 0xFFF)
 	{
 	case PI_INTERRUPT_CAUSE:
 		Common::AtomicAnd(m_InterruptCause, ~_uValue); // writes turn them off
 		UpdateException();
 		return;
 
-	case PI_INTERRUPT_MASK: 
+	case PI_INTERRUPT_MASK:
 		m_InterruptMask = _uValue;
 		DEBUG_LOG(PROCESSORINTERFACE,"New Interrupt mask: %08x", m_InterruptMask);
 		UpdateException();
 		return;
-	
+
 	case PI_FIFO_BASE:
 		Fifo_CPUBase = _uValue & 0xFFFFFFE0;
 		DEBUG_LOG(PROCESSORINTERFACE,"Fifo base = %08x", _uValue);
@@ -172,7 +172,7 @@ void Write32(const u32 _uValue, const u32 _iAddress)
 		break;
 
 	case PI_FIFO_WPTR:
-		Fifo_CPUWritePointer = _uValue & 0xFFFFFFE0;		
+		Fifo_CPUWritePointer = _uValue & 0xFFFFFFE0;
 		DEBUG_LOG(PROCESSORINTERFACE,"Fifo writeptr = %08x", _uValue);
 		break;
 
@@ -245,12 +245,12 @@ void SetInterrupt(u32 _causemask, bool _bSet)
 	{
 		DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (clear)", Debug_GetInterruptName(_causemask));
 	}
-	
+
 	if (_bSet)
 		Common::AtomicOr(m_InterruptCause, _causemask);
 	else
 		Common::AtomicAnd(m_InterruptCause, ~_causemask);// is there any reason to have this possibility?
-										// F|RES: i think the hw devices reset the interrupt in the PI to 0 
+										// F|RES: i think the hw devices reset the interrupt in the PI to 0
 										// if the interrupt cause is eliminated. that isnt done by software (afaik)
 	UpdateException();
 }

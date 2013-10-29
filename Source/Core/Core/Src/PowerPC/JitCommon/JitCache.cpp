@@ -37,7 +37,7 @@ using namespace Gen;
 
 #define INVALID_EXIT 0xFFFFFFFF
 
-	bool JitBaseBlockCache::IsFull() const 
+	bool JitBaseBlockCache::IsFull() const
 	{
 		return GetNumBlocks() >= MAX_NUM_BLOCKS - 1;
 	}
@@ -93,7 +93,7 @@ using namespace Gen;
 		iJIT_NotifyEvent(iJVM_EVENT_TYPE_SHUTDOWN, NULL);
 #endif
 	}
-	
+
 	// This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
 	// is full and when saving and loading states.
 	void JitBaseBlockCache::Clear()
@@ -156,7 +156,7 @@ using namespace Gen;
 		if ((s1 >= s2 && s1 <= e2) ||
 			(e1 >= s2 && e1 <= e2) ||
 			(s2 >= s1 && s2 <= e1) ||
-			(e2 >= s1 && e2 <= e1)) 
+			(e2 >= s1 && e2 <= e1))
 			return true;
 		else
 			return false;
@@ -195,10 +195,10 @@ using namespace Gen;
 		{
 			for (int i = 0; i < 2; i++)
 			{
-				if (b.exitAddress[i] != INVALID_EXIT) 
+				if (b.exitAddress[i] != INVALID_EXIT)
 					links_to.insert(std::pair<u32, int>(b.exitAddress[i], block_num));
 			}
-			
+
 			LinkBlock(block_num);
 			LinkBlockExits(block_num);
 		}
@@ -244,7 +244,7 @@ using namespace Gen;
 	int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr)
 	{
 		if (!blocks)
-			return -1;		
+			return -1;
 		u32 inst;
 		inst = *GetICachePtr(addr);
 		if (inst & 0xfc000000) // definitely not a JIT block
@@ -252,12 +252,12 @@ using namespace Gen;
 		if ((int)inst >= num_blocks)
 			return -1;
 		if (blocks[inst].originalAddress != addr)
-			return -1;		
+			return -1;
 		return inst;
 	}
 
 	CompiledCode JitBaseBlockCache::GetCompiledCodeFromBlock(int block_num)
-	{		
+	{
 		return (CompiledCode)blockCodePointers[block_num];
 	}
 

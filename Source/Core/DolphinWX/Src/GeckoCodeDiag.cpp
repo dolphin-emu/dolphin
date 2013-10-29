@@ -52,7 +52,7 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
 	wxBoxSizer* const sizer_vert = new wxBoxSizer(wxVERTICAL);
 	sizer_vert->Add(sizer_infobox, 1, wxEXPAND);
 	sizer_vert->Add(sizer_buttons, 0, wxEXPAND | wxTOP, 5);
-	
+
 	wxBoxSizer* const sizer_main = new wxBoxSizer(wxVERTICAL);
 	sizer_main->Add(m_listbox_gcodes, 1, wxALL | wxEXPAND, 5);
 	sizer_main->Add(sizer_vert, 0, wxALL | wxEXPAND, 5);
@@ -76,7 +76,7 @@ void CodeConfigPanel::UpdateCodeList(bool checkRunning)
 		if (gcodes_iter->enabled)
 			m_listbox_gcodes->Check(m_listbox_gcodes->GetCount()-1, true);
 	}
-	
+
 	wxCommandEvent evt;
 	UpdateInfoBox(evt);
 }
@@ -146,7 +146,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 
 	std::string gameid = m_gameid;
 
-	
+
 	switch (m_gameid[0])
 	{
 	case 'R':
@@ -225,7 +225,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 				// read code lines
 			case 1 :
 			{
-				std::istringstream ssline(line);	
+				std::istringstream ssline(line);
 				std::string addr, data;
 				ssline >> addr >> data;
 				ssline.seekg(0);

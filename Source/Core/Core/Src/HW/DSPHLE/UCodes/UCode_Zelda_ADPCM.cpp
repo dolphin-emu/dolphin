@@ -22,7 +22,7 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed shor
 			src++;
 		}
 		for (auto& nibble : nibbles) {
-			if (nibble >= 8) 
+			if (nibble >= 8)
 				nibble = nibble - 16;
 			nibble <<= 11;
 		}
@@ -41,9 +41,9 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed shor
 			src++;
 		}
 
-		for (auto& nibble : nibbles) 
+		for (auto& nibble : nibbles)
 		{
-			if (nibble >= 2) 
+			if (nibble >= 2)
 				nibble = nibble - 4;
 			nibble <<= 13;
 		}
@@ -65,4 +65,4 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed shor
 	}
 	*histp = hist;
 	*hist2p = hist2;
-} 
+}

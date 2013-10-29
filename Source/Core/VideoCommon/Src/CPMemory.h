@@ -38,7 +38,7 @@ enum
 enum
 {
 	FORMAT_16B_565		= 0,	// NA
-	FORMAT_24B_888		= 1,	
+	FORMAT_24B_888		= 1,
 	FORMAT_32B_888x		= 2,
 	FORMAT_16B_4444		= 3,
 	FORMAT_24B_6666		= 4,
@@ -56,7 +56,7 @@ enum
 union TVtxDesc
 {
 	u64 Hex;
-	struct 
+	struct
 	{
 		// 0: not present
 		// 1: present
@@ -70,9 +70,9 @@ union TVtxDesc
 		u32 Tex6MatIdx	: 1;
 		u32 Tex7MatIdx	: 1;
 
-		// 00: not present 
-		// 01: direct 
-		// 10: 8 bit index 
+		// 00: not present
+		// 01: direct
+		// 10: 8 bit index
 		// 11: 16 bit index
 		u32 Position	: 2;
 		u32 Normal		: 2;
@@ -98,21 +98,21 @@ union TVtxDesc
 union UVAT_group0
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		// 0:8
 		u32 PosElements			: 1;
-		u32 PosFormat			: 3; 
-		u32 PosFrac				: 5; 
+		u32 PosFormat			: 3;
+		u32 PosFrac				: 5;
 		// 9:12
-		u32 NormalElements		: 1; 
-		u32 NormalFormat		: 3; 
+		u32 NormalElements		: 1;
+		u32 NormalFormat		: 3;
 		// 13:16
 		u32 Color0Elements		: 1;
-		u32 Color0Comp			: 3; 
+		u32 Color0Comp			: 3;
 		// 17:20
 		u32 Color1Elements		: 1;
-		u32 Color1Comp			: 3; 
+		u32 Color1Comp			: 3;
 		// 21:29
 		u32 Tex0CoordElements	: 1;
 		u32 Tex0CoordFormat		: 3;
@@ -126,7 +126,7 @@ union UVAT_group0
 union UVAT_group1
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		// 0:8
 		u32 Tex1CoordElements	: 1;
@@ -143,7 +143,7 @@ union UVAT_group1
 		// 27:30
 		u32 Tex4CoordElements	: 1;
 		u32 Tex4CoordFormat		: 3;
-		// 
+		//
 		u32						: 1;
 	};
 };
@@ -151,7 +151,7 @@ union UVAT_group1
 union UVAT_group2
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		// 0:4
 		u32 Tex4Frac			: 5;
@@ -186,10 +186,10 @@ struct TexAttr
 struct TVtxAttr
 {
 	u8 PosElements;
-	u8 PosFormat; 
-	u8 PosFrac; 
+	u8 PosFormat;
+	u8 PosFrac;
 	u8 NormalElements;
-	u8 NormalFormat; 
+	u8 NormalFormat;
 	ColorAttr color[2];
 	TexAttr texCoord[8];
 	u8 ByteDequant;

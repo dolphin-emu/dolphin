@@ -51,7 +51,7 @@ void CLogWindow::CreateGUIControls()
 	// Set up log listeners
 	int verbosity;
 	ini.Get("Options", "Verbosity", &verbosity, 0);
-	
+
 	// Ensure the verbosity level is valid
 	if (verbosity < 1)
 		verbosity = 1;
@@ -305,23 +305,23 @@ void CLogWindow::UpdateLog()
 				case ERROR_LEVEL:
 					m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
 					break;
-				
+
 				case WARNING_LEVEL:
 					m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0))); // YELLOW
 					break;
-				
+
 				case NOTICE_LEVEL:
 					m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
 					break;
-				
+
 				case INFO_LEVEL:
 					m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
 					break;
-				
+
 				case DEBUG_LEVEL:
 					m_Log->SetDefaultStyle(wxTextAttr(*wxLIGHT_GREY));
 					break;
-				
+
 				default:
 					m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
 					break;

@@ -35,7 +35,7 @@ private:
 			float x, y;
 		} cursor, axis;
 	};
-	
+
 	class Key : public Input
 	{
 		friend class KeyboardMouse;
@@ -43,21 +43,21 @@ private:
 		std::string GetName() const { return m_keyname; }
 		Key(Display* display, KeyCode keycode, const char* keyboard);
 		ControlState GetState() const;
-		
+
 	private:
 		std::string	m_keyname;
 		Display* const	m_display;
 		const char* const m_keyboard;
 		const KeyCode	m_keycode;
 	};
-	
+
 	class Button : public Input
 	{
 	public:
 		std::string GetName() const { return name; }
 		Button(unsigned int index, unsigned int& buttons);
 		ControlState GetState() const;
-		
+
 	private:
 		const unsigned int& m_buttons;
 		const unsigned int m_index;
@@ -71,14 +71,14 @@ private:
 		bool IsDetectable() { return false; }
 		Cursor(u8 index, bool positive, const float& cursor);
 		ControlState GetState() const;
-	
+
 	private:
 		const float& m_cursor;
 		const u8 m_index;
 		const bool m_positive;
 		std::string name;
 	};
-	
+
 	class Axis : public Input
 	{
 	public:
@@ -93,22 +93,22 @@ private:
 		const bool m_positive;
 		std::string name;
 	};
-	
+
 private:
 	void SelectEventsForDevice(Window window, XIEventMask *mask, int deviceid);
 	void UpdateCursor();
-	
+
 public:
 	bool UpdateInput();
 	bool UpdateOutput();
-	
+
 	KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid);
 	~KeyboardMouse();
-	
+
 	std::string GetName() const;
 	std::string GetSource() const;
 	int GetId() const;
-	
+
 private:
 	Window m_window;
 	Display* m_display;

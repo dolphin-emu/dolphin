@@ -102,7 +102,7 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
-	
+
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 	Movie::CallInputManip(&PadStatus, ISIDevice::m_iDeviceNumber);
 

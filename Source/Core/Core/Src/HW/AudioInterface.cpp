@@ -88,13 +88,13 @@ union AICR
 {
 	AICR() { hex = 0;}
 	AICR(u32 _hex) { hex = _hex;}
-	struct 
+	struct
 	{
 		u32 PSTAT		: 1;  // sample counter/playback enable
 		u32 AISFR		: 1;  // AIS Frequency (0=32khz 1=48khz)
 		u32 AIINTMSK	: 1;  // 0=interrupt masked 1=interrupt enabled
 		u32 AIINT		: 1;  // audio interrupt status
-		u32 AIINTVLD	: 1;  // This bit controls whether AIINT is affected by the Interrupt Timing register 
+		u32 AIINTVLD	: 1;  // This bit controls whether AIINT is affected by the Interrupt Timing register
                               // matching the sample counter. Once set, AIINT will hold its last value
 		u32 SCRESET		: 1;  // write to reset counter
 		u32 AIDFR		: 1;  // AID Frequency (0=48khz 1=32khz)
@@ -206,7 +206,7 @@ void Write32(const u32 _Value, const u32 _Address)
 	case AI_CONTROL_REGISTER:
 		{
 			AICR tmpAICtrl(_Value);
-		
+
 			m_Control.AIINTMSK	= tmpAICtrl.AIINTMSK;
 			m_Control.AIINTVLD	= tmpAICtrl.AIINTVLD;
 
@@ -250,7 +250,7 @@ void Write32(const u32 _Value, const u32 _Address)
 			}
 
 			// Sample Count Reset
-			if (tmpAICtrl.SCRESET)	
+			if (tmpAICtrl.SCRESET)
 			{
 				DEBUG_LOG(AUDIO_INTERFACE, "Reset AIS sample counter");
 				m_SampleCounter = 0;
@@ -360,7 +360,7 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 
 				static s16 l1 = 0;
 				static s16 l2 = 0;
-				
+
 				if ( frac >= 0x10000 || frac == 0)
 				{
 					frac &= 0xffff;
@@ -388,7 +388,7 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 
 			}
 			else //1:1 no resampling
-			{ 
+			{
 				pcm_l = (((int)pcm[pos*2] * lvolume) >> 8) + (int)(*_pDestBuffer);
 				if (pcm_l > 32767)		pcm_l = 32767;
 				else if (pcm_l < -32767)	pcm_l = -32767;
@@ -398,11 +398,11 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 				if (pcm_r > 32767)		pcm_r = 32767;
 				else if (pcm_r < -32767)	pcm_r = -32767;
 				*_pDestBuffer++ = pcm_r;
-				
+
 				pos++;
 			}
 
-			if (pos == NGCADPCM::SAMPLES_PER_BLOCK) 
+			if (pos == NGCADPCM::SAMPLES_PER_BLOCK)
 				pos = 0;
 		}
 	}

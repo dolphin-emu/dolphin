@@ -9,7 +9,7 @@
 
 CEXIAD16::CEXIAD16() :
 	m_uPosition(0),
-	m_uCommand(0)		
+	m_uCommand(0)
 {
 	m_uAD16Register.U32 = 0x00;
 }
@@ -40,7 +40,7 @@ void CEXIAD16::TransferByte(u8& _byte)
 				m_uAD16Register.U32 = 0x04120000;
 				switch(m_uPosition)
 				{
-				case 1: _dbg_assert_(EXPANSIONINTERFACE, (_byte == 0x00)); break; // just skip 
+				case 1: _dbg_assert_(EXPANSIONINTERFACE, (_byte == 0x00)); break; // just skip
 				case 2: _byte = m_uAD16Register.U8[0]; break;
 				case 3: _byte = m_uAD16Register.U8[1]; break;
 				case 4: _byte = m_uAD16Register.U8[2]; break;

@@ -28,10 +28,10 @@ namespace HwRasterizer
 
 	struct TexCacheEntry
 	{
-		TexImage0 texImage0; 
-		TexImage1 texImage1; 
-		TexImage2 texImage2; 
-		TexImage3 texImage3; 
+		TexImage0 texImage0;
+		TexImage1 texImage1;
+		TexImage2 texImage2;
+		TexImage3 texImage3;
 		TexTLUT texTlut;
 
 		GLuint texture;
@@ -47,4 +47,4 @@ namespace HwRasterizer
 	static TextureCache textures;
 }
 
-#endif 
+#endif

@@ -40,8 +40,8 @@ void Interpreter::fcmpo(UGeckoInstruction _inst)
 
 	int compareResult;
 
-	if (fa < fb)				compareResult = 8; 
-	else if (fa > fb)           compareResult = 4; 
+	if (fa < fb)				compareResult = 8;
+	else if (fa > fb)           compareResult = 4;
 	else if (fa == fb)          compareResult = 2;
 	else
 	{
@@ -71,12 +71,12 @@ void Interpreter::fcmpu(UGeckoInstruction _inst)
 
 	int compareResult;
 
-	if (fa < fb)            compareResult = 8; 
-	else if (fa > fb)       compareResult = 4; 
+	if (fa < fb)            compareResult = 8;
+	else if (fa > fb)       compareResult = 4;
 	else if (fa == fb)		compareResult = 2;
 	else
-	{		
-		compareResult = 1; 
+	{
+		compareResult = 1;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
 			SetFPException(FPSCR_VXSNAN);
@@ -98,7 +98,7 @@ void Interpreter::fctiwx(UGeckoInstruction _inst)
 		FPSCR.FI = 0;
 		FPSCR.FR = 0;
 	}
-	else if (b < -(double)0x80000000) 
+	else if (b < -(double)0x80000000)
 	{
 		value = 0x80000000;
 		SetFPException(FPSCR_VXCVI);
@@ -141,7 +141,7 @@ void Interpreter::fctiwx(UGeckoInstruction _inst)
 			SetFI(1);
 			FPSCR.FR = fabs(di) > fabs(b);
 		}
-	}	
+	}
 	// based on HW tests
 	// FPRF is not affected
 	riPS0(_inst.FD) = 0xfff8000000000000ull | value;
@@ -190,7 +190,7 @@ void Interpreter::fctiwzx(UGeckoInstruction _inst)
 	// FPRF is not affected
 	riPS0(_inst.FD) = 0xfff8000000000000ull | value;
 	if (value == 0 && ( (*(u64*)&b) & DOUBLE_SIGN ))
-		riPS0(_inst.FD) |= 0x100000000ull;	
+		riPS0(_inst.FD) |= 0x100000000ull;
 	if (_inst.Rc)
 		Helper_UpdateCR1(rPS0(_inst.FD));
 }
@@ -199,7 +199,7 @@ void Interpreter::fmrx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB);
 	// This is a binary instruction. Does not alter FPSCR
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void Interpreter::fabsx(UGeckoInstruction _inst)
@@ -213,7 +213,7 @@ void Interpreter::fnabsx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) | (1ULL << 63);
 	// This is a binary instruction. Does not alter FPSCR
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));	
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void Interpreter::fnegx(UGeckoInstruction _inst)
@@ -251,7 +251,7 @@ void Interpreter::fmulx(UGeckoInstruction _inst)
 	FPSCR.FI = 0; // are these flags important?
 	FPSCR.FR = 0;
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 void Interpreter::fmulsx(UGeckoInstruction _inst)
 {
@@ -293,7 +293,7 @@ void Interpreter::faddsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(NI_add(rPS0(_inst.FA), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void Interpreter::fdivx(UGeckoInstruction _inst)
@@ -305,7 +305,7 @@ void Interpreter::fdivx(UGeckoInstruction _inst)
 	else
 	{
 		rPS0(_inst.FD) = ForceDouble(a / b);
-		if (b == 0.0) 
+		if (b == 0.0)
 		{
 			if (a == 0.0)
 			{
@@ -366,7 +366,7 @@ void Interpreter::fresx(UGeckoInstruction _inst)
 	double b = rPS0(_inst.FB);
 	double one_over = ForceSingle(1.0 / b);
 	// this is based on the real hardware tests
-	if (b != 0.0 && IsINF(one_over)) 
+	if (b != 0.0 && IsINF(one_over))
 	{
 		if (one_over > 0)
 			riPS0(_inst.FD) = riPS1(_inst.FD) = MAX_SINGLE;
@@ -388,7 +388,7 @@ void Interpreter::fresx(UGeckoInstruction _inst)
 void Interpreter::frsqrtex(UGeckoInstruction _inst)
 {
 	double b = rPS0(_inst.FB);
-	if (b < 0.0) 
+	if (b < 0.0)
 	{
 		SetFPException(FPSCR_VXSQRT);
 		rPS0(_inst.FD) = PPC_NAN;
@@ -432,7 +432,7 @@ void Interpreter::fmsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(NI_msub( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void Interpreter::fmsubsx(UGeckoInstruction _inst)
@@ -440,7 +440,7 @@ void Interpreter::fmsubsx(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = rPS1(_inst.FD) =
 		ForceSingle( NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void Interpreter::fnmaddx(UGeckoInstruction _inst)
@@ -451,10 +451,10 @@ void Interpreter::fnmaddx(UGeckoInstruction _inst)
 }
 void Interpreter::fnmaddsx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FD) = 
+	rPS0(_inst.FD) = rPS1(_inst.FD) =
 		ForceSingle(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void Interpreter::fnmsubx(UGeckoInstruction _inst)
@@ -470,7 +470,7 @@ void Interpreter::fnmsubsx(UGeckoInstruction _inst)
 	rPS0(_inst.FD) = rPS1(_inst.FD) =
 		ForceSingle(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
 	UpdateFPRF(rPS0(_inst.FD));
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void Interpreter::fsubx(UGeckoInstruction _inst)

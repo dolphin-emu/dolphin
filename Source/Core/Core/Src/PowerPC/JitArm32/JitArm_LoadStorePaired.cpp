@@ -25,7 +25,7 @@ void JitArm::psq_l(UGeckoInstruction inst)
 	// R11 contains type
 	// R10 is the ADDR
 	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
-	
+
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 16, 3); // Type
 	LSL(R12, R12, 2);
@@ -63,7 +63,7 @@ void JitArm::psq_lx(UGeckoInstruction inst)
 	// R11 contains type
 	// R10 is the ADDR
 	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
-	
+
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.Ix]));
 	UBFX(R12, R11, 16, 3); // Type
 	LSL(R12, R12, 2);
@@ -91,7 +91,7 @@ void JitArm::psq_lx(UGeckoInstruction inst)
 	ARMReg vD1 = fpr.R1(inst.RS, false);
 	LDR(R14, R9, PPCSTATE_OFF(Exceptions));
 	CMP(R14, EXCEPTION_DSI);
-	SetCC(CC_NEQ);	
+	SetCC(CC_NEQ);
 
 	VCVT(vD0, S0, 0);
 	if (!inst.Wx)
@@ -108,7 +108,7 @@ void JitArm::psq_st(UGeckoInstruction inst)
 
 	bool update = inst.OPCD == 61;
 	s32 offset = inst.SIMM_12;
-	
+
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
@@ -152,7 +152,7 @@ void JitArm::psq_stx(UGeckoInstruction inst)
 	JITDISABLE(bJITLoadStorePairedOff)
 
 	bool update = inst.SUBOP10 == 39;
-	
+
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR

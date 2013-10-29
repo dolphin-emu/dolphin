@@ -96,7 +96,7 @@ private:
 	u8* m_diskHeader;
 
 	#pragma pack(push, 1)
-	struct SDiskHeaderInfo 
+	struct SDiskHeaderInfo
 	{
 		u32 debug_mntr_size;
 		u32 simulated_mem_size;

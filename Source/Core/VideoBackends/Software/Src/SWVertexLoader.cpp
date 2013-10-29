@@ -76,13 +76,13 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		g_VtxDesc.Tex4Coord, g_VtxDesc.Tex5Coord, g_VtxDesc.Tex6Coord, (const u32)((g_VtxDesc.Hex >> 31) & 3)
 	};
 	const u32 tcElements[8] = {
-		m_CurrentVat->g0.Tex0CoordElements, m_CurrentVat->g1.Tex1CoordElements, m_CurrentVat->g1.Tex2CoordElements, 
+		m_CurrentVat->g0.Tex0CoordElements, m_CurrentVat->g1.Tex1CoordElements, m_CurrentVat->g1.Tex2CoordElements,
 		m_CurrentVat->g1.Tex3CoordElements, m_CurrentVat->g1.Tex4CoordElements, m_CurrentVat->g2.Tex5CoordElements,
 		m_CurrentVat->g2.Tex6CoordElements, m_CurrentVat->g2.Tex7CoordElements
 	};
 
 	const u32 tcFormat[8] = {
-		m_CurrentVat->g0.Tex0CoordFormat, m_CurrentVat->g1.Tex1CoordFormat, m_CurrentVat->g1.Tex2CoordFormat, 
+		m_CurrentVat->g0.Tex0CoordFormat, m_CurrentVat->g1.Tex1CoordFormat, m_CurrentVat->g1.Tex2CoordFormat,
 		m_CurrentVat->g1.Tex3CoordFormat, m_CurrentVat->g1.Tex4CoordFormat, m_CurrentVat->g2.Tex5CoordFormat,
 		m_CurrentVat->g2.Tex6CoordFormat, m_CurrentVat->g2.Tex7CoordFormat
 	};
@@ -161,10 +161,10 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	{
 		m_VertexSize += VertexLoader_Normal::GetSize(g_VtxDesc.Normal,
 			m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
-		
+
 		m_normalLoader = VertexLoader_Normal::GetFunction(g_VtxDesc.Normal,
 			m_CurrentVat->g0.NormalFormat, m_CurrentVat->g0.NormalElements, m_CurrentVat->g0.NormalIndex3);
-		
+
 		if (m_normalLoader == 0)
 		{
 			ERROR_LOG(VIDEO, "VertexLoader_Normal::GetFunction returned zero!");
@@ -192,7 +192,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 			}
 			AddAttributeLoader(LoadColor, i);
 			break;
-		case INDEX8:	
+		case INDEX8:
 			m_VertexSize += 1;
 			switch (colComp[i])
 			{

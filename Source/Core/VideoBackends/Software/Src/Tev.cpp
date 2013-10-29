@@ -179,7 +179,7 @@ void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner &cc)
 		InputReg.c = *m_ColorInputLUT[cc.c][i];
 		InputReg.d = *m_ColorInputLUT[cc.d][i];
 
-		u16 c = InputReg.c + (InputReg.c >> 7); 
+		u16 c = InputReg.c + (InputReg.c >> 7);
 
 		s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
 		temp = cc.op?(-temp >> 8):(temp >> 8);
@@ -285,7 +285,7 @@ void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc)
 			Reg[cc.dest][BLU_C + i] = InputReg.d + ((InputReg.a > InputReg.b) ? InputReg.c : 0);
 		}
 		break;
-	case TEVCMP_RGB8_EQ: 
+	case TEVCMP_RGB8_EQ:
 		for (int i = 0; i < 3; i++)
 		{
 			InputReg.a = *m_ColorInputLUT[cc.a][i];
@@ -307,7 +307,7 @@ void Tev::DrawAlphaRegular(TevStageCombiner::AlphaCombiner &ac)
 	InputReg.c = m_AlphaInputLUT[ac.c][ALP_C];
 	InputReg.d = m_AlphaInputLUT[ac.d][ALP_C];
 
-	u16 c = InputReg.c + (InputReg.c >> 7); 
+	u16 c = InputReg.c + (InputReg.c >> 7);
 
 	s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
 	temp = ac.op?(-temp >> 8):(temp >> 8);
@@ -736,8 +736,8 @@ void Tev::Draw()
 			s32 denom = bpmem.fog.b_magnitude - (Position[2] >> bpmem.fog.b_shift);
 			//in addition downscale magnitude and zs to 0.24 bits
 			ze = (bpmem.fog.a.GetA() * 16777215.0f) / (float)denom;
-		} 
-		else 
+		}
+		else
 		{
 			// orthographic
 			// ze = a*Zs
@@ -848,7 +848,7 @@ void Tev::SetRegColor(int reg, int comp, bool konst, s16 color)
 void Tev::DoState(PointerWrap &p)
 {
 	p.DoArray(Reg, sizeof(Reg));
-	
+
 	p.DoArray(KonstantColors, sizeof(KonstantColors));
 	p.DoArray(TexColor,4);
 	p.DoArray(RasColor,4);

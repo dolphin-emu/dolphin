@@ -35,7 +35,7 @@ using namespace Common;
 namespace PatchEngine
 {
 
-const char *PatchTypeStrings[] = 
+const char *PatchTypeStrings[] =
 {
 	"byte",
 	"word",
@@ -212,7 +212,7 @@ void ApplyPatches(const std::vector<Patch> &patches)
 	}
 }
 
-void ApplyFramePatches() 
+void ApplyFramePatches()
 {
 	ApplyPatches(onFrame);
 

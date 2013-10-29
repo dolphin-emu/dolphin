@@ -112,7 +112,7 @@ void TextureCache::OnConfigChanged(VideoConfig& config)
 			g_texture_cache->ClearRenderTargets();
 		}
 	}
-	
+
 	backup_config.s_colorsamples = config.iSafeTextureCache_ColorSamples;
 	backup_config.s_copy_efb_to_texture = config.bCopyEFBToTexture;
 	backup_config.s_copy_efb_scaled = config.bCopyEFBScaled;
@@ -131,7 +131,7 @@ void TextureCache::Cleanup()
 	while (iter != tcend)
 	{
 		if (	frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount
-			
+
 			// EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
 			&& ! iter->second->IsEfbCopy() )
 		{
@@ -499,7 +499,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 	entry->SetGeneralParameters(address, texture_size, full_format, entry->num_mipmaps);
 	entry->SetDimensions(nativeW, nativeH, width, height);
 	entry->hash = tex_hash;
-	
+
 	if (entry->IsEfbCopy() && !g_ActiveConfig.bCopyEFBToTexture)
 		entry->type = TCET_EC_DYNAMIC;
 	else
@@ -515,7 +515,7 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		if (use_native_mips)
 		{
 			src_data += texture_size;
-			
+
 			const u8* ptr_even = NULL;
 			const u8* ptr_odd = NULL;
 			if (from_tmem)
@@ -530,13 +530,13 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 				const u32 mip_height = CalculateLevelSize(height, level);
 				const u32 expanded_mip_width = (mip_width + bsw) & (~bsw);
 				const u32 expanded_mip_height = (mip_height + bsh) & (~bsh);
-				
+
 				const u8*& mip_src_data = from_tmem
 					? ((level % 2) ? ptr_odd : ptr_even)
 					: src_data;
 				TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat, tlutaddr, tlutfmt, g_ActiveConfig.backend_info.bUseRGBATextures);
 				mip_src_data += TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
-				
+
 				entry->Load(mip_width, mip_height, expanded_mip_width, level);
 
 				if (g_ActiveConfig.bDumpTextures)
@@ -566,19 +566,19 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
 	// Emulation methods:
-	// 
+	//
 	// - EFB to RAM:
 	//		Encodes the requested EFB data at its native resolution to the emulated RAM using shaders.
 	//		Load() decodes the data from there again (using TextureDecoder) if the EFB copy is being used as a texture again.
 	//		Advantage: CPU can read data from the EFB copy and we don't lose any important updates to the texture
 	//		Disadvantage: Encoding+decoding steps often are redundant because only some games read or modify EFB copies before using them as textures.
-	// 
+	//
 	// - EFB to texture:
 	//		Copies the requested EFB data to a texture object in VRAM, performing any color conversion using shaders.
 	//		Advantage:	Works for many games, since in most cases EFB copies aren't read or modified at all before being used as a texture again.
 	//					Since we don't do any further encoding or decoding here, this method is much faster.
 	//					It also allows enhancing the visual quality by doing scaled EFB copies.
-	// 
+	//
 	// - Hybrid EFB copies:
 	//		1a) Whenever this function gets called, encode the requested EFB data to RAM (like EFB to RAM)
 	//		1b) Set type to TCET_EC_DYNAMIC for all texture cache entries in the destination address range.
@@ -667,10 +667,10 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			break;
 		}
 	}
-	else if (isIntensity) 
+	else if (isIntensity)
 	{
 		fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
-		switch (dstFormat) 
+		switch (dstFormat)
 		{
 		case 0: // I4
 		case 1: // I8
@@ -682,7 +682,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
 			colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
 
-			if (dstFormat < 2 || dstFormat == 8) 
+			if (dstFormat < 2 || dstFormat == 8)
 			{
 				colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
 				fConstAdd[3] = 16.0f/255.0f;
@@ -710,7 +710,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 				{
 					cbufid = 11;
 				}
-				
+
 			}
 			break;
 
@@ -723,7 +723,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	}
 	else
 	{
-		switch (dstFormat) 
+		switch (dstFormat)
 		{
 		case 0: // R4
 			colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;

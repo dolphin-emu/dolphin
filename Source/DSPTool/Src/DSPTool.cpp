@@ -174,7 +174,7 @@ void RunAsmTests()
 	//.File::ReadFileToString(true, "C:/devkitPro/trunk/libogc/libasnd/dsp_mixer/dsp_mixer.s", &dsp_test);
 	// This is CLOSE to working. Sorry about the local path btw. This is preliminary code.
 */
-	
+
 	std::string dsp_test;
 	if (File::ReadFileToString(true, "Testdata/dsp_test.s", dsp_test))
 		fail = fail || !SuperTrip(dsp_test.c_str());
@@ -213,7 +213,7 @@ int main(int argc, const char *argv[])
 		printf("-ps <DUMP FILE>: Print results of DSPSpy register dump (disable SR output)\n");
 		printf("-pm <DUMP FILE>: Print results of DSPSpy register dump (convert PROD values)\n");
 		printf("-psm <DUMP FILE>: Print results of DSPSpy register dump (convert PROD values/disable SR output)\n");
-	
+
 		return 0;
 	}
 
@@ -227,7 +227,7 @@ int main(int argc, const char *argv[])
 	std::string output_header_name;
 	std::string output_name;
 
-	bool disassemble = false, compare = false, multiple = false, outputSize = false, 
+	bool disassemble = false, compare = false, multiple = false, outputSize = false,
 		force = false, print_results = false, print_results_prodhack = false, print_results_srhack = false;
 	for (int i = 1; i < argc; i++)
 	{
@@ -260,7 +260,7 @@ int main(int argc, const char *argv[])
 			print_results_srhack = true;
 			print_results_prodhack = true;
 		}
-		else 
+		else
 		{
 			if (!input_name.empty())
 			{
@@ -325,17 +325,17 @@ int main(int argc, const char *argv[])
 			{
 				if ((reg >= 0x0c) && (reg <= 0x0f)) continue;
 				if (print_results_srhack && (reg == 0x13)) continue;
-				
+
 				if ((print_results_prodhack) && (reg >= 0x15) && (reg <= 0x17)) {
 					switch (reg) {
 						case 0x15: //DSP_REG_PRODM
 							last_reg = reg_vector.at((step*32-32)+reg) + reg_vector.at((step*32-32)+reg+2);
-							current_reg = reg_vector.at(step*32+reg) + reg_vector.at(step*32+reg+2); 
+							current_reg = reg_vector.at(step*32+reg) + reg_vector.at(step*32+reg+2);
 							break;
 						case 0x16: //DSP_REG_PRODH
-							htemp = ((reg_vector.at(step*32+reg-1) + reg_vector.at(step*32+reg+1))&~0xffff)>>16; 
+							htemp = ((reg_vector.at(step*32+reg-1) + reg_vector.at(step*32+reg+1))&~0xffff)>>16;
 							current_reg = (u8)(reg_vector.at(step*32+reg) + htemp);
-							htemp = ((reg_vector.at(step*32-32+reg-1) + reg_vector.at(step*32-32+reg+1))&~0xffff)>>16; 
+							htemp = ((reg_vector.at(step*32-32+reg-1) + reg_vector.at(step*32-32+reg+1))&~0xffff)>>16;
 							last_reg = (u8)(reg_vector.at(step*32-32+reg) + htemp);
 							break;
 						case 0x17: //DSP_REG_PRODM2
@@ -386,7 +386,7 @@ int main(int argc, const char *argv[])
 		else
 			printf("%s", text.c_str());
 	}
-	else 
+	else
 	{
 		if (input_name.empty())
 		{
@@ -396,7 +396,7 @@ int main(int argc, const char *argv[])
 		std::string source;
 		if (File::ReadFileToString(true, input_name.c_str(), source))
 		{
-			if(multiple) 
+			if(multiple)
 			{
 				// When specifying a list of files we must compile a header
 				// (we can't assemble multiple files to one binary)
@@ -408,8 +408,8 @@ int main(int argc, const char *argv[])
 				size_t lastPos = 0, pos = 0;
 
 				source.append("\n");
-				
-				while((pos = source.find('\n', lastPos)) != std::string::npos) 
+
+				while((pos = source.find('\n', lastPos)) != std::string::npos)
 				{
 					std::string temp = source.substr(lastPos, pos - lastPos);
 					if(!temp.empty())
@@ -419,26 +419,26 @@ int main(int argc, const char *argv[])
 
 				lines = (int)files.size();
 
-				if(lines == 0) 
+				if(lines == 0)
 				{
 					printf("ERROR: Must specify at least one file\n");
 					return 1;
 				}
-				
+
 				codes = new std::vector<u16>[lines];
 
-				for (int i = 0; i < lines; i++) 
+				for (int i = 0; i < lines; i++)
 				{
 					if (!File::ReadFileToString(true, files[i].c_str(), currentSource))
 					{
 						printf("ERROR reading %s, skipping...\n", files[i].c_str());
 						lines--;
 					}
-					else 
+					else
 					{
-						if (!Assemble(currentSource.c_str(), codes[i], force)) 
+						if (!Assemble(currentSource.c_str(), codes[i], force))
 						{
-							printf("Assemble: Assembly of %s failed due to errors\n", 
+							printf("Assemble: Assembly of %s failed due to errors\n",
 									files[i].c_str());
 							lines--;
 						}
@@ -447,7 +447,7 @@ int main(int argc, const char *argv[])
 						}
 					}
 				}
-				
+
 
 				CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
 				File::WriteStringToFile(true, header, (output_header_name + ".h").c_str());
@@ -466,7 +466,7 @@ int main(int argc, const char *argv[])
 				if (outputSize) {
 					printf("%s: %d\n", input_name.c_str(), (int)code.size());
 				}
-				
+
 				if (!output_name.empty())
 				{
 					std::string binary_code;

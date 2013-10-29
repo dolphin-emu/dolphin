@@ -20,7 +20,7 @@ KeyboardMouse::KeyboardMouse(Window window) : m_window(window)
 
 	int min_keycode, max_keycode;
 	XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
-	
+
 	// Keyboard Keys
 	for (int i = min_keycode; i <= max_keycode; ++i)
 	{
@@ -99,7 +99,7 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
 		i++;
 	}
 	while (keysym == NoSymbol && i < 8);
-	
+
 	// Convert to upper case for the keyname
 	if (keysym >= 97 && keysym <= 122)
 		keysym -= 32;

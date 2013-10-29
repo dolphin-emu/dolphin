@@ -114,10 +114,10 @@ void cInterfaceAGL::Update()
 	if( s_backbuffer_width == size.width
 	   && s_backbuffer_height == size.height)
 		return;
-	
+
 	s_backbuffer_width = size.width;
 	s_backbuffer_height = size.height;
-	
+
 	[GLWin.cocoaCtx update];
 }
 

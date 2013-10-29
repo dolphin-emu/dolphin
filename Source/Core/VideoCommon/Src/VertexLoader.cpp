@@ -91,18 +91,18 @@ void LOADERDECL PosMtx_Write()
 	DataWrite<u8>(0);
 }
 
-void LOADERDECL UpdateBoundingBoxPrepare() 
+void LOADERDECL UpdateBoundingBoxPrepare()
 {
 	if (!PixelEngine::bbox_active)
 		return;
-	
+
 	// set our buffer as videodata buffer, so we will get a copy of the vertex positions
 	// this is a big hack, but so we can use the same converting function then without bbox
 	s_bbox_pCurBufferPointer_orig = VertexManager::s_pCurBufferPointer;
 	VertexManager::s_pCurBufferPointer = (u8*)s_bbox_vertex_buffer;
 }
 
-void LOADERDECL UpdateBoundingBox() 
+void LOADERDECL UpdateBoundingBox()
 {
 	if (!PixelEngine::bbox_active)
 		return;
@@ -140,7 +140,7 @@ void LOADERDECL UpdateBoundingBox()
 	o[1] = (1.0f - o[1]) * 242.0f;
 
 	if (o[0] < PixelEngine::bbox[0]) PixelEngine::bbox[0] = (u16) std::max(0.0f, o[0]);
-	if (o[0] > PixelEngine::bbox[1]) PixelEngine::bbox[1] = (u16) o[0]; 
+	if (o[0] > PixelEngine::bbox[1]) PixelEngine::bbox[1] = (u16) o[0];
 	if (o[1] < PixelEngine::bbox[2]) PixelEngine::bbox[2] = (u16) std::max(0.0f, o[1]);
 	if (o[1] > PixelEngine::bbox[3]) PixelEngine::bbox[3] = (u16) o[1];
 }
@@ -172,7 +172,7 @@ void LOADERDECL TexMtx_Write_Float4()
 	DataWrite(0.f);
 }
 
-VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr) 
+VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 {
 	m_compiledCode = NULL;
 	m_numLoadedVertices = 0;
@@ -197,7 +197,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 
 }
 
-VertexLoader::~VertexLoader() 
+VertexLoader::~VertexLoader()
 {
 	#ifdef USE_JIT
 	FreeCodeSpace();
@@ -248,7 +248,7 @@ void VertexLoader::CompileVertexTranslator()
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
 		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (const u32)((m_VtxDesc.Hex >> 31) & 3)
 	};
-	
+
 	// Reset pipeline
 	m_numPipelineStages = 0;
 
@@ -265,7 +265,7 @@ void VertexLoader::CompileVertexTranslator()
 	}
 
 	// m_VBVertexStride for texmtx and posmtx is computed later when writing.
-	
+
 	// Position Matrix Index
 	if (m_VtxDesc.PosMatIdx)
 	{
@@ -303,7 +303,7 @@ void VertexLoader::CompileVertexTranslator()
 	{
 		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal,
 			m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
-		
+
 		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal,
 			m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 
@@ -347,7 +347,7 @@ void VertexLoader::CompileVertexTranslator()
 		m_NativeFmt->m_components |= VB_HAS_COL0 << i;
 		switch (col[i])
 		{
-		case NOT_PRESENT: 
+		case NOT_PRESENT:
 			m_NativeFmt->m_components &= ~(VB_HAS_COL0 << i);
 			vtx_decl.color_offset[i] = -1;
 			break;
@@ -454,7 +454,7 @@ void VertexLoader::CompileVertexTranslator()
 
 		if (tc[i] == NOT_PRESENT)
 		{
-			// if there's more tex coords later, have to write a dummy call 
+			// if there's more tex coords later, have to write a dummy call
 			int j = i + 1;
 			for (; j < 8; ++j)
 			{
@@ -551,8 +551,8 @@ int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const 
 	if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != m_NativeFmt)
 	{
 		// We really must flush here. It's possible that the native representations
-		// of the two vtx formats are the same, but we have no way to easily check that 
-		// now. 
+		// of the two vtx formats are the same, but we have no way to easily check that
+		// now.
 		VertexManager::Flush();
 		// Also move the Set() here?
 	}
@@ -587,7 +587,7 @@ int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const 
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
 	VertexManager::PrepareForAdditionalData(primitive, count, native_stride);
-	
+
 	return count;
 }
 
@@ -627,10 +627,10 @@ void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int co
 	VertexManager::s_pCurBufferPointer += native_stride * new_count;
 	DataSkip(new_count * m_VertexSize);
 
-	VertexManager::AddVertices(primitive, new_count);	
+	VertexManager::AddVertices(primitive, new_count);
 }
 
-void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2) 
+void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 {
 	VAT vat;
 	vat.g0.Hex = _group0;
@@ -674,7 +674,7 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 	m_VtxAttr.texCoord[7].Elements	= vat.g2.Tex7CoordElements;
 	m_VtxAttr.texCoord[7].Format	= vat.g2.Tex7CoordFormat;
 	m_VtxAttr.texCoord[7].Frac		= vat.g2.Tex7Frac;
-	
+
 	if(!m_VtxAttr.ByteDequant) {
 		ERROR_LOG(VIDEO, "ByteDequant is set to zero");
 	}
@@ -722,7 +722,7 @@ void VertexLoader::AppendToString(std::string *dest) const
 		}
 	}
 	u32 tex_mode[8] = {
-		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord, 
+		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
 		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord
 	};
 	for (int i = 0; i < 8; i++)

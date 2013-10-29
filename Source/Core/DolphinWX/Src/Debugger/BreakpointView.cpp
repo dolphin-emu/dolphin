@@ -41,14 +41,14 @@ void CBreakPointView::Update()
 			int Item = InsertItem(0, temp);
 			temp = StrToWxStr("BP");
 			SetItem(Item, 1, temp);
-			
+
 			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(rBP.iAddress);
 			if (symbol)
 			{
 				temp = StrToWxStr(g_symbolDB.GetDescription(rBP.iAddress));
 				SetItem(Item, 2, temp);
 			}
-			
+
 			sprintf(szBuffer, "%08x", rBP.iAddress);
 			temp = StrToWxStr(szBuffer);
 			SetItem(Item, 3, temp);

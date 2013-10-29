@@ -15,7 +15,7 @@
 const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
 
 //static u64 GC_ALIGNED16(temp64); // unused?
- 
+
 // TODO(ector): Improve 64-bit version
 #if 0
 static void WriteDual32(u64 value, u32 address)

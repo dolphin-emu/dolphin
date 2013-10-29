@@ -209,7 +209,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 	MOVSD(fpr.R(d), XMM0);
 	fpr.UnlockAll();
 }
- 
+
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -264,12 +264,12 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 		SetJumpTarget(pGreater);
 		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4));
 		continue3 = J();
-	
+
 		// Less Than
 		SetJumpTarget(pLesser);
 		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8));
 	}
-	
+
 	SetJumpTarget(continue1);
 	if (a != b)
 	{

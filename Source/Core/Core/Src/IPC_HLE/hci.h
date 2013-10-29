@@ -2416,7 +2416,7 @@ struct SHCIEventStatus
 	u8 EventType;
 	u8 PayloadLength;
 	u8 EventStatus;
-	u8 PacketIndicator;	
+	u8 PacketIndicator;
 	u16 Opcode;
 };
 

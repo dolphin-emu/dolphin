@@ -70,7 +70,7 @@ void GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		g_controller_interface.UpdateInput();
 	}
 	_last_numPAD = _numPAD;
-	
+
 	// get input
 	((GCPad*)g_plugin.controllers[_numPAD])->GetInput(_pPADStatus);
 }
@@ -105,7 +105,7 @@ void Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 // __________________________________________________________________________________________________
 // Function: Motor
 // Purpose:  For devices with constant Force feedback
-// input:    _numPAD    - The pad to operate on 
+// input:    _numPAD    - The pad to operate on
 //           _uType     - 06 = Motor On, 04 = Motor Off
 //           _uStrength - 00 = Left Strong, 127 = Left Weak, 128 = Right Weak, 255 = Right Strong
 // output:   none
@@ -127,7 +127,7 @@ void Motor(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 
 bool GetMicButton(u8 pad)
 {
-	
+
 	std::unique_lock<std::recursive_mutex> lk(g_plugin.controls_lock, std::try_to_lock);
 
 	if (!lk.owns_lock())

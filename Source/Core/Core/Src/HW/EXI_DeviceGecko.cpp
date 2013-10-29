@@ -108,31 +108,31 @@ void GeckoSockServer::ClientThread()
 	while (client_running)
 	{
 		bool did_nothing = true;
-		
+
 		{
 		std::lock_guard<std::mutex> lk(transfer_lock);
 
 		// what's an ideal buffer size?
 		char data[128];
 		std::size_t got = 0;
-		
+
 		if (client.Receive(&data[0], ArraySize(data), got) == sf::Socket::Disconnected)
 			client_running = false;
-		
+
 		if (got != 0)
 		{
 			did_nothing = false;
-			
+
 			recv_fifo.insert(recv_fifo.end(), &data[0], &data[got]);
 		}
 
 		if (!send_fifo.empty())
 		{
 			did_nothing = false;
-			
+
 			std::vector<char> packet(send_fifo.begin(), send_fifo.end());
 			send_fifo.clear();
-			
+
 			if (client.Send(&packet[0], packet.size()) == sf::Socket::Disconnected)
 				client_running = false;
 		}
@@ -165,7 +165,7 @@ void CEXIGecko::ImmReadWrite(u32 &_uData, u32 _uSize)
 			"USBGecko: A piercing blue light is now shining in your general direction"),
 			3000);
 		break;
-	
+
 	case CMD_INIT:
 		_uData = ident;
 		break;

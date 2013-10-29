@@ -190,7 +190,7 @@ bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
 			return true;
 		}
 	}
-	
+
 	return false;
 }
 
@@ -207,14 +207,14 @@ std::string CFileSystemGCWii::GetStringFromOffset(u64 _Offset) const
 	data.resize(255);
 	m_rVolume->Read(_Offset, data.size(), (u8*)&data[0]);
 	data.erase(std::find(data.begin(), data.end(), 0x00), data.end());
-	
+
 	// TODO: Should we really always use SHIFT-JIS?
 	// It makes some filenames in Pikmin (NTSC-U) sane, but is it correct?
 	return SHIFTJISToUTF8(data);
 }
 
 size_t CFileSystemGCWii::GetFileList(std::vector<const SFileInfo *> &_rFilenames)
-{	
+{
 	if (!m_Initialized)
 		InitFileSystem();
 

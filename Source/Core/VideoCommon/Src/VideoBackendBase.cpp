@@ -21,7 +21,7 @@ static VideoBackend* s_default_backend = NULL;
 #include <windows.h>
 
 // http://msdn.microsoft.com/en-us/library/ms725491.aspx
-static bool IsGteVista() 
+static bool IsGteVista()
 {
 	OSVERSIONINFOEX osvi;
 	DWORDLONG dwlConditionMask = 0;

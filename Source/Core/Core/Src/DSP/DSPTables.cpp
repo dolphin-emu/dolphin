@@ -19,7 +19,7 @@ void nop(const UDSPInstruction opc)
 		ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x", opc);
 	}
 }
- 
+
 const DSPOPCTemplate opcodes[] =
 {
 	{"NOP",		0x0000, 0xfffc, nop,                     &DSPEmitter::nop,    1, 0, {},                                                                                     false, false, false, false, false},
@@ -47,7 +47,7 @@ const DSPOPCTemplate opcodes[] =
 	{"RETLZ",	0x02dd, 0xffff, DSPInterpreter::ret,     &DSPEmitter::ret,    1, 0, {},                                                                                     false, true, false, true, false},
 	{"RETO",	0x02de, 0xffff, DSPInterpreter::ret,     &DSPEmitter::ret,    1, 0, {},                                                                                     false, true, false, true, false},
 	{"RET",		0x02df, 0xffff, DSPInterpreter::ret,     &DSPEmitter::ret,    1, 0, {},                                                                                     false, true, true, false, false},
-	
+
 	{"RTI",		0x02ff, 0xffff, DSPInterpreter::rti,     &DSPEmitter::rti,    1, 0, {},                                                                                     false, true, true, false, false},
 
 	{"CALLGE",	0x02b0, 0xffff, DSPInterpreter::call,    &DSPEmitter::call,   2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}},                                                          false, true, false, true, false},
@@ -142,7 +142,7 @@ const DSPOPCTemplate opcodes[] =
 	{"LSR",		0x1440, 0xfec0, DSPInterpreter::lsr,     &DSPEmitter::lsr,    1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_IMM, 1, 0, 0, 0x003f}},                               false, false, false, false, true},
 	{"ASL",		0x1480, 0xfec0, DSPInterpreter::asl,     &DSPEmitter::asl,    1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_IMM, 1, 0, 0, 0x003f}},                               false, false, false, false, true},
 	{"ASR",		0x14c0, 0xfec0, DSPInterpreter::asr,     &DSPEmitter::asr,    1, 2, {{P_ACC, 1, 0, 8, 0x0100},     {P_IMM, 1, 0, 0, 0x003f}},                               false, false, false, false, true},
-	
+
 	{"LSRN",	0x02ca, 0xffff, DSPInterpreter::lsrn,    &DSPEmitter::lsrn,   1, 0, {},                                                                                     false, false, false, false, true}, // discovered by ector!
 	{"ASRN",	0x02cb, 0xffff, DSPInterpreter::asrn,    &DSPEmitter::asrn,   1, 0, {},                                                                                     false, false, false, false, true}, // discovered by ector!
 
@@ -288,7 +288,7 @@ const DSPOPCTemplate opcodes[] =
 	{"MOVPZ",	0xfe00, 0xfe00, DSPInterpreter::movpz,   &DSPEmitter::movpz,  1, 1, {{P_ACC,   1, 0,  8, 0x0100}},                                                          true, false, false, false, true},
 };
 
-const DSPOPCTemplate cw = 
+const DSPOPCTemplate cw =
 	{"CW",		0x0000, 0x0000, nop, NULL, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
 
 // extended opcodes
@@ -556,7 +556,7 @@ void InitInstructionTable()
 				if (opTable[i] == &cw)
 					opTable[i] = &opcode;
 				else
-					ERROR_LOG(DSPLLE, "opcode table place %d already in use for %s", i, opcode.name); 
+					ERROR_LOG(DSPLLE, "opcode table place %d already in use for %s", i, opcode.name);
 			}
 		}
 	}

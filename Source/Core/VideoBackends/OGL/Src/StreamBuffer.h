@@ -33,17 +33,17 @@ class StreamBuffer {
 public:
 	StreamBuffer(u32 type, size_t size, StreamType uploadType = DETECT_MASK);
 	~StreamBuffer();
-	
+
 	void Alloc(size_t size, u32 stride = 0);
 	size_t Upload(u8 *data, size_t size);
-	
+
 	u32 getBuffer() { return m_buffer; }
-	
+
 private:
 	void Init();
 	void Shutdown();
 	void DeleteFences();
-	
+
 	StreamType m_uploadtype;
 	u32 m_buffer;
 	u32 m_buffertype;
