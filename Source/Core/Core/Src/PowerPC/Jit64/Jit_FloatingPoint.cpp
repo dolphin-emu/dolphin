@@ -70,11 +70,6 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 		Default(inst); return;
 	}
 
-	if (inst.SUBOP5 != 18 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21 &&
-	    inst.SUBOP5 != 25) {
-		Default(inst); return;
-	}
-
 	// Only the interpreter has "proper" support for (some) FP flags
 	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF) {
 		Default(inst); return;
