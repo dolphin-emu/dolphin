@@ -118,7 +118,7 @@ public:
 protected:
 
 	static void CalculateTargetScale(int x, int y, int &scaledX, int &scaledY);
-	static bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, int multiplier = 1);
+	static bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height);
 
 	static void CheckFifoRecording();
 	static void RecordVideoMemory();
@@ -159,7 +159,6 @@ private:
 	static unsigned int efb_scale_numeratorY;
 	static unsigned int efb_scale_denominatorX;
 	static unsigned int efb_scale_denominatorY;
-	static unsigned int ssaa_multiplier;
 };
 
 extern Renderer *g_renderer;
