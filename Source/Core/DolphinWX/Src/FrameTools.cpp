@@ -1795,9 +1795,9 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		CFileSearch FileSearch(Extensions, Directories);
 		const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
 		
-		for (u32 i = 0; i < rFilenames.size(); i++)
+		for (auto& rFilename : rFilenames)
 		{
-			File::Delete(rFilenames[i]);
+			File::Delete(rFilename);
 		}
 		break;
 	}

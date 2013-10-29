@@ -185,9 +185,9 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	CreateGUIControls();
 
 	// Update selected ISO paths
-	for(u32 i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); i++)
+	for(auto& folder : SConfig::GetInstance().m_ISOFolder)
 	{
-		ISOPaths->Append(StrToWxStr(SConfig::GetInstance().m_ISOFolder[i]));
+		ISOPaths->Append(StrToWxStr(folder));
 	}
 }
 
@@ -251,8 +251,8 @@ void CConfigMain::InitializeGUILists()
 		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 
 	// Emulator Engine
-	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
-		arrayStringFor_CPUEngine.Add(wxGetTranslation(CPUCores[a].name));
+	for (auto& CPUCores_a : CPUCores)
+		arrayStringFor_CPUEngine.Add(wxGetTranslation(CPUCores_a.name));
 		
 	// DSP Engine 
 	arrayStringFor_DSPEngine.Add(_("DSP HLE emulation (fast)"));

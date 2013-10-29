@@ -230,9 +230,9 @@ void LogCompiledInstructions()
 
 #ifdef OPLOG
 	f.Open(StringFromFormat("%s" OP_TO_LOG "_at.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
-	for (size_t i = 0; i < rsplocations.size(); i++)
+	for (auto& rsplocation : rsplocations)
 	{
-		fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocations[i]);
+		fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocation);
 	}
 #endif
 

@@ -94,10 +94,10 @@ Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 	}
 	else
 	{
-		for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
+		for (auto& p : functions)
 		{
-			if (addr >= iter->second.address && addr < iter->second.address + iter->second.size)
-				return &iter->second;
+			if (addr >= p.second.address && addr < p.second.address + p.second.size)
+				return &p.second;
 		}
 	}
 	return 0;
@@ -114,18 +114,18 @@ const char *PPCSymbolDB::GetDescription(u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
+	for (auto& p : functions)
 	{
-		iter->second.callers.clear();
+		p.second.callers.clear();
 	}
 
 	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
 	{
 		Symbol &f = iter->second;
-		for (size_t i = 0; i < f.calls.size(); i++)
+		for (auto& call : f.calls)
 		{
-			SCall NewCall(iter->first, f.calls[i].callAddress);
-			u32 FunctionAddress = f.calls[i].function;
+			SCall NewCall(iter->first, call.callAddress);
+			u32 FunctionAddress = call.function;
 
 			XFuncMap::iterator FuncIterator = functions.find(FunctionAddress);
 			if (FuncIterator != functions.end())

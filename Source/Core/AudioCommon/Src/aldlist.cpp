@@ -144,10 +144,10 @@ ALDeviceList::ALDeviceList()
  */
 ALDeviceList::~ALDeviceList()
 {
-	for (u32 i = 0; i < vDeviceInfo.size(); i++) {
-		if (vDeviceInfo[i].pvstrExtensions) {
-			vDeviceInfo[i].pvstrExtensions->clear();
-			delete vDeviceInfo[i].pvstrExtensions;
+	for (auto& di : vDeviceInfo) {
+		if (di.pvstrExtensions) {
+			di.pvstrExtensions->clear();
+			delete di.pvstrExtensions;
 		}
 	}
 
@@ -206,8 +206,8 @@ bool ALDeviceList::IsExtensionSupported(s32 index, char *szExtName)
 	bool bReturn = false;
 
 	if (index < GetNumDevices()) {
-		for (u32 i = 0; i < vDeviceInfo[index].pvstrExtensions->size(); i++) {
-			if (!strcasecmp(vDeviceInfo[index].pvstrExtensions->at(i).c_str(), szExtName)) {
+		for (auto& ext : *vDeviceInfo[index].pvstrExtensions) {
+			if (!strcasecmp(ext.c_str(), szExtName)) {
 				bReturn = true;
 				break;
 			}				
@@ -260,16 +260,16 @@ void ALDeviceList::FilterDevicesExtension(char *szExtName)
 {
 	bool bFound;
 
-	for (u32 i = 0; i < vDeviceInfo.size(); i++) {
+	for (auto& di : vDeviceInfo) {
 		bFound = false;
-		for (u32 j = 0; j < vDeviceInfo[i].pvstrExtensions->size(); j++) {
-			if (!strcasecmp(vDeviceInfo[i].pvstrExtensions->at(j).c_str(), szExtName)) {
+		for (auto& ext : *di.pvstrExtensions) {
+			if (!strcasecmp(ext.c_str(), szExtName)) {
 				bFound = true;
 				break;
 			}
 		}
 		if (!bFound)
-			vDeviceInfo[i].bSelected = false;
+			di.bSelected = false;
 	}
 }
 
@@ -339,9 +339,9 @@ u32 ALDeviceList::GetMaxNumSources()
 	alDeleteSources(iSourceCount, uiSources);
 	if (alGetError() != AL_NO_ERROR)
 	{
-		for (u32 i = 0; i < 256; i++)
+		for (auto& uiSource : uiSources)
 		{
-			alDeleteSources(1, &uiSources[i]);
+			alDeleteSources(1, &uiSource);
 		}
 	}
 

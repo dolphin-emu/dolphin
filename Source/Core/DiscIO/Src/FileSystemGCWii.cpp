@@ -46,12 +46,12 @@ const char* CFileSystemGCWii::GetFileName(u64 _Address)
 	if (!m_Initialized)
 		InitFileSystem();
 
-	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
+	for (auto& fileInfo : m_FileInfoVector)
 	{
-		if ((m_FileInfoVector[i].m_Offset <= _Address) &&
-		    ((m_FileInfoVector[i].m_Offset + m_FileInfoVector[i].m_FileSize) > _Address))
+		if ((fileInfo.m_Offset <= _Address) &&
+		    ((fileInfo.m_Offset + fileInfo.m_FileSize) > _Address))
 		{
-			return m_FileInfoVector[i].m_FullPath;
+			return fileInfo.m_FullPath;
 		}
 	}
 
@@ -222,8 +222,8 @@ size_t CFileSystemGCWii::GetFileList(std::vector<const SFileInfo *> &_rFilenames
 		PanicAlert("GetFileList : input list has contents?");
 	_rFilenames.clear();
 	_rFilenames.reserve(m_FileInfoVector.size());
-	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
-		_rFilenames.push_back(&m_FileInfoVector[i]);
+	for (auto& fileInfo : m_FileInfoVector)
+		_rFilenames.push_back(&fileInfo);
 	return m_FileInfoVector.size();
 }
 
@@ -232,10 +232,10 @@ const SFileInfo* CFileSystemGCWii::FindFileInfo(const char* _rFullPath)
 	if (!m_Initialized)
 		InitFileSystem();
 
-	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
+	for (auto& fileInfo : m_FileInfoVector)
 	{
-		if (!strcasecmp(m_FileInfoVector[i].m_FullPath, _rFullPath))
-			return &m_FileInfoVector[i];
+		if (!strcasecmp(fileInfo.m_FullPath, _rFullPath))
+			return &fileInfo;
 	}
 
 	return NULL;

@@ -1124,14 +1124,14 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const {
 		static unsigned ZeroOp[] = {LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit, LoadFReg, LoadFRegDENToZero, LoadGQR, Int3, };
 		static unsigned UOp[] = {StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, Not, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FSRSqrt, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, };
 		static unsigned BiOp[] = {BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, InterpreterFallback, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
-		for (size_t i = 0; i < sizeof(ZeroOp) / sizeof(ZeroOp[0]); ++i) {
-			numberOfOperands[ZeroOp[i]] = 0;
+		for (auto& op : ZeroOp) {
+			numberOfOperands[op] = 0;
 		}
-		for (size_t i = 0; i < sizeof(UOp) / sizeof(UOp[0]); ++i) {
-			numberOfOperands[UOp[i]] = 1;
+		for (auto& op : UOp) {
+			numberOfOperands[op] = 1;
 		}
-		for (size_t i = 0; i < sizeof(BiOp) / sizeof(BiOp[0]); ++i) {
-			numberOfOperands[BiOp[i]] = 2;
+		for (auto& op : BiOp) {
+			numberOfOperands[op] = 2;
 		}
 	}
 

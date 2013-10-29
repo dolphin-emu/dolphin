@@ -296,9 +296,9 @@ void CCodeWindow::UpdateLists()
 	if (!symbol)
 		return;
 
-	for (int i = 0; i < (int)symbol->callers.size(); i++)
+	for (auto& call : symbol->callers)
 	{
-		u32 caller_addr = symbol->callers[i].callAddress;
+		u32 caller_addr = call.callAddress;
 		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
 		if (caller_symbol)
 		{
@@ -309,9 +309,9 @@ void CCodeWindow::UpdateLists()
 	}
 
 	calls->Clear();
-	for (int i = 0; i < (int)symbol->calls.size(); i++)
+	for (auto& call : symbol->calls)
 	{
-		u32 call_addr = symbol->calls[i].function;
+		u32 call_addr = call.function;
 		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
 		if (call_symbol)
 		{
@@ -332,10 +332,10 @@ void CCodeWindow::UpdateCallstack()
 
 	bool ret = Dolphin_Debugger::GetCallstack(stack);
 
-	for (size_t i = 0; i < stack.size(); i++)
+	for (auto& frame : stack)
 	{
-		int idx = callstack->Append(StrToWxStr(stack[i].Name));
-		callstack->SetClientData(idx, (void*)(u64)stack[i].vAddress);
+		int idx = callstack->Append(StrToWxStr(frame.Name));
+		callstack->SetClientData(idx, (void*)(u64)frame.vAddress);
 	}
 
 	if (!ret)
@@ -552,8 +552,8 @@ void CCodeWindow::InitBitmaps()
 	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 
 	// scale to 24x24 for toolbar
-	for (size_t n = 0; n < ToolbarDebugBitmapMax; n++)
-		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(24, 24));
+	for (auto& bitmap : m_Bitmaps)
+		bitmap = wxBitmap(bitmap.ConvertToImage().Scale(24, 24));
 }
 
 void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)

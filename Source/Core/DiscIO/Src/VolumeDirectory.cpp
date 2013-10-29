@@ -363,9 +363,9 @@ void CVolumeDirectory::BuildFST()
 	// write root entry
 	WriteEntryData(fstOffset, DIRECTORY_ENTRY, 0, 0, totalEntries);
 
-	for(std::vector<File::FSTEntry>::iterator iter = rootEntry.children.begin(); iter != rootEntry.children.end(); ++iter)
+	for(auto& entry : rootEntry.children)
 	{
-		WriteEntry(*iter, fstOffset, nameOffset, curDataAddress, rootOffset);
+		WriteEntry(entry, fstOffset, nameOffset, curDataAddress, rootOffset);
 	}
 
 	// overflow check
@@ -459,9 +459,9 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 		WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum, (u32)(myEntryNum + entry.size + 1));
 		WriteEntryName(nameOffset, entry.virtualName);
 
-		for(std::vector<File::FSTEntry>::const_iterator iter = entry.children.begin(); iter != entry.children.end(); ++iter)
+		for(const auto& child : entry.children)
 		{
-			WriteEntry(*iter, fstOffset, nameOffset, dataOffset, myEntryNum);
+			WriteEntry(child, fstOffset, nameOffset, dataOffset, myEntryNum);
 		}
 	}
 	else

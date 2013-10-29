@@ -88,9 +88,9 @@ TextureCache::TCacheEntry::~TCacheEntry()
 {
 	if (texture)
 	{
-		for(int i=0; i<8; i++)
-			if(s_Textures[i] == texture)
-				s_Textures[i] = 0;
+		for(auto& gtex : s_Textures)
+			if(gtex == texture)
+				gtex = 0;
 		glDeleteTextures(1, &texture);
 		texture = 0;
 	}
@@ -449,8 +449,8 @@ TextureCache::TextureCache()
 
 	s_ActiveTexture = -1;
 	s_NextStage = -1;
-	for(int i=0; i<8; i++)
-		s_Textures[i] = -1;
+	for(auto& gtex : s_Textures)
+		gtex = -1;
 }
 
 
@@ -459,9 +459,9 @@ TextureCache::~TextureCache()
 	s_ColorMatrixProgram.Destroy();
 	s_DepthMatrixProgram.Destroy();
 	
-	for(std::map<u64, VBOCache>::iterator it = s_VBO.begin(); it != s_VBO.end(); it++) {
-		glDeleteBuffers(1, &it->second.vbo);
-		glDeleteVertexArrays(1, &it->second.vao);
+	for(auto& cache : s_VBO) {
+		glDeleteBuffers(1, &cache.second.vbo);
+		glDeleteVertexArrays(1, &cache.second.vao);
 	}
 	s_VBO.clear();
 }

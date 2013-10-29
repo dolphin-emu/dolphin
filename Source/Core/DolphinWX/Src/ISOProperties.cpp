@@ -1223,9 +1223,8 @@ void CISOProperties::PatchList_Load()
 	PatchEngine::LoadPatchSection("OnFrame", onFrame, GameIniDefault, GameIniLocal);
 
 	u32 index = 0;
-	for (auto it = onFrame.begin(); it != onFrame.end(); ++it)
+	for (PatchEngine::Patch& p : onFrame)
 	{
-		PatchEngine::Patch p = *it;
 		Patches->Append(StrToWxStr(p.name));
 		Patches->Check(index, p.active);
 		if (!p.user_defined)
@@ -1239,16 +1238,16 @@ void CISOProperties::PatchList_Save()
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 	u32 index = 0;
-	for (auto onFrame_it = onFrame.begin(); onFrame_it != onFrame.end(); ++onFrame_it)
+	for (PatchEngine::Patch& p : onFrame)
 	{
 		if (Patches->IsChecked(index))
-			enabledLines.push_back("$" + onFrame_it->name);
+			enabledLines.push_back("$" + p.name);
 
 		// Do not save default patches.
-		if (DefaultPatches.find(onFrame_it->name) == DefaultPatches.end())
+		if (DefaultPatches.find(p.name) == DefaultPatches.end())
 		{
-			lines.push_back("$" + onFrame_it->name);
-			for (auto iter2 = onFrame_it->entries.begin(); iter2 != onFrame_it->entries.end(); ++iter2)
+			lines.push_back("$" + p.name);
+			for (auto iter2 = p.entries.begin(); iter2 != p.entries.end(); ++iter2)
 			{
 				std::string temp = StringFromFormat("0x%08X:%s:0x%08X", iter2->address, PatchEngine::PatchTypeStrings[iter2->type], iter2->value);
 				lines.push_back(temp);
@@ -1330,10 +1329,8 @@ void CISOProperties::ActionReplayList_Save()
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 	u32 index = 0;
-	for (auto iter = arCodes.begin(); iter != arCodes.end(); ++iter)
+	for (auto code : arCodes)
 	{
-		ActionReplay::ARCode code = *iter;
-
 		if (Cheats->IsChecked(index))
 			enabledLines.push_back("$" + code.name);
 
@@ -1341,9 +1338,9 @@ void CISOProperties::ActionReplayList_Save()
 		if (DefaultCheats.find(code.name) == DefaultCheats.end())
 		{
 			lines.push_back("$" + code.name);
-			for (auto iter2 = code.ops.begin(); iter2 != code.ops.end(); ++iter2)
+			for (auto& op : code.ops)
 			{
-				lines.push_back(WxStrToStr(wxString::Format(wxT("%08X %08X"), iter2->cmd_addr, iter2->value)));
+				lines.push_back(WxStrToStr(wxString::Format(wxT("%08X %08X"), op.cmd_addr, op.value)));
 			}
 		}
 		++index;

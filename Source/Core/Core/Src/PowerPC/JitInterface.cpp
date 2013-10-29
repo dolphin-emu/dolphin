@@ -162,22 +162,22 @@ namespace JitInterface
 			return;
 		}
 		fprintf(f.GetHandle(), "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
-		for (unsigned int i = 0; i < stats.size(); i++)
+		for (auto& stat : stats)
 		{
-			const JitBlock *block = jit->GetBlockCache()->GetBlock(stats[i].blockNum);
+			const JitBlock *block = jit->GetBlockCache()->GetBlock(stat.blockNum);
 			if (block)
 			{
 				std::string name = g_symbolDB.GetDescription(block->originalAddress);
-				double percent = 100.0 * (double)stats[i].cost / (double)cost_sum;
+				double percent = 100.0 * (double)stat.cost / (double)cost_sum;
 	#ifdef _WIN32 
 				double timePercent = 100.0 * (double)block->ticCounter / (double)timecost_sum;
 				fprintf(f.GetHandle(), "%08x\t%s\t%llu\t%llu\t%.2lf\t%llf\t%lf\t%i\n", 
-						block->originalAddress, name.c_str(), stats[i].cost,
+						block->originalAddress, name.c_str(), stat.cost,
 						block->ticCounter, percent, timePercent,
 						(double)block->ticCounter*1000.0/(double)countsPerSec, block->codeSize);
 	#else
 				fprintf(f.GetHandle(), "%08x\t%s\t%llu\t???\t%.2lf\t???\t???\t%i\n", 
-						block->originalAddress, name.c_str(), stats[i].cost,  percent, block->codeSize);
+						block->originalAddress, name.c_str(), stat.cost,  percent, block->codeSize);
 	#endif
 			}
 		}

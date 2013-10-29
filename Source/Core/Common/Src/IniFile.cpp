@@ -125,18 +125,16 @@ bool IniFile::Section::Get(const char* key, std::vector<std::string>& out)
 	size_t subEnd;
 
 	// split by , 
-	while (subStart != std::string::npos) {
-		
+	while (subStart != std::string::npos)
+	{
 		// Find next , 
 		subEnd = temp.find_first_of(",", subStart);
 		if (subStart != subEnd) 
 			// take from first char until next , 
 			out.push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
-	
 		// Find the next non , char
 		subStart = temp.find_first_not_of(",", subEnd);
-	} 
-	
+	}
 	return true;
 }
 
@@ -210,17 +208,17 @@ bool IniFile::Section::Delete(const char *key)
 
 const IniFile::Section* IniFile::GetSection(const char* sectionName) const
 {
-	for (std::vector<Section>::const_iterator iter = sections.begin(); iter != sections.end(); ++iter)
-		if (!strcasecmp(iter->name.c_str(), sectionName))
-			return (&(*iter));
+	for (const auto& sect : sections)
+		if (!strcasecmp(sect.name.c_str(), sectionName))
+			return (&(sect));
 	return 0;
 }
 
 IniFile::Section* IniFile::GetSection(const char* sectionName)
 {
-	for (std::vector<Section>::iterator iter = sections.begin(); iter != sections.end(); ++iter)
-		if (!strcasecmp(iter->name.c_str(), sectionName))
-			return (&(*iter));
+	for (auto& sect : sections)
+		if (!strcasecmp(sect.name.c_str(), sectionName))
+			return (&(sect));
 	return 0;
 }
 
@@ -291,9 +289,9 @@ bool IniFile::GetLines(const char* sectionName, std::vector<std::string>& lines,
 		return false;
 
 	lines.clear();
-	for (std::vector<std::string>::const_iterator iter = section->lines.begin(); iter != section->lines.end(); ++iter)
+	for (std::string line : section->lines)
 	{
-		std::string line = StripSpaces(*iter);
+		line = StripSpaces(line);
 
 		if (remove_comments)
 		{
@@ -399,20 +397,15 @@ bool IniFile::Save(const char* filename)
 		return false;
 	}
 
-	for (auto iter = sections.begin(); iter != sections.end(); ++iter)
+	for (auto& section : sections)
 	{
-		const Section& section = *iter;
-
 		if (section.keys_order.size() != 0 || section.lines.size() != 0)
 			out << "[" << section.name << "]" << std::endl;
 
 		if (section.keys_order.size() == 0)
 		{
-			for (auto liter = section.lines.begin(); liter != section.lines.end(); ++liter)
-			{
-				std::string s = *liter;
+			for (auto s : section.lines)
 				out << s << std::endl;
-			}
 		}
 		else
 		{

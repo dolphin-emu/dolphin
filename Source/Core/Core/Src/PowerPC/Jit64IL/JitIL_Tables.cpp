@@ -397,9 +397,9 @@ void InitTables()
 		return;
 
 	//clear
-	for (int i = 0; i < 32; i++) 
+	for (auto& tpl : dynaOpTable59) 
 	{
-		dynaOpTable59[i] = &JitIL::unknown_instruction;
+		tpl = &JitIL::unknown_instruction;
 	}
 
 	for (int i = 0; i < 1024; i++)
@@ -410,78 +410,78 @@ void InitTables()
 		dynaOpTable63[i] = &JitIL::unknown_instruction;	
 	}
 
-	for (int i = 0; i < (int)(sizeof(primarytable) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : primarytable)
 	{
-		dynaOpTable[primarytable[i].opcode] = primarytable[i].Inst;
+		dynaOpTable[tpl.opcode] = tpl.Inst;
 	}
 
 	for (int i = 0; i < 32; i++)
 	{
 		int fill = i << 5;
-		for (int j = 0; j < (int)(sizeof(table4_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table4_2)
 		{
-			int op = fill+table4_2[j].opcode;
-			dynaOpTable4[op] = table4_2[j].Inst;
+			int op = fill+tpl.opcode;
+			dynaOpTable4[op] = tpl.Inst;
 		}
 	}
 
 	for (int i = 0; i < 16; i++)
 	{
 		int fill = i << 6;
-		for (int j = 0; j < (int)(sizeof(table4_3) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table4_3)
 		{
-			int op = fill+table4_3[j].opcode;
-			dynaOpTable4[op] = table4_3[j].Inst;
+			int op = fill+tpl.opcode;
+			dynaOpTable4[op] = tpl.Inst;
 		}
 	}
 
-	for (int i = 0; i < (int)(sizeof(table4) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table4)
 	{
-		int op = table4[i].opcode;
-		dynaOpTable4[op] = table4[i].Inst;
+		int op = tpl.opcode;
+		dynaOpTable4[op] = tpl.Inst;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table31) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table31)
 	{
-		int op = table31[i].opcode;
-		dynaOpTable31[op] = table31[i].Inst;
+		int op = tpl.opcode;
+		dynaOpTable31[op] = tpl.Inst;
 	}
 
 	for (int i = 0; i < 1; i++)
 	{
 		int fill = i << 9;
-		for (int j = 0; j < (int)(sizeof(table31_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table31_2)
 		{
-			int op = fill + table31_2[j].opcode;
-			dynaOpTable31[op] = table31_2[j].Inst;
+			int op = fill + tpl.opcode;
+			dynaOpTable31[op] = tpl.Inst;
 		}
 	}
 
-	for (int i = 0; i < (int)(sizeof(table19) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table19)
 	{
-		int op = table19[i].opcode;
-		dynaOpTable19[op] = table19[i].Inst;
+		int op = tpl.opcode;
+		dynaOpTable19[op] = tpl.Inst;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table59) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table59)
 	{
-		int op = table59[i].opcode;
-		dynaOpTable59[op] = table59[i].Inst;
+		int op = tpl.opcode;
+		dynaOpTable59[op] = tpl.Inst;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table63) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table63)
 	{
-		int op = table63[i].opcode;
-		dynaOpTable63[op] = table63[i].Inst;
+		int op = tpl.opcode;
+		dynaOpTable63[op] = tpl.Inst;
 	}
 
 	for (int i = 0; i < 32; i++)
 	{
 		int fill = i << 5;
-		for (int j = 0; j < (int)(sizeof(table63_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table63_2)
 		{
-			int op = fill + table63_2[j].opcode;
-			dynaOpTable63[op] = table63_2[j].Inst;
+			int op = fill + tpl.opcode;
+			dynaOpTable63[op] = tpl.Inst;
 		}
 	}
 

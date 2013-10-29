@@ -905,14 +905,14 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 	size_t col_size = 0;
 
 	wxBoxSizer* stacked_groups = NULL;
-	for (unsigned int i = 0; i < controller->groups.size(); ++i)
+	for (ControllerEmu::ControlGroup* group : controller->groups)
 	{
-		ControlGroupBox* control_group_box = new ControlGroupBox(controller->groups[i], parent, eventsink);
+		ControlGroupBox* control_group_box = new ControlGroupBox(group, parent, eventsink);
 		wxStaticBoxSizer *control_group =
-			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(controller->groups[i]->name)));
+			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(group->name)));
 		control_group->Add(control_group_box);
 
-		const size_t grp_size = controller->groups[i]->controls.size() + controller->groups[i]->settings.size();
+		const size_t grp_size = group->controls.size() + group->settings.size();
 		col_size += grp_size;
 		if (col_size > 8 || NULL == stacked_groups)
 		{

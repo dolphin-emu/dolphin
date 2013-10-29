@@ -436,12 +436,12 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// Create ACL connection
 	if (m_HCIEndpoint.IsValid() && (m_ScanEnable & HCI_PAGE_SCAN_ENABLE))
 	{
-		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+		for (auto& wiimote : m_WiiMotes)
 		{
-			if (m_WiiMotes[i].EventPagingChanged(m_ScanEnable))
+			if (wiimote.EventPagingChanged(m_ScanEnable))
 			{
 				Host_SetWiiMoteConnectionState(1);
-				SendEventRequestConnection(m_WiiMotes[i]);
+				SendEventRequestConnection(wiimote);
 			}
 		}
 	}
@@ -449,9 +449,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// Link channels when connected
 	if (m_ACLEndpoint.IsValid())
 	{
-		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+		for (auto& wiimote : m_WiiMotes)
 		{
-			if (m_WiiMotes[i].LinkChannel())
+			if (wiimote.LinkChannel())
 				break;
 		}
 	}
@@ -1818,16 +1818,16 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4C(u8* _Input,
 //
 CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const bdaddr_t& _rAddr)
 {
-	for (size_t i=0; i<m_WiiMotes.size(); i++)
+	for (auto& wiimote : m_WiiMotes)
 	{
-		const bdaddr_t& BD = m_WiiMotes[i].GetBD();
+		const bdaddr_t& BD = wiimote.GetBD();
 		if ((_rAddr.b[0] == BD.b[0]) &&
 			(_rAddr.b[1] == BD.b[1]) &&
 			(_rAddr.b[2] == BD.b[2]) &&
 			(_rAddr.b[3] == BD.b[3]) &&
 			(_rAddr.b[4] == BD.b[4]) &&
 			(_rAddr.b[5] == BD.b[5]))
-			return &m_WiiMotes[i];
+			return &wiimote;
 	}
 
 	ERROR_LOG(WII_IPC_WIIMOTE,"Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
@@ -1837,10 +1837,10 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const b
 
 CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _ConnectionHandle)
 {
-	for (size_t i=0; i<m_WiiMotes.size(); i++)
+	for (auto& wiimote : m_WiiMotes)
 	{
-		if (m_WiiMotes[i].GetConnectionHandle() == _ConnectionHandle)
-			return &m_WiiMotes[i];
+		if (wiimote.GetConnectionHandle() == _ConnectionHandle)
+			return &wiimote;
 	}
 
 	ERROR_LOG(WII_IPC_WIIMOTE, "Can't find WiiMote by connection handle %02x", _ConnectionHandle);

@@ -50,11 +50,11 @@ void VideoBackend::PopulateList()
 #endif
 	g_available_video_backends.push_back(backends[3] = new SW::VideoSoftware);
 
-	for (int i = 0; i < 4; ++i)
+	for (auto& backend : backends)
 	{
-		if (backends[i])
+		if (backend)
 		{
-			s_default_backend = g_video_backend = backends[i];
+			s_default_backend = g_video_backend = backend;
 			break;
 		}
 	}

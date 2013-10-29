@@ -32,9 +32,8 @@ void CBreakPointView::Update()
 
 	char szBuffer[64];
 	const BreakPoints::TBreakPoints& rBreakPoints = PowerPC::breakpoints.GetBreakPoints();
-	for (size_t i = 0; i < rBreakPoints.size(); i++)
+	for (const auto& rBP : rBreakPoints)
 	{
-		const TBreakPoint& rBP = rBreakPoints[i];
 		if (!rBP.bTemporary)
 		{
 			wxString temp;
@@ -59,10 +58,8 @@ void CBreakPointView::Update()
 	}
 
 	const MemChecks::TMemChecks& rMemChecks = PowerPC::memchecks.GetMemChecks();
-	for (size_t i = 0; i < rMemChecks.size(); i++)
+	for (const auto& rMemCheck : rMemChecks)
 	{
-		const TMemCheck& rMemCheck = rMemChecks[i];
-
 		wxString temp;
 		temp = StrToWxStr((rMemCheck.Break || rMemCheck.Log) ? "on" : " ");
 		int Item = InsertItem(0, temp);

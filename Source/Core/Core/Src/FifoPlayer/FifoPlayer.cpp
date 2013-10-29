@@ -259,9 +259,9 @@ void FifoPlayer::WriteAllMemoryUpdates()
 	for (int frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
 	{
 		const FifoFrameInfo &frame = m_File->GetFrame(frameNum);
-		for (unsigned int i = 0; i < frame.memoryUpdates.size(); ++i)
+		for (auto& update : frame.memoryUpdates)
 		{
-			WriteMemory(frame.memoryUpdates[i]);
+			WriteMemory(update);
 		}
 	}
 }

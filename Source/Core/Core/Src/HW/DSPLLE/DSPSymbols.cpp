@@ -64,10 +64,10 @@ Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 	}
 	else
 	{
-		for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
+		for (auto& func : functions)
 		{
-			if (addr >= iter->second.address && addr < iter->second.address + iter->second.size)
-				return &iter->second;
+			if (addr >= func.second.address && addr < func.second.address + func.second.size)
+				return &func.second;
 		}
 	}
 	return 0;

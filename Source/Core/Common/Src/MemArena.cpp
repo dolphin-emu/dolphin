@@ -36,7 +36,7 @@ int AshmemCreateFileMapping(const char *name, size_t size)
 	if (fd < 0)
 		return fd;
 
-	// We don't really care if we can't set the name, it is optional	
+	// We don't really care if we can't set the name, it is optional
 	ret = ioctl(fd, ASHMEM_SET_NAME, name);
 
 	ret = ioctl(fd, ASHMEM_SET_SIZE, size);
@@ -263,7 +263,6 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 			base_attempts = 0;
 			break;
 		}
-		
 	}
 #else
 	// Linux32 is fine with the x64 method, although limited to 32-bit with no automirrors.
@@ -289,9 +288,8 @@ void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemAr
 	{
 		const MemoryView* view = &views[i];
 		u8** outptrs[2] = {view->out_ptr_low, view->out_ptr};
-		for (int j = 0; j < 2; j++)
+		for (auto outptr : outptrs)
 		{
-			u8** outptr = outptrs[j];
 			if (outptr && *outptr && !freeset.count(*outptr))
 			{
 				arena->ReleaseView(*outptr, view->size);

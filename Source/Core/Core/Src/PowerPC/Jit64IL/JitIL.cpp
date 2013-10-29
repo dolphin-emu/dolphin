@@ -211,11 +211,11 @@ namespace JitILProfiler
 			File::IOFile file(buffer, "w");
 			setvbuf(file.GetHandle(), NULL, _IOFBF, 1024 * 1024);
 			fprintf(file.GetHandle(), "code hash,total elapsed,number of calls,elapsed per call\n");
-			for (std::vector<Block>::iterator it = blocks.begin(), itEnd = blocks.end(); it != itEnd; ++it)
+			for (auto& block : blocks)
 			{
-				const u64 codeHash = it->codeHash;
-				const u64 totalElapsed = it->totalElapsed;
-				const u64 numberOfCalls = it->numberOfCalls;
+				const u64 codeHash = block.codeHash;
+				const u64 totalElapsed = block.totalElapsed;
+				const u64 numberOfCalls = block.numberOfCalls;
 				const double elapsedPerCall = totalElapsed / (double)numberOfCalls;
 				fprintf(file.GetHandle(), "%016llx,%lld,%lld,%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
 			}

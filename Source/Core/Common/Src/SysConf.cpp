@@ -298,8 +298,8 @@ void SysConf::GenerateSysConf()
 	items[26].data[0] = 0x01;
 
 
-	for (int i = 0; i < 27; i++)
-		m_Entries.push_back(items[i]);
+	for (auto& item : items)
+		m_Entries.push_back(item);
 
 	File::CreateFullPath(m_FilenameDefault);
 	File::IOFile g(m_FilenameDefault, "wb");

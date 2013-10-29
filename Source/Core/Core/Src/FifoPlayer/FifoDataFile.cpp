@@ -17,12 +17,10 @@ FifoDataFile::FifoDataFile() :
 
 FifoDataFile::~FifoDataFile()
 {
-	for (unsigned int frameIdx = 0; frameIdx < m_Frames.size(); ++frameIdx)
+	for (auto& frame : m_Frames)
 	{
-		FifoFrameInfo &frame = m_Frames[frameIdx];
-
-		for (unsigned int i = 0; i < frame.memoryUpdates.size(); ++i)
-			delete []frame.memoryUpdates[i].data;
+		for (auto& update : frame.memoryUpdates)
+			delete []update.data;
 
 		delete []frame.fifoData;
 	}
@@ -54,7 +52,7 @@ bool FifoDataFile::Save(const char *filename)
 
 	// Add space for frame list
 	u64 frameListOffset = file.Tell();
-	for (unsigned int i = 0; i < m_Frames.size(); ++i)
+	for (size_t i = 0; i < m_Frames.size(); i++)
 		PadFile(sizeof(FileFrameInfo), file);
 
 	u64 bpMemOffset = file.Tell();
@@ -221,7 +219,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates
 {
 	// Add space for memory update list
 	u64 updateListOffset = file.Tell();
-	for (unsigned int i = 0; i < memUpdates.size(); ++i)
+	for (size_t i = 0; i < memUpdates.size(); i++)
 		PadFile(sizeof(FileMemoryUpdate), file);
 
 	for (unsigned int i = 0; i < memUpdates.size(); ++i)

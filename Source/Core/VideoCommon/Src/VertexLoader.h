@@ -73,9 +73,9 @@ private:
 	{
 		size_t h = -1;
 
-		for (unsigned int i = 0; i < sizeof(vid) / sizeof(vid[0]); ++i)
+		for (auto word : vid)
 		{
-			h = h * 137 + vid[i];
+			h = h * 137 + word;
 		}
 
 		return h;

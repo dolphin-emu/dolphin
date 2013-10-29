@@ -30,16 +30,16 @@ CDolLoader::CDolLoader(const char* _szFilename)
 
 CDolLoader::~CDolLoader()
 {
-	for (int i = 0; i < DOL_NUM_TEXT; i++)
+	for (auto& sect : text_section)
 	{
-		delete [] text_section[i];
-		text_section[i] = NULL;
+		delete [] sect;
+		sect = NULL;
 	}
 
-	for (int i = 0; i < DOL_NUM_DATA; i++)
+	for (auto& sect : data_section)
 	{
-		delete [] data_section[i];
-		data_section[i] = NULL;
+		delete [] sect;
+		sect = NULL;
 	}
 }
 
@@ -52,10 +52,10 @@ void CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
 	for (size_t i = 0; i < (sizeof(SDolHeader)/sizeof(u32)); i++)	
 		p[i] = Common::swap32(p[i]);
 
-	for (int i = 0; i < DOL_NUM_TEXT; i++)
-		text_section[i] = NULL;
-	for (int i = 0; i < DOL_NUM_DATA; i++)
-		data_section[i] = NULL;
+	for (auto& sect : text_section)
+		sect = NULL;
+	for (auto& sect : data_section)
+		sect = NULL;
 	
 	u32 HID4_pattern = 0x7c13fba6;
 	u32 HID4_mask = 0xfc1fffff;

@@ -160,12 +160,12 @@ void UDPWiimote::mainThread()
 	{
 		int maxfd=0;
 		FD_ZERO(&fds);
-		for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)
+		for (auto& fd : d->sockfds)
 		{
-			FD_SET(*i,&fds);
+			FD_SET(fd,&fds);
 #ifndef _WIN32
-			if (*i>=maxfd)
-				maxfd=(*i)+1;
+			if (fd>=maxfd)
+				maxfd=(fd)+1;
 #endif
 		}
 		
@@ -194,11 +194,10 @@ void UDPWiimote::mainThread()
 		
 		if (rt)
 		{
-			for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)
+			for (sock_t fd : d->sockfds)
 			{
-				if (FD_ISSET(*i,&fds))
+				if (FD_ISSET(fd,&fds))
 				{
-					sock_t fd=*i;
 					u8 bf[64];
 					int size=60;
 					size_t addr_len;
@@ -235,8 +234,8 @@ UDPWiimote::~UDPWiimote()
 	std::lock_guard<std::mutex> lk(d->termLock);
 	d->thread.join();
 	}
-	for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)
-		close(*i);
+	for (auto& elem : d->sockfds)
+		close(elem);
 	close(d->bipv4_fd);
 	close(d->bipv6_fd);
 	cleanup;

@@ -115,10 +115,8 @@ void FifoPlaybackAnalyzer::AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrame
 	u32 end = memUpdate.address + memUpdate.size;
 
 	// Remove portions of memUpdate that overlap with memory ranges that have been written by the GP
-	for (unsigned int i = 0; i < m_WrittenMemory.size(); ++i)
+	for (const auto& range : m_WrittenMemory)
 	{
-		const MemoryRange &range = m_WrittenMemory[i];
-		
 		if (range.begin < end &&
 			range.end > begin)
 		{

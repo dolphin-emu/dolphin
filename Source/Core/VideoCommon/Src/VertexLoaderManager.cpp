@@ -43,16 +43,16 @@ static VertexLoaderMap g_VertexLoaderMap;
 void Init()
 {
 	MarkAllDirty();
-	for (int i = 0; i < 8; i++)
-		g_VertexLoaders[i] = NULL;
+	for (auto& vertexLoader : g_VertexLoaders)
+		vertexLoader = NULL;
 	RecomputeCachedArraybases();
 }
 
 void Shutdown()
 {
-	for (VertexLoaderMap::iterator iter = g_VertexLoaderMap.begin(); iter != g_VertexLoaderMap.end(); ++iter)
+	for (auto& p : g_VertexLoaderMap)
 	{
-		delete iter->second;
+		delete p.second;
 	}
 	g_VertexLoaderMap.clear();
 }

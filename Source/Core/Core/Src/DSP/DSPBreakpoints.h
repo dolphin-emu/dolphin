@@ -49,8 +49,7 @@ public:
 
 	void Clear()
 	{
-		for (int i = 0; i < 65536; i++)
-			b[i] = 0;
+		memset(b, 0, sizeof(b));
 	}
 
 	void DeleteByAddress(u32 addr)

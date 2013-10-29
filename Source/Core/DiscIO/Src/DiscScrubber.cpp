@@ -234,10 +234,9 @@ bool ParseDisc()
 			PartitionGroup[x].PartitionsVec.push_back(Partition);
 		}
 
-		for (size_t i = 0; i < PartitionGroup[x].PartitionsVec.size(); i++)
+		for (auto& rPartition : PartitionGroup[x].PartitionsVec)
 		{
-			SPartition& rPartition			= PartitionGroup[x].PartitionsVec.at(i);
-			const SPartitionHeader& rHeader	= PartitionGroup[x].PartitionsVec.at(i).Header;
+			const SPartitionHeader& rHeader	= rPartition.Header;
 
 			MarkAsUsed(rPartition.Offset, 0x2c0);
 

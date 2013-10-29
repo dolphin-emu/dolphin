@@ -75,10 +75,10 @@ static void *reg_ptr(int reg)
 DSPJitRegCache::DSPJitRegCache(DSPEmitter &_emitter)
 	: emitter(_emitter), temporary(false), merged(false)
 {
-	for(unsigned int i = 0; i < NUMXREGS; i++)
+	for(auto& xreg : xregs)
 	{
-		xregs[i].guest_reg = DSP_REG_STATIC;
-		xregs[i].pushed = false;
+		xreg.guest_reg = DSP_REG_STATIC;
+		xreg.pushed = false;
 	}
 
 	xregs[RAX].guest_reg = DSP_REG_STATIC;// reserved for MUL/DIV
@@ -449,9 +449,9 @@ void DSPJitRegCache::pushRegs()
 	}
 
 	int push_count = 0;
-	for(unsigned int i = 0; i < NUMXREGS; i++)
+	for(auto& xreg : xregs)
 	{
-		if (xregs[i].guest_reg == DSP_REG_USED)
+		if (xreg.guest_reg == DSP_REG_USED)
 			push_count++;
 	}
 
@@ -503,9 +503,9 @@ void DSPJitRegCache::popRegs() {
 	emitter.MOV(32, M(&ebp_store), R(EBP));
 #endif
 	int push_count = 0;
-	for(unsigned int i = 0; i < NUMXREGS; i++)
+	for(auto& xreg : xregs)
 	{
-		if (xregs[i].pushed)
+		if (xreg.pushed)
 			push_count++;
 	}
 
@@ -1037,11 +1037,11 @@ void DSPJitRegCache::spillXReg(X64Reg reg)
 
 X64Reg DSPJitRegCache::findFreeXReg()
 {
-	for(unsigned int i = 0; i < sizeof(alloc_order)/sizeof(alloc_order[0]); i++)
+	for(auto& x : alloc_order)
 	{
-		if (xregs[alloc_order[i]].guest_reg == DSP_REG_NONE)
+		if (xregs[x].guest_reg == DSP_REG_NONE)
 		{
-			return alloc_order[i];
+			return x;
 		}
 	}
 	return INVALID_REG;

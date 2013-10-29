@@ -382,112 +382,112 @@ void InitTables()
 		m_infoTable63[i] = 0;		
 	}
 
-	for (int i = 0; i < (int)(sizeof(primarytable) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : primarytable)
 	{
-		Interpreter::m_opTable[primarytable[i].opcode] = primarytable[i].Inst;
-		m_infoTable[primarytable[i].opcode] = &primarytable[i].opinfo;
+		Interpreter::m_opTable[tpl.opcode] = tpl.Inst;
+		m_infoTable[tpl.opcode] = &tpl.opinfo;
 	}
 
 	for (int i = 0; i < 32; i++)
 	{
 		int fill = i << 5;
-		for (int j = 0; j < (int)(sizeof(table4_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table4_2)
 		{
-			int op = fill+table4_2[j].opcode;
-			Interpreter::m_opTable4[op] = table4_2[j].Inst;
-			m_infoTable4[op] = &table4_2[j].opinfo;
+			int op = fill+tpl.opcode;
+			Interpreter::m_opTable4[op] = tpl.Inst;
+			m_infoTable4[op] = &tpl.opinfo;
 		}
 	}
 
 	for (int i = 0; i < 16; i++)
 	{
 		int fill = i << 6;
-		for (int j = 0; j < (int)(sizeof(table4_3) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table4_3)
 		{
-			int op = fill+table4_3[j].opcode;
-			Interpreter::m_opTable4[op] = table4_3[j].Inst;
-			m_infoTable4[op] = &table4_3[j].opinfo;
+			int op = fill+tpl.opcode;
+			Interpreter::m_opTable4[op] = tpl.Inst;
+			m_infoTable4[op] = &tpl.opinfo;
 		}
 	}
 
-	for (int i = 0; i < (int)(sizeof(table4) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table4)
 	{
-		int op = table4[i].opcode;
-		Interpreter::m_opTable4[op] = table4[i].Inst;
-		m_infoTable4[op] = &table4[i].opinfo;
+		int op = tpl.opcode;
+		Interpreter::m_opTable4[op] = tpl.Inst;
+		m_infoTable4[op] = &tpl.opinfo;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table31) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table31)
 	{
-		int op = table31[i].opcode;
-		Interpreter::m_opTable31[op] = table31[i].Inst;
-		m_infoTable31[op] = &table31[i].opinfo;
+		int op = tpl.opcode;
+		Interpreter::m_opTable31[op] = tpl.Inst;
+		m_infoTable31[op] = &tpl.opinfo;
 	}
 
 	for (int i = 0; i < 1; i++)
 	{
 		int fill = i << 9;
-		for (int j = 0; j < (int)(sizeof(table31_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table31_2)
 		{
-			int op = fill + table31_2[j].opcode;
-			Interpreter::m_opTable31[op] = table31_2[j].Inst;
-			m_infoTable31[op] = &table31_2[j].opinfo;
+			int op = fill + tpl.opcode;
+			Interpreter::m_opTable31[op] = tpl.Inst;
+			m_infoTable31[op] = &tpl.opinfo;
 		}
 	}
 
-	for (int i = 0; i < (int)(sizeof(table19) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table19)
 	{
-		int op = table19[i].opcode;
-		Interpreter::m_opTable19[op] = table19[i].Inst;
-		m_infoTable19[op] = &table19[i].opinfo;
+		int op = tpl.opcode;
+		Interpreter::m_opTable19[op] = tpl.Inst;
+		m_infoTable19[op] = &tpl.opinfo;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table59) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table59)
 	{
-		int op = table59[i].opcode;
-		Interpreter::m_opTable59[op] = table59[i].Inst;
-		m_infoTable59[op] = &table59[i].opinfo;
+		int op = tpl.opcode;
+		Interpreter::m_opTable59[op] = tpl.Inst;
+		m_infoTable59[op] = &tpl.opinfo;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table63) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table63)
 	{
-		int op = table63[i].opcode;
-		Interpreter::m_opTable63[op] = table63[i].Inst;
-		m_infoTable63[op] = &table63[i].opinfo;
+		int op = tpl.opcode;
+		Interpreter::m_opTable63[op] = tpl.Inst;
+		m_infoTable63[op] = &tpl.opinfo;
 	}
 
 	for (int i = 0; i < 32; i++)
 	{
 		int fill = i << 5;
-		for (int j = 0; j < (int)(sizeof(table63_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table63_2)
 		{
-			int op = fill + table63_2[j].opcode;
-			Interpreter::m_opTable63[op] = table63_2[j].Inst;
-			m_infoTable63[op] = &table63_2[j].opinfo;
+			int op = fill + tpl.opcode;
+			Interpreter::m_opTable63[op] = tpl.Inst;
+			m_infoTable63[op] = &tpl.opinfo;
 		}
 	}
 
 	m_numInstructions = 0;
-	for (int i = 0; i < (int)(sizeof(primarytable) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &primarytable[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table4_2) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table4_2[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table4_3) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table4_3[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table4) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table4[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table31) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table31[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table31_2) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table31_2[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table19) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table19[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table59) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table59[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table63) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table63[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table63_2) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table63_2[i].opinfo;
+	for (auto& tpl : primarytable)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table4_2)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table4_3)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table4)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table31)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table31_2)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table19)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table59)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table63)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table63_2)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
 	if (m_numInstructions >= 512) {
 		PanicAlert("m_allInstructions underdimensioned");
 	}

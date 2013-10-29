@@ -160,9 +160,9 @@ int GetEmptySlot(std::map<double, int> m)
 	for (int i = 1; i <= (int)NUM_STATES; i++)
 	{
 		bool found = false;
-		for (std::map<double, int>::iterator it = m.begin(); it != m.end(); it++)
+		for (auto& p : m)
 		{
-			if (it->second == i)
+			if (p.second == i)
 			{
 				found = true;
 				break;

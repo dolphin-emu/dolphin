@@ -28,6 +28,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 
 	for(int i = 0; i < 256; i++)
 		m_OldKeyBuffer[i] = false;
+
 	m_OldModifiers = 0x00;
 
 	//m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, NULL));

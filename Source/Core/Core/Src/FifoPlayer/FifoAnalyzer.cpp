@@ -128,8 +128,8 @@ u32 CalculateVertexSize(int vatIndex, const CPMemory &cpMem)
 	int sizes[21];
 	CalculateVertexElementSizes(sizes, vatIndex, cpMem);
 
-	for (int i = 0; i < 21; ++i)
-		vertexSize += sizes[i];
+	for (auto& size : sizes)
+		vertexSize += size;
 
 	return vertexSize;
 }

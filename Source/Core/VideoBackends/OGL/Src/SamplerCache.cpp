@@ -112,9 +112,9 @@ void SamplerCache::SetParameters(GLuint sampler_id, const Params& params)
 
 void SamplerCache::Clear()
 {
-	for (auto it = m_cache.begin(); it != m_cache.end(); ++it)
+	for (auto& p : m_cache)
 	{
-		glDeleteSamplers(1, &it->second.sampler_id);
+		glDeleteSamplers(1, &p.second.sampler_id);
 	}
 	m_cache.clear();
 }

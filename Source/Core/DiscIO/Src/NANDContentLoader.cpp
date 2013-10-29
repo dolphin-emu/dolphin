@@ -44,14 +44,14 @@ CSharedContent::~CSharedContent()
 
 std::string CSharedContent::GetFilenameFromSHA1(const u8* _pHash)
 {
-	for (size_t i=0; i<m_Elements.size(); i++)
+	for (auto& Element : m_Elements)
 	{
-		if (memcmp(_pHash, m_Elements[i].SHA1Hash, 20) == 0)
+		if (memcmp(_pHash, Element.SHA1Hash, 20) == 0)
 		{
 			char szFilename[1024];
 			sprintf(szFilename,  "%sshared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIUSER_IDX).c_str(),
-				m_Elements[i].FileName[0], m_Elements[i].FileName[1], m_Elements[i].FileName[2], m_Elements[i].FileName[3],
-				m_Elements[i].FileName[4], m_Elements[i].FileName[5], m_Elements[i].FileName[6], m_Elements[i].FileName[7]);
+				Element.FileName[0], Element.FileName[1], Element.FileName[2], Element.FileName[3],
+				Element.FileName[4], Element.FileName[5], Element.FileName[6], Element.FileName[7]);
 			return szFilename;
 		}
 	}
@@ -154,9 +154,9 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 
 CNANDContentLoader::~CNANDContentLoader()
 {
-	for (size_t i=0; i<m_Content.size(); i++)
+	for (auto& content : m_Content)
 	{
-		delete [] m_Content[i].m_pData;
+		delete [] content.m_pData;
 	}
 	m_Content.clear();
 	if (m_TIK)
@@ -168,12 +168,11 @@ CNANDContentLoader::~CNANDContentLoader()
 
 const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 {
-	for (size_t i=0; i<m_Content.size(); i++)
+	for (auto& Content : m_Content)
 	{
-		const SNANDContent* pContent = &m_Content[i];
-		if (pContent->m_Index == _Index)
+		if (Content.m_Index == _Index)
 		{
-			return pContent;
+			return &Content;
 		}
 	}
 	return NULL;
@@ -413,11 +412,11 @@ cUIDsys::~cUIDsys()
 
 u32 cUIDsys::GetUIDFromTitle(u64 _Title)
 {
-	for (size_t i=0; i<m_Elements.size(); i++)
+	for (auto& Element : m_Elements)
 	{
-		if (Common::swap64(_Title) == *(u64*)&(m_Elements[i].titleID))
+		if (Common::swap64(_Title) == *(u64*)&(Element.titleID))
 		{
-			return Common::swap32(m_Elements[i].UID);
+			return Common::swap32(Element.UID);
 		}
 	}
 	return 0;
@@ -445,11 +444,11 @@ void cUIDsys::AddTitle(u64 _TitleID)
 
 void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
 {
-	for (size_t i = 0; i < m_Elements.size(); i++)
+	for (auto& Element : m_Elements)
 	{
-		if ((_owned && Common::CheckTitleTIK(Common::swap64(m_Elements[i].titleID)))  ||
-			(!_owned && Common::CheckTitleTMD(Common::swap64(m_Elements[i].titleID))))
-			_TitleIDs.push_back(Common::swap64(m_Elements[i].titleID));
+		if ((_owned && Common::CheckTitleTIK(Common::swap64(Element.titleID)))  ||
+			(!_owned && Common::CheckTitleTMD(Common::swap64(Element.titleID))))
+			_TitleIDs.push_back(Common::swap64(Element.titleID));
 	}
 }
 

@@ -602,9 +602,9 @@ void WiiSockMan::Update()
 
 	if (ret >= 0)
 	{
-		for (auto it = WiiSockets.begin(); it != WiiSockets.end(); ++it)
+		for (auto& pair : WiiSockets)
 		{
-			WiiSocket& sock = it->second;
+			WiiSocket& sock = pair.second;
 			sock.update(
 				FD_ISSET(sock.fd, &read_fds) != 0, 
 				FD_ISSET(sock.fd, &write_fds) != 0, 
@@ -614,9 +614,9 @@ void WiiSockMan::Update()
 	}
 	else
 	{
-		for (auto it = WiiSockets.begin(); it != WiiSockets.end(); ++it)
+		for (auto& elem : WiiSockets)
 		{
-			it->second.update(false, false, false);
+			elem.second.update(false, false, false);
 		}
 	}
 }

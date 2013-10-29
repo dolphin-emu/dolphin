@@ -23,14 +23,14 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 
 		GeckoCode gcode;
 
-		for (auto lines_iter = lines.begin(); lines_iter!=lines.end(); ++lines_iter)
+		for (auto& line : lines)
 		{
-			if (lines_iter->empty())
+			if (line.empty())
 				continue;
 
-			std::istringstream	ss(*lines_iter);
+			std::istringstream	ss(line);
 
-			switch ((*lines_iter)[0])
+			switch ((line)[0])
 			{
 
 				// enabled or disabled code
@@ -52,7 +52,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 
 				// notes
 			case '*':
-				gcode.notes.push_back(std::string(++lines_iter->begin(), lines_iter->end()));
+				gcode.notes.push_back(std::string(++line.begin(), line.end()));
 				break;
 
 				// either part of the code, or an option choice
@@ -60,7 +60,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 			{
 				GeckoCode::Code new_code;
 				// TODO: support options
-				new_code.original_line = *lines_iter;
+				new_code.original_line = line;
 				ss >> std::hex >> new_code.address >> new_code.data;
 				gcode.codes.push_back(new_code);
 			}
@@ -75,16 +75,15 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 
 		inis[i]->GetLines("Gecko_Enabled", lines, false);
 
-		for (auto lines_iter = lines.begin(); lines_iter!=lines.end(); ++lines_iter)
+		for (auto line : lines)
 		{
-			auto line = *lines_iter;
 			if (line.size() == 0 || line[0] != '$')
 				continue;
 			std::string name = line.substr(1);
-			for (auto gcodes_iter = gcodes.begin(); gcodes_iter != gcodes.end(); ++gcodes_iter)
+			for (auto& ogcode : gcodes)
 			{
-				if ((*gcodes_iter).name == name)
-					(*gcodes_iter).enabled = true;
+				if (ogcode.name == name)
+					ogcode.enabled = true;
 			}
 		}
 	}

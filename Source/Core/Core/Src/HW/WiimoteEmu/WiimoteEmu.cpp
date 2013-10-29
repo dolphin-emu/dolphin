@@ -264,8 +264,8 @@ Wiimote::Wiimote( const unsigned int index )
 
 	// buttons
 	groups.push_back(m_buttons = new Buttons("Buttons"));
-	for (unsigned int i=0; i < sizeof(named_buttons)/sizeof(*named_buttons); ++i)
-		m_buttons->controls.push_back(new ControlGroup::Input( named_buttons[i]));
+	for (auto& named_button : named_buttons)
+		m_buttons->controls.push_back(new ControlGroup::Input( named_button));
 
 	// udp
 	groups.push_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
@@ -302,8 +302,8 @@ Wiimote::Wiimote( const unsigned int index )
 
 	// dpad
 	groups.push_back(m_dpad = new Buttons("D-Pad"));
-	for (unsigned int i=0; i < 4; ++i)
-		m_dpad->controls.push_back(new ControlGroup::Input(named_directions[i]));
+	for (auto& named_direction : named_directions)
+		m_dpad->controls.push_back(new ControlGroup::Input(named_direction));
 
 	// options
 	groups.push_back( m_options = new ControlGroup(_trans("Options")));
@@ -503,12 +503,12 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 		static const double dist1=100.f/camWidth; //this seems the optimal distance for zelda
 		static const double dist2=1.2f*dist1;
 
-		for (int i=0; i<4; i++)
+		for (auto& vtx : v)
 		{
-			v[i].x=xx*(bndright-bndleft)/2+(bndleft+bndright)/2;
-			if (m_sensor_bar_on_top) v[i].y=yy*(bndup-bnddown)/2+(bndup+bnddown)/2;
-			else v[i].y=yy*(bndup-bnddown)/2-(bndup+bnddown)/2;
-			v[i].z=0;
+			vtx.x=xx*(bndright-bndleft)/2+(bndleft+bndright)/2;
+			if (m_sensor_bar_on_top) vtx.y=yy*(bndup-bnddown)/2+(bndup+bnddown)/2;
+			else vtx.y=yy*(bndup-bnddown)/2-(bndup+bnddown)/2;
+			vtx.z=0;
 		}
 
 		v[0].x-=(zz*0.5+1)*dist1;

@@ -905,12 +905,12 @@ void CFrame::LoadIniPerspectives()
 	ini.Get("Perspectives", "Active", &ActivePerspective, 0);
 	SplitString(_Perspectives, ',', VPerspectives);
 
-	for (u32 i = 0; i < VPerspectives.size(); i++)
+	for (auto& VPerspective : VPerspectives)
 	{
 		SPerspectives Tmp;
-		std::string _Section, _Perspective, _Width, _Height;
+		std::string _Section, _Perspective, _Widths, _Heights;
 		std::vector<std::string> _SWidth, _SHeight;
-		Tmp.Name = VPerspectives[i];
+		Tmp.Name = VPerspective;
 
 		// Don't save a blank perspective
 		if (Tmp.Name.empty())
@@ -922,22 +922,22 @@ void CFrame::LoadIniPerspectives()
 				"name=Pane 0;caption=Pane 0;state=768;dir=5;prop=100000;|"
 				"name=Pane 1;caption=Pane 1;state=31458108;dir=4;prop=100000;|"
 				"dock_size(5,0,0)=22|dock_size(4,0,0)=333|");
-		ini.Get(_Section.c_str(), "Width", &_Width, "70,25");
-		ini.Get(_Section.c_str(), "Height", &_Height, "80,80");
+		ini.Get(_Section.c_str(), "Width", &_Widths, "70,25");
+		ini.Get(_Section.c_str(), "Height", &_Heights, "80,80");
 
 		Tmp.Perspective = StrToWxStr(_Perspective);
 
-		SplitString(_Width, ',', _SWidth);
-		SplitString(_Height, ',', _SHeight);
-		for (u32 j = 0; j < _SWidth.size(); j++)
+		SplitString(_Widths, ',', _SWidth);
+		SplitString(_Heights, ',', _SHeight);
+		for (auto& Width : _SWidth)
 		{
 			int _Tmp;
-			if (TryParse(_SWidth[j].c_str(), &_Tmp)) Tmp.Width.push_back(_Tmp);
+			if (TryParse(Width.c_str(), &_Tmp)) Tmp.Width.push_back(_Tmp);
 		}
-		for (u32 j = 0; j < _SHeight.size(); j++)
+		for (auto& Height : _SHeight)
 		{
 			int _Tmp;
-			if (TryParse(_SHeight[j].c_str(), &_Tmp)) Tmp.Height.push_back(_Tmp);
+			if (TryParse(Height.c_str(), &_Tmp)) Tmp.Height.push_back(_Tmp);
 		}
 		Perspectives.push_back(Tmp);
 	}
@@ -983,25 +983,25 @@ void CFrame::SaveIniPerspectives()
 
 	// Save perspective names
 	std::string STmp = "";
-	for (u32 i = 0; i < Perspectives.size(); i++)
+	for (auto& Perspective : Perspectives)
 	{
-		STmp += Perspectives[i].Name + ",";
+		STmp += Perspective.Name + ",";
 	}
 	STmp = STmp.substr(0, STmp.length()-1);
 	ini.Set("Perspectives", "Perspectives", STmp.c_str());
 	ini.Set("Perspectives", "Active", ActivePerspective);
 
 	// Save the perspectives
-	for (u32 i = 0; i < Perspectives.size(); i++)
+	for (auto& Perspective : Perspectives)
 	{
-		std::string _Section = "P - " + Perspectives[i].Name;
-		ini.Set(_Section.c_str(), "Perspective", WxStrToStr(Perspectives[i].Perspective));
+		std::string _Section = "P - " + Perspective.Name;
+		ini.Set(_Section.c_str(), "Perspective", WxStrToStr(Perspective.Perspective));
 
 		std::string SWidth = "", SHeight = "";
-		for (u32 j = 0; j < Perspectives[i].Width.size(); j++)
+		for (u32 j = 0; j < Perspective.Width.size(); j++)
 		{
-			SWidth += StringFromFormat("%i,", Perspectives[i].Width[j]);
-			SHeight += StringFromFormat("%i,", Perspectives[i].Height[j]);
+			SWidth += StringFromFormat("%i,", Perspective.Width[j]);
+			SHeight += StringFromFormat("%i,", Perspective.Height[j]);
 		}
 		// Remove the ending ","
 		SWidth = SWidth.substr(0, SWidth.length()-1);

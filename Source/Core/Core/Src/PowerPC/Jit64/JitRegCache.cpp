@@ -75,14 +75,14 @@ void RegCache::LockX(int x1, int x2, int x3, int x4)
 
 void RegCache::UnlockAll()
 {
-	for (int i = 0; i < 32; i++)
-		locks[i] = false;
+	for (auto& lock : locks)
+		lock = false;
 }
 
 void RegCache::UnlockAllX()
 {
-	for (int i = 0; i < NUMXREGS; i++)
-		xlocks[i] = false;
+	for (auto& xlock : xlocks)
+		xlock = false;
 }
 
 X64Reg RegCache::GetFreeXReg()

@@ -176,8 +176,8 @@ void Init()
 	if (!tmpHeader.bFromSaveState || !IsPlayingInput())
 		Core::SetStateFileName("");
 
-	for (int i = 0; i < 8; ++i)
-		g_InputDisplay[i].clear();
+	for (auto& disp : g_InputDisplay)
+		disp.clear();
 
 	if (!IsPlayingInput() && !IsRecordingInput())
 	{

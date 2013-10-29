@@ -152,10 +152,10 @@ void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
 	}
 	else
 	{
-		for (auto itr = m_ContentAccessMap.begin(); itr != m_ContentAccessMap.end(); ++itr)
+		for (auto& pair : m_ContentAccessMap)
 		{
-			CFD = itr->first;
-			SContentAccess& Access = itr->second;
+			CFD = pair.first;
+			SContentAccess& Access = pair.second;
 			Position = Access.m_Position;
 			TitleID = Access.m_TitleID;
 			Index = Access.m_pContent->m_Index;
@@ -182,9 +182,9 @@ bool CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
 {
 	// Leave deletion of the INANDContentLoader objects to CNANDContentManager, don't do it here!
 	m_NANDContent.clear();
-	for (auto itr = m_ContentAccessMap.begin(); itr != m_ContentAccessMap.end(); ++itr)
+	for (auto& pair : m_ContentAccessMap)
 	{
-		delete itr->second.m_pFile;
+		delete pair.second.m_pFile;
 	}
 	m_ContentAccessMap.clear();
 	m_pContentLoader = NULL;

@@ -622,8 +622,8 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiim
 
 	wxArrayString player_names;
 	player_names.Add(_("None"));
-	for (unsigned int i = 0; i < m_player_list.size(); i++)
-		player_names.Add(m_player_list[i]->name);
+	for (auto& player : m_player_list)
+		player_names.Add(player->name);
 
 	wxString wiimote_names[5];
 	wiimote_names[0] = _("None");

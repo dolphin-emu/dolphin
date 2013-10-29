@@ -734,13 +734,13 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		// Do the level/optname translation
 		int nat_level = -1, nat_optname = -1;
 
-		for (unsigned int i = 0; i < sizeof (opt_level_mapping) / sizeof (opt_level_mapping[0]); ++i)
-			if (level == opt_level_mapping[i][1])
-				nat_level = opt_level_mapping[i][0];
+		for (auto& map : opt_level_mapping)
+			if (level == map[1])
+				nat_level = map[0];
 
-		for (unsigned int i = 0; i < sizeof (opt_name_mapping) / sizeof (opt_name_mapping[0]); ++i)
-			if (optname == opt_name_mapping[i][1])
-				nat_optname = opt_name_mapping[i][0];
+		for (auto& map : opt_name_mapping)
+			if (optname == map[1])
+				nat_optname = map[0];
 
 		u8 optval[20];
 		u32 optlen = 4;
@@ -785,13 +785,13 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		// Do the level/optname translation
 		int nat_level = -1, nat_optname = -1;
 
-		for (unsigned int i = 0; i < sizeof (opt_level_mapping) / sizeof (opt_level_mapping[0]); ++i)
-			if (level == opt_level_mapping[i][1])
-				nat_level = opt_level_mapping[i][0];
+		for (auto& map : opt_level_mapping)
+			if (level == map[1])
+				nat_level = map[0];
 
-		for (unsigned int i = 0; i < sizeof (opt_name_mapping) / sizeof (opt_name_mapping[0]); ++i)
-			if (optname == opt_name_mapping[i][1])
-				nat_optname = opt_name_mapping[i][0];
+		for (auto& map : opt_name_mapping)
+			if (optname == map[1])
+				nat_optname = map[0];
 
 		if (nat_level == -1 || nat_optname == -1)
 		{
@@ -924,11 +924,11 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 				// Translate Wii to native events
 				int unhandled_events = events;
 				ufds[i].events = 0;
-				for (unsigned int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
+				for (auto& map : mapping)
 				{
-					if (events & mapping[j][1])
-						ufds[i].events |= mapping[j][0];
-					unhandled_events &= ~mapping[j][1];
+					if (events & map[1])
+						ufds[i].events |= map[0];
+					unhandled_events &= ~map[1];
 				}
 
 				DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_POLL(%d) "
@@ -949,10 +949,10 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 				// Translate native to Wii events
 				int revents = 0;
-				for (unsigned int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
+				for (auto& map : mapping)
 				{
-					if (ufds[i].revents & mapping[j][0])
-						revents |= mapping[j][1];
+					if (ufds[i].revents & map[0])
+						revents |= map[1];
 				}
 
 				// No need to change fd or events as they are input only.

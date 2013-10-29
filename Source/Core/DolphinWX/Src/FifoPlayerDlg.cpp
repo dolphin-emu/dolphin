@@ -917,8 +917,8 @@ wxString FifoPlayerDlg::CreateRecordingMemSizeLabel() const
 		for (int frameNum = 0; frameNum < file->GetFrameCount(); ++frameNum)
 		{
 			const vector<MemoryUpdate>& memUpdates = file->GetFrame(frameNum).memoryUpdates;
-			for (unsigned int i = 0; i < memUpdates.size(); ++i)
-				memBytes += memUpdates[i].size;
+			for (auto& memUpdate : memUpdates)
+				memBytes += memUpdate.size;
 		}
 
 		return CreateIntegerLabel(memBytes, _("Memory Byte"));	

@@ -57,8 +57,8 @@ Classic::Classic(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Classic"),
 {
 	// buttons
 	groups.push_back(m_buttons = new Buttons("Buttons"));
-	for (unsigned int i = 0; i < sizeof(classic_button_names)/sizeof(*classic_button_names); ++i)
-		m_buttons->controls.push_back(new ControlGroup::Input(classic_button_names[i]));
+	for (auto& classic_button_name : classic_button_names)
+		m_buttons->controls.push_back(new ControlGroup::Input(classic_button_name));
 
 	// sticks
 	groups.push_back(m_left_stick = new AnalogStick(_trans("Left Stick")));
@@ -66,13 +66,13 @@ Classic::Classic(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Classic"),
 
 	// triggers
 	groups.push_back(m_triggers = new MixedTriggers("Triggers"));
-	for (unsigned int i=0; i < sizeof(classic_trigger_names)/sizeof(*classic_trigger_names); ++i)
-		m_triggers->controls.push_back(new ControlGroup::Input(classic_trigger_names[i]));
+	for (auto& classic_trigger_name : classic_trigger_names)
+		m_triggers->controls.push_back(new ControlGroup::Input(classic_trigger_name));
 
 	// dpad
 	groups.push_back(m_dpad = new Buttons("D-Pad"));
-	for (unsigned int i=0; i < 4; ++i)
-		m_dpad->controls.push_back(new ControlGroup::Input(named_directions[i]));
+	for (auto& named_direction : named_directions)
+		m_dpad->controls.push_back(new ControlGroup::Input(named_direction));
 
 	// set up register
 	// calibration

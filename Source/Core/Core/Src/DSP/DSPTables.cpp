@@ -489,10 +489,10 @@ const char* pdname(u16 val)
 {
 	static char tmpstr[12]; // nasty
 
-	for (int i = 0; i < (int)(sizeof(pdlabels) / sizeof(pdlabel_t)); i++)
+	for (auto& pdlabel : pdlabels)
 	{
-		if (pdlabels[i].addr == val)
-			return pdlabels[i].name;
+		if (pdlabel.addr == val)
+			return pdlabel.name;
 	}
 
 	sprintf(tmpstr, "0x%04x", val);
@@ -521,23 +521,22 @@ void InitInstructionTable()
 {
 	// ext op table
 	for (int i = 0; i < EXT_OPTABLE_SIZE; i++)
+	{
 		extOpTable[i] = &cw;
 
-	for (int i = 0; i < EXT_OPTABLE_SIZE; i++)
-	{
-		for (int j = 0; j < opcodes_ext_size; j++)
+		for (auto& ext : opcodes_ext)
 		{
-			u16 mask = opcodes_ext[j].opcode_mask;
-			if ((mask & i) == opcodes_ext[j].opcode)
+			u16 mask = ext.opcode_mask;
+			if ((mask & i) == ext.opcode)
 			{
 				if (extOpTable[i] == &cw)
-					extOpTable[i] = &opcodes_ext[j];
+					extOpTable[i] = &ext;
 				else
 				{
 					//if the entry already in the table
 					//is a strict subset, allow it
-					if ((extOpTable[i]->opcode_mask | opcodes_ext[j].opcode_mask) != extOpTable[i]->opcode_mask)
-						ERROR_LOG(DSPLLE, "opcode ext table place %d already in use by %s when inserting %s", i, extOpTable[i]->name, opcodes_ext[j].name);
+					if ((extOpTable[i]->opcode_mask | ext.opcode_mask) != extOpTable[i]->opcode_mask)
+						ERROR_LOG(DSPLLE, "opcode ext table place %d already in use by %s when inserting %s", i, extOpTable[i]->name, ext.name);
 				}
 			}
 		}
@@ -546,18 +545,18 @@ void InitInstructionTable()
 	// op table
 	for (int i = 0; i < OPTABLE_SIZE; i++)
 		opTable[i] = &cw;
-	
+
 	for (int i = 0; i < OPTABLE_SIZE; i++)
 	{
-		for (int j = 0; j < opcodes_size; j++)
+		for (auto& opcode : opcodes)
 		{
-			u16 mask = opcodes[j].opcode_mask;
-			if ((mask & i) == opcodes[j].opcode)
+			u16 mask = opcode.opcode_mask;
+			if ((mask & i) == opcode.opcode)
 			{
 				if (opTable[i] == &cw)
-					opTable[i] = &opcodes[j];
+					opTable[i] = &opcode;
 				else
-					ERROR_LOG(DSPLLE, "opcode table place %d already in use for %s", i, opcodes[j].name); 
+					ERROR_LOG(DSPLLE, "opcode table place %d already in use for %s", i, opcode.name); 
 			}
 		}
 	}

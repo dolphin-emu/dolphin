@@ -612,9 +612,9 @@ void Initialize(bool wait)
 // called on emulation shutdown
 void Stop(void)
 {
-	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
-		if (g_wiimotes[i] && g_wiimotes[i]->IsConnected())
-			g_wiimotes[i]->EmuStop();
+	for (auto& wiimote : g_wiimotes)
+		if (wiimote && wiimote->IsConnected())
+			wiimote->EmuStop();
 }
 
 // called when the dolphin app exits
@@ -637,16 +637,16 @@ void Shutdown(void)
 
 void Resume()
 {
-	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
-		if (g_wiimotes[i] && g_wiimotes[i]->IsConnected())
-			g_wiimotes[i]->EmuResume();
+	for (auto& wiimote : g_wiimotes)
+		if (wiimote && wiimote->IsConnected())
+			wiimote->EmuResume();
 }
 
 void Pause()
 {
-	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
-		if (g_wiimotes[i] && g_wiimotes[i]->IsConnected())
-			g_wiimotes[i]->EmuPause();
+	for (auto& wiimote : g_wiimotes)
+		if (wiimote && wiimote->IsConnected())
+			wiimote->EmuPause();
 }
 
 void ChangeWiimoteSource(unsigned int index, int source)

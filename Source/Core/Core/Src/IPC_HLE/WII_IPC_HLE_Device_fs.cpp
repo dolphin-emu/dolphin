@@ -60,9 +60,8 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
 {
 	u64 sizeOfFiles = 0;
 	const std::vector<File::FSTEntry>& children = parentEntry.children;
-	for (std::vector<File::FSTEntry>::const_iterator it = children.begin(); it != children.end(); ++it)
+	for (const auto& entry : children)
 	{
-		const File::FSTEntry& entry = *it;
 		if (entry.isDirectory)
 			sizeOfFiles += ComputeTotalFileSize(entry);
 		else

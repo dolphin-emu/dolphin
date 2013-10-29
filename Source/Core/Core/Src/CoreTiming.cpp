@@ -84,15 +84,15 @@ int RegisterEvent(const char *name, TimedCallback callback)
 
 	// check for existing type with same name.
 	// we want event type names to remain unique so that we can use them for serialization.
-	for (unsigned int i = 0; i < event_types.size(); ++i)
+	for (auto& event_type : event_types)
 	{
-		if (!strcmp(name, event_types[i].name))
+		if (!strcmp(name, event_type.name))
 		{
 			WARN_LOG(POWERPC, "Discarded old event type \"%s\" because a new type with the same name was registered.", name);
 			// we don't know if someone might be holding on to the type index,
 			// so we gut the old event type instead of actually removing it.
-			event_types[i].name = "_discarded_event";
-			event_types[i].callback = &EmptyTimedCallback;
+			event_type.name = "_discarded_event";
+			event_type.callback = &EmptyTimedCallback;
 		}
 	}
 

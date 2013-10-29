@@ -45,12 +45,12 @@ void CWiiSaveCrypted::ExportAllSaves()
 		std::string folder = StringFromFormat("%s/%08x/", titleFolder.c_str(), pathMask | i);
 		File::ScanDirectoryTree(folder, FST_Temp);
 		
-		for (u32 j = 0; j < FST_Temp.children.size(); j++)
+		for (auto& entry : FST_Temp.children)
 		{
-			if (FST_Temp.children[j].isDirectory)
+			if (entry.isDirectory)
 			{
 				u32 gameid;
-				if (AsciiToHex(FST_Temp.children[j].virtualName.c_str(), gameid))
+				if (AsciiToHex(entry.virtualName.c_str(), gameid))
 				{
 					std::string bannerPath = StringFromFormat("%s%08x/data/banner.bin", folder.c_str(), gameid);
 					if (File::Exists(bannerPath))
@@ -63,9 +63,9 @@ void CWiiSaveCrypted::ExportAllSaves()
 		}
 	}	
 	SuccessAlertT("Found %x save files", (unsigned int) titles.size());
-	for (u32 i = 0; i < titles.size(); ++i)
+	for (auto& title : titles)
 	{
-		CWiiSaveCrypted* exportSave = new CWiiSaveCrypted("", titles[i]);
+		CWiiSaveCrypted* exportSave = new CWiiSaveCrypted("", title);
 		delete exportSave;
 	}
 }
@@ -581,25 +581,25 @@ void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>&
 
 		File::FSTEntry FST_Temp;
 		File::ScanDirectoryTree(Directories[i], FST_Temp);
-		for (u32 j = 0; j < FST_Temp.children.size(); j++)
+		for (auto& elem : FST_Temp.children)
 		{
-			if (strncmp(FST_Temp.children.at(j).virtualName.c_str(), "banner.bin", 10) != 0)
+			if (strncmp(elem.virtualName.c_str(), "banner.bin", 10) != 0)
 			{
 				(*_numFiles)++;
 				*_sizeFiles += FILE_HDR_SZ;
-				if (FST_Temp.children.at(j).isDirectory)
+				if (elem.isDirectory)
 				{
-					if ((FST_Temp.children.at(j).virtualName == "nocopy") || FST_Temp.children.at(j).virtualName == "nomove")
+					if ((elem.virtualName == "nocopy") || elem.virtualName == "nomove")
 					{
 						PanicAlert("This save will likely require homebrew tools to copy to a real wii");
 					}
 
-					Directories.push_back(FST_Temp.children.at(j).physicalName);
+					Directories.push_back(elem.physicalName);
 				}
 				else
 				{
-					FileList.push_back(FST_Temp.children.at(j).physicalName);
-					*_sizeFiles += ROUND_UP(FST_Temp.children.at(j).size, BLOCK_SZ);
+					FileList.push_back(elem.physicalName);
+					*_sizeFiles += ROUND_UP(elem.size, BLOCK_SZ);
 				}
 			}
 		}

@@ -123,9 +123,8 @@ void LoadCodes(IniFile &globalIni, IniFile &localIni, bool forceLoad)
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
 	localIni.GetLines("ActionReplay_Enabled", enabledLines);
-	for (auto iter = enabledLines.begin(); iter != enabledLines.end(); ++iter)
+	for (auto& line : enabledLines)
 	{
-		const std::string& line = *iter;
 		if (line.size() != 0 && line[0] == '$')
 		{
 			std::string name = line.substr(1, line.size() - 1);
@@ -139,7 +138,7 @@ void LoadCodes(IniFile &globalIni, IniFile &localIni, bool forceLoad)
 		std::vector<std::string> lines;
 		std::vector<std::string> encryptedLines;
 		ARCode currentCode;
-		
+
 		inis[i]->GetLines("ActionReplay", lines);
 
 		std::vector<std::string>::const_iterator
@@ -148,7 +147,7 @@ void LoadCodes(IniFile &globalIni, IniFile &localIni, bool forceLoad)
 		for (; it != lines_end; ++it)
 		{
 			const std::string line = *it;
-			
+
 			if (line.empty())
 				continue;
 
@@ -258,11 +257,11 @@ void RunAllActive()
 {
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
 	{
-		for (std::vector<ARCode>::iterator i = activeCodes.begin(); i != activeCodes.end(); ++i) 
+		for (auto& activeCode : activeCodes) 
 		{
-			if (i->active)
+			if (activeCode.active)
 			{
-				i->active = RunCode(*i);
+				activeCode.active = RunCode(activeCode);
 				LogInfo("\n");
 			}
 		}
@@ -320,7 +319,7 @@ bool RunCode(const ARCode &arcode)
 
 			continue;
 		}
-		
+
 		LogInfo("--- Running Code: %08x %08x ---", addr.address, data);
 		//LogInfo("Command: %08x", cmd);
 
@@ -420,7 +419,7 @@ bool RunCode(const ARCode &arcode)
 			if (false == NormalCode(addr, data))
 				return false;
 			break;
-			
+
 		default:
 			LogInfo("This Normal Code is a Conditional Code");
 			if (false == ConditionalCode(addr, data, &skip_count))
@@ -467,10 +466,10 @@ void UpdateActiveList()
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = false;
 	b_RanOnce = false;
 	activeCodes.clear();
-	for (size_t i = 0; i < arCodes.size(); i++)
+	for (auto& arCode : arCodes)
 	{
-		if (arCodes[i].active)
-			activeCodes.push_back(arCodes[i]);
+		if (arCode.active)
+			activeCodes.push_back(arCode);
 	}
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = old_value;
 }
@@ -688,7 +687,7 @@ bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr addr, const u32 data
 	const s16 addr_incr = (s16)(data & 0xFFFF);
 	const s8  val_incr = (s8)(data >> 24);
 	const u8  write_num = (data & 0xFF0000) >> 16;
-	
+
 	u32 val = addr;
 	u32 curr_addr = new_addr;
 

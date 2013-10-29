@@ -65,8 +65,8 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
 	// triggers
 	groups.push_back(m_triggers = new MixedTriggers(_trans("Triggers")));
-	for (unsigned int i=0; i < sizeof(named_triggers)/sizeof(*named_triggers); ++i)
-		m_triggers->controls.push_back(new ControlGroup::Input(named_triggers[i]));
+	for (auto& named_trigger : named_triggers)
+		m_triggers->controls.push_back(new ControlGroup::Input(named_trigger));
 
 	// rumble
 	groups.push_back(m_rumble = new ControlGroup(_trans("Rumble")));
@@ -74,8 +74,8 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
 	// dpad
 	groups.push_back(m_dpad = new Buttons(_trans("D-Pad")));
-	for (unsigned int i=0; i < 4; ++i)
-		m_dpad->controls.push_back(new ControlGroup::Input(named_directions[i]));
+	for (auto& named_direction : named_directions)
+		m_dpad->controls.push_back(new ControlGroup::Input(named_direction));
 
 	// options
 	groups.push_back(m_options = new ControlGroup(_trans("Options")));

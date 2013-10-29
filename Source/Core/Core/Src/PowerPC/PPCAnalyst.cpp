@@ -196,9 +196,8 @@ void AnalyzeFunction2(Symbol *func)
 	u32 flags = func->flags;
 
 	bool nonleafcall = false;
-	for (size_t i = 0; i < func->calls.size(); i++)
+	for (auto c : func->calls)
 	{
-		SCall c = func->calls[i];
 		Symbol *called_func = g_symbolDB.GetSymbolFromAddr(c.function);
 		if (called_func && (called_func->flags & FFLAG_LEAF) == 0)
 		{
@@ -345,10 +344,9 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 			if (it != inserted_asm_codes.end())
 			{
 				const std::vector<u32>& codes = it->second;
-				for (std::vector<u32>::const_iterator itCur = codes.begin(),
-					itEnd = codes.end(); itCur != itEnd; ++itCur)
+				for (u32 c : codes)
 				{
-					cst1_instructions.push(*itCur);
+					cst1_instructions.push(c);
 				}
 				inst = UGeckoInstruction(cst1_instructions.front());
 				cst1_instructions.pop();
@@ -648,9 +646,8 @@ void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
 	for (PPCSymbolDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); ++iter)
 		funcAddrs.push_back(iter->second.address + iter->second.size);
 
-	for (vector<u32>::iterator iter = funcAddrs.begin(); iter != funcAddrs.end(); ++iter)
+	for (auto location : funcAddrs)
 	{
-		u32 location = *iter;
 		while (true)
 		{
 			if (PPCTables::IsValidInstruction(Memory::Read_Instruction(location)))

@@ -40,8 +40,8 @@ Guitar::Guitar(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Guitar"), _r
 {
 	// frets
 	groups.push_back(m_frets = new Buttons(_trans("Frets")));
-	for (unsigned int i = 0; i < sizeof(guitar_fret_names)/sizeof(*guitar_fret_names); ++i)
-		m_frets->controls.push_back(new ControlGroup::Input(guitar_fret_names[i]));
+	for (auto& guitar_fret_name : guitar_fret_names)
+		m_frets->controls.push_back(new ControlGroup::Input(guitar_fret_name));
 
 	// strum
 	groups.push_back(m_strum = new Buttons(_trans("Strum")));

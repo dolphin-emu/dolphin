@@ -21,10 +21,10 @@ std::string HLE_IPC_BuildFilename(std::string path_wii, int _size)
 	std::string path_full = File::GetUserPath(D_WIIROOT_IDX);
 
 	// Replaces chars that FAT32 can't support with strings defined in /sys/replace
-	for (auto i = replacements.begin(); i != replacements.end(); ++i)
+	for (auto& replacement : replacements)
 	{
-		for (size_t j = 0; (j = path_wii.find(i->first, j)) != path_wii.npos; ++j)
-			path_wii.replace(j, 1, i->second);
+		for (size_t j = 0; (j = path_wii.find(replacement.first, j)) != path_wii.npos; ++j)
+			path_wii.replace(j, 1, replacement.second);
 	}
 
 	path_full += path_wii;
