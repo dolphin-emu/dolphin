@@ -48,9 +48,9 @@ public:
 	OpenALStream(CMixer *mixer, void *hWnd = NULL)
 		: SoundStream(mixer)
 		, uiSource(0)
-	{};
+	{}
 
-	virtual ~OpenALStream() {};
+	virtual ~OpenALStream() {}
 
 	virtual bool Start();
 	virtual void SoundLoop();
@@ -74,7 +74,9 @@ private:
 	u8 numBuffers;
 #else
 public:
-	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}
+	OpenALStream(CMixer *mixer)
+		: SoundStream(mixer)
+	{}
 #endif // HAVE_OPENAL
 };
 

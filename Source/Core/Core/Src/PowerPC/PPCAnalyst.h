@@ -5,6 +5,7 @@
 #ifndef _PPCANALYST_H
 #define _PPCANALYST_H
 
+#include <algorithm>
 #include <vector>
 #include <map>
 

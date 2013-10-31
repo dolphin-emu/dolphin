@@ -1,34 +1,49 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ControllerInterface">
+      <UniqueIdentifier>{3a755a86-0efa-4396-bf79-bb3a1910764d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerInterface\DInput">
+      <UniqueIdentifier>{0289ef91-50f5-4c16-9fa4-ff4c4d8208e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerInterface\SDL">
+      <UniqueIdentifier>{770bf6f3-b0c3-4731-be52-46f54b4cb319}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ControllerInterface\XInput">
+      <UniqueIdentifier>{07bad1aa-7e03-4f5c-ade2-a44857c5cbc3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\ControllerEmu.cpp" />
     <ClCompile Include="Src\InputConfig.cpp" />
     <ClCompile Include="Src\UDPWiimote.cpp" />
     <ClCompile Include="Src\UDPWrapper.cpp" />
-    <ClCompile Include="Src\ControllerInterface\SDL\SDL.cpp">
-      <Filter>ControllerInterface\SDL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\ControllerInterface\XInput\XInput.cpp">
-      <Filter>ControllerInterface\XInput</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\ControllerInterface\ControllerInterface.cpp">
-      <Filter>ControllerInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\ControllerInterface\DInput\DInputKeyboardMouse.cpp">
+    <ClCompile Include="Src\ControllerInterface\DInput\DInput.cpp">
       <Filter>ControllerInterface\DInput</Filter>
     </ClCompile>
     <ClCompile Include="Src\ControllerInterface\DInput\DInputJoystick.cpp">
       <Filter>ControllerInterface\DInput</Filter>
     </ClCompile>
-    <ClCompile Include="Src\ControllerInterface\DInput\DInput.cpp">
+    <ClCompile Include="Src\ControllerInterface\DInput\DInputKeyboardMouse.cpp">
       <Filter>ControllerInterface\DInput</Filter>
     </ClCompile>
-    <ClCompile Include="Src\ControllerInterface\ExpressionParser.cpp">
-      <Filter>ControllerInterface</Filter>
+    <ClCompile Include="Src\ControllerInterface\XInput\XInput.cpp">
+      <Filter>ControllerInterface\XInput</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ControllerInterface\SDL\SDL.cpp">
+      <Filter>ControllerInterface\SDL</Filter>
     </ClCompile>
     <ClCompile Include="Src\ControllerInterface\Device.cpp">
       <Filter>ControllerInterface</Filter>
     </ClCompile>
+    <ClCompile Include="Src\ControllerInterface\ControllerInterface.cpp">
+      <Filter>ControllerInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\ControllerInterface\ExpressionParser.cpp">
+      <Filter>ControllerInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ControllerEmu.h" />
@@ -36,11 +51,20 @@
     <ClInclude Include="Src\InputConfig.h" />
     <ClInclude Include="Src\UDPWiimote.h" />
     <ClInclude Include="Src\UDPWrapper.h" />
-    <ClInclude Include="Src\ControllerInterface\SDL\SDL.h">
-      <Filter>ControllerInterface\SDL</Filter>
+    <ClInclude Include="Src\ControllerInterface\DInput\DInput.h">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ControllerInterface\DInput\DInputJoystick.h">
+      <Filter>ControllerInterface\DInput</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ControllerInterface\DInput\DInputKeyboardMouse.h">
+      <Filter>ControllerInterface\DInput</Filter>
     </ClInclude>
     <ClInclude Include="Src\ControllerInterface\XInput\XInput.h">
       <Filter>ControllerInterface\XInput</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ControllerInterface\SDL\SDL.h">
+      <Filter>ControllerInterface\SDL</Filter>
     </ClInclude>
     <ClInclude Include="Src\ControllerInterface\ControllerInterface.h">
       <Filter>ControllerInterface</Filter>
@@ -51,34 +75,9 @@
     <ClInclude Include="Src\ControllerInterface\ExpressionParser.h">
       <Filter>ControllerInterface</Filter>
     </ClInclude>
-    <ClInclude Include="Src\ControllerInterface\DInput\NamedKeys.h">
-      <Filter>ControllerInterface\DInput</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\ControllerInterface\DInput\DInputKeyboardMouse.h">
-      <Filter>ControllerInterface\DInput</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\ControllerInterface\DInput\DInputJoystick.h">
-      <Filter>ControllerInterface\DInput</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\ControllerInterface\DInput\DInput.h">
-      <Filter>ControllerInterface\DInput</Filter>
-    </ClInclude>
+    <ClInclude Include="Src\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="ControllerInterface">
-      <UniqueIdentifier>{63655b75-3fd6-4cd0-814a-eb9f3505f91d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ControllerInterface\DInput">
-      <UniqueIdentifier>{64f2ab35-5cce-40a5-a4d3-232710267e05}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ControllerInterface\SDL">
-      <UniqueIdentifier>{08565cb5-f959-45dc-90b1-93a9c0135478}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ControllerInterface\XInput">
-      <UniqueIdentifier>{5a9c1b94-2eab-4357-b44f-87d5db50da3d}</UniqueIdentifier>
-    </Filter>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
 </Project>

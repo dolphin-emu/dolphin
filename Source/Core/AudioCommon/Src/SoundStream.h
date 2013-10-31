@@ -22,8 +22,8 @@ protected:
 	bool m_muted;
 
 public:   
- SoundStream(CMixer *mixer) : m_mixer(mixer), threadData(0), m_logAudio(false), m_muted(false) {}
-	virtual ~SoundStream() { delete m_mixer;}
+	SoundStream(CMixer *mixer) : m_mixer(mixer), threadData(0), m_logAudio(false), m_muted(false) {}
+	virtual ~SoundStream() { delete m_mixer; }
 
 	static  bool isValid() { return false; }  
 	virtual CMixer *GetMixer() const { return m_mixer; }

@@ -81,7 +81,7 @@ private:
 	public:
 		std::string GetName() const;
 		ConstantEffect(EffectIDState& effect) : m_effect(effect) {}
-		void SetState(const ControlState state);
+		void SetState(ControlState state);
 	private:
 		EffectIDState& m_effect;
 	};
@@ -91,7 +91,7 @@ private:
 	public:
 		std::string GetName() const;
 		RampEffect(EffectIDState& effect) : m_effect(effect) {}
-		void SetState(const ControlState state);
+		void SetState(ControlState state);
 	private:
 		EffectIDState& m_effect;
 	};
@@ -101,7 +101,7 @@ private:
 	public:
 		std::string GetName() const;
 		SineEffect(EffectIDState& effect) : m_effect(effect) {}
-		void SetState(const ControlState state);
+		void SetState(ControlState state);
 	private:
 		EffectIDState& m_effect;
 	};
@@ -112,7 +112,7 @@ private:
 	public:
 		std::string GetName() const;
 		SquareEffect(EffectIDState& effect) : m_effect(effect) {}
-		void SetState(const ControlState state);
+		void SetState(ControlState state);
 	private:
 		EffectIDState& m_effect;
 	};
@@ -123,7 +123,7 @@ private:
 	public:
 		std::string GetName() const;
 		TriangleEffect(EffectIDState& effect) : m_effect(effect) {}
-		void SetState(const ControlState state);
+		void SetState(ControlState state);
 	private:
 		EffectIDState& m_effect;
 	};

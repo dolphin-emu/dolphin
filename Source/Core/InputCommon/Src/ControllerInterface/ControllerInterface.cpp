@@ -99,7 +99,7 @@ void ControllerInterface::Shutdown()
 	m_devices.clear();
 
 #ifdef CIFACE_USE_XINPUT
-	// nothing needed
+	ciface::XInput::DeInit();
 #endif
 #ifdef CIFACE_USE_DINPUT
 	// nothing needed

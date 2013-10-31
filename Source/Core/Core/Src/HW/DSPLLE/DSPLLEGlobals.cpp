@@ -48,4 +48,8 @@ void ProfilerDump(u64 count)
 	}
 }
 
+#elif defined(_MSC_VER)
+
+namespace { char SilenceLNK4221; };
+
 #endif

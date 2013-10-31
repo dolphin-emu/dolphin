@@ -7,6 +7,7 @@
 #include "Mixer.h"
 #include "NullSoundStream.h"
 #include "DSoundStream.h"
+#include "XAudio2_7Stream.h"
 #include "XAudio2Stream.h"
 #include "AOSoundStream.h"
 #include "AlsaSoundStream.h"
@@ -18,34 +19,47 @@
 #include "../../Core/Src/ConfigManager.h"
 
 // This shouldn't be a global, at least not here.
-SoundStream *soundStream;
+SoundStream *soundStream = nullptr;
 
 namespace AudioCommon 
 {	
-	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd) 
+	SoundStream *InitSoundStream(CMixer *mixer) 
 	{
 		// TODO: possible memleak with mixer
 
 		std::string backend = SConfig::GetInstance().sBackend;
-		if (backend == BACKEND_OPENAL           && OpenALStream::isValid()) 
+		if (backend == BACKEND_OPENAL           && OpenALStream::isValid())
 			soundStream = new OpenALStream(mixer);
-		else if (backend == BACKEND_NULLSOUND   && NullSound::isValid()) 
-			soundStream = new NullSound(mixer, hWnd);
-		else if (backend == BACKEND_DIRECTSOUND && DSound::isValid()) 
-			soundStream = new DSound(mixer, hWnd);
-		else if (backend == BACKEND_XAUDIO2     && XAudio2::isValid()) 
-			soundStream = new XAudio2(mixer);
-		else if (backend == BACKEND_AOSOUND     && AOSound::isValid()) 
+		else if (backend == BACKEND_NULLSOUND   && NullSound::isValid())
+			soundStream = new NullSound(mixer);
+		else if (backend == BACKEND_DIRECTSOUND && DSound::isValid())
+			soundStream = new DSound(mixer);
+		else if (backend == BACKEND_XAUDIO2)
+		{
+			if (XAudio2::isValid())
+				soundStream = new XAudio2(mixer);
+			else if (XAudio2_7::isValid())
+				soundStream = new XAudio2_7(mixer);
+		}
+		else if (backend == BACKEND_AOSOUND     && AOSound::isValid())
 			soundStream = new AOSound(mixer);
 		else if (backend == BACKEND_ALSA        && AlsaSound::isValid())
 			soundStream = new AlsaSound(mixer);
-		else if (backend == BACKEND_COREAUDIO   && CoreAudioSound::isValid()) 
+		else if (backend == BACKEND_COREAUDIO   && CoreAudioSound::isValid())
 			soundStream = new CoreAudioSound(mixer);
 		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
 			soundStream = new PulseAudio(mixer);
 		else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
 			soundStream = new OpenSLESStream(mixer);
-		if (soundStream != NULL)
+		
+		if (!soundStream && NullSound::isValid())
+		{
+			WARN_LOG(DSPHLE, "Could not initialize backend %s, using %s instead.",
+				backend.c_str(), BACKEND_NULLSOUND);
+			soundStream = new NullSound(mixer);
+		}
+
+		if (soundStream)
 		{
 			UpdateSoundStream();
 			if (soundStream->Start())
@@ -61,11 +75,12 @@ namespace AudioCommon
 			}
 			PanicAlertT("Could not initialize backend %s.", backend.c_str());
 		}
+
 		PanicAlertT("Sound backend %s is not valid.", backend.c_str());
 
 		delete soundStream;
-		soundStream = NULL;
-		return NULL;
+		soundStream = nullptr;
+		return nullptr;
 	}
 
 	void ShutdownSoundStream() 
@@ -79,7 +94,7 @@ namespace AudioCommon
 				soundStream->GetMixer()->StopLogAudio();
 				//soundStream->StopLogAudio();
 			delete soundStream;
-			soundStream = NULL;
+			soundStream = nullptr;
 		}
 
 		INFO_LOG(DSPHLE, "Done shutting down sound stream");	
@@ -93,7 +108,7 @@ namespace AudioCommon
 			backends.push_back(BACKEND_NULLSOUND);
 		if (DSound::isValid())
 			backends.push_back(BACKEND_DIRECTSOUND);
-		if (XAudio2::isValid())
+		if (XAudio2_7::isValid() || XAudio2::isValid())
 			backends.push_back(BACKEND_XAUDIO2);
 		if (AOSound::isValid())
 			backends.push_back(BACKEND_AOSOUND);

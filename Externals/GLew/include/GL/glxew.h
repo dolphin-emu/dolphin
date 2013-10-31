@@ -362,6 +362,26 @@ extern void ( * glXGetProcAddress (const GLubyte *procName)) (void);
 #define GLX_GPU_NUM_RB_AMD 0x21A7
 #define GLX_GPU_NUM_SPI_AMD 0x21A8
 
+typedef void ( * PFNGLXBLITCONTEXTFRAMEBUFFERAMDPROC) (GLXContext dstCtx, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+typedef GLXContext ( * PFNGLXCREATEASSOCIATEDCONTEXTAMDPROC) (unsigned int id, GLXContext share_list);
+typedef GLXContext ( * PFNGLXCREATEASSOCIATEDCONTEXTATTRIBSAMDPROC) (unsigned int id, GLXContext share_context, const int* attribList);
+typedef Bool ( * PFNGLXDELETEASSOCIATEDCONTEXTAMDPROC) (GLXContext ctx);
+typedef unsigned int ( * PFNGLXGETCONTEXTGPUIDAMDPROC) (GLXContext ctx);
+typedef GLXContext ( * PFNGLXGETCURRENTASSOCIATEDCONTEXTAMDPROC) (void);
+typedef unsigned int ( * PFNGLXGETGPUIDSAMDPROC) (unsigned int maxCount, unsigned int* ids);
+typedef int ( * PFNGLXGETGPUINFOAMDPROC) (unsigned int id, int property, GLenum dataType, unsigned int size, void* data);
+typedef Bool ( * PFNGLXMAKEASSOCIATEDCONTEXTCURRENTAMDPROC) (GLXContext ctx);
+
+#define glXBlitContextFramebufferAMD GLXEW_GET_FUN(__glewXBlitContextFramebufferAMD)
+#define glXCreateAssociatedContextAMD GLXEW_GET_FUN(__glewXCreateAssociatedContextAMD)
+#define glXCreateAssociatedContextAttribsAMD GLXEW_GET_FUN(__glewXCreateAssociatedContextAttribsAMD)
+#define glXDeleteAssociatedContextAMD GLXEW_GET_FUN(__glewXDeleteAssociatedContextAMD)
+#define glXGetContextGPUIDAMD GLXEW_GET_FUN(__glewXGetContextGPUIDAMD)
+#define glXGetCurrentAssociatedContextAMD GLXEW_GET_FUN(__glewXGetCurrentAssociatedContextAMD)
+#define glXGetGPUIDsAMD GLXEW_GET_FUN(__glewXGetGPUIDsAMD)
+#define glXGetGPUInfoAMD GLXEW_GET_FUN(__glewXGetGPUInfoAMD)
+#define glXMakeAssociatedContextCurrentAMD GLXEW_GET_FUN(__glewXMakeAssociatedContextCurrentAMD)
+
 #define GLXEW_AMD_gpu_association GLXEW_GET_VAR(__GLXEW_AMD_gpu_association)
 
 #endif /* GLX_AMD_gpu_association */
@@ -554,6 +574,17 @@ typedef void ( * PFNGLXRELEASETEXIMAGEATIPROC) (Display *dpy, GLXPbuffer pbuf, i
 #define GLXEW_ATI_render_texture GLXEW_GET_VAR(__GLXEW_ATI_render_texture)
 
 #endif /* GLX_ATI_render_texture */
+
+/* --------------------------- GLX_EXT_buffer_age -------------------------- */
+
+#ifndef GLX_EXT_buffer_age
+#define GLX_EXT_buffer_age 1
+
+#define GLX_BACK_BUFFER_AGE_EXT 0x20F4
+
+#define GLXEW_EXT_buffer_age GLXEW_GET_VAR(__GLXEW_EXT_buffer_age)
+
+#endif /* GLX_EXT_buffer_age */
 
 /* ------------------- GLX_EXT_create_context_es2_profile ------------------ */
 
@@ -962,10 +993,10 @@ typedef void ( * PFNGLXRELEASEVIDEOCAPTUREDEVICENVPROC) (Display* dpy, GLXVideoC
 
 #endif /* GLX_NV_video_capture */
 
-/* ---------------------------- GLX_NV_video_out --------------------------- */
+/* -------------------------- GLX_NV_video_output -------------------------- */
 
-#ifndef GLX_NV_video_out
-#define GLX_NV_video_out 1
+#ifndef GLX_NV_video_output
+#define GLX_NV_video_output 1
 
 #define GLX_VIDEO_OUT_COLOR_NV 0x20C3
 #define GLX_VIDEO_OUT_ALPHA_NV 0x20C4
@@ -992,9 +1023,9 @@ typedef int ( * PFNGLXSENDPBUFFERTOVIDEONVPROC) (Display* dpy, GLXPbuffer pbuf, 
 #define glXReleaseVideoImageNV GLXEW_GET_FUN(__glewXReleaseVideoImageNV)
 #define glXSendPbufferToVideoNV GLXEW_GET_FUN(__glewXSendPbufferToVideoNV)
 
-#define GLXEW_NV_video_out GLXEW_GET_VAR(__GLXEW_NV_video_out)
+#define GLXEW_NV_video_output GLXEW_GET_VAR(__GLXEW_NV_video_output)
 
-#endif /* GLX_NV_video_out */
+#endif /* GLX_NV_video_output */
 
 /* -------------------------- GLX_OML_swap_method -------------------------- */
 
@@ -1046,16 +1077,6 @@ typedef Bool ( * PFNGLXWAITFORSBCOMLPROC) (Display* dpy, GLXDrawable drawable, i
 
 #ifndef GLX_SGIS_color_range
 #define GLX_SGIS_color_range 1
-
-#define GLX_MIN_RED_SGIS 0
-#define GLX_MAX_GREEN_SGIS 0
-#define GLX_MIN_BLUE_SGIS 0
-#define GLX_MAX_ALPHA_SGIS 0
-#define GLX_MIN_GREEN_SGIS 0
-#define GLX_MIN_ALPHA_SGIS 0
-#define GLX_MAX_RED_SGIS 0
-#define GLX_EXTENDED_RANGE_SGIS 0
-#define GLX_MAX_BLUE_SGIS 0
 
 #define GLXEW_SGIS_color_range GLXEW_GET_VAR(__GLXEW_SGIS_color_range)
 
@@ -1393,7 +1414,7 @@ typedef int ( * PFNGLXVIDEORESIZESUNPROC) (Display* display, GLXDrawable window,
 /* ------------------------------------------------------------------------- */
 
 #ifdef GLEW_MX
-#define GLXEW_FUN_EXPORT
+#define GLXEW_FUN_EXPORT GLEW_FUN_EXPORT
 #define GLXEW_VAR_EXPORT
 #else
 #define GLXEW_FUN_EXPORT GLEW_FUN_EXPORT
@@ -1419,6 +1440,16 @@ GLXEW_FUN_EXPORT PFNGLXMAKECONTEXTCURRENTPROC __glewXMakeContextCurrent;
 GLXEW_FUN_EXPORT PFNGLXQUERYCONTEXTPROC __glewXQueryContext;
 GLXEW_FUN_EXPORT PFNGLXQUERYDRAWABLEPROC __glewXQueryDrawable;
 GLXEW_FUN_EXPORT PFNGLXSELECTEVENTPROC __glewXSelectEvent;
+
+GLXEW_FUN_EXPORT PFNGLXBLITCONTEXTFRAMEBUFFERAMDPROC __glewXBlitContextFramebufferAMD;
+GLXEW_FUN_EXPORT PFNGLXCREATEASSOCIATEDCONTEXTAMDPROC __glewXCreateAssociatedContextAMD;
+GLXEW_FUN_EXPORT PFNGLXCREATEASSOCIATEDCONTEXTATTRIBSAMDPROC __glewXCreateAssociatedContextAttribsAMD;
+GLXEW_FUN_EXPORT PFNGLXDELETEASSOCIATEDCONTEXTAMDPROC __glewXDeleteAssociatedContextAMD;
+GLXEW_FUN_EXPORT PFNGLXGETCONTEXTGPUIDAMDPROC __glewXGetContextGPUIDAMD;
+GLXEW_FUN_EXPORT PFNGLXGETCURRENTASSOCIATEDCONTEXTAMDPROC __glewXGetCurrentAssociatedContextAMD;
+GLXEW_FUN_EXPORT PFNGLXGETGPUIDSAMDPROC __glewXGetGPUIDsAMD;
+GLXEW_FUN_EXPORT PFNGLXGETGPUINFOAMDPROC __glewXGetGPUInfoAMD;
+GLXEW_FUN_EXPORT PFNGLXMAKEASSOCIATEDCONTEXTCURRENTAMDPROC __glewXMakeAssociatedContextCurrentAMD;
 
 GLXEW_FUN_EXPORT PFNGLXCREATECONTEXTATTRIBSARBPROC __glewXCreateContextAttribsARB;
 
@@ -1555,6 +1586,7 @@ GLXEW_VAR_EXPORT GLboolean __GLXEW_ARB_robustness_share_group_isolation;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_ARB_vertex_buffer_object;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_ATI_pixel_format_float;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_ATI_render_texture;
+GLXEW_VAR_EXPORT GLboolean __GLXEW_EXT_buffer_age;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_EXT_create_context_es2_profile;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_EXT_create_context_es_profile;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_EXT_fbconfig_packed_float;
@@ -1580,7 +1612,7 @@ GLXEW_VAR_EXPORT GLboolean __GLXEW_NV_present_video;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_NV_swap_group;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_NV_vertex_array_range;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_NV_video_capture;
-GLXEW_VAR_EXPORT GLboolean __GLXEW_NV_video_out;
+GLXEW_VAR_EXPORT GLboolean __GLXEW_NV_video_output;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_OML_swap_method;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_OML_sync_control;
 GLXEW_VAR_EXPORT GLboolean __GLXEW_SGIS_blended_overlay;

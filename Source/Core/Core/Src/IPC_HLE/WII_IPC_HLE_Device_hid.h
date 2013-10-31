@@ -7,7 +7,7 @@
 
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
-#include "libusb.h"
+#include <libusb.h>
 #include "Thread.h"
 #include <list>
 

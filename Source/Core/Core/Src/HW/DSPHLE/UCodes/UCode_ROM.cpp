@@ -2,6 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include "UCodes.h"
 #include "UCode_ROM.h"
 #include "Hash.h"
