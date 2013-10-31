@@ -190,14 +190,6 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			// Is a Tegra 4 since it supports 24bit depth
 			mSupportsGLES3 = true;
 		}
-		if (!mSupportsGLES3 &&
-				m_GLVendor == null &&
-				m_GLRenderer == null &&
-				m_GLExtensions == null)
-		{
-			// Couldn't get information. Give them the benefit of the doubt
-			mSupportsGLES3 = true;
-		}
 		return mSupportsGLES3;
 	}
 
