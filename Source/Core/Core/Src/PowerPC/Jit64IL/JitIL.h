@@ -68,8 +68,6 @@ public:
 	JitIL() : code_buffer(32000) {}
 	~JitIL() {}
 
-	IREmitter::IRBuilder ibuild;
-
 	// Initialization, etc
 
 	void Init();
