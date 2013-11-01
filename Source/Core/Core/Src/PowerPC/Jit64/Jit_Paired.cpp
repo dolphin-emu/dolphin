@@ -40,12 +40,9 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
 
-	Default(inst); return;
-
 	if (inst.Rc) {
 		Default(inst); return;
 	}
-	// GRR can't get this to work 100%. Getting artifacts in D.O.N. intro.
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
@@ -59,7 +56,7 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 	MOVAPD(XMM7, fpr.R(a));
 	CMPPD(XMM7, M((void*)psZeroZero), 1); //less-than = 111111
 	MOVAPD(XMM6, R(XMM7));
-	ANDPD(XMM7, fpr.R(d));
+	ANDPD(XMM7, fpr.R(b));
 	ANDNPD(XMM6, fpr.R(c));
 	MOVAPD(fpr.RX(d), R(XMM7));
 	ORPD(fpr.RX(d), R(XMM6));
