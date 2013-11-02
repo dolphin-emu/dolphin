@@ -228,7 +228,7 @@
   <!--Copy Exe, Pdb, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
     <DataDirFiles Include="$(SolutionDir)..\Data\**\*.*" />
-    <ExternalDlls Include="$(SolutionDir)..\Externals\OpenAL\$(PlatformName)\*.dll;$(SolutionDir)..\Externals\SDL2-2.0.0\lib\$(PlatformName)\*.dll" />
+    <ExternalDlls Include="$(ExternalsDir)OpenAL\$(PlatformName)\*.dll;$(ExternalsDir)SDL2-2.0.0\lib\$(PlatformName)\*.dll;$(ExternalsDir)msvcrt\$(PlatformName)\*.dll" />
     <BinaryFiles Include="$(TargetPath);$(TargetDir)$(TargetName).pdb" />
     <AllInputFiles Include="@(DataDirFiles);@(ExternalDlls);@(BinaryFiles)" />
   </ItemGroup>

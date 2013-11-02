@@ -13,7 +13,10 @@ Source/Core/Common/Src/scmrev.h
 *.sdf
 *.suo
 *.vcxproj.user
+*.obj
 # Ignore files created by posix people
 *~
 # Ignore transifix configuration directory
 .tx
+# Ignore tlog files
+*.tlog

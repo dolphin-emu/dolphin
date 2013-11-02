@@ -74,6 +74,7 @@
       seem to be a way to only ignore the specific instance we don't care about...
       -->
       <DisableSpecificWarnings>4996</DisableSpecificWarnings>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <!--ClCompile Base:StaticLibrary-->
     <ClCompile Condition="'$(ConfigurationType)'=='StaticLibrary'">
