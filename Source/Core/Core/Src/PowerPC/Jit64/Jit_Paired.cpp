@@ -100,20 +100,33 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-void Jit64::ps_rsqrte(UGeckoInstruction inst)
+// ps_res and ps_rsqrte
+void Jit64::ps_recip(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
+	OpArg divisor;
 	int d = inst.FD;
 	int b = inst.FB;
 	fpr.Lock(d, b);
-	fpr.BindToRegister(d, (d == b), true);
-	SQRTPD(XMM0, fpr.R(b));
+	fpr.BindToRegister(d, (d == b));
+	switch (inst.SUBOP5)
+	{
+	case 24:
+		// ps_res
+		divisor = fpr.R(b);
+		break;
+	case 26:
+		// ps_rsqrte
+		SQRTPD(XMM0, fpr.R(b));
+		divisor = R(XMM0);
+		break;
+	}
 	MOVAPD(XMM1, M((void*)&psOneOne));
-	DIVPD(XMM1, R(XMM0));
+	DIVPD(XMM1, divisor);
 	MOVAPD(fpr.R(d), XMM1);
 	fpr.UnlockAll();
 }
