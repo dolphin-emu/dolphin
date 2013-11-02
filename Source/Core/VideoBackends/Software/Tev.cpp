@@ -528,9 +528,9 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 			return;
 	}
 
-	s64 indtevtrans[2] = { 0,0 };
+	s32 indtevtrans[2] = { 0,0 };
 
-	// matrix multiply
+	// matrix multiply - results might overflow, but we don't care since we only use the lower 24 bits of the result.
 	int indmtxid = indirect.mid & 3;
 	if (indmtxid)
 	{
