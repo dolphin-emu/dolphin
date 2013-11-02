@@ -11,7 +11,6 @@
 // ps_madds0
 // ps_muls0
 // ps_madds1
-// ps_sel
 //   cmppd, andpd, andnpd, or
 //   lfsx, ps_merge01 etc
 
@@ -37,6 +36,9 @@ void Jit64::ps_mr(UGeckoInstruction inst)
 
 void Jit64::ps_sel(UGeckoInstruction inst)
 {
+	// we can't use (V)BLENDVPD here because it just looks at the sign bit
+	// but we need -0 = +0
+
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
 
@@ -47,21 +49,18 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 	int a = inst.FA;
 	int b = inst.FB;
 	int c = inst.FC;
-	fpr.FlushLockX(XMM7);
-	fpr.FlushLockX(XMM6);
+
 	fpr.Lock(a, b, c, d);
-	fpr.BindToRegister(a, true, false);
-	fpr.BindToRegister(d, false, true);
-	// BLENDPD would have been nice...
-	MOVAPD(XMM7, fpr.R(a));
-	CMPPD(XMM7, M((void*)psZeroZero), 1); //less-than = 111111
-	MOVAPD(XMM6, R(XMM7));
-	ANDPD(XMM7, fpr.R(b));
-	ANDNPD(XMM6, fpr.R(c));
-	MOVAPD(fpr.RX(d), R(XMM7));
-	ORPD(fpr.RX(d), R(XMM6));
+	MOVAPD(XMM0, fpr.R(a));
+	// XMM0 = XMM0 < 0 ? all 1s : all 0s
+	CMPPD(XMM0, M((void*)psZeroZero), LT);
+	MOVAPD(XMM1, R(XMM0));
+	ANDPD(XMM0, fpr.R(b));
+	ANDNPD(XMM1, fpr.R(c));
+	fpr.BindToRegister(d, false);
+	MOVAPD(fpr.RX(d), R(XMM0));
+	ORPD(fpr.RX(d), R(XMM1));
 	fpr.UnlockAll();
-	fpr.UnlockAllX();
 }
 
 void Jit64::ps_sign(UGeckoInstruction inst)
@@ -181,8 +180,6 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 	case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::DIVPD); break; //div
 	case 20: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::SUBPD); break; //sub
 	case 21: tri_op(inst.FD, inst.FA, inst.FB, true,  &XEmitter::ADDPD); break; //add
-	case 23: Default(inst); break; //sel
-	case 24: Default(inst); break; //res
 	case 25: tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::MULPD); break; //mul
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_arith WTF!!!");
