@@ -35,6 +35,7 @@
 #include "WxUtils.h"
 #include <wx/image.h>
 #endif
+#include "ImageWrite.h"
 
 #include <cmath>
 #include <string>
@@ -308,8 +309,8 @@ void Renderer::SaveScreenshot(u8* ptr, size_t width, size_t height)
 	OSD::AddMessage("Saving Screenshot... ", 2000);
 
 #else
-	SaveTGA(filename.c_str(), W, H, data);
-	free(data);
+	SaveTGA(s_sScreenshotName.c_str(), width, height, ptr);
+	free(ptr);
 #endif
 
 	s_sScreenshotName.clear();

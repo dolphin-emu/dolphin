@@ -22,7 +22,6 @@
 #include "DriverDetails.h"
 #include "VideoConfig.h"
 #include "Statistics.h"
-#include "ImageWrite.h"
 #include "PixelEngine.h"
 #include "Render.h"
 #include "BPStructs.h"
