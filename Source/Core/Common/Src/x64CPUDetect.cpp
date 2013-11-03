@@ -250,7 +250,12 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum(cpu_string);
 	if (bSSE) sum += ", SSE";
-	if (bSSE2) sum += ", SSE2";
+	if (bSSE2)
+	{
+		sum += ", SSE2";
+		if (!bFlushToZero)
+			sum += " (but not DAZ!)";
+	}
 	if (bSSE3) sum += ", SSE3";
 	if (bSSSE3) sum += ", SSSE3";
 	if (bSSE4_1) sum += ", SSE4.1";
