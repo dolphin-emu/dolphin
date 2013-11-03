@@ -1,69 +1,140 @@
-Dolphin-emu - The Gamecube / Wii Emulator
+Dolphin - A Gamecube / Triforce / Wii Emulator
 ==========================================
 Homesite: http://dolphin-emu.org/
 Project Site: http://code.google.com/p/dolphin-emu
 
-Dolphin-emu is a emulator for Gamecube, Wii, Triforce that lets
-you run Wii/GCN/Tri games on your Windows/Linux/Mac PC system.
-
-Open Source Release under GPL 2
-
-Project Leaders: F|RES, ector
+Dolphin is an emulator for running Gamecube, Triforce and Wii games on
+Windows/Linux/OS X systems and recent Android devices. It's licensed under
+the terms of the GNU General Public License, version 2 (GPLv2).
 
 Team members: http://code.google.com/p/dolphin-emu/people/
 
-Please read the FAQ before use:
+Please read the FAQ before use: http://dolphin-emu.org/docs/faq/
 
-http://dolphin-emu.org/docs/faq/
-
-System Requirements:
-* OS: Microsoft Windows (XP/Vista or higher) or Linux or Apple Mac OS X (10.6 or higher).
+[System Requirements]
+* OS: Microsoft Windows (XP/Vista or higher) or Linux or Apple Mac OS X (10.7 or higher).
   Windows XP x64 is NOT supported.
-* Processor: Fast CPU with SSE2 supported (recommended at least 2Ghz).
-  Dual Core for speed boost.
-* Graphics: Any reasonably modern graphics card (Direct3D9/OpenGL 2.1, shader model 3.0).
+  Unix like systems other than Linux might work but are not officially supported.
+* Processor: A CPU with SSE2 support
+  A modern CPU (3 GHz and Dual Core, not older than 2008) is highly recommended.
+* Graphics: A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0).
+  Direct3D 11 / OpenGL 4.4 recommended.
+
+[Installation on Windows]
+Use the solution file Source/dolphin-emu.sln to build Dolphin on Windows.
+Visual Studio 2013 is a hard requirement since previous versions don't support
+many C++ features that we use. Other compilers might be able to build Dolphin
+on Windows but have not been tested and are not recommended to be used.
+
+An installer can be created by using the Installer_win32.nsi and
+Installer_x64.nsi scripts in the Installer directory. This will require the
+Nullsoft Scriptable Install System (NSIS) to be installed. Creating an
+installer is not necessary to run Dolphin since the Build directory contains
+a working Dolphin distribution.
+
+[Installation on Linux/OS X]
+
+Dolphin requires CMake for systems other than Windows. Many libraries are
+bundled with Dolphin and used if they're not installed on your system. CMake
+will inform you if a bundled library is used or if you need to install any
+missing packages yourself.
+
+Build steps:
+mkdir Build
+cd Build
+cmake ..
+make
+
+On OS X, an application bundle will be created in ./Binaries.
+
+On Linux, it's strongly recommended to perform a global installation via
+"sudo make install".
+
+[Uninstalling]
+When Dolphin has been installed with the NSIS installer, you can uninstall
+Dolphin like any other Windows application.
+
+Linux users can run "cat install_manifest | xargs -d '\n' rm" from the build directory
+to uninstall Dolphin from their system.
+
+OS X users can simply delete Dolphin.app to uninstall it.
+
+Additionally, you'll want to remove the global user directory (see below to
+see where it's stored) if you don't plan to reinstall Dolphin.
 
 [Command line usage]
 Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-V <str>] [-A <str>]
-  -h, --help                	Show this help message
-  -d, --debugger            	Opens the debugger
-  -l, --logger              	Opens the logger
-  -e, --exec=<str>          	Loads the specified file (DOL,ELF,WAD,GCM,ISO)
-  -b, --batch             	Exit Dolphin with emulator
-  -V, --video_backend=<str>  	Specify a video plugin
-  -A, --audio_emulation=<str>	Low level (LLE) or high level (HLE) audio
+  -h, --help Show this help message
+  -d, --debugger Opens the debugger
+  -l, --logger Opens the logger
+  -e, --exec=<str> Loads the specified file (DOL,ELF,WAD,GCM,ISO)
+  -b, --batch Exit Dolphin with emulator
+  -V, --video_backend=<str> Specify a video backend
+  -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
 
-[Libraries]
-Cg: Cg Shading API (http://developer.nvidia.com/object/cg_toolkit.html)
-*.pdb = Program Debug Database (use these symbols with a program debugger)
+Available DSP emulation engines are HLE (High Level Emulation) and
+LLE (Low Level Emulation). HLE is fast but often less accurate while LLE is
+slow but close to perfect. Note that LLE has two submodes (Interpreter and
+Recompiler), which cannot be selected from the command line.
 
-[DSP Emulator Engines]
-HLE: High Level DSP Emulation
-LLE: Low Level DSP Emulation (requires DSP dumps)
-     Recompiler is faster than interpreter but may be buggy.
-
-[Video Backends]
-Direct3D9: Render with Direct3D 9
-Direct3D11: Render with Direct3D 11
-OpenGL: Render with OpenGL + Cg Shader Language
-Software Renderer: Render using the CPU only (for devs only)
+Available video backends are "D3D" (only available on Windows Vista or higher),
+"OGL". There's also "Software Renderer", which uses the CPU for rendering and
+is intended for debugging purposes, only.
 
 [Sys Files]
 totaldb.dsy: Database of symbols (for devs only)
-font_ansi.bin/font_sjis.bin: font dumps
-setting-usa/jpn/usa.txt: config files for Wii
+GC/font_ansi.bin: font dumps
+GC/font_sjis.bin: font dumps
+GC/dsp_coef.bin: DSP dumps
+GC/dsp_rom.bin: DSP dumps
 
-[Support Folders]
-Cache: used to cache the ISO list
-Config: emulator configuration files
-Dump: anything dumped from dolphin will go here
-GameConfig: holds the INI game config files
-GC: Gamecube memory cards
-Load: custom textures
-Logs: logs go here
-Maps: symbol tables go here (dev only)
+The DSP dumps included with Dolphin have been written from scratch and do not
+contain any copyrighted material. They should work for most purposes, however
+some games implement copy protection by checksumming the dumps. You will need
+to dump the DSP files from a console and replace the default dumps if you want
+to fix those issues.
+
+[Folder structure]
+These folders are installed read-only and should not be changed.
+
+GameSettings: per-game default settings database
+GC: DSP and font dumps
+Maps: symbol tables (dev only)
 OpenCL: OpenCL code
-ScreenShots: screenshots are saved here
 Shaders: post-processing shaders
-StateSaves: save states are stored here
-Wii: Wii saves and config is stored here
+Themes: icon themes for GUI
+Wii: default Wii NAND contents
+
+[User folder structure]
+A number of user writeable directories are created for caching purposes or for
+allowing the user to edit their contents. On OS X and Linux these folders are
+stored in ~/Library/Application Support/Dolphin/ and ~/.dolphin-emu
+respectively. On Windows the user directory is stored in the "My Documents"
+folder by default, but there are various way to override this behavior:
+- Creating a file called "portable.txt" next to the Dolphin executable will
+  store the user directory in a local directory called "User" next to the
+  Dolphin executable.
+- If the registry string value "LocalUserConfig" exists in
+  "HKEY_CURRENT_USER/Dolphin Emulator" and has the value "1", Dolphin will
+  always start in portable mode.
+- If the registry string value "UserConfigPath" exists in
+  "HKEY_CURRENT_USER/Dolphin Emulator", the user folders will be stored in the
+  directory given by that string. The other two methods will be prioritized
+  over this setting.
+
+List of user folders:
+Cache: used to cache the ISO list
+Config: configuration files
+Dump: anything dumped from dolphin
+GameConfig: additional settings to be applied per-game
+GC: memory cards
+Load: custom textures
+Logs: logs, if enabled
+ScreenShots: screenshots taken via Dolphin
+StateSaves: save states
+Wii: Wii NAND contents
+
+[Custom textures]
+Custom textures have to be placed in the user directory under
+Load/Textures/<GameID>/. You can find the Game ID by right-clicking a game
+in the ISO list and selecting "ISO Properties".
