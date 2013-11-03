@@ -63,7 +63,7 @@ public:
 
 	void RenderText(const char* pstr, int left, int top, u32 color);
 	void DrawDebugInfo();
-	void FlipImageData(u8 *data, int w, int h);
+	static void FlipImageData(u8 *data, int w, int h);
 
 	u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
 
@@ -80,7 +80,7 @@ public:
 
 	void UpdateViewport();
 
-	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
+	static void TakeScreenshot(const TargetRectangle &rc);
 
 private:
 	void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data);

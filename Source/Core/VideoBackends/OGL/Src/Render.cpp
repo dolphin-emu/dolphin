@@ -11,9 +11,6 @@
 #include <cstdio>
 
 #include "GLUtil.h"
-#if defined(HAVE_WX) && HAVE_WX
-#include "WxUtils.h"
-#endif
 
 #include "FileUtil.h"
 
@@ -62,10 +59,6 @@
 #include "AVIDump.h"
 #endif
 
-#if defined(HAVE_WX) && HAVE_WX
-#include <wx/image.h>
-#endif
-
 // glew1.8 doesn't define KHR_debug
 #ifndef GL_DEBUG_OUTPUT
 #define GL_DEBUG_OUTPUT 0x92E0
@@ -76,17 +69,6 @@ void VideoConfig::UpdateProjectionHack()
 {
 	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
-
-
-#if defined(HAVE_WX) && HAVE_WX
-// Screenshot thread struct
-typedef struct
-{
-	int W, H;
-	std::string filename;
-	wxImage *img;
-} ScrStrct;
-#endif
 
 
 int OSDInternalW, OSDInternalH;
@@ -126,10 +108,6 @@ static int s_LastMultisampleMode = 0;
 static u32 s_blendMode;
 
 static bool s_vsync;
-
-#if defined(HAVE_WX) && HAVE_WX
-static std::thread scrshotThread;
-#endif
 
 // EFB cache related
 static const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
@@ -626,11 +604,6 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
-
-#if defined(HAVE_WX) && HAVE_WX
-	if (scrshotThread.joinable())
-		scrshotThread.join();
-#endif
 }
 
 void Renderer::Shutdown()
@@ -1406,11 +1379,8 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// Save screenshot
 	if (s_bScreenshot)
 	{
-		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		SaveScreenshot(s_sScreenshotName, flipped_trc);
+		TakeScreenshot(flipped_trc);
 		// Reset settings
-		s_sScreenshotName.clear();
-		s_bScreenshot = false;
 	}
 
 	// Frame dumps are handled a little differently in Windows
@@ -1788,71 +1758,22 @@ void Renderer::SetInterlacingMode()
 
 void Renderer::FlipImageData(u8 *data, int w, int h)
 {
-	// Flip image upside down. Damn OpenGL.
+	// XXX make this faster
+	u8* __restrict top = data;
+	u8* bot = data + w * h * 3;
 	for (int y = 0; y < h / 2; y++)
 	{
-		for(int x = 0; x < w; x++)
+		size_t stride = w * 3;
+		bot -= stride;
+		u8* __restrict brow = bot;
+		for(size_t x = 0; x < stride; x++)
 		{
-			std::swap(data[(y * w + x) * 3],     data[((h - 1 - y) * w + x) * 3]);
-			std::swap(data[(y * w + x) * 3 + 1], data[((h - 1 - y) * w + x) * 3 + 1]);
-			std::swap(data[(y * w + x) * 3 + 2], data[((h - 1 - y) * w + x) * 3 + 2]);
+			std::swap(*top++, *brow++);
 		}
 	}
 }
 
-}
-
-// TODO: remove
-extern bool g_aspect_wide;
-
-#if defined(HAVE_WX) && HAVE_WX
-void TakeScreenshot(ScrStrct* threadStruct)
-{
-	// These will contain the final image size
-	float FloatW = (float)threadStruct->W;
-	float FloatH = (float)threadStruct->H;
-
-	// Handle aspect ratio for the final ScrStrct to look exactly like what's on screen.
-	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
-	{
-		bool use16_9 = g_aspect_wide;
-
-		// Check for force-settings and override.
-		if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)
-			use16_9 = true;
-		else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
-			use16_9 = false;
-
-		float Ratio = (FloatW / FloatH) / (!use16_9 ? (4.0f / 3.0f) : (16.0f / 9.0f));
-
-		// If ratio > 1 the picture is too wide and we have to limit the width.
-		if (Ratio > 1)
-			FloatW /= Ratio;
-		// ratio == 1 or the image is too high, we have to limit the height.
-		else
-			FloatH *= Ratio;
-
-		// This is a bit expensive on high resolutions
-		threadStruct->img->Rescale((int)FloatW, (int)FloatH, wxIMAGE_QUALITY_HIGH);
-	}
-
-	// Save the screenshot and finally kill the wxImage object
-	// This is really expensive when saving to PNG, but not at all when using BMP
-	threadStruct->img->SaveFile(StrToWxStr(threadStruct->filename),
-		wxBITMAP_TYPE_PNG);
-	threadStruct->img->Destroy();
-
-	// Show success messages
-	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", (int)FloatW, (int)FloatH,
-		threadStruct->filename.c_str()), 2000);
-	delete threadStruct;
-}
-#endif
-
-namespace OGL
-{
-
-bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &back_rc)
+void Renderer::TakeScreenshot(const TargetRectangle &back_rc)
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
@@ -1866,38 +1787,13 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	{
 		free(data);
 		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
-		return false;
+		return;
 	}
 
 	// Turn image upside down
 	FlipImageData(data, W, H);
 
-#if defined(HAVE_WX) && HAVE_WX
-	// Create wxImage
-	wxImage *a = new wxImage(W, H, data);
-
-	if (scrshotThread.joinable())
-		scrshotThread.join();
-
-	ScrStrct *threadStruct = new ScrStrct;
-	threadStruct->filename = filename;
-	threadStruct->img = a;
-	threadStruct->H = H; threadStruct->W = W;
-
-	scrshotThread = std::thread(TakeScreenshot, threadStruct);
-#ifdef _WIN32
-	SetThreadPriority(scrshotThread.native_handle(), THREAD_PRIORITY_BELOW_NORMAL);
-#endif
-	bool result = true;
-
-	OSD::AddMessage("Saving Screenshot... ", 2000);
-
-#else
-	bool result = SaveTGA(filename.c_str(), W, H, data);
-	free(data);
-#endif
-
-	return result;
+	SaveScreenshot(data, W, H);
 }
 
 }

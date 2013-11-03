@@ -680,7 +680,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 }
 
-bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle& rc)
+void Renderer::TakeScreenshot(const TargetRectangle &rc)
 {
 	if (!s_screenshot_texture)
 		CreateScreenshotTexture(rc);
@@ -689,34 +689,26 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	D3D11_BOX box = CD3D11_BOX(rc.left, rc.top, 0, rc.right, rc.bottom, 1);
 	D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0, &box);
 
-	// D3DX11SaveTextureToFileA doesn't allow us to ignore the alpha channel, so we need to strip it out ourselves
+	u8* __restrict dest = (u8*) malloc(rc.GetWidth() * rc.GetHeight() * 3);
+
 	D3D11_MAPPED_SUBRESOURCE map;
 	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
-	for (unsigned int y = 0; y < rc.GetHeight(); ++y)
+	u8* src = (u8*) map.pData;
+	for (int y = 0; y < rc.GetHeight(); ++y)
 	{
-		u8* ptr = (u8*)map.pData + y * map.RowPitch + 3;
-		for (unsigned int x = 0; x < rc.GetWidth(); ++x)
+		u8* __restrict row = src;
+		for (int x = 0; x < rc.GetWidth(); ++x)
 		{
-			*ptr = 0xFF;
-			ptr += 4;
+			*dest++ = *row++;
+			*dest++ = *row++;
+			*dest++ = *row++;
+			row++;
 		}
+		src += map.RowPitch;
 	}
 	D3D::context->Unmap(s_screenshot_texture, 0);
 
-	// ready to be saved
-	//HRESULT hr = PD3DX11SaveTextureToFileA(D3D::context, s_screenshot_texture, D3DX11_IFF_PNG, filename.c_str());
-	HRESULT hr = 0;
-	if (SUCCEEDED(hr))
-	{
-		OSD::AddMessage(StringFromFormat("Saved %i x %i %s", rc.GetWidth(),
-		                                 rc.GetHeight(), filename.c_str()));
-	}
-	else
-	{
-		OSD::AddMessage(StringFromFormat("Error saving %s", filename.c_str()));
-	}
-
-	return SUCCEEDED(hr);
+	SaveScreenshot(dest, rc.GetWidth(), rc.GetHeight());
 }
 
 void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
@@ -854,8 +846,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// done with drawing the game stuff, good moment to save a screenshot
 	if (s_bScreenshot)
 	{
-		SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
-		s_bScreenshot = false;
+		TakeScreenshot(GetTargetRectangle());
 	}
 
 	// Dump frames
