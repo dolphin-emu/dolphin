@@ -66,7 +66,7 @@ bool g_bRecordingFromSaveState = false;
 bool g_bPolled = false;
 int g_currentSaveVersion = 0;
 
-std::string tmpStateFilename = "dtm.sav";
+std::string tmpStateFilename = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
 
 std::string g_InputDisplay[8];
 
