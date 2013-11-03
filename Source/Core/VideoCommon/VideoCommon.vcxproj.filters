@@ -57,19 +57,16 @@
     <ClCompile Include="Src\VertexManagerBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
-    <ClCompile Include="Src\OpenCL\OCLTextureDecoder.cpp">
+    <ClCompile Include="Src\OpenCL.cpp">
       <Filter>Decoding\OpenCL</Filter>
     </ClCompile>
-    <ClCompile Include="Src\OpenCL.cpp">
+    <ClCompile Include="Src\OpenCL\TextureDecoder_OpenCL.cpp">
       <Filter>Decoding\OpenCL</Filter>
     </ClCompile>
     <ClCompile Include="Src\Fifo.cpp">
       <Filter>Decoding</Filter>
     </ClCompile>
     <ClCompile Include="Src\OpcodeDecoding.cpp">
-      <Filter>Decoding</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\x64TextureDecoder.cpp">
       <Filter>Decoding</Filter>
     </ClCompile>
     <ClCompile Include="Src\BPFunctions.cpp">
@@ -95,6 +92,9 @@
     </ClCompile>
     <ClCompile Include="Src\TextureConversionShader.cpp">
       <Filter>Shader Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\TextureDecoder_x64.cpp">
+      <Filter>Decoding</Filter>
     </ClCompile>
     <ClCompile Include="Src\VertexShaderGen.cpp">
       <Filter>Shader Generators</Filter>
@@ -129,6 +129,9 @@
     <ClCompile Include="Src\VideoState.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="Src\DLCache_x64.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
     <ClCompile Include="Src\VertexLoader.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
@@ -145,9 +148,6 @@
       <Filter>Vertex Loading</Filter>
     </ClCompile>
     <ClCompile Include="Src\VertexLoaderManager.cpp">
-      <Filter>Vertex Loading</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\x64DLCache.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
     <ClCompile Include="Src\stdafx.cpp" />
@@ -184,7 +184,7 @@
     <ClInclude Include="Src\VertexManagerBase.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="Src\OpenCL\OCLTextureDecoder.h">
+    <ClInclude Include="Src\OpenCL\TextureDecoder_OpenCL.h">
       <Filter>Decoding\OpenCL</Filter>
     </ClInclude>
     <ClInclude Include="Src\OpenCL.h">

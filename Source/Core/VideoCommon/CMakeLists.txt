@@ -15,7 +15,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/OnScreenDisplay.cpp
 			Src/OpcodeDecoding.cpp
 			Src/OpenCL.cpp
-			Src/OpenCL/OCLTextureDecoder.cpp
+			Src/OpenCL/TextureDecoder_OpenCL.cpp
 			Src/PerfQueryBase.cpp
 			Src/PixelEngine.cpp
 			Src/PixelShaderGen.cpp
@@ -42,11 +42,11 @@ set(SRCS	Src/BPFunctions.cpp
 set(LIBS core png)
 
 if(NOT _M_GENERIC)
-	set(SRCS ${SRCS}	Src/x64TextureDecoder.cpp
-						Src/x64DLCache.cpp)
+	set(SRCS ${SRCS}	Src/TextureDecoder_x64.cpp
+						Src/DLCache_x64.cpp)
 else()
-	set(SRCS ${SRCS}	Src/GenericTextureDecoder.cpp
-						Src/GenericDLCache.cpp)
+	set(SRCS ${SRCS}	Src/TextureDecoder_Generic.cpp
+						Src/DLCache_Generic.cpp)
 endif()
 if(NOT ${CL} STREQUAL CL-NOTFOUND)
 	list(APPEND LIBS ${CL})

@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "OCLTextureDecoder.h"
+#include "TextureDecoder_OpenCL.h"
 
 #include "../OpenCL.h"
 #include "CommonPaths.h"

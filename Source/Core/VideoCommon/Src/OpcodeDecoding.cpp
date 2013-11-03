@@ -34,7 +34,7 @@
 #include "DataReader.h"
 
 #include "OpenCL.h"
-#include "OpenCL/OCLTextureDecoder.h"
+#include "OpenCL/TextureDecoder_OpenCL.h"
 #include "VideoConfig.h"
 
 u8* g_pVideoData = 0;
