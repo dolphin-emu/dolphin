@@ -1378,7 +1378,8 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// Save screenshot
 	if (s_bScreenshot)
 	{
-		TakeScreenshot(flipped_trc);
+		TakeScreenshot(flipped_trc, s_sScreenshotName);
+		s_bScreenshot = false;
 		// Reset settings
 	}
 
@@ -1772,7 +1773,7 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 	}
 }
 
-void Renderer::TakeScreenshot(const TargetRectangle &back_rc)
+void Renderer::TakeScreenshot(const TargetRectangle &back_rc, std::string filename)
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
@@ -1792,7 +1793,7 @@ void Renderer::TakeScreenshot(const TargetRectangle &back_rc)
 	// Turn image upside down
 	FlipImageData(data, W, H);
 
-	SaveScreenshot(data, W, H);
+	SaveScreenshot(data, W, H, filename);
 }
 
 }

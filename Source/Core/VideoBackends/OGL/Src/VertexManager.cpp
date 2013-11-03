@@ -341,7 +341,7 @@ void VertexManager::vFlush()
 		tr.right = Renderer::GetTargetWidth();
 		tr.top = 0;
 		tr.bottom = Renderer::GetTargetHeight();
-		g_renderer->SaveScreenshot(str, tr);
+		static_cast<OGL::Renderer *>(g_renderer)->TakeScreenshot(tr, str);
 	}
 #endif
 	g_Config.iSaveTargetId++;

@@ -294,13 +294,13 @@ void Renderer::SaveScreenshotOnThread(u8* data, size_t width, size_t height, std
 }
 #endif
 
-void Renderer::SaveScreenshot(u8* ptr, size_t width, size_t height)
+void Renderer::SaveScreenshot(u8* ptr, size_t width, size_t height, std::string filename)
 {
 	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 #if defined(HAVE_WX) && HAVE_WX
 	// Create wxImage
 
-	std::thread thread(SaveScreenshotOnThread, ptr, width, height, s_sScreenshotName);
+	std::thread thread(SaveScreenshotOnThread, ptr, width, height, filename);
 #ifdef _WIN32
 	SetThreadPriority(thread.native_handle(), THREAD_PRIORITY_BELOW_NORMAL);
 #endif
@@ -309,11 +309,10 @@ void Renderer::SaveScreenshot(u8* ptr, size_t width, size_t height)
 	OSD::AddMessage("Saving Screenshot... ", 2000);
 
 #else
-	SaveTGA(s_sScreenshotName.c_str(), width, height, ptr);
+	SaveTGA(filename.c_str(), width, height, ptr);
 	free(ptr);
 #endif
 
-	s_sScreenshotName.clear();
 	s_bScreenshot = false;
 }
 

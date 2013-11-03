@@ -680,7 +680,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 }
 
-void Renderer::TakeScreenshot(const TargetRectangle &rc)
+void Renderer::TakeScreenshot(const TargetRectangle &rc, std::string filename)
 {
 	if (!s_screenshot_texture)
 		CreateScreenshotTexture(rc);
@@ -708,7 +708,7 @@ void Renderer::TakeScreenshot(const TargetRectangle &rc)
 	}
 	D3D::context->Unmap(s_screenshot_texture, 0);
 
-	SaveScreenshot(dest, rc.GetWidth(), rc.GetHeight());
+	SaveScreenshot(dest, rc.GetWidth(), rc.GetHeight(), filename);
 }
 
 void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
@@ -846,7 +846,8 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// done with drawing the game stuff, good moment to save a screenshot
 	if (s_bScreenshot)
 	{
-		TakeScreenshot(GetTargetRectangle());
+		TakeScreenshot(GetTargetRectangle(), s_sScreenshotName);
+		s_bScreenshot = false;
 	}
 
 	// Dump frames

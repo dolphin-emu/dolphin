@@ -80,7 +80,7 @@ public:
 
 	void UpdateViewport();
 
-	static void TakeScreenshot(const TargetRectangle &rc);
+	static void TakeScreenshot(const TargetRectangle &rc, std::string filename);
 
 private:
 	void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data);

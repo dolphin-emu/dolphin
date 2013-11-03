@@ -124,7 +124,7 @@ protected:
 	#if defined(HAVE_WX) && HAVE_WX
 	static void SaveScreenshotOnThread(u8* data, size_t width, size_t height, std::string filename);
 	#endif
-	static void SaveScreenshot(u8* ptr, size_t width, size_t height);
+	static void SaveScreenshot(u8* ptr, size_t width, size_t height, std::string filename);
 
 	static volatile bool s_bScreenshot;
 	static std::mutex s_criticalScreenshot;
