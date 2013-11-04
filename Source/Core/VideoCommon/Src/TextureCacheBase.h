@@ -121,8 +121,12 @@ private:
 	static void DumpTexture(TCacheEntryBase* entry, unsigned int level);
 
 	typedef std::map<u32, TCacheEntryBase*> TexCache;
-
 	static TexCache textures;
+	
+	static TCacheEntryBase* GetPooledTexture(u32 width, u32 height, u32 full_format, u32 maxlevel, bool isEfbCopy);
+	static void PoolTexture(TCacheEntryBase *entry);
+	typedef std::multimap<std::pair<u32,u32>, TCacheEntryBase*> TexPool;
+	static TexPool texPool;
 
 	// Backup configuration values
 	static struct BackupConfig
