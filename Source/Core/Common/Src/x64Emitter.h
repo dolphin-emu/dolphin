@@ -33,6 +33,9 @@ enum X64Reg
 	XMM0=0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
 	XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15,
 
+	YMM0=0, YMM1, YMM2, YMM3, YMM4, YMM5, YMM6, YMM7,
+	YMM8, YMM9, YMM10, YMM11, YMM12, YMM13, YMM14, YMM15,
+
 	INVALID_REG = 0xFFFFFFFF
 };
 
@@ -111,6 +114,7 @@ struct OpArg
 		offset = _offset;
 	}
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
+	void WriteVex(XEmitter* emit, int size, int packed, Gen::X64Reg regOp1, X64Reg regOp2) const;
 	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=(X64Reg)0xFF, bool warn_64bit_offset = true) const;
 	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
 	// This one is public - must be written to
@@ -239,6 +243,8 @@ private:
 	void WriteBitTest(int bits, OpArg &dest, OpArg &index, int ext);
 	void WriteMXCSR(OpArg arg, int ext);
 	void WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
+	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 protected:
@@ -615,6 +621,13 @@ public:
 
 	void PSRAW(X64Reg reg, int shift);
 	void PSRAD(X64Reg reg, int shift);
+
+	// AVX
+	void VADDSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VSUBSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VMULSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VDIVSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
 	void RTDSC();
 
