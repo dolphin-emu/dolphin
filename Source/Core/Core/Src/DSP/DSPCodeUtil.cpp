@@ -206,7 +206,7 @@ void BinaryStringBEToCode(const std::string &str, std::vector<u16> &code)
 bool LoadBinary(const char *filename, std::vector<u16> &code)
 {
 	std::string buffer;
-	if (!File::ReadFileToString(false, filename, buffer))
+	if (!File::ReadFileToString(filename, buffer))
 		return false;
 
 	BinaryStringBEToCode(buffer, code);
@@ -217,7 +217,7 @@ bool SaveBinary(const std::vector<u16> &code, const char *filename)
 {
 	std::string buffer;
 	CodeToBinaryStringBE(code, buffer);
-	if (!File::WriteStringToFile(false, buffer, filename))
+	if (!File::WriteStringToFile(buffer, filename))
 		return false;
 	return true;
 }

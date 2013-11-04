@@ -145,7 +145,7 @@ bool InstallCodeHandler()
 	u32 codelist_location = 0x800028B8; // Debugger on location (0x800022A8 = Debugger off, using codehandleronly.bin)
 	std::string data;
 	std::string _rCodeHandlerFilename = File::GetSysDirectory() + GECKO_CODE_HANDLER;
-	if (!File::ReadFileToString(false, _rCodeHandlerFilename.c_str(), data))
+	if (!File::ReadFileToString(_rCodeHandlerFilename.c_str(), data))
 		return false;
 
 	// Install code handler

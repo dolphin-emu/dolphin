@@ -287,7 +287,7 @@ bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
 	if (!_rApploader.empty())
 	{
 		std::string data;
-		if (!File::ReadFileToString(false, _rApploader.c_str(), data))
+		if (!File::ReadFileToString(_rApploader.c_str(), data))
 		{
 			PanicAlertT("Apploader unable to load from file");
 			return false;
@@ -320,7 +320,7 @@ void CVolumeDirectory::SetDOL(const std::string& _rDOL)
 	if (!_rDOL.empty())
 	{
 		std::string data;
-		File::ReadFileToString(false, _rDOL.c_str(), data);
+		File::ReadFileToString(_rDOL.c_str(), data);
 		m_DOLSize = data.size();
 		m_DOL = new u8[m_DOLSize];
 		copy(data.begin(), data.end(), m_DOL);

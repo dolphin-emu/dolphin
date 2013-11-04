@@ -99,7 +99,7 @@ bool DSPAssembler::Assemble(const char *text, std::vector<u16> &code, std::vecto
 	if (line_numbers)
 		line_numbers->clear();
 	const char *fname = "tmp.asm";
-	if (!File::WriteStringToFile(true, text, fname))
+	if (!File::WriteStringToFile(text, fname))
 		return false;
 	InitPass(1);
 	if (!AssembleFile(fname, 1))

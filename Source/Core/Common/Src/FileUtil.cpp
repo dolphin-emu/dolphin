@@ -935,14 +935,14 @@ std::string GetThemeDir(const std::string& theme_name)
 	return dir;
 }
 
-bool WriteStringToFile(bool text_file, const std::string &str, const char *filename)
+bool WriteStringToFile(const std::string &str, const char *filename)
 {
-	return File::IOFile(filename, text_file ? "w" : "wb").WriteBytes(str.data(), str.size());
+	return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());
 }
 
-bool ReadFileToString(bool text_file, const char *filename, std::string &str)
+bool ReadFileToString(const char *filename, std::string &str)
 {
-	File::IOFile file(filename, text_file ? "r" : "rb");
+	File::IOFile file(filename, "rb");
 	auto const f = file.GetHandle();
 
 	if (!f)
@@ -951,29 +951,6 @@ bool ReadFileToString(bool text_file, const char *filename, std::string &str)
 	size_t read_size;
 	str.resize(GetSize(f));
 	bool retval = file.ReadArray(&str[0], str.size(), &read_size);
-
-	// On Windows, reading a text file automatically translates \r\n to \n.
-	// This means we will read less characters than the expected size of the
-	// file. In that case, ignore the return value and count ourselves.
-#ifdef _WIN32
-	if (text_file)
-	{
-		size_t count = 0;
-		for (size_t i = 0; i < read_size; ++i)
-		{
-			if (str[i] == '\n')
-				count += 2;
-			else
-				count += 1;
-		}
-
-		if (count != str.size())
-			return false;
-
-		str.resize(read_size);
-		return true;
-	}
-#endif
 
 	return retval;
 }

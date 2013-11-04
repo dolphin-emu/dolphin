@@ -151,7 +151,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 
 	// Load the whole ROM dump
 	std::string data;
-	if (!File::ReadFileToString(false, _rBootROMFilename.c_str(), data))
+	if (!File::ReadFileToString(_rBootROMFilename.c_str(), data))
 		return false;
 
 	u32 ipl_hash = HashAdler32((const u8*)data.data(), data.size());

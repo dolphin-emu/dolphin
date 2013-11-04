@@ -72,8 +72,8 @@ bool SuperTrip(const char *asm_code)
 	std::string text2;
 	Disassemble(code1, true, &text1);
 	Disassemble(code2, true, &text2);
-	File::WriteStringToFile(true, text1, "code1.txt");
-	File::WriteStringToFile(true, text2, "code2.txt");
+	File::WriteStringToFile(text1, "code1.txt");
+	File::WriteStringToFile(text2, "code2.txt");
 	*/
 	return true;
 }
@@ -126,7 +126,7 @@ void RunAsmTests()
 	/*
 	std::vector<u16> code;
 	std::string text_orig;
-	File::ReadFileToString(false, "testdata/dsp_test.S", &text_orig);
+	File::ReadFileToString("testdata/dsp_test.S", &text_orig);
 	if (!Assemble(text_orig.c_str(), &code))
 	{
 		printf("SuperTrip: First assembly failed\n");
@@ -168,15 +168,15 @@ void RunAsmTests()
 	RoundTrip(rand_code);
 
 
-	if (File::ReadFileToString(true, "C:/devkitPro/examples/wii/asndlib/dsptest/dsp_test.ds", &dsp_test))
+	if (File::ReadFileToString("C:/devkitPro/examples/wii/asndlib/dsptest/dsp_test.ds", &dsp_test))
 		SuperTrip(dsp_test.c_str());
 
-	//.File::ReadFileToString(true, "C:/devkitPro/trunk/libogc/libasnd/dsp_mixer/dsp_mixer.s", &dsp_test);
+	//.File::ReadFileToString("C:/devkitPro/trunk/libogc/libasnd/dsp_mixer/dsp_mixer.s", &dsp_test);
 	// This is CLOSE to working. Sorry about the local path btw. This is preliminary code.
 */
 
 	std::string dsp_test;
-	if (File::ReadFileToString(true, "Testdata/dsp_test.s", dsp_test))
+	if (File::ReadFileToString("Testdata/dsp_test.s", dsp_test))
 		fail = fail || !SuperTrip(dsp_test.c_str());
 	if (!fail)
 		printf("All passed!\n");
@@ -288,9 +288,9 @@ int main(int argc, const char *argv[])
 		// Two binary inputs, let's diff.
 		std::string binary_code;
 		std::vector<u16> code1, code2;
-		File::ReadFileToString(false, input_name.c_str(), binary_code);
+		File::ReadFileToString(input_name.c_str(), binary_code);
 		BinaryStringBEToCode(binary_code, code1);
-		File::ReadFileToString(false, output_name.c_str(), binary_code);
+		File::ReadFileToString(output_name.c_str(), binary_code);
 		BinaryStringBEToCode(binary_code, code2);
 		Compare(code1, code2);
 		return 0;
@@ -301,7 +301,7 @@ int main(int argc, const char *argv[])
 		std::string dumpfile, results;
 		std::vector<u16> reg_vector;
 
-		File::ReadFileToString(false, input_name.c_str(), dumpfile);
+		File::ReadFileToString(input_name.c_str(), dumpfile);
 		BinaryStringBEToCode(dumpfile, reg_vector);
 
 		results.append("Start:\n");
@@ -362,7 +362,7 @@ int main(int argc, const char *argv[])
 		}
 
 		if (!output_name.empty())
-			File::WriteStringToFile(true, results, output_name.c_str());
+			File::WriteStringToFile(results, output_name.c_str());
 		else
 			printf("%s", results.c_str());
 		return 0;
@@ -377,12 +377,12 @@ int main(int argc, const char *argv[])
 		}
 		std::string binary_code;
 		std::vector<u16> code;
-		File::ReadFileToString(false, input_name.c_str(), binary_code);
+		File::ReadFileToString(input_name.c_str(), binary_code);
 		BinaryStringBEToCode(binary_code, code);
 		std::string text;
 		Disassemble(code, true, text);
 		if (!output_name.empty())
-			File::WriteStringToFile(true, text, output_name.c_str());
+			File::WriteStringToFile(text, output_name.c_str());
 		else
 			printf("%s", text.c_str());
 	}
@@ -394,7 +394,7 @@ int main(int argc, const char *argv[])
 			return 1;
 		}
 		std::string source;
-		if (File::ReadFileToString(true, input_name.c_str(), source))
+		if (File::ReadFileToString(input_name.c_str(), source))
 		{
 			if(multiple)
 			{
@@ -429,7 +429,7 @@ int main(int argc, const char *argv[])
 
 				for (int i = 0; i < lines; i++)
 				{
-					if (!File::ReadFileToString(true, files[i].c_str(), currentSource))
+					if (!File::ReadFileToString(files[i].c_str(), currentSource))
 					{
 						printf("ERROR reading %s, skipping...\n", files[i].c_str());
 						lines--;
@@ -450,7 +450,7 @@ int main(int argc, const char *argv[])
 
 
 				CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
-				File::WriteStringToFile(true, header, (output_header_name + ".h").c_str());
+				File::WriteStringToFile(header, (output_header_name + ".h").c_str());
 
 				delete[] codes;
 			}
@@ -471,13 +471,13 @@ int main(int argc, const char *argv[])
 				{
 					std::string binary_code;
 					CodeToBinaryStringBE(code, binary_code);
-					File::WriteStringToFile(false, binary_code, output_name.c_str());
+					File::WriteStringToFile(binary_code, output_name.c_str());
 				}
 				if (!output_header_name.empty())
 				{
 					std::string header;
 					CodeToHeader(code, input_name, output_header_name.c_str(), header);
-					File::WriteStringToFile(true, header, (output_header_name + ".h").c_str());
+					File::WriteStringToFile(header, (output_header_name + ".h").c_str());
 				}
 			}
 		}

@@ -55,7 +55,7 @@ bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 	if (!disasm.Disassemble(0, code, 0x0000, text))
 		return false;
 
-	return File::WriteStringToFile(true, text, txtFile);
+	return File::WriteStringToFile(text, txtFile);
 }
 
 // TODO make this useful :p
