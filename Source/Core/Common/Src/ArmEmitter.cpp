@@ -801,7 +801,7 @@ void ARMXEmitter::WriteStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 Rm, bool R
 			Data = abs(Temp);
 			// The offset is encoded differently on this one.
 			if (SpecialOp)
-				Data = (Data & 0xF0 << 4) | (Data & 0xF);
+				Data = ((Data & 0xF0) << 4) | (Data & 0xF);
 			if (Temp >= 0) Add = true;
 		}
 		break;
