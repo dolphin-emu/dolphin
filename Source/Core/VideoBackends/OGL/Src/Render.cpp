@@ -497,6 +497,19 @@ Renderer::Renderer()
 		g_ogl_config.eSupportedGLSLVersion = GLSL_150;
 	}
 #endif
+	int samples;
+	glGetIntegerv(GL_SAMPLES, &samples);
+	if(samples > 1)
+	{
+		// MSAA on default framebuffer isn't working because of glBlitFramebuffer.
+		// It also isn't useful as we don't render anything to the default framebuffer.
+		// We also try to get a non-msaa fb, so this only happens when forced by the driver.
+		PanicAlert("MSAA on default framebuffer isn't supported.\n"
+			"Please avoid forcing dolphin to use MSAA by the driver.\n"
+			"%d samples on default framebuffer found.", samples);
+		bSuccess = false;
+	}
+
 	if (!bSuccess)
 	{
 		// Not all needed extensions are supported, so we have to stop here.
