@@ -131,14 +131,14 @@ using namespace Gen;
 namespace IREmitter {
 
 InstLoc IRBuilder::EmitZeroOp(unsigned Opcode, unsigned extra = 0) {
-	InstLoc curIndex = &InstList[InstList.size()];
+	InstLoc curIndex = InstList.data() + InstList.size();
 	InstList.push_back(Opcode | (extra << 8));
 	MarkUsed.push_back(false);
 	return curIndex;
 }
 
 InstLoc IRBuilder::EmitUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
-	InstLoc curIndex = &InstList[InstList.size()];
+	InstLoc curIndex = InstList.data() + InstList.size();
 	unsigned backOp1 = (s32)(curIndex - 1 - Op1);
 	if (backOp1 >= 256) {
 		InstList.push_back(Tramp | backOp1 << 8);
@@ -152,7 +152,7 @@ InstLoc IRBuilder::EmitUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 }
 
 InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned extra) {
-	InstLoc curIndex = &InstList[InstList.size()];
+	InstLoc curIndex = InstList.data() + InstList.size();
 	unsigned backOp1 = (s32)(curIndex - 1 - Op1);
 	if (backOp1 >= 255) {
 		InstList.push_back(Tramp | backOp1 << 8);
@@ -175,7 +175,7 @@ InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 
 #if 0
 InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc Op3) {
-	InstLoc curIndex = &InstList[InstList.size()];
+	InstLoc curIndex = InstList.data() + InstList.size();
 	unsigned backOp1 = curIndex - 1 - Op1;
 	if (backOp1 >= 254) {
 		InstList.push_back(Tramp | backOp1 << 8);
@@ -1049,7 +1049,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 }
 
 InstLoc IRBuilder::EmitIntConst(unsigned value) {
-	InstLoc curIndex = &InstList[InstList.size()];
+	InstLoc curIndex = InstList.data() + InstList.size();
 	InstList.push_back(CInt32 | ((unsigned int)ConstList.size() << 8));
 	MarkUsed.push_back(false);
 	ConstList.push_back(value);
@@ -1061,12 +1061,12 @@ unsigned IRBuilder::GetImmValue(InstLoc I) const {
 }
 
 void IRBuilder::SetMarkUsed(InstLoc I) {
-	const unsigned i = (unsigned)(I - &InstList[0]);
+	const unsigned i = (unsigned)(I - InstList.data());
 	MarkUsed[i] = true;
 }
 
 bool IRBuilder::IsMarkUsed(InstLoc I) const {
-	const unsigned i = (unsigned)(I - &InstList[0]);
+	const unsigned i = (unsigned)(I - InstList.data());
 	return MarkUsed[i];
 }
 

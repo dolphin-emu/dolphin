@@ -529,11 +529,11 @@ public:
 		return FoldZeroOp(Int3, 0);
 	}
 
-	void StartBackPass() { curReadPtr = &InstList[InstList.size()]; }
-	void StartForwardPass() { curReadPtr = &InstList[0]; }
+	void StartBackPass() { curReadPtr = InstList.data() + InstList.size(); }
+	void StartForwardPass() { curReadPtr = InstList.data(); }
 	InstLoc ReadForward() { return curReadPtr++; }
 	InstLoc ReadBackward() { return --curReadPtr; }
-	InstLoc getFirstInst() { return &InstList[0]; }
+	InstLoc getFirstInst() { return InstList.data(); }
 	unsigned int getNumInsts() { return (unsigned int)InstList.size(); }
 	unsigned int ReadInst(InstLoc I) { return *I; }
 	unsigned int GetImmValue(InstLoc I) const;
