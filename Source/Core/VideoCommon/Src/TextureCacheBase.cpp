@@ -470,8 +470,11 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 				expandedHeight = height;
 
 				// If we thought we could reuse the texture before, make sure to pool it now!
-				PoolTexture(entry);
-				entry = NULL;
+				if(entry)
+				{
+					PoolTexture(entry);
+					entry = NULL;
+				}
 			}
 			using_custom_texture = true;
 		}
