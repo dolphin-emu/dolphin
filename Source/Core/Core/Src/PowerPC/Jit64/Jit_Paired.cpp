@@ -14,10 +14,9 @@
 //   cmppd, andpd, andnpd, or
 //   lfsx, ps_merge01 etc
 
-const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
-const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
-const double GC_ALIGNED16(psZeroZero[2]) = {0.0, 0.0};
+static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
+static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+static const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
 
 void Jit64::ps_mr(UGeckoInstruction inst)
 {
@@ -52,14 +51,15 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 
 	fpr.Lock(a, b, c, d);
 	MOVAPD(XMM0, fpr.R(a));
+	XORPD(XMM1, R(XMM1));
 	// XMM0 = XMM0 < 0 ? all 1s : all 0s
-	CMPPD(XMM0, M((void*)psZeroZero), LT);
+	CMPPD(XMM0, R(XMM1), LT);
 	MOVAPD(XMM1, R(XMM0));
 	ANDPD(XMM0, fpr.R(b));
 	ANDNPD(XMM1, fpr.R(c));
+	ORPD(XMM0, R(XMM1));
 	fpr.BindToRegister(d, false);
 	MOVAPD(fpr.RX(d), R(XMM0));
-	ORPD(fpr.RX(d), R(XMM1));
 	fpr.UnlockAll();
 }
 
