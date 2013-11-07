@@ -109,6 +109,11 @@ PC_TexFormat GetHiresTex(const std::string& filename, unsigned int* pWidth, unsi
 
 	switch (texformat)
 	{
+	// TODO(neobrain): This function currently has no way to enforce RGBA32
+	// output, which however is required on some configurations to function
+	// properly. As a lazy workaround, we hence disable the optimized code
+	// path for now.
+#if 0
 	case GX_TF_I4:
 	case GX_TF_I8:
 	case GX_TF_IA4:
@@ -126,6 +131,7 @@ PC_TexFormat GetHiresTex(const std::string& filename, unsigned int* pWidth, unsi
 		}
 		returnTex = PC_TEX_FMT_IA8;
 		break;
+#endif
 	default:
 		*required_size = width * height * 4;
 		if (data_size < *required_size)
