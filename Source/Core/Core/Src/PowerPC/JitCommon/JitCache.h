@@ -35,9 +35,6 @@ struct JitBlock
 	const u8 *checkedEntry;
 	const u8 *normalEntry;
 
-	u8 *exitPtrs[2];     // to be able to rewrite the exit jum
-	u32 exitAddress[2];  // 0xFFFFFFFF == unknown
-
 	u32 originalAddress;
 	u32 codeSize;
 	u32 originalSize;
@@ -45,7 +42,13 @@ struct JitBlock
 	int flags;
 
 	bool invalid;
-	bool linkStatus[2];
+
+	struct LinkData {
+		u8 *exitPtrs;    // to be able to rewrite the exit jum
+		u32 exitAddress;
+		bool linkStatus; // is it already linked?
+	};
+	std::vector<LinkData> linkData;
 
 #ifdef _WIN32
 	// we don't really need to save start and stop
