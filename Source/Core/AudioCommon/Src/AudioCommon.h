@@ -40,7 +40,7 @@ union UDSPControl
 
 namespace AudioCommon
 {
-	SoundStream *InitSoundStream(CMixer *mixer);
+	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd);
 	void ShutdownSoundStream();
 	std::vector<std::string> GetSoundBackends();
 	bool UseJIT();

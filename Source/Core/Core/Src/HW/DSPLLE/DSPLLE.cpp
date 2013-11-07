@@ -130,8 +130,9 @@ void DSPLLE::dsp_thread(DSPLLE *dsp_lle)
 	}
 }
 
-bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
+bool DSPLLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 {
+	m_hWnd = hWnd;
 	m_bWii = bWii;
 	m_bDSPThread = bDSPThread;
 	m_InitMixer = false;
@@ -184,7 +185,7 @@ void DSPLLE::InitMixer()
 	unsigned int AISampleRate, DACSampleRate;
 	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
 	delete soundStream;
-	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, 48000));
+	soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate, 48000), m_hWnd);
 	if(!soundStream) PanicAlert("Error starting up sound stream");
 	// Mixer is initialized
 	m_InitMixer = true;

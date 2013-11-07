@@ -42,8 +42,9 @@ struct DSPState
 	}
 };
 
-bool DSPHLE::Initialize(bool bWii, bool bDSPThread)
+bool DSPHLE::Initialize(void *hWnd, bool bWii, bool bDSPThread)
 {
+	m_hWnd = hWnd;
 	m_bWii = bWii;
 	m_pUCode = NULL;
 	m_lastUCode = NULL;
@@ -265,7 +266,7 @@ void DSPHLE::InitMixer()
 	unsigned int AISampleRate, DACSampleRate;
 	AudioInterface::Callback_GetSampleRate(AISampleRate, DACSampleRate);
 	delete soundStream;
-	soundStream = AudioCommon::InitSoundStream(new HLEMixer(this, AISampleRate, DACSampleRate, 48000));
+	soundStream = AudioCommon::InitSoundStream(new HLEMixer(this, AISampleRate, DACSampleRate, 48000), m_hWnd);
 	if(!soundStream) PanicAlert("Error starting up sound stream");
 	// Mixer is initialized
 	m_InitMixer = true;
