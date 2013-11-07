@@ -46,7 +46,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single,
 			else
 			{
 				MOVSD(XMM0, fpr.R(b));
-				fpr.BindToRegister(d, !single);
+				fpr.BindToRegister(d, false);
 				MOVSD(fpr.RX(d), fpr.R(a));
 				(this->*op_2)(fpr.RX(d), Gen::R(XMM0));
 			}
@@ -56,13 +56,13 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single,
 	{
 		if (op_3)
 		{
-			fpr.BindToRegister(d, !single);
+			fpr.BindToRegister(d, false);
 			fpr.BindToRegister(a);
 			(this->*op_3)(fpr.RX(d), fpr.RX(a), fpr.R(b));
 		}
 		else
 		{
-			fpr.BindToRegister(d, !single);
+			fpr.BindToRegister(d, false);
 			MOVSD(fpr.RX(d), fpr.R(a));
 			(this->*op_2)(fpr.RX(d), fpr.R(b));
 		}
