@@ -42,8 +42,7 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 		warn_once = false;
 		return false;
 	}
-	//return SUCCEEDED(PD3DX11SaveTextureToFileA(D3D::context, texture->GetTex(), D3DX11_IFF_PNG, filename));
-	return true;
+	return SUCCEEDED(PD3DX11SaveTextureToFileA(D3D::context, texture->GetTex(), D3DX11_IFF_PNG, filename));
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
