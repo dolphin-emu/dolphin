@@ -110,6 +110,8 @@ public:
 
 	virtual void UpdateViewport() = 0;
 
+	virtual bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc) = 0;
+
 	static unsigned int GetPrevPixelFormat() { return prev_efb_format; }
 	static void StorePixelFormat(unsigned int new_format) { prev_efb_format = new_format; }
 
@@ -120,11 +122,6 @@ protected:
 
 	static void CheckFifoRecording();
 	static void RecordVideoMemory();
-
-	#if defined(HAVE_WX) && HAVE_WX
-	static void SaveScreenshotOnThread(u8* data, size_t width, size_t height, std::string filename);
-	#endif
-	static void SaveScreenshot(u8* ptr, size_t width, size_t height, std::string filename);
 
 	static volatile bool s_bScreenshot;
 	static std::mutex s_criticalScreenshot;

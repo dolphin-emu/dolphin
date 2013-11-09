@@ -30,12 +30,6 @@
 #include "XFMemory.h"
 #include "FifoPlayer/FifoRecorder.h"
 #include "AVIDump.h"
-#include "OnScreenDisplay.h"
-#if defined(HAVE_WX) && HAVE_WX
-#include "WxUtils.h"
-#include <wx/image.h>
-#endif
-#include "ImageWrite.h"
 
 #include <cmath>
 #include <string>
@@ -73,8 +67,6 @@ unsigned int Renderer::efb_scale_numeratorY = 1;
 unsigned int Renderer::efb_scale_denominatorX = 1;
 unsigned int Renderer::efb_scale_denominatorY = 1;
 
-// TODO: remove
-extern bool g_aspect_wide;
 
 Renderer::Renderer()
 	: frame_data()
@@ -250,72 +242,6 @@ void Renderer::SetScreenshot(const char *filename)
 	s_bScreenshot = true;
 }
 
-#if defined(HAVE_WX) && HAVE_WX
-void Renderer::SaveScreenshotOnThread(u8* data, size_t width, size_t height, std::string filename)
-{
-	wxImage *img = new wxImage(width, height, data);
-
-	// These will contain the final image size
-	float FloatW = (float)width;
-	float FloatH = (float)height;
-
-	// Handle aspect ratio for the final ScrStrct to look exactly like what's on screen.
-	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
-	{
-		bool use16_9 = g_aspect_wide;
-
-		// Check for force-settings and override.
-		if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)
-			use16_9 = true;
-		else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
-			use16_9 = false;
-
-		float Ratio = (FloatW / FloatH) / (!use16_9 ? (4.0f / 3.0f) : (16.0f / 9.0f));
-
-		// If ratio > 1 the picture is too wide and we have to limit the width.
-		if (Ratio > 1)
-			FloatW /= Ratio;
-		// ratio == 1 or the image is too high, we have to limit the height.
-		else
-			FloatH *= Ratio;
-
-		// This is a bit expensive on high resolutions
-		img->Rescale((int)FloatW, (int)FloatH, wxIMAGE_QUALITY_HIGH);
-	}
-
-	// Save the screenshot and finally kill the wxImage object
-	// This is really expensive when saving to PNG, but not at all when using BMP
-	img->SaveFile(StrToWxStr(filename), wxBITMAP_TYPE_PNG);
-	img->Destroy();
-
-	// Show success messages
-	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", (int)FloatW, (int)FloatH,
-		filename.c_str()), 2000);
-}
-#endif
-
-void Renderer::SaveScreenshot(u8* ptr, size_t width, size_t height, std::string filename)
-{
-	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-#if defined(HAVE_WX) && HAVE_WX
-	// Create wxImage
-
-	std::thread thread(SaveScreenshotOnThread, ptr, width, height, filename);
-#ifdef _WIN32
-	SetThreadPriority(thread.native_handle(), THREAD_PRIORITY_BELOW_NORMAL);
-#endif
-	thread.detach();
-
-	OSD::AddMessage("Saving Screenshot... ", 2000);
-
-#else
-	SaveTGA(filename.c_str(), width, height, ptr);
-	free(ptr);
-#endif
-
-	s_bScreenshot = false;
-}
-
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
@@ -420,6 +346,9 @@ void Renderer::DrawDebugText()
 	g_renderer->RenderText(final_cyan.c_str(), 20, 20, 0xFF00FFFF);
 	g_renderer->RenderText(final_yellow.c_str(), 20, 20, 0xFFFFFF00);
 }
+
+// TODO: remove
+extern bool g_aspect_wide;
 
 void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 {

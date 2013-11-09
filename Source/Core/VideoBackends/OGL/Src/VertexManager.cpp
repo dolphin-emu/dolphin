@@ -341,7 +341,7 @@ void VertexManager::vFlush()
 		tr.right = Renderer::GetTargetWidth();
 		tr.top = 0;
 		tr.bottom = Renderer::GetTargetHeight();
-		Renderer::TakeScreenshot(tr, str);
+		g_renderer->SaveScreenshot(str, tr);
 	}
 #endif
 	g_Config.iSaveTargetId++;
