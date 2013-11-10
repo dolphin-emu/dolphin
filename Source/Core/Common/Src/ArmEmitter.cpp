@@ -938,13 +938,13 @@ u32 EncodeVm(ARMReg Vm)
 
 // Double/single, Neon
 extern const VFPEnc VFPOps[16][2] = {
-	{{0xE0, 0xA0}, {0x20, 0xD1}}, // 0: VMLA
+	{{0xE0, 0xA0}, {  -1,   -1}}, // 0: VMLA
 	{{0xE1, 0xA4}, {  -1,   -1}}, // 1: VNMLA
-	{{0xE0, 0xA4}, {0x22, 0xD1}}, // 2: VMLS
+	{{0xE0, 0xA4}, {  -1,   -1}}, // 2: VMLS
 	{{0xE1, 0xA0}, {  -1,   -1}}, // 3: VNMLS
-	{{0xE3, 0xA0}, {0x20, 0xD0}}, // 4: VADD
-	{{0xE3, 0xA4}, {0x22, 0xD0}}, // 5: VSUB
-	{{0xE2, 0xA0}, {0x30, 0xD1}}, // 6: VMUL
+	{{0xE3, 0xA0}, {  -1,   -1}}, // 4: VADD
+	{{0xE3, 0xA4}, {  -1,   -1}}, // 5: VSUB
+	{{0xE2, 0xA0}, {  -1,   -1}}, // 6: VMUL
 	{{0xE2, 0xA4}, {  -1,   -1}}, // 7: VNMUL
 	{{0xEB, 0xAC}, {  -1 /* 0x3B */,  -1 /* 0x70 */}}, // 8: VABS(Vn(0x0) used for encoding)
 	{{0xE8, 0xA0}, {  -1,   -1}}, // 9: VDIV
@@ -1710,6 +1710,56 @@ void NEONXEmitter::VMLSL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 	Write32((0xF2 << 24) | ((Size & I_UNSIGNED ? 1 : 0) << 24) | (encodedSize(Size) << 20) \
 		| EncodeVn(Vn) | EncodeVd(Vd) | (0xA0 << 4) | EncodeVm(Vm));
 }
+void NEONXEmitter::VMUL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	_dbg_assert_msg_(DYNA_REC, Vd >= D0, "Pass invalid register to " __FUNCTION__);
+	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use " __FUNCTION__ " when CPU doesn't support it");
+
+	bool register_quad = Vd >= Q0;
+
+	if (Size & F_32)
+		Write32((0xF3 << 24) | EncodeVn(Vn) | EncodeVd(Vd) | (0xD1 << 4) | (register_quad << 6) | EncodeVm(Vm));
+	else
+		Write32((0xF2 << 24) | ((Size & I_POLYNOMIAL) ? (1 << 24) : 0) | (encodedSize(Size) << 20) | \
+				EncodeVn(Vn) | EncodeVd(Vd) | (0x91 << 4) | (register_quad << 6) | EncodeVm(Vm));
+}
+void NEONXEmitter::VMULL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	_dbg_assert_msg_(DYNA_REC, Vd >= D0, "Pass invalid register to " __FUNCTION__);
+	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use " __FUNCTION__ " when CPU doesn't support it");
+	_dbg_assert_msg_(DYNA_REC, !(Size & F_32), __FUNCTION__ " doesn't support float");
+
+	Write32((0xF2 << 24) | (1 << 23) | (encodedSize(Size) << 20) | EncodeVn(Vn) | EncodeVd(Vd) | \
+			(0xC0 << 4) | ((Size & I_POLYNOMIAL) ? 1 << 9 : 0) | EncodeVm(Vm));
+}
+void NEONXEmitter::VNEG(NEONElementType Size, ARMReg Vd, ARMReg Vm)
+{
+	_dbg_assert_msg_(DYNA_REC, Vd >= D0, "Pass invalid register to " __FUNCTION__);
+	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use " __FUNCTION__ " when CPU doesn't support it");
+
+	bool register_quad = Vd >= Q0;
+
+	Write32((0xF3 << 24) | (0xB << 20) | (encodedSize(Size) << 18) | (1 << 16) | \
+			EncodeVd(Vd) | ((Size & F_32) ? 1 << 10 : 0) | (0xE << 6) | (register_quad << 6) | EncodeVm(Vm));
+}
+void NEONXEmitter::VORN(ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	_dbg_assert_msg_(DYNA_REC, Vd >= D0, "Pass invalid register to " __FUNCTION__);
+	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use " __FUNCTION__ " when CPU doesn't support it");
+
+	bool register_quad = Vd >= Q0;
+
+	Write32((0xF2 << 24) | (3 << 20) | EncodeVn(Vn) | EncodeVd(Vd) | (0x11 << 4) | (register_quad << 6) | EncodeVm(Vm));
+}
+void NEONXEmitter::VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm)
+{
+	_dbg_assert_msg_(DYNA_REC, Vd >= D0, "Pass invalid register to " __FUNCTION__);
+	_dbg_assert_msg_(DYNA_REC, cpu_info.bNEON, "Can't use " __FUNCTION__ " when CPU doesn't support it");
+
+	bool register_quad = Vd >= Q0;
+
+	Write32((0xF2 << 24) | (2 << 20) | EncodeVn(Vn) | EncodeVd(Vd) | (0x11 << 4) | (register_quad << 6) | EncodeVm(Vm));
+}
 
 void NEONXEmitter::VSUB(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm)
 {
@@ -1796,19 +1846,6 @@ void NEONXEmitter::VRSQRTE(NEONElementType Size, ARMReg Vd, ARMReg Vm)
 			| ((Vd & 0xF) << 12) | (9 << 7) | (Size & F_32 ? (1 << 8) : 0) | (register_quad << 6)
 			| ((Vm & 0x10) << 1) | (Vm & 0xF));
 }
-
-void NEONXEmitter::VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm)
-{
-	bool register_quad = Vd >= Q0;
-	Vd = SubBase(Vd);
-	Vn = SubBase(Vn);
-	Vm = SubBase(Vm);
-
-	Write32((0xF2 << 24) | (0x1 << 21) | ((Vd & 0x10) << 18) | ((Vn & 0xF) << 16)
-			| ((Vd & 0xF) << 12) | (1 << 8) | ((Vn & 0x10) << 3)
-			| (register_quad << 6) | ((Vm & 0x10) << 1) | (1 << 4) | (Vm & 0xF));
-}
-
 
 }
 

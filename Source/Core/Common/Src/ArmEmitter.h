@@ -580,7 +580,8 @@ enum NEONElementType
 	I_64 = (1 << 3),
 	I_SIGNED = (1 << 4),
 	I_UNSIGNED = (1 << 5),
-	F_32 = (1 << 6)
+	F_32 = (1 << 6),
+	I_POLYNOMIAL = (1 << 7), // Only used in VMUL/VMULL
 };
 
 enum NEONAlignment
@@ -665,14 +666,17 @@ public:
 	void VMLS(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VMLAL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VMLSL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMUL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMULL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VNEG(NEONElementType Size, ARMReg Vd, ARMReg Vm);
+	void VORN(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VSUB(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VREV64(NEONElementType Size, ARMReg Vd, ARMReg Vm);
 	void VREV32(NEONElementType Size, ARMReg Vd, ARMReg Vm);
 	void VREV16(NEONElementType Size, ARMReg Vd, ARMReg Vm);
 
 	void VRSQRTE(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-
-	void VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 
 	void VLD1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
 	void VLD2(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
