@@ -183,8 +183,14 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 			memset(IV, 0, 16);
 			_rReader.Read(rPartition.Offset + 0x44c, 8, IV);
 
+			bool usingKoreanKey = false;
+			if (Korean && Reader.Read32(0x501ee) != 0)
+			{
+				usingKoreanKey = true;
+			}
+
 			aes_context AES_ctx;
-			aes_setkey_dec(&AES_ctx, (Korean ? g_MasterKeyK : g_MasterKey), 128);
+			aes_setkey_dec(&AES_ctx, (usingKoreanKey ? g_MasterKeyK : g_MasterKey), 128);
 
 			u8 VolumeKey[16];
 			aes_crypt_cbc(&AES_ctx, AES_DECRYPT, 16, IV, SubKey, VolumeKey);
