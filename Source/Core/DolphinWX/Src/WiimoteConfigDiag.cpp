@@ -3,6 +3,7 @@
 #include "HW/Wiimote.h"
 #include "HW/WiimoteReal/WiimoteReal.h"
 #include "Frame.h"
+#include "NetPlayProto.h"
 
 WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin)
 	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"), wxDefaultPosition, wxDefaultSize)
@@ -134,6 +135,16 @@ WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin
 		WiimoteSpkVolumeText->Disable();
 		WiimoteSpkVolumeMinText->Disable();
 		WiimoteSpkVolumeMaxText->Disable();
+		if (NetPlay::IsNetPlayRunning())
+		{
+			bb_source->Disable();
+			for (int i = 0; i < 4; ++i)
+			{
+				wiimote_label[i]->Disable();
+				wiimote_source_ch[i]->Disable();
+			}
+		}
+
 	}
 
 
