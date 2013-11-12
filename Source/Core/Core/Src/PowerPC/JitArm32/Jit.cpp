@@ -358,6 +358,25 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	b->checkedEntry = start;
 	b->runCount = 0;
 
+	BKPT(1);
+	NEONXEmitter emit(this);
+#if 1
+	emit.VNEG(I_8, D15, D15);
+	emit.VNEG(I_16, D15, D15);
+	emit.VNEG(I_32, D15, D15);
+	emit.VNEG(F_32, Q15, Q15);
+
+#elif 0
+	emit.VTRN(I_8, D31, D31);
+	emit.VTRN(I_8, Q15, Q15);
+	emit.VTRN(I_16, D31, D31);
+	emit.VTRN(I_16, Q15, Q15);
+	emit.VTRN(I_32, D31, D31);
+	emit.VTRN(I_32, Q15, Q15);
+#else
+	emit.VSWP(D31, D31);
+	emit.VSWP(Q15, Q15);
+#endif
 	// Downcount flag check, Only valid for linked blocks
 	{
 		SetCC(CC_MI);
