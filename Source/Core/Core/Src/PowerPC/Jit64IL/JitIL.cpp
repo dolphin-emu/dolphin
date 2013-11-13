@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <map>
+#include <memory>
 #include <cinttypes>
 
 #include "Common.h"
