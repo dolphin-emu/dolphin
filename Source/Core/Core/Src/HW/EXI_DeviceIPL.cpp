@@ -92,7 +92,7 @@ CEXIIPL::CEXIIPL() :
 
 	// Create the IPL
 	m_pIPL = (u8*)AllocateMemoryPages(ROM_SIZE);
-	
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2)
 	{
 		// Copy header
@@ -119,7 +119,7 @@ CEXIIPL::CEXIIPL() :
 	g_SRAM.lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 
 	WriteProtectMemory(m_pIPL, ROM_SIZE);
-	m_uAddress = 0;		
+	m_uAddress = 0;
 }
 
 CEXIIPL::~CEXIIPL()
@@ -252,7 +252,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			DEBUG_LOG(EXPANSIONINTERFACE, "%s %s %08x", device_name.c_str(),
 				IsWriteCommand() ? "write" : "read", m_uAddress);
 		}
-	} 
+	}
 	else
 	{
 		// Actually read or write a byte
@@ -279,7 +279,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 				if (_uByte != '\0')
 					m_szBuffer[m_count++] = _uByte;
 				if ((m_count >= 256) || (_uByte == 0xD))
-				{					
+				{
 					m_szBuffer[m_count] = 0x00;
 					NOTICE_LOG(OSREPORT, "%s", m_szBuffer);
 					memset(m_szBuffer, 0, sizeof(m_szBuffer));

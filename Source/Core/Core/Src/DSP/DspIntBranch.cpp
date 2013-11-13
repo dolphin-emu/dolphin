@@ -35,8 +35,8 @@ void call(const UDSPInstruction opc)
 // Generic callr implementation
 // CALLRcc $R
 // 0001 0111 rrr1 cccc
-// Call function if condition cc has been met. Push program counter of 
-// instruction following "call" to call stack $st0. Set program counter to 
+// Call function if condition cc has been met. Push program counter of
+// instruction following "call" to call stack $st0. Set program counter to
 // register $R.
 void callr(const UDSPInstruction opc)
 {
@@ -87,7 +87,7 @@ void jmprcc(const UDSPInstruction opc)
 	{
 		u8 reg  = (opc >> 5) & 0x7;
 		g_dsp.pc = dsp_op_read_reg(reg);
-	} 
+	}
 }
 
 // Generic ret implementation
@@ -116,7 +116,7 @@ void rti(const UDSPInstruction opc)
 }
 
 // HALT
-// 0000 0000 0020 0001 
+// 0000 0000 0020 0001
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
 void halt(const UDSPInstruction opc)
 {
@@ -133,7 +133,7 @@ void halt(const UDSPInstruction opc)
 // continues at next opcode.
 void HandleLoop()
 {
-	// Handle looping hardware. 
+	// Handle looping hardware.
 	const u16 rCallAddress = g_dsp.r.st[0];
 	const u16 rLoopAddress = g_dsp.r.st[2];
 	u16& rLoopCounter = g_dsp.r.st[3];
@@ -254,7 +254,7 @@ void bloopi(const UDSPInstruction opc)
 	u16 cnt = opc & 0xff;
 	u16 loop_pc = dsp_fetch_code();
 
-	if (cnt) 
+	if (cnt)
 	{
 		dsp_reg_store_stack(0, g_dsp.pc);
 		dsp_reg_store_stack(2, loop_pc);

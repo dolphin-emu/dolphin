@@ -51,7 +51,7 @@ struct GC_ALIGNED64(PowerPCState)
 	u32 sr[16];  // Segment registers.
 
 	u32 DebugCount;
-	
+
 	// special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
 	// also for power management, but we don't care about that.
 	u32 spr[1024];
@@ -90,7 +90,7 @@ void DoState(PointerWrap &p);
 CoreMode GetMode();
 void SetMode(CoreMode _coreType);
 
-void SingleStep();	
+void SingleStep();
 void CheckExceptions();
 void CheckExternalExceptions();
 void CheckBreakPoints();
@@ -130,7 +130,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define rDEC    PowerPC::ppcState.spr[SPR_DEC]
 #define SRR0   PowerPC::ppcState.spr[SPR_SRR0]
 #define SRR1   PowerPC::ppcState.spr[SPR_SRR1]
-#define SPRG0  PowerPC::ppcState.spr[SPR_SPRG0]	
+#define SPRG0  PowerPC::ppcState.spr[SPR_SPRG0]
 #define SPRG1  PowerPC::ppcState.spr[SPR_SPRG1]
 #define SPRG2  PowerPC::ppcState.spr[SPR_SPRG2]
 #define SPRG3  PowerPC::ppcState.spr[SPR_SPRG3]

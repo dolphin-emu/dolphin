@@ -23,12 +23,12 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	, FST_ADDRESS(0)
 	, DOL_ADDRESS(0)
 {
-	m_rootDirectory = ExtractDirectoryName(_rDirectory);	
+	m_rootDirectory = ExtractDirectoryName(_rDirectory);
 
 	// create the default disk header
 	m_diskHeader = new u8[DISKHEADERINFO_ADDRESS];
 	memset(m_diskHeader, 0, (size_t)DISKHEADERINFO_ADDRESS);
-	SetUniqueID("AGBJ01");	
+	SetUniqueID("AGBJ01");
 	SetName("Default name");
 
 	if(_bIsWii)
@@ -105,7 +105,7 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 	{
 		WriteToBuffer(FST_ADDRESS, m_fstSize, m_FSTData, _Offset, _Length, _pBuffer);
 	}
-	
+
 	if(m_virtualDisk.size() == 0)
 		return true;
 
@@ -118,16 +118,16 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 	PadToAddress(fileIter->first, _Offset, _Length, _pBuffer);
 
 	while(fileIter != m_virtualDisk.end() && _Length > 0)
-	{	
+	{
 		_dbg_assert_(DVDINTERFACE, fileIter->first <= _Offset);
 		u64 fileOffset = _Offset - fileIter->first;
 
-		PlainFileReader* reader = PlainFileReader::Create(fileIter->second.c_str());		
+		PlainFileReader* reader = PlainFileReader::Create(fileIter->second.c_str());
 		if(reader == NULL)
 			return false;
 
 		u64 fileSize = reader->GetDataSize();
-		
+
 		if(fileOffset < fileSize)
 		{
 			u64 fileBytes = fileSize - fileOffset;
@@ -152,14 +152,14 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 
 		delete reader;
 	}
-	
+
 	return true;
 }
 
 std::string CVolumeDirectory::GetUniqueID() const
 {
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
-	
+
 	char buffer[7];
 	memcpy(buffer, m_diskHeader, 6);
 	buffer[6] = 0;
@@ -182,7 +182,7 @@ void CVolumeDirectory::SetUniqueID(std::string _ID)
 IVolume::ECountry CVolumeDirectory::GetCountry() const
 {
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
-	
+
 	u8 CountryCode = m_diskHeader[3];
 
 	return CountrySwitch(CountryCode);
@@ -263,7 +263,7 @@ void CVolumeDirectory::SetDiskTypeWii()
 	m_diskHeader[0x18] = 0x5d;
 	m_diskHeader[0x19] = 0x1c;
 	m_diskHeader[0x1a] = 0x9e;
-	m_diskHeader[0x1b] = 0xa3;	
+	m_diskHeader[0x1b] = 0xa3;
 	memset(m_diskHeader + 0x1c, 0, 4);
 
 	m_addressShift = 2;
@@ -287,7 +287,7 @@ bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
 	if (!_rApploader.empty())
 	{
 		std::string data;
-		if (!File::ReadFileToString(false, _rApploader.c_str(), data))
+		if (!File::ReadFileToString(_rApploader.c_str(), data))
 		{
 			PanicAlertT("Apploader unable to load from file");
 			return false;
@@ -320,7 +320,7 @@ void CVolumeDirectory::SetDOL(const std::string& _rDOL)
 	if (!_rDOL.empty())
 	{
 		std::string data;
-		File::ReadFileToString(false, _rDOL.c_str(), data);
+		File::ReadFileToString(_rDOL.c_str(), data);
 		m_DOLSize = data.size();
 		m_DOL = new u8[m_DOLSize];
 		copy(data.begin(), data.end(), m_DOL);
@@ -363,9 +363,9 @@ void CVolumeDirectory::BuildFST()
 	// write root entry
 	WriteEntryData(fstOffset, DIRECTORY_ENTRY, 0, 0, totalEntries);
 
-	for(std::vector<File::FSTEntry>::iterator iter = rootEntry.children.begin(); iter != rootEntry.children.end(); ++iter)
+	for(auto& entry : rootEntry.children)
 	{
-		WriteEntry(*iter, fstOffset, nameOffset, curDataAddress, rootOffset);
+		WriteEntry(entry, fstOffset, nameOffset, curDataAddress, rootOffset);
 	}
 
 	// overflow check
@@ -399,7 +399,7 @@ void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, u8* _
 		_Length -= srcBytes;
 		_pBuffer += srcBytes;
 		_Address += srcBytes;
-	}	
+	}
 }
 
 void CVolumeDirectory::PadToAddress(u64 _StartAddress, u64& _Address, u64& _Length, u8*& _pBuffer) const
@@ -446,12 +446,12 @@ void CVolumeDirectory::WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset,
 void CVolumeDirectory::WriteEntryName(u32& nameOffset, const std::string& name)
 {
 	strncpy((char*)(m_FSTData + nameOffset + m_fstNameOffset), name.c_str(), name.length() + 1);
-	
+
 	nameOffset += (u32)(name.length() + 1);
 }
 
 void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset, u32 parentEntryNum)
-{	
+{
 	if(entry.isDirectory)
 	{
 		u32 myOffset = fstOffset;
@@ -459,9 +459,9 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 		WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum, (u32)(myEntryNum + entry.size + 1));
 		WriteEntryName(nameOffset, entry.virtualName);
 
-		for(std::vector<File::FSTEntry>::const_iterator iter = entry.children.begin(); iter != entry.children.end(); ++iter)
+		for(const auto& child : entry.children)
 		{
-			WriteEntry(*iter, fstOffset, nameOffset, dataOffset, myEntryNum);
+			WriteEntry(child, fstOffset, nameOffset, dataOffset, myEntryNum);
 		}
 	}
 	else

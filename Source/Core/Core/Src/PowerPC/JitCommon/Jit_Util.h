@@ -8,6 +8,17 @@
 #include "x64Emitter.h"
 #include <unordered_map>
 
+#define MEMCHECK_START \
+	FixupBranch memException; \
+	if (jit->js.memcheck) \
+	{ TEST(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI)); \
+	memException = J_CC(CC_NZ, true); }
+
+#define MEMCHECK_END \
+	if (jit->js.memcheck) \
+	SetJumpTarget(memException);
+
+
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::XCodeBlock
 {
@@ -17,13 +28,13 @@ public:
 	// these return the address of the MOV, for backpatching
 	u8 *UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0, bool swap = true);
 	u8 *UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend);
-	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend);
-	enum SafeWriteFlags
+	enum SafeLoadStoreFlags
 	{
-		SAFE_WRITE_NO_SWAP = 1,
-		SAFE_WRITE_NO_PROLOG = 2,
-		SAFE_WRITE_NO_FASTMEM = 4
+		SAFE_LOADSTORE_NO_SWAP = 1,
+		SAFE_LOADSTORE_NO_PROLOG = 2,
+		SAFE_LOADSTORE_NO_FASTMEM = 4
 	};
+	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags = 0);
 	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags = 0);
 
 	// Trashes both inputs and EAX.

@@ -54,12 +54,12 @@ void DoState(PointerWrap &p)
 {
 	ZSlope.DoState(p);
 	WSlope.DoState(p);
-	for (int i=0;i<2;++i)
+	for (auto& ColorSlope : ColorSlopes)
 		for (int n=0; n<4; ++n)
-			ColorSlopes[i][n].DoState(p);
-	for (int i=0;i<8;++i)
+			ColorSlope[n].DoState(p);
+	for (auto& TexSlope : TexSlopes)
 		for (int n=0; n<3; ++n)
-			TexSlopes[i][n].DoState(p);
+			TexSlope[n].DoState(p);
 	p.Do(vertex0X);
 	p.Do(vertex0Y);
 	p.Do(vertexOffsetX);

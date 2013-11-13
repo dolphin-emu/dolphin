@@ -1,8 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Src\main.cpp" />
-    <ClCompile Include="Src\stdafx.cpp" />
+    <Filter Include="Decoder">
+      <UniqueIdentifier>{f29f8e7f-21ba-49da-8044-e5279a091c8f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GLUtil">
+      <UniqueIdentifier>{5bfec41c-1031-4925-8f98-38c7b49b1924}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Logging">
+      <UniqueIdentifier>{00dadfd8-a906-4b0c-b415-d42a69cf3ca7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{696df73b-378e-4399-8f21-999b65d78dcd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="Src\NativeVertexFormat.cpp">
       <Filter>Decoder</Filter>
     </ClCompile>
@@ -21,7 +33,7 @@
     <ClCompile Include="Src\FramebufferManager.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\PixelShaderCache.cpp">
+    <ClCompile Include="Src\PerfQuery.cpp">
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="Src\PostProcessing.cpp">
@@ -39,19 +51,11 @@
     <ClCompile Include="Src\TextureCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\VertexShaderCache.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PerfQuery.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
+    <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\SamplerCache.cpp" />
+    <ClCompile Include="Src\stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\Globals.h" />
-    <ClInclude Include="Src\main.h" />
-    <ClInclude Include="Src\stdafx.h" />
-    <ClInclude Include="Src\VideoBackend.h" />
     <ClInclude Include="Src\VertexManager.h">
       <Filter>Decoder</Filter>
     </ClInclude>
@@ -67,6 +71,9 @@
     <ClInclude Include="Src\FramebufferManager.h">
       <Filter>Render</Filter>
     </ClInclude>
+    <ClInclude Include="Src\PerfQuery.h">
+      <Filter>Render</Filter>
+    </ClInclude>
     <ClInclude Include="Src\PostProcessing.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -76,30 +83,19 @@
     <ClInclude Include="Src\Render.h">
       <Filter>Render</Filter>
     </ClInclude>
+    <ClInclude Include="Src\StreamBuffer.h">
+      <Filter>Render</Filter>
+    </ClInclude>
     <ClInclude Include="Src\TextureCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\PerfQuery.h">
-      <Filter>Render</Filter>
-    </ClInclude>
+    <ClInclude Include="Src\Globals.h" />
+    <ClInclude Include="Src\main.h" />
     <ClInclude Include="Src\SamplerCache.h" />
-    <ClInclude Include="Src\StreamBuffer.h" />
+    <ClInclude Include="Src\VideoBackend.h" />
+    <ClInclude Include="Src\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Decoder">
-      <UniqueIdentifier>{a0bb3390-6085-4d10-af48-b60eb4c920e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="GLUtil">
-      <UniqueIdentifier>{5b16573b-fb79-4a51-aa7a-d760df844128}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Logging">
-      <UniqueIdentifier>{14fca297-ab2f-4686-855f-65ab18602248}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render">
-      <UniqueIdentifier>{aaa16061-dca9-4155-be44-f77538e839fc}</UniqueIdentifier>
-    </Filter>
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
 </Project>

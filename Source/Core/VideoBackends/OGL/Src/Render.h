@@ -27,12 +27,13 @@ extern struct VideoConfig {
 	bool bSupportSampleShading;
 	GLSL_VERSION eSupportedGLSLVersion;
 	bool bSupportOGL31;
-	
+	bool bSupportViewportFloat;
+
 	const char *gl_vendor;
 	const char *gl_renderer;
 	const char* gl_version;
 	const char* glsl_version;
-	
+
 	s32 max_samples;
 } g_ogl_config;
 
@@ -41,43 +42,43 @@ class Renderer : public ::Renderer
 public:
 	Renderer();
 	~Renderer();
-	
+
 	static void Init();
 	static void Shutdown();
 
-	void SetColorMask();
-	void SetBlendMode(bool forceUpdate);
-	void SetScissorRect(const TargetRectangle& rc);
-	void SetGenerationMode();
-	void SetDepthMode();
-	void SetLogicOpMode();
-	void SetDitherMode();
-	void SetLineWidth();
-	void SetSamplerState(int stage,int texindex);
-	void SetInterlacingMode();
+	void SetColorMask() override;
+	void SetBlendMode(bool forceUpdate) override;
+	void SetScissorRect(const TargetRectangle& rc) override;
+	void SetGenerationMode() override;
+	void SetDepthMode() override;
+	void SetLogicOpMode() override;
+	void SetDitherMode() override;
+	void SetLineWidth() override;
+	void SetSamplerState(int stage,int texindex) override;
+	void SetInterlacingMode() override;
 
 	// TODO: Implement and use these
-	void ApplyState(bool bUseDstAlpha) {}
-	void RestoreState() {}
+	void ApplyState(bool bUseDstAlpha) override {}
+	void RestoreState() override {}
 
-	void RenderText(const char* pstr, int left, int top, u32 color);
+	void RenderText(const char* pstr, int left, int top, u32 color) override;
 	void DrawDebugInfo();
 	void FlipImageData(u8 *data, int w, int h);
 
-	u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data);
+	u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
 
-	void ResetAPIState();
-	void RestoreAPIState();
+	void ResetAPIState() override;
+	void RestoreAPIState() override;
 
-	TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc);
+	TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-	void Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma);
+	void Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma) override;
 
-	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z);
+	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) override;
 
-	void ReinterpretPixelData(unsigned int convtype);
+	void ReinterpretPixelData(unsigned int convtype) override;
 
-	void UpdateViewport(Matrix44& vpCorrection);
+	void UpdateViewport() override;
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
 

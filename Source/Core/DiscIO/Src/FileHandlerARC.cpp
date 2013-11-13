@@ -232,11 +232,11 @@ CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, cons
 const SFileInfo*
 CARCFile::FindFileInfo(std::string _rFullPath) const
 {
-	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
+	for (auto& fileInfo : m_FileInfoVector)
 	{
-		if (!strcasecmp(m_FileInfoVector[i].m_FullPath, _rFullPath.c_str()))
+		if (!strcasecmp(fileInfo.m_FullPath, _rFullPath.c_str()))
 		{
-			return(&m_FileInfoVector[i]);
+			return(&fileInfo);
 		}
 	}
 

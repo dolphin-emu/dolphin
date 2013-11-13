@@ -16,7 +16,7 @@ public:
 	{
 		Clear();
 	}
-	
+
 	// is address breakpoint
 	bool IsAddressBreakPoint(u32 addr)
 	{
@@ -27,7 +27,7 @@ public:
 	bool Add(u32 addr, bool temp=false)
 	{
 		bool was_one = b[addr] != 0;
-		
+
 		if (!was_one)
 		{
 			b[addr] = temp ? 2 : 1;
@@ -49,8 +49,7 @@ public:
 
 	void Clear()
 	{
-		for (int i = 0; i < 65536; i++)
-			b[i] = 0;
+		memset(b, 0, sizeof(b));
 	}
 
 	void DeleteByAddress(u32 addr)

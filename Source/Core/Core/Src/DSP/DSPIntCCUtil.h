@@ -26,7 +26,7 @@ inline bool isCarry(u64 val, u64 result) {
 }
 
 inline bool isCarry2(u64 val, u64 result) {
-	return (val>=result); 
+	return (val>=result);
 }
 
 inline bool isOverflow(s64 val1, s64 val2, s64 res) {

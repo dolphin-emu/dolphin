@@ -26,7 +26,7 @@ namespace PixelEngine
 union UPEZConfReg
 {
 	u16 Hex;
-	struct 
+	struct
 	{
 		u16 ZCompEnable		: 1; // Z Comparator Enable
 		u16 Function		: 3;
@@ -38,7 +38,7 @@ union UPEZConfReg
 union UPEAlphaConfReg
 {
 	u16 Hex;
-	struct 
+	struct
 	{
 		u16 BMMath			: 1; // GX_BM_BLEND || GX_BM_SUBSTRACT
 		u16 BMLogic			: 1; // GX_BM_LOGIC
@@ -55,7 +55,7 @@ union UPEAlphaConfReg
 union UPEDstAlphaConfReg
 {
 	u16 Hex;
-	struct 
+	struct
 	{
 		u16 DstAlpha		: 8;
 		u16 Enable			: 1;
@@ -66,7 +66,7 @@ union UPEDstAlphaConfReg
 union UPEAlphaModeConfReg
 {
 	u16 Hex;
-	struct 
+	struct
 	{
 		u16 Threshold		: 8;
 		u16 CompareMode		: 8;
@@ -76,7 +76,7 @@ union UPEAlphaModeConfReg
 // fifo Control Register
 union UPECtrlReg
 {
-	struct 
+	struct
 	{
 		u16 PETokenEnable	:	1;
 		u16 PEFinishEnable	:	1;
@@ -129,7 +129,7 @@ void DoState(PointerWrap &p)
 	p.Do(g_bSignalFinishInterrupt);
 	p.Do(interruptSetToken);
 	p.Do(interruptSetFinish);
-	
+
 	p.Do(bbox);
 	p.Do(bbox_active);
 }
@@ -187,7 +187,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	case PE_ALPHAMODE:
 		_uReturnValue = m_AlphaModeConf.Hex;
 		INFO_LOG(PIXELENGINE, "(r16) ALPHAMODE");
-		break;	
+		break;
 	case PE_ALPHAREAD:
 		_uReturnValue = m_AlphaRead.Hex;
 		WARN_LOG(PIXELENGINE, "(r16) ALPHAREAD");
@@ -303,7 +303,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		_uReturnValue = 1;
 		break;
 	}
-	
+
 }
 
 void Write16(const u16 _iValue, const u32 _iAddress)
@@ -332,7 +332,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		INFO_LOG(PIXELENGINE, "(w16) ALPHAREAD: %02x", _iValue);
 		break;
 
-	case PE_CTRL_REGISTER:	
+	case PE_CTRL_REGISTER:
 		{
 			UPECtrlReg tmpCtrl(_iValue);
 
@@ -376,7 +376,7 @@ void UpdateInterrupts()
 {
 	// check if there is a token-interrupt
 	UpdateTokenInterrupt((g_bSignalTokenInterrupt & m_Control.PETokenEnable));
-	
+
 	// check if there is a finish-interrupt
 	UpdateFinishInterrupt((g_bSignalFinishInterrupt & m_Control.PEFinishEnable));
 }

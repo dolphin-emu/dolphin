@@ -13,7 +13,7 @@
 // Common and Host.
 
 // Common simply provides OS-neutral implementations of things like threads, mutexes,
-// INI file manipulation, memory mapping, etc. 
+// INI file manipulation, memory mapping, etc.
 
 // Host is an abstract interface for communicating things back to the host. The emulator
 // core is treated as a library, not as a main program, because it is far easier to

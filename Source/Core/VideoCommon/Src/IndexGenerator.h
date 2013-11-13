@@ -29,7 +29,7 @@ public:
 	static u32 GetTriangleindexLen() {return (u32)(Tptr - BASETptr);}
 	static u32 GetLineindexLen() {return (u32)(Lptr - BASELptr);}
 	static u32 GetPointindexLen() {return (u32)(Pptr - BASEPptr);}
-	
+
 	static u32 GetRemainingIndices();
 /*
 	enum IndexPrimitiveType

@@ -20,9 +20,9 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 : m_uploadtype(uploadType), m_buffertype(type), m_size(size)
 {
 	glGenBuffers(1, &m_buffer);
-	
+
 	bool nvidia = !strcmp(g_ogl_config.gl_vendor, "NVIDIA Corporation");
-	
+
 	if(m_uploadtype & STREAM_DETECT)
 	{
 		// TODO: move this to InitBackendInfo
@@ -32,8 +32,8 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 			g_ActiveConfig.bHackedBufferUpload = false;
 			g_Config.bHackedBufferUpload = false;
 		}
-		
-		if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA) 
+
+		if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA)
 			&& !DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
 			m_uploadtype = BUFFERSUBDATA;
 		else if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERDATA))
@@ -46,7 +46,7 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 			m_uploadtype = BUFFERSUBDATA;
 		else if(g_ogl_config.bSupportsGLSync && (m_uploadtype & MAP_AND_SYNC))
 			m_uploadtype = MAP_AND_SYNC;
-		else 
+		else
 			m_uploadtype = MAP_AND_ORPHAN;
 	}
 
@@ -69,7 +69,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		m_iterator_aligned = m_iterator_aligned - (m_iterator_aligned % stride) + stride;
 	}
 	size_t iter_end = m_iterator_aligned + size;
-	
+
 	switch(m_uploadtype) {
 	case MAP_AND_ORPHAN:
 		if(iter_end >= m_size) {
@@ -79,14 +79,14 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		break;
 	case MAP_AND_SYNC:
 	case PINNED_MEMORY:
-		
+
 		// insert waiting slots for used memory
 		for(u32 i=SLOT(m_used_iterator); i<SLOT(m_iterator); i++)
 		{
 			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		}
 		m_used_iterator = m_iterator;
-		
+
 		// wait for new slots to end of buffer
 		for(u32 i=SLOT(m_free_iterator)+1; i<=SLOT(iter_end) && i < SYNC_POINTS; i++)
 		{
@@ -94,18 +94,18 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 			glDeleteSync(fences[i]);
 		}
 		m_free_iterator = iter_end;
-		
+
 		// if buffer is full
 		if(iter_end >= m_size) {
-			
+
 			// insert waiting slots in unused space at the end of the buffer
 			for(u32 i=SLOT(m_used_iterator); i < SYNC_POINTS; i++)
 				fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-			
+
 			// move to the start
 			m_used_iterator = m_iterator_aligned = m_iterator = 0; // offset 0 is always aligned
 			iter_end = size;
-			
+
 			// wait for space at the start
 			for(u32 i=0; i<=SLOT(iter_end); i++)
 			{
@@ -114,7 +114,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 			}
 			m_free_iterator = iter_end;
 		}
-		
+
 		break;
 	case MAP_AND_RISK:
 		if(iter_end >= m_size) {
@@ -170,13 +170,13 @@ void StreamBuffer::Init()
 	m_iterator = 0;
 	m_used_iterator = 0;
 	m_free_iterator = 0;
-	
+
 	switch(m_uploadtype) {
 	case MAP_AND_SYNC:
 		fences = new GLsync[SYNC_POINTS];
 		for(u32 i=0; i<SYNC_POINTS; i++)
 			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		
+
 	case MAP_AND_ORPHAN:
 	case BUFFERSUBDATA:
 		glBindBuffer(m_buffertype, m_buffer);
@@ -187,13 +187,13 @@ void StreamBuffer::Init()
 		fences = new GLsync[SYNC_POINTS];
 		for(u32 i=0; i<SYNC_POINTS; i++)
 			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-		
+
 		pointer = (u8*)AllocateAlignedMemory(ROUND_UP(m_size,ALIGN_PINNED_MEMORY), ALIGN_PINNED_MEMORY );
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_buffer);
 		glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, ROUND_UP(m_size,ALIGN_PINNED_MEMORY), pointer, GL_STREAM_COPY);
 		glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, 0);
 		glBindBuffer(m_buffertype, m_buffer);
-		
+
 		// on error, switch to another backend. some old catalyst seems to have broken pinned memory support
 		if(glGetError() != GL_NO_ERROR) {
 			ERROR_LOG(VIDEO, "Pinned memory detected, but not working. Please report this: %s, %s, %s", g_ogl_config.gl_vendor, g_ogl_config.gl_renderer, g_ogl_config.gl_version);

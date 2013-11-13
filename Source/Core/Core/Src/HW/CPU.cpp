@@ -75,7 +75,7 @@ reswitch:
 
 		case PowerPC::CPU_POWERDOWN:
 			//1: Exit loop!!
-			return; 
+			return;
 		}
 	}
 }
@@ -96,7 +96,7 @@ void CCPU::Reset()
 
 }
 
-void CCPU::StepOpcode(Common::Event *event) 
+void CCPU::StepOpcode(Common::Event *event)
 {
 	m_StepEvent.Set();
 	if (PowerPC::GetState() == PowerPC::CPU_STEPPING)
@@ -106,7 +106,7 @@ void CCPU::StepOpcode(Common::Event *event)
 }
 
 void CCPU::EnableStepping(const bool _bStepping)
-{	
+{
 	if (_bStepping)
 	{
 		PowerPC::Pause();
@@ -123,7 +123,7 @@ void CCPU::EnableStepping(const bool _bStepping)
 	}
 }
 
-void CCPU::Break() 
+void CCPU::Break()
 {
 	EnableStepping(true);
 }

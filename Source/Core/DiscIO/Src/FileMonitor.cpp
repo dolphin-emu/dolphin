@@ -134,7 +134,7 @@ void FindFilename(u64 offset)
 	// There's something wrong with the paths
 	if (!fname || (strlen(fname) == 512))
 		return;
-	
+
 	CheckFile(fname, pFileSystem->GetFileSize(fname));
 }
 

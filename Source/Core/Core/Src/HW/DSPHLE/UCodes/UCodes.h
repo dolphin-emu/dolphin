@@ -90,7 +90,7 @@ protected:
 
 	// Some ucodes (notably zelda) require a resume mail to be
 	// sent if they are be started via PrepareBootUCode.
-	// The HLE can use this to 
+	// The HLE can use this to
 	bool NeedsResumeMail();
 
 	void DoStateShared(PointerWrap &p);

@@ -13,7 +13,7 @@
 class CSIDevice_DanceMat : public ISIDevice
 {
 private:
-	
+
 	// Commands
 	enum EBufferCommands
 	{
@@ -47,7 +47,7 @@ private:
 	union UCommand
 	{
 		u32 Hex;
-		struct  
+		struct
 		{
 			u32 Parameter1	:	8;
 			u32 Parameter2	:	8;
@@ -86,20 +86,20 @@ public:
 	CSIDevice_DanceMat(SIDevices device, int _iDeviceNumber);
 
 	// Run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength);
+	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
 
 	// Send and Receive pad input from network
 	static bool NetPlay_GetInput(u8 numPAD, SPADStatus status, u32 *PADStatus);
 	static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
 
 	// Return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low);
+	virtual bool GetData(u32& _Hi, u32& _Low) override;
 
 	// Send a command directly
-	virtual void SendCommand(u32 _Cmd, u8 _Poll);
+	virtual void SendCommand(u32 _Cmd, u8 _Poll) override;
 
 	// Savestate support
-	virtual void DoState(PointerWrap& p);
+	virtual void DoState(PointerWrap& p) override;
 };
 
 #endif

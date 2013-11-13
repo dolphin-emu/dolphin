@@ -30,7 +30,6 @@
 #include "XFMemory.h"
 #include "FifoPlayer/FifoRecorder.h"
 #include "AVIDump.h"
-#include "VertexShaderManager.h"
 
 #include <cmath>
 #include <string>
@@ -67,7 +66,6 @@ unsigned int Renderer::efb_scale_numeratorX = 1;
 unsigned int Renderer::efb_scale_numeratorY = 1;
 unsigned int Renderer::efb_scale_denominatorX = 1;
 unsigned int Renderer::efb_scale_denominatorY = 1;
-unsigned int Renderer::ssaa_multiplier = 1;
 
 
 Renderer::Renderer()
@@ -90,7 +88,7 @@ Renderer::~Renderer()
 	// invalidate previous efb format
 	prev_efb_format = (unsigned int)-1;
 
-	efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = ssaa_multiplier = 1;
+	efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
 
 #if defined _WIN32 || defined HAVE_LIBAV
 	if (g_ActiveConfig.bDumpFrames && bLastFrameDumped && bAVIDumping)
@@ -130,10 +128,10 @@ int Renderer::EFBToScaledX(int x)
 	switch (g_ActiveConfig.iEFBScale)
 	{
 	case SCALE_AUTO: // fractional
-			return (int)ssaa_multiplier * FramebufferManagerBase::ScaleToVirtualXfbWidth(x, s_backbuffer_width);
+			return FramebufferManagerBase::ScaleToVirtualXfbWidth(x, s_backbuffer_width);
 
 		default:
-			return x * (int)ssaa_multiplier * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
+			return x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
 	};
 }
 
@@ -142,10 +140,10 @@ int Renderer::EFBToScaledY(int y)
 	switch (g_ActiveConfig.iEFBScale)
 	{
 		case SCALE_AUTO: // fractional
-			return (int)ssaa_multiplier * FramebufferManagerBase::ScaleToVirtualXfbHeight(y, s_backbuffer_height);
+			return FramebufferManagerBase::ScaleToVirtualXfbHeight(y, s_backbuffer_height);
 
 		default:
-			return y * (int)ssaa_multiplier * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
+			return y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
 	};
 }
 
@@ -164,7 +162,7 @@ void Renderer::CalculateTargetScale(int x, int y, int &scaledX, int &scaledY)
 }
 
 // return true if target size changed
-bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height, int multiplier)
+bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height)
 {
 	int newEFBWidth, newEFBHeight;
 
@@ -228,15 +226,10 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 			break;
 	}
 
-	newEFBWidth *= multiplier;
-	newEFBHeight *= multiplier;
-	ssaa_multiplier = multiplier;
-
 	if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
 	{
 		s_target_width  = newEFBWidth;
 		s_target_height = newEFBHeight;
-		VertexShaderManager::SetViewportChanged();
 		return true;
 	}
 	return false;
@@ -525,8 +518,8 @@ void Renderer::RecordVideoMemory()
 	FifoRecorder::GetInstance().SetVideoMemory(bpMem, cpMem, xfMem, xfRegs, sizeof(XFRegisters) / 4);
 }
 
-void UpdateViewport(Matrix44& vpCorrection)
+void UpdateViewport()
 {
 	if (xfregs.viewport.wd != 0 && xfregs.viewport.ht != 0)
-		g_renderer->UpdateViewport(vpCorrection);
+		g_renderer->UpdateViewport();
 }

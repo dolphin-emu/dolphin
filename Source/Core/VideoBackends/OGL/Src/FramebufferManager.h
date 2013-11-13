@@ -49,10 +49,10 @@ struct XFBSource : public XFBSourceBase
 	XFBSource(GLuint tex) : texture(tex) {}
 	~XFBSource();
 
-	void CopyEFB(float Gamma);
-	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
+	void CopyEFB(float Gamma) override;
+	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
 	void Draw(const MathUtil::Rectangle<float> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc, int width, int height) const;
+		const MathUtil::Rectangle<float> &drawrc, int width, int height) const override;
 
 	const GLuint texture;
 };
@@ -93,16 +93,16 @@ public:
 	// Same as above but for the depth Target.
 	// After calling this, before you render anything else, you MUST bind the framebuffer you want to draw to.
 	static GLuint ResolveAndGetDepthTarget(const EFBRectangle &rect);
-	
-	// Convert EFB content on pixel format change. 
+
+	// Convert EFB content on pixel format change.
 	// convtype=0 -> rgb8->rgba6, convtype=2 -> rgba6->rgb8
 	static void ReinterpretPixelData(unsigned int convtype);
 
 private:
-	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height);
-	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc);
+	XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height) override;
+	void GetTargetSize(unsigned int *width, unsigned int *height, const EFBRectangle& sourceRc) override;
 
-	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma);
+	void CopyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
 
 	static int m_targetWidth;
 	static int m_targetHeight;
@@ -119,7 +119,7 @@ private:
 	static GLuint m_resolvedDepthTexture;
 
 	static GLuint m_xfbFramebuffer; // Only used in MSAA mode
-	
+
 	// For pixel format draw
 	static GLuint m_pixel_format_vbo;
 	static GLuint m_pixel_format_vao;

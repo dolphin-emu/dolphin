@@ -29,7 +29,7 @@ enum partype_t
 	P_ADDR_D	= 0x0006,
 	P_REG		= 0x8000,
 	P_REG04		= P_REG | 0x0400, // IX
-	P_REG08		= P_REG | 0x0800, 
+	P_REG08		= P_REG | 0x0800,
 	P_REG18		= P_REG | 0x1800,
 	P_REGM18	= P_REG | 0x1810, // used in multiply instructions
 	P_REG19		= P_REG | 0x1900,

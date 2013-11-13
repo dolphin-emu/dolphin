@@ -26,7 +26,7 @@ struct TGA_HEADER
 	s16 height;             // image height in pixels
 	u8  bits;               // image bits per pixel 8,16,24,32
 	u8  descriptor;         // image descriptor bits (vh flip bits)
-	
+
 	// pixel data follows header
 };
 

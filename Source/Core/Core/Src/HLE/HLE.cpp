@@ -38,8 +38,8 @@ struct SPatch
 	int flags;
 };
 
-static const SPatch OSPatches[] = 
-{	
+static const SPatch OSPatches[] =
+{
 	{ "FAKE_TO_SKIP_0",		HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
 	{ "PanicAlert",			HLE_Misc::HLEPanicAlert, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },

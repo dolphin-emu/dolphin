@@ -196,7 +196,7 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 void XFBSource::CopyEFB(float Gamma)
 {
 	g_renderer->ResetAPIState(); // reset any game specific settings
-	
+
 	// Copy EFB data to XFB and restore render target again
 	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)texWidth, (float)texHeight);
 
@@ -211,7 +211,7 @@ void XFBSource::CopyEFB(float Gamma)
 
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
-	
+
 	g_renderer->RestoreAPIState();
 }
 

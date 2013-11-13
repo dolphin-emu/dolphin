@@ -23,7 +23,7 @@ public:
 	void DestroyDeviceObjects();
 
 private:
-	
+
 	void PrepareDrawBuffers();
 	void Draw(u32 stride);
 	// temp

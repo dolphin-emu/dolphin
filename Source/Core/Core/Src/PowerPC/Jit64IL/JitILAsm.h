@@ -18,7 +18,7 @@
 //   3) Can optimize code at runtime for the specific CPU model.
 // There aren't really any disadvantages other than having to maintain a x86 emitter,
 // which we have to do anyway :)
-// 
+//
 // To add a new asm routine, just add another const here, and add the code to Generate.
 // Also, possibly increase the size of the code buffer.
 

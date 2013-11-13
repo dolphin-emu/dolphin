@@ -84,14 +84,6 @@
 // All structs in this file are packed
 #pragma pack(push, 1)
 
-/*
- * Bluetooth Address Family Protocol Numbers
- */
-#define BTPROTO_HCI	1
-#define BTPROTO_L2CAP	2
-#define BTPROTO_RFCOMM	3
-#define BTPROTO_SCO	4
-
 /* All sizes are in bytes */
 #define BLUETOOTH_BDADDR_SIZE	6
 
@@ -102,9 +94,8 @@
 typedef struct {
 	uint8_t	b[BLUETOOTH_BDADDR_SIZE];
 } bdaddr_t;
-#endif
-
 #define	BDADDR_ANY	{ { 0, 0, 0, 0, 0, 0 } }
+#endif
 
 /**************************************************************************
  **************************************************************************
@@ -2416,7 +2407,7 @@ struct SHCIEventStatus
 	u8 EventType;
 	u8 PayloadLength;
 	u8 EventStatus;
-	u8 PacketIndicator;	
+	u8 PacketIndicator;
 	u16 Opcode;
 };
 

@@ -45,7 +45,7 @@ typedef struct {
 
 bool CBoot::Boot_WiiWAD(const char* _pFilename)
 {
-	
+
 	std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_STATE);
 
 	if (File::Exists(state_filename))
@@ -53,7 +53,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 		File::IOFile state_file(state_filename, "r+b");
 		StateFlags state;
 		state_file.ReadBytes(&state, sizeof(StateFlags));
-		
+
 		state.type = 0x03; // TYPE_RETURN
 		state.checksum = state_checksum((u32*)&state.flags, sizeof(StateFlags)-4);
 
@@ -79,7 +79,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	u64 titleID = ContentLoader.GetTitleID();
 	// create data directory
 	File::CreateFullPath(Common::GetTitleDataPath(titleID));
-	
+
 	if (titleID == TITLEID_SYSMENU)
 		HLE_IPC_CreateVirtualFATFilesystem();
 	// setup wii mem

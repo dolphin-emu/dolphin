@@ -19,10 +19,10 @@ public:
 	void SetMotor(const u8 on);
 
 	bool GetMicButton() const;
-	
-	std::string GetName() const;
 
-	void LoadDefaults(const ControllerInterface& ciface);
+	std::string GetName() const override;
+
+	void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
 

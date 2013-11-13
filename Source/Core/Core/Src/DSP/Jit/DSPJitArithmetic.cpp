@@ -77,7 +77,7 @@ void DSPEmitter::andcf(const UDSPInstruction opc)
 //		u16 val = dsp_get_acc_m(reg);
 		get_acc_m(reg);
 //		Update_SR_LZ(((val & imm) == imm) ? true : false);
-//		if ((val & imm) == imm) 
+//		if ((val & imm) == imm)
 //			g_dsp.r.sr |= SR_LOGIC_ZERO;
 //		else
 //			g_dsp.r.sr &= ~SR_LOGIC_ZERO;
@@ -117,7 +117,7 @@ void DSPEmitter::andf(const UDSPInstruction opc)
 //		u16 val = dsp_get_acc_m(reg);
 		get_acc_m(reg);
 //		Update_SR_LZ(((val & imm) == 0) ? true : false);
-//		if ((val & imm) == 0) 
+//		if ((val & imm) == 0)
 //			g_dsp.r.sr |= SR_LOGIC_ZERO;
 //		else
 //			g_dsp.r.sr &= ~SR_LOGIC_ZERO;
@@ -250,7 +250,7 @@ void DSPEmitter::cmpar(const UDSPInstruction opc)
 // CMPI $amD, #I
 // 0000 001r 1000 0000
 // iiii iiii iiii iiii
-// Compares mid accumulator $acD.hm ($amD) with sign extended immediate value I. 
+// Compares mid accumulator $acD.hm ($amD) with sign extended immediate value I.
 // Although flags are being set regarding whole accumulator register.
 //
 // flags out: x-xx xxxx
@@ -791,7 +791,7 @@ void DSPEmitter::addaxl(const UDSPInstruction opc)
 #endif
 }
 
-// ADDI $amR, #I 
+// ADDI $amR, #I
 // 0000 001r 0000 0000
 // iiii iiii iiii iiii
 // Adds immediate (16-bit sign extended) to mid accumulator $acD.hm.
@@ -1033,7 +1033,7 @@ void DSPEmitter::subax(const UDSPInstruction opc)
 
 // SUB $acD, $ac(1-D)
 // 0101 110d xxxx xxxx
-// Subtracts accumulator $ac(1-D) from accumulator register $acD. 
+// Subtracts accumulator $ac(1-D) from accumulator register $acD.
 //
 // flags out: x-xx xxxx
 void DSPEmitter::sub(const UDSPInstruction opc)
@@ -1125,7 +1125,7 @@ void DSPEmitter::decm(const UDSPInstruction opc)
 //	s64 res = acc - sub;
 	SUB(64, R(RAX), Imm32((u32)subtract));
 //	dsp_set_long_acc(dreg, res);
-//	res = dsp_get_long_acc(dreg);	
+//	res = dsp_get_long_acc(dreg);
 //	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -subtract, res));
 	if (FlagsNeeded())
 	{
@@ -1155,7 +1155,7 @@ void DSPEmitter::dec(const UDSPInstruction opc)
 	u8 dreg = (opc >> 8) & 0x01;
 	X64Reg tmp1;
 	gpr.getFreeXReg(tmp1);
-//	s64 acc = dsp_get_long_acc(dreg); 
+//	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg, tmp1);
 	MOV(64, R(RAX), R(tmp1));
 //	s64 res = acc - 1;
@@ -1208,7 +1208,7 @@ void DSPEmitter::neg(const UDSPInstruction opc)
 }
 
 // ABS  $acD
-// 1010 d001 xxxx xxxx 
+// 1010 d001 xxxx xxxx
 // absolute value of $acD
 //
 // flags out: --xx xx00
@@ -1217,7 +1217,7 @@ void DSPEmitter::abs(const UDSPInstruction opc)
 #ifdef _M_X64
 	u8 dreg = (opc >> 11) & 0x1;
 
-//	s64 acc = dsp_get_long_acc(dreg); 	
+//	s64 acc = dsp_get_long_acc(dreg);
 	get_long_acc(dreg);
 //	if (acc < 0) acc = 0 - acc;
 	CMP(64, R(RAX), Imm8(0));
@@ -1267,7 +1267,7 @@ void DSPEmitter::movr(const UDSPInstruction opc)
 
 // MOVAX $acD, $axS
 // 0110 10sd xxxx xxxx
-// Moves secondary accumulator $axS to accumulator $axD. 
+// Moves secondary accumulator $axS to accumulator $axD.
 //
 // flags out: --xx xx00
 void DSPEmitter::movax(const UDSPInstruction opc)
@@ -1353,7 +1353,7 @@ void DSPEmitter::lsr16(const UDSPInstruction opc)
 //	u64 acc = dsp_get_long_acc(areg);
 	get_long_acc(areg);
 //	acc &= 0x000000FFFFFFFFFFULL; 	// Lop off the extraneous sign extension our 64-bit fake accum causes
-//	acc >>= 16; 
+//	acc >>= 16;
 	SHR(64, R(RAX), Imm8(16));
 	AND(64, R(RAX), Imm32(0xffffff));
 //	dsp_set_long_acc(areg, (s64)acc);
@@ -1399,11 +1399,11 @@ void DSPEmitter::asr16(const UDSPInstruction opc)
 // Logically shifts left accumulator $acR by number specified by value I.
 //
 // flags out: --xx xx00
-void DSPEmitter::lsl(const UDSPInstruction opc) 
+void DSPEmitter::lsl(const UDSPInstruction opc)
 {
 #ifdef _M_X64
 	u8 rreg = (opc >> 8) & 0x01;
-	u16 shift = opc & 0x3f; 
+	u16 shift = opc & 0x3f;
 //	u64 acc = dsp_get_long_acc(rreg);
 	get_long_acc(rreg);
 
@@ -1448,7 +1448,7 @@ void DSPEmitter::lsr(const UDSPInstruction opc)
 		//	acc >>= shift;
 		SHR(64, R(RAX), Imm8(shift + 24));
 	}
-	
+
 //	dsp_set_long_acc(rreg, (s64)acc);
 	set_long_acc(rreg);
 //	Update_SR_Register64(dsp_get_long_acc(rreg));
@@ -1531,7 +1531,7 @@ void DSPEmitter::asr(const UDSPInstruction opc)
 void DSPEmitter::lsrn(const UDSPInstruction opc)
 {
 #ifdef _M_X64
-//	s16 shift; 
+//	s16 shift;
 //	u16 accm = (u16)dsp_get_acc_m(1);
 	get_acc_m(1);
 //	u64 acc = dsp_get_long_acc(0);

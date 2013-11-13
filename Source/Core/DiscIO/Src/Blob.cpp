@@ -39,7 +39,7 @@ const u8 *SectorReader::GetBlockData(u64 block_num)
 	{
 		return cache[0];
 	}
-	else 
+	else
 	{
 		GetBlock(block_num, cache[0]);
 		cache_tags[0] = block_num;

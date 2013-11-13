@@ -48,7 +48,7 @@ private:
 		int guest_reg; //including DSPJitRegSpecial
 		bool pushed;
 	};
-	
+
 	struct DynamicReg
 	{
 		Gen::OpArg loc;

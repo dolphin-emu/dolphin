@@ -14,9 +14,9 @@ using namespace Gen;
 
 //TODO - make an option
 //#if _DEBUG
-static bool enableDebug = false; 
+static bool enableDebug = false;
 //#else
-//		bool enableDebug = false; 
+//		bool enableDebug = false;
 //#endif
 
 //static bool enableStatistics = false; // unused?
@@ -27,7 +27,7 @@ static bool enableDebug = false;
 //GLOBAL STATIC ALLOCATIONS x64
 //EAX - ubiquitous scratch register - EVERYBODY scratches this
 //RBX - Base pointer of memory
-//R15 - Pointer to array of block pointers 
+//R15 - Pointer to array of block pointers
 
 JitILAsmRoutineManager jitil_asm_routines;
 
@@ -49,7 +49,7 @@ void JitILAsmRoutineManager::Generate()
 	const u8 *outer_loop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
-	
+
 		dispatcher = GetCodePtr();
 			//This is the place for CPUCompare!
 
@@ -161,7 +161,7 @@ void JitILAsmRoutineManager::Generate()
 			JMP(dispatcherNoCheck); // no point in special casing this
 
 			//FP blocks test for FPU available, jump here if false
-			fpException = AlignCode4(); 
+			fpException = AlignCode4();
 			MOV(32, R(EAX), M(&PC));
 			MOV(32, M(&NPC), R(EAX));
 			LOCK();
@@ -175,14 +175,14 @@ void JitILAsmRoutineManager::Generate()
 		doTiming = GetCodePtr();
 
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
-		
+
 		testExceptions = GetCodePtr();
 		MOV(32, R(EAX), M(&PC));
 		MOV(32, M(&NPC), R(EAX));
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 		MOV(32, R(EAX), M(&NPC));
 		MOV(32, M(&PC), R(EAX));
-		
+
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outer_loop, true);
 	//Landing pad for drec space
@@ -214,7 +214,7 @@ void JitILAsmRoutineManager::GenerateCommon()
 	GenQuantizedStores();
 	GenQuantizedSingleStores();
 
-	//CMPSD(R(XMM0), M(&zero), 
+	//CMPSD(R(XMM0), M(&zero),
 	// TODO
 
 	// Fast write routines - special case the most common hardware write

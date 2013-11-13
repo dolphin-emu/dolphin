@@ -25,7 +25,7 @@
 #include "../../HW/GPFifo.h"
 #include "../../HW/Memmap.h"
 
-#include <set>
+#include <unordered_set>
 
 class JitBase : public CPUCoreBase
 {
@@ -70,14 +70,14 @@ protected:
 
 		JitBlock *curBlock;
 
-		std::set<u32> fifoWriteAddresses;
+		std::unordered_set<u32> fifoWriteAddresses;
 	};
 
 public:
 	// This should probably be removed from public:
 	JitOptions jo;
 	JitState js;
-	
+
 	virtual JitBaseBlockCache *GetBlockCache() = 0;
 
 	virtual void Jit(u32 em_address) = 0;
@@ -93,13 +93,13 @@ class Jitx86Base : public JitBase, public EmuCodeBlock
 {
 protected:
 	JitBlockCache blocks;
-	TrampolineCache trampolines;	
+	TrampolineCache trampolines;
 public:
-	JitBlockCache *GetBlockCache() { return &blocks; }
-	
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx);
+	JitBlockCache *GetBlockCache() override { return &blocks; }
 
-	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) override;
+
+	bool IsInCodeSpace(u8 *ptr) override { return IsInSpace(ptr); }
 };
 
 extern JitBase *jit;

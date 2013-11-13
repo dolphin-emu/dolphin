@@ -12,12 +12,12 @@
 // No need for a disable-mechanism.
 
 // If defined, clears CR0 at blr and bl-s. If the assumption that
-// flags never carry over between functions holds, then the task for 
+// flags never carry over between functions holds, then the task for
 // an optimizer becomes much easier.
 
 // #define ACID_TEST
 
-// Zelda and many more games seem to pass the Acid Test. 
+// Zelda and many more games seem to pass the Acid Test.
 
 using namespace Gen;
 
@@ -122,12 +122,12 @@ void Jit64::bcx(UGeckoInstruction inst)
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
 	{
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
+		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch
 			pConditionDontBranch = J_CC(CC_Z);
 		else
 			pConditionDontBranch = J_CC(CC_NZ);
 	}
-	
+
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 
@@ -180,7 +180,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		if (inst.BO_2 & BO_BRANCH_IF_TRUE)
 			branch = CC_Z;
 		else
-			branch = CC_NZ; 
+			branch = CC_NZ;
 		FixupBranch b = J_CC(branch, false);
 		MOV(32, R(EAX), M(&CTR));
 		AND(32, R(EAX), Imm32(0xFFFFFFFC));
@@ -223,7 +223,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
 	{
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
+		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch
 			pConditionDontBranch = J_CC(CC_Z);
 		else
 			pConditionDontBranch = J_CC(CC_NZ);
@@ -235,7 +235,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
 #endif
 
-	MOV(32, R(EAX), M(&LR));	
+	MOV(32, R(EAX), M(&LR));
 	AND(32, R(EAX), Imm32(0xFFFFFFFC));
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));

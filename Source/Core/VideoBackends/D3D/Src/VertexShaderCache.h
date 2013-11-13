@@ -35,7 +35,7 @@ public:
 
 private:
 	struct VSCacheEntry
-	{ 
+	{
 		ID3D11VertexShader* shader;
 		D3DBlob* bytecode; // needed to initialize the input layout
 
@@ -55,7 +55,7 @@ private:
 		}
 	};
 	typedef std::map<VertexShaderUid, VSCacheEntry> VSCache;
-	
+
 	static VSCache vshaders;
 	static const VSCacheEntry* last_entry;
 	static VertexShaderUid last_uid;

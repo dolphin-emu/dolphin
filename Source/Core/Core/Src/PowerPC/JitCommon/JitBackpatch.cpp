@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <string>
+#include <cinttypes>
 
 #include "Common.h"
 #include "disasm.h"
@@ -32,7 +33,7 @@ static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) 
 #endif
 	PanicAlert("%s\n\n"
 		"Error encountered accessing emulated address %08x.\n"
-		"Culprit instruction: \n%s\nat %#llx",
+		"Culprit instruction: \n%s\nat %#" PRIx64,
 		text.c_str(), emAddress, disbuf, code_addr);
 	return;
 }
@@ -107,7 +108,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
 	X64Reg addrReg = (X64Reg)info.scaledReg;
 
-	// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a 
+	// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a
 	// hardware access - we can take shortcuts.
 	// Don't treat FIFO writes specially for now because they require a burst
 	// check anyway.
@@ -157,7 +158,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 
 // This generates some fairly heavy trampolines, but:
 // 1) It's really necessary. We don't know anything about the context.
-// 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be 
+// 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be
 //    that many of them in a typical program/game.
 const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 {
@@ -166,7 +167,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 
 	if (!jit->IsInCodeSpace(codePtr))
 		return 0;  // this will become a regular crash real soon after this
-	
+
 	InstructionInfo info;
 	if (!DisassembleMov(codePtr, &info)) {
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);

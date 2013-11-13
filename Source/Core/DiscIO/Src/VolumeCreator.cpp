@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "Crypto/aes.h"
+#include <polarssl/aes.h>
 
 #include "VolumeCreator.h"
 
@@ -108,7 +108,7 @@ IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii,
 {
 	if (CVolumeDirectory::IsValidDirectory(_rDirectory))
 		return new CVolumeDirectory(_rDirectory, _bIsWii, _rApploader, _rDOL);
-	
+
 	return NULL;
 }
 
@@ -154,7 +154,7 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 		std::vector<SPartition> PartitionsVec;
 	};
 	SPartitionGroup PartitionGroup[4];
-	
+
 	// read all partitions
 	for (u32 x = 0; x < 4; x++)
 	{
@@ -183,11 +183,21 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 			memset(IV, 0, 16);
 			_rReader.Read(rPartition.Offset + 0x44c, 8, IV);
 
-			AES_KEY AES_KEY;
-			AES_set_decrypt_key((Korean ? g_MasterKeyK : g_MasterKey), 128, &AES_KEY);
+			bool usingKoreanKey = false;
+			// Issue: 6813
+			// Magic value is at 0x501f1 (1byte)
+			// If encrypted with the Korean key, the magic value would be 1
+			// Otherwise it is zero
+			if (Korean && Reader.Read32(0x501ee) != 0)
+			{
+				usingKoreanKey = true;
+			}
+
+			aes_context AES_ctx;
+			aes_setkey_dec(&AES_ctx, (usingKoreanKey ? g_MasterKeyK : g_MasterKey), 128);
 
 			u8 VolumeKey[16];
-			AES_cbc_encrypt(SubKey, VolumeKey, 16, &AES_KEY, IV, AES_DECRYPT);
+			aes_crypt_cbc(&AES_ctx, AES_DECRYPT, 16, IV, SubKey, VolumeKey);
 
 			// -1 means the caller just wanted the partition with matching type
 			if ((int)_VolumeNum == -1 || i == _VolumeNum)

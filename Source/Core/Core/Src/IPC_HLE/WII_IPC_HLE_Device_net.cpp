@@ -677,8 +677,8 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		u32 fd = Memory::Read_U32(BufferIn);
 		WiiSockMan &sm = WiiSockMan::getInstance();
 		ReturnValue = sm.delSocket(fd);
-		DEBUG_LOG(WII_IPC_NET, "%s(%x) %x", 
-			Command == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE", 
+		DEBUG_LOG(WII_IPC_NET, "%s(%x) %x",
+			Command == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE",
 			fd, ReturnValue);
 		break;
 	}
@@ -734,13 +734,13 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		// Do the level/optname translation
 		int nat_level = -1, nat_optname = -1;
 
-		for (unsigned int i = 0; i < sizeof (opt_level_mapping) / sizeof (opt_level_mapping[0]); ++i)
-			if (level == opt_level_mapping[i][1])
-				nat_level = opt_level_mapping[i][0];
+		for (auto& map : opt_level_mapping)
+			if (level == map[1])
+				nat_level = map[0];
 
-		for (unsigned int i = 0; i < sizeof (opt_name_mapping) / sizeof (opt_name_mapping[0]); ++i)
-			if (optname == opt_name_mapping[i][1])
-				nat_optname = opt_name_mapping[i][0];
+		for (auto& map : opt_name_mapping)
+			if (optname == map[1])
+				nat_optname = map[0];
 
 		u8 optval[20];
 		u32 optlen = 4;
@@ -755,7 +755,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		if (optname == SO_ERROR)
 		{
 			s32 last_error = WiiSockMan::getInstance().getLastNetError();
-			
+
 			Memory::Write_U32(sizeof(s32), BufferOut + 0xC);
 			Memory::Write_U32(last_error, BufferOut + 0x10);
 		}
@@ -775,7 +775,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 			"BufferIn: (%08x, %i), BufferOut: (%08x, %i)"
 			"%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx %02hhx",
 			fd, level, optname, optlen, BufferIn, BufferInSize, BufferOut, BufferOutSize, optval[0], optval[1], optval[2], optval[3], optval[4], optval[5], optval[6], optval[7], optval[8], optval[9], optval[10], optval[11], optval[12], optval[13], optval[14], optval[15], optval[16], optval[17], optval[18], optval[19]);
-		
+
 		//TODO: bug booto about this, 0x2005 most likely timeout related, default value on wii is , 0x2001 is most likely tcpnodelay
 		if (level == 6 && (optname == 0x2005 || optname == 0x2001)){
 			ReturnValue = 0;
@@ -785,13 +785,13 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		// Do the level/optname translation
 		int nat_level = -1, nat_optname = -1;
 
-		for (unsigned int i = 0; i < sizeof (opt_level_mapping) / sizeof (opt_level_mapping[0]); ++i)
-			if (level == opt_level_mapping[i][1])
-				nat_level = opt_level_mapping[i][0];
+		for (auto& map : opt_level_mapping)
+			if (level == map[1])
+				nat_level = map[0];
 
-		for (unsigned int i = 0; i < sizeof (opt_name_mapping) / sizeof (opt_name_mapping[0]); ++i)
-			if (optname == opt_name_mapping[i][1])
-				nat_optname = opt_name_mapping[i][0];
+		for (auto& map : opt_name_mapping)
+			if (optname == map[1])
+				nat_optname = map[0];
 
 		if (nat_level == -1 || nat_optname == -1)
 		{
@@ -924,11 +924,11 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 				// Translate Wii to native events
 				int unhandled_events = events;
 				ufds[i].events = 0;
-				for (unsigned int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
+				for (auto& map : mapping)
 				{
-					if (events & mapping[j][1])
-						ufds[i].events |= mapping[j][0];
-					unhandled_events &= ~mapping[j][1];
+					if (events & map[1])
+						ufds[i].events |= map[0];
+					unhandled_events &= ~map[1];
 				}
 
 				DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_POLL(%d) "
@@ -949,10 +949,10 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 				// Translate native to Wii events
 				int revents = 0;
-				for (unsigned int j = 0; j < sizeof (mapping) / sizeof (mapping[0]); ++j)
+				for (auto& map : mapping)
 				{
-					if (ufds[i].revents & mapping[j][0])
-						revents |= mapping[j][1];
+					if (ufds[i].revents & map[0])
+						revents |= map[1];
 				}
 
 				// No need to change fd or events as they are input only.

@@ -135,11 +135,11 @@ static ARMReg regBinLHSReg(RegInfo& RI, InstLoc I) {
 static ARMReg regBinReg(RegInfo& RI, InstLoc I) {
 	// FIXME: When regLocForInst() is extracted as a local variable,
 	//        "Retrieving unknown spill slot?!" is shown.
-	if (RI.IInfo[I - RI.FirstI] & 4) 
+	if (RI.IInfo[I - RI.FirstI] & 4)
 		return regLocForInst(RI, getOp1(I));
 	else if (RI.IInfo[I - RI.FirstI] & 8)
 		return regLocForInst(RI, getOp2(I));
-	
+
 	return regFindFreeReg(RI);
 }
 
@@ -191,7 +191,7 @@ static void regStoreInstToPPCState(RegInfo& RI, unsigned width, InstLoc I, s32 o
 // Could be extended to unprofiled addresses.
 static void regMarkMemAddress(RegInfo& RI, InstLoc I, InstLoc AI, unsigned OpNum) {
 	if (isImm(*AI)) {
-		unsigned addr = RI.Build->GetImmValue(AI);	
+		unsigned addr = RI.Build->GetImmValue(AI);
 		if (Memory::IsRAMAddress(addr))
 			return;
 	}
@@ -311,7 +311,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 		case InterpreterFallback:
 		case SystemCall:
 		case RFIExit:
-		case InterpreterBranch:		
+		case InterpreterBranch:
 		case ShortIdleLoop:
 		case FPExceptionCheck:
 		case DSIExceptionCheck:
@@ -430,7 +430,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 			break;
 		case IdleBranch:
 			regMarkUse(RI, I, getOp1(getOp1(I)), 1);
-			break;						 
+			break;
 		case BranchCond: {
 			if (isICmp(*getOp1(I)) &&
 			    isImm(*getOp2(getOp1(I)))) {
@@ -638,7 +638,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 			Jit->STR(rB, R9, PPCSTATE_OFF(msr)); // STR rB in to rA
 
 			Jit->LDR(rA, R9, PPCSTATE_OFF(spr[SPR_SRR0]));
-			
+
 			Jit->WriteRfiExitDestInR(rA); // rA gets unlocked here
 			break;
 		}

@@ -27,9 +27,9 @@ inline void MatrixIdentity(Matrix & m)
 
 inline void MatrixFrustum(Matrix &m, double l, double r, double b, double t, double n, double f)
 {
-	m[0][0]=2*n/(r-l);		m[0][1]=0;				m[0][2]=0;				m[0][3]=0; 
-	m[1][0]=0;				m[1][1]=2*n/(t-b);		m[1][2]=0;				m[1][3]=0; 
-	m[2][0]=(r+l)/(r-l);	m[2][1]=(t+b)/(t-b);	m[2][2]=(f+n)/(f-n);	m[2][3]=-1; 
+	m[0][0]=2*n/(r-l);		m[0][1]=0;				m[0][2]=0;				m[0][3]=0;
+	m[1][0]=0;				m[1][1]=2*n/(t-b);		m[1][2]=0;				m[1][3]=0;
+	m[2][0]=(r+l)/(r-l);	m[2][1]=(t+b)/(t-b);	m[2][2]=(f+n)/(f-n);	m[2][3]=-1;
 	m[3][0]=0;				m[3][1]=0;				m[3][2]=2*f*n/(f-n);	m[3][3]=0;
 }
 

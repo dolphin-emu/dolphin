@@ -21,6 +21,7 @@ CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
 {
 	for (int i = 0; i < 3; ++i)
 		m_last_aux_volumes[i] = 0x8000;
+
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AXWii");
 
 	m_old_axwii = (l_CRC == 0xfa450138);
@@ -279,7 +280,7 @@ void CUCode_AXWii::SetupProcessing(u32 init_addr)
 	};
 
 	u32 init_idx = 0;
-	for (u32 i = 0; i < sizeof (buffers) / sizeof (buffers[0]); ++i)
+	for (auto& buffer : buffers)
 	{
 		s32 init_val = (s32)((init_data[init_idx] << 16) | init_data[init_idx + 1]);
 		s16 delta = (s16)init_data[init_idx + 2];
@@ -288,13 +289,13 @@ void CUCode_AXWii::SetupProcessing(u32 init_addr)
 
 		if (!init_val)
 		{
-			memset(buffers[i].ptr, 0, 3 * buffers[i].samples * sizeof (int));
+			memset(buffer.ptr, 0, 3 * buffer.samples * sizeof (int));
 		}
 		else
 		{
-			for (u32 j = 0; j < 3 * buffers[i].samples; ++j)
+			for (u32 j = 0; j < 3 * buffer.samples; ++j)
 			{
-				buffers[i].ptr[j] = init_val;
+				buffer.ptr[j] = init_val;
 				init_val += delta;
 			}
 		}
@@ -523,19 +524,19 @@ void CUCode_AXWii::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 
 	if (write_addr)
 	{
 		int* ptr = (int*)HLEMemory_Get_Pointer(write_addr);
-		for (u32 i = 0; i < 3; ++i)
+		for (auto& buffer : buffers)
 			for (u32 j = 0; j < 3 * 32; ++j)
-				*ptr++ = Common::swap32(buffers[i][j]);
+				*ptr++ = Common::swap32(buffer[j]);
 	}
 
 	// Then read the buffers from the CPU and add to our main buffers.
 	int* ptr = (int*)HLEMemory_Get_Pointer(read_addr);
-	for (u32 i = 0; i < 3; ++i)
+	for (auto& main_buffer : main_buffers)
 		for (u32 j = 0; j < 3 * 32; ++j)
 		{
 			s64 sample = (s64)(s32)Common::swap32(*ptr++);
 			sample *= volume_ramp[j];
-			main_buffers[i][j] += (s32)(sample >> 15);
+			main_buffer[j] += (s32)(sample >> 15);
 		}
 }
 

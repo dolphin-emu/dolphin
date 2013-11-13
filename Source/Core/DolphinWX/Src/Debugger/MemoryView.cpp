@@ -294,9 +294,9 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 					(mem_data&0xff0000)>>16,
 					(mem_data&0xff00)>>8,
 					mem_data&0xff};
-				for (size_t i = 0; i < 4; i++)
-					if (a[i] == '\0')
-						a[i] = ' ';
+				for (auto& word : a)
+					if (word == '\0')
+						word = ' ';
 				sprintf(dis, "%c%c%c%c", a[0], a[1], a[2], a[3]);
 			}
 			else if (viewAsType == VIEWAS_HEX)
@@ -314,31 +314,31 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 					debugger->readExtraMemory(memory, address+28)
 				};
 
-				for (int i = 0; i < 8; i++)
+				for (auto& word : mema)
 				{
 					char buf[32] = "";
 					switch (dataType)
 					{
 					case 0:
 						sprintf(buf, " %02X %02X %02X %02X",
-							((mema[i]&0xff000000)>>24)&0xFF,
-							((mema[i]&0xff0000)>>16)&0xFF,
-							((mema[i]&0xff00)>>8)&0xFF,
-							mema[i]&0xff);
+							((word&0xff000000)>>24)&0xFF,
+							((word&0xff0000)>>16)&0xFF,
+							((word&0xff00)>>8)&0xFF,
+							word&0xff);
 						break;
 					case 1:
 						sprintf(buf, " %02X%02X %02X%02X",
-							((mema[i]&0xff000000)>>24)&0xFF,
-							((mema[i]&0xff0000)>>16)&0xFF,
-							((mema[i]&0xff00)>>8)&0xFF,
-							mema[i]&0xff);
+							((word&0xff000000)>>24)&0xFF,
+							((word&0xff0000)>>16)&0xFF,
+							((word&0xff00)>>8)&0xFF,
+							word&0xff);
 						break;
 					case 2:
 						sprintf(buf, " %02X%02X%02X%02X",
-							((mema[i]&0xff000000)>>24)&0xFF,
-							((mema[i]&0xff0000)>>16)&0xFF,
-							((mema[i]&0xff00)>>8)&0xFF,
-							mema[i]&0xff);
+							((word&0xff000000)>>24)&0xFF,
+							((word&0xff0000)>>16)&0xFF,
+							((word&0xff00)>>8)&0xFF,
+							word&0xff);
 						break;
 					}
 					strcat(dis, buf);

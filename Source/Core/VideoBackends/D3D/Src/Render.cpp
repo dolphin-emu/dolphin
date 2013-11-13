@@ -2,7 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <math.h>
+#include <cinttypes>
+#include <cmath>
 
 #include "Timer.h"
 
@@ -293,7 +294,7 @@ bool Renderer::CheckForResize()
 
 	// Sanity check
 	if ((client_width != Renderer::GetBackbufferWidth() ||
-		client_height != Renderer::GetBackbufferHeight()) && 
+		client_height != Renderer::GetBackbufferHeight()) &&
 		client_width >= 4 && client_height >= 4)
 	{
 		return true;
@@ -449,7 +450,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		else if (bpmem.zcontrol.pixel_format == PIXELFMT_RGB565_Z16)
 		{
 			ret = RGBA8ToRGB565ToRGBA8(ret);
-		}			
+		}
 		if(bpmem.zcontrol.pixel_format != PIXELFMT_RGBA6_Z24)
 		{
 			ret |= 0xFF000000;
@@ -477,30 +478,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	}
 }
 
-// Viewport correction:
-// Say you want a viewport at (ix, iy) with size (iw, ih),
-// but your viewport must be clamped at (ax, ay) with size (aw, ah).
-// Just multiply the projection matrix with the following to get the same
-// effect:
-// [   (iw/aw)         0     0    ((iw - 2*(ax-ix)) / aw - 1)   ]
-// [         0   (ih/ah)     0   ((-ih + 2*(ay-iy)) / ah + 1)   ]
-// [         0         0     1                              0   ]
-// [         0         0     0                              1   ]
-static void ViewportCorrectionMatrix(Matrix44& result,
-	float ix, float iy, float iw, float ih, // Intended viewport (x, y, width, height)
-	float ax, float ay, float aw, float ah) // Actual viewport (x, y, width, height)
-{
-	Matrix44::LoadIdentity(result);
-	if (aw == 0.f || ah == 0.f)
-		return;
-	result.data[4*0+0] = iw / aw;
-	result.data[4*0+3] = (iw - 2.f * (ax - ix)) / aw - 1.f;
-	result.data[4*1+1] = ih / ah;
-	result.data[4*1+3] = (-ih + 2.f * (ay - iy)) / ah + 1.f;
-}
 
 // Called from VertexShaderManager
-void Renderer::UpdateViewport(Matrix44& vpCorrection)
+void Renderer::UpdateViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -513,50 +493,30 @@ void Renderer::UpdateViewport(Matrix44& vpCorrection)
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
-	// TODO: ceil, floor or just cast to int?
-	// TODO: Directly use the floats instead of rounding them?
-	int intendedX = Renderer::EFBToScaledX((int)ceil(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff));
-	int intendedY = Renderer::EFBToScaledY((int)ceil(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff));
-	int intendedWd = Renderer::EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd));
-	int intendedHt = Renderer::EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht));
-	if (intendedWd < 0)
+	float X = Renderer::EFBToScaledXf(xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff);
+	float Y = Renderer::EFBToScaledYf(xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff);
+	float Wd = Renderer::EFBToScaledXf(2.0f * xfregs.viewport.wd);
+	float Ht = Renderer::EFBToScaledYf(-2.0f * xfregs.viewport.ht);
+	if (Wd < 0.0f)
 	{
-		intendedX += intendedWd;
-		intendedWd = -intendedWd;
+		X += Wd;
+		Wd = -Wd;
 	}
-	if (intendedHt < 0)
+	if (Ht < 0.0f)
 	{
-		intendedY += intendedHt;
-		intendedHt = -intendedHt;
+		Y += Ht;
+		Ht = -Ht;
 	}
 
 	// In D3D, the viewport rectangle must fit within the render target.
-	int X = intendedX;
-	if (X < 0)
-		X = 0;
-
-	int Y = intendedY;
-	if (Y < 0)
-		Y = 0;
-
-	int Wd = intendedWd;
-	if (X + Wd > GetTargetWidth())
-		Wd = GetTargetWidth() - X;
-	int Ht = intendedHt;
-	if (Y + Ht > GetTargetHeight())
-		Ht = GetTargetHeight() - Y;
-	
-	// If GX viewport is off the render target, we must clamp our viewport
-	// within the bounds. Use the correction matrix to compensate.
-	ViewportCorrectionMatrix(vpCorrection,
-		(float)intendedX, (float)intendedY,
-		(float)intendedWd, (float)intendedHt,
-		(float)X, (float)Y,
-		(float)Wd, (float)Ht);
+	X = (X >= 0.f) ? X : 0.f;
+	Y = (Y >= 0.f) ? Y : 0.f;
+	Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
+	Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
 	// Some games set invalid values for z-min and z-max so fix them to the max and min allowed and let the shaders do this work
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y,
-										(float)Wd, (float)Ht,
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y,
+										Wd, Ht,
 										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
 										1.f);   //  xfregs.viewport.farZ / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);
@@ -578,7 +538,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	// Update the view port for clearing the picture
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight(), 0.f, 1.f); 
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight(), 0.f, 1.f);
 	D3D::context->RSSetViewports(1, &vp);
 
 	// Color is passed in bgra mode so we need to convert it to rgba
@@ -730,22 +690,13 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	D3D11_BOX box = CD3D11_BOX(rc.left, rc.top, 0, rc.right, rc.bottom, 1);
 	D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0, &box);
 
-	// D3DX11SaveTextureToFileA doesn't allow us to ignore the alpha channel, so we need to strip it out ourselves
 	D3D11_MAPPED_SUBRESOURCE map;
 	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
-	for (unsigned int y = 0; y < rc.GetHeight(); ++y)
-	{
-		u8* ptr = (u8*)map.pData + y * map.RowPitch + 3;
-		for (unsigned int x = 0; x < rc.GetWidth(); ++x)
-		{
-			*ptr = 0xFF;
-			ptr += 4;
-		}
-	}
-	D3D::context->Unmap(s_screenshot_texture, 0);
 
 	// ready to be saved
-	HRESULT hr = PD3DX11SaveTextureToFileA(D3D::context, s_screenshot_texture, D3DX11_IFF_PNG, filename.c_str());
+	HRESULT hr = D3D::TextureToPng(map, UTF8ToUTF16(filename.c_str()).c_str(), rc.GetWidth(), rc.GetHeight(), false);
+	D3D::context->Unmap(s_screenshot_texture, 0);
+
 	if (SUCCEEDED(hr))
 	{
 		OSD::AddMessage(StringFromFormat("Saved %i x %i %s", rc.GetWidth(),
@@ -842,7 +793,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 		{
 			xfbSource = xfbSourceList[i];
 			MathUtil::Rectangle<float> sourceRc;
-			
+
 			sourceRc.left = 0;
 			sourceRc.top = 0;
 			sourceRc.right = (float)xfbSource->texWidth;
@@ -969,7 +920,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	if (SConfig::GetInstance().m_ShowLag)
 	{
 		char lag[10];
-		StringCchPrintfA(lag, 10, "Lag: %llu\n", Movie::g_currentLagCount);
+		StringCchPrintfA(lag, 10, "Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 		D3D::font.DrawTextScaled(0, 18, 20, 0.0f, 0xFF00FFFF, lag);
 	}
 
@@ -1067,10 +1018,10 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	}
 
 	// begin next frame
-	Renderer::RestoreAPIState();
+	RestoreAPIState();
 	D3D::BeginFrame();
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-	VertexShaderManager::SetViewportChanged();
+	UpdateViewport();
 
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
@@ -1090,7 +1041,7 @@ void Renderer::RestoreAPIState()
 	D3D::stateman->PopBlendState();
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();
-	VertexShaderManager::SetViewportChanged();
+	UpdateViewport();
 	BPFunctions::SetScissor();
 }
 
@@ -1300,7 +1251,7 @@ void Renderer::SetLogicOpMode()
 		D3D11_BLEND_INV_DEST_COLOR,//10
 		D3D11_BLEND_ONE,//11
 		D3D11_BLEND_INV_SRC_COLOR,//12
-		D3D11_BLEND_INV_SRC_COLOR,//13 
+		D3D11_BLEND_INV_SRC_COLOR,//13
 		D3D11_BLEND_INV_DEST_COLOR,//14
 		D3D11_BLEND_ONE//15
 	};
@@ -1319,7 +1270,7 @@ void Renderer::SetLogicOpMode()
 		D3D11_BLEND_INV_DEST_COLOR,//10
 		D3D11_BLEND_INV_DEST_COLOR,//11
 		D3D11_BLEND_INV_SRC_COLOR,//12
-		D3D11_BLEND_ONE,//13 
+		D3D11_BLEND_ONE,//13
 		D3D11_BLEND_INV_SRC_COLOR,//14
 		D3D11_BLEND_ONE//15
 	};
@@ -1370,7 +1321,7 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	const FourTexUnits &tex = bpmem.tex[texindex];
 	const TexMode0 &tm0 = tex.texMode0[stage];
 	const TexMode1 &tm1 = tex.texMode1[stage];
-	
+
 	unsigned int mip = d3dMipFilters[tm0.min_filter & 3];
 
 	if (texindex) stage += 4;

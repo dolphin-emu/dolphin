@@ -316,8 +316,10 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
-		for (int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+		{
 			out.Write("VARYIN float3 uv%d_2;\n", i);
+		}
 		out.Write("VARYIN float4 clipPos_2;\n");
 		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
@@ -392,9 +394,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("float4 colors_1 = colors_12;\n");
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
-		if(numTexgen)
-			for (int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+		if (numTexgen)
+		{
+			for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
+			{
 				out.Write("float3 uv%d = uv%d_2;\n", i, i);
+			}
+		}
 		out.Write("float4 clipPos = clipPos_2;\n");
 		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
@@ -529,7 +535,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	uid_data.Pretest = Pretest;
 
-	// NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled 
+	// NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
 	// (in this case we need to write a depth value if depth test passes regardless of the alpha testing result)
 	if (Pretest == AlphaTest::UNDETERMINED || (Pretest == AlphaTest::FAIL && bpmem.UseLateDepthTest()))
 		WriteAlphaTest<T>(out, uid_data, ApiType, dstAlphaMode, per_pixel_depth);

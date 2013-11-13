@@ -86,7 +86,7 @@ class ControlDialog : public wxDialog
 {
 public:
 	ControlDialog(GamepadPage* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref);
-	
+
 	wxStaticBoxSizer* CreateControlChooser(GamepadPage* const parent);
 
 	virtual bool Validate();
@@ -207,7 +207,7 @@ public:
 	std::vector<ControlGroupBox*>		control_groups;
 
 protected:
-	
+
 	ControllerEmu* const				controller;
 
 private:

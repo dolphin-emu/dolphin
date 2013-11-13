@@ -149,7 +149,7 @@ void JitArm::mtcrf(UGeckoInstruction inst)
 			{
 				if ((crm & (0x80 >> i)) != 0)
 				{
-					UBFX(rB, rA, 28 - (i * 4), 4); 
+					UBFX(rB, rA, 28 - (i * 4), 4);
 					STRB(rB, R9, PPCSTATE_OFF(cr_fast[i]));
 				}
 			}
@@ -178,7 +178,7 @@ void JitArm::mcrxr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff)
-	
+
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
 	// Copy XER[0-3] into CR[inst.CRFD]
@@ -199,9 +199,9 @@ void JitArm::mtmsr(UGeckoInstruction inst)
 	INSTRUCTION_START
  	// Don't interpret this, if we do we get thrown out
 	//JITDISABLE(bJITSystemRegistersOff)
-	
+
 	STR(gpr.R(inst.RS), R9, PPCSTATE_OFF(msr));
-	
+
 	gpr.Flush();
 	fpr.Flush();
 
@@ -212,7 +212,7 @@ void JitArm::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff)
-	
+
 	LDR(gpr.R(inst.RD), R9, PPCSTATE_OFF(msr));
 }
 
@@ -234,7 +234,7 @@ void JitArm::crXXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITSystemRegistersOff)
-	
+
 	ARMReg rA = gpr.GetReg();
 	ARMReg rB = gpr.GetReg();
 	// Get bit CRBA aligned with bit CRBD
@@ -244,7 +244,7 @@ void JitArm::crXXX(UGeckoInstruction inst)
 		LSL(rA, rA, -shiftA);
 	else if (shiftA > 0)
 		LSR(rA, rA, shiftA);
-	
+
 	// Get bit CRBB aligned with bit CRBD
 	int shiftB = (inst.CRBD & 3) - (inst.CRBB & 3);
 	LDRB(rB, R9, PPCSTATE_OFF(cr_fast[inst.CRBB >> 2]));
@@ -252,7 +252,7 @@ void JitArm::crXXX(UGeckoInstruction inst)
 		LSL(rB, rB, -shiftB);
 	else if (shiftB > 0)
 		LSR(rB, rB, shiftB);
-	
+
 	// Compute combined bit
 	switch(inst.SUBOP10)
 	{
@@ -296,7 +296,7 @@ void JitArm::crXXX(UGeckoInstruction inst)
 	// Store result bit in CRBD
 	AND(rA, rA, 0x8 >> (inst.CRBD & 3));
 	LDRB(rB, R9, PPCSTATE_OFF(cr_fast[inst.CRBD >> 2]));
-	BIC(rB, rB, 0x8 >> (inst.CRBD & 3));	
+	BIC(rB, rB, 0x8 >> (inst.CRBD & 3));
 	ORR(rB, rB, rA);
 	STRB(rB, R9, PPCSTATE_OFF(cr_fast[inst.CRBD >> 2]));
 	gpr.Unlock(rA, rB);

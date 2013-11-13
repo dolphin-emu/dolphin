@@ -51,7 +51,7 @@ ARMReg *ArmFPRCache::GetPPCAllocationOrder(int &count)
 {
 	// This will return us the allocation order of the registers we can use on
 	// the ppc side.
-	static ARMReg allocationOrder[] = 
+	static ARMReg allocationOrder[] =
 	{
 		D4, D5, D6, D7, D8, D9, D10, D11, D12, D13,
 		D14, D15, D16,  D17, D18, D19, D20, D21, D22,
@@ -64,7 +64,7 @@ ARMReg *ArmFPRCache::GetAllocationOrder(int &count)
 {
 	// This will return us the allocation order of the registers we can use on
 	// the host side.
-	static ARMReg allocationOrder[] = 
+	static ARMReg allocationOrder[] =
 	{
 		D0, D1, D2, D3
 	};
@@ -126,7 +126,7 @@ bool ArmFPRCache::FindFreeRegister(u32 &regindex)
 ARMReg ArmFPRCache::GetPPCReg(u32 preg, bool PS1, bool preLoad)
 {
 	u32 lastRegIndex = GetLeastUsedRegister(true);
-	
+
 	if (_regs[preg][PS1].GetType() != REG_NOTLOADED)
 	{
 		u8 a = _regs[preg][PS1].GetRegIndex();
@@ -147,7 +147,7 @@ ARMReg ArmFPRCache::GetPPCReg(u32 preg, bool PS1, bool preLoad)
 		emit->VLDR(ArmCRegs[regindex].Reg, R9, offset);
 		return ArmCRegs[regindex].Reg;
 	}
-	
+
 	// Alright, we couldn't get a free space, dump that least used register
 	s16 offsetOld = PPCSTATE_OFF(ps) + (ArmCRegs[lastRegIndex].PPCReg * 16) + (ArmCRegs[lastRegIndex].PS1 ? 8 : 0);
 	s16 offsetNew = PPCSTATE_OFF(ps) + (preg * 16) + (PS1 ? 8 : 0);
@@ -155,14 +155,14 @@ ARMReg ArmFPRCache::GetPPCReg(u32 preg, bool PS1, bool preLoad)
 	emit->VSTR(ArmCRegs[lastRegIndex].Reg, R9, offsetOld);
 
 	_regs[ArmCRegs[lastRegIndex].PPCReg][ArmCRegs[lastRegIndex].PS1].Flush();
-	
+
 	ArmCRegs[lastRegIndex].PPCReg = preg;
 	ArmCRegs[lastRegIndex].LastLoad = 0;
 	ArmCRegs[lastRegIndex].PS1 = PS1;
 
 	_regs[preg][PS1].LoadToReg(lastRegIndex);
 	emit->VLDR(ArmCRegs[lastRegIndex].Reg, R9, offsetNew);
-	return ArmCRegs[lastRegIndex].Reg;		 
+	return ArmCRegs[lastRegIndex].Reg;
 }
 
 ARMReg ArmFPRCache::R0(u32 preg, bool preLoad)

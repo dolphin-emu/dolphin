@@ -196,10 +196,10 @@ void genkey(const u8* const rand, const u8 idx, u8* const key)
 {
 	const u8* const ans = ans_tbl[idx];
 	u8 t0[10];
-	
+
 	for(int i=0; i<10; ++i)
 		t0[i] = tsbox[rand[i]];
-	
+
 	key[0] = ((ror8((ans[0]^t0[5]),(t0[2]%8)) - t0[9]) ^ t0[4]);
 	key[1] = ((ror8((ans[1]^t0[1]),(t0[0]%8)) - t0[5]) ^ t0[7]);
 	key[2] = ((ror8((ans[2]^t0[6]),(t0[8]%8)) - t0[2]) ^ t0[0]);
@@ -219,7 +219,7 @@ void gentabs(const u8* const rand, const u8* const key, const u8 idx, u8* const 
 	ft[5] = sboxes[idx][key[3]] ^ sboxes[(idx+1)%8][rand[9]];
 	ft[6] = sboxes[idx][rand[0]] ^ sboxes[(idx+1)%8][rand[6]];
 	ft[7] = sboxes[idx][rand[1]] ^ sboxes[(idx+1)%8][rand[8]];
-	
+
 	sb[0] = sboxes[idx][key[0]] ^ sboxes[(idx+1)%8][rand[1]];
 	sb[1] = sboxes[idx][key[5]] ^ sboxes[(idx+1)%8][rand[4]];
 	sb[2] = sboxes[idx][key[3]] ^ sboxes[(idx+1)%8][rand[0]];
@@ -245,10 +245,10 @@ void wiimote_gen_key(wiimote_key* const key, const u8* const keydata)
 		rand[9-i] = keydata[i];
 	for (int i=0; i<6; ++i)
 		skey[5-i] = keydata[i+10];
-	
+
 	//DEBUG_LOG(WIIMOTE, "rand: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x", rand[0], rand[1], rand[2], rand[3], rand[4], rand[5], rand[6], rand[7], rand[8], rand[9]);
 	//DEBUG_LOG(WIIMOTE, "key:  %02x %02x %02x %02x %02x %02x", skey[0], skey[1], skey[2], skey[3], skey[4], skey[5]);
-	
+
 	for(idx = 0; idx < 7; ++idx)
 	{
 		genkey(rand, idx, testkey);
@@ -257,12 +257,12 @@ void wiimote_gen_key(wiimote_key* const key, const u8* const keydata)
 	}
 	// default case is idx = 7 which is valid (homebrew uses it for the 0x17 case)
 	//DEBUG_LOG(WIIMOTE, "idx:  %d", idx);
-	
+
 	gentabs(rand, skey, idx, key->ft, key->sb);
-	
+
 	//DEBUG_LOG(WIIMOTE, "ft:   %02x %02x %02x %02x %02x %02x %02x %02x", key->ft[0], key->ft[1], key->ft[2], key->ft[3], key->ft[4], key->ft[5], key->ft[6], key->ft[7]);
 	//DEBUG_LOG(WIIMOTE, "sb:   %02x %02x %02x %02x %02x %02x %02x %02x", key->sb[0], key->sb[1], key->sb[2], key->sb[3], key->sb[4], key->sb[5], key->sb[6], key->sb[7]);
-	
+
 	// for homebrew, ft and sb are all 0x97 which is equivalent to 0x17
 }
 
@@ -270,7 +270,7 @@ void wiimote_gen_key(wiimote_key* const key, const u8* const keydata)
 /* Encrypt data */
 void wiimote_encrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len)
 {
-	for (int i = 0; i < len; ++i, ++addr)	
+	for (int i = 0; i < len; ++i, ++addr)
 		data[i] = (data[i] - key->ft[addr % 8]) ^ key->sb[addr % 8];
 }
 

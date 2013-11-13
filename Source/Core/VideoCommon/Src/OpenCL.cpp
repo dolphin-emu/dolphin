@@ -144,7 +144,7 @@ cl_program CompileProgram(const char *Kernel)
 		buildlog = new char[buildlog_size + 1];
 		err = clGetProgramBuildInfo(program, OpenCL::device_id, CL_PROGRAM_BUILD_LOG, buildlog_size, buildlog, NULL);
 		buildlog[buildlog_size] = 0;
-		
+
 		if(err != CL_SUCCESS)
 		{
 			HandleCLError(err, "Error: can't get build log");
@@ -192,7 +192,7 @@ void Destroy()
 	{
 		clReleaseContext(g_context);
 		g_context = NULL;
-	}		
+	}
 	g_bInitialized = false;
 }
 

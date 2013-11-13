@@ -32,7 +32,7 @@ enum
 	SAV = 0x80,
 	SAVFAIL,
 	GCS = 0x110,
-	GCSFAIL,	
+	GCSFAIL,
 	FAIL,
 	WRITEFAIL,
 	DELETE_FAIL,
@@ -180,11 +180,11 @@ public:
 	bool Save();
 	bool Format(bool sjis = false, u16 SizeMb = MemCard2043Mb);
 	static bool Format(u8 * card_data, bool sjis = false, u16 SizeMb = MemCard2043Mb);
-	
+
 	static void calc_checksumsBE(u16 *buf, u32 length, u16 *csum, u16 *inv_csum);
 	u32 TestChecksums() const;
 	bool FixChecksums();
-	
+
 	// get number of file entries in the directory
 	u8 GetNumFiles() const;
 	u8 GetFileIndex(u8 fileNumber) const;

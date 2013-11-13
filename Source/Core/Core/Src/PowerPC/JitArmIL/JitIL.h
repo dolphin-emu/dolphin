@@ -18,8 +18,8 @@
 		Core::g_CoreStartupParameter.setting) \
 		{Default(inst); return;}
 
-#define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0])) 
-class JitArmIL : public JitILBase, public ArmGen::ARMXCodeBlock 
+#define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0]))
+class JitArmIL : public JitILBase, public ArmGen::ARMXCodeBlock
 {
 private:
 	JitArmBlockCache blocks;
@@ -63,7 +63,7 @@ public:
 
 	void Run();
 	void SingleStep();
-	// 
+	//
 	void WriteCode();
 	void WriteExit(u32 destination, int exit_num);
 	void WriteExitDestInReg(ARMReg Reg);
@@ -82,7 +82,7 @@ public:
 	void DynaRunTable31(UGeckoInstruction inst);
 	void DynaRunTable59(UGeckoInstruction inst);
 	void DynaRunTable63(UGeckoInstruction inst);
-	
+
 	// Binary ops
 	void BIN_AND(ARMReg reg, Operand2 op2);
 	void BIN_XOR(ARMReg reg, Operand2 op2);

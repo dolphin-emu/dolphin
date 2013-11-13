@@ -55,7 +55,7 @@ struct SCPFifoStruct
 	volatile u32 bFF_Breakpoint;
 
 	volatile u32 CPCmdIdle;
-	volatile u32 CPReadIdle;        
+	volatile u32 CPReadIdle;
 
 	volatile u32 bFF_LoWatermarkInt;
 	volatile u32 bFF_HiWatermarkInt;

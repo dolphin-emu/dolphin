@@ -101,7 +101,7 @@ private:
 	std::string m_Name;
 	CWII_IPC_HLE_Device_usb_oh1_57e_305* m_pHost;
 
-	struct SChannel 
+	struct SChannel
 	{
 		u16 SCID;
 		u16 DCID;
@@ -132,14 +132,14 @@ private:
 	void ReceiveDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size);
 	void ReceiveConfigurationReq(u8 _Ident, u8* _pData, u32 _Size);
 	void ReceiveConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
-	
+
 	// some new ugly stuff
-	// should be inside the plugin 
+	// should be inside the plugin
 	void HandleSDP(u16 _SCID, u8* _pData, u32 _Size);
 	void SDPSendServiceSearchResponse(u16 _SCID, u16 _TransactionID, u8* _pServiceSearchPattern, u16 _MaximumServiceRecordCount);
 
-	void SDPSendServiceAttributeResponse(u16 _SCID, u16 TransactionID, u32 _ServiceHandle, 
-											u16 _StartAttrID, u16 _EndAttrID, 
+	void SDPSendServiceAttributeResponse(u16 _SCID, u16 TransactionID, u32 _ServiceHandle,
+											u16 _StartAttrID, u16 _EndAttrID,
 											u16 _MaximumAttributeByteCount, u8* _pContinuationState);
 
 	u16 AddAttribToList(int _AttribID, u8* _pBuffer);

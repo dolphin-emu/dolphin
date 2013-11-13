@@ -119,7 +119,7 @@ void cmp(const UDSPInstruction opc)
 	s64 acc0 = dsp_get_long_acc(0);
 	s64 acc1 = dsp_get_long_acc(1);
 	s64 res = dsp_convert_long_acc(acc0 - acc1);
-	
+
 	Update_SR_Register64(res, isCarry2(acc0, res), isOverflow(acc0, -acc1, res)); // CF -> influence on ABS/0xa100
 	zeroWriteBackLog();
 }
@@ -139,7 +139,7 @@ void cmpar(const UDSPInstruction opc)
 	s64 rr = (s16)g_dsp.r.ax[rreg-DSP_REG_AXH0].h;
 	rr <<= 16;
 	s64 res = dsp_convert_long_acc(sr - rr);
-	
+
 	Update_SR_Register64(res, isCarry2(sr, res), isOverflow(sr, -rr, res));
 	zeroWriteBackLog();
 }
@@ -147,7 +147,7 @@ void cmpar(const UDSPInstruction opc)
 // CMPI $amD, #I
 // 0000 001r 1000 0000
 // iiii iiii iiii iiii
-// Compares mid accumulator $acD.hm ($amD) with sign extended immediate value I. 
+// Compares mid accumulator $acD.hm ($amD) with sign extended immediate value I.
 // Although flags are being set regarding whole accumulator register.
 //
 // flags out: x-xx xxxx
@@ -175,7 +175,7 @@ void cmpis(const UDSPInstruction opc)
 
 	s64 acc = dsp_get_long_acc(areg);
 	s64 val = (s8)opc;
-	val <<= 16; 
+	val <<= 16;
 	s64 res = dsp_convert_long_acc(acc - val);
 
 	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -val, res));
@@ -477,7 +477,7 @@ void addaxl(const UDSPInstruction opc)
 	Update_SR_Register64((s64)res, isCarry(acc, res), isOverflow((s64)acc, (s64)acx, (s64)res));
 }
 
-// ADDI $amR, #I 
+// ADDI $amR, #I
 // 0000 001r 0000 0000
 // iiii iiii iiii iiii
 // Adds immediate (16-bit sign extended) to mid accumulator $acD.hm.
@@ -530,7 +530,7 @@ void incm(const UDSPInstruction opc)
 	s64 res = acc + sub;
 
 	zeroWriteBackLog();
-	
+
 	dsp_set_long_acc(dreg, res);
 	res = dsp_get_long_acc(dreg);
 	Update_SR_Register64(res, isCarry(acc, res), isOverflow(acc, sub, res));
@@ -546,7 +546,7 @@ void inc(const UDSPInstruction opc)
 	u8 dreg = (opc >> 8) & 0x1;
 
 	s64 acc = dsp_get_long_acc(dreg);
-	s64 res = acc + 1;	
+	s64 res = acc + 1;
 
 	zeroWriteBackLog();
 
@@ -615,7 +615,7 @@ void subax(const UDSPInstruction opc)
 
 // SUB $acD, $ac(1-D)
 // 0101 110d xxxx xxxx
-// Subtracts accumulator $ac(1-D) from accumulator register $acD. 
+// Subtracts accumulator $ac(1-D) from accumulator register $acD.
 //
 // flags out: x-xx xxxx
 void sub(const UDSPInstruction opc)
@@ -667,9 +667,9 @@ void decm(const UDSPInstruction opc)
 	s64 res = acc - sub;
 
 	zeroWriteBackLog();
-	
+
 	dsp_set_long_acc(dreg, res);
-	res = dsp_get_long_acc(dreg);	
+	res = dsp_get_long_acc(dreg);
 	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -sub, res));
 }
 
@@ -702,7 +702,7 @@ void dec(const UDSPInstruction opc)
 void neg(const UDSPInstruction opc)
 {
 	u8 dreg = (opc >> 8) & 0x1;
-	
+
 	s64 acc = dsp_get_long_acc(dreg);
 	acc = 0 - acc;
 
@@ -713,7 +713,7 @@ void neg(const UDSPInstruction opc)
 }
 
 // ABS  $acD
-// 1010 d001 xxxx xxxx 
+// 1010 d001 xxxx xxxx
 // absolute value of $acD
 //
 // flags out: --xx xx00
@@ -725,7 +725,7 @@ void abs(const UDSPInstruction opc)
 
 	if (acc < 0)
 		acc = 0 - acc;
-	
+
 	zeroWriteBackLog();
 
 	dsp_set_long_acc(dreg, acc);
@@ -770,7 +770,7 @@ void movr(const UDSPInstruction opc)
 
 // MOVAX $acD, $axS
 // 0110 10sd xxxx xxxx
-// Moves secondary accumulator $axS to accumulator $axD. 
+// Moves secondary accumulator $axS to accumulator $axD.
 //
 // flags out: --xx xx00
 void movax(const UDSPInstruction opc)
@@ -833,7 +833,7 @@ void lsr16(const UDSPInstruction opc)
 
 	u64 acc = dsp_get_long_acc(areg);
 	acc &= 0x000000FFFFFFFFFFULL; 	// Lop off the extraneous sign extension our 64-bit fake accum causes
-	acc >>= 16; 
+	acc >>= 16;
 
 	zeroWriteBackLog();
 
@@ -864,10 +864,10 @@ void asr16(const UDSPInstruction opc)
 // Logically shifts left accumulator $acR by number specified by value I.
 //
 // flags out: --xx xx00
-void lsl(const UDSPInstruction opc) 
+void lsl(const UDSPInstruction opc)
 {
 	u8 rreg = (opc >> 8) & 0x01;
-	u16 shift = opc & 0x3f; 
+	u16 shift = opc & 0x3f;
 	u64 acc = dsp_get_long_acc(rreg);
 
 	acc <<= shift;
@@ -895,7 +895,7 @@ void lsr(const UDSPInstruction opc)
 		shift = 0x40 - (opc & 0x3f);
 
 	acc >>= shift;
-	
+
 	dsp_set_long_acc(rreg, (s64)acc);
 	Update_SR_Register64(dsp_get_long_acc(rreg));
 }
@@ -912,7 +912,7 @@ void asl(const UDSPInstruction opc)
 	u64 acc = dsp_get_long_acc(rreg);
 
 	acc <<= shift;
-	
+
 	dsp_set_long_acc(rreg, acc);
 	Update_SR_Register64(dsp_get_long_acc(rreg));
 }
@@ -949,7 +949,7 @@ void asr(const UDSPInstruction opc)
 // flags out: --xx xx00
 void lsrn(const UDSPInstruction opc)
 {
-	s16 shift; 
+	s16 shift;
 	u16 accm = (u16)dsp_get_acc_m(1);
 	u64 acc = dsp_get_long_acc(0);
 	acc &= 0x000000FFFFFFFFFFULL;

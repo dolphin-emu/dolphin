@@ -13,7 +13,7 @@ struct GekkoOPTemplate
 	GekkoOPInfo opinfo;
 };
 
-static GekkoOPTemplate primarytable[] = 
+static GekkoOPTemplate primarytable[] =
 {
 	{4,  Interpreter::RunTable4,    {"RunTable4",  OPTYPE_SUBTABLE | (4<<24), 0, 0, 0, 0, 0}},
 	{19, Interpreter::RunTable19,   {"RunTable19", OPTYPE_SUBTABLE | (19<<24), 0, 0, 0, 0, 0}},
@@ -95,7 +95,7 @@ static GekkoOPTemplate primarytable[] =
 	{58, Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0, 0, 0, 0, 0}},
 };
 
-static GekkoOPTemplate table4[] = 
+static GekkoOPTemplate table4[] =
 {    //SUBOP10
 	{0,    Interpreter::ps_cmpu0,   {"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn | FL_USE_FPU, 0, 0, 0, 0}},
 	{32,   Interpreter::ps_cmpo0,   {"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn | FL_USE_FPU, 0, 0, 0, 0}},
@@ -111,9 +111,9 @@ static GekkoOPTemplate table4[] =
 	{624,  Interpreter::ps_merge11, {"ps_merge11", OPTYPE_PS, FL_RC_BIT | FL_USE_FPU, 0, 0, 0, 0}},
 
 	{1014, Interpreter::dcbz_l,     {"dcbz_l",     OPTYPE_SYSTEM, 0, 0, 0, 0, 0}},
-};		
+};
 
-static GekkoOPTemplate table4_2[] = 
+static GekkoOPTemplate table4_2[] =
 {
 	{10, Interpreter::ps_sum0,      {"ps_sum0",   OPTYPE_PS, FL_USE_FPU, 0, 0, 0, 0}},
 	{11, Interpreter::ps_sum1,      {"ps_sum1",   OPTYPE_PS, FL_USE_FPU, 0, 0, 0, 0}},
@@ -135,15 +135,15 @@ static GekkoOPTemplate table4_2[] =
 };
 
 
-static GekkoOPTemplate table4_3[] = 
+static GekkoOPTemplate table4_3[] =
 {
 	{6,  Interpreter::psq_lx,       {"psq_lx",   OPTYPE_PS, FL_USE_FPU | FL_LOADSTORE, 0, 0, 0, 0}},
 	{7,  Interpreter::psq_stx,      {"psq_stx",  OPTYPE_PS, FL_USE_FPU | FL_LOADSTORE, 0, 0, 0, 0}},
 	{38, Interpreter::psq_lux,      {"psq_lux",  OPTYPE_PS, FL_USE_FPU | FL_LOADSTORE, 0, 0, 0, 0}},
-	{39, Interpreter::psq_stux,     {"psq_stux", OPTYPE_PS, FL_USE_FPU | FL_LOADSTORE, 0, 0, 0, 0}}, 
+	{39, Interpreter::psq_stux,     {"psq_stux", OPTYPE_PS, FL_USE_FPU | FL_LOADSTORE, 0, 0, 0, 0}},
 };
 
-static GekkoOPTemplate table19[] = 
+static GekkoOPTemplate table19[] =
 {
 	{528, Interpreter::bcctrx,      {"bcctrx", OPTYPE_BRANCH, FL_ENDBLOCK, 0, 0, 0, 0}},
 	{16,  Interpreter::bclrx,       {"bclrx",  OPTYPE_BRANCH, FL_ENDBLOCK, 0, 0, 0, 0}},
@@ -155,16 +155,16 @@ static GekkoOPTemplate table19[] =
 	{449, Interpreter::cror,        {"cror",   OPTYPE_CR, FL_EVIL, 0, 0, 0, 0}},
 	{417, Interpreter::crorc,       {"crorc",  OPTYPE_CR, FL_EVIL, 0, 0, 0, 0}},
 	{193, Interpreter::crxor,       {"crxor",  OPTYPE_CR, FL_EVIL, 0, 0, 0, 0}},
-												   
+
 	{150, Interpreter::isync,       {"isync",  OPTYPE_ICACHE, FL_EVIL, 0, 0, 0, 0}},
 	{0,   Interpreter::mcrf,        {"mcrf",   OPTYPE_SYSTEM, FL_EVIL, 0, 0, 0, 0}},
-												   
+
 	{50,  Interpreter::rfi,         {"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1, 0, 0, 0}},
 	{18,  Interpreter::rfid,        {"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 0, 0, 0, 0}}
 };
 
 
-static GekkoOPTemplate table31[] = 
+static GekkoOPTemplate table31[] =
 {
 	{28,  Interpreter::andx,        {"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT, 0, 0, 0, 0}},
 	{60,  Interpreter::andcx,       {"andcx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT, 0, 0, 0, 0}},
@@ -191,7 +191,7 @@ static GekkoOPTemplate table31[] =
 	{470,  Interpreter::dcbi,       {"dcbi",   OPTYPE_DCACHE, 0, 4, 0, 0, 0}},
 	{758,  Interpreter::dcba,       {"dcba",   OPTYPE_DCACHE, 0, 4, 0, 0, 0}},
 	{1014, Interpreter::dcbz,       {"dcbz",   OPTYPE_DCACHE, FL_LOADSTORE, 4, 0, 0, 0}},
-	
+
 	//load word
 	{23,  Interpreter::lwzx,        {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B | FL_LOADSTORE, 0, 0, 0, 0}},
 	{55,  Interpreter::lwzux,       {"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B | FL_LOADSTORE, 0, 0, 0, 0}},
@@ -207,7 +207,7 @@ static GekkoOPTemplate table31[] =
 	//load byte
 	{87,  Interpreter::lbzx,        {"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B | FL_LOADSTORE, 0, 0, 0, 0}},
 	{119, Interpreter::lbzux,       {"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B | FL_LOADSTORE, 0, 0, 0, 0}},
-	
+
 	//load byte reverse
 	{534, Interpreter::lwbrx,       {"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B | FL_LOADSTORE, 0, 0, 0, 0}},
 	{790, Interpreter::lhbrx,       {"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B | FL_LOADSTORE, 0, 0, 0, 0}},
@@ -239,7 +239,7 @@ static GekkoOPTemplate table31[] =
 	{661, Interpreter::stswx,       {"stswx",  OPTYPE_STORE, FL_EVIL | FL_LOADSTORE, 0, 0, 0, 0}},
 	{725, Interpreter::stswi,       {"stswi",  OPTYPE_STORE, FL_EVIL | FL_LOADSTORE, 0, 0, 0, 0}},
 
-	// fp load/store	
+	// fp load/store
 	{535, Interpreter::lfsx,        {"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B | FL_USE_FPU | FL_LOADSTORE, 0, 0, 0, 0}},
 	{567, Interpreter::lfsux,       {"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B | FL_USE_FPU | FL_LOADSTORE, 0, 0, 0, 0}},
 	{599, Interpreter::lfdx,        {"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B | FL_USE_FPU | FL_LOADSTORE, 0, 0, 0, 0}},
@@ -277,8 +277,8 @@ static GekkoOPTemplate table31[] =
 	{566, Interpreter::tlbsync,     {"tlbsync", OPTYPE_SYSTEM, 0, 0, 0, 0, 0}},
 };
 
-static GekkoOPTemplate table31_2[] = 
-{	
+static GekkoOPTemplate table31_2[] =
+{
 	{266,  Interpreter::addx,        {"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 0, 0, 0, 0}},
 	{778,  Interpreter::addx,        {"addox",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 0, 0, 0, 0}},
 	{10,   Interpreter::addcx,       {"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT, 0, 0, 0, 0}},
@@ -305,19 +305,19 @@ static GekkoOPTemplate table31_2[] =
 	{200,  Interpreter::subfzex,     {"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT, 0, 0, 0, 0}},
 };
 
-static GekkoOPTemplate table59[] = 
+static GekkoOPTemplate table59[] =
 {
 	{18, Interpreter::fdivsx,       {"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 16, 0, 0, 0}}, // TODO
-	{20, Interpreter::fsubsx,       {"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, 
-	{21, Interpreter::faddsx,       {"faddsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, 
+	{20, Interpreter::fsubsx,       {"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
+	{21, Interpreter::faddsx,       {"faddsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
 //	{22, Interpreter::fsqrtsx,      {"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, // Not implemented on gekko
-	{24, Interpreter::fresx,        {"fresx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, 
-	{25, Interpreter::fmulsx,       {"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, 
-	{28, Interpreter::fmsubsx,      {"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, 
-	{29, Interpreter::fmaddsx,      {"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, 
-	{30, Interpreter::fnmsubsx,     {"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, 
-	{31, Interpreter::fnmaddsx,     {"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, 
-};							    
+	{24, Interpreter::fresx,        {"fresx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
+	{25, Interpreter::fmulsx,       {"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
+	{28, Interpreter::fmsubsx,      {"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
+	{29, Interpreter::fmaddsx,      {"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
+	{30, Interpreter::fnmsubsx,     {"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
+	{31, Interpreter::fnmaddsx,     {"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
+};
 
 static GekkoOPTemplate table63[] =
 {
@@ -339,7 +339,7 @@ static GekkoOPTemplate table63[] =
 	{711, Interpreter::mtfsfx,      {"mtfsfx",  OPTYPE_SYSTEMFP, FL_USE_FPU, 2, 0, 0, 0}},
 };
 
-static GekkoOPTemplate table63_2[] = 
+static GekkoOPTemplate table63_2[] =
 {
 	{18, Interpreter::fdivx,        {"fdivx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 30, 0, 0, 0}},
 	{20, Interpreter::fsubx,        {"fsubx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
@@ -364,7 +364,7 @@ void InitTables()
 		return;
 
 	//clear
-	for (int i = 0; i < 32; i++) 
+	for (int i = 0; i < 32; i++)
 	{
 		Interpreter::m_opTable59[i] = Interpreter::unknown_instruction;
 		m_infoTable59[i] = 0;
@@ -376,118 +376,118 @@ void InitTables()
 		Interpreter::m_opTable19[i] = Interpreter::unknown_instruction;
 		Interpreter::m_opTable31[i] = Interpreter::unknown_instruction;
 		Interpreter::m_opTable63[i] = Interpreter::unknown_instruction;
-		m_infoTable4[i] = 0;		
-		m_infoTable19[i] = 0;		
-		m_infoTable31[i] = 0;		
-		m_infoTable63[i] = 0;		
+		m_infoTable4[i] = 0;
+		m_infoTable19[i] = 0;
+		m_infoTable31[i] = 0;
+		m_infoTable63[i] = 0;
 	}
 
-	for (int i = 0; i < (int)(sizeof(primarytable) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : primarytable)
 	{
-		Interpreter::m_opTable[primarytable[i].opcode] = primarytable[i].Inst;
-		m_infoTable[primarytable[i].opcode] = &primarytable[i].opinfo;
+		Interpreter::m_opTable[tpl.opcode] = tpl.Inst;
+		m_infoTable[tpl.opcode] = &tpl.opinfo;
 	}
 
 	for (int i = 0; i < 32; i++)
 	{
 		int fill = i << 5;
-		for (int j = 0; j < (int)(sizeof(table4_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table4_2)
 		{
-			int op = fill+table4_2[j].opcode;
-			Interpreter::m_opTable4[op] = table4_2[j].Inst;
-			m_infoTable4[op] = &table4_2[j].opinfo;
+			int op = fill+tpl.opcode;
+			Interpreter::m_opTable4[op] = tpl.Inst;
+			m_infoTable4[op] = &tpl.opinfo;
 		}
 	}
 
 	for (int i = 0; i < 16; i++)
 	{
 		int fill = i << 6;
-		for (int j = 0; j < (int)(sizeof(table4_3) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table4_3)
 		{
-			int op = fill+table4_3[j].opcode;
-			Interpreter::m_opTable4[op] = table4_3[j].Inst;
-			m_infoTable4[op] = &table4_3[j].opinfo;
+			int op = fill+tpl.opcode;
+			Interpreter::m_opTable4[op] = tpl.Inst;
+			m_infoTable4[op] = &tpl.opinfo;
 		}
 	}
 
-	for (int i = 0; i < (int)(sizeof(table4) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table4)
 	{
-		int op = table4[i].opcode;
-		Interpreter::m_opTable4[op] = table4[i].Inst;
-		m_infoTable4[op] = &table4[i].opinfo;
+		int op = tpl.opcode;
+		Interpreter::m_opTable4[op] = tpl.Inst;
+		m_infoTable4[op] = &tpl.opinfo;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table31) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table31)
 	{
-		int op = table31[i].opcode;
-		Interpreter::m_opTable31[op] = table31[i].Inst;
-		m_infoTable31[op] = &table31[i].opinfo;
+		int op = tpl.opcode;
+		Interpreter::m_opTable31[op] = tpl.Inst;
+		m_infoTable31[op] = &tpl.opinfo;
 	}
 
 	for (int i = 0; i < 1; i++)
 	{
 		int fill = i << 9;
-		for (int j = 0; j < (int)(sizeof(table31_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table31_2)
 		{
-			int op = fill + table31_2[j].opcode;
-			Interpreter::m_opTable31[op] = table31_2[j].Inst;
-			m_infoTable31[op] = &table31_2[j].opinfo;
+			int op = fill + tpl.opcode;
+			Interpreter::m_opTable31[op] = tpl.Inst;
+			m_infoTable31[op] = &tpl.opinfo;
 		}
 	}
 
-	for (int i = 0; i < (int)(sizeof(table19) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table19)
 	{
-		int op = table19[i].opcode;
-		Interpreter::m_opTable19[op] = table19[i].Inst;
-		m_infoTable19[op] = &table19[i].opinfo;
+		int op = tpl.opcode;
+		Interpreter::m_opTable19[op] = tpl.Inst;
+		m_infoTable19[op] = &tpl.opinfo;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table59) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table59)
 	{
-		int op = table59[i].opcode;
-		Interpreter::m_opTable59[op] = table59[i].Inst;
-		m_infoTable59[op] = &table59[i].opinfo;
+		int op = tpl.opcode;
+		Interpreter::m_opTable59[op] = tpl.Inst;
+		m_infoTable59[op] = &tpl.opinfo;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table63) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table63)
 	{
-		int op = table63[i].opcode;
-		Interpreter::m_opTable63[op] = table63[i].Inst;
-		m_infoTable63[op] = &table63[i].opinfo;
+		int op = tpl.opcode;
+		Interpreter::m_opTable63[op] = tpl.Inst;
+		m_infoTable63[op] = &tpl.opinfo;
 	}
 
 	for (int i = 0; i < 32; i++)
 	{
 		int fill = i << 5;
-		for (int j = 0; j < (int)(sizeof(table63_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table63_2)
 		{
-			int op = fill + table63_2[j].opcode;
-			Interpreter::m_opTable63[op] = table63_2[j].Inst;
-			m_infoTable63[op] = &table63_2[j].opinfo;
+			int op = fill + tpl.opcode;
+			Interpreter::m_opTable63[op] = tpl.Inst;
+			m_infoTable63[op] = &tpl.opinfo;
 		}
 	}
 
 	m_numInstructions = 0;
-	for (int i = 0; i < (int)(sizeof(primarytable) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &primarytable[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table4_2) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table4_2[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table4_3) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table4_3[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table4) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table4[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table31) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table31[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table31_2) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table31_2[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table19) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table19[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table59) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table59[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table63) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table63[i].opinfo;
-	for (int i = 0; i < (int)(sizeof(table63_2) / sizeof(GekkoOPTemplate)); i++)
-		m_allInstructions[m_numInstructions++] = &table63_2[i].opinfo;
+	for (auto& tpl : primarytable)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table4_2)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table4_3)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table4)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table31)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table31_2)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table19)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table59)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table63)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
+	for (auto& tpl : table63_2)
+		m_allInstructions[m_numInstructions++] = &tpl.opinfo;
 	if (m_numInstructions >= 512) {
 		PanicAlert("m_allInstructions underdimensioned");
 	}

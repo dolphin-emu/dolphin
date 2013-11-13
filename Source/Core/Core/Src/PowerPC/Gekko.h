@@ -76,7 +76,7 @@ union UGeckoInstruction
 		u32 OPCD_5	:	6;
 	};
 	struct
-	{     
+	{
 		u32 LK_2	:	1;
 		u32 AA_2	:	1;
 		// Branch displacement, signed 14-bit (right-extended by 0b00)
@@ -118,7 +118,7 @@ union UGeckoInstruction
 		u32 OPCD_9	:	6;
 	};
 	struct
-	{     
+	{
 		u32 UIMM_2	:	16;
 		u32 RA_4	:	5;
 		u32 L_3		:	1;
@@ -193,7 +193,7 @@ union UGeckoInstruction
 	};
 
 	// crxor
-	struct 
+	struct
 	{
 		u32			:	11;
 		// Source bit in the CR
@@ -206,7 +206,7 @@ union UGeckoInstruction
 	};
 
 	// mftb
-	struct 
+	struct
 	{
 		u32			:	11;
 		// Time base register
@@ -214,7 +214,7 @@ union UGeckoInstruction
 		u32			:	11;
 	};
 
-	struct 
+	struct
 	{
 		u32			:	11;
 		// Upper time base register
@@ -224,7 +224,7 @@ union UGeckoInstruction
 		u32			:	11;
 	};
 
-	struct 
+	struct
 	{
 		u32			:	18;
 		// Source field in the CR or FPSCR
@@ -234,7 +234,7 @@ union UGeckoInstruction
 		u32			:	6;
 	};
 
-	struct 
+	struct
 	{
 		u32			:	12;
 		// Field mask, identifies the CR fields to be updated by mtcrf
@@ -244,7 +244,7 @@ union UGeckoInstruction
 		u32 FD		:	5;
 		u32			:	6;
 	};
-	struct 
+	struct
 	{
 		u32			:	6;
 		// Source FPR
@@ -266,7 +266,7 @@ union UGeckoInstruction
 	};
 
 	// paired single quantized load/store
-	struct 
+	struct
 	{
 		u32			:	7;
 		// Graphics quantization register to use
@@ -281,13 +281,13 @@ union UGeckoInstruction
 		u32			:	16;
 	};
 
-	struct 
+	struct
 	{
 		signed	SIMM_12	:	12;
 		u32				:	20;
 	};
 
-	struct 
+	struct
 	{
 		u32 		:   11;
 		// Number of bytes to use in lswi/stswi (0 means 32 bytes)
@@ -305,7 +305,7 @@ union UGeckoInstruction
 union UGQR
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		u32	ST_TYPE		: 3;
 		u32				: 5;
@@ -338,7 +338,7 @@ union UFPR
 // XER
 union UReg_XER
 {
-	struct 
+	struct
 	{
 		u32 BYTE_COUNT	: 7;
 		u32				: 22;
@@ -542,7 +542,7 @@ union UReg_HID4
 union UReg_SPR1
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		u32	htaborg		:	16;
 		u32				:	7;
@@ -634,7 +634,7 @@ union UReg_DMAL
 
 union UReg_BAT_Up
 {
-	struct 
+	struct
 	{
 		u32 VP			:	1;
 		u32 VS			:	1;
@@ -650,7 +650,7 @@ union UReg_BAT_Up
 
 union UReg_BAT_Lo
 {
-	struct 
+	struct
 	{
 		u32 PP			:	2;
 		u32				:	1;
@@ -666,7 +666,7 @@ union UReg_BAT_Lo
 
 union UReg_PTE
 {
-	struct 
+	struct
 	{
 		u64 API			:	6;
 		u64 H			:	1;
@@ -703,7 +703,7 @@ enum EQuantizeType
 };
 
 // branches
-enum 
+enum
 {
 	BO_BRANCH_IF_CTR_0		=  2, // 3
 	BO_DONT_DECREMENT_FLAG	=  4, // 2

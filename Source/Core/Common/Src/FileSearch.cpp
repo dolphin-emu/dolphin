@@ -21,11 +21,11 @@
 CFileSearch::CFileSearch(const CFileSearch::XStringVector& _rSearchStrings, const CFileSearch::XStringVector& _rDirectories)
 {
 	// Reverse the loop order for speed?
-	for (size_t j = 0; j < _rSearchStrings.size(); j++)
+	for (auto& _rSearchString : _rSearchStrings)
 	{
-		for (size_t i = 0; i < _rDirectories.size(); i++)
+		for (auto& _rDirectory : _rDirectories)
 		{
-			FindFiles(_rSearchStrings[j], _rDirectories[i]);
+			FindFiles(_rSearchString, _rDirectory);
 		}
 	}
 }

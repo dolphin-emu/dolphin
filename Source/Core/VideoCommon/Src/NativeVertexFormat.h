@@ -92,7 +92,7 @@ struct PortableVertexDeclaration
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
 // is in the respective backend, not here in VideoCommon.
 
-// Note that this class can't just invent arbitrary vertex formats out of its input - 
+// Note that this class can't just invent arbitrary vertex formats out of its input -
 // all the data loading code must always be made compatible.
 class NativeVertexFormat : NonCopyable
 {

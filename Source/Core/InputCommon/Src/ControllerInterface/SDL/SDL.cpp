@@ -7,18 +7,14 @@
 #include <algorithm>
 
 #ifdef _WIN32
-	#if SDL_VERSION_ATLEAST(1, 3, 0)
-		#pragma comment(lib, "SDL.1.3.lib")
-	#else
-		#pragma comment(lib, "SDL.lib")
-	#endif
+#pragma comment(lib, "SDL2.lib")
 #endif
 
 namespace ciface
 {
 namespace SDL
 {
-	
+
 std::string GetJoystickName(int index)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -29,7 +25,7 @@ std::string GetJoystickName(int index)
 }
 
 void Init( std::vector<Core::Device*>& devices )
-{	
+{
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
 	std::map<std::string, int>	name_counts;
@@ -83,7 +79,7 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	// get buttons
 	for (u8 i = 0; i != SDL_JoystickNumButtons(m_joystick); ++i)
 		AddInput(new Button(i, m_joystick));
-	
+
 	// get hats
 	for (u8 i = 0; i != SDL_JoystickNumHats(m_joystick); ++i)
 	{
@@ -155,7 +151,7 @@ Joystick::~Joystick()
 {
 #ifdef USE_SDL_HAPTIC
 	if (m_haptic)
-	{	
+	{
 		// stop/destroy all effects
 		SDL_HapticStopAll(m_haptic);
 		std::list<EffectIDState>::iterator
@@ -201,7 +197,7 @@ std::string Joystick::TriangleEffect::GetName() const
 	return "Triangle";
 }
 
-void Joystick::ConstantEffect::SetState(const ControlState state)
+void Joystick::ConstantEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -219,7 +215,7 @@ void Joystick::ConstantEffect::SetState(const ControlState state)
 		m_effect.changed = true;
 }
 
-void Joystick::RampEffect::SetState(const ControlState state)
+void Joystick::RampEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -237,7 +233,7 @@ void Joystick::RampEffect::SetState(const ControlState state)
 		m_effect.changed = true;
 }
 
-void Joystick::SineEffect::SetState(const ControlState state)
+void Joystick::SineEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -260,7 +256,7 @@ void Joystick::SineEffect::SetState(const ControlState state)
 }
 
 #ifdef SDL_HAPTIC_SQUARE
-void Joystick::SquareEffect::SetState(const ControlState state)
+void Joystick::SquareEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -283,7 +279,7 @@ void Joystick::SquareEffect::SetState(const ControlState state)
 }
 #endif // defined(SDL_HAPTIC_SQUARE)
 
-void Joystick::TriangleEffect::SetState(const ControlState state)
+void Joystick::TriangleEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -310,7 +306,7 @@ bool Joystick::UpdateInput()
 {
 	// each joystick is doin this, o well
 	SDL_JoystickUpdate();
-	
+
 	return true;
 }
 

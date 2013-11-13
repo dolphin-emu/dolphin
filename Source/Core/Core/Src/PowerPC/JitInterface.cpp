@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cinttypes>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -44,7 +45,7 @@ namespace JitInterface
 	{
 		bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack == true;
 		bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
-	
+
 		CPUCoreBase *ptr = NULL;
 		switch(core)
 		{
@@ -128,7 +129,7 @@ namespace JitInterface
 	{
 		// Can't really do this with no jit core available
 		#ifndef _M_GENERIC
-		
+
 		std::vector<BlockStat> stats;
 		stats.reserve(jit->GetBlockCache()->GetNumBlocks());
 		u64 cost_sum = 0;
@@ -162,22 +163,22 @@ namespace JitInterface
 			return;
 		}
 		fprintf(f.GetHandle(), "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
-		for (unsigned int i = 0; i < stats.size(); i++)
+		for (auto& stat : stats)
 		{
-			const JitBlock *block = jit->GetBlockCache()->GetBlock(stats[i].blockNum);
+			const JitBlock *block = jit->GetBlockCache()->GetBlock(stat.blockNum);
 			if (block)
 			{
 				std::string name = g_symbolDB.GetDescription(block->originalAddress);
-				double percent = 100.0 * (double)stats[i].cost / (double)cost_sum;
-	#ifdef _WIN32 
+				double percent = 100.0 * (double)stat.cost / (double)cost_sum;
+	#ifdef _WIN32
 				double timePercent = 100.0 * (double)block->ticCounter / (double)timecost_sum;
-				fprintf(f.GetHandle(), "%08x\t%s\t%llu\t%llu\t%.2lf\t%llf\t%lf\t%i\n", 
-						block->originalAddress, name.c_str(), stats[i].cost,
+				fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t%" PRIu64 "\t%.2lf\t%llf\t%lf\t%i\n",
+						block->originalAddress, name.c_str(), stat.cost,
 						block->ticCounter, percent, timePercent,
 						(double)block->ticCounter*1000.0/(double)countsPerSec, block->codeSize);
 	#else
-				fprintf(f.GetHandle(), "%08x\t%s\t%llu\t???\t%.2lf\t???\t???\t%i\n", 
-						block->originalAddress, name.c_str(), stats[i].cost,  percent, block->codeSize);
+				fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t???\t%.2lf\t???\t???\t%i\n",
+						block->originalAddress, name.c_str(), stat.cost,  percent, block->codeSize);
 	#endif
 			}
 		}
@@ -211,7 +212,7 @@ namespace JitInterface
 
 	u32 Read_Opcode_JIT(u32 _Address)
 	{
-	#ifdef FAST_ICACHE	
+	#ifdef FAST_ICACHE
 		if (bMMU && !bFakeVMEM && (_Address & Memory::ADDR_MASK_MEM1))
 		{
 			_Address = Memory::TranslateAddress(_Address, Memory::FLAG_OPCODE);
@@ -233,7 +234,7 @@ namespace JitInterface
 	#endif
 		return inst;
 	}
-	
+
 	void Shutdown()
 	{
 		if (jit)

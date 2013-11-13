@@ -86,8 +86,8 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 	func.callers.clear();
 	func.size = 0;
 	func.flags = FFLAG_LEAF;
-	u32 addr = startAddr; 
-	
+	u32 addr = startAddr;
+
 	u32 farthestInternalBranchTarget = startAddr;
 	int numInternalBranches = 0;
 	while (true)
@@ -95,7 +95,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 		func.size += 4;
 		if (func.size >= CODEBUFFER_SIZE * 4) //weird
 			return false;
-		
+
 		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
 		if (max_size && func.size > max_size)
 		{
@@ -153,12 +153,12 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 				func.flags &= ~FFLAG_LEAF;
 				func.flags |= FFLAG_RFI;
 			}
-			else 
+			else
 			{
 				if (instr.OPCD == 16)
 				{
 					u32 target = SignExt16(instr.BD << 2);
-					
+
 					if (!instr.AA)
 						target += addr;
 
@@ -196,9 +196,8 @@ void AnalyzeFunction2(Symbol *func)
 	u32 flags = func->flags;
 
 	bool nonleafcall = false;
-	for (size_t i = 0; i < func->calls.size(); i++)
+	for (auto c : func->calls)
 	{
-		SCall c = func->calls[i];
 		Symbol *called_func = g_symbolDB.GetSymbolFromAddr(c.function);
 		if (called_func && (called_func->flags & FFLAG_LEAF) == 0)
 		{
@@ -250,7 +249,7 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	{
 		int regInA = a.regsIn[j];
 		int regInB = b.regsIn[j];
-		if (regInA >= 0 && 
+		if (regInA >= 0 &&
 			(b.regsOut[0] == regInA ||
 			 b.regsOut[1] == regInA))
 		{
@@ -284,7 +283,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 	size_of_merged_addresses = 1;
 
 	memset(st, 0, sizeof(*st));
-	
+
 	// Disabled the following optimization in preference of FAST_ICACHE
 	//UGeckoInstruction previnst = Memory::Read_Opcode_JIT_LC(address - 4);
 	//if (previnst.hex == 0x4e800020)
@@ -292,7 +291,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 
 	gpa->any = true;
 	fpa->any = false;
-	
+
 	for (int i = 0; i < 32; i++)
 	{
 		gpa->firstRead[i]  = -1;
@@ -345,10 +344,9 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 			if (it != inserted_asm_codes.end())
 			{
 				const std::vector<u32>& codes = it->second;
-				for (std::vector<u32>::const_iterator itCur = codes.begin(),
-					itEnd = codes.end(); itCur != itEnd; ++itCur)
+				for (u32 c : codes)
 				{
-					cst1_instructions.push(*itCur);
+					cst1_instructions.push(c);
 				}
 				inst = UGeckoInstruction(cst1_instructions.front());
 				cst1_instructions.pop();
@@ -359,7 +357,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 				inst = JitInterface::Read_Opcode_JIT(address);
 			}
 		}
-		
+
 		if (inst.hex != 0)
 		{
 			num_inst++;
@@ -449,7 +447,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 				code[i].fregsIn[j] = -1;
 			code[i].fregOut = -1;
 
-			switch (opinfo->type) 
+			switch (opinfo->type)
 			{
 			case OPTYPE_INTEGER:
 			case OPTYPE_LOAD:
@@ -578,7 +576,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 		// A broken block is a block that does not end in a branch
 		broken_block = true;
 	}
-	
+
 	// Scan for CR0 dependency
 	// assume next block wants CR0 to be safe
 	bool wantsCR0 = true;
@@ -607,9 +605,9 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 
 
 // Most functions that are relevant to analyze should be
-// called by another function. Therefore, let's scan the 
+// called by another function. Therefore, let's scan the
 // entire space for bl operations and find what functions
-// get called. 
+// get called.
 void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 {
 	for (u32 addr = startAddr; addr < endAddr; addr+=4)
@@ -648,14 +646,13 @@ void FindFunctionsAfterBLR(PPCSymbolDB *func_db)
 	for (PPCSymbolDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); ++iter)
 		funcAddrs.push_back(iter->second.address + iter->second.size);
 
-	for (vector<u32>::iterator iter = funcAddrs.begin(); iter != funcAddrs.end(); ++iter)
+	for (auto location : funcAddrs)
 	{
-		u32 location = *iter;
 		while (true)
 		{
 			if (PPCTables::IsValidInstruction(Memory::Read_Instruction(location)))
 			{
-				//check if this function is already mapped	
+				//check if this function is already mapped
 				Symbol *f = func_db->AddFunction(location);
 				if (!f)
 					break;
@@ -674,7 +671,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 	FindFunctionsFromBranches(startAddr, endAddr, func_db);
 	FindFunctionsAfterBLR(func_db);
 
-	//Step 2: 
+	//Step 2:
 	func_db->FillInCallers();
 
 	int numLeafs = 0, numNice = 0, numUnNice = 0;
@@ -719,7 +716,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db)
 		if ((f.flags & FFLAG_STRAIGHT) && (f.flags & FFLAG_LEAF))
 			numStraightLeaf++;
 	}
-	if (numLeafs == 0) 
+	if (numLeafs == 0)
 		leafSize = 0;
 	else
 		leafSize /= numLeafs;

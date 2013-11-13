@@ -84,8 +84,8 @@ bool cInterfaceWGL::Create(void *&window_handle)
 		0,                              // Shift Bit Ignored
 		0,                              // No Accumulation Buffer
 		0, 0, 0, 0,                     // Accumulation Bits Ignored
-		24,                             // 24Bit Z-Buffer (Depth Buffer)  
-		8,                              // 8bit Stencil Buffer
+		0,                              // 0Bit Z-Buffer (Depth Buffer)
+		0,                              // 0bit Stencil Buffer
 		0,                              // No Auxiliary Buffer
 		PFD_MAIN_PLANE,                 // Main Drawing Layer
 		0,                              // Reserved

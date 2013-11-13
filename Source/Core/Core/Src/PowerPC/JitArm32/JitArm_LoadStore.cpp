@@ -106,13 +106,13 @@ void JitArm::SafeStoreFromReg(bool fastmem, s32 dest, u32 value, s32 regOffset, 
 	switch(accessSize)
 	{
 		case 32:
-			MOVI2R(rA, (u32)&Memory::Write_U32);	
+			MOVI2R(rA, (u32)&Memory::Write_U32);
 		break;
 		case 16:
-			MOVI2R(rA, (u32)&Memory::Write_U16);	
+			MOVI2R(rA, (u32)&Memory::Write_U16);
 		break;
 		case 8:
-			MOVI2R(rA, (u32)&Memory::Write_U8);	
+			MOVI2R(rA, (u32)&Memory::Write_U8);
 		break;
 	}
 	MOV(rB, RS);
@@ -189,7 +189,7 @@ void JitArm::stX(UGeckoInstruction inst)
 			accessSize = 8;
 		break;
 	}
-	SafeStoreFromReg(fastmem, zeroA ? a ? a : -1 : a, s, regOffset, accessSize, offset); 
+	SafeStoreFromReg(fastmem, zeroA ? a ? a : -1 : a, s, regOffset, accessSize, offset);
 	if (update)
 	{
 		ARMReg rA = gpr.GetReg();
@@ -268,8 +268,8 @@ void JitArm::SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int 
 			MOV(R10, gpr.R(addr));
 		else
 			MOV(R10, 0);
-		
-		UnsafeLoadToReg(RD, R10, accessSize, offset);	
+
+		UnsafeLoadToReg(RD, R10, accessSize, offset);
 		return;
 	}
 	ARMReg rA = gpr.GetReg();
@@ -282,17 +282,17 @@ void JitArm::SafeLoadToReg(bool fastmem, u32 dest, s32 addr, s32 offsetReg, int 
 
 	if (addr != -1)
 		ADD(rA, rA, gpr.R(addr));
-	
+
 	switch (accessSize)
 	{
 		case 8:
-			MOVI2R(rB, (u32)&Memory::Read_U8);	
+			MOVI2R(rB, (u32)&Memory::Read_U8);
 		break;
 		case 16:
-			MOVI2R(rB, (u32)&Memory::Read_U16);	
+			MOVI2R(rB, (u32)&Memory::Read_U16);
 		break;
 		case 32:
-			MOVI2R(rB, (u32)&Memory::Read_U32);	
+			MOVI2R(rB, (u32)&Memory::Read_U32);
 		break;
 	}
 	PUSH(4, R0, R1, R2, R3);
@@ -323,7 +323,7 @@ void JitArm::lXX(UGeckoInstruction inst)
 	u32 accessSize = 0;
 	s32 offsetReg = -1;
 	bool zeroA = true;
-	bool update = false;	
+	bool update = false;
 	bool signExtend = false;
 	bool reverse = false;
 	bool fastmem = false;
@@ -338,7 +338,7 @@ void JitArm::lXX(UGeckoInstruction inst)
 					update = true;
 				case 23: // lwzx
 					accessSize = 32;
-					offsetReg = b; 
+					offsetReg = b;
 				break;
 				case 119: //lbzux
 					zeroA = false;
@@ -401,7 +401,7 @@ void JitArm::lXX(UGeckoInstruction inst)
 			accessSize = 16;
 		break;
 	}
-	
+
 	// Check for exception before loading
 	ARMReg rA = gpr.GetReg(false);
 
@@ -410,20 +410,20 @@ void JitArm::lXX(UGeckoInstruction inst)
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
 
 	SafeLoadToReg(fastmem, d, zeroA ? a ? a : -1 : a, offsetReg, accessSize, offset, signExtend, reverse);
-	
+
 	if (update)
 	{
 		rA = gpr.GetReg(false);
 		ARMReg RA = gpr.R(a);
 		if (offsetReg == -1)
-			MOVI2R(rA, offset);	
+			MOVI2R(rA, offset);
 		else
 			MOV(RA, gpr.R(offsetReg));
 		ADD(RA, RA, rA);
 	}
 
 	SetJumpTarget(DoNotLoad);
-	
+
 	// LWZ idle skipping
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
 		inst.OPCD == 32 &&
@@ -435,14 +435,14 @@ void JitArm::lXX(UGeckoInstruction inst)
 		ARMReg RD = gpr.R(d);
 		gpr.Flush();
 		fpr.Flush();
-		
+
 		// if it's still 0, we can wait until the next event
 		TST(RD, RD);
 		FixupBranch noIdle = B_CC(CC_NEQ);
-		rA = gpr.GetReg();	
-		
+		rA = gpr.GetReg();
+
 		MOVI2R(rA, (u32)&PowerPC::OnIdle);
-		MOVI2R(R0, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16); 
+		MOVI2R(R0, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
 		BL(rA);
 
 		gpr.Unlock(rA);

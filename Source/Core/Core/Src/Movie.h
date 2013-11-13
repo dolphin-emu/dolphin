@@ -41,7 +41,7 @@ struct ControllerState {
 	u8   TriggerL, TriggerR;					// Triggers, 16 bits
 	u8   AnalogStickX, AnalogStickY;			// Main Stick, 16 bits
 	u8   CStickX, CStickY;						// Sub-Stick, 16 bits
-	
+
 }; // Total: 60 + 4 = 64 bits per frame
 static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes");
 #pragma pack(pop)

@@ -26,15 +26,15 @@ private:
 	Elf32_Ehdr *header;
 	Elf32_Phdr *segments;
 	Elf32_Shdr *sections;
-	
+
 	u32 *sectionAddrs;
 	bool bRelocate;
 	u32 entryPoint;
 
-public:	
+public:
 	ElfReader(void *ptr);
 	~ElfReader() { }
-	
+
 	u32 Read32(int off) const { return base32[off>>2]; }
 
 	// Quick accessors

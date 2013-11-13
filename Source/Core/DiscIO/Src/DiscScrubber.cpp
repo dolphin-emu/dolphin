@@ -7,6 +7,8 @@
 #include "FileUtil.h"
 #include "DiscScrubber.h"
 
+#include <cinttypes>
+
 namespace DiscIO
 {
 
@@ -32,7 +34,7 @@ struct SPartitionHeader
 	u64 TMDOffset;
 	u32 CertChainSize;
 	u64 CertChainOffset;
-	// H3Size is always 0x18000 
+	// H3Size is always 0x18000
 	u64 H3Offset;
 	u64 DataOffset;
 	u64 DataSize;
@@ -121,13 +123,13 @@ void GetNextBlock(File::IOFile& in, u8* buffer)
 
 	if (m_isScrubbing && m_FreeTable[i])
 	{
-		DEBUG_LOG(DISCIO, "Freeing 0x%016llx", CurrentOffset);
+		DEBUG_LOG(DISCIO, "Freeing 0x%016" PRIx64, CurrentOffset);
 		std::fill(buffer, buffer + m_BlockSize, 0xFF);
 		in.Seek(m_BlockSize, SEEK_CUR);
 	}
 	else
 	{
-		DEBUG_LOG(DISCIO, "Used    0x%016llx", CurrentOffset);
+		DEBUG_LOG(DISCIO, "Used    0x%016" PRIx64, CurrentOffset);
 		in.ReadBytes(buffer, m_BlockSize);
 	}
 
@@ -150,7 +152,7 @@ void MarkAsUsed(u64 _Offset, u64 _Size)
 	u64 CurrentOffset = _Offset;
 	u64 EndOffset = CurrentOffset + _Size;
 
-	DEBUG_LOG(DISCIO, "Marking 0x%016llx - 0x%016llx as used", _Offset, EndOffset);
+	DEBUG_LOG(DISCIO, "Marking 0x%016" PRIx64 " - 0x%016" PRIx64 " as used", _Offset, EndOffset);
 
 	while ((CurrentOffset < EndOffset) && (CurrentOffset < m_FileSize))
 	{
@@ -234,10 +236,9 @@ bool ParseDisc()
 			PartitionGroup[x].PartitionsVec.push_back(Partition);
 		}
 
-		for (size_t i = 0; i < PartitionGroup[x].PartitionsVec.size(); i++)
+		for (auto& rPartition : PartitionGroup[x].PartitionsVec)
 		{
-			SPartition& rPartition			= PartitionGroup[x].PartitionsVec.at(i);
-			const SPartitionHeader& rHeader	= PartitionGroup[x].PartitionsVec.at(i).Header;
+			const SPartitionHeader& rHeader	= rPartition.Header;
 
 			MarkAsUsed(rPartition.Offset, 0x2c0);
 

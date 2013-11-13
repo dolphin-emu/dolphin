@@ -9,7 +9,7 @@
 #define __has_include(s) 0
 #endif
 
-#if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__ 
+#if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__
 
 // GCC 4.4 provides <condition_variable>
 #include <condition_variable>
@@ -24,6 +24,11 @@
 #undef _
 #include <condition_variable>
 #define _(s) wxGetTranslation((s))
+
+#elif _MSC_VER >= 1700
+
+// The standard implementation is included since VS2012
+#include <condition_variable>
 
 #else
 

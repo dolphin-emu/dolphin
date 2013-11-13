@@ -77,7 +77,7 @@ void CUCode_Zelda::Resample(ZeldaVoicePB &PB, int size, s16 *in, s32 *out, bool 
 
 	int ratio = ConvertRatio(PB.RatioInt);
 	int in_size = SizeForResampling(PB, size, ratio);
-	
+
 	int position = PB.CurSampleFrac;
 	for (int i = 0; i < size; i++)
 	{
@@ -110,7 +110,7 @@ void CUCode_Zelda::RenderVoice_PCM16(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	if (PB.NeedsReset)
 	{
 		UpdateSampleCounters10(PB);
-		for (int i = 0; i < 4; i++) 
+		for (int i = 0; i < 4; i++)
 			PB.ResamplerOldData[i] = 0;  // Doesn't belong here, but dunno where to do it.
 	}
 	if (PB.ReachedEnd)
@@ -168,7 +168,7 @@ void CUCode_Zelda::RenderVoice_PCM8(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	if (PB.NeedsReset)
 	{
 		UpdateSampleCounters8(PB);
-		for (int i = 0; i < 4; i++) 
+		for (int i = 0; i < 4; i++)
 			PB.ResamplerOldData[i] = 0;  // Doesn't belong here, but dunno where to do it.
 	}
 	if (PB.ReachedEnd)
@@ -211,8 +211,8 @@ clear_buffer:
 	PB.CurAddr += rem_samples;
 }
 
-template <typename T> 
-void PrintObject(const T &Obj) 
+template <typename T>
+void PrintObject(const T &Obj)
 {
 	std::stringstream ss;
 	u8 *o = (u8 *)&Obj;
@@ -248,11 +248,11 @@ void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	{
 		// This is 0717_ReadOutPBStuff
 		// increment 4fb
-		// zelda: 
+		// zelda:
 		// perhaps init or "has played before"
 		PB.CurBlock = 0x00;
-		PB.YN2 = 0x00;     // history1 
-		PB.YN1 = 0x00;     // history2 
+		PB.YN2 = 0x00;     // history1
+		PB.YN1 = 0x00;     // history2
 
 		// Length in samples.
 		PB.RemLength = PB.Length;
@@ -261,7 +261,7 @@ void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 		PB.ReachedEnd = 0;
 		PB.CurSampleFrac = 0;
 
-		for (int i = 0; i < 4; i++) 
+		for (int i = 0; i < 4; i++)
 			PB.ResamplerOldData[i] = 0;
 	}
 
@@ -300,7 +300,7 @@ restart:
 			PB.KeyOff = 1;
 			PB.RemLength = 0;
 			PB.CurAddr = PB.StartAddr + PB.RestartPos + PB.Length;
-			
+
 			while (sampleCount < _RealSize)
 				_Buffer[sampleCount++] = 0;
 			return;
@@ -413,7 +413,7 @@ void CUCode_Zelda::RenderVoice_Raw(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 	u64 ACC1 = (u32)(PB.raw[0x34 ^ 1] << 16);  // 0x34
 
 	// ERROR_LOG(DSPHLE, "%08x %08x", (u32)ACC0, (u32)ACC1);
-	
+
 	ACC0 -= ACC1;
 
 	PB.Unk36[0] = (u16)(ACC0 >> 16);
@@ -461,7 +461,7 @@ void Decoder21_ReadAudio(ZeldaVoicePB &PB, int size, s16 *_Buffer)
 #endif
 	// ACC0 is the address
 	// ACC1 is the read size
-	
+
 	const u32 ram_mask = 0x1FFFFFF;
 	const u8 *source = Memory::GetPointer(0x80000000);
 	const u16 *src = (u16 *)(source + (ACC0 & ram_mask));
@@ -525,12 +525,12 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 		break;
 
 	case 0x0021:
-		// Raw sound from RAM. Important for Zelda WW. Cutscenes use the music 
+		// Raw sound from RAM. Important for Zelda WW. Cutscenes use the music
 		// to let the game know they ended
 		RenderVoice_Raw(PB, m_ResampleBuffer + 4, _Size);
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
-	
+
 	default:
 		// Second jump table
 		// TODO: Cases to find examples of:
@@ -546,7 +546,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			RenderSynth_RectWave(PB, m_VoiceBuffer, _Size);
 			break;
 
-		case 0x0001: // Example: "Denied" sound when trying to pull out a sword 
+		case 0x0001: // Example: "Denied" sound when trying to pull out a sword
 					 // indoors in ZWW
 			RenderSynth_SawWave(PB, m_VoiceBuffer, _Size);
 			break;
@@ -577,7 +577,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 	}
 
 ContinueWithBlock:
-	
+
 	if (PB.FilterEnable)
 	{  // 0x04a8
 		for (int i = 0; i < _Size; i++)
@@ -590,7 +590,7 @@ ContinueWithBlock:
 	{
 		// TODO?
 	}
-	
+
 	// Apply volume. There are two different modes.
 	if (PB.VolumeMode != 0)
 	{
@@ -629,7 +629,7 @@ ContinueWithBlock:
 		}
 
 		// ZWW 0d34
-		
+
 		int diff = (s16)PB.raw[0x2b] - (s16)PB.raw[0x2a];
 		PB.raw[0x2a] = PB.raw[0x2b];
 
@@ -649,7 +649,7 @@ ContinueWithBlock:
 			// We just mix to the first two and call it stereo :p
 			int value = b00[0x4 + count];
 			//int delta = b00[0xC + count] << 11; // Unused?
-			
+
 			int ramp = value << 16;
 			for (int i = 0; i < _Size; i++)
 			{
@@ -730,7 +730,7 @@ ContinueWithBlock:
 			}
 			// Update the PB with the volume actually reached.
 			PB.raw[addr++] = ramp >> 16;
-	
+
 			addr++;
 		}
 	}

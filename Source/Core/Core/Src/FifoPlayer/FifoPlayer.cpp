@@ -92,7 +92,7 @@ bool FifoPlayer::Play()
 				if (m_EarlyMemoryUpdates && m_CurrentFrame == m_FrameRangeStart)
 					WriteAllMemoryUpdates();
 
-				WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);		
+				WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);
 
 				++m_CurrentFrame;
 			}
@@ -259,9 +259,9 @@ void FifoPlayer::WriteAllMemoryUpdates()
 	for (int frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
 	{
 		const FifoFrameInfo &frame = m_File->GetFrame(frameNum);
-		for (unsigned int i = 0; i < frame.memoryUpdates.size(); ++i)
+		for (auto& update : frame.memoryUpdates)
 		{
-			WriteMemory(frame.memoryUpdates[i]);
+			WriteMemory(update);
 		}
 	}
 }
@@ -310,7 +310,7 @@ void FifoPlayer::SetupFifo()
 
 	const FifoFrameInfo& frame = m_File->GetFrame(m_CurrentFrame);
 
-	// Set fifo bounds	
+	// Set fifo bounds
 	WriteCP(0x20, frame.fifoStart);
 	WriteCP(0x22, frame.fifoStart >> 16);
 	WriteCP(0x24, frame.fifoEnd);
@@ -368,7 +368,7 @@ void FifoPlayer::LoadMemory()
 		LoadCPReg(0x80 + i, regs[0x80 + i]);
 		LoadCPReg(0x90 + i, regs[0x90 + i]);
 	}
-	
+
 	for (int i = 0; i < 16; ++i)
 	{
 		LoadCPReg(0xa0 + i, regs[0xa0 + i]);

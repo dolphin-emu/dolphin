@@ -10,7 +10,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 	u8 rex = 0;
 	u8 codeByte = 0;
 	u8 codeByte2 = 0;
-	
+
 	//Check for regular prefix
 	info->operandSize = 4;
 	info->zeroExtend = false;
@@ -28,7 +28,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 	{
 		info->operandSize = 2;
 		codePtr++;
-	} 
+	}
 	else if (*codePtr == 0x67)
 	{
 		codePtr++;
@@ -47,17 +47,17 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 
 	codeByte = *codePtr++;
 
-	// Skip two-byte opcode byte 
-	bool twoByte = false; 
-	if(codeByte == 0x0F) 
+	// Skip two-byte opcode byte
+	bool twoByte = false;
+	if(codeByte == 0x0F)
 	{
-		twoByte = true; 
+		twoByte = true;
 		codeByte2 = *codePtr++;
 	}
 
 	if (!twoByte)
 	{
-		if ((codeByte & 0xF0) == 0x80 || 
+		if ((codeByte & 0xF0) == 0x80 ||
 			((codeByte & 0xF8) == 0xC0 && (codeByte & 0x0E) != 0x02))
 		{
 			modRMbyte = *codePtr++;
@@ -66,20 +66,20 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 	}
 	else
 	{
-		if (((codeByte2 & 0xF0) == 0x00 && (codeByte2 & 0x0F) >= 0x04 && (codeByte2 & 0x0D) != 0x0D) || 
-			(codeByte2 & 0xF0) == 0x30 || 
-			codeByte2 == 0x77 || 
-			(codeByte2 & 0xF0) == 0x80 || 
-			((codeByte2 & 0xF0) == 0xA0 && (codeByte2 & 0x07) <= 0x02) || 
-			(codeByte2 & 0xF8) == 0xC8) 
+		if (((codeByte2 & 0xF0) == 0x00 && (codeByte2 & 0x0F) >= 0x04 && (codeByte2 & 0x0D) != 0x0D) ||
+			(codeByte2 & 0xF0) == 0x30 ||
+			codeByte2 == 0x77 ||
+			(codeByte2 & 0xF0) == 0x80 ||
+			((codeByte2 & 0xF0) == 0xA0 && (codeByte2 & 0x07) <= 0x02) ||
+			(codeByte2 & 0xF8) == 0xC8)
 		{
-			// No mod R/M byte 
+			// No mod R/M byte
 		}
-		else 
+		else
 		{
 			modRMbyte = *codePtr++;
 			hasModRM = true;
-		} 
+		}
 	}
 
 	if (hasModRM)
@@ -99,7 +99,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 			}
 			else
 			{
-				//info->scaledReg = 
+				//info->scaledReg =
 			}
 		}
 		if (mrm.mod == 1 || mrm.mod == 2)

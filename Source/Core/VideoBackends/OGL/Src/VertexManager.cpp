@@ -60,10 +60,10 @@ void VertexManager::CreateDeviceObjects()
 {
 	s_vertexBuffer = new StreamBuffer(GL_ARRAY_BUFFER, MAX_VBUFFER_SIZE);
 	m_vertex_buffers = s_vertexBuffer->getBuffer();
-	
+
 	s_indexBuffer = new StreamBuffer(GL_ELEMENT_ARRAY_BUFFER, MAX_IBUFFER_SIZE);
 	m_index_buffers = s_indexBuffer->getBuffer();
-	
+
 	m_CurrentVertexFmt = NULL;
 	m_last_vao = 0;
 }
@@ -74,7 +74,7 @@ void VertexManager::DestroyDeviceObjects()
 	glBindBuffer(GL_ARRAY_BUFFER, 0 );
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0 );
 	GL_REPORT_ERROR();
-	
+
 	delete s_vertexBuffer;
 	delete s_indexBuffer;
 	GL_REPORT_ERROR();
@@ -87,7 +87,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	u32 line_index_size = IndexGenerator::GetLineindexLen();
 	u32 point_index_size = IndexGenerator::GetPointindexLen();
 	u32 index_size = (triangle_index_size+line_index_size+point_index_size) * sizeof(u16);
-	
+
 	s_vertexBuffer->Alloc(vertex_data_size, stride);
 	u32 offset = s_vertexBuffer->Upload(GetVertexBuffer(), vertex_data_size);
 	s_baseVertex = offset / stride;
@@ -105,7 +105,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	{
 		s_offset[2] = s_indexBuffer->Upload((u8*)GetPointIndexBuffer(), point_index_size * sizeof(u16));
 	}
-	
+
 	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertex_data_size);
 	ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_size);
 }
@@ -117,7 +117,7 @@ void VertexManager::Draw(u32 stride)
 	u32 point_index_size = IndexGenerator::GetPointindexLen();
 	u32 max_index = IndexGenerator::GetNumVerts();
 	GLenum triangle_mode = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart?GL_TRIANGLE_STRIP:GL_TRIANGLES;
-	
+
 	if(g_ogl_config.bSupportsGLBaseVertex) {
 		if (triangle_index_size > 0)
 		{
@@ -134,7 +134,7 @@ void VertexManager::Draw(u32 stride)
 			glDrawRangeElementsBaseVertex(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
-	} 
+	}
 	else if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
 	{
 		if (triangle_index_size > 0)
@@ -168,17 +168,17 @@ void VertexManager::Draw(u32 stride)
 			glDrawRangeElements(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
-	} 
+	}
 }
 
 void VertexManager::vFlush()
 {
-#if defined(_DEBUG) || defined(DEBUGFAST) 
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGen.numTexGens,
 		xfregs.numChan.numColorChans, xfregs.dualTexTrans.enabled, bpmem.ztex2.op,
 		bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.zmode.updateenable);
 
-	for (unsigned int i = 0; i < xfregs.numChan.numColorChans; ++i) 
+	for (unsigned int i = 0; i < xfregs.numChan.numColorChans; ++i)
 	{
 		LitChannel* ch = &xfregs.color[i];
 		PRIM_LOG("colchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
@@ -186,7 +186,7 @@ void VertexManager::vFlush()
 		PRIM_LOG("alpchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
 	}
 
-	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i) 
+	for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 	{
 		TexMtxInfo tinfo = xfregs.texMtxInfo[i];
 		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP) tinfo.hex &= 0x7ff;
@@ -202,10 +202,10 @@ void VertexManager::vFlush()
 #endif
 
 	(void)GL_REPORT_ERROR();
-	
+
 	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)g_nativeVertexFmt;
 	u32 stride  = nativeVertexFmt->GetVertexStride();
-	
+
 	if(m_last_vao != nativeVertexFmt->VAO) {
 		glBindVertexArray(nativeVertexFmt->VAO);
 		m_last_vao = nativeVertexFmt->VAO;
@@ -231,10 +231,10 @@ void VertexManager::vFlush()
 			TextureCache::SetNextStage(i);
 			g_renderer->SetSamplerState(i % 4, i / 4);
 			FourTexUnits &tex = bpmem.tex[i >> 2];
-			TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i, 
+			TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i,
 				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
-				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
+				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9,
 				tex.texTlut[i&3].tlut_format,
 				(tex.texMode0[i&3].min_filter & 3),
 				(tex.texMode1[i&3].max_lod + 0xf) / 0x10,
@@ -279,7 +279,7 @@ void VertexManager::vFlush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants(g_nativeVertexFmt->m_components);
 	ProgramShaderCache::UploadConstants();
-	
+
 	// setup the pointers
 	if (g_nativeVertexFmt)
 		g_nativeVertexFmt->SetupVertexPointers();
@@ -300,24 +300,24 @@ void VertexManager::vFlush()
 			VertexShaderManager::SetConstants();
 			PixelShaderManager::SetConstants(g_nativeVertexFmt->m_components);
 		}
-	
+
 		// only update alpha
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 
 		glDisable(GL_BLEND);
 
 		Draw(stride);
-		
+
 		// restore color mask
 		g_renderer->SetColorMask();
 
-		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
+		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
 			glEnable(GL_BLEND);
 	}
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
-	
+
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) 
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
 	{
 		// save the shaders
 		ProgramShaderCache::PCacheEntry prog = ProgramShaderCache::GetShaderProgram();
@@ -332,7 +332,7 @@ void VertexManager::vFlush()
 		fvs << prog.shader.strvprog.c_str();
 	}
 
-	if (g_ActiveConfig.iLog & CONF_SAVETARGETS) 
+	if (g_ActiveConfig.iLog & CONF_SAVETARGETS)
 	{
 		char str[128];
 		sprintf(str, "%starg%.3d.tga", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);

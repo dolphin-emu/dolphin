@@ -211,24 +211,21 @@ std::vector<std::string> cdio_get_devices ()
 // Returns true if device is a cdrom/dvd drive
 bool cdio_is_cdrom(std::string device)
 {
-#ifdef __linux__
+#ifndef _WIN32
 	// Resolve symbolic links. This allows symbolic links to valid
 	// drives to be passed from the command line with the -e flag.
 	char resolved_path[MAX_PATH];
 	char *devname = realpath(device.c_str(), resolved_path);
 	if (!devname)
 		return false;
+	device = devname;
 #endif
 
 	std::vector<std::string> devices = cdio_get_devices();
 	bool res = false;
-	for (unsigned int i = 0; i < devices.size(); i++)
+	for (auto& odevice : devices)
 	{
-#ifdef __linux__
-		if (strncmp(devices[i].c_str(), devname, MAX_PATH) == 0)
-#else
-		if (strncmp(devices[i].c_str(), device.c_str(), MAX_PATH) == 0)
-#endif
+		if (strncmp(odevice.c_str(), device.c_str(), MAX_PATH) == 0)
 		{
 			res = true;
 			break;

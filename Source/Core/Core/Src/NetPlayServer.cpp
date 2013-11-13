@@ -51,7 +51,7 @@ void NetPlayServer::ThreadFunc()
 			sf::Packet spac;
 			spac << (MessageId)NP_MSG_PING;
 			spac << m_ping_key;
-			
+
 			std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 			m_ping_timer.Start();
 			SendToClients(spac);
@@ -217,7 +217,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	UpdatePadMapping();	// sync pad mappings with everyone
 	UpdateWiimoteMapping();
 	}
-	
+
 
 	// add client to selector/ used for receiving
 	m_selector.Add(socket);
@@ -255,7 +255,7 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 	spac << pid;
 
 	m_selector.Remove(socket);
-	
+
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 	m_players.erase(m_players.find(socket));
 
@@ -386,7 +386,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 			// then disconnect them.
 			if (m_pad_map[map] != player.pid)
 				return 1;
-				
+
 			// Relay to clients
 			sf::Packet spac;
 			spac << (MessageId)NP_MSG_PAD_DATA;

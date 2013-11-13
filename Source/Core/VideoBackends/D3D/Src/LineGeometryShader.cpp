@@ -177,7 +177,7 @@ bool LineGeometryShader::SetShader(u32 components, float lineWidth,
 
 		std::stringstream numTexCoordsStream;
 		numTexCoordsStream << xfregs.numTexGen.numTexGens;
-		
+
 		INFO_LOG(VIDEO, "Compiling line geometry shader for components 0x%.08X (num texcoords %d)",
 			components, xfregs.numTexGen.numTexGens);
 

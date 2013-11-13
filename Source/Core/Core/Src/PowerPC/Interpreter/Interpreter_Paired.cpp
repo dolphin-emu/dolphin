@@ -34,15 +34,15 @@ void Interpreter::ps_mr(UGeckoInstruction _inst)
 
 void Interpreter::ps_nabs(UGeckoInstruction _inst)
 {
-	riPS0(_inst.FD) = riPS0(_inst.FB) | (1ULL << 63); 
-	riPS1(_inst.FD) = riPS1(_inst.FB) | (1ULL << 63); 
+	riPS0(_inst.FD) = riPS0(_inst.FB) | (1ULL << 63);
+	riPS1(_inst.FD) = riPS1(_inst.FB) | (1ULL << 63);
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void Interpreter::ps_abs(UGeckoInstruction _inst)
 {
-	riPS0(_inst.FD) = riPS0(_inst.FB) &~ (1ULL << 63); 
-	riPS1(_inst.FD) = riPS1(_inst.FB) &~ (1ULL << 63); 
+	riPS0(_inst.FD) = riPS0(_inst.FB) &~ (1ULL << 63);
+	riPS1(_inst.FD) = riPS1(_inst.FB) &~ (1ULL << 63);
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
@@ -85,7 +85,7 @@ void Interpreter::ps_merge11(UGeckoInstruction _inst)
 
 // From here on, the real deal.
 void Interpreter::ps_div(UGeckoInstruction _inst)
-{	
+{
 	u32 ex_mask = 0;
 
 	// PS0
@@ -164,7 +164,7 @@ void Interpreter::ps_div(UGeckoInstruction _inst)
 		}
 	}
 
-	SetFPException(ex_mask);	
+	SetFPException(ex_mask);
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
@@ -358,29 +358,8 @@ void Interpreter::ps_cmpu0(UGeckoInstruction _inst)
 	double fb = rPS0(_inst.FB);
 	int compareResult;
 
-	if (fa < fb)         		compareResult = 8; 
-	else if (fa > fb)        	compareResult = 4; 
-	else if (fa == fb)			compareResult = 2;
-	else						
-	{
-		compareResult = 1;
-		if (IsSNAN(fa) || IsSNAN(fb))
-		{
-			SetFPException(FPSCR_VXSNAN);
-		}
-	}
-	FPSCR.FPRF = compareResult;
-	SetCRField(_inst.CRFD, compareResult);	
-}
-
-void Interpreter::ps_cmpo0(UGeckoInstruction _inst)
-{	
-	double fa = rPS0(_inst.FA);
-	double fb = rPS0(_inst.FB);
-	int compareResult;
-
-	if (fa < fb)         		compareResult = 8; 
-	else if (fa > fb)        	compareResult = 4; 
+	if (fa < fb)         		compareResult = 8;
+	else if (fa > fb)        	compareResult = 4;
 	else if (fa == fb)			compareResult = 2;
 	else
 	{
@@ -388,17 +367,38 @@ void Interpreter::ps_cmpo0(UGeckoInstruction _inst)
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
 			SetFPException(FPSCR_VXSNAN);
-			if (!FPSCR.VE) 
+		}
+	}
+	FPSCR.FPRF = compareResult;
+	SetCRField(_inst.CRFD, compareResult);
+}
+
+void Interpreter::ps_cmpo0(UGeckoInstruction _inst)
+{
+	double fa = rPS0(_inst.FA);
+	double fb = rPS0(_inst.FB);
+	int compareResult;
+
+	if (fa < fb)         		compareResult = 8;
+	else if (fa > fb)        	compareResult = 4;
+	else if (fa == fb)			compareResult = 2;
+	else
+	{
+		compareResult = 1;
+		if (IsSNAN(fa) || IsSNAN(fb))
+		{
+			SetFPException(FPSCR_VXSNAN);
+			if (!FPSCR.VE)
 				SetFPException(FPSCR_VXVC);
 		}
-		else 
+		else
 		{
 			//if (IsQNAN(fa) || IsQNAN(fb)) // this is always true
 			SetFPException(FPSCR_VXVC);
 		}
 	}
 	FPSCR.FPRF = compareResult;
-	SetCRField(_inst.CRFD, compareResult);	
+	SetCRField(_inst.CRFD, compareResult);
 }
 
 void Interpreter::ps_cmpu1(UGeckoInstruction _inst)
@@ -407,29 +407,8 @@ void Interpreter::ps_cmpu1(UGeckoInstruction _inst)
 	double fb = rPS1(_inst.FB);
 	int compareResult;
 
-	if (fa < fb)         		compareResult = 8; 
-	else if (fa > fb)        	compareResult = 4; 
-	else if (fa == fb)			compareResult = 2;
-	else						
-	{
-		compareResult = 1;
-		if (IsSNAN(fa) || IsSNAN(fb))
-		{
-			SetFPException(FPSCR_VXSNAN);
-		}
-	}
-	FPSCR.FPRF = compareResult;
-	SetCRField(_inst.CRFD, compareResult);	
-}
-
-void Interpreter::ps_cmpo1(UGeckoInstruction _inst)
-{	
-	double fa = rPS1(_inst.FA);
-	double fb = rPS1(_inst.FB);
-	int compareResult;
-
-	if (fa < fb)         		compareResult = 8; 
-	else if (fa > fb)        	compareResult = 4; 
+	if (fa < fb)         		compareResult = 8;
+	else if (fa > fb)        	compareResult = 4;
 	else if (fa == fb)			compareResult = 2;
 	else
 	{
@@ -437,17 +416,38 @@ void Interpreter::ps_cmpo1(UGeckoInstruction _inst)
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
 			SetFPException(FPSCR_VXSNAN);
-			if (!FPSCR.VE) 
+		}
+	}
+	FPSCR.FPRF = compareResult;
+	SetCRField(_inst.CRFD, compareResult);
+}
+
+void Interpreter::ps_cmpo1(UGeckoInstruction _inst)
+{
+	double fa = rPS1(_inst.FA);
+	double fb = rPS1(_inst.FB);
+	int compareResult;
+
+	if (fa < fb)         		compareResult = 8;
+	else if (fa > fb)        	compareResult = 4;
+	else if (fa == fb)			compareResult = 2;
+	else
+	{
+		compareResult = 1;
+		if (IsSNAN(fa) || IsSNAN(fb))
+		{
+			SetFPException(FPSCR_VXSNAN);
+			if (!FPSCR.VE)
 				SetFPException(FPSCR_VXVC);
 		}
-		else 
+		else
 		{
 			//if (IsQNAN(fa) || IsQNAN(fb)) // this is always true
 			SetFPException(FPSCR_VXVC);
 		}
 	}
 	FPSCR.FPRF = compareResult;
-	SetCRField(_inst.CRFD, compareResult);	
+	SetCRField(_inst.CRFD, compareResult);
 }
 
 // __________________________________________________________________________________________________

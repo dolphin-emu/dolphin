@@ -24,4 +24,4 @@ namespace DebugUtil
 	void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char *name);
 }
 
-#endif 
+#endif

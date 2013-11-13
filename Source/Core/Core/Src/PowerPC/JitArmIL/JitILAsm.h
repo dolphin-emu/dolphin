@@ -7,10 +7,10 @@
 #include "ArmEmitter.h"
 #include "../JitCommon/JitAsmCommon.h"
 using namespace ArmGen;
-class JitArmILAsmRoutineManager : public CommonAsmRoutinesBase, public ARMXCodeBlock 
+class JitArmILAsmRoutineManager : public CommonAsmRoutinesBase, public ARMXCodeBlock
 {
 private:
-	void Generate(); 
+	void Generate();
 	void GenerateCommon() {}
 
 public:
@@ -27,6 +27,6 @@ public:
 
 extern JitArmILAsmRoutineManager armil_asm_routines;
 
-#endif 
+#endif
 
 

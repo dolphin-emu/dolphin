@@ -108,7 +108,7 @@ void GFXDebuggerBase::DumpPixelShader(const char* path)
 	}
 
 	File::CreateEmptyFile(filename);
-	File::WriteStringToFile(true, output, filename);
+	File::WriteStringToFile(output, filename);
 }
 
 void GFXDebuggerBase::DumpVertexShader(const char* path)
@@ -117,7 +117,7 @@ void GFXDebuggerBase::DumpVertexShader(const char* path)
 	sprintf(filename, "%sdump_vs.txt", path);
 
 	File::CreateEmptyFile(filename);
-///	File::WriteStringToFile(true, GenerateVertexShaderCode(g_nativeVertexFmt->m_components, g_ActiveConfig.backend_info.APIType), filename);
+///	File::WriteStringToFile(GenerateVertexShaderCode(g_nativeVertexFmt->m_components, g_ActiveConfig.backend_info.APIType), filename);
 }
 
 void GFXDebuggerBase::DumpPixelShaderConstants(const char* path)

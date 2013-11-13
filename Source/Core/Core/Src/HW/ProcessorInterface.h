@@ -16,9 +16,9 @@ namespace ProcessorInterface
 enum InterruptCause
 {
     INT_CAUSE_PI		  =    0x1, // YAGCD says: GP runtime error
-    INT_CAUSE_RSW         =    0x2, // Reset Switch    
-    INT_CAUSE_DI          =    0x4, // DVD interrupt 
-    INT_CAUSE_SI          =    0x8, // Serial interface    
+    INT_CAUSE_RSW         =    0x2, // Reset Switch
+    INT_CAUSE_DI          =    0x4, // DVD interrupt
+    INT_CAUSE_SI          =    0x8, // Serial interface
     INT_CAUSE_EXI         =   0x10, // Expansion interface
     INT_CAUSE_AI	      =   0x20, // Audio Interface Streaming
     INT_CAUSE_DSP         =   0x40, // DSP interface

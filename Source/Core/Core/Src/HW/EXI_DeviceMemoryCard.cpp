@@ -16,7 +16,7 @@
 #include "Sram.h"
 #include "GCMemcard.h"
 
-#define MC_STATUS_BUSY					0x80   
+#define MC_STATUS_BUSY					0x80
 #define MC_STATUS_UNLOCKED				0x40
 #define MC_STATUS_SLEEP					0x20
 #define MC_STATUS_ERASEERROR			0x10
@@ -53,7 +53,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	// we're potentially leaking events here, since there's no UnregisterEvent until emu shutdown, but I guess it's inconsequential
 	et_this_card = CoreTiming::RegisterEvent((card_index == 0) ? "memcardFlushA" : "memcardFlushB", FlushCallback);
 	et_cmd_done = CoreTiming::RegisterEvent((card_index == 0) ? "memcardDoneA" : "memcardDoneB", CmdDoneCallback);
- 
+
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
 	command = 0;
@@ -61,7 +61,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	m_uPosition = 0;
 	memset(programming_buffer, 0, sizeof(programming_buffer));
 	formatDelay = 0;
- 
+
 	//Nintendo Memory Card EXI IDs
 	//0x00000004 Memory Card 59		4Mbit
 	//0x00000008 Memory Card 123	8Mb
@@ -69,12 +69,12 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	//0x00000020 Memory Card 507	32Mb
 	//0x00000040 Memory Card 1019	64Mb
 	//0x00000080 Memory Card 2043	128Mb
- 
+
 	//0x00000510 16Mb "bigben" card
 	//card_id = 0xc243;
- 
+
 	card_id = 0xc221; // It's a Nintendo brand memcard
- 
+
 	File::IOFile pFile(m_strFilename, "rb");
 	if (pFile)
 	{
@@ -83,7 +83,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 		nintendo_card_id = memory_card_size / SIZE_TO_Mb;
 		memory_card_content = new u8[memory_card_size];
 		memset(memory_card_content, 0xFF, memory_card_size);
- 
+
 		INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
 		pFile.ReadBytes(memory_card_content, memory_card_size);
 
@@ -96,7 +96,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 
 		memory_card_content = new u8[memory_card_size];
 		GCMemcard::Format(memory_card_content, m_strFilename.find(".JAP.raw") != std::string::npos, nintendo_card_id);
-		memset(memory_card_content+MC_HDR_SIZE, 0xFF, memory_card_size-MC_HDR_SIZE); 
+		memset(memory_card_content+MC_HDR_SIZE, 0xFF, memory_card_size-MC_HDR_SIZE);
 		WARN_LOG(EXPANSIONINTERFACE, "No memory card found. Will create a new one.");
 	}
 	SetCardFlashID(memory_card_content, card_index);
@@ -167,14 +167,14 @@ CEXIMemoryCard::~CEXIMemoryCard()
 	Flush(true);
 	delete[] memory_card_content;
 	memory_card_content = NULL;
-	
+
 	if (flushThread.joinable())
 	{
 		flushThread.join();
 	}
 }
 
-bool CEXIMemoryCard::IsPresent() 
+bool CEXIMemoryCard::IsPresent()
 {
 	return true;
 }
@@ -207,7 +207,7 @@ void CEXIMemoryCard::SetCS(int cs)
 		m_uPosition = 0;
 	}
 	else
-	{	
+	{
 		switch (command)
 		{
 		case cmdSectorErase:
@@ -248,7 +248,7 @@ void CEXIMemoryCard::SetCS(int cs)
 
 				CmdDoneLater(5000);
 			}
-			
+
 			// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
 			// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write.
 			CoreTiming::RemoveEvent(et_this_card);
@@ -324,7 +324,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 			byte = 0xFF;
 			m_uPosition = 0;
 		}
-	} 
+	}
 	else
 	{
 		switch (command)
@@ -332,7 +332,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 		case cmdNintendoID:
 			//
 			// Nintendo card:
-			// 00 | 80 00 00 00 10 00 00 00 
+			// 00 | 80 00 00 00 10 00 00 00
 			// "bigben" card:
 			// 00 | ff 00 00 05 10 00 00 00 00 00 00 00 00 00 00
 			// we do it the Nintendo way.
@@ -431,7 +431,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 
 		default:
 			WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte %02x\n", byte);
-			byte = 0xFF;	
+			byte = 0xFF;
 		}
 	}
 	m_uPosition++;
@@ -474,7 +474,7 @@ void CEXIMemoryCard::DoState(PointerWrap &p)
 		p.Do(nintendo_card_id);
 		p.Do(card_id);
 		p.Do(memory_card_size);
-		p.DoArray(memory_card_content, memory_card_size); 
+		p.DoArray(memory_card_content, memory_card_size);
 		p.Do(card_index);
 	}
 }

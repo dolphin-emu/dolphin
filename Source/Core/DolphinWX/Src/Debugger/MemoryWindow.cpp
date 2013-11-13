@@ -238,7 +238,7 @@ void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 
 // Write exram (aram or mem2) to file
 void CMemoryWindow::OnDumpMem2( wxCommandEvent& event )
-{	
+{
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), Memory::m_pEXRAM, Memory::EXRAM_SIZE);

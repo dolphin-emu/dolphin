@@ -128,7 +128,7 @@ template <class T, u8 *P> void HW_Write_Memory(T _Data, const u32 _Address)
 }
 
 // Create shortcuts to the hardware devices' read and write functions.
-// This can be seen as an alternative to a switch() or if() table. 
+// This can be seen as an alternative to a switch() or if() table.
 #define BLOCKSIZE 4
 #define CP_START		0x00 //0x0000 >> 10
 #define WII_IPC_START	0x00 //0x0000 >> 10
@@ -406,7 +406,7 @@ bool AreMemoryBreakpointsActivated()
 
 u32 Read_Instruction(const u32 em_address)
 {
-	UGeckoInstruction inst = ReadUnchecked_U32(em_address);	
+	UGeckoInstruction inst = ReadUnchecked_U32(em_address);
 	return inst.hex;
 }
 

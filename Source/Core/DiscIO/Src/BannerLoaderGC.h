@@ -66,7 +66,7 @@ class CBannerLoaderGC
 		std::string GetDecodedString(const char (&data)[N])
 		{
 			auto const string_decoder = CVolumeGC::GetStringDecoder(m_country);
-			
+
 			// strnlen to trim NULLs
 			return string_decoder(std::string(data, strnlen(data, sizeof(data))));
 		}

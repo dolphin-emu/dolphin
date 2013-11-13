@@ -100,7 +100,7 @@ void JitArm::lfXX(UGeckoInstruction inst)
 		if (offsetReg == -1) // uses SIMM_16
 		{
 			MOVI2R(rB, offset);
-			ADD(rB, rB, RA); 
+			ADD(rB, rB, RA);
 		}
 		else
 			ADD(rB, gpr.R(offsetReg), RA);
@@ -137,7 +137,7 @@ void JitArm::lfXX(UGeckoInstruction inst)
 	LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 	CMP(rA, EXCEPTION_DSI);
 	FixupBranch DoNotLoad = B_CC(CC_EQ);
-	
+
 	if (update)
 		MOV(RA, rB);
 
@@ -161,24 +161,24 @@ void JitArm::lfXX(UGeckoInstruction inst)
 			VLDR(v0, rB, 0);
 			nemit.VREV64(I_8, v0, v0); // Byte swap to result
 		}
-	}	
+	}
 	else
 	{
 		PUSH(4, R0, R1, R2, R3);
 		MOV(R0, rB);
 		if (single)
 		{
-			MOVI2R(rA, (u32)&Memory::Read_U32);     
+			MOVI2R(rA, (u32)&Memory::Read_U32);
 			BL(rA);
 
-			VMOV(S0, R0);   
+			VMOV(S0, R0);
 
 			VCVT(v0, S0, 0);
 			VCVT(v1, S0, 0);
 		}
 		else
 		{
-			MOVI2R(rA, (u32)&Memory::Read_F64);     
+			MOVI2R(rA, (u32)&Memory::Read_F64);
 			BL(rA);
 
 #if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
@@ -251,7 +251,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 	}
 
 	ARMReg v0 = fpr.R0(inst.FS);
-	
+
 	if (update)
 	{
 		RA = gpr.R(a);
@@ -259,7 +259,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 		if (offsetReg == -1) // uses SIMM_16
 		{
 			MOVI2R(rB, offset);
-			ADD(rB, rB, RA); 
+			ADD(rB, rB, RA);
 		}
 		else
 			ADD(rB, gpr.R(offsetReg), RA);
@@ -298,7 +298,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 	{
 		LDR(rA, R9, PPCSTATE_OFF(Exceptions));
 		CMP(rA, EXCEPTION_DSI);
-		
+
 		SetCC(CC_NEQ);
 		MOV(RA, rB);
 		SetCC();
@@ -328,7 +328,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 		PUSH(4, R0, R1, R2, R3);
 		if (single)
 		{
-			MOVI2R(rA, (u32)&Memory::Write_U32);    
+			MOVI2R(rA, (u32)&Memory::Write_U32);
 			VMOV(R0, S0);
 			MOV(R1, rB);
 
@@ -337,7 +337,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 		}
 		else
 		{
-			MOVI2R(rA, (u32)&Memory::Write_F64);    
+			MOVI2R(rA, (u32)&Memory::Write_F64);
 #if !defined(__ARM_PCS_VFP) // SoftFP returns in R0 and R1
 			VMOV(R0, v0);
 			MOV(R2, rB);
@@ -366,7 +366,7 @@ void JitArm::stfs(UGeckoInstruction inst)
 	ARMReg rB = gpr.GetReg();
 	ARMReg v0 = fpr.R0(inst.FS);
 	VCVT(S0, v0, 0);
-	
+
 	if (inst.RA)
 	{
 		MOVI2R(rB, inst.SIMM_16);
@@ -376,8 +376,8 @@ void JitArm::stfs(UGeckoInstruction inst)
 	else
 		MOVI2R(rB, (u32)inst.SIMM_16);
 
-	
-	MOVI2R(rA, (u32)&Memory::Write_U32);	
+
+	MOVI2R(rA, (u32)&Memory::Write_U32);
 	PUSH(4, R0, R1, R2, R3);
 	VMOV(R0, S0);
 	MOV(R1, rB);
@@ -385,7 +385,7 @@ void JitArm::stfs(UGeckoInstruction inst)
 	BL(rA);
 
 	POP(4, R0, R1, R2, R3);
-	
+
 	gpr.Unlock(rA, rB);
 }
 

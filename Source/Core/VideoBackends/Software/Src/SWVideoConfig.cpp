@@ -12,7 +12,7 @@ SWVideoConfig::SWVideoConfig()
 {
 	bFullscreen = false;
 	bHideCursor = false;
-	renderToMainframe = false;	
+	renderToMainframe = false;
 
 	bHwRasterizer = false;
 

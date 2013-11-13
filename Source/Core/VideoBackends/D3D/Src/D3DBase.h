@@ -4,12 +4,13 @@
 
 #pragma once
 
-#include <D3DX11.h>
-#include <D3Dcompiler.h>
+#include <dxgi.h>
+#include <d3d11.h>
+#include <d3dcompiler.h>
 #include "Common.h"
 #include <vector>
 
-namespace DX11 
+namespace DX11
 {
 
 #define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = NULL; }
@@ -24,11 +25,9 @@ namespace D3D
 
 HRESULT LoadDXGI();
 HRESULT LoadD3D();
-HRESULT LoadD3DX();
 HRESULT LoadD3DCompiler();
 void UnloadDXGI();
 void UnloadD3D();
-void UnloadD3DX();
 void UnloadD3DCompiler();
 
 D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter);
@@ -71,36 +70,15 @@ void SetDebugObjectName(T resource, const char* name)
 #endif
 }
 
-}  // namespace
+}  // namespace D3D
 
-
-// Used to not require the SDK and runtime versions to match:
-// Linking with d3dx11.lib makes the most recent d3dx11_xx.dll of the
-// compiler's SDK a requirement, but this backend works with DX11 runtimes
-// back to August 2009 even if the backend was built with June 2010.
-// Add any d3dx11 functions which you want to use here and load them in Create()
-typedef HRESULT (WINAPI* D3DX11COMPILEFROMMEMORYTYPE)(LPCSTR, SIZE_T, LPCSTR, const D3D10_SHADER_MACRO*, LPD3D10INCLUDE, LPCSTR, LPCSTR, UINT, UINT, ID3DX11ThreadPump*, ID3D10Blob**, ID3D10Blob**, HRESULT*);
-typedef HRESULT (WINAPI* D3DX11FILTERTEXTURETYPE)(ID3D11DeviceContext*, ID3D11Resource*, UINT, UINT);
-typedef HRESULT (WINAPI* D3DX11SAVETEXTURETOFILEATYPE)(ID3D11DeviceContext*, ID3D11Resource*, D3DX11_IMAGE_FILE_FORMAT, LPCSTR);
-typedef HRESULT (WINAPI* D3DX11SAVETEXTURETOFILEWTYPE)(ID3D11DeviceContext*, ID3D11Resource*, D3DX11_IMAGE_FILE_FORMAT, LPCWSTR);
-
-extern D3DX11COMPILEFROMMEMORYTYPE PD3DX11CompileFromMemory;
-extern D3DX11FILTERTEXTURETYPE PD3DX11FilterTexture;
-extern D3DX11SAVETEXTURETOFILEATYPE PD3DX11SaveTextureToFileA;
-extern D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW;
-
-#ifdef UNICODE
-#define PD3DX11SaveTextureToFile PD3DX11SaveTextureToFileW
-#else
-#define PD3DX11SaveTextureToFile PD3DX11SaveTextureToFileA
-#endif
-
-typedef HRESULT (WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
+typedef HRESULT (WINAPI *CREATEDXGIFACTORY)(REFIID, void**);
 extern CREATEDXGIFACTORY PCreateDXGIFactory;
-typedef HRESULT (WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
+typedef HRESULT (WINAPI *D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 extern D3D11CREATEDEVICE PD3D11CreateDevice;
 
 typedef HRESULT (WINAPI *D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
 extern D3DREFLECT PD3DReflect;
+extern pD3DCompile PD3DCompile;
 
 }  // namespace DX11

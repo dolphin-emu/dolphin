@@ -185,7 +185,7 @@ namespace EfbInterface
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
 				val |= depth & 0x00ffffff;
-				*dst = val;				
+				*dst = val;
 			}
 			break;
 		case PIXELFMT_RGB565_Z16:
@@ -194,7 +194,7 @@ namespace EfbInterface
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
 				val |= depth & 0x00ffffff;
-				*dst = val;		
+				*dst = val;
 			}
 			break;
 		default:

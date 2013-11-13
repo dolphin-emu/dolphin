@@ -22,7 +22,7 @@ FifoRecorder::FifoRecorder() :
 	m_File(NULL),
 	m_SkipNextData(true),
 	m_SkipFutureData(true),
-	m_FrameEnded(false),	
+	m_FrameEnded(false),
 	m_Ram(NULL),
 	m_ExRam(NULL)
 {
@@ -53,7 +53,7 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 	if (!m_IsRecording)
 	{
 		m_WasRecording = false;
-		m_IsRecording = true;		
+		m_IsRecording = true;
 		m_RecordFramesRemaining = numFrames;
 	}
 
@@ -88,7 +88,7 @@ void FifoRecorder::WriteGPCommand(u8 *data, u32 size)
 		memcpy(m_CurrentFrame.fifoData, &m_FifoData[0], dataSize);
 
 		sMutex.lock();
-		
+
 		// Copy frame to file
 		// The file will be responsible for freeing the memory allocated for each frame's fifoData
 		m_File->AddFrame(m_CurrentFrame);
@@ -132,11 +132,11 @@ void FifoRecorder::WriteMemory(u32 address, u32 size, MemoryUpdate::Type type)
 		memUpdate.fifoPosition = m_FifoData.size();
 		memUpdate.size = size;
 		memUpdate.type = type;
-		memUpdate.data = new u8[size];		
+		memUpdate.data = new u8[size];
 		memcpy(memUpdate.data, newData, size);
 
 		m_CurrentFrame.memoryUpdates.push_back(memUpdate);
-	}	
+	}
 }
 
 void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
@@ -149,7 +149,7 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 
 	m_CurrentFrame.fifoStart = fifoStart;
 	m_CurrentFrame.fifoEnd = fifoEnd;
-		
+
 	if (m_WasRecording)
 	{
 		// If recording a fixed number of frames then check if the end of the recording was reached

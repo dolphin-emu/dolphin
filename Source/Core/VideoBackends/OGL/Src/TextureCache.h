@@ -45,23 +45,23 @@ private:
 		~TCacheEntry();
 
 		void Load(unsigned int width, unsigned int height,
-			unsigned int expanded_width, unsigned int level);
+			unsigned int expanded_width, unsigned int level) override;
 
 		void FromRenderTarget(u32 dstAddr, unsigned int dstFormat,
 			unsigned int srcFormat, const EFBRectangle& srcRect,
 			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat);
+			const float *colmat) override;
 
-		void Bind(unsigned int stage);
+		void Bind(unsigned int stage) override;
 		bool Save(const char filename[], unsigned int level);
 	};
 
 	~TextureCache();
 
 	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,
-		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt);
+		unsigned int expanded_width, unsigned int tex_levels, PC_TexFormat pcfmt) override;
 
-	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h);
+	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) override;
 };
 
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level);

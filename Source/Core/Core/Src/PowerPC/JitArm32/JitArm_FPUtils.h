@@ -19,7 +19,7 @@ static Operand2 FXMask(2, 1); // 0x80000000
 static Operand2 VEMask(0x40, 0); // 0x40
 
 static Operand2 XXException(2, 4); // 0x2000000
-static Operand2 CVIException(1, 0xC); // 0x100 
+static Operand2 CVIException(1, 0xC); // 0x100
 static Operand2 NANException(1, 4); // 0x1000000
 static Operand2 VXVCException(8, 8); // 0x80000
 static Operand2 ZXException(1, 3); // 0x4000000
@@ -58,7 +58,7 @@ inline void JitArm::SetFPException(ARMReg Reg, u32 Exception)
 	ORR(Reg, Reg, *ExceptionMask);
 	CMP(rB, Reg);
 	SetCC(CC_NEQ);
-	ORR(Reg, Reg, FXMask); // If exception is set, set exception bit	
+	ORR(Reg, Reg, FXMask); // If exception is set, set exception bit
 	SetCC();
 	BIC(Reg, Reg, FRFIMask);
 	gpr.Unlock(rB);

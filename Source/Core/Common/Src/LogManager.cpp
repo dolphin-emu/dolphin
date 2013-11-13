@@ -13,7 +13,7 @@
 #include "Thread.h"
 #include "FileUtil.h"
 
-void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
+void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		const char *file, int line, const char* fmt, ...)
 {
 	va_list args;
@@ -81,14 +81,14 @@ LogManager::LogManager()
 	m_consoleLog = new ConsoleListener();
 	m_debuggerLog = new DebuggerLogListener();
 
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+	for (auto& container : m_Log)
 	{
-		m_Log[i]->SetEnable(true);
-		m_Log[i]->AddListener(m_fileLog);
-		m_Log[i]->AddListener(m_consoleLog);
+		container->SetEnable(true);
+		container->AddListener(m_fileLog);
+		container->AddListener(m_consoleLog);
 #ifdef _MSC_VER
 		if (IsDebuggerPresent())
-			m_Log[i]->AddListener(m_debuggerLog);
+			container->AddListener(m_debuggerLog);
 #endif
 	}
 }
@@ -102,15 +102,15 @@ LogManager::~LogManager()
 		m_logManager->RemoveListener((LogTypes::LOG_TYPE)i, m_debuggerLog);
 	}
 
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-		delete m_Log[i];
+	for (auto& container : m_Log)
+		delete container;
 
 	delete m_fileLog;
 	delete m_consoleLog;
 	delete m_debuggerLog;
 }
 
-void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
+void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	const char *file, int line, const char *format, va_list args)
 {
 	char temp[MAX_MSGLEN];
@@ -128,7 +128,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		file, line, level_to_char[(int)level],
 		log->GetShortName(), temp);
 #ifdef ANDROID
-	Host_SysMessage(msg);	
+	Host_SysMessage(msg);
 #endif
 	log->Trigger(level, msg);
 }

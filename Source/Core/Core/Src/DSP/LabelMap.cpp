@@ -27,7 +27,7 @@ void LabelMap::RegisterDefaults()
 void LabelMap::RegisterLabel(const std::string &label, u16 lval, LabelType type)
 {
 	u16 old_value;
-	if (GetLabelValue(label, &old_value) && old_value != lval) 
+	if (GetLabelValue(label, &old_value) && old_value != lval)
 	{
 		printf("WARNING: Redefined label %s to %04x - old value %04x\n",
 			   label.c_str(), lval, old_value);
@@ -49,20 +49,20 @@ void LabelMap::DeleteLabel(const std::string &label)
 	}
 }
 
-bool LabelMap::GetLabelValue(const std::string &label, u16 *value, LabelType type) const
+bool LabelMap::GetLabelValue(const std::string &name, u16 *value, LabelType type) const
 {
-	for (u32 i = 0; i < labels.size(); i++)
+	for (auto& label : labels)
 	{
-		if (!label.compare(labels[i].name))
+		if (!name.compare(label.name))
 		{
-			if (type & labels[i].type)
+			if (type & label.type)
 			{
-				*value = labels[i].addr;
+				*value = label.addr;
 				return true;
 			}
 			else
 			{
-				printf("WARNING: Wrong label type requested. %s\n", label.c_str());
+				printf("WARNING: Wrong label type requested. %s\n", name.c_str());
 			}
 		}
 	}

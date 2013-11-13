@@ -74,7 +74,7 @@ private:
 		ID_COUNT
 	};
 
-	void OnClose(wxCloseEvent& event);		
+	void OnClose(wxCloseEvent& event);
 	void CreateGUIControls();
 
 	void GeneralSettings(wxCommandEvent& event);

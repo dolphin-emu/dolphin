@@ -114,7 +114,7 @@ void JitILBase::cmpXX(UGeckoInstruction inst)
 	}
 
 	js.downcountAmount++; //TODO: should this be somewhere else?
-	
+
 	ibuild.EmitStoreCR(res, inst.CRFD);
 }
 
@@ -217,7 +217,7 @@ void JitILBase::subfic(UGeckoInstruction inst)
 	ibuild.EmitStoreCarry(test);
 }
 
-void JitILBase::subfcx(UGeckoInstruction inst) 
+void JitILBase::subfcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
@@ -234,7 +234,7 @@ void JitILBase::subfcx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void JitILBase::subfex(UGeckoInstruction inst) 
+void JitILBase::subfex(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
@@ -492,7 +492,7 @@ void JitILBase::srawx(UGeckoInstruction inst)
 	test = ibuild.EmitOr(val, mask2);
 	test = ibuild.EmitICmpUgt(test, mask);
 	ibuild.EmitStoreCarry(test);
-	
+
 	if (inst.Rc)
 		ComputeRC(ibuild, val);
 }
@@ -507,7 +507,7 @@ void JitILBase::srawix(UGeckoInstruction inst)
 	unsigned int mask = -1u << inst.SH;
 	test = ibuild.EmitOr(val, ibuild.EmitIntConst(mask & 0x7FFFFFFF));
 	test = ibuild.EmitICmpUgt(test, ibuild.EmitIntConst(mask));
-	
+
 	ibuild.EmitStoreCarry(test);
 	if (inst.Rc)
 		ComputeRC(ibuild, val);

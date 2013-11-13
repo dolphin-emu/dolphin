@@ -32,11 +32,12 @@
 #define GL_BGRA GL_RGBA
 #define glDrawElementsBaseVertex(...)
 #define glDrawRangeElementsBaseVertex(...)
-#define glRenderbufferStorageMultisampleCoverageNV(...) 
+#define glRenderbufferStorageMultisampleCoverageNV(...)
+#define glViewportIndexedf(...)
 #endif
 #else
 #define TEX2D	GL_TEXTURE_RECTANGLE_ARB
-#define PREC 
+#define PREC
 #define TEXTYPE "sampler2DRect"
 #define TEXFUNC "texture2DRect"
 #endif
@@ -70,14 +71,14 @@ __forceinline GLenum GL_REPORT_ERROR() { return GL_NO_ERROR; }
 #endif
 
 // this should be removed in future, but as long as glsl is unstable, we should really read this messages
-#if defined(_DEBUG) || defined(DEBUGFAST) 
+#if defined(_DEBUG) || defined(DEBUGFAST)
 #define DEBUG_GLSL 1
 #else
 #define DEBUG_GLSL 0
 #endif
 
 // Isn't defined if we aren't using GLEW 1.6
-#ifndef GL_ONE_MINUS_SRC1_ALPHA 
+#ifndef GL_ONE_MINUS_SRC1_ALPHA
 #define GL_ONE_MINUS_SRC1_ALPHA 0x88FB
 #endif
 

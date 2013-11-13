@@ -39,13 +39,6 @@ struct SQueuedEvent
 	}
 };
 
-// Hacks for ChunkFile to accept SQueuedEvent as POD
-namespace std
-{
-template <>
-struct is_pod<SQueuedEvent> : std::true_type {};
-}
-
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
 // /dev/usb/oh1 -> internal usb bus
 // 57e/305 -> VendorID/ProductID of device on usb bus
@@ -155,7 +148,7 @@ private:
 	SHCICommandMessage m_CtrlSetup;
 	CtrlBuffer m_HCIEndpoint;
 	std::deque<SQueuedEvent> m_EventQueue;
-	
+
 	u32 m_ACLSetup;
 	CtrlBuffer m_ACLEndpoint;
 
@@ -170,7 +163,7 @@ private:
 			u16 size;
 			u16 conn_handle;
 		};
-		
+
 		std::deque<Packet> m_queue;
 
 	public:
@@ -216,7 +209,7 @@ private:
 	bool SendEventReadRemoteFeatures(u16 _connectionHandle);
 	bool SendEventRoleChange(bdaddr_t _bd, bool _master);
 	bool SendEventNumberOfCompletedPackets();
-	bool SendEventAuthenticationCompleted(u16 _connectionHandle);	
+	bool SendEventAuthenticationCompleted(u16 _connectionHandle);
 	bool SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value);
 	bool SendEventDisconnect(u16 _connectionHandle, u8 _Reason);
 	bool SendEventRequestLinkKey(const bdaddr_t& _bd);
@@ -260,7 +253,7 @@ private:
 	void CommandWriteInquiryScanType(u8* _Input);
 	void CommandWriteLinkSupervisionTimeout(u8* _Input);
 
-	// OGF 0x04	Informational commands and return parameters 
+	// OGF 0x04	Informational commands and return parameters
 	void CommandReadBufferSize(u8* _Input);
 	void CommandReadLocalVer(u8* _Input);
 	void CommandReadLocalFeatures(u8* _Input);
@@ -268,14 +261,14 @@ private:
 
 	// OGF 0x3F Vendor specific
 	void CommandVendorSpecific_FC4C(u8* _Input, u32 _Size);
-	void CommandVendorSpecific_FC4F(u8* _Input, u32 _Size);	
+	void CommandVendorSpecific_FC4F(u8* _Input, u32 _Size);
 
 	// Debugging
 	void LOG_LinkKey(const u8* _pLinkKey);
 
 #pragma pack(push,1)
 #define CONF_PAD_MAX_REGISTERED 10
-	
+
 	struct _conf_pad_device
 	{
 		u8 bdaddr[6];

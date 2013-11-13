@@ -5,6 +5,7 @@
 #ifndef _PPCANALYST_H
 #define _PPCANALYST_H
 
+#include <algorithm>
 #include <vector>
 #include <map>
 
@@ -62,7 +63,7 @@ struct BlockRegStats
 
 	int GetTotalNumAccesses(int reg) {return numReads[reg] + numWrites[reg];}
 	int GetUseRange(int reg) {
-		return std::max(lastRead[reg], lastWrite[reg]) - 
+		return std::max(lastRead[reg], lastWrite[reg]) -
 			   std::min(firstRead[reg], firstWrite[reg]);}
 
 	inline void SetInputRegister(int reg, short opindex) {

@@ -36,7 +36,7 @@
 class IDSP {
 public:
 	virtual ~IDSP() {}
-	
+
 	virtual void Init() = 0;
 	virtual void Reset() = 0;
 	virtual u32 CheckMailTo() = 0;

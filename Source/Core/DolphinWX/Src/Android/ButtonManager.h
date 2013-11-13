@@ -76,11 +76,11 @@ namespace ButtonManager
 		const BindType m_bindtype;
 		const int m_bind;
 		const float m_neg;
-		sBind(ButtonType buttontype, BindType bindtype, int bind, float neg) 
-			: m_buttontype(buttontype), m_bindtype(bindtype), m_bind(bind), m_neg(neg) 
+		sBind(ButtonType buttontype, BindType bindtype, int bind, float neg)
+			: m_buttontype(buttontype), m_bindtype(bindtype), m_bind(bind), m_neg(neg)
 		{}
 	};
-	
+
 
 	class InputDevice
 	{
@@ -99,7 +99,7 @@ namespace ButtonManager
 			for (auto it = m_binds.begin(); it != m_binds.end(); ++it)
 				delete it->second;
 		}
-		void AddBind(sBind *bind) { m_binds[bind->m_buttontype] = bind; } 
+		void AddBind(sBind *bind) { m_binds[bind->m_buttontype] = bind; }
 		void PressEvent(int button, int action);
 		void AxisEvent(int axis, float value);
 		bool ButtonValue(ButtonType button);

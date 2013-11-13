@@ -54,7 +54,7 @@ public:
 	};
 
 	FifoDataFile();
-	~FifoDataFile();	
+	~FifoDataFile();
 
 	void SetIsWii(bool isWii);
 	bool GetIsWii() const;
@@ -77,7 +77,7 @@ private:
 	{
 		FLAG_IS_WII = 1
 	};
-	
+
 	void PadFile(u32 numBytes, File::IOFile &file);
 
 	void SetFlag(u32 flag, bool set);

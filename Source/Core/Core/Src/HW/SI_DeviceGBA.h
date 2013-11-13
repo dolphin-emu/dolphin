@@ -39,10 +39,10 @@ public:
 	~CSIDevice_GBA() {}
 
 	// Run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength);
+	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
 
-	virtual bool GetData(u32& _Hi, u32& _Low) { return true; }
-	virtual void SendCommand(u32 _Cmd, u8 _Poll) {}
+	virtual bool GetData(u32& _Hi, u32& _Low) override { return true; }
+	virtual void SendCommand(u32 _Cmd, u8 _Poll) override {}
 };
 
 #endif

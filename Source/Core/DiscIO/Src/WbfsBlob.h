@@ -18,7 +18,7 @@ class WbfsFileReader : public IBlobReader
 	WbfsFileReader(const char* filename);
 	~WbfsFileReader();
 
-	bool OpenFiles(const char* filename);	
+	bool OpenFiles(const char* filename);
 	bool ReadHeader();
 
 	File::IOFile& SeekToCluster(u64 offset, u64* available);

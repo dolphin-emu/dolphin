@@ -64,10 +64,10 @@ Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 	}
 	else
 	{
-		for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
+		for (auto& func : functions)
 		{
-			if (addr >= iter->second.address && addr < iter->second.address + iter->second.size)
-				return &iter->second;
+			if (addr >= func.second.address && addr < func.second.address + func.second.size)
+				return &func.second;
 		}
 	}
 	return 0;
@@ -108,7 +108,7 @@ bool IsAlpha(char c)
 
 void DisasssembleRange(u16 start, u16 end)
 {
-	
+
 }
 
 bool ReadAnnotatedAssembly(const char *filename)
@@ -120,9 +120,9 @@ bool ReadAnnotatedAssembly(const char *filename)
 		return false;
 	}
 	char line[512];
-	
+
 	int last_addr = 0;
-	
+
 	lines.reserve(3000);
 
 	// Symbol generation
@@ -229,7 +229,7 @@ bool ReadAnnotatedAssembly(const char *filename)
 					return false;
 				}
 			}
-			else 
+			else
 			{
 				// if (line_counter >= 200 && line_counter <= 220)
 				// 	NOTICE_LOG(DSPLLE, "Got Hex Digit %04x from %s, line %i", hex, line, line_counter);

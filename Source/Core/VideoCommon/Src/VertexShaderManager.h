@@ -12,8 +12,6 @@ class PointerWrap;
 
 void UpdateProjectionHack(int iParams[], std::string sParams[]);
 
-void UpdateViewportWithCorrection();
-
 // The non-API dependent parts.
 class VertexShaderManager
 {
@@ -36,7 +34,7 @@ public:
 	static void TranslateView(float x, float y, float z = 0.0f);
 	static void RotateView(float x, float y);
 	static void ResetView();
-	
+
 	static VertexShaderConstants constants;
 	static bool dirty;
 };

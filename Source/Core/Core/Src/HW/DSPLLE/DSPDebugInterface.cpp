@@ -10,7 +10,7 @@
 #include "DSPSymbols.h"
 #include "DSP/DSPMemoryMap.h"
 
-void DSPDebugInterface::disasm(unsigned int address, char *dest, int max_size) 
+void DSPDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 {
 	// we'll treat addresses as line numbers.
 	strncpy(dest, DSPSymbols::GetLineText(address), max_size);
@@ -72,7 +72,7 @@ bool DSPDebugInterface::isAlive()
 	return true; //Core::GetState() != Core::CORE_UNINITIALIZED;
 }
 
-bool DSPDebugInterface::isBreakpoint(unsigned int address) 
+bool DSPDebugInterface::isBreakpoint(unsigned int address)
 {
 	int real_addr = DSPSymbols::Line2Addr(address);
 	if (real_addr >= 0)
@@ -97,7 +97,7 @@ void DSPDebugInterface::setBreakpoint(unsigned int address)
 void DSPDebugInterface::clearBreakpoint(unsigned int address)
 {
 	int real_addr = DSPSymbols::Line2Addr(address);
-	
+
 	if (real_addr >= 0)
 	{
 		if (dsp_breakpoints.Remove(real_addr))
@@ -134,7 +134,7 @@ void DSPDebugInterface::toggleMemCheck(unsigned int address)
 	PanicAlert("MemCheck functionality not supported in DSP module.");
 }
 
-void DSPDebugInterface::insertBLR(unsigned int address, unsigned int value) 
+void DSPDebugInterface::insertBLR(unsigned int address, unsigned int value)
 {
 	PanicAlert("insertBLR functionality not supported in DSP module.");
 }
@@ -145,7 +145,7 @@ void DSPDebugInterface::insertBLR(unsigned int address, unsigned int value)
 int DSPDebugInterface::getColor(unsigned int address)
 {
 	static const int colors[6] =
-	{ 
+	{
 		0xd0FFFF,  // light cyan
 		0xFFd0d0,  // light red
 		0xd8d8FF,  // light blue
@@ -175,24 +175,24 @@ int DSPDebugInterface::getColor(unsigned int address)
 // =============
 
 
-std::string DSPDebugInterface::getDescription(unsigned int address) 
+std::string DSPDebugInterface::getDescription(unsigned int address)
 {
 	return "";  // g_symbolDB.GetDescription(address);
 }
 
-unsigned int DSPDebugInterface::getPC() 
+unsigned int DSPDebugInterface::getPC()
 {
 	return DSPSymbols::Addr2Line(g_dsp.pc);
 }
 
-void DSPDebugInterface::setPC(unsigned int address) 
+void DSPDebugInterface::setPC(unsigned int address)
 {
 	int new_pc = DSPSymbols::Line2Addr(address);
 	if (new_pc > 0)
 		g_dsp.pc = new_pc;
 }
 
-void DSPDebugInterface::runToBreakpoint() 
+void DSPDebugInterface::runToBreakpoint()
 {
 
 }

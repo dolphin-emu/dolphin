@@ -7,7 +7,7 @@
 
 #include "Volume.h"
 #include "Blob.h"
-#include "Crypto/aes.h"
+#include <polarssl/aes.h>
 
 // --- this volume type is used for encrypted Wii images ---
 
@@ -38,7 +38,7 @@ private:
 	IBlobReader* m_pReader;
 
 	u8* m_pBuffer;
-	AES_KEY m_AES_KEY;
+	aes_context* m_AES_ctx;
 
 	u64 m_VolumeOffset;
 	u64 dataOffset;

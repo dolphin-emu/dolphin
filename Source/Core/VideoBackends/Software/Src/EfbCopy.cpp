@@ -19,7 +19,7 @@ namespace EfbCopy
 {
 	void CopyToXfb()
 	{
-		GLInterface->Update(); // just updates the render window position and the backbuffer size	
+		GLInterface->Update(); // just updates the render window position and the backbuffer size
 
 		if (!g_SWVideoConfig.bHwRasterizer)
 		{

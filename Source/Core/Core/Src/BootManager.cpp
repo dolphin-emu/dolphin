@@ -9,7 +9,7 @@
 
 // Call sequence: This file has one of the first function called when a game is booted,
 // the boot sequence in the code is:
-  
+
 // DolphinWX:    FrameTools.cpp         StartGame
 // Core          BootManager.cpp        BootCore
 //               Core.cpp               Init                     Thread creation
@@ -141,7 +141,7 @@ bool BootCore(const std::string& _rFilename)
 			// Flush possible changes to SYSCONF to file
 			SConfig::GetInstance().m_SYSCONF->Save();
 		}
-	} 
+	}
 
 	// movie settings
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())

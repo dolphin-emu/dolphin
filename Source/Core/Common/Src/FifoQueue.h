@@ -48,7 +48,7 @@ public:
 		// create the element, add it to the queue
 		m_write_ptr->current = std::forward<Arg>(t);
 		// set the next pointer to a new element ptr
-		// then advance the write pointer 
+		// then advance the write pointer
 		ElementPtr* new_ptr = new ElementPtr();
 		AtomicStoreRelease(m_write_ptr->next, new_ptr);
 		m_write_ptr = new_ptr;

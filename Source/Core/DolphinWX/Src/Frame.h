@@ -164,7 +164,7 @@ public:
 		std::vector<int> Width, Height;
 	};
 	std::vector<SPerspectives> Perspectives;
-	u32 ActivePerspective;	
+	u32 ActivePerspective;
 
 private:
 	CGameListCtrl* m_GameListCtrl;
@@ -250,10 +250,10 @@ private:
 	void OnPaneClose(wxAuiManagerEvent& evt);
 	void ReloadPanes();
 	void DoLoadPerspective();
-	void OnDropDownToolbarSelect(wxCommandEvent& event);		
+	void OnDropDownToolbarSelect(wxCommandEvent& event);
 	void OnDropDownSettingsToolbar(wxAuiToolBarEvent& event);
 	void OnDropDownToolbarItem(wxAuiToolBarEvent& event);
-	void OnSelectPerspective(wxCommandEvent& event);		
+	void OnSelectPerspective(wxCommandEvent& event);
 
 #ifdef _WIN32
 	// Override window proc for tricks like screensaver disabling
@@ -284,7 +284,7 @@ private:
 	void OnChangeDisc(wxCommandEvent& event);
 	void OnScreenshot(wxCommandEvent& event);
 	void OnActive(wxActivateEvent& event);
-	void OnClose(wxCloseEvent &event);	
+	void OnClose(wxCloseEvent &event);
 	void OnLoadState(wxCommandEvent& event);
 	void OnSaveState(wxCommandEvent& event);
 	void OnLoadStateFromFile(wxCommandEvent& event);

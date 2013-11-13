@@ -49,7 +49,7 @@ ARMReg *ArmRegCache::GetPPCAllocationOrder(int &count)
 {
 	// This will return us the allocation order of the registers we can use on
 	// the ppc side.
-	static ARMReg allocationOrder[] = 
+	static ARMReg allocationOrder[] =
 	{
 		R0, R1, R2, R3, R4, R5, R6, R7, R8
 	};
@@ -60,7 +60,7 @@ ARMReg *ArmRegCache::GetAllocationOrder(int &count)
 {
 	// This will return us the allocation order of the registers we can use on
 	// the host side.
-	static ARMReg allocationOrder[] = 
+	static ARMReg allocationOrder[] =
 	{
 		R14, R12, R11, R10
 	};
@@ -124,7 +124,7 @@ bool ArmRegCache::FindFreeRegister(u32 &regindex)
 }
 
 ARMReg ArmRegCache::R(u32 preg)
-{	
+{
 	if (regs[preg].GetType() == REG_IMM)
 		return BindToRegister(preg);
 
@@ -137,7 +137,7 @@ ARMReg ArmRegCache::R(u32 preg)
 		ArmCRegs[a].LastLoad = 0;
 		return ArmCRegs[a].Reg;
 	}
-	
+
 	// Check if we have a free register
 	u32 regindex;
 	if (FindFreeRegister(regindex))
@@ -158,10 +158,10 @@ ARMReg ArmRegCache::R(u32 preg)
 
 	ArmCRegs[lastRegIndex].PPCReg = preg;
 	ArmCRegs[lastRegIndex].LastLoad = 0;
-	
+
 	regs[preg].LoadToReg(lastRegIndex);
 
-	return ArmCRegs[lastRegIndex].Reg;		 
+	return ArmCRegs[lastRegIndex].Reg;
 }
 
 ARMReg ArmRegCache::BindToRegister(u32 preg)
@@ -209,7 +209,7 @@ void ArmRegCache::Flush()
 	for (u8 a = 0; a < 32; ++a)
 	{
 		if (regs[a].GetType() == REG_IMM)
-			BindToRegister(a);	
+			BindToRegister(a);
 		if (regs[a].GetType() == REG_REG)
 		{
 			u32 regindex = regs[a].GetRegIndex();
@@ -217,7 +217,7 @@ void ArmRegCache::Flush()
 			ArmCRegs[regindex].PPCReg = 33;
 			ArmCRegs[regindex].LastLoad = 0;
 		}
-		
+
 		regs[a].Flush();
 	}
 }

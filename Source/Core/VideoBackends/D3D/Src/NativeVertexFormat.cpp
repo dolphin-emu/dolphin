@@ -76,7 +76,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 3; i++)
 	{
-		if (_vtx_decl.normal_offset[i] > 0) 
+		if (_vtx_decl.normal_offset[i] > 0)
 		{
 			m_elems[m_num_elems].SemanticName = "NORMAL";
 			m_elems[m_num_elems].SemanticIndex = i;
@@ -89,7 +89,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 2; i++)
 	{
-		if (_vtx_decl.color_offset[i] > 0) 
+		if (_vtx_decl.color_offset[i] > 0)
 		{
 			m_elems[m_num_elems].SemanticName = "COLOR";
 			m_elems[m_num_elems].SemanticIndex = i;

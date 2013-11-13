@@ -26,7 +26,7 @@ private:
 			float x, y;
 		} cursor;
 	};
-	
+
 	class Key : public Input
 	{
 		friend class KeyboardMouse;
@@ -34,14 +34,14 @@ private:
 		std::string GetName() const;
 		Key(Display* display, KeyCode keycode, const char* keyboard);
 		ControlState GetState() const;
-		
+
 	private:
 		std::string	m_keyname;
 		Display* const	m_display;
 		const char* const m_keyboard;
 		const KeyCode	m_keycode;
 	};
-	
+
 	class Button : public Input
 	{
 	public:
@@ -49,7 +49,7 @@ private:
 		Button(unsigned int index, unsigned int& buttons)
 			: m_buttons(buttons), m_index(index) {}
 		ControlState GetState() const;
-		
+
 	private:
 		const unsigned int& m_buttons;
 		const unsigned int m_index;
@@ -69,18 +69,18 @@ private:
 		const u8 m_index;
 		const bool m_positive;
 	};
-	
+
 public:
 	bool UpdateInput();
 	bool UpdateOutput();
-	
+
 	KeyboardMouse(Window window);
 	~KeyboardMouse();
-	
+
 	std::string GetName() const;
 	std::string GetSource() const;
 	int GetId() const;
-	
+
 private:
 	Window m_window;
 	Display* m_display;

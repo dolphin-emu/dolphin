@@ -15,7 +15,7 @@
 const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
 
 //static u64 GC_ALIGNED16(temp64); // unused?
- 
+
 // TODO(ector): Improve 64-bit version
 #if 0
 static void WriteDual32(u64 value, u32 address)
@@ -122,12 +122,6 @@ void Jit64::psq_l(UGeckoInstruction inst)
 
 	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
 
-	if (inst.W) {
-		// PanicAlert("Single ps load: %i %i", gqr.ST_TYPE, gqr.ST_SCALE);
-		Default(inst);
-		return;
-	}
-
 	bool update = inst.OPCD == 57;
 	int offset = inst.SIMM_12;
 
@@ -143,6 +137,8 @@ void Jit64::psq_l(UGeckoInstruction inst)
 		MOV(32, gpr.R(inst.RA), R(ECX));
 	MOVZX(32, 16, EAX, M(((char *)&GQR(inst.I)) + 2));
 	MOVZX(32, 8, EDX, R(AL));
+	if (inst.W)
+		OR(32, R(EDX), Imm8(8));
 #ifdef _M_IX86
 	int addr_scale = SCALE_4;
 #else

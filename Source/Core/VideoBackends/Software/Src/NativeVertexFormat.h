@@ -85,11 +85,11 @@ struct OutputVertexData
 		mvPosition.DoState(p);
 		p.Do(projectedPosition);
 		screenPosition.DoState(p);
-		for (int i = 0; i < 3;++i)
-			normal[i].DoState(p);
+		for (auto& vec : normal)
+			vec.DoState(p);
 		p.DoArray(color, sizeof color);
-		for (int i = 0; i < 8;++i)
-			texCoords[i].DoState(p);
+		for (auto& vec : texCoords)
+			vec.DoState(p);
 	}
 
 };

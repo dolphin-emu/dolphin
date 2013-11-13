@@ -46,7 +46,7 @@ u32 Interpreter::Helper_Mask(int mb, int me)
 	//do the bitflip
 	u32 mask = begin ^ end;
 	//and invert if backwards
-	if (me < mb) 
+	if (me < mb)
 		return ~mask;
 	else
 		return mask;
@@ -64,7 +64,7 @@ void Interpreter::addic(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 imm = (u32)(s32)_inst.SIMM_16;
-	// TODO(ector): verify this thing 
+	// TODO(ector): verify this thing
 	m_GPR[_inst.RD] = a + imm;
 	SetCarry(Helper_Carry(a, imm));
 }
@@ -135,7 +135,7 @@ void Interpreter::subfic(UGeckoInstruction _inst)
 //	#define CALC_XER_CA(X,Y) (((X) + (Y) < X) ? SET_XER_CA : CLEAR_XER_CA)
 	if ((rra + immediate) < rra)
 		SetCarry(1);
-	else 
+	else
 		SetCarry(0);
 
 	m_GPR[_inst.RD] = rra - immediate;
@@ -146,7 +146,7 @@ void Interpreter::subfic(UGeckoInstruction _inst)
 	SetCarry((m_GPR[_inst.RA] == 0) || (Helper_Carry(0-m_GPR[_inst.RA], immediate)));
 }
 
-void Interpreter::twi(UGeckoInstruction _inst) 
+void Interpreter::twi(UGeckoInstruction _inst)
 {
 	s32 a = m_GPR[_inst.RA];
 	s32 b = _inst.SIMM_16;
@@ -216,8 +216,8 @@ void Interpreter::cmp(UGeckoInstruction _inst)
 {
 	s32 a = (s32)m_GPR[_inst.RA];
 	s32 b = (s32)m_GPR[_inst.RB];
-	int fTemp = 0x8; // a < b 
-		//	if (a < b)  fTemp = 0x8; else 
+	int fTemp = 0x8; // a < b
+		//	if (a < b)  fTemp = 0x8; else
 	if (a > b)  fTemp = 0x4;
 	else if (a == b) fTemp = 0x2;
 	if (GetXER_SO()) PanicAlert("cmp getting overflow flag"); // fTemp |= 0x1
@@ -230,7 +230,7 @@ void Interpreter::cmpl(UGeckoInstruction _inst)
 	u32 b = m_GPR[_inst.RB];
 	u32 fTemp = 0x8; // a < b
 
-		//	if (a < b)  fTemp = 0x8;else 
+		//	if (a < b)  fTemp = 0x8;else
 	if (a > b)  fTemp = 0x4;
 	else if (a == b) fTemp = 0x2;
 	if (GetXER_SO()) PanicAlert("cmpl getting overflow flag"); // fTemp |= 0x1;
@@ -243,7 +243,7 @@ void Interpreter::cntlzwx(UGeckoInstruction _inst)
 	u32 mask = 0x80000000;
 	int i = 0;
 	for (; i < 32; i++, mask >>= 1)
-		if (val & mask) 
+		if (val & mask)
 			break;
 	m_GPR[_inst.RA] = i;
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
@@ -374,7 +374,7 @@ void Interpreter::srwx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
 
-void Interpreter::tw(UGeckoInstruction _inst)  
+void Interpreter::tw(UGeckoInstruction _inst)
 {
 	s32 a = m_GPR[_inst.RA];
 	s32 b = m_GPR[_inst.RB];

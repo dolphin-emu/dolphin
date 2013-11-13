@@ -1,3 +1,8 @@
+// XInput suffers a similar issue as XAudio2. Since Win8, it is part of the OS.
+// However, unlike XAudio2 they have not made the API incompatible - so we just
+// compile against the latest version and fall back to dynamically loading the
+// old DLL.
+
 #ifndef _CIFACE_XINPUT_H_
 #define _CIFACE_XINPUT_H_
 
@@ -7,12 +12,17 @@
 #include <Windows.h>
 #include <XInput.h>
 
+#ifndef XINPUT_DEVSUBTYPE_FLIGHT_STICK
+#error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path and/or _WIN32_WINNT is wrong.
+#endif
+
 namespace ciface
 {
 namespace XInput
 {
 
 void Init(std::vector<Core::Device*>& devices);
+void DeInit();
 
 class Device : public Core::Device
 {

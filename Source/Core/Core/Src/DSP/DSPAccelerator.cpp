@@ -73,7 +73,7 @@ u16 dsp_read_aram_d3()
 			break;
 	}
 
-	if (Address >= EndAddress) 
+	if (Address >= EndAddress)
 	{
 		// Set address back to start address. (never seen this here!)
 		Address = (g_dsp.ifx_regs[DSP_ACSAH] << 16) | g_dsp.ifx_regs[DSP_ACSAL];
@@ -131,7 +131,7 @@ u16 dsp_read_accelerator()
 			Address++;
 			break;
 		case 0x19:  // 8-bit PCM audio
-			val = DSPHost_ReadHostMemory(Address) << 8; 
+			val = DSPHost_ReadHostMemory(Address) << 8;
 			g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 			g_dsp.ifx_regs[DSP_YN1] = val;
 			Address++;

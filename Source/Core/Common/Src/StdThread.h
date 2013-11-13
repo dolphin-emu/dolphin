@@ -18,6 +18,12 @@
 #elif __has_include(<thread>) && !ANDROID
 // Clang + libc++
 #include <thread>
+
+#elif _MSC_VER >= 1700
+
+// The standard implementation is included since VS2012
+#include <thread>
+
 #else
 
 // partial std::thread implementation for win32/pthread
@@ -207,7 +213,7 @@ public:
 		std::swap(m_handle, other.m_handle);
 #endif
 	}
-	
+
 	static unsigned hardware_concurrency()
 	{
 #ifdef _WIN32
@@ -221,7 +227,7 @@ public:
 
 private:
 	id m_id;
-	
+
 #ifdef _WIN32
 	native_handle_type m_handle;
 #endif
@@ -241,7 +247,7 @@ private:
 			m_id = id();
 #endif
 	}
-	
+
 	template <typename C>
 	class Func
 	{

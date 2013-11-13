@@ -24,7 +24,7 @@ struct SFileInfo
 		memset(m_FullPath, 0, sizeof(m_FullPath));
 	}
 
-	SFileInfo(const SFileInfo &rhs) : m_NameOffset(rhs.m_NameOffset), 
+	SFileInfo(const SFileInfo &rhs) : m_NameOffset(rhs.m_NameOffset),
 		m_Offset(rhs.m_Offset), m_FileSize(rhs.m_FileSize) {
 		memcpy(m_FullPath, rhs.m_FullPath, strlen(rhs.m_FullPath) + 1);
 	}

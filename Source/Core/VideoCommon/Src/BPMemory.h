@@ -21,7 +21,7 @@
 #define BPMEM_LINEPTWIDTH      0x22
 #define BPMEM_PERF0_TRI        0x23
 #define BPMEM_PERF0_QUAD       0x24
-#define BPMEM_RAS1_SS0         0x25 
+#define BPMEM_RAS1_SS0         0x25
 #define BPMEM_RAS1_SS1         0x26
 #define BPMEM_IREF             0x27
 #define BPMEM_TREF             0x28 // 0x28 + 8
@@ -47,7 +47,7 @@
 #define BPMEM_TRIGGER_EFB_COPY 0x52
 #define BPMEM_COPYFILTER0      0x53
 #define BPMEM_COPYFILTER1      0x54
-#define BPMEM_CLEARBBOX1       0x55 
+#define BPMEM_CLEARBBOX1       0x55
 #define BPMEM_CLEARBBOX2       0x56
 #define BPMEM_CLEAR_PIXEL_PERF 0x57
 #define BPMEM_REVBITS          0x58
@@ -181,7 +181,7 @@ enum Compare
 
 enum AlphaOp
 {
-	ALPHAOP_AND = 0, 
+	ALPHAOP_AND = 0,
 	ALPHAOP_OR,
 	ALPHAOP_XOR,
 	ALPHAOP_XNOR,
@@ -289,7 +289,7 @@ struct TevStageCombiner
 	};
 	union AlphaCombiner
 	{
-		struct 
+		struct
 		{
 			u32 rswap : 2;
 			u32 tswap : 2;
@@ -367,7 +367,7 @@ struct TevStageCombiner
 		};
 		struct
 		{
-			u32 hex : 21; 
+			u32 hex : 21;
 			u32 unused : 11;
 		};
 
@@ -442,7 +442,7 @@ union RAS1_IREF
 
 union TexMode0
 {
-	struct 
+	struct
 	{
 		u32 wrap_s : 2;
 		u32 wrap_t : 2;
@@ -458,7 +458,7 @@ union TexMode0
 };
 union TexMode1
 {
-	struct 
+	struct
 	{
 		u32 min_lod : 8;
 		u32 max_lod : 8;
@@ -467,7 +467,7 @@ union TexMode1
 };
 union TexImage0
 {
-	struct 
+	struct
 	{
 		u32 width  : 10; //actually w-1
 		u32 height : 10; //actually h-1
@@ -477,7 +477,7 @@ union TexImage0
 };
 union TexImage1
 {
-	struct 
+	struct
 	{
 		u32 tmem_even : 15; // tmem line index for even LODs
 		u32 cache_width : 3;
@@ -489,10 +489,10 @@ union TexImage1
 
 union TexImage2
 {
-	struct 
+	struct
 	{
 		u32 tmem_odd : 15; // tmem line index for odd LODs
-		u32 cache_width : 3; 
+		u32 cache_width : 3;
 		u32 cache_height : 3;
 	};
 	u32 hex;
@@ -500,7 +500,7 @@ union TexImage2
 
 union TexImage3
 {
-	struct 
+	struct
 	{
 		u32 image_base: 24;  //address in memory >> 5 (was 20 for GC)
 	};
@@ -508,7 +508,7 @@ union TexImage3
 };
 union TexTLUT
 {
-	struct 
+	struct
 	{
 		u32 tmem_offset : 10;
 		u32 tlut_format : 2;
@@ -518,7 +518,7 @@ union TexTLUT
 
 union ZTex1
 {
-	struct 
+	struct
 	{
 		u32 bias : 24;
 	};
@@ -527,7 +527,7 @@ union ZTex1
 
 union ZTex2
 {
-	struct 
+	struct
 	{
 		u32 type : 2; // TEV_Z_TYPE_X
 		u32 op : 2; // GXZTexOp
@@ -563,7 +563,7 @@ struct FourTexUnits
 
 union GenMode
 {
-	struct 
+	struct
 	{
 		u32 numtexgens : 4;    //     0xF
 		u32 numcolchans : 5;   //   0x1E0
@@ -578,7 +578,7 @@ union GenMode
 
 union LPSize
 {
-	struct 
+	struct
 	{
 		u32 linesize : 8; // in 1/6th pixels
 		u32 pointsize : 8; // in 1/6th pixels
@@ -593,7 +593,7 @@ union LPSize
 
 union X12Y12
 {
-	struct 
+	struct
 	{
 		u32 y : 12;
 		u32 x : 12;
@@ -602,7 +602,7 @@ union X12Y12
 };
 union X10Y10
 {
-	struct 
+	struct
 	{
 		u32 x : 10;
 		u32 y : 10;
@@ -626,7 +626,7 @@ union X10Y10
 
 union BlendMode
 {
-	struct 
+	struct
 	{
 		u32 blendenable   : 1;
 		u32 logicopenable : 1;
@@ -644,7 +644,7 @@ union BlendMode
 
 union FogParam0
 {
-	struct 
+	struct
 	{
 		u32 mantissa : 11;
 		u32 exponent : 8;
@@ -674,7 +674,7 @@ union FogParam3
 
 	// amount to subtract from eyespacez after range adjustment
 	float GetC()
-	{ 
+	{
 		union { u32 i; float f; } dummy;
 		dummy.i = ((u32)c_sign << 31) | ((u32)c_exp << 23) | ((u32)c_mant << 12); // scale mantissa from 11 to 23 bits
 		return dummy.f;
@@ -814,7 +814,7 @@ union PE_CONTROL
 
 union TCInfo
 {
-	struct 
+	struct
 	{
 		u32 scale_minus_1 : 16;
 		u32 range_bias : 1;
@@ -924,7 +924,7 @@ union AlphaTest
 union UPE_Copy
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		u32 clamp0				: 1; // if set clamp top
 		u32 clamp1				: 1; // if set clamp bottom
@@ -939,7 +939,7 @@ union UPE_Copy
 		u32 intensity_fmt		: 1; // if set, is an intensity format (I4,I8,IA4,IA8)
 		u32	auto_conv			: 1; // if 0 automatic color conversion by texture format and pixel type
 	};
-	u32 tp_realFormat() { 
+	u32 tp_realFormat() {
 		return target_pixel_format / 2 + (target_pixel_format & 1) * 8;
 	}
 };
@@ -983,7 +983,7 @@ struct BPMemory
 	// indirect matrices (set by GXSetIndTexMtx, selected by TevStageIndirect::mid)
 	// abc form a 2x3 offset matrix, there's 3 such matrices
 	// the 3 offset matrices can either be indirect type, S-type, or T-type
-	// 6bit scale factor s is distributed across IND_MTXA/B/C. 
+	// 6bit scale factor s is distributed across IND_MTXA/B/C.
 	// before using matrices scale by 2^-(s-17)
 	IND_MTX indmtx[3];//06-0e GXSetIndTexMtx, 2x3 matrices
 	IND_IMASK imask;//0f

@@ -8,41 +8,67 @@
 #include "JitRegCache.h"
 #include "CPUDetect.h"
 
-const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
-const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-const double GC_ALIGNED16(psOneOne2[2]) = {1.0, 1.0};
+static const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
+static const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+static const double GC_ALIGNED16(psOneOne2[2]) = {1.0, 1.0};
+static const double one_const = 1.0f;
 
-void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg))
+void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single,
+		      void (XEmitter::*op_2)(Gen::X64Reg, Gen::OpArg),
+		      void (XEmitter::*op_3)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg))
 {
+	if (!cpu_info.bAVX)
+	{
+		op_3 = nullptr;
+	}
+
 	fpr.Lock(d, a, b);
 	if (d == a)
 	{
-		fpr.BindToRegister(d, true);
-		(this->*op)(fpr.RX(d), fpr.R(b));
+		fpr.BindToRegister(d);
+		(this->*op_2)(fpr.RX(d), fpr.R(b));
 	}
 	else if (d == b)
 	{
 		if (reversible)
 		{
-			fpr.BindToRegister(d, true);
-			(this->*op)(fpr.RX(d), fpr.R(a));
+			fpr.BindToRegister(d);
+			(this->*op_2)(fpr.RX(d), fpr.R(a));
 		}
 		else
 		{
-			MOVSD(XMM0, fpr.R(b));
-			fpr.BindToRegister(d, !dupe);
-			MOVSD(fpr.RX(d), fpr.R(a));
-			(this->*op)(fpr.RX(d), Gen::R(XMM0));
+			if (op_3)
+			{
+				fpr.BindToRegister(d);
+				fpr.BindToRegister(a, true, false);
+				(this->*op_3)(fpr.RX(d), fpr.RX(a), fpr.R(b));
+			}
+			else
+			{
+				MOVSD(XMM0, fpr.R(b));
+				fpr.BindToRegister(d, false);
+				MOVSD(fpr.RX(d), fpr.R(a));
+				(this->*op_2)(fpr.RX(d), Gen::R(XMM0));
+			}
 		}
 	}
 	else
 	{
-		// Sources different from d, can use rather quick solution
-		fpr.BindToRegister(d, !dupe);
-		MOVSD(fpr.RX(d), fpr.R(a));
-		(this->*op)(fpr.RX(d), fpr.R(b));
+		if (op_3)
+		{
+			fpr.BindToRegister(d, false);
+			fpr.BindToRegister(a);
+			(this->*op_3)(fpr.RX(d), fpr.RX(a), fpr.R(b));
+		}
+		else
+		{
+			fpr.BindToRegister(d, false);
+			MOVSD(fpr.RX(d), fpr.R(a));
+			(this->*op_2)(fpr.RX(d), fpr.R(b));
+		}
 	}
-	if (dupe)
+
+	if (single)
 	{
 		ForceSinglePrecisionS(fpr.RX(d));
 		if (cpu_info.bSSE3)
@@ -59,9 +85,6 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEm
 	fpr.UnlockAll();
 }
 
-
-static const double one_const = 1.0f;
-
 void Jit64::fp_arith_s(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -70,40 +93,43 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 		Default(inst); return;
 	}
 
-	if (inst.SUBOP5 == 26) {
-		// frsqrtex
-		int d = inst.FD;
-		int b = inst.FB;
-		fpr.Lock(b, d);
-		fpr.BindToRegister(d, true, true);
-		MOVSD(XMM0, M((void *)&one_const));
-		SQRTSD(XMM1, fpr.R(b));
-		DIVSD(XMM0, R(XMM1));
-		MOVSD(fpr.R(d), XMM0);
-		fpr.UnlockAll();
-		return;
-	}
-
-	if (inst.SUBOP5 != 18 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21 &&
-	    inst.SUBOP5 != 25) {
-		Default(inst); return;
-	}
-
 	// Only the interpreter has "proper" support for (some) FP flags
 	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF) {
 		Default(inst); return;
 	}
 
-	bool dupe = inst.OPCD == 59;
+	bool single = inst.OPCD == 59;
 	switch (inst.SUBOP5)
 	{
-	case 18: fp_tri_op(inst.FD, inst.FA, inst.FB, false, dupe, &XEmitter::DIVSD); break; //div
-	case 20: fp_tri_op(inst.FD, inst.FA, inst.FB, false, dupe, &XEmitter::SUBSD); break; //sub
-	case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true,  dupe, &XEmitter::ADDSD); break; //add
-	case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, dupe, &XEmitter::MULSD); break; //mul
+	case 18: fp_tri_op(inst.FD, inst.FA, inst.FB, false, single, &XEmitter::DIVSD, &XEmitter::VDIVSD); break; //div
+	case 20: fp_tri_op(inst.FD, inst.FA, inst.FB, false, single, &XEmitter::SUBSD, &XEmitter::VSUBSD); break; //sub
+	case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true,  single, &XEmitter::ADDSD, &XEmitter::VADDSD); break; //add
+	case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true,  single, &XEmitter::MULSD, &XEmitter::VMULSD); break; //mul
 	default:
 		_assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");
 	}
+}
+
+void Jit64::frsqrtex(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITFloatingPointOff)
+	int d = inst.FD;
+	int b = inst.FB;
+	fpr.Lock(b, d);
+	fpr.BindToRegister(d, d == b, true);
+	MOVSD(XMM0, M((void *)&one_const));
+	SQRTSD(XMM1, fpr.R(b));
+	if (cpu_info.bAVX)
+	{
+		VDIVSD(fpr.RX(d), XMM0, R(XMM1));
+	}
+	else
+	{
+		DIVSD(XMM0, R(XMM1));
+		MOVSD(fpr.R(d), XMM0);
+	}
+	fpr.UnlockAll();
 }
 
 void Jit64::fmaddXX(UGeckoInstruction inst)
@@ -204,12 +230,12 @@ void Jit64::fmrx(UGeckoInstruction inst)
 	int d = inst.FD;
 	int b = inst.FB;
 	fpr.Lock(b, d);
-	fpr.BindToRegister(d, true, true);
+	fpr.BindToRegister(d, d == b, true);
 	MOVSD(XMM0, fpr.R(b));
 	MOVSD(fpr.R(d), XMM0);
 	fpr.UnlockAll();
 }
- 
+
 void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -264,12 +290,12 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 		SetJumpTarget(pGreater);
 		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4));
 		continue3 = J();
-	
+
 		// Less Than
 		SetJumpTarget(pLesser);
 		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8));
 	}
-	
+
 	SetJumpTarget(continue1);
 	if (a != b)
 	{

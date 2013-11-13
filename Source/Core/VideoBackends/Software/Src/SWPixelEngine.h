@@ -46,7 +46,7 @@ namespace SWPixelEngine
 	union UPEZConfReg
 	{
 		u16 Hex;
-		struct 
+		struct
 		{
 			u16 ZCompEnable		: 1; // Z Comparator Enable
 			u16 Function		: 3;
@@ -58,7 +58,7 @@ namespace SWPixelEngine
 	union UPEAlphaConfReg
 	{
 		u16 Hex;
-		struct 
+		struct
 		{
 			u16 BMMath			: 1; // GX_BM_BLEND || GX_BM_SUBSTRACT
 			u16 BMLogic			: 1; // GX_BM_LOGIC
@@ -75,7 +75,7 @@ namespace SWPixelEngine
 	union UPEDstAlphaConfReg
 	{
 		u16 Hex;
-		struct 
+		struct
 		{
 			u16 DstAlpha		: 8;
 			u16 Enable			: 1;
@@ -86,7 +86,7 @@ namespace SWPixelEngine
 	union UPEAlphaModeConfReg
 	{
 		u16 Hex;
-		struct 
+		struct
 		{
 			u16 Threshold		: 8;
 			u16 CompareMode		: 8;
@@ -96,7 +96,7 @@ namespace SWPixelEngine
 		union UPEAlphaReadReg
 	{
 		u16 Hex;
-		struct 
+		struct
 		{
 			u16 ReadMode	: 3;
 			u16				: 13;
@@ -105,7 +105,7 @@ namespace SWPixelEngine
 
 		union UPECtrlReg
 	{
-		struct 
+		struct
 		{
 			u16 PETokenEnable	:	1;
 			u16 PEFinishEnable	:	1;

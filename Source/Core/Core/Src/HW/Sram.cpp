@@ -31,7 +31,7 @@ SRAM sram_dump = {{
 
 #if 0
 // german
-SRAM sram_dump_german = {{ 
+SRAM sram_dump_german = {{
 	0x1F, 0x66,
 	0xE0, 0x96,
 	0x00, 0x00, 0x00, 0x00,
@@ -81,7 +81,7 @@ void SetCardFlashID(u8* buffer, u8 card_index)
 	{
 		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
 		csum += g_SRAM.flash_id[card_index][i] = buffer[i] - ((u8)rand&0xff);
-		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);	
+		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
 		rand &= (u64)0x0000000000007fffULL;
 	}
 	g_SRAM.flashID_chksum[card_index] = csum^0xFF;

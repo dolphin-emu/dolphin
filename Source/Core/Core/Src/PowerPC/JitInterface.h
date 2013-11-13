@@ -8,7 +8,7 @@
 namespace JitInterface
 {
 	void DoState(PointerWrap &p);
-	
+
 	CPUCoreBase *InitJitCore(int core);
 	void InitTables(int core);
 	CPUCoreBase *GetCore();
@@ -25,11 +25,11 @@ namespace JitInterface
 
 	// Clearing CodeCache
 	void ClearCache();
-	
+
 	void ClearSafe();
 
 	void InvalidateICache(u32 address, u32 size);
-	
+
 	void Shutdown();
 }
 extern bool bFakeVMEM;

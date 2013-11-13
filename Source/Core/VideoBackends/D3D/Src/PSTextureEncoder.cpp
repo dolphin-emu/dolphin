@@ -31,7 +31,7 @@
 
 namespace DX11
 {
-	
+
 union EFBEncodeParams
 {
 	struct
@@ -384,7 +384,7 @@ static const char EFB_ENCODE_PS[] =
 			"sample[y*8+x] = SampleEFB(subBlockUL+float2(x,y));\n"
 		"}\n"
 	"}\n"
-		
+
 	"uint dw[4];\n"
 	"for (uint i = 0; i < 4; ++i) {\n"
 		"dw[i] = UINT_44444444_BE(\n"
@@ -433,7 +433,7 @@ static const char EFB_ENCODE_PS[] =
 		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
 		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
 		");\n"
-	
+
 	"return dw4;\n"
 "}\n"
 
@@ -444,7 +444,7 @@ static const char EFB_ENCODE_PS[] =
 
 	"float2 blockUL = blockCoord * float2(8,4);\n"
 	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
-	
+
 	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
 	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
 	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
@@ -486,7 +486,7 @@ static const char EFB_ENCODE_PS[] =
 		"Float8ToUint4(sampleE.a), Float8ToUint4(sampleE.r),\n"
 		"Float8ToUint4(sampleF.a), Float8ToUint4(sampleF.r)\n"
 		");\n"
-	
+
 	"return uint4(dw0, dw1, dw2, dw3);\n"
 "}\n"
 
@@ -513,7 +513,7 @@ static const char EFB_ENCODE_PS[] =
 		"255*float4(sample1.a, sample3.a, sample5.a, sample7.a),\n"
 		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
 		");\n"
-	
+
 	"return dw4;\n"
 "}\n"
 
@@ -532,7 +532,7 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
 	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
 	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
-		
+
 	"uint dw0 = UINT_1616(EncodeRGB565(sample0), EncodeRGB565(sample1));\n"
 	"uint dw1 = UINT_1616(EncodeRGB565(sample2), EncodeRGB565(sample3));\n"
 	"uint dw2 = UINT_1616(EncodeRGB565(sample4), EncodeRGB565(sample5));\n"
@@ -556,12 +556,12 @@ static const char EFB_ENCODE_PS[] =
 	"float4 sample5 = SampleEFB(subBlockUL+float2(1,1));\n"
 	"float4 sample6 = SampleEFB(subBlockUL+float2(2,1));\n"
 	"float4 sample7 = SampleEFB(subBlockUL+float2(3,1));\n"
-		
+
 	"uint dw0 = UINT_1616(EncodeRGB5A3(sample0), EncodeRGB5A3(sample1));\n"
 	"uint dw1 = UINT_1616(EncodeRGB5A3(sample2), EncodeRGB5A3(sample3));\n"
 	"uint dw2 = UINT_1616(EncodeRGB5A3(sample4), EncodeRGB5A3(sample5));\n"
 	"uint dw3 = UINT_1616(EncodeRGB5A3(sample6), EncodeRGB5A3(sample7));\n"
-	
+
 	"return Swap4_32(uint4(dw0, dw1, dw2, dw3));\n"
 "}\n"
 
@@ -602,7 +602,7 @@ static const char EFB_ENCODE_PS[] =
 			"255*float4(sample1.b, sample3.b, sample5.b, sample7.b)\n"
 			");\n"
 	"}\n"
-	
+
 	"return dw4;\n"
 "}\n"
 
@@ -612,7 +612,7 @@ static const char EFB_ENCODE_PS[] =
 
 	"float2 blockUL = blockCoord * float2(8,4);\n"
 	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
-	
+
 	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
 	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
 	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
@@ -636,7 +636,7 @@ static const char EFB_ENCODE_PS[] =
 		"255*float4(sample2.a, sample6.a, sampleA.a, sampleE.a),\n"
 		"255*float4(sample3.a, sample7.a, sampleB.a, sampleF.a)\n"
 		");\n"
-	
+
 	"return dw4;\n"
 "}\n"
 
@@ -670,7 +670,7 @@ static const char EFB_ENCODE_PS[] =
 		"255*float4(sample2.r, sample6.r, sampleA.r, sampleE.r),\n"
 		"255*float4(sample3.r, sample7.r, sampleB.r, sampleF.r)\n"
 		");\n"
-	
+
 	"return dw4;\n"
 "}\n"
 
@@ -705,7 +705,7 @@ static const char EFB_ENCODE_PS[] =
 		"255*float4(sample2.g, sample6.g, sampleA.g, sampleE.g),\n"
 		"255*float4(sample3.g, sample7.g, sampleB.g, sampleF.g)\n"
 		");\n"
-	
+
 	"return dw4;\n"
 "}\n"
 
@@ -715,7 +715,7 @@ static const char EFB_ENCODE_PS[] =
 
 	"float2 blockUL = blockCoord * float2(8,4);\n"
 	"float2 subBlockUL = blockUL + float2(0, 2*(cacheCoord.x%2));\n"
-	
+
 	"float4 sample0 = SampleEFB(subBlockUL+float2(0,0));\n"
 	"float4 sample1 = SampleEFB(subBlockUL+float2(1,0));\n"
 	"float4 sample2 = SampleEFB(subBlockUL+float2(2,0));\n"
@@ -739,7 +739,7 @@ static const char EFB_ENCODE_PS[] =
 		"255*float4(sample2.b, sample6.b, sampleA.b, sampleE.b),\n"
 		"255*float4(sample3.b, sample7.b, sampleB.b, sampleF.b)\n"
 		");\n"
-	
+
 	"return dw4;\n"
 "}\n"
 
@@ -765,7 +765,7 @@ static const char EFB_ENCODE_PS[] =
 		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g),\n"
 		"255*float4(sample1.r, sample3.r, sample5.r, sample7.r)\n"
 		");\n"
-	
+
 	"return dw4;\n"
 "}\n"
 
@@ -792,7 +792,7 @@ static const char EFB_ENCODE_PS[] =
 		"255*float4(sample1.b, sample3.b, sample5.b, sample7.b),\n"
 		"255*float4(sample1.g, sample3.g, sample5.g, sample7.g)\n"
 		");\n"
-	
+
 	"return dw4;\n"
 "}\n"
 
@@ -902,7 +902,7 @@ void PSTextureEncoder::Init()
 	D3D::SetDebugObjectName(m_outRTV, "efb encoder output rtv");
 
 	// Create output staging buffer
-	
+
 	t2dd.Usage = D3D11_USAGE_STAGING;
 	t2dd.BindFlags = 0;
 	t2dd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
@@ -998,7 +998,7 @@ void PSTextureEncoder::Init()
 void PSTextureEncoder::Shutdown()
 {
 	m_ready = false;
-	
+
 	for (size_t i = 0; i < 4; ++i)
 		SAFE_RELEASE(m_fetchClass[i]);
 	for (size_t i = 0; i < 2; ++i)
@@ -1008,7 +1008,7 @@ void PSTextureEncoder::Shutdown()
 	for (size_t i = 0; i < 16; ++i)
 		SAFE_RELEASE(m_generatorClass[i]);
 	m_linkageArray.clear();
-	
+
 	SAFE_RELEASE(m_classLinkage);
 	SAFE_RELEASE(m_dynamicShader);
 
@@ -1073,13 +1073,13 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 	_assert_msg_(VIDEO, totalCacheLines*32 <= MAX_BYTES_PER_ENCODE, "total encode size sanity check");
 
 	size_t encodeSize = 0;
-	
+
 	// Reset API
 
 	g_renderer->ResetAPIState();
 
 	// Set up all the state for EFB encoding
-	
+
 #ifdef USE_DYNAMIC_MODE
 	if (SetDynamicShader(dstFormat, srcFormat, isIntensity, scaleByHalf))
 #else
@@ -1092,7 +1092,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		D3D::stateman->PushDepthState(m_efbEncodeDepthState);
 		D3D::stateman->PushRasterizerState(m_efbEncodeRastState);
 		D3D::stateman->Apply();
-	
+
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(cacheLinesPerRow*2), FLOAT(numBlocksY));
 		D3D::context->RSSetViewports(1, &vp);
 
@@ -1101,14 +1101,14 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		UINT stride = sizeof(QuadVertex);
 		UINT offset = 0;
 		D3D::context->IASetVertexBuffers(0, 1, &m_quad, &stride, &offset);
-	
+
 		EFBRectangle fullSrcRect;
 		fullSrcRect.left = 0;
 		fullSrcRect.top = 0;
 		fullSrcRect.right = EFB_WIDTH;
 		fullSrcRect.bottom = EFB_HEIGHT;
 		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
-	
+
 		EFBEncodeParams params = { 0 };
 		params.NumHalfCacheLinesX = FLOAT(cacheLinesPerRow*2);
 		params.NumBlocksY = FLOAT(numBlocksY);
@@ -1121,7 +1121,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		D3D::context->UpdateSubresource(m_encodeParams, 0, NULL, &params, 0, 0);
 
 		D3D::context->VSSetConstantBuffers(0, 1, &m_encodeParams);
-	
+
 		D3D::context->OMSetRenderTargets(1, &m_outRTV, NULL);
 
 		ID3D11ShaderResourceView* pEFB = (srcFormat == PIXELFMT_Z24) ?
@@ -1145,17 +1145,17 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 		D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
 
 		// Clean up state
-	
+
 		IUnknown* nullDummy = NULL;
 
 		D3D::context->PSSetSamplers(0, 1, (ID3D11SamplerState**)&nullDummy);
 		D3D::context->PSSetShaderResources(0, 1, (ID3D11ShaderResourceView**)&nullDummy);
 		D3D::context->PSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
-	
+
 		D3D::context->OMSetRenderTargets(0, NULL, NULL);
 
 		D3D::context->VSSetConstantBuffers(0, 1, (ID3D11Buffer**)&nullDummy);
-		
+
 		D3D::stateman->PopRasterizerState();
 		D3D::stateman->PopDepthState();
 		D3D::stateman->PopBlendState();
@@ -1312,7 +1312,7 @@ bool PSTextureEncoder::InitDynamicMode()
 	hr = D3D::device->CreatePixelShader(bytecode->Data(), bytecode->Size(), m_classLinkage, &m_dynamicShader);
 	CHECK(SUCCEEDED(hr), "create efb encode pixel shader");
 	D3D::SetDebugObjectName(m_dynamicShader, "efb encoder pixel shader");
-	
+
 	// Use D3DReflect
 
 	ID3D11ShaderReflection* reflect = NULL;
@@ -1438,7 +1438,7 @@ bool PSTextureEncoder::SetDynamicShader(unsigned int dstFormat,
 		m_linkageArray[m_intensitySlot] = m_intensityClass[intensityNum];
 	if (m_generatorSlot != UINT(-1))
 		m_linkageArray[m_generatorSlot] = m_generatorClass[generatorNum];
-	
+
 	D3D::context->PSSetShader(m_dynamicShader,
 		m_linkageArray.empty() ? NULL : &m_linkageArray[0],
 		(UINT)m_linkageArray.size());

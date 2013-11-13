@@ -108,7 +108,7 @@ void CCodeWindow::Save()
 		"Registers",
 		"Breakpoints",
 		"Memory",
-		"JIT", 
+		"JIT",
 		"Sound",
 		"Video",
 		"Code"

@@ -145,7 +145,7 @@ bool InstallCodeHandler()
 	u32 codelist_location = 0x800028B8; // Debugger on location (0x800022A8 = Debugger off, using codehandleronly.bin)
 	std::string data;
 	std::string _rCodeHandlerFilename = File::GetSysDirectory() + GECKO_CODE_HANDLER;
-	if (!File::ReadFileToString(false, _rCodeHandlerFilename.c_str(), data))
+	if (!File::ReadFileToString(_rCodeHandlerFilename.c_str(), data))
 		return false;
 
 	// Install code handler
@@ -764,7 +764,7 @@ bool RegisterOps()
 			dst_addr += new_data;
 		else
 			src_addr += new_data;
-		
+
 		while (count--)
 			Memory::Write_U8(Memory::Read_U8(src_addr++), dst_addr++);
 	}
@@ -922,7 +922,7 @@ bool SpecialIf()
 			result = (left_val < right_val);
 			break;
 		}
-	}	
+	}
 	else if (code.subtype & 0x4)
 	{
 		// counters get reset if code execution is off

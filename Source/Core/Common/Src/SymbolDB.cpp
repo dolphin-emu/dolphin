@@ -28,18 +28,18 @@ void SymbolDB::Clear(const char *prefix)
 void SymbolDB::Index()
 {
 	int i = 0;
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
+	for (auto& func : functions)
 	{
-		iter->second.index = i++;
+		func.second.index = i++;
 	}
 }
 
 Symbol *SymbolDB::GetSymbolFromName(const char *name)
 {
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
+	for (auto& func : functions)
 	{
-		if (!strcmp(iter->second.name.c_str(), name))
-			return &iter->second;
+		if (!strcmp(func.second.name.c_str(), name))
+			return &func.second;
 	}
 	return 0;
 }

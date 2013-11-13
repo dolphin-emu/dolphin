@@ -255,12 +255,12 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 			wxStaticText *StaticTextHeader = new wxStaticText(Page, wxID_ANY, _("Action"));
 			HeaderSizer->Add(StaticTextHeader, 1, wxALL, 2);
 			StaticTextHeader = new wxStaticText(Page, wxID_ANY, _("Key"), wxDefaultPosition, size);
-			HeaderSizer->Add(StaticTextHeader, 0, wxALL, 2);	
+			HeaderSizer->Add(StaticTextHeader, 0, wxALL, 2);
 			sHotkeys->Add(HeaderSizer, wxGBPosition(0, i), wxDefaultSpan, wxEXPAND | wxLEFT, (i > 0) ? 30 : 1);
 		}
 
 		int column_break = (page_breaks[j+1] + page_breaks[j] + 1) / 2;
-		
+
 		for (int i = page_breaks[j]; i < page_breaks[j+1]; i++)
 		{
 			// Text for the action

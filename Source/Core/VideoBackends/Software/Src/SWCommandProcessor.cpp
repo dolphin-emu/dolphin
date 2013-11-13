@@ -88,7 +88,7 @@ void Init()
 	cpreg.bboxbottom = 0;
 
 	cpreg.token = 0;
-	
+
 	et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 
 	// internal buffer position
@@ -174,7 +174,7 @@ void Write16(const u16 _Value, const u32 _Address)
 				cpreg.status.UnderflowLoWatermark = 0;
 
 			INFO_LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x",_Value);
-		}		
+		}
 		break;
 
 	// Fifo Registers

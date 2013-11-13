@@ -39,7 +39,7 @@
 #define I_TRANSFORMMATRICES     "ctrmtx"
 #define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
-#define I_DEPTHPARAMS           "cDepth" // farZ, zRange, scaled viewport width, scaled viewport height
+#define I_DEPTHPARAMS           "cDepth" // farZ, zRange
 
 //TODO: get rid of them, they aren't used at all
 #define C_POSNORMALMATRIX        0

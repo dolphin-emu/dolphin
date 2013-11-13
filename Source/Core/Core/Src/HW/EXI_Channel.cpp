@@ -30,8 +30,8 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 	if (m_ChannelId == 1)
 		m_Status.CHIP_SELECT = 1;
 
-	for (int i = 0; i < NUM_DEVICES; i++)
-		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId);
+	for (auto& device : m_pDevices)
+		device.reset(EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId));
 
 	updateInterrupts = CoreTiming::RegisterEvent("EXIInterrupt", UpdateInterrupts);
 }
@@ -43,11 +43,8 @@ CEXIChannel::~CEXIChannel()
 
 void CEXIChannel::RemoveDevices()
 {
-	for (int i = 0; i < NUM_DEVICES; i++)
-	{
-		delete m_pDevices[i];
-		m_pDevices[i] = NULL;
-	}
+	for (auto& device : m_pDevices)
+		device.reset();
 }
 
 void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
@@ -60,15 +57,8 @@ void CEXIChannel::AddDevice(IEXIDevice* pDevice, const int device_num, bool noti
 {
 	_dbg_assert_(EXPANSIONINTERFACE, device_num < NUM_DEVICES);
 
-	// delete the old device
-	if (m_pDevices[device_num] != NULL)
-	{
-		delete m_pDevices[device_num];
-		m_pDevices[device_num] = NULL;
-	}
-
 	// replace it with the new one
-	m_pDevices[device_num] = pDevice;
+	m_pDevices[device_num].reset(pDevice);
 
 	if(notifyPresenceChanged)
 	{
@@ -111,9 +101,9 @@ IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
 {
 	switch (chip_select)
 	{
-	case 1: return m_pDevices[0];
-	case 2: return m_pDevices[1];
-	case 4: return m_pDevices[2];
+	case 1: return m_pDevices[0].get();
+	case 2: return m_pDevices[1].get();
+	case 4: return m_pDevices[2].get();
 	}
 	return NULL;
 }
@@ -121,10 +111,8 @@ IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
 void CEXIChannel::Update()
 {
 	// start the transfer
-	for (int i = 0; i < NUM_DEVICES; i++)
-	{
-		m_pDevices[i]->Update();
-	}
+	for (auto& device : m_pDevices)
+		device->Update();
 }
 
 void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
@@ -283,7 +271,7 @@ void CEXIChannel::DoState(PointerWrap &p)
 
 	for (int d = 0; d < NUM_DEVICES; ++d)
 	{
-		IEXIDevice* pDevice = m_pDevices[d];
+		IEXIDevice* pDevice = m_pDevices[d].get();
 		TEXIDevices type = pDevice->m_deviceType;
 		p.Do(type);
 		IEXIDevice* pSaveDevice = (type == pDevice->m_deviceType) ? pDevice : EXIDevice_Create(type, m_ChannelId);
@@ -308,15 +296,15 @@ void CEXIChannel::DoState(PointerWrap &p)
 
 void CEXIChannel::PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
-	for (int d = 0; d < NUM_DEVICES; ++d)
-		m_pDevices[d]->PauseAndLock(doLock, unpauseOnUnlock);
+	for (auto& device : m_pDevices)
+		device->PauseAndLock(doLock, unpauseOnUnlock);
 }
 
 IEXIDevice* CEXIChannel::FindDevice(TEXIDevices device_type, int customIndex)
 {
-	for (int d = 0; d < NUM_DEVICES; ++d)
+	for (auto& sup : m_pDevices)
 	{
-		IEXIDevice* device = m_pDevices[d]->FindDevice(device_type, customIndex);
+		IEXIDevice* device = sup->FindDevice(device_type, customIndex);
 		if (device)
 			return device;
 	}

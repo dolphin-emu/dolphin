@@ -222,7 +222,7 @@ void DoState(PointerWrap &p)
 		p.Do(g_Channel[i].m_InHi.Hex);
 		p.Do(g_Channel[i].m_InLo.Hex);
 		p.Do(g_Channel[i].m_Out.Hex);
-		
+
 		ISIDevice* pDevice = g_Channel[i].m_pDevice;
 		SIDevices type = pDevice->GetDeviceType();
 		p.Do(type);
@@ -249,13 +249,13 @@ void DoState(PointerWrap &p)
 	p.DoPOD(g_StatusReg);
 	p.Do(g_EXIClockCount);
 	p.Do(g_SIBuffer);
-}	
+}
 
 
 void Init()
 {
 	for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
-	{	
+	{
 		g_Channel[i].m_Out.Hex = 0;
 		g_Channel[i].m_InHi.Hex = 0;
 		g_Channel[i].m_InLo.Hex = 0;

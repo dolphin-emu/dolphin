@@ -51,7 +51,7 @@ namespace DriverDetails
 		m_vendor = vendor;
 		m_driver = driver;
 		m_version = version;
-		
+
 		if (driver == DRIVER_UNKNOWN)
 			switch(vendor)
 			{
@@ -74,16 +74,16 @@ namespace DriverDetails
 				default:
 				break;
 			}
-			
-		for(unsigned int a = 0; a < (sizeof(m_known_bugs) / sizeof(BugInfo)); ++a)
+
+		for(auto& bug : m_known_bugs)
 		{
 			if(
-				( m_known_bugs[a].m_vendor == m_vendor || m_known_bugs[a].m_vendor == VENDOR_ALL ) &&
-				( m_known_bugs[a].m_driver == m_driver || m_known_bugs[a].m_driver == DRIVER_ALL ) &&
-				( m_known_bugs[a].m_versionstart <= m_version || m_known_bugs[a].m_versionstart == -1 ) &&
-				( m_known_bugs[a].m_versionend > m_version || m_known_bugs[a].m_versionend == -1 )
+				( bug.m_vendor == m_vendor || bug.m_vendor == VENDOR_ALL ) &&
+				( bug.m_driver == m_driver || bug.m_driver == DRIVER_ALL ) &&
+				( bug.m_versionstart <= m_version || bug.m_versionstart == -1 ) &&
+				( bug.m_versionend > m_version || bug.m_versionend == -1 )
 			)
-				m_bugs.insert(std::make_pair(m_known_bugs[a].m_bug, m_known_bugs[a]));
+				m_bugs.insert(std::make_pair(bug.m_bug, bug));
 		}
 	}
 
@@ -91,7 +91,7 @@ namespace DriverDetails
 	{
 		auto it = m_bugs.find(bug);
 		if (it == m_bugs.end())
-			return false;	
+			return false;
 		return it->second.m_hasbug;
 	}
 }

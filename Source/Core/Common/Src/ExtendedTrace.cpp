@@ -30,7 +30,7 @@ using namespace std;
 void PCSTR2LPTSTR( PCSTR lpszIn, LPTSTR lpszOut )
 {
 #if defined(UNICODE)||defined(_UNICODE)
-	ULONG index = 0; 
+	ULONG index = 0;
 	PCSTR lpAct = lpszIn;
 
 	for( ; ; lpAct++ )
@@ -38,7 +38,7 @@ void PCSTR2LPTSTR( PCSTR lpszIn, LPTSTR lpszOut )
 		lpszOut[index++] = (TCHAR)(*lpAct);
 		if ( *lpAct == 0 )
 			break;
-	} 
+	}
 #else
 	// This is trivial :)
 	strcpy( lpszOut, lpszIn );
@@ -102,7 +102,7 @@ BOOL InitSymInfo( PCSTR lpszInitialSymbolPath )
 	CHAR     lpszSymbolPath[BUFFERSIZE];
 	DWORD    symOptions = SymGetOptions();
 
-	symOptions |= SYMOPT_LOAD_LINES; 
+	symOptions |= SYMOPT_LOAD_LINES;
 	symOptions &= ~SYMOPT_UNDNAME;
 	SymSetOptions( symOptions );
 	InitSymbolPath( lpszSymbolPath, lpszInitialSymbolPath );
@@ -154,15 +154,15 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 #ifndef _M_X64
 	DWORD             dwDisp = 0;
 	if ( SymGetSymFromAddr( GetCurrentProcess(), (ULONG)fnAddress, &dwDisp, pSym ) )
-#else 
+#else
 	//makes it compile but hell im not sure if this works...
 	DWORD64           dwDisp = 0;
 	if ( SymGetSymFromAddr( GetCurrentProcess(), (ULONG)fnAddress, (PDWORD64)&dwDisp, pSym ) )
 #endif
 	{
 		// Make the symbol readable for humans
-		UnDecorateSymbolName( pSym->Name, lpszNonUnicodeUnDSymbol, BUFFERSIZE, 
-			UNDNAME_COMPLETE | 
+		UnDecorateSymbolName( pSym->Name, lpszNonUnicodeUnDSymbol, BUFFERSIZE,
+			UNDNAME_COMPLETE |
 			UNDNAME_NO_THISTYPE |
 			UNDNAME_NO_SPECIAL_SYMS |
 			UNDNAME_NO_MEMBER_TYPE |
@@ -224,7 +224,7 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 		_tcscat( lpszSymbol, lpszParsed );
 
 		ret = TRUE;
-	} 
+	}
 	GlobalFree( pSym );
 
 	return ret;
@@ -330,14 +330,14 @@ void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
 
 		PrintFunctionAndSourceInfo(file, callStack);
 
-		for( ULONG index = 0; ; index++ ) 
+		for( ULONG index = 0; ; index++ )
 		{
 			bResult = StackWalk(
 				IMAGE_FILE_MACHINE_I386,
 				hProcess,
 				hThread,
 				&callStack,
-				NULL, 
+				NULL,
 				NULL,
 				SymFunctionTableAccess,
 				SymGetModuleBase,
@@ -346,7 +346,7 @@ void StackTrace( HANDLE hThread, const char* lpszMessage, FILE *file )
 			if ( index == 0 )
 				continue;
 
-			if( !bResult || callStack.AddrFrame.Offset == 0 ) 
+			if( !bResult || callStack.AddrFrame.Offset == 0 )
 				break;
 
 			PrintFunctionAndSourceInfo(file, callStack);
@@ -387,14 +387,14 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 
 		PrintFunctionAndSourceInfo(file, callStack);
 
-		for( ULONG index = 0; ; index++ ) 
+		for( ULONG index = 0; ; index++ )
 		{
 			bResult = StackWalk(
 				IMAGE_FILE_MACHINE_I386,
 				hProcess,
 				hThread,
 				&callStack,
-				NULL, 
+				NULL,
 				NULL,
 				SymFunctionTableAccess,
 				SymGetModuleBase,
@@ -403,7 +403,7 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 			if ( index == 0 )
 				continue;
 
-			if( !bResult || callStack.AddrFrame.Offset == 0 ) 
+			if( !bResult || callStack.AddrFrame.Offset == 0 )
 				break;
 
 			PrintFunctionAndSourceInfo(file, callStack);

@@ -35,6 +35,7 @@ public:
 
 protected:
 	SoundStream *soundStream;
+	void *m_hWnd;
 };
 
 DSPEmulator *CreateDSPEmulator(bool HLE);

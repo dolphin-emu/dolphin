@@ -43,7 +43,7 @@ public:
 
 	virtual bool IOCtl(u32 _CommandAddress);
 	virtual bool IOCtlV(u32 _CommandAddress);
-	
+
 	virtual int GetCmdDelay(u32);
 
 private:

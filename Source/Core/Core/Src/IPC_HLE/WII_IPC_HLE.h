@@ -13,7 +13,7 @@ namespace WII_IPC_HLE_Interface
 {
 
 #define IPC_FIRST_ID	0x00		// first IPC device ID
-#define IPC_MAX_FILES	0x10		// first IPC file ID 
+#define IPC_MAX_FILES	0x10		// first IPC file ID
 
 void EnqueReplyCallback(u64 userdata, int =0);
 
@@ -21,7 +21,7 @@ void EnqueReplyCallback(u64 userdata, int =0);
 void Init();
 
 // Shutdown
-void Shutdown();	
+void Shutdown();
 
 // Reset
 void Reset(bool _bHard = false);

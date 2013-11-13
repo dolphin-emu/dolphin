@@ -209,7 +209,7 @@ void DSPEmitter::movp(const UDSPInstruction opc)
 }
 
 // MOVNP $acD
-// 0111 111d xxxx xxxx 
+// 0111 111d xxxx xxxx
 // Moves negative of multiply product from $prod register to accumulator
 // $acD register.
 
@@ -286,7 +286,7 @@ void DSPEmitter::addpaxz(const UDSPInstruction opc)
 //	s64 oldprod = dsp_get_long_prod();
 //	dsp_set_long_acc(dreg, res);
 //	res = dsp_get_long_acc(dreg);
-//	Update_SR_Register64(res, isCarry(oldprod, res), false); 
+//	Update_SR_Register64(res, isCarry(oldprod, res), false);
 	if (FlagsNeeded())
 	{
 		get_long_prod(RDX);
@@ -308,7 +308,7 @@ void DSPEmitter::addpaxz(const UDSPInstruction opc)
 
 // MULAXH
 // 1000 0011 xxxx xxxx
-// Multiply $ax0.h by $ax0.h 
+// Multiply $ax0.h by $ax0.h
 void DSPEmitter::mulaxh(const UDSPInstruction opc)
 {
 #ifdef _M_X64
@@ -702,7 +702,7 @@ void DSPEmitter::mulcmv(const UDSPInstruction opc)
 // (fixed possible bug in duddie's description, s->t)
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
-// register before multiplication to accumulator $acR, set (round) low part of 
+// register before multiplication to accumulator $acR, set (round) low part of
 // accumulator $acR.l to zero.
 
 // flags out: --xx xx0x

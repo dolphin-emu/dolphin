@@ -138,8 +138,8 @@ inline void init_lib()
 
 namespace WiimoteReal
 {
-	
-	
+
+
 int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, int len);
 int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index);
 void _IOWakeup(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read);
@@ -217,7 +217,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 		// Query the data for this device
 		if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, NULL, NULL))
-		{			
+		{
 			auto const wm = new Wiimote;
 			wm->devicepath = detail_data->DevicePath;
 			bool real_wiimote = false, is_bb = false;
@@ -254,7 +254,7 @@ int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, int size, int attem
 	enum win_bt_stack_t stack = MSBT_STACK_UNKNOWN;
 
 	DWORD written = 0;
-	
+
 	for (; attempts>0; --attempts)
 	{
 		if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, size))
@@ -278,7 +278,7 @@ int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, int size, int attem
 			}
 		}
 	}
-	
+
 	CloseHandle(hid_overlap_write.hEvent);
 
 	return written;
@@ -295,7 +295,7 @@ int CheckDeviceType_Read(HANDLE &dev_handle, u8* buf, int attempts)
 		if (read > 0)
 			break;
 	}
-	
+
 	CloseHandle(hid_overlap_read.hEvent);
 
 	return read;
@@ -308,17 +308,17 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 {
 	real_wiimote = false;
 	is_bb = false;
-	
+
 #ifdef SHARE_WRITE_WIIMOTES
 	std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
 	if (g_connected_wiimotes.count(devicepath) != 0)
 		return;
 #endif
-	
+
 	HANDLE dev_handle = CreateFile(devicepath.c_str(),
-								GENERIC_READ | GENERIC_WRITE, 
+								GENERIC_READ | GENERIC_WRITE,
 								FILE_SHARE_READ | FILE_SHARE_WRITE,
-								NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 
+								NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED,
 								NULL);
 	if (dev_handle == INVALID_HANDLE_VALUE)
 		return;
@@ -326,7 +326,7 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 	bool check_vidpid = false;
 	HIDD_ATTRIBUTES attrib;
 	attrib.Size = sizeof(attrib);
-	if (!check_vidpid || 
+	if (!check_vidpid ||
 		(HidD_GetAttributes(dev_handle, &attrib) &&
 		(attrib.VendorID == 0x057e) &&
 		(attrib.ProductID == 0x0306)))
@@ -343,18 +343,18 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 		u8 const disable_enc_pt1_report[MAX_PAYLOAD] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_WRITE_DATA, 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
 		u8 const disable_enc_pt2_report[MAX_PAYLOAD] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_WRITE_DATA, 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
 
-		rc = CheckDeviceType_Write(dev_handle, 
-									disable_enc_pt1_report, 
-									sizeof(disable_enc_pt1_report), 
+		rc = CheckDeviceType_Write(dev_handle,
+									disable_enc_pt1_report,
+									sizeof(disable_enc_pt1_report),
 									1);
-		rc = CheckDeviceType_Write(dev_handle, 
-									disable_enc_pt2_report, 
-									sizeof(disable_enc_pt2_report), 
+		rc = CheckDeviceType_Write(dev_handle,
+									disable_enc_pt2_report,
+									sizeof(disable_enc_pt2_report),
 									1);
-		
-		rc = CheckDeviceType_Write(dev_handle, 
-									req_status_report, 
-									sizeof(req_status_report), 
+
+		rc = CheckDeviceType_Write(dev_handle,
+									req_status_report,
+									sizeof(req_status_report),
 									1);
 
 		while (rc > 0 && --max_cycles > 0)
@@ -364,13 +364,13 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 				// DEBUG_LOG(WIIMOTE, "CheckDeviceType: Read failed...");
 				break;
 			}
-			
+
 			switch (buf[1])
 			{
 				case WM_STATUS_REPORT:
 				{
 					real_wiimote = true;
-					
+
 					// DEBUG_LOG(WIIMOTE, "CheckDeviceType: Got Status Report");
 					wm_status_report * wsr = (wm_status_report*)&buf[2];
 					if (wsr->extension)
@@ -402,7 +402,7 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 				case WM_READ_DATA_REPLY:
 				{
 					// DEBUG_LOG(WIIMOTE, "CheckDeviceType: Got Data Reply");
-					wm_read_data_reply * wrdr 
+					wm_read_data_reply * wrdr
 						= (wm_read_data_reply*)&buf[2];
 					// Check if it has returned what we asked.
 					if (Common::swap16(wrdr->address) == 0x00fa)
@@ -410,15 +410,15 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 						real_wiimote = true;
 						// 0x020420A40000ULL means balance board.
 						u64 ext_type = (*(u64*)&wrdr->data[0]);
-						// DEBUG_LOG(WIIMOTE, 
-						//		  "CheckDeviceType: GOT EXT TYPE %llX", 
+						// DEBUG_LOG(WIIMOTE,
+						//		  "CheckDeviceType: GOT EXT TYPE %llX",
 						//		  ext_type);
 						is_bb = (ext_type == 0x020420A40000ULL);
 					}
 					else
 					{
-						ERROR_LOG(WIIMOTE, 
-								  "CheckDeviceType: GOT UNREQUESTED ADDRESS %X", 
+						ERROR_LOG(WIIMOTE,
+								  "CheckDeviceType: GOT UNREQUESTED ADDRESS %X",
 								  Common::swap16(wrdr->address));
 					}
 					// force end
@@ -441,7 +441,7 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool 
 bool WiimoteScanner::IsReady() const
 {
 	// TODO: don't search for a radio each time
-	
+
 	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
 	radioParam.dwSize = sizeof(radioParam);
 
@@ -581,7 +581,7 @@ int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index
 	buf[0] = 0xa1;
 	// Used below for a warning
 	buf[1] = 0;
-	
+
 	DWORD bytes = 0;
 	ResetEvent(hid_overlap_read.hEvent);
 	if (!ReadFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap_read))
@@ -653,11 +653,11 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 			stack = MSBT_STACK_BLUESOLEIL;
 			if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, len))
 				return 1;
-			
+
 			stack = MSBT_STACK_MS;
 			if (_IOWrite(dev_handle, hid_overlap_write, stack, buf, len))
 				return 1;
-			
+
 			stack = MSBT_STACK_UNKNOWN;
 			break;
 		}
@@ -665,7 +665,7 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 		{
 			auto result = HidD_SetOutputReport(dev_handle, const_cast<u8*>(buf) + 1, len - 1);
 			//FlushFileBuffers(dev_handle);
-			
+
 			if (!result)
 			{
 				auto err = GetLastError();
@@ -679,7 +679,7 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 					WARN_LOG(WIIMOTE, "IOWrite[MSBT_STACK_MS]: ERROR: %08x", err);
 				}
 			}
-			
+
 			return result;
 			break;
 		}
@@ -692,7 +692,7 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 				std::fill(big_buf + len, big_buf + MAX_PAYLOAD, 0);
 				buf = big_buf;
 			}
-			
+
 			ResetEvent(hid_overlap_write.hEvent);
 			DWORD bytes = 0;
 			if (WriteFile(dev_handle, buf + 1, MAX_PAYLOAD - 1, &bytes, &hid_overlap_write))
@@ -711,7 +711,7 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 			break;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -738,9 +738,9 @@ void ProcessWiimotes(bool new_scan, T& callback)
 
 	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
 	radioParam.dwSize = sizeof(radioParam);
-	
+
 	HANDLE hRadio;
-	
+
 	// TODO: save radio(s) in the WiimoteScanner constructor?
 
 	// Enumerate BT radios

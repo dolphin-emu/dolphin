@@ -109,7 +109,7 @@ public:
 	};
 
 	ControllerInterface() : m_is_init(false), m_hwnd(NULL) {}
-	
+
 	void SetHwnd(void* const hwnd);
 	void Initialize();
 	void Shutdown();

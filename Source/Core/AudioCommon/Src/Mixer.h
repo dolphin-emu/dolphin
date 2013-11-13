@@ -14,7 +14,7 @@
 #define RESERVED_SAMPLES	(256)
 
 class CMixer {
-	
+
 public:
 	CMixer(unsigned int AISampleRate = 48000, unsigned int DACSampleRate = 48000, unsigned int BackendSampleRate = 32000)
 		: m_aiSampleRate(AISampleRate)
@@ -89,7 +89,7 @@ protected:
 	int m_channels;
 
 	WaveFileWriter g_wave_writer;
-	
+
 	bool m_HLEready;
 	bool m_logAudio;
 

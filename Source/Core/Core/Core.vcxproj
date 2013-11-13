@@ -1,14 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="DebugFast|Win32">
-      <Configuration>DebugFast</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="DebugFast|x64">
-      <Configuration>DebugFast</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
@@ -27,172 +19,29 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8C60E805-0DA5-4E25-8F84-038DB504BB0D}</ProjectGuid>
-    <RootNamespace>Core</RootNamespace>
+    <ProjectGuid>{E54CF649-140E-4255-81A5-30A673C1FB36}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-    <Import Project="..\..\VSProps\CodeGen_Debug.props" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Release.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_Release.props" />
-    <Import Project="..\..\VSProps\PrecompiledHeader.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\CodeGen_DebugFast.props" />
     <Import Project="..\..\VSProps\PrecompiledHeader.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusbx\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusbx\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusbx\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusbx\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusbx\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>.\Src;..\Common\Src;..\VideoCommon\Src;..\AudioCommon\Src;..\DiscIO\Src;..\InputCommon\Src;..\wiiuse\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\SFML\include;..\..\..\Externals\LZO;..\..\..\Externals\portaudio\include;..\..\..\Externals\zlib;..\..\..\Externals\miniupnpc\src;..\..\..\Externals\polarssl\include;..\..\..\Externals\libusbx\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <Lib>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-    </Lib>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Src\ActionReplay.cpp" />
     <ClCompile Include="Src\ARDecrypt.cpp" />
@@ -211,6 +60,7 @@
     <ClCompile Include="Src\Debugger\Debugger_SymbolMap.cpp" />
     <ClCompile Include="Src\Debugger\Dump.cpp" />
     <ClCompile Include="Src\Debugger\PPCDebugInterface.cpp" />
+    <ClCompile Include="Src\DSPEmulator.cpp" />
     <ClCompile Include="Src\DSP\assemble.cpp" />
     <ClCompile Include="Src\DSP\disassemble.cpp" />
     <ClCompile Include="Src\DSP\DSPAccelerator.cpp" />
@@ -240,9 +90,10 @@
     <ClCompile Include="Src\DSP\Jit\DSPJitRegCache.cpp" />
     <ClCompile Include="Src\DSP\Jit\DSPJitUtil.cpp" />
     <ClCompile Include="Src\DSP\LabelMap.cpp" />
+    <ClCompile Include="Src\ec_wii.cpp" />
     <ClCompile Include="Src\FifoPlayer\FifoAnalyzer.cpp" />
-    <ClCompile Include="Src\FifoPlayer\FifoPlaybackAnalyzer.cpp" />
     <ClCompile Include="Src\FifoPlayer\FifoDataFile.cpp" />
+    <ClCompile Include="Src\FifoPlayer\FifoPlaybackAnalyzer.cpp" />
     <ClCompile Include="Src\FifoPlayer\FifoPlayer.cpp" />
     <ClCompile Include="Src\FifoPlayer\FifoRecordAnalyzer.cpp" />
     <ClCompile Include="Src\FifoPlayer\FifoRecorder.cpp" />
@@ -336,13 +187,10 @@
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
     <ClCompile Include="Src\IPC_HLE\WII_Socket.cpp" />
-    <ClCompile Include="Src\x64MemTools.cpp" />
     <ClCompile Include="Src\Movie.cpp" />
     <ClCompile Include="Src\NetPlayClient.cpp" />
     <ClCompile Include="Src\NetPlayServer.cpp" />
     <ClCompile Include="Src\PatchEngine.cpp" />
-    <ClCompile Include="Src\DSPEmulator.cpp" />
-    <ClCompile Include="Src\ec_wii.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_Branch.cpp" />
     <ClCompile Include="Src\PowerPC\Interpreter\Interpreter_FloatingPoint.cpp" />
@@ -391,21 +239,13 @@
     <ClCompile Include="Src\PowerPC\PPCTables.cpp" />
     <ClCompile Include="Src\PowerPC\Profiler.cpp" />
     <ClCompile Include="Src\PowerPC\SignatureDB.cpp" />
-    <ClCompile Include="Src\State.cpp">
-      <OpenMPSupport Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">false</OpenMPSupport>
-      <OpenMPSupport Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</OpenMPSupport>
-      <OpenMPSupport Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</OpenMPSupport>
-    </ClCompile>
+    <ClCompile Include="Src\State.cpp" />
     <ClCompile Include="Src\stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='DebugFast|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Src\Tracer.cpp" />
     <ClCompile Include="Src\VolumeHandler.cpp" />
+    <ClCompile Include="Src\x64MemTools.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\ActionReplay.h" />
@@ -414,6 +254,7 @@
     <ClInclude Include="Src\Boot\Boot.h" />
     <ClInclude Include="Src\Boot\Boot_DOL.h" />
     <ClInclude Include="Src\Boot\Boot_ELF.h" />
+    <ClInclude Include="Src\Boot\Boot_WiiWAD.h" />
     <ClInclude Include="Src\Boot\ElfReader.h" />
     <ClInclude Include="Src\Boot\ElfTypes.h" />
     <ClInclude Include="Src\ConfigManager.h" />
@@ -425,6 +266,7 @@
     <ClInclude Include="Src\Debugger\Dump.h" />
     <ClInclude Include="Src\Debugger\GCELF.h" />
     <ClInclude Include="Src\Debugger\PPCDebugInterface.h" />
+    <ClInclude Include="Src\DSPEmulator.h" />
     <ClInclude Include="Src\DSP\assemble.h" />
     <ClInclude Include="Src\DSP\disassemble.h" />
     <ClInclude Include="Src\DSP\DSPAccelerator.h" />
@@ -446,13 +288,14 @@
     <ClInclude Include="Src\DSP\Jit\DSPJitRegCache.h" />
     <ClInclude Include="Src\DSP\Jit\DSPJitUtil.h" />
     <ClInclude Include="Src\DSP\LabelMap.h" />
+    <ClInclude Include="Src\ec_wii.h" />
     <ClInclude Include="Src\FifoPlayer\FifoAnalyzer.h" />
-    <ClInclude Include="Src\FifoPlayer\FifoPlaybackAnalyzer.h" />
     <ClInclude Include="Src\FifoPlayer\FifoDataFile.h" />
     <ClInclude Include="Src\FifoPlayer\FifoFileStruct.h" />
+    <ClInclude Include="Src\FifoPlayer\FifoPlaybackAnalyzer.h" />
     <ClInclude Include="Src\FifoPlayer\FifoPlayer.h" />
-    <ClInclude Include="Src\FifoPlayer\FifoRecorder.h" />
     <ClInclude Include="Src\FifoPlayer\FifoRecordAnalyzer.h" />
+    <ClInclude Include="Src\FifoPlayer\FifoRecorder.h" />
     <ClInclude Include="Src\GeckoCode.h" />
     <ClInclude Include="Src\GeckoCodeConfig.h" />
     <ClInclude Include="Src\HLE\HLE.h" />
@@ -527,8 +370,8 @@
     <ClInclude Include="Src\HW\WiimoteReal\WiimoteRealBase.h" />
     <ClInclude Include="Src\HW\WII_IOB.h" />
     <ClInclude Include="Src\HW\WII_IPC.h" />
-    <ClInclude Include="Src\IPC_HLE\hci.h" />
     <ClInclude Include="Src\IPC_HLE\fakepoll.h" />
+    <ClInclude Include="Src\IPC_HLE\hci.h" />
     <ClInclude Include="Src\IPC_HLE\ICMP.h" />
     <ClInclude Include="Src\IPC_HLE\l2cap.h" />
     <ClInclude Include="Src\IPC_HLE\WiiMote_HID_Attr.h" />
@@ -540,8 +383,8 @@
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_fs.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_hid.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_net.h" />
-    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_net_ssl.h" />
+    <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_stm.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb.h" />
     <ClInclude Include="Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h" />
@@ -552,9 +395,7 @@
     <ClInclude Include="Src\NetPlayClient.h" />
     <ClInclude Include="Src\NetPlayProto.h" />
     <ClInclude Include="Src\NetPlayServer.h" />
-    <ClInclude Include="Src\ec_wii.h" />
     <ClInclude Include="Src\PatchEngine.h" />
-    <ClInclude Include="Src\DSPEmulator.h" />
     <ClInclude Include="Src\PowerPC\CPUCoreBase.h" />
     <ClInclude Include="Src\PowerPC\Gekko.h" />
     <ClInclude Include="Src\PowerPC\Interpreter\Interpreter.h" />
@@ -589,24 +430,44 @@
     <ClInclude Include="Src\VolumeHandler.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CMakeLists.txt" />
-    <None Include="Src\HW\DSPHLE\UCodes\UCode_Zelda_Obsolete.txt" />
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Externals\Bochs_disasm\Bochs_disasm.vcxproj">
-      <Project>{cd3d4c3c-1027-4d33-b047-aec7b56d0bf6}</Project>
+      <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\libusbx\msvc\libusb_static_2013.vcxproj">
+      <Project>{349ee8f9-7d25-4909-aaf5-ff3fade72187}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\LZO\LZO.vcxproj">
+      <Project>{ab993f38-c31d-4897-b139-a620c42bc565}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\polarssl\visualc\PolarSSL.vcxproj">
+      <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\portaudio\build\portaudio.vcxproj">
+      <Project>{0a18a071-125e-442f-aff7-a3f68abecf99}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\SFML\build\vc2010\SFML_Network.vcxproj">
+      <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
     </ProjectReference>
     <ProjectReference Include="..\AudioCommon\AudioCommon.vcxproj">
-      <Project>{37d007bd-d66c-4eaf-b56c-bd1aac340a05}</Project>
+      <Project>{54aa7840-5beb-4a0c-9452-74ba4cc7fd44}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Common\Common.vcxproj">
-      <Project>{c87a4178-44f6-49b2-b7aa-c79af1b8c534}</Project>
+      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\SCMRevGen.vcxproj">
+      <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
     </ProjectReference>
     <ProjectReference Include="..\DiscIO\DiscIO.vcxproj">
-      <Project>{b6398059-ebb6-4c34-b547-95f365b71ff4}</Project>
+      <Project>{160bdc25-5626-4b0d-bdd8-2953d9777fb5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\InputCommon\InputCommon.vcxproj">
+      <Project>{6bbd47cf-91fd-4077-b676-8b76980178a9}</Project>
     </ProjectReference>
     <ProjectReference Include="..\VideoCommon\VideoCommon.vcxproj">
-      <Project>{3e5c4e02-1ba9-4776-bdbe-e3f91ffa34cf}</Project>
+      <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

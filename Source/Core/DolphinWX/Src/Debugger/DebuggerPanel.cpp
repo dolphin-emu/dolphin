@@ -68,7 +68,7 @@ void GFXDebuggerPanel::SaveSettings() const
 
 	// TODO: get the screen resolution and make limits from that
 	if (GetPosition().x < 1000 && GetPosition().y < 1000
-							   && GetSize().GetWidth() < 1000 
+							   && GetSize().GetWidth() < 1000
 							   && GetSize().GetHeight() < 1000)
 	{
 		file.Set("VideoWindow", "x", GetPosition().x);

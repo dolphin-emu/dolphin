@@ -236,7 +236,7 @@ public:
 					u32 value = ((u32*)&new_uid.GetUidData())[i];
 					if ((i % 4) == 0)
 					{
-						unsigned int last_value = (i+3 < new_uid.GetUidDataSize()-1) ? i+3 : new_uid.GetUidDataSize();
+						auto last_value = (i+3 < new_uid.GetUidDataSize()-1) ? i+3 : new_uid.GetUidDataSize();
 						file << std::setfill(' ') << std::dec;
 						file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
 					}
@@ -253,7 +253,7 @@ public:
 			}
 		}
 	}
-	
+
 private:
 	std::map<UidT,std::string> m_shaders;
 	std::vector<UidT> m_uids;

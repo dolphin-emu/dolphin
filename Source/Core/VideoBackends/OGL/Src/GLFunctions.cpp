@@ -120,11 +120,11 @@ namespace GLFunc
 			LoadFunction("glBindSampler", (void**)&glBindSampler);
 			LoadFunction("glDeleteSamplers", (void**)&glDeleteSamplers);
 			LoadFunction("glGenSamplers", (void**)&glGenSamplers);
-			      
+
 			LoadFunction("glGetProgramBinary", (void**)&glGetProgramBinary);
 			LoadFunction("glProgramBinary", (void**)&glProgramBinary);
 			LoadFunction("glProgramParameteri", (void**)&glProgramParameteri);
-			
+
 			LoadFunction("glDrawRangeElements", (void**)&glDrawRangeElements);
 
 			LoadFunction("glRenderbufferStorageMultisample", (void**)&glRenderbufferStorageMultisample);

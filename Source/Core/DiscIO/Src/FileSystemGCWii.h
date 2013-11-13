@@ -32,7 +32,7 @@ private:
 	bool m_Initialized;
 	bool m_Valid;
 	u32 m_OffsetShift; // WII offsets are all shifted
-	
+
 	std::vector <SFileInfo> m_FileInfoVector;
 	u32 Read32(u64 _Offset) const;
 	std::string GetStringFromOffset(u64 _Offset) const;

@@ -19,14 +19,14 @@ private:
 
 public:
 	typedef void (*functionGetterCallback)(Symbol *f);
-	
+
 	PPCSymbolDB();
 	~PPCSymbolDB();
 
-	Symbol *AddFunction(u32 startAddr);
+	Symbol *AddFunction(u32 startAddr) override;
 	void AddKnownSymbol(u32 startAddr, u32 size, const char *name, int type = Symbol::SYMBOL_FUNCTION);
 
-	Symbol *GetSymbolFromAddr(u32 addr);
+	Symbol *GetSymbolFromAddr(u32 addr) override;
 
 	const char *GetDescription(u32 addr);
 

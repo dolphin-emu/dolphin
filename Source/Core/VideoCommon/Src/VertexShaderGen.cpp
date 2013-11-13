@@ -130,13 +130,17 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		}
 
 		// Let's set up attributes
-		for (int i = 0; i < 8; ++i)
+		for (size_t i = 0; i < 8; ++i)
+		{
 			if (i < xfregs.numTexGen.numTexGens)
+			{
 				out.Write("VARYOUT  float3 uv%d_2;\n", i);
+			}
+		}
 		out.Write("VARYOUT   float4 clipPos_2;\n");
 		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 			out.Write("VARYOUT   float4 Normal_2;\n");
-		
+
 		out.Write("VARYOUT   float4 colors_02;\n");
 		out.Write("VARYOUT   float4 colors_12;\n");
 

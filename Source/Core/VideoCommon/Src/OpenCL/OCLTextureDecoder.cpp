@@ -140,7 +140,7 @@ void TexDecoder_OpenCL_Initialize()
 		{
 			std::string code;
 			filename = File::GetSysDirectory() + OPENCL_DIR DIR_SEP "TextureDecoder.cl";
-			if (!File::ReadFileToString(true, filename.c_str(), code))
+			if (!File::ReadFileToString(filename.c_str(), code))
 			{
 				ERROR_LOG(VIDEO, "Failed to load OpenCL code %s - file is missing?", filename.c_str());
 				return;

@@ -70,7 +70,7 @@ public:
 	void DisableDataReporting();
 	void EnableDataReporting(u8 mode);
 	void SetChannel(u16 channel);
-	
+
 	void QueueReport(u8 rpt_id, const void* data, unsigned int size);
 
 	int index;
@@ -104,7 +104,7 @@ protected:
 private:
 	void ClearReadQueue();
 	void WriteReport(Report rpt);
-	
+
 	int IORead(u8* buf);
 	int IOWrite(u8 const* buf, int len);
 	void IOWakeup();
@@ -114,7 +114,7 @@ private:
 	void WaitReady();
 
 	bool m_rumble_state;
-	
+
 	std::thread               m_wiimote_thread;
 	// Whether to keep running the thread.
 	volatile bool             m_run_thread;
@@ -127,7 +127,7 @@ private:
 
 	Common::FifoQueue<Report>	m_read_reports;
 	Common::FifoQueue<Report>	m_write_reports;
-	
+
 	Common::Timer m_last_audio_report;
 };
 
@@ -138,7 +138,7 @@ public:
 	~WiimoteScanner();
 
 	bool IsReady() const;
-	
+
 	void WantWiimotes(bool do_want);
 	void WantBB(bool do_want);
 

@@ -63,7 +63,7 @@ CEXIETHERNET::CEXIETHERNET()
 	// Parse MAC address from config, and generate a new one if it doesn't
 	// exist or can't be parsed.
 
-	auto &mac_addr_setting = SConfig::GetInstance().m_bba_mac;	
+	auto &mac_addr_setting = SConfig::GetInstance().m_bba_mac;
 	bool mac_addr_valid = false;
 	u8 mac_addr[6] = { 0 };
 
@@ -87,7 +87,7 @@ CEXIETHERNET::CEXIETHERNET()
 				mac_addr[x / 2] |= (c - 'a' + 10) << ((x & 1) ? 0 : 4); x++;
 			}
 		}
-	
+
 		if (x / 2 == 6)
 		{
 			memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_addr, 6);
@@ -259,7 +259,7 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
 void CEXIETHERNET::DMARead(u32 addr, u32 size)
 {
 	DEBUG_LOG(SP1, "DMA read: %08x %x", addr, size);
-	
+
 	memcpy(Memory::GetPointer(addr), &mBbaMem[transfer.address], size);
 
 	transfer.address += size;
@@ -550,7 +550,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
 	if (!RecvMACFilter())
 		goto wait_for_next;
-	
+
 #ifdef BBA_TRACK_PAGE_PTRS
 	WARN_LOG(SP1, "RecvHandlePacket %x\n%s", mRecvBufferLength,
 		ArrayToString(mRecvBuffer, mRecvBufferLength, 0x100).c_str());

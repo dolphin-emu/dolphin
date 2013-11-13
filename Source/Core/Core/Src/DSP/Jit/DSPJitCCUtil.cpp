@@ -220,8 +220,8 @@ void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val)
 
 //void DSPEmitter::Update_SR_LZ(bool value) {
 
-//	if (value == true) 
-//		g_dsp.r[DSP_REG_SR] |= SR_LOGIC_ZERO; 
+//	if (value == true)
+//		g_dsp.r[DSP_REG_SR] |= SR_LOGIC_ZERO;
 //	else
 //		g_dsp.r[DSP_REG_SR] &= ~SR_LOGIC_ZERO;
 //}
@@ -276,11 +276,11 @@ void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val)
 //		return isLess() || isZero();
 //	case 0x4: // NZ - Not Zero
 //		return !isZero();
-//	case 0x5: // Z - Zero 
+//	case 0x5: // Z - Zero
 //		return isZero();
 //	case 0x6: // NC - Not carry
 //		return !isCarry();
-//	case 0x7: // C - Carry 
+//	case 0x7: // C - Carry
 //		return isCarry();
 //	case 0x8: // ? - Not over s32
 //		return !isOverS32();

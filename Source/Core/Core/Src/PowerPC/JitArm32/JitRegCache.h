@@ -43,7 +43,7 @@ enum RegType
 	REG_AWAY, // Bound to a register, but not preloaded
 };
 
-class OpArg 
+class OpArg
 {
 	private:
 	RegType m_type; // store type
@@ -57,7 +57,7 @@ class OpArg
 		m_reg = 33;
 		m_value = 0;
 	}
-	
+
 	RegType GetType()
 	{
 		return m_type;
@@ -116,19 +116,19 @@ private:
 
 	ARMReg *GetAllocationOrder(int &count);
 	ARMReg *GetPPCAllocationOrder(int &count);
-	
+
 	u32 GetLeastUsedRegister(bool increment);
 	bool FindFreeRegister(u32 &regindex);
 protected:
 	ARMXEmitter *emit;
-	
+
 public:
 	ArmRegCache();
 	~ArmRegCache() {}
 
 	void Init(ARMXEmitter *emitter);
 	void Start(PPCAnalyst::BlockRegStats &stats);
-	
+
 	ARMReg GetReg(bool AutoLock = true); // Return a ARM register we can use.
 	void Unlock(ARMReg R0, ARMReg R1 = INVALID_REG, ARMReg R2 = INVALID_REG, ARMReg R3 =
 	INVALID_REG);
@@ -136,7 +136,7 @@ public:
 	ARMReg R(u32 preg); // Returns a cached register
 	bool IsImm(u32 preg) { return regs[preg].GetType() == REG_IMM; }
 	u32 GetImm(u32 preg) { return regs[preg].GetImm(); }
-	void SetImmediate(u32 preg, u32 imm); 
+	void SetImmediate(u32 preg, u32 imm);
 	ARMReg BindToRegister(u32 preg);
 };
 

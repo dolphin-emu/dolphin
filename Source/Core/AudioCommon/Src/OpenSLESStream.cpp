@@ -21,7 +21,7 @@ static SLPlayItf bqPlayerPlay;
 static SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
 static SLMuteSoloItf bqPlayerMuteSolo;
 static SLVolumeItf bqPlayerVolume;
-static CMixer *g_mixer; 
+static CMixer *g_mixer;
 #define BUFFER_SIZE 512
 #define BUFFER_SIZE_IN_SAMPLES (BUFFER_SIZE / 2)
 

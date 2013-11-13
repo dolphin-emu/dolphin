@@ -222,9 +222,9 @@ Keyboard::Key::Key(IOHIDElementRef element, IOHIDDeviceRef device)
 	};
 	
 	const uint32_t keycode = IOHIDElementGetUsage(m_element);
-	for (uint32_t i = 0; i < sizeof named_keys / sizeof *named_keys; i++)
-		if (named_keys[i].code == keycode) {
-			m_name = named_keys[i].name;
+	for (auto & named_key : named_keys)
+		if (named_key.code == keycode) {
+			m_name = named_key.name;
 			return;
 		}
 	

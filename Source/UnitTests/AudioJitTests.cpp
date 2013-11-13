@@ -86,7 +86,7 @@ void sbset()
 	tester.Report();
 }
 
-void nx_s() 
+void nx_s()
 {
 	DSPJitTester tester(0x8000, 0x0020);
 	tester.AddTestData(DSP_REG_AR0);
@@ -96,7 +96,7 @@ void nx_s()
 	tester.Report();
 }
 
-void nx_sn() 
+void nx_sn()
 {
 	DSPJitTester tester(0x8000, 0x0024);
 	tester.AddTestData(DSP_REG_AR0);
@@ -107,7 +107,7 @@ void nx_sn()
 	tester.Report();
 }
 
-void nx_l() 
+void nx_l()
 {
 
 	DSPJitTester tester(0x8000, 0x0040);
@@ -118,7 +118,7 @@ void nx_l()
 	tester.Report();
 }
 
-void set16_l() 
+void set16_l()
 {
 
 	DSPJitTester tester(0x8e00, 0x0070);
@@ -131,7 +131,7 @@ void set16_l()
 	tester.Report();
 }
 
-void nx_ln() 
+void nx_ln()
 {
 	DSPJitTester tester(0x8000, 0x0044);
 	tester.AddTestData(DSP_REG_AR0);
@@ -142,7 +142,7 @@ void nx_ln()
 	tester.Report();
 }
 
-void nx_ls() 
+void nx_ls()
 {
 	DSPJitTester tester1(0x8000, 0x0080);
 	tester1.AddTestData(DSP_REG_ACM0);
@@ -159,7 +159,7 @@ void nx_ls()
 	tester2.Report();
 }
 
-void nx_lsn() 
+void nx_lsn()
 {
 	DSPJitTester tester1(0x8000, 0x0084);
 	tester1.AddTestData(DSP_REG_ACM0);
@@ -177,7 +177,7 @@ void nx_lsn()
 	tester2.Report();
 }
 
-void nx_lsm() 
+void nx_lsm()
 {
 	DSPJitTester tester1(0x8000, 0x0088);
 	tester1.AddTestData(DSP_REG_ACM0);
@@ -195,7 +195,7 @@ void nx_lsm()
 	tester2.Report();
 }
 
-void nx_lsnm() 
+void nx_lsnm()
 {
 	DSPJitTester tester1(0x8000, 0x008c);
 	tester1.AddTestData(DSP_REG_ACM0);
@@ -214,7 +214,7 @@ void nx_lsnm()
 	tester2.Report();
 }
 
-void nx_sl() 
+void nx_sl()
 {
 	DSPJitTester tester1(0x8000, 0x0082);
 	tester1.AddTestData(DSP_REG_ACM0);
@@ -231,7 +231,7 @@ void nx_sl()
 	tester2.Report();
 }
 
-void nx_sln() 
+void nx_sln()
 {
 	DSPJitTester tester1(0x8000, 0x0086);
 	tester1.AddTestData(DSP_REG_ACM0);
@@ -249,7 +249,7 @@ void nx_sln()
 	tester2.Report();
 }
 
-void nx_slm() 
+void nx_slm()
 {
 	DSPJitTester tester1(0x8000, 0x008a);
 	tester1.AddTestData(DSP_REG_ACM0);
@@ -267,7 +267,7 @@ void nx_slm()
 	tester2.Report();
 }
 
-void nx_slnm() 
+void nx_slnm()
 {
 	DSPJitTester tester1(0x8000, 0x008e);
 	tester1.AddTestData(DSP_REG_ACM0);
@@ -286,7 +286,7 @@ void nx_slnm()
 	tester2.Report();
 }
 
-void nx_ld() 
+void nx_ld()
 {
 	DSPJitTester tester1(0x8000, 0x00c0);
 	tester1.AddTestData(DSP_REG_AXL0,0xdead);

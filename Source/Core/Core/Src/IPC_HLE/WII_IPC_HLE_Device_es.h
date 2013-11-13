@@ -100,7 +100,7 @@ private:
 	enum EErrorCodes
 	{
 		ES_INVALID_TMD                       = -106,   // or access denied
-		ES_READ_LESS_DATA_THAN_EXPECTED      = -1009, 
+		ES_READ_LESS_DATA_THAN_EXPECTED      = -1009,
 		ES_WRITE_FAILURE                     = -1010,
 		ES_PARAMTER_SIZE_OR_ALIGNMENT        = -1017,
 		ES_HASH_DOESNT_MATCH                 = -1022,

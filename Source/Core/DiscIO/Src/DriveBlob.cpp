@@ -30,7 +30,7 @@ DriveReader::DriveReader(const char *drive)
 			return;
 		}
 		delete [] buffer;
-		
+
 	#ifdef _LOCKDRIVE // Do we want to lock the drive?
 		// Lock the compact disc in the CD-ROM drive to prevent accidental
 		// removal while reading from it.

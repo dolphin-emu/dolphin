@@ -59,12 +59,12 @@ struct UDPWiimote::_d
 
 int UDPWiimote::noinst = 0;
 
-UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) : 
+UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 	port(_port), displayName(name),
 	d(new _d) ,x(0),y(0),z(1.0f),naX(0),naY(0),naZ(-1.0f),nunX(0),nunY(0),
 	pointerX(1001.0f/2),pointerY(0),nunMask(0),mask(0),index(_index), int_port(atoi(_port))
 {
-		
+
 	static bool sranded=false;
 	if (!sranded)
 	{
@@ -72,7 +72,7 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 		sranded=true;
 	}
 	bcastMagic=rand() & 0xFFFF;
-	
+
 	#ifdef _WIN32
 	u_long iMode = 1;
 	#endif
@@ -88,21 +88,21 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 		WSAStartup(sockVersion, &wsaData);
 	}
 	#endif
-	
+
 	noinst++;
 
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_flags = AI_PASSIVE; // use my IP
-	
+
 	if (!int_port)
 	{
 		cleanup;
 		err=-1;
 		return;
 	}
-	
+
 	if ((rv = getaddrinfo(NULL, _port, &hints, &servinfo)) != 0)
 	{
 		cleanup;
@@ -126,14 +126,14 @@ UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) :
 		}
 		d->sockfds.push_back(sock);
 	}
-	
+
 	if (d->sockfds.empty())
 	{
 		cleanup;
 		err=-2;
 		return;
 	}
-	
+
 	freeaddrinfo(servinfo);
 	err=0;
 	d->exit=false;
@@ -160,15 +160,15 @@ void UDPWiimote::mainThread()
 	{
 		int maxfd=0;
 		FD_ZERO(&fds);
-		for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)
+		for (auto& fd : d->sockfds)
 		{
-			FD_SET(*i,&fds);
+			FD_SET(fd,&fds);
 #ifndef _WIN32
-			if (*i>=maxfd)
-				maxfd=(*i)+1;
+			if (fd>=maxfd)
+				maxfd=(fd)+1;
 #endif
 		}
-		
+
 		u64 tleft=timeout.tv_sec*1000+timeout.tv_usec/1000;
 		u64 telapsed=time.GetTimeDifference();
 		time.Update();
@@ -184,29 +184,28 @@ void UDPWiimote::mainThread()
 			timeout.tv_sec=(long)(tleft/1000);
 			timeout.tv_usec=(tleft%1000)*1000;
 		}
-		
+
 		lk.unlock(); //VERY hacky. don't like it
-		if (d->exit) return; 
+		if (d->exit) return;
 		int rt=select(maxfd,&fds,NULL,NULL,&timeout);
 		if (d->exit) return;
 		lk.lock();
 		if (d->exit) return;
-		
+
 		if (rt)
 		{
-			for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)
+			for (sock_t fd : d->sockfds)
 			{
-				if (FD_ISSET(*i,&fds))
+				if (FD_ISSET(fd,&fds))
 				{
-					sock_t fd=*i;
 					u8 bf[64];
 					int size=60;
 					size_t addr_len;
 					struct sockaddr_storage their_addr;
 					addr_len = sizeof their_addr;
-					if ((size = recvfrom(fd, 
-										 (dataz)bf, 
-										 size , 0,(struct sockaddr *)&their_addr, (socklen_t*)&addr_len)) == -1) 
+					if ((size = recvfrom(fd,
+										 (dataz)bf,
+										 size , 0,(struct sockaddr *)&their_addr, (socklen_t*)&addr_len)) == -1)
 					{
 						ERROR_LOG(WIIMOTE,"UDPWii Packet error");
 					}
@@ -235,8 +234,8 @@ UDPWiimote::~UDPWiimote()
 	std::lock_guard<std::mutex> lk(d->termLock);
 	d->thread.join();
 	}
-	for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)
-		close(*i);
+	for (auto& elem : d->sockfds)
+		close(elem);
 	close(d->bipv4_fd);
 	close(d->bipv6_fd);
 	cleanup;
@@ -328,7 +327,7 @@ void UDPWiimote::initBroadcastIPv4()
 		WARN_LOG(WIIMOTE,"socket() failed");
 		return;
 	}
-	
+
 	int broad=1;
 	if (setsockopt(d->bipv4_fd,SOL_SOCKET,SO_BROADCAST, (const dataz)(&broad), sizeof broad) == -1)
 	{
@@ -345,7 +344,7 @@ void UDPWiimote::broadcastIPv4(const void * data, size_t size)
 	their_addr.sin_port = htons(4431);
 	their_addr.sin_addr.s_addr = INADDR_BROADCAST;
 	memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
-	
+
 	int num;
 	if ((num=sendto(d->bipv4_fd,(const dataz)data,(int)size,0,(struct sockaddr *) &their_addr, sizeof their_addr)) == -1)
 	{

@@ -30,7 +30,7 @@ namespace FPURoundMode
 		#ifdef _M_IX86
 			// This shouldn't really be needed anymore since we use SSE
 		#ifdef _WIN32
-			const int table[4] = 
+			const int table[4] =
 			{
 				_RC_NEAR,
 				_RC_CHOP,
@@ -39,7 +39,7 @@ namespace FPURoundMode
 			};
 			_set_controlfp(_MCW_RC, table[mode]);
 		#else
-			const unsigned short table[4] = 
+			const unsigned short table[4] =
 			{
 				FPU_ROUND_NEAR,
 				FPU_ROUND_CHOP,
@@ -81,7 +81,7 @@ namespace FPURoundMode
 	}
 	void SetSIMDMode(u32 mode)
 	{
-		static const u32 ssetable[4] = 
+		static const u32 ssetable[4] =
 		{
 			(0 << 13) | MASKS,
 			(3 << 13) | MASKS,

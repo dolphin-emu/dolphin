@@ -10,12 +10,12 @@
 // No need for a disable-mechanism.
 
 // If defined, clears CR0 at blr and bl-s. If the assumption that
-// flags never carry over between functions holds, then the task for 
+// flags never carry over between functions holds, then the task for
 // an optimizer becomes much easier.
 
 // #define ACID_TEST
 
-// Zelda and many more games seem to pass the Acid Test. 
+// Zelda and many more games seem to pass the Acid Test.
 
 //#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
 #define NORMALBRANCH_START
@@ -114,12 +114,12 @@ void JitILBase::bcx(UGeckoInstruction inst)
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
-		inst.hex == 0x4182fff8 &&			
+		inst.hex == 0x4182fff8 &&
 		(Memory::ReadUnchecked_U32(js.compilerPC - 8) & 0xFFFF0000) == 0x800D0000 &&
 		(Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x28000000 ||
-		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x2C000000)) 
+		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC - 4) == 0x2C000000))
 		)
-	{			
+	{
 		ibuild.EmitIdleBranch(Test, ibuild.EmitIntConst(destination));
 	}
 	else

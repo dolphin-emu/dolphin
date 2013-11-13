@@ -17,7 +17,7 @@ u32 ClassifyDouble(double dvalue)
 	value.d = dvalue;
 	u64 sign = value.i & DOUBLE_SIGN;
 	u64 exp  = value.i & DOUBLE_EXP;
-	if (exp > DOUBLE_ZERO && exp < DOUBLE_EXP) 
+	if (exp > DOUBLE_ZERO && exp < DOUBLE_EXP)
 	{
 		// Nice normalized number.
 		return sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
@@ -57,7 +57,7 @@ u32 ClassifyFloat(float fvalue)
 	value.f = fvalue;
 	u32 sign = value.i & FLOAT_SIGN;
 	u32 exp  = value.i & FLOAT_EXP;
-	if (exp > FLOAT_ZERO && exp < FLOAT_EXP) 
+	if (exp > FLOAT_ZERO && exp < FLOAT_EXP)
 	{
 		// Nice normalized number.
 		return sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
@@ -76,13 +76,13 @@ u32 ClassifyFloat(float fvalue)
 				// Denormalized number.
 				return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
 			}
-		} 
-		else if (exp) 
+		}
+		else if (exp)
 		{
 			// Infinite
 			return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
-		} 
-		else 
+		}
+		else
 		{
 			//Zero
 			return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;

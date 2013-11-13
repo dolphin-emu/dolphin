@@ -49,7 +49,7 @@ namespace Memory
 
 // In 64-bit, this might point to "high memory" (above the 32-bit limit),
 // so be sure to load it into a 64-bit register.
-extern u8 *base; 
+extern u8 *base;
 
 // These are guaranteed to point to "low memory" addresses (sub-32-bit).
 extern u8 *m_pRAM;
@@ -119,7 +119,7 @@ inline u32 ReadFast32(const u32 _Address)
 
 // used by interpreter to read instructions, uses iCache
 u32 Read_Opcode(const u32 _Address);
-// this is used by Debugger a lot. 
+// this is used by Debugger a lot.
 // For now, just reads from memory!
 u32 Read_Instruction(const u32 _Address);
 

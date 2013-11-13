@@ -105,7 +105,7 @@ struct Rectangle
 	Rectangle(T theLeft, T theTop, T theRight, T theBottom)
 		: left(theLeft), top(theTop), right(theRight), bottom(theBottom)
 	{ }
-	
+
 	bool operator==(const Rectangle& r) { return left==r.left && top==r.top && right==r.right && bottom==r.bottom; }
 
 	T GetWidth() const { return abs(right - left); }
@@ -123,7 +123,7 @@ struct Rectangle
 
 	// If the rectangle is in a coordinate system with an upper-left origin,
 	// use this Clamp.
-	void ClampUL(T x1, T y1, T x2, T y2) 
+	void ClampUL(T x1, T y1, T x2, T y2)
 	{
 		if (left < x1) left = x1;
 		if (right > x2) right = x2;

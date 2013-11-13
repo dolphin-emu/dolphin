@@ -5,6 +5,10 @@
 #ifndef _EXIDEVICE_ETHERNET_H
 #define _EXIDEVICE_ETHERNET_H
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include "Thread.h"
 
 // Network Control Register A
@@ -48,7 +52,7 @@ enum NWAYC
 	NWAYC_FD		= 0x01, // Full Duplex Mode
 	NWAYC_PS100_10	= 0x02, // Port Select 100/10
 	NWAYC_ANE		= 0x04, // Autonegotiate enable
-	
+
 	// Autonegotiation status bits...
 
 	NWAYC_NTTEST	= 0x40, // Reserved
@@ -95,13 +99,13 @@ enum
 {
 	BBA_NCRA		= 0x00,
 	BBA_NCRB		= 0x01,
-	
+
 	BBA_LTPS		= 0x04,
 	BBA_LRPS		= 0x05,
-	
+
 	BBA_IMR			= 0x08,
 	BBA_IR			= 0x09,
-	
+
 	BBA_BP			= 0x0a,
 	BBA_TLBP		= 0x0c,
 	BBA_TWP			= 0x0e,
@@ -185,14 +189,14 @@ class CEXIETHERNET : public IEXIDevice
 public:
 	CEXIETHERNET();
 	virtual ~CEXIETHERNET();
-	void SetCS(int cs);
-	bool IsPresent();
-	bool IsInterruptSet();
-	void ImmWrite(u32 data,  u32 size);
-	u32  ImmRead(u32 size);
-	void DMAWrite(u32 addr, u32 size);
-	void DMARead(u32 addr, u32 size);
-	void DoState(PointerWrap &p);
+	void SetCS(int cs) override;
+	bool IsPresent() override;
+	bool IsInterruptSet() override;
+	void ImmWrite(u32 data,  u32 size) override;
+	u32  ImmRead(u32 size) override;
+	void DMAWrite(u32 addr, u32 size) override;
+	void DMARead(u32 addr, u32 size) override;
+	void DoState(PointerWrap &p) override;
 
 //private:
 	struct

@@ -11,11 +11,11 @@ public:
 	PerfQuery();
 	~PerfQuery();
 
-	void EnableQuery(PerfQueryGroup type);
-	void DisableQuery(PerfQueryGroup type);
-	void ResetQuery();
-	u32 GetQueryResult(PerfQueryType type);
-	void FlushResults();
+	void EnableQuery(PerfQueryGroup type) override;
+	void DisableQuery(PerfQueryGroup type) override;
+	void ResetQuery() override;
+	u32 GetQueryResult(PerfQueryType type) override;
+	void FlushResults() override;
 	bool IsFlushed() const;
 
 private:

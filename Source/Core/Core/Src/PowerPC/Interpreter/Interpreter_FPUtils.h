@@ -115,7 +115,7 @@ inline double NI_mul(const double a, const double b)
 }
 
 inline double NI_add(const double a, const double b)
-{	
+{
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
@@ -132,7 +132,7 @@ inline double NI_add(const double a, const double b)
 }
 
 inline double NI_sub(const double a, const double b)
-{	
+{
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
@@ -224,7 +224,7 @@ inline u32 ConvertToSingle(u64 x)
 	}
 }
 
-// used by psq_stXX operations. 
+// used by psq_stXX operations.
 inline u32 ConvertToSingleFTZ(u64 x)
 {
 	u32 exp = (x >> 52) & 0x7ff;

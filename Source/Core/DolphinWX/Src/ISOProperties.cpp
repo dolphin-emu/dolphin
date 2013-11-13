@@ -7,6 +7,7 @@
 #endif
 
 #include <type_traits>
+#include <cinttypes>
 
 #include "Common.h"
 #include "CommonPaths.h"
@@ -118,7 +119,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		u8 _tTitleID[8];
 		if(OpenISO->GetTitleID(_tTitleID))
 		{
-			snprintf(tmp, 17, "%016llx", Common::swap64(_tTitleID));
+			snprintf(tmp, 17, "%016" PRIx64, Common::swap64(_tTitleID));
 			_iniFilename = tmp;
 		}
 	}
@@ -196,7 +197,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		m_Country->SetValue(_("UNKNOWN"));
 		break;
 	}
-	
+
 	if (IsWiiDisc) // Only one language with wii banners
 	{
 		m_Lang->SetSelection(0);
@@ -218,7 +219,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	{
 		ChangeBannerDetails(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
 	}
-	
+
 	m_Banner->SetBitmap(OpenGameListItem->GetBitmap());
 	m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
 
@@ -233,7 +234,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 				WiiPartition partition = WiiDisc.at(i);
 				wxTreeItemId PartitionRoot =
 					m_Treectrl->AppendItem(RootId, wxString::Format(_("Partition %i"), i), 0, 0);
-				CreateDirectoryTree(PartitionRoot, partition.Files, 1, partition.Files.at(0)->m_FileSize);	
+				CreateDirectoryTree(PartitionRoot, partition.Files, 1, partition.Files.at(0)->m_FileSize);
 				if (i == 1)
 					m_Treectrl->Expand(PartitionRoot);
 			}
@@ -260,7 +261,7 @@ CISOProperties::~CISOProperties()
 
 size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 		std::vector<const DiscIO::SFileInfo*> fileInfos,
-		const size_t _FirstIndex, 
+		const size_t _FirstIndex,
 		const size_t _LastIndex)
 {
 	size_t CurrentIndex = _FirstIndex;
@@ -365,7 +366,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 	UseZTPSpeedupHack = new wxCheckBox(m_GameConfig, ID_ZTP_SPEEDUP, _("ZTP hack"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Video", "ZTPSpeedupHack"));
 	UseZTPSpeedupHack->SetToolTip(_("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
-	
+
 	// Hack
 	wxFlexGridSizer * const szrPHackSettings = new wxFlexGridSizer(0);
 	PHackEnable = new wxCheckBox(m_GameConfig, ID_PHACKENABLE, _("Custom Projection Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE);
@@ -396,7 +397,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(DCBZOFF, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(VBeam, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(SyncGPU, 0, wxLEFT, 5);
-	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);	
+	sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(BlockMerging, 0, wxLEFT, 5);
 	sbCoreOverrides->Add(DSPHLE, 0, wxLEFT, 5);
 
@@ -430,7 +431,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sConfigPage->Add(sEmuState, 0, wxEXPAND|wxALL, 5);
 	m_GameConfig->SetSizer(sConfigPage);
 
-	
+
 	// Patches
 	wxBoxSizer * const sPatches = new wxBoxSizer(wxVERTICAL);
 	Patches = new wxCheckListBox(m_PatchPage, ID_PATCHES_LIST, wxDefaultPosition,
@@ -452,7 +453,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sPatchPage->Add(sPatches, 1, wxEXPAND|wxALL, 5);
 	m_PatchPage->SetSizer(sPatchPage);
 
-	
+
 	// Action Replay Cheats
 	wxBoxSizer * const sCheats = new wxBoxSizer(wxVERTICAL);
 	Cheats = new wxCheckListBox(m_CheatPage, ID_CHEATS_LIST, wxDefaultPosition,
@@ -475,7 +476,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sCheatPage->Add(sCheats, 1, wxEXPAND|wxALL, 5);
 	m_CheatPage->SetSizer(sCheatPage);
 
-	
+
 	wxStaticText * const m_NameText =
 		new wxStaticText(m_Information, wxID_ANY, _("Name:"));
 	m_Name = new wxTextCtrl(m_Information, ID_NAME, wxEmptyString,
@@ -501,7 +502,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_Date = new wxTextCtrl(m_Information, ID_DATE, wxEmptyString,
 			wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText * const m_FSTText =
-		new wxStaticText(m_Information, wxID_ANY, _("FST Size:"));	
+		new wxStaticText(m_Information, wxID_ANY, _("FST Size:"));
 	m_FST = new wxTextCtrl(m_Information, ID_FST, wxEmptyString,
 			wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 
@@ -519,12 +520,12 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 		arrayStringFor_Lang.Add(_("Simplified Chinese"));
 		arrayStringFor_Lang.Add(_("Traditional Chinese"));
 		arrayStringFor_Lang.Add(_("Korean"));
-		
+
 		language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
 	}
 	m_Lang = new wxChoice(m_Information, ID_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_Lang);
 	m_Lang->SetSelection(language);
-	
+
 	wxStaticText * const m_ShortText = new wxStaticText(m_Information, wxID_ANY, _("Short Name:"));
 	m_ShortName = new wxTextCtrl(m_Information, ID_SHORTNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	wxStaticText * const m_MakerText = new wxStaticText(m_Information, wxID_ANY, _("Maker:"));
@@ -670,9 +671,9 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 		popupMenu->Append(IDM_EXTRACTDIR, _("Extract Directory..."));
 	else if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 2)
 		popupMenu->Append(IDM_EXTRACTFILE, _("Extract File..."));
-	
+
 	popupMenu->Append(IDM_EXTRACTALL, _("Extract All Files..."));
-	
+
 	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0
 		&& m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
 	{
@@ -682,7 +683,7 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 		popupMenu->AppendSeparator();
 		popupMenu->Append(IDM_CHECKINTEGRITY, _("Check Partition Integrity"));
 	}
-	
+
 	PopupMenu(popupMenu);
 
 	event.Skip();
@@ -694,7 +695,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	wxString File;
 
 	File = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
-	
+
 	Path = wxFileSelector(
 		_("Export File"),
 		wxEmptyString, File, wxEmptyString,
@@ -784,7 +785,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	{
 		dialog.SetTitle(wxString::Format(wxT("%s : %d%%"), dialogTitle.c_str(),
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
-		
+
 		dialog.Update(i, wxString::Format(_("Extracting %s"),
 			StrToWxStr(fst[i]->m_FullPath)));
 
@@ -794,7 +795,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		if (fst[i]->IsDirectory())
 		{
 			snprintf(exportName, sizeof(exportName), "%s/%s/", _rExportFolder, fst[i]->m_FullPath);
-			DEBUG_LOG(DISCIO, "%s", exportName);		
+			DEBUG_LOG(DISCIO, "%s", exportName);
 
 			if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
 			{
@@ -879,7 +880,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 		wxString Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
 		std::size_t partitionNum = (std::size_t)wxAtoi(Directory.Mid(Directory.find_first_of("/"), 1));
 		Directory.Remove(0, Directory.find_first_of("/") +1); // Remove "Partition x/"
-		
+
 		if(WiiDisc.size() > partitionNum)
 		{
 			// Get the filesystem of the LAST partition
@@ -895,7 +896,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	{
 		FS = pFileSystem;
 	}
-	
+
 	bool ret = false;
 	if (event.GetId() == IDM_EXTRACTAPPLOADER)
 	{
@@ -919,7 +920,7 @@ public:
 		Create();
 	}
 
-	virtual ExitCode Entry()
+	virtual ExitCode Entry() override
 	{
 		return (ExitCode)m_Partition.Partition->CheckIntegrity();
 	}
@@ -1159,7 +1160,7 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename)
 
 	bRefreshList = true; // Just in case
 
-	// Once we're done with the ini edit, give the focus back to Dolphin 
+	// Once we're done with the ini edit, give the focus back to Dolphin
 	SetFocus();
 }
 
@@ -1223,9 +1224,8 @@ void CISOProperties::PatchList_Load()
 	PatchEngine::LoadPatchSection("OnFrame", onFrame, GameIniDefault, GameIniLocal);
 
 	u32 index = 0;
-	for (auto it = onFrame.begin(); it != onFrame.end(); ++it)
+	for (PatchEngine::Patch& p : onFrame)
 	{
-		PatchEngine::Patch p = *it;
 		Patches->Append(StrToWxStr(p.name));
 		Patches->Check(index, p.active);
 		if (!p.user_defined)
@@ -1239,16 +1239,16 @@ void CISOProperties::PatchList_Save()
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 	u32 index = 0;
-	for (auto onFrame_it = onFrame.begin(); onFrame_it != onFrame.end(); ++onFrame_it)
+	for (PatchEngine::Patch& p : onFrame)
 	{
 		if (Patches->IsChecked(index))
-			enabledLines.push_back("$" + onFrame_it->name);
+			enabledLines.push_back("$" + p.name);
 
 		// Do not save default patches.
-		if (DefaultPatches.find(onFrame_it->name) == DefaultPatches.end())
+		if (DefaultPatches.find(p.name) == DefaultPatches.end())
 		{
-			lines.push_back("$" + onFrame_it->name);
-			for (auto iter2 = onFrame_it->entries.begin(); iter2 != onFrame_it->entries.end(); ++iter2)
+			lines.push_back("$" + p.name);
+			for (auto iter2 = p.entries.begin(); iter2 != p.entries.end(); ++iter2)
 			{
 				std::string temp = StringFromFormat("0x%08X:%s:0x%08X", iter2->address, PatchEngine::PatchTypeStrings[iter2->type], iter2->value);
 				lines.push_back(temp);
@@ -1274,7 +1274,7 @@ void CISOProperties::PHackButtonClicked(wxCommandEvent& event)
 void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 {
 	int selection = Patches->GetSelection();
-	
+
 	switch (event.GetId())
 	{
 	case ID_EDITPATCH:
@@ -1330,10 +1330,8 @@ void CISOProperties::ActionReplayList_Save()
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 	u32 index = 0;
-	for (auto iter = arCodes.begin(); iter != arCodes.end(); ++iter)
+	for (auto code : arCodes)
 	{
-		ActionReplay::ARCode code = *iter;
-
 		if (Cheats->IsChecked(index))
 			enabledLines.push_back("$" + code.name);
 
@@ -1341,9 +1339,9 @@ void CISOProperties::ActionReplayList_Save()
 		if (DefaultCheats.find(code.name) == DefaultCheats.end())
 		{
 			lines.push_back("$" + code.name);
-			for (auto iter2 = code.ops.begin(); iter2 != code.ops.end(); ++iter2)
+			for (auto& op : code.ops)
 			{
-				lines.push_back(WxStrToStr(wxString::Format(wxT("%08X %08X"), iter2->cmd_addr, iter2->value)));
+				lines.push_back(WxStrToStr(wxString::Format(wxT("%08X %08X"), op.cmd_addr, op.value)));
 			}
 		}
 		++index;
@@ -1355,7 +1353,7 @@ void CISOProperties::ActionReplayList_Save()
 void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 {
 	int selection = Cheats->GetSelection();
-	
+
 	switch (event.GetId())
 	{
 	case ID_EDITCHEAT:

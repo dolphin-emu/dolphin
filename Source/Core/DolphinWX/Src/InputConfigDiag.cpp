@@ -307,7 +307,7 @@ bool ControlDialog::Validate()
 void GamepadPage::SetDevice(wxCommandEvent&)
 {
 	controller->default_device.FromString(WxStrToStr(device_cbox->GetValue()));
-	
+
 	// show user what it was validated as
 	device_cbox->SetValue(StrToWxStr(controller->default_device.ToString()));
 
@@ -322,7 +322,7 @@ void GamepadPage::SetDevice(wxCommandEvent&)
 void ControlDialog::SetDevice(wxCommandEvent&)
 {
 	m_devq.FromString(WxStrToStr(device_cbox->GetValue()));
-	
+
 	// show user what it was validated as
 	device_cbox->SetValue(StrToWxStr(m_devq.ToString()));
 
@@ -647,7 +647,7 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 		IniFile inifile;
 		controller->SaveConfig(inifile.GetOrCreateSection("Profile"));
 		inifile.Save(fname);
-		
+
 		m_config_dialog->UpdateProfileComboBox();
 	}
 	else
@@ -731,7 +731,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 	{
 
 		wxStaticText* const label = new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr((*ci)->name)));
-		
+
 		ControlButton* const control_button = new ControlButton(parent, (*ci)->control_ref, 80);
 		control_button->SetFont(m_SmallFont);
 
@@ -827,7 +827,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 
 			if (GROUP_TYPE_MIXED_TRIGGERS == group->type)
 				width = 64+12+1;
-			
+
 			if (GROUP_TYPE_TRIGGERS != group->type)
 				height /= 2;
 
@@ -905,14 +905,14 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 	size_t col_size = 0;
 
 	wxBoxSizer* stacked_groups = NULL;
-	for (unsigned int i = 0; i < controller->groups.size(); ++i)
+	for (ControllerEmu::ControlGroup* group : controller->groups)
 	{
-		ControlGroupBox* control_group_box = new ControlGroupBox(controller->groups[i], parent, eventsink);
+		ControlGroupBox* control_group_box = new ControlGroupBox(group, parent, eventsink);
 		wxStaticBoxSizer *control_group =
-			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(controller->groups[i]->name)));
+			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(group->name)));
 		control_group->Add(control_group_box);
 
-		const size_t grp_size = controller->groups[i]->controls.size() + controller->groups[i]->settings.size();
+		const size_t grp_size = group->controls.size() + group->settings.size();
 		col_size += grp_size;
 		if (col_size > 8 || NULL == stacked_groups)
 		{

@@ -105,7 +105,7 @@ KeySym wxCharCodeWXToX(int id)
 						if (id >= 65 && id <= 90)
 							// Standard uppercase letter: return lowercase keycode
 							keySym = (KeySym)id + 32;
-						else 
+						else
 							// All other keyboard characters
 							keySym = id <= 255 ? (KeySym)id : 0;
 	}
@@ -126,7 +126,7 @@ int wxKeyModWXToX(int modstate)
 #endif
 void XKeyToString(unsigned int keycode, char *keyStr) {
 	switch (keycode)
-	{  
+	{
 	case XK_Insert:
 		sprintf(keyStr, "INSERT");
 		break;
@@ -148,10 +148,10 @@ void XKeyToString(unsigned int keycode, char *keyStr) {
 	case XK_Left:
 		sprintf(keyStr, "LEFT");
 		break;
-	case XK_Up: 
+	case XK_Up:
 		sprintf(keyStr, "UP");
 		break;
-	case XK_Right: 
+	case XK_Right:
 		sprintf(keyStr, "RIGHT");
 		break;
 	case XK_Down:
@@ -178,10 +178,10 @@ void XKeyToString(unsigned int keycode, char *keyStr) {
 	case XK_KP_Left:
 		sprintf(keyStr, "KP LEFT");
 		break;
-	case XK_KP_Up: 
+	case XK_KP_Up:
 		sprintf(keyStr, "KP UP");
 		break;
-	case XK_KP_Right: 
+	case XK_KP_Right:
 		sprintf(keyStr, "KP RIGHT");
 		break;
 	case XK_KP_Down:

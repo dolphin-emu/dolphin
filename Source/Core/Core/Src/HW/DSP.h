@@ -38,7 +38,7 @@ void GenerateDSPInterruptFromDSPEmu(DSPInterruptType _DSPInterruptType, bool _bS
 
 // Read32
 void Read16(u16& _uReturnValue, const u32 _uAddress);
-void Read32(u32& _uReturnValue, const u32 _uAddress);	
+void Read32(u32& _uReturnValue, const u32 _uAddress);
 
 // Write
 void Write16(const u16 _uValue, const u32 _uAddress);

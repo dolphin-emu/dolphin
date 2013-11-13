@@ -17,7 +17,7 @@ public:
 
 	CDump(const char* _szFilename);
 	~CDump();
-	
+
 	int GetNumberOfSteps();
 	u32 GetGPR(int _step, int _gpr);
 	u32 GetPC(int _step);

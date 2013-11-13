@@ -6,7 +6,7 @@
 
 #include <algorithm>
 #include <cctype>
-#include "Crypto/aes.h"
+#include <polarssl/aes.h>
 #include "MathUtil.h"
 #include "FileUtil.h"
 #include "Log.h"
@@ -44,14 +44,14 @@ CSharedContent::~CSharedContent()
 
 std::string CSharedContent::GetFilenameFromSHA1(const u8* _pHash)
 {
-	for (size_t i=0; i<m_Elements.size(); i++)
+	for (auto& Element : m_Elements)
 	{
-		if (memcmp(_pHash, m_Elements[i].SHA1Hash, 20) == 0)
+		if (memcmp(_pHash, Element.SHA1Hash, 20) == 0)
 		{
 			char szFilename[1024];
 			sprintf(szFilename,  "%sshared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIUSER_IDX).c_str(),
-				m_Elements[i].FileName[0], m_Elements[i].FileName[1], m_Elements[i].FileName[2], m_Elements[i].FileName[3],
-				m_Elements[i].FileName[4], m_Elements[i].FileName[5], m_Elements[i].FileName[6], m_Elements[i].FileName[7]);
+				Element.FileName[0], Element.FileName[1], Element.FileName[2], Element.FileName[3],
+				Element.FileName[4], Element.FileName[5], Element.FileName[6], Element.FileName[7]);
 			return szFilename;
 		}
 	}
@@ -92,24 +92,24 @@ public:
 
 	virtual ~CNANDContentLoader();
 
-	bool IsValid() const	{ return m_Valid; }
-	void RemoveTitle(void) const;
-	u64 GetTitleID() const  { return m_TitleID; }
-	u16 GetIosVersion() const { return m_IosVersion; }
-	u32 GetBootIndex() const  { return m_BootIndex; }
-	size_t GetContentSize() const { return m_Content.size(); }
-	const SNANDContent* GetContentByIndex(int _Index) const;
-	const u8* GetTMDView() const { return m_TMDView; }
-	const u8* GetTMDHeader() const { return m_TMDHeader; }
-	u32 GetTIKSize() const { return m_TIKSize; }
-	const u8* GetTIK() const { return m_TIK; }
+	bool IsValid() const override	{ return m_Valid; }
+	void RemoveTitle(void) const override;
+	u64 GetTitleID() const override  { return m_TitleID; }
+	u16 GetIosVersion() const override { return m_IosVersion; }
+	u32 GetBootIndex() const override  { return m_BootIndex; }
+	size_t GetContentSize() const override { return m_Content.size(); }
+	const SNANDContent* GetContentByIndex(int _Index) const override;
+	const u8* GetTMDView() const override { return m_TMDView; }
+	const u8* GetTMDHeader() const override { return m_TMDHeader; }
+	u32 GetTIKSize() const override { return m_TIKSize; }
+	const u8* GetTIK() const override { return m_TIK; }
 
-	const std::vector<SNANDContent>& GetContent() const { return m_Content; }
+	const std::vector<SNANDContent>& GetContent() const override { return m_Content; }
 
-	u16 GetTitleVersion() const {return m_TitleVersion;}
-	u16 GetNumEntries() const {return m_numEntries;}
-	DiscIO::IVolume::ECountry GetCountry() const;
-	u8 GetCountryChar() const {return m_Country; }
+	u16 GetTitleVersion() const override {return m_TitleVersion;}
+	u16 GetNumEntries() const override {return m_numEntries;}
+	DiscIO::IVolume::ECountry GetCountry() const override;
+	u8 GetCountryChar() const override {return m_Country; }
 
 private:
 
@@ -154,9 +154,9 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 
 CNANDContentLoader::~CNANDContentLoader()
 {
-	for (size_t i=0; i<m_Content.size(); i++)
+	for (auto& content : m_Content)
 	{
-		delete [] m_Content[i].m_pData;
+		delete [] content.m_pData;
 	}
 	m_Content.clear();
 	if (m_TIK)
@@ -168,12 +168,11 @@ CNANDContentLoader::~CNANDContentLoader()
 
 const SNANDContent* CNANDContentLoader::GetContentByIndex(int _Index) const
 {
-	for (size_t i=0; i<m_Content.size(); i++)
+	for (auto& Content : m_Content)
 	{
-		const SNANDContent* pContent = &m_Content[i];
-		if (pContent->m_Index == _Index)
+		if (Content.m_Index == _Index)
 		{
-			return pContent;
+			return &Content;
 		}
 	}
 	return NULL;
@@ -239,10 +238,10 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 	m_Content.resize(m_numEntries);
 
 
-	for (u32 i=0; i<m_numEntries; i++) 
+	for (u32 i=0; i<m_numEntries; i++)
 	{
 		SNANDContent& rContent = m_Content[i];
-				
+
 		rContent.m_ContentID = Common::swap32(pTMD + 0x01e4 + 0x24*i);
 		rContent.m_Index = Common::swap16(pTMD + 0x01e8 + 0x24*i);
 		rContent.m_Type = Common::swap16(pTMD + 0x01ea + 0x24*i);
@@ -254,7 +253,7 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 		{
 			u32 RoundedSize = ROUND_UP(rContent.m_Size, 0x40);
 			rContent.m_pData = new u8[RoundedSize];
-		
+
 			memset(IV, 0, sizeof IV);
 			memcpy(IV, pTMD + 0x01e8 + 0x24*i, 2);
 			AESDecode(DecryptTitleKey, IV, pDataApp, RoundedSize, rContent.m_pData);
@@ -286,15 +285,15 @@ bool CNANDContentLoader::Initialize(const std::string& _rName)
 }
 void CNANDContentLoader::AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest)
 {
-	AES_KEY AESKey;
+	aes_context AES_ctx;
 
-	AES_set_decrypt_key(_pKey, 128, &AESKey);
-	AES_cbc_encrypt(_pSrc, _pDest, _Size, &AESKey, _IV, AES_DECRYPT);
+	aes_setkey_dec(&AES_ctx, _pKey, 128);
+	aes_crypt_cbc(&AES_ctx, AES_DECRYPT, _Size, _IV, _pSrc, _pDest);
 }
 
 void CNANDContentLoader::GetKeyFromTicket(u8* pTicket, u8* pTicketKey)
 {
-	u8 CommonKey[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};	
+	u8 CommonKey[16] = {0xeb,0xe4,0x2a,0x22,0x5e,0x85,0x93,0xe4,0x48,0xd9,0xc5,0x45,0x73,0x81,0xaa,0xf7};
 	u8 IV[16];
 	memset(IV, 0, sizeof IV);
 	memcpy(IV, pTicket + 0x01dc, 8);
@@ -386,7 +385,7 @@ void cUIDsys::UpdateLocation()
 	m_Elements.clear();
 	lastUID = 0x00001000;
 	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX).c_str());
-	
+
 	File::IOFile pFile(uidSys, "rb");
 	SElement Element;
 	while (pFile.ReadArray(&Element, 1))
@@ -413,11 +412,11 @@ cUIDsys::~cUIDsys()
 
 u32 cUIDsys::GetUIDFromTitle(u64 _Title)
 {
-	for (size_t i=0; i<m_Elements.size(); i++)
+	for (auto& Element : m_Elements)
 	{
-		if (Common::swap64(_Title) == *(u64*)&(m_Elements[i].titleID))
+		if (Common::swap64(_Title) == *(u64*)&(Element.titleID))
 		{
-			return Common::swap32(m_Elements[i].UID);
+			return Common::swap32(Element.UID);
 		}
 	}
 	return 0;
@@ -445,11 +444,11 @@ void cUIDsys::AddTitle(u64 _TitleID)
 
 void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned)
 {
-	for (size_t i = 0; i < m_Elements.size(); i++)
+	for (auto& Element : m_Elements)
 	{
-		if ((_owned && Common::CheckTitleTIK(Common::swap64(m_Elements[i].titleID)))  ||
-			(!_owned && Common::CheckTitleTMD(Common::swap64(m_Elements[i].titleID))))
-			_TitleIDs.push_back(Common::swap64(m_Elements[i].titleID));
+		if ((_owned && Common::CheckTitleTIK(Common::swap64(Element.titleID)))  ||
+			(!_owned && Common::CheckTitleTMD(Common::swap64(Element.titleID))))
+			_TitleIDs.push_back(Common::swap64(Element.titleID));
 	}
 }
 
@@ -477,7 +476,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	}
 
 	pTMDFile.WriteBytes(ContentLoader.GetTMDHeader(), INANDContentLoader::TMD_HEADER_SIZE);
-	
+
 	for (u32 i = 0; i < ContentLoader.GetContentSize(); i++)
 	{
 		const SNANDContent& Content = ContentLoader.GetContent()[i];
@@ -487,7 +486,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 		char APPFileName[1024];
 		if (Content.m_Type & 0x8000) //shared
 		{
-			sprintf(APPFileName, "%s", 
+			sprintf(APPFileName, "%s",
 				CSharedContent::AccessInstance().AddSharedContent(Content.m_SHA1Hash).c_str());
 		}
 		else
@@ -504,7 +503,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 				PanicAlertT("WAD installation failed: error creating %s", APPFileName);
 				return 0;
 			}
-			
+
 			pAPPFile.WriteBytes(Content.m_pData, Content.m_Size);
 		}
 		else
@@ -514,7 +513,7 @@ u64 CNANDContentManager::Install_WiiWAD(std::string &fileName)
 	}
 
 	pTMDFile.Close();
-	
+
 
 
 

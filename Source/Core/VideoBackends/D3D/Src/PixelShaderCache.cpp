@@ -80,7 +80,7 @@ const char color_matrix_program_code[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2D Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
-	"void main(\n" 
+	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
 	" in float2 uv0 : TEXCOORD0){\n"
@@ -94,7 +94,7 @@ const char color_matrix_program_code_msaa[] = {
 	"sampler samp0 : register(s0);\n"
 	"Texture2DMS<float4, %d> Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[7] : register(c0);\n"
-	"void main(\n" 
+	"void main(\n"
 	"out float4 ocol0 : SV_Target,\n"
 	"in float4 pos : SV_Position,\n"
 	" in float2 uv0 : TEXCOORD0){\n"
@@ -343,7 +343,7 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 		memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
 		D3D::context->Unmap(pscbuf, 0);
 		PixelShaderManager::dirty = false;
-		
+
 		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants));
 	}
 	return pscbuf;
@@ -368,7 +368,7 @@ void PixelShaderCache::Init()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)pscbuf, "pixel shader constant buffer used to emulate the GX pipeline");
 
 	// used when drawing clear quads
-	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code, sizeof(clear_program_code));	
+	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code, sizeof(clear_program_code));
 	CHECK(s_ClearProgram!=NULL, "Create clear pixel shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "clear pixel shader");
 
@@ -441,7 +441,7 @@ void PixelShaderCache::Shutdown()
 		SAFE_RELEASE(s_rgba6_to_rgb8[i]);
 		SAFE_RELEASE(s_rgb8_to_rgba6[i]);
 	}
-	
+
 	Clear();
 	g_ps_disk_cache.Sync();
 	g_ps_disk_cache.Close();
@@ -477,7 +477,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 components)
 	{
 		const PSCacheEntry &entry = iter->second;
 		last_entry = &entry;
-		
+
 		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
 		return (entry.shader != NULL);
 	}

@@ -11,14 +11,12 @@
 // ps_madds0
 // ps_muls0
 // ps_madds1
-// ps_sel
 //   cmppd, andpd, andnpd, or
 //   lfsx, ps_merge01 etc
 
-const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
-const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
-const double GC_ALIGNED16(psZeroZero[2]) = {0.0, 0.0};
+static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
+static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+static const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
 
 void Jit64::ps_mr(UGeckoInstruction inst)
 {
@@ -37,34 +35,32 @@ void Jit64::ps_mr(UGeckoInstruction inst)
 
 void Jit64::ps_sel(UGeckoInstruction inst)
 {
+	// we can't use (V)BLENDVPD here because it just looks at the sign bit
+	// but we need -0 = +0
+
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-
-	Default(inst); return;
 
 	if (inst.Rc) {
 		Default(inst); return;
 	}
-	// GRR can't get this to work 100%. Getting artifacts in D.O.N. intro.
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
 	int c = inst.FC;
-	fpr.FlushLockX(XMM7);
-	fpr.FlushLockX(XMM6);
+
 	fpr.Lock(a, b, c, d);
-	fpr.BindToRegister(a, true, false);
-	fpr.BindToRegister(d, false, true);
-	// BLENDPD would have been nice...
-	MOVAPD(XMM7, fpr.R(a));
-	CMPPD(XMM7, M((void*)psZeroZero), 1); //less-than = 111111
-	MOVAPD(XMM6, R(XMM7));
-	ANDPD(XMM7, fpr.R(d));
-	ANDNPD(XMM6, fpr.R(c));
-	MOVAPD(fpr.RX(d), R(XMM7));
-	ORPD(fpr.RX(d), R(XMM6));
+	MOVAPD(XMM0, fpr.R(a));
+	XORPD(XMM1, R(XMM1));
+	// XMM0 = XMM0 < 0 ? all 1s : all 0s
+	CMPPD(XMM0, R(XMM1), LT);
+	MOVAPD(XMM1, R(XMM0));
+	ANDPD(XMM0, fpr.R(b));
+	ANDNPD(XMM1, fpr.R(c));
+	ORPD(XMM0, R(XMM1));
+	fpr.BindToRegister(d, false);
+	MOVAPD(fpr.RX(d), R(XMM0));
 	fpr.UnlockAll();
-	fpr.UnlockAllX();
 }
 
 void Jit64::ps_sign(UGeckoInstruction inst)
@@ -90,7 +86,7 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 
 	switch (inst.SUBOP10)
 	{
-	case 40: //neg 
+	case 40: //neg
 		XORPD(fpr.RX(d), M((void*)&psSignBits));
 		break;
 	case 136: //nabs
@@ -104,20 +100,33 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-void Jit64::ps_rsqrte(UGeckoInstruction inst)
+// ps_res and ps_rsqrte
+void Jit64::ps_recip(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
+	OpArg divisor;
 	int d = inst.FD;
 	int b = inst.FB;
 	fpr.Lock(d, b);
-	fpr.BindToRegister(d, (d == b), true);
-	SQRTPD(XMM0, fpr.R(b));
+	fpr.BindToRegister(d, (d == b));
+	switch (inst.SUBOP5)
+	{
+	case 24:
+		// ps_res
+		divisor = fpr.R(b);
+		break;
+	case 26:
+		// ps_rsqrte
+		SQRTPD(XMM0, fpr.R(b));
+		divisor = R(XMM0);
+		break;
+	}
 	MOVAPD(XMM1, M((void*)&psOneOne));
-	DIVPD(XMM1, R(XMM0));
+	DIVPD(XMM1, divisor);
 	MOVAPD(fpr.R(d), XMM1);
 	fpr.UnlockAll();
 }
@@ -173,7 +182,7 @@ void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X6
 }
 
 void Jit64::ps_arith(UGeckoInstruction inst)
-{		
+{
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
 	if (inst.Rc) {
@@ -182,10 +191,8 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 	switch (inst.SUBOP5)
 	{
 	case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::DIVPD); break; //div
-	case 20: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::SUBPD); break; //sub 
+	case 20: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::SUBPD); break; //sub
 	case 21: tri_op(inst.FD, inst.FA, inst.FB, true,  &XEmitter::ADDPD); break; //add
-	case 23: Default(inst); break; //sel
-	case 24: Default(inst); break; //res
 	case 25: tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::MULPD); break; //mul
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_arith WTF!!!");
@@ -193,10 +200,10 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 }
 
 void Jit64::ps_sum(UGeckoInstruction inst)
-{	
+{
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	// TODO: (inst.SUBOP5 == 10) breaks Sonic Colours (black screen) 
+	// TODO: (inst.SUBOP5 == 10) breaks Sonic Colours (black screen)
 	if (inst.Rc || (inst.SUBOP5 == 10)) {
 		Default(inst); return;
 	}
@@ -222,7 +229,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 		MOVAPD(XMM1, fpr.R(b));
 		SHUFPD(XMM1, R(XMM1), 5); // copy higher to lower
 		ADDPD(XMM0, R(XMM1)); // sum lowers
-		MOVAPD(XMM1, fpr.R(c));  
+		MOVAPD(XMM1, fpr.R(c));
 		UNPCKLPD(XMM1, R(XMM0)); // merge
 		MOVAPD(fpr.R(d), XMM1);
 		break;
@@ -288,7 +295,7 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 	MOVAPD(XMM0, fpr.R(a));
 	switch (inst.SUBOP10)
 	{
-	case 528: 
+	case 528:
 		UNPCKLPD(XMM0, fpr.R(b)); //unpck is faster than shuf
 		break; //00
 	case 560:

@@ -56,47 +56,41 @@ class JitIL : public JitILBase, public EmuCodeBlock
 {
 private:
 	JitBlockCache blocks;
-	TrampolineCache trampolines;	
-
-	// The default code buffer. We keep it around to not have to alloc/dealloc a
-	// large chunk of memory for each recompiled block.
-	PPCAnalyst::CodeBuffer code_buffer;
+	TrampolineCache trampolines;
 
 public:
 	JitILAsmRoutineManager asm_routines;
 
-	JitIL() : code_buffer(32000) {}
+	JitIL() {}
 	~JitIL() {}
-
-	IREmitter::IRBuilder ibuild;
 
 	// Initialization, etc
 
-	void Init();
-	void Shutdown();
+	void Init() override;
+	void Shutdown() override;
 
 	// Jit!
 
-	void Jit(u32 em_address);
+	void Jit(u32 em_address) override;
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
 
 	void Trace();
 
-	JitBlockCache *GetBlockCache() { return &blocks; }
-	
-	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) { return NULL; };
+	JitBlockCache *GetBlockCache() override { return &blocks; }
 
-	bool IsInCodeSpace(u8 *ptr) { return IsInSpace(ptr); }
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) override { return NULL; };
 
-	void ClearCache();
+	bool IsInCodeSpace(u8 *ptr) override { return IsInSpace(ptr); }
+
+	void ClearCache() override;
 	const u8 *GetDispatcher() {
 		return asm_routines.dispatcher;  // asm_routines.dispatcher
 	}
-	const CommonAsmRoutines *GetAsmRoutines() {
+	const CommonAsmRoutines *GetAsmRoutines() override {
 		return &asm_routines;
 	}
 
-	const char *GetName() {
+	const char *GetName() override {
 #ifdef _M_X64
 		return "JIT64IL";
 #else
@@ -106,8 +100,8 @@ public:
 
 	// Run!
 
-	void Run();
-	void SingleStep();
+	void Run() override;
+	void SingleStep() override;
 
 	// Utilities for use by opcodes
 
@@ -117,7 +111,7 @@ public:
 	void WriteRfiExitDestInOpArg(const Gen::OpArg& arg);
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
-	
+
 	void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
 	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 	void GenerateCarry(Gen::X64Reg temp_reg);
@@ -130,18 +124,16 @@ public:
 	void WriteCode();
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction _inst);
-	void Default(UGeckoInstruction _inst);
-	void DoNothing(UGeckoInstruction _inst);
-	void HLEFunction(UGeckoInstruction _inst);
+	void unknown_instruction(UGeckoInstruction _inst) override;
+	void Default(UGeckoInstruction _inst) override;
+	void DoNothing(UGeckoInstruction _inst) override;
+	void HLEFunction(UGeckoInstruction _inst) override;
 
-	void DynaRunTable4(UGeckoInstruction _inst);
-	void DynaRunTable19(UGeckoInstruction _inst);
-	void DynaRunTable31(UGeckoInstruction _inst);
-	void DynaRunTable59(UGeckoInstruction _inst);
-	void DynaRunTable63(UGeckoInstruction _inst);
+	void DynaRunTable4(UGeckoInstruction _inst) override;
+	void DynaRunTable19(UGeckoInstruction _inst) override;
+	void DynaRunTable31(UGeckoInstruction _inst) override;
+	void DynaRunTable59(UGeckoInstruction _inst) override;
+	void DynaRunTable63(UGeckoInstruction _inst) override;
 };
-
-void Jit(u32 em_address);
 
 #endif  // _JITIL_H

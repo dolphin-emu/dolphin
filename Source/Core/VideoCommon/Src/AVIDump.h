@@ -29,7 +29,7 @@ class AVIDump
 		static bool Start(int w, int h);
 #endif
 		static void AddFrame(const u8* data, int width, int height);
-		
+
 		static void Stop();
 };
 

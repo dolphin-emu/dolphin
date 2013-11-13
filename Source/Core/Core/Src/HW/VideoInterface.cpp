@@ -461,7 +461,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 			}
 
 			UpdateParameters();
-		}		
+		}
 		break;
 
 	case VI_HORIZONTAL_TIMING_0_HI:

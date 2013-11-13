@@ -49,7 +49,7 @@ I've implemented one additional trick: fast memory for 32-bit machines.
 This works off of the observation that loads and stores can be classified
 at runtime: any particular load instruction will always load similar addresses,
 and any store will store to similar addresses.  Using this observation, every
-block is JIT-ed twice: the first time, the block includes extra code to 
+block is JIT-ed twice: the first time, the block includes extra code to
 instrument the loads.  Then, at the end of the block, it jumps back into the JIT
 to recompile itself.  The second recompilation looks at the address of each load
 and store, and bakes the information into the generated code.  This allows removing
@@ -66,7 +66,7 @@ use any floating-point), it's roughly 25% faster than the current JIT, with the
 edge over the current JIT mostly due to the fast memory optimization.
 
 Update on perf:
-I've been doing a bit more tweaking for a small perf improvement (in the 
+I've been doing a bit more tweaking for a small perf improvement (in the
 range of 5-10%).  That said, it's getting to the point where I'm simply
 not seeing potential for improvements to codegen, at least for long,
 straightforward blocks.  For one long block that's at the top of my samples,
@@ -118,6 +118,7 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 
 #include <algorithm>
 #include <memory>
+#include <cinttypes>
 #include <ctime>
 #include <set>
 #include "IR.h"
@@ -131,14 +132,14 @@ using namespace Gen;
 namespace IREmitter {
 
 InstLoc IRBuilder::EmitZeroOp(unsigned Opcode, unsigned extra = 0) {
-	InstLoc curIndex = &InstList[InstList.size()];
+	InstLoc curIndex = InstList.data() + InstList.size();
 	InstList.push_back(Opcode | (extra << 8));
 	MarkUsed.push_back(false);
 	return curIndex;
 }
 
 InstLoc IRBuilder::EmitUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
-	InstLoc curIndex = &InstList[InstList.size()];
+	InstLoc curIndex = InstList.data() + InstList.size();
 	unsigned backOp1 = (s32)(curIndex - 1 - Op1);
 	if (backOp1 >= 256) {
 		InstList.push_back(Tramp | backOp1 << 8);
@@ -152,7 +153,7 @@ InstLoc IRBuilder::EmitUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 }
 
 InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned extra) {
-	InstLoc curIndex = &InstList[InstList.size()];
+	InstLoc curIndex = InstList.data() + InstList.size();
 	unsigned backOp1 = (s32)(curIndex - 1 - Op1);
 	if (backOp1 >= 255) {
 		InstList.push_back(Tramp | backOp1 << 8);
@@ -175,7 +176,7 @@ InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 
 #if 0
 InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc Op3) {
-	InstLoc curIndex = &InstList[InstList.size()];
+	InstLoc curIndex = InstList.data() + InstList.size();
 	unsigned backOp1 = curIndex - 1 - Op1;
 	if (backOp1 >= 254) {
 		InstList.push_back(Tramp | backOp1 << 8);
@@ -570,7 +571,7 @@ InstLoc IRBuilder::FoldMul(InstLoc Op1, InstLoc Op2) {
 		if (imm == -1U) {
 			return FoldSub(EmitIntConst(0), Op1);
 		}
-		
+
 		for (unsigned i0 = 0; i0 < 30; ++i0) {
 			// x * (1 << i0) => x << i0
 			// One "shl" is faster than one "imul".
@@ -862,7 +863,7 @@ InstLoc IRBuilder::FoldBranchCond(InstLoc Op1, InstLoc Op2) {
 		if (getOpcode(*XOp1) == And &&
 		    isImm(*getOp2(XOp1)) &&
 		    getOpcode(*getOp1(XOp1)) == ICmpCRSigned) {
-			unsigned innerBranchValue = 
+			unsigned innerBranchValue =
 				GetImmValue(getOp2(XOp1));
 			if (branchValue == innerBranchValue) {
 				if (branchValue == 2)
@@ -1006,7 +1007,7 @@ InstLoc IRBuilder::FoldInterpreterFallback(InstLoc Op1, InstLoc Op2) {
 		CRCacheStore[i] = 0;
 	}
 	CTRCache = 0;
-	CTRCacheStore = 0;	
+	CTRCacheStore = 0;
 	return EmitBiOp(InterpreterFallback, Op1, Op2);
 }
 
@@ -1049,7 +1050,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 }
 
 InstLoc IRBuilder::EmitIntConst(unsigned value) {
-	InstLoc curIndex = &InstList[InstList.size()];
+	InstLoc curIndex = InstList.data() + InstList.size();
 	InstList.push_back(CInt32 | ((unsigned int)ConstList.size() << 8));
 	MarkUsed.push_back(false);
 	ConstList.push_back(value);
@@ -1061,12 +1062,12 @@ unsigned IRBuilder::GetImmValue(InstLoc I) const {
 }
 
 void IRBuilder::SetMarkUsed(InstLoc I) {
-	const unsigned i = (unsigned)(I - &InstList[0]);
+	const unsigned i = (unsigned)(I - InstList.data());
 	MarkUsed[i] = true;
 }
 
 bool IRBuilder::IsMarkUsed(InstLoc I) const {
-	const unsigned i = (unsigned)(I - &InstList[0]);
+	const unsigned i = (unsigned)(I - InstList.data());
 	return MarkUsed[i];
 }
 
@@ -1124,14 +1125,14 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const {
 		static unsigned ZeroOp[] = {LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit, LoadFReg, LoadFRegDENToZero, LoadGQR, Int3, };
 		static unsigned UOp[] = {StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, Not, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FSRSqrt, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, };
 		static unsigned BiOp[] = {BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, InterpreterFallback, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
-		for (size_t i = 0; i < sizeof(ZeroOp) / sizeof(ZeroOp[0]); ++i) {
-			numberOfOperands[ZeroOp[i]] = 0;
+		for (auto& op : ZeroOp) {
+			numberOfOperands[op] = 0;
 		}
-		for (size_t i = 0; i < sizeof(UOp) / sizeof(UOp[0]); ++i) {
-			numberOfOperands[UOp[i]] = 1;
+		for (auto& op : UOp) {
+			numberOfOperands[op] = 1;
 		}
-		for (size_t i = 0; i < sizeof(BiOp) / sizeof(BiOp[0]); ++i) {
-			numberOfOperands[BiOp[i]] = 2;
+		for (auto& op : BiOp) {
+			numberOfOperands[op] = 2;
 		}
 	}
 
@@ -1223,27 +1224,27 @@ struct Writer
 	virtual ~Writer() {}
 };
 
-static std::auto_ptr<Writer> writer;
+static std::unique_ptr<Writer> writer;
 
 static const std::string opcodeNames[] = {
-	"Nop", "LoadGReg", "LoadLink", "LoadCR", "LoadCarry", "LoadCTR", 
-	"LoadMSR", "LoadGQR", "SExt8", "SExt16", "BSwap32", "BSwap16", "Cntlzw", 
-	"Not", "Load8", "Load16", "Load32", "BranchUncond", "StoreGReg", 
-	"StoreCR", "StoreLink", "StoreCarry", "StoreCTR", "StoreMSR", "StoreFPRF", 
-	"StoreGQR", "StoreSRR", "InterpreterFallback", "Add", "Mul", "And", "Or", 
-	"Xor", "MulHighUnsigned", "Sub", "Shl", "Shrl", "Sarl", "Rol", 
-	"ICmpCRSigned", "ICmpCRUnsigned", "ICmpEq", "ICmpNe", "ICmpUgt", 
-	"ICmpUlt", "ICmpUge", "ICmpUle", "ICmpSgt", "ICmpSlt", "ICmpSge", 
-	"ICmpSle", "Store8", "Store16", "Store32", "BranchCond", "FResult_Start", 
-	"LoadSingle", "LoadDouble", "LoadPaired", "DoubleToSingle", 
-	"DupSingleToMReg", "DupSingleToPacked", "InsertDoubleInMReg", 
-	"ExpandPackedToMReg", "CompactMRegToPacked", "LoadFReg", 
-	"LoadFRegDENToZero", "FSMul", "FSAdd", "FSSub", "FSNeg", "FSRSqrt", 
-	"FPAdd", "FPMul", "FPSub", "FPNeg", "FDMul", "FDAdd", "FDSub", "FDNeg", 
-	"FPMerge00", "FPMerge01", "FPMerge10", "FPMerge11", "FPDup0", "FPDup1", 
-	"FResult_End", "StorePaired", "StoreSingle", "StoreDouble", "StoreFReg", 
-	"FDCmpCR", "CInt16", "CInt32", "SystemCall", "RFIExit", 
-	"InterpreterBranch", "IdleBranch", "ShortIdleLoop", 
+	"Nop", "LoadGReg", "LoadLink", "LoadCR", "LoadCarry", "LoadCTR",
+	"LoadMSR", "LoadGQR", "SExt8", "SExt16", "BSwap32", "BSwap16", "Cntlzw",
+	"Not", "Load8", "Load16", "Load32", "BranchUncond", "StoreGReg",
+	"StoreCR", "StoreLink", "StoreCarry", "StoreCTR", "StoreMSR", "StoreFPRF",
+	"StoreGQR", "StoreSRR", "InterpreterFallback", "Add", "Mul", "And", "Or",
+	"Xor", "MulHighUnsigned", "Sub", "Shl", "Shrl", "Sarl", "Rol",
+	"ICmpCRSigned", "ICmpCRUnsigned", "ICmpEq", "ICmpNe", "ICmpUgt",
+	"ICmpUlt", "ICmpUge", "ICmpUle", "ICmpSgt", "ICmpSlt", "ICmpSge",
+	"ICmpSle", "Store8", "Store16", "Store32", "BranchCond", "FResult_Start",
+	"LoadSingle", "LoadDouble", "LoadPaired", "DoubleToSingle",
+	"DupSingleToMReg", "DupSingleToPacked", "InsertDoubleInMReg",
+	"ExpandPackedToMReg", "CompactMRegToPacked", "LoadFReg",
+	"LoadFRegDENToZero", "FSMul", "FSAdd", "FSSub", "FSNeg", "FSRSqrt",
+	"FPAdd", "FPMul", "FPSub", "FPNeg", "FDMul", "FDAdd", "FDSub", "FDNeg",
+	"FPMerge00", "FPMerge01", "FPMerge10", "FPMerge11", "FPDup0", "FPDup1",
+	"FResult_End", "StorePaired", "StoreSingle", "StoreDouble", "StoreFReg",
+	"FDCmpCR", "CInt16", "CInt32", "SystemCall", "RFIExit",
+	"InterpreterBranch", "IdleBranch", "ShortIdleLoop",
 	"FPExceptionCheckStart", "FPExceptionCheckEnd", "ISIException", "ExtExceptionCheck",
 	"Tramp", "BlockStart", "BlockEnd", "Int3",
 };
@@ -1275,11 +1276,11 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 	_assert_(sizeof(opcodeNames) / sizeof(opcodeNames[0]) == Int3 + 1);
 
 	if (!writer.get()) {
-		writer = std::auto_ptr<Writer>(new Writer);
+		writer = std::unique_ptr<Writer>(new Writer);
 	}
 
 	FILE* const file = writer->file.GetHandle();
-	fprintf(file, "\ncode hash:%016llx\n", codeHash);
+	fprintf(file, "\ncode hash:%016" PRIx64 "\n", codeHash);
 
 	const InstLoc lastCurReadPtr = curReadPtr;
 	StartForwardPass();

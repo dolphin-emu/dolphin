@@ -48,7 +48,7 @@
 
 #else // 64 bit calling convention
 
-#ifdef _WIN32 // 64-bit Windows - the really exotic calling convention 
+#ifdef _WIN32 // 64-bit Windows - the really exotic calling convention
 
 #define ABI_PARAM1 RCX
 #define ABI_PARAM2 RDX

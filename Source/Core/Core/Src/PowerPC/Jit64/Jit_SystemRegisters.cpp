@@ -254,7 +254,7 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff)
 	_dbg_assert_msg_(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
 
-	// USES_CR 
+	// USES_CR
 
 	// Get bit CRBA in EAX aligned with bit CRBD
 	int shiftA = (inst.CRBD & 3) - (inst.CRBA & 3);

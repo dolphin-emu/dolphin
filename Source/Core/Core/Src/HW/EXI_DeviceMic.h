@@ -92,7 +92,7 @@ public:
 	int stream_wpos;
 	int stream_rpos;
 	int samples_avail;
-	
+
 protected:
 	virtual void TransferByte(u8 &byte);
 };

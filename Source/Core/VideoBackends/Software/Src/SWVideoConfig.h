@@ -19,7 +19,7 @@ struct SWVideoConfig : NonCopyable
 	// General
 	bool bFullscreen;
 	bool bHideCursor;
-	bool renderToMainframe;	
+	bool renderToMainframe;
 
 	bool bHwRasterizer;
 

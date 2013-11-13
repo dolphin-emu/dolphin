@@ -92,7 +92,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 
 	int iPosition = 0;
 	while(iPosition < _iLength)
-	{	
+	{
 		// read the command
 		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
 		iPosition++;
@@ -106,7 +106,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 				iPosition = _iLength; // break the while loop
 			}
 			break;
-		case CMD_GCAM: 
+		case CMD_GCAM:
 			{
 				int i;
 
@@ -188,7 +188,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 					case 0x1f:
 						{
 							ERROR_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 1f, %02x %02x %02x %02x %02x (REGION)", ptr(1), ptr(2), ptr(3), ptr(4), ptr(5));
-							unsigned char string[] =  
+							unsigned char string[] =
 								"\x00\x00\x30\x00"
 								//"\x01\xfe\x00\x00" // JAPAN
 								"\x02\xfd\x00\x00" // USA
@@ -232,7 +232,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 					case 0x4e:
 					case 0x4f:
 						{
-							DEBUG_LOG(AMBASEBOARDDEBUG, "GC-AM: Command %02x, %02x %02x %02x %02x %02x %02x %02x (JVS IO)", 
+							DEBUG_LOG(AMBASEBOARDDEBUG, "GC-AM: Command %02x, %02x %02x %02x %02x %02x %02x %02x (JVS IO)",
 								ptr(0), ptr(1), ptr(2), ptr(3), ptr(4), ptr(5), ptr(6), ptr(7));
 							int pptr = 2;
 							JVSIOMessage msg;
@@ -283,8 +283,8 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									msg.addData(1);
 									msg.addData((void *)"\x01\x02\x0a\x00", 4);  // 2 player, 10 bit
 									msg.addData((void *)"\x02\x02\x00\x00", 4);  // 2 coin slots
-									//msg.addData((void *)"\x03\x02\x08\x00", 4); 
-									msg.addData((void *)"\x00\x00\x00\x00", 4); 
+									//msg.addData((void *)"\x03\x02\x08\x00", 4);
+									msg.addData((void *)"\x00\x00\x00\x00", 4);
 									break;
 								case 0x15:
 									while (*jvs_io++) {};

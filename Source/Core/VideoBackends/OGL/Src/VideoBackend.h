@@ -9,19 +9,19 @@ namespace OGL
 
 class VideoBackend : public VideoBackendHardware
 {
-	bool Initialize(void *&);
-	void Shutdown();
+	bool Initialize(void *&) override;
+	void Shutdown() override;
 
-	std::string GetName();
-	std::string GetDisplayName();
+	std::string GetName() override;
+	std::string GetDisplayName() override;
 
-	void Video_Prepare();
-	void Video_Cleanup();
+	void Video_Prepare() override;
+	void Video_Cleanup() override;
 
-	void ShowConfig(void* parent);
+	void ShowConfig(void* parent) override;
 
-	void UpdateFPSDisplay(const char*);
-	unsigned int PeekMessages();
+	void UpdateFPSDisplay(const char*) override;
+	unsigned int PeekMessages() override;
 };
 
 }

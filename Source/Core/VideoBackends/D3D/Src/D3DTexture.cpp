@@ -5,11 +5,137 @@
 #include "D3DBase.h"
 #include "D3DTexture.h"
 
+#include <atlbase.h>
+#include <wincodec.h>
+#include <wincodecsdk.h>
+#pragma comment(lib, "WindowsCodecs.lib")
+
 namespace DX11
 {
 
 namespace D3D
 {
+
+HRESULT TextureToPng(D3D11_MAPPED_SUBRESOURCE &map, LPCWSTR wzFilename, int width, int height, bool saveAlpha)
+{
+	IWICImagingFactory *piFactory = NULL;
+	IWICBitmapEncoder *piEncoder = NULL;
+	IWICBitmapFrameEncode *piBitmapFrame = NULL;
+	IPropertyBag2 *pPropertybag = NULL;
+
+	IWICStream *piStream = NULL;
+
+	HRESULT hr = CoCreateInstance(
+		CLSID_WICImagingFactory,
+		NULL,
+		CLSCTX_INPROC_SERVER,
+		IID_IWICImagingFactory,
+		(LPVOID*)&piFactory);
+
+	if (SUCCEEDED(hr))
+	{
+		hr = piFactory->CreateStream(&piStream);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = piStream->InitializeFromFilename(wzFilename, GENERIC_WRITE);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = piFactory->CreateEncoder(GUID_ContainerFormatPng, NULL, &piEncoder);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = piEncoder->Initialize(piStream, WICBitmapEncoderNoCache);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = piEncoder->CreateNewFrame(&piBitmapFrame, &pPropertybag);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		if (SUCCEEDED(hr))
+		{
+			hr = piBitmapFrame->Initialize(pPropertybag);
+		}
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = piBitmapFrame->SetSize(width, height);
+	}
+
+	WICPixelFormatGUID formatGUID = GUID_WICPixelFormat32bppBGRA;
+	if (SUCCEEDED(hr))
+	{
+		hr = piBitmapFrame->SetPixelFormat(&formatGUID);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		// We're expecting to write out 32bppBGRA. Fail if the encoder cannot do it.
+		hr = IsEqualGUID(formatGUID, GUID_WICPixelFormat32bppBGRA) ? S_OK : E_FAIL;
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		if (map.pData != NULL)
+		{
+			for (int y = 0; y < height; ++y)
+			{
+				u8* ptr = (u8*)map.pData + y * map.RowPitch;
+				for (unsigned int x = 0; x < map.RowPitch/4; ++x)
+				{
+					u8 r = ptr[0];
+					u8 g = ptr[1];
+					u8 b = ptr[2];
+					ptr[0] = b;
+					ptr[1] = g;
+					ptr[2] = r;
+					if (!saveAlpha)
+						ptr[3] = 0xff;
+
+
+					ptr += 4;
+				}
+			}
+			hr = piBitmapFrame->WritePixels(height, map.RowPitch, height * map.RowPitch, (BYTE*)map.pData);
+		}
+		else
+		{
+			hr = E_OUTOFMEMORY;
+		}
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = piBitmapFrame->Commit();
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = piEncoder->Commit();
+	}
+
+	if (piFactory)
+		piFactory->Release();
+
+	if (piBitmapFrame)
+		piBitmapFrame->Release();
+
+	if (piEncoder)
+		piEncoder->Release();
+
+	if (piStream)
+		piStream->Release();
+
+	return hr;
+}
 
 void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width, unsigned int height, unsigned int pitch, unsigned int level, D3D11_USAGE usage)
 {

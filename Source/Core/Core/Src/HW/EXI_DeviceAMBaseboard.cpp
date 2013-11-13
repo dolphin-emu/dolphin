@@ -45,7 +45,7 @@ void CEXIAMBaseboard::TransferByte(u8& _byte)
 		xx xx xx xx 04
 
 	exi_isr_read:
-		82 .. .. .. xx xx xx 
+		82 .. .. .. xx xx xx
 		xx xx xx xx 04 rr rr
 		3 byte command, 1 byte checksum
 	*/

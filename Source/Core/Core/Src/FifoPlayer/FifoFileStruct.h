@@ -21,7 +21,7 @@ enum
 
 union FileHeader
 {
-	struct 
+	struct
 	{
 		u32 fileId;
 		u32 file_version;

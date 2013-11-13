@@ -71,7 +71,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	inquiry_info scan_infos[max_infos] = {};
 	auto* scan_infos_ptr = scan_infos;
 	found_board = NULL;
-	
+
 	// Scan for bluetooth devices
 	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, NULL, &scan_infos_ptr, IREQ_CACHE_FLUSH);
 	if (found_devices < 0)
@@ -86,7 +86,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	for (int i = 0; i < found_devices; ++i)
 	{
 		ERROR_LOG(WIIMOTE, "found a device...");
-		
+
 		// BT names are a maximum of 248 bytes apparently
 		char name[255] = {};
 		if (hci_read_remote_name(device_sock, &scan_infos[i].bdaddr, sizeof(name), name, 1000) < 0)
