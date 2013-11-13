@@ -222,10 +222,10 @@ namespace JitILProfiler
 			}
 		}
 	};
-	std::auto_ptr<JitILProfilerFinalizer> finalizer;
+	std::unique_ptr<JitILProfilerFinalizer> finalizer;
 	static void Init()
 	{
-		finalizer = std::auto_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
+		finalizer = std::unique_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
 	}
 	static void Shutdown()
 	{

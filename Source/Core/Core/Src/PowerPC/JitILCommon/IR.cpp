@@ -1224,7 +1224,7 @@ struct Writer
 	virtual ~Writer() {}
 };
 
-static std::auto_ptr<Writer> writer;
+static std::unique_ptr<Writer> writer;
 
 static const std::string opcodeNames[] = {
 	"Nop", "LoadGReg", "LoadLink", "LoadCR", "LoadCarry", "LoadCTR",
@@ -1276,7 +1276,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 	_assert_(sizeof(opcodeNames) / sizeof(opcodeNames[0]) == Int3 + 1);
 
 	if (!writer.get()) {
-		writer = std::auto_ptr<Writer>(new Writer);
+		writer = std::unique_ptr<Writer>(new Writer);
 	}
 
 	FILE* const file = writer->file.GetHandle();
