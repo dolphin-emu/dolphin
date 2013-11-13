@@ -125,11 +125,7 @@ namespace ButtonManager
 	}
 	void TouchEvent(int button, int action)
 	{
-		// Actions
-		// 0 is press
-		// 1 is let go
-		// 2 is move
-		m_buttons[button]->SetState(action ? BUTTON_RELEASED : BUTTON_PRESSED);
+		m_buttons[button]->SetState(action ? BUTTON_PRESSED : BUTTON_RELEASED);
 	}
 
 	void GamepadEvent(std::string dev, int button, int action)
