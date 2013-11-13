@@ -42,7 +42,33 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 		warn_once = false;
 		return false;
 	}
-	return SUCCEEDED(PD3DX11SaveTextureToFileA(D3D::context, texture->GetTex(), D3DX11_IFF_PNG, filename));
+
+	ID3D11Texture2D* pNewTexture = NULL;
+	ID3D11Texture2D* pSurface = texture->GetTex();
+	D3D11_TEXTURE2D_DESC desc;
+	pSurface->GetDesc(&desc);
+
+	desc.BindFlags = 0;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+	desc.Usage = D3D11_USAGE_STAGING;
+
+	HRESULT hr = D3D::device->CreateTexture2D(&desc, NULL, &pNewTexture);
+
+	if (SUCCEEDED(hr) && pNewTexture)
+	{
+		D3D::context->CopyResource(pNewTexture, pSurface);
+
+		D3D11_MAPPED_SUBRESOURCE map;
+		HRESULT hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
+		if (SUCCEEDED(hr))
+		{
+			hr = D3D::TextureToPng(map, UTF8ToUTF16(filename).c_str(), desc.Width, desc.Height);
+			D3D::context->Unmap(pNewTexture, 0);
+		}
+		SAFE_RELEASE(pNewTexture);
+	}
+
+	return SUCCEEDED(hr);
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,

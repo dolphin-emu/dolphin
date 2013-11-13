@@ -690,22 +690,13 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	D3D11_BOX box = CD3D11_BOX(rc.left, rc.top, 0, rc.right, rc.bottom, 1);
 	D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0, &box);
 
-	// D3DX11SaveTextureToFileA doesn't allow us to ignore the alpha channel, so we need to strip it out ourselves
 	D3D11_MAPPED_SUBRESOURCE map;
 	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
-	for (auto y = 0; y < rc.GetHeight(); ++y)
-	{
-		u8* ptr = (u8*)map.pData + y * map.RowPitch + 3;
-		for (auto x = 0; x < rc.GetWidth(); ++x)
-		{
-			*ptr = 0xFF;
-			ptr += 4;
-		}
-	}
-	D3D::context->Unmap(s_screenshot_texture, 0);
 
 	// ready to be saved
-	HRESULT hr = PD3DX11SaveTextureToFileA(D3D::context, s_screenshot_texture, D3DX11_IFF_PNG, filename.c_str());
+	HRESULT hr = D3D::TextureToPng(map, UTF8ToUTF16(filename.c_str()).c_str(), rc.GetWidth(), rc.GetHeight(), false);
+	D3D::context->Unmap(s_screenshot_texture, 0);
+
 	if (SUCCEEDED(hr))
 	{
 		OSD::AddMessage(StringFromFormat("Saved %i x %i %s", rc.GetWidth(),

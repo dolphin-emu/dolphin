@@ -11,6 +11,7 @@ namespace DX11
 
 namespace D3D
 {
+	HRESULT TextureToPng(D3D11_MAPPED_SUBRESOURCE& map, LPCWSTR wzFilename, int width, int height, bool saveAlpha = true);
 	void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width, unsigned int height, unsigned int pitch, unsigned int level, D3D11_USAGE usage);
 }
 
