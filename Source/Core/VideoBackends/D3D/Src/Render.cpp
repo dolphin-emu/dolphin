@@ -693,10 +693,10 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	// D3DX11SaveTextureToFileA doesn't allow us to ignore the alpha channel, so we need to strip it out ourselves
 	D3D11_MAPPED_SUBRESOURCE map;
 	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
-	for (unsigned int y = 0; y < rc.GetHeight(); ++y)
+	for (auto y = 0; y < rc.GetHeight(); ++y)
 	{
 		u8* ptr = (u8*)map.pData + y * map.RowPitch + 3;
-		for (unsigned int x = 0; x < rc.GetWidth(); ++x)
+		for (auto x = 0; x < rc.GetWidth(); ++x)
 		{
 			*ptr = 0xFF;
 			ptr += 4;

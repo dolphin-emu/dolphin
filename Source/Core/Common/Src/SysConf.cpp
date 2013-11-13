@@ -153,7 +153,7 @@ unsigned int create_item(SSysConfEntry &item, SysconfType type, const std::strin
 {
 	item.offset = offset;
 	item.type = type;
-	item.nameLength = name.length();
+	item.nameLength = (u8)(name.length());
 	strncpy(item.name, name.c_str(), 32);
 	item.dataLength = data_length;
 	item.data = new u8[data_length];
