@@ -41,6 +41,7 @@ struct CPUInfo
 	bool bLZCNT;
 	bool bSSE4A;
 	bool bAVX;
+	bool bFMA;
 	bool bAES;
 	bool bLAHFSAHF64;
 	bool bLongMode;

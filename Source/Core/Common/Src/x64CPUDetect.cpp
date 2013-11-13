@@ -169,7 +169,11 @@ void CPUInfo::Detect()
 		if (((cpu_id[2] >> 28) & 1) && ((cpu_id[2] >> 27) & 1))
 		{
 			if ((_xgetbv(_XCR_XFEATURE_ENABLED_MASK) & 0x6) == 0x6)
+			{
 				bAVX = true;
+				if ((cpu_id[2] >> 12) & 1)
+					bFMA = true;
+			}
 		}
 	}
 	if (max_ex_fn >= 0x80000004) {
@@ -225,6 +229,7 @@ std::string CPUInfo::Summarize()
 	if (bSSE4_2) sum += ", SSE4.2";
 	if (HTT) sum += ", HTT";
 	if (bAVX) sum += ", AVX";
+	if (bFMA) sum += ", FMA";
 	if (bAES) sum += ", AES";
 	if (bLongMode) sum += ", 64-bit support";
 	return sum;
