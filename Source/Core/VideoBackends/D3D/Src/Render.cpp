@@ -694,7 +694,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 
 	// ready to be saved
-	HRESULT hr = D3D::TextureToPng(map, UTF8ToUTF16(filename.c_str()).c_str(), rc.GetWidth(), rc.GetHeight(), false);
+	HRESULT hr = D3D::TextureToPng(map, filename.c_str(), rc.GetWidth(), rc.GetHeight(), false);
 	D3D::context->Unmap(s_screenshot_texture, 0);
 
 	if (SUCCEEDED(hr))
