@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu.settings.video;
 
-import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -28,7 +27,6 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	public static String m_GLVendor;
 	public static String m_GLRenderer;
 	public static String m_GLExtensions;
-	private Activity m_activity;
 
 	/**
 	 * Class which provides a means to retrieve various
@@ -225,7 +223,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		// denotes the placement on the UI. So if more elements are
 		// added to the video settings, these may need to change.
 		//
-		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(m_activity);
+		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		final PreferenceScreen mainScreen = getPreferenceScreen();
 
 		if (videoBackends.getValue().equals("Software Renderer"))
@@ -265,14 +263,5 @@ public final class VideoSettingsFragment extends PreferenceFragment
 				}
 			}
 		});
-	}
-
-	@Override
-	public void onAttach(Activity activity)
-	{
-		super.onAttach(activity);
-
-		// Cache the activity instance.
-		m_activity = activity;
 	}
 }

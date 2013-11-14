@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu;
 
-import android.app.Activity;
 import android.app.ListFragment;
 import android.content.Context;
 import android.os.Bundle;
@@ -27,8 +26,6 @@ import org.dolphinemu.dolphinemu.settings.video.VideoSettingsFragment;
  */
 public final class AboutFragment extends ListFragment
 {
-	private static Activity m_activity;
-
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
@@ -42,20 +39,11 @@ public final class AboutFragment extends ListFragment
 		Input.add(new AboutFragmentItem(getString(R.string.build_revision), NativeLibrary.GetVersionString()));
 		Input.add(new AboutFragmentItem(getString(R.string.supports_gles3), VideoSettingsFragment.SupportsGLES3() ? yes : no));
 
-		AboutFragmentAdapter adapter = new AboutFragmentAdapter(m_activity, R.layout.about_layout, Input);
+		AboutFragmentAdapter adapter = new AboutFragmentAdapter(getActivity(), R.layout.about_layout, Input);
 		mMainList.setAdapter(adapter);
 		mMainList.setEnabled(false);  // Makes the list view non-clickable.
 
 		return mMainList;
-	}
-
-	@Override
-	public void onAttach(Activity activity)
-	{
-		super.onAttach(activity);
-
-		// Cache the activity instance.
-		m_activity = activity;
 	}
 
 	// Represents an item in the AboutFragment.

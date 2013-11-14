@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu.folderbrowser;
 
-import android.app.Activity;
 import android.app.ListFragment;
 import android.os.Bundle;
 import android.os.Environment;
@@ -37,7 +36,6 @@ import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
  */
 public final class FolderBrowser extends ListFragment
 {
-	private Activity m_activity;
 	private FolderBrowserAdapter adapter;
 	private ListView mFolderBrowserList;
 	private ListView rootView;
@@ -46,7 +44,9 @@ public final class FolderBrowser extends ListFragment
 	// Populates the FolderView with the given currDir's contents.
 	private void Fill(File currDir)
 	{
-		m_activity.setTitle(String.format(getString(R.string.current_dir), currDir.getName()));
+		// Change the activity title to reflect the current directory the FolderBrowser is in.
+		getActivity().setTitle(String.format(getString(R.string.current_dir), currDir.getName()));
+		
 		File[] dirs = currDir.listFiles();
 		List<FolderBrowserItem> dir = new ArrayList<FolderBrowserItem>();
 		List<FolderBrowserItem> fls = new ArrayList<FolderBrowserItem>();
@@ -96,7 +96,7 @@ public final class FolderBrowser extends ListFragment
 		if (!currDir.getPath().equalsIgnoreCase("/"))
 			dir.add(0, new FolderBrowserItem("..", getString(R.string.parent_directory), currDir.getParent()));
 
-		adapter = new FolderBrowserAdapter(m_activity, R.layout.gamelist_folderbrowser_list, dir);
+		adapter = new FolderBrowserAdapter(getActivity(), R.layout.gamelist_folderbrowser_list, dir);
 		mFolderBrowserList = (ListView) rootView.findViewById(R.id.gamelist);
 		mFolderBrowserList.setAdapter(adapter);
 	}
@@ -128,16 +128,6 @@ public final class FolderBrowser extends ListFragment
 		return mFolderBrowserList;
 	}
 
-	@Override
-	public void onAttach(Activity activity)
-	{
-		super.onAttach(activity);
-
-		// Cache the activity instance.
-		m_activity = activity;
-	}
-
-
 	private void FolderSelected()
 	{
 		String Directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
@@ -168,6 +158,6 @@ public final class FolderBrowser extends ListFragment
 			NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPath" + Integer.toString(intDirectories), currentDir.getPath());
 		}
 
-		((GameListActivity)m_activity).SwitchPage(0);
+		((GameListActivity)getActivity()).SwitchPage(0);
 	}
 }
