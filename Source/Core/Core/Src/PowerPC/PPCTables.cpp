@@ -192,7 +192,7 @@ void PrintInstructionRunCounts()
 	{
 		op_inf x;
 		x.name = m_allInstructions[i]->opname;
-		x.count = m_allInstructions[i]->runCount;
+		x.count = (int)(m_allInstructions[i]->runCount);
 		temp.push_back(x);
 	}
 	std::sort(temp.begin(), temp.end());

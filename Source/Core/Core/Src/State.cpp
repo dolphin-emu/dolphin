@@ -247,7 +247,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 	// Setting up the header
 	StateHeader header;
 	memcpy(header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
-	header.size = g_use_compression ? buffer_size : 0;
+	header.size = g_use_compression ? (u32)buffer_size : 0;
 	header.time = Common::Timer::GetDoubleTime();
 
 	f.WriteArray(&header, 1);
@@ -261,9 +261,13 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 			lzo_uint out_len = 0;
 
 			if ((i + IN_LEN) >= buffer_size)
-				cur_len = buffer_size - i;
+			{
+				cur_len = (lzo_uint32)(buffer_size - i);
+			}
 			else
+			{
 				cur_len = IN_LEN;
+			}
 
 			if (lzo1x_1_compress(buffer_data + i, cur_len, out, &out_len, wrkmem) != LZO_E_OK)
 				PanicAlertT("Internal LZO Error - compression failed");

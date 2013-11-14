@@ -191,7 +191,7 @@ void CEXIMemoryCard::CmdDone()
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
 	CoreTiming::RemoveEvent(et_cmd_done);
-	CoreTiming::ScheduleEvent(cycles, et_cmd_done, (u64)card_index);
+	CoreTiming::ScheduleEvent((int)cycles, et_cmd_done, (u64)card_index);
 }
 
 void CEXIMemoryCard::SetCS(int cs)

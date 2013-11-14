@@ -140,7 +140,7 @@ namespace WiimoteReal
 {
 
 
-int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, int len);
+int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len);
 int _IORead(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read, u8* buf, int index);
 void _IOWakeup(HANDLE &dev_handle, OVERLAPPED &hid_overlap_read);
 
@@ -247,7 +247,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	//	SLEEP(2000);
 
 }
-int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, int size, int attempts)
+int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, size_t size, int attempts)
 {
 	OVERLAPPED hid_overlap_write = OVERLAPPED();
 	hid_overlap_write.hEvent = CreateEvent(NULL, true, false, NULL);
@@ -641,7 +641,7 @@ int Wiimote::IORead(u8* buf)
 }
 
 
-int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, int len)
+int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stack_t &stack, const u8* buf, size_t len)
 {
 	WiimoteEmu::Spy(NULL, buf, len);
 
@@ -663,7 +663,7 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 		}
 		case MSBT_STACK_MS:
 		{
-			auto result = HidD_SetOutputReport(dev_handle, const_cast<u8*>(buf) + 1, len - 1);
+			auto result = HidD_SetOutputReport(dev_handle, const_cast<u8*>(buf) + 1, (ULONG)(len - 1));
 			//FlushFileBuffers(dev_handle);
 
 			if (!result)
@@ -715,7 +715,7 @@ int _IOWrite(HANDLE &dev_handle, OVERLAPPED &hid_overlap_write, enum win_bt_stac
 	return 0;
 }
 
-int Wiimote::IOWrite(const u8* buf, int len)
+int Wiimote::IOWrite(const u8* buf, size_t len)
 {
 	return _IOWrite(dev_handle, hid_overlap_write, stack, buf, len);
 }

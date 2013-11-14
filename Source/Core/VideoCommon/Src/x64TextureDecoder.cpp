@@ -1460,7 +1460,7 @@ PC_TexFormat TexDecoder_Decode_RGBA(u32 * dst, const u8 * src, int width, int he
 						for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
 						{
 							u32 *newdst = dst+(y+iy)*width+x;
-							const __m128i mask = _mm_set_epi8(128,128,6,7,128,128,4,5,128,128,2,3,128,128,0,1);
+							const __m128i mask = _mm_set_epi8(-128,-128,6,7,-128,-128,4,5,-128,-128,2,3,-128,-128,0,1);
 								const __m128i valV = _mm_shuffle_epi8(_mm_loadl_epi64((const __m128i*)(src + 8 * xStep)),mask);
 								int cmp = _mm_movemask_epi8(valV); //MSB: 0x2 = val0; 0x20=val1; 0x200 = val2; 0x2000=val3
 								if ((cmp&0x2222)==0x2222) // SSSE3 case #1: all 4 pixels are in RGB555 and alpha = 0xFF.

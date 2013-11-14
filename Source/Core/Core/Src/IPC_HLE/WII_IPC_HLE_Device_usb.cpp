@@ -866,7 +866,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd, bool
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 {
-	SQueuedEvent Event(sizeof(hci_event_hdr_t) + sizeof(hci_num_compl_pkts_ep) + sizeof(hci_num_compl_pkts_info) * m_WiiMotes.size(), 0);
+	SQueuedEvent Event((u32)(sizeof(hci_event_hdr_t) + sizeof(hci_num_compl_pkts_ep) + (sizeof(hci_num_compl_pkts_info) * m_WiiMotes.size())), 0);
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventNumberOfCompletedPackets");
 

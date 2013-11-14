@@ -133,7 +133,7 @@ void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
 	p.Do(m_AccessIdentID);
 	p.Do(m_TitleIDs);
 
-	u32 Count = m_ContentAccessMap.size();
+	u32 Count = (u32)(m_ContentAccessMap.size());
 	p.Do(Count);
 
 	u32 CFD, Position;

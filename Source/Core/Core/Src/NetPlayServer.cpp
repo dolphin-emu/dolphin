@@ -153,7 +153,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	rpac >> player.name;
 
 	// give new client first available id
-	player.pid = m_players.size() + 1;
+	player.pid = (PlayerId)(m_players.size() + 1);
 
 	// try to automatically assign new user a pad
 	for (unsigned int m = 0; m < 4; ++m)
@@ -435,12 +435,14 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 
 	case NP_MSG_PONG :
 		{
-			const u32 ping = m_ping_timer.GetTimeElapsed();
+			const u32 ping = (u32)m_ping_timer.GetTimeElapsed();
 			u32 ping_key = 0;
 			packet >> ping_key;
 
 			if (m_ping_key == ping_key)
+			{
 				player.ping = ping;
+			}
 
 			sf::Packet spac;
 			spac << (MessageId)NP_MSG_PLAYER_PING_DATA;

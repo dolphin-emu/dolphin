@@ -209,5 +209,5 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 
 bool GCPad::GetMicButton() const
 {
-	return m_buttons->controls.back()->control_ref->State();
+	return (0 != m_buttons->controls.back()->control_ref->State());
 }
