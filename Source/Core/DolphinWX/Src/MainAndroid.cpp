@@ -241,6 +241,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onTouchEvent
 {
 	ButtonManager::TouchEvent(Button, Action);
 }
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onTouchAxisEvent(JNIEnv *env, jobject obj, jint Button, jfloat Action)
+{
+	ButtonManager::TouchAxisEvent(Button, Action);
+}
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Button, jint Action)
 {
 	const char *Device = env->GetStringUTFChars(jDevice, NULL);
@@ -374,15 +378,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	VideoBackend::PopulateList();
 	VideoBackend::ActivateBackend(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoBackend);
 	WiimoteReal::LoadSettings();
-
-	// Load our Android specific settings
-	IniFile ini;
-	bool onscreencontrols = true;
-	ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"));
-	ini.Get("Android", "ScreenControls", &onscreencontrols, true);
-
-	if (onscreencontrols)
-		OSD::AddCallback(OSD::OSD_ONFRAME, ButtonManager::DrawButtons);
 
 	// No use running the loop when booting fails
 	if ( BootManager::BootCore( g_filename.c_str() ) )

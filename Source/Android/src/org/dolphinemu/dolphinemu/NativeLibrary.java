@@ -60,6 +60,14 @@ public final class NativeLibrary
 	public static native void onTouchEvent(int Button, int Action);
 
 	/**
+	 * Handles touch events.
+	 *
+	 * @param Button Key code identifying which button was pressed.
+	 * @param Action Mask for the action being performed.
+	 */
+	public static native void onTouchAxisEvent(int Axis, float loc);
+
+	/**
 	 * Handles button press events for a gamepad.
 	 * 
 	 * @param Device The input descriptor of the gamepad.

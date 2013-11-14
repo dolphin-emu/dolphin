@@ -67,7 +67,18 @@ namespace ButtonManager
 		void SetState(ButtonState state) { m_state = state; }
 		bool Pressed() { return m_state == BUTTON_PRESSED; }
 			
-		~Button() { }
+		~Button() {}
+	};
+	class Axis
+	{
+	private:
+		float m_value;
+	public:
+		Axis() : m_value(0.0f) {}
+		void SetValue(float value) { m_value = value; }
+		float AxisValue() { return m_value; }
+
+		~Axis() {}
 	};
 
 	struct sBind
@@ -107,10 +118,10 @@ namespace ButtonManager
 	};
 
 	void Init();
-	void DrawButtons();
 	bool GetButtonPressed(ButtonType button);
 	float GetAxisValue(ButtonType axis);
 	void TouchEvent(int button, int action);
+	void TouchAxisEvent(int axis, float value);
 	void GamepadEvent(std::string dev, int button, int action);
 	void GamepadAxisEvent(std::string dev, int axis, float value);
 	void Shutdown();

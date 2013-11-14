@@ -25,6 +25,7 @@ extern void DrawButton(GLuint tex, float *coords);
 namespace ButtonManager
 {
 	std::unordered_map<int, Button*> m_buttons;
+	std::unordered_map<int, Axis*> m_axises;
 	std::unordered_map<std::string, InputDevice*> m_controllers;
 	const char *configStrings[] = {	"InputA",
 					"InputB",
@@ -74,6 +75,16 @@ namespace ButtonManager
 		m_buttons[BUTTON_LEFT] = new Button();
 		m_buttons[BUTTON_RIGHT] = new Button();
 
+		m_axises[STICK_MAIN_UP] = new Axis();
+		m_axises[STICK_MAIN_DOWN] = new Axis();
+		m_axises[STICK_MAIN_LEFT] = new Axis();
+		m_axises[STICK_MAIN_RIGHT] = new Axis();
+		m_axises[STICK_C_UP] = new Axis();
+		m_axises[STICK_C_DOWN] = new Axis();
+		m_axises[STICK_C_LEFT] = new Axis();
+		m_axises[STICK_C_RIGHT] = new Axis();
+		m_axises[TRIGGER_L] = new Axis();
+		m_axises[TRIGGER_R] = new Axis();
 
 		// Init our controller bindings
 		IniFile ini;
@@ -118,16 +129,22 @@ namespace ButtonManager
 	}
 	float GetAxisValue(ButtonType axis)
 	{
+		float value = 0.0f;
+		value = m_axises[axis]->AxisValue();
+
 		auto it = m_controllers.begin();
 		if (it == m_controllers.end())
-			return 0.0f;
+			return value;
 		return it->second->AxisValue(axis);
 	}
 	void TouchEvent(int button, int action)
 	{
 		m_buttons[button]->SetState(action ? BUTTON_PRESSED : BUTTON_RELEASED);
 	}
-
+	void TouchAxisEvent(int axis, float value)
+	{
+		m_axises[axis]->SetValue(value);
+	}
 	void GamepadEvent(std::string dev, int button, int action)
 	{
 		auto it = m_controllers.find(dev);
@@ -158,11 +175,6 @@ namespace ButtonManager
 			delete it->second;
 		m_controllers.clear();
 		m_buttons.clear();
-	}
-
-	void DrawButtons()
-	{
-		// XXX: Make platform specific drawing
 	}
 
 	// InputDevice
