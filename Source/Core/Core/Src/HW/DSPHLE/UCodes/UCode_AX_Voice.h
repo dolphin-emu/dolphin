@@ -469,35 +469,41 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 	// Mix LRS, AUXA and AUXB depending on mixer_control
 	// TODO: Handle DPL2 on AUXB.
 
-	if (mctrl & MIX_L)
-		MixAdd(buffers.left, samples, count, &pb.mixer.left, &pb.dpop.left, mctrl & MIX_L_RAMP);
-	if (mctrl & MIX_R)
-		MixAdd(buffers.right, samples, count, &pb.mixer.right, &pb.dpop.right, mctrl & MIX_R_RAMP);
-	if (mctrl & MIX_S)
-		MixAdd(buffers.surround, samples, count, &pb.mixer.surround, &pb.dpop.surround, mctrl & MIX_S_RAMP);
+#define MIX_ON(C) (0 != (mctrl & MIX_##C))
+#define RAMP_ON(C) (0 != (mctrl & MIX_##C##_RAMP))
 
-	if (mctrl & MIX_AUXA_L)
-		MixAdd(buffers.auxA_left, samples, count, &pb.mixer.auxA_left, &pb.dpop.auxA_left, mctrl & MIX_AUXA_L_RAMP);
-	if (mctrl & MIX_AUXA_R)
-		MixAdd(buffers.auxA_right, samples, count, &pb.mixer.auxA_right, &pb.dpop.auxA_right, mctrl & MIX_AUXA_R_RAMP);
-	if (mctrl & MIX_AUXA_S)
-		MixAdd(buffers.auxA_surround, samples, count, &pb.mixer.auxA_surround, &pb.dpop.auxA_surround, mctrl & MIX_AUXA_S_RAMP);
+	if (MIX_ON(L))
+		MixAdd(buffers.left, samples, count, &pb.mixer.left, &pb.dpop.left, RAMP_ON(L));
+	if (MIX_ON(R))
+		MixAdd(buffers.right, samples, count, &pb.mixer.right, &pb.dpop.right, RAMP_ON(R));
+	if (MIX_ON(S))
+		MixAdd(buffers.surround, samples, count, &pb.mixer.surround, &pb.dpop.surround, RAMP_ON(S));
 
-	if (mctrl & MIX_AUXB_L)
-		MixAdd(buffers.auxB_left, samples, count, &pb.mixer.auxB_left, &pb.dpop.auxB_left, mctrl & MIX_AUXB_L_RAMP);
-	if (mctrl & MIX_AUXB_R)
-		MixAdd(buffers.auxB_right, samples, count, &pb.mixer.auxB_right, &pb.dpop.auxB_right, mctrl & MIX_AUXB_R_RAMP);
-	if (mctrl & MIX_AUXB_S)
-		MixAdd(buffers.auxB_surround, samples, count, &pb.mixer.auxB_surround, &pb.dpop.auxB_surround, mctrl & MIX_AUXB_S_RAMP);
+	if (MIX_ON(AUXA_L))
+		MixAdd(buffers.auxA_left, samples, count, &pb.mixer.auxA_left, &pb.dpop.auxA_left, RAMP_ON(AUXA_L));
+	if (MIX_ON(AUXA_R))
+		MixAdd(buffers.auxA_right, samples, count, &pb.mixer.auxA_right, &pb.dpop.auxA_right, RAMP_ON(AUXA_R));
+	if (MIX_ON(AUXA_S))
+		MixAdd(buffers.auxA_surround, samples, count, &pb.mixer.auxA_surround, &pb.dpop.auxA_surround, RAMP_ON(AUXA_S));
+
+	if (MIX_ON(AUXB_L))
+		MixAdd(buffers.auxB_left, samples, count, &pb.mixer.auxB_left, &pb.dpop.auxB_left, RAMP_ON(AUXB_L));
+	if (MIX_ON(AUXB_R))
+		MixAdd(buffers.auxB_right, samples, count, &pb.mixer.auxB_right, &pb.dpop.auxB_right, RAMP_ON(AUXB_R));
+	if (MIX_ON(AUXB_S))
+		MixAdd(buffers.auxB_surround, samples, count, &pb.mixer.auxB_surround, &pb.dpop.auxB_surround, RAMP_ON(AUXB_S));
 
 #ifdef AX_WII
-	if (mctrl & MIX_AUXC_L)
-		MixAdd(buffers.auxC_left, samples, count, &pb.mixer.auxC_left, &pb.dpop.auxC_left, mctrl & MIX_AUXC_L_RAMP);
-	if (mctrl & MIX_AUXC_R)
-		MixAdd(buffers.auxC_right, samples, count, &pb.mixer.auxC_right, &pb.dpop.auxC_right, mctrl & MIX_AUXC_R_RAMP);
-	if (mctrl & MIX_AUXC_S)
-		MixAdd(buffers.auxC_surround, samples, count, &pb.mixer.auxC_surround, &pb.dpop.auxC_surround, mctrl & MIX_AUXC_S_RAMP);
+	if (MIX_ON(AUXC_L))
+		MixAdd(buffers.auxC_left, samples, count, &pb.mixer.auxC_left, &pb.dpop.auxC_left, RAMP_ON(AUXC_L));
+	if (MIX_ON(AUXC_R))
+		MixAdd(buffers.auxC_right, samples, count, &pb.mixer.auxC_right, &pb.dpop.auxC_right, RAMP_ON(AUXC_R));
+	if (MIX_ON(AUXC_S))
+		MixAdd(buffers.auxC_surround, samples, count, &pb.mixer.auxC_surround, &pb.dpop.auxC_surround, RAMP_ON(AUXC_S));
 #endif
+
+#undef MIX_ON
+#undef RAMP_ON
 
 	// Optionally, phase shift left or right channel to simulate 3D sound.
 	if (pb.initial_time_delay.on)
@@ -524,8 +530,8 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 		pb.remote_src.cur_addr_frac = curr_pos & 0xFFFF;
 
 		// Mix to main[0-3] and aux[0-3]
-#define WMCHAN_MIX_ON(n) ((pb.remote_mixer_control >> (2 * n)) & 3)
-#define WMCHAN_MIX_RAMP(n) ((pb.remote_mixer_control >> (2 * n)) & 2)
+#define WMCHAN_MIX_ON(n) (0 != ((pb.remote_mixer_control >> (2 * n)) & 3))
+#define WMCHAN_MIX_RAMP(n) (0 != ((pb.remote_mixer_control >> (2 * n)) & 2))
 
 		if (WMCHAN_MIX_ON(0))
 			MixAdd(buffers.wm_main0, wm_samples, wm_count, &pb.remote_mixer.main0, &pb.remote_dpop.main0, WMCHAN_MIX_RAMP(0));
@@ -544,6 +550,8 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 		if (WMCHAN_MIX_ON(7))
 			MixAdd(buffers.wm_aux3, wm_samples, wm_count, &pb.remote_mixer.aux3, &pb.remote_dpop.aux3, WMCHAN_MIX_RAMP(7));
 	}
+#undef WMCHAN_MIX_RAMP
+#undef WMCHAN_MIX_ON
 #endif
 }
 

@@ -485,19 +485,23 @@ Renderer::Renderer()
 
 	}
 
-	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
-	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
-	g_Config.backend_info.bSupportsPrimitiveRestart = GLEW_VERSION_3_1 || GLEW_NV_primitive_restart;
-	g_Config.backend_info.bSupportsEarlyZ = GLEW_ARB_shader_image_load_store;
+#define TO_BOOL(c) (0 != (c))
 
-	g_ogl_config.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
-	g_ogl_config.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
-	g_ogl_config.bSupportsGLSync = GLEW_ARB_sync;
-	g_ogl_config.bSupportsGLBaseVertex = GLEW_ARB_draw_elements_base_vertex;
-	g_ogl_config.bSupportCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
-	g_ogl_config.bSupportSampleShading = GLEW_ARB_sample_shading;
-	g_ogl_config.bSupportOGL31 = GLEW_VERSION_3_1;
-	g_ogl_config.bSupportViewportFloat = GLEW_ARB_viewport_array;
+	g_Config.backend_info.bSupportsDualSourceBlend = TO_BOOL(GLEW_ARB_blend_func_extended);
+	g_Config.backend_info.bSupportsGLSLUBO = TO_BOOL(GLEW_ARB_uniform_buffer_object);
+	g_Config.backend_info.bSupportsPrimitiveRestart = TO_BOOL(GLEW_VERSION_3_1) || TO_BOOL(GLEW_NV_primitive_restart);
+	g_Config.backend_info.bSupportsEarlyZ = TO_BOOL(GLEW_ARB_shader_image_load_store);
+
+	g_ogl_config.bSupportsGLSLCache = TO_BOOL(GLEW_ARB_get_program_binary);
+	g_ogl_config.bSupportsGLPinnedMemory = TO_BOOL(GLEW_AMD_pinned_memory);
+	g_ogl_config.bSupportsGLSync = TO_BOOL(GLEW_ARB_sync);
+	g_ogl_config.bSupportsGLBaseVertex = TO_BOOL(GLEW_ARB_draw_elements_base_vertex);
+	g_ogl_config.bSupportCoverageMSAA = TO_BOOL(GLEW_NV_framebuffer_multisample_coverage);
+	g_ogl_config.bSupportSampleShading = TO_BOOL(GLEW_ARB_sample_shading);
+	g_ogl_config.bSupportOGL31 = TO_BOOL(GLEW_VERSION_3_1);
+	g_ogl_config.bSupportViewportFloat = TO_BOOL(GLEW_ARB_viewport_array);
+
+#undef TO_BOOL
 
 	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
 	{
