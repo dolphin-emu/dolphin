@@ -5,7 +5,6 @@
 #include "D3DBase.h"
 #include "D3DTexture.h"
 
-#include <atlbase.h>
 #include <wincodec.h>
 #include <wincodecsdk.h>
 #pragma comment(lib, "WindowsCodecs.lib")
