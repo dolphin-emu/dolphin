@@ -53,7 +53,7 @@ namespace DriverDetails
 		// Bug: No Dynamic UBO array object access
 		// Affected Devices: Qualcomm/Adreno
 		// Started Version: 14
-		// Ended Version: -1
+		// Ended Version: 53
 		// Accessing UBO array members dynamically causes the Adreno shader compiler to crash
 		// Errors out with "Internal Error"
 		BUG_NODYNUBOACCESS = 0,
@@ -102,7 +102,7 @@ namespace DriverDetails
 		// Bug: Entirely broken UBOs
 		// Affected devices: Qualcomm/Adreno
 		// Started Version: ? (Noticed on v45)
-		// Ended Version: -1
+		// Ended Version: 53
 		// Uniform buffers are entirely broken on Qualcomm drivers with v45
 		// Trying to use the uniform buffers causes a malloc to fail inside the driver
 		// To be safe, blanket drivers from v41 - v45
