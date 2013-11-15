@@ -17,8 +17,8 @@
 #include "PowerPCDisasm.h"
 #include "Console.h"
 
-#define CASE1(x) if (memcmp(cmd, x, 2*sizeof(TCHAR))==0)
-#define CASE(x) else if (memcmp(cmd, x, 4*sizeof(TCHAR))==0)
+#define CASE1(x) if (!strcmp(cmd, (x)))
+#define CASE(x) else if (!strcmp(cmd, (x)))
 
 void Console_Submit(const char *cmd)
 {
@@ -27,7 +27,7 @@ void Console_Submit(const char *cmd)
 		Core::StartTrace(false);
 		INFO_LOG(CONSOLE, "Read tracing started.");
 	}
-	CASE1("w")
+	CASE("w")
 	{
 		Core::StartTrace(true);
 		INFO_LOG(CONSOLE, "Write tracing started.");
@@ -141,3 +141,6 @@ void Console_Submit(const char *cmd)
 		ERROR_LOG(CONSOLE, "Invalid command");
 	}
 }
+
+#undef CASE1
+#undef CASE
