@@ -81,15 +81,20 @@ bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int
 	if (!data)
 		return false;
 
+	char title[] = "Dolphin Screenshot";
+	FILE *fp = NULL;
+	png_structp png_ptr = NULL;
+	png_infop info_ptr = NULL;
+
 	// Open file for writing (binary mode)
-	FILE *fp = fopen(filename, "wb");
+	fp = fopen(filename, "wb");
 	if (fp == NULL) {
 		PanicAlert("Screenshot failed: Could not open file %s\n", filename);
 		goto finalise;
 	}
 
 	// Initialize write structure
-	png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (png_ptr == NULL) {
 		PanicAlert("Screenshot failed: Could not allocate write struct\n");
 		goto finalise;
@@ -97,7 +102,7 @@ bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int
 	}
 
 	// Initialize info structure
-	png_infop info_ptr = png_create_info_struct(png_ptr);
+	info_ptr = png_create_info_struct(png_ptr);
 	if (info_ptr == NULL) {
 		PanicAlert("Screenshot failed: Could not allocate info struct\n");
 		goto finalise;
@@ -116,7 +121,6 @@ bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int
 		8, PNG_COLOR_TYPE_RGB_ALPHA, PNG_INTERLACE_NONE,
 		PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
-	char title[] = "Dolphin Screenshot";
 	png_text title_text;
 	title_text.compression = PNG_TEXT_COMPRESSION_NONE;
 	title_text.key = "Title";
