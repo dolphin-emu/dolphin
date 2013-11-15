@@ -868,8 +868,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		${SRCS_GENERICOSX}
 		${SRCS_OSX}
 		${SRCS_UNIX})
-	include_directories(../libpng)
-	add_subdirectory(../libpng ../libpng)
 	set(LIBS
 		png
 		iconv
