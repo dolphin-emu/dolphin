@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu;
 
-import android.app.Activity;
 import android.app.ListFragment;
 import android.content.Context;
 import android.os.Bundle;
@@ -27,8 +26,6 @@ import org.dolphinemu.dolphinemu.settings.VideoSettingsFragment;
  */
 public final class AboutFragment extends ListFragment
 {
-	private static Activity m_activity;
-
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
@@ -43,20 +40,11 @@ public final class AboutFragment extends ListFragment
 		Input.add(new AboutFragmentItem(getString(R.string.supports_gles3), VideoSettingsFragment.SupportsGLES3() ? yes : no));
 		Input.add(new AboutFragmentItem(getString(R.string.supports_neon),  NativeLibrary.SupportsNEON() ? yes : no));
 
-		AboutFragmentAdapter adapter = new AboutFragmentAdapter(m_activity, R.layout.about_layout, Input);
+		AboutFragmentAdapter adapter = new AboutFragmentAdapter(getActivity(), R.layout.about_layout, Input);
 		mMainList.setAdapter(adapter);
 		mMainList.setEnabled(false);  // Makes the list view non-clickable.
 
 		return mMainList;
-	}
-
-	@Override
-	public void onAttach(Activity activity)
-	{
-		super.onAttach(activity);
-
-		// Cache the activity instance.
-		m_activity = activity;
 	}
 
 	// Represents an item in the AboutFragment.
@@ -107,18 +95,17 @@ public final class AboutFragment extends ListFragment
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent)
 		{
-			View v = convertView;
-			if (v == null)
+			if (convertView == null)
 			{
-				LayoutInflater vi = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				v = vi.inflate(id, parent, false);
+				LayoutInflater vi = LayoutInflater.from(ctx);
+				convertView = vi.inflate(id, parent, false);
 			}
 			
 			final AboutFragmentItem item = items.get(position);
 			if (item != null)
 			{
-				TextView title    = (TextView) v.findViewById(R.id.AboutItemTitle);
-				TextView subtitle = (TextView) v.findViewById(R.id.AboutItemSubTitle);
+				TextView title    = (TextView) convertView.findViewById(R.id.AboutItemTitle);
+				TextView subtitle = (TextView) convertView.findViewById(R.id.AboutItemSubTitle);
 
 				if (title != null)
 					title.setText(item.getTitle());
@@ -127,7 +114,7 @@ public final class AboutFragment extends ListFragment
 					subtitle.setText(item.getSubTitle());
 			}
 
-			return v;
+			return convertView;
 		}
 	}
 }
