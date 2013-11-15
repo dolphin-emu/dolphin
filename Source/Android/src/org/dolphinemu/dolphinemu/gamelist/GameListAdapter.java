@@ -55,19 +55,18 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
-		View v = convertView;
-		if (v == null)
+		if (convertView == null)
 		{
 			LayoutInflater vi = LayoutInflater.from(context);
-			v = vi.inflate(id, parent, false);
+			convertView = vi.inflate(id, parent, false);
 		}
 
 		final GameListItem item = items.get(position);
 		if (item != null)
 		{
-			TextView title    = (TextView) v.findViewById(R.id.ListItemTitle);
-			TextView subtitle = (TextView) v.findViewById(R.id.ListItemSubTitle);
-			ImageView icon    = (ImageView) v.findViewById(R.id.ListItemIcon);
+			TextView title    = (TextView) convertView.findViewById(R.id.ListItemTitle);
+			TextView subtitle = (TextView) convertView.findViewById(R.id.ListItemSubTitle);
+			ImageView icon    = (ImageView) convertView.findViewById(R.id.ListItemIcon);
 
 			if (title != null)
 				title.setText(item.getName());
@@ -83,7 +82,7 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 			}
 		}
 
-		return v;
+		return convertView;
 	}
 }
 

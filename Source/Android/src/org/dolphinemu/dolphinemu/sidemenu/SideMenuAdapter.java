@@ -54,23 +54,22 @@ public final class SideMenuAdapter extends ArrayAdapter<SideMenuItem>
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
-		View v = convertView;
-		if (v == null)
+		if (convertView == null)
 		{
 			LayoutInflater vi = LayoutInflater.from(context);
-			v = vi.inflate(id, null);
+			convertView = vi.inflate(id, null);
 		}
 
 		final SideMenuItem item = items.get(position);
 		if (item != null)
 		{
-			TextView title = (TextView) v.findViewById(R.id.SideMenuTitle);
+			TextView title = (TextView) convertView.findViewById(R.id.SideMenuTitle);
 
 			if (title != null)
 				title.setText(item.getName());
 		}
 
-		return v;
+		return convertView;
 	}
 }
 

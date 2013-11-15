@@ -56,19 +56,18 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
-		View v = convertView;
-		if (v == null)
+		if (convertView == null)
 		{
 			LayoutInflater vi = LayoutInflater.from(context);
-			v = vi.inflate(id, parent, false);
+			convertView = vi.inflate(id, parent, false);
 		}
 
 		final FolderBrowserItem item = items.get(position);
 		if (item != null)
 		{
-			ImageView icon    = (ImageView) v.findViewById(R.id.ListItemIcon);
-			TextView title    = (TextView) v.findViewById(R.id.ListItemTitle);
-			TextView subtitle = (TextView) v.findViewById(R.id.ListItemSubTitle);
+			ImageView icon    = (ImageView) convertView.findViewById(R.id.ListItemIcon);
+			TextView title    = (TextView) convertView.findViewById(R.id.ListItemTitle);
+			TextView subtitle = (TextView) convertView.findViewById(R.id.ListItemSubTitle);
 
 			if(title != null)
 			{
@@ -100,6 +99,6 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 				}
 			}
 		}
-		return v;
+		return convertView;
 	}
 }
