@@ -5,6 +5,7 @@
 #include <list>
 #include <vector>
 
+#include "png.h"
 #include "ImageWrite.h"
 #include "FileUtil.h"
 
@@ -61,4 +62,96 @@ bool SaveData(const char* filename, const char* data)
 	f << data;
 
 	return true;
+}
+
+
+/*
+TextureToPng
+
+Inputs:
+data      : This is an array of RGBA with 8 bits per channel. 4 bytes for each pixel.
+data is a newly allocated memory and must have delete[] run on it before returning.
+
+row_stride: Determines the amount of bytes per row of pixels.
+*/
+bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int height, bool saveAlpha)
+{
+	bool success = false;
+
+	if (!data)
+		return false;
+
+	// Open file for writing (binary mode)
+	FILE *fp = fopen(filename, "wb");
+	if (fp == NULL) {
+		PanicAlert("Screenshot failed: Could not open file %s\n", filename);
+		goto finalise;
+	}
+
+	// Initialize write structure
+	png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	if (png_ptr == NULL) {
+		PanicAlert("Screenshot failed: Could not allocate write struct\n");
+		goto finalise;
+
+	}
+
+	// Initialize info structure
+	png_infop info_ptr = png_create_info_struct(png_ptr);
+	if (info_ptr == NULL) {
+		PanicAlert("Screenshot failed: Could not allocate info struct\n");
+		goto finalise;
+	}
+
+	// Setup Exception handling
+	if (setjmp(png_jmpbuf(png_ptr))) {
+		PanicAlert("Screenshot failed: Error during png creation\n");
+		goto finalise;
+	}
+
+	png_init_io(png_ptr, fp);
+
+	// Write header (8 bit colour depth)
+	png_set_IHDR(png_ptr, info_ptr, width, height,
+		8, PNG_COLOR_TYPE_RGB_ALPHA, PNG_INTERLACE_NONE,
+		PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+	char title[] = "Dolphin Screenshot";
+	png_text title_text;
+	title_text.compression = PNG_TEXT_COMPRESSION_NONE;
+	title_text.key = "Title";
+	title_text.text = title;
+	png_set_text(png_ptr, info_ptr, &title_text, 1);
+
+	png_write_info(png_ptr, info_ptr);
+
+	// Write image data
+	for (auto y = 0; y < height; ++y)
+	{
+		u8* row_ptr = (u8*)data + y * row_stride;
+		u8* ptr = row_ptr;
+		for (auto x = 0; x < row_stride / 4; ++x)
+		{
+			if (!saveAlpha)
+				ptr[3] = 0xff;
+			ptr += 4;
+		}
+		png_write_row(png_ptr, row_ptr);
+	}
+
+	// End write
+	png_write_end(png_ptr, NULL);
+
+	success = true;
+
+finalise:
+
+	if (fp != NULL) fclose(fp);
+	if (info_ptr != NULL) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
+	if (png_ptr != NULL) png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+
+	// Our duty to delete the inputted data.
+	delete[] data;
+
+	return success;
 }

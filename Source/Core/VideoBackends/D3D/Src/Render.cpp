@@ -34,6 +34,7 @@
 #include "FPSCounter.h"
 #include "ConfigManager.h"
 #include <strsafe.h>
+#include "ImageWrite.h"
 
 namespace DX11
 {
@@ -693,11 +694,19 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	D3D11_MAPPED_SUBRESOURCE map;
 	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 
-	// ready to be saved
-	HRESULT hr = D3D::TextureToPng(map, filename.c_str(), rc.GetWidth(), rc.GetHeight(), false);
+	bool saved_png = false;
+	if (map.pData)
+	{
+		u8* data = new u8[map.RowPitch * rc.GetHeight()];
+		memcpy(data, map.pData, map.RowPitch * rc.GetHeight());
+
+		saved_png = TextureToPng(data, map.RowPitch, filename.c_str(), rc.GetWidth(), rc.GetHeight(), false);
+	}
+
 	D3D::context->Unmap(s_screenshot_texture, 0);
 
-	if (SUCCEEDED(hr))
+
+	if (saved_png)
 	{
 		OSD::AddMessage(StringFromFormat("Saved %i x %i %s", rc.GetWidth(),
 		                                 rc.GetHeight(), filename.c_str()));
@@ -707,7 +716,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 		OSD::AddMessage(StringFromFormat("Error saving %s", filename.c_str()));
 	}
 
-	return SUCCEEDED(hr);
+	return saved_png;
 }
 
 void formatBufferDump(const u8* in, u8* out, int w, int h, int p)

@@ -63,10 +63,6 @@
 #include "AVIDump.h"
 #endif
 
-#if defined(HAVE_WX) && HAVE_WX
-#include <wx/image.h>
-#endif
-
 // glew1.8 doesn't define KHR_debug
 #ifndef GL_DEBUG_OUTPUT
 #define GL_DEBUG_OUTPUT 0x92E0
@@ -77,18 +73,6 @@ void VideoConfig::UpdateProjectionHack()
 {
 	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
-
-
-#if defined(HAVE_WX) && HAVE_WX
-// Screenshot thread struct
-typedef struct
-{
-	int W, H;
-	std::string filename;
-	wxImage *img;
-} ScrStrct;
-#endif
-
 
 int OSDInternalW, OSDInternalH;
 
@@ -1804,68 +1788,20 @@ void Renderer::SetInterlacingMode()
 	// TODO
 }
 
-void Renderer::FlipImageData(u8 *data, int w, int h)
+void Renderer::FlipImageData(u8 *data, int w, int h, int pixel_width)
 {
 	// Flip image upside down. Damn OpenGL.
-	for (int y = 0; y < h / 2; y++)
+	for (int y = 0; y < h / 2; ++y)
 	{
-		for(int x = 0; x < w; x++)
+		for(int x = 0; x < w; ++x)
 		{
-			std::swap(data[(y * w + x) * 3],     data[((h - 1 - y) * w + x) * 3]);
-			std::swap(data[(y * w + x) * 3 + 1], data[((h - 1 - y) * w + x) * 3 + 1]);
-			std::swap(data[(y * w + x) * 3 + 2], data[((h - 1 - y) * w + x) * 3 + 2]);
+			for (auto delta = 0; delta < pixel_width; ++delta)
+				std::swap(data[(y * w + x) * pixel_width + delta], data[((h - 1 - y) * w + x) * pixel_width + delta]);
 		}
 	}
 }
 
 }
-
-// TODO: remove
-extern bool g_aspect_wide;
-
-#if defined(HAVE_WX) && HAVE_WX
-void TakeScreenshot(ScrStrct* threadStruct)
-{
-	// These will contain the final image size
-	float FloatW = (float)threadStruct->W;
-	float FloatH = (float)threadStruct->H;
-
-	// Handle aspect ratio for the final ScrStrct to look exactly like what's on screen.
-	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
-	{
-		bool use16_9 = g_aspect_wide;
-
-		// Check for force-settings and override.
-		if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)
-			use16_9 = true;
-		else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
-			use16_9 = false;
-
-		float Ratio = (FloatW / FloatH) / (!use16_9 ? (4.0f / 3.0f) : (16.0f / 9.0f));
-
-		// If ratio > 1 the picture is too wide and we have to limit the width.
-		if (Ratio > 1)
-			FloatW /= Ratio;
-		// ratio == 1 or the image is too high, we have to limit the height.
-		else
-			FloatH *= Ratio;
-
-		// This is a bit expensive on high resolutions
-		threadStruct->img->Rescale((int)FloatW, (int)FloatH, wxIMAGE_QUALITY_HIGH);
-	}
-
-	// Save the screenshot and finally kill the wxImage object
-	// This is really expensive when saving to PNG, but not at all when using BMP
-	threadStruct->img->SaveFile(StrToWxStr(threadStruct->filename),
-		wxBITMAP_TYPE_PNG);
-	threadStruct->img->Destroy();
-
-	// Show success messages
-	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", (int)FloatW, (int)FloatH,
-		threadStruct->filename.c_str()), 2000);
-	delete threadStruct;
-}
-#endif
 
 namespace OGL
 {
@@ -1874,10 +1810,10 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
-	u8 *data = (u8 *)malloc((sizeof(u8) * 3 * W * H));
+	u8 *data = (u8 *)malloc((sizeof(u8) * 4 * W * H));
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 	// Show failure message
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
@@ -1888,34 +1824,9 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	}
 
 	// Turn image upside down
-	FlipImageData(data, W, H);
+	FlipImageData(data, W, H, 4);
 
-#if defined(HAVE_WX) && HAVE_WX
-	// Create wxImage
-	wxImage *a = new wxImage(W, H, data);
-
-	if (scrshotThread.joinable())
-		scrshotThread.join();
-
-	ScrStrct *threadStruct = new ScrStrct;
-	threadStruct->filename = filename;
-	threadStruct->img = a;
-	threadStruct->H = H; threadStruct->W = W;
-
-	scrshotThread = std::thread(TakeScreenshot, threadStruct);
-#ifdef _WIN32
-	SetThreadPriority(scrshotThread.native_handle(), THREAD_PRIORITY_BELOW_NORMAL);
-#endif
-	bool result = true;
-
-	OSD::AddMessage("Saving Screenshot... ", 2000);
-
-#else
-	bool result = SaveTGA(filename.c_str(), W, H, data);
-	free(data);
-#endif
-
-	return result;
+	return TextureToPng(data, W*4, filename.c_str(), W, H, false);
 }
 
 }

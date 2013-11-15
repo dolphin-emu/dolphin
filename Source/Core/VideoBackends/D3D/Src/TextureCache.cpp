@@ -14,6 +14,7 @@
 #include "PSTextureEncoder.h"
 #include "HW/Memmap.h"
 #include "VideoConfig.h"
+#include "ImageWrite.h"
 
 namespace DX11
 {
@@ -54,6 +55,8 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 
 	HRESULT hr = D3D::device->CreateTexture2D(&desc, NULL, &pNewTexture);
 
+	bool saved_png = false;
+
 	if (SUCCEEDED(hr) && pNewTexture)
 	{
 		D3D::context->CopyResource(pNewTexture, pSurface);
@@ -62,13 +65,19 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 		HRESULT hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 		if (SUCCEEDED(hr))
 		{
-			hr = D3D::TextureToPng(map, filename, desc.Width, desc.Height);
+			if (map.pData)
+			{
+				u8* data = new u8[map.RowPitch * desc.Height];
+				memcpy(data, map.pData, map.RowPitch * desc.Height);
+
+				saved_png = TextureToPng(data, map.RowPitch, filename, desc.Width, desc.Height);
+			}
 			D3D::context->Unmap(pNewTexture, 0);
 		}
 		SAFE_RELEASE(pNewTexture);
 	}
 
-	return SUCCEEDED(hr);
+	return saved_png;
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
