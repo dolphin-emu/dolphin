@@ -68,12 +68,14 @@ public final class EmulationActivity extends Activity
 
 		// Due to a bug in Adreno, it renders the screen rotated 90 degrees when using OpenGL
 		// Flip the width and height when on Adreno to work around this.
+		// This bug is fixed in Qualcomm driver v53
 		// Mali isn't affected by this bug.
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		if (prefs.getString("gpuPref", "Software Rendering").equals("OGL")
 				&& VideoSettingsFragment.SupportsGLES3()
 				&& VideoSettingsFragment.m_GLVendor != null
-				&& VideoSettingsFragment.m_GLVendor.equals("Qualcomm"))
+				&& VideoSettingsFragment.m_GLVendor.equals("Qualcomm")
+				&& VideoSettingsFragment.m_QualcommVersion < 53.0f)
 			NativeLibrary.SetDimensions((int)screenHeight, (int)screenWidth);
 		else
 			NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
