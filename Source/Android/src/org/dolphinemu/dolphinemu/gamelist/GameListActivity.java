@@ -112,8 +112,8 @@ public final class GameListActivity extends Activity
 		if (Build.CPU_ABI.contains("arm") && !NativeLibrary.SupportsNEON())
 		{
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle("ALERT!");
-			builder.setMessage("Your phone doesn't support NEON which makes it incapable of running Dolphin Mobile?\nDo you want to try anyway?");
+			builder.setTitle(R.string.device_compat_warning);
+			builder.setMessage(R.string.device_compat_warning_msg);
 			builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
 					// Do Nothing. Just create the Yes button

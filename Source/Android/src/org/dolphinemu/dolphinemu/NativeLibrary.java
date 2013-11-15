@@ -107,7 +107,7 @@ public final class NativeLibrary
 	/**
 	 * Returns if the phone supports NEON or not
 	 *
-	 * @return if it supports NEON
+	 * @return true if it supports NEON, false otherwise.
 	 */
 	public static native boolean SupportsNEON();
 
