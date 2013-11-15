@@ -14,7 +14,7 @@ import android.graphics.drawable.BitmapDrawable;
  * Custom {@link BitmapDrawable} that is capable
  * of storing it's own ID.
  */
-public class InputOverlayDrawableButton extends BitmapDrawable
+public final class InputOverlayDrawableButton extends BitmapDrawable
 {
 	// The ID identifying what type of button this Drawable represents.
 	private int buttonType;

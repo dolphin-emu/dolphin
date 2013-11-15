@@ -14,22 +14,21 @@ import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
 
 /**
- * Custom {@link android.graphics.drawable.BitmapDrawable} that is capable
+ * Custom {@link BitmapDrawable} that is capable
  * of storing it's own ID.
  */
-public class InputOverlayDrawableJoystick extends BitmapDrawable
+public final class InputOverlayDrawableJoystick extends BitmapDrawable
 {
-	// The ID identifying what type of button this Drawable represents.
-	private int axisIDs[] = {0, 0, 0, 0};
-	private float axises[] = {0f, 0f};
+	private final int[] axisIDs = {0, 0, 0, 0};
+	private final float[] axises = {0f, 0f};
+	private final BitmapDrawable ringInner;
 	private int trackid = -1;
-	private BitmapDrawable ringInner;
 
 	/**
 	 * Constructor
 	 *
-	 * @param res         {@link android.content.res.Resources} instance.
-	 * @param bitmapOuter      {@link android.graphics.Bitmap} to use with this Drawable.
+	 * @param res         {@link Resources} instance.
+	 * @param bitmapOuter {@link Bitmap} to use with this Drawable.
 	 * @param axisUp      Identifier for this type of axis.
 	 * @param axisDown    Identifier for this type of axis.
 	 * @param axisLeft    Identifier for this type of axis.
@@ -51,11 +50,15 @@ public class InputOverlayDrawableJoystick extends BitmapDrawable
 		this.axisIDs[2] = axisLeft;
 		this.axisIDs[3] = axisRight;
 	}
-	public void Draw(Canvas canvas)
+
+	@Override
+	public void draw(Canvas canvas)
 	{
-		this.draw(canvas);
+		super.draw(canvas);
+
 		ringInner.draw(canvas);
 	}
+
 	public void TrackEvent(MotionEvent event)
 	{
 		int pointerIndex = event.getActionIndex();
@@ -95,6 +98,7 @@ public class InputOverlayDrawableJoystick extends BitmapDrawable
 
 		SetInnerBounds();
 	}
+
 	public float[] getAxisValues()
 	{
 		float[] joyaxises = new float[4];
@@ -120,10 +124,12 @@ public class InputOverlayDrawableJoystick extends BitmapDrawable
 		}
 		return joyaxises;
 	}
+
 	public int[] getAxisIDs()
 	{
 		return axisIDs;
 	}
+
 	private void SetInnerBounds()
 	{
 		float floatX = this.getBounds().centerX();
