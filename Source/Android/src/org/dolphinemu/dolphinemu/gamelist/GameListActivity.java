@@ -13,16 +13,16 @@ import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
-import android.view.*;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.dolphinemu.dolphinemu.AboutFragment;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -30,6 +30,9 @@ import org.dolphinemu.dolphinemu.folderbrowser.FolderBrowser;
 import org.dolphinemu.dolphinemu.settings.PrefsActivity;
 import org.dolphinemu.dolphinemu.sidemenu.SideMenuAdapter;
 import org.dolphinemu.dolphinemu.sidemenu.SideMenuItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The activity that implements all of the functions
@@ -104,6 +107,26 @@ public final class GameListActivity extends Activity
 		mCurFragment = new GameListFragment();
 		FragmentManager fragmentManager = getFragmentManager();
 		fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+
+		// Create an alert telling them that their phone sucks
+		if (Build.CPU_ABI.contains("arm") && !NativeLibrary.SupportsNEON())
+		{
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("ALERT!");
+			builder.setMessage("Your phone doesn't support NEON which makes it incapable of running Dolphin Mobile?\nDo you want to try anyway?");
+			builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					// Do Nothing. Just create the Yes button
+				}
+			});
+			builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which)
+				{
+					finish();
+				}
+			});
+			builder.show();
+		}
 	}
 
 	/**

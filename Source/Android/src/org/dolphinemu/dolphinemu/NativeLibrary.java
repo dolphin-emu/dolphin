@@ -105,6 +105,13 @@ public final class NativeLibrary
 	public static native String GetVersionString();
 
 	/**
+	 * Returns if the phone supports NEON or not
+	 *
+	 * @return if it supports NEON
+	 */
+	public static native boolean SupportsNEON();
+
+	/**
 	 * Saves a game state to the slot number.
 	 *
 	 * @param slot  The slot location to save state to.
