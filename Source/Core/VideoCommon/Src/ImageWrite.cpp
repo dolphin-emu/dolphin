@@ -82,6 +82,7 @@ bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int
 		return false;
 
 	char title[] = "Dolphin Screenshot";
+	char title_key[] = "Title";
 	FILE *fp = NULL;
 	png_structp png_ptr = NULL;
 	png_infop info_ptr = NULL;
@@ -123,7 +124,7 @@ bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int
 
 	png_text title_text;
 	title_text.compression = PNG_TEXT_COMPRESSION_NONE;
-	title_text.key = "Title";
+	title_text.key = title_key;
 	title_text.text = title;
 	png_set_text(png_ptr, info_ptr, &title_text, 1);
 
