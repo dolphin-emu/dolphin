@@ -35,12 +35,13 @@ public final class AboutFragment extends ListFragment
 		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
 		ListView mMainList = (ListView) rootView.findViewById(R.id.gamelist);
 
-		String yes = getString(R.string.yes);
-		String no = getString(R.string.no);
+		final String yes = getString(R.string.yes);
+		final String no = getString(R.string.no);
 
 		List<AboutFragmentItem> Input = new ArrayList<AboutFragmentItem>();
 		Input.add(new AboutFragmentItem(getString(R.string.build_revision), NativeLibrary.GetVersionString()));
 		Input.add(new AboutFragmentItem(getString(R.string.supports_gles3), VideoSettingsFragment.SupportsGLES3() ? yes : no));
+		Input.add(new AboutFragmentItem(getString(R.string.supports_neon),  NativeLibrary.SupportsNEON() ? yes : no));
 
 		AboutFragmentAdapter adapter = new AboutFragmentAdapter(m_activity, R.layout.about_layout, Input);
 		mMainList.setAdapter(adapter);

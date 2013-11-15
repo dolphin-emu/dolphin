@@ -11,6 +11,7 @@
     <!-- About Fragment -->
     <string name="build_revision">ビルドのバージョン</string>
     <string name="supports_gles3">サポートのOpenGL ES 3</string>
+    <string name="supports_neon">サポートのNEON</string>
 
     <!-- Folder Browser -->
     <string name="current_dir">現在のディレクトリ： %1$s</string>
