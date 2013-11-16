@@ -1825,7 +1825,11 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 
 	// Turn image upside down
 	FlipImageData(data, W, H, 4);
-	return TextureToPng(data, W*4, filename.c_str(), W, H, false);
+	bool success = TextureToPng(data, W*4, filename.c_str(), W, H, false);
+	delete[] data;
+
+	return success;
+
 }
 
 }

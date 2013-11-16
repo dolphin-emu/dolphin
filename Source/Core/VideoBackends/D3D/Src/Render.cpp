@@ -701,6 +701,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 		memcpy(data, map.pData, map.RowPitch * rc.GetHeight());
 
 		saved_png = TextureToPng(data, map.RowPitch, filename.c_str(), rc.GetWidth(), rc.GetHeight(), false);
+		delete[] data;
 	}
 
 	D3D::context->Unmap(s_screenshot_texture, 0);

@@ -142,9 +142,7 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 	if (s_bScreenshot)
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		u8 *data = new u8[width * 4 * height];
-		memcpy(data, texture, sizeof(u8) * 4 * width * height);
-		TextureToPng(data, width*4, s_sScreenshotName.c_str(), width, height, false);
+		TextureToPng(texture, width*4, s_sScreenshotName.c_str(), width, height, false);
 		// Reset settings
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;

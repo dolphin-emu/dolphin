@@ -71,6 +71,7 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 				memcpy(data, map.pData, map.RowPitch * desc.Height);
 
 				saved_png = TextureToPng(data, map.RowPitch, filename, desc.Width, desc.Height);
+				delete[] data;
 			}
 			D3D::context->Unmap(pNewTexture, 0);
 		}

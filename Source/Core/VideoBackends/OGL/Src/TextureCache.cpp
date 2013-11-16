@@ -78,8 +78,9 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width
 		delete[] data;
 		return false;
 	}
-
-	return TextureToPng(data, width*4, filename, width, height, true);
+	bool success = TextureToPng(data, width * 4, filename, width, height, true);
+	delete[] data;
+	return success;
 #else
 	return false;
 #endif
