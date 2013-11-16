@@ -43,7 +43,6 @@ public final class GameListActivity extends Activity
 		implements GameListFragment.OnGameListZeroListener
 {
 	private int mCurFragmentNum = 0;
-	private Fragment mCurFragment;
 
 	private ActionBarDrawerToggle mDrawerToggle;
 	private DrawerLayout mDrawerLayout;
@@ -108,9 +107,9 @@ public final class GameListActivity extends Activity
 		// but only if no previous states have been saved. 
 		if (savedInstanceState == null)
 		{
-			mCurFragment = new GameListFragment();
+			final GameListFragment gameList = new GameListFragment();
 			FragmentTransaction ft = getFragmentManager().beginTransaction();
-			ft.replace(R.id.content_frame, mCurFragment);
+			ft.replace(R.id.content_frame, gameList);
 			ft.commit();
 		}
 		
@@ -157,9 +156,9 @@ public final class GameListActivity extends Activity
 					setTitle(R.string.app_name);
 
 				mCurFragmentNum = 0;
-				mCurFragment = new GameListFragment();
+				final GameListFragment gameList = new GameListFragment();
 				FragmentTransaction ft = getFragmentManager().beginTransaction();
-				ft.replace(R.id.content_frame, mCurFragment);
+				ft.replace(R.id.content_frame, gameList, "");
 				ft.commit();
 				invalidateOptionsMenu();
 			}
@@ -168,9 +167,9 @@ public final class GameListActivity extends Activity
 			case 1: // Folder Browser
 			{
 				mCurFragmentNum = 1;
-				mCurFragment = new FolderBrowser();
+				final FolderBrowser folderBrowser = new FolderBrowser();
 				FragmentTransaction ft = getFragmentManager().beginTransaction();
-				ft.replace(R.id.content_frame, mCurFragment);
+				ft.replace(R.id.content_frame, folderBrowser);
 				ft.addToBackStack(null);
 				ft.commit();
 				invalidateOptionsMenu();
@@ -187,9 +186,9 @@ public final class GameListActivity extends Activity
 			case 3: // About
 			{
 				mCurFragmentNum = 3;
-				mCurFragment = new AboutFragment();
+				final AboutFragment aboutFragment = new AboutFragment();
 				FragmentTransaction ft = getFragmentManager().beginTransaction();
-				ft.replace(R.id.content_frame, mCurFragment);
+				ft.replace(R.id.content_frame, aboutFragment);
 				ft.addToBackStack(null);
 				ft.commit();
 				invalidateOptionsMenu();
@@ -278,7 +277,7 @@ public final class GameListActivity extends Activity
 					NativeLibrary.SetConfig("Dolphin.ini", "General", "GCMPathes", "0");
 
 					// Now finally, clear the game list.
-					((GameListFragment) mCurFragment).clearGameList();
+					((GameListFragment) getFragmentManager().findFragmentById(R.id.content_frame)).clearGameList();
 				}
 			});
 			builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
@@ -292,5 +291,27 @@ public final class GameListActivity extends Activity
 		}
 
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState)
+	{
+		super.onSaveInstanceState(outState);
+
+		outState.putInt("currentFragmentNum", mCurFragmentNum);
+	}
+
+	@Override
+	public void onRestoreInstanceState(Bundle savedInstanceState)
+	{
+		super.onRestoreInstanceState(savedInstanceState);
+
+		mCurFragmentNum = savedInstanceState.getInt("currentFragmentNum");
+	}
+
+	@Override
+	public void onBackPressed()
+	{
+		SwitchPage(0);
 	}
 }
