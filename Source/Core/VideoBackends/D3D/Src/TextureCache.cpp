@@ -33,7 +33,7 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
 }
 
-bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
+bool TextureCache::TCacheEntry::Save(const std::string filename, unsigned int level)
 {
 	// TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
 	static bool warn_once = true;
@@ -65,14 +65,7 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 		HRESULT hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 		if (SUCCEEDED(hr))
 		{
-			if (map.pData)
-			{
-				u8* data = new u8[map.RowPitch * desc.Height];
-				memcpy(data, map.pData, map.RowPitch * desc.Height);
-
-				saved_png = TextureToPng(data, map.RowPitch, filename, desc.Width, desc.Height);
-				delete[] data;
-			}
+			saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, desc.Width, desc.Height);
 			D3D::context->Unmap(pNewTexture, 0);
 		}
 		SAFE_RELEASE(pNewTexture);

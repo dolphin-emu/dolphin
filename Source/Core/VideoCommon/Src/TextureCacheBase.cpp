@@ -283,7 +283,7 @@ PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsign
 
 void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
 {
-	char szTemp[MAX_PATH];
+	std::string filename;
 	std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) +
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
 
@@ -295,19 +295,19 @@ void TextureCache::DumpTexture(TCacheEntryBase* entry, unsigned int level)
 	 // TODO: TLUT format should actually be stored in filename? :/
 	if (level == 0)
 	{
-		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir.c_str(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
-				(u32) (entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF);
+		filename = StringFromFormat("%s/%s_%08x_%i.png", szDir.c_str(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
+			(u32)(entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF);
 	}
 	else
 	{
-		sprintf(szTemp, "%s/%s_%08x_%i_mip%i.png", szDir.c_str(),
+		filename = StringFromFormat("%s/%s_%08x_%i_mip%i.png", szDir.c_str(),
 				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(),
 				(u32) (entry->hash & 0x00000000FFFFFFFFLL), entry->format & 0xFFFF, level);
 	}
 
-	if (false == File::Exists(szTemp))
-		entry->Save(szTemp, level);
+	if (!File::Exists(filename))
+		entry->Save(filename, level);
 }
 
 static u32 CalculateLevelSize(u32 level_0_size, u32 level)

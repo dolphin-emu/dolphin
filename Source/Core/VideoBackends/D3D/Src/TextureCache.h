@@ -36,7 +36,7 @@ private:
 			const float *colmat);
 
 		void Bind(unsigned int stage);
-		bool Save(const char filename[], unsigned int level);
+		bool Save(const std::string filename, unsigned int level);
 	};
 
 	TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,

@@ -59,7 +59,7 @@ struct VBOCache {
 };
 static std::map<u64,VBOCache> s_VBO;
 
-bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
+bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
 #ifndef USE_GLES3
 	int width = std::max(virtual_width >> level, 1);
@@ -127,7 +127,7 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	}
 }
 
-bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
+bool TextureCache::TCacheEntry::Save(const std::string filename, unsigned int level)
 {
 	return SaveTexture(filename, GL_TEXTURE_2D, texture, virtual_width, virtual_height, level);
 }
@@ -394,7 +394,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	{
 		static int count = 0;
 		SaveTexture(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-			count++).c_str(), GL_TEXTURE_2D, texture, virtual_width, virtual_height, 0);
+			count++), GL_TEXTURE_2D, texture, virtual_width, virtual_height, 0);
 	}
 
 	g_renderer->RestoreAPIState();

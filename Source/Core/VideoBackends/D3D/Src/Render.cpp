@@ -694,15 +694,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	D3D11_MAPPED_SUBRESOURCE map;
 	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 
-	bool saved_png = false;
-	if (map.pData)
-	{
-		u8* data = new u8[map.RowPitch * rc.GetHeight()];
-		memcpy(data, map.pData, map.RowPitch * rc.GetHeight());
-
-		saved_png = TextureToPng(data, map.RowPitch, filename.c_str(), rc.GetWidth(), rc.GetHeight(), false);
-		delete[] data;
-	}
+	bool saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, rc.GetWidth(), rc.GetHeight(), false);
 
 	D3D::context->Unmap(s_screenshot_texture, 0);
 

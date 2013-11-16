@@ -26,7 +26,7 @@ Inputs:
 data      : This is an array of RGBA with 8 bits per channel. 4 bytes for each pixel.
 row_stride: Determines the amount of bytes per row of pixels.
 */
-bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int height, bool saveAlpha)
+bool TextureToPng(u8* data, int row_stride, const std::string filename, int width, int height, bool saveAlpha)
 {
 	bool success = false;
 
@@ -35,13 +35,12 @@ bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int
 
 	char title[] = "Dolphin Screenshot";
 	char title_key[] = "Title";
-	FILE *fp = NULL;
 	png_structp png_ptr = NULL;
 	png_infop info_ptr = NULL;
 
 	// Open file for writing (binary mode)
-	fp = fopen(filename, "wb");
-	if (fp == NULL) {
+	File::IOFile fp(filename, "wb");
+	if (!fp.IsOpen()) {
 		PanicAlert("Screenshot failed: Could not open file %s %d\n", filename, errno);
 		goto finalise;
 	}
@@ -67,7 +66,7 @@ bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int
 		goto finalise;
 	}
 
-	png_init_io(png_ptr, fp);
+	png_init_io(png_ptr, fp.GetHandle());
 
 	// Write header (8 bit colour depth)
 	png_set_IHDR(png_ptr, info_ptr, width, height,
@@ -102,8 +101,6 @@ bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int
 	success = true;
 
 finalise:
-
-	if (fp != NULL) fclose(fp);
 	if (info_ptr != NULL) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
 	if (png_ptr != NULL) png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
 

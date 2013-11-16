@@ -53,7 +53,7 @@ private:
 			const float *colmat) override;
 
 		void Bind(unsigned int stage) override;
-		bool Save(const char filename[], unsigned int level);
+		bool Save(const std::string filename, unsigned int level);
 	};
 
 	~TextureCache();
@@ -64,7 +64,7 @@ private:
 	TCacheEntryBase* CreateRenderTargetTexture(unsigned int scaled_tex_w, unsigned int scaled_tex_h) override;
 };
 
-bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level);
+bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level);
 
 }
 

@@ -42,7 +42,7 @@ void Init()
 	}
 }
 
-void SaveTexture(const char* filename, u32 texmap, s32 mip)
+void SaveTexture(const std::string filename, u32 texmap, s32 mip)
 {
 	FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
 	u8 subTexmap = texmap & 3;
@@ -98,7 +98,7 @@ void DumpActiveTextures()
 		for (s32 mip = 0; mip <= maxLod; ++mip)
 		{
 			SaveTexture(StringFromFormat("%star%i_ind%i_map%i_mip%i.png",
-						File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+						File::GetUserPath(D_DUMPTEXTURES_IDX),
 						swstats.thisFrame.numDrawnObjects, stageNum, texmap, mip).c_str(), texmap, mip);
 		}
 	}
@@ -115,7 +115,7 @@ void DumpActiveTextures()
 		for (s32 mip = 0; mip <= maxLod; ++mip)
 		{
 			SaveTexture(StringFromFormat("%star%i_stage%i_map%i_mip%i.png",
-						File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+						File::GetUserPath(D_DUMPTEXTURES_IDX),
 						swstats.thisFrame.numDrawnObjects, stageNum, texmap, mip).c_str(), texmap, mip);
 		}
 	}
@@ -242,7 +242,7 @@ void OnObjectEnd()
 					File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
 					swstats.thisFrame.numDrawnObjects, ObjectBufferName[i], i - BufferBase[i]);
 
-				(void)TextureToPng((u8*)ObjectBuffer[i], EFB_WIDTH * 4, filename.c_str(), EFB_WIDTH, EFB_HEIGHT, true);
+				(void)TextureToPng((u8*)ObjectBuffer[i], EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);
 				memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
 
 			}
