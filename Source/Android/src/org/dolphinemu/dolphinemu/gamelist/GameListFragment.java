@@ -94,7 +94,7 @@ public final class GameListFragment extends ListFragment
 		}
 		Collections.sort(fls);
 
-		mGameAdapter = new GameListAdapter(mMe, R.layout.gamelist_folderbrowser_list, fls);
+		mGameAdapter = new GameListAdapter(mMe, R.layout.gamelist_folderbrowser_list_item, fls);
 		setListAdapter(mGameAdapter);
 
 		if (fls.isEmpty())

@@ -96,7 +96,7 @@ public final class FolderBrowser extends ListFragment
 		if (!currDir.getPath().equalsIgnoreCase("/"))
 			dir.add(0, new FolderBrowserItem("..", getString(R.string.parent_directory), currDir.getParent()));
 
-		adapter = new FolderBrowserAdapter(m_activity, R.layout.gamelist_folderbrowser_list, dir);
+		adapter = new FolderBrowserAdapter(m_activity, R.layout.gamelist_folderbrowser_list_item, dir);
 		mFolderBrowserList = (ListView) rootView.findViewById(R.id.gamelist);
 		mFolderBrowserList.setAdapter(adapter);
 	}
