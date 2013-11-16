@@ -1810,7 +1810,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
-	u8 *data = (u8 *)malloc((sizeof(u8) * 4 * W * H));
+	u8 *data = new u8[W * 4 * H];
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
 	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -1825,7 +1825,6 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 
 	// Turn image upside down
 	FlipImageData(data, W, H, 4);
-
 	return TextureToPng(data, W*4, filename.c_str(), W, H, false);
 }
 

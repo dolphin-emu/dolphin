@@ -236,7 +236,8 @@ u32 VideoSoftware::Video_GetQueryResult(PerfQueryType type)
 
 bool VideoSoftware::Video_Screenshot(const char *_szFilename)
 {
-	return false;
+	SWRenderer::SetScreenshot(_szFilename);
+	return true;
 }
 
 // -------------------------------
