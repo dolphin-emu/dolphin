@@ -145,6 +145,8 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 		u8 *data = new u8[width * 4 * height];
 		memcpy(data, texture, sizeof(u8) * 4 * width * height);
 		TextureToPng(data, width*4, s_sScreenshotName.c_str(), width, height, false);
+		delete[] data;
+
 		// Reset settings
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;

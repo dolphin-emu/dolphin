@@ -57,6 +57,7 @@ void SaveTexture(const char* filename, u32 texmap, s32 mip)
 	GetTextureRGBA(data, texmap, mip, width, height);
 
 	(void)TextureToPng(data, width*4, filename, width, height, true);
+	delete[] data;
 
 }
 
@@ -140,6 +141,7 @@ void DumpEfb(const char* filename)
 	}
 
 	(void)TextureToPng(data, EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);
+	delete[] data;
 }
 
 void DumpDepth(const char* filename)
@@ -161,6 +163,7 @@ void DumpDepth(const char* filename)
 	}
 
 	(void)TextureToPng(data, EFB_WIDTH * 4, filename, EFB_WIDTH, EFB_HEIGHT, true);
+	delete[] data;
 }
 
 void DrawObjectBuffer(s16 x, s16 y, u8 *color, int bufferBase, int subBuffer, const char *name)
@@ -241,6 +244,7 @@ void OnObjectEnd()
 
 				(void)TextureToPng((u8*)ObjectBuffer[i], EFB_WIDTH * 4, filename.c_str(), EFB_WIDTH, EFB_HEIGHT, true);
 				memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
+
 			}
 		}
 

@@ -24,8 +24,6 @@ TextureToPng
 
 Inputs:
 data      : This is an array of RGBA with 8 bits per channel. 4 bytes for each pixel.
-data is a newly allocated memory and must have delete[] run on it before returning.
-
 row_stride: Determines the amount of bytes per row of pixels.
 */
 bool TextureToPng(u8* data, int row_stride, const char* filename, int width, int height, bool saveAlpha)
@@ -108,9 +106,6 @@ finalise:
 	if (fp != NULL) fclose(fp);
 	if (info_ptr != NULL) png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
 	if (png_ptr != NULL) png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-
-	// Our duty to delete the inputted data.
-	delete[] data;
 
 	return success;
 }
