@@ -29,8 +29,7 @@ public final class AboutFragment extends ListFragment
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
-		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
-		ListView mMainList = (ListView) rootView.findViewById(R.id.gamelist);
+		ListView rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
 
 		final String yes = getString(R.string.yes);
 		final String no = getString(R.string.no);
@@ -41,10 +40,10 @@ public final class AboutFragment extends ListFragment
 		Input.add(new AboutFragmentItem(getString(R.string.supports_neon),  NativeLibrary.SupportsNEON() ? yes : no));
 
 		AboutFragmentAdapter adapter = new AboutFragmentAdapter(getActivity(), R.layout.about_layout, Input);
-		mMainList.setAdapter(adapter);
-		mMainList.setEnabled(false);  // Makes the list view non-clickable.
+		rootView.setAdapter(adapter);
+		rootView.setEnabled(false);  // Makes the list view non-clickable.
 
-		return mMainList;
+		return rootView;
 	}
 
 	// Represents an item in the AboutFragment.
