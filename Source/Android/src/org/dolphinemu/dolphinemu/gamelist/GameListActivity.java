@@ -158,7 +158,7 @@ public final class GameListActivity extends Activity
 				mCurFragmentNum = 0;
 				final GameListFragment gameList = new GameListFragment();
 				FragmentTransaction ft = getFragmentManager().beginTransaction();
-				ft.replace(R.id.content_frame, gameList, "");
+				ft.replace(R.id.content_frame, gameList);
 				ft.commit();
 				invalidateOptionsMenu();
 			}
