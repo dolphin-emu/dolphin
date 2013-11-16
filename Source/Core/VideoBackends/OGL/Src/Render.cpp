@@ -1818,7 +1818,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	// Show failure message
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 	{
-		free(data);
+		delete[] data;
 		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
 		return false;
 	}
