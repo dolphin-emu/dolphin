@@ -6,15 +6,12 @@
 
 package org.dolphinemu.dolphinemu.folderbrowser;
 
-import java.util.List;
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.R;
@@ -40,7 +37,6 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 
 	private final Context context;
 	private final int id;
-	private final List<FolderBrowserItem> items;
 	private ViewHolder viewHolder;
 
 	/**
@@ -48,21 +44,13 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 	 * 
 	 * @param context    The current {@link Context}.
 	 * @param resourceId The resource ID for a layout file containing a layout to use when instantiating views.
-	 * @param objects    The objects to represent in the {@link ListView}.
 	 */
-	public FolderBrowserAdapter(Context context, int resourceId, List<FolderBrowserItem> objects)
+	public FolderBrowserAdapter(Context context, int resourceId)
 	{
-		super(context, resourceId, objects);
+		super(context, resourceId);
 
 		this.context = context;
 		this.id = resourceId;
-		this.items = objects;
-	}
-
-	@Override
-	public FolderBrowserItem getItem(int i)
-	{
-		return items.get(i);
 	}
 
 	@Override
@@ -85,7 +73,7 @@ public final class FolderBrowserAdapter extends ArrayAdapter<FolderBrowserItem>
 			viewHolder = (ViewHolder) convertView.getTag();
 		}
 
-		final FolderBrowserItem item = items.get(position);
+		final FolderBrowserItem item = getItem(position);
 		if (item != null)
 		{
 			if (viewHolder.title != null)
