@@ -34,6 +34,7 @@
     <string name="file_clicked">クリックされたファイル： %1$s</string>
 
     <!-- Emulation Window Overlay -->
+    <string name="overlay_screenshot">スクリーンショットを撮る</string>
     <string name="overlay_savestate">ステートセーブ</string>
     <string name="overlay_loadstate">ステートロード</string>
     <string name="overlay_exit_emulation">終了</string>

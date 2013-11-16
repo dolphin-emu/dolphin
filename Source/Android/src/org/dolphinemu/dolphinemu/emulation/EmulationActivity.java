@@ -175,6 +175,11 @@ public final class EmulationActivity extends Activity
 	{
 		switch(item.getItemId())
 		{
+			// Screenshot capturing
+			case R.id.takeScreenshot:
+				NativeLibrary.SaveScreenShot();
+				return true;
+				
 			// Save state slots
 			case R.id.saveSlot1:
 				NativeLibrary.SaveState(0);

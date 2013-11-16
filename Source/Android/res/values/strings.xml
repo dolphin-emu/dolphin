@@ -34,6 +34,7 @@
     <string name="file_clicked">File clicked: %1$s</string>
 
     <!-- Emulation Overlay -->
+    <string name="overlay_screenshot">Take Screenshot</string>
     <string name="overlay_savestate">Save State</string>
     <string name="overlay_loadstate">Load State</string>
     <string name="overlay_exit_emulation">Exit</string>
