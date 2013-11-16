@@ -41,7 +41,7 @@ bool TextureToPng(u8* data, int row_stride, const std::string filename, int widt
 	// Open file for writing (binary mode)
 	File::IOFile fp(filename, "wb");
 	if (!fp.IsOpen()) {
-		PanicAlert("Screenshot failed: Could not open file %s %d\n", filename, errno);
+		PanicAlert("Screenshot failed: Could not open file %s %d\n", filename.c_str(), errno);
 		goto finalise;
 	}
 
