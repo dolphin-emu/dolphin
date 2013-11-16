@@ -99,7 +99,7 @@ void DumpActiveTextures()
 		{
 			SaveTexture(StringFromFormat("%star%i_ind%i_map%i_mip%i.png",
 						File::GetUserPath(D_DUMPTEXTURES_IDX),
-						swstats.thisFrame.numDrawnObjects, stageNum, texmap, mip).c_str(), texmap, mip);
+						swstats.thisFrame.numDrawnObjects, stageNum, texmap, mip), texmap, mip);
 		}
 	}
 
@@ -116,12 +116,12 @@ void DumpActiveTextures()
 		{
 			SaveTexture(StringFromFormat("%star%i_stage%i_map%i_mip%i.png",
 						File::GetUserPath(D_DUMPTEXTURES_IDX),
-						swstats.thisFrame.numDrawnObjects, stageNum, texmap, mip).c_str(), texmap, mip);
+						swstats.thisFrame.numDrawnObjects, stageNum, texmap, mip), texmap, mip);
 		}
 	}
 }
 
-void DumpEfb(const char* filename)
+void DumpEfb(const std::string filename)
 {
 	u8 *data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
 	u8 *writePtr = data;
@@ -144,7 +144,7 @@ void DumpEfb(const char* filename)
 	delete[] data;
 }
 
-void DumpDepth(const char* filename)
+void DumpDepth(const std::string filename)
 {
 	u8 *data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
 	u8 *writePtr = data;
@@ -225,7 +225,7 @@ void OnObjectEnd()
 		if (g_SWVideoConfig.bDumpObjects && swstats.thisFrame.numDrawnObjects >= g_SWVideoConfig.drawStart && swstats.thisFrame.numDrawnObjects < g_SWVideoConfig.drawEnd)
 			DumpEfb(StringFromFormat("%sobject%i.png",
 						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-						swstats.thisFrame.numDrawnObjects).c_str());
+						swstats.thisFrame.numDrawnObjects));
 
 		if (g_SWVideoConfig.bHwRasterizer || drawingHwTriangles)
 		{
@@ -259,9 +259,9 @@ void OnFrameEnd()
 		if (g_SWVideoConfig.bDumpFrames)
 		{
 			DumpEfb(StringFromFormat("%sframe%i_color.png",
-						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), swstats.frameCount).c_str());
+						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), swstats.frameCount));
 			DumpDepth(StringFromFormat("%sframe%i_depth.png",
-						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), swstats.frameCount).c_str());
+						File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), swstats.frameCount));
 		}
 	}
 }
