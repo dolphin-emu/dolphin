@@ -9,7 +9,7 @@ package org.dolphinemu.dolphinemu.gamelist;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
-import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -23,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
 import org.dolphinemu.dolphinemu.AboutFragment;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -103,10 +104,16 @@ public final class GameListActivity extends Activity
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-		// Display the game list fragment.
-		mCurFragment = new GameListFragment();
-		FragmentManager fragmentManager = getFragmentManager();
-		fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+		// Display the game list fragment on activity creation,
+		// but only if no previous states have been saved. 
+		if (savedInstanceState == null)
+		{
+			mCurFragment = new GameListFragment();
+			FragmentTransaction ft = getFragmentManager().beginTransaction();
+			ft.replace(R.id.content_frame, mCurFragment);
+			ft.commit();
+		}
+		
 
 		// Create an alert telling them that their phone sucks
 		if (Build.CPU_ABI.contains("arm") && !NativeLibrary.SupportsNEON())
@@ -151,8 +158,9 @@ public final class GameListActivity extends Activity
 
 				mCurFragmentNum = 0;
 				mCurFragment = new GameListFragment();
-				FragmentManager fragmentManager = getFragmentManager();
-				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.content_frame, mCurFragment);
+				ft.commit();
 				invalidateOptionsMenu();
 			}
 			break;
@@ -161,8 +169,10 @@ public final class GameListActivity extends Activity
 			{
 				mCurFragmentNum = 1;
 				mCurFragment = new FolderBrowser();
-				FragmentManager fragmentManager = getFragmentManager();
-				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.content_frame, mCurFragment);
+				ft.addToBackStack(null);
+				ft.commit();
 				invalidateOptionsMenu();
 			}
 			break;
@@ -178,8 +188,10 @@ public final class GameListActivity extends Activity
 			{
 				mCurFragmentNum = 3;
 				mCurFragment = new AboutFragment();
-				FragmentManager fragmentManager = getFragmentManager();
-				fragmentManager.beginTransaction().replace(R.id.content_frame, mCurFragment).commit();
+				FragmentTransaction ft = getFragmentManager().beginTransaction();
+				ft.replace(R.id.content_frame, mCurFragment);
+				ft.addToBackStack(null);
+				ft.commit();
 				invalidateOptionsMenu();
 			}
 			break;
@@ -280,11 +292,5 @@ public final class GameListActivity extends Activity
 		}
 
 		return super.onOptionsItemSelected(item);
-	}
-	
-	@Override
-	public void onBackPressed()
-	{
-		SwitchPage(0);
 	}
 }
