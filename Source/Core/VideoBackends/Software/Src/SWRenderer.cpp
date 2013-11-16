@@ -6,7 +6,6 @@
 
 #include "../../OGL/Src/GLUtil.h"
 #include "ImageWrite.h"
-#include "ImageWrite.h"
 #include "RasterFont.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
