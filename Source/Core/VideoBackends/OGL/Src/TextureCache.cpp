@@ -64,10 +64,10 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width
 #ifndef USE_GLES3
 	int width = std::max(virtual_width >> level, 1);
 	int height = std::max(virtual_height >> level, 1);
-	std::vector<u32> data(width * height);
+	u8* data = new u8[width * height * 4];
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(textarget, tex);
-	glGetTexImage(textarget, level, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
+	glGetTexImage(textarget, level, GL_RGBA, GL_UNSIGNED_BYTE, data);
 	glBindTexture(textarget, 0);
 	TextureCache::SetStage();
 
@@ -75,10 +75,11 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int virtual_width
 	if (GL_NO_ERROR != err)
 	{
 		PanicAlert("Can't save texture, GL Error: %s", gluErrorString(err));
+		delete[] data;
 		return false;
 	}
 
-	return SaveTGA(filename, width, height, &data[0]);
+	return TextureToPng(data, width*4, filename, width, height, true);
 #else
 	return false;
 #endif
@@ -127,11 +128,7 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 
 bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 {
-	// TODO: make ogl dump PNGs
-	std::string tga_filename(filename);
-	tga_filename.replace(tga_filename.size() - 3, 3, "tga");
-
-	return SaveTexture(tga_filename.c_str(), GL_TEXTURE_2D, texture, virtual_width, virtual_height, level);
+	return SaveTexture(filename, GL_TEXTURE_2D, texture, virtual_width, virtual_height, level);
 }
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
@@ -395,7 +392,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 	if (g_ActiveConfig.bDumpEFBTarget)
 	{
 		static int count = 0;
-		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
+		SaveTexture(StringFromFormat("%sefb_frame_%i.png", File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
 			count++).c_str(), GL_TEXTURE_2D, texture, virtual_width, virtual_height, 0);
 	}
 

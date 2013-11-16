@@ -1627,7 +1627,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();
-	// SaveTexture("tex.tga", GL_TEXTURE_2D, s_FakeZTarget,
+	// SaveTexture("tex.png", GL_TEXTURE_2D, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;

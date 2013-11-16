@@ -335,7 +335,7 @@ void VertexManager::vFlush()
 	if (g_ActiveConfig.iLog & CONF_SAVETARGETS)
 	{
 		char str[128];
-		sprintf(str, "%starg%.3d.tga", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
+		sprintf(str, "%starg%.3d.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		TargetRectangle tr;
 		tr.left = 0;
 		tr.right = Renderer::GetTargetWidth();
