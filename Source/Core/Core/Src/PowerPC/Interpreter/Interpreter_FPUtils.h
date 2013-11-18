@@ -5,6 +5,7 @@
 #ifndef _INTERPRETER_FPUTILS_H
 #define _INTERPRETER_FPUTILS_H
 
+#include "CPUDetect.h"
 #include "Interpreter.h"
 #include "MathUtil.h"
 
@@ -69,28 +70,22 @@ inline void UpdateFPSCR()
 
 inline double ForceSingle(double _x)
 {
-	//if (FPSCR.RN != 0)
-	//	PanicAlert("RN = %d at %x", (int)FPSCR.RN, PC);
-	if (FPSCR.NI)
-		_x = FlushToZeroAsFloat(_x);
-
-	double x = static_cast<float>(_x);
-
+	// convert to float...
+	float x = _x;
+	if (!cpu_info.bFlushToZero && FPSCR.NI)
+	{
+		x = FlushToZero(x);
+	}
+	// ...and back to double:
 	return x;
 }
 
 inline double ForceDouble(double d)
 {
-	//if (FPSCR.RN != 0)
-	//	PanicAlert("RN = %d at %x", (int)FPSCR.RN, PC);
-
-	//if (FPSCR.NI)
-	//{
-	//	IntDouble x; x.d = d;
-		//if ((x.i & DOUBLE_EXP) == 0)
-		//	x.i &= DOUBLE_SIGN;  // turn into signed zero
-	//	return x.d;
-	//}
+	if (!cpu_info.bFlushToZero && FPSCR.NI)
+	{
+		d = FlushToZero(d);
+	}
 	return d;
 }
 
