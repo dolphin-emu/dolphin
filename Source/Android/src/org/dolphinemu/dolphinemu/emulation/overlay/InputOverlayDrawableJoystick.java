@@ -29,15 +29,12 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 	 *
 	 * @param res         {@link Resources} instance.
 	 * @param bitmapOuter {@link Bitmap} to use with this Drawable.
-	 * @param axisUp      Identifier for this type of axis.
-	 * @param axisDown    Identifier for this type of axis.
-	 * @param axisLeft    Identifier for this type of axis.
-	 * @param axisRight   Identifier for this type of axis.
+	 * @param joystick      Identifier for which joystick this is.
 	 */
 	public InputOverlayDrawableJoystick(Resources res,
 	                                    Bitmap bitmapOuter, Bitmap bitmapInner,
 	                                    Rect rectOuter, Rect rectInner,
-	                                    int axisUp, int axisDown, int axisLeft, int axisRight)
+	                                    int joystick)
 	{
 		super(res, bitmapOuter);
 		this.setBounds(rectOuter);
@@ -45,10 +42,10 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 		this.ringInner = new BitmapDrawable(res, bitmapInner);
 		this.ringInner.setBounds(rectInner);
 		SetInnerBounds();
-		this.axisIDs[0] = axisUp;
-		this.axisIDs[1] = axisDown;
-		this.axisIDs[2] = axisLeft;
-		this.axisIDs[3] = axisRight;
+		this.axisIDs[0] = joystick + 1;
+		this.axisIDs[1] = joystick + 2;
+		this.axisIDs[2] = joystick + 3;
+		this.axisIDs[3] = joystick + 4;
 	}
 
 	@Override
@@ -142,5 +139,6 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 		int height = this.ringInner.getBounds().height() / 2;
 		this.ringInner.setBounds(X - width, Y - height,
 				X + width,  Y + height);
+		
 	}
 }

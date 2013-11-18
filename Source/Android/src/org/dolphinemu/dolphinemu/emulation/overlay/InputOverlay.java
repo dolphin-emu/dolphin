@@ -50,8 +50,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		overlayButtons.add(initializeOverlayButton(context, R.drawable.button_start, ButtonType.BUTTON_START));
 		overlayJoysticks.add(initializeOverlayJoystick(context,
 				R.drawable.joy_outer, R.drawable.joy_inner,
-				ButtonType.STICK_MAIN_UP, ButtonType.STICK_MAIN_DOWN,
-				ButtonType.STICK_MAIN_LEFT, ButtonType.STICK_MAIN_RIGHT));
+				ButtonType.STICK_MAIN));
 
 		// Set the on touch listener.
 		setOnTouchListener(this);
@@ -200,14 +199,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	 * @param context   The current {@link Context}
 	 * @param resOuter  Resource ID for the outer image of the joystick (the static image that shows the circular bounds).
 	 * @param resInner  Resource ID for the inner image of the joystick (the one you actually move around).
-	 * @param axisUp    Identifier for this type of axis.
-	 * @param axisDown  Identifier for this type of axis.
-	 * @param axisLeft  Identifier for this type of axis.
-	 * @param axisRight Identifier for this type of axis.
+	 * @param joystick    Identifier for which joystick this is.
 	 * 
 	 * @return the initialized {@link InputOverlayDrawableJoystick}.
 	 */
-	private static InputOverlayDrawableJoystick initializeOverlayJoystick(Context context, int resOuter, int resInner, int axisUp, int axisDown, int axisLeft, int axisRight)
+	private static InputOverlayDrawableJoystick initializeOverlayJoystick(Context context, int resOuter, int resInner, int joystick)
 	{
 		// Resources handle for fetching the initial Drawable resource.
 		final Resources res = context.getResources();
@@ -219,22 +215,26 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		final Bitmap bitmapOuter = BitmapFactory.decodeResource(res, resOuter);
 		final Bitmap bitmapInner = BitmapFactory.decodeResource(res, resInner);
 
-		// TODO: Load coordinates for the drawable from the SharedPreference keys
-		//       made from the overlay configuration window in the settings.
+		// String ID of the Drawable. This is what is passed into SharedPreferences
+		// to check whether or not a value has been set.
+		final String drawableId = res.getResourceEntryName(resOuter);
+
+		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
+		// These were set in the input overlay configuration menu.
+		int drawableX = (int) sPrefs.getFloat(drawableId+"-X", 0f);
+		int drawableY = (int) sPrefs.getFloat(drawableId+"-Y", 0f);
 
 		// Now set the bounds for the InputOverlayDrawableJoystick.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableJoystick will be.
 		int outerSize = bitmapOuter.getWidth() + 256;
-		int X = 0;
-		int Y = 0;
-		Rect outerRect = new Rect(X, Y, X + outerSize, Y + outerSize);
+		Rect outerRect = new Rect(drawableX, drawableY, drawableX + outerSize, drawableY + outerSize);
 		Rect innerRect = new Rect(0, 0, outerSize / 4, outerSize / 4);
 
 		final InputOverlayDrawableJoystick overlayDrawable
 				= new InputOverlayDrawableJoystick(res,
 					bitmapOuter, bitmapInner,
 					outerRect, innerRect,
-					axisUp, axisDown, axisLeft, axisRight);
+					joystick);
 
 
 		return overlayDrawable;

@@ -30,16 +30,18 @@ public final class NativeLibrary
 		public static final int BUTTON_DOWN      = 7;
 		public static final int BUTTON_LEFT      = 8;
 		public static final int BUTTON_RIGHT     = 9;
-		public static final int STICK_MAIN_UP    = 10;
-		public static final int STICK_MAIN_DOWN  = 11;
-		public static final int STICK_MAIN_LEFT  = 12;
-		public static final int STICK_MAIN_RIGHT = 13;
-		public static final int STICK_C_UP       = 14;
-		public static final int STICK_C_DOWN     = 15;
-		public static final int STICK_C_LEFT     = 16;
-		public static final int STICK_C_RIGHT    = 17;
-		public static final int TRIGGER_L        = 18;
-		public static final int TRIGGER_R        = 19;
+		public static final int STICK_MAIN       = 10;
+		public static final int STICK_MAIN_UP    = 11;
+		public static final int STICK_MAIN_DOWN  = 12;
+		public static final int STICK_MAIN_LEFT  = 13;
+		public static final int STICK_MAIN_RIGHT = 14;
+		public static final int STICK_C          = 15;
+		public static final int STICK_C_UP       = 16;
+		public static final int STICK_C_DOWN     = 17;
+		public static final int STICK_C_LEFT     = 18;
+		public static final int STICK_C_RIGHT    = 19;
+		public static final int TRIGGER_L        = 20;
+		public static final int TRIGGER_R        = 21;
 	}
 
 	/**

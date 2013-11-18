@@ -28,25 +28,27 @@ namespace ButtonManager
 	enum ButtonType
 	{
 		BUTTON_A = 0,
-		BUTTON_B,
-		BUTTON_START,
-		BUTTON_X,
-		BUTTON_Y,
-		BUTTON_Z,
-		BUTTON_UP,
-		BUTTON_DOWN,
-		BUTTON_LEFT,
-		BUTTON_RIGHT,
-		STICK_MAIN_UP,
-		STICK_MAIN_DOWN,
-		STICK_MAIN_LEFT,
-		STICK_MAIN_RIGHT,
-		STICK_C_UP,
-		STICK_C_DOWN,
-		STICK_C_LEFT,
-		STICK_C_RIGHT,
-		TRIGGER_L,
-		TRIGGER_R
+		BUTTON_B = 1,
+		BUTTON_START = 2,
+		BUTTON_X = 3,
+		BUTTON_Y = 4,
+		BUTTON_Z = 5,
+		BUTTON_UP = 6,
+		BUTTON_DOWN = 7,
+		BUTTON_LEFT = 8,
+		BUTTON_RIGHT = 9,
+		STICK_MAIN = 10, /* Used on Java Side */
+		STICK_MAIN_UP = 11,
+		STICK_MAIN_DOWN = 12,
+		STICK_MAIN_LEFT = 13,
+		STICK_MAIN_RIGHT = 14,
+		STICK_C = 15, /* Used on Java Side */
+		STICK_C_UP = 16,
+		STICK_C_DOWN = 17,
+		STICK_C_LEFT = 18,
+		STICK_C_RIGHT = 19,
+		TRIGGER_L = 20,
+		TRIGGER_R = 21,
 	};
 	enum ButtonState
 	{

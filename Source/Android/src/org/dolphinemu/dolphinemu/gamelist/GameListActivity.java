@@ -16,13 +16,12 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
-import android.view.*;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.dolphinemu.dolphinemu.AboutFragment;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -30,6 +29,9 @@ import org.dolphinemu.dolphinemu.folderbrowser.FolderBrowser;
 import org.dolphinemu.dolphinemu.settings.PrefsActivity;
 import org.dolphinemu.dolphinemu.sidemenu.SideMenuAdapter;
 import org.dolphinemu.dolphinemu.sidemenu.SideMenuItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The activity that implements all of the functions
