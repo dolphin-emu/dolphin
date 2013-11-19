@@ -46,6 +46,10 @@
     <string name="input_overlay_layout">入力オーバーレイレイアウト</string>
     <string name="input_overlay_layout_desc">入力オーバーレイのためのボタンのレイアウト。</string>
     <string name="gamecube_bindings">ゲームキューブの入力バインディング</string>
+    <string name="controller_1">コントローラ1</string>
+    <string name="controller_2">コントローラ2</string>
+    <string name="controller_3">コントローラ3</string>
+    <string name="controller_4">コントローラ4</string>
     <string name="input_binding">入力バインディング</string>
     <string name="input_binding_descrip">%1$sにバインドするための入力を移動または押してください。</string>
     <string name="button_a">Aボタン</string>
