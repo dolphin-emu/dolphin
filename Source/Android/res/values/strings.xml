@@ -50,6 +50,7 @@
     <string name="controller_2">Controller 2</string>
     <string name="controller_3">Controller 3</string>
     <string name="controller_4">Controller 4</string>
+    <string name="enable_controller">Enable controller</string>
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_descrip">Press or move an input to bind it to %1$s.</string>
     <string name="button_a">Button A</string>
