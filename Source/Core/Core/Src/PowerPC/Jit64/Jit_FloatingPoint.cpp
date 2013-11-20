@@ -229,11 +229,12 @@ void Jit64::fmrx(UGeckoInstruction inst)
 	}
 	int d = inst.FD;
 	int b = inst.FB;
-	fpr.Lock(b, d);
-	fpr.BindToRegister(d, d == b, true);
-	MOVSD(XMM0, fpr.R(b));
-	MOVSD(fpr.R(d), XMM0);
-	fpr.UnlockAll();
+	if (d != b) {
+		fpr.Lock(b, d);
+		fpr.BindToRegister(d);
+		MOVSD(fpr.RX(d), fpr.R(b));
+		fpr.UnlockAll();
+	}
 }
 
 void Jit64::fcmpx(UGeckoInstruction inst)
