@@ -45,14 +45,20 @@
     <string name="input_settings">入力</string>
     <string name="input_overlay_layout">入力オーバーレイレイアウト</string>
     <string name="input_overlay_layout_desc">入力オーバーレイのためのボタンのレイアウト。</string>
-    <string name="gamecube_bindings">ゲームキューブの入力バインディング</string>
+    <string name="gamecube_bindings">ゲームキューブコントローラの入力バインディング</string>
     <string name="controller_1">コントローラ1</string>
     <string name="controller_2">コントローラ2</string>
     <string name="controller_3">コントローラ3</string>
     <string name="controller_4">コントローラ4</string>
     <string name="enable_controller">コントローラを有効</string>
+    <string name="wiimote_bindings">Wiiリモコンの入力バインディング</string>
+    <string name="wiimote_1">Wiiリモコン1</string>
+    <string name="wiimote_2">Wiiリモコン2</string>
+    <string name="wiimote_3">Wiiリモコン3</string>
+    <string name="wiimote_4">Wiiリモコン4</string>
     <string name="input_binding">入力バインディング</string>
     <string name="input_binding_descrip">%1$sにバインドするための入力を移動または押してください。</string>
+    <!-- Gamecube buttons (May be shared with Wiimote stuff too) -->
     <string name="button_a">Aボタン</string>
     <string name="button_b">Bボタン</string>
     <string name="button_start">スタートボタン</string>
@@ -73,6 +79,29 @@
     <string name="c_stick_right">C-スティック: →</string>
     <string name="trigger_left">左のトリガー</string>
     <string name="trigger_right">右のトリガー</string>
+    <!-- Wiimote (+ extension) only buttons -->
+    <string name="button_one">ボタン1</string>
+    <string name="button_two">ボタン2</string>
+    <string name="button_plus">ボタン+</string>
+    <string name="button_minus">ボタン-</string>
+    <string name="button_home">ホームボタン</string>
+    <string name="ir_up">IR ↑</string>
+    <string name="ir_down">IR ↓</string>
+    <string name="ir_left">IR ←</string>
+    <string name="ir_right">IR →</string>
+    <string name="ir_forward">IR前方</string>
+    <string name="ir_backward">IR後方</string>
+    <string name="swing_up">スイング ↑</string>
+    <string name="swing_down">スイング ↓</string>
+    <string name="swing_left">スイング ←</string>
+    <string name="swing_right">スイング →</string>
+    <string name="tilt_forward">前方を傾</string>
+    <string name="tilt_backward">後方を傾</string>
+    <string name="tilt_left">左を傾</string>
+    <string name="tilt_right">右を傾</string>
+    <string name="shake_x">Xを振る</string>
+    <string name="shake_y">Yを振る</string>
+    <string name="shake_z">Zを振る</string>
 
     <!-- CPU Preference Fragment -->
     <string name="interpreter">Interpreter</string>

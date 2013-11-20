@@ -36,7 +36,7 @@ public final class InputConfigFragment extends PreferenceFragment
 
 		// Set the summary messages of the preferences to whatever binding
 		// is currently set within the Dolphin config.
-		final String[] keys = 
+		final String[] gamecubeKeys = 
 		{
 			"InputA", "InputB", "InputX", "InputY", "InputZ", "InputStart",
 			"DPadUp", "DPadDown", "DPadLeft", "DPadRight",
@@ -45,10 +45,28 @@ public final class InputConfigFragment extends PreferenceFragment
 			"InputL", "InputR"
 		};
 
-		// Loop through the keys for all 4 GameCube controllers.
+		final String[] wiimoteKeys = 
+		{
+			"WiimoteInputA", "WiimoteInputB", "WiimoteInputOne", "WiimoteInputTwo", "WiimoteInputPlus", "WiimoteInputMinus", "WiimoteInputHome",
+			"WiimoteIRUp", "WiimoteIRDown", "WiimoteIRLeft", "WiimoteIRRight", "WiimoteIRForward", "WiimoteIRBackward",
+			"WiimoteSwingUp", "WiimoteSwingDown", "WiimoteSwingLeft", "WiimoteSwingRight",
+			"WiimoteTiltForward", "WiimoteTiltBackward", "WiimoteTiltLeft", "WiimoteTiltRight",
+			"WiimoteShakeX", "WiimoteShakeY", "WiimoteShakeZ",
+			"WiimoteDPadUp", "WiimoteDPadDown", "WiimoteDPadLeft", "WiimoteDPadRight"
+		};
+
 		for (int i = 1; i <= 4; i++)
 		{
-			for (String key : keys)
+			// Loop through the keys for all 4 GameCube controllers.
+			for (String key : gamecubeKeys)
+			{
+				final String binding = NativeLibrary.GetConfig("Dolphin.ini", "Android", key+"_"+i, "None");
+				final Preference pref = findPreference(key+"_"+i);
+				pref.setSummary(binding);
+			}
+
+			// Loop through the keys for the Wiimote
+			for (String key : wiimoteKeys)
 			{
 				final String binding = NativeLibrary.GetConfig("Dolphin.ini", "Android", key+"_"+i, "None");
 				final Preference pref = findPreference(key+"_"+i);
