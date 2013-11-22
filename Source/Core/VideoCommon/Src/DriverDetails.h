@@ -94,10 +94,11 @@ namespace DriverDetails
 		// Bug: The pinned memory extension isn't working for index buffers
 		// Affected devices: AMD as they are the only vendor providing this extension
 		// Started Version: ?
-		// Ended Version: -1
+		// Ended Version: 13.9 working for me (neobrain).
 		// Pinned memory is disabled for index buffer as the amd driver (the only one with pinned memory support) seems
 		// to be broken. We just get flickering/black rendering when using pinned memory here -- degasus - 2013/08/20
 		// Please see issue #6105 on google code. Let's hope buffer storage solves this issues.
+		// TODO: Detect broken drivers.
 		BUG_BROKENPINNEDMEMORY,
 		// Bug: Entirely broken UBOs
 		// Affected devices: Qualcomm/Adreno
