@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <vector>
+#include <cinttypes>
 
 #include "Thread.h"
 #include "PowerPC/PowerPC.h"
@@ -429,7 +430,7 @@ void LogPendingEvents()
 	Event *ptr = first;
 	while (ptr)
 	{
-		INFO_LOG(POWERPC, "PENDING: Now: %lld Pending: %lld Type: %d", globalTimer, ptr->time, ptr->type);
+		INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %d", globalTimer, ptr->time, ptr->type);
 		ptr = ptr->next;
 	}
 }

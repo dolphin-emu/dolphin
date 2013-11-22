@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <string>
+#include <cinttypes>
 
 #include "Common.h"
 #include "disasm.h"
@@ -32,7 +33,7 @@ static void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) 
 #endif
 	PanicAlert("%s\n\n"
 		"Error encountered accessing emulated address %08x.\n"
-		"Culprit instruction: \n%s\nat %#llx",
+		"Culprit instruction: \n%s\nat %#" PRIx64,
 		text.c_str(), emAddress, disbuf, code_addr);
 	return;
 }
@@ -233,7 +234,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		XEmitter emitter(start);
 		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse);
 		emitter.CALL((void *)trampoline);
-		emitter.NOP(codePtr + info.instructionSize - emitter.GetCodePtr());
+		emitter.NOP((int)(codePtr + info.instructionSize - emitter.GetCodePtr()));
 		return start;
 	}
 #else

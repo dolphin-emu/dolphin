@@ -5,6 +5,8 @@
 #include "FileUtil.h"
 #include "SysConf.h"
 
+#include <cinttypes>
+
 SysConf::SysConf()
 	: m_IsValid(false)
 {
@@ -42,7 +44,7 @@ bool SysConf::LoadFromFile(const char *filename)
 	u64 size = File::GetSize(filename);
 	if (size != SYSCONF_SIZE)
 	{
-		if (AskYesNoT("Your SYSCONF file is the wrong size.\nIt should be 0x%04x (but is 0x%04llx)\nDo you want to generate a new one?",
+		if (AskYesNoT("Your SYSCONF file is the wrong size.\nIt should be 0x%04x (but is 0x%04" PRIx64 ")\nDo you want to generate a new one?",
 					SYSCONF_SIZE, size))
 		{
 			GenerateSysConf();
@@ -151,7 +153,7 @@ unsigned int create_item(SSysConfEntry &item, SysconfType type, const std::strin
 {
 	item.offset = offset;
 	item.type = type;
-	item.nameLength = name.length();
+	item.nameLength = (u8)(name.length());
 	strncpy(item.name, name.c_str(), 32);
 	item.dataLength = data_length;
 	item.data = new u8[data_length];

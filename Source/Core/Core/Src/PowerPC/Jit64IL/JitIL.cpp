@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <map>
+#include <memory>
+#include <cinttypes>
 
 #include "Common.h"
 #include "../../HLE/HLE.h"
@@ -217,14 +219,14 @@ namespace JitILProfiler
 				const u64 totalElapsed = block.totalElapsed;
 				const u64 numberOfCalls = block.numberOfCalls;
 				const double elapsedPerCall = totalElapsed / (double)numberOfCalls;
-				fprintf(file.GetHandle(), "%016llx,%lld,%lld,%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
+				fprintf(file.GetHandle(), "%016" PRIx64 ",%" PRId64 ",%" PRId64 ",%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
 			}
 		}
 	};
-	std::auto_ptr<JitILProfilerFinalizer> finalizer;
+	std::unique_ptr<JitILProfilerFinalizer> finalizer;
 	static void Init()
 	{
-		finalizer = std::auto_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
+		finalizer = std::unique_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
 	}
 	static void Shutdown()
 	{

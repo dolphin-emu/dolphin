@@ -133,6 +133,9 @@
     <Filter Include="IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote">
       <UniqueIdentifier>{8352be4d-d37d-4f55-adec-b940a9712802}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PowerPC\JitILCommon">
+      <UniqueIdentifier>{827afa93-1a80-4835-93ae-b5516d95867f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\BootManager.cpp" />
@@ -636,37 +639,10 @@
     <ClCompile Include="Src\PowerPC\JitCommon\JitCache.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\IR.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
     <ClCompile Include="Src\PowerPC\Jit64IL\IR_X86.cpp">
       <Filter>PowerPC\JitIL</Filter>
     </ClCompile>
     <ClCompile Include="Src\PowerPC\Jit64IL\JitIL.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Branch.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_FloatingPoint.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Integer.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStore.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStoreFloating.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_LoadStorePaired.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Paired.cpp">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_SystemRegisters.cpp">
       <Filter>PowerPC\JitIL</Filter>
     </ClCompile>
     <ClCompile Include="Src\PowerPC\Jit64IL\JitIL_Tables.cpp">
@@ -706,6 +682,33 @@
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
     <ClCompile Include="Src\stdafx.cpp" />
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_Branch.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_FloatingPoint.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_Integer.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_LoadStore.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_LoadStoreFloating.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_LoadStorePaired.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_Paired.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\JitILBase_SystemRegisters.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\PowerPC\JitILCommon\IR.cpp">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\BootManager.h" />
@@ -1190,9 +1193,6 @@
     <ClInclude Include="Src\PowerPC\JitCommon\JitCache.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
-    <ClInclude Include="Src\PowerPC\Jit64IL\IR.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
     <ClInclude Include="Src\PowerPC\Jit64IL\JitIL.h">
       <Filter>PowerPC\JitIL</Filter>
     </ClInclude>
@@ -1209,6 +1209,12 @@
       <Filter>PowerPC\Jit64</Filter>
     </ClInclude>
     <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\PowerPC\JitILCommon\JitILBase.h">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\PowerPC\JitILCommon\IR.h">
+      <Filter>PowerPC\JitILCommon</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

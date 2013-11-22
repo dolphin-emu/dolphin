@@ -15,7 +15,7 @@ public:
 
 	virtual bool IsLLE() = 0;
 
-	virtual bool Initialize(bool bWii, bool bDSPThread) = 0;
+	virtual bool Initialize(void *hWnd, bool bWii, bool bDSPThread) = 0;
 	virtual void Shutdown() = 0;
 
 	virtual void DoState(PointerWrap &p) = 0;
@@ -35,6 +35,7 @@ public:
 
 protected:
 	SoundStream *soundStream;
+	void *m_hWnd;
 };
 
 DSPEmulator *CreateDSPEmulator(bool HLE);

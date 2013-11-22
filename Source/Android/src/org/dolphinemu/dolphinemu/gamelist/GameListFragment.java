@@ -35,7 +35,6 @@ import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
 public final class GameListFragment extends ListFragment
 {
 	private GameListAdapter mGameAdapter;
-	private static GameListActivity mMe;
 	private OnGameListZeroListener mCallback;
 
 	/**
@@ -84,7 +83,7 @@ public final class GameListFragment extends ListFragment
 					if (!entry.isHidden() && !entry.isDirectory())
 					{
 						if (exts.contains(entryName.toLowerCase().substring(entryName.lastIndexOf('.'))))
-							fls.add(new GameListItem(mMe, entryName, String.format(getString(R.string.file_size), entry.length()), entry.getAbsolutePath()));
+							fls.add(new GameListItem(getActivity(), entryName, String.format(getString(R.string.file_size), entry.length()), entry.getAbsolutePath()));
 					}
 				}
 			}
@@ -94,8 +93,9 @@ public final class GameListFragment extends ListFragment
 		}
 		Collections.sort(fls);
 
-		mGameAdapter = new GameListAdapter(mMe, R.layout.gamelist_folderbrowser_list, fls);
-		setListAdapter(mGameAdapter);
+		// Add all the items to the adapter
+		mGameAdapter.addAll(fls);
+		mGameAdapter.notifyDataSetChanged();
 
 		if (fls.isEmpty())
 		{
@@ -106,12 +106,13 @@ public final class GameListFragment extends ListFragment
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
-		View rootView = inflater.inflate(R.layout.gamelist_listview, container, false);
-		ListView mMainList = (ListView) rootView.findViewById(R.id.gamelist);
+		ListView rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
+		mGameAdapter = new GameListAdapter(getActivity(), R.layout.gamelist_folderbrowser_list_item);
+		rootView.setAdapter(mGameAdapter);
 
 		Fill();
 
-		return mMainList;
+		return rootView;
 	}
 	
 	@Override
@@ -120,12 +121,12 @@ public final class GameListFragment extends ListFragment
 		GameListItem item = mGameAdapter.getItem(position);
 
 		// Show a toast indicating which game was clicked.
-		Toast.makeText(mMe, String.format(getString(R.string.file_clicked), item.getPath()), Toast.LENGTH_SHORT).show();
+		Toast.makeText(getActivity(), String.format(getString(R.string.file_clicked), item.getPath()), Toast.LENGTH_SHORT).show();
 
 		// Start the emulation activity and send the path of the clicked ROM to it.
-		Intent intent = new Intent(mMe, EmulationActivity.class);
+		Intent intent = new Intent(getActivity(), EmulationActivity.class);
 		intent.putExtra("SelectedGame", item.getPath());
-		mMe.startActivity(intent);
+		startActivity(intent);
 	}
 
 	@Override
@@ -138,7 +139,6 @@ public final class GameListFragment extends ListFragment
 		try
 		{
 			mCallback = (OnGameListZeroListener) activity;
-			mMe = (GameListActivity) activity;
 		}
 		catch (ClassCastException e)
 		{

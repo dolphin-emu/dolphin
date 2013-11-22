@@ -7,6 +7,8 @@
 #include "x64ABI.h"
 #include "CPUDetect.h"
 
+#include <cinttypes>
+
 namespace Gen
 {
 
@@ -154,6 +156,40 @@ void OpArg::WriteRex(XEmitter *emit, int opBits, int bits, int customOp) const
 #endif
 }
 
+void OpArg::WriteVex(XEmitter* emit, int size, int packed, Gen::X64Reg regOp1, Gen::X64Reg regOp2) const
+{
+	int R = !(regOp1 & 8);
+	int X = !(indexReg & 8);
+	int B = !(offsetOrBaseReg & 8);
+
+	// not so sure about this one...
+	int W = 0;
+
+	// aka map_select in AMD manuals
+	// only support VEX opcode map 1 for now (analog to secondary opcode map)
+	int mmmmm = 1;
+
+	int vvvv = (regOp2 == X64Reg::INVALID_REG) ? 0xf : (regOp2 ^ 0xf);
+	int L = size == 256;
+	int pp = (packed << 1) | (size == 64);
+
+	// do we need any VEX fields that only appear in the three-byte form?
+	if (X == 1 && B == 1 && W == 0 && mmmmm == 1)
+	{
+		u8 RvvvvLpp = (R << 7) | (vvvv << 3) | (L << 1) | pp;
+		emit->Write8(0xC5);
+		emit->Write8(RvvvvLpp);
+	}
+	else
+	{
+		u8 RXBmmmmm = (R << 7) | (X << 6) | (B << 5) | mmmmm;
+		u8 WvvvvLpp = (W << 7) | (vvvv << 3) | (L << 1) | pp;
+		emit->Write8(0xC4);
+		emit->Write8(RXBmmmmm);
+		emit->Write8(WvvvvLpp);
+	}
+}
+
 void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 	bool warn_64bit_offset) const
 {
@@ -176,7 +212,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		_assert_msg_(DYNA_REC, (distance < 0x80000000LL
 					&& distance >=  -0x80000000LL) ||
 			     !warn_64bit_offset,
-			     "WriteRest: op out of range (0x%llx uses 0x%llx)",
+			     "WriteRest: op out of range (0x%" PRIx64 " uses 0x%" PRIx64 ")",
 			     ripAddr, offset);
 		s32 offs = (s32)distance;
 		emit->Write32((u32)offs);
@@ -1141,6 +1177,18 @@ void XEmitter::WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg a
 	arg.WriteRest(this, extrabytes);
 }
 
+void XEmitter::WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes)
+{
+	WriteAVXOp(size, sseOp, packed, regOp, X64Reg::INVALID_REG, arg, extrabytes);
+}
+
+void XEmitter::WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes)
+{
+	arg.WriteVex(this, size, packed, regOp1, regOp2);
+	Write8(sseOp);
+	arg.WriteRest(this, extrabytes, regOp1);
+}
+
 void XEmitter::MOVD_xmm(X64Reg dest, const OpArg &arg) {WriteSSEOp(64, 0x6E, true, dest, arg, 0);}
 void XEmitter::MOVD_xmm(const OpArg &arg, X64Reg src) {WriteSSEOp(64, 0x7E, true, src, arg, 0);}
 
@@ -1443,6 +1491,13 @@ void XEmitter::PMINUB(X64Reg dest, OpArg arg)   {WriteSSEOp(64, 0xDA, true, dest
 void XEmitter::PMOVMSKB(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xD7, true, dest, arg); }
 
 void XEmitter::PSHUFLW(X64Reg regOp, OpArg arg, u8 shuffle)   {WriteSSEOp(64, 0x70, false, regOp, arg, 1); Write8(shuffle);}
+
+// VEX
+void XEmitter::VADDSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseADD, false, regOp1, regOp2, arg);}
+void XEmitter::VSUBSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseSUB, false, regOp1, regOp2, arg);}
+void XEmitter::VMULSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseMUL, false, regOp1, regOp2, arg);}
+void XEmitter::VDIVSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseDIV, false, regOp1, regOp2, arg);}
+void XEmitter::VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)  {WriteAVXOp(64, sseSQRT, false, regOp1, regOp2, arg);}
 
 // Prefixes
 

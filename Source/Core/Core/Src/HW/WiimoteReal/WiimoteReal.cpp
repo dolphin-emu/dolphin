@@ -239,7 +239,9 @@ bool Wiimote::Write()
 			IOWrite(rpt.data(), rpt.size());
 
 			if (is_speaker_data)
+			{
 				m_last_audio_report.Update();
+			}
 
 			m_write_reports.Pop();
 			return true;
@@ -293,8 +295,10 @@ void Wiimote::Update()
 
 	// Send the report
 	if (!rpt.empty() && m_channel > 0)
-		Core::Callback_WiimoteInterruptChannel(index, m_channel,
-			rpt.data(), rpt.size());
+	{
+		Core::Callback_WiimoteInterruptChannel(index, m_channel, 
+			rpt.data(), (u32)rpt.size());
+	}
 }
 
 void Wiimote::Prepare(int _index)

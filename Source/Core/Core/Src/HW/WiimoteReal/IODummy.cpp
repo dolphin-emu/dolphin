@@ -72,7 +72,7 @@ int Wiimote::IORead(u8* buf)
 	return 0;
 }
 
-int Wiimote::IOWrite(const u8* buf, int len)
+int Wiimote::IOWrite(const u8* buf, size_t len)
 {
 	return 0;
 }

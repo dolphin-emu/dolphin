@@ -65,8 +65,8 @@ void SWVideoConfig::Save(const char* ini_file)
 	iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
 
 	iniFile.Set("Rendering", "HwRasterizer", bHwRasterizer);
-	iniFile.Set("Rendering", "ZComploc", &bZComploc);
-	iniFile.Set("Rendering", "ZFreeze", &bZFreeze);
+	iniFile.Set("Rendering", "ZComploc", bZComploc);
+	iniFile.Set("Rendering", "ZFreeze", bZFreeze);
 
 	iniFile.Set("Info", "ShowStats", bShowStats);
 

@@ -31,7 +31,12 @@ struct ArraySizeImpl : public std::extent<T>
 #define b32(x)  (b16(x) | (b16(x) >>16) )
 #define ROUND_UP_POW2(x)	(b32(x - 1) + 1)
 
-#if defined __GNUC__ && !defined __SSSE3__ && !defined _M_GENERIC
+#ifndef __GNUC_PREREQ 
+	#define __GNUC_PREREQ(a, b) 0 
+#endif
+
+#if (defined __GNUC__ && !__GNUC_PREREQ(4,9))  \
+	&& !defined __SSSE3__ && !defined _M_GENERIC
 #include <emmintrin.h>
 static __inline __m128i __attribute__((__always_inline__))
 _mm_shuffle_epi8(__m128i a, __m128i mask)

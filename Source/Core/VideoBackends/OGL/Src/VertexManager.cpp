@@ -43,8 +43,8 @@ const u32 MAX_VBUFFER_SIZE = 16*1024*1024;
 
 static StreamBuffer *s_vertexBuffer;
 static StreamBuffer *s_indexBuffer;
-static u32 s_baseVertex;
-static u32 s_offset[3];
+static size_t s_baseVertex;
+static size_t s_offset[3];
 
 VertexManager::VertexManager()
 {
@@ -89,7 +89,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	u32 index_size = (triangle_index_size+line_index_size+point_index_size) * sizeof(u16);
 
 	s_vertexBuffer->Alloc(vertex_data_size, stride);
-	u32 offset = s_vertexBuffer->Upload(GetVertexBuffer(), vertex_data_size);
+	size_t offset = s_vertexBuffer->Upload(GetVertexBuffer(), vertex_data_size);
 	s_baseVertex = offset / stride;
 
 	s_indexBuffer->Alloc(index_size);
@@ -121,17 +121,17 @@ void VertexManager::Draw(u32 stride)
 	if(g_ogl_config.bSupportsGLBaseVertex) {
 		if (triangle_index_size > 0)
 		{
-			glDrawRangeElementsBaseVertex(triangle_mode, 0, max_index, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], s_baseVertex);
+			glDrawRangeElementsBaseVertex(triangle_mode, 0, max_index, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], (GLint)s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (line_index_size > 0)
 		{
-			glDrawRangeElementsBaseVertex(GL_LINES, 0, max_index, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], s_baseVertex);
+			glDrawRangeElementsBaseVertex(GL_LINES, 0, max_index, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], (GLint)s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 		if (point_index_size > 0)
 		{
-			glDrawRangeElementsBaseVertex(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], s_baseVertex);
+			glDrawRangeElementsBaseVertex(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], (GLint)s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
 	}
@@ -236,9 +236,9 @@ void VertexManager::vFlush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9,
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3),
+				(0 != (tex.texMode0[i&3].min_filter & 3)),
 				(tex.texMode1[i&3].max_lod + 0xf) / 0x10,
-				tex.texImage1[i&3].image_type);
+				(0 != tex.texImage1[i&3].image_type));
 
 			if (tentry)
 			{
@@ -335,13 +335,13 @@ void VertexManager::vFlush()
 	if (g_ActiveConfig.iLog & CONF_SAVETARGETS)
 	{
 		char str[128];
-		sprintf(str, "%starg%.3d.tga", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
+		sprintf(str, "%starg%.3d.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
 		TargetRectangle tr;
 		tr.left = 0;
 		tr.right = Renderer::GetTargetWidth();
 		tr.top = 0;
 		tr.bottom = Renderer::GetTargetHeight();
-		Renderer::TakeScreenshot(tr, str);
+		g_renderer->SaveScreenshot(str, tr);
 	}
 #endif
 	g_Config.iSaveTargetId++;

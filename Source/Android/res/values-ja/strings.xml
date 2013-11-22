@@ -11,6 +11,7 @@
     <!-- About Fragment -->
     <string name="build_revision">ビルドのバージョン</string>
     <string name="supports_gles3">サポートのOpenGL ES 3</string>
+    <string name="supports_neon">サポートのNEON</string>
 
     <!-- Folder Browser -->
     <string name="current_dir">現在のディレクトリ： %1$s</string>
@@ -25,10 +26,15 @@
     <string name="settings">設定</string>
     <string name="about">について</string>
 
+    <!-- Game List Activity - Device Compatibility AlertDialog -->
+    <string name="device_compat_warning">デバイスの互換性の警告</string>
+    <string name="device_compat_warning_msg">この電話は、NEON拡張をサポートしていません。 おそらくDolphinを実行することはできません。\nあなたはとにかくそれを実行してみますか？</string>
+
     <!-- Game List Fragment -->
     <string name="file_clicked">クリックされたファイル： %1$s</string>
 
     <!-- Emulation Window Overlay -->
+    <string name="overlay_screenshot">スクリーンショットを撮る</string>
     <string name="overlay_savestate">ステートセーブ</string>
     <string name="overlay_loadstate">ステートロード</string>
     <string name="overlay_exit_emulation">終了</string>

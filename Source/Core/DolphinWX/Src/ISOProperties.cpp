@@ -7,6 +7,7 @@
 #endif
 
 #include <type_traits>
+#include <cinttypes>
 
 #include "Common.h"
 #include "CommonPaths.h"
@@ -118,7 +119,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		u8 _tTitleID[8];
 		if(OpenISO->GetTitleID(_tTitleID))
 		{
-			snprintf(tmp, 17, "%016llx", Common::swap64(_tTitleID));
+			snprintf(tmp, 17, "%016" PRIx64, Common::swap64(_tTitleID));
 			_iniFilename = tmp;
 		}
 	}

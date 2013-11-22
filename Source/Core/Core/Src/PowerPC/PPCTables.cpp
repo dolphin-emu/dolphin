@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <cinttypes>
 
 #include "Common.h"
 #include "PPCTables.h"
@@ -13,24 +14,15 @@
 #include "Interpreter/Interpreter_Tables.h"
 #include "JitInterface.h"
 
-struct op_inf
-{
-	const char *name;
-	int count;
-	bool operator < (const op_inf &o) const
-	{
-		return count > o.count;
-	}
-};
- GekkoOPInfo *m_infoTable[64];
- GekkoOPInfo *m_infoTable4[1024];
- GekkoOPInfo *m_infoTable19[1024];
- GekkoOPInfo *m_infoTable31[1024];
- GekkoOPInfo *m_infoTable59[32];
- GekkoOPInfo *m_infoTable63[1024];
+GekkoOPInfo *m_infoTable[64];
+GekkoOPInfo *m_infoTable4[1024];
+GekkoOPInfo *m_infoTable19[1024];
+GekkoOPInfo *m_infoTable31[1024];
+GekkoOPInfo *m_infoTable59[32];
+GekkoOPInfo *m_infoTable63[1024];
 
- GekkoOPInfo *m_allInstructions[512];
- int m_numInstructions;
+GekkoOPInfo *m_allInstructions[512];
+int m_numInstructions;
 
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 {
@@ -181,26 +173,34 @@ void CountInstruction(UGeckoInstruction _inst)
 {
 	GekkoOPInfo *info = GetOpInfo(_inst);
 	if (info)
+	{
 		info->runCount++;
+	}
 }
 
 void PrintInstructionRunCounts()
 {
-	std::vector<op_inf> temp;
-	for (int i = 0; i < m_numInstructions; i++)
+	typedef std::pair<const char*, u64> OpInfo;
+	std::vector<OpInfo> temp;
+	temp.reserve(m_numInstructions);
+	for (int i = 0; i < m_numInstructions; ++i)
 	{
-		op_inf x;
-		x.name = m_allInstructions[i]->opname;
-		x.count = m_allInstructions[i]->runCount;
-		temp.push_back(x);
+		GekkoOPInfo *pInst = m_allInstructions[i];
+		temp.emplace_back(pInst->opname, pInst->runCount);
 	}
-	std::sort(temp.begin(), temp.end());
-	for (int i = 0; i < m_numInstructions; i++)
+	std::sort(temp.begin(), temp.end(), 
+		[](const OpInfo &a, const OpInfo &b)
+		{
+			return a.second > b.second;
+		});
+
+	for (auto &inst : temp)
 	{
-		if (temp[i].count == 0)
+		if (inst.second == 0)
 			break;
-		DEBUG_LOG(POWERPC, "%s : %i", temp[i].name,temp[i].count);
-		//PanicAlert("%s : %i", temp[i].name,temp[i].count);
+
+		DEBUG_LOG(POWERPC, "%s : %llu", inst.first, inst.second);
+		//PanicAlert("%s : %llu", inst.first, inst.second);
 	}
 }
 
@@ -211,20 +211,22 @@ void LogCompiledInstructions()
 	File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
-		if (m_allInstructions[i]->compileCount > 0)
+		GekkoOPInfo *pInst = m_allInstructions[i];
+		if (pInst->compileCount > 0)
 		{
-			fprintf(f.GetHandle(), "%s\t%i\t%lld\t%08x\n", m_allInstructions[i]->opname,
-				m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount, m_allInstructions[i]->lastUse);
+			fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\t%08x\n", pInst->opname,
+				pInst->compileCount, pInst->runCount, pInst->lastUse);
 		}
 	}
 
 	f.Open(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
-		if (m_allInstructions[i]->compileCount == 0)
+		GekkoOPInfo *pInst = m_allInstructions[i];
+		if (pInst->compileCount == 0)
 		{
-			fprintf(f.GetHandle(), "%s\t%i\t%lld\n", m_allInstructions[i]->opname,
-				m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount);
+			fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\n", pInst->opname,
+				pInst->compileCount, pInst->runCount);
 		}
 	}
 

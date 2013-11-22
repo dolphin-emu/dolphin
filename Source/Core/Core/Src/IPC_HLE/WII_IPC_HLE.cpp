@@ -83,7 +83,7 @@ static u64 last_reply_time;
 void EnqueReplyCallback(u64 userdata, int)
 {
 	std::lock_guard<std::mutex> lk(s_reply_queue);
-	reply_queue.push_back(userdata);
+	reply_queue.push_back((u32)userdata);
 }
 
 void Init()
@@ -546,7 +546,9 @@ void ExecuteCommand(u32 _Address)
 		const s64 ticks_til_last_reply = last_reply_time - CoreTiming::GetTicks();
 
 		if (ticks_til_last_reply > 0)
-			reply_delay = ticks_til_last_reply;
+		{
+			reply_delay = (int)ticks_til_last_reply;
+		}
 
 		last_reply_time = CoreTiming::GetTicks() + reply_delay;
 

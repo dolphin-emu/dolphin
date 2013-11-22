@@ -84,7 +84,7 @@ void PixelShaderManager::SetConstants(u32 components)
 			// they are the coefficients from the center to the border of the screen
 			// so to simplify I use the hi coefficient as K in the shader taking 256 as the scale
 			constants.fog[2][0] = ScreenSpaceCenter;
-			constants.fog[2][1] = Renderer::EFBToScaledX((int)(2.0f * xfregs.viewport.wd));
+			constants.fog[2][1] = (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.viewport.wd));
 			constants.fog[2][2] = bpmem.fogRange.K[4].HI / 256.0f;
 		}
 		else
@@ -263,8 +263,8 @@ void PixelShaderManager::SetZTextureTypeChanged()
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
 {
 	TCoordInfo& tc = bpmem.texcoords[texmapid];
-        constants.texdims[texmapid][2] = tc.s.scale_minus_1 + 1;
-	constants.texdims[texmapid][3] = tc.t.scale_minus_1 + 1;
+	constants.texdims[texmapid][2] = (float)(tc.s.scale_minus_1 + 1);
+	constants.texdims[texmapid][3] = (float)(tc.t.scale_minus_1 + 1);
 	dirty = true;
 }
 
@@ -283,7 +283,7 @@ void PixelShaderManager::SetFogParamChanged()
 		constants.fog[1][0] = bpmem.fog.a.GetA();
 		constants.fog[1][1] = (float)bpmem.fog.b_magnitude / 0xFFFFFF;
 		constants.fog[1][2] = bpmem.fog.c_proj_fsel.GetC();
-		constants.fog[1][3] = 1 << bpmem.fog.b_shift;
+		constants.fog[1][3] = (float)(1 << bpmem.fog.b_shift);
 	}
 	else
 	{

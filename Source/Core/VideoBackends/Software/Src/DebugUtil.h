@@ -9,7 +9,7 @@ namespace DebugUtil
 {
 	void Init();
 
-	void GetTextureBGRA(u8 *dst, u32 texmap, s32 mip, u32 width, u32 height);
+	void GetTextureRGBA(u8 *dst, u32 texmap, s32 mip, u32 width, u32 height);
 
 	void DumpActiveTextures();
 

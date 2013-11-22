@@ -325,7 +325,7 @@ void ChangeDisc(const char* _newFileName)
 	{
 		Movie::g_bDiscChange = true;
 		std::string fileName = _newFileName;
-		int sizeofpath = fileName.find_last_of("/\\") + 1;
+		auto sizeofpath = fileName.find_last_of("/\\") + 1;
 		if (fileName.substr(sizeofpath).length() > 40)
 		{
 			PanicAlert("Saving iso filename to .dtm failed; max file name length is 40 characters.");

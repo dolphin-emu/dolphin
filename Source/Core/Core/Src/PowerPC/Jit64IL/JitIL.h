@@ -58,14 +58,10 @@ private:
 	JitBlockCache blocks;
 	TrampolineCache trampolines;
 
-	// The default code buffer. We keep it around to not have to alloc/dealloc a
-	// large chunk of memory for each recompiled block.
-	PPCAnalyst::CodeBuffer code_buffer;
-
 public:
 	JitILAsmRoutineManager asm_routines;
 
-	JitIL() : code_buffer(32000) {}
+	JitIL() {}
 	~JitIL() {}
 
 	// Initialization, etc
@@ -139,7 +135,5 @@ public:
 	void DynaRunTable59(UGeckoInstruction _inst) override;
 	void DynaRunTable63(UGeckoInstruction _inst) override;
 };
-
-void Jit(u32 em_address);
 
 #endif  // _JITIL_H

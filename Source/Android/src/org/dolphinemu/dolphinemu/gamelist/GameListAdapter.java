@@ -12,10 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
-
-import java.util.List;
 
 import org.dolphinemu.dolphinemu.R;
 
@@ -28,46 +25,36 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 {
 	private final Context context;
 	private final int id;
-	private final List<GameListItem>items;
 
 	/**
 	 * Constructor
 	 * 
 	 * @param context    The current {@link Context}.
 	 * @param resourceId The resource ID for a layout file containing a layout to use when instantiating views.
-	 * @param objects    The objects to represent in the {@link ListView}.
 	 */
-	public GameListAdapter(Context context, int resourceId, List<GameListItem> objects)
+	public GameListAdapter(Context context, int resourceId)
 	{
-		super(context, resourceId, objects);
+		super(context, resourceId);
 
 		this.context = context;
 		this.id = resourceId;
-		this.items = objects;
-	}
-
-	@Override
-	public GameListItem getItem(int i)
-	{
-		return items.get(i);
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent)
 	{
-		View v = convertView;
-		if (v == null)
+		if (convertView == null)
 		{
 			LayoutInflater vi = LayoutInflater.from(context);
-			v = vi.inflate(id, parent, false);
+			convertView = vi.inflate(id, parent, false);
 		}
 
-		final GameListItem item = items.get(position);
+		final GameListItem item = getItem(position);
 		if (item != null)
 		{
-			TextView title    = (TextView) v.findViewById(R.id.ListItemTitle);
-			TextView subtitle = (TextView) v.findViewById(R.id.ListItemSubTitle);
-			ImageView icon    = (ImageView) v.findViewById(R.id.ListItemIcon);
+			TextView title    = (TextView) convertView.findViewById(R.id.ListItemTitle);
+			TextView subtitle = (TextView) convertView.findViewById(R.id.ListItemSubTitle);
+			ImageView icon    = (ImageView) convertView.findViewById(R.id.ListItemIcon);
 
 			if (title != null)
 				title.setText(item.getName());
@@ -83,7 +70,7 @@ public final class GameListAdapter extends ArrayAdapter<GameListItem>
 			}
 		}
 
-		return v;
+		return convertView;
 	}
 }
 

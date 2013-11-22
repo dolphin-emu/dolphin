@@ -765,7 +765,7 @@ void Wiimote::Update()
 					if (-1 == rptf_size)
 					{
 						std::copy(rpt.begin(), rpt.end(), data);
-						rptf_size = rpt.size();
+						rptf_size = (s8)(rpt.size());
 					}
 				}
 			}

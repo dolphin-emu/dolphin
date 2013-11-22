@@ -18,6 +18,8 @@
 #include "Core.h" // for bWii
 #include "FifoPlayer/FifoDataFile.h"
 
+#include <cinttypes>
+
 SCoreStartupParameter::SCoreStartupParameter()
 : hInstance(0),
   bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false),
@@ -278,7 +280,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				// Use the TitleIDhex for name and/or unique ID if launching from nand folder
 				// or if it is not ascii characters (specifically sysmenu could potentially apply to other things)
 				char titleidstr[17];
-				snprintf(titleidstr, 17, "%016llx", ContentLoader.GetTitleID());
+				snprintf(titleidstr, 17, "%016" PRIx64, ContentLoader.GetTitleID());
 
 				if (!m_strName.length())
 				{

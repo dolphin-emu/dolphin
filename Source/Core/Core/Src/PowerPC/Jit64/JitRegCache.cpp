@@ -166,7 +166,7 @@ int RegCache::SanityCheck() const
 
 void RegCache::DiscardRegContentsIfCached(int preg)
 {
-	if (regs[preg].away && regs[preg].location.IsSimpleReg())
+	if (IsBound(preg))
 	{
 		X64Reg xr = regs[preg].location.GetSimpleReg();
 		xregs[xr].free = true;
@@ -351,11 +351,12 @@ void FPURegCache::StoreFromRegister(int i)
 	{
 		X64Reg xr = regs[i].location.GetSimpleReg();
 		_assert_msg_(DYNA_REC, xr < NUMXREGS, "WTF - store - invalid reg");
+		OpArg newLoc = GetDefaultLocation(i);
+		if (xregs[xr].dirty)
+			emit->MOVAPD(newLoc, xr);
 		xregs[xr].free = true;
 		xregs[xr].dirty = false;
 		xregs[xr].ppcReg = -1;
-		OpArg newLoc = GetDefaultLocation(i);
-		emit->MOVAPD(newLoc, xr);
 		regs[i].location = newLoc;
 		regs[i].away = false;
 	}

@@ -32,7 +32,7 @@
 namespace WiimoteEmu
 {
 
-void Spy(Wiimote* wm_, const void* data_, int size_)
+void Spy(Wiimote* wm_, const void* data_, size_t size_)
 {
 #if 0
 	// enable log
@@ -1275,7 +1275,7 @@ void Wiimote::DoState(PointerWrap& p)
 		else
 		{
 			std::queue<ReadRequest> tmp_queue(m_read_requests);
-			size = m_read_requests.size();
+			size = (u32)(m_read_requests.size());
 			p.Do(size);
 			while (!tmp_queue.empty())
 			{

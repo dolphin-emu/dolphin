@@ -234,7 +234,7 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
 		break;
 	}
 
-	return data - dataStart;
+	return (u32)(data - dataStart);
 }
 
 void FifoPlaybackAnalyzer::StoreEfbCopyRegion()

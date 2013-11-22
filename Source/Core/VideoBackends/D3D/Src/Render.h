@@ -48,10 +48,9 @@ public:
 
 	void UpdateViewport();
 
-	static void TakeScreenshot(const TargetRectangle &rc, std::string filename);
+	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
 
 	static bool CheckForResize();
-
 };
 
 }

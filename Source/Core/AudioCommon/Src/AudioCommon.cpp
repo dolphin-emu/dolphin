@@ -23,7 +23,7 @@ SoundStream *soundStream = nullptr;
 
 namespace AudioCommon 
 {
-	SoundStream *InitSoundStream(CMixer *mixer) 
+	SoundStream *InitSoundStream(CMixer *mixer, void *hWnd)
 	{
 		// TODO: possible memleak with mixer
 
@@ -33,7 +33,7 @@ namespace AudioCommon
 		else if (backend == BACKEND_NULLSOUND   && NullSound::isValid())
 			soundStream = new NullSound(mixer);
 		else if (backend == BACKEND_DIRECTSOUND && DSound::isValid())
-			soundStream = new DSound(mixer);
+			soundStream = new DSound(mixer, hWnd);
 		else if (backend == BACKEND_XAUDIO2)
 		{
 			if (XAudio2::isValid())

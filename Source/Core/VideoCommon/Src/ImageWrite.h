@@ -7,8 +7,8 @@
 
 #include "Common.h"
 
-bool SaveTGA(const char* filename, int width, int height, void* pdata);
 bool SaveData(const char* filename, const char* pdata);
+bool TextureToPng(u8* data, int row_stride, const std::string filename, int width, int height, bool saveAlpha = true);
 
 #endif  // _IMAGEWRITE_H
 

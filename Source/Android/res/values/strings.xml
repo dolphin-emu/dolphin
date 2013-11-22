@@ -11,6 +11,7 @@
     <!-- About Fragment -->
     <string name="build_revision">Build Revision</string>
     <string name="supports_gles3">Supports OpenGL ES 3</string>
+    <string name="supports_neon">Supports NEON</string>
 
     <!-- Folder Browser -->
     <string name="current_dir">Current Dir: %1$s</string>
@@ -25,10 +26,15 @@
     <string name="settings">Settings</string>
     <string name="about">About</string>
 
+    <!-- Game List Activity - Device Compatibility AlertDialog -->
+    <string name="device_compat_warning">Device Compatibility Warning</string>
+    <string name="device_compat_warning_msg">Your phone doesn\'t support NEON which makes it incapable of running Dolphin Mobile?\nDo you want to try anyway?</string>
+
     <!-- Game List Fragment -->
     <string name="file_clicked">File clicked: %1$s</string>
 
     <!-- Emulation Overlay -->
+    <string name="overlay_screenshot">Take Screenshot</string>
     <string name="overlay_savestate">Save State</string>
     <string name="overlay_loadstate">Load State</string>
     <string name="overlay_exit_emulation">Exit</string>

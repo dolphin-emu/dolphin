@@ -86,7 +86,7 @@ bool FifoDataFile::Save(const char *filename)
 	header.xfRegsSize = XF_REGS_SIZE;
 
 	header.frameListOffset = frameListOffset;
-	header.frameCount = m_Frames.size();
+	header.frameCount = (u32)m_Frames.size();
 
 	header.flags = m_Flags;
 
@@ -111,7 +111,7 @@ bool FifoDataFile::Save(const char *filename)
 		dstFrame.fifoStart = srcFrame.fifoStart;
 		dstFrame.fifoEnd = srcFrame.fifoEnd;
 		dstFrame.memoryUpdatesOffset = memoryUpdatesOffset;
-		dstFrame.numMemoryUpdates = srcFrame.memoryUpdates.size();
+		dstFrame.numMemoryUpdates = (u32)srcFrame.memoryUpdates.size();
 
 		// Write frame info
 		u64 frameOffset = frameListOffset + (i * sizeof(FileFrameInfo));

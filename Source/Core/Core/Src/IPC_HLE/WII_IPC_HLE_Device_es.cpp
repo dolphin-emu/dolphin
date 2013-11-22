@@ -35,6 +35,10 @@
 
 #include "WII_IPC_HLE_Device_es.h"
 
+// need to include this before polarssl/aes.h,
+// otherwise we may not get __STDC_FORMAT_MACROS
+#include <cinttypes>
+
 #include "../PowerPC/PowerPC.h"
 #include "../VolumeHandler.h"
 #include "FileUtil.h"
@@ -129,7 +133,7 @@ void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
 	p.Do(m_AccessIdentID);
 	p.Do(m_TitleIDs);
 
-	u32 Count = m_ContentAccessMap.size();
+	u32 Count = (u32)(m_ContentAccessMap.size());
 	p.Do(Count);
 
 	u32 CFD, Position;
@@ -205,7 +209,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 
 	if (!Loader.IsValid())
 	{
-		WARN_LOG(WII_IPC_ES, "ES: loader not valid for %llx", TitleID);
+		WARN_LOG(WII_IPC_ES, "ES: loader not valid for %" PRIx64, TitleID);
 		return 0xffffffff;
 	}
 
@@ -940,7 +944,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			if (!bSuccess)
 			{
 				PanicAlertT("IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your NAND dump\n"
-					"TitleID %016llx.\n Dolphin will likely hang now.", TitleID);
+					"TitleID %016" PRIx64".\n Dolphin will likely hang now.", TitleID);
 			}
 			else
 			{
@@ -983,7 +987,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			//TODO: provide correct return code when bSuccess= false
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 
-			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016llx %08x %016llx %08x %016llx %04x", TitleID,view,ticketid,devicetype,titleid,access);
+			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x", TitleID,view,ticketid,devicetype,titleid,access);
 			//					   IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000 0001000248414341 ffff
 
 			// This is necessary because Reset(true) above deleted this object.  Ew.

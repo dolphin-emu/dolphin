@@ -193,10 +193,12 @@ public:
 	void DoPointer(T*& x, T* const base)
 	{
 		// pointers can be more than 2^31 apart, but you're using this function wrong if you need that much range
-		s32 offset = x - base;
+		ptrdiff_t offset = x - base;
 		Do(offset);
 		if (mode == MODE_READ)
+		{
 			x = base + offset;
+		}
 	}
 
 	// Let's pretend std::list doesn't exist!

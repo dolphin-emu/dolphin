@@ -9,8 +9,12 @@
 #include <vector>
 #include <cmath>
 #include <cstdio>
+#include <cinttypes>
 
 #include "GLUtil.h"
+#if defined(HAVE_WX) && HAVE_WX
+#include "WxUtils.h"
+#endif
 
 #include "FileUtil.h"
 
@@ -22,6 +26,7 @@
 #include "DriverDetails.h"
 #include "VideoConfig.h"
 #include "Statistics.h"
+#include "ImageWrite.h"
 #include "PixelEngine.h"
 #include "Render.h"
 #include "BPStructs.h"
@@ -69,7 +74,6 @@ void VideoConfig::UpdateProjectionHack()
 	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
-
 int OSDInternalW, OSDInternalH;
 
 namespace OGL
@@ -107,6 +111,10 @@ static int s_LastMultisampleMode = 0;
 static u32 s_blendMode;
 
 static bool s_vsync;
+
+#if defined(HAVE_WX) && HAVE_WX
+static std::thread scrshotThread;
+#endif
 
 // EFB cache related
 static const u32 EFB_CACHE_RECT_SIZE = 64; // Cache 64x64 blocks.
@@ -461,19 +469,23 @@ Renderer::Renderer()
 
 	}
 
-	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
-	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
-	g_Config.backend_info.bSupportsPrimitiveRestart = GLEW_VERSION_3_1 || GLEW_NV_primitive_restart;
-	g_Config.backend_info.bSupportsEarlyZ = GLEW_ARB_shader_image_load_store;
+#define TO_BOOL(c) (0 != (c))
 
-	g_ogl_config.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
-	g_ogl_config.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
-	g_ogl_config.bSupportsGLSync = GLEW_ARB_sync;
-	g_ogl_config.bSupportsGLBaseVertex = GLEW_ARB_draw_elements_base_vertex;
-	g_ogl_config.bSupportCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
-	g_ogl_config.bSupportSampleShading = GLEW_ARB_sample_shading;
-	g_ogl_config.bSupportOGL31 = GLEW_VERSION_3_1;
-	g_ogl_config.bSupportViewportFloat = GLEW_ARB_viewport_array;
+	g_Config.backend_info.bSupportsDualSourceBlend = TO_BOOL(GLEW_ARB_blend_func_extended);
+	g_Config.backend_info.bSupportsGLSLUBO = TO_BOOL(GLEW_ARB_uniform_buffer_object);
+	g_Config.backend_info.bSupportsPrimitiveRestart = TO_BOOL(GLEW_VERSION_3_1) || TO_BOOL(GLEW_NV_primitive_restart);
+	g_Config.backend_info.bSupportsEarlyZ = TO_BOOL(GLEW_ARB_shader_image_load_store);
+
+	g_ogl_config.bSupportsGLSLCache = TO_BOOL(GLEW_ARB_get_program_binary);
+	g_ogl_config.bSupportsGLPinnedMemory = TO_BOOL(GLEW_AMD_pinned_memory);
+	g_ogl_config.bSupportsGLSync = TO_BOOL(GLEW_ARB_sync);
+	g_ogl_config.bSupportsGLBaseVertex = TO_BOOL(GLEW_ARB_draw_elements_base_vertex);
+	g_ogl_config.bSupportCoverageMSAA = TO_BOOL(GLEW_NV_framebuffer_multisample_coverage);
+	g_ogl_config.bSupportSampleShading = TO_BOOL(GLEW_ARB_sample_shading);
+	g_ogl_config.bSupportOGL31 = TO_BOOL(GLEW_VERSION_3_1);
+	g_ogl_config.bSupportViewportFloat = TO_BOOL(GLEW_ARB_viewport_array);
+
+#undef TO_BOOL
 
 	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
 	{
@@ -616,6 +628,11 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
+
+#if defined(HAVE_WX) && HAVE_WX
+	if (scrshotThread.joinable())
+		scrshotThread.join();
+#endif
 }
 
 void Renderer::Shutdown()
@@ -681,7 +698,7 @@ void Renderer::DrawDebugInfo()
 		p+=sprintf(p, "FPS: %d\n", s_fps);
 
 	if (SConfig::GetInstance().m_ShowLag)
-		p+=sprintf(p, "Lag: %llu\n", Movie::g_currentLagCount);
+		p+=sprintf(p, "Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
 
 	if (g_ActiveConfig.bShowInputDisplay)
 		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
@@ -1391,9 +1408,11 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// Save screenshot
 	if (s_bScreenshot)
 	{
-		TakeScreenshot(flipped_trc, s_sScreenshotName);
-		s_bScreenshot = false;
+		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+		SaveScreenshot(s_sScreenshotName, flipped_trc);
 		// Reset settings
+		s_sScreenshotName.clear();
+		s_bScreenshot = false;
 	}
 
 	// Frame dumps are handled a little differently in Windows
@@ -1608,7 +1627,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();
-	// SaveTexture("tex.tga", GL_TEXTURE_2D, s_FakeZTarget,
+	// SaveTexture("tex.png", GL_TEXTURE_2D, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
@@ -1769,44 +1788,48 @@ void Renderer::SetInterlacingMode()
 	// TODO
 }
 
-void Renderer::FlipImageData(u8 *data, int w, int h)
+void Renderer::FlipImageData(u8 *data, int w, int h, int pixel_width)
 {
-	// XXX make this faster
-	u8* __restrict top = data;
-	u8* bot = data + w * h * 3;
-	for (int y = 0; y < h / 2; y++)
+	// Flip image upside down. Damn OpenGL.
+	for (int y = 0; y < h / 2; ++y)
 	{
-		size_t stride = w * 3;
-		bot -= stride;
-		u8* __restrict brow = bot;
-		for(size_t x = 0; x < stride; x++)
+		for(int x = 0; x < w; ++x)
 		{
-			std::swap(*top++, *brow++);
+			for (auto delta = 0; delta < pixel_width; ++delta)
+				std::swap(data[(y * w + x) * pixel_width + delta], data[((h - 1 - y) * w + x) * pixel_width + delta]);
 		}
 	}
 }
 
-void Renderer::TakeScreenshot(const TargetRectangle &back_rc, std::string filename)
+}
+
+namespace OGL
+{
+
+bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle &back_rc)
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
-	u8 *data = (u8 *)malloc((sizeof(u8) * 3 * W * H));
+	u8 *data = new u8[W * 4 * H];
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 	// Show failure message
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 	{
-		free(data);
+		delete[] data;
 		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
-		return;
+		return false;
 	}
 
 	// Turn image upside down
-	FlipImageData(data, W, H);
+	FlipImageData(data, W, H, 4);
+	bool success = TextureToPng(data, W*4, filename, W, H, false);
+	delete[] data;
 
-	SaveScreenshot(data, W, H, filename);
+	return success;
+
 }
 
 }

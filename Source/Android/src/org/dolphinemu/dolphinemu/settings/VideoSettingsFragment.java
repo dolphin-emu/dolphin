@@ -28,6 +28,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	public static String m_GLVendor;
 	public static String m_GLRenderer;
 	public static String m_GLExtensions;
+	public static float m_QualcommVersion;
 	private Activity m_activity;
 
 	/**
@@ -165,7 +166,6 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			{
 				int mVStart = m_GLVersion.indexOf("V@") + 2;
 				int mVEnd = 0;
-				float mVersion;
 
 				for (int a = mVStart; a < m_GLVersion.length(); ++a)
 				{
@@ -176,9 +176,9 @@ public final class VideoSettingsFragment extends PreferenceFragment
 					}
 				}
 
-				mVersion = Float.parseFloat(m_GLVersion.substring(mVStart, mVEnd));
+				m_QualcommVersion = Float.parseFloat(m_GLVersion.substring(mVStart, mVEnd));
 
-				if (mVersion >= 14.0f)
+				if (m_QualcommVersion  >= 14.0f)
 					mSupportsGLES3 = true;
 			}
 		}

@@ -338,6 +338,15 @@ struct LiteralPool
 };
 
 typedef const u8* JumpTarget;
+// XXX: Stop polluting the global namespace
+const u32 I_8 = (1 << 0);
+const u32 I_16 = (1 << 1);
+const u32 I_32 = (1 << 2);
+const u32 I_64 = (1 << 3);
+const u32 I_SIGNED = (1 << 4);
+const u32 I_UNSIGNED = (1 << 5);
+const u32 F_32 = (1 << 6);
+const u32 I_POLYNOMIAL = (1 << 7); // Only used in VMUL/VMULL
 
 u32 EncodeVd(ARMReg Vd);
 u32 EncodeVn(ARMReg Vn);
@@ -572,17 +581,6 @@ public:
 
 };  // class ARMXEmitter
 
-enum NEONElementType
-{
-	I_8 = (1 << 0),
-	I_16 = (1 << 1),
-	I_32 = (1 << 2),
-	I_64 = (1 << 3),
-	I_SIGNED = (1 << 4),
-	I_UNSIGNED = (1 << 5),
-	F_32 = (1 << 6)
-};
-
 enum NEONAlignment
 {
 	ALIGN_NONE = 0,
@@ -613,71 +611,105 @@ private:
 		return 0;
 	}
 
-	void VREVX(u32 size, NEONElementType Size, ARMReg Vd, ARMReg Vm);
+	void VREVX(u32 size, u32 Size, ARMReg Vd, ARMReg Vm);
 
-public:
+public:		
 	NEONXEmitter(ARMXEmitter *emit)
 		: _emit(emit)
 	{}
 
-	void VABA(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VABAL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VABD(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VABDL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VABS(NEONElementType Size, ARMReg Vd, ARMReg Vm);
+	void VABA(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VABAL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VABD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VABDL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VABS(u32 Size, ARMReg Vd, ARMReg Vm);
 	void VACGE(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VACGT(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VACLE(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VACLT(ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VADD(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VADDHN(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VADDL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VADDW(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VADD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VADDHN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VADDL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VADDW(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VAND(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VBIC(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VBIF(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VBIT(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VBSL(ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VCEQ(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VCEQ(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-	void VCGE(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VCGE(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-	void VCGT(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VCGT(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-	void VCLE(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VCLE(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-	void VCLS(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-	void VCLT(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VCLT(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-	void VCLZ(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-	void VCNT(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-	void VDUP(NEONElementType Size, ARMReg Vd, ARMReg Vm, u8 index);
-	void VDUP(NEONElementType Size, ARMReg Vd, ARMReg Rt);
+	void VCEQ(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCEQ(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCGE(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCGE(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCGT(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCGT(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCLE(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCLE(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCLS(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCLT(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCLT(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCLZ(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCNT(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VDUP(u32 Size, ARMReg Vd, ARMReg Vm, u8 index);
+	void VDUP(u32 Size, ARMReg Vd, ARMReg Rt);
 	void VEOR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VEXT(ARMReg Vd, ARMReg Vn, ARMReg Vm, u8 index);
 	void VFMA(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VFMS(ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VHADD(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VHSUB(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VMAX(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VMIN(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VMLA(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VMLS(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VMLAL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VMLSL(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VSUB(NEONElementType Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VREV64(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-	void VREV32(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-	void VREV16(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-
-	void VRSQRTE(NEONElementType Size, ARMReg Vd, ARMReg Vm);
-
+	void VHADD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VHSUB(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMAX(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMIN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMLA(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMLS(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMLAL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMLSL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMUL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMULL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VNEG(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VORN(ARMReg Vd, ARMReg Vn, ARMReg Vm);
 	void VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VPADAL(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VPADD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VPADDL(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VPMAX(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VPMIN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQABS(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VQADD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQDMLAL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQDMLSL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQDMULH(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQDMULL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQNEG(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VQRDMULH(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQRSHL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQSHL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQSUB(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRADDHN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRECPE(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VRECPS(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRHADD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRSHL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRSQRTE(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VRSQRTS(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRSUBHN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSHL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSUB(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSUBHN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSUBL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSUBW(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSWP(ARMReg Vd, ARMReg Vm);
+	void VTRN(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VTST(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VUZP(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VZIP(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VREV64(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VREV32(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VREV16(u32 Size, ARMReg Vd, ARMReg Vm);
 
-	void VLD1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
-	void VLD2(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
+	void VLD1(u32 Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
+	void VLD2(u32 Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
 
-	void VST1(NEONElementType Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
+	void VST1(u32 Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
 };
 
 // Everything that needs to generate X86 code should inherit from this.
