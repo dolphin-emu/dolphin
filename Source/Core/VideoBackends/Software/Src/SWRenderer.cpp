@@ -20,7 +20,7 @@ static GLint attr_pos = -1, attr_tex = -1;
 static GLint uni_tex = -1;
 static GLuint program;
 
-static u8 s_xfbColorTexture[2][EFB_WIDTH*EFB_HEIGHT*4];
+static u8 s_xfbColorTexture[2][640*568*4];
 static int s_currentColorTexture = 0;
 
 static volatile bool s_bScreenshot;
@@ -154,6 +154,11 @@ void SWRenderer::swapColorTexture() {
 
 void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight)
 {
+	if(fbWidth*fbHeight > 640*568) {
+		ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
+		return;
+	}
+
 	u32 offset = 0;
 	u8 *TexturePointer = getColorTexture();
 
