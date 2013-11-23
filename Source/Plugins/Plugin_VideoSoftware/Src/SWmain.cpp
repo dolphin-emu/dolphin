@@ -225,19 +225,21 @@ void VideoSoftware::Video_EndField()
 		return;
 	}
 	if (!g_SWVideoConfig.bHwRasterizer) {
+		u32 xfbAddr = s_beginFieldArgs.xfbAddr;
+		if (s_beginFieldArgs.field != FIELD_PROGRESSIVE) {
+			// Force Progressive
+			xfbAddr = VideoInterface::GetXFBAddressTop();
 
-		// Force Progressive
-		u32 xfbAddr = VideoInterface::GetXFBAddressTop();
-
-		// All drivers make an assumption that the two fields are interleaved in the framebuffer
-		// Give a warning if this isn't true.
-		if (xfbAddr + 1280 != VideoInterface::GetXFBAddressBottom()) {
-			WARN_LOG(VIDEO, "Feilds are not interleaved in XFB as expected.");
+			// All drivers make an assumption that the two fields are interleaved in the framebuffer
+			// Give a warning if this isn't true.
+			if (xfbAddr + 1280 != VideoInterface::GetXFBAddressBottom()) {
+				WARN_LOG(VIDEO, "Feilds are not interleaved in XFB as expected.");
+			}
 		}
 
 		EfbInterface::yuv422_packed *xfb = (EfbInterface::yuv422_packed *) Memory::GetPointer(xfbAddr);
 
-		SWRenderer::UpdateColorTexture(xfb);
+		SWRenderer::UpdateColorTexture(xfb, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 	}
 
 	// Idealy we would just move all the opengl contex stuff to the CPU thread, but this gets

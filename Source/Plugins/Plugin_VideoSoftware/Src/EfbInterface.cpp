@@ -511,7 +511,7 @@ namespace EfbInterface
 		}
 
 		// Scanline buffer, leave room for borders
-		yuv444 scanline[640+2];
+		yuv444 scanline[fbWidth+2];
 
 		// our internal yuv444 type is not normalized, so black is {0, 0, 0} instead of {16, 128, 128}
 		yuv444 black;
@@ -535,17 +535,17 @@ namespace EfbInterface
 			for (int i = 1, x = left; x < right; i+=2, x+=2)
 			{
 				// YU pixel
-				xfb_in_ram[x].Y = scanline[i].Y;
+				xfb_in_ram[x].Y = scanline[i].Y + 16;
 				// we mix our color difrences in 10 bit space so it will round more accurately
 				// U[i] = 1/4 * U[i-1] + 1/2 * U[i] + 1/4 * U[i+1]
 				xfb_in_ram[x].UV = 128 + ((scanline[i-1].U + (scanline[i].U << 1) + scanline[i+1].U) >> 2);
 
 				// YV pixel
-				xfb_in_ram[x+1].Y = scanline[i+1].Y;
+				xfb_in_ram[x+1].Y = scanline[i+1].Y + 16;
 				// V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 * V[i+1]
 				xfb_in_ram[x+1].UV = 128 + ((scanline[i].V + (scanline[i+1].V << 1) + scanline[i+2].V) >> 2);
 			}
-			xfb_in_ram += 640;
+			xfb_in_ram += fbWidth;
 		}
 	}
 

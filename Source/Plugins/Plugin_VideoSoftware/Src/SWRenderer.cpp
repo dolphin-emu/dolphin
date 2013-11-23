@@ -172,14 +172,14 @@ void DrawButton(GLuint tex, float *coords)
 }
 #endif
 
-void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb)
+void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight)
 {
 	u32 offset = 0;
 	u8 *TexturePointer = s_xfbColorTexture[!s_currentColorTexture];
 
-	for (u16 y = 0; y < EFB_HEIGHT; y++)
+	for (u16 y = 0; y < fbHeight; y++)
 	{
-		for (u16 x = 0; x < EFB_WIDTH; x+=2)
+		for (u16 x = 0; x < fbWidth; x+=2)
 		{
 			// We do this one color sample (aka 2 RGB pixles) at a time
 			int Y1 = xfb[x].Y - 16;
@@ -199,7 +199,7 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb)
 			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y2 + 2.017f * U             ));
 			TexturePointer[offset++] = 255;
 		}
-		xfb += EFB_WIDTH;
+		xfb += fbWidth;
 	}
 	s_currentColorTexture = !s_currentColorTexture;
 }
