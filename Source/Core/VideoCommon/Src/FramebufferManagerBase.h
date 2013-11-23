@@ -15,9 +15,8 @@ struct XFBSourceBase
 {
 	virtual ~XFBSourceBase() {}
 
-	// TODO: only DX9 uses the width/height params
 	virtual void Draw(const MathUtil::Rectangle<float> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc, int width, int height) const = 0;
+		const MathUtil::Rectangle<float> &drawrc) const = 0;
 
 	virtual void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) = 0;
 

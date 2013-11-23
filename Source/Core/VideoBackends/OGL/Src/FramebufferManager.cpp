@@ -433,7 +433,7 @@ XFBSource::~XFBSource()
 
 
 void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
-		const MathUtil::Rectangle<float> &drawrc, int width, int height) const
+		const MathUtil::Rectangle<float> &drawrc) const
 {
 	// Texture map xfbSource->texture onto the main buffer
 	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);

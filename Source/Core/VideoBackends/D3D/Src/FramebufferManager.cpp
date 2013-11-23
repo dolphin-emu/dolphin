@@ -180,7 +180,7 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 }
 
 void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
-	const MathUtil::Rectangle<float> &drawrc, int width, int height) const
+	const MathUtil::Rectangle<float> &drawrc) const
 {
 	D3D::drawShadedTexSubQuad(tex->GetSRV(), &sourcerc,
 		texWidth, texHeight, &drawrc, PixelShaderCache::GetColorCopyProgram(false),

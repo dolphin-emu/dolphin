@@ -1379,7 +1379,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 			sourceRc.top = xfbSource->sourceRc.top;
 			sourceRc.bottom = xfbSource->sourceRc.bottom;
 
-			xfbSource->Draw(sourceRc, drawRc, 0, 0);
+			xfbSource->Draw(sourceRc, drawRc);
 		}
 	}
 	else

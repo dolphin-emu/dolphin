@@ -832,7 +832,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 				//drawRc.right *= hScale;
 			}
 
-			xfbSource->Draw(sourceRc, drawRc, 0, 0);
+			xfbSource->Draw(sourceRc, drawRc);
 		}
 	}
 	else
