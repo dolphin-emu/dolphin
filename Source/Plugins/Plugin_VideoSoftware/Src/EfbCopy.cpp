@@ -39,9 +39,9 @@ namespace EfbCopy
 				EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma);
 
 			} else {
-				s8 *colorTexture = SWRenderer::getColorTexture(); // Ask SWRenderer for the next colour texture
+				u8 *colorTexture = SWRenderer::getColorTexture(); // Ask SWRenderer for the next color texture
 
-				EfbInterface::BypassXFB(colourTexture, fbWidth, fbHeight, sourceRc, Gamma);
+				EfbInterface::BypassXFB(colorTexture, fbWidth, fbHeight, sourceRc, Gamma);
 
 				SWRenderer::swapColorTexture(); // Tell SWRenderer we are now finished with it.
 			}
