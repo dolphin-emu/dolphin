@@ -20,7 +20,7 @@ static GLint attr_pos = -1, attr_tex = -1;
 static GLint uni_tex = -1;
 static GLuint program;
 
-static u8 s_xfbColorTexture[2][640*568*4];
+static u8 *s_xfbColorTexture[2];
 static int s_currentColorTexture = 0;
 
 static volatile bool s_bScreenshot;
@@ -41,6 +41,8 @@ void SWRenderer::Init()
 
 void SWRenderer::Shutdown()
 {
+	delete s_xfbColorTexture[0];
+	delete s_xfbColorTexture[1];
 	glDeleteProgram(program);
 	glDeleteTextures(1, &s_RenderTarget);
 #ifndef USE_GLES
@@ -79,7 +81,9 @@ void CreateShaders()
 
 void SWRenderer::Prepare()
 {
-	memset(s_xfbColorTexture, 0, sizeof(s_xfbColorTexture));
+	s_xfbColorTexture[0] = new u8[640*568*4];
+	s_xfbColorTexture[1] = new u8[640*568*4];
+
 	s_currentColorTexture = 0;
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
