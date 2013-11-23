@@ -285,9 +285,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	DeclareUniform(out, ApiType, C_COLORS, "int4", I_COLORS"[4]");
 	DeclareUniform(out, ApiType, C_KCOLORS, "int4", I_KCOLORS"[4]");
-	DeclareUniform(out, ApiType, C_ALPHA, "int4", I_ALPHA"[1]");  // TODO: Why is this an array...-.-
+	DeclareUniform(out, ApiType, C_ALPHA, "int4", I_ALPHA);
 	DeclareUniform(out, ApiType, C_TEXDIMS, "float4", I_TEXDIMS"[8]");
-	DeclareUniform(out, ApiType, C_ZBIAS, "float4", I_ZBIAS"[2]");
+	DeclareUniform(out, ApiType, C_ZBIAS, "int4", I_ZBIAS"[2]");
 	DeclareUniform(out, ApiType, C_INDTEXSCALE, "float4", I_INDTEXSCALE"[2]");
 	DeclareUniform(out, ApiType, C_INDTEXMTX, "int4", I_INDTEXMTX"[6]");
 	DeclareUniform(out, ApiType, C_FOGCOLOR, "int4", I_FOGCOLOR);
@@ -534,12 +534,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// The performance impact of this additional calculation doesn't matter, but it prevents
 	// the host GPU driver from performing any early depth test optimizations.
 	if (g_ActiveConfig.bFastDepthCalc)
-		out.Write("float zCoord = rawpos.z;\n");
+		out.Write("int zCoord = int(round(rawpos.z * 16777215.0));\n");
 	else
 	{
 		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
 		// the screen space depth value = far z + (clip z / clip w) * z range
-		out.Write("float zCoord = " I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * " I_ZBIAS"[1].y;\n");
+		out.Write("int zCoord = " I_ZBIAS"[1].x + int(round((clipPos.z / clipPos.w) * float(" I_ZBIAS"[1].y)));\n");
 	}
 
 	// depth texture can safely be ignored if the result won't be written to the depth buffer (early_ztest) and isn't used for fog either
@@ -554,7 +554,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	// Note: z-textures are not written to depth buffer if early depth test is used
 	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
-		out.Write("depth = zCoord;\n");
+		out.Write("depth = float(zCoord) / 16777215.0;\n");
 
 	// Note: depth texture output is only written to depth buffer if late depth test is used
 	// theoretical final depth value is used for fog calculation, though, so we have to emulate ztextures anyway
@@ -562,17 +562,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	{
 		// use the texture input of the last texture stage (itextemp), hopefully this has been read and is in correct format...
 		out.SetConstantsUsed(C_ZBIAS, C_ZBIAS+1);
-		out.Write("zCoord = dot(" I_ZBIAS"[0].xyzw, float4(itextemp.xyzw)/255.0) + " I_ZBIAS"[1].w %s;\n",
+		out.Write("zCoord = idot(" I_ZBIAS"[0].xyzw, itextemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
 									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
-
-		// U24 overflow emulation
-		out.Write("zCoord = zCoord * (16777215.0/16777216.0);\n");
-		out.Write("zCoord = zCoord - 2.0*round(0.5*zCoord);\n");
-		out.Write("zCoord = zCoord * (16777216.0/16777215.0);\n");
+		out.Write("zCoord = zCoord & 16777215;\n");
 	}
 
 	if (per_pixel_depth && bpmem.UseLateDepthTest())
-		out.Write("depth = zCoord;\n");
+		out.Write("depth = float(zCoord) / 16777215.0;\n");
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 	{
@@ -1058,13 +1054,13 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	{
 		// perspective
 		// ze = A/(B - (Zs >> B_SHF)
-		out.Write("\tfloat ze = " I_FOG"[0].x / (" I_FOG"[0].y - (zCoord / " I_FOG"[0].w));\n");
+		out.Write("\tfloat ze = " I_FOG"[0].x / (" I_FOG"[0].y - (float(zCoord) / 16777215.0 / " I_FOG"[0].w));\n");
 	}
 	else
 	{
 		// orthographic
 		// ze = a*Zs    (here, no B_SHF)
-		out.Write("\tfloat ze = " I_FOG"[0].x * zCoord;\n");
+		out.Write("\tfloat ze = " I_FOG"[0].x * float(zCoord) / 16777215.0;\n");
 	}
 
 	// x_adjust = sqrt((x-center)^2 + k^2)/k

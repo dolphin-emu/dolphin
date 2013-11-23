@@ -15,7 +15,7 @@ struct PixelShaderConstants
 	int4 kcolors[4];
 	int4 alpha;
 	float4 texdims[8];
-	float4 zbias[2];
+	int4 zbias[2];
 	float4 indtexscale[2];
 	int4 indtexmtx[6];
 	int4 fogcolor;
