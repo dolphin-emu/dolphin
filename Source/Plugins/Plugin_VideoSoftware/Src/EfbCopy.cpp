@@ -28,12 +28,23 @@ namespace EfbCopy
 	void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 	{
 		if (!g_SWVideoConfig.bHwRasterizer)
+
 		{
 			INFO_LOG(VIDEO, "xfbaddr: %x, fbwidth: %i, fbheight: %i, source: (%i, %i, %i, %i), Gamma %f",
 					 xfbAddr, fbWidth, fbHeight, sourceRc.top, sourceRc.left, sourceRc.bottom, sourceRc.right, Gamma);
-			EfbInterface::yuv422_packed* xfb_in_ram = (EfbInterface::yuv422_packed *) Memory::GetPointer(xfbAddr);
 
-			EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma);
+			if(!g_SWVideoConfig.bBypassXFB) {
+				EfbInterface::yuv422_packed* xfb_in_ram = (EfbInterface::yuv422_packed *) Memory::GetPointer(xfbAddr);
+
+				EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma);
+
+			} else {
+				s8 *colorTexture = SWRenderer::getColorTexture(); // Ask SWRenderer for the next colour texture
+
+				EfbInterface::BypassXFB(colourTexture, fbWidth, fbHeight, sourceRc, Gamma);
+
+				SWRenderer::swapColorTexture(); // Tell SWRenderer we are now finished with it.
+			}
 		}
 	}
 

@@ -549,6 +549,26 @@ namespace EfbInterface
 		}
 	}
 
+	// Like CopyToXFB, but we copy directly into the opengl colour texture without going via Gamecube main memory or doing a yuyv conversion
+	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma) {
+		u32 color;
+		u8* colorPtr = (u8*)&color;
+		u32* texturePtr = (u32*)texture;
+		u32 textureAddress = 0;
+
+		int left = sourceRc.left;
+		int right = sourceRc.right;
+
+		for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
+		{
+			for (u16 x = left; x < right; x++)
+			{
+				GetColor(x, y, colorPtr);
+				texturePtr[textureAddress++] = Common::swap32(color);
+			}
+		}
+	}
+
 	bool ZCompare(u16 x, u16 y, u32 z)
 	{
 		u32 offset = GetDepthOffset(x, y);

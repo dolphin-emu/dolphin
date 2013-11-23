@@ -172,10 +172,18 @@ void DrawButton(GLuint tex, float *coords)
 }
 #endif
 
+u8* SWRenderer::getColorTexture() {
+	return s_xfbColorTexture[!s_currentColorTexture];
+}
+
+void SWRenderer::swapColorTexture() {
+	s_currentColorTexture = !s_currentColorTexture;
+}
+
 void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight)
 {
 	u32 offset = 0;
-	u8 *TexturePointer = s_xfbColorTexture[!s_currentColorTexture];
+	u8 *TexturePointer = getColorTexture();
 
 	for (u16 y = 0; y < fbHeight; y++)
 	{
@@ -201,7 +209,7 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 		}
 		xfb += fbWidth;
 	}
-	s_currentColorTexture = !s_currentColorTexture;
+	swapColorTexture();
 }
 
 // Called on the GPU thread

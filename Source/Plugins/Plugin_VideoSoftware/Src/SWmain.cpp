@@ -237,9 +237,11 @@ void VideoSoftware::Video_EndField()
 			}
 		}
 
-		EfbInterface::yuv422_packed *xfb = (EfbInterface::yuv422_packed *) Memory::GetPointer(xfbAddr);
+		if(!g_SWVideoConfig.bBypassXFB) {
+			EfbInterface::yuv422_packed *xfb = (EfbInterface::yuv422_packed *) Memory::GetPointer(xfbAddr);
 
-		SWRenderer::UpdateColorTexture(xfb, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+			SWRenderer::UpdateColorTexture(xfb, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+		}
 	}
 
 	// Idealy we would just move all the opengl contex stuff to the CPU thread, but this gets
