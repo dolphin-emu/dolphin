@@ -511,7 +511,7 @@ namespace EfbInterface
 		}
 
 		// Scanline buffer, leave room for borders
-		yuv444 scanline[fbWidth+2];
+		yuv444 scanline[EFB_WIDTH+2];
 
 		// our internal yuv444 type is not normalized, so black is {0, 0, 0} instead of {16, 128, 128}
 		yuv444 black;
