@@ -55,7 +55,7 @@ struct SCPFifoStruct
 	volatile u32 bFF_Breakpoint;
 
 	volatile u32 CPCmdIdle;
-	volatile u32 CPReadIdle;        
+	volatile u32 CPReadIdle;
 
 	volatile u32 bFF_LoWatermarkInt;
 	volatile u32 bFF_HiWatermarkInt;
@@ -93,7 +93,7 @@ public:
 	virtual void Video_ExitLoop() = 0;
 	virtual void Video_Cleanup() = 0; // called from gl/d3d thread
 
-	virtual void Video_BeginField(u32, FieldType, u32, u32) = 0;
+	virtual void Video_BeginField(u32, u32, u32) = 0;
 	virtual void Video_EndField() = 0;
 
 	virtual u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) = 0;
@@ -128,14 +128,14 @@ public:
 
 	// the implementation needs not do synchronization logic, because calls to it are surrounded by PauseAndLock now
 	virtual void DoState(PointerWrap &p) = 0;
-	
+
 	virtual void CheckInvalidState() = 0;
 };
 
 extern std::vector<VideoBackend*> g_available_video_backends;
 extern VideoBackend* g_video_backend;
 
-// inherited by dx9/dx11/ogl backends
+// inherited by D3D/OGL backends
 class VideoBackendHardware : public VideoBackend
 {
 	void RunLoop(bool enable);
@@ -145,12 +145,12 @@ class VideoBackendHardware : public VideoBackend
 
 	void Video_EnterLoop();
 	void Video_ExitLoop();
-	void Video_BeginField(u32, FieldType, u32, u32);
+	void Video_BeginField(u32, u32, u32);
 	void Video_EndField();
 
 	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
 	u32 Video_GetQueryResult(PerfQueryType type);
-	
+
 	void Video_AddMessage(const char* pstr, unsigned int milliseconds);
 	void Video_ClearMessages();
 	bool Video_Screenshot(const char* filename);
@@ -171,9 +171,9 @@ class VideoBackendHardware : public VideoBackend
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 	void DoState(PointerWrap &p);
-	
+
 	bool m_invalid;
-	
+
 public:
 	 void CheckInvalidState();
 

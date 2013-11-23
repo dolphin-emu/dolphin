@@ -2,7 +2,6 @@
 // Name:        src/gtk/radiobox.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobox.cpp 67331 2011-03-29 05:15:54Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +17,9 @@
     #include "wx/tooltip.h"
 #endif
 
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
+#include "wx/gtk/private/gtk2-compat.h"
 
 #include <gdk/gdkkeysyms.h>
 #if GTK_CHECK_VERSION(3,0,0)
@@ -56,12 +57,11 @@ extern bool          g_blockEventsOnDrag;
 extern "C" {
 static void gtk_radiobutton_clicked_callback( GtkToggleButton *button, wxRadioBox *rb )
 {
-    if (!rb->m_hasVMT) return;
     if (g_blockEventsOnDrag) return;
 
     if (!gtk_toggle_button_get_active(button)) return;
 
-    wxCommandEvent event( wxEVT_COMMAND_RADIOBOX_SELECTED, rb->GetId() );
+    wxCommandEvent event( wxEVT_RADIOBOX, rb->GetId() );
     event.SetInt( rb->GetSelection() );
     event.SetString( rb->GetStringSelection() );
     event.SetEventObject( rb );
@@ -76,7 +76,6 @@ static void gtk_radiobutton_clicked_callback( GtkToggleButton *button, wxRadioBo
 extern "C" {
 static gint gtk_radiobox_keypress_callback( GtkWidget *widget, GdkEventKey *gdk_event, wxRadioBox *rb )
 {
-    if (!rb->m_hasVMT) return FALSE;
     if (g_blockEventsOnDrag) return FALSE;
 
     if ( ((gdk_event->keyval == GDK_Tab) ||
@@ -88,7 +87,7 @@ static gint gtk_radiobox_keypress_callback( GtkWidget *widget, GdkEventKey *gdk_
         // GDK reports GDK_ISO_Left_Tab for SHIFT-TAB
         new_event.SetDirection( (gdk_event->keyval == GDK_Tab) );
         // CTRL-TAB changes the (parent) window, i.e. switch notebook page
-        new_event.SetWindowChange( (gdk_event->state & GDK_CONTROL_MASK) );
+        new_event.SetWindowChange( (gdk_event->state & GDK_CONTROL_MASK) != 0 );
         new_event.SetCurrentFocus( rb );
         return rb->GetParent()->HandleWindowEvent(new_event);
     }
@@ -317,6 +316,7 @@ wxRadioBox::~wxRadioBox()
     while (node)
     {
         GtkWidget *button = GTK_WIDGET( node->GetData()->button );
+        GTKDisconnect(button);
         gtk_widget_destroy( button );
         node = node->GetNext();
     }
@@ -475,7 +475,7 @@ bool wxRadioBox::IsItemEnabled(unsigned int item) const
 
     // don't use GTK_WIDGET_IS_SENSITIVE() here, we want to return true even if
     // the parent radiobox is disabled
-    return gtk_widget_get_sensitive(GTK_WIDGET(button));
+    return gtk_widget_get_sensitive(GTK_WIDGET(button)) != 0;
 }
 
 bool wxRadioBox::Show(unsigned int item, bool show)
@@ -506,7 +506,7 @@ bool wxRadioBox::IsItemShown(unsigned int item) const
 
     GtkButton *button = GTK_BUTTON( node->GetData()->button );
 
-    return gtk_widget_get_visible(GTK_WIDGET(button));
+    return gtk_widget_get_visible(GTK_WIDGET(button)) != 0;
 }
 
 unsigned int wxRadioBox::GetCount() const
@@ -547,8 +547,8 @@ void wxRadioBox::DoApplyWidgetStyle(GtkRcStyle *style)
     {
         GtkWidget *widget = GTK_WIDGET( node->GetData()->button );
 
-        gtk_widget_modify_style( widget, style );
-        gtk_widget_modify_style(gtk_bin_get_child(GTK_BIN(widget)), style);
+        GTKApplyStyle(widget, style);
+        GTKApplyStyle(gtk_bin_get_child(GTK_BIN(widget)), style);
 
         node = node->GetNext();
     }
@@ -616,14 +616,7 @@ GdkWindow *wxRadioBox::GTKGetWindow(wxArrayGdkWindows& windows) const
 wxVisualAttributes
 wxRadioBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-    wxVisualAttributes attr;
-    // NB: we need toplevel window so that GTK+ can find the right style
-    GtkWidget *wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    GtkWidget* widget = gtk_radio_button_new_with_label(NULL, "");
-    gtk_container_add(GTK_CONTAINER(wnd), widget);
-    attr = GetDefaultAttributesFromGTKWidget(widget);
-    gtk_widget_destroy(wnd);
-    return attr;
+    return GetDefaultAttributesFromGTKWidget(gtk_radio_button_new_with_label(NULL, ""));
 }
 
 int wxRadioBox::GetItemFromPoint(const wxPoint& point) const

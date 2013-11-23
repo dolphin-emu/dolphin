@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by: Brad Anderson, Bryan Petty
 // Created:     30.05.03
-// RCS-ID:      $Id: vscroll.h 70085 2011-12-22 01:26:11Z RD $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,6 +13,7 @@
 
 #include "wx/panel.h"
 #include "wx/position.h"
+#include "wx/scrolwin.h"
 
 class WXDLLIMPEXP_FWD_CORE wxVarScrollHelperEvtHandler;
 
@@ -24,6 +24,11 @@ class WXDLLIMPEXP_FWD_CORE wxVarScrollHelperEvtHandler;
 // scrolwin.h) for the purpose of reducing code duplication     |
 // through the use of mix-in classes.                           |
 //                                                              |
+//                   wxAnyScrollHelperBase                      |
+//                            |                                 |
+//                            |                                 |
+//                            |                                 |
+//                            V                                 |
 //                  wxVarScrollHelperBase                       |
 //                   /                 \                        |
 //                  /                   \                       |
@@ -59,7 +64,7 @@ class WXDLLIMPEXP_FWD_CORE wxVarScrollHelperEvtHandler;
 // required virtual functions that need to be implemented for any orientation
 // specific work.
 
-class WXDLLIMPEXP_CORE wxVarScrollHelperBase
+class WXDLLIMPEXP_CORE wxVarScrollHelperBase : public wxAnyScrollHelperBase
 {
 public:
     // constructors and such
@@ -115,10 +120,6 @@ public:
     // child of it in order to scroll only a portion the area between the
     // scrollbars (spreadsheet: only cell area will move).
     virtual void SetTargetWindow(wxWindow *target);
-    virtual wxWindow *GetTargetWindow() const { return m_targetWindow; }
-
-    // Override this function to draw the graphic (or just process EVT_PAINT)
-    //virtual void OnDraw(wxDC& WXUNUSED(dc)) { }
 
     // change the DC origin according to the scroll position. To properly
     // forward calls to wxWindow::Layout use WX_FORWARD_TO_SCROLL_HELPER()
@@ -257,12 +258,6 @@ protected:
     void IncOrient(wxCoord& x, wxCoord& y, wxCoord inc);
 
 private:
-
-    // the window that receives the scroll events and the window to actually
-    // scroll, respectively
-    wxWindow    *m_win,
-                *m_targetWindow;
-
     // the total number of (logical) units
     size_t m_unitMax;
 

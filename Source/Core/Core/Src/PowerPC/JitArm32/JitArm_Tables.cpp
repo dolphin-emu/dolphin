@@ -42,7 +42,7 @@ struct GekkoOPTemplate
 	//GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
 };
 
-static GekkoOPTemplate primarytable[] = 
+static GekkoOPTemplate primarytable[] =
 {
 	{4,  &JitArm::DynaRunTable4}, //"RunTable4",  OPTYPE_SUBTABLE | (4<<24), 0}},
 	{19, &JitArm::DynaRunTable19}, //"RunTable19", OPTYPE_SUBTABLE | (19<<24), 0}},
@@ -58,59 +58,59 @@ static GekkoOPTemplate primarytable[] =
 	{3,  &JitArm::Break}, //"twi",         OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{17, &JitArm::sc}, //"sc",          OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
 
-	{7,  &JitArm::mulli}, //"mulli",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_RC_BIT, 2}},
-	{8,  &JitArm::Default}, //"subfic",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_A |	FL_SET_CA}},
+	{7,  &JitArm::arith}, //"mulli",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_RC_BIT, 2}},
+	{8,  &JitArm::subfic}, //"subfic",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_A |	FL_SET_CA}},
 	{10, &JitArm::cmpli}, //"cmpli",    OPTYPE_INTEGER, FL_IN_A | FL_SET_CRn}},
 	{11, &JitArm::cmpi}, //"cmpi",     OPTYPE_INTEGER, FL_IN_A | FL_SET_CRn}},
-	{12, &JitArm::Default}, //"addic",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CA}},
-	{13, &JitArm::Default}, //"addic_rc", OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CR0}},
-	{14, &JitArm::addi}, //"addi",     OPTYPE_INTEGER, FL_OUT_D | FL_IN_A0}},
-	{15, &JitArm::addis}, //"addis",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A0}},
+	{12, &JitArm::arith}, //"addic",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CA}},
+	{13, &JitArm::arith}, //"addic_rc", OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CR0}},
+	{14, &JitArm::arith}, //"addi",     OPTYPE_INTEGER, FL_OUT_D | FL_IN_A0}},
+	{15, &JitArm::arith}, //"addis",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A0}},
 
 	{20, &JitArm::rlwimix}, //"rlwimix",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_A | FL_IN_S | FL_RC_BIT}},
 	{21, &JitArm::rlwinmx}, //"rlwinmx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
-	{23, &JitArm::Default}, //"rlwnmx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_IN_B | FL_RC_BIT}},
+	{23, &JitArm::rlwnmx}, //"rlwnmx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_IN_B | FL_RC_BIT}},
 
-	{24, &JitArm::ori}, //"ori",      OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
-	{25, &JitArm::oris}, //"oris",     OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
-	{26, &JitArm::Default}, //"xori",     OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
-	{27, &JitArm::Default}, //"xoris",    OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
-	{28, &JitArm::andi_rc}, //"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
-	{29, &JitArm::andis_rc}, //"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
+	{24, &JitArm::arith}, //"ori",      OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
+	{25, &JitArm::arith}, //"oris",     OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
+	{26, &JitArm::arith}, //"xori",     OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
+	{27, &JitArm::arith}, //"xoris",    OPTYPE_INTEGER, FL_OUT_A | FL_IN_S}},
+	{28, &JitArm::arith}, //"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
+	{29, &JitArm::arith}, //"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 
-	{32, &JitArm::lwz}, //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{33, &JitArm::Default}, //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{34, &JitArm::lbz}, //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{35, &JitArm::Default}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{40, &JitArm::lhz}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{41, &JitArm::Default}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{42, &JitArm::lha}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{43, &JitArm::Default}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{32, &JitArm::lXX}, //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{33, &JitArm::lXX}, //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{34, &JitArm::lXX}, //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{35, &JitArm::lXX}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{40, &JitArm::lXX}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{41, &JitArm::lXX}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{42, &JitArm::lXX}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{43, &JitArm::lXX}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 
-	{44, &JitArm::sth}, //"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
-	{45, &JitArm::sthu}, //"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
-	{36, &JitArm::stw}, //"stw",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
-	{37, &JitArm::stwu}, //"stwu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
-	{38, &JitArm::stb}, //"stb",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
-	{39, &JitArm::stbu}, //"stbu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
+	{44, &JitArm::stX}, //"sth",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
+	{45, &JitArm::stX}, //"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
+	{36, &JitArm::stX}, //"stw",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
+	{37, &JitArm::stX}, //"stwu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
+	{38, &JitArm::stX}, //"stb",  OPTYPE_STORE, FL_IN_A | FL_IN_S}},
+	{39, &JitArm::stX}, //"stbu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S}},
 
-	{46, &JitArm::Default}, //"lmw",   OPTYPE_SYSTEM, FL_EVIL, 10}},
-	{47, &JitArm::Default}, //"stmw",  OPTYPE_SYSTEM, FL_EVIL, 10}},
+	{46, &JitArm::lmw}, //"lmw",   OPTYPE_SYSTEM, FL_EVIL, 10}},
+	{47, &JitArm::stmw}, //"stmw",  OPTYPE_SYSTEM, FL_EVIL, 10}},
 
-	{48, &JitArm::lfs}, //"lfs",  OPTYPE_LOADFP, FL_IN_A}},
-	{49, &JitArm::Default}, //"lfsu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
-	{50, &JitArm::lfd}, //"lfd",  OPTYPE_LOADFP, FL_IN_A}},
-	{51, &JitArm::Default}, //"lfdu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
+	{48, &JitArm::lfXX}, //"lfs",  OPTYPE_LOADFP, FL_IN_A}},
+	{49, &JitArm::lfXX}, //"lfsu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
+	{50, &JitArm::lfXX}, //"lfd",  OPTYPE_LOADFP, FL_IN_A}},
+	{51, &JitArm::lfXX}, //"lfdu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
 
-	{52, &JitArm::Default}, //"stfs",  OPTYPE_STOREFP, FL_IN_A}},
-	{53, &JitArm::Default}, //"stfsu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
-	{54, &JitArm::Default}, //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
-	{55, &JitArm::Default}, //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
+	{52, &JitArm::stfs}, //"stfs",  OPTYPE_STOREFP, FL_IN_A}},
+	{53, &JitArm::stfXX}, //"stfsu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
+	{54, &JitArm::stfXX}, //"stfd",  OPTYPE_STOREFP, FL_IN_A}},
+	{55, &JitArm::stfXX}, //"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
 
-	{56, &JitArm::Default}, //"psq_l",   OPTYPE_PS, FL_IN_A}},
-	{57, &JitArm::Default}, //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
-	{60, &JitArm::Default}, //"psq_st",  OPTYPE_PS, FL_IN_A}},
-	{61, &JitArm::Default}, //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
+	{56, &JitArm::psq_l}, //"psq_l",   OPTYPE_PS, FL_IN_A}},
+	{57, &JitArm::psq_l}, //"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
+	{60, &JitArm::psq_st}, //"psq_st",  OPTYPE_PS, FL_IN_A}},
+	{61, &JitArm::psq_st}, //"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
 
 	//missing: 0, 5, 6, 9, 22, 30, 62, 58
 	{0,  &JitArm::Default}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
@@ -123,122 +123,122 @@ static GekkoOPTemplate primarytable[] =
 	{58, &JitArm::Default}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
 };
 
-static GekkoOPTemplate table4[] = 
+static GekkoOPTemplate table4[] =
 {    //SUBOP10
-	{0,    &JitArm::Default}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
-	{32,   &JitArm::Default}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
-	{40,   &JitArm::Default}, //"ps_neg",     OPTYPE_PS, FL_RC_BIT}},
-	{136,  &JitArm::Default}, //"ps_nabs",    OPTYPE_PS, FL_RC_BIT}},
-	{264,  &JitArm::Default}, //"ps_abs",     OPTYPE_PS, FL_RC_BIT}},
-	{64,   &JitArm::Default}, //"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
-	{72,   &JitArm::Default}, //"ps_mr",      OPTYPE_PS, FL_RC_BIT}},
-	{96,   &JitArm::Default}, //"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
-	{528,  &JitArm::Default}, //"ps_merge00", OPTYPE_PS, FL_RC_BIT}},
-	{560,  &JitArm::Default}, //"ps_merge01", OPTYPE_PS, FL_RC_BIT}},
-	{592,  &JitArm::Default}, //"ps_merge10", OPTYPE_PS, FL_RC_BIT}},
-	{624,  &JitArm::Default}, //"ps_merge11", OPTYPE_PS, FL_RC_BIT}},
+	{0,    &JitArm::ps_cmpu0}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
+	{32,   &JitArm::ps_cmpo0}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
+	{40,   &JitArm::ps_neg}, //"ps_neg",     OPTYPE_PS, FL_RC_BIT}},
+	{136,  &JitArm::ps_nabs}, //"ps_nabs",    OPTYPE_PS, FL_RC_BIT}},
+	{264,  &JitArm::ps_abs}, //"ps_abs",     OPTYPE_PS, FL_RC_BIT}},
+	{64,   &JitArm::ps_cmpu1}, //"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
+	{72,   &JitArm::ps_mr}, //"ps_mr",      OPTYPE_PS, FL_RC_BIT}},
+	{96,   &JitArm::ps_cmpo1}, //"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
+	{528,  &JitArm::ps_merge00}, //"ps_merge00", OPTYPE_PS, FL_RC_BIT}},
+	{560,  &JitArm::ps_merge01}, //"ps_merge01", OPTYPE_PS, FL_RC_BIT}},
+	{592,  &JitArm::ps_merge10}, //"ps_merge10", OPTYPE_PS, FL_RC_BIT}},
+	{624,  &JitArm::ps_merge11}, //"ps_merge11", OPTYPE_PS, FL_RC_BIT}},
 
 	{1014, &JitArm::Default}, //"dcbz_l",     OPTYPE_SYSTEM, 0}},
-};		
+};
 
-static GekkoOPTemplate table4_2[] = 
+static GekkoOPTemplate table4_2[] =
 {
 	{10, &JitArm::ps_sum0}, //"ps_sum0",   OPTYPE_PS, 0}},
-	{11, &JitArm::Default}, //"ps_sum1",   OPTYPE_PS, 0}},
-	{12, &JitArm::Default}, //"ps_muls0",  OPTYPE_PS, 0}},
-	{13, &JitArm::Default}, //"ps_muls1",  OPTYPE_PS, 0}},
-	{14, &JitArm::Default}, //"ps_madds0", OPTYPE_PS, 0}},
-	{15, &JitArm::Default}, //"ps_madds1", OPTYPE_PS, 0}},
-	{18, &JitArm::Default}, //"ps_div",    OPTYPE_PS, 0, 16}},
+	{11, &JitArm::ps_sum1}, //"ps_sum1",   OPTYPE_PS, 0}},
+	{12, &JitArm::ps_muls0}, //"ps_muls0",  OPTYPE_PS, 0}},
+	{13, &JitArm::ps_muls1}, //"ps_muls1",  OPTYPE_PS, 0}},
+	{14, &JitArm::ps_madds0}, //"ps_madds0", OPTYPE_PS, 0}},
+	{15, &JitArm::ps_madds1}, //"ps_madds1", OPTYPE_PS, 0}},
+	{18, &JitArm::ps_div}, //"ps_div",    OPTYPE_PS, 0, 16}},
 	{20, &JitArm::ps_sub}, //"ps_sub",    OPTYPE_PS, 0}},
 	{21, &JitArm::ps_add}, //"ps_add",    OPTYPE_PS, 0}},
-	{23, &JitArm::Default}, //"ps_sel",    OPTYPE_PS, 0}},
-	{24, &JitArm::Default}, //"ps_res",    OPTYPE_PS, 0}},
+	{23, &JitArm::ps_sel}, //"ps_sel",    OPTYPE_PS, 0}},
+	{24, &JitArm::ps_res}, //"ps_res",    OPTYPE_PS, 0}},
 	{25, &JitArm::ps_mul}, //"ps_mul",    OPTYPE_PS, 0}},
-	{26, &JitArm::Default}, //"ps_rsqrte", OPTYPE_PS, 0, 1}},
-	{28, &JitArm::Default}, //"ps_msub",   OPTYPE_PS, 0}},
+	{26, &JitArm::ps_rsqrte}, //"ps_rsqrte", OPTYPE_PS, 0, 1}},
+	{28, &JitArm::ps_msub}, //"ps_msub",   OPTYPE_PS, 0}},
 	{29, &JitArm::ps_madd}, //"ps_madd",   OPTYPE_PS, 0}},
-	{30, &JitArm::Default}, //"ps_nmsub",  OPTYPE_PS, 0}},
-	{31, &JitArm::Default}, //"ps_nmadd",  OPTYPE_PS, 0}},
+	{30, &JitArm::ps_nmsub}, //"ps_nmsub",  OPTYPE_PS, 0}},
+	{31, &JitArm::ps_nmadd}, //"ps_nmadd",  OPTYPE_PS, 0}},
 };
 
 
-static GekkoOPTemplate table4_3[] = 
+static GekkoOPTemplate table4_3[] =
 {
-	{6,  &JitArm::Default}, //"psq_lx",   OPTYPE_PS, 0}},
-	{7,  &JitArm::Default}, //"psq_stx",  OPTYPE_PS, 0}},
-	{38, &JitArm::Default}, //"psq_lux",  OPTYPE_PS, 0}},
-	{39, &JitArm::Default}, //"psq_stux", OPTYPE_PS, 0}}, 
+	{6,  &JitArm::psq_lx}, //"psq_lx",   OPTYPE_PS, 0}},
+	{7,  &JitArm::psq_stx}, //"psq_stx",  OPTYPE_PS, 0}},
+	{38, &JitArm::psq_lx}, //"psq_lux",  OPTYPE_PS, 0}},
+	{39, &JitArm::psq_stx}, //"psq_stux", OPTYPE_PS, 0}},
 };
 
-static GekkoOPTemplate table19[] = 
+static GekkoOPTemplate table19[] =
 {
 	{528, &JitArm::bcctrx}, //"bcctrx", OPTYPE_BRANCH, FL_ENDBLOCK}},
 	{16,  &JitArm::bclrx}, //"bclrx",  OPTYPE_BRANCH, FL_ENDBLOCK}},
-	{257, &JitArm::Default}, //"crand",  OPTYPE_CR, FL_EVIL}},
-	{129, &JitArm::Default}, //"crandc", OPTYPE_CR, FL_EVIL}},
-	{289, &JitArm::Default}, //"creqv",  OPTYPE_CR, FL_EVIL}},
-	{225, &JitArm::Default}, //"crnand", OPTYPE_CR, FL_EVIL}},
-	{33,  &JitArm::Default}, //"crnor",  OPTYPE_CR, FL_EVIL}},
-	{449, &JitArm::Default}, //"cror",   OPTYPE_CR, FL_EVIL}},
-	{417, &JitArm::Default}, //"crorc",  OPTYPE_CR, FL_EVIL}},
-	{193, &JitArm::Default}, //"crxor",  OPTYPE_CR, FL_EVIL}},
-												   
+	{257, &JitArm::crXXX}, //"crand",  OPTYPE_CR, FL_EVIL}},
+	{129, &JitArm::crXXX}, //"crandc", OPTYPE_CR, FL_EVIL}},
+	{289, &JitArm::crXXX}, //"creqv",  OPTYPE_CR, FL_EVIL}},
+	{225, &JitArm::crXXX}, //"crnand", OPTYPE_CR, FL_EVIL}},
+	{33,  &JitArm::crXXX}, //"crnor",  OPTYPE_CR, FL_EVIL}},
+	{449, &JitArm::crXXX}, //"cror",   OPTYPE_CR, FL_EVIL}},
+	{417, &JitArm::crXXX}, //"crorc",  OPTYPE_CR, FL_EVIL}},
+	{193, &JitArm::crXXX}, //"crxor",  OPTYPE_CR, FL_EVIL}},
+
 	{150, &JitArm::DoNothing}, //"isync",  OPTYPE_ICACHE, FL_EVIL}},
-	{0,   &JitArm::Default}, //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
-												   
+	{0,   &JitArm::mcrf}, //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
+
 	{50,  &JitArm::rfi}, //"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
 	{18,  &JitArm::Break}, //"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}
 };
 
 
-static GekkoOPTemplate table31[] = 
+static GekkoOPTemplate table31[] =
 {
-	{28,  &JitArm::andx}, //"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{60,  &JitArm::Default}, //"andcx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{444, &JitArm::orx}, //"orx",    OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{124, &JitArm::Default}, //"norx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{316, &JitArm::xorx}, //"xorx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{412, &JitArm::Default}, //"orcx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{476, &JitArm::Default}, //"nandx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
-	{284, &JitArm::Default}, //"eqvx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{28,  &JitArm::arith}, //"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{60,  &JitArm::arith}, //"andcx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{444, &JitArm::arith}, //"orx",    OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{124, &JitArm::arith}, //"norx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{316, &JitArm::arith}, //"xorx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{412, &JitArm::arith}, //"orcx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{476, &JitArm::arith}, //"nandx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
+	{284, &JitArm::arith}, //"eqvx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
 	{0,   &JitArm::cmp}, //"cmp",    OPTYPE_INTEGER, FL_IN_AB | FL_SET_CRn}},
 	{32,  &JitArm::cmpl}, //"cmpl",   OPTYPE_INTEGER, FL_IN_AB | FL_SET_CRn}},
-	{26,  &JitArm::Default}, //"cntlzwx",OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
+	{26,  &JitArm::cntlzwx}, //"cntlzwx",OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
 	{922, &JitArm::extshx}, //"extshx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
 	{954, &JitArm::extsbx}, //"extsbx", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_RC_BIT}},
-	{536, &JitArm::Default}, //"srwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
-	{792, &JitArm::Default}, //"srawx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
+	{536, &JitArm::arith}, //"srwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
+	{792, &JitArm::arith}, //"srawx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 	{824, &JitArm::srawix}, //"srawix", OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
-	{24,  &JitArm::Default}, //"slwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
+	{24,  &JitArm::arith}, //"slwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 
 	{54,   &JitArm::dcbst}, //"dcbst",  OPTYPE_DCACHE, 0, 4}},
 	{86,   &JitArm::Default}, //"dcbf",   OPTYPE_DCACHE, 0, 4}},
-	{246,  &JitArm::Default}, //"dcbtst", OPTYPE_DCACHE, 0, 1}},
-	{278,  &JitArm::Default}, //"dcbt",   OPTYPE_DCACHE, 0, 1}},
+	{246,  &JitArm::DoNothing}, //"dcbtst", OPTYPE_DCACHE, 0, 1}},
+	{278,  &JitArm::DoNothing}, //"dcbt",   OPTYPE_DCACHE, 0, 1}},
 	{470,  &JitArm::Default}, //"dcbi",   OPTYPE_DCACHE, 0, 4}},
-	{758,  &JitArm::Default}, //"dcba",   OPTYPE_DCACHE, 0, 4}},
+	{758,  &JitArm::DoNothing}, //"dcba",   OPTYPE_DCACHE, 0, 4}},
 	{1014, &JitArm::Default}, //"dcbz",   OPTYPE_DCACHE, 0, 4}},
 
 	//load word
-	{23,  &JitArm::lwzx}, //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{55,  &JitArm::Default}, //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{23,  &JitArm::lXX}, //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{55,  &JitArm::lXX}, //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword
-	{279, &JitArm::Default}, //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{311, &JitArm::Default}, //"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{279, &JitArm::lXX}, //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{311, &JitArm::lXX}, //"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword signextend
-	{343, &JitArm::Default}, //"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{375, &JitArm::Default}, //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{343, &JitArm::lXX}, //"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{375, &JitArm::lXX}, //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte
-	{87,  &JitArm::Default}, //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{119, &JitArm::Default}, //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{87,  &JitArm::lXX}, //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{119, &JitArm::lXX}, //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte reverse
-	{534, &JitArm::Default}, //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{790, &JitArm::Default}, //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{534, &JitArm::lXX}, //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{790, &JitArm::lXX}, //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 
 	// Conditional load/store (Wii SMP)
 	{150, &JitArm::Default}, //"stwcxd", OPTYPE_STORE, FL_EVIL | FL_SET_CR0}},
@@ -249,16 +249,16 @@ static GekkoOPTemplate table31[] =
 	{597, &JitArm::Default}, //"lswi",  OPTYPE_LOAD, FL_EVIL | FL_IN_AB | FL_OUT_D}},
 
 	//store word
-	{151, &JitArm::Default}, //"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{183, &JitArm::Default}, //"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{151, &JitArm::stX}, //"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{183, &JitArm::stX}, //"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store halfword
-	{407, &JitArm::Default}, //"sthx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{439, &JitArm::Default}, //"sthux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{407, &JitArm::stX}, //"sthx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{439, &JitArm::stX}, //"sthux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store byte
-	{215, &JitArm::Default}, //"stbx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{247, &JitArm::Default}, //"stbux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{215, &JitArm::stX}, //"stbx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{247, &JitArm::stX}, //"stbux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store bytereverse
 	{662, &JitArm::Default}, //"stwbrx", OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
@@ -267,33 +267,33 @@ static GekkoOPTemplate table31[] =
 	{661, &JitArm::Default}, //"stswx",  OPTYPE_STORE, FL_EVIL}},
 	{725, &JitArm::Default}, //"stswi",  OPTYPE_STORE, FL_EVIL}},
 
-	// fp load/store	
-	{535, &JitArm::Default}, //"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
-	{567, &JitArm::Default}, //"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
-	{599, &JitArm::Default}, //"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
-	{631, &JitArm::Default}, //"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
+	// fp load/store
+	{535, &JitArm::lfXX}, //"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
+	{567, &JitArm::lfXX}, //"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
+	{599, &JitArm::lfXX}, //"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
+	{631, &JitArm::lfXX}, //"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
 
-	{663, &JitArm::Default}, //"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
-	{695, &JitArm::Default}, //"stfsux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
-	{727, &JitArm::Default}, //"stfdx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
-	{759, &JitArm::Default}, //"stfdux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
+	{663, &JitArm::stfXX}, //"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
+	{695, &JitArm::stfXX}, //"stfsux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
+	{727, &JitArm::stfXX}, //"stfdx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
+	{759, &JitArm::stfXX}, //"stfdux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
 	{983, &JitArm::Default}, //"stfiwx", OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
 
-	{19,  &JitArm::Default}, //"mfcr",   OPTYPE_SYSTEM, FL_OUT_D}},
+	{19,  &JitArm::mfcr}, //"mfcr",   OPTYPE_SYSTEM, FL_OUT_D}},
 	{83,  &JitArm::mfmsr}, //"mfmsr",  OPTYPE_SYSTEM, FL_OUT_D}},
-	{144, &JitArm::Default}, //"mtcrf",  OPTYPE_SYSTEM, 0}},
+	{144, &JitArm::mtcrf}, //"mtcrf",  OPTYPE_SYSTEM, 0}},
 	{146, &JitArm::mtmsr}, //"mtmsr",  OPTYPE_SYSTEM, FL_ENDBLOCK}},
-	{210, &JitArm::Default}, //"mtsr",   OPTYPE_SYSTEM, 0}},
+	{210, &JitArm::mtsr}, //"mtsr",   OPTYPE_SYSTEM, 0}},
 	{242, &JitArm::Default}, //"mtsrin", OPTYPE_SYSTEM, 0}},
 	{339, &JitArm::mfspr}, //"mfspr",  OPTYPE_SPR, FL_OUT_D}},
 	{467, &JitArm::mtspr}, //"mtspr",  OPTYPE_SPR, 0, 2}},
 	{371, &JitArm::mftb}, //"mftb",   OPTYPE_SYSTEM, FL_OUT_D | FL_TIMER}},
-	{512, &JitArm::Default}, //"mcrxr",  OPTYPE_SYSTEM, 0}},
-	{595, &JitArm::Default}, //"mfsr",   OPTYPE_SYSTEM, FL_OUT_D, 2}},
+	{512, &JitArm::mcrxr}, //"mcrxr",  OPTYPE_SYSTEM, 0}},
+	{595, &JitArm::mfsr}, //"mfsr",   OPTYPE_SYSTEM, FL_OUT_D, 2}},
 	{659, &JitArm::Default}, //"mfsrin", OPTYPE_SYSTEM, FL_OUT_D, 2}},
 
 	{4,   &JitArm::Break}, //"tw",     OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
-	{598, &JitArm::Default}, //"sync",   OPTYPE_SYSTEM, 0, 2}},
+	{598, &JitArm::DoNothing}, //"sync",   OPTYPE_SYSTEM, 0, 2}},
 	{982, &JitArm::icbi}, //"icbi",   OPTYPE_SYSTEM, FL_ENDBLOCK, 3}},
 
 	// Unused instructions on GC
@@ -305,11 +305,11 @@ static GekkoOPTemplate table31[] =
 	{566, &JitArm::Default}, //"tlbsync", OPTYPE_SYSTEM, 0}},
 };
 
-static GekkoOPTemplate table31_2[] = 
-{	
-	{266,  &JitArm::addx}, //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
-	{778,  &JitArm::addx}, //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
-	{10,   &JitArm::addcx}, //"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
+static GekkoOPTemplate table31_2[] =
+{
+	{266,  &JitArm::arith}, //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{778,  &JitArm::arith}, //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{10,   &JitArm::arith}, //"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
 	{138,  &JitArm::addex}, //"addex",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 	{234,  &JitArm::Default}, //"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 	{202,  &JitArm::Default}, //"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
@@ -319,41 +319,41 @@ static GekkoOPTemplate table31_2[] =
 	{971,  &JitArm::Default}, //"divwuox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
 	{75,   &JitArm::Default}, //"mulhwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
 	{11,   &JitArm::mulhwux}, //"mulhwux", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
-	{235,  &JitArm::mullwx}, //"mullwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
-	{747,  &JitArm::Default}, //"mullwox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
+	{235,  &JitArm::arith}, //"mullwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
+	{747,  &JitArm::arith}, //"mullwox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
 	{104,  &JitArm::negx}, //"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
-	{40,   &JitArm::subfx}, //"subfx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
-	{552,  &JitArm::Default}, //"subox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{40,   &JitArm::arith}, //"subfx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
+	{552,  &JitArm::arith}, //"subox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{8,    &JitArm::Default}, //"subfcx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
 	{136,  &JitArm::Default}, //"subfex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 	{232,  &JitArm::Default}, //"subfmex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 	{200,  &JitArm::Default}, //"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 };
 
-static GekkoOPTemplate table59[] = 
+static GekkoOPTemplate table59[] =
 {
-	{18, &JitArm::Default},       //{"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}}, 
-	{20, &JitArm::fsubsx}, //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{21, &JitArm::faddsx}, //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
+	{18, &JitArm::Default},       //{"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}},
+	{20, &JitArm::fsubsx}, //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{21, &JitArm::faddsx}, //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 //	{22, &JitArm::Default}, //"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
-	{24, &JitArm::Default}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{25, &JitArm::fmulsx}, //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{28, &JitArm::Default}, //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{29, &JitArm::Default}, //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{30, &JitArm::Default}, //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{31, &JitArm::Default}, //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
-};							    
+	{24, &JitArm::fresx}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{25, &JitArm::fmulsx}, //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{28, &JitArm::Default}, //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{29, &JitArm::fmaddsx}, //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{30, &JitArm::Default}, //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}},
+	{31, &JitArm::fnmaddsx}, //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}},
+};
 
-static GekkoOPTemplate table63[] = 
+static GekkoOPTemplate table63[] =
 {
 	{264, &JitArm::fabsx},   //"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{32,  &JitArm::Default},   //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{0,   &JitArm::Default},   //"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{14,  &JitArm::Default}, //"fctiwx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{15,  &JitArm::Default}, //"fctiwzx", OPTYPE_FPU, FL_RC_BIT_F}},
+	{32,  &JitArm::fcmpo},   //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{0,   &JitArm::fcmpu},   //"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{14,  &JitArm::fctiwx}, //"fctiwx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{15,  &JitArm::fctiwzx}, //"fctiwzx", OPTYPE_FPU, FL_RC_BIT_F}},
 	{72,  &JitArm::fmrx},    //"fmrx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{136, &JitArm::Default},   //"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{40,  &JitArm::Default},   //"fnegx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{136, &JitArm::fnabsx},   //"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{40,  &JitArm::fnegx},   //"fnegx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{12,  &JitArm::Default}, //"frspx",   OPTYPE_FPU, FL_RC_BIT_F}},
 
 	{64,  &JitArm::Default}, //"mcrfs",   OPTYPE_SYSTEMFP, 0}},
@@ -364,19 +364,19 @@ static GekkoOPTemplate table63[] =
 	{711, &JitArm::Default}, //"mtfsfx",  OPTYPE_SYSTEMFP, 0, 2}},
 };
 
-static GekkoOPTemplate table63_2[] = 
+static GekkoOPTemplate table63_2[] =
 {
 	{18, &JitArm::Default}, //"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
 	{20, &JitArm::fsubx}, //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{21, &JitArm::faddx}, //"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{22, &JitArm::Default}, //"fsqrtx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{23, &JitArm::Default}, //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{23, &JitArm::fselx}, //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{25, &JitArm::fmulx}, //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{26, &JitArm::Default}, //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
+	{26, &JitArm::frsqrtex}, //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
 	{28, &JitArm::Default}, //"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{29, &JitArm::Default}, //"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{29, &JitArm::fmaddx}, //"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{30, &JitArm::Default}, //"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{31, &JitArm::Default}, //"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{31, &JitArm::fnmaddx}, //"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
 
@@ -407,7 +407,7 @@ void InitTables()
 		return;
 
 	//clear
-	for (int i = 0; i < 32; i++) 
+	for (int i = 0; i < 32; i++)
 	{
 		dynaOpTable59[i] = &JitArm::unknown_instruction;
 	}
@@ -417,7 +417,7 @@ void InitTables()
 		dynaOpTable4 [i] = &JitArm::unknown_instruction;
 		dynaOpTable19[i] = &JitArm::unknown_instruction;
 		dynaOpTable31[i] = &JitArm::unknown_instruction;
-		dynaOpTable63[i] = &JitArm::unknown_instruction;	
+		dynaOpTable63[i] = &JitArm::unknown_instruction;
 	}
 
 	for (int i = 0; i < (int)(sizeof(primarytable) / sizeof(GekkoOPTemplate)); i++)

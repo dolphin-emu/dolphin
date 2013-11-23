@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.06.2003
-// RCS-ID:      $Id: init.h 64531 2010-06-09 13:23:13Z FM $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,6 +51,12 @@ extern bool WXDLLIMPEXP_BASE wxEntryStart(int& argc, char **argv);
 extern int WXDLLIMPEXP_BASE wxEntry(int& argc, char **argv);
 
 #endif// wxUSE_UNICODE
+
+// Under Windows we define additional wxEntry() overloads with signature
+// compatible with WinMain() and not the traditional main().
+#if wxUSE_GUI && defined(__WINDOWS__)
+    #include "wx/msw/init.h"
+#endif
 
 // ----------------------------------------------------------------------------
 // Using the library without (explicit) application object: you may avoid using

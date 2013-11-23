@@ -17,12 +17,10 @@ FifoDataFile::FifoDataFile() :
 
 FifoDataFile::~FifoDataFile()
 {
-	for (unsigned int frameIdx = 0; frameIdx < m_Frames.size(); ++frameIdx)
+	for (auto& frame : m_Frames)
 	{
-		FifoFrameInfo &frame = m_Frames[frameIdx];
-
-		for (unsigned int i = 0; i < frame.memoryUpdates.size(); ++i)
-			delete []frame.memoryUpdates[i].data;
+		for (auto& update : frame.memoryUpdates)
+			delete []update.data;
 
 		delete []frame.fifoData;
 	}
@@ -54,7 +52,7 @@ bool FifoDataFile::Save(const char *filename)
 
 	// Add space for frame list
 	u64 frameListOffset = file.Tell();
-	for (unsigned int i = 0; i < m_Frames.size(); ++i)
+	for (size_t i = 0; i < m_Frames.size(); i++)
 		PadFile(sizeof(FileFrameInfo), file);
 
 	u64 bpMemOffset = file.Tell();
@@ -88,7 +86,7 @@ bool FifoDataFile::Save(const char *filename)
 	header.xfRegsSize = XF_REGS_SIZE;
 
 	header.frameListOffset = frameListOffset;
-	header.frameCount = m_Frames.size();
+	header.frameCount = (u32)m_Frames.size();
 
 	header.flags = m_Flags;
 
@@ -101,7 +99,7 @@ bool FifoDataFile::Save(const char *filename)
 		const FifoFrameInfo &srcFrame = m_Frames[i];
 
 		// Write FIFO data
-		file.Seek(0, SEEK_END);		
+		file.Seek(0, SEEK_END);
 		u64 dataOffset = file.Tell();
 		file.WriteBytes(srcFrame.fifoData, srcFrame.fifoDataSize);
 
@@ -113,12 +111,12 @@ bool FifoDataFile::Save(const char *filename)
 		dstFrame.fifoStart = srcFrame.fifoStart;
 		dstFrame.fifoEnd = srcFrame.fifoEnd;
 		dstFrame.memoryUpdatesOffset = memoryUpdatesOffset;
-		dstFrame.numMemoryUpdates = srcFrame.memoryUpdates.size();
+		dstFrame.numMemoryUpdates = (u32)srcFrame.memoryUpdates.size();
 
 		// Write frame info
 		u64 frameOffset = frameListOffset + (i * sizeof(FileFrameInfo));
 		file.Seek(frameOffset, SEEK_SET);
-		file.WriteBytes(&dstFrame, sizeof(FileFrameInfo));		
+		file.WriteBytes(&dstFrame, sizeof(FileFrameInfo));
 	}
 
 	if (!file.Close())
@@ -152,7 +150,7 @@ FifoDataFile *FifoDataFile::Load(const std::string &filename, bool flagsOnly)
 		file.Close();
 		return dataFile;
 	}
-	
+
 	u32 size = std::min((u32)BP_MEM_SIZE, header.bpMemSize);
 	file.Seek(header.bpMemOffset, SEEK_SET);
 	file.ReadArray(dataFile->m_BPMem, size);
@@ -221,7 +219,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates
 {
 	// Add space for memory update list
 	u64 updateListOffset = file.Tell();
-	for (unsigned int i = 0; i < memUpdates.size(); ++i)
+	for (size_t i = 0; i < memUpdates.size(); i++)
 		PadFile(sizeof(FileMemoryUpdate), file);
 
 	for (unsigned int i = 0; i < memUpdates.size(); ++i)
@@ -232,7 +230,7 @@ u64 FifoDataFile::WriteMemoryUpdates(const std::vector<MemoryUpdate> &memUpdates
 		file.Seek(0, SEEK_END);
 		u64 dataOffset = file.Tell();
 		file.WriteBytes(srcUpdate.data, srcUpdate.size);
-		
+
 		FileMemoryUpdate dstUpdate;
 		dstUpdate.address = srcUpdate.address;
 		dstUpdate.dataOffset = dataOffset;

@@ -16,7 +16,7 @@ namespace GPFifo
 {
 
 // 32 Byte gather pipe with extra space
-// Overfilling is no problem (up to the real limit), CheckGatherPipe will blast the 
+// Overfilling is no problem (up to the real limit), CheckGatherPipe will blast the
 // contents in nicely sized chunks
 
 // Other optimizations to think about:
@@ -24,7 +24,7 @@ namespace GPFifo
 // If the gp is NOT linked to the fifo, just blast to memory byte by word
 // If the gp IS linked to the fifo, use a fast wrapping buffer and skip writing to memory
 
-// Both of these should actually work! Only problem is that we have to decide at run time, 
+// Both of these should actually work! Only problem is that we have to decide at run time,
 // the same function could use both methods. Compile 2 different versions of each such block?
 
 u8 GC_ALIGNED32(m_gatherPipe[GATHER_PIPE_SIZE*16]); //more room, for the fastmodes
@@ -80,10 +80,10 @@ void STACKALIGN CheckGatherPipe()
 
 			g_video_backend->Video_GatherPipeBursted();
 		}
-		
+
 		// move back the spill bytes
 		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
-		
+
 		// Profile where the FIFO writes are occurring.
 		if (jit && PC != 0 && (jit->js.fifoWriteAddresses.find(PC)) == (jit->js.fifoWriteAddresses.end()))
 		{

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by: JS Lair (99/11/15) first implementation
 // Created:     1998-01-01
-// RCS-ID:      $Id: radiobox_osx.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,7 +37,7 @@ void wxRadioBox::OnRadioButton( wxCommandEvent &outer )
 {
     if ( outer.IsChecked() )
     {
-        wxCommandEvent event( wxEVT_COMMAND_RADIOBOX_SELECTED, m_windowId );
+        wxCommandEvent event( wxEVT_RADIOBOX, m_windowId );
         int i = GetSelection() ;
         event.SetInt(i);
         event.SetString(GetString(i));
@@ -265,7 +264,7 @@ void wxRadioBox::SetString(unsigned int item,const wxString& label)
 }
 
 // Sets a button by passing the desired position. This does not cause
-// wxEVT_COMMAND_RADIOBOX_SELECTED event to get emitted
+// wxEVT_RADIOBOX event to get emitted
 //
 void wxRadioBox::SetSelection(int item)
 {

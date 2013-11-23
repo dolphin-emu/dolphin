@@ -75,10 +75,10 @@ static void *reg_ptr(int reg)
 DSPJitRegCache::DSPJitRegCache(DSPEmitter &_emitter)
 	: emitter(_emitter), temporary(false), merged(false)
 {
-	for(unsigned int i = 0; i < NUMXREGS; i++)
+	for(auto& xreg : xregs)
 	{
-		xregs[i].guest_reg = DSP_REG_STATIC;
-		xregs[i].pushed = false;
+		xreg.guest_reg = DSP_REG_STATIC;
+		xreg.pushed = false;
 	}
 
 	xregs[RAX].guest_reg = DSP_REG_STATIC;// reserved for MUL/DIV
@@ -449,9 +449,9 @@ void DSPJitRegCache::pushRegs()
 	}
 
 	int push_count = 0;
-	for(unsigned int i = 0; i < NUMXREGS; i++)
+	for(auto& xreg : xregs)
 	{
-		if (xregs[i].guest_reg == DSP_REG_USED)
+		if (xreg.guest_reg == DSP_REG_USED)
 			push_count++;
 	}
 
@@ -503,9 +503,9 @@ void DSPJitRegCache::popRegs() {
 	emitter.MOV(32, M(&ebp_store), R(EBP));
 #endif
 	int push_count = 0;
-	for(unsigned int i = 0; i < NUMXREGS; i++)
+	for(auto& xreg : xregs)
 	{
-		if (xregs[i].pushed)
+		if (xreg.pushed)
 			push_count++;
 	}
 
@@ -613,7 +613,7 @@ void DSPJitRegCache::movToHostReg(int reg, bool load)
 		tmp = regs[reg].host_reg;
 	else
 		tmp = findSpillFreeXReg();
-	
+
 	if (tmp == INVALID_REG)
 		return;
 
@@ -932,12 +932,12 @@ void DSPJitRegCache::writeReg(int dreg, OpArg arg)
 	{
 		switch(regs[dreg].size)
 		{
-		case 2: emitter.MOV(16, reg, Imm16(arg.offset)); break;
-		case 4: emitter.MOV(32, reg, Imm32(arg.offset)); break;
+		case 2: emitter.MOV(16, reg, Imm16((u16) arg.offset)); break;
+		case 4: emitter.MOV(32, reg, Imm32((u32) arg.offset)); break;
 #ifdef _M_X64
 		case 8:
-			if ((s32)arg.offset == (s64)arg.offset)
-				emitter.MOV(64, reg, Imm32(arg.offset));
+			if ((u32) arg.offset == arg.offset)
+				emitter.MOV(64, reg, Imm32((u32) arg.offset));
 			else
 				emitter.MOV(64, reg, Imm64(arg.offset));
 			break;
@@ -1037,11 +1037,11 @@ void DSPJitRegCache::spillXReg(X64Reg reg)
 
 X64Reg DSPJitRegCache::findFreeXReg()
 {
-	for(unsigned int i = 0; i < sizeof(alloc_order)/sizeof(alloc_order[0]); i++)
+	for(auto& x : alloc_order)
 	{
-		if (xregs[alloc_order[i]].guest_reg == DSP_REG_NONE)
+		if (xregs[x].guest_reg == DSP_REG_NONE)
 		{
-			return alloc_order[i];
+			return x;
 		}
 	}
 	return INVALID_REG;

@@ -30,12 +30,12 @@
 
 // Extended opcode support.
 // Many opcode have the lower 0xFF (some only 0x7f) free - there, an opcode extension
-// can be stored. 
+// can be stored.
 
 namespace DSPInterpreter
 {
 namespace Ext
-{ 
+{
 void l(const UDSPInstruction opc);
 void ln(const UDSPInstruction opc);
 void ls(const UDSPInstruction opc);
@@ -61,7 +61,7 @@ void dr(const UDSPInstruction opc);
 void ir(const UDSPInstruction opc);
 void nr(const UDSPInstruction opc);
 void nop(const UDSPInstruction opc);
- 
+
 } // end namespace Ext
 } // end namespace DSPinterpeter
 

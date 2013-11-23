@@ -8,7 +8,6 @@
 #include "HW/Memmap.h"
 #include "BreakpointDlg.h"
 #include "MemoryCheckDlg.h"
-#include "Host.h"
 #include "PowerPC/PowerPC.h"
 #include "FileUtil.h"
 
@@ -177,10 +176,10 @@ void CBreakPointWindow::LoadAll(wxCommandEvent& WXUNUSED(event))
 	IniFile ini;
 	BreakPoints::TBreakPointsStr newbps;
 	MemChecks::TMemChecksStr newmcs;
-	
+
 	if (!ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX)))
 		return;
-	
+
 	if (ini.GetLines("BreakPoints", newbps, false))
 		PowerPC::breakpoints.AddFromStrings(newbps);
 	if (ini.GetLines("MemoryChecks", newmcs, false))

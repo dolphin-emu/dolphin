@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: combobox.h 69956 2011-12-08 14:47:37Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -104,10 +103,10 @@ class WXDLLIMPEXP_CORE wxComboBox :
 
     virtual unsigned int GetCount() const;
 
+    virtual void SetValue(const wxString& value);
 // these methods are provided by wxTextEntry for the native impl.
 #if wxOSX_USE_CARBON
     // Text field functions
-    virtual void SetValue(const wxString& value);
     virtual wxString GetValue() const;
     virtual void WriteText(const wxString& text);
 

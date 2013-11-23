@@ -40,18 +40,13 @@
 	#define SYSDATA_DIR "Sys"
 #elif defined __APPLE__
 	#define SYSDATA_DIR "Contents/Resources/Sys"
-	#define SHARED_USER_DIR	File::GetBundleDirectory() + \
-				DIR_SEP USERDATA_DIR DIR_SEP
 #elif defined ANDROID
 	#define SYSDATA_DIR "/sdcard/dolphin-emu"
-	#define SHARED_USER_DIR SYSDATA_DIR
 #else
 	#ifdef DATA_DIR
 		#define SYSDATA_DIR DATA_DIR "sys"
-		#define SHARED_USER_DIR  DATA_DIR USERDATA_DIR DIR_SEP
 	#else
 		#define SYSDATA_DIR "sys"
-		#define SHARED_USER_DIR  ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP
 	#endif
 #endif
 
@@ -61,28 +56,29 @@
 #define JAP_DIR "JAP"
 
 // Subdirs in the User dir returned by GetUserPath(D_USER_IDX)
-#define GC_USER_DIR		"GC"
+#define GC_USER_DIR			"GC"
 #define WII_USER_DIR		"Wii"
-#define CONFIG_DIR		"Config"
-#define GAMECONFIG_DIR		"GameConfig"
-#define MAPS_DIR		"Maps"
-#define CACHE_DIR		"Cache"
+#define CONFIG_DIR			"Config"
+#define GAMESETTINGS_DIR	"GameSettings"
+#define MAPS_DIR			"Maps"
+#define CACHE_DIR			"Cache"
 #define SHADERCACHE_DIR		"ShaderCache"
 #define STATESAVES_DIR		"StateSaves"
 #define SCREENSHOTS_DIR		"ScreenShots"
-#define OPENCL_DIR		"OpenCL"
-#define LOAD_DIR 		"Load"
+#define OPENCL_DIR			"OpenCL"
+#define LOAD_DIR 			"Load"
 #define HIRES_TEXTURES_DIR	LOAD_DIR DIR_SEP "Textures"
-#define DUMP_DIR		"Dump"
-#define DUMP_TEXTURES_DIR	DUMP_DIR DIR_SEP "Textures"
-#define DUMP_FRAMES_DIR		DUMP_DIR DIR_SEP "Frames"
-#define DUMP_AUDIO_DIR		DUMP_DIR DIR_SEP "Audio"
-#define DUMP_DSP_DIR		DUMP_DIR DIR_SEP "DSP"
-#define LOGS_DIR		"Logs"
-#define MAIL_LOGS_DIR		LOGS_DIR DIR_SEP "Mail"
+#define DUMP_DIR			"Dump"
+#define DUMP_TEXTURES_DIR	"Textures"
+#define DUMP_FRAMES_DIR		"Frames"
+#define DUMP_AUDIO_DIR		"Audio"
+#define DUMP_DSP_DIR		"DSP"
+#define LOGS_DIR			"Logs"
+#define MAIL_LOGS_DIR		"Mail"
 #define SHADERS_DIR 		"Shaders"
 #define WII_SYSCONF_DIR		"shared2" DIR_SEP "sys"
-#define THEMES_DIR		"Themes"
+#define WII_WC24CONF_DIR	"shared2" DIR_SEP "wc24"
+#define THEMES_DIR			"Themes"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
@@ -118,10 +114,6 @@
 #define WII_STATE	"state.dat"
 
 #define WII_SETTING		"setting.txt"
-#define WII_EUR_SETTING "setting-eur.txt"
-#define WII_USA_SETTING "setting-usa.txt"
-#define WII_JAP_SETTING "setting-jpn.txt"
-#define WII_KOR_SETTING "setting-kor.txt"
 
 #define GECKO_CODE_HANDLER "codehandler.bin"
 

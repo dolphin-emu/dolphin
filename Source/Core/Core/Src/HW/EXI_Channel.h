@@ -5,9 +5,10 @@
 #ifndef _EXICHANNEL_H
 #define _EXICHANNEL_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 #include "EXI_Device.h"
+#include <memory>
 
 #ifdef _WIN32
 #pragma warning(disable:4201)
@@ -92,7 +93,7 @@ private:
 		NUM_DEVICES = 3
 	};
 
-	IEXIDevice* m_pDevices[NUM_DEVICES];
+	std::unique_ptr<IEXIDevice> m_pDevices[NUM_DEVICES];
 
 	// Since channels operate a bit differently from each other
 	u32 m_ChannelId;

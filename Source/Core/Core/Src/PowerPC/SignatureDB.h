@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 #include <map>
 #include <string>
@@ -36,7 +36,7 @@ public:
 	void Clean(const char *prefix);
 	void Clear();
 	void List();
-	
+
 	void Initialize(PPCSymbolDB *func_db, const char *prefix = "");
 	void Apply(PPCSymbolDB *func_db);
 

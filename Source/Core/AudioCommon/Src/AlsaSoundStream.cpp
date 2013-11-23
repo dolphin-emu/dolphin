@@ -57,7 +57,7 @@ void AlsaSound::SoundLoop()
 			// Underrun
 			snd_pcm_prepare(handle);
 		}
-		else if (rc < 0) 
+		else if (rc < 0)
 		{
 			ERROR_LOG(AUDIO, "writei fail: %s", snd_strerror(rc));
 		}
@@ -77,7 +77,7 @@ bool AlsaSound::AlsaInit()
 	unsigned int periods;
 
 	err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Audio open error: %s\n", snd_strerror(err));
 		return false;
@@ -86,21 +86,21 @@ bool AlsaSound::AlsaInit()
 	snd_pcm_hw_params_alloca(&hwparams);
 
 	err = snd_pcm_hw_params_any(handle, hwparams);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Broken configuration for this PCM: %s\n", snd_strerror(err));
 		return false;
 	}
-	
+
 	err = snd_pcm_hw_params_set_access(handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Access type not available: %s\n", snd_strerror(err));
 		return false;
 	}
 
 	err = snd_pcm_hw_params_set_format(handle, hwparams, SND_PCM_FORMAT_S16_LE);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Sample format not available: %s\n", snd_strerror(err));
 		return false;
@@ -108,14 +108,14 @@ bool AlsaSound::AlsaInit()
 
 	dir = 0;
 	err = snd_pcm_hw_params_set_rate_near(handle, hwparams, &sample_rate, &dir);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Rate not available: %s\n", snd_strerror(err));
 		return false;
 	}
 
 	err = snd_pcm_hw_params_set_channels(handle, hwparams, 2);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Channels count not available: %s\n", snd_strerror(err));
 		return false;
@@ -123,7 +123,7 @@ bool AlsaSound::AlsaInit()
 
 	periods = BUFFER_SIZE_MAX / FRAME_COUNT_MIN;
 	err = snd_pcm_hw_params_set_periods_max(handle, hwparams, &periods, &dir);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Cannot set Minimum periods: %s\n", snd_strerror(err));
 		return false;
@@ -131,34 +131,34 @@ bool AlsaSound::AlsaInit()
 
 	buffer_size_max = BUFFER_SIZE_MAX;
 	err = snd_pcm_hw_params_set_buffer_size_max(handle, hwparams, &buffer_size_max);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Cannot set minimum buffer size: %s\n", snd_strerror(err));
 		return false;
 	}
 
 	err = snd_pcm_hw_params(handle, hwparams);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Unable to install hw params: %s\n", snd_strerror(err));
 		return false;
 	}
 
 	err = snd_pcm_hw_params_get_buffer_size(hwparams, &buffer_size);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Cannot get buffer size: %s\n", snd_strerror(err));
 		return false;
 	}
 
 	err = snd_pcm_hw_params_get_periods_max(hwparams, &periods, &dir);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Cannot get periods: %s\n", snd_strerror(err));
 		return false;
 	}
 
-	//periods is the number of fragments alsa can wait for during one 
+	//periods is the number of fragments alsa can wait for during one
 	//buffer_size
 	frames_to_deliver = buffer_size / periods;
 	//limit the minimum size. pulseaudio advertises a minimum of 32 samples.
@@ -172,28 +172,28 @@ bool AlsaSound::AlsaInit()
 	snd_pcm_sw_params_alloca(&swparams);
 
 	err = snd_pcm_sw_params_current(handle, swparams);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "cannot init sw params: %s\n", snd_strerror(err));
 		return false;
 	}
 
 	err = snd_pcm_sw_params_set_start_threshold(handle, swparams, 0U);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "cannot set start thresh: %s\n", snd_strerror(err));
 		return false;
 	}
 
 	err = snd_pcm_sw_params(handle, swparams);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "cannot set sw params: %s\n", snd_strerror(err));
 		return false;
 	}
 
 	err = snd_pcm_prepare(handle);
-	if (err < 0) 
+	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Unable to prepare: %s\n", snd_strerror(err));
 		return false;

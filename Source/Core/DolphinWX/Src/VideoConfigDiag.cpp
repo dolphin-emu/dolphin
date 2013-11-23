@@ -67,9 +67,9 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 }
 
 #if defined(_WIN32)
-wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nDirect3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\nNote that the Direct3D backends are only available on Windows.\n\nIf unsure, use Direct3D 11.");
+wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is only used for debugging, so you'll want to use either Direct3D or OpenGL. Different games will behave differently on each backend, so for best emulation experience it's recommended to try both and chose the one that fits your requirements best.\nNote that the Direct3D backend is not available on old Windows versions.\n\nIf unsure, use Direct3D.");
 #else
-wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nDirect3D 9 usually is the fastest one. OpenGL is more accurate though. Direct3D 11 is somewhere between the two.\nNote that the Direct3D backends are only available on Windows.\n\nIf unsure, use OpenGL.");
+wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is only used for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, use OpenGL.");
 #endif
 wxString adapter_desc = wxTRANSLATE("Select a hardware adapter to use.\n\nIf unsure, use the first one.");
 wxString display_res_desc = wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be bigger than or equal to the internal resolution. Performance impact is negligible.\n\nIf unsure, use your desktop resolution.\nIf still unsure, use the highest resolution which works for you.");
@@ -86,7 +86,7 @@ wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual q
 wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis makes the rendered picture look less blocky.\nHeavily decreases emulation speed and sometimes causes issues.\n\nIf unsure, select None.");
 wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render to texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly decreases performance and possibly causes issues (although unlikely).\n\nIf unsure, leave this checked.");
 wxString pixel_lighting_desc = wxTRANSLATE("Calculate lighting of 3D graphics per-pixel rather than per vertex.\nDecreases emulation speed by some percent (depending on your GPU).\nThis usually is a safe enhancement, but might cause issues sometimes.\n\nIf unsure, leave this unchecked.");
-wxString hacked_buffer_upload_desc = wxTRANSLATE("Speed up vertex streaming by using unsafe OpenGL code. Enabling this option might cause heavy glitches or even crash the emulator.\n\nIf unsure, leave this unchecked.");
+wxString hacked_buffer_upload_desc = wxTRANSLATE("Uses unsafe operations to speed up vertex streaming in OpenGL. There are no known problems on supported GPUs, but it will cause severe stability and graphical issues otherwise.\n\nIf unsure, leave this unchecked.");
 wxString fast_depth_calc_desc = wxTRANSLATE("Use a less accurate algorithm to calculate depth values.\nCauses issues in a few games but might give a decent speedup.\n\nIf unsure, leave this checked.");
 wxString force_filtering_desc = wxTRANSLATE("Force texture filtering even if the emulated game explicitly disabled it.\nImproves texture quality slightly but causes glitches in some games.\n\nIf unsure, leave this unchecked.");
 wxString _3d_vision_desc = wxTRANSLATE("Enable 3D effects via stereoscopy using Nvidia 3D Vision technology if it's supported by your GPU.\nPossibly causes issues.\nRequires fullscreen to work.\n\nIf unsure, leave this unchecked.");
@@ -101,7 +101,7 @@ wxString wireframe_desc = wxTRANSLATE("Render the scene as a wireframe.\n\nIf un
 wxString disable_fog_desc = wxTRANSLATE("Makes distant objects more visible by removing fog, thus increasing the overall detail.\nDisabling fog will break some games which rely on proper fog emulation.\n\nIf unsure, leave this unchecked.");
 wxString disable_dstalpha_desc = wxTRANSLATE("Disables emulation of a hardware feature called destination alpha, which is used in many games for various graphical effects.\n\nIf unsure, leave this unchecked.");
 wxString show_fps_desc = wxTRANSLATE("Show the number of frames rendered per second as a measure of emulation speed.\n\nIf unsure, leave this unchecked.");
-wxString log_fps_to_file_desc = wxTRANSLATE("Log the number of frames rendered per second to User/Logs/fps.txt. Use this feature when you want to measure the performance of Dolphin.\n\nIf unsure, leave this unchecked."); 
+wxString log_fps_to_file_desc = wxTRANSLATE("Log the number of frames rendered per second to User/Logs/fps.txt. Use this feature when you want to measure the performance of Dolphin.\n\nIf unsure, leave this unchecked.");
 wxString show_input_display_desc = wxTRANSLATE("Display the inputs read by the emulator.\n\nIf unsure, leave this unchecked.");
 wxString show_stats_desc = wxTRANSLATE("Show various statistics.\n\nIf unsure, leave this unchecked.");
 wxString texfmt_desc = wxTRANSLATE("Modify textures to show the format they're encoded in. Needs an emulation reset in most cases.\n\nIf unsure, leave this unchecked.");
@@ -154,32 +154,32 @@ wxArrayString GetListOfResolutions()
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
 	main_frame->m_XRRConfig->AddResolutions(retlist);
 #elif defined(__APPLE__)
-	CFArrayRef modes = CGDisplayAvailableModes(CGMainDisplayID());
+	CFArrayRef modes = CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
 	for (CFIndex i = 0; i < CFArrayGetCount(modes); i++)
 	{
 		std::stringstream res;
-		CFDictionaryRef mode;
-		CFNumberRef ref;
-		int w, h, d;
+		CGDisplayModeRef mode;
+		CFStringRef encoding;
+		size_t w, h;
+		bool is32;
 
-		mode = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, i);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayWidth);
-		CFNumberGetValue(ref, kCFNumberIntType, &w);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode, kCGDisplayHeight);
-		CFNumberGetValue(ref, kCFNumberIntType, &h);
-		ref = (CFNumberRef)CFDictionaryGetValue(mode,
-			kCGDisplayBitsPerPixel);
-		CFNumberGetValue(ref, kCFNumberIntType, &d);
+		mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(modes, i);
+		w = CGDisplayModeGetWidth(mode);
+		h = CGDisplayModeGetHeight(mode);
+		encoding = CGDisplayModeCopyPixelEncoding(mode);
+		is32 = CFEqual(encoding, CFSTR(IO32BitDirectPixels));
+		CFRelease(encoding);
 
-		if (CFDictionaryContainsKey(mode, kCGDisplayModeIsStretched))
+		if (!is32)
 			continue;
-		if (d != 32)
+		if (CGDisplayModeGetIOFlags(mode) & kDisplayModeStretchedFlag)
 			continue;
 
 		res << w << "x" << h;
 
 		retlist.Add(res.str());
 	}
+	CFRelease(modes);
 #endif
 	return retlist;
 }
@@ -344,7 +344,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// Internal resolution
 	{
 	const wxString efbscale_choices[] = { _("Auto (Window Size)"), _("Auto (Multiple of 640x528)"),
-		_("1x Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056)"), 
+		_("1x Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056)"),
 		_("2.5x Native (1600x1320)"), _("3x Native (1920x1584)"), _("4x Native (2560x2112)") };
 
 	wxChoice *const choice_efbscale = CreateChoice(page_enh,
@@ -503,7 +503,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_other->Add(CreateCheckBox(page_hacks, _("OpenMP Texture Decoder"), wxGetTranslation(omp_desc), vconfig.bOMPDecoder));
 	szr_other->Add(CreateCheckBox(page_hacks, _("Fast Depth Calculation"), wxGetTranslation(fast_depth_calc_desc), vconfig.bFastDepthCalc));
 	szr_other->Add(hacked_buffer_upload = CreateCheckBox(page_hacks, _("Vertex Streaming Hack"), wxGetTranslation(hacked_buffer_upload_desc), vconfig.bHackedBufferUpload));
-	
+
 	wxStaticBoxSizer* const group_other = new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Other"));
 	group_other->Add(szr_other, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	szr_hacks->Add(group_other, 0, wxEXPAND | wxALL, 5);

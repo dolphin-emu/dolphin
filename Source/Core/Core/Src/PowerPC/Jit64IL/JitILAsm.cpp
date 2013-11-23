@@ -2,23 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "x64ABI.h"
-#include "x64Emitter.h"
-
-#include "../../HW/Memmap.h"
-
-#include "../PowerPC.h"
-#include "../../CoreTiming.h"
-#include "MemoryUtil.h"
-#include "CPUDetect.h"
-
-#include "x64ABI.h"
-#include "Thunk.h"
-
-#include "../../HW/GPFifo.h"
-#include "../../Core.h"
 #include "JitIL.h"
 #include "JitILAsm.h"
+
+#include "MemoryUtil.h"
+#include "CPUDetect.h"
 
 using namespace Gen;
 
@@ -26,9 +14,9 @@ using namespace Gen;
 
 //TODO - make an option
 //#if _DEBUG
-static bool enableDebug = false; 
+static bool enableDebug = false;
 //#else
-//		bool enableDebug = false; 
+//		bool enableDebug = false;
 //#endif
 
 //static bool enableStatistics = false; // unused?
@@ -39,7 +27,7 @@ static bool enableDebug = false;
 //GLOBAL STATIC ALLOCATIONS x64
 //EAX - ubiquitous scratch register - EVERYBODY scratches this
 //RBX - Base pointer of memory
-//R15 - Pointer to array of block pointers 
+//R15 - Pointer to array of block pointers
 
 JitILAsmRoutineManager jitil_asm_routines;
 
@@ -61,7 +49,7 @@ void JitILAsmRoutineManager::Generate()
 	const u8 *outer_loop = GetCodePtr();
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
-	
+
 		dispatcher = GetCodePtr();
 			//This is the place for CPUCompare!
 
@@ -87,41 +75,40 @@ void JitILAsmRoutineManager::Generate()
 			MOV(32, R(EAX), M(&PowerPC::ppcState.pc));
 			dispatcherPcInEAX = GetCodePtr();
 
-#ifdef JIT_UNLIMITED_ICACHE
 			u32 mask = 0;
 			FixupBranch no_mem;
 			FixupBranch exit_mem;
 			FixupBranch exit_vmem;
 			if (Core::g_CoreStartupParameter.bWii)
 				mask = JIT_ICACHE_EXRAM_BIT;
-			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 				mask |= JIT_ICACHE_VMEM_BIT;
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
 				TEST(32, R(EAX), Imm32(mask));
 				no_mem = J_CC(CC_NZ);
 			}
 			AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
 #ifdef _M_IX86
-			MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICache()));
+			MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCache));
 #else
-			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICache()));
+			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCache));
 			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
 				exit_mem = J();
 				SetJumpTarget(no_mem);
 			}
-			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			if (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 			{
 				TEST(32, R(EAX), Imm32(JIT_ICACHE_VMEM_BIT));
 				FixupBranch no_vmem = J_CC(CC_Z);
 				AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
 #ifdef _M_IX86
-				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICacheVMEM()));
+				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCacheVMEM));
 #else
-				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICacheVMEM()));
+				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheVMEM));
 				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
 				if (Core::g_CoreStartupParameter.bWii) exit_vmem = J();
@@ -133,30 +120,20 @@ void JitILAsmRoutineManager::Generate()
 				FixupBranch no_exram = J_CC(CC_Z);
 				AND(32, R(EAX), Imm32(JIT_ICACHEEX_MASK));
 #ifdef _M_IX86
-				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICacheEx()));
+				MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->iCacheEx));
 #else
-				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICacheEx()));
+				MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->iCacheEx));
 				MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
 				SetJumpTarget(no_exram);
 			}
-			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack)
+			if (Core::g_CoreStartupParameter.bWii || Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack)
 				SetJumpTarget(exit_mem);
-			if (Core::g_CoreStartupParameter.bWii && (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.iTLBHack))
+			if (Core::g_CoreStartupParameter.bWii && (Core::g_CoreStartupParameter.bMMU || Core::g_CoreStartupParameter.bTLBHack))
 				SetJumpTarget(exit_vmem);
-#else
-#ifdef _M_IX86
-			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-			MOV(32, R(EBX), Imm32((u32)Memory::base));
-			MOV(32, R(EAX), MComplex(EBX, EAX, SCALE_1, 0));
-#else
-			MOV(32, R(EAX), MComplex(RBX, RAX, SCALE_1, 0));
-#endif
-#endif
 
-			TEST(32, R(EAX), Imm32(0xFC));
-			FixupBranch notfound = J_CC(CC_NZ);
-				BSWAP(32, EAX);
+			TEST(32, R(EAX), R(EAX));
+			FixupBranch notfound = J_CC(CC_L);
 				//IDEA - we have 26 bits, why not just use offsets from base of code?
 				if (enableDebug)
 				{
@@ -184,7 +161,7 @@ void JitILAsmRoutineManager::Generate()
 			JMP(dispatcherNoCheck); // no point in special casing this
 
 			//FP blocks test for FPU available, jump here if false
-			fpException = AlignCode4(); 
+			fpException = AlignCode4();
 			MOV(32, R(EAX), M(&PC));
 			MOV(32, M(&NPC), R(EAX));
 			LOCK();
@@ -198,14 +175,14 @@ void JitILAsmRoutineManager::Generate()
 		doTiming = GetCodePtr();
 
 		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
-		
+
 		testExceptions = GetCodePtr();
 		MOV(32, R(EAX), M(&PC));
 		MOV(32, M(&NPC), R(EAX));
 		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 		MOV(32, R(EAX), M(&NPC));
 		MOV(32, M(&PC), R(EAX));
-		
+
 		TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outer_loop, true);
 	//Landing pad for drec space
@@ -233,18 +210,11 @@ void JitILAsmRoutineManager::GenerateCommon()
 	fifoDirectWriteXmm64 = AlignCode4();
 	GenFifoXmm64Write();
 
-	doReJit = AlignCode4();
-	ABI_AlignStack(0);
-	CALL(reinterpret_cast<void *>(&ProfiledReJit));
-	ABI_RestoreStack(0);
-	SUB(32, M(&CoreTiming::downcount), Imm8(0));
-	JMP(dispatcher, true);
-
 	GenQuantizedLoads();
 	GenQuantizedStores();
 	GenQuantizedSingleStores();
 
-	//CMPSD(R(XMM0), M(&zero), 
+	//CMPSD(R(XMM0), M(&zero),
 	// TODO
 
 	// Fast write routines - special case the most common hardware write

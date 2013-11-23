@@ -3,13 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-#include "Thunk.h"
-
-#include "../../Core.h"
-#include "../PowerPC.h"
-#include "../../CoreTiming.h"
-#include "../PPCTables.h"
-#include "x64Emitter.h"
 
 #include "Jit.h"
 #include "JitRegCache.h"
@@ -19,19 +12,19 @@
 // No need for a disable-mechanism.
 
 // If defined, clears CR0 at blr and bl-s. If the assumption that
-// flags never carry over between functions holds, then the task for 
+// flags never carry over between functions holds, then the task for
 // an optimizer becomes much easier.
 
 // #define ACID_TEST
 
-// Zelda and many more games seem to pass the Acid Test. 
+// Zelda and many more games seem to pass the Acid Test.
 
 using namespace Gen;
 
 void Jit64::sc(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -44,7 +37,7 @@ void Jit64::sc(UGeckoInstruction inst)
 void Jit64::rfi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -64,7 +57,7 @@ void Jit64::rfi(UGeckoInstruction inst)
 void Jit64::bx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	// We must always process the following sentence
 	// even if the blocks are merged by PPCAnalyst::Flatten().
@@ -98,7 +91,7 @@ void Jit64::bx(UGeckoInstruction inst)
 		// make idle loops go faster
 		js.downcountAmount += 8;
 	}
-	WriteExit(destination, 0);
+	WriteExit(destination);
 }
 
 // TODO - optimize to hell and beyond
@@ -107,7 +100,7 @@ void Jit64::bx(UGeckoInstruction inst)
 void Jit64::bcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	// USES_CR
 	_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
@@ -129,12 +122,12 @@ void Jit64::bcx(UGeckoInstruction inst)
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
 	{
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
+		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch
 			pConditionDontBranch = J_CC(CC_Z);
 		else
 			pConditionDontBranch = J_CC(CC_NZ);
 	}
-	
+
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 
@@ -143,19 +136,19 @@ void Jit64::bcx(UGeckoInstruction inst)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
-	WriteExit(destination, 0);
+	WriteExit(destination);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
-	WriteExit(js.compilerPC + 4, 1);
+	WriteExit(js.compilerPC + 4);
 }
 
 void Jit64::bcctrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -187,7 +180,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		if (inst.BO_2 & BO_BRANCH_IF_TRUE)
 			branch = CC_Z;
 		else
-			branch = CC_NZ; 
+			branch = CC_NZ;
 		FixupBranch b = J_CC(branch, false);
 		MOV(32, R(EAX), M(&CTR));
 		AND(32, R(EAX), Imm32(0xFFFFFFFC));
@@ -197,14 +190,14 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		WriteExitDestInEAX();
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
-		WriteExit(js.compilerPC + 4, 1);
+		WriteExit(js.compilerPC + 4);
 	}
 }
 
 void Jit64::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	if (!js.isLastInstruction &&
 		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {
@@ -230,7 +223,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
 	{
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
+		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch
 			pConditionDontBranch = J_CC(CC_Z);
 		else
 			pConditionDontBranch = J_CC(CC_NZ);
@@ -242,7 +235,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
 #endif
 
-	MOV(32, R(EAX), M(&LR));	
+	MOV(32, R(EAX), M(&LR));
 	AND(32, R(EAX), Imm32(0xFFFFFFFC));
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
@@ -252,5 +245,5 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
-	WriteExit(js.compilerPC + 4, 1);
+	WriteExit(js.compilerPC + 4);
 }

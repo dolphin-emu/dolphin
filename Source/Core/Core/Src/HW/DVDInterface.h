@@ -5,7 +5,7 @@
 #ifndef _DVDINTERFACE_H
 #define _DVDINTERFACE_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 class PointerWrap;
 
 namespace DVDInterface

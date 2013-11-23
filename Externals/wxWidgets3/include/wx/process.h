@@ -4,7 +4,6 @@
 // Author:      Guilhem Lavaux
 // Modified by: Vadim Zeitlin to check error codes, added Detach() method
 // Created:     24/06/98
-// RCS-ID:      $Id: process.h 61724 2009-08-21 10:41:26Z VZ $
 // Copyright:   (c) 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -104,6 +103,15 @@ public:
                         wxInputStream *errStream);
 #endif // wxUSE_STREAMS
 
+    // priority
+        // Sets the priority to the given value: see wxPRIORITY_XXX constants.
+        //
+        // NB: the priority can only be set before the process is created
+    void SetPriority(unsigned priority);
+
+        // Get the current priority.
+    unsigned GetPriority() const { return m_priority; }
+
     // implementation only - don't use!
     // --------------------------------
 
@@ -115,6 +123,8 @@ protected:
 
     int m_id;
     long m_pid;
+
+    unsigned m_priority;
 
 #if wxUSE_STREAMS
     // these streams are connected to stdout, stderr and stdin of the child

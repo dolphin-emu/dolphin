@@ -176,7 +176,7 @@ void CMemcardManager::CreateGUIControls()
 	m_ConvertToGci = new wxButton(this, ID_CONVERTTOGCI, _("Convert to GCI"));
 
 	wxStaticBoxSizer *sMemcard[2];
-	
+
 	for (int slot = SLOT_A; slot <= SLOT_B; slot++)
 	{
 		m_CopyFrom[slot]	= new wxButton(this, ID_COPYFROM_A + slot,
@@ -203,10 +203,10 @@ void CMemcardManager::CreateGUIControls()
 		m_MemcardPath[slot] = new wxFilePickerCtrl(this, ID_MEMCARDPATH_A + slot,
 			 StrToWxStr(File::GetUserPath(D_GCUSER_IDX)), _("Choose a memory card:"),
 		_("Gamecube Memory Cards (*.raw,*.gcp)") + wxString(wxT("|*.raw;*.gcp")), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
-	
+
 		m_MemcardList[slot] = new CMemcardListCtrl(this, ID_MEMCARDLIST_A + slot, wxDefaultPosition, wxSize(350,400),
 		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL, mcmSettings);
-	
+
 		m_MemcardList[slot]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
 
 		sMemcard[slot] = new wxStaticBoxSizer(wxVERTICAL, this, _("Memory Card") + wxString::Format(wxT(" %c"), 'A' + slot));
@@ -499,7 +499,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		{
 			PanicAlert(E_SAVEFAILED);
 		}
-		break; 
+		break;
 	case ID_CONVERTTOGCI:
 		fileName2 = "convert";
 	case ID_SAVEIMPORT_A:
@@ -703,7 +703,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 		auto const string_decoder = memoryCard[card]->IsAsciiEncoding() ?
 			CP1252ToUTF8 : SHIFTJISToUTF8;
-			
+
 		wxTitle = StrToWxStr(string_decoder(title));
 		wxComment = StrToWxStr(string_decoder(comment));
 
@@ -711,10 +711,10 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxComment);
 
 		blocks = memoryCard[card]->DEntry_BlockCount(fileIndex);
-		
+
 		if (blocks == 0xFFFF)
 			blocks = 0;
-		
+
 		wxBlock.Printf(wxT("%10d"), blocks);
 		m_MemcardList[card]->SetItem(index,COLUMN_BLOCKS, wxBlock);
 		firstblock = memoryCard[card]->DEntry_FirstBlock(fileIndex);
@@ -777,7 +777,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 	long item = HitTest(event.GetPosition(), flags);
 	wxMenu* popupMenu = new wxMenu;
 
-	if (item != wxNOT_FOUND) 
+	if (item != wxNOT_FOUND)
 	{
 		if (GetItemState(item, wxLIST_STATE_SELECTED) != wxLIST_STATE_SELECTED)
 		{
@@ -791,7 +791,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu->Append(ID_SAVEIMPORT_A + slot, _("Import Save"));
 		popupMenu->Append(ID_SAVEEXPORT_A + slot, _("Export Save"));
 		popupMenu->Append(ID_EXPORTALL_A + slot, _("Export all saves"));
-				
+
 		popupMenu->FindItem(ID_COPYFROM_A + slot)->Enable(__mcmSettings.twoCardsLoaded);
 
 		popupMenu->AppendSeparator();
@@ -805,7 +805,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu->FindItem(ID_PREVPAGE_A + slot)->Enable(prevPage && __mcmSettings.usePages);
 		popupMenu->FindItem(ID_NEXTPAGE_A + slot)->Enable(nextPage && __mcmSettings.usePages);
 		popupMenu->FindItem(ID_USEPAGES)->Check(__mcmSettings.usePages);
-		
+
 		popupMenu->AppendSeparator();
 
 //		popupMenu->AppendCheckItem(COLUMN_BANNER, _("Show save banner"));

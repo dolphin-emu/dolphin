@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "stdafx.h"
-
 #include "VolumeGC.h"
 #include "StringUtil.h"
 #include "FileMonitor.h"
@@ -54,6 +52,13 @@ std::string CVolumeGC::GetUniqueID() const
 	return ID;
 }
 
+std::string CVolumeGC::GetRevisionSpecificUniqueID() const
+{
+	char rev[16];
+	sprintf(rev, "r%d", GetRevision());
+	return GetUniqueID() + rev;
+}
+
 IVolume::ECountry CVolumeGC::GetCountry() const
 {
 	if (!m_pReader)
@@ -93,7 +98,7 @@ int CVolumeGC::GetRevision() const
 std::vector<std::string> CVolumeGC::GetNames() const
 {
 	std::vector<std::string> names;
-	
+
 	auto const string_decoder = GetStringDecoder(GetCountry());
 
 	char name[0x60 + 1] = {};

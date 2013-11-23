@@ -2,7 +2,6 @@
 // Name:        src/gtk/radiobut.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: radiobut.cpp 67326 2011-03-28 06:27:49Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +13,9 @@
 
 #include "wx/radiobut.h"
 
+#include <gtk/gtk.h>
 #include "wx/gtk/private.h"
+#include "wx/gtk/private/gtk2-compat.h"
 
 //-----------------------------------------------------------------------------
 // data
@@ -30,13 +31,11 @@ extern "C" {
 static
 void gtk_radiobutton_clicked_callback( GtkToggleButton *button, wxRadioButton *rb )
 {
-    if (!rb->m_hasVMT) return;
-
     if (g_blockEventsOnDrag) return;
 
     if (!gtk_toggle_button_get_active(button)) return;
 
-    wxCommandEvent event( wxEVT_COMMAND_RADIOBUTTON_SELECTED, rb->GetId());
+    wxCommandEvent event( wxEVT_RADIOBUTTON, rb->GetId());
     event.SetInt( rb->GetValue() );
     event.SetEventObject( rb );
     rb->HandleWindowEvent( event );
@@ -63,6 +62,9 @@ bool wxRadioButton::Create( wxWindow *parent,
         return false;
     }
 
+    // Check if this radio button should be put into an existing group. This
+    // shouldn't be done if it's given a style to explicitly start a new group
+    // or if it's not meant to be a part of a group at all.
     GSList* radioButtonGroup = NULL;
     if (!HasFlag(wxRB_GROUP) && !HasFlag(wxRB_SINGLE))
     {
@@ -71,10 +73,22 @@ bool wxRadioButton::Create( wxWindow *parent,
         for (; node; node = node->GetPrevious())
         {
             wxWindow *child = node->GetData();
-            if (child->HasFlag(wxRB_GROUP) && wxIsKindOf(child, wxRadioButton))
+
+            // We stop at the first previous radio button in any case as it
+            // wouldn't make sense to put this button in a group with another
+            // one if there is a radio button that is not part of the same
+            // group between them.
+            if (wxIsKindOf(child, wxRadioButton))
             {
-                radioButtonGroup = gtk_radio_button_get_group(
-                    GTK_RADIO_BUTTON(child->m_widget));
+                // Any preceding radio button can be used to get its group, not
+                // necessarily one with wxRB_GROUP style, but exclude
+                // wxRB_SINGLE ones as their group should never be shared.
+                if (!child->HasFlag(wxRB_SINGLE))
+                {
+                    radioButtonGroup = gtk_radio_button_get_group(
+                        GTK_RADIO_BUTTON(child->m_widget));
+                }
+
                 break;
             }
         }
@@ -152,28 +166,21 @@ bool wxRadioButton::Enable( bool enable )
 
 void wxRadioButton::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    gtk_widget_modify_style(m_widget, style);
-    gtk_widget_modify_style(gtk_bin_get_child(GTK_BIN(m_widget)), style);
+    GTKApplyStyle(m_widget, style);
+    GTKApplyStyle(gtk_bin_get_child(GTK_BIN(m_widget)), style);
 }
 
 GdkWindow *
 wxRadioButton::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
 {
-    return GTK_BUTTON(m_widget)->event_window;
+    return gtk_button_get_event_window(GTK_BUTTON(m_widget));
 }
 
 // static
 wxVisualAttributes
 wxRadioButton::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-    wxVisualAttributes attr;
-    // NB: we need toplevel window so that GTK+ can find the right style
-    GtkWidget *wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    GtkWidget* widget = gtk_radio_button_new_with_label(NULL, "");
-    gtk_container_add(GTK_CONTAINER(wnd), widget);
-    attr = GetDefaultAttributesFromGTKWidget(widget);
-    gtk_widget_destroy(wnd);
-    return attr;
+    return GetDefaultAttributesFromGTKWidget(gtk_radio_button_new_with_label(NULL, ""));
 }
 
 

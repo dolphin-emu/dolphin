@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 #ifndef FPU_ROUND_MODE_H_
 #define FPU_ROUND_MODE_H_
-#include "Common.h"
+#include "CommonTypes.h"
 
 namespace FPURoundMode
 {
@@ -35,12 +35,12 @@ namespace FPURoundMode
 	void SetRoundMode(u32 mode);
 
 	void SetPrecisionMode(u32 mode);
-	
-	void SetSIMDMode(u32 mode);
+
+	void SetSIMDMode(u32 roundingMode, u32 nonIEEEMode);
 
 /*
  * There are two different flavors of float to int conversion:
- * _mm_cvtps_epi32() and _mm_cvttps_epi32(). 
+ * _mm_cvtps_epi32() and _mm_cvttps_epi32().
  *
  * The first rounds according to the MXCSR rounding bits.
  * The second one always uses round towards zero.

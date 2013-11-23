@@ -22,7 +22,7 @@
 static Common::replace_v replacements;
 
 
-CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName) 
+CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
 	Common::ReadReplacements(replacements);
@@ -60,9 +60,8 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
 {
 	u64 sizeOfFiles = 0;
 	const std::vector<File::FSTEntry>& children = parentEntry.children;
-	for (std::vector<File::FSTEntry>::const_iterator it = children.begin(); it != children.end(); ++it)
+	for (const auto& entry : children)
 	{
-		const File::FSTEntry& entry = *it;
 		if (entry.isDirectory)
 			sizeOfFiles += ComputeTotalFileSize(entry);
 		else
@@ -71,11 +70,11 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
 	return sizeOfFiles;
 }
 
-bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 {
 	u32 ReturnValue = FS_RESULT_OK;
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
-	
+
 	// Prepare the out buffer(s) with zeros as a safety precaution
 	// to avoid returning bad values
 	for(u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
@@ -174,7 +173,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			_dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer[0].m_Size == 4);
 			_dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer[1].m_Size == 4);
 
-			// this command sucks because it asks of the number of used 
+			// this command sucks because it asks of the number of used
 			// fsBlocks and inodes
 			// It should be correct, but don't count on it...
 			const char *relativepath = (const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address);
@@ -230,11 +229,11 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 	Memory::Write_U32(ReturnValue, _CommandAddress+4);
 
-	return true; 
+	return true;
 }
 
-bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress) 
-{ 
+bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress)
+{
 	//u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
 	//LOG(WII_IPC_FILEIO, "FS: IOCtl (Device=%s, DeviceID=%08x)", GetDeviceName().c_str(), DeviceID);
 
@@ -249,10 +248,10 @@ bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress)
 	//LOG(WII_IPC_FILEIO, "Cleared %u bytes of the out buffer", _BufferOutSize);
 	Memory::Memset(BufferOut, 0, BufferOutSize);
 
-	u32 ReturnValue = ExecuteCommand(Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);	
+	u32 ReturnValue = ExecuteCommand(Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
 
-	return true; 
+	return true;
 }
 
 s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
@@ -307,7 +306,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 	case IOCTL_SET_ATTR:
 		{
 			u32 Addr = _BufferIn;
-		
+
 			u32 OwnerID = Memory::Read_U32(Addr); Addr += 4;
 			u16 GroupID = Memory::Read_U16(Addr); Addr += 2;
 			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn), 64); Addr += 64;
@@ -329,17 +328,17 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 		break;
 
 	case IOCTL_GET_ATTR:
-		{		
+		{
 			_dbg_assert_msg_(WII_IPC_FILEIO, _BufferOutSize == 76,
 				"    GET_ATTR needs an 76 bytes large output buffer but it is %i bytes large",
 				_BufferOutSize);
 
 			u32 OwnerID = 0;
-			u16 GroupID = 0;
+			u16 GroupID = 0x3031; // this is also known as makercd, 01 (0x3031) for nintendo and 08 (0x3038) for MH3 etc
 			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn), 64);
 			u8 OwnerPerm = 0x3;		// read/write
 			u8 GroupPerm = 0x3;		// read/write
-			u8 OtherPerm = 0x3;		// read/write		
+			u8 OtherPerm = 0x3;		// read/write
 			u8 Attributes = 0x00;	// no attributes
 			if (File::IsDirectory(Filename))
 			{
@@ -477,7 +476,12 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			return FS_RESULT_OK;
 		}
 		break;
-
+	case IOCTL_SHUTDOWN:
+		{
+			INFO_LOG(WII_IPC_FILEIO, "Wii called Shutdown()");
+			// TODO: stop emulation
+		}
+		break;
 	default:
 		ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", _Parameter);
 		PanicAlert("CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", _Parameter);
@@ -567,7 +571,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 			}
 			else
 			{
-				u32 size = entry.size;
+				u32 size = (u32)entry.size;
 				p.Do(size);
 
 				File::IOFile handle(entry.physicalName, "rb");

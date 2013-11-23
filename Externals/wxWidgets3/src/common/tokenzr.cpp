@@ -4,7 +4,6 @@
 // Author:      Guilhem Lavaux
 // Modified by: Vadim Zeitlin (almost full rewrite)
 // Created:     04/22/98
-// RCS-ID:      $Id: tokenzr.cpp 61508 2009-07-23 20:30:22Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

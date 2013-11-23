@@ -66,7 +66,7 @@ enum ARMReg
 	D8, D9, D10, D11, D12, D13, D14, D15,
 	D16, D17, D18, D19, D20, D21, D22, D23,
 	D24, D25, D26, D27, D28, D29, D30, D31,
-	
+
 	// ASIMD Quad-Word registers
 	Q0, Q1, Q2, Q3, Q4, Q5, Q6, Q7,
 	Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15,
@@ -103,13 +103,6 @@ enum ShiftType
 	ST_ASR = 2,
 	ST_ROR = 3,
 	ST_RRX = 4
-};
-enum IntegerSize
-{
-	I_I8 = 0, 
-	I_I16,
-	I_I32,
-	I_I64
 };
 
 enum
@@ -149,11 +142,11 @@ public:
 	{
 		return Type;
 	}
-	Operand2() {} 
+	Operand2() {}
 	Operand2(u32 imm, OpType type = TYPE_IMM)
-	{ 
-		Type = type; 
-		Value = imm; 
+	{
+		Type = type;
+		Value = imm;
 		Rotation = 0;
 	}
 
@@ -345,10 +338,26 @@ struct LiteralPool
 };
 
 typedef const u8* JumpTarget;
+// XXX: Stop polluting the global namespace
+const u32 I_8 = (1 << 0);
+const u32 I_16 = (1 << 1);
+const u32 I_32 = (1 << 2);
+const u32 I_64 = (1 << 3);
+const u32 I_SIGNED = (1 << 4);
+const u32 I_UNSIGNED = (1 << 5);
+const u32 F_32 = (1 << 6);
+const u32 I_POLYNOMIAL = (1 << 7); // Only used in VMUL/VMULL
+
+u32 EncodeVd(ARMReg Vd);
+u32 EncodeVn(ARMReg Vn);
+u32 EncodeVm(ARMReg Vm);
+// Subtracts the base from the register to give us the real one
+ARMReg SubBase(ARMReg Reg);
 
 class ARMXEmitter
 {
 	friend struct OpArg;  // for Write8 etc
+	friend class NEONXEmitter;
 private:
 	u8 *code, *startcode;
 	u8 *lastCacheFlushEnd;
@@ -357,14 +366,11 @@ private:
 
 	void WriteStoreOp(u32 Op, ARMReg Rt, ARMReg Rn, Operand2 op2, bool RegAdd);
 	void WriteRegStoreOp(u32 op, ARMReg dest, bool WriteBack, u16 RegList);
-	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, ARMReg op2);
 	void WriteShiftedDataOp(u32 op, bool SetFlags, ARMReg dest, ARMReg src, Operand2 op2);
 	void WriteSignedMultiply(u32 Op, u32 Op2, u32 Op3, ARMReg dest, ARMReg r1, ARMReg r2);
 
-	u32 EncodeVd(ARMReg Vd);
-	u32 EncodeVn(ARMReg Vn);
-	u32 EncodeVm(ARMReg Vm);
 	void WriteVFPDataOp(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void WriteVFPDataOp6bit(u32 Op, ARMReg Vd, ARMReg Vn, ARMReg Vm, u32 bit6);
 
 	void Write4OpMultiply(u32 op, ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
 
@@ -450,10 +456,9 @@ public:
 	void ADC (ARMReg dest, ARMReg src, Operand2 op2);
 	void ADCS(ARMReg dest, ARMReg src, Operand2 op2);
 	void LSL (ARMReg dest, ARMReg src, Operand2 op2);
-	void LSL (ARMReg dest, ARMReg src, ARMReg op2);
 	void LSLS(ARMReg dest, ARMReg src, Operand2 op2);
-	void LSLS(ARMReg dest, ARMReg src, ARMReg op2);
 	void LSR (ARMReg dest, ARMReg src, Operand2 op2);
+	void LSRS(ARMReg dest, ARMReg src, Operand2 op2);
 	void ASR (ARMReg dest, ARMReg src, Operand2 op2);
 	void ASRS(ARMReg dest, ARMReg src, Operand2 op2);
 	void SBC (ARMReg dest, ARMReg src, Operand2 op2);
@@ -478,7 +483,7 @@ public:
 	void MOVW(ARMReg dest,             Operand2 op2);
 	void MOVT(ARMReg dest, Operand2 op2, bool TopBits = false);
 
-	// UDIV and SDIV are only available on CPUs that have 
+	// UDIV and SDIV are only available on CPUs that have
 	// the idiva hardare capacity
 	void UDIV(ARMReg dest, ARMReg dividend, ARMReg divisor);
 	void SDIV(ARMReg dest, ARMReg dividend, ARMReg divisor);
@@ -531,13 +536,6 @@ public:
 	// is deprecating conditional execution of ASIMD instructions.
 	// ASIMD instructions don't even have a conditional encoding.
 
-	// Subtracts the base from the register to give us the real one
-	ARMReg SubBase(ARMReg Reg);	
-	// NEON Only
-	void VABD(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VADD(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-	void VSUB(IntegerSize Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
-
 	// VFP Only
 	void VLDR(ARMReg Dest, ARMReg Base, s16 offset);
 	void VSTR(ARMReg Src,  ARMReg Base, s16 offset);
@@ -566,7 +564,6 @@ public:
 	void VMOV(ARMReg Dest, ARMReg Src);
 	void VCVT(ARMReg Dest, ARMReg Src, int flags);
 
-	void VMRS_APSR();
 	void VMRS(ARMReg Rt);
 	void VMSR(ARMReg Rt);
 
@@ -584,6 +581,136 @@ public:
 
 };  // class ARMXEmitter
 
+enum NEONAlignment
+{
+	ALIGN_NONE = 0,
+	ALIGN_64 = 1,
+	ALIGN_128 = 2,
+	ALIGN_256 = 3
+};
+
+
+class NEONXEmitter
+{
+private:
+	ARMXEmitter *_emit;
+	inline void Write32(u32 value) { _emit->Write32(value); }
+
+	inline u32 encodedSize(u32 value)
+	{
+		if (value & I_8)
+			return 0;
+		else if (value & I_16)
+			return 1;
+		else if ((value & I_32) || (value & F_32))
+			return 2;
+		else if (value & I_64)
+			return 3;
+		else
+			_dbg_assert_msg_(DYNA_REC, false, "Passed invalid size to integer NEON instruction");
+		return 0;
+	}
+
+	void VREVX(u32 size, u32 Size, ARMReg Vd, ARMReg Vm);
+
+public:		
+	NEONXEmitter(ARMXEmitter *emit)
+		: _emit(emit)
+	{}
+
+	void VABA(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VABAL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VABD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VABDL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VABS(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VACGE(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VACGT(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VACLE(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VACLT(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VADD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VADDHN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VADDL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VADDW(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VAND(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VBIC(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VBIF(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VBIT(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VBSL(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCEQ(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCEQ(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCGE(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCGE(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCGT(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCGT(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCLE(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCLE(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCLS(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCLT(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VCLT(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCLZ(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VCNT(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VDUP(u32 Size, ARMReg Vd, ARMReg Vm, u8 index);
+	void VDUP(u32 Size, ARMReg Vd, ARMReg Rt);
+	void VEOR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VEXT(ARMReg Vd, ARMReg Vn, ARMReg Vm, u8 index);
+	void VFMA(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VFMS(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VHADD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VHSUB(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMAX(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMIN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMLA(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMLS(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMLAL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMLSL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMUL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VMULL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VNEG(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VORN(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VORR(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VPADAL(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VPADD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VPADDL(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VPMAX(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VPMIN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQABS(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VQADD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQDMLAL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQDMLSL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQDMULH(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQDMULL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQNEG(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VQRDMULH(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQRSHL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQSHL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VQSUB(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRADDHN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRECPE(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VRECPS(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRHADD(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRSHL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRSQRTE(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VRSQRTS(ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VRSUBHN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSHL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSUB(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSUBHN(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSUBL(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSUBW(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VSWP(ARMReg Vd, ARMReg Vm);
+	void VTRN(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VTST(u32 Size, ARMReg Vd, ARMReg Vn, ARMReg Vm);
+	void VUZP(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VZIP(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VREV64(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VREV32(u32 Size, ARMReg Vd, ARMReg Vm);
+	void VREV16(u32 Size, ARMReg Vd, ARMReg Vm);
+
+	void VLD1(u32 Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
+	void VLD2(u32 Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
+
+	void VST1(u32 Size, ARMReg Vd, ARMReg Rn, NEONAlignment align = ALIGN_NONE, ARMReg Rm = _PC);
+};
 
 // Everything that needs to generate X86 code should inherit from this.
 // You get memory management for free, plus, you can use all the MOV etc functions without
@@ -608,7 +735,7 @@ public:
 
 	// Always clear code space with breakpoints, so that if someone accidentally executes
 	// uninitialized, it just breaks into the debugger.
-	void ClearCodeSpace() 
+	void ClearCodeSpace()
 	{
 		// x86/64: 0xCC = breakpoint
 		memset(region, 0xCC, region_size);

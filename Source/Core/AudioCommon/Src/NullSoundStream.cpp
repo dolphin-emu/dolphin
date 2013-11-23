@@ -2,7 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "AudioCommon.h"
 #include "NullSoundStream.h"
 #include "../../Core/Src/HW/SystemTimers.h"
 #include "../../Core/Src/HW/AudioInterface.h"

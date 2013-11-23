@@ -36,8 +36,8 @@ Drums::Drums(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Drums"), _reg)
 {
 	// pads
 	groups.push_back(m_pads = new Buttons(_trans("Pads")));
-	for (unsigned int i = 0; i < sizeof(drum_pad_names)/sizeof(*drum_pad_names); ++i)
-		m_pads->controls.push_back(new ControlGroup::Input(drum_pad_names[i]));
+	for (auto& drum_pad_name : drum_pad_names)
+		m_pads->controls.push_back(new ControlGroup::Input(drum_pad_name));
 
 	// stick
 	groups.push_back(m_stick = new AnalogStick("Stick"));

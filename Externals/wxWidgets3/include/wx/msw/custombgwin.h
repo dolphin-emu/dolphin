@@ -3,7 +3,6 @@
 // Purpose:     wxMSW implementation of wxCustomBackgroundWindow
 // Author:      Vadim Zeitlin
 // Created:     2011-10-10
-// RCS-ID:      $Id: custombgwin.h 69378 2011-10-11 17:07:43Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

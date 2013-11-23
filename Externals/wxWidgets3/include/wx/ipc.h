@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     15.04.02
-// RCS-ID:      $Id: ipc.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2002 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

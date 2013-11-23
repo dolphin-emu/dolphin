@@ -56,11 +56,11 @@ public:
 	CUCode_AX(DSPHLE* dsp_hle, u32 crc);
 	virtual ~CUCode_AX();
 
-	virtual void HandleMail(u32 mail);
-	virtual void MixAdd(short* out_buffer, int nsamples);
-	virtual void Update(int cycles);
-	virtual void DoState(PointerWrap& p);
-	u32 GetUpdateMs();
+	virtual void HandleMail(u32 mail) override;
+	virtual void MixAdd(short* out_buffer, int nsamples) override;
+	virtual void Update(int cycles) override;
+	virtual void DoState(PointerWrap& p) override;
+	u32 GetUpdateMs() override;
 
 	// Needed because StdThread.h std::thread implem does not support member
 	// pointers. TODO(delroth): obsolete.

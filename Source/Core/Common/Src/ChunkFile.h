@@ -16,6 +16,7 @@
 // - Serialization code for anything complex has to be manually written.
 
 #include <map>
+#include <set>
 #include <vector>
 #include <list>
 #include <deque>
@@ -24,6 +25,21 @@
 
 #include "Common.h"
 #include "FileUtil.h"
+
+// ewww
+#if _LIBCPP_VERSION
+#define IsTriviallyCopyable(T) std::is_trivially_copyable<T>::value
+#elif __GNUC__
+#define IsTriviallyCopyable(T) std::has_trivial_copy_constructor<T>::value
+#elif _MSC_VER >= 1800
+// work around bug
+#define IsTriviallyCopyable(T) (std::is_trivially_copyable<T>::value || std::is_pod<T>::value)
+#elif defined(_MSC_VER)
+#define IsTriviallyCopyable(T) std::has_trivial_copy<T>::value
+#else
+#error No version of is_trivially_copyable
+#endif
+
 
 template <class T>
 struct LinkedListItem : public T
@@ -74,10 +90,38 @@ public:
 		case MODE_WRITE:
 		case MODE_MEASURE:
 		case MODE_VERIFY:
+			for (auto& elem : x)
+			{
+				Do(elem.first);
+				Do(elem.second);
+			}
+			break;
+		}
+	}
+
+	template <typename V>
+	void Do(std::set<V>& x)
+	{
+		u32 count = (u32)x.size();
+		Do(count);
+
+		switch (mode)
+		{
+		case MODE_READ:
+			for (x.clear(); count != 0; --count)
+			{
+				V value;
+				Do(value);
+				x.insert(value);
+			}
+			break;
+
+		case MODE_WRITE:
+		case MODE_MEASURE:
+		case MODE_VERIFY:
 			for (auto itr = x.begin(); itr != x.end(); ++itr)
 			{
-				Do(itr->first);
-				Do(itr->second);
+				Do(*itr);
 			}
 			break;
 		}
@@ -90,8 +134,8 @@ public:
 		Do(size);
 		x.resize(size);
 
-		for (auto itr = x.begin(); itr != x.end(); ++itr)
-			Do(*itr);
+		for (auto& elem : x)
+			Do(elem);
 	}
 
 	template <typename T>
@@ -118,6 +162,13 @@ public:
 		DoContainer(x);
 	}
 
+	template <typename T, typename U>
+	void Do(std::pair<T, U>& x)
+	{
+		Do(x.first);
+		Do(x.second);
+	}
+
 	template <typename T>
 	void DoArray(T* x, u32 count)
 	{
@@ -128,12 +179,10 @@ public:
 	template <typename T>
 	void Do(T& x)
 	{
-		// Ideally this would be std::is_trivially_copyable, but not enough support yet
-		static_assert(std::is_pod<T>::value, "Only sane for POD types");
-		
+		static_assert(IsTriviallyCopyable(T), "Only sane for trivially copyable types");
 		DoVoid((void*)&x, sizeof(x));
 	}
-	
+
 	template <typename T>
 	void DoPOD(T& x)
 	{
@@ -144,10 +193,12 @@ public:
 	void DoPointer(T*& x, T* const base)
 	{
 		// pointers can be more than 2^31 apart, but you're using this function wrong if you need that much range
-		s32 offset = x - base;
+		ptrdiff_t offset = x - base;
 		Do(offset);
 		if (mode == MODE_READ)
+		{
 			x = base + offset;
+		}
 	}
 
 	// Let's pretend std::list doesn't exist!
@@ -271,7 +322,7 @@ public:
 
 		if (!File::Exists(_rFilename))
 			return false;
-				
+
 		// Check file size
 		const u64 fileSize = File::GetSize(_rFilename);
 		static const u64 headerSize = sizeof(SChunkHeader);
@@ -324,7 +375,7 @@ public:
 		u8* ptr = &buffer[0];
 		PointerWrap p(&ptr, PointerWrap::MODE_READ);
 		_class.DoState(p);
-		
+
 		INFO_LOG(COMMON, "ChunkReader: Done loading %s" , _rFilename.c_str());
 		return true;
 	}

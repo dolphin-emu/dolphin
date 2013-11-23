@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     14.07.99
-// RCS-ID:      $Id: ffile.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -48,7 +47,7 @@
 
 wxFFile::wxFFile(const wxString& filename, const wxString& mode)
 {
-    Detach();
+    m_fp = NULL;
 
     (void)Open(filename, mode);
 }
@@ -57,16 +56,16 @@ bool wxFFile::Open(const wxString& filename, const wxString& mode)
 {
     wxASSERT_MSG( !m_fp, wxT("should close or detach the old file first") );
 
-    m_fp = wxFopen(filename, mode);
+    FILE* const fp = wxFopen(filename, mode);
 
-    if ( !m_fp )
+    if ( !fp )
     {
         wxLogSysError(_("can't open file '%s'"), filename);
 
         return false;
     }
 
-    m_name = filename;
+    Attach(fp, filename);
 
     return true;
 }
@@ -82,7 +81,7 @@ bool wxFFile::Close()
             return false;
         }
 
-        Detach();
+        m_fp = NULL;
     }
 
     return true;
@@ -102,12 +101,12 @@ bool wxFFile::ReadAll(wxString *str, const wxMBConv& conv)
 
     clearerr(m_fp);
 
-    wxCharBuffer buf(length + 1);
+    wxCharBuffer buf(length);
 
     // note that real length may be less than file length for text files with DOS EOLs
     // ('\r's get dropped by CRT when reading which means that we have
     // realLen = fileLen - numOfLinesInTheFile)
-    length = fread(buf.data(), sizeof(char), length, m_fp);
+    length = fread(buf.data(), 1, length, m_fp);
 
     if ( Error() )
     {
@@ -117,7 +116,9 @@ bool wxFFile::ReadAll(wxString *str, const wxMBConv& conv)
     }
 
     buf.data()[length] = 0;
-    *str = wxString(buf, conv);
+
+    wxString strTmp(buf, conv);
+    str->swap(strTmp);
 
     return true;
 }

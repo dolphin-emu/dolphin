@@ -59,22 +59,22 @@ void ShowModifies(u32 inst)
 void RunInstruction(u32 inst)
 {
 	u32 inval1, inval2, inval3;
-	
+
 	u32 outval = 0;
-	
+
 	// CR0
 	u32 cr1 = 0, cr2 = 0;
-	
+
 	//CR1
 	u32 cr11 = 0, cr12 = 0;
-	
+
 	//XER
 	u32 xer1 = 0, xer2 = 0;
-	
+
 	bool modCR0 = instructions[inst].Modifies & MOD_CR0;
 	bool modCR1 = instructions[inst].Modifies & MOD_CR1;
 	bool modXER = instructions[inst].Modifies & MOD_XER;
-	
+
 	if(instructions[inst].numInput != 3)
 	{
 		Print("Don't support Input not 3 yet~!\n");
@@ -92,7 +92,7 @@ void RunInstruction(u32 inst)
 	f = fopen(temp, "wb");
 	if (!f)
 		printf("unable to open output file\n");
-	
+
 	printf("%s: InputNum: %d Modifies(flags): ", instructions[inst].name, instructions[inst].numInput);
 	if(f)
 		fprintf(f, "%s: InputNum: %d Modifies(flags): ", instructions[inst].name, instructions[inst].numInput);
@@ -119,7 +119,7 @@ void RunInstruction(u32 inst)
 
 		//Actually call instruction
 		instructions[inst].Call(&outval, &inval1, &inval2, 0);
-		
+
 		// Get flags after
 		if(modCR0)
 			cr2 = GetCR0();
@@ -130,7 +130,7 @@ void RunInstruction(u32 inst)
 
 		// Print out value
 		printf(":o=%08x\n\t", outval);
-		
+
 		// show off flag changes
 		if(modCR0)
 			printf("CR0:(%08x ~ %08x)", cr1,cr2);
@@ -138,8 +138,8 @@ void RunInstruction(u32 inst)
 			printf("CR1:(%08x ~ %08x)", cr11,cr12);
 		if(modXER)
 			printf("XER:(%08x ~ %08x)", xer1, xer2);
-		
-		
+
+
 		// same in the file
 		if(f)
 		{

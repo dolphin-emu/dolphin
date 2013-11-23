@@ -3,7 +3,6 @@
 // Purpose:     declares wxTextEntry interface defining a simple text entry
 // Author:      Vadim Zeitlin
 // Created:     2007-09-24
-// RCS-ID:      $Id: textentry.h 68918 2011-08-27 14:11:13Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -98,6 +97,8 @@ public:
 
     virtual void SetSelection(long from, long to) = 0;
     virtual void SelectAll() { SetSelection(-1, -1); }
+    virtual void SelectNone()
+        { const long pos = GetInsertionPoint(); SetSelection(pos, pos); }
     virtual void GetSelection(long *from, long *to) const = 0;
     bool HasSelection() const;
     virtual wxString GetStringSelection() const;
@@ -171,20 +172,20 @@ public:
     // implementation only
     // -------------------
 
-    // generate the wxEVT_COMMAND_TEXT_UPDATED event for GetEditableWindow(),
+    // generate the wxEVT_TEXT event for GetEditableWindow(),
     // like SetValue() does and return true if the event was processed
     //
     // NB: this is public for wxRichTextCtrl use only right now, do not call it
     static bool SendTextUpdatedEvent(wxWindow *win);
 
-    // generate the wxEVT_COMMAND_TEXT_UPDATED event for this window
+    // generate the wxEVT_TEXT event for this window
     bool SendTextUpdatedEvent()
     {
         return SendTextUpdatedEvent(GetEditableWindow());
     }
 
 
-    // generate the wxEVT_COMMAND_TEXT_UPDATED event for this window if the
+    // generate the wxEVT_TEXT event for this window if the
     // events are not currently disabled
     void SendTextUpdatedEventIfAllowed()
     {

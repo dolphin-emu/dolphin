@@ -3,7 +3,6 @@
 // Purpose:     declaration of wxGUIEventLoop for wxOSX/Cocoa
 // Author:      Vadim Zeitlin
 // Created:     2008-12-28
-// RCS-ID:      $Id: evtloop.h 68301 2011-07-19 16:17:44Z SC $
 // Copyright:   (c) 2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,12 +22,14 @@ public:
 
     virtual void WakeUp();
 
+    void OSXUseLowLevelWakeup(bool useIt)
+        { m_osxLowLevelWakeUp = useIt ; }
+    
 protected:
     virtual int DoDispatchTimeout(unsigned long timeout);
 
-    virtual void DoRun();
-
-    virtual void DoStop();
+    virtual void OSXDoRun();
+    virtual void OSXDoStop();
 
     virtual CFRunLoopRef CFGetCurrentRunLoop() const;
     
@@ -39,6 +40,8 @@ protected:
     WXWindow m_dummyWindow;
     
     int m_modalNestedLevel;
+    
+    bool m_osxLowLevelWakeUp;
 };
 
 #endif // _WX_OSX_COCOA_EVTLOOP_H_

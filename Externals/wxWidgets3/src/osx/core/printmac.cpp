@@ -4,7 +4,6 @@
 // Author:      Julian Smart, Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: printmac.cpp 70884 2012-03-12 17:47:18Z SC $
 // Copyright:   (c) Julian Smart, Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

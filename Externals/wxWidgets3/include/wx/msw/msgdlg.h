@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: msgdlg.h 66237 2010-11-22 12:49:07Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,6 +25,8 @@ public:
     }
 
     virtual int ShowModal();
+
+    virtual long GetEffectiveIcon() const;
 
     // implementation-specific
 

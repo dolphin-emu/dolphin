@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by: Artur Bac 2010-10-01 AMD64 Port
 // Created:     2005-01-08
-// RCS-ID:      $Id: stackwalk.cpp 69845 2011-11-27 19:52:13Z VZ $
 // Copyright:   (c) 2003-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

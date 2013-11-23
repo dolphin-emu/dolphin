@@ -3,7 +3,6 @@
  * Purpose:     Unix-specific config settings consistency checks
  * Author:      Vadim Zeitlin
  * Created:     2007-07-14
- * RCS-ID:      $Id: chkconf.h 63306 2010-01-29 13:07:26Z VZ $
  * Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwidgets.org>
  * Licence:     wxWindows licence
  */

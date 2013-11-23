@@ -9,6 +9,7 @@
 #include "Thread.h"
 
 #ifdef _WIN32
+#include <Windows.h>
 #include <mmsystem.h>
 #include <dsound.h>
 
@@ -47,7 +48,7 @@ class DSound : public SoundStream
 	bool WriteDataToBuffer(DWORD dwOffset, char* soundData, DWORD dwSoundBytes);
 
 public:
-	DSound(CMixer *mixer, void *_hWnd = NULL)
+	DSound(CMixer *mixer, void *_hWnd)
 		: SoundStream(mixer)
 		, bufferSize(0)
 		, currentPos(0)
@@ -58,7 +59,7 @@ public:
 	{}
 
 	virtual ~DSound() {}
- 
+
 	virtual bool Start();
 	virtual void SoundLoop();
 	virtual void SetVolume(int volume);
@@ -70,7 +71,7 @@ public:
 
 #else
 public:
-	DSound(CMixer *mixer, void *hWnd = NULL)
+	DSound(CMixer *mixer, void *_hWnd)
 		: SoundStream(mixer)
 	{}
 #endif

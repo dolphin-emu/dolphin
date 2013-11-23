@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.03.03 (replaces the old file with the same name)
-// RCS-ID:      $Id: dib.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,9 +44,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if !defined(__MWERKS__)
-    #include <memory.h>
-#endif
+#include <memory.h>
 
 #include "wx/msw/dib.h"
 
@@ -577,7 +574,7 @@ HGLOBAL wxDIB::ConvertFromBitmap(HBITMAP hbmp)
 wxPalette *wxDIB::CreatePalette() const
 {
     // GetDIBColorTable not available in eVC3
-#if defined(_WIN32_WCE) && _WIN32_WCE < 400
+#if !defined(__WXMSW__) || defined(_WIN32_WCE) && _WIN32_WCE < 400
     return NULL;
 #else
     wxCHECK_MSG( m_handle, NULL, wxT("wxDIB::CreatePalette(): invalid object") );

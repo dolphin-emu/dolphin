@@ -3,7 +3,6 @@
 // Purpose:     common classes for persistence support
 // Author:      Vadim Zeitlin
 // Created:     2009-01-18
-// RCS-ID:      $Id: persist.h 69583 2011-10-30 10:08:18Z VZ $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

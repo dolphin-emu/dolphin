@@ -15,7 +15,7 @@
 #include "../PowerPC/JitCommon/JitBase.h"
 #include "../PowerPC/PPCSymbolDB.h"
 
-void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size) 
+void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 {
 	// Memory::ReadUnchecked_U32 seemed to crash on shutdown
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN) return;
@@ -93,7 +93,7 @@ bool PPCDebugInterface::isAlive()
 	return Core::GetState() != Core::CORE_UNINITIALIZED;
 }
 
-bool PPCDebugInterface::isBreakpoint(unsigned int address) 
+bool PPCDebugInterface::isBreakpoint(unsigned int address)
 {
 	return PowerPC::breakpoints.IsAddressBreakPoint(address);
 }
@@ -146,7 +146,7 @@ void PPCDebugInterface::toggleMemCheck(unsigned int address)
 		PowerPC::memchecks.Remove(address);
 }
 
-void PPCDebugInterface::insertBLR(unsigned int address, unsigned int value) 
+void PPCDebugInterface::insertBLR(unsigned int address, unsigned int value)
 {
 	Memory::Write_U32(value, address);
 }
@@ -165,7 +165,7 @@ int PPCDebugInterface::getColor(unsigned int address)
 	if (!Memory::IsRAMAddress(address, true, true))
 		return 0xeeeeee;
 	static const int colors[6] =
-	{ 
+	{
 		0xd0FFFF,  // light cyan
 		0xFFd0d0,  // light red
 		0xd8d8FF,  // light blue
@@ -183,22 +183,22 @@ int PPCDebugInterface::getColor(unsigned int address)
 // =============
 
 
-std::string PPCDebugInterface::getDescription(unsigned int address) 
+std::string PPCDebugInterface::getDescription(unsigned int address)
 {
 	return g_symbolDB.GetDescription(address);
 }
 
-unsigned int PPCDebugInterface::getPC() 
+unsigned int PPCDebugInterface::getPC()
 {
 	return PowerPC::ppcState.pc;
 }
 
-void PPCDebugInterface::setPC(unsigned int address) 
+void PPCDebugInterface::setPC(unsigned int address)
 {
 	PowerPC::ppcState.pc = address;
 }
 
-void PPCDebugInterface::showJitResults(unsigned int address) 
+void PPCDebugInterface::showJitResults(unsigned int address)
 {
 	Host_ShowJitResults(address);
 }

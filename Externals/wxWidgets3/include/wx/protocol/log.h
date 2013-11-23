@@ -3,7 +3,6 @@
 // Purpose:     wxProtocolLog class for logging network exchanges
 // Author:      Troelsk, Vadim Zeitlin
 // Created:     2009-03-06
-// RCS-ID:      $Id: log.h 59404 2009-03-07 13:58:39Z VZ $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

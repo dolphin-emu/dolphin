@@ -50,13 +50,13 @@ u32 VertexManager::GetRemainingSize()
 }
 
 void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride)
-{	
+{
 	u32 const needed_vertex_bytes = count * stride;
-	
+
 	if (count > IndexGenerator::GetRemainingIndices() || count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize())
 	{
 		Flush();
-		
+
 		if(count > IndexGenerator::GetRemainingIndices())
 			ERROR_LOG(VIDEO, "Too little remaining index values. Use 32-bit or reset them on flush.");
 		if (count > GetRemainingIndices(primitive))
@@ -75,7 +75,7 @@ bool VertexManager::IsFlushed() const
 
 u32 VertexManager::GetRemainingIndices(int primitive)
 {
-	
+
 	if(g_Config.backend_info.bSupportsPrimitiveRestart)
 	{
 		switch (primitive)
@@ -125,7 +125,7 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 		default:
 			return 0;
 		}
-	} 
+	}
 }
 
 void VertexManager::AddVertices(int primitive, u32 numVertices)
@@ -158,12 +158,12 @@ void VertexManager::Flush()
 #if (0)
 void VertexManager::Flush()
 {
-#if defined(_DEBUG) || defined(DEBUGFAST) 
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGens,
 		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
 		bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.zmode.updateenable);
 
-	for (int i = 0; i < xfregs.nNumChans; ++i) 
+	for (int i = 0; i < xfregs.nNumChans; ++i)
 	{
 		LitChannel* ch = &xfregs.colChans[i].color;
 		PRIM_LOG("colchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
@@ -171,7 +171,7 @@ void VertexManager::Flush()
 		PRIM_LOG("alpchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
 	}
 
-	for (int i = 0; i < xfregs.numTexGens; ++i) 
+	for (int i = 0; i < xfregs.numTexGens; ++i)
 	{
 		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
 		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP) tinfo.hex &= 0x7ff;
@@ -206,10 +206,10 @@ void VertexManager::Flush()
 			Renderer::SetSamplerState(i & 3, i >> 2);
 			FourTexUnits &tex = bpmem.tex[i >> 2];
 
-			TCacheEntry::TCacheEntryBase* tentry = TextureCache::Load(i, 
+			TCacheEntry::TCacheEntryBase* tentry = TextureCache::Load(i,
 				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
-				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
+				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9,
 				tex.texTlut[i&3].tlut_format,
 				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8),
 				(tex.texMode1[i&3].max_lod >> 4));
@@ -257,7 +257,7 @@ void VertexManager::Flush()
 	//IndexGenerator::Start(TIBuffer, LIBuffer, PIBuffer);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) 
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
 	{
 		// save the shaders
 		char strfile[255];
@@ -271,7 +271,7 @@ void VertexManager::Flush()
 		fvs << vs->strprog.c_str();
 	}
 
-	if (g_ActiveConfig.iLog & CONF_SAVETARGETS) 
+	if (g_ActiveConfig.iLog & CONF_SAVETARGETS)
 	{
 		char str[128];
 		sprintf(str, "%starg%.3d.tga", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
@@ -297,12 +297,12 @@ void VertexManager::DoStateShared(PointerWrap& p)
 	// It seems we half-assume to be flushed here
 	// We update s_pCurBufferPointer yet don't worry about IndexGenerator's outdated pointers
 	// and maybe other things are overlooked
-	
+
 	p.Do(LocalVBuffer);
 	p.Do(TIBuffer);
 	p.Do(LIBuffer);
 	p.Do(PIBuffer);
-	
+
 	s_pBaseBufferPointer = &LocalVBuffer[0];
 	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
 	p.DoPointer(s_pCurBufferPointer, s_pBaseBufferPointer);

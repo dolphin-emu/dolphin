@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: filefn.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -61,6 +60,7 @@
 
 #ifdef __WINDOWS__
     #include "wx/msw/private.h"
+    #include "wx/msw/missing.h"
     #include "wx/msw/mslu.h"
 
     // sys/cygwin.h is needed for cygwin_conv_to_full_win32_path()
@@ -76,7 +76,7 @@
 
     // io.h is needed for _get_osfhandle()
     // Already included by filefn.h for many Windows compilers
-    #if defined __MWERKS__ || defined __CYGWIN__
+    #if defined __CYGWIN__
         #include <io.h>
     #endif
 #endif // __WINDOWS__
@@ -742,11 +742,13 @@ wxPathOnly (wxChar *path)
     {
         static wxChar buf[_MAXPATHLEN];
 
-        // Local copy
-        wxStrcpy (buf, path);
-
         int l = wxStrlen(path);
         int i = l - 1;
+        if ( i >= _MAXPATHLEN )
+            return NULL;
+
+        // Local copy
+        wxStrcpy (buf, path);
 
         // Search backward for a backward or forward slash
         while (i > -1)
@@ -788,11 +790,14 @@ wxString wxPathOnly (const wxString& path)
     {
         wxChar buf[_MAXPATHLEN];
 
-        // Local copy
-        wxStrcpy(buf, path);
-
         int l = path.length();
         int i = l - 1;
+
+        if ( i >= _MAXPATHLEN )
+            return wxString();
+
+        // Local copy
+        wxStrcpy(buf, path);
 
         // Search backward for a backward or forward slash
         while (i > -1)
@@ -842,6 +847,9 @@ wxString wxMacFSRefToPath( const FSRef *fsRef , CFStringRef additionalPathCompon
 {
     CFURLRef fullURLRef;
     fullURLRef = CFURLCreateFromFSRef(NULL, fsRef);
+    if ( fullURLRef == NULL)
+        return wxEmptyString;
+    
     if ( additionalPathComponent )
     {
         CFURLRef parentURLRef = fullURLRef ;
@@ -849,12 +857,10 @@ wxString wxMacFSRefToPath( const FSRef *fsRef , CFStringRef additionalPathCompon
             additionalPathComponent,false);
         CFRelease( parentURLRef ) ;
     }
-    CFStringRef cfString = CFURLCopyFileSystemPath(fullURLRef, kDefaultPathStyle);
+    wxCFStringRef cfString( CFURLCopyFileSystemPath(fullURLRef, kDefaultPathStyle ));
     CFRelease( fullURLRef ) ;
-    CFMutableStringRef cfMutableString = CFStringCreateMutableCopy(NULL, 0, cfString);
-    CFRelease( cfString );
-    CFStringNormalize(cfMutableString,kCFStringNormalizationFormC);
-    return wxCFStringRef(cfMutableString).AsString();
+
+    return wxCFStringRef::AsStringWithNormalizationFormC(cfString);
 }
 
 OSStatus wxMacPathToFSRef( const wxString&path , FSRef *fsRef )
@@ -879,13 +885,10 @@ OSStatus wxMacPathToFSRef( const wxString&path , FSRef *fsRef )
 
 wxString wxMacHFSUniStrToString( ConstHFSUniStr255Param uniname )
 {
-    CFStringRef cfname = CFStringCreateWithCharacters( kCFAllocatorDefault,
+    wxCFStringRef cfname( CFStringCreateWithCharacters( kCFAllocatorDefault,
                                                       uniname->unicode,
-                                                      uniname->length );
-    CFMutableStringRef cfMutableString = CFStringCreateMutableCopy(NULL, 0, cfname);
-    CFRelease( cfname );
-    CFStringNormalize(cfMutableString,kCFStringNormalizationFormC);
-    return wxCFStringRef(cfMutableString).AsString() ;
+                                                      uniname->length ) );
+    return wxCFStringRef::AsStringWithNormalizationFormC(cfname);
 }
 
 #ifndef __LP64__
@@ -1191,8 +1194,7 @@ bool wxRemoveFile(const wxString& file)
  || defined(__BORLANDC__) \
  || defined(__WATCOMC__) \
  || defined(__DMC__) \
- || defined(__GNUWIN32__) \
- || (defined(__MWERKS__) && defined(__MSL__))
+ || defined(__GNUWIN32__)
     int res = wxRemove(file);
 #elif defined(__WXMAC__)
     int res = unlink(file.fn_str());
@@ -1358,9 +1360,7 @@ wxString wxFindNextFile()
     wxCHECK_MSG( gs_dir, "", "You must call wxFindFirstFile before!" );
 
     wxString result;
-    gs_dir->GetNext(&result);
-
-    if ( result.empty() )
+    if ( !gs_dir->GetNext(&result) || result.empty() )
     {
         wxDELETE(gs_dir);
         return result;
@@ -1389,7 +1389,7 @@ wxChar *wxDoGetCwd(wxChar *buf, int sz)
         buf = new wxChar[sz + 1];
     }
 
-    bool ok wxDUMMY_INITIALIZE(false);
+    bool ok = false;
 
     // for the compilers which have Unicode version of _getcwd(), call it
     // directly, for the others call the ANSI version and do the translation
@@ -1538,7 +1538,7 @@ bool wxSetWorkingDirectory(const wxString& d)
     // No equivalent in WinCE
     wxUnusedVar(d);
 #else
-    success = (SetCurrentDirectory(d.fn_str()) != 0);
+    success = (SetCurrentDirectory(d.t_str()) != 0);
 #endif
 #else
     // Must change drive, too.
@@ -1577,8 +1577,12 @@ wxString wxGetOSDirectory()
 #ifdef __WXWINCE__
     return wxString(wxT("\\Windows"));
 #elif defined(__WINDOWS__) && !defined(__WXMICROWIN__)
-    wxChar buf[256];
-    GetWindowsDirectory(buf, 256);
+    wxChar buf[MAX_PATH];
+    if ( !GetWindowsDirectory(buf, MAX_PATH) )
+    {
+        wxLogLastError(wxS("GetWindowsDirectory"));
+    }
+
     return wxString(buf);
 #elif defined(__WXMAC__) && wxOSX_USE_CARBON
     return wxMacFindFolderNoSeparator(kOnSystemDisk, 'macs', false);
@@ -1766,7 +1770,7 @@ static bool wxCheckWin32Permission(const wxString& path, DWORD access)
     // quoting the MSDN: "To obtain a handle to a directory, call the
     // CreateFile function with the FILE_FLAG_BACKUP_SEMANTICS flag", but this
     // doesn't work under Win9x/ME but then it's not needed there anyhow
-    const DWORD dwAttr = ::GetFileAttributes(path.fn_str());
+    const DWORD dwAttr = ::GetFileAttributes(path.t_str());
     if ( dwAttr == INVALID_FILE_ATTRIBUTES )
     {
         // file probably doesn't exist at all

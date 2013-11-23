@@ -4,7 +4,6 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     8/10/2006
-// RCS-ID:      $Id: collpaneg.h 68366 2011-07-24 22:19:33Z VZ $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////

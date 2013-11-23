@@ -5,7 +5,7 @@
 #ifndef _TIMER_H_
 #define _TIMER_H_
 
-#include "Common.h"
+#include "CommonTypes.h"
 #include <string>
 
 namespace Common
@@ -38,7 +38,6 @@ public:
 private:
 	u64 m_LastTime;
 	u64 m_StartTime;
-	u64 m_frequency;
 	bool m_Running;
 };
 

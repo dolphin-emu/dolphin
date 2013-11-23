@@ -5,7 +5,6 @@
 //              Vadim Zeitlin (base MDI classes refactoring)
 // Copyright:   (c) 1998 Julian Smart
 //              (c) 2008 Vadim Zeitlin
-// RCS-ID:      $Id: mdi.h 70790 2012-03-04 00:29:03Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -123,6 +122,10 @@ public:
     virtual wxMDIClientWindow *OnCreateClient();
 
 protected:
+    // Override to pass menu/toolbar events to the active child first.
+    virtual bool TryBefore(wxEvent& event);
+
+
     // This is wxMDIClientWindow for all the native implementations but not for
     // the generic MDI version which has its own wxGenericMDIClientWindow and
     // so we store it as just a base class pointer because we don't need its
@@ -367,6 +370,31 @@ public:
 inline wxMDIClientWindow *wxMDIParentFrameBase::OnCreateClient()
 {
     return new wxMDIClientWindow;
+}
+
+inline bool wxMDIParentFrameBase::TryBefore(wxEvent& event)
+{
+    // Menu (and toolbar) events should be sent to the active child frame
+    // first, if any.
+    if ( event.GetEventType() == wxEVT_MENU ||
+            event.GetEventType() == wxEVT_UPDATE_UI )
+    {
+        wxMDIChildFrame * const child = GetActiveChild();
+        if ( child )
+        {
+            // However avoid sending the event back to the child if it's
+            // currently being propagated to us from it.
+            wxWindow* const
+                from = static_cast<wxWindow*>(event.GetPropagatedFrom());
+            if ( !from || !from->IsDescendant(child) )
+            {
+                if ( child->ProcessWindowEventLocally(event) )
+                    return true;
+            }
+        }
+    }
+
+    return wxFrame::TryBefore(event);
 }
 
 #endif // wxUSE_MDI

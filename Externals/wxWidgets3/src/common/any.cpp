@@ -4,7 +4,6 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     07/05/2009
-// RCS-ID:      $Id: any.cpp 67280 2011-03-22 14:17:38Z DS $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -374,7 +373,7 @@ bool wxAnyConvertString(const wxString& value,
     else if ( wxANY_VALUE_TYPE_CHECK_TYPE(dstType, double) )
     {
         double value2;
-        if ( !value.ToDouble(&value2) )
+        if ( !value.ToCDouble(&value2) )
             return false;
         wxAnyValueTypeImplDouble::SetValue(value2, dst);
     }
@@ -453,7 +452,7 @@ bool wxAnyValueTypeImplDouble::ConvertValue(const wxAnyValueBuffer& src,
     }
     else if ( wxANY_VALUE_TYPE_CHECK_TYPE(dstType, wxString) )
     {
-        wxString s = wxString::Format(wxS("%.14g"), value);
+        wxString s = wxString::FromCDouble(value, 14);
         wxAnyValueTypeImpl<wxString>::SetValue(s, dst);
     }
     else
@@ -484,7 +483,9 @@ WX_IMPLEMENT_ANY_VALUE_TYPE(wxAnyValueTypeImpl<wxDateTime>)
 
 class wxAnyNullValue
 {
-private:
+protected:
+    // this field is unused, but can't be private to avoid Clang's
+    // "Private field 'm_dummy' is not used" warning
     void*   m_dummy;
 };
 

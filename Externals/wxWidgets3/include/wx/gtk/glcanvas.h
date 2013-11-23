@@ -4,7 +4,6 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     17/8/98
-// RCS-ID:      $Id: glcanvas.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,6 +38,7 @@ public:
                 const int *attribList = NULL,
                 const wxPalette& palette = wxNullPalette);
 
+    virtual bool SetBackgroundStyle(wxBackgroundStyle style);
 
     // implement wxGLCanvasX11 methods
     // --------------------------------
@@ -93,6 +93,9 @@ public:
     void OnInternalIdle();
 
     bool              m_exposed;
+#ifdef __WXGTK3__
+    cairo_t* m_cairoPaintContext;
+#endif
 
 #if WXWIN_COMPATIBILITY_2_8
     wxGLContext      *m_sharedContext;

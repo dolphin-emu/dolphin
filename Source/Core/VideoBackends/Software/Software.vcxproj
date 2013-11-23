@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A4C423AA-F57C-46C7-A172-D1A777017D29}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VSProps\Base.props" />
+    <Import Project="..\..\..\VSProps\PrecompiledHeader.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="Src\BPMemLoader.cpp" />
+    <ClCompile Include="Src\Clipper.cpp" />
+    <ClCompile Include="Src\CPMemLoader.cpp" />
+    <ClCompile Include="Src\DebugUtil.cpp" />
+    <ClCompile Include="Src\EfbCopy.cpp" />
+    <ClCompile Include="Src\EfbInterface.cpp" />
+    <ClCompile Include="Src\HwRasterizer.cpp" />
+    <ClCompile Include="Src\OpcodeDecoder.cpp" />
+    <ClCompile Include="Src\RasterFont.cpp" />
+    <ClCompile Include="Src\Rasterizer.cpp" />
+    <ClCompile Include="Src\SetupUnit.cpp" />
+    <ClCompile Include="Src\stdafx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Src\SWCommandProcessor.cpp" />
+    <ClCompile Include="Src\SWmain.cpp" />
+    <ClCompile Include="Src\SWPixelEngine.cpp" />
+    <ClCompile Include="Src\SWRenderer.cpp" />
+    <ClCompile Include="Src\SWStatistics.cpp" />
+    <ClCompile Include="Src\SWVertexLoader.cpp" />
+    <ClCompile Include="Src\SWVideoConfig.cpp" />
+    <ClCompile Include="Src\Tev.cpp" />
+    <ClCompile Include="Src\TextureEncoder.cpp" />
+    <ClCompile Include="Src\TextureSampler.cpp" />
+    <ClCompile Include="Src\TransformUnit.cpp" />
+    <ClCompile Include="Src\VideoConfigDialog.cpp" />
+    <ClCompile Include="Src\XFMemLoader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\BPMemLoader.h" />
+    <ClInclude Include="Src\Clipper.h" />
+    <ClInclude Include="Src\CPMemLoader.h" />
+    <ClInclude Include="Src\DebugUtil.h" />
+    <ClInclude Include="Src\EfbCopy.h" />
+    <ClInclude Include="Src\EfbInterface.h" />
+    <ClInclude Include="Src\HwRasterizer.h" />
+    <ClInclude Include="Src\NativeVertexFormat.h" />
+    <ClInclude Include="Src\OpcodeDecoder.h" />
+    <ClInclude Include="Src\RasterFont.h" />
+    <ClInclude Include="Src\Rasterizer.h" />
+    <ClInclude Include="Src\SetupUnit.h" />
+    <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\SWCommandProcessor.h" />
+    <ClInclude Include="Src\SWPixelEngine.h" />
+    <ClInclude Include="Src\SWRenderer.h" />
+    <ClInclude Include="Src\SWStatistics.h" />
+    <ClInclude Include="Src\SWVertexLoader.h" />
+    <ClInclude Include="Src\SWVideoConfig.h" />
+    <ClInclude Include="Src\Tev.h" />
+    <ClInclude Include="Src\TextureEncoder.h" />
+    <ClInclude Include="Src\TextureSampler.h" />
+    <ClInclude Include="Src\TransformUnit.h" />
+    <ClInclude Include="Src\Vec3.h" />
+    <ClInclude Include="Src\VideoBackend.h" />
+    <ClInclude Include="Src\VideoConfigDialog.h" />
+    <ClInclude Include="Src\XFMemLoader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Externals\GLew\glew.vcxproj">
+      <Project>{2a3f751d-69e9-45f2-9199-9a00bfb6cc72}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Externals\wxWidgets3\build\msw\wx_base.vcxproj">
+      <Project>{1c8436c9-dbaf-42be-83bc-cf3ec9175abe}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Core\VideoCommon\VideoCommon.vcxproj">
+      <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -12,7 +12,7 @@ struct SAttrib
 	u8* pData;
 	u16 size;
 
-	SAttrib(u16 _ID, u8* _Data, u16 _size) 
+	SAttrib(u16 _ID, u8* _Data, u16 _size)
 		: ID(_ID)
 		, pData(_Data)
 		, size(_size)

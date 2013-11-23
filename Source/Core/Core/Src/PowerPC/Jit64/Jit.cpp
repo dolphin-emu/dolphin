@@ -10,20 +10,9 @@
 #endif
 
 #include "Common.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
-#include "Thunk.h"
 #include "../../HLE/HLE.h"
-#include "../../Core.h"
 #include "../../PatchEngine.h"
-#include "../../CoreTiming.h"
-#include "../../ConfigManager.h"
-#include "../PowerPC.h"
 #include "../Profiler.h"
-#include "../PPCTables.h"
-#include "../PPCAnalyst.h"
-#include "../../HW/Memmap.h"
-#include "../../HW/GPFifo.h"
 #include "Jit.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
@@ -71,7 +60,7 @@ using namespace PowerPC;
 // will be as small to be negligible, so I haven't dirtied up the code with that. AMD recommends it in their
 // optimization manuals, though.
 //
-// We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets 
+// We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets
 // from the starts of each block, marking the exits so that they can be nicely patched at any time.
 //
 // Blocks do NOT use call/ret, they only jmp to each other and to the dispatcher when necessary.
@@ -105,7 +94,7 @@ using namespace PowerPC;
     CR2-CR4 are non-volatile, rest of CR is volatile -> dropped on blr.
 	R5-R12 are volatile -> dropped on blr.
   * classic inlining across calls.
-  
+
 Low hanging fruit:
 stfd -- guaranteed in memory
 cmpl
@@ -194,7 +183,7 @@ void Jit64::Init()
 	asm_routines.Init();
 }
 
-void Jit64::ClearCache() 
+void Jit64::ClearCache()
 {
 	blocks.Clear();
 	trampolines.ClearCodeSpace();
@@ -287,7 +276,7 @@ void Jit64::Cleanup()
 		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
-void Jit64::WriteExit(u32 destination, int exit_num)
+void Jit64::WriteExit(u32 destination)
 {
 	Cleanup();
 
@@ -295,39 +284,43 @@ void Jit64::WriteExit(u32 destination, int exit_num)
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
-	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = GetWritableCodePtr();
-	
+	JitBlock::LinkData linkData;
+	linkData.exitAddress = destination;
+	linkData.exitPtrs = GetWritableCodePtr();
+
 	// Link opportunity!
-	int block = blocks.GetBlockNumberFromStartAddress(destination);
-	if (block >= 0 && jo.enableBlocklink) 
+	if (jo.enableBlocklink)
 	{
-		// It exists! Joy of joy!
-		JMP(blocks.GetBlock(block)->checkedEntry, true);
-		b->linkStatus[exit_num] = true;
+		int block = blocks.GetBlockNumberFromStartAddress(destination);
+		if (block >= 0)
+		{
+			// It exists! Joy of joy!
+			JMP(blocks.GetBlock(block)->checkedEntry, true);
+			linkData.linkStatus = true;
+			return;
+		}
 	}
-	else 
-	{
-		MOV(32, M(&PC), Imm32(destination));
-		JMP(asm_routines.dispatcher, true);
-	}
+	MOV(32, M(&PC), Imm32(destination));
+	JMP(asm_routines.dispatcher, true);
+
+	b->linkData.push_back(linkData);
 }
 
-void Jit64::WriteExitDestInEAX() 
+void Jit64::WriteExitDestInEAX()
 {
 	MOV(32, M(&PC), R(EAX));
 	Cleanup();
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
-void Jit64::WriteRfiExitDestInEAX() 
+void Jit64::WriteRfiExitDestInEAX()
 {
 	MOV(32, M(&PC), R(EAX));
 	MOV(32, M(&NPC), R(EAX));
 	Cleanup();
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -347,7 +340,7 @@ void Jit64::WriteExternalExceptionExit()
 	MOV(32, R(EAX), M(&PC));
 	MOV(32, M(&NPC), R(EAX));
 	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -384,11 +377,11 @@ void Jit64::Trace()
 		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
 		strncat(fregs, reg, 750);
 	}
-#endif	
+#endif
 
-	DEBUG_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
-		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], 
-		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, 
+	DEBUG_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s",
+		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3],
+		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr,
 		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
 }
 
@@ -552,7 +545,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		{
 			js.fifoBytesThisBlock -= 32;
 			MOV(32, M(&PC), Imm32(jit->js.compilerPC)); // Helps external systems know which instruction triggered the write
-			ABI_CallFunction(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
+			u32 registersInUse = RegistersInUse();
+			ABI_PushRegistersAndAdjustStack(registersInUse, false);
+			ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
+			ABI_PopRegistersAndAdjustStack(registersInUse, false);
 		}
 
 		u32 function = HLE::GetFunctionIndex(ops[i].address);
@@ -632,7 +628,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
 
-				WriteExit(ops[i].address, 0);
+				WriteExit(ops[i].address);
 				SetJumpTarget(noBreakpoint);
 			}
 
@@ -673,7 +669,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			js.skipnext = false;
 			i++; // Skip next instruction
 		}
-		
+
 		if (js.cancel)
 			break;
 	}
@@ -701,19 +697,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 		// Remove the invalid instruction from the icache, forcing a recompile
 #ifdef _M_IX86
-		if (js.compilerPC & JIT_ICACHE_VMEM_BIT)
-			MOV(32, M((jit->GetBlockCache()->GetICacheVMEM() + (js.compilerPC & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
-		else if (js.compilerPC & JIT_ICACHE_EXRAM_BIT)
-			MOV(32, M((jit->GetBlockCache()->GetICacheEx() + (js.compilerPC & JIT_ICACHEEX_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
-		else
-			MOV(32, M((jit->GetBlockCache()->GetICache() + (js.compilerPC & JIT_ICACHE_MASK))), Imm32(JIT_ICACHE_INVALID_WORD));
+		MOV(32, M(jit->GetBlockCache()->GetICachePtr(js.compilerPC)), Imm32(JIT_ICACHE_INVALID_WORD));
 #else
-		if (js.compilerPC & JIT_ICACHE_VMEM_BIT)
-			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICacheVMEM() + (js.compilerPC & JIT_ICACHE_MASK)));
-		else if (js.compilerPC & JIT_ICACHE_EXRAM_BIT)
-			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICacheEx() + (js.compilerPC & JIT_ICACHEEX_MASK)));
-		else
-			MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICache() + (js.compilerPC & JIT_ICACHE_MASK)));
+		MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(js.compilerPC)));
 		MOV(32,MatR(RAX),Imm32(JIT_ICACHE_INVALID_WORD));
 #endif
 
@@ -724,7 +710,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
-		WriteExit(nextPC, 0);
+		WriteExit(nextPC);
 	}
 
 	b->flags = js.block_flags;
@@ -736,4 +722,22 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 #endif
 
 	return normalEntry;
+}
+
+u32 Jit64::RegistersInUse()
+{
+#ifdef _M_X64
+	u32 result = 0;
+	for (int i = 0; i < NUMXREGS; i++)
+	{
+		if (!gpr.IsFreeX(i))
+			result |= (1 << i);
+		if (!fpr.IsFreeX(i))
+			result |= (1 << (16 + i));
+	}
+	return result;
+#else
+	// not needed
+	return 0;
+#endif
 }

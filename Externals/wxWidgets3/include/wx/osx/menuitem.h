@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.11.97
-// RCS-ID:      $Id: menuitem.h 66904 2011-02-16 16:37:24Z SC $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -46,15 +45,31 @@ public:
     virtual void SetBitmap(const wxBitmap& bitmap) ;
     virtual const wxBitmap& GetBitmap() const { return m_bitmap; }
 
+
+    // Implementation only from now on.
+
     // update the os specific representation
     void UpdateItemBitmap() ;
     void UpdateItemText() ;
     void UpdateItemStatus() ;
 
     // mark item as belonging to the given radio group
-    void SetAsRadioGroupStart();
+    void SetAsRadioGroupStart(bool start = true);
     void SetRadioGroupStart(int start);
     void SetRadioGroupEnd(int end);
+
+    // return true if this is the starting item of a radio group
+    bool IsRadioGroupStart() const;
+
+    // get the start of the radio group this item belongs to: should not be
+    // called for the starting radio group item itself because it doesn't have
+    // this information
+    int GetRadioGroupStart() const;
+
+    // get the end of the radio group this item belongs to: should be only
+    // called for the starting radio group item, i.e. if IsRadioGroupStart() is
+    // true
+    int GetRadioGroupEnd() const;
 
     wxMenuItemImpl* GetPeer() { return m_peer; }
 private:

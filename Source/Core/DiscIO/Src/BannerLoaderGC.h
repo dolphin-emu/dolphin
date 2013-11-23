@@ -20,7 +20,7 @@ class CBannerLoaderGC
 
 		virtual bool IsValid();
 
-		virtual bool GetBanner(u32* _pBannerImage);
+		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight);
 
 		virtual std::vector<std::string> GetNames();
 		virtual std::string GetCompany();
@@ -66,7 +66,7 @@ class CBannerLoaderGC
 		std::string GetDecodedString(const char (&data)[N])
 		{
 			auto const string_decoder = CVolumeGC::GetStringDecoder(m_country);
-			
+
 			// strnlen to trim NULLs
 			return string_decoder(std::string(data, strnlen(data, sizeof(data))));
 		}
@@ -75,9 +75,8 @@ class CBannerLoaderGC
 		bool m_IsValid;
 		BANNER_TYPE m_BNRType;
 
-		void decode5A3image(u32* dst, u16* src, int width, int height);
 		BANNER_TYPE getBannerType();
-		
+
 		DiscIO::IVolume::ECountry const m_country;
 };
 

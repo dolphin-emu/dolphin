@@ -3,7 +3,6 @@
 // Purpose:     class common for all X11-based wxGLCanvas implementations
 // Author:      Vadim Zeitlin
 // Created:     2007-04-15
-// RCS-ID:      $Id: glx11.h 54022 2008-06-08 00:12:12Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

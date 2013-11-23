@@ -5,7 +5,6 @@
 // Author:      John Norris, minor changes by Axel Schlueter
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.h 67931 2011-06-14 13:00:42Z VZ $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,13 +13,6 @@
 #define _WX_GTK_TOGGLEBUTTON_H_
 
 #include "wx/bitmap.h"
-
-//-----------------------------------------------------------------------------
-// classes
-//-----------------------------------------------------------------------------
-
-class WXDLLIMPEXP_FWD_CORE wxToggleButton;
-class WXDLLIMPEXP_FWD_CORE wxToggleBitmapButton;
 
 //-----------------------------------------------------------------------------
 // wxToggleButton

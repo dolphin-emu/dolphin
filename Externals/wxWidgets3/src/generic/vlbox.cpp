@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.05.03
-// RCS-ID:      $Id: vlbox.cpp 69180 2011-09-21 15:08:10Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -275,7 +274,7 @@ void wxVListBox::SendSelectedEvent()
     wxASSERT_MSG( m_current != wxNOT_FOUND,
                     wxT("SendSelectedEvent() shouldn't be called") );
 
-    wxCommandEvent event(wxEVT_COMMAND_LISTBOX_SELECTED, GetId());
+    wxCommandEvent event(wxEVT_LISTBOX, GetId());
     InitEvent(event, m_current);
     (void)GetEventHandler()->ProcessEvent(event);
 }
@@ -720,7 +719,7 @@ void wxVListBox::OnLeftDClick(wxMouseEvent& eventMouse)
         // this event as a left-click instead
         if ( item == m_current )
         {
-            wxCommandEvent event(wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, GetId());
+            wxCommandEvent event(wxEVT_LISTBOX_DCLICK, GetId());
             InitEvent(event, item);
             (void)GetEventHandler()->ProcessEvent(event);
         }

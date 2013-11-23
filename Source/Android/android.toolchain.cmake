@@ -119,7 +119,7 @@
 #      libraries. Automatically turned for NDK r5x and r6x due to GLESv2
 #      problems.
 #
-#    LIBRARY_OUTPUT_PATH_ROOT=${CMAKE_SOURCE_DIR} - where to output binary
+#    LIBRARY_OUTPUT_PATH_ROOT=${CMAKE_CURRENT_BINARY_DIR} - where to output binary
 #      files. See additional details below.
 #
 #    ANDROID_SET_OBSOLETE_VARIABLES=ON - if set, then toolchain defines some
@@ -187,7 +187,7 @@
 #
 #    LIBRARY_OUTPUT_PATH_ROOT should be set in cache to determine where Android
 #    libraries will be installed.
-#    Default is ${CMAKE_SOURCE_DIR}, and the android libs will always be
+#    Default is ${CMAKE_CURRENT_BINARY_DIR}, and the android libs will always be
 #    under the ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}
 #    (depending on the target ABI). This is convenient for Android packaging.
 #
@@ -1431,7 +1431,7 @@ include_directories( SYSTEM "${ANDROID_SYSROOT}/usr/include" ${ANDROID_STL_INCLU
 link_directories( "${CMAKE_INSTALL_PREFIX}/libs/${ANDROID_NDK_ABI_NAME}" )
 
 # setup output directories
-set( LIBRARY_OUTPUT_PATH_ROOT ${CMAKE_SOURCE_DIR} CACHE PATH "root for library output, set this to change where android libs are installed to" )
+set( LIBRARY_OUTPUT_PATH_ROOT ${CMAKE_CURRENT_BINARY_DIR} CACHE PATH "root for library output, set this to change where android libs are installed to" )
 set( CMAKE_INSTALL_PREFIX "${ANDROID_TOOLCHAIN_ROOT}/user" CACHE STRING "path for installing" )
 
 if(NOT _CMAKE_IN_TRY_COMPILE)

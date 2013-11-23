@@ -3,7 +3,6 @@
 // Purpose:     xlocale wrappers/impl to provide some xlocale wrappers
 // Author:      Brian Vanderburg II, Vadim Zeitlin
 // Created:     2008-01-07
-// RCS-ID:      $Id: xlocale.cpp 67406 2011-04-06 14:37:32Z VZ $
 // Copyright:   (c) 2008 Brian Vanderburg II
 //                  2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence

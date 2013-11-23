@@ -106,8 +106,21 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 {
 	// Give it an icon
 	wxIcon IconTemp;
-	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(dolphin_ico32x32));
+	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(Dolphin_png));
 	SetIcon(IconTemp);
+
+	DragAcceptFiles(true);
+	Connect(wxEVT_DROP_FILES, wxDropFilesEventHandler(CRenderFrame::OnDropFiles), NULL, this);
+}
+
+void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
+{
+	if (event.GetNumberOfFiles() != 1)
+		return;
+	if (File::IsDirectory(event.GetFiles()[0].ToStdString()))
+		return;
+
+	State::LoadAs(event.GetFiles()[0].ToStdString());
 }
 
 #ifdef _WIN32
@@ -152,6 +165,7 @@ BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
 EVT_MENU(wxID_OPEN, CFrame::OnOpen)
 EVT_MENU(wxID_EXIT, CFrame::OnQuit)
 EVT_MENU(IDM_HELPWEBSITE, CFrame::OnHelp)
+EVT_MENU(IDM_HELPONLINEDOCS, CFrame::OnHelp)
 EVT_MENU(IDM_HELPGOOGLECODE, CFrame::OnHelp)
 EVT_MENU(wxID_ABOUT, CFrame::OnHelp)
 EVT_MENU(wxID_REFRESH, CFrame::OnRefresh)
@@ -191,6 +205,7 @@ EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_IMPORTSAVE, CFrame::OnImportSave)
+EVT_MENU(IDM_EXPORTALLSAVE, CFrame::OnExportAllSaves)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
 EVT_MENU(IDM_CHANGEDISC, CFrame::OnChangeDisc)
 EVT_MENU(IDM_MENU_INSTALLWAD, CFrame::OnInstallWAD)
@@ -431,7 +446,7 @@ void CFrame::OnActive(wxActivateEvent& event)
 #else
 			m_RenderParent->SetFocus();
 #endif
-			
+
 			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
 				m_RenderParent->SetCursor(wxCURSOR_BLANK);
@@ -537,9 +552,24 @@ void CFrame::OnResize(wxSizeEvent& event)
 WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
 	if (WM_SYSCOMMAND == nMsg && (SC_SCREENSAVE == wParam || SC_MONITORPOWER == wParam))
+	{
 		return 0;
+	}
+	else if (nMsg == WM_QUERYENDSESSION)
+	{
+		// Indicate that the application will be able to close
+		return 1;
+	}
+	else if (nMsg == WM_ENDSESSION)
+	{
+		// Actually trigger the close now
+		Close(true);
+		return 0;
+	}
 	else
+	{
 		return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
+	}
 }
 #endif
 
@@ -579,7 +609,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		{
 			wxString caption = event.GetString().BeforeFirst(':');
 			wxString text = event.GetString().AfterFirst(':');
-			bPanicResult = (wxYES == wxMessageBox(text, 
+			bPanicResult = (wxYES == wxMessageBox(text,
 						caption, event.GetInt() ? wxYES_NO : wxOK, wxGetActiveWindow()));
 			panic_event.Set();
 		}
@@ -612,7 +642,7 @@ void CFrame::GetRenderWindowSize(int& x, int& y, int& width, int& height)
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED ||
-			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize || 
+			!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderWindowAutoSize ||
 			RendererIsFullscreen() || m_RenderFrame->IsMaximized())
 		return;
 
@@ -809,7 +839,7 @@ bool TASInputHasFocus()
 {
 	for (int i = 0; i < 4; i++)
 	{
-		if (main_frame->g_TASInputDlg[i]->HasFocus())
+		if (main_frame->g_TASInputDlg[i]->TASHasFocus())
 			return true;
 	}
 	return false;
@@ -903,7 +933,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 					{
 						int cmd = GetCmdForHotkey(i);
 						if (cmd >= 0)
-						{ 
+						{
 							wxCommandEvent evt(wxEVT_COMMAND_MENU_SELECTED, cmd);
 							wxMenuItem *item = GetMenuBar()->FindItem(cmd);
 							if (item && item->IsCheckable())

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.01
-// RCS-ID:      $Id: toplevel.h 70881 2012-03-12 11:42:49Z JS $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -122,6 +121,22 @@ public:
     // returns true if the platform should explicitly apply a theme border
     virtual bool CanApplyThemeBorder() const { return false; }
 
+#if wxUSE_MENUS
+    bool HandleMenuSelect(WXWORD nItem, WXWORD nFlags, WXHMENU hMenu);
+
+    // handle WM_EXITMENULOOP message for Win95 only
+    bool HandleExitMenuLoop(WXWORD isPopup);
+
+    // handle WM_(UN)INITMENUPOPUP message to generate wxEVT_MENU_OPEN/CLOSE
+    bool HandleMenuPopup(wxEventType evtType, WXHMENU hMenu);
+
+    // Command part of HandleMenuPopup() and HandleExitMenuLoop().
+    bool DoSendMenuOpenCloseEvent(wxEventType evtType, wxMenu* menu, bool popup);
+
+    // Find the menu corresponding to the given handle.
+    virtual wxMenu* MSWFindMenuFromHMENU(WXHMENU hMenu);
+#endif // wxUSE_MENUS
+
 protected:
     // common part of all ctors
     void Init();
@@ -235,6 +250,10 @@ private:
     // The system menu: initially NULL but can be set (once) by
     // MSWGetSystemMenu(). Owned by this window.
     wxMenu *m_menuSystem;
+
+    // The number of currently opened menus: 0 initially, 1 when a top level
+    // menu is opened, 2 when its submenu is opened and so on.
+    int m_menuDepth;
 
     DECLARE_EVENT_TABLE()
     wxDECLARE_NO_COPY_CLASS(wxTopLevelWindowMSW);

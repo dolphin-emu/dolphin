@@ -4,7 +4,6 @@
  * Author:      Julian Smart
  * Modified by:
  * Created:     01/02/97
- * RCS-ID:      $Id: chkconf.h 69845 2011-11-27 19:52:13Z VZ $
  * Copyright:   (c) Julian Smart
  * Licence:     wxWindows licence
  */
@@ -154,12 +153,6 @@
 #    undef wxUSE_STACKWALKER
 #    define wxUSE_STACKWALKER 0
 #endif /* compiler doesn't support SEH */
-
-/* wxUSE_DEBUG_NEW_ALWAYS doesn't work with CodeWarrior */
-#if defined(__MWERKS__)
-#    undef wxUSE_DEBUG_NEW_ALWAYS
-#    define wxUSE_DEBUG_NEW_ALWAYS      0
-#endif
 
 #if defined(__GNUWIN32__)
     /* These don't work as expected for mingw32 and cygwin32 */

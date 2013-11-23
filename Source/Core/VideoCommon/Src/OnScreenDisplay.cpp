@@ -11,51 +11,27 @@
 #include "RenderBase.h"
 #include "Timer.h"
 
-#include <vector>
+#include <map>
+#include <string>
 
 namespace OSD
 {
 
-struct MESSAGE
+struct Message
 {
-	MESSAGE() {}
-	MESSAGE(const char* p, u32 dw)
-	{
-		strncpy(str, p, 255);
-		str[255] = '\0';
-		dwTimeStamp = dw;
-	}
-	char str[256];
-	u32 dwTimeStamp;
+    Message() {}
+    Message(const std::string& s, u32 ts) : str(s), timestamp(ts) {}
+
+	std::string str;
+	u32 timestamp;
 };
 
-class OSDCALLBACK
+static std::multimap<CallbackType, Callback> s_callbacks;
+static std::list<Message> s_msgList;
+
+void AddMessage(const std::string& str, u32 ms)
 {
-private:
-	CallbackPtr m_functionptr;
-	CallbackType m_type;
-	u32 m_data;
-public:
-	OSDCALLBACK(CallbackType OnType, CallbackPtr FuncPtr, u32 UserData)
-	{
-		m_type = OnType;
-		m_functionptr = FuncPtr;
-		m_data = UserData; 
-	}
-	void Call()
-	{
-		m_functionptr(m_data);
-	}
-
-	CallbackType Type() { return m_type; }
-};
-
-std::vector<OSDCALLBACK> m_callbacks;
-static std::list<MESSAGE> s_listMsgs;
-
-void AddMessage(const char* pstr, u32 ms)
-{
-	s_listMsgs.push_back(MESSAGE(pstr, Common::Timer::GetTimeMs() + ms));
+	s_msgList.push_back(Message(str, Common::Timer::GetTimeMs() + ms));
 }
 
 void DrawMessages()
@@ -63,59 +39,55 @@ void DrawMessages()
 	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bOnScreenDisplayMessages)
 		return;
 
-	if (s_listMsgs.size() > 0)
+	int left = 25, top = 15;
+	auto it = s_msgList.begin();
+	while (it != s_msgList.end())
 	{
-		int left = 25, top = 15;
-		std::list<MESSAGE>::iterator it = s_listMsgs.begin();
-		while (it != s_listMsgs.end()) 
+		int time_left = (int)(it->timestamp - Common::Timer::GetTimeMs());
+		u32 alpha = 255;
+
+		if (time_left < 1024)
 		{
-			int time_left = (int)(it->dwTimeStamp - Common::Timer::GetTimeMs());
-			int alpha = 255;
-
-			if (time_left < 1024)
-			{
-				alpha = time_left >> 2;
-				if (time_left < 0)
-					alpha = 0;
-			}
-
-			alpha <<= 24;
-
-			g_renderer->RenderText(it->str, left+1, top+1, 0x000000|alpha);
-			g_renderer->RenderText(it->str, left, top, 0xffff30|alpha);
-			top += 15;
-
-			if (time_left <= 0)
-				it = s_listMsgs.erase(it);
-			else
-				++it;
+			alpha = time_left >> 2;
+			if (time_left < 0)
+				alpha = 0;
 		}
+
+		alpha <<= 24;
+
+		g_renderer->RenderText(it->str.c_str(), left + 1, top + 1, 0x000000 | alpha);
+		g_renderer->RenderText(it->str.c_str(), left, top, 0xffff30 | alpha);
+		top += 15;
+
+		if (time_left <= 0)
+			it = s_msgList.erase(it);
+		else
+			++it;
 	}
 }
 
 void ClearMessages()
 {
-	std::list<MESSAGE>::iterator it = s_listMsgs.begin();
-
-	while (it != s_listMsgs.end())
-	{
-		it = s_listMsgs.erase(it);
-	}
+	s_msgList.clear();
 }
 
 // On-Screen Display Callbacks
-void AddCallback(CallbackType OnType, CallbackPtr FuncPtr, u32 UserData)
+void AddCallback(CallbackType type, Callback cb)
 {
-	m_callbacks.push_back(OSDCALLBACK(OnType, FuncPtr, UserData));
+	s_callbacks.insert(std::pair<CallbackType, Callback>(type, cb));
 }
 
-void DoCallbacks(CallbackType OnType)
+void DoCallbacks(CallbackType type)
 {
-	for (auto it = m_callbacks.begin(); it != m_callbacks.end(); ++it)
+	auto it_bounds = s_callbacks.equal_range(type);
+	for (auto it = it_bounds.first; it != it_bounds.second; ++it)
 	{
-		if (it->Type() == OnType)
-			it->Call();
+		it->second();
 	}
+
+	// Wipe all callbacks on shutdown
+	if (type == OSD_SHUTDOWN)
+		s_callbacks.clear();
 }
 
 }  // namespace

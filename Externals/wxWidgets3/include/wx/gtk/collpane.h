@@ -4,7 +4,6 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     8/10/2006
-// RCS-ID:      $Id: collpane.h 58632 2009-02-03 09:53:33Z RR $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -33,11 +32,6 @@ public:
         Init();
 
         Create(parent, winid, label, pos, size, style, val, name);
-    }
-
-    void Init()
-    {
-        m_bIgnoreNextChange = false;
     }
 
     bool Create(wxWindow *parent,
@@ -69,6 +63,11 @@ public:     // used by GTK callbacks
     wxString m_strLabel;
 
 private:
+    void Init()
+    {
+        m_bIgnoreNextChange = false;
+    }
+
     void OnSize(wxSizeEvent&);
     virtual void AddChildGTK(wxWindowGTK* child);
     GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;

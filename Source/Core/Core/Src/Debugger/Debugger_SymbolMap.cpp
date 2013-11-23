@@ -10,7 +10,6 @@
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/PPCAnalyst.h"
 #include "../PowerPC/PPCSymbolDB.h"
-#include "PowerPCDisasm.h"
 
 namespace Dolphin_Debugger
 {
@@ -36,7 +35,7 @@ void AddAutoBreakpoints()
 // Returns callstack "formatted for debugging" - meaning that it
 // includes LR as the last item, and all items are the last step,
 // instead of "pointing ahead"
-bool GetCallstack(std::vector<CallstackEntry> &output) 
+bool GetCallstack(std::vector<CallstackEntry> &output)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 		return false;
@@ -91,9 +90,9 @@ void PrintCallstack()
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
 
 	printf("== STACK TRACE - SP = %08x ==", PowerPC::ppcState.gpr[1]);
-	
+
 	if (LR == 0) {
-		printf(" LR = 0 - this is bad");	
+		printf(" LR = 0 - this is bad");
 	}
 	int count = 1;
 	if (g_symbolDB.GetDescription(PowerPC::ppcState.pc) != g_symbolDB.GetDescription(LR))
@@ -118,16 +117,16 @@ void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
 {
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
 
-	GENERIC_LOG(type, level, "== STACK TRACE - SP = %08x ==", 
+	GENERIC_LOG(type, level, "== STACK TRACE - SP = %08x ==",
 				PowerPC::ppcState.gpr[1]);
 
 	if (LR == 0) {
-		GENERIC_LOG(type, level, " LR = 0 - this is bad");	
+		GENERIC_LOG(type, level, " LR = 0 - this is bad");
 	}
 	int count = 1;
 	if (g_symbolDB.GetDescription(PowerPC::ppcState.pc) != g_symbolDB.GetDescription(LR))
 	{
-		GENERIC_LOG(type, level, " * %s  [ LR = %08x ]", 
+		GENERIC_LOG(type, level, " * %s  [ LR = %08x ]",
 					g_symbolDB.GetDescription(LR), LR);
 		count++;
 	}
@@ -146,7 +145,7 @@ void PrintCallstack(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
 
 void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const char* _title)
 {
-	GENERIC_LOG(type, LogTypes::LDEBUG, "%s", _title);		
+	GENERIC_LOG(type, LogTypes::LDEBUG, "%s", _title);
 	for (u32 j = 0; j < _Size;)
 	{
 		std::string Temp;

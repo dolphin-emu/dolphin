@@ -16,24 +16,24 @@ class DSPHLE : public DSPEmulator {
 public:
 	DSPHLE();
 
-	virtual bool Initialize(void *hWnd, bool bWii, bool bDSPThread);
-	virtual void Shutdown();
-	virtual bool IsLLE() { return false; }
+	virtual bool Initialize(void *hWnd, bool bWii, bool bDSPThread) override;
+	virtual void Shutdown() override;
+	virtual bool IsLLE() override { return false ; }
 
-	virtual void DoState(PointerWrap &p);
-	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
+	virtual void DoState(PointerWrap &p) override;
+	virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
 
-	virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short);
-	virtual void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short);
-	virtual unsigned short DSP_ReadMailBoxHigh(bool _CPUMailbox);
-	virtual unsigned short DSP_ReadMailBoxLow(bool _CPUMailbox);
-	virtual unsigned short DSP_ReadControlRegister();
-	virtual unsigned short DSP_WriteControlRegister(unsigned short);
-	virtual void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples);
-	virtual void DSP_Update(int cycles);
-	virtual void DSP_StopSoundStream();
-	virtual void DSP_ClearAudioBuffer(bool mute);
-	virtual u32 DSP_UpdateRate();
+	virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) override;
+	virtual void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short) override;
+	virtual unsigned short DSP_ReadMailBoxHigh(bool _CPUMailbox) override;
+	virtual unsigned short DSP_ReadMailBoxLow(bool _CPUMailbox) override;
+	virtual unsigned short DSP_ReadControlRegister() override;
+	virtual unsigned short DSP_WriteControlRegister(unsigned short) override;
+	virtual void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples) override;
+	virtual void DSP_Update(int cycles) override;
+	virtual void DSP_StopSoundStream() override;
+	virtual void DSP_ClearAudioBuffer(bool mute) override;
+	virtual u32 DSP_UpdateRate() override;
 
 	CMailHandler& AccessMailHandler() { return m_MailHandler; }
 
@@ -47,9 +47,8 @@ private:
 	void InitMixer();
 
 	// Declarations and definitions
-	void *m_hWnd;
 	bool m_bWii;
-	
+
 	bool m_InitMixer;
 
 	// Fake mailbox utility

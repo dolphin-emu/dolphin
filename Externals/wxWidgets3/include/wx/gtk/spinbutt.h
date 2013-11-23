@@ -3,7 +3,6 @@
 // Purpose:     wxSpinButton class
 // Author:      Robert Roebling
 // Modified by:
-// RCS-ID:      $Id: spinbutt.h 62785 2009-12-05 19:25:04Z PC $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

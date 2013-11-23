@@ -43,12 +43,18 @@ bool WiimoteScanner::IsReady() const
 	return false;
 }
 
-bool Wiimote::Connect()
+void Wiimote::InitInternal()
+{}
+
+void Wiimote::TeardownInternal()
+{}
+
+bool Wiimote::ConnectInternal()
 {
 	return 0;
 }
 
-void Wiimote::Disconnect()
+void Wiimote::DisconnectInternal()
 {
 	return;
 }
@@ -58,12 +64,15 @@ bool Wiimote::IsConnected() const
 	return false;
 }
 
+void Wiimote::IOWakeup()
+{}
+
 int Wiimote::IORead(u8* buf)
 {
 	return 0;
 }
 
-int Wiimote::IOWrite(const u8* buf, int len)
+int Wiimote::IOWrite(const u8* buf, size_t len)
 {
 	return 0;
 }

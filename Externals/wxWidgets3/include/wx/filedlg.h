@@ -5,7 +5,6 @@
 // Modified by:
 // Created:     8/17/99
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: filedlg.h 70345 2012-01-15 01:05:28Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -122,6 +121,9 @@ public:
     virtual wxString GetWildcard() const { return m_wildCard; }
     virtual int GetFilterIndex() const { return m_filterIndex; }
 
+    virtual wxString GetCurrentlySelectedFilename() const
+        { return m_currentlySelectedFilename; }
+
     // this function is called with wxFileDialog as parameter and should
     // create the window containing the extra controls we want to show in it
     typedef wxWindow *(*ExtraControlCreatorFunction)(wxWindow*);
@@ -155,6 +157,13 @@ protected:
     wxString      m_fileName;
     wxString      m_wildCard;
     int           m_filterIndex;
+
+    // Currently selected, but not yet necessarily accepted by the user, file.
+    // This should be updated whenever the selection in the control changes by
+    // the platform-specific code to provide a useful implementation of
+    // GetCurrentlySelectedFilename().
+    wxString      m_currentlySelectedFilename;
+
     wxWindow*     m_extraControl;
 
     // returns true if control is created (if it already exists returns false)

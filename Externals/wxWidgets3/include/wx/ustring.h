@@ -3,7 +3,6 @@
 // Purpose:     32-bit string (UCS-4)
 // Author:      Robert Roebling
 // Copyright:   (c) Robert Roebling
-// RCS-ID:      $Id: ustring.h 66654 2011-01-08 17:33:51Z PC $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

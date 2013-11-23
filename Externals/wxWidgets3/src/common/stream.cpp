@@ -5,7 +5,6 @@
 // Modified by: VZ (23.11.00) to fix realloc()ing new[]ed memory,
 //                            general code review
 // Created:     11/07/98
-// RCS-ID:      $Id: stream.cpp 61958 2009-09-18 14:03:55Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -36,6 +35,7 @@
 #include <ctype.h>
 #include "wx/datstrm.h"
 #include "wx/textfile.h"
+#include "wx/scopeguard.h"
 
 // ----------------------------------------------------------------------------
 // constants
@@ -912,6 +912,47 @@ wxInputStream& wxInputStream::Read(wxOutputStream& stream_out)
     return *this;
 }
 
+bool wxInputStream::ReadAll(void *buffer_, size_t size)
+{
+    char* buffer = static_cast<char*>(buffer_);
+
+    size_t totalCount = 0;
+
+    for ( ;; )
+    {
+        const size_t lastCount = Read(buffer, size).LastRead();
+
+        // There is no point in continuing looping if we can't read anything at
+        // all.
+        if ( !lastCount )
+            break;
+
+        totalCount += lastCount;
+
+        // ... Or if an error occurred on the stream.
+        if ( !IsOk() )
+            break;
+
+        // Return successfully if we read exactly the requested number of
+        // bytes (normally the ">" case should never occur and so we could use
+        // "==" test, but be safe and avoid overflowing size even in case of
+        // bugs in LastRead()).
+        if ( lastCount >= size )
+        {
+            size = 0;
+            break;
+        }
+
+        // Advance the buffer before trying to read the rest of data.
+        size -= lastCount;
+        buffer += lastCount;
+    }
+
+    m_lastcount = totalCount;
+
+    return size == 0;
+}
+
 wxFileOffset wxInputStream::SeekI(wxFileOffset pos, wxSeekMode mode)
 {
     // RR: This code is duplicated in wxBufferedInputStream. This is
@@ -954,7 +995,7 @@ wxFileOffset wxInputStream::SeekI(wxFileOffset pos, wxSeekMode mode)
 
         wxASSERT(bytes_read == (size_t)pos);
 
-        // we should now have seeked to the right position...
+        // we should now have sought to the right position...
         return TellI();
     }
 
@@ -1029,6 +1070,38 @@ wxOutputStream& wxOutputStream::Write(wxInputStream& stream_in)
     return *this;
 }
 
+bool wxOutputStream::WriteAll(const void *buffer_, size_t size)
+{
+    // This exactly mirrors ReadAll(), see there for more comments.
+    const char* buffer = static_cast<const char*>(buffer_);
+
+    size_t totalCount = 0;
+
+    for ( ;; )
+    {
+        const size_t lastCount = Write(buffer, size).LastWrite();
+        if ( !lastCount )
+            break;
+
+        totalCount += lastCount;
+
+        if ( !IsOk() )
+            break;
+
+        if ( lastCount >= size )
+        {
+            size = 0;
+            break;
+        }
+
+        size -= lastCount;
+        buffer += lastCount;
+    }
+
+    m_lastcount = totalCount;
+    return size == 0;
+}
+
 wxFileOffset wxOutputStream::TellO() const
 {
     return OnSysTell();
@@ -1052,22 +1125,23 @@ IMPLEMENT_DYNAMIC_CLASS(wxCountingOutputStream, wxOutputStream)
 
 wxCountingOutputStream::wxCountingOutputStream ()
 {
-     m_currentPos = 0;
+    m_currentPos =
+    m_lastPos = 0;
 }
 
 wxFileOffset wxCountingOutputStream::GetLength() const
 {
-    return m_lastcount;
+    return m_lastPos;
 }
 
 size_t wxCountingOutputStream::OnSysWrite(const void *WXUNUSED(buffer),
                                           size_t size)
 {
     m_currentPos += size;
-    if (m_currentPos > m_lastcount)
-        m_lastcount = m_currentPos;
+    if ( m_currentPos > m_lastPos )
+        m_lastPos = m_currentPos;
 
-    return m_currentPos;
+    return size;
 }
 
 wxFileOffset wxCountingOutputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode)
@@ -1081,12 +1155,12 @@ wxFileOffset wxCountingOutputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode
             break;
 
         case wxFromEnd:
-            new_pos = m_lastcount + new_pos;
-            wxCHECK_MSG( (wxFileOffset)new_pos == (wxFileOffset)(m_lastcount + pos), wxInvalidOffset, wxT("huge position not supported") );
+            new_pos += m_lastPos;
+            wxCHECK_MSG( (wxFileOffset)new_pos == (wxFileOffset)(m_lastPos + pos), wxInvalidOffset, wxT("huge position not supported") );
             break;
 
         case wxFromCurrent:
-            new_pos = m_currentPos + new_pos;
+            new_pos += m_currentPos;
             wxCHECK_MSG( (wxFileOffset)new_pos == (wxFileOffset)(m_currentPos + pos), wxInvalidOffset, wxT("huge position not supported") );
             break;
 
@@ -1097,8 +1171,8 @@ wxFileOffset wxCountingOutputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode
 
     m_currentPos = new_pos;
 
-    if (m_currentPos > m_lastcount)
-        m_lastcount = m_currentPos;
+    if ( m_currentPos > m_lastPos )
+        m_lastPos = m_currentPos;
 
     return m_currentPos;
 }
@@ -1444,6 +1518,93 @@ void wxBufferedOutputStream::SetOutputStreamBuffer(wxStreamBuffer *buffer)
 
     delete m_o_streambuf;
     m_o_streambuf = buffer;
+}
+
+// ---------------------------------------------------------------------------
+// wxWrapperInputStream implementation
+// ---------------------------------------------------------------------------
+
+wxWrapperInputStream::wxWrapperInputStream()
+{
+    m_lasterror = wxSTREAM_READ_ERROR;
+}
+
+wxWrapperInputStream::wxWrapperInputStream(wxInputStream& stream)
+    : wxFilterInputStream(stream)
+{
+    SynchronizeLastError();
+}
+
+wxWrapperInputStream::wxWrapperInputStream(wxInputStream *stream)
+    : wxFilterInputStream(stream)
+{
+    if ( m_parent_i_stream )
+        SynchronizeLastError();
+    else
+        m_lasterror = wxSTREAM_READ_ERROR;
+}
+
+void wxWrapperInputStream::InitParentStream(wxInputStream& stream)
+{
+    wxCHECK_RET( !m_parent_i_stream, "Can't init parent stream twice" );
+
+    m_parent_i_stream = &stream;
+
+    SynchronizeLastError();
+}
+
+void wxWrapperInputStream::InitParentStream(wxInputStream* stream)
+{
+    wxCHECK_RET( !m_parent_i_stream, "Can't init parent stream twice" );
+
+    m_parent_i_stream = stream;
+
+    if ( m_parent_i_stream )
+    {
+        m_owns = true;
+
+        SynchronizeLastError();
+    }
+}
+
+wxFileOffset wxWrapperInputStream::GetLength() const
+{
+    wxCHECK_MSG(m_parent_i_stream, wxInvalidOffset, "Stream not valid");
+
+    wxON_BLOCK_EXIT_THIS0(wxWrapperInputStream::SynchronizeLastError);
+    return m_parent_i_stream->GetLength();
+}
+
+bool wxWrapperInputStream::IsSeekable() const
+{
+    wxCHECK_MSG(m_parent_i_stream, false, "Stream not valid");
+    return m_parent_i_stream->IsSeekable();
+}
+
+size_t wxWrapperInputStream::OnSysRead(void *buffer, size_t size)
+{
+    wxCHECK_MSG(m_parent_i_stream, false, "Stream not valid");
+
+    wxON_BLOCK_EXIT_THIS0(wxWrapperInputStream::SynchronizeLastError);
+
+    m_parent_i_stream->Read(buffer, size);
+    return m_parent_i_stream->LastRead();
+}
+
+wxFileOffset wxWrapperInputStream::OnSysSeek(wxFileOffset pos, wxSeekMode mode)
+{
+    wxCHECK_MSG(IsSeekable(), false, "Stream not seekable");
+
+    wxON_BLOCK_EXIT_THIS0(wxWrapperInputStream::SynchronizeLastError);
+    return m_parent_i_stream->SeekI (pos, mode);
+}
+
+wxFileOffset wxWrapperInputStream::OnSysTell() const
+{
+    wxCHECK_MSG(m_parent_i_stream, false, "Stream not valid");
+
+    wxON_BLOCK_EXIT_THIS0(wxWrapperInputStream::SynchronizeLastError);
+    return m_parent_i_stream->TellI();
 }
 
 // ----------------------------------------------------------------------------

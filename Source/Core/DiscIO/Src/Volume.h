@@ -25,6 +25,7 @@ public:
 	virtual bool GetTitleID(u8*) const { return false; }
 	virtual void GetTMD(u8*, u32 *_sz) const { *_sz=0; }
 	virtual std::string GetUniqueID() const = 0;
+	virtual std::string GetRevisionSpecificUniqueID() const { return ""; }
 	virtual std::string GetMakerID() const = 0;
 	virtual int GetRevision() const { return 0; }
 	// TODO: eliminate?
@@ -54,7 +55,7 @@ public:
 
 	virtual ECountry GetCountry() const = 0;
 	virtual u64 GetSize() const = 0;
-	
+
 	// Size on disc (compressed size)
 	virtual u64 GetRawSize() const = 0;
 };

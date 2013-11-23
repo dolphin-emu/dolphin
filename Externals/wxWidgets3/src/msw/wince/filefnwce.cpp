@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: filefnwce.cpp 52112 2008-02-26 14:15:35Z JS $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -111,6 +110,12 @@ int wxCRT_Access(const wxChar *name, int WXUNUSED(how))
     CloseHandle(fileHandle);
 
     return 0;
+}
+
+int wxCRT_Chmod(const wxChar *WXUNUSED(name), int WXUNUSED(how))
+{
+    // TODO
+    return -1;
 }
 
 int wxClose(int fd)

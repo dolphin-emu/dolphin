@@ -5,7 +5,6 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - plural forms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -307,12 +306,6 @@ public:
     {
         return wxGetTranslation(origString, origString2, n, domain);
     }
-
-    // this is hack to work around a problem with wxGetTranslation() which
-    // returns const wxString& and not wxString, so when it returns untranslated
-    // string, it needs to have a copy of it somewhere
-    static const wxString& GetUntranslatedString(const wxString& str)
-        { return wxTranslations::GetUntranslatedString(str); }
 
     // Returns the current short name for the locale
     const wxString& GetName() const { return m_strShort; }

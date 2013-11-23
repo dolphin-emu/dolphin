@@ -14,7 +14,7 @@ namespace Common {
 class CCPU
 {
 public:
-	// init 
+	// init
 	static void Init(int cpu_core);
 
 	// shutdown
@@ -24,7 +24,7 @@ public:
 	static void Run();
 
 	// causes shutdown
-	static void Stop(); 
+	static void Stop();
 	// Reset
 	static void Reset();
 
@@ -35,7 +35,7 @@ public:
 	static void SingleStep();
 
 	// Enable or Disable Stepping
-	static void EnableStepping(const bool _bStepping);	
+	static void EnableStepping(const bool _bStepping);
 
 	// break, same as EnableStepping(true).
 	static void Break();

@@ -210,8 +210,7 @@ wxString wxNumberFormatter::ToString(wxLongLong_t val, int style)
 
 wxString wxNumberFormatter::ToString(double val, int precision, int style)
 {
-    const wxString fmt = wxString::Format("%%.%df", precision);
-    wxString s = wxString::Format(fmt, val);
+    wxString s = wxString::FromDouble(val,precision);
 
     if ( style & Style_WithThousandsSep )
         AddThousandsSeparators(s);
@@ -235,6 +234,10 @@ void wxNumberFormatter::AddThousandsSeparators(wxString& s)
         pos = s.length();
     }
 
+    // End grouping at the beginning of the digits -- there could be at a sign
+    // before their start.
+    const size_t start = s.find_first_of("0123456789");
+
     // We currently group digits by 3 independently of the locale. This is not
     // the right thing to do and we should use lconv::grouping (under POSIX)
     // and GetLocaleInfo(LOCALE_SGROUPING) (under MSW) to get information about
@@ -242,7 +245,7 @@ void wxNumberFormatter::AddThousandsSeparators(wxString& s)
     // wxLocale level first and then used here in the future (TODO).
     const size_t GROUP_LEN = 3;
 
-    while ( pos > GROUP_LEN )
+    while ( pos > start + GROUP_LEN )
     {
         pos -= GROUP_LEN;
         s.insert(pos, thousandsSep);

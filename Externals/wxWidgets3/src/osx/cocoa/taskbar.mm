@@ -4,7 +4,6 @@
 // Author:      David Elliott, Stefan Csomor
 // Modified by:
 // Created:     2004/01/24
-// RCS-ID:      $Id: taskbar.mm 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 2004 David Elliott, Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -141,9 +140,9 @@ IMPLEMENT_DYNAMIC_CLASS(wxTaskBarIcon, wxEvtHandler)
 
 wxTaskBarIcon::wxTaskBarIcon(wxTaskBarIconType iconType)
 {
-    if(iconType == DOCK)
+    if(iconType == wxTBI_DOCK)
         m_impl = new wxTaskBarIconDockImpl(this);
-    else if(iconType == CUSTOM_STATUSITEM)
+    else if(iconType == wxTBI_CUSTOM_STATUSITEM)
         m_impl = new wxTaskBarIconCustomStatusItemImpl(this);
     else
     {   m_impl = NULL;
@@ -338,7 +337,7 @@ wxTaskBarIconCustomStatusItemImpl::~wxTaskBarIconCustomStatusItemImpl()
 {
 }
 
-bool wxTaskBarIconCustomStatusItemImpl::SetIcon(const wxIcon& icon, const wxString& WXUNUSED(tooltip))
+bool wxTaskBarIconCustomStatusItemImpl::SetIcon(const wxIcon& icon, const wxString& tooltip)
 {
     if(!m_statusItem)
     {
@@ -347,6 +346,7 @@ bool wxTaskBarIconCustomStatusItemImpl::SetIcon(const wxIcon& icon, const wxStri
 
         m_target = [[wxOSXStatusItemTarget alloc] init];
         [m_target setImplementation:this];
+        [m_statusItem setHighlightMode:YES];
         [m_statusItem setTarget:m_target];
         [m_statusItem setAction:@selector(clickedAction:)];
         [m_statusItem sendActionOn:NSLeftMouseDownMask];
@@ -367,6 +367,8 @@ bool wxTaskBarIconCustomStatusItemImpl::SetIcon(const wxIcon& icon, const wxStri
     }
 
     [m_statusItem setImage:m_icon.GetNSImage()];
+    wxCFStringRef cfTooltip(tooltip);
+    [m_statusItem setToolTip:cfTooltip.AsNSString()];
     return true;
 }
 

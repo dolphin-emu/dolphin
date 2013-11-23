@@ -13,7 +13,10 @@
 #include <string.h>
 
 // SVN version number
+extern const char *scm_desc_str;
+extern const char *scm_branch_str;
 extern const char *scm_rev_str;
+extern const char *scm_rev_git_str;
 extern const char *netplay_dolphin_ver;
 
 // Force enable logging in the right modes. For some reason, something had changed
@@ -25,20 +28,27 @@ extern const char *netplay_dolphin_ver;
 
 #define STACKALIGN
 
+#if __cplusplus >= 201103 || defined(_MSC_VER) || defined(__GXX_EXPERIMENTAL_CXX0X__)
+#define HAVE_CXX11_SYNTAX 1
+#endif
+
+#if HAVE_CXX11_SYNTAX
 // An inheritable class to disallow the copy constructor and operator= functions
 class NonCopyable
 {
 protected:
 	NonCopyable() {}
+	NonCopyable(const NonCopyable&&) {}
+	void operator=(const NonCopyable&&) {}
 private:
-	NonCopyable(const NonCopyable&);
-	void operator=(const NonCopyable&);
+	NonCopyable(NonCopyable&);
+	NonCopyable& operator=(NonCopyable& other);
 };
+#endif
 
 #include "Log.h"
 #include "CommonTypes.h"
 #include "MsgHandler.h"
-#include "CommonFuncs.h"
 
 #ifdef __APPLE__
 // The Darwin ABI requires that stack frames be aligned to 16-byte boundaries.
@@ -89,13 +99,23 @@ private:
 #endif
 
 // Windows compatibility
+#define _M_64BIT defined(_LP64) || defined(_WIN64)
 #ifndef _WIN32
 #include <limits.h>
 #define MAX_PATH PATH_MAX
-#ifdef _LP64
+#ifdef __x86_64__
 #define _M_X64 1
-#else
+#endif
+#ifdef __i386__
 #define _M_IX86 1
+#endif
+#ifdef __arm__
+#define _M_ARM 1
+#define _M_GENERIC 1
+#endif
+#ifdef __mips__
+#define _M_MIPS 1
+#define _M_GENERIC 1
 #endif
 #define __forceinline inline __attribute__((always_inline))
 #define GC_ALIGNED16(x) __attribute__((aligned(16))) x
@@ -152,5 +172,7 @@ enum EMUSTATE_CHANGE
 	EMUSTATE_CHANGE_PAUSE,
 	EMUSTATE_CHANGE_STOP
 };
+
+#include "CommonFuncs.h"
 
 #endif // _COMMON_H_

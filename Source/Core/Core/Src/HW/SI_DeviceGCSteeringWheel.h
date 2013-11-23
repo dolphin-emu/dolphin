@@ -13,7 +13,7 @@
 class CSIDevice_GCSteeringWheel : public ISIDevice
 {
 private:
-	
+
 	// Commands
 	enum EBufferCommands
 	{
@@ -48,7 +48,7 @@ private:
 	union UCommand
 	{
 		u32 Hex;
-		struct  
+		struct
 		{
 			u32 Parameter1	:	8;
 			u32 Parameter2	:	8;
@@ -91,7 +91,7 @@ public:
 
 	// Send and Receive pad input from network
 	static bool NetPlay_GetInput(u8 numPAD, SPADStatus status, u32 *PADStatus);
-	static u8 NetPlay_GetPadNum(u8 numPAD);
+	static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
 
 	// Return true on new data
 	virtual bool GetData(u32& _Hi, u32& _Low);

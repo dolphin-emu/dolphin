@@ -32,71 +32,42 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	}
 	else
 	{
-		u8 maxWM = min<u8>(BT_DINF.num_registered, MAX_BBMOTES);
 		bdaddr_t tmpBD = BDADDR_ANY;
 		u8 i = 0;
-		while (i < maxWM)
+		while (i < MAX_BBMOTES)
 		{
-			tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0];
-			tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1];
-			tmpBD.b[3] = BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2];
-			tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3];
-			tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4];
-			tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5];
-			if(i == WIIMOTE_BALANCE_BOARD)
+			if (i < BT_DINF.num_registered)
 			{
-				const char * wmName = "Nintendo RVL-WBC-01";
-				memcpy(BT_DINF.registered[i].name, wmName, 20);
-				memcpy(BT_DINF.balance_board.name, wmName, 20);
+				tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0];
+				tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1];
+				tmpBD.b[3] = BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2];
+				tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3];
+				tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4];
+				tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5];
 			}
 			else
 			{
-				const char * wmName = "Nintendo RVL-CNT-01";
-				memcpy(BT_DINF.registered[i].name, wmName, 20);
-				memcpy(BT_DINF.active[i].name, wmName, 20);
+				tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = i;
+				tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = 0;
+				tmpBD.b[3] = BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = 0x79;
+				tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = 0x19;
+				tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = 2;
+				tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = 0x11;
 			}
+
+			const char* wmName;
+			if (i == WIIMOTE_BALANCE_BOARD)
+				wmName = "Nintendo RVL-WBC-01";
+			else
+				wmName = "Nintendo RVL-CNT-01";
+			memcpy(BT_DINF.registered[i].name, wmName, 20);
+			memcpy(BT_DINF.active[i].name, wmName, 20);
 
 			INFO_LOG(WII_IPC_WIIMOTE, "Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
 			m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
 			i++;
 		}
-		while (i < MAX_BBMOTES)
-		{
-			if(i == WIIMOTE_BALANCE_BOARD)
-			{
-				const char * wmName = "Nintendo RVL-WBC-01";
-				++BT_DINF.num_registered;
-				BT_DINF.balance_board.bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = tmpBD.b[5] = i;
-				BT_DINF.balance_board.bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = tmpBD.b[4] = 0;
-				BT_DINF.balance_board.bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = tmpBD.b[3] = 0x79;
-				BT_DINF.balance_board.bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = tmpBD.b[2] = 0x19;
-				BT_DINF.balance_board.bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = tmpBD.b[1] = 2;
-				BT_DINF.balance_board.bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = tmpBD.b[0] = 0x11;
-				memcpy(BT_DINF.registered[i].name, wmName, 20);
-				memcpy(BT_DINF.balance_board.name, wmName, 20);
-				
-				INFO_LOG(WII_IPC_WIIMOTE, "Balance Board %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
-				m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
-			}
-			else
-			{
-				const char * wmName = "Nintendo RVL-CNT-01";
-				++BT_DINF.num_registered;
-				BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = tmpBD.b[5] = i;
-				BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = tmpBD.b[4] = 0;
-				BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = tmpBD.b[3] = 0x79;
-				BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = tmpBD.b[2] = 0x19;
-				BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = tmpBD.b[1] = 2;
-				BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = tmpBD.b[0] = 0x11;
-				memcpy(BT_DINF.registered[i].name, wmName, 20);
 
-				INFO_LOG(WII_IPC_WIIMOTE, "Adding to SYSConf Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1], tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
-				m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
-			
-			}
-			i++;
-		}
-		
 		// save now so that when games load sysconf file it includes the new wiimotes
 		// and the correct order for connected wiimotes
 		if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !SConfig::GetInstance().m_SYSCONF->Save())
@@ -465,12 +436,12 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// Create ACL connection
 	if (m_HCIEndpoint.IsValid() && (m_ScanEnable & HCI_PAGE_SCAN_ENABLE))
 	{
-		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+		for (auto& wiimote : m_WiiMotes)
 		{
-			if (m_WiiMotes[i].EventPagingChanged(m_ScanEnable))
+			if (wiimote.EventPagingChanged(m_ScanEnable))
 			{
 				Host_SetWiiMoteConnectionState(1);
-				SendEventRequestConnection(m_WiiMotes[i]);
+				SendEventRequestConnection(wiimote);
 			}
 		}
 	}
@@ -478,9 +449,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// Link channels when connected
 	if (m_ACLEndpoint.IsValid())
 	{
-		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+		for (auto& wiimote : m_WiiMotes)
 		{
-			if (m_WiiMotes[i].LinkChannel())
+			if (wiimote.LinkChannel())
 				break;
 		}
 	}
@@ -494,7 +465,6 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
 			if (m_WiiMotes[i].IsConnected())
 			{
-				NetPlay_WiimoteUpdate(i);
 				Wiimote::Update(i);
 			}
 		m_last_ticks = now;
@@ -513,13 +483,13 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u
 		ERROR_LOG(WII_IPC_WIIMOTE, "ACL queue size reached 100 - current packet will be dropped!");
 		return;
 	}
-	
+
 	_dbg_assert_msg_(WII_IPC_WIIMOTE,
 		size < m_acl_pkt_size, "ACL packet too large for pool");
-	
+
 	m_queue.push_back(Packet());
 	auto& packet = m_queue.back();
-	
+
 	std::copy(data, data + size, packet.data);
 	packet.size = size;
 	packet.conn_handle = conn_handle;
@@ -528,7 +498,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::WriteToEndpoint(CtrlBuffer& endpoint)
 {
 	auto& packet = m_queue.front();
-	
+
 	const u8* const data = packet.data;
 	const u16 size = packet.size;
 	const u16 conn_handle = packet.conn_handle;
@@ -576,7 +546,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 
 	SQueuedEvent Event(static_cast<u32>(sizeof(SHCIEventInquiryResult) + m_WiiMotes.size()*sizeof(hci_inquiry_response)), 0);
 
-	SHCIEventInquiryResult* pInquiryResult = (SHCIEventInquiryResult*)Event.m_buffer;  
+	SHCIEventInquiryResult* pInquiryResult = (SHCIEventInquiryResult*)Event.m_buffer;
 
 	pInquiryResult->EventType = HCI_EVENT_INQUIRY_RESULT;
 	pInquiryResult->PayloadLength = (u8)(sizeof(SHCIEventInquiryResult) - 2 + (m_WiiMotes.size() * sizeof(hci_inquiry_response)));
@@ -588,7 +558,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 			continue;
 
 		u8* pBuffer = Event.m_buffer + sizeof(SHCIEventInquiryResult) + i*sizeof(hci_inquiry_response);
-		hci_inquiry_response* pResponse = (hci_inquiry_response*)pBuffer;   
+		hci_inquiry_response* pResponse = (hci_inquiry_response*)pBuffer;
 
 		pResponse->bdaddr = m_WiiMotes[i].GetBD();
 		pResponse->uclass[0]= m_WiiMotes[i].GetClass()[0];
@@ -787,7 +757,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadRemoteFeatures(u16 _conne
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventReadRemoteFeatures");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", pReadRemoteFeatures->ConnectionHandle);
-	DEBUG_LOG(WII_IPC_WIIMOTE, "  features: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",   
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  features: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 		pReadRemoteFeatures->features[0], pReadRemoteFeatures->features[1], pReadRemoteFeatures->features[2],
 		pReadRemoteFeatures->features[3], pReadRemoteFeatures->features[4], pReadRemoteFeatures->features[5],
 		pReadRemoteFeatures->features[6], pReadRemoteFeatures->features[7]);
@@ -860,7 +830,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandStatus(u16 _Opcode)
 	pHCIEvent->PacketIndicator = 0x01;
 	pHCIEvent->Opcode = _Opcode;
 
-	INFO_LOG(WII_IPC_WIIMOTE, "Event: Command Status (Opcode: 0x%04x)", pHCIEvent->Opcode); 
+	INFO_LOG(WII_IPC_WIIMOTE, "Event: Command Status (Opcode: 0x%04x)", pHCIEvent->Opcode);
 
 	AddEventToQueue(Event);
 
@@ -896,7 +866,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd, bool
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 {
-	SQueuedEvent Event(sizeof(hci_event_hdr_t) + sizeof(hci_num_compl_pkts_ep) + sizeof(hci_num_compl_pkts_info) * m_WiiMotes.size(), 0);
+	SQueuedEvent Event((u32)(sizeof(hci_event_hdr_t) + sizeof(hci_num_compl_pkts_ep) + (sizeof(hci_num_compl_pkts_info) * m_WiiMotes.size())), 0);
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventNumberOfCompletedPackets");
 
@@ -916,7 +886,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 		event->num_con_handles++;
 		info->compl_pkts = m_PacketCount[i];
 		info->con_handle = m_WiiMotes[i].GetConnectionHandle();
-		
+
 		DEBUG_LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", info->con_handle);
 		DEBUG_LOG(WII_IPC_WIIMOTE, "  Number_Of_Completed_Packets: %i", info->compl_pkts);
 
@@ -1763,7 +1733,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadLocalFeatures(u8* _Input)
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_READ_LOCAL_FEATURES:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "return:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "  features: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",   
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  features: %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 		Reply.features[0], Reply.features[1], Reply.features[2],
 		Reply.features[3], Reply.features[4], Reply.features[5],
 		Reply.features[6], Reply.features[7]);
@@ -1848,16 +1818,16 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandVendorSpecific_FC4C(u8* _Input,
 //
 CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const bdaddr_t& _rAddr)
 {
-	for (size_t i=0; i<m_WiiMotes.size(); i++)
+	for (auto& wiimote : m_WiiMotes)
 	{
-		const bdaddr_t& BD = m_WiiMotes[i].GetBD();
+		const bdaddr_t& BD = wiimote.GetBD();
 		if ((_rAddr.b[0] == BD.b[0]) &&
 			(_rAddr.b[1] == BD.b[1]) &&
 			(_rAddr.b[2] == BD.b[2]) &&
 			(_rAddr.b[3] == BD.b[3]) &&
 			(_rAddr.b[4] == BD.b[4]) &&
 			(_rAddr.b[5] == BD.b[5]))
-			return &m_WiiMotes[i];
+			return &wiimote;
 	}
 
 	ERROR_LOG(WII_IPC_WIIMOTE,"Can't find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
@@ -1867,10 +1837,10 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const b
 
 CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _ConnectionHandle)
 {
-	for (size_t i=0; i<m_WiiMotes.size(); i++)
+	for (auto& wiimote : m_WiiMotes)
 	{
-		if (m_WiiMotes[i].GetConnectionHandle() == _ConnectionHandle)
-			return &m_WiiMotes[i];
+		if (wiimote.GetConnectionHandle() == _ConnectionHandle)
+			return &wiimote;
 	}
 
 	ERROR_LOG(WII_IPC_WIIMOTE, "Can't find WiiMote by connection handle %02x", _ConnectionHandle);

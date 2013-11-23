@@ -92,7 +92,7 @@ bool FifoPlayer::Play()
 				if (m_EarlyMemoryUpdates && m_CurrentFrame == m_FrameRangeStart)
 					WriteAllMemoryUpdates();
 
-				WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);		
+				WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);
 
 				++m_CurrentFrame;
 			}
@@ -105,7 +105,9 @@ bool FifoPlayer::Play()
 u32 FifoPlayer::GetFrameObjectCount()
 {
 	if (m_CurrentFrame < m_FrameInfo.size())
-		return m_FrameInfo[m_CurrentFrame].objectStarts.size();
+	{
+		return (u32)(m_FrameInfo[m_CurrentFrame].objectStarts.size());
+	}
 
 	return 0;
 }
@@ -172,7 +174,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo 
 	m_FrameFifoSize = frame.fifoDataSize;
 
 	// Determine start and end objects
-	u32 numObjects = info.objectStarts.size();
+	u32 numObjects = (u32)(info.objectStarts.size());
 	u32 drawStart = std::min(numObjects, m_ObjectRangeStart);
 	u32 drawEnd = std::min(numObjects - 1, m_ObjectRangeEnd);
 
@@ -181,7 +183,9 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo 
 
 	// Skip memory updates during frame if true
 	if (m_EarlyMemoryUpdates)
-		memoryUpdate = frame.memoryUpdates.size();
+	{
+		memoryUpdate = (u32)(frame.memoryUpdates.size());
+	}
 
 	if (numObjects > 0)
 	{
@@ -259,9 +263,9 @@ void FifoPlayer::WriteAllMemoryUpdates()
 	for (int frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
 	{
 		const FifoFrameInfo &frame = m_File->GetFrame(frameNum);
-		for (unsigned int i = 0; i < frame.memoryUpdates.size(); ++i)
+		for (auto& update : frame.memoryUpdates)
 		{
-			WriteMemory(frame.memoryUpdates[i]);
+			WriteMemory(update);
 		}
 	}
 }
@@ -310,7 +314,7 @@ void FifoPlayer::SetupFifo()
 
 	const FifoFrameInfo& frame = m_File->GetFrame(m_CurrentFrame);
 
-	// Set fifo bounds	
+	// Set fifo bounds
 	WriteCP(0x20, frame.fifoStart);
 	WriteCP(0x22, frame.fifoStart >> 16);
 	WriteCP(0x24, frame.fifoEnd);
@@ -368,7 +372,7 @@ void FifoPlayer::LoadMemory()
 		LoadCPReg(0x80 + i, regs[0x80 + i]);
 		LoadCPReg(0x90 + i, regs[0x90 + i]);
 	}
-	
+
 	for (int i = 0; i < 16; ++i)
 	{
 		LoadCPReg(0xa0 + i, regs[0xa0 + i]);

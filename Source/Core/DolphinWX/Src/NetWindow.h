@@ -81,6 +81,8 @@ public:
 
 	static NetPlayDiag *&GetInstance() { return npd; };
 
+	bool IsRecording();
+
 private:
     DECLARE_EVENT_TABLE()
 
@@ -97,6 +99,7 @@ private:
 	wxTextCtrl*		m_chat_text;
 	wxTextCtrl*		m_chat_msg_text;
 	wxCheckBox*		m_memcard_write;
+	wxCheckBox*		m_record_chkbox;
 
 	std::string		m_selected_game;
 	wxButton*		m_game_btn;
@@ -124,13 +127,15 @@ private:
 class PadMapDiag : public wxDialog
 {
 public:
-	PadMapDiag(wxWindow* const parent, int map[]);
+	PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiimotemap[], std::vector<const Player *>& player_list);
 
 private:
 	void OnAdjust(wxCommandEvent& event);
 
-	wxChoice*	m_map_cbox[4];
-	int* const	m_mapping;
+	wxChoice*	m_map_cbox[8];
+	PadMapping* const m_mapping;
+	PadMapping* const m_wiimapping;
+	std::vector<const Player *>& m_player_list;
 };
 
 namespace NetPlay

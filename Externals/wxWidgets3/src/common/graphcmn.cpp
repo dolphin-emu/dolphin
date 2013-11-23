@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:
-// RCS-ID:      $Id: graphcmn.cpp 69360 2011-10-09 22:07:29Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -522,6 +521,11 @@ void wxGraphicsGradientStops::Add(const wxGraphicsGradientStop& stop)
     {
         wxFAIL_MSG( "invalid gradient stop position > 1" );
     }
+}
+
+void * wxGraphicsBitmap::GetNativeBitmap() const
+{
+    return GetBitmapData()->GetNativeBitmap();
 }
 
 //-----------------------------------------------------------------------------

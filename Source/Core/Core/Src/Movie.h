@@ -41,7 +41,7 @@ struct ControllerState {
 	u8   TriggerL, TriggerR;					// Triggers, 16 bits
 	u8   AnalogStickX, AnalogStickY;			// Main Stick, 16 bits
 	u8   CStickX, CStickY;						// Sub-Stick, 16 bits
-	
+
 }; // Total: 60 + 4 = 64 bits per frame
 static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes");
 #pragma pack(pop)
@@ -107,7 +107,8 @@ struct DTMHeader {
 	bool bClearSave;		// Create a new memory card when playing back a movie if true
 	u8 bongos;
 	bool bSyncGPU;
-	u8 reserved[14];		// Padding for any new config options
+	bool bNetPlay;
+	u8 reserved[13];		// Padding for any new config options
 	u8 discChange[40];		// Name of iso file to switch to, for two disc games.
 	u8 revision[20];		// Git hash
 	u8 reserved2[27];		// Make heading 256 bytes, just because we can
@@ -142,6 +143,7 @@ bool IsUsingMemcard();
 bool IsSyncGPU();
 void SetGraphicsConfig();
 void GetSettings();
+bool IsNetPlayRecording();
 
 bool IsUsingPad(int controller);
 bool IsUsingWiimote(int wiimote);

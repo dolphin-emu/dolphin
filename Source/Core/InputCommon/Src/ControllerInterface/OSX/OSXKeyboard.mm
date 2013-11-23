@@ -16,7 +16,6 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index, void *win
 	: m_device(device)
 	, m_device_name(name)
 	, m_index(index)
-	, m_window(window)
 {
 	// This class should only recieve Keyboard or Keypad devices
 	// Now, filter on just the buttons we can handle sanely
@@ -223,9 +222,9 @@ Keyboard::Key::Key(IOHIDElementRef element, IOHIDDeviceRef device)
 	};
 	
 	const uint32_t keycode = IOHIDElementGetUsage(m_element);
-	for (uint32_t i = 0; i < sizeof named_keys / sizeof *named_keys; i++)
-		if (named_keys[i].code == keycode) {
-			m_name = named_keys[i].name;
+	for (auto & named_key : named_keys)
+		if (named_key.code == keycode) {
+			m_name = named_key.name;
 			return;
 		}
 	

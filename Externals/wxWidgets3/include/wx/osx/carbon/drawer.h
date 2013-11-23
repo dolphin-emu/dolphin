@@ -7,7 +7,6 @@
 // Author:      Jason Bagley
 // Modified by:
 // Created:     2004-30-01
-// RCS-ID:      $Id: drawer.h 64943 2010-07-13 13:29:58Z VZ $
 // Copyright:   (c) Jason Bagley; Art & Logic, Inc.
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

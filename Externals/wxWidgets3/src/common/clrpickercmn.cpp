@@ -4,7 +4,6 @@
 // Author:      Francesco Montorsi (readapted code written by Vadim Zeitlin)
 // Modified by:
 // Created:     15/04/2006
-// RCS-ID:      $Id: clrpickercmn.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Vadim Zeitlin, Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,7 +38,7 @@ const char wxColourPickerWidgetNameStr[] = "colourpickerwidget";
 // implementation
 // ============================================================================
 
-wxDEFINE_EVENT(wxEVT_COMMAND_COLOURPICKER_CHANGED, wxColourPickerEvent);
+wxDEFINE_EVENT(wxEVT_COLOURPICKER_CHANGED, wxColourPickerEvent);
 IMPLEMENT_DYNAMIC_CLASS(wxColourPickerCtrl, wxPickerBase)
 IMPLEMENT_DYNAMIC_CLASS(wxColourPickerEvent, wxEvent)
 
@@ -68,7 +67,7 @@ bool wxColourPickerCtrl::Create( wxWindow *parent, wxWindowID id,
     // complete sizer creation
     wxPickerBase::PostCreation();
 
-    m_picker->Connect(wxEVT_COMMAND_COLOURPICKER_CHANGED,
+    m_picker->Connect(wxEVT_COLOURPICKER_CHANGED,
             wxColourPickerEventHandler(wxColourPickerCtrl::OnColourChange),
             NULL, this);
 
@@ -96,13 +95,6 @@ void wxColourPickerCtrl::UpdatePickerFromTextCtrl()
 {
     wxASSERT(m_text);
 
-    if (m_bIgnoreNextTextCtrlUpdate)
-    {
-        // ignore this update
-        m_bIgnoreNextTextCtrlUpdate = false;
-        return;
-    }
-
     // wxString -> wxColour conversion
     wxColour col(m_text->GetValue());
     if ( !col.IsOk() )
@@ -123,11 +115,9 @@ void wxColourPickerCtrl::UpdateTextCtrlFromPicker()
     if (!m_text)
         return;     // no textctrl to update
 
-    // NOTE: this SetValue() will generate an unwanted wxEVT_COMMAND_TEXT_UPDATED
-    //       which will trigger a unneeded UpdateFromTextCtrl(); thus before using
-    //       SetValue() we set the m_bIgnoreNextTextCtrlUpdate flag...
-    m_bIgnoreNextTextCtrlUpdate = true;
-    m_text->SetValue(M_PICKER->GetColour().GetAsString());
+    // Take care to use ChangeValue() here and not SetValue() to avoid
+    // infinite recursion.
+    m_text->ChangeValue(M_PICKER->GetColour().GetAsString());
 }
 
 

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: frame.cpp 70511 2012-02-05 14:18:22Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -56,12 +55,6 @@
     #include "wx/univ/theme.h"
     #include "wx/univ/colschem.h"
 #endif // __WXUNIVERSAL__
-
-// FIXME-VC6: Only VC6 doesn't have this in its standard headers so this
-//            could be removed once support for it is dropped.
-#ifndef WM_UNINITMENUPOPUP
-    #define WM_UNINITMENUPOPUP 0x0125
-#endif
 
 // ----------------------------------------------------------------------------
 // globals
@@ -429,11 +422,22 @@ void wxFrame::InternalSetMenuBar()
 
 #endif // wxUSE_MENUS_NATIVE
 
+#if wxUSE_MENUS
+wxMenu* wxFrame::MSWFindMenuFromHMENU(WXHMENU hMenu)
+{
+    return GetMenuBar() ? GetMenuBar()->MSWGetMenu(hMenu) : NULL;
+}
+#endif // wxUSE_MENUS
+
 // Responds to colour changes, and passes event on to children.
 void wxFrame::OnSysColourChanged(wxSysColourChangedEvent& event)
 {
-    SetOwnBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
-    Refresh();
+    // Don't override the colour explicitly set by the user, if any.
+    if ( !UseBgCol() )
+    {
+        SetOwnBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_APPWORKSPACE));
+        Refresh();
+    }
 
 #if wxUSE_STATUSBAR
     if ( m_frameStatusBar )
@@ -820,72 +824,6 @@ bool wxFrame::HandleCommand(WXWORD id, WXWORD cmd, WXHWND control)
     return wxFrameBase::HandleCommand(id, cmd, control);;
 }
 
-#if wxUSE_MENUS
-
-bool
-wxFrame::HandleMenuSelect(WXWORD nItem, WXWORD flags, WXHMENU WXUNUSED(hMenu))
-{
-    // sign extend to int from unsigned short we get from Windows
-    int item = (signed short)nItem;
-
-    // WM_MENUSELECT is generated for both normal items and menus, including
-    // the top level menus of the menu bar, which can't be represented using
-    // any valid identifier in wxMenuEvent so use an otherwise unused value for
-    // them
-    if ( flags & (MF_POPUP | MF_SEPARATOR) )
-        item = wxID_NONE;
-
-    wxMenuEvent event(wxEVT_MENU_HIGHLIGHT, item);
-    event.SetEventObject(this);
-
-    if ( HandleWindowEvent(event) )
-        return true;
-
-    // by default, i.e. if the event wasn't handled above, clear the status bar
-    // text when an item which can't have any associated help string in wx API
-    // is selected
-    if ( item == wxID_NONE )
-        DoGiveHelp(wxEmptyString, true);
-
-    return false;
-}
-
-bool
-wxFrame::DoSendMenuOpenCloseEvent(wxEventType evtType, wxMenu* menu, bool popup)
-{
-    wxMenuEvent event(evtType, popup ? wxID_ANY : 0, menu);
-    event.SetEventObject(this);
-
-    return HandleWindowEvent(event);
-}
-
-bool wxFrame::HandleExitMenuLoop(WXWORD isPopup)
-{
-    return DoSendMenuOpenCloseEvent(wxEVT_MENU_CLOSE,
-                                    isPopup ? wxCurrentPopupMenu : NULL,
-                                    isPopup != 0);
-}
-
-bool wxFrame::HandleMenuPopup(wxEventType evtType, WXHMENU hMenu)
-{
-    bool isPopup = false;
-    wxMenu* menu = NULL;
-    if ( wxCurrentPopupMenu && wxCurrentPopupMenu->GetHMenu() == hMenu )
-    {
-        menu = wxCurrentPopupMenu;
-        isPopup = true;
-    }
-    else if ( GetMenuBar() )
-    {
-        menu = GetMenuBar()->MSWGetMenu(hMenu);
-    }
-
-
-    return DoSendMenuOpenCloseEvent(evtType, menu, isPopup);
-}
-
-#endif // wxUSE_MENUS
-
 // ---------------------------------------------------------------------------
 // the window proc for wxFrame
 // ---------------------------------------------------------------------------
@@ -926,36 +864,6 @@ WXLRESULT wxFrame::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM lPara
             break;
 
 #if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
-#if wxUSE_MENUS
-        case WM_INITMENUPOPUP:
-            processed = HandleMenuPopup(wxEVT_MENU_OPEN, (WXHMENU)wParam);
-            break;
-
-        case WM_MENUSELECT:
-            {
-                WXWORD item, flags;
-                WXHMENU hmenu;
-                UnpackMenuSelect(wParam, lParam, &item, &flags, &hmenu);
-
-                processed = HandleMenuSelect(item, flags, hmenu);
-            }
-            break;
-
-        case WM_EXITMENULOOP:
-            // Under Windows 98 and 2000 and later we're going to get
-            // WM_UNINITMENUPOPUP which will be used to generate this event
-            // with more information (notably the menu that was closed) so we
-            // only need this one under old Windows systems where the newer
-            // event is never sent.
-            if ( wxGetWinVersion() < wxWinVersion_98 )
-                processed = HandleExitMenuLoop(wParam);
-            break;
-
-        case WM_UNINITMENUPOPUP:
-            processed = HandleMenuPopup(wxEVT_MENU_CLOSE, (WXHMENU)wParam);
-            break;
-#endif // wxUSE_MENUS
-
         case WM_QUERYDRAGICON:
             {
                 const wxIcon& icon = GetIcon();

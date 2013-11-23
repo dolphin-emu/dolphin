@@ -2,7 +2,6 @@
 // Name:        wx/imagbmp.h
 // Purpose:     wxImage BMP, ICO, CUR and ANI handlers
 // Author:      Robert Roebling, Chris Elliott
-// RCS-ID:      $Id: imagbmp.h 61724 2009-08-21 10:41:26Z VZ $
 // Copyright:   (c) Robert Roebling, Chris Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

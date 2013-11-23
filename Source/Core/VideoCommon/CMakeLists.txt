@@ -39,8 +39,7 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/XFMemory.cpp
 			Src/XFStructs.cpp
 			Src/memcpy_amd.cpp)
-
-set(LIBS core)
+set(LIBS core png)
 
 if(NOT _M_GENERIC)
 	set(SRCS ${SRCS}	Src/x64TextureDecoder.cpp
@@ -61,8 +60,7 @@ if(LIBAV_FOUND OR WIN32)
 	set(SRCS ${SRCS} Src/AVIDump.cpp)
 endif()
 
-add_library(videocommon STATIC ${SRCS})
-target_link_libraries(videocommon ${LIBS})
+add_dolphin_library(videocommon "${SRCS}" "${LIBS}")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	if(LIBAV_FOUND)

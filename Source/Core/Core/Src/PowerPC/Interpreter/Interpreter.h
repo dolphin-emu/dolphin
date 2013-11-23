@@ -5,22 +5,29 @@
 #ifndef _INTERPRETER_H
 #define _INTERPRETER_H
 
+#include "Atomic.h"
 #include "../Gekko.h"
 #include "../PowerPC.h"
 #include "../CPUCoreBase.h"
+#include "../../Core.h"
+#include "../../CoreTiming.h"
+#include "../../ConfigManager.h"
+#include "../../HLE/HLE.h"
+#include "../../HW/Memmap.h"
+#include "../../HW/CPU.h"
 
 class Interpreter : public CPUCoreBase
 {
 public:
-	void Init();
-	void Shutdown();
+	void Init() override;
+	void Shutdown() override;
 	void Reset();
-	void SingleStep();
+	void SingleStep() override;
 	int SingleStepInner();
 
-	void Run();
-	void ClearCache();
-	const char *GetName();
+	void Run() override;
+	void ClearCache() override;
+	const char *GetName() override;
 
 	typedef void (*_interpreterInstruction)(UGeckoInstruction instCode);
 
@@ -274,7 +281,7 @@ public:
 	static void crxor(UGeckoInstruction _inst);
 	static void mcrf(UGeckoInstruction _inst);
 	static void rfi(UGeckoInstruction _inst);
-	static void rfid(UGeckoInstruction _inst);	
+	static void rfid(UGeckoInstruction _inst);
 //   static void sync(UGeckoInstruction _inst);
 	static void isync(UGeckoInstruction _inst);
 

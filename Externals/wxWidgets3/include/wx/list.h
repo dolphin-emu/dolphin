@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: VZ at 16/11/98: WX_DECLARE_LIST() and typesafe lists added
 // Created:     29/01/98
-// RCS-ID:      $Id: list.h 70165 2011-12-29 14:42:13Z SN $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,6 +31,7 @@
 #include "wx/defs.h"
 #include "wx/object.h"
 #include "wx/string.h"
+#include "wx/vector.h"
 
 #if wxUSE_STD_CONTAINERS
     #include "wx/beforestd.h"
@@ -148,21 +148,22 @@ inline const void *wxListCastElementToVoidPtr(const wxString& str)
     decl _WX_LIST_HELPER_##liT                                                \
     {                                                                         \
         typedef elT _WX_LIST_ITEM_TYPE_##liT;                                 \
+        typedef std::list<elT> BaseListType;                                  \
     public:                                                                   \
+        static BaseListType EmptyList;                                        \
         static void DeleteFunction( _WX_LIST_ITEM_TYPE_##liT X );             \
     };                                                                        \
                                                                               \
     WX_LIST_VC6_WORKAROUND(elT, liT, decl)                                    \
-    decl liT : public std::list<elT>                                          \
+    class liT : public std::list<elT>                                          \
     {                                                                         \
     private:                                                                  \
         typedef std::list<elT> BaseListType;                                  \
-        static BaseListType EmptyList;                                        \
                                                                               \
         bool m_destroy;                                                       \
                                                                               \
     public:                                                                   \
-        decl compatibility_iterator                                           \
+        class compatibility_iterator                                           \
         {                                                                     \
         private:                                                              \
             /* Workaround for broken VC6 nested class name resolution */      \
@@ -174,7 +175,7 @@ inline const void *wxListCastElementToVoidPtr(const wxString& str)
                                                                               \
         public:                                                               \
             compatibility_iterator()                                          \
-                : m_iter(EmptyList.end()), m_list( NULL ) {}                  \
+                : m_iter(_WX_LIST_HELPER_##liT::EmptyList.end()), m_list( NULL ) {}                  \
             compatibility_iterator( liT* li, iterator i )                     \
                 : m_iter( i ), m_list( li ) {}                                \
             compatibility_iterator( const liT* li, iterator i )               \
@@ -216,7 +217,7 @@ inline const void *wxListCastElementToVoidPtr(const wxString& str)
             }                                                                 \
             int IndexOf() const                                               \
             {                                                                 \
-                return *this ? std::distance( m_list->begin(), m_iter )       \
+                return *this ? (int)std::distance( m_list->begin(), m_iter )  \
                              : wxNOT_FOUND;                                   \
             }                                                                 \
         };                                                                    \
@@ -1214,6 +1215,23 @@ public:
     // compatibility methods
     void Sort(wxSortCompareFunction compfunc) { wxListBase::Sort(compfunc); }
 #endif // !wxUSE_STD_CONTAINERS
+
+#ifndef __VISUALC6__
+    template<typename T>
+    wxVector<T> AsVector() const
+    {
+        wxVector<T> vector(size());
+        size_t i = 0;
+
+        for ( const_iterator it = begin(); it != end(); ++it )
+        {
+            vector[i++] = static_cast<T>(*it);
+        }
+
+        return vector;
+    }
+#endif // !__VISUALC6__
+
 };
 
 #if !wxUSE_STD_CONTAINERS

@@ -33,6 +33,7 @@ private:
 	wxLocale *m_locale;
 
 	void AfterInit(wxTimerEvent& WXUNUSED(event));
+	void OnEndSession(wxCloseEvent& event);
 };
 
 DECLARE_APP(DolphinApp);

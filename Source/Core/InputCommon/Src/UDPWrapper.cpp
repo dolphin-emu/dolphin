@@ -12,7 +12,7 @@ const char* DefaultPort(const int index)
 	return s.c_str();
 }
 
-UDPWrapper::UDPWrapper(int indx, const char* const _name) : 
+UDPWrapper::UDPWrapper(int indx, const char* const _name) :
 	ControllerEmu::ControlGroup(_name,GROUP_TYPE_UDPWII),
 	inst(NULL), index(indx),
 	updIR(false),updAccel(false),

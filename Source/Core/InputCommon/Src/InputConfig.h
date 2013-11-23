@@ -12,10 +12,8 @@
 #include "ControllerInterface/ControllerInterface.h"
 #include "ControllerEmu.h"
 
-#include <string>
 #include <vector>
 #include <map>
-#include <sstream>
 
 // InputPlugin isn't a very good name anymore since it's used by GCPad/Wiimote
 // which are not even plugins anymore.

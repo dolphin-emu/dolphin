@@ -5,7 +5,7 @@
 #ifndef _INTERPRETER_FPUTILS_H
 #define _INTERPRETER_FPUTILS_H
 
-#include "../../Core.h"
+#include "CPUDetect.h"
 #include "Interpreter.h"
 #include "MathUtil.h"
 
@@ -70,28 +70,22 @@ inline void UpdateFPSCR()
 
 inline double ForceSingle(double _x)
 {
-	//if (FPSCR.RN != 0)
-	//	PanicAlert("RN = %d at %x", (int)FPSCR.RN, PC);
-	if (FPSCR.NI)
-		_x = FlushToZeroAsFloat(_x);
-
-	double x = static_cast<float>(_x);
-
+	// convert to float...
+	float x = _x;
+	if (!cpu_info.bFlushToZero && FPSCR.NI)
+	{
+		x = FlushToZero(x);
+	}
+	// ...and back to double:
 	return x;
 }
 
 inline double ForceDouble(double d)
 {
-	//if (FPSCR.RN != 0)
-	//	PanicAlert("RN = %d at %x", (int)FPSCR.RN, PC);
-
-	//if (FPSCR.NI)
-	//{
-	//	IntDouble x; x.d = d;
-		//if ((x.i & DOUBLE_EXP) == 0)
-		//	x.i &= DOUBLE_SIGN;  // turn into signed zero
-	//	return x.d;
-	//}
+	if (!cpu_info.bFlushToZero && FPSCR.NI)
+	{
+		d = FlushToZero(d);
+	}
 	return d;
 }
 
@@ -116,7 +110,7 @@ inline double NI_mul(const double a, const double b)
 }
 
 inline double NI_add(const double a, const double b)
-{	
+{
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
@@ -133,7 +127,7 @@ inline double NI_add(const double a, const double b)
 }
 
 inline double NI_sub(const double a, const double b)
-{	
+{
 #ifdef VERY_ACCURATE_FP
 	if (a != a) return a;
 	if (b != b) return b;
@@ -225,7 +219,7 @@ inline u32 ConvertToSingle(u64 x)
 	}
 }
 
-// used by psq_stXX operations. 
+// used by psq_stXX operations.
 inline u32 ConvertToSingleFTZ(u64 x)
 {
 	u32 exp = (x >> 52) & 0x7ff;

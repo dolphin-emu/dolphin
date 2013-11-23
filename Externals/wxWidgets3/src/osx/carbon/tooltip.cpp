@@ -2,7 +2,6 @@
 // Name:        src/osx/carbon/tooltip.cpp
 // Purpose:     wxToolTip implementation
 // Author:      Stefan Csomor
-// Id:          $Id: tooltip.cpp 64656 2010-06-20 18:18:23Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -3,10 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Interpreter.h"
-#include "../../HW/CPU.h"
-#include "../../HLE/HLE.h"
 #include "../PPCAnalyst.h"
-#include "Atomic.h"
 
 void Interpreter::bx(UGeckoInstruction _inst)
 {
@@ -112,7 +109,7 @@ void Interpreter::rfi(UGeckoInstruction _inst)
 	m_EndBlock = true;
 }
 
-void Interpreter::rfid(UGeckoInstruction _inst) 
+void Interpreter::rfid(UGeckoInstruction _inst)
 {
 	_dbg_assert_msg_(POWERPC, 0, "rfid instruction unimplemented (does this instruction even exist?)");
 	m_EndBlock = true;

@@ -186,7 +186,7 @@ static IOReturn HIDCreateOpenDeviceInterface (io_object_t hidDevice, recDevice *
 			plugInResult = (*ppPlugInInterface)->QueryInterface (ppPlugInInterface,
 								CFUUIDGetUUIDBytes (kIOHIDDeviceInterfaceID), (void *) &(pDevice->interface));
 			if (S_OK != plugInResult)
-				HIDReportErrorNum ("CouldnÕt query HID class device interface from plugInInterface", plugInResult);
+				HIDReportErrorNum ("Couldn't query HID class device interface from plugInInterface", plugInResult);
 			(*ppPlugInInterface)->Release (ppPlugInInterface);
 		}
 		else

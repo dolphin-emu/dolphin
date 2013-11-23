@@ -13,6 +13,7 @@
 #include "Blob.h"
 #include "Volume.h"
 #include "NandPaths.h"
+#include "FileUtil.h"
 
 namespace DiscIO
 {
@@ -26,6 +27,7 @@ struct SNANDContent
 	u8 m_SHA1Hash[20];
 	u8 m_Header[36]; //all of the above
 
+	std::string m_Filename;
 	u8* m_pData;
 };
 
@@ -95,8 +97,8 @@ public:
 
 	static CSharedContent& AccessInstance() { return m_Instance; }
 
-	std::string GetFilenameFromSHA1(u8* _pHash);
-	std::string AddSharedContent(u8* _pHash);
+	std::string GetFilenameFromSHA1(const u8* _pHash);
+	std::string AddSharedContent(const u8* _pHash);
 	void UpdateLocation();
 
 private:

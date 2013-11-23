@@ -40,7 +40,6 @@ private:
 	std::thread m_hDSPThread;
 	std::mutex m_csDSPThreadActive;
 	bool m_InitMixer;
-	void *m_hWnd;
 	bool m_bWii;
 	bool m_bDSPThread;
 	bool m_bIsRunning;

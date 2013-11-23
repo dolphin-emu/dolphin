@@ -19,6 +19,8 @@
 #include "VolumeCreator.h"
 #include "CommonPaths.h"
 
+#include <memory>
+
 static u32 state_checksum(u32 *buf, int len)
 {
 	u32 checksum = 0;
@@ -43,7 +45,7 @@ typedef struct {
 
 bool CBoot::Boot_WiiWAD(const char* _pFilename)
 {
-	
+
 	std::string state_filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_STATE);
 
 	if (File::Exists(state_filename))
@@ -51,7 +53,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 		File::IOFile state_file(state_filename, "r+b");
 		StateFlags state;
 		state_file.ReadBytes(&state, sizeof(StateFlags));
-		
+
 		state.type = 0x03; // TYPE_RETURN
 		state.checksum = state_checksum((u32*)&state.flags, sizeof(StateFlags)-4);
 
@@ -78,6 +80,8 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	// create data directory
 	File::CreateFullPath(Common::GetTitleDataPath(titleID));
 
+	if (titleID == TITLEID_SYSMENU)
+		HLE_IPC_CreateVirtualFATFilesystem();
 	// setup wii mem
 	if (!SetupWiiMemory(ContentLoader.GetCountry()))
 		return false;
@@ -89,9 +93,17 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 
 	WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
 
-	CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
-	DolLoader.Load();
-	PC = DolLoader.GetEntryPoint() | 0x80000000;
+	std::unique_ptr<CDolLoader> pDolLoader;
+	if (pContent->m_pData)
+	{
+		pDolLoader.reset(new CDolLoader(pContent->m_pData, pContent->m_Size));
+	}
+	else
+	{
+		pDolLoader.reset(new CDolLoader(pContent->m_Filename.c_str()));
+	}
+	pDolLoader->Load();
+	PC = pDolLoader->GetEntryPoint() | 0x80000000;
 
 	// Pass the "#002 check"
 	// Apploader should write the IOS version and revision to 0x3140, and compare it
@@ -106,7 +118,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	// Load patches and run startup patches
 	const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_pFilename);
 	if (pVolume != NULL)
-		PatchEngine::LoadPatches(pVolume->GetUniqueID().c_str());
+		PatchEngine::LoadPatches();
 
 	return true;
 }

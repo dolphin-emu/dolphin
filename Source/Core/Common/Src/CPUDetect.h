@@ -41,7 +41,14 @@ struct CPUInfo
 	bool bLZCNT;
 	bool bSSE4A;
 	bool bAVX;
+	bool bFMA;
 	bool bAES;
+	// FXSAVE/FXRSTOR
+	bool bFXSR;
+	// This flag indicates that the hardware supports some mode
+	// in which denormal inputs _and_ outputs are automatically set to (signed) zero.
+	// TODO: ARM
+	bool bFlushToZero;
 	bool bLAHFSAHF64;
 	bool bLongMode;
 

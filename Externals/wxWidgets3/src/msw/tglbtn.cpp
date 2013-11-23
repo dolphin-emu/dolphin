@@ -6,7 +6,6 @@
 //              and William Gallafent.
 // Modified by:
 // Created:     08.02.01
-// RCS-ID:      $Id: tglbtn.cpp 67931 2011-06-14 13:00:42Z VZ $
 // Copyright:   (c) 2000 Johnny C. Norris II
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,7 +44,7 @@
 // macros
 // ----------------------------------------------------------------------------
 
-wxDEFINE_EVENT( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEvent );
+wxDEFINE_EVENT( wxEVT_TOGGLEBUTTON, wxCommandEvent );
 
 // ============================================================================
 // implementation
@@ -179,7 +178,7 @@ bool wxToggleButton::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
     // auto checkboxes so do it ourselves in any case
     m_state = !m_state;
 
-    wxCommandEvent event(wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, m_windowId);
+    wxCommandEvent event(wxEVT_TOGGLEBUTTON, m_windowId);
     event.SetInt(GetValue());
     event.SetEventObject(this);
     ProcessCommand(event);

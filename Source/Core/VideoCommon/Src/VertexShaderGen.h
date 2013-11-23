@@ -5,10 +5,10 @@
 #ifndef GCOGL_VERTEXSHADER_H
 #define GCOGL_VERTEXSHADER_H
 
-#include <stdarg.h>
 #include "XFMemory.h"
 #include "VideoCommon.h"
 #include "ShaderGenCommon.h"
+#include "LightingShaderGen.h"
 
 // TODO should be reordered
 #define SHADER_POSITION_ATTRIB  0
@@ -39,8 +39,9 @@
 #define I_TRANSFORMMATRICES     "ctrmtx"
 #define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
-#define I_DEPTHPARAMS           "cDepth" // farZ, zRange, scaled viewport width, scaled viewport height
+#define I_DEPTHPARAMS           "cDepth" // farZ, zRange
 
+//TODO: get rid of them, they aren't used at all
 #define C_POSNORMALMATRIX        0
 #define C_PROJECTION            (C_POSNORMALMATRIX + 6)
 #define C_MATERIALS             (C_PROJECTION + 4)
@@ -51,17 +52,6 @@
 #define C_POSTTRANSFORMMATRICES (C_NORMALMATRICES + 32)
 #define C_DEPTHPARAMS           (C_POSTTRANSFORMMATRICES + 64)
 #define C_VENVCONST_END			(C_DEPTHPARAMS + 1)
-
-const s_svar VSVar_Loc[] = {  {I_POSNORMALMATRIX, C_POSNORMALMATRIX, 6 },
-						{I_PROJECTION , C_PROJECTION, 4  },
-						{I_MATERIALS, C_MATERIALS, 4 },
-						{I_LIGHTS, C_LIGHTS, 40 },
-						{I_TEXMATRICES, C_TEXMATRICES, 24 },
-						{I_TRANSFORMMATRICES , C_TRANSFORMMATRICES, 64  },
-						{I_NORMALMATRICES , C_NORMALMATRICES, 32  },
-						{I_POSTTRANSFORMMATRICES, C_POSTTRANSFORMMATRICES, 64 },
-						{I_DEPTHPARAMS, C_DEPTHPARAMS, 1 },
-						};
 
 #pragma pack(1)
 

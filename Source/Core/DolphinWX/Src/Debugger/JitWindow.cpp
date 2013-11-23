@@ -15,7 +15,6 @@
 #include "PowerPC/JitCommon/JitCache.h"
 #include "PowerPC/PPCAnalyst.h"
 #include "PowerPCDisasm.h"
-#include "Host.h"
 #include "disasm.h"
 
 #include "Debugger/PPCDebugInterface.h"

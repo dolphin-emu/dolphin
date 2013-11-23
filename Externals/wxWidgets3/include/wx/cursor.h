@@ -5,7 +5,6 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: cursor.h 70353 2012-01-15 14:46:41Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -41,7 +40,11 @@ public:
     #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_XBM
     #include "wx/motif/cursor.h"
 #elif defined(__WXGTK20__)
-    #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_XPM
+    #ifdef __WINDOWS__
+        #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_CUR_RESOURCE
+    #else
+        #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_XPM
+    #endif
     #include "wx/gtk/cursor.h"
 #elif defined(__WXGTK__)
     #define wxCURSOR_DEFAULT_TYPE   wxBITMAP_TYPE_XPM

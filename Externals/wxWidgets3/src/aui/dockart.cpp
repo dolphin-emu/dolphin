@@ -4,7 +4,6 @@
 // Author:      Benjamin I. Williams
 // Modified by:
 // Created:     2005-05-17
-// RCS-ID:      $Id: dockart.cpp 69590 2011-10-30 14:20:03Z VZ $
 // Copyright:   (C) Copyright 2005-2006, Kirix Corporation, All Rights Reserved
 // Licence:     wxWindows Library Licence, Version 3.1
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,6 +26,8 @@
 
 #include "wx/aui/framemanager.h"
 #include "wx/aui/dockart.h"
+#include "wx/aui/auibook.h"
+#include "wx/aui/tabart.h"
 
 #ifndef WX_PRECOMP
     #include "wx/settings.h"
@@ -43,10 +44,13 @@
 #ifdef __WXGTK__
 #include <gtk/gtk.h>
 #include "wx/renderer.h"
-#if GTK_CHECK_VERSION(2,0,0)
+#ifdef __WXGTK20__
    #include "wx/gtk/private/gtk2-compat.h"
 #else
    #define gtk_widget_is_drawable GTK_WIDGET_DRAWABLE
+#endif
+#ifdef __WXGTK3__
+    #include "wx/graphics.h"
 #endif
 #endif
 
@@ -420,11 +424,17 @@ void wxAuiDefaultDockArt::DrawSash(wxDC& dc, wxWindow *window, int orientation, 
     gtk_paint_handle
     (
         gtk_widget_get_style(window->m_wxwindow),
+#ifdef __WXGTK3__
+        static_cast<cairo_t*>(dc.GetGraphicsContext()->GetNativeContext()),
+#else
         window->GTKGetDrawingWindow(),
+#endif
         // flags & wxCONTROL_CURRENT ? GTK_STATE_PRELIGHT : GTK_STATE_NORMAL,
         GTK_STATE_NORMAL,
         GTK_SHADOW_NONE,
+#ifndef __WXGTK3__
         NULL /* no clipping */,
+#endif
         window->m_wxwindow,
         "paned",
         rect.x,
@@ -457,7 +467,7 @@ void wxAuiDefaultDockArt::DrawBackground(wxDC& dc, wxWindow *WXUNUSED(window), i
     dc.DrawRectangle(rect.x, rect.y, rect.width, rect.height);
 }
 
-void wxAuiDefaultDockArt::DrawBorder(wxDC& dc, wxWindow *WXUNUSED(window), const wxRect& _rect,
+void wxAuiDefaultDockArt::DrawBorder(wxDC& dc, wxWindow* window, const wxRect& _rect,
                                   wxAuiPaneInfo& pane)
 {
     dc.SetPen(m_borderPen);
@@ -483,10 +493,21 @@ void wxAuiDefaultDockArt::DrawBorder(wxDC& dc, wxWindow *WXUNUSED(window), const
     }
     else
     {
-        for (i = 0; i < border_width; ++i)
+        // notebooks draw the border themselves, so they can use native rendering (e.g. tabartgtk)
+        wxAuiTabArt* art = 0;
+        wxAuiNotebook* nb = wxDynamicCast(window, wxAuiNotebook);
+        if (nb)
+            art = nb->GetArtProvider();
+
+        if (art)
+            art->DrawBorder(dc, window, rect);
+        else
         {
-            dc.DrawRectangle(rect.x, rect.y, rect.width, rect.height);
-            rect.Deflate(1);
+            for (i = 0; i < border_width; ++i)
+            {
+                dc.DrawRectangle(rect.x, rect.y, rect.width, rect.height);
+                rect.Deflate(1);
+            }
         }
     }
 }

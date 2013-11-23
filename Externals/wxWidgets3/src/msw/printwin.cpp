@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: printwin.cpp 66813 2011-01-29 13:55:40Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -167,7 +166,7 @@ bool wxWindowsPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt
     m_printDialogData.SetMinPage(minPage);
     m_printDialogData.SetMaxPage(maxPage);
 
-    wxWindow *win = CreateAbortWindow(parent, printout);
+    wxPrintAbortDialog *win = CreateAbortWindow(parent, printout);
     wxYield();
 
     ::SetAbortProc(GetHdcOf(*impl), wxAbortProc);
@@ -196,10 +195,15 @@ bool wxWindowsPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt
         maxPageNum = m_printDialogData.GetToPage();
     }
 
-    int copyCount;
-    for ( copyCount = 1;
-          copyCount <= m_printDialogData.GetNoCopies();
-          copyCount++ )
+    // The dc we get from the PrintDialog will do multiple copies without help
+    // if the device supports it. Loop only if we have created a dc from our
+    // own m_printDialogData or the device does not support multiple copies.
+    // m_printDialogData.GetPrintData().GetNoCopies() is set from device
+    // devMode in printdlg.cpp/wxWindowsPrintDialog::ConvertFromNative()
+    const int maxCopyCount = !prompt ||
+                             !m_printDialogData.GetPrintData().GetNoCopies()
+                             ? m_printDialogData.GetNoCopies() : 1;
+    for ( int copyCount = 1; copyCount <= maxCopyCount; copyCount++ )
     {
         if ( !printout->OnBeginDocument(minPageNum, maxPageNum) )
         {
@@ -219,6 +223,10 @@ bool wxWindowsPrinter::Print(wxWindow *parent, wxPrintout *printout, bool prompt
               pn <= maxPageNum && printout->HasPage(pn);
               pn++ )
         {
+            win->SetProgress(pn - minPageNum + 1,
+                             maxPageNum - minPageNum + 1,
+                             copyCount, maxCopyCount);
+
             if ( sm_abortIt )
             {
                 sm_lastError = wxPRINTER_CANCELLED;

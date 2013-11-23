@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcprint.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -118,8 +117,8 @@ wxPrinterDC::wxPrinterDC(const wxString& driver_name,
     {
         if ( !driver_name.empty() && !device_name.empty() && !file.empty() )
         {
-            m_hDC = (WXHDC) CreateDC(driver_name.wx_str(),
-                                     device_name.wx_str(),
+            m_hDC = (WXHDC) CreateDC(driver_name.t_str(),
+                                     device_name.t_str(),
                                      file.fn_str(),
                                      NULL);
         }
@@ -186,14 +185,14 @@ bool wxPrinterDCImpl::StartDoc(const wxString& message)
 {
     DOCINFO docinfo;
     docinfo.cbSize = sizeof(DOCINFO);
-    docinfo.lpszDocName = message.wx_str();
+    docinfo.lpszDocName = message.t_str();
 
     wxString filename(m_printData.GetFilename());
 
     if (filename.empty())
         docinfo.lpszOutput = NULL;
     else
-        docinfo.lpszOutput = filename.wx_str();
+        docinfo.lpszOutput = filename.t_str();
 
     docinfo.lpszDatatype = NULL;
     docinfo.fwType = 0;
@@ -335,7 +334,7 @@ WXHDC WXDLLEXPORT wxGetPrinterDC(const wxPrintData& printDataConst)
     HDC hDC = ::CreateDC
                 (
                     NULL,               // no driver name as we use device name
-                    deviceName.wx_str(),
+                    deviceName.t_str(),
                     NULL,               // unused
                     static_cast<DEVMODE *>(lockDevMode.Get())
                 );

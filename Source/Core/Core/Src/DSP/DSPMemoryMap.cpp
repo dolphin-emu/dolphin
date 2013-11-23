@@ -50,14 +50,14 @@ u16 dsp_dmem_read(u16 addr)
 	{
 	case 0x0:  // 0xxx DRAM
 		return g_dsp.dram[addr & DSP_DRAM_MASK];
-		
+
 	case 0x1:  // 1xxx COEF
 		DEBUG_LOG(DSPLLE, "%04x : Coefficient Read @ %04x", g_dsp.pc, addr);
 		return g_dsp.coef[addr & DSP_COEF_MASK];
 
 	case 0xf:  // Fxxx HW regs
 		return gdsp_ifx_read(addr);
-		
+
 	default:   // Unmapped/non-existing memory
 		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Read from UNKNOWN (%04x) memory", g_dsp.pc, addr);
 		return 0;

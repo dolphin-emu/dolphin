@@ -12,6 +12,7 @@
 
 u8 DSPHost_ReadHostMemory(u32 addr);
 void DSPHost_WriteHostMemory(u8 value, u32 addr);
+void DSPHost_OSD_AddMessage(const std::string& str, u32 ms);
 bool DSPHost_OnThread();
 bool DSPHost_Wii();
 void DSPHost_InterruptRequest();

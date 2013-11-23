@@ -6,12 +6,11 @@
 #define _AOSOUNDSTREAM_H_
 
 #include "SoundStream.h"
+#include "Thread.h"
 
 #if defined(HAVE_AO) && HAVE_AO
 #include <ao/ao.h>
 #endif
-
-#include "Thread.h"
 
 class AOSound : public SoundStream
 {
@@ -43,8 +42,8 @@ public:
 		return true;
 	}
 
-	virtual bool usesMixer() const { 
-		return true; 
+	virtual bool usesMixer() const {
+		return true;
 	}
 
 	virtual void Update();

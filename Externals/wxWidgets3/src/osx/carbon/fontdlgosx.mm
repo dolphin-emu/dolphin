@@ -4,7 +4,6 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-10-03
-// RCS-ID:      $Id: fontdlgosx.mm 70497 2012-02-02 14:19:34Z VZ $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,6 +27,7 @@
 #endif
 
 #include "wx/fontutil.h"
+#include "wx/modalhook.h"
 
 // ============================================================================
 // implementation
@@ -434,6 +434,8 @@ bool wxFontDialog::Create(wxWindow *parent)
 
 int wxFontDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     //Start the pool.  Required for carbon interaction
     //(For those curious, the only thing that happens
     //if you don't do this is a bunch of error

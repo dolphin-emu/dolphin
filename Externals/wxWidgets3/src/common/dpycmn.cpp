@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.03.03
-// RCS-ID:      $Id: dpycmn.cpp 65231 2010-08-10 18:57:42Z VZ $
 // Copyright:   (c) 2003-2006 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

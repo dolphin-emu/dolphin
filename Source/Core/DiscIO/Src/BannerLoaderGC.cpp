@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-// HyperIris: need clean code
-#include "../../Core/Src/ConfigManager.h"
-
+#include "CommonTypes.h"
 #include "ColorUtil.h"
 #include "BannerLoaderGC.h"
 
@@ -50,17 +48,15 @@ bool CBannerLoaderGC::IsValid()
 	return m_IsValid;
 }
 
-bool CBannerLoaderGC::GetBanner(u32* _pBannerImage)
+std::vector<u32> CBannerLoaderGC::GetBanner(int* pWidth, int* pHeight)
 {
-	if (!IsValid())
-	{
-		return false;
-	}
-
+	std::vector<u32> Buffer;
+	Buffer.resize(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT);
 	auto const pBanner = (DVDBanner*)m_pBannerFile;
-	decode5A3image(_pBannerImage, pBanner->image, DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT);
-
-	return true;
+	ColorUtil::decode5A3image(&Buffer[0], pBanner->image, DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT);
+	*pWidth = DVD_BANNER_WIDTH;
+	*pHeight = DVD_BANNER_HEIGHT;
+	return Buffer;
 }
 
 
@@ -107,7 +103,7 @@ std::vector<std::string> CBannerLoaderGC::GetNames()
 			names.push_back(GetDecodedString(data));
 		}
 	}
-	
+
 	return names;
 }
 
@@ -145,6 +141,7 @@ std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 		desc_count = 1;
 		break;
 
+	// English, German, French, Spanish, Italian, Dutch
 	case CBannerLoaderGC::BANNER_BNR2:
 		desc_count = 6;
 		break;
@@ -162,25 +159,6 @@ std::vector<std::string> CBannerLoaderGC::GetDescriptions()
 	}
 
 	return descriptions;
-}
-
-
-void CBannerLoaderGC::decode5A3image(u32* dst, u16* src, int width, int height)
-{
-	for (int y = 0; y < height; y += 4)
-	{
-		for (int x = 0; x < width; x += 4)
-		{
-			for (int iy = 0; iy < 4; iy++, src += 4)
-			{
-				for (int ix = 0; ix < 4; ix++)
-				{
-					u32 RGBA = ColorUtil::Decode5A3(Common::swap16(src[ix]));
-					dst[(y + iy) * width + (x + ix)] = RGBA;
-				}
-			}
-		}
-	}
 }
 
 CBannerLoaderGC::BANNER_TYPE CBannerLoaderGC::getBannerType()

@@ -28,7 +28,7 @@ private:
 	void OnObjectTo( wxSpinEvent& event );
 	void OnCheckEarlyMemoryUpdates( wxCommandEvent& event );
 	void OnRecordStop( wxCommandEvent& event );
-	void OnSaveFile( wxCommandEvent& event );	
+	void OnSaveFile( wxCommandEvent& event );
 	void OnNumFramesToRecord( wxSpinEvent& event );
 	void OnCloseClick( wxCommandEvent& event );
 

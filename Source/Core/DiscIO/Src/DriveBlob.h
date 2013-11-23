@@ -31,7 +31,6 @@ private:
 	bool IsOK() {return file_ != 0;}
 #endif
 	s64 size;
-	u64 *block_pointers;
 
 public:
 	static DriveReader *Create(const char *drive);

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: VZ at 25.02.00: type safe hashes with WX_DECLARE_HASH()
 // Created:     01/02/97
-// RCS-ID:      $Id: hash.cpp 64656 2010-06-20 18:18:23Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

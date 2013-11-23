@@ -7,18 +7,14 @@
 #include <algorithm>
 
 #ifdef _WIN32
-	#if SDL_VERSION_ATLEAST(1, 3, 0)
-		#pragma comment(lib, "SDL.1.3.lib")
-	#else
-		#pragma comment(lib, "SDL.lib")
-	#endif
+#pragma comment(lib, "SDL2.lib")
 #endif
 
 namespace ciface
 {
 namespace SDL
 {
-	
+
 std::string GetJoystickName(int index)
 {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
@@ -29,7 +25,7 @@ std::string GetJoystickName(int index)
 }
 
 void Init( std::vector<Core::Device*>& devices )
-{	
+{
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
 	std::map<std::string, int>	name_counts;
@@ -83,7 +79,7 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	// get buttons
 	for (u8 i = 0; i != SDL_JoystickNumButtons(m_joystick); ++i)
 		AddInput(new Button(i, m_joystick));
-	
+
 	// get hats
 	for (u8 i = 0; i != SDL_JoystickNumHats(m_joystick); ++i)
 	{
@@ -155,15 +151,16 @@ Joystick::~Joystick()
 {
 #ifdef USE_SDL_HAPTIC
 	if (m_haptic)
-	{	
+	{
 		// stop/destroy all effects
 		SDL_HapticStopAll(m_haptic);
-		std::list<EffectIDState>::iterator
-			i = m_state_out.begin(),
-			e = m_state_out.end();
-		for ( ; i != e; ++i)
-			if (i->id != -1)
-				SDL_HapticDestroyEffect(m_haptic, i->id);
+		for (auto &i : m_state_out)
+		{
+			if (i.id != -1)
+			{
+				SDL_HapticDestroyEffect(m_haptic, i.id);
+			}
+		}
 		// close haptic first
 		SDL_HapticClose(m_haptic);
 	}
@@ -201,7 +198,7 @@ std::string Joystick::TriangleEffect::GetName() const
 	return "Triangle";
 }
 
-void Joystick::ConstantEffect::SetState(const ControlState state)
+void Joystick::ConstantEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -214,12 +211,12 @@ void Joystick::ConstantEffect::SetState(const ControlState state)
 	}
 
 	const Sint16 old = m_effect.effect.constant.level;
-	m_effect.effect.constant.level = state * 0x7FFF;
+	m_effect.effect.constant.level = (Sint16)(state * 0x7FFF);
 	if (old != m_effect.effect.constant.level)
 		m_effect.changed = true;
 }
 
-void Joystick::RampEffect::SetState(const ControlState state)
+void Joystick::RampEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -232,12 +229,12 @@ void Joystick::RampEffect::SetState(const ControlState state)
 	}
 
 	const Sint16 old = m_effect.effect.ramp.start;
-	m_effect.effect.ramp.start = state * 0x7FFF;
+	m_effect.effect.ramp.start = (Sint16)(state * 0x7FFF);
 	if (old != m_effect.effect.ramp.start)
 		m_effect.changed = true;
 }
 
-void Joystick::SineEffect::SetState(const ControlState state)
+void Joystick::SineEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -251,7 +248,7 @@ void Joystick::SineEffect::SetState(const ControlState state)
 
 	const Sint16 old = m_effect.effect.periodic.magnitude;
 	m_effect.effect.periodic.period = 5;
-	m_effect.effect.periodic.magnitude = state * 0x5000;
+	m_effect.effect.periodic.magnitude = (Sint16)(state * 0x5000);
 	m_effect.effect.periodic.attack_length = 0;
 	m_effect.effect.periodic.fade_length = 500;
 
@@ -260,7 +257,7 @@ void Joystick::SineEffect::SetState(const ControlState state)
 }
 
 #ifdef SDL_HAPTIC_SQUARE
-void Joystick::SquareEffect::SetState(const ControlState state)
+void Joystick::SquareEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -283,7 +280,7 @@ void Joystick::SquareEffect::SetState(const ControlState state)
 }
 #endif // defined(SDL_HAPTIC_SQUARE)
 
-void Joystick::TriangleEffect::SetState(const ControlState state)
+void Joystick::TriangleEffect::SetState(ControlState state)
 {
 	if (state)
 	{
@@ -297,7 +294,7 @@ void Joystick::TriangleEffect::SetState(const ControlState state)
 
 	const Sint16 old = m_effect.effect.periodic.magnitude;
 	m_effect.effect.periodic.period = 5;
-	m_effect.effect.periodic.magnitude = state * 0x5000;
+	m_effect.effect.periodic.magnitude = (Sint16)(state * 0x5000);
 	m_effect.effect.periodic.attack_length = 0;
 	m_effect.effect.periodic.fade_length = 100;
 
@@ -310,41 +307,42 @@ bool Joystick::UpdateInput()
 {
 	// each joystick is doin this, o well
 	SDL_JoystickUpdate();
-	
+
 	return true;
 }
 
 bool Joystick::UpdateOutput()
 {
 #ifdef USE_SDL_HAPTIC
-	std::list<EffectIDState>::iterator
-		i = m_state_out.begin(),
-		e = m_state_out.end();
-	for ( ; i != e; ++i)
+	for (auto &i : m_state_out)
 	{
-		if (i->changed)	// if SetState was called on this output
+		if (i.changed)	// if SetState was called on this output
 		{
-			if (-1 == i->id)	// effect isn't currently uploaded
+			if (-1 == i.id)	// effect isn't currently uploaded
 			{
-				if (i->effect.type)		// if outputstate is >0  this would be true
-					if ((i->id = SDL_HapticNewEffect( m_haptic, &i->effect )) > -1)	// upload the effect
-						SDL_HapticRunEffect(m_haptic, i->id, 1);	// run the effect
+				if (i.effect.type)		// if outputstate is >0  this would be true
+				{
+					if ((i.id = SDL_HapticNewEffect(m_haptic, &i.effect)) > -1)	// upload the effect
+					{
+						SDL_HapticRunEffect(m_haptic, i.id, 1);	// run the effect
+					}
+				}
 			}
 			else	// effect is already uploaded
 			{
-				if (i->effect.type)	// if ouputstate >0
+				if (i.effect.type)	// if ouputstate >0
 				{
-					SDL_HapticUpdateEffect(m_haptic, i->id, &i->effect);	// update the effect
+					SDL_HapticUpdateEffect(m_haptic, i.id, &i.effect);	// update the effect
 				}
 				else
 				{
-					SDL_HapticStopEffect(m_haptic, i->id);	// else, stop and remove the effect
-					SDL_HapticDestroyEffect(m_haptic, i->id);
-					i->id = -1;	// mark it as not uploaded
+					SDL_HapticStopEffect(m_haptic, i.id);	// else, stop and remove the effect
+					SDL_HapticDestroyEffect(m_haptic, i.id);
+					i.id = -1;	// mark it as not uploaded
 				}
 			}
 
-			i->changed = false;
+			i.changed = false;
 		}
 	}
 #endif

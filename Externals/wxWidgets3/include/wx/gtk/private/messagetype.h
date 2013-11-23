@@ -3,7 +3,6 @@
 // Purpose:     translate between wx and GtkMessageType
 // Author:      Vadim Zeitlin
 // Created:     2009-09-27
-// RCS-ID:      $Id: messagetype.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

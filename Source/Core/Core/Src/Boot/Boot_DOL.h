@@ -5,7 +5,7 @@
 #ifndef _BOOT_DOL_H
 #define _BOOT_DOL_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 class CDolLoader
 {

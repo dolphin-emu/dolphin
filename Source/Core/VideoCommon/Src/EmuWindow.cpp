@@ -145,8 +145,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 
 	// Called when a screensaver wants to show up while this window is active
 	case WM_SYSCOMMAND:
-	
-		switch (wParam) 
+
+		switch (wParam)
 		{
 		case SC_SCREENSAVE:
 		case SC_MONITORPOWER:

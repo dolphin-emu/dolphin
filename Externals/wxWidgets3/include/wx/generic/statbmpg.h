@@ -3,7 +3,6 @@
 // Purpose:     wxGenericStaticBitmap header
 // Author:      Marcin Wojdyr, Stefan Csomor
 // Created:     2008-06-16
-// RCS-ID:      $Id: statbmpg.h 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   wxWidgets developers
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

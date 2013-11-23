@@ -99,7 +99,7 @@ void ControllerInterface::Shutdown()
 	m_devices.clear();
 
 #ifdef CIFACE_USE_XINPUT
-	// nothing needed
+	ciface::XInput::DeInit();
 #endif
 #ifdef CIFACE_USE_DINPUT
 	// nothing needed
@@ -178,11 +178,11 @@ bool ControllerInterface::UpdateOutput(const bool force)
 
 	size_t ok_count = 0;
 
-	std::vector<Device*>::const_iterator
-		d = m_devices.begin(),
-		e = m_devices.end();
-	for (;d != e; ++d)
-		(*d)->UpdateOutput();
+	for (auto d = m_devices.cbegin(); d != m_devices.cend(); ++d)
+	{
+		if ((*d)->UpdateOutput())
+			++ok_count;
+	}
 
 	return (m_devices.size() == ok_count);
 }
@@ -196,7 +196,7 @@ bool ControllerInterface::UpdateOutput(const bool force)
 ControlState ControllerInterface::InputReference::State( const ControlState ignore )
 {
 	if (parsed_expression)
-		return parsed_expression->GetValue();
+		return parsed_expression->GetValue() * range;
 	else
 		return 0.0f;
 }
@@ -249,7 +249,7 @@ Device::Control* ControllerInterface::InputReference::Detect(const unsigned int 
 	if (device->Inputs().size() == 0)
 		return NULL;
 
-	// get starting state of all inputs, 
+	// get starting state of all inputs,
 	// so we can ignore those that were activated at time of Detect start
 	std::vector<Device::Input*>::const_iterator
 		i = device->Inputs().begin(),
@@ -308,7 +308,7 @@ Device::Control* ControllerInterface::OutputReference::Detect(const unsigned int
 			device->UpdateOutput();
 			Common::SleepCurrentThread(10);
 		}
-		
+
 		State(0);
 		device->UpdateOutput();
 	}

@@ -3,7 +3,6 @@
 // Purpose:     wxNonOwnedWindow implementation for MSW.
 // Author:      Vadim Zeitlin
 // Created:     2011-10-09 (extracted from src/msw/toplevel.cpp)
-// RCS-ID:      $Id: nonownedwnd.cpp 69699 2011-11-08 11:02:07Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

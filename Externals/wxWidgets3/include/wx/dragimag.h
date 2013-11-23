@@ -5,7 +5,6 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Julian Smart
-// RCS-ID:      $Id: dragimag.h 47254 2007-07-09 10:09:52Z VS $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 

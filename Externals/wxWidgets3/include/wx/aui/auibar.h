@@ -4,7 +4,6 @@
 // Author:      Benjamin I. Williams
 // Modified by:
 // Created:     2008-08-04
-// RCS-ID:      $Id: auibar.h 69594 2011-10-30 16:51:10Z VZ $
 // Copyright:   (C) Copyright 2005, Kirix Corporation, All Rights Reserved.
 // Licence:     wxWindows Library Licence, Version 3.1
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,6 +38,7 @@ enum wxAuiToolBarStyle
     // analogous to wxAUI_TB_VERTICAL, but forces the toolbar
     // to be horizontal
     wxAUI_TB_HORIZONTAL    = 1 << 7,
+    wxAUI_TB_PLAIN_BACKGROUND = 1 << 8,
     wxAUI_TB_HORZ_TEXT     = (wxAUI_TB_HORZ_LAYOUT | wxAUI_TB_TEXT),
     wxAUI_ORIENTATION_MASK = (wxAUI_TB_VERTICAL | wxAUI_TB_HORIZONTAL),
     wxAUI_TB_DEFAULT_STYLE = 0
@@ -211,7 +211,14 @@ public:
     void SetActive(bool b) { m_active = b; }
     bool IsActive() const { return m_active; }
 
-    void SetHasDropDown(bool b) { m_dropDown = b; }
+    void SetHasDropDown(bool b)
+    {
+        wxCHECK_RET( !b || m_kind == wxITEM_NORMAL,
+                     wxS("Only normal tools can have drop downs") );
+
+        m_dropDown = b;
+    }
+
     bool HasDropDown() const { return m_dropDown; }
 
     void SetSticky(bool b) { m_sticky = b; }
@@ -274,6 +281,11 @@ public:
                          wxDC& dc,
                          wxWindow* wnd,
                          const wxRect& rect) = 0;
+
+    virtual void DrawPlainBackground(
+                                  wxDC& dc,
+                                  wxWindow* wnd,
+                                  const wxRect& rect) = 0;
 
     virtual void DrawLabel(
                          wxDC& dc,
@@ -355,6 +367,10 @@ public:
                 wxDC& dc,
                 wxWindow* wnd,
                 const wxRect& rect);
+
+    virtual void DrawPlainBackground(wxDC& dc,
+                                  wxWindow* wnd,
+                                  const wxRect& rect);
 
     virtual void DrawLabel(
                 wxDC& dc,
@@ -439,16 +455,27 @@ protected:
 class WXDLLIMPEXP_AUI wxAuiToolBar : public wxControl
 {
 public:
+    wxAuiToolBar() { Init(); }
 
     wxAuiToolBar(wxWindow* parent,
-                 wxWindowID id = -1,
-                 const wxPoint& position = wxDefaultPosition,
+                 wxWindowID id = wxID_ANY,
+                 const wxPoint& pos = wxDefaultPosition,
                  const wxSize& size = wxDefaultSize,
-                 long style = wxAUI_TB_DEFAULT_STYLE);
+                 long style = wxAUI_TB_DEFAULT_STYLE)
+    {
+        Init();
+        Create(parent, id, pos, size, style);
+    }
+
     virtual ~wxAuiToolBar();
 
-    void SetWindowStyleFlag(long style);
-    long GetWindowStyleFlag() const;
+    bool Create(wxWindow* parent,
+                wxWindowID id = wxID_ANY,
+                const wxPoint& pos = wxDefaultPosition,
+                const wxSize& size = wxDefaultSize,
+                long style = wxAUI_TB_DEFAULT_STYLE);
+
+    virtual void SetWindowStyleFlag(long style);
 
     void SetArtProvider(wxAuiToolBarArt* art);
     wxAuiToolBarArt* GetArtProvider() const;
@@ -581,6 +608,7 @@ public:
     virtual void UpdateWindowUI(long flags = wxUPDATE_UI_NONE);
 
 protected:
+    void Init();
 
     virtual void OnCustomRender(wxDC& WXUNUSED(dc),
                                 const wxAuiToolBarItem& WXUNUSED(item),
@@ -651,7 +679,6 @@ protected:
     bool m_dragging;
     bool m_gripperVisible;
     bool m_overflowVisible;
-    long m_style;
 
     bool RealizeHelper(wxClientDC& dc, bool horizontal);
     static bool IsPaneValid(long style, const wxAuiPaneInfo& pane);
@@ -676,11 +703,11 @@ private:
 
 #ifndef SWIG
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_COMMAND_AUITOOLBAR_TOOL_DROPDOWN, wxAuiToolBarEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_COMMAND_AUITOOLBAR_OVERFLOW_CLICK, wxAuiToolBarEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_COMMAND_AUITOOLBAR_RIGHT_CLICK, wxAuiToolBarEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_COMMAND_AUITOOLBAR_MIDDLE_CLICK, wxAuiToolBarEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_COMMAND_AUITOOLBAR_BEGIN_DRAG, wxAuiToolBarEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUITOOLBAR_TOOL_DROPDOWN, wxAuiToolBarEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUITOOLBAR_OVERFLOW_CLICK, wxAuiToolBarEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUITOOLBAR_RIGHT_CLICK, wxAuiToolBarEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUITOOLBAR_MIDDLE_CLICK, wxAuiToolBarEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_AUI, wxEVT_AUITOOLBAR_BEGIN_DRAG, wxAuiToolBarEvent );
 
 typedef void (wxEvtHandler::*wxAuiToolBarEventFunction)(wxAuiToolBarEvent&);
 
@@ -688,33 +715,40 @@ typedef void (wxEvtHandler::*wxAuiToolBarEventFunction)(wxAuiToolBarEvent&);
     wxEVENT_HANDLER_CAST(wxAuiToolBarEventFunction, func)
 
 #define EVT_AUITOOLBAR_TOOL_DROPDOWN(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_AUITOOLBAR_TOOL_DROPDOWN, winid, wxAuiToolBarEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_AUITOOLBAR_TOOL_DROPDOWN, winid, wxAuiToolBarEventHandler(fn))
 #define EVT_AUITOOLBAR_OVERFLOW_CLICK(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_AUITOOLBAR_OVERFLOW_CLICK, winid, wxAuiToolBarEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_AUITOOLBAR_OVERFLOW_CLICK, winid, wxAuiToolBarEventHandler(fn))
 #define EVT_AUITOOLBAR_RIGHT_CLICK(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_AUITOOLBAR_RIGHT_CLICK, winid, wxAuiToolBarEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_AUITOOLBAR_RIGHT_CLICK, winid, wxAuiToolBarEventHandler(fn))
 #define EVT_AUITOOLBAR_MIDDLE_CLICK(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_AUITOOLBAR_MIDDLE_CLICK, winid, wxAuiToolBarEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_AUITOOLBAR_MIDDLE_CLICK, winid, wxAuiToolBarEventHandler(fn))
 #define EVT_AUITOOLBAR_BEGIN_DRAG(winid, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_AUITOOLBAR_BEGIN_DRAG, winid, wxAuiToolBarEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_AUITOOLBAR_BEGIN_DRAG, winid, wxAuiToolBarEventHandler(fn))
 
 #else
 
 // wxpython/swig event work
-%constant wxEventType wxEVT_COMMAND_AUITOOLBAR_TOOL_DROPDOWN;
-%constant wxEventType wxEVT_COMMAND_AUITOOLBAR_OVERFLOW_CLICK;
-%constant wxEventType wxEVT_COMMAND_AUITOOLBAR_RIGHT_CLICK;
-%constant wxEventType wxEVT_COMMAND_AUITOOLBAR_MIDDLE_CLICK;
-%constant wxEventType wxEVT_COMMAND_AUITOOLBAR_BEGIN_DRAG;
+%constant wxEventType wxEVT_AUITOOLBAR_TOOL_DROPDOWN;
+%constant wxEventType wxEVT_AUITOOLBAR_OVERFLOW_CLICK;
+%constant wxEventType wxEVT_AUITOOLBAR_RIGHT_CLICK;
+%constant wxEventType wxEVT_AUITOOLBAR_MIDDLE_CLICK;
+%constant wxEventType wxEVT_AUITOOLBAR_BEGIN_DRAG;
 
 %pythoncode {
-    EVT_AUITOOLBAR_TOOL_DROPDOWN = wx.PyEventBinder( wxEVT_COMMAND_AUITOOLBAR_TOOL_DROPDOWN, 1 )
-    EVT_AUITOOLBAR_OVERFLOW_CLICK = wx.PyEventBinder( wxEVT_COMMAND_AUITOOLBAR_OVERFLOW_CLICK, 1 )
-    EVT_AUITOOLBAR_RIGHT_CLICK = wx.PyEventBinder( wxEVT_COMMAND_AUITOOLBAR_RIGHT_CLICK, 1 )
-    EVT_AUITOOLBAR_MIDDLE_CLICK = wx.PyEventBinder( wxEVT_COMMAND_AUITOOLBAR_MIDDLE_CLICK, 1 )
-    EVT_AUITOOLBAR_BEGIN_DRAG = wx.PyEventBinder( wxEVT_COMMAND_AUITOOLBAR_BEGIN_DRAG, 1 )
+    EVT_AUITOOLBAR_TOOL_DROPDOWN = wx.PyEventBinder( wxEVT_AUITOOLBAR_TOOL_DROPDOWN, 1 )
+    EVT_AUITOOLBAR_OVERFLOW_CLICK = wx.PyEventBinder( wxEVT_AUITOOLBAR_OVERFLOW_CLICK, 1 )
+    EVT_AUITOOLBAR_RIGHT_CLICK = wx.PyEventBinder( wxEVT_AUITOOLBAR_RIGHT_CLICK, 1 )
+    EVT_AUITOOLBAR_MIDDLE_CLICK = wx.PyEventBinder( wxEVT_AUITOOLBAR_MIDDLE_CLICK, 1 )
+    EVT_AUITOOLBAR_BEGIN_DRAG = wx.PyEventBinder( wxEVT_AUITOOLBAR_BEGIN_DRAG, 1 )
 }
 #endif  // SWIG
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_AUITOOLBAR_TOOL_DROPDOWN    wxEVT_AUITOOLBAR_TOOL_DROPDOWN
+#define wxEVT_COMMAND_AUITOOLBAR_OVERFLOW_CLICK   wxEVT_AUITOOLBAR_OVERFLOW_CLICK
+#define wxEVT_COMMAND_AUITOOLBAR_RIGHT_CLICK      wxEVT_AUITOOLBAR_RIGHT_CLICK
+#define wxEVT_COMMAND_AUITOOLBAR_MIDDLE_CLICK     wxEVT_AUITOOLBAR_MIDDLE_CLICK
+#define wxEVT_COMMAND_AUITOOLBAR_BEGIN_DRAG       wxEVT_AUITOOLBAR_BEGIN_DRAG
 
 #endif  // wxUSE_AUI
 #endif  // _WX_AUIBAR_H_

@@ -5,7 +5,7 @@
 #ifndef _MEMTOOLS_H
 #define _MEMTOOLS_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 
 
 namespace EMM

@@ -20,6 +20,7 @@ public:
 	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
 	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const;
 	std::string GetUniqueID() const;
+	std::string GetRevisionSpecificUniqueID() const;
 	std::string GetMakerID() const;
 	int GetRevision() const;
 	std::vector<std::string> GetNames() const;
@@ -29,9 +30,9 @@ public:
 	u64 GetSize() const;
 	u64 GetRawSize() const;
 	bool IsDiscTwo() const;
-	
+
 	typedef std::string(*StringDecoder)(const std::string&);
-	
+
 	static StringDecoder GetStringDecoder(ECountry country);
 
 private:

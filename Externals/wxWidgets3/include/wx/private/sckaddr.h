@@ -3,7 +3,6 @@
 // Purpose:     wxSockAddressImpl
 // Author:      Vadim Zeitlin
 // Created:     2008-12-28
-// RCS-ID:      $Id: sckaddr.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -5,6 +5,8 @@
 #include "FileUtil.h"
 #include "SysConf.h"
 
+#include <cinttypes>
+
 SysConf::SysConf()
 	: m_IsValid(false)
 {
@@ -38,11 +40,11 @@ bool SysConf::LoadFromFile(const char *filename)
 		GenerateSysConf();
 		return true;
 	}
-		
+
 	u64 size = File::GetSize(filename);
 	if (size != SYSCONF_SIZE)
 	{
-		if (AskYesNoT("Your SYSCONF file is the wrong size.\nIt should be 0x%04x (but is 0x%04llx)\nDo you want to generate a new one?", 
+		if (AskYesNoT("Your SYSCONF file is the wrong size.\nIt should be 0x%04x (but is 0x%04" PRIx64 ")\nDo you want to generate a new one?",
 					SYSCONF_SIZE, size))
 		{
 			GenerateSysConf();
@@ -151,7 +153,7 @@ unsigned int create_item(SSysConfEntry &item, SysconfType type, const std::strin
 {
 	item.offset = offset;
 	item.type = type;
-	item.nameLength = name.length();
+	item.nameLength = (u8)(name.length());
 	strncpy(item.name, name.c_str(), 32);
 	item.dataLength = data_length;
 	item.data = new u8[data_length];
@@ -298,8 +300,8 @@ void SysConf::GenerateSysConf()
 	items[26].data[0] = 0x01;
 
 
-	for (int i = 0; i < 27; i++)
-		m_Entries.push_back(items[i]);
+	for (auto& item : items)
+		m_Entries.push_back(item);
 
 	File::CreateFullPath(m_FilenameDefault);
 	File::IOFile g(m_FilenameDefault, "wb");
@@ -314,7 +316,7 @@ void SysConf::GenerateSysConf()
 	}
 	const u16 end_data_offset = Common::swap16(current_offset);
 	g.WriteBytes(&end_data_offset, 2);
-	
+
 	// Write the items
 	const u8 null_byte = 0;
 	for (int i = 0; i != 27; ++i)
@@ -398,7 +400,7 @@ void SysConf::UpdateLocation()
 	if (m_IsValid)
 		Save();
 
-	// Clear the old filename and set the default filename to the new user path 
+	// Clear the old filename and set the default filename to the new user path
 	// So that it can be generated if the file does not exist in the new location
 	m_Filename.clear();
 	m_FilenameDefault =  File::GetUserPath(F_WIISYSCONF_IDX);

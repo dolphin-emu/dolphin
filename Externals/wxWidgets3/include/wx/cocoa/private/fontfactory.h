@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2007-10-13
-// RCS-ID:      $Id: fontfactory.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   2007 David Elliott
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

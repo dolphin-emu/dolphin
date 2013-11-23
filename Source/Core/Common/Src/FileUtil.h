@@ -21,8 +21,8 @@ enum {
 	D_GCUSER_IDX,
 	D_WIIROOT_IDX,
 	D_WIIUSER_IDX,
-	D_CONFIG_IDX,
-	D_GAMECONFIG_IDX,
+	D_CONFIG_IDX, // global settings
+	D_GAMESETTINGS_IDX, // user-specified settings which override both the global and the default settings (per game)
 	D_MAPS_IDX,
 	D_CACHE_IDX,
 	D_SHADERCACHE_IDX,
@@ -39,6 +39,7 @@ enum {
 	D_LOGS_IDX,
 	D_MAILLOGS_IDX,
 	D_WIISYSCONF_IDX,
+	D_WIIWC24_IDX,
 	D_THEMES_IDX,
 	F_DOLPHINCONFIG_IDX,
 	F_DEBUGGERCONFIG_IDX,
@@ -55,7 +56,7 @@ enum {
 namespace File
 {
 
-// FileSystem tree node/ 
+// FileSystem tree node/
 struct FSTEntry
 {
 	bool isDirectory;
@@ -93,13 +94,16 @@ bool Delete(const std::string &filename);
 // Deletes a directory filename, returns true on success
 bool DeleteDir(const std::string &filename);
 
-// renames file srcFilename to destFilename, returns true on success 
+// renames file srcFilename to destFilename, returns true on success
 bool Rename(const std::string &srcFilename, const std::string &destFilename);
 
-// copies file srcFilename to destFilename, returns true on success 
+// ditto, but syncs the source file and, on Unix, syncs the directories after rename
+bool RenameSync(const std::string &srcFilename, const std::string &destFilename);
+
+// copies file srcFilename to destFilename, returns true on success
 bool Copy(const std::string &srcFilename, const std::string &destFilename);
 
-// creates an empty file filename, returns true on success 
+// creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string &filename);
 
 // Scans the directory tree gets, starting from _Directory and adds the
@@ -117,6 +121,9 @@ void CopyDir(const std::string &source_path, const std::string &dest_path);
 
 // Set the current directory to given directory
 bool SetCurrentDir(const std::string &directory);
+
+// Get a filename that can hopefully be atomically renamed to the given path.
+std::string GetTempFilenameForAtomicWrite(const std::string &path);
 
 // Returns a pointer to a string with a Dolphin data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
@@ -136,13 +143,13 @@ std::string GetBundleDirectory();
 std::string &GetExeDirectory();
 #endif
 
-bool WriteStringToFile(bool text_file, const std::string &str, const char *filename);
-bool ReadFileToString(bool text_file, const char *filename, std::string &str);
+bool WriteStringToFile(const std::string &str, const char *filename);
+bool ReadFileToString(const char *filename, std::string &str);
 
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
 // and make forgetting an fclose() harder
-class IOFile
+class IOFile : public NonCopyable
 {
 public:
 	IOFile();
@@ -150,20 +157,24 @@ public:
 	IOFile(const std::string& filename, const char openmode[]);
 
 	~IOFile();
-	
+
 	IOFile(IOFile&& other);
 	IOFile& operator=(IOFile&& other);
-	
+
 	void Swap(IOFile& other);
 
 	bool Open(const std::string& filename, const char openmode[]);
 	bool Close();
 
 	template <typename T>
-	bool ReadArray(T* data, size_t length)
+	bool ReadArray(T* data, size_t length, size_t* pReadBytes = NULL)
 	{
-		if (!IsOpen() || length != std::fread(data, sizeof(T), length, m_file))
+		size_t read_bytes = 0;
+		if (!IsOpen() || length != (read_bytes = std::fread(data, sizeof(T), length, m_file)))
 			m_good = false;
+
+		if (pReadBytes)
+			*pReadBytes = read_bytes;
 
 		return m_good;
 	}
@@ -208,12 +219,11 @@ public:
 	// clear error state
 	void Clear() { m_good = true; std::clearerr(m_file); }
 
-private:
-	IOFile(const IOFile&) /*= delete*/;
-	IOFile& operator=(const IOFile&) /*= delete*/;
-
 	std::FILE* m_file;
 	bool m_good;
+private:
+	IOFile(IOFile&);
+	IOFile& operator=(IOFile& other);
 };
 
 }  // namespace

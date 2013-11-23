@@ -29,7 +29,7 @@ const char *scm_rev_str = "Dolphin "
 #else
 #ifdef _M_ARM
 #define NP_ARCH "ARM"
-#else	
+#else
 #define NP_ARCH "x86"
 #endif
 #endif
@@ -43,3 +43,6 @@ const char *netplay_dolphin_ver = SCM_DESC_STR " L" NP_ARCH;
 #endif
 
 const char *scm_rev_git_str = SCM_REV_STR;
+
+const char *scm_desc_str = SCM_DESC_STR;
+const char *scm_branch_str = SCM_BRANCH_STR;

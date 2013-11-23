@@ -26,6 +26,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 
 #include "Common.h"
 #include "CommonPaths.h"
+#include "Thread.h"
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
 #include "WII_IPC_HLE_Device_DI.h"
@@ -33,10 +34,15 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "WII_IPC_HLE_Device_stm.h"
 #include "WII_IPC_HLE_Device_fs.h"
 #include "WII_IPC_HLE_Device_net.h"
+#include "WII_IPC_HLE_Device_net_ssl.h"
 #include "WII_IPC_HLE_Device_es.h"
 #include "WII_IPC_HLE_Device_usb.h"
 #include "WII_IPC_HLE_Device_usb_kbd.h"
 #include "WII_IPC_HLE_Device_sdio_slot0.h"
+
+#if defined(__LIBUSB__) || defined (_WIN32)
+	#include "WII_IPC_HLE_Device_hid.h"
+#endif
 
 #include "FileUtil.h" // For Copy
 #include "../ConfigManager.h"
@@ -68,6 +74,7 @@ IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
 typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue;	// ppc -> arm
 static ipc_msg_queue reply_queue;	// arm -> ppc
+static std::mutex s_reply_queue;
 
 static int enque_reply;
 
@@ -75,12 +82,13 @@ static u64 last_reply_time;
 
 void EnqueReplyCallback(u64 userdata, int)
 {
-	reply_queue.push_back(userdata);
+	std::lock_guard<std::mutex> lk(s_reply_queue);
+	reply_queue.push_back((u32)userdata);
 }
 
 void Init()
 {
-	
+
 	_dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isn't empty on init");
 	CWII_IPC_HLE_Device_es::m_ContentFile = "";
 	u32 i;
@@ -108,22 +116,27 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_request(i, std::string("/dev/net/kd/request")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_time(i, std::string("/dev/net/kd/time")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ncd_manage(i, std::string("/dev/net/ncd/manage")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_wd_command(i, std::string("/dev/net/wd/command")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ip_top(i, std::string("/dev/net/ip/top")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ssl(i, std::string("/dev/net/ssl")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_kbd(i, std::string("/dev/usb/kbd")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_sdio_slot0(i, std::string("/dev/sdio/slot0")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/sdio/slot1")); i++;
-	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/hid")); i++;
+	#if  defined(__LIBUSB__) || defined(_WIN32)
+		g_DeviceMap[i] = new CWII_IPC_HLE_Device_hid(i, std::string("/dev/usb/hid")); i++;
+	#else
+        g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/hid")); i++;
+	#endif
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/oh1")); i++;
 	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, std::string("_Unimplemented_Device_")); i++;
-	
+
 	enque_reply = CoreTiming::RegisterEvent("IPCReply", EnqueReplyCallback);
 }
 
 void Reset(bool _bHard)
 {
-	
 	CoreTiming::RemoveAllEvents(enque_reply);
-	
+
 	u32 i;
 	for (i=0; i<IPC_MAX_FDS; i++)
 	{
@@ -134,6 +147,12 @@ void Reset(bool _bHard)
 			delete g_FdMap[i];
 		}
 		g_FdMap[i] = NULL;
+	}
+
+	u32 j;
+	for (j=0; j<ES_MAX_COUNT; j++)
+	{
+		es_inuse[j] = false;
 	}
 
 	TDeviceMap::iterator itr = g_DeviceMap.begin();
@@ -154,7 +173,12 @@ void Reset(bool _bHard)
 		g_DeviceMap.erase(g_DeviceMap.begin(), g_DeviceMap.end());
 	}
 	request_queue.clear();
-	reply_queue.clear();
+
+	// lock due to using reply_queue
+	{
+		std::lock_guard<std::mutex> lk(s_reply_queue);
+		reply_queue.clear();
+	}
 	last_reply_time = 0;
 }
 
@@ -237,6 +261,8 @@ IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName
 
 void DoState(PointerWrap &p)
 {
+	std::lock_guard<std::mutex> lk(s_reply_queue);
+
 	p.Do(request_queue);
 	p.Do(reply_queue);
 	p.Do(last_reply_time);
@@ -338,11 +364,11 @@ void ExecuteCommand(u32 _Address)
 	{
 		u32 Mode = Memory::Read_U32(_Address + 0x10);
 		DeviceID = getFreeDeviceId();
-		
+
 		std::string DeviceName;
 		Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
 
-		
+
 		WARN_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
 		if (DeviceID >= 0)
 		{
@@ -504,38 +530,30 @@ void ExecuteCommand(u32 _Address)
 	}
 	}
 
-	// It seems that the original hardware overwrites the command after it has been
-	// executed. We write 8 which is not any valid command, and what IOS does 
-	Memory::Write_U32(8, _Address);
-	// IOS seems to write back the command that was responded to
-	Memory::Write_U32(Command, _Address + 8);
 
 	if (CmdSuccess)
 	{
+		// It seems that the original hardware overwrites the command after it has been
+		// executed. We write 8 which is not any valid command, and what IOS does
+		Memory::Write_U32(8, _Address);
+		// IOS seems to write back the command that was responded to
+		Memory::Write_U32(Command, _Address + 8);
+
 		// Ensure replies happen in order, fairly ugly
 		// Without this, tons of games fail now that DI commands have different reply delays
 		int reply_delay = pDevice ? pDevice->GetCmdDelay(_Address) : 0;
-		
+
 		const s64 ticks_til_last_reply = last_reply_time - CoreTiming::GetTicks();
-		
+
 		if (ticks_til_last_reply > 0)
-			reply_delay = ticks_til_last_reply;
-		
+		{
+			reply_delay = (int)ticks_til_last_reply;
+		}
+
 		last_reply_time = CoreTiming::GetTicks() + reply_delay;
-	
+
 		// Generate a reply to the IPC command
 		EnqReply(_Address, reply_delay);
-	}
-	else
-	{
-		if (pDevice)
-		{
-			INFO_LOG(WII_IPC_HLE, "<<-- Reply Failed to %s IPC Request %i @ 0x%08x ", pDevice->GetDeviceName().c_str(), Command, _Address);
-		}
-		else
-		{
-			INFO_LOG(WII_IPC_HLE, "<<-- Reply Failed to Unknown (%08x) IPC Request %i @ 0x%08x ", DeviceID, Command, _Address);
-		}
 	}
 }
 
@@ -573,11 +591,15 @@ void Update()
 #endif
 	}
 
-	if (reply_queue.size())
+	// lock due to using reply_queue
 	{
-		WII_IPCInterface::GenerateReply(reply_queue.front());
-		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
-		reply_queue.pop_front();
+		std::lock_guard<std::mutex> lk(s_reply_queue);
+		if (reply_queue.size())
+		{
+			WII_IPCInterface::GenerateReply(reply_queue.front());
+			INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
+			reply_queue.pop_front();
+		}
 	}
 }
 

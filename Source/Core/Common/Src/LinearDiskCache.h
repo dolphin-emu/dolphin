@@ -9,9 +9,6 @@
 #include "Common.h"
 #include <fstream>
 
-// defined in Version.cpp
-extern const char *scm_rev_git_str;
-
 // On disk format:
 //header{
 // u32 'DCAC';
@@ -66,7 +63,7 @@ public:
 		m_file.seekg(0, std::ios::beg);
 		std::fstream::pos_type start_pos = m_file.tellg();
 		std::streamoff file_size = end_pos - start_pos;
-		
+
 		if (m_file.is_open() && ValidateHeader())
 		{
 			// good header, read some key/value pairs
@@ -89,7 +86,7 @@ public:
 
 				// read key/value and pass to reader
 				if (Read(&key) &&
-					Read(value, value_size) && 
+					Read(value, value_size) &&
 					Read(&entry_number) &&
 					entry_number == m_num_entries+1)
  				{
@@ -117,7 +114,7 @@ public:
 		WriteHeader();
 		return 0;
 	}
-	
+
 	void Sync()
 	{
 		m_file.flush();

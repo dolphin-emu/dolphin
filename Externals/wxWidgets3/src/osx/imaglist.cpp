@@ -2,7 +2,6 @@
 // Name:        src/osx/imaglist.cpp
 // Purpose:
 // Author:      Robert Roebling
-// RCS_ID:      $Id: imaglist.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -74,16 +73,16 @@ int wxImageList::Add( const wxIcon &bitmap )
 
 int wxImageList::Add( const wxBitmap &bitmap )
 {
-    wxASSERT_MSG( (bitmap.GetWidth() >= m_width && bitmap.GetHeight() == m_height)
+    wxASSERT_MSG( (bitmap.GetScaledWidth() >= m_width && bitmap.GetScaledHeight() == m_height)
                   || (m_width == 0 && m_height == 0),
                   wxT("invalid bitmap size in wxImageList: this might work ")
                   wxT("on this platform but definitely won't under Windows.") );
 
     // Mimic behaviour of Windows ImageList_Add that automatically breaks up the added
     // bitmap into sub-images of the correct size
-    if (m_width > 0 && bitmap.GetWidth() > m_width && bitmap.GetHeight() >= m_height)
+    if (m_width > 0 && bitmap.GetScaledWidth() > m_width && bitmap.GetScaledHeight() >= m_height)
     {
-        int numImages = bitmap.GetWidth() / m_width;
+        int numImages = bitmap.GetScaledWidth() / m_width;
         for (int subIndex = 0; subIndex < numImages; subIndex++)
         {
             wxRect rect(m_width * subIndex, 0, m_width, m_height);
@@ -98,8 +97,8 @@ int wxImageList::Add( const wxBitmap &bitmap )
 
     if (m_width == 0 && m_height == 0)
     {
-        m_width = bitmap.GetWidth();
-        m_height = bitmap.GetHeight();
+        m_width = bitmap.GetScaledWidth();
+        m_height = bitmap.GetScaledHeight();
     }
 
     return m_images.GetCount() - 1;
@@ -276,8 +275,8 @@ bool wxImageList::GetSize( int index, int &width, int &height ) const
     else
     {
         wxBitmap *bm = static_cast< wxBitmap* >(obj ) ;
-        width = bm->GetWidth();
-        height = bm->GetHeight();
+        width = bm->GetScaledWidth();
+        height = bm->GetScaledHeight();
     }
 
     return true;

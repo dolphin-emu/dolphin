@@ -8,7 +8,6 @@
 //              3) Fixed ShowPage() bug on displaying bitmaps
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.cpp 70630 2012-02-20 11:38:52Z JS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

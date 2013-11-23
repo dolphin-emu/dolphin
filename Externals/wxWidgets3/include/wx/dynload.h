@@ -5,7 +5,6 @@
 //               (derived in part from dynlib.cpp (c) 1998 Guilhem Lavaux)
 // Modified by:
 // Created:      03/12/01
-// RCS-ID:       $Id: dynload.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:    (c) 2001 Ron Lee <ron@debian.org>
 // Licence:      wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -82,8 +81,11 @@ public:
 
 private:
 
-    const wxClassInfo    *m_before; // sm_first before loading this lib
-    const wxClassInfo    *m_after;  // ..and after.
+    // These pointers may be NULL but if they are not, then m_ourLast follows
+    // m_ourFirst in the linked list, i.e. can be found by calling GetNext() a
+    // sufficient number of times.
+    const wxClassInfo    *m_ourFirst; // first class info in this plugin
+    const wxClassInfo    *m_ourLast;  // ..and the last one
 
     size_t          m_linkcount;    // Ref count of library link calls
     size_t          m_objcount;     // ..and (pluggable) object instantiations.

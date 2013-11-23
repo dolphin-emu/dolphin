@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-16 (extracted from common/dynlib.cpp)
-// RCS-ID:      $Id: dlunix.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2000-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,15 +63,6 @@
 // ----------------------------------------------------------------------------
 // constants
 // ----------------------------------------------------------------------------
-
-// standard shared libraries extensions for different Unix versions
-#if defined(__HPUX__)
-    const wxString wxDynamicLibrary::ms_dllext(".sl");
-#elif defined(__DARWIN__)
-    const wxString wxDynamicLibrary::ms_dllext(".bundle");
-#else
-    const wxString wxDynamicLibrary::ms_dllext(".so");
-#endif
 
 // ============================================================================
 // wxDynamicLibrary implementation

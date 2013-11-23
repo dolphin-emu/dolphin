@@ -119,7 +119,7 @@ private:
 	u32 m_cur_addr;
 	int m_totalSize;
 	u8  m_cur_pass;
-	
+
 	LabelMap labels;
 
 	u32	code_line;

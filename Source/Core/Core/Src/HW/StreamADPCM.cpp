@@ -35,7 +35,7 @@ s16 ADPDecodeSample(s32 bits, s32 q, s32& hist1, s32& hist2)
 	if (hist < -0x200000) hist = -0x200000;
 
 	s32 cur = (((s16)(bits << 12) >> (q & 0xf)) << 6) + hist;
-	
+
 	hist2 = hist1;
 	hist1 = cur;
 

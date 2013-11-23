@@ -4,7 +4,6 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: combo.cpp 70870 2012-03-11 05:31:06Z JS $
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -426,7 +425,14 @@ void wxComboCtrl::OnPaintEvent( wxPaintEvent& WXUNUSED(event) )
 
     const wxRect& rectButton = m_btnArea;
     wxRect rectTextField = m_tcArea;
-    wxColour bgCol = GetBackgroundColour();
+
+    // FIXME: Either SetBackgroundColour or GetBackgroundColour
+    //        doesn't work under Vista, so here's a temporary
+    //        workaround.
+    //        In the theme-less rendering code below, this fixes incorrect
+    //        background on read-only comboboxes (they are gray, but should be
+    //        white).
+    wxColour bgCol = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
 #if wxUSE_UXTHEME
     const bool isEnabled = IsThisEnabled();
@@ -502,11 +508,6 @@ void wxComboCtrl::OnPaintEvent( wxPaintEvent& WXUNUSED(event) )
 
         if ( useVistaComboBox )
         {
-            // FIXME: Either SetBackgroundColour or GetBackgroundColour
-            //        doesn't work under Vista, so here's a temporary
-            //        workaround.
-            bgCol = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
-
             // Draw the entire control as a single button?
             if ( !isNonStdButton )
             {

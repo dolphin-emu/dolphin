@@ -2,7 +2,6 @@
 // Name:        src/gtk/popupwin.cpp
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: popupwin.cpp 70739 2012-02-28 17:25:59Z PC $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -109,23 +108,31 @@ bool wxPopupWindow::Create( wxWindow *parent, int style )
     // wxPopupWindow is used for different windows as well
     // gtk_window_set_type_hint( GTK_WINDOW(m_widget), GDK_WINDOW_TYPE_HINT_COMBO );
 
-    GtkWidget *toplevel = gtk_widget_get_toplevel( parent->m_widget );
-    if (GTK_IS_WINDOW (toplevel))
+    // Popup windows can be created without parent, so handle this correctly.
+    if (parent)
     {
+        GtkWidget *toplevel = gtk_widget_get_toplevel( parent->m_widget );
+        if (GTK_IS_WINDOW (toplevel))
+        {
 #if GTK_CHECK_VERSION(2,10,0)
-        if (!gtk_check_version(2,10,0))
-            gtk_window_group_add_window (gtk_window_get_group (GTK_WINDOW (toplevel)), GTK_WINDOW (m_widget));
+#ifndef __WXGTK3__
+            if (!gtk_check_version(2,10,0))
 #endif
-
-        gtk_window_set_transient_for (GTK_WINDOW (m_widget), GTK_WINDOW (toplevel));
+            {
+                gtk_window_group_add_window (gtk_window_get_group (GTK_WINDOW (toplevel)), GTK_WINDOW (m_widget));
+            }
+#endif
+            gtk_window_set_transient_for (GTK_WINDOW (m_widget), GTK_WINDOW (toplevel));
+        }
+        gtk_window_set_screen (GTK_WINDOW (m_widget), gtk_widget_get_screen (GTK_WIDGET (parent->m_widget)));
     }
+
     gtk_window_set_resizable (GTK_WINDOW (m_widget), FALSE);
-    gtk_window_set_screen (GTK_WINDOW (m_widget), gtk_widget_get_screen (GTK_WIDGET (parent->m_widget)));
 
     g_signal_connect (m_widget, "delete_event",
                       G_CALLBACK (gtk_dialog_delete_callback), this);
 
-    m_wxwindow = wxPizza::New(m_windowStyle);
+    m_wxwindow = wxPizza::New();
     gtk_widget_show( m_wxwindow );
 
     gtk_container_add( GTK_CONTAINER(m_widget), m_wxwindow );

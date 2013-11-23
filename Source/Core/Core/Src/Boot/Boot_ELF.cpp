@@ -21,10 +21,10 @@ bool CBoot::IsElfWii(const char *filename)
 	File::IOFile f(filename, "rb");
 	f.ReadBytes(mem, (size_t)filesize);
 	}
-	
+
 	// Use the same method as the DOL loader uses: search for mfspr from HID4,
 	// which should only be used in Wii ELFs.
-	// 
+	//
 	// Likely to have some false positives/negatives, patches implementing a
 	// better heuristic are welcome.
 
@@ -63,19 +63,19 @@ bool CBoot::Boot_ELF(const char *filename)
 	File::IOFile f(filename, "rb");
 	f.ReadBytes(mem, (size_t)filesize);
 	}
-	
+
 	ElfReader reader(mem);
 	reader.LoadInto(0x80000000);
 	if (!reader.LoadSymbols())
 	{
-		if (LoadMapFromFilename(filename))
+		if (LoadMapFromFilename())
 			HLE::PatchFunctions();
 	}
 	else
 	{
 		HLE::PatchFunctions();
 	}
-	
+
 	PC = reader.GetEntryPoint();
 	delete[] mem;
 

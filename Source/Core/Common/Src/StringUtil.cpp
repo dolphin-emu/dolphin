@@ -6,14 +6,11 @@
 #include <stdio.h>
 #include <algorithm>
 
-#include "Common.h"
 #include "CommonPaths.h"
 #include "StringUtil.h"
 
 #ifdef _WIN32
 	#include <Windows.h>
-#elif defined(ANDROID)
-
 #else
 	#include <iconv.h>
 	#include <errno.h>
@@ -112,11 +109,11 @@ std::string ArrayToString(const u8 *data, u32 size, int line_len, bool spaces)
 {
 	std::ostringstream oss;
 	oss << std::setfill('0') << std::hex;
-	
+
 	for (int line = 0; size; ++data, --size)
 	{
 		oss << std::setw(2) << (int)*data;
-		
+
 		if (line_len == ++line)
 		{
 			oss << '\n';
@@ -159,19 +156,18 @@ bool TryParse(const std::string &str, u32 *const output)
 	errno = 0;
 
 	unsigned long value = strtoul(str.c_str(), &endptr, 0);
-	
+
 	if (!endptr || *endptr)
 		return false;
 
 	if (errno == ERANGE)
 		return false;
 
-	if (ULONG_MAX > UINT_MAX) {
-		// Note: The typecasts avoid GCC warnings when long is 32 bits wide.
-		if (value >= static_cast<unsigned long>(0x100000000ull)
-				&& value <= static_cast<unsigned long>(0xFFFFFFFF00000000ull))
-			return false;
-	}
+#if ULONG_MAX > UINT_MAX
+	if (value >= 0x100000000ull
+	    && value <= 0xFFFFFFFF00000000ull)
+		return false;
+#endif
 
 	*output = static_cast<u32>(value);
 	return true;
@@ -272,8 +268,8 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 {
 	while(1)
 	{
-		const int pos = result.find(src);
-		if (pos == -1) break;
+		size_t pos = result.find(src);
+		if (pos == std::string::npos) break;
 		result.replace(pos, src.size(), dest);
 	}
 	return result;
@@ -288,7 +284,7 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
 //#include <string>
 //#include <assert.h>
 
-const char HEX2DEC[256] = 
+const char HEX2DEC[256] =
 {
 	/*       0  1  2  3   4  5  6  7   8  9  A  B   C  D  E  F */
 	/* 0 */ 16,16,16,16, 16,16,16,16, 16,16,16,16, 16,16,16,16,
@@ -319,9 +315,9 @@ std::string UriDecode(const std::string & sSrc)
 	// for future extension"
 
 	const unsigned char * pSrc = (const unsigned char *)sSrc.c_str();
-	const int SRC_LEN = sSrc.length();
+	const size_t SRC_LEN = sSrc.length();
 	const unsigned char * const SRC_END = pSrc + SRC_LEN;
-	const unsigned char * const SRC_LAST_DEC = SRC_END - 2;   // last decodable '%' 
+	const unsigned char * const SRC_LAST_DEC = SRC_END - 2;   // last decodable '%'
 
 	char * const pStart = new char[SRC_LEN];
 	char * pEnd = pStart;
@@ -381,14 +377,14 @@ std::string UriEncode(const std::string & sSrc)
 {
 	const char DEC2HEX[16 + 1] = "0123456789ABCDEF";
 	const unsigned char * pSrc = (const unsigned char *)sSrc.c_str();
-	const int SRC_LEN = sSrc.length();
+	const size_t SRC_LEN = sSrc.length();
 	unsigned char * const pStart = new unsigned char[SRC_LEN * 3];
 	unsigned char * pEnd = pStart;
 	const unsigned char * const SRC_END = pSrc + SRC_LEN;
 
 	for (; pSrc < SRC_END; ++pSrc)
 	{
-		if (SAFE[*pSrc]) 
+		if (SAFE[*pSrc])
 			*pEnd++ = *pSrc;
 		else
 		{
@@ -408,26 +404,30 @@ std::string UriEncode(const std::string & sSrc)
 
 std::string UTF16ToUTF8(const std::wstring& input)
 {
-	auto const size = WideCharToMultiByte(CP_UTF8, 0, input.data(), input.size(), nullptr, 0, nullptr, nullptr);
+	auto const size = WideCharToMultiByte(CP_UTF8, 0, input.data(), (int)input.size(), nullptr, 0, nullptr, nullptr);
 
 	std::string output;
 	output.resize(size);
 
-	if (size == 0 || size != WideCharToMultiByte(CP_UTF8, 0, input.data(), input.size(), &output[0], output.size(), nullptr, nullptr))
+	if (size == 0 || size != WideCharToMultiByte(CP_UTF8, 0, input.data(), (int)input.size(), &output[0], (int)output.size(), nullptr, nullptr))
+	{
 		output.clear();
+	}
 
 	return output;
 }
 
 std::wstring CPToUTF16(u32 code_page, const std::string& input)
 {
-	auto const size = MultiByteToWideChar(code_page, 0, input.data(), input.size(), nullptr, 0);
+	auto const size = MultiByteToWideChar(code_page, 0, input.data(), (int)input.size(), nullptr, 0);
 
 	std::wstring output;
 	output.resize(size);
 
-	if (size == 0 || size != MultiByteToWideChar(code_page, 0, input.data(), input.size(), &output[0], output.size()))
+	if (size == 0 || size != MultiByteToWideChar(code_page, 0, input.data(), (int)input.size(), &output[0], (int)output.size()))
+	{
 		output.clear();
+	}
 
 	return output;
 }
@@ -454,9 +454,6 @@ std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 {
 	std::string result;
 
-#if defined(ANDROID)
-	result = (char*)input.c_str();
-#else
 	iconv_t const conv_desc = iconv_open("UTF-8", fromcode);
 	if ((iconv_t)-1 == conv_desc)
 	{
@@ -501,11 +498,10 @@ std::string CodeToUTF8(const char* fromcode, const std::basic_string<T>& input)
 
 		out_buffer.resize(out_buffer_size - dst_bytes);
 		out_buffer.swap(result);
-		
+
 		iconv_close(conv_desc);
 	}
-	
-#endif
+
 	return result;
 }
 

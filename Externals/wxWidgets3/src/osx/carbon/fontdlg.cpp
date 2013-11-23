@@ -4,7 +4,6 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: fontdlg.cpp 70653 2012-02-20 21:57:06Z VZ $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -42,6 +41,7 @@
 
 #include "wx/fontdlg.h"
 #include "wx/fontutil.h"
+#include "wx/modalhook.h"
 
 #if wxOSX_USE_EXPERIMENTAL_FONTDIALOG
 
@@ -77,7 +77,7 @@ wxMacCarbonFontPanelHandler(EventHandlerCallRef WXUNUSED(nextHandler),
         {
             bool setup = false ;
 #if wxOSX_USE_CORE_TEXT
-            if (  UMAGetSystemVersion() >= 0x1050 )
+            if ( !setup )
             {
                 CTFontDescriptorRef descr;
                 if ( cEvent.GetParameter<CTFontDescriptorRef>( kEventParamCTFontDescriptor, typeCTFontDescriptorRef, &descr ) == noErr )
@@ -229,6 +229,8 @@ bool wxFontDialog::Create(wxWindow *parent, const wxFontData& data)
 
 int wxFontDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
 #if wxOSX_USE_CARBON
 
     OSStatus err ;
@@ -240,7 +242,7 @@ int wxFontDialog::ShowModal()
 
     bool setup = false;
 #if wxOSX_USE_CORE_TEXT
-    if ( UMAGetSystemVersion() >= 0x1050 )
+    if ( !setup )
     {
         CTFontDescriptorRef descr = (CTFontDescriptorRef) CTFontCopyFontDescriptor( (CTFontRef) font.OSXGetCTFont() );
         err = SetFontInfoForSelection (kFontSelectionCoreTextType,1, &descr , NULL);
@@ -412,7 +414,7 @@ void wxFontColourSwatchCtrl::OnMouseEvent(wxMouseEvent& event)
         dialog->Destroy();
         Refresh();
 
-        wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, GetId());
+        wxCommandEvent event(wxEVT_BUTTON, GetId());
         HandleWindowEvent(event);
     }
 }
@@ -622,7 +624,7 @@ void wxFontDialog::CreateControls()
 }
 
 /*!
- * wxEVT_COMMAND_SPINCTRL_UPDATED event handler for wxID_FONTDIALOG_FONTSIZE
+ * wxEVT_SPINCTRL event handler for wxID_FONTDIALOG_FONTSIZE
  */
 
 void wxFontDialog::OnFontdialogFontsizeUpdated( wxSpinEvent& WXUNUSED(event) )
@@ -631,7 +633,7 @@ void wxFontDialog::OnFontdialogFontsizeUpdated( wxSpinEvent& WXUNUSED(event) )
 }
 
 /*!
- * wxEVT_COMMAND_TEXT_UPDATED event handler for wxID_FONTDIALOG_FONTSIZE
+ * wxEVT_TEXT event handler for wxID_FONTDIALOG_FONTSIZE
  */
 
 void wxFontDialog::OnFontdialogFontsizeTextUpdated( wxCommandEvent& WXUNUSED(event) )
@@ -640,7 +642,7 @@ void wxFontDialog::OnFontdialogFontsizeTextUpdated( wxCommandEvent& WXUNUSED(eve
 }
 
 /*!
- * wxEVT_COMMAND_CHECKBOX_CLICKED event handler for wxID_FONTDIALOG_BOLD
+ * wxEVT_CHECKBOX event handler for wxID_FONTDIALOG_BOLD
  */
 
 void wxFontDialog::OnFontdialogBoldClick( wxCommandEvent& WXUNUSED(event) )
@@ -649,7 +651,7 @@ void wxFontDialog::OnFontdialogBoldClick( wxCommandEvent& WXUNUSED(event) )
 }
 
 /*!
- * wxEVT_COMMAND_CHECKBOX_CLICKED event handler for wxID_FONTDIALOG_ITALIC
+ * wxEVT_CHECKBOX event handler for wxID_FONTDIALOG_ITALIC
  */
 
 void wxFontDialog::OnFontdialogItalicClick( wxCommandEvent& WXUNUSED(event) )
@@ -658,7 +660,7 @@ void wxFontDialog::OnFontdialogItalicClick( wxCommandEvent& WXUNUSED(event) )
 }
 
 /*!
- * wxEVT_COMMAND_CHECKBOX_CLICKED event handler for wxID_FONTDIALOG_UNDERLINED
+ * wxEVT_CHECKBOX event handler for wxID_FONTDIALOG_UNDERLINED
  */
 
 void wxFontDialog::OnFontdialogUnderlinedClick( wxCommandEvent& WXUNUSED(event) )
@@ -667,7 +669,7 @@ void wxFontDialog::OnFontdialogUnderlinedClick( wxCommandEvent& WXUNUSED(event) 
 }
 
 /*!
- * wxEVT_COMMAND_BUTTON_CLICKED event handler for wxID_OK
+ * wxEVT_BUTTON event handler for wxID_OK
  */
 
 void wxFontDialog::OnOkClick( wxCommandEvent& event )
@@ -677,7 +679,7 @@ void wxFontDialog::OnOkClick( wxCommandEvent& event )
 
 
 /*!
- * wxEVT_COMMAND_LISTBOX_SELECTED event handler for wxID_FONTDIALOG_FACENAME
+ * wxEVT_LISTBOX event handler for wxID_FONTDIALOG_FACENAME
  */
 
 void wxFontDialog::OnFontdialogFacenameSelected( wxCommandEvent& WXUNUSED(event) )

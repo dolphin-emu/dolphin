@@ -2,7 +2,6 @@
 // Name:        wx/gtk/bmpbutton.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: bmpbuttn.h 61221 2009-06-27 22:22:48Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

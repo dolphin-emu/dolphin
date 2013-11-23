@@ -19,6 +19,8 @@
 
 #include "../../DiscIO/Src/FileMonitor.h"
 
+#include <cinttypes>
+
 using namespace DVDInterface;
 
 
@@ -68,7 +70,7 @@ bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 {
 	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
@@ -85,7 +87,7 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 {
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
@@ -108,7 +110,7 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 			// Get TMD offset for requested partition...
 			u64 const TMDOffset = ((u64)Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address + 4) << 2 ) + 0x2c0;
 
-			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: TMDOffset 0x%016llx", TMDOffset);
+			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: TMDOffset 0x%016" PRIx64, TMDOffset);
 
 			static u32 const TMDsz = 0x208; //CommandBuffer.PayloadBuffer[0].m_Size;
 			u8 pTMD[TMDsz];
@@ -204,13 +206,13 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 					pFilename = m_pFileSystem->GetFileName(DVDAddress);
 				if (pFilename != NULL)
 				{
-					INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%llx) - (DVDAddr: 0x%llx, Size: 0x%x)",
+					INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%" PRIx64 ") - (DVDAddr: 0x%" PRIx64 ", Size: 0x%x)",
 						pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
 					FileMon::CheckFile(std::string(pFilename), (int)m_pFileSystem->GetFileSize(pFilename));
 				}
 				else
 				{
-					INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unknown - (DVDAddr: 0x%llx, Size: 0x%x)",
+					INFO_LOG(WII_IPC_DVD, "DVDLowRead: file unknown - (DVDAddr: 0x%" PRIx64 ", Size: 0x%x)",
 						DVDAddress, Size);
 				}
 			}
@@ -308,7 +310,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 			u64 DVDAddress = (u64)DVDAddress32 << 2;
 
-			INFO_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: DVDAddr: 0x%08llx, Size: 0x%x", DVDAddress, Size);
+			INFO_LOG(WII_IPC_DVD, "DVDLowUnencryptedRead: DVDAddr: 0x%08" PRIx64 ", Size: 0x%x", DVDAddress, Size);
 
 			if (Size > _BufferOutSize)
 			{
@@ -342,12 +344,12 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				pFilename = m_pFileSystem->GetFileName(DVDAddress);
 			if (pFilename != NULL)
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: %s (0x%llx) - (DVDAddr: 0x%llx)",
+				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: %s (0x%" PRIx64 ") - (DVDAddr: 0x%" PRIx64 ")",
 					pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress);
 			}
 			else
 			{
-				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: file unknown - (DVDAddr: 0x%llx)",
+				INFO_LOG(WII_IPC_DVD, "DVDLowSeek: file unknown - (DVDAddr: 0x%" PRIx64 ")",
 					DVDAddress);
 			}
 		}
@@ -418,7 +420,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case DVDLowAudioBufferConfig:
 		/*
 			For more information: http://www.crazynation.org/GC/GC_DD_TECH/GCTech.htm
-		
+
 			Upon Power up or reset , 2 commands must be issued for proper use of audio streaming:
 			DVDReadDiskID A8000040,00000000,00000020
 			DVDLowAudioBufferConfig E4xx00yy,00000000,00000020
@@ -453,9 +455,9 @@ int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 {
 	u32 BufferIn	= Memory::Read_U32(_CommandAddress + 0x10);
 	u32 Command		= Memory::Read_U32(BufferIn) >> 24;
-	
+
 	// Hacks below
-	
+
 	switch (Command)
 	{
 	case DVDLowRead:
@@ -468,13 +470,13 @@ int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 		return SystemTimers::GetTicksPerSecond() / 975000 * Size;
 		break;
 	}
-		
+
 	case DVDLowClearCoverInterrupt:
 		// Less than ~1/155th of a second hangs Oregon Trail at "loading wheel".
 		// More than ~1/140th of a second hangs Resident Evil Archives: Resident Evil Zero.
 		return SystemTimers::GetTicksPerSecond() / 146;
 		break;
-	
+
 //	case DVDLowAudioBufferConfig:
 //	case DVDLowInquiry:
 //	case DVDLowReadDiskID:

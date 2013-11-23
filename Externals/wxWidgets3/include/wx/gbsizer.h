@@ -6,7 +6,6 @@
 //
 // Author:      Robin Dunn
 // Created:     03-Nov-2003
-// RCS-ID:      $Id: gbsizer.h 69970 2011-12-10 04:34:06Z RD $
 // Copyright:   (c) Robin Dunn
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -67,6 +66,14 @@ public:
 
     // default copy ctor and assignment operator are okay.
 
+    // Factor constructor creating an invalid wxGBSpan: this is mostly supposed
+    // to be used as return value for functions returning wxGBSpan in case of
+    // errors.
+    static wxGBSpan Invalid()
+    {
+        return wxGBSpan(NULL);
+    }
+
     int GetRowspan() const { return m_rowspan; }
     int GetColspan() const { return m_colspan; }
     void SetRowspan(int rowspan)
@@ -87,6 +94,13 @@ public:
     bool operator!=(const wxGBSpan& o) const { return !(*this == o); }
 
 private:
+    // This private ctor is used by Invalid() only.
+    wxGBSpan(struct InvalidCtorTag*)
+    {
+        m_rowspan =
+        m_colspan = -1;
+    }
+
     void Init()
     {
         m_rowspan =

@@ -15,19 +15,16 @@ public:
 
 	CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName);
 
+	virtual void DoState(PointerWrap& p);
+
 	bool Open(u32 _CommandAddress, u32 _Mode);
 	bool Close(u32 _CommandAddress, bool _bForce);
-	bool IOCtl(u32 _CommandAddress); 
+	bool IOCtl(u32 _CommandAddress);
 	bool IOCtlV(u32 _CommandAddress);
 
 	void EventNotify();
 
 private:
-
-	enum
-	{
-		SDIO_BASE = 0x8d070000,
-	};
 
 	// SD Host Controller Registers
 	enum
@@ -37,7 +34,7 @@ private:
 	};
 
 	// IOCtl
-	enum 
+	enum
 	{
 		IOCTL_WRITEHCR		= 0x01,
 		IOCTL_READHCR		= 0x02,
@@ -119,11 +116,14 @@ private:
 	u32 m_BlockLength;
 	u32 m_BusWidth;
 
+	u32 m_Registers[0x200/4];
+
 	File::IOFile m_Card;
 
 	u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize,
 		u32 BufferIn2, u32 BufferInSize2,
 		u32 _BufferOut, u32 BufferOutSize);
+	void OpenInternal();
 };
 
 #endif

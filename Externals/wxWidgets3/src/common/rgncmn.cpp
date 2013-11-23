@@ -4,7 +4,6 @@
 // Author:      Robin Dunn
 // Modified by:
 // Created:     27-Mar-2003
-// RCS-ID:      $Id: rgncmn.cpp 65854 2010-10-20 23:11:04Z VZ $
 // Copyright:   (c) Robin Dunn
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -33,7 +32,7 @@
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// region comparision
+// region comparison
 // ----------------------------------------------------------------------------
 
 bool wxRegionBase::IsEqual(const wxRegion& region) const

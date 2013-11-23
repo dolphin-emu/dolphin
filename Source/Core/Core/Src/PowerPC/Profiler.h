@@ -13,7 +13,7 @@
 					LEA(32, EAX, M(pt)); PUSH(EAX);	\
 					CALL(QueryPerformanceCounter)
 // TODO: r64 way
-// asm write : (u64) dt += t1-t0 
+// asm write : (u64) dt += t1-t0
 #define PROFILER_ADD_DIFF_LARGE_INTEGER(pdt, pt1, pt0)	\
 					MOV(32, R(EAX), M(pt1));	\
 					SUB(32, R(EAX), M(pt0));	\
@@ -30,16 +30,16 @@
 
 #else
 
-#define PROFILER_QUERY_PERFORMANCE_COUNTER(pt) 
-#define PROFILER_ADD_DIFF_LARGE_INTEGER(pdt, pt1, pt0) 
+#define PROFILER_QUERY_PERFORMANCE_COUNTER(pt)
+#define PROFILER_ADD_DIFF_LARGE_INTEGER(pdt, pt1, pt0)
 #define PROFILER_VPUSH
 #define PROFILER_VPOP
 #endif
 
 #else
 // TODO
-#define PROFILER_QUERY_PERFORMANCE_COUNTER(pt) 
-#define PROFILER_ADD_DIFF_LARGE_INTEGER(pdt, pt1, pt0) 
+#define PROFILER_QUERY_PERFORMANCE_COUNTER(pt)
+#define PROFILER_ADD_DIFF_LARGE_INTEGER(pdt, pt1, pt0)
 #define PROFILER_VPUSH
 #define PROFILER_VPOP
 #endif

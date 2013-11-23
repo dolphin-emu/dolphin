@@ -7,7 +7,7 @@
 #include "DSPIntExtOps.h"
 
 //not needed for game ucodes (it slows down interpreter/dspjit32 + easier to compare int VS dspjit64 without it)
-//#define PRECISE_BACKLOG 
+//#define PRECISE_BACKLOG
 
 // Extended opcodes do not exist on their own. These opcodes can only be
 // attached to opcodes that allow extending (8 (or 7) lower bits of opcode not used by
@@ -29,7 +29,7 @@ inline static void writeToBackLog(int i, int idx, u16 value)
 namespace DSPInterpreter
 {
 
-namespace Ext 
+namespace Ext
 {
 
 inline bool IsSameMemArea(u16 a, u16 b)
@@ -63,7 +63,7 @@ void ir(const UDSPInstruction opc)
 void nr(const UDSPInstruction opc)
 {
 	u8 reg = opc & 0x3;
-	
+
 	writeToBackLog(0, reg, dsp_increase_addr_reg(reg, (s16)g_dsp.r.ix[reg]));
 }
 
@@ -87,7 +87,7 @@ void mv(const UDSPInstruction opc)
 		break;
 	}
 }
-	
+
 // S @$arD, $acS.S
 // xxxx xxxx 001s s0dd
 // Store value of $acS.S in the memory pointed by register $arD.
@@ -136,14 +136,14 @@ void sn(const UDSPInstruction opc)
 
 // L $axD.D, @$arS
 // xxxx xxxx 01dd d0ss
-// Load $axD.D/$acD.D with value from memory pointed by register $arS. 
+// Load $axD.D/$acD.D with value from memory pointed by register $arS.
 // Post increment register $arS.
 void l(const UDSPInstruction opc)
 {
 	u8 sreg = opc & 0x3;
 	u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
-	
-	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r.sr & SR_40_MODE_BIT)) 
+
+	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r.sr & SR_40_MODE_BIT))
 	{
 		u16 val = dsp_dmem_read(g_dsp.r.ar[sreg]);
 		writeToBackLog(0, dreg - DSP_REG_ACM0 + DSP_REG_ACH0, (val & 0x8000) ? 0xFFFF : 0x0000);
@@ -160,14 +160,14 @@ void l(const UDSPInstruction opc)
 
 // LN $axD.D, @$arS
 // xxxx xxxx 01dd d0ss
-// Load $axD.D/$acD.D with value from memory pointed by register $arS. 
+// Load $axD.D/$acD.D with value from memory pointed by register $arS.
 // Add indexing register $ixS to register $arS.
 void ln(const UDSPInstruction opc)
 {
 	u8 sreg = opc & 0x3;
 	u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
 
-	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r.sr & SR_40_MODE_BIT)) 
+	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r.sr & SR_40_MODE_BIT))
 	{
 		u16 val = dsp_dmem_read(g_dsp.r.ar[sreg]);
 		writeToBackLog(0, dreg - DSP_REG_ACM0 + DSP_REG_ACH0, (val & 0x8000) ? 0xFFFF : 0x0000);
@@ -196,7 +196,7 @@ void ls(const UDSPInstruction opc)
 
 	writeToBackLog(0, dreg, dsp_dmem_read(g_dsp.r.ar[0]));
 	writeToBackLog(1, DSP_REG_AR3, dsp_increment_addr_reg(DSP_REG_AR3));
-	writeToBackLog(2, DSP_REG_AR0, dsp_increment_addr_reg(DSP_REG_AR0)); 
+	writeToBackLog(2, DSP_REG_AR0, dsp_increment_addr_reg(DSP_REG_AR0));
 }
 
 
@@ -269,7 +269,7 @@ void sl(const UDSPInstruction opc)
 
 	writeToBackLog(0, dreg, dsp_dmem_read(g_dsp.r.ar[3]));
 	writeToBackLog(1, DSP_REG_AR3, dsp_increment_addr_reg(DSP_REG_AR3));
-	writeToBackLog(2, DSP_REG_AR0, dsp_increment_addr_reg(DSP_REG_AR0)); 
+	writeToBackLog(2, DSP_REG_AR0, dsp_increment_addr_reg(DSP_REG_AR0));
 }
 
 // SLN $acS.m, $axD.D
@@ -329,7 +329,7 @@ void slnm(const UDSPInstruction opc)
 // LD $ax0.d, $ax1.r, @$arS
 // xxxx xxxx 11dr 00ss
 // example for "nx'ld $AX0.L, $AX1.L, @$AR3"
-// Loads the word pointed by AR0 to AX0.H, then loads the word pointed by AR3 to AX0.L. 
+// Loads the word pointed by AR0 to AX0.H, then loads the word pointed by AR3 to AX0.L.
 // Increments AR0 and AR3.
 // If AR0 and AR3 point into the same memory page (upper 6 bits of addr are the same -> games are not doing that!)
 // then the value pointed by AR0 is loaded to BOTH AX0.H and AX0.L.
@@ -545,18 +545,18 @@ void zeroWriteBackLog()
 #endif
 }
 
-void zeroWriteBackLogPreserveAcc(u8 acc) 
+void zeroWriteBackLogPreserveAcc(u8 acc)
 {
 #ifdef PRECISE_BACKLOG
 	for (int i = 0; writeBackLogIdx[i] != -1; i++)
 	{
 		// acc0
-		if ((acc == 0) &&  
+		if ((acc == 0) &&
 			((writeBackLogIdx[i] == DSP_REG_ACL0) || (writeBackLogIdx[i] == DSP_REG_ACM0) || (writeBackLogIdx[i] == DSP_REG_ACH0)))
 			continue;
-		
+
 		// acc1
-		if ((acc == 1) && 
+		if ((acc == 1) &&
 			((writeBackLogIdx[i] == DSP_REG_ACL1) || (writeBackLogIdx[i] == DSP_REG_ACM1) || (writeBackLogIdx[i] == DSP_REG_ACH1)))
 			continue;
 

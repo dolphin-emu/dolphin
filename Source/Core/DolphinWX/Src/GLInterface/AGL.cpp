@@ -58,7 +58,7 @@ bool cInterfaceAGL::Create(void *&window_handle)
 		initWithAttributes: attr];
 	if (fmt == nil) {
 		ERROR_LOG(VIDEO, "failed to create pixel format");
-		return NULL;
+		return false;
 	}
 
 	GLWin.cocoaCtx = [[NSOpenGLContext alloc]
@@ -66,12 +66,12 @@ bool cInterfaceAGL::Create(void *&window_handle)
 	[fmt release];
 	if (GLWin.cocoaCtx == nil) {
 		ERROR_LOG(VIDEO, "failed to create context");
-		return NULL;
+		return false;
 	}
 
 	if (GLWin.cocoaWin == nil) {
 		ERROR_LOG(VIDEO, "failed to create window");
-		return NULL;
+		return false;
 	}
 
 	[window makeFirstResponder:GLWin.cocoaWin];
@@ -114,10 +114,10 @@ void cInterfaceAGL::Update()
 	if( s_backbuffer_width == size.width
 	   && s_backbuffer_height == size.height)
 		return;
-	
+
 	s_backbuffer_width = size.width;
 	s_backbuffer_height = size.height;
-	
+
 	[GLWin.cocoaCtx update];
 }
 

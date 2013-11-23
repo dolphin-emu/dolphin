@@ -11,7 +11,7 @@
 
 // --- this volume type is used for Wad files ---
 // Some of this code might look redundant with the CNANDContentLoader class, however,
-// We do not do any decryption here, we do raw read, so things are -Faster- 
+// We do not do any decryption here, we do raw read, so things are -Faster-
 
 namespace DiscIO
 {
@@ -27,14 +27,13 @@ public:
 	std::string GetMakerID() const;
 	std::vector<std::string> GetNames() const;
 	u32 GetFSTSize() const					{ return 0; }
-	std::string GetApploaderDate() const	{ return "0"; }	
+	std::string GetApploaderDate() const	{ return "0"; }
 	ECountry GetCountry() const;
 	u64 GetSize() const;
 	u64 GetRawSize() const;
 
 private:
 	IBlobReader* m_pReader;
-	u64 m_titleID;
 	u32 OpeningBnrOffset, hdr_size, cert_size, tick_size, tmd_size, data_size;
 	u8 m_Country;
 };

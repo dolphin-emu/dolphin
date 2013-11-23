@@ -20,14 +20,14 @@ class CBannerLoaderWii
 
 		virtual bool IsValid();
 
-		virtual bool GetBanner(u32* _pBannerImage);
+		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight);
 
 		virtual std::vector<std::string> GetNames();
 		virtual std::string GetCompany();
 		virtual std::vector<std::string> GetDescriptions();
 
 	private:
-		
+
 		enum
 		{
 			TEXTURE_SIZE = 192 * 64 * 2,
@@ -58,8 +58,6 @@ class CBannerLoaderWii
 		u8* m_pBannerFile;
 
 		bool m_IsValid;
-
-		void decode5A3image(u32* dst, u16* src, int width, int height);
 
 		bool GetStringFromComments(const CommentIndex index, std::string& s);
 };

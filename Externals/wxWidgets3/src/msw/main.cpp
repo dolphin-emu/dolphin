@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: main.cpp 64656 2010-06-20 18:18:23Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -202,7 +201,7 @@ int wxEntry(int& argc, wxChar **argv)
 
 #endif // wxUSE_BASE
 
-#if wxUSE_GUI && defined(__WXMSW__)
+#if wxUSE_GUI
 
 namespace
 {
@@ -316,7 +315,7 @@ struct wxMSWCommandLineArguments
         argv = new wxChar *[argc + 1];
         for ( int i = 0; i < argc; i++ )
         {
-            argv[i] = wxStrdup(args[i].wx_str());
+            argv[i] = wxStrdup(args[i].t_str());
         }
 
         // argv[] must be NULL-terminated
@@ -358,7 +357,9 @@ wxMSWEntryCommon(HINSTANCE hInstance, int nCmdShow)
 
     // remember the parameters Windows gave us
     wxSetInstance(hInstance);
+#ifdef __WXMSW__
     wxApp::m_nCmdShow = nCmdShow;
+#endif
 
     // parse the command line: we can't use pCmdLine in Unicode build so it is
     // simpler to never use it at all (this also results in a more correct
@@ -414,7 +415,7 @@ WXDLLEXPORT int wxEntry(HINSTANCE hInstance,
     return wxEntry(wxArgs.argc, wxArgs.argv);
 }
 
-#endif // wxUSE_GUI && __WXMSW__
+#endif // wxUSE_GUI
 
 // ----------------------------------------------------------------------------
 // global HINSTANCE

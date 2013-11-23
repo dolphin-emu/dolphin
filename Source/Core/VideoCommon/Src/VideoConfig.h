@@ -6,7 +6,7 @@
 // IMPORTANT: UI etc should modify g_Config. Graphics code should read g_ActiveConfig.
 // The reason for this is to get rid of race conditions etc when the configuration
 // changes in the middle of a frame. This is done by copying g_Config to g_ActiveConfig
-// at the start of every frame. Noone should ever change members of g_ActiveConfig 
+// at the start of every frame. Noone should ever change members of g_ActiveConfig
 // directly.
 
 #ifndef _VIDEO_CONFIG_H_
@@ -50,10 +50,9 @@ struct VideoConfig
 {
 	VideoConfig();
 	void Load(const char *ini_file);
-	void GameIniLoad(const char *ini_file);
+	void GameIniLoad();
 	void VerifyValidity();
 	void Save(const char *ini_file);
-	void GameIniSave(const char* default_ini, const char* game_ini);
 	void UpdateProjectionHack();
 	bool IsVSync();
 
@@ -113,7 +112,7 @@ struct VideoConfig
 	bool bEFBCopyEnable;
 	bool bEFBCopyCacheEnable;
 	bool bEFBEmulateFormatChanges;
-	bool bCopyEFBToTexture;	
+	bool bCopyEFBToTexture;
 	bool bCopyEFBScaled;
 	int iSafeTextureCache_ColorSamples;
 	int iPhackvalue[4];
@@ -124,7 +123,6 @@ struct VideoConfig
 	bool bEnablePixelLighting;
 	bool bHackedBufferUpload;
 	bool bFastDepthCalc;
-
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
 
@@ -143,18 +141,19 @@ struct VideoConfig
 	{
 		API_TYPE APIType;
 
-		std::vector<std::string> Adapters; // for D3D9 and D3D11
+		std::vector<std::string> Adapters; // for D3D
 		std::vector<std::string> AAModes;
 		std::vector<std::string> PPShaders; // post-processing shaders
 
-		bool bUseRGBATextures; // used for D3D11 in TextureCache
+		bool bUseRGBATextures; // used for D3D in TextureCache
 		bool bUseMinimalMipCount;
 		bool bSupports3DVision;
-		bool bSupportsDualSourceBlend; // only supported by D3D11 and OpenGL
+		bool bSupportsDualSourceBlend;
 		bool bSupportsFormatReinterpretation;
 		bool bSupportsPixelLighting;
 		bool bSupportsPrimitiveRestart;
 		bool bSupportsSeparateAlphaFunction;
+		bool bSupportsOversizedViewports;
 		bool bSupportsGLSLUBO; // needed by PixelShaderGen, so must stay in VideoCommon
 		bool bSupportsEarlyZ; // needed by PixelShaderGen, so must stay in VideoCommon
 	} backend_info;

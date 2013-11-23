@@ -6,10 +6,11 @@
 #ifndef _MEMORYUTIL_H
 #define _MEMORYUTIL_H
 
+#include <string>
+
 #ifndef _WIN32
 #include <sys/mman.h>
 #endif
-#include <string>
 
 void* AllocateExecutableMemory(size_t size, bool low = true);
 void* AllocateMemoryPages(size_t size);

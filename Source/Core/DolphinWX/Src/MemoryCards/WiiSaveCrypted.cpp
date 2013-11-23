@@ -7,11 +7,14 @@
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
+#include <algorithm>
+#include <cinttypes>
+
 #include "WiiSaveCrypted.h"
 #include "FileUtil.h"
 #include "MathUtil.h"
 #include "NandPaths.h"
-#include <algorithm>
+#include "FileUtil.h"
 
 static Common::replace_v replacements;
 
@@ -21,18 +24,63 @@ const u8 MD5_BLANKER[0x10] = {0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17,
 						0xAB, 0x06, 0xEC, 0x22, 0x45, 0x1A, 0x57, 0x93};
 const u32 NG_id = 0x0403AC68;
 
+bool CWiiSaveCrypted::ImportWiiSave(const char* FileName)
+{
+	CWiiSaveCrypted	saveFile(FileName);
+	return saveFile.b_valid;
+}
+
+bool CWiiSaveCrypted::ExportWiiSave(u64 TitleID)
+{
+	CWiiSaveCrypted exportSave("", TitleID);
+	return exportSave.b_valid;
+}
+
+void CWiiSaveCrypted::ExportAllSaves()
+{
+	std::string titleFolder = File::GetUserPath(D_WIIUSER_IDX) + "title";
+	std::vector<u64> titles;
+	u32 pathMask = 0x00010000;
+	for (int i = 0; i < 8; ++i)
+	{
+		File::FSTEntry FST_Temp;
+		std::string folder = StringFromFormat("%s/%08x/", titleFolder.c_str(), pathMask | i);
+		File::ScanDirectoryTree(folder, FST_Temp);
+
+		for (auto& entry : FST_Temp.children)
+		{
+			if (entry.isDirectory)
+			{
+				u32 gameid;
+				if (AsciiToHex(entry.virtualName.c_str(), gameid))
+				{
+					std::string bannerPath = StringFromFormat("%s%08x/data/banner.bin", folder.c_str(), gameid);
+					if (File::Exists(bannerPath))
+					{
+						u64 titleID = (((u64)pathMask | i) << 32) | gameid;
+						titles.push_back(titleID);
+					}
+				}
+			}
+		}
+	}
+	SuccessAlertT("Found %x save files", (unsigned int) titles.size());
+	for (auto& title : titles)
+	{
+		CWiiSaveCrypted* exportSave = new CWiiSaveCrypted("", title);
+		delete exportSave;
+	}
+}
 CWiiSaveCrypted::CWiiSaveCrypted(const char* FileName, u64 TitleID)
  : m_TitleID(TitleID)
 {
 	Common::ReadReplacements(replacements);
-	strcpy(pathData_bin, FileName);
+	encryptedSavePath = std::string(FileName);
 	memcpy(SD_IV, "\x21\x67\x12\xE6\xAA\x1F\x68\x9F\x95\xC5\xA2\x23\x24\xDC\x6A\x98", 0x10);
 
 	if (!TitleID) // Import
 	{
-		AES_set_decrypt_key(SDKey, 128, &m_AES_KEY);
-		do
-		{
+		aes_setkey_dec(&m_AES_ctx, SDKey, 128);
 			b_valid = true;
 			ReadHDR();
 			ReadBKHDR();
@@ -41,47 +89,41 @@ CWiiSaveCrypted::CWiiSaveCrypted(const char* FileName, u64 TitleID)
 			if (b_valid)
 			{
 				SuccessAlertT("Successfully imported save files");
-				b_tryAgain = false;
 			}
 			else
 			{
-				b_tryAgain = AskYesNoT("Import failed, try again?");
+				PanicAlertT("Import failed");
 			}
-		} while(b_tryAgain);
 	}
 	else
 	{
-		AES_set_encrypt_key(SDKey, 128, &m_AES_KEY);
-		
+		aes_setkey_enc(&m_AES_ctx, SDKey, 128);
+
 		if (getPaths(true))
 		{
-			do
+			b_valid = true;
+			WriteHDR();
+			WriteBKHDR();
+			ExportWiiSaveFiles();
+			do_sig();
+			if (b_valid)
 			{
-				b_valid = true;
-				WriteHDR();
-				WriteBKHDR();
-				ExportWiiSaveFiles();
-				do_sig();
-				if (b_valid)
-				{
-					SuccessAlertT("Successfully exported file to %s", pathData_bin);
-					b_tryAgain = false;
-				}
-				else
-				{
-					b_tryAgain = AskYesNoT("Export failed, try again?");
-				}
-			} while(b_tryAgain);
+				SuccessAlertT("Successfully exported file to %s", encryptedSavePath.c_str());
+			}
+			else
+			{
+				 PanicAlertT("Export failed");
+			}
 		}
 	}
 }
 
 void CWiiSaveCrypted::ReadHDR()
 {
-	File::IOFile fpData_bin(pathData_bin, "rb");
+	File::IOFile fpData_bin(encryptedSavePath, "rb");
 	if (!fpData_bin)
 	{
-		PanicAlertT("Cannot open %s", pathData_bin);
+		PanicAlertT("Cannot open %s", encryptedSavePath.c_str());
 		b_valid = false;
 		return;
 	}
@@ -93,36 +135,40 @@ void CWiiSaveCrypted::ReadHDR()
 	}
 	fpData_bin.Close();
 
-	AES_cbc_encrypt((const u8*)&_encryptedHeader, (u8*)&_header, HEADER_SZ, &m_AES_KEY, SD_IV, AES_DECRYPT);
-	_bannerSize = Common::swap32(_header.hdr.BannerSize);
-	if ((_bannerSize < FULL_BNR_MIN) || (_bannerSize > FULL_BNR_MAX) ||
-		(((_bannerSize - BNR_SZ) % ICON_SZ) != 0))
+	aes_crypt_cbc(&m_AES_ctx, AES_DECRYPT, HEADER_SZ, SD_IV, (const u8*)&_encryptedHeader, (u8*)&_header);
+	u32 bannerSize = Common::swap32(_header.hdr.BannerSize);
+	if ((bannerSize < FULL_BNR_MIN) || (bannerSize > FULL_BNR_MAX) ||
+		(((bannerSize - BNR_SZ) % ICON_SZ) != 0))
 	{
-		PanicAlertT("Not a Wii save or read failure for file header size %x", _bannerSize);
+		PanicAlertT("Not a Wii save or read failure for file header size %x", bannerSize);
 		b_valid = false;
 		return;
 	}
 	m_TitleID = Common::swap64(_header.hdr.SaveGameTitle);
 
+
+	u8	md5_file[16],
+		md5_calc[16];
 	memcpy(md5_file, _header.hdr.Md5, 0x10);
 	memcpy(_header.hdr.Md5, MD5_BLANKER, 0x10);
 	md5((u8*)&_header, HEADER_SZ, md5_calc);
 	if (memcmp(md5_file, md5_calc, 0x10))
 	{
-		PanicAlertT("MD5 mismatch\n %016llx%016llx != %016llx%016llx", Common::swap64(md5_file),Common::swap64(md5_file+8), Common::swap64(md5_calc), Common::swap64(md5_calc+8));
+		PanicAlertT("MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64, Common::swap64(md5_file),Common::swap64(md5_file+8), Common::swap64(md5_calc), Common::swap64(md5_calc+8));
 		b_valid= false;
 	}
-	
+
 	if (!getPaths())
 	{
 		b_valid = false;
-		return;	
+		return;
 	}
+	std::string BannerFilePath = WiiTitlePath + "banner.bin";
 	if (!File::Exists(BannerFilePath) || AskYesNoT("%s already exists, overwrite?", BannerFilePath.c_str()))
 	{
 		INFO_LOG(CONSOLE, "Creating file %s", BannerFilePath.c_str());
 		File::IOFile fpBanner_bin(BannerFilePath, "wb");
-		fpBanner_bin.WriteBytes(_header.BNR, _bannerSize);
+		fpBanner_bin.WriteBytes(_header.BNR, bannerSize);
 	}
 }
 
@@ -131,12 +177,13 @@ void CWiiSaveCrypted::WriteHDR()
 	if (!b_valid) return;
 	memset(&_header, 0, HEADER_SZ);
 
+	std::string BannerFilePath = WiiTitlePath + "banner.bin";
 	u32 bannerSize = File::GetSize(BannerFilePath);
 	_header.hdr.BannerSize =  Common::swap32(bannerSize);
 
 	_header.hdr.SaveGameTitle = Common::swap64(m_TitleID);
 	memcpy(_header.hdr.Md5, MD5_BLANKER, 0x10);
-	_header.hdr.Permissions = 0x35;
+	_header.hdr.Permissions = 0x3C;
 
 	File::IOFile fpBanner_bin(BannerFilePath, "rb");
 	if (!fpBanner_bin.ReadBytes(_header.BNR, bannerSize))
@@ -145,16 +192,19 @@ void CWiiSaveCrypted::WriteHDR()
 		b_valid = false;
 		return;
 	}
-	
+	// remove nocopy flag
+	_header.BNR[7] &= ~1;
+
+	u8	md5_calc[16];
 	md5((u8*)&_header, HEADER_SZ, md5_calc);
 	memcpy(_header.hdr.Md5, md5_calc, 0x10);
 
-	AES_cbc_encrypt((const unsigned char *)&_header, (u8*)&_encryptedHeader, HEADER_SZ, &m_AES_KEY, SD_IV, AES_ENCRYPT);
-	
-	File::IOFile fpData_bin(pathData_bin, "wb");
+	aes_crypt_cbc(&m_AES_ctx, AES_ENCRYPT, HEADER_SZ, SD_IV, (const u8*)&_header, (u8*)&_encryptedHeader);
+
+	File::IOFile fpData_bin(encryptedSavePath, "wb");
 	if (!fpData_bin.WriteBytes(&_encryptedHeader, HEADER_SZ))
 	{
-		PanicAlertT("Failed to write header for %s", pathData_bin);
+		PanicAlertT("Failed to write header for %s", encryptedSavePath.c_str());
 		b_valid = false;
 	}
 }
@@ -164,11 +214,11 @@ void CWiiSaveCrypted::WriteHDR()
 void CWiiSaveCrypted::ReadBKHDR()
 {
 	if (!b_valid) return;
-	
-	File::IOFile fpData_bin(pathData_bin, "rb");
+
+	File::IOFile fpData_bin(encryptedSavePath, "rb");
 	if (!fpData_bin)
 	{
-		PanicAlertT("Cannot open %s", pathData_bin);
+		PanicAlertT("Cannot open %s", encryptedSavePath.c_str());
 		b_valid = false;
 		return;
 	}
@@ -180,7 +230,7 @@ void CWiiSaveCrypted::ReadBKHDR()
 		return;
 	}
 	fpData_bin.Close();
-	
+
 	if (bkhdr.size  != Common::swap32(BK_LISTED_SZ) ||
 		bkhdr.magic != Common::swap32(BK_HDR_MAGIC))
 	{
@@ -188,15 +238,15 @@ void CWiiSaveCrypted::ReadBKHDR()
 		b_valid = false;
 		return;
 	}
-	
+
 	_numberOfFiles = Common::swap32(bkhdr.numberOfFiles);
 	_sizeOfFiles = Common::swap32(bkhdr.sizeOfFiles);
 	_totalSize = Common::swap32(bkhdr.totalSize);
-	
+
 	if (_sizeOfFiles + FULL_CERT_SZ != _totalSize)
 		WARN_LOG(CONSOLE, "Size(%x) + cert(%x) does not equal totalsize(%x)", _sizeOfFiles, FULL_CERT_SZ, _totalSize);
 	if (m_TitleID != Common::swap64(bkhdr.SaveGameTitle))
-		WARN_LOG(CONSOLE, "Encrypted title (%llx) does not match unencrypted title (%llx)", m_TitleID,  Common::swap64(bkhdr.SaveGameTitle));
+		WARN_LOG(CONSOLE, "Encrypted title (%" PRIx64 ") does not match unencrypted title (%" PRIx64 ")", m_TitleID,  Common::swap64(bkhdr.SaveGameTitle));
 }
 
 void CWiiSaveCrypted::WriteBKHDR()
@@ -204,7 +254,7 @@ void CWiiSaveCrypted::WriteBKHDR()
 	if (!b_valid) return;
 	_numberOfFiles = 0;
 	_sizeOfFiles = 0;
-	
+
 	ScanForFiles(WiiTitlePath, FilesList, &_numberOfFiles, &_sizeOfFiles);
 	memset(&bkhdr, 0, BK_SZ);
 	bkhdr.size = Common::swap32(BK_LISTED_SZ);
@@ -215,7 +265,7 @@ void CWiiSaveCrypted::WriteBKHDR()
 	bkhdr.totalSize = Common::swap32(_sizeOfFiles + FULL_CERT_SZ);
 	bkhdr.SaveGameTitle = Common::swap64(m_TitleID);
 
-	File::IOFile fpData_bin(pathData_bin, "ab");
+	File::IOFile fpData_bin(encryptedSavePath, "ab");
 	if (!fpData_bin.WriteBytes(&bkhdr, BK_SZ))
 	{
 		PanicAlertT("Failed to write bkhdr");
@@ -227,10 +277,10 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 {
 	if (!b_valid) return;
 
-	File::IOFile fpData_bin(pathData_bin, "rb");
+	File::IOFile fpData_bin(encryptedSavePath, "rb");
 	if (!fpData_bin)
 	{
-		PanicAlertT("Cannot open %s", pathData_bin);
+		PanicAlertT("Cannot open %s", encryptedSavePath.c_str());
 		b_valid = false;
 		return;
 	}
@@ -244,14 +294,14 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 	{
 		memset(&_tmpFileHDR, 0, FILE_HDR_SZ);
 		memset(IV, 0, 0x10);
-		_fileSize = 0;
-		
+		u32 _fileSize = 0;
+
 		if (!fpData_bin.ReadBytes(&_tmpFileHDR, FILE_HDR_SZ))
 		{
-			PanicAlertT("Failed to write header for file %d", i);
+			PanicAlertT("Failed to read header for file %d", i);
 			b_valid = false;
 		}
-		
+
 		if (Common::swap32(_tmpFileHDR.magic) != FILE_HDR_MAGIC)
 		{
 			PanicAlertT("Bad File Header");
@@ -272,30 +322,29 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 			{
 				_fileSize = Common::swap32(_tmpFileHDR.size);
 				u32 RoundedFileSize = ROUND_UP(_fileSize, BLOCK_SZ);
-				_encryptedData = new u8[RoundedFileSize];
-				_data = new u8[RoundedFileSize];
-				if (!fpData_bin.ReadBytes(_encryptedData, RoundedFileSize))
+				std::vector<u8> _data,_encryptedData;
+				_data.reserve(RoundedFileSize);
+				_encryptedData.reserve(RoundedFileSize);
+				if (!fpData_bin.ReadBytes(&_encryptedData[0], RoundedFileSize))
 				{
 					PanicAlertT("Failed to read data from file %d", i);
 					b_valid = false;
 					break;
 				}
-				
-				
+
+
 				memcpy(IV, _tmpFileHDR.IV, 0x10);
-				AES_cbc_encrypt((const unsigned char *)_encryptedData, _data, RoundedFileSize, &m_AES_KEY, IV, AES_DECRYPT);
-				delete []_encryptedData;
-	
+				aes_crypt_cbc(&m_AES_ctx, AES_DECRYPT, RoundedFileSize, IV, (const u8*)&_encryptedData[0], &_data[0]);
+
 				if (!File::Exists(fullFilePath) || AskYesNoT("%s already exists, overwrite?", fullFilePath.c_str()))
 				{
 					INFO_LOG(CONSOLE, "Creating file %s", fullFilePath.c_str());
-	
+
 					File::IOFile fpRawSaveFile(fullFilePath, "wb");
-					fpRawSaveFile.WriteBytes(_data, _fileSize);
+					fpRawSaveFile.WriteBytes(&_data[0], _fileSize);
 				}
-				delete []_data;
 			}
-		}	
+		}
 	}
 }
 
@@ -303,27 +352,31 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 {
 	if (!b_valid) return;
 
-	u8 *__ENCdata,
-		*__data;
-
 	for(u32 i = 0; i < _numberOfFiles; i++)
 	{
 		FileHDR tmpFileHDR;
 		std::string __name, __ext;
 		memset(&tmpFileHDR, 0, FILE_HDR_SZ);
 
-		_fileSize = File::GetSize(FilesList[i]);
-		_roundedfileSize = ROUND_UP(_fileSize, BLOCK_SZ);
+		u32 _fileSize =  0;
+		if (File::IsDirectory(FilesList[i]))
+		{
+			tmpFileHDR.type = 2;
+		}
+		else
+		{
+			_fileSize = File::GetSize(FilesList[i]);
+			tmpFileHDR.type = 1;
+		}
 
+		u32 _roundedfileSize = ROUND_UP(_fileSize, BLOCK_SZ);
 		tmpFileHDR.magic = Common::swap32(FILE_HDR_MAGIC);
 		tmpFileHDR.size = Common::swap32(_fileSize);
-		tmpFileHDR.Permissions = 0x35;
-		tmpFileHDR.type = File::IsDirectory(FilesList[i]) ? 2 : 1;
+		tmpFileHDR.Permissions = 0x3c;
 
-		SplitPath(FilesList[i], NULL, &__name, &__ext);
-		__name += __ext;
+		__name = FilesList[i].substr(WiiTitlePath.length()+1);
 
-		
+
 		for (Common::replace_v::const_iterator iter = replacements.begin(); iter != replacements.end(); ++iter)
 		{
 			for (size_t j = 0; (j = __name.find(iter->second, j)) != __name.npos; ++j)
@@ -331,7 +384,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 				__name.replace(j, iter->second.length(), 1, iter->first);
 			}
 		}
-		
+
 		if (__name.length() > 0x44)
 		{
 			PanicAlertT("%s is too long for the filename, max chars is 45", __name.c_str());
@@ -339,9 +392,9 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 			return;
 		}
 		strncpy((char *)tmpFileHDR.name, __name.c_str(), __name.length());
-		
+
 		{
-		File::IOFile fpData_bin(pathData_bin, "ab");
+		File::IOFile fpData_bin(encryptedSavePath, "ab");
 		fpData_bin.WriteBytes(&tmpFileHDR, FILE_HDR_SZ);
 		}
 
@@ -359,22 +412,23 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 				PanicAlertT("%s failed to open", FilesList[i].c_str());
 				b_valid = false;
 			}
-			__data = new u8[_roundedfileSize];
-			__ENCdata = new u8[_roundedfileSize];
-			memset(__data, 0, _roundedfileSize);
-			if (!fpRawSaveFile.ReadBytes(__data, _fileSize))
+
+				std::vector<u8> _data,_encryptedData;
+				_data.reserve(_roundedfileSize);
+				_encryptedData.reserve(_roundedfileSize);
+				memset(&_data[0], 0, _roundedfileSize);
+			if (!fpRawSaveFile.ReadBytes(&_data[0], _fileSize))
 			{
 				PanicAlertT("Failed to read data from file: %s", FilesList[i].c_str());
 				b_valid = false;
 			}
 
-			AES_cbc_encrypt((const u8*)__data, __ENCdata, _roundedfileSize, &m_AES_KEY, tmpFileHDR.IV, AES_ENCRYPT);
-			
-			File::IOFile fpData_bin(pathData_bin, "ab");
-			fpData_bin.WriteBytes(__ENCdata, _roundedfileSize);
+			aes_crypt_cbc(&m_AES_ctx, AES_ENCRYPT, _roundedfileSize, tmpFileHDR.IV, (const u8*)&_data[0], &_encryptedData[0]);
 
-			delete [] __data;
-			delete [] __ENCdata;
+			File::IOFile fpData_bin(encryptedSavePath, "ab");
+			if (!fpData_bin.WriteBytes(&_encryptedData[0], _roundedfileSize))
+				PanicAlertT("Failed to write data to file: %s", encryptedSavePath.c_str());
+
 
 		}
 	}
@@ -393,7 +447,7 @@ void CWiiSaveCrypted::do_sig()
 	char name[64];
 	u8 *data;
 	u32 data_size;
-	
+
 	u32 NG_key_id = 0x6AAB8C59;
 
 	u8 NG_priv[30] = { 0, 0xAB, 0xEE, 0xC1, 0xDD, 0xB4, 0xA6, 0x16, 0x6B, 0x70, 0xFD, 0x7E, 0x56, 0x67, 0x70,
@@ -424,7 +478,7 @@ void CWiiSaveCrypted::do_sig()
 
 	data_size = Common::swap32(bkhdr.sizeOfFiles)  + 0x80;
 
-	File::IOFile fpData_bin(pathData_bin, "rb");
+	File::IOFile fpData_bin(encryptedSavePath, "rb");
 	if (!fpData_bin)
 	{
 		b_valid = false;
@@ -443,7 +497,7 @@ void CWiiSaveCrypted::do_sig()
 	sha1(hash, 20, hash);
 	delete []data;
 
-	fpData_bin.Open(pathData_bin, "ab");
+	fpData_bin.Open(encryptedSavePath, "ab");
 	if (!fpData_bin)
 	{
 		b_valid = false;
@@ -451,7 +505,7 @@ void CWiiSaveCrypted::do_sig()
 	}
 	generate_ecdsa(sig, sig + 30, ap_priv, hash);
 	*(u32*)(sig + 60) = Common::swap32(0x2f536969);
-	
+
 	fpData_bin.WriteArray(sig, sizeof(sig));
 	fpData_bin.WriteArray(ng_cert, sizeof(ng_cert));
 	fpData_bin.WriteArray(ap_cert, sizeof(ap_cert));
@@ -478,7 +532,6 @@ bool CWiiSaveCrypted::getPaths(bool forExport)
 	if (m_TitleID)
 	{
 		WiiTitlePath = Common::GetTitleDataPath(m_TitleID);
-		BannerFilePath = WiiTitlePath + "banner.bin";
 	}
 
 	if (forExport)
@@ -494,21 +547,21 @@ bool CWiiSaveCrypted::getPaths(bool forExport)
 			PanicAlertT("No save folder found for title %s", GameID);
 			return false;
 		}
-		
-		if(!File::Exists(BannerFilePath))
+
+		if(!File::Exists(WiiTitlePath + "banner.bin"))
 		{
 			b_valid = false;
 			PanicAlertT("No banner file found for title  %s", GameID);
 			return false;
 		}
-		if (strlen(pathData_bin) == 0) 
-			strcpy(pathData_bin, "."); // If no path was passed, use current dir
-		sprintf(pathData_bin, "%s/private/wii/title/%s/data.bin", pathData_bin, GameID);
-		File::CreateFullPath(pathData_bin);
+		if (encryptedSavePath.length() == 0)
+			encryptedSavePath = "."; // If no path was passed, use current dir
+		encryptedSavePath += StringFromFormat("/private/wii/title/%s/data.bin", GameID);
+		File::CreateFullPath(encryptedSavePath);
 	}
 	else
 	{
-		File::CreateFullPath(WiiTitlePath);	
+		File::CreateFullPath(WiiTitlePath);
 		if (!AskYesNoT("Warning! it is advised to backup all files in the folder:\n%s\nDo you wish to continue?", WiiTitlePath.c_str()))
 			return false;
 	}
@@ -530,20 +583,25 @@ void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>&
 
 		File::FSTEntry FST_Temp;
 		File::ScanDirectoryTree(Directories[i], FST_Temp);
-		for (u32 j = 0; j < FST_Temp.children.size(); j++)
+		for (auto& elem : FST_Temp.children)
 		{
-			if (strncmp(FST_Temp.children.at(j).virtualName.c_str(), "banner.bin", 10) != 0)
+			if (strncmp(elem.virtualName.c_str(), "banner.bin", 10) != 0)
 			{
 				(*_numFiles)++;
-				*_sizeFiles += FILE_HDR_SZ + ROUND_UP(FST_Temp.children.at(j).size, BLOCK_SZ);
-				
-				if (FST_Temp.children.at(j).isDirectory)
+				*_sizeFiles += FILE_HDR_SZ;
+				if (elem.isDirectory)
 				{
-					Directories.push_back(FST_Temp.children.at(j).physicalName);
+					if ((elem.virtualName == "nocopy") || elem.virtualName == "nomove")
+					{
+						PanicAlert("This save will likely require homebrew tools to copy to a real wii");
+					}
+
+					Directories.push_back(elem.physicalName);
 				}
 				else
 				{
-					FileList.push_back(FST_Temp.children.at(j).physicalName);
+					FileList.push_back(elem.physicalName);
+					*_sizeFiles += ROUND_UP(elem.size, BLOCK_SZ);
 				}
 			}
 		}

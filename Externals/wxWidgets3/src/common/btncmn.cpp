@@ -3,7 +3,6 @@
 // Purpose:     implementation of wxButtonBase
 // Author:      Vadim Zeitlin
 // Created:     2007-04-08
-// RCS-ID:      $Id: btncmn.cpp 67931 2011-06-14 13:00:42Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,7 +74,7 @@ wxEND_FLAGS( wxButtonStyle )
 wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxButton, wxControl, "wx/button.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxButton)
-wxEVENT_PROPERTY( Click, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEvent )
+wxEVENT_PROPERTY( Click, wxEVT_BUTTON, wxCommandEvent )
 
 wxPROPERTY( Font, wxFont, SetFont, GetFont, wxEMPTY_PARAMETER_VALUE, \
            0 /*flags*/, wxT("The font associated with the button label"), wxT("group"))

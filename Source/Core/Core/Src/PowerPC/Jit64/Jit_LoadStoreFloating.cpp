@@ -6,15 +6,7 @@
 // Should give a very noticeable speed boost to paired single heavy code.
 
 #include "Common.h"
-
-#include "../PowerPC.h"
-#include "../../Core.h" // include "Common.h", "CoreParameter.h"
-#include "../../HW/GPFifo.h"
-#include "../../HW/Memmap.h"
-#include "../PPCTables.h"
 #include "CPUDetect.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
 
 #include "Jit.h"
 #include "JitAsm.h"
@@ -39,24 +31,21 @@ u32 GC_ALIGNED16(temp32);
 void Jit64::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	int d = inst.RD;
 	int a = inst.RA;
-	if (!a) 
+	if (!a)
 	{
 		Default(inst);
 		return;
 	}
 	s32 offset = (s32)(s16)inst.SIMM_16;
-#if defined(_WIN32) && defined(_M_X64)
-	UnsafeLoadToEAX(gpr.R(a), 32, offset, false);
-#else
-	SafeLoadToEAX(gpr.R(a), 32, offset, false);
-#endif
+
+	SafeLoadToReg(EAX, gpr.R(a), 32, offset, RegistersInUse(), false);
 
 	MEMCHECK_START
-	
+
 	MOV(32, M(&temp32), R(EAX));
 	fpr.Lock(d);
 	fpr.BindToRegister(d, false);
@@ -72,13 +61,13 @@ void Jit64::lfs(UGeckoInstruction inst)
 void Jit64::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	if (js.memcheck) { Default(inst); return; }
 
 	int d = inst.RD;
 	int a = inst.RA;
-	if (!a) 
+	if (!a)
 	{
 		Default(inst);
 		return;
@@ -119,7 +108,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 		MOV(32, M((void*)((u8 *)&temp64+4)), R(EAX));
 
 		MEMCHECK_START
-		
+
 		MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::base + offset + 4));
 		BSWAP(32, EAX);
 		MOV(32, M(&temp64), R(EAX));
@@ -150,7 +139,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 void Jit64::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	if (js.memcheck) { Default(inst); return; }
 
@@ -164,7 +153,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 
 	u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 	if (Core::g_CoreStartupParameter.bMMU ||
-		Core::g_CoreStartupParameter.iTLBHack) {
+		Core::g_CoreStartupParameter.bTLBHack) {
 			mem_mask |= Memory::ADDR_MASK_MEM1;
 	}
 #ifdef ENABLE_MEM_CHECK
@@ -210,12 +199,12 @@ void Jit64::stfd(UGeckoInstruction inst)
 	MOVAPD(XMM0, fpr.R(s));
 	PSRLQ(XMM0, 32);
 	MOVD_xmm(R(EAX), XMM0);
-	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
+	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0, RegistersInUse() | (1 << (16 + XMM0)));
 
 	MOVAPD(XMM0, fpr.R(s));
 	MOVD_xmm(R(EAX), XMM0);
 	LEA(32, ABI_PARAM1, MDisp(gpr.R(a).GetSimpleReg(), offset));
-	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 4);
+	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 4, RegistersInUse());
 
 	SetJumpTarget(exit);
 
@@ -224,7 +213,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-// In Release on 32bit build, 
+// In Release on 32bit build,
 // this seemed to cause a problem with PokePark2
 // at start after talking to first pokemon,
 // you run and smash a box, then he goes on about
@@ -235,7 +224,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 void Jit64::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
@@ -287,7 +276,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 		MEMCHECK_END
 	}
 	CVTSD2SS(XMM0, fpr.R(s));
-	SafeWriteFloatToReg(XMM0, ABI_PARAM2);
+	SafeWriteFloatToReg(XMM0, ABI_PARAM2, RegistersInUse());
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
@@ -297,7 +286,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 void Jit64::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
 	gpr.FlushLockX(ABI_PARAM1);
@@ -307,7 +296,7 @@ void Jit64::stfsx(UGeckoInstruction inst)
 		ADD(32, R(ABI_PARAM1), gpr.R(inst.RA));
 	CVTSD2SS(XMM0, fpr.R(inst.RS));
 	MOVD_xmm(R(EAX), XMM0);
-	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
+	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0, RegistersInUse());
 
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
@@ -317,7 +306,7 @@ void Jit64::stfsx(UGeckoInstruction inst)
 void Jit64::lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(LoadStoreFloating)
+	JITDISABLE(bJITLoadStoreFloatingOff)
 
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)
@@ -335,14 +324,14 @@ void Jit64::lfsx(UGeckoInstruction inst)
 		MOVD_xmm(r, MComplex(RBX, EAX, SCALE_1, 0));
 #endif
 		MEMCHECK_START
-		
+
 		PSHUFB(r, M((void *)bswapShuffle1x4));
 		CVTSS2SD(r, R(r));
 		MOVDDUP(r, R(r));
 
 		MEMCHECK_END
 	} else {
-		SafeLoadToEAX(R(EAX), 32, 0, false);
+		SafeLoadToReg(EAX, R(EAX), 32, 0, RegistersInUse(), false);
 
 		MEMCHECK_START
 

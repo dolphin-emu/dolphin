@@ -11,8 +11,9 @@ namespace DriverDetails
 {
 	struct BugInfo
 	{
+		Vendor m_vendor; // which vendor has the error
+		Driver m_driver; // which driver has the error
 		Bug m_bug; // Which bug it is
-		u32 m_devfamily; // Which device(family) has the error
 		double m_versionstart; // When it started
 		double m_versionend; // When it ended
 		bool m_hasbug; // Does it have it?
@@ -20,52 +21,76 @@ namespace DriverDetails
 
 	// Local members
 	Vendor	m_vendor = VENDOR_UNKNOWN;
-	u32	m_devfamily = 0;
+	Driver	m_driver = DRIVER_UNKNOWN;
 	double	m_version = 0.0;
 
 	// This is a list of all known bugs for each vendor
 	// We use this to check if the device and driver has a issue
-	BugInfo m_qualcommbugs[] = {
-		{BUG_NODYNUBOACCESS, 300, 14.0, -1.0},
-		{BUG_BROKENCENTROID, 300, 14.0, -1.0},
-		{BUG_BROKENINFOLOG, 300, -1.0, -1.0},
+	BugInfo m_known_bugs[] = {
+		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_NODYNUBOACCESS,	14.0, 46.0, true},
+		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_BROKENCENTROID,	14.0, -1.0, true},
+		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_BROKENINFOLOG,	-1.0, -1.0, true},
+		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_ANNIHILATEDUBOS,	41.0, 46.0, true},
+		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_BROKENSWAP,		-1.0, -1.0, true},
+		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_BROKENBUFFERSTREAM,	-1.0, -1.0, true},
+		{VENDOR_ARM,	DRIVER_ARM_T6XX,		BUG_BROKENBUFFERSTREAM,	-1.0, -1.0, true},
+		{VENDOR_MESA,	DRIVER_NOUVEAU,		BUG_BROKENUBO,		900,  916, true},
+		{VENDOR_MESA,	DRIVER_R600,		BUG_BROKENUBO,		900,  913, true},
+		{VENDOR_MESA,	DRIVER_I965,		BUG_BROKENUBO,		900,  920, true},
+		{VENDOR_ATI,	DRIVER_ATI,			BUG_BROKENHACKEDBUFFER,	-1.0, -1.0, true},
+		{VENDOR_MESA,	DRIVER_NOUVEAU,		BUG_BROKENHACKEDBUFFER,	-1.0, -1.0, true},
+		{VENDOR_TEGRA,	DRIVER_NVIDIA,		BUG_ISTEGRA,		-1.0, -1.0, true},
+		{VENDOR_IMGTEC,	DRIVER_IMGTEC,		BUG_ISPOWERVR,		-1.0, -1.0, true},
 	};
 
-	std::map<std::pair<Vendor, Bug>, BugInfo> m_bugs;
-	
-	// Private function
-	void InitBugMap()
-	{
-		switch(m_vendor)
-		{
-			case VENDOR_QUALCOMM:
-				for (unsigned int a = 0; a < (sizeof(m_qualcommbugs) / sizeof(BugInfo)); ++a)
-					m_bugs[std::make_pair(m_vendor, m_qualcommbugs[a].m_bug)] = m_qualcommbugs[a];
-			break;
-			case VENDOR_ARM:
-			default:
-			break;
-		}
-	}
+	std::map<Bug, BugInfo> m_bugs;
 
-	void Init(Vendor vendor, const u32 devfamily, const double version)
+	void Init(Vendor vendor, Driver driver, const double version)
 	{
 		m_vendor = vendor;
-		m_devfamily = devfamily;
+		m_driver = driver;
 		m_version = version;
-		InitBugMap();
 
-		for (auto it = m_bugs.begin(); it != m_bugs.end(); ++it)
-			if (it->second.m_devfamily == m_devfamily)
-				if (it->second.m_versionend == -1.0 || (it->second.m_versionstart <= m_version && it->second.m_versionend > m_version))
-					it->second.m_hasbug = true;
+		if (driver == DRIVER_UNKNOWN)
+			switch(vendor)
+			{
+				case VENDOR_NVIDIA:
+				case VENDOR_TEGRA:
+					m_driver = DRIVER_NVIDIA;
+				break;
+				case VENDOR_ATI:
+					m_driver = DRIVER_ATI;
+				break;
+				case VENDOR_INTEL:
+					m_driver = DRIVER_INTEL;
+				break;
+				case VENDOR_IMGTEC:
+					m_driver = DRIVER_IMGTEC;
+				break;
+				case VENDOR_VIVANTE:
+					m_driver = DRIVER_VIVANTE;
+				break;
+				default:
+				break;
+			}
+
+		for(auto& bug : m_known_bugs)
+		{
+			if(
+				( bug.m_vendor == m_vendor || bug.m_vendor == VENDOR_ALL ) &&
+				( bug.m_driver == m_driver || bug.m_driver == DRIVER_ALL ) &&
+				( bug.m_versionstart <= m_version || bug.m_versionstart == -1 ) &&
+				( bug.m_versionend > m_version || bug.m_versionend == -1 )
+			)
+				m_bugs.insert(std::make_pair(bug.m_bug, bug));
+		}
 	}
 
 	bool HasBug(Bug bug)
 	{
-		auto it = m_bugs.find(std::make_pair(m_vendor, bug));
+		auto it = m_bugs.find(bug);
 		if (it == m_bugs.end())
-			return false;	
+			return false;
 		return it->second.m_hasbug;
 	}
 }

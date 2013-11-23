@@ -8,7 +8,6 @@
 //              Vadim Zeitlin (added support for Unix sockets) Apr 2002
 //                            (use buffering, many fixes/cleanup) Oct 2008
 // Created:     1993
-// RCS-ID:      $Id: sckipc.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart 1993
 //              (c) Guilhem Lavaux 1997, 1998
 //              (c) 2000 Guillermo Rodriguez <guille@iies.es>
@@ -399,7 +398,7 @@ wxConnectionBase *wxTCPClient::MakeConnection(const wxString& host,
 
             if (connection)
             {
-                if (connection->IsKindOf(CLASSINFO(wxTCPConnection)))
+                if (wxDynamicCast(connection, wxTCPConnection))
                 {
                     connection->m_topic = topic;
                     connection->m_sock  = client;
@@ -898,7 +897,7 @@ void wxTCPEventHandler::Server_OnRequest(wxSocketEvent &event)
 
             if (new_connection)
             {
-                if (new_connection->IsKindOf(CLASSINFO(wxTCPConnection)))
+                if (wxDynamicCast(new_connection, wxTCPConnection))
                 {
                     // Acknowledge success
                     out.Write8(IPC_CONNECT);

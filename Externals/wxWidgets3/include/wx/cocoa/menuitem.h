@@ -4,7 +4,6 @@
 // Author:      David Elliott
 // Modified by:
 // Created:     2002/12/13
-// RCS-ID:      $Id: menuitem.h 58227 2009-01-19 13:55:27Z VZ $
 // Copyright:   (c) 2002 David Elliott
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

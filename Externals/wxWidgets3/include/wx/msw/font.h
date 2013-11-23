@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.h 70446 2012-01-23 11:28:28Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,6 +22,8 @@ class WXDLLIMPEXP_CORE wxFont : public wxFontBase
 public:
     // ctors and such
     wxFont() { }
+
+    wxFont(const wxFontInfo& info);
 
 #if FUTURE_WXWIN_COMPATIBILITY_3_0
     wxFont(int size,
@@ -90,12 +91,6 @@ public:
     {
         Create(info, hFont);
     }
-
-    wxFont(int pointSize,
-           wxFontFamily family,
-           int flags = wxFONTFLAG_DEFAULT,
-           const wxString& face = wxEmptyString,
-           wxFontEncoding encoding = wxFONTENCODING_DEFAULT);
 
     wxFont(const wxString& fontDesc);
 

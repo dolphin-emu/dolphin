@@ -2,11 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../DSPIntUtil.h"
 #include "../DSPEmitter.h"
-#include "DSPJitUtil.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
+#include "../DSPIntUtil.h"
+
 using namespace Gen;
 
 // MRR $D, $S
@@ -82,7 +80,7 @@ void DSPEmitter::iar(const UDSPInstruction opc)
 	increment_addr_reg(opc & 0x3);
 }
 
-// SUBARN $arD  
+// SUBARN $arD
 // 0000 0000 0000 11dd
 // Subtract indexing register $ixD from an addressing register $arD.
 // used only in IPL-NTSC ucode
@@ -112,7 +110,7 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
 
 void DSPEmitter::setCompileSR(u16 bit)
 {
-	
+
 	//	g_dsp.r[DSP_REG_SR] |= bit
 	OpArg sr_reg;
 	gpr.getReg(DSP_REG_SR,sr_reg);
@@ -124,7 +122,7 @@ void DSPEmitter::setCompileSR(u16 bit)
 
 void DSPEmitter::clrCompileSR(u16 bit)
 {
-	
+
 	//	g_dsp.r[DSP_REG_SR] &= bit
 	OpArg sr_reg;
 	gpr.getReg(DSP_REG_SR,sr_reg);

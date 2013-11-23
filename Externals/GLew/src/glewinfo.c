@@ -539,6 +539,15 @@ static void _glewInfo_GL_VERSION_4_3 (void)
 
 #endif /* GL_VERSION_4_3 */
 
+#ifdef GL_VERSION_4_4
+
+static void _glewInfo_GL_VERSION_4_4 (void)
+{
+  glewPrintExt("GL_VERSION_4_4", GLEW_VERSION_4_4, GLEW_VERSION_4_4, GLEW_VERSION_4_4);
+}
+
+#endif /* GL_VERSION_4_4 */
+
 #ifdef GL_3DFX_multisample
 
 static void _glewInfo_GL_3DFX_multisample (void)
@@ -622,6 +631,17 @@ static void _glewInfo_GL_AMD_draw_buffers_blend (void)
 }
 
 #endif /* GL_AMD_draw_buffers_blend */
+
+#ifdef GL_AMD_interleaved_elements
+
+static void _glewInfo_GL_AMD_interleaved_elements (void)
+{
+  glewPrintExt("GL_AMD_interleaved_elements", GLEW_AMD_interleaved_elements, glewIsSupported("GL_AMD_interleaved_elements"), glewGetExtension("GL_AMD_interleaved_elements"));
+
+  glewInfoFunc("glVertexAttribParameteriAMD", glVertexAttribParameteriAMD == NULL);
+}
+
+#endif /* GL_AMD_interleaved_elements */
 
 #ifdef GL_AMD_multi_draw_indirect
 
@@ -716,6 +736,27 @@ static void _glewInfo_GL_AMD_shader_stencil_export (void)
 
 #endif /* GL_AMD_shader_stencil_export */
 
+#ifdef GL_AMD_shader_trinary_minmax
+
+static void _glewInfo_GL_AMD_shader_trinary_minmax (void)
+{
+  glewPrintExt("GL_AMD_shader_trinary_minmax", GLEW_AMD_shader_trinary_minmax, glewIsSupported("GL_AMD_shader_trinary_minmax"), glewGetExtension("GL_AMD_shader_trinary_minmax"));
+}
+
+#endif /* GL_AMD_shader_trinary_minmax */
+
+#ifdef GL_AMD_sparse_texture
+
+static void _glewInfo_GL_AMD_sparse_texture (void)
+{
+  glewPrintExt("GL_AMD_sparse_texture", GLEW_AMD_sparse_texture, glewIsSupported("GL_AMD_sparse_texture"), glewGetExtension("GL_AMD_sparse_texture"));
+
+  glewInfoFunc("glTexStorageSparseAMD", glTexStorageSparseAMD == NULL);
+  glewInfoFunc("glTextureStorageSparseAMD", glTextureStorageSparseAMD == NULL);
+}
+
+#endif /* GL_AMD_sparse_texture */
+
 #ifdef GL_AMD_stencil_operation_extended
 
 static void _glewInfo_GL_AMD_stencil_operation_extended (void)
@@ -774,6 +815,136 @@ static void _glewInfo_GL_AMD_vertex_shader_viewport_index (void)
 }
 
 #endif /* GL_AMD_vertex_shader_viewport_index */
+
+#ifdef GL_ANGLE_depth_texture
+
+static void _glewInfo_GL_ANGLE_depth_texture (void)
+{
+  glewPrintExt("GL_ANGLE_depth_texture", GLEW_ANGLE_depth_texture, glewIsSupported("GL_ANGLE_depth_texture"), glewGetExtension("GL_ANGLE_depth_texture"));
+}
+
+#endif /* GL_ANGLE_depth_texture */
+
+#ifdef GL_ANGLE_framebuffer_blit
+
+static void _glewInfo_GL_ANGLE_framebuffer_blit (void)
+{
+  glewPrintExt("GL_ANGLE_framebuffer_blit", GLEW_ANGLE_framebuffer_blit, glewIsSupported("GL_ANGLE_framebuffer_blit"), glewGetExtension("GL_ANGLE_framebuffer_blit"));
+
+  glewInfoFunc("glBlitFramebufferANGLE", glBlitFramebufferANGLE == NULL);
+}
+
+#endif /* GL_ANGLE_framebuffer_blit */
+
+#ifdef GL_ANGLE_framebuffer_multisample
+
+static void _glewInfo_GL_ANGLE_framebuffer_multisample (void)
+{
+  glewPrintExt("GL_ANGLE_framebuffer_multisample", GLEW_ANGLE_framebuffer_multisample, glewIsSupported("GL_ANGLE_framebuffer_multisample"), glewGetExtension("GL_ANGLE_framebuffer_multisample"));
+
+  glewInfoFunc("glRenderbufferStorageMultisampleANGLE", glRenderbufferStorageMultisampleANGLE == NULL);
+}
+
+#endif /* GL_ANGLE_framebuffer_multisample */
+
+#ifdef GL_ANGLE_instanced_arrays
+
+static void _glewInfo_GL_ANGLE_instanced_arrays (void)
+{
+  glewPrintExt("GL_ANGLE_instanced_arrays", GLEW_ANGLE_instanced_arrays, glewIsSupported("GL_ANGLE_instanced_arrays"), glewGetExtension("GL_ANGLE_instanced_arrays"));
+
+  glewInfoFunc("glDrawArraysInstancedANGLE", glDrawArraysInstancedANGLE == NULL);
+  glewInfoFunc("glDrawElementsInstancedANGLE", glDrawElementsInstancedANGLE == NULL);
+  glewInfoFunc("glVertexAttribDivisorANGLE", glVertexAttribDivisorANGLE == NULL);
+}
+
+#endif /* GL_ANGLE_instanced_arrays */
+
+#ifdef GL_ANGLE_pack_reverse_row_order
+
+static void _glewInfo_GL_ANGLE_pack_reverse_row_order (void)
+{
+  glewPrintExt("GL_ANGLE_pack_reverse_row_order", GLEW_ANGLE_pack_reverse_row_order, glewIsSupported("GL_ANGLE_pack_reverse_row_order"), glewGetExtension("GL_ANGLE_pack_reverse_row_order"));
+}
+
+#endif /* GL_ANGLE_pack_reverse_row_order */
+
+#ifdef GL_ANGLE_program_binary
+
+static void _glewInfo_GL_ANGLE_program_binary (void)
+{
+  glewPrintExt("GL_ANGLE_program_binary", GLEW_ANGLE_program_binary, glewIsSupported("GL_ANGLE_program_binary"), glewGetExtension("GL_ANGLE_program_binary"));
+}
+
+#endif /* GL_ANGLE_program_binary */
+
+#ifdef GL_ANGLE_texture_compression_dxt1
+
+static void _glewInfo_GL_ANGLE_texture_compression_dxt1 (void)
+{
+  glewPrintExt("GL_ANGLE_texture_compression_dxt1", GLEW_ANGLE_texture_compression_dxt1, glewIsSupported("GL_ANGLE_texture_compression_dxt1"), glewGetExtension("GL_ANGLE_texture_compression_dxt1"));
+}
+
+#endif /* GL_ANGLE_texture_compression_dxt1 */
+
+#ifdef GL_ANGLE_texture_compression_dxt3
+
+static void _glewInfo_GL_ANGLE_texture_compression_dxt3 (void)
+{
+  glewPrintExt("GL_ANGLE_texture_compression_dxt3", GLEW_ANGLE_texture_compression_dxt3, glewIsSupported("GL_ANGLE_texture_compression_dxt3"), glewGetExtension("GL_ANGLE_texture_compression_dxt3"));
+}
+
+#endif /* GL_ANGLE_texture_compression_dxt3 */
+
+#ifdef GL_ANGLE_texture_compression_dxt5
+
+static void _glewInfo_GL_ANGLE_texture_compression_dxt5 (void)
+{
+  glewPrintExt("GL_ANGLE_texture_compression_dxt5", GLEW_ANGLE_texture_compression_dxt5, glewIsSupported("GL_ANGLE_texture_compression_dxt5"), glewGetExtension("GL_ANGLE_texture_compression_dxt5"));
+}
+
+#endif /* GL_ANGLE_texture_compression_dxt5 */
+
+#ifdef GL_ANGLE_texture_usage
+
+static void _glewInfo_GL_ANGLE_texture_usage (void)
+{
+  glewPrintExt("GL_ANGLE_texture_usage", GLEW_ANGLE_texture_usage, glewIsSupported("GL_ANGLE_texture_usage"), glewGetExtension("GL_ANGLE_texture_usage"));
+}
+
+#endif /* GL_ANGLE_texture_usage */
+
+#ifdef GL_ANGLE_timer_query
+
+static void _glewInfo_GL_ANGLE_timer_query (void)
+{
+  glewPrintExt("GL_ANGLE_timer_query", GLEW_ANGLE_timer_query, glewIsSupported("GL_ANGLE_timer_query"), glewGetExtension("GL_ANGLE_timer_query"));
+
+  glewInfoFunc("glBeginQueryANGLE", glBeginQueryANGLE == NULL);
+  glewInfoFunc("glDeleteQueriesANGLE", glDeleteQueriesANGLE == NULL);
+  glewInfoFunc("glEndQueryANGLE", glEndQueryANGLE == NULL);
+  glewInfoFunc("glGenQueriesANGLE", glGenQueriesANGLE == NULL);
+  glewInfoFunc("glGetQueryObjecti64vANGLE", glGetQueryObjecti64vANGLE == NULL);
+  glewInfoFunc("glGetQueryObjectivANGLE", glGetQueryObjectivANGLE == NULL);
+  glewInfoFunc("glGetQueryObjectui64vANGLE", glGetQueryObjectui64vANGLE == NULL);
+  glewInfoFunc("glGetQueryObjectuivANGLE", glGetQueryObjectuivANGLE == NULL);
+  glewInfoFunc("glGetQueryivANGLE", glGetQueryivANGLE == NULL);
+  glewInfoFunc("glIsQueryANGLE", glIsQueryANGLE == NULL);
+  glewInfoFunc("glQueryCounterANGLE", glQueryCounterANGLE == NULL);
+}
+
+#endif /* GL_ANGLE_timer_query */
+
+#ifdef GL_ANGLE_translated_shader_source
+
+static void _glewInfo_GL_ANGLE_translated_shader_source (void)
+{
+  glewPrintExt("GL_ANGLE_translated_shader_source", GLEW_ANGLE_translated_shader_source, glewIsSupported("GL_ANGLE_translated_shader_source"), glewGetExtension("GL_ANGLE_translated_shader_source"));
+
+  glewInfoFunc("glGetTranslatedShaderSourceANGLE", glGetTranslatedShaderSourceANGLE == NULL);
+}
+
+#endif /* GL_ANGLE_translated_shader_source */
 
 #ifdef GL_APPLE_aux_depth_stencil
 
@@ -1016,6 +1187,32 @@ static void _glewInfo_GL_ARB_base_instance (void)
 
 #endif /* GL_ARB_base_instance */
 
+#ifdef GL_ARB_bindless_texture
+
+static void _glewInfo_GL_ARB_bindless_texture (void)
+{
+  glewPrintExt("GL_ARB_bindless_texture", GLEW_ARB_bindless_texture, glewIsSupported("GL_ARB_bindless_texture"), glewGetExtension("GL_ARB_bindless_texture"));
+
+  glewInfoFunc("glGetImageHandleARB", glGetImageHandleARB == NULL);
+  glewInfoFunc("glGetTextureHandleARB", glGetTextureHandleARB == NULL);
+  glewInfoFunc("glGetTextureSamplerHandleARB", glGetTextureSamplerHandleARB == NULL);
+  glewInfoFunc("glGetVertexAttribLui64vARB", glGetVertexAttribLui64vARB == NULL);
+  glewInfoFunc("glIsImageHandleResidentARB", glIsImageHandleResidentARB == NULL);
+  glewInfoFunc("glIsTextureHandleResidentARB", glIsTextureHandleResidentARB == NULL);
+  glewInfoFunc("glMakeImageHandleNonResidentARB", glMakeImageHandleNonResidentARB == NULL);
+  glewInfoFunc("glMakeImageHandleResidentARB", glMakeImageHandleResidentARB == NULL);
+  glewInfoFunc("glMakeTextureHandleNonResidentARB", glMakeTextureHandleNonResidentARB == NULL);
+  glewInfoFunc("glMakeTextureHandleResidentARB", glMakeTextureHandleResidentARB == NULL);
+  glewInfoFunc("glProgramUniformHandleui64ARB", glProgramUniformHandleui64ARB == NULL);
+  glewInfoFunc("glProgramUniformHandleui64vARB", glProgramUniformHandleui64vARB == NULL);
+  glewInfoFunc("glUniformHandleui64ARB", glUniformHandleui64ARB == NULL);
+  glewInfoFunc("glUniformHandleui64vARB", glUniformHandleui64vARB == NULL);
+  glewInfoFunc("glVertexAttribL1ui64ARB", glVertexAttribL1ui64ARB == NULL);
+  glewInfoFunc("glVertexAttribL1ui64vARB", glVertexAttribL1ui64vARB == NULL);
+}
+
+#endif /* GL_ARB_bindless_texture */
+
 #ifdef GL_ARB_blend_func_extended
 
 static void _glewInfo_GL_ARB_blend_func_extended (void)
@@ -1027,6 +1224,18 @@ static void _glewInfo_GL_ARB_blend_func_extended (void)
 }
 
 #endif /* GL_ARB_blend_func_extended */
+
+#ifdef GL_ARB_buffer_storage
+
+static void _glewInfo_GL_ARB_buffer_storage (void)
+{
+  glewPrintExt("GL_ARB_buffer_storage", GLEW_ARB_buffer_storage, glewIsSupported("GL_ARB_buffer_storage"), glewGetExtension("GL_ARB_buffer_storage"));
+
+  glewInfoFunc("glBufferStorage", glBufferStorage == NULL);
+  glewInfoFunc("glNamedBufferStorageEXT", glNamedBufferStorageEXT == NULL);
+}
+
+#endif /* GL_ARB_buffer_storage */
 
 #ifdef GL_ARB_cl_event
 
@@ -1052,6 +1261,18 @@ static void _glewInfo_GL_ARB_clear_buffer_object (void)
 }
 
 #endif /* GL_ARB_clear_buffer_object */
+
+#ifdef GL_ARB_clear_texture
+
+static void _glewInfo_GL_ARB_clear_texture (void)
+{
+  glewPrintExt("GL_ARB_clear_texture", GLEW_ARB_clear_texture, glewIsSupported("GL_ARB_clear_texture"), glewGetExtension("GL_ARB_clear_texture"));
+
+  glewInfoFunc("glClearTexImage", glClearTexImage == NULL);
+  glewInfoFunc("glClearTexSubImage", glClearTexSubImage == NULL);
+}
+
+#endif /* GL_ARB_clear_texture */
 
 #ifdef GL_ARB_color_buffer_float
 
@@ -1093,6 +1314,17 @@ static void _glewInfo_GL_ARB_compute_shader (void)
 }
 
 #endif /* GL_ARB_compute_shader */
+
+#ifdef GL_ARB_compute_variable_group_size
+
+static void _glewInfo_GL_ARB_compute_variable_group_size (void)
+{
+  glewPrintExt("GL_ARB_compute_variable_group_size", GLEW_ARB_compute_variable_group_size, glewIsSupported("GL_ARB_compute_variable_group_size"), glewGetExtension("GL_ARB_compute_variable_group_size"));
+
+  glewInfoFunc("glDispatchComputeGroupSizeARB", glDispatchComputeGroupSizeARB == NULL);
+}
+
+#endif /* GL_ARB_compute_variable_group_size */
 
 #ifdef GL_ARB_conservative_depth
 
@@ -1225,6 +1457,15 @@ static void _glewInfo_GL_ARB_draw_instanced (void)
 }
 
 #endif /* GL_ARB_draw_instanced */
+
+#ifdef GL_ARB_enhanced_layouts
+
+static void _glewInfo_GL_ARB_enhanced_layouts (void)
+{
+  glewPrintExt("GL_ARB_enhanced_layouts", GLEW_ARB_enhanced_layouts, glewIsSupported("GL_ARB_enhanced_layouts"), glewGetExtension("GL_ARB_enhanced_layouts"));
+}
+
+#endif /* GL_ARB_enhanced_layouts */
 
 #ifdef GL_ARB_explicit_attrib_location
 
@@ -1467,6 +1708,18 @@ static void _glewInfo_GL_ARB_imaging (void)
 
 #endif /* GL_ARB_imaging */
 
+#ifdef GL_ARB_indirect_parameters
+
+static void _glewInfo_GL_ARB_indirect_parameters (void)
+{
+  glewPrintExt("GL_ARB_indirect_parameters", GLEW_ARB_indirect_parameters, glewIsSupported("GL_ARB_indirect_parameters"), glewGetExtension("GL_ARB_indirect_parameters"));
+
+  glewInfoFunc("glMultiDrawArraysIndirectCountARB", glMultiDrawArraysIndirectCountARB == NULL);
+  glewInfoFunc("glMultiDrawElementsIndirectCountARB", glMultiDrawElementsIndirectCountARB == NULL);
+}
+
+#endif /* GL_ARB_indirect_parameters */
+
 #ifdef GL_ARB_instanced_arrays
 
 static void _glewInfo_GL_ARB_instanced_arrays (void)
@@ -1553,6 +1806,22 @@ static void _glewInfo_GL_ARB_matrix_palette (void)
 }
 
 #endif /* GL_ARB_matrix_palette */
+
+#ifdef GL_ARB_multi_bind
+
+static void _glewInfo_GL_ARB_multi_bind (void)
+{
+  glewPrintExt("GL_ARB_multi_bind", GLEW_ARB_multi_bind, glewIsSupported("GL_ARB_multi_bind"), glewGetExtension("GL_ARB_multi_bind"));
+
+  glewInfoFunc("glBindBuffersBase", glBindBuffersBase == NULL);
+  glewInfoFunc("glBindBuffersRange", glBindBuffersRange == NULL);
+  glewInfoFunc("glBindImageTextures", glBindImageTextures == NULL);
+  glewInfoFunc("glBindSamplers", glBindSamplers == NULL);
+  glewInfoFunc("glBindTextures", glBindTextures == NULL);
+  glewInfoFunc("glBindVertexBuffers", glBindVertexBuffers == NULL);
+}
+
+#endif /* GL_ARB_multi_bind */
 
 #ifdef GL_ARB_multi_draw_indirect
 
@@ -1705,6 +1974,15 @@ static void _glewInfo_GL_ARB_provoking_vertex (void)
 
 #endif /* GL_ARB_provoking_vertex */
 
+#ifdef GL_ARB_query_buffer_object
+
+static void _glewInfo_GL_ARB_query_buffer_object (void)
+{
+  glewPrintExt("GL_ARB_query_buffer_object", GLEW_ARB_query_buffer_object, glewIsSupported("GL_ARB_query_buffer_object"), glewGetExtension("GL_ARB_query_buffer_object"));
+}
+
+#endif /* GL_ARB_query_buffer_object */
+
 #ifdef GL_ARB_robust_buffer_access_behavior
 
 static void _glewInfo_GL_ARB_robust_buffer_access_behavior (void)
@@ -1806,6 +2084,15 @@ static void _glewInfo_GL_ARB_seamless_cube_map (void)
 
 #endif /* GL_ARB_seamless_cube_map */
 
+#ifdef GL_ARB_seamless_cubemap_per_texture
+
+static void _glewInfo_GL_ARB_seamless_cubemap_per_texture (void)
+{
+  glewPrintExt("GL_ARB_seamless_cubemap_per_texture", GLEW_ARB_seamless_cubemap_per_texture, glewIsSupported("GL_ARB_seamless_cubemap_per_texture"), glewGetExtension("GL_ARB_seamless_cubemap_per_texture"));
+}
+
+#endif /* GL_ARB_seamless_cubemap_per_texture */
+
 #ifdef GL_ARB_separate_shader_objects
 
 static void _glewInfo_GL_ARB_separate_shader_objects (void)
@@ -1895,6 +2182,24 @@ static void _glewInfo_GL_ARB_shader_bit_encoding (void)
 }
 
 #endif /* GL_ARB_shader_bit_encoding */
+
+#ifdef GL_ARB_shader_draw_parameters
+
+static void _glewInfo_GL_ARB_shader_draw_parameters (void)
+{
+  glewPrintExt("GL_ARB_shader_draw_parameters", GLEW_ARB_shader_draw_parameters, glewIsSupported("GL_ARB_shader_draw_parameters"), glewGetExtension("GL_ARB_shader_draw_parameters"));
+}
+
+#endif /* GL_ARB_shader_draw_parameters */
+
+#ifdef GL_ARB_shader_group_vote
+
+static void _glewInfo_GL_ARB_shader_group_vote (void)
+{
+  glewPrintExt("GL_ARB_shader_group_vote", GLEW_ARB_shader_group_vote, glewIsSupported("GL_ARB_shader_group_vote"), glewGetExtension("GL_ARB_shader_group_vote"));
+}
+
+#endif /* GL_ARB_shader_group_vote */
 
 #ifdef GL_ARB_shader_image_load_store
 
@@ -2083,6 +2388,18 @@ static void _glewInfo_GL_ARB_shadow_ambient (void)
 
 #endif /* GL_ARB_shadow_ambient */
 
+#ifdef GL_ARB_sparse_texture
+
+static void _glewInfo_GL_ARB_sparse_texture (void)
+{
+  glewPrintExt("GL_ARB_sparse_texture", GLEW_ARB_sparse_texture, glewIsSupported("GL_ARB_sparse_texture"), glewGetExtension("GL_ARB_sparse_texture"));
+
+  glewInfoFunc("glTexPageCommitmentARB", glTexPageCommitmentARB == NULL);
+  glewInfoFunc("glTexturePageCommitmentEXT", glTexturePageCommitmentEXT == NULL);
+}
+
+#endif /* GL_ARB_sparse_texture */
+
 #ifdef GL_ARB_stencil_texturing
 
 static void _glewInfo_GL_ARB_stencil_texturing (void)
@@ -2269,6 +2586,15 @@ static void _glewInfo_GL_ARB_texture_gather (void)
 
 #endif /* GL_ARB_texture_gather */
 
+#ifdef GL_ARB_texture_mirror_clamp_to_edge
+
+static void _glewInfo_GL_ARB_texture_mirror_clamp_to_edge (void)
+{
+  glewPrintExt("GL_ARB_texture_mirror_clamp_to_edge", GLEW_ARB_texture_mirror_clamp_to_edge, glewIsSupported("GL_ARB_texture_mirror_clamp_to_edge"), glewGetExtension("GL_ARB_texture_mirror_clamp_to_edge"));
+}
+
+#endif /* GL_ARB_texture_mirror_clamp_to_edge */
+
 #ifdef GL_ARB_texture_mirrored_repeat
 
 static void _glewInfo_GL_ARB_texture_mirrored_repeat (void)
@@ -2345,6 +2671,15 @@ static void _glewInfo_GL_ARB_texture_rgb10_a2ui (void)
 }
 
 #endif /* GL_ARB_texture_rgb10_a2ui */
+
+#ifdef GL_ARB_texture_stencil8
+
+static void _glewInfo_GL_ARB_texture_stencil8 (void)
+{
+  glewPrintExt("GL_ARB_texture_stencil8", GLEW_ARB_texture_stencil8, glewIsSupported("GL_ARB_texture_stencil8"), glewGetExtension("GL_ARB_texture_stencil8"));
+}
+
+#endif /* GL_ARB_texture_stencil8 */
 
 #ifdef GL_ARB_texture_storage
 
@@ -2670,6 +3005,15 @@ static void _glewInfo_GL_ARB_vertex_shader (void)
 }
 
 #endif /* GL_ARB_vertex_shader */
+
+#ifdef GL_ARB_vertex_type_10f_11f_11f_rev
+
+static void _glewInfo_GL_ARB_vertex_type_10f_11f_11f_rev (void)
+{
+  glewPrintExt("GL_ARB_vertex_type_10f_11f_11f_rev", GLEW_ARB_vertex_type_10f_11f_11f_rev, glewIsSupported("GL_ARB_vertex_type_10f_11f_11f_rev"), glewGetExtension("GL_ARB_vertex_type_10f_11f_11f_rev"));
+}
+
+#endif /* GL_ARB_vertex_type_10f_11f_11f_rev */
 
 #ifdef GL_ARB_vertex_type_2_10_10_10_rev
 
@@ -3450,55 +3794,38 @@ static void _glewInfo_GL_EXT_direct_state_access (void)
   glewInfoFunc("glNamedRenderbufferStorageEXT", glNamedRenderbufferStorageEXT == NULL);
   glewInfoFunc("glNamedRenderbufferStorageMultisampleCoverageEXT", glNamedRenderbufferStorageMultisampleCoverageEXT == NULL);
   glewInfoFunc("glNamedRenderbufferStorageMultisampleEXT", glNamedRenderbufferStorageMultisampleEXT == NULL);
-  glewInfoFunc("glProgramUniform1dEXT", glProgramUniform1dEXT == NULL);
-  glewInfoFunc("glProgramUniform1dvEXT", glProgramUniform1dvEXT == NULL);
   glewInfoFunc("glProgramUniform1fEXT", glProgramUniform1fEXT == NULL);
   glewInfoFunc("glProgramUniform1fvEXT", glProgramUniform1fvEXT == NULL);
   glewInfoFunc("glProgramUniform1iEXT", glProgramUniform1iEXT == NULL);
   glewInfoFunc("glProgramUniform1ivEXT", glProgramUniform1ivEXT == NULL);
   glewInfoFunc("glProgramUniform1uiEXT", glProgramUniform1uiEXT == NULL);
   glewInfoFunc("glProgramUniform1uivEXT", glProgramUniform1uivEXT == NULL);
-  glewInfoFunc("glProgramUniform2dEXT", glProgramUniform2dEXT == NULL);
-  glewInfoFunc("glProgramUniform2dvEXT", glProgramUniform2dvEXT == NULL);
   glewInfoFunc("glProgramUniform2fEXT", glProgramUniform2fEXT == NULL);
   glewInfoFunc("glProgramUniform2fvEXT", glProgramUniform2fvEXT == NULL);
   glewInfoFunc("glProgramUniform2iEXT", glProgramUniform2iEXT == NULL);
   glewInfoFunc("glProgramUniform2ivEXT", glProgramUniform2ivEXT == NULL);
   glewInfoFunc("glProgramUniform2uiEXT", glProgramUniform2uiEXT == NULL);
   glewInfoFunc("glProgramUniform2uivEXT", glProgramUniform2uivEXT == NULL);
-  glewInfoFunc("glProgramUniform3dEXT", glProgramUniform3dEXT == NULL);
-  glewInfoFunc("glProgramUniform3dvEXT", glProgramUniform3dvEXT == NULL);
   glewInfoFunc("glProgramUniform3fEXT", glProgramUniform3fEXT == NULL);
   glewInfoFunc("glProgramUniform3fvEXT", glProgramUniform3fvEXT == NULL);
   glewInfoFunc("glProgramUniform3iEXT", glProgramUniform3iEXT == NULL);
   glewInfoFunc("glProgramUniform3ivEXT", glProgramUniform3ivEXT == NULL);
   glewInfoFunc("glProgramUniform3uiEXT", glProgramUniform3uiEXT == NULL);
   glewInfoFunc("glProgramUniform3uivEXT", glProgramUniform3uivEXT == NULL);
-  glewInfoFunc("glProgramUniform4dEXT", glProgramUniform4dEXT == NULL);
-  glewInfoFunc("glProgramUniform4dvEXT", glProgramUniform4dvEXT == NULL);
   glewInfoFunc("glProgramUniform4fEXT", glProgramUniform4fEXT == NULL);
   glewInfoFunc("glProgramUniform4fvEXT", glProgramUniform4fvEXT == NULL);
   glewInfoFunc("glProgramUniform4iEXT", glProgramUniform4iEXT == NULL);
   glewInfoFunc("glProgramUniform4ivEXT", glProgramUniform4ivEXT == NULL);
   glewInfoFunc("glProgramUniform4uiEXT", glProgramUniform4uiEXT == NULL);
   glewInfoFunc("glProgramUniform4uivEXT", glProgramUniform4uivEXT == NULL);
-  glewInfoFunc("glProgramUniformMatrix2dvEXT", glProgramUniformMatrix2dvEXT == NULL);
   glewInfoFunc("glProgramUniformMatrix2fvEXT", glProgramUniformMatrix2fvEXT == NULL);
-  glewInfoFunc("glProgramUniformMatrix2x3dvEXT", glProgramUniformMatrix2x3dvEXT == NULL);
   glewInfoFunc("glProgramUniformMatrix2x3fvEXT", glProgramUniformMatrix2x3fvEXT == NULL);
-  glewInfoFunc("glProgramUniformMatrix2x4dvEXT", glProgramUniformMatrix2x4dvEXT == NULL);
   glewInfoFunc("glProgramUniformMatrix2x4fvEXT", glProgramUniformMatrix2x4fvEXT == NULL);
-  glewInfoFunc("glProgramUniformMatrix3dvEXT", glProgramUniformMatrix3dvEXT == NULL);
   glewInfoFunc("glProgramUniformMatrix3fvEXT", glProgramUniformMatrix3fvEXT == NULL);
-  glewInfoFunc("glProgramUniformMatrix3x2dvEXT", glProgramUniformMatrix3x2dvEXT == NULL);
   glewInfoFunc("glProgramUniformMatrix3x2fvEXT", glProgramUniformMatrix3x2fvEXT == NULL);
-  glewInfoFunc("glProgramUniformMatrix3x4dvEXT", glProgramUniformMatrix3x4dvEXT == NULL);
   glewInfoFunc("glProgramUniformMatrix3x4fvEXT", glProgramUniformMatrix3x4fvEXT == NULL);
-  glewInfoFunc("glProgramUniformMatrix4dvEXT", glProgramUniformMatrix4dvEXT == NULL);
   glewInfoFunc("glProgramUniformMatrix4fvEXT", glProgramUniformMatrix4fvEXT == NULL);
-  glewInfoFunc("glProgramUniformMatrix4x2dvEXT", glProgramUniformMatrix4x2dvEXT == NULL);
   glewInfoFunc("glProgramUniformMatrix4x2fvEXT", glProgramUniformMatrix4x2fvEXT == NULL);
-  glewInfoFunc("glProgramUniformMatrix4x3dvEXT", glProgramUniformMatrix4x3dvEXT == NULL);
   glewInfoFunc("glProgramUniformMatrix4x3fvEXT", glProgramUniformMatrix4x3fvEXT == NULL);
   glewInfoFunc("glPushClientAttribDefaultEXT", glPushClientAttribDefaultEXT == NULL);
   glewInfoFunc("glTextureBufferEXT", glTextureBufferEXT == NULL);
@@ -4664,6 +4991,19 @@ static void _glewInfo_GL_INGR_interlace_read (void)
 
 #endif /* GL_INGR_interlace_read */
 
+#ifdef GL_INTEL_map_texture
+
+static void _glewInfo_GL_INTEL_map_texture (void)
+{
+  glewPrintExt("GL_INTEL_map_texture", GLEW_INTEL_map_texture, glewIsSupported("GL_INTEL_map_texture"), glewGetExtension("GL_INTEL_map_texture"));
+
+  glewInfoFunc("glMapTexture2DINTEL", glMapTexture2DINTEL == NULL);
+  glewInfoFunc("glSyncTextureINTEL", glSyncTextureINTEL == NULL);
+  glewInfoFunc("glUnmapTexture2DINTEL", glUnmapTexture2DINTEL == NULL);
+}
+
+#endif /* GL_INTEL_map_texture */
+
 #ifdef GL_INTEL_parallel_arrays
 
 static void _glewInfo_GL_INTEL_parallel_arrays (void)
@@ -4702,9 +5042,9 @@ static void _glewInfo_GL_KHR_debug (void)
   glewInfoFunc("glGetDebugMessageLog", glGetDebugMessageLog == NULL);
   glewInfoFunc("glGetObjectLabel", glGetObjectLabel == NULL);
   glewInfoFunc("glGetObjectPtrLabel", glGetObjectPtrLabel == NULL);
-  glewInfoFunc("glGetPointerv", glGetPointerv == NULL);
   glewInfoFunc("glObjectLabel", glObjectLabel == NULL);
   glewInfoFunc("glObjectPtrLabel", glObjectPtrLabel == NULL);
+  glewInfoFunc("glPopDebugGroup", glPopDebugGroup == NULL);
   glewInfoFunc("glPushDebugGroup", glPushDebugGroup == NULL);
 }
 
@@ -4806,6 +5146,18 @@ static void _glewInfo_GL_MESA_ycbcr_texture (void)
 
 #endif /* GL_MESA_ycbcr_texture */
 
+#ifdef GL_NVX_conditional_render
+
+static void _glewInfo_GL_NVX_conditional_render (void)
+{
+  glewPrintExt("GL_NVX_conditional_render", GLEW_NVX_conditional_render, glewIsSupported("GL_NVX_conditional_render"), glewGetExtension("GL_NVX_conditional_render"));
+
+  glewInfoFunc("glBeginConditionalRenderNVX", glBeginConditionalRenderNVX == NULL);
+  glewInfoFunc("glEndConditionalRenderNVX", glEndConditionalRenderNVX == NULL);
+}
+
+#endif /* GL_NVX_conditional_render */
+
 #ifdef GL_NVX_gpu_memory_info
 
 static void _glewInfo_GL_NVX_gpu_memory_info (void)
@@ -4814,6 +5166,18 @@ static void _glewInfo_GL_NVX_gpu_memory_info (void)
 }
 
 #endif /* GL_NVX_gpu_memory_info */
+
+#ifdef GL_NV_bindless_multi_draw_indirect
+
+static void _glewInfo_GL_NV_bindless_multi_draw_indirect (void)
+{
+  glewPrintExt("GL_NV_bindless_multi_draw_indirect", GLEW_NV_bindless_multi_draw_indirect, glewIsSupported("GL_NV_bindless_multi_draw_indirect"), glewGetExtension("GL_NV_bindless_multi_draw_indirect"));
+
+  glewInfoFunc("glMultiDrawArraysIndirectBindlessNV", glMultiDrawArraysIndirectBindlessNV == NULL);
+  glewInfoFunc("glMultiDrawElementsIndirectBindlessNV", glMultiDrawElementsIndirectBindlessNV == NULL);
+}
+
+#endif /* GL_NV_bindless_multi_draw_indirect */
 
 #ifdef GL_NV_bindless_texture
 
@@ -4838,6 +5202,27 @@ static void _glewInfo_GL_NV_bindless_texture (void)
 
 #endif /* GL_NV_bindless_texture */
 
+#ifdef GL_NV_blend_equation_advanced
+
+static void _glewInfo_GL_NV_blend_equation_advanced (void)
+{
+  glewPrintExt("GL_NV_blend_equation_advanced", GLEW_NV_blend_equation_advanced, glewIsSupported("GL_NV_blend_equation_advanced"), glewGetExtension("GL_NV_blend_equation_advanced"));
+
+  glewInfoFunc("glBlendBarrierNV", glBlendBarrierNV == NULL);
+  glewInfoFunc("glBlendParameteriNV", glBlendParameteriNV == NULL);
+}
+
+#endif /* GL_NV_blend_equation_advanced */
+
+#ifdef GL_NV_blend_equation_advanced_coherent
+
+static void _glewInfo_GL_NV_blend_equation_advanced_coherent (void)
+{
+  glewPrintExt("GL_NV_blend_equation_advanced_coherent", GLEW_NV_blend_equation_advanced_coherent, glewIsSupported("GL_NV_blend_equation_advanced_coherent"), glewGetExtension("GL_NV_blend_equation_advanced_coherent"));
+}
+
+#endif /* GL_NV_blend_equation_advanced_coherent */
+
 #ifdef GL_NV_blend_square
 
 static void _glewInfo_GL_NV_blend_square (void)
@@ -4846,6 +5231,15 @@ static void _glewInfo_GL_NV_blend_square (void)
 }
 
 #endif /* GL_NV_blend_square */
+
+#ifdef GL_NV_compute_program5
+
+static void _glewInfo_GL_NV_compute_program5 (void)
+{
+  glewPrintExt("GL_NV_compute_program5", GLEW_NV_compute_program5, glewIsSupported("GL_NV_compute_program5"), glewGetExtension("GL_NV_compute_program5"));
+}
+
+#endif /* GL_NV_compute_program5 */
 
 #ifdef GL_NV_conditional_render
 
@@ -4879,6 +5273,15 @@ static void _glewInfo_GL_NV_copy_image (void)
 
 #endif /* GL_NV_copy_image */
 
+#ifdef GL_NV_deep_texture3D
+
+static void _glewInfo_GL_NV_deep_texture3D (void)
+{
+  glewPrintExt("GL_NV_deep_texture3D", GLEW_NV_deep_texture3D, glewIsSupported("GL_NV_deep_texture3D"), glewGetExtension("GL_NV_deep_texture3D"));
+}
+
+#endif /* GL_NV_deep_texture3D */
+
 #ifdef GL_NV_depth_buffer_float
 
 static void _glewInfo_GL_NV_depth_buffer_float (void)
@@ -4909,6 +5312,17 @@ static void _glewInfo_GL_NV_depth_range_unclamped (void)
 }
 
 #endif /* GL_NV_depth_range_unclamped */
+
+#ifdef GL_NV_draw_texture
+
+static void _glewInfo_GL_NV_draw_texture (void)
+{
+  glewPrintExt("GL_NV_draw_texture", GLEW_NV_draw_texture, glewIsSupported("GL_NV_draw_texture"), glewGetExtension("GL_NV_draw_texture"));
+
+  glewInfoFunc("glDrawTextureNV", glDrawTextureNV == NULL);
+}
+
+#endif /* GL_NV_draw_texture */
 
 #ifdef GL_NV_evaluators
 
@@ -5081,6 +5495,15 @@ static void _glewInfo_GL_NV_gpu_program5 (void)
 }
 
 #endif /* GL_NV_gpu_program5 */
+
+#ifdef GL_NV_gpu_program5_mem_extended
+
+static void _glewInfo_GL_NV_gpu_program5_mem_extended (void)
+{
+  glewPrintExt("GL_NV_gpu_program5_mem_extended", GLEW_NV_gpu_program5_mem_extended, glewIsSupported("GL_NV_gpu_program5_mem_extended"), glewGetExtension("GL_NV_gpu_program5_mem_extended"));
+}
+
+#endif /* GL_NV_gpu_program5_mem_extended */
 
 #ifdef GL_NV_gpu_program_fp64
 
@@ -5412,6 +5835,15 @@ static void _glewInfo_GL_NV_register_combiners2 (void)
 
 #endif /* GL_NV_register_combiners2 */
 
+#ifdef GL_NV_shader_atomic_counters
+
+static void _glewInfo_GL_NV_shader_atomic_counters (void)
+{
+  glewPrintExt("GL_NV_shader_atomic_counters", GLEW_NV_shader_atomic_counters, glewIsSupported("GL_NV_shader_atomic_counters"), glewGetExtension("GL_NV_shader_atomic_counters"));
+}
+
+#endif /* GL_NV_shader_atomic_counters */
+
 #ifdef GL_NV_shader_atomic_float
 
 static void _glewInfo_GL_NV_shader_atomic_float (void)
@@ -5443,6 +5875,15 @@ static void _glewInfo_GL_NV_shader_buffer_load (void)
 }
 
 #endif /* GL_NV_shader_buffer_load */
+
+#ifdef GL_NV_shader_storage_buffer_object
+
+static void _glewInfo_GL_NV_shader_storage_buffer_object (void)
+{
+  glewPrintExt("GL_NV_shader_storage_buffer_object", GLEW_NV_shader_storage_buffer_object, glewIsSupported("GL_NV_shader_storage_buffer_object"), glewGetExtension("GL_NV_shader_storage_buffer_object"));
+}
+
+#endif /* GL_NV_shader_storage_buffer_object */
 
 #ifdef GL_NV_tessellation_program5
 
@@ -5920,6 +6361,79 @@ static void _glewInfo_GL_PGI_vertex_hints (void)
 
 #endif /* GL_PGI_vertex_hints */
 
+#ifdef GL_REGAL_ES1_0_compatibility
+
+static void _glewInfo_GL_REGAL_ES1_0_compatibility (void)
+{
+  glewPrintExt("GL_REGAL_ES1_0_compatibility", GLEW_REGAL_ES1_0_compatibility, glewIsSupported("GL_REGAL_ES1_0_compatibility"), glewGetExtension("GL_REGAL_ES1_0_compatibility"));
+
+  glewInfoFunc("glAlphaFuncx", glAlphaFuncx == NULL);
+  glewInfoFunc("glClearColorx", glClearColorx == NULL);
+  glewInfoFunc("glClearDepthx", glClearDepthx == NULL);
+  glewInfoFunc("glColor4x", glColor4x == NULL);
+  glewInfoFunc("glDepthRangex", glDepthRangex == NULL);
+  glewInfoFunc("glFogx", glFogx == NULL);
+  glewInfoFunc("glFogxv", glFogxv == NULL);
+  glewInfoFunc("glFrustumf", glFrustumf == NULL);
+  glewInfoFunc("glFrustumx", glFrustumx == NULL);
+  glewInfoFunc("glLightModelx", glLightModelx == NULL);
+  glewInfoFunc("glLightModelxv", glLightModelxv == NULL);
+  glewInfoFunc("glLightx", glLightx == NULL);
+  glewInfoFunc("glLightxv", glLightxv == NULL);
+  glewInfoFunc("glLineWidthx", glLineWidthx == NULL);
+  glewInfoFunc("glLoadMatrixx", glLoadMatrixx == NULL);
+  glewInfoFunc("glMaterialx", glMaterialx == NULL);
+  glewInfoFunc("glMaterialxv", glMaterialxv == NULL);
+  glewInfoFunc("glMultMatrixx", glMultMatrixx == NULL);
+  glewInfoFunc("glMultiTexCoord4x", glMultiTexCoord4x == NULL);
+  glewInfoFunc("glNormal3x", glNormal3x == NULL);
+  glewInfoFunc("glOrthof", glOrthof == NULL);
+  glewInfoFunc("glOrthox", glOrthox == NULL);
+  glewInfoFunc("glPointSizex", glPointSizex == NULL);
+  glewInfoFunc("glPolygonOffsetx", glPolygonOffsetx == NULL);
+  glewInfoFunc("glRotatex", glRotatex == NULL);
+  glewInfoFunc("glSampleCoveragex", glSampleCoveragex == NULL);
+  glewInfoFunc("glScalex", glScalex == NULL);
+  glewInfoFunc("glTexEnvx", glTexEnvx == NULL);
+  glewInfoFunc("glTexEnvxv", glTexEnvxv == NULL);
+  glewInfoFunc("glTexParameterx", glTexParameterx == NULL);
+  glewInfoFunc("glTranslatex", glTranslatex == NULL);
+}
+
+#endif /* GL_REGAL_ES1_0_compatibility */
+
+#ifdef GL_REGAL_ES1_1_compatibility
+
+static void _glewInfo_GL_REGAL_ES1_1_compatibility (void)
+{
+  glewPrintExt("GL_REGAL_ES1_1_compatibility", GLEW_REGAL_ES1_1_compatibility, glewIsSupported("GL_REGAL_ES1_1_compatibility"), glewGetExtension("GL_REGAL_ES1_1_compatibility"));
+
+  glewInfoFunc("glClipPlanef", glClipPlanef == NULL);
+  glewInfoFunc("glClipPlanex", glClipPlanex == NULL);
+  glewInfoFunc("glGetClipPlanef", glGetClipPlanef == NULL);
+  glewInfoFunc("glGetClipPlanex", glGetClipPlanex == NULL);
+  glewInfoFunc("glGetFixedv", glGetFixedv == NULL);
+  glewInfoFunc("glGetLightxv", glGetLightxv == NULL);
+  glewInfoFunc("glGetMaterialxv", glGetMaterialxv == NULL);
+  glewInfoFunc("glGetTexEnvxv", glGetTexEnvxv == NULL);
+  glewInfoFunc("glGetTexParameterxv", glGetTexParameterxv == NULL);
+  glewInfoFunc("glPointParameterx", glPointParameterx == NULL);
+  glewInfoFunc("glPointParameterxv", glPointParameterxv == NULL);
+  glewInfoFunc("glPointSizePointerOES", glPointSizePointerOES == NULL);
+  glewInfoFunc("glTexParameterxv", glTexParameterxv == NULL);
+}
+
+#endif /* GL_REGAL_ES1_1_compatibility */
+
+#ifdef GL_REGAL_enable
+
+static void _glewInfo_GL_REGAL_enable (void)
+{
+  glewPrintExt("GL_REGAL_enable", GLEW_REGAL_enable, glewIsSupported("GL_REGAL_enable"), glewGetExtension("GL_REGAL_enable"));
+}
+
+#endif /* GL_REGAL_enable */
+
 #ifdef GL_REGAL_error_string
 
 static void _glewInfo_GL_REGAL_error_string (void)
@@ -5948,6 +6462,8 @@ static void _glewInfo_GL_REGAL_extension_query (void)
 static void _glewInfo_GL_REGAL_log (void)
 {
   glewPrintExt("GL_REGAL_log", GLEW_REGAL_log, glewIsSupported("GL_REGAL_log"), glewGetExtension("GL_REGAL_log"));
+
+  glewInfoFunc("glLogMessageCallbackREGAL", glLogMessageCallbackREGAL == NULL);
 }
 
 #endif /* GL_REGAL_log */
@@ -6817,6 +7333,24 @@ static void _glewInfo_WGL_ARB_render_texture (void)
 
 #endif /* WGL_ARB_render_texture */
 
+#ifdef WGL_ARB_robustness_application_isolation
+
+static void _glewInfo_WGL_ARB_robustness_application_isolation (void)
+{
+  glewPrintExt("WGL_ARB_robustness_application_isolation", WGLEW_ARB_robustness_application_isolation, wglewIsSupported("WGL_ARB_robustness_application_isolation"), wglewGetExtension("WGL_ARB_robustness_application_isolation"));
+}
+
+#endif /* WGL_ARB_robustness_application_isolation */
+
+#ifdef WGL_ARB_robustness_share_group_isolation
+
+static void _glewInfo_WGL_ARB_robustness_share_group_isolation (void)
+{
+  glewPrintExt("WGL_ARB_robustness_share_group_isolation", WGLEW_ARB_robustness_share_group_isolation, wglewIsSupported("WGL_ARB_robustness_share_group_isolation"), wglewGetExtension("WGL_ARB_robustness_share_group_isolation"));
+}
+
+#endif /* WGL_ARB_robustness_share_group_isolation */
+
 #ifdef WGL_ATI_pixel_format_float
 
 static void _glewInfo_WGL_ATI_pixel_format_float (void)
@@ -7305,6 +7839,16 @@ static void _glewInfo_GLX_3DFX_multisample (void)
 static void _glewInfo_GLX_AMD_gpu_association (void)
 {
   glewPrintExt("GLX_AMD_gpu_association", GLXEW_AMD_gpu_association, glxewIsSupported("GLX_AMD_gpu_association"), glxewGetExtension("GLX_AMD_gpu_association"));
+
+  glewInfoFunc("glXBlitContextFramebufferAMD", glXBlitContextFramebufferAMD == NULL);
+  glewInfoFunc("glXCreateAssociatedContextAMD", glXCreateAssociatedContextAMD == NULL);
+  glewInfoFunc("glXCreateAssociatedContextAttribsAMD", glXCreateAssociatedContextAttribsAMD == NULL);
+  glewInfoFunc("glXDeleteAssociatedContextAMD", glXDeleteAssociatedContextAMD == NULL);
+  glewInfoFunc("glXGetContextGPUIDAMD", glXGetContextGPUIDAMD == NULL);
+  glewInfoFunc("glXGetCurrentAssociatedContextAMD", glXGetCurrentAssociatedContextAMD == NULL);
+  glewInfoFunc("glXGetGPUIDsAMD", glXGetGPUIDsAMD == NULL);
+  glewInfoFunc("glXGetGPUInfoAMD", glXGetGPUInfoAMD == NULL);
+  glewInfoFunc("glXMakeAssociatedContextCurrentAMD", glXMakeAssociatedContextCurrentAMD == NULL);
 }
 
 #endif /* GLX_AMD_gpu_association */
@@ -7422,6 +7966,15 @@ static void _glewInfo_GLX_ATI_render_texture (void)
 }
 
 #endif /* GLX_ATI_render_texture */
+
+#ifdef GLX_EXT_buffer_age
+
+static void _glewInfo_GLX_EXT_buffer_age (void)
+{
+  glewPrintExt("GLX_EXT_buffer_age", GLXEW_EXT_buffer_age, glxewIsSupported("GLX_EXT_buffer_age"), glxewGetExtension("GLX_EXT_buffer_age"));
+}
+
+#endif /* GLX_EXT_buffer_age */
 
 #ifdef GLX_EXT_create_context_es2_profile
 
@@ -7692,11 +8245,11 @@ static void _glewInfo_GLX_NV_video_capture (void)
 
 #endif /* GLX_NV_video_capture */
 
-#ifdef GLX_NV_video_out
+#ifdef GLX_NV_video_output
 
-static void _glewInfo_GLX_NV_video_out (void)
+static void _glewInfo_GLX_NV_video_output (void)
 {
-  glewPrintExt("GLX_NV_video_out", GLXEW_NV_video_out, glxewIsSupported("GLX_NV_video_out"), glxewGetExtension("GLX_NV_video_out"));
+  glewPrintExt("GLX_NV_video_output", GLXEW_NV_video_output, glxewIsSupported("GLX_NV_video_output"), glxewGetExtension("GLX_NV_video_output"));
 
   glewInfoFunc("glXBindVideoImageNV", glXBindVideoImageNV == NULL);
   glewInfoFunc("glXGetVideoDeviceNV", glXGetVideoDeviceNV == NULL);
@@ -7706,7 +8259,7 @@ static void _glewInfo_GLX_NV_video_out (void)
   glewInfoFunc("glXSendPbufferToVideoNV", glXSendPbufferToVideoNV == NULL);
 }
 
-#endif /* GLX_NV_video_out */
+#endif /* GLX_NV_video_output */
 
 #ifdef GLX_OML_swap_method
 
@@ -7987,6 +8540,9 @@ static void glewInfo (void)
 #ifdef GL_VERSION_4_3
   _glewInfo_GL_VERSION_4_3();
 #endif /* GL_VERSION_4_3 */
+#ifdef GL_VERSION_4_4
+  _glewInfo_GL_VERSION_4_4();
+#endif /* GL_VERSION_4_4 */
 #ifdef GL_3DFX_multisample
   _glewInfo_GL_3DFX_multisample();
 #endif /* GL_3DFX_multisample */
@@ -8011,6 +8567,9 @@ static void glewInfo (void)
 #ifdef GL_AMD_draw_buffers_blend
   _glewInfo_GL_AMD_draw_buffers_blend();
 #endif /* GL_AMD_draw_buffers_blend */
+#ifdef GL_AMD_interleaved_elements
+  _glewInfo_GL_AMD_interleaved_elements();
+#endif /* GL_AMD_interleaved_elements */
 #ifdef GL_AMD_multi_draw_indirect
   _glewInfo_GL_AMD_multi_draw_indirect();
 #endif /* GL_AMD_multi_draw_indirect */
@@ -8035,6 +8594,12 @@ static void glewInfo (void)
 #ifdef GL_AMD_shader_stencil_export
   _glewInfo_GL_AMD_shader_stencil_export();
 #endif /* GL_AMD_shader_stencil_export */
+#ifdef GL_AMD_shader_trinary_minmax
+  _glewInfo_GL_AMD_shader_trinary_minmax();
+#endif /* GL_AMD_shader_trinary_minmax */
+#ifdef GL_AMD_sparse_texture
+  _glewInfo_GL_AMD_sparse_texture();
+#endif /* GL_AMD_sparse_texture */
 #ifdef GL_AMD_stencil_operation_extended
   _glewInfo_GL_AMD_stencil_operation_extended();
 #endif /* GL_AMD_stencil_operation_extended */
@@ -8053,6 +8618,42 @@ static void glewInfo (void)
 #ifdef GL_AMD_vertex_shader_viewport_index
   _glewInfo_GL_AMD_vertex_shader_viewport_index();
 #endif /* GL_AMD_vertex_shader_viewport_index */
+#ifdef GL_ANGLE_depth_texture
+  _glewInfo_GL_ANGLE_depth_texture();
+#endif /* GL_ANGLE_depth_texture */
+#ifdef GL_ANGLE_framebuffer_blit
+  _glewInfo_GL_ANGLE_framebuffer_blit();
+#endif /* GL_ANGLE_framebuffer_blit */
+#ifdef GL_ANGLE_framebuffer_multisample
+  _glewInfo_GL_ANGLE_framebuffer_multisample();
+#endif /* GL_ANGLE_framebuffer_multisample */
+#ifdef GL_ANGLE_instanced_arrays
+  _glewInfo_GL_ANGLE_instanced_arrays();
+#endif /* GL_ANGLE_instanced_arrays */
+#ifdef GL_ANGLE_pack_reverse_row_order
+  _glewInfo_GL_ANGLE_pack_reverse_row_order();
+#endif /* GL_ANGLE_pack_reverse_row_order */
+#ifdef GL_ANGLE_program_binary
+  _glewInfo_GL_ANGLE_program_binary();
+#endif /* GL_ANGLE_program_binary */
+#ifdef GL_ANGLE_texture_compression_dxt1
+  _glewInfo_GL_ANGLE_texture_compression_dxt1();
+#endif /* GL_ANGLE_texture_compression_dxt1 */
+#ifdef GL_ANGLE_texture_compression_dxt3
+  _glewInfo_GL_ANGLE_texture_compression_dxt3();
+#endif /* GL_ANGLE_texture_compression_dxt3 */
+#ifdef GL_ANGLE_texture_compression_dxt5
+  _glewInfo_GL_ANGLE_texture_compression_dxt5();
+#endif /* GL_ANGLE_texture_compression_dxt5 */
+#ifdef GL_ANGLE_texture_usage
+  _glewInfo_GL_ANGLE_texture_usage();
+#endif /* GL_ANGLE_texture_usage */
+#ifdef GL_ANGLE_timer_query
+  _glewInfo_GL_ANGLE_timer_query();
+#endif /* GL_ANGLE_timer_query */
+#ifdef GL_ANGLE_translated_shader_source
+  _glewInfo_GL_ANGLE_translated_shader_source();
+#endif /* GL_ANGLE_translated_shader_source */
 #ifdef GL_APPLE_aux_depth_stencil
   _glewInfo_GL_APPLE_aux_depth_stencil();
 #endif /* GL_APPLE_aux_depth_stencil */
@@ -8116,15 +8717,24 @@ static void glewInfo (void)
 #ifdef GL_ARB_base_instance
   _glewInfo_GL_ARB_base_instance();
 #endif /* GL_ARB_base_instance */
+#ifdef GL_ARB_bindless_texture
+  _glewInfo_GL_ARB_bindless_texture();
+#endif /* GL_ARB_bindless_texture */
 #ifdef GL_ARB_blend_func_extended
   _glewInfo_GL_ARB_blend_func_extended();
 #endif /* GL_ARB_blend_func_extended */
+#ifdef GL_ARB_buffer_storage
+  _glewInfo_GL_ARB_buffer_storage();
+#endif /* GL_ARB_buffer_storage */
 #ifdef GL_ARB_cl_event
   _glewInfo_GL_ARB_cl_event();
 #endif /* GL_ARB_cl_event */
 #ifdef GL_ARB_clear_buffer_object
   _glewInfo_GL_ARB_clear_buffer_object();
 #endif /* GL_ARB_clear_buffer_object */
+#ifdef GL_ARB_clear_texture
+  _glewInfo_GL_ARB_clear_texture();
+#endif /* GL_ARB_clear_texture */
 #ifdef GL_ARB_color_buffer_float
   _glewInfo_GL_ARB_color_buffer_float();
 #endif /* GL_ARB_color_buffer_float */
@@ -8137,6 +8747,9 @@ static void glewInfo (void)
 #ifdef GL_ARB_compute_shader
   _glewInfo_GL_ARB_compute_shader();
 #endif /* GL_ARB_compute_shader */
+#ifdef GL_ARB_compute_variable_group_size
+  _glewInfo_GL_ARB_compute_variable_group_size();
+#endif /* GL_ARB_compute_variable_group_size */
 #ifdef GL_ARB_conservative_depth
   _glewInfo_GL_ARB_conservative_depth();
 #endif /* GL_ARB_conservative_depth */
@@ -8173,6 +8786,9 @@ static void glewInfo (void)
 #ifdef GL_ARB_draw_instanced
   _glewInfo_GL_ARB_draw_instanced();
 #endif /* GL_ARB_draw_instanced */
+#ifdef GL_ARB_enhanced_layouts
+  _glewInfo_GL_ARB_enhanced_layouts();
+#endif /* GL_ARB_enhanced_layouts */
 #ifdef GL_ARB_explicit_attrib_location
   _glewInfo_GL_ARB_explicit_attrib_location();
 #endif /* GL_ARB_explicit_attrib_location */
@@ -8224,6 +8840,9 @@ static void glewInfo (void)
 #ifdef GL_ARB_imaging
   _glewInfo_GL_ARB_imaging();
 #endif /* GL_ARB_imaging */
+#ifdef GL_ARB_indirect_parameters
+  _glewInfo_GL_ARB_indirect_parameters();
+#endif /* GL_ARB_indirect_parameters */
 #ifdef GL_ARB_instanced_arrays
   _glewInfo_GL_ARB_instanced_arrays();
 #endif /* GL_ARB_instanced_arrays */
@@ -8245,6 +8864,9 @@ static void glewInfo (void)
 #ifdef GL_ARB_matrix_palette
   _glewInfo_GL_ARB_matrix_palette();
 #endif /* GL_ARB_matrix_palette */
+#ifdef GL_ARB_multi_bind
+  _glewInfo_GL_ARB_multi_bind();
+#endif /* GL_ARB_multi_bind */
 #ifdef GL_ARB_multi_draw_indirect
   _glewInfo_GL_ARB_multi_draw_indirect();
 #endif /* GL_ARB_multi_draw_indirect */
@@ -8275,6 +8897,9 @@ static void glewInfo (void)
 #ifdef GL_ARB_provoking_vertex
   _glewInfo_GL_ARB_provoking_vertex();
 #endif /* GL_ARB_provoking_vertex */
+#ifdef GL_ARB_query_buffer_object
+  _glewInfo_GL_ARB_query_buffer_object();
+#endif /* GL_ARB_query_buffer_object */
 #ifdef GL_ARB_robust_buffer_access_behavior
   _glewInfo_GL_ARB_robust_buffer_access_behavior();
 #endif /* GL_ARB_robust_buffer_access_behavior */
@@ -8296,6 +8921,9 @@ static void glewInfo (void)
 #ifdef GL_ARB_seamless_cube_map
   _glewInfo_GL_ARB_seamless_cube_map();
 #endif /* GL_ARB_seamless_cube_map */
+#ifdef GL_ARB_seamless_cubemap_per_texture
+  _glewInfo_GL_ARB_seamless_cubemap_per_texture();
+#endif /* GL_ARB_seamless_cubemap_per_texture */
 #ifdef GL_ARB_separate_shader_objects
   _glewInfo_GL_ARB_separate_shader_objects();
 #endif /* GL_ARB_separate_shader_objects */
@@ -8305,6 +8933,12 @@ static void glewInfo (void)
 #ifdef GL_ARB_shader_bit_encoding
   _glewInfo_GL_ARB_shader_bit_encoding();
 #endif /* GL_ARB_shader_bit_encoding */
+#ifdef GL_ARB_shader_draw_parameters
+  _glewInfo_GL_ARB_shader_draw_parameters();
+#endif /* GL_ARB_shader_draw_parameters */
+#ifdef GL_ARB_shader_group_vote
+  _glewInfo_GL_ARB_shader_group_vote();
+#endif /* GL_ARB_shader_group_vote */
 #ifdef GL_ARB_shader_image_load_store
   _glewInfo_GL_ARB_shader_image_load_store();
 #endif /* GL_ARB_shader_image_load_store */
@@ -8347,6 +8981,9 @@ static void glewInfo (void)
 #ifdef GL_ARB_shadow_ambient
   _glewInfo_GL_ARB_shadow_ambient();
 #endif /* GL_ARB_shadow_ambient */
+#ifdef GL_ARB_sparse_texture
+  _glewInfo_GL_ARB_sparse_texture();
+#endif /* GL_ARB_sparse_texture */
 #ifdef GL_ARB_stencil_texturing
   _glewInfo_GL_ARB_stencil_texturing();
 #endif /* GL_ARB_stencil_texturing */
@@ -8401,6 +9038,9 @@ static void glewInfo (void)
 #ifdef GL_ARB_texture_gather
   _glewInfo_GL_ARB_texture_gather();
 #endif /* GL_ARB_texture_gather */
+#ifdef GL_ARB_texture_mirror_clamp_to_edge
+  _glewInfo_GL_ARB_texture_mirror_clamp_to_edge();
+#endif /* GL_ARB_texture_mirror_clamp_to_edge */
 #ifdef GL_ARB_texture_mirrored_repeat
   _glewInfo_GL_ARB_texture_mirrored_repeat();
 #endif /* GL_ARB_texture_mirrored_repeat */
@@ -8425,6 +9065,9 @@ static void glewInfo (void)
 #ifdef GL_ARB_texture_rgb10_a2ui
   _glewInfo_GL_ARB_texture_rgb10_a2ui();
 #endif /* GL_ARB_texture_rgb10_a2ui */
+#ifdef GL_ARB_texture_stencil8
+  _glewInfo_GL_ARB_texture_stencil8();
+#endif /* GL_ARB_texture_stencil8 */
 #ifdef GL_ARB_texture_storage
   _glewInfo_GL_ARB_texture_storage();
 #endif /* GL_ARB_texture_storage */
@@ -8479,6 +9122,9 @@ static void glewInfo (void)
 #ifdef GL_ARB_vertex_shader
   _glewInfo_GL_ARB_vertex_shader();
 #endif /* GL_ARB_vertex_shader */
+#ifdef GL_ARB_vertex_type_10f_11f_11f_rev
+  _glewInfo_GL_ARB_vertex_type_10f_11f_11f_rev();
+#endif /* GL_ARB_vertex_type_10f_11f_11f_rev */
 #ifdef GL_ARB_vertex_type_2_10_10_10_rev
   _glewInfo_GL_ARB_vertex_type_2_10_10_10_rev();
 #endif /* GL_ARB_vertex_type_2_10_10_10_rev */
@@ -8893,6 +9539,9 @@ static void glewInfo (void)
 #ifdef GL_INGR_interlace_read
   _glewInfo_GL_INGR_interlace_read();
 #endif /* GL_INGR_interlace_read */
+#ifdef GL_INTEL_map_texture
+  _glewInfo_GL_INTEL_map_texture();
+#endif /* GL_INTEL_map_texture */
 #ifdef GL_INTEL_parallel_arrays
   _glewInfo_GL_INTEL_parallel_arrays();
 #endif /* GL_INTEL_parallel_arrays */
@@ -8923,15 +9572,30 @@ static void glewInfo (void)
 #ifdef GL_MESA_ycbcr_texture
   _glewInfo_GL_MESA_ycbcr_texture();
 #endif /* GL_MESA_ycbcr_texture */
+#ifdef GL_NVX_conditional_render
+  _glewInfo_GL_NVX_conditional_render();
+#endif /* GL_NVX_conditional_render */
 #ifdef GL_NVX_gpu_memory_info
   _glewInfo_GL_NVX_gpu_memory_info();
 #endif /* GL_NVX_gpu_memory_info */
+#ifdef GL_NV_bindless_multi_draw_indirect
+  _glewInfo_GL_NV_bindless_multi_draw_indirect();
+#endif /* GL_NV_bindless_multi_draw_indirect */
 #ifdef GL_NV_bindless_texture
   _glewInfo_GL_NV_bindless_texture();
 #endif /* GL_NV_bindless_texture */
+#ifdef GL_NV_blend_equation_advanced
+  _glewInfo_GL_NV_blend_equation_advanced();
+#endif /* GL_NV_blend_equation_advanced */
+#ifdef GL_NV_blend_equation_advanced_coherent
+  _glewInfo_GL_NV_blend_equation_advanced_coherent();
+#endif /* GL_NV_blend_equation_advanced_coherent */
 #ifdef GL_NV_blend_square
   _glewInfo_GL_NV_blend_square();
 #endif /* GL_NV_blend_square */
+#ifdef GL_NV_compute_program5
+  _glewInfo_GL_NV_compute_program5();
+#endif /* GL_NV_compute_program5 */
 #ifdef GL_NV_conditional_render
   _glewInfo_GL_NV_conditional_render();
 #endif /* GL_NV_conditional_render */
@@ -8941,6 +9605,9 @@ static void glewInfo (void)
 #ifdef GL_NV_copy_image
   _glewInfo_GL_NV_copy_image();
 #endif /* GL_NV_copy_image */
+#ifdef GL_NV_deep_texture3D
+  _glewInfo_GL_NV_deep_texture3D();
+#endif /* GL_NV_deep_texture3D */
 #ifdef GL_NV_depth_buffer_float
   _glewInfo_GL_NV_depth_buffer_float();
 #endif /* GL_NV_depth_buffer_float */
@@ -8950,6 +9617,9 @@ static void glewInfo (void)
 #ifdef GL_NV_depth_range_unclamped
   _glewInfo_GL_NV_depth_range_unclamped();
 #endif /* GL_NV_depth_range_unclamped */
+#ifdef GL_NV_draw_texture
+  _glewInfo_GL_NV_draw_texture();
+#endif /* GL_NV_draw_texture */
 #ifdef GL_NV_evaluators
   _glewInfo_GL_NV_evaluators();
 #endif /* GL_NV_evaluators */
@@ -8992,6 +9662,9 @@ static void glewInfo (void)
 #ifdef GL_NV_gpu_program5
   _glewInfo_GL_NV_gpu_program5();
 #endif /* GL_NV_gpu_program5 */
+#ifdef GL_NV_gpu_program5_mem_extended
+  _glewInfo_GL_NV_gpu_program5_mem_extended();
+#endif /* GL_NV_gpu_program5_mem_extended */
 #ifdef GL_NV_gpu_program_fp64
   _glewInfo_GL_NV_gpu_program_fp64();
 #endif /* GL_NV_gpu_program_fp64 */
@@ -9043,12 +9716,18 @@ static void glewInfo (void)
 #ifdef GL_NV_register_combiners2
   _glewInfo_GL_NV_register_combiners2();
 #endif /* GL_NV_register_combiners2 */
+#ifdef GL_NV_shader_atomic_counters
+  _glewInfo_GL_NV_shader_atomic_counters();
+#endif /* GL_NV_shader_atomic_counters */
 #ifdef GL_NV_shader_atomic_float
   _glewInfo_GL_NV_shader_atomic_float();
 #endif /* GL_NV_shader_atomic_float */
 #ifdef GL_NV_shader_buffer_load
   _glewInfo_GL_NV_shader_buffer_load();
 #endif /* GL_NV_shader_buffer_load */
+#ifdef GL_NV_shader_storage_buffer_object
+  _glewInfo_GL_NV_shader_storage_buffer_object();
+#endif /* GL_NV_shader_storage_buffer_object */
 #ifdef GL_NV_tessellation_program5
   _glewInfo_GL_NV_tessellation_program5();
 #endif /* GL_NV_tessellation_program5 */
@@ -9154,6 +9833,15 @@ static void glewInfo (void)
 #ifdef GL_PGI_vertex_hints
   _glewInfo_GL_PGI_vertex_hints();
 #endif /* GL_PGI_vertex_hints */
+#ifdef GL_REGAL_ES1_0_compatibility
+  _glewInfo_GL_REGAL_ES1_0_compatibility();
+#endif /* GL_REGAL_ES1_0_compatibility */
+#ifdef GL_REGAL_ES1_1_compatibility
+  _glewInfo_GL_REGAL_ES1_1_compatibility();
+#endif /* GL_REGAL_ES1_1_compatibility */
+#ifdef GL_REGAL_enable
+  _glewInfo_GL_REGAL_enable();
+#endif /* GL_REGAL_enable */
 #ifdef GL_REGAL_error_string
   _glewInfo_GL_REGAL_error_string();
 #endif /* GL_REGAL_error_string */
@@ -9402,6 +10090,12 @@ static void wglewInfo ()
 #ifdef WGL_ARB_render_texture
   _glewInfo_WGL_ARB_render_texture();
 #endif /* WGL_ARB_render_texture */
+#ifdef WGL_ARB_robustness_application_isolation
+  _glewInfo_WGL_ARB_robustness_application_isolation();
+#endif /* WGL_ARB_robustness_application_isolation */
+#ifdef WGL_ARB_robustness_share_group_isolation
+  _glewInfo_WGL_ARB_robustness_share_group_isolation();
+#endif /* WGL_ARB_robustness_share_group_isolation */
 #ifdef WGL_ATI_pixel_format_float
   _glewInfo_WGL_ATI_pixel_format_float();
 #endif /* WGL_ATI_pixel_format_float */
@@ -9564,6 +10258,9 @@ static void glxewInfo ()
 #ifdef GLX_ATI_render_texture
   _glewInfo_GLX_ATI_render_texture();
 #endif /* GLX_ATI_render_texture */
+#ifdef GLX_EXT_buffer_age
+  _glewInfo_GLX_EXT_buffer_age();
+#endif /* GLX_EXT_buffer_age */
 #ifdef GLX_EXT_create_context_es2_profile
   _glewInfo_GLX_EXT_create_context_es2_profile();
 #endif /* GLX_EXT_create_context_es2_profile */
@@ -9639,9 +10336,9 @@ static void glxewInfo ()
 #ifdef GLX_NV_video_capture
   _glewInfo_GLX_NV_video_capture();
 #endif /* GLX_NV_video_capture */
-#ifdef GLX_NV_video_out
-  _glewInfo_GLX_NV_video_out();
-#endif /* GLX_NV_video_out */
+#ifdef GLX_NV_video_output
+  _glewInfo_GLX_NV_video_output();
+#endif /* GLX_NV_video_output */
 #ifdef GLX_OML_swap_method
   _glewInfo_GLX_OML_swap_method();
 #endif /* GLX_OML_swap_method */

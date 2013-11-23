@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2005-01-08 (extracted from msw/crashrpt.cpp)
-// RCS-ID:      $Id: debughlp.h 69845 2011-11-27 19:52:13Z VZ $
 // Copyright:   (c) 2003-2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,18 +19,21 @@
 #endif // __WXWINCE__
 #include "wx/msw/private.h"
 
-// we need to determine whether we have the declarations for the function in
-// debughlp.dll version 5.81 (at least) and we check for DBHLPAPI to test this
-//
-// reasons:
-//  - VC6 version of imagehlp.h doesn't define it
-//  - VC7 one does
-//  - testing for compiler version doesn't work as you can install and use
-//    the new SDK headers with VC6
-//
-// in any case, the user may override by defining wxUSE_DBGHELP himself
+// All known versions of imagehlp.h define API_VERSION_NUMBER but it's not
+// documented, so deal with the possibility that it's not defined just in case.
+#ifndef API_VERSION_NUMBER
+    #define API_VERSION_NUMBER 0
+#endif
+
+// wxUSE_DBGHELP is a bit special as it is not defined in wx/setup.h and we try
+// to auto-detect whether we should be using debug help API or not ourselves
+// below. However if the auto-detection fails, you can always predefine it as 0
+// to avoid even trying.
 #ifndef wxUSE_DBGHELP
-    #ifdef DBHLPAPI
+    // The version of imagehlp.h from VC6 (7) is too old and is missing some
+    // required symbols while the version from VC7 (9) is good enough. As we
+    // don't know anything about version 8, don't use it unless we can test it.
+    #if API_VERSION_NUMBER >= 9
         #define wxUSE_DBGHELP 1
     #else
         #define wxUSE_DBGHELP 0

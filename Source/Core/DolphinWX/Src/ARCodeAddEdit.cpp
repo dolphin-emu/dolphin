@@ -38,7 +38,7 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, wxWindow* parent, wxWindowID id, 
 	EditCheatName = new wxTextCtrl(this, ID_EDITCHEAT_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
 	EditCheatName->SetValue(currentName);
 	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
-	EntrySelection->SetRange(1, ((int)arCodes.size()) > 0 ? (int)arCodes.size() : 1); 
+	EntrySelection->SetRange(1, ((int)arCodes.size()) > 0 ? (int)arCodes.size() : 1);
 	EntrySelection->SetValue((int)(arCodes.size() - selection));
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxSize(300, 100), wxTE_MULTILINE);
 	UpdateTextCtrl(tempEntries);
@@ -108,9 +108,9 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 		}
 
 		// If the above-mentioned conditions weren't met, then something went wrong.
-		if (!PanicYesNoT("Unable to parse line %lu of the entered AR code as a valid "
+		if (!PanicYesNoT("Unable to parse line %u of the entered AR code as a valid "
 						"encrypted or decrypted code.  Make sure you typed it correctly.\n"
-						"Would you like to ignore this line and continue parsing?",  i + 1))
+						"Would you like to ignore this line and continue parsing?", (unsigned) (i + 1)))
 		{
 			return;
 		}
@@ -158,8 +158,8 @@ void CARCodeAddEdit::UpdateTextCtrl(ActionReplay::ARCode arCode)
 
 	if (arCode.name != "")
 	{
-		for (u32 i = 0; i < arCode.ops.size(); i++)
-			EditCheatCode->AppendText(wxString::Format(wxT("%08X %08X\n"), arCode.ops.at(i).cmd_addr, arCode.ops.at(i).value));
+		for (auto& op : arCode.ops)
+			EditCheatCode->AppendText(wxString::Format(wxT("%08X %08X\n"), op.cmd_addr, op.value));
 	}
 	else
 	{

@@ -4,7 +4,6 @@
 // Author:      Mike Wetherell
 // Modified by:
 // Created:     2006-10-22
-// RCS-ID:      $Id: filename.h 64943 2010-07-13 13:29:58Z VZ $
 // Copyright:   (c) 2006 Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

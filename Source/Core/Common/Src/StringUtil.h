@@ -58,7 +58,7 @@ template <typename N>
 static bool TryParse(const std::string &str, N *const output)
 {
 	std::istringstream iss(str);
-	
+
 	N tmp = 0;
 	if (iss >> tmp)
 	{

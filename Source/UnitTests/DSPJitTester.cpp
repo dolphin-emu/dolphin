@@ -6,8 +6,8 @@ DSPJitTester::DSPJitTester(u16 opcode, u16 opcode_ext, bool verbose, bool only_f
 	instruction = opcode | opcode_ext;
 	opcode_template = GetOpTemplate(instruction);
 	sprintf(instruction_name, "%s", opcode_template->name);
-	if (opcode_template->extended) 
-		sprintf(&instruction_name[strlen(instruction_name)], "'%s", 
+	if (opcode_template->extended)
+		sprintf(&instruction_name[strlen(instruction_name)], "'%s",
 			extOpTable[instruction & (((instruction >> 12) == 0x3) ? 0x7F : 0xFF)]->name);
 }
 bool DSPJitTester::Test(SDSP dsp_settings)
@@ -17,7 +17,7 @@ bool DSPJitTester::Test(SDSP dsp_settings)
 		printf("Running %s: ", instruction_name);
 		DumpRegs(dsp_settings);
 	}
-	
+
 	last_input_dsp = dsp_settings;
 	last_int_dsp = RunInterpreter(dsp_settings);
 	last_jit_dsp = RunJit(dsp_settings);

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.07.99
-// RCS-ID:      $Id: choiccmn.cpp 66574 2011-01-04 14:13:29Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,6 +26,8 @@
 #if wxUSE_CHOICE
 
 #include "wx/choice.h"
+
+#include "wx/private/textmeasure.h"
 
 #ifndef WX_PRECOMP
 #endif
@@ -68,7 +69,7 @@ wxEND_FLAGS( wxChoiceStyle )
 wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxChoice, wxControl, "wx/choice.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxChoice)
-wxEVENT_PROPERTY( Select, wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEvent )
+wxEVENT_PROPERTY( Select, wxEVT_CHOICE, wxCommandEvent )
 
 wxPROPERTY( Font, wxFont, SetFont, GetFont , wxEMPTY_PARAMETER_VALUE, \
            0 /*flags*/, wxT("Helpstring"), wxT("group"))
@@ -101,6 +102,21 @@ wxCONSTRUCTOR_4( wxChoice, wxWindow*, Parent, wxWindowID, Id, \
 wxChoiceBase::~wxChoiceBase()
 {
     // this destructor is required for Darwin
+}
+
+wxSize wxChoiceBase::DoGetBestSize() const
+{
+    // a reasonable width for an empty choice list
+    wxSize best(80, -1);
+
+    const unsigned int nItems = GetCount();
+    if ( nItems > 0 )
+    {
+        wxTextMeasure txm(this);
+        best.x = txm.GetLargestStringExtent(GetStrings()).x;
+    }
+
+    return best;
 }
 
 // ----------------------------------------------------------------------------

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: slidercmn.cpp 66592 2011-01-05 18:27:58Z PC $
 // Copyright:   (c) Julian Smart 1998
 //                  Vadim Zeitlin 2004
 // Licence:     wxWindows licence
@@ -81,7 +80,7 @@ wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxSlider, wxControl, "wx/slider.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxSlider)
     wxEVENT_RANGE_PROPERTY( Scroll, wxEVT_SCROLL_TOP, wxEVT_SCROLL_CHANGED, wxScrollEvent )
-    wxEVENT_PROPERTY( Updated, wxEVT_COMMAND_SLIDER_UPDATED, wxCommandEvent )
+    wxEVENT_PROPERTY( Updated, wxEVT_SLIDER, wxCommandEvent )
 
     wxPROPERTY( Value, int, SetValue, GetValue, 0, 0 /*flags*/, \
                 wxT("Helpstring"), wxT("group"))

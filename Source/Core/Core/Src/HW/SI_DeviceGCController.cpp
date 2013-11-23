@@ -2,9 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "SI.h"
 #include "SI_Device.h"
 #include "SI_DeviceGCController.h"
@@ -88,7 +85,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 			for (int i = 0; i < (int)sizeof(SOrigin); i++)
 			{
 				_pBuffer[i ^ 3] = *pCalibration++;
-			}				
+			}
 		}
 		break;
 
@@ -97,7 +94,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		{
 			ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
 			PanicAlert("SI: Unknown command (0x%x)", command);
-		}			
+		}
 		break;
 	}
 
@@ -115,7 +112,7 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
-	
+
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 	Movie::CallInputManip(&PadStatus, ISIDevice::m_iDeviceNumber);
 
@@ -249,7 +246,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 			unsigned int uStrength = command.Parameter2;
 
 			// get the correct pad number that should rumble locally when using netplay
-			const u8 numPAD = NetPlay_GetPadNum(ISIDevice::m_iDeviceNumber);
+			const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
 			if (numPAD < 4)
 				Pad::Rumble(numPAD, uType, uStrength);

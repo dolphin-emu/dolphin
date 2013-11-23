@@ -135,7 +135,7 @@ void SaveToBuffer(std::vector<u8>& buffer)
 	DoState(p);
 	const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 	buffer.resize(buffer_size);
-	
+
 	ptr = &buffer[0];
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
@@ -160,9 +160,9 @@ int GetEmptySlot(std::map<double, int> m)
 	for (int i = 1; i <= (int)NUM_STATES; i++)
 	{
 		bool found = false;
-		for (std::map<double, int>::iterator it = m.begin(); it != m.end(); it++)
+		for (auto& p : m)
 		{
-			if (it->second == i)
+			if (p.second == i)
 			{
 				found = true;
 				break;
@@ -227,7 +227,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 		if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
-		else 
+		else
 			File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
 	}
 
@@ -247,7 +247,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 	// Setting up the header
 	StateHeader header;
 	memcpy(header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
-	header.size = g_use_compression ? buffer_size : 0;
+	header.size = g_use_compression ? (u32)buffer_size : 0;
 	header.time = Common::Timer::GetDoubleTime();
 
 	f.WriteArray(&header, 1);
@@ -261,9 +261,13 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 			lzo_uint out_len = 0;
 
 			if ((i + IN_LEN) >= buffer_size)
-				cur_len = buffer_size - i;
+			{
+				cur_len = (lzo_uint32)(buffer_size - i);
+			}
 			else
+			{
 				cur_len = IN_LEN;
+			}
 
 			if (lzo1x_1_compress(buffer_data + i, cur_len, out, &out_len, wrkmem) != LZO_E_OK)
 				PanicAlertT("Internal LZO Error - compression failed");
@@ -360,8 +364,8 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 
 	StateHeader header;
 	f.ReadArray(&header, 1);
-	
-	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6)) 
+
+	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6))
 	{
 		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %.*s)",
 			6, header.gameID), 2000);
@@ -394,7 +398,7 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 					"Try loading the state again", res, i, new_len);
 				return;
 			}
-	
+
 			i += new_len;
 		}
 	}
@@ -437,9 +441,9 @@ void LoadAs(const std::string& filename)
 		std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 		SaveToBuffer(g_undo_load_buffer);
 		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-			Movie::SaveRecording("undo.dtm");
-		else if (File::Exists("undo.dtm"))
-			File::Delete("undo.dtm");
+			Movie::SaveRecording((File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm").c_str());
+		else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) +"undo.dtm"))
+			File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
 	}
 
 	bool loaded = false;
@@ -612,11 +616,11 @@ void UndoLoadState()
 	std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
 	if (!g_undo_load_buffer.empty())
 	{
-		if (File::Exists("undo.dtm") || (!Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
+		if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm") || (!Movie::IsRecordingInput() && !Movie::IsPlayingInput()))
 		{
 			LoadFromBuffer(g_undo_load_buffer);
 			if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-				Movie::LoadInput("undo.dtm");
+				Movie::LoadInput((File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm").c_str());
 		}
 		else
 		{

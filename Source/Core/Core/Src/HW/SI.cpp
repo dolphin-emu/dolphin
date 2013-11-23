@@ -7,7 +7,7 @@
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
 #include "../Movie.h"
-#include "../NetPlayClient.h"
+#include "../NetPlayProto.h"
 
 #include "SystemTimers.h"
 #include "ProcessorInterface.h"
@@ -222,7 +222,7 @@ void DoState(PointerWrap &p)
 		p.Do(g_Channel[i].m_InHi.Hex);
 		p.Do(g_Channel[i].m_InLo.Hex);
 		p.Do(g_Channel[i].m_Out.Hex);
-		
+
 		ISIDevice* pDevice = g_Channel[i].m_pDevice;
 		SIDevices type = pDevice->GetDeviceType();
 		p.Do(type);
@@ -249,22 +249,20 @@ void DoState(PointerWrap &p)
 	p.DoPOD(g_StatusReg);
 	p.Do(g_EXIClockCount);
 	p.Do(g_SIBuffer);
-}	
+}
 
 
 void Init()
 {
 	for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
-	{	
+	{
 		g_Channel[i].m_Out.Hex = 0;
 		g_Channel[i].m_InHi.Hex = 0;
 		g_Channel[i].m_InLo.Hex = 0;
 
 		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
 			AddDevice(Movie::IsUsingPad(i) ?  (Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
-		else if (NetPlay::IsNetPlayRunning())
-			AddDevice((SIDevices) g_NetPlaySettings.m_Controllers[i], i);
-		else
+		else if (!NetPlay::IsNetPlayRunning())
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
 	}
 
@@ -567,7 +565,7 @@ void AddDevice(ISIDevice* pDevice)
 
 void AddDevice(const SIDevices _device, int _iDeviceNumber)
 {
-	ISIDevice* pDevice = SIDevice_Create(_device, _iDeviceNumber);
+	ISIDevice *pDevice = SIDevice_Create(_device, _iDeviceNumber);
 	AddDevice(pDevice);
 }
 
@@ -646,7 +644,10 @@ int GetTicksToNextSIPoll()
 	// Poll for input at regular intervals (once per frame) when playing or recording a movie
 	if (Movie::IsPlayingInput() || Movie::IsRecordingInput())
 	{
-		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
+		if (Movie::IsNetPlayRecording())
+			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
+		else
+			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
 	}
 	if (NetPlay::IsNetPlayRunning())
 		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;

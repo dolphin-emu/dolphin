@@ -5,7 +5,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99 (extracted from src/common/log.cpp)
-// RCS-ID:      $Id: logg.cpp 70671 2012-02-22 17:35:21Z JS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -68,10 +67,6 @@
     #include "wx/imaglist.h"
     #include "wx/image.h"
 #endif // wxUSE_LOG_DIALOG/!wxUSE_LOG_DIALOG
-
-#if defined(__MWERKS__) && wxUSE_UNICODE
-    #include <wtime.h>
-#endif
 
 #include "wx/time.h"
 
@@ -376,7 +371,7 @@ void wxLogGui::DoLogRecord(wxLogLevel level,
                 // find the top window and set it's status text if it has any
                 if ( pFrame == NULL ) {
                     wxWindow *pWin = wxTheApp->GetTopWindow();
-                    if ( pWin != NULL && pWin->IsKindOf(CLASSINFO(wxFrame)) ) {
+                    if ( wxDynamicCast(pWin, wxFrame) ) {
                         pFrame = (wxFrame *)pWin;
                     }
                 }
@@ -451,6 +446,9 @@ public:
     // ctor & dtor
     wxLogFrame(wxWindow *pParent, wxLogWindow *log, const wxString& szTitle);
     virtual ~wxLogFrame();
+
+    // Don't prevent the application from exiting if just this frame remains.
+    virtual bool ShouldPreventAppExit() const { return false; }
 
     // menu callbacks
     void OnClose(wxCommandEvent& event);
@@ -530,8 +528,6 @@ wxLogFrame::wxLogFrame(wxWindow *pParent, wxLogWindow *log, const wxString& szTi
     // status bar for menu prompts
     CreateStatusBar();
 #endif // wxUSE_STATUSBAR
-
-    m_log->OnFrameCreate(this);
 }
 
 void wxLogFrame::DoClose()
@@ -643,10 +639,6 @@ void wxLogWindow::DoLogTextAtLevel(wxLogLevel level, const wxString& msg)
 wxFrame *wxLogWindow::GetFrame() const
 {
     return m_pLogFrame;
-}
-
-void wxLogWindow::OnFrameCreate(wxFrame * WXUNUSED(frame))
-{
 }
 
 bool wxLogWindow::OnFrameClose(wxFrame * WXUNUSED(frame))
@@ -784,7 +776,7 @@ wxLogDialog::wxLogDialog(wxWindow *parent,
     btnSizer->Add(new wxButton(win, wxID_SAVE), flagsBtn);
 #endif // CAN_SAVE_FILES
 
-    paneSz->Add(btnSizer, wxSizerFlags().Right().Border(wxTOP));
+    paneSz->Add(btnSizer, wxSizerFlags().Right().Border(wxTOP|wxBOTTOM));
 #endif // wxUSE_CLIPBOARD || CAN_SAVE_FILES
 
     win->SetSizer(paneSz);

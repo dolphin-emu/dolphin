@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: stattext.mm 67232 2011-03-18 15:10:15Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -102,7 +101,7 @@ private:
         NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
         [paragraphStyle setLineBreakMode:m_lineBreak];
         int style = GetWXPeer()->GetWindowStyleFlag();
-        if (style & wxALIGN_CENTER)
+        if (style & wxALIGN_CENTER_HORIZONTAL)
             [paragraphStyle setAlignment: NSCenterTextAlignment];
         else if (style & wxALIGN_RIGHT)
             [paragraphStyle setAlignment: NSRightTextAlignment];

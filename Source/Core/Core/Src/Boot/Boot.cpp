@@ -12,13 +12,11 @@
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/PPCAnalyst.h"
 #include "../Core.h"
-#include "../HW/HW.h"
 #include "../HW/EXI_DeviceIPL.h"
 #include "../HW/Memmap.h"
 #include "../HW/ProcessorInterface.h"
 #include "../HW/DVDInterface.h"
 #include "../HW/VideoInterface.h"
-#include "../HW/CPU.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
 
 #include "../Debugger/Debugger_SymbolMap.h" // Debugger
@@ -30,7 +28,6 @@
 #include "../PatchEngine.h"
 #include "../PowerPC/SignatureDB.h"
 #include "../PowerPC/PPCSymbolDB.h"
-#include "../MemTools.h"
 
 #include "../ConfigManager.h"
 #include "VolumeCreator.h" // DiscIO
@@ -44,11 +41,11 @@ void CBoot::Load_FST(bool _bIsWii)
 		return;
 
 	// copy first 20 bytes of disc to start of Mem 1
-	VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20);		
+	VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20);
 
 	// copy of game id
 	Memory::Write_U32(Memory::Read_U32(0x80000000), 0x80003180);
-		
+
 	u32 shift = 0;
 	if (_bIsWii)
 		shift = 2;
@@ -71,62 +68,76 @@ void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
 	Host_NotifyMapLoaded();
 }
 
-std::string CBoot::GenerateMapFilename()
+bool CBoot::FindMapFile(std::string* existing_map_file,
+                        std::string* writable_map_file)
 {
+	std::string title_id_str;
+
 	SCoreStartupParameter& _StartupPara = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	switch (_StartupPara.m_BootType)
 	{
 	case SCoreStartupParameter::BOOT_WII_NAND:
 	{
-		const DiscIO::INANDContentLoader& Loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
+		const DiscIO::INANDContentLoader& Loader =
+				DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
 		if (Loader.IsValid())
 		{
 			u64 TitleID = Loader.GetTitleID();
-			char tmpBuffer[32];
-			sprintf(tmpBuffer, "%08x_%08x", (u32)(TitleID >> 32) & 0xFFFFFFFF , (u32)TitleID & 0xFFFFFFFF );
-			return File::GetUserPath(D_MAPS_IDX) + std::string(tmpBuffer) + ".map";
+			title_id_str = StringFromFormat("%08X_%08X",
+					(u32)(TitleID >> 32) & 0xFFFFFFFF,
+					(u32)TitleID & 0xFFFFFFFF);
 		}
 		break;
 	}
 
 	case SCoreStartupParameter::BOOT_ELF:
 	case SCoreStartupParameter::BOOT_DOL:
-		return _StartupPara.m_strFilename.substr(0, _StartupPara.m_strFilename.size()-4) + ".map";
+		// Strip the .elf/.dol file extension
+		title_id_str = _StartupPara.m_strFilename.substr(
+				0, _StartupPara.m_strFilename.size() - 4);
+		break;
+
 	default:
-		return File::GetUserPath(D_MAPS_IDX) + _StartupPara.GetUniqueID() + ".map";
+		title_id_str = _StartupPara.GetUniqueID();
+		break;
 	}
 
-	return std::string("unknown map");
-}
+	if (writable_map_file)
+		*writable_map_file = File::GetUserPath(D_MAPS_IDX) + title_id_str + ".map";
 
-bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_gameID)
-{
-	if (_rFilename.size() == 0)
-		return false;
-
-	std::string strMapFilename = GenerateMapFilename();
-
-	bool success = false;
-	if (!g_symbolDB.LoadMap(strMapFilename.c_str()))
+	bool found = false;
+	static const std::string maps_directories[] = {
+		File::GetUserPath(D_MAPS_IDX),
+		File::GetSysDirectory() + MAPS_DIR DIR_SEP
+	};
+	for (size_t i = 0; !found && i < ArraySize(maps_directories); ++i)
 	{
-		if (_gameID != NULL)
+		std::string path = maps_directories[i] + title_id_str + ".map";
+		if (File::Exists(path))
 		{
-			BuildCompleteFilename(strMapFilename, "maps", std::string(_gameID) + ".map");
-			success = g_symbolDB.LoadMap(strMapFilename.c_str());
+			found = true;
+			if (existing_map_file)
+				*existing_map_file = path;
 		}
 	}
-	else
-	{
-		success = true;
-	}
 
-	if (success)
-		UpdateDebugger_MapLoaded();
-
-	return success;
+	return found;
 }
 
-// If ipl.bin is not found, this function does *some* of what BS1 does: 
+bool CBoot::LoadMapFromFilename()
+{
+	std::string strMapFilename;
+	bool found = FindMapFile(&strMapFilename, NULL);
+	if (found && g_symbolDB.LoadMap(strMapFilename.c_str()))
+	{
+		UpdateDebugger_MapLoaded();
+		return true;
+	}
+
+	return false;
+}
+
+// If ipl.bin is not found, this function does *some* of what BS1 does:
 // loading IPL(BS2) and jumping to it.
 // It does not initialize the hardware or anything else like BS1 does.
 bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
@@ -140,7 +151,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 
 	// Load the whole ROM dump
 	std::string data;
-	if (!File::ReadFileToString(false, _rBootROMFilename.c_str(), data))
+	if (!File::ReadFileToString(_rBootROMFilename.c_str(), data))
 		return false;
 
 	u32 ipl_hash = HashAdler32((const u8*)data.data(), data.size());
@@ -179,18 +190,10 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
 bool CBoot::BootUp()
 {
-	SCoreStartupParameter& _StartupPara = 
+	SCoreStartupParameter& _StartupPara =
 	SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
-
-	// HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code handler
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
-	{
-		HLE::Patch(0x80001800, "HBReload");
-		const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };
-		Memory::WriteBigEData(stubstr, 0x80001804, 8);
-	}
 
 	g_symbolDB.Clear();
 	VideoInterface::Preset(_StartupPara.bNTSC);
@@ -208,10 +211,6 @@ bool CBoot::BootUp()
 		{
 			PanicAlertT("Warning - starting ISO in wrong console mode!");
 		}
-
-		char gameID[7];
-		memcpy(gameID, pVolume->GetUniqueID().c_str(), 6);
-		gameID[6] = 0;
 
 		// setup the map from ISOFile ID
 		VolumeHandler::SetVolumeName(_StartupPara.m_strFilename);
@@ -260,7 +259,7 @@ bool CBoot::BootUp()
 
 		/* Try to load the symbol map if there is one, and then scan it for
 			and eventually replace code */
-		if (LoadMapFromFilename(_StartupPara.m_strFilename, gameID))
+		if (LoadMapFromFilename())
 			HLE::PatchFunctions();
 
 		// We don't need the volume any more
@@ -296,7 +295,7 @@ bool CBoot::BootUp()
 			NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
 			VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, dolWii, _StartupPara.m_strApploader, _StartupPara.m_strFilename);
 			BS2Success = EmulatedBS2(dolWii);
-		} 
+		}
 
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
@@ -306,7 +305,7 @@ bool CBoot::BootUp()
 			PC = dolLoader.GetEntryPoint();
 		}
 
-		if (LoadMapFromFilename(_StartupPara.m_strFilename))
+		if (LoadMapFromFilename())
 			HLE::PatchFunctions();
 
 		break;
@@ -327,7 +326,7 @@ bool CBoot::BootUp()
 		if (elfWii != _StartupPara.bWii)
 		{
 			PanicAlertT("Warning - starting ELF in wrong console mode!");
-		}			
+		}
 
 		bool BS2Success = false;
 
@@ -348,7 +347,7 @@ bool CBoot::BootUp()
 			// TODO: auto-convert elf to dol, so we can load them :)
 			VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, elfWii);
 			BS2Success = EmulatedBS2(elfWii);
-		} 
+		}
 		else if (!_StartupPara.m_strDefaultGCM.empty())
 		{
 			NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultGCM.c_str());
@@ -365,7 +364,7 @@ bool CBoot::BootUp()
 		else // Poor man's bootup
 		{
 			Load_FST(elfWii);
-			Boot_ELF(_StartupPara.m_strFilename.c_str()); 
+			Boot_ELF(_StartupPara.m_strFilename.c_str());
 		}
 		UpdateDebugger_MapLoaded();
 		Dolphin_Debugger::AddAutoBreakpoints();
@@ -376,7 +375,7 @@ bool CBoot::BootUp()
 	case SCoreStartupParameter::BOOT_WII_NAND:
 		Boot_WiiWAD(_StartupPara.m_strFilename.c_str());
 
-		if (LoadMapFromFilename(_StartupPara.m_strFilename))
+		if (LoadMapFromFilename())
 			HLE::PatchFunctions();
 
 		// load default image or create virtual drive from directory
@@ -395,7 +394,7 @@ bool CBoot::BootUp()
 		DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 		if (Load_BS2(_StartupPara.m_strBootROM))
 		{
-			if (LoadMapFromFilename(_StartupPara.m_strFilename))
+			if (LoadMapFromFilename())
 				HLE::PatchFunctions();
 		}
 		else
@@ -415,6 +414,19 @@ bool CBoot::BootUp()
 		return false;
 	}
 	}
+
+	// HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code handler
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+	{
+		HLE::Patch(0x80001800, "HBReload");
+		const u8 stubstr[] = { 'S', 'T', 'U', 'B', 'H', 'A', 'X', 'X' };
+		Memory::WriteBigEData(stubstr, 0x80001804, 8);
+	}
+
+	// Not part of the binary itself, but either we or Gecko OS might insert
+	// this, and it doesn't clear the icache properly.
+	HLE::Patch(0x800018a8, "GeckoCodehandler");
+
 	Host_UpdateLogDisplay();
 	return true;
 }

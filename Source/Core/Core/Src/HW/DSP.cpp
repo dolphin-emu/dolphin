@@ -554,7 +554,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	case AR_DMA_CNT_H:
 		_uReturnValue = g_arDMA.Cnt.Hex;
 		break;
-	
+
 	case AR_DMA_MMADDR_H:
 		_uReturnValue = g_arDMA.MMAddr;
 		break;
@@ -592,7 +592,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		g_arDMA.ARAddr = _iValue & ~31;
 		break;
 
-	case AR_DMA_CNT_H:   
+	case AR_DMA_CNT_H:
 		g_arDMA.Cnt.Hex = _iValue & ~31;
 		Do_ARAM_DMA();
 		break;
@@ -665,7 +665,7 @@ void UpdateAudioDMA()
 		// external audio fifo in the emulator, to be mixed with the disc
 		// streaming output. If that audio queue fills up, we delay the
 		// emulator.
-		
+
 		g_audioDMA.BlocksLeft--;
 		g_audioDMA.ReadAddress += 32;
 
@@ -811,10 +811,10 @@ u8 ReadARAM(u32 _iAddress)
 {
 	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x", _iAddress);
 	if (g_ARAM.wii_mode)
-	{	
+	{
 		if (_iAddress & 0x10000000)
 			return g_ARAM.ptr[_iAddress & g_ARAM.mask];
-		else 
+		else
 			return Memory::Read_U8(_iAddress & Memory::RAM_MASK);
 	}
 	else

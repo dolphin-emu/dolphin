@@ -17,24 +17,32 @@
 #ifndef _JITIL_H
 #define _JITIL_H
 
+#include "JitILAsm.h"
+#include "x64Emitter.h"
+#include "x64ABI.h"
+#include "x64Analyzer.h"
+#include "../PowerPC.h"
+#include "../PPCTables.h"
 #include "../PPCAnalyst.h"
 #include "../JitCommon/JitBase.h"
 #include "../JitCommon/JitCache.h"
 #include "../JitCommon/JitBackpatch.h"
 #include "../JitCommon/Jit_Util.h"
-#include "x64Emitter.h"
-#include "x64Analyzer.h"
-#include "IR.h"
-#include "../JitCommon/JitBase.h"
-#include "JitILAsm.h"
+#include "../JitILCommon/JitILBase.h"
+#include "../JitILCommon/IR.h"
+#include "../../ConfigManager.h"
+#include "../../Core.h"
+#include "../../CoreTiming.h"
+#include "../../HW/Memmap.h"
+#include "../../HW/GPFifo.h"
 
 // #define INSTRUCTION_START Default(inst); return;
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
 
-#define JITDISABLE(type) \
+#define JITDISABLE(setting) \
 	if (Core::g_CoreStartupParameter.bJITOff || \
-		Core::g_CoreStartupParameter.bJIT##type##Off) \
+		Core::g_CoreStartupParameter.setting) \
 		{Default(inst); return;}
 
 #ifdef _M_X64
@@ -44,44 +52,45 @@
 #define DISABLE64
 #endif
 
-class JitIL : public Jitx86Base
+class JitIL : public JitILBase, public EmuCodeBlock
 {
 private:
-
-
-	// The default code buffer. We keep it around to not have to alloc/dealloc a
-	// large chunk of memory for each recompiled block.
-	PPCAnalyst::CodeBuffer code_buffer;
+	JitBlockCache blocks;
+	TrampolineCache trampolines;
 
 public:
 	JitILAsmRoutineManager asm_routines;
 
-	JitIL() : code_buffer(32000) {}
+	JitIL() {}
 	~JitIL() {}
-
-	IREmitter::IRBuilder ibuild;
 
 	// Initialization, etc
 
-	void Init();
-	void Shutdown();
+	void Init() override;
+	void Shutdown() override;
 
 	// Jit!
 
-	void Jit(u32 em_address);
+	void Jit(u32 em_address) override;
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
 
 	void Trace();
 
-	void ClearCache();
+	JitBlockCache *GetBlockCache() override { return &blocks; }
+
+	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) override { return NULL; };
+
+	bool IsInCodeSpace(u8 *ptr) override { return IsInSpace(ptr); }
+
+	void ClearCache() override;
 	const u8 *GetDispatcher() {
 		return asm_routines.dispatcher;  // asm_routines.dispatcher
 	}
-	const CommonAsmRoutines *GetAsmRoutines() {
+	const CommonAsmRoutines *GetAsmRoutines() override {
 		return &asm_routines;
 	}
 
-	const char *GetName() {
+	const char *GetName() override {
 #ifdef _M_X64
 		return "JIT64IL";
 #else
@@ -91,18 +100,18 @@ public:
 
 	// Run!
 
-	void Run();
-	void SingleStep();
+	void Run() override;
+	void SingleStep() override;
 
 	// Utilities for use by opcodes
 
-	void WriteExit(u32 destination, int exit_num);
+	void WriteExit(u32 destination);
 	void WriteExitDestInOpArg(const Gen::OpArg& arg);
 	void WriteExceptionExit();
 	void WriteRfiExitDestInOpArg(const Gen::OpArg& arg);
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
-	
+
 	void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
 	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 	void GenerateCarry(Gen::X64Reg temp_reg);
@@ -112,115 +121,19 @@ public:
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
 	void fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 
-	void WriteCode();
+	void WriteCode(u32 exitAddress);
 
 	// OPCODES
-	void unknown_instruction(UGeckoInstruction _inst);
-	void Default(UGeckoInstruction _inst);
-	void DoNothing(UGeckoInstruction _inst);
-	void HLEFunction(UGeckoInstruction _inst);
+	void unknown_instruction(UGeckoInstruction _inst) override;
+	void Default(UGeckoInstruction _inst) override;
+	void DoNothing(UGeckoInstruction _inst) override;
+	void HLEFunction(UGeckoInstruction _inst) override;
 
-	void DynaRunTable4(UGeckoInstruction _inst);
-	void DynaRunTable19(UGeckoInstruction _inst);
-	void DynaRunTable31(UGeckoInstruction _inst);
-	void DynaRunTable59(UGeckoInstruction _inst);
-	void DynaRunTable63(UGeckoInstruction _inst);
-
-	void addx(UGeckoInstruction inst);
-	void boolX(UGeckoInstruction inst);
-	void mulli(UGeckoInstruction inst);
-	void mulhwux(UGeckoInstruction inst);
-	void mullwx(UGeckoInstruction inst);
-	void divwux(UGeckoInstruction inst);
-	void srawix(UGeckoInstruction inst);
-	void srawx(UGeckoInstruction inst);
-	void addex(UGeckoInstruction inst);
-	void addzex(UGeckoInstruction inst);
-
-	void extsbx(UGeckoInstruction inst);
-	void extshx(UGeckoInstruction inst);
-
-	void sc(UGeckoInstruction _inst);
-	void rfi(UGeckoInstruction _inst);
-
-	void bx(UGeckoInstruction inst);
-	void bclrx(UGeckoInstruction _inst);
-	void bcctrx(UGeckoInstruction _inst);
-	void bcx(UGeckoInstruction inst);
-
-	void mtspr(UGeckoInstruction inst);
-	void mfspr(UGeckoInstruction inst);
-	void mtmsr(UGeckoInstruction inst);
-	void mfmsr(UGeckoInstruction inst);
-	void mftb(UGeckoInstruction inst);
-	void mtcrf(UGeckoInstruction inst);
-	void mfcr(UGeckoInstruction inst);
-	void mcrf(UGeckoInstruction inst);
-	void crXX(UGeckoInstruction inst);
-
-	void reg_imm(UGeckoInstruction inst);
-
-	void ps_sel(UGeckoInstruction inst);
-	void ps_mr(UGeckoInstruction inst);
-	void ps_sign(UGeckoInstruction inst); //aggregate
-	void ps_arith(UGeckoInstruction inst); //aggregate
-	void ps_mergeXX(UGeckoInstruction inst);
-	void ps_maddXX(UGeckoInstruction inst);
-	void ps_rsqrte(UGeckoInstruction inst);
-	void ps_sum(UGeckoInstruction inst);
-	void ps_muls(UGeckoInstruction inst);
-
-	void fp_arith_s(UGeckoInstruction inst);
-
-	void fcmpx(UGeckoInstruction inst);
-	void fmrx(UGeckoInstruction inst);
-
-	void cmpXX(UGeckoInstruction inst);
-
-	void cntlzwx(UGeckoInstruction inst);
-
-	void lfs(UGeckoInstruction inst);
-	void lfd(UGeckoInstruction inst);
-	void stfd(UGeckoInstruction inst);
-	void stfs(UGeckoInstruction inst);
-	void stfsx(UGeckoInstruction inst);
-	void psq_l(UGeckoInstruction inst);
-	void psq_st(UGeckoInstruction inst);
-
-	void fmaddXX(UGeckoInstruction inst);
-	void fsign(UGeckoInstruction inst);
-	void stX(UGeckoInstruction inst); //stw sth stb
-	void lXz(UGeckoInstruction inst);
-	void lbzu(UGeckoInstruction inst);
-	void lha(UGeckoInstruction inst);
-	void rlwinmx(UGeckoInstruction inst);
-	void rlwimix(UGeckoInstruction inst);
-	void rlwnmx(UGeckoInstruction inst);
-	void negx(UGeckoInstruction inst);
-	void slwx(UGeckoInstruction inst);
-	void srwx(UGeckoInstruction inst);
-	void dcbst(UGeckoInstruction inst);
-	void dcbz(UGeckoInstruction inst);
-	void lfsx(UGeckoInstruction inst);
-
-	void subfic(UGeckoInstruction inst);
-	void subfcx(UGeckoInstruction inst);
-	void subfx(UGeckoInstruction inst);
-	void subfex(UGeckoInstruction inst);
-
-	void lXzx(UGeckoInstruction inst);
-	void lhax(UGeckoInstruction inst);
-
-	void stXx(UGeckoInstruction inst);
-
-	void lmw(UGeckoInstruction inst);
-	void stmw(UGeckoInstruction inst);
-
-	void icbi(UGeckoInstruction inst);
+	void DynaRunTable4(UGeckoInstruction _inst) override;
+	void DynaRunTable19(UGeckoInstruction _inst) override;
+	void DynaRunTable31(UGeckoInstruction _inst) override;
+	void DynaRunTable59(UGeckoInstruction _inst) override;
+	void DynaRunTable63(UGeckoInstruction _inst) override;
 };
-
-void Jit(u32 em_address);
-
-void ProfiledReJit();
 
 #endif  // _JITIL_H

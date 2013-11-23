@@ -2,19 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../../HW/Memmap.h"
-#include "../../HW/CPU.h"
-#include "../../Host.h"
-#include "../PPCTables.h"
-#include "Interpreter.h"
-#include "../../Debugger/Debugger_SymbolMap.h"
-#include "../../CoreTiming.h"
-#include "../../ConfigManager.h"
-#include "PowerPCDisasm.h"
-#include "../../IPC_HLE/WII_IPC_HLE.h"
-#include "Atomic.h"
-#include "HLE/HLE.h"
 
+#include "Interpreter.h"
+#include "PowerPCDisasm.h"
+#include "../PPCTables.h"
+#include "../../Debugger/Debugger_SymbolMap.h"
+#include "../../Host.h"
+#include "../../IPC_HLE/WII_IPC_HLE.h"
+
+#ifdef USE_GDBSTUB
+#include "../GDBStub.h"
+#endif
+
+#include <cinttypes>
 
 namespace {
 	u32 last_pc;
@@ -79,7 +79,7 @@ void Trace( UGeckoInstruction &instCode )
 	std::string fregs = "";
 	for (int i=0; i<32; i++)
 	{
-		sprintf(freg, "f%02d: %08llx %08llx ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
+		sprintf(freg, "f%02d: %08" PRIx64 " %08" PRIx64 " ", i, PowerPC::ppcState.ps[i][0], PowerPC::ppcState.ps[i][1]);
 		fregs.append(freg);
 	}
 
@@ -92,7 +92,6 @@ void Trace( UGeckoInstruction &instCode )
 int Interpreter::SingleStepInner(void)
 {
 	static UGeckoInstruction instCode;
-
 	u32 function = m_EndBlock ? HLE::GetFunctionIndex(PC) : 0; // Check for HLE functions after branches
 	if (function != 0)
 	{
@@ -103,11 +102,31 @@ int Interpreter::SingleStepInner(void)
 			if (HLE::IsEnabled(flags))
 			{
 				HLEFunction(function);
+				if (type == HLE::HLE_HOOK_START)
+				{
+					// Run the original.
+					function = 0;
+				}
+			}
+			else
+			{
+				function = 0;
 			}
 		}
 	}
-	else
+
+	if (function == 0)
 	{
+		#ifdef USE_GDBSTUB
+		if (gdb_active() && gdb_bp_x(PC)) {
+
+			Host_UpdateDisasmDialog();
+
+			gdb_signal(SIGTRAP);
+			gdb_handle_exception();
+		}
+		#endif
+
 		NPC = PC + sizeof(UGeckoInstruction);
 		instCode.hex = Memory::Read_Opcode(PC);
 
@@ -163,7 +182,7 @@ int Interpreter::SingleStepInner(void)
 	}
 	last_pc = PC;
 	PC = NPC;
-	
+
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (PowerPC::ppcState.gpr[1] == 0)
 	{
@@ -178,9 +197,9 @@ int Interpreter::SingleStepInner(void)
 }
 
 void Interpreter::SingleStep()
-{	
+{
 	SingleStepInner();
-	
+
 	CoreTiming::slicelength = 1;
 	CoreTiming::downcount = 0;
 	CoreTiming::Advance();
@@ -228,6 +247,7 @@ void Interpreter::Run()
 							PCVec.erase(PCVec.begin());
 					#endif
 
+
 					//2: check for breakpoint
 					if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
 					{
@@ -267,9 +287,9 @@ void Interpreter::Run()
 			while (CoreTiming::downcount > 0)
 			{
 				m_EndBlock = false;
-				int i;
+
 				int cycles = 0;
-				for (i = 0; !m_EndBlock; i++)
+				while (!m_EndBlock)
 				{
 					cycles += SingleStepInner();
 				}

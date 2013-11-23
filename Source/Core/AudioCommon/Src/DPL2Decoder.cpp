@@ -14,8 +14,12 @@
 #include <string.h>
 #include "DPL2Decoder.h"
 
+#ifndef M_PI
 #define M_PI 3.14159265358979323846
+#endif
+#ifndef M_SQRT1_2
 #define M_SQRT1_2 0.70710678118654752440
+#endif
 
 int olddelay = -1;
 unsigned int oldfreq = 0;

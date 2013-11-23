@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by: Ryan Norton (MLTE GetLineLength and GetLineText)
 // Created:     1998-01-01
-// RCS-ID:      $Id: textctrl.cpp 66028 2010-11-05 21:38:25Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -434,7 +433,7 @@ static pascal OSStatus wxMacUnicodeTextControlControlEventHandler( EventHandlerC
             ControlPartCode controlPart = cEvent.GetParameter<ControlPartCode>(kEventParamControlPart , typeControlPartCode );
             if ( controlPart == kControlFocusNoPart )
             {
-                // about to loose focus -> store selection to field
+                // about to lose focus -> store selection to field
                 focus->GetData<ControlEditTextSelectionRec>( 0, kControlEditTextSelectionTag, &focus->m_selection );
             }
             result = CallNextEventHandler(handler,event) ;

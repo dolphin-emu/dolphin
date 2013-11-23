@@ -8,12 +8,12 @@ namespace DiscIO
 {
 IVolume::ECountry CountrySwitch(u8 CountryCode)
 {
-	switch (CountryCode) 
+	switch (CountryCode)
 	{
 		// Region free - fall through to European defaults for now
 		case 'A':
 
-		
+
 		// PAL
 		case 'D': // German
 			return IVolume::COUNTRY_GERMANY;
@@ -26,18 +26,18 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 		case 'M': // Japanese import to PAL regions
 		case 'S': // Spanish-speaking regions
 		case 'P':
-		case 'U': // Australia 
+		case 'U': // Australia
 			return IVolume::COUNTRY_EUROPE;
 			break;
-			
+
 		case 'F':
 			return IVolume::COUNTRY_FRANCE;
 			break;
-			
+
 		case 'I':
 			return IVolume::COUNTRY_ITALY;
 			break;
-			
+
 		case 'R':
 			return IVolume::COUNTRY_RUSSIA;
 			break;

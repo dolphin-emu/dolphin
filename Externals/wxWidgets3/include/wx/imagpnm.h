@@ -2,7 +2,6 @@
 // Name:        wx/imagpnm.h
 // Purpose:     wxImage PNM handler
 // Author:      Sylvain Bougnoux
-// RCS-ID:      $Id: imagpnm.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Sylvain Bougnoux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

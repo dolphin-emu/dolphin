@@ -3,7 +3,6 @@
 // Purpose:     Cairo library
 // Author:      Anthony Betaudeau
 // Created:     2007-08-25
-// RCS-ID:      $Id: cairo.cpp 69486 2011-10-20 04:58:00Z RD $
 // Copyright:   (c) Anthony Bretaudeau
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,14 +15,18 @@
     #pragma hdrstop
 #endif
 
+#if wxUSE_CAIRO
+
 // keep cairo.h from defining dllimport as we're defining the symbols inside
 // the wx dll in order to load them dynamically.
 #define cairo_public 
 
-#include "wx/cairo.h"
+#include <cairo.h>
 #include "wx/dynlib.h"
 
-#if wxUSE_CAIRO
+#ifdef __WXMSW__
+#include "wx/msw/wrapwin.h"
+#endif
 
 #ifdef __WXMAC__
 #include "wx/osx/private.h"
@@ -375,18 +378,13 @@ bool wxCairo::IsOk()
 // implementation of the functions themselves
 // ============================================================================
 
-extern "C"
-{
-
 bool wxCairoInit()
 {
     return wxCairo::Initialize();
 }
 
-void wxCairoCleanUp()
+extern "C"
 {
-    wxCairo::CleanUp();
-}
 
 #define wxIMPL_CAIRO_FUNC(rettype, name, params, args, defret)                \
     rettype name params                                                               \

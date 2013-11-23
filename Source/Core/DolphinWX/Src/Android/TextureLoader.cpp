@@ -17,8 +17,7 @@
 
 #include "GLInterface.h"
 #include <png.h>
-
-GLuint LoadPNG(const char *filename)
+char* LoadPNG(const char *filename, u32 &width, u32 &height)
 {
 	FILE         *infile;         /* PNG file pointer */
 	png_structp   png_ptr;        /* internally used by libpng */
@@ -31,8 +30,8 @@ GLuint LoadPNG(const char *filename)
 	int           bit_depth;
 	int           color_type;
 
-	png_uint_32 width;            /* PNG image width in pixels */
-	png_uint_32 height;           /* PNG image height in pixels */
+	png_uint_32 _width;
+	png_uint_32 _height;
 	unsigned int rowbytes;         /* raw bytes at row n in image */
 
 	image_data = NULL;
@@ -41,8 +40,8 @@ GLuint LoadPNG(const char *filename)
 
 	/* Open the file. */
 	infile = fopen(filename, "rb");
-	if (!infile) 
-		return 0;
+	if (!infile)
+		return NULL;
 
 	/*
 	*              13.3 readpng_init()
@@ -53,46 +52,46 @@ GLuint LoadPNG(const char *filename)
 
 	if (!png_check_sig((unsigned char *) sig, 8)) {
 		fclose(infile);
-		return 0;
+		return NULL;
 	}
 
-	/* 
-	* Set up the PNG structs 
+	/*
+	* Set up the PNG structs
 	*/
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png_ptr) {
 		fclose(infile);
-		return 4;    /* out of memory */
+		return NULL;    /* out of memory */
 	}
 
 	info_ptr = png_create_info_struct(png_ptr);
 	if (!info_ptr) {
 		png_destroy_read_struct(&png_ptr, (png_infopp) NULL, (png_infopp) NULL);
 		fclose(infile);
-		return 4;    /* out of memory */
+		return NULL;    /* out of memory */
 	}
 
 
 	/*
-	* block to handle libpng errors, 
+	* block to handle libpng errors,
 	* then check whether the PNG file had a bKGD chunk
 	*/
 	if (setjmp(png_jmpbuf(png_ptr))) {
 		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 		fclose(infile);
-		return 0;
+		return NULL;
 	}
 
-	/* 
-	* takes our file stream pointer (infile) and 
+	/*
+	* takes our file stream pointer (infile) and
 	* stores it in the png_ptr struct for later use.
 	*/
 	/* png_ptr->io_ptr = (png_voidp)infile;*/
 	png_init_io(png_ptr, infile);
 
 	/*
-	* lets libpng know that we already checked the 8 
-	* signature bytes, so it should not expect to find 
+	* lets libpng know that we already checked the 8
+	* signature bytes, so it should not expect to find
 	* them at the current file pointer location
 	*/
 	png_set_sig_bytes(png_ptr, 8);
@@ -100,25 +99,25 @@ GLuint LoadPNG(const char *filename)
 	/* Read the image */
 
 	/*
-	* reads and processes not only the PNG file's IHDR chunk 
-	* but also any other chunks up to the first IDAT 
+	* reads and processes not only the PNG file's IHDR chunk
+	* but also any other chunks up to the first IDAT
 	* (i.e., everything before the image data).
 	*/
 
 	/* read all the info up to the image data  */
 	png_read_info(png_ptr, info_ptr);
 
-	png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, 
+	png_get_IHDR(png_ptr, info_ptr, &_width, &_height, &bit_depth,
 	&color_type, NULL, NULL, NULL);
 
 	/* Set up some transforms. */
-	if (bit_depth > 8) 
+	if (bit_depth > 8)
 		png_set_strip_16(png_ptr);
-	
-	if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA) 
+
+	if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 		png_set_gray_to_rgb(png_ptr);
 
-	if (color_type == PNG_COLOR_TYPE_PALETTE) 
+	if (color_type == PNG_COLOR_TYPE_PALETTE)
 		png_set_palette_to_rgb(png_ptr);
 
 	/* Update the png info struct.*/
@@ -129,22 +128,22 @@ GLuint LoadPNG(const char *filename)
 
 
 	/* Allocate the image_data buffer. */
-	if ((image_data = (char *) malloc(rowbytes * height))==NULL) {
+	if ((image_data = (char *) malloc(rowbytes * _height))==NULL) {
 		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-		return 4;
+		return NULL;
 	}
 
-	if ((row_pointers = (png_bytepp)malloc(height*sizeof(png_bytep))) == NULL) {
+	if ((row_pointers = (png_bytepp)malloc(_height*sizeof(png_bytep))) == NULL) {
 		png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 		free(image_data);
 		image_data = NULL;
-		return 4;
+		return NULL;
 	}
 
 
 	/* set the individual row_pointers to point at the correct offsets */
 
-	for (i = 0;  i < height;  ++i)
+	for (i = 0;  i < _height;  ++i)
 		row_pointers[i] = (png_byte*)(image_data + i*rowbytes);
 
 
@@ -161,19 +160,7 @@ GLuint LoadPNG(const char *filename)
 	png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
 	fclose(infile);
 
-	GLuint Texture = 0;
-	glGenTextures(1, &Texture);
-
-	/* create a new texture object
-	* and bind it to texname (unsigned integer > 0)
-	*/
-	glBindTexture(GL_TEXTURE_2D, Texture);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, 
-				GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-	return Texture;
+	width = (u32)_width;
+	height = (u32)_height;
+	return image_data;
 }

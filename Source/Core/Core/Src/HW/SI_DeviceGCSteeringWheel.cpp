@@ -2,9 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "SI.h"
 #include "SI_Device.h"
 #include "SI_DeviceGCSteeringWheel.h"
@@ -105,7 +102,7 @@ bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
-	
+
 	Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 	Movie::CallInputManip(&PadStatus, ISIDevice::m_iDeviceNumber);
 
@@ -254,7 +251,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 _Cmd, u8 _Poll)
 			unsigned int uType = command.Parameter2;  // 06 = motor on, 04 = motor off
 
 			// get the correct pad number that should rumble locally when using netplay
-			const u8 numPAD = NetPlay_GetPadNum(ISIDevice::m_iDeviceNumber);
+			const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
 			if (numPAD < 4)
 				Pad::Motor(numPAD, uType, uStrength);
@@ -273,7 +270,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 _Cmd, u8 _Poll)
 			unsigned int uStrength = command.Parameter2;
 
 			// get the correct pad number that should rumble locally when using netplay
-			const u8 numPAD = NetPlay_GetPadNum(ISIDevice::m_iDeviceNumber);
+			const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
 			if (numPAD < 4)
 				Pad::Rumble(numPAD, uType, uStrength);

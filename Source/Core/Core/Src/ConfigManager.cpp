@@ -2,21 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <string>
-
 #include "Common.h"
 #include "CommonPaths.h"
-#include "IniFile.h"
 #include "ConfigManager.h"
+#include "IniFile.h"
 #include "FileUtil.h"
 #include "NANDContentLoader.h"
 
 SConfig* SConfig::m_Instance;
 
-static const struct {
-	const char*	IniText;
-	const int	DefaultKey;
-	const int	DefaultModifier;
+static const struct
+{
+	const char* IniText;
+	const int   DefaultKey;
+	const int   DefaultModifier;
 } g_HKData[] = {
 #ifdef __APPLE__
 	{ "Open",		79 /* 'O' */,		2 /* wxMOD_CMD */ },
@@ -167,8 +166,11 @@ void SConfig::SaveSettings()
 	}
 
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
-	ini.Set("General", "NANDRoot",			m_NANDPath);
+	ini.Set("General", "NANDRootPath",		m_NANDPath);
 	ini.Set("General", "WirelessMac",		m_WirelessMac);
+	#ifdef USE_GDBSTUB
+	ini.Set("General", "GDBPort", m_LocalCoreStartupParameter.iGDBPort);
+	#endif
 
 	// Interface
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
@@ -186,7 +188,7 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "ShowLogWindow",		m_InterfaceLogWindow);
 	ini.Set("Interface", "ShowLogConfigWindow",	m_InterfaceLogConfigWindow);
 	ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
-	ini.Set("Interface", "ThemeName",			m_LocalCoreStartupParameter.theme_name);
+	ini.Set("Interface", "ThemeName40",			m_LocalCoreStartupParameter.theme_name);
 
 	// Hotkeys
 	for (int i = 0; i < NUM_HOTKEYS; i++)
@@ -241,8 +243,8 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "SelectedLanguage",	m_LocalCoreStartupParameter.SelectedLanguage);
 	ini.Set("Core", "DPL2Decoder",		m_LocalCoreStartupParameter.bDPL2Decoder);
 	ini.Set("Core", "Latency",			m_LocalCoreStartupParameter.iLatency);
-	ini.Set("Core", "MemcardA",			m_strMemoryCardA);
-	ini.Set("Core", "MemcardB",			m_strMemoryCardB);
+	ini.Set("Core", "MemcardAPath",		m_strMemoryCardA);
+	ini.Set("Core", "MemcardBPath",		m_strMemoryCardB);
 	ini.Set("Core", "SlotA",			m_EXIDevice[0]);
 	ini.Set("Core", "SlotB",			m_EXIDevice[1]);
 	ini.Set("Core", "SerialPort1",		m_EXIDevice[2]);
@@ -294,6 +296,9 @@ void SConfig::LoadSettings()
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
 		ini.Get("General", "ShowLag", &m_ShowLag, false);
+		#ifdef USE_GDBSTUB
+		ini.Get("General", "GDBPort", &(m_LocalCoreStartupParameter.iGDBPort), -1);
+		#endif
 
 		m_ISOFolder.clear();
 		int numGCMPaths;
@@ -312,11 +317,11 @@ void SConfig::LoadSettings()
 
 		ini.Get("General", "RecursiveGCMPaths",		&m_RecursiveISOFolder,							false);
 
-		ini.Get("General", "NANDRoot",		&m_NANDPath);
+		ini.Get("General", "NANDRootPath",		&m_NANDPath);
 		m_NANDPath = File::GetUserPath(D_WIIROOT_IDX, m_NANDPath);
 		DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 		DiscIO::CSharedContent::AccessInstance().UpdateLocation();
-		ini.Get("General", "WirelessMac",			&m_WirelessMac);
+		ini.Get("General", "WirelessMac",	&m_WirelessMac);
 	}
 
 	{
@@ -336,7 +341,7 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowLogWindow",		&m_InterfaceLogWindow,							false);
 		ini.Get("Interface", "ShowLogConfigWindow",	&m_InterfaceLogConfigWindow,					false);
 		ini.Get("Interface", "ShowConsole",			&m_InterfaceConsole,							false);
-		ini.Get("Interface", "ThemeName",			&m_LocalCoreStartupParameter.theme_name,		"Boomy");
+		ini.Get("Interface", "ThemeName40",			&m_LocalCoreStartupParameter.theme_name,		"Clean");
 
 		// Hotkeys
 		for (int i = 0; i < NUM_HOTKEYS; i++)
@@ -396,14 +401,13 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "EnableCheats",	&m_LocalCoreStartupParameter.bEnableCheats,				false);
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage,		0);
 		ini.Get("Core", "DPL2Decoder",	&m_LocalCoreStartupParameter.bDPL2Decoder,	false);
-		ini.Get("Core", "Latency",		&m_LocalCoreStartupParameter.iLatency,		14);
-		ini.Get("Core", "MemcardA",		&m_strMemoryCardA);
-		ini.Get("Core", "MemcardB",		&m_strMemoryCardB);
+		ini.Get("Core", "Latency",		&m_LocalCoreStartupParameter.iLatency,		2);
+		ini.Get("Core", "MemcardAPath",	&m_strMemoryCardA);
+		ini.Get("Core", "MemcardBPath",	&m_strMemoryCardB);
 		ini.Get("Core", "SlotA",		(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
 		ini.Get("Core", "SlotB",		(int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 		ini.Get("Core", "SerialPort1",	(int*)&m_EXIDevice[2], EXIDEVICE_NONE);
 		ini.Get("Core", "BBA_MAC",		&m_bba_mac);
-		ini.Get("Core", "ProfiledReJIT",&m_LocalCoreStartupParameter.bJITProfiledReJIT,			false);
 		ini.Get("Core", "TimeProfiling",&m_LocalCoreStartupParameter.bJITILTimeProfiling,		false);
 		ini.Get("Core", "OutputIR",		&m_LocalCoreStartupParameter.bJITILOutputIR,			false);
 		char sidevicenum[16];
@@ -420,7 +424,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
-		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
+		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.bTLBHack,			false);
 		ini.Get("Core", "BBDumpPort",		&m_LocalCoreStartupParameter.iBBDumpPort,		-1);
 		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeamSpeedHack,			false);
 		ini.Get("Core", "SyncGPU",			&m_LocalCoreStartupParameter.bSyncGPU,			false);
@@ -444,7 +448,7 @@ void SConfig::LoadSettings()
 	#elif defined __APPLE__
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_COREAUDIO);
 	#elif defined _WIN32
-		ini.Get("DSP", "Backend", &sBackend, BACKEND_DIRECTSOUND);
+		ini.Get("DSP", "Backend", &sBackend, BACKEND_XAUDIO2);
 	#elif defined ANDROID
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_OPENSLES);
 	#else

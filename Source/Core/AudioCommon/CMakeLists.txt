@@ -40,5 +40,4 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS ${SRCS} Src/CoreAudioSoundStream.cpp)
 endif()
 
-add_library(audiocommon STATIC ${SRCS})
-target_link_libraries(audiocommon ${LIBS})
+add_dolphin_library(audiocommon "${SRCS}" "${LIBS}")

@@ -27,7 +27,7 @@ void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 	if (overflow)
 	{
 		g_dsp.r.sr |= SR_OVERFLOW;
-		g_dsp.r.sr  |= SR_OVERFLOW_STICKY; 
+		g_dsp.r.sr  |= SR_OVERFLOW_STICKY;
 	}
 
 	// 0x04
@@ -79,14 +79,14 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 		g_dsp.r.sr |= SR_ARITH_ZERO;
 	}
 
-	// 0x08 
+	// 0x08
 	if (_Value < 0)
 	{
 		g_dsp.r.sr |= SR_SIGN;
 	}
 
 	// 0x10
-	if (overS32) 
+	if (overS32)
 	{
 		g_dsp.r.sr |= SR_OVER_S32;
 	}
@@ -100,7 +100,7 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 
 void Update_SR_LZ(bool value)
 {
-	if (value == true) 
+	if (value == true)
 		g_dsp.r.sr |= SR_LOGIC_ZERO;
 	else
 		g_dsp.r.sr &= ~SR_LOGIC_ZERO;
@@ -156,11 +156,11 @@ bool CheckCondition(u8 _Condition)
 		return isLess() || isZero();
 	case 0x4: // NZ - Not Zero
 		return !isZero();
-	case 0x5: // Z - Zero 
+	case 0x5: // Z - Zero
 		return isZero();
 	case 0x6: // NC - Not carry
 		return !isCarry();
-	case 0x7: // C - Carry 
+	case 0x7: // C - Carry
 		return isCarry();
 	case 0x8: // ? - Not over s32
 		return !isOverS32();

@@ -8,7 +8,7 @@
 	<copy todir="${jar.libs.dir}/armeabi-v7a">
 		<fileset
 			dir="../../libs/armeabi-v7a"
-			includes="libdolphin-emu-nogui.so" />
+			includes="libmain.so" />
 	</copy>
     </target>
     <target name="clean" depends="android_rules.clean">

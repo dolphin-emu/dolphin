@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     10/09/98
-// RCS-ID:      $Id: variant.cpp 66608 2011-01-06 11:06:12Z SC $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -35,11 +34,6 @@
     #else
         #include <fstream>
     #endif
-#endif
-
-#if defined(__MWERKS__) && __MSL__ >= 0x6000
-namespace std {}
-using namespace std ;
 #endif
 
 #if wxUSE_STREAMS

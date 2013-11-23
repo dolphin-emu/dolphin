@@ -5,6 +5,7 @@
 #include "Globals.h"
 #include "CheatsWindow.h"
 #include "ActionReplay.h"
+#include "CommonPaths.h"
 #include "Core.h"
 #include "ConfigManager.h"
 #include "VolumeHandler.h"
@@ -14,8 +15,6 @@
 #include "WxUtils.h"
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY	256
-const wxString title = _("Cheats Manager");
-
 extern std::vector<ActionReplay::ARCode> arCodes;
 extern CFrame* main_frame;
 
@@ -23,7 +22,7 @@ extern CFrame* main_frame;
 static wxCheatsWindow *g_cheat_window;
 
 wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
-	: wxDialog(parent, wxID_ANY, title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxDIALOG_NO_PARENT)
+	: wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxDIALOG_NO_PARENT)
 {
 	::g_cheat_window = this;
 
@@ -74,7 +73,7 @@ void wxCheatsWindow::Init_ChildControls()
 	sizer_tab_cheats->Add(m_CheckListBox_CheatsList, 1, wxEXPAND | wxTOP | wxBOTTOM | wxLEFT, 10);
 	sizer_tab_cheats->Add(sGroupBoxInfo, 0, wxALIGN_LEFT | wxEXPAND | wxALL, 5);
 
-	m_Tab_Cheats->SetSizerAndFit(sizer_tab_cheats);	
+	m_Tab_Cheats->SetSizerAndFit(sizer_tab_cheats);
 
 	// $ Cheat Search Tab
 	wxPanel* const tab_cheat_search = new CheatSearchTab(m_Notebook_Main);
@@ -243,13 +242,16 @@ void wxCheatsWindow::OnEvent_Close(wxCloseEvent& ev)
 void wxCheatsWindow::UpdateGUI()
 {
 	// load code
-	m_gameini_path = File::GetUserPath(D_GAMECONFIG_IDX) + Core::g_CoreStartupParameter.GetUniqueID() + ".ini";
-	m_gameini.Load(m_gameini_path);
+	m_gameini_default = Core::g_CoreStartupParameter.LoadDefaultGameIni();
+	m_gameini_local = Core::g_CoreStartupParameter.LoadLocalGameIni();
+	m_gameini_local_path = Core::g_CoreStartupParameter.m_strGameIniLocal;
 	Load_ARCodes();
 	Load_GeckoCodes();
 
 	// enable controls
 	button_apply->Enable(Core::IsRunning());
+
+	wxString title = _("Cheats Manager");
 
 	// write the ISO name in the title
 	if (Core::IsRunning())
@@ -283,7 +285,7 @@ void wxCheatsWindow::Load_ARCodes()
 
 void wxCheatsWindow::Load_GeckoCodes()
 {
-	m_geckocode_panel->LoadCodes(m_gameini, Core::g_CoreStartupParameter.GetUniqueID(), true);
+	m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, Core::g_CoreStartupParameter.GetUniqueID(), true);
 }
 
 void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (event))
@@ -338,10 +340,10 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 	Gecko::SetActiveCodes(m_geckocode_panel->GetCodes());
 
 	// Save gameini, with changed gecko codes
-	if (m_gameini_path.size())
+	if (m_gameini_local_path.size())
 	{
-		Gecko::SaveCodes(m_gameini, m_geckocode_panel->GetCodes());
-		m_gameini.Save(m_gameini_path);
+		Gecko::SaveCodes(m_gameini_local, m_geckocode_panel->GetCodes());
+		m_gameini_local.Save(m_gameini_local_path);
 	}
 
 	ev.Skip();
@@ -592,7 +594,7 @@ CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	sizer_main->Add(textctrl_code, 0, wxALL, 5);
 	sizer_main->Add(sizer_value_label, 0, wxALL, 5);
 	sizer_main->Add(textctrl_value, 0, wxALL, 5);
-	sizer_main->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxALL, 5); 
+	sizer_main->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxALL, 5);
 
 	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CreateCodeDialog::PressOK, this, wxID_OK);
 	Bind(wxEVT_COMMAND_BUTTON_CLICKED, &CreateCodeDialog::PressCancel, this, wxID_CANCEL);

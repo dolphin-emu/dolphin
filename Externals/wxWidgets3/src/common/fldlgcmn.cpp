@@ -4,7 +4,6 @@
 // Author:      John Labenski
 // Modified by:
 // Created:     14.06.03 (extracted from src/*/filedlg.cpp)
-// RCS-ID:      $Id: fldlgcmn.cpp 66592 2011-01-05 18:27:58Z PC $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

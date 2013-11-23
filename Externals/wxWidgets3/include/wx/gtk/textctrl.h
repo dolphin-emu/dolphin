@@ -3,7 +3,6 @@
 // Purpose:
 // Author:      Robert Roebling
 // Created:     01/02/97
-// Id:          $Id: textctrl.h 68450 2011-07-29 15:11:54Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -145,27 +144,25 @@ public:
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
 protected:
-    // wxGTK-specific: called recursively by Enable,
-    // to give widgets an oppprtunity to correct their colours after they
-    // have been changed by Enable
-    virtual void OnEnabled(bool enable);
-
     // overridden wxWindow virtual methods
     virtual wxSize DoGetBestSize() const;
     virtual void DoApplyWidgetStyle(GtkRcStyle *style);
     virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
 
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const;
+
     virtual void DoFreeze();
     virtual void DoThaw();
-
-    // common part of all ctors
-    void Init();
 
     // Widgets that use the style->base colour for the BG colour should
     // override this and return true.
     virtual bool UseGTKStyleBase() const { return true; }
 
     virtual void DoSetValue(const wxString &value, int flags = 0);
+
+    // Override this to use either GtkEntry or GtkTextView IME depending on the
+    // kind of control we are.
+    virtual int GTKIMFilterKeypress(GdkEventKey* event) const;
 
     virtual wxPoint DoPositionToCoords(long pos) const;
 
@@ -179,6 +176,8 @@ protected:
     void GTKSetJustification();
 
 private:
+    void Init();
+
     // overridden wxTextEntry virtual methods
     virtual GtkEditable *GetEditable() const;
     virtual GtkEntry *GetEntry() const;

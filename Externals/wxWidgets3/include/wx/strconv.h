@@ -4,7 +4,6 @@
 // Author:      Ove Kaaven, Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: strconv.h 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 1998 Ove Kaaven, Robert Roebling
 //              (c) 1998-2006 Vadim Zeitlin
 // Licence:     wxWindows licence

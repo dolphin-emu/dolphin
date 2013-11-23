@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     16/04/2000
-// RCS-ID:      $Id: helpchm.h 67880 2011-06-07 14:28:55Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -63,7 +62,7 @@ protected:
     // the first 2 HtmlHelp() parameters
     bool CallHtmlHelp(unsigned cmd, WXWPARAM param)
     {
-        return CallHtmlHelp(GetParentWindow(), GetValidFilename().wx_str(),
+        return CallHtmlHelp(GetParentWindow(), GetValidFilename().t_str(),
                             cmd, param);
     }
 

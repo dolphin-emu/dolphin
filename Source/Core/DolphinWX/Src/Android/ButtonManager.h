@@ -21,6 +21,7 @@
 #include <map>
 #include "CommonPaths.h"
 #include "Android/TextureLoader.h"
+#include "VideoBackendBase.h"
 
 namespace ButtonManager
 {
@@ -60,14 +61,18 @@ namespace ButtonManager
 	class Button
 	{
 	private:
-		GLuint m_tex;
+		int m_tex;
 		ButtonType m_button;
 		ButtonState m_state;
 		float m_coords[8];
 	public:
 		Button(std::string filename, ButtonType button, float *coords)
 		{
-			m_tex = LoadPNG((std::string(DOLPHIN_DATA_DIR "/") + filename).c_str());
+			u32 width, height;
+			char *image;
+			// image = LoadPNG((std::string(DOLPHIN_DATA_DIR "/") + filename).c_str(), width, height);
+			// XXX: Make platform specific drawing
+
 			m_button = button;
 			memcpy(m_coords, coords, sizeof(float) * 8);
 			m_state = BUTTON_RELEASED;
@@ -82,8 +87,8 @@ namespace ButtonManager
 		ButtonType GetButtonType() { return m_button; }
 		GLuint GetTexture() { return m_tex; }
 		float *GetCoords() { return m_coords; }
-			
-		~Button() { if(m_tex) glDeleteTextures(1, &m_tex); }
+
+		~Button() { }
 	};
 
 	struct sBind
@@ -92,11 +97,11 @@ namespace ButtonManager
 		const BindType m_bindtype;
 		const int m_bind;
 		const float m_neg;
-		sBind(ButtonType buttontype, BindType bindtype, int bind, float neg) 
-			: m_buttontype(buttontype), m_bindtype(bindtype), m_bind(bind), m_neg(neg) 
+		sBind(ButtonType buttontype, BindType bindtype, int bind, float neg)
+			: m_buttontype(buttontype), m_bindtype(bindtype), m_bind(bind), m_neg(neg)
 		{}
 	};
-	
+
 
 	class InputDevice
 	{
@@ -113,9 +118,9 @@ namespace ButtonManager
 		~InputDevice()
 		{
 			for (auto it = m_binds.begin(); it != m_binds.end(); ++it)
-			delete it->second;
+				delete it->second;
 		}
-		void AddBind(sBind *bind) { m_binds[bind->m_buttontype] = bind; } 
+		void AddBind(sBind *bind) { m_binds[bind->m_buttontype] = bind; }
 		void PressEvent(int button, int action);
 		void AxisEvent(int axis, float value);
 		bool ButtonValue(ButtonType button);

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-07-12
-// RCS-ID:      $Id: tbarwce.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -372,7 +371,7 @@ bool wxToolMenuBar::Realize()
 #endif // 0
 
     bool lastWasRadio = false;
-    wxToolBarToolsList::Node* node;
+    wxToolBarToolsList::compatibility_iterator node;
     for ( node = m_tools.GetFirst(); node; node = node->GetNext() )
     {
         wxToolMenuBarTool *tool = (wxToolMenuBarTool*) node->GetData();
@@ -403,7 +402,7 @@ bool wxToolMenuBar::Realize()
                     const wxString& label = tool->GetLabel();
                     if ( !label.empty() )
                     {
-                        button.iString = (int)label.wx_str();
+                        button.iString = (int) wxMSW_CONV_LPCTSTR(label);
                     }
                 }
 
@@ -504,7 +503,7 @@ bool wxToolMenuBar::MSWCommand(WXUINT WXUNUSED(cmd), WXWORD id_)
             }
         }
 
-        wxCommandEvent event(wxEVT_COMMAND_MENU_SELECTED);
+        wxCommandEvent event(wxEVT_MENU);
         event.SetEventObject(this);
         event.SetId(id);
         event.SetInt(checked);

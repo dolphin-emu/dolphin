@@ -55,7 +55,7 @@ namespace ButtonManager
 					"InputL",
 					"InputR" };
 	const int configStringNum = 20;
-	
+
 	void AddBind(std::string dev, sBind *bind)
 	{
 		auto it = m_controllers.find(dev);
@@ -93,9 +93,9 @@ namespace ButtonManager
 			{
 				hasbind = true;
 				type = BIND_AXIS;
-				sscanf(value.c_str(), "Device '%[^\']'-Axis %d%c", dev, &bindnum, &modifier);	
+				sscanf(value.c_str(), "Device '%[^\']'-Axis %d%c", dev, &bindnum, &modifier);
 			}
-			else if (std::string::npos != value.find("Button"))  
+			else if (std::string::npos != value.find("Button"))
 			{
 				hasbind = true;
 				type = BIND_BUTTON;
@@ -123,7 +123,7 @@ namespace ButtonManager
 		auto it = m_controllers.begin();
 		if (it == m_controllers.end())
 			return 0.0f;
-		return it->second->AxisValue(axis); 
+		return it->second->AxisValue(axis);
 	}
 	void TouchEvent(int action, float x, float y)
 	{
@@ -177,19 +177,15 @@ namespace ButtonManager
 			delete *it;
 		for (auto it = m_controllers.begin(); it != m_controllers.end(); ++it)
 			delete it->second;
+		m_controllers.clear();
+		m_buttons.clear();
 	}
 
 	void DrawButtons()
 	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		for(auto it = m_buttons.begin(); it != m_buttons.end(); ++it)
-			DrawButton((*it)->GetTexture(), (*it)->GetCoords());	
-
-		glDisable(GL_BLEND);
+		// XXX: Make platform specific drawing
 	}
-	
+
 	// InputDevice
 	void InputDevice::PressEvent(int button, int action)
 	{
@@ -216,8 +212,8 @@ namespace ButtonManager
 			return 0.0f;
 		if (it->second->m_bindtype == BIND_BUTTON)
 			return ButtonValue(axis);
-		else		
+		else
 			return m_axises[it->second->m_bind] * it->second->m_neg;
 	}
-	
+
 }

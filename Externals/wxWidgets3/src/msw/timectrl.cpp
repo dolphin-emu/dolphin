@@ -3,7 +3,6 @@
 // Purpose:     wxTimePickerCtrl implementation
 // Author:      Vadim Zeitlin
 // Created:     2005-01-09
-// RCS-ID:      $Id: timectrl.cpp 69308 2011-10-04 17:03:28Z VZ $
 // Copyright:   (c) 2005 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

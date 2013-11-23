@@ -88,6 +88,9 @@ struct SCoreStartupParameter
 
 	// Settings
 	bool bEnableDebugging;
+	#ifdef USE_GDBSTUB
+	int  iGDBPort;
+	#endif
 	bool bAutomaticStart;
 	bool bBootToPause;
 
@@ -108,7 +111,6 @@ struct SCoreStartupParameter
 	bool bJITPairedOff;
 	bool bJITSystemRegistersOff;
 	bool bJITBranchOff;
-	bool bJITProfiledReJIT;
 	bool bJITILTimeProfiling;
 	bool bJITILOutputIR;
 
@@ -134,7 +136,7 @@ struct SCoreStartupParameter
 
 	bool bMMU;
 	bool bDCBZOFF;
-	int iTLBHack;
+	bool bTLBHack;
 	int iBBDumpPort;
 	bool bVBeamSpeedHack;
 	bool bSyncGPU;
@@ -194,8 +196,11 @@ struct SCoreStartupParameter
 	std::string m_strDVDRoot;
 	std::string m_strApploader;
 	std::string m_strUniqueID;
+	std::string m_strRevisionSpecificUniqueID;
 	std::string m_strName;
-	std::string m_strGameIni;
+	std::string m_strGameIniDefault;
+	std::string m_strGameIniDefaultRevisionSpecific;
+	std::string m_strGameIniLocal;
 
 	// Constructor just calls LoadDefaults
 	SCoreStartupParameter();
@@ -204,6 +209,9 @@ struct SCoreStartupParameter
 	bool AutoSetup(EBootBS2 _BootBS2);
 	const std::string &GetUniqueID() const { return m_strUniqueID; }
 	void CheckMemcardPath(std::string& memcardPath, std::string Region, bool isSlotA);
+	IniFile LoadDefaultGameIni() const;
+	IniFile LoadLocalGameIni() const;
+	IniFile LoadGameIni() const;
 };
 
 #endif

@@ -3,7 +3,6 @@
 // Purpose:     wxConvAuto class declaration
 // Author:      Vadim Zeitlin
 // Created:     2006-04-03
-// RCS-ID:      $Id: convauto.h 69675 2011-11-05 11:23:41Z VZ $
 // Copyright:   (c) 2006 Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

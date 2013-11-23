@@ -3,7 +3,6 @@
 // Purpose:     implementation of wxHeaderCtrlBase
 // Author:      Vadim Zeitlin
 // Created:     2008-12-02
-// RCS-ID:      $Id: headerctrlcmn.cpp 70338 2012-01-14 16:51:57Z VS $
 // Copyright:   (c) 2008 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -495,23 +494,23 @@ wxHeaderCtrlSimple::UpdateColumnWidthToFit(unsigned int idx, int widthTitle)
 
 IMPLEMENT_DYNAMIC_CLASS(wxHeaderCtrlEvent, wxNotifyEvent)
 
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_CLICK, wxHeaderCtrlEvent);
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_RIGHT_CLICK, wxHeaderCtrlEvent);
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_MIDDLE_CLICK, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_CLICK, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_RIGHT_CLICK, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_MIDDLE_CLICK, wxHeaderCtrlEvent);
 
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_DCLICK, wxHeaderCtrlEvent);
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_RIGHT_DCLICK, wxHeaderCtrlEvent);
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_MIDDLE_DCLICK, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_DCLICK, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_RIGHT_DCLICK, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_MIDDLE_DCLICK, wxHeaderCtrlEvent);
 
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_SEPARATOR_DCLICK, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_SEPARATOR_DCLICK, wxHeaderCtrlEvent);
 
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_BEGIN_RESIZE, wxHeaderCtrlEvent);
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_RESIZING, wxHeaderCtrlEvent);
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_END_RESIZE, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_BEGIN_RESIZE, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_RESIZING, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_END_RESIZE, wxHeaderCtrlEvent);
 
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_BEGIN_REORDER, wxHeaderCtrlEvent);
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_END_REORDER, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_BEGIN_REORDER, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_END_REORDER, wxHeaderCtrlEvent);
 
-wxDEFINE_EVENT( wxEVT_COMMAND_HEADER_DRAGGING_CANCELLED, wxHeaderCtrlEvent);
+wxDEFINE_EVENT( wxEVT_HEADER_DRAGGING_CANCELLED, wxHeaderCtrlEvent);
 
 #endif // wxUSE_HEADERCTRL

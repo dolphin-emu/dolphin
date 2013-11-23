@@ -36,32 +36,8 @@ static Matrix33 s_viewInvRotationMatrix;
 static float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
 
-void UpdateViewport(Matrix44& vpCorrection);
-
-void UpdateViewportWithCorrection()
-{
-	UpdateViewport(s_viewportCorrection);
-}
-
-inline void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
-{
-	g_renderer->SetVSConstant4f(const_number, f1, f2, f3, f4);
-}
-
-inline void SetVSConstant4fv(unsigned int const_number, const float *f)
-{
-	g_renderer->SetVSConstant4fv(const_number, f);
-}
-
-inline void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
-{
-	g_renderer->SetMultiVSConstant3fv(const_number, count, f);
-}
-
-inline void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
-{
-	g_renderer->SetMultiVSConstant4fv(const_number, count, f);
-}
+VertexShaderConstants VertexShaderManager::constants;
+bool VertexShaderManager::dirty;
 
 struct ProjectionHack
 {
@@ -147,12 +123,65 @@ void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
 	g_ProjHack3 = bProjHack3;
 }
 
+
+// Viewport correction:
+// In D3D, the viewport rectangle must fit within the render target.
+// Say you want a viewport at (ix, iy) with size (iw, ih),
+// but your viewport must be clamped at (ax, ay) with size (aw, ah).
+// Just multiply the projection matrix with the following to get the same
+// effect:
+// [   (iw/aw)         0     0    ((iw - 2*(ax-ix)) / aw - 1)   ]
+// [         0   (ih/ah)     0   ((-ih + 2*(ay-iy)) / ah + 1)   ]
+// [         0         0     1                              0   ]
+// [         0         0     0                              1   ]
+static void ViewportCorrectionMatrix(Matrix44& result)
+{
+	int scissorXOff = bpmem.scissorOffset.x * 2;
+	int scissorYOff = bpmem.scissorOffset.y * 2;
+
+	// TODO: ceil, floor or just cast to int?
+	// TODO: Directly use the floats instead of rounding them?
+	float intendedX = xfregs.viewport.xOrig - xfregs.viewport.wd - scissorXOff;
+	float intendedY = xfregs.viewport.yOrig + xfregs.viewport.ht - scissorYOff;
+	float intendedWd = 2.0f * xfregs.viewport.wd;
+	float intendedHt = -2.0f * xfregs.viewport.ht;
+	
+        if (intendedWd < 0.f)
+        {
+                intendedX += intendedWd;
+                intendedWd = -intendedWd;
+        }
+        if (intendedHt < 0.f)
+        {
+                intendedY += intendedHt;
+                intendedHt = -intendedHt;
+        }
+
+	// fit to EFB size
+        float X = (intendedX >= 0.f) ? intendedX : 0.f;
+        float Y = (intendedY >= 0.f) ? intendedY : 0.f;
+        float Wd = (X + intendedWd <= EFB_WIDTH) ? intendedWd : (EFB_WIDTH - X);
+        float Ht = (Y + intendedHt <= EFB_HEIGHT) ? intendedHt : (EFB_HEIGHT - Y);
+	
+	Matrix44::LoadIdentity(result);
+	if (Wd == 0 || Ht == 0)
+		return;
+	
+	result.data[4*0+0] = intendedWd / Wd;
+	result.data[4*0+3] = (intendedWd - 2.f * (X - intendedX)) / Wd - 1.f;
+	result.data[4*1+1] = intendedHt / Ht;
+	result.data[4*1+3] = (-intendedHt + 2.f * (Y - intendedY)) / Ht + 1.f;
+}
+
+void UpdateViewport();
+
 void VertexShaderManager::Init()
 {
 	Dirty();
 
 	memset(&xfregs, 0, sizeof(xfregs));
 	memset(xfmem, 0, sizeof(xfmem));
+	memset(&constants, 0 , sizeof(constants));
 	ResetView();
 
 	// TODO: should these go inside ResetView()?
@@ -168,16 +197,16 @@ void VertexShaderManager::Shutdown()
 
 void VertexShaderManager::Dirty()
 {
-	nTransformMatricesChanged[0] = 0; 
+	nTransformMatricesChanged[0] = 0;
 	nTransformMatricesChanged[1] = 256;
 
 	nNormalMatricesChanged[0] = 0;
 	nNormalMatricesChanged[1] = 96;
 
-	nPostTransformMatricesChanged[0] = 0; 
+	nPostTransformMatricesChanged[0] = 0;
 	nPostTransformMatricesChanged[1] = 256;
 
-	nLightsChanged[0] = 0; 
+	nLightsChanged[0] = 0;
 	nLightsChanged[1] = 0x80;
 
 	bPosNormalMatrixChanged = true;
@@ -187,21 +216,20 @@ void VertexShaderManager::Dirty()
 	bProjectionChanged = true;
 
 	nMaterialsChanged = 15;
+
+	dirty = true;
 }
 
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matrices without making a mess in the parameters field
 void VertexShaderManager::SetConstants()
 {
-	if (g_ActiveConfig.backend_info.APIType == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		Dirty();
-
 	if (nTransformMatricesChanged[0] >= 0)
 	{
 		int startn = nTransformMatricesChanged[0] / 4;
 		int endn = (nTransformMatricesChanged[1] + 3) / 4;
-		const float* pstart = (const float*)&xfmem[startn * 4];
-		SetMultiVSConstant4fv(C_TRANSFORMMATRICES + startn, endn - startn, pstart);
+		memcpy(constants.transformmatrices[startn], &xfmem[startn * 4], (endn - startn) * 16);
+		dirty = true;
 		nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
 	}
 
@@ -209,8 +237,11 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nNormalMatricesChanged[0] / 3;
 		int endn = (nNormalMatricesChanged[1] + 2) / 3;
-		const float *pnstart = (const float*)&xfmem[XFMEM_NORMALMATRICES+3*startn];
-		SetMultiVSConstant3fv(C_NORMALMATRICES + startn, endn - startn, pnstart);
+		for(int i=startn; i<endn; i++)
+		{
+			memcpy(constants.normalmatrices[i], &xfmem[XFMEM_NORMALMATRICES + 3*i], 12);
+		}
+		dirty = true;
 		nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
 	}
 
@@ -218,8 +249,8 @@ void VertexShaderManager::SetConstants()
 	{
 		int startn = nPostTransformMatricesChanged[0] / 4;
 		int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
-		const float* pstart = (const float*)&xfmem[XFMEM_POSTMATRICES + startn * 4];
-		SetMultiVSConstant4fv(C_POSTTRANSFORMMATRICES + startn, endn - startn, pstart);
+		memcpy(constants.posttransformmatrices[startn], &xfmem[XFMEM_POSTMATRICES + startn * 4], (endn - startn) * 16);
+		dirty = true;
 		nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
 	}
 
@@ -233,12 +264,10 @@ void VertexShaderManager::SetConstants()
 		for (int i = istart; i < iend; ++i)
 		{
 			u32 color = *(const u32*)(xfmemptr + 3);
-			float NormalizationCoef = 1 / 255.0f;
-			SetVSConstant4f(C_LIGHTS + 5 * i,
-				((color >> 24) & 0xFF) * NormalizationCoef,
-				((color >> 16) & 0xFF) * NormalizationCoef,
-				((color >> 8)  & 0xFF) * NormalizationCoef,
-				((color)       & 0xFF) * NormalizationCoef);
+			constants.lights[5*i][0] = ((color >> 24) & 0xFF) / 255.0f;
+			constants.lights[5*i][1] = ((color >> 16) & 0xFF) / 255.0f;
+			constants.lights[5*i][2] = ((color >> 8)  & 0xFF) / 255.0f;
+			constants.lights[5*i][3] = ((color)       & 0xFF) / 255.0f;
 			xfmemptr += 4;
 
 			for (int j = 0; j < 4; ++j, xfmemptr += 3)
@@ -249,52 +278,45 @@ void VertexShaderManager::SetConstants()
 					fabs(xfmemptr[2]) < 0.00001f)
 				{
 					// dist attenuation, make sure not equal to 0!!!
-					SetVSConstant4f(C_LIGHTS+5*i+j+1, 0.00001f, xfmemptr[1], xfmemptr[2], 0);
+					constants.lights[5*i+j+1][0] = 0.00001f;
 				}
 				else
-				{
-					SetVSConstant4fv(C_LIGHTS+5*i+j+1, xfmemptr);
-				}
+					constants.lights[5*i+j+1][0] = xfmemptr[0];
+				constants.lights[5*i+j+1][1] = xfmemptr[1];
+				constants.lights[5*i+j+1][2] = xfmemptr[2];
 			}
 		}
+		dirty = true;
 
 		nLightsChanged[0] = nLightsChanged[1] = -1;
 	}
 
 	if (nMaterialsChanged)
 	{
-		float GC_ALIGNED16(material[4]);
-		float NormalizationCoef = 1 / 255.0f;
-
 		for (int i = 0; i < 2; ++i)
 		{
 			if (nMaterialsChanged & (1 << i))
 			{
 				u32 data = *(xfregs.ambColor + i);
-
-				material[0] = ((data >> 24) & 0xFF) * NormalizationCoef;
-				material[1] = ((data >> 16) & 0xFF) * NormalizationCoef;
-				material[2] = ((data >>  8) & 0xFF) * NormalizationCoef;
-				material[3] = ( data        & 0xFF) * NormalizationCoef;
-
-				SetVSConstant4fv(C_MATERIALS + i, material);
+				constants.materials[i][0] = ((data >> 24) & 0xFF) / 255.0f;
+				constants.materials[i][1] = ((data >> 16) & 0xFF) / 255.0f;
+				constants.materials[i][2] = ((data >>  8) & 0xFF) / 255.0f;
+				constants.materials[i][3] = ( data        & 0xFF) / 255.0f;
 			}
 		}
-		
+
 		for (int i = 0; i < 2; ++i)
 		{
 			if (nMaterialsChanged & (1 << (i + 2)))
 			{
 				u32 data = *(xfregs.matColor + i);
-
-				material[0] = ((data >> 24) & 0xFF) * NormalizationCoef;
-				material[1] = ((data >> 16) & 0xFF) * NormalizationCoef;
-				material[2] = ((data >>  8) & 0xFF) * NormalizationCoef;
-				material[3] = ( data        & 0xFF) * NormalizationCoef;
-
-				SetVSConstant4fv(C_MATERIALS + i + 2, material);
+				constants.materials[i+2][0] = ((data >> 24) & 0xFF) / 255.0f;
+				constants.materials[i+2][1] = ((data >> 16) & 0xFF) / 255.0f;
+				constants.materials[i+2][2] = ((data >>  8) & 0xFF) / 255.0f;
+				constants.materials[i+2][3] = ( data        & 0xFF) / 255.0f;
 			}
 		}
+		dirty = true;
 
 		nMaterialsChanged = 0;
 	}
@@ -306,14 +328,17 @@ void VertexShaderManager::SetConstants()
 		const float *pos = (const float *)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
 		const float *norm = (const float *)xfmem + XFMEM_NORMALMATRICES + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
 
-		SetMultiVSConstant4fv(C_POSNORMALMATRIX, 3, pos);
-		SetMultiVSConstant3fv(C_POSNORMALMATRIX + 3, 3, norm);
+		memcpy(constants.posnormalmatrix, pos, 3*16);
+		memcpy(constants.posnormalmatrix[3], norm, 12);
+		memcpy(constants.posnormalmatrix[4], norm+3, 12);
+		memcpy(constants.posnormalmatrix[5], norm+6, 12);
+		dirty = true;
 	}
 
 	if (bTexMatricesChanged[0])
 	{
 		bTexMatricesChanged[0] = false;
-		const float *fptrs[] = 
+		const float *fptrs[] =
 		{
 			(const float *)xfmem + MatrixIndexA.Tex0MtxIdx * 4, (const float *)xfmem + MatrixIndexA.Tex1MtxIdx * 4,
 			(const float *)xfmem + MatrixIndexA.Tex2MtxIdx * 4, (const float *)xfmem + MatrixIndexA.Tex3MtxIdx * 4
@@ -321,8 +346,9 @@ void VertexShaderManager::SetConstants()
 
 		for (int i = 0; i < 4; ++i)
 		{
-			SetMultiVSConstant4fv(C_TEXMATRICES + 3 * i, 3, fptrs[i]);
+			memcpy(constants.texmatrices[3*i], fptrs[i], 3*16);
 		}
+		dirty = true;
 	}
 
 	if (bTexMatricesChanged[1])
@@ -335,27 +361,32 @@ void VertexShaderManager::SetConstants()
 
 		for (int i = 0; i < 4; ++i)
 		{
-			SetMultiVSConstant4fv(C_TEXMATRICES+3 * i + 12, 3, fptrs[i]);
+			memcpy(constants.texmatrices[3*i+12], fptrs[i], 3*16);
 		}
+		dirty = true;
 	}
 
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
-		SetVSConstant4f(C_DEPTHPARAMS,
-						xfregs.viewport.farZ / 16777216.0f,
-						xfregs.viewport.zRange / 16777216.0f,
-						-1.f / (float)g_renderer->EFBToScaledX((int)ceil(2.0f * xfregs.viewport.wd)),
-						1.f / (float)g_renderer->EFBToScaledY((int)ceil(-2.0f * xfregs.viewport.ht)));
+		constants.depthparams[0] = xfregs.viewport.farZ / 16777216.0f;
+		constants.depthparams[1] = xfregs.viewport.zRange / 16777216.0f;
+		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
-		UpdateViewport(s_viewportCorrection);
-		bProjectionChanged = true;
+		UpdateViewport();
+		
+		// Update projection if the viewport isn't 1:1 useable
+		if(!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
+		{
+			ViewportCorrectionMatrix(s_viewportCorrection);
+			bProjectionChanged = true;			
+		}
 	}
 
 	if (bProjectionChanged)
 	{
 		bProjectionChanged = false;
-		
+
 		float *rawProjection = xfregs.projection.rawProjection;
 
 		switch(xfregs.projection.type)
@@ -475,8 +506,7 @@ void VertexShaderManager::SetConstants()
 			Matrix44::Set(mtxB, g_fProjectionMatrix);
 			Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
 			Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB); // mtxB = viewportCorrection x mtxA
-
-			SetMultiVSConstant4fv(C_PROJECTION, 4, mtxB.data);
+			memcpy(constants.projection, mtxB.data, 4*16);
 		}
 		else
 		{
@@ -485,8 +515,9 @@ void VertexShaderManager::SetConstants()
 
 			Matrix44 correctedMtx;
 			Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-			SetMultiVSConstant4fv(C_PROJECTION, 4, correctedMtx.data);
+			memcpy(constants.projection, correctedMtx.data, 4*16);
 		}
+		dirty = true;
 	}
 }
 
@@ -614,7 +645,7 @@ void VertexShaderManager::SetProjectionChanged()
 	bProjectionChanged = true;
 }
 
-void VertexShaderManager::SetMaterialColorChanged(int index)
+void VertexShaderManager::SetMaterialColorChanged(int index, u32 color)
 {
 	nMaterialsChanged  |= (1 << index);
 }
@@ -669,6 +700,8 @@ void VertexShaderManager::DoState(PointerWrap &p)
 	p.Do(s_viewInvRotationMatrix);
 	p.Do(s_fViewTranslationVector);
 	p.Do(s_fViewRotation);
+	p.Do(constants);
+	p.Do(dirty);
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{

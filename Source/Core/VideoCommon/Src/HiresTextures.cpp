@@ -27,27 +27,27 @@ void Init(const char *gameCode)
 	char szDir[MAX_PATH];
 	sprintf(szDir, "%s%s", File::GetUserPath(D_HIRESTEXTURES_IDX).c_str(), gameCode);
 	Directories.push_back(std::string(szDir));
-	
+
 
 	for (u32 i = 0; i < Directories.size(); i++)
 	{
 		File::FSTEntry FST_Temp;
 		File::ScanDirectoryTree(Directories[i], FST_Temp);
-		for (u32 j = 0; j < FST_Temp.children.size(); j++)
+		for (auto& entry : FST_Temp.children)
 		{
-			if (FST_Temp.children.at(j).isDirectory)
+			if (entry.isDirectory)
 			{
 				bool duplicate = false;
-				for (u32 k = 0; k < Directories.size(); k++)
+				for (auto& Directory : Directories)
 				{
-					if (strcmp(Directories[k].c_str(), FST_Temp.children.at(j).physicalName.c_str()) == 0)
+					if (strcmp(Directory.c_str(), entry.physicalName.c_str()) == 0)
 					{
 						duplicate = true;
 						break;
 					}
 				}
 				if (!duplicate)
-					Directories.push_back(FST_Temp.children.at(j).physicalName.c_str());
+					Directories.push_back(entry.physicalName.c_str());
 			}
 		}
 	}
@@ -66,13 +66,13 @@ void Init(const char *gameCode)
 
 	if (rFilenames.size() > 0)
 	{
-		for (u32 i = 0; i < rFilenames.size(); i++)
+		for (auto& rFilename : rFilenames)
 		{
 			std::string FileName;
-			SplitPath(rFilenames[i], NULL, &FileName, NULL);
+			SplitPath(rFilename, NULL, &FileName, NULL);
 
 			if (FileName.substr(0, strlen(code)).compare(code) == 0 && textureMap.find(FileName) == textureMap.end())
-				textureMap.insert(std::map<std::string, std::string>::value_type(FileName, rFilenames[i]));
+				textureMap.insert(std::map<std::string, std::string>::value_type(FileName, rFilename));
 		}
 	}
 }

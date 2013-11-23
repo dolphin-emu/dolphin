@@ -3,7 +3,6 @@
 // Purpose:     implements dispatcher for select() call
 // Author:      Lukasz Michalski and Vadim Zeitlin
 // Created:     December 2006
-// RCS-ID:      $Id: selectdispatcher.cpp 66076 2010-11-09 23:53:33Z VZ $
 // Copyright:   (c) 2006 Lukasz Michalski
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

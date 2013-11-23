@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: button.cpp 69984 2011-12-11 17:03:56Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -192,16 +191,25 @@ wxSize wxButtonBase::GetDefaultSize()
 // ----------------------------------------------------------------------------
 
 /*
-   The comment below and all this code is probably due to not using WM_NEXTDLGCTL
-   message when changing focus (but just SetFocus() which is not enough), see
-   http://blogs.msdn.com/oldnewthing/archive/2004/08/02/205624.aspx for the
-   full explanation.
+   In normal Windows programs there is no need to handle default button
+   manually because this is taken care by the system provided you use
+   WM_NEXTDLGCTL and not just SetFocus() to switch focus betweeh the controls
+   (see http://blogs.msdn.com/oldnewthing/archive/2004/08/02/205624.aspx for
+   the full explanation why just calling SetFocus() is not enough).
 
-   TODO: Do use WM_NEXTDLGCTL and get rid of all this code.
+   However this only works if the window is a dialog, i.e. uses DefDlgProc(),
+   but not with plain windows using DefWindowProc() and we do want to have
+   default buttons inside frames as well, so we're forced to reimplement all
+   this logic ourselves. It would be great to avoid having to do this but using
+   DefDlgProc() for all the windows would almost certainly result in more
+   problems, we'd need to carefully filter messages and pass some of them to
+   DefWindowProc() and some of them to DefDlgProc() which looks dangerous (what
+   if the handling of some message changes in some Windows version?), so doing
+   this ourselves is probably a lesser evil.
 
+   Read the rest to learn everything you ever wanted to know about the default
+   buttons but were afraid to ask.
 
-   "Everything you ever wanted to know about the default buttons" or "Why do we
-   have to do all this?"
 
    In MSW the default button should be activated when the user presses Enter
    and the current control doesn't process Enter itself somehow. This is
@@ -223,14 +231,6 @@ wxSize wxButtonBase::GetDefaultSize()
    to it. When the button loses focus, it unsets the temporary default and so
    the default item will be the permanent default -- that is the default button
    if any had been set or none otherwise, which is just what we want.
-
-   NB: all this is quite complicated by now and the worst is that normally
-       it shouldn't be necessary at all as for the normal Windows programs
-       DefWindowProc() and IsDialogMessage() take care of all this
-       automatically -- however in wxWidgets programs this doesn't work for
-       nested hierarchies (i.e. a notebook inside a notebook) for unknown
-       reason and so we have to reproduce all this code ourselves. It would be
-       very nice if we could avoid doing it.
  */
 
 // set this button as the (permanently) default one in its panel
@@ -277,7 +277,7 @@ static wxTopLevelWindow *GetTLWParentIfNotBeingDeleted(wxWindow *win)
 // set this button as being currently default
 void wxButton::SetTmpDefault()
 {
-    wxTopLevelWindow * const tlw = GetTLWParentIfNotBeingDeleted(GetParent());
+    wxTopLevelWindow * const tlw = GetTLWParentIfNotBeingDeleted(this);
     if ( !tlw )
         return;
 
@@ -291,7 +291,7 @@ void wxButton::SetTmpDefault()
 // unset this button as currently default, it may still stay permanent default
 void wxButton::UnsetTmpDefault()
 {
-    wxTopLevelWindow * const tlw = GetTLWParentIfNotBeingDeleted(GetParent());
+    wxTopLevelWindow * const tlw = GetTLWParentIfNotBeingDeleted(this);
     if ( !tlw )
         return;
 
@@ -359,7 +359,7 @@ wxButton::SetDefaultStyle(wxButton *btn, bool on)
 
 bool wxButton::SendClickEvent()
 {
-    wxCommandEvent event(wxEVT_COMMAND_BUTTON_CLICKED, GetId());
+    wxCommandEvent event(wxEVT_BUTTON, GetId());
     event.SetEventObject(this);
 
     return ProcessCommand(event);

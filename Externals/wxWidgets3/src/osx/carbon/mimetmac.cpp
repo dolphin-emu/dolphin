@@ -4,7 +4,6 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     04/16/2005
-// RCS-ID:      $Id: mimetmac.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2005 Ryan Norton (<wxprojects@comcast.net>)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -630,7 +629,7 @@ void wxMimeTypesManagerImpl::ClearData()
 
 //
 //  Q) Iterating through the map - why does it use if (err == noErr) instead of just asserting?
-//  A) Some intermediate indexes are bad while subsequent ones may be good.  Its wierd, I know.
+//  A) Some intermediate indexes are bad while subsequent ones may be good.  Its weird, I know.
 //
 
 // extension -> file type

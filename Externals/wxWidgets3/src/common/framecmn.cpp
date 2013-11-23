@@ -3,7 +3,6 @@
 // Purpose:     common (for all platforms) wxFrame functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Created:     01/02/97
-// Id:          $Id: framecmn.cpp 69101 2011-09-16 13:23:14Z VZ $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -26,6 +25,7 @@
 #include "wx/frame.h"
 
 #ifndef WX_PRECOMP
+    #include "wx/app.h"
     #include "wx/menu.h"
     #include "wx/menuitem.h"
     #include "wx/dcclient.h"
@@ -40,16 +40,34 @@ extern WXDLLEXPORT_DATA(const char) wxStatusLineNameStr[] = "status_line";
 // event table
 // ----------------------------------------------------------------------------
 
-#if wxUSE_MENUS && wxUSE_STATUSBAR
+#if wxUSE_MENUS
 
+#if wxUSE_STATUSBAR
 BEGIN_EVENT_TABLE(wxFrameBase, wxTopLevelWindow)
     EVT_MENU_OPEN(wxFrameBase::OnMenuOpen)
     EVT_MENU_CLOSE(wxFrameBase::OnMenuClose)
 
     EVT_MENU_HIGHLIGHT_ALL(wxFrameBase::OnMenuHighlight)
 END_EVENT_TABLE()
+#endif // wxUSE_STATUSBAR
 
-#endif // wxUSE_MENUS && wxUSE_STATUSBAR
+/* static */
+bool wxFrameBase::ShouldUpdateMenuFromIdle()
+{
+    // Usually this is determined at compile time and is determined by whether
+    // the platform supports wxEVT_MENU_OPEN, however in wxGTK we need to also
+    // check if we're using the global menu bar as we don't get EVT_MENU_OPEN
+    // for it and need to fall back to idle time updating even if normally
+    // wxUSE_IDLEMENUUPDATES is set to 0 for wxGTK.
+#ifdef __WXGTK20__
+    if ( wxApp::GTKIsUsingGlobalMenu() )
+        return true;
+#endif // !__WXGTK__
+
+    return wxUSE_IDLEMENUUPDATES != 0;
+}
+
+#endif // wxUSE_MENUS
 
 // ============================================================================
 // implementation
@@ -112,15 +130,17 @@ wxEND_FLAGS( wxFrameStyle )
 wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxFrame, wxTopLevelWindow, "wx/frame.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxFrame)
-wxEVENT_PROPERTY( Menu, wxEVT_COMMAND_MENU_SELECTED, wxCommandEvent)
+wxEVENT_PROPERTY( Menu, wxEVT_MENU, wxCommandEvent)
 
 wxPROPERTY( Title,wxString, SetTitle, GetTitle, wxString(), 0 /*flags*/, \
            wxT("Helpstring"), wxT("group"))
 wxPROPERTY_FLAGS( WindowStyle, wxFrameStyle, long, SetWindowStyleFlag, \
                  GetWindowStyleFlag, wxEMPTY_PARAMETER_VALUE, 0 /*flags*/, \
                  wxT("Helpstring"), wxT("group")) // style
+#if wxUSE_MENUS
 wxPROPERTY( MenuBar, wxMenuBar *, SetMenuBar, GetMenuBar, wxEMPTY_PARAMETER_VALUE, \
            0 /*flags*/, wxT("Helpstring"), wxT("group"))
+#endif
 wxEND_PROPERTIES_TABLE()
 
 wxEMPTY_HANDLERS_TABLE(wxFrame)
@@ -242,11 +262,7 @@ wxPoint wxFrameBase::GetClientAreaOrigin() const
 
 bool wxFrameBase::ProcessCommand(int id)
 {
-    wxMenuBar *bar = GetMenuBar();
-    if ( !bar )
-        return false;
-
-    wxMenuItem *item = bar->FindItem(id);
+    wxMenuItem* const item = FindItemInMenuBar(id);
     if ( !item )
         return false;
 
@@ -255,8 +271,7 @@ bool wxFrameBase::ProcessCommand(int id)
 
 bool wxFrameBase::ProcessCommand(wxMenuItem *item)
 {
-    wxCommandEvent commandEvent(wxEVT_COMMAND_MENU_SELECTED, item->GetId());
-    commandEvent.SetEventObject(this);
+    wxCHECK_MSG( item, false, wxS("Menu item can't be NULL") );
 
     if (!item->IsEnabled())
         return true;
@@ -264,19 +279,23 @@ bool wxFrameBase::ProcessCommand(wxMenuItem *item)
     if ((item->GetKind() == wxITEM_RADIO) && item->IsChecked() )
         return true;
 
+    int checked;
     if (item->IsCheckable())
     {
         item->Toggle();
 
         // use the new value
-        commandEvent.SetInt(item->IsChecked());
+        checked = item->IsChecked();
     }
     else // Uncheckable item.
     {
-        commandEvent.SetInt(-1);
+        checked = -1;
     }
 
-    return HandleWindowEvent(commandEvent);
+    wxMenu* const menu = item->GetMenu();
+    wxCHECK_MSG( menu, false, wxS("Menu item should be attached to a menu") );
+
+    return menu->SendEvent(item->GetId(), checked);
 }
 
 #endif // wxUSE_MENUS
@@ -299,9 +318,7 @@ void wxFrameBase::UpdateWindowUI(long flags)
         // If coming from an idle event, we only want to update the menus if
         // we're in the wxUSE_IDLEMENUUPDATES configuration, otherwise they
         // will be update when the menu is opened later
-#if !wxUSE_IDLEMENUUPDATES
-        if ( !(flags & wxUPDATE_UI_FROMIDLE) )
-#endif // wxUSE_IDLEMENUUPDATES
+        if ( !(flags & wxUPDATE_UI_FROMIDLE) || ShouldUpdateMenuFromIdle() )
             DoMenuUpdates();
     }
 #endif // wxUSE_MENUS
@@ -322,12 +339,11 @@ void wxFrameBase::OnMenuHighlight(wxMenuEvent& event)
 
 void wxFrameBase::OnMenuOpen(wxMenuEvent& event)
 {
-#if wxUSE_IDLEMENUUPDATES
-    wxUnusedVar(event);
-#else // !wxUSE_IDLEMENUUPDATES
-    // as we didn't update the menus from idle time, do it now
-    DoMenuUpdates(event.GetMenu());
-#endif // wxUSE_IDLEMENUUPDATES/!wxUSE_IDLEMENUUPDATES
+    if ( !ShouldUpdateMenuFromIdle() )
+    {
+        // as we didn't update the menus from idle time, do it now
+        DoMenuUpdates(event.GetMenu());
+    }
 }
 
 void wxFrameBase::OnMenuClose(wxMenuEvent& WXUNUSED(event))
@@ -342,8 +358,8 @@ void wxFrameBase::OnInternalIdle()
 {
     wxTopLevelWindow::OnInternalIdle();
 
-#if wxUSE_MENUS && wxUSE_IDLEMENUUPDATES
-    if (wxUpdateUIEvent::CanUpdate(this))
+#if wxUSE_MENUS
+    if ( ShouldUpdateMenuFromIdle() && wxUpdateUIEvent::CanUpdate(this) )
         DoMenuUpdates();
 #endif
 }
@@ -545,7 +561,7 @@ wxToolBar* wxFrameBase::CreateToolBar(long style,
         //      a) this allows us to have different defaults for different
         //         platforms (even if we don't have them right now)
         //      b) we don't need to include wx/toolbar.h in the header then
-        style = wxBORDER_NONE | wxTB_HORIZONTAL | wxTB_FLAT;
+        style = wxTB_DEFAULT_STYLE;
     }
 
     SetToolBar(OnCreateToolBar(style, id, name));

@@ -3,17 +3,13 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
-#include "Atomic.h"
 #include "MathUtil.h"
 
-#include "../../HW/Memmap.h"
-
 #include "Interpreter.h"
-#include "../../Core.h"
+#include "Interpreter_FPUtils.h"
 
 #include "../JitInterface.h"
 
-#include "Interpreter_FPUtils.h"
 
 bool Interpreter::g_bReserve;
 u32  Interpreter::g_reserveAddr;
@@ -218,7 +214,7 @@ void Interpreter::stmw(UGeckoInstruction _inst)
 }
 
 void Interpreter::lwz(UGeckoInstruction _inst)
-{ 
+{
 	u32 uAddress = Helper_Get_EA(_inst);
 	u32 temp = Memory::Read_U32(uAddress);
 	if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
@@ -293,8 +289,8 @@ void Interpreter::stfs(UGeckoInstruction _inst)
 }
 
 void Interpreter::stfsu(UGeckoInstruction _inst)
-{	
-	u32 uAddress = Helper_Get_EA_U(_inst);	
+{
+	u32 uAddress = Helper_Get_EA_U(_inst);
 	Memory::Write_U32(ConvertToSingle(riPS0(_inst.FS)), uAddress);
 	if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
 	{
@@ -344,7 +340,7 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 /*	u32 tmp1 = Memory::Read_U32(PC+4);
 	u32 tmp2 = Memory::Read_U32(PC+8);
 
-	if ((tmp1 == 0x38630020) && 
+	if ((tmp1 == 0x38630020) &&
 		(tmp2 == 0x4200fff8))
 	{
 		NPC = PC + 12;
@@ -428,7 +424,7 @@ void Interpreter::ecowx(UGeckoInstruction _inst)
 	}
 	if (EA & 3)
 		Common::AtomicOr(PowerPC::ppcState.Exceptions, EXCEPTION_ALIGNMENT);
-	
+
 // 	_assert_msg_(POWERPC,0,"ecowx - send stw request (%08x@%08x) to device %02x",
 // 		m_GPR[_inst.RS], EA, PowerPC::ppcState.spr[SPR_EAR] & 0x1f);
 
@@ -445,7 +441,7 @@ void Interpreter::eieio(UGeckoInstruction _inst)
 
 void Interpreter::icbi(UGeckoInstruction _inst)
 {
-	u32 address = Helper_Get_EA_X(_inst);	
+	u32 address = Helper_Get_EA_X(_inst);
 	PowerPC::ppcState.iCache.Invalidate(address);
 }
 
@@ -495,7 +491,7 @@ void Interpreter::lhbrx(UGeckoInstruction _inst)
 	if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
 	{
 		m_GPR[_inst.RD] = temp;
-	}	
+	}
 }
 
 void Interpreter::lhzux(UGeckoInstruction _inst)
@@ -627,8 +623,8 @@ void Interpreter::stfiwx(UGeckoInstruction _inst)
 
 
 void Interpreter::stfsux(UGeckoInstruction _inst)
-{	
-	u32 uAddress = Helper_Get_EA_UX(_inst);	
+{
+	u32 uAddress = Helper_Get_EA_UX(_inst);
 	Memory::Write_U32(ConvertToSingle(riPS0(_inst.FS)), uAddress);
 	if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
 	{
@@ -637,7 +633,7 @@ void Interpreter::stfsux(UGeckoInstruction _inst)
 }
 
 void Interpreter::stfsx(UGeckoInstruction _inst)
-{	
+{
 	Memory::Write_U32(ConvertToSingle(riPS0(_inst.FS)), Helper_Get_EA_X(_inst));
 }
 
@@ -837,7 +833,7 @@ void Interpreter::tlbia(UGeckoInstruction _inst)
 {
 	// Gekko does not support this instructions.
 	PanicAlert("The GC CPU does not support tlbia");
-	// invalid the whole TLB 
+	// invalid the whole TLB
 	//MessageBox(0,"TLBIA","TLBIA",0);
 }
 

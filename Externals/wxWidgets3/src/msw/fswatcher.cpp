@@ -3,7 +3,6 @@
 // Purpose:     wxMSWFileSystemWatcher
 // Author:      Bartosz Bekier
 // Created:     2009-05-26
-// RCS-ID:      $Id: fswatcher.cpp 67693 2011-05-03 23:31:39Z VZ $
 // Copyright:   (c) 2009 Bartosz Bekier <bartosz.bekier@gmail.com>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -136,7 +135,7 @@ void wxFSWatcherImplMSW::SendEvent(wxFileSystemWatcherEvent& evt)
 
 bool wxFSWatcherImplMSW::DoSetUpWatch(wxFSWatchEntryMSW& watch)
 {
-    BOOL bWatchSubtree wxDUMMY_INITIALIZE(FALSE);
+    BOOL bWatchSubtree = FALSE;
 
     switch ( watch.GetType() )
     {
@@ -316,8 +315,12 @@ void wxIOCPThread::ProcessNativeEvents(wxVector<wxEventProcessingData>& events)
             // CHECK I heard that returned path can be either in short on long
             // form...need to account for that!
             wxFileName path = GetEventPath(*watch, e);
-            wxFileSystemWatcherEvent event(flags, path, path);
-            SendEvent(event);
+            // For files, check that it matches any filespec
+            if ( m_service->MatchesFilespec(path, watch->GetFilespec()) )
+            {
+                wxFileSystemWatcherEvent event(flags, path, path);
+                SendEvent(event);
+            }
         }
     }
 }
@@ -431,7 +434,7 @@ wxMSWFileSystemWatcher::AddTree(const wxFileName& path,
         return false;
     }
 
-    return DoAdd(path, events, wxFSWPath_Tree);
+    return AddAny(path, events, wxFSWPath_Tree);
 }
 
 #endif // wxUSE_FSWATCHER

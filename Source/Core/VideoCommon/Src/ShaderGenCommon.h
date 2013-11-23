@@ -88,26 +88,18 @@ public:
 
 	bool operator == (const ShaderUid& obj) const
 	{
-		return memcmp(this->values, obj.values, sizeof(values)) == 0;
+		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) == 0;
 	}
 
 	bool operator != (const ShaderUid& obj) const
 	{
-		return memcmp(this->values, obj.values, sizeof(values)) != 0;
+		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) != 0;
 	}
 
 	// determines the storage order inside STL containers
 	bool operator < (const ShaderUid& obj) const
 	{
-		// TODO: Store last frame used and order by that? makes much more sense anyway...
-		for (unsigned int i = 0; i < data.NumValues(); ++i)
-		{
-			if (this->values[i] < obj.values[i])
-				return true;
-			else if (this->values[i] > obj.values[i])
-				return false;
-		}
-		return false;
+		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) < 0;
 	}
 
 	template<class T>
@@ -199,23 +191,6 @@ static inline void DeclareUniform(T& object, API_TYPE api_type, bool using_ubos,
 	object.Write(";\n");
 }
 
-#pragma pack(1)
-/**
- * Common uid data used for shader generators that use lighting calculations.
- */
-struct LightingUidData
-{
-	u32 matsource : 4; // 4x1 bit
-	u32 enablelighting : 4; // 4x1 bit
-	u32 ambsource : 4; // 4x1 bit
-	u32 diffusefunc : 8; // 4x2 bits
-	u32 attnfunc : 8; // 4x2 bits
-	u32 light_mask : 32; // 4x8 bits
-
-	u32 NumValues() const { return sizeof(LightingUidData); }
-};
-#pragma pack()
-
 /**
  * Checks if there has been
  */
@@ -261,7 +236,7 @@ public:
 					u32 value = ((u32*)&new_uid.GetUidData())[i];
 					if ((i % 4) == 0)
 					{
-						unsigned int last_value = (i+3 < new_uid.GetUidDataSize()-1) ? i+3 : new_uid.GetUidDataSize();
+						auto last_value = (i+3 < new_uid.GetUidDataSize()-1) ? i+3 : new_uid.GetUidDataSize();
 						file << std::setfill(' ') << std::dec;
 						file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
 					}
@@ -278,7 +253,7 @@ public:
 			}
 		}
 	}
-	
+
 private:
 	std::map<UidT,std::string> m_shaders;
 	std::vector<UidT> m_uids;

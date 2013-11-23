@@ -28,7 +28,7 @@ static u8 *videoBuffer;
 static int size = 0;
 }  // namespace
 
-void Fifo_DoState(PointerWrap &p) 
+void Fifo_DoState(PointerWrap &p)
 {
 	p.DoArray(videoBuffer, FIFO_SIZE);
 	p.Do(size);
@@ -148,13 +148,13 @@ void RunGpuLoop()
 
 		Common::AtomicStore(CommandProcessor::VITicks, CommandProcessor::m_cpClockOrigin);
 
-		// check if we are able to run this buffer	
+		// check if we are able to run this buffer
 		while (GpuRunningState && !CommandProcessor::interruptWaiting && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint())
 		{
 			fifo.isGpuReadingData = true;
 			CommandProcessor::isPossibleWaitingSetDrawDone = fifo.bFF_GPLinkEnable ? true : false;
 
-			if (Common::AtomicLoad(CommandProcessor::VITicks) > CommandProcessor::m_cpClockOrigin || !Core::g_CoreStartupParameter.bSyncGPU)
+			if (!Core::g_CoreStartupParameter.bSyncGPU || Common::AtomicLoad(CommandProcessor::VITicks) > CommandProcessor::m_cpClockOrigin)
 			{
 				u32 readPtr = fifo.CPReadPointer;
 				u8 *uData = Memory::GetPointer(readPtr);
@@ -171,7 +171,7 @@ void RunGpuLoop()
 
 				cyclesExecuted = OpcodeDecoder_Run(g_bSkipCurrentFrame);
 
-				if (Common::AtomicLoad(CommandProcessor::VITicks) > cyclesExecuted && Core::g_CoreStartupParameter.bSyncGPU)
+				if (Core::g_CoreStartupParameter.bSyncGPU && Common::AtomicLoad(CommandProcessor::VITicks) > cyclesExecuted)
 					Common::AtomicAdd(CommandProcessor::VITicks, -(s32)cyclesExecuted);
 
 				Common::AtomicStore(fifo.CPReadPointer, readPtr);
@@ -181,11 +181,11 @@ void RunGpuLoop()
 			}
 
 			CommandProcessor::SetCpStatus();
-		
+
 			// This call is pretty important in DualCore mode and must be called in the FIFO Loop.
 			// If we don't, s_swapRequested or s_efbAccessRequested won't be set to false
 			// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
-			VideoFifo_CheckAsyncRequest();		
+			VideoFifo_CheckAsyncRequest();
 			CommandProcessor::isPossibleWaitingSetDrawDone = false;
 		}
 

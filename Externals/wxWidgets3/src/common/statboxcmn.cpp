@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: statboxcmn.cpp 66592 2011-01-05 18:27:58Z PC $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -29,6 +28,13 @@
 #include "wx/statbox.h"
 
 extern WXDLLEXPORT_DATA(const char) wxStaticBoxNameStr[] = "groupBox";
+
+wxStaticBoxBase::wxStaticBoxBase()
+{
+#ifndef __WXGTK__
+    m_container.DisableSelfFocus();
+#endif
+}
 
 // ----------------------------------------------------------------------------
 // XTI

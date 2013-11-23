@@ -33,10 +33,12 @@ public:
 	void SetNetSettings(const NetSettings &settings);
 
 	bool StartGame(const std::string &path);
-	bool StopGame();
 
-	bool GetPadMapping(const int pid, int map[]);
-	bool SetPadMapping(const int pid, const int map[]);
+	void GetPadMapping(PadMapping map[]);
+	void SetPadMapping(const PadMapping map[]);
+
+	void GetWiimoteMapping(PadMapping map[]);
+	void SetWiimoteMapping(const PadMapping map[]);
 
 	void AdjustPadBufferSize(unsigned int size);
 
@@ -50,11 +52,8 @@ private:
 	class Client
 	{
 	public:
-		Client();
-
 		PlayerId		pid;
 		std::string		name;
-		PadMapping		pad_map[4];
 		std::string		revision;
 
 		sf::SocketTCP	socket;
@@ -67,6 +66,7 @@ private:
 	unsigned int OnDisconnect(sf::SocketTCP& socket);
 	unsigned int OnData(sf::Packet& packet, sf::SocketTCP& socket);
 	void UpdatePadMapping();
+	void UpdateWiimoteMapping();
 
 	NetSettings     m_settings;
 
@@ -77,6 +77,8 @@ private:
 	bool            m_update_pings;
 	u32		m_current_game;
 	unsigned int	m_target_buffer_size;
+	PadMapping      m_pad_map[4];
+	PadMapping      m_wiimote_map[4];
 
 	std::map<sf::SocketTCP, Client>	m_players;
 

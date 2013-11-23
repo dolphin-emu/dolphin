@@ -6,7 +6,6 @@
 //              Guillermo Rodriguez (updated for wxSocket v2) Jan 2000
 //                                  (callbacks deprecated)    Mar 2000
 // Created:     1993
-// RCS-ID:      $Id: sckipc.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Julian Smart 1993
 //              (c) Guilhem Lavaux 1997, 1998
 //              (c) 2000 Guillermo Rodriguez <guille@iies.es>

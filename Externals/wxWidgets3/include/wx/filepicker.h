@@ -5,7 +5,6 @@
 // Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Francesco Montorsi
-// RCS-ID:      $Id: filepicker.h 70043 2011-12-18 12:34:47Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -59,8 +58,8 @@ private:
     DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFileDirPickerEvent)
 };
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_FILEPICKER_CHANGED, wxFileDirPickerEvent );
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_DIRPICKER_CHANGED, wxFileDirPickerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_FILEPICKER_CHANGED, wxFileDirPickerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_DIRPICKER_CHANGED, wxFileDirPickerEvent );
 
 // ----------------------------------------------------------------------------
 // event types and macros
@@ -72,9 +71,9 @@ typedef void (wxEvtHandler::*wxFileDirPickerEventFunction)(wxFileDirPickerEvent&
     wxEVENT_HANDLER_CAST(wxFileDirPickerEventFunction, func)
 
 #define EVT_FILEPICKER_CHANGED(id, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_FILEPICKER_CHANGED, id, wxFileDirPickerEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_FILEPICKER_CHANGED, id, wxFileDirPickerEventHandler(fn))
 #define EVT_DIRPICKER_CHANGED(id, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_DIRPICKER_CHANGED, id, wxFileDirPickerEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_DIRPICKER_CHANGED, id, wxFileDirPickerEventHandler(fn))
 
 // ----------------------------------------------------------------------------
 // wxFileDirPickerWidgetBase: a generic abstract interface which must be
@@ -129,7 +128,7 @@ protected:
 //       requires that all classes being mapped as wx{File|Dir}PickerWidget have the
 //       same prototype for the contructor...
 // since GTK >= 2.6, there is GtkFileButton
-#if defined(__WXGTK26__) && !defined(__WXUNIVERSAL__)
+#if defined(__WXGTK20__) && !defined(__WXUNIVERSAL__)
     #include "wx/gtk/filepicker.h"
     #define wxFilePickerWidget      wxFileButton
     #define wxDirPickerWidget       wxDirButton
@@ -148,7 +147,7 @@ protected:
 class WXDLLIMPEXP_CORE wxFileDirPickerCtrlBase : public wxPickerBase
 {
 public:
-    wxFileDirPickerCtrlBase() : m_bIgnoreNextTextCtrlUpdate(false) {}
+    wxFileDirPickerCtrlBase() {}
 
 protected:
     // NB: no default values since this function will never be used
@@ -183,11 +182,6 @@ public:        // internal functions
     // event handler for our picker
     void OnFileDirChange(wxFileDirPickerEvent &);
 
-    // Returns TRUE if the current path is a valid one
-    // (i.e. a valid file for a wxFilePickerWidget or a valid
-    //  folder for a wxDirPickerWidget).
-    virtual bool CheckPath(const wxString &str) const = 0;
-
     // TRUE if any textctrl change should update the current working directory
     virtual bool IsCwdToUpdate() const = 0;
 
@@ -208,9 +202,6 @@ protected:
                                             const wxString& wildcard) = 0;
 
 protected:
-
-    // true if the next UpdateTextCtrl() call is to ignore
-    bool m_bIgnoreNextTextCtrlUpdate;
 
     // m_picker object as wxFileDirPickerWidgetBase interface
     wxFileDirPickerWidgetBase *m_pickerIface;
@@ -275,9 +266,6 @@ public:
 
 public:     // overrides
 
-    // return true if the given path is valid for this control
-    bool CheckPath(const wxString& path) const;
-
     // return the text control value in canonical form
     wxString GetTextCtrlValue() const;
 
@@ -285,11 +273,11 @@ public:     // overrides
         { return HasFlag(wxFLP_CHANGE_DIR); }
 
     wxEventType GetEventType() const
-        { return wxEVT_COMMAND_FILEPICKER_CHANGED; }
+        { return wxEVT_FILEPICKER_CHANGED; }
 
     virtual void DoConnect( wxControl *sender, wxFileDirPickerCtrlBase *eventSink )
     {
-        sender->Connect( wxEVT_COMMAND_FILEPICKER_CHANGED,
+        sender->Connect( wxEVT_FILEPICKER_CHANGED,
             wxFileDirPickerEventHandler( wxFileDirPickerCtrlBase::OnFileDirChange ),
             NULL, eventSink );
     }
@@ -379,19 +367,17 @@ public:
 
 public:     // overrides
 
-    bool CheckPath(const wxString &path) const;
-
     wxString GetTextCtrlValue() const;
 
     bool IsCwdToUpdate() const
         { return HasFlag(wxDIRP_CHANGE_DIR); }
 
     wxEventType GetEventType() const
-        { return wxEVT_COMMAND_DIRPICKER_CHANGED; }
+        { return wxEVT_DIRPICKER_CHANGED; }
 
     virtual void DoConnect( wxControl *sender, wxFileDirPickerCtrlBase *eventSink )
     {
-        sender->Connect( wxEVT_COMMAND_DIRPICKER_CHANGED,
+        sender->Connect( wxEVT_DIRPICKER_CHANGED,
             wxFileDirPickerEventHandler( wxFileDirPickerCtrlBase::OnFileDirChange ),
             NULL, eventSink );
     }
@@ -425,6 +411,10 @@ private:
 };
 
 #endif      // wxUSE_DIRPICKERCTRL
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_FILEPICKER_CHANGED   wxEVT_FILEPICKER_CHANGED
+#define wxEVT_COMMAND_DIRPICKER_CHANGED    wxEVT_DIRPICKER_CHANGED
 
 #endif // _WX_FILEDIRPICKER_H_BASE_
 

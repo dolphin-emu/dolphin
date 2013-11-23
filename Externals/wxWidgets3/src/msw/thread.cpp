@@ -4,7 +4,6 @@
 // Author:      Original from Wolfram Gloger/Guilhem Lavaux
 // Modified by: Vadim Zeitlin to make it work :-)
 // Created:     04/22/98
-// RCS-ID:      $Id: thread.cpp 69883 2011-12-01 14:22:15Z VZ $
 // Copyright:   (c) Wolfram Gloger (1996, 1997), Guilhem Lavaux (1998);
 //                  Vadim Zeitlin (1999-2002)
 // Licence:     wxWindows licence
@@ -64,7 +63,7 @@
 #if defined(__VISUALC__) || \
     (defined(__BORLANDC__) && (__BORLANDC__ >= 0x500)) || \
     (defined(__GNUG__) && defined(__MSVCRT__)) || \
-    defined(__WATCOMC__) || defined(__MWERKS__)
+    defined(__WATCOMC__)
 
 #ifndef __WXWINCE__
     #undef wxUSE_BEGIN_THREAD
@@ -442,7 +441,7 @@ public:
         m_thread = thread;
         m_hThread = 0;
         m_state = STATE_NEW;
-        m_priority = WXTHREAD_DEFAULT_PRIORITY;
+        m_priority = wxPRIORITY_DEFAULT;
         m_nRef = 1;
     }
 
@@ -572,7 +571,7 @@ THREAD_RETVAL wxThreadInternal::DoThreadStart(wxThread *thread)
             return THREAD_ERROR_EXIT;
         }
 
-        rc = wxPtrToUInt(thread->Entry());
+        rc = wxPtrToUInt(thread->CallEntry());
     }
     wxCATCH_ALL( wxTheApp->OnUnhandledException(); )
 
@@ -589,9 +588,14 @@ THREAD_RETVAL THREAD_CALLCONV wxThreadInternal::WinThreadStart(void *param)
     // each thread has its own SEH translator so install our own a.s.a.p.
     DisableAutomaticSETranslator();
 
+    // NB: Notice that we can't use wxCriticalSectionLocker in this function as
+    //     we use SEH and it's incompatible with C++ object dtors.
+
     // first of all, check whether we hadn't been cancelled already and don't
     // start the user code at all then
+    thread->m_critsect.Enter();
     const bool hasExited = thread->m_internal->GetState() == STATE_EXITED;
+    thread->m_critsect.Leave();
 
     // run the thread function itself inside a SEH try/except block
     wxSEH_TRY
@@ -609,10 +613,6 @@ THREAD_RETVAL THREAD_CALLCONV wxThreadInternal::WinThreadStart(void *param)
     const bool isDetached = thread->IsDetached();
     if ( !hasExited )
     {
-        // enter m_critsect before changing the thread state
-        //
-        // NB: can't use wxCriticalSectionLocker here as we use SEH and it's
-        //     incompatible with C++ object dtors
         thread->m_critsect.Enter();
         thread->m_internal->SetState(STATE_EXITED);
         thread->m_critsect.Leave();
@@ -698,7 +698,7 @@ bool wxThreadInternal::Create(wxThread *thread, unsigned int stackSize)
         return false;
     }
 
-    if ( m_priority != WXTHREAD_DEFAULT_PRIORITY )
+    if ( m_priority != wxPRIORITY_DEFAULT )
     {
         SetPriority(m_priority);
     }
@@ -904,7 +904,8 @@ bool wxThreadInternal::Suspend()
     DWORD nSuspendCount = ::SuspendThread(m_hThread);
     if ( nSuspendCount == (DWORD)-1 )
     {
-        wxLogSysError(_("Cannot suspend thread %x"), m_hThread);
+        wxLogSysError(_("Cannot suspend thread %lx"),
+                      static_cast<unsigned long>(wxPtrToUInt(m_hThread)));
 
         return false;
     }
@@ -919,7 +920,8 @@ bool wxThreadInternal::Resume()
     DWORD nSuspendCount = ::ResumeThread(m_hThread);
     if ( nSuspendCount == (DWORD)-1 )
     {
-        wxLogSysError(_("Cannot resume thread %x"), m_hThread);
+        wxLogSysError(_("Cannot resume thread %lx"),
+                      static_cast<unsigned long>(wxPtrToUInt(m_hThread)));
 
         return false;
     }
@@ -1104,6 +1106,14 @@ wxThreadError wxThread::Run()
 {
     wxCriticalSectionLocker lock(m_critsect);
 
+    // Create the thread if it wasn't created yet with an explicit
+    // Create() call:
+    if ( !m_internal->GetHandle() )
+    {
+        if ( !m_internal->Create(this, 0) )
+            return wxTHREAD_NO_RESOURCE;
+    }
+
     wxCHECK_MSG( m_internal->GetState() == STATE_NEW, wxTHREAD_RUNNING,
              wxT("thread may only be started once after Create()") );
 
@@ -1173,6 +1183,8 @@ wxThreadError wxThread::Kill()
 
 void wxThread::Exit(ExitCode status)
 {
+    wxThreadInternal::DoThreadOnExit(this);
+
     m_internal->Free();
 
     if ( IsDetached() )

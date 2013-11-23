@@ -3,7 +3,6 @@
 // Purpose:     wxTextEntryBase implementation
 // Author:      Vadim Zeitlin
 // Created:     2007-09-26
-// RCS-ID:      $Id: textentrycmn.cpp 67515 2011-04-16 17:27:34Z VZ $
 // Copyright:   (c) 2007 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,7 +49,7 @@ public:
                                 wxTextEntryHintData::OnSetFocus, this);
         wxBIND_OR_CONNECT_HACK(win, wxEVT_KILL_FOCUS, wxFocusEventHandler,
                                 wxTextEntryHintData::OnKillFocus, this);
-        wxBIND_OR_CONNECT_HACK(win, wxEVT_COMMAND_TEXT_UPDATED,
+        wxBIND_OR_CONNECT_HACK(win, wxEVT_TEXT,
                                 wxCommandEventHandler,
                                 wxTextEntryHintData::OnTextChanged, this);
     }
@@ -224,12 +223,22 @@ void wxTextEntryBase::AppendText(const wxString& text)
 
 void wxTextEntryBase::DoSetValue(const wxString& value, int flags)
 {
-    EventsSuppressor noeventsIf(this, !(flags & SetValue_SendEvent));
+    if ( value != DoGetValue() )
+    {
+        EventsSuppressor noeventsIf(this, !(flags & SetValue_SendEvent));
 
-    SelectAll();
-    WriteText(value);
+        SelectAll();
+        WriteText(value);
 
-    SetInsertionPoint(0);
+        SetInsertionPoint(0);
+    }
+    else // Same value, no need to do anything.
+    {
+        // Except that we still need to generate the event for consistency with
+        // the normal case when the text does change.
+        if ( flags & SetValue_SendEvent )
+            SendTextUpdatedEvent(GetEditableWindow());
+    }
 }
 
 void wxTextEntryBase::Replace(long from, long to, const wxString& value)
@@ -357,7 +366,7 @@ bool wxTextEntryBase::SendTextUpdatedEvent(wxWindow *win)
 {
     wxCHECK_MSG( win, false, "can't send an event without a window" );
 
-    wxCommandEvent event(wxEVT_COMMAND_TEXT_UPDATED, win->GetId());
+    wxCommandEvent event(wxEVT_TEXT, win->GetId());
 
     // do not do this as it could be very inefficient if the text control
     // contains a lot of text and we're not using ref-counted wxString

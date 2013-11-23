@@ -2,9 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../PowerPC.h"
-#include "../PPCTables.h"
-#include "../PPCAnalyst.h"
 #include "Jit.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
@@ -37,7 +34,7 @@ void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 		regs[i].location = GetDefaultLocation(i);
 		regs[i].away = false;
 	}
-	
+
 	// todo: sort to find the most popular regs
 	/*
 	int maxPreload = 2;
@@ -76,21 +73,16 @@ void RegCache::LockX(int x1, int x2, int x3, int x4)
 	if (x4 != 0xFF) xlocks[x4] = true;
 }
 
-bool RegCache::IsFreeX(int xreg) const
-{
-	return xregs[xreg].free && !xlocks[xreg];
-}
-
 void RegCache::UnlockAll()
 {
-	for (int i = 0; i < 32; i++)
-		locks[i] = false;
+	for (auto& lock : locks)
+		lock = false;
 }
 
 void RegCache::UnlockAllX()
 {
-	for (int i = 0; i < NUMXREGS; i++)
-		xlocks[i] = false;
+	for (auto& xlock : xlocks)
+		xlock = false;
 }
 
 X64Reg RegCache::GetFreeXReg()
@@ -111,7 +103,7 @@ X64Reg RegCache::GetFreeXReg()
 	for (int i = 0; i < aCount; i++)
 	{
 		X64Reg xr = (X64Reg)aOrder[i];
-		if (xlocks[xr]) 
+		if (xlocks[xr])
 			continue;
 		int preg = xregs[xr].ppcReg;
 		if (!locks[preg])
@@ -174,7 +166,7 @@ int RegCache::SanityCheck() const
 
 void RegCache::DiscardRegContentsIfCached(int preg)
 {
-	if (regs[preg].away && regs[preg].location.IsSimpleReg())
+	if (IsBound(preg))
 	{
 		X64Reg xr = regs[preg].location.GetSimpleReg();
 		xregs[xr].free = true;
@@ -205,7 +197,7 @@ void FPURegCache::Start(PPCAnalyst::BlockRegStats &stats)
 
 const int *GPRRegCache::GetAllocationOrder(int &count)
 {
-	static const int allocationOrder[] = 
+	static const int allocationOrder[] =
 	{
 		// R12, when used as base register, for example in a LEA, can generate bad code! Need to look into this.
 #ifdef _M_X64
@@ -224,7 +216,7 @@ const int *GPRRegCache::GetAllocationOrder(int &count)
 
 const int *FPURegCache::GetAllocationOrder(int &count)
 {
-	static const int allocationOrder[] = 
+	static const int allocationOrder[] =
 	{
 #ifdef _M_X64
 		XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5
@@ -359,11 +351,12 @@ void FPURegCache::StoreFromRegister(int i)
 	{
 		X64Reg xr = regs[i].location.GetSimpleReg();
 		_assert_msg_(DYNA_REC, xr < NUMXREGS, "WTF - store - invalid reg");
+		OpArg newLoc = GetDefaultLocation(i);
+		if (xregs[xr].dirty)
+			emit->MOVAPD(newLoc, xr);
 		xregs[xr].free = true;
 		xregs[xr].dirty = false;
 		xregs[xr].ppcReg = -1;
-		OpArg newLoc = GetDefaultLocation(i);
-		emit->MOVAPD(newLoc, xr);
 		regs[i].location = newLoc;
 		regs[i].away = false;
 	}

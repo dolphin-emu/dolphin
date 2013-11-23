@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.11.99
-// RCS-ID:      $Id: gdiimage.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,6 +36,18 @@
 
 #if wxUSE_WXDIB
 #include "wx/msw/dib.h"
+#endif
+
+// By default, use PNG resource handler if we can, i.e. have support for
+// loading PNG images in the library. This symbol could be predefined as 0 to
+// avoid doing this if anybody ever needs to do it for some reason.
+#if !defined(wxUSE_PNG_RESOURCE_HANDLER) && wxUSE_LIBPNG && wxUSE_IMAGE
+    #define wxUSE_PNG_RESOURCE_HANDLER 1
+#endif
+
+#if wxUSE_PNG_RESOURCE_HANDLER
+    #include "wx/image.h"
+    #include "wx/utils.h"       // For wxLoadUserResource()
 #endif
 
 #ifdef __WXWINCE__
@@ -173,6 +184,27 @@ private:
     DECLARE_DYNAMIC_CLASS(wxICOResourceHandler)
 };
 
+#if wxUSE_PNG_RESOURCE_HANDLER
+
+class WXDLLEXPORT wxPNGResourceHandler : public wxBitmapHandler
+{
+public:
+    wxPNGResourceHandler() : wxBitmapHandler(wxS("Windows PNG resource"),
+                                             wxString(),
+                                             wxBITMAP_TYPE_PNG_RESOURCE)
+    {
+    }
+
+    virtual bool LoadFile(wxBitmap *bitmap,
+                          const wxString& name, wxBitmapType flags,
+                          int desiredWidth, int desiredHeight);
+
+private:
+    wxDECLARE_DYNAMIC_CLASS(wxPNGResourceHandler);
+};
+
+#endif // wxUSE_PNG_RESOURCE_HANDLER
+
 // ----------------------------------------------------------------------------
 // wxWin macros
 // ----------------------------------------------------------------------------
@@ -181,6 +213,9 @@ IMPLEMENT_DYNAMIC_CLASS(wxBMPFileHandler, wxBitmapHandler)
 IMPLEMENT_DYNAMIC_CLASS(wxBMPResourceHandler, wxBitmapHandler)
 IMPLEMENT_DYNAMIC_CLASS(wxICOFileHandler, wxObject)
 IMPLEMENT_DYNAMIC_CLASS(wxICOResourceHandler, wxObject)
+#if wxUSE_PNG_RESOURCE_HANDLER
+IMPLEMENT_DYNAMIC_CLASS(wxPNGResourceHandler, wxBitmapHandler)
+#endif // wxUSE_PNG_RESOURCE_HANDLER
 
 // ----------------------------------------------------------------------------
 // private functions
@@ -306,8 +341,11 @@ void wxGDIImage::InitStandardHandlers()
 #ifndef __WXMICROWIN__
     AddHandler(new wxBMPResourceHandler);
     AddHandler(new wxBMPFileHandler);
-    AddHandler(new wxICOResourceHandler);
     AddHandler(new wxICOFileHandler);
+    AddHandler(new wxICOResourceHandler);
+#if wxUSE_PNG_RESOURCE_HANDLER
+    AddHandler(new wxPNGResourceHandler);
+#endif // wxUSE_PNG_RESOURCE_HANDLER
 #endif
 }
 
@@ -323,7 +361,7 @@ bool wxBMPResourceHandler::LoadFile(wxBitmap *bitmap,
                                     int WXUNUSED(desiredHeight))
 {
     // TODO: load colourmap.
-    bitmap->SetHBITMAP((WXHBITMAP)::LoadBitmap(wxGetInstance(), name.wx_str()));
+    bitmap->SetHBITMAP((WXHBITMAP)::LoadBitmap(wxGetInstance(), name.t_str()));
 
     if ( !bitmap->IsOk() )
     {
@@ -393,9 +431,6 @@ bool wxICOFileHandler::LoadIcon(wxIcon *icon,
 {
     icon->UnRef();
 
-    // actual size
-    wxSize size;
-
     HICON hicon = NULL;
 
     // Parse the filename: it may be of the form "filename;n" in order to
@@ -438,7 +473,7 @@ bool wxICOFileHandler::LoadIcon(wxIcon *icon,
          desiredHeight == ::GetSystemMetrics(SM_CYICON) )
     {
         // get the specified large icon from file
-        if ( !::ExtractIconEx(nameReal.wx_str(), iconIndex, &hicon, NULL, 1) )
+        if ( !::ExtractIconEx(nameReal.t_str(), iconIndex, &hicon, NULL, 1) )
         {
             // it is not an error, but it might still be useful to be informed
             // about it optionally
@@ -451,7 +486,7 @@ bool wxICOFileHandler::LoadIcon(wxIcon *icon,
               desiredHeight == ::GetSystemMetrics(SM_CYSMICON) )
     {
         // get the specified small icon from file
-        if ( !::ExtractIconEx(nameReal.wx_str(), iconIndex, NULL, &hicon, 1) )
+        if ( !::ExtractIconEx(nameReal.t_str(), iconIndex, NULL, &hicon, 1) )
         {
             wxLogTrace(wxT("iconload"),
                        wxT("No small icons found in the file '%s'."),
@@ -464,7 +499,7 @@ bool wxICOFileHandler::LoadIcon(wxIcon *icon,
     if ( !hicon )
     {
         // take any size icon from the file by index
-        hicon = ::ExtractIcon(wxGetInstance(), nameReal.wx_str(), iconIndex);
+        hicon = ::ExtractIcon(wxGetInstance(), nameReal.t_str(), iconIndex);
     }
 #endif
 
@@ -476,25 +511,23 @@ bool wxICOFileHandler::LoadIcon(wxIcon *icon,
         return false;
     }
 
-    size = wxGetHiconSize(hicon);
+    if ( !icon->CreateFromHICON(hicon) )
+        return false;
 
-    if ( (desiredWidth != -1 && desiredWidth != size.x) ||
-         (desiredHeight != -1 && desiredHeight != size.y) )
+    if ( (desiredWidth != -1 && desiredWidth != icon->GetWidth()) ||
+         (desiredHeight != -1 && desiredHeight != icon->GetHeight()) )
     {
         wxLogTrace(wxT("iconload"),
                    wxT("Returning false from wxICOFileHandler::Load because of the size mismatch: actual (%d, %d), requested (%d, %d)"),
-                   size.x, size.y,
+                   icon->GetWidth(), icon->GetHeight(),
                    desiredWidth, desiredHeight);
 
-        ::DestroyIcon(hicon);
+        icon->UnRef();
 
         return false;
     }
 
-    icon->SetHICON((WXHICON)hicon);
-    icon->SetSize(size.x, size.y);
-
-    return icon->IsOk();
+    return true;
 }
 
 bool wxICOResourceHandler::LoadIcon(wxIcon *icon,
@@ -518,13 +551,13 @@ bool wxICOResourceHandler::LoadIcon(wxIcon *icon,
     // some icon rescaling internally which results in very ugly 16x16 icons
     if ( hasSize )
     {
-        hicon = (HICON)::LoadImage(wxGetInstance(), name.wx_str(), IMAGE_ICON,
+        hicon = (HICON)::LoadImage(wxGetInstance(), name.t_str(), IMAGE_ICON,
                                     desiredWidth, desiredHeight,
                                     LR_DEFAULTCOLOR);
     }
     else
     {
-        hicon = ::LoadIcon(wxGetInstance(), name.wx_str());
+        hicon = ::LoadIcon(wxGetInstance(), name.t_str());
     }
 
     // next check if it's not a standard icon
@@ -554,13 +587,57 @@ bool wxICOResourceHandler::LoadIcon(wxIcon *icon,
     }
 #endif
 
-    wxSize size = wxGetHiconSize(hicon);
-    icon->SetSize(size.x, size.y);
-
-    icon->SetHICON((WXHICON)hicon);
-
-    return icon->IsOk();
+    return icon->CreateFromHICON((WXHICON)hicon);
 }
+
+#if wxUSE_PNG_RESOURCE_HANDLER
+
+// ----------------------------------------------------------------------------
+// PNG handler
+// ----------------------------------------------------------------------------
+
+bool wxPNGResourceHandler::LoadFile(wxBitmap *bitmap,
+                                    const wxString& name,
+                                    wxBitmapType WXUNUSED(flags),
+                                    int WXUNUSED(desiredWidth),
+                                    int WXUNUSED(desiredHeight))
+{
+    const void* pngData = NULL;
+    size_t pngSize = 0;
+
+    // Currently we hardcode RCDATA resource type as this is what is usually
+    // used for the embedded images. We could allow specifying the type as part
+    // of the name in the future (e.g. "type:name" or something like this) if
+    // really needed.
+    if ( !wxLoadUserResource(&pngData, &pngSize,
+                             name,
+                             RT_RCDATA,
+                             wxGetInstance()) )
+    {
+        // Notice that this message is not translated because only the
+        // programmer (and not the end user) can make any use of it.
+        wxLogError(wxS("Bitmap in PNG format \"%s\" not found, check ")
+                   wxS("that the resource file contains \"RCDATA\" ")
+                   wxS("resource with this name."),
+                   name);
+
+        return false;
+    }
+
+    *bitmap = wxBitmap::NewFromPNGData(pngData, pngSize);
+    if ( !bitmap->IsOk() )
+    {
+        wxLogError(wxS("Couldn't load resource bitmap \"%s\" as a PNG. "),
+                   wxS("Have you registered PNG image handler?"),
+                   name);
+
+        return false;
+    }
+
+    return true;
+}
+
+#endif // wxUSE_PNG_RESOURCE_HANDLER
 
 // ----------------------------------------------------------------------------
 // private functions

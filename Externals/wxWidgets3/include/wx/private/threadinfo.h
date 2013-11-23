@@ -3,7 +3,6 @@
 // Purpose:     declaration of wxThreadSpecificInfo: thread-specific information
 // Author:      Vadim Zeitlin
 // Created:     2009-07-13
-// RCS-ID:      $Id: threadinfo.h 67232 2011-03-18 15:10:15Z DS $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -11,25 +10,30 @@
 #ifndef _WX_PRIVATE_THREADINFO_H_
 #define _WX_PRIVATE_THREADINFO_H_
 
-#if wxUSE_THREADS
-
-#include "wx/tls.h"
+#include "wx/defs.h"
 
 class WXDLLIMPEXP_FWD_BASE wxLog;
+
+#if wxUSE_INTL
+#include "wx/hashset.h"
+WX_DECLARE_HASH_SET(wxString, wxStringHash, wxStringEqual,
+                    wxLocaleUntranslatedStrings);
+#endif
+
 
 // ----------------------------------------------------------------------------
 // wxThreadSpecificInfo: contains all thread-specific information used by wx
 // ----------------------------------------------------------------------------
 
-// currently the only thread-specific information we use is the active wxLog
-// target but more could be added in the future (e.g. current wxLocale would be
-// a likely candidate) and we will group all of them in this struct to avoid
-// consuming more TLS slots than necessary as there is only a limited number of
-// them
-
-// NB: this must be a POD to be stored in TLS
-struct wxThreadSpecificInfo
+// Group all thread-specific information we use (e.g. the active wxLog target)
+// a in this class to avoid consuming more TLS slots than necessary as there is
+// only a limited number of them.
+class wxThreadSpecificInfo
 {
+public:
+    // Return this thread's instance.
+    static wxThreadSpecificInfo& Get();
+
     // the thread-specific logger or NULL if the thread is using the global one
     // (this is not used for the main thread which always uses the global
     // logger)
@@ -42,13 +46,24 @@ struct wxThreadSpecificInfo
     //     because the default, for 0-initialized struct, should be to enable
     //     logging
     bool loggingDisabled;
+
+#if wxUSE_INTL
+    // Storage for wxTranslations::GetUntranslatedString()
+    wxLocaleUntranslatedStrings untranslatedStrings;
+#endif
+
+#if wxUSE_THREADS
+    // Cleans up storage for the current thread. Should be called when a thread
+    // is being destroyed. If it's not called, the only bad thing that happens
+    // is that the memory is deallocated later, on process termination.
+    static void ThreadCleanUp();
+#endif
+
+private:
+    wxThreadSpecificInfo() : logger(NULL), loggingDisabled(false) {}
 };
 
-// currently this is defined in src/common/log.cpp
-extern wxTLS_TYPE(wxThreadSpecificInfo) wxThreadInfoVar;
-#define wxThreadInfo wxTLS_VALUE(wxThreadInfoVar)
-
-#endif // wxUSE_THREADS
+#define wxThreadInfo wxThreadSpecificInfo::Get()
 
 #endif // _WX_PRIVATE_THREADINFO_H_
 

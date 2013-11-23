@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: toolbar.cpp 67230 2011-03-18 14:20:12Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -932,6 +931,15 @@ wxToolBar::~wxToolBar()
     if ( !m_macToolbar )
         return;
 
+    // it might already have been uninstalled due to a previous call to Destroy, but in case
+    // wasn't, do so now, otherwise redraw events may occur for deleted objects
+    bool ownToolbarInstalled = false;
+    MacTopLevelHasNativeToolbar( &ownToolbarInstalled );
+    if (ownToolbarInstalled)
+    {
+        MacUninstallNativeToolbar();
+    }
+
     CFIndex count = CFGetRetainCount( m_macToolbar ) ;
     // Leopard seems to have one refcount more, so we cannot check reliably at the moment
     if ( UMAGetSystemVersion() < 0x1050 )
@@ -1111,7 +1119,7 @@ bool wxToolBar::MacInstallNativeToolbar(bool usesNative)
             // which we don't want in this case
             wxSize sz = GetParent()->GetSize();
             ShowHideWindowToolbar( tlw, true, false );
-            // Restore the orginal size
+            // Restore the original size
             GetParent()->SetSize( sz );
 
             ChangeWindowAttributes( tlw, kWindowToolbarButtonAttribute, 0 );

@@ -3,7 +3,6 @@
 // Purpose:     wxImage PCX handler
 // Author:      Guillermo Rodriguez Garcia <guille@iies.es>
 // Version:     1.1
-// CVS-ID:      $Id: imagpcx.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1999 Guillermo Rodriguez Garcia
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

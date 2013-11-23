@@ -2,14 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "FileUtil.h"
-#include "CDUtils.h"
 #include "Blob.h"
-#include "CompressedBlob.h"
-#include "FileBlob.h"
+#include "CDUtils.h"
 #include "CISOBlob.h"
+#include "CompressedBlob.h"
 #include "DriveBlob.h"
+#include "FileBlob.h"
+#include "FileUtil.h"
 #include "WbfsBlob.h"
 
 namespace DiscIO
@@ -40,7 +39,7 @@ const u8 *SectorReader::GetBlockData(u64 block_num)
 	{
 		return cache[0];
 	}
-	else 
+	else
 	{
 		GetBlock(block_num, cache[0]);
 		cache_tags[0] = block_num;

@@ -6,7 +6,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: private.h 67233 2011-03-18 15:45:51Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,6 +16,11 @@
 #ifdef __OBJC__
     #import <UIKit/UIKit.h>
 #endif
+
+#include <CoreText/CTFont.h>
+#include <CoreText/CTStringAttributes.h>
+#include <CoreText/CTLine.h>
+
 
 #if wxUSE_GUI
 
@@ -56,7 +60,7 @@ public :
     virtual void        GetPosition( int &x, int &y ) const;
     virtual void        GetSize( int &width, int &height ) const;
     virtual void        SetControlSize( wxWindowVariant variant );
-    virtual float       GetContentScaleFactor() const ;
+    virtual double      GetContentScaleFactor() const ;
     
     virtual void        SetNeedsDisplay( const wxRect* where = NULL );
     virtual bool        GetNeedsDisplay() const;

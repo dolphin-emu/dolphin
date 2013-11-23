@@ -27,7 +27,7 @@ public:
 	void WriteGPCommand(u8 *data, u32 size);
 
 	void WriteMemory(u32 address, u32 size, MemoryUpdate::Type type);
-	
+
 	void EndFrame(u32 fifoStart, u32 fifoEnd);
 
 	// This function must be called before writing GP commands

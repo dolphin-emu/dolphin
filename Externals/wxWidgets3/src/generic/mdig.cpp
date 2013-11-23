@@ -4,7 +4,6 @@
 // Author:      Hans Van Leemputten
 // Modified by: 2008-10-31 Vadim Zeitlin: derive from the base classes
 // Created:     29/07/2002
-// RCS-ID:      $Id: mdig.cpp 64656 2010-06-20 18:18:23Z VZ $
 // Copyright:   (c) 2002 Hans Van Leemputten
 //              (c) 2008 Vadim Zeitlin
 // Licence:     wxWindows licence
@@ -359,7 +358,7 @@ bool wxGenericMDIParentFrame::ProcessEvent(wxEvent& event)
         // the menu events should be given to the child as we show its menu bar
         // as our own
         const wxEventType eventType = event.GetEventType();
-        if ( eventType == wxEVT_COMMAND_MENU_SELECTED ||
+        if ( eventType == wxEVT_MENU ||
              eventType == wxEVT_UPDATE_UI )
         {
             // set the flag indicating that this event was forwarded to the
@@ -537,7 +536,7 @@ wxGenericMDIClientWindow::CreateGenericClient(wxWindow *parent)
     m_notebook = new wxNotebook(this, wxID_ANY);
     m_notebook->Connect
                 (
-                    wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED,
+                    wxEVT_NOTEBOOK_PAGE_CHANGED,
                     wxNotebookEventHandler(
                         wxGenericMDIClientWindow::OnPageChanged),
                     NULL,

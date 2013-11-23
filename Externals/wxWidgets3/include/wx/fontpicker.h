@@ -5,7 +5,6 @@
 // Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Francesco Montorsi
-// RCS-ID:      $Id: fontpicker.h 58718 2009-02-07 18:59:25Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -100,8 +99,7 @@ class WXDLLIMPEXP_CORE wxFontPickerCtrl : public wxPickerBase
 {
 public:
     wxFontPickerCtrl()
-        : m_bIgnoreNextTextCtrlUpdate(false),
-        m_nMaxPointSize(wxFNTP_MAXPOINT_SIZE)
+        : m_nMaxPointSize(wxFNTP_MAXPOINT_SIZE)
     {
     }
 
@@ -116,8 +114,7 @@ public:
                      long style = wxFNTP_DEFAULT_STYLE,
                      const wxValidator& validator = wxDefaultValidator,
                      const wxString& name = wxFontPickerCtrlNameStr)
-        : m_bIgnoreNextTextCtrlUpdate(false),
-          m_nMaxPointSize(wxFNTP_MAXPOINT_SIZE)
+        : m_nMaxPointSize(wxFNTP_MAXPOINT_SIZE)
     {
         Create(parent, id, initial, pos, size, style, validator, name);
     }
@@ -165,9 +162,6 @@ protected:
     long GetPickerStyle(long style) const
         { return (style & (wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL)); }
 
-    // true if the next UpdateTextCtrl() call is to ignore
-    bool m_bIgnoreNextTextCtrlUpdate;
-
     // the maximum pointsize allowed to the user
     unsigned int m_nMaxPointSize;
 
@@ -180,14 +174,14 @@ private:
 // wxFontPickerEvent: used by wxFontPickerCtrl only
 // ----------------------------------------------------------------------------
 
-wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_COMMAND_FONTPICKER_CHANGED, wxFontPickerEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_FONTPICKER_CHANGED, wxFontPickerEvent );
 
 class WXDLLIMPEXP_CORE wxFontPickerEvent : public wxCommandEvent
 {
 public:
     wxFontPickerEvent() {}
     wxFontPickerEvent(wxObject *generator, int id, const wxFont &f)
-        : wxCommandEvent(wxEVT_COMMAND_FONTPICKER_CHANGED, id),
+        : wxCommandEvent(wxEVT_FONTPICKER_CHANGED, id),
           m_font(f)
     {
         SetEventObject(generator);
@@ -215,7 +209,10 @@ typedef void (wxEvtHandler::*wxFontPickerEventFunction)(wxFontPickerEvent&);
     wxEVENT_HANDLER_CAST(wxFontPickerEventFunction, func)
 
 #define EVT_FONTPICKER_CHANGED(id, fn) \
-    wx__DECLARE_EVT1(wxEVT_COMMAND_FONTPICKER_CHANGED, id, wxFontPickerEventHandler(fn))
+    wx__DECLARE_EVT1(wxEVT_FONTPICKER_CHANGED, id, wxFontPickerEventHandler(fn))
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_FONTPICKER_CHANGED   wxEVT_FONTPICKER_CHANGED
 
 
 #endif // wxUSE_FONTPICKERCTRL

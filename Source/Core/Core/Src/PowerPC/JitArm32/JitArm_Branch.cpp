@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #include "Common.h"
-#include "Thunk.h"
 
 #include "../../Core.h"
 #include "../PowerPC.h"
@@ -31,19 +30,19 @@
 // No need for a disable-mechanism.
 
 // If defined, clears CR0 at blr and bl-s. If the assumption that
-// flags never carry over between functions holds, then the task for 
+// flags never carry over between functions holds, then the task for
 // an optimizer becomes much easier.
 
 // #define ACID_TEST
 
-// Zelda and many more games seem to pass the Acid Test. 
+// Zelda and many more games seem to pass the Acid Test.
 
 
 using namespace ArmGen;
 void JitArm::sc(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush();
 	fpr.Flush();
@@ -62,11 +61,11 @@ void JitArm::sc(UGeckoInstruction inst)
 void JitArm::rfi(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush();
 	fpr.Flush();
-	
+
  	// See Interpreter rfi for details
 	const u32 mask = 0x87C0FFFF;
 		const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
@@ -85,7 +84,6 @@ void JitArm::rfi(UGeckoInstruction inst)
 	LDR(rD, R9, PPCSTATE_OFF(msr));
 
 	AND(rD, rD, rB); // rD = Masked MSR
-	STR(rD, R9, PPCSTATE_OFF(msr));
 
 	LDR(rB, R9, PPCSTATE_OFF(spr[SPR_SRR1])); // rB contains SRR1 here
 
@@ -95,7 +93,7 @@ void JitArm::rfi(UGeckoInstruction inst)
 	STR(rB, R9, PPCSTATE_OFF(msr)); // STR rB in to rA
 
 	LDR(rA, R9, PPCSTATE_OFF(spr[SPR_SRR0]));
-	
+
 	gpr.Unlock(rB, rC, rD);
 	WriteRfiExitDestInR(rA); // rA gets unlocked here
 	//AND(32, M(&MSR), Imm32((~mask) & clearMSR13));
@@ -110,7 +108,7 @@ void JitArm::rfi(UGeckoInstruction inst)
 void JitArm::bx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 	// We must always process the following sentence
 	// even if the blocks are merged by PPCAnalyst::Flatten().
 	if (inst.LK)
@@ -147,15 +145,20 @@ void JitArm::bx(UGeckoInstruction inst)
 		//	CALL(ProtectFunction(&CoreTiming::Idle, 0));
 		//	JMP(Asm::testExceptions, true);
 		// make idle loops go faster
-		js.downcountAmount += 8;
+		MOVI2R(R14, (u32)&CoreTiming::Idle);
+		BL(R14);
+		MOVI2R(R14, js.compilerPC);
+		STR(R14, R9, PPCSTATE_OFF(pc));
+		MOVI2R(R14, (u32)asm_routines.testExceptions);
+		B(R14);
 	}
-	WriteExit(destination, 0);
+	WriteExit(destination);
 }
 
 void JitArm::bcx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 	// USES_CR
 	_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
 
@@ -170,7 +173,7 @@ void JitArm::bcx(UGeckoInstruction inst)
 		LDR(rB, R9, PPCSTATE_OFF(spr[SPR_CTR]));
 		SUBS(rB, rB, 1);
 		STR(rB, R9, PPCSTATE_OFF(spr[SPR_CTR]));
-			
+
 		//SUB(32, M(&CTR), Imm8(1));
 		if (inst.BO & BO_BRANCH_IF_CTR_0)
 			pCTRDontBranch = B_CC(CC_NEQ);
@@ -185,7 +188,7 @@ void JitArm::bcx(UGeckoInstruction inst)
 		TST(rA, 8 >> (inst.BI & 3));
 
 		//TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
+		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch
 			pConditionDontBranch = B_CC(CC_EQ); // Zero
 		else
 			pConditionDontBranch = B_CC(CC_NEQ); // Not Zero
@@ -204,19 +207,19 @@ void JitArm::bcx(UGeckoInstruction inst)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
-	WriteExit(destination, 0);
+	WriteExit(destination);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
 
-	WriteExit(js.compilerPC + 4, 1);
+	WriteExit(js.compilerPC + 4);
 }
 void JitArm::bcctrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 
 	gpr.Flush();
 	fpr.Flush();
@@ -230,7 +233,6 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 
 		//NPC = CTR & 0xfffffffc;
 		ARMReg rA = gpr.GetReg();
-		ARMReg rB = gpr.GetReg();
 
 		if(inst.LK_3)
 		{
@@ -239,10 +241,8 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 			STR(rA, R9, PPCSTATE_OFF(spr[SPR_LR]));
 			// ARMABI_MOVI2M((u32)&LR, js.compilerPC + 4);
 		}
-		MVN(rB, 0x3); // 0xFFFFFFFC
 		LDR(rA, R9, PPCSTATE_OFF(spr[SPR_CTR]));
-		AND(rA, rA, rB);
-		gpr.Unlock(rB);
+		BIC(rA, rA, 0x3);
 		WriteExitDestInR(rA);
 	}
 	else
@@ -253,7 +253,7 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 		// BO_2 == 011zy -> b if true
 		ARMReg rA = gpr.GetReg();
 		ARMReg rB = gpr.GetReg();
-		
+
 		LDRB(rA, R9, PPCSTATE_OFF(cr_fast) + (inst.BI >> 2));
 		TST(rA, 8 >> (inst.BI & 3));
 		CCFlags branch;
@@ -264,8 +264,7 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 		FixupBranch b = B_CC(branch);
 
 		LDR(rA, R9, PPCSTATE_OFF(spr[SPR_CTR]));
-		MVN(rB, 0x3); // 0xFFFFFFFC
-		AND(rA, rA, rB);
+		BIC(rA, rA, 0x3);
 
 		if (inst.LK_3){
 			u32 Jumpto = js.compilerPC + 4;
@@ -277,13 +276,13 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 		WriteExitDestInR(rA);
 
 		SetJumpTarget(b);
-		WriteExit(js.compilerPC + 4, 1);
+		WriteExit(js.compilerPC + 4);
 	}
 }
 void JitArm::bclrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	JITDISABLE(Branch)
+	JITDISABLE(bJITBranchOff)
 	if (!js.isLastInstruction &&
 		(inst.BO & (1 << 4)) && (inst.BO & (1 << 2))) {
 		if (inst.LK)
@@ -307,7 +306,7 @@ void JitArm::bclrx(UGeckoInstruction inst)
 		LDR(rB, R9, PPCSTATE_OFF(spr[SPR_CTR]));
 		SUBS(rB, rB, 1);
 		STR(rB, R9, PPCSTATE_OFF(spr[SPR_CTR]));
-			
+
 		//SUB(32, M(&CTR), Imm8(1));
 		if (inst.BO & BO_BRANCH_IF_CTR_0)
 			pCTRDontBranch = B_CC(CC_NEQ);
@@ -321,7 +320,7 @@ void JitArm::bclrx(UGeckoInstruction inst)
 		LDRB(rA, R9, PPCSTATE_OFF(cr_fast) + (inst.BI >> 2));
 		TST(rA, 8 >> (inst.BI & 3));
 		//TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
+		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch
 			pConditionDontBranch = B_CC(CC_EQ); // Zero
 		else
 			pConditionDontBranch = B_CC(CC_NEQ); // Not Zero
@@ -334,11 +333,10 @@ void JitArm::bclrx(UGeckoInstruction inst)
 		//	AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
 	#endif
 
-	//MOV(32, R(EAX), M(&LR));	
+	//MOV(32, R(EAX), M(&LR));
 	//AND(32, R(EAX), Imm32(0xFFFFFFFC));
-	MVN(rB, 0x3); // 0xFFFFFFFC
 	LDR(rA, R9, PPCSTATE_OFF(spr[SPR_LR]));
-	AND(rA, rA, rB);
+	BIC(rA, rA, 0x3);
 	if (inst.LK){
 		u32 Jumpto = js.compilerPC + 4;
 		MOVI2R(rB, Jumpto);
@@ -352,5 +350,5 @@ void JitArm::bclrx(UGeckoInstruction inst)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
-	WriteExit(js.compilerPC + 4, 1);
+	WriteExit(js.compilerPC + 4);
 }

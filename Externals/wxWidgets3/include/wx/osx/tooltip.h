@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     31.01.99
-// RCS-ID:      $Id: tooltip.h 64943 2010-07-13 13:29:58Z VZ $
 // Copyright:   (c) 1999 Robert Roebling, Vadim Zeitlin, Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

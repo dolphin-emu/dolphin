@@ -16,13 +16,13 @@ public:
 	virtual bool Create(void *&window_handle) { return true; }
 	virtual bool MakeCurrent() { return true; }
 	virtual bool ClearCurrent() { return true; }
-	virtual void Shutdown() {} 
+	virtual void Shutdown() {}
 
 	virtual void SwapInterval(int Interval) { }
 	virtual u32 GetBackBufferWidth() { return s_backbuffer_width; }
 	virtual u32 GetBackBufferHeight() { return s_backbuffer_height; }
 	virtual void SetBackBufferDimensions(u32 W, u32 H) {s_backbuffer_width = W; s_backbuffer_height = H; }
-	virtual void Update() { } 
+	virtual void Update() { }
 	virtual bool PeekMessages() { return false; }
 };
 #endif

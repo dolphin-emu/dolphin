@@ -4,7 +4,6 @@
 // Author:      Hans Van Leemputten
 // Modified by: 2008-10-31 Vadim Zeitlin: derive from the base classes
 // Created:     29/07/2002
-// RCS-ID:      $Id: mdig.h 59164 2009-02-26 16:16:31Z VZ $
 // Copyright:   (c) 2002 Hans Van Leemputten
 //              (c) 2008 Vadim Zeitlin
 // Licence:     wxWindows licence

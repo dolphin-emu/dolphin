@@ -73,7 +73,7 @@ public:
 		virtual ~TCacheEntryBase();
 
 		virtual void Bind(unsigned int stage) = 0;
-		virtual bool Save(const char filename[], unsigned int level) = 0;
+		virtual bool Save(const std::string filename, unsigned int level) = 0;
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;

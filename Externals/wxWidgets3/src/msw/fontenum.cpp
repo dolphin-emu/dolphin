@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to add support for font encodings
 // Created:     04/01/98
-// RCS-ID:      $Id: fontenum.cpp 66615 2011-01-07 05:26:57Z PC $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -160,7 +159,7 @@ void wxFontEnumeratorHelper::DoEnumerate()
 
 #ifdef __WXWINCE__
     ::EnumFontFamilies(hDC,
-                       m_facename.empty() ? NULL : m_facename.wx_str(),
+                       m_facename.empty() ? NULL : wxMSW_CONV_LPCTSTR(m_facename),
                        (wxFONTENUMPROC)wxFontEnumeratorProc,
                        (LPARAM)this) ;
 #else // __WIN32__
@@ -187,9 +186,18 @@ bool wxFontEnumeratorHelper::OnFont(const LPLOGFONT lf,
         {
             wxConstCast(this, wxFontEnumeratorHelper)->m_charsets.Add(cs);
 
+#if wxUSE_FONTMAP
             wxFontEncoding enc = wxGetFontEncFromCharSet(cs);
             return m_fontEnum->OnFontEncoding(lf->lfFaceName,
                                               wxFontMapper::GetEncodingName(enc));
+#else // !wxUSE_FONTMAP
+            // Just use some unique and, hopefully, understandable, name.
+            return m_fontEnum->OnFontEncoding
+                               (
+                                lf->lfFaceName,
+                                wxString::Format(wxS("Code page %d"), cs)
+                               );
+#endif // wxUSE_FONTMAP/!wxUSE_FONTMAP
         }
         else
         {

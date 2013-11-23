@@ -26,7 +26,7 @@ public:
 	u16 ReadDSPMailboxLow();
 
 	u32 GetNextMail()
-	{ 
+	{
 		if (m_Mails.size())
 		{
 			return m_Mails.front();

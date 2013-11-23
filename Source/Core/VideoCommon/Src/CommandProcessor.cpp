@@ -8,7 +8,6 @@
 #include "MathUtil.h"
 #include "Thread.h"
 #include "Atomic.h"
-#include "OpcodeDecoding.h"
 #include "Fifo.h"
 #include "ChunkFile.h"
 #include "CommandProcessor.h"
@@ -51,7 +50,6 @@ volatile bool interruptSet= false;
 volatile bool interruptWaiting= false;
 volatile bool interruptTokenWaiting = false;
 volatile bool interruptFinishWaiting = false;
-volatile bool waitingForPEInterruptDisable = false;
 
 volatile u32 VITicks = CommandProcessor::m_cpClockOrigin;
 
@@ -110,7 +108,7 @@ void Init()
 	m_bboxbottom = 480;
 
 	m_tokenReg = 0;
-	
+
 	memset(&fifo,0,sizeof(fifo));
 	fifo.CPCmdIdle  = 1;
 	fifo.CPReadIdle = 1;
@@ -455,9 +453,7 @@ void STACKALIGN GatherPipeBursted()
 			if((ProcessorInterface::Fifo_CPUEnd == fifo.CPEnd) && (ProcessorInterface::Fifo_CPUBase == fifo.CPBase)
 				 && fifo.CPReadWriteDistance > 0)
 			{
-				waitingForPEInterruptDisable = true;
 				ProcessFifoAllDistance();
-				waitingForPEInterruptDisable = false;
 			}
 		}
 		return;
@@ -617,7 +613,7 @@ void ProcessFifoEvents()
 
 void Shutdown()
 {
- 
+
 }
 
 void SetCpStatusRegister()
@@ -660,7 +656,7 @@ void SetCpControlRegister()
 		ProcessorInterface::Fifo_CPUBase = fifo.CPBase;
 		ProcessorInterface::Fifo_CPUEnd = fifo.CPEnd;
 	}
-			
+
 	if(fifo.bFF_GPReadEnable && !m_CPCtrlReg.GPReadEnable)
 	{
 		fifo.bFF_GPReadEnable = m_CPCtrlReg.GPReadEnable;

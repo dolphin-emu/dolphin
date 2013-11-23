@@ -3,7 +3,6 @@
 // Purpose:     Class to convert markup to Cocoa attributed strings.
 // Author:      Vadim Zeitlin
 // Created:     2011-02-22
-// RCS-ID:      $Id: markuptoattr.h 67069 2011-02-27 12:48:46Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

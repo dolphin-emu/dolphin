@@ -4,7 +4,6 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2007-04-16
-// RCS-ID:      $Id: stringops.cpp 61508 2009-07-23 20:30:22Z VZ $
 // Copyright:   (c) 2007 REA Elektronik GmbH
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -254,7 +253,6 @@ wxStringOperationsUtf8::DecodeNonAsciiChar(wxStringImpl::const_iterator i)
 {
     wxASSERT( IsValidUtf8LeadByte(*i) );
 
-    wxUniChar::value_type code = 0;
     size_t len = GetUtf8CharLength(*i);
     wxASSERT_MSG( len <= 4, wxT("invalid UTF-8 sequence length") );
 
@@ -282,7 +280,7 @@ wxStringOperationsUtf8::DecodeNonAsciiChar(wxStringImpl::const_iterator i)
     wxASSERT_MSG( ((unsigned char)*i & s_leadMarkerMask[len-1]) ==
                   s_leadMarkerVal[len-1],
                   wxT("invalid UTF-8 lead byte") );
-    code = (unsigned char)*i & s_leadValueMask[len-1];
+    wxUniChar::value_type code = (unsigned char)*i & s_leadValueMask[len-1];
 
     // all remaining bytes, if any, are handled in the same way regardless of
     // sequence's length:

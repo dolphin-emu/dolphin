@@ -3,7 +3,6 @@
 // Purpose:     wxDateTimePickerCtrl for Windows.
 // Author:      Vadim Zeitlin
 // Created:     2011-09-22 (extracted from wx/msw/datectrl.h).
-// RCS-ID:      $Id: datetimectrl.h 69489 2011-10-20 16:45:48Z VZ $
 // Copyright:   (c) 2005-2011 Vadim Zeitlin <vadim@wxwindows.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

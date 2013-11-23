@@ -5,6 +5,7 @@
 #include "OCLTextureDecoder.h"
 
 #include "../OpenCL.h"
+#include "CommonPaths.h"
 #include "FileUtil.h"
 
 #include <fcntl.h>
@@ -138,8 +139,8 @@ void TexDecoder_OpenCL_Initialize()
 		if (err)
 		{
 			std::string code;
-			filename = File::GetUserPath(D_OPENCL_IDX) + "TextureDecoder.cl";
-			if (!File::ReadFileToString(true, filename.c_str(), code))
+			filename = File::GetSysDirectory() + OPENCL_DIR DIR_SEP "TextureDecoder.cl";
+			if (!File::ReadFileToString(filename.c_str(), code))
 			{
 				ERROR_LOG(VIDEO, "Failed to load OpenCL code %s - file is missing?", filename.c_str());
 				return;

@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: notebook_osx.cpp 70340 2012-01-14 17:57:08Z VZ $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -173,11 +172,19 @@ wxNotebookPage* wxNotebook::DoRemovePage(size_t nPage)
 
     wxNotebookPage* page = m_pages[nPage] ;
     m_pages.RemoveAt(nPage);
+    m_images.RemoveAt(nPage);
 
     MacSetupTabs();
 
-    if (m_selection >= (int)GetPageCount())
-        m_selection = GetPageCount() - 1;
+    if ( m_selection >= (int)nPage )
+    {
+        if ( GetPageCount() == 0 )
+            m_selection = wxNOT_FOUND;
+        else
+            m_selection = m_selection ? m_selection - 1 : 0;
+
+        GetPeer()->SetValue( m_selection + 1 ) ;
+    }
 
     if (m_selection >= 0)
         m_pages[m_selection]->Show(true);
@@ -190,7 +197,8 @@ wxNotebookPage* wxNotebook::DoRemovePage(size_t nPage)
 // remove all pages
 bool wxNotebook::DeleteAllPages()
 {
-    WX_CLEAR_ARRAY(m_pages) ;
+    WX_CLEAR_ARRAY(m_pages);
+    m_images.clear();
     MacSetupTabs();
     m_selection = wxNOT_FOUND ;
     InvalidateBestSize();
@@ -247,64 +255,7 @@ bool wxNotebook::InsertPage(size_t nPage,
 
 int wxNotebook::HitTest(const wxPoint& pt, long *flags) const
 {
-    int resultV = wxNOT_FOUND;
-#ifdef __WXOSX_CARBON__
-    const int countPages = GetPageCount();
-
-    // we have to convert from Client to Window relative coordinates
-    wxPoint adjustedPt = pt + GetClientAreaOrigin();
-    // and now to HIView native ones
-    adjustedPt.x -= MacGetLeftBorderSize() ;
-    adjustedPt.y -= MacGetTopBorderSize() ;
-
-    HIPoint hipoint= { adjustedPt.x , adjustedPt.y } ;
-    HIViewPartCode outPart = 0 ;
-    OSStatus err = HIViewGetPartHit( GetPeer()->GetControlRef(), &hipoint, &outPart );
-
-    int max = GetPeer()->GetMaximum() ;
-    if ( outPart == 0 && max > 0 )
-    {
-        // this is a hack, as unfortunately a hit on an already selected tab returns 0,
-        // so we have to go some extra miles to make sure we select something different
-        // and try again ..
-        int val = GetPeer()->GetValue() ;
-        int maxval = max ;
-        if ( max == 1 )
-        {
-            GetPeer()->SetMaximum( 2 ) ;
-            maxval = 2 ;
-        }
-
-        if ( val == 1 )
-            GetPeer()->SetValue( maxval ) ;
-        else
-             GetPeer()->SetValue( 1 ) ;
-
-        err = HIViewGetPartHit( GetPeer()->GetControlRef(), &hipoint, &outPart );
-
-        GetPeer()->SetValue( val ) ;
-        if ( max == 1 )
-            GetPeer()->SetMaximum( 1 ) ;
-    }
-
-    if ( outPart >= 1 && outPart <= countPages )
-        resultV = outPart - 1 ;
-
-    if (flags != NULL)
-    {
-        *flags = 0;
-
-        // we cannot differentiate better
-        if (resultV >= 0)
-            *flags |= wxBK_HITTEST_ONLABEL;
-        else
-            *flags |= wxBK_HITTEST_NOWHERE;
-    }
-#else
-    wxUnusedVar(pt);
-    wxUnusedVar(flags);
-#endif
-    return resultV;
+    return GetPeer()->TabHitTest(pt,flags);
 }
 
 // Added by Mark Newsam
@@ -342,6 +293,7 @@ void wxNotebook::OnSize(wxSizeEvent& event)
         pPage->SetSize(rect, wxSIZE_FORCE_EVENT);
     }
 
+#if 0 // deactivate r65078 for the moment
     // If the selected page is hidden at this point, the notebook
     // has become visible for the first time after creation, and
     // we postponed showing the page in ChangePage().
@@ -355,6 +307,7 @@ void wxNotebook::OnSize(wxSizeEvent& event)
             pPage->SetFocus();
         }
     }
+#endif
 
     // Processing continues to next OnSize
     event.Skip();
@@ -480,6 +433,7 @@ void wxNotebook::ChangePage(int nOldSel, int nSel)
     if ( nSel != wxNOT_FOUND )
     {
         wxNotebookPage *pPage = m_pages[nSel];
+#if 0 // deactivate r65078 for the moment
         if ( IsShownOnScreen() )
         {
             pPage->Show( true );
@@ -494,6 +448,10 @@ void wxNotebook::ChangePage(int nOldSel, int nSel)
             // We Show() the selected page in our OnSize handler,
             // unless it already is shown.
         }
+#else
+        pPage->Show( true );
+        pPage->SetFocus();
+#endif
     }
 
     m_selection = nSel;
@@ -508,7 +466,7 @@ bool wxNotebook::OSXHandleClicked( double WXUNUSED(timestampsec) )
     if ( newSel != m_selection )
     {
         wxBookCtrlEvent changing(
-            wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING, m_windowId,
+            wxEVT_NOTEBOOK_PAGE_CHANGING, m_windowId,
             newSel , m_selection );
         changing.SetEventObject( this );
         HandleWindowEvent( changing );
@@ -516,7 +474,7 @@ bool wxNotebook::OSXHandleClicked( double WXUNUSED(timestampsec) )
         if ( changing.IsAllowed() )
         {
             wxBookCtrlEvent event(
-                wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED, m_windowId,
+                wxEVT_NOTEBOOK_PAGE_CHANGED, m_windowId,
                 newSel, m_selection );
             event.SetEventObject( this );
             HandleWindowEvent( event );

@@ -24,7 +24,7 @@ class VertexLoaderUID
 	u32 vid[5];
 	size_t hash;
 public:
-	VertexLoaderUID() 
+	VertexLoaderUID()
 	{
 	}
 
@@ -73,9 +73,9 @@ private:
 	{
 		size_t h = -1;
 
-		for (unsigned int i = 0; i < sizeof(vid) / sizeof(vid[0]); ++i)
+		for (auto word : vid)
 		{
-			h = h * 137 + vid[i];
+			h = h * 137 + word;
 		}
 
 		return h;
@@ -94,7 +94,7 @@ public:
 	~VertexLoader();
 
 	int GetVertexSize() const {return m_VertexSize;}
-	
+
 	int SetupRunVertices(int vtx_attr_group, int primitive, int const count);
 	void RunVertices(int vtx_attr_group, int primitive, int count);
 	void RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data);

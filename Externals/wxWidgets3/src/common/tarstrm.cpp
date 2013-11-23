@@ -2,7 +2,6 @@
 // Name:        src/common/tarstrm.cpp
 // Purpose:     Streams for Tar files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: tarstrm.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2004 Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

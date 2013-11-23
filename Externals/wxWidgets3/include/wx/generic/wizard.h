@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by: Robert Vazan (sizers)
 // Created:     28.09.99
-// RCS-ID:      $Id: wizard.h 58757 2009-02-08 11:45:59Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

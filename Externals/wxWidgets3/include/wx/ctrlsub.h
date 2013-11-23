@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.10.99
-// RCS-ID:      $Id: ctrlsub.h 68460 2011-07-30 11:30:08Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -440,6 +439,12 @@ public:
     // usually the controls like list/combo boxes have their own background
     // colour
     virtual bool ShouldInheritColours() const { return false; }
+
+
+    // Implementation only from now on.
+
+    // Generate an event of the given type for the selection change.
+    void SendSelectionChangedEvent(wxEventType eventType);
 
 protected:
     // fill in the client object or data field of the event as appropriate

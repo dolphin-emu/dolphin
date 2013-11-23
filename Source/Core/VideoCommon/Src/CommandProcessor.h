@@ -23,8 +23,7 @@ extern volatile bool interruptSet;
 extern volatile bool interruptWaiting;
 extern volatile bool interruptTokenWaiting;
 extern volatile bool interruptFinishWaiting;
-extern volatile bool waitingForPEInterruptDisable;
- 
+
 // internal hardware addresses
 enum
 {

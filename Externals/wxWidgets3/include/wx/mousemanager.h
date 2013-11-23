@@ -3,7 +3,6 @@
 // Purpose:     wxMouseEventsManager class declaration
 // Author:      Vadim Zeitlin
 // Created:     2009-04-20
-// RCS-ID:      $Id: mousemanager.h 60839 2009-05-31 14:43:01Z VZ $
 // Copyright:   (c) 2009 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -45,7 +45,7 @@ UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 	point->SetValue(wrp->updIR);
 	nun->SetValue(wrp->updNun);
 	nunaccel->SetValue(wrp->updNunAccel);
-	
+
 	sizer1->Add(enable, 1, wxALL | wxEXPAND, 5);
 	sizer1->Add(port_sizer, 1, wxBOTTOM | wxLEFT| wxRIGHT | wxEXPAND, 5);
 

@@ -14,7 +14,7 @@
 #ifndef DISC_SCRUBBER_H
 #define DISC_SCRUBBER_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 #include "Blob.h"
 
 

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: helpwin.cpp 57876 2009-01-07 08:51:47Z JS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -63,7 +62,7 @@ bool wxWinHelpController::DisplayContents(void)
 
     wxString str = GetValidFilename(m_helpFile);
 
-    return (WinHelp(GetSuitableHWND(this), str.wx_str(), HELP_FINDER, 0L) != 0);
+    return (WinHelp(GetSuitableHWND(this), str.t_str(), HELP_FINDER, 0L) != 0);
 }
 
 bool wxWinHelpController::DisplaySection(int section)
@@ -73,7 +72,7 @@ bool wxWinHelpController::DisplaySection(int section)
 
     wxString str = GetValidFilename(m_helpFile);
 
-    return (WinHelp(GetSuitableHWND(this), str.wx_str(), HELP_CONTEXT, (DWORD)section) != 0);
+    return (WinHelp(GetSuitableHWND(this), str.t_str(), HELP_CONTEXT, (DWORD)section) != 0);
 }
 
 bool wxWinHelpController::DisplayContextPopup(int contextId)
@@ -82,7 +81,7 @@ bool wxWinHelpController::DisplayContextPopup(int contextId)
 
     wxString str = GetValidFilename(m_helpFile);
 
-    return (WinHelp(GetSuitableHWND(this), str.wx_str(), HELP_CONTEXTPOPUP, (DWORD) contextId) != 0);
+    return (WinHelp(GetSuitableHWND(this), str.t_str(), HELP_CONTEXTPOPUP, (DWORD) contextId) != 0);
 }
 
 bool wxWinHelpController::DisplayBlock(long block)
@@ -98,8 +97,8 @@ bool wxWinHelpController::KeywordSearch(const wxString& k,
 
     wxString str = GetValidFilename(m_helpFile);
 
-    return WinHelp(GetSuitableHWND(this), str.wx_str(), HELP_PARTIALKEY,
-                   (ULONG_PTR)k.wx_str()) != 0;
+    return WinHelp(GetSuitableHWND(this), str.t_str(), HELP_PARTIALKEY,
+                   (ULONG_PTR)wxMSW_CONV_LPCTSTR(k)) != 0;
 }
 
 // Can't close the help window explicitly in WinHelp

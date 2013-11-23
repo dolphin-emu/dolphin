@@ -43,16 +43,24 @@
 // 32-bit bog standard cdecl, shared between linux and windows
 // MacOSX 32-bit is same as System V with a few exceptions that we probably don't care much about.
 
+#define ABI_ALL_CALLEE_SAVED ((1 << EAX) | (1 << ECX) | (1 << EDX) | \
+                              0xff00 /* xmm0..7 */)
+
 #else // 64 bit calling convention
 
-#ifdef _WIN32 // 64-bit Windows - the really exotic calling convention 
+#ifdef _WIN32 // 64-bit Windows - the really exotic calling convention
 
 #define ABI_PARAM1 RCX
 #define ABI_PARAM2 RDX
 #define ABI_PARAM3 R8
 #define ABI_PARAM4 R9
 
-#else  //64-bit Unix (hopefully MacOSX too) 
+#define ABI_ALL_CALLEE_SAVED ((1 << RAX) | (1 << RCX) | (1 << RDX) | (1 << R8) | \
+                              (1 << R9) | (1 << R10) | (1 << R11) | \
+                              (1 << XMM0) | (1 << XMM1) | (1 << XMM2) | (1 << XMM3) | \
+                              (1 << XMM4) | (1 << XMM5))
+
+#else  //64-bit Unix / OS X
 
 #define ABI_PARAM1 RDI
 #define ABI_PARAM2 RSI
@@ -60,6 +68,10 @@
 #define ABI_PARAM4 RCX
 #define ABI_PARAM5 R8
 #define ABI_PARAM6 R9
+
+#define ABI_ALL_CALLEE_SAVED ((1 << RAX) | (1 << RCX) | (1 << RDX) | (1 << RDI) | \
+                              (1 << RSI) | (1 << R8) | (1 << R9) | (1 << R10) | (1 << R11) | \
+                              0xffff0000 /* xmm0..15 */)
 
 #endif // WIN32
 

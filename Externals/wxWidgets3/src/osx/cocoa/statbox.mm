@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: statbox.mm 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Stefan Csomor
 // Licence:       wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -73,7 +72,9 @@ wxWidgetImplType* wxWidgetImpl::CreateGroupBox( wxWindowMac* wxpeer,
     NSRect r = wxOSXGetFrameForControl( wxpeer, pos , size ) ;
     wxNSBox* v = [[wxNSBox alloc] initWithFrame:r];
     wxStaticBoxCocoaImpl* c = new wxStaticBoxCocoaImpl( wxpeer, v );
+#if !wxOSX_USE_NATIVE_FLIPPED
     c->SetFlipped(false);
+#endif
     return c;
 }
 

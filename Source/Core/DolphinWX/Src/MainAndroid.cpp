@@ -26,6 +26,7 @@
 #include "CPUDetect.h"
 #include "Thread.h"
 
+#include "State.h"
 #include "PowerPC/PowerPC.h"
 #include "HW/Wiimote.h"
 
@@ -93,8 +94,8 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
 	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
 	y = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos;
-	width = g_width; 	
-	height = g_height; 
+	width = g_width;
+	height = g_height;
 }
 
 void Host_RequestRenderWindowSize(int width, int height) {}
@@ -132,29 +133,21 @@ void Host_SysMessage(const char *fmt, ...)
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
-void OSDCallbacks(u32 UserData)
-{
-	switch(UserData)
-	{
-		case 0: // Init
-			ButtonManager::Init();
-		break;
-		case 1: // Draw
-			ButtonManager::DrawButtons();
-		break;
-		case 2: // Shutdown
-			ButtonManager::Shutdown();
-		break;
-		default:
-			WARN_LOG(COMMON, "Error, wrong OSD type");
-		break;
-	}
-}
-
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
 std::vector<std::string> m_volume_names;
 std::vector<std::string> m_names;
+
+static inline u32 Average32(u32 a, u32 b) {
+	return ((a >> 1) & 0x7f7f7f7f) + ((b >> 1) & 0x7f7f7f7f);
+}
+
+static inline u32 GetPixel(u32 *buffer, unsigned int x, unsigned int y) {
+	// thanks to unsignedness, these also check for <0 automatically.
+	if (x > 191) return 0;
+	if (y > 63) return 0;
+	return buffer[y * 192 + x];
+}
 
 bool LoadBanner(std::string filename, u32 *Banner)
 {
@@ -179,8 +172,32 @@ bool LoadBanner(std::string filename, u32 *Banner)
 				if (pBannerLoader->IsValid())
 				{
 					m_names = pBannerLoader->GetNames();
-					if (pBannerLoader->GetBanner(Banner))
-						return true;
+					int Width, Height;
+					std::vector<u32> BannerVec = pBannerLoader->GetBanner(&Width, &Height);
+					// This code (along with above inlines) is moved from
+					// elsewhere.  Someone who knows anything about Android
+					// please get rid of it and use proper high-resolution
+					// images.
+					if (Height == 64)
+					{
+						u32* Buffer = &BannerVec[0];
+						for (int y = 0; y < 32; y++)
+						{
+							for (int x = 0; x < 96; x++)
+							{
+								// simplified plus-shaped "gaussian"
+								u32 surround = Average32(
+										Average32(GetPixel(Buffer, x*2 - 1, y*2), GetPixel(Buffer, x*2 + 1, y*2)),
+										Average32(GetPixel(Buffer, x*2, y*2 - 1), GetPixel(Buffer, x*2, y*2 + 1)));
+								Banner[y * 96 + x] = Average32(GetPixel(Buffer, x*2, y*2), surround);
+							}
+						}
+					}
+					else
+					{
+						memcpy(Banner, &BannerVec[0], 96 * 32 * 4);
+					}
+					return true;
 				}
 		}
 	}
@@ -210,14 +227,15 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmula
 {
 	PowerPC::Start();
 }
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv *env, jobject obj) 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv *env, jobject obj)
 {
 	PowerPC::Pause();
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv *env, jobject obj) 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv *env, jobject obj)
 {
-	PowerPC::Stop();
+	Core::Stop();
+	updateMainFrameEvent.Set(); // Kick the waiting event
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onTouchEvent(JNIEnv *env, jobject obj, jint Action, jfloat X, jfloat Y)
 {
@@ -260,10 +278,22 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetTitle(
 	env->ReleaseStringUTFChars(jFile, File);
 	return env->NewStringUTF(Name.c_str());
 }
+
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv *env, jobject obj)
 {
 	return env->NewStringUTF(scm_rev_str);
 }
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SupportsNEON(JNIEnv *env, jobject obj)
+{
+	return cpu_info.bNEON;
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv *env, jobject obj)
+{
+	Core::SaveScreenShot();
+}
+
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig(JNIEnv *env, jobject obj, jstring jFile, jstring jKey, jstring jValue, jstring jDefault)
 {
 	IniFile ini;
@@ -271,12 +301,12 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
 	const char *Key = env->GetStringUTFChars(jKey, NULL);
 	const char *Value = env->GetStringUTFChars(jValue, NULL);
 	const char *Default = env->GetStringUTFChars(jDefault, NULL);
-	
+
 	ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(File));
 	std::string value;
-	
+
 	ini.Get(Key, Value, &value, Default);
-	
+
 	env->ReleaseStringUTFChars(jFile, File);
 	env->ReleaseStringUTFChars(jKey, Key);
 	env->ReleaseStringUTFChars(jValue, Value);
@@ -291,7 +321,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(JN
 	const char *Key = env->GetStringUTFChars(jKey, NULL);
 	const char *Value = env->GetStringUTFChars(jValue, NULL);
 	const char *Default = env->GetStringUTFChars(jDefault, NULL);
-	
+
 	ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string(File));
 
 	ini.Set(Key, Value, Default);
@@ -317,12 +347,39 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetDimension
 	g_height = (int)_height;
 }
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv *env, jobject obj, jint slot)
+{
+	State::Save(slot);
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv *env, jobject obj, jint slot)
+{
+	State::Load(slot);
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFolders(JNIEnv *env, jobject obj)
+{
+	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+	File::CreateFullPath(File::GetUserPath(D_WIIUSER_IDX));
+	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject _surf)
 {
 	surf = ANativeWindow_fromSurface(env, _surf);
 	// Install our callbacks
-	OSD::AddCallback(OSD::OSD_INIT, OSDCallbacks, 0);
-	OSD::AddCallback(OSD::OSD_SHUTDOWN, OSDCallbacks, 2);
+	OSD::AddCallback(OSD::OSD_INIT, ButtonManager::Init);
+	OSD::AddCallback(OSD::OSD_SHUTDOWN, ButtonManager::Shutdown);
 
 	LogManager::Init();
 	SConfig::Init();
@@ -337,7 +394,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	ini.Get("Android", "ScreenControls", &onscreencontrols, true);
 
 	if (onscreencontrols)
-		OSD::AddCallback(OSD::OSD_ONFRAME, OSDCallbacks, 1);
+		OSD::AddCallback(OSD::OSD_ONFRAME, ButtonManager::DrawButtons);
 
 	// No use running the loop when booting fails
 	if ( BootManager::BootCore( g_filename.c_str() ) )
@@ -348,6 +405,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	VideoBackend::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
+	ANativeWindow_release(surf);
 }
 
 

@@ -1,62 +1,62 @@
 // How to use the DSPJitTester:
-// 
+//
 // == Before running ==
 // Make sure to call Initialize to set initial stuff required by int and jit:
 // DSPJitTester::Initialize();
-// 
+//
 // == Creation of a testcase ==
 // Create a testcase for a normal operation:
 // DSPJitTester tester(0x0004); //taken from DSPTables.cpp, opcodes[]
-// 
+//
 // Create a testcase for an extended operation:
 // DSPJitTester tester(0x8000, 0x0004); //NX from opcodes, DR from opcodes_ext
-// 
+//
 // By default, no messages are written.
 // To log all operations, set verbose to true:
 // DSPJitTester tester(0x8000, 0x0004, true);
-// 
+//
 // You can also choose to only print failing tests:
 // DSPJitTester tester(0x8000, 0x0004, verbosity_setting, true);
-// verbose = true will give the same output as verbose, 
+// verbose = true will give the same output as verbose,
 // while verbose = false will only (really!) print failing tests.
-// 
+//
 // == Setting up values ==
 // You can set the tester up with values for each DSP register:
 // tester.AddTestData(DSP_REG_ACC0, 1);
 // tester.AddTestData(DSP_REG_ACC0, 2);
 // tester.AddTestData(DSP_REG_ACC0, 3);
-// 
+//
 // You can also choose to have a few predefined values added for a register:
 // tester.AddTestData(DSP_REG_ACC0); //see the method body for the values added
-// 
+//
 // == Running the tests ==
-// After setup, you can either run JIT against the interpreter 
+// After setup, you can either run JIT against the interpreter
 // using all predefined register values, pass your own set of
 // registers or run either of the two independently from each other.
-// 
+//
 // int failed_tests = tester.TestAll(); //run jit against int, using values from AddTestData
 // int failed_tests = tester.TestAll(true); //override the value for only_failed to show failure
-// 
+//
 // SDSP dsp = GetCustomSetOfRegisters();
 // bool success = tester.Test(dsp); //run jit against int, using a custom set of register values
-// 
+//
 // SDSP result = tester.RunInterpreter(dsp); //run int alone
 // SDSP result = tester.RunJit(dsp); //run jit alone
-// 
+//
 // == Examining results ==
 // When either verbose or only_failed is set to true, the tester will automatically report
 // failure to stdout, along with input registers and the differences in output registers.
-// 
+//
 // tester.Report(); //display a small report afterwards
-// 
+//
 // SDSP int = tester.GetLastInterpreterDSP(); //examine the DSP set left after running int
 // SDSP jit = tester.GetLastJitDSP(); //same for jit
-// 
+//
 // int tests_run = tester.GetRunCount();
 // int tests_failed = tester.GetFailCount();
 // const char* tested_instruction = tester.GetInstructionName();
 // printf("%s ran %d tests and failed %d times\n", tested_instruction, tests_run, tests_failed);
-// 
+//
 // tester.DumpJittedCode(); //prints the code bytes produced by jit (examine with udcli/udis86 or similar)
 
 #ifndef __DSP_JIT_TESTER_

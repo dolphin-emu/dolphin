@@ -3,7 +3,6 @@
 // Purpose:     Helper keyboard-related functions.
 // Author:      Vadim Zeitlin
 // Created:     2010-09-09
-// RCS-ID:      $Id: keyboard.h 65590 2010-09-22 13:31:41Z VZ $
 // Copyright:   (c) 2010 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

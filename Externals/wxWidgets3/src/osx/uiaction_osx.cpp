@@ -4,7 +4,6 @@
 // Author:      Kevin Ollivier, Steven Lamerton, Vadim Zeitlin
 // Modified by:
 // Created:     2010-03-06
-// RCS-ID:      $Id: uiaction_osx.cpp 70402 2012-01-19 15:01:01Z SC $
 // Copyright:   (c) Kevin Ollivier
 //              (c) 2010 Steven Lamerton
 //              (c) 2010 Vadim Zeitlin
@@ -25,6 +24,8 @@
 
 #include "wx/osx/private.h"
 #include "wx/osx/core/cfref.h"
+
+#include "wx/evtloop.h"
 
 namespace
 {
@@ -51,7 +52,53 @@ CGEventType CGEventTypeForMouseButton(int button, bool isDown)
             return isDown ? kCGEventOtherMouseDown : kCGEventOtherMouseUp;
     }
 }
+    
+CGEventType CGEventTypeForMouseDrag(int button)
+{
+    switch ( button )
+    {
+        case wxMOUSE_BTN_LEFT:
+            return kCGEventLeftMouseDragged;
+            break;
+            
+        case wxMOUSE_BTN_RIGHT:
+            return kCGEventRightMouseDragged;
+            break;
+            
+            // All the other buttons use the constant OtherMouseDown but we still
+            // want to check for invalid parameters so assert first
+        default:
+            wxFAIL_MSG("Unsupported button passed in.");
+            // fall back to the only known remaining case
+            
+        case wxMOUSE_BTN_MIDDLE:
+            return kCGEventOtherMouseDragged;
+            break;
+    }
 
+}
+
+CGMouseButton CGButtonForMouseButton(int button)
+{
+    switch ( button )
+    {
+        case wxMOUSE_BTN_LEFT:
+            return kCGMouseButtonLeft;
+            
+        case wxMOUSE_BTN_RIGHT:
+            return kCGMouseButtonRight;
+            
+            // All the other buttons use the constant OtherMouseDown but we still
+            // want to check for invalid parameters so assert first
+        default:
+            wxFAIL_MSG("Unsupported button passed in.");
+            // fall back to the only known remaining case
+            
+        case wxMOUSE_BTN_MIDDLE:
+            return kCGMouseButtonCenter;
+    }
+}
+    
 CGPoint GetMousePosition()
 {
     int x, y;
@@ -70,14 +117,17 @@ bool wxUIActionSimulator::MouseDown(int button)
 {
     CGEventType type = CGEventTypeForMouseButton(button, true);
     wxCFRef<CGEventRef> event(
-            CGEventCreateMouseEvent(NULL, type, GetMousePosition(), button));
+            CGEventCreateMouseEvent(NULL, type, GetMousePosition(), CGButtonForMouseButton(button)));
 
     if ( !event )
         return false;
 
     CGEventSetType(event, type);
     CGEventPost(tap, event);
-
+    wxCFEventLoop* loop = dynamic_cast<wxCFEventLoop*>(wxEventLoop::GetActive());
+    if (loop)
+        loop->SetShouldWaitForEvent(true);
+    
     return true;
 }
 
@@ -97,6 +147,10 @@ bool wxUIActionSimulator::MouseMove(long x, long y)
     CGEventSetType(event, type);
     CGEventPost(tap, event);
 
+    wxCFEventLoop* loop = dynamic_cast<wxCFEventLoop*>(wxEventLoop::GetActive());
+    if (loop)
+        loop->SetShouldWaitForEvent(true);
+    
     return true;
 }
 
@@ -104,14 +158,85 @@ bool wxUIActionSimulator::MouseUp(int button)
 {
     CGEventType type = CGEventTypeForMouseButton(button, false);
     wxCFRef<CGEventRef> event(
-            CGEventCreateMouseEvent(NULL, type, GetMousePosition(), button));
+            CGEventCreateMouseEvent(NULL, type, GetMousePosition(), CGButtonForMouseButton(button)));
 
     if ( !event )
         return false;
 
     CGEventSetType(event, type);
     CGEventPost(tap, event);
+    wxCFEventLoop* loop = dynamic_cast<wxCFEventLoop*>(wxEventLoop::GetActive());
+    if (loop)
+        loop->SetShouldWaitForEvent(true);
+    
+    return true;
+}
 
+bool wxUIActionSimulator::MouseDblClick(int button)
+{
+    CGEventType downtype = CGEventTypeForMouseButton(button, true);
+    CGEventType uptype = CGEventTypeForMouseButton(button, false);
+    wxCFRef<CGEventRef> event(
+                              CGEventCreateMouseEvent(NULL, downtype, GetMousePosition(), CGButtonForMouseButton(button)));
+    
+    if ( !event )
+        return false;
+    
+    CGEventSetType(event,downtype);
+    CGEventPost(tap, event);
+    
+    CGEventSetType(event, uptype);
+    CGEventPost(tap, event);
+    
+    CGEventSetIntegerValueField(event, kCGMouseEventClickState, 2);
+    CGEventSetType(event, downtype);
+    CGEventPost(tap, event);
+    
+    CGEventSetType(event, uptype);
+    CGEventPost(tap, event);
+    wxCFEventLoop* loop = dynamic_cast<wxCFEventLoop*>(wxEventLoop::GetActive());
+    if (loop)
+        loop->SetShouldWaitForEvent(true);
+    
+    return true;
+}
+
+bool wxUIActionSimulator::MouseDragDrop(long x1, long y1, long x2, long y2,
+                                        int button)
+{
+    CGPoint pos1,pos2;
+    pos1.x = x1;
+    pos1.y = y1;
+    pos2.x = x2;
+    pos2.y = y2;
+
+    CGEventType downtype = CGEventTypeForMouseButton(button, true);
+    CGEventType uptype = CGEventTypeForMouseButton(button, false);
+    CGEventType dragtype = CGEventTypeForMouseDrag(button) ;
+
+    wxCFRef<CGEventRef> event(
+                              CGEventCreateMouseEvent(NULL, kCGEventMouseMoved, pos1, CGButtonForMouseButton(button)));
+    
+    if ( !event )
+        return false;
+    
+    CGEventSetType(event,kCGEventMouseMoved);
+    CGEventPost(tap, event);
+    
+    CGEventSetType(event,downtype);
+    CGEventPost(tap, event);
+    
+    
+    CGEventSetType(event, dragtype);
+    CGEventSetLocation(event,pos2);
+    CGEventPost(tap, event);
+    
+    CGEventSetType(event, uptype);
+    CGEventPost(tap, event);
+    wxCFEventLoop* loop = dynamic_cast<wxCFEventLoop*>(wxEventLoop::GetActive());
+    if (loop)
+        loop->SetShouldWaitForEvent(true);
+    
     return true;
 }
 
@@ -126,6 +251,10 @@ wxUIActionSimulator::DoKey(int keycode, int WXUNUSED(modifiers), bool isDown)
         return false;
 
     CGEventPost(kCGHIDEventTap, event);
+    wxCFEventLoop* loop = dynamic_cast<wxCFEventLoop*>(wxEventLoop::GetActive());
+    if (loop)
+        loop->SetShouldWaitForEvent(true);
+
     return true;
 }
 

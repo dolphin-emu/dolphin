@@ -9,7 +9,8 @@
 #include <unistd.h>
 #endif
 
-#include "Common.h"
+#include <cinttypes>
+
 #include "CompressedBlob.h"
 #include "DiscScrubber.h"
 #include "FileUtil.h"
@@ -90,7 +91,7 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 
 	// clear unused part of zlib buffer. maybe this can be deleted when it works fully.
 	memset(zlib_buffer + comp_block_size, 0, zlib_buffer_size - comp_block_size);
-	
+
 	m_file.Seek(offset, SEEK_SET);
 	m_file.ReadBytes(zlib_buffer, comp_block_size);
 
@@ -100,7 +101,7 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 	// First, check hash.
 	u32 block_hash = HashAdler32(source, comp_block_size);
 	if (block_hash != hashes[block_num])
-		PanicAlert("Hash of block %lli is %08x instead of %08x.\n"
+		PanicAlert("Hash of block %" PRIu64 " is %08x instead of %08x.\n"
 		           "Your ISO, %s, is corrupt.",
 		           block_num, block_hash, hashes[block_num],
 				   file_name.c_str());
@@ -128,7 +129,7 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 		{
 			// this seem to fire wrongly from time to time
 			// to be sure, don't use compressed isos :P
-			PanicAlert("Failure reading block %lli - out of data and not at end.", block_num);
+			PanicAlert("Failure reading block %" PRIu64 " - out of data and not at end.", block_num);
 		}
 		inflateEnd(&z);
 		if (uncomp_size != header.block_size)

@@ -4,24 +4,12 @@
 // Author:      Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     28.12.00
-// RCS-ID:      $Id: filename.h 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) 2000 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef   _WX_FILENAME_H_
 #define   _WX_FILENAME_H_
-
-/*
-    TODO:
-
-    1. support for drives under Windows
-    2. more file operations:
-        a) chmod()
-        b) [acm]time() - get and set
-        c) rename()?
-    3. SameFileAs() function to compare inodes under Unix
- */
 
 #include "wx/arrstr.h"
 #include "wx/filefn.h"
@@ -108,6 +96,22 @@ enum
     wxPATH_RMDIR_RECURSIVE  = 0x0002   // delete all recursively (dangerous!)
 };
 
+// FileExists flags
+enum
+{
+    wxFILE_EXISTS_REGULAR   = 0x0001,  // check for existence of a regular file
+    wxFILE_EXISTS_DIR       = 0x0002,  // check for existence of a directory
+    wxFILE_EXISTS_SYMLINK   = 0x1004,  // check for existence of a symbolic link;
+                                       // also sets wxFILE_EXISTS_NO_FOLLOW as
+                                       // it would never be satisfied otherwise
+    wxFILE_EXISTS_DEVICE    = 0x0008,  // check for existence of a device
+    wxFILE_EXISTS_FIFO      = 0x0016,  // check for existence of a FIFO
+    wxFILE_EXISTS_SOCKET    = 0x0032,  // check for existence of a socket
+                                       // gap for future types
+    wxFILE_EXISTS_NO_FOLLOW = 0x1000,  // don't dereference a contained symlink
+    wxFILE_EXISTS_ANY       = 0x1FFF   // check for existence of anything
+};
+
 #if wxUSE_LONGLONG
 // error code of wxFileName::GetSize()
 extern WXDLLIMPEXP_DATA_BASE(const wxULongLong) wxInvalidSize;
@@ -132,13 +136,13 @@ public:
         // is contructed (the name will be empty), otherwise a file name and
         // extension are extracted from it
     wxFileName( const wxString& fullpath, wxPathFormat format = wxPATH_NATIVE )
-        { Assign( fullpath, format ); }
+        { Assign( fullpath, format ); m_dontFollowLinks = false; }
 
         // from a directory name and a file name
     wxFileName(const wxString& path,
                const wxString& name,
                wxPathFormat format = wxPATH_NATIVE)
-        { Assign(path, name, format); }
+        { Assign(path, name, format); m_dontFollowLinks = false; }
 
         // from a volume, directory name, file base name and extension
     wxFileName(const wxString& volume,
@@ -146,14 +150,14 @@ public:
                const wxString& name,
                const wxString& ext,
                wxPathFormat format = wxPATH_NATIVE)
-        { Assign(volume, path, name, ext, format); }
+        { Assign(volume, path, name, ext, format); m_dontFollowLinks = false; }
 
         // from a directory name, file base name and extension
     wxFileName(const wxString& path,
                const wxString& name,
                const wxString& ext,
                wxPathFormat format = wxPATH_NATIVE)
-        { Assign(path, name, ext, format); }
+        { Assign(path, name, ext, format); m_dontFollowLinks = false; }
 
         // the same for delayed initialization
 
@@ -224,8 +228,8 @@ public:
 
         // does anything at all with this name (i.e. file, directory or some
         // other file system object such as a device, socket, ...) exist?
-    bool Exists() const { return Exists(GetFullPath()); }
-    static bool Exists(const wxString& path);
+    bool Exists(int flags = wxFILE_EXISTS_ANY) const;
+    static bool Exists(const wxString& path, int flags = wxFILE_EXISTS_ANY);
 
 
         // checks on most common flags for files/directories;
@@ -249,6 +253,10 @@ public:
 
     bool IsFileExecutable() const { return wxIsExecutable(GetFullPath()); }
     static bool IsFileExecutable(const wxString &path) { return wxFileExists(path) && wxIsExecutable(path); }
+
+        // set the file permissions to a combination of wxPosixPermissions enum
+        // values
+    bool SetPermissions(int permissions);
 
 
     // time functions
@@ -367,6 +375,26 @@ public:
         { return Normalize(wxPATH_NORM_DOTS | wxPATH_NORM_ABSOLUTE |
                            wxPATH_NORM_TILDE, cwd, format); }
 
+
+    // If the path is a symbolic link (Unix-only), indicate that all
+    // filesystem operations on this path should be performed on the link
+    // itself and not on the file it points to, as is the case by default.
+    //
+    // No effect if this is not a symbolic link.
+    void DontFollowLink()
+    {
+        m_dontFollowLinks = true;
+    }
+
+    // If the path is a symbolic link (Unix-only), returns whether various
+    // file operations should act on the link itself, or on its target.
+    //
+    // This does not test if the path is really a symlink or not.
+    bool ShouldFollowLink() const
+    {
+        return !m_dontFollowLinks;
+    }
+
 #if defined(__WIN32__) && !defined(__WXWINCE__) && wxUSE_OLE
         // if the path is a shortcut, return the target and optionally,
         // the arguments
@@ -454,16 +482,16 @@ public:
 
     // Dir accessors
     size_t GetDirCount() const { return m_dirs.size(); }
-    void AppendDir(const wxString& dir);
+    bool AppendDir(const wxString& dir);
     void PrependDir(const wxString& dir);
-    void InsertDir(size_t before, const wxString& dir);
+    bool InsertDir(size_t before, const wxString& dir);
     void RemoveDir(size_t pos);
     void RemoveLastDir() { RemoveDir(GetDirCount() - 1); }
 
     // Other accessors
     void SetExt( const wxString &ext )          { m_ext = ext; m_hasExt = !m_ext.empty(); }
-    void ClearExt()                             { m_ext = wxEmptyString; m_hasExt = false; }
-    void SetEmptyExt()                          { m_ext = wxT(""); m_hasExt = true; }
+    void ClearExt()                             { m_ext.clear(); m_hasExt = false; }
+    void SetEmptyExt()                          { m_ext.clear(); m_hasExt = true; }
     wxString GetExt() const                     { return m_ext; }
     bool HasExt() const                         { return m_hasExt; }
 
@@ -555,12 +583,12 @@ public:
 
         // returns the size in a human readable form
     wxString
-    GetHumanReadableSize(const wxString& nullsize = _("Not available"),
+    GetHumanReadableSize(const wxString& nullsize = wxGetTranslation("Not available"),
                          int precision = 1,
                          wxSizeConvention conv = wxSIZE_CONV_TRADITIONAL) const;
     static wxString
     GetHumanReadableSize(const wxULongLong& sz,
-                         const wxString& nullsize = _("Not available"),
+                         const wxString& nullsize = wxGetTranslation("Not available"),
                          int precision = 1,
                          wxSizeConvention conv = wxSIZE_CONV_TRADITIONAL);
 #endif // wxUSE_LONGLONG
@@ -606,6 +634,11 @@ private:
     // the difference is important as file with name "foo" and without
     // extension has full name "foo" while with empty extension it is "foo."
     bool            m_hasExt;
+
+    // by default, symlinks are dereferenced but this flag can be set with
+    // DontFollowLink() to change this and make different operations work on
+    // this file path itself instead of the target of the symlink
+    bool            m_dontFollowLinks;
 };
 
 #endif // _WX_FILENAME_H_

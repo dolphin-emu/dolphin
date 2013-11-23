@@ -21,13 +21,13 @@ class CEXIMemoryCard : public IEXIDevice
 public:
 	CEXIMemoryCard(const int index);
 	virtual ~CEXIMemoryCard();
-	void SetCS(int cs);
-	void Update();
-	bool IsInterruptSet();
-	bool IsPresent();
-	void DoState(PointerWrap &p);
-	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
-	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1);
+	void SetCS(int cs) override;
+	void Update() override;
+	bool IsInterruptSet() override;
+	bool IsPresent() override;
+	void DoState(PointerWrap &p) override;
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
+	IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1) override;
 
 private:
 	// This is scheduled whenever a page write is issued. The this pointer is passed
@@ -46,7 +46,7 @@ private:
 	// Variant of CmdDone which schedules an event later in the future to complete the command.
 	void CmdDoneLater(u64 cycles);
 
-	enum 
+	enum
 	{
 		cmdNintendoID			= 0x00,
 		cmdReadArray			= 0x52,
@@ -79,17 +79,17 @@ private:
 	u8 programming_buffer[128];
 	u32 formatDelay;
 	bool m_bDirty;
-	//! memory card parameters 
+	//! memory card parameters
 	unsigned int nintendo_card_id, card_id;
-	unsigned int address;	
+	unsigned int address;
 	int memory_card_size; //! in bytes, must be power of 2.
-	u8 *memory_card_content; 
+	u8 *memory_card_content;
 
 	FlushData flushData;
 	std::thread flushThread;
-	
+
 protected:
-	virtual void TransferByte(u8 &byte);
+	virtual void TransferByte(u8 &byte) override;
 };
 
 #endif

@@ -26,9 +26,9 @@ void GBAConnectionWaiter()
 	// "dolphin gba"
 	if (!server.Listen(0xd6ba))
 		return;
-	
+
 	server.SetBlocking(false);
-	
+
 	sf::SocketTCP new_client;
 	while (server_running)
 	{

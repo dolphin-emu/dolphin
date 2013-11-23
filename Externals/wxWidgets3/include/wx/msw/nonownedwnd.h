@@ -3,7 +3,6 @@
 // Purpose:     wxNonOwnedWindow declaration for wxMSW.
 // Author:      Vadim Zeitlin
 // Created:     2011-10-09
-// RCS-ID:      $Id: nonownedwnd.h 69462 2011-10-18 21:56:52Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

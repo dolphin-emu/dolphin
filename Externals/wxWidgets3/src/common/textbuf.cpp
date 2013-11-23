@@ -3,7 +3,6 @@
 // Purpose:     implementation of wxTextBuffer class
 // Created:     14.11.01
 // Author:      Morten Hanssen, Vadim Zeitlin
-// RCS-ID:      $Id: textbuf.cpp 70345 2012-01-15 01:05:28Z VZ $
 // Copyright:   (c) 1998-2001 wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,17 +34,12 @@
 // ----------------------------------------------------------------------------
 
 // default type is the native one
-// the native type under Mac OS X is:
-//   - Unix when compiling with the Apple Developer Tools (__UNIX__)
-//   - Mac when compiling with CodeWarrior (__WXMAC__)
 
 const wxTextFileType wxTextBuffer::typeDefault =
 #if defined(__WINDOWS__) || defined(__DOS__)
   wxTextFileType_Dos;
 #elif defined(__UNIX__)
   wxTextFileType_Unix;
-#elif defined(__WXMAC__)
-  wxTextFileType_Mac;
 #elif defined(__OS2__)
   wxTextFileType_Os2;
 #else

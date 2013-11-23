@@ -4,7 +4,6 @@
 // Author:      Arthur Seaton, Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: memory.cpp 70796 2012-03-04 00:29:31Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,8 +37,7 @@
 
 #include "wx/ioswrap.h"
 
-#if !defined(__WATCOMC__) && !(defined(__VMS__) && ( __VMS_VER < 70000000 ) )\
-     && !defined( __MWERKS__ )
+#if !defined(__WATCOMC__) && !(defined(__VMS__) && ( __VMS_VER < 70000000 ) )
 #include <memory.h>
 #endif
 

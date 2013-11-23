@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: dialog_osx.cpp 68719 2011-08-16 12:00:52Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -13,6 +12,7 @@
 
 #include "wx/dialog.h"
 #include "wx/evtloop.h"
+#include "wx/modalhook.h"
 
 #ifndef WX_PRECOMP
     #include "wx/app.h"
@@ -115,7 +115,12 @@ bool wxDialog::Show(bool show)
 
     if ( !show )
     {
-        switch( m_modality )
+        const int modalityOrig = m_modality;
+
+        // complete the 'hiding' before we send the event
+        m_modality = wxDIALOG_MODALITY_NONE;
+
+        switch ( modalityOrig )
         {
             case wxDIALOG_MODALITY_WINDOW_MODAL:
                 EndWindowModal(); // OS X implementation method for cleanup
@@ -124,7 +129,6 @@ bool wxDialog::Show(bool show)
             default:
                 break;
         }
-        m_modality = wxDIALOG_MODALITY_NONE;
     }
 
     return true;
@@ -133,6 +137,8 @@ bool wxDialog::Show(bool show)
 // Replacement for Show(true) for modal dialogs - returns return code
 int wxDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     m_modality = wxDIALOG_MODALITY_APP_MODAL;
 
     Show();

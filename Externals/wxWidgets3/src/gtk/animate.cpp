@@ -4,7 +4,6 @@
 // Author:      Francesco Montorsi
 // Modified By:
 // Created:     24/09/2006
-// Id:          $Id: animate.cpp 70756 2012-02-29 18:29:31Z PC $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -23,6 +22,7 @@
 #endif
 
 #include "wx/wfstream.h"
+#include "wx/gtk/private.h"
 
 #include <gtk/gtk.h>
 
@@ -84,7 +84,7 @@ wxAnimation& wxAnimation::operator=(const wxAnimation& that)
 bool wxAnimation::LoadFile(const wxString &name, wxAnimationType WXUNUSED(type))
 {
     UnRef();
-    m_pixbuf = gdk_pixbuf_animation_new_from_file(name.fn_str(), NULL);
+    m_pixbuf = gdk_pixbuf_animation_new_from_file(wxGTK_CONV_FN(name), NULL);
     return IsOk();
 }
 
@@ -362,20 +362,8 @@ void wxAnimationCtrl::DisplayStaticImage()
     if (m_bmpStaticReal.IsOk())
     {
         // show inactive bitmap
-        GdkBitmap *mask = NULL;
-        if (m_bmpStaticReal.GetMask())
-            mask = m_bmpStaticReal.GetMask()->GetBitmap();
-
-        if (m_bmpStaticReal.HasPixbuf())
-        {
-            gtk_image_set_from_pixbuf(GTK_IMAGE(m_widget),
+        gtk_image_set_from_pixbuf(GTK_IMAGE(m_widget),
                                       m_bmpStaticReal.GetPixbuf());
-        }
-        else
-        {
-            gtk_image_set_from_pixmap(GTK_IMAGE(m_widget),
-                                      m_bmpStaticReal.GetPixmap(), mask);
-        }
     }
     else
     {

@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EC1A314C-5588-4506-9C1E-2E58E5817F75}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\..\VSProps\Base.props" />
+    <Import Project="..\..\..\VSProps\PrecompiledHeader.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemGroup>
+    <ClCompile Include="Src\FramebufferManager.cpp" />
+    <ClCompile Include="Src\GLUtil.cpp" />
+    <ClCompile Include="Src\main.cpp" />
+    <ClCompile Include="Src\NativeVertexFormat.cpp" />
+    <ClCompile Include="Src\PerfQuery.cpp" />
+    <ClCompile Include="Src\PostProcessing.cpp" />
+    <ClCompile Include="Src\ProgramShaderCache.cpp" />
+    <ClCompile Include="Src\RasterFont.cpp" />
+    <ClCompile Include="Src\Render.cpp" />
+    <ClCompile Include="Src\SamplerCache.cpp" />
+    <ClCompile Include="Src\stdafx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Src\StreamBuffer.cpp" />
+    <ClCompile Include="Src\TextureCache.cpp" />
+    <ClCompile Include="Src\TextureConverter.cpp" />
+    <ClCompile Include="Src\VertexManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\FramebufferManager.h" />
+    <ClInclude Include="Src\Globals.h" />
+    <ClInclude Include="Src\GLUtil.h" />
+    <ClInclude Include="Src\main.h" />
+    <ClInclude Include="Src\PerfQuery.h" />
+    <ClInclude Include="Src\PostProcessing.h" />
+    <ClInclude Include="Src\ProgramShaderCache.h" />
+    <ClInclude Include="Src\RasterFont.h" />
+    <ClInclude Include="Src\Render.h" />
+    <ClInclude Include="Src\SamplerCache.h" />
+    <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Src\StreamBuffer.h" />
+    <ClInclude Include="Src\TextureCache.h" />
+    <ClInclude Include="Src\TextureConverter.h" />
+    <ClInclude Include="Src\VertexManager.h" />
+    <ClInclude Include="Src\VideoBackend.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Externals\GLew\glew.vcxproj">
+      <Project>{2a3f751d-69e9-45f2-9199-9a00bfb6cc72}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Externals\wxWidgets3\build\msw\wx_base.vcxproj">
+      <Project>{1c8436c9-dbaf-42be-83bc-cf3ec9175abe}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Externals\zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Core\VideoCommon\VideoCommon.vcxproj">
+      <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

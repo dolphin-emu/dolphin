@@ -5,7 +5,6 @@
 // Author:      Joel Farley, Ove Kaaven
 // Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee, Vaclav Slavik
 // Created:     1998/06/12
-// RCS-ID:      $Id: wxcrt.h 68594 2011-08-08 08:33:19Z VZ $
 // Copyright:   (c) 1998-2006 wxWidgets dev team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

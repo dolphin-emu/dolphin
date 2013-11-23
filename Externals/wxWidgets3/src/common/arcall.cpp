@@ -2,7 +2,6 @@
 // Name:        src/common/arcall.cpp
 // Purpose:     wxArchive link all archive streams
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: arcall.cpp 42508 2006-10-27 09:53:38Z MW $
 // Copyright:   (c) 2006 Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -3,23 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <map>
+#include <memory>
+#include <cinttypes>
 
 #include "Common.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
-#include "Thunk.h"
 #include "../../HLE/HLE.h"
-#include "../../Core.h"
 #include "../../PatchEngine.h"
-#include "../../CoreTiming.h"
-#include "../../ConfigManager.h"
-#include "../PowerPC.h"
 #include "../Profiler.h"
-#include "../PPCTables.h"
-#include "../PPCAnalyst.h"
-#include "../../HW/Memmap.h"
-#include "../../HW/GPFifo.h"
-#include "../JitCommon/JitCache.h"
 #include "JitIL.h"
 #include "JitILAsm.h"
 #include "JitIL_Tables.h"
@@ -62,7 +52,7 @@ using namespace PowerPC;
 // will be as small to be negligible, so I haven't dirtied up the code with that. AMD recommends it in their
 // optimization manuals, though.
 //
-// We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets 
+// We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets
 // from the starts of each block, marking the exits so that they can be nicely patched at any time.
 //
 // Blocks do NOT use call/ret, they only jmp to each other and to the dispatcher when necessary.
@@ -96,7 +86,7 @@ using namespace PowerPC;
     CR2-CR4 are non-volatile, rest of CR is volatile -> dropped on blr.
 	R5-R12 are volatile -> dropped on blr.
   * classic inlining across calls.
-  
+
 Low hanging fruit:
 stfd -- guaranteed in memory
 cmpl
@@ -150,6 +140,10 @@ ps_adds1
 #else
 #include <memory>
 #include <stdint.h>
+#include <x86intrin.h>
+
+#if defined(__clang__)
+#if !__has_builtin(__builtin_ia32_rdtsc)
 static inline uint64_t __rdtsc()
 {
 	uint32_t lo, hi;
@@ -169,6 +163,8 @@ static inline uint64_t __rdtsc()
 #endif
 	return (uint64_t)hi << 32 | lo;
 }
+#endif
+#endif
 #endif
 
 namespace JitILProfiler
@@ -217,20 +213,20 @@ namespace JitILProfiler
 			File::IOFile file(buffer, "w");
 			setvbuf(file.GetHandle(), NULL, _IOFBF, 1024 * 1024);
 			fprintf(file.GetHandle(), "code hash,total elapsed,number of calls,elapsed per call\n");
-			for (std::vector<Block>::iterator it = blocks.begin(), itEnd = blocks.end(); it != itEnd; ++it)
+			for (auto& block : blocks)
 			{
-				const u64 codeHash = it->codeHash;
-				const u64 totalElapsed = it->totalElapsed;
-				const u64 numberOfCalls = it->numberOfCalls;
+				const u64 codeHash = block.codeHash;
+				const u64 totalElapsed = block.totalElapsed;
+				const u64 numberOfCalls = block.numberOfCalls;
 				const double elapsedPerCall = totalElapsed / (double)numberOfCalls;
-				fprintf(file.GetHandle(), "%016llx,%lld,%lld,%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
+				fprintf(file.GetHandle(), "%016" PRIx64 ",%" PRId64 ",%" PRId64 ",%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
 			}
 		}
 	};
-	std::auto_ptr<JitILProfilerFinalizer> finalizer;
+	std::unique_ptr<JitILProfilerFinalizer> finalizer;
 	static void Init()
 	{
-		finalizer = std::auto_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
+		finalizer = std::unique_ptr<JitILProfilerFinalizer>(new JitILProfilerFinalizer);
 	}
 	static void Shutdown()
 	{
@@ -385,32 +381,34 @@ void JitIL::Cleanup()
 		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
-void JitIL::WriteExit(u32 destination, int exit_num)
+void JitIL::WriteExit(u32 destination)
 {
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
-	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = GetWritableCodePtr();
-	
+	JitBlock::LinkData linkData;
+	linkData.exitAddress = destination;
+	linkData.exitPtrs = GetWritableCodePtr();
+
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);
-	if (block >= 0 && jo.enableBlocklink) 
+	if (block >= 0 && jo.enableBlocklink)
 	{
 		// It exists! Joy of joy!
 		JMP(blocks.GetBlock(block)->checkedEntry, true);
-		b->linkStatus[exit_num] = true;
+		linkData.linkStatus = true;
 	}
-	else 
+	else
 	{
 		MOV(32, M(&PC), Imm32(destination));
 		JMP(asm_routines.dispatcher, true);
 	}
+	b->linkData.push_back(linkData);
 }
 
 void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
@@ -420,7 +418,7 @@ void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.dispatcher, true);
 }
 
@@ -431,7 +429,7 @@ void JitIL::WriteRfiExitDestInOpArg(const Gen::OpArg& arg)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.testExceptions, true);
 }
 
@@ -441,7 +439,7 @@ void JitIL::WriteExceptionExit()
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
 		ABI_CallFunction((void *)JitILProfiler::End);
 	}
-	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount));
 	JMP(asm_routines.testExceptions, true);
 }
 
@@ -479,11 +477,11 @@ void JitIL::Trace()
 		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
 		strncat(fregs, reg, 750);
 	}
-#endif	
+#endif
 
-	DEBUG_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
-		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], 
-		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, 
+	DEBUG_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s",
+		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3],
+		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr,
 		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
 }
 
@@ -545,14 +543,16 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	b->exitAddress[0] = em_address;
+	u32 exitAddress = em_address;
+	
 	u32 merged_addresses[32];
 	const int capacity_of_merged_addresses = sizeof(merged_addresses) / sizeof(merged_addresses[0]);
 	int size_of_merged_addresses = 0;
 	if (!memory_exception)
 	{
 		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
-		b->exitAddress[0] = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses);
+		// TODO
+		exitAddress = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses);
 	}
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -568,7 +568,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	const u8 *normalEntry = GetCodePtr();
 	b->normalEntry = normalEntry;
-	
+
 	if (ImHereDebug)
 		ABI_CallFunction((void *)&ImHere); // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
 
@@ -711,7 +711,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	}
 
 	// Perform actual code generation
-	WriteCode();
+	WriteCode(exitAddress);
 
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
 	b->originalSize = size;

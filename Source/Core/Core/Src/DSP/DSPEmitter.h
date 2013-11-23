@@ -8,6 +8,7 @@
 #include <list>
 
 #include "DSPCommon.h"
+#include "x64ABI.h"
 #include "x64Emitter.h"
 #include "Jit/DSPJitRegCache.h"
 
@@ -263,7 +264,7 @@ private:
 	// The index of the last stored ext value (compile time).
 	int storeIndex;
 	int storeIndex2;
-	
+
 	// Counts down.
 	// int cycles;
 

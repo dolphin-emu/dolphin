@@ -19,7 +19,7 @@
 
 DSPDebuggerLLE* m_DebuggerFrame = NULL;
 
-BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)	
+BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
 	EVT_MENU_RANGE(ID_RUNTOOL, ID_SHOWPCTOOL, DSPDebuggerLLE::OnChangeState)
 	EVT_TEXT_ENTER(ID_ADDRBOX, DSPDebuggerLLE::OnAddrBoxChange)

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:
-// RCS-ID:      $Id: droptgt.cpp 61724 2009-08-21 10:41:26Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,6 +49,32 @@
 
 #include "wx/msw/ole/oleutils.h"
 
+#include <initguid.h>
+
+// Some (very) old SDKs don't define IDropTargetHelper, so define our own
+// version of it here.
+struct wxIDropTargetHelper : public IUnknown
+{
+    virtual HRESULT STDMETHODCALLTYPE DragEnter(HWND hwndTarget,
+                                                IDataObject *pDataObject,
+                                                POINT *ppt,
+                                                DWORD dwEffect) = 0;
+    virtual HRESULT STDMETHODCALLTYPE DragLeave() = 0;
+    virtual HRESULT STDMETHODCALLTYPE DragOver(POINT *ppt, DWORD dwEffect) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObject,
+                                           POINT *ppt,
+                                           DWORD dwEffect) = 0;
+    virtual HRESULT STDMETHODCALLTYPE Show(BOOL fShow) = 0;
+};
+
+namespace
+{
+    DEFINE_GUID(wxCLSID_DragDropHelper,
+                0x4657278A,0x411B,0x11D2,0x83,0x9A,0x00,0xC0,0x4F,0xD9,0x18,0xD0);
+    DEFINE_GUID(wxIID_IDropTargetHelper,
+                0x4657278B,0x411B,0x11D2,0x83,0x9A,0x00,0xC0,0x4F,0xD9,0x18,0xD0);
+}
+
 // ----------------------------------------------------------------------------
 // IDropTarget interface: forward all interesting things to wxDropTarget
 // (the name is unfortunate, but wx_I_DropTarget is not at all the same thing
@@ -63,6 +88,7 @@ public:
     virtual ~wxIDropTarget();
 
     // accessors for wxDropTarget
+    HWND GetHWND() const { return m_hwnd; }
     void SetHwnd(HWND hwnd) { m_hwnd = hwnd; }
 
     // IDropTarget methods
@@ -192,13 +218,6 @@ STDMETHODIMP wxIDropTarget::DragEnter(IDataObject *pIDataSource,
     }
 #endif // 0
 
-    if ( !m_pTarget->MSWIsAcceptedData(pIDataSource) ) {
-        // we don't accept this kind of data
-        *pdwEffect = DROPEFFECT_NONE;
-
-        return S_OK;
-    }
-
     // for use in OnEnter and OnDrag calls
     m_pTarget->MSWSetDataSource(pIDataSource);
 
@@ -206,21 +225,35 @@ STDMETHODIMP wxIDropTarget::DragEnter(IDataObject *pIDataSource,
     m_pIDataObject = pIDataSource;
     m_pIDataObject->AddRef();
 
-    // we need client coordinates to pass to wxWin functions
-    if ( !ScreenToClient(m_hwnd, (POINT *)&pt) )
+    if ( !m_pTarget->MSWIsAcceptedData(pIDataSource) ) {
+        // we don't accept this kind of data
+        *pdwEffect = DROPEFFECT_NONE;
+    }
+    else
     {
-        wxLogLastError(wxT("ScreenToClient"));
+        // we need client coordinates to pass to wxWin functions
+        if ( !ScreenToClient(m_hwnd, (POINT *)&pt) )
+        {
+            wxLogLastError(wxT("ScreenToClient"));
+        }
+
+        // give some visual feedback
+        *pdwEffect = ConvertDragResultToEffect(
+            m_pTarget->OnEnter(pt.x, pt.y, ConvertDragEffectToResult(
+                GetDropEffect(grfKeyState, m_pTarget->GetDefaultAction(), *pdwEffect))
+                        )
+                     );
     }
 
-    // give some visual feedback
-    *pdwEffect = ConvertDragResultToEffect(
-        m_pTarget->OnEnter(pt.x, pt.y, ConvertDragEffectToResult(
-            GetDropEffect(grfKeyState, m_pTarget->GetDefaultAction(), *pdwEffect))
-                    )
-                 );
+    // update drag image
+    const wxDragResult res = ConvertDragEffectToResult(*pdwEffect);
+    m_pTarget->MSWUpdateDragImageOnEnter(pt.x, pt.y, res);
+    m_pTarget->MSWUpdateDragImageOnDragOver(pt.x, pt.y, res);
 
     return S_OK;
 }
+
+
 
 // Name    : wxIDropTarget::DragOver
 // Purpose : Indicates that the mouse was moved inside the window represented
@@ -262,6 +295,10 @@ STDMETHODIMP wxIDropTarget::DragOver(DWORD   grfKeyState,
         *pdwEffect = DROPEFFECT_NONE;
     }
 
+    // update drag image
+    m_pTarget->MSWUpdateDragImageOnDragOver(pt.x, pt.y,
+                                            ConvertDragEffectToResult(*pdwEffect));
+
     return S_OK;
 }
 
@@ -278,6 +315,9 @@ STDMETHODIMP wxIDropTarget::DragLeave()
 
   // release the held object
   RELEASE_AND_NULL(m_pIDataObject);
+
+  // update drag image
+  m_pTarget->MSWUpdateDragImageOnLeave();
 
   return S_OK;
 }
@@ -333,6 +373,10 @@ STDMETHODIMP wxIDropTarget::Drop(IDataObject *pIDataSource,
     // release the held object
     RELEASE_AND_NULL(m_pIDataObject);
 
+    // update drag image
+    m_pTarget->MSWUpdateDragImageOnData(pt.x, pt.y,
+                                        ConvertDragEffectToResult(*pdwEffect));
+
     return S_OK;
 }
 
@@ -345,7 +389,8 @@ STDMETHODIMP wxIDropTarget::Drop(IDataObject *pIDataSource,
 // ----------------------------------------------------------------------------
 
 wxDropTarget::wxDropTarget(wxDataObject *dataObj)
-            : wxDropTargetBase(dataObj)
+            : wxDropTargetBase(dataObj),
+              m_dropTargetHelper(NULL)
 {
     // create an IDropTarget implementation which will notify us about d&d
     // operations.
@@ -396,6 +441,8 @@ bool wxDropTarget::Register(WXHWND hwnd)
     // we will need the window handle for coords transformation later
     m_pIDropTarget->SetHwnd((HWND)hwnd);
 
+    MSWInitDragImageSupport();
+
     return true;
 #endif
 }
@@ -417,6 +464,9 @@ void wxDropTarget::Revoke(WXHWND hwnd)
     ::CoLockObjectExternal(m_pIDropTarget, FALSE, TRUE);
 #endif
 
+    MSWEndDragImageSupport();
+
+    // remove window reference
     m_pIDropTarget->SetHwnd(0);
 #endif
 }
@@ -437,9 +487,6 @@ bool wxDropTarget::GetData()
 {
     wxDataFormat format = MSWGetSupportedFormat(m_pIDataSource);
     if ( format == wxDF_INVALID ) {
-        // this is strange because IsAcceptedData() succeeded previously!
-        wxFAIL_MSG(wxT("strange - did supported formats list change?"));
-
         return false;
     }
 
@@ -537,6 +584,81 @@ wxDataFormat wxDropTarget::MSWGetSupportedFormat(IDataObject *pIDataSource) cons
     }
 
     return n < nFormats ? format : wxFormatInvalid;
+}
+
+// ----------------------------------------------------------------------------
+// drag image functions
+// ----------------------------------------------------------------------------
+
+void
+wxDropTarget::MSWEndDragImageSupport()
+{
+    // release drop target helper
+    if ( m_dropTargetHelper != NULL )
+    {
+        m_dropTargetHelper->Release();
+        m_dropTargetHelper = NULL;
+    }
+}
+
+void
+wxDropTarget::MSWInitDragImageSupport()
+{
+    // Use the default drop target helper to show shell drag images
+    CoCreateInstance(wxCLSID_DragDropHelper, NULL, CLSCTX_INPROC_SERVER,
+                     wxIID_IDropTargetHelper, (LPVOID*)&m_dropTargetHelper);
+}
+
+void
+wxDropTarget::MSWUpdateDragImageOnData(wxCoord x,
+                                       wxCoord y,
+                                       wxDragResult dragResult)
+{
+    // call corresponding event on drop target helper
+    if ( m_dropTargetHelper != NULL )
+    {
+        POINT pt = {x, y};
+        DWORD dwEffect = ConvertDragResultToEffect(dragResult);
+        m_dropTargetHelper->Drop(m_pIDataSource, &pt, dwEffect);
+    }
+}
+
+void
+wxDropTarget::MSWUpdateDragImageOnDragOver(wxCoord x,
+                                           wxCoord y,
+                                           wxDragResult dragResult)
+{
+    // call corresponding event on drop target helper
+    if ( m_dropTargetHelper != NULL )
+    {
+        POINT pt = {x, y};
+        DWORD dwEffect = ConvertDragResultToEffect(dragResult);
+        m_dropTargetHelper->DragOver(&pt, dwEffect);
+    }
+}
+
+void
+wxDropTarget::MSWUpdateDragImageOnEnter(wxCoord x,
+                                        wxCoord y,
+                                        wxDragResult dragResult)
+{
+    // call corresponding event on drop target helper
+    if ( m_dropTargetHelper != NULL )
+    {
+        POINT pt = {x, y};
+        DWORD dwEffect = ConvertDragResultToEffect(dragResult);
+        m_dropTargetHelper->DragEnter(m_pIDropTarget->GetHWND(), m_pIDataSource, &pt, dwEffect);
+    }
+}
+
+void
+wxDropTarget::MSWUpdateDragImageOnLeave()
+{
+    // call corresponding event on drop target helper
+    if ( m_dropTargetHelper != NULL )
+    {
+        m_dropTargetHelper->DragLeave();
+    }
 }
 
 // ----------------------------------------------------------------------------

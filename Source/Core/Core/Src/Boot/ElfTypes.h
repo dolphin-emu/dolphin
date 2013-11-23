@@ -107,12 +107,12 @@ enum ElfSectionFlags
 	SHF_MASKPROC  =0xF0000000,
 };
 
-// Symbol binding 
-#define STB_LOCAL   0 
-#define STB_GLOBAL  1 
-#define STB_WEAK    2 
-#define STB_LOPROC 13 
-#define STB_HIPROC 15 
+// Symbol binding
+#define STB_LOCAL   0
+#define STB_GLOBAL  1
+#define STB_WEAK    2
+#define STB_LOPROC 13
+#define STB_HIPROC 15
 
 // Symbol types
 #define STT_NOTYPE   0
@@ -191,7 +191,7 @@ typedef unsigned int  Elf32_Word;
 
 
 // ELF file header
-struct Elf32_Ehdr 
+struct Elf32_Ehdr
 {
 	unsigned char e_ident[EI_NIDENT];
 	Elf32_Half    e_type;
@@ -210,7 +210,7 @@ struct Elf32_Ehdr
 };
 
 // Section header
-struct Elf32_Shdr 
+struct Elf32_Shdr
 {
 	Elf32_Word sh_name;
 	Elf32_Word sh_type;
@@ -225,7 +225,7 @@ struct Elf32_Shdr
 };
 
 // Segment header
-struct Elf32_Phdr 
+struct Elf32_Phdr
 {
 	Elf32_Word p_type;
 	Elf32_Off  p_offset;
@@ -238,7 +238,7 @@ struct Elf32_Phdr
 };
 
 // Symbol table entry
-struct Elf32_Sym 
+struct Elf32_Sym
 {
 	Elf32_Word    st_name;
 	Elf32_Addr    st_value;
@@ -253,13 +253,13 @@ struct Elf32_Sym
 #define ELF32_ST_INFO(b,t) (((b)<<4)+((t)&0xf))
 
 // Relocation entries
-struct Elf32_Rel 
+struct Elf32_Rel
 {
 	Elf32_Addr r_offset;
 	Elf32_Word r_info;
 };
 
-struct Elf32_Rela 
+struct Elf32_Rela
 {
 	Elf32_Addr  r_offset;
 	Elf32_Word  r_info;
@@ -271,13 +271,13 @@ struct Elf32_Rela
 #define ELF32_R_INFO(s,t) (((s)<<8 )+(unsigned char)(t))
 
 
-struct Elf32_Dyn 
+struct Elf32_Dyn
 {
 	Elf32_Sword d_tag;
-	union 
+	union
 	{
 		Elf32_Word d_val;
-		Elf32_Addr d_ptr; 
+		Elf32_Addr d_ptr;
 	} d_un;
 };
 

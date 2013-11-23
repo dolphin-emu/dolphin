@@ -115,15 +115,15 @@ inline u64 getblock(const u64 * p, int i)
 
 inline void bmix64(u64 & h1, u64 & h2, u64 & k1, u64 & k2, u64 & c1, u64 & c2)
 {
-	k1 *= c1; 
-	k1  = _rotl64(k1,23); 
+	k1 *= c1;
+	k1  = _rotl64(k1,23);
 	k1 *= c2;
 	h1 ^= k1;
 	h1 += h2;
 
 	h2 = _rotl64(h2,41);
 
-	k2 *= c2; 
+	k2 *= c2;
 	k2  = _rotl64(k2,23);
 	k2 *= c1;
 	h2 ^= k2;
@@ -250,7 +250,7 @@ u64 GetCRC32(const u8 *src, int len, u32 samples)
 }
 
 
-/* 
+/*
  * NOTE: This hash function is used for custom texture loading/dumping, so
  * it should not be changed, which would require all custom textures to be
  * recalculated for their new hash values. If the hashing function is
@@ -273,7 +273,7 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 		u64 k = data[0];
 		data+=Step;
 		k *= m;
-		k ^= k >> r; 
+		k ^= k >> r;
 		k *= m;
 		h ^= k;
 		h *= m;
@@ -292,13 +292,13 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 	case 1: h ^= u64(data2[0]);
 			h *= m;
 	};
- 
+
 	h ^= h >> r;
 	h *= m;
 	h ^= h >> r;
 
 	return h;
-} 
+}
 #else
 // CRC32 hash using the SSE4.2 instruction
 u64 GetCRC32(const u8 *src, int len, u32 samples)
@@ -351,15 +351,15 @@ inline u32 fmix32(u32 h)
 
 inline void bmix32(u32 & h1, u32 & h2, u32 & k1, u32 & k2, u32 & c1, u32 & c2)
 {
-	k1 *= c1; 
-	k1  = _rotl(k1,11); 
+	k1 *= c1;
+	k1  = _rotl(k1,11);
 	k1 *= c2;
 	h1 ^= k1;
 	h1 += h2;
 
 	h2 = _rotl(h2,17);
 
-	k2 *= c2; 
+	k2 *= c2;
 	k2  = _rotl(k2,11);
 	k2 *= c1;
 	h2 ^= k2;
@@ -405,7 +405,7 @@ u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 
 	//----------
 	// tail
-	
+
 	const u8 * tail = (const u8*)(data + nblocks*8);
 
 	u32 k1 = 0;
@@ -439,7 +439,7 @@ u64 GetMurmurHash3(const u8* src, int len, u32 samples)
 
 	out[0] = h1;
 	out[1] = h2;
-	
+
 	return *((u64 *)&out);
 }
 
@@ -463,11 +463,11 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 	{
 		u64 k = data[0];
 		data+=Step;
-		k *= m; 
-		k ^= k >> r; 
+		k *= m;
+		k ^= k >> r;
 		k *= m;
 		h ^= k;
-		h *= m; 
+		h *= m;
 	}
 
 	const u8 * data2 = (const u8*)end;
@@ -483,7 +483,7 @@ u64 GetHashHiresTexture(const u8 *src, int len, u32 samples)
 	case 1: h ^= u64(data2[0]);
 			h *= m;
 	};
- 
+
 	h ^= h >> r;
 	h *= m;
 	h ^= h >> r;

@@ -16,7 +16,6 @@
 #include "MathUtil.h"
 #include "MemoryUtil.h"
 
-#include "Console.h"
 #include "Core.h"
 #include "CPUDetect.h"
 #include "CoreTiming.h"
@@ -40,6 +39,9 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
 #include "PowerPC/PowerPC.h"
+#ifdef USE_GDBSTUB
+#include "PowerPC/GDBStub.h"
+#endif
 
 #include "DSPEmulator.h"
 #include "ConfigManager.h"
@@ -102,7 +104,7 @@ std::string StopMessage(bool bMainThread, std::string Message)
 		bMainThread ? "Main Thread" : "Video Thread", Common::CurrentThreadId(), MemUsage().c_str(), Message.c_str());
 }
 
-// 
+//
 bool PanicAlertToVideo(const char* text, bool yes_no)
 {
 	DisplayMessage(text, 3000);
@@ -120,7 +122,7 @@ void DisplayMessage(const char *message, int time_in_ms)
 			return;
 
 	g_video_backend->Video_AddMessage(message, time_in_ms);
-	
+
 	if (_CoreParameter.bRenderToMain &&
 		SConfig::GetInstance().m_InterfaceStatusbar)
 	{
@@ -199,10 +201,9 @@ bool Init()
 	Host_UpdateMainFrame(); // Disable any menus or buttons at boot
 
 	g_aspect_wide = _CoreParameter.bWii;
-	if (g_aspect_wide) 
+	if (g_aspect_wide)
 	{
-		IniFile gameIni;
-		gameIni.Load(_CoreParameter.m_strGameIni.c_str());
+		IniFile gameIni = _CoreParameter.LoadGameIni();
 		gameIni.Get("Wii", "Widescreen", &g_aspect_wide,
 			!!SConfig::GetInstance().m_SYSCONF->
 				GetData<u8>("IPL.AR"));
@@ -213,7 +214,7 @@ bool Init()
 	// within g_video_backend->Initialize()
 	g_pWindowHandle = Host_GetRenderHandle();
 
-	// Start the emu thread 
+	// Start the emu thread
 	g_EmuThread = std::thread(EmuThread);
 
 	return true;
@@ -251,12 +252,12 @@ void Stop()  // - Hammertime!
 		// will continue concurrently with the rest of the commands
 		// in this function. We no longer rely on Postmessage.
 		INFO_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
-		
+
 		g_video_backend->Video_ExitLoop();
 	}
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
-	
+
 	g_EmuThread.join();	// Wait for emuthread to close.
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
@@ -270,7 +271,7 @@ void Stop()  // - Hammertime!
 
 	// Close the trace file
 	Core::StopTrace();
-	
+
 	// Reload sysconf file in order to see changes committed during emulation
 	if (_CoreParameter.bWii)
 		SConfig::GetInstance().m_SYSCONF->Reload();
@@ -308,11 +309,21 @@ void CpuThread()
 
 	g_bStarted = true;
 
+
+	#ifdef USE_GDBSTUB
+	if(_CoreParameter.iGDBPort > 0)
+	{
+		gdb_init(_CoreParameter.iGDBPort);
+		// break at next instruction (the first instruction)
+		gdb_break();
+	}
+	#endif
+
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
 
 	g_bStarted = false;
-	
+
 	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
@@ -343,7 +354,7 @@ void FifoPlayerThread()
 	}
 
 	g_bStarted = false;
-	
+
 	if(!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
@@ -366,7 +377,7 @@ void EmuThread()
 
 	Movie::Init();
 
-	HW::Init();	
+	HW::Init();
 
 	if (!g_video_backend->Initialize(g_pWindowHandle))
 	{
@@ -375,10 +386,10 @@ void EmuThread()
 		return;
 	}
 
-	OSD::AddMessage(("Dolphin " + g_video_backend->GetName() + " Video Backend.").c_str(), 5000);
+	OSD::AddMessage("Dolphin " + g_video_backend->GetName() + " Video Backend.", 5000);
 
 	if (!DSP::GetDSPEmulator()->Initialize(g_pWindowHandle,
-				_CoreParameter.bWii, _CoreParameter.bDSPThread))
+		_CoreParameter.bWii, _CoreParameter.bDSPThread))
 	{
 		HW::Shutdown();
 		g_video_backend->Shutdown();
@@ -388,7 +399,7 @@ void EmuThread()
 	}
 
 	Pad::Initialize(g_pWindowHandle);
-	// Load and Init Wiimotes - only if we are booting in wii mode	
+	// Load and Init Wiimotes - only if we are booting in wii mode
 	if (g_CoreStartupParameter.bWii)
 	{
 		Wiimote::Initialize(g_pWindowHandle, !g_stateFileName.empty());
@@ -397,7 +408,7 @@ void EmuThread()
 		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
 			if (g_wiimote_sources[i])
 				GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
-			
+
 	}
 
 	// The hardware is initialized.
@@ -469,10 +480,16 @@ void EmuThread()
 	// Wait for g_cpu_thread to exit
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
 
+	#ifdef USE_GDBSTUB
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping GDB ...").c_str());
+	gdb_deinit();
+	INFO_LOG(CONSOLE, "%s", StopMessage(true, "GDB stopped.").c_str());
+	#endif
+
 	g_cpu_thread.join();
 
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
-	
+
 	if(_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
 
@@ -482,7 +499,7 @@ void EmuThread()
 	// Stop audio thread - Actually this does nothing when using HLE
 	// emulation, but stops the DSP Interpreter when using LLE emulation.
 	DSP::GetDSPEmulator()->DSP_StopSoundStream();
-	
+
 	// We must set up this flag before executing HW::Shutdown()
 	g_bHwInit = false;
 	INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
@@ -557,7 +574,7 @@ void SaveScreenShot()
 	SetState(CORE_PAUSE);
 
 	g_video_backend->Video_Screenshot(GenerateScreenshotName().c_str());
-	
+
 	if (!bPaused)
 		SetState(CORE_RUN);
 }
@@ -679,7 +696,7 @@ void UpdateTitle()
 	u32 Speed = DrawnVideo * (100 * 1000) / (VideoInterface::TargetRefreshRate * ElapseTime);
 
 	// Settings are shown the same for both extended and summary info
-	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC", 
+	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC",
 		g_video_backend->GetName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
 	// Use extended or summary information. The summary information does not print the ticks data,

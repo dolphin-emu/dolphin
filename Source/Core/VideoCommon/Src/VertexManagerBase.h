@@ -12,13 +12,13 @@ class VertexManager
 {
 private:
 	static const u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float)*3;                 // 3 pos
-	static const u32 LARGEST_POSSIBLE_VERTEX = sizeof(float)*45 + sizeof(u32)*2; // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat 
-	
+	static const u32 LARGEST_POSSIBLE_VERTEX = sizeof(float)*45 + sizeof(u32)*2; // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
+
 	static const u32 MAX_PRIMITIVES_PER_COMMAND = (u16)-1;
-	
+
 public:
 	static const u32 MAXVBUFFERSIZE = ROUND_UP_POW2 (MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
-	
+
 	// We may convert triangle-fans to triangle-lists, almost 3x as many indices.
 	static const u32 MAXIBUFFERSIZE = ROUND_UP_POW2 (MAX_PRIMITIVES_PER_COMMAND * 3);
 
@@ -43,7 +43,7 @@ public:
 	static void DoState(PointerWrap& p);
 	virtual void CreateDeviceObjects(){};
 	virtual void DestroyDeviceObjects(){};
-	
+
 protected:
 	u16* GetTriangleIndexBuffer() { return &TIBuffer[0]; }
 	u16* GetLineIndexBuffer() { return &LIBuffer[0]; }
@@ -55,13 +55,13 @@ protected:
 
 private:
 	bool IsFlushed() const;
-	
+
 	void ResetBuffer();
-	
+
 	//virtual void Draw(u32 stride, bool alphapass) = 0;
 	// temp
 	virtual void vFlush() = 0;
-	
+
 	std::vector<u8> LocalVBuffer;
 	std::vector<u16> TIBuffer;
 	std::vector<u16> LIBuffer;

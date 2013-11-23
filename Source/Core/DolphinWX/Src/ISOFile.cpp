@@ -24,12 +24,10 @@
 #include "ChunkFile.h"
 #include "ConfigManager.h"
 
-static const u32 CACHE_REVISION = 0x114;
+static const u32 CACHE_REVISION = 0x115;
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
-
-static u32 g_ImageTemp[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT];
 
 GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName)
@@ -38,6 +36,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_Revision(0)
 	, m_Valid(false)
 	, m_BlobCompressed(false)
+	, m_ImageWidth(0)
+	, m_ImageHeight(0)
 {
 	if (LoadFromCache())
 	{
@@ -78,21 +78,21 @@ GameListItem::GameListItem(const std::string& _rFileName)
 				{
 					if (pBannerLoader->IsValid())
 					{
-						m_names = pBannerLoader->GetNames();
+						if (m_Platform != WII_WAD)
+							m_names = pBannerLoader->GetNames();
 						m_company = pBannerLoader->GetCompany();
 						m_descriptions = pBannerLoader->GetDescriptions();
-						
-						if (pBannerLoader->GetBanner(g_ImageTemp))
-						{
-							// resize vector to image size
-							m_pImage.resize(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3);
 
-							for (size_t i = 0; i < DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT; i++)
-							{
-								m_pImage[i * 3 + 0] = (g_ImageTemp[i] & 0xFF0000) >> 16;
-								m_pImage[i * 3 + 1] = (g_ImageTemp[i] & 0x00FF00) >>  8;
-								m_pImage[i * 3 + 2] = (g_ImageTemp[i] & 0x0000FF) >>  0;
-							}
+						std::vector<u32> Buffer = pBannerLoader->GetBanner(&m_ImageWidth, &m_ImageHeight);
+						u32* pData = &Buffer[0];
+						// resize vector to image size
+						m_pImage.resize(m_ImageWidth * m_ImageHeight * 3);
+
+						for (int i = 0; i < m_ImageWidth * m_ImageHeight; i++)
+						{
+							m_pImage[i * 3 + 0] = (pData[i] & 0xFF0000) >> 16;
+							m_pImage[i * 3 + 1] = (pData[i] & 0x00FF00) >>  8;
+							m_pImage[i * 3 + 2] = (pData[i] & 0x0000FF) >>  0;
 						}
 					}
 					delete pBannerLoader;
@@ -115,19 +115,29 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	if (IsValid())
 	{
 		IniFile ini;
-		ini.Load(File::GetUserPath(D_GAMECONFIG_IDX) + m_UniqueID + ".ini");
+		ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + m_UniqueID + ".ini");
+		ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_UniqueID + ".ini", true);
 		ini.Get("EmuState", "EmulationStateId", &m_emu_state);
 		ini.Get("EmuState", "EmulationIssues", &m_issues);
 	}
 
 	if (!m_pImage.empty())
 	{
-		m_Image.Create(DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, &m_pImage[0], true);
+		wxImage Image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
+		double Scale = WxUtils::GetCurrentBitmapLogicalScale();
+		// Note: This uses nearest neighbor, which subjectively looks a lot
+		// better for GC banners than smooths caling.
+		Image.Rescale(DVD_BANNER_WIDTH * Scale, DVD_BANNER_HEIGHT * Scale);
+#ifdef __APPLE__
+		m_Bitmap = wxBitmap(Image, -1, Scale);
+#else
+		m_Bitmap = wxBitmap(Image, -1);
+#endif
 	}
 	else
 	{
 		// default banner
-		m_Image = wxImage(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
+		m_Bitmap.LoadFile(StrToWxStr(File::GetThemeDir(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name)) + "nobanner.png", wxBITMAP_TYPE_PNG);
 	}
 }
 
@@ -162,6 +172,8 @@ void GameListItem::DoState(PointerWrap &p)
 	p.Do(m_Country);
 	p.Do(m_BlobCompressed);
 	p.Do(m_pImage);
+	p.Do(m_ImageWidth);
+	p.Do(m_ImageHeight);
 	p.Do(m_Platform);
 	p.Do(m_IsDiscTwo);
 	p.Do(m_Revision);
@@ -176,7 +188,7 @@ std::string GameListItem::CreateCacheFilename()
 
 	// Filename.extension_HashOfFolderPath_Size.cache
 	// Append hash to prevent ISO name-clashing in different folders.
-	Filename.append(StringFromFormat("%s_%x_%llx.cache",
+	Filename.append(StringFromFormat("%s_%x_%zx.cache",
 		extension.c_str(), HashFletcher((const u8 *)LegalPathname.c_str(), LegalPathname.size()),
 		File::GetSize(m_FileName)));
 
@@ -200,7 +212,7 @@ std::string GameListItem::GetDescription(int _index) const
 
 	if (index < m_descriptions.size())
 		return m_descriptions[index];
-	
+
 	if (!m_descriptions.empty())
 		return m_descriptions[0];
 
@@ -217,7 +229,7 @@ std::string GameListItem::GetVolumeName(int _index) const
 
 	if (!m_volume_names.empty())
 		return m_volume_names[0];
-	
+
 	return "";
 }
 
@@ -228,7 +240,7 @@ std::string GameListItem::GetBannerName(int _index) const
 
 	if (index < m_names.size() && !m_names[index].empty())
 		return m_names[index];
-	
+
 	if (!m_names.empty())
 		return m_names[0];
 
@@ -239,9 +251,9 @@ std::string GameListItem::GetBannerName(int _index) const
 std::string GameListItem::GetName(int _index) const
 {
 	// Prefer name from banner, fallback to name from volume, fallback to filename
-	
+
 	std::string name = GetBannerName(_index);
-	
+
 	if (name.empty())
 		name = GetVolumeName(_index);
 

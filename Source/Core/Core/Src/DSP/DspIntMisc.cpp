@@ -24,14 +24,14 @@ void mrr(const UDSPInstruction opc)
 		dsp_op_write_reg(dreg, dsp_op_read_reg_and_saturate(sreg-DSP_REG_ACM0));
 	else
 		dsp_op_write_reg(dreg, dsp_op_read_reg(sreg));
-	
+
 	dsp_conditional_extend_accum(dreg);
 }
 
 // LRI $D, #I
 // 0000 0000 100d dddd
 // iiii iiii iiii iiii
-// Load immediate value I to register $D. 
+// Load immediate value I to register $D.
 //
 // DSPSpy discovery: This, and possibly other instructions that load a
 // register, has a different behaviour in S40 mode if loaded to AC0.M: The
@@ -47,7 +47,7 @@ void lri(const UDSPInstruction opc)
 
 // LRIS $(0x18+D), #I
 // 0000 1ddd iiii iiii
-// Load immediate value I (8-bit sign extended) to accumulator register. 
+// Load immediate value I (8-bit sign extended) to accumulator register.
 void lris(const UDSPInstruction opc)
 {
 	u8 reg  = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
@@ -86,7 +86,7 @@ void iar(const UDSPInstruction opc)
 	g_dsp.r.ar[opc & 0x3] = dsp_increment_addr_reg(opc & 0x3);
 }
 
-// SUBARN $arD  
+// SUBARN $arD
 // 0000 0000 0000 11dd
 // Subtract indexing register $ixD from an addressing register $arD.
 // used only in IPL-NTSC ucode
@@ -129,7 +129,7 @@ void sbset(const UDSPInstruction opc)
 	g_dsp.r.sr |= (1 << bit);
 }
 
-// This is a bunch of flag setters, flipping bits in SR. 
+// This is a bunch of flag setters, flipping bits in SR.
 void srbith(const UDSPInstruction opc)
 {
 	zeroWriteBackLog();

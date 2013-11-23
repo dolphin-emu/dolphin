@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 {
 #ifdef __APPLE__
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-	NSEvent *event = [[NSEvent alloc] init];	
+	NSEvent *event = [[NSEvent alloc] init];
 	[NSApplication sharedApplication];
 	[NSApp activateIgnoringOtherApps: YES];
 	[NSApp finishLaunching];
@@ -313,7 +313,7 @@ int main(int argc, char* argv[])
 			event = [NSApp nextEventMatchingMask: NSAnyEventMask
 				untilDate: [NSDate distantFuture]
 				inMode: NSDefaultRunLoopMode dequeue: YES];
-	
+
 			if ([event type] == NSKeyDown &&
 				[event modifierFlags] & NSCommandKeyMask &&
 				[[event characters] UTF8String][0] == 'q')
@@ -321,10 +321,10 @@ int main(int argc, char* argv[])
 				Core::Stop();
 				break;
 			}
-	
+
 			if ([event type] != NSKeyDown)
 				[NSApp sendEvent: event];
-		}	
+		}
 
 		[event release];
 		[pool release];

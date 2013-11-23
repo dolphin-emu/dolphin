@@ -35,7 +35,7 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *no
 		DisassembleGekko(op.inst.hex, op.address, temp, 256);
 		sprintf(pDis, "%08x %s", op.address, temp);
 		DEBUG_LOG(DYNA_REC,"IR_X86 PPC: %s\n", pDis);
-	}	
+	}
 
 	disassembler x64disasm;
 	x64disasm.set_syntax_intel();

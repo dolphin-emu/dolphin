@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.08.03
-// RCS-ID:      $Id: bookctrl.h 69082 2011-09-14 08:24:06Z SJL $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -95,7 +94,7 @@ public:
     virtual size_t GetPageCount() const { return m_pages.size(); }
 
     // get the panel which represents the given page
-    wxWindow *GetPage(size_t n) const { return m_pages[n]; }
+    virtual wxWindow *GetPage(size_t n) const { return m_pages[n]; }
 
     // get the current page or NULL if none
     wxWindow *GetCurrentPage() const
@@ -215,6 +214,9 @@ public:
         }
     }
 
+    // return the index of the given page or wxNOT_FOUND
+    int FindPage(const wxWindow* page) const;
+
     // hit test: returns which page is hit and, optionally, where (icon, label)
     virtual int HitTest(const wxPoint& WXUNUSED(pt),
                         long * WXUNUSED(flags) = NULL) const
@@ -253,6 +255,10 @@ protected:
     // false otherwise.
     bool DoSetSelectionAfterInsertion(size_t n, bool bSelect);
 
+    // Update the selection after removing the page at the given index,
+    // typically called from the derived class overridden DoRemovePage().
+    void DoSetSelectionAfterRemoval(size_t n);
+
     // set the selection to the given page, sending the events (which can
     // possibly prevent the page change from taking place) if SendEvent flag is
     // included
@@ -277,6 +283,11 @@ protected:
         { wxFAIL_MSG(wxT("Override this function!")); }
 
 
+    // The derived class also may override the following method, also called
+    // from DoSetSelection(), to show/hide pages differently.
+    virtual void DoShowPage(wxWindow* page, bool show) { page->Show(show); }
+
+
     // Should we accept NULL page pointers in Add/InsertPage()?
     //
     // Default is no but derived classes may override it if they can treat NULL
@@ -284,7 +295,11 @@ protected:
     // having nodes without any associated page)
     virtual bool AllowNullPage() const { return false; }
 
-    // remove the page and return a pointer to it
+    // Remove the page and return a pointer to it.
+    //
+    // It also needs to update the current selection if necessary, i.e. if the
+    // page being removed comes before the selected one and the helper method
+    // DoSetSelectionAfterRemoval() can be used for this.
     virtual wxWindow *DoRemovePage(size_t page) = 0;
 
     // our best size is the size which fits all our pages
@@ -399,19 +414,23 @@ typedef void (wxEvtHandler::*wxBookCtrlEventFunction)(wxBookCtrlEvent&);
     // dedicated to majority of desktops
     #include "wx/notebook.h"
     #define wxBookCtrl                             wxNotebook
-    #define wxEVT_COMMAND_BOOKCTRL_PAGE_CHANGED    wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGED
-    #define wxEVT_COMMAND_BOOKCTRL_PAGE_CHANGING   wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING
+    #define wxEVT_BOOKCTRL_PAGE_CHANGED            wxEVT_NOTEBOOK_PAGE_CHANGED
+    #define wxEVT_BOOKCTRL_PAGE_CHANGING           wxEVT_NOTEBOOK_PAGE_CHANGING
     #define EVT_BOOKCTRL_PAGE_CHANGED(id, fn)      EVT_NOTEBOOK_PAGE_CHANGED(id, fn)
     #define EVT_BOOKCTRL_PAGE_CHANGING(id, fn)     EVT_NOTEBOOK_PAGE_CHANGING(id, fn)
 #else
     // dedicated to Smartphones
     #include "wx/choicebk.h"
     #define wxBookCtrl                             wxChoicebook
-    #define wxEVT_COMMAND_BOOKCTRL_PAGE_CHANGED    wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGED
-    #define wxEVT_COMMAND_BOOKCTRL_PAGE_CHANGING   wxEVT_COMMAND_CHOICEBOOK_PAGE_CHANGING
+    #define wxEVT_BOOKCTRL_PAGE_CHANGED            wxEVT_CHOICEBOOK_PAGE_CHANGED
+    #define wxEVT_BOOKCTRL_PAGE_CHANGING           wxEVT_CHOICEBOOK_PAGE_CHANGING
     #define EVT_BOOKCTRL_PAGE_CHANGED(id, fn)      EVT_CHOICEBOOK_PAGE_CHANGED(id, fn)
     #define EVT_BOOKCTRL_PAGE_CHANGING(id, fn)     EVT_CHOICEBOOK_PAGE_CHANGING(id, fn)
 #endif
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_BOOKCTRL_PAGE_CHANGED    wxEVT_BOOKCTRL_PAGE_CHANGED
+#define wxEVT_COMMAND_BOOKCTRL_PAGE_CHANGING   wxEVT_BOOKCTRL_PAGE_CHANGING
 
 #if WXWIN_COMPATIBILITY_2_6
     #define wxBC_TOP                               wxBK_TOP

@@ -4,7 +4,6 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     2004-08-15
-// RCS-ID:      $Id: stockitem.h 63383 2010-02-04 01:33:32Z VZ $
 // Copyright:   (c) Vaclav Slavik, 2004
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -73,7 +72,7 @@ WXDLLIMPEXP_CORE wxString wxGetStockHelpString(wxWindowID id,
 
 #ifdef __WXGTK20__
 
-// Translates stock ID to GTK+'s stock item string indentifier:
+// Translates stock ID to GTK+'s stock item string identifier:
 WXDLLIMPEXP_CORE const char *wxGetStockGtkID(wxWindowID id);
 
 #endif

@@ -3,7 +3,6 @@
 // Author:      Robert Roebling
 // Purpose:     Implement GNOME printing support
 // Created:     09/20/04
-// RCS-ID:      $Id: gprint.cpp 70478 2012-01-29 08:49:01Z PC $
 // Copyright:   Robert Roebling
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -34,6 +33,7 @@
 #include "wx/dynlib.h"
 #include "wx/paper.h"
 #include "wx/dcprint.h"
+#include "wx/modalhook.h"
 
 #include <libgnomeprint/gnome-print.h>
 #include <libgnomeprint/gnome-print-pango.h>
@@ -591,6 +591,8 @@ wxGnomePrintDialog::~wxGnomePrintDialog()
 
 int wxGnomePrintDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     int response = gtk_dialog_run (GTK_DIALOG (m_widget));
 
     if (response == GNOME_PRINT_DIALOG_RESPONSE_CANCEL)
@@ -609,7 +611,9 @@ int wxGnomePrintDialog::ShowModal()
     m_printDialogData.SetNoCopies( copies );
     m_printDialogData.SetCollate( collate );
 
-    switch (gs_libGnomePrint->gnome_print_dialog_get_range( (GnomePrintDialog*) m_widget ))
+    // Cast needed to avoid warnings because the gnome_print_dialog_get_range()
+    // is declared as returning a wrong enum type.
+    switch ( static_cast<int>( gs_libGnomePrint->gnome_print_dialog_get_range( (GnomePrintDialog*) m_widget )))
     {
         case GNOME_PRINT_RANGE_SELECTION:
             m_printDialogData.SetSelection( true );
@@ -734,6 +738,8 @@ wxPageSetupDialogData& wxGnomePageSetupDialog::GetPageSetupDialogData()
 
 int wxGnomePageSetupDialog::ShowModal()
 {
+    WX_HOOK_MODAL_DIALOG();
+
     wxGnomePrintNativeData *native =
       (wxGnomePrintNativeData*) m_pageDialogData.GetPrintData().GetNativeData();
 
@@ -1182,7 +1188,7 @@ void wxGnomePrinterDCImpl::DoDrawPoint(wxCoord WXUNUSED(x), wxCoord WXUNUSED(y))
 {
 }
 
-void wxGnomePrinterDCImpl::DoDrawLines(int n, wxPoint points[], wxCoord xoffset, wxCoord yoffset)
+void wxGnomePrinterDCImpl::DoDrawLines(int n, const wxPoint points[], wxCoord xoffset, wxCoord yoffset)
 {
     if (n <= 0) return;
 
@@ -1203,7 +1209,7 @@ void wxGnomePrinterDCImpl::DoDrawLines(int n, wxPoint points[], wxCoord xoffset,
     gs_libGnomePrint->gnome_print_stroke ( m_gpc);
 }
 
-void wxGnomePrinterDCImpl::DoDrawPolygon(int n, wxPoint points[],
+void wxGnomePrinterDCImpl::DoDrawPolygon(int n, const wxPoint points[],
                                    wxCoord xoffset, wxCoord yoffset,
                                    wxPolygonFillMode WXUNUSED(fillStyle))
 {
@@ -1251,7 +1257,7 @@ void wxGnomePrinterDCImpl::DoDrawPolygon(int n, wxPoint points[],
     }
 }
 
-void wxGnomePrinterDCImpl::DoDrawPolyPolygon(int n, int count[], wxPoint points[], wxCoord xoffset, wxCoord yoffset, wxPolygonFillMode fillStyle)
+void wxGnomePrinterDCImpl::DoDrawPolyPolygon(int n, const int count[], const wxPoint points[], wxCoord xoffset, wxCoord yoffset, wxPolygonFillMode fillStyle)
 {
 #if wxUSE_NEW_DC
     wxDCImpl::DoDrawPolyPolygon( n, count, points, xoffset, yoffset, fillStyle );

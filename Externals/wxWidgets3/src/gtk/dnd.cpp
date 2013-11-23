@@ -2,7 +2,6 @@
 // Name:        src/gtk/dnd.cpp
 // Purpose:     wxDropTarget class
 // Author:      Robert Roebling
-// Id:          $Id: dnd.cpp 67681 2011-05-03 16:29:04Z DS $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -240,8 +239,8 @@ static gboolean target_drag_motion( GtkWidget *WXUNUSED(widget),
         result_action = GDK_ACTION_MOVE;
 
     // is result action actually supported
-    bool ret ((result_action != GDK_ACTION_DEFAULT) &&
-              (context->actions & result_action));
+    bool ret = (result_action != GDK_ACTION_DEFAULT) &&
+               (gdk_drag_context_get_actions(context) & result_action);
 
     if (ret)
         gdk_drag_status( context, result_action, time );
@@ -379,7 +378,7 @@ static void target_drag_data_received( GtkWidget *WXUNUSED(widget),
        this is only valid for the duration of this call */
     drop_target->GTKSetDragData( data );
 
-    wxDragResult result = ConvertFromGTK(context->action);
+    wxDragResult result = ConvertFromGTK(gdk_drag_context_get_selected_action(context));
 
     if ( wxIsDragResultOk( drop_target->OnData( x, y, result ) ) )
     {
@@ -443,11 +442,12 @@ wxDragResult wxDropTarget::GTKFigureOutSuggestedAction()
     // only good if we don't have our own preferences - but also the actions
     // field
     wxDragResult suggested_action = wxDragNone;
+    const GdkDragAction actions = gdk_drag_context_get_actions(m_dragContext);
     if (GetDefaultAction() == wxDragNone)
     {
         // use default action set by wxDropSource::DoDragDrop()
         if ( (gs_flagsForDrag & wxDrag_DefaultMove) == wxDrag_DefaultMove &&
-            (m_dragContext->actions & GDK_ACTION_MOVE ) )
+            (actions & GDK_ACTION_MOVE))
         {
             // move is requested by the program and allowed by GTK+ - do it, even
             // though suggested_action may be currently wxDragCopy
@@ -455,7 +455,7 @@ wxDragResult wxDropTarget::GTKFigureOutSuggestedAction()
         }
         else // use whatever GTK+ says we should
         {
-            suggested_action = ConvertFromGTK(m_dragContext->suggested_action);
+            suggested_action = ConvertFromGTK(gdk_drag_context_get_suggested_action(m_dragContext));
 
 #if 0
             // RR: I don't understand the code below: if the drag comes from
@@ -472,18 +472,18 @@ wxDragResult wxDropTarget::GTKFigureOutSuggestedAction()
         }
     }
     else if (GetDefaultAction() == wxDragMove &&
-            (m_dragContext->actions & GDK_ACTION_MOVE))
+            (actions & GDK_ACTION_MOVE))
     {
 
         suggested_action = wxDragMove;
     }
     else
     {
-        if (m_dragContext->actions & GDK_ACTION_COPY)
+        if (actions & GDK_ACTION_COPY)
             suggested_action = wxDragCopy;
-        else if (m_dragContext->actions & GDK_ACTION_MOVE)
+        else if (actions & GDK_ACTION_MOVE)
             suggested_action = wxDragMove;
-        else if (m_dragContext->actions & GDK_ACTION_LINK)
+        else if (actions & GDK_ACTION_LINK)
             suggested_action = wxDragLink;
         else
             suggested_action = wxDragNone;
@@ -505,7 +505,7 @@ GdkAtom wxDropTarget::GTKGetMatchingPair(bool quiet)
     if (!m_dragContext)
         return (GdkAtom) 0;
 
-    GList *child = m_dragContext->targets;
+    const GList* child = gdk_drag_context_list_targets(m_dragContext);
     while (child)
     {
         GdkAtom formatAtom = (GdkAtom)(child->data);
@@ -647,7 +647,7 @@ source_drag_data_get  (GtkWidget          *WXUNUSED(widget),
         return;
     }
 
-    drop_source->m_retValue = ConvertFromGTK( context->action );
+    drop_source->m_retValue = ConvertFromGTK(gdk_drag_context_get_selected_action(context));
 
     gtk_selection_data_set( selection_data,
                             gtk_selection_data_get_target(selection_data),
@@ -680,7 +680,7 @@ extern "C" {
 static gint
 gtk_dnd_window_configure_callback( GtkWidget *WXUNUSED(widget), GdkEventConfigure *WXUNUSED(event), wxDropSource *source )
 {
-    source->GiveFeedback( ConvertFromGTK(source->m_dragContext->action) );
+    source->GiveFeedback(ConvertFromGTK(gdk_drag_context_get_selected_action(source->m_dragContext)));
 
     return 0;
 }
@@ -760,36 +760,56 @@ void wxDropSource::PrepareIcon( int action, GdkDragContext *context )
     else
         icon = &m_iconNone;
 
+#ifndef __WXGTK3__
     GdkBitmap *mask;
     if ( icon->GetMask() )
-        mask = icon->GetMask()->GetBitmap();
+        mask = *icon->GetMask();
     else
         mask = NULL;
 
     GdkPixmap *pixmap = icon->GetPixmap();
 
-    gint width,height;
-    gdk_drawable_get_size (pixmap, &width, &height);
-
     GdkColormap *colormap = gtk_widget_get_colormap( m_widget );
     gtk_widget_push_colormap (colormap);
+#endif
 
     m_iconWindow = gtk_window_new (GTK_WINDOW_POPUP);
     gtk_widget_set_events (m_iconWindow, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
     gtk_widget_set_app_paintable (m_iconWindow, TRUE);
 
+#ifdef __WXGTK3__
+    gtk_widget_set_visual(m_iconWindow, gtk_widget_get_visual(m_widget));
+#else
     gtk_widget_pop_colormap ();
+#endif
 
-    gtk_widget_set_size_request (m_iconWindow, width, height);
+    gtk_widget_set_size_request (m_iconWindow, icon->GetWidth(), icon->GetHeight());
     gtk_widget_realize (m_iconWindow);
 
     g_signal_connect (m_iconWindow, "configure_event",
                       G_CALLBACK (gtk_dnd_window_configure_callback), this);
 
+#ifdef __WXGTK3__
+    cairo_t* cr = gdk_cairo_create(gtk_widget_get_window(m_iconWindow));
+    icon->SetSourceSurface(cr, 0, 0);
+    cairo_pattern_t* pattern = cairo_get_source(cr);
+    gdk_window_set_background_pattern(gtk_widget_get_window(m_iconWindow), pattern);
+    cairo_destroy(cr);
+    cairo_surface_t* mask = NULL;
+    if (icon->GetMask())
+        mask = *icon->GetMask();
+    if (mask)
+    {
+        cairo_region_t* region = gdk_cairo_region_create_from_surface(mask);
+        gtk_widget_shape_combine_region(m_iconWindow, region);
+        cairo_region_destroy(region);
+    }
+#else
     gdk_window_set_back_pixmap(gtk_widget_get_window(m_iconWindow), pixmap, false);
 
     if (mask)
         gtk_widget_shape_combine_mask (m_iconWindow, mask, 0, 0);
+#endif
 
     gtk_drag_set_icon_widget( context, m_iconWindow, 0, 0 );
 }

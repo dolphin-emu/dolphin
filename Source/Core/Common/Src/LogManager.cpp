@@ -13,7 +13,7 @@
 #include "Thread.h"
 #include "FileUtil.h"
 
-void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
+void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		const char *file, int line, const char* fmt, ...)
 {
 	va_list args;
@@ -47,6 +47,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::DVDINTERFACE]		= new LogContainer("DVD",			"DVDInterface");
 	m_Log[LogTypes::GPFIFO]				= new LogContainer("GP",			"GPFifo");
 	m_Log[LogTypes::EXPANSIONINTERFACE]	= new LogContainer("EXI",			"ExpansionInt");
+	m_Log[LogTypes::GDB_STUB]			= new LogContainer("GDB_STUB",		"GDB Stub");
 	m_Log[LogTypes::AUDIO_INTERFACE]	= new LogContainer("AI",			"AudioInt");
 	m_Log[LogTypes::POWERPC]			= new LogContainer("PowerPC",		"IBM CPU");
 	m_Log[LogTypes::OSHLE]				= new LogContainer("HLE",			"HLE");
@@ -61,6 +62,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::WIIMOTE]			= new LogContainer("Wiimote",		"Wiimote");
 	m_Log[LogTypes::WII_IOB]			= new LogContainer("WII_IOB",		"WII IO Bridge");
 	m_Log[LogTypes::WII_IPC]			= new LogContainer("WII_IPC",		"WII IPC");
+	m_Log[LogTypes::WII_IPC_HID]		= new LogContainer("WII_IPC_HID",	"WII IPC HID");
 	m_Log[LogTypes::WII_IPC_HLE]		= new LogContainer("WII_IPC_HLE",	"WII IPC HLE");
 	m_Log[LogTypes::WII_IPC_DVD]		= new LogContainer("WII_IPC_DVD",	"WII IPC DVD");
 	m_Log[LogTypes::WII_IPC_ES]			= new LogContainer("WII_IPC_ES",	"WII IPC ES");
@@ -68,6 +70,8 @@ LogManager::LogManager()
 	m_Log[LogTypes::WII_IPC_SD]			= new LogContainer("WII_IPC_SD",	"WII IPC SD");
 	m_Log[LogTypes::WII_IPC_STM]		= new LogContainer("WII_IPC_STM",	"WII IPC STM");
 	m_Log[LogTypes::WII_IPC_NET]		= new LogContainer("WII_IPC_NET",	"WII IPC NET");
+	m_Log[LogTypes::WII_IPC_WC24]		= new LogContainer("WII_IPC_WC24",	"WII IPC WC24");
+	m_Log[LogTypes::WII_IPC_SSL]		= new LogContainer("WII_IPC_SSL",	"WII IPC SSL");
 	m_Log[LogTypes::WII_IPC_WIIMOTE]	= new LogContainer("WII_IPC_WIIMOTE","WII IPC WIIMOTE");
 	m_Log[LogTypes::ACTIONREPLAY]		= new LogContainer("ActionReplay",	"ActionReplay");
 	m_Log[LogTypes::MEMCARD_MANAGER]	= new LogContainer("MemCard Manager", "MemCard Manager");
@@ -77,14 +81,14 @@ LogManager::LogManager()
 	m_consoleLog = new ConsoleListener();
 	m_debuggerLog = new DebuggerLogListener();
 
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+	for (auto& container : m_Log)
 	{
-		m_Log[i]->SetEnable(true);
-		m_Log[i]->AddListener(m_fileLog);
-		m_Log[i]->AddListener(m_consoleLog);
+		container->SetEnable(true);
+		container->AddListener(m_fileLog);
+		container->AddListener(m_consoleLog);
 #ifdef _MSC_VER
 		if (IsDebuggerPresent())
-			m_Log[i]->AddListener(m_debuggerLog);
+			container->AddListener(m_debuggerLog);
 #endif
 	}
 }
@@ -98,15 +102,15 @@ LogManager::~LogManager()
 		m_logManager->RemoveListener((LogTypes::LOG_TYPE)i, m_debuggerLog);
 	}
 
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-		delete m_Log[i];
+	for (auto& container : m_Log)
+		delete container;
 
 	delete m_fileLog;
 	delete m_consoleLog;
 	delete m_debuggerLog;
 }
 
-void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
+void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	const char *file, int line, const char *format, va_list args)
 {
 	char temp[MAX_MSGLEN];
@@ -124,7 +128,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		file, line, level_to_char[(int)level],
 		log->GetShortName(), temp);
 #ifdef ANDROID
-	Host_SysMessage(msg);	
+	Host_SysMessage(msg);
 #endif
 	log->Trigger(level, msg);
 }

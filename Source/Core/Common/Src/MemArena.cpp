@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <set>
 
-#include "Common.h"
 #include "MemoryUtil.h"
 #include "MemArena.h"
 
@@ -20,7 +20,6 @@
 #include <linux/ashmem.h>
 #endif
 #endif
-#include <set>
 
 #if defined(__APPLE__)
 static const char* ram_temp_file = "/tmp/gc_mem.tmp";
@@ -37,7 +36,7 @@ int AshmemCreateFileMapping(const char *name, size_t size)
 	if (fd < 0)
 		return fd;
 
-	// We don't really care if we can't set the name, it is optional	
+	// We don't really care if we can't set the name, it is optional
 	ret = ioctl(fd, ASHMEM_SET_NAME, name);
 
 	ret = ioctl(fd, ASHMEM_SET_SIZE, size);
@@ -143,11 +142,15 @@ u8* MemArena::Find4GBBase()
 	return base;
 #else
 #ifdef ANDROID
-	const u32 MemSize = 0x04000000;
+	// Android 4.3 changed how mmap works.
+	// if we map it private and then munmap it, we can't use the base returned.
+	// This may be due to changes in them support a full SELinux implementation.
+	const int flags = MAP_ANON | MAP_SHARED;
 #else
-	const u32 MemSize = 0x31000000; 
+	const int flags = MAP_ANON | MAP_PRIVATE;
 #endif
-	void* base = mmap(0, MemSize, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+	const u32 MemSize = 0x31000000;
+	void* base = mmap(0, MemSize, PROT_NONE, flags, -1, 0);
 	if (base == MAP_FAILED) {
 		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
 		return 0;
@@ -254,13 +257,12 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	{
 		base_attempts++;
 		base = (u8 *)base_addr;
-		if (Memory_TryBase(base, views, num_views, flags, arena)) 
+		if (Memory_TryBase(base, views, num_views, flags, arena))
 		{
 			INFO_LOG(MEMMAP, "Found valid memory base at %p after %i tries.", base, base_attempts);
 			base_attempts = 0;
 			break;
 		}
-		
 	}
 #else
 	// Linux32 is fine with the x64 method, although limited to 32-bit with no automirrors.
@@ -286,9 +288,8 @@ void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemAr
 	{
 		const MemoryView* view = &views[i];
 		u8** outptrs[2] = {view->out_ptr_low, view->out_ptr};
-		for (int j = 0; j < 2; j++)
+		for (auto outptr : outptrs)
 		{
-			u8** outptr = outptrs[j];
 			if (outptr && *outptr && !freeset.count(*outptr))
 			{
 				arena->ReleaseView(*outptr, view->size);

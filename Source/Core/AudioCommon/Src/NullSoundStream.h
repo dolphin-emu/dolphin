@@ -5,8 +5,8 @@
 #ifndef _NULLSOUNDSTREAM_H_
 #define _NULLSOUNDSTREAM_H_
 
+#include <stdlib.h>
 #include "SoundStream.h"
-#include "Thread.h"
 
 #define BUF_SIZE (48000 * 4 / 32)
 
@@ -16,7 +16,7 @@ class NullSound : public SoundStream
 	short realtimeBuffer[BUF_SIZE / sizeof(short)];
 
 public:
-	NullSound(CMixer *mixer, void *hWnd = NULL)
+	NullSound(CMixer *mixer)
 		: SoundStream(mixer)
 	{}
 

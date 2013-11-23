@@ -12,7 +12,6 @@
 #include "MemoryWindow.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
-#include "Host.h"
 #include "FileUtil.h"
 
 #include "Debugger/PPCDebugInterface.h"
@@ -87,7 +86,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _("&Dump MRAM")));
 	sizerRight->Add(new wxButton(this, IDM_DUMP_MEM2, _("&Dump EXRAM")));
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack == 1)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bTLBHack == true)
 		sizerRight->Add(new wxButton(this, IDM_DUMP_FAKEVMEM, _("&Dump FakeVMEM")));
 
 	wxStaticBoxSizer* sizerSearchType = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
@@ -239,7 +238,7 @@ void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 
 // Write exram (aram or mem2) to file
 void CMemoryWindow::OnDumpMem2( wxCommandEvent& event )
-{	
+{
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		DumpArray(File::GetUserPath(F_ARAMDUMP_IDX), Memory::m_pEXRAM, Memory::EXRAM_SIZE);

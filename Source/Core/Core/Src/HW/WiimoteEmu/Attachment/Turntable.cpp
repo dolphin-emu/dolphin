@@ -34,8 +34,8 @@ Turntable::Turntable(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Turnta
 {
 	// buttons
 	groups.push_back(m_buttons = new Buttons("Buttons"));
-	for (unsigned int i = 0; i < sizeof(turntable_button_names)/sizeof(*turntable_button_names); ++i)
-		m_buttons->controls.push_back(new ControlGroup::Input(turntable_button_names[i]));
+	for (auto& turntable_button_name : turntable_button_names)
+		m_buttons->controls.push_back(new ControlGroup::Input(turntable_button_name));
 
 	// turntables
 	groups.push_back(m_left_table = new Slider(_trans("Table Left")));

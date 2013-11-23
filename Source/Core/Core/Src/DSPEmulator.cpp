@@ -7,7 +7,7 @@
 #include "HW/DSPLLE/DSPLLE.h"
 #include "HW/DSPHLE/DSPHLE.h"
 
-DSPEmulator *CreateDSPEmulator(bool HLE) 
+DSPEmulator *CreateDSPEmulator(bool HLE)
 {
 	if (HLE)
 	{

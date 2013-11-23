@@ -221,8 +221,8 @@ void ControllerEmu::SaveConfig(IniFile::Section *sec, const std::string& base)
 
 ControllerEmu::AnalogStick::AnalogStick(const char* const _name) : ControlGroup(_name, GROUP_TYPE_STICK)
 {
-	for (unsigned int i = 0; i < 4; ++i)
-		controls.push_back(new Input(named_directions[i]));
+	for (auto& named_direction : named_directions)
+		controls.push_back(new Input(named_direction));
 
 	controls.push_back(new Input(_trans("Modifier")));
 
@@ -290,8 +290,8 @@ ControllerEmu::Cursor::Cursor(const char* const _name)
 	: ControlGroup(_name, GROUP_TYPE_CURSOR)
 	, m_z(0)
 {
-	for (unsigned int i = 0; i < 4; ++i)
-		controls.push_back(new Input(named_directions[i]));
+	for (auto& named_direction : named_directions)
+		controls.push_back(new Input(named_direction));
 	controls.push_back(new Input("Forward"));
 	controls.push_back(new Input("Backward"));
 	controls.push_back(new Input(_trans("Hide")));

@@ -14,7 +14,7 @@ CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)
 	, m_work_available(false)
 	, m_cmdlist_size(0)
-	, m_run_on_thread(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread)
+	, m_run_on_thread(false)
 {
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AX: crc=%08x", crc);
 	m_rMailHandler.PushMail(DSP_INIT);
@@ -22,6 +22,9 @@ CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 
 	LoadResamplingCoefficients();
 
+	// DSP HLE on thread is always disabled because it causes audio
+	// issues/glitching (different timing characteristics). m_run_on_thread is
+	// always false.
 	if (m_run_on_thread)
 		m_axthread = std::thread(SpawnAXThread, this);
 }
@@ -69,8 +72,8 @@ void CUCode_AX::LoadResamplingCoefficients()
 	File::IOFile fp(filename, "rb");
 	fp.ReadBytes(m_coeffs, 0x1000);
 
-	for (u32 i = 0; i < 0x800; ++i)
-		m_coeffs[i] = Common::swap16(m_coeffs[i]);
+	for (auto& coef : m_coeffs)
+		coef = Common::swap16(coef);
 
 	m_coeffs_available = true;
 }
@@ -383,7 +386,7 @@ void CUCode_AX::SetupProcessing(u32 init_addr)
 	};
 
 	u32 init_idx = 0;
-	for (u32 i = 0; i < sizeof (buffers) / sizeof (buffers[0]); ++i)
+	for (auto& buffer : buffers)
 	{
 		s32 init_val = (s32)((init_data[init_idx] << 16) | init_data[init_idx + 1]);
 		s16 delta = (s16)init_data[init_idx + 2];
@@ -392,13 +395,13 @@ void CUCode_AX::SetupProcessing(u32 init_addr)
 
 		if (!init_val)
 		{
-			memset(buffers[i], 0, 5 * 32 * sizeof (int));
+			memset(buffer, 0, 5 * 32 * sizeof (int));
 		}
 		else
 		{
 			for (u32 j = 0; j < 32 * 5; ++j)
 			{
-				buffers[i][j] = init_val;
+				buffer[j] = init_val;
 				init_val += delta;
 			}
 		}
@@ -498,20 +501,20 @@ void CUCode_AX::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr)
 	if (write_addr)
 	{
 		int* ptr = (int*)HLEMemory_Get_Pointer(write_addr);
-		for (u32 i = 0; i < 3; ++i)
+		for (auto& buffer : buffers)
 			for (u32 j = 0; j < 5 * 32; ++j)
-				*ptr++ = Common::swap32(buffers[i][j]);
+				*ptr++ = Common::swap32(buffer[j]);
 	}
 
 	// Then, we read the new temp from the CPU and add to our current
 	// temp.
 	int* ptr = (int*)HLEMemory_Get_Pointer(read_addr);
-	for (u32 i = 0; i < 5 * 32; ++i)
-		m_samples_left[i] += (int)Common::swap32(*ptr++);
-	for (u32 i = 0; i < 5 * 32; ++i)
-		m_samples_right[i] += (int)Common::swap32(*ptr++);
-	for (u32 i = 0; i < 5 * 32; ++i)
-		m_samples_surround[i] += (int)Common::swap32(*ptr++);
+	for (auto& sample : m_samples_left)
+		sample += (int)Common::swap32(*ptr++);
+	for (auto& sample : m_samples_right)
+		sample += (int)Common::swap32(*ptr++);
+	for (auto& sample : m_samples_surround)
+		sample += (int)Common::swap32(*ptr++);
 }
 
 void CUCode_AX::UploadLRS(u32 dst_addr)
@@ -572,10 +575,10 @@ void CUCode_AX::MixAUXBLR(u32 ul_addr, u32 dl_addr)
 {
 	// Upload AUXB L/R
 	int* ptr = (int*)HLEMemory_Get_Pointer(ul_addr);
-	for (u32 i = 0; i < 5 * 32; ++i)
-		*ptr++ = Common::swap32(m_samples_auxB_left[i]);
-	for (u32 i = 0; i < 5 * 32; ++i)
-		*ptr++ = Common::swap32(m_samples_auxB_right[i]);
+	for (auto& sample : m_samples_auxB_left)
+		*ptr++ = Common::swap32(sample);
+	for (auto& sample : m_samples_auxB_right)
+		*ptr++ = Common::swap32(sample);
 
 	// Mix AUXB L/R to MAIN L/R, and replace AUXB L/R
 	ptr = (int*)HLEMemory_Get_Pointer(dl_addr);
@@ -617,14 +620,14 @@ void CUCode_AX::SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl,
 
 	// Upload AUXA LRS
 	int* ptr = (int*)HLEMemory_Get_Pointer(main_auxa_up);
-	for (u32 i = 0; i < sizeof (up_buffers) / sizeof (up_buffers[0]); ++i)
+	for (auto& up_buffer : up_buffers)
 		for (u32 j = 0; j < 32 * 5; ++j)
-			*ptr++ = Common::swap32(up_buffers[i][j]);
+			*ptr++ = Common::swap32(up_buffer[j]);
 
 	// Upload AUXB S
 	ptr = (int*)HLEMemory_Get_Pointer(auxb_s_up);
-	for (u32 i = 0; i < 32 * 5; ++i)
-		*ptr++ = Common::swap32(m_samples_auxB_surround[i]);
+	for (auto& sample : m_samples_auxB_surround)
+		*ptr++ = Common::swap32(sample);
 
 	// Download buffers and addresses
 	int* dl_buffers[] = {

@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: slider.cpp 70314 2012-01-10 17:09:11Z DS $
 // Copyright:   (c) Julian Smart 1998
 //                  Vadim Zeitlin 2004
 // Licence:     wxWindows licence
@@ -310,7 +309,7 @@ bool wxSlider::MSWOnScroll(int WXUNUSED(orientation),
     event.SetEventObject( this );
     HandleWindowEvent(event);
 
-    wxCommandEvent cevent( wxEVT_COMMAND_SLIDER_UPDATED, GetId() );
+    wxCommandEvent cevent( wxEVT_SLIDER, GetId() );
     cevent.SetInt( newPos );
     cevent.SetEventObject( this );
 
@@ -583,7 +582,7 @@ void wxSlider::SetValue(int value)
 
     if ( m_labels )
     {
-        ::SetWindowText((*m_labels)[SliderLabel_Value], Format(value).wx_str());
+        ::SetWindowText((*m_labels)[SliderLabel_Value], Format(value).t_str());
     }
 }
 
@@ -603,9 +602,9 @@ void wxSlider::SetRange(int minValue, int maxValue)
     if ( m_labels )
     {
         ::SetWindowText((*m_labels)[SliderLabel_Min],
-                        Format(ValueInvertOrNot(m_rangeMin)).wx_str());
+                        Format(ValueInvertOrNot(m_rangeMin)).t_str());
         ::SetWindowText((*m_labels)[SliderLabel_Max],
-                        Format(ValueInvertOrNot(m_rangeMax)).wx_str());
+                        Format(ValueInvertOrNot(m_rangeMax)).t_str());
     }
 
     // When emulating wxSL_INVERSE style in wxWidgets, we need to update the

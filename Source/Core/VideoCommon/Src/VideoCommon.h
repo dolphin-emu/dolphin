@@ -85,11 +85,8 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 typedef enum
 {
 	API_OPENGL = 1,
-	API_D3D9_SM30 = 2,
-	API_D3D9_SM20 = 4,
-	API_D3D9 = 6,	
-	API_D3D11 = 8,
-	API_NONE = 16
+	API_D3D = 2,
+	API_NONE = 3
 } API_TYPE;
 
 inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
@@ -135,11 +132,5 @@ inline unsigned int GetPow2(unsigned int val)
 		++ret;
 	return ret;
 }
-struct s_svar
-{
-	const char *name;
-	const unsigned int reg;
-	const unsigned int size;
-};
 
 #endif  // _VIDEOCOMMON_H

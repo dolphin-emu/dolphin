@@ -4,7 +4,6 @@
 // Author:      Ryan Norton
 // Modified by:
 // Created:     2004-09-25
-// RCS-ID:      $Id: fontdlg.h 70497 2012-02-02 14:19:34Z VZ $
 // Copyright:   (c) Ryan Norton
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -124,25 +123,25 @@ public:
     /// Respond to colour change
     void OnColourChanged(wxCommandEvent& event);
 
-    /// wxEVT_COMMAND_LISTBOX_SELECTED event handler for wxID_FONTDIALOG_FACENAME
+    /// wxEVT_LISTBOX event handler for wxID_FONTDIALOG_FACENAME
     void OnFontdialogFacenameSelected( wxCommandEvent& event );
 
-    /// wxEVT_COMMAND_SPINCTRL_UPDATED event handler for wxID_FONTDIALOG_FONTSIZE
+    /// wxEVT_SPINCTRL event handler for wxID_FONTDIALOG_FONTSIZE
     void OnFontdialogFontsizeUpdated( wxSpinEvent& event );
 
-    /// wxEVT_COMMAND_TEXT_UPDATED event handler for wxID_FONTDIALOG_FONTSIZE
+    /// wxEVT_TEXT event handler for wxID_FONTDIALOG_FONTSIZE
     void OnFontdialogFontsizeTextUpdated( wxCommandEvent& event );
 
-    /// wxEVT_COMMAND_CHECKBOX_CLICKED event handler for wxID_FONTDIALOG_BOLD
+    /// wxEVT_CHECKBOX event handler for wxID_FONTDIALOG_BOLD
     void OnFontdialogBoldClick( wxCommandEvent& event );
 
-    /// wxEVT_COMMAND_CHECKBOX_CLICKED event handler for wxID_FONTDIALOG_ITALIC
+    /// wxEVT_CHECKBOX event handler for wxID_FONTDIALOG_ITALIC
     void OnFontdialogItalicClick( wxCommandEvent& event );
 
-    /// wxEVT_COMMAND_CHECKBOX_CLICKED event handler for wxID_FONTDIALOG_UNDERLINED
+    /// wxEVT_CHECKBOX event handler for wxID_FONTDIALOG_UNDERLINED
     void OnFontdialogUnderlinedClick( wxCommandEvent& event );
 
-    /// wxEVT_COMMAND_BUTTON_CLICKED event handler for wxID_OK
+    /// wxEVT_BUTTON event handler for wxID_OK
     void OnOkClick( wxCommandEvent& event );
 
     /// Should we show tooltips?

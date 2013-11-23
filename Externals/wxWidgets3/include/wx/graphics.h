@@ -5,7 +5,6 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Stefan Csomor
-// RCS-ID:      $Id: graphics.h 69485 2011-10-20 04:49:12Z RD $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -107,6 +106,7 @@ class WXDLLIMPEXP_FWD_CORE wxGraphicsBitmap;
 //
 
 class WXDLLIMPEXP_FWD_CORE wxGraphicsObjectRefData;
+class WXDLLIMPEXP_FWD_CORE wxGraphicsBitmapData;
 class WXDLLIMPEXP_FWD_CORE wxGraphicsMatrixData;
 class WXDLLIMPEXP_FWD_CORE wxGraphicsPathData;
 
@@ -174,6 +174,13 @@ public:
 #if wxUSE_IMAGE
     wxImage ConvertToImage() const;
 #endif // wxUSE_IMAGE
+    
+    void* GetNativeBitmap() const;
+
+    const wxGraphicsBitmapData* GetBitmapData() const
+    { return (const wxGraphicsBitmapData*) GetRefData(); }
+    wxGraphicsBitmapData* GetBitmapData()
+    { return (wxGraphicsBitmapData*) GetRefData(); }
 
 private:
     DECLARE_DYNAMIC_CLASS(wxGraphicsBitmap)
@@ -390,7 +397,7 @@ public:
     void Add(wxColour col, float pos) { Add(wxGraphicsGradientStop(col, pos)); }
 
     // Get the number of stops.
-    unsigned GetCount() const { return m_stops.size(); }
+    size_t GetCount() const { return m_stops.size(); }
 
     // Return the stop at the given index (which must be valid).
     wxGraphicsGradientStop Item(unsigned n) const { return m_stops.at(n); }
@@ -510,6 +517,16 @@ public:
     virtual wxGraphicsMatrix CreateMatrix( wxDouble a=1.0, wxDouble b=0.0, wxDouble c=0.0, wxDouble d=1.0,
         wxDouble tx=0.0, wxDouble ty=0.0) const;
 
+    wxGraphicsMatrix CreateMatrix( const wxAffineMatrix2DBase& mat ) const
+    {
+        wxMatrix2D mat2D;
+        wxPoint2DDouble tr;
+        mat.Get(&mat2D, &tr);
+
+        return CreateMatrix(mat2D.m_11, mat2D.m_12, mat2D.m_21, mat2D.m_22,
+                            tr.m_x, tr.m_y);
+    }
+
     // push the current state of the context, ie the transformation matrix on a stack
     virtual void PushState() = 0;
 
@@ -547,7 +564,7 @@ public:
     virtual bool SetCompositionMode(wxCompositionMode op) = 0;
 
     // returns the size of the graphics context in device coordinates
-    void GetSize(wxDouble* width, wxDouble* height)
+    void GetSize(wxDouble* width, wxDouble* height) const
     {
         if ( width )
             *width = m_width;

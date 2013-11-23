@@ -15,7 +15,7 @@
 #include <vector>
 #include <string>
 
-#include "Common.h"
+#include "CommonTypes.h"
 #include "CoreParameter.h"
 
 namespace Core
@@ -66,7 +66,7 @@ inline void DisplayMessage(const std::string &message, int time_in_ms)
 {
 	DisplayMessage(message.c_str(), time_in_ms);
 }
-	
+
 std::string GetStateFileName();
 void SetStateFileName(std::string val);
 

@@ -27,7 +27,7 @@ struct GekkoOPTemplate
 	//GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
 };
 
-static GekkoOPTemplate primarytable[] = 
+static GekkoOPTemplate primarytable[] =
 {
 	{4,  &Jit64::DynaRunTable4}, //"RunTable4",  OPTYPE_SUBTABLE | (4<<24), 0}},
 	{19, &Jit64::DynaRunTable19}, //"RunTable19", OPTYPE_SUBTABLE | (19<<24), 0}},
@@ -108,7 +108,7 @@ static GekkoOPTemplate primarytable[] =
 	{58, &Jit64::Default}, //"unknown_instruction", OPTYPE_UNKNOWN, 0}},
 };
 
-static GekkoOPTemplate table4[] = 
+static GekkoOPTemplate table4[] =
 {    //SUBOP10
 	{0,    &Jit64::Default}, //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
 	{32,   &Jit64::Default}, //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
@@ -124,9 +124,9 @@ static GekkoOPTemplate table4[] =
 	{624,  &Jit64::ps_mergeXX}, //"ps_merge11", OPTYPE_PS, FL_RC_BIT}},
 
 	{1014, &Jit64::Default}, //"dcbz_l",     OPTYPE_SYSTEM, 0}},
-};		
+};
 
-static GekkoOPTemplate table4_2[] = 
+static GekkoOPTemplate table4_2[] =
 {
 	{10, &Jit64::ps_sum}, //"ps_sum0",   OPTYPE_PS, 0}},
 	{11, &Jit64::ps_sum}, //"ps_sum1",   OPTYPE_PS, 0}},
@@ -138,9 +138,9 @@ static GekkoOPTemplate table4_2[] =
 	{20, &Jit64::ps_arith}, //"ps_sub",    OPTYPE_PS, 0}},
 	{21, &Jit64::ps_arith}, //"ps_add",    OPTYPE_PS, 0}},
 	{23, &Jit64::ps_sel}, //"ps_sel",    OPTYPE_PS, 0}},
-	{24, &Jit64::Default}, //"ps_res",    OPTYPE_PS, 0}},
+	{24, &Jit64::ps_recip}, //"ps_res",    OPTYPE_PS, 0}},
 	{25, &Jit64::ps_arith}, //"ps_mul",    OPTYPE_PS, 0}},
-	{26, &Jit64::ps_rsqrte}, //"ps_rsqrte", OPTYPE_PS, 0, 1}},
+	{26, &Jit64::ps_recip}, //"ps_rsqrte", OPTYPE_PS, 0, 1}},
 	{28, &Jit64::ps_maddXX}, //"ps_msub",   OPTYPE_PS, 0}},
 	{29, &Jit64::ps_maddXX}, //"ps_madd",   OPTYPE_PS, 0}},
 	{30, &Jit64::ps_maddXX}, //"ps_nmsub",  OPTYPE_PS, 0}},
@@ -148,15 +148,15 @@ static GekkoOPTemplate table4_2[] =
 };
 
 
-static GekkoOPTemplate table4_3[] = 
+static GekkoOPTemplate table4_3[] =
 {
 	{6,  &Jit64::Default}, //"psq_lx",   OPTYPE_PS, 0}},
 	{7,  &Jit64::Default}, //"psq_stx",  OPTYPE_PS, 0}},
 	{38, &Jit64::Default}, //"psq_lux",  OPTYPE_PS, 0}},
-	{39, &Jit64::Default}, //"psq_stux", OPTYPE_PS, 0}}, 
+	{39, &Jit64::Default}, //"psq_stux", OPTYPE_PS, 0}},
 };
 
-static GekkoOPTemplate table19[] = 
+static GekkoOPTemplate table19[] =
 {
 	{528, &Jit64::bcctrx}, //"bcctrx", OPTYPE_BRANCH, FL_ENDBLOCK}},
 	{16,  &Jit64::bclrx}, //"bclrx",  OPTYPE_BRANCH, FL_ENDBLOCK}},
@@ -168,16 +168,16 @@ static GekkoOPTemplate table19[] =
 	{449, &Jit64::crXXX}, //"cror",   OPTYPE_CR, FL_EVIL}},
 	{417, &Jit64::crXXX}, //"crorc",  OPTYPE_CR, FL_EVIL}},
 	{193, &Jit64::crXXX}, //"crxor",  OPTYPE_CR, FL_EVIL}},
-												   
+
 	{150, &Jit64::DoNothing}, //"isync",  OPTYPE_ICACHE, FL_EVIL}},
 	{0,   &Jit64::mcrf}, //"mcrf",   OPTYPE_SYSTEM, FL_EVIL}},
-												   
+
 	{50,  &Jit64::rfi}, //"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
 	{18,  &Jit64::Default}, //"rfid",   OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS}}
 };
 
 
-static GekkoOPTemplate table31[] = 
+static GekkoOPTemplate table31[] =
 {
 	{28,  &Jit64::boolX}, //"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
 	{60,  &Jit64::boolX}, //"andcx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
@@ -252,7 +252,7 @@ static GekkoOPTemplate table31[] =
 	{661, &Jit64::Default}, //"stswx",  OPTYPE_STORE, FL_EVIL}},
 	{725, &Jit64::Default}, //"stswi",  OPTYPE_STORE, FL_EVIL}},
 
-	// fp load/store	
+	// fp load/store
 	{535, &Jit64::lfsx}, //"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
 	{567, &Jit64::Default}, //"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
 	{599, &Jit64::Default}, //"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
@@ -290,8 +290,8 @@ static GekkoOPTemplate table31[] =
 	{566, &Jit64::Default}, //"tlbsync", OPTYPE_SYSTEM, 0}},
 };
 
-static GekkoOPTemplate table31_2[] = 
-{	
+static GekkoOPTemplate table31_2[] =
+{
 	{266,  &Jit64::addx}, //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{778,  &Jit64::addx}, //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{10,   &Jit64::addcx}, //"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
@@ -318,21 +318,21 @@ static GekkoOPTemplate table31_2[] =
 	{200,  &Jit64::subfzex}, //"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 };
 
-static GekkoOPTemplate table59[] = 
+static GekkoOPTemplate table59[] =
 {
-	{18, &Jit64::Default},       //{"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}}, 
-	{20, &Jit64::fp_arith_s}, //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{21, &Jit64::fp_arith_s}, //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
+	{18, &Jit64::fp_arith}, //{"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}},
+	{20, &Jit64::fp_arith}, //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{21, &Jit64::fp_arith}, //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 //	{22, &Jit64::Default}, //"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
-	{24, &Jit64::Default}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{25, &Jit64::fp_arith_s}, //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{28, &Jit64::fmaddXX}, //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{29, &Jit64::fmaddXX}, //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{30, &Jit64::fmaddXX}, //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{31, &Jit64::fmaddXX}, //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
-};							    
+	{24, &Jit64::Default}, //"fresx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{25, &Jit64::fp_arith}, //"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{28, &Jit64::fmaddXX}, //"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{29, &Jit64::fmaddXX}, //"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{30, &Jit64::fmaddXX}, //"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}},
+	{31, &Jit64::fmaddXX}, //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}},
+};
 
-static GekkoOPTemplate table63[] = 
+static GekkoOPTemplate table63[] =
 {
 	{264, &Jit64::fsign},   //"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{32,  &Jit64::fcmpx},   //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
@@ -352,15 +352,15 @@ static GekkoOPTemplate table63[] =
 	{711, &Jit64::Default}, //"mtfsfx",  OPTYPE_SYSTEMFP, 0, 2}},
 };
 
-static GekkoOPTemplate table63_2[] = 
+static GekkoOPTemplate table63_2[] =
 {
-	{18, &Jit64::Default}, //"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
-	{20, &Jit64::Default}, //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{21, &Jit64::Default}, //"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{18, &Jit64::fp_arith}, //"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
+	{20, &Jit64::fp_arith}, //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{21, &Jit64::fp_arith}, //"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{22, &Jit64::Default}, //"fsqrtx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{23, &Jit64::Default}, //"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{25, &Jit64::fp_arith_s}, //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{26, &Jit64::fp_arith_s}, //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
+	{25, &Jit64::fp_arith}, //"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{26, &Jit64::frsqrtex}, //"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
 	{28, &Jit64::fmaddXX}, //"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{29, &Jit64::fmaddXX}, //"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{30, &Jit64::fmaddXX}, //"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
@@ -394,9 +394,9 @@ void InitTables()
 		return;
 
 	//clear
-	for (int i = 0; i < 32; i++) 
+	for (auto& tpl : dynaOpTable59)
 	{
-		dynaOpTable59[i] = &Jit64::unknown_instruction;
+		tpl = &Jit64::unknown_instruction;
 	}
 
 	for (int i = 0; i < 1024; i++)
@@ -404,81 +404,81 @@ void InitTables()
 		dynaOpTable4 [i] = &Jit64::unknown_instruction;
 		dynaOpTable19[i] = &Jit64::unknown_instruction;
 		dynaOpTable31[i] = &Jit64::unknown_instruction;
-		dynaOpTable63[i] = &Jit64::unknown_instruction;	
+		dynaOpTable63[i] = &Jit64::unknown_instruction;
 	}
 
-	for (int i = 0; i < (int)(sizeof(primarytable) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : primarytable)
 	{
-		dynaOpTable[primarytable[i].opcode] = primarytable[i].Inst;
+		dynaOpTable[tpl.opcode] = tpl.Inst;
 	}
 
 	for (int i = 0; i < 32; i++)
 	{
 		int fill = i << 5;
-		for (int j = 0; j < (int)(sizeof(table4_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table4_2)
 		{
-			int op = fill+table4_2[j].opcode;
-			dynaOpTable4[op] = table4_2[j].Inst;
+			int op = fill+tpl.opcode;
+			dynaOpTable4[op] = tpl.Inst;
 		}
 	}
 
 	for (int i = 0; i < 16; i++)
 	{
 		int fill = i << 6;
-		for (int j = 0; j < (int)(sizeof(table4_3) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table4_3)
 		{
-			int op = fill+table4_3[j].opcode;
-			dynaOpTable4[op] = table4_3[j].Inst;
+			int op = fill+tpl.opcode;
+			dynaOpTable4[op] = tpl.Inst;
 		}
 	}
 
-	for (int i = 0; i < (int)(sizeof(table4) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table4)
 	{
-		int op = table4[i].opcode;
-		dynaOpTable4[op] = table4[i].Inst;
+		int op = tpl.opcode;
+		dynaOpTable4[op] = tpl.Inst;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table31) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table31)
 	{
-		int op = table31[i].opcode;
-		dynaOpTable31[op] = table31[i].Inst;
+		int op = tpl.opcode;
+		dynaOpTable31[op] = tpl.Inst;
 	}
 
 	for (int i = 0; i < 1; i++)
 	{
 		int fill = i << 9;
-		for (int j = 0; j < (int)(sizeof(table31_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table31_2)
 		{
-			int op = fill + table31_2[j].opcode;
-			dynaOpTable31[op] = table31_2[j].Inst;
+			int op = fill + tpl.opcode;
+			dynaOpTable31[op] = tpl.Inst;
 		}
 	}
 
-	for (int i = 0; i < (int)(sizeof(table19) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table19)
 	{
-		int op = table19[i].opcode;
-		dynaOpTable19[op] = table19[i].Inst;
+		int op = tpl.opcode;
+		dynaOpTable19[op] = tpl.Inst;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table59) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table59)
 	{
-		int op = table59[i].opcode;
-		dynaOpTable59[op] = table59[i].Inst;
+		int op = tpl.opcode;
+		dynaOpTable59[op] = tpl.Inst;
 	}
 
-	for (int i = 0; i < (int)(sizeof(table63) / sizeof(GekkoOPTemplate)); i++)
+	for (auto& tpl : table63)
 	{
-		int op = table63[i].opcode;
-		dynaOpTable63[op] = table63[i].Inst;
+		int op = tpl.opcode;
+		dynaOpTable63[op] = tpl.Inst;
 	}
 
 	for (int i = 0; i < 32; i++)
 	{
 		int fill = i << 5;
-		for (int j = 0; j < (int)(sizeof(table63_2) / sizeof(GekkoOPTemplate)); j++)
+		for (auto& tpl : table63_2)
 		{
-			int op = fill + table63_2[j].opcode;
-			dynaOpTable63[op] = table63_2[j].Inst;
+			int op = fill + tpl.opcode;
+			dynaOpTable63[op] = tpl.Inst;
 		}
 	}
 

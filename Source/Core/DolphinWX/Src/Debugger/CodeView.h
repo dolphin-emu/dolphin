@@ -34,7 +34,7 @@ public:
 	void InsertBlrNop(int);
 
 	u32 GetSelection() {return(selection);}
-	void ToggleBreakpoint(u32 address);	
+	void ToggleBreakpoint(u32 address);
 
 	struct BlrStruct // for IDM_INSERTBLR
 	{
@@ -73,10 +73,7 @@ private:
 
 	u32 selection;
 	u32 oldSelection;
-	bool selectionChanged;
 	bool selecting;
-	bool hasFocus;
-	bool showHex;
 
 	int lx, ly;
 	void _MoveTo(int x, int y) {lx = x; ly = y;}

@@ -237,7 +237,7 @@ struct AXPB
 	u16 is_stream;     // 1 = stream, 0 = one shot
 
 	PBMixer mixer;
-	PBInitialTimeDelay initial_time_delay;  
+	PBInitialTimeDelay initial_time_delay;
 	PBUpdates updates;
 	PBDpop dpop;
 	PBVolumeEnvelope vol_env;

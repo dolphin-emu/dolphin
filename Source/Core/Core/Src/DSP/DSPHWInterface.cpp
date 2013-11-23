@@ -120,7 +120,7 @@ void gdsp_ifx_write(u32 addr, u32 val)
 		case DSP_DIRQ:
 			if (val & 0x1)
 				DSPHost_InterruptRequest();
-			else 
+			else
 				INFO_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
 			break;
 
@@ -156,7 +156,7 @@ void gdsp_ifx_write(u32 addr, u32 val)
 		case DSP_GAIN:
 			if (val)
 			{
-				INFO_LOG(DSPLLE,"Gain Written: 0x%04x", val); 
+				INFO_LOG(DSPLLE,"Gain Written: 0x%04x", val);
 			}
 		case DSP_DSPA:
 		case DSP_DSMAH:
@@ -241,7 +241,7 @@ static void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 
 	u8* dst = ((u8*)g_dsp.iram);
 	for (u32 i = 0; i < size; i += 2)
-	{ 
+	{
 		*(u16*)&dst[dsp_addr + i] = Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x0fffffff]);
 	}
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);

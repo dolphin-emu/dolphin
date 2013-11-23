@@ -4,6 +4,9 @@
 
 #include "GCMemcard.h"
 #include "ColorUtil.h"
+
+#include <cinttypes>
+
 static void ByteSwap(u8 *valueA, u8 *valueB)
 {
 	u8 tmp = *valueA;
@@ -11,48 +14,13 @@ static void ByteSwap(u8 *valueA, u8 *valueB)
 	*valueB = tmp;
 }
 
-void decode5A3image(u32* dst, u16* src, int width, int height)
-{
-	for (int y = 0; y < height; y += 4)
-	{
-		for (int x = 0; x < width; x += 4)
-		{
-			for (int iy = 0; iy < 4; iy++, src += 4)
-			{
-				for (int ix = 0; ix < 4; ix++)
-				{
-					u32 RGBA = ColorUtil::Decode5A3(Common::swap16(src[ix]));
-					dst[(y + iy) * width + (x + ix)] = RGBA;
-				}
-			}
-		}
-	}
-}
-
-void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
-{
-	for (int y = 0; y < height; y += 4)
-	{
-		for (int x = 0; x < width; x += 8)
-		{
-			for (int iy = 0; iy < 4; iy++, src += 8)
-			{
-				u32 *tdst = dst+(y+iy)*width+x;
-				for (int ix = 0; ix < 8; ix++)
-				{
-					// huh, this seems wrong. CI8, not 5A3, no?
-					tdst[ix] = ColorUtil::Decode5A3(Common::swap16(pal[src[ix]]));
-				}
-			}
-		}
-	}
-}
-
 GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	: m_valid(false)
 	, m_fileName(filename)
 {
-	File::IOFile mcdFile(m_fileName, "r+b");
+	// Currently there is a string freeze. instead of adding a new message about needing r/w
+	// open file read only, if write is denied the error will be reported at that point
+	File::IOFile mcdFile(m_fileName, "rb");
 	if (!mcdFile.IsOpen())
 	{
 		if (!forceCreation && !AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
@@ -72,19 +40,19 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 			PanicAlertT("File has the extension \"%s\"\nvalid extensions are (.raw/.gcp)", fileType.c_str());
 			return;
 		}
-		u32 size = mcdFile.GetSize();
+		auto size = mcdFile.GetSize();
 		if (size < MC_FST_BLOCKS*BLOCK_SIZE)
 		{
-			PanicAlertT("%s failed to load as a memorycard \nfile is not large enough to be a valid memory card file (0x%x bytes)", filename, size);
+			PanicAlertT("%s failed to load as a memorycard \nfile is not large enough to be a valid memory card file (0x%x bytes)", filename, (unsigned) size);
 			return;
 		}
 		if (size % BLOCK_SIZE)
 		{
-			PanicAlertT("%s failed to load as a memorycard \n Card file size is invalid (0x%x bytes)", filename, size);
+			PanicAlertT("%s failed to load as a memorycard \n Card file size is invalid (0x%x bytes)", filename, (unsigned) size);
 				return;
 		}
 
-		m_sizeMb = (size/BLOCK_SIZE) / MBIT_TO_BLOCKS;
+		m_sizeMb = (u16)((size/BLOCK_SIZE) / MBIT_TO_BLOCKS);
 		switch (m_sizeMb)
 		{
 			case MemCard59Mb:
@@ -95,12 +63,12 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 			case MemCard2043Mb:
 				break;
 			default:
-				PanicAlertT("%s failed to load as a memorycard \n Card size is invalid (0x%x bytes)", filename, size);
+				PanicAlertT("%s failed to load as a memorycard \n Card size is invalid (0x%x bytes)", filename, (unsigned) size);
 				return;
 		}
 	}
-	
-	
+
+
 	mcdFile.Seek(0, SEEK_SET);
 	if (!mcdFile.ReadBytes(&hdr, BLOCK_SIZE))
 	{
@@ -138,7 +106,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	}
 
 	u32 csums = TestChecksums();
-	
+
 	if (csums & 0x1)
 	{
 		// header checksum error!
@@ -194,7 +162,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 	}
 
 	mcdFile.Seek(0xa000, SEEK_SET);
-	
+
 	maxBlock = (u32)m_sizeMb * MBIT_TO_BLOCKS;
 	mc_data_blocks.reserve(maxBlock - MC_FST_BLOCKS);
 
@@ -208,18 +176,18 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 		}
 		else
 		{
-			PanicAlertT("Failed to read block %d of the save data\nMemcard may be truncated\nFilePosition:%llx", i, mcdFile.Tell());
+			PanicAlertT("Failed to read block %d of the save data\nMemcard may be truncated\nFilePosition:%" PRIx64, i, mcdFile.Tell());
 			m_valid = false;
 			break;
 		}
 	}
 
 	mcdFile.Close();
-	
+
 	initDirBatPointers();
 }
 
-void GCMemcard::initDirBatPointers() 
+void GCMemcard::initDirBatPointers()
 {
 	if (BE16(dir.UpdateCounter) > (BE16(dir_backup.UpdateCounter)))
 	{
@@ -322,7 +290,7 @@ bool GCMemcard::FixChecksums()
 {
 	if (!m_valid)
 		return false;
-	
+
 	calc_checksumsBE((u16*)&hdr, 0xFE, &hdr.Checksum, &hdr.Checksum_Inv);
 	calc_checksumsBE((u16*)&dir, 0xFFE, &dir.Checksum, &dir.Checksum_Inv);
 	calc_checksumsBE((u16*)&dir_backup, 0xFFE, &dir_backup.Checksum, &dir_backup.Checksum_Inv);
@@ -673,7 +641,7 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 	if (firstBlock == 0xFFFF)
 		return OUTOFBLOCKS;
 	Directory UpdatedDir = *CurrentDir;
-	
+
 	// find first free dir entry
 	for (int i=0; i < DIRLEN; i++)
 	{
@@ -707,19 +675,19 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock> &saveBlocks)
 	u16 nextBlock;
 	// keep assuming no freespace fragmentation, and copy over all the data
 	for (int i = 0; i < fileBlocks; ++i)
-	{ 
+	{
 		if (firstBlock == 0xFFFF)
 			PanicAlert("Fatal Error");
 		mc_data_blocks[firstBlock - MC_FST_BLOCKS] = saveBlocks[i];
 		if (i == fileBlocks-1)
 			nextBlock = 0xFFFF;
 		else
-			nextBlock = UpdatedBat.NextFreeBlock(firstBlock+1);		
+			nextBlock = UpdatedBat.NextFreeBlock(firstBlock+1);
 		UpdatedBat.Map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
 		UpdatedBat.LastAllocated = BE16(firstBlock);
 		firstBlock = nextBlock;
 	}
-	
+
 	UpdatedBat.FreeBlocks = BE16(BE16(UpdatedBat.FreeBlocks)  - fileBlocks);
 	UpdatedBat.UpdateCounter = BE16(BE16(UpdatedBat.UpdateCounter) + 1);
 	*PreviousBat = UpdatedBat;
@@ -810,7 +778,7 @@ u32 GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
 	DEntry tempDEntry;
 	if (!source.GetDEntry(index, tempDEntry))
 		return NOMEMCARD;
-	
+
 	u32 size = source.DEntry_BlockCount(index);
 	if (size == 0xFFFF) return INVALIDFILESIZE;
 
@@ -886,7 +854,7 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::s
 		return LENGTHFAIL;
 	if (gci.Tell() != offset + DENTRY_SIZE) // Verify correct file position
 		return OPENFAIL;
-	
+
 	u32 size = BE16((tempDEntry.BlockCount));
 	std::vector<GCMBlock> saveData;
 	saveData.reserve(size);
@@ -908,7 +876,7 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::s
 		}
 		gci2.Seek(0, SEEK_SET);
 
-		if (!gci2.WriteBytes(&tempDEntry, DENTRY_SIZE)) 
+		if (!gci2.WriteBytes(&tempDEntry, DENTRY_SIZE))
 			completeWrite = false;
 		int fileBlocks = BE16(tempDEntry.BlockCount);
 		gci2.Seek(DENTRY_SIZE, SEEK_SET);
@@ -924,7 +892,7 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::s
 		else
 			ret = WRITEFAIL;
 	}
-	else 
+	else
 		ret = ImportFile(tempDEntry, saveData);
 
 	return ret;
@@ -960,7 +928,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, const std::string &dire
 		return OPENFAIL;
 
 	gci.Seek(0, SEEK_SET);
-	
+
 	switch(offset)
 	{
 	case GCS:
@@ -1081,13 +1049,13 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
 		u8  *pxdata  = (u8* )(mc_data_blocks[DataBlock].block + DataOffset);
 		u16 *paldata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset + pixels);
 
-		decodeCI8image(buffer, pxdata, paldata, 96, 32);
+		ColorUtil::decodeCI8image(buffer, pxdata, paldata, 96, 32);
 	}
 	else
 	{
 		u16 *pxdata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset);
 
-		decode5A3image(buffer, pxdata, 96, 32);
+		ColorUtil::decode5A3image(buffer, pxdata, 96, 32);
 	}
 	return true;
 }
@@ -1099,7 +1067,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 
 	// To ensure only one type of icon is used
 	// Sonic Heroes it the only game I have seen that tries to use a CI8 and RGB5A3 icon
-	//int fmtCheck = 0; 
+	//int fmtCheck = 0;
 
 	int formats = BE16(CurrentDir->Dir[index].IconFmt);
 	int fdelays  = BE16(CurrentDir->Dir[index].AnimSpeed);
@@ -1183,16 +1151,16 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 			switch (fmts[i])
 			{
 			case CI8SHARED: // CI8 with shared palette
-				decodeCI8image(buffer,data[i],sharedPal,32,32);
+				ColorUtil::decodeCI8image(buffer,data[i],sharedPal,32,32);
 				buffer += 32*32;
 				break;
 			case RGB5A3: // RGB5A3
-				decode5A3image(buffer, (u16*)(data[i]), 32, 32);
+				ColorUtil::decode5A3image(buffer, (u16*)(data[i]), 32, 32);
 				buffer += 32*32;
 				break;
 			case CI8: // CI8 with own palette
 				u16 *paldata = (u16*)(data[i] + 32*32);
-				decodeCI8image(buffer, data[i], paldata, 32, 32);
+				ColorUtil::decodeCI8image(buffer, data[i], paldata, 32, 32);
 				buffer += 32*32;
 				break;
 			}
@@ -1209,15 +1177,15 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays) const
 					switch (fmts[j])
 					{
 					case CI8SHARED: // CI8 with shared palette
-						decodeCI8image(buffer,data[j],sharedPal,32,32);
+						ColorUtil::decodeCI8image(buffer,data[j],sharedPal,32,32);
 						break;
 					case RGB5A3: // RGB5A3
-						decode5A3image(buffer, (u16*)(data[j]), 32, 32);
+						ColorUtil::decode5A3image(buffer, (u16*)(data[j]), 32, 32);
 						buffer += 32*32;
 						break;
 					case CI8: // CI8 with own palette
 						u16 *paldata = (u16*)(data[j] + 32*32);
-						decodeCI8image(buffer, data[j], paldata, 32, 32);
+						ColorUtil::decodeCI8image(buffer, data[j], paldata, 32, 32);
 						buffer += 32*32;
 						break;
 					}
@@ -1265,7 +1233,7 @@ bool GCMemcard::Format(bool sjis, u16 SizeMb)
 	gcp.dir_backup = &dir_backup;
 	gcp.bat = &bat;
 	gcp.bat_backup = &bat_backup;
-	
+
 	*(u16*)hdr.SizeMb = BE16(SizeMb);
 	hdr.Encoding = BE16(sjis ? 1 : 0);
 	FormatInternal(gcp);
@@ -1278,7 +1246,7 @@ bool GCMemcard::Format(bool sjis, u16 SizeMb)
 		GCMBlock b;
 		mc_data_blocks.push_back(b);
 	}
-	
+
 	initDirBatPointers();
 	m_valid = true;
 
@@ -1295,7 +1263,7 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 	{
 		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
 		p_hdr->serial[i] = (u8)(g_SRAM.flash_id[0][i] + (u32)rand);
-		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);	
+		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
 		rand &= (u64)0x0000000000007fffULL;
 	}
 	p_hdr->SramBias = g_SRAM.counter_bias;
@@ -1311,7 +1279,7 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 	p_dir_backup->UpdateCounter = BE16(1);
 	calc_checksumsBE((u16*)p_dir, 0xFFE, &p_dir->Checksum, &p_dir->Checksum_Inv);
 	calc_checksumsBE((u16*)p_dir_backup, 0xFFE, &p_dir_backup->Checksum, &p_dir_backup->Checksum_Inv);
-	
+
 	BlockAlloc *p_bat = GCP.bat,
 		*p_bat_backup = GCP.bat_backup;
 	p_bat_backup->UpdateCounter = BE16(1);
@@ -1324,8 +1292,8 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 void GCMemcard::CARD_GetSerialNo(u32 *serial1,u32 *serial2)
 {
 	u32 serial[8];
-	int i;
-	for (i = 0; i < 8; i++)
+
+	for (int i = 0; i < 8; i++)
 	{
 		memcpy(&serial[i], (u8 *) &hdr+(i*4), 4);
 	}
@@ -1367,7 +1335,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock>
 
 	// calc 16-bit checksum
 	for (i=0x02;i<0x8000;i++)
-	{				
+	{
 		chksum ^= (FileBuffer[block].block[i-(block*0x2000)]&0xFF);
 		for (j=8; j > 0; j--)
 		{
@@ -1429,15 +1397,15 @@ s32 GCMemcard::PSO_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &Fi
 	for (i=0; i < 256; i++)
 	{
 		chksum = i;
-			for (j=8; j > 0; j--)
-			{
-				if (chksum & 1)
-					chksum = (chksum>>1)^0xEDB88320;
-				else
-					chksum >>= 1;
-			}
+		for (j=8; j > 0; j--)
+		{
+			if (chksum & 1)
+				chksum = (chksum>>1)^0xEDB88320;
+			else
+				chksum >>= 1;
+		}
 
-			crc32LUT[i] = chksum;
+		crc32LUT[i] = chksum;
 	}
 
 	// PSO initial crc32 value

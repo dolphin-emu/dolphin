@@ -38,7 +38,7 @@ private:
 	bool m_DrawingObject;
 
 	BPMemory *m_BpMem;
-	FifoAnalyzer::CPMemory m_CpMem;	
+	FifoAnalyzer::CPMemory m_CpMem;
 };
 
 #endif

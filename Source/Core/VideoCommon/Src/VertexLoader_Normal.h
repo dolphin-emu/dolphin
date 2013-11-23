@@ -65,7 +65,7 @@ private:
 			gc_size = T::size;
 			function = T::function;
 		}
-		
+
 		int gc_size;
 		TPipelineFunction function;
 	};

@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     03.04.98
-// RCS-ID:      $Id: registry.cpp 70750 2012-02-29 13:58:58Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 // TODO:        - parsing of registry key names
@@ -33,10 +32,10 @@
 #include "wx/dynlib.h"
 #include "wx/file.h"
 #include "wx/wfstream.h"
+#include "wx/msw/private.h"
 
 // Windows headers
 #ifdef __WXWINCE__
-#include "wx/msw/private.h"
 #include <winbase.h>
 #include <winreg.h>
 #endif
@@ -1057,7 +1056,7 @@ bool wxRegKey::SetValue(const wxString& szValue, const wxString& strValue)
       m_dwLastError = RegSetValueEx((HKEY) m_hKey,
                                     RegValueStr(szValue),
                                     (DWORD) RESERVED, REG_SZ,
-                                    (RegString)strValue.t_str(),
+                                    (RegString)wxMSW_CONV_LPCTSTR(strValue),
                                     (strValue.Len() + 1)*sizeof(wxChar));
       if ( m_dwLastError == ERROR_SUCCESS )
         return true;

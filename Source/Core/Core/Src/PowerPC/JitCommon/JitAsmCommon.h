@@ -5,8 +5,7 @@
 #ifndef _JITASMCOMMON_H
 #define _JITASMCOMMON_H
 
-#include "../JitCommon/Jit_Util.h"
-#include "Thunk.h"
+#include "Jit_Util.h"
 
 class CommonAsmRoutinesBase  {
 public:
@@ -64,9 +63,6 @@ public:
 	void GenFifoWrite(int size);
 	void GenFifoXmm64Write();
 	void GenFifoFloatWrite();
-
-private:
-	ThunkManager thunks;
 
 };
 

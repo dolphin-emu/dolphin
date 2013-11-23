@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by: Marcin Malich
 // Created:     13.11.97
-// RCS-ID:      $Id: ownerdrw.cpp 63274 2010-01-26 12:33:01Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,7 +89,7 @@ bool wxOwnerDrawn::OnDrawItem(wxDC& dc, const wxRect& rc,
         int cx = rc.GetWidth() - GetMarginWidth();
         int cy = sizeRect.cy;
 
-        ::DrawState(hdc, NULL, NULL, (LPARAM)text.wx_str(),
+        ::DrawState(hdc, NULL, NULL, wxMSW_CONV_LPARAM(text),
                     text.length(), x, y, cx, cy, flags);
 
     } // reset to default the font, colors and brush

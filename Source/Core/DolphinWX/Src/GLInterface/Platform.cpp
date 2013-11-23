@@ -110,7 +110,7 @@ out:
 		if (GLWin.wl_display)
 			wl_display_disconnect(GLWin.wl_display);
 	}
-		
+
 #endif
 #if HAVE_X11
 	if (selected_platform != EGL_PLATFORM_X11) {
@@ -179,7 +179,7 @@ EGLNativeWindowType cPlatform::CreateWindow(void)
 		return (EGLNativeWindowType) XInterface.CreateWindow();
 #endif
 #ifdef ANDROID
-	return (EGLNativeWindowType)Host_GetRenderHandle(); 
+	return (EGLNativeWindowType)Host_GetRenderHandle();
 #endif
 	return 0;
 }

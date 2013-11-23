@@ -48,23 +48,23 @@ void Init()
 
 void Shutdown()
 {
-	for (u32 i = 0; i < NUM_CHANNELS; i++)
+	for (auto& channel : g_Channels)
 	{
-		delete g_Channels[i];
-		g_Channels[i] = NULL;
+		delete channel;
+		channel = NULL;
 	}
 }
 
 void DoState(PointerWrap &p)
 {
-	for (int c = 0; c < NUM_CHANNELS; ++c)
-		g_Channels[c]->DoState(p);
+	for (auto& channel : g_Channels)
+		channel->DoState(p);
 }
 
 void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
-	for (int c = 0; c < NUM_CHANNELS; ++c)
-		g_Channels[c]->PauseAndLock(doLock, unpauseOnUnlock);
+	for (auto& channel : g_Channels)
+		channel->PauseAndLock(doLock, unpauseOnUnlock);
 }
 
 
@@ -87,9 +87,9 @@ void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 devi
 
 IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex)
 {
-	for (int i = 0; i < NUM_CHANNELS; ++i)
+	for (auto& channel : g_Channels)
 	{
-		IEXIDevice* device = g_Channels[i]->FindDevice(device_type, customIndex);
+		IEXIDevice* device = channel->FindDevice(device_type, customIndex);
 		if (device)
 			return device;
 	}
@@ -145,8 +145,8 @@ void UpdateInterrupts()
 	g_Channels[2]->SetEXIINT(g_Channels[0]->GetDevice(4)->IsInterruptSet());
 
 	bool causeInt = false;
-	for (int i = 0; i < NUM_CHANNELS; i++)
-		causeInt |= g_Channels[i]->IsCausingInterrupt();
+	for (auto& channel : g_Channels)
+		causeInt |= channel->IsCausingInterrupt();
 
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
 }

@@ -3,7 +3,6 @@
 // Purpose:     wxGtkList class.
 // Author:      Vadim Zeitlin
 // Created:     2011-08-21
-// RCS-ID:      $Id: list.h 68842 2011-08-22 12:41:00Z VZ $
 // Copyright:   (c) 2011 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

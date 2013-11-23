@@ -2,7 +2,6 @@
 // Name:        wx/gtk/stattext.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: stattext.h 67062 2011-02-27 12:48:07Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -47,10 +46,6 @@ public:
 protected:
     virtual bool GTKWidgetNeedsMnemonic() const;
     virtual void GTKWidgetDoSetMnemonic(GtkWidget* w);
-
-    virtual void DoSetSize(int x, int y,
-                           int width, int height,
-                           int sizeFlags = wxSIZE_AUTO);
 
     virtual wxSize DoGetBestSize() const;
 

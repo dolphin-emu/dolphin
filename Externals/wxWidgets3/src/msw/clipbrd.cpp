@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: clipbrd.cpp 70440 2012-01-23 11:28:01Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -79,6 +78,7 @@
 // ---------------------------------------------------------------------------
 
 static bool gs_wxClipboardIsOpen = false;
+static int gs_htmlcfid = 0;
 
 bool wxOpenClipboard()
 {
@@ -139,7 +139,9 @@ bool wxIsClipboardOpened()
 
 bool wxIsClipboardFormatAvailable(wxDataFormat dataFormat)
 {
-   wxDataFormat::NativeFormat cf = dataFormat.GetFormatId();
+    wxDataFormat::NativeFormat cf = dataFormat.GetFormatId();
+    if (cf == wxDF_HTML)
+        cf = gs_htmlcfid;
 
     if ( ::IsClipboardFormatAvailable(cf) )
     {
@@ -304,10 +306,6 @@ bool wxSetClipboardData(wxDataFormat dataFormat,
                 char *buf = new char [400 + strlen(html)];
                 if(!buf) return false;
 
-                // Get clipboard id for HTML format...
-                static int cfid = 0;
-                if(!cfid) cfid = RegisterClipboardFormat(wxT("HTML Format"));
-
                 // Create a template string for the HTML header...
                 strcpy(buf,
                     "Version:0.9\r\n"
@@ -358,7 +356,7 @@ bool wxSetClipboardData(wxDataFormat dataFormat,
                 strcpy(ptr, buf);
                 GlobalUnlock(hText);
 
-                handle = ::SetClipboardData(cfid, hText);
+                handle = ::SetClipboardData(gs_htmlcfid, hText);
 
                 // Free memory...
                 GlobalFree(hText);
@@ -598,6 +596,10 @@ bool wxClipboard::Flush()
 
 bool wxClipboard::Open()
 {
+    // Get clipboard id for HTML format...
+    if(!gs_htmlcfid)
+        gs_htmlcfid = RegisterClipboardFormat(wxT("HTML Format"));
+
     // OLE opens clipboard for us
     m_isOpened = true;
 #if wxUSE_OLE_CLIPBOARD
@@ -814,6 +816,8 @@ bool wxClipboard::GetData( wxDataObject& data )
         // convert to NativeFormat Id
         cf = formats[n].GetFormatId();
 
+        if (cf == wxDF_HTML)
+            cf = gs_htmlcfid;
         // if the format is not available, try the next one
         // this test includes implicit / sythetic formats
         if ( !::IsClipboardFormatAvailable(cf) )

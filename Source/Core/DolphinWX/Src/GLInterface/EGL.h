@@ -43,7 +43,7 @@ public:
 	void UpdateFPSDisplay(const char *Text);
 	bool Create(void *&window_handle);
 	bool MakeCurrent();
-	void Shutdown(); 
+	void Shutdown();
 };
 #endif
 

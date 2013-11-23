@@ -191,7 +191,7 @@
 
 #define	STATE_OFFSET 204
 #define MODE_OFFSET	 206
-	 
+
 #define FPR0_OFFSET	208
 #define FPR1_OFFSET 216
 #define FPR2_OFFSET 224
@@ -267,13 +267,13 @@
 #define EXCEPTION_FRAME_END 728
 
 #define	IBAT0U		528
-#define	IBAT0L		529	
-#define	IBAT1U		530	
-#define	IBAT1L		531	
-#define	IBAT2U		532	
-#define	IBAT2L		533	
-#define	IBAT3U		534	
-#define	IBAT3L		535	
+#define	IBAT0L		529
+#define	IBAT1U		530
+#define	IBAT1L		531
+#define	IBAT2U		532
+#define	IBAT2L		533
+#define	IBAT3U		534
+#define	IBAT3L		535
 #define	IBAT4U		560
 #define	IBAT4L		561
 #define	IBAT5U		562
@@ -284,12 +284,12 @@
 #define	IBAT7L		567
 
 #define	DBAT0U		536
-#define	DBAT0L		537	
-#define	DBAT1U		538	
-#define	DBAT1L		539	
-#define	DBAT2U		540	
-#define	DBAT2L		541	
-#define	DBAT3U		542	
+#define	DBAT0L		537
+#define	DBAT1U		538
+#define	DBAT1L		539
+#define	DBAT2U		540
+#define	DBAT2L		541
+#define	DBAT3U		542
 #define	DBAT3L		543
 #define DBAT4U		568
 #define DBAT4L		569
@@ -302,7 +302,7 @@
 
 #define HID0		1008
 #define HID1		1009
-#define HID2		920	
+#define HID2		920
 #define HID4		1011
 
 #define GQR0		912

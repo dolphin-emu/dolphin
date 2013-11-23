@@ -2,7 +2,6 @@
 // Name:        wx/gtk/choice.h
 // Purpose:
 // Author:      Robert Roebling
-// Id:          $Id: choice.h 65818 2010-10-15 23:46:32Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,8 +63,6 @@ public:
             const wxValidator& validator = wxDefaultValidator,
             const wxString& name = wxChoiceNameStr );
 
-    void SendSelectionChangedEvent(wxEventType evt_type);
-
     int GetSelection() const;
     void SetSelection(int n);
 
@@ -95,6 +92,7 @@ protected:
     int m_stringCellIndex;
 
     virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const;
     virtual int DoInsertItems(const wxArrayStringsAdapter& items,
                               unsigned int pos,
                               void **clientData, wxClientDataType type);

@@ -4,7 +4,6 @@
 // Author:      Benjamin I. Williams
 // Modified by:
 // Created:     2005-05-17
-// RCS-ID:      $Id: floatpane.cpp 69590 2011-10-30 14:20:03Z VZ $
 // Copyright:   (C) Copyright 2005-2006, Kirix Corporation, All Rights Reserved
 // Licence:     wxWindows Library Licence, Version 3.1
 ///////////////////////////////////////////////////////////////////////////////
@@ -216,6 +215,9 @@ void wxAuiFloatingFrame::OnMoveEvent(wxMoveEvent& event)
         return;
     }
 
+    // as on OSX moving windows are not getting all move events, only sporadically, this difference
+    // is almost always big on OSX, so avoid this early exit opportunity
+#ifndef __WXOSX__
     // skip if moving too fast to avoid massive redraws and
     // jumping hint windows
     if ((abs(winRect.x - m_lastRect.x) > 3) ||
@@ -235,6 +237,7 @@ void wxAuiFloatingFrame::OnMoveEvent(wxMoveEvent& event)
 
         return;
     }
+#endif
 
     // prevent frame redocking during resize
     if (m_lastRect.GetSize() != winRect.GetSize())
@@ -281,7 +284,10 @@ void wxAuiFloatingFrame::OnMoveEvent(wxMoveEvent& event)
     if (m_last3Rect.IsEmpty())
         return;
 
-    OnMoving(event.GetRect(), dir);
+    if ( event.GetEventType() == wxEVT_MOVING )
+        OnMoving(event.GetRect(), dir);
+    else
+        OnMoving(wxRect(event.GetPosition(),GetSize()), dir);
 }
 
 void wxAuiFloatingFrame::OnIdle(wxIdleEvent& event)
@@ -337,7 +343,7 @@ void wxAuiFloatingFrame::OnActivate(wxActivateEvent& event)
 }
 
 // utility function which determines the state of the mouse button
-// (independant of having a wxMouseEvent handy) - utimately a better
+// (independent of having a wxMouseEvent handy) - utimately a better
 // mechanism for this should be found (possibly by adding the
 // functionality to wxWidgets itself)
 bool wxAuiFloatingFrame::isMouseDown()

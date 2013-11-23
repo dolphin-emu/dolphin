@@ -96,7 +96,7 @@ inline double trim(double a)
 class Wiimote : public ControllerEmu
 {
 friend class WiimoteReal::Wiimote;
-friend void Spy(Wiimote* wm_, const void* data_, int size_);
+friend void Spy(Wiimote* wm_, const void* data_, size_t size_);
 public:
 
 	enum
@@ -158,6 +158,7 @@ private:
 	void WriteData(const wm_write_data* const wd);
 	void SendReadDataReply(ReadRequest& _request);
 	void SpeakerData(wm_speaker_data* sd);
+	bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size);
 
 	// control groups
 	Buttons		*m_buttons, *m_dpad, *m_shake;
@@ -244,7 +245,7 @@ private:
 	}	m_reg_speaker;
 };
 
-void Spy(Wiimote* wm_, const void* data_, int size_);
+void Spy(Wiimote* wm_, const void* data_, size_t size_);
 
 }
 

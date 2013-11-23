@@ -7,7 +7,6 @@
 // Author:      Robert Roebling, Harm van der Heijden, Julian Smart et al
 // Modified by:
 // Created:     21/3/2000
-// RCS-ID:      $Id: dirctrlg.h 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) Robert Roebling, Harm van der Heijden, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,10 +38,8 @@ enum
     wxDIRCTRL_DIR_ONLY       = 0x0010,
     // When setting the default path, select the first file in the directory
     wxDIRCTRL_SELECT_FIRST   = 0x0020,
-#if WXWIN_COMPATIBILITY_2_8
-    // Unused, for compatibility only
+    // Show the filter list
     wxDIRCTRL_SHOW_FILTERS   = 0x0040,
-#endif // WXWIN_COMPATIBILITY_2_8
     // Use 3D borders on internal controls
     wxDIRCTRL_3D_INTERNAL    = 0x0080,
     // Editable labels
@@ -111,6 +108,8 @@ public:
     void OnCollapseItem(wxTreeEvent &event );
     void OnBeginEditItem(wxTreeEvent &event );
     void OnEndEditItem(wxTreeEvent &event );
+    void OnTreeSelChange(wxTreeEvent &event);
+    void OnItemActivated(wxTreeEvent &event);
     void OnSize(wxSizeEvent &event );
 
     // Try to expand as much of the given path as possible.
@@ -161,6 +160,8 @@ public:
     // If the path string has been used (we're at the leaf), done is set to true
     virtual wxTreeItemId FindChild(wxTreeItemId parentId, const wxString& path, bool& done);
 
+    wxString GetPath(wxTreeItemId itemId) const;
+
     // Resize the components of the control
     virtual void DoResize();
 
@@ -190,6 +191,7 @@ protected:
 
 private:
     void PopulateNode(wxTreeItemId node);
+    wxDirItemData* GetItemData(wxTreeItemId itemId);
 
     bool            m_showHidden;
     wxTreeItemId    m_rootId;
@@ -206,6 +208,15 @@ private:
     DECLARE_DYNAMIC_CLASS(wxGenericDirCtrl)
     wxDECLARE_NO_COPY_CLASS(wxGenericDirCtrl);
 };
+
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_DIRCTRL_SELECTIONCHANGED, wxTreeEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_DIRCTRL_FILEACTIVATED, wxTreeEvent );
+
+#define wx__DECLARE_DIRCTRL_EVT(evt, id, fn) \
+    wx__DECLARE_EVT1(wxEVT_DIRCTRL_ ## evt, id, wxTreeEventHandler(fn))
+
+#define EVT_DIRCTRL_SELECTIONCHANGED(id, fn) wx__DECLARE_DIRCTRL_EVT(SELECTIONCHANGED, id, fn)
+#define EVT_DIRCTRL_FILEACTIVATED(id, fn) wx__DECLARE_DIRCTRL_EVT(FILEACTIVATED, id, fn)
 
 //-----------------------------------------------------------------------------
 // wxDirFilterListCtrl
@@ -298,6 +309,10 @@ protected:
 extern WXDLLIMPEXP_DATA_CORE(wxFileIconsTable *) wxTheFileIconsTable;
 
 #endif // wxUSE_DIRDLG || wxUSE_FILEDLG || wxUSE_FILECTRL
+
+// old wxEVT_COMMAND_* constants
+#define wxEVT_COMMAND_DIRCTRL_SELECTIONCHANGED wxEVT_DIRCTRL_SELECTIONCHANGED
+#define wxEVT_COMMAND_DIRCTRL_FILEACTIVATED   wxEVT_DIRCTRL_FILEACTIVATED
 
 #endif
     // _WX_DIRCTRLG_H_

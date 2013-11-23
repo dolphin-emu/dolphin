@@ -32,7 +32,7 @@ void Shutdown()
 {
 }
 
-void Clear() 
+void Clear()
 {
 }
 

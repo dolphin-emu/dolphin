@@ -139,7 +139,7 @@ union INVTXSPEC
 
 union TexMtxInfo
 {
-	struct 
+	struct
 	{
 		u32 unknown    : 1;
 		u32 projection : 1; // XF_TEXPROJ_X
@@ -154,7 +154,7 @@ union TexMtxInfo
 
 union PostMtxInfo
 {
-	struct 
+	struct
 	{
 		u32 index     : 6; // base row of dual transform matrix
 		u32 unused    : 2;
@@ -194,14 +194,14 @@ union DualTexInfo
 
 struct Light
 {
-	u32 useless[3]; 
+	u32 useless[3];
 	u32 color; // rgba
 	float a0;  // attenuation
-	float a1; 
-	float a2; 
+	float a1;
+	float a2;
 	float k0;  // k stuff
-	float k1; 
-	float k2; 
+	float k1;
+	float k2;
 
 	union
 	{

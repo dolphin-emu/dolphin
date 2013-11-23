@@ -6,7 +6,7 @@
 #define _HLE_H
 
 #include <map>
-#include "Common.h"
+#include "CommonTypes.h"
 
 namespace HLE
 {

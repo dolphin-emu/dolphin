@@ -5,7 +5,7 @@
 #include "NANDContentLoader.h"
 
 #include <algorithm>
-#include <cctype> 
+#include <cctype>
 #include "MathUtil.h"
 #include "FileUtil.h"
 #include "Log.h"
@@ -78,15 +78,15 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
 {
 	CBlobBigEndianReader ReaderBig(_rReader);
 
-	// get header size	
+	// get header size
 	u32 HeaderSize = ReaderBig.Read32(0);
-	if (HeaderSize != 0x20) 
+	if (HeaderSize != 0x20)
 	{
 		_dbg_assert_msg_(BOOT, (HeaderSize==0x20), "WiiWAD: Header size != 0x20");
 		return false;
 	}
 
-	// get header 
+	// get header
 	u8 Header[0x20];
 	_rReader.Read(0, HeaderSize, Header);
 	u32 HeaderType = ReaderBig.Read32(0x4);

@@ -71,6 +71,8 @@ IMPLEMENT_APP(DolphinApp)
 
 BEGIN_EVENT_TABLE(DolphinApp, wxApp)
 	EVT_TIMER(wxID_ANY, DolphinApp::AfterInit)
+	EVT_QUERY_END_SESSION(DolphinApp::OnEndSession)
+	EVT_END_SESSION(DolphinApp::OnEndSession)
 END_EVENT_TABLE()
 
 #include <wx/stdpaths.h>
@@ -110,11 +112,11 @@ bool DolphinApp::Initialize(int& c, wxChar **v)
 {
 #if defined HAVE_X11 && HAVE_X11
 	XInitThreads();
-#endif 
+#endif
 	return wxApp::Initialize(c, v);
 }
 
-// The `main program' equivalent that creates the main window and return the main frame 
+// The `main program' equivalent that creates the main window and return the main frame
 
 bool DolphinApp::OnInit()
 {
@@ -128,6 +130,7 @@ bool DolphinApp::OnInit()
 
 	wxString videoBackendName;
 	wxString audioEmulationName;
+	wxString userPath;
 
 #if wxUSE_CMDLINE_PARSER // Parse command lines
 	wxCmdLineEntryDesc cmdLineDesc[] =
@@ -173,6 +176,11 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
+			wxCMD_LINE_OPTION, "U", "user",
+			"User folder path",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
 			wxCMD_LINE_NONE, NULL, NULL, NULL, wxCMD_LINE_VAL_NONE, 0
 		}
 	};
@@ -182,7 +190,7 @@ bool DolphinApp::OnInit()
 	if (parser.Parse() != 0)
 	{
 		return false;
-	} 
+	}
 
 	UseDebugger = parser.Found(wxT("debugger"));
 	UseLogger = parser.Found(wxT("logger"));
@@ -193,6 +201,12 @@ bool DolphinApp::OnInit()
 	selectAudioEmulation = parser.Found(wxT("audio_emulation"),
 		&audioEmulationName);
 	playMovie = parser.Found(wxT("movie"), &movieFile);
+
+	if (parser.Found(wxT("user"), &userPath))
+	{
+		File::CreateFullPath(WxStrToStr(userPath) + DIR_SEP);
+		File::GetUserPath(D_USER_IDX, userPath.ToStdString() + DIR_SEP);
+	}
 #endif // wxUSE_CMDLINE_PARSER
 
 #if defined _DEBUG && defined _WIN32
@@ -215,7 +229,7 @@ bool DolphinApp::OnInit()
 
 #ifndef _M_ARM
 	// TODO: if First Boot
-	if (!cpu_info.bSSE2) 
+	if (!cpu_info.bSSE2)
 	{
 		PanicAlertT("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
 				"Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
@@ -235,37 +249,28 @@ bool DolphinApp::OnInit()
 	}
 #endif
 
-#ifdef _WIN32
-	if (!wxSetWorkingDirectory(StrToWxStr(File::GetExeDirectory())))
-	{
-		INFO_LOG(CONSOLE, "Set working directory failed");
-	}
-#else
-	//create all necessary directories in user directory
-	//TODO : detect the revision and upgrade where necessary
-	File::CopyDir(std::string(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP),
-			File::GetUserPath(D_GAMECONFIG_IDX));
-	File::CopyDir(std::string(SHARED_USER_DIR MAPS_DIR DIR_SEP),
-			File::GetUserPath(D_MAPS_IDX));
-	File::CopyDir(std::string(SHARED_USER_DIR SHADERS_DIR DIR_SEP),
-			File::GetUserPath(D_SHADERS_IDX));
-	File::CopyDir(std::string(SHARED_USER_DIR WII_USER_DIR DIR_SEP),
-			File::GetUserPath(D_WIIUSER_IDX));
-	File::CopyDir(std::string(SHARED_USER_DIR OPENCL_DIR DIR_SEP),
-			File::GetUserPath(D_OPENCL_IDX));
-#endif
-	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
-	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+	// Copy initial Wii NAND data from Sys to User.
+	File::CopyDir(File::GetSysDirectory() + WII_USER_DIR DIR_SEP,
+	              File::GetUserPath(D_WIIUSER_IDX));
+
+	File::CreateFullPath(File::GetUserPath(D_USER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
 	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
 	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GAMESETTINGS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
 	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
+	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_OPENCL_IDX));
+	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
+	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+	File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
 
 	LogManager::Init();
 	SConfig::Init();
@@ -316,7 +321,7 @@ bool DolphinApp::OnInit()
 	int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
 	int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
 	int width =  GetSystemMetrics(SM_CXVIRTUALSCREEN);
-	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);	
+	int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 	if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
 		x = y = wxDefaultCoord;
 #elif defined __APPLE__
@@ -402,7 +407,7 @@ void DolphinApp::InitLanguageSupport()
 		m_locale = new wxLocale(language);
 
 #ifdef _WIN32
-		m_locale->AddCatalogLookupPathPrefix(wxT("Languages"));
+		m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetExeDirectory() + DIR_SEP "Languages"));
 #endif
 
 		m_locale->AddCatalog(wxT("dolphin-emu"));
@@ -418,6 +423,15 @@ void DolphinApp::InitLanguageSupport()
 	{
 		PanicAlertT("The selected language is not supported by your system. Falling back to system default.");
 		m_locale = new wxLocale(wxLANGUAGE_DEFAULT);
+	}
+}
+
+void DolphinApp::OnEndSession(wxCloseEvent& event)
+{
+	// Close if we've recieved wxEVT_END_SESSION (ignore wxEVT_QUERY_END_SESSION)
+	if (!event.CanVeto())
+	{
+		main_frame->Close(true);
 	}
 }
 
@@ -442,7 +456,7 @@ void DolphinApp::OnFatalException()
 // ------------
 // Talk to GUI
 
-void Host_SysMessage(const char *fmt, ...) 
+void Host_SysMessage(const char *fmt, ...)
 {
 	va_list list;
 	char msg[512];

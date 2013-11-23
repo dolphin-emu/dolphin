@@ -18,20 +18,20 @@
 namespace
 {
 	static Common::Event m_StepEvent;
-	static Common::Event *m_SyncEvent;
+	static Common::Event *m_SyncEvent = NULL;
 	static std::mutex m_csCpuOccupied;
 }
 
 void CCPU::Init(int cpu_core)
 {
 	PowerPC::Init(cpu_core);
-	m_SyncEvent = 0;
+	m_SyncEvent = NULL;
 }
 
 void CCPU::Shutdown()
 {
 	PowerPC::Shutdown();
-	m_SyncEvent = 0;
+	m_SyncEvent = NULL;
 }
 
 void CCPU::Run()
@@ -68,14 +68,14 @@ reswitch:
 			if (m_SyncEvent)
 			{
 				m_SyncEvent->Set();
-				m_SyncEvent = 0;
+				m_SyncEvent = NULL;
 			}
 			Host_UpdateDisasmDialog();
 			break;
 
 		case PowerPC::CPU_POWERDOWN:
 			//1: Exit loop!!
-			return; 
+			return;
 		}
 	}
 }
@@ -96,7 +96,7 @@ void CCPU::Reset()
 
 }
 
-void CCPU::StepOpcode(Common::Event *event) 
+void CCPU::StepOpcode(Common::Event *event)
 {
 	m_StepEvent.Set();
 	if (PowerPC::GetState() == PowerPC::CPU_STEPPING)
@@ -106,7 +106,7 @@ void CCPU::StepOpcode(Common::Event *event)
 }
 
 void CCPU::EnableStepping(const bool _bStepping)
-{	
+{
 	if (_bStepping)
 	{
 		PowerPC::Pause();
@@ -123,7 +123,7 @@ void CCPU::EnableStepping(const bool _bStepping)
 	}
 }
 
-void CCPU::Break() 
+void CCPU::Break()
 {
 	EnableStepping(true);
 }

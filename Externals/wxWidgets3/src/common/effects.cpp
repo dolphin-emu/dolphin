@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     25/4/2000
-// RCS-ID:      $Id: effects.cpp 54372 2008-06-26 11:16:40Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

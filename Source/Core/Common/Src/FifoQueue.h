@@ -10,7 +10,7 @@
 namespace Common
 {
 
-template <typename T>
+template <typename T, bool NeedSize = true>
 class FifoQueue
 {
 public:
@@ -27,37 +27,42 @@ public:
 
 	u32 Size() const
 	{
+		static_assert(NeedSize, "using Size() on FifoQueue without NeedSize");
 		return m_size;
 	}
 
 	bool Empty() const
 	{
-		//return (m_read_ptr == m_write_ptr);
-		return (0 == m_size);
+		return !AtomicLoad(m_read_ptr->next);
 	}
 
 	T& Front() const
 	{
-		return *m_read_ptr->current;
+		AtomicLoadAcquire(m_read_ptr->next);
+		return m_read_ptr->current;
 	}
 
 	template <typename Arg>
 	void Push(Arg&& t)
 	{
 		// create the element, add it to the queue
-		m_write_ptr->current = new T(std::forward<Arg>(t));
+		m_write_ptr->current = std::forward<Arg>(t);
 		// set the next pointer to a new element ptr
-		// then advance the write pointer 
-		m_write_ptr = m_write_ptr->next = new ElementPtr();
-		Common::AtomicIncrement(m_size);
+		// then advance the write pointer
+		ElementPtr* new_ptr = new ElementPtr();
+		AtomicStoreRelease(m_write_ptr->next, new_ptr);
+		m_write_ptr = new_ptr;
+		if (NeedSize)
+			Common::AtomicIncrement(m_size);
 	}
 
 	void Pop()
 	{
-		Common::AtomicDecrement(m_size);
-		ElementPtr *const tmpptr = m_read_ptr;
+		if (NeedSize)
+			Common::AtomicDecrement(m_size);
+		ElementPtr *tmpptr = m_read_ptr;
 		// advance the read pointer
-		m_read_ptr = m_read_ptr->next;
+		m_read_ptr = AtomicLoad(tmpptr->next);
 		// set the next element to NULL to stop the recursive deletion
 		tmpptr->next = NULL;
 		delete tmpptr;	// this also deletes the element
@@ -68,9 +73,14 @@ public:
 		if (Empty())
 			return false;
 
-		t = std::move(Front());
-		Pop();
+		if (NeedSize)
+			Common::AtomicDecrement(m_size);
 
+		ElementPtr *tmpptr = m_read_ptr;
+		m_read_ptr = AtomicLoadAcquire(tmpptr->next);
+		t = std::move(tmpptr->current);
+		tmpptr->next = NULL;
+		delete tmpptr;
 		return true;
 	}
 
@@ -88,25 +98,20 @@ private:
 	class ElementPtr
 	{
 	public:
-		ElementPtr() : current(NULL), next(NULL) {}
+		ElementPtr() : next(NULL) {}
 
 		~ElementPtr()
 		{
-			if (current)
-			{
-				delete current;
-				// recusion ftw
-				if (next)
-					delete next;
-			}
+			if (next)
+				delete next;
 		}
 
-		T *volatile current;
+		T current;
 		ElementPtr *volatile next;
 	};
 
-	ElementPtr *volatile m_write_ptr;
-	ElementPtr *volatile m_read_ptr;
+	ElementPtr *m_write_ptr;
+	ElementPtr *m_read_ptr;
 	volatile u32 m_size;
 };
 

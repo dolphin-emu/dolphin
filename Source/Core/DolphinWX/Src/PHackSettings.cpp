@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "CommonPaths.h"
 #include "PHackSettings.h"
 #include "ConfigManager.h"
 #include "WxUtils.h"
@@ -18,10 +19,9 @@ CPHackSettings::CPHackSettings(wxWindow* parent, wxWindowID id, const wxString& 
 {
 	CreateGUIControls();
 	std::string _iniFilename;
-	_iniFilename = File::GetUserPath(D_GAMECONFIG_IDX) + "PH_PRESETS.ini";
+	_iniFilename = File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP "PH_PRESETS.ini";
 	PHPresetsIni.Load(_iniFilename.c_str());
-	//PHPresetsIni.SortSections();
-	//PHPresetsIni.Save(_iniFilename.c_str());
+	PHPresetsIni.SortSections();
 
 	LoadPHackData();
 }

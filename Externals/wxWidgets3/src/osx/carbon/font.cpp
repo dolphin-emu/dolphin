@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     1998-01-01
-// RCS-ID:      $Id: font.cpp 70452 2012-01-23 21:06:07Z SC $
 // Copyright:   (c) Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -137,6 +136,8 @@ public:
     }
 
     wxFontEncoding GetEncoding() const { return m_info.GetEncoding(); }
+    
+    bool IsFixedWidth() const;
 
     void Free();
 
@@ -272,7 +273,6 @@ wxFontRefData::wxFontRefData(wxOSXSystemFont font, int size)
     Init();
 
 #if wxOSX_USE_CORE_TEXT
-    if (  UMAGetSystemVersion() >= 0x1050 )
     {
         CTFontUIFontType uifont = kCTFontSystemFontType;
         switch( font )
@@ -465,7 +465,6 @@ void wxFontRefData::MacFindFont()
     m_info.EnsureValid();
 
 #if wxOSX_USE_CORE_TEXT
-    if (  UMAGetSystemVersion() >= 0x1050 )
     {
          CTFontSymbolicTraits traits = 0;
 
@@ -540,6 +539,16 @@ void wxFontRefData::MacFindFont()
     m_uiFont = wxFont::OSXCreateUIFont( &m_info );
 #endif
     m_fontValid = true;
+}
+
+bool wxFontRefData::IsFixedWidth() const
+{
+#if wxOSX_USE_CORE_TEXT
+    CTFontSymbolicTraits traits = CTFontGetSymbolicTraits(m_ctFont);
+    return (traits & kCTFontMonoSpaceTrait) != 0;
+#else
+    return false;
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -657,7 +666,7 @@ wxGDIRefData *wxFont::CloneGDIRefData(const wxGDIRefData *data) const
 
 void wxFont::SetPointSize(int pointSize)
 {
-    if ( M_FONTDATA->GetPointSize() == pointSize )
+    if ( M_FONTDATA != NULL && M_FONTDATA->GetPointSize() == pointSize )
         return;
 
     AllocExclusive();
@@ -728,6 +737,16 @@ wxSize wxFont::GetPixelSize() const
 #else
     return wxFontBase::GetPixelSize();
 #endif
+}
+
+bool wxFont::IsFixedWidth() const
+{
+    wxCHECK_MSG( M_FONTDATA != NULL , false, wxT("invalid font") );
+    
+    // cast away constness otherwise lazy font resolution is not possible
+    const_cast<wxFont *>(this)->RealizeResource();
+
+    return M_FONTDATA->IsFixedWidth();
 }
 
 wxFontFamily wxFont::DoGetFamily() const
@@ -1092,7 +1111,16 @@ void wxNativeFontInfo::Init(int size,
                   wxFontEncoding encoding)
 {
     Init();
-    m_pointSize = size;
+
+    // We should use the default font size if the special value wxDEFAULT is
+    // specified and we also handle -1 as a synonym for wxDEFAULT for
+    // compatibility with wxGTK (see #12541).
+    //
+    // Notice that we rely on the fact that wxNORMAL_FONT itself is not
+    // initialized using this ctor, but from native font info.
+    m_pointSize = size == -1 || size == wxDEFAULT
+                    ? wxNORMAL_FONT->GetPointSize()
+                    : size;
     m_family = family;
     m_style = style;
     m_weight = weight;

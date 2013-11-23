@@ -3,7 +3,6 @@
 // Purpose:     implements mac carbon wxSearchCtrl
 // Author:      Vince Harron
 // Created:     2006-02-19
-// RCS-ID:      $Id: srchctrl_osx.cpp 67243 2011-03-19 08:36:23Z SC $
 // Copyright:   Vince Harron
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -203,7 +202,7 @@ bool wxSearchCtrl::Create(wxWindow *parent, wxWindowID id,
 
 bool wxSearchCtrl::HandleSearchFieldSearchHit()
 {
-    wxCommandEvent event(wxEVT_COMMAND_SEARCHCTRL_SEARCH_BTN, m_windowId );
+    wxCommandEvent event(wxEVT_SEARCHCTRL_SEARCH_BTN, m_windowId );
     event.SetEventObject(this);
 
     // provide the string to search for directly in the event, this is more
@@ -215,7 +214,7 @@ bool wxSearchCtrl::HandleSearchFieldSearchHit()
 
 bool wxSearchCtrl::HandleSearchFieldCancelHit()
 {
-    wxCommandEvent event(wxEVT_COMMAND_SEARCHCTRL_CANCEL_BTN, m_windowId );
+    wxCommandEvent event(wxEVT_SEARCHCTRL_CANCEL_BTN, m_windowId );
     event.SetEventObject(this);
     return ProcessCommand(event);
 }

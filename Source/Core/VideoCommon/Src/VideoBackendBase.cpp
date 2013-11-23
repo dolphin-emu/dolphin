@@ -6,13 +6,12 @@
 
 // TODO: ugly
 #ifdef _WIN32
-#include "../../../Plugins/Plugin_VideoDX9/Src/VideoBackend.h"
-#include "../../../Plugins/Plugin_VideoDX11/Src/VideoBackend.h"
+#include "../../VideoBackends/D3D/Src/VideoBackend.h"
 #endif
 #if !defined(USE_GLES) || USE_GLES3
-#include "../../../Plugins/Plugin_VideoOGL/Src/VideoBackend.h"
+#include "../../VideoBackends/OGL/Src/VideoBackend.h"
 #endif
-#include "../../../Plugins/Plugin_VideoSoftware/Src/VideoBackend.h"
+#include "../../VideoBackends/Software/Src/VideoBackend.h"
 
 std::vector<VideoBackend*> g_available_video_backends;
 VideoBackend* g_video_backend = NULL;
@@ -22,7 +21,7 @@ static VideoBackend* s_default_backend = NULL;
 #include <windows.h>
 
 // http://msdn.microsoft.com/en-us/library/ms725491.aspx
-static bool IsGteVista() 
+static bool IsGteVista()
 {
 	OSVERSIONINFOEX osvi;
 	DWORDLONG dwlConditionMask = 0;
@@ -41,9 +40,8 @@ void VideoBackend::PopulateList()
 {
 	VideoBackend* backends[4] = { NULL };
 
-	// D3D11 > OGL > D3D9 > SW
+	// D3D11 > OGL > SW
 #ifdef _WIN32
-	g_available_video_backends.push_back(backends[2] = new DX9::VideoBackend);
 	if (IsGteVista())
 		g_available_video_backends.push_back(backends[0] = new DX11::VideoBackend);
 #endif
@@ -52,11 +50,11 @@ void VideoBackend::PopulateList()
 #endif
 	g_available_video_backends.push_back(backends[3] = new SW::VideoSoftware);
 
-	for (int i = 0; i < 4; ++i)
+	for (auto& backend : backends)
 	{
-		if (backends[i])
+		if (backend)
 		{
-			s_default_backend = g_video_backend = backends[i];
+			s_default_backend = g_video_backend = backend;
 			break;
 		}
 	}

@@ -5,9 +5,6 @@
 #ifndef _ARDECRYPT_H_
 #define _ARDECRYPT_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <vector>
 #include "Common.h"
 #include "ActionReplay.h"

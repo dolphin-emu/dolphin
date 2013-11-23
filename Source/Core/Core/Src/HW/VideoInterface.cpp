@@ -461,7 +461,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 			}
 
 			UpdateParameters();
-		}		
+		}
 		break;
 
 	case VI_HORIZONTAL_TIMING_0_HI:
@@ -803,20 +803,38 @@ static void BeginField(FieldType field)
 {
 	u32 fbWidth = m_HorizontalStepping.FieldSteps * 16;
 	u32 fbHeight = (m_HorizontalStepping.FbSteps / m_HorizontalStepping.FieldSteps) * m_VerticalTimingRegister.ACV;
+	u32 xfbAddr;
 
 	// NTSC and PAL have opposite field orders.
-	FieldType order = (m_DisplayControlRegister.FMT == 0) ? FIELD_LOWER : FIELD_UPPER;
-	u32 xfbAddr = (field == order) ? GetXFBAddressBottom() : GetXFBAddressTop();
+	if (m_DisplayControlRegister.FMT == 1) // PAL
+	{
+		// But the PAL ports of some games are poorly programmed and don't use correct ordering.
+		// Zelda: Wind Waker and Simpsons Hit & Run are exampes of this, there are probally more.
+		// PAL Wind Waker also runs at 30fps instead of 25.
+		if(field == FieldType::FIELD_PROGRESSIVE || GetXFBAddressBottom() != (GetXFBAddressTop() - 1280))
+		{
+			WARN_LOG(VIDEOINTERFACE, "PAL game is trying to use incorrect (NTSC) field ordering");
+			// Lets kindly fix this for them.
+			xfbAddr = GetXFBAddressTop();
+
+			// TODO: PAL Simpsons Hit & Run now has a green line at the bottom when Real XFB is used.
+			// Might be a bug later on in our code, or a bug in the actual game.
+		} else {
+			xfbAddr = GetXFBAddressBottom();
+		}
+	} else {
+		xfbAddr = GetXFBAddressTop();
+	}
 
 	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
 
-	DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): Address: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
-		xfbAddr, m_HorizontalStepping.FieldSteps, m_HorizontalStepping.FbSteps, m_VerticalTimingRegister.ACV,
-		fieldTypeNames[field]
-	);
+	DEBUG_LOG(VIDEOINTERFACE,
+			  "(VI->BeginField): Address: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
+			  xfbAddr, m_HorizontalStepping.FieldSteps,m_HorizontalStepping.FbSteps,
+			  m_VerticalTimingRegister.ACV, fieldTypeNames[field]);
 
 	if (xfbAddr)
-		g_video_backend->Video_BeginField(xfbAddr, field, fbWidth, fbHeight);
+		g_video_backend->Video_BeginField(xfbAddr, fbWidth, fbHeight);
 }
 
 static void EndField()

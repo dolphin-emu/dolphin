@@ -42,7 +42,7 @@ enum
 	SETTING_SQUARE,
 };
 
-const char * const named_directions[] = 
+const char * const named_directions[] =
 {
 	"Up",
 	"Down",
@@ -109,7 +109,7 @@ public:
 
 		ControlGroup(const char* const _name, const unsigned int _type = GROUP_TYPE_OTHER) : name(_name), type(_type) {}
 		virtual ~ControlGroup();
-	
+
 		virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 		virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 
@@ -325,7 +325,7 @@ public:
 			{
 				// this section might be all wrong, but its working good enough, I think
 
-				ControlState ang = atan2(yy, xx); 
+				ControlState ang = atan2(yy, xx);
 				ControlState ang_sin = sin(ang);
 				ControlState ang_cos = cos(ang);
 
@@ -352,7 +352,7 @@ public:
 
 			// this is kinda silly here
 			// gui being open will make this happen 2x as fast, o well
-			
+
 			// silly
 			if (step)
 			{
@@ -391,7 +391,7 @@ public:
 				m_z = std::max(m_z - 0.1f, zz);
 
 			*z = m_z;
-			
+
 			// hide
 			if (controls[6]->control_ref->State() > 0.5f)
 			{

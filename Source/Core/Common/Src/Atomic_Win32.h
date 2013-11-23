@@ -31,7 +31,7 @@ namespace Common
 {
 
 inline void AtomicAdd(volatile u32& target, u32 value) {
-	InterlockedExchangeAdd((volatile LONG*)&target, (LONG)value);
+	_InterlockedExchangeAdd((volatile LONG*)&target, (LONG)value);
 }
 
 inline void AtomicAnd(volatile u32& target, u32 value) {
@@ -39,32 +39,43 @@ inline void AtomicAnd(volatile u32& target, u32 value) {
 }
 
 inline void AtomicIncrement(volatile u32& target) {
-	InterlockedIncrement((volatile LONG*)&target);
+	_InterlockedIncrement((volatile LONG*)&target);
 }
 
 inline void AtomicDecrement(volatile u32& target) {
-	InterlockedDecrement((volatile LONG*)&target);
-}
-
-inline u32 AtomicLoad(volatile u32& src) {
-	return src; // 32-bit reads are always atomic.
-}
-inline u32 AtomicLoadAcquire(volatile u32& src) {
-	u32 result = src; // 32-bit reads are always atomic.
-	_ReadBarrier(); // Compiler instruction only. x86 loads always have acquire semantics.
-	return result;
+	_InterlockedDecrement((volatile LONG*)&target);
 }
 
 inline void AtomicOr(volatile u32& target, u32 value) {
 	_InterlockedOr((volatile LONG*)&target, (LONG)value);
 }
 
-inline void AtomicStore(volatile u32& dest, u32 value) {
-	dest = value; // 32-bit writes are always atomic.
+template <typename T>
+inline T AtomicLoad(volatile T& src) {
+	return src; // 32-bit reads are always atomic.
 }
-inline void AtomicStoreRelease(volatile u32& dest, u32 value) {
+
+template <typename T>
+inline T AtomicLoadAcquire(volatile T& src) {
+	T result = src; // 32-bit reads are always atomic.
+	_ReadBarrier(); // Compiler instruction only. x86 loads always have acquire semantics.
+	return result;
+}
+
+template <typename T, typename U>
+inline void AtomicStore(volatile T& dest, U value) {
+	dest = (T) value; // 32-bit writes are always atomic.
+}
+
+template <typename T, typename U>
+inline void AtomicStoreRelease(volatile T& dest, U value) {
 	_WriteBarrier(); // Compiler instruction only. x86 stores always have release semantics.
-	dest = value; // 32-bit writes are always atomic.
+	dest = (T) value; // 32-bit writes are always atomic.
+}
+
+template <typename T, typename U>
+inline T* AtomicExchangeAcquire(T* volatile& loc, U newval) {
+	return (T*) _InterlockedExchangePointer_acq((void* volatile*) &loc, (void*) newval);
 }
 
 }

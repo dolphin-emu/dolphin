@@ -4,7 +4,6 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     04.04.98
-// RCS-ID:      $Id: statusbar.cpp 70310 2012-01-10 17:01:09Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -275,6 +274,7 @@ void wxStatusBar::DoUpdateStatusText(int nField)
         style = SBT_NOBORDERS;
         break;
 
+    case wxSB_SUNKEN:
     case wxSB_NORMAL:
     default:
         style = 0;
@@ -317,7 +317,7 @@ void wxStatusBar::DoUpdateStatusText(int nField)
 
     // Set the status text in the native control passing both field number and style.
     // NOTE: MSDN library doesn't mention that nField and style have to be 'ORed'
-    if ( !StatusBar_SetText(GetHwnd(), nField | style, text.wx_str()) )
+    if ( !StatusBar_SetText(GetHwnd(), nField | style, text.t_str()) )
     {
         wxLogLastError("StatusBar_SetText");
     }
@@ -553,6 +553,7 @@ void wxStatusBar::SetStatusStyles(int n, const int styles[])
         case wxSB_FLAT:
             style = SBT_NOBORDERS;
             break;
+        case wxSB_SUNKEN:
         case wxSB_NORMAL:
         default:
             style = 0;
@@ -563,7 +564,7 @@ void wxStatusBar::SetStatusStyles(int n, const int styles[])
         // the fields' styles.
         // NOTE: MSDN library doesn't mention that nField and style have to be 'ORed'
         wxString text = GetStatusText(i);
-        if (!StatusBar_SetText(GetHwnd(), style | i, text.wx_str()))
+        if (!StatusBar_SetText(GetHwnd(), style | i, text.t_str()))
         {
             wxLogLastError("StatusBar_SetText");
         }

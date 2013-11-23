@@ -4,7 +4,6 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:
-// RCS-ID:      $Id: popupwin.cpp 67254 2011-03-20 00:14:35Z DS $
 // Copyright:   (c) 2006 Stefan Csomor
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,27 +53,6 @@ bool wxPopupWindow::Create(wxWindow *parent, int flags)
                                 wxDefaultPosition, wxDefaultSize,
                                 flags | wxPOPUP_WINDOW);
 
-}
-
-bool wxPopupWindow::Show(bool show)
-{
-    if ( !wxWindow::Show(show) )
-        return false;
-
-    if ( m_nowpeer && show)
-        m_nowpeer->ShowWithoutActivating();
-    else if ( m_nowpeer )
-        m_nowpeer->Show(false);
-
-    if ( show )
-    {
-        // because apps expect a size event to occur at this moment
-        wxSizeEvent event(GetSize() , m_windowId);
-        event.SetEventObject(this);
-        HandleWindowEvent(event);
-    }
-
-    return true;
 }
 
 #endif // #if wxUSE_POPUPWIN

@@ -20,7 +20,7 @@ CDolLoader::CDolLoader(const char* _szFilename)
 	u8* const tmpBuffer = new u8[(size_t)size];
 
 	{
-	File::IOFile pStream(_szFilename, "rb");	
+	File::IOFile pStream(_szFilename, "rb");
 	pStream.ReadBytes(tmpBuffer, (size_t)size);
 	}
 
@@ -30,33 +30,33 @@ CDolLoader::CDolLoader(const char* _szFilename)
 
 CDolLoader::~CDolLoader()
 {
-	for (int i = 0; i < DOL_NUM_TEXT; i++)
+	for (auto& sect : text_section)
 	{
-		delete [] text_section[i];
-		text_section[i] = NULL;
+		delete [] sect;
+		sect = NULL;
 	}
 
-	for (int i = 0; i < DOL_NUM_DATA; i++)
+	for (auto& sect : data_section)
 	{
-		delete [] data_section[i];
-		data_section[i] = NULL;
+		delete [] sect;
+		sect = NULL;
 	}
 }
 
 void CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
-{	
+{
 	memcpy(&m_dolheader, _pBuffer, sizeof(SDolHeader));
 
 	// swap memory
 	u32* p = (u32*)&m_dolheader;
-	for (size_t i = 0; i < (sizeof(SDolHeader)/sizeof(u32)); i++)	
+	for (size_t i = 0; i < (sizeof(SDolHeader)/sizeof(u32)); i++)
 		p[i] = Common::swap32(p[i]);
 
-	for (int i = 0; i < DOL_NUM_TEXT; i++)
-		text_section[i] = NULL;
-	for (int i = 0; i < DOL_NUM_DATA; i++)
-		data_section[i] = NULL;
-	
+	for (auto& sect : text_section)
+		sect = NULL;
+	for (auto& sect : data_section)
+		sect = NULL;
+
 	u32 HID4_pattern = 0x7c13fba6;
 	u32 HID4_mask = 0xfc1fffff;
 

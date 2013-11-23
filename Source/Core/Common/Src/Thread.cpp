@@ -28,7 +28,7 @@ int CurrentThreadId()
 	return 0;
 #endif
 }
-	
+
 #ifdef _WIN32
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
@@ -46,7 +46,7 @@ void SleepCurrentThread(int ms)
 {
 	Sleep(ms);
 }
-	
+
 void SwitchCurrentThread()
 {
 	SwitchToThread();
@@ -55,7 +55,7 @@ void SwitchCurrentThread()
 // Sets the debugger-visible name of the current thread.
 // Uses undocumented (actually, it is now documented) trick.
 // http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vsdebug/html/vxtsksettingthreadname.asp
-	
+
 // This is implemented much nicer in upcoming msvc++, see:
 // http://msdn.microsoft.com/en-us/library/xcb2z8hs(VS.100).aspx
 void SetCurrentThreadName(const char* szThreadName)
@@ -84,7 +84,7 @@ void SetCurrentThreadName(const char* szThreadName)
 	__except(EXCEPTION_CONTINUE_EXECUTION)
 	{}
 }
-	
+
 #else // !WIN32, so must be POSIX threads
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
@@ -109,42 +109,25 @@ void SetCurrentThreadAffinity(u32 mask)
 	SetThreadAffinity(pthread_self(), mask);
 }
 
-static pthread_key_t threadname_key;
-static pthread_once_t threadname_key_once = PTHREAD_ONCE_INIT;
-
 void SleepCurrentThread(int ms)
 {
 	usleep(1000 * ms);
 }
-	
+
 void SwitchCurrentThread()
 {
 	usleep(1000 * 1);
 }
 
-static void FreeThreadName(void* threadname)
-{
-	free(threadname);
-}
-
-static void ThreadnameKeyAlloc()
-{
-	pthread_key_create(&threadname_key, FreeThreadName);
-}
-
 void SetCurrentThreadName(const char* szThreadName)
 {
-	pthread_once(&threadname_key_once, ThreadnameKeyAlloc);
-
-	void* threadname;
-	if ((threadname = pthread_getspecific(threadname_key)) != NULL)
-		free(threadname);
-
-	pthread_setspecific(threadname_key, strdup(szThreadName));
-
-	INFO_LOG(COMMON, "%s(%s)\n", __FUNCTION__, szThreadName);
+#ifdef __APPLE__
+	pthread_setname_np(szThreadName);
+#else
+	pthread_setname_np(pthread_self(), szThreadName);
+#endif
 }
 
 #endif
-	
+
 } // namespace Common

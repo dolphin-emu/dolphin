@@ -5,11 +5,11 @@
 #ifndef _VOLUME_DIRECTORY
 #define _VOLUME_DIRECTORY
 
-#include "Volume.h"
-#include "Common.h"
-#include "FileUtil.h"
-#include <string>
 #include <map>
+#include <string>
+
+#include "FileUtil.h"
+#include "Volume.h"
 
 //
 // --- this volume type is used for reading files directly from the hard drive ---
@@ -96,7 +96,7 @@ private:
 	u8* m_diskHeader;
 
 	#pragma pack(push, 1)
-	struct SDiskHeaderInfo 
+	struct SDiskHeaderInfo
 	{
 		u32 debug_mntr_size;
 		u32 simulated_mem_size;

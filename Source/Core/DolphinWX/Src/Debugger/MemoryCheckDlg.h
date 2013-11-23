@@ -13,7 +13,7 @@ class MemoryCheckDlg : public wxDialog
 {
 	public:
 		MemoryCheckDlg(CBreakPointWindow *parent);
-	
+
 	private:
 		CBreakPointWindow *m_parent;
 		wxCheckBox* m_pReadFlag;

@@ -38,7 +38,7 @@ static void DoState(PointerWrap &p)
 	// Texture decoder
 	p.DoArray(texMem, TMEM_SIZE);
 	p.DoMarker("texMem");
- 
+
 	// FIFO
 	Fifo_DoState(p);
 	p.DoMarker("Fifo");

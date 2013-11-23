@@ -3,7 +3,6 @@
 // Purpose:     wxStaticLine common code
 // Author:      Vadim Zeitlin
 // Created:     28.06.99
-// Version:     $Id: statlinecmn.cpp 66592 2011-01-05 18:27:58Z PC $
 // Copyright:   (c) 1998 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

@@ -12,7 +12,6 @@
 
 #include "TextureConversionShader.h"
 #include "TextureDecoder.h"
-#include "PixelShaderManager.h"
 #include "PixelShaderGen.h"
 #include "BPMemory.h"
 #include "RenderBase.h"
@@ -67,7 +66,7 @@ const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
 	return result;
 }
 
-// block dimensions : widthStride, heightStride 
+// block dimensions : widthStride, heightStride
 // texture dims : width, height, x offset, y offset
 void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 {
@@ -76,61 +75,45 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	// Two were merged for GLSL
 	WRITE(p, "uniform float4 " I_COLORS"[2] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
 
-	float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
-	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
-	float samples = (float)GetEncodedSampleCount(format);
+	int blkW = TexDecoder_GetBlockWidthInTexels(format);
+	int blkH = TexDecoder_GetBlockHeightInTexels(format);
+	int samples = GetEncodedSampleCount(format);
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
 		WRITE(p, "uniform sampler2DRect samp0;\n");
-	}
-	else if (ApiType & API_D3D9)
-	{
-		WRITE(p,"uniform sampler samp0 : register(s0);\n");
-	}
-	else
-	{
-		WRITE(p,"sampler samp0 : register(s0);\n");
-		WRITE(p, "Texture2D Tex0 : register(t0);\n");
-	}
 
-	if (ApiType == API_OPENGL)
-	{
-		WRITE(p, "  COLOROUT(ocol0)\n");
+		WRITE(p, "  out vec4 ocol0;\n");
 		WRITE(p, "  VARYIN float2 uv0;\n");
 		WRITE(p, "void main()\n");
 	}
-	else
+	else // D3D
 	{
+		WRITE(p,"sampler samp0 : register(s0);\n");
+		WRITE(p, "Texture2D Tex0 : register(t0);\n");
+
 		WRITE(p,"void main(\n");
-		if (ApiType != API_D3D11)
-		{
-			WRITE(p,"  out float4 ocol0 : COLOR0,\n");
-		}
-		else
-		{
-			WRITE(p,"  out float4 ocol0 : SV_Target,\n");
-		}
+		WRITE(p,"  out float4 ocol0 : SV_Target,\n");
 		WRITE(p,"  in float2 uv0 : TEXCOORD0)\n");
 	}
 
-	WRITE(p, "{\n"    
+	WRITE(p, "{\n"
 	"  float2 sampleUv;\n"
 	"  float2 uv1 = floor(uv0);\n");
 
-	WRITE(p, "  uv1.x = uv1.x * %f;\n", samples);
+	WRITE(p, "  uv1.x = uv1.x * %d.0;\n", samples);
 
-	WRITE(p, "  float xl =  floor(uv1.x / %f);\n", blkW);
-	WRITE(p, "  float xib = uv1.x - (xl * %f);\n", blkW);
-	WRITE(p, "  float yl = floor(uv1.y / %f);\n", blkH);
-	WRITE(p, "  float yb = yl * %f;\n", blkH);
+	WRITE(p, "  float xl =  floor(uv1.x / %d.0);\n", blkW);
+	WRITE(p, "  float xib = uv1.x - (xl * %d.0);\n", blkW);
+	WRITE(p, "  float yl = floor(uv1.y / %d.0);\n", blkH);
+	WRITE(p, "  float yb = yl * %d.0;\n", blkH);
 	WRITE(p, "  float yoff = uv1.y - yb;\n");
 	WRITE(p, "  float xp = uv1.x + (yoff * " I_COLORS"[1].x);\n");
-	WRITE(p, "  float xel = floor(xp / %f);\n", blkW);
-	WRITE(p, "  float xb = floor(xel / %f);\n", blkH);
-	WRITE(p, "  float xoff = xel - (xb * %f);\n", blkH);
+	WRITE(p, "  float xel = floor(xp / %d.0);\n", blkW);
+	WRITE(p, "  float xb = floor(xel / %d.0);\n", blkH);
+	WRITE(p, "  float xoff = xel - (xb * %d.0);\n", blkH);
 
-	WRITE(p, "  sampleUv.x = xib + (xb * %f);\n", blkW);
+	WRITE(p, "  sampleUv.x = xib + (xb * %d.0);\n", blkW);
 	WRITE(p, "  sampleUv.y = yb + xoff;\n");
 
 	WRITE(p, "  sampleUv = sampleUv * " I_COLORS"[0].xy;\n");
@@ -142,78 +125,62 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	if (ApiType != API_OPENGL)
 	{
-		WRITE(p, "  sampleUv = sampleUv + float2(0.0f,1.0f);\n");// still to determine the reason for this
+		WRITE(p, "  sampleUv = sampleUv + float2(0.0,1.0);\n"); // still need to determine the reason for this
 		WRITE(p, "  sampleUv = sampleUv / " I_COLORS"[0].zw;\n");
 	}
 }
 
-// block dimensions : widthStride, heightStride 
+// block dimensions : widthStride, heightStride
 // texture dims : width, height, x offset, y offset
 void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
-{	
+{
 	// [0] left, top, right, bottom of source rectangle within source texture
 	// [1] width and height of destination texture in pixels
 	// Two were merged for GLSL
 	WRITE(p, "uniform float4 " I_COLORS"[2] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
 
-	float blkW = (float)TexDecoder_GetBlockWidthInTexels(format);
-	float blkH = (float)TexDecoder_GetBlockHeightInTexels(format);
+	int blkW = TexDecoder_GetBlockWidthInTexels(format);
+	int blkH = TexDecoder_GetBlockHeightInTexels(format);
 
 	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
 		WRITE(p, "uniform sampler2DRect samp0;\n");
-	}
-	else if (ApiType & API_D3D9)
-	{
-		WRITE(p,"uniform sampler samp0 : register(s0);\n");
-	}
-	else
-	{
-		WRITE(p,"sampler samp0 : register(s0);\n");
-		WRITE(p, "Texture2D Tex0 : register(t0);\n");
-	}
 
-	if (ApiType == API_OPENGL)
-	{
 		WRITE(p, "  out float4 ocol0;\n");
 		WRITE(p, "  VARYIN float2 uv0;\n");
 		WRITE(p, "void main()\n");
 	}
 	else
 	{
+		WRITE(p,"sampler samp0 : register(s0);\n");
+		WRITE(p, "Texture2D Tex0 : register(t0);\n");
+
 		WRITE(p,"void main(\n");
-		if(ApiType != API_D3D11)
-		{
-			WRITE(p,"  out float4 ocol0 : COLOR0,\n");
-		}
-		else
-		{
-			WRITE(p,"  out float4 ocol0 : SV_Target,\n");
-		}
+		WRITE(p,"  out float4 ocol0 : SV_Target,\n");
 		WRITE(p,"  in float2 uv0 : TEXCOORD0)\n");
 	}
 
 
-	WRITE(p, "{\n"    
+	WRITE(p, "{\n"
 	"  float2 sampleUv;\n"
 	"  float2 uv1 = floor(uv0);\n");
 
-	WRITE(p, "  float yl = floor(uv1.y / %f);\n", blkH);
-	WRITE(p, "  float yb = yl * %f;\n", blkH);
+	WRITE(p, "  float yl = floor(uv1.y / %d.0);\n", blkH);
+	WRITE(p, "  float yb = yl * %d.0;\n", blkH);
 	WRITE(p, "  float yoff = uv1.y - yb;\n");
 	WRITE(p, "  float xp = uv1.x + (yoff * " I_COLORS"[1].x);\n");
-	WRITE(p, "  float xel = floor(xp / 2.0f);\n");
-	WRITE(p, "  float xb = floor(xel / %f);\n", blkH);
-	WRITE(p, "  float xoff = xel - (xb * %f);\n", blkH);
+	WRITE(p, "  float xel = floor(xp / 2.0);\n");
+	WRITE(p, "  float xb = floor(xel / %d.0);\n", blkH);
+	WRITE(p, "  float xoff = xel - (xb * %d.0);\n", blkH);
 
-	WRITE(p, "  float x2 = uv1.x * 2.0f;\n");
-	WRITE(p, "  float xl = floor(x2 / %f);\n", blkW);	
-	WRITE(p, "  float xib = x2 - (xl * %f);\n", blkW);
-	WRITE(p, "  float halfxb = floor(xb / 2.0f);\n");
+	WRITE(p, "  float x2 = uv1.x * 2.0;\n");
+	WRITE(p, "  float xl = floor(x2 / %d.0);\n", blkW);
+	WRITE(p, "  float xib = x2 - (xl * %d.0);\n", blkW);
+	WRITE(p, "  float halfxb = floor(xb / 2.0);\n");
 
-	WRITE(p, "  sampleUv.x = xib + (halfxb * %f);\n", blkW);
+	WRITE(p, "  sampleUv.x = xib + (halfxb * %d.0);\n", blkW);
 	WRITE(p, "  sampleUv.y = yb + xoff;\n");
 	WRITE(p, "  sampleUv = sampleUv * " I_COLORS"[0].xy;\n");
 
@@ -224,7 +191,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	if (ApiType != API_OPENGL)
 	{
-		WRITE(p, "  sampleUv = sampleUv + float2(0.0f,1.0f);\n");// still to determine the reason for this
+		WRITE(p, "  sampleUv = sampleUv + float2(0.0,1.0);\n");// still to determine the reason for this
 		WRITE(p, "  sampleUv = sampleUv / " I_COLORS"[0].zw;\n");
 	}
 }
@@ -232,21 +199,19 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYPE ApiType)
 {
 	const char* texSampleOpName;
-	if (ApiType & API_D3D9)
-		texSampleOpName = "tex2D";
-	else if (ApiType == API_D3D11)
+	if (ApiType == API_D3D)
 		texSampleOpName = "tex0.Sample";
-	else
+	else // OGL
 		texSampleOpName = "texture2DRect";
 
 	// the increment of sampleUv.x is delayed, so we perform it here. see WriteIncrementSampleX.
 	const char* texSampleIncrementUnit;
-	if (ApiType != API_OPENGL)
+	if (ApiType == API_D3D)
 		texSampleIncrementUnit = I_COLORS"[0].x / " I_COLORS"[0].z";
-	else
+	else // OGL
 		texSampleIncrementUnit = I_COLORS"[0].x";
 
-	WRITE(p, "  %s = %s(samp0, sampleUv + float2(%d.0f * (%s), 0.0f)).%s;\n",
+	WRITE(p, "  %s = %s(samp0, sampleUv + float2(%d.0 * (%s), 0.0)).%s;\n",
 		dest, texSampleOpName, s_incrementSampleXCount, texSampleIncrementUnit, colorComp);
 }
 
@@ -282,8 +247,7 @@ void WriteIncrementSampleX(char*& p,API_TYPE ApiType)
 
 void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
 {
-	float result = 255 / pow(2.0f, (8 - depth));
-	WRITE(p, "  %s = floor(%s * %ff);\n", dest, src, result);
+	WRITE(p, "  %s = floor(%s * 255.0 / exp2(8.0 - %d.0));\n", dest, src, depth);
 }
 
 void WriteEncoderEnd(char* p, API_TYPE ApiType)
@@ -296,7 +260,7 @@ void WriteEncoderEnd(char* p, API_TYPE ApiType)
 void WriteI8Encoder(char* p, API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_I8, ApiType);
-	WRITE(p, "  float3 texSample;\n");	
+	WRITE(p, "  float3 texSample;\n");
 
 	WriteSampleColor(p, "rgb", "texSample", ApiType);
 	WriteColorToIntensity(p, "texSample", "ocol0.b");
@@ -362,19 +326,19 @@ void WriteI4Encoder(char* p, API_TYPE ApiType)
 	WriteToBitDepth(p, 4, "color0", "color0");
 	WriteToBitDepth(p, 4, "color1", "color1");
 
-	WRITE(p, "  ocol0 = (color0 * 16.0f + color1) / 255.0f;\n");
+	WRITE(p, "  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
 	WriteEncoderEnd(p, ApiType);
 }
 
 void WriteIA8Encoder(char* p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_IA8, ApiType);
-	WRITE(p, "  float4 texSample;\n");	
+	WRITE(p, "  float4 texSample;\n");
 
 	WriteSampleColor(p, "rgba", "texSample", ApiType);
 	WRITE(p, "  ocol0.b = texSample.a;\n");
 	WriteColorToIntensity(p, "texSample", "ocol0.g");
-	WriteIncrementSampleX(p, ApiType);	
+	WriteIncrementSampleX(p, ApiType);
 
 	WriteSampleColor(p, "rgba", "texSample", ApiType);
 	WRITE(p, "  ocol0.r = texSample.a;\n");
@@ -416,7 +380,7 @@ void WriteIA4Encoder(char* p,API_TYPE ApiType)
 	WriteToBitDepth(p, 4, "color0", "color0");
 	WriteToBitDepth(p, 4, "color1", "color1");
 
-	WRITE(p, "  ocol0 = (color0 * 16.0f + color1) / 255.0f;\n");
+	WRITE(p, "  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
 	WriteEncoderEnd(p, ApiType);
 }
 
@@ -430,17 +394,17 @@ void WriteRGB565Encoder(char* p,API_TYPE ApiType)
 	WRITE(p, "  float2 texRs = float2(texSample0.r, texSample1.r);\n");
 	WRITE(p, "  float2 texGs = float2(texSample0.g, texSample1.g);\n");
 	WRITE(p, "  float2 texBs = float2(texSample0.b, texSample1.b);\n");
-  
+
 	WriteToBitDepth(p, 6, "texGs", "float2 gInt");
-	WRITE(p, "  float2 gUpper = floor(gInt / 8.0f);\n");
-	WRITE(p, "  float2 gLower = gInt - gUpper * 8.0f;\n");
+	WRITE(p, "  float2 gUpper = floor(gInt / 8.0);\n");
+	WRITE(p, "  float2 gLower = gInt - gUpper * 8.0;\n");
 
 	WriteToBitDepth(p, 5, "texRs", "ocol0.br");
-	WRITE(p, "  ocol0.br = ocol0.br * 8.0f + gUpper;\n");
+	WRITE(p, "  ocol0.br = ocol0.br * 8.0 + gUpper;\n");
 	WriteToBitDepth(p, 5, "texBs", "ocol0.ga");
-	WRITE(p, "  ocol0.ga = ocol0.ga + gLower * 32.0f;\n");
+	WRITE(p, "  ocol0.ga = ocol0.ga + gLower * 32.0;\n");
 
-	WRITE(p, "  ocol0 = ocol0 / 255.0f;\n");
+	WRITE(p, "  ocol0 = ocol0 / 255.0;\n");
 	WriteEncoderEnd(p, ApiType);
 }
 
@@ -459,13 +423,13 @@ void WriteRGB5A3Encoder(char* p,API_TYPE ApiType)
 	WRITE(p, "if(texSample.a > 0.878f) {\n");
 
 	WriteToBitDepth(p, 5, "texSample.g", "color0");
-	WRITE(p, "  gUpper = floor(color0 / 8.0f);\n");
-	WRITE(p, "  gLower = color0 - gUpper * 8.0f;\n");
+	WRITE(p, "  gUpper = floor(color0 / 8.0);\n");
+	WRITE(p, "  gLower = color0 - gUpper * 8.0;\n");
 
 	WriteToBitDepth(p, 5, "texSample.r", "ocol0.b");
-	WRITE(p, "  ocol0.b = ocol0.b * 4.0f + gUpper + 128.0f;\n");
+	WRITE(p, "  ocol0.b = ocol0.b * 4.0 + gUpper + 128.0;\n");
 	WriteToBitDepth(p, 5, "texSample.b", "ocol0.g");
-	WRITE(p, "  ocol0.g = ocol0.g + gLower * 32.0f;\n");
+	WRITE(p, "  ocol0.g = ocol0.g + gLower * 32.0;\n");
 
 	WRITE(p, "} else {\n");
 
@@ -473,9 +437,9 @@ void WriteRGB5A3Encoder(char* p,API_TYPE ApiType)
 	WriteToBitDepth(p, 4, "texSample.b", "ocol0.g");
 
 	WriteToBitDepth(p, 3, "texSample.a", "color0");
-	WRITE(p, "ocol0.b = ocol0.b + color0 * 16.0f;\n");
+	WRITE(p, "ocol0.b = ocol0.b + color0 * 16.0;\n");
 	WriteToBitDepth(p, 4, "texSample.g", "color0");
-	WRITE(p, "ocol0.g = ocol0.g + color0 * 16.0f;\n");
+	WRITE(p, "ocol0.g = ocol0.g + color0 * 16.0;\n");
 
 	WRITE(p, "}\n");
 
@@ -487,13 +451,13 @@ void WriteRGB5A3Encoder(char* p,API_TYPE ApiType)
 	WRITE(p, "if(texSample.a > 0.878f) {\n");
 
 	WriteToBitDepth(p, 5, "texSample.g", "color0");
-	WRITE(p, "  gUpper = floor(color0 / 8.0f);\n");
-	WRITE(p, "  gLower = color0 - gUpper * 8.0f;\n");
+	WRITE(p, "  gUpper = floor(color0 / 8.0);\n");
+	WRITE(p, "  gLower = color0 - gUpper * 8.0;\n");
 
 	WriteToBitDepth(p, 5, "texSample.r", "ocol0.r");
-	WRITE(p, "  ocol0.r = ocol0.r * 4.0f + gUpper + 128.0f;\n");
+	WRITE(p, "  ocol0.r = ocol0.r * 4.0 + gUpper + 128.0;\n");
 	WriteToBitDepth(p, 5, "texSample.b", "ocol0.a");
-	WRITE(p, "  ocol0.a = ocol0.a + gLower * 32.0f;\n");
+	WRITE(p, "  ocol0.a = ocol0.a + gLower * 32.0;\n");
 
 	WRITE(p, "} else {\n");
 
@@ -501,13 +465,13 @@ void WriteRGB5A3Encoder(char* p,API_TYPE ApiType)
 	WriteToBitDepth(p, 4, "texSample.b", "ocol0.a");
 
 	WriteToBitDepth(p, 3, "texSample.a", "color0");
-	WRITE(p, "ocol0.r = ocol0.r + color0 * 16.0f;\n");
+	WRITE(p, "ocol0.r = ocol0.r + color0 * 16.0;\n");
 	WriteToBitDepth(p, 4, "texSample.g", "color0");
-	WRITE(p, "ocol0.a = ocol0.a + color0 * 16.0f;\n");
+	WRITE(p, "ocol0.a = ocol0.a + color0 * 16.0;\n");
 
 	WRITE(p, "}\n");
 
-	WRITE(p, "  ocol0 = ocol0 / 255.0f;\n");
+	WRITE(p, "  ocol0 = ocol0 / 255.0;\n");
 	WriteEncoderEnd(p, ApiType);
 }
 
@@ -533,7 +497,7 @@ void WriteRGBA4443Encoder(char* p,API_TYPE ApiType)
 	WriteToBitDepth(p, 4, "texSample.g", "color0.a");
 	WriteToBitDepth(p, 4, "texSample.b", "color1.a");
 
-	WRITE(p, "  ocol0 = (color0 * 16.0f + color1) / 255.0f;\n");
+	WRITE(p, "  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
 	WriteEncoderEnd(p, ApiType);
 }
 
@@ -541,8 +505,8 @@ void WriteRGBA8Encoder(char* p,API_TYPE ApiType)
 {
 	Write32BitSwizzler(p, GX_TF_RGBA8, ApiType);
 
-	WRITE(p, "  float cl1 = xb - (halfxb * 2.0f);\n");
-	WRITE(p, "  float cl0 = 1.0f - cl1;\n");
+	WRITE(p, "  float cl1 = xb - (halfxb * 2.0);\n");
+	WRITE(p, "  float cl0 = 1.0 - cl1;\n");
 
 	WRITE(p, "  float4 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
@@ -599,7 +563,7 @@ void WriteC4Encoder(char* p, const char* comp,API_TYPE ApiType)
 	WriteToBitDepth(p, 4, "color0", "color0");
 	WriteToBitDepth(p, 4, "color1", "color1");
 
-	WRITE(p, "  ocol0 = (color0 * 16.0f + color1) / 255.0f;\n");
+	WRITE(p, "  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
 	WriteEncoderEnd(p, ApiType);
 }
 
@@ -650,7 +614,7 @@ void WriteCC4Encoder(char* p, const char* comp,API_TYPE ApiType)
 	WriteToBitDepth(p, 4, "color0", "color0");
 	WriteToBitDepth(p, 4, "color1", "color1");
 
-	WRITE(p, "  ocol0 = (color0 * 16.0f + color1) / 255.0f;\n");
+	WRITE(p, "  ocol0 = (color0 * 16.0 + color1) / 255.0;\n");
 	WriteEncoderEnd(p, ApiType);
 }
 
@@ -701,25 +665,25 @@ void WriteZ16Encoder(char* p,API_TYPE ApiType)
 
 	WriteSampleColor(p, "b", "depth", ApiType);
 
-	WRITE(p, "  depth *= 16777215.0f;\n");
-	WRITE(p, "  expanded.r = floor(depth / (256.0f * 256.0f));\n");
-	WRITE(p, "  depth -= expanded.r * 256.0f * 256.0f;\n");
-	WRITE(p, "  expanded.g = floor(depth / 256.0f);\n");
+	WRITE(p, "  depth *= 16777215.0;\n");
+	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
+	WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
+	WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
 
-	WRITE(p, "  ocol0.b = expanded.g / 255.0f;\n");
-	WRITE(p, "  ocol0.g = expanded.r / 255.0f;\n");
+	WRITE(p, "  ocol0.b = expanded.g / 255.0;\n");
+	WRITE(p, "  ocol0.g = expanded.r / 255.0;\n");
 
 	WriteIncrementSampleX(p, ApiType);
 
 	WriteSampleColor(p, "b", "depth", ApiType);
 
-	WRITE(p, "  depth *= 16777215.0f;\n");
-	WRITE(p, "  expanded.r = floor(depth / (256.0f * 256.0f));\n");
-	WRITE(p, "  depth -= expanded.r * 256.0f * 256.0f;\n");
-	WRITE(p, "  expanded.g = floor(depth / 256.0f);\n");
+	WRITE(p, "  depth *= 16777215.0;\n");
+	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
+	WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
+	WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
 
-	WRITE(p, "  ocol0.r = expanded.g / 255.0f;\n");
-	WRITE(p, "  ocol0.a = expanded.r / 255.0f;\n");
+	WRITE(p, "  ocol0.r = expanded.g / 255.0;\n");
+	WRITE(p, "  ocol0.a = expanded.r / 255.0;\n");
 
 	WriteEncoderEnd(p, ApiType);
 }
@@ -735,25 +699,25 @@ void WriteZ16LEncoder(char* p,API_TYPE ApiType)
 
 	WriteSampleColor(p, "b", "depth", ApiType);
 
-	WRITE(p, "  depth *= 16777215.0f;\n");
-	WRITE(p, "  expanded.r = floor(depth / (256.0f * 256.0f));\n");
-	WRITE(p, "  depth -= expanded.r * 256.0f * 256.0f;\n");
-	WRITE(p, "  expanded.g = floor(depth / 256.0f);\n");
-	WRITE(p, "  depth -= expanded.g * 256.0f;\n");
+	WRITE(p, "  depth *= 16777215.0;\n");
+	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
+	WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
+	WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
+	WRITE(p, "  depth -= expanded.g * 256.0;\n");
 	WRITE(p, "  expanded.b = depth;\n");
 
-	WRITE(p, "  ocol0.b = expanded.b / 255.0f;\n");
-	WRITE(p, "  ocol0.g = expanded.g / 255.0f;\n");
+	WRITE(p, "  ocol0.b = expanded.b / 255.0;\n");
+	WRITE(p, "  ocol0.g = expanded.g / 255.0;\n");
 
 	WriteIncrementSampleX(p, ApiType);
 
 	WriteSampleColor(p, "b", "depth", ApiType);
 
-	WRITE(p, "  depth *= 16777215.0f;\n");
-	WRITE(p, "  expanded.r = floor(depth / (256.0f * 256.0f));\n");
-	WRITE(p, "  depth -= expanded.r * 256.0f * 256.0f;\n");
-	WRITE(p, "  expanded.g = floor(depth / 256.0f);\n");
-	WRITE(p, "  depth -= expanded.g * 256.0f;\n");
+	WRITE(p, "  depth *= 16777215.0;\n");
+	WRITE(p, "  expanded.r = floor(depth / (256.0 * 256.0));\n");
+	WRITE(p, "  depth -= expanded.r * 256.0 * 256.0;\n");
+	WRITE(p, "  expanded.g = floor(depth / 256.0);\n");
+	WRITE(p, "  depth -= expanded.g * 256.0;\n");
 	WRITE(p, "  expanded.b = depth;\n");
 
 	WRITE(p, "  ocol0.r = expanded.b;\n");
@@ -766,7 +730,7 @@ void WriteZ24Encoder(char* p, API_TYPE ApiType)
 {
 	Write32BitSwizzler(p, GX_TF_Z24X8, ApiType);
 
-	WRITE(p, "  float cl = xb - (halfxb * 2.0f);\n");
+	WRITE(p, "  float cl = xb - (halfxb * 2.0);\n");
 
 	WRITE(p, "  float depth0;\n");
 	WRITE(p, "  float depth1;\n");
@@ -779,27 +743,27 @@ void WriteZ24Encoder(char* p, API_TYPE ApiType)
 
 	for (int i = 0; i < 2; i++)
 	{
-		WRITE(p, "  depth%i *= 16777215.0f;\n", i);
+		WRITE(p, "  depth%i *= 16777215.0;\n", i);
 
-		WRITE(p, "  expanded%i.r = floor(depth%i / (256.0f * 256.0f));\n", i, i);
-		WRITE(p, "  depth%i -= expanded%i.r * 256.0f * 256.0f;\n", i, i);
-		WRITE(p, "  expanded%i.g = floor(depth%i / 256.0f);\n", i, i);
-		WRITE(p, "  depth%i -= expanded%i.g * 256.0f;\n", i, i);
+		WRITE(p, "  expanded%i.r = floor(depth%i / (256.0 * 256.0));\n", i, i);
+		WRITE(p, "  depth%i -= expanded%i.r * 256.0 * 256.0;\n", i, i);
+		WRITE(p, "  expanded%i.g = floor(depth%i / 256.0);\n", i, i);
+		WRITE(p, "  depth%i -= expanded%i.g * 256.0;\n", i, i);
 		WRITE(p, "  expanded%i.b = depth%i;\n", i, i);
 	}
 
-	WRITE(p, "  if(cl > 0.5f) {\n");
+	WRITE(p, "  if(cl > 0.5) {\n");
 	// upper 16
-	WRITE(p, "     ocol0.b = expanded0.g / 255.0f;\n");
-	WRITE(p, "     ocol0.g = expanded0.b / 255.0f;\n");
-	WRITE(p, "     ocol0.r = expanded1.g / 255.0f;\n");
-	WRITE(p, "     ocol0.a = expanded1.b / 255.0f;\n");
+	WRITE(p, "     ocol0.b = expanded0.g / 255.0;\n");
+	WRITE(p, "     ocol0.g = expanded0.b / 255.0;\n");
+	WRITE(p, "     ocol0.r = expanded1.g / 255.0;\n");
+	WRITE(p, "     ocol0.a = expanded1.b / 255.0;\n");
 	WRITE(p, "  } else {\n");
 	// lower 8
-	WRITE(p, "     ocol0.b = 1.0f;\n");
-	WRITE(p, "     ocol0.g = expanded0.r / 255.0f;\n");
-	WRITE(p, "     ocol0.r = 1.0f;\n");
-	WRITE(p, "     ocol0.a = expanded1.r / 255.0f;\n");
+	WRITE(p, "     ocol0.b = 1.0;\n");
+	WRITE(p, "     ocol0.g = expanded0.r / 255.0;\n");
+	WRITE(p, "     ocol0.r = 1.0;\n");
+	WRITE(p, "     ocol0.a = expanded1.r / 255.0;\n");
 	WRITE(p, "  }\n");
 
 	WriteEncoderEnd(p, ApiType);
@@ -878,33 +842,27 @@ const char *GenerateEncodingShader(u32 format,API_TYPE ApiType)
 		WriteC4Encoder(p, "b", ApiType);
 		break;
 	case GX_CTF_Z8M:
-		WriteZ8Encoder(p, "256.0f", ApiType);
+		WriteZ8Encoder(p, "256.0", ApiType);
 		break;
 	case GX_CTF_Z8L:
-		WriteZ8Encoder(p, "65536.0f" , ApiType);
+		WriteZ8Encoder(p, "65536.0" , ApiType);
 		break;
 	case GX_CTF_Z16L:
 		WriteZ16LEncoder(p, ApiType);
 		break;
 	default:
 		PanicAlert("Unknown texture copy format: 0x%x\n", format);
-		break;		
+		break;
 	}
 
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("TextureConversionShader generator - buffer too small, canary has been eaten!");
-	
+
 #ifndef ANDROID
 	uselocale(old_locale); // restore locale
 	freelocale(locale);
 #endif
 	return text;
-}
-
-void SetShaderParameters(float width, float height, float offsetX, float offsetY, float widthStride, float heightStride,float buffW,float buffH)
-{
-	g_renderer->SetPSConstant4f(C_COLORMATRIX, widthStride, heightStride, buffW, buffH);
-	g_renderer->SetPSConstant4f(C_COLORMATRIX + 1, width, (height - 1), offsetX, offsetY);
 }
 
 }  // namespace

@@ -6,6 +6,7 @@
 #include "FileUtil.h"
 #include "DSP/DSPCore.h"
 #include "DSPLLEGlobals.h"
+#include <cinttypes>
 
 #if PROFILE
 
@@ -37,15 +38,19 @@ void ProfilerDump(u64 count)
 	File::IOFile pFile("DSP_Prof.txt", "wt");
 	if (pFile)
 	{
-		fprintf(pFile.GetHandle(), "Number of DSP steps: %llu\n\n", count);
+		fprintf(pFile.GetHandle(), "Number of DSP steps: %" PRIu64 "\n\n", count);
 		for (int i=0; i<PROFILE_MAP_SIZE;i++)
 		{
 			if (g_profileMap[i] > 0)
 			{
-				fprintf(pFile.GetHandle(), "0x%04X: %llu\n", i, g_profileMap[i]);
+				fprintf(pFile.GetHandle(), "0x%04X: %" PRIu64 "\n", i, g_profileMap[i]);
 			}
 		}
 	}
 }
+
+#elif defined(_MSC_VER)
+
+namespace { char SilenceLNK4221; };
 
 #endif

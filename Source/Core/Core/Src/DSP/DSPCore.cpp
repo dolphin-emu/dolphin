@@ -52,7 +52,7 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 	{
 		pFile.ReadArray(rom, size_in_words);
 		pFile.Close();
-	
+
 		// Byteswap the rom.
 		for (int i = 0; i < size_in_words; i++)
 			rom[i] = Common::swap16(rom[i]);
@@ -113,13 +113,17 @@ static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
 	}
 
 	if (rom_idx == 1)
-		PanicAlertT("You are using an old free DSP ROM made by the Dolphin Team.\n"
-					"Only games using the Zelda UCode will work correctly.\n");
+	{
+		DSPHost_OSD_AddMessage("You are using an old free DSP ROM made by the Dolphin Team.", 6000);
+		DSPHost_OSD_AddMessage("Only games using the Zelda UCode will work correctly.", 6000);
+	}
 
 	if (rom_idx == 2)
-		PanicAlertT("You are using a free DSP ROM made by the Dolphin Team.\n"
-					"All Wii games will work correctly, and most GC games should "
-					"also work fine, but the GBA/IPL/CARD UCodes will not work.\n");
+	{
+		DSPHost_OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
+		DSPHost_OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
+		DSPHost_OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.\n", 8000);
+	}
 
 	return true;
 }
@@ -139,7 +143,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 	cyclesLeft = 0;
 	init_hax = false;
 	dspjit = NULL;
-	
+
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
 	g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
 	g_dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
@@ -198,7 +202,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	// Initialize JIT, if necessary
-	if(bUsingJIT) 
+	if(bUsingJIT)
 		dspjit = new DSPEmitter();
 
 	core_state = DSPCORE_RUNNING;
@@ -250,7 +254,7 @@ void DSPCore_CheckExternalInterrupt()
 
 	// Signal the SPU about new mail
 	DSPCore_SetException(EXP_INT);
-	
+
 	g_dsp.cr &= ~CR_EXTERNAL_INT;
 }
 

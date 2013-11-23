@@ -4,7 +4,6 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: font.h 70445 2012-01-23 11:28:21Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -37,6 +36,20 @@ public:
     /*! @abstract   Default construction of invalid font for 2-step construct then Create process.
      */
     wxFont() { }
+
+    wxFont(const wxFontInfo& info)
+    {
+        Create(info.GetPointSize(),
+               info.GetFamily(),
+               info.GetStyle(),
+               info.GetWeight(),
+               info.IsUnderlined(),
+               info.GetFaceName(),
+               info.GetEncoding());
+
+        if ( info.IsUsingSizeInPixels() )
+            SetPixelSize(info.GetPixelSize());
+    }
 
     /*! @abstract   Platform-independent construction with individual properties
      */
@@ -73,19 +86,6 @@ public:
     {
         Create(10, family, style, weight, underlined, face, encoding);
         SetPixelSize(pixelSize);
-    }
-
-    wxFont(int pointSize,
-           wxFontFamily family,
-           int flags = wxFONTFLAG_DEFAULT,
-           const wxString& face = wxEmptyString,
-           wxFontEncoding encoding = wxFONTENCODING_DEFAULT)
-    {
-        Create(pointSize, family,
-               GetStyleFromFlags(flags),
-               GetWeightFromFlags(flags),
-               GetUnderlinedFromFlags(flags),
-               face, encoding);
     }
 
     /*! @abstract   Construction with opaque wxNativeFontInfo

@@ -5,7 +5,7 @@
 #ifndef _EXIINTERFACE_H
 #define _EXIINTERFACE_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 #include "EXI_Channel.h"
 #include "Thread.h"
 class PointerWrap;

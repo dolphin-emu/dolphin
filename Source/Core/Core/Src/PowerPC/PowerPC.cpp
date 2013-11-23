@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <float.h>
-
 #include "Common.h"
 #include "Atomic.h"
 #include "MathUtil.h"
@@ -121,7 +119,6 @@ void Init(int cpu_core)
 	memset(ppcState.sr, 0, sizeof(ppcState.sr));
 	ppcState.DebugCount = 0;
 	ppcState.dtlb_last = 0;
-	ppcState.dtlb_last = 0;
 	memset(ppcState.dtlb_va, 0, sizeof(ppcState.dtlb_va));
 	memset(ppcState.dtlb_pa, 0, sizeof(ppcState.dtlb_pa));
 	ppcState.itlb_last = 0;
@@ -202,7 +199,7 @@ void SetMode(CoreMode new_mode)
 	}
 }
 
-void SingleStep() 
+void SingleStep()
 {
 	cpu_core_base->SingleStep();
 }
@@ -345,7 +342,7 @@ void CheckExceptions()
 
 		INFO_LOG(POWERPC, "EXCEPTION_PROGRAM");
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_PROGRAM);
-	} 
+	}
 	else if (exceptions & EXCEPTION_SYSCALL)
 	{
 		SRR0 = NPC;
@@ -358,7 +355,7 @@ void CheckExceptions()
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_SYSCALL);
 	}
 	else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
-	{			
+	{
 		//This happens a lot - Gamecube OS uses deferred FPU context switching
 		SRR0 = PC;	// re-execute the instruction
 		SRR1 = MSR & 0x87C0FFFF;
@@ -380,7 +377,7 @@ void CheckExceptions()
 
 		INFO_LOG(POWERPC, "EXCEPTION_DSI");
 		Common::AtomicAnd(ppcState.Exceptions, ~EXCEPTION_DSI);
-	} 
+	}
 	else if (exceptions & EXCEPTION_ALIGNMENT)
 	{
 		//This never happens ATM
