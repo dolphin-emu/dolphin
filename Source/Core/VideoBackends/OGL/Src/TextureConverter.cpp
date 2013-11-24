@@ -351,7 +351,10 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 
 	s_rgbToYuyvProgram.Bind();
 
-	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
+	// We enable linear filtering, because the gamecube does filtering in the vertical direction when
+	// yscale is enabled.
+	// Otherwise we get jaggies when a game uses yscaling (most PAL games)
+	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, true);
 	FramebufferManager::SetFramebuffer(0);
 	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
