@@ -13,6 +13,7 @@
 #include "../../ConfigManager.h"
 #include "../../PowerPC/PowerPC.h"
 #include "Host.h"
+#include "OnScreenDisplay.h"
 
 // The user of the DSPCore library must supply a few functions so that the
 // emulation core can access the environment it runs in. If the emulation
@@ -27,6 +28,11 @@ u8 DSPHost_ReadHostMemory(u32 addr)
 void DSPHost_WriteHostMemory(u8 value, u32 addr)
 {
 	DSP::WriteARAM(value, addr);
+}
+
+void DSPHost_OSD_AddMessage(const std::string& str, u32 ms)
+{
+	OSD::AddMessage(str, ms);
 }
 
 bool DSPHost_OnThread()

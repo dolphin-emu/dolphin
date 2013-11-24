@@ -137,7 +137,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 	SetJumpTarget(noExceptionsPending);
 	SetJumpTarget(eeDisabled);
 
-	WriteExit(js.compilerPC + 4, 0);
+	WriteExit(js.compilerPC + 4);
 
 	js.firstFPInstructionFound = false;
 }

@@ -552,7 +552,8 @@ static void regEmitICmpInst(RegInfo& RI, InstLoc I, CCFlags flag) {
 
 static void regWriteExit(RegInfo& RI, InstLoc dest) {
 	if (isImm(*dest)) {
-		RI.Jit->WriteExit(RI.Build->GetImmValue(dest), RI.exitNumber++);
+		RI.exitNumber++;
+		RI.Jit->WriteExit(RI.Build->GetImmValue(dest));
 	} else {
 		RI.Jit->WriteExitDestInOpArg(regLocForInst(RI, dest));
 	}
@@ -564,7 +565,7 @@ static bool checkIsSNAN() {
 	return MathUtil::IsSNAN(isSNANTemp[0][0]) || MathUtil::IsSNAN(isSNANTemp[1][0]);
 }
 
-static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
+static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 	//printf("Writing block: %x\n", js.blockStart);
 	RegInfo RI(Jit, ibuild->getFirstInst(), ibuild->getNumInsts());
 	RI.Build = ibuild;
@@ -1791,7 +1792,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 			Jit->ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 			Jit->TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 			FixupBranch noBreakpoint = Jit->J_CC(CC_Z);
-			Jit->WriteExit(InstLoc, 0);
+			Jit->WriteExit(InstLoc);
 			Jit->SetJumpTarget(noBreakpoint);
 			break;
 		}
@@ -1819,10 +1820,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 		}
 	}
 
-	Jit->WriteExit(jit->js.curBlock->exitAddress[0], 0);
+	Jit->WriteExit(exitAddress);
 	Jit->UD2();
 }
 
-void JitIL::WriteCode() {
-	DoWriteCode(&ibuild, this);
+void JitIL::WriteCode(u32 exitAddress) {
+	DoWriteCode(&ibuild, this, exitAddress);
 }

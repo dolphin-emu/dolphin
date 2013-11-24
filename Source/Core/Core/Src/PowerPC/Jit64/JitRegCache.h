@@ -93,7 +93,7 @@ public:
 	const OpArg &R(int preg) const {return regs[preg].location;}
 	X64Reg RX(int preg) const
 	{
-		if (regs[preg].away && regs[preg].location.IsSimpleReg())
+		if (IsBound(preg))
 			return regs[preg].location.GetSimpleReg();
 		PanicAlert("Not so simple - %i", preg);
 		return (X64Reg)-1;
@@ -109,6 +109,11 @@ public:
 	bool IsFreeX(int xreg) const
 	{
 		return xregs[xreg].free && !xlocks[xreg];
+	}
+
+	bool IsBound(int preg) const
+	{
+		return regs[preg].away && regs[preg].location.IsSimpleReg();
 	}
 
 

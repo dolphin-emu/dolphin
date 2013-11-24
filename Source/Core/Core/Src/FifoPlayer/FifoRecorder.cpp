@@ -83,9 +83,9 @@ void FifoRecorder::WriteGPCommand(u8 *data, u32 size)
 	if (m_FrameEnded && m_FifoData.size() > 0)
 	{
 		size_t dataSize = m_FifoData.size();
-		m_CurrentFrame.fifoDataSize = dataSize;
+		m_CurrentFrame.fifoDataSize = (u32)dataSize;
 		m_CurrentFrame.fifoData = new u8[dataSize];
-		memcpy(m_CurrentFrame.fifoData, &m_FifoData[0], dataSize);
+		memcpy(m_CurrentFrame.fifoData, m_FifoData.data(), dataSize);
 
 		sMutex.lock();
 
@@ -129,7 +129,7 @@ void FifoRecorder::WriteMemory(u32 address, u32 size, MemoryUpdate::Type type)
 		// Record memory update
 		MemoryUpdate memUpdate;
 		memUpdate.address = address;
-		memUpdate.fifoPosition = m_FifoData.size();
+		memUpdate.fifoPosition = (u32)(m_FifoData.size());
 		memUpdate.size = size;
 		memUpdate.type = type;
 		memUpdate.data = new u8[size];

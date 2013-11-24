@@ -53,7 +53,7 @@ namespace DriverDetails
 		// Bug: No Dynamic UBO array object access
 		// Affected Devices: Qualcomm/Adreno
 		// Started Version: 14
-		// Ended Version: -1
+		// Ended Version: 53
 		// Accessing UBO array members dynamically causes the Adreno shader compiler to crash
 		// Errors out with "Internal Error"
 		BUG_NODYNUBOACCESS = 0,
@@ -94,15 +94,16 @@ namespace DriverDetails
 		// Bug: The pinned memory extension isn't working for index buffers
 		// Affected devices: AMD as they are the only vendor providing this extension
 		// Started Version: ?
-		// Ended Version: -1
+		// Ended Version: 13.9 working for me (neobrain).
 		// Pinned memory is disabled for index buffer as the amd driver (the only one with pinned memory support) seems
 		// to be broken. We just get flickering/black rendering when using pinned memory here -- degasus - 2013/08/20
 		// Please see issue #6105 on google code. Let's hope buffer storage solves this issues.
+		// TODO: Detect broken drivers.
 		BUG_BROKENPINNEDMEMORY,
 		// Bug: Entirely broken UBOs
 		// Affected devices: Qualcomm/Adreno
 		// Started Version: ? (Noticed on v45)
-		// Ended Version: -1
+		// Ended Version: 53
 		// Uniform buffers are entirely broken on Qualcomm drivers with v45
 		// Trying to use the uniform buffers causes a malloc to fail inside the driver
 		// To be safe, blanket drivers from v41 - v45
@@ -115,20 +116,6 @@ namespace DriverDetails
 		// Drawing on screen text causes the whole screen to swizzle in a terrible fashion
 		// Clearing the framebuffer causes one to never see a frame.
 		BUG_BROKENSWAP,
-		// Bug: Running on a Tegra 4 device
-		// Affected devices: Nvidia Tegra
-		// Started Version: 4
-		// Ended Version: 5
-		// Tegra 4 hardware limitations don't allow it to support OpenGL ES 3
-		// This is fixed in Tegra 5
-		BUG_ISTEGRA,
-		// Bug: Running on a PowerVR5 device
-		// Affected devices: PowerVR54x
-		// Started Version: 540
-		// Ended Version: 6xxx
-		// PowerVR 5 hardware limitations don't allow it to support OpenGL ES 3
-		// This is fixed in PowerVR6
-		BUG_ISPOWERVR,
 		// Bug: glBufferSubData/glMapBufferRange stalls + OOM
 		// Affected devices: Adreno a3xx/Mali-t6xx
 		// Started Version: -1

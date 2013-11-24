@@ -16,14 +16,11 @@ SamplerCache::SamplerCache()
 
 SamplerCache::~SamplerCache()
 {
-	if (!DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
-		Clear();
+	Clear();
 }
 
 void SamplerCache::SetSamplerState(int stage, const TexMode0& tm0, const TexMode1& tm1)
 {
-	if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
-		return;
 	// TODO: can this go somewhere else?
 	if (m_last_max_anisotropy != g_ActiveConfig.iMaxAnisotropy)
 	{

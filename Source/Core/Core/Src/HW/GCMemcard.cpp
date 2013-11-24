@@ -40,19 +40,19 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 			PanicAlertT("File has the extension \"%s\"\nvalid extensions are (.raw/.gcp)", fileType.c_str());
 			return;
 		}
-		u32 size = mcdFile.GetSize();
+		auto size = mcdFile.GetSize();
 		if (size < MC_FST_BLOCKS*BLOCK_SIZE)
 		{
-			PanicAlertT("%s failed to load as a memorycard \nfile is not large enough to be a valid memory card file (0x%x bytes)", filename, size);
+			PanicAlertT("%s failed to load as a memorycard \nfile is not large enough to be a valid memory card file (0x%x bytes)", filename, (unsigned) size);
 			return;
 		}
 		if (size % BLOCK_SIZE)
 		{
-			PanicAlertT("%s failed to load as a memorycard \n Card file size is invalid (0x%x bytes)", filename, size);
+			PanicAlertT("%s failed to load as a memorycard \n Card file size is invalid (0x%x bytes)", filename, (unsigned) size);
 				return;
 		}
 
-		m_sizeMb = (size/BLOCK_SIZE) / MBIT_TO_BLOCKS;
+		m_sizeMb = (u16)((size/BLOCK_SIZE) / MBIT_TO_BLOCKS);
 		switch (m_sizeMb)
 		{
 			case MemCard59Mb:
@@ -63,7 +63,7 @@ GCMemcard::GCMemcard(const char *filename, bool forceCreation, bool sjis)
 			case MemCard2043Mb:
 				break;
 			default:
-				PanicAlertT("%s failed to load as a memorycard \n Card size is invalid (0x%x bytes)", filename, size);
+				PanicAlertT("%s failed to load as a memorycard \n Card size is invalid (0x%x bytes)", filename, (unsigned) size);
 				return;
 		}
 	}

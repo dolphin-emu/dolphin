@@ -14,12 +14,13 @@
 #include "PSTextureEncoder.h"
 #include "HW/Memmap.h"
 #include "VideoConfig.h"
+#include "ImageWrite.h"
 
 namespace DX11
 {
 
 static TextureEncoder* g_encoder = NULL;
-const size_t MAX_COPY_BUFFERS = 25;
+const size_t MAX_COPY_BUFFERS = 32;
 ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
 
 TextureCache::TCacheEntry::~TCacheEntry()
@@ -32,7 +33,7 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
 }
 
-bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
+bool TextureCache::TCacheEntry::Save(const std::string filename, unsigned int level)
 {
 	// TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
 	static bool warn_once = true;
@@ -54,6 +55,8 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 
 	HRESULT hr = D3D::device->CreateTexture2D(&desc, NULL, &pNewTexture);
 
+	bool saved_png = false;
+
 	if (SUCCEEDED(hr) && pNewTexture)
 	{
 		D3D::context->CopyResource(pNewTexture, pSurface);
@@ -62,13 +65,13 @@ bool TextureCache::TCacheEntry::Save(const char filename[], unsigned int level)
 		HRESULT hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 		if (SUCCEEDED(hr))
 		{
-			hr = D3D::TextureToPng(map, UTF8ToUTF16(filename).c_str(), desc.Width, desc.Height);
+			saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, desc.Width, desc.Height);
 			D3D::context->Unmap(pNewTexture, 0);
 		}
 		SAFE_RELEASE(pNewTexture);
 	}
 
-	return SUCCEEDED(hr);
+	return saved_png;
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,

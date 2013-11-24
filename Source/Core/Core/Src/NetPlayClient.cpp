@@ -445,10 +445,11 @@ void NetPlayClient::SendWiimoteState(const PadMapping in_game_pad, const NetWiim
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_WIIMOTE_DATA;
 	spac << in_game_pad;
-	u8 size = nw.size();
-	spac << size;
-	for (unsigned int i = 0; i < size; ++i)
-		spac << nw.data()[i];
+	spac << (u8)nw.size();
+	for (auto it : nw)
+	{
+		spac << it;
+	}
 
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 	m_socket.Send(spac);

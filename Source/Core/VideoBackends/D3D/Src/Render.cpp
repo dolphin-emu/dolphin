@@ -34,6 +34,7 @@
 #include "FPSCounter.h"
 #include "ConfigManager.h"
 #include <strsafe.h>
+#include "ImageWrite.h"
 
 namespace DX11
 {
@@ -693,11 +694,12 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 	D3D11_MAPPED_SUBRESOURCE map;
 	D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
 
-	// ready to be saved
-	HRESULT hr = D3D::TextureToPng(map, UTF8ToUTF16(filename.c_str()).c_str(), rc.GetWidth(), rc.GetHeight(), false);
+	bool saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, rc.GetWidth(), rc.GetHeight(), false);
+
 	D3D::context->Unmap(s_screenshot_texture, 0);
 
-	if (SUCCEEDED(hr))
+
+	if (saved_png)
 	{
 		OSD::AddMessage(StringFromFormat("Saved %i x %i %s", rc.GetWidth(),
 		                                 rc.GetHeight(), filename.c_str()));
@@ -707,7 +709,7 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 		OSD::AddMessage(StringFromFormat("Error saving %s", filename.c_str()));
 	}
 
-	return SUCCEEDED(hr);
+	return saved_png;
 }
 
 void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
@@ -830,7 +832,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 				//drawRc.right *= hScale;
 			}
 
-			xfbSource->Draw(sourceRc, drawRc, 0, 0);
+			xfbSource->Draw(sourceRc, drawRc);
 		}
 	}
 	else

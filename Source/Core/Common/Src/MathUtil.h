@@ -64,10 +64,10 @@ inline float FlushToZero(float f)
 	return x.f;
 }
 
-inline double FlushToZeroAsFloat(double d)
+inline double FlushToZero(double d)
 {
 	IntDouble x; x.d = d;
-	if ((x.i & DOUBLE_EXP) < 0x3800000000000000ULL)
+	if ((x.i & DOUBLE_EXP) == 0)
 		x.i &= DOUBLE_SIGN;  // turn into signed zero
 	return x.d;
 }

@@ -86,4 +86,9 @@ public final class DolphinEmulator extends Activity
 			UserPreferences.LoadIniToPrefs(this);
 		}
 	}
+	protected void onRestart()
+	{
+		super.onRestart();
+		finish(); // If we are ever returning to this activity then we are exiting.
+	}
 }

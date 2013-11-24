@@ -571,12 +571,12 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n" // ubo
 		"%s\n" // early-z
 
-		// Precision defines for GLSLES2/3
+		// Precision defines for GLSLES3
 		"%s\n"
 
 		"\n"// A few required defines and ones that will make our lives a lot easier
-		"#define ATTRIN %s\n"
-		"#define ATTROUT %s\n"
+		"#define ATTRIN in\n"
+		"#define ATTROUT out\n"
 		"#define VARYIN %s\n"
 		"#define VARYOUT %s\n"
 
@@ -594,40 +594,18 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n"
 		"%s\n"
 
-		// GLSLES2 hacks
-		"%s\n"
-		"%s\n"
-		"%s\n"
-		"%s\n"
-		"%s\n"
-		"%s\n"
-		"%s\n"
-		"#define COLOROUT(name) %s\n"
-
-
-		, v==GLSLES2 ? "" : v==GLSLES3 ? "#version 300 es" : v==GLSL_130 ? "#version 130" : v==GLSL_140 ? "#version 140" : "#version 150"
+		, v==GLSLES3 ? "#version 300 es" : v==GLSL_130 ? "#version 130" : v==GLSL_140 ? "#version 140" : "#version 150"
 		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
 
-		, (v==GLSLES3 || v==GLSLES2) ? "precision highp float;" : ""
+		, v==GLSLES3 ? "precision highp float;" : ""
 
-		, v==GLSLES2 ? "attribute" : "in"
-		, v==GLSLES2 ? "attribute" : "out"
-		, v==GLSLES2 ? "varying" : DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "in" : "centroid in"
-		, v==GLSLES2 ? "varying" : DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "out" : "centroid out"
+		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "in" : "centroid in"
+		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "out" : "centroid out"
 
-		, v==GLSLES2 ? "#define texture2DRect texture2D" : v==GLSLES3 ? "" : v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
+		, v==GLSLES3 ? "" : v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
 		, v==GLSLES3 ? "#define texture2DRect(samp, uv)  texelFetch(samp, ivec2(floor(uv)), 0)" : ""
-		, (v==GLSLES3 || v==GLSLES2) ? "#define sampler2DRect sampler2D" : ""
-
-		, v==GLSLES2 ? "#define texture texture2D" : ""
-		, v==GLSLES2 ? "#define round(x) floor((x)+0.5)" : ""
-		, v==GLSLES2 ? "#define out " : ""
-		, v==GLSLES2 ? "#define ocol0 gl_FragColor" : ""
-		, v==GLSLES2 ? "#define ocol1 gl_FragColor" : ""
-		, DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA) ? "#extension GL_NV_uniform_buffer_object : enable" : ""
-		, DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA) ? "#extension GL_NV_fragdepth : enable" : ""
-		, v==GLSLES2 ? "" : "out vec4 name;"
+		, v==GLSLES3 ? "#define sampler2DRect sampler2D" : ""
 	);
 }
 

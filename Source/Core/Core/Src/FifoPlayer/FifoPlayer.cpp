@@ -105,7 +105,9 @@ bool FifoPlayer::Play()
 u32 FifoPlayer::GetFrameObjectCount()
 {
 	if (m_CurrentFrame < m_FrameInfo.size())
-		return m_FrameInfo[m_CurrentFrame].objectStarts.size();
+	{
+		return (u32)(m_FrameInfo[m_CurrentFrame].objectStarts.size());
+	}
 
 	return 0;
 }
@@ -172,7 +174,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo 
 	m_FrameFifoSize = frame.fifoDataSize;
 
 	// Determine start and end objects
-	u32 numObjects = info.objectStarts.size();
+	u32 numObjects = (u32)(info.objectStarts.size());
 	u32 drawStart = std::min(numObjects, m_ObjectRangeStart);
 	u32 drawEnd = std::min(numObjects - 1, m_ObjectRangeEnd);
 
@@ -181,7 +183,9 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo &frame, const AnalyzedFrameInfo 
 
 	// Skip memory updates during frame if true
 	if (m_EarlyMemoryUpdates)
-		memoryUpdate = frame.memoryUpdates.size();
+	{
+		memoryUpdate = (u32)(frame.memoryUpdates.size());
+	}
 
 	if (numObjects > 0)
 	{

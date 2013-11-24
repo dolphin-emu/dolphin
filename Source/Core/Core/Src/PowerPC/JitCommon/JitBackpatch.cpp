@@ -234,7 +234,7 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 		XEmitter emitter(start);
 		const u8 *trampoline = trampolines.GetWriteTrampoline(info, registersInUse);
 		emitter.CALL((void *)trampoline);
-		emitter.NOP(codePtr + info.instructionSize - emitter.GetCodePtr());
+		emitter.NOP((int)(codePtr + info.instructionSize - emitter.GetCodePtr()));
 		return start;
 	}
 #else

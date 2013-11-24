@@ -385,12 +385,12 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 		Memory::WriteBigEData((const u8*)&wii_device, OffsetBuffer, Align(wii_device.bLength, 4));
 		OffsetBuffer += Align(wii_device.bLength, 4);
 		bool deviceValid = true;
+		bool isHID = false;
 
 		for (c = 0; deviceValid && c < desc.bNumConfigurations; c++)
 		{
 			struct libusb_config_descriptor *config = NULL;
 			int cRet = libusb_get_config_descriptor(device, c, &config);
-
 			// do not try to use usb devices with more than one interface, games can crash
 			if(cRet == 0 && config->bNumInterfaces <= MAX_HID_INTERFACES)
 			{
@@ -402,9 +402,13 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 				for (ic = 0; ic < config->bNumInterfaces; ic++)
 				{
 					const struct libusb_interface *interfaceContainer = &config->interface[ic];
+					
 					for (i = 0; i < interfaceContainer->num_altsetting; i++)
 					{
 						const struct libusb_interface_descriptor *interface = &interfaceContainer->altsetting[i];
+
+						if (interface->bInterfaceClass == LIBUSB_CLASS_HID)
+							isHID = true;
 
 						WiiHIDInterfaceDescriptor wii_interface;
 						ConvertInterfaceToWii(&wii_interface, interface);
@@ -434,6 +438,12 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 				OffsetBuffer = OffsetStart;
 			}
 		} // configs
+
+		if (!isHID)
+		{
+			deviceValid = false;
+			OffsetBuffer = OffsetStart;
+		}
 
 		if (deviceValid)
 		{

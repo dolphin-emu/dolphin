@@ -310,14 +310,14 @@ int Wiimote::IORead(unsigned char *buf)
 	return inputlen;
 }
 
-int Wiimote::IOWrite(const unsigned char *buf, int len)
+int Wiimote::IOWrite(const unsigned char *buf, size_t len)
 {
 	IOReturn ret;
 
 	if (!IsConnected())
 		return 0;
 
-	ret = [ichan writeAsync: const_cast<void*>((void *)buf) length: len refcon: nil];
+	ret = [ichan writeAsync: const_cast<void*>((void *)buf) length: (int)len refcon: nil];
 
 	if (ret == kIOReturnSuccess)
 		return len;

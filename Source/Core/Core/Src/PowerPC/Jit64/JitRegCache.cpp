@@ -166,7 +166,7 @@ int RegCache::SanityCheck() const
 
 void RegCache::DiscardRegContentsIfCached(int preg)
 {
-	if (regs[preg].away && regs[preg].location.IsSimpleReg())
+	if (IsBound(preg))
 	{
 		X64Reg xr = regs[preg].location.GetSimpleReg();
 		xregs[xr].free = true;

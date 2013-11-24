@@ -106,7 +106,7 @@ private:
 	void WriteReport(Report rpt);
 
 	int IORead(u8* buf);
-	int IOWrite(u8 const* buf, int len);
+	int IOWrite(u8 const* buf, size_t len);
 	void IOWakeup();
 
 	void ThreadFunc();

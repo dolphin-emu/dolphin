@@ -19,18 +19,15 @@ void LoadBPReg(u32 value0)
 	int opcode = value0 >> 24;
 	int oldval = ((u32*)&bpmem)[opcode];
 	int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
+	int changes = (oldval ^ newval) & 0xFFFFFF;
 
+	BPCmd bp = {opcode, changes, newval};
+
+	//reset the mask register
 	if (opcode != 0xFE)
-	{
-		//reset the mask register
 		bpmem.bpMask = 0xFFFFFF;
 
-		int changes = (oldval ^ newval) & 0xFFFFFF;
-		BPCmd bp = {opcode, changes, newval};
-		BPWritten(bp);
-	}
-	else
-		bpmem.bpMask = newval;
+	BPWritten(bp);
 }
 
 void GetBPRegInfo(const u8* data, char* name, size_t name_size, char* desc, size_t desc_size)

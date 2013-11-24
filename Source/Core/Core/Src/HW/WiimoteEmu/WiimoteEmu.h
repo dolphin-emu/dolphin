@@ -96,7 +96,7 @@ inline double trim(double a)
 class Wiimote : public ControllerEmu
 {
 friend class WiimoteReal::Wiimote;
-friend void Spy(Wiimote* wm_, const void* data_, int size_);
+friend void Spy(Wiimote* wm_, const void* data_, size_t size_);
 public:
 
 	enum
@@ -245,7 +245,7 @@ private:
 	}	m_reg_speaker;
 };
 
-void Spy(Wiimote* wm_, const void* data_, int size_);
+void Spy(Wiimote* wm_, const void* data_, size_t size_);
 
 }
 

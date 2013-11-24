@@ -571,7 +571,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
 			}
 			else
 			{
-				u32 size = entry.size;
+				u32 size = (u32)entry.size;
 				p.Do(size);
 
 				File::IOFile handle(entry.physicalName, "rb");

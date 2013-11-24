@@ -99,7 +99,7 @@ public:
 
 	// Utilities for use by opcodes
 
-	void WriteExit(u32 destination, int exit_num);
+	void WriteExit(u32 destination);
 	void WriteExitDestInEAX();
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();
@@ -182,7 +182,7 @@ public:
 	void ps_sum(UGeckoInstruction inst);
 	void ps_muls(UGeckoInstruction inst);
 
-	void fp_arith_s(UGeckoInstruction inst);
+	void fp_arith(UGeckoInstruction inst);
 	void frsqrtex(UGeckoInstruction inst);
 
 	void fcmpx(UGeckoInstruction inst);

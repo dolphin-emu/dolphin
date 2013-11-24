@@ -276,7 +276,7 @@ void Jit64::Cleanup()
 		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
-void Jit64::WriteExit(u32 destination, int exit_num)
+void Jit64::WriteExit(u32 destination)
 {
 	Cleanup();
 
@@ -284,8 +284,9 @@ void Jit64::WriteExit(u32 destination, int exit_num)
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
-	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = GetWritableCodePtr();
+	JitBlock::LinkData linkData;
+	linkData.exitAddress = destination;
+	linkData.exitPtrs = GetWritableCodePtr();
 
 	// Link opportunity!
 	if (jo.enableBlocklink)
@@ -295,12 +296,14 @@ void Jit64::WriteExit(u32 destination, int exit_num)
 		{
 			// It exists! Joy of joy!
 			JMP(blocks.GetBlock(block)->checkedEntry, true);
-			b->linkStatus[exit_num] = true;
+			linkData.linkStatus = true;
 			return;
 		}
 	}
 	MOV(32, M(&PC), Imm32(destination));
 	JMP(asm_routines.dispatcher, true);
+
+	b->linkData.push_back(linkData);
 }
 
 void Jit64::WriteExitDestInEAX()
@@ -625,7 +628,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
 
-				WriteExit(ops[i].address, 0);
+				WriteExit(ops[i].address);
 				SetJumpTarget(noBreakpoint);
 			}
 
@@ -707,7 +710,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
-		WriteExit(nextPC, 0);
+		WriteExit(nextPC);
 	}
 
 	b->flags = js.block_flags;

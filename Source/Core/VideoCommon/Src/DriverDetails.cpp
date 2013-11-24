@@ -27,7 +27,7 @@ namespace DriverDetails
 	// This is a list of all known bugs for each vendor
 	// We use this to check if the device and driver has a issue
 	BugInfo m_known_bugs[] = {
-		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_NODYNUBOACCESS,	14.0, -1.0, true},
+		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_NODYNUBOACCESS,	14.0, 46.0, true},
 		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_BROKENCENTROID,	14.0, -1.0, true},
 		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_BROKENINFOLOG,	-1.0, -1.0, true},
 		{VENDOR_QUALCOMM,	DRIVER_QUALCOMM_3XX,	BUG_ANNIHILATEDUBOS,	41.0, 46.0, true},
@@ -39,9 +39,6 @@ namespace DriverDetails
 		{VENDOR_MESA,	DRIVER_I965,		BUG_BROKENUBO,		900,  920, true},
 		{VENDOR_ATI,	DRIVER_ATI,			BUG_BROKENHACKEDBUFFER,	-1.0, -1.0, true},
 		{VENDOR_MESA,	DRIVER_NOUVEAU,		BUG_BROKENHACKEDBUFFER,	-1.0, -1.0, true},
-		{VENDOR_ATI,	DRIVER_ATI,			BUG_BROKENPINNEDMEMORY,	-1.0, -1.0, true},
-		{VENDOR_TEGRA,	DRIVER_NVIDIA,		BUG_ISTEGRA,		-1.0, -1.0, true},
-		{VENDOR_IMGTEC,	DRIVER_IMGTEC,		BUG_ISPOWERVR,		-1.0, -1.0, true},
 	};
 
 	std::map<Bug, BugInfo> m_bugs;

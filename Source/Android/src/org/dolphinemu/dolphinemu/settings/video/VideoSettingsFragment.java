@@ -27,6 +27,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	public static String m_GLVendor;
 	public static String m_GLRenderer;
 	public static String m_GLExtensions;
+	public static float m_QualcommVersion;
 
 	/**
 	 * Class which provides a means to retrieve various
@@ -163,7 +164,6 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			{
 				int mVStart = m_GLVersion.indexOf("V@") + 2;
 				int mVEnd = 0;
-				float mVersion;
 
 				for (int a = mVStart; a < m_GLVersion.length(); ++a)
 				{
@@ -174,19 +174,11 @@ public final class VideoSettingsFragment extends PreferenceFragment
 					}
 				}
 
-				mVersion = Float.parseFloat(m_GLVersion.substring(mVStart, mVEnd));
+				m_QualcommVersion = Float.parseFloat(m_GLVersion.substring(mVStart, mVEnd));
 
-				if (mVersion >= 14.0f)
+				if (m_QualcommVersion  >= 14.0f)
 					mSupportsGLES3 = true;
 			}
-		}
-		if (!mSupportsGLES3 &&
-				m_GLVendor != null && m_GLVendor.equals("NVIDIA Corporation") &&
-				m_GLRenderer != null && m_GLRenderer.equals("NVIDIA Tegra") &&
-				m_GLExtensions != null && m_GLExtensions.contains("GL_OES_depth24"))
-		{
-			// Is a Tegra 4 since it supports 24bit depth
-			mSupportsGLES3 = true;
 		}
 		return mSupportsGLES3;
 	}

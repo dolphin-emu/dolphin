@@ -263,9 +263,9 @@ int Wiimote::IORead(u8* buf)
 	return r;
 }
 
-int Wiimote::IOWrite(u8 const* buf, int len)
+int Wiimote::IOWrite(u8 const* buf, size_t len)
 {
-	return write(int_sock, buf, len);
+	return write(int_sock, buf, (int)len);
 }
 
 }; // WiimoteReal

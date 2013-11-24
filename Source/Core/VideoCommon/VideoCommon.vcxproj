@@ -152,8 +152,14 @@
     <ProjectReference Include="..\..\..\Externals\CLRun\clrun\CLRun.vcxproj">
       <Project>{aa862e5e-a993-497a-b6a0-0e8e94b10050}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\libpng\png\png.vcxproj">
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\SOIL\SOIL.vcxproj">
       <Project>{b441cc62-877e-4b3f-93e0-0de80544f705}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
     </ProjectReference>
     <ProjectReference Include="..\Common\Common.vcxproj">
       <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>

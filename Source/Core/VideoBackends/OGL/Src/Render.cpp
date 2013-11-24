@@ -63,10 +63,6 @@
 #include "AVIDump.h"
 #endif
 
-#if defined(HAVE_WX) && HAVE_WX
-#include <wx/image.h>
-#endif
-
 // glew1.8 doesn't define KHR_debug
 #ifndef GL_DEBUG_OUTPUT
 #define GL_DEBUG_OUTPUT 0x92E0
@@ -77,18 +73,6 @@ void VideoConfig::UpdateProjectionHack()
 {
 	::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
-
-
-#if defined(HAVE_WX) && HAVE_WX
-// Screenshot thread struct
-typedef struct
-{
-	int W, H;
-	std::string filename;
-	wxImage *img;
-} ScrStrct;
-#endif
-
 
 int OSDInternalW, OSDInternalH;
 
@@ -387,10 +371,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupportSampleShading = false;
 	g_ogl_config.bSupportOGL31 = false;
 	g_ogl_config.bSupportViewportFloat = false;
-	if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA) || DriverDetails::HasBug(DriverDetails::BUG_ISPOWERVR))
-		g_ogl_config.eSupportedGLSLVersion = GLSLES2;
-	else
-		g_ogl_config.eSupportedGLSLVersion = GLSLES3;
+	g_ogl_config.eSupportedGLSLVersion = GLSLES3;
 #else
 #ifdef __APPLE__
 	glewExperimental = 1;
@@ -485,19 +466,23 @@ Renderer::Renderer()
 
 	}
 
-	g_Config.backend_info.bSupportsDualSourceBlend = GLEW_ARB_blend_func_extended;
-	g_Config.backend_info.bSupportsGLSLUBO = GLEW_ARB_uniform_buffer_object;
-	g_Config.backend_info.bSupportsPrimitiveRestart = GLEW_VERSION_3_1 || GLEW_NV_primitive_restart;
-	g_Config.backend_info.bSupportsEarlyZ = GLEW_ARB_shader_image_load_store;
+#define TO_BOOL(c) (0 != (c))
 
-	g_ogl_config.bSupportsGLSLCache = GLEW_ARB_get_program_binary;
-	g_ogl_config.bSupportsGLPinnedMemory = GLEW_AMD_pinned_memory;
-	g_ogl_config.bSupportsGLSync = GLEW_ARB_sync;
-	g_ogl_config.bSupportsGLBaseVertex = GLEW_ARB_draw_elements_base_vertex;
-	g_ogl_config.bSupportCoverageMSAA = GLEW_NV_framebuffer_multisample_coverage;
-	g_ogl_config.bSupportSampleShading = GLEW_ARB_sample_shading;
-	g_ogl_config.bSupportOGL31 = GLEW_VERSION_3_1;
-	g_ogl_config.bSupportViewportFloat = GLEW_ARB_viewport_array;
+	g_Config.backend_info.bSupportsDualSourceBlend = TO_BOOL(GLEW_ARB_blend_func_extended);
+	g_Config.backend_info.bSupportsGLSLUBO = TO_BOOL(GLEW_ARB_uniform_buffer_object);
+	g_Config.backend_info.bSupportsPrimitiveRestart = TO_BOOL(GLEW_VERSION_3_1) || TO_BOOL(GLEW_NV_primitive_restart);
+	g_Config.backend_info.bSupportsEarlyZ = TO_BOOL(GLEW_ARB_shader_image_load_store);
+
+	g_ogl_config.bSupportsGLSLCache = TO_BOOL(GLEW_ARB_get_program_binary);
+	g_ogl_config.bSupportsGLPinnedMemory = TO_BOOL(GLEW_AMD_pinned_memory);
+	g_ogl_config.bSupportsGLSync = TO_BOOL(GLEW_ARB_sync);
+	g_ogl_config.bSupportsGLBaseVertex = TO_BOOL(GLEW_ARB_draw_elements_base_vertex);
+	g_ogl_config.bSupportCoverageMSAA = TO_BOOL(GLEW_NV_framebuffer_multisample_coverage);
+	g_ogl_config.bSupportSampleShading = TO_BOOL(GLEW_ARB_sample_shading);
+	g_ogl_config.bSupportOGL31 = TO_BOOL(GLEW_VERSION_3_1);
+	g_ogl_config.bSupportViewportFloat = TO_BOOL(GLEW_ARB_viewport_array);
+
+#undef TO_BOOL
 
 	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
 	{
@@ -1391,7 +1376,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 			sourceRc.top = xfbSource->sourceRc.top;
 			sourceRc.bottom = xfbSource->sourceRc.bottom;
 
-			xfbSource->Draw(sourceRc, drawRc, 0, 0);
+			xfbSource->Draw(sourceRc, drawRc);
 		}
 	}
 	else
@@ -1639,7 +1624,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();
-	// SaveTexture("tex.tga", GL_TEXTURE_2D, s_FakeZTarget,
+	// SaveTexture("tex.png", GL_TEXTURE_2D, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
 	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
 	XFBWrited = false;
@@ -1800,68 +1785,20 @@ void Renderer::SetInterlacingMode()
 	// TODO
 }
 
-void Renderer::FlipImageData(u8 *data, int w, int h)
+void Renderer::FlipImageData(u8 *data, int w, int h, int pixel_width)
 {
 	// Flip image upside down. Damn OpenGL.
-	for (int y = 0; y < h / 2; y++)
+	for (int y = 0; y < h / 2; ++y)
 	{
-		for(int x = 0; x < w; x++)
+		for(int x = 0; x < w; ++x)
 		{
-			std::swap(data[(y * w + x) * 3],     data[((h - 1 - y) * w + x) * 3]);
-			std::swap(data[(y * w + x) * 3 + 1], data[((h - 1 - y) * w + x) * 3 + 1]);
-			std::swap(data[(y * w + x) * 3 + 2], data[((h - 1 - y) * w + x) * 3 + 2]);
+			for (auto delta = 0; delta < pixel_width; ++delta)
+				std::swap(data[(y * w + x) * pixel_width + delta], data[((h - 1 - y) * w + x) * pixel_width + delta]);
 		}
 	}
 }
 
 }
-
-// TODO: remove
-extern bool g_aspect_wide;
-
-#if defined(HAVE_WX) && HAVE_WX
-void TakeScreenshot(ScrStrct* threadStruct)
-{
-	// These will contain the final image size
-	float FloatW = (float)threadStruct->W;
-	float FloatH = (float)threadStruct->H;
-
-	// Handle aspect ratio for the final ScrStrct to look exactly like what's on screen.
-	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
-	{
-		bool use16_9 = g_aspect_wide;
-
-		// Check for force-settings and override.
-		if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)
-			use16_9 = true;
-		else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
-			use16_9 = false;
-
-		float Ratio = (FloatW / FloatH) / (!use16_9 ? (4.0f / 3.0f) : (16.0f / 9.0f));
-
-		// If ratio > 1 the picture is too wide and we have to limit the width.
-		if (Ratio > 1)
-			FloatW /= Ratio;
-		// ratio == 1 or the image is too high, we have to limit the height.
-		else
-			FloatH *= Ratio;
-
-		// This is a bit expensive on high resolutions
-		threadStruct->img->Rescale((int)FloatW, (int)FloatH, wxIMAGE_QUALITY_HIGH);
-	}
-
-	// Save the screenshot and finally kill the wxImage object
-	// This is really expensive when saving to PNG, but not at all when using BMP
-	threadStruct->img->SaveFile(StrToWxStr(threadStruct->filename),
-		wxBITMAP_TYPE_PNG);
-	threadStruct->img->Destroy();
-
-	// Show success messages
-	OSD::AddMessage(StringFromFormat("Saved %i x %i %s", (int)FloatW, (int)FloatH,
-		threadStruct->filename.c_str()), 2000);
-	delete threadStruct;
-}
-#endif
 
 namespace OGL
 {
@@ -1870,48 +1807,26 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 {
 	u32 W = back_rc.GetWidth();
 	u32 H = back_rc.GetHeight();
-	u8 *data = (u8 *)malloc((sizeof(u8) * 3 * W * H));
+	u8 *data = new u8[W * 4 * H];
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
-	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 	// Show failure message
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 	{
-		free(data);
+		delete[] data;
 		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
 		return false;
 	}
 
 	// Turn image upside down
-	FlipImageData(data, W, H);
+	FlipImageData(data, W, H, 4);
+	bool success = TextureToPng(data, W*4, filename, W, H, false);
+	delete[] data;
 
-#if defined(HAVE_WX) && HAVE_WX
-	// Create wxImage
-	wxImage *a = new wxImage(W, H, data);
+	return success;
 
-	if (scrshotThread.joinable())
-		scrshotThread.join();
-
-	ScrStrct *threadStruct = new ScrStrct;
-	threadStruct->filename = filename;
-	threadStruct->img = a;
-	threadStruct->H = H; threadStruct->W = W;
-
-	scrshotThread = std::thread(TakeScreenshot, threadStruct);
-#ifdef _WIN32
-	SetThreadPriority(scrshotThread.native_handle(), THREAD_PRIORITY_BELOW_NORMAL);
-#endif
-	bool result = true;
-
-	OSD::AddMessage("Saving Screenshot... ", 2000);
-
-#else
-	bool result = SaveTGA(filename.c_str(), W, H, data);
-	free(data);
-#endif
-
-	return result;
 }
 
 }

@@ -144,7 +144,7 @@ RasterFont::RasterFont()
 	for(u32 y=0; y<char_height; y++) {
 		for(u32 c=0; c<char_count; c++) {
 			for(u32 x=0; x<char_width; x++) {
-				bool pixel = rasters[c][y] & (1<<(char_width-x-1));
+				bool pixel = (0 != (rasters[c][y] & (1<<(char_width-x-1))));
 				texture_data[char_width*char_count*y+char_width*c+x] = pixel ? -1 : 0;
 			}
 		}

@@ -37,16 +37,17 @@ import org.dolphinemu.dolphinemu.gamelist.GameListActivity;
 public final class FolderBrowser extends ListFragment
 {
 	private FolderBrowserAdapter adapter;
-	private ListView mFolderBrowserList;
-	private ListView rootView;
 	private static File currentDir = null;
 
 	// Populates the FolderView with the given currDir's contents.
 	private void Fill(File currDir)
 	{
-		// Change the activity title to reflect the current directory the FolderBrowser is in.
+		// Clear the adapter of previous items.
+		adapter.clear();
+
+		// Set the activity title to the current directory the FolderBrowser is in.
 		getActivity().setTitle(String.format(getString(R.string.current_dir), currDir.getName()));
-		
+
 		File[] dirs = currDir.listFiles();
 		List<FolderBrowserItem> dir = new ArrayList<FolderBrowserItem>();
 		List<FolderBrowserItem> fls = new ArrayList<FolderBrowserItem>();
@@ -96,9 +97,9 @@ public final class FolderBrowser extends ListFragment
 		if (!currDir.getPath().equalsIgnoreCase("/"))
 			dir.add(0, new FolderBrowserItem("..", getString(R.string.parent_directory), currDir.getParent()));
 
-		adapter = new FolderBrowserAdapter(getActivity(), R.layout.gamelist_folderbrowser_list, dir);
-		mFolderBrowserList = (ListView) rootView.findViewById(R.id.gamelist);
-		mFolderBrowserList.setAdapter(adapter);
+		// Add the items to the adapter and notify the adapter users of its new contents.
+		adapter.addAll(dir);
+		adapter.notifyDataSetChanged();
 	}
 
 	@Override
@@ -122,10 +123,12 @@ public final class FolderBrowser extends ListFragment
 		if(currentDir == null)
 			currentDir = new File(Environment.getExternalStorageDirectory().getPath());
 
-		rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
+		ListView rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
+		adapter = new FolderBrowserAdapter(getActivity(), R.layout.gamelist_folderbrowser_list_item);
+		rootView.setAdapter(adapter);
 
 		Fill(currentDir);
-		return mFolderBrowserList;
+		return rootView;
 	}
 
 	private void FolderSelected()

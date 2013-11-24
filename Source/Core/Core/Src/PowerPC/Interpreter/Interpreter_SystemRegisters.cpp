@@ -48,15 +48,8 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 		// Pokemon Colosseum does this. Gah.
 	}
 
-	// Also corresponding SSE rounding mode setting
-	if (FPSCR.NI)
-	{
-		// Either one of these two breaks Beyond Good & Evil.
-		// if (cpu_info.bSSSE3)
-		//     csr |= DAZ;
-		// csr |= FTZ;
-	}
-	FPURoundMode::SetSIMDMode(FPSCR.RN);
+	// Set SSE rounding mode and denormal handling
+	FPURoundMode::SetSIMDMode(FPSCR.RN, FPSCR.NI);
 }
 
 void Interpreter::mtfsb0x(UGeckoInstruction _inst)

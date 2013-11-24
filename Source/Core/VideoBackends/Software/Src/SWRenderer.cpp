@@ -5,6 +5,7 @@
 #include "Common.h"
 
 #include "../../OGL/Src/GLUtil.h"
+#include "ImageWrite.h"
 #include "RasterFont.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
@@ -17,6 +18,11 @@ static GLint attr_pos = -1, attr_tex = -1;
 static GLint uni_tex = -1;
 static GLuint program;
 
+static volatile bool s_bScreenshot;
+static std::mutex s_criticalScreenshot;
+static std::string s_sScreenshotName;
+
+
 // Rasterfont isn't compatible with GLES
 // degasus: I think it does, but I can't test it
 #ifndef USE_GLES
@@ -25,6 +31,7 @@ RasterFont* s_pfont = NULL;
 
 void SWRenderer::Init()
 {
+	s_bScreenshot = false;
 }
 
 void SWRenderer::Shutdown()
@@ -80,6 +87,13 @@ void SWRenderer::Prepare()
 	GL_REPORT_ERRORD();
 }
 
+void SWRenderer::SetScreenshot(const char *_szFilename)
+{
+	std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+	s_sScreenshotName = _szFilename;
+	s_bScreenshot = true;
+}
+
 void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
 #ifndef USE_GLES
@@ -124,6 +138,15 @@ void SWRenderer::DrawDebugText()
 
 void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 {
+	// Save screenshot
+	if (s_bScreenshot)
+	{
+		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+		TextureToPng(texture, width*4, s_sScreenshotName, width, height, false);
+		// Reset settings
+		s_sScreenshotName.clear();
+		s_bScreenshot = false;
+	}
 	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
 	GLsizei glHeight = (GLsizei)GLInterface->GetBackBufferHeight();
 

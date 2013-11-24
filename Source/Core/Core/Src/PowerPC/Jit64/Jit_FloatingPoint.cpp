@@ -85,7 +85,7 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single,
 	fpr.UnlockAll();
 }
 
-void Jit64::fp_arith_s(UGeckoInstruction inst)
+void Jit64::fp_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
@@ -106,7 +106,7 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 	case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true,  single, &XEmitter::ADDSD, &XEmitter::VADDSD); break; //add
 	case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true,  single, &XEmitter::MULSD, &XEmitter::VMULSD); break; //mul
 	default:
-		_assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");
+		_assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
 	}
 }
 
@@ -224,16 +224,28 @@ void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
-	if (inst.Rc) {
+	if (inst.Rc)
+	{
 		Default(inst); return;
 	}
 	int d = inst.FD;
 	int b = inst.FB;
-	fpr.Lock(b, d);
-	fpr.BindToRegister(d, d == b, true);
-	MOVSD(XMM0, fpr.R(b));
-	MOVSD(fpr.R(d), XMM0);
-	fpr.UnlockAll();
+	if (d != b)
+	{
+		fpr.Lock(b, d);
+
+		// we don't need to load d, but if it already is, it must be marked as dirty
+		if (fpr.IsBound(d))
+		{
+			fpr.BindToRegister(d);
+		}
+		fpr.BindToRegister(b, true, false);
+
+		// caveat: the order of ModRM:r/m, ModRM:reg is deliberate!
+		// "MOVSD reg, mem" zeros out the upper half of the destination register
+		MOVSD(fpr.R(d), fpr.RX(b));
+		fpr.UnlockAll();
+	}
 }
 
 void Jit64::fcmpx(UGeckoInstruction inst)

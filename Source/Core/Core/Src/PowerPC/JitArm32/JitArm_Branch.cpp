@@ -135,9 +135,11 @@ void JitArm::bx(UGeckoInstruction inst)
 	else
 		destination = js.compilerPC + SignExt26(inst.LI << 2);
 	#ifdef ACID_TEST
-		// TODO: Not implemented yet.
-		//if (inst.LK)
-		//AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
+		if (inst.LK)
+		{
+			MOV(R14, 0);
+			STRB(R14, R9, PPCSTATE_OFF(cr_fast[0]));
+		}
 	#endif
  	if (destination == js.compilerPC)
 	{
@@ -152,7 +154,7 @@ void JitArm::bx(UGeckoInstruction inst)
 		MOVI2R(R14, (u32)asm_routines.testExceptions);
 		B(R14);
 	}
-	WriteExit(destination, 0);
+	WriteExit(destination);
 }
 
 void JitArm::bcx(UGeckoInstruction inst)
@@ -207,14 +209,14 @@ void JitArm::bcx(UGeckoInstruction inst)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
-	WriteExit(destination, 0);
+	WriteExit(destination);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
 
-	WriteExit(js.compilerPC + 4, 1);
+	WriteExit(js.compilerPC + 4);
 }
 void JitArm::bcctrx(UGeckoInstruction inst)
 {
@@ -276,7 +278,7 @@ void JitArm::bcctrx(UGeckoInstruction inst)
 		WriteExitDestInR(rA);
 
 		SetJumpTarget(b);
-		WriteExit(js.compilerPC + 4, 1);
+		WriteExit(js.compilerPC + 4);
 	}
 }
 void JitArm::bclrx(UGeckoInstruction inst)
@@ -329,8 +331,11 @@ void JitArm::bclrx(UGeckoInstruction inst)
 	// This below line can be used to prove that blr "eats flags" in practice.
 	// This observation will let us do a lot of fun observations.
 	#ifdef ACID_TEST
-		// TODO: Not yet implemented
-		//	AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
+		if (inst.LK)
+		{
+			MOV(R14, 0);
+			STRB(R14, R9, PPCSTATE_OFF(cr_fast[0]));
+		}
 	#endif
 
 	//MOV(32, R(EAX), M(&LR));
@@ -350,5 +355,5 @@ void JitArm::bclrx(UGeckoInstruction inst)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
-	WriteExit(js.compilerPC + 4, 1);
+	WriteExit(js.compilerPC + 4);
 }

@@ -329,15 +329,12 @@ namespace HwRasterizer
 		int image_width = texImage0.width;
 		int image_height = texImage0.height;
 
-		DebugUtil::GetTextureBGRA(temp, 0, 0, image_width, image_height);
+		DebugUtil::GetTextureRGBA(temp, 0, 0, image_width, image_height);
 
 		glGenTextures(1, (GLuint *)&texture);
 		glBindTexture(TEX2D, texture);
-#ifdef USE_GLES
 		glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)image_width, (GLsizei)image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
-#else
-		glTexImage2D(TEX2D, 0, GL_RGBA8, (GLsizei)image_width, (GLsizei)image_height, 0, GL_BGRA, GL_UNSIGNED_BYTE, temp);
-#endif
+
 		GL_REPORT_ERRORD();
 	}
 

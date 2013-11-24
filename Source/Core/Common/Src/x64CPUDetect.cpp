@@ -162,6 +162,34 @@ void CPUInfo::Detect()
 		if ((cpu_id[2] >> 20) & 1) bSSE4_2 = true;
 		if ((cpu_id[2] >> 25) & 1) bAES = true;
 
+		// To check DAZ support, we first need to check FXSAVE support.
+		if ((cpu_id[3] >> 24) & 1)
+		{
+			// We can use FXSAVE.
+			bFXSR = true;
+
+			GC_ALIGNED16(u8 fx_state[512]);
+			memset(fx_state, 0, sizeof(fx_state));
+#ifdef _WIN32
+#ifdef _M_IX86
+			_fxsave(fx_state);
+#elif defined (_M_X64)
+			_fxsave64(fx_state);
+#endif
+#else
+			__asm__("fxsave %0" : "=m" (fx_state));
+#endif
+
+			// lowest byte of MXCSR_MASK
+			if ((fx_state[0x1C] >> 6) & 1)
+			{
+				// On x86, the FTZ field (supported since SSE1) only flushes denormal _outputs_ to zero,
+				// now that we checked DAZ support (flushing denormal _inputs_ to zero),
+				// we can set our generic flag.
+				bFlushToZero = true;
+			}
+		}
+
 		// AVX support requires 3 separate checks:
 		//  - Is the AVX bit set in CPUID?
 		//  - Is the XSAVE bit set in CPUID?
@@ -222,7 +250,12 @@ std::string CPUInfo::Summarize()
 {
 	std::string sum(cpu_string);
 	if (bSSE) sum += ", SSE";
-	if (bSSE2) sum += ", SSE2";
+	if (bSSE2)
+	{
+		sum += ", SSE2";
+		if (!bFlushToZero)
+			sum += " (but not DAZ!)";
+	}
 	if (bSSE3) sum += ", SSE3";
 	if (bSSSE3) sum += ", SSSE3";
 	if (bSSE4_1) sum += ", SSE4.1";
