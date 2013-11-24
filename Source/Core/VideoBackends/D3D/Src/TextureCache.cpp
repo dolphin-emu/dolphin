@@ -20,7 +20,7 @@ namespace DX11
 {
 
 static TextureEncoder* g_encoder = NULL;
-const size_t MAX_COPY_BUFFERS = 30;
+const size_t MAX_COPY_BUFFERS = 32;
 ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
 
 TextureCache::TCacheEntry::~TCacheEntry()

@@ -634,40 +634,40 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 
 		case 3: // Z16
 			colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
-			cbufid = 24;
+			cbufid = 2;
 			break;
 
 		case 11: // Z16 (reverse order)
 			colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
-			cbufid = 2;
+			cbufid = 3;
 			break;
 
 		case 6: // Z24X8
 			colmat[0] = colmat[5] = colmat[10] = 1.0f;
-			cbufid = 3;
+			cbufid = 4;
 			break;
 
 		case 9: // Z8M
 			colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
-			cbufid = 4;
+			cbufid = 5;
 			break;
 
 		case 10: // Z8L
 			colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
-			cbufid = 5;
+			cbufid = 6;
 			break;
 
 		case 12: // Z16L - copy lower 16 depth bits
 			// expected to be used as an IA8 texture (upper 8 bits stored as intensity, lower 8 bits stored as alpha)
 			// Used e.g. in Zelda: Skyward Sword
 			colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
-			cbufid = 6;
+			cbufid = 7;
 			break;
 
 		default:
 			ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", dstFormat);
 			colmat[2] = colmat[5] = colmat[8] = 1.0f;
-			cbufid = 7;
+			cbufid = 8;
 			break;
 		}
 	}
@@ -694,11 +694,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 				{
 					ColorMask[0] = ColorMask[1] = ColorMask[2] = 15.0f;
 					ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 15.0f;
-					cbufid = 8;
+					cbufid = 9;
 				}
 				else
 				{
-					cbufid = 9;
+					cbufid = 10;
 				}
 			}
 			else// alpha
@@ -708,11 +708,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 				{
 					ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 15.0f;
 					ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 15.0f;
-					cbufid = 10;
+					cbufid = 11;
 				}
 				else
 				{
-					cbufid = 11;
+					cbufid = 12;
 				}
 
 			}
@@ -721,7 +721,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 		default:
 			ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", dstFormat);
 			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-			cbufid = 23;
+			cbufid = 13;
 			break;
 		}
 	}
@@ -733,28 +733,18 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
 			ColorMask[0] = 15.0f;
 			ColorMask[4] = 1.0f / 15.0f;
-			cbufid = 12;
+			cbufid = 14;
 			break;
 		case 1: // R8
 		case 8: // R8
 			colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-			cbufid = 13;
+			cbufid = 15;
 			break;
 
 		case 2: // RA4
 			colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
 			ColorMask[0] = ColorMask[3] = 15.0f;
 			ColorMask[4] = ColorMask[7] = 1.0f / 15.0f;
-			
-			cbufid = 14;
-			if(!efbHasAlpha) {
-				ColorMask[3] = 0.0f;
-				fConstAdd[3] = 1.0f;
-				cbufid = 15;
-			}
-			break;
-		case 3: // RA8
-			colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
 			
 			cbufid = 16;
 			if(!efbHasAlpha) {
@@ -763,38 +753,48 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 				cbufid = 17;
 			}
 			break;
+		case 3: // RA8
+			colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
+			
+			cbufid = 18;
+			if(!efbHasAlpha) {
+				ColorMask[3] = 0.0f;
+				fConstAdd[3] = 1.0f;
+				cbufid = 19;
+			}
+			break;
 
 		case 7: // A8
 			colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1.0f;
 			
-			cbufid = 18;
+			cbufid = 20;
 			if(!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
 				fConstAdd[0] = 1.0f;
 				fConstAdd[1] = 1.0f;
 				fConstAdd[2] = 1.0f;
 				fConstAdd[3] = 1.0f;
-				cbufid = 19;
+				cbufid = 21;
 			}
 			break;
 
 		case 9: // G8
 			colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
-			cbufid = 20;
+			cbufid = 22;
 			break;
 		case 10: // B8
 			colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
-			cbufid = 21;
+			cbufid = 23;
 			break;
 
 		case 11: // RG8
 			colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
-			cbufid = 22;
+			cbufid = 24;
 			break;
 
 		case 12: // GB8
 			colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1.0f;
-			cbufid = 23;
+			cbufid = 25;
 			break;
 
 		case 4: // RGB565
@@ -804,7 +804,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			ColorMask[1] = 63.0f;
 			ColorMask[5] = 1.0f / 63.0f;
 			fConstAdd[3] = 1.0f; // set alpha to 1
-			cbufid = 24;
+			cbufid = 26;
 			break;
 
 		case 5: // RGB5A3
@@ -814,16 +814,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 			ColorMask[3] = 7.0f;
 			ColorMask[7] = 1.0f / 7.0f;
 			
-			cbufid = 25;
-			if(!efbHasAlpha) {
-				ColorMask[3] = 0.0f;
-				fConstAdd[3] = 1.0f;
-				cbufid = 26;
-			}
-			break;
-		case 6: // RGBA8
-			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-			
 			cbufid = 27;
 			if(!efbHasAlpha) {
 				ColorMask[3] = 0.0f;
@@ -831,11 +821,21 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 				cbufid = 28;
 			}
 			break;
+		case 6: // RGBA8
+			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
+			
+			cbufid = 29;
+			if(!efbHasAlpha) {
+				ColorMask[3] = 0.0f;
+				fConstAdd[3] = 1.0f;
+				cbufid = 30;
+			}
+			break;
 
 		default:
 			ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", dstFormat);
 			colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-			cbufid = 29;
+			cbufid = 31;
 			break;
 		}
 	}
