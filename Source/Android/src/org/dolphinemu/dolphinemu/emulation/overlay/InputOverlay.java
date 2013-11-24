@@ -96,15 +96,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				switch (button.getId())
 				{
 					case ButtonType.BUTTON_A:
-						NativeLibrary.onTouchEvent(ButtonType.BUTTON_A, buttonState);
+						NativeLibrary.onTouchEvent(0, ButtonType.BUTTON_A, buttonState);
 						break;
 
 					case ButtonType.BUTTON_B:
-						NativeLibrary.onTouchEvent(ButtonType.BUTTON_B, buttonState);
+						NativeLibrary.onTouchEvent(0, ButtonType.BUTTON_B, buttonState);
 						break;
 
 					case ButtonType.BUTTON_START:
-						NativeLibrary.onTouchEvent(ButtonType.BUTTON_START, buttonState);
+						NativeLibrary.onTouchEvent(0, ButtonType.BUTTON_START, buttonState);
 						break;
 
 					default:
@@ -121,7 +121,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 			for (int a = 0; a < 4; ++a)
 			{
-				NativeLibrary.onTouchAxisEvent(axisIDs[a], axises[a]);
+				NativeLibrary.onTouchAxisEvent(0, axisIDs[a], axises[a]);
 			}
 		}
 

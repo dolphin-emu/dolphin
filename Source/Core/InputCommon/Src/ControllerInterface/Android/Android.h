@@ -33,31 +33,35 @@ private:
 	{
 	public:
 		std::string GetName() const;
-		Button(ButtonManager::ButtonType index) : m_index(index) {}
+		Button(int padID, ButtonManager::ButtonType index) :  _padID(padID), _index(index) {}
 		ControlState GetState() const;
 	private:
-		const ButtonManager::ButtonType m_index;
+		const int _padID;
+		const ButtonManager::ButtonType _index;
 	};
 	class Axis : public Input
 	{
 	public:
 		std::string GetName() const;
-		Axis(ButtonManager::ButtonType index) : m_index(index) {}
+		Axis(int padID, ButtonManager::ButtonType index) : _padID(padID), _index(index) {}
 		ControlState GetState() const;
 	private:
-		const ButtonManager::ButtonType m_index;
+		const int _padID;
+		const ButtonManager::ButtonType _index;
 	};
-
+	
 public:
 	bool UpdateInput() { return true; }
 	bool UpdateOutput() { return true; }
 
-	Touchscreen();
+	Touchscreen(int padID);
 	~Touchscreen() {}
 
 	std::string GetName() const;
 	int GetId() const;
 	std::string GetSource() const;
+private:
+	const int _padID;
 };
 
 }

@@ -120,10 +120,10 @@ namespace ButtonManager
 	};
 
 	void Init();
-	bool GetButtonPressed(ButtonType button);
-	float GetAxisValue(ButtonType axis);
-	void TouchEvent(int button, int action);
-	void TouchAxisEvent(int axis, float value);
+	bool GetButtonPressed(int padID, ButtonType button);
+	float GetAxisValue(int padID, ButtonType axis);
+	void TouchEvent(int padID, int button, int action);
+	void TouchAxisEvent(int padID, int axis, float value);
 	void GamepadEvent(std::string dev, int button, int action);
 	void GamepadAxisEvent(std::string dev, int axis, float value);
 	void Shutdown();

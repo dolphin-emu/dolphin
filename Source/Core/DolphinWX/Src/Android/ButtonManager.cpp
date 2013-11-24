@@ -24,8 +24,9 @@ extern void DrawButton(GLuint tex, float *coords);
 
 namespace ButtonManager
 {
-	std::unordered_map<int, Button*> m_buttons;
-	std::unordered_map<int, Axis*> m_axises;
+	// Pair key is padID, BUTTONTYPE
+	std::map<std::pair<int, int>, Button*> m_buttons;
+	std::map<std::pair<int, int>, Axis*> m_axises;
 	std::unordered_map<std::string, InputDevice*> m_controllers;
 	const char *configStrings[] = {	"InputA",
 					"InputB",
@@ -64,28 +65,30 @@ namespace ButtonManager
 	void Init()
 	{
 		// Initialize our touchscreen buttons
-		m_buttons[BUTTON_A] = new Button();
-		m_buttons[BUTTON_B] = new Button();
-		m_buttons[BUTTON_START] = new Button();
-		m_buttons[BUTTON_X] = new Button();
-		m_buttons[BUTTON_Y] = new Button();
-		m_buttons[BUTTON_Z] = new Button();
-		m_buttons[BUTTON_UP] = new Button();
-		m_buttons[BUTTON_DOWN] = new Button();
-		m_buttons[BUTTON_LEFT] = new Button();
-		m_buttons[BUTTON_RIGHT] = new Button();
+		for (int a = 0; a < 4; ++a)
+		{
+			m_buttons[std::make_pair(a, BUTTON_A)] = new Button();
+			m_buttons[std::make_pair(a, BUTTON_B)] = new Button();
+			m_buttons[std::make_pair(a, BUTTON_START)] = new Button();
+			m_buttons[std::make_pair(a, BUTTON_X)] = new Button();
+			m_buttons[std::make_pair(a, BUTTON_Y)] = new Button();
+			m_buttons[std::make_pair(a, BUTTON_Z)] = new Button();
+			m_buttons[std::make_pair(a, BUTTON_UP)] = new Button();
+			m_buttons[std::make_pair(a, BUTTON_DOWN)] = new Button();
+			m_buttons[std::make_pair(a, BUTTON_LEFT)] = new Button();
+			m_buttons[std::make_pair(a, BUTTON_RIGHT)] = new Button();
 
-		m_axises[STICK_MAIN_UP] = new Axis();
-		m_axises[STICK_MAIN_DOWN] = new Axis();
-		m_axises[STICK_MAIN_LEFT] = new Axis();
-		m_axises[STICK_MAIN_RIGHT] = new Axis();
-		m_axises[STICK_C_UP] = new Axis();
-		m_axises[STICK_C_DOWN] = new Axis();
-		m_axises[STICK_C_LEFT] = new Axis();
-		m_axises[STICK_C_RIGHT] = new Axis();
-		m_axises[TRIGGER_L] = new Axis();
-		m_axises[TRIGGER_R] = new Axis();
-
+			m_axises[std::make_pair(a, STICK_MAIN_UP)] = new Axis();
+			m_axises[std::make_pair(a, STICK_MAIN_DOWN)] = new Axis();
+			m_axises[std::make_pair(a, STICK_MAIN_LEFT)] = new Axis();
+			m_axises[std::make_pair(a, STICK_MAIN_RIGHT)] = new Axis();
+			m_axises[std::make_pair(a, STICK_C_UP)] = new Axis();
+			m_axises[std::make_pair(a, STICK_C_DOWN)] = new Axis();
+			m_axises[std::make_pair(a, STICK_C_LEFT)] = new Axis();
+			m_axises[std::make_pair(a, STICK_C_RIGHT)] = new Axis();
+			m_axises[std::make_pair(a, TRIGGER_L)] = new Axis();
+			m_axises[std::make_pair(a, TRIGGER_R)] = new Axis();
+		}
 		// Init our controller bindings
 		IniFile ini;
 		ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"));
@@ -117,33 +120,33 @@ namespace ButtonManager
 		}
 
 	}
-	bool GetButtonPressed(ButtonType button)
+	bool GetButtonPressed(int padID, ButtonType button)
 	{
 		bool pressed = false;
-		pressed = m_buttons[button]->Pressed();
+		pressed = m_buttons[std::make_pair(padID, button)]->Pressed();
 
 		for (auto it = m_controllers.begin(); it != m_controllers.end(); ++it)
 			pressed |= it->second->ButtonValue(button);
 
 		return pressed;
 	}
-	float GetAxisValue(ButtonType axis)
+	float GetAxisValue(int padID, ButtonType axis)
 	{
 		float value = 0.0f;
-		value = m_axises[axis]->AxisValue();
+		value = m_axises[std::make_pair(padID, axis)]->AxisValue();
 
 		auto it = m_controllers.begin();
 		if (it == m_controllers.end())
 			return value;
 		return it->second->AxisValue(axis);
 	}
-	void TouchEvent(int button, int action)
+	void TouchEvent(int padID, int button, int action)
 	{
-		m_buttons[button]->SetState(action ? BUTTON_PRESSED : BUTTON_RELEASED);
+		m_buttons[std::make_pair(padID, button)]->SetState(action ? BUTTON_PRESSED : BUTTON_RELEASED);
 	}
-	void TouchAxisEvent(int axis, float value)
+	void TouchAxisEvent(int padID, int axis, float value)
 	{
-		m_axises[axis]->SetValue(value);
+		m_axises[std::make_pair(padID, axis)]->SetValue(value);
 	}
 	void GamepadEvent(std::string dev, int button, int action)
 	{
