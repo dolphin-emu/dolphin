@@ -289,6 +289,10 @@ if(ANDROID)
 	set(USE_WAYLAND 0)
 	set(USE_UPNP 0)
 	set(USE_GLES3 1)
+	if(ANDROID_NDK_ABI_NAME STREQUAL "armeabi-v7a")
+		message("Enabling hard-float")
+		add_definitions(-mhard-float)
+	endif()
 endif()
 
 # For now GLES and EGL are tied to each other.
