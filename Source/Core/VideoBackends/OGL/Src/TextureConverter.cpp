@@ -28,8 +28,6 @@ using OGL::TextureCache;
 
 static GLuint s_texConvFrameBuffer = 0;
 static GLuint s_srcTexture = 0;			// for decoding from RAM
-static GLuint s_srcTextureWidth = 0;
-static GLuint s_srcTextureHeight = 0;
 static GLuint s_dstTexture = 0;		// for encoding to RAM
 
 const int renderBufferWidth = 1024;
@@ -44,11 +42,8 @@ static SHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 
 static GLuint s_encode_VBO = 0;
 static GLuint s_encode_VAO = 0;
-static GLuint s_decode_VBO = 0;
 static GLuint s_decode_VAO = 0;
 static TargetRectangle s_cached_sourceRc;
-static int s_cached_srcWidth = 0;
-static int s_cached_srcHeight = 0;
 
 static const char *VProgram =
 	"ATTRIN vec2 rawpos;\n"
@@ -102,19 +97,28 @@ void CreatePrograms()
 	 * same algorithm as the flipper, and could result in slight colour inaccuracies
 	 * when run back through this shader.
 	 */
+	const char *VProgramYuyvToRgb =
+		"void main()\n"
+		"{\n"
+		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
+		"}\n";
 	const char *FProgramYuyvToRgb =
 		"uniform sampler2DRect samp9;\n"
 		"VARYIN vec2 uv0;\n"
 		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
+		"	ivec2 uv = ivec2(gl_FragCoord.xy);\n"
 #ifdef USE_GLES3
-		"	vec4 c0 = texelFetch(samp9, ivec2(uv0), 0);\n"
+			// We switch top/bottom here. TODO: move this to screen blit.
+		"	ivec2 ts = textureSize(samp9, 0);\n"
+		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x/2, ts.y-uv.y-1), 0);\n"
 #else
-		"	vec4 c0 = texelFetch(samp9, ivec2(uv0));\n"
+		"	ivec2 ts = textureSize(samp9);\n"
+		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x/2, ts.y-uv.y-1));\n"
 #endif
-		"	float f = step(0.5, fract(uv0.x));\n"
-		"	float y = mix(c0.b, c0.r, f);\n"
+		"	float y = mix(c0.b, c0.r, uv.x & 1);\n"
 		"	float yComp = 1.164 * (y - 0.0625);\n"
 		"	float uComp = c0.g - 0.5;\n"
 		"	float vComp = c0.a - 0.5;\n"
@@ -125,7 +129,7 @@ void CreatePrograms()
 		"}\n";
 
 	ProgramShaderCache::CompileShader(s_rgbToYuyvProgram, VProgram, FProgramRgbToYuyv);
-	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgram, FProgramYuyvToRgb);
+	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgramYuyvToRgb, FProgramYuyvToRgb);
 }
 
 SHADER &GetOrCreateEncodingShader(u32 format)
@@ -173,19 +177,8 @@ void Init()
 	s_cached_sourceRc.left = -1;
 	s_cached_sourceRc.right = -1;
 
-	glGenBuffers(1, &s_decode_VBO );
 	glGenVertexArrays(1, &s_decode_VAO );
-	glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
 	glBindVertexArray( s_decode_VAO );
-	s_cached_srcWidth = -1;
-	s_cached_srcHeight = -1;
-	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL);
-	glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
-	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
-
-	s_srcTextureWidth = 0;
-	s_srcTextureHeight = 0;
 
 	glActiveTexture(GL_TEXTURE0 + 9);
 	glGenTextures(1, &s_srcTexture);
@@ -207,7 +200,6 @@ void Shutdown()
 	glDeleteFramebuffers(1, &s_texConvFrameBuffer);
 	glDeleteBuffers(1, &s_encode_VBO );
 	glDeleteVertexArrays(1, &s_encode_VAO );
-	glDeleteBuffers(1, &s_decode_VBO );
 	glDeleteVertexArrays(1, &s_decode_VAO );
 
 	s_rgbToYuyvProgram.Destroy();
@@ -395,8 +387,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 		return;
 	}
 
-	int srcFmtWidth = srcWidth / 2;
-
 	g_renderer->ResetAPIState(); // reset any game specific settings
 
 	// switch to texture converter frame buffer
@@ -410,49 +400,13 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(getFbType(), s_srcTexture);
-
-	// TODO: make this less slow.  (How?)
-	if ((GLsizei)s_srcTextureWidth == (GLsizei)srcFmtWidth && (GLsizei)s_srcTextureHeight == (GLsizei)srcHeight)
-	{
-		glTexSubImage2D(getFbType(), 0,0,0,s_srcTextureWidth, s_srcTextureHeight,
-				GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
-	}
-	else
-	{
-		glTexImage2D(getFbType(), 0, GL_RGBA, (GLsizei)srcFmtWidth, (GLsizei)srcHeight,
-				0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
-		s_srcTextureWidth = (GLsizei)srcFmtWidth;
-		s_srcTextureHeight = (GLsizei)srcHeight;
-	}
+	glTexImage2D(getFbType(), 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 
 	glViewport(0, 0, srcWidth, srcHeight);
 	s_yuyvToRgbProgram.Bind();
 
-	GL_REPORT_ERRORD();
-
-	if(s_cached_srcHeight != srcHeight || s_cached_srcWidth != srcWidth) {
-		GLfloat vertices[] = {
-			1.f, -1.f,
-			(float)srcFmtWidth, (float)srcHeight,
-			1.f, 1.f,
-			(float)srcFmtWidth, 0.f,
-			-1.f, -1.f,
-			0.f, (float)srcHeight,
-			-1.f, 1.f,
-			0.f, 0.f
-		};
-
-		glBindBuffer(GL_ARRAY_BUFFER, s_decode_VBO );
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*4*4, vertices, GL_STREAM_DRAW);
-
-		s_cached_srcHeight = srcHeight;
-		s_cached_srcWidth = srcWidth;
-	}
-
 	glBindVertexArray( s_decode_VAO );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	GL_REPORT_ERRORD();
 
 	FramebufferManager::SetFramebuffer(0);
 
