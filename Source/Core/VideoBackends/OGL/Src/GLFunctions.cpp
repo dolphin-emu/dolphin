@@ -72,67 +72,42 @@ namespace GLFunc
 		self = dlopen(NULL, RTLD_LAZY);
 
 		LoadFunction("glUnmapBuffer", (void**)&glUnmapBuffer);
+		LoadFunction("glBeginQuery", (void**)&glBeginQuery);
+		LoadFunction("glEndQuery", (void**)&glEndQuery);
+		LoadFunction("glGetQueryObjectuiv", (void**)&glGetQueryObjectuiv);
+		LoadFunction("glDeleteQueries", (void**)&glDeleteQueries);
+		LoadFunction("glGenQueries", (void**)&glGenQueries);
 
-		if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
-		{
-			LoadFunction("glBeginQueryEXT", (void**)&glBeginQuery);
-			LoadFunction("glEndQueryEXT", (void**)&glEndQuery);
-			LoadFunction("glGetQueryObjectuivEXT", (void**)&glGetQueryObjectuiv);
-			LoadFunction("glDeleteQueriesEXT", (void**)&glDeleteQueries);
-			LoadFunction("glGenQueriesEXT", (void**)&glGenQueries);
+		LoadFunction("glMapBufferRange", (void**)&glMapBufferRange);
+		LoadFunction("glBindBufferRange", (void**)&glBindBufferRange);
+		LoadFunction("glBlitFramebuffer", (void**)&glBlitFramebuffer);
 
-			LoadFunction("glMapBufferRangeNV", (void**)&glMapBufferRange);
-			LoadFunction("glBindBufferRangeNV", (void**)&glBindBufferRange);
-			LoadFunction("glBlitFramebufferNV", (void**)&glBlitFramebuffer);
+		LoadFunction("glGenVertexArrays", (void**)&glGenVertexArrays);
+		LoadFunction("glDeleteVertexArrays", (void**)&glDeleteVertexArrays);
+		LoadFunction("glBindVertexArray", (void**)&glBindVertexArray);
 
-			LoadFunction("glGenVertexArraysOES", (void**)&glGenVertexArrays);
-			LoadFunction("glDeleteVertexArraysOES", (void**)&glDeleteVertexArrays);
-			LoadFunction("glBindVertexArrayOES", (void**)&glBindVertexArray);
+		LoadFunction("glClientWaitSync", (void**)&glClientWaitSync);
+		LoadFunction("glDeleteSync", (void**)&glDeleteSync);
+		LoadFunction("glFenceSync", (void**)&glFenceSync);
 
-			LoadFunction("glRenderbufferStorageMultisampleNV", (void**)&glRenderbufferStorageMultisample);
+		LoadFunction("glSamplerParameterf", (void**)&glSamplerParameterf);
+		LoadFunction("glSamplerParameteri", (void**)&glSamplerParameteri);
+		LoadFunction("glSamplerParameterfv", (void**)&glSamplerParameterfv);
+		LoadFunction("glBindSampler", (void**)&glBindSampler);
+		LoadFunction("glDeleteSamplers", (void**)&glDeleteSamplers);
+		LoadFunction("glGenSamplers", (void**)&glGenSamplers);
 
-			LoadFunction("glGetUniformBlockIndexNV", (void**)&glGetUniformBlockIndex);
-			LoadFunction("glUniformBlockBindingNV", (void**)&glUniformBlockBinding);
-		}
-		else
-		{
-			LoadFunction("glBeginQuery", (void**)&glBeginQuery);
-			LoadFunction("glEndQuery", (void**)&glEndQuery);
-			LoadFunction("glGetQueryObjectuiv", (void**)&glGetQueryObjectuiv);
-			LoadFunction("glDeleteQueries", (void**)&glDeleteQueries);
-			LoadFunction("glGenQueries", (void**)&glGenQueries);
+		LoadFunction("glGetProgramBinary", (void**)&glGetProgramBinary);
+		LoadFunction("glProgramBinary", (void**)&glProgramBinary);
+		LoadFunction("glProgramParameteri", (void**)&glProgramParameteri);
 
-			LoadFunction("glMapBufferRange", (void**)&glMapBufferRange);
-			LoadFunction("glBindBufferRange", (void**)&glBindBufferRange);
-			LoadFunction("glBlitFramebuffer", (void**)&glBlitFramebuffer);
+		LoadFunction("glDrawRangeElements", (void**)&glDrawRangeElements);
 
-			LoadFunction("glGenVertexArrays", (void**)&glGenVertexArrays);
-			LoadFunction("glDeleteVertexArrays", (void**)&glDeleteVertexArrays);
-			LoadFunction("glBindVertexArray", (void**)&glBindVertexArray);
+		LoadFunction("glRenderbufferStorageMultisample", (void**)&glRenderbufferStorageMultisample);
 
-			LoadFunction("glClientWaitSync", (void**)&glClientWaitSync);
-			LoadFunction("glDeleteSync", (void**)&glDeleteSync);
-			LoadFunction("glFenceSync", (void**)&glFenceSync);
+		LoadFunction("glGetUniformBlockIndex", (void**)&glGetUniformBlockIndex);
+		LoadFunction("glUniformBlockBinding", (void**)&glUniformBlockBinding);
 
-			LoadFunction("glSamplerParameterf", (void**)&glSamplerParameterf);
-			LoadFunction("glSamplerParameteri", (void**)&glSamplerParameteri);
-			LoadFunction("glSamplerParameterfv", (void**)&glSamplerParameterfv);
-			LoadFunction("glBindSampler", (void**)&glBindSampler);
-			LoadFunction("glDeleteSamplers", (void**)&glDeleteSamplers);
-			LoadFunction("glGenSamplers", (void**)&glGenSamplers);
-
-			LoadFunction("glGetProgramBinary", (void**)&glGetProgramBinary);
-			LoadFunction("glProgramBinary", (void**)&glProgramBinary);
-			LoadFunction("glProgramParameteri", (void**)&glProgramParameteri);
-
-			LoadFunction("glDrawRangeElements", (void**)&glDrawRangeElements);
-
-			LoadFunction("glRenderbufferStorageMultisample", (void**)&glRenderbufferStorageMultisample);
-
-			LoadFunction("glGetUniformBlockIndex", (void**)&glGetUniformBlockIndex);
-			LoadFunction("glUniformBlockBinding", (void**)&glUniformBlockBinding);
-
-		}
 		dlclose(self);
 	}
 }

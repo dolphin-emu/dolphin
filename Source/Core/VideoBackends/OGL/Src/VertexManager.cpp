@@ -134,24 +134,6 @@ void VertexManager::Draw(u32 stride)
 			glDrawRangeElementsBaseVertex(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], (GLint)s_baseVertex);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 		}
-	}
-	else if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
-	{
-		if (triangle_index_size > 0)
-		{
-			glDrawElements(triangle_mode, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-		}
-		if (line_index_size > 0)
-		{
-			glDrawElements(GL_LINES, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1]);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-		}
-		if (point_index_size > 0)
-		{
-			glDrawElements(GL_POINTS, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-		}
 	} else {
 		if (triangle_index_size > 0)
 		{

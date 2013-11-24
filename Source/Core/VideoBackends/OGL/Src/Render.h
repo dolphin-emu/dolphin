@@ -13,7 +13,6 @@ enum GLSL_VERSION {
 	GLSL_130,
 	GLSL_140,
 	GLSL_150, // and above
-	GLSLES2,
 	GLSLES3
 };
 

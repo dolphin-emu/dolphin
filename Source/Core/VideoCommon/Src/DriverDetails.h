@@ -116,20 +116,6 @@ namespace DriverDetails
 		// Drawing on screen text causes the whole screen to swizzle in a terrible fashion
 		// Clearing the framebuffer causes one to never see a frame.
 		BUG_BROKENSWAP,
-		// Bug: Running on a Tegra 4 device
-		// Affected devices: Nvidia Tegra
-		// Started Version: 4
-		// Ended Version: 5
-		// Tegra 4 hardware limitations don't allow it to support OpenGL ES 3
-		// This is fixed in Tegra 5
-		BUG_ISTEGRA,
-		// Bug: Running on a PowerVR5 device
-		// Affected devices: PowerVR54x
-		// Started Version: 540
-		// Ended Version: 6xxx
-		// PowerVR 5 hardware limitations don't allow it to support OpenGL ES 3
-		// This is fixed in PowerVR6
-		BUG_ISPOWERVR,
 		// Bug: glBufferSubData/glMapBufferRange stalls + OOM
 		// Affected devices: Adreno a3xx/Mali-t6xx
 		// Started Version: -1

@@ -182,14 +182,6 @@ public final class VideoSettingsFragment extends PreferenceFragment
 					mSupportsGLES3 = true;
 			}
 		}
-		if (!mSupportsGLES3 &&
-				m_GLVendor != null && m_GLVendor.equals("NVIDIA Corporation") &&
-				m_GLRenderer != null && m_GLRenderer.equals("NVIDIA Tegra") &&
-				m_GLExtensions != null && m_GLExtensions.contains("GL_OES_depth24"))
-		{
-			// Is a Tegra 4 since it supports 24bit depth
-			mSupportsGLES3 = true;
-		}
 		return mSupportsGLES3;
 	}
 

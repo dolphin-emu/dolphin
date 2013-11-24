@@ -66,15 +66,6 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	// alpha channel should be ignored if the EFB does not have one.
 
 	// Create EFB target.
-	u32 depthType;
-	if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA))
-	{
-		depthType = GL_DEPTH_COMPONENT;
-	}
-	else
-	{
-		depthType = GL_DEPTH_COMPONENT24;
-	}
 	glGenFramebuffers(1, &m_efbFramebuffer);
 	glActiveTexture(GL_TEXTURE0 + 9);
 
@@ -94,7 +85,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindTexture(getFbType(), m_efbDepth);
 		glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
-		glTexImage2D(getFbType(), 0, depthType, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+		glTexImage2D(getFbType(), 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 
 		glBindTexture(getFbType(), m_resolvedColorTexture);
 		glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
@@ -159,7 +150,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 		glBindTexture(getFbType(), m_resolvedDepthTexture);
 		glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
-		glTexImage2D(getFbType(), 0, depthType, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
+		glTexImage2D(getFbType(), 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL);
 
 		// Bind resolved textures to resolved framebuffer.
 
@@ -235,13 +226,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	ocol0 = float4(dst6) / 63.f;\n"
 		"}";
 
-	if(g_ogl_config.eSupportedGLSLVersion != GLSLES2)
-	{
-		// HACK: This shaders aren't glsles2 compatible as glsles2 don't support bit operations
-		// it could be workaround by floor + frac + tons off additions, but I think it isn't worth
-		ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6);
-		ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8);
-	}
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6);
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8);
 }
 
 FramebufferManager::~FramebufferManager()
@@ -372,19 +358,6 @@ GLuint FramebufferManager::ResolveAndGetDepthTarget(const EFBRectangle &source_r
 
 void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 {
-	if(g_ogl_config.eSupportedGLSLVersion == GLSLES2) {
-		// This feature isn't supported by glsles2
-
-		// TODO: move this to InitBackendInfo
-		// We have to disable both the active and the stored config. Else we
-		// would either
-		// show this line per format change in one frame or
-		// once per frame.
-		OSD::AddMessage("Format Change Emulation isn't supported by your GPU.", 10000);
-		g_ActiveConfig.bEFBEmulateFormatChanges = false;
-		g_Config.bEFBEmulateFormatChanges = false;
-		return;
-	}
 	g_renderer->ResetAPIState();
 
 	GLuint src_texture = 0;

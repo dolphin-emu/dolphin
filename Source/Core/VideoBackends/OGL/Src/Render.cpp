@@ -371,10 +371,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupportSampleShading = false;
 	g_ogl_config.bSupportOGL31 = false;
 	g_ogl_config.bSupportViewportFloat = false;
-	if (DriverDetails::HasBug(DriverDetails::BUG_ISTEGRA) || DriverDetails::HasBug(DriverDetails::BUG_ISPOWERVR))
-		g_ogl_config.eSupportedGLSLVersion = GLSLES2;
-	else
-		g_ogl_config.eSupportedGLSLVersion = GLSLES3;
+	g_ogl_config.eSupportedGLSLVersion = GLSLES3;
 #else
 #ifdef __APPLE__
 	glewExperimental = 1;
