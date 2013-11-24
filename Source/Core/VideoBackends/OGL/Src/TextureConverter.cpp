@@ -85,7 +85,7 @@ void CreatePrograms()
 		"COLOROUT(ocol0)\n"
 		"void main()\n"
 		"{\n"
-		"	vec4 c0 = texture2DRect(samp9, uv0).rgba;\n"
+		"	vec4 c0 = texelFetch(samp9, ivec2(uv0));\n"
 		"	float f = step(0.5, fract(uv0.x));\n"
 		"	float y = mix(c0.b, c0.r, f);\n"
 		"	float yComp = 1.164 * (y - 0.0625);\n"
