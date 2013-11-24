@@ -135,9 +135,11 @@ void JitArm::bx(UGeckoInstruction inst)
 	else
 		destination = js.compilerPC + SignExt26(inst.LI << 2);
 	#ifdef ACID_TEST
-		// TODO: Not implemented yet.
-		//if (inst.LK)
-		//AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
+		if (inst.LK)
+		{
+			MOV(R14, 0);
+			STRB(R14, R9, PPCSTATE_OFF(cr_fast[0]));
+		}
 	#endif
  	if (destination == js.compilerPC)
 	{
@@ -329,8 +331,11 @@ void JitArm::bclrx(UGeckoInstruction inst)
 	// This below line can be used to prove that blr "eats flags" in practice.
 	// This observation will let us do a lot of fun observations.
 	#ifdef ACID_TEST
-		// TODO: Not yet implemented
-		//	AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xFF000000)));
+		if (inst.LK)
+		{
+			MOV(R14, 0);
+			STRB(R14, R9, PPCSTATE_OFF(cr_fast[0]));
+		}
 	#endif
 
 	//MOV(32, R(EAX), M(&LR));
