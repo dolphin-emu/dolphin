@@ -62,6 +62,22 @@ static const char *VProgram =
 
 void CreatePrograms()
 {
+	/* TODO: Accuracy Improvements
+	 *
+	 * This shader doesn't really match what the gamecube does interally in the
+	 * copy pipeline.
+	 *  1. It uses Opengl's built in filtering when yscaling, someone could work
+	 *     out how the copypipeline does it's filtering and implement it correctly
+	 *     in this shader.
+	 *  2. Deflickering isn't implemented, a futher filtering over 3 lines.
+	 *     Isn't really needed on non-interlaced monitors (and would lower quality;
+	 *     But hey, accuracy!)
+	 *  3. Flipper's YUYV conversion implements a 3 pixel horozontal blur on the
+	 *     UV channels, centering the U channel on the Left pixel and the V channel
+	 *     on the Right pixel.
+	 *     The current implementation Centers both UV channels at the same place
+	 *     inbetween the two Pixels, and only blurs over these two pixels.
+	 */
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *FProgramRgbToYuyv =
 		"uniform sampler2DRect samp9;\n"
@@ -79,6 +95,13 @@ void CreatePrograms()
 		"	ocol0 = vec4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
 		"}\n";
 
+	/* TODO: Accuracy Improvements
+	 *
+	 * The YVYU to RGB conversion here matches the RGB to YUYV done above, but
+	 * if a game modifies or adds images to the XFB then it should be using the
+	 * same algorithm as the flipper, and could result in slight colour inaccuracies
+	 * when run back through this shader.
+	 */
 	const char *FProgramYuyvToRgb =
 		"uniform sampler2DRect samp9;\n"
 		"VARYIN vec2 uv0;\n"
