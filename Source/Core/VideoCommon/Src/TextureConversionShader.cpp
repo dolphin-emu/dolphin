@@ -75,7 +75,6 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 		WRITE(p, "uniform sampler2D samp0;\n");
 
 		WRITE(p, "  out vec4 ocol0;\n");
-		WRITE(p, "  VARYIN float2 uv0;\n");
 		WRITE(p, "void main()\n");
 	}
 	else // D3D
@@ -84,13 +83,12 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 		WRITE(p, "Texture2D Tex0 : register(t0);\n");
 
 		WRITE(p,"void main(\n");
-		WRITE(p,"  out float4 ocol0 : SV_Target,\n");
-		WRITE(p,"  in float2 uv0 : TEXCOORD0)\n");
+		WRITE(p,"  out float4 ocol0 : SV_Target)\n");
 	}
 
 	WRITE(p, "{\n"
 	"  float2 sampleUv;\n"
-	"  float2 uv1 = floor(uv0);\n");
+	"  float2 uv1 = floor(gl_FragCoord.xy);\n");
 
 	WRITE(p, "  uv1.x = uv1.x * %d.0;\n", samples);
 
@@ -133,7 +131,6 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 		WRITE(p, "uniform sampler2D samp0;\n");
 
 		WRITE(p, "  out float4 ocol0;\n");
-		WRITE(p, "  VARYIN float2 uv0;\n");
 		WRITE(p, "void main()\n");
 	}
 	else
@@ -142,14 +139,13 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 		WRITE(p, "Texture2D Tex0 : register(t0);\n");
 
 		WRITE(p,"void main(\n");
-		WRITE(p,"  out float4 ocol0 : SV_Target,\n");
-		WRITE(p,"  in float2 uv0 : TEXCOORD0)\n");
+		WRITE(p,"  out float4 ocol0 : SV_Target)\n");
 	}
 
 
 	WRITE(p, "{\n"
 	"  float2 sampleUv;\n"
-	"  float2 uv1 = floor(uv0);\n");
+	"  float2 uv1 = floor(gl_FragCoord.xy);\n");
 
 	WRITE(p, "  float yl = floor(uv1.y / %d.0);\n", blkH);
 	WRITE(p, "  float yb = yl * %d.0;\n", blkH);

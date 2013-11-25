@@ -41,17 +41,6 @@ static SHADER s_yuyvToRgbProgram;
 // Not all slots are taken - but who cares.
 const u32 NUM_ENCODING_PROGRAMS = 64;
 static SHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
-static int s_encodingUniform_loc[NUM_ENCODING_PROGRAMS];
-
-static const char *VProgram =
-	"VARYOUT vec2 uv0;\n"
-	"uniform vec4 copy_position;\n" // left, top, right, bottom
-	"void main()\n"
-	"{\n"
-	"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-	"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-	"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos);\n"
-	"}\n";
 
 void CreatePrograms()
 {
@@ -158,8 +147,14 @@ SHADER &GetOrCreateEncodingShader(u32 format)
 		}
 #endif
 
+		const char *VProgram =
+			"void main()\n"
+			"{\n"
+			"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+			"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
+			"}\n";
+
 		ProgramShaderCache::CompileShader(s_encodingPrograms[format], VProgram, shader);
-		s_encodingUniform_loc[format] = glGetUniformLocation(s_encodingPrograms[format].glprogid, "copy_position");
 	}
 	return s_encodingPrograms[format];
 }
@@ -200,7 +195,7 @@ void Shutdown()
 
 void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 						u8* destAddr, int dstWidth, int dstHeight, int readStride,
-							bool toTexture, bool linearFilter, int uniform_loc)
+							bool toTexture, bool linearFilter)
 {
 
 
@@ -229,8 +224,6 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	GL_REPORT_ERRORD();
 
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
-
-	glUniform4f(uniform_loc, sourceRc.left, sourceRc.top, sourceRc.right, sourceRc.bottom);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
@@ -323,7 +316,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		TexDecoder_GetBlockWidthInTexels(format);
 	EncodeToRamUsingShader(source_texture, scaledSource,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
-		true, bScaleByHalf > 0 && !bFromZBuffer, s_encodingUniform_loc[format]);
+		true, bScaleByHalf > 0 && !bFromZBuffer);
 	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
 
 }
@@ -334,10 +327,12 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 
 	s_rgbToYuyvProgram.Bind();
 
+	glUniform4f(s_rgbToYuyvUniform_loc, sourceRc.left, sourceRc.top, sourceRc.right, sourceRc.bottom);
+
 	// We enable linear filtering, because the gamecube does filtering in the vertical direction when
 	// yscale is enabled.
 	// Otherwise we get jaggies when a game uses yscaling (most PAL games)
-	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, true, s_rgbToYuyvUniform_loc);
+	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, true);
 	FramebufferManager::SetFramebuffer(0);
 	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
