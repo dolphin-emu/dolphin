@@ -28,8 +28,11 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 	 * Constructor
 	 *
 	 * @param res         {@link Resources} instance.
-	 * @param bitmapOuter {@link Bitmap} to use with this Drawable.
-	 * @param joystick      Identifier for which joystick this is.
+	 * @param bitmapOuter {@link Bitmap} which represents the outer non-movable part of the joystick.
+	 * @param bitmapInner {@link Bitmap} which represents the inner movable part of the joystick.
+	 * @param rectOuter   {@link Rect} which represents the outer joystick bounds.
+	 * @param rectInner   {@link Rect} which represents the inner joystick bounds.
+	 * @param joystick    Identifier for which joystick this is.
 	 */
 	public InputOverlayDrawableJoystick(Resources res,
 	                                    Bitmap bitmapOuter, Bitmap bitmapInner,
@@ -139,6 +142,5 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 		int height = this.ringInner.getBounds().height() / 2;
 		this.ringInner.setBounds(X - width, Y - height,
 				X + width,  Y + height);
-		
 	}
 }
