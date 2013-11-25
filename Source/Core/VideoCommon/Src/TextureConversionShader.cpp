@@ -61,14 +61,15 @@ u16 GetEncodedSampleCount(u32 format)
 // texture dims : width, height, x offset, y offset
 void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 {
-	// [0] left, top, right, bottom of source rectangle within source texture
-	// [1] width and height of destination texture in pixels
-	// Two were merged for GLSL
+	// left, top, of source rectangle within source texture
+	// width of the destination rectangle, scale_factor (1 or 2)
 	WRITE(p, "uniform float4 " I_COLORS";\n");
 
 	int blkW = TexDecoder_GetBlockWidthInTexels(format);
 	int blkH = TexDecoder_GetBlockHeightInTexels(format);
 	int samples = GetEncodedSampleCount(format);
+	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
+	int factor = samples == 1 ? 2 : 1;
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
@@ -92,67 +93,16 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	WRITE(p, "  uv1.x = uv1.x * %d;\n", samples);
 
-	WRITE(p, "  int xl =  uv1.x / %d;\n", blkW);
-	WRITE(p, "  int xib = uv1.x - xl * %d;\n", blkW);
 	WRITE(p, "  int yl = uv1.y / %d;\n", blkH);
 	WRITE(p, "  int yb = yl * %d;\n", blkH);
 	WRITE(p, "  int yoff = uv1.y - yb;\n");
 	WRITE(p, "  int xp = uv1.x + yoff * int(" I_COLORS".z);\n");
-	WRITE(p, "  int xel = xp / %d;\n", blkW);
+	WRITE(p, "  int xel = xp / %d;\n", samples == 1 ? factor : blkW);
 	WRITE(p, "  int xb = xel / %d;\n", blkH);
 	WRITE(p, "  int xoff = xel - xb * %d;\n", blkH);
-
-	WRITE(p, "  sampleUv.x = xib + xb * %d;\n", blkW);
-	WRITE(p, "  sampleUv.y = yb + xoff;\n");
-}
-
-// block dimensions : widthStride, heightStride
-// texture dims : width, height, x offset, y offset
-void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
-{
-	// [0] left, top, right, bottom of source rectangle within source texture
-	// [1] width and height of destination texture in pixels
-	// Two were merged for GLSL
-	WRITE(p, "uniform float4 " I_COLORS";\n");
-
-	int blkW = TexDecoder_GetBlockWidthInTexels(format);
-	int blkH = TexDecoder_GetBlockHeightInTexels(format);
-
-	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
-	if (ApiType == API_OPENGL)
-	{
-		WRITE(p, "#define samp0 samp9\n");
-		WRITE(p, "uniform sampler2D samp0;\n");
-
-		WRITE(p, "  out float4 ocol0;\n");
-		WRITE(p, "void main()\n");
-	}
-	else
-	{
-		WRITE(p,"sampler samp0 : register(s0);\n");
-		WRITE(p, "Texture2D Tex0 : register(t0);\n");
-
-		WRITE(p,"void main(\n");
-		WRITE(p,"  out float4 ocol0 : SV_Target)\n");
-	}
-
-
-	WRITE(p, "{\n"
-	"  int2 sampleUv;\n"
-	"  int2 uv1 = int2(gl_FragCoord.xy);\n");
-
-	WRITE(p, "  int yl = uv1.y / %d;\n", blkH);
-	WRITE(p, "  int yb = yl * %d;\n", blkH);
-	WRITE(p, "  int yoff = uv1.y - yb;\n");
-	WRITE(p, "  int xp = uv1.x + yoff * int(" I_COLORS".z);\n");
-	WRITE(p, "  int xel = xp / 2;\n");
-	WRITE(p, "  int xb = xel / %d;\n", blkH);
-	WRITE(p, "  int xoff = xel - xb * %d;\n", blkH);
-
-	WRITE(p, "  int x2 = uv1.x * 2;\n");
-	WRITE(p, "  int xl = x2 / %d;\n", blkW);
-	WRITE(p, "  int xib = x2 - xl * %d;\n", blkW);
-	WRITE(p, "  int halfxb = xb / 2;\n");
+	WRITE(p, "  int xl =  uv1.x * %d / %d;\n", factor, blkW);
+	WRITE(p, "  int xib = uv1.x * %d - xl * %d;\n", factor, blkW);
+	WRITE(p, "  int halfxb = xb / %d;\n", factor);
 
 	WRITE(p, "  sampleUv.x = xib + halfxb * %d;\n", blkW);
 	WRITE(p, "  sampleUv.y = yb + xoff;\n");
@@ -161,13 +111,13 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYPE ApiType)
 {
 	WRITE(p,
-		"{\n"
-		"float2 uv = sampleUv + int2(%d,0);\n" // pixel offset
-		"uv *= " I_COLORS".w;\n"               // scale by two (if wanted)
-		"uv += " I_COLORS".xy;\n"              // move to copyed rect
-		"uv += float2(0.5, 0.5);\n"            // move center of pixel
-		"uv /= float2(%d, %d);\n"              // normlize to [0:1]
-		"uv.y = 1-uv.y;\n"                     // ogl foo (disable this line for d3d)
+		"{\n"                                          // sampleUv is the sample position in (int)gx_coords
+		"float2 uv = float2(sampleUv) + int2(%d,0);\n" // pixel offset (if more than one pixel is samped)
+		"uv *= " I_COLORS".w;\n"                       // scale by two (if wanted)
+		"uv += " I_COLORS".xy;\n"                      // move to copyed rect
+		"uv += float2(0.5, 0.5);\n"                    // move to center of pixel
+		"uv /= float2(%d, %d);\n"                      // normlize to [0:1]
+		"uv.y = 1.0-uv.y;\n"                           // ogl foo (disable this line for d3d)
 		"%s = texture(samp0, uv).%s;\n"
 		"}\n",
 		s_incrementSampleXCount, EFB_WIDTH, EFB_HEIGHT, dest, colorComp
@@ -462,7 +412,7 @@ void WriteRGBA4443Encoder(char* p,API_TYPE ApiType)
 
 void WriteRGBA8Encoder(char* p,API_TYPE ApiType)
 {
-	Write32BitSwizzler(p, GX_TF_RGBA8, ApiType);
+	WriteSwizzler(p, GX_TF_RGBA8, ApiType);
 
 	WRITE(p, "  float cl1 = xb - (halfxb * 2.0);\n");
 	WRITE(p, "  float cl0 = 1.0 - cl1;\n");
@@ -687,7 +637,7 @@ void WriteZ16LEncoder(char* p,API_TYPE ApiType)
 
 void WriteZ24Encoder(char* p, API_TYPE ApiType)
 {
-	Write32BitSwizzler(p, GX_TF_Z24X8, ApiType);
+	WriteSwizzler(p, GX_TF_Z24X8, ApiType);
 
 	WRITE(p, "  float cl = xb - (halfxb * 2.0);\n");
 
