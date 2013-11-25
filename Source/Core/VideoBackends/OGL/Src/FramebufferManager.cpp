@@ -200,7 +200,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 	char ps_rgba6_to_rgb8[] =
 		"uniform sampler2DRect samp9;\n"
-		"COLOROUT(ocol0)\n"
+		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
 		"	ivec4 src6 = ivec4(round(texture2DRect(samp9, gl_FragCoord.xy) * 63.f));\n"
@@ -214,7 +214,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
 	char ps_rgb8_to_rgba6[] =
 		"uniform sampler2DRect samp9;\n"
-		"COLOROUT(ocol0)\n"
+		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
 		"	ivec4 src8 = ivec4(round(texture2DRect(samp9, gl_FragCoord.xy) * 255.f));\n"
