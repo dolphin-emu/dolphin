@@ -403,25 +403,25 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 TextureCache::TextureCache()
 {
 	const char *pColorMatrixProg =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[7];\n"
 		"VARYIN vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture2DRect(samp9, uv0);\n"
+		"	vec4 texcol = texture(samp9, uv0 / textureSize(samp9, 0));\n"
 		"	texcol = round(texcol * colmat[5]) * colmat[6];\n"
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
 	const char *pDepthMatrixProg =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[5];\n"
 		"VARYIN vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture2DRect(samp9, uv0);\n"
+		"	vec4 texcol = texture(samp9, uv0 / textureSize(samp9, 0));\n"
 		"	vec4 EncodedDepth = fract((texcol.r * (16777215.0/16777216.0)) * vec4(1.0,256.0,256.0*256.0,1.0));\n"
 		"	texcol = round(EncodedDepth * (16777216.0/16777215.0) * vec4(255.0,255.0,255.0,15.0)) / vec4(255.0,255.0,255.0,15.0);\n"
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];"
