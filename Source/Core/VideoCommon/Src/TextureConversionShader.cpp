@@ -113,7 +113,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYPE ApiType)
 {
 	WRITE(p,                                         // sampleUv is the sample position in (int)gx_coords
-		"uv0 = float2(sampleUv) + int2(%d,0);\n" // pixel offset (if more than one pixel is samped)
+		"uv0 = float2(sampleUv + int2(%d, 0));\n" // pixel offset (if more than one pixel is samped)
 		"uv0 *= " I_COLORS".w;\n"                // scale by two (if wanted)
 		"uv0 += " I_COLORS".xy;\n"               // move to copyed rect
 		"uv0 += float2(0.5, 0.5);\n"             // move to center of pixel
