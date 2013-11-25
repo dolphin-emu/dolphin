@@ -29,6 +29,7 @@
     <!-- Game List Activity - Device Compatibility AlertDialog -->
     <string name="device_compat_warning">デバイスの互換性の警告</string>
     <string name="device_compat_warning_msg">この電話は、NEON拡張をサポートしていません。 おそらくDolphinを実行することはできません。\nあなたはとにかくそれを実行してみますか？</string>
+    <string name="device_gles3compat_warning_msg">デバイスはOpenGLES3のビデオドライバのバグがあります。\nあなたはとにかくそれを使用してみたいのですか？</string>
 
     <!-- Game List Fragment -->
     <string name="file_clicked">クリックされたファイル： %1$s</string>
