@@ -291,17 +291,10 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-	float sampleStride = bScaleByHalf ? 2.f : 1.f;
-
-	float params[] = {
-		Renderer::EFBToScaledXf(sampleStride), Renderer::EFBToScaledYf(sampleStride),
-		0.0f, 0.0f,
-		(float)expandedWidth, (float)Renderer::EFBToScaledY(expandedHeight)-1,
-		(float)Renderer::EFBToScaledX(source.left), (float)Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight)
-	};
-
 	texconv_shader.Bind();
-	glUniform4fv(texconv_shader.UniformLocations[0], 2, params);
+	glUniform4f(texconv_shader.UniformLocations[0],
+		float(source.left), float(source.top),
+		(float)expandedWidth, bScaleByHalf ? 2.f : 1.f);
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
