@@ -296,7 +296,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		GL_REPORT_ERRORD();
 
 		glActiveTexture(GL_TEXTURE0+9);
-		glBindTexture(getFbType(), read_texture);
+		glBindTexture(GL_TEXTURE_2D, read_texture);
 
 		glViewport(0, 0, virtual_width, virtual_height);
 

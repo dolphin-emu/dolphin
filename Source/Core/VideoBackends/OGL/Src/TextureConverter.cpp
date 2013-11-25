@@ -178,8 +178,8 @@ void Init()
 
 	glActiveTexture(GL_TEXTURE0 + 9);
 	glGenTextures(1, &s_srcTexture);
-	glBindTexture(getFbType(), s_srcTexture);
-	glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
+	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
 	glGenTextures(1, &s_dstTexture);
 	glBindTexture(GL_TEXTURE_2D, s_dstTexture);
@@ -223,17 +223,17 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 
 	// set source texture
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(getFbType(), srcTexture);
+	glBindTexture(GL_TEXTURE_2D, srcTexture);
 
 	if (linearFilter)
 	{
-		glTexParameteri(getFbType(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(getFbType(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 	else
 	{
-		glTexParameteri(getFbType(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(getFbType(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
 
 	GL_REPORT_ERRORD();
@@ -394,8 +394,8 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// activate source texture
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(getFbType(), s_srcTexture);
-	glTexImage2D(getFbType(), 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
+	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 
 	glViewport(0, 0, srcWidth, srcHeight);
 	s_yuyvToRgbProgram.Bind();

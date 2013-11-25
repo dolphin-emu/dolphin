@@ -57,14 +57,6 @@ struct XFBSource : public XFBSourceBase
 	const GLuint texture;
 };
 
-inline GLenum getFbType()
-{
-#ifndef USE_GLES3
-	return GL_TEXTURE_RECTANGLE;
-#endif
-	return GL_TEXTURE_2D;
-}
-
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
