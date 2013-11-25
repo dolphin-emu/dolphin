@@ -81,7 +81,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
-		WRITE(p, "uniform sampler2DRect samp0;\n");
+		WRITE(p, "uniform sampler2D samp0;\n");
 
 		WRITE(p, "  out vec4 ocol0;\n");
 		WRITE(p, "  VARYIN float2 uv0;\n");
@@ -146,7 +146,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
-		WRITE(p, "uniform sampler2DRect samp0;\n");
+		WRITE(p, "uniform sampler2D samp0;\n");
 
 		WRITE(p, "  out float4 ocol0;\n");
 		WRITE(p, "  VARYIN float2 uv0;\n");
@@ -202,7 +202,7 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYP
 	if (ApiType == API_D3D)
 		texSampleOpName = "tex0.Sample";
 	else // OGL
-		texSampleOpName = "texture2DRect";
+		texSampleOpName = "texture";
 
 	// the increment of sampleUv.x is delayed, so we perform it here. see WriteIncrementSampleX.
 	const char* texSampleIncrementUnit;
@@ -211,7 +211,7 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYP
 	else // OGL
 		texSampleIncrementUnit = I_COLORS"[0].x";
 
-	WRITE(p, "  %s = %s(samp0, sampleUv + float2(%d.0 * (%s), 0.0)).%s;\n",
+	WRITE(p, "  %s = %s(samp0, (sampleUv + float2(%d.0 * (%s), 0.0)) / textureSize(samp0, 0)).%s;\n",
 		dest, texSampleOpName, s_incrementSampleXCount, texSampleIncrementUnit, colorComp);
 }
 
