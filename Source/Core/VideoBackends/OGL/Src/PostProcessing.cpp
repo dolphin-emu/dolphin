@@ -25,18 +25,15 @@ static u32 s_width;
 static u32 s_height;
 static GLuint s_fbo;
 static GLuint s_texture;
-static GLuint s_vao;
-static GLuint s_vbo;
 
 static GLuint s_uniform_resolution;
 
 static char s_vertex_shader[] =
-	"in vec2 rawpos;\n"
-	"in vec2 tex0;\n"
 	"out vec2 uv0;\n"
 	"void main(void) {\n"
-	"	gl_Position = vec4(rawpos,0,1);\n"
-	"	uv0 = tex0;\n"
+	"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+	"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
+	"	uv0 = rawpos;\n"
 	"}\n";
 
 void Init()
@@ -56,34 +53,14 @@ void Init()
 	glBindFramebuffer(GL_FRAMEBUFFER, s_fbo);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_texture, 0);
 	FramebufferManager::SetFramebuffer(0);
-
-	glGenBuffers(1, &s_vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, s_vbo);
-	GLfloat vertices[] = {
-		-1.f, -1.f, 0.f, 0.f,
-		-1.f,  1.f, 0.f, 1.f,
-		 1.f, -1.f, 1.f, 0.f,
-		 1.f,  1.f, 1.f, 1.f
-	};
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glGenVertexArrays(1, &s_vao);
-	glBindVertexArray( s_vao );
-	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, NULL);
-	glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
-	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
 }
 
 void Shutdown()
 {
 	s_shader.Destroy();
 
-	glDeleteFramebuffers(1, &s_vbo);
+	glDeleteFramebuffers(1, &s_fbo);
 	glDeleteTextures(1, &s_texture);
-
-	glDeleteBuffers(1, &s_vbo);
-	glDeleteVertexArrays(1, &s_vao);
 }
 
 void ReloadShader()
@@ -103,7 +80,6 @@ void BlitToScreen()
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glViewport(0, 0, s_width, s_height);
 
-	glBindVertexArray(s_vao);
 	s_shader.Bind();
 
 	glUniform4f(s_uniform_resolution, (float)s_width, (float)s_height, 1.0f/(float)s_width, 1.0f/(float)s_height);
@@ -111,7 +87,6 @@ void BlitToScreen()
 	glActiveTexture(GL_TEXTURE0+9);
 	glBindTexture(GL_TEXTURE_2D, s_texture);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindTexture(GL_TEXTURE_2D, 0);
 
 /*	glBindFramebuffer(GL_READ_FRAMEBUFFER, s_fbo);
 
@@ -132,7 +107,6 @@ void Update ( u32 width, u32 height )
 		glActiveTexture(GL_TEXTURE0+9);
 		glBindTexture(GL_TEXTURE_2D, s_texture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
