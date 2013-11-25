@@ -57,15 +57,6 @@ u16 GetEncodedSampleCount(u32 format)
 	}
 }
 
-const char* WriteRegister(API_TYPE ApiType, const char *prefix, const u32 num)
-{
-	if (ApiType == API_OPENGL)
-		return ""; // Once we switch to GLSL 1.3 we can do something here
-	static char result[64];
-	sprintf(result, " : register(%s%d)", prefix, num);
-	return result;
-}
-
 // block dimensions : widthStride, heightStride
 // texture dims : width, height, x offset, y offset
 void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
@@ -73,7 +64,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	// [0] left, top, right, bottom of source rectangle within source texture
 	// [1] width and height of destination texture in pixels
 	// Two were merged for GLSL
-	WRITE(p, "uniform float4 " I_COLORS"[2] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
+	WRITE(p, "uniform float4 " I_COLORS"[2];\n");
 
 	int blkW = TexDecoder_GetBlockWidthInTexels(format);
 	int blkH = TexDecoder_GetBlockHeightInTexels(format);
@@ -118,16 +109,9 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	WRITE(p, "  sampleUv = sampleUv * " I_COLORS"[0].xy;\n");
 
-	if (ApiType == API_OPENGL)
-		WRITE(p,"  sampleUv.y = " I_COLORS"[1].y - sampleUv.y;\n");
+	WRITE(p,"  sampleUv.y = " I_COLORS"[1].y - sampleUv.y;\n");
 
 	WRITE(p, "  sampleUv = sampleUv + " I_COLORS"[1].zw;\n");
-
-	if (ApiType != API_OPENGL)
-	{
-		WRITE(p, "  sampleUv = sampleUv + float2(0.0,1.0);\n"); // still need to determine the reason for this
-		WRITE(p, "  sampleUv = sampleUv / " I_COLORS"[0].zw;\n");
-	}
 }
 
 // block dimensions : widthStride, heightStride
@@ -137,7 +121,7 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	// [0] left, top, right, bottom of source rectangle within source texture
 	// [1] width and height of destination texture in pixels
 	// Two were merged for GLSL
-	WRITE(p, "uniform float4 " I_COLORS"[2] %s;\n", WriteRegister(ApiType, "c", C_COLORS));
+	WRITE(p, "uniform float4 " I_COLORS"[2];\n");
 
 	int blkW = TexDecoder_GetBlockWidthInTexels(format);
 	int blkH = TexDecoder_GetBlockHeightInTexels(format);
@@ -184,35 +168,18 @@ void Write32BitSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	WRITE(p, "  sampleUv.y = yb + xoff;\n");
 	WRITE(p, "  sampleUv = sampleUv * " I_COLORS"[0].xy;\n");
 
-	if (ApiType == API_OPENGL)
-		WRITE(p,"  sampleUv.y = " I_COLORS"[1].y - sampleUv.y;\n");
+	WRITE(p,"  sampleUv.y = " I_COLORS"[1].y - sampleUv.y;\n");
 
 	WRITE(p, "  sampleUv = sampleUv + " I_COLORS"[1].zw;\n");
-
-	if (ApiType != API_OPENGL)
-	{
-		WRITE(p, "  sampleUv = sampleUv + float2(0.0,1.0);\n");// still to determine the reason for this
-		WRITE(p, "  sampleUv = sampleUv / " I_COLORS"[0].zw;\n");
-	}
 }
 
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYPE ApiType)
 {
-	const char* texSampleOpName;
-	if (ApiType == API_D3D)
-		texSampleOpName = "tex0.Sample";
-	else // OGL
-		texSampleOpName = "texture";
-
 	// the increment of sampleUv.x is delayed, so we perform it here. see WriteIncrementSampleX.
-	const char* texSampleIncrementUnit;
-	if (ApiType == API_D3D)
-		texSampleIncrementUnit = I_COLORS"[0].x / " I_COLORS"[0].z";
-	else // OGL
-		texSampleIncrementUnit = I_COLORS"[0].x";
+	const char* texSampleIncrementUnit = I_COLORS"[0].x";
 
-	WRITE(p, "  %s = %s(samp0, (sampleUv + float2(%d.0 * (%s), 0.0)) / textureSize(samp0, 0)).%s;\n",
-		dest, texSampleOpName, s_incrementSampleXCount, texSampleIncrementUnit, colorComp);
+	WRITE(p, "  %s = texture(samp0, (sampleUv + float2(%d.0 * (%s), 0.0)) / textureSize(samp0, 0)).%s;\n",
+		dest, s_incrementSampleXCount, texSampleIncrementUnit, colorComp);
 }
 
 void WriteColorToIntensity(char*& p, const char* src, const char* dest)
