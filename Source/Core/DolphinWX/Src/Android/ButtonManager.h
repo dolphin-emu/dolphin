@@ -85,12 +85,13 @@ namespace ButtonManager
 
 	struct sBind
 	{
+		const int m_padID;
 		const ButtonType m_buttontype;
 		const BindType m_bindtype;
 		const int m_bind;
 		const float m_neg;
-		sBind(ButtonType buttontype, BindType bindtype, int bind, float neg)
-			: m_buttontype(buttontype), m_bindtype(bindtype), m_bind(bind), m_neg(neg)
+		sBind(int padID, ButtonType buttontype, BindType bindtype, int bind, float neg)
+			: m_padID(padID), m_buttontype(buttontype), m_bindtype(bindtype), m_bind(bind), m_neg(neg)
 		{}
 	};
 
@@ -113,10 +114,10 @@ namespace ButtonManager
 				delete it->second;
 		}
 		void AddBind(sBind *bind) { m_binds[bind->m_buttontype] = bind; }
-		void PressEvent(int button, int action);
-		void AxisEvent(int axis, float value);
-		bool ButtonValue(ButtonType button);
-		float AxisValue(ButtonType axis);
+		void PressEvent(ButtonType button, int action);
+		void AxisEvent(ButtonType axis, float value);
+		bool ButtonValue(int padID, ButtonType button);
+		float AxisValue(int padID, ButtonType axis);
 	};
 
 	void Init();
@@ -124,7 +125,7 @@ namespace ButtonManager
 	float GetAxisValue(int padID, ButtonType axis);
 	void TouchEvent(int padID, int button, int action);
 	void TouchAxisEvent(int padID, int axis, float value);
-	void GamepadEvent(std::string dev, int button, int action);
-	void GamepadAxisEvent(std::string dev, int axis, float value);
+	void GamepadEvent(std::string dev, ButtonType button, int action);
+	void GamepadAxisEvent(std::string dev, ButtonType axis, float value);
 	void Shutdown();
 }

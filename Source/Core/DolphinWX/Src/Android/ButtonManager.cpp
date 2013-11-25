@@ -28,7 +28,7 @@ namespace ButtonManager
 	std::map<std::pair<int, int>, Button*> m_buttons;
 	std::map<std::pair<int, int>, Axis*> m_axises;
 	std::unordered_map<std::string, InputDevice*> m_controllers;
-	const char *configStrings[] = {	"InputA",
+	const char* configStrings[] = {	"InputA",
 					"InputB",
 					"InputStart",
 					"InputX",
@@ -94,29 +94,34 @@ namespace ButtonManager
 		ini.Load(File::GetUserPath(D_CONFIG_IDX) + std::string("Dolphin.ini"));
 		for (int a = 0; a < configStringNum; ++a)
 		{
-			BindType type;
-			int bindnum;
-			char dev[128];
-			bool hasbind = false;
-			char modifier = 0;
-			std::string value;
-			ini.Get("Android", configStrings[a], &value, "None");
-			if (value == "None")
-				continue;
-			if (std::string::npos != value.find("Axis"))
+			for (int padID = 0; padID < 4; ++padID)
 			{
-				hasbind = true;
-				type = BIND_AXIS;
-				sscanf(value.c_str(), "Device '%[^\']'-Axis %d%c", dev, &bindnum, &modifier);
+				std::ostringstream config;
+				config << configStrings[a] << "_" << padID;
+				BindType type;
+				int bindnum;
+				char dev[128];
+				bool hasbind = false;
+				char modifier = 0;
+				std::string value;
+				ini.Get("Android", config.str().c_str(), &value, "None");
+				if (value == "None")
+					continue;
+				if (std::string::npos != value.find("Axis"))
+				{
+					hasbind = true;
+					type = BIND_AXIS;
+					sscanf(value.c_str(), "Device '%[^\']'-Axis %d%c", dev, &bindnum, &modifier);
+				}
+				else if (std::string::npos != value.find("Button"))
+				{
+					hasbind = true;
+					type = BIND_BUTTON;
+					sscanf(value.c_str(), "Device '%[^\']'-Button %d", dev, &bindnum);
+				}
+				if (hasbind)
+					AddBind(std::string(dev), new sBind(padID, (ButtonType)a, type, bindnum, modifier == '-' ? -1.0f : 1.0f));
 			}
-			else if (std::string::npos != value.find("Button"))
-			{
-				hasbind = true;
-				type = BIND_BUTTON;
-				sscanf(value.c_str(), "Device '%[^\']'-Button %d", dev, &bindnum);
-			}
-			if (hasbind)
-				AddBind(std::string(dev), new sBind((ButtonType)a, type, bindnum, modifier == '-' ? -1.0f : 1.0f));
 		}
 
 	}
@@ -126,7 +131,7 @@ namespace ButtonManager
 		pressed = m_buttons[std::make_pair(padID, button)]->Pressed();
 
 		for (auto it = m_controllers.begin(); it != m_controllers.end(); ++it)
-			pressed |= it->second->ButtonValue(button);
+			pressed |= it->second->ButtonValue(padID, button);
 
 		return pressed;
 	}
@@ -138,7 +143,7 @@ namespace ButtonManager
 		auto it = m_controllers.begin();
 		if (it == m_controllers.end())
 			return value;
-		return it->second->AxisValue(axis);
+		return it->second->AxisValue(padID, axis);
 	}
 	void TouchEvent(int padID, int button, int action)
 	{
@@ -148,7 +153,7 @@ namespace ButtonManager
 	{
 		m_axises[std::make_pair(padID, axis)]->SetValue(value);
 	}
-	void GamepadEvent(std::string dev, int button, int action)
+	void GamepadEvent(std::string dev, ButtonType button, int action)
 	{
 		auto it = m_controllers.find(dev);
 		if (it != m_controllers.end())
@@ -159,7 +164,7 @@ namespace ButtonManager
 		m_controllers[dev] = new InputDevice(dev);
 		m_controllers[dev]->PressEvent(button, action);
 	}
-	void GamepadAxisEvent(std::string dev, int axis, float value)
+	void GamepadAxisEvent(std::string dev, ButtonType axis, float value)
 	{
 		auto it = m_controllers.find(dev);
 		if (it != m_controllers.end())
@@ -181,31 +186,35 @@ namespace ButtonManager
 	}
 
 	// InputDevice
-	void InputDevice::PressEvent(int button, int action)
+	void InputDevice::PressEvent(ButtonType button, int action)
 	{
-		m_buttons[button] = action == 0 ? true : false;
+		m_buttons[m_binds[button]->m_bind] = action == 0 ? true : false;
 	}
-	void InputDevice::AxisEvent(int axis, float value)
+	void InputDevice::AxisEvent(ButtonType axis, float value)
 	{
-		m_axises[axis] = value;
+		m_axises[m_binds[axis]->m_bind] = value;
 	}
-	bool InputDevice::ButtonValue(ButtonType button)
+	bool InputDevice::ButtonValue(int padID, ButtonType button)
 	{
 		auto it = m_binds.find(button);
 		if (it == m_binds.end())
 			return false;
+		if (it->second->m_padID != padID)
+			return false;
 		if (it->second->m_bindtype == BIND_BUTTON)
 			return m_buttons[it->second->m_bind];
 		else
-			return AxisValue(button);
+			return AxisValue(padID, button);
 	}
-	float InputDevice::AxisValue(ButtonType axis)
+	float InputDevice::AxisValue(int padID, ButtonType axis)
 	{
 		auto it = m_binds.find(axis);
 		if (it == m_binds.end())
 			return 0.0f;
+		if (it->second->m_padID != padID)
+			return 0.0f;
 		if (it->second->m_bindtype == BIND_BUTTON)
-			return ButtonValue(axis);
+			return ButtonValue(padID, axis);
 		else
 			return m_axises[it->second->m_bind] * it->second->m_neg;
 	}
