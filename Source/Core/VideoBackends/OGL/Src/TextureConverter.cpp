@@ -26,7 +26,7 @@ namespace TextureConverter
 
 using OGL::TextureCache;
 
-static GLuint s_texConvFrameBuffer = 0;
+static GLuint s_texConvFrameBuffer[2] = {0,0};
 static GLuint s_srcTexture = 0;			// for decoding from RAM
 static GLuint s_dstTexture = 0;		// for encoding to RAM
 
@@ -161,7 +161,7 @@ SHADER &GetOrCreateEncodingShader(u32 format)
 
 void Init()
 {
-	glGenFramebuffers(1, &s_texConvFrameBuffer);
+	glGenFramebuffers(2, s_texConvFrameBuffer);
 
 	glActiveTexture(GL_TEXTURE0 + 9);
 	glGenTextures(1, &s_srcTexture);
@@ -172,6 +172,10 @@ void Init()
 	glBindTexture(GL_TEXTURE_2D, s_dstTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	
+	
+	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_dstTexture, 0);
 
 	CreatePrograms();
 }
@@ -180,7 +184,7 @@ void Shutdown()
 {
 	glDeleteTextures(1, &s_srcTexture);
 	glDeleteTextures(1, &s_dstTexture);
-	glDeleteFramebuffers(1, &s_texConvFrameBuffer);
+	glDeleteFramebuffers(2, s_texConvFrameBuffer);
 
 	s_rgbToYuyvProgram.Destroy();
 	s_yuyvToRgbProgram.Destroy();
@@ -190,7 +194,8 @@ void Shutdown()
 
 	s_srcTexture = 0;
 	s_dstTexture = 0;
-	s_texConvFrameBuffer = 0;
+	s_texConvFrameBuffer[0] = 0;
+	s_texConvFrameBuffer[1] = 0;
 }
 
 void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
@@ -201,9 +206,7 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
-	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_dstTexture, 0);
+	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
 	GL_REPORT_ERRORD();
 
 	// set source texture
@@ -347,7 +350,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	// switch to texture converter frame buffer
 	// attach destTexture as color destination
-	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
+	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[1]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, destTexture, 0);
 
 	GL_REPORT_FBO_ERROR();
