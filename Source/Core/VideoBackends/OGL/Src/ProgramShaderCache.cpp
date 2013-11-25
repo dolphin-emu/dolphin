@@ -589,11 +589,6 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define frac fract\n"
 		"#define lerp mix\n"
 
-		// texture2d hack
-		"%s\n"
-		"%s\n"
-		"%s\n"
-
 		, v==GLSLES3 ? "#version 300 es" : v==GLSL_130 ? "#version 130" : v==GLSL_140 ? "#version 140" : "#version 150"
 		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
@@ -602,10 +597,6 @@ void ProgramShaderCache::CreateHeader ( void )
 
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "in" : "centroid in"
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "out" : "centroid out"
-
-		, v==GLSLES3 ? "" : v<=GLSL_130 ? "#extension GL_ARB_texture_rectangle : enable" : "#define texture2DRect texture"
-		, v==GLSLES3 ? "#define texture2DRect(samp, uv)  texelFetch(samp, ivec2(floor(uv)), 0)" : ""
-		, v==GLSLES3 ? "#define sampler2DRect sampler2D" : ""
 	);
 }
 
