@@ -89,7 +89,9 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	WRITE(p, "{\n"
 	"  int2 sampleUv;\n"
-	"  int2 uv1 = int2(gl_FragCoord.xy);\n");
+	"  int2 uv1 = int2(gl_FragCoord.xy);\n"
+	"  float2 uv0 = float2(0.0, 0.0);\n"
+	);
 
 	WRITE(p, "  uv1.x = uv1.x * %d;\n", samples);
 
@@ -110,16 +112,14 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, API_TYPE ApiType)
 {
-	WRITE(p,
-		"{\n"                                          // sampleUv is the sample position in (int)gx_coords
-		"float2 uv = float2(sampleUv) + int2(%d,0);\n" // pixel offset (if more than one pixel is samped)
-		"uv *= " I_COLORS".w;\n"                       // scale by two (if wanted)
-		"uv += " I_COLORS".xy;\n"                      // move to copyed rect
-		"uv += float2(0.5, 0.5);\n"                    // move to center of pixel
-		"uv /= float2(%d, %d);\n"                      // normlize to [0:1]
-		"uv.y = 1.0-uv.y;\n"                           // ogl foo (disable this line for d3d)
-		"%s = texture(samp0, uv).%s;\n"
-		"}\n",
+	WRITE(p,                                         // sampleUv is the sample position in (int)gx_coords
+		"uv0 = float2(sampleUv) + int2(%d,0);\n" // pixel offset (if more than one pixel is samped)
+		"uv0 *= " I_COLORS".w;\n"                // scale by two (if wanted)
+		"uv0 += " I_COLORS".xy;\n"               // move to copyed rect
+		"uv0 += float2(0.5, 0.5);\n"             // move to center of pixel
+		"uv0 /= float2(%d, %d);\n"               // normlize to [0:1]
+		"uv0.y = 1.0-uv0.y;\n"                   // ogl foo (disable this line for d3d)
+		"%s = texture(samp0, uv0).%s;\n",
 		s_incrementSampleXCount, EFB_WIDTH, EFB_HEIGHT, dest, colorComp
 	);
 }
