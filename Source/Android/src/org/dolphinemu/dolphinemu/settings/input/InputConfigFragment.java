@@ -9,12 +9,10 @@ package org.dolphinemu.dolphinemu.settings.input;
 import java.util.List;
 
 import android.app.Fragment;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
-import android.preference.PreferenceScreen;
 import android.view.InputDevice;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -101,19 +99,5 @@ public final class InputConfigFragment extends PreferenceFragment
 
 			return fakeid;
 		}
-	}
-
-	@Override
-	public boolean onPreferenceTreeClick(PreferenceScreen screen, Preference pref)
-	{
-		// If the user has clicked the option to configure the input overlay.
-		if (pref.getTitle().equals(getString(R.string.input_overlay_layout)))
-		{
-			Intent inputOverlayConfig = new Intent(getActivity(), InputOverlayConfigActivity.class);
-			startActivity(inputOverlayConfig);
-			return true;
-		}
-
-		return false;
 	}
 }

@@ -40,7 +40,7 @@
             android:screenOrientation="landscape" />
 
         <activity
-            android:name="org.dolphinemu.dolphinemu.settings.input.InputOverlayConfigActivity"
+            android:name="org.dolphinemu.dolphinemu.settings.input.overlayconfig.OverlayConfigActivity"
             android:screenOrientation="landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"/>
 

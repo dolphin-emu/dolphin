@@ -5,7 +5,11 @@
     <Preference
         android:key="inputOverlayConfigPref"
         android:summary="@string/input_overlay_layout_desc"
-        android:title="@string/input_overlay_layout"/>
+        android:title="@string/input_overlay_layout">
+        <intent
+            android:targetPackage="org.dolphinemu.dolphinemu"
+            android:targetClass="org.dolphinemu.dolphinemu.settings.input.overlayconfig.OverlayConfigActivity"/>
+    </Preference>
 
     <!-- Gamecube controller bindings -->
     <PreferenceScreen

@@ -4,12 +4,11 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu.settings.input;
+package org.dolphinemu.dolphinemu.settings.input.overlayconfig;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -19,29 +18,47 @@ import android.widget.Button;
  * A movable {@link Button} for use within the
  * input overlay configuration screen.
  */
-public final class InputOverlayConfigButton extends Button implements OnTouchListener
+public final class OverlayConfigButton extends Button implements OnTouchListener
 {
 	// SharedPreferences instance that the button positions are cached to.
 	private final SharedPreferences sharedPrefs;
 
+	// The String ID for this button.
+	//
+	// This ID is used upon releasing this button as the key for saving 
+	// the X and Y coordinates of this button. This same key is also used
+	// for setting the coordinates of the button on the actual overlay during emulation.
+	//
+	// They can be accessed through SharedPreferences respectively as follows:
+	//
+	// SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+	// float buttonX = sPrefs.getFloat(buttonId+"-X", -1f);
+	// float buttonY = sPrefs.getFloat(buttonId+"-Y", -1f);
+	//
+	private final String buttonId;
+
 	/**
 	 * Constructor
 	 * 
-	 * @param context The current {@link Context}.
-	 * @param attribs {@link AttributeSet} for parsing XML attributes.
+	 * @param context    the current {@link Context}.
+	 * @param buttonId   the String ID for this button.
+	 * @param drawableId the Drawable ID for the image to represent this OverlayConfigButton.
 	 */
-	public InputOverlayConfigButton(Context context, AttributeSet attribs)
+	public OverlayConfigButton(Context context, String buttonId, int drawableId)
 	{
-		super(context, attribs);
+		super(context);
+
+		// Set the button ID.
+		this.buttonId = buttonId;
 
 		// Set the button as its own OnTouchListener.
 		setOnTouchListener(this);
 
+		// Set the button's icon that represents it.
+		setBackground(context.getResources().getDrawable(drawableId));
+
 		// Get the SharedPreferences instance.
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-
-		// String ID of this button.
-		final String buttonId = getResources().getResourceEntryName(getId());
 
 		// Check if this button has previous values set that aren't the default.
 		final float x = sharedPrefs.getFloat(buttonId+"-X", -1f);
@@ -73,14 +90,12 @@ public final class InputOverlayConfigButton extends Button implements OnTouchLis
 			// is when we save all of the information.
 			case MotionEvent.ACTION_UP:
 			{
-				// String ID of this button.
-				String buttonId = getResources().getResourceEntryName(getId());
-
 				// Add the current X and Y positions of this button into SharedPreferences.
 				SharedPreferences.Editor editor = sharedPrefs.edit();
 				editor.putFloat(buttonId+"-X", getX());
 				editor.putFloat(buttonId+"-Y", getY());
 				editor.commit();
+				return true;
 			}
 		}
 
