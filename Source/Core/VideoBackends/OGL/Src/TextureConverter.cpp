@@ -74,13 +74,13 @@ void CreatePrograms()
 	 */
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *FProgramRgbToYuyv =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"VARYIN vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	vec3 c0 = texture2DRect(samp9, uv0 - dFdx(uv0) * 0.25).rgb;\n"
-		"	vec3 c1 = texture2DRect(samp9, uv0 + dFdx(uv0) * 0.25).rgb;\n"
+		"	vec3 c0 = texture(samp9, (uv0 - dFdx(uv0) * 0.25) / textureSize(samp9, 0)).rgb;\n"
+		"	vec3 c1 = texture(samp9, (uv0 + dFdx(uv0) * 0.25) / textureSize(samp9, 0)).rgb;\n"
 		"	vec3 c01 = (c0 + c1) * 0.5;\n"
 		"	vec3 y_const = vec3(0.257,0.504,0.098);\n"
 		"	vec3 u_const = vec3(-0.148,-0.291,0.439);\n"
@@ -103,20 +103,15 @@ void CreatePrograms()
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 	const char *FProgramYuyvToRgb =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"VARYIN vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
 		"	ivec2 uv = ivec2(gl_FragCoord.xy);\n"
-#ifdef USE_GLES3
 			// We switch top/bottom here. TODO: move this to screen blit.
 		"	ivec2 ts = textureSize(samp9, 0);\n"
 		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x/2, ts.y-uv.y-1), 0);\n"
-#else
-		"	ivec2 ts = textureSize(samp9);\n"
-		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x/2, ts.y-uv.y-1));\n"
-#endif
 		"	float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
 		"	float yComp = 1.164 * (y - 0.0625);\n"
 		"	float uComp = c0.g - 0.5;\n"
