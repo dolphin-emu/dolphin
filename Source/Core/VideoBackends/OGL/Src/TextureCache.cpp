@@ -388,7 +388,7 @@ TextureCache::TextureCache()
 		"void main()\n"
 		"{\n"
 		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / textureSize(samp9, 0);\n"
+		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0));\n"
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 
