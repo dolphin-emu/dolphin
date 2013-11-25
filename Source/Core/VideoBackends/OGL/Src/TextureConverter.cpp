@@ -42,7 +42,6 @@ static SHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 
 static GLuint s_encode_VBO = 0;
 static GLuint s_encode_VAO = 0;
-static GLuint s_decode_VAO = 0;
 static TargetRectangle s_cached_sourceRc;
 
 static const char *VProgram =
@@ -177,9 +176,6 @@ void Init()
 	s_cached_sourceRc.left = -1;
 	s_cached_sourceRc.right = -1;
 
-	glGenVertexArrays(1, &s_decode_VAO );
-	glBindVertexArray( s_decode_VAO );
-
 	glActiveTexture(GL_TEXTURE0 + 9);
 	glGenTextures(1, &s_srcTexture);
 	glBindTexture(getFbType(), s_srcTexture);
@@ -200,7 +196,6 @@ void Shutdown()
 	glDeleteFramebuffers(1, &s_texConvFrameBuffer);
 	glDeleteBuffers(1, &s_encode_VBO );
 	glDeleteVertexArrays(1, &s_encode_VAO );
-	glDeleteVertexArrays(1, &s_decode_VAO );
 
 	s_rgbToYuyvProgram.Destroy();
 	s_yuyvToRgbProgram.Destroy();
@@ -405,7 +400,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glViewport(0, 0, srcWidth, srcHeight);
 	s_yuyvToRgbProgram.Bind();
 
-	glBindVertexArray( s_decode_VAO );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	FramebufferManager::SetFramebuffer(0);
