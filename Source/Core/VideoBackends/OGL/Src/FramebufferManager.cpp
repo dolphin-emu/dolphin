@@ -199,11 +199,11 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"}\n";
 
 	char ps_rgba6_to_rgb8[] =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	ivec4 src6 = ivec4(round(texture2DRect(samp9, gl_FragCoord.xy) * 63.f));\n"
+		"	ivec4 src6 = ivec4(round(texelFetch(samp9, ivec2(gl_FragCoord.xy), 0) * 63.f));\n"
 		"	ivec4 dst8;\n"
 		"	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
 		"	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
@@ -213,11 +213,11 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"}";
 
 	char ps_rgb8_to_rgba6[] =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	ivec4 src8 = ivec4(round(texture2DRect(samp9, gl_FragCoord.xy) * 255.f));\n"
+		"	ivec4 src8 = ivec4(round(texelFetch(samp9, ivec2(gl_FragCoord.xy), 0) * 255.f));\n"
 		"	ivec4 dst6;\n"
 		"	dst6.r = src8.r >> 2;\n"
 		"	dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);\n"
