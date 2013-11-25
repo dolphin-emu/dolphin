@@ -105,7 +105,7 @@ public:
 
 	// Utilities for use by opcodes
 
-	void WriteExit(u32 destination);
+	void WriteExit(u32 destination, int exit_num);
 	void WriteExitDestInOpArg(const Gen::OpArg& arg);
 	void WriteExceptionExit();
 	void WriteRfiExitDestInOpArg(const Gen::OpArg& arg);
@@ -121,7 +121,7 @@ public:
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
 	void fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 
-	void WriteCode(u32 exitAddress);
+	void WriteCode();
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst) override;

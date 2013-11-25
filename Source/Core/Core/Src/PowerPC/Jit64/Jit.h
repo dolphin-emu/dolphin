@@ -99,7 +99,7 @@ public:
 
 	// Utilities for use by opcodes
 
-	void WriteExit(u32 destination);
+	void WriteExit(u32 destination, int exit_num);
 	void WriteExitDestInEAX();
 	void WriteExceptionExit();
 	void WriteExternalExceptionExit();

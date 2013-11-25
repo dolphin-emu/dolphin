@@ -480,5 +480,5 @@ void Jit64::stmw(UGeckoInstruction inst)
 void Jit64::icbi(UGeckoInstruction inst)
 {
 	Default(inst);
-	WriteExit(js.compilerPC + 4);
+	WriteExit(js.compilerPC + 4, 0);
 }

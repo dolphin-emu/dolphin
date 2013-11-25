@@ -531,6 +531,6 @@ void JitArm::dcbst(UGeckoInstruction inst)
 void JitArm::icbi(UGeckoInstruction inst)
 {
 	Default(inst);
-	WriteExit(js.compilerPC + 4);
+	WriteExit(js.compilerPC + 4, 0);
 }
 

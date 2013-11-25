@@ -35,6 +35,8 @@ op_agent_t agent;
 
 using namespace Gen;
 
+#define INVALID_EXIT 0xFFFFFFFF
+
 	bool JitBaseBlockCache::IsFull() const
 	{
 		return GetNumBlocks() >= MAX_NUM_BLOCKS - 1;
@@ -165,6 +167,12 @@ using namespace Gen;
 		JitBlock &b = blocks[num_blocks];
 		b.invalid = false;
 		b.originalAddress = em_address;
+		b.exitAddress[0] = INVALID_EXIT;
+		b.exitAddress[1] = INVALID_EXIT;
+		b.exitPtrs[0] = 0;
+		b.exitPtrs[1] = 0;
+		b.linkStatus[0] = false;
+		b.linkStatus[1] = false;
 		num_blocks++; //commit the current block
 		return num_blocks - 1;
 	}
@@ -185,9 +193,10 @@ using namespace Gen;
 		block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
 		if (block_link)
 		{
-			for (const auto& e : b.linkData)
+			for (int i = 0; i < 2; i++)
 			{
-				links_to.insert(std::pair<u32, int>(e.exitAddress, block_num));
+				if (b.exitAddress[i] != INVALID_EXIT)
+					links_to.insert(std::pair<u32, int>(b.exitAddress[i], block_num));
 			}
 
 			LinkBlock(block_num);
@@ -266,15 +275,15 @@ using namespace Gen;
 			// This block is dead. Don't relink it.
 			return;
 		}
-		for (auto& e : b.linkData)
+		for (int e = 0; e < 2; e++)
 		{
-			if (!e.linkStatus)
+			if (b.exitAddress[e] != INVALID_EXIT && !b.linkStatus[e])
 			{
-				int destinationBlock = GetBlockNumberFromStartAddress(e.exitAddress);
+				int destinationBlock = GetBlockNumberFromStartAddress(b.exitAddress[e]);
 				if (destinationBlock != -1)
 				{
-					WriteLinkBlock(e.exitPtrs, blocks[destinationBlock].checkedEntry);
-					e.linkStatus = true;
+					WriteLinkBlock(b.exitPtrs[e], blocks[destinationBlock].checkedEntry);
+					b.linkStatus[e] = true;
 				}
 			}
 		}
@@ -307,10 +316,10 @@ using namespace Gen;
 			return;
 		for (multimap<u32, int>::iterator iter = ppp.first; iter != ppp.second; ++iter) {
 			JitBlock &sourceBlock = blocks[iter->second];
-			for (auto& e : sourceBlock.linkData)
+			for (int e = 0; e < 2; e++)
 			{
-				if (e.exitAddress == b.originalAddress)
-					e.linkStatus = false;
+				if (sourceBlock.exitAddress[e] == b.originalAddress)
+					sourceBlock.linkStatus[e] = false;
 			}
 		}
 	}
