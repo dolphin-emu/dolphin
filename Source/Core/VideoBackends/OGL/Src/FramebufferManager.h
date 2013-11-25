@@ -113,8 +113,6 @@ private:
 	static GLuint m_xfbFramebuffer; // Only used in MSAA mode
 
 	// For pixel format draw
-	static GLuint m_pixel_format_vbo;
-	static GLuint m_pixel_format_vao;
 	static SHADER m_pixel_format_shaders[2];
 };
 

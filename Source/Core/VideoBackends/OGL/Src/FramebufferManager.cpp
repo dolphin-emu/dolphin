@@ -33,8 +33,6 @@ GLuint FramebufferManager::m_resolvedDepthTexture;
 GLuint FramebufferManager::m_xfbFramebuffer;
 
 // reinterpret pixel format
-GLuint FramebufferManager::m_pixel_format_vao;
-GLuint FramebufferManager::m_pixel_format_vbo;
 SHADER FramebufferManager::m_pixel_format_shaders[2];
 
 
@@ -177,25 +175,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	// reinterpret pixel format
-	glGenBuffers(1, &m_pixel_format_vbo);
-	glGenVertexArrays(1, &m_pixel_format_vao);
-	glBindVertexArray(m_pixel_format_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, m_pixel_format_vbo);
-	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*2, NULL);
-
-	float vertices[] = {
-		-1.0,	-1.0,
-		1.0,	-1.0,
-		-1.0,	1.0,
-		1.0,	1.0,
-	};
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
 	char vs[] =
-		"ATTRIN vec2 rawpos;\n"
 		"void main(void) {\n"
-		"	gl_Position = vec4(rawpos,0,1);\n"
+		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 
 	char ps_rgba6_to_rgb8[] =
@@ -261,8 +244,6 @@ FramebufferManager::~FramebufferManager()
 	m_efbDepth = 0;
 
 	// reinterpret pixel format
-	glDeleteVertexArrays(1, &m_pixel_format_vao);
-	glDeleteBuffers(1, &m_pixel_format_vbo);
 	m_pixel_format_shaders[0].Destroy();
 	m_pixel_format_shaders[1].Destroy();
 }
@@ -393,7 +374,6 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 	glBindTexture(GL_TEXTURE_2D, src_texture);
 
 	m_pixel_format_shaders[convtype ? 1 : 0].Bind();
-	glBindVertexArray(m_pixel_format_vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	g_renderer->RestoreAPIState();
