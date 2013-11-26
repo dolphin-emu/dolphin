@@ -176,6 +176,7 @@ void Init()
 	
 	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_dstTexture, 0);
+	FramebufferManager::SetFramebuffer(0);
 
 	CreatePrograms();
 }
