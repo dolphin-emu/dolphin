@@ -236,14 +236,14 @@ void WiiSocket::update(bool read, bool write, bool except)
 					
 					socklen_t addrlen = sizeof(sockaddr_in);
 					int ret = (s32)accept(fd, (sockaddr*)&local_name, &addrlen);
-					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", false);
+					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", true);
 
 					WiiSockMan::Convert(local_name, *wii_name, addrlen);
 				}
 				else
 				{
 					int ret = (s32)accept(fd, NULL, 0);
-					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", false);
+					ReturnValue = WiiSockMan::getNetErrorCode(ret, "SO_ACCEPT", true);
 				}
 
 				WiiSockMan::getInstance().addSocket(ReturnValue);
@@ -432,7 +432,7 @@ void WiiSocket::update(bool read, bool write, bool except)
 					// send/sendto only handles MSG_OOB
 					flags &= SO_MSG_OOB;
 					
-					sockaddr_in local_name;
+					sockaddr_in local_name = {0};
 					if (has_destaddr)
 					{						
 						WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferIn2 + 0x0C);

@@ -131,12 +131,12 @@ bool IsInvalidVersion()
 	return false;
 }
 
-// Timebomb only active from 2013-Nov-07.
+// Timebomb only active from 2014-Jan-01.
 bool IsTimebombActive()
 {
 	SYSTEMTIME t;
 	GetSystemTime(&t);
-	return (t.wYear > 2013) || (t.wMonth > 11) || (t.wMonth >= 11 && t.wDay >= 07);
+	return (t.wYear >= 2014);
 }
 #endif
 

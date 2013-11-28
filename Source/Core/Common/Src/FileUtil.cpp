@@ -241,7 +241,11 @@ bool Rename(const std::string &srcFilename, const std::string &destFilename)
 {
 	INFO_LOG(COMMON, "Rename: %s --> %s", 
 			srcFilename.c_str(), destFilename.c_str());
+#ifdef _WIN32
+	if (_trename(UTF8ToTStr(srcFilename).c_str(), UTF8ToTStr(destFilename).c_str()) == 0)
+#else
 	if (rename(srcFilename.c_str(), destFilename.c_str()) == 0)
+#endif
 		return true;
 	ERROR_LOG(COMMON, "Rename: failed %s --> %s: %s", 
 			  srcFilename.c_str(), destFilename.c_str(), GetLastErrorMsg());
