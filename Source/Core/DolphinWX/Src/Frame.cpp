@@ -1028,6 +1028,59 @@ void CFrame::OnMouse(wxMouseEvent& event)
 					event.GetPosition().x, event.GetPosition().y, event.ButtonDown());
 	}
 #endif
+
+	// next handlers are all for FreeLook, so we don't need to check them if disabled
+	if(!g_Config.bFreeLook)
+	{
+		event.Skip();
+		return;
+	}
+
+	// Free look variables
+	static bool mouseLookEnabled = false;
+	static bool mouseMoveEnabled = false;
+	static float lastMouse[2];
+
+	if(event.MiddleDown())
+	{
+		lastMouse[0] = event.GetX();
+		lastMouse[1] = event.GetY();
+		mouseMoveEnabled = true;
+	}
+	else if(event.RightDown())
+	{
+		lastMouse[0] = event.GetX();
+		lastMouse[1] = event.GetY();
+		mouseLookEnabled = true;
+	}
+	else if(event.MiddleUp())
+	{
+		mouseMoveEnabled = false;
+	}
+	else if(event.RightUp())
+	{
+		mouseLookEnabled = false;
+	}
+	// no button, so it's a move event
+	else if(event.GetButton() == wxMOUSE_BTN_NONE)
+	{
+		if (mouseLookEnabled)
+		{
+			VertexShaderManager::RotateView((event.GetX() - lastMouse[0]) / 200.0f,
+					(event.GetY() - lastMouse[1]) / 200.0f);
+			lastMouse[0] = event.GetX();
+			lastMouse[1] = event.GetY();
+		}
+
+		if (mouseMoveEnabled)
+		{
+			VertexShaderManager::TranslateView((event.GetX() - lastMouse[0]) / 50.0f,
+					(event.GetY() - lastMouse[1]) / 50.0f);
+			lastMouse[0] = event.GetX();
+			lastMouse[1] = event.GetY();
+		}
+	}
+
 	event.Skip();
 }
 

@@ -7,7 +7,6 @@
 #include "VideoConfig.h"
 #include "EmuWindow.h"
 #include "Fifo.h"
-#include "VertexShaderManager.h"
 #include "VideoBackendBase.h"
 #include "Core.h"
 #include "Host.h"
@@ -41,60 +40,8 @@ HWND GetParentWnd()
 	return m_hParent;
 }
 
-void FreeLookInput( UINT iMsg, WPARAM wParam )
-{
-	static bool mouseLookEnabled = false;
-	static bool mouseMoveEnabled = false;
-	static float lastMouse[2];
-	POINT point;
-
-	switch(iMsg)
-	{
-	case WM_MOUSEMOVE:
-		if (mouseLookEnabled)
-		{
-			GetCursorPos(&point);
-			VertexShaderManager::RotateView((point.x - lastMouse[0]) / 200.0f, (point.y - lastMouse[1]) / 200.0f);
-			lastMouse[0] = (float)point.x;
-			lastMouse[1] = (float)point.y;
-		}
-
-		if (mouseMoveEnabled)
-		{
-			GetCursorPos(&point);
-			VertexShaderManager::TranslateView((point.x - lastMouse[0]) / 50.0f, (point.y - lastMouse[1]) / 50.0f);
-			lastMouse[0] = (float)point.x;
-			lastMouse[1] = (float)point.y;
-		}
-		break;
-
-	case WM_RBUTTONDOWN:
-		GetCursorPos(&point);
-		lastMouse[0] = (float)point.x;
-		lastMouse[1] = (float)point.y;
-		mouseLookEnabled= true;
-		break;
-	case WM_MBUTTONDOWN:
-		GetCursorPos(&point);
-		lastMouse[0] = (float)point.x;
-		lastMouse[1] = (float)point.y;
-		mouseMoveEnabled= true;
-		break;
-	case WM_RBUTTONUP:
-		mouseLookEnabled = false;
-		break;
-	case WM_MBUTTONUP:
-		mouseMoveEnabled = false;
-		break;
-	}
-}
-
-
 LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {
-	if (g_ActiveConfig.bFreeLook)
-		FreeLookInput( iMsg, wParam );
-
 	switch( iMsg )
 	{
 	case WM_PAINT:
