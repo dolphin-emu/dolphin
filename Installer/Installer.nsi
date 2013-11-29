@@ -1,4 +1,4 @@
-!define PRODUCT_VERSION 4.0.1
+!define PRODUCT_VERSION 4.0.2
 
 !define BASE_DIR "..\Binary\${DOLPHIN_ARCH}"
 
