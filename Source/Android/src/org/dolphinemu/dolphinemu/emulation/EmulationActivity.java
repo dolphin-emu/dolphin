@@ -37,7 +37,6 @@ public final class EmulationActivity extends Activity
 	private float screenWidth;
 	private float screenHeight;
 	private SharedPreferences sharedPrefs;
-	public static WindowManager wm;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -45,11 +44,9 @@ public final class EmulationActivity extends Activity
 		super.onCreate(savedInstanceState);
 
 		// Retrieve screen dimensions.
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		wm = getWindowManager();
-		wm.getDefaultDisplay().getMetrics(displayMetrics);
-		this.screenHeight = displayMetrics.heightPixels;
-		this.screenWidth = displayMetrics.widthPixels;
+		DisplayMetrics dm = getResources().getDisplayMetrics();
+		this.screenHeight = dm.heightPixels;
+		this.screenWidth = dm.widthPixels;
 
 		// Request window features for the emulation view.
 		getWindow().addFlags(LayoutParams.FLAG_KEEP_SCREEN_ON);

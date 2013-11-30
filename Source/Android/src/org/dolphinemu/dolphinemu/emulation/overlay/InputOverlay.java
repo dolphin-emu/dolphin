@@ -17,18 +17,14 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
-import android.view.WindowManager;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonState;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonType;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,14 +37,23 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<InputOverlayDrawableButton>();
 	private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<InputOverlayDrawableJoystick>();
 
-	public static Bitmap resizeBitmap(WindowManager wm, Context context, Bitmap bitmap, float scale) {
+	/**
+	 * Resizes a {@link Bitmap} by a given scale factor
+	 * 
+	 * @param context The current {@link Context}
+	 * @param bitmap  The {@link Bitmap} to scale.
+	 * @param scale   The scale factor for the bitmap.
+	 * 
+	 * @return The scaled {@link Bitmap}
+	 */
+	public static Bitmap resizeBitmap(Context context, Bitmap bitmap, float scale)
+	{
 		// Retrieve screen dimensions.
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		wm.getDefaultDisplay().getMetrics(displayMetrics);
+		DisplayMetrics dm = context.getResources().getDisplayMetrics();
 
 		Bitmap bitmapResized = Bitmap.createScaledBitmap(bitmap,
-				(int)(displayMetrics.heightPixels * scale),
-				(int)(displayMetrics.heightPixels * scale),
+				(int)(dm.heightPixels * scale),
+				(int)(dm.heightPixels * scale),
 				false);
 		return bitmapResized;
 	}
@@ -113,8 +118,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		int buttonState = (event.getAction() == MotionEvent.ACTION_DOWN) ? ButtonState.PRESSED : ButtonState.RELEASED;
 		// Check if there was a touch within the bounds of a drawable.
 		for (InputOverlayDrawableButton button : overlayButtons)
+		{
 			if (button.getBounds().contains((int)event.getX(), (int)event.getY()))
 				NativeLibrary.onTouchEvent(0, button.getId(), buttonState);
+		}
 
 
 		for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
@@ -123,8 +130,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			int[] axisIDs = joystick.getAxisIDs();
 			float[] axises = joystick.getAxisValues();
 
-			for (int a = 0; a < 4; ++a)
-				NativeLibrary.onTouchAxisEvent(0, axisIDs[a], axises[a]);
+			for (int i = 0; i < 4; i++)
+				NativeLibrary.onTouchAxisEvent(0, axisIDs[i], axises[i]);
 		}
 
 		return true;
@@ -170,7 +177,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
 		// Initialize the InputOverlayDrawableButton.
-		final Bitmap bitmap = resizeBitmap(EmulationActivity.wm, context, BitmapFactory.decodeResource(res, resId), 0.20f);
+		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), 0.20f);
 		final InputOverlayDrawableButton overlayDrawable = new InputOverlayDrawableButton(res, bitmap, buttonId);
 
 		// String ID of the Drawable. This is what is passed into SharedPreferences
@@ -214,7 +221,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
 		// Initialize the InputOverlayDrawableJoystick.
-		final Bitmap bitmapOuter = resizeBitmap(EmulationActivity.wm, context, BitmapFactory.decodeResource(res, resOuter), 0.30f);
+		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), 0.30f);
 		final Bitmap bitmapInner = BitmapFactory.decodeResource(res, resInner);
 
 		// String ID of the Drawable. This is what is passed into SharedPreferences
