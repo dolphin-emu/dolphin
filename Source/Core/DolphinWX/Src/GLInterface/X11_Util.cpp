@@ -18,7 +18,6 @@
 #include "Host.h"
 #include "VideoConfig.h"
 #include "../GLInterface.h"
-#include "VertexShaderManager.h"
 
 #if USE_EGL
 bool cXInterface::ServerConnect(void)
@@ -166,10 +165,6 @@ void cX11Window::DestroyXWindow(void)
 void cX11Window::XEventThread()
 #endif
 {
-	// Free look variables
-	static bool mouseLookEnabled = false;
-	static bool mouseMoveEnabled = false;
-	static float lastMouse[2];
 	while (GLWin.win)
 	{
 		XEvent event;
@@ -177,58 +172,6 @@ void cX11Window::XEventThread()
 		{
 			XNextEvent(GLWin.evdpy, &event);
 			switch(event.type) {
-				case ButtonPress:
-					if (g_Config.bFreeLook)
-					{
-						switch (event.xbutton.button)
-						{
-							case 2: // Middle button
-								lastMouse[0] = event.xbutton.x;
-								lastMouse[1] = event.xbutton.y;
-								mouseMoveEnabled = true;
-								break;
-							case 3: // Right button
-								lastMouse[0] = event.xbutton.x;
-								lastMouse[1] = event.xbutton.y;
-								mouseLookEnabled = true;
-								break;
-						}
-					}
-					break;
-				case ButtonRelease:
-					if (g_Config.bFreeLook)
-					{
-						switch (event.xbutton.button)
-						{
-							case 2: // Middle button
-								mouseMoveEnabled = false;
-								break;
-							case 3: // Right button
-								mouseLookEnabled = false;
-								break;
-						}
-					}
-					break;
-				case MotionNotify:
-					if (g_Config.bFreeLook)
-					{
-						if (mouseLookEnabled)
-						{
-							VertexShaderManager::RotateView((event.xmotion.x - lastMouse[0]) / 200.0f,
-									(event.xmotion.y - lastMouse[1]) / 200.0f);
-							lastMouse[0] = event.xmotion.x;
-							lastMouse[1] = event.xmotion.y;
-						}
-
-						if (mouseMoveEnabled)
-						{
-							VertexShaderManager::TranslateView((event.xmotion.x - lastMouse[0]) / 50.0f,
-									(event.xmotion.y - lastMouse[1]) / 50.0f);
-							lastMouse[0] = event.xmotion.x;
-							lastMouse[1] = event.xmotion.y;
-						}
-					}
-					break;
 				case ConfigureNotify:
 					GLInterface->SetBackBufferDimensions(event.xconfigure.width, event.xconfigure.height);
 					break;

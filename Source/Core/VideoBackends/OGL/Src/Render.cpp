@@ -665,7 +665,7 @@ void Renderer::Init()
 		"	c = vec4(color0, 1.0);\n"
 		"}\n",
 		"VARYIN vec4 c;\n"
-		"COLOROUT(ocol0)\n"
+		"out vec4 ocol0;\n"
 		"void main(void) {\n"
 		"	ocol0 = c;\n"
 		"}\n");

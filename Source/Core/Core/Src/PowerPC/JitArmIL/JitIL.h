@@ -64,8 +64,8 @@ public:
 	void Run();
 	void SingleStep();
 	//
-	void WriteCode(u32 exitAddress);
-	void WriteExit(u32 destination);
+	void WriteCode();
+	void WriteExit(u32 destination, int exit_num);
 	void WriteExitDestInReg(ARMReg Reg);
 	void WriteRfiExitDestInR(ARMReg Reg);
 	void WriteExceptionExit();

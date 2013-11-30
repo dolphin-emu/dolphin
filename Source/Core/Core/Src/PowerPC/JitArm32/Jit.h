@@ -109,7 +109,7 @@ public:
 
 	// Utilities for use by opcodes
 
-	void WriteExit(u32 destination);
+	void WriteExit(u32 destination, int exit_num);
 	void WriteExitDestInR(ARMReg Reg);
 	void WriteRfiExitDestInR(ARMReg Reg);
 	void WriteExceptionExit();

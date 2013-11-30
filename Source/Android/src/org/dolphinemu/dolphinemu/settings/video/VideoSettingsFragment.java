@@ -28,6 +28,8 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	public static String m_GLRenderer;
 	public static String m_GLExtensions;
 	public static float m_QualcommVersion;
+	public static boolean m_Inited = false;
+	private Activity m_activity;
 
 	/**
 	 * Class which provides a means to retrieve various
@@ -145,20 +147,24 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	 */
 	public static boolean SupportsGLES3()
 	{
-		VersionCheck mbuffer = new VersionCheck();
-		m_GLVersion = mbuffer.getVersion();
-		m_GLVendor = mbuffer.getVendor();
-		m_GLRenderer = mbuffer.getRenderer();
-		m_GLExtensions = mbuffer.getExtensions();
-
 		boolean mSupportsGLES3 = false;
+		if (!m_Inited)
+		{
+			VersionCheck mbuffer = new VersionCheck();
+			m_GLVersion = mbuffer.getVersion();
+			m_GLVendor = mbuffer.getVendor();
+			m_GLRenderer = mbuffer.getRenderer();
+			m_GLExtensions = mbuffer.getExtensions();
+			m_Inited = true;
+		}
+
 
 		// Check for OpenGL ES 3 support (General case).
 		if (m_GLVersion != null && m_GLVersion.contains("OpenGL ES 3.0"))
 			mSupportsGLES3 = true;
 
 		// Checking for OpenGL ES 3 support for certain Qualcomm devices.
-		if (!mSupportsGLES3 && m_GLVendor != null && m_GLVendor.equals("Qualcomm"))
+		if (m_GLVendor != null && m_GLVendor.equals("Qualcomm"))
 		{
 			if (m_GLRenderer.contains("Adreno (TM) 3"))
 			{
@@ -180,6 +186,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 					mSupportsGLES3 = true;
 			}
 		}
+
 		return mSupportsGLES3;
 	}
 
@@ -248,9 +255,36 @@ public final class VideoSettingsFragment extends PreferenceFragment
 					}
 					else if (preference.getString(key, "Software Renderer").equals("OGL"))
 					{
-						mainScreen.getPreference(0).setEnabled(true);
-						mainScreen.getPreference(1).setEnabled(true);
-						mainScreen.getPreference(3).setEnabled(true);
+						// Create an alert telling them that their phone sucks
+						if (VideoSettingsFragment.SupportsGLES3()
+								&& VideoSettingsFragment.m_GLVendor != null
+								&& VideoSettingsFragment.m_GLVendor.equals("Qualcomm")
+								&& VideoSettingsFragment.m_QualcommVersion == 14.0f)
+						{
+							AlertDialog.Builder builder = new AlertDialog.Builder(m_activity);
+							builder.setTitle(R.string.device_compat_warning);
+							builder.setMessage(R.string.device_gles3compat_warning_msg);
+							builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int which) {
+									mainScreen.getPreference(0).setEnabled(true);
+									mainScreen.getPreference(1).setEnabled(true);
+									mainScreen.getPreference(3).setEnabled(true);
+									//mainScreen.getPreference(4).setEnabled(false);
+								}
+							});
+							builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int which)
+								{
+									// Get an editor.
+									SharedPreferences.Editor editor = sPrefs.edit();
+									editor.putString("gpuPref", "Software Renderer");
+									editor.commit();
+									videoBackends.setValue("Software Renderer");
+									videoBackends.setSummary("Software Renderer");
+								}
+							});
+							builder.show();
+						}
 					}
 				}
 			}

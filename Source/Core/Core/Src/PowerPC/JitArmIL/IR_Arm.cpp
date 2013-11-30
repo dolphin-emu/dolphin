@@ -156,8 +156,7 @@ static ARMReg regEnsureInReg(RegInfo& RI, InstLoc I) {
 
 static void regWriteExit(RegInfo& RI, InstLoc dest) {
 	if (isImm(*dest)) {
-		RI.exitNumber++;
-		RI.Jit->WriteExit(RI.Build->GetImmValue(dest));
+		RI.Jit->WriteExit(RI.Build->GetImmValue(dest), RI.exitNumber++);
 	} else {
 		RI.Jit->WriteExitDestInReg(regLocForInst(RI, dest));
 	}
@@ -282,7 +281,7 @@ static void regEmitCmp(RegInfo& RI, InstLoc I) {
 	}
 }
 
-static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit, u32 exitAddress) {
+static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit) {
 	RegInfo RI(Jit, ibuild->getFirstInst(), ibuild->getNumInsts());
 	RI.Build = ibuild;
 
@@ -734,10 +733,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitArmIL* Jit, u32 exitAddress) {
 		}
 	}
 
-	Jit->WriteExit(exitAddress);
+	Jit->WriteExit(jit->js.curBlock->exitAddress[0], 0);
 	Jit->BKPT(0x111);
 
 }
-void JitArmIL::WriteCode(u32 exitAddress) {
-	DoWriteCode(&ibuild, this, exitAddress);
+void JitArmIL::WriteCode() {
+	DoWriteCode(&ibuild, this);
 }

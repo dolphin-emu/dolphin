@@ -42,8 +42,9 @@ static SHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 
 static GLuint s_encode_VBO = 0;
 static GLuint s_encode_VAO = 0;
-static GLuint s_decode_VAO = 0;
 static TargetRectangle s_cached_sourceRc;
+
+static GLuint s_PBO = 0; // for readback with different strides
 
 static const char *VProgram =
 	"ATTRIN vec2 rawpos;\n"
@@ -77,7 +78,7 @@ void CreatePrograms()
 	const char *FProgramRgbToYuyv =
 		"uniform sampler2DRect samp9;\n"
 		"VARYIN vec2 uv0;\n"
-		"COLOROUT(ocol0)\n"
+		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
 		"	vec3 c0 = texture2DRect(samp9, uv0 - dFdx(uv0) * 0.25).rgb;\n"
@@ -106,7 +107,7 @@ void CreatePrograms()
 	const char *FProgramYuyvToRgb =
 		"uniform sampler2DRect samp9;\n"
 		"VARYIN vec2 uv0;\n"
-		"COLOROUT(ocol0)\n"
+		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
 		"	ivec2 uv = ivec2(gl_FragCoord.xy);\n"
@@ -118,7 +119,7 @@ void CreatePrograms()
 		"	ivec2 ts = textureSize(samp9);\n"
 		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x/2, ts.y-uv.y-1));\n"
 #endif
-		"	float y = mix(c0.b, c0.r, uv.x & 1);\n"
+		"	float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
 		"	float yComp = 1.164 * (y - 0.0625);\n"
 		"	float uComp = c0.g - 0.5;\n"
 		"	float vComp = c0.a - 0.5;\n"
@@ -177,9 +178,6 @@ void Init()
 	s_cached_sourceRc.left = -1;
 	s_cached_sourceRc.right = -1;
 
-	glGenVertexArrays(1, &s_decode_VAO );
-	glBindVertexArray( s_decode_VAO );
-
 	glActiveTexture(GL_TEXTURE0 + 9);
 	glGenTextures(1, &s_srcTexture);
 	glBindTexture(getFbType(), s_srcTexture);
@@ -189,6 +187,8 @@ void Init()
 	glBindTexture(GL_TEXTURE_2D, s_dstTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+	glGenBuffers(1, &s_PBO);
 
 	CreatePrograms();
 }
@@ -200,7 +200,7 @@ void Shutdown()
 	glDeleteFramebuffers(1, &s_texConvFrameBuffer);
 	glDeleteBuffers(1, &s_encode_VBO );
 	glDeleteVertexArrays(1, &s_encode_VAO );
-	glDeleteVertexArrays(1, &s_decode_VAO );
+	glDeleteBuffers(1, &s_PBO);
 
 	s_rgbToYuyvProgram.Destroy();
 	s_yuyvToRgbProgram.Destroy();
@@ -211,6 +211,7 @@ void Shutdown()
 	s_srcTexture = 0;
 	s_dstTexture = 0;
 	s_texConvFrameBuffer = 0;
+	s_PBO = 0;
 }
 
 void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
@@ -272,25 +273,37 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	// TODO: make this less slow.
 
 	int writeStride = bpmem.copyMipMapStrideChannels * 32;
+	int dstSize = dstWidth*dstHeight*4;
+	int readHeight = readStride / dstWidth / 4; // 4 bytes per pixel
+	int readLoops = dstHeight / readHeight;
 
-	if (writeStride != readStride && toTexture)
+	if (writeStride != readStride && readLoops > 1 && toTexture)
 	{
 		// writing to a texture of a different size
+		// also copy more then one block line, so the different strides matters
+		// copy into one pbo first, map this buffer, and then memcpy into gc memory
+		// in this way, we only have one vram->ram transfer, but maybe a bigger
+		// cpu overhead because of the pbo
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, s_PBO);
+		glBufferData(GL_PIXEL_PACK_BUFFER, dstSize, NULL, GL_STREAM_READ);
+		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, 0);
+		u8* pbo = (u8*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, dstSize, GL_MAP_READ_BIT);
 
-		int readHeight = readStride / dstWidth;
-		readHeight /= 4; // 4 bytes per pixel
-
-		int readStart = 0;
-		int readLoops = dstHeight / readHeight;
+		//int readStart = 0;
 		for (int i = 0; i < readLoops; i++)
 		{
-			glReadPixels(0, readStart, (GLsizei)dstWidth, (GLsizei)readHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
-			readStart += readHeight;
+			memcpy(destAddr, pbo, readStride);
+			pbo += readStride;
 			destAddr += writeStride;
 		}
+
+		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	}
 	else
+	{
 		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+	}
 
 	GL_REPORT_ERRORD();
 
@@ -405,7 +418,6 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glViewport(0, 0, srcWidth, srcHeight);
 	s_yuyvToRgbProgram.Bind();
 
-	glBindVertexArray( s_decode_VAO );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	FramebufferManager::SetFramebuffer(0);

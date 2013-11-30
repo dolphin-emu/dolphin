@@ -205,7 +205,7 @@ void JitArm::mtmsr(UGeckoInstruction inst)
 	gpr.Flush();
 	fpr.Flush();
 
-	WriteExit(js.compilerPC + 4);
+	WriteExit(js.compilerPC + 4, 0);
 }
 
 void JitArm::mfmsr(UGeckoInstruction inst)
