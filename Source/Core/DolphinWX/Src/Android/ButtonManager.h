@@ -85,13 +85,13 @@ namespace ButtonManager
 
 	struct sBind
 	{
-		const int m_padID;
-		const ButtonType m_buttontype;
-		const BindType m_bindtype;
-		const int m_bind;
-		const float m_neg;
+		const int _padID;
+		const ButtonType _buttontype;
+		const BindType _bindtype;
+		const int _bind;
+		const float _neg;
 		sBind(int padID, ButtonType buttontype, BindType bindtype, int bind, float neg)
-			: m_padID(padID), m_buttontype(buttontype), m_bindtype(bindtype), m_bind(bind), m_neg(neg)
+			: _padID(padID), _buttontype(buttontype), _bindtype(bindtype), _bind(bind), _neg(neg)
 		{}
 	};
 
@@ -99,21 +99,19 @@ namespace ButtonManager
 	class InputDevice
 	{
 	private:
-		std::string m_dev;
-		std::map<int, bool> m_buttons;
-		std::map<int, float> m_axises;
-		std::map<ButtonType, sBind*> m_binds;
+		const std::string _dev;
+		std::map<int, bool> _buttons;
+		std::map<int, float> _axises;
+		std::map<ButtonType, sBind*> _binds;
 	public:
 		InputDevice(std::string dev)
-		{
-			m_dev = dev;
-		}
+			: _dev(dev) {}
 		~InputDevice()
 		{
-			for (auto it = m_binds.begin(); it != m_binds.end(); ++it)
+			for (auto it = _binds.begin(); it != _binds.end(); ++it)
 				delete it->second;
 		}
-		void AddBind(sBind *bind) { m_binds[bind->m_buttontype] = bind; }
+		void AddBind(sBind *bind) { _binds[bind->_buttontype] = bind; }
 		void PressEvent(ButtonType button, int action);
 		void AxisEvent(ButtonType axis, float value);
 		bool ButtonValue(int padID, ButtonType button);
@@ -123,8 +121,8 @@ namespace ButtonManager
 	void Init();
 	bool GetButtonPressed(int padID, ButtonType button);
 	float GetAxisValue(int padID, ButtonType axis);
-	void TouchEvent(int padID, int button, int action);
-	void TouchAxisEvent(int padID, int axis, float value);
+	void TouchEvent(int padID, ButtonType button, int action);
+	void TouchAxisEvent(int padID, ButtonType axis, float value);
 	void GamepadEvent(std::string dev, ButtonType button, int action);
 	void GamepadAxisEvent(std::string dev, ButtonType axis, float value);
 	void Shutdown();

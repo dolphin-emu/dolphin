@@ -37,6 +37,7 @@ public final class EmulationActivity extends Activity
 	private float screenWidth;
 	private float screenHeight;
 	private SharedPreferences sharedPrefs;
+	public static WindowManager wm;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -45,7 +46,7 @@ public final class EmulationActivity extends Activity
 
 		// Retrieve screen dimensions.
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager wm = getWindowManager();
+		wm = getWindowManager();
 		wm.getDefaultDisplay().getMetrics(displayMetrics);
 		this.screenHeight = displayMetrics.heightPixels;
 		this.screenWidth = displayMetrics.widthPixels;

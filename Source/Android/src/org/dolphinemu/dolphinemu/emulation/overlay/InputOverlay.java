@@ -9,18 +9,25 @@ package org.dolphinemu.dolphinemu.emulation.overlay;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.graphics.*;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.WindowManager;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonState;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonType;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.emulation.EmulationActivity;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -34,6 +41,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<InputOverlayDrawableButton>();
 	private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<InputOverlayDrawableJoystick>();
 
+	public static Bitmap resizeBitmap(WindowManager wm, Context context, Bitmap bitmap, float scale) {
+		// Retrieve screen dimensions.
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		wm.getDefaultDisplay().getMetrics(displayMetrics);
+
+		Bitmap bitmapResized = Bitmap.createScaledBitmap(bitmap,
+				(int)(displayMetrics.heightPixels * scale),
+				(int)(displayMetrics.heightPixels * scale),
+				false);
+		return bitmapResized;
+	}
+
 	/**
 	 * Constructor
 	 * 
@@ -45,11 +64,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		super(context, attrs);
 
 		// Add all the overlay items to the HashSet.
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.button_a, ButtonType.BUTTON_A));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.button_b, ButtonType.BUTTON_B));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.button_start, ButtonType.BUTTON_START));
+		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_a, ButtonType.BUTTON_A));
+		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_b, ButtonType.BUTTON_B));
+		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_x, ButtonType.BUTTON_X));
+		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_y, ButtonType.BUTTON_Y));
+		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_start, ButtonType.BUTTON_START));
+		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_l, ButtonType.TRIGGER_L));
+		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_r, ButtonType.TRIGGER_R));
 		overlayJoysticks.add(initializeOverlayJoystick(context,
-				R.drawable.joy_outer, R.drawable.joy_inner,
+				R.drawable.gcpad_joystick_range, R.drawable.gcpad_joystick,
 				ButtonType.STICK_MAIN));
 
 		// Set the on touch listener.
@@ -88,30 +111,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// TODO: Refactor this so we detect either Axis movements or button presses so we don't run two loops all the time.
 		//
 		int buttonState = (event.getAction() == MotionEvent.ACTION_DOWN) ? ButtonState.PRESSED : ButtonState.RELEASED;
+		// Check if there was a touch within the bounds of a drawable.
 		for (InputOverlayDrawableButton button : overlayButtons)
-		{
-			// Check if there was a touch within the bounds of a drawable.
 			if (button.getBounds().contains((int)event.getX(), (int)event.getY()))
-			{
-				switch (button.getId())
-				{
-					case ButtonType.BUTTON_A:
-						NativeLibrary.onTouchEvent(0, ButtonType.BUTTON_A, buttonState);
-						break;
+				NativeLibrary.onTouchEvent(0, button.getId(), buttonState);
 
-					case ButtonType.BUTTON_B:
-						NativeLibrary.onTouchEvent(0, ButtonType.BUTTON_B, buttonState);
-						break;
-
-					case ButtonType.BUTTON_START:
-						NativeLibrary.onTouchEvent(0, ButtonType.BUTTON_START, buttonState);
-						break;
-
-					default:
-						break;
-				}
-			}
-		}
 
 		for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
 		{
@@ -120,9 +124,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			float[] axises = joystick.getAxisValues();
 
 			for (int a = 0; a < 4; ++a)
-			{
 				NativeLibrary.onTouchAxisEvent(0, axisIDs[a], axises[a]);
-			}
 		}
 
 		return true;
@@ -168,7 +170,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
 		// Initialize the InputOverlayDrawableButton.
-		final Bitmap bitmap = BitmapFactory.decodeResource(res, resId);
+		final Bitmap bitmap = resizeBitmap(EmulationActivity.wm, context, BitmapFactory.decodeResource(res, resId), 0.20f);
 		final InputOverlayDrawableButton overlayDrawable = new InputOverlayDrawableButton(res, bitmap, buttonId);
 
 		// String ID of the Drawable. This is what is passed into SharedPreferences
@@ -212,7 +214,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
 		// Initialize the InputOverlayDrawableJoystick.
-		final Bitmap bitmapOuter = BitmapFactory.decodeResource(res, resOuter);
+		final Bitmap bitmapOuter = resizeBitmap(EmulationActivity.wm, context, BitmapFactory.decodeResource(res, resOuter), 0.30f);
 		final Bitmap bitmapInner = BitmapFactory.decodeResource(res, resInner);
 
 		// String ID of the Drawable. This is what is passed into SharedPreferences
@@ -226,7 +228,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// Now set the bounds for the InputOverlayDrawableJoystick.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableJoystick will be.
-		int outerSize = bitmapOuter.getWidth() + 256;
+		int outerSize = bitmapOuter.getWidth();
 		Rect outerRect = new Rect(drawableX, drawableY, drawableX + outerSize, drawableY + outerSize);
 		Rect innerRect = new Rect(0, 0, outerSize / 4, outerSize / 4);
 

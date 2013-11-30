@@ -8,11 +8,17 @@ package org.dolphinemu.dolphinemu.settings.input.overlayconfig;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.view.WindowManager;
 import android.widget.Button;
+import org.dolphinemu.dolphinemu.R;
 
 /**
  * A movable {@link Button} for use within the
@@ -36,6 +42,18 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 	// float buttonY = sPrefs.getFloat(buttonId+"-Y", -1f);
 	//
 	private final String buttonId;
+	private Drawable resizeDrawable(WindowManager wm, Context context, Drawable image, float scale) {
+		// Retrieve screen dimensions.
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		wm.getDefaultDisplay().getMetrics(displayMetrics);
+
+		Bitmap b = ((BitmapDrawable)image).getBitmap();
+		Bitmap bitmapResized = Bitmap.createScaledBitmap(b,
+				(int)(displayMetrics.heightPixels * scale),
+				(int)(displayMetrics.heightPixels * scale),
+				false);
+		return new BitmapDrawable(context.getResources(), bitmapResized);
+	}
 
 	/**
 	 * Constructor
@@ -44,7 +62,7 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 	 * @param buttonId   the String ID for this button.
 	 * @param drawableId the Drawable ID for the image to represent this OverlayConfigButton.
 	 */
-	public OverlayConfigButton(Context context, String buttonId, int drawableId)
+	public OverlayConfigButton(WindowManager wm, Context context, String buttonId, int drawableId)
 	{
 		super(context);
 
@@ -55,7 +73,9 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 		setOnTouchListener(this);
 
 		// Set the button's icon that represents it.
-		setBackground(context.getResources().getDrawable(drawableId));
+		setBackground(resizeDrawable(wm, context,
+						context.getResources().getDrawable(drawableId),
+						drawableId == R.drawable.gcpad_joystick_range ? 0.30f : 0.20f));
 
 		// Get the SharedPreferences instance.
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
