@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu.settings.video;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -16,6 +15,7 @@ import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.util.Log;
 import org.dolphinemu.dolphinemu.R;
 
 import javax.microedition.khronos.egl.*;
@@ -32,7 +32,6 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	public static String m_GLExtensions;
 	public static float m_QualcommVersion;
 	public static boolean m_Inited = false;
-	private Activity m_activity;
 
 	/**
 	 * Class which provides a means to retrieve various
@@ -264,7 +263,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 								&& VideoSettingsFragment.m_GLVendor.equals("Qualcomm")
 								&& VideoSettingsFragment.m_QualcommVersion == 14.0f)
 						{
-							AlertDialog.Builder builder = new AlertDialog.Builder(m_activity);
+							AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 							builder.setTitle(R.string.device_compat_warning);
 							builder.setMessage(R.string.device_gles3compat_warning_msg);
 							builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
