@@ -6,17 +6,16 @@
 
 package org.dolphinemu.dolphinemu.settings.input;
 
-import java.util.List;
-
 import android.app.Fragment;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.view.InputDevice;
-
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+
+import java.util.List;
 
 /**
  * The {@link Fragment} responsible for implementing the functionality
@@ -64,12 +63,12 @@ public final class InputConfigFragment extends PreferenceFragment
 			}
 
 			// Loop through the keys for the Wiimote
-			for (String key : wiimoteKeys)
+			/*for (String key : wiimoteKeys)
 			{
 				final String binding = NativeLibrary.GetConfig("Dolphin.ini", "Android", key+"_"+i, "None");
 				final Preference pref = findPreference(key+"_"+i);
 				pref.setSummary(binding);
-			}
+			}*/
 		}
 	}
 

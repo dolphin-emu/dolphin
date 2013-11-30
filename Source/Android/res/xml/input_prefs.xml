@@ -446,6 +446,7 @@
     </PreferenceScreen>
 
     <!-- Wiimote controller bindings -->
+    <!--
     <PreferenceScreen
         android:key="wiimote_bindings"
         android:title="@string/wiimote_bindings">
@@ -1042,5 +1043,5 @@
                 android:key="WiimoteShakeZ_4"
                 android:title="@string/shake_z"/>
         </PreferenceScreen>
-    </PreferenceScreen>
+    </PreferenceScreen> -->
 </PreferenceScreen>
