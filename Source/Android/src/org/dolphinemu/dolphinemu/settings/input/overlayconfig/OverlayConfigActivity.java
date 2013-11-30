@@ -30,6 +30,7 @@ public final class OverlayConfigActivity extends Activity
 		final OverlayConfigButton buttonB = new OverlayConfigButton(wm, this, "gcpad_b", R.drawable.gcpad_b);
 		final OverlayConfigButton buttonX = new OverlayConfigButton(wm, this, "gcpad_x", R.drawable.gcpad_x);
 		final OverlayConfigButton buttonY = new OverlayConfigButton(wm, this, "gcpad_y", R.drawable.gcpad_y);
+		final OverlayConfigButton buttonZ = new OverlayConfigButton(wm, this, "gcpad_z", R.drawable.gcpad_z);
 		final OverlayConfigButton buttonS = new OverlayConfigButton(wm, this, "gcpad_start", R.drawable.gcpad_start);
 		final OverlayConfigButton buttonL = new OverlayConfigButton(wm, this, "gcpad_l", R.drawable.gcpad_l);
 		final OverlayConfigButton buttonR = new OverlayConfigButton(wm, this, "gcpad_r", R.drawable.gcpad_r);
@@ -41,6 +42,7 @@ public final class OverlayConfigActivity extends Activity
 		configLayout.addView(buttonB);
 		configLayout.addView(buttonX);
 		configLayout.addView(buttonY);
+		configLayout.addView(buttonZ);
 		configLayout.addView(buttonS);
 		configLayout.addView(buttonL);
 		configLayout.addView(buttonR);
