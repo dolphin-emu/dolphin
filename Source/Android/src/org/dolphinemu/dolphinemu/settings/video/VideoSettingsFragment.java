@@ -15,7 +15,6 @@ import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
-import android.util.Log;
 import org.dolphinemu.dolphinemu.R;
 
 import javax.microedition.khronos.egl.*;
@@ -257,6 +256,11 @@ public final class VideoSettingsFragment extends PreferenceFragment
 					}
 					else if (preference.getString(key, "Software Renderer").equals("OGL"))
 					{
+						mainScreen.getPreference(0).setEnabled(true);
+						mainScreen.getPreference(1).setEnabled(true);
+						mainScreen.getPreference(3).setEnabled(true);
+						//mainScreen.getPreference(4).setEnabled(false);
+
 						// Create an alert telling them that their phone sucks
 						if (VideoSettingsFragment.SupportsGLES3()
 								&& VideoSettingsFragment.m_GLVendor != null
@@ -268,10 +272,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 							builder.setMessage(R.string.device_gles3compat_warning_msg);
 							builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 								public void onClick(DialogInterface dialog, int which) {
-									mainScreen.getPreference(0).setEnabled(true);
-									mainScreen.getPreference(1).setEnabled(true);
-									mainScreen.getPreference(3).setEnabled(true);
-									//mainScreen.getPreference(4).setEnabled(false);
+									// Do Nothing. Just create the Yes button
 								}
 							});
 							builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
