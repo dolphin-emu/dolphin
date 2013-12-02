@@ -216,7 +216,7 @@ void Shutdown()
 
 void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 						u8* destAddr, int dstWidth, int dstHeight, int readStride,
-							bool toTexture, bool linearFilter)
+						bool linearFilter)
 {
 
 
@@ -277,7 +277,7 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 	int readHeight = readStride / dstWidth / 4; // 4 bytes per pixel
 	int readLoops = dstHeight / readHeight;
 
-	if (writeStride != readStride && readLoops > 1 && toTexture)
+	if (writeStride != readStride && readLoops > 1)
 	{
 		// writing to a texture of a different size
 		// also copy more then one block line, so the different strides matters
@@ -289,7 +289,6 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 		glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, 0);
 		u8* pbo = (u8*)glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, dstSize, GL_MAP_READ_BIT);
 
-		//int readStart = 0;
 		for (int i = 0; i < readLoops; i++)
 		{
 			memcpy(destAddr, pbo, readStride);
@@ -368,7 +367,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 		TexDecoder_GetBlockWidthInTexels(format);
 	EncodeToRamUsingShader(source_texture, scaledSource,
 		dest_ptr, expandedWidth / samples, expandedHeight, readStride,
-		true, bScaleByHalf > 0 && !bFromZBuffer);
+		bScaleByHalf > 0 && !bFromZBuffer);
 	return size_in_bytes; // TODO: D3D11 is calculating this value differently!
 
 }
@@ -382,7 +381,7 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	// We enable linear filtering, because the gamecube does filtering in the vertical direction when
 	// yscale is enabled.
 	// Otherwise we get jaggies when a game uses yscaling (most PAL games)
-	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, true);
+	EncodeToRamUsingShader(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, dstWidth*dstHeight*2, true);
 	FramebufferManager::SetFramebuffer(0);
 	TextureCache::DisableStage(0);
 	g_renderer->RestoreAPIState();
