@@ -141,6 +141,7 @@ void PixelShaderManager::SetConstants(u32 components)
 		constants.zbias[1][0] = xfregs.viewport.farZ / 16777216.0f;
 		constants.zbias[1][1] = xfregs.viewport.zRange / 16777216.0f;
 		dirty = true;
+		s_bViewPortChanged = false;
 	}
 }
 
