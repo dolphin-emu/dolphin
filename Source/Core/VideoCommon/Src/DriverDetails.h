@@ -6,6 +6,15 @@
 
 namespace DriverDetails
 {
+	// Enum of supported operating systems
+	enum OS 
+	{
+		OS_ALL = (1 << 0),
+		OS_WINDOWS = (1 << 1),
+		OS_LINUX = (1 << 2),
+		OS_OSX = (1 << 3),
+		OS_ANDROID = (1 << 4),
+	};
 	// Enum of known vendors
 	// Tegra and Nvidia are separated out due to such substantial differences
 	enum Vendor
