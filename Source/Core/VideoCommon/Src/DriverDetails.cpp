@@ -86,7 +86,7 @@ namespace DriverDetails
 		for(auto& bug : m_known_bugs)
 		{
 			if(
-				( bug.m_vendor & m_vendor ) &&
+				( bug.m_os & m_os ) &&
 				( bug.m_vendor == m_vendor || bug.m_vendor == VENDOR_ALL ) &&
 				( bug.m_driver == m_driver || bug.m_driver == DRIVER_ALL ) &&
 				( bug.m_versionstart <= m_version || bug.m_versionstart == -1 ) &&
