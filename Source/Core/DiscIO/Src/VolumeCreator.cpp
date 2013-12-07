@@ -196,10 +196,10 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 
 			bool usingKoreanKey = false;
 			// Issue: 6813
-			// Magic value is at 0x501f1 (1byte)
+			// Magic value is at partition's offset + 0x1f1 (1byte)
 			// If encrypted with the Korean key, the magic value would be 1
 			// Otherwise it is zero
-			if (Korean && Reader.Read8(0x501f1) == 1)
+			if (Korean && Reader.Read8(rPartition.Offset + 0x1f1) == 1)
 				usingKoreanKey = true;
 
 			aes_context AES_ctx;
