@@ -7,6 +7,7 @@ Source/Core/Common/Src/scmrev.h
 # Ignore files output by build
 /[Bb]uild/
 /[Bb]inary/
+/obj/
 # Ignore files created by visual studio
 *.ipch
 *.opensdf
