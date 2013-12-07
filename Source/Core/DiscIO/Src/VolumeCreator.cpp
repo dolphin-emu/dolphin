@@ -45,9 +45,20 @@ public:
 	{
 		u32 Temp;
 		m_rReader.Read(_Offset, 4, (u8*)&Temp);
-		return(Common::swap32(Temp));
+		return Common::swap32(Temp);
 	}
-
+	u16 Read16(u64 _Offset)
+	{
+		u16 Temp;
+		m_rReader.Read(_Offset, 2, (u8*)&Temp);
+		return Common::swap16(Temp);
+	}
+	u8 Read8(u64 _Offset)
+	{
+		u8 Temp;
+		m_rReader.Read(_Offset, 1, &Temp);
+		return Temp;
+	}
 private:
 	IBlobReader& m_rReader;
 };
@@ -188,10 +199,8 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 			// Magic value is at 0x501f1 (1byte)
 			// If encrypted with the Korean key, the magic value would be 1
 			// Otherwise it is zero
-			if (Korean && Reader.Read32(0x501ee) != 0)
-			{
+			if (Korean && Reader.Read8(0x501f1) == 1)
 				usingKoreanKey = true;
-			}
 
 			aes_context AES_ctx;
 			aes_setkey_dec(&AES_ctx, (usingKoreanKey ? g_MasterKeyK : g_MasterKey), 128);
