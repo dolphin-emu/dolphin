@@ -39,8 +39,8 @@
     <None Include="make_scmrev.h.js" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\force_rebuild.h" />
-    <ClInclude Include="Src\scmrev.h" />
+    <ClInclude Include="force_rebuild.h" />
+    <ClInclude Include="scmrev.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -54,7 +54,7 @@
     <None Include="Testdata\hermes.s" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\DSPTool.cpp" />
+    <ClCompile Include="DSPTool.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

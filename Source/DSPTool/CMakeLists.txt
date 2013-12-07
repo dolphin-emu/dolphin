@@ -1,4 +1,4 @@
-add_executable(dsptool Src/DSPTool.cpp)
+add_executable(dsptool DSPTool.cpp)
 target_link_libraries(dsptool core)
 if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
 	install(TARGETS dsptool RUNTIME DESTINATION ${bindir})
