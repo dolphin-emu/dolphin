@@ -590,7 +590,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		// U24 overflow emulation
 		out.Write("zCoord = zCoord * (16777215.0/16777216.0);\n");
-		out.Write("zCoord = frac(zCoord);\n");
+		out.Write("zCoord = zCoord - 2.0*round(0.5*zCoord);\n");
 		out.Write("zCoord = zCoord * (16777216.0/16777215.0);\n");
 	}
 
