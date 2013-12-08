@@ -231,14 +231,14 @@ wxDisplayImpl *wxDisplayFactoryX11::CreateDisplay(unsigned n)
 // Correct res rate from GLFW
 #define wxCRR2(v,dc) (int) (((1000.0f * (float) dc) /*PIXELS PER SECOND */) / ((float) v.htotal * v.vtotal /*PIXELS PER FRAME*/) + 0.5f)
 #define wxCRR(v) wxCRR2(v,v.dotclock)
-#define wxCVM2(v, dc) wxVideoMode(v.hdisplay, v.vdisplay, DefaultDepth((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay())), wxCRR2(v,dc))
-#define wxCVM(v) wxCVM2(v, v.dotclock)
+#define wxCVM2(v, dc, display, nScreen) wxVideoMode(v.hdisplay, v.vdisplay, DefaultDepth(display, nScreen), wxCRR2(v,dc))
+#define wxCVM(v, display, nScreen) wxCVM2(v, v.dotclock, display, nScreen)
 
 wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& mode) const
 {
     //Convenience...
-    Display* pDisplay = (Display*) wxGetDisplay(); //default display
-    int nScreen = DefaultScreen(pDisplay); //default screen of (default) display...
+    Display* display = (Display*) wxGetDisplay(); //default display
+    int nScreen = DefaultScreen(display); //default screen of (default) display...
 
     //Some variables..
     XF86VidModeModeInfo** ppXModes; //Enumerated Modes (Don't forget XFree() :))
@@ -246,16 +246,17 @@ wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& mode) const
 
     wxArrayVideoModes Modes; //modes to return...
 
-    if (XF86VidModeGetAllModeLines(pDisplay, nScreen, &nNumModes, &ppXModes) == TRUE)
+    if (XF86VidModeGetAllModeLines(display, nScreen, &nNumModes, &ppXModes))
     {
         for (int i = 0; i < nNumModes; ++i)
         {
-            if (mode == wxDefaultVideoMode || //According to display.h All modes valid if dafault mode...
-                mode.Matches(wxCVM((*ppXModes[i]))) ) //...?
+            XF86VidModeModeInfo& info = *ppXModes[i];
+            const wxVideoMode vm = wxCVM(info, display, nScreen);
+            if (vm.Matches(mode))
             {
-                Modes.Add(wxCVM((*ppXModes[i])));
+                Modes.Add(vm);
             }
-            wxClearXVM((*ppXModes[i]));
+            wxClearXVM(info);
         //  XFree(ppXModes[i]); //supposed to free?
         }
         XFree(ppXModes);
@@ -270,20 +271,23 @@ wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& mode) const
 
 wxVideoMode wxDisplayImplX11::GetCurrentMode() const
 {
+  Display* display = static_cast<Display*>(wxGetDisplay());
+  int nScreen = DefaultScreen(display);
   XF86VidModeModeLine VM;
   int nDotClock;
-  XF86VidModeGetModeLine((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay()),
-                         &nDotClock, &VM);
+  XF86VidModeGetModeLine(display, nScreen, &nDotClock, &VM);
   wxClearXVM(VM);
-  return wxCVM2(VM, nDotClock);
+  return wxCVM2(VM, nDotClock, display, nScreen);
 }
 
 bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
 {
+    Display* display = static_cast<Display*>(wxGetDisplay());
+    int nScreen = DefaultScreen(display);
     XF86VidModeModeInfo** ppXModes; //Enumerated Modes (Don't forget XFree() :))
     int nNumModes; //Number of modes enumerated....
 
-    if( !XF86VidModeGetAllModeLines((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay()), &nNumModes, &ppXModes) )
+    if(!XF86VidModeGetAllModeLines(display, nScreen, &nNumModes, &ppXModes))
     {
         wxLogSysError(_("Failed to change video mode"));
         return false;
@@ -292,8 +296,7 @@ bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
     bool bRet = false;
     if (mode == wxDefaultVideoMode)
     {
-        bRet = XF86VidModeSwitchToMode((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay()),
-                     ppXModes[0]) == TRUE;
+        bRet = XF86VidModeSwitchToMode(display, nScreen, ppXModes[0]) != 0;
 
         for (int i = 0; i < nNumModes; ++i)
         {
@@ -311,8 +314,7 @@ bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
                 wxCRR((*ppXModes[i])) == mode.GetRefresh())
             {
                 //switch!
-                bRet = XF86VidModeSwitchToMode((Display*)wxGetDisplay(), DefaultScreen((Display*)wxGetDisplay()),
-                         ppXModes[i]) == TRUE;
+                bRet = XF86VidModeSwitchToMode(display, nScreen, ppXModes[i]) != 0;
             }
             wxClearXVM((*ppXModes[i]));
         //  XFree(ppXModes[i]); //supposed to free?
@@ -323,7 +325,6 @@ bool wxDisplayImplX11::ChangeMode(const wxVideoMode& mode)
 
     return bRet;
 }
-
 
 #else // !HAVE_X11_EXTENSIONS_XF86VMODE_H
 
@@ -339,7 +340,7 @@ wxArrayVideoModes wxDisplayImplX11::GetModes(const wxVideoMode& modeMatch) const
             wxVideoMode mode(m_rect.GetWidth(), m_rect.GetHeight(), depths[x]);
             if ( mode.Matches(modeMatch) )
             {
-                modes.Add(modeMatch);
+                modes.Add(mode);
             }
         }
 

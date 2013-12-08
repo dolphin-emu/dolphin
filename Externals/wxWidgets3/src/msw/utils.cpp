@@ -1301,6 +1301,18 @@ wxString wxGetOsDescription()
                                         ? _("Windows Server 2008 R2")
                                         : _("Windows 7");
                                 break;
+
+                            case 2:
+                                str = wxIsWindowsServer() == 1
+                                        ? _("Windows Server 2012")
+                                        : _("Windows 8");
+                                break;
+
+                            case 3:
+                                str = wxIsWindowsServer() == 1
+                                        ? _("Windows Server 2012 R2")
+                                        : _("Windows 8.1");
+                                break;
                         }
                         break;
                 }

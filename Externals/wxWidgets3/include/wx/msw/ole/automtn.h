@@ -115,11 +115,22 @@ public:
     // this object. The default is LOCALE_SYSTEM_DEFAULT.
     void SetLCID(WXLCID lcid);
 
+    // Returns the flags used for conversions between wxVariant and OLE
+    // VARIANT, see wxOleConvertVariantFlags. The default value is
+    // wxOleConvertVariant_Default but all the objects obtained by GetObject()
+    // inherit the flags from the one that created them.
+    long GetConvertVariantFlags() const;
+
+    // Sets the flags used for conversions between wxVariant and OLE VARIANT,
+    // see wxOleConvertVariantFlags (default is wxOleConvertVariant_Default.
+    void SetConvertVariantFlags(long flags);
+
 public: // public for compatibility only, don't use m_dispatchPtr directly.
     WXIDISPATCH*  m_dispatchPtr;
 
 private:
     WXLCID m_lcid;
+    long   m_convertVariantFlags;
 
     wxDECLARE_NO_COPY_CLASS(wxAutomationObject);
 };

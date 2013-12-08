@@ -113,14 +113,6 @@ public:
         if ( m_toolbarItemRef )
         {
             CFIndex count = CFGetRetainCount( m_toolbarItemRef ) ;
-            // different behaviour under Leopard
-            if ( UMAGetSystemVersion() < 0x1050 )
-            {
-                if ( count != 1 )
-                {
-                    wxFAIL_MSG("Reference count of native tool was not 1 in wxToolBarTool destructor");
-                }
-            }
             wxTheApp->MacAddToAutorelease(m_toolbarItemRef);
             CFRelease(m_toolbarItemRef);
             m_toolbarItemRef = NULL;
@@ -941,14 +933,6 @@ wxToolBar::~wxToolBar()
     }
 
     CFIndex count = CFGetRetainCount( m_macToolbar ) ;
-    // Leopard seems to have one refcount more, so we cannot check reliably at the moment
-    if ( UMAGetSystemVersion() < 0x1050 )
-    {
-        if ( count != 1 )
-        {
-            wxFAIL_MSG("Reference count of native control was not 1 in wxToolBar destructor");
-        }
-    }
     CFRelease( (HIToolbarRef)m_macToolbar );
     m_macToolbar = NULL;
 #endif // wxOSX_USE_NATIVE_TOOLBAR
@@ -1616,26 +1600,12 @@ bool wxToolBar::DoInsertTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
         case wxTOOL_STYLE_BUTTON:
             {
                 wxASSERT( tool->GetControlHandle() == NULL );
-                ControlButtonContentInfo info;
-                wxMacCreateBitmapButton( &info, tool->GetNormalBitmap() );
 
-                if ( UMAGetSystemVersion() >= 0x1000)
-                {
-                    // contrary to the docs this control only works with iconrefs
-                    ControlButtonContentInfo info;
-                    wxMacCreateBitmapButton( &info, tool->GetNormalBitmap(), kControlContentIconRef );
-                    CreateIconControl( window, &toolrect, &info, false, &controlHandle );
-                    wxMacReleaseBitmapButton( &info );
-                }
-                else
-                {
-                    SInt16 behaviour = kControlBehaviorOffsetContents;
-                    if ( tool->CanBeToggled() )
-                        behaviour |= kControlBehaviorToggles;
-                    err = CreateBevelButtonControl( window,
-                        &toolrect, CFSTR(""), kControlBevelButtonNormalBevel,
-                        behaviour, &info, 0, 0, 0, &controlHandle );
-                }
+                // contrary to the docs this control only works with iconrefs
+                ControlButtonContentInfo info;
+                wxMacCreateBitmapButton( &info, tool->GetNormalBitmap(), kControlContentIconRef );
+                CreateIconControl( window, &toolrect, &info, false, &controlHandle );
+                wxMacReleaseBitmapButton( &info );
 
 #if wxOSX_USE_NATIVE_TOOLBAR
                 if (m_macToolbar != NULL)

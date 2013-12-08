@@ -129,18 +129,24 @@ public:
     virtual short         MacHandleAERApp(const WXAPPLEEVENTREF event , WXAPPLEEVENTREF reply) ;
 #endif
     // in response of an openFiles message with Cocoa and an
-    // open-document apple event with Carbon
+    // open-document apple event
     virtual void         MacOpenFiles(const wxArrayString &fileNames) ;
     // called by MacOpenFiles for each file.
     virtual void         MacOpenFile(const wxString &fileName) ;
     // in response of a get-url apple event
     virtual void         MacOpenURL(const wxString &url) ;
     // in response of a print-document apple event
+    virtual void         MacPrintFiles(const wxArrayString &fileNames) ;
+    // called by MacPrintFiles for each file
     virtual void         MacPrintFile(const wxString &fileName) ;
     // in response of a open-application apple event
     virtual void         MacNewFile() ;
     // in response of a reopen-application apple event
     virtual void         MacReopenApp() ;
+
+    // override this to return false from a non-bundled console app in order to stay in background ...
+    virtual bool         OSXIsGUIApplication() { return true; }
+
 #if wxOSX_USE_COCOA_OR_IPHONE
     // immediately before the native event loop launches
     virtual void         OSXOnWillFinishLaunching();
@@ -153,9 +159,16 @@ public:
 
 private:
     bool                m_onInitResult;
+    bool                m_inited;
+    wxArrayString       m_openFiles;
+    wxArrayString       m_printFiles;
+    wxString            m_getURL;
     
 public:
-
+    bool                OSXInitWasCalled() { return m_inited; }
+    void                OSXStoreOpenFiles(const wxArrayString &files ) { m_openFiles = files ; }
+    void                OSXStorePrintFiles(const wxArrayString &files ) { m_printFiles = files ; }
+    void                OSXStoreOpenURL(const wxString &url ) { m_getURL = url ; }
 #endif
     
     // Hide the application windows the same as the system hide command would do it.

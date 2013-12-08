@@ -191,7 +191,7 @@ wxDynamicLibrary wxSocketMSWManager::gs_wsock32dll;
 
 bool wxSocketMSWManager::OnInit()
 {
-  static LPCTSTR pclassname = NULL;
+  LPCTSTR pclassname = NULL;
   int i;
 
   /* Create internal window for event notifications */

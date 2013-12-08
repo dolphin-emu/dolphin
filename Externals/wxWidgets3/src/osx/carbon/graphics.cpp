@@ -66,8 +66,6 @@ int UMAGetSystemVersion()
 }
 
 
-#define wxOSX_USE_CORE_TEXT 1
-
 #endif
 
 #if wxOSX_USE_COCOA_OR_IPHONE
@@ -77,10 +75,6 @@ extern bool wxOSXLockFocus( WXWidget view) ;
 extern void wxOSXUnlockFocus( WXWidget view) ;
 #endif
 #endif
-
-#if 1 // MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-
-// TODO test whether this private API also works under 10.3
 
 // copying values from NSCompositingModes (see also webkit and cairo sources)
 
@@ -105,8 +99,6 @@ extern "C"
 {
    CG_EXTERN void CGContextSetCompositeOperation (CGContextRef context, int operation);
 } ;
-
-#endif
 
 //-----------------------------------------------------------------------------
 // constants
@@ -152,8 +144,6 @@ CGColorRef wxMacCreateCGColor( const wxColour& col )
     return retval;
 }
 
-#if wxOSX_USE_CORE_TEXT
-
 CTFontRef wxMacCreateCTFont( const wxFont& font )
 {
 #ifdef __WXMAC__
@@ -162,8 +152,6 @@ CTFontRef wxMacCreateCTFont( const wxFont& font )
     return CTFontCreateWithName( wxCFStringRef( font.GetFaceName(), wxLocale::GetSystemEncoding() ) , font.GetPointSize() , NULL );
 #endif
 }
-
-#endif
 
 // CGPattern wrapper class: always allocate on heap, never call destructor
 
@@ -866,9 +854,7 @@ public:
 #if wxOSX_USE_ATSU_TEXT
     virtual ATSUStyle GetATSUStyle() { return m_macATSUIStyle; }
 #endif
-#if wxOSX_USE_CORE_TEXT
     CTFontRef OSXGetCTFont() const { return m_ctFont ; }
-#endif
     wxColour GetColour() const { return m_colour ; }
 
     bool GetUnderlined() const { return m_underlined ; }
@@ -881,9 +867,7 @@ private :
 #if wxOSX_USE_ATSU_TEXT
     ATSUStyle m_macATSUIStyle;
 #endif
-#if wxOSX_USE_CORE_TEXT
     wxCFRef< CTFontRef > m_ctFont;
-#endif
 #if wxOSX_USE_IPHONE
     UIFont*  m_uiFont;
 #endif
@@ -894,9 +878,7 @@ wxMacCoreGraphicsFontData::wxMacCoreGraphicsFontData(wxGraphicsRenderer* rendere
     m_colour = col;
     m_underlined = font.GetUnderlined();
 
-#if wxOSX_USE_CORE_TEXT
     m_ctFont.reset( wxMacCreateCTFont( font ) );
-#endif
 #if wxOSX_USE_IPHONE
     m_uiFont = CreateUIFont(font);
     wxMacCocoaRetain( m_uiFont );
@@ -940,8 +922,6 @@ wxMacCoreGraphicsFontData::wxMacCoreGraphicsFontData(wxGraphicsRenderer* rendere
 
 wxMacCoreGraphicsFontData::~wxMacCoreGraphicsFontData()
 {
-#if wxOSX_USE_CORE_TEXT
-#endif
 #if wxOSX_USE_ATSU_TEXT
     if ( m_macATSUIStyle )
     {
@@ -2309,79 +2289,51 @@ void wxMacCoreGraphicsContext::DoDrawText( const wxString &str, wxDouble x, wxDo
     if (m_composition == wxCOMPOSITION_DEST)
         return;
 
-#if wxOSX_USE_CORE_TEXT
-    {
-        wxMacCoreGraphicsFontData* fref = (wxMacCoreGraphicsFontData*)m_font.GetRefData();
-        wxCFStringRef text(str, wxLocale::GetSystemEncoding() );
-        CTFontRef font = fref->OSXGetCTFont();
-        CGColorRef col = wxMacCreateCGColor( fref->GetColour() );
-#if 0
-        // right now there's no way to get continuous underlines, only words, so we emulate it
-        CTUnderlineStyle ustyle = fref->GetUnderlined() ? kCTUnderlineStyleSingle : kCTUnderlineStyleNone ;
-        wxCFRef<CFNumberRef> underlined( CFNumberCreate(NULL, kCFNumberSInt32Type, &ustyle) );
-         CFStringRef keys[] = { kCTFontAttributeName , kCTForegroundColorAttributeName, kCTUnderlineStyleAttributeName };
-        CFTypeRef values[] = { font, col, underlined };
-#else
-        CFStringRef keys[] = { kCTFontAttributeName , kCTForegroundColorAttributeName };
-        CFTypeRef values[] = { font, col };
-#endif
-        wxCFRef<CFDictionaryRef> attributes( CFDictionaryCreate(kCFAllocatorDefault, (const void**) &keys, (const void**) &values,
-                                                        WXSIZEOF( keys ), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks) );
-        wxCFRef<CFAttributedStringRef> attrtext( CFAttributedStringCreate(kCFAllocatorDefault, text, attributes) );
-        wxCFRef<CTLineRef> line( CTLineCreateWithAttributedString(attrtext) );
-
-        y += CTFontGetAscent(font);
-
-        CGContextSaveGState(m_cgContext);
-        CGAffineTransform textMatrix = CGContextGetTextMatrix(m_cgContext);
-        
-        CGContextTranslateCTM(m_cgContext, (CGFloat) x, (CGFloat) y);
-        CGContextScaleCTM(m_cgContext, 1, -1);
-        CGContextSetTextMatrix(m_cgContext, CGAffineTransformIdentity);
-        
-        CTLineDraw( line, m_cgContext );
-        
-        if ( fref->GetUnderlined() ) {
-            //AKT: draw horizontal line 1 pixel thick and with 1 pixel gap under baseline
-            CGFloat width = CTLineGetTypographicBounds(line, NULL, NULL, NULL);
-
-            CGPoint points[] = { {0.0, -2.0},  {width, -2.0} };
-            
-            CGContextSetStrokeColorWithColor(m_cgContext, col);
-            CGContextSetShouldAntialias(m_cgContext, false);
-            CGContextSetLineWidth(m_cgContext, 1.0);
-            CGContextStrokeLineSegments(m_cgContext, points, 2);
-        }
-        
-        CGContextRestoreGState(m_cgContext);
-        CGContextSetTextMatrix(m_cgContext, textMatrix);
-        CGColorRelease( col );
-        CheckInvariants();
-        return;
-    }
-#endif
-#if wxOSX_USE_ATSU_TEXT
-    {
-        DrawText(str, x, y, 0.0);
-        return;
-    }
-#endif
-#if wxOSX_USE_IPHONE
     wxMacCoreGraphicsFontData* fref = (wxMacCoreGraphicsFontData*)m_font.GetRefData();
+    wxCFStringRef text(str, wxLocale::GetSystemEncoding() );
+    CTFontRef font = fref->OSXGetCTFont();
+    CGColorRef col = wxMacCreateCGColor( fref->GetColour() );
+#if 0
+    // right now there's no way to get continuous underlines, only words, so we emulate it
+    CTUnderlineStyle ustyle = fref->GetUnderlined() ? kCTUnderlineStyleSingle : kCTUnderlineStyleNone ;
+    wxCFRef<CFNumberRef> underlined( CFNumberCreate(NULL, kCFNumberSInt32Type, &ustyle) );
+     CFStringRef keys[] = { kCTFontAttributeName , kCTForegroundColorAttributeName, kCTUnderlineStyleAttributeName };
+    CFTypeRef values[] = { font, col, underlined };
+#else
+    CFStringRef keys[] = { kCTFontAttributeName , kCTForegroundColorAttributeName };
+    CFTypeRef values[] = { font, col };
+#endif
+    wxCFRef<CFDictionaryRef> attributes( CFDictionaryCreate(kCFAllocatorDefault, (const void**) &keys, (const void**) &values,
+                                                    WXSIZEOF( keys ), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks) );
+    wxCFRef<CFAttributedStringRef> attrtext( CFAttributedStringCreate(kCFAllocatorDefault, text, attributes) );
+    wxCFRef<CTLineRef> line( CTLineCreateWithAttributedString(attrtext) );
+
+    y += CTFontGetAscent(font);
 
     CGContextSaveGState(m_cgContext);
+    CGAffineTransform textMatrix = CGContextGetTextMatrix(m_cgContext);
 
-    CGColorRef col = wxMacCreateCGColor( fref->GetColour() );
-    CGContextSetTextDrawingMode (m_cgContext, kCGTextFill);
-    CGContextSetFillColorWithColor( m_cgContext, col );
+    CGContextTranslateCTM(m_cgContext, (CGFloat) x, (CGFloat) y);
+    CGContextScaleCTM(m_cgContext, 1, -1);
+    CGContextSetTextMatrix(m_cgContext, CGAffineTransformIdentity);
 
-    wxCFStringRef text(str, wxLocale::GetSystemEncoding() );
-    DrawTextInContext( m_cgContext, CGPointMake( x, y ), fref->GetUIFont() , text.AsNSString() );
+    CTLineDraw( line, m_cgContext );
+
+    if ( fref->GetUnderlined() ) {
+        //AKT: draw horizontal line 1 pixel thick and with 1 pixel gap under baseline
+        CGFloat width = CTLineGetTypographicBounds(line, NULL, NULL, NULL);
+
+        CGPoint points[] = { {0.0, -2.0},  {width, -2.0} };
+        
+        CGContextSetStrokeColorWithColor(m_cgContext, col);
+        CGContextSetShouldAntialias(m_cgContext, false);
+        CGContextSetLineWidth(m_cgContext, 1.0);
+        CGContextStrokeLineSegments(m_cgContext, points, 2);
+    }
 
     CGContextRestoreGState(m_cgContext);
-    CFRelease( col );
-#endif
-    
+    CGContextSetTextMatrix(m_cgContext, textMatrix);
+    CGColorRelease( col );
     CheckInvariants();
 }
 
@@ -2397,103 +2349,9 @@ void wxMacCoreGraphicsContext::DoDrawRotatedText(const wxString &str,
     if (m_composition == wxCOMPOSITION_DEST)
         return;
 
-#if wxOSX_USE_CORE_TEXT
-    {
-        // default implementation takes care of rotation and calls non rotated DrawText afterwards
-        wxGraphicsContext::DoDrawRotatedText( str, x, y, angle );
-        return;
-    }
-#endif
-#if wxOSX_USE_ATSU_TEXT
-    {
-        OSStatus status = noErr;
-        ATSUTextLayout atsuLayout;
-        wxMacUniCharBuffer unibuf( str );
-        UniCharCount chars = unibuf.GetChars();
-
-        ATSUStyle style = (((wxMacCoreGraphicsFontData*)m_font.GetRefData())->GetATSUStyle());
-        status = ::ATSUCreateTextLayoutWithTextPtr( unibuf.GetBuffer() , 0 , chars , chars , 1 ,
-                                                   &chars , &style , &atsuLayout );
-
-        wxASSERT_MSG( status == noErr , wxT("couldn't create the layout of the rotated text") );
-
-        status = ::ATSUSetTransientFontMatching( atsuLayout , true );
-        wxASSERT_MSG( status == noErr , wxT("couldn't setup transient font matching") );
-
-        int iAngle = int( angle * RAD2DEG );
-        if ( abs(iAngle) > 0 )
-        {
-            Fixed atsuAngle = IntToFixed( iAngle );
-            ATSUAttributeTag atsuTags[] =
-            {
-                kATSULineRotationTag ,
-            };
-            ByteCount atsuSizes[WXSIZEOF(atsuTags)] =
-            {
-                sizeof( Fixed ) ,
-            };
-            ATSUAttributeValuePtr    atsuValues[WXSIZEOF(atsuTags)] =
-            {
-                &atsuAngle ,
-            };
-            status = ::ATSUSetLayoutControls(atsuLayout , WXSIZEOF(atsuTags),
-                                             atsuTags, atsuSizes, atsuValues );
-        }
-
-        {
-            ATSUAttributeTag atsuTags[] =
-            {
-                kATSUCGContextTag ,
-            };
-            ByteCount atsuSizes[WXSIZEOF(atsuTags)] =
-            {
-                sizeof( CGContextRef ) ,
-            };
-            ATSUAttributeValuePtr    atsuValues[WXSIZEOF(atsuTags)] =
-            {
-                &m_cgContext ,
-            };
-            status = ::ATSUSetLayoutControls(atsuLayout , WXSIZEOF(atsuTags),
-                                             atsuTags, atsuSizes, atsuValues );
-        }
-
-        ATSUTextMeasurement textBefore, textAfter;
-        ATSUTextMeasurement ascent, descent;
-
-        status = ::ATSUGetUnjustifiedBounds( atsuLayout, kATSUFromTextBeginning, kATSUToTextEnd,
-                                            &textBefore , &textAfter, &ascent , &descent );
-
-        wxASSERT_MSG( status == noErr , wxT("couldn't measure the rotated text") );
-
-        Rect rect;
-        x += (int)(sin(angle) * FixedToFloat(ascent));
-        y += (int)(cos(angle) * FixedToFloat(ascent));
-
-        status = ::ATSUMeasureTextImage( atsuLayout, kATSUFromTextBeginning, kATSUToTextEnd,
-                                        IntToFixed(x) , IntToFixed(y) , &rect );
-        wxASSERT_MSG( status == noErr , wxT("couldn't measure the rotated text") );
-
-        CGContextSaveGState(m_cgContext);
-        CGContextTranslateCTM(m_cgContext, (CGFloat) x, (CGFloat) y);
-        CGContextScaleCTM(m_cgContext, 1, -1);
-        status = ::ATSUDrawText( atsuLayout, kATSUFromTextBeginning, kATSUToTextEnd,
-                                IntToFixed(0) , IntToFixed(0) );
-
-        wxASSERT_MSG( status == noErr , wxT("couldn't draw the rotated text") );
-
-        CGContextRestoreGState(m_cgContext);
-
-        ::ATSUDisposeTextLayout(atsuLayout);
-        CheckInvariants();
-
-        return;
-    }
-#endif
-#if wxOSX_USE_IPHONE
     // default implementation takes care of rotation and calls non rotated DrawText afterwards
     wxGraphicsContext::DoDrawRotatedText( str, x, y, angle );
-#endif
-    
+
     CheckInvariants();
 }
 
@@ -2518,100 +2376,33 @@ void wxMacCoreGraphicsContext::GetTextExtent( const wxString &str, wxDouble *wid
     if (str.empty())
         strToMeasure = wxS(" ");
 
-#if wxOSX_USE_CORE_TEXT
-    {
-        wxMacCoreGraphicsFontData* fref = (wxMacCoreGraphicsFontData*)m_font.GetRefData();
-        CTFontRef font = fref->OSXGetCTFont();
-
-        wxCFStringRef text(strToMeasure, wxLocale::GetSystemEncoding() );
-        CFStringRef keys[] = { kCTFontAttributeName  };
-        CFTypeRef values[] = { font };
-        wxCFRef<CFDictionaryRef> attributes( CFDictionaryCreate(kCFAllocatorDefault, (const void**) &keys, (const void**) &values,
-                                                                WXSIZEOF( keys ), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks) );
-        wxCFRef<CFAttributedStringRef> attrtext( CFAttributedStringCreate(kCFAllocatorDefault, text, attributes) );
-        wxCFRef<CTLineRef> line( CTLineCreateWithAttributedString(attrtext) );
-
-        CGFloat a, d, l, w;
-        w = CTLineGetTypographicBounds(line, &a, &d, &l);
-
-        if ( !str.empty() )
-        {
-            if ( width )
-                *width = w;
-            if ( height )
-                *height = a+d+l;
-        }
-
-        if ( descent )
-            *descent = d;
-        if ( externalLeading )
-            *externalLeading = l;
-        return;
-    }
-#endif
-#if wxOSX_USE_ATSU_TEXT
-    {
-        OSStatus status = noErr;
-
-        ATSUTextLayout atsuLayout;
-        wxMacUniCharBuffer unibuf( strToMeasure );
-        UniCharCount chars = unibuf.GetChars();
-
-        ATSUStyle style = (((wxMacCoreGraphicsFontData*)m_font.GetRefData())->GetATSUStyle());
-        status = ::ATSUCreateTextLayoutWithTextPtr( unibuf.GetBuffer() , 0 , chars , chars , 1 ,
-                                                   &chars , &style , &atsuLayout );
-
-        wxASSERT_MSG( status == noErr , wxT("couldn't create the layout of the text") );
-
-        status = ::ATSUSetTransientFontMatching( atsuLayout , true );
-        wxASSERT_MSG( status == noErr , wxT("couldn't setup transient font matching") );
-
-        ATSUTextMeasurement textBefore, textAfter;
-        ATSUTextMeasurement textAscent, textDescent;
-
-        status = ::ATSUGetUnjustifiedBounds( atsuLayout, kATSUFromTextBeginning, kATSUToTextEnd,
-                                            &textBefore , &textAfter, &textAscent , &textDescent );
-
-        if ( !str.empty() )
-        {
-            if ( width )
-                *width = FixedToFloat(textAfter - textBefore);
-            if ( height )
-                *height = FixedToFloat(textAscent + textDescent);
-        }
-
-        if ( descent )
-            *descent = FixedToFloat(textDescent);
-        if ( externalLeading )
-            *externalLeading = 0;
-
-        ::ATSUDisposeTextLayout(atsuLayout);
-
-        return;
-    }
-#endif
-#if wxOSX_USE_IPHONE
     wxMacCoreGraphicsFontData* fref = (wxMacCoreGraphicsFontData*)m_font.GetRefData();
+    CTFontRef font = fref->OSXGetCTFont();
 
     wxCFStringRef text(strToMeasure, wxLocale::GetSystemEncoding() );
-    CGSize sz = MeasureTextInContext( fref->GetUIFont() , text.AsNSString() );
+    CFStringRef keys[] = { kCTFontAttributeName  };
+    CFTypeRef values[] = { font };
+    wxCFRef<CFDictionaryRef> attributes( CFDictionaryCreate(kCFAllocatorDefault, (const void**) &keys, (const void**) &values,
+                                                            WXSIZEOF( keys ), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks) );
+    wxCFRef<CFAttributedStringRef> attrtext( CFAttributedStringCreate(kCFAllocatorDefault, text, attributes) );
+    wxCFRef<CTLineRef> line( CTLineCreateWithAttributedString(attrtext) );
+
+    CGFloat a, d, l, w;
+    w = CTLineGetTypographicBounds(line, &a, &d, &l);
 
     if ( !str.empty() )
     {
         if ( width )
-            *width = sz.width;
+            *width = w;
         if ( height )
-            *height = sz.height;
+            *height = a+d+l;
     }
 
-        /*
     if ( descent )
-        *descent = FixedToFloat(textDescent);
+        *descent = d;
     if ( externalLeading )
-        *externalLeading = 0;
-        */
-#endif
-    
+        *externalLeading = l;
+
     CheckInvariants();    
 }
 
@@ -2625,93 +2416,23 @@ void wxMacCoreGraphicsContext::GetPartialTextExtents(const wxString& text, wxArr
     if (text.empty())
         return;
 
-#if wxOSX_USE_CORE_TEXT
+    wxMacCoreGraphicsFontData* fref = (wxMacCoreGraphicsFontData*)m_font.GetRefData();
+    CTFontRef font = fref->OSXGetCTFont();
+
+    wxCFStringRef t(text, wxLocale::GetSystemEncoding() );
+    CFStringRef keys[] = { kCTFontAttributeName  };
+    CFTypeRef values[] = { font };
+    wxCFRef<CFDictionaryRef> attributes( CFDictionaryCreate(kCFAllocatorDefault, (const void**) &keys, (const void**) &values,
+                                                            WXSIZEOF( keys ), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks) );
+    wxCFRef<CFAttributedStringRef> attrtext( CFAttributedStringCreate(kCFAllocatorDefault, t, attributes) );
+    wxCFRef<CTLineRef> line( CTLineCreateWithAttributedString(attrtext) );
+
+    int chars = text.length();
+    for ( int pos = 0; pos < (int)chars; pos ++ )
     {
-        wxMacCoreGraphicsFontData* fref = (wxMacCoreGraphicsFontData*)m_font.GetRefData();
-        CTFontRef font = fref->OSXGetCTFont();
-
-        wxCFStringRef t(text, wxLocale::GetSystemEncoding() );
-        CFStringRef keys[] = { kCTFontAttributeName  };
-        CFTypeRef values[] = { font };
-        wxCFRef<CFDictionaryRef> attributes( CFDictionaryCreate(kCFAllocatorDefault, (const void**) &keys, (const void**) &values,
-                                                                WXSIZEOF( keys ), &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks) );
-        wxCFRef<CFAttributedStringRef> attrtext( CFAttributedStringCreate(kCFAllocatorDefault, t, attributes) );
-        wxCFRef<CTLineRef> line( CTLineCreateWithAttributedString(attrtext) );
-
-        int chars = text.length();
-        for ( int pos = 0; pos < (int)chars; pos ++ )
-        {
-            widths[pos] = CTLineGetOffsetForStringIndex( line, pos+1 , NULL );
-        }
-
-        return;
+        widths[pos] = CTLineGetOffsetForStringIndex( line, pos+1 , NULL );
     }
-#endif
-#if wxOSX_USE_ATSU_TEXT
-    {
-        OSStatus status = noErr;
-        ATSUTextLayout atsuLayout;
-        wxMacUniCharBuffer unibuf( text );
-        UniCharCount chars = unibuf.GetChars();
 
-        ATSUStyle style = (((wxMacCoreGraphicsFontData*)m_font.GetRefData())->GetATSUStyle());
-        status = ::ATSUCreateTextLayoutWithTextPtr( unibuf.GetBuffer() , 0 , chars , chars , 1 ,
-                                          &chars , &style , &atsuLayout );
-
-        wxASSERT_MSG( status == noErr , wxT("couldn't create the layout of the text") );
-
-        status = ::ATSUSetTransientFontMatching( atsuLayout , true );
-        wxASSERT_MSG( status == noErr , wxT("couldn't setup transient font matching") );
-
-// new implementation from JS, keep old one just in case
-#if 0
-        for ( int pos = 0; pos < (int)chars; pos ++ )
-        {
-            unsigned long actualNumberOfBounds = 0;
-            ATSTrapezoid glyphBounds;
-
-            // We get a single bound, since the text should only require one. If it requires more, there is an issue
-            OSStatus result;
-            result = ATSUGetGlyphBounds( atsuLayout, 0, 0, kATSUFromTextBeginning, pos + 1,
-                                        kATSUseDeviceOrigins, 1, &glyphBounds, &actualNumberOfBounds );
-            if (result != noErr || actualNumberOfBounds != 1 )
-                return;
-
-            widths[pos] = FixedToFloat( glyphBounds.upperRight.x - glyphBounds.upperLeft.x );
-            //unsigned char uch = s[i];
-        }
-#else
-        ATSLayoutRecord *layoutRecords = NULL;
-        ItemCount glyphCount = 0;
-
-        // Get the glyph extents
-        OSStatus err = ::ATSUDirectGetLayoutDataArrayPtrFromTextLayout(atsuLayout,
-                                                                       0,
-                                                                       kATSUDirectDataLayoutRecordATSLayoutRecordCurrent,
-                                                                       (void **)
-                                                                       &layoutRecords,
-                                                                       &glyphCount);
-        wxASSERT(glyphCount == (text.length()+1));
-
-        if ( err == noErr && glyphCount == (text.length()+1))
-        {
-            for ( int pos = 1; pos < (int)glyphCount ; pos ++ )
-            {
-                widths[pos-1] = FixedToFloat( layoutRecords[pos].realPos );
-            }
-        }
-
-        ::ATSUDirectReleaseLayoutDataArrayPtr(NULL,
-                                              kATSUDirectDataLayoutRecordATSLayoutRecordCurrent,
-                                              (void **) &layoutRecords);
-#endif
-        ::ATSUDisposeTextLayout(atsuLayout);
-    }
-#endif
-#if wxOSX_USE_IPHONE
-    // TODO core graphics text implementation here
-#endif
-    
     CheckInvariants();
 }
 

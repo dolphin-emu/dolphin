@@ -69,9 +69,7 @@ bool wxInfoBarGeneric::Create(wxWindow *parent, wxWindowID winid)
         return false;
 
     // use special, easy to notice, colours
-    const wxColour colBg = wxSystemSettings::GetColour(wxSYS_COLOUR_INFOBK);
-    SetBackgroundColour(colBg);
-    SetOwnForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOBK));
 
     // create the controls: icon, text and the button to dismiss the
     // message.
@@ -80,6 +78,7 @@ bool wxInfoBarGeneric::Create(wxWindow *parent, wxWindowID winid)
     m_icon = new wxStaticBitmap(this, wxID_ANY, wxNullBitmap);
 
     m_text = new wxStaticText(this, wxID_ANY, "");
+    m_text->SetForegroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
 
     m_button = wxBitmapButton::NewCloseButton(this, wxID_ANY);
     m_button->SetToolTip(_("Hide this notification message."));
@@ -107,6 +106,17 @@ bool wxInfoBarGeneric::SetFont(const wxFont& font)
     // check that we're not called before Create()
     if ( m_text )
         m_text->SetFont(font);
+
+    return true;
+}
+
+bool wxInfoBarGeneric::SetForegroundColour(const wxColor& colour)
+{
+    if ( !wxInfoBarBase::SetForegroundColour(colour) )
+        return false;
+
+    if ( m_text )
+        m_text->SetForegroundColour(colour);
 
     return true;
 }

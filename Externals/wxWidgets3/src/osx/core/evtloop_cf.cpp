@@ -71,14 +71,14 @@ wxCFEventLoopSource::~wxCFEventLoopSource()
 void wxCFEventLoop::OSXCommonModeObserverCallBack(CFRunLoopObserverRef observer, int activity, void *info)
 {
     wxCFEventLoop * eventloop = static_cast<wxCFEventLoop *>(info);
-    if ( eventloop )
+    if ( eventloop && eventloop->IsRunning() )
         eventloop->CommonModeObserverCallBack(observer, activity);
 }
 
 void wxCFEventLoop::OSXDefaultModeObserverCallBack(CFRunLoopObserverRef observer, int activity, void *info)
 {
     wxCFEventLoop * eventloop = static_cast<wxCFEventLoop *>(info);
-    if ( eventloop )
+    if ( eventloop && eventloop->IsRunning() )
         eventloop->DefaultModeObserverCallBack(observer, activity);
 }
 

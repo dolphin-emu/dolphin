@@ -47,8 +47,6 @@ public:
     virtual bool Enable( bool enable = true );
 
     // implementation
-    void OnSize( wxSizeEvent &event );
-
     int m_pos;
 
 protected:
@@ -61,9 +59,7 @@ protected:
 private:
     typedef wxSpinButtonBase base_type;
 
-    DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS(wxSpinButton)
 };
 
-#endif
-    // _WX_GTK_SPINBUTT_H_
+#endif // _WX_GTK_SPINBUTT_H_

@@ -103,7 +103,6 @@ public:
 
     wxMask *GetMask() const;
     void SetMask( wxMask *mask );
-    wxBitmap GetMaskBitmap() const;
 
     wxBitmap GetSubBitmap( const wxRect& rect ) const;
 

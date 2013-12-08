@@ -156,7 +156,7 @@ protected:
     wxDECLARE_NO_COPY_CLASS(wxTextMeasureBase);
 };
 
-// Include the platform dependant class declaration, if any.
+// Include the platform dependent class declaration, if any.
 #if defined(__WXGTK20__)
     #include "wx/gtk/private/textmeasure.h"
 #elif defined(__WXMSW__)

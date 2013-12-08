@@ -55,12 +55,14 @@ protected:
     // override these methods anyhow, it does work -- but is definitely ugly
     // and need to be changed (but how?) in the future.
 
+#if wxUSE_INTL
     // Override to return the date/time format used by this control.
     virtual wxLocaleInfo MSWGetFormat() const /* = 0 */
     {
         wxFAIL_MSG( "Unreachable" );
         return wxLOCALE_TIME_FMT;
     }
+#endif // wxUSE_INTL
 
     // Override to indicate whether we can have no date at all.
     virtual bool MSWAllowsNone() const /* = 0 */

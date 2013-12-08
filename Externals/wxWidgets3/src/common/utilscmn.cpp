@@ -630,7 +630,14 @@ static bool ReadAll(wxInputStream *is, wxArrayString& output)
     // the stream could be already at EOF or in wxSTREAM_BROKEN_PIPE state
     is->Reset();
 
-    wxTextInputStream tis(*is);
+    // Notice that wxTextInputStream doesn't work correctly with wxConvAuto
+    // currently, see #14720, so use the current locale conversion explicitly
+    // under assumption that any external program should be using it too.
+    wxTextInputStream tis(*is, " \t"
+#if wxUSE_UNICODE
+                                    , wxConvLibc
+#endif
+                                                );
 
     for ( ;; )
     {
@@ -1198,6 +1205,7 @@ wxString wxStripMenuCodes(const wxString& in, int flags)
             if ( ++it == in.end() )
             {
                 wxLogDebug(wxT("Invalid menu string '%s'"), in.c_str());
+                break;
             }
             else
             {
@@ -1414,7 +1422,7 @@ wxVersionInfo wxGetLibraryVersionInfo()
                          wxMINOR_VERSION,
                          wxRELEASE_NUMBER,
                          msg,
-                         wxS("Copyright (c) 1995-2011 wxWidgets team"));
+                         wxS("Copyright (c) 1995-2013 wxWidgets team"));
 }
 
 void wxInfoMessageBox(wxWindow* parent)

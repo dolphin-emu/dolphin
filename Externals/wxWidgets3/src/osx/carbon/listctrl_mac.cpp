@@ -2853,35 +2853,14 @@ void wxMacDataBrowserListCtrlControl::DrawItem(
 
     HIThemeTextHorizontalFlush hFlush = kHIThemeTextHorizontalFlushLeft;
     HIThemeTextInfo info;
-    bool setup = false;
-#if wxOSX_USE_CORE_TEXT
-    if ( UMAGetSystemVersion() >= 0x1050 )
-    {
-        info.version = kHIThemeTextInfoVersionOne;
-        info.fontID = kThemeViewsFont;
-        if (font.IsOk())
-        {
-            info.fontID = kThemeSpecifiedFont;
-            info.font = (CTFontRef) font.OSXGetCTFont();
-            setup = true;
-        }
-    }
-#endif
-#if wxOSX_USE_ATSU_TEXT
-    if ( !setup )
-    {
-        info.version = kHIThemeTextInfoVersionZero;
-        info.fontID = kThemeViewsFont;
 
-        if (font.IsOk())
-        {
-            info.fontID = font.MacGetThemeFontID();
-
-            ::TextSize( (short)(font.GetPointSize()) ) ;
-            ::TextFace( font.MacGetFontStyle() ) ;
-        }
+    info.version = kHIThemeTextInfoVersionOne;
+    info.fontID = kThemeViewsFont;
+    if (font.IsOk())
+    {
+        info.fontID = kThemeSpecifiedFont;
+        info.font = (CTFontRef) font.OSXGetCTFont();
     }
-#endif
 
     wxListItem item;
     list->GetColumn(listColumn, item);

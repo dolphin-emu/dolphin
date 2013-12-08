@@ -330,28 +330,49 @@ int wxDataViewModel::Compare( const wxDataViewItem &item1, const wxDataViewItem 
     {
         long l1 = value1.GetLong();
         long l2 = value2.GetLong();
-        long res = l1-l2;
-        if (res)
-            return res;
+        if (l1 < l2)
+            return -1;
+        else if (l1 > l2)
+            return 1;
     }
     else if (value1.GetType() == wxT("double"))
     {
         double d1 = value1.GetDouble();
         double d2 = value2.GetDouble();
         if (d1 < d2)
-            return 1;
-        if (d1 > d2)
             return -1;
+        else if (d1 > d2)
+            return 1;
     }
     else if (value1.GetType() == wxT("datetime"))
     {
         wxDateTime dt1 = value1.GetDateTime();
         wxDateTime dt2 = value2.GetDateTime();
         if (dt1.IsEarlierThan(dt2))
-            return 1;
-        if (dt2.IsEarlierThan(dt1))
             return -1;
+        if (dt2.IsEarlierThan(dt1))
+            return 1;
     }
+    else if (value1.GetType() == wxT("bool"))
+    {
+        bool b1 = value1.GetBool();
+        bool b2 = value2.GetBool();
+
+        if (b1 != b2)
+            return b1 ? 1 : -1;
+    }
+    else if (value1.GetType() == wxT("wxDataViewIconText"))
+    {
+        wxDataViewIconText iconText1, iconText2;
+
+        iconText1 << value1;
+        iconText2 << value2;
+
+        int res = iconText1.GetText().Cmp(iconText2.GetText());
+        if (res != 0)
+          return res;
+    }
+
 
     // items must be different
     wxUIntPtr id1 = wxPtrToUInt(item1.GetID()),
@@ -1769,6 +1790,11 @@ void wxDataViewListStore::DeleteAllItems()
     Reset( 0 );
 }
 
+void wxDataViewListStore::ClearColumns()
+{
+    m_cols.clear();
+}
+
 void wxDataViewListStore::SetItemData( const wxDataViewItem& item, wxUIntPtr data )
 {
     wxDataViewListStoreLine* line = m_data[GetRow(item)];
@@ -1780,7 +1806,7 @@ void wxDataViewListStore::SetItemData( const wxDataViewItem& item, wxUIntPtr dat
 wxUIntPtr wxDataViewListStore::GetItemData( const wxDataViewItem& item ) const
 {
     wxDataViewListStoreLine* line = m_data[GetRow(item)];
-    if (!line) return static_cast<wxUIntPtr>(NULL);
+    if (!line) return 0;
 
     return line->GetData();
 }
@@ -1870,6 +1896,12 @@ bool wxDataViewListCtrl::InsertColumn( unsigned int pos, wxDataViewColumn *col )
 bool wxDataViewListCtrl::AppendColumn( wxDataViewColumn *col )
 {
     return AppendColumn( col, "string" );
+}
+
+bool wxDataViewListCtrl::ClearColumns()
+{
+    GetStore()->ClearColumns();
+    return wxDataViewCtrl::ClearColumns();
 }
 
 wxDataViewColumn *wxDataViewListCtrl::AppendTextColumn( const wxString &label,

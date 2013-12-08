@@ -287,6 +287,18 @@ wxTextWidgetImpl * wxTextEntry::GetTextPeer() const
     return win ? dynamic_cast<wxTextWidgetImpl *>(win->GetPeer()) : NULL;
 }
 
+bool wxTextEntry::SetHint(const wxString& hint)
+{
+    m_hintString = hint;
+    return GetTextPeer() && GetTextPeer()->SetHint(hint);
+}
+
+wxString wxTextEntry::GetHint() const
+{
+    return m_hintString;
+}
+
+
 // ----------------------------------------------------------------------------
 // Auto-completion
 // ----------------------------------------------------------------------------

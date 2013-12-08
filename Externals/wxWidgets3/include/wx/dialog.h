@@ -13,6 +13,7 @@
 
 #include "wx/toplevel.h"
 #include "wx/containr.h"
+#include "wx/sharedptr.h"
 
 class WXDLLIMPEXP_FWD_CORE wxSizer;
 class WXDLLIMPEXP_FWD_CORE wxStdDialogButtonSizer;
@@ -402,24 +403,29 @@ class wxWindowModalDialogEventFunctor
 {
 public:
     wxWindowModalDialogEventFunctor(const Functor& f)
-        : m_f(f), m_wasCalled(false)
+        : m_f(new Functor(f))
     {}
 
     void operator()(wxWindowModalDialogEvent& event)
     {
-        if ( m_wasCalled )
+        if ( m_f )
+        {
+            // We only want to call this handler once. Also, by deleting
+            // the functor here, its data (such as wxWindowPtr pointing to
+            // the dialog) are freed immediately after exiting this operator().
+            wxSharedPtr<Functor> functor(m_f);
+            m_f.reset();
+
+            (*functor)(event.GetReturnCode());
+        }
+        else // was already called once
         {
             event.Skip();
-            return;
         }
-
-        m_wasCalled = true;
-        m_f(event.GetReturnCode());
     }
 
 private:
-    Functor m_f;
-    bool m_wasCalled;
+    wxSharedPtr<Functor> m_f;
 };
 
 template<typename Functor>
@@ -428,7 +434,7 @@ void wxDialogBase::ShowWindowModalThenDo(const Functor& onEndModal)
     Bind(wxEVT_WINDOW_MODAL_DIALOG_CLOSED,
          wxWindowModalDialogEventFunctor<Functor>(onEndModal));
     ShowWindowModal();
-};
+}
 #endif // wxHAS_EVENT_BIND
 
 #endif

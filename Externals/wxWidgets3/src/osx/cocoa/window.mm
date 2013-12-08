@@ -869,7 +869,9 @@ void wxOSX_insertText(NSView* self, SEL _cmd, NSString* text);
 
 - (void)doCommandBySelector:(SEL)aSelector
 {
-    // these are already caught in the keyEvent handler
+    wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( self );
+    if (impl)
+        impl->doCommandBySelector(aSelector, self, _cmd);
 }
 
 - (void)setMarkedText:(id)aString selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange
@@ -1366,13 +1368,82 @@ void wxWidgetCocoaImpl::keyEvent(WX_NSEvent event, WXWidget slf, void *_cmd)
 
 void wxWidgetCocoaImpl::insertText(NSString* text, WXWidget slf, void *_cmd)
 {
-    if ( m_lastKeyDownEvent==NULL || m_hasEditor || !DoHandleCharEvent(m_lastKeyDownEvent, text) )
+    bool result = false;
+    if ( IsUserPane() && !m_hasEditor && [text length] > 0)
+    {
+        if ( m_lastKeyDownEvent!=NULL && [text isEqualToString:[m_lastKeyDownEvent characters]])
+        {
+            // If we have a corresponding key event, send wxEVT_KEY_DOWN now.
+            // (see also: wxWidgetCocoaImpl::DoHandleKeyEvent)
+            {
+                wxKeyEvent wxevent(wxEVT_KEY_DOWN);
+                SetupKeyEvent( wxevent, m_lastKeyDownEvent );
+                result = GetWXPeer()->OSXHandleKeyEvent(wxevent);
+            }
+
+            // ...and wxEVT_CHAR.
+            result = result || DoHandleCharEvent(m_lastKeyDownEvent, text);
+        }
+        else
+        {
+            // If we don't have a corresponding key event (e.g. IME-composed
+            // characters), send wxEVT_CHAR without sending wxEVT_KEY_DOWN.
+            for (NSUInteger i = 0; i < [text length]; ++i)
+            {
+                wxKeyEvent wxevent(wxEVT_CHAR);
+                wxevent.m_shiftDown = wxevent.m_controlDown = wxevent.m_altDown = wxevent.m_metaDown = false;
+                wxevent.m_rawCode = 0;
+                wxevent.m_rawFlags = 0;
+                wxevent.SetTimestamp();
+                unichar aunichar = [text characterAtIndex:i];
+#if wxUSE_UNICODE
+                wxevent.m_uniChar = aunichar;
+#endif
+                wxevent.m_keyCode = aunichar < 0x80 ? aunichar : WXK_NONE;
+                wxWindowMac* peer = GetWXPeer();
+                if ( peer )
+                {
+                    wxevent.SetEventObject(peer);
+                    wxevent.SetId(peer->GetId());
+                }
+                result = GetWXPeer()->OSXHandleKeyEvent(wxevent) || result;
+            }
+        }
+    }
+    if ( !result )
     {
         wxOSX_TextEventHandlerPtr superimpl = (wxOSX_TextEventHandlerPtr) [[slf superclass] instanceMethodForSelector:(SEL)_cmd];
         superimpl(slf, (SEL)_cmd, text);
     }
 }
 
+void wxWidgetCocoaImpl::doCommandBySelector(void* sel, WXWidget slf, void* _cmd)
+{
+    if ( m_lastKeyDownEvent!=NULL )
+    {
+        // If we have a corresponding key event, send wxEVT_KEY_DOWN now.
+        // (see also: wxWidgetCocoaImpl::DoHandleKeyEvent)
+        wxKeyEvent wxevent(wxEVT_KEY_DOWN);
+        SetupKeyEvent( wxevent, m_lastKeyDownEvent );
+        bool result = GetWXPeer()->OSXHandleKeyEvent(wxevent);
+
+        if (!result)
+        {
+            // Generate wxEVT_CHAR if wxEVT_KEY_DOWN is not handled.
+
+            long keycode = wxOSXTranslateCocoaKey( m_lastKeyDownEvent, wxEVT_CHAR );
+
+            wxKeyEvent wxevent2(wxevent) ;
+            wxevent2.SetEventType(wxEVT_CHAR);
+            SetupKeyEvent( wxevent2, m_lastKeyDownEvent );
+            if ( (keycode > 0 && keycode < WXK_SPACE) || keycode == WXK_DELETE || keycode >= WXK_START )
+            {
+                wxevent2.m_keyCode = keycode;
+            }
+            GetWXPeer()->OSXHandleKeyEvent(wxevent2);
+        }
+    }
+}
 
 bool wxWidgetCocoaImpl::performKeyEquivalent(WX_NSEvent event, WXWidget slf, void *_cmd)
 {
@@ -2665,48 +2736,23 @@ bool wxWidgetCocoaImpl::DoHandleKeyEvent(NSEvent *event)
             return true;
     }
 
-    bool result = GetWXPeer()->OSXHandleKeyEvent(wxevent);
-
-    // this will fire higher level events, like insertText, to help
-    // us handle EVT_CHAR, etc.
-
-    if ( !result )
+    if ( IsUserPane() && [event type] == NSKeyDown)
     {
-        if ( [event type] == NSKeyDown)
-        {
-            long keycode = wxOSXTranslateCocoaKey( event, wxEVT_CHAR );
-            
-            if ( (keycode > 0 && keycode < WXK_SPACE) || keycode == WXK_DELETE || keycode >= WXK_START )
-            {
-                // eventually we could setup a doCommandBySelector catcher and retransform this into the wx key chars
-                wxKeyEvent wxevent2(wxevent) ;
-                wxevent2.SetEventType(wxEVT_CHAR);
-                SetupKeyEvent( wxevent2, event );
-                wxevent2.m_keyCode = keycode;
-                result = GetWXPeer()->OSXHandleKeyEvent(wxevent2);
-            }
-            else if (wxevent.CmdDown())
-            {
-                wxKeyEvent wxevent2(wxevent) ;
-                wxevent2.SetEventType(wxEVT_CHAR);
-                SetupKeyEvent( wxevent2, event );
-                result = GetWXPeer()->OSXHandleKeyEvent(wxevent2);
-            }
-            else
-            {
-                if ( IsUserPane() && !wxevent.CmdDown() )
-                {
-                    if ( [m_osxView isKindOfClass:[NSScrollView class] ] )
-                        [[(NSScrollView*)m_osxView documentView] interpretKeyEvents:[NSArray arrayWithObject:event]];
-                    else
-                        [m_osxView interpretKeyEvents:[NSArray arrayWithObject:event]];
-                    result = true;
-                }
-            }
-        }
-    }
+        // Don't fire wxEVT_KEY_DOWN here in order to allow IME to intercept
+        // some key events. If the event is not handled by IME, either
+        // insertText: or doCommandBySelector: is called, so we send
+        // wxEVT_KEY_DOWN and wxEVT_CHAR there.
 
-    return result;
+        if ( [m_osxView isKindOfClass:[NSScrollView class] ] )
+            [[(NSScrollView*)m_osxView documentView] interpretKeyEvents:[NSArray arrayWithObject:event]];
+        else
+            [m_osxView interpretKeyEvents:[NSArray arrayWithObject:event]];
+        return true;
+    }
+    else
+    {
+        return GetWXPeer()->OSXHandleKeyEvent(wxevent);
+    }
 }
 
 bool wxWidgetCocoaImpl::DoHandleMouseEvent(NSEvent *event)

@@ -414,57 +414,53 @@ WXDLLEXPORT bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& ole
 #endif
 
 WXDLLEXPORT bool
-wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant)
+wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant, long flags)
 {
     bool ok = true;
     if ( oleVariant.vt & VT_ARRAY )
     {
-        // TODO: We currently return arrays as wxVariant of the list type
-        //       containing the flattened form of array but we should allow
-        //       getting it as wxVariantDataSafeArray instead. Doing this is
-        //       simple, we'd just need to do something like this:
-        //
-        //  if ( oleVariant.parray && SafeArrayGetDim(oleVariant.parray) > 1 )
-        //  {
-        //      variant.SetData(new wxVariantDataSafeArray(oleVariant.parray));
-        //  }
-        //
-        //      but currently we don't do it for compatibility reasons.
-        switch (oleVariant.vt & VT_TYPEMASK)
+        if ( flags & wxOleConvertVariant_ReturnSafeArrays  )
         {
-            case VT_I2:
-                ok = wxSafeArray<VT_I2>::ConvertToVariant(oleVariant.parray, variant);
-                break;
-            case VT_I4:
-                ok = wxSafeArray<VT_I4>::ConvertToVariant(oleVariant.parray, variant);
-                break;
-            case VT_R4:
-                ok = wxSafeArray<VT_R4>::ConvertToVariant(oleVariant.parray, variant);
-                break;
-            case VT_R8:
-                ok = wxSafeArray<VT_R8>::ConvertToVariant(oleVariant.parray, variant);
-                break;
-            case VT_VARIANT:
-                ok = wxSafeArray<VT_VARIANT>::ConvertToVariant(oleVariant.parray, variant);
-                break;
-            case VT_BSTR:
-                {
-                    wxArrayString strings;
-                    if ( wxSafeArray<VT_BSTR>::ConvertToArrayString(oleVariant.parray, strings) )
-                        variant = strings;
-                    else
-                        ok = false;
-                }
-                break;
-            default:
-                ok = false;
-                break;
+            variant.SetData(new wxVariantDataSafeArray(oleVariant.parray));
         }
-        if ( !ok )
+        else
         {
-            wxLogDebug(wxT("unhandled VT_ARRAY type %x in wxConvertOleToVariant"),
-                       oleVariant.vt & VT_TYPEMASK);
-            variant = wxVariant();
+            switch (oleVariant.vt & VT_TYPEMASK)
+            {
+                case VT_I2:
+                    ok = wxSafeArray<VT_I2>::ConvertToVariant(oleVariant.parray, variant);
+                    break;
+                case VT_I4:
+                    ok = wxSafeArray<VT_I4>::ConvertToVariant(oleVariant.parray, variant);
+                    break;
+                case VT_R4:
+                    ok = wxSafeArray<VT_R4>::ConvertToVariant(oleVariant.parray, variant);
+                    break;
+                case VT_R8:
+                    ok = wxSafeArray<VT_R8>::ConvertToVariant(oleVariant.parray, variant);
+                    break;
+                case VT_VARIANT:
+                    ok = wxSafeArray<VT_VARIANT>::ConvertToVariant(oleVariant.parray, variant);
+                    break;
+                case VT_BSTR:
+                    {
+                        wxArrayString strings;
+                        if ( wxSafeArray<VT_BSTR>::ConvertToArrayString(oleVariant.parray, strings) )
+                            variant = strings;
+                        else
+                            ok = false;
+                    }
+                    break;
+                default:
+                    ok = false;
+                    break;
+            }
+            if ( !ok )
+            {
+                wxLogDebug(wxT("unhandled VT_ARRAY type %x in wxConvertOleToVariant"),
+                           oleVariant.vt & VT_TYPEMASK);
+                variant = wxVariant();
+            }
         }
     }
     else if ( oleVariant.vt & VT_BYREF )

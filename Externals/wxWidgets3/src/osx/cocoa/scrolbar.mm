@@ -57,12 +57,8 @@ public :
     {
         double v = ((double) value)/m_maximum;
         double t = ((double) thumbSize)/(m_maximum+thumbSize);
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-        [(wxNSScroller*) m_osxView setFloatValue:v knobProportion:t];
-#else
         [(wxNSScroller*) m_osxView setDoubleValue:v];
         [(wxNSScroller*) m_osxView setKnobProportion:t];
-#endif
     }
 
     virtual wxInt32 GetValue() const

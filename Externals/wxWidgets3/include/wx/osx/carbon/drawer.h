@@ -22,8 +22,6 @@
 // near future
 //
 
-#if ( MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_2 )
-
 class WXDLLIMPEXP_ADV wxDrawerWindow : public wxTopLevelWindow
 {
     DECLARE_DYNAMIC_CLASS(wxDrawerWindow)
@@ -64,7 +62,4 @@ public:
     wxDirection GetCurrentEdge() const; // not necessarily the preferred, due to screen constraints
 };
 
-#endif // defined( __WXMAC__ ) && TARGET_API_MAC_OSX && ( MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_2 )
-
-#endif
-    // _WX_DRAWERWINDOW_H_
+#endif // _WX_DRAWERWINDOW_H_

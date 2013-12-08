@@ -227,42 +227,43 @@ bool wxTextAttr::operator== (const wxTextAttr& attr) const
 {
     return  GetFlags() == attr.GetFlags() &&
 
-            GetTextColour() == attr.GetTextColour() &&
-            GetBackgroundColour() == attr.GetBackgroundColour() &&
+            (!HasTextColour() || (GetTextColour() == attr.GetTextColour())) &&
+            (!HasBackgroundColour() || (GetBackgroundColour() == attr.GetBackgroundColour())) &&
 
-            GetAlignment() == attr.GetAlignment() &&
-            GetLeftIndent() == attr.GetLeftIndent() &&
-            GetLeftSubIndent() == attr.GetLeftSubIndent() &&
-            GetRightIndent() == attr.GetRightIndent() &&
-            TabsEq(GetTabs(), attr.GetTabs()) &&
+            (!HasAlignment() || (GetAlignment() == attr.GetAlignment())) &&
+            (!HasLeftIndent() || (GetLeftIndent() == attr.GetLeftIndent() &&
+                                  GetLeftSubIndent() == attr.GetLeftSubIndent())) &&
+            (!HasRightIndent() || (GetRightIndent() == attr.GetRightIndent())) &&
+            (!HasTabs() || (TabsEq(GetTabs(), attr.GetTabs()))) &&
 
-            GetParagraphSpacingAfter() == attr.GetParagraphSpacingAfter() &&
-            GetParagraphSpacingBefore() == attr.GetParagraphSpacingBefore() &&
-            GetLineSpacing() == attr.GetLineSpacing() &&
-            GetCharacterStyleName() == attr.GetCharacterStyleName() &&
-            GetParagraphStyleName() == attr.GetParagraphStyleName() &&
-            GetListStyleName() == attr.GetListStyleName() &&
+            (!HasParagraphSpacingAfter() || (GetParagraphSpacingAfter() == attr.GetParagraphSpacingAfter())) &&
+            (!HasParagraphSpacingBefore() || (GetParagraphSpacingBefore() == attr.GetParagraphSpacingBefore())) &&
+            (!HasLineSpacing() || (GetLineSpacing() == attr.GetLineSpacing())) &&
+            (!HasCharacterStyleName() || (GetCharacterStyleName() == attr.GetCharacterStyleName())) &&
+            (!HasParagraphStyleName() || (GetParagraphStyleName() == attr.GetParagraphStyleName())) &&
+            (!HasListStyleName() || (GetListStyleName() == attr.GetListStyleName())) &&
 
-            GetBulletStyle() == attr.GetBulletStyle() &&
-            GetBulletText() == attr.GetBulletText() &&
-            GetBulletNumber() == attr.GetBulletNumber() &&
-            GetBulletFont() == attr.GetBulletFont() &&
-            GetBulletName() == attr.GetBulletName() &&
+            (!HasBulletStyle() || (GetBulletStyle() == attr.GetBulletStyle())) &&
+            (!HasBulletText() || (GetBulletText() == attr.GetBulletText())) &&
+            (!HasBulletNumber() || (GetBulletNumber() == attr.GetBulletNumber())) &&
+            (GetBulletFont() == attr.GetBulletFont()) &&
+            (!HasBulletName() || (GetBulletName() == attr.GetBulletName())) &&
 
-            GetTextEffects() == attr.GetTextEffects() &&
-            GetTextEffectFlags() == attr.GetTextEffectFlags() &&
+            (!HasTextEffects() || (GetTextEffects() == attr.GetTextEffects() &&
+                                   GetTextEffectFlags() == attr.GetTextEffectFlags())) &&
 
-            GetOutlineLevel() == attr.GetOutlineLevel() &&
+            (!HasOutlineLevel() || (GetOutlineLevel() == attr.GetOutlineLevel())) &&
 
-            GetFontSize() == attr.GetFontSize() &&
-            GetFontStyle() == attr.GetFontStyle() &&
-            GetFontWeight() == attr.GetFontWeight() &&
-            GetFontUnderlined() == attr.GetFontUnderlined() &&
-            GetFontFaceName() == attr.GetFontFaceName() &&
-            GetFontEncoding() == attr.GetFontEncoding() &&
-            GetFontFamily() == attr.GetFontFamily() &&
+            (!HasFontSize() || (GetFontSize() == attr.GetFontSize())) &&
+            (!HasFontItalic() || (GetFontStyle() == attr.GetFontStyle())) &&
+            (!HasFontWeight() || (GetFontWeight() == attr.GetFontWeight())) &&
+            (!HasFontUnderlined() || (GetFontUnderlined() == attr.GetFontUnderlined())) &&
+            (!HasFontStrikethrough() || (GetFontStrikethrough() == attr.GetFontStrikethrough())) &&
+            (!HasFontFaceName() || (GetFontFaceName() == attr.GetFontFaceName())) &&
+            (!HasFontEncoding() || (GetFontEncoding() == attr.GetFontEncoding())) &&
+            (!HasFontFamily() || (GetFontFamily() == attr.GetFontFamily())) &&
 
-            GetURL() == attr.GetURL();
+            (!HasURL() || (GetURL() == attr.GetURL()));
 }
 
 // Partial equality test. Only returns false if an attribute doesn't match.
@@ -393,7 +394,7 @@ bool wxTextAttr::EqPartial(const wxTextAttr& attr, bool weakTest) const
 
     if (HasTextEffects() && attr.HasTextEffects())
     {
-        if (!BitlistsEqPartial(GetTextEffects(), attr.GetTextEffects(), attr.GetTextEffectFlags()))
+        if (!BitlistsEqPartial(GetTextEffects(), attr.GetTextEffects(), GetTextEffectFlags()))
             return false;
     }
 
@@ -817,6 +818,19 @@ bool wxTextAttr::RemoveStyle(wxTextAttr& destStyle, const wxTextAttr& style)
     int flags = style.GetFlags();
     int destFlags = destStyle.GetFlags();
 
+    // We must treat text effects specially, since we must remove only some.
+    if (style.HasTextEffects() && (style.GetTextEffectFlags() != 0))
+    {
+        int newTextEffectFlags = destStyle.GetTextEffectFlags() & ~style.GetTextEffectFlags();
+        int newTextEffects = destStyle.GetTextEffects() & ~style.GetTextEffectFlags();
+        destStyle.SetTextEffects(newTextEffects);
+        destStyle.SetTextEffectFlags(newTextEffectFlags);
+
+        // Don't remove wxTEXT_ATTR_EFFECTS unless the resulting flags are zero
+        if (newTextEffectFlags != 0)
+            flags &= ~wxTEXT_ATTR_EFFECTS;
+    }
+
     destStyle.SetFlags(destFlags & ~flags);
 
     return true;
@@ -927,7 +941,7 @@ bool wxTextAreaBase::DoSaveFile(const wxString& filename, int WXUNUSED(fileType)
 {
 #if wxUSE_FFILE
     wxFFile file(filename, wxT("w"));
-    if ( file.IsOpened() && file.Write(GetValue(), *wxConvCurrent) )
+    if ( file.IsOpened() && file.Write(GetValue()) )
     {
         // if it worked, save for future calls
         m_filename = filename;

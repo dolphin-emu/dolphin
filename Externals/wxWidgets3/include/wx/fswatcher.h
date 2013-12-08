@@ -66,6 +66,13 @@ enum wxFSWPathType
     wxFSWPath_Tree      // Watch a directory and all its children recursively.
 };
 
+// Type of the warning for the events notifying about them.
+enum wxFSWWarningType
+{
+    wxFSW_WARNING_NONE,
+    wxFSW_WARNING_GENERAL,
+    wxFSW_WARNING_OVERFLOW
+};
 
 /**
  * Event containing information about file system change.
@@ -77,24 +84,36 @@ wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_BASE, wxEVT_FSWATCHER,
 class WXDLLIMPEXP_BASE wxFileSystemWatcherEvent: public wxEvent
 {
 public:
+    // Constructor for any kind of events, also used as default ctor.
     wxFileSystemWatcherEvent(int changeType = 0, int watchid = wxID_ANY) :
         wxEvent(watchid, wxEVT_FSWATCHER),
-        m_changeType(changeType)
+        m_changeType(changeType),
+        m_warningType(wxFSW_WARNING_NONE)
     {
     }
 
-    wxFileSystemWatcherEvent(int changeType, const wxString& errorMsg,
+    // Constructor for the error or warning events.
+    wxFileSystemWatcherEvent(int changeType,
+                             wxFSWWarningType warningType,
+                             const wxString& errorMsg = wxString(),
                              int watchid = wxID_ANY) :
         wxEvent(watchid, wxEVT_FSWATCHER),
-        m_changeType(changeType), m_errorMsg(errorMsg)
+        m_changeType(changeType),
+        m_warningType(warningType),
+        m_errorMsg(errorMsg)
     {
     }
 
+    // Constructor for the normal events carrying information about the changes.
     wxFileSystemWatcherEvent(int changeType,
                              const wxFileName& path, const wxFileName& newPath,
                              int watchid = wxID_ANY) :
          wxEvent(watchid, wxEVT_FSWATCHER),
-         m_changeType(changeType), m_path(path), m_newPath(newPath)
+         m_changeType(changeType),
+         m_warningType(wxFSW_WARNING_NONE),
+         m_path(path),
+         m_newPath(newPath)
+
     {
     }
 
@@ -146,6 +165,7 @@ public:
         evt->m_errorMsg = m_errorMsg.Clone();
         evt->m_path = wxFileName(m_path.GetFullPath().Clone());
         evt->m_newPath = wxFileName(m_newPath.GetFullPath().Clone());
+        evt->m_warningType = m_warningType;
         return evt;
     }
 
@@ -168,6 +188,11 @@ public:
         return m_errorMsg;
     }
 
+    wxFSWWarningType GetWarningType() const
+    {
+        return m_warningType;
+    }
+
     /**
      * Returns a wxString describing an event useful for debugging or testing
      */
@@ -175,6 +200,7 @@ public:
 
 protected:
     int m_changeType;
+    wxFSWWarningType m_warningType;
     wxFileName m_path;
     wxFileName m_newPath;
     wxString m_errorMsg;

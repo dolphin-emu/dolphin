@@ -565,24 +565,6 @@ WXDLLIMPEXP_BASE wchar_t * wxCRT_GetenvW(const wchar_t *name);
     /* wcstoi doesn't exist */
 #endif
 
-#ifdef __DARWIN__
-    #if !defined(__WXOSX_IPHONE__) && MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_2
-        #define wxNEED_WX_MBSTOWCS
-    #endif
-#endif
-
-#ifdef wxNEED_WX_MBSTOWCS
-    /* even though they are defined and "implemented", they are bad and just
-       stubs so we need our own - we need these even in ANSI builds!! */
-    WXDLLIMPEXP_BASE size_t wxMbstowcs(wchar_t *, const char *, size_t);
-    WXDLLIMPEXP_BASE size_t wxWcstombs(char *, const wchar_t *, size_t);
-#else
-    #define wxMbstowcs mbstowcs
-    #define wxWcstombs wcstombs
-#endif
-
-
-
 /* -------------------------------------------------------------------------
                                 time.h
    ------------------------------------------------------------------------- */

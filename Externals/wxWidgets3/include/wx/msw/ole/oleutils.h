@@ -316,9 +316,25 @@ private:
     SAFEARRAY* m_value;
 };
 
+// Used by wxAutomationObject for its wxConvertOleToVariant() calls.
+enum wxOleConvertVariantFlags
+{
+    wxOleConvertVariant_Default = 0,
 
-WXDLLIMPEXP_CORE bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& oleVariant);
-WXDLLIMPEXP_CORE bool wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant);
+    // If wxOleConvertVariant_ReturnSafeArrays  flag is set, SAFEARRAYs
+    // contained in OLE VARIANTs will be returned as wxVariants
+    // with wxVariantDataSafeArray type instead of wxVariants
+    // with the list type containing the (flattened) SAFEARRAY's elements.
+    wxOleConvertVariant_ReturnSafeArrays = 1
+};
+
+WXDLLIMPEXP_CORE
+bool wxConvertVariantToOle(const wxVariant& variant, VARIANTARG& oleVariant);
+
+WXDLLIMPEXP_CORE
+bool wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& variant,
+                           long flags = wxOleConvertVariant_Default);
+
 #endif // wxUSE_VARIANT
 
 // Convert string to Unicode

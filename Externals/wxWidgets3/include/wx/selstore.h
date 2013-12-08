@@ -80,7 +80,7 @@ public:
 
 private:
     // (re)init
-    void Init() { m_defaultState = false; }
+    void Init() { m_count = 0; m_defaultState = false; }
 
     // the total number of items we handle
     unsigned m_count;

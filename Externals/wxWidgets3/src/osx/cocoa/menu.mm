@@ -140,6 +140,9 @@
 
 @interface NSApplication(MissingAppleMenuCall)
 - (void)setAppleMenu:(NSMenu *)menu;
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
+- (void)setHelpMenu:(NSMenu* )menu;
+#endif
 @end
 
 class wxMenuCocoaImpl : public wxMenuImpl
@@ -192,8 +195,35 @@ public :
 
     virtual void MakeRoot()
     {
+        wxMenu* peer = GetWXPeer();
+        
         [NSApp setMainMenu:m_osxMenu];
         [NSApp setAppleMenu:[[m_osxMenu itemAtIndex:0] submenu]];
+
+        wxMenuItem *services = peer->FindItem(wxID_OSX_SERVICES);
+        if ( services )
+            [NSApp setServicesMenu:services->GetSubMenu()->GetHMenu()];
+#if 0
+        // should we reset this just to be sure we don't leave a dangling ref ?
+        else
+            [NSApp setServicesMenu:nil];
+#endif
+        
+        NSMenu* helpMenu = nil;
+        int helpid = peer->FindItem(wxApp::s_macHelpMenuTitleName);
+        if ( helpid == wxNOT_FOUND )
+            helpid = peer->FindItem(_("&Help"));
+        
+        if ( helpid != wxNOT_FOUND )
+        {
+            wxMenuItem* helpMenuItem = peer->FindItem(helpid);
+            
+            if ( helpMenuItem->IsSubMenu() )
+                helpMenu = helpMenuItem->GetSubMenu()->GetHMenu();
+        }
+        if ( [NSApp respondsToSelector:@selector(setHelpMenu:)])
+            [NSApp setHelpMenu:helpMenu];
+        
     }
 
     virtual void Enable( bool WXUNUSED(enable) )

@@ -54,10 +54,8 @@ static int CalculateUIEventMaskFromEventCategory(wxEventCategory cat)
 	NSMouseEnteredMask		= 1 << NSMouseEntered,
 	NSMouseExitedMask		= 1 << NSMouseExited,
         NSScrollWheelMask		= 1 << NSScrollWheel,
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
 	NSTabletPointMask		= 1 << NSTabletPoint,
 	NSTabletProximityMask		= 1 << NSTabletProximity,
-#endif
 	NSOtherMouseDownMask		= 1 << NSOtherMouseDown,
 	NSOtherMouseUpMask		= 1 << NSOtherMouseUp,
 	NSOtherMouseDraggedMask		= 1 << NSOtherMouseDragged,

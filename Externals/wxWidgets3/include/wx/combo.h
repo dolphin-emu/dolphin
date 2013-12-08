@@ -560,7 +560,7 @@ protected:
     //             just recalculate.
     void CalculateAreas( int btnWidth = 0 );
 
-    // Standard textctrl positioning routine. Just give it platform-dependant
+    // Standard textctrl positioning routine. Just give it platform-dependent
     // textctrl coordinate adjustment.
     virtual void PositionTextCtrl( int textCtrlXAdjust = 0,
                                    int textCtrlYAdjust = 0);
@@ -701,7 +701,7 @@ protected:
     // area used by the button
     wxSize                  m_btnSize;
 
-    // platform-dependant customization and other flags
+    // platform-dependent customization and other flags
     wxUint32                m_iFlags;
 
     // custom style for m_text

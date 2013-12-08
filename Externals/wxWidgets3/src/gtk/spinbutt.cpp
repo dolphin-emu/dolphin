@@ -14,10 +14,6 @@
 
 #include "wx/spinbutt.h"
 
-#ifndef WX_PRECOMP
-    #include "wx/utils.h"
-#endif
-
 #include <gtk/gtk.h>
 
 //-----------------------------------------------------------------------------
@@ -71,10 +67,6 @@ gtk_value_changed(GtkSpinButton* spinbutton, wxSpinButton* win)
 // wxSpinButton
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxSpinButton, wxControl)
-    EVT_SIZE(wxSpinButton::OnSize)
-END_EVENT_TABLE()
-
 wxSpinButton::wxSpinButton()
 {
     m_pos = 0;
@@ -87,14 +79,8 @@ bool wxSpinButton::Create(wxWindow *parent,
                           long style,
                           const wxString& name)
 {
-    wxSize new_size = size,
-           sizeBest = DoGetBestSize();
-    new_size.x = sizeBest.x;            // override width always
-    if (new_size.y == -1)
-        new_size.y = sizeBest.y;
-
-    if (!PreCreation( parent, pos, new_size ) ||
-        !CreateBase( parent, id, pos, new_size, style, wxDefaultValidator, name ))
+    if (!PreCreation(parent, pos, size) ||
+        !CreateBase(parent, id, pos, size, style, wxDefaultValidator, name))
     {
         wxFAIL_MSG( wxT("wxSpinButton creation failed") );
         return false;
@@ -105,6 +91,7 @@ bool wxSpinButton::Create(wxWindow *parent,
     m_widget = gtk_spin_button_new_with_range(0, 100, 1);
     g_object_ref(m_widget);
 
+    gtk_entry_set_width_chars(GTK_ENTRY(m_widget), 0);
     gtk_spin_button_set_wrap( GTK_SPIN_BUTTON(m_widget),
                               (int)(m_windowStyle & wxSP_WRAP) );
 
@@ -113,7 +100,7 @@ bool wxSpinButton::Create(wxWindow *parent,
 
     m_parent->DoAddChild( this );
 
-    PostCreation(new_size);
+    PostCreation(size);
 
     return true;
 }
@@ -163,14 +150,6 @@ void wxSpinButton::SetRange(int minVal, int maxVal)
     GtkEnableEvents();
 }
 
-void wxSpinButton::OnSize( wxSizeEvent &WXUNUSED(event) )
-{
-    wxCHECK_RET( (m_widget != NULL), wxT("invalid spin button") );
-
-    m_width = DoGetBestSize().x;
-    gtk_widget_set_size_request( m_widget, m_width, m_height );
-}
-
 bool wxSpinButton::Enable( bool enable )
 {
     if (!base_type::Enable(enable))
@@ -207,7 +186,20 @@ GdkWindow *wxSpinButton::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) cons
 
 wxSize wxSpinButton::DoGetBestSize() const
 {
-    wxSize best(15, 26); // FIXME
+    wxSize best = base_type::DoGetBestSize();
+#ifdef __WXGTK3__
+    GtkStyleContext* sc = gtk_widget_get_style_context(m_widget);
+    GtkBorder pad = { 0, 0, 0, 0 };
+    gtk_style_context_get_padding(sc, GtkStateFlags(0), &pad);
+    best.x -= pad.left + pad.right;
+#else
+    gtk_widget_ensure_style(m_widget);
+    int w = PANGO_PIXELS(pango_font_description_get_size(m_widget->style->font_desc));
+    w &= ~1;
+    if (w < 6)
+        w = 6;
+    best.x = w + 2 * m_widget->style->xthickness;
+#endif
     CacheBestSize(best);
     return best;
 }
@@ -219,4 +211,4 @@ wxSpinButton::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
     return GetDefaultAttributesFromGTKWidget(gtk_spin_button_new_with_range(0, 100, 1));
 }
 
-#endif
+#endif // wxUSE_SPINBTN

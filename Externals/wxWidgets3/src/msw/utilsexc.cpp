@@ -51,7 +51,6 @@
 #endif
 
 #if defined(__GNUWIN32__)
-    #include <sys/unistd.h>
     #include <sys/stat.h>
 #endif
 

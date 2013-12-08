@@ -146,6 +146,10 @@ public:
     // call this function to update it (m_menuBarFrame should be !NULL)
     void Refresh(bool eraseBackground = true, const wxRect *rect = NULL);
 
+#if wxABI_VERSION >= 30001
+    wxMenu *OSXGetAppleMenu() const { return m_appleMenu; }
+#endif
+
     static void SetAutoWindowMenu( bool enable ) { s_macAutoWindowMenu = enable ; }
     static bool GetAutoWindowMenu() { return s_macAutoWindowMenu ; }
 

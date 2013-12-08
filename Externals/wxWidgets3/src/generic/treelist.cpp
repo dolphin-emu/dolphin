@@ -716,8 +716,6 @@ void wxTreeListModel::DeleteItem(Node* item)
 
     Node* const parent = item->GetParent();
 
-    ItemDeleted(ToDVI(parent), ToDVI(item));
-
     Node* previous = parent->GetChild();
     if ( previous == item )
     {
@@ -739,6 +737,8 @@ void wxTreeListModel::DeleteItem(Node* item)
 
         previous->DeleteNext();
     }
+
+    ItemDeleted(ToDVI(parent), ToDVI(item));
 }
 
 void wxTreeListModel::DeleteAllItems()

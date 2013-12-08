@@ -279,6 +279,9 @@ public:
     // destroyed
     void SetDocChildFrame(wxDocChildFrameAnyBase *docChildFrame);
 
+    // get the associated frame, may be NULL during destruction
+    wxDocChildFrameAnyBase* GetDocChildFrame() const { return m_docChildFrame; }
+
 protected:
     // hook the document into event handlers chain here
     virtual bool TryBefore(wxEvent& event);
@@ -597,9 +600,10 @@ public:
         m_childDocument = NULL;
         m_childView = NULL;
         m_win = NULL;
+        m_lastEvent = NULL;
     }
 
-    // full ctor equivalent to using the default one and Create(0
+    // full ctor equivalent to using the default one and Create()
     wxDocChildFrameAnyBase(wxDocument *doc, wxView *view, wxWindow *win)
     {
         Create(doc, view, win);
@@ -638,6 +642,14 @@ public:
 
     wxWindow *GetWindow() const { return m_win; }
 
+    // implementation only
+
+    // Check if this event had been just processed in this frame.
+    bool HasAlreadyProcessed(wxEvent& event) const
+    {
+        return m_lastEvent == &event;
+    }
+
 protected:
     // we're not a wxEvtHandler but we provide this wxEvtHandler-like function
     // which is called from TryBefore() of the derived classes to give our view
@@ -656,6 +668,10 @@ protected:
     // allows us to avoid having any virtual functions in this class
     wxWindow* m_win;
 
+private:
+    // Pointer to the last processed event used to avoid sending the same event
+    // twice to wxDocManager, from here and from wxDocParentFrameAnyBase.
+    wxEvent* m_lastEvent;
 
     wxDECLARE_NO_COPY_CLASS(wxDocChildFrameAnyBase);
 };
@@ -894,7 +910,11 @@ protected:
     // hook the document manager into event handling chain here
     virtual bool TryBefore(wxEvent& event)
     {
-        return TryProcessEvent(event) || BaseFrame::TryBefore(event);
+        // It is important to send the event to the base class first as
+        // wxMDIParentFrame overrides its TryBefore() to send the menu events
+        // to the currently active child frame and the child must get them
+        // before our own TryProcessEvent() is executed, not afterwards.
+        return BaseFrame::TryBefore(event) || TryProcessEvent(event);
     }
 
 private:

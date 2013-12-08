@@ -79,8 +79,6 @@ struct WXDLLIMPEXP_BASE wxStringOperationsUtf8
     template<typename Iterator>
     static void DecIter(Iterator& i)
     {
-        wxASSERT( IsValidUtf8LeadByte(*i) );
-
         // Non-lead bytes are all in the 0x80..0xBF range (i.e. 10xxxxxx in
         // binary), so we just have to go back until we hit a byte that is
         // either < 0x80 (i.e. 0xxxxxxx in binary) or 0xC0..0xFF (11xxxxxx in

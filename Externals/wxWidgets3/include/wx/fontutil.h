@@ -142,9 +142,7 @@ public:
         return *this;
     }
 
-#if wxOSX_USE_CORE_TEXT
     void Init(CTFontDescriptorRef descr);
-#endif
     void Init(const wxNativeFontInfo& info);
     void Init(int size,
                   wxFontFamily family,

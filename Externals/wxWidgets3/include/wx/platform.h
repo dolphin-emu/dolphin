@@ -95,8 +95,13 @@
 #   endif
 #endif /* __WINDOWS__ */
 
-/* Don't use widget toolkit specific code in non-GUI code */
-#if defined(wxUSE_GUI) && !wxUSE_GUI
+/*
+    Don't use widget toolkit specific code in non-GUI code in the library
+    itself to ensure that the same base library is used for both MSW and GTK
+    ports. But keep __WXMSW__ defined for (console) applications using
+    wxWidgets for compatibility.
+ */
+#if defined(WXBUILDING) && defined(wxUSE_GUI) && !wxUSE_GUI
 #   ifdef __WXMSW__
 #       undef __WXMSW__
 #   endif

@@ -39,6 +39,7 @@
 #include "wx/tooltip.h"
 #include "wx/spinctrl.h"
 #include "wx/geometry.h"
+#include "wx/weakref.h"
 
 #if wxUSE_LISTCTRL
     #include "wx/listctrl.h"
@@ -610,7 +611,7 @@ void wxWindowMac::SetFocus()
 
 void wxWindowMac::OSXSimulateFocusEvents()
 {
-    wxWindow* former = FindFocus() ;
+    wxWeakRef<wxWindow> former = FindFocus() ;
     if ( former != NULL && former != this )
     {
         {
@@ -620,6 +621,9 @@ void wxWindowMac::OSXSimulateFocusEvents()
             former->HandleWindowEvent(event) ;
         }
 
+        // 'former' could have been destroyed by a wxEVT_KILL_FOCUS handler,
+        // so we must test it for non-NULL again
+        if ( former )
         {
             wxFocusEvent event(wxEVT_SET_FOCUS, former->GetId());
             event.SetEventObject(former);
@@ -2545,10 +2549,12 @@ bool wxWindowMac::OSXHandleClicked( double WXUNUSED(timestampsec) )
     return false;
 }
 
+#if wxOSX_USE_COCOA_OR_IPHONE
 void *wxWindowMac::OSXGetViewOrWindow() const
 {
     return GetHandle();
 }
+#endif
 
 wxInt32 wxWindowMac::MacControlHit(WXEVENTHANDLERREF WXUNUSED(handler) , WXEVENTREF event )
 {

@@ -436,7 +436,16 @@ void wxChoice::DoSetItemClientData(unsigned int n, void* clientData)
 
 void* wxChoice::DoGetItemClientData(unsigned int n) const
 {
+    // Before using GetLastError() below, ensure that we don't have a stale
+    // error code from a previous API call as CB_GETITEMDATA doesn't reset it
+    // in case of success, it only sets it if an error occurs.
+    SetLastError(ERROR_SUCCESS);
+
     LPARAM rc = SendMessage(GetHwnd(), CB_GETITEMDATA, n, 0);
+
+    // Notice that we must call GetLastError() to distinguish between a real
+    // error and successfully retrieving a previously stored client data value
+    // of CB_ERR (-1).
     if ( rc == CB_ERR && GetLastError() != ERROR_SUCCESS )
     {
         wxLogLastError(wxT("CB_GETITEMDATA"));

@@ -374,15 +374,19 @@ void wxMDIParentFrame::SetWindowMenu(wxMenu* menu)
 {
     if ( menu != m_windowMenu )
     {
-        // notice that Remove/AddWindowMenu() are safe to call even when
-        // m_windowMenu is NULL
-        RemoveWindowMenu();
+        // We may not be showing the window menu currently if we don't have any
+        // children, and in this case we shouldn't remove/add it back right now.
+        const bool hasWindowMenu = GetActiveChild() != NULL;
+
+        if ( hasWindowMenu )
+            RemoveWindowMenu();
 
         delete m_windowMenu;
 
         m_windowMenu = menu;
 
-        AddWindowMenu();
+        if ( hasWindowMenu )
+            AddWindowMenu();
     }
 
 #if wxUSE_ACCEL

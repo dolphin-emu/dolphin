@@ -175,7 +175,7 @@ public:
     virtual bool Create(int width, int height, int depth = wxBITMAP_SCREEN_DEPTH) = 0;
     virtual bool Create(const wxSize& sz, int depth = wxBITMAP_SCREEN_DEPTH) = 0;
     virtual bool CreateScaled(int w, int h, int d, double logicalScale)
-        { return Create(w*logicalScale,h*logicalScale,d); }
+        { return Create(wxRound(w*logicalScale), wxRound(h*logicalScale), d); }
 
     virtual int GetHeight() const = 0;
     virtual int GetWidth() const = 0;
@@ -189,7 +189,7 @@ public:
     virtual double GetScaledWidth() const { return GetWidth() / GetScaleFactor(); }
     virtual double GetScaledHeight() const { return GetHeight() / GetScaleFactor(); }
     virtual wxSize GetScaledSize() const
-    { return wxSize(GetScaledWidth(), GetScaledHeight()); }
+        { return wxSize(wxRound(GetScaledWidth()), wxRound(GetScaledHeight())); }
 
 #if wxUSE_IMAGE
     virtual wxImage ConvertToImage() const = 0;

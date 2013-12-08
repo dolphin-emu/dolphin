@@ -664,7 +664,7 @@ typedef struct
 #include <_mingw.h>
 #endif
 
-#if defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+#ifdef __MINGW32_TOOLCHAIN__
 typedef enum CommandStateChangeConstants {
     CSC_UPDATECOMMANDS = (int) 0xFFFFFFFF,
     CSC_NAVIGATEFORWARD = 0x1,

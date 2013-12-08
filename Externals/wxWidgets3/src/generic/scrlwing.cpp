@@ -214,9 +214,6 @@ bool wxScrollHelperEvtHandler::ProcessEvent(wxEvent& event)
         return true;
     }
 
-    if ( processed && event.IsCommandEvent())
-        return true;
-
     // For wxEVT_PAINT the user code can either handle this event as usual or
     // override virtual OnDraw(), so if the event hasn't been handled we need
     // to call this virtual function ourselves.
@@ -234,6 +231,11 @@ bool wxScrollHelperEvtHandler::ProcessEvent(wxEvent& event)
         m_scrollHelper->HandleOnPaint((wxPaintEvent &)event);
         return true;
     }
+
+    // If the user code handled this event, it should prevent the default
+    // handling from taking place, so don't do anything else in this case.
+    if ( processed )
+        return true;
 
     if ( evType == wxEVT_CHILD_FOCUS )
     {

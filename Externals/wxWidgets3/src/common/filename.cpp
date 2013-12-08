@@ -315,14 +315,20 @@ static bool IsUNCPath(const wxString& path, wxPathFormat format)
                             !IsDOSPathSep(path[2u]);
 }
 
-#ifndef __WIN32__
+// Under Unix-ish systems (basically everything except Windows but we can't
+// just test for non-__WIN32__ because Cygwin defines it, yet we want to use
+// lstat() under it, so test for all the rest explicitly) we may work either
+// with the file itself or its target if it's a symbolic link and we should
+// dereference it, as determined by wxFileName::ShouldFollowLink() and the
+// absence of the wxFILE_EXISTS_NO_FOLLOW flag. StatAny() can be used to stat
+// the appropriate file with an extra twist that it also works when there is no
+// wxFileName object at all, as is the case in static methods.
 
-// Under Unix-ish systems (basically everything except Windows) we may work
-// either with the file itself or its target if it's a symbolic link and we
-// should dereference it, as determined by wxFileName::ShouldFollowLink() and
-// the absence of the wxFILE_EXISTS_NO_FOLLOW flag. StatAny() can be used to
-// stat the appropriate file with an extra twist that it also works when there
-// is no wxFileName object at all, as is the case in static methods.
+#if defined(__UNIX_LIKE__) || defined(__WXMAC__) || defined(__OS2__) || (defined(__DOS__) && defined(__WATCOMC__))
+    #define wxHAVE_LSTAT
+#endif
+
+#ifdef wxHAVE_LSTAT
 
 // Private implementation, don't call directly, use one of the overloads below.
 bool DoStatAny(wxStructStat& st, wxString path, bool dereference)
@@ -363,7 +369,7 @@ bool StatAny(wxStructStat& st, const wxFileName& fn)
     return DoStatAny(st, fn.GetFullPath(), fn.ShouldFollowLink());
 }
 
-#endif // !__WIN32__
+#endif // wxHAVE_LSTAT
 
 // ----------------------------------------------------------------------------
 // private constants
@@ -1851,7 +1857,7 @@ bool wxFileName::SameAs(const wxFileName& filepath, wxPathFormat format) const
     if ( fn1.GetFullPath() == fn2.GetFullPath() )
         return true;
 
-#if defined(__UNIX__)
+#ifdef wxHAVE_LSTAT
     wxStructStat st1, st2;
     if ( StatAny(st1, fn1) && StatAny(st2, fn2) )
     {
@@ -1859,7 +1865,7 @@ bool wxFileName::SameAs(const wxFileName& filepath, wxPathFormat format) const
             return true;
     }
     //else: It's not an error if one or both files don't exist.
-#endif // defined __UNIX__
+#endif // wxHAVE_LSTAT
 
     return false;
 }
@@ -2752,7 +2758,7 @@ bool wxFileName::GetTimes(wxDateTime *dtAccess,
 
         return true;
     }
-#elif defined(__UNIX_LIKE__) || defined(__WXMAC__) || defined(__OS2__) || (defined(__DOS__) && defined(__WATCOMC__))
+#elif defined(wxHAVE_LSTAT)
     // no need to test for IsDir() here
     wxStructStat stBuf;
     if ( StatAny(stBuf, *this) )

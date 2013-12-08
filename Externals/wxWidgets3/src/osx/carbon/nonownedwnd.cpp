@@ -1522,18 +1522,11 @@ void wxNonOwnedWindowCarbonImpl::Maximize(bool maximize)
     Point idealSize = { 0 , 0 } ;
     if ( maximize )
     {
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
         HIRect bounds ;
         HIWindowGetAvailablePositioningBounds(kCGNullDirectDisplay,kHICoordSpace72DPIGlobal,
             &bounds);
         idealSize.h = bounds.size.width;
         idealSize.v = bounds.size.height;
-#else
-        Rect rect ;
-        GetAvailableWindowPositioningBounds(GetMainDevice(),&rect) ;
-        idealSize.h = rect.right - rect.left ;
-        idealSize.v = rect.bottom - rect.top ;
-#endif
     }
     ZoomWindowIdeal( (WindowRef)GetWXWindow() , maximize ? inZoomOut : inZoomIn , &idealSize ) ;
 }

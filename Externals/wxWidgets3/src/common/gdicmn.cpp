@@ -333,7 +333,7 @@ void wxColourDatabase::Initialize()
         {wxT("LIGHT GREY"), 192, 192, 192},
         {wxT("LIGHT STEEL BLUE"), 143, 143, 188},
         {wxT("LIME GREEN"), 50, 204, 50},
-        {wxT("LIGHT MAGENTA"), 255, 0, 255},
+        {wxT("LIGHT MAGENTA"), 255, 119, 255},
         {wxT("MAGENTA"), 255, 0, 255},
         {wxT("MAROON"), 142, 35, 107},
         {wxT("MEDIUM AQUAMARINE"), 50, 204, 153},

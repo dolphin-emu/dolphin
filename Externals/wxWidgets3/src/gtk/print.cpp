@@ -51,10 +51,6 @@
 #include "wx/link.h"
 wxFORCE_LINK_THIS_MODULE(gtk_print)
 
-#if wxUSE_LIBGNOMEPRINT
-#include "wx/gtk/gnome/gprint.h"
-#endif
-
 #include "wx/gtk/private/object.h"
 
 // Useful to convert angles from/to Rad to/from Deg.
@@ -64,8 +60,7 @@ static const double DEG2RAD  = M_PI / 180.0;
 //----------------------------------------------------------------------------
 // wxGtkPrintModule
 // Initialized when starting the app : if it successfully load the gtk-print framework,
-// it uses it. If not, it falls back to gnome print (see /gtk/gnome/gprint.cpp) then
-// to postscript if gnomeprint is not available.
+// it uses it. If not, it falls back to Postscript.
 //----------------------------------------------------------------------------
 
 class wxGtkPrintModule: public wxModule
@@ -73,10 +68,6 @@ class wxGtkPrintModule: public wxModule
 public:
     wxGtkPrintModule()
     {
-#if wxUSE_LIBGNOMEPRINT
-        // This module must be initialized AFTER gnomeprint's one
-        AddDependency(wxCLASSINFO(wxGnomePrintModule));
-#endif
     }
     bool OnInit();
     void OnExit() {}
@@ -1366,47 +1357,43 @@ void wxGtkPrinterDCImpl::DoCrossHair(wxCoord x, wxCoord y)
 
 void wxGtkPrinterDCImpl::DoDrawArc(wxCoord x1,wxCoord y1,wxCoord x2,wxCoord y2,wxCoord xc,wxCoord yc)
 {
-    double dx = x1 - xc;
-    double dy = y1 - yc;
-    double radius = sqrt((double)(dx*dx+dy*dy));
+    const double dx1 = x1 - xc;
+    const double dy1 = y1 - yc;
+    const double radius = sqrt(dx1*dx1 + dy1*dy1);
+
+    if ( radius == 0.0 )
+        return;
 
     double alpha1, alpha2;
-    if (x1 == x2 && y1 == y2)
+    if ( x1 == x2 && y1 == y2 )
     {
         alpha1 = 0.0;
-        alpha2 = 360.0;
-    }
-    else
-    if (radius == 0.0)
-    {
-        alpha1 = alpha2 = 0.0;
+        alpha2 = 2*M_PI;
+
     }
     else
     {
-        alpha1 = (x1 - xc == 0) ?
-            (y1 - yc < 0) ? 90.0 : -90.0 :
-            atan2(double(y1-yc), double(x1-xc)) * RAD2DEG;
-        alpha2 = (x2 - xc == 0) ?
-            (y2 - yc < 0) ? 90.0 : -90.0 :
-            atan2(double(y2-yc), double(x2-xc)) * RAD2DEG;
-
-        while (alpha1 <= 0)   alpha1 += 360;
-        while (alpha2 <= 0)   alpha2 += 360; // adjust angles to be between.
-        while (alpha1 > 360)  alpha1 -= 360; // 0 and 360 degree.
-        while (alpha2 > 360)  alpha2 -= 360;
+        alpha1 = atan2(dy1, dx1);
+        alpha2 = atan2(double(y2-yc), double(x2-xc));
     }
-
-    alpha1 *= DEG2RAD;
-    alpha2 *= DEG2RAD;
 
     cairo_new_path(m_cairo);
 
-    cairo_arc_negative ( m_cairo, XLOG2DEV(xc), YLOG2DEV(yc), XLOG2DEVREL((int)radius), alpha1, alpha2);
-    cairo_line_to(m_cairo, XLOG2DEV(xc), YLOG2DEV(yc));
-    cairo_close_path (m_cairo);
+    // We use the "negative" variant because the arc should go counterclockwise
+    // while in the default coordinate system, with Y axis going down, Cairo
+    // counts angles in the direction from positive X axis direction to
+    // positive Y axis direction, i.e. clockwise.
+    cairo_arc_negative(m_cairo, XLOG2DEV(xc), YLOG2DEV(yc),
+                       XLOG2DEVREL(wxRound(radius)), alpha1, alpha2);
 
-    SetBrush( m_brush );
-    cairo_fill_preserve( m_cairo );
+    if ( m_brush.IsNonTransparent() )
+    {
+        cairo_line_to(m_cairo, XLOG2DEV(xc), YLOG2DEV(yc));
+        cairo_close_path (m_cairo);
+
+        SetBrush( m_brush );
+        cairo_fill_preserve( m_cairo );
+    }
 
     SetPen (m_pen);
     cairo_stroke( m_cairo );

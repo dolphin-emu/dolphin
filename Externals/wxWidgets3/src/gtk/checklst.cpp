@@ -15,6 +15,7 @@
 #include "wx/checklst.h"
 
 #include <gtk/gtk.h>
+#include "wx/gtk/private.h"
 
 //-----------------------------------------------------------------------------
 // "toggled"
@@ -111,7 +112,7 @@ bool wxCheckListBox::IsChecked(unsigned int index) const
     if(!res)
         return false;
 
-    GValue value = {0, };
+    GValue value = G_VALUE_INIT;
     gtk_tree_model_get_value(GTK_TREE_MODEL(m_liststore),
                              &iter,
                              0, //column

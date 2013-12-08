@@ -327,7 +327,7 @@ public:
         if ( m_capacity + increment > n )
             n = m_capacity + increment;
 
-        m_values = Ops::Realloc(m_values, n * sizeof(value_type), m_size);
+        m_values = Ops::Realloc(m_values, n, m_size);
         m_capacity = n;
     }
 

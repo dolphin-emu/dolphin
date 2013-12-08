@@ -236,51 +236,7 @@ wxDynamicLibrary::RawLoad(const wxString& libname, int flags)
     if (flags & wxDL_GET_LOADED)
         return ::GetModuleHandle(libname.t_str());
 
-    // Explicitly look in the same path as where the main wx HINSTANCE module
-    // is located (usually the executable or the DLL that uses wx).  Normally
-    // this is automatically part of the default search path but in some cases
-    // it may not be, such as when the wxPython extension modules need to load
-    // a DLL, but the intperpreter executable is located elsewhere.  Doing
-    // this allows us to always be able to dynamically load a DLL that is
-    // located at the same place as the wx modules.
-    wxString modpath, path;
-    ::GetModuleFileName(wxGetInstance(),
-                        wxStringBuffer(modpath, MAX_PATH+1),
-                        MAX_PATH);
-    
-    wxFileName::SplitPath(modpath, &path, NULL, NULL);
-
-    typedef BOOL (WINAPI *SetDllDirectory_t)(LPCTSTR lpPathName);
-
-    static SetDllDirectory_t s_pfnSetDllDirectory = (SetDllDirectory_t) -1;
-
-    if ( s_pfnSetDllDirectory == (SetDllDirectory_t) -1 )
-    {
-        /*
-        Should wxLoadedDLL ever not be used here (or rather, the
-        wxDL_GET_LOADED flag isn't used), infinite recursion will take
-        place (unless s_pfnSetDllDirectory is set to NULL here right
-        before loading the DLL).
-        */
-        wxLoadedDLL dllKernel("kernel32.dll");
-
-        wxDL_INIT_FUNC_AW(s_pfn, SetDllDirectory, dllKernel);
-    }
-
-    if (s_pfnSetDllDirectory)
-    {
-        s_pfnSetDllDirectory(path.t_str());
-    }
-
-    wxDllType handle = ::LoadLibrary(libname.t_str());
-
-    // reset the search path
-    if (s_pfnSetDllDirectory)
-    {
-        s_pfnSetDllDirectory(NULL);
-    }
-
-    return handle;
+    return ::LoadLibrary(libname.t_str());
 }
 
 /* static */
@@ -294,7 +250,7 @@ void *wxDynamicLibrary::RawGetSymbol(wxDllType handle, const wxString& name)
 {
     return (void *)::GetProcAddress(handle,
 #ifdef __WXWINCE__
-                                            name.c_str()
+                                            name.t_str()
 #else
                                             name.ToAscii()
 #endif // __WXWINCE__

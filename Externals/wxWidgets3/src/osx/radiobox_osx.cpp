@@ -432,7 +432,13 @@ void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     totHeight = GetRowCount() * maxHeight + (GetRowCount() - 1) * space;
     totWidth  = GetColumnCount() * (maxWidth + charWidth);
 
-    wxSize sz = DoGetSizeFromClientSize( wxSize( totWidth, totHeight ) ) ;
+    // Determine the full size in case we need to use it as fallback.
+    wxSize sz;
+    if ( (width == wxDefaultCoord && (sizeFlags & wxSIZE_AUTO_WIDTH)) ||
+            (height == wxDefaultCoord && (sizeFlags & wxSIZE_AUTO_HEIGHT)) )
+    {
+        sz = DoGetSizeFromClientSize( wxSize( totWidth, totHeight ) ) ;
+    }
 
     // change the width / height only when specified
     if ( width == wxDefaultCoord )
@@ -452,6 +458,11 @@ void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     }
 
     wxControl::DoSetSize( x_offset, y_offset, width, height, wxSIZE_AUTO );
+
+    // But now recompute the full size again because it could have changed.
+    // This notably happens if the previous full size was too small to fully
+    // fit the box margins.
+    sz = DoGetSizeFromClientSize( wxSize( totWidth, totHeight ) ) ;
 
     // arrange radio buttons
     int x_start, y_start;

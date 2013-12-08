@@ -351,10 +351,7 @@ bool wxWebViewWebKit::Create(wxWindow *parent,
 
     m_webView = (WebView*) HIWebViewGetWebView( peer->GetControlRef() );
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3
-    if ( UMAGetSystemVersion() >= 0x1030 )
-        HIViewChangeFeatures( peer->GetControlRef() , kHIViewIsOpaque , 0 ) ;
-#endif
+    HIViewChangeFeatures( peer->GetControlRef() , kHIViewIsOpaque , 0 ) ;
     InstallControlEventHandler(peer->GetControlRef(),
                                GetwxWebViewWebKitEventHandlerUPP(),
                                GetEventTypeCount(eventList), eventList, this,
@@ -495,18 +492,18 @@ wxString wxWebViewWebKit::GetPageSource() const
 {
 
     if (CanGetPageSource())
-	{
+    {
         WebDataSource* dataSource = [[m_webView mainFrame] dataSource];
-		wxASSERT (dataSource != nil);
+        wxASSERT (dataSource != nil);
 
-		id<WebDocumentRepresentation> representation = [dataSource representation];
-		wxASSERT (representation != nil);
+        id<WebDocumentRepresentation> representation = [dataSource representation];
+        wxASSERT (representation != nil);
 
-		NSString* source = [representation documentSource];
-		if (source == nil)
-		{
-			return wxEmptyString;
-		}
+        NSString* source = [representation documentSource];
+        if (source == nil)
+        {
+            return wxEmptyString;
+        }
 
         return wxStringWithNSString( source );
     }
@@ -1074,9 +1071,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 
             case NSURLErrorResourceUnavailable:
             case NSURLErrorHTTPTooManyRedirects:
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
             case NSURLErrorDataLengthExceedsMaximum:
-#endif
             case NSURLErrorBadURL:
             case NSURLErrorFileIsDirectory:
                 *out = wxWEBVIEW_NAV_ERR_REQUEST;
@@ -1098,11 +1093,9 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
                 *out = wxWEBVIEW_NAV_ERR_USER_CANCELLED;
                 break;
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
             case NSURLErrorCannotDecodeRawData:
             case NSURLErrorCannotDecodeContentData:
             case NSURLErrorCannotParseResponse:
-#endif
             case NSURLErrorBadServerResponse:
                 *out = wxWEBVIEW_NAV_ERR_REQUEST;
                 break;
@@ -1116,7 +1109,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
                 break;
 
             case NSURLErrorNoPermissionsToReadFile:
-				*out = wxWEBVIEW_NAV_ERR_SECURITY;
+                *out = wxWEBVIEW_NAV_ERR_SECURITY;
                 break;
 
             case NSURLErrorServerCertificateHasBadDate:
@@ -1148,17 +1141,17 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 
         wxWebViewNavigationError type;
         wxString description = nsErrorToWxHtmlError(error, &type);
-		wxWebViewEvent event(wxEVT_WEBVIEW_ERROR,
-		                     webKitWindow->GetId(),
+        wxWebViewEvent event(wxEVT_WEBVIEW_ERROR,
+                             webKitWindow->GetId(),
                              wxStringWithNSString( url ),
                              wxEmptyString);
-		event.SetString(description);
-		event.SetInt(type);
+        event.SetString(description);
+        event.SetInt(type);
 
-		if (webKitWindow && webKitWindow->GetEventHandler())
-		{
-			webKitWindow->GetEventHandler()->ProcessEvent(event);
-		}
+        if (webKitWindow && webKitWindow->GetEventHandler())
+        {
+            webKitWindow->GetEventHandler()->ProcessEvent(event);
+        }
     }
 }
 
@@ -1172,17 +1165,17 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
         NSString *url = [[[[frame provisionalDataSource] request] URL]
                             absoluteString];
 
-		wxWebViewNavigationError type;
+        wxWebViewNavigationError type;
         wxString description = nsErrorToWxHtmlError(error, &type);
-		wxWebViewEvent event(wxEVT_WEBVIEW_ERROR,
-		                     webKitWindow->GetId(),
+        wxWebViewEvent event(wxEVT_WEBVIEW_ERROR,
+                             webKitWindow->GetId(),
                              wxStringWithNSString( url ),
                              wxEmptyString);
-		event.SetString(description);
-		event.SetInt(type);
+        event.SetString(description);
+        event.SetInt(type);
 
-		if (webKitWindow && webKitWindow->GetEventHandler())
-			webKitWindow->GetEventHandler()->ProcessEvent(event);
+        if (webKitWindow && webKitWindow->GetEventHandler())
+            webKitWindow->GetEventHandler()->ProcessEvent(event);
     }
 }
 
@@ -1275,7 +1268,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
         }
     }
 
-	return NO;
+    return NO;
 }
 
 + (NSURLRequest *)canonicalRequestForRequest:(NSURLRequest *)request
@@ -1287,7 +1280,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 - (void)startLoading
 {
     NSURLRequest *request = [self request];
-	NSString* path = [[request URL] absoluteString];
+    NSString* path = [[request URL] absoluteString];
 
     id<NSURLProtocolClient> client = [self client];
 
@@ -1310,9 +1303,9 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 
 
     NSURLResponse *response =  [[NSURLResponse alloc] initWithURL:[request URL]
-			                   MIMEType:wxNSStringWithWxString(file->GetMimeType())
-			                   expectedContentLength:length
-			                   textEncodingName:nil];
+                               MIMEType:wxNSStringWithWxString(file->GetMimeType())
+                               expectedContentLength:length
+                               textEncodingName:nil];
 
     //Load the data, we malloc it so it is tidied up properly
     void* buffer = malloc(length);
@@ -1320,16 +1313,16 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
     NSData *data = [[NSData alloc] initWithBytesNoCopy:buffer length:length];
 
     //We do not support caching anything yet
-	[client URLProtocol:self didReceiveResponse:response
+    [client URLProtocol:self didReceiveResponse:response
             cacheStoragePolicy:NSURLCacheStorageNotAllowed];
 
     //Set the data
-	[client URLProtocol:self didLoadData:data];
+    [client URLProtocol:self didLoadData:data];
 
-	//Notify that we have finished
-	[client URLProtocolDidFinishLoading:self];
+    //Notify that we have finished
+    [client URLProtocolDidFinishLoading:self];
 
-	[response release];
+    [response release];
 }
 
 - (void)stopLoading

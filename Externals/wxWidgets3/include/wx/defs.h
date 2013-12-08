@@ -310,8 +310,10 @@ typedef short int WXTYPE;
     inline T wx_truncate_cast_impl(X x)
     {
         #pragma warning(push)
-        /* conversion from 'X' to 'T', possible loss of data */
+        /* conversion from 'size_t' to 'type', possible loss of data */
         #pragma warning(disable: 4267)
+        /* conversion from 'type1' to 'type2', possible loss of data */
+        #pragma warning(disable: 4242)
 
         return x;
 
@@ -949,6 +951,10 @@ typedef wxUint16 wxWord;
 
         #ifndef SIZEOF_LONG
             #define SIZEOF_LONG 4
+        #endif
+
+        #ifndef SIZEOF_LONG_LONG
+            #define SIZEOF_LONG_LONG 8
         #endif
 
         #ifndef SIZEOF_WCHAR_T
@@ -2287,8 +2293,13 @@ enum wxStandardID
     wxID_OSX_HIDE = wxID_OSX_MENU_FIRST,
     wxID_OSX_HIDEOTHERS,
     wxID_OSX_SHOWALL,
+#if wxABI_VERSION >= 30001
+    wxID_OSX_SERVICES,
+    wxID_OSX_MENU_LAST = wxID_OSX_SERVICES,
+#else
     wxID_OSX_MENU_LAST = wxID_OSX_SHOWALL,
-    
+#endif
+
     /*  IDs used by generic file dialog (13 consecutive starting from this value) */
     wxID_FILEDLGG = 5900,
 

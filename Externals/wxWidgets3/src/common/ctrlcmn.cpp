@@ -584,7 +584,7 @@ wxSize wxStaticBitmapBase::DoGetBestSize() const
     wxSize best;
     wxBitmap bmp = GetBitmap();
     if ( bmp.IsOk() )
-        best = wxSize(bmp.GetWidth(), bmp.GetHeight());
+        best = bmp.GetScaledSize();
     else
         // this is completely arbitrary
         best = wxSize(16, 16);

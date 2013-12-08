@@ -414,7 +414,7 @@ wxgtk_webview_webkit_context_menu(WebKitWebView *,
 
 static WebKitWebView*
 wxgtk_webview_webkit_create_webview(WebKitWebView *web_view,
-                                    WebKitWebFrame *frame,
+                                    WebKitWebFrame*,
                                     wxWebViewWebKit *webKitCtrl)
 {
     //As we do not know the uri being loaded at this point allow the load to

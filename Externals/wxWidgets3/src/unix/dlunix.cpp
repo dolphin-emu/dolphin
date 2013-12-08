@@ -64,171 +64,6 @@
 // constants
 // ----------------------------------------------------------------------------
 
-// ============================================================================
-// wxDynamicLibrary implementation
-// ============================================================================
-
-// ----------------------------------------------------------------------------
-// dlxxx() emulation for Darwin
-// Only useful if the OS X version could be < 10.3 at runtime
-// ----------------------------------------------------------------------------
-
-#if defined(__DARWIN__) && (MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_3)
-// ---------------------------------------------------------------------------
-// For Darwin/Mac OS X
-//   supply the sun style dlopen functions in terms of Darwin NS*
-// ---------------------------------------------------------------------------
-
-/* Porting notes:
- *   The dlopen port is a port from dl_next.xs by Anno Siegel.
- *   dl_next.xs is itself a port from dl_dlopen.xs by Paul Marquess.
- *   The method used here is just to supply the sun style dlopen etc.
- *   functions in terms of Darwin NS*.
- */
-
-#include <stdio.h>
-#include <mach-o/dyld.h>
-
-static char dl_last_error[1024];
-
-static const char *wx_darwin_dlerror()
-{
-    return dl_last_error;
-}
-
-static void *wx_darwin_dlopen(const char *path, int WXUNUSED(mode) /* mode is ignored */)
-{
-    NSObjectFileImage ofile;
-    NSModule handle = NULL;
-
-    unsigned dyld_result = NSCreateObjectFileImageFromFile(path, &ofile);
-    if ( dyld_result != NSObjectFileImageSuccess )
-    {
-        handle = NULL;
-
-        static const char *const errorStrings[] =
-        {
-            "%d: Object Image Load Failure",
-            "%d: Object Image Load Success",
-            "%d: Not an recognisable object file",
-            "%d: No valid architecture",
-            "%d: Object image has an invalid format",
-            "%d: Invalid access (permissions?)",
-            "%d: Unknown error code from NSCreateObjectFileImageFromFile"
-        };
-
-        const int index = dyld_result < WXSIZEOF(errorStrings)
-                            ? dyld_result
-                            : WXSIZEOF(errorStrings) - 1;
-
-        // this call to sprintf() is safe as strings above are fixed at
-        // compile-time and are shorter than WXSIZEOF(dl_last_error)
-        sprintf(dl_last_error, errorStrings[index], dyld_result);
-    }
-    else
-    {
-        handle = NSLinkModule
-                 (
-                    ofile,
-                    path,
-                    NSLINKMODULE_OPTION_BINDNOW |
-                    NSLINKMODULE_OPTION_RETURN_ON_ERROR
-                 );
-
-        if ( !handle )
-        {
-            NSLinkEditErrors err;
-            int code;
-            const char *filename;
-            const char *errmsg;
-
-            NSLinkEditError(&err, &code, &filename, &errmsg);
-            strncpy(dl_last_error, errmsg, WXSIZEOF(dl_last_error)-1);
-            dl_last_error[WXSIZEOF(dl_last_error)-1] = '\0';
-        }
-    }
-
-
-    return handle;
-}
-
-static int wx_darwin_dlclose(void *handle)
-{
-    NSUnLinkModule((NSModule)handle, NSUNLINKMODULE_OPTION_NONE);
-    return 0;
-}
-
-static void *wx_darwin_dlsym(void *handle, const char *symbol)
-{
-    // as on many other systems, C symbols have prepended underscores under
-    // Darwin but unlike the normal dlopen(), NSLookupSymbolInModule() is not
-    // aware of this
-    wxCharBuffer buf(strlen(symbol) + 1);
-    char *p = buf.data();
-    p[0] = '_';
-    strcpy(p + 1, symbol);
-
-    NSSymbol nsSymbol = NSLookupSymbolInModule((NSModule)handle, p );
-    return nsSymbol ? NSAddressOfSymbol(nsSymbol) : NULL;
-}
-
-// Add the weak linking attribute to dlopen's declaration
-extern void * dlopen(const char * __path, int __mode) AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER;
-
-// For all of these methods we test dlopen since all of the dl functions we use were added
-// to OS X at the same time.  This also ensures we don't dlopen with the real function then
-// dlclose with the internal implementation.
-
-static inline void *wx_dlopen(const char *__path, int __mode)
-{
-#ifdef HAVE_DLOPEN
-    if(&dlopen != NULL)
-        return dlopen(__path, __mode);
-    else
-#endif
-        return wx_darwin_dlopen(__path, __mode);
-}
-
-static inline int wx_dlclose(void *__handle)
-{
-#ifdef HAVE_DLOPEN
-    if(&dlopen != NULL)
-        return dlclose(__handle);
-    else
-#endif
-        return wx_darwin_dlclose(__handle);
-}
-
-static inline const char *wx_dlerror()
-{
-#ifdef HAVE_DLOPEN
-    if(&dlopen != NULL)
-        return dlerror();
-    else
-#endif
-        return wx_darwin_dlerror();
-}
-
-static inline void *wx_dlsym(void *__handle, const char *__symbol)
-{
-#ifdef HAVE_DLOPEN
-    if(&dlopen != NULL)
-        return dlsym(__handle, __symbol);
-    else
-#endif
-        return wx_darwin_dlsym(__handle, __symbol);
-}
-
-#else // __DARWIN__/!__DARWIN__
-
-// Use preprocessor definitions for non-Darwin or OS X >= 10.3
-#define wx_dlopen(__path,__mode) dlopen(__path,__mode)
-#define wx_dlclose(__handle) dlclose(__handle)
-#define wx_dlerror() dlerror()
-#define wx_dlsym(__handle,__symbol) dlsym(__handle,__symbol)
-
-#endif // defined(__DARWIN__)
-
 // ----------------------------------------------------------------------------
 // loading/unloading DLLs
 // ----------------------------------------------------------------------------
@@ -236,7 +71,7 @@ static inline void *wx_dlsym(void *__handle, const char *__symbol)
 wxDllType wxDynamicLibrary::GetProgramHandle()
 {
 #ifdef USE_POSIX_DL_FUNCS
-   return wx_dlopen(0, RTLD_LAZY);
+   return dlopen(0, RTLD_LAZY);
 #else
    return PROG_HANDLE;
 #endif
@@ -257,7 +92,7 @@ wxDllType wxDynamicLibrary::RawLoad(const wxString& libname, int flags)
     if ( flags & wxDL_GLOBAL )
         rtldFlags |= RTLD_GLOBAL;
 
-    return wx_dlopen(libname.fn_str(), rtldFlags);
+    return dlopen(libname.fn_str(), rtldFlags);
 #else // !USE_POSIX_DL_FUNCS
     int shlFlags = 0;
 
@@ -282,7 +117,7 @@ void wxDynamicLibrary::Unload(wxDllType handle)
 #endif
 
 #ifdef USE_POSIX_DL_FUNCS
-    wx_dlclose(handle);
+    dlclose(handle);
 #else // !USE_POSIX_DL_FUNCS
     shl_unload(handle);
 #endif // USE_POSIX_DL_FUNCS/!USE_POSIX_DL_FUNCS
@@ -299,7 +134,7 @@ void *wxDynamicLibrary::RawGetSymbol(wxDllType handle, const wxString& name)
     void *symbol;
 
 #ifdef USE_POSIX_DL_FUNCS
-    symbol = wx_dlsym(handle, name.fn_str());
+    symbol = dlsym(handle, name.fn_str());
 #else // !USE_POSIX_DL_FUNCS
     // note that shl_findsym modifies the handle argument to indicate where the
     // symbol was found, but it's ok to modify the local handle copy here
@@ -319,7 +154,7 @@ void *wxDynamicLibrary::RawGetSymbol(wxDllType handle, const wxString& name)
 /* static */
 void wxDynamicLibrary::Error()
 {
-    wxString err(wx_dlerror());
+    wxString err(dlerror());
 
     if ( err.empty() )
         err = _("Unknown dynamic library error");

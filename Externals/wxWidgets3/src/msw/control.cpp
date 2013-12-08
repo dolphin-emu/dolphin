@@ -442,6 +442,15 @@ WXHBRUSH wxControl::MSWControlColorDisabled(WXHDC pDC)
                              GetHWND());
 }
 
+wxWindow* wxControl::MSWFindItem(long id, WXHWND hWnd) const
+{
+    // is it us or one of our "internal" children?
+    if ( id == GetId() || (GetSubcontrols().Index(id) != wxNOT_FOUND) )
+        return const_cast<wxControl *>(this);
+
+    return wxControlBase::MSWFindItem(id, hWnd);
+}
+
 // ----------------------------------------------------------------------------
 // wxControlWithItems
 // ----------------------------------------------------------------------------

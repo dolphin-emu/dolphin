@@ -50,7 +50,7 @@ protected:
 };
 
 wxOSXAudioToolboxSoundData::wxOSXAudioToolboxSoundData(const wxString& fileName) :
-    m_soundID(0)
+    m_soundID(NULL)
 {
     m_sndname = fileName;
 }

@@ -148,6 +148,9 @@
 #pragma comment(lib, wxWX_LIB_NAME("base", ""))
 
 #ifndef wxNO_NET_LIB
+    #ifndef WXUSINGDLL
+        #pragma comment(lib, "wsock32")
+    #endif
     #pragma comment(lib, wxBASE_LIB_NAME("net"))
 #endif
 #ifndef wxNO_XML_LIB
@@ -235,7 +238,6 @@
     #pragma comment(lib, "uuid")
     #pragma comment(lib, "rpcrt4")
     #pragma comment(lib, "advapi32")
-    #pragma comment(lib, "wsock32")
     #if wxUSE_URL_NATIVE
         #pragma comment(lib, "wininet")
     #endif

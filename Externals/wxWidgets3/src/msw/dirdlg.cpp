@@ -105,11 +105,11 @@ struct IModalWindow : public IUnknown
     #define FOS_FORCEFILESYSTEM 0x40
 #endif
 
-struct COMDLG_FILTERSPEC;
+struct _COMDLG_FILTERSPEC;
 
 struct IFileDialog : public IModalWindow
 {
-    virtual HRESULT wxSTDCALL SetFileTypes(UINT, const COMDLG_FILTERSPEC*) = 0;
+    virtual HRESULT wxSTDCALL SetFileTypes(UINT, const _COMDLG_FILTERSPEC*) = 0;
     virtual HRESULT wxSTDCALL SetFileTypeIndex(UINT) = 0;
     virtual HRESULT wxSTDCALL GetFileTypeIndex(UINT*) = 0;
     virtual HRESULT wxSTDCALL Advise(IFileDialogEvents*, DWORD*) = 0;

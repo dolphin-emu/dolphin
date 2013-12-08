@@ -77,12 +77,19 @@ wxDataFormat HtmlFormatFixup(wxDataFormat format)
     // format does not match the native constant in the way other formats do,
     // so for the format checks below to work, we must change the native
     // id to the wxDF_HTML constant.
-    wxChar s_szBuf[256];
-    if (::GetClipboardFormatName(format, s_szBuf, WXSIZEOF(s_szBuf)))
+    //
+    // But skip this for the standard constants which are never going to match
+    // wxDF_HTML anyhow.
+    if ( !format.IsStandard() )
     {
-        if (s_szBuf == wxString("HTML Format"))
-            format = wxDF_HTML;
+        wxChar szBuf[256];
+        if ( ::GetClipboardFormatName(format, szBuf, WXSIZEOF(szBuf)) )
+        {
+            if ( wxStrcmp(szBuf, wxT("HTML Format")) == 0 )
+                format = wxDF_HTML;
+        }
     }
+
     return format;
 }
 
@@ -341,6 +348,26 @@ wxIDataObject::SaveSystemData(FORMATETC *pformatetc,
 // ----------------------------------------------------------------------------
 // wxDataFormat
 // ----------------------------------------------------------------------------
+
+bool wxDataFormat::operator==(wxDataFormatId format) const
+{
+    return HtmlFormatFixup(*this).m_format == (NativeFormat)format;
+}
+
+bool wxDataFormat::operator!=(wxDataFormatId format) const
+{
+    return !(*this == format);
+}
+
+bool wxDataFormat::operator==(const wxDataFormat& format) const
+{
+    return HtmlFormatFixup(*this).m_format == HtmlFormatFixup(format).m_format;
+}
+
+bool wxDataFormat::operator!=(const wxDataFormat& format) const
+{
+    return !(*this == format);
+}
 
 void wxDataFormat::SetId(const wxString& format)
 {

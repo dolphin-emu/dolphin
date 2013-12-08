@@ -77,7 +77,7 @@
 // constants
 // ----------------------------------------------------------------------------
 
-#if defined(__VISUALC__) || defined(__INTELC__) || defined(__DIGITALMARS__)
+#if defined(__VISUALC__) || defined(__DIGITALMARS__)
     typedef int mode_t;
 #endif
 
@@ -204,7 +204,7 @@ enum wxPosixPermissions
     #if defined(__VISUALC__)
         #define wxHAS_HUGE_FILES 1
     #elif defined(__MINGW32__) || defined(__MINGW64__)
-        #define wxHAS_HUGE_FILES 1
+        #define wxHAS_HUGE_FILES 1f
     #elif defined(_LARGE_FILES)
         #define wxHAS_HUGE_FILES 1
     #endif
@@ -476,7 +476,6 @@ enum wxPosixPermissions
     #define   wxSeek       lseek
     #define   wxFsync      fsync
     #define   wxEof        eof
-
     #define   wxCRT_MkDir      mkdir
     #define   wxCRT_RmDir      rmdir
 

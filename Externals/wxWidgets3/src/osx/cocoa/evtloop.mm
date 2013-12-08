@@ -66,10 +66,8 @@ static NSUInteger CalculateNSEventMaskFromEventCategory(wxEventCategory cat)
             NSMouseEnteredMask |
             NSMouseExitedMask |
             NSScrollWheelMask |
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
             NSTabletPointMask |
             NSTabletProximityMask |
-#endif
             NSOtherMouseDownMask |
             NSOtherMouseUpMask |
             NSOtherMouseDraggedMask |
@@ -77,14 +75,12 @@ static NSUInteger CalculateNSEventMaskFromEventCategory(wxEventCategory cat)
             NSKeyDownMask |
             NSKeyUpMask |
             NSFlagsChangedMask |
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
             NSEventMaskGesture |
             NSEventMaskMagnify |
             NSEventMaskSwipe |
             NSEventMaskRotate |
             NSEventMaskBeginGesture |
             NSEventMaskEndGesture |
-#endif
             0;
     }
     
@@ -423,6 +419,45 @@ void wxModalEventLoop::OSXDoRun()
 void wxModalEventLoop::OSXDoStop()
 {
     [NSApp abortModal];
+}
+
+// we need our own version of ProcessIdle here in order to
+// avoid deletion of pending objects, because ProcessIdle is running
+// to soon and ends up in destroying the object too early, ie before
+// a stack allocated instance is removed resulting in double deletes
+bool wxModalEventLoop::ProcessIdle()
+{
+    bool needMore = false;
+    if ( wxTheApp )
+    {
+        // synthesize an idle event and check if more of them are needed
+        wxIdleEvent event;
+        event.SetEventObject(wxTheApp);
+        wxTheApp->ProcessEvent(event);
+        
+#if wxUSE_LOG
+        // flush the logged messages if any (do this after processing the events
+        // which could have logged new messages)
+        wxLog::FlushActive();
+#endif
+        needMore = event.MoreRequested();
+        
+        wxWindowList::compatibility_iterator node = wxTopLevelWindows.GetFirst();
+        while (node)
+        {
+            wxWindow* win = node->GetData();
+            
+            // Don't send idle events to the windows that are about to be destroyed
+            // anyhow, this is wasteful and unexpected.
+            if ( !wxPendingDelete.Member(win) && win->SendIdleEvents(event) )
+                needMore = true;
+            node = node->GetNext();
+        }
+        
+        wxUpdateUIEvent::ResetUpdateTime();
+
+    }
+    return needMore;
 }
 
 void wxGUIEventLoop::BeginModalSession( wxWindow* modalWindow )

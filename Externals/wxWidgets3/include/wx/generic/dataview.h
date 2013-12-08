@@ -227,6 +227,9 @@ public:     // utility functions not part of the API
     // return the index of the given column in m_cols
     int GetColumnIndex(const wxDataViewColumn *column) const;
 
+    // Return the index of the column having the given model index.
+    int GetModelColumnIndex(unsigned int model_column) const;
+
     // return the column displayed at the given position in the control
     wxDataViewColumn *GetColumnAt(unsigned int pos) const;
 

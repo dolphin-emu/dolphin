@@ -76,9 +76,10 @@ wxXLocale& wxXLocale::GetCLocale()
 {
     if ( !gs_cLocale )
     {
-        // NOTE: bcc551 has trouble doing static_cast with incomplete
-        //       type definition. reinterpret_cast used as workaround
-        gs_cLocale = new wxXLocale( reinterpret_cast<wxXLocaleCTag *>(NULL) );
+        // Notice that we need a separate variable because clang 3.1 refuses to
+        // cast nullptr (which is how NULL is defined in it) to anything.
+        static wxXLocaleCTag* const tag = NULL;
+        gs_cLocale = new wxXLocale(tag);
     }
 
     return *gs_cLocale;

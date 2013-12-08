@@ -208,7 +208,7 @@ int wxChoice::FindString( const wxString &item, bool bCase ) const
     int count = 0;
     do
     {
-        GValue value = { 0, };
+        GValue value = G_VALUE_INIT;
         gtk_tree_model_get_value( model, &iter, m_stringCellIndex, &value );
         wxString str = wxGTK_CONV_BACK( g_value_get_string( &value ) );
         g_value_unset( &value );
@@ -239,7 +239,7 @@ void wxChoice::SetString(unsigned int n, const wxString &text)
     GtkTreeIter iter;
     if (gtk_tree_model_iter_nth_child (model, &iter, NULL, n))
     {
-        GValue value = { 0, };
+        GValue value = G_VALUE_INIT;
         g_value_init( &value, G_TYPE_STRING );
         g_value_set_string( &value, wxGTK_CONV( text ) );
         gtk_list_store_set_value( GTK_LIST_STORE(model), &iter, m_stringCellIndex, &value );
@@ -260,7 +260,7 @@ wxString wxChoice::GetString(unsigned int n) const
     GtkTreeIter iter;
     if (gtk_tree_model_iter_nth_child (model, &iter, NULL, n))
     {
-        GValue value = { 0, };
+        GValue value = G_VALUE_INIT;
         gtk_tree_model_get_value( model, &iter, m_stringCellIndex, &value );
         wxString tmp = wxGTK_CONV_BACK( g_value_get_string( &value ) );
         g_value_unset( &value );
@@ -305,10 +305,7 @@ void wxChoice::SetColumns(int n)
 
 int wxChoice::GetColumns() const
 {
-    // gtk_combo_box_get_wrap_width() was added in gtk 2.6
-    gint intval;
-    g_object_get(G_OBJECT(m_widget), "wrap-width", &intval, NULL);
-    return intval;
+    return gtk_combo_box_get_wrap_width(GTK_COMBO_BOX(m_widget));
 }
 
 void wxChoice::GTKDisableEvents()

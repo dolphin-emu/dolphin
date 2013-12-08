@@ -39,15 +39,13 @@ public:
     virtual void EndModal( int retCode );
     virtual bool IsModal() const;
 
-    // implementation
-    // --------------
-
-    bool       m_modalShowing;
-
 private:
     // common part of all ctors
     void Init();
+
+    bool m_modalShowing;
     wxGUIEventLoop *m_modalLoop;
+
     DECLARE_DYNAMIC_CLASS(wxDialog)
 };
 

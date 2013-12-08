@@ -299,11 +299,6 @@ static pascal OSStatus wxMacWindowControlEventHandler( EventHandlerCallRef handl
         case kEventControlFocusPartChanged :
             // the event is emulated by wxmac for systems lower than 10.5
             {
-                if ( UMAGetSystemVersion() < 0x1050 )
-                {
-                    // as it is synthesized here, we have to manually avoid propagation
-                    result = noErr;
-                }
                 ControlPartCode previousControlPart = cEvent.GetParameter<ControlPartCode>(kEventParamControlPreviousPart , typeControlPartCode );
                 ControlPartCode currentControlPart = cEvent.GetParameter<ControlPartCode>(kEventParamControlCurrentPart , typeControlPartCode );
 
@@ -387,76 +382,6 @@ static pascal OSStatus wxMacWindowControlEventHandler( EventHandlerCallRef handl
                 }
                 else
                     result = CallNextEventHandler(handler, event);
-
-                if ( UMAGetSystemVersion() < 0x1050 )
-                {
-// set back to 0 if problems arise
-#if 1
-                    if ( result == noErr )
-                    {
-                        ControlPartCode currentControlPart = cEvent.GetParameter<ControlPartCode>(kEventParamControlPart , typeControlPartCode );
-                        // synthesize the event focus changed event
-                        EventRef evRef = NULL ;
-
-                        OSStatus err = MacCreateEvent(
-                                             NULL , kEventClassControl , kEventControlFocusPartChanged , TicksToEventTime( TickCount() ) ,
-                                             kEventAttributeUserEvent , &evRef );
-                        verify_noerr( err );
-
-                        wxMacCarbonEvent iEvent( evRef ) ;
-                        iEvent.SetParameter<ControlRef>( kEventParamDirectObject , controlRef );
-                        iEvent.SetParameter<EventTargetRef>( kEventParamPostTarget, typeEventTargetRef, GetControlEventTarget( controlRef ) );
-                        iEvent.SetParameter<ControlPartCode>( kEventParamControlPreviousPart, typeControlPartCode, previousControlPart );
-                        iEvent.SetParameter<ControlPartCode>( kEventParamControlCurrentPart, typeControlPartCode, currentControlPart );
-
-#if 1
-                        // TODO test this first, avoid double posts etc...
-                        PostEventToQueue( GetMainEventQueue(), evRef , kEventPriorityHigh );
-#else
-                        wxMacWindowControlEventHandler( NULL , evRef , data ) ;
-#endif
-                        ReleaseEvent( evRef ) ;
-                    }
-#else
-                    // old implementation, to be removed if the new one works
-                    if ( controlPart == kControlFocusNoPart )
-                    {
-#if wxUSE_CARET
-                        if ( thisWindow->GetCaret() )
-                            thisWindow->GetCaret()->OnKillFocus();
-#endif
-
-                        wxLogTrace(wxT("Focus"), wxT("focus lost(%p)"), static_cast<void*>(thisWindow));
-
-                        static bool inKillFocusEvent = false ;
-
-                        if ( !inKillFocusEvent )
-                        {
-                            inKillFocusEvent = true ;
-                            wxFocusEvent event( wxEVT_KILL_FOCUS, thisWindow->GetId());
-                            event.SetEventObject(thisWindow);
-                            thisWindow->HandleWindowEvent(event) ;
-                            inKillFocusEvent = false ;
-                        }
-                    }
-                    else
-                    {
-                        // panel wants to track the window which was the last to have focus in it
-                        wxLogTrace(wxT("Focus"), wxT("focus set(%p)"), static_cast<void*>(thisWindow));
-                        wxChildFocusEvent eventFocus((wxWindow*)thisWindow);
-                        thisWindow->HandleWindowEvent(eventFocus);
-
-    #if wxUSE_CARET
-                        if ( thisWindow->GetCaret() )
-                            thisWindow->GetCaret()->OnSetFocus();
-    #endif
-
-                        wxFocusEvent event(wxEVT_SET_FOCUS, thisWindow->GetId());
-                        event.SetEventObject(thisWindow);
-                        thisWindow->HandleWindowEvent(event) ;
-                    }
-#endif
-                }
             }
             break ;
 
@@ -1136,19 +1061,10 @@ void wxMacControl::SetCursor(const wxCursor& cursor)
         ControlPartCode part ;
         ControlRef control ;
         Point pt ;
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
         HIPoint hiPoint ;
         HIGetMousePosition(kHICoordSpaceWindow, window, &hiPoint);
         pt.h = hiPoint.x;
         pt.v = hiPoint.y;
-#else
-        GetGlobalMouse( &pt );
-        int x = pt.h;
-        int y = pt.v;
-        tlwwx->ScreenToClient(&x, &y);
-        pt.h = x;
-        pt.v = y;
-#endif
         control = FindControlUnderMouse( pt , window , &part ) ;
         if ( control )
             mouseWin = wxFindWindowFromWXWidget( (WXWidget) control ) ;
@@ -1262,27 +1178,22 @@ void wxMacControl::SuperChangedPosition()
 void wxMacControl::SetFont( const wxFont & font , const wxColour& foreground , long windowStyle, bool ignoreBlack )
 {
     m_font = font;
-#if wxOSX_USE_CORE_TEXT
-    if ( UMAGetSystemVersion() >= 0x1050 )
-    {
-        HIViewPartCode part = 0;
-        HIThemeTextHorizontalFlush flush = kHIThemeTextHorizontalFlushDefault;
-        if ( ( windowStyle & wxALIGN_MASK ) & wxALIGN_CENTER_HORIZONTAL )
-            flush = kHIThemeTextHorizontalFlushCenter;
-        else if ( ( windowStyle & wxALIGN_MASK ) & wxALIGN_RIGHT )
-            flush = kHIThemeTextHorizontalFlushRight;
-        HIViewSetTextFont( m_controlRef , part , (CTFontRef) font.OSXGetCTFont() );
-        HIViewSetTextHorizontalFlush( m_controlRef, part, flush );
+    HIViewPartCode part = 0;
+    HIThemeTextHorizontalFlush flush = kHIThemeTextHorizontalFlushDefault;
+    if ( ( windowStyle & wxALIGN_MASK ) & wxALIGN_CENTER_HORIZONTAL )
+        flush = kHIThemeTextHorizontalFlushCenter;
+    else if ( ( windowStyle & wxALIGN_MASK ) & wxALIGN_RIGHT )
+        flush = kHIThemeTextHorizontalFlushRight;
+    HIViewSetTextFont( m_controlRef , part , (CTFontRef) font.OSXGetCTFont() );
+    HIViewSetTextHorizontalFlush( m_controlRef, part, flush );
 
-        if ( foreground != *wxBLACK || ignoreBlack == false )
-        {
-            ControlFontStyleRec fontStyle;
-            foreground.GetRGBColor( &fontStyle.foreColor );
-            fontStyle.flags = kControlUseForeColorMask;
-            ::SetControlFontStyle( m_controlRef , &fontStyle );
-        }
+    if ( foreground != *wxBLACK || ignoreBlack == false )
+    {
+        ControlFontStyleRec fontStyle;
+        foreground.GetRGBColor( &fontStyle.foreColor );
+        fontStyle.flags = kControlUseForeColorMask;
+        ::SetControlFontStyle( m_controlRef , &fontStyle );
     }
-#endif
 #if wxOSX_USE_ATSU_TEXT
     ControlFontStyleRec fontStyle;
     if ( font.MacGetThemeFontID() != kThemeCurrentPortFont )

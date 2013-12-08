@@ -3496,6 +3496,12 @@ size_t wxListMainWindow::GetItemCount() const
 
 void wxListMainWindow::SetItemCount(long count)
 {
+    // Update the current item if it's not valid any longer (notice that this
+    // invalidates it completely if the control is becoming empty, which is the
+    // right thing to do).
+    if ( HasCurrent() && m_current >= (size_t)count )
+        ChangeCurrent(count - 1);
+
     m_selStore.SetItemCount(count);
     m_countVirt = count;
 
@@ -5191,6 +5197,9 @@ void wxGenericListCtrl::OnInternalIdle()
 
 bool wxGenericListCtrl::SetBackgroundColour( const wxColour &colour )
 {
+    if ( !wxWindow::SetBackgroundColour( colour ) )
+        return false;
+
     if (m_mainWin)
     {
         m_mainWin->SetBackgroundColour( colour );
@@ -5210,9 +5219,6 @@ bool wxGenericListCtrl::SetForegroundColour( const wxColour &colour )
         m_mainWin->SetForegroundColour( colour );
         m_mainWin->m_dirty = true;
     }
-
-    if (m_headerWin)
-        m_headerWin->SetForegroundColour( colour );
 
     return true;
 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-svn co -r 74856 http://svn.wxwidgets.org/svn/wx/wxWidgets/trunk wxWidgets
+svn co -r 75363 http://svn.wxwidgets.org/svn/wx/wxWidgets/trunk wxWidgets
 cd wxWidgets
 
 case $OSTYPE in

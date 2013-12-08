@@ -627,7 +627,7 @@ long wxExecute(char **argv, int flags, wxProcess *process,
     //  1. wxPRIORITY_{MIN,DEFAULT,MAX} map to -20, 0 and 19 respectively.
     //  2. The mapping is monotonously increasing.
     //  3. The mapping is onto the target range.
-    int prio = process ? process->GetPriority() : 0;
+    int prio = process ? int(process->GetPriority()) : int(wxPRIORITY_DEFAULT);
     if ( prio <= 50 )
         prio = (2*prio)/5 - 20;
     else if ( prio < 55 )
@@ -697,6 +697,7 @@ long wxExecute(char **argv, int flags, wxProcess *process,
         // the descriptors do not need to be closed but for now this is better
         // than never closing them at all as wx code never used FD_CLOEXEC.
 
+#ifdef __DARWIN__
         // TODO: Iterating up to FD_SETSIZE is both inefficient (because it may
         //       be quite big) and incorrect (because in principle we could
         //       have more opened descriptions than this number). Unfortunately
@@ -704,6 +705,14 @@ long wxExecute(char **argv, int flags, wxProcess *process,
         //       above a certain threshold but non-portable solutions exist for
         //       most platforms, see [http://stackoverflow.com/questions/899038/
         //          getting-the-highest-allocated-file-descriptor]
+        //
+        // Unfortunately, we cannot do this safely on OS X, because libdispatch
+        // may crash when we do this:
+        //     Exception Type:  EXC_BAD_INSTRUCTION (SIGILL)
+        //     Exception Codes: 0x0000000000000001, 0x0000000000000000
+        //
+        //     Application Specific Information:
+        //     BUG IN CLIENT OF LIBDISPATCH: Do not close random Unix descriptors
         for ( int fd = 0; fd < (int)FD_SETSIZE; ++fd )
         {
             if ( fd != STDIN_FILENO  &&
@@ -713,6 +722,7 @@ long wxExecute(char **argv, int flags, wxProcess *process,
                 close(fd);
             }
         }
+#endif // !__DARWIN__
 
 
         // Process additional options if we have any

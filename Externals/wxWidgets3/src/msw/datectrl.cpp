@@ -91,10 +91,14 @@ WXDWORD wxDatePickerCtrl::MSWGetStyle(long style, WXDWORD *exstyle) const
 
 // TODO: handle WM_WININICHANGE
 
+#if wxUSE_INTL
+
 wxLocaleInfo wxDatePickerCtrl::MSWGetFormat() const
 {
     return wxLOCALE_SHORT_DATE_FMT;
 }
+
+#endif // wxUSE_INTL
 
 // ----------------------------------------------------------------------------
 // wxDatePickerCtrl operations

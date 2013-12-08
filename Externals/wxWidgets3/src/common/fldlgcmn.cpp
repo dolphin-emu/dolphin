@@ -67,6 +67,24 @@ bool wxFileDialogBase::Create(wxWindow *parent,
     m_wildCard = wildCard;
 
     m_parent = parent;
+
+#ifdef __WXOSX__
+    /*
+    [DS]
+    Remove the (for OS X unnecessary) wxFD_FILE_MUST_EXIST flag. Using it
+    causes problems when having an extra panel (either a custom one or
+    by showing the filetype filters through calling
+    wxSystemOptions::SetOption(wxOSX_FILEDIALOG_ALWAYS_SHOW_TYPES, 1) ).
+    Presumably the style flag conflicts with other style flags and an
+    assert in wxRegion::DoOffset is triggered later on.
+    Another solution was to override GetWindowStyleFlag() to not include
+    wxFD_FILE_MUST_EXIST in its return value, but as other wxFileDialog
+    style flags (that are actually used) dont't seem to cause problems
+    this seemed an easier solution.
+    */
+    style &= ~wxFD_FILE_MUST_EXIST;
+#endif
+
     m_windowStyle = style;
     m_filterIndex = 0;
 

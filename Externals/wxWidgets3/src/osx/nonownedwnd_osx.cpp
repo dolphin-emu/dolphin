@@ -496,10 +496,12 @@ WXWindow wxNonOwnedWindow::GetWXWindow() const
     return m_nowpeer ? m_nowpeer->GetWXWindow() : NULL;
 }
 
+#if wxOSX_USE_COCOA_OR_IPHONE
 void *wxNonOwnedWindow::OSXGetViewOrWindow() const
 {
     return GetWXWindow();
 }
+#endif
 
 // ---------------------------------------------------------------------------
 // Shape implementation

@@ -1357,7 +1357,25 @@ wxSocketEventFlags wxSocketImpl::Select(wxSocketEventFlags flags,
 
     wxSocketEventFlags detected = 0;
     if ( preadfds && wxFD_ISSET(m_fd, preadfds) )
-        detected |= wxSOCKET_INPUT_FLAG;
+    {
+        // check for the case of a server socket waiting for connection
+        if ( m_server && (flags & wxSOCKET_CONNECTION_FLAG) )
+        {
+            int error;
+            SOCKOPTLEN_T len = sizeof(error);
+            m_establishing = false;
+            getsockopt(m_fd, SOL_SOCKET, SO_ERROR, (char*)&error, &len);
+
+            if ( error )
+                detected = wxSOCKET_LOST_FLAG;
+            else
+                detected |= wxSOCKET_CONNECTION_FLAG;
+        }
+        else // not called to get non-blocking accept() status
+        {
+            detected |= wxSOCKET_INPUT_FLAG;
+        }
+    }
 
     if ( pwritefds && wxFD_ISSET(m_fd, pwritefds) )
     {

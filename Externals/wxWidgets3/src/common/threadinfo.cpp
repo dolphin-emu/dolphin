@@ -28,11 +28,26 @@ namespace
 
 // All thread info objects are stored in a global list so that they are
 // freed when global objects are destroyed and no memory leaks are reported.
-wxCriticalSection g_csAllThreadInfos;
-typedef wxVector< wxSharedPtr<wxThreadSpecificInfo> > wxAllThreadInfos;
-wxAllThreadInfos g_allThreadInfos;
 
-// Pointer to currenct thread's instance
+// Notice that we must be using accessor functions instead of simple global
+// variables here as this code could be executed during global initialization
+// time, i.e. before any globals in this module were initialzied.
+inline wxCriticalSection& GetAllThreadInfosCS()
+{
+    static wxCriticalSection s_csAllThreadInfos;
+
+    return s_csAllThreadInfos;
+}
+
+typedef wxVector< wxSharedPtr<wxThreadSpecificInfo> > wxAllThreadInfos;
+inline wxAllThreadInfos& GetAllThreadInfos()
+{
+    static wxAllThreadInfos s_allThreadInfos;
+
+    return s_allThreadInfos;
+}
+
+// Pointer to the current thread's instance
 wxTLS_TYPE(wxThreadSpecificInfo*) g_thisThreadInfo;
 
 } // anonymous namespace
@@ -43,8 +58,8 @@ wxThreadSpecificInfo& wxThreadSpecificInfo::Get()
     if ( !wxTLS_VALUE(g_thisThreadInfo) )
     {
         wxTLS_VALUE(g_thisThreadInfo) = new wxThreadSpecificInfo;
-        wxCriticalSectionLocker lock(g_csAllThreadInfos);
-        g_allThreadInfos.push_back(
+        wxCriticalSectionLocker lock(GetAllThreadInfosCS());
+        GetAllThreadInfos().push_back(
                 wxSharedPtr<wxThreadSpecificInfo>(wxTLS_VALUE(g_thisThreadInfo)));
     }
     return *wxTLS_VALUE(g_thisThreadInfo);
@@ -55,15 +70,15 @@ void wxThreadSpecificInfo::ThreadCleanUp()
     if ( !wxTLS_VALUE(g_thisThreadInfo) )
         return; // nothing to do, not used by this thread at all
 
-    // find this thread's instance in g_allThreadInfos and destroy it
-    wxCriticalSectionLocker lock(g_csAllThreadInfos);
-    for ( wxAllThreadInfos::iterator i = g_allThreadInfos.begin();
-          i != g_allThreadInfos.end();
+    // find this thread's instance in GetAllThreadInfos() and destroy it
+    wxCriticalSectionLocker lock(GetAllThreadInfosCS());
+    for ( wxAllThreadInfos::iterator i = GetAllThreadInfos().begin();
+          i != GetAllThreadInfos().end();
           ++i )
     {
         if ( i->get() == wxTLS_VALUE(g_thisThreadInfo) )
         {
-            g_allThreadInfos.erase(i);
+            GetAllThreadInfos().erase(i);
             wxTLS_VALUE(g_thisThreadInfo) = NULL;
             break;
         }

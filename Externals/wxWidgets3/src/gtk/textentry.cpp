@@ -514,4 +514,31 @@ wxPoint wxTextEntry::DoGetMargins() const
 #endif
 }
 
+#ifdef __WXGTK3__
+bool wxTextEntry::SetHint(const wxString& hint)
+{
+#if GTK_CHECK_VERSION(3,2,0)
+    GtkEntry *entry = GetEntry();
+    if ( entry )
+    {
+        gtk_entry_set_placeholder_text(entry, wxGTK_CONV(hint));
+        return true;
+    }
+    else
+#endif
+        return wxTextEntryBase::SetHint(hint);
+}
+
+wxString wxTextEntry::GetHint() const
+{
+#if GTK_CHECK_VERSION(3,2,0)
+    GtkEntry *entry = GetEntry();
+    if ( entry )
+        return wxGTK_CONV_BACK(gtk_entry_get_placeholder_text(entry));
+    else
+#endif
+        return wxTextEntryBase::GetHint();
+}
+#endif // __WXGTK3__
+
 #endif // wxUSE_TEXTCTRL || wxUSE_COMBOBOX

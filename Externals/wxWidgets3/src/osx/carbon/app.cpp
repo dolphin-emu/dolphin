@@ -229,6 +229,8 @@ short wxApp::MacHandleAEPDoc(const WXEVENTREF event , WXEVENTREF WXUNUSED(reply)
 
     wxString fName ;
     FSRef theRef ;
+    
+    wxArrayString fileNames;
 
     for (i = 1; i <= itemsInList; i++)
     {
@@ -240,9 +242,10 @@ short wxApp::MacHandleAEPDoc(const WXEVENTREF event , WXEVENTREF WXUNUSED(reply)
             return err;
         
         fName = wxMacFSRefToPath( &theRef ) ;
-
-        MacPrintFile(fName);
+        fileNames.Add( fName );
     }
+    
+    MacPrintFiles(fileNames);
 
     return noErr;
 }
@@ -305,6 +308,16 @@ void wxApp::MacOpenFile(const wxString & fileName )
 
 void wxApp::MacOpenURL(const wxString & WXUNUSED(url) )
 {
+}
+
+void wxApp::MacPrintFiles(const wxArrayString & fileNames )
+{
+    size_t i;
+    const size_t fileCount = fileNames.GetCount();
+    for (i = 0; i < fileCount; i++)
+    {
+        MacPrintFile(fileNames[i]);
+    }
 }
 
 void wxApp::MacPrintFile(const wxString & fileName )
@@ -403,7 +416,6 @@ void wxApp::MacReopenApp()
 #if wxOSX_USE_COCOA_OR_IPHONE
 void wxApp::OSXOnWillFinishLaunching()
 {
-    m_onInitResult = OnInit();
 }
 
 void wxApp::OSXOnDidFinishLaunching()

@@ -161,7 +161,7 @@ private:
 
         return ToHi8bit(c);
 #else
-        return c;
+        return wx_truncate_cast(char, c);
 #endif
     }
 

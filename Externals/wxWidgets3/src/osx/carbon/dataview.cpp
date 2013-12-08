@@ -155,9 +155,7 @@ static bool InitializeColumnDescription(DataBrowserListViewColumnDesc& columnDes
       (columnDescription.propertyDesc.propertyType == kDataBrowserIconAndTextType) ||
       (columnDescription.propertyDesc.propertyType == kDataBrowserTextType))
     columnDescription.propertyDesc.propertyFlags |= kDataBrowserListViewTypeSelectColumn; // enables generally the possibility to have user input for the mentioned types
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
   columnDescription.propertyDesc.propertyFlags |= kDataBrowserListViewNoGapForIconInHeaderButton;
-#endif
  // set header's properties:
   columnDescription.headerBtnDesc.version            = kDataBrowserListViewLatestHeaderDesc;
   columnDescription.headerBtnDesc.titleOffset        = 0;

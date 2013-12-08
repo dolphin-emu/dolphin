@@ -268,9 +268,22 @@ public:
 
     wxCharTypeBuffer(size_t len)
     {
-        this->m_data =
-            new Data((CharType *)malloc((len + 1)*sizeof(CharType)), len);
-        this->m_data->Get()[len] = (CharType)0;
+        CharType* const str = (CharType *)malloc((len + 1)*sizeof(CharType));
+        if ( str )
+        {
+            str[len] = (CharType)0;
+
+            // There is a potential memory leak here if new throws because it
+            // fails to allocate Data, we ought to use new(nothrow) here, but
+            // this might fail to compile under some platforms so until this
+            // can be fully tested, just live with this (rather unlikely, as
+            // Data is a small object) potential leak.
+            this->m_data = new Data(str, len);
+        }
+        else
+        {
+            this->m_data = this->GetNullData();
+        }
     }
 
     wxCharTypeBuffer(const wxCharTypeBuffer& src)

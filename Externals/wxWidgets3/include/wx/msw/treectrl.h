@@ -304,6 +304,9 @@ private:
     // item visually spans the entire breadth of the window then
     bool MSWIsOnItem(unsigned flags) const;
 
+    // Delete the given item from the native control.
+    bool MSWDeleteItem(const wxTreeItemId& item);
+
 
     // the hash storing the items attributes (indexed by item ids)
     wxMapTreeAttr m_attrs;

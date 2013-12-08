@@ -378,10 +378,10 @@ void wxEditableListBox::SwapItems(long i1, long i2)
     m_listCtrl->SetItemText(i2, t1);
 
     // swap the item data
-    long d1 = m_listCtrl->GetItemData(i1);
-    long d2 = m_listCtrl->GetItemData(i2);
-    m_listCtrl->SetItemData(i1, d2);
-    m_listCtrl->SetItemData(i2, d1);
+    wxUIntPtr d1 = m_listCtrl->GetItemData(i1);
+    wxUIntPtr d2 = m_listCtrl->GetItemData(i2);
+    m_listCtrl->SetItemPtrData(i1, d2);
+    m_listCtrl->SetItemPtrData(i2, d1);
 }
 
 

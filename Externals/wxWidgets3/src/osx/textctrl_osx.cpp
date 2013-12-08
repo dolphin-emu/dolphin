@@ -599,21 +599,6 @@ bool wxTextCtrl::MacSetupCursor( const wxPoint& pt )
         return true ;
 }
 
-bool wxTextCtrl::SetHint(const wxString& hint)
-{
-    m_hintString = hint;
-    
-    if ( GetTextPeer() && GetTextPeer()->SetHint(hint) )
-        return true;
-    
-    return false;
-}
-
-wxString wxTextCtrl::GetHint() const
-{
-    return m_hintString;
-}
-
 // ----------------------------------------------------------------------------
 // implementation base class
 // ----------------------------------------------------------------------------

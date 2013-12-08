@@ -89,8 +89,18 @@ public :
         ms_viewCurrentlyEdited = m_viewPreviouslyEdited;
     }
 
-    // Returns the last view we were instantiated for or NULL.
-    static NSView *GetCurrentlyEditedView() { return ms_viewCurrentlyEdited; }
+    // Returns true if this view is the one currently being changed by the
+    // program.
+    static bool IsCurrentlyEditedView(NSView* v)
+    {
+        return v == ms_viewCurrentlyEdited;
+    }
+
+    // Returns true if this editor is the one currently being modified.
+    static bool IsCurrentEditor(wxNSTextFieldEditor* e)
+    {
+        return e == [(NSTextField*)ms_viewCurrentlyEdited currentEditor];
+    }
 
 protected :
     BOOL m_formerEditable ;
@@ -282,11 +292,16 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
 
 - (void) insertText:(id) str
 {
-    wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( (WXWidget) [self delegate] );
-    if ( impl == NULL || lastKeyDownEvent==nil || !impl->DoHandleCharEvent(lastKeyDownEvent, str) )
+    // We should never generate char events for the text being inserted
+    // programmatically.
+    if ( !wxMacEditHelper::IsCurrentEditor(self) )
     {
-        [super insertText:str];
+        wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( (WXWidget) [self delegate] );
+        if ( impl && lastKeyDownEvent && impl->DoHandleCharEvent(lastKeyDownEvent, str) )
+            return;
     }
+
+    [super insertText:str];
 }
 
 @end
@@ -334,7 +349,7 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
 {
     wxUnusedVar(aNotification);
 
-    if ( self == wxMacEditHelper::GetCurrentlyEditedView() )
+    if ( wxMacEditHelper::IsCurrentlyEditedView(self) )
     {
         // This notification is generated as the result of calling our own
         // wxTextCtrl method (e.g. WriteText()) and doesn't correspond to any

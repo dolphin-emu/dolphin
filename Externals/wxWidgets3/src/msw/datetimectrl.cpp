@@ -110,8 +110,12 @@ wxSize wxDateTimePickerCtrl::DoGetBestSize() const
 {
     wxClientDC dc(const_cast<wxDateTimePickerCtrl *>(this));
 
-    // Use the same native format as this as the underlying native control.
+    // Use the same native format as the underlying native control.
+#if wxUSE_INTL
     wxString s = wxDateTime::Now().Format(wxLocale::GetInfo(MSWGetFormat()));
+#else // !wxUSE_INTL
+    wxString s("XXX-YYY-ZZZZ");
+#endif // wxUSE_INTL/!wxUSE_INTL
 
     // the best size for the control is bigger than just the string
     // representation of the current value because the control must accommodate

@@ -39,14 +39,10 @@ public:
     // default copy ctor/assignment operators ok
 
     // comparison (must have both versions)
-    bool operator==(wxDataFormatId format) const
-        { return m_format == (NativeFormat)format; }
-    bool operator!=(wxDataFormatId format) const
-        { return m_format != (NativeFormat)format; }
-    bool operator==(const wxDataFormat& format) const
-        { return m_format == format.m_format; }
-    bool operator!=(const wxDataFormat& format) const
-        { return m_format != format.m_format; }
+    bool operator==(wxDataFormatId format) const;
+    bool operator!=(wxDataFormatId format) const;
+    bool operator==(const wxDataFormat& format) const;
+    bool operator!=(const wxDataFormat& format) const;
 
     // explicit and implicit conversions to NativeFormat which is one of
     // standard data types (implicit conversion is useful for preserving the

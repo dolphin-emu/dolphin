@@ -304,6 +304,10 @@ bool wxListBox::IsSelected(int N) const
 
 void *wxListBox::DoGetItemClientData(unsigned int n) const
 {
+    // This is done here for the same reasons as in wxChoice method with the
+    // same name.
+    SetLastError(ERROR_SUCCESS);
+
     LPARAM rc = SendMessage(GetHwnd(), LB_GETITEMDATA, n, 0);
     if ( rc == LB_ERR && GetLastError() != ERROR_SUCCESS )
     {

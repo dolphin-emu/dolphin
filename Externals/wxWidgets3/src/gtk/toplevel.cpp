@@ -39,6 +39,9 @@
     #include <X11/Xatom.h>  // XA_CARDINAL
     #include "wx/unix/utilsx11.h"
 #endif
+#ifdef GDK_WINDOWING_WAYLAND
+    #include <gdk/gdkwayland.h>
+#endif
 
 #include "wx/gtk/private.h"
 #include "wx/gtk/private/gtk2-compat.h"
@@ -549,7 +552,9 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
                                   long style,
                                   const wxString &name )
 {
-    const wxSize size(WidthDefault(sizeOrig.x), HeightDefault(sizeOrig.y));
+    wxSize size(sizeOrig);
+    if (!size.IsFullySpecified())
+        size.SetDefaults(GetDefaultSize());
 
     wxTopLevelWindows.Append( this );
 
@@ -718,6 +723,7 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
     if ( (style & wxSIMPLE_BORDER) || (style & wxNO_BORDER) )
     {
         m_gdkDecor = 0;
+        gtk_window_set_decorated(GTK_WINDOW(m_widget), false);
     }
     else // have border
     {
@@ -725,6 +731,14 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
 
         if ( style & wxCAPTION )
             m_gdkDecor |= GDK_DECOR_TITLE;
+#if defined(GDK_WINDOWING_WAYLAND) && GTK_CHECK_VERSION(3,10,0)
+        else if (
+            GDK_IS_WAYLAND_DISPLAY(gtk_widget_get_display(m_widget)) &&
+            gtk_check_version(3,10,0) == NULL)
+        {
+            gtk_window_set_titlebar(GTK_WINDOW(m_widget), gtk_header_bar_new());
+        }
+#endif
 
         if ( style & wxSYSTEM_MENU )
             m_gdkDecor |= GDK_DECOR_MENU;
@@ -742,17 +756,25 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
         }
     }
 
-    if ((style & wxRESIZE_BORDER) == 0)
-        gtk_window_set_resizable(GTK_WINDOW(m_widget), false);
-#ifndef __WXGTK3__
-    else
-        gtk_window_set_policy(GTK_WINDOW(m_widget), 1, 1, 1);
-#endif
-
     m_decorSize = GetCachedDecorSize();
     int w, h;
     GTKDoGetSize(&w, &h);
-    gtk_window_set_default_size(GTK_WINDOW(m_widget), w, h);
+
+    if (style & wxRESIZE_BORDER)
+    {
+        gtk_window_set_default_size(GTK_WINDOW(m_widget), w, h);
+#ifndef __WXGTK3__
+        gtk_window_set_policy(GTK_WINDOW(m_widget), 1, 1, 1);
+#endif
+    }
+    else
+    {
+        gtk_window_set_resizable(GTK_WINDOW(m_widget), false);
+        // gtk_window_set_default_size() does not work for un-resizable windows,
+        // unless you set the size hints, but that causes Ubuntu's WM to make
+        // the window resizable even though GDK_FUNC_RESIZE is not set.
+        gtk_widget_set_size_request(m_widget, w, h);
+    }
 
     return true;
 }
@@ -1118,6 +1140,8 @@ void wxTopLevelWindowGTK::DoSetSize( int x, int y, int width, int height, int si
         int w, h;
         GTKDoGetSize(&w, &h);
         gtk_window_resize(GTK_WINDOW(m_widget), w, h);
+        if (!gtk_window_get_resizable(GTK_WINDOW(m_widget)))
+            gtk_widget_set_size_request(GTK_WIDGET(m_widget), w, h);
 
         DoGetClientSize(&m_clientWidth, &m_clientHeight);
         wxSizeEvent event(GetSize(), GetId());
@@ -1231,6 +1255,8 @@ void wxTopLevelWindowGTK::GTKUpdateDecorSize(const DecorSize& decorSize)
                 h >= m_minHeight - (decorSize.top + decorSize.bottom))
             {
                 gtk_window_resize(GTK_WINDOW(m_widget), w, h);
+                if (!gtk_window_get_resizable(GTK_WINDOW(m_widget)))
+                    gtk_widget_set_size_request(GTK_WIDGET(m_widget), w, h);
                 resized = true;
             }
         }

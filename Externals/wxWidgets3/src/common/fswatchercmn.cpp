@@ -65,6 +65,11 @@ IMPLEMENT_DYNAMIC_CLASS(wxFileSystemWatcherEvent, wxEvent);
 
 wxString wxFileSystemWatcherEvent::ToString() const
 {
+    if (IsError())
+    {
+        return wxString::Format("FSW_EVT type=%d (%s) message='%s'", m_changeType,
+            GetFSWEventChangeTypeName(m_changeType), GetErrorDescription());
+    }
     return wxString::Format("FSW_EVT type=%d (%s) path='%s'", m_changeType,
             GetFSWEventChangeTypeName(m_changeType), GetPath().GetFullPath());
 }

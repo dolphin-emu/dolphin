@@ -238,7 +238,17 @@
 #define wxCRT_ScanfA     scanf
 #define wxCRT_SscanfA    sscanf
 #define wxCRT_FscanfA    fscanf
-#define wxCRT_VsscanfA   vsscanf
+
+/* vsscanf() may have a wrong declaration with non-const first parameter, fix
+ * this by wrapping it if necessary. */
+#if defined __cplusplus && defined HAVE_BROKEN_VSSCANF_DECL
+    inline int wxCRT_VsscanfA(const char *str, const char *format, va_list ap)
+    {
+        return vsscanf(const_cast<char *>(str), format, ap);
+    }
+#else
+    #define wxCRT_VsscanfA   vsscanf
+#endif
 
 #if defined(wxNEED_WPRINTF)
     int wxCRT_ScanfW(const wchar_t *format, ...);

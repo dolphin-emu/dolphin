@@ -45,10 +45,14 @@ WXDWORD wxTimePickerCtrl::MSWGetStyle(long style, WXDWORD *exstyle) const
     return styleMSW;
 }
 
+#if wxUSE_INTL
+
 wxLocaleInfo wxTimePickerCtrl::MSWGetFormat() const
 {
     return wxLOCALE_TIME_FMT;
 }
+
+#endif // wxUSE_INTL
 
 bool wxTimePickerCtrl::MSWOnDateTimeChange(const NMDATETIMECHANGE& dtch)
 {

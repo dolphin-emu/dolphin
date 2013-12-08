@@ -231,6 +231,29 @@ bool wxIOCPThread::ReadEvents()
     if (!count && !watch && !overlapped)
         return false;
 
+    // if the thread got woken up but we got an empty packet it means that
+    // there was an overflow, too many events and not all could fit in
+    // the watch buffer.  In this case, ReadDirectoryChangesW dumps the
+    // buffer.
+    if (!count && watch)
+    {
+         wxLogTrace(wxTRACE_FSWATCHER, "[iocp] Event queue overflowed: path=\"%s\"",
+                    watch->GetPath());
+
+        if (watch->GetFlags() & wxFSW_EVENT_WARNING)
+        {
+            wxFileSystemWatcherEvent
+                overflowEvent(wxFSW_EVENT_WARNING, wxFSW_WARNING_OVERFLOW);
+            overflowEvent.SetPath(watch->GetPath());
+            SendEvent(overflowEvent);
+        }
+
+        // overflow is not a fatal error, we still want to get future events
+        // reissue the watch
+        (void) m_service->SetUpWatch(*watch);
+        return true;
+    }
+
     // in case of spurious wakeup
     if (!count || !watch)
         return true;
@@ -283,9 +306,10 @@ void wxIOCPThread::ProcessNativeEvents(wxVector<wxEventProcessingData>& events)
         int flags = Native2WatcherFlags(nativeFlags);
         if (flags & wxFSW_EVENT_WARNING || flags & wxFSW_EVENT_ERROR)
         {
-            // TODO think about this...do we ever have any errors to report?
-            wxString errMsg = "Error occurred";
-            wxFileSystemWatcherEvent event(flags, errMsg);
+            wxFileSystemWatcherEvent
+                event(flags,
+                      flags & wxFSW_EVENT_ERROR ? wxFSW_WARNING_NONE
+                                                : wxFSW_WARNING_GENERAL);
             SendEvent(event);
         }
         // filter out ignored events and those not asked for.

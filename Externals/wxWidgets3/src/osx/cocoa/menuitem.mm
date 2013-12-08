@@ -153,7 +153,6 @@ void wxMacCocoaMenuItemSetAccelerator( NSMenuItem* menuItem, wxAcceleratorEntry*
         unichar shortcut = 0;
         if ( key >= WXK_F1 && key <= WXK_F15 )
         {
-            modifiers |= NSFunctionKeyMask ;
             shortcut = NSF1FunctionKey + ( key - WXK_F1 );
         }
         else
@@ -161,47 +160,50 @@ void wxMacCocoaMenuItemSetAccelerator( NSMenuItem* menuItem, wxAcceleratorEntry*
             switch ( key )
             {
                 case WXK_CLEAR :
-                    modifiers |= NSFunctionKeyMask;
                     shortcut = NSDeleteCharacter ;
                     break ;
 
                 case WXK_PAGEUP :
-                    modifiers |= NSFunctionKeyMask;
                     shortcut = NSPageUpFunctionKey ;
                     break ;
 
                 case WXK_PAGEDOWN :
-                    modifiers |= NSFunctionKeyMask;
                     shortcut = NSPageDownFunctionKey ;
                     break ;
 
+                case WXK_NUMPAD_LEFT :
+                    modifiers |= NSNumericPadKeyMask;
+                    // pass through
                 case WXK_LEFT :
-                    modifiers |= NSNumericPadKeyMask | NSFunctionKeyMask;
                     shortcut = NSLeftArrowFunctionKey ;
                     break ;
 
+                case WXK_NUMPAD_UP :
+                    modifiers |= NSNumericPadKeyMask;
+                    // pass through
                 case WXK_UP :
-                    modifiers |= NSNumericPadKeyMask | NSFunctionKeyMask;
                     shortcut = NSUpArrowFunctionKey ;
                     break ;
 
+                case WXK_NUMPAD_RIGHT :
+                    modifiers |= NSNumericPadKeyMask;
+                    // pass through
                 case WXK_RIGHT :
-                    modifiers |= NSNumericPadKeyMask | NSFunctionKeyMask;
                     shortcut = NSRightArrowFunctionKey ;
                     break ;
 
+                case WXK_NUMPAD_DOWN :
+                    modifiers |= NSNumericPadKeyMask;
+                    // pass through
                 case WXK_DOWN :
-                    modifiers |= NSNumericPadKeyMask | NSFunctionKeyMask;
                     shortcut = NSDownArrowFunctionKey ;
                     break ;
 
                 case WXK_HOME :
-                    modifiers |= NSFunctionKeyMask;
                     shortcut = NSHomeFunctionKey ;
                     break ;
 
                 case WXK_END :
-                    modifiers |= NSFunctionKeyMask;
                     shortcut = NSEndFunctionKey ;
                     break ;
 

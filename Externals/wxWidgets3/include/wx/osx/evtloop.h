@@ -30,7 +30,9 @@ public:
     
 #ifdef __WXOSX_COCOA__
     // skip wxGUIEventLoop to avoid missing Enter/Exit notifications
-    int Run() { return wxCFEventLoop::Run(); }
+    virtual int Run() { return wxCFEventLoop::Run(); }
+
+    virtual bool ProcessIdle();
 #endif
 protected:
     virtual void OSXDoRun();

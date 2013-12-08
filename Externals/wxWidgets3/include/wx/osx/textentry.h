@@ -81,6 +81,10 @@ public:
 
     virtual bool SendMaxLenEvent();
 
+    // set the grayed out hint text
+    virtual bool SetHint(const wxString& hint);
+    virtual wxString GetHint() const;
+
     // Implementation
     // --------------
 
@@ -102,6 +106,8 @@ protected:
   // need to make this public because of the current implementation via callbacks
     unsigned long  m_maxLength;
 
+private:
+    wxString m_hintString;
 };
 
 #endif // _WX_OSX_TEXTENTRY_H_

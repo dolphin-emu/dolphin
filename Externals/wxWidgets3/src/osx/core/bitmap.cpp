@@ -1225,8 +1225,6 @@ bool wxBitmap::LoadFile(const wxString& filename, wxBitmapType type)
 {
     UnRef();
 
-    // XXX comex: how exactly is this supposed to work!? @2x support isn't used in this case
-    /*
     wxBitmapHandler *handler = FindHandler(type);
 
     if ( handler )
@@ -1236,7 +1234,6 @@ bool wxBitmap::LoadFile(const wxString& filename, wxBitmapType type)
         return handler->LoadFile(this, filename, type, -1, -1);
     }
     else
-    */
     {
 #if wxUSE_IMAGE
         double scale = 1.0;

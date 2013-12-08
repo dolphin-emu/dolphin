@@ -133,6 +133,9 @@ protected:
 
     virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const;
 
+    // Override this one to avoid eating events from our popup listbox.
+    virtual wxWindow *MSWFindItem(long id, WXHWND hWnd) const;
+
     // this is the implementation of GetEditHWND() which can also be used when
     // we don't have the edit control, it simply returns NULL then
     //
