@@ -296,9 +296,9 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
 	texconv_shader.Bind();
-	glUniform4f(texconv_shader.UniformLocations[0],
-		float(source.left), float(source.top),
-		(float)expandedWidth, bScaleByHalf ? 2.f : 1.f);
+	glUniform4i(texconv_shader.UniformLocations[0],
+		source.left, source.top,
+		expandedWidth, bScaleByHalf ? 2 : 1);
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
