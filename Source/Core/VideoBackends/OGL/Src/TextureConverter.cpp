@@ -26,7 +26,7 @@ namespace TextureConverter
 
 using OGL::TextureCache;
 
-static GLuint s_texConvFrameBuffer = 0;
+static GLuint s_texConvFrameBuffer[2] = {0,0};
 static GLuint s_srcTexture = 0;			// for decoding from RAM
 static GLuint s_dstTexture = 0;		// for encoding to RAM
 
@@ -34,27 +34,15 @@ const int renderBufferWidth = 1024;
 const int renderBufferHeight = 1024;
 
 static SHADER s_rgbToYuyvProgram;
+static int s_rgbToYuyvUniform_loc;
+
 static SHADER s_yuyvToRgbProgram;
 
 // Not all slots are taken - but who cares.
 const u32 NUM_ENCODING_PROGRAMS = 64;
 static SHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 
-static GLuint s_encode_VBO = 0;
-static GLuint s_encode_VAO = 0;
-static TargetRectangle s_cached_sourceRc;
-
 static GLuint s_PBO = 0; // for readback with different strides
-
-static const char *VProgram =
-	"ATTRIN vec2 rawpos;\n"
-	"ATTRIN vec2 tex0;\n"
-	"VARYOUT vec2 uv0;\n"
-	"void main()\n"
-	"{\n"
-	"	uv0 = tex0;\n"
-	"	gl_Position = vec4(rawpos, 0.0, 1.0);\n"
-	"}\n";
 
 void CreatePrograms()
 {
@@ -75,14 +63,24 @@ void CreatePrograms()
 	 *     inbetween the two Pixels, and only blurs over these two pixels.
 	 */
 	// Output is BGRA because that is slightly faster than RGBA.
+	const char *VProgramRgbToYuyv =
+		"VARYOUT vec2 uv0;\n"
+		"uniform vec4 copy_position;\n" // left, top, right, bottom
+		"uniform sampler2D samp9;\n"
+		"void main()\n"
+		"{\n"
+		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
+		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0));\n"
+		"}\n";
 	const char *FProgramRgbToYuyv =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"VARYIN vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
-		"	vec3 c0 = texture2DRect(samp9, uv0 - dFdx(uv0) * 0.25).rgb;\n"
-		"	vec3 c1 = texture2DRect(samp9, uv0 + dFdx(uv0) * 0.25).rgb;\n"
+		"	vec3 c0 = texture(samp9, (uv0 - dFdx(uv0) * 0.25)).rgb;\n"
+		"	vec3 c1 = texture(samp9, (uv0 + dFdx(uv0) * 0.25)).rgb;\n"
 		"	vec3 c01 = (c0 + c1) * 0.5;\n"
 		"	vec3 y_const = vec3(0.257,0.504,0.098);\n"
 		"	vec3 u_const = vec3(-0.148,-0.291,0.439);\n"
@@ -90,6 +88,8 @@ void CreatePrograms()
 		"	vec4 const3 = vec4(0.0625,0.5,0.0625,0.5);\n"
 		"	ocol0 = vec4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"
 		"}\n";
+	ProgramShaderCache::CompileShader(s_rgbToYuyvProgram, VProgramRgbToYuyv, FProgramRgbToYuyv);
+	s_rgbToYuyvUniform_loc = glGetUniformLocation(s_rgbToYuyvProgram.glprogid, "copy_position");
 
 	/* TODO: Accuracy Improvements
 	 *
@@ -105,20 +105,15 @@ void CreatePrograms()
 		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 	const char *FProgramYuyvToRgb =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"VARYIN vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
 		"	ivec2 uv = ivec2(gl_FragCoord.xy);\n"
-#ifdef USE_GLES3
 			// We switch top/bottom here. TODO: move this to screen blit.
 		"	ivec2 ts = textureSize(samp9, 0);\n"
 		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x/2, ts.y-uv.y-1), 0);\n"
-#else
-		"	ivec2 ts = textureSize(samp9);\n"
-		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x/2, ts.y-uv.y-1));\n"
-#endif
 		"	float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
 		"	float yComp = 1.164 * (y - 0.0625);\n"
 		"	float uComp = c0.g - 0.5;\n"
@@ -128,8 +123,6 @@ void CreatePrograms()
 		"		yComp + (2.018 * uComp),\n"
 		"		1.0);\n"
 		"}\n";
-
-	ProgramShaderCache::CompileShader(s_rgbToYuyvProgram, VProgram, FProgramRgbToYuyv);
 	ProgramShaderCache::CompileShader(s_yuyvToRgbProgram, VProgramYuyvToRgb, FProgramYuyvToRgb);
 }
 
@@ -156,6 +149,13 @@ SHADER &GetOrCreateEncodingShader(u32 format)
 		}
 #endif
 
+		const char *VProgram =
+			"void main()\n"
+			"{\n"
+			"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+			"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
+			"}\n";
+
 		ProgramShaderCache::CompileShader(s_encodingPrograms[format], VProgram, shader);
 	}
 	return s_encodingPrograms[format];
@@ -163,30 +163,22 @@ SHADER &GetOrCreateEncodingShader(u32 format)
 
 void Init()
 {
-	glGenFramebuffers(1, &s_texConvFrameBuffer);
-
-	glGenBuffers(1, &s_encode_VBO );
-	glGenVertexArrays(1, &s_encode_VAO );
-	glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
-	glBindVertexArray( s_encode_VAO );
-	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL);
-	glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
-	glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
-	s_cached_sourceRc.top = -1;
-	s_cached_sourceRc.bottom = -1;
-	s_cached_sourceRc.left = -1;
-	s_cached_sourceRc.right = -1;
+	glGenFramebuffers(2, s_texConvFrameBuffer);
 
 	glActiveTexture(GL_TEXTURE0 + 9);
 	glGenTextures(1, &s_srcTexture);
-	glBindTexture(getFbType(), s_srcTexture);
-	glTexParameteri(getFbType(), GL_TEXTURE_MAX_LEVEL, 0);
+	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
 	glGenTextures(1, &s_dstTexture);
 	glBindTexture(GL_TEXTURE_2D, s_dstTexture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, renderBufferWidth, renderBufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	
+	
+	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_dstTexture, 0);
+	FramebufferManager::SetFramebuffer(0);
 
 	glGenBuffers(1, &s_PBO);
 
@@ -197,10 +189,8 @@ void Shutdown()
 {
 	glDeleteTextures(1, &s_srcTexture);
 	glDeleteTextures(1, &s_dstTexture);
-	glDeleteFramebuffers(1, &s_texConvFrameBuffer);
-	glDeleteBuffers(1, &s_encode_VBO );
-	glDeleteVertexArrays(1, &s_encode_VAO );
 	glDeleteBuffers(1, &s_PBO);
+	glDeleteFramebuffers(2, s_texConvFrameBuffer);
 
 	s_rgbToYuyvProgram.Destroy();
 	s_yuyvToRgbProgram.Destroy();
@@ -210,8 +200,9 @@ void Shutdown()
 
 	s_srcTexture = 0;
 	s_dstTexture = 0;
-	s_texConvFrameBuffer = 0;
 	s_PBO = 0;
+	s_texConvFrameBuffer[0] = 0;
+	s_texConvFrameBuffer[1] = 0;
 }
 
 void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
@@ -222,49 +213,28 @@ void EncodeToRamUsingShader(GLuint srcTexture, const TargetRectangle& sourceRc,
 
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
-	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, s_dstTexture, 0);
+	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[0]);
 	GL_REPORT_ERRORD();
 
 	// set source texture
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(getFbType(), srcTexture);
+	glBindTexture(GL_TEXTURE_2D, srcTexture);
 
 	if (linearFilter)
 	{
-		glTexParameteri(getFbType(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(getFbType(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 	else
 	{
-		glTexParameteri(getFbType(), GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(getFbType(), GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	}
 
 	GL_REPORT_ERRORD();
 
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
 
-	GL_REPORT_ERRORD();
-	if(!(s_cached_sourceRc == sourceRc)) {
-		GLfloat vertices[] = {
-			-1.f, -1.f,
-			(float)sourceRc.left, (float)sourceRc.top,
-			-1.f, 1.f,
-			(float)sourceRc.left, (float)sourceRc.bottom,
-			1.f, -1.f,
-			(float)sourceRc.right, (float)sourceRc.top,
-			1.f, 1.f,
-			(float)sourceRc.right, (float)sourceRc.bottom
-		};
-		glBindBuffer(GL_ARRAY_BUFFER, s_encode_VBO );
-		glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-
-		s_cached_sourceRc = sourceRc;
-	}
-
-	glBindVertexArray( s_encode_VAO );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	GL_REPORT_ERRORD();
@@ -342,17 +312,10 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	s32 expandedWidth = (width + blkW) & (~blkW);
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
-	float sampleStride = bScaleByHalf ? 2.f : 1.f;
-
-	float params[] = {
-		Renderer::EFBToScaledXf(sampleStride), Renderer::EFBToScaledYf(sampleStride),
-		0.0f, 0.0f,
-		(float)expandedWidth, (float)Renderer::EFBToScaledY(expandedHeight)-1,
-		(float)Renderer::EFBToScaledX(source.left), (float)Renderer::EFBToScaledY(EFB_HEIGHT - source.top - expandedHeight)
-	};
-
 	texconv_shader.Bind();
-	glUniform4fv(texconv_shader.UniformLocations[0], 2, params);
+	glUniform4i(texconv_shader.UniformLocations[0],
+		source.left, source.top,
+		expandedWidth, bScaleByHalf ? 2 : 1);
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
@@ -377,6 +340,8 @@ void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc, u8* des
 	g_renderer->ResetAPIState();
 
 	s_rgbToYuyvProgram.Bind();
+
+	glUniform4f(s_rgbToYuyvUniform_loc, sourceRc.left, sourceRc.top, sourceRc.right, sourceRc.bottom);
 
 	// We enable linear filtering, because the gamecube does filtering in the vertical direction when
 	// yscale is enabled.
@@ -403,7 +368,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	// switch to texture converter frame buffer
 	// attach destTexture as color destination
-	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer);
+	FramebufferManager::SetFramebuffer(s_texConvFrameBuffer[1]);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, destTexture, 0);
 
 	GL_REPORT_FBO_ERROR();
@@ -411,8 +376,8 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	// activate source texture
 	// set srcAddr as data for source texture
 	glActiveTexture(GL_TEXTURE0+9);
-	glBindTexture(getFbType(), s_srcTexture);
-	glTexImage2D(getFbType(), 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
+	glBindTexture(GL_TEXTURE_2D, s_srcTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, srcWidth / 2, srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);
 
 	glViewport(0, 0, srcWidth, srcHeight);
 	s_yuyvToRgbProgram.Bind();

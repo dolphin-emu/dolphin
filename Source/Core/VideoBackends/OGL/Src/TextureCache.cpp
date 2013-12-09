@@ -45,19 +45,14 @@ static SHADER s_ColorMatrixProgram;
 static SHADER s_DepthMatrixProgram;
 static GLuint s_ColorMatrixUniform;
 static GLuint s_DepthMatrixUniform;
+static GLuint s_ColorCopyPositionUniform;
+static GLuint s_DepthCopyPositionUniform;
 static u32 s_ColorCbufid;
 static u32 s_DepthCbufid;
 
 static u32 s_Textures[8];
 static u32 s_ActiveTexture;
 static u32 s_NextStage;
-
-struct VBOCache {
-	GLuint vbo;
-	GLuint vao;
-	TargetRectangle targetSource;
-};
-static std::map<u64,VBOCache> s_VBO;
 
 bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
@@ -296,7 +291,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 		GL_REPORT_ERRORD();
 
 		glActiveTexture(GL_TEXTURE0+9);
-		glBindTexture(getFbType(), read_texture);
+		glBindTexture(GL_TEXTURE_2D, read_texture);
 
 		glViewport(0, 0, virtual_width, virtual_height);
 
@@ -311,53 +306,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 				glUniform4fv(s_ColorMatrixUniform, 7, colmat);
 			s_ColorCbufid = cbufid;
 		}
+
+		TargetRectangle R = g_renderer->ConvertEFBRectangle(srcRect);
+		glUniform4f(srcFormat == PIXELFMT_Z24 ? s_DepthCopyPositionUniform : s_ColorCopyPositionUniform,
+			R.left, R.top, R.right, R.bottom);
 		GL_REPORT_ERRORD();
 
-		TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
-		GL_REPORT_ERRORD();
-
-		// should be unique enough, if not, vbo will "only" be uploaded to much
-		u64 targetSourceHash = u64(targetSource.left)<<48 | u64(targetSource.top)<<32 | u64(targetSource.right)<<16 | u64(targetSource.bottom);
-		std::map<u64, VBOCache>::iterator vbo_it = s_VBO.find(targetSourceHash);
-
-		if(vbo_it == s_VBO.end()) {
-			VBOCache item;
-			item.targetSource.bottom = -1;
-			item.targetSource.top = -1;
-			item.targetSource.left = -1;
-			item.targetSource.right = -1;
-			glGenBuffers(1, &item.vbo);
-			glGenVertexArrays(1, &item.vao);
-
-			glBindBuffer(GL_ARRAY_BUFFER, item.vbo);
-			glBindVertexArray(item.vao);
-
-			glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-			glVertexAttribPointer(SHADER_POSITION_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL);
-			glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
-			glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat)*4, (GLfloat*)NULL+2);
-
-			vbo_it = s_VBO.insert(std::pair<u64,VBOCache>(targetSourceHash, item)).first;
-		}
-		if(!(vbo_it->second.targetSource == targetSource)) {
-			GLfloat vertices[] = {
-				-1.f, 1.f,
-				(GLfloat)targetSource.left, (GLfloat)targetSource.bottom,
-				-1.f, -1.f,
-				(GLfloat)targetSource.left, (GLfloat)targetSource.top,
-				1.f, 1.f,
-				(GLfloat)targetSource.right, (GLfloat)targetSource.bottom,
-				1.f, -1.f,
-				(GLfloat)targetSource.right, (GLfloat)targetSource.top
-			};
-
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_it->second.vbo);
-			glBufferData(GL_ARRAY_BUFFER, 4*4*sizeof(GLfloat), vertices, GL_STREAM_DRAW);
-
-			vbo_it->second.targetSource = targetSource;
-		}
-
-		glBindVertexArray(vbo_it->second.vao);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		GL_REPORT_ERRORD();
@@ -403,38 +357,39 @@ void TextureCache::TCacheEntry::FromRenderTarget(u32 dstAddr, unsigned int dstFo
 TextureCache::TextureCache()
 {
 	const char *pColorMatrixProg =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[7];\n"
 		"VARYIN vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture2DRect(samp9, uv0);\n"
+		"	vec4 texcol = texture(samp9, uv0);\n"
 		"	texcol = round(texcol * colmat[5]) * colmat[6];\n"
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
 		"}\n";
 
 	const char *pDepthMatrixProg =
-		"uniform sampler2DRect samp9;\n"
+		"uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[5];\n"
 		"VARYIN vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
-		"	vec4 texcol = texture2DRect(samp9, uv0);\n"
+		"	vec4 texcol = texture(samp9, uv0);\n"
 		"	vec4 EncodedDepth = fract((texcol.r * (16777215.0/16777216.0)) * vec4(1.0,256.0,256.0*256.0,1.0));\n"
 		"	texcol = round(EncodedDepth * (16777216.0/16777215.0) * vec4(255.0,255.0,255.0,15.0)) / vec4(255.0,255.0,255.0,15.0);\n"
 		"	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];"
 		"}\n";
 
 	const char *VProgram =
-		"ATTRIN vec2 rawpos;\n"
-		"ATTRIN vec2 tex0;\n"
 		"VARYOUT vec2 uv0;\n"
+		"uniform sampler2D samp9;\n"
+		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"void main()\n"
 		"{\n"
-		"	uv0 = tex0;\n"
-		"	gl_Position = vec4(rawpos,0,1);\n"
+		"	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+		"	uv0 = mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0));\n"
+		"	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
 		"}\n";
 
 	ProgramShaderCache::CompileShader(s_ColorMatrixProgram, VProgram, pColorMatrixProg);
@@ -444,6 +399,9 @@ TextureCache::TextureCache()
 	s_DepthMatrixUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "colmat");
 	s_ColorCbufid = -1;
 	s_DepthCbufid = -1;
+
+	s_ColorCopyPositionUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "copy_position");
+	s_DepthCopyPositionUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "copy_position");
 
 	s_ActiveTexture = -1;
 	s_NextStage = -1;
@@ -456,12 +414,6 @@ TextureCache::~TextureCache()
 {
 	s_ColorMatrixProgram.Destroy();
 	s_DepthMatrixProgram.Destroy();
-
-	for(auto& cache : s_VBO) {
-		glDeleteBuffers(1, &cache.second.vbo);
-		glDeleteVertexArrays(1, &cache.second.vao);
-	}
-	s_VBO.clear();
 }
 
 void TextureCache::DisableStage(unsigned int stage)

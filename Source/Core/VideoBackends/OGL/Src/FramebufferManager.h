@@ -57,14 +57,6 @@ struct XFBSource : public XFBSourceBase
 	const GLuint texture;
 };
 
-inline GLenum getFbType()
-{
-#ifndef USE_GLES3
-	return GL_TEXTURE_RECTANGLE;
-#endif
-	return GL_TEXTURE_2D;
-}
-
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
@@ -121,8 +113,6 @@ private:
 	static GLuint m_xfbFramebuffer; // Only used in MSAA mode
 
 	// For pixel format draw
-	static GLuint m_pixel_format_vbo;
-	static GLuint m_pixel_format_vao;
 	static SHADER m_pixel_format_shaders[2];
 };
 
