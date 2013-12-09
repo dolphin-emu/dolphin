@@ -489,7 +489,7 @@ void ProgramShaderCache::Init(void)
 	}
 
 	// Read our shader cache, only if supported
-	if (g_ogl_config.bSupportsGLSLCache)
+	if (g_ogl_config.bSupportsGLSLCache && !g_Config.bEnableShaderDebugging)
 	{
 		GLint Supported;
 		glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
@@ -522,7 +522,7 @@ void ProgramShaderCache::Init(void)
 void ProgramShaderCache::Shutdown(void)
 {
 	// store all shaders in cache on disk
-	if (g_ogl_config.bSupportsGLSLCache)
+	if (g_ogl_config.bSupportsGLSLCache && !g_Config.bEnableShaderDebugging)
 	{
 		PCache::iterator iter = pshaders.begin();
 		for (; iter != pshaders.end(); ++iter)
