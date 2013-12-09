@@ -19,6 +19,10 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 	if (d == a)
 	{
 		fpr.BindToRegister(d, true);
+		if(!single)
+		{
+			fpr.BindToRegister(b, true, false);
+		}
 		(this->*op)(fpr.RX(d), fpr.R(b));
 	}
 	else if (d == b)
@@ -26,6 +30,10 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 		if (reversible)
 		{
 			fpr.BindToRegister(d, true);
+			if(!single)
+			{
+				fpr.BindToRegister(a, true, false);
+			}
 			(this->*op)(fpr.RX(d), fpr.R(a));
 		}
 		else
@@ -40,6 +48,10 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single, void (X
 	{
 		// Sources different from d, can use rather quick solution
 		fpr.BindToRegister(d, !single);
+		if(!single)
+		{
+			fpr.BindToRegister(b, true, false);
+		}
 		MOVSD(fpr.RX(d), fpr.R(a));
 		(this->*op)(fpr.RX(d), fpr.R(b));
 	}
