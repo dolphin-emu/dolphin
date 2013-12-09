@@ -119,7 +119,7 @@ public:
 	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 	typedef u32 (*Operation)(u32 a, u32 b);
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
-	void fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEmitter::*op_2)(Gen::X64Reg, Gen::OpArg), void (XEmitter::*op_3)(Gen::X64Reg, Gen::X64Reg, Gen::OpArg));
+	void fp_tri_op(int d, int a, int b, bool reversible, bool single, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
