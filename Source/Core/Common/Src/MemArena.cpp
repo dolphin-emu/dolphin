@@ -21,11 +21,6 @@
 #endif
 #endif
 
-#if defined(__APPLE__)
-static const char* ram_temp_file = "/tmp/gc_mem.tmp";
-#elif !defined(_WIN32) // non OSX unixes
-static const char* ram_temp_file = "/dev/shm/gc_mem.tmp";
-#endif
 #ifdef ANDROID
 #define ASHMEM_DEVICE "/dev/ashmem"
 
@@ -62,12 +57,22 @@ void MemArena::GrabLowMemSpace(size_t size)
 		return;
 	}
 #else
-	mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-	fd = open(ram_temp_file, O_RDWR | O_CREAT, mode);
-	unlink(ram_temp_file);
+	char fn[64];
+	for (int i = 0; i < 10000; i++)
+	{
+		sprintf(fn, "dolphinmem.%d", i);
+		fd = shm_open(fn, O_RDWR | O_CREAT | O_EXCL, 0600);
+		if (fd != -1)
+			break;
+		if (errno != EEXIST)
+		{
+			ERROR_LOG(MEMMAP, "shm_open failed: %s", strerror(errno));
+			return;
+		}
+	}
+	shm_unlink(fn);
 	if (ftruncate(fd, size) < 0)
 		ERROR_LOG(MEMMAP, "Failed to allocate low memory space");
-	return;
 #endif
 }
 
@@ -96,7 +101,7 @@ void *MemArena::CreateView(s64 offset, size_t size, void *base)
 
 	if (retval == MAP_FAILED)
 	{
-		NOTICE_LOG(MEMMAP, "mmap on %s failed", ram_temp_file);
+		NOTICE_LOG(MEMMAP, "mmap failed");
 		return nullptr;
 	}
 	else
