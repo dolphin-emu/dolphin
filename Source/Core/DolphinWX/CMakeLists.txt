@@ -13,7 +13,7 @@ set(LIBS	core
 			sfml-network
 			${GTK2_LIBRARIES})
 
-if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
+if((NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin") AND (NOT ANDROID))
 	set(LIBS ${LIBS} rt)
 endif()
 
