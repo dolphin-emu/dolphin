@@ -45,12 +45,12 @@ public:
 
 	// Called from main thread
 	virtual void PushSamples(const short* samples, unsigned int num_samples);
-	unsigned int GetSampleRate() {return m_sampleRate;}
+	unsigned int GetSampleRate() const {return m_sampleRate;}
 
 	void SetThrottle(bool use) { m_throttle = use;}
 
 	// TODO: do we need this
-	bool IsHLEReady() { return m_HLEready;}
+	bool IsHLEReady() const { return m_HLEready;}
 	void SetHLEReady(bool ready) { m_HLEready = ready;}
 	// ---------------------
 

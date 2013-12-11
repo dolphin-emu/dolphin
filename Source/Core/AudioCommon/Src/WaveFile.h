@@ -39,7 +39,7 @@ public:
 
 	void AddStereoSamples(const short *sample_data, u32 count);
 	void AddStereoSamplesBE(const short *sample_data, u32 count);  // big endian
-	u32 GetAudioSize() { return audio_size; }
+	u32 GetAudioSize() const { return audio_size; }
 };
 
 #endif  // _WAVEFILE_H_

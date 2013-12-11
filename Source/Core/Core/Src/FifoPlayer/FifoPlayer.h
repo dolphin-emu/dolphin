@@ -29,22 +29,22 @@ public:
 	FifoDataFile *GetFile() { return m_File; }
 
 	u32 GetFrameObjectCount();
-	u32 GetCurrentFrameNum() { return m_CurrentFrame; }
+	u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
 
-	const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) { return m_FrameInfo[frame]; }
+	const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) const { return m_FrameInfo[frame]; }
 
 	// Frame range
-	u32 GetFrameRangeStart() { return m_FrameRangeStart; }
+	u32 GetFrameRangeStart() const { return m_FrameRangeStart; }
 	void SetFrameRangeStart(u32 start);
 
-	u32 GetFrameRangeEnd() { return m_FrameRangeEnd; }
+	u32 GetFrameRangeEnd() const { return m_FrameRangeEnd; }
 	void SetFrameRangeEnd(u32 end);
 
 	// Object range
-	u32 GetObjectRangeStart() { return m_ObjectRangeStart; }
+	u32 GetObjectRangeStart() const { return m_ObjectRangeStart; }
 	void SetObjectRangeStart(u32 start) { m_ObjectRangeStart = start; }
 
-	u32 GetObjectRangeEnd() { return m_ObjectRangeEnd; }
+	u32 GetObjectRangeEnd() const { return m_ObjectRangeEnd; }
 	void SetObjectRangeEnd(u32 end)  { m_ObjectRangeEnd = end; }
 
 	// If enabled then all memory updates happen at once before the first frame

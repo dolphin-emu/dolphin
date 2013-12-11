@@ -33,7 +33,7 @@ public:
 	virtual void Stop() {}
 	virtual void Update() {}
 	virtual void Clear(bool mute) { m_muted = mute; }
-	bool IsMuted() { return m_muted; }
+	bool IsMuted() const { return m_muted; }
 	virtual void StartLogAudio(const char *filename) {
 		if (! m_logAudio) {
 			m_logAudio = true;
