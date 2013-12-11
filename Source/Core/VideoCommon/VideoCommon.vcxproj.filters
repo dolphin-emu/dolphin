@@ -7,9 +7,6 @@
     <Filter Include="Decoding">
       <UniqueIdentifier>{2baa29c2-a528-4981-abcb-e0842c311f63}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Decoding\OpenCL">
-      <UniqueIdentifier>{f32547ad-f1c1-4e47-9ded-c07f66de2100}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Register Sections">
       <UniqueIdentifier>{6a88e4a0-754c-43df-98e6-405c99cd2ca7}</UniqueIdentifier>
     </Filter>
@@ -56,12 +53,6 @@
     </ClCompile>
     <ClCompile Include="Src\VertexManagerBase.cpp">
       <Filter>Base</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\OpenCL.cpp">
-      <Filter>Decoding\OpenCL</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\OpenCL\TextureDecoder_OpenCL.cpp">
-      <Filter>Decoding\OpenCL</Filter>
     </ClCompile>
     <ClCompile Include="Src\Fifo.cpp">
       <Filter>Decoding</Filter>
@@ -183,12 +174,6 @@
     </ClInclude>
     <ClInclude Include="Src\VertexManagerBase.h">
       <Filter>Base</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\OpenCL\TextureDecoder_OpenCL.h">
-      <Filter>Decoding\OpenCL</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\OpenCL.h">
-      <Filter>Decoding\OpenCL</Filter>
     </ClInclude>
     <ClInclude Include="Src\Fifo.h">
       <Filter>Decoding</Filter>

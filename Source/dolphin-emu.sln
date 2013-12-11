@@ -45,8 +45,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SCMRevGen", "Core\Common\SC
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SFML_Network", "..\Externals\SFML\build\vc2010\SFML_Network.vcxproj", "{93D73454-2512-424E-9CDA-4BB357FE13DD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CLRun", "..\Externals\CLRun\clrun\CLRun.vcxproj", "{AA862E5E-A993-497A-B6A0-0E8E94B10050}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libusb-1.0", "..\Externals\libusbx\msvc\libusb_static_2013.vcxproj", "{349EE8F9-7D25-4909-AAF5-FF3FADE72187}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glew", "..\Externals\GLew\glew.vcxproj", "{2A3F751D-69E9-45F2-9199-9A00BFB6CC72}"

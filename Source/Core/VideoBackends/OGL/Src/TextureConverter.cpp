@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 // Fast image conversion using OpenGL shaders.
-// This kind of stuff would be a LOT nicer with OpenCL.
 
 #include "TextureConverter.h"
 #include "TextureConversionShader.h"

@@ -36,10 +36,6 @@ if(wxWidgets_FOUND)
 	set(LIBS	${LIBS} ${wxWidgets_LIBRARIES})
 endif(wxWidgets_FOUND)
 
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set(LIBS	${LIBS} clrun)
-endif()
-
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
 	${CMAKE_SYSTEM_NAME} MATCHES "NetBSD")
 	set(LIBS	${LIBS} usbhid)

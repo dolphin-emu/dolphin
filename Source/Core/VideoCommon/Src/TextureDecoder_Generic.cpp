@@ -20,8 +20,6 @@
 
 #include "CPUDetect.h"
 #include "TextureDecoder.h"
-#include "OpenCL.h"
-#include "OpenCL/TextureDecoder_OpenCL.h"
 #include "VideoConfig.h"
 
 #include "LookUpTables.h"
@@ -1060,15 +1058,12 @@ void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
 
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt,bool rgbaOnly)
 {
-	PC_TexFormat retval = TexDecoder_Decode_OpenCL(dst, src,
-		width, height, texformat, tlutaddr, tlutfmt, rgbaOnly);
-	if (retval == PC_TEX_FMT_NONE)
-		retval = rgbaOnly ? TexDecoder_Decode_RGBA((u32*)dst, src,
-				width, height, texformat, tlutaddr, tlutfmt)
-			: TexDecoder_Decode_real(dst, src,
-				width, height, texformat, tlutaddr, tlutfmt);
+	PC_TexFormat retval = rgbaOnly ? TexDecoder_Decode_RGBA((u32*)dst, src,
+			width, height, texformat, tlutaddr, tlutfmt)
+		: TexDecoder_Decode_real(dst, src,
+			width, height, texformat, tlutaddr, tlutfmt);
 
-	if ((!TexFmt_Overlay_Enable)|| (retval == PC_TEX_FMT_NONE))
+	if ((!TexFmt_Overlay_Enable) || (retval == PC_TEX_FMT_NONE))
 		return retval;
 
 	int w = min(width, 40);

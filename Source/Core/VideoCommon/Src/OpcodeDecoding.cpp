@@ -33,8 +33,6 @@
 #include "Fifo.h"
 #include "DataReader.h"
 
-#include "OpenCL.h"
-#include "OpenCL/TextureDecoder_OpenCL.h"
 #include "VideoConfig.h"
 
 u8* g_pVideoData = 0;
@@ -478,22 +476,11 @@ void OpcodeDecoder_Init()
 			DataReadU32xFuncs[i] = DataReadU32xFuncs_SSSE3[i];
 	}
 #endif
-
-	if (g_Config.bEnableOpenCL)
-	{
-		OpenCL::Initialize();
-		TexDecoder_OpenCL_Initialize();
-	}
 }
 
 
 void OpcodeDecoder_Shutdown()
 {
-	if (g_Config.bEnableOpenCL)
-	{
-		TexDecoder_OpenCL_Shutdown();
-		OpenCL::Destroy();
-	}
 }
 
 u32 OpcodeDecoder_Run(bool skipped_frame)

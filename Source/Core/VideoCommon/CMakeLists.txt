@@ -14,8 +14,6 @@ set(SRCS	Src/BPFunctions.cpp
 			Src/MainBase.cpp
 			Src/OnScreenDisplay.cpp
 			Src/OpcodeDecoding.cpp
-			Src/OpenCL.cpp
-			Src/OpenCL/TextureDecoder_OpenCL.cpp
 			Src/PerfQueryBase.cpp
 			Src/PixelEngine.cpp
 			Src/PixelShaderGen.cpp

@@ -81,7 +81,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
 
-	iniFile.Get("Settings", "EnableOpenCL", &bEnableOpenCL, false);
 	iniFile.Get("Settings", "OMPDecoder", &bOMPDecoder, false);
 
 	iniFile.Get("Settings", "EnableShaderDebugging", &bEnableShaderDebugging, false);
@@ -184,7 +183,6 @@ void VideoConfig::GameIniLoad()
 
 	CHECK_SETTING("Video_Settings", "DstAlphaPass", bDstAlphaPass);
 	CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
-	CHECK_SETTING("Video_Settings", "EnableOpenCL", bEnableOpenCL);
 	CHECK_SETTING("Video_Settings", "OMPDecoder", bOMPDecoder);
 
 	CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
@@ -265,7 +263,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
 	iniFile.Set("Settings", "DisableFog", bDisableFog);
 
-	iniFile.Set("Settings", "EnableOpenCL", bEnableOpenCL);
 	iniFile.Set("Settings", "OMPDecoder", bOMPDecoder);
 
 	iniFile.Set("Settings", "EnableShaderDebugging", bEnableShaderDebugging);

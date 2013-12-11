@@ -66,8 +66,7 @@ struct VideoConfig
 	bool bUseXFB;
 	bool bUseRealXFB;
 
-	// OpenCL/OpenMP
-	bool bEnableOpenCL;
+	// OpenMP
 	bool bOMPDecoder;
 
 	// Enhancements

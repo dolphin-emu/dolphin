@@ -171,9 +171,6 @@
     <ProjectReference Include="..\..\..\Externals\Bochs_disasm\Bochs_disasm.vcxproj">
       <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\CLRun\clrun\CLRun.vcxproj">
-      <Project>{aa862e5e-a993-497a-b6a0-0e8e94b10050}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\libpng\png\png.vcxproj">
       <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
     </ProjectReference>

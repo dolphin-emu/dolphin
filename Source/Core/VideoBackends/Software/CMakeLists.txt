@@ -45,8 +45,5 @@ else()
 		GLEW
 		${OPENGL_LIBRARIES})
 endif()
-if(NOT (${CMAKE_SYSTEM_NAME} MATCHES "Darwin"))
-	set(LIBS	${LIBS} clrun)
-endif()
 
 add_dolphin_library(videosoftware "${SRCS}" "${LIBS}")

@@ -510,7 +510,7 @@ include_directories(Source/Core/VideoUICommon/Src)
 #   - make sure to tell cmake to link them statically or dynamically (most
 #     should be linked statically)
 #   - place the CMakeLists.txt in the first-level subdirectory, e.g.
-#     Externals/CLRun/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
+#     Externals/zlib/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
 #
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
@@ -671,14 +671,6 @@ if (ANDROID)
 	message("Using static iconv from Externals")
 	include_directories(Externals/libiconv-1.14/include)
 	add_subdirectory(Externals/libiconv-1.14)
-endif()
-
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT ANDROID)
-	find_library(CL OpenCL)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-weak_framework,OpenCL")
-else()
-	include_directories(Externals/CLRun/include)
-	add_subdirectory(Externals/CLRun)
 endif()
 
 if(NOT DISABLE_WX AND NOT ANDROID)

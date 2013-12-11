@@ -266,7 +266,6 @@ bool DolphinApp::OnInit()
 	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
 	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_MAPS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_OPENCL_IDX));
 	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
 	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));

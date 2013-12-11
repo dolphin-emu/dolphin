@@ -126,7 +126,6 @@ private:
 	wxCheckBox* UseFPSForLimiting;
 
 	// Advanced
-	wxCheckBox* EnableOpenCL;
 	wxRadioBox* CPUEngine;
 	wxCheckBox* DSPThread;
 	wxCheckBox* _NTSCJ;
