@@ -98,7 +98,7 @@ if(wxWidgets_FOUND)
 				Src/WiimoteConfigDiag.cpp
 				Src/WxUtils.cpp)
 
-	set(WXLIBS ${wxWidgets_LIBRARIES})
+	set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 else()
 	if(ANDROID)
 		set(SRCS Src/Android/TextureLoader.cpp
