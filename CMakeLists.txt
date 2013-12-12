@@ -350,10 +350,12 @@ endif()
 
 if(NOT ANDROID)
 
-	include(FindOpenGL)
-	include_directories(${OPENGL_INCLUDE_DIR})
-	if(NOT OPENGL_GLU_FOUND)
-		message(FATAL_ERROR "GLU is required but not found")
+	if(NOT USE_GLES3)
+		include(FindOpenGL)
+		include_directories(${OPENGL_INCLUDE_DIR})
+		if(NOT OPENGL_GLU_FOUND)
+			message(FATAL_ERROR "GLU is required but not found")
+		endif()
 	endif()
 	
 	include(FindALSA OPTIONAL)
