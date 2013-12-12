@@ -20,7 +20,6 @@
 #include <string>
 #include <map>
 #include "CommonPaths.h"
-#include "Android/TextureLoader.h"
 #include "VideoBackendBase.h"
 
 namespace ButtonManager

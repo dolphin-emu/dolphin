@@ -17,7 +17,6 @@
 
 #include <unordered_map>
 #include "GLInterface.h"
-#include "Android/TextureLoader.h"
 #include "Android/ButtonManager.h"
 
 extern void DrawButton(GLuint tex, float *coords);

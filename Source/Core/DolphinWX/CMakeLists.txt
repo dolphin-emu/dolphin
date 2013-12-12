@@ -101,8 +101,7 @@ if(wxWidgets_FOUND)
 	set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 else()
 	if(ANDROID)
-		set(SRCS Src/Android/TextureLoader.cpp
-			 Src/Android/ButtonManager.cpp
+		set(SRCS Src/Android/ButtonManager.cpp
 			 Src/MainAndroid.cpp)
 	else()
 		set(SRCS Src/MainNoGUI.cpp)
