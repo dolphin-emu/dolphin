@@ -29,6 +29,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	public static String m_GLVendor;
 	public static String m_GLRenderer;
 	public static String m_GLExtensions;
+	public static boolean m_SupportsGLES3 = false;
 	public static float m_QualcommVersion;
 	public static boolean m_Inited = false;
 
@@ -120,8 +121,6 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		private EGLConfig chooseConfig()
 		{
 			int[] attribList = new int[] {
-					EGL10.EGL_DEPTH_SIZE, 0,
-					EGL10.EGL_STENCIL_SIZE, 0,
 					EGL10.EGL_RED_SIZE, 8,
 					EGL10.EGL_GREEN_SIZE, 8,
 					EGL10.EGL_BLUE_SIZE, 8,
@@ -129,13 +128,24 @@ public final class VideoSettingsFragment extends PreferenceFragment
 					EGL10.EGL_NONE
 			};
 
-			// No error checking performed, minimum required code to elucidate logic
-			// Expand on this logic to be more selective in choosing a configuration
+			// Grab how many configs there are
 			int[] numConfig = new int[1];
 			mEGL.eglChooseConfig(mEGLDisplay, attribList, null, 0, numConfig);
 			int configSize = numConfig[0];
 			mEGLConfigs = new EGLConfig[configSize];
 			mEGL.eglChooseConfig(mEGLDisplay, attribList, mEGLConfigs, configSize, numConfig);
+
+			// Check if one config supports GLES3
+			for (int i = 0; i < configSize; ++i)
+			{
+				int[] value = new int[1];
+				boolean retval = mEGL.eglGetConfigAttrib(mEGLDisplay, mEGLConfigs[i], EGL10.EGL_RENDERABLE_TYPE, value);
+				if (retval && (value[0] & (1 << 6)) != 0)
+				{
+					m_SupportsGLES3 = true;
+					break;
+				}
+			}
 
 			return mEGLConfigs[0];  // Best match is probably the first configuration
 		}
@@ -148,7 +158,6 @@ public final class VideoSettingsFragment extends PreferenceFragment
 	 */
 	public static boolean SupportsGLES3()
 	{
-		boolean mSupportsGLES3 = false;
 		if (!m_Inited)
 		{
 			VersionCheck mbuffer = new VersionCheck();
@@ -156,39 +165,32 @@ public final class VideoSettingsFragment extends PreferenceFragment
 			m_GLVendor = mbuffer.getVendor();
 			m_GLRenderer = mbuffer.getRenderer();
 			m_GLExtensions = mbuffer.getExtensions();
+
+			// Checking for OpenGL ES 3 support for certain Qualcomm devices.
+			if (m_GLVendor != null && m_GLVendor.equals("Qualcomm"))
+			{
+				if (m_GLRenderer.contains("Adreno (TM) 3"))
+				{
+					int mVStart = m_GLVersion.indexOf("V@") + 2;
+					int mVEnd = 0;
+
+					for (int a = mVStart; a < m_GLVersion.length(); ++a)
+					{
+						if (m_GLVersion.charAt(a) == ' ')
+						{
+							mVEnd = a;
+							break;
+						}
+					}
+
+					m_QualcommVersion = Float.parseFloat(m_GLVersion.substring(mVStart, mVEnd));
+				}
+			}
+
 			m_Inited = true;
 		}
 
-
-		// Check for OpenGL ES 3 support (General case).
-		if (m_GLVersion != null && m_GLVersion.contains("OpenGL ES 3.0"))
-			mSupportsGLES3 = true;
-
-		// Checking for OpenGL ES 3 support for certain Qualcomm devices.
-		if (m_GLVendor != null && m_GLVendor.equals("Qualcomm"))
-		{
-			if (m_GLRenderer.contains("Adreno (TM) 3"))
-			{
-				int mVStart = m_GLVersion.indexOf("V@") + 2;
-				int mVEnd = 0;
-
-				for (int a = mVStart; a < m_GLVersion.length(); ++a)
-				{
-					if (m_GLVersion.charAt(a) == ' ')
-					{
-						mVEnd = a;
-						break;
-					}
-				}
-
-				m_QualcommVersion = Float.parseFloat(m_GLVersion.substring(mVStart, mVEnd));
-
-				if (m_QualcommVersion  >= 14.0f)
-					mSupportsGLES3 = true;
-			}
-		}
-
-		return mSupportsGLES3;
+		return m_SupportsGLES3;
 	}
 
 	@Override
