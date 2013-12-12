@@ -122,7 +122,7 @@ message(${CMAKE_SYSTEM_PROCESSOR})
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
 	set(_M_GENERIC 1)
 	set(_M_ARM 1)
-	if(${ANDROID_NDK_ABI_NAME} STREQUAL "armeabi-v7a")
+	if(${ANDROID_NDK_ABI_NAME} MATCHES "armeabi-v7a")
 		add_definitions(-marm -march=armv7-a)
 	endif()
 	# Set generic options so you don't have to pass anything to cmake to build ARM
