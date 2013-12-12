@@ -249,14 +249,14 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEve
 {
 	const char *Device = env->GetStringUTFChars(jDevice, NULL);
 	std::string strDevice = std::string(Device);
-	ButtonManager::GamepadEvent(strDevice, (ButtonManager::ButtonType)Button, Action);
+	ButtonManager::GamepadEvent(strDevice, Button, Action);
 	env->ReleaseStringUTFChars(jDevice, Device);
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMoveEvent(JNIEnv *env, jobject obj, jstring jDevice, jint Axis, jfloat Value)
 {
 	const char *Device = env->GetStringUTFChars(jDevice, NULL);
 	std::string strDevice = std::string(Device);
-	ButtonManager::GamepadAxisEvent(strDevice, (ButtonManager::ButtonType)Axis, Value);
+	ButtonManager::GamepadAxisEvent(strDevice, Axis, Value);
 	env->ReleaseStringUTFChars(jDevice, Device);
 }
 

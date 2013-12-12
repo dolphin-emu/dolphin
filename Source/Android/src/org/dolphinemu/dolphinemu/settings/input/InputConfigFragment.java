@@ -52,7 +52,7 @@ public final class InputConfigFragment extends PreferenceFragment
 			"WiimoteDPadUp", "WiimoteDPadDown", "WiimoteDPadLeft", "WiimoteDPadRight"
 		};
 
-		for (int i = 1; i <= 4; i++)
+		for (int i = 0; i < 4; i++)
 		{
 			// Loop through the keys for all 4 GameCube controllers.
 			for (String key : gamecubeKeys)

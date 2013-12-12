@@ -150,7 +150,7 @@ namespace ButtonManager
 	{
 		m_axises[std::make_pair(padID, axis)]->SetValue(value);
 	}
-	void GamepadEvent(std::string dev, ButtonType button, int action)
+	void GamepadEvent(std::string dev, int button, int action)
 	{
 		auto it = m_controllers.find(dev);
 		if (it != m_controllers.end())
@@ -161,7 +161,7 @@ namespace ButtonManager
 		m_controllers[dev] = new InputDevice(dev);
 		m_controllers[dev]->PressEvent(button, action);
 	}
-	void GamepadAxisEvent(std::string dev, ButtonType axis, float value)
+	void GamepadAxisEvent(std::string dev, int axis, float value)
 	{
 		auto it = m_controllers.find(dev);
 		if (it != m_controllers.end())
@@ -183,17 +183,17 @@ namespace ButtonManager
 	}
 
 	// InputDevice
-	void InputDevice::PressEvent(ButtonType button, int action)
+	void InputDevice::PressEvent(int button, int action)
 	{
-		if (_binds.find(button) == _binds.end())
+		if (_inputbinds.find(button) == _inputbinds.end())
 			return;
-		_buttons[_binds[button]->_bind] = action == 0 ? true : false;
+		_buttons[_inputbinds[button]->_buttontype] = action == 0 ? true : false;
 	}
-	void InputDevice::AxisEvent(ButtonType axis, float value)
+	void InputDevice::AxisEvent(int axis, float value)
 	{
-		if (_binds.find(axis) == _binds.end())
+		if (_inputbinds.find(axis) == _inputbinds.end())
 			return;
-		_axises[_binds[axis]->_bind] = value;
+		_axises[_inputbinds[axis]->_buttontype] = value;
 	}
 	bool InputDevice::ButtonValue(int padID, ButtonType button)
 	{
@@ -203,7 +203,7 @@ namespace ButtonManager
 		if (it->second->_padID != padID)
 			return false;
 		if (it->second->_bindtype == BIND_BUTTON)
-			return _buttons[it->second->_bind];
+			return _buttons[it->second->_buttontype];
 		else
 			return AxisValue(padID, button);
 	}
@@ -217,7 +217,7 @@ namespace ButtonManager
 		if (it->second->_bindtype == BIND_BUTTON)
 			return ButtonValue(padID, axis);
 		else
-			return _axises[it->second->_bind] * it->second->_neg;
+			return _axises[it->second->_buttontype] * it->second->_neg;
 	}
 
 }

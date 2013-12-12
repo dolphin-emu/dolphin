@@ -99,9 +99,10 @@ namespace ButtonManager
 	{
 	private:
 		const std::string _dev;
-		std::map<int, bool> _buttons;
-		std::map<int, float> _axises;
+		std::map<ButtonType, bool> _buttons;
+		std::map<ButtonType, float> _axises;
 		std::map<ButtonType, sBind*> _binds;
+		std::map<int, sBind*> _inputbinds;
 	public:
 		InputDevice(std::string dev)
 			: _dev(dev) {}
@@ -110,9 +111,9 @@ namespace ButtonManager
 			for (auto it = _binds.begin(); it != _binds.end(); ++it)
 				delete it->second;
 		}
-		void AddBind(sBind *bind) { _binds[bind->_buttontype] = bind; }
-		void PressEvent(ButtonType button, int action);
-		void AxisEvent(ButtonType axis, float value);
+		void AddBind(sBind *bind) { _binds[bind->_buttontype] = bind; _inputbinds[bind->_bind] = bind; }
+		void PressEvent(int button, int action);
+		void AxisEvent(int axis, float value);
 		bool ButtonValue(int padID, ButtonType button);
 		float AxisValue(int padID, ButtonType axis);
 	};
@@ -122,7 +123,7 @@ namespace ButtonManager
 	float GetAxisValue(int padID, ButtonType axis);
 	void TouchEvent(int padID, ButtonType button, int action);
 	void TouchAxisEvent(int padID, ButtonType axis, float value);
-	void GamepadEvent(std::string dev, ButtonType button, int action);
-	void GamepadAxisEvent(std::string dev, ButtonType axis, float value);
+	void GamepadEvent(std::string dev, int button, int action);
+	void GamepadAxisEvent(std::string dev, int axis, float value);
 	void Shutdown();
 }

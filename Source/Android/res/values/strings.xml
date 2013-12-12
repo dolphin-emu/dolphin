@@ -53,10 +53,10 @@
     <string name="input_overlay_layout">Input Overlay Layout</string>
     <string name="input_overlay_layout_desc">Button layout for the input overlay.</string>
     <string name="gamecube_bindings">Gamecube Controller Bindings</string>
-    <string name="controller_1">Controller 1</string>
-    <string name="controller_2">Controller 2</string>
-    <string name="controller_3">Controller 3</string>
-    <string name="controller_4">Controller 4</string>
+    <string name="controller_0">Controller 1</string>
+    <string name="controller_1">Controller 2</string>
+    <string name="controller_2">Controller 3</string>
+    <string name="controller_3">Controller 4</string>
     <string name="enable_controller">Enable controller</string>
     <string name="wiimote_bindings">Wiimote Bindings</string>
     <string name="wiimote_1">Wiimote 1</string>
