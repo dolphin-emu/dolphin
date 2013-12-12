@@ -179,6 +179,10 @@ bool VideoBackend::Initialize(void *&window_handle)
 	UpdateActiveConfig();
 
 	InitInterface();
+	GLInterface->SetMode(GLInterfaceMode::MODE_OPENGL);
+#ifdef USE_GLES3
+	GLInterface->SetMode(GLInterfaceMode::MODE_OPENGLES3);
+#endif
 	if (!GLInterface->Create(window_handle))
 		return false;
 

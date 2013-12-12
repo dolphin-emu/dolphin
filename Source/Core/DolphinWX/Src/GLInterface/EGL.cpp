@@ -47,31 +47,37 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	// attributes for a visual in RGBA format with at least
 	// 8 bits per color
 	int attribs[] = {
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 		EGL_RED_SIZE, 8,
 		EGL_GREEN_SIZE, 8,
 		EGL_BLUE_SIZE, 8,
-#ifdef USE_GLES
-#ifdef USE_GLES3
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-
-		// OpenGL ES 3 bit is disabled for now, until we have a way to select it from runtime
-		// Qualcomm drivers don't even care if it is ES2 or ES3 bit set.
-		// Intel drivers /might/ not care, but that code path is untested
 		// EGL_RENDERABLE_TYPE, (1 << 6) /* EGL_OPENGL_ES3_BIT */,
-#else
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-#endif
-#else
 		EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
-#endif
 		EGL_NONE };
 
-	static const EGLint ctx_attribs[] = {
-#ifdef USE_GLES
+	EGLint ctx_attribs[] = {
 		EGL_CONTEXT_CLIENT_VERSION, 2,
-#endif
 		EGL_NONE
 	};
+	switch(s_opengl_mode)
+	{
+		case MODE_OPENGL:
+			attribs[1] = EGL_OPENGL_BIT;
+			ctx_attribs[0] = EGL_NONE;	
+		break;
+		case MODE_OPENGLES2:
+			attribs[1] = EGL_OPENGL_ES2_BIT;
+			ctx_attribs[1] = 2;
+		break;
+		case MODE_OPENGLES3:
+			attribs[1] = (1 << 6); /* EGL_OPENGL_ES3_BIT_KHR */
+			ctx_attribs[1] = 3;
+		break;
+		default:
+			ERROR_LOG(VIDEO, "Unknown opengl mode set\n");
+			return false;
+		break;
+	}
 
 	if(!Platform.SelectDisplay())
 		return false;

@@ -10,9 +10,12 @@ protected:
 	// Window dimensions.
 	u32 s_backbuffer_width;
 	u32 s_backbuffer_height;
+
+	u32 s_opengl_mode;
 public:
 	virtual void Swap() {}
 	virtual void UpdateFPSDisplay(const char *Text) {}
+	virtual void SetMode(u32 mode) { s_opengl_mode = mode; }
 	virtual bool Create(void *&window_handle) { return true; }
 	virtual bool MakeCurrent() { return true; }
 	virtual bool ClearCurrent() { return true; }
