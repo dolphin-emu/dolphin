@@ -51,8 +51,6 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		EGL_RED_SIZE, 8,
 		EGL_GREEN_SIZE, 8,
 		EGL_BLUE_SIZE, 8,
-		// EGL_RENDERABLE_TYPE, (1 << 6) /* EGL_OPENGL_ES3_BIT */,
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
 		EGL_NONE };
 
 	EGLint ctx_attribs[] = {
