@@ -96,11 +96,10 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		return false;
 	}
 
-#ifdef USE_GLES
-	eglBindAPI(EGL_OPENGL_ES_API);
-#else
-	eglBindAPI(EGL_OPENGL_API);
-#endif
+	if (s_opengl_mode == MODE_OPENGL)
+		eglBindAPI(EGL_OPENGL_API);
+	else
+		eglBindAPI(EGL_OPENGL_ES_API);
 
 	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs)) {
 		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
