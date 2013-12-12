@@ -356,6 +356,8 @@ if(NOT ANDROID)
 		if(NOT OPENGL_GLU_FOUND)
 			message(FATAL_ERROR "GLU is required but not found")
 		endif()
+	else()
+		set(X11_FOUND 1)
 	endif()
 	
 	include(FindALSA OPTIONAL)
