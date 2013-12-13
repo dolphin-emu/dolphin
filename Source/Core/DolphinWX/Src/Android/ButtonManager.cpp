@@ -140,7 +140,7 @@ namespace ButtonManager
 		auto it = m_controllers.begin();
 		if (it == m_controllers.end())
 			return value;
-		return it->second->AxisValue(padID, axis);
+		return value != 0.0f ? value : it->second->AxisValue(padID, axis);
 	}
 	void TouchEvent(int padID, ButtonType button, int action)
 	{

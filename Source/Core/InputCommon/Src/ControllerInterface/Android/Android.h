@@ -43,11 +43,12 @@ private:
 	{
 	public:
 		std::string GetName() const;
-		Axis(int padID, ButtonManager::ButtonType index) : _padID(padID), _index(index) {}
+		Axis(int padID, ButtonManager::ButtonType index, float neg = 1.0f) : _padID(padID), _index(index), _neg(neg) {}
 		ControlState GetState() const;
 	private:
 		const int _padID;
 		const ButtonManager::ButtonType _index;
+		const float _neg;
 	};
 	
 public:

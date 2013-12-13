@@ -103,14 +103,10 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 	public float[] getAxisValues()
 	{
 		float[] joyaxises = {0f, 0f, 0f, 0f};
-		if (axises[0] >= 0.0f)
-			joyaxises[1] = Math.min(axises[0], 1.0f);
-		else
-			joyaxises[0] = Math.min(Math.abs(axises[0]), 1.0f);
-		if (axises[1] >= 0.0)
-			joyaxises[3] = Math.min(axises[1], 1.0f);
-		else
-			joyaxises[2] = Math.min(Math.abs(axises[1]), 1.0f);
+		joyaxises[1] = Math.min(axises[0], 1.0f);
+		joyaxises[0] = Math.min(axises[0], 0.0f);
+		joyaxises[3] = Math.min(axises[1], 1.0f);
+		joyaxises[2] = Math.min(axises[1], 0.0f);
 		return joyaxises;
 	}
 
