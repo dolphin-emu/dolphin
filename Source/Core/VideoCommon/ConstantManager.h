@@ -19,7 +19,8 @@ struct PixelShaderConstants
 	float4 indtexscale[2];
 	int4 indtexmtx[6];
 	int4 fogcolor;
-	float4 fog[2];
+	int4 fogi[1];
+	float4 fogf[2];
 
 	// For pixel lighting
 	int4 plight_colors[8];

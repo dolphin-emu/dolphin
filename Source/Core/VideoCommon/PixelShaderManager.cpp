@@ -85,15 +85,15 @@ void PixelShaderManager::SetConstants()
 			// they are the coefficients from the center to the border of the screen
 			// so to simplify I use the hi coefficient as K in the shader taking 256 as the scale
 			// TODO: Shouldn't this be EFBToScaledXf?
-			constants.fog[1][0] = ScreenSpaceCenter;
-			constants.fog[1][1] = (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.viewport.wd));
-			constants.fog[1][2] = bpmem.fogRange.K[4].HI / 256.0f;
+			constants.fogf[0][0] = ScreenSpaceCenter;
+			constants.fogf[0][1] = (float)Renderer::EFBToScaledX((int)(2.0f * xfregs.viewport.wd));
+			constants.fogf[0][2] = bpmem.fogRange.K[4].HI / 256.0f;
 		}
 		else
 		{
-			constants.fog[1][0] = 0;
-			constants.fog[1][1] = 1;
-			constants.fog[1][2] = 1;
+			constants.fogf[0][0] = 0;
+			constants.fogf[0][1] = 1;
+			constants.fogf[0][2] = 1;
 		}
 		dirty = true;
 
@@ -282,17 +282,17 @@ void PixelShaderManager::SetFogParamChanged()
 {
 	if (!g_ActiveConfig.bDisableFog)
 	{
-		constants.fog[0][0] = bpmem.fog.a.GetA();
-		constants.fog[0][1] = (float)bpmem.fog.b_magnitude / 0xFFFFFF;
-		constants.fog[0][2] = bpmem.fog.c_proj_fsel.GetC();
-		constants.fog[0][3] = (float)(1 << bpmem.fog.b_shift);
+		constants.fogf[1][0] = bpmem.fog.a.GetA();
+		constants.fogi[0][1] = bpmem.fog.b_magnitude;
+		constants.fogf[1][2] = bpmem.fog.c_proj_fsel.GetC();
+		constants.fogi[0][3] = bpmem.fog.b_shift;
 	}
 	else
 	{
-		constants.fog[0][0] = 0;
-		constants.fog[0][1] = 1;
-		constants.fog[0][2] = 0;
-		constants.fog[0][3] = 1;
+		constants.fogf[1][0] = 0.f;
+		constants.fogi[0][1] = 1;
+		constants.fogf[1][2] = 0.f;
+		constants.fogi[0][3] = 1;
 	}
 	dirty = true;
 }
