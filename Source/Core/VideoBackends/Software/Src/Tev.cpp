@@ -754,11 +754,21 @@ void Tev::Draw()
 
 			// First, calculate the offset from the viewport center (normalized to 0..1)
 			float offset = (Position[0] - (bpmem.fogRange.Base.Center - 342)) / (float)swxfregs.viewport.wd;
+
 			// Based on that, choose the index such that points which are far away from the z-axis use the 10th "k" value and such that central points use the first value.
-			int index = (int) (9 - std::abs(offset) * 9.f);
-			index = (index < 0) ? 0 : (index > 9) ? 9 : index; // TODO: Shouldn't be necessary!
+			float floatindex = 9.f - std::abs(offset) * 9.f;
+			floatindex = (floatindex < 0.f) ? 0.f : (floatindex > 9.f) ? 9.f : floatindex; // TODO: This shouldn't be necessary!
+
+			// Get the two closest integer indices, look up the corresponding samples
+			int indexlower = (int)floor(floatindex);
+			int indexupper = indexlower + 1;
 			// Look up coefficient... Seems like multiplying by 4 makes Fortune Street work properly (fog is too strong without the factor)
-			float k = bpmem.fogRange.K[index/2].GetValue(index%2) * 4.f;
+			float klower = bpmem.fogRange.K[indexlower/2].GetValue(indexlower%2) * 4.f;
+			float kupper = bpmem.fogRange.K[indexupper/2].GetValue(indexupper%2) * 4.f;
+
+			// linearly interpolate the samples and multiple ze by the resulting adjustment factor
+			float factor = indexupper - floatindex;
+			float k = klower * factor + kupper * (1.f - factor);
 			float x_adjust = sqrt(offset*offset + k*k)/k;
 			ze *= x_adjust; // NOTE: This is basically dividing by a cosine (hidden behind GXInitFogAdjTable): 1/cos = c/b = sqrt(a^2+b^2)/b
 		}
