@@ -312,51 +312,11 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 
 	u32 returnAddress = 0;
 
-	// Used for Gecko CST1 code. (See GeckoCode/GeckoCode.h)
-	// We use std::queue but it is not so slow
-	// because cst1_instructions does not allocate memory so many times.
-	std::queue<UGeckoInstruction> cst1_instructions;
-	const std::map<u32, std::vector<u32> >& inserted_asm_codes =
-		Gecko::GetInsertedAsmCodes();
-
 	// Do analysis of the code, look for dependencies etc
 	int numSystemInstructions = 0;
 	for (int i = 0; i < maxsize; i++)
 	{
-		UGeckoInstruction inst;
-
-		if (!cst1_instructions.empty())
-		{
-			// If the Gecko CST1 instruction queue is not empty,
-			// we consume the first instruction.
-			inst = UGeckoInstruction(cst1_instructions.front());
-			cst1_instructions.pop();
-			address -= 4;
-
-		}
-		else
-		{
-			// If the address is the insertion point of Gecko CST1 code,
-			// we push the code into the instruction queue and
-			// consume the first instruction.
-			std::map<u32, std::vector<u32> >::const_iterator it =
-				inserted_asm_codes.find(address);
-			if (it != inserted_asm_codes.end())
-			{
-				const std::vector<u32>& codes = it->second;
-				for (u32 c : codes)
-				{
-					cst1_instructions.push(c);
-				}
-				inst = UGeckoInstruction(cst1_instructions.front());
-				cst1_instructions.pop();
-
-			}
-			else
-			{
-				inst = JitInterface::Read_Opcode_JIT(address);
-			}
-		}
+		UGeckoInstruction inst = JitInterface::Read_Opcode_JIT(address);
 
 		if (inst.hex != 0)
 		{
