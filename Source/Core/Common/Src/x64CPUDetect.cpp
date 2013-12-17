@@ -267,3 +267,8 @@ std::string CPUInfo::Summarize()
 	if (bLongMode) sum += ", 64-bit support";
 	return sum;
 }
+
+bool CPUInfo::IsUnsafe()
+{
+	return !bFlushToZero;
+}

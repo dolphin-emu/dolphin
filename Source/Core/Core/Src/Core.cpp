@@ -58,6 +58,7 @@
 
 #include "State.h"
 #include "Movie.h"
+#include "NetPlayProto.h"
 #include "PatchEngine.h"
 
 // TODO: ugly, remove
@@ -374,6 +375,10 @@ void EmuThread()
 	DisplayMessage(cpu_info.brand_string, 8000);
 	DisplayMessage(cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
+	if (cpu_info.IsUnsafe() && (NetPlay::IsNetPlayRunning() || Movie::IsRecordingInput() || Movie::IsPlayingInput()))
+	{
+		PanicAlertT("Warning: Netplay/movies will desync because your CPU does not support DAZ and Dolphin does not emulate it anymore.");
+	}
 
 	Movie::Init();
 

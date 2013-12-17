@@ -279,3 +279,8 @@ std::string CPUInfo::Summarize()
 
 	return sum;
 }
+
+bool CPUInfo::IsUnsafe()
+{
+	return false;
+}
