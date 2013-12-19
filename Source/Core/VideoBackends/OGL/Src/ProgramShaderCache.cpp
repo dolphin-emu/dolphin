@@ -413,7 +413,7 @@ GLuint ProgramShaderCache::CompileSingleShader (GLuint type, const char* code )
 		GLsizei charsWritten;
 		GLchar* infoLog = new GLchar[length];
 		glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-		ERROR_LOG(VIDEO, "PS Shader info log:\n%s", infoLog);
+		ERROR_LOG(VIDEO, "%s Shader info log:\n%s", type==GL_VERTEX_SHADER ? "VS" : "PS", infoLog);
 		char szTemp[MAX_PATH];
 		sprintf(szTemp,
 			"%sbad_%s_%04i.txt",
