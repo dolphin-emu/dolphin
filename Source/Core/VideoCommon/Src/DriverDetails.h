@@ -135,6 +135,12 @@ namespace DriverDetails
 		// The driver stalls in each instance no matter what you do
 		// Apparently Mali and Adreno share code in this regard since it was wrote by the same person.
 		BUG_BROKENBUFFERSTREAM,
+		// Bug: GLSL ES 3.0 textureSize causes abort 
+		// Affected devices: Adreno a3xx
+		// Started Version: v53
+		// Ended Version: -1
+		// If a shader includes a textureSize function call then the shader compiler will call abort()
+		BUG_BROKENTEXTURESIZE,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
