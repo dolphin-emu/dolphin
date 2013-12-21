@@ -21,5 +21,3 @@ Source/Core/Common/Src/scmrev.h
 .tx
 # Ignore tlog files
 *.tlog
-# Ignore CMakeLists.txt.user
-CMakeLists.txt.user
