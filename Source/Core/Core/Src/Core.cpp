@@ -708,6 +708,8 @@ void UpdateTitle()
 	// that's more of a debugging interest, it can always be optional of course if someone is interested.
 	//#define EXTENDED_INFO
 	#ifdef EXTENDED_INFO
+		static u64 ticks = 0;
+		static u64 idleTicks = 0;
 		u64 newTicks = CoreTiming::GetTicks();
 		u64 newIdleTicks = CoreTiming::GetIdleTicks();
 
