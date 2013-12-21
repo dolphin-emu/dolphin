@@ -69,10 +69,6 @@ public final class DolphinEmulator extends Activity
 			if(!file.exists())
 			{
 				NativeLibrary.CreateUserFolders();
-				CopyAsset("ButtonA.png",     BaseDir + File.separator + "ButtonA.png");
-				CopyAsset("ButtonB.png",     BaseDir + File.separator + "ButtonB.png");
-				CopyAsset("ButtonStart.png", BaseDir + File.separator + "ButtonStart.png");
-				CopyAsset("NoBanner.png",    BaseDir + File.separator + "NoBanner.png");
 				CopyAsset("GCPadNew.ini",    ConfigDir + File.separator + "GCPadNew.ini");
 				CopyAsset("Dolphin.ini",     ConfigDir + File.separator + "Dolphin.ini");
 				CopyAsset("dsp_coef.bin",    GCDir + File.separator + "dsp_coef.bin");
