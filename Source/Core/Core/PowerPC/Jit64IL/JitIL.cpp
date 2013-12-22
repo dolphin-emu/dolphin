@@ -381,7 +381,7 @@ void JitIL::Cleanup()
 		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
-void JitIL::WriteExit(u32 destination, int exit_num)
+void JitIL::WriteExit(u32 destination)
 {
 	Cleanup();
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bJITILTimeProfiling) {
@@ -391,8 +391,10 @@ void JitIL::WriteExit(u32 destination, int exit_num)
 
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
-	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = GetWritableCodePtr();
+	JitBlock::LinkData linkData;
+	linkData.exitAddress = destination;
+	linkData.exitPtrs = GetWritableCodePtr();
+	linkData.linkStatus = false;
 
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);
@@ -400,13 +402,14 @@ void JitIL::WriteExit(u32 destination, int exit_num)
 	{
 		// It exists! Joy of joy!
 		JMP(blocks.GetBlock(block)->checkedEntry, true);
-		b->linkStatus[exit_num] = true;
+		linkData.linkStatus = true;
 	}
 	else
 	{
 		MOV(32, M(&PC), Imm32(destination));
 		JMP(asm_routines.dispatcher, true);
 	}
+	b->linkData.push_back(linkData);
 }
 
 void JitIL::WriteExitDestInOpArg(const Gen::OpArg& arg)
@@ -541,14 +544,16 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	// Analyze the block, collect all instructions it is made of (including inlining,
 	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	b->exitAddress[0] = em_address;
+	u32 exitAddress = em_address;
+	
 	u32 merged_addresses[32];
 	const int capacity_of_merged_addresses = sizeof(merged_addresses) / sizeof(merged_addresses[0]);
 	int size_of_merged_addresses = 0;
 	if (!memory_exception)
 	{
 		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
-		b->exitAddress[0] = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses);
+		// TODO
+		exitAddress = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize, merged_addresses, capacity_of_merged_addresses, size_of_merged_addresses);
 	}
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -707,7 +712,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	}
 
 	// Perform actual code generation
-	WriteCode();
+	WriteCode(exitAddress);
 
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
 	b->originalSize = size;
