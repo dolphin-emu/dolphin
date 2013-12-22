@@ -125,6 +125,7 @@ void JitArmIL::WriteExit(u32 destination)
 	JitBlock::LinkData linkData;
 	linkData.exitAddress = destination;
 	linkData.exitPtrs = GetWritableCodePtr();
+	linkData.linkStatus = false;
 
 	// Link opportunity!
 	int block = blocks.GetBlockNumberFromStartAddress(destination);
