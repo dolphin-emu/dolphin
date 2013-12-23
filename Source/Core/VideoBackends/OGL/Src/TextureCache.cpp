@@ -69,7 +69,7 @@ bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual
 	const GLenum err = GL_REPORT_ERROR();
 	if (GL_NO_ERROR != err)
 	{
-		PanicAlert("Can't save texture, GL Error: %s", gluErrorString(err));
+		PanicAlert("Can't save texture, GL Error: %d", err);
 		delete[] data;
 		return false;
 	}
