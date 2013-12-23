@@ -1216,7 +1216,7 @@ void CheckMD5()
 	if (memcmp(gameMD5,MD5,16) == 0)
 		Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
 	else
-		PanicAlert("Checksum of current game does not match the recorded game!");
+		Core::DisplayMessage("Checksum of current game does not match the recorded game!", 3000);
 }
 
 void GetMD5()
