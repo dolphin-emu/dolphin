@@ -76,7 +76,7 @@ void Turntable::GetState(u8* const data, const bool focus)
 	m_left_table->GetState(&tt, focus ? 0x1F : 0);
 
 	ttdata->ltable1 = tt;
-	ttdata->ltable2 = tt << 5;
+	ttdata->ltable2 = tt >> 5;
 	}
 
 	// right table
@@ -85,9 +85,9 @@ void Turntable::GetState(u8* const data, const bool focus)
 	m_right_table->GetState(&tt, focus ? 0x1F : 0);
 
 	ttdata->rtable1 = tt;
-	ttdata->rtable2 = tt << 1;
-	ttdata->rtable3 = tt << 3;
-	ttdata->rtable4 = tt << 5;
+	ttdata->rtable2 = tt >> 1;
+	ttdata->rtable3 = tt >> 3;
+	ttdata->rtable4 = tt >> 5;
 	}
 
 	// effect dial
@@ -96,7 +96,7 @@ void Turntable::GetState(u8* const data, const bool focus)
 	m_effect_dial->GetState(&dial, focus ? 0xF : 0);
 
 	ttdata->dial1 = dial;
-	ttdata->dial2 = dial << 3;
+	ttdata->dial2 = dial >> 3;
 	}
 
 	// crossfade slider
