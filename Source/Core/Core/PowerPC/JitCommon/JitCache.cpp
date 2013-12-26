@@ -313,6 +313,7 @@ using namespace Gen;
 					e.linkStatus = false;
 			}
 		}
+		links_to.erase(b.originalAddress);
 	}
 
 	void JitBaseBlockCache::DestroyBlock(int block_num, bool invalidate)
