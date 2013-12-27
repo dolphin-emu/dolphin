@@ -153,11 +153,7 @@ void Nunchuk::GetState(u8* const data, const bool focus)
 		}
 	}
 
-	wm_accel* dt = (wm_accel*)&ncdata->ax;
-	accel_cal* calib = (accel_cal*)&reg.calibration;
-	dt->x = u8(trim(accel.x * (calib->one_g.x - calib->zero_g.x) + calib->zero_g.x));
-	dt->y = u8(trim(accel.y * (calib->one_g.y - calib->zero_g.y) + calib->zero_g.y));
-	dt->z = u8(trim(accel.z * (calib->one_g.z - calib->zero_g.z) + calib->zero_g.z));
+	FillRawAccelFromGForceData(*(wm_accel*)&ncdata->ax, *(accel_cal*)&reg.calibration, accel);
 }
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)

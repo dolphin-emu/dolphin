@@ -86,6 +86,15 @@ const ReportFeatures reporting_mode_features[] =
 	{ 0, 0, 0, 0, 23 },
 };
 
+void FillRawAccelFromGForceData(wm_accel& raw_accel,
+	const accel_cal& calib,
+	const WiimoteEmu::AccelData& accel)
+{
+	raw_accel.x = (u8)trim(accel.x * (calib.one_g.x - calib.zero_g.x) + calib.zero_g.x);
+	raw_accel.y = (u8)trim(accel.y * (calib.one_g.y - calib.zero_g.y) + calib.zero_g.y);
+	raw_accel.z = (u8)trim(accel.z * (calib.one_g.z - calib.zero_g.z) + calib.zero_g.z);
+}
+
 void EmulateShake(AccelData* const accel
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step )
@@ -402,7 +411,7 @@ void Wiimote::GetCoreData(u8* const data)
 	*(wm_core*)data |= m_status.buttons;
 }
 
-void Wiimote::GetAccelData(u8* const data, u8* const buttons)
+void Wiimote::GetAccelData(u8* const data)
 {
 	const bool has_focus = HAS_FOCUS;
 	const bool is_sideways = m_options->settings[1]->value != 0;
@@ -419,20 +428,8 @@ void Wiimote::GetAccelData(u8* const data, u8* const buttons)
 		EmulateShake(&m_accel, m_shake, m_shake_step);
 		UDPTLayer::GetAcceleration(m_udp, &m_accel);
 	}
-	wm_accel* dt = (wm_accel*)data;
-	accel_cal* calib = (accel_cal*)&m_eeprom[0x16];
-	double cx,cy,cz;
-	cx=trim(m_accel.x*(calib->one_g.x-calib->zero_g.x)+calib->zero_g.x);
-	cy=trim(m_accel.y*(calib->one_g.y-calib->zero_g.y)+calib->zero_g.y);
-	cz=trim(m_accel.z*(calib->one_g.z-calib->zero_g.z)+calib->zero_g.z);
-	dt->x=u8(cx);
-	dt->y=u8(cy);
-	dt->z=u8(cz);
-	if (buttons)
-	{
-		buttons[0]|=(u8(cx*4)&3)<<5;
-		buttons[1]|=((u8(cy*2)&1)<<5)|((u8(cz*2)&1)<<6);
-	}
+
+	FillRawAccelFromGForceData(*(wm_accel*)data, *(accel_cal*)&m_eeprom[0x16], m_accel);
 }
 #define kCutoffFreq 5.0f
 inline void LowPassFilter(double & var, double newval, double period)
@@ -679,7 +676,7 @@ void Wiimote::Update()
 
 		// acceleration
 		if (rptf.accel)
-			GetAccelData(data + rptf.accel, rptf.core?(data+rptf.core):NULL);
+			GetAccelData(data + rptf.accel);
 
 		// IR
 		if (rptf.ir)
