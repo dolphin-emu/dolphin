@@ -1221,14 +1221,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 // -------------------
 void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {
-	if (!ISOPaths->GetStringSelection().empty())
-	{
-		RemoveISOPath->Enable(true);
-	}
-	else
-	{
-		RemoveISOPath->Enable(false);
-	}
+	RemoveISOPath->Enable(ISOPaths->GetSelection() != wxNOT_FOUND);
 }
 
 void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
@@ -1255,6 +1248,11 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 	{
 		bRefreshList = true;
 		ISOPaths->Delete(ISOPaths->GetSelection());
+
+		// This seems to not be activated on Windows when it should be. wxw bug?
+#ifdef _WIN32
+		ISOPathsSelectionChanged(wxCommandEvent());
+#endif
 	}
 
 	// Save changes right away
