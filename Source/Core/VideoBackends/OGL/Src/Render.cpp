@@ -478,6 +478,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLSync = TO_BOOL(GLEW_ARB_sync);
 	g_ogl_config.bSupportsGLBaseVertex = TO_BOOL(GLEW_ARB_draw_elements_base_vertex) &&
 						!DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY);
+	g_ogl_config.bSupportsGLBufferStorage = TO_BOOL(GLEW_ARB_buffer_storage);
 	g_ogl_config.bSupportCoverageMSAA = TO_BOOL(GLEW_NV_framebuffer_multisample_coverage);
 	g_ogl_config.bSupportSampleShading = TO_BOOL(GLEW_ARB_sample_shading);
 	g_ogl_config.bSupportOGL31 = TO_BOOL(GLEW_VERSION_3_1);
@@ -554,6 +555,7 @@ Renderer::Renderer()
 			g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
 			g_ogl_config.bSupportsGLSLCache ? "" : "ShaderCache ",
 			g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
+			g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
 			g_ogl_config.bSupportsGLSync ? "" : "Sync ",
 			g_ogl_config.bSupportCoverageMSAA ? "" : "CSAA ",
 			g_ogl_config.bSupportSampleShading ? "" : "SSAA "

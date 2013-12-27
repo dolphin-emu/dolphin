@@ -52,6 +52,7 @@ namespace DriverDetails
 		{OS_ALL,    VENDOR_ATI,      DRIVER_ATI,          BUG_BROKENHACKEDBUFFER,  -1.0, -1.0, true},
 		{OS_LINUX,  VENDOR_ATI,      DRIVER_ATI,          BUG_BROKENPINNEDMEMORY,  -1.0, -1.0, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_NOUVEAU,      BUG_BROKENHACKEDBUFFER,  -1.0, -1.0, true},
+		{OS_ALL,    VENDOR_NVIDIA,   DRIVER_NVIDIA,       BUG_BROKENBUFFERSTORAGE, -1.0, -1.0, true},
 	};
 
 	std::map<Bug, BugInfo> m_bugs;
