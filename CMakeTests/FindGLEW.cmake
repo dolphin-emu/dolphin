@@ -10,13 +10,14 @@ macro(test_glew)
 	#include <GL/glew.h>
 	int main()
 	{
-	#ifdef GLEW_ARB_shader_image_load_store
+	#ifdef GLEW_ARB_buffer_storage
 	return 0;
 	#else
 	return 1;
 	#endif
 	}"
-	GLEW_HAS_1_9_METHODS)
+	GLEW_HAS_1_10_METHODS)
+
 endmacro()
 
 if(PKG_CONFIG_FOUND AND NOT ${var}_FOUND)
@@ -25,7 +26,7 @@ endif()
 
 if(GLEW_FOUND)
 	test_glew()
-	if (GLEW_HAS_1_9_METHODS)
+	if (GLEW_HAS_1_10_METHODS)
 		include_directories(${GLEW_INCLUDE_DIRS})
 		message("GLEW found")
 	endif()
