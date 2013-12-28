@@ -187,6 +187,7 @@ public:
 	void mtsr(UGeckoInstruction _inst);
 	void mfsr(UGeckoInstruction _inst);
 	void mcrxr(UGeckoInstruction _inst);
+	void twx(UGeckoInstruction _inst);
 
 	// LoadStore
 	void stX(UGeckoInstruction _inst);

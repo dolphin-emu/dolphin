@@ -90,7 +90,6 @@ void JitArm::ComputeCarry(bool Carry)
 		BIC(tmp, tmp, mask);
 	STR(tmp, R9, PPCSTATE_OFF(spr[SPR_XER]));
 	gpr.Unlock(tmp);
-
 }
 
 void JitArm::GetCarryAndClear(ARMReg reg)
@@ -802,7 +801,6 @@ void JitArm::cmpli(UGeckoInstruction inst)
 
 	STRB(rA, R9, PPCSTATE_OFF(cr_fast) + crf);
 	gpr.Unlock(rA);
-
 }
 
 void JitArm::negx(UGeckoInstruction inst)
@@ -950,3 +948,74 @@ void JitArm::srawix(UGeckoInstruction inst)
 	}
 }
 
+void JitArm::twx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff)
+
+	s32 a = inst.RA;
+
+	gpr.Flush();
+	fpr.Flush();
+	
+	ARMReg RA = gpr.GetReg();
+	ARMReg RB = gpr.GetReg();
+	MOV(RA, inst.TO);
+
+	if (inst.OPCD == 3) // twi
+		CMP(gpr.R(a), gpr.R(inst.RB));
+	else // tw
+	{
+		MOVI2R(RB, (s32)(s16)inst.SIMM_16);
+		CMP(gpr.R(a), RB);
+	}
+
+	FixupBranch al = B_CC(CC_LT);
+	FixupBranch ag = B_CC(CC_GT);
+	FixupBranch ae = B_CC(CC_EQ);
+	// FIXME: will never be reached. But also no known code uses it...
+	FixupBranch ll = B_CC(CC_VC);
+	FixupBranch lg = B_CC(CC_VS);
+
+	SetJumpTarget(al);
+	TST(RA, 16);
+	FixupBranch exit1 = B_CC(CC_NEQ);
+	FixupBranch take1 = B();
+	SetJumpTarget(ag);
+	TST(RA, 8);
+	FixupBranch exit2 = B_CC(CC_NEQ);
+	FixupBranch take2 = B();
+	SetJumpTarget(ae);
+	TST(RA, 4);
+	FixupBranch exit3 = B_CC(CC_NEQ);
+	FixupBranch take3 = B();
+	SetJumpTarget(ll);
+	TST(RA, 2);
+	FixupBranch exit4 = B_CC(CC_NEQ);
+	FixupBranch take4 = B();
+	SetJumpTarget(lg);
+	TST(RA, 1);
+	FixupBranch exit5 = B_CC(CC_NEQ);
+	FixupBranch take5 = B();
+
+	SetJumpTarget(take1);
+	SetJumpTarget(take2);
+	SetJumpTarget(take3);
+	SetJumpTarget(take4);
+	SetJumpTarget(take5);
+	
+	LDR(RA, R9, PPCSTATE_OFF(Exceptions));
+	MOVI2R(RB, EXCEPTION_PROGRAM); // XXX: Can be optimized	
+	ORR(RA, RA, RB);
+	STR(RA, R9, PPCSTATE_OFF(Exceptions));
+	WriteExceptionExit();
+
+	SetJumpTarget(exit1);
+	SetJumpTarget(exit2);
+	SetJumpTarget(exit3);
+	SetJumpTarget(exit4);
+	SetJumpTarget(exit5);
+	WriteExit(js.compilerPC + 4, 1);
+
+	gpr.Unlock(RA, RB);
+}

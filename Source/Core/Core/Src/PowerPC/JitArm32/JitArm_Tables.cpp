@@ -55,7 +55,7 @@ static GekkoOPTemplate primarytable[] =
 
 	{1,  &JitArm::HLEFunction}, //"HLEFunction", OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{2,  &JitArm::Default}, //"DynaBlock",   OPTYPE_SYSTEM, 0}},
-	{3,  &JitArm::Break}, //"twi",         OPTYPE_SYSTEM, FL_ENDBLOCK}},
+	{3,  &JitArm::twx}, //"twi",         OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{17, &JitArm::sc}, //"sc",          OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
 
 	{7,  &JitArm::arith}, //"mulli",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_RC_BIT, 2}},
@@ -292,7 +292,7 @@ static GekkoOPTemplate table31[] =
 	{595, &JitArm::mfsr}, //"mfsr",   OPTYPE_SYSTEM, FL_OUT_D, 2}},
 	{659, &JitArm::Default}, //"mfsrin", OPTYPE_SYSTEM, FL_OUT_D, 2}},
 
-	{4,   &JitArm::Break}, //"tw",     OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
+	{4,   &JitArm::twx}, //"tw",     OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
 	{598, &JitArm::DoNothing}, //"sync",   OPTYPE_SYSTEM, 0, 2}},
 	{982, &JitArm::icbi}, //"icbi",   OPTYPE_SYSTEM, FL_ENDBLOCK, 3}},
 
