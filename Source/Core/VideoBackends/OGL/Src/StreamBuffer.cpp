@@ -85,7 +85,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 	case PINNED_MEMORY:
 	case BUFFERSTORAGE:
 		// insert waiting slots for used memory
-		for (size_t i = SLOT(m_used_iterator); i<SLOT(m_iterator); i++)
+		for (size_t i = SLOT(m_used_iterator); i < SLOT(m_iterator); i++)
 		{
 			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		}
