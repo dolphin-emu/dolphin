@@ -996,7 +996,7 @@ GL_APICALL void           GL_APIENTRY glClearBufferiv (GLenum buffer, GLint draw
 GL_APICALL void           GL_APIENTRY glClearBufferuiv (GLenum buffer, GLint drawbuffer, const GLuint* value);
 GL_APICALL void           GL_APIENTRY glClearBufferfv (GLenum buffer, GLint drawbuffer, const GLfloat* value);
 GL_APICALL void           GL_APIENTRY glClearBufferfi (GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
-GL_APICALL const GLubyte* GL_APIENTRY glGetStringi (GLenum name, GLuint index);
+//GL_APICALL const GLubyte* GL_APIENTRY glGetStringi (GLenum name, GLuint index);
 GL_APICALL void           GL_APIENTRY glCopyBufferSubData (GLenum readTarget, GLenum writeTarget, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
 GL_APICALL void           GL_APIENTRY glGetUniformIndices (GLuint program, GLsizei uniformCount, const GLchar* const* uniformNames, GLuint* uniformIndices);
 GL_APICALL void           GL_APIENTRY glGetActiveUniformsiv (GLuint program, GLsizei uniformCount, const GLuint* uniformIndices, GLenum pname, GLint* params);

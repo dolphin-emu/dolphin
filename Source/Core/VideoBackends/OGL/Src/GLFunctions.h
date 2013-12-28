@@ -10,8 +10,10 @@ typedef GLvoid* (*PFNGLMAPBUFFERPROC) (GLenum target, GLenum access);
 typedef GLvoid* (*PFNGLMAPBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
 typedef void (*PFNGLBINDBUFFERRANGEPROC) (GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
 typedef GLboolean (*PFNGLUNMAPBUFFERPROC) (GLenum target);
+typedef GLubyte* (*PFNGLGETSTRINGIPROC) (GLenum name, GLuint index);
 
 typedef void (*PFNGLBLITFRAMEBUFFERPROC) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+
 // VAOS
 typedef void (*PFNGLGENVERTEXARRAYSPROC) (GLsizei n, GLuint* arrays);
 typedef void (*PFNGLDELETEVERTEXARRAYSPROC) (GLsizei n, const GLuint* arrays);
@@ -63,6 +65,7 @@ extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
 extern PFNGLBINDBUFFERRANGEPROC glBindBufferRange;
 
 extern PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
+extern PFNGLGETSTRINGIPROC glGetStringi;
 
 extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
@@ -95,5 +98,6 @@ extern PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
 namespace GLFunc
 {
 	void Init();
+	bool SupportsExt(std::string ext);
 }
 #endif
