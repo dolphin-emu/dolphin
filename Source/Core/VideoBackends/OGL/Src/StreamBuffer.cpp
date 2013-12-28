@@ -220,8 +220,9 @@ void StreamBuffer::Init()
 
 		// PERSISTANT_BIT to make sure that the buffer can be used while mapped
 		// COHERENT_BIT is set so we don't have to use a MemoryBarrier on write
+		// CLIENT_STORAGE_BIT is set since we access the buffer more frequently on the client side then server side
 		glBufferStorage(m_buffertype, m_size, NULL, 
-			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT); 
+			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_CLIENT_STORAGE_BIT); 
 		pointer = (u8*)glMapBufferRange(m_buffertype, 0, m_size, 
 			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT); 
 		if(!pointer)
