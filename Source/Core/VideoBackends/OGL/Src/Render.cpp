@@ -359,11 +359,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 	g_Config.backend_info.bSupportsEarlyZ = false;
 
-#ifdef ANDROID
-	g_ogl_config.bSupportsGLSLCache = false;
-#else
 	g_ogl_config.bSupportsGLSLCache = true;
-#endif
 	g_ogl_config.bSupportsGLPinnedMemory = false;
 	g_ogl_config.bSupportsGLSync = true;
 	g_ogl_config.bSupportsGLBaseVertex = false;
