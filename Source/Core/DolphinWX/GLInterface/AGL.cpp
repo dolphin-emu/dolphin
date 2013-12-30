@@ -21,6 +21,7 @@
 #include "ConfigManager.h"
 
 #include <wx/panel.h>
+#import <mach-o/dyld.h> 
 
 #include "VertexShaderManager.h"
 #include "../GLInterface.h"
@@ -31,8 +32,8 @@
 void* NSGLGetProcAddress (const char *name)
 {
 	NSSymbol symbol;
-	char *symbolName;
-	symbolName = malloc (strlen (name) + 2); // 1
+	char* symbolName;
+	symbolName = (char*)malloc(strlen (name) + 2); // 1
 	strcpy(symbolName + 1, name); // 2
 	symbolName[0] = '_'; // 3
 	symbol = NULL;
