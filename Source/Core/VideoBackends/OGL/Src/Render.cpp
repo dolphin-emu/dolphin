@@ -1673,6 +1673,7 @@ void Renderer::SetGenerationMode()
 	// none, ccw, cw, ccw
 	if (bpmem.genMode.cullmode > 0)
 	{
+		// TODO: GX_CULL_ALL not supported, yet!
 		glEnable(GL_CULL_FACE);
 		glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
 	}

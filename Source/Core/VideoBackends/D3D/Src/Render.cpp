@@ -1167,6 +1167,7 @@ void Renderer::SetGenerationMode()
 	};
 
 	// rastdc.FrontCounterClockwise must be false for this to work
+	// TODO: GX_CULL_ALL not supported, yet!
 	gx_state.rastdc.CullMode = d3dCullModes[bpmem.genMode.cullmode];
 }
 
