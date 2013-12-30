@@ -2,6 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <GL/gl.h>
+#include <GL/glext.h>
+
 #ifndef GLAPIENTRY
 #define GLAPIENTRY
 #endif

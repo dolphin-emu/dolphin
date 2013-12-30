@@ -5,7 +5,9 @@
 #include "GLExtensions.h"
 #include "Log.h"
 
+#if defined(__linux__)
 #include <dlfcn.h>
+#endif
 #include <unordered_map>
 
 // gl_1_2

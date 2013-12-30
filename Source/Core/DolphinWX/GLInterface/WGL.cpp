@@ -14,9 +14,13 @@
 static HDC hDC = NULL;       // Private GDI Device Context
 static HGLRC hRC = NULL;     // Permanent Rendering Context
 
+// typedef from wglext.h
+typedef BOOL(WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
+static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = NULL;
+
 void cInterfaceWGL::SwapInterval(int Interval)
 {
-	if (WGLEW_EXT_swap_control)
+	if (wglSwapIntervalEXT)
 		wglSwapIntervalEXT(Interval);
 	else
 		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
@@ -71,6 +75,7 @@ bool cInterfaceWGL::Create(void *&window_handle)
 		Host_SysMessage("failed to create window");
 		return false;
 	}
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetProcAddress("wglSwapIntervalEXT");
 
 	// Show the window
 	EmuWindow::Show();
@@ -97,7 +102,7 @@ bool cInterfaceWGL::Create(void *&window_handle)
 		0, 0, 0                         // Layer Masks Ignored
 	};
 
-	GLuint      PixelFormat;            // Holds The Results After Searching For A Match
+	int      PixelFormat;               // Holds The Results After Searching For A Match
 
 	if (!(hDC=GetDC(EmuWindow::GetWnd()))) {
 		PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
