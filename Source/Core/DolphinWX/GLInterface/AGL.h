@@ -18,7 +18,6 @@
 #define _INTERFACEAGL_H_
 
 #ifdef __APPLE__
-#include <GL/glew.h>
 #import <AppKit/AppKit.h>
 #endif
 

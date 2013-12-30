@@ -5,12 +5,6 @@
 #ifndef _INTERFACEWGL_H_
 #define _INTERFACEWGL_H_
 
-#ifdef _WIN32
-#define GLEW_STATIC
-#include <GL/glew.h>
-#include <GL/wglew.h>
-#endif
-
 #include "InterfaceBase.h"
 
 class cInterfaceWGL : public cInterfaceBase
