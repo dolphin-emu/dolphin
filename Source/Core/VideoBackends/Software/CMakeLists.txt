@@ -42,7 +42,6 @@ if(USE_GLES)
 else()
 	set(SRCS ${SRCS} RasterFont.cpp)
 	set(LIBS ${LIBS}
-		GLEW
 		${OPENGL_LIBRARIES})
 endif()
 
