@@ -1629,6 +1629,7 @@ typedef void (APIENTRYP PFNGLCOPYTEXSUBIMAGE3DPROC) (GLenum target, GLint level,
 #define GL_FUNC_REVERSE_SUBTRACT		0x800B
 #define GL_BLEND_COLOR				0x8005
 
+#ifdef GL_GLEXT_PROTOTYPES
 
 GLAPI void GLAPIENTRY glColorTable( GLenum target, GLenum internalformat,
                                     GLsizei width, GLenum format,
@@ -1738,7 +1739,7 @@ GLAPI void GLAPIENTRY glSeparableFilter2D( GLenum target,
 GLAPI void GLAPIENTRY glGetSeparableFilter( GLenum target, GLenum format,
 	GLenum type, GLvoid *row, GLvoid *column, GLvoid *span );
 
-
+#endif
 
 
 /*
@@ -1850,6 +1851,8 @@ GLAPI void GLAPIENTRY glGetSeparableFilter( GLenum target, GLenum format,
 /* texture_border_clamp */
 #define GL_CLAMP_TO_BORDER			0x812D
 
+#ifdef GL_GLEXT_PROTOTYPES
+
 GLAPI void GLAPIENTRY glActiveTexture( GLenum texture );
 
 GLAPI void GLAPIENTRY glClientActiveTexture( GLenum texture );
@@ -1943,6 +1946,7 @@ GLAPI void GLAPIENTRY glMultTransposeMatrixf( const GLfloat m[16] );
 
 GLAPI void GLAPIENTRY glSampleCoverage( GLclampf value, GLboolean invert );
 
+#endif
 
 typedef void (APIENTRYP PFNGLACTIVETEXTUREPROC) (GLenum texture);
 typedef void (APIENTRYP PFNGLSAMPLECOVERAGEPROC) (GLclampf value, GLboolean invert);

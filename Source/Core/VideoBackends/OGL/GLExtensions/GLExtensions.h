@@ -7,6 +7,7 @@
 #include "GLInterface.h"
 
 #include "gl_1_2.h"
+#include "gl_1_3.h"
 #include "gl_1_4.h"
 #include "gl_1_5.h"
 #include "gl_2_0.h"

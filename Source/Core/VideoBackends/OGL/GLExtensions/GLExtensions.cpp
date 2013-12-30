@@ -15,7 +15,7 @@ PFNGLTEXIMAGE3DPROC glTexImage3D;
 PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;
 
 // gl_1_3
-/*PFNGLACTIVETEXTUREPROC glActiveTexture;
+PFNGLACTIVETEXTUREPROC glActiveTexture;
 PFNGLCLIENTACTIVETEXTUREPROC glClientActiveTexture;
 PFNGLCOMPRESSEDTEXIMAGE1DPROC glCompressedTexImage1D;
 PFNGLCOMPRESSEDTEXIMAGE2DPROC glCompressedTexImage2D;
@@ -61,10 +61,10 @@ PFNGLMULTITEXCOORD4IVPROC glMultiTexCoord4iv;
 PFNGLMULTITEXCOORD4SPROC glMultiTexCoord4s;
 PFNGLMULTITEXCOORD4SVPROC glMultiTexCoord4sv;
 PFNGLSAMPLECOVERAGEPROC glSampleCoverage;
-*/
+
 // gl_1_4
-//PFNGLBLENDCOLORPROC glBlendColor;
-//PFNGLBLENDEQUATIONPROC glBlendEquation;
+PFNGLBLENDCOLORPROC glBlendColor;
+PFNGLBLENDEQUATIONPROC glBlendEquation;
 PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 PFNGLFOGCOORDPOINTERPROC glFogCoordPointer;
 PFNGLFOGCOORDDPROC glFogCoordd;
@@ -439,7 +439,7 @@ namespace GLExtensions
 	std::unordered_map<std::string, bool> _extensionlist;
 	// Forward declared init functions
 	bool init_gl_1_2();
-	// bool init_gl_1_3();
+	bool init_gl_1_3();
 	bool init_gl_1_4();
 	bool init_gl_1_5();
 	bool init_gl_2_0();
@@ -542,7 +542,7 @@ namespace GLExtensions
 		InitVersion();
 		
 		if (success && !init_gl_1_2()) success = false;
-		//if (success && !init_gl_1_3()) success = false;
+		if (success && !init_gl_1_3()) success = false;
 		if (success && !init_gl_1_4()) success = false;
 		if (success && !init_gl_1_5()) success = false;
 		if (success && !init_gl_2_0()) success = false;
@@ -593,7 +593,7 @@ namespace GLExtensions
 		    && GrabFunction(glTexImage3D)
 		    && GrabFunction(glTexSubImage3D);
 	}
-	/*
+	
 	bool init_gl_1_3()
 	{
 		return GrabFunction(glActiveTexture)
@@ -643,12 +643,12 @@ namespace GLExtensions
 		    && GrabFunction(glMultiTexCoord4sv)
 		    && GrabFunction(glSampleCoverage);
 	}
-	*/
+	
 	bool init_gl_1_4()
 	{
-		//GrabFunction(glBlendColor)
-		//GrabFunction(glBlendEquation)
-		return GrabFunction(glBlendFuncSeparate)
+		return GrabFunction(glBlendColor)
+		    && GrabFunction(glBlendEquation)
+		    && GrabFunction(glBlendFuncSeparate)
 		    && GrabFunction(glFogCoordPointer)
 		    && GrabFunction(glFogCoordd)
 		    && GrabFunction(glFogCoorddv)

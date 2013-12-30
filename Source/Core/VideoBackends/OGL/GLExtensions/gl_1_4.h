@@ -98,8 +98,8 @@ typedef void (GLAPIENTRY * PFNGLWINDOWPOS3SVPROC) (const GLshort *p);
 #endif
 
 // These two are provided by ARB_imaging as well
-//extern PFNGLBLENDCOLORPROC glBlendColor;
-//extern PFNGLBLENDEQUATIONPROC glBlendEquation;
+extern PFNGLBLENDCOLORPROC glBlendColor;
+extern PFNGLBLENDEQUATIONPROC glBlendEquation;
 extern PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
 extern PFNGLFOGCOORDPOINTERPROC glFogCoordPointer;
 extern PFNGLFOGCOORDDPROC glFogCoordd;
