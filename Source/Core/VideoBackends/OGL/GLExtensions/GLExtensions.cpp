@@ -427,6 +427,10 @@ PFNGLOBJECTPTRLABELKHRPROC glObjectPtrLabelKHR;
 PFNGLGETOBJECTPTRLABELKHRPROC glGetObjectPtrLabelKHR;
 PFNGLGETPOINTERVKHRPROC glGetPoitnervKHR;
 
+// ARB_buffer_storage
+PFNGLBUFFERSTORAGEPROC glBufferStorage;
+PFNGLNAMEDBUFFERSTORAGEEXTPROC glNamedBufferStorageEXT;
+
 namespace GLExtensions
 {
 	// Private members and functions
@@ -459,6 +463,7 @@ namespace GLExtensions
 	bool init_arb_sample_shading();
 	bool init_arb_debug_output();
 	bool init_khr_debug();
+	bool init_arb_buffer_storage();
 	
 	void InitExtensionList()
 	{
@@ -561,6 +566,7 @@ namespace GLExtensions
 		if (success && !init_arb_debug_output()) success = false;
 		if (success && !init_nv_framebuffer_multisample_coverage()) success = false;
 		if (success && !init_khr_debug()) success = false;
+		if (success && !init_arb_buffer_storage()) success = false;
 
 #if defined(__linux__)
 		dlclose(_dlsym);
@@ -1114,5 +1120,14 @@ namespace GLExtensions
 		GrabFunction(glGetObjectPtrLabelKHR)
 		GrabFunction(glGetPoitnervKHR)
 		return true;	
+	}
+
+	bool init_arb_buffer_storage()
+	{
+		if (!Supports("GL_ARB_buffer_storage"))
+			return true;
+		GrabFunction(glBufferStorage)
+		GrabFunction(glNamedBufferStorageEXT)
+		return true;
 	}
 }

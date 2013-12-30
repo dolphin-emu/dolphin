@@ -29,6 +29,7 @@
 #include "ARB_sample_shading.h"
 #include "ARB_debug_output.h"
 #include "KHR_debug.h"
+#include "ARB_buffer_storage.h"
 
 namespace GLExtensions
 {
