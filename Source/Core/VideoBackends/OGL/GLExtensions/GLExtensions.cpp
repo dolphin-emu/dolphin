@@ -425,7 +425,7 @@ PFNGLOBJECTLABELKHRPROC glObjectLabelKHR;
 PFNGLGETOBJECTLABELKHRPROC glGetObjectLabelKHR;
 PFNGLOBJECTPTRLABELKHRPROC glObjectPtrLabelKHR;
 PFNGLGETOBJECTPTRLABELKHRPROC glGetObjectPtrLabelKHR;
-PFNGLGETPOINTERVKHRPROC glGetPoitnervKHR;
+PFNGLGETPOINTERVKHRPROC glGetPointervKHR;
 
 // ARB_buffer_storage
 PFNGLBUFFERSTORAGEPROC glBufferStorage;
@@ -1118,7 +1118,7 @@ namespace GLExtensions
 		GrabFunction(glGetObjectLabelKHR)
 		GrabFunction(glObjectPtrLabelKHR)
 		GrabFunction(glGetObjectPtrLabelKHR)
-		GrabFunction(glGetPoitnervKHR)
+		GrabFunction(glGetPointervKHR)
 		return true;	
 	}
 
