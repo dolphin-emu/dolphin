@@ -486,9 +486,9 @@ Renderer::Renderer()
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (GLExtensions::Supports("GL_KHR_debug"))
 	{
-		glDebugMessageControlKHR(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
-		glDebugMessageCallbackKHR( ErrorCallback, NULL );
-		glEnable( GL_DEBUG_OUTPUT_KHR );
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
+		glDebugMessageCallback( ErrorCallback, NULL );
+		glEnable( GL_DEBUG_OUTPUT );
 	}
 	else if (GLExtensions::Supports("GL_ARB_debug_output"))
 	{
