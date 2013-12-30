@@ -1,4 +1,5 @@
-set(SRCS	FramebufferManager.cpp
+set(SRCS	GLExtensions/GLExtensions.cpp
+			FramebufferManager.cpp
 			GLUtil.cpp
 			main.cpp
 			NativeVertexFormat.cpp
@@ -25,10 +26,8 @@ endif()
 if(USE_GLES3)
 	set(LIBS ${LIBS}
 		GLESv2)
-	set(SRCS ${SRCS} GLFunctions.cpp)
 else()
 	set(LIBS ${LIBS}
-		GLEW
 		${OPENGL_LIBRARIES})
 endif()
 

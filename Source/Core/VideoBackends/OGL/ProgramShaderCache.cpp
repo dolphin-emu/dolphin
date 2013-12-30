@@ -156,10 +156,8 @@ void SHADER::SetProgramBindings()
 		// So we do support extended blending
 		// So we need to set a few more things here.
 		// Bind our out locations
-#ifndef USE_GLES3
 		glBindFragDataLocationIndexed(glprogid, 0, 0, "ocol0");
 		glBindFragDataLocationIndexed(glprogid, 0, 1, "ocol1");
-#endif
 	}
 	// Need to set some attribute locations
 	glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");

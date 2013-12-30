@@ -187,26 +187,24 @@ int GetNumMSAACoverageSamples(int MSAAMode)
 
 void ApplySSAASettings() {
 	// GLES3 doesn't support SSAA
-#ifndef USE_GLES3
-	if(g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X) {
-		if(g_ogl_config.bSupportSampleShading) {
-			glEnable(GL_SAMPLE_SHADING_ARB);
-			glMinSampleShadingARB(s_MSAASamples);
-		} else {
-			// TODO: move this to InitBackendInfo
-			OSD::AddMessage("SSAA Anti Aliasing isn't supported by your GPU.", 10000);
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+	{
+		if(g_ActiveConfig.iMultisampleMode == MULTISAMPLE_SSAA_4X) {
+			if(g_ogl_config.bSupportSampleShading) {
+				glEnable(GL_SAMPLE_SHADING_ARB);
+				glMinSampleShadingARB(s_MSAASamples);
+			} else {
+				// TODO: move this to InitBackendInfo
+				OSD::AddMessage("SSAA Anti Aliasing isn't supported by your GPU.", 10000);
+			}
+		} else if(g_ogl_config.bSupportSampleShading) {
+			glDisable(GL_SAMPLE_SHADING_ARB);
 		}
-	} else if(g_ogl_config.bSupportSampleShading) {
-		glDisable(GL_SAMPLE_SHADING_ARB);
 	}
-#endif
 }
 
-void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, void* userParam)
+void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const char* message, const void* userParam)
 {
-	// GLES3 doesn't natively support this
-	// XXX: Include GLES2 extensions header so we can use this
-#ifndef USE_GLES3
 	const char *s_source;
 	const char *s_type;
 
@@ -237,20 +235,17 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 		case GL_DEBUG_SEVERITY_LOW_ARB:    WARN_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 		default:                           ERROR_LOG(VIDEO, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message); break;
 	}
-#endif
 }
 
-#ifndef USE_GLES3
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
 void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 {
-	glDepthRange(neardepth, fardepth);
+	//glDepthRange(neardepth, fardepth);
 }
 void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
-	glClearDepth(depthval);
+	//glClearDepth(depthval);
 }
-#endif
 
 void InitDriverInfo()
 {
@@ -373,36 +368,12 @@ Renderer::Renderer()
 	InitDriverInfo();
 
 	// Init extension support.
-#ifdef USE_GLES3
-	// Set default GLES3 options
-	GLFunc::Init();
-	WARN_LOG(VIDEO, "Running the OpenGL ES 3 backend!");
-
-	g_Config.backend_info.bSupportsDualSourceBlend = false;
-	g_Config.backend_info.bSupportsGLSLUBO = !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS);
-	g_Config.backend_info.bSupportsPrimitiveRestart = true;
-	g_Config.backend_info.bSupportsEarlyZ = false;
-	g_Config.backend_info.bSupportShadingLanguage420pack = false;
-
-	g_ogl_config.bSupportsGLSLCache = true;
-	g_ogl_config.bSupportsGLPinnedMemory = false;
-	g_ogl_config.bSupportsGLSync = true;
-	g_ogl_config.bSupportsGLBaseVertex = false;
-	g_ogl_config.bSupportCoverageMSAA = false; // XXX: GLES3 spec has MSAA
-	g_ogl_config.bSupportSampleShading = false;
-	g_ogl_config.bSupportOGL31 = false;
-	g_ogl_config.bSupportViewportFloat = false;
-	g_ogl_config.eSupportedGLSLVersion = GLSLES3;
-#else
-#ifdef __APPLE__
-	glewExperimental = 1;
-#endif
-	if (glewInit() != GLEW_OK)
+	if (!GLExtensions::Init())
 	{
-		PanicAlert("glewInit() failed! Does your video card support OpenGL 2.x?");
-		return;
+		// OpenGL 2.0 is required for all shader based drawings. There is no way to get this by extensions
+		PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
+		bSuccess = false;
 	}
-
 	// check for the max vertex attributes
 	GLint numvertexattribs = 0;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
@@ -424,23 +395,7 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	if (GLEW_ARB_debug_output)
-	{
-		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
-		glDebugMessageCallbackARB( ErrorCallback, NULL );
-		glEnable( GL_DEBUG_OUTPUT );
-	}
-#endif
-
-	if (!GLEW_VERSION_2_0)
-	{
-		// OpenGL 2.0 is required for all shader based drawings. There is no way to get this by extensions
-		PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
-		bSuccess = false;
-	}
-
-	if (!GLEW_ARB_framebuffer_object)
+	if (!GLExtensions::Supports("GL_ARB_framebuffer_object"))
 	{
 		// We want the ogl3 framebuffer instead of the ogl2 one for better blitting support.
 		// It's also compatible with the gles3 one.
@@ -449,7 +404,7 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLEW_ARB_vertex_array_object)
+	if (!GLExtensions::Supports("GL_ARB_vertex_array_object"))
 	{
 		// This extension is used to replace lots of pointer setting function.
 		// Also gles3 requires to use it.
@@ -458,7 +413,7 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLEW_ARB_map_buffer_range)
+	if (!GLExtensions::Supports("GL_ARB_map_buffer_range"))
 	{
 		// ogl3 buffer mapping for better streaming support.
 		// The ogl2 one also isn't in gles3.
@@ -467,7 +422,7 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
-	if (!GLEW_ARB_sampler_objects && bSuccess)
+	if (!GLExtensions::Supports("GL_ARB_sampler_objects") && bSuccess)
 	{
 		// Our sampler cache uses this extension. It could easyly be workaround and it's by far the
 		// highest requirement, but it seems that no driver lacks support for it.
@@ -480,54 +435,66 @@ Renderer::Renderer()
 	// OpenGL 3 doesn't provide GLES like float functions for depth.
 	// They are in core in OpenGL 4.1, so almost every driver should support them.
 	// But for the oldest ones, we provide fallbacks to the old double functions.
-	if (!GLEW_ARB_ES2_compatibility)
+	if (!GLExtensions::Supports("GL_ARB_ES2_compatibility") && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
 		glDepthRangef = DepthRangef;
 		glClearDepthf = ClearDepthf;
-
 	}
 
-#define TO_BOOL(c) (0 != (c))
+	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
+	g_Config.backend_info.bSupportsGLSLUBO = GLExtensions::Supports("GL_ARB_uniform_buffer_object") && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS);
+	g_Config.backend_info.bSupportsPrimitiveRestart = (GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart");
+	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
+	g_Config.backend_info.bSupportShadingLanguage420pack = GLExtensions::Supports("ARB_shading_language_420pack");
 
-	g_Config.backend_info.bSupportsDualSourceBlend = TO_BOOL(GLEW_ARB_blend_func_extended);
-	g_Config.backend_info.bSupportsGLSLUBO = TO_BOOL(GLEW_ARB_uniform_buffer_object);
-	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) && 
-				(TO_BOOL(GLEW_VERSION_3_1) || TO_BOOL(GLEW_NV_primitive_restart));
-	g_Config.backend_info.bSupportsEarlyZ = TO_BOOL(GLEW_ARB_shader_image_load_store);
-	g_Config.backend_info.bSupportShadingLanguage420pack = TO_BOOL(GLEW_ARB_shading_language_420pack);
+	g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
+	g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
+	g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
+	g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex");
+	g_ogl_config.bSupportsGLBufferStorage = GLExtensions::Supports("GL_ARB_buffer_storage");
+	g_ogl_config.bSupportCoverageMSAA = GLExtensions::Supports("GL_NV_framebuffer_multisample_coverage");
+	g_ogl_config.bSupportSampleShading = GLExtensions::Supports("GL_ARB_sample_shading");
+	g_ogl_config.bSupportOGL31 = GLExtensions::Version() >= 310;
+	g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
 
-	g_ogl_config.bSupportsGLSLCache = TO_BOOL(GLEW_ARB_get_program_binary);
-	g_ogl_config.bSupportsGLPinnedMemory = TO_BOOL(GLEW_AMD_pinned_memory);
-	g_ogl_config.bSupportsGLSync = TO_BOOL(GLEW_ARB_sync);
-	g_ogl_config.bSupportsGLBaseVertex = TO_BOOL(GLEW_ARB_draw_elements_base_vertex);
-	g_ogl_config.bSupportsGLBufferStorage = TO_BOOL(GLEW_ARB_buffer_storage);
-	g_ogl_config.bSupportCoverageMSAA = TO_BOOL(GLEW_NV_framebuffer_multisample_coverage);
-	g_ogl_config.bSupportSampleShading = TO_BOOL(GLEW_ARB_sample_shading);
-	g_ogl_config.bSupportOGL31 = TO_BOOL(GLEW_VERSION_3_1);
-	g_ogl_config.bSupportViewportFloat = TO_BOOL(GLEW_ARB_viewport_array);
-
-#undef TO_BOOL
-
-	if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
-	{
-		PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.30\n"
-				"GPU: Does your video card support OpenGL 3.0?\n"
-				"GPU: Your driver supports GLSL %s", g_ogl_config.glsl_version);
-		bSuccess = false;
-	}
-	else if(strstr(g_ogl_config.glsl_version, "1.30"))
-	{
-		g_ogl_config.eSupportedGLSLVersion = GLSL_130;
-		g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
-	}
-	else if(strstr(g_ogl_config.glsl_version, "1.40"))
-	{
-		g_ogl_config.eSupportedGLSLVersion = GLSL_140;
-		g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
-	}
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+		g_ogl_config.eSupportedGLSLVersion = GLSLES3;
 	else
 	{
-		g_ogl_config.eSupportedGLSLVersion = GLSL_150;
+		if(strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") || strstr(g_ogl_config.glsl_version, "1.20"))
+		{
+			PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.30\n"
+					"GPU: Does your video card support OpenGL 3.0?\n"
+					"GPU: Your driver supports GLSL %s", g_ogl_config.glsl_version);
+			bSuccess = false;
+		}
+		else if(strstr(g_ogl_config.glsl_version, "1.30"))
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSL_130;
+			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+		}
+		else if(strstr(g_ogl_config.glsl_version, "1.40"))
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSL_140;
+			g_Config.backend_info.bSupportsEarlyZ = false; // layout keyword is only supported on glsl150+
+		}
+		else
+		{
+			g_ogl_config.eSupportedGLSLVersion = GLSL_150;
+		}
+	}
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (GLExtensions::Supports("GL_KHR_debug"))
+	{
+		glDebugMessageControlKHR(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
+		glDebugMessageCallbackKHR( ErrorCallback, NULL );
+		glEnable( GL_DEBUG_OUTPUT_KHR );
+	}
+	else if (GLExtensions::Supports("GL_ARB_debug_output"))
+	{
+		glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, true);
+		glDebugMessageCallbackARB( ErrorCallback, NULL );
+		glEnable( GL_DEBUG_OUTPUT );
 	}
 #endif
 	int samples;
@@ -630,20 +597,21 @@ Renderer::Renderer()
 
 	if(g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
 	{
-#ifdef USE_GLES3
-		glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-#else
-		if(g_ogl_config.bSupportOGL31)
-		{
-			glEnable(GL_PRIMITIVE_RESTART);
-			glPrimitiveRestartIndex(65535);
-		}
+		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+			glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
 		else
-		{
-			glEnableClientState(GL_PRIMITIVE_RESTART_NV);
-			glPrimitiveRestartIndexNV(65535);
-		}
+			if(g_ogl_config.bSupportOGL31)
+			{
+				glEnable(GL_PRIMITIVE_RESTART);
+				glPrimitiveRestartIndex(65535);
+			}
+			else
+			{
+#ifndef USE_GLES3
+				glEnableClientState(GL_PRIMITIVE_RESTART_NV);
 #endif
+				glPrimitiveRestartIndexNV(65535);
+			}
 	}
 	UpdateActiveConfig();
 }
@@ -725,8 +693,7 @@ void Renderer::DrawDebugInfo()
 	if (g_ActiveConfig.bShowInputDisplay)
 		p+=sprintf(p, "%s", Movie::GetInputDisplay().c_str());
 
-#ifndef USE_GLES3
-	if (g_ActiveConfig.bShowEFBCopyRegions)
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && g_ActiveConfig.bShowEFBCopyRegions)
 	{
 		// Set Line Size
 		glLineWidth(3.0f);
@@ -846,7 +813,6 @@ void Renderer::DrawDebugInfo()
 		// Clear stored regions
 		stats.efb_regions.clear();
 	}
-#endif
 
 	if (g_ActiveConfig.bOverlayStats)
 		p = Statistics::ToString(p);
@@ -1057,14 +1023,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 				u32* colorMap = new u32[targetPixelRcWidth * targetPixelRcHeight];
 
-#ifdef USE_GLES3
+				if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 				// XXX: Swap colours
-				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-				             GL_RGBA, GL_UNSIGNED_BYTE, colorMap);
-#else
-				glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
-				             GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap);
-#endif
+					glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
+						     GL_RGBA, GL_UNSIGNED_BYTE, colorMap);
+				else
+					glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth, targetPixelRcHeight,
+						     GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap);
 				GL_REPORT_ERRORD();
 
 				UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, colorMap);
@@ -1664,9 +1629,8 @@ void Renderer::ResetAPIState()
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
-#ifndef USE_GLES3
-	glDisable(GL_COLOR_LOGIC_OP);
-#endif
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+		glDisable(GL_COLOR_LOGIC_OP);
 	glDepthMask(GL_FALSE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
@@ -1684,7 +1648,8 @@ void Renderer::RestoreAPIState()
 	UpdateViewport();
 
 #ifndef USE_GLES3
-	glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+		glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
 #endif
 
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
@@ -1789,7 +1754,7 @@ void Renderer::SetLineWidth()
 		// scale by ratio of widths
 		glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f);
 #ifndef USE_GLES3
-	if (bpmem.lineptwidth.pointsize > 0)
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && bpmem.lineptwidth.pointsize > 0)
 		glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
 #endif
 }

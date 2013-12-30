@@ -26,6 +26,11 @@ void cInterfaceWGL::Swap()
 	SwapBuffers(hDC);
 }
 
+void* cInterfaceWGL::GetProcAddress(std::string name)
+{
+	return (void*)wglGetProcAddress((LPCSTR)name.c_str());
+}
+
 // Draw messages on top of the screen
 bool cInterfaceWGL::PeekMessages()
 {

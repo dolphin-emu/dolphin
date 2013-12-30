@@ -19,6 +19,7 @@ public:
 	void SwapInterval(int Interval);
 	void Swap();
 	void UpdateFPSDisplay(const char *Text);
+	void* GetProcAddress(std::string name);
 	bool Create(void *&window_handle);
 	bool MakeCurrent();
 	bool ClearCurrent();

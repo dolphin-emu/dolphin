@@ -1,0 +1,55 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#include "gl_common.h"
+
+#ifndef GL_VERSION_1_1
+#define GL_VERSION_1_1 1
+
+#define GL_PROXY_TEXTURE_1D			0x8063
+#define GL_PROXY_TEXTURE_2D			0x8064
+#define GL_TEXTURE_PRIORITY			0x8066
+#define GL_TEXTURE_RESIDENT			0x8067
+#define GL_TEXTURE_BINDING_1D			0x8068
+#define GL_TEXTURE_BINDING_2D			0x8069
+#define GL_TEXTURE_INTERNAL_FORMAT		0x1003
+#define GL_ALPHA4				0x803B
+#define GL_ALPHA8				0x803C
+#define GL_ALPHA12				0x803D
+#define GL_ALPHA16				0x803E
+#define GL_LUMINANCE4				0x803F
+#define GL_LUMINANCE8				0x8040
+#define GL_LUMINANCE12				0x8041
+#define GL_LUMINANCE16				0x8042
+#define GL_LUMINANCE4_ALPHA4			0x8043
+#define GL_LUMINANCE6_ALPHA2			0x8044
+#define GL_LUMINANCE8_ALPHA8			0x8045
+#define GL_LUMINANCE12_ALPHA4			0x8046
+#define GL_LUMINANCE12_ALPHA12			0x8047
+#define GL_LUMINANCE16_ALPHA16			0x8048
+#define GL_INTENSITY				0x8049
+#define GL_INTENSITY4				0x804A
+#define GL_INTENSITY8				0x804B
+#define GL_INTENSITY12				0x804C
+#define GL_INTENSITY16				0x804D
+#define GL_R3_G3_B2				0x2A10
+#define GL_RGB4					0x804F
+#define GL_RGB5					0x8050
+#define GL_RGB8					0x8051
+#define GL_RGB10				0x8052
+#define GL_RGB12				0x8053
+#define GL_RGB16				0x8054
+#define GL_RGBA2				0x8055
+#define GL_RGBA4				0x8056
+#define GL_RGB5_A1				0x8057
+#define GL_RGBA8				0x8058
+#define GL_RGB10_A2				0x8059
+#define GL_RGBA12				0x805A
+#define GL_RGBA16				0x805B
+#define GL_CLIENT_PIXEL_STORE_BIT		0x00000001
+#define GL_CLIENT_VERTEX_ARRAY_BIT		0x00000002
+#define GL_ALL_CLIENT_ATTRIB_BITS 		0xFFFFFFFF
+#define GL_CLIENT_ALL_ATTRIB_BITS 		0xFFFFFFFF
+
+#endif

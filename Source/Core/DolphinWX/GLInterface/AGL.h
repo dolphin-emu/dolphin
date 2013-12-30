@@ -28,6 +28,7 @@ class cInterfaceAGL : public cInterfaceBase
 {
 public:
 	void Swap();
+	void* GetProcAddress(std::string name);
 	bool Create(void *&window_handle);
 	bool MakeCurrent();
 	bool ClearCurrent();
