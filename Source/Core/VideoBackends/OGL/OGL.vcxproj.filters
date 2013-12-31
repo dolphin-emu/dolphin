@@ -15,85 +15,85 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\NativeVertexFormat.cpp">
+    <ClCompile Include="NativeVertexFormat.cpp">
       <Filter>Decoder</Filter>
     </ClCompile>
-    <ClCompile Include="Src\VertexManager.cpp">
+    <ClCompile Include="VertexManager.cpp">
       <Filter>Decoder</Filter>
     </ClCompile>
-    <ClCompile Include="Src\GLUtil.cpp">
+    <ClCompile Include="GLUtil.cpp">
       <Filter>GLUtil</Filter>
     </ClCompile>
-    <ClCompile Include="Src\TextureConverter.cpp">
+    <ClCompile Include="TextureConverter.cpp">
       <Filter>GLUtil</Filter>
     </ClCompile>
-    <ClCompile Include="Src\RasterFont.cpp">
+    <ClCompile Include="RasterFont.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
-    <ClCompile Include="Src\FramebufferManager.cpp">
+    <ClCompile Include="FramebufferManager.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\PerfQuery.cpp">
+    <ClCompile Include="PerfQuery.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\PostProcessing.cpp">
+    <ClCompile Include="PostProcessing.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\ProgramShaderCache.cpp">
+    <ClCompile Include="ProgramShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Render.cpp">
+    <ClCompile Include="Render.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\StreamBuffer.cpp">
+    <ClCompile Include="StreamBuffer.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\TextureCache.cpp">
+    <ClCompile Include="TextureCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\main.cpp" />
-    <ClCompile Include="Src\SamplerCache.cpp" />
-    <ClCompile Include="Src\stdafx.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="SamplerCache.cpp" />
+    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\VertexManager.h">
+    <ClInclude Include="VertexManager.h">
       <Filter>Decoder</Filter>
     </ClInclude>
-    <ClInclude Include="Src\GLUtil.h">
+    <ClInclude Include="GLUtil.h">
       <Filter>GLUtil</Filter>
     </ClInclude>
-    <ClInclude Include="Src\TextureConverter.h">
+    <ClInclude Include="TextureConverter.h">
       <Filter>GLUtil</Filter>
     </ClInclude>
-    <ClInclude Include="Src\RasterFont.h">
+    <ClInclude Include="RasterFont.h">
       <Filter>Logging</Filter>
     </ClInclude>
-    <ClInclude Include="Src\FramebufferManager.h">
+    <ClInclude Include="FramebufferManager.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\PerfQuery.h">
+    <ClInclude Include="PerfQuery.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\PostProcessing.h">
+    <ClInclude Include="PostProcessing.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\ProgramShaderCache.h">
+    <ClInclude Include="ProgramShaderCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Render.h">
+    <ClInclude Include="Render.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\StreamBuffer.h">
+    <ClInclude Include="StreamBuffer.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\TextureCache.h">
+    <ClInclude Include="TextureCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Globals.h" />
-    <ClInclude Include="Src\main.h" />
-    <ClInclude Include="Src\SamplerCache.h" />
-    <ClInclude Include="Src\VideoBackend.h" />
-    <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Globals.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="SamplerCache.h" />
+    <ClInclude Include="VideoBackend.h" />
+    <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
