@@ -141,10 +141,18 @@ namespace DriverDetails
 		// Ended Version: -1
 		// If a shader includes a textureSize function call then the shader compiler will call abort()
 		BUG_BROKENTEXTURESIZE,
+		// Bug: Intel HD 3000 on OS X has broken primitive restart
+		// Affected devices: Intel HD 3000
+		// Affected OS: OS X
+		// Started Version: -1
+		// Ended Version: -1
+		// The drivers on OS X has broken primitive restart.
+		// Intel HD 4000 series isn't affected by the bug
+		BUG_PRIMITIVERESTART,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
-	void Init(Vendor vendor, Driver driver, const double version);
+	void Init(Vendor vendor, Driver driver, const double version, const s32 family);
 
 	// Once Vendor and driver version is set, this will return if it has the applicable bug passed to it.
 	bool HasBug(Bug bug);

@@ -14,6 +14,7 @@ namespace DriverDetails
 		u32 m_os; // Which OS has the issue
 		Vendor m_vendor; // Which vendor has the error
 		Driver m_driver; // Which driver has the error
+		s32 m_family; // Which family of hardware has the issue
 		Bug m_bug; // Which bug it is
 		double m_versionstart; // When it started
 		double m_versionend; // When it ended
@@ -33,34 +34,37 @@ namespace DriverDetails
 
 	Vendor	m_vendor = VENDOR_UNKNOWN;
 	Driver	m_driver = DRIVER_UNKNOWN;
+	s32     m_family = 0.0;
 	double	m_version = 0.0;
 
 	// This is a list of all known bugs for each vendor
 	// We use this to check if the device and driver has a issue
 	BugInfo m_known_bugs[] = {
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, BUG_NODYNUBOACCESS,      14.0, 46.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, BUG_BROKENCENTROID,      14.0, 46.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, BUG_BROKENINFOLOG,       -1.0, 46.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, BUG_ANNIHILATEDUBOS,     41.0, 46.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, BUG_BROKENSWAP,          -1.0, 46.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, BUG_BROKENBUFFERSTREAM,  -1.0, -1.0, true},
-		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, BUG_BROKENTEXTURESIZE,   -1.0, -1.0, true},
-		{OS_ALL,    VENDOR_ARM,      DRIVER_ARM_T6XX,     BUG_BROKENBUFFERSTREAM,  -1.0, -1.0, true},
-		{OS_ALL,    VENDOR_MESA,     DRIVER_NOUVEAU,      BUG_BROKENUBO,           900,  916, true},
-		{OS_ALL,    VENDOR_MESA,     DRIVER_R600,         BUG_BROKENUBO,           900,  913, true},
-		{OS_ALL,    VENDOR_MESA,     DRIVER_I965,         BUG_BROKENUBO,           900,  920, true},
-		{OS_ALL,    VENDOR_ATI,      DRIVER_ATI,          BUG_BROKENHACKEDBUFFER,  -1.0, -1.0, true},
-		{OS_LINUX,  VENDOR_ATI,      DRIVER_ATI,          BUG_BROKENPINNEDMEMORY,  -1.0, -1.0, true},
-		{OS_ALL,    VENDOR_MESA,     DRIVER_NOUVEAU,      BUG_BROKENHACKEDBUFFER,  -1.0, -1.0, true},
+		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_NODYNUBOACCESS,      14.0, 46.0, true},
+		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_BROKENCENTROID,      14.0, 46.0, true},
+		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_BROKENINFOLOG,       -1.0, 46.0, true},
+		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_ANNIHILATEDUBOS,     41.0, 46.0, true},
+		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_BROKENSWAP,          -1.0, 46.0, true},
+		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_BROKENBUFFERSTREAM,  -1.0, -1.0, true},
+		{OS_ALL,    VENDOR_QUALCOMM, DRIVER_QUALCOMM_3XX, -1, BUG_BROKENTEXTURESIZE,   -1.0, -1.0, true},
+		{OS_ALL,    VENDOR_ARM,      DRIVER_ARM_T6XX,     -1, BUG_BROKENBUFFERSTREAM,  -1.0, -1.0, true},
+		{OS_ALL,    VENDOR_MESA,     DRIVER_NOUVEAU,      -1, BUG_BROKENUBO,           900,  916, true},
+		{OS_ALL,    VENDOR_MESA,     DRIVER_R600,         -1, BUG_BROKENUBO,           900,  913, true},
+		{OS_ALL,    VENDOR_MESA,     DRIVER_I965,         -1, BUG_BROKENUBO,           900,  920, true},
+		{OS_ALL,    VENDOR_ATI,      DRIVER_ATI,          -1, BUG_BROKENHACKEDBUFFER,  -1.0, -1.0, true},
+		{OS_LINUX,  VENDOR_ATI,      DRIVER_ATI,          -1, BUG_BROKENPINNEDMEMORY,  -1.0, -1.0, true},
+		{OS_ALL,    VENDOR_MESA,     DRIVER_NOUVEAU,      -1, BUG_BROKENHACKEDBUFFER,  -1.0, -1.0, true},
+		{OS_OSX,    VENDOR_INTEL,    DRIVER_INTEL,      3000, BUG_PRIMITIVERESTART,    -1.0, -1.0, true},
 	};
 
 	std::map<Bug, BugInfo> m_bugs;
 
-	void Init(Vendor vendor, Driver driver, const double version)
+	void Init(Vendor vendor, Driver driver, const double version, const s32 family)
 	{
 		m_vendor = vendor;
 		m_driver = driver;
 		m_version = version;
+		m_family = family;
 
 		if (driver == DRIVER_UNKNOWN)
 			switch(vendor)
@@ -91,6 +95,7 @@ namespace DriverDetails
 				( bug.m_os & m_os ) &&
 				( bug.m_vendor == m_vendor || bug.m_vendor == VENDOR_ALL ) &&
 				( bug.m_driver == m_driver || bug.m_driver == DRIVER_ALL ) &&
+				( bug.m_family == m_family || bug.m_family == -1) &&
 				( bug.m_versionstart <= m_version || bug.m_versionstart == -1 ) &&
 				( bug.m_versionend > m_version || bug.m_versionend == -1 )
 			)
