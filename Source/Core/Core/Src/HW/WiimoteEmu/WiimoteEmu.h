@@ -73,8 +73,11 @@ struct ExtensionReg
 
 extern const ReportFeatures reporting_mode_features[];
 
+void FillRawAccelFromGForceData(wm_accel& raw_accel,
+	const accel_cal& calib,
+	const WiimoteEmu::AccelData& accel);
+
 void EmulateShake(AccelData* const accel_data
-	  , accel_cal* const calib
 	  , ControllerEmu::Buttons* const buttons_group
 	  , u8* const shake_step);
 
@@ -134,7 +137,7 @@ protected:
 	void UpdateButtonsStatus(bool has_focus);
 
 	void GetCoreData(u8* const data);
-	void GetAccelData(u8* const data, u8* const buttons);
+	void GetAccelData(u8* const data);
 	void GetIRData(u8* const data, bool use_accel);
 	void GetExtData(u8* const data);
 

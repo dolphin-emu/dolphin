@@ -16,6 +16,7 @@ public:
 	virtual void Swap() {}
 	virtual void UpdateFPSDisplay(const char *Text) {}
 	virtual void SetMode(u32 mode) { s_opengl_mode = mode; }
+	virtual u32 GetMode() { return s_opengl_mode; }
 	virtual bool Create(void *&window_handle) { return true; }
 	virtual bool MakeCurrent() { return true; }
 	virtual bool ClearCurrent() { return true; }

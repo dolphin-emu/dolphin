@@ -385,6 +385,10 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	float w[3] = { 1.0f / v0->projectedPosition.w, 1.0f / v1->projectedPosition.w, 1.0f / v2->projectedPosition.w };
 	InitSlope(&WSlope, w[0], w[1], w[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
+	// TODO: The zfreeze emulation is not quite correct, yet!
+	// Many things might prevent us from reaching this line (culling, clipping, scissoring).
+	// However, the zslope is always guaranteed to be calculated unless all vertices are trivially rejected during clipping!
+	// We're currently sloppy at this since we abort early if any of the culling/clipping/scissoring tests fail.
 	if (!bpmem.genMode.zfreeze || !g_SWVideoConfig.bZFreeze)
 		InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
 

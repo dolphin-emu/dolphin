@@ -411,9 +411,10 @@ void VertexShaderManager::SetConstants()
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
-			// donkopunchstania: GC GPU rounds differently?
-			// -(1 + epsilon) so objects are clipped as they are on the real HW
-			g_fProjectionMatrix[14] = -1.00000011921f;
+			// donkopunchstania suggested the GC GPU might round differently
+			// He had thus changed this to -(1 + epsilon) to fix clipping issues.
+			// I (neobrain) don't think his conjecture is true and thus reverted his change.
+			g_fProjectionMatrix[14] = -1.0f;
 			g_fProjectionMatrix[15] = 0.0f;
 
 			SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix[0]);

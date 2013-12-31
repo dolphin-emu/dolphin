@@ -5,7 +5,9 @@
 #include "DriverDetails.h"
 #include "GLFunctions.h"
 #include "Log.h"
+
 #include <dlfcn.h>
+#include <unordered_map>
 
 #ifdef USE_GLES3
 PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
@@ -13,6 +15,7 @@ PFNGLUNMAPBUFFERPROC glUnmapBuffer;
 PFNGLBINDBUFFERRANGEPROC glBindBufferRange;
 
 PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
+PFNGLGETSTRINGIPROC glGetStringi;
 
 PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
@@ -49,6 +52,8 @@ PFNGLGENQUERIESPROC glGenQueries;
 namespace GLFunc
 {
 	void *self;
+	std::unordered_map<std::string, bool> _extensions;
+
 	void LoadFunction(const char *name, void **func)
 	{
 #ifdef USE_GLES3
@@ -67,9 +72,26 @@ namespace GLFunc
 #endif
 	}
 
+	bool SupportsExt(std::string ext)
+	{
+		return _extensions.find(ext) != _extensions.end();
+	}
+
+	void InitExtensions()
+	{
+		GLint NumExtension = 0;
+		glGetIntegerv(GL_NUM_EXTENSIONS, &NumExtension);
+		for (GLint i = 0; i < NumExtension; ++i)
+			_extensions[std::string((const char*)glGetStringi(GL_EXTENSIONS, i))] = true;
+	}
+
 	void Init()
 	{
 		self = dlopen(NULL, RTLD_LAZY);
+
+		LoadFunction("glGetStringi", (void**)&glGetStringi);
+		
+		InitExtensions();
 
 		LoadFunction("glUnmapBuffer", (void**)&glUnmapBuffer);
 		LoadFunction("glBeginQuery", (void**)&glBeginQuery);

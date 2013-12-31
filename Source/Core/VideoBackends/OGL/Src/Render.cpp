@@ -260,6 +260,7 @@ void InitDriverInfo()
 	DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
 	DriverDetails::Driver driver = DriverDetails::DRIVER_UNKNOWN;
 	double version = 0.0;
+	u32 family = 0;
 
 	// Get the vendor first
 	if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
@@ -321,11 +322,23 @@ void InitDriverInfo()
 			version = 100*major + 10*minor + release;
 		}
 		break;
+		case DriverDetails::VENDOR_INTEL: // Happens in OS X
+			sscanf(g_ogl_config.gl_renderer, "Intel HD Graphics %d", &family);
+			/*
+			int glmajor = 0;
+			int glminor = 0;
+			int major = 0;
+			int minor = 0;
+			int release = 0;
+			sscanf(g_ogl_config.gl_version, "%d.%d INTEL-%d.%d.%d", &glmajor, &glminor, &major, &minor, &release);
+			version = 10000*major + 1000*minor + release;
+			*/
+		break;
 		// We don't care about these
 		default:
 		break;
 	}
-	DriverDetails::Init(vendor, driver, version);
+	DriverDetails::Init(vendor, driver, version, family);
 }
 
 // Init functions
@@ -359,11 +372,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 	g_Config.backend_info.bSupportsEarlyZ = false;
 
-#ifdef ANDROID
-	g_ogl_config.bSupportsGLSLCache = false;
-#else
 	g_ogl_config.bSupportsGLSLCache = true;
-#endif
 	g_ogl_config.bSupportsGLPinnedMemory = false;
 	g_ogl_config.bSupportsGLSync = true;
 	g_ogl_config.bSupportsGLBaseVertex = false;
@@ -470,7 +479,8 @@ Renderer::Renderer()
 
 	g_Config.backend_info.bSupportsDualSourceBlend = TO_BOOL(GLEW_ARB_blend_func_extended);
 	g_Config.backend_info.bSupportsGLSLUBO = TO_BOOL(GLEW_ARB_uniform_buffer_object);
-	g_Config.backend_info.bSupportsPrimitiveRestart = TO_BOOL(GLEW_VERSION_3_1) || TO_BOOL(GLEW_NV_primitive_restart);
+	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) && 
+				(TO_BOOL(GLEW_VERSION_3_1) || TO_BOOL(GLEW_NV_primitive_restart));
 	g_Config.backend_info.bSupportsEarlyZ = TO_BOOL(GLEW_ARB_shader_image_load_store);
 
 	g_ogl_config.bSupportsGLSLCache = TO_BOOL(GLEW_ARB_get_program_binary);
@@ -1680,6 +1690,7 @@ void Renderer::SetGenerationMode()
 	// none, ccw, cw, ccw
 	if (bpmem.genMode.cullmode > 0)
 	{
+		// TODO: GX_CULL_ALL not supported, yet!
 		glEnable(GL_CULL_FACE);
 		glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
 	}
