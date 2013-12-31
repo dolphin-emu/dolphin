@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "StringUtil.h"
-#include "../Memmap.h"
 // GROSS CODE ALERT: headers need to be included in the following order
 #include "TAP_Win32.h"
 #include "../EXI_Device.h"
