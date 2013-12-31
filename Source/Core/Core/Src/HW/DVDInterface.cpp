@@ -6,7 +6,7 @@
 #include "ChunkFile.h"
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
-#include "../HW/SystemTimers.h"
+#include "SystemTimers.h"
 
 #include "StreamADPCM.h" // Core
 #include "DVDInterface.h"

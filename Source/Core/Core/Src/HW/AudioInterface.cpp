@@ -60,7 +60,7 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 #include "DVDInterface.h"
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
-#include "../HW/SystemTimers.h"
+#include "SystemTimers.h"
 
 namespace AudioInterface
 {

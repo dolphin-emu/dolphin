@@ -11,7 +11,7 @@
 #include "VideoInterface.h"
 #include "Memmap.h"
 #include "../CoreTiming.h"
-#include "../HW/SystemTimers.h"
+#include "SystemTimers.h"
 #include "StringUtil.h"
 
 #include "VideoBackendBase.h"
