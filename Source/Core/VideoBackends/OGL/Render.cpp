@@ -486,8 +486,7 @@ Renderer::Renderer()
 	g_ogl_config.bSupportsGLSLCache = TO_BOOL(GLEW_ARB_get_program_binary);
 	g_ogl_config.bSupportsGLPinnedMemory = TO_BOOL(GLEW_AMD_pinned_memory);
 	g_ogl_config.bSupportsGLSync = TO_BOOL(GLEW_ARB_sync);
-	g_ogl_config.bSupportsGLBaseVertex = TO_BOOL(GLEW_ARB_draw_elements_base_vertex) &&
-						!DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY);
+	g_ogl_config.bSupportsGLBaseVertex = TO_BOOL(GLEW_ARB_draw_elements_base_vertex);
 	g_ogl_config.bSupportsGLBufferStorage = TO_BOOL(GLEW_ARB_buffer_storage);
 	g_ogl_config.bSupportCoverageMSAA = TO_BOOL(GLEW_NV_framebuffer_multisample_coverage);
 	g_ogl_config.bSupportSampleShading = TO_BOOL(GLEW_ARB_sample_shading);
