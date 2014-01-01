@@ -1,4 +1,5 @@
-set(SRCS	BPMemLoader.cpp
+set(SRCS	../OGL/GLExtensions/GLExtensions.cpp	
+			BPMemLoader.cpp
 			Clipper.cpp
 			SWCommandProcessor.cpp
 			CPMemLoader.cpp
