@@ -36,6 +36,7 @@
 #include "VideoBackendBase.h"
 #include "Movie.h"
 #include "NetPlayProto.h"
+#include "HW/WiimoteReal/WiimoteReal.h"
 
 namespace BootManager
 {
@@ -47,6 +48,8 @@ struct ConfigCache
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
 		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack, bUseFPS;
 	int iCPUCore, Volume;
+	int iWiimoteSource[5];
+	int iSetWiimoteSource[5];
 	unsigned int framelimit;
 	TEXIDevices m_EXIDevice[2];
 	std::string strBackend, sBackend;
@@ -111,6 +114,11 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.sBackend = SConfig::GetInstance().sBackend;
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
 		config_cache.bUseFPS = SConfig::GetInstance().b_UseFPS;
+		for (unsigned int i = 0; i < 5; ++i)
+		{
+			config_cache.iWiimoteSource[i] = g_wiimote_sources[i];
+		}
+		std::fill_n(config_cache.iSetWiimoteSource, 5, -1);
 
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
@@ -140,6 +148,25 @@ bool BootCore(const std::string& _rFilename)
 		{
 			// Flush possible changes to SYSCONF to file
 			SConfig::GetInstance().m_SYSCONF->Save();
+
+			int source;
+			for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
+			{
+				game_ini.Get("Controls", ("WiimoteSource" + std::to_string(i)).c_str(), &source, -1);
+				if (source != -1 && g_wiimote_sources[i] != source && source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_HYBRID)
+				{
+					config_cache.iSetWiimoteSource[i] = source;
+					g_wiimote_sources[i] = source;
+					WiimoteReal::ChangeWiimoteSource(i, source);
+				}
+			}
+			game_ini.Get("Controls", "WiimoteSourceBB", &source, -1);
+			if (source != -1 && g_wiimote_sources[WIIMOTE_BALANCE_BOARD] != source && (source == WIIMOTE_SRC_NONE || source == WIIMOTE_SRC_REAL))
+			{
+				config_cache.iSetWiimoteSource[WIIMOTE_BALANCE_BOARD] = source;
+				g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = source;
+				WiimoteReal::ChangeWiimoteSource(4, source);
+			}
 		}
 	}
 
@@ -215,6 +242,21 @@ void Stop()
 		SConfig::GetInstance().m_Volume = config_cache.Volume;
 		SConfig::GetInstance().sBackend = config_cache.sBackend;
 	}
+
+	if (StartUp.bWii)
+	{
+		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
+		{
+			// If user changed wiimote settings mid game, keep their new setting, otherwise revert to what it was before booting the game.
+			if (config_cache.iSetWiimoteSource[i] == g_wiimote_sources[i])
+			{
+				g_wiimote_sources[i] = config_cache.iWiimoteSource[i];
+				WiimoteReal::ChangeWiimoteSource(i, config_cache.iWiimoteSource[i]);
+			}
+
+		}
+	}
+
 }
 
 } // namespace
