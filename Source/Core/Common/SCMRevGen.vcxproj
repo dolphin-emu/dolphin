@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Release|Win32">
@@ -39,8 +39,8 @@
     <None Include="make_scmrev.h.js" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\force_rebuild.h" />
-    <ClInclude Include="Src\scmrev.h" />
+    <ClInclude Include="force_rebuild.h" />
+    <ClInclude Include="scmrev.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

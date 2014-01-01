@@ -52,85 +52,85 @@ endif()
 
 if(wxWidgets_FOUND)
 	set(SRCS 
-				Src/ARCodeAddEdit.cpp
-				Src/AboutDolphin.cpp
-				Src/CheatsWindow.cpp
-				Src/ConfigMain.cpp
-				Src/Debugger/BreakpointDlg.cpp
-				Src/Debugger/BreakpointView.cpp
-				Src/Debugger/BreakpointWindow.cpp
-				Src/Debugger/CodeView.cpp
-				Src/Debugger/CodeWindow.cpp
-				Src/Debugger/CodeWindowFunctions.cpp
-				Src/Debugger/DSPDebugWindow.cpp
-				Src/Debugger/DSPRegisterView.cpp
-				Src/Debugger/DebuggerPanel.cpp
-				Src/Debugger/DebuggerUIUtil.cpp
-				Src/Debugger/JitWindow.cpp
-				Src/Debugger/MemoryCheckDlg.cpp
-				Src/Debugger/MemoryView.cpp
-				Src/Debugger/MemoryWindow.cpp
-				Src/Debugger/RegisterView.cpp
-				Src/Debugger/RegisterWindow.cpp
-				Src/FifoPlayerDlg.cpp
-				Src/Frame.cpp
-				Src/FrameAui.cpp
-				Src/FrameTools.cpp
-				Src/GameListCtrl.cpp
-				Src/GeckoCodeDiag.cpp
-				Src/HotkeyDlg.cpp
-				Src/ISOFile.cpp
-				Src/ISOProperties.cpp
-				Src/InputConfigDiag.cpp
-				Src/InputConfigDiagBitmaps.cpp
-				Src/LogConfigWindow.cpp
-				Src/LogWindow.cpp
-				Src/Main.cpp
-				Src/MemcardManager.cpp
-				Src/MemoryCards/WiiSaveCrypted.cpp
-				Src/NetWindow.cpp
-				Src/PHackSettings.cpp
-				Src/PatchAddEdit.cpp
-				Src/TASInputDlg.cpp
-				Src/UDPConfigDiag.cpp
-				Src/VideoConfigDiag.cpp
-				Src/WXInputBase.cpp
-				Src/WiimoteConfigDiag.cpp
-				Src/WxUtils.cpp)
+				ARCodeAddEdit.cpp
+				AboutDolphin.cpp
+				CheatsWindow.cpp
+				ConfigMain.cpp
+				Debugger/BreakpointDlg.cpp
+				Debugger/BreakpointView.cpp
+				Debugger/BreakpointWindow.cpp
+				Debugger/CodeView.cpp
+				Debugger/CodeWindow.cpp
+				Debugger/CodeWindowFunctions.cpp
+				Debugger/DSPDebugWindow.cpp
+				Debugger/DSPRegisterView.cpp
+				Debugger/DebuggerPanel.cpp
+				Debugger/DebuggerUIUtil.cpp
+				Debugger/JitWindow.cpp
+				Debugger/MemoryCheckDlg.cpp
+				Debugger/MemoryView.cpp
+				Debugger/MemoryWindow.cpp
+				Debugger/RegisterView.cpp
+				Debugger/RegisterWindow.cpp
+				FifoPlayerDlg.cpp
+				Frame.cpp
+				FrameAui.cpp
+				FrameTools.cpp
+				GameListCtrl.cpp
+				GeckoCodeDiag.cpp
+				HotkeyDlg.cpp
+				ISOFile.cpp
+				ISOProperties.cpp
+				InputConfigDiag.cpp
+				InputConfigDiagBitmaps.cpp
+				LogConfigWindow.cpp
+				LogWindow.cpp
+				Main.cpp
+				MemcardManager.cpp
+				MemoryCards/WiiSaveCrypted.cpp
+				NetWindow.cpp
+				PHackSettings.cpp
+				PatchAddEdit.cpp
+				TASInputDlg.cpp
+				UDPConfigDiag.cpp
+				VideoConfigDiag.cpp
+				WXInputBase.cpp
+				WiimoteConfigDiag.cpp
+				WxUtils.cpp)
 
 	set(WXLIBS ${wxWidgets_LIBRARIES} dl)
 else()
 	if(ANDROID)
-		set(SRCS Src/Android/ButtonManager.cpp
-			 Src/MainAndroid.cpp)
+		set(SRCS Android/ButtonManager.cpp
+			 MainAndroid.cpp)
 	else()
-		set(SRCS Src/MainNoGUI.cpp)
+		set(SRCS MainNoGUI.cpp)
 	endif()
 endif()
 
 if(USE_EGL)
-	set(SRCS ${SRCS} Src/GLInterface/Platform.cpp
-		Src/GLInterface/EGL.cpp)	
+	set(SRCS ${SRCS} GLInterface/Platform.cpp
+		GLInterface/EGL.cpp)	
 	if(USE_WAYLAND)
-		set(SRCS ${SRCS} Src/GLInterface/Wayland_Util.cpp)
+		set(SRCS ${SRCS} GLInterface/Wayland_Util.cpp)
 	endif()
 	if(USE_X11)
-		set(SRCS ${SRCS} Src/GLInterface/X11_Util.cpp)
+		set(SRCS ${SRCS} GLInterface/X11_Util.cpp)
 	endif()
 else()
 	if(WIN32)
-		set(SRCS ${SRCS} Src/GLInterface/WGL.cpp)
+		set(SRCS ${SRCS} GLInterface/WGL.cpp)
 	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set(SRCS ${SRCS} Src/GLInterface/AGL.cpp)
+		set(SRCS ${SRCS} GLInterface/AGL.cpp)
 	else()
-		set(SRCS ${SRCS} Src/GLInterface/GLX.cpp
-			Src/GLInterface/X11_Util.cpp)
+		set(SRCS ${SRCS} GLInterface/GLX.cpp
+			GLInterface/X11_Util.cpp)
 
 	endif()
 endif()
 
 if(WIN32)
-	set(SRCS ${SRCS} Src/stdafx.cpp)
+	set(SRCS ${SRCS} stdafx.cpp)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	# Link against OS X system frameworks.
 	list(APPEND LIBS
@@ -154,7 +154,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_source_files_properties(${RESOURCES} PROPERTIES
 		MACOSX_PACKAGE_LOCATION Resources)
 elseif(USE_X11)
-	set(SRCS ${SRCS} Src/X11Utils.cpp)
+	set(SRCS ${SRCS} X11Utils.cpp)
 endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR

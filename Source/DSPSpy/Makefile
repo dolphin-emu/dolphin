@@ -26,7 +26,7 @@ BUILD		:=	build
 SOURCES		:=	. emu
 RESOURCES	:=	../resources
 DATA		:=	data
-INCLUDES	:=	include ../Core/Common/Src .
+INCLUDES	:=	include ../Core/Common .
 
 #---------------------------------------------------------------------------------
 # options for code generation

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="D3D">
@@ -9,127 +9,127 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\D3DBase.cpp">
+    <ClCompile Include="D3DBase.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
-    <ClCompile Include="Src\D3DBlob.cpp">
+    <ClCompile Include="D3DBlob.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
-    <ClCompile Include="Src\D3DShader.cpp">
+    <ClCompile Include="D3DShader.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
-    <ClCompile Include="Src\D3DTexture.cpp">
+    <ClCompile Include="D3DTexture.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
-    <ClCompile Include="Src\D3DUtil.cpp">
+    <ClCompile Include="D3DUtil.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
-    <ClCompile Include="Src\GfxState.cpp">
+    <ClCompile Include="GfxState.cpp">
       <Filter>D3D</Filter>
     </ClCompile>
-    <ClCompile Include="Src\FramebufferManager.cpp">
+    <ClCompile Include="FramebufferManager.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\LineGeometryShader.cpp">
+    <ClCompile Include="LineGeometryShader.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\NativeVertexFormat.cpp">
+    <ClCompile Include="NativeVertexFormat.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\PerfQuery.cpp">
+    <ClCompile Include="PerfQuery.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\PixelShaderCache.cpp">
+    <ClCompile Include="PixelShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\PointGeometryShader.cpp">
+    <ClCompile Include="PointGeometryShader.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\PSTextureEncoder.cpp">
+    <ClCompile Include="PSTextureEncoder.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Render.cpp">
+    <ClCompile Include="Render.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Television.cpp">
+    <ClCompile Include="Television.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\TextureCache.cpp">
+    <ClCompile Include="TextureCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\VertexManager.cpp">
+    <ClCompile Include="VertexManager.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\VertexShaderCache.cpp">
+    <ClCompile Include="VertexShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\XFBEncoder.cpp">
+    <ClCompile Include="XFBEncoder.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Src\main.cpp" />
-    <ClCompile Include="Src\stdafx.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="stdafx.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\D3DBase.h">
+    <ClInclude Include="D3DBase.h">
       <Filter>D3D</Filter>
     </ClInclude>
-    <ClInclude Include="Src\D3DBlob.h">
+    <ClInclude Include="D3DBlob.h">
       <Filter>D3D</Filter>
     </ClInclude>
-    <ClInclude Include="Src\D3DShader.h">
+    <ClInclude Include="D3DShader.h">
       <Filter>D3D</Filter>
     </ClInclude>
-    <ClInclude Include="Src\D3DTexture.h">
+    <ClInclude Include="D3DTexture.h">
       <Filter>D3D</Filter>
     </ClInclude>
-    <ClInclude Include="Src\D3DUtil.h">
+    <ClInclude Include="D3DUtil.h">
       <Filter>D3D</Filter>
     </ClInclude>
-    <ClInclude Include="Src\GfxState.h">
+    <ClInclude Include="GfxState.h">
       <Filter>D3D</Filter>
     </ClInclude>
-    <ClInclude Include="Src\FramebufferManager.h">
+    <ClInclude Include="FramebufferManager.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\LineGeometryShader.h">
+    <ClInclude Include="LineGeometryShader.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\PerfQuery.h">
+    <ClInclude Include="PerfQuery.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\PixelShaderCache.h">
+    <ClInclude Include="PixelShaderCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\PointGeometryShader.h">
+    <ClInclude Include="PointGeometryShader.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\PSTextureEncoder.h">
+    <ClInclude Include="PSTextureEncoder.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Render.h">
+    <ClInclude Include="Render.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Television.h">
+    <ClInclude Include="Television.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\TextureCache.h">
+    <ClInclude Include="TextureCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\TextureEncoder.h">
+    <ClInclude Include="TextureEncoder.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\VertexManager.h">
+    <ClInclude Include="VertexManager.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\VertexShaderCache.h">
+    <ClInclude Include="VertexShaderCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\XFBEncoder.h">
+    <ClInclude Include="XFBEncoder.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Globals.h" />
-    <ClInclude Include="Src\main.h" />
-    <ClInclude Include="Src\VideoBackend.h" />
-    <ClInclude Include="Src\stdafx.h" />
+    <ClInclude Include="Globals.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="VideoBackend.h" />
+    <ClInclude Include="stdafx.h" />
   </ItemGroup>
 </Project>
