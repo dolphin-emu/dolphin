@@ -437,6 +437,7 @@ namespace GLExtensions
 	// Private members and functions
 	void *_dlsym;
 	bool _isES3;
+	bool _isES;
 	u32 _GLVersion;
 	std::unordered_map<std::string, bool> _extensionlist;
 	// Forward declared init functions
@@ -511,7 +512,7 @@ namespace GLExtensions
 			if (_dlsym) // Just in case dlopen fails
 				*func = dlsym(_dlsym, name.c_str());
 #endif
-			if (*func == NULL && _isES3)
+			if (*func == NULL && _isES)
 				*func = (void*)0xFFFFFFFF; // Easy to determine invalid function, just so we continue on
 			if (*func == NULL)
 				ERROR_LOG(VIDEO, "Couldn't load function %s", name.c_str());
@@ -533,6 +534,7 @@ namespace GLExtensions
 		_dlsym = dlopen(NULL, RTLD_LAZY);
 #endif
 		_isES3 = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3;
+		_isES = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 || GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES2;
 
 		// Grab glGetStringi immediately
 		// We need it to grab the extension list
