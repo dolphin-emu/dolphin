@@ -238,14 +238,16 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 }
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
+#ifndef USE_GLES3
 void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 {
-	//glDepthRange(neardepth, fardepth);
+	glDepthRange(neardepth, fardepth);
 }
 void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
-	//glClearDepth(depthval);
+	glClearDepth(depthval);
 }
+#endif
 
 void InitDriverInfo()
 {
@@ -435,12 +437,13 @@ Renderer::Renderer()
 	// OpenGL 3 doesn't provide GLES like float functions for depth.
 	// They are in core in OpenGL 4.1, so almost every driver should support them.
 	// But for the oldest ones, we provide fallbacks to the old double functions.
+#ifndef USE_GLES3
 	if (!GLExtensions::Supports("GL_ARB_ES2_compatibility") && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
 		glDepthRangef = DepthRangef;
 		glClearDepthf = ClearDepthf;
 	}
-
+#endif
 	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
 	g_Config.backend_info.bSupportsGLSLUBO = GLExtensions::Supports("GL_ARB_uniform_buffer_object") && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS);
 	g_Config.backend_info.bSupportsPrimitiveRestart = (GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart");
