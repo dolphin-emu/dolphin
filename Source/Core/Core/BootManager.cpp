@@ -152,8 +152,7 @@ bool BootCore(const std::string& _rFilename)
 			int source;
 			for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
 			{
-				std::string num = StringFromFormat("%u", i);
-				game_ini.Get("Controls", ("WiimoteSource" + num).c_str(), &source, -1);
+				game_ini.Get("Controls", StringFromFormat("WiimoteSource%u", i).c_str(), &source, -1);
 				if (source != -1 && g_wiimote_sources[i] != source && source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_HYBRID)
 				{
 					config_cache.iSetWiimoteSource[i] = source;
