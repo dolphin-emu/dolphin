@@ -30,10 +30,13 @@
 #define GL_READ_WRITE                     0x88BA
 #define GL_SRC1_ALPHA 0
 #define GL_BGRA GL_RGBA
+#define GL_MAP_COHERENT_BIT 0
+#define GL_MAP_PERSISTENT_BIT 0
 #define glDrawElementsBaseVertex(...)
 #define glDrawRangeElementsBaseVertex(...)
 #define glRenderbufferStorageMultisampleCoverageNV(...)
 #define glViewportIndexedf(...)
+#define glBufferStorage(...)
 #endif
 #else
 #define TEX2D	GL_TEXTURE_RECTANGLE_ARB

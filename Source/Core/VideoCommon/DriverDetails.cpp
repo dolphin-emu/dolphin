@@ -54,6 +54,7 @@ namespace DriverDetails
 		{OS_ALL,    VENDOR_ATI,      DRIVER_ATI,          -1, BUG_BROKENHACKEDBUFFER,  -1.0, -1.0, true},
 		{OS_LINUX,  VENDOR_ATI,      DRIVER_ATI,          -1, BUG_BROKENPINNEDMEMORY,  -1.0, -1.0, true},
 		{OS_ALL,    VENDOR_MESA,     DRIVER_NOUVEAU,      -1, BUG_BROKENHACKEDBUFFER,  -1.0, -1.0, true},
+		{OS_ALL,    VENDOR_NVIDIA,   DRIVER_NVIDIA,       -1, BUG_BROKENBUFFERSTORAGE, -1.0, -1.0, true},
 		{OS_OSX,    VENDOR_INTEL,    DRIVER_INTEL,      3000, BUG_PRIMITIVERESTART,    -1.0, -1.0, true},
 	};
 

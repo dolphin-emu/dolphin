@@ -18,14 +18,15 @@
 namespace OGL
 {
 enum StreamType {
-	DETECT_MASK = 0x7F,
+	DETECT_MASK = 0xFF,
 	STREAM_DETECT = (1 << 0),
 	MAP_AND_ORPHAN = (1 << 1),
 	MAP_AND_SYNC = (1 << 2),
 	MAP_AND_RISK = (1 << 3),
 	PINNED_MEMORY = (1 << 4),
 	BUFFERSUBDATA = (1 << 5),
-	BUFFERDATA = (1 << 6)
+	BUFFERDATA = (1 << 6),
+	BUFFERSTORAGE = (1 << 7),
 };
 
 class StreamBuffer {

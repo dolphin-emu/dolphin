@@ -141,6 +141,14 @@ namespace DriverDetails
 		// Ended Version: -1
 		// If a shader includes a textureSize function call then the shader compiler will call abort()
 		BUG_BROKENTEXTURESIZE,
+		// Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams 
+		// Affected devices: Geforce 4xx+
+		// Started Version: -1
+		// Ended Version: -1
+		// The buffer_storage streaming method is required for greater speed gains in our buffer streaming
+		// It reduces what is needed for streaming to basically a memcpy call
+		// It seems to work for all buffer types except GL_ARRAY_BUFFER
+		BUG_BROKENBUFFERSTORAGE,
 		// Bug: Intel HD 3000 on OS X has broken primitive restart
 		// Affected devices: Intel HD 3000
 		// Affected OS: OS X

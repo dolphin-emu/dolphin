@@ -33,7 +33,11 @@ StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
 			g_Config.bHackedBufferUpload = false;
 		}
 
-		if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA)
+		if (g_ogl_config.bSupportsGLBufferStorage && 
+			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER) && 
+			(m_uploadtype & BUFFERSTORAGE))
+			m_uploadtype = BUFFERSTORAGE;
+		else if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA)
 			&& !DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
 			m_uploadtype = BUFFERSUBDATA;
 		else if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERDATA))
@@ -81,9 +85,9 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		break;
 	case MAP_AND_SYNC:
 	case PINNED_MEMORY:
-
+	case BUFFERSTORAGE:
 		// insert waiting slots for used memory
-		for(size_t i=SLOT(m_used_iterator); i<SLOT(m_iterator); i++)
+		for (size_t i = SLOT(m_used_iterator); i < SLOT(m_iterator); i++)
 		{
 			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		}
@@ -98,7 +102,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		m_free_iterator = iter_end;
 
 		// if buffer is full
-		if(iter_end >= m_size) {
+		if (iter_end >= m_size) {
 
 			// insert waiting slots in unused space at the end of the buffer
 			for (size_t i = SLOT(m_used_iterator); i < SYNC_POINTS; i++)
@@ -111,7 +115,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 			iter_end = size;
 
 			// wait for space at the start
-			for(u32 i=0; i<=SLOT(iter_end); i++)
+			for (u32 i = 0; i <= SLOT(iter_end); i++)
 			{
 				glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
 				glDeleteSync(fences[i]);
@@ -130,7 +134,7 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		m_iterator_aligned = 0;
 		break;
 	case STREAM_DETECT:
-	case DETECT_MASK: // Just to shutup warnings
+	case DETECT_MASK: // To shutup compiler warnings
 		break;
 	}
 	m_iterator = m_iterator_aligned;
@@ -151,8 +155,9 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 		break;
 	case PINNED_MEMORY:
 	case MAP_AND_RISK:
-		if(pointer)
-			memcpy(pointer+m_iterator, data, size);
+	case BUFFERSTORAGE:
+		if (pointer)
+			memcpy(pointer + m_iterator, data, size);
 		break;
 	case BUFFERSUBDATA:
 		glBufferSubData(m_buffertype, m_iterator, size, data);
@@ -161,7 +166,7 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 		glBufferData(m_buffertype, size, data, GL_STREAM_DRAW);
 		break;
 	case STREAM_DETECT:
-	case DETECT_MASK: // Just to shutup warnings
+	case DETECT_MASK: // To shutup compiler warnings
 		break;
 	}
 	size_t ret = m_iterator;
@@ -206,6 +211,26 @@ void StreamBuffer::Init()
 			Init();
 		}
 		break;
+
+	case BUFFERSTORAGE:
+		glGetError(); // errors before this allocation should be ignored
+		fences = new GLsync[SYNC_POINTS];
+		for (u32 i = 0; i<SYNC_POINTS; i++)
+			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+
+		glBindBuffer(m_buffertype, m_buffer);
+
+		// PERSISTANT_BIT to make sure that the buffer can be used while mapped
+		// COHERENT_BIT is set so we don't have to use a MemoryBarrier on write
+		// CLIENT_STORAGE_BIT is set since we access the buffer more frequently on the client side then server side
+		glBufferStorage(m_buffertype, m_size, NULL, 
+			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT | GL_CLIENT_STORAGE_BIT); 
+		pointer = (u8*)glMapBufferRange(m_buffertype, 0, m_size, 
+			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT); 
+		if(!pointer)
+			ERROR_LOG(VIDEO, "Buffer allocation failed");
+		break;
+
 	case MAP_AND_RISK:
 		glBindBuffer(m_buffertype, m_buffer);
 		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
@@ -218,7 +243,7 @@ void StreamBuffer::Init()
 		glBindBuffer(m_buffertype, m_buffer);
 		break;
 	case STREAM_DETECT:
-	case DETECT_MASK: // Just to shutup warnings
+	case DETECT_MASK: // To shutup compiler warnings
 		break;
 	}
 }
@@ -240,8 +265,14 @@ void StreamBuffer::Shutdown()
 		glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
 		FreeAlignedMemory(pointer);
 		break;
+	case BUFFERSTORAGE:
+		DeleteFences();
+		glUnmapBuffer(m_buffertype);
+		glBindBuffer(m_buffertype, 0);
+		glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
+		break;
 	case STREAM_DETECT:
-	case DETECT_MASK: // Just to shutup warnings
+	case DETECT_MASK: // To shutup compiler warnings
 		break;
 	}
 }
