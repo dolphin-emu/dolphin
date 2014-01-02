@@ -56,7 +56,8 @@ static u32 s_NextStage;
 
 bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
-#ifndef USE_GLES3
+	if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
+		return false;
 	int width = std::max(virtual_width >> level, 1);
 	int height = std::max(virtual_height >> level, 1);
 	u8* data = new u8[width * height * 4];
@@ -76,9 +77,6 @@ bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual
 	bool success = TextureToPng(data, width * 4, filename, width, height, true);
 	delete[] data;
 	return success;
-#else
-	return false;
-#endif
 }
 
 TextureCache::TCacheEntry::~TCacheEntry()
@@ -153,7 +151,6 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 			gl_iformat = GL_RGBA;
 			gl_type = GL_UNSIGNED_BYTE;
 			break;
-#ifndef USE_GLES3
 		case PC_TEX_FMT_I4_AS_I8:
 			gl_format = GL_LUMINANCE;
 			gl_iformat = GL_INTENSITY4;
@@ -177,7 +174,6 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 			gl_iformat = GL_LUMINANCE8_ALPHA8;
 			gl_type = GL_UNSIGNED_BYTE;
 			break;
-#endif
 		case PC_TEX_FMT_RGB565:
 			gl_format = GL_RGB;
 			gl_iformat = GL_RGB;
