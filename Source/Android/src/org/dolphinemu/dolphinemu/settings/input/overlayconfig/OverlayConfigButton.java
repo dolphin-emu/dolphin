@@ -42,7 +42,8 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 	// float buttonY = sPrefs.getFloat(buttonId+"-Y", -1f);
 	//
 	private final String buttonId;
-	private Drawable resizeDrawable(WindowManager wm, Context context, Drawable image, float scale) {
+	private Drawable resizeDrawable(WindowManager wm, Drawable image, float scale)
+	{
 		// Retrieve screen dimensions.
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		wm.getDefaultDisplay().getMetrics(displayMetrics);
@@ -52,7 +53,8 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 				(int)(displayMetrics.heightPixels * scale),
 				(int)(displayMetrics.heightPixels * scale),
 				false);
-		return new BitmapDrawable(context.getResources(), bitmapResized);
+
+		return new BitmapDrawable(getResources(), bitmapResized);
 	}
 
 	/**
@@ -73,9 +75,8 @@ public final class OverlayConfigButton extends Button implements OnTouchListener
 		setOnTouchListener(this);
 
 		// Set the button's icon that represents it.
-		setBackground(resizeDrawable(wm, context,
-						context.getResources().getDrawable(drawableId),
-						drawableId == R.drawable.gcpad_joystick_range ? 0.30f : 0.20f));
+		setBackground(resizeDrawable(wm, getResources().getDrawable(drawableId),
+		                drawableId == R.drawable.gcpad_joystick_range ? 0.30f : 0.20f));
 
 		// Get the SharedPreferences instance.
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
