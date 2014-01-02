@@ -49,11 +49,11 @@ struct ConfigCache
 		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack, bUseFPS;
 	int iCPUCore, Volume;
 	int iWiimoteSource[5];
-	int iSetWiimoteSource[5];
-	SIDevices Pads[4], SetPads[4];
+	SIDevices Pads[4];
 	unsigned int framelimit;
 	TEXIDevices m_EXIDevice[2];
 	std::string strBackend, sBackend;
+	bool bSetFramelimit, bSetEXIDevice[2], bSetUseFPS, bSetVolume, bSetPads[4], bSetWiimoteSource[5];
 };
 static ConfigCache config_cache;
 
@@ -123,8 +123,11 @@ bool BootCore(const std::string& _rFilename)
 		{
 			config_cache.Pads[i] = SConfig::GetInstance().m_SIDevice[i];
 		}
-		std::fill_n(config_cache.iSetWiimoteSource, 5, -1);
-		std::fill_n(config_cache.SetPads, 5, (SIDevices) -1);
+		std::fill_n(config_cache.bSetWiimoteSource, 5, false);
+		std::fill_n(config_cache.bSetPads, 5, false);
+		config_cache.bSetEXIDevice[0] = false;
+		config_cache.bSetEXIDevice[1] = false;
+		config_cache.bSetFramelimit = false;
 
 		// General settings
 		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
@@ -139,12 +142,15 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "BlockMerging",		&StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		game_ini.Get("Core", "DSPHLE",				&StartUp.bDSPHLE, StartUp.bDSPHLE);
 		game_ini.Get("Core", "DSPThread",			&StartUp.bDSPThread, StartUp.bDSPThread);
-		game_ini.Get("Core", "GFXBackend", &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend.c_str());
+		game_ini.Get("Core", "GFXBackend",			&StartUp.m_strVideoBackend, StartUp.m_strVideoBackend.c_str());
 		game_ini.Get("Core", "CPUCore",				&StartUp.iCPUCore, StartUp.iCPUCore);
 		game_ini.Get("Core", "HLE_BS2",				&StartUp.bHLE_BS2, StartUp.bHLE_BS2);
-		game_ini.Get("Core", "FrameLimit",			&SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit);
-		game_ini.Get("Core", "UseFPS",				&SConfig::GetInstance().b_UseFPS,SConfig::GetInstance().b_UseFPS);
-		game_ini.Get("DSP", "Volume",				&SConfig::GetInstance().m_Volume, SConfig::GetInstance().m_Volume);
+		if (game_ini.Get("Core", "FrameLimit",		&SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
+			config_cache.bSetFramelimit = true;
+		if (game_ini.Get("Core", "UseFPS",			&SConfig::GetInstance().b_UseFPS, SConfig::GetInstance().b_UseFPS))
+			config_cache.bSetUseFPS = true;
+		if (game_ini.Get("DSP", "Volume",			&SConfig::GetInstance().m_Volume, SConfig::GetInstance().m_Volume))
+			config_cache.bSetVolume = true;
 		game_ini.Get("DSP", "EnableJIT",			&SConfig::GetInstance().m_EnableJIT, SConfig::GetInstance().m_EnableJIT);
 		game_ini.Get("DSP", "Backend",				&SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend.c_str());
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
@@ -156,7 +162,7 @@ bool BootCore(const std::string& _rFilename)
 			if (source >= (int) SIDEVICE_NONE && source <= (int) SIDEVICE_AM_BASEBOARD)
 			{
 				SConfig::GetInstance().m_SIDevice[i] = (SIDevices) source;
-				config_cache.SetPads[i] = (SIDevices) source;
+				config_cache.bSetPads[i] = true;
 			}
 		}
 
@@ -170,17 +176,17 @@ bool BootCore(const std::string& _rFilename)
 			for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
 			{
 				game_ini.Get("Controls", StringFromFormat("WiimoteSource%u", i).c_str(), &source, -1);
-				if (source != -1 && g_wiimote_sources[i] != source && source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_HYBRID)
+				if (source != -1 && g_wiimote_sources[i] != (unsigned) source && source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_HYBRID)
 				{
-					config_cache.iSetWiimoteSource[i] = source;
+					config_cache.bSetWiimoteSource[i] = true;
 					g_wiimote_sources[i] = source;
 					WiimoteReal::ChangeWiimoteSource(i, source);
 				}
 			}
 			game_ini.Get("Controls", "WiimoteSourceBB", &source, -1);
-			if (source != -1 && g_wiimote_sources[WIIMOTE_BALANCE_BOARD] != source && (source == WIIMOTE_SRC_NONE || source == WIIMOTE_SRC_REAL))
+			if (source != -1 && g_wiimote_sources[WIIMOTE_BALANCE_BOARD] != (unsigned) source && (source == WIIMOTE_SRC_NONE || source == WIIMOTE_SRC_REAL))
 			{
-				config_cache.iSetWiimoteSource[WIIMOTE_BALANCE_BOARD] = source;
+				config_cache.bSetWiimoteSource[WIIMOTE_BALANCE_BOARD] = true;
 				g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = source;
 				WiimoteReal::ChangeWiimoteSource(4, source);
 			}
@@ -212,6 +218,8 @@ bool BootCore(const std::string& _rFilename)
 		SConfig::GetInstance().m_EnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
 		SConfig::GetInstance().m_EXIDevice[0] = g_NetPlaySettings.m_EXIDevice[0];
 		SConfig::GetInstance().m_EXIDevice[1] = g_NetPlaySettings.m_EXIDevice[1];
+		config_cache.bSetEXIDevice[0] = true;
+		config_cache.bSetEXIDevice[1] = true;
 	}
 
 	// Run the game
@@ -251,30 +259,34 @@ void Stop()
 		StartUp.m_strVideoBackend = config_cache.strBackend;
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 		StartUp.bHLE_BS2 = config_cache.bHLE_BS2;
-		SConfig::GetInstance().m_Framelimit = config_cache.framelimit;
-		SConfig::GetInstance().b_UseFPS = config_cache.bUseFPS;
-		SConfig::GetInstance().m_EnableJIT = config_cache.m_EnableJIT;
-		SConfig::GetInstance().m_EXIDevice[0] = config_cache.m_EXIDevice[0];
-		SConfig::GetInstance().m_EXIDevice[1] = config_cache.m_EXIDevice[1];
-		SConfig::GetInstance().m_Volume = config_cache.Volume;
 		SConfig::GetInstance().sBackend = config_cache.sBackend;
+		SConfig::GetInstance().m_EnableJIT = config_cache.m_EnableJIT;
+
+		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
+		if (config_cache.bSetFramelimit)
+			SConfig::GetInstance().m_Framelimit = config_cache.framelimit;
+		if (config_cache.bSetUseFPS)
+			SConfig::GetInstance().b_UseFPS = config_cache.bUseFPS;
+		if (config_cache.bSetEXIDevice[0])
+			SConfig::GetInstance().m_EXIDevice[0] = config_cache.m_EXIDevice[0];
+		if (config_cache.bSetEXIDevice[1])
+			SConfig::GetInstance().m_EXIDevice[1] = config_cache.m_EXIDevice[1];
+		if (config_cache.bSetVolume)
+			SConfig::GetInstance().m_Volume = config_cache.Volume;
 
 		for (unsigned int i = 0; i < 4; ++i)
 		{
-			// If user changed pad settings mid game, keep their new setting, otherwise revert to what it was before booting the game.
-			if (config_cache.SetPads[i] == SConfig::GetInstance().m_SIDevice[i])
+			if (config_cache.bSetPads[i])
 			{
 				SConfig::GetInstance().m_SIDevice[i] = config_cache.Pads[i];
 			}
 
 		}
-
 		if (StartUp.bWii)
 		{
 			for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 			{
-				// If user changed wiimote settings mid game, keep their new setting, otherwise revert to what it was before booting the game.
-				if (config_cache.iSetWiimoteSource[i] == g_wiimote_sources[i])
+				if (config_cache.bSetWiimoteSource[i])
 				{
 					g_wiimote_sources[i] = config_cache.iWiimoteSource[i];
 					WiimoteReal::ChangeWiimoteSource(i, config_cache.iWiimoteSource[i]);
