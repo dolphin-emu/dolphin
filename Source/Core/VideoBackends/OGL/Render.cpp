@@ -238,7 +238,6 @@ void GLAPIENTRY ErrorCallback( GLenum source, GLenum type, GLuint id, GLenum sev
 }
 
 // Two small Fallbacks to avoid GL_ARB_ES2_compatibility
-#ifndef USE_GLES3
 void GLAPIENTRY DepthRangef(GLfloat neardepth, GLfloat fardepth)
 {
 	glDepthRange(neardepth, fardepth);
@@ -247,7 +246,6 @@ void GLAPIENTRY ClearDepthf(GLfloat depthval)
 {
 	glClearDepth(depthval);
 }
-#endif
 
 void InitDriverInfo()
 {
@@ -362,13 +360,6 @@ Renderer::Renderer()
 
 	bool bSuccess = true;
 
-	g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
-	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
-	g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
-	g_ogl_config.glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-
-	InitDriverInfo();
-
 	// Init extension support.
 	if (!GLExtensions::Init())
 	{
@@ -376,6 +367,14 @@ Renderer::Renderer()
 		PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
 		bSuccess = false;
 	}
+
+	g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
+	g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
+	g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
+	g_ogl_config.glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+	InitDriverInfo();
+	
 	// check for the max vertex attributes
 	GLint numvertexattribs = 0;
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
@@ -437,13 +436,12 @@ Renderer::Renderer()
 	// OpenGL 3 doesn't provide GLES like float functions for depth.
 	// They are in core in OpenGL 4.1, so almost every driver should support them.
 	// But for the oldest ones, we provide fallbacks to the old double functions.
-#ifndef USE_GLES3
 	if (!GLExtensions::Supports("GL_ARB_ES2_compatibility") && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
 		glDepthRangef = DepthRangef;
 		glClearDepthf = ClearDepthf;
 	}
-#endif
+
 	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
 	g_Config.backend_info.bSupportsGLSLUBO = GLExtensions::Supports("GL_ARB_uniform_buffer_object") && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS);
 	g_Config.backend_info.bSupportsPrimitiveRestart = (GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart");
@@ -610,9 +608,7 @@ Renderer::Renderer()
 			}
 			else
 			{
-#ifndef USE_GLES3
 				glEnableClientState(GL_PRIMITIVE_RESTART_NV);
-#endif
 				glPrimitiveRestartIndexNV(65535);
 			}
 	}
@@ -1404,104 +1400,105 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 
 	// Frame dumps are handled a little differently in Windows
 	// Frame dumping disabled entirely on GLES3
-#ifndef USE_GLES3
-#if defined _WIN32 || defined HAVE_LIBAV
-	if (g_ActiveConfig.bDumpFrames)
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
-		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		if (frame_data.empty() || w != flipped_trc.GetWidth() ||
-		             h != flipped_trc.GetHeight())
+#if defined _WIN32 || defined HAVE_LIBAV
+		if (g_ActiveConfig.bDumpFrames)
 		{
-			w = flipped_trc.GetWidth();
-			h = flipped_trc.GetHeight();
-			frame_data.resize(3 * w * h);
-		}
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-		if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
-		{
-			if (!bLastFrameDumped)
+			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+			if (frame_data.empty() || w != flipped_trc.GetWidth() ||
+				     h != flipped_trc.GetHeight())
 			{
-				#ifdef _WIN32
-					bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
-				#else
-					bAVIDumping = AVIDump::Start(w, h);
-				#endif
-				if (!bAVIDumping)
-					OSD::AddMessage("AVIDump Start failed", 2000);
-				else
+				w = flipped_trc.GetWidth();
+				h = flipped_trc.GetHeight();
+				frame_data.resize(3 * w * h);
+			}
+			glPixelStorei(GL_PACK_ALIGNMENT, 1);
+			glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
+			if (GL_REPORT_ERROR() == GL_NO_ERROR && w > 0 && h > 0)
+			{
+				if (!bLastFrameDumped)
 				{
-					OSD::AddMessage(StringFromFormat(
-								"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-								File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h).c_str(), 2000);
+					#ifdef _WIN32
+						bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
+					#else
+						bAVIDumping = AVIDump::Start(w, h);
+					#endif
+					if (!bAVIDumping)
+						OSD::AddMessage("AVIDump Start failed", 2000);
+					else
+					{
+						OSD::AddMessage(StringFromFormat(
+									"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+									File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h).c_str(), 2000);
+					}
 				}
-			}
-			if (bAVIDumping)
-			{
-				#ifndef _WIN32
-					FlipImageData(&frame_data[0], w, h);
-				#endif
+				if (bAVIDumping)
+				{
+					#ifndef _WIN32
+						FlipImageData(&frame_data[0], w, h);
+					#endif
 
-					AVIDump::AddFrame(&frame_data[0], w, h);
-			}
+						AVIDump::AddFrame(&frame_data[0], w, h);
+				}
 
-			bLastFrameDumped = true;
+				bLastFrameDumped = true;
+			}
+			else
+				NOTICE_LOG(VIDEO, "Error reading framebuffer");
 		}
 		else
-			NOTICE_LOG(VIDEO, "Error reading framebuffer");
-	}
-	else
-	{
-		if (bLastFrameDumped && bAVIDumping)
 		{
-			std::vector<u8>().swap(frame_data);
-			w = h = 0;
-			AVIDump::Stop();
-			bAVIDumping = false;
-			OSD::AddMessage("Stop dumping frames", 2000);
+			if (bLastFrameDumped && bAVIDumping)
+			{
+				std::vector<u8>().swap(frame_data);
+				w = h = 0;
+				AVIDump::Stop();
+				bAVIDumping = false;
+				OSD::AddMessage("Stop dumping frames", 2000);
+			}
+			bLastFrameDumped = false;
 		}
-		bLastFrameDumped = false;
-	}
 #else
-	if (g_ActiveConfig.bDumpFrames)
-	{
-		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-		std::string movie_file_name;
-		w = GetTargetRectangle().GetWidth();
-		h = GetTargetRectangle().GetHeight();
-		frame_data.resize(3 * w * h);
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
-		if (GL_REPORT_ERROR() == GL_NO_ERROR)
+		if (g_ActiveConfig.bDumpFrames)
 		{
-			if (!bLastFrameDumped)
+			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+			std::string movie_file_name;
+			w = GetTargetRectangle().GetWidth();
+			h = GetTargetRectangle().GetHeight();
+			frame_data.resize(3 * w * h);
+			glPixelStorei(GL_PACK_ALIGNMENT, 1);
+			glReadPixels(GetTargetRectangle().left, GetTargetRectangle().bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, &frame_data[0]);
+			if (GL_REPORT_ERROR() == GL_NO_ERROR)
 			{
-				movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
-				pFrameDump.Open(movie_file_name, "wb");
-				if (!pFrameDump)
-					OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
-				else
+				if (!bLastFrameDumped)
 				{
-					OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h).c_str(), 2000);
+					movie_file_name = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump.raw";
+					pFrameDump.Open(movie_file_name, "wb");
+					if (!pFrameDump)
+						OSD::AddMessage("Error opening framedump.raw for writing.", 2000);
+					else
+					{
+						OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d RGB24)", movie_file_name.c_str(), w, h).c_str(), 2000);
+					}
 				}
+				if (pFrameDump)
+				{
+					FlipImageData(&frame_data[0], w, h);
+					pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
+					pFrameDump.Flush();
+				}
+				bLastFrameDumped = true;
 			}
-			if (pFrameDump)
-			{
-				FlipImageData(&frame_data[0], w, h);
-				pFrameDump.WriteBytes(&frame_data[0], w * 3 * h);
-				pFrameDump.Flush();
-			}
-			bLastFrameDumped = true;
 		}
-	}
-	else
-	{
-		if (bLastFrameDumped)
-			pFrameDump.Close();
-		bLastFrameDumped = false;
-	}
+		else
+		{
+			if (bLastFrameDumped)
+				pFrameDump.Close();
+			bLastFrameDumped = false;
+		}
 #endif
-#endif
+	}
 	// Finish up the current frame, print some stats
 
 	SetWindowSize(fbWidth, fbHeight);
@@ -1650,10 +1647,8 @@ void Renderer::RestoreAPIState()
 	SetLogicOpMode();
 	UpdateViewport();
 
-#ifndef USE_GLES3
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 		glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);
-#endif
 
 	VertexManager *vm = (OGL::VertexManager*)g_vertex_manager;
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
@@ -1706,9 +1701,9 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-
+	if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
+		return;
 	// Logic ops aren't available in GLES3/GLES2
-#ifndef USE_GLES3
 	const GLenum glLogicOpCodes[16] =
 	{
 		GL_CLEAR,
@@ -1738,7 +1733,6 @@ void Renderer::SetLogicOpMode()
 	{
 		glDisable(GL_COLOR_LOGIC_OP);
 	}
-#endif
 }
 
 void Renderer::SetDitherMode()
@@ -1756,10 +1750,8 @@ void Renderer::SetLineWidth()
 	if (bpmem.lineptwidth.linesize > 0)
 		// scale by ratio of widths
 		glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f);
-#ifndef USE_GLES3
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL && bpmem.lineptwidth.pointsize > 0)
 		glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
-#endif
 }
 
 void Renderer::SetSamplerState(int stage, int texindex)

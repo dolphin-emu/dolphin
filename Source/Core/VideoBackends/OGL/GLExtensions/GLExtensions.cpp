@@ -10,6 +10,344 @@
 #endif
 #include <unordered_map>
 
+// gl_1_1
+PFNGLCLEARINDEXPROC glClearIndex;
+PFNGLCLEARCOLORPROC glClearColor;
+PFNGLCLEARPROC glClear;
+PFNGLINDEXMASKPROC glIndexMask;
+PFNGLCOLORMASKPROC glColorMask;
+PFNGLALPHAFUNCPROC glAlphaFunc;
+PFNGLBLENDFUNCPROC glBlendFunc;
+PFNGLLOGICOPPROC glLogicOp;
+PFNGLCULLFACEPROC glCullFace;
+PFNGLFRONTFACEPROC glFrontFace;
+PFNGLPOINTSIZEPROC glPointSize;
+PFNGLLINEWIDTHPROC glLineWidth;
+PFNGLLINESTIPPLEPROC glLineStipple;
+PFNGLPOLYGONMODEPROC glPolygonMode;
+PFNGLPOLYGONOFFSETPROC glPolygonOffset;
+PFNGLPOLYGONSTIPPLEPROC glPolygonStipple;
+PFNGLGETPOLYGONSTIPPLEPROC glGetPolygonStipple;
+PFNGLEDGEFLAGPROC glEdgeFlag;
+PFNGLEDGEFLAGVPROC glEdgeFlagv;
+PFNGLSCISSORPROC glScissor;
+PFNGLCLIPPLANEPROC glClipPlane;
+PFNGLGETCLIPPLANEPROC glGetClipPlane;
+PFNGLDRAWBUFFERPROC glDrawBuffer;
+PFNGLREADBUFFERPROC glReadBuffer;
+PFNGLENABLEPROC glEnable;
+PFNGLDISABLEPROC glDisable;
+PFNGLISENABLEDPROC glIsEnabled;
+PFNGLENABLECLIENTSTATEPROC glEnableClientState;
+PFNGLDISABLECLIENTSTATEPROC glDisableClientState;
+PFNGLGETBOOLEANVPROC glGetBooleanv;
+PFNGLGETDOUBLEVPROC glGetDoublev;
+PFNGLGETFLOATVPROC glGetFloatv;
+PFNGLGETINTEGERVPROC glGetIntegerv;
+PFNGLPUSHATTRIBPROC glPushAttrib;
+PFNGLPOPATTRIBPROC glPopAttrib;
+PFNGLPUSHCLIENTATTRIBPROC glPushClientAttrib;
+PFNGLPOPCLIENTATTRIBPROC glPopClientAttrib;
+PFNGLRENDERMODEPROC glRenderMode;
+PFNGLGETERRORPROC glGetError;
+PFNGLGETSTRINGPROC glGetString;
+PFNGLFINISHPROC glFinish;
+PFNGLFLUSHPROC glFlush;
+PFNGLHINTPROC glHint;
+PFNGLCLEARDEPTHPROC glClearDepth;
+PFNGLDEPTHFUNCPROC glDepthFunc;
+PFNGLDEPTHMASKPROC glDepthMask;
+PFNGLDEPTHRANGEPROC glDepthRange;
+PFNGLCLEARACCUMPROC glClearAccum;
+PFNGLACCUMPROC glAccum;
+PFNGLMATRIXMODEPROC glMatrixMode;
+PFNGLORTHOPROC glOrtho;
+PFNGLFRUSTUMPROC glFrustum;
+PFNGLVIEWPORTPROC glViewport;
+PFNGLPUSHMATRIXPROC glPushMatrix;
+PFNGLPOPMATRIXPROC glPopMatrix;
+PFNGLLOADIDENTITYPROC glLoadIdentity;
+PFNGLLOADMATRIXDPROC glLoadMatrixd;
+PFNGLLOADMATRIXFPROC glLoadMatrixf;
+PFNGLMULTMATRIXDPROC glMultMatrixd;
+PFNGLMULTMATRIXFPROC glMultMatrixf;
+PFNGLROTATEDPROC glRotated;
+PFNGLROTATEFPROC glRotatef;
+PFNGLSCALEDPROC glScaled;
+PFNGLSCALEFPROC glScalef;
+PFNGLTRANSLATEDPROC glTranslated;
+PFNGLTRANSLATEFPROC glTranslatef;
+PFNGLISLISTPROC glIsList;
+PFNGLDELETELISTSPROC glDeleteLists;
+PFNGLGENLISTSPROC glGenLists;
+PFNGLNEWLISTPROC glNewList;
+PFNGLENDLISTPROC glEndList;
+PFNGLCALLLISTPROC glCallList;
+PFNGLCALLLISTSPROC glCallLists;
+PFNGLLISTBASEPROC glListBase;
+PFNGLBEGINPROC glBegin;
+PFNGLENDPROC glEnd;
+PFNGLVERTEX2DPROC glVertex2d;
+PFNGLVERTEX2FPROC glVertex2f;
+PFNGLVERTEX2IPROC glVertex2i;
+PFNGLVERTEX2SPROC glVertex2s;
+PFNGLVERTEX3DPROC glVertex3d;
+PFNGLVERTEX3FPROC glVertex3f;
+PFNGLVERTEX3IPROC glVertex3i;
+PFNGLVERTEX3SPROC glVertex3s;
+PFNGLVERTEX4DPROC glVertex4d;
+PFNGLVERTEX4FPROC glVertex4f;
+PFNGLVERTEX4IPROC glVertex4i;
+PFNGLVERTEX4SPROC glVertex4s;
+PFNGLVERTEX2DVPROC glVertex2dv;
+PFNGLVERTEX2FVPROC glVertex2fv;
+PFNGLVERTEX2IVPROC glVertex2iv;
+PFNGLVERTEX2SVPROC glVertex2sv;
+PFNGLVERTEX3DVPROC glVertex3dv;
+PFNGLVERTEX3FVPROC glVertex3fv;
+PFNGLVERTEX3IVPROC glVertex3iv;
+PFNGLVERTEX3SVPROC glVertex3sv;
+PFNGLVERTEX4DVPROC glVertex4dv;
+PFNGLVERTEX4FVPROC glVertex4fv;
+PFNGLVERTEX4IVPROC glVertex4iv;
+PFNGLVERTEX4SVPROC glVertex4sv;
+PFNGLNORMAL3BPROC glNormal3b;
+PFNGLNORMAL3DPROC glNormal3d;
+PFNGLNORMAL3FPROC glNormal3f;
+PFNGLNORMAL3IPROC glNormal3i;
+PFNGLNORMAL3SPROC glNormal3s;
+PFNGLNORMAL3BVPROC glNormal3bv;
+PFNGLNORMAL3DVPROC glNormal3dv;
+PFNGLNORMAL3FVPROC glNormal3fv;
+PFNGLNORMAL3IVPROC glNormal3iv;
+PFNGLNORMAL3SVPROC glNormal3sv;
+PFNGLINDEXDPROC glIndexd;
+PFNGLINDEXFPROC glIndexf;
+PFNGLINDEXIPROC glIndexi;
+PFNGLINDEXSPROC glIndexs;
+PFNGLINDEXUBPROC glIndexub;
+PFNGLINDEXDVPROC glIndexdv;
+PFNGLINDEXFVPROC glIndexfv;
+PFNGLINDEXIVPROC glIndexiv;
+PFNGLINDEXSVPROC glIndexsv;
+PFNGLINDEXUBVPROC glIndexubv;
+PFNGLCOLOR3BPROC glColor3b;
+PFNGLCOLOR3DPROC glColor3d;
+PFNGLCOLOR3FPROC glColor3f;
+PFNGLCOLOR3IPROC glColor3i;
+PFNGLCOLOR3SPROC glColor3s;
+PFNGLCOLOR3UBPROC glColor3ub;
+PFNGLCOLOR3UIPROC glColor3ui;
+PFNGLCOLOR3USPROC glColor3us;
+PFNGLCOLOR4BPROC glColor4b;
+PFNGLCOLOR4DPROC glColor4d;
+PFNGLCOLOR4FPROC glColor4f;
+PFNGLCOLOR4IPROC glColor4i;
+PFNGLCOLOR4SPROC glColor4s;
+PFNGLCOLOR4UBPROC glColor4ub;
+PFNGLCOLOR4UIPROC glColor4ui;
+PFNGLCOLOR4USPROC glColor4us;
+PFNGLCOLOR3BVPROC glColor3bv;
+PFNGLCOLOR3DVPROC glColor3dv;
+PFNGLCOLOR3FVPROC glColor3fv;
+PFNGLCOLOR3IVPROC glColor3iv;
+PFNGLCOLOR3SVPROC glColor3sv;
+PFNGLCOLOR3UBVPROC glColor3ubv;
+PFNGLCOLOR3UIVPROC glColor3uiv;
+PFNGLCOLOR3USVPROC glColor3usv;
+PFNGLCOLOR4BVPROC glColor4bv;
+PFNGLCOLOR4DVPROC glColor4dv;
+PFNGLCOLOR4FVPROC glColor4fv;
+PFNGLCOLOR4IVPROC glColor4iv;
+PFNGLCOLOR4SVPROC glColor4sv;
+PFNGLCOLOR4UBVPROC glColor4ubv;
+PFNGLCOLOR4UIVPROC glColor4uiv;
+PFNGLCOLOR4USVPROC glColor4usv;
+PFNGLTEXCOORD1DPROC glTexCoord1d;
+PFNGLTEXCOORD1FPROC glTexCoord1f;
+PFNGLTEXCOORD1IPROC glTexCoord1i;
+PFNGLTEXCOORD1SPROC glTexCoord1s;
+PFNGLTEXCOORD2DPROC glTexCoord2d;
+PFNGLTEXCOORD2FPROC glTexCoord2f;
+PFNGLTEXCOORD2IPROC glTexCoord2i;
+PFNGLTEXCOORD2SPROC glTexCoord2s;
+PFNGLTEXCOORD3DPROC glTexCoord3d;
+PFNGLTEXCOORD3FPROC glTexCoord3f;
+PFNGLTEXCOORD3IPROC glTexCoord3i;
+PFNGLTEXCOORD3SPROC glTexCoord3s;
+PFNGLTEXCOORD4DPROC glTexCoord4d;
+PFNGLTEXCOORD4FPROC glTexCoord4f;
+PFNGLTEXCOORD4IPROC glTexCoord4i;
+PFNGLTEXCOORD4SPROC glTexCoord4s;
+PFNGLTEXCOORD1DVPROC glTexCoord1dv;
+PFNGLTEXCOORD1FVPROC glTexCoord1fv;
+PFNGLTEXCOORD1IVPROC glTexCoord1iv;
+PFNGLTEXCOORD1SVPROC glTexCoord1sv;
+PFNGLTEXCOORD2DVPROC glTexCoord2dv;
+PFNGLTEXCOORD2FVPROC glTexCoord2fv;
+PFNGLTEXCOORD2IVPROC glTexCoord2iv;
+PFNGLTEXCOORD2SVPROC glTexCoord2sv;
+PFNGLTEXCOORD3DVPROC glTexCoord3dv;
+PFNGLTEXCOORD3FVPROC glTexCoord3fv;
+PFNGLTEXCOORD3IVPROC glTexCoord3iv;
+PFNGLTEXCOORD3SVPROC glTexCoord3sv;
+PFNGLTEXCOORD4DVPROC glTexCoord4dv;
+PFNGLTEXCOORD4FVPROC glTexCoord4fv;
+PFNGLTEXCOORD4IVPROC glTexCoord4iv;
+PFNGLTEXCOORD4SVPROC glTexCoord4sv;
+PFNGLRASTERPOS2DPROC glRasterPos2d;
+PFNGLRASTERPOS2FPROC glRasterPos2f;
+PFNGLRASTERPOS2IPROC glRasterPos2i;
+PFNGLRASTERPOS2SPROC glRasterPos2s;
+PFNGLRASTERPOS3DPROC glRasterPos3d;
+PFNGLRASTERPOS3FPROC glRasterPos3f;
+PFNGLRASTERPOS3IPROC glRasterPos3i;
+PFNGLRASTERPOS3SPROC glRasterPos3s;
+PFNGLRASTERPOS4DPROC glRasterPos4d;
+PFNGLRASTERPOS4FPROC glRasterPos4f;
+PFNGLRASTERPOS4IPROC glRasterPos4i;
+PFNGLRASTERPOS4SPROC glRasterPos4s;
+PFNGLRASTERPOS2DVPROC glRasterPos2dv;
+PFNGLRASTERPOS2FVPROC glRasterPos2fv;
+PFNGLRASTERPOS2IVPROC glRasterPos2iv;
+PFNGLRASTERPOS2SVPROC glRasterPos2sv;
+PFNGLRASTERPOS3DVPROC glRasterPos3dv;
+PFNGLRASTERPOS3FVPROC glRasterPos3fv;
+PFNGLRASTERPOS3IVPROC glRasterPos3iv;
+PFNGLRASTERPOS3SVPROC glRasterPos3sv;
+PFNGLRASTERPOS4DVPROC glRasterPos4dv;
+PFNGLRASTERPOS4FVPROC glRasterPos4fv;
+PFNGLRASTERPOS4IVPROC glRasterPos4iv;
+PFNGLRASTERPOS4SVPROC glRasterPos4sv;
+PFNGLRECTDPROC glRectd;
+PFNGLRECTFPROC glRectf;
+PFNGLRECTIPROC glRecti;
+PFNGLRECTSPROC glRects;
+PFNGLRECTDVPROC glRectdv;
+PFNGLRECTFVPROC glRectfv;
+PFNGLRECTIVPROC glRectiv;
+PFNGLRECTSVPROC glRectsv;
+PFNGLVERTEXPOINTERPROC glVertexPointer;
+PFNGLNORMALPOINTERPROC glNormalPointer;
+PFNGLCOLORPOINTERPROC glColorPointer;
+PFNGLINDEXPOINTERPROC glIndexPointer;
+PFNGLTEXCOORDPOINTERPROC glTexCoordPointer;
+PFNGLEDGEFLAGPOINTERPROC glEdgeFlagPointer;
+PFNGLGETPOINTERVPROC glGetPointerv;
+PFNGLARRAYELEMENTPROC glArrayElement;
+PFNGLDRAWARRAYSPROC glDrawArrays;
+PFNGLDRAWELEMENTSPROC glDrawElements;
+PFNGLINTERLEAVEDARRAYSPROC glInterleavedArrays;
+PFNGLSHADEMODELPROC glShadeModel;
+PFNGLLIGHTFPROC glLightf;
+PFNGLLIGHTIPROC glLighti;
+PFNGLLIGHTFVPROC glLightfv;
+PFNGLLIGHTIVPROC glLightiv;
+PFNGLGETLIGHTFVPROC glGetLightfv;
+PFNGLGETLIGHTIVPROC glGetLightiv;
+PFNGLLIGHTMODELFPROC glLightModelf;
+PFNGLLIGHTMODELIPROC glLightModeli;
+PFNGLLIGHTMODELFVPROC glLightModelfv;
+PFNGLLIGHTMODELIVPROC glLightModeliv;
+PFNGLMATERIALFPROC glMaterialf;
+PFNGLMATERIALIPROC glMateriali;
+PFNGLMATERIALFVPROC glMaterialfv;
+PFNGLMATERIALIVPROC glMaterialiv;
+PFNGLGETMATERIALFVPROC glGetMaterialfv;
+PFNGLGETMATERIALIVPROC glGetMaterialiv;
+PFNGLCOLORMATERIALPROC glColorMaterial;
+PFNGLPIXELZOOMPROC glPixelZoom;
+PFNGLPIXELSTOREFPROC glPixelStoref;
+PFNGLPIXELSTOREIPROC glPixelStorei;
+PFNGLPIXELTRANSFERFPROC glPixelTransferf;
+PFNGLPIXELTRANSFERIPROC glPixelTransferi;
+PFNGLPIXELMAPFVPROC glPixelMapfv;
+PFNGLPIXELMAPUIVPROC glPixelMapuiv;
+PFNGLPIXELMAPUSVPROC glPixelMapusv;
+PFNGLGETPIXELMAPFVPROC glGetPixelMapfv;
+PFNGLGETPIXELMAPUIVPROC glGetPixelMapuiv;
+PFNGLGETPIXELMAPUSVPROC glGetPixelMapusv;
+PFNGLBITMAPPROC glBitmap;
+PFNGLREADPIXELSPROC glReadPixels;
+PFNGLDRAWPIXELSPROC glDrawPixels;
+PFNGLCOPYPIXELSPROC glCopyPixels;
+PFNGLSTENCILFUNCPROC glStencilFunc;
+PFNGLSTENCILMASKPROC glStencilMask;
+PFNGLSTENCILOPPROC glStencilOp;
+PFNGLCLEARSTENCILPROC glClearStencil;
+PFNGLTEXGENDPROC glTexGend;
+PFNGLTEXGENFPROC glTexGenf;
+PFNGLTEXGENIPROC glTexGeni;
+PFNGLTEXGENDVPROC glTexGendv;
+PFNGLTEXGENFVPROC glTexGenfv;
+PFNGLTEXGENIVPROC glTexGeniv;
+PFNGLGETTEXGENDVPROC glGetTexGendv;
+PFNGLGETTEXGENFVPROC glGetTexGenfv;
+PFNGLGETTEXGENIVPROC glGetTexGeniv;
+PFNGLTEXENVFPROC glTexEnvf;
+PFNGLTEXENVIPROC glTexEnvi;
+PFNGLTEXENVFVPROC glTexEnvfv;
+PFNGLTEXENVIVPROC glTexEnviv;
+PFNGLGETTEXENVFVPROC glGetTexEnvfv;
+PFNGLGETTEXENVIVPROC glGetTexEnviv;
+PFNGLTEXPARAMETERFPROC glTexParameterf;
+PFNGLTEXPARAMETERIPROC glTexParameteri;
+PFNGLTEXPARAMETERFVPROC glTexParameterfv;
+PFNGLTEXPARAMETERIVPROC glTexParameteriv;
+PFNGLGETTEXPARAMETERFVPROC glGetTexParameterfv;
+PFNGLGETTEXPARAMETERIVPROC glGetTexParameteriv;
+PFNGLGETTEXLEVELPARAMETERFVPROC glGetTexLevelParameterfv;
+PFNGLGETTEXLEVELPARAMETERIVPROC glGetTexLevelParameteriv;
+PFNGLTEXIMAGE1DPROC glTexImage1D;
+PFNGLTEXIMAGE2DPROC glTexImage2D;
+PFNGLGETTEXIMAGEPROC glGetTexImage;
+PFNGLGENTEXTURESPROC glGenTextures;
+PFNGLDELETETEXTURESPROC glDeleteTextures;
+PFNGLBINDTEXTUREPROC glBindTexture;
+PFNGLPRIORITIZETEXTURESPROC glPrioritizeTextures;
+PFNGLARETEXTURESRESIDENTPROC glAreTexturesResident;
+PFNGLISTEXTUREPROC glIsTexture;
+PFNGLTEXSUBIMAGE1DPROC glTexSubImage1D;
+PFNGLTEXSUBIMAGE2DPROC glTexSubImage2D;
+PFNGLCOPYTEXIMAGE1DPROC glCopyTexImage1D;
+PFNGLCOPYTEXIMAGE2DPROC glCopyTexImage2D;
+PFNGLCOPYTEXSUBIMAGE1DPROC glCopyTexSubImage1D;
+PFNGLCOPYTEXSUBIMAGE2DPROC glCopyTexSubImage2D;
+PFNGLMAP1DPROC glMap1d;
+PFNGLMAP1FPROC glMap1f;
+PFNGLMAP2DPROC glMap2d;
+PFNGLMAP2FPROC glMap2f;
+PFNGLGETMAPDVPROC glGetMapdv;
+PFNGLGETMAPFVPROC glGetMapfv;
+PFNGLGETMAPIVPROC glGetMapiv;
+PFNGLEVALCOORD1DPROC glEvalCoord1d;
+PFNGLEVALCOORD1FPROC glEvalCoord1f;
+PFNGLEVALCOORD1DVPROC glEvalCoord1dv;
+PFNGLEVALCOORD1FVPROC glEvalCoord1fv;
+PFNGLEVALCOORD2DPROC glEvalCoord2d;
+PFNGLEVALCOORD2FPROC glEvalCoord2f;
+PFNGLEVALCOORD2DVPROC glEvalCoord2dv;
+PFNGLEVALCOORD2FVPROC glEvalCoord2fv;
+PFNGLMAPGRID1DPROC glMapGrid1d;
+PFNGLMAPGRID1FPROC glMapGrid1f;
+PFNGLMAPGRID2DPROC glMapGrid2d;
+PFNGLMAPGRID2FPROC glMapGrid2f;
+PFNGLEVALPOINT1PROC glEvalPoint1;
+PFNGLEVALPOINT2PROC glEvalPoint2;
+PFNGLEVALMESH1PROC glEvalMesh1;
+PFNGLEVALMESH2PROC glEvalMesh2;
+PFNGLFOGFPROC glFogf;
+PFNGLFOGIPROC glFogi;
+PFNGLFOGFVPROC glFogfv;
+PFNGLFOGIVPROC glFogiv;
+PFNGLFEEDBACKBUFFERPROC glFeedbackBuffer;
+PFNGLPASSTHROUGHPROC glPassThrough;
+PFNGLSELECTBUFFERPROC glSelectBuffer;
+PFNGLINITNAMESPROC glInitNames;
+PFNGLLOADNAMEPROC glLoadName;
+PFNGLPUSHNAMEPROC glPushName;
+PFNGLPOPNAMEPROC glPopName;
+
 // gl_1_2
 PFNGLCOPYTEXSUBIMAGE3DPROC glCopyTexSubImage3D;
 PFNGLDRAWRANGEELEMENTSPROC glDrawRangeElements;
@@ -441,6 +779,7 @@ namespace GLExtensions
 	u32 _GLVersion;
 	std::unordered_map<std::string, bool> _extensionlist;
 	// Forward declared init functions
+	bool init_gl_1_1();
 	bool init_gl_1_2();
 	bool init_gl_1_3();
 	bool init_gl_1_4();
@@ -536,15 +875,18 @@ namespace GLExtensions
 		_isES3 = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3;
 		_isES = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 || GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES2;
 
-		// Grab glGetStringi immediately
-		// We need it to grab the extension list
+		// Grab glGetStringi and glGetIntegerv immediately
+		// We need them to grab the extension list
 		// If it fails then the user's drivers don't support GL 3.0	
+		if (GetProcAddress ("glGetIntegerv", (void**)&glGetIntegerv) == NULL)
+			return false;
 		if (GetProcAddress("glGetStringi", (void**)&glGetStringi) == NULL)
 			return false;
 
 		InitExtensionList();
 		InitVersion();
 		
+		if (success && !init_gl_1_1()) success = false;
 		if (success && !init_gl_1_2()) success = false;
 		if (success && !init_gl_1_3()) success = false;
 		if (success && !init_gl_1_4()) success = false;
@@ -589,6 +931,345 @@ namespace GLExtensions
 	 (!!GetProcAddress(#x, (void**)&x)) 
 #define GrabFunctionSuffix(x, y) \
 	 (!!GetProcAddress(#x #y, (void**)&x)) 
+	
+	bool init_gl_1_1()
+	{
+		return GrabFunction(glClearIndex)
+		    && GrabFunction(glClearColor)
+		    && GrabFunction(glClear)
+		    && GrabFunction(glIndexMask)
+		    && GrabFunction(glColorMask)
+		    && GrabFunction(glAlphaFunc)
+		    && GrabFunction(glBlendFunc)
+		    && GrabFunction(glLogicOp)
+		    && GrabFunction(glCullFace)
+		    && GrabFunction(glFrontFace)
+		    && GrabFunction(glPointSize)
+		    && GrabFunction(glLineWidth)
+		    && GrabFunction(glLineStipple)
+		    && GrabFunction(glPolygonMode)
+		    && GrabFunction(glPolygonOffset)
+		    && GrabFunction(glPolygonStipple)
+		    && GrabFunction(glGetPolygonStipple)
+		    && GrabFunction(glEdgeFlag)
+		    && GrabFunction(glEdgeFlagv)
+		    && GrabFunction(glScissor)
+		    && GrabFunction(glClipPlane)
+		    && GrabFunction(glGetClipPlane)
+		    && GrabFunction(glDrawBuffer)
+		    && GrabFunction(glReadBuffer)
+		    && GrabFunction(glEnable)
+		    && GrabFunction(glDisable)
+		    && GrabFunction(glIsEnabled)
+		    && GrabFunction(glEnableClientState)
+		    && GrabFunction(glDisableClientState)
+		    && GrabFunction(glGetBooleanv)
+		    && GrabFunction(glGetDoublev)
+		    && GrabFunction(glGetFloatv)
+		    && GrabFunction(glPushAttrib)
+		    && GrabFunction(glPopAttrib)
+		    && GrabFunction(glPushClientAttrib)
+		    && GrabFunction(glPopClientAttrib)
+		    && GrabFunction(glRenderMode)
+		    && GrabFunction(glGetError)
+		    && GrabFunction(glGetString)
+		    && GrabFunction(glFinish)
+		    && GrabFunction(glFlush)
+		    && GrabFunction(glHint)
+		    && GrabFunction(glClearDepth)
+		    && GrabFunction(glDepthFunc)
+		    && GrabFunction(glDepthMask)
+		    && GrabFunction(glDepthRange)
+		    && GrabFunction(glClearAccum)
+		    && GrabFunction(glAccum)
+		    && GrabFunction(glMatrixMode)
+		    && GrabFunction(glOrtho)
+		    && GrabFunction(glFrustum)
+		    && GrabFunction(glViewport)
+		    && GrabFunction(glPushMatrix)
+		    && GrabFunction(glPopMatrix)
+		    && GrabFunction(glLoadIdentity)
+		    && GrabFunction(glLoadMatrixd)
+		    && GrabFunction(glLoadMatrixf)
+		    && GrabFunction(glMultMatrixd)
+		    && GrabFunction(glMultMatrixf)
+		    && GrabFunction(glRotated)
+		    && GrabFunction(glRotatef)
+		    && GrabFunction(glScaled)
+		    && GrabFunction(glScalef)
+		    && GrabFunction(glTranslated)
+		    && GrabFunction(glTranslatef)
+		    && GrabFunction(glIsList)
+		    && GrabFunction(glDeleteLists)
+		    && GrabFunction(glGenLists)
+		    && GrabFunction(glNewList)
+		    && GrabFunction(glEndList)
+		    && GrabFunction(glCallList)
+		    && GrabFunction(glCallLists)
+		    && GrabFunction(glListBase)
+		    && GrabFunction(glBegin)
+		    && GrabFunction(glEnd)
+		    && GrabFunction(glVertex2d)
+		    && GrabFunction(glVertex2f)
+		    && GrabFunction(glVertex2i)
+		    && GrabFunction(glVertex2s)
+		    && GrabFunction(glVertex3d)
+		    && GrabFunction(glVertex3f)
+		    && GrabFunction(glVertex3i)
+		    && GrabFunction(glVertex3s)
+		    && GrabFunction(glVertex4d)
+		    && GrabFunction(glVertex4f)
+		    && GrabFunction(glVertex4i)
+		    && GrabFunction(glVertex4s)
+		    && GrabFunction(glVertex2dv)
+		    && GrabFunction(glVertex2fv)
+		    && GrabFunction(glVertex2iv)
+		    && GrabFunction(glVertex2sv)
+		    && GrabFunction(glVertex3dv)
+		    && GrabFunction(glVertex3fv)
+		    && GrabFunction(glVertex3iv)
+		    && GrabFunction(glVertex3sv)
+		    && GrabFunction(glVertex4dv)
+		    && GrabFunction(glVertex4fv)
+		    && GrabFunction(glVertex4iv)
+		    && GrabFunction(glVertex4sv)
+		    && GrabFunction(glNormal3b)
+		    && GrabFunction(glNormal3d)
+		    && GrabFunction(glNormal3f)
+		    && GrabFunction(glNormal3i)
+		    && GrabFunction(glNormal3s)
+		    && GrabFunction(glNormal3bv)
+		    && GrabFunction(glNormal3dv)
+		    && GrabFunction(glNormal3fv)
+		    && GrabFunction(glNormal3iv)
+		    && GrabFunction(glNormal3sv)
+		    && GrabFunction(glIndexd)
+		    && GrabFunction(glIndexf)
+		    && GrabFunction(glIndexi)
+		    && GrabFunction(glIndexs)
+		    && GrabFunction(glIndexub)
+		    && GrabFunction(glIndexdv)
+		    && GrabFunction(glIndexfv)
+		    && GrabFunction(glIndexiv)
+		    && GrabFunction(glIndexsv)
+		    && GrabFunction(glIndexubv)
+		    && GrabFunction(glColor3b)
+		    && GrabFunction(glColor3d)
+		    && GrabFunction(glColor3f)
+		    && GrabFunction(glColor3i)
+		    && GrabFunction(glColor3s)
+		    && GrabFunction(glColor3ub)
+		    && GrabFunction(glColor3ui)
+		    && GrabFunction(glColor3us)
+		    && GrabFunction(glColor4b)
+		    && GrabFunction(glColor4d)
+		    && GrabFunction(glColor4f)
+		    && GrabFunction(glColor4i)
+		    && GrabFunction(glColor4s)
+		    && GrabFunction(glColor4ub)
+		    && GrabFunction(glColor4ui)
+		    && GrabFunction(glColor4us)
+		    && GrabFunction(glColor3bv)
+		    && GrabFunction(glColor3dv)
+		    && GrabFunction(glColor3fv)
+		    && GrabFunction(glColor3iv)
+		    && GrabFunction(glColor3sv)
+		    && GrabFunction(glColor3ubv)
+		    && GrabFunction(glColor3uiv)
+		    && GrabFunction(glColor3usv)
+		    && GrabFunction(glColor4bv)
+		    && GrabFunction(glColor4dv)
+		    && GrabFunction(glColor4fv)
+		    && GrabFunction(glColor4iv)
+		    && GrabFunction(glColor4sv)
+		    && GrabFunction(glColor4ubv)
+		    && GrabFunction(glColor4uiv)
+		    && GrabFunction(glColor4usv)
+		    && GrabFunction(glTexCoord1d)
+		    && GrabFunction(glTexCoord1f)
+		    && GrabFunction(glTexCoord1i)
+		    && GrabFunction(glTexCoord1s)
+		    && GrabFunction(glTexCoord2d)
+		    && GrabFunction(glTexCoord2f)
+		    && GrabFunction(glTexCoord2i)
+		    && GrabFunction(glTexCoord2s)
+		    && GrabFunction(glTexCoord3d)
+		    && GrabFunction(glTexCoord3f)
+		    && GrabFunction(glTexCoord3i)
+		    && GrabFunction(glTexCoord3s)
+		    && GrabFunction(glTexCoord4d)
+		    && GrabFunction(glTexCoord4f)
+		    && GrabFunction(glTexCoord4i)
+		    && GrabFunction(glTexCoord4s)
+		    && GrabFunction(glTexCoord1dv)
+		    && GrabFunction(glTexCoord1fv)
+		    && GrabFunction(glTexCoord1iv)
+		    && GrabFunction(glTexCoord1sv)
+		    && GrabFunction(glTexCoord2dv)
+		    && GrabFunction(glTexCoord2fv)
+		    && GrabFunction(glTexCoord2iv)
+		    && GrabFunction(glTexCoord2sv)
+		    && GrabFunction(glTexCoord3dv)
+		    && GrabFunction(glTexCoord3fv)
+		    && GrabFunction(glTexCoord3iv)
+		    && GrabFunction(glTexCoord3sv)
+		    && GrabFunction(glTexCoord4dv)
+		    && GrabFunction(glTexCoord4fv)
+		    && GrabFunction(glTexCoord4iv)
+		    && GrabFunction(glTexCoord4sv)
+		    && GrabFunction(glRasterPos2d)
+		    && GrabFunction(glRasterPos2f)
+		    && GrabFunction(glRasterPos2i)
+		    && GrabFunction(glRasterPos2s)
+		    && GrabFunction(glRasterPos3d)
+		    && GrabFunction(glRasterPos3f)
+		    && GrabFunction(glRasterPos3i)
+		    && GrabFunction(glRasterPos3s)
+		    && GrabFunction(glRasterPos4d)
+		    && GrabFunction(glRasterPos4f)
+		    && GrabFunction(glRasterPos4i)
+		    && GrabFunction(glRasterPos4s)
+		    && GrabFunction(glRasterPos2dv)
+		    && GrabFunction(glRasterPos2fv)
+		    && GrabFunction(glRasterPos2iv)
+		    && GrabFunction(glRasterPos2sv)
+		    && GrabFunction(glRasterPos3dv)
+		    && GrabFunction(glRasterPos3fv)
+		    && GrabFunction(glRasterPos3iv)
+		    && GrabFunction(glRasterPos3sv)
+		    && GrabFunction(glRasterPos4dv)
+		    && GrabFunction(glRasterPos4fv)
+		    && GrabFunction(glRasterPos4iv)
+		    && GrabFunction(glRasterPos4sv)
+		    && GrabFunction(glRectd)
+		    && GrabFunction(glRectf)
+		    && GrabFunction(glRecti)
+		    && GrabFunction(glRects)
+		    && GrabFunction(glRectdv)
+		    && GrabFunction(glRectfv)
+		    && GrabFunction(glRectiv)
+		    && GrabFunction(glRectsv)
+		    && GrabFunction(glVertexPointer)
+		    && GrabFunction(glNormalPointer)
+		    && GrabFunction(glColorPointer)
+		    && GrabFunction(glIndexPointer)
+		    && GrabFunction(glTexCoordPointer)
+		    && GrabFunction(glEdgeFlagPointer)
+		    && GrabFunction(glGetPointerv)
+		    && GrabFunction(glArrayElement)
+		    && GrabFunction(glDrawArrays)
+		    && GrabFunction(glDrawElements)
+		    && GrabFunction(glInterleavedArrays)
+		    && GrabFunction(glShadeModel)
+		    && GrabFunction(glLightf)
+		    && GrabFunction(glLighti)
+		    && GrabFunction(glLightfv)
+		    && GrabFunction(glLightiv)
+		    && GrabFunction(glGetLightfv)
+		    && GrabFunction(glGetLightiv)
+		    && GrabFunction(glLightModelf)
+		    && GrabFunction(glLightModeli)
+		    && GrabFunction(glLightModelfv)
+		    && GrabFunction(glLightModeliv)
+		    && GrabFunction(glMaterialf)
+		    && GrabFunction(glMateriali)
+		    && GrabFunction(glMaterialfv)
+		    && GrabFunction(glMaterialiv)
+		    && GrabFunction(glGetMaterialfv)
+		    && GrabFunction(glGetMaterialiv)
+		    && GrabFunction(glColorMaterial)
+		    && GrabFunction(glPixelZoom)
+		    && GrabFunction(glPixelStoref)
+		    && GrabFunction(glPixelStorei)
+		    && GrabFunction(glPixelTransferf)
+		    && GrabFunction(glPixelTransferi)
+		    && GrabFunction(glPixelMapfv)
+		    && GrabFunction(glPixelMapuiv)
+		    && GrabFunction(glPixelMapusv)
+		    && GrabFunction(glGetPixelMapfv)
+		    && GrabFunction(glGetPixelMapuiv)
+		    && GrabFunction(glGetPixelMapusv)
+		    && GrabFunction(glBitmap)
+		    && GrabFunction(glReadPixels)
+		    && GrabFunction(glDrawPixels)
+		    && GrabFunction(glCopyPixels)
+		    && GrabFunction(glStencilFunc)
+		    && GrabFunction(glStencilMask)
+		    && GrabFunction(glStencilOp)
+		    && GrabFunction(glClearStencil)
+		    && GrabFunction(glTexGend)
+		    && GrabFunction(glTexGenf)
+		    && GrabFunction(glTexGeni)
+		    && GrabFunction(glTexGendv)
+		    && GrabFunction(glTexGenfv)
+		    && GrabFunction(glTexGeniv)
+		    && GrabFunction(glGetTexGendv)
+		    && GrabFunction(glGetTexGenfv)
+		    && GrabFunction(glGetTexGeniv)
+		    && GrabFunction(glTexEnvf)
+		    && GrabFunction(glTexEnvi)
+		    && GrabFunction(glTexEnvfv)
+		    && GrabFunction(glTexEnviv)
+		    && GrabFunction(glGetTexEnvfv)
+		    && GrabFunction(glGetTexEnviv)
+		    && GrabFunction(glTexParameterf)
+		    && GrabFunction(glTexParameteri)
+		    && GrabFunction(glTexParameterfv)
+		    && GrabFunction(glTexParameteriv)
+		    && GrabFunction(glGetTexParameterfv)
+		    && GrabFunction(glGetTexParameteriv)
+		    && GrabFunction(glGetTexLevelParameterfv)
+		    && GrabFunction(glGetTexLevelParameteriv)
+		    && GrabFunction(glTexImage1D)
+		    && GrabFunction(glTexImage2D)
+		    && GrabFunction(glGetTexImage)
+		    && GrabFunction(glGenTextures)
+		    && GrabFunction(glDeleteTextures)
+		    && GrabFunction(glBindTexture)
+		    && GrabFunction(glPrioritizeTextures)
+		    && GrabFunction(glAreTexturesResident)
+		    && GrabFunction(glIsTexture)
+		    && GrabFunction(glTexSubImage1D)
+		    && GrabFunction(glTexSubImage2D)
+		    && GrabFunction(glCopyTexImage1D)
+		    && GrabFunction(glCopyTexImage2D)
+		    && GrabFunction(glCopyTexSubImage1D)
+		    && GrabFunction(glCopyTexSubImage2D)
+		    && GrabFunction(glMap1d)
+		    && GrabFunction(glMap1f)
+		    && GrabFunction(glMap2d)
+		    && GrabFunction(glMap2f)
+		    && GrabFunction(glGetMapdv)
+		    && GrabFunction(glGetMapfv)
+		    && GrabFunction(glGetMapiv)
+		    && GrabFunction(glEvalCoord1d)
+		    && GrabFunction(glEvalCoord1f)
+		    && GrabFunction(glEvalCoord1dv)
+		    && GrabFunction(glEvalCoord1fv)
+		    && GrabFunction(glEvalCoord2d)
+		    && GrabFunction(glEvalCoord2f)
+		    && GrabFunction(glEvalCoord2dv)
+		    && GrabFunction(glEvalCoord2fv)
+		    && GrabFunction(glMapGrid1d)
+		    && GrabFunction(glMapGrid1f)
+		    && GrabFunction(glMapGrid2d)
+		    && GrabFunction(glMapGrid2f)
+		    && GrabFunction(glEvalPoint1)
+		    && GrabFunction(glEvalPoint2)
+		    && GrabFunction(glEvalMesh1)
+		    && GrabFunction(glEvalMesh2)
+		    && GrabFunction(glFogf)
+		    && GrabFunction(glFogi)
+		    && GrabFunction(glFogfv)
+		    && GrabFunction(glFogiv)
+		    && GrabFunction(glFeedbackBuffer)
+		    && GrabFunction(glPassThrough)
+		    && GrabFunction(glSelectBuffer)
+		    && GrabFunction(glInitNames)
+		    && GrabFunction(glLoadName)
+		    && GrabFunction(glPushName)
+		    && GrabFunction(glPopName);
+	}
 		
 	bool init_gl_1_2()
 	{

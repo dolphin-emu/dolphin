@@ -767,7 +767,7 @@ typedef double		GLclampd;	/* double precision float in [0,1] */
 #define GL_ALL_CLIENT_ATTRIB_BITS 		0xFFFFFFFF
 #define GL_CLIENT_ALL_ATTRIB_BITS 		0xFFFFFFFF
 
-
+#ifdef GL_GLEXT_PROTOTYPES
 
 /*
  * Miscellaneous
@@ -1470,6 +1470,7 @@ GLAPI void GLAPIENTRY glPushName( GLuint name );
 
 GLAPI void GLAPIENTRY glPopName( void );
 
+#endif
 
 
 /*
