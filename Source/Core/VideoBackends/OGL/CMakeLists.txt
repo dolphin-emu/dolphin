@@ -17,18 +17,11 @@ set(SRCS	GLExtensions/GLExtensions.cpp
 set(LIBS	videocommon
 			SOIL
 			common
+			dl
 			${X11_LIBRARIES})
 if(USE_EGL)
 	set(LIBS ${LIBS}
 		EGL)
-endif()
-
-if(USE_GLES3)
-	set(LIBS ${LIBS}
-		GLESv2)
-else()
-	set(LIBS ${LIBS}
-		${OPENGL_LIBRARIES})
 endif()
 
 if(wxWidgets_FOUND)
