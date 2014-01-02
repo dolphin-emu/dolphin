@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu.settings.input.overlayconfig;
 
-import android.view.WindowManager;
 import org.dolphinemu.dolphinemu.R;
 
 import android.app.Activity;
@@ -23,18 +22,16 @@ public final class OverlayConfigActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 
-		WindowManager wm = getWindowManager();
-
 		// Initialize all of the buttons to add.
-		final OverlayConfigButton buttonA = new OverlayConfigButton(wm, this, "gcpad_a", R.drawable.gcpad_a);
-		final OverlayConfigButton buttonB = new OverlayConfigButton(wm, this, "gcpad_b", R.drawable.gcpad_b);
-		final OverlayConfigButton buttonX = new OverlayConfigButton(wm, this, "gcpad_x", R.drawable.gcpad_x);
-		final OverlayConfigButton buttonY = new OverlayConfigButton(wm, this, "gcpad_y", R.drawable.gcpad_y);
-		final OverlayConfigButton buttonZ = new OverlayConfigButton(wm, this, "gcpad_z", R.drawable.gcpad_z);
-		final OverlayConfigButton buttonS = new OverlayConfigButton(wm, this, "gcpad_start", R.drawable.gcpad_start);
-		final OverlayConfigButton buttonL = new OverlayConfigButton(wm, this, "gcpad_l", R.drawable.gcpad_l);
-		final OverlayConfigButton buttonR = new OverlayConfigButton(wm, this, "gcpad_r", R.drawable.gcpad_r);
-		final OverlayConfigButton joystick = new OverlayConfigButton(wm, this, "gcpad_joystick_range", R.drawable.gcpad_joystick_range);
+		final OverlayConfigButton buttonA = new OverlayConfigButton(this, "gcpad_a", R.drawable.gcpad_a);
+		final OverlayConfigButton buttonB = new OverlayConfigButton(this, "gcpad_b", R.drawable.gcpad_b);
+		final OverlayConfigButton buttonX = new OverlayConfigButton(this, "gcpad_x", R.drawable.gcpad_x);
+		final OverlayConfigButton buttonY = new OverlayConfigButton(this, "gcpad_y", R.drawable.gcpad_y);
+		final OverlayConfigButton buttonZ = new OverlayConfigButton(this, "gcpad_z", R.drawable.gcpad_z);
+		final OverlayConfigButton buttonS = new OverlayConfigButton(this, "gcpad_start", R.drawable.gcpad_start);
+		final OverlayConfigButton buttonL = new OverlayConfigButton(this, "gcpad_l", R.drawable.gcpad_l);
+		final OverlayConfigButton buttonR = new OverlayConfigButton(this, "gcpad_r", R.drawable.gcpad_r);
+		final OverlayConfigButton joystick = new OverlayConfigButton(this, "gcpad_joystick_range", R.drawable.gcpad_joystick_range);
 
 		// Add the buttons to the layout
 		final RelativeLayout configLayout = new RelativeLayout(this);
