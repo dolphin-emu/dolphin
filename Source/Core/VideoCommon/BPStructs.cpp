@@ -267,6 +267,7 @@ void BPWritten(const BPCmd& bp)
 			rc.top = (int)bpmem.copyTexSrcXY.y;
 
 			// Here Width+1 like Height, otherwise some textures are corrupted already since the native resolution.
+			// TODO: What's the behavior of out of bound access?
 			rc.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
 			rc.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
