@@ -96,7 +96,7 @@ void SHADER::SetProgramVariables()
 	Bind();
 
 	// Bind UBO
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO && !g_ActiveConfig.backend_info.bSupportShadingLanguage420pack)
 	{
 		GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
 		GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
@@ -134,7 +134,6 @@ void SHADER::SetProgramVariables()
 			}
 		}
 	}
-
 
 	// Bind Texture Sampler
 	for (int a = 0; a <= 9; ++a)
@@ -569,6 +568,7 @@ void ProgramShaderCache::CreateHeader ( void )
 		"%s\n"
 		"%s\n" // ubo
 		"%s\n" // early-z
+		"%s\n" // 420pack
 
 		// Precision defines for GLSLES3
 		"%s\n"
@@ -597,6 +597,7 @@ void ProgramShaderCache::CreateHeader ( void )
 		, v==GLSLES3 ? "#version 300 es" : v==GLSL_130 ? "#version 130" : v==GLSL_140 ? "#version 140" : "#version 150"
 		, g_ActiveConfig.backend_info.bSupportsGLSLUBO && v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
 		, g_ActiveConfig.backend_info.bSupportsEarlyZ ? "#extension GL_ARB_shader_image_load_store : enable" : ""
+		, g_ActiveConfig.backend_info.bSupportShadingLanguage420pack ? "#extension GL_ARB_shading_language_420pack : enable" : ""
 
 		, v==GLSLES3 ? "precision highp float;" : ""
 

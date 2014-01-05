@@ -371,6 +371,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsGLSLUBO = !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS);
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 	g_Config.backend_info.bSupportsEarlyZ = false;
+	g_Config.backend_info.bSupportShadingLanguage420pack = false;
 
 	g_ogl_config.bSupportsGLSLCache = true;
 	g_ogl_config.bSupportsGLPinnedMemory = false;
@@ -482,6 +483,7 @@ Renderer::Renderer()
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) && 
 				(TO_BOOL(GLEW_VERSION_3_1) || TO_BOOL(GLEW_NV_primitive_restart));
 	g_Config.backend_info.bSupportsEarlyZ = TO_BOOL(GLEW_ARB_shader_image_load_store);
+	g_Config.backend_info.bSupportShadingLanguage420pack = TO_BOOL(GLEW_ARB_shading_language_420pack);
 
 	g_ogl_config.bSupportsGLSLCache = TO_BOOL(GLEW_ARB_get_program_binary);
 	g_ogl_config.bSupportsGLPinnedMemory = TO_BOOL(GLEW_AMD_pinned_memory);
