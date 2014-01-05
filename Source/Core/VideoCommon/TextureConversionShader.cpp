@@ -110,13 +110,13 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType)
 {
-	WRITE(p,                                       // sampleUv is the sample position in (int)gx_coords
-		"uv0 = float2(sampleUv + int2(%d, 0)"  // pixel offset (if more than one pixel is samped)
-		" + position.xy);\n"                   // move to copyed rect
-		"uv0 += float2(0.5, 0.5);\n"           // move to center of pixel
-		"uv0 *= float(position.w);\n"          // scale by two if needed (this will move to pixels border to filter linear)
-		"uv0 /= float2(%d, %d);\n"             // normlize to [0:1]
-		"uv0.y = 1.0-uv0.y;\n"                 // ogl foo (disable this line for d3d)
+	WRITE(p,                                          // sampleUv is the sample position in (int)gx_coords
+		"uv0 = float2(sampleUv + int2(%d, 0));\n" // pixel offset (if more than one pixel is samped)
+		"uv0 += float2(0.5, 0.5);\n"              // move to center of pixel
+		"uv0 *= float(position.w);\n"             // scale by two if needed (this will move to pixels border to filter linear)
+		"uv0 += float2(position.xy);\n"           // move to copyed rect
+		"uv0 /= float2(%d, %d);\n"                // normlize to [0:1]
+		"uv0.y = 1.0-uv0.y;\n"                    // ogl foo (disable this line for d3d)
 		"%s = texture(samp0, uv0).%s;\n",
 		xoffset, EFB_WIDTH, EFB_HEIGHT, dest, colorComp
 	);
