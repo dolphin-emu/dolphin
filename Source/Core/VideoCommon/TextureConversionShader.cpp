@@ -12,7 +12,6 @@
 
 #include "TextureConversionShader.h"
 #include "TextureDecoder.h"
-#include "PixelShaderGen.h"
 #include "BPMemory.h"
 #include "RenderBase.h"
 #include "VideoConfig.h"
@@ -62,7 +61,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 {
 	// left, top, of source rectangle within source texture
 	// width of the destination rectangle, scale_factor (1 or 2)
-	WRITE(p, "uniform int4 " I_COLORS";\n");
+	WRITE(p, "uniform int4 position;\n");
 
 	int blkW = TexDecoder_GetBlockWidthInTexels(format);
 	int blkH = TexDecoder_GetBlockHeightInTexels(format);
@@ -97,7 +96,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	WRITE(p, "  int yl = uv1.y / %d;\n", blkH);
 	WRITE(p, "  int yb = yl * %d;\n", blkH);
 	WRITE(p, "  int yoff = uv1.y - yb;\n");
-	WRITE(p, "  int xp = uv1.x + yoff * " I_COLORS".z;\n");
+	WRITE(p, "  int xp = uv1.x + yoff * position.z;\n");
 	WRITE(p, "  int xel = xp / %d;\n", samples == 1 ? factor : blkW);
 	WRITE(p, "  int xb = xel / %d;\n", blkH);
 	WRITE(p, "  int xoff = xel - xb * %d;\n", blkH);
@@ -113,9 +112,9 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xof
 {
 	WRITE(p,                                       // sampleUv is the sample position in (int)gx_coords
 		"uv0 = float2(sampleUv + int2(%d, 0)"  // pixel offset (if more than one pixel is samped)
-		" + " I_COLORS".xy);\n"                // move to copyed rect
+		" + position.xy);\n"                   // move to copyed rect
 		"uv0 += float2(0.5, 0.5);\n"           // move to center of pixel
-		"uv0 *= float(" I_COLORS".w);\n"       // scale by two if needed (this will move to pixels border to filter linear)
+		"uv0 *= float(position.w);\n"          // scale by two if needed (this will move to pixels border to filter linear)
 		"uv0 /= float2(%d, %d);\n"             // normlize to [0:1]
 		"uv0.y = 1.0-uv0.y;\n"                 // ogl foo (disable this line for d3d)
 		"%s = texture(samp0, uv0).%s;\n",

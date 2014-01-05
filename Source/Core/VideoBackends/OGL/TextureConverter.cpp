@@ -40,6 +40,7 @@ static SHADER s_yuyvToRgbProgram;
 // Not all slots are taken - but who cares.
 const u32 NUM_ENCODING_PROGRAMS = 64;
 static SHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
+static int s_encodingUniforms[NUM_ENCODING_PROGRAMS];
 
 static GLuint s_PBO = 0; // for readback with different strides
 
@@ -156,6 +157,8 @@ SHADER &GetOrCreateEncodingShader(u32 format)
 			"}\n";
 
 		ProgramShaderCache::CompileShader(s_encodingPrograms[format], VProgram, shader);
+
+		s_encodingUniforms[format] = glGetUniformLocation(s_encodingPrograms[format].glprogid, "position");
 	}
 	return s_encodingPrograms[format];
 }
@@ -312,7 +315,7 @@ int EncodeToRamFromTexture(u32 address,GLuint source_texture, bool bFromZBuffer,
 	s32 expandedHeight = (height + blkH) & (~blkH);
 
 	texconv_shader.Bind();
-	glUniform4i(texconv_shader.UniformLocations[0],
+	glUniform4i(s_encodingUniforms[format],
 		source.left, source.top,
 		expandedWidth, bScaleByHalf ? 2 : 1);
 

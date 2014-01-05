@@ -108,15 +108,14 @@ void SHADER::SetProgramVariables()
 	}
 
 	// UBO workaround
-	for (int a = 0; a < NUM_UNIFORMS; ++a)
-	{
-		UniformLocations[a] = glGetUniformLocation(glprogid, UniformNames[a]);
-		UniformSize[a] = 0;
-		if(g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-			break;
-	}
 	if(!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 	{
+		for (int a = 0; a < NUM_UNIFORMS; ++a)
+		{
+			UniformLocations[a] = glGetUniformLocation(glprogid, UniformNames[a]);
+			UniformSize[a] = 0;
+		}
+
 		int max_uniforms = 0;
 		char name[50];
 		int size;
