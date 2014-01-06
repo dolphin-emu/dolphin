@@ -1167,7 +1167,7 @@ size_t PSTextureEncoder::Encode(u8* dst, unsigned int dstFormat,
 
 		D3D11_MAPPED_SUBRESOURCE map = { 0 };
 		hr = D3D::context->Map(m_outStage, 0, D3D11_MAP_READ, 0, &map);
-		CHECK(SUCCEEDED(hr), "map staging buffer");
+		CHECK(SUCCEEDED(hr), "map staging buffer (0x%x)", hr);
 
 		u8* src = (u8*)map.pData;
 		for (unsigned int y = 0; y < numBlocksY; ++y)
