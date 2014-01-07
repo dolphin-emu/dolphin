@@ -773,7 +773,6 @@ PFNGLNAMEDBUFFERSTORAGEEXTPROC glNamedBufferStorageEXT;
 namespace GLExtensions
 {
 	// Private members and functions
-	void *_dlsym;
 	bool _isES3;
 	bool _isES;
 	u32 _GLVersion;
@@ -846,10 +845,9 @@ namespace GLExtensions
 		*func = GLInterface->GetProcAddress(name);
 		if (*func == NULL)
 		{
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
 			// Give it a second try with dlsym
-			if (_dlsym) // Just in case dlopen fails
-				*func = dlsym(_dlsym, name.c_str());
+			*func = dlsym(RTLD_NEXT, name.c_str());
 #endif
 			if (*func == NULL && _isES)
 				*func = (void*)0xFFFFFFFF; // Easy to determine invalid function, just so we continue on
@@ -869,9 +867,6 @@ namespace GLExtensions
 	bool Init()
 	{
 		bool success = true;
-#if defined(__linux__)
-		_dlsym = dlopen(NULL, RTLD_LAZY);
-#endif
 		_isES3 = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3;
 		_isES = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 || GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES2;
 
@@ -913,9 +908,6 @@ namespace GLExtensions
 		if (success && !init_khr_debug()) success = false;
 		if (success && !init_arb_buffer_storage()) success = false;
 
-#if defined(__linux__)
-		dlclose(_dlsym);
-#endif
 		return success;
 	}
 

@@ -21,37 +21,16 @@
 #include "ConfigManager.h"
 
 #include <wx/panel.h>
-#import <mach-o/dyld.h> 
 
 #include "VertexShaderManager.h"
 #include "../GLInterface.h"
 #include "AGL.h"
-
-// Copied from
-// https://developer.apple.com/library/mac/documentation/graphicsimaging/conceptual/opengl-macprogguide/opengl_entrypts/opengl_entrypts.html
-void* NSGLGetProcAddress (const char *name)
-{
-	NSSymbol symbol;
-	char* symbolName;
-	symbolName = (char*)malloc(strlen (name) + 2); // 1
-	strcpy(symbolName + 1, name); // 2
-	symbolName[0] = '_'; // 3
-	symbol = NULL;
-	if (NSIsSymbolNameDefined (symbolName)) // 4
-		symbol = NSLookupAndBindSymbol (symbolName);
-	free (symbolName); // 5
-	return symbol ? NSAddressOfSymbol (symbol) : NULL; // 6
-}
 
 void cInterfaceAGL::Swap()
 {
 	[GLWin.cocoaCtx flushBuffer];
 }
 
-void* cInterfaceAGL::GetProcAddress(std::string name)
-{
-	return NSGLGetProcAddress(name.c_str());
-}
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceAGL::Create(void *&window_handle)
