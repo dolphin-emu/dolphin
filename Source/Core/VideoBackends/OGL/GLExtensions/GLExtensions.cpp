@@ -5,7 +5,7 @@
 #include "GLExtensions.h"
 #include "Log.h"
 
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h>
 #endif
 #include <unordered_map>
