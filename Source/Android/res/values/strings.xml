@@ -12,6 +12,11 @@
     <string name="build_revision">Build Revision</string>
     <string name="supports_gles3">Supports OpenGL ES 3</string>
     <string name="supports_neon">Supports NEON</string>
+    <string name="general">General</string>
+    <string name="cpu">CPU</string>
+    <string name="gles_two">GLES 2</string>
+    <string name="gles_three">GLES 3</string>
+    <string name="desktop_gl">OpenGL</string>
 
     <!-- Folder Browser -->
     <string name="current_dir">Current Dir: %1$s</string>

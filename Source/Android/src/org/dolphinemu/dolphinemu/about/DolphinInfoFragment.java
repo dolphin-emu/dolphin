@@ -4,7 +4,7 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu;
+package org.dolphinemu.dolphinemu.about;
 
 import android.app.ListFragment;
 import android.content.Context;
@@ -19,12 +19,14 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.settings.video.VideoSettingsFragment;
 
 /**
  * Represents the about screen.
  */
-public final class AboutFragment extends ListFragment
+public final class DolphinInfoFragment extends ListFragment
 {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -39,14 +41,14 @@ public final class AboutFragment extends ListFragment
 		Input.add(new AboutFragmentItem(getString(R.string.supports_gles3), VideoSettingsFragment.SupportsGLES3() ? yes : no));
 		Input.add(new AboutFragmentItem(getString(R.string.supports_neon),  NativeLibrary.SupportsNEON() ? yes : no));
 
-		AboutFragmentAdapter adapter = new AboutFragmentAdapter(getActivity(), R.layout.about_layout, Input);
+		InfoFragmentAdapter adapter = new InfoFragmentAdapter(getActivity(), R.layout.about_layout, Input);
 		rootView.setAdapter(adapter);
 		rootView.setEnabled(false);  // Makes the list view non-clickable.
 
 		return rootView;
 	}
 
-	// Represents an item in the AboutFragment.
+	// Represents an item in the DolphinInfoFragment.
 	private static final class AboutFragmentItem
 	{
 		private final String title;
@@ -69,14 +71,14 @@ public final class AboutFragment extends ListFragment
 		}
 	}
 
-	// The adapter that manages the displaying of items in this AboutFragment.
-	private static final class AboutFragmentAdapter extends ArrayAdapter<AboutFragmentItem>
+	// The adapter that manages the displaying of items in this DolphinInfoFragment.
+	private static final class InfoFragmentAdapter extends ArrayAdapter<AboutFragmentItem>
 	{
 		private final Context ctx;
 		private final int id;
 		private final List<AboutFragmentItem> items;
 
-		public AboutFragmentAdapter(Context ctx, int id, List<AboutFragmentItem> items)
+		public InfoFragmentAdapter(Context ctx, int id, List<AboutFragmentItem> items)
 		{
 			super(ctx, id, items);
 
