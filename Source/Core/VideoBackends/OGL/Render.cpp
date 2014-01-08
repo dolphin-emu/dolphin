@@ -334,6 +334,17 @@ void InitDriverInfo()
 			version = 10000*major + 1000*minor + release;
 			*/
 		break;
+		case DriverDetails::VENDOR_NVIDIA:
+		{
+			int glmajor = 0;
+			int glminor = 0;
+			int glrelease = 0;
+			int major = 0;
+			int minor = 0;
+			sscanf(g_ogl_config.gl_renderer, "%d.%d.%d NVIDIA %d.%d", &glmajor, &glminor, &glrelease, &major, &minor);
+			version = 100*major + minor;
+		}
+		break;
 		// We don't care about these
 		default:
 		break;
