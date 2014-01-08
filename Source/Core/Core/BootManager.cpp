@@ -215,6 +215,7 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
 		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
 		StartUp.bEnableMemcardSaving = g_NetPlaySettings.m_WriteToMemcard;
+		StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
 		SConfig::GetInstance().m_EnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
 		SConfig::GetInstance().m_EXIDevice[0] = g_NetPlaySettings.m_EXIDevice[0];
 		SConfig::GetInstance().m_EXIDevice[1] = g_NetPlaySettings.m_EXIDevice[1];
