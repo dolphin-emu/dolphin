@@ -341,7 +341,7 @@ void InitDriverInfo()
 			int glrelease = 0;
 			int major = 0;
 			int minor = 0;
-			sscanf(g_ogl_config.gl_renderer, "%d.%d.%d NVIDIA %d.%d", &glmajor, &glminor, &glrelease, &major, &minor);
+			sscanf(g_ogl_config.gl_version, "%d.%d.%d NVIDIA %d.%d", &glmajor, &glminor, &glrelease, &major, &minor);
 			version = 100*major + minor;
 		}
 		break;
