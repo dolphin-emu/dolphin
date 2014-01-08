@@ -888,6 +888,7 @@ namespace GLExtensions
 					// Quite a lot of these had their names changed when merged in to core
 					// Disable the ones that have
 					std::string gl300exts[] = {
+						"GL_ARB_map_buffer_range",
 						//"GL_EXT_gpu_shader4",
 						//"GL_APPLE_flush_buffer_range",
 						"GL_ARB_color_buffer_float",
