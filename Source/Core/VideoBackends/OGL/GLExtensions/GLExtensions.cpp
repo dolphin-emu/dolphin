@@ -835,6 +835,7 @@ namespace GLExtensions
 			// This has intentional fall through
 			switch (_GLVersion)
 			{
+				default:
 				case 330:
 				{
 					std::string gl330exts[] = {
@@ -911,7 +912,15 @@ namespace GLExtensions
 					for (auto it : gl300exts)
 						_extensionlist[it] = true;
 				}
-				default:
+				case 210:
+				case 200:
+				case 150:
+				case 140:
+				case 130:
+				case 121:
+				case 120:
+				case 110:
+				case 100:
 				break;
 			}
 		}
