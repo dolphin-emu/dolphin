@@ -1128,10 +1128,10 @@ static const char *tevFogFuncsTable[] =
 	"",																// ?
 	"",																// Linear
 	"",																// ?
-	"\tfog = 1.0 - pow(2.0, -8.0 * fog);\n",						// exp
-	"\tfog = 1.0 - pow(2.0, -8.0 * fog * fog);\n",				// exp2
-	"\tfog = pow(2.0, -8.0 * (1.0 - fog));\n",					// backward exp
-	"\tfog = 1.0 - fog;\n   fog = pow(2.0, -8.0 * fog * fog);\n"	// backward exp2
+	"\tfog = 1.0 - exp2(-8.0 * fog);\n",						// exp
+	"\tfog = 1.0 - exp2(-8.0 * fog * fog);\n",				// exp2
+	"\tfog = exp2(-8.0 * (1.0 - fog));\n",					// backward exp
+	"\tfog = 1.0 - fog;\n   fog = exp2(-8.0 * fog * fog);\n"	// backward exp2
 };
 
 template<class T>
