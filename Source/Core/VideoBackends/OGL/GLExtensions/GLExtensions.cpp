@@ -825,6 +825,96 @@ namespace GLExtensions
 			for (auto it : gles3exts)
 				_extensionlist[it] = true;
 		}
+		else if (!_isES)
+		{
+			// Some OpenGL implementations chose to not expose core extensions as extensions
+			// Let's add them to the list manually depending on which version of OpenGL we have
+			// We need to be slightly careful here
+			// When an extension got merged in to core, the naming may have changed
+
+			// This has intentional fall through
+			switch (_GLVersion)
+			{
+				case 330:
+				{
+					std::string gl330exts[] = {
+						"GL_ARB_shader_bit_encoding",
+						"GL_ARB_blend_func_extended",
+						"GL_ARB_explicit_attrib_location",
+						"GL_ARB_occlusion_query2",
+						"GL_ARB_sampler_objects",
+						"GL_ARB_texture_swizzle",
+						"GL_ARB_timer_query",
+						"GL_ARB_instanced_arrays",
+						"GL_ARB_texture_rgb10_a2ui",
+						"GL_ARB_vertex_type_2_10_10_10_rev",
+					};
+					for (auto it : gl330exts)
+						_extensionlist[it] = true;
+				}
+				case 320:
+				{
+					std::string gl320exts[] = {
+						"GL_ARB_geometry_shader4",
+						"GL_ARB_sync",
+						"GL_ARB_vertex_array_bgra",
+						"GL_ARB_draw_elements_base_vertex",
+						"GL_ARB_seamless_cube_map",
+						"GL_ARB_texture_multisample",
+						"GL_ARB_fragment_coord_conventions",
+						"GL_ARB_provoking_vertex",
+						"GL_ARB_depth_clamp",
+					};
+					for (auto it : gl320exts)
+						_extensionlist[it] = true;
+				}
+				case 310:
+				{
+					// Can't add NV_primitive_restart since function name changed
+					std::string gl310exts[] = {
+						"GL_ARB_draw_instanced",
+						"GL_ARB_copy_buffer",
+						"GL_ARB_texture_buffer_object",
+						"GL_ARB_texture_rectangle",
+						"GL_ARB_uniform_buffer_object",
+						//"GL_NV_primitive_restart",
+					};
+					for (auto it : gl310exts)
+						_extensionlist[it] = true;
+				}
+				case 300:
+				{
+					// Quite a lot of these had their names changed when merged in to core
+					// Disable the ones that have
+					std::string gl300exts[] = {
+						//"GL_EXT_gpu_shader4",
+						//"GL_APPLE_flush_buffer_range",
+						"GL_ARB_color_buffer_float",
+						//"GL_NV_depth_buffer_float",
+						"GL_ARB_texture_float",
+						//"GL_EXT_packed_float",
+						//"GL_EXT_texture_shared_exponent",
+						"GL_ARB_half_float_pixel",
+						//"GL_NV_half_float",
+						"GL_ARB_framebuffer_object",
+						//"GL_EXT_framebuffer_sRGB",
+						"GL_ARB_texture_float",
+						//"GL_EXT_texture_integer",
+						//"GL_EXT_draw_buffers2",
+						//"GL_EXT_texture_integer",
+						//"GL_EXT_texture_array",
+						//"GL_EXT_texture_compression_rgtc",
+						//"GL_EXT_transform_feedback",
+						"GL_ARB_vertex_array_object",
+						//"GL_NV_conditional_render",
+					};
+					for (auto it : gl300exts)
+						_extensionlist[it] = true;
+				}
+				default:
+				break;
+			}
+		}
 		GLint NumExtension = 0;
 		glGetIntegerv(GL_NUM_EXTENSIONS, &NumExtension);
 		for (GLint i = 0; i < NumExtension; ++i)
@@ -878,8 +968,8 @@ namespace GLExtensions
 		if (GetProcAddress("glGetStringi", (void**)&glGetStringi) == NULL)
 			return false;
 
-		InitExtensionList();
 		InitVersion();
+		InitExtensionList();
 		
 		if (success && !init_gl_1_1()) success = false;
 		if (success && !init_gl_1_2()) success = false;
