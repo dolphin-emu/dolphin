@@ -32,12 +32,6 @@ enum SIInterruptType
 };
 static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);
 
-// SI number of channels
-enum
-{
-	NUMBER_OF_CHANNELS	= 0x04
-};
-
 // SI Internal Hardware Addresses
 enum
 {
@@ -208,7 +202,7 @@ union USIEXIClockCount
 };
 
 // STATE_TO_SAVE
-static SSIChannel			g_Channel[NUMBER_OF_CHANNELS];
+static SSIChannel			g_Channel[MAX_SI_CHANNELS];
 static USIPoll				g_Poll;
 static USIComCSR			g_ComCSR;
 static USIStatusReg			g_StatusReg;
@@ -217,7 +211,7 @@ static u8					g_SIBuffer[128];
 
 void DoState(PointerWrap &p)
 {
-	for(int i = 0; i < NUMBER_OF_CHANNELS; i++)
+	for(int i = 0; i < MAX_SI_CHANNELS; i++)
 	{
 		p.Do(g_Channel[i].m_InHi.Hex);
 		p.Do(g_Channel[i].m_InLo.Hex);
@@ -254,7 +248,7 @@ void DoState(PointerWrap &p)
 
 void Init()
 {
-	for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
+	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 	{
 		g_Channel[i].m_Out.Hex = 0;
 		g_Channel[i].m_InHi.Hex = 0;
@@ -282,7 +276,7 @@ void Init()
 
 void Shutdown()
 {
-	for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
+	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 		RemoveDevice(i);
 	GBAConnectionWaiter_Shutdown();
 }
@@ -554,7 +548,7 @@ void AddDevice(ISIDevice* pDevice)
 {
 	int _iDeviceNumber = pDevice->GetDeviceNumber();
 
-	//_dbg_assert_(SERIALINTERFACE, _iDeviceNumber < NUMBER_OF_CHANNELS);
+	//_dbg_assert_(SERIALINTERFACE, _iDeviceNumber < MAX_SI_CHANNELS);
 
 	// delete the old device
 	RemoveDevice(_iDeviceNumber);

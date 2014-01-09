@@ -20,16 +20,11 @@ namespace ExpansionInterface
 
 static int changeDevice;
 
-enum
-{
-	NUM_CHANNELS = 3
-};
-
-CEXIChannel *g_Channels[NUM_CHANNELS];
+CEXIChannel *g_Channels[MAX_EXI_CHANNELS];
 void Init()
 {
 	initSRAM();
-	for (u32 i = 0; i < NUM_CHANNELS; i++)
+	for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
 		g_Channels[i] = new CEXIChannel(i);
 
 	if (Movie::IsPlayingInput() && Movie::IsUsingMemcard() && Movie::IsConfigSaved())
@@ -111,9 +106,9 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	u32 iRegister = (iAddr >> 2) % 5;
 	u32 iChannel = (iAddr >> 2) / 5;
 
-	_dbg_assert_(EXPANSIONINTERFACE, iChannel < NUM_CHANNELS);
+	_dbg_assert_(EXPANSIONINTERFACE, iChannel < MAX_EXI_CHANNELS);
 
-	if (iChannel < NUM_CHANNELS)
+	if (iChannel < MAX_EXI_CHANNELS)
 	{
 		g_Channels[iChannel]->Read32(_uReturnValue, iRegister);
 	}
@@ -130,9 +125,9 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	u32 iRegister = (iAddr >> 2) % 5;
 	u32 iChannel = (iAddr >> 2) / 5;
 
-	_dbg_assert_(EXPANSIONINTERFACE, iChannel < NUM_CHANNELS);
+	_dbg_assert_(EXPANSIONINTERFACE, iChannel < MAX_EXI_CHANNELS);
 
-	if (iChannel < NUM_CHANNELS)
+	if (iChannel < MAX_EXI_CHANNELS)
 		g_Channels[iChannel]->Write32(_iValue, iRegister);
 }
 

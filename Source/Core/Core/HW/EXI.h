@@ -10,6 +10,11 @@
 #include "Thread.h"
 class PointerWrap;
 
+enum
+{
+	MAX_EXI_CHANNELS = 3
+};
+
 namespace ExpansionInterface
 {
 

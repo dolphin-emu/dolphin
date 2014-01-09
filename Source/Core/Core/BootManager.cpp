@@ -37,6 +37,8 @@
 #include "Movie.h"
 #include "NetPlayProto.h"
 #include "HW/WiimoteReal/WiimoteReal.h"
+#include "HW/SI.h"
+#include "HW/EXI.h"
 
 namespace BootManager
 {
@@ -48,12 +50,12 @@ struct ConfigCache
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
 		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack, bUseFPS;
 	int iCPUCore, Volume;
-	int iWiimoteSource[5];
-	SIDevices Pads[4];
+	int iWiimoteSource[MAX_BBMOTES];
+	SIDevices Pads[MAX_SI_CHANNELS];
 	unsigned int framelimit;
-	TEXIDevices m_EXIDevice[2];
+	TEXIDevices m_EXIDevice[MAX_EXI_CHANNELS];
 	std::string strBackend, sBackend;
-	bool bSetFramelimit, bSetEXIDevice[2], bSetUseFPS, bSetVolume, bSetPads[4], bSetWiimoteSource[5];
+	bool bSetFramelimit, bSetEXIDevice[MAX_EXI_CHANNELS], bSetUseFPS, bSetVolume, bSetPads[MAX_SI_CHANNELS], bSetWiimoteSource[MAX_BBMOTES];
 };
 static ConfigCache config_cache;
 
@@ -109,8 +111,6 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bHLE_BS2 = StartUp.bHLE_BS2;
 		config_cache.m_EnableJIT = SConfig::GetInstance().m_EnableJIT;
 		config_cache.bDSPThread = StartUp.bDSPThread;
-		config_cache.m_EXIDevice[0] = SConfig::GetInstance().m_EXIDevice[0];
-		config_cache.m_EXIDevice[1] = SConfig::GetInstance().m_EXIDevice[1];
 		config_cache.Volume = SConfig::GetInstance().m_Volume;
 		config_cache.sBackend = SConfig::GetInstance().sBackend;
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
@@ -119,14 +119,17 @@ bool BootCore(const std::string& _rFilename)
 		{
 			config_cache.iWiimoteSource[i] = g_wiimote_sources[i];
 		}
-		for (unsigned int i = 0; i < 4; ++i)
+		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
 			config_cache.Pads[i] = SConfig::GetInstance().m_SIDevice[i];
 		}
-		std::fill_n(config_cache.bSetWiimoteSource, 5, false);
-		std::fill_n(config_cache.bSetPads, 4, false);
-		config_cache.bSetEXIDevice[0] = false;
-		config_cache.bSetEXIDevice[1] = false;
+		for (unsigned int i = 0; i < MAX_EXI_CHANNELS; ++i)
+		{
+			config_cache.m_EXIDevice[i] = SConfig::GetInstance().m_EXIDevice[i];
+		}
+		std::fill_n(config_cache.bSetWiimoteSource, (int)MAX_BBMOTES, false);
+		std::fill_n(config_cache.bSetPads, (int)MAX_SI_CHANNELS, false);
+		std::fill_n(config_cache.bSetEXIDevice, (int)MAX_EXI_CHANNELS, false);
 		config_cache.bSetFramelimit = false;
 
 		// General settings
@@ -155,7 +158,7 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("DSP", "Backend",				&SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend.c_str());
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 
-		for (unsigned int i = 0; i < 4; ++i)
+		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
 			int source;
 			game_ini.Get("Controls", StringFromFormat("PadType%u", i).c_str(), &source, -1);
@@ -188,7 +191,7 @@ bool BootCore(const std::string& _rFilename)
 			{
 				config_cache.bSetWiimoteSource[WIIMOTE_BALANCE_BOARD] = true;
 				g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = source;
-				WiimoteReal::ChangeWiimoteSource(4, source);
+				WiimoteReal::ChangeWiimoteSource(WIIMOTE_BALANCE_BOARD, source);
 			}
 		}
 	}
@@ -268,20 +271,23 @@ void Stop()
 			SConfig::GetInstance().m_Framelimit = config_cache.framelimit;
 		if (config_cache.bSetUseFPS)
 			SConfig::GetInstance().b_UseFPS = config_cache.bUseFPS;
-		if (config_cache.bSetEXIDevice[0])
-			SConfig::GetInstance().m_EXIDevice[0] = config_cache.m_EXIDevice[0];
-		if (config_cache.bSetEXIDevice[1])
-			SConfig::GetInstance().m_EXIDevice[1] = config_cache.m_EXIDevice[1];
 		if (config_cache.bSetVolume)
 			SConfig::GetInstance().m_Volume = config_cache.Volume;
 
-		for (unsigned int i = 0; i < 4; ++i)
+		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
 			if (config_cache.bSetPads[i])
 			{
 				SConfig::GetInstance().m_SIDevice[i] = config_cache.Pads[i];
 			}
 
+		}
+		for (unsigned int i = 0; i < MAX_EXI_CHANNELS; ++i)
+		{
+			if (config_cache.bSetEXIDevice[i])
+			{
+				SConfig::GetInstance().m_EXIDevice[i] = config_cache.m_EXIDevice[i];
+			}
 		}
 		if (StartUp.bWii)
 		{

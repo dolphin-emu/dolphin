@@ -10,6 +10,12 @@
 class PointerWrap;
 class ISIDevice;
 
+// SI number of channels
+enum
+{
+	MAX_SI_CHANNELS = 0x04
+};
+
 namespace SerialInterface
 {
 

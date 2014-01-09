@@ -372,14 +372,14 @@ void ChangePads(bool instantly)
 
 	int controllers = 0;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			controllers |= (1 << i);
 
 	if (instantly && (g_numPads & 0x0F) == controllers)
 		return;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 		if (instantly) // Changes from savestates need to be instantaneous
 			SerialInterface::AddDevice(IsUsingPad(i) ? (IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
 		else
@@ -390,7 +390,7 @@ void ChangeWiiPads(bool instantly)
 {
 	int controllers = 0;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_WIIMOTES; i++)
 		if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
 			controllers |= (1 << i);
 
@@ -398,7 +398,7 @@ void ChangeWiiPads(bool instantly)
 	if (instantly && (g_numPads >> 4) == controllers)
 		return;
 
-	for (int i = 0; i < MAX_BBMOTES; i++)
+	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
 		g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
 		GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
@@ -424,7 +424,7 @@ bool BeginRecordingInput(int controllers)
 
 	g_rerecords = 0;
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
 			bongos |= (1 << i);
 
