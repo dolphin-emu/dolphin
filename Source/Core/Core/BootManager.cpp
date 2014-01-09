@@ -124,7 +124,7 @@ bool BootCore(const std::string& _rFilename)
 			config_cache.Pads[i] = SConfig::GetInstance().m_SIDevice[i];
 		}
 		std::fill_n(config_cache.bSetWiimoteSource, 5, false);
-		std::fill_n(config_cache.bSetPads, 5, false);
+		std::fill_n(config_cache.bSetPads, 4, false);
 		config_cache.bSetEXIDevice[0] = false;
 		config_cache.bSetEXIDevice[1] = false;
 		config_cache.bSetFramelimit = false;
