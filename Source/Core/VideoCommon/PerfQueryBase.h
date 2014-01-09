@@ -29,6 +29,7 @@ public:
 	virtual ~PerfQueryBase() {}
 
 	// Checks if performance queries are enabled in the gameini configuration.
+	// NOTE: Called from CPU+GPU thread
 	bool ShouldEmulate() const;
 
 	// Begin querying the specified value for the following host GPU commands

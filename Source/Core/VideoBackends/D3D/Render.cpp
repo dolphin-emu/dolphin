@@ -343,9 +343,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	D3D11_MAPPED_SUBRESOURCE map;
 	ID3D11Texture2D* read_tex;
 
-	if (!g_ActiveConfig.bEFBAccessEnable)
-		return 0;
-
 	if (type == POKE_Z)
 	{
 		static bool alert_only_once = true;

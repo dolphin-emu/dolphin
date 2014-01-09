@@ -147,7 +147,7 @@ void VideoFifo_CheckEFBAccess()
 
 u32 VideoBackendHardware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 {
-	if (s_BackendInitialized)
+	if (s_BackendInitialized && g_ActiveConfig.bEFBAccessEnable)
 	{
 		s_accessEFBArgs.type = type;
 		s_accessEFBArgs.x = x;
@@ -193,6 +193,11 @@ void VideoFifo_CheckPerfQueryRequest()
 
 u32 VideoBackendHardware::Video_GetQueryResult(PerfQueryType type)
 {
+	if(!g_perf_query->ShouldEmulate())
+	{
+		return 0;
+	}
+
 	// TODO: Is this check sane?
 	if (!g_perf_query->IsFlushed())
 	{
