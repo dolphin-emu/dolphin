@@ -16,45 +16,39 @@ namespace OGL
 static const u32 SYNC_POINTS = 16;
 static const u32 ALIGN_PINNED_MEMORY = 4096;
 
-StreamBuffer::StreamBuffer(u32 type, size_t size, StreamType uploadType)
-: m_uploadtype(uploadType), m_buffertype(type), m_size(size)
+StreamBuffer::StreamBuffer(u32 type, size_t size)
+: m_buffertype(type), m_size(size)
 {
 	glGenBuffers(1, &m_buffer);
 
 	bool nvidia = !strcmp(g_ogl_config.gl_vendor, "NVIDIA Corporation");
 
-	if(m_uploadtype & STREAM_DETECT)
+	// TODO: move this to InitBackendInfo
+	if(g_ActiveConfig.bHackedBufferUpload && DriverDetails::HasBug(DriverDetails::BUG_BROKENHACKEDBUFFER))
 	{
-		// TODO: move this to InitBackendInfo
-		if(g_ActiveConfig.bHackedBufferUpload && DriverDetails::HasBug(DriverDetails::BUG_BROKENHACKEDBUFFER))
-		{
-			OSD::AddMessage("Vertex Streaming Hack isn't supported by your GPU.", 10000);
-			g_ActiveConfig.bHackedBufferUpload = false;
-			g_Config.bHackedBufferUpload = false;
-		}
-
-		if (g_ogl_config.bSupportsGLBufferStorage && 
-			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER) && 
-			(m_uploadtype & BUFFERSTORAGE))
-			m_uploadtype = BUFFERSTORAGE;
-		else if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERSUBDATA)
-			&& !DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
-			m_uploadtype = BUFFERSUBDATA;
-		else if(!g_ogl_config.bSupportsGLBaseVertex && (m_uploadtype & BUFFERDATA))
-			m_uploadtype = BUFFERDATA;
-		else if(g_ogl_config.bSupportsGLSync && g_ActiveConfig.bHackedBufferUpload && (m_uploadtype & MAP_AND_RISK))
-			m_uploadtype = MAP_AND_RISK;
-		else if(g_ogl_config.bSupportsGLSync && g_ogl_config.bSupportsGLPinnedMemory && 
-			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) && type == GL_ELEMENT_ARRAY_BUFFER) && 
-			(m_uploadtype & PINNED_MEMORY))
-			m_uploadtype = PINNED_MEMORY;
-		else if(nvidia && (m_uploadtype & BUFFERSUBDATA))
-			m_uploadtype = BUFFERSUBDATA;
-		else if(g_ogl_config.bSupportsGLSync && (m_uploadtype & MAP_AND_SYNC))
-			m_uploadtype = MAP_AND_SYNC;
-		else
-			m_uploadtype = MAP_AND_ORPHAN;
+		OSD::AddMessage("Vertex Streaming Hack isn't supported by your GPU.", 10000);
+		g_ActiveConfig.bHackedBufferUpload = false;
+		g_Config.bHackedBufferUpload = false;
 	}
+
+	if (g_ogl_config.bSupportsGLBufferStorage &&
+		!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER))
+		m_uploadtype = BUFFERSTORAGE;
+	else if(!g_ogl_config.bSupportsGLBaseVertex && !DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
+		m_uploadtype = BUFFERSUBDATA;
+	else if(!g_ogl_config.bSupportsGLBaseVertex)
+		m_uploadtype = BUFFERDATA;
+	else if(g_ogl_config.bSupportsGLSync && g_ActiveConfig.bHackedBufferUpload)
+		m_uploadtype = MAP_AND_RISK;
+	else if(g_ogl_config.bSupportsGLSync && g_ogl_config.bSupportsGLPinnedMemory &&
+		!(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) && type == GL_ELEMENT_ARRAY_BUFFER))
+		m_uploadtype = PINNED_MEMORY;
+	else if(nvidia)
+		m_uploadtype = BUFFERSUBDATA;
+	else if(g_ogl_config.bSupportsGLSync)
+		m_uploadtype = MAP_AND_SYNC;
+	else
+		m_uploadtype = MAP_AND_ORPHAN;
 
 	Init();
 }
@@ -133,9 +127,6 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 	case BUFFERDATA:
 		m_iterator_aligned = 0;
 		break;
-	case STREAM_DETECT:
-	case DETECT_MASK: // To shutup compiler warnings
-		break;
 	}
 	m_iterator = m_iterator_aligned;
 }
@@ -164,9 +155,6 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 		break;
 	case BUFFERDATA:
 		glBufferData(m_buffertype, size, data, GL_STREAM_DRAW);
-		break;
-	case STREAM_DETECT:
-	case DETECT_MASK: // To shutup compiler warnings
 		break;
 	}
 	size_t ret = m_iterator;
@@ -242,9 +230,6 @@ void StreamBuffer::Init()
 	case BUFFERDATA:
 		glBindBuffer(m_buffertype, m_buffer);
 		break;
-	case STREAM_DETECT:
-	case DETECT_MASK: // To shutup compiler warnings
-		break;
 	}
 }
 
@@ -270,9 +255,6 @@ void StreamBuffer::Shutdown()
 		glUnmapBuffer(m_buffertype);
 		glBindBuffer(m_buffertype, 0);
 		glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
-		break;
-	case STREAM_DETECT:
-	case DETECT_MASK: // To shutup compiler warnings
 		break;
 	}
 }
