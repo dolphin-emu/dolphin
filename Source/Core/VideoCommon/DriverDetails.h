@@ -74,7 +74,7 @@ namespace DriverDetails
 		// Bug: Centroid is broken in shaders
 		// Affected devices: Qualcomm/Adreno
 		// Started Version: 14
-		// Ended Version: -1
+		// Ended Version: 53
 		// Centroid in/out, used in the shaders, is used for multisample buffers to get the texel correctly
 		// When MSAA is disabled, it acts like a regular in/out
 		// Tends to cause the driver to render full white or black
@@ -82,7 +82,7 @@ namespace DriverDetails
 		// Bug: INFO_LOG_LENGTH broken
 		// Affected devices: Qualcomm/Adreno
 		// Started Version: ? (Noticed on v14)
-		// Ended Version: -1
+		// Ended Version: 53
 		// When compiling a shader, it is important that when it fails,
 		// you first get the length of the information log prior to grabbing it.
 		// This allows you to allocate an array to store all of the log
@@ -127,7 +127,7 @@ namespace DriverDetails
 		// Bug : Can't draw on screen text and clear correctly.
 		// Affected devices: Qualcomm/Adreno
 		// Started Version: ?
-		// Ended Version: ?
+		// Ended Version: 53
 		// Current code for drawing on screen text and clearing the framebuffer doesn't work on Adreno
 		// Drawing on screen text causes the whole screen to swizzle in a terrible fashion
 		// Clearing the framebuffer causes one to never see a frame.
@@ -142,14 +142,14 @@ namespace DriverDetails
 		BUG_BROKENBUFFERSTREAM,
 		// Bug: GLSL ES 3.0 textureSize causes abort 
 		// Affected devices: Adreno a3xx
-		// Started Version: v53
+		// Started Version: -1 (Noticed in v53)
 		// Ended Version: -1
 		// If a shader includes a textureSize function call then the shader compiler will call abort()
 		BUG_BROKENTEXTURESIZE,
 		// Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams 
 		// Affected devices: Geforce 4xx+
 		// Started Version: -1
-		// Ended Version: -1
+		// Ended Version: 332.21
 		// The buffer_storage streaming method is required for greater speed gains in our buffer streaming
 		// It reduces what is needed for streaming to basically a memcpy call
 		// It seems to work for all buffer types except GL_ARRAY_BUFFER
