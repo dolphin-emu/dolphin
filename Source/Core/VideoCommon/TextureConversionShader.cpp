@@ -555,8 +555,8 @@ void WriteZ16LEncoder(char* p,API_TYPE ApiType)
 	WRITE(p, "  depth -= expanded.g * 256.0;\n");
 	WRITE(p, "  expanded.b = depth;\n");
 
-	WRITE(p, "  ocol0.r = expanded.b;\n");
-	WRITE(p, "  ocol0.a = expanded.g;\n");
+	WRITE(p, "  ocol0.r = expanded.b / 255.0;\n");
+	WRITE(p, "  ocol0.a = expanded.g / 255.0;\n");
 
 	WriteEncoderEnd(p, ApiType);
 }
