@@ -117,13 +117,17 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info, u32 r
 		PanicAlert("Incorrect use of SafeWriteRegToReg");
 	if (addrReg != ABI_PARAM1)
 	{
-		MOV(64, R(ABI_PARAM1), R((X64Reg)dataReg));
-		MOV(64, R(ABI_PARAM2), R((X64Reg)addrReg));
+		if (ABI_PARAM1 != dataReg)
+			MOV(64, R(ABI_PARAM1), R((X64Reg)dataReg));
+		if (ABI_PARAM2 != addrReg)
+			MOV(64, R(ABI_PARAM2), R((X64Reg)addrReg));
 	}
 	else
 	{
-		MOV(64, R(ABI_PARAM2), R((X64Reg)addrReg));
-		MOV(64, R(ABI_PARAM1), R((X64Reg)dataReg));
+		if (ABI_PARAM2 != addrReg)
+			MOV(64, R(ABI_PARAM2), R((X64Reg)addrReg));
+		if (ABI_PARAM1 != dataReg)
+			MOV(64, R(ABI_PARAM1), R((X64Reg)dataReg));
 	}
 
 	if (info.displacement)
