@@ -69,12 +69,6 @@ bool cXInterface::Initialize(void *config)
 	if (GLWin.parent == 0)
 		GLWin.parent = RootWindow(GLWin.dpy, GLWin.screen);
 
-	/* Set initial projection/viewing transformation.
-	 * We can't be sure we'll get a ConfigureNotify event when the window
-	 * first appears.
-	 */
-	glViewport(0, 0, (GLint) GLWin.width, (GLint) GLWin.height);
-
 	return true;
 }
 

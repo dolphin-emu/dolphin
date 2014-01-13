@@ -352,10 +352,6 @@ if(NOT ANDROID)
 
 	if(NOT USE_GLES3)
 		include(FindOpenGL)
-		include_directories(${OPENGL_INCLUDE_DIR})
-		add_definitions(-DGLEW_NO_GLU)
-	else()
-		set(X11_FOUND 1)
 	endif()
 	
 	include(FindALSA OPTIONAL)

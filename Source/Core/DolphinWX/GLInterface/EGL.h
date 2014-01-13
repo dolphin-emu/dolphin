@@ -17,13 +17,7 @@
 #ifndef _INTERFACEEGL_H_
 #define _INTERFACEEGL_H_
 
-#if USE_GLES
-#include <GL/gl.h>
-#else
-#include <GL/glxew.h>
-#include <GL/gl.h>
-#endif
-
+#include <EGL/egl.h>
 #include "InterfaceBase.h"
 
 class cPlatform;

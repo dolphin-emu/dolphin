@@ -17,11 +17,6 @@
 #ifndef _INTERFACEGLX_H_
 #define _INTERFACEGLX_H_
 
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-
 #include "X11_Util.h"
 #include "InterfaceBase.h"
 
