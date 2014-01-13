@@ -354,6 +354,8 @@ if(NOT ANDROID)
 
 	if(NOT USE_GLES3)
 		include(FindOpenGL)
+	else()
+		set(X11_FOUND 1)
 	endif()
 	
 	include(FindALSA OPTIONAL)
