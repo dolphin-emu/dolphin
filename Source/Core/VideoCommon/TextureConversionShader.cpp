@@ -374,8 +374,7 @@ void WriteRGBA8Encoder(char* p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_RGBA8, ApiType);
 
-	WRITE(p, "  float cl1 = xb - (halfxb * 2.0);\n");
-	WRITE(p, "  float cl0 = 1.0 - cl1;\n");
+	WRITE(p, "  bool first = xb == (halfxb * 2);\n");
 
 	WRITE(p, "  float4 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
@@ -393,7 +392,7 @@ void WriteRGBA8Encoder(char* p,API_TYPE ApiType)
 	WRITE(p, "  color1.r = texSample.g;\n");
 	WRITE(p, "  color1.a = texSample.b;\n");
 
-	WRITE(p, "  ocol0 = (cl0 * color0) + (cl1 * color1);\n");
+	WRITE(p, "  ocol0 = first ? color0 : color1;\n");
 
 	WriteEncoderEnd(p, ApiType);
 }
@@ -565,7 +564,7 @@ void WriteZ24Encoder(char* p, API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_Z24X8, ApiType);
 
-	WRITE(p, "  float cl = xb - (halfxb * 2.0);\n");
+	WRITE(p, "  bool first = xb == (halfxb * 2);\n");
 
 	WRITE(p, "  float depth0;\n");
 	WRITE(p, "  float depth1;\n");
@@ -586,7 +585,7 @@ void WriteZ24Encoder(char* p, API_TYPE ApiType)
 		WRITE(p, "  expanded%i.b = depth%i;\n", i, i);
 	}
 
-	WRITE(p, "  if(cl > 0.5) {\n");
+	WRITE(p, "  if(!first) {\n");
 	// upper 16
 	WRITE(p, "     ocol0.b = expanded0.g / 255.0;\n");
 	WRITE(p, "     ocol0.g = expanded0.b / 255.0;\n");
