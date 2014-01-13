@@ -293,6 +293,8 @@ if(ANDROID)
 	set(USE_GLES3 1)
 endif()
 
+include_directories(Externals/GL)
+
 # For now GLES and EGL are tied to each other.
 # Enabling GLES also disables the OpenGL plugin.
 if(USE_GLES3)
@@ -648,8 +650,6 @@ else()
 	add_subdirectory(Externals/SOIL)
 	include_directories(Externals/SOIL)
 endif()
-
-include_directories(Externals/GL)
 
 if (ANDROID)
 	message("Using static iconv from Externals")
