@@ -67,7 +67,7 @@ void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 }
 
 #if defined(_WIN32)
-wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is only used for debugging, so you'll want to use either Direct3D or OpenGL. Different games will behave differently on each backend, so for best emulation experience it's recommended to try both and chose the one that fits your requirements best.\nNote that the Direct3D backend is not available on old Windows versions.\n\nIf unsure, use Direct3D.");
+wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is only used for debugging, so you'll want to use either Direct3D or OpenGL. Different games will behave differently on each backend, so for best emulation experience it's recommended to try both and chose the one that fits your requirements best.\nNote that the Direct3D backend is not available on old Windows versions.\n\nIf unsure, use OpenGL.");
 #else
 wxString backend_desc = wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is only used for debugging, so unless you have a reason to use it you'll want to select OpenGL here.\n\nIf unsure, use OpenGL.");
 #endif
