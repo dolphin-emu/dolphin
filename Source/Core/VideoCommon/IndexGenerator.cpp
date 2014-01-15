@@ -9,15 +9,9 @@
 #include "IndexGenerator.h"
 
 //Init
-u16 *IndexGenerator::Tptr;
-u16 *IndexGenerator::BASETptr;
-u16 *IndexGenerator::Lptr;
-u16 *IndexGenerator::BASELptr;
-u16 *IndexGenerator::Pptr;
-u16 *IndexGenerator::BASEPptr;
-u32 IndexGenerator::numT;
-u32 IndexGenerator::numL;
-u32 IndexGenerator::numP;
+u16 *IndexGenerator::Iptr;
+u16 *IndexGenerator::BASEIptr;
+u32 IndexGenerator::numI;
 u32 IndexGenerator::index;
 
 static const u16 s_primitive_restart = -1;
@@ -46,18 +40,12 @@ void IndexGenerator::Init()
 	primitive_table[7] = &IndexGenerator::AddPoints;
 }
 
-void IndexGenerator::Start(u16* Triangleptr, u16* Lineptr, u16* Pointptr)
+void IndexGenerator::Start(u16* Indexptr)
 {
-	Tptr = Triangleptr;
-	Lptr = Lineptr;
-	Pptr = Pointptr;
-	BASETptr = Triangleptr;
-	BASELptr = Lineptr;
-	BASEPptr = Pointptr;
+	Iptr = Indexptr;
+	BASEIptr = Indexptr;
 	index = 0;
-	numT = 0;
-	numL = 0;
-	numP = 0;
+	numI = 0;
 }
 
 void IndexGenerator::AddIndices(int primitive, u32 numVerts)
@@ -69,13 +57,13 @@ void IndexGenerator::AddIndices(int primitive, u32 numVerts)
 // Triangles
 template <bool pr> __forceinline void IndexGenerator::WriteTriangle(u32 index1, u32 index2, u32 index3)
 {
-	*Tptr++ = index1;
-	*Tptr++ = index2;
-	*Tptr++ = index3;
+	*Iptr++ = index1;
+	*Iptr++ = index2;
+	*Iptr++ = index3;
 	if(pr)
-		*Tptr++ = s_primitive_restart;
+		*Iptr++ = s_primitive_restart;
 
-	++numT;
+	++numI;
 }
 
 template <bool pr> void IndexGenerator::AddList(u32 const numVerts)
@@ -92,10 +80,10 @@ template <bool pr> void IndexGenerator::AddStrip(u32 const numVerts)
 	{
 		for (u32 i = 0; i < numVerts; ++i)
 		{
-			*Tptr++ = index + i;
+			*Iptr++ = index + i;
 		}
-		*Tptr++ = s_primitive_restart;
-		numT += numVerts - 2;
+		*Iptr++ = s_primitive_restart;
+		numI += numVerts - 2;
 
 	}
 	else
@@ -140,23 +128,23 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
 	{
 		for(; i+3<=numVerts; i+=3)
 		{
-			*Tptr++ = index + i - 1;
-			*Tptr++ = index + i + 0;
-			*Tptr++ = index;
-			*Tptr++ = index + i + 1;
-			*Tptr++ = index + i + 2;
-			*Tptr++ = s_primitive_restart;
-			numT += 3;
+			*Iptr++ = index + i - 1;
+			*Iptr++ = index + i + 0;
+			*Iptr++ = index;
+			*Iptr++ = index + i + 1;
+			*Iptr++ = index + i + 2;
+			*Iptr++ = s_primitive_restart;
+			numI += 3;
 		}
 
 		for(; i+2<=numVerts; i+=2)
 		{
-			*Tptr++ = index + i - 1;
-			*Tptr++ = index + i + 0;
-			*Tptr++ = index;
-			*Tptr++ = index + i + 1;
-			*Tptr++ = s_primitive_restart;
-			numT += 2;
+			*Iptr++ = index + i - 1;
+			*Iptr++ = index + i + 0;
+			*Iptr++ = index;
+			*Iptr++ = index + i + 1;
+			*Iptr++ = s_primitive_restart;
+			numI += 2;
 		}
 	}
 
@@ -190,12 +178,12 @@ template <bool pr> void IndexGenerator::AddQuads(u32 numVerts)
 	{
 		if(pr)
 		{
-			*Tptr++ = index + i - 2;
-			*Tptr++ = index + i - 1;
-			*Tptr++ = index + i - 3;
-			*Tptr++ = index + i - 0;
-			*Tptr++ = s_primitive_restart;
-			numT += 2;
+			*Iptr++ = index + i - 2;
+			*Iptr++ = index + i - 1;
+			*Iptr++ = index + i - 3;
+			*Iptr++ = index + i - 0;
+			*Iptr++ = s_primitive_restart;
+			numI += 2;
 		}
 		else
 		{
@@ -216,9 +204,9 @@ void IndexGenerator::AddLineList(u32 numVerts)
 {
 	for (u32 i = 1; i < numVerts; i+=2)
 	{
-		*Lptr++ = index + i - 1;
-		*Lptr++ = index + i;
-		++numL;
+		*Iptr++ = index + i - 1;
+		*Iptr++ = index + i;
+		++numI;
 	}
 
 }
@@ -229,9 +217,9 @@ void IndexGenerator::AddLineStrip(u32 numVerts)
 {
 	for (u32 i = 1; i < numVerts; ++i)
 	{
-		*Lptr++ = index + i - 1;
-		*Lptr++ = index + i;
-		++numL;
+		*Iptr++ = index + i - 1;
+		*Iptr++ = index + i;
+		++numI;
 	}
 }
 
@@ -240,8 +228,8 @@ void IndexGenerator::AddPoints(u32 numVerts)
 {
 	for (u32 i = 0; i != numVerts; ++i)
 	{
-		*Pptr++ = index + i;
-		++numP;
+		*Iptr++ = index + i;
+		++numI;
 	}
 }
 

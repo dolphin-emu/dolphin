@@ -8,6 +8,12 @@
 class NativeVertexFormat;
 class PointerWrap;
 
+enum PrimitiveType {
+	PRIMITIVE_POINTS,
+	PRIMITIVE_LINES,
+	PRIMITIVE_TRIANGLES,
+};
+
 class VertexManager
 {
 private:
@@ -45,13 +51,13 @@ public:
 	virtual void DestroyDeviceObjects(){};
 
 protected:
-	u16* GetTriangleIndexBuffer() { return &TIBuffer[0]; }
-	u16* GetLineIndexBuffer() { return &LIBuffer[0]; }
-	u16* GetPointIndexBuffer() { return &PIBuffer[0]; }
+	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
 	u8* GetVertexBuffer() { return &s_pBaseBufferPointer[0]; }
 
 	virtual void vDoState(PointerWrap& p) { DoStateShared(p); }
 	void DoStateShared(PointerWrap& p);
+
+	static PrimitiveType current_primitive_type;
 
 private:
 	bool IsFlushed() const;
@@ -63,9 +69,7 @@ private:
 	virtual void vFlush() = 0;
 
 	std::vector<u8> LocalVBuffer;
-	std::vector<u16> TIBuffer;
-	std::vector<u16> LIBuffer;
-	std::vector<u16> PIBuffer;
+	std::vector<u16> LocalIBuffer;
 };
 
 extern VertexManager *g_vertex_manager;

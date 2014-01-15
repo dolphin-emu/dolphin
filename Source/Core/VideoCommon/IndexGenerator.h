@@ -14,21 +14,17 @@ class IndexGenerator
 public:
 	// Init
 	static void Init();
-	static void Start(u16 *Triangleptr,u16 *Lineptr,u16 *Pointptr);
+	static void Start(u16 *Indexptr);
 
 	static void AddIndices(int primitive, u32 numVertices);
 
 	// Interface
-	static u32 GetNumTriangles() {return numT;}
-	static u32 GetNumLines() {return numL;}
-	static u32 GetNumPoints() {return numP;}
+	static u32 GetNumIndices() {return numI;}
 
 	// returns numprimitives
 	static u32 GetNumVerts() {return index;}
 
-	static u32 GetTriangleindexLen() {return (u32)(Tptr - BASETptr);}
-	static u32 GetLineindexLen() {return (u32)(Lptr - BASELptr);}
-	static u32 GetPointindexLen() {return (u32)(Pptr - BASEPptr);}
+	static u32 GetIndexLen() {return (u32)(Iptr - BASEIptr);}
 
 	static u32 GetRemainingIndices();
 /*
@@ -56,16 +52,10 @@ private:
 
 	template <bool pr> static void WriteTriangle(u32 index1, u32 index2, u32 index3);
 
-	static u16 *Tptr;
-	static u16 *BASETptr;
-	static u16 *Lptr;
-	static u16 *BASELptr;
-	static u16 *Pptr;
-	static u16 *BASEPptr;
+	static u16 *Iptr;
+	static u16 *BASEIptr;
 	// TODO: redundant variables
-	static u32 numT;
-	static u32 numL;
-	static u32 numP;
+	static u32 numI;
 	static u32 index;
 };
 
