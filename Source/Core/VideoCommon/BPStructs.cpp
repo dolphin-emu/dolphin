@@ -71,76 +71,25 @@ void BPWritten(const BPCmd& bp)
 	// check for invalid state, else unneeded configuration are built
 	g_video_backend->CheckInvalidState();
 
-	// Debugging only, this lets you skip a bp update
-	//static int times = 0;
-	//static bool enable = false;
-
-	//switch (bp.address)
-	//{
-	//case BPMEM_CONSTANTALPHA:
-	//	{
-	//	if (times-- == 0 && enable)
-	//		return;
-	//	else
-	//		break;
-	//	}
-	//default: break;
-	//}
-
-	// FIXME: Hangs load-state, but should fix graphic-heavy games state loading
-	//std::lock_guard<std::mutex> lk(s_bpCritical);
-
-	// BEGIN ZTP SPEEDUP HACK CHANGES
-	// This hunk of code disables the usual pipeline flush for certain BP Writes
-	// that occur while the minimap is being drawn in Zelda: Twilight Princess.
-	// This significantly increases speed while in hyrule field. In depth discussion
-	// on how this Hack came to be can be found at: http://forums.dolphin-emu.com/thread-10638.html
-	// -fircrestsk8
-	if (g_ActiveConfig.bZTPSpeedHack)
+	if (((s32*)&bpmem)[bp.address] == bp.newvalue)
 	{
-		if (!mapTexFound)
+		if (!(bp.address == BPMEM_TRIGGER_EFB_COPY
+				|| bp.address == BPMEM_CLEARBBOX1
+				|| bp.address == BPMEM_CLEARBBOX2
+				|| bp.address == BPMEM_SETDRAWDONE
+				|| bp.address == BPMEM_PE_TOKEN_ID
+				|| bp.address == BPMEM_PE_TOKEN_INT_ID
+				|| bp.address == BPMEM_LOADTLUT0
+				|| bp.address == BPMEM_LOADTLUT1
+				|| bp.address == BPMEM_TEXINVALIDATE
+				|| bp.address == BPMEM_PRELOAD_MODE
+				|| bp.address == BPMEM_CLEAR_PIXEL_PERF))
 		{
-			if (bp.address != BPMEM_TEV_COLOR_ENV && bp.address != BPMEM_TEV_ALPHA_ENV)
-			{
-				numWrites = 0;
-			}
-			else if (++numWrites >= 100)	// seem that if 100 consecutive BP writes are called to either of these addresses in ZTP,
-			{								// then it is safe to assume the map texture address is currently loaded into the BP memory
-				mapTexAddress = bpmem.tex[0].texImage3[0].hex << 5;
-				mapTexFound = true;
-				WARN_LOG(VIDEO, "\nZTP map texture found at address %08x\n", mapTexAddress);
-			}
-			FlushPipeline();
+			return;
 		}
-		else if ( (bpmem.tex[0].texImage3[0].hex << 5) != mapTexAddress ||
-					bpmem.tevorders[0].getEnable(0) == 0 ||
-					bp.address == BPMEM_TREF)
-		{
-			FlushPipeline();
-		}
-	}  // END ZTP SPEEDUP HACK
-	else
-	{
-		if (((s32*)&bpmem)[bp.address] == bp.newvalue)
-		{
-			if (!(bp.address == BPMEM_TRIGGER_EFB_COPY
-					|| bp.address == BPMEM_CLEARBBOX1
-					|| bp.address == BPMEM_CLEARBBOX2
-					|| bp.address == BPMEM_SETDRAWDONE
-					|| bp.address == BPMEM_PE_TOKEN_ID
-					|| bp.address == BPMEM_PE_TOKEN_INT_ID
-					|| bp.address == BPMEM_LOADTLUT0
-					|| bp.address == BPMEM_LOADTLUT1
-					|| bp.address == BPMEM_TEXINVALIDATE
-					|| bp.address == BPMEM_PRELOAD_MODE
-					|| bp.address == BPMEM_CLEAR_PIXEL_PERF))
-			{
-				return;
-			}
-		}
-
-		FlushPipeline();
 	}
+
+	FlushPipeline();
 
 	((u32*)&bpmem)[bp.address] = bp.newvalue;
 

@@ -117,7 +117,6 @@ struct VideoConfig
 	int iPhackvalue[4];
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
-	bool bZTPSpeedHack; // The Legend of Zelda: Twilight Princess
 	bool bUseBBox;
 	bool bEnablePixelLighting;
 	bool bHackedBufferUpload;

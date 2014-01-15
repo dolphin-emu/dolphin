@@ -204,7 +204,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video", "PH_ExtraParam", iPhackvalue[3]);
 	CHECK_SETTING("Video", "PH_ZNear", sPhackvalue[0]);
 	CHECK_SETTING("Video", "PH_ZFar", sPhackvalue[1]);
-	CHECK_SETTING("Video", "ZTPSpeedupHack", bZTPSpeedHack);
 	CHECK_SETTING("Video", "UseBBox", bUseBBox);
 	CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
 

@@ -61,7 +61,7 @@ private:
 	// Wii
 	wxCheckBox *EnableWideScreen;
 	// Video
-	wxCheckBox *UseZTPSpeedupHack, *PHackEnable, *UseBBox;
+	wxCheckBox *PHackEnable, *UseBBox;
 	wxButton *PHSettings;
 
 	wxArrayString arrayStringFor_EmuState;
@@ -123,7 +123,6 @@ private:
 		ID_MERGEBLOCKS,
 		ID_AUDIO_DSP_HLE,
 		ID_USE_BBOX,
-		ID_ZTP_SPEEDUP,
 		ID_PHACKENABLE,
 		ID_PHSETTINGS,
 		ID_ENABLEPROGRESSIVESCAN,

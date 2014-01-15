@@ -364,9 +364,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	UseBBox = new wxCheckBox(m_GameConfig, ID_USE_BBOX, _("Enable Bounding Box Calculation"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Video", "UseBBox"));
 	UseBBox->SetToolTip(_("If checked, the bounding box registers will be updated. Used by the Paper Mario games."));
 
-	UseZTPSpeedupHack = new wxCheckBox(m_GameConfig, ID_ZTP_SPEEDUP, _("ZTP hack"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Video", "ZTPSpeedupHack"));
-	UseZTPSpeedupHack->SetToolTip(_("Enable this to speed up The Legend of Zelda: Twilight Princess. Disable for ANY other game."));
-
 	// Hack
 	wxFlexGridSizer * const szrPHackSettings = new wxFlexGridSizer(0);
 	PHackEnable = new wxCheckBox(m_GameConfig, ID_PHACKENABLE, _("Custom Projection Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_2STATE);
@@ -413,7 +410,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	wxStaticBoxSizer * const sbVideoOverrides =
 		new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
 	sbVideoOverrides->Add(UseBBox, 0, wxLEFT, 5);
-	sbVideoOverrides->Add(UseZTPSpeedupHack, 0, wxLEFT, 5);
 	szrPHackSettings->Add(PHackEnable, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
 	szrPHackSettings->Add(PHSettings, 0, wxLEFT, 5);
 
@@ -1010,7 +1006,6 @@ void CISOProperties::LoadGameConfig()
 	SetCheckboxValueFromGameini("Core", "DSPHLE", DSPHLE);
 	SetCheckboxValueFromGameini("Wii", "Widescreen", EnableWideScreen);
 	SetCheckboxValueFromGameini("Video", "UseBBox", UseBBox);
-	SetCheckboxValueFromGameini("Video", "ZTPSpeedupHack", UseZTPSpeedupHack);
 
 	// First set values from default gameini, then apply values from local gameini
 	int iTemp;
@@ -1091,7 +1086,6 @@ bool CISOProperties::SaveGameConfig()
 	SaveGameIniValueFrom3StateCheckbox("Core", "DSPHLE", DSPHLE);
 	SaveGameIniValueFrom3StateCheckbox("Wii", "Widescreen", EnableWideScreen);
 	SaveGameIniValueFrom3StateCheckbox("Video", "UseBBox", UseBBox);
-	SaveGameIniValueFrom3StateCheckbox("Video", "ZTPSpeedupHack", UseZTPSpeedupHack);
 
 	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
 		if (GameIniDefault.Exists((section), (key))) { \
