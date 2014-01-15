@@ -65,7 +65,7 @@ void PixelShaderManager::Shutdown()
 
 }
 
-void PixelShaderManager::SetConstants(u32 components)
+void PixelShaderManager::SetConstants()
 {
 	if (s_bFogRangeAdjustChanged)
 	{

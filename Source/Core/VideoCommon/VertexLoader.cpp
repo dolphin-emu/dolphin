@@ -178,7 +178,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
 	m_numPipelineStages = 0;
-	m_NativeFmt = g_vertex_manager->CreateNativeVertexFormat();
+	m_NativeFmt = 0;
 	loop_counter = 0;
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
@@ -251,9 +251,7 @@ void VertexLoader::CompileVertexTranslator()
 
 	// Reset pipeline
 	m_numPipelineStages = 0;
-
-	// It's a bit ugly that we poke inside m_NativeFmt in this function. Planning to fix this.
-	m_NativeFmt->m_components = 0;
+	u32 components = 0;
 
 	// Position in pc vertex format.
 	int nat_offset = 0;
@@ -270,18 +268,18 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.PosMatIdx)
 	{
 		WriteCall(PosMtx_ReadDirect_UByte);
-		m_NativeFmt->m_components |= VB_HAS_POSMTXIDX;
+		components |= VB_HAS_POSMTXIDX;
 		m_VertexSize += 1;
 	}
 
-	if (m_VtxDesc.Tex0MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX0; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex1MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX1; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex2MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX2; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex3MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX3; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex4MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX4; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex5MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX5; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex6MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX6; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex0MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX0; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex1MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX1; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex2MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX2; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex3MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX3; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex4MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX4; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex5MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX5; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex6MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX6; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
 	// Write vertex position loader
 	if(g_ActiveConfig.bUseBBox)
@@ -333,10 +331,10 @@ void VertexLoader::CompileVertexTranslator()
 		}
 
 		int numNormals = (m_VtxAttr.NormalElements == 1) ? NRM_THREE : NRM_ONE;
-		m_NativeFmt->m_components |= VB_HAS_NRM0;
+		components |= VB_HAS_NRM0;
 
 		if (numNormals == NRM_THREE)
-			m_NativeFmt->m_components |= VB_HAS_NRM1 | VB_HAS_NRM2;
+			components |= VB_HAS_NRM1 | VB_HAS_NRM2;
 	}
 
 	vtx_decl.color_gl_type = VAR_UNSIGNED_BYTE;
@@ -344,11 +342,11 @@ void VertexLoader::CompileVertexTranslator()
 	vtx_decl.color_offset[1] = -1;
 	for (int i = 0; i < 2; i++)
 	{
-		m_NativeFmt->m_components |= VB_HAS_COL0 << i;
+		components |= VB_HAS_COL0 << i;
 		switch (col[i])
 		{
 		case NOT_PRESENT:
-			m_NativeFmt->m_components &= ~(VB_HAS_COL0 << i);
+			components &= ~(VB_HAS_COL0 << i);
 			vtx_decl.color_offset[i] = -1;
 			break;
 		case DIRECT:
@@ -407,7 +405,7 @@ void VertexLoader::CompileVertexTranslator()
 
 		if (tc[i] == NOT_PRESENT)
 		{
-			m_NativeFmt->m_components &= ~(VB_HAS_UV0 << i);
+			components &= ~(VB_HAS_UV0 << i);
 		}
 		else
 		{
@@ -415,12 +413,12 @@ void VertexLoader::CompileVertexTranslator()
 			_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
 			_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elements!\n(elements = %d)", elements);
 
-			m_NativeFmt->m_components |= VB_HAS_UV0 << i;
+			components |= VB_HAS_UV0 << i;
 			WriteCall(VertexLoader_TextCoord::GetFunction(tc[i], format, elements));
 			m_VertexSize += VertexLoader_TextCoord::GetSize(tc[i], format, elements);
 		}
 
-		if (m_NativeFmt->m_components & (VB_HAS_TEXMTXIDX0 << i))
+		if (components & (VB_HAS_TEXMTXIDX0 << i))
 		{
 			if (tc[i] != NOT_PRESENT)
 			{
@@ -433,7 +431,7 @@ void VertexLoader::CompileVertexTranslator()
 			}
 			else
 			{
-				m_NativeFmt->m_components |= VB_HAS_UV0 << i; // have to include since using now
+				components |= VB_HAS_UV0 << i; // have to include since using now
 				vtx_decl.texcoord_offset[i] = nat_offset;
 				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
 				vtx_decl.texcoord_size[i] = 4;
@@ -465,7 +463,7 @@ void VertexLoader::CompileVertexTranslator()
 				}
 			}
 			// tricky!
-			if (j == 8 && !((m_NativeFmt->m_components & VB_HAS_TEXMTXIDXALL) & (VB_HAS_TEXMTXIDXALL << (i + 1))))
+			if (j == 8 && !((components & VB_HAS_TEXMTXIDXALL) & (VB_HAS_TEXMTXIDXALL << (i + 1))))
 			{
 				// no more tex coords and tex matrices, so exit loop
 				break;
@@ -500,6 +498,8 @@ void VertexLoader::CompileVertexTranslator()
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
 #endif
+	m_NativeFmt = g_vertex_manager->CreateNativeVertexFormat();
+	m_NativeFmt->m_components = components;
 	m_NativeFmt->Initialize(vtx_decl);
 }
 
@@ -564,8 +564,6 @@ int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const 
 		DataSkip(count * m_VertexSize);
 		return 0;
 	}
-
-	m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
 
 	// Load position and texcoord scale factors.
 	m_VtxAttr.PosFrac				= g_VtxAttr[vtx_attr_group].g0.PosFrac;

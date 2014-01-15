@@ -259,7 +259,7 @@ void VertexManager::vFlush()
 
 	// set global constants
 	VertexShaderManager::SetConstants();
-	PixelShaderManager::SetConstants(g_nativeVertexFmt->m_components);
+	PixelShaderManager::SetConstants();
 	ProgramShaderCache::UploadConstants();
 
 	// setup the pointers
@@ -280,7 +280,7 @@ void VertexManager::vFlush()
 		{
 			// Need to set these again, if we don't support UBO
 			VertexShaderManager::SetConstants();
-			PixelShaderManager::SetConstants(g_nativeVertexFmt->m_components);
+			PixelShaderManager::SetConstants();
 		}
 
 		// only update alpha

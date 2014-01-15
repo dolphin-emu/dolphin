@@ -101,7 +101,6 @@ public:
 
 	virtual void Initialize(const PortableVertexDeclaration &vtx_decl) = 0;
 	virtual void SetupVertexPointers() = 0;
-	virtual void EnableComponents(u32 components) {}
 
 	u32 GetVertexStride() const { return vertex_stride; }
 

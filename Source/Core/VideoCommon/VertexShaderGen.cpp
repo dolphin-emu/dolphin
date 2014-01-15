@@ -38,7 +38,7 @@ static void DefineVSOutputStructMember(T& object, API_TYPE api_type, const char*
 }
 
 template<class T>
-static inline void GenerateVSOutputStruct(T& object, u32 components, API_TYPE api_type)
+static inline void GenerateVSOutputStruct(T& object, API_TYPE api_type)
 {
 	object.Write("struct VS_OUTPUT {\n");
 	DefineVSOutputStructMember(object, api_type, "float4", "pos", -1, "POSITION");
@@ -99,7 +99,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		out.Write("};\n");
 
-	GenerateVSOutputStruct(out, components, api_type);
+	GenerateVSOutputStruct(out, api_type);
 
 	uid_data.numTexGens = xfregs.numTexGen.numTexGens;
 	uid_data.components = components;
@@ -467,7 +467,7 @@ void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE
 	GenerateVertexShader<VertexShaderCode>(object, components, api_type);
 }
 
-void GenerateVSOutputStructForGS(ShaderCode& object, u32 components, API_TYPE api_type)
+void GenerateVSOutputStructForGS(ShaderCode& object, API_TYPE api_type)
 {
-	GenerateVSOutputStruct<ShaderCode>(object, components, api_type);
+	GenerateVSOutputStruct<ShaderCode>(object, api_type);
 }

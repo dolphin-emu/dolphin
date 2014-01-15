@@ -90,6 +90,6 @@ typedef ShaderCode VertexShaderCode; // TODO: Obsolete..
 
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type);
 void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type);
-void GenerateVSOutputStructForGS(ShaderCode& object, u32 components, API_TYPE api_type);
+void GenerateVSOutputStructForGS(ShaderCode& object, API_TYPE api_type);
 
 #endif // GCOGL_VERTEXSHADER_H
