@@ -21,10 +21,6 @@
 
 using namespace BPFunctions;
 
-static u32 mapTexAddress;
-static bool mapTexFound;
-static int numWrites;
-
 extern volatile bool g_bSkipCurrentFrame;
 
 static const float s_gammaLUT[] =
@@ -39,10 +35,6 @@ void BPInit()
 {
 	memset(&bpmem, 0, sizeof(bpmem));
 	bpmem.bpMask = 0xFFFFFF;
-
-	mapTexAddress = 0;
-	numWrites = 0;
-	mapTexFound = false;
 }
 
 void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xfbLines, u32 xfbAddr, const u32 dstWidth, const u32 dstHeight, float gamma)
