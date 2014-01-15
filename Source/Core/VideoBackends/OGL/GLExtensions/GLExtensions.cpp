@@ -8,6 +8,9 @@
 #if defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h>
 #endif
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <unordered_map>
 
 // gl_1_1
@@ -776,6 +779,9 @@ namespace GLExtensions
 	bool _isES3;
 	bool _isES;
 	u32 _GLVersion;
+#ifdef _WIN32
+	HINSTANCE dllHandle = NULL;  
+#endif
 	std::unordered_map<std::string, bool> _extensionlist;
 	// Forward declared init functions
 	bool init_gl_1_1();
@@ -940,7 +946,7 @@ namespace GLExtensions
 			_GLVersion = 330; // Get all the fun things
 	}
 
-	void* GetProcAddress(std::string name, void **func)
+	void* GetFuncAddress(std::string name, void **func)
 	{
 		*func = GLInterface->GetProcAddress(name);
 		if (*func == NULL)
@@ -948,6 +954,10 @@ namespace GLExtensions
 #if defined(__linux__) || defined(__APPLE__)
 			// Give it a second try with dlsym
 			*func = dlsym(RTLD_NEXT, name.c_str());
+#endif
+#ifdef _WIN32
+			if (*func == NULL)
+				*func = (void*)GetProcAddress(dllHandle, (LPCSTR)name.c_str());
 #endif
 			if (*func == NULL && _isES)
 				*func = (void*)0xFFFFFFFF; // Easy to determine invalid function, just so we continue on
@@ -969,18 +979,20 @@ namespace GLExtensions
 		bool success = true;
 		_isES3 = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3;
 		_isES = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 || GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES2;
-
+#ifdef _WIN32
+		dllHandle = LoadLibrary(TEXT("OpenGL32.dll"));
+#endif
 		// Grab glGetStringi and glGetIntegerv immediately
 		// We need them to grab the extension list
 		// If it fails then the user's drivers don't support GL 3.0	
-		if (GetProcAddress ("glGetIntegerv", (void**)&glGetIntegerv) == NULL)
+		if (GetFuncAddress ("glGetIntegerv", (void**)&glGetIntegerv) == NULL)
 			return false;
-		if (GetProcAddress("glGetStringi", (void**)&glGetStringi) == NULL)
+		if (GetFuncAddress("glGetStringi", (void**)&glGetStringi) == NULL)
 			return false;
 
 		InitVersion();
 		InitExtensionList();
-		
+
 		if (success && !init_gl_1_1()) success = false;
 		if (success && !init_gl_1_2()) success = false;
 		if (success && !init_gl_1_3()) success = false;
@@ -1020,9 +1032,9 @@ namespace GLExtensions
 	// eg if (GrabFunction(glGetStringi)) return true;
 
 #define GrabFunction(x) \
-	 (!!GetProcAddress(#x, (void**)&x)) 
+	 (!!GetFuncAddress(#x, (void**)&x)) 
 #define GrabFunctionSuffix(x, y) \
-	 (!!GetProcAddress(#x #y, (void**)&x)) 
+	 (!!GetFuncAddress(#x #y, (void**)&x)) 
 	
 	bool init_gl_1_1()
 	{
