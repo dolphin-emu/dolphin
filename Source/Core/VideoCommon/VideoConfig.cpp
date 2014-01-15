@@ -68,7 +68,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "AnaglyphStereoSeparation", &iAnaglyphStereoSeparation, 200);
 	iniFile.Get("Settings", "AnaglyphFocalAngle", &iAnaglyphFocalAngle, 0);
 	iniFile.Get("Settings", "EnablePixelLighting", &bEnablePixelLighting, 0);
-	iniFile.Get("Settings", "HackedBufferUpload", &bHackedBufferUpload, 0);
 	iniFile.Get("Settings", "FastDepthCalc", &bFastDepthCalc, true);
 
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
@@ -151,7 +150,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	CHECK_SETTING("Video_Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
-	CHECK_SETTING("Video_Settings", "HackedBufferUpload", bHackedBufferUpload);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
 	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
 	int tmp = -9000;
@@ -250,7 +248,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "AnaglyphStereoSeparation", iAnaglyphStereoSeparation);
 	iniFile.Set("Settings", "AnaglyphFocalAngle", iAnaglyphFocalAngle);
 	iniFile.Set("Settings", "EnablePixelLighting", bEnablePixelLighting);
-	iniFile.Set("Settings", "HackedBufferUpload", bHackedBufferUpload);
 	iniFile.Set("Settings", "FastDepthCalc", bFastDepthCalc);
 
 	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);

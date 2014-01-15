@@ -167,10 +167,6 @@ protected:
 		virtual_xfb->Enable(vconfig.bUseXFB);
 		real_xfb->Enable(vconfig.bUseXFB);
 
-		// OGL Hacked buffer
-		hacked_buffer_upload->Enable(Core::GetState() == Core::CORE_UNINITIALIZED && vconfig.backend_info.APIType == API_OPENGL);
-		hacked_buffer_upload->Show(vconfig.backend_info.APIType == API_OPENGL);
-
 		ev.Skip();
 	}
 
@@ -199,7 +195,6 @@ protected:
 	SettingRadioButton* efbcopy_ram;
 	SettingCheckBox* cache_efb_copies;
 	SettingCheckBox* emulate_efb_format_changes;
-	SettingCheckBox* hacked_buffer_upload;
 
 	SettingRadioButton* virtual_xfb;
 	SettingRadioButton* real_xfb;

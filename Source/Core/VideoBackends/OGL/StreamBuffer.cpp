@@ -23,14 +23,6 @@ StreamBuffer::StreamBuffer(u32 type, size_t size)
 
 	bool nvidia = !strcmp(g_ogl_config.gl_vendor, "NVIDIA Corporation");
 
-	// TODO: move this to InitBackendInfo
-	if(g_ActiveConfig.bHackedBufferUpload && DriverDetails::HasBug(DriverDetails::BUG_BROKENHACKEDBUFFER))
-	{
-		OSD::AddMessage("Vertex Streaming Hack isn't supported by your GPU.", 10000);
-		g_ActiveConfig.bHackedBufferUpload = false;
-		g_Config.bHackedBufferUpload = false;
-	}
-
 	if (g_ogl_config.bSupportsGLBufferStorage &&
 		!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER))
 		m_uploadtype = BUFFERSTORAGE;
@@ -38,8 +30,6 @@ StreamBuffer::StreamBuffer(u32 type, size_t size)
 		m_uploadtype = BUFFERSUBDATA;
 	else if(!g_ogl_config.bSupportsGLBaseVertex)
 		m_uploadtype = BUFFERDATA;
-	else if(g_ogl_config.bSupportsGLSync && g_ActiveConfig.bHackedBufferUpload)
-		m_uploadtype = MAP_AND_RISK;
 	else if(g_ogl_config.bSupportsGLSync && g_ogl_config.bSupportsGLPinnedMemory &&
 		!(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) && type == GL_ELEMENT_ARRAY_BUFFER))
 		m_uploadtype = PINNED_MEMORY;
@@ -118,11 +108,6 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		}
 
 		break;
-	case MAP_AND_RISK:
-		if(iter_end >= m_size) {
-			m_iterator_aligned = 0;
-		}
-		break;
 	case BUFFERSUBDATA:
 	case BUFFERDATA:
 		m_iterator_aligned = 0;
@@ -145,7 +130,6 @@ size_t StreamBuffer::Upload ( u8* data, size_t size )
 		}
 		break;
 	case PINNED_MEMORY:
-	case MAP_AND_RISK:
 	case BUFFERSTORAGE:
 		if (pointer)
 			memcpy(pointer + m_iterator, data, size);
@@ -219,14 +203,6 @@ void StreamBuffer::Init()
 			ERROR_LOG(VIDEO, "Buffer allocation failed");
 		break;
 
-	case MAP_AND_RISK:
-		glBindBuffer(m_buffertype, m_buffer);
-		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
-		pointer = (u8*)glMapBufferRange(m_buffertype, 0, m_size, GL_MAP_WRITE_BIT);
-		glUnmapBuffer(m_buffertype);
-		if(!pointer)
-			ERROR_LOG(VIDEO, "Buffer allocation failed");
-		break;
 	case BUFFERDATA:
 		glBindBuffer(m_buffertype, m_buffer);
 		break;
@@ -239,7 +215,6 @@ void StreamBuffer::Shutdown()
 	case MAP_AND_SYNC:
 		DeleteFences();
 		break;
-	case MAP_AND_RISK:
 	case MAP_AND_ORPHAN:
 	case BUFFERSUBDATA:
 	case BUFFERDATA:

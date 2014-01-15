@@ -20,11 +20,10 @@ namespace OGL
 enum StreamType {
 	MAP_AND_ORPHAN = (1 << 1),
 	MAP_AND_SYNC = (1 << 2),
-	MAP_AND_RISK = (1 << 3),
-	PINNED_MEMORY = (1 << 4),
-	BUFFERSUBDATA = (1 << 5),
-	BUFFERDATA = (1 << 6),
-	BUFFERSTORAGE = (1 << 7),
+	PINNED_MEMORY = (1 << 3),
+	BUFFERSUBDATA = (1 << 4),
+	BUFFERDATA = (1 << 5),
+	BUFFERSTORAGE = (1 << 6),
 };
 
 class StreamBuffer {
