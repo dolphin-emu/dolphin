@@ -97,14 +97,6 @@ namespace DriverDetails
 		// Nouveau stored the offset as u16 which isn't enough for all cases with range until 9.1.6
 		// I965 has broken data fetches from uniform buffers which results in a dithering until 9.2.0
 		BUG_BROKENUBO,
-		// Bug: The hacked buffer upload method isn't working
-		//      This isn't a bug as the hacked buffer itself isn't used to work.
-		//      I'm still surprised that it works on so many drivers.
-		// Affected devices: - amd close sourced driver
-		//                   - nouveau
-		//                   - maybe also some others
-		// This hack is evil. It's like free(pointer); *pointer = data;
-		BUG_BROKENHACKEDBUFFER,
 		// Bug: The pinned memory extension isn't working for index buffers
 		// Affected devices: AMD as they are the only vendor providing this extension
 		// Started Version: ?
