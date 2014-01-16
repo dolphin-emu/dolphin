@@ -18,24 +18,13 @@ public:
 
 	static void AddIndices(int primitive, u32 numVertices);
 
-	// Interface
-	static u32 GetNumIndices() {return numI;}
-
 	// returns numprimitives
 	static u32 GetNumVerts() {return index;}
 
 	static u32 GetIndexLen() {return (u32)(Iptr - BASEIptr);}
 
 	static u32 GetRemainingIndices();
-/*
-	enum IndexPrimitiveType
-	{
-		Prim_None = 0,
-		Prim_List,
-		Prim_Strip,
-		Prim_Fan
-	};
-*/
+
 private:
 	// Triangles
 	template <bool pr> static void AddList(u32 numVerts);
@@ -54,8 +43,6 @@ private:
 
 	static u16 *Iptr;
 	static u16 *BASEIptr;
-	// TODO: redundant variables
-	static u32 numI;
 	static u32 index;
 };
 

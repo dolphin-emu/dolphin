@@ -11,7 +11,6 @@
 //Init
 u16 *IndexGenerator::Iptr;
 u16 *IndexGenerator::BASEIptr;
-u32 IndexGenerator::numI;
 u32 IndexGenerator::index;
 
 static const u16 s_primitive_restart = -1;
@@ -45,7 +44,6 @@ void IndexGenerator::Start(u16* Indexptr)
 	Iptr = Indexptr;
 	BASEIptr = Indexptr;
 	index = 0;
-	numI = 0;
 }
 
 void IndexGenerator::AddIndices(int primitive, u32 numVerts)
@@ -62,8 +60,6 @@ template <bool pr> __forceinline void IndexGenerator::WriteTriangle(u32 index1, 
 	*Iptr++ = index3;
 	if(pr)
 		*Iptr++ = s_primitive_restart;
-
-	++numI;
 }
 
 template <bool pr> void IndexGenerator::AddList(u32 const numVerts)
@@ -83,7 +79,6 @@ template <bool pr> void IndexGenerator::AddStrip(u32 const numVerts)
 			*Iptr++ = index + i;
 		}
 		*Iptr++ = s_primitive_restart;
-		numI += numVerts - 2;
 
 	}
 	else
@@ -134,7 +129,6 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
 			*Iptr++ = index + i + 1;
 			*Iptr++ = index + i + 2;
 			*Iptr++ = s_primitive_restart;
-			numI += 3;
 		}
 
 		for(; i+2<=numVerts; i+=2)
@@ -144,7 +138,6 @@ template <bool pr> void IndexGenerator::AddFan(u32 numVerts)
 			*Iptr++ = index;
 			*Iptr++ = index + i + 1;
 			*Iptr++ = s_primitive_restart;
-			numI += 2;
 		}
 	}
 
@@ -183,7 +176,6 @@ template <bool pr> void IndexGenerator::AddQuads(u32 numVerts)
 			*Iptr++ = index + i - 3;
 			*Iptr++ = index + i - 0;
 			*Iptr++ = s_primitive_restart;
-			numI += 2;
 		}
 		else
 		{
@@ -206,7 +198,6 @@ void IndexGenerator::AddLineList(u32 numVerts)
 	{
 		*Iptr++ = index + i - 1;
 		*Iptr++ = index + i;
-		++numI;
 	}
 
 }
@@ -219,7 +210,6 @@ void IndexGenerator::AddLineStrip(u32 numVerts)
 	{
 		*Iptr++ = index + i - 1;
 		*Iptr++ = index + i;
-		++numI;
 	}
 }
 
@@ -229,7 +219,6 @@ void IndexGenerator::AddPoints(u32 numVerts)
 	for (u32 i = 0; i != numVerts; ++i)
 	{
 		*Iptr++ = index + i;
-		++numI;
 	}
 }
 
