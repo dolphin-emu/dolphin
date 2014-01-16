@@ -90,15 +90,12 @@ void LOADERDECL Pos_ReadIndex()
 	static_assert(N <= 3, "N > 3 is not sane!");
 
 	auto const index = DataRead<I>();
-	if (index < std::numeric_limits<I>::max())
-	{
-		auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
+	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
 
-		for (int i = 0; i < 3; ++i)
-			DataWrite(i<N ? PosScale(Common::FromBigEndian(data[i])) : 0.f);
+	for (int i = 0; i < 3; ++i)
+		DataWrite(i<N ? PosScale(Common::FromBigEndian(data[i])) : 0.f);
 
-		LOG_VTX();
-	}
+	LOG_VTX();
 }
 
 #if _M_SSE >= 0x301
@@ -109,15 +106,12 @@ template <typename I, bool three>
 void LOADERDECL Pos_ReadIndex_Float_SSSE3()
 {
 	auto const index = DataRead<I>();
-	if (index < std::numeric_limits<I>::max())
-	{
-		const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
-		GC_ALIGNED128(const __m128i a = _mm_loadu_si128((__m128i*)pData));
-		GC_ALIGNED128(__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2));
-		_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
-		VertexManager::s_pCurBufferPointer += sizeof(float) * 3;
-		LOG_VTX();
-	}
+	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
+	GC_ALIGNED128(const __m128i a = _mm_loadu_si128((__m128i*)pData));
+	GC_ALIGNED128(__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2));
+	_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
+	VertexManager::s_pCurBufferPointer += sizeof(float) * 3;
+	LOG_VTX();
 }
 #endif
 
