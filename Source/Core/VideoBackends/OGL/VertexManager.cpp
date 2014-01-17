@@ -44,7 +44,7 @@ const u32 MAX_VBUFFER_SIZE = 16*1024*1024;
 static StreamBuffer *s_vertexBuffer;
 static StreamBuffer *s_indexBuffer;
 static size_t s_baseVertex;
-static size_t s_offset[3];
+static size_t s_index_offset;
 
 VertexManager::VertexManager()
 {
@@ -83,74 +83,44 @@ void VertexManager::DestroyDeviceObjects()
 void VertexManager::PrepareDrawBuffers(u32 stride)
 {
 	u32 vertex_data_size = IndexGenerator::GetNumVerts() * stride;
-	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
-	u32 line_index_size = IndexGenerator::GetLineindexLen();
-	u32 point_index_size = IndexGenerator::GetPointindexLen();
-	u32 index_size = (triangle_index_size+line_index_size+point_index_size) * sizeof(u16);
+	u32 index_data_size = IndexGenerator::GetIndexLen() * sizeof(u16);
 
 	s_vertexBuffer->Alloc(vertex_data_size, stride);
 	size_t offset = s_vertexBuffer->Upload(GetVertexBuffer(), vertex_data_size);
 	s_baseVertex = offset / stride;
 
-	s_indexBuffer->Alloc(index_size);
-	if(triangle_index_size)
-	{
-		s_offset[0] = s_indexBuffer->Upload((u8*)GetTriangleIndexBuffer(), triangle_index_size * sizeof(u16));
-	}
-	if(line_index_size)
-	{
-		s_offset[1] = s_indexBuffer->Upload((u8*)GetLineIndexBuffer(), line_index_size * sizeof(u16));
-	}
-	if(point_index_size)
-	{
-		s_offset[2] = s_indexBuffer->Upload((u8*)GetPointIndexBuffer(), point_index_size * sizeof(u16));
-	}
+	s_indexBuffer->Alloc(index_data_size);
+	s_index_offset = s_indexBuffer->Upload((u8*)GetIndexBuffer(), index_data_size);
 
 	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertex_data_size);
-	ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_size);
+	ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_data_size);
 }
 
 void VertexManager::Draw(u32 stride)
 {
-	u32 triangle_index_size = IndexGenerator::GetTriangleindexLen();
-	u32 line_index_size = IndexGenerator::GetLineindexLen();
-	u32 point_index_size = IndexGenerator::GetPointindexLen();
+	u32 index_size = IndexGenerator::GetIndexLen();
 	u32 max_index = IndexGenerator::GetNumVerts();
-	GLenum triangle_mode = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart?GL_TRIANGLE_STRIP:GL_TRIANGLES;
+	GLenum primitive_mode = 0;
+
+	switch(current_primitive_type)
+	{
+		case PRIMITIVE_POINTS:
+			primitive_mode = GL_POINTS;
+			break;
+		case PRIMITIVE_LINES:
+			primitive_mode = GL_LINES;
+			break;
+		case PRIMITIVE_TRIANGLES:
+			primitive_mode = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? GL_TRIANGLE_STRIP : GL_TRIANGLES;
+			break;
+	}
 
 	if(g_ogl_config.bSupportsGLBaseVertex) {
-		if (triangle_index_size > 0)
-		{
-			glDrawRangeElementsBaseVertex(triangle_mode, 0, max_index, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0], (GLint)s_baseVertex);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-		}
-		if (line_index_size > 0)
-		{
-			glDrawRangeElementsBaseVertex(GL_LINES, 0, max_index, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1], (GLint)s_baseVertex);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-		}
-		if (point_index_size > 0)
-		{
-			glDrawRangeElementsBaseVertex(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2], (GLint)s_baseVertex);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-		}
+		glDrawRangeElementsBaseVertex(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_index_offset, (GLint)s_baseVertex);
 	} else {
-		if (triangle_index_size > 0)
-		{
-			glDrawRangeElements(triangle_mode, 0, max_index, triangle_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[0]);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-		}
-		if (line_index_size > 0)
-		{
-			glDrawRangeElements(GL_LINES, 0, max_index, line_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[1]);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-		}
-		if (point_index_size > 0)
-		{
-			glDrawRangeElements(GL_POINTS, 0, max_index, point_index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_offset[2]);
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-		}
+		glDrawRangeElements(primitive_mode, 0, max_index, index_size, GL_UNSIGNED_SHORT, (u8*)NULL+s_index_offset);
 	}
+	INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 }
 
 void VertexManager::vFlush()

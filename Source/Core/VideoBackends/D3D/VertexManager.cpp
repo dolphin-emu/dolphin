@@ -36,9 +36,7 @@ void VertexManager::CreateDeviceObjects()
 		D3D11_BIND_INDEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
 	m_vertex_draw_offset = 0;
-	m_triangle_draw_index = 0;
-	m_line_draw_index = 0;
-	m_point_draw_index = 0;
+	m_index_draw_offset = 0;
 	m_index_buffers = new PID3D11Buffer[MAX_VBUFFER_COUNT];
 	m_vertex_buffers = new PID3D11Buffer[MAX_VBUFFER_COUNT];
 	for (m_current_index_buffer = 0; m_current_index_buffer < MAX_VBUFFER_COUNT; m_current_index_buffer++)
@@ -108,8 +106,7 @@ void VertexManager::PrepareDrawBuffers()
 	m_vertex_draw_offset = m_vertex_buffer_cursor;
 	m_vertex_buffer_cursor += vSize;
 
-	UINT iCount = IndexGenerator::GetTriangleindexLen() +
-		IndexGenerator::GetLineindexLen() + IndexGenerator::GetPointindexLen();
+	UINT iCount = IndexGenerator::GetIndexLen();
 	MapType = D3D11_MAP_WRITE_NO_OVERWRITE;
 	if (m_index_buffer_cursor + iCount >= (IBUFFER_SIZE / sizeof(u16)))
 	{
@@ -120,13 +117,9 @@ void VertexManager::PrepareDrawBuffers()
 	}
 	D3D::context->Map(m_index_buffers[m_current_index_buffer], 0, MapType, 0, &map);
 
-	m_triangle_draw_index = m_index_buffer_cursor;
-	m_line_draw_index = m_triangle_draw_index + IndexGenerator::GetTriangleindexLen();
-	m_point_draw_index = m_line_draw_index + IndexGenerator::GetLineindexLen();
-	memcpy((u16*)map.pData + m_triangle_draw_index, GetTriangleIndexBuffer(), sizeof(u16) * IndexGenerator::GetTriangleindexLen());
-	memcpy((u16*)map.pData + m_line_draw_index, GetLineIndexBuffer(), sizeof(u16) * IndexGenerator::GetLineindexLen());
-	memcpy((u16*)map.pData + m_point_draw_index, GetPointIndexBuffer(), sizeof(u16) * IndexGenerator::GetPointindexLen());
+	memcpy((u16*)map.pData + m_index_buffer_cursor, GetIndexBuffer(), sizeof(u16) * IndexGenerator::GetIndexLen());
 	D3D::context->Unmap(m_index_buffers[m_current_index_buffer], 0);
+	m_index_draw_offset = m_index_buffer_cursor;
 	m_index_buffer_cursor += iCount;
 
 	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vSize);
@@ -142,16 +135,13 @@ void VertexManager::Draw(UINT stride)
 	D3D::context->IASetVertexBuffers(0, 1, &m_vertex_buffers[m_current_vertex_buffer], &stride, &m_vertex_draw_offset);
 	D3D::context->IASetIndexBuffer(m_index_buffers[m_current_index_buffer], DXGI_FORMAT_R16_UINT, 0);
 
-	if (IndexGenerator::GetNumTriangles() > 0)
+	if (current_primitive_type == PRIMITIVE_TRIANGLES)
 	{
 		D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		D3D::context->DrawIndexed(IndexGenerator::GetTriangleindexLen(), m_triangle_draw_index, 0);
+		D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	// Disable culling for lines and points
-	if (IndexGenerator::GetNumLines() > 0 || IndexGenerator::GetNumPoints() > 0)
-		((DX11::Renderer*)g_renderer)->ApplyCullDisable();
-	if (IndexGenerator::GetNumLines() > 0)
+	else if (current_primitive_type == PRIMITIVE_LINES)
 	{
 		float lineWidth = float(bpmem.lineptwidth.linesize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.lineoff];
@@ -166,14 +156,16 @@ void VertexManager::Draw(UINT stride)
 		if (m_lineShader.SetShader(g_nativeVertexFmt->m_components, lineWidth,
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
+			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-			D3D::context->DrawIndexed(IndexGenerator::GetLineindexLen(), m_line_draw_index, 0);
+			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 
 			D3D::context->GSSetShader(NULL, NULL, 0);
+			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}
-	if (IndexGenerator::GetNumPoints() > 0)
+	else //if (current_primitive_type == PRIMITIVE_POINTS)
 	{
 		float pointSize = float(bpmem.lineptwidth.pointsize) / 6.f;
 		float texOffset = LINE_PT_TEX_OFFSETS[bpmem.lineptwidth.pointoff];
@@ -188,15 +180,15 @@ void VertexManager::Draw(UINT stride)
 		if (m_pointShader.SetShader(g_nativeVertexFmt->m_components, pointSize,
 			texOffset, vpWidth, vpHeight, texOffsetEnable))
 		{
+			((DX11::Renderer*)g_renderer)->ApplyCullDisable(); // Disable culling for lines and points
 			D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-			D3D::context->DrawIndexed(IndexGenerator::GetPointindexLen(), m_point_draw_index, 0);
+			D3D::context->DrawIndexed(IndexGenerator::GetIndexLen(), m_index_draw_offset, 0);
 			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 
 			D3D::context->GSSetShader(NULL, NULL, 0);
+			((DX11::Renderer*)g_renderer)->RestoreCull();
 		}
 	}
-	if (IndexGenerator::GetNumLines() > 0 || IndexGenerator::GetNumPoints() > 0)
-		((DX11::Renderer*)g_renderer)->RestoreCull();
 }
 
 void VertexManager::vFlush()

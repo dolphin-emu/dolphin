@@ -21,15 +21,26 @@ u8 *VertexManager::s_pCurBufferPointer;
 u8 *VertexManager::s_pBaseBufferPointer;
 u8 *VertexManager::s_pEndBufferPointer;
 
+PrimitiveType VertexManager::current_primitive_type;
+
+static const PrimitiveType primitive_from_gx[8] = {
+	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS
+	PRIMITIVE_TRIANGLES, // GX_DRAW_NONE
+	PRIMITIVE_TRIANGLES, // GX_DRAW_TRIANGLES
+	PRIMITIVE_TRIANGLES, // GX_DRAW_TRIANGLE_STRIP
+	PRIMITIVE_TRIANGLES, // GX_DRAW_TRIANGLE_FAN
+	PRIMITIVE_LINES,     // GX_DRAW_LINES
+	PRIMITIVE_LINES,     // GX_DRAW_LINE_STRIP
+	PRIMITIVE_POINTS,    // GX_DRAW_POINTS
+};
+
 VertexManager::VertexManager()
 {
 	LocalVBuffer.resize(MAXVBUFFERSIZE);
 	s_pCurBufferPointer = s_pBaseBufferPointer = &LocalVBuffer[0];
 	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
 
-	TIBuffer.resize(MAXIBUFFERSIZE);
-	LIBuffer.resize(MAXIBUFFERSIZE);
-	PIBuffer.resize(MAXIBUFFERSIZE);
+	LocalIBuffer.resize(MAXIBUFFERSIZE);
 
 	ResetBuffer();
 }
@@ -41,7 +52,7 @@ VertexManager::~VertexManager()
 void VertexManager::ResetBuffer()
 {
 	s_pCurBufferPointer = s_pBaseBufferPointer;
-	IndexGenerator::Start(GetTriangleIndexBuffer(), GetLineIndexBuffer(), GetPointIndexBuffer());
+	IndexGenerator::Start(GetIndexBuffer());
 }
 
 u32 VertexManager::GetRemainingSize()
@@ -53,6 +64,12 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 {
 	u32 const needed_vertex_bytes = count * stride;
 
+	// We can't merge different kinds of primitives, so we have to flush here
+	if (current_primitive_type != primitive_from_gx[primitive])
+		Flush();
+	current_primitive_type = primitive_from_gx[primitive];
+
+	// Check for size in buffer, if the buffer gets full, call Flush()
 	if (count > IndexGenerator::GetRemainingIndices() || count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize())
 	{
 		Flush();
@@ -75,27 +92,28 @@ bool VertexManager::IsFlushed() const
 
 u32 VertexManager::GetRemainingIndices(int primitive)
 {
+	u32 index_len = MAXIBUFFERSIZE - IndexGenerator::GetIndexLen();
 
 	if(g_Config.backend_info.bSupportsPrimitiveRestart)
 	{
 		switch (primitive)
 		{
 		case GX_DRAW_QUADS:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 5 * 4;
+			return index_len / 5 * 4;
 		case GX_DRAW_TRIANGLES:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 4 * 3;
+			return index_len / 4 * 3;
 		case GX_DRAW_TRIANGLE_STRIP:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 1 - 1;
+			return index_len / 1 - 1;
 		case GX_DRAW_TRIANGLE_FAN:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 6 * 4 + 1;
+			return index_len / 6 * 4 + 1;
 
 		case GX_DRAW_LINES:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
+			return index_len;
 		case GX_DRAW_LINE_STRIP:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2 + 1;
+			return index_len / 2 + 1;
 
 		case GX_DRAW_POINTS:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
+			return index_len;
 
 		default:
 			return 0;
@@ -106,21 +124,21 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 		switch (primitive)
 		{
 		case GX_DRAW_QUADS:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 6 * 4;
+			return index_len / 6 * 4;
 		case GX_DRAW_TRIANGLES:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen());
+			return index_len;
 		case GX_DRAW_TRIANGLE_STRIP:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
+			return index_len / 3 + 2;
 		case GX_DRAW_TRIANGLE_FAN:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen()) / 3 + 2;
+			return index_len / 3 + 2;
 
 		case GX_DRAW_LINES:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen());
+			return index_len;
 		case GX_DRAW_LINE_STRIP:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen()) / 2 + 1;
+			return index_len / 2 + 1;
 
 		case GX_DRAW_POINTS:
-			return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
+			return index_len;
 
 		default:
 			return 0;
@@ -167,9 +185,7 @@ void VertexManager::DoStateShared(PointerWrap& p)
 	// and maybe other things are overlooked
 
 	p.Do(LocalVBuffer);
-	p.Do(TIBuffer);
-	p.Do(LIBuffer);
-	p.Do(PIBuffer);
+	p.Do(LocalIBuffer);
 
 	s_pBaseBufferPointer = &LocalVBuffer[0];
 	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
