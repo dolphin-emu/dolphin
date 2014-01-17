@@ -9,7 +9,7 @@
 #include "VideoConfigDialog.h"
 #endif // HAVE_WX
 
-
+#include "../OGL/GLExtensions/GLExtensions.h"
 #include "SWCommandProcessor.h"
 #include "OpcodeDecoder.h"
 #include "SWVideoConfig.h"
@@ -168,16 +168,14 @@ void VideoSoftware::Video_Cleanup()
 void VideoSoftware::Video_Prepare()
 {
 	GLInterface->MakeCurrent();
+
 	// Init extension support.
-#ifndef USE_GLES
-#ifdef __APPLE__
-	glewExperimental = 1;
-#endif
-	if (glewInit() != GLEW_OK) {
-		ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
+	if (!GLExtensions::Init())
+	{
+		ERROR_LOG(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
 		return;
 	}
-#endif
+
 	// Handle VSync on/off
 	GLInterface->SwapInterval(VSYNC_ENABLED);
 

@@ -1,3 +1,8 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#include "GLInterface.h"
 #include "RenderBase.h"
 #include "GLUtil.h"
 #include "PerfQuery.h"
@@ -41,7 +46,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 	{
 		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count) % ArraySize(m_query_buffer)];
 
-		glBeginQuery(GL_SAMPLES_PASSED, entry.query_id);
+		glBeginQuery(GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL ? GL_SAMPLES_PASSED : GL_ANY_SAMPLES_PASSED, entry.query_id);
 		entry.query_type = type;
 
 		++m_query_count;
@@ -56,7 +61,7 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
 	// stop query
 	if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
 	{
-		glEndQuery(GL_SAMPLES_PASSED);
+		glEndQuery(GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL ? GL_SAMPLES_PASSED : GL_ANY_SAMPLES_PASSED);
 	}
 }
 

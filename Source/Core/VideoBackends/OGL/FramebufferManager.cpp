@@ -6,7 +6,6 @@
 #include "FramebufferManager.h"
 #include "VertexShaderGen.h"
 #include "OnScreenDisplay.h"
-#include "GLFunctions.h"
 #include "DriverDetails.h"
 
 #include "TextureConverter.h"

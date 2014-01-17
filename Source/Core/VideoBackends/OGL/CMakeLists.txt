@@ -1,4 +1,5 @@
-set(SRCS	FramebufferManager.cpp
+set(SRCS	GLExtensions/GLExtensions.cpp
+			FramebufferManager.cpp
 			GLUtil.cpp
 			main.cpp
 			NativeVertexFormat.cpp
@@ -16,20 +17,11 @@ set(SRCS	FramebufferManager.cpp
 set(LIBS	videocommon
 			SOIL
 			common
+			dl
 			${X11_LIBRARIES})
 if(USE_EGL)
 	set(LIBS ${LIBS}
 		EGL)
-endif()
-
-if(USE_GLES3)
-	set(LIBS ${LIBS}
-		GLESv2)
-	set(SRCS ${SRCS} GLFunctions.cpp)
-else()
-	set(LIBS ${LIBS}
-		GLEW
-		${OPENGL_LIBRARIES})
 endif()
 
 if(wxWidgets_FOUND)

@@ -104,9 +104,6 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Externals\GLew\glew.vcxproj">
-      <Project>{2a3f751d-69e9-45f2-9199-9a00bfb6cc72}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Externals\wxWidgets3\build\msw\wx_base.vcxproj">
       <Project>{1c8436c9-dbaf-42be-83bc-cf3ec9175abe}</Project>
     </ProjectReference>

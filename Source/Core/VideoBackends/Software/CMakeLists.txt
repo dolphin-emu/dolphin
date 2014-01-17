@@ -1,4 +1,5 @@
-set(SRCS	BPMemLoader.cpp
+set(SRCS	../OGL/GLExtensions/GLExtensions.cpp	
+			BPMemLoader.cpp
 			Clipper.cpp
 			SWCommandProcessor.cpp
 			CPMemLoader.cpp
@@ -42,7 +43,6 @@ if(USE_GLES)
 else()
 	set(SRCS ${SRCS} RasterFont.cpp)
 	set(LIBS ${LIBS}
-		GLEW
 		${OPENGL_LIBRARIES})
 endif()
 

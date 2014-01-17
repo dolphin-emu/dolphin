@@ -22,6 +22,9 @@
 #include "../GLInterface.h"
 #include "GLX.h"
 
+typedef int ( * PFNGLXSWAPINTERVALSGIPROC) (int interval);
+PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = NULL;
+
 // Show the current FPS
 void cInterfaceGLX::UpdateFPSDisplay(const char *text)
 {
@@ -34,6 +37,10 @@ void cInterfaceGLX::SwapInterval(int Interval)
 		glXSwapIntervalSGI(Interval);
 	else
 		ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
+}
+void* cInterfaceGLX::GetProcAddress(std::string name)
+{
+	return (void*)glXGetProcAddress((const GLubyte*)name.c_str());
 }
 
 void cInterfaceGLX::Swap()
@@ -116,6 +123,7 @@ bool cInterfaceGLX::Create(void *&window_handle)
 		PanicAlert("Unable to create GLX context.");
 		return false;
 	}
+	glXSwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC)GLInterface->GetProcAddress("glXSwapIntervalSGI");
 
 	GLWin.x = _tx;
 	GLWin.y = _ty;

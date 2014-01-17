@@ -19,8 +19,6 @@
 #include "GLInterface.h"
 #include "Android/ButtonManager.h"
 
-extern void DrawButton(GLuint tex, float *coords);
-
 namespace ButtonManager
 {
 	// Pair key is padID, BUTTONTYPE

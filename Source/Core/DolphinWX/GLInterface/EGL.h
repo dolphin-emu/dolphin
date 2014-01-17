@@ -17,17 +17,7 @@
 #ifndef _INTERFACEEGL_H_
 #define _INTERFACEEGL_H_
 
-#if USE_GLES
-#ifdef USE_GLES3
-#include <GLES3/gl3.h>
-#else
-#include <GLES2/gl2.h>
-#endif
-#else
-#include <GL/glxew.h>
-#include <GL/gl.h>
-#endif
-
+#include <EGL/egl.h>
 #include "InterfaceBase.h"
 
 class cPlatform;
@@ -41,6 +31,7 @@ public:
 	void SwapInterval(int Interval);
 	void Swap();
 	void UpdateFPSDisplay(const char *Text);
+	void* GetProcAddress(std::string name);
 	bool Create(void *&window_handle);
 	bool MakeCurrent();
 	void Shutdown();

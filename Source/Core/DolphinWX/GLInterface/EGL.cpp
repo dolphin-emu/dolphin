@@ -35,6 +35,11 @@ void cInterfaceEGL::SwapInterval(int Interval)
 	eglSwapInterval(GLWin.egl_dpy, Interval);
 }
 
+void* cInterfaceEGL::GetProcAddress(std::string name)
+{
+	return (void*)eglGetProcAddress(name.c_str());
+}
+
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceEGL::Create(void *&window_handle)

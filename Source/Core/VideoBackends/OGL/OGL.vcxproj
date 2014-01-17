@@ -44,6 +44,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="FramebufferManager.cpp" />
+    <ClCompile Include="GLExtensions\GLExtensions.cpp" />
     <ClCompile Include="GLUtil.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NativeVertexFormat.cpp" />
@@ -63,6 +64,34 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FramebufferManager.h" />
+    <ClInclude Include="GLExtensions\ARB_blend_func_extended.h" />
+    <ClInclude Include="GLExtensions\ARB_buffer_storage.h" />
+    <ClInclude Include="GLExtensions\ARB_debug_output.h" />
+    <ClInclude Include="GLExtensions\ARB_draw_elements_base_vertex.h" />
+    <ClInclude Include="GLExtensions\ARB_ES2_compatibility.h" />
+    <ClInclude Include="GLExtensions\ARB_framebuffer_object.h" />
+    <ClInclude Include="GLExtensions\ARB_get_program_binary.h" />
+    <ClInclude Include="GLExtensions\ARB_map_buffer_range.h" />
+    <ClInclude Include="GLExtensions\ARB_sampler_objects.h" />
+    <ClInclude Include="GLExtensions\ARB_sample_shading.h" />
+    <ClInclude Include="GLExtensions\ARB_sync.h" />
+    <ClInclude Include="GLExtensions\ARB_uniform_buffer_object.h" />
+    <ClInclude Include="GLExtensions\ARB_vertex_array_object.h" />
+    <ClInclude Include="GLExtensions\ARB_viewport_array.h" />
+    <ClInclude Include="GLExtensions\GLExtensions.h" />
+    <ClInclude Include="GLExtensions\gl_1_1.h" />
+    <ClInclude Include="GLExtensions\gl_1_2.h" />
+    <ClInclude Include="GLExtensions\gl_1_3.h" />
+    <ClInclude Include="GLExtensions\gl_1_4.h" />
+    <ClInclude Include="GLExtensions\gl_1_5.h" />
+    <ClInclude Include="GLExtensions\gl_2_0.h" />
+    <ClInclude Include="GLExtensions\gl_3_0.h" />
+    <ClInclude Include="GLExtensions\gl_3_1.h" />
+    <ClInclude Include="GLExtensions\gl_3_2.h" />
+    <ClInclude Include="GLExtensions\gl_common.h" />
+    <ClInclude Include="GLExtensions\KHR_debug.h" />
+    <ClInclude Include="GLExtensions\NV_framebuffer_multisample_coverage.h" />
+    <ClInclude Include="GLExtensions\NV_primitive_restart.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="GLUtil.h" />
     <ClInclude Include="main.h" />
@@ -83,9 +112,6 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Externals\GLew\glew.vcxproj">
-      <Project>{2a3f751d-69e9-45f2-9199-9a00bfb6cc72}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Externals\wxWidgets3\build\msw\wx_base.vcxproj">
       <Project>{1c8436c9-dbaf-42be-83bc-cf3ec9175abe}</Project>
     </ProjectReference>

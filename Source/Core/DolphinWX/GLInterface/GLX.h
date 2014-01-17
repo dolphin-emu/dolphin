@@ -17,11 +17,6 @@
 #ifndef _INTERFACEGLX_H_
 #define _INTERFACEGLX_H_
 
-#include <GL/glxew.h>
-#include <GL/gl.h>
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-
 #include "X11_Util.h"
 #include "InterfaceBase.h"
 
@@ -34,6 +29,7 @@ public:
 	void SwapInterval(int Interval);
 	void Swap();
 	void UpdateFPSDisplay(const char *Text);
+	void* GetProcAddress(std::string name);
 	bool Create(void *&window_handle);
 	bool MakeCurrent();
 	bool ClearCurrent();
