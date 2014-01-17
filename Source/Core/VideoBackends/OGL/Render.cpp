@@ -444,9 +444,10 @@ Renderer::Renderer()
 
 	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
 	g_Config.backend_info.bSupportsGLSLUBO = GLExtensions::Supports("GL_ARB_uniform_buffer_object") && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS);
-	g_Config.backend_info.bSupportsPrimitiveRestart = (GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart");
+	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
+				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
-	g_Config.backend_info.bSupportShadingLanguage420pack = GLExtensions::Supports("ARB_shading_language_420pack");
+	g_Config.backend_info.bSupportShadingLanguage420pack = GLExtensions::Supports("GL_ARB_shading_language_420pack");
 
 	g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
 	g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
