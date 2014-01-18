@@ -942,7 +942,7 @@ namespace GLExtensions
 
 	void* GetFuncAddress(std::string name, void **func)
 	{
-		*func = GLInterface->GetProcAddress(name);
+		*func = GLInterface->GetFuncAddress(name);
 		if (*func == NULL)
 		{
 #if defined(__linux__) || defined(__APPLE__)

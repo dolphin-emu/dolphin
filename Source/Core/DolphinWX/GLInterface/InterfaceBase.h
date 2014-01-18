@@ -24,7 +24,7 @@ public:
 	virtual void UpdateFPSDisplay(const char *Text) {}
 	virtual void SetMode(u32 mode) { s_opengl_mode = GLInterfaceMode::MODE_OPENGL; }
 	virtual u32 GetMode() { return s_opengl_mode; }
-	virtual void* GetProcAddress(std::string name) { return NULL; }
+	virtual void* GetFuncAddress(std::string name) { return NULL; }
 	virtual bool Create(void *&window_handle) { return true; }
 	virtual bool MakeCurrent() { return true; }
 	virtual bool ClearCurrent() { return true; }

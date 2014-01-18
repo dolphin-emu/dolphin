@@ -31,7 +31,7 @@ void cInterfaceWGL::Swap()
 	SwapBuffers(hDC);
 }
 
-void* cInterfaceWGL::GetProcAddress(std::string name)
+void* cInterfaceWGL::GetFuncAddress(std::string name)
 {
 	void* func = (void*)wglGetProcAddress((LPCSTR)name.c_str());
 	if (func == NULL)
@@ -83,7 +83,7 @@ bool cInterfaceWGL::Create(void *&window_handle)
 		Host_SysMessage("failed to create window");
 		return false;
 	}
-	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetProcAddress("wglSwapIntervalEXT");
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
 
 	// Show the window
 	EmuWindow::Show();

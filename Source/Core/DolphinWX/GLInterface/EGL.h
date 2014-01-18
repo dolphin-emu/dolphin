@@ -33,7 +33,7 @@ public:
 	void Swap();
 	void SetMode(u32 mode) { s_opengl_mode = GLInterfaceMode::MODE_DETECT; }
 	void UpdateFPSDisplay(const char *Text);
-	void* GetProcAddress(std::string name);
+	void* GetFuncAddress(std::string name);
 	bool Create(void *&window_handle);
 	bool MakeCurrent();
 	void Shutdown();

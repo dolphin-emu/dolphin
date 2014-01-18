@@ -35,7 +35,7 @@ void cInterfaceEGL::SwapInterval(int Interval)
 	eglSwapInterval(GLWin.egl_dpy, Interval);
 }
 
-void* cInterfaceEGL::GetProcAddress(std::string name)
+void* cInterfaceEGL::GetFuncAddress(std::string name)
 {
 	return (void*)eglGetProcAddress(name.c_str());
 }
