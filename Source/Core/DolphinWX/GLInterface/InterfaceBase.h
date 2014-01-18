@@ -4,6 +4,13 @@
 
 #ifndef _GLINTERFACEBASE_H_
 #define _GLINTERFACEBASE_H_
+enum GLInterfaceMode {
+	MODE_DETECT = 0,
+	MODE_OPENGL,
+	MODE_OPENGLES2,
+	MODE_OPENGLES3,
+};
+
 class cInterfaceBase
 {
 protected:
@@ -15,7 +22,7 @@ protected:
 public:
 	virtual void Swap() {}
 	virtual void UpdateFPSDisplay(const char *Text) {}
-	virtual void SetMode(u32 mode) { s_opengl_mode = mode; }
+	virtual void SetMode(u32 mode) { s_opengl_mode = GLInterfaceMode::MODE_OPENGL; }
 	virtual u32 GetMode() { return s_opengl_mode; }
 	virtual void* GetProcAddress(std::string name) { return NULL; }
 	virtual bool Create(void *&window_handle) { return true; }

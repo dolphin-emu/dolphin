@@ -25,6 +25,9 @@ namespace HwRasterizer
 	// Programs
 	static GLuint colProg, texProg, clearProg;
 
+	// Texture type
+	static GLenum texType;
+
 	// Color
 	static GLint col_apos = -1, col_atex = -1;
 	// Tex
@@ -36,20 +39,31 @@ namespace HwRasterizer
 	{
 		// Color Vertices
 		static const char *fragcolText =
-			"varying " PREC " vec4 TexCoordOut;\n"
+			"#if GL_ES\n"
+			"precision highp float;\n"
+			"#endif\n"
+			"varying vec4 TexCoordOut;\n"
 			"void main() {\n"
 			"	gl_FragColor = TexCoordOut;\n"
 			"}\n";
 		// Texture Vertices
 		static const char *fragtexText =
-			"varying " PREC " vec4 TexCoordOut;\n"
-			"uniform " TEXTYPE " Texture;\n"
+			"#if GL_ES\n"
+			"precision highp float;\n"
+			"#define texture2DRect texture2D\n"
+			"#define sampler2DRect sampler2D\n"
+			"#endif\n"
+			"varying vec4 TexCoordOut;\n"
+			"uniform sampler2DRect Texture;\n"
 			"void main() {\n"
-			"	gl_FragColor = " TEXFUNC "(Texture, TexCoordOut.xy);\n"
+			"	gl_FragColor = texture2DRect(Texture, TexCoordOut.xy);\n"
 			"}\n";
 		// Clear shader
 		static const char *fragclearText =
-			"uniform " PREC " vec4 Color;\n"
+			"#if GL_ES\n"
+			"precision highp float;\n"
+			"#endif\n"
+			"uniform vec4 Color;\n"
 			"void main() {\n"
 			"	gl_FragColor = Color;\n"
 			"}\n";
@@ -107,24 +121,25 @@ namespace HwRasterizer
 		//legacy multitexturing: select texture channel only.
 		glActiveTexture(GL_TEXTURE0);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
-#ifndef USE_GLES
-		glShadeModel(GL_SMOOTH);
-		glDisable(GL_BLEND);
-		glClearDepth(1.0f);
-		glEnable(GL_SCISSOR_TEST);
-		glDisable(GL_LIGHTING);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+		{
+			glShadeModel(GL_SMOOTH);
+			glDisable(GL_BLEND);
+			glClearDepth(1.0f);
+			glEnable(GL_SCISSOR_TEST);
+			glDisable(GL_LIGHTING);
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
 
-		glClientActiveTexture(GL_TEXTURE0);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glEnable(GL_TEXTURE_RECTANGLE_ARB);
-		glStencilFunc(GL_ALWAYS, 0, 0);
-		glDisable(GL_STENCIL_TEST);
-#endif
+			glClientActiveTexture(GL_TEXTURE0);
+			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glEnable(GL_TEXTURE_RECTANGLE_ARB);
+			glStencilFunc(GL_ALWAYS, 0, 0);
+			glDisable(GL_STENCIL_TEST);
+		}
 		// used by hw rasterizer if it enables blending and depth test
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDepthFunc(GL_LEQUAL);
@@ -132,6 +147,11 @@ namespace HwRasterizer
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 		CreateShaders();
+		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+			texType = GL_TEXTURE_RECTANGLE;
+		else
+			texType = GL_TEXTURE_2D;
+
 		GL_REPORT_ERRORD();
 	}
 	static float width, height;
@@ -141,19 +161,22 @@ namespace HwRasterizer
 		u32 imageAddr = texUnit.texImage3[0].image_base;
 		// Texture Rectangle uses pixel coordinates
 		// While GLES uses texture coordinates
-#ifdef USE_GLES
-		width = texUnit.texImage0[0].width;
-		height = texUnit.texImage0[0].height;
-#else
-		width = 1;
-		height = 1;
-#endif
+		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+		{
+			width = texUnit.texImage0[0].width;
+			height = texUnit.texImage0[0].height;
+		}
+		else
+		{
+			width = 1;
+			height = 1;
+		}
 		TexCacheEntry &cacheEntry = textures[imageAddr];
 		cacheEntry.Update();
 
-		glBindTexture(TEX2D, cacheEntry.texture);
-		glTexParameteri(TEX2D, GL_TEXTURE_MAG_FILTER, texUnit.texMode0[0].mag_filter ? GL_LINEAR : GL_NEAREST);
-		glTexParameteri(TEX2D, GL_TEXTURE_MIN_FILTER, (texUnit.texMode0[0].min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+		glBindTexture(texType, cacheEntry.texture);
+		glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, texUnit.texMode0[0].mag_filter ? GL_LINEAR : GL_NEAREST);
+		glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, (texUnit.texMode0[0].min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
 		GL_REPORT_ERRORD();
 	}
 
@@ -171,7 +194,7 @@ namespace HwRasterizer
 
 	void EndTriangles()
 	{
-		glBindTexture(TEX2D, 0);
+		glBindTexture(texType, 0);
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_BLEND);
 	}
@@ -332,8 +355,8 @@ namespace HwRasterizer
 		DebugUtil::GetTextureRGBA(temp, 0, 0, image_width, image_height);
 
 		glGenTextures(1, (GLuint *)&texture);
-		glBindTexture(TEX2D, texture);
-		glTexImage2D(TEX2D, 0, GL_RGBA, (GLsizei)image_width, (GLsizei)image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
+		glBindTexture(texType, texture);
+		glTexImage2D(texType, 0, GL_RGBA, (GLsizei)image_width, (GLsizei)image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, temp);
 
 		GL_REPORT_ERRORD();
 	}

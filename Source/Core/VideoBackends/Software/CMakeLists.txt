@@ -10,6 +10,7 @@ set(SRCS	../OGL/GLExtensions/GLExtensions.cpp
 			SWmain.cpp
 			OpcodeDecoder.cpp
 			SWPixelEngine.cpp
+			RasterFont.cpp
 			Rasterizer.cpp
 			SWRenderer.cpp
 			SetupUnit.cpp
@@ -30,20 +31,7 @@ set(LIBS	videocommon
 			SOIL
 			common
 			${X11_LIBRARIES}
+			${OPENGL_LIBRARIES}
 			${wxWidgets_LIBRARIES})
-if(USE_EGL)
-	set(LIBS ${LIBS}
-		EGL)
-endif()
-
-if(USE_GLES)
-	set(SRCS ${SRCS} ../OGL/GLUtil.cpp)
-	set(LIBS ${LIBS}
-		GLESv2)
-else()
-	set(SRCS ${SRCS} RasterFont.cpp)
-	set(LIBS ${LIBS}
-		${OPENGL_LIBRARIES})
-endif()
 
 add_dolphin_library(videosoftware "${SRCS}" "${LIBS}")

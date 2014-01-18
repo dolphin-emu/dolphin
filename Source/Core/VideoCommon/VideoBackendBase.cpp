@@ -8,9 +8,7 @@
 #ifdef _WIN32
 #include "../VideoBackends/D3D/VideoBackend.h"
 #endif
-#if !defined(USE_GLES) || USE_GLES3
 #include "../VideoBackends/OGL/VideoBackend.h"
-#endif
 #include "../VideoBackends/Software/VideoBackend.h"
 
 std::vector<VideoBackend*> g_available_video_backends;

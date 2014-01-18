@@ -40,14 +40,95 @@ void* cInterfaceEGL::GetProcAddress(std::string name)
 	return (void*)eglGetProcAddress(name.c_str());
 }
 
+void cInterfaceEGL::DetectMode()
+{
+	if (s_opengl_mode != MODE_DETECT)
+		return;
+
+	EGLint num_configs;
+	EGLConfig *config = NULL;
+	bool supportsGL = false, supportsGLES2 = false, supportsGLES3 = false;
+
+	// attributes for a visual in RGBA format with at least
+	// 8 bits per color
+	int attribs[] = {
+		EGL_RED_SIZE, 8,
+		EGL_GREEN_SIZE, 8,
+		EGL_BLUE_SIZE, 8,
+		EGL_NONE };
+
+	// Get how many configs there are
+	if (!eglChooseConfig( GLWin.egl_dpy, attribs, NULL, 0, &num_configs)) {
+		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
+		goto err_exit;
+	}
+
+	config = new EGLConfig[num_configs];
+
+	// Get all the configurations
+	if (!eglChooseConfig(GLWin.egl_dpy, attribs, config, num_configs, &num_configs))
+	{
+		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
+		goto err_exit;
+	}
+
+	for (int i = 0; i < num_configs; ++i)
+	{
+		EGLint attribVal;
+		bool ret;
+		ret = eglGetConfigAttrib(GLWin.egl_dpy, config[i], EGL_RENDERABLE_TYPE, &attribVal);
+		if (ret)
+		{
+			if (attribVal & EGL_OPENGL_BIT)
+				supportsGL = true;
+			if (attribVal & (1 << 6)) /* EGL_OPENGL_ES3_BIT_KHR */
+				supportsGLES3 = true;
+			if (attribVal & EGL_OPENGL_ES2_BIT)
+				supportsGLES2 = true;
+		}
+	}
+	if (supportsGL)
+		s_opengl_mode = GLInterfaceMode::MODE_OPENGL;
+	else if (supportsGLES3)
+		s_opengl_mode = GLInterfaceMode::MODE_OPENGLES3;
+	else if (supportsGLES2)
+		s_opengl_mode = GLInterfaceMode::MODE_OPENGLES2;
+err_exit:
+	if (s_opengl_mode == GLInterfaceMode::MODE_DETECT) // Errored before we found a mode
+		s_opengl_mode = GLInterfaceMode::MODE_OPENGL; // Fall back to OpenGL
+	if (config)
+		delete[] config;
+}
+
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceEGL::Create(void *&window_handle)
 {
 	const char *s;
 	EGLint egl_major, egl_minor;
+
+	if(!Platform.SelectDisplay())
+		return false;
+
+	GLWin.egl_dpy = Platform.EGLGetDisplay();
+
+	if (!GLWin.egl_dpy) {
+		INFO_LOG(VIDEO, "Error: eglGetDisplay() failed\n");
+		return false;
+	}
+
+	GLWin.platform = Platform.platform;
+
+	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor)) {
+		INFO_LOG(VIDEO, "Error: eglInitialize() failed\n");
+		return false;
+	}
+
+	/* Detection code */
 	EGLConfig config;
 	EGLint num_configs;
+
+	DetectMode();
 
 	// attributes for a visual in RGBA format with at least
 	// 8 bits per color
@@ -82,21 +163,9 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		break;
 	}
 
-	if(!Platform.SelectDisplay())
-		return false;
-
-	GLWin.egl_dpy = Platform.EGLGetDisplay();
-
-	if (!GLWin.egl_dpy) {
-		INFO_LOG(VIDEO, "Error: eglGetDisplay() failed\n");
-		return false;
-	}
-
-	GLWin.platform = Platform.platform;
-
-	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor)) {
-		INFO_LOG(VIDEO, "Error: eglInitialize() failed\n");
-		return false;
+	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs)) {
+		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
+		exit(1);
 	}
 
 	if (s_opengl_mode == MODE_OPENGL)
@@ -104,10 +173,6 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	else
 		eglBindAPI(EGL_OPENGL_ES_API);
 
-	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs)) {
-		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
-		exit(1);
-	}
 
 	if (!Platform.Init(config))
 		return false;

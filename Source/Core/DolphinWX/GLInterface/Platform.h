@@ -155,12 +155,6 @@ typedef struct {
 #endif
 } GLWindow;
 
-enum GLInterfaceMode {
-	MODE_OPENGL = 0,
-	MODE_OPENGLES2,
-	MODE_OPENGLES3,
-};
-
 extern cInterfaceBase *GLInterface;
 extern GLWindow GLWin;
 

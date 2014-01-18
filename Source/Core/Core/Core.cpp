@@ -702,7 +702,7 @@ void UpdateTitle()
 
 	// Settings are shown the same for both extended and summary info
 	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC",
-		g_video_backend->GetName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
+		g_video_backend->GetDisplayName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
 	// Use extended or summary information. The summary information does not print the ticks data,
 	// that's more of a debugging interest, it can always be optional of course if someone is interested.

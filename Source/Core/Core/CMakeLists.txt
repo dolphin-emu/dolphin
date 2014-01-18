@@ -228,11 +228,7 @@ if(_M_ARM)
 			)
 endif()
 
-set(LIBS bdisasm inputcommon videosoftware sfml-network)
-
-if(NOT USE_GLES OR USE_GLES3)
-	set(LIBS ${LIBS} videoogl)
-endif()
+set(LIBS bdisasm inputcommon videoogl videosoftware sfml-network)
 
 if(LIBUSB_FOUND)
 	# Using shared LibUSB

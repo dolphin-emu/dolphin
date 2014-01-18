@@ -7,8 +7,6 @@ option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(USE_X11 "Enables X11 Support" ON)
 option(USE_WAYLAND "Enables Wayland Support" OFF)
-option(USE_GLES "Enables GLES2 And EGL, disables OGL" OFF)
-option(USE_GLES3 "Enables GLES3 and EGL" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(DISABLE_WX "Disable wxWidgets (use CLI interface)" OFF)
 option(ENABLE_PCH "Use PCH to speed up compilation" ON)
@@ -125,8 +123,6 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
 	if(${ANDROID_NDK_ABI_NAME} MATCHES "armeabi-v7a")
 		add_definitions(-marm -march=armv7-a)
 	endif()
-	# Set generic options so you don't have to pass anything to cmake to build ARM
-	set(USE_GLES 1)
 endif()
 
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "mips")
@@ -290,27 +286,12 @@ if(ANDROID)
 	set(USE_X11 0)
 	set(USE_WAYLAND 0)
 	set(USE_UPNP 0)
-	set(USE_GLES3 1)
+	set(USE_EGL True)
+	add_definitions(-DUSE_EGL=1)
 endif()
 
 include_directories(Externals/GL)
 
-# For now GLES and EGL are tied to each other.
-# Enabling GLES also disables the OpenGL plugin.
-if(USE_GLES3)
-	message("GLES3 rendering enabled")
-	add_definitions(-DUSE_GLES=1 -DUSE_EGL=1 -DUSE_GLES3=1)
-	include_directories(Externals/GLES3)
-	set(USE_EGL True)
-	set(USE_GLES True)
-else()
-	if(USE_GLES)
-		message("GLES2 rendering enabled. OpenGL disabled")
-		add_definitions(-DUSE_GLES=1)
-		add_definitions(-DUSE_EGL=1)
-		set(USE_EGL True)
-	endif()
-endif()
 # For now Wayland and EGL are tied to each other.
 # The alternative would be an shm path
 if(USE_WAYLAND)
@@ -352,12 +333,9 @@ endif()
 
 if(NOT ANDROID)
 
-	if(NOT USE_GLES3)
-		include(FindOpenGL)
-	else()
-		set(X11_FOUND 1)
-	endif()
-	
+	include(FindOpenGL)
+	include_directories(${OPENGL_INCLUDE_DIR})
+
 	include(FindALSA OPTIONAL)
 	if(ALSA_FOUND)
 		add_definitions(-DHAVE_ALSA=1)

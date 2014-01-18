@@ -29,7 +29,7 @@ unsigned int VideoBackend::PeekMessages()
 void VideoBackend::UpdateFPSDisplay(const char *text)
 {
 	char temp[100];
-	snprintf(temp, sizeof temp, "%s | OpenGL | %s", scm_rev_str, text);
+	snprintf(temp, sizeof temp, "%s | %s | %s", scm_rev_str, GetDisplayName().c_str(), text);
 	return GLInterface->UpdateFPSDisplay(temp);
 }
 
@@ -122,21 +122,6 @@ GLuint OpenGL_ReportGLError(const char *function, const char *file, int line)
 	return err;
 }
 
-void OpenGL_ReportARBProgramError()
-{
-#ifndef USE_GLES
-	const GLubyte* pstr = glGetString(GL_PROGRAM_ERROR_STRING_ARB);
-	if (pstr != NULL && pstr[0] != 0)
-	{
-		GLint loc = 0;
-		glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &loc);
-		ERROR_LOG(VIDEO, "Program error at %d: ", loc);
-		ERROR_LOG(VIDEO, "%s", (char*)pstr);
-		ERROR_LOG(VIDEO, "\n");
-	}
-#endif
-}
-
 bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 {
 	unsigned int fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -151,14 +136,12 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
 				error = "INCOMPLETE_MISSING_ATTACHMENT";
 				break;
-#ifndef USE_GLES
 			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
 				error = "INCOMPLETE_DRAW_BUFFER";
 				break;
 			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
 				error = "INCOMPLETE_READ_BUFFER";
 				break;
-#endif
 			case GL_FRAMEBUFFER_UNSUPPORTED:
 				error = "UNSUPPORTED";
 				break;

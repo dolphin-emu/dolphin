@@ -26,10 +26,12 @@ class cInterfaceEGL : public cInterfaceBase
 {
 private:
 	cPlatform Platform;
+	void DetectMode();
 public:
 	friend class cPlatform;
 	void SwapInterval(int Interval);
 	void Swap();
+	void SetMode(u32 mode) { s_opengl_mode = GLInterfaceMode::MODE_DETECT; }
 	void UpdateFPSDisplay(const char *Text);
 	void* GetProcAddress(std::string name);
 	bool Create(void *&window_handle);

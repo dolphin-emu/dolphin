@@ -25,9 +25,7 @@ static std::string s_sScreenshotName;
 
 // Rasterfont isn't compatible with GLES
 // degasus: I think it does, but I can't test it
-#ifndef USE_GLES
 RasterFont* s_pfont = NULL;
-#endif
 
 void SWRenderer::Init()
 {
@@ -38,23 +36,28 @@ void SWRenderer::Shutdown()
 {
 	glDeleteProgram(program);
 	glDeleteTextures(1, &s_RenderTarget);
-#ifndef USE_GLES
-	delete s_pfont;
-	s_pfont = 0;
-#endif
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+	{
+		delete s_pfont;
+		s_pfont = 0;
+	}
 }
 
 void CreateShaders()
 {
 	static const char *fragShaderText =
-		"varying " PREC " vec2 TexCoordOut;\n"
+		"#if GL_ES\n"
+		"precision highp float;\n"
+		"#endif\n"
+		"varying vec2 TexCoordOut;\n"
 		"uniform sampler2D Texture;\n"
 		"void main() {\n"
-		"	" PREC " vec4 tmpcolor;\n"
-		"	tmpcolor = texture2D(Texture, TexCoordOut);\n"
-		"	gl_FragColor = tmpcolor;\n"
+		"	gl_FragColor = texture2D(Texture, TexCoordOut);\n"
 		"}\n";
 	static const char *vertShaderText =
+		"#if GL_ES\n"
+		"precision highp float;\n"
+		"#endif\n"
 		"attribute vec4 pos;\n"
 		"attribute vec2 TexCoordIn;\n "
 		"varying vec2 TexCoordOut;\n "
@@ -80,10 +83,11 @@ void SWRenderer::Prepare()
 
 	CreateShaders();
 	// TODO: Enable for GLES once RasterFont supports GLES
-#ifndef USE_GLES
-	s_pfont = new RasterFont();
-	glEnable(GL_TEXTURE_2D);
-#endif
+	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+	{
+		s_pfont = new RasterFont();
+		glEnable(GL_TEXTURE_2D);
+	}
 	GL_REPORT_ERRORD();
 }
 
@@ -96,7 +100,8 @@ void SWRenderer::SetScreenshot(const char *_szFilename)
 
 void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
-#ifndef USE_GLES
+	if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
+		return;
 	int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
 	int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
 	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
@@ -105,7 +110,6 @@ void SWRenderer::RenderText(const char* pstr, int left, int top, u32 color)
 			left * 2.0f / (float)nBackbufferWidth - 1,
 			1 - top * 2.0f / (float)nBackbufferHeight,
 			0, nBackbufferWidth, nBackbufferHeight);
-#endif
 }
 
 void SWRenderer::DrawDebugText()

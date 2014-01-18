@@ -63,10 +63,7 @@ bool VideoSoftware::Initialize(void *&window_handle)
 	g_SWVideoConfig.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
 
 	InitInterface();
-	GLInterface->SetMode(GLInterfaceMode::MODE_OPENGL);
-#ifdef USE_GLES
-	GLInterface->SetMode(GLInterfaceMode::MODE_OPENGLES2);
-#endif
+	GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
 	if (!GLInterface->Create(window_handle))
 	{
 		INFO_LOG(VIDEO, "%s", "SWRenderer::Create failed\n");

@@ -17,19 +17,6 @@
 #define GL_TEXTURE_STENCIL_SIZE_EXT 0x88F1
 #endif
 
-#ifdef USE_GLES
-#define TEX2D	GL_TEXTURE_2D
-#define PREC	"highp"
-#define TEXTYPE "sampler2D"
-#define TEXFUNC "texture2D"
-#else
-#define TEX2D	GL_TEXTURE_RECTANGLE_ARB
-#define PREC
-#define TEXTYPE "sampler2DRect"
-#define TEXFUNC "texture2DRect"
-#endif
-
-
 #ifndef _WIN32
 
 #include <sys/types.h>
@@ -41,7 +28,6 @@ void InitInterface();
 GLuint OpenGL_CompileProgram(const char *vertexShader, const char *fragmentShader);
 
 // Error reporting - use the convenient macros.
-void OpenGL_ReportARBProgramError();
 GLuint OpenGL_ReportGLError(const char *function, const char *file, int line);
 bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 
@@ -49,12 +35,10 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #define GL_REPORT_ERROR()         OpenGL_ReportGLError(__FUNCTION__, __FILE__, __LINE__)
 #define GL_REPORT_ERRORD()        OpenGL_ReportGLError(__FUNCTION__, __FILE__, __LINE__)
 #define GL_REPORT_FBO_ERROR()     OpenGL_ReportFBOError(__FUNCTION__, __FILE__, __LINE__)
-#define GL_REPORT_PROGRAM_ERROR() OpenGL_ReportARBProgramError()
 #else
 __forceinline GLenum GL_REPORT_ERROR() { return GL_NO_ERROR; }
 #define GL_REPORT_ERRORD() (void)GL_NO_ERROR
 #define GL_REPORT_FBO_ERROR() (void)true
-#define GL_REPORT_PROGRAM_ERROR() (void)0
 #endif
 
 // this should be removed in future, but as long as glsl is unstable, we should really read this messages
