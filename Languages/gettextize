@@ -13,9 +13,10 @@ sed -i "s/SOME DESCRIPTIVE TITLE\./Translation of dolphin-emu.pot to LANGUAGE/" 
 sed -i "s/YEAR THE PACKAGE'S COPYRIGHT HOLDER/2003-2013/" Languages/po/dolphin-emu.pot
 sed -i "s/license as the PACKAGE package/license as the dolphin-emu package/" Languages/po/dolphin-emu.pot
 
-POTFILE=./Languages/po/dolphin-emu.pot
-PO_FILES=$(find ./Languages/po -name '*.po')
-for PO in $PO_FILES
-do
-	msgmerge --quiet --update --backup=none -s $PO $POTFILE
-done
+# XXX: Disabled now that we use Transifex (the tool will handle this automatically).
+#POTFILE=./Languages/po/dolphin-emu.pot
+#PO_FILES=$(find ./Languages/po -name '*.po')
+#for PO in $PO_FILES
+#do
+#	msgmerge --quiet --update --backup=none -s $PO $POTFILE
+#done
