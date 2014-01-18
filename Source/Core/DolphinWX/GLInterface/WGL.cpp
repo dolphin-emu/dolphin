@@ -13,6 +13,7 @@
 #include "EmuWindow.h"
 static HDC hDC = NULL;       // Private GDI Device Context
 static HGLRC hRC = NULL;     // Permanent Rendering Context
+static HINSTANCE dllHandle = NULL; // Handle to OpenGL32.dll 
 
 // typedef from wglext.h
 typedef BOOL(WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
@@ -32,7 +33,10 @@ void cInterfaceWGL::Swap()
 
 void* cInterfaceWGL::GetProcAddress(std::string name)
 {
-	return (void*)wglGetProcAddress((LPCSTR)name.c_str());
+	void* func = (void*)wglGetProcAddress((LPCSTR)name.c_str());
+	if (func == NULL)
+		func = (void*)GetProcAddress(dllHandle, (LPCSTR)name.c_str());
+	return func; 
 }
 
 // Draw messages on top of the screen
@@ -68,6 +72,10 @@ bool cInterfaceWGL::Create(void *&window_handle)
 	// Control window size and picture scaling
 	s_backbuffer_width = _twidth;
 	s_backbuffer_height = _theight;
+
+#ifdef _WIN32
+	dllHandle = LoadLibrary(TEXT("OpenGL32.dll"));
+#endif
 
 	window_handle = (void*)EmuWindow::Create((HWND)window_handle, GetModuleHandle(0), _T("Please wait..."));
 	if (window_handle == NULL)
