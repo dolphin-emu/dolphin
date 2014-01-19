@@ -28,7 +28,7 @@ void cInterfaceEGL::UpdateFPSDisplay(const char *text)
 }
 void cInterfaceEGL::Swap()
 {
-	eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);
+	Platform.SwapBuffers();
 }
 void cInterfaceEGL::SwapInterval(int Interval)
 {

@@ -37,6 +37,7 @@ public:
 	void DestroyWindow(void);
 	void UpdateFPSDisplay(const char *text);
 	void ToggleFullscreen(bool fullscreen);
+	void SwapBuffers();
 };
 
 #endif

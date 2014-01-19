@@ -63,6 +63,7 @@ public:
 	void DestroyWindow(void);
 	void UpdateFPSDisplay(const char *text);
 	void ToggleFullscreen(bool fullscreen);
+	void SwapBuffers();
 };
 
 #include "GLInterface/EGL.h"
@@ -129,7 +130,7 @@ typedef struct {
 	struct wl_surface *wl_surface;
 	struct wl_shell_surface *wl_shell_surface;
 	struct wl_callback *wl_callback;
-	bool fullscreen, configured, frame_drawn, swap_complete, running;
+	bool fullscreen, running;
 #endif
 #if HAVE_X11
 	int screen;

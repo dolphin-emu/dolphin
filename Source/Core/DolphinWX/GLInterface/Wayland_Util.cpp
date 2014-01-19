@@ -21,38 +21,6 @@
 #include <linux/input.h>
 #include <sys/mman.h>
 
-
-static void
-redraw(void *data, struct wl_callback *callback, uint32_t time);
-
-static const struct wl_callback_listener frame_listener = {
-	redraw
-};
-
-static void
-redraw(void *data, struct wl_callback *callback, uint32_t time)
-{
-	if (GLWin.wl_callback != callback) {
-		printf("Got wrong callback from wayland server\n");
-		exit(-1);
-	}
-
-	GLWin.wl_callback = NULL;
-
-	if (callback)
-		wl_callback_destroy(callback);
-
-	if (!GLWin.configured)
-		return;
-
-	// Reset the frame callback
-	GLWin.wl_callback = wl_surface_frame(GLWin.wl_surface);
-	wl_callback_add_listener(GLWin.wl_callback, &frame_listener, 0);
-
-	// Present rendered buffer on screen
-	//eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);
-}
-
 static void
 hide_cursor(void)
 {
@@ -62,21 +30,6 @@ hide_cursor(void)
 	wl_pointer_set_cursor(GLWin.pointer.wl_pointer,
 			      GLWin.pointer.serial, NULL, 0, 0);
 }
-
-static void
-configure_callback(void *data, struct wl_callback *callback, uint32_t  time)
-{
-	wl_callback_destroy(callback);
-
-	GLWin.configured = true;
-
-	if (GLWin.wl_callback == NULL)
-		redraw(data, NULL, time);
-}
-
-static struct wl_callback_listener configure_callback_listener = {
-	configure_callback,
-};
 
 static void
 handle_ping(void *data, struct wl_shell_surface *wl_shell_surface,
@@ -89,7 +42,6 @@ static void
 handle_configure(void *data, struct wl_shell_surface *wl_shell_surface,
 		 uint32_t edges, int32_t width, int32_t height)
 {
-
 	if (GLWin.wl_egl_native)
 		wl_egl_window_resize(GLWin.wl_egl_native, width, height, 0, 0);
 
@@ -120,8 +72,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
 {
 	GLWin.pointer.serial = serial;
 
-	if (GLWin.fullscreen)
-		hide_cursor();
+	hide_cursor();
 }
 
 static void
@@ -157,19 +108,10 @@ static const struct wl_pointer_listener pointer_listener = {
 	pointer_handle_axis,
 };
 
-void setup_callback_listener()
-{
-	struct wl_callback *callback;
-
-	callback = wl_display_sync(GLWin.wl_display);
-	wl_callback_add_listener(callback, &configure_callback_listener, 0);
-}
-
 static void
 toggle_fullscreen(bool fullscreen)
 {
 	GLWin.fullscreen = fullscreen;
-	GLWin.configured = false;
 
 	if (fullscreen) {
 		wl_shell_surface_set_fullscreen(GLWin.wl_shell_surface,
@@ -181,8 +123,6 @@ toggle_fullscreen(bool fullscreen)
 				 GLWin.window_size.width,
 				 GLWin.window_size.height);
 	}
-
-	setup_callback_listener();
 }
 
 static void
@@ -251,9 +191,10 @@ keyboard_handle_key(void *data, struct wl_keyboard *keyboard,
 	if (state == WL_KEYBOARD_KEY_STATE_RELEASED)
 		return;
 
-	if (key == KEY_ESC)
-		GLWin.running = false;
-	else if ((key == KEY_P) ||
+	if (key == KEY_ESC) {
+		Core::Stop();
+		GLWin.running = 0;
+	} else if ((key == KEY_P) ||
 		((key == KEY_ENTER) && (GLWin.keyboard.modifiers == 0)))
 		Core::SetState((Core::GetState() == Core::CORE_RUN) ?
 				Core::CORE_PAUSE : Core::CORE_RUN);
@@ -408,7 +349,8 @@ bool cWaylandInterface::Initialize(void *config)
 	wl_registry_add_listener(GLWin.wl_registry,
 				 &registry_listener, NULL);
 
-	wl_display_dispatch(GLWin.wl_display);
+	while (!GLWin.wl_compositor)
+		wl_display_dispatch(GLWin.wl_display);
 
 	GLWin.wl_cursor_surface =
 		wl_compositor_create_surface(GLWin.wl_compositor);
@@ -430,8 +372,6 @@ void *cWaylandInterface::CreateWindow(void)
 	GLWin.window_size.width = 640;
 	GLWin.window_size.height = 480;
 	GLWin.fullscreen = true;
-	GLWin.frame_drawn = false;
-	GLWin.swap_complete = false;
 
 	GLWin.wl_surface = wl_compositor_create_surface(GLWin.wl_compositor);
 	GLWin.wl_shell_surface = wl_shell_get_shell_surface(GLWin.wl_shell,
@@ -443,11 +383,8 @@ void *cWaylandInterface::CreateWindow(void)
 	GLWin.wl_egl_native = wl_egl_window_create(GLWin.wl_surface,
 						   GLWin.window_size.width,
 						   GLWin.window_size.height);
-#if HAVE_X11
+
 	return GLWin.wl_egl_native;
-#else
-	return GLWin.wl_egl_native;
-#endif
 }
 
 void cWaylandInterface::DestroyWindow(void)
@@ -468,5 +405,19 @@ void cWaylandInterface::UpdateFPSDisplay(const char *text)
 
 void cWaylandInterface::ToggleFullscreen(bool fullscreen)
 {
-	toggle_fullscreen(GLWin.fullscreen);
+	toggle_fullscreen(fullscreen);
+}
+
+void cWaylandInterface::SwapBuffers()
+{
+	struct wl_region *region;
+
+	region = wl_compositor_create_region(GLWin.wl_compositor);
+	wl_region_add(region, 0, 0,
+		      GLWin.geometry.width,
+		      GLWin.geometry.height);
+	wl_surface_set_opaque_region(GLWin.wl_surface, region);
+	wl_region_destroy(region);
+
+	eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);
 }

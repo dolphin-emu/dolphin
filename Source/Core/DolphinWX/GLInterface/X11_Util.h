@@ -33,6 +33,7 @@ public:
 	void *CreateWindow(void);
 	void DestroyWindow(void);
 	void UpdateFPSDisplay(const char *text);
+	void SwapBuffers();
 };
 #else
 class cX11Window

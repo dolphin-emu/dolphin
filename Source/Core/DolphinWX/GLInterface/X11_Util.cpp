@@ -120,6 +120,11 @@ void cXInterface::UpdateFPSDisplay(const char *text)
 	XStoreName(GLWin.evdpy, GLWin.win, text);
 }
 
+void cXInterface::SwapBuffers()
+{
+	eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);
+}
+
 void cXInterface::XEventThread()
 #else
 void cX11Window::CreateXWindow(void)

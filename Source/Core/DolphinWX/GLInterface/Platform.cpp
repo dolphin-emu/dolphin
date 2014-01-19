@@ -117,7 +117,6 @@ out:
 		if (GLWin.dpy)
 		{
 			XCloseDisplay(GLWin.dpy);
-			XCloseDisplay(GLWin.evdpy);
 		}
 	}
 #endif
@@ -217,5 +216,18 @@ cPlatform::ToggleFullscreen(bool fullscreen)
 #endif
 #if HAVE_X11
 	// Only wayland uses this function
+#endif
+}
+
+void
+cPlatform::SwapBuffers()
+{
+#if HAVE_WAYLAND
+	if (cPlatform::platform == EGL_PLATFORM_WAYLAND)
+		WaylandInterface.SwapBuffers();
+#endif
+#if HAVE_X11
+	if (cPlatform::platform == EGL_PLATFORM_X11)
+		XInterface.SwapBuffers();
 #endif
 }

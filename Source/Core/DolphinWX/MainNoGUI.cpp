@@ -10,10 +10,15 @@
 #include "Common.h"
 #include "FileUtil.h"
 
-#if defined HAVE_X11 && HAVE_X11
+#if HAVE_X11
 #include <X11/keysym.h>
 #include "State.h"
 #include "X11Utils.h"
+#endif
+
+#if HAVE_WAYLAND
+#include <wayland-client.h>
+#include "GLInterface/Platform.h"
 #endif
 
 #ifdef __APPLE__
@@ -122,7 +127,7 @@ void Host_SysMessage(const char *fmt, ...)
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
-#if defined(HAVE_X11) && HAVE_X11
+#if HAVE_X11
 void X11_MainLoop()
 {
 	bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
@@ -256,6 +261,23 @@ void X11_MainLoop()
 }
 #endif
 
+#if HAVE_WAYLAND
+void Wayland_MainLoop()
+{
+	// Wait for display to be initialized
+	while(!GLWin.wl_display)
+		usleep(20000);
+
+	GLWin.running = 1;
+
+	while (GLWin.running)
+		wl_display_dispatch(GLWin.wl_display);
+
+	if (GLWin.wl_display)
+		wl_display_disconnect(GLWin.wl_display);
+}
+#endif
+
 int main(int argc, char* argv[])
 {
 #ifdef __APPLE__
@@ -304,9 +326,34 @@ int main(int argc, char* argv[])
 		m_LocalCoreStartupParameter.m_strVideoBackend);
 	WiimoteReal::LoadSettings();
 
+#if USE_EGL
+	GLWin.platform = EGL_PLATFORM_NONE;
+#endif
+#if HAVE_WAYLAND
+	GLWin.wl_display = NULL;
+#endif
+
 	// No use running the loop when booting fails
 	if (BootManager::BootCore(argv[optind]))
 	{
+#if USE_EGL
+		while (GLWin.platform == EGL_PLATFORM_NONE)
+			usleep(20000);
+#endif
+#if HAVE_WAYLAND
+		if (GLWin.platform == EGL_PLATFORM_WAYLAND)
+			Wayland_MainLoop();
+#endif
+#if HAVE_X11
+#if USE_EGL
+		if (GLWin.platform == EGL_PLATFORM_X11) {
+#endif
+			XInitThreads();
+			X11_MainLoop();
+#if USE_EGL
+		}
+#endif
+#endif
 #ifdef __APPLE__
 		while (running)
 		{
@@ -328,9 +375,6 @@ int main(int argc, char* argv[])
 
 		[event release];
 		[pool release];
-#elif defined HAVE_X11 && HAVE_X11
-		XInitThreads();
-		X11_MainLoop();
 #else
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 			updateMainFrameEvent.Wait();
