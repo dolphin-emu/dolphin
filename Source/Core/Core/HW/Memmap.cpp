@@ -308,6 +308,16 @@ void InitHWMemFuncsWii()
 	hwWriteWii32[AUDIO_START] = AudioInterface::Write32;
 }
 
+void InitMMIO(MMIO::Mapping* mmio)
+{
+	ProcessorInterface::RegisterMMIO(mmio, 0xCC003000);
+}
+
+void InitMMIOWii(MMIO::Mapping* mmio)
+{
+	ProcessorInterface::RegisterMMIO(mmio, 0xCC003000);
+}
+
 writeFn32 GetHWWriteFun32(const u32 _Address)
 {
 	return hwWrite32[(_Address >> HWSHIFT) & (NUMHWMEMFUN-1)];
@@ -358,6 +368,11 @@ void Init()
 		InitHWMemFuncsWii();
 	else
 		InitHWMemFuncs();
+
+	if (wii)
+		InitMMIOWii(mmio_mapping);
+	else
+		InitMMIO(mmio_mapping);
 
 	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p (mirrors at 0 @ %p, 0x80000000 @ %p , 0xC0000000 @ %p)",
 		m_pRAM, m_pPhysicalRAM, m_pVirtualCachedRAM, m_pVirtualUncachedRAM);

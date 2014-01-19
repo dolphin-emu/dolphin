@@ -7,6 +7,8 @@
 #include "CommonTypes.h"
 class PointerWrap;
 
+namespace MMIO { class Mapping; }
+
 // Holds statuses of things like the write gatherer used for fifos, and interrupts from various sources
 
 namespace ProcessorInterface
@@ -42,6 +44,8 @@ extern u32 Fifo_CPUWritePointer;
 
 void Init();
 void DoState(PointerWrap &p);
+
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void Read16(u16& _uReturnValue, const u32 _iAddress);
 
