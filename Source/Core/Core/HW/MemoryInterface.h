@@ -5,11 +5,15 @@
 #pragma once
 
 #include "Common.h"
+
+namespace MMIO { class Mapping; }
 class PointerWrap;
 
 namespace MemoryInterface
 {
 void DoState(PointerWrap &p);
+
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void Read16(u16& _uReturnValue, const u32 _iAddress);
 void Read32(u32& _uReturnValue, const u32 _iAddress);
