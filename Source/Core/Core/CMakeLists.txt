@@ -107,6 +107,7 @@ set(SRCS	ActionReplay.cpp
 			HW/Memmap.cpp
 			HW/MemmapFunctions.cpp
 			HW/MemoryInterface.cpp
+			HW/MMIO.cpp
 			HW/ProcessorInterface.cpp
 			HW/SI.cpp
 			HW/SI_DeviceAMBaseboard.cpp

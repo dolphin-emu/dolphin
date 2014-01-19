@@ -24,6 +24,7 @@
 #include "../Core.h"
 #include "../PowerPC/PowerPC.h"
 #include "VideoBackendBase.h"
+#include "MMIO.h"
 
 #ifdef USE_GDBSTUB
 #include "../PowerPC/GDBStub.h"

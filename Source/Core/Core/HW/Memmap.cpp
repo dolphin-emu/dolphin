@@ -34,6 +34,7 @@
 #include "../ConfigManager.h"
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "VideoBackendBase.h"
+#include "MMIO.h"
 
 namespace Memory
 {
@@ -82,6 +83,9 @@ u8 *m_pVirtualUncachedEXRAM; // wii only
 //u8 *m_pVirtualEFB;
 u8 *m_pVirtualL1Cache;
 u8 *m_pVirtualFakeVMEM;
+
+// MMIO mapping object.
+MMIO::Mapping* mmio_mapping;
 
 // =================================
 // Read and write shortcuts
@@ -348,6 +352,8 @@ void Init()
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	base = MemoryMap_Setup(views, num_views, flags, &g_arena);
 
+	mmio_mapping = new MMIO::Mapping();
+
 	if (wii)
 		InitHWMemFuncsWii();
 	else
@@ -382,6 +388,7 @@ void Shutdown()
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSpace();
 	base = NULL;
+	delete mmio_mapping;
 	INFO_LOG(MEMMAP, "Memory system shut down.");
 }
 

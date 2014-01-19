@@ -145,6 +145,7 @@
     <ClCompile Include="HW\Memmap.cpp" />
     <ClCompile Include="HW\MemmapFunctions.cpp" />
     <ClCompile Include="HW\MemoryInterface.cpp" />
+    <ClCompile Include="HW\MMIO.cpp" />
     <ClCompile Include="HW\ProcessorInterface.cpp" />
     <ClCompile Include="HW\SI.cpp" />
     <ClCompile Include="HW\SI_Device.cpp" />
@@ -342,6 +343,8 @@
     <ClInclude Include="HW\HW.h" />
     <ClInclude Include="HW\Memmap.h" />
     <ClInclude Include="HW\MemoryInterface.h" />
+    <ClInclude Include="HW\MMIO.h" />
+    <ClInclude Include="HW\MMIOHandlers.h" />
     <ClInclude Include="HW\ProcessorInterface.h" />
     <ClInclude Include="HW\SI.h" />
     <ClInclude Include="HW\SI_Device.h" />
