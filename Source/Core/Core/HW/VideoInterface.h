@@ -5,7 +5,9 @@
 #pragma once
 
 #include "CommonTypes.h"
+
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 namespace VideoInterface
 {
@@ -323,6 +325,8 @@ union UVIDTVStatus
 	void Init();
 	void SetRegionReg(char region);
 	void DoState(PointerWrap &p);
+
+	void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 	void Read8(u8& _uReturnValue, const u32 _uAddress);
 	void Read16(u16& _uReturnValue, const u32 _uAddress);

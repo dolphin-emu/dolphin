@@ -13,6 +13,7 @@
 #include "../CoreTiming.h"
 #include "SystemTimers.h"
 #include "StringUtil.h"
+#include "MMIO.h"
 
 #include "VideoBackendBase.h"
 #include "State.h"
@@ -182,268 +183,171 @@ void Init()
 	UpdateParameters();
 }
 
-void SetRegionReg(char region)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	if (!Core::g_CoreStartupParameter.bForceNTSCJ)
-		m_DTVStatus.ntsc_j = region == 'J';
-}
+	struct {
+		u32 addr;
+		u16* ptr;
+	} directly_mapped_vars[] = {
+		{ VI_VERTICAL_TIMING, &m_VerticalTimingRegister.Hex },
+		{ VI_HORIZONTAL_TIMING_0_HI, &m_HTiming0.Hi },
+		{ VI_HORIZONTAL_TIMING_0_LO, &m_HTiming0.Lo },
+		{ VI_HORIZONTAL_TIMING_1_HI, &m_HTiming1.Hi },
+		{ VI_HORIZONTAL_TIMING_1_LO, &m_HTiming1.Lo },
+		{ VI_VBLANK_TIMING_ODD_HI, &m_VBlankTimingOdd.Hi },
+		{ VI_VBLANK_TIMING_ODD_LO, &m_VBlankTimingOdd.Lo },
+		{ VI_VBLANK_TIMING_EVEN_HI, &m_VBlankTimingEven.Hi },
+		{ VI_VBLANK_TIMING_EVEN_LO, &m_VBlankTimingEven.Lo },
+		{ VI_BURST_BLANKING_ODD_HI, &m_BurstBlankingOdd.Hi },
+		{ VI_BURST_BLANKING_ODD_LO, &m_BurstBlankingOdd.Lo },
+		{ VI_BURST_BLANKING_EVEN_HI, &m_BurstBlankingEven.Hi },
+		{ VI_BURST_BLANKING_EVEN_LO, &m_BurstBlankingEven.Lo },
+		{ VI_FB_LEFT_TOP_LO, &m_XFBInfoTop.Lo },
+		{ VI_FB_RIGHT_TOP_LO, &m_3DFBInfoTop.Lo },
+		{ VI_FB_LEFT_BOTTOM_LO, &m_XFBInfoBottom.Lo },
+		{ VI_FB_RIGHT_BOTTOM_LO, &m_3DFBInfoBottom.Lo },
+		{ VI_PRERETRACE_LO, &m_InterruptRegister[0].Lo },
+		{ VI_POSTRETRACE_LO, &m_InterruptRegister[1].Lo },
+		{ VI_DISPLAY_INTERRUPT_2_LO, &m_InterruptRegister[2].Lo },
+		{ VI_DISPLAY_INTERRUPT_3_LO, &m_InterruptRegister[3].Lo },
+		{ VI_DISPLAY_LATCH_0_HI, &m_LatchRegister[0].Hi },
+		{ VI_DISPLAY_LATCH_0_LO, &m_LatchRegister[0].Lo },
+		{ VI_DISPLAY_LATCH_1_HI, &m_LatchRegister[1].Hi },
+		{ VI_DISPLAY_LATCH_1_LO, &m_LatchRegister[1].Lo },
+		{ VI_HSCALEW, &m_HorizontalStepping.Hex },
+		{ VI_HSCALER, &m_HorizontalScaling.Hex },
+		{ VI_FILTER_COEF_0_HI, &m_FilterCoefTables.Tables02[0].Hi },
+		{ VI_FILTER_COEF_0_LO, &m_FilterCoefTables.Tables02[0].Lo },
+		{ VI_FILTER_COEF_1_HI, &m_FilterCoefTables.Tables02[1].Hi },
+		{ VI_FILTER_COEF_1_LO, &m_FilterCoefTables.Tables02[1].Lo },
+		{ VI_FILTER_COEF_2_HI, &m_FilterCoefTables.Tables02[2].Hi },
+		{ VI_FILTER_COEF_2_LO, &m_FilterCoefTables.Tables02[2].Lo },
+		{ VI_FILTER_COEF_3_HI, &m_FilterCoefTables.Tables36[0].Hi },
+		{ VI_FILTER_COEF_3_LO, &m_FilterCoefTables.Tables36[0].Lo },
+		{ VI_FILTER_COEF_4_HI, &m_FilterCoefTables.Tables36[1].Hi },
+		{ VI_FILTER_COEF_4_LO, &m_FilterCoefTables.Tables36[1].Lo },
+		{ VI_FILTER_COEF_5_HI, &m_FilterCoefTables.Tables36[2].Hi },
+		{ VI_FILTER_COEF_5_LO, &m_FilterCoefTables.Tables36[2].Lo },
+		{ VI_FILTER_COEF_6_HI, &m_FilterCoefTables.Tables36[3].Hi },
+		{ VI_FILTER_COEF_6_LO, &m_FilterCoefTables.Tables36[3].Lo },
+		{ VI_CLOCK, &m_Clock },
+		{ VI_DTV_STATUS, &m_DTVStatus.Hex },
+		{ VI_FBWIDTH, &m_FBWidth },
+		{ VI_BORDER_BLANK_END, &m_BorderHBlank.Lo },
+		{ VI_BORDER_BLANK_START, &m_BorderHBlank.Hi },
+	};
 
-void Read8(u8& _uReturnValue, const u32 _iAddress)
-{
-	// Just like 32bit VI transfers, this is technically not allowed,
-	// but the hardware accepts it. Action Replay uses this.
-	u16 val = 0;
-
-	if ((_iAddress & 1) == 0)
+	// Declare all the boilerplate direct MMIOs.
+	for (auto& mapped_var : directly_mapped_vars)
 	{
-		Read16(val, _iAddress);
-		_uReturnValue = (u8)(val >> 8);
-	}
-	else
-	{
-		Read16(val, _iAddress - 1);
-		_uReturnValue = (u8)val;
-	}
-
-	INFO_LOG(VIDEOINTERFACE, "(r 8): 0x%02x, 0x%08x", _uReturnValue, _iAddress);
-}
-
-void Read16(u16& _uReturnValue, const u32 _iAddress)
-{
-	switch (_iAddress & 0xFFF)
-	{
-	case VI_VERTICAL_TIMING:
-		_uReturnValue = m_VerticalTimingRegister.Hex;
-		return;
-
-	case VI_CONTROL_REGISTER:
-		_uReturnValue = m_DisplayControlRegister.Hex;
-		return;
-
-	case VI_HORIZONTAL_TIMING_0_HI:
-		_uReturnValue = m_HTiming0.Hi;
-		break;
-	case VI_HORIZONTAL_TIMING_0_LO:
-		_uReturnValue = m_HTiming0.Lo;
-		break;
-
-	case VI_HORIZONTAL_TIMING_1_HI:
-		_uReturnValue = m_HTiming1.Hi;
-		break;
-	case VI_HORIZONTAL_TIMING_1_LO:
-		_uReturnValue = m_HTiming1.Lo;
-		break;
-
-	case VI_VBLANK_TIMING_ODD_HI:
-		_uReturnValue = m_VBlankTimingOdd.Hi;
-		break;
-	case VI_VBLANK_TIMING_ODD_LO:
-		_uReturnValue = m_VBlankTimingOdd.Lo;
-		break;
-
-	case VI_VBLANK_TIMING_EVEN_HI:
-		_uReturnValue = m_VBlankTimingEven.Hi;
-		break;
-	case VI_VBLANK_TIMING_EVEN_LO:
-		_uReturnValue = m_VBlankTimingEven.Lo;
-		break;
-
-	case VI_BURST_BLANKING_ODD_HI:
-		_uReturnValue = m_BurstBlankingOdd.Hi;
-		break;
-	case VI_BURST_BLANKING_ODD_LO:
-		_uReturnValue = m_BurstBlankingOdd.Lo;
-		break;
-
-	case VI_BURST_BLANKING_EVEN_HI:
-		_uReturnValue = m_BurstBlankingEven.Hi;
-		break;
-	case VI_BURST_BLANKING_EVEN_LO:
-		_uReturnValue = m_BurstBlankingEven.Lo;
-		break;
-
-	case VI_FB_LEFT_TOP_HI:
-		_uReturnValue = m_XFBInfoTop.Hi;
-		break;
-	case VI_FB_LEFT_TOP_LO:
-		_uReturnValue = m_XFBInfoTop.Lo;
-		break;
-
-	case VI_FB_RIGHT_TOP_HI:
-		_uReturnValue = m_3DFBInfoTop.Hi;
-		break;
-	case VI_FB_RIGHT_TOP_LO:
-		_uReturnValue = m_3DFBInfoTop.Lo;
-		break;
-
-	case VI_FB_LEFT_BOTTOM_HI:
-		_uReturnValue = m_XFBInfoBottom.Hi;
-		break;
-	case VI_FB_LEFT_BOTTOM_LO:
-		_uReturnValue = m_XFBInfoBottom.Lo;
-		break;
-
-	case VI_FB_RIGHT_BOTTOM_HI:
-		_uReturnValue = m_3DFBInfoBottom.Hi;
-		break;
-	case VI_FB_RIGHT_BOTTOM_LO:
-		_uReturnValue = m_3DFBInfoBottom.Lo;
-		break;
-
-	case VI_VERTICAL_BEAM_POSITION:
-		_uReturnValue = m_VBeamPos;
-		return;
-
-	case VI_HORIZONTAL_BEAM_POSITION:
-		_uReturnValue = m_HBeamPos;
-		return;
-
-	// RETRACE STUFF ...
-	case VI_PRERETRACE_HI:
-		_uReturnValue =	m_InterruptRegister[0].Hi;
-		return;
-	case VI_PRERETRACE_LO:
-		_uReturnValue =	m_InterruptRegister[0].Lo;
-		return;
-
-	case VI_POSTRETRACE_HI:
-		_uReturnValue =	m_InterruptRegister[1].Hi;
-		return;
-	case VI_POSTRETRACE_LO:
-		_uReturnValue =	m_InterruptRegister[1].Lo;
-		return;
-
-	case VI_DISPLAY_INTERRUPT_2_HI:
-		_uReturnValue =	m_InterruptRegister[2].Hi;
-		return;
-	case VI_DISPLAY_INTERRUPT_2_LO:
-		_uReturnValue =	m_InterruptRegister[2].Lo;
-		return;
-
-	case VI_DISPLAY_INTERRUPT_3_HI:
-		_uReturnValue =	m_InterruptRegister[3].Hi;
-		return;
-	case VI_DISPLAY_INTERRUPT_3_LO:
-		_uReturnValue =	m_InterruptRegister[3].Lo;
-		return;
-
-	case VI_DISPLAY_LATCH_0_HI:
-		_uReturnValue = m_LatchRegister[0].Hi;
-		break;
-	case VI_DISPLAY_LATCH_0_LO:
-		_uReturnValue = m_LatchRegister[0].Lo;
-		break;
-
-	case VI_DISPLAY_LATCH_1_HI:
-		_uReturnValue = m_LatchRegister[1].Hi;
-		break;
-	case VI_DISPLAY_LATCH_1_LO:
-		_uReturnValue = m_LatchRegister[1].Lo;
-		break;
-
-	case VI_HSCALEW:
-		_uReturnValue = m_HorizontalStepping.Hex;
-		break;
-
-	case VI_HSCALER:
-		_uReturnValue = m_HorizontalScaling.Hex;
-		break;
-
-	case VI_FILTER_COEF_0_HI:
-		_uReturnValue = m_FilterCoefTables.Tables02[0].Hi;
-		break;
-	case VI_FILTER_COEF_0_LO:
-		_uReturnValue = m_FilterCoefTables.Tables02[0].Lo;
-		break;
-	case VI_FILTER_COEF_1_HI:
-		_uReturnValue = m_FilterCoefTables.Tables02[1].Hi;
-		break;
-	case VI_FILTER_COEF_1_LO:
-		_uReturnValue = m_FilterCoefTables.Tables02[1].Lo;
-		break;
-	case VI_FILTER_COEF_2_HI:
-		_uReturnValue = m_FilterCoefTables.Tables02[2].Hi;
-		break;
-	case VI_FILTER_COEF_2_LO:
-		_uReturnValue = m_FilterCoefTables.Tables02[2].Lo;
-		break;
-	case VI_FILTER_COEF_3_HI:
-		_uReturnValue = m_FilterCoefTables.Tables36[0].Hi;
-		break;
-	case VI_FILTER_COEF_3_LO:
-		_uReturnValue = m_FilterCoefTables.Tables36[0].Lo;
-		break;
-	case VI_FILTER_COEF_4_HI:
-		_uReturnValue = m_FilterCoefTables.Tables36[1].Hi;
-		break;
-	case VI_FILTER_COEF_4_LO:
-		_uReturnValue = m_FilterCoefTables.Tables36[1].Lo;
-		break;
-	case VI_FILTER_COEF_5_HI:
-		_uReturnValue = m_FilterCoefTables.Tables36[2].Hi;
-		break;
-	case VI_FILTER_COEF_5_LO:
-		_uReturnValue = m_FilterCoefTables.Tables36[2].Lo;
-		break;
-	case VI_FILTER_COEF_6_HI:
-		_uReturnValue = m_FilterCoefTables.Tables36[3].Hi;
-		break;
-	case VI_FILTER_COEF_6_LO:
-		_uReturnValue = m_FilterCoefTables.Tables36[3].Lo;
-		break;
-
-	case VI_UNK_AA_REG_HI:
-		_uReturnValue = (m_UnkAARegister & 0xffff0000) >> 16;
-		WARN_LOG(VIDEOINTERFACE, "(r16) unknown AA register, not sure what it does :)");
-		break;
-	case VI_UNK_AA_REG_LO:
-		_uReturnValue = m_UnkAARegister & 0x0000ffff;
-		WARN_LOG(VIDEOINTERFACE, "(r16) unknown AA register, not sure what it does :)");
-		break;
-
-	case VI_CLOCK:
-		_uReturnValue = m_Clock;
-		break;
-
-	case VI_DTV_STATUS:
-		_uReturnValue = m_DTVStatus.Hex;
-		break;
-
-	case VI_FBWIDTH:
-		_uReturnValue = m_FBWidth;
-		break;
-
-	case VI_BORDER_BLANK_END:
-		_uReturnValue = m_BorderHBlank.Lo;
-		break;
-	case VI_BORDER_BLANK_START:
-		_uReturnValue = m_BorderHBlank.Hi;
-		break;
-
-	default:
-		ERROR_LOG(VIDEOINTERFACE, "(r16) unknown reg %x", _iAddress & 0xfff);
-		_uReturnValue = 0x0;
-		break;
+		mmio->Register(base | mapped_var.addr,
+			MMIO::DirectRead<u16>(mapped_var.ptr),
+			MMIO::DirectWrite<u16>(mapped_var.ptr)
+		);
 	}
 
-	DEBUG_LOG(VIDEOINTERFACE, "(r16): 0x%04x, 0x%08x", _uReturnValue, _iAddress);
-}
+	// XFB related MMIOs that require special handling on writes.
+	mmio->Register(base | VI_FB_LEFT_TOP_HI,
+		MMIO::DirectRead<u16>(&m_XFBInfoTop.Hi),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			m_XFBInfoTop.Hi = val;
+			if (m_XFBInfoTop.CLRPOFF) m_XFBInfoTop.POFF = 0;
+		})
+	);
+	mmio->Register(base | VI_FB_LEFT_BOTTOM_HI,
+		MMIO::DirectRead<u16>(&m_XFBInfoBottom.Hi),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			m_XFBInfoBottom.Hi = val;
+			if (m_XFBInfoBottom.CLRPOFF) m_XFBInfoBottom.POFF = 0;
+		})
+	);
+	mmio->Register(base | VI_FB_RIGHT_TOP_HI,
+		MMIO::DirectRead<u16>(&m_3DFBInfoTop.Hi),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			m_3DFBInfoTop.Hi = val;
+			if (m_3DFBInfoTop.CLRPOFF) m_3DFBInfoTop.POFF = 0;
+		})
+	);
+	mmio->Register(base | VI_FB_RIGHT_BOTTOM_HI,
+		MMIO::DirectRead<u16>(&m_3DFBInfoBottom.Hi),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			m_3DFBInfoBottom.Hi = val;
+			if (m_3DFBInfoBottom.CLRPOFF) m_3DFBInfoBottom.POFF = 0;
+		})
+	);
 
-void Write16(const u16 _iValue, const u32 _iAddress)
-{
-	DEBUG_LOG(VIDEOINTERFACE, "(w16): 0x%04x, 0x%08x",_iValue,_iAddress);
+	// MMIOs with unimplemented writes that trigger warnings.
+	mmio->Register(base | VI_VERTICAL_BEAM_POSITION,
+		MMIO::DirectRead<u16>(&m_VBeamPos),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			WARN_LOG(VIDEOINTERFACE, "Changing vertical beam position to 0x%04x - not documented or implemented yet", val);
+		})
+	);
+	mmio->Register(base | VI_HORIZONTAL_BEAM_POSITION,
+		MMIO::DirectRead<u16>(&m_HBeamPos),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			WARN_LOG(VIDEOINTERFACE, "Changing horizontal beam position to 0x%04x - not documented or implemented yet", val);
+		})
+	);
 
-	//Somewhere it sets screen width.. we need to communicate this to the gfx backend...
+	// The following MMIOs are interrupts related and update interrupt status
+	// on writes.
+	mmio->Register(base | VI_PRERETRACE_HI,
+		MMIO::DirectRead<u16>(&m_InterruptRegister[0].Hi),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			m_InterruptRegister[0].Hi = val;
+			UpdateInterrupts();
+		})
+	);
+	mmio->Register(base | VI_POSTRETRACE_HI,
+		MMIO::DirectRead<u16>(&m_InterruptRegister[1].Hi),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			m_InterruptRegister[1].Hi = val;
+			UpdateInterrupts();
+		})
+	);
+	mmio->Register(base | VI_DISPLAY_INTERRUPT_2_HI,
+		MMIO::DirectRead<u16>(&m_InterruptRegister[2].Hi),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			m_InterruptRegister[2].Hi = val;
+			UpdateInterrupts();
+		})
+	);
+	mmio->Register(base | VI_DISPLAY_INTERRUPT_3_HI,
+		MMIO::DirectRead<u16>(&m_InterruptRegister[3].Hi),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			m_InterruptRegister[3].Hi = val;
+			UpdateInterrupts();
+		})
+	);
 
-	switch (_iAddress & 0xFFF)
-	{
-	case VI_VERTICAL_TIMING:
-		m_VerticalTimingRegister.Hex = _iValue;
-		break;
+	// Unknown anti-aliasing related MMIO register: puts a warning on log and
+	// needs to shift/mask when reading/writing.
+	mmio->Register(base | VI_UNK_AA_REG_HI,
+		MMIO::ComplexRead<u16>([](u32) {
+			return m_UnkAARegister >> 16;
+		}),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			m_UnkAARegister = (m_UnkAARegister & 0x0000FFFF) | ((u32)val << 16);
+			WARN_LOG(VIDEOINTERFACE, "Writing to the unknown AA register (hi)");
+		})
+	);
+	mmio->Register(base | VI_UNK_AA_REG_LO,
+		MMIO::ComplexRead<u16>([](u32) {
+			return m_UnkAARegister & 0xFFFF;
+		}),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			m_UnkAARegister = (m_UnkAARegister & 0xFFFF0000) | val;
+			WARN_LOG(VIDEOINTERFACE, "Writing to the unknown AA register (lo)");
+		})
+	);
 
-	case VI_CONTROL_REGISTER:
-		{
-			UVIDisplayControlRegister tmpConfig(_iValue);
+	// Control register writes only updates some select bits, and additional
+	// processing needs to be done if a reset is requested.
+	mmio->Register(base | VI_CONTROL_REGISTER,
+		MMIO::DirectRead<u16>(&m_DisplayControlRegister.Hex),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			UVIDisplayControlRegister tmpConfig(val);
 			m_DisplayControlRegister.ENB = tmpConfig.ENB;
 			m_DisplayControlRegister.NIN = tmpConfig.NIN;
 			m_DisplayControlRegister.DLR = tmpConfig.DLR;
@@ -461,242 +365,66 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 			}
 
 			UpdateParameters();
-		}
-		break;
+		})
+	);
 
-	case VI_HORIZONTAL_TIMING_0_HI:
-		m_HTiming0.Hi = _iValue;
-		break;
-	case VI_HORIZONTAL_TIMING_0_LO:
-		m_HTiming0.Lo = _iValue;
-		break;
-
-	case VI_HORIZONTAL_TIMING_1_HI:
-		m_HTiming1.Hi = _iValue;
-		break;
-	case VI_HORIZONTAL_TIMING_1_LO:
-		m_HTiming1.Lo = _iValue;
-		break;
-
-	case VI_VBLANK_TIMING_ODD_HI:
-		m_VBlankTimingOdd.Hi = _iValue;
-		break;
-	case VI_VBLANK_TIMING_ODD_LO:
-		m_VBlankTimingOdd.Lo = _iValue;
-		break;
-
-	case VI_VBLANK_TIMING_EVEN_HI:
-		m_VBlankTimingEven.Hi = _iValue;
-		break;
-	case VI_VBLANK_TIMING_EVEN_LO:
-		m_VBlankTimingEven.Lo = _iValue;
-		break;
-
-	case VI_BURST_BLANKING_ODD_HI:
-		m_BurstBlankingOdd.Hi = _iValue;
-		break;
-	case VI_BURST_BLANKING_ODD_LO:
-		m_BurstBlankingOdd.Lo = _iValue;
-		break;
-
-	case VI_BURST_BLANKING_EVEN_HI:
-		m_BurstBlankingEven.Hi = _iValue;
-		break;
-	case VI_BURST_BLANKING_EVEN_LO:
-		m_BurstBlankingEven.Lo = _iValue;
-		break;
-
-	case VI_FB_LEFT_TOP_HI:
-		m_XFBInfoTop.Hi = _iValue;
-		if (m_XFBInfoTop.CLRPOFF) m_XFBInfoTop.POFF = 0;
-		break;
-	case VI_FB_LEFT_TOP_LO:
-		m_XFBInfoTop.Lo = _iValue;
-		break;
-
-	case VI_FB_RIGHT_TOP_HI:
-		m_3DFBInfoTop.Hi = _iValue;
-		if (m_3DFBInfoTop.CLRPOFF) m_3DFBInfoTop.POFF = 0;
-		break;
-	case VI_FB_RIGHT_TOP_LO:
-		m_3DFBInfoTop.Lo = _iValue;
-		break;
-
-	case VI_FB_LEFT_BOTTOM_HI:
-		m_XFBInfoBottom.Hi = _iValue;
-		if (m_XFBInfoBottom.CLRPOFF) m_XFBInfoBottom.POFF = 0;
-		break;
-	case VI_FB_LEFT_BOTTOM_LO:
-		m_XFBInfoBottom.Lo = _iValue;
-		break;
-
-	case VI_FB_RIGHT_BOTTOM_HI:
-		m_3DFBInfoBottom.Hi = _iValue;
-		if (m_3DFBInfoBottom.CLRPOFF) m_3DFBInfoBottom.POFF = 0;
-		break;
-	case VI_FB_RIGHT_BOTTOM_LO:
-		m_3DFBInfoBottom.Lo = _iValue;
-		break;
-
-	case VI_VERTICAL_BEAM_POSITION:
-		WARN_LOG(VIDEOINTERFACE, "Change Vertical Beam Position to 0x%04x - Not documented or implemented", _iValue);
-		break;
-
-	case VI_HORIZONTAL_BEAM_POSITION:
-		WARN_LOG(VIDEOINTERFACE, "Change Horizontal Beam Position to 0x%04x - Not documented or implemented", _iValue);
-		break;
-
-		// RETRACE STUFF ...
-	case VI_PRERETRACE_HI:
-		m_InterruptRegister[0].Hi = _iValue;
-		UpdateInterrupts();
-		break;
-	case VI_PRERETRACE_LO:
-		m_InterruptRegister[0].Lo = _iValue;
-		break;
-
-	case VI_POSTRETRACE_HI:
-		m_InterruptRegister[1].Hi = _iValue;
-		UpdateInterrupts();
-		break;
-	case VI_POSTRETRACE_LO:
-		m_InterruptRegister[1].Lo = _iValue;
-		break;
-
-	case VI_DISPLAY_INTERRUPT_2_HI:
-		m_InterruptRegister[2].Hi = _iValue;
-		UpdateInterrupts();
-		break;
-	case VI_DISPLAY_INTERRUPT_2_LO:
-		m_InterruptRegister[2].Lo = _iValue;
-		break;
-
-	case VI_DISPLAY_INTERRUPT_3_HI:
-		m_InterruptRegister[3].Hi = _iValue;
-		UpdateInterrupts();
-		break;
-	case VI_DISPLAY_INTERRUPT_3_LO:
-		m_InterruptRegister[3].Lo = _iValue;
-		break;
-
-	case VI_DISPLAY_LATCH_0_HI:
-		m_LatchRegister[0].Hi = _iValue;
-		break;
-	case VI_DISPLAY_LATCH_0_LO:
-		m_LatchRegister[0].Lo = _iValue;
-		break;
-
-	case VI_DISPLAY_LATCH_1_HI:
-		m_LatchRegister[1].Hi = _iValue;
-		break;
-	case VI_DISPLAY_LATCH_1_LO:
-		m_LatchRegister[1].Lo = _iValue;
-		break;
-
-	case VI_HSCALEW:
-		m_HorizontalStepping.Hex = _iValue;
-		break;
-
-	case VI_HSCALER:
-		m_HorizontalScaling.Hex = _iValue;
-		break;
-
-	case VI_FILTER_COEF_0_HI:
-		m_FilterCoefTables.Tables02[0].Hi = _iValue;
-		break;
-	case VI_FILTER_COEF_0_LO:
-		m_FilterCoefTables.Tables02[0].Lo = _iValue;
-		break;
-	case VI_FILTER_COEF_1_HI:
-		m_FilterCoefTables.Tables02[1].Hi = _iValue;
-		break;
-	case VI_FILTER_COEF_1_LO:
-		m_FilterCoefTables.Tables02[1].Lo = _iValue;
-		break;
-	case VI_FILTER_COEF_2_HI:
-		m_FilterCoefTables.Tables02[2].Hi = _iValue;
-		break;
-	case VI_FILTER_COEF_2_LO:
-		m_FilterCoefTables.Tables02[2].Lo = _iValue;
-		break;
-	case VI_FILTER_COEF_3_HI:
-		m_FilterCoefTables.Tables36[0].Hi = _iValue;
-		break;
-	case VI_FILTER_COEF_3_LO:
-		m_FilterCoefTables.Tables36[0].Lo = _iValue;
-		break;
-	case VI_FILTER_COEF_4_HI:
-		m_FilterCoefTables.Tables36[1].Hi = _iValue;
-		break;
-	case VI_FILTER_COEF_4_LO:
-		m_FilterCoefTables.Tables36[1].Lo = _iValue;
-		break;
-	case VI_FILTER_COEF_5_HI:
-		m_FilterCoefTables.Tables36[2].Hi = _iValue;
-		break;
-	case VI_FILTER_COEF_5_LO:
-		m_FilterCoefTables.Tables36[2].Lo = _iValue;
-		break;
-	case VI_FILTER_COEF_6_HI:
-		m_FilterCoefTables.Tables36[3].Hi = _iValue;
-		break;
-	case VI_FILTER_COEF_6_LO:
-		m_FilterCoefTables.Tables36[3].Lo = _iValue;
-		break;
-
-	case VI_UNK_AA_REG_HI:
-		m_UnkAARegister = (m_UnkAARegister & 0x0000ffff) | (u32)(_iValue << 16);
-		WARN_LOG(VIDEOINTERFACE, "(w16) to unknown AA register, not sure what it does :)");
-		break;
-	case VI_UNK_AA_REG_LO:
-		m_UnkAARegister = (m_UnkAARegister & 0xffff0000) | _iValue;
-		WARN_LOG(VIDEOINTERFACE, "(w16) to unknown AA register, not sure what it does :)");
-		break;
-
-	case VI_CLOCK:
-		m_Clock = _iValue;
-		break;
-
-	case VI_DTV_STATUS:
-		m_DTVStatus.Hex = _iValue;
-		break;
-
-	case VI_FBWIDTH:
-		m_FBWidth = _iValue;
-		break;
-
-	case VI_BORDER_BLANK_END:
-		m_BorderHBlank.Lo = _iValue;
-		break;
-	case VI_BORDER_BLANK_START:
-		m_BorderHBlank.Hi = _iValue;
-		break;
-
-	default:
-		ERROR_LOG(VIDEOINTERFACE, "(w16) %04x to unknown register %x", _iValue, _iAddress & 0xfff);
-		break;
+    // Map 8 bit reads (not writes) to 16 bit reads.
+	for (int i = 0; i < 0x1000; i += 2)
+	{
+		mmio->Register(base | i,
+			MMIO::ReadToLarger<u8>(mmio, base | i, 8),
+			MMIO::InvalidWrite<u8>()
+		);
+		mmio->Register(base | (i + 1),
+			MMIO::ReadToLarger<u8>(mmio, base | i, 0),
+			MMIO::InvalidWrite<u8>()
+		);
 	}
+
+    // Map 32 bit reads and writes to 16 bit reads and writes.
+    for (int i = 0; i < 0x1000; i += 4)
+    {
+		mmio->Register(base | i,
+			MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
+			MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2))
+		);
+    }
+}
+
+void SetRegionReg(char region)
+{
+	if (!Core::g_CoreStartupParameter.bForceNTSCJ)
+		m_DTVStatus.ntsc_j = region == 'J';
+}
+
+void Read8(u8& _uReturnValue, const u32 _iAddress)
+{
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
+}
+
+void Read16(u16& _uReturnValue, const u32 _iAddress)
+{
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
+}
+
+void Write16(const u16 _iValue, const u32 _iAddress)
+{
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Write(_iAddress, _iValue);
 }
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	u16 Hi = 0, Lo = 0;
-	Read16(Hi, _iAddress);
-	Read16(Lo, _iAddress + 2);
-	_uReturnValue = (Hi << 16) | Lo;
-
-	INFO_LOG(VIDEOINTERFACE, "(r32): 0x%08x, 0x%08x", _uReturnValue, _iAddress);
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	INFO_LOG(VIDEOINTERFACE, "(w32): 0x%08x, 0x%08x", _iValue, _iAddress);
-
-	// Allow 32-bit writes to the VI: although this is officially not
-	// allowed, the hardware seems to accept it (for example, DesktopMan GC
-	// Tetris uses it).
-	Write16(_iValue >> 16, _iAddress);
-	Write16(_iValue & 0xFFFF, _iAddress + 2);
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Write(_iAddress, _iValue);
 }
 
 void UpdateInterrupts()

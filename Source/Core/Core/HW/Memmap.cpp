@@ -310,11 +310,13 @@ void InitHWMemFuncsWii()
 
 void InitMMIO(MMIO::Mapping* mmio)
 {
+	VideoInterface::RegisterMMIO(mmio, 0xCC002000);
 	ProcessorInterface::RegisterMMIO(mmio, 0xCC003000);
 }
 
 void InitMMIOWii(MMIO::Mapping* mmio)
 {
+	VideoInterface::RegisterMMIO(mmio, 0xCC002000);
 	ProcessorInterface::RegisterMMIO(mmio, 0xCC003000);
 }
 
