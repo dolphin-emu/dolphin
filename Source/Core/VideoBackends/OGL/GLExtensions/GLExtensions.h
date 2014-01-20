@@ -4,7 +4,7 @@
 
 #include <string>
 
-#include "GLInterface.h"
+#include "GLInterface/GLInterface.h"
 
 #include "gl_1_1.h"
 #include "gl_1_2.h"

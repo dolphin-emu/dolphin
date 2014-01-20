@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Host.h"
-#include "GLInterface.h"
+#include "GLInterface/GLInterface.h"
 
 bool cPlatform::SelectDisplay(void)
 {

@@ -7,7 +7,7 @@
 #include "RenderBase.h"
 
 #include "VertexShaderManager.h"
-#include "../GLInterface.h"
+#include "GLInterface.h"
 #include "WGL.h"
 
 #include "EmuWindow.h"

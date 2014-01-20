@@ -17,7 +17,7 @@
 
 #include "Core.h"
 #include "State.h"
-#include "../GLInterface.h"
+#include "GLInterface.h"
 #include <linux/input.h>
 #include <sys/mman.h>
 

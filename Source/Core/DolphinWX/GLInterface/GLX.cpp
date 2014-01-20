@@ -19,7 +19,7 @@
 #include "RenderBase.h"
 #include "VideoConfig.h"
 
-#include "../GLInterface.h"
+#include "GLInterface.h"
 #include "GLX.h"
 
 typedef int ( * PFNGLXSWAPINTERVALSGIPROC) (int interval);

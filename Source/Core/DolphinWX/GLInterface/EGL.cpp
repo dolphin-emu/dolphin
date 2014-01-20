@@ -18,7 +18,7 @@
 #include "Host.h"
 #include "RenderBase.h"
 
-#include "../GLInterface.h"
+#include "GLInterface.h"
 #include "EGL.h"
 
 // Show the current FPS

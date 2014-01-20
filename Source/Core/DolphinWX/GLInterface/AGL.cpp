@@ -23,7 +23,7 @@
 #include <wx/panel.h>
 
 #include "VertexShaderManager.h"
-#include "../GLInterface.h"
+#include "GLInterface.h"
 #include "AGL.h"
 
 void cInterfaceAGL::Swap()

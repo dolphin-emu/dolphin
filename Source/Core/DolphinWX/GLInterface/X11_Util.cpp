@@ -17,7 +17,7 @@
 
 #include "Host.h"
 #include "VideoConfig.h"
-#include "../GLInterface.h"
+#include "GLInterface.h"
 
 #if USE_EGL
 bool cXInterface::ServerConnect(void)

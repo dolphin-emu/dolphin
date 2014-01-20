@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <unordered_map>
-#include "GLInterface.h"
+#include "GLInterface/GLInterface.h"
 #include "Android/ButtonManager.h"
 
 namespace ButtonManager
