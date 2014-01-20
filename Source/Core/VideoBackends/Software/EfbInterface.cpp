@@ -8,16 +8,13 @@
 #include "BPMemLoader.h"
 #include "LookUpTables.h"
 #include "SWPixelEngine.h"
+#include "HW/Memmap.h"
 
 
 u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
 
-
 namespace EfbInterface
 {
-
-	u8 efbColorTexture[EFB_WIDTH*EFB_HEIGHT*4];
-
 	inline u32 GetColorOffset(u16 x, u16 y)
 	{
 		return (x + y * EFB_WIDTH) * 3;
@@ -31,7 +28,6 @@ namespace EfbInterface
 	void DoState(PointerWrap &p)
 	{
 		p.DoArray(efb, EFB_WIDTH*EFB_HEIGHT*6);
-		p.DoArray(efbColorTexture, EFB_WIDTH*EFB_HEIGHT*4);
 	}
 
 	void SetPixelAlphaOnly(u32 offset, u8 a)
@@ -469,6 +465,19 @@ namespace EfbInterface
 		GetPixelColor(offset, color);
 	}
 
+	// For internal used only, return a non-normalized value, which saves work later.
+	void GetColorYUV(u16 x, u16 y, yuv444 *out)
+	{
+		u8 color[4];
+		GetColor(x, y, color);
+
+		// GameCube/Wii uses the BT.601 standard algorithm for converting to YCbCr; see
+		// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+		out->Y =  0.257f * color[RED_C] +  0.504f * color[GRN_C] +  0.098f * color[BLU_C];
+		out->U = -0.148f * color[RED_C] + -0.291f * color[GRN_C] +  0.439f * color[BLU_C];
+		out->V =  0.439f * color[RED_C] + -0.368f * color[GRN_C] + -0.071f * color[BLU_C];
+	}
+
 	u32 GetDepth(u16 x, u16 y)
 	{
 		u32 offset = GetDepthOffset(x, y);
@@ -482,21 +491,85 @@ namespace EfbInterface
 		return &efb[GetColorOffset(x, y)];
 	}
 
-	void UpdateColorTexture()
-	{
+	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma) {
+		// FIXME: We should do Gamma correction
+
+		if (!xfb_in_ram)
+		{
+			WARN_LOG(VIDEO, "Tried to copy to invalid XFB address");
+			return;
+		}
+
+		int left = sourceRc.left;
+		int right = sourceRc.right;
+
+		// this assumes copies will always start on an even (YU) pixel and the
+		// copy always has an even width, which might not be true.
+		if (left & 1 || right & 1) {
+			WARN_LOG(VIDEO, "Trying to copy XFB to from unaligned EFB source");
+			// this will show up as wrongly encoded
+		}
+
+		// Scanline buffer, leave room for borders
+		yuv444 scanline[EFB_WIDTH+2];
+
+		// our internal yuv444 type is not normalized, so black is {0, 0, 0} instead of {16, 128, 128}
+		yuv444 black;
+		black.Y = 0;
+		black.U = 0;
+		black.V = 0;
+
+		scanline[0] = black; // black border at start
+		scanline[right+1] = black; // black border at end
+
+		for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
+		{
+			// Get a scanline of YUV pixels in 4:4:4 format
+
+			for (int i = 1, x = left; x < right; i++, x++)
+			{
+				GetColorYUV(x, y, &scanline[i]);
+			}
+
+			// And Downsample them to 4:2:2
+			for (int i = 1, x = left; x < right; i+=2, x+=2)
+			{
+				// YU pixel
+				xfb_in_ram[x].Y = scanline[i].Y + 16;
+				// we mix our color difrences in 10 bit space so it will round more accurately
+				// U[i] = 1/4 * U[i-1] + 1/2 * U[i] + 1/4 * U[i+1]
+				xfb_in_ram[x].UV = 128 + ((scanline[i-1].U + (scanline[i].U << 1) + scanline[i+1].U) >> 2);
+
+				// YV pixel
+				xfb_in_ram[x+1].Y = scanline[i+1].Y + 16;
+				// V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 * V[i+1]
+				xfb_in_ram[x+1].UV = 128 + ((scanline[i].V + (scanline[i+1].V << 1) + scanline[i+2].V) >> 2);
+			}
+			xfb_in_ram += fbWidth;
+		}
+	}
+
+	// Like CopyToXFB, but we copy directly into the opengl colour texture without going via Gamecube main memory or doing a yuyv conversion
+	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma) {
+		if(fbWidth*fbHeight > 640*568) {
+			ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
+			return;
+		}
+
 		u32 color;
 		u8* colorPtr = (u8*)&color;
-		u32* texturePtr = (u32*)efbColorTexture;
+		u32* texturePtr = (u32*)texture;
 		u32 textureAddress = 0;
-		u32 efbOffset = 0;
 
-		for (u16 y = 0; y < EFB_HEIGHT; y++)
+		int left = sourceRc.left;
+		int right = sourceRc.right;
+
+		for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
 		{
-			for (u16 x = 0; x < EFB_WIDTH; x++)
+			for (u16 x = left; x < right; x++)
 			{
-				GetPixelColor(efbOffset, colorPtr);
-				efbOffset += 3;
-				texturePtr[textureAddress++] = Common::swap32(color);  // ABGR->RGBA
+				GetColor(x, y, colorPtr);
+				texturePtr[textureAddress++] = Common::swap32(color);
 			}
 		}
 	}

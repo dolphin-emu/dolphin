@@ -68,6 +68,9 @@ VideoConfigDialog::VideoConfigDialog(wxWindow* parent, const std::string& title,
 
 	// rasterizer
 	szr_rendering->Add(new SettingCheckBox(page_general, wxT("Hardware rasterization"), wxT(""), vconfig.bHwRasterizer));
+
+	// xfb
+	szr_rendering->Add(new SettingCheckBox(page_general, wxT("Bypass XFB"), wxT(""), vconfig.bBypassXFB));
 	}
 
 	// - info

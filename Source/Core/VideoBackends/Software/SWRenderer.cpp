@@ -5,10 +5,12 @@
 #include "Common.h"
 
 #include "../OGL/GLUtil.h"
+#include "Core.h"
 #include "ImageWrite.h"
 #include "RasterFont.h"
 #include "SWRenderer.h"
 #include "SWStatistics.h"
+#include "SWCommandProcessor.h"
 
 #include "OnScreenDisplay.h"
 
@@ -17,6 +19,9 @@ static GLuint s_RenderTarget = 0;
 static GLint attr_pos = -1, attr_tex = -1;
 static GLint uni_tex = -1;
 static GLuint program;
+
+static u8 *s_xfbColorTexture[2];
+static int s_currentColorTexture = 0;
 
 static volatile bool s_bScreenshot;
 static std::mutex s_criticalScreenshot;
@@ -34,6 +39,8 @@ void SWRenderer::Init()
 
 void SWRenderer::Shutdown()
 {
+	delete s_xfbColorTexture[0];
+	delete s_xfbColorTexture[1];
 	glDeleteProgram(program);
 	glDeleteTextures(1, &s_RenderTarget);
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
@@ -77,6 +84,11 @@ void CreateShaders()
 
 void SWRenderer::Prepare()
 {
+	s_xfbColorTexture[0] = new u8[640*568*4];
+	s_xfbColorTexture[1] = new u8[640*568*4];
+
+	s_currentColorTexture = 0;
+
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 	glGenTextures(1, &s_RenderTarget);
@@ -140,8 +152,67 @@ void SWRenderer::DrawDebugText()
 	SWRenderer::RenderText(debugtext_buffer, 20, 20, 0xFFFFFF00);
 }
 
+u8* SWRenderer::getColorTexture() {
+	return s_xfbColorTexture[!s_currentColorTexture];
+}
+
+void SWRenderer::swapColorTexture() {
+	s_currentColorTexture = !s_currentColorTexture;
+}
+
+void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidth, u32 fbHeight)
+{
+	if(fbWidth*fbHeight > 640*568) {
+		ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
+		return;
+	}
+
+	u32 offset = 0;
+	u8 *TexturePointer = getColorTexture();
+
+	for (u16 y = 0; y < fbHeight; y++)
+	{
+		for (u16 x = 0; x < fbWidth; x+=2)
+		{
+			// We do this one color sample (aka 2 RGB pixles) at a time
+			int Y1 = xfb[x].Y - 16;
+			int Y2 = xfb[x+1].Y - 16;
+			int U  = int(xfb[x].UV) - 128;
+			int V  = int(xfb[x+1].UV) - 128;
+
+			// We do the inverse BT.601 conversion for YCbCr to RGB
+			// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y1              + 1.596f * V));
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y1 - 0.392f * U - 0.813f * V));
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y1 + 2.017f * U             ));
+			TexturePointer[offset++] = 255;
+
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y2              + 1.596f * V));
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y2 - 0.392f * U - 0.813f * V));
+			TexturePointer[offset++] = min(255.0f, max(0.0f, 1.164f * Y2 + 2.017f * U             ));
+			TexturePointer[offset++] = 255;
+		}
+		xfb += fbWidth;
+	}
+	swapColorTexture();
+}
+
+// Called on the GPU thread
+void SWRenderer::Swap(u32 fbWidth, u32 fbHeight)
+{
+	GLInterface->Update(); // just updates the render window position and the backbuffer size
+	if (!g_SWVideoConfig.bHwRasterizer)
+		SWRenderer::DrawTexture(s_xfbColorTexture[s_currentColorTexture], fbWidth, fbHeight);
+
+	swstats.frameCount++;
+	SWRenderer::SwapBuffer();
+	Core::Callback_VideoCopiedToXFB(true); // FIXME: should this function be called FrameRendered?
+}
+
 void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 {
+	// FIXME: This should add black bars when the game has set the VI to render less than the full xfb.
+
 	// Save screenshot
 	if (s_bScreenshot)
 	{
@@ -151,8 +222,10 @@ void SWRenderer::DrawTexture(u8 *texture, int width, int height)
 		s_sScreenshotName.clear();
 		s_bScreenshot = false;
 	}
+
 	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
 	GLsizei glHeight = (GLsizei)GLInterface->GetBackBufferHeight();
+
 
 	// Update GLViewPort
 	glViewport(0, 0, glWidth, glHeight);

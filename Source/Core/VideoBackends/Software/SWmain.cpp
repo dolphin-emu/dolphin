@@ -10,6 +10,7 @@
 #endif // HAVE_WX
 
 #include "../OGL/GLExtensions/GLExtensions.h"
+#include "Atomic.h"
 #include "SWCommandProcessor.h"
 #include "OpcodeDecoder.h"
 #include "SWVideoConfig.h"
@@ -29,9 +30,21 @@
 #include "OpcodeDecoder.h"
 #include "SWVertexLoader.h"
 #include "SWStatistics.h"
+#include "HW/VideoInterface.h"
+#include "HW/Memmap.h"
+#include "ConfigManager.h"
 
 #include "OnScreenDisplay.h"
 #define VSYNC_ENABLED 0
+
+static volatile u32 s_swapRequested = false;
+
+static volatile struct
+{
+    u32 xfbAddr;
+    u32 fbWidth;
+    u32 fbHeight;
+} s_beginFieldArgs;
 
 namespace SW
 {
@@ -188,11 +201,41 @@ void VideoSoftware::Video_Prepare()
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoSoftware::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
+	s_beginFieldArgs.xfbAddr = xfbAddr;
+	s_beginFieldArgs.fbWidth = fbWidth;
+	s_beginFieldArgs.fbHeight = fbHeight;
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoSoftware::Video_EndField()
 {
+	// Techincally the XFB is continually rendered out scanline by scanline between
+	// BeginField and EndFeild, We could possibly get away with copying out the whole thing
+	// at BeginField for less lag, but for the safest emulation we run it here.
+
+	if (g_bSkipCurrentFrame || s_beginFieldArgs.xfbAddr == 0 ) {
+		swstats.frameCount++;
+		swstats.ResetFrame();
+		Core::Callback_VideoCopiedToXFB(false);
+		return;
+	}
+	if (!g_SWVideoConfig.bHwRasterizer) {
+		if(!g_SWVideoConfig.bBypassXFB) {
+			EfbInterface::yuv422_packed *xfb = (EfbInterface::yuv422_packed *) Memory::GetPointer(s_beginFieldArgs.xfbAddr);
+
+			SWRenderer::UpdateColorTexture(xfb, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+		}
+	}
+
+	// Idealy we would just move all the opengl contex stuff to the CPU thread, but this gets
+	// messy when the Hardware Rasterizer is enabled.
+	// And Neobrain loves his Hardware Rasterizer
+
+	// If we are runing dual core, Signal the GPU thread about the new colour texture.
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		Common::AtomicStoreRelease(s_swapRequested, true);
+	else
+		SWRenderer::Swap(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 }
 
 u32 VideoSoftware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
@@ -239,6 +282,16 @@ bool VideoSoftware::Video_Screenshot(const char *_szFilename)
 	return true;
 }
 
+// Run from the graphics thread
+static void VideoFifo_CheckSwapRequest()
+{
+	if (Common::AtomicLoadAcquire(s_swapRequested))
+	{
+		SWRenderer::Swap(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+		Common::AtomicStoreRelease(s_swapRequested, false);
+	}
+}
+
 // -------------------------------
 // Enter and exit the video loop
 // -------------------------------
@@ -249,6 +302,7 @@ void VideoSoftware::Video_EnterLoop()
 
 	while (fifoStateRun)
 	{
+		VideoFifo_CheckSwapRequest();
 		g_video_backend->PeekMessages();
 
 		if (!SWCommandProcessor::RunBuffer())
@@ -259,6 +313,7 @@ void VideoSoftware::Video_EnterLoop()
 		while (!emuRunningState && fifoStateRun)
 		{
 			g_video_backend->PeekMessages();
+			VideoFifo_CheckSwapRequest();
 			m_csSWVidOccupied.unlock();
 			Common::SleepCurrentThread(1);
 			m_csSWVidOccupied.lock();

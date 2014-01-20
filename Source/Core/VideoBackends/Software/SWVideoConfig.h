@@ -22,6 +22,7 @@ struct SWVideoConfig : NonCopyable
 	bool renderToMainframe;
 
 	bool bHwRasterizer;
+	bool bBypassXFB;
 
 	// Emulation features
 	bool bZComploc;
