@@ -18,7 +18,7 @@
 
 #if HAVE_WAYLAND
 #include <wayland-client.h>
-#include "GLInterface/Platform.h"
+#include "GLInterface.h"
 #endif
 
 #ifdef __APPLE__

@@ -360,11 +360,7 @@ bool cWaylandInterface::Initialize(void *config)
 
 void *cWaylandInterface::EGLGetDisplay(void)
 {
-#if HAVE_X11
-	return eglGetDisplay((_XDisplay *) GLWin.wl_display);
-#else
 	return eglGetDisplay(GLWin.wl_display);
-#endif
 }
 
 void *cWaylandInterface::CreateWindow(void)
@@ -393,9 +389,6 @@ void cWaylandInterface::DestroyWindow(void)
 
 	wl_shell_surface_destroy(GLWin.wl_shell_surface);
 	wl_surface_destroy(GLWin.wl_surface);
-
-	if (GLWin.wl_callback)
-		wl_callback_destroy(GLWin.wl_callback);
 }
 
 void cWaylandInterface::UpdateFPSDisplay(const char *text)

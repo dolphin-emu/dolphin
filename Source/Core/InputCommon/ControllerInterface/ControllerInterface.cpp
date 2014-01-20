@@ -1,7 +1,7 @@
 #include "ControllerInterface.h"
 
 #if USE_EGL
-#include "GLInterface/Platform.h"
+#include "GLInterface.h"
 #endif
 
 #ifdef CIFACE_USE_XINPUT

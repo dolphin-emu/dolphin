@@ -19,8 +19,29 @@
 
 #include <EGL/egl.h>
 #include "InterfaceBase.h"
+#include "ConfigManager.h"
 
-class cPlatform;
+
+class cPlatform
+{
+private:
+#if HAVE_X11
+	cXInterface XInterface;
+#endif
+#if HAVE_WAYLAND
+	cWaylandInterface WaylandInterface;
+#endif
+public:
+	enum egl_platform platform;
+	bool SelectDisplay(void);
+	bool Init(EGLConfig config);
+	EGLDisplay EGLGetDisplay(void);
+	EGLNativeWindowType CreateWindow(void);
+	void DestroyWindow(void);
+	void UpdateFPSDisplay(const char *text);
+	void ToggleFullscreen(bool fullscreen);
+	void SwapBuffers();
+};
 
 class cInterfaceEGL : public cInterfaceBase
 {
