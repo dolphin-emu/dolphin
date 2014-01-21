@@ -56,6 +56,22 @@ __forceinline T DataRead()
 	return result;
 }
 
+class DataReader
+{
+public:
+	inline DataReader() : buffer(g_pVideoData), offset(0) {}
+	inline ~DataReader() { g_pVideoData += offset; }
+	template <typename T> inline T Read()
+	{
+		const T result = Common::FromBigEndian(*(T*)(buffer + offset));
+		offset += sizeof(T);
+		return result;
+	}
+private:
+	u8 *buffer;
+	int offset;
+};
+
 // TODO: kill these
 __forceinline u8 DataReadU8()
 {
@@ -133,16 +149,25 @@ __forceinline u8* DataGetPosition()
 }
 
 template <typename T>
-__forceinline void DataWrite(u8* &dst, T data)
-{
-	*(T*)dst = data;
-	dst += sizeof(T);
-}
-
-template <typename T>
 __forceinline void DataWrite(T data)
 {
-	DataWrite(VertexManager::s_pCurBufferPointer, data);
+	*(T*)VertexManager::s_pCurBufferPointer = data;
+	VertexManager::s_pCurBufferPointer += sizeof(T);
 }
+
+class DataWriter
+{
+public:
+	inline DataWriter() : buffer(VertexManager::s_pCurBufferPointer), offset(0) {}
+	inline ~DataWriter() { VertexManager::s_pCurBufferPointer += offset; }
+	template <typename T> inline void Write(T data)
+	{
+		*(T*)(buffer+offset) = data;
+		offset += sizeof(T);
+	}
+private:
+	u8 *buffer;
+	int offset;
+};
 
 #endif
