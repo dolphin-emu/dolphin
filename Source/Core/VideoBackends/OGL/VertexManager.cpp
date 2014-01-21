@@ -249,8 +249,7 @@ void VertexManager::vFlush()
 		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
 		{
 			// Need to set these again, if we don't support UBO
-			VertexShaderManager::SetConstants();
-			PixelShaderManager::SetConstants();
+			ProgramShaderCache::UploadConstants();
 		}
 
 		// only update alpha
