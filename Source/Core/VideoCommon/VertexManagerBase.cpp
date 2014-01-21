@@ -10,6 +10,7 @@
 #include "TextureCacheBase.h"
 #include "RenderBase.h"
 #include "BPStructs.h"
+#include "XFMemory.h"
 
 #include "VertexManagerBase.h"
 #include "MainBase.h"
