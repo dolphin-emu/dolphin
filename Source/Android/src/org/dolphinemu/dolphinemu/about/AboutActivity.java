@@ -195,11 +195,11 @@ public final class AboutActivity extends Activity implements TabListener
 				if (eglHelper.supportsGLES3())
 					return new GLES3InfoFragment(); // TODO: Return the GLES 3 fragment in this case (normal case)
 				else
-					return new Fragment(); // TODO: Return the OpenGL fragment in this case (GLES3 not supported case)
+					return new GLInfoFragment(); // TODO: Return the OpenGL fragment in this case (GLES3 not supported case)
 			}
 			else if (position == 4)    // OpenGL fragment
 			{
-				return new Fragment();
+				return new GLInfoFragment();
 			}
 
 			// This should never happen.
