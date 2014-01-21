@@ -36,6 +36,21 @@ public final class EGLHelper
 
 	/**
 	 * Constructor
+	 * <p>
+	 * Initializes the underlying {@link EGLSurface} with a width and height of 1.
+	 * This is useful if all you need to use this class for is to query information
+	 * from specific API contexts.
+	 * 
+	 * @param renderableType Bitmask indicating which types of client API contexts
+	 *                       the framebuffer config must support.
+	 */
+	public EGLHelper(int renderableType)
+	{
+		this(1, 1, renderableType);
+	}
+
+	/**
+	 * Constructor
 	 * 
 	 * @param width          Width of the underlying {@link EGLSurface}.
 	 * @param height         Height of the underlying {@link EGLSurface}. 
@@ -85,8 +100,8 @@ public final class EGLHelper
 	 * Gets information through EGL.<br/>
 	 * <p>
 	 * Index 0: Vendor     <br/>
-	 * Index 1: Renderer   <br/>
-	 * Index 2: Version    <br/>
+	 * Index 1: Version    <br/>
+	 * Index 2: Renderer   <br/>
 	 * Index 3: Extensions <br/>
 	 * 
 	 * @return information retrieved through EGL.
@@ -95,8 +110,8 @@ public final class EGLHelper
 	{
 		String[] info = {
 			mGL.glGetString(GL10.GL_VENDOR),
-			mGL.glGetString(GL10.GL_RENDERER),
 			mGL.glGetString(GL10.GL_VERSION),
+			mGL.glGetString(GL10.GL_RENDERER),
 			mGL.glGetString(GL10.GL_EXTENSIONS),
 		};
 

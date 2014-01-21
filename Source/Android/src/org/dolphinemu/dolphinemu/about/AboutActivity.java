@@ -1,7 +1,7 @@
 package org.dolphinemu.dolphinemu.about;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.settings.video.VideoSettingsFragment;
+import org.dolphinemu.dolphinemu.utils.EGLHelper;
 
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
@@ -21,7 +21,7 @@ import android.support.v4.view.ViewPager;
 public final class AboutActivity extends Activity implements TabListener
 {
 	private ViewPager viewPager;
-	private boolean supportsGles3;
+	private EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -31,9 +31,6 @@ public final class AboutActivity extends Activity implements TabListener
 		// Set the view pager
 		setContentView(R.layout.viewpager);
 		viewPager = (ViewPager) findViewById(R.id.pager);
-
-		// Check if GLES3 is supported
-		supportsGles3 = VideoSettingsFragment.SupportsGLES3();
 
 		// Initialize the ViewPager adapter.
 		final ViewPagerAdapter adapter = new ViewPagerAdapter(getFragmentManager());
@@ -45,10 +42,10 @@ public final class AboutActivity extends Activity implements TabListener
 		actionBar.addTab(actionBar.newTab().setText(R.string.general).setTabListener(this));
 		actionBar.addTab(actionBar.newTab().setText(R.string.cpu).setTabListener(this));
 		actionBar.addTab(actionBar.newTab().setText(R.string.gles_two).setTabListener(this));
-		if (supportsGles3)
+		if (eglHelper.supportsGLES3())
 			actionBar.addTab(actionBar.newTab().setText(R.string.gles_three).setTabListener(this));
-		// TODO: Check if Desktop GL is possible before enabling.
-		actionBar.addTab(actionBar.newTab().setText(R.string.desktop_gl).setTabListener(this));
+		if (eglHelper.supportsOpenGL())
+			actionBar.addTab(actionBar.newTab().setText(R.string.desktop_gl).setTabListener(this));
 
 		// Set the page change listener
 		viewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener()
@@ -59,6 +56,14 @@ public final class AboutActivity extends Activity implements TabListener
 				actionBar.setSelectedNavigationItem(position);
 			}
 		});
+	}
+
+	@Override
+	public void onDestroy()
+	{
+		super.onDestroy();
+
+		eglHelper.closeHelper();
 	}
 
 	@Override
@@ -94,30 +99,46 @@ public final class AboutActivity extends Activity implements TabListener
 		@Override
 		public Fragment getItem(int position)
 		{
-			switch (position)
+			if (position == 0)
 			{
-				case 0: return new DolphinInfoFragment();
-				// TODO: The rest of these fragments
-				case 1: return new Fragment(); // CPU
-				case 2: return new Fragment(); // GLES 2
-				case 3: return new Fragment(); // GLES 3
-				case 4: return new Fragment(); // Desktop GL
-
-				default: // Should never happen
-					return null;
+				return new DolphinInfoFragment();
 			}
+			else if (position == 1)
+			{
+				return new Fragment(); // CPU
+			}
+			else if (position == 2)    // GLES 2
+			{
+				return new Fragment();
+			}
+			else if (position == 3)    // GLES 3 or OpenGL (depending on circumstances)
+			{
+				if (eglHelper.supportsGLES3())
+					return new Fragment(); // TODO: Return the GLES 3 fragment in this case (normal case)
+				else
+					return new Fragment(); // TODO: Return the OpenGL fragment in this case (GLES3 not supported case)
+			}
+			else if (position == 4)    // OpenGL fragment
+			{
+				return new Fragment();
+			}
+
+			// This should never happen.
+			return null;
 		}
 
 		@Override
 		public int getCount()
 		{
-			// TODO: In the future, make sure to take into account
-			//       whether or not regular Desktop GL is possible.
-			if (supportsGles3)
+			if (eglHelper.supportsGLES3() && eglHelper.supportsOpenGL())
 			{
 				return 5;
 			}
-			else
+			else if (!eglHelper.supportsGLES3() && !eglHelper.supportsOpenGL())
+			{
+				return 3;
+			}
+			else // Either regular OpenGL or GLES3 isn't supported
 			{
 				return 4;
 			}
