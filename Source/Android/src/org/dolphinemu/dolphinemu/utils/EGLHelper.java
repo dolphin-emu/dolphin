@@ -7,6 +7,7 @@ import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
 import javax.microedition.khronos.opengles.GL10;
 
+import android.opengl.GLES30;
 import android.util.Log;
 
 /**
@@ -307,4 +308,21 @@ public final class EGLHelper
 		mEGL.eglMakeCurrent(mDisplay, mEGLSurface, mEGLSurface, mEGLContext);
 		mGL = (GL10) mEGLContext.getGL();
 	}
+
+    public String glGetString(int glEnum)
+    {
+        return mGL.glGetString(glEnum);
+    }
+
+    public String glGetStringi(int glEnum, int index)
+    {
+        return GLES30.glGetStringi(glEnum, index);
+    }
+
+    public int glGetInteger(int glEnum)
+    {
+        int[] val = new int[1];
+        mGL.glGetIntegerv(glEnum, val, 0);
+        return val[0];
+    }
 }

@@ -10,9 +10,17 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v13.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.TextView;
+
+import java.util.List;
 
 /**
  * Activity for the about menu, which displays info
@@ -22,6 +30,77 @@ public final class AboutActivity extends Activity implements TabListener
 {
 	private ViewPager viewPager;
 	private EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
+
+    // Represents an item in the multiple About fragments.
+    public static final class AboutFragmentItem
+    {
+        private final String title;
+        private final String subtitle;
+
+        public AboutFragmentItem(String title, String subtitle)
+        {
+            this.title = title;
+            this.subtitle = subtitle;
+        }
+
+        public String getTitle()
+        {
+            return title;
+        }
+
+        public String getSubTitle()
+        {
+            return subtitle;
+        }
+    }
+
+    // The adapter that manages the displaying of items in multiple About fragments.
+    public static final class InfoFragmentAdapter extends ArrayAdapter<AboutFragmentItem>
+    {
+        private final Context ctx;
+        private final int id;
+        private final List<AboutFragmentItem> items;
+
+        public InfoFragmentAdapter(Context ctx, int id, List<AboutFragmentItem> items)
+        {
+            super(ctx, id, items);
+
+            this.ctx = ctx;
+            this.id = id;
+            this.items = items;
+        }
+
+        @Override
+        public AboutFragmentItem getItem(int index)
+        {
+            return items.get(index);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent)
+        {
+            if (convertView == null)
+            {
+                LayoutInflater vi = LayoutInflater.from(ctx);
+                convertView = vi.inflate(id, parent, false);
+            }
+
+            final AboutFragmentItem item = items.get(position);
+            if (item != null)
+            {
+                TextView title    = (TextView) convertView.findViewById(R.id.AboutItemTitle);
+                TextView subtitle = (TextView) convertView.findViewById(R.id.AboutItemSubTitle);
+
+                if (title != null)
+                    title.setText(item.getTitle());
+
+                if (subtitle != null)
+                    subtitle.setText(item.getSubTitle());
+            }
+
+            return convertView;
+        }
+    }
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -109,12 +188,12 @@ public final class AboutActivity extends Activity implements TabListener
 			}
 			else if (position == 2)    // GLES 2
 			{
-				return new Fragment();
+				return new GLES2InfoFragment();
 			}
 			else if (position == 3)    // GLES 3 or OpenGL (depending on circumstances)
 			{
 				if (eglHelper.supportsGLES3())
-					return new Fragment(); // TODO: Return the GLES 3 fragment in this case (normal case)
+					return new GLES3InfoFragment(); // TODO: Return the GLES 3 fragment in this case (normal case)
 				else
 					return new Fragment(); // TODO: Return the OpenGL fragment in this case (GLES3 not supported case)
 			}
