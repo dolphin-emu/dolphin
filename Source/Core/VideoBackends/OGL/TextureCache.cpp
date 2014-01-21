@@ -52,7 +52,6 @@ static u32 s_DepthCbufid;
 
 static u32 s_Textures[8];
 static u32 s_ActiveTexture;
-static u32 s_NextStage;
 
 bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
@@ -188,9 +187,14 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 	entry.gl_type = gl_type;
 	entry.pcfmt = pcfmt;
 
-	entry.m_tex_levels = tex_levels;
+	glActiveTexture(GL_TEXTURE0+9);
+	glBindTexture(GL_TEXTURE_2D, entry.texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, tex_levels - 1);
 
 	entry.Load(width, height, expanded_width, 0);
+
+	// This isn't needed as Load() also reset the stage in the end
+	//TextureCache::SetStage();
 
 	return &entry;
 }
@@ -198,26 +202,11 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(unsigned int width,
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {
-	if (s_ActiveTexture != s_NextStage)
-	{
-		glActiveTexture(GL_TEXTURE0 + s_NextStage);
-		s_ActiveTexture = s_NextStage;
-	}
-
-	if (s_Textures[s_NextStage] != texture)
-	{
-		glBindTexture(GL_TEXTURE_2D, texture);
-		s_Textures[s_NextStage] = texture;
-	}
-
-	// TODO: sloppy, just do this on creation?
-	if (level == 0)
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m_tex_levels - 1);
-	}
-
 	if (pcfmt != PC_TEX_FMT_DXT1)
 	{
+		glActiveTexture(GL_TEXTURE0+9);
+		glBindTexture(GL_TEXTURE_2D, texture);
+
 		if (expanded_width != width)
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
 
@@ -232,6 +221,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 		//glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
 			//width, height, 0, expanded_width * expanded_height/2, temp);
 	}
+	TextureCache::SetStage();
 	GL_REPORT_ERRORD();
 }
 
@@ -249,7 +239,6 @@ TextureCache::TCacheEntryBase* TextureCache::CreateRenderTargetTexture(
 		gl_type = GL_UNSIGNED_BYTE;
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	entry->m_tex_levels = 1;
 
 	glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, scaled_tex_w, scaled_tex_h, 0, gl_format, gl_type, NULL);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -400,7 +389,6 @@ TextureCache::TextureCache()
 	s_DepthCopyPositionUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "copy_position");
 
 	s_ActiveTexture = -1;
-	s_NextStage = -1;
 	for(auto& gtex : s_Textures)
 		gtex = -1;
 }
@@ -422,12 +410,5 @@ void TextureCache::SetStage ()
 	if(s_ActiveTexture != (u32)-1)
 		glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
-
-void TextureCache::SetNextStage ( unsigned int stage )
-{
-	s_NextStage = stage;
-}
-
-
 
 }

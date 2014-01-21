@@ -22,7 +22,6 @@ public:
 	TextureCache();
 	static void DisableStage(unsigned int stage);
 	static void SetStage();
-	static void SetNextStage(unsigned int stage);
 
 private:
 	struct TCacheEntry : TCacheEntryBase
@@ -35,8 +34,6 @@ private:
 		int gl_format;
 		int gl_iformat;
 		int gl_type;
-
-		int m_tex_levels;
 
 		//TexMode0 mode; // current filter and clamp modes that texture is set to
 		//TexMode1 mode1; // current filter and clamp modes that texture is set to
