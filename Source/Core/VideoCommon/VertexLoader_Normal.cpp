@@ -48,11 +48,14 @@ template <typename T, int N>
 __forceinline void ReadIndirect(const T* data)
 {
 	static_assert(3 == N || 9 == N, "N is only sane as 3 or 9!");
+	auto dst = VertexManager::s_pCurBufferPointer;
 
 	for (int i = 0; i != N; ++i)
 	{
-		DataWrite(FracAdjust(Common::FromBigEndian(data[i])));
+		DataWrite(dst, FracAdjust(Common::FromBigEndian(data[i])));
 	}
+
+	VertexManager::s_pCurBufferPointer = dst;
 
 	LOG_NORM();
 }

@@ -56,9 +56,13 @@ template <typename T, int N>
 void LOADERDECL TexCoord_ReadDirect()
 {
 	auto const scale = tcScale[tcIndex];
+	auto dst = VertexManager::s_pCurBufferPointer;
+
 
 	for (int i = 0; i != N; ++i)
-		DataWrite(TCScale(DataRead<T>(), scale));
+		DataWrite(dst, TCScale(DataRead<T>(), scale));
+
+	VertexManager::s_pCurBufferPointer = dst;
 
 	LOG_TEX<N>();
 
@@ -74,9 +78,12 @@ void LOADERDECL TexCoord_ReadIndex()
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
 		+ (index * arraystrides[ARRAY_TEXCOORD0 + tcIndex]));
 	auto const scale = tcScale[tcIndex];
+	auto dst = VertexManager::s_pCurBufferPointer;
 
 	for (int i = 0; i != N; ++i)
-		DataWrite(TCScale(Common::FromBigEndian(data[i]), scale));
+		DataWrite(dst, TCScale(Common::FromBigEndian(data[i]), scale));
+
+	VertexManager::s_pCurBufferPointer = dst;
 
 	LOG_TEX<N>();
 	++tcIndex;

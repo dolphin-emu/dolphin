@@ -133,10 +133,16 @@ __forceinline u8* DataGetPosition()
 }
 
 template <typename T>
+__forceinline void DataWrite(u8* &dst, T data)
+{
+	*(T*)dst = data;
+	dst += sizeof(T);
+}
+
+template <typename T>
 __forceinline void DataWrite(T data)
 {
-	*(T*)VertexManager::s_pCurBufferPointer = data;
-	VertexManager::s_pCurBufferPointer += sizeof(T);
+	DataWrite(VertexManager::s_pCurBufferPointer, data);
 }
 
 #endif
