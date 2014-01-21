@@ -61,13 +61,13 @@ MOVUPS(MOffset(EDI, 0), XMM0);
 									 */
 
 template <typename T>
-float PosScale(T val)
+float PosScale(T val, float scale)
 {
-	return val * posScale;
+	return val * scale;
 }
 
 template <>
-float PosScale(float val)
+float PosScale(float val, float scale)
 {
 	return val;
 }
@@ -76,9 +76,10 @@ template <typename T, int N>
 void LOADERDECL Pos_ReadDirect()
 {
 	static_assert(N <= 3, "N > 3 is not sane!");
+	auto const scale = posScale;
 
 	for (int i = 0; i < 3; ++i)
-		DataWrite(i<N ? PosScale(DataRead<T>()) : 0.f);
+		DataWrite(i<N ? PosScale(DataRead<T>(), scale) : 0.f);
 
 	LOG_VTX();
 }
@@ -91,9 +92,10 @@ void LOADERDECL Pos_ReadIndex()
 
 	auto const index = DataRead<I>();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_POSITION] + (index * arraystrides[ARRAY_POSITION]));
+	auto const scale = posScale;
 
 	for (int i = 0; i < 3; ++i)
-		DataWrite(i<N ? PosScale(Common::FromBigEndian(data[i])) : 0.f);
+		DataWrite(i<N ? PosScale(Common::FromBigEndian(data[i]), scale) : 0.f);
 
 	LOG_VTX();
 }

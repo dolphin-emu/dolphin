@@ -41,13 +41,13 @@ void LOADERDECL TexCoord_Read_Dummy()
 }
 
 template <typename T>
-float TCScale(T val)
+float TCScale(T val, float scale)
 {
-	return val * tcScale[tcIndex];
+	return val * scale;
 }
 
 template <>
-float TCScale(float val)
+float TCScale(float val, float scale)
 {
 	return val;
 }
@@ -55,8 +55,10 @@ float TCScale(float val)
 template <typename T, int N>
 void LOADERDECL TexCoord_ReadDirect()
 {
+	auto const scale = tcScale[tcIndex];
+
 	for (int i = 0; i != N; ++i)
-		DataWrite(TCScale(DataRead<T>()));
+		DataWrite(TCScale(DataRead<T>(), scale));
 
 	LOG_TEX<N>();
 
@@ -71,9 +73,10 @@ void LOADERDECL TexCoord_ReadIndex()
 	auto const index = DataRead<I>();
 	auto const data = reinterpret_cast<const T*>(cached_arraybases[ARRAY_TEXCOORD0 + tcIndex]
 		+ (index * arraystrides[ARRAY_TEXCOORD0 + tcIndex]));
+	auto const scale = tcScale[tcIndex];
 
 	for (int i = 0; i != N; ++i)
-		DataWrite(TCScale(Common::FromBigEndian(data[i])));
+		DataWrite(TCScale(Common::FromBigEndian(data[i]), scale));
 
 	LOG_TEX<N>();
 	++tcIndex;
