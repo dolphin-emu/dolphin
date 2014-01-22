@@ -1,3 +1,9 @@
+/**
+ * Copyright 2013 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu.utils;
 
 import javax.microedition.khronos.egl.EGL10;
@@ -216,17 +222,9 @@ public final class EGLHelper
 	// Detects the specific kind of GL modes that are supported
 	private boolean detect()
 	{
-		// Attributes for a visual in RGBA format with at least 8 bits per color.
-		int[] attribs = {
-			EGL10.EGL_RED_SIZE, 8,
-			EGL10.EGL_GREEN_SIZE, 8,
-			EGL10.EGL_BLUE_SIZE, 8,
-			EGL10.EGL_NONE
-		};
-
 		// Get total number of configs available.
 		int[] numConfigs = new int[1];
-		if (!mEGL.eglChooseConfig(mDisplay, attribs, null, 0, numConfigs))
+		if (!mEGL.eglGetConfigs(mDisplay, null, 0, numConfigs))
 		{
 			Log.e("EGLHelper", "Error retrieving number of EGL configs available.");
 			return false;
@@ -234,7 +232,7 @@ public final class EGLHelper
 
 		// Now get all the configurations
 		mEGLConfigs = new EGLConfig[numConfigs[0]];
-		if (!mEGL.eglChooseConfig(mDisplay, attribs, mEGLConfigs, mEGLConfigs.length, numConfigs))
+		if (!mEGL.eglGetConfigs(mDisplay, mEGLConfigs, mEGLConfigs.length, numConfigs))
 		{
 			Log.e("EGLHelper", "Error retrieving all EGL configs.");
 			return false;
@@ -266,7 +264,6 @@ public final class EGLHelper
 		int[] attribs = {
 			EGL10.EGL_WIDTH, width,
 			EGL10.EGL_HEIGHT, height,
-			EGL10.EGL_RENDERABLE_TYPE, renderableType,
 			EGL10.EGL_NONE
 		};
 
@@ -282,23 +279,19 @@ public final class EGLHelper
 		switch (renderableType)
 		{
 			case EGL_OPENGL_ES_BIT:
-				attribs[5] = EGL_OPENGL_ES_BIT;
 				ctx_attribs[1] = 1;
 				break;
 
 			case EGL_OPENGL_BIT:
-				attribs[5] = EGL_OPENGL_BIT;
 				ctx_attribs[0] = EGL10.EGL_NONE;
 				break;
 
 			case EGL_OPENGL_ES3_BIT_KHR:
-				attribs[5] = EGL_OPENGL_ES3_BIT_KHR;
 				ctx_attribs[1] = 3;
 				break;
 
 			case EGL_OPENGL_ES2_BIT:
 			default: // Fall-back to GLES 2.
-				attribs[5] = EGL_OPENGL_ES2_BIT;
 				ctx_attribs[1] = 2;
 				break;
 		}
@@ -309,20 +302,59 @@ public final class EGLHelper
 		mGL = (GL10) mEGLContext.getGL();
 	}
 
-    public String glGetString(int glEnum)
-    {
-        return mGL.glGetString(glEnum);
-    }
+	/**
+	 * Simplified call to {@link GL10#glGetString(int)}
+	 * <p>
+	 * Accepts the following constants:
+	 * <ul>
+	 *    <li>GL_VENDOR - Company responsible for the GL implementation.</li>
+	 *    <li>GL_VERSION - Version or release number.</li>
+	 *    <li>GL_RENDERER - Name of the renderer</li>
+	 *    <li>GL_SHADING_LANGUAGE_VERSION - Version or release number of the shading language </li>
+	 * </ul>
+	 * 
+	 * @param glEnum A symbolic constant within {@link GL10}.
+	 * 
+	 * @return the string information represented by {@code glEnum}.
+	 */
+	public String glGetString(int glEnum)
+	{
+		return mGL.glGetString(glEnum);
+	}
 
-    public String glGetStringi(int glEnum, int index)
-    {
-        return GLES30.glGetStringi(glEnum, index);
-    }
+	/**
+	 * Simplified call to {@link GLES30#glGetStringi(int, int)}
+	 * <p>
+	 * Accepts the following constants:
+	 * <ul>
+	 *    <li>GL_VENDOR - Company responsible for the GL implementation.</li>
+	 *    <li>GL_VERSION - Version or release number.</li>
+	 *    <li>GL_RENDERER - Name of the renderer</li>
+	 *    <li>GL_SHADING_LANGUAGE_VERSION - Version or release number of the shading language </li>
+	 *    <li>GL_EXTENSIONS - Extension string supported by the implementation at {@code index}.</li>
+	 * </ul>
+	 * 
+	 * @param glEnum A symbolic GL constant
+	 * @param index  The index of the string to return.
+	 * 
+	 * @return the string information represented by {@code glEnum} and {@code index}.
+	 */
+	public String glGetStringi(int glEnum, int index)
+	{
+		return GLES30.glGetStringi(glEnum, index);
+	}
 
-    public int glGetInteger(int glEnum)
-    {
-        int[] val = new int[1];
-        mGL.glGetIntegerv(glEnum, val, 0);
-        return val[0];
-    }
+	/**
+	 * Simplified call to {@link GL10#glGetIntegerv(int, int[], int)
+	 * 
+	 * @param glEnum A symbolic GL constant.
+	 * 
+	 * @return the integer information represented by {@code glEnum}.
+	 */
+	public int glGetInteger(int glEnum)
+	{
+		int[] val = new int[1];
+		mGL.glGetIntegerv(glEnum, val, 0);
+		return val[0];
+	}
 }

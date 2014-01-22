@@ -7,20 +7,18 @@
 package org.dolphinemu.dolphinemu.about;
 
 import android.app.ListFragment;
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.about.AboutActivity.AboutFragmentItem;
+import org.dolphinemu.dolphinemu.about.AboutActivity.InfoFragmentAdapter;
 import org.dolphinemu.dolphinemu.settings.video.VideoSettingsFragment;
 
 /**
@@ -46,76 +44,5 @@ public final class DolphinInfoFragment extends ListFragment
 		rootView.setEnabled(false);  // Makes the list view non-clickable.
 
 		return rootView;
-	}
-
-	// Represents an item in the DolphinInfoFragment.
-	private static final class AboutFragmentItem
-	{
-		private final String title;
-		private final String subtitle;
-
-		public AboutFragmentItem(String title, String subtitle)
-		{
-			this.title = title;
-			this.subtitle = subtitle;
-		}
-		
-		public String getTitle()
-		{
-			return title;
-		}
-		
-		public String getSubTitle()
-		{
-			return subtitle;
-		}
-	}
-
-	// The adapter that manages the displaying of items in this DolphinInfoFragment.
-	private static final class InfoFragmentAdapter extends ArrayAdapter<AboutFragmentItem>
-	{
-		private final Context ctx;
-		private final int id;
-		private final List<AboutFragmentItem> items;
-
-		public InfoFragmentAdapter(Context ctx, int id, List<AboutFragmentItem> items)
-		{
-			super(ctx, id, items);
-
-			this.ctx = ctx;
-			this.id = id;
-			this.items = items;
-		}
-
-		@Override
-		public AboutFragmentItem getItem(int index)
-		{
-			return items.get(index);
-		}
-
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent)
-		{
-			if (convertView == null)
-			{
-				LayoutInflater vi = LayoutInflater.from(ctx);
-				convertView = vi.inflate(id, parent, false);
-			}
-			
-			final AboutFragmentItem item = items.get(position);
-			if (item != null)
-			{
-				TextView title    = (TextView) convertView.findViewById(R.id.AboutItemTitle);
-				TextView subtitle = (TextView) convertView.findViewById(R.id.AboutItemSubTitle);
-
-				if (title != null)
-					title.setText(item.getTitle());
-
-				if (subtitle != null)
-					subtitle.setText(item.getSubTitle());
-			}
-
-			return convertView;
-		}
 	}
 }
