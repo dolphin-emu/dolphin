@@ -36,10 +36,10 @@ public final class GLES3InfoFragment extends ListFragment
 			new Limit("Renderer", GLES30.GL_RENDERER, Type.STRING),
 			new Limit("GLSL version", GLES30.GL_SHADING_LANGUAGE_VERSION, Type.STRING),
 			// GLES 2.0 Limits
-			//new Limit("Aliased Point Size", GLES20.GL_ALIASED_POINT_SIZE_RANGE, Type.INTEGER_RANGE),
-			//new Limit("Aliased Line Width ", GLES20.GL_ALIASED_LINE_WIDTH_RANGE, Type.INTEGER_RANGE),
+			new Limit("Aliased Point Size", GLES30.GL_ALIASED_POINT_SIZE_RANGE, Type.INTEGER_RANGE),
+			new Limit("Aliased Line Width ", GLES30.GL_ALIASED_LINE_WIDTH_RANGE, Type.INTEGER_RANGE),
 			new Limit("Max Texture Size", GLES30.GL_MAX_TEXTURE_SIZE, Type.INTEGER),
-			//new Limit("Viewport Dimensions", GLES20.GL_MAX_VIEWPORT_DIMS, Type.INTEGER_RANGE),
+			new Limit("Viewport Dimensions", GLES30.GL_MAX_VIEWPORT_DIMS, Type.INTEGER_RANGE),
 			new Limit("Subpixel Bits", GLES30.GL_SUBPIXEL_BITS, Type.INTEGER),
 			new Limit("Max Vertex Attributes", GLES30.GL_MAX_VERTEX_ATTRIBS, Type.INTEGER),
 			new Limit("Max Vertex Uniform Vectors", GLES30.GL_MAX_VERTEX_UNIFORM_VECTORS, Type.INTEGER),

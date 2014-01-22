@@ -48,9 +48,18 @@ final class Limit
 	public String GetValue(EGLHelper context)
 	{
 		if (type == Type.INTEGER)
+		{
 			return Integer.toString(context.glGetInteger(glEnum));
+		}
+		else if (type == Type.INTEGER_RANGE)
+		{
+			int[] data = new int[2];
+			context.getGL().glGetIntegerv(glEnum, data, 0);
 
+			return String.format("[%d, %d]", data[0], data[1]);
+		}
 
+		// If neither of the above type, assume it's a string.
 		return context.glGetString(glEnum);
 	}
 }
