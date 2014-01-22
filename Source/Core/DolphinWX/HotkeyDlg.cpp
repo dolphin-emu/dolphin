@@ -72,6 +72,26 @@ void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
 		}
 		else
 		{
+			// Check if the hotkey combination was already applied to another button
+			// and unapply it if necessary.
+			for (wxButton* btn : m_Button_Hotkeys)
+			{
+				// We compare against this to see if we have a duplicate bind attempt.
+				wxString existingHotkey = btn->GetLabel();
+
+				wxString tentativeModKey = InputCommon::WXKeymodToString(g_Modkey);
+				wxString tentativePressedKey = InputCommon::WXKeyToString(g_Pressed);
+				wxString tentativeHotkey(tentativeModKey + tentativePressedKey);
+
+				// Found a button that already has this binding. Unbind it.
+				if (tentativeHotkey == existingHotkey)
+				{
+					SaveButtonMapping(btn->GetId(), -1, 0);
+					SetButtonText(btn->GetId(), wxString());
+				}
+			}
+
+			// Proceed to apply the binding to the selected button.
 			SetButtonText(ClickedButton->GetId(),
 					InputCommon::WXKeyToString(g_Pressed),
 					InputCommon::WXKeymodToString(g_Modkey));
