@@ -51,20 +51,18 @@ StreamBuffer::~StreamBuffer()
 
 #define SLOT(x) ((x)*SYNC_POINTS/m_size)
 
-void StreamBuffer::Alloc ( size_t size, u32 stride )
+u8* StreamBuffer::Map ( size_t size, u32 stride )
 {
-	size_t m_iterator_aligned = m_iterator;
-	if(m_iterator_aligned && stride) {
-		m_iterator_aligned--;
-		m_iterator_aligned = m_iterator_aligned - (m_iterator_aligned % stride) + stride;
+	if(m_iterator && stride) {
+		m_iterator--;
+		m_iterator = m_iterator - (m_iterator % stride) + stride;
 	}
-	size_t iter_end = m_iterator_aligned + size;
 
 	switch(m_uploadtype) {
 	case MAP_AND_ORPHAN:
-		if(iter_end >= m_size) {
+		if(m_iterator + size >= m_size) {
 			glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
-			m_iterator_aligned = 0;
+			m_iterator = 0;
 		}
 		break;
 	case MAP_AND_SYNC:
@@ -78,15 +76,15 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 		m_used_iterator = m_iterator;
 
 		// wait for new slots to end of buffer
-		for (size_t i = SLOT(m_free_iterator) + 1; i <= SLOT(iter_end) && i < SYNC_POINTS; i++)
+		for (size_t i = SLOT(m_free_iterator) + 1; i <= SLOT(m_iterator + size) && i < SYNC_POINTS; i++)
 		{
 			glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
 			glDeleteSync(fences[i]);
 		}
-		m_free_iterator = iter_end;
+		m_free_iterator = m_iterator + size;
 
 		// if buffer is full
-		if (iter_end >= m_size) {
+		if (m_iterator + size >= m_size) {
 
 			// insert waiting slots in unused space at the end of the buffer
 			for (size_t i = SLOT(m_used_iterator); i < SYNC_POINTS; i++)
@@ -95,54 +93,58 @@ void StreamBuffer::Alloc ( size_t size, u32 stride )
 			}
 
 			// move to the start
-			m_used_iterator = m_iterator_aligned = m_iterator = 0; // offset 0 is always aligned
-			iter_end = size;
+			m_used_iterator = m_iterator = 0; // offset 0 is always aligned
 
 			// wait for space at the start
-			for (u32 i = 0; i <= SLOT(iter_end); i++)
+			for (u32 i = 0; i <= SLOT(m_iterator + size); i++)
 			{
 				glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
 				glDeleteSync(fences[i]);
 			}
-			m_free_iterator = iter_end;
+			m_free_iterator = m_iterator + size;
 		}
-
 		break;
 	case BUFFERSUBDATA:
 	case BUFFERDATA:
-		m_iterator_aligned = 0;
+		m_iterator = 0;
 		break;
 	}
-	m_iterator = m_iterator_aligned;
-}
 
-size_t StreamBuffer::Upload ( u8* data, size_t size )
-{
+	// MAP_AND_* methods need to remap this buffer every time
 	switch(m_uploadtype) {
-	case MAP_AND_SYNC:
 	case MAP_AND_ORPHAN:
-		pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
-		if(pointer) {
-			memcpy(pointer, data, size);
-			glUnmapBuffer(m_buffertype);
-		} else {
-			ERROR_LOG(VIDEO, "Buffer mapping failed");
-		}
+	case MAP_AND_SYNC:
+		pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
+			GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT) - m_iterator;
 		break;
 	case PINNED_MEMORY:
 	case BUFFERSTORAGE:
-		if (pointer)
-			memcpy(pointer + m_iterator, data, size);
-		break;
 	case BUFFERSUBDATA:
-		glBufferSubData(m_buffertype, m_iterator, size, data);
-		break;
 	case BUFFERDATA:
-		glBufferData(m_buffertype, size, data, GL_STREAM_DRAW);
 		break;
 	}
+	return pointer + m_iterator;
+}
+
+size_t StreamBuffer::Unmap(size_t used_size)
+{
 	size_t ret = m_iterator;
-	m_iterator += size;
+	switch(m_uploadtype) {
+	case MAP_AND_SYNC:
+	case MAP_AND_ORPHAN:
+		glFlushMappedBufferRange(m_buffertype, 0, used_size);
+		glUnmapBuffer(m_buffertype);
+		break;
+	case PINNED_MEMORY:
+	case BUFFERSTORAGE:
+	case BUFFERSUBDATA:
+		glBufferSubData(m_buffertype, 0, used_size, pointer);
+		break;
+	case BUFFERDATA:
+		glBufferData(m_buffertype, used_size, pointer, GL_STREAM_DRAW);
+		break;
+	}
+	m_iterator += used_size;
 	return ret;
 }
 
@@ -162,6 +164,7 @@ void StreamBuffer::Init()
 	case BUFFERSUBDATA:
 		glBindBuffer(m_buffertype, m_buffer);
 		glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
+		pointer = new u8[m_size];
 		break;
 	case PINNED_MEMORY:
 		glGetError(); // errors before this allocation should be ignored
@@ -205,6 +208,7 @@ void StreamBuffer::Init()
 
 	case BUFFERDATA:
 		glBindBuffer(m_buffertype, m_buffer);
+		pointer = new u8[m_size];
 		break;
 	}
 }
@@ -216,8 +220,10 @@ void StreamBuffer::Shutdown()
 		DeleteFences();
 		break;
 	case MAP_AND_ORPHAN:
+		break;
 	case BUFFERSUBDATA:
 	case BUFFERDATA:
+		delete [] pointer;
 		break;
 	case PINNED_MEMORY:
 		DeleteFences();

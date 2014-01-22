@@ -39,7 +39,7 @@ namespace OGL
 {
 //This are the initially requested size for the buffers expressed in bytes
 const u32 MAX_IBUFFER_SIZE =  2*1024*1024;
-const u32 MAX_VBUFFER_SIZE = 16*1024*1024;
+const u32 MAX_VBUFFER_SIZE = 32*1024*1024;
 
 static StreamBuffer *s_vertexBuffer;
 static StreamBuffer *s_indexBuffer;
@@ -85,12 +85,14 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	u32 vertex_data_size = IndexGenerator::GetNumVerts() * stride;
 	u32 index_data_size = IndexGenerator::GetIndexLen() * sizeof(u16);
 
-	s_vertexBuffer->Alloc(vertex_data_size, stride);
-	size_t offset = s_vertexBuffer->Upload(GetVertexBuffer(), vertex_data_size);
+	u8* buffer = s_vertexBuffer->Map(vertex_data_size, stride);
+	memcpy(buffer, GetVertexBuffer(), vertex_data_size);
+	size_t offset = s_vertexBuffer->Unmap(vertex_data_size);
 	s_baseVertex = offset / stride;
 
-	s_indexBuffer->Alloc(index_data_size);
-	s_index_offset = s_indexBuffer->Upload((u8*)GetIndexBuffer(), index_data_size);
+	buffer = s_indexBuffer->Map(index_data_size);
+	memcpy(buffer, GetIndexBuffer(), index_data_size);
+	s_index_offset = s_indexBuffer->Unmap(index_data_size);
 
 	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertex_data_size);
 	ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_data_size);
@@ -233,5 +235,6 @@ void VertexManager::vFlush()
 
 	GL_REPORT_ERRORD();
 }
+
 
 }  // namespace

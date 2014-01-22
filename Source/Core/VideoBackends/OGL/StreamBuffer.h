@@ -32,10 +32,10 @@ public:
 	StreamBuffer(u32 type, size_t size);
 	~StreamBuffer();
 
-	void Alloc(size_t size, u32 stride = 0);
-	size_t Upload(u8 *data, size_t size);
+	u8* Map(size_t size, u32 stride = 0);
+	size_t Unmap(size_t used_size); // returns the offset of the beginning of the uploaded block
 
-	u32 getBuffer() { return m_buffer; }
+	inline u32 getBuffer() { return m_buffer; }
 
 private:
 	void Init();
