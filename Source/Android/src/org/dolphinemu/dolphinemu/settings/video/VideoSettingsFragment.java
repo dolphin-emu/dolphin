@@ -15,9 +15,10 @@ import android.preference.ListPreference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
-import org.dolphinemu.dolphinemu.R;
 
-import javax.microedition.khronos.egl.*;
+import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.utils.EGLHelper;
+
 import javax.microedition.khronos.opengles.GL10;
 
 /**
@@ -25,173 +26,9 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public final class VideoSettingsFragment extends PreferenceFragment
 {
-	public static String m_GLVersion;
-	public static String m_GLVendor;
-	public static String m_GLRenderer;
-	public static String m_GLExtensions;
-	public static boolean m_SupportsGLES3 = false;
-	public static float m_QualcommVersion;
-	public static boolean m_Inited = false;
-
-	/**
-	 * Class which provides a means to retrieve various
-	 * info about the OpenGL ES support/features within a device.
-	 */
-	public static final class VersionCheck
-	{
-		private EGL10 mEGL;
-		private EGLDisplay mEGLDisplay;
-		private EGLConfig[] mEGLConfigs;
-		private EGLConfig mEGLConfig;
-		private EGLContext mEGLContext;
-		private EGLSurface mEGLSurface;
-		private GL10 mGL;
-
-		String mThreadOwner;
-
-		public VersionCheck()
-		{
-			int[] version = new int[2];
-			int[] attribList = new int[] {
-					EGL10.EGL_WIDTH, 1,
-					EGL10.EGL_HEIGHT, 1,
-					EGL10.EGL_RENDERABLE_TYPE, 4,
-					EGL10.EGL_NONE
-			};
-			int EGL_CONTEXT_CLIENT_VERSION = 0x3098;
-			int[] ctx_attribs = new int[] {
-					EGL_CONTEXT_CLIENT_VERSION, 2,
-					EGL10.EGL_NONE
-			};
-
-			// No error checking performed, minimum required code to elucidate logic
-			mEGL = (EGL10) EGLContext.getEGL();
-			mEGLDisplay = mEGL.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
-			mEGL.eglInitialize(mEGLDisplay, version);
-			mEGLConfig = chooseConfig(); // Choosing a config is a little more complicated
-			mEGLContext = mEGL.eglCreateContext(mEGLDisplay, mEGLConfig, EGL10.EGL_NO_CONTEXT, ctx_attribs);
-			mEGLSurface = mEGL.eglCreatePbufferSurface(mEGLDisplay, mEGLConfig,  attribList);
-			mEGL.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext);
-			mGL = (GL10) mEGLContext.getGL();
-
-			// Record thread owner of OpenGL context
-			mThreadOwner = Thread.currentThread().getName();
-		}
-
-		/**
-		 * Gets the OpenGL ES version string.
-		 * 
-		 * @return  the OpenGL ES version string.
-		 */
-		public String getVersion()
-		{
-			return mGL.glGetString(GL10.GL_VERSION);
-		}
-
-		/**
-		 * Gets the OpenGL ES vendor string.
-		 * 
-		 * @return the OpenGL ES vendor string.
-		 */
-		public String getVendor()
-		{
-			return mGL.glGetString(GL10.GL_VENDOR);
-		}
-
-		/**
-		 * Gets the name of the OpenGL ES renderer.
-		 * 
-		 * @return the name of the OpenGL ES renderer.
-		 */
-		public String getRenderer()
-		{
-			return mGL.glGetString(GL10.GL_RENDERER);
-		}
-
-		/**
-		 * Gets the extension that the device supports
-		 *
-		 * @return String containing the extensions
-		 */
-		public String getExtensions()
-		{
-			return mGL.glGetString(GL10.GL_EXTENSIONS);
-		}
-
-		private EGLConfig chooseConfig()
-		{
-			int[] attribList = new int[] {
-					EGL10.EGL_RED_SIZE, 8,
-					EGL10.EGL_GREEN_SIZE, 8,
-					EGL10.EGL_BLUE_SIZE, 8,
-					EGL10.EGL_ALPHA_SIZE, 8,
-					EGL10.EGL_NONE
-			};
-
-			// Grab how many configs there are
-			int[] numConfig = new int[1];
-			mEGL.eglChooseConfig(mEGLDisplay, attribList, null, 0, numConfig);
-			int configSize = numConfig[0];
-			mEGLConfigs = new EGLConfig[configSize];
-			mEGL.eglChooseConfig(mEGLDisplay, attribList, mEGLConfigs, configSize, numConfig);
-
-			// Check if one config supports GLES3
-			for (int i = 0; i < configSize; ++i)
-			{
-				int[] value = new int[1];
-				boolean retval = mEGL.eglGetConfigAttrib(mEGLDisplay, mEGLConfigs[i], EGL10.EGL_RENDERABLE_TYPE, value);
-				if (retval && (value[0] & (1 << 6)) != 0)
-				{
-					m_SupportsGLES3 = true;
-					break;
-				}
-			}
-
-			return mEGLConfigs[0];  // Best match is probably the first configuration
-		}
-	}
-
-	/**
-	 * Checks if this device supports OpenGL ES 3.
-	 * 
-	 * @return true if this device supports OpenGL ES 3; false otherwise.
-	 */
-	public static boolean SupportsGLES3()
-	{
-		if (!m_Inited)
-		{
-			VersionCheck mbuffer = new VersionCheck();
-			m_GLVersion = mbuffer.getVersion();
-			m_GLVendor = mbuffer.getVendor();
-			m_GLRenderer = mbuffer.getRenderer();
-			m_GLExtensions = mbuffer.getExtensions();
-
-			// Checking for OpenGL ES 3 support for certain Qualcomm devices.
-			if (m_GLVendor != null && m_GLVendor.equals("Qualcomm"))
-			{
-				if (m_GLRenderer.contains("Adreno (TM) 3"))
-				{
-					int mVStart = m_GLVersion.indexOf("V@") + 2;
-					int mVEnd = 0;
-
-					for (int a = mVStart; a < m_GLVersion.length(); ++a)
-					{
-						if (m_GLVersion.charAt(a) == ' ')
-						{
-							mVEnd = a;
-							break;
-						}
-					}
-
-					m_QualcommVersion = Float.parseFloat(m_GLVersion.substring(mVStart, mVEnd));
-				}
-			}
-
-			m_Inited = true;
-		}
-
-		return m_SupportsGLES3;
-	}
+	private final EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
+	private final String vendor = eglHelper.getGL().glGetString(GL10.GL_VENDOR);
+	private final String version = eglHelper.getGL().glGetString(GL10.GL_VERSION);
 
 	@Override
 	public void onCreate(Bundle savedInstanceState)
@@ -205,7 +42,7 @@ public final class VideoSettingsFragment extends PreferenceFragment
 		// Setting valid video backends.
 		//
 		final ListPreference videoBackends = (ListPreference) findPreference("gpuPref");
-		final boolean deviceSupportsGLES3 = SupportsGLES3();
+		final boolean deviceSupportsGLES3 = eglHelper.supportsGLES3();
 
 		if (deviceSupportsGLES3)
 		{
@@ -264,10 +101,9 @@ public final class VideoSettingsFragment extends PreferenceFragment
 						//mainScreen.getPreference(4).setEnabled(false);
 
 						// Create an alert telling them that their phone sucks
-						if (VideoSettingsFragment.SupportsGLES3()
-								&& VideoSettingsFragment.m_GLVendor != null
-								&& VideoSettingsFragment.m_GLVendor.equals("Qualcomm")
-								&& VideoSettingsFragment.m_QualcommVersion == 14.0f)
+						if (eglHelper.supportsGLES3()
+								&& vendor.equals("Qualcomm")
+								&& getQualcommVersion() == 14.0f)
 						{
 							AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 							builder.setTitle(R.string.device_compat_warning);
@@ -294,5 +130,24 @@ public final class VideoSettingsFragment extends PreferenceFragment
 				}
 			}
 		});
+	}
+
+	private float getQualcommVersion()
+	{
+		final int start = version.indexOf("V@") + 2;
+		final StringBuilder versionBuilder = new StringBuilder();
+		
+		for (int i = start; i < version.length(); i++)
+		{
+			char c = version.charAt(i);
+
+			// End of numeric portion of version string.
+			if (c == ' ')
+				break;
+
+			versionBuilder.append(c);
+		}
+
+		return Float.parseFloat(versionBuilder.toString());
 	}
 }

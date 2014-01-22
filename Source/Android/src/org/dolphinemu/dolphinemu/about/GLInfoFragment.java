@@ -31,7 +31,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public final class GLInfoFragment extends ListFragment
 {
-	private EGLHelper eglHelper;
+	private final EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_BIT);
 
 	private final Limit[] Limits = {
 			new Limit("Vendor", GL10.GL_VENDOR, Type.STRING),
@@ -43,7 +43,6 @@ public final class GLInfoFragment extends ListFragment
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
-		eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_BIT);
 		ListView rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
 		List<AboutActivity.AboutFragmentItem> Input = new ArrayList<AboutActivity.AboutFragmentItem>();
 

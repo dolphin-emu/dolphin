@@ -28,7 +28,7 @@ import java.util.List;
  */
 public final class GLES3InfoFragment extends ListFragment
 {
-	private EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES3_BIT_KHR);
+	private final EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES3_BIT_KHR);
 
 	private final Limit[] Limits = {
 			new Limit("Vendor", GLES30.GL_VENDOR, Type.STRING),

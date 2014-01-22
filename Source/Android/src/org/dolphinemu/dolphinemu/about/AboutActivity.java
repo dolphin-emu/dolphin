@@ -29,7 +29,7 @@ import java.util.List;
 public final class AboutActivity extends Activity implements TabListener
 {
 	private ViewPager viewPager;
-	private EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
+	private final EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
 
 	// Represents an item in the multiple About fragments.
 	public static final class AboutFragmentItem
