@@ -63,11 +63,6 @@
 #include "AVIDump.h"
 #endif
 
-// glew1.8 doesn't define KHR_debug
-#ifndef GL_DEBUG_OUTPUT
-#define GL_DEBUG_OUTPUT 0x92E0
-#endif
-
 
 void VideoConfig::UpdateProjectionHack()
 {
