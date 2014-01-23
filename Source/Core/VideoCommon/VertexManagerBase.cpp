@@ -61,7 +61,8 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 	current_primitive_type = primitive_from_gx[primitive];
 
 	// Check for size in buffer, if the buffer gets full, call Flush()
-	if (count > IndexGenerator::GetRemainingIndices() || count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize())
+	if ( !IsFlushed && ( count > IndexGenerator::GetRemainingIndices() ||
+	     count > GetRemainingIndices(primitive) || needed_vertex_bytes > GetRemainingSize() ) )
 	{
 		Flush();
 
