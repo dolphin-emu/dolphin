@@ -248,17 +248,3 @@ void VertexManager::DoState(PointerWrap& p)
 {
 	g_vertex_manager->vDoState(p);
 }
-
-void VertexManager::DoStateShared(PointerWrap& p)
-{
-	// It seems we half-assume to be flushed here
-	// We update s_pCurBufferPointer yet don't worry about IndexGenerator's outdated pointers
-	// and maybe other things are overlooked
-
-	p.Do(LocalVBuffer);
-	p.Do(LocalIBuffer);
-
-	s_pBaseBufferPointer = &LocalVBuffer[0];
-	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
-	p.DoPointer(s_pCurBufferPointer, s_pBaseBufferPointer);
-}
