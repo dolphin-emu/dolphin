@@ -83,7 +83,6 @@ bool cInterfaceWGL::Create(void *&window_handle)
 		Host_SysMessage("failed to create window");
 		return false;
 	}
-	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
 
 	// Show the window
 	EmuWindow::Show();
@@ -128,6 +127,10 @@ bool cInterfaceWGL::Create(void *&window_handle)
 		PanicAlert("(4) Can't create an OpenGL rendering context.");
 		return false;
 	}
+
+	// Grab the swap interval function pointer
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
+
 	return true;
 }
 
