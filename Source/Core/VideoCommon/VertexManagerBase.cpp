@@ -24,6 +24,8 @@ u8 *VertexManager::s_pEndBufferPointer;
 
 PrimitiveType VertexManager::current_primitive_type;
 
+bool VertexManager::IsFlushed;
+
 static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS
 	PRIMITIVE_TRIANGLES, // GX_DRAW_NONE
@@ -37,23 +39,11 @@ static const PrimitiveType primitive_from_gx[8] = {
 
 VertexManager::VertexManager()
 {
-	LocalVBuffer.resize(MAXVBUFFERSIZE);
-	s_pCurBufferPointer = s_pBaseBufferPointer = &LocalVBuffer[0];
-	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
-
-	LocalIBuffer.resize(MAXIBUFFERSIZE);
-
-	ResetBuffer();
+	IsFlushed = true;
 }
 
 VertexManager::~VertexManager()
 {
-}
-
-void VertexManager::ResetBuffer()
-{
-	s_pCurBufferPointer = s_pBaseBufferPointer;
-	IndexGenerator::Start(GetIndexBuffer());
 }
 
 u32 VertexManager::GetRemainingSize()
@@ -84,11 +74,13 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
 				"Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
 	}
-}
 
-bool VertexManager::IsFlushed() const
-{
-	return s_pBaseBufferPointer == s_pCurBufferPointer;
+	// need to alloc new buffer
+	if(IsFlushed)
+	{
+		g_vertex_manager->ResetBuffer(stride);
+		IsFlushed = false;
+	}
 }
 
 u32 VertexManager::GetRemainingIndices(int primitive)
@@ -160,8 +152,7 @@ void VertexManager::AddVertices(int primitive, u32 numVertices)
 
 void VertexManager::Flush()
 {
-	if (g_vertex_manager->IsFlushed())
-		return;
+	if (IsFlushed) return;
 
 	// loading a state will invalidate BP, so check for it
 	g_video_backend->CheckInvalidState();
@@ -238,24 +229,10 @@ void VertexManager::Flush()
 	// TODO: need to merge more stuff into VideoCommon
 	g_vertex_manager->vFlush();
 
-	g_vertex_manager->ResetBuffer();
+	IsFlushed = true;
 }
 
 void VertexManager::DoState(PointerWrap& p)
 {
 	g_vertex_manager->vDoState(p);
-}
-
-void VertexManager::DoStateShared(PointerWrap& p)
-{
-	// It seems we half-assume to be flushed here
-	// We update s_pCurBufferPointer yet don't worry about IndexGenerator's outdated pointers
-	// and maybe other things are overlooked
-
-	p.Do(LocalVBuffer);
-	p.Do(LocalIBuffer);
-
-	s_pBaseBufferPointer = &LocalVBuffer[0];
-	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
-	p.DoPointer(s_pCurBufferPointer, s_pBaseBufferPointer);
 }

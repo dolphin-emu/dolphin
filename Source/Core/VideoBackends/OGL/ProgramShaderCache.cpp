@@ -193,29 +193,19 @@ void ProgramShaderCache::UploadConstants()
 	{
 		if(PixelShaderManager::dirty || VertexShaderManager::dirty)
 		{
-			s_buffer->Alloc(s_ubo_buffer_size);
-			if (DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
-			{
-				// This is just a hack to support our BUFFERDATA upload method
-				// as it's broken to uploaded in a splited way
-				static u8 *tmpbuffer = new u8[s_ubo_buffer_size];
-				memcpy(tmpbuffer, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
-				memcpy(tmpbuffer+ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align), &VertexShaderManager::constants, sizeof(VertexShaderConstants));
-				size_t offset = s_buffer->Upload(tmpbuffer, s_ubo_buffer_size);
-				glBindBufferRange(GL_UNIFORM_BUFFER, 1,
-						s_buffer->getBuffer(), offset, sizeof(PixelShaderConstants));
-				glBindBufferRange(GL_UNIFORM_BUFFER, 2,
-						s_buffer->getBuffer(), offset+ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align), sizeof(VertexShaderConstants));
-			}
-			else
-			{
-				size_t offset = s_buffer->Upload((u8*)&PixelShaderManager::constants, ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align));
-				glBindBufferRange(GL_UNIFORM_BUFFER, 1,
-						s_buffer->getBuffer(), offset, sizeof(PixelShaderConstants));
-				offset = s_buffer->Upload((u8*)&VertexShaderManager::constants, ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align));
-				glBindBufferRange(GL_UNIFORM_BUFFER, 2,
-						s_buffer->getBuffer(), offset, sizeof(VertexShaderConstants));
-			}
+			auto buffer = s_buffer->Map(s_ubo_buffer_size, s_ubo_align);
+
+			memcpy(buffer.first,
+			       &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+
+			memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
+			       &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+
+			s_buffer->Unmap(s_ubo_buffer_size);
+			glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
+			                  sizeof(PixelShaderConstants));
+			glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer, buffer.second + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
+			                  sizeof(VertexShaderConstants));
 
 			PixelShaderManager::dirty = false;
 			VertexShaderManager::dirty = false;
@@ -481,7 +471,7 @@ void ProgramShaderCache::Init(void)
 		// We multiply by *4*4 because we need to get down to basic machine units.
 		// So multiply by four to get how many floats we have from vec4s
 		// Then once more to get bytes
-		s_buffer = new StreamBuffer(GL_UNIFORM_BUFFER, UBO_LENGTH);
+		s_buffer = StreamBuffer::Create(GL_UNIFORM_BUFFER, UBO_LENGTH);
 	}
 
 	// Read our shader cache, only if supported

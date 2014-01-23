@@ -51,25 +51,18 @@ public:
 	virtual void DestroyDeviceObjects(){};
 
 protected:
-	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
-	u8* GetVertexBuffer() { return &s_pBaseBufferPointer[0]; }
-
-	virtual void vDoState(PointerWrap& p) { DoStateShared(p); }
-	void DoStateShared(PointerWrap& p);
+	virtual void vDoState(PointerWrap& p) {  }
 
 	static PrimitiveType current_primitive_type;
 
-private:
-	bool IsFlushed() const;
+	virtual void ResetBuffer(u32 stride) = 0;
 
-	void ResetBuffer();
+private:
+	static bool IsFlushed;
 
 	//virtual void Draw(u32 stride, bool alphapass) = 0;
 	// temp
 	virtual void vFlush() = 0;
-
-	std::vector<u8> LocalVBuffer;
-	std::vector<u16> LocalIBuffer;
 };
 
 extern VertexManager *g_vertex_manager;
