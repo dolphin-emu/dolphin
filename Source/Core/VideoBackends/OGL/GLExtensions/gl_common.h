@@ -5,6 +5,3 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 
-#ifndef GLAPIENTRY
-#define GLAPIENTRY
-#endif
