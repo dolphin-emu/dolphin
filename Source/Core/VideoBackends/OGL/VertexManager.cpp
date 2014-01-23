@@ -85,18 +85,23 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	u32 vertex_data_size = IndexGenerator::GetNumVerts() * stride;
 	u32 index_data_size = IndexGenerator::GetIndexLen() * sizeof(u16);
 
-	auto buffer = s_vertexBuffer->Map(vertex_data_size, stride);
-	memcpy(buffer.first, GetVertexBuffer(), vertex_data_size);
 	s_vertexBuffer->Unmap(vertex_data_size);
-	s_baseVertex = buffer.second / stride;
-
-	buffer = s_indexBuffer->Map(index_data_size);
-	memcpy(buffer.first, GetIndexBuffer(), index_data_size);
 	s_indexBuffer->Unmap(index_data_size);
-	s_index_offset = buffer.second;
 
 	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertex_data_size);
 	ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_data_size);
+}
+
+void VertexManager::ResetBuffer(u32 stride)
+{
+	auto buffer = s_vertexBuffer->Map(MAXVBUFFERSIZE, stride);
+	s_pCurBufferPointer = s_pBaseBufferPointer = buffer.first;
+	s_pEndBufferPointer = buffer.first + MAXVBUFFERSIZE;
+	s_baseVertex = buffer.second / stride;
+
+	buffer = s_indexBuffer->Map(MAXIBUFFERSIZE * sizeof(u16));
+	IndexGenerator::Start((u16*)buffer.first);
+	s_index_offset = buffer.second;
 }
 
 void VertexManager::Draw(u32 stride)
