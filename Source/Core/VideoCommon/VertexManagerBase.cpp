@@ -39,23 +39,11 @@ static const PrimitiveType primitive_from_gx[8] = {
 
 VertexManager::VertexManager()
 {
-	LocalVBuffer.resize(MAXVBUFFERSIZE);
-	s_pCurBufferPointer = s_pBaseBufferPointer = &LocalVBuffer[0];
-	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
-
-	LocalIBuffer.resize(MAXIBUFFERSIZE);
-
 	IsFlushed = true;
 }
 
 VertexManager::~VertexManager()
 {
-}
-
-void VertexManager::ResetBuffer(u32 stride)
-{
-	s_pCurBufferPointer = s_pBaseBufferPointer;
-	IndexGenerator::Start(GetIndexBuffer());
 }
 
 u32 VertexManager::GetRemainingSize()

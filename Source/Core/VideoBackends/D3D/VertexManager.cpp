@@ -77,6 +77,12 @@ void VertexManager::DestroyDeviceObjects()
 
 VertexManager::VertexManager()
 {
+	LocalVBuffer.resize(MAXVBUFFERSIZE);
+	s_pCurBufferPointer = s_pBaseBufferPointer = &LocalVBuffer[0];
+	s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
+
+	LocalIBuffer.resize(MAXIBUFFERSIZE);
+
 	CreateDeviceObjects();
 }
 
@@ -220,6 +226,12 @@ void VertexManager::vFlush()
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	g_renderer->RestoreState();
+}
+
+void VertexManager::ResetBuffer(u32 stride)
+{
+	s_pCurBufferPointer = s_pBaseBufferPointer;
+	IndexGenerator::Start(GetIndexBuffer());
 }
 
 }  // namespace

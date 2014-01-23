@@ -22,6 +22,10 @@ public:
 	void CreateDeviceObjects();
 	void DestroyDeviceObjects();
 
+protected:
+	virtual void ResetBuffer(u32 stride);
+	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
+
 private:
 
 	void PrepareDrawBuffers();
@@ -41,6 +45,9 @@ private:
 
 	LineGeometryShader m_lineShader;
 	PointGeometryShader m_pointShader;
+
+	std::vector<u8> LocalVBuffer;
+	std::vector<u16> LocalIBuffer;
 };
 
 }  // namespace
