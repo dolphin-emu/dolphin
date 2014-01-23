@@ -59,10 +59,10 @@ protected:
 
 	static PrimitiveType current_primitive_type;
 
-private:
-	bool IsFlushed() const;
+	virtual void ResetBuffer(u32 stride);
 
-	void ResetBuffer();
+private:
+	static bool IsFlushed;
 
 	//virtual void Draw(u32 stride, bool alphapass) = 0;
 	// temp

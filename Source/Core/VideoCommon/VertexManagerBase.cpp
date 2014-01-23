@@ -24,6 +24,8 @@ u8 *VertexManager::s_pEndBufferPointer;
 
 PrimitiveType VertexManager::current_primitive_type;
 
+bool VertexManager::IsFlushed;
+
 static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS
 	PRIMITIVE_TRIANGLES, // GX_DRAW_NONE
@@ -43,14 +45,14 @@ VertexManager::VertexManager()
 
 	LocalIBuffer.resize(MAXIBUFFERSIZE);
 
-	ResetBuffer();
+	IsFlushed = true;
 }
 
 VertexManager::~VertexManager()
 {
 }
 
-void VertexManager::ResetBuffer()
+void VertexManager::ResetBuffer(u32 stride)
 {
 	s_pCurBufferPointer = s_pBaseBufferPointer;
 	IndexGenerator::Start(GetIndexBuffer());
@@ -84,11 +86,13 @@ void VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 strid
 			ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
 				"Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
 	}
-}
 
-bool VertexManager::IsFlushed() const
-{
-	return s_pBaseBufferPointer == s_pCurBufferPointer;
+	// need to alloc new buffer
+	if(IsFlushed)
+	{
+		g_vertex_manager->ResetBuffer(stride);
+		IsFlushed = false;
+	}
 }
 
 u32 VertexManager::GetRemainingIndices(int primitive)
@@ -160,8 +164,7 @@ void VertexManager::AddVertices(int primitive, u32 numVertices)
 
 void VertexManager::Flush()
 {
-	if (g_vertex_manager->IsFlushed())
-		return;
+	if (IsFlushed) return;
 
 	// loading a state will invalidate BP, so check for it
 	g_video_backend->CheckInvalidState();
@@ -238,7 +241,7 @@ void VertexManager::Flush()
 	// TODO: need to merge more stuff into VideoCommon
 	g_vertex_manager->vFlush();
 
-	g_vertex_manager->ResetBuffer();
+	IsFlushed = true;
 }
 
 void VertexManager::DoState(PointerWrap& p)
