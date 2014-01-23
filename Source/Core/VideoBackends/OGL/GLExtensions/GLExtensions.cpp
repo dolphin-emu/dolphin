@@ -9,6 +9,7 @@
 #include <dlfcn.h>
 #endif
 #include <unordered_map>
+#include <sstream>
 
 // gl_1_1
 PFNGLCLEARINDEXPROC glClearIndex;
@@ -805,6 +806,17 @@ namespace GLExtensions
 	bool init_khr_debug();
 	bool init_arb_buffer_storage();
 	
+	// Initializes the extension list the old way
+	void InitExtensionList21()
+	{
+		const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
+		std::string tmp(extensions);
+		std::istringstream buffer(tmp);
+		
+		while (buffer >> tmp)
+			_extensionlist[tmp] = true;
+	}
+
 	void InitExtensionList()
 	{
 		_extensionlist.clear();
@@ -925,6 +937,11 @@ namespace GLExtensions
 				break;
 			}
 		}
+		if (_GLVersion < 300)
+		{
+			InitExtensionList21();
+			return;
+		}
 		GLint NumExtension = 0;
 		glGetIntegerv(GL_NUM_EXTENSIONS, &NumExtension);
 		for (GLint i = 0; i < NumExtension; ++i)
@@ -935,7 +952,10 @@ namespace GLExtensions
 		GLint major, minor;
 		glGetIntegerv(GL_MAJOR_VERSION, &major);
 		glGetIntegerv(GL_MINOR_VERSION, &minor);
-		_GLVersion = major * 100 + minor * 10;
+		if (glGetError() == GL_NO_ERROR)
+			_GLVersion = major * 100 + minor * 10;
+		else
+			_GLVersion = 210;
 		if (_isES3)
 			_GLVersion = 330; // Get all the fun things
 	}
@@ -970,12 +990,17 @@ namespace GLExtensions
 		_isES3 = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3;
 		_isES = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 || GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES2;
 
-		// Grab glGetStringi and glGetIntegerv immediately
+		// Grab a few functions for initial checking
 		// We need them to grab the extension list
+		// Also to check if there is an error grabbing the version
 		// If it fails then the user's drivers don't support GL 3.0	
 		if (GetFuncAddress ("glGetIntegerv", (void**)&glGetIntegerv) == NULL)
 			return false;
+		if (GetFuncAddress("glGetString", (void**)&glGetString) == NULL)
+			return false;
 		if (GetFuncAddress("glGetStringi", (void**)&glGetStringi) == NULL)
+			return false;
+		if (GetFuncAddress("glGetError", (void**)&glGetError) == NULL)
 			return false;
 
 		InitVersion();
@@ -1063,8 +1088,6 @@ namespace GLExtensions
 		    && GrabFunction(glPushClientAttrib)
 		    && GrabFunction(glPopClientAttrib)
 		    && GrabFunction(glRenderMode)
-		    && GrabFunction(glGetError)
-		    && GrabFunction(glGetString)
 		    && GrabFunction(glFinish)
 		    && GrabFunction(glFlush)
 		    && GrabFunction(glHint)
