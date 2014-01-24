@@ -87,9 +87,8 @@ struct PortableVertexDeclaration
 
 	AttributeFormat position;
 	AttributeFormat normals[3];
+	AttributeFormat colors[2];
 
-	VarType color_gl_type;  // always GL_UNSIGNED_BYTE
-	int color_offset[2];
 	VarType texcoord_gl_type[8];
 	//int texcoord_gl_size[8];
 	int texcoord_offset[8];

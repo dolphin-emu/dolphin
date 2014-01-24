@@ -79,10 +79,7 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	}
 
 	for (int i = 0; i < 2; i++) {
-		if (vtx_decl.color_offset[i] != -1) {
-			glEnableVertexAttribArray(SHADER_COLOR0_ATTRIB+i);
-			glVertexAttribPointer(SHADER_COLOR0_ATTRIB+i, 4, GL_UNSIGNED_BYTE, GL_TRUE, vtx_decl.stride, (u8*)NULL + vtx_decl.color_offset[i]);
-		}
+		SetPointer(SHADER_COLOR0_ATTRIB+i, vertex_stride, vtx_decl.colors[i]);
 	}
 
 	for (int i = 0; i < 8; i++) {

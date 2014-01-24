@@ -627,17 +627,14 @@ void VertexLoader::CompileVertexTranslator()
 			components |= VB_HAS_NRM1 | VB_HAS_NRM2;
 	}
 
-	vtx_decl.color_gl_type = VAR_UNSIGNED_BYTE;
-	vtx_decl.color_offset[0] = -1;
-	vtx_decl.color_offset[1] = -1;
 	for (int i = 0; i < 2; i++)
 	{
-		components |= VB_HAS_COL0 << i;
+		vtx_decl.colors[i].components = 4;
+		vtx_decl.colors[i].type = VAR_UNSIGNED_BYTE;
+		vtx_decl.colors[i].integer = false;
 		switch (col[i])
 		{
 		case NOT_PRESENT:
-			components &= ~(VB_HAS_COL0 << i);
-			vtx_decl.color_offset[i] = -1;
 			break;
 		case DIRECT:
 			switch (m_VtxAttr.color[i].Comp)
@@ -681,7 +678,9 @@ void VertexLoader::CompileVertexTranslator()
 		// Common for the three bottom cases
 		if (col[i] != NOT_PRESENT)
 		{
-			vtx_decl.color_offset[i] = nat_offset;
+			components |= VB_HAS_COL0 << i;
+			vtx_decl.colors[i].offset = nat_offset;
+			vtx_decl.colors[i].enable = true;
 			nat_offset += 4;
 		}
 	}
