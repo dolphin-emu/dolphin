@@ -30,7 +30,7 @@ bool cXInterface::ServerConnect(void)
 	return true;
 }
 
-bool cXInterface::Initialize(void *config)
+bool cXInterface::Initialize(void *config, void *window_handle)
 {
 	int _tx, _ty, _twidth, _theight;
 	XVisualInfo  visTemplate;
@@ -63,6 +63,7 @@ bool cXInterface::Initialize(void *config)
 	GLWin.height = _theight;
 
 	GLWin.evdpy = XOpenDisplay(NULL);
+	GLWin.parent = (Window) window_handle;
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 
 	if (GLWin.parent == 0)

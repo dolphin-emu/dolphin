@@ -173,9 +173,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	else
 		eglBindAPI(EGL_OPENGL_ES_API);
 
-	GLWin.parent = (Window) window_handle;
-
-	if (!Platform.Init(config))
+	if (!Platform.Init(config, window_handle))
 		return false;
 
 	s = eglQueryString(GLWin.egl_dpy, EGL_VERSION);

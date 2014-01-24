@@ -126,7 +126,7 @@ out:
 	return true;
 }
 
-bool cPlatform::Init(EGLConfig config)
+bool cPlatform::Init(EGLConfig config, void *window_handle)
 {
 #if HAVE_WAYLAND
 	if (cPlatform::platform == EGL_PLATFORM_WAYLAND)
@@ -135,7 +135,7 @@ bool cPlatform::Init(EGLConfig config)
 #endif
 #if HAVE_X11
 	if (cPlatform::platform == EGL_PLATFORM_X11)
-		if (!XInterface.Initialize(config))
+		if (!XInterface.Initialize(config, window_handle))
 			return false;
 #endif
 #ifdef ANDROID

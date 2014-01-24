@@ -28,7 +28,7 @@ private:
 	void XEventThread();
 public:
 	bool ServerConnect(void);
-	bool Initialize(void *config);
+	bool Initialize(void *config, void *window_handle);
 	void *EGLGetDisplay(void);
 	void *CreateWindow(void);
 	void DestroyWindow(void);

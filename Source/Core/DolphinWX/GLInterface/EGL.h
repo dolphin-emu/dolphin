@@ -34,7 +34,7 @@ private:
 public:
 	enum egl_platform platform;
 	bool SelectDisplay(void);
-	bool Init(EGLConfig config);
+	bool Init(EGLConfig config, void *window_handle);
 	EGLDisplay EGLGetDisplay(void);
 	EGLNativeWindowType CreateWindow(void);
 	void DestroyWindow(void);
