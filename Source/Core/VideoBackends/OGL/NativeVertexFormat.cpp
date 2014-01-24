@@ -83,11 +83,7 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	}
 
 	for (int i = 0; i < 8; i++) {
-		if (vtx_decl.texcoord_offset[i] != -1) {
-			glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB+i);
-			glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB+i, vtx_decl.texcoord_size[i], VarToGL(vtx_decl.texcoord_gl_type[i]),
-				GL_FALSE, vtx_decl.stride, (u8*)NULL + vtx_decl.texcoord_offset[i]);
-		}
+		SetPointer(SHADER_TEXTURE0_ATTRIB+i, vertex_stride, vtx_decl.texcoords[i]);
 	}
 
 	if (vtx_decl.posmtx_offset != -1) {

@@ -102,12 +102,13 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 8; i++)
 	{
-		if (_vtx_decl.texcoord_offset[i] > 0)
+		format = &_vtx_decl.texcoords[i];
+		if (format->enable)
 		{
 			m_elems[m_num_elems].SemanticName = "TEXCOORD";
 			m_elems[m_num_elems].SemanticIndex = i;
-			m_elems[m_num_elems].AlignedByteOffset = _vtx_decl.texcoord_offset[i];
-			m_elems[m_num_elems].Format = VarToD3D(_vtx_decl.texcoord_gl_type[i], _vtx_decl.texcoord_size[i], false);
+			m_elems[m_num_elems].AlignedByteOffset = format->offset;
+			m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
 			m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			++m_num_elems;
 		}

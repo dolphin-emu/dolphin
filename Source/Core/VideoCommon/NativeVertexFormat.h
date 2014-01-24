@@ -88,11 +88,8 @@ struct PortableVertexDeclaration
 	AttributeFormat position;
 	AttributeFormat normals[3];
 	AttributeFormat colors[2];
+	AttributeFormat texcoords[8];
 
-	VarType texcoord_gl_type[8];
-	//int texcoord_gl_size[8];
-	int texcoord_offset[8];
-	int texcoord_size[8];
 	int posmtx_offset;
 };
 

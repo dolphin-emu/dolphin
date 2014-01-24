@@ -550,12 +550,6 @@ void VertexLoader::CompileVertexTranslator()
 	int nat_offset = 0;
 	PortableVertexDeclaration vtx_decl;
 	memset(&vtx_decl, 0, sizeof(vtx_decl));
-	for (int i = 0; i < 8; i++)
-	{
-		vtx_decl.texcoord_offset[i] = -1;
-	}
-
-	// m_VBVertexStride for texmtx and posmtx is computed later when writing.
 
 	// Position Matrix Index
 	if (m_VtxDesc.PosMatIdx)
@@ -688,7 +682,10 @@ void VertexLoader::CompileVertexTranslator()
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
 	for (int i = 0; i < 8; i++)
 	{
-		vtx_decl.texcoord_offset[i] = -1;
+		vtx_decl.texcoords[i].offset = nat_offset;
+		vtx_decl.texcoords[i].type = VAR_FLOAT;
+		vtx_decl.texcoords[i].integer = false;
+
 		const int format = m_VtxAttr.texCoord[i].Format;
 		const int elements = m_VtxAttr.texCoord[i].Elements;
 
@@ -709,21 +706,18 @@ void VertexLoader::CompileVertexTranslator()
 
 		if (components & (VB_HAS_TEXMTXIDX0 << i))
 		{
+			vtx_decl.texcoords[i].enable = true;
 			if (tc[i] != NOT_PRESENT)
 			{
 				// if texmtx is included, texcoord will always be 3 floats, z will be the texmtx index
-				vtx_decl.texcoord_offset[i] = nat_offset;
-				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
-				vtx_decl.texcoord_size[i] = 3;
+				vtx_decl.texcoords[i].components = 3;
 				nat_offset += 12;
 				WriteCall(m_VtxAttr.texCoord[i].Elements ? TexMtx_Write_Float : TexMtx_Write_Float2);
 			}
 			else
 			{
 				components |= VB_HAS_UV0 << i; // have to include since using now
-				vtx_decl.texcoord_offset[i] = nat_offset;
-				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
-				vtx_decl.texcoord_size[i] = 4;
+				vtx_decl.texcoords[i].components = 4;
 				nat_offset += 16; // still include the texture coordinate, but this time as 6 + 2 bytes
 				WriteCall(TexMtx_Write_Float4);
 			}
@@ -732,9 +726,8 @@ void VertexLoader::CompileVertexTranslator()
 		{
 			if (tc[i] != NOT_PRESENT)
 			{
-				vtx_decl.texcoord_offset[i] = nat_offset;
-				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
-				vtx_decl.texcoord_size[i] = vtx_attr.texCoord[i].Elements ? 2 : 1;
+				vtx_decl.texcoords[i].enable = true;
+				vtx_decl.texcoords[i].components = vtx_attr.texCoord[i].Elements ? 2 : 1;
 				nat_offset += 4 * (vtx_attr.texCoord[i].Elements ? 2 : 1);
 			}
 		}
