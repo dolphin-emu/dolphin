@@ -594,7 +594,6 @@ void VertexLoader::CompileVertexTranslator()
 	vtx_decl.position.integer = false;
 
 	// Normals
-	vtx_decl.num_normals = 0;
 	if (m_VtxDesc.Normal != NOT_PRESENT)
 	{
 		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal,
@@ -611,20 +610,13 @@ void VertexLoader::CompileVertexTranslator()
 		}
 		WriteCall(pFunc);
 
-		vtx_decl.num_normals = vtx_attr.NormalElements ? 3 : 1;
-		vtx_decl.normal_offset[0] = -1;
-		vtx_decl.normal_offset[1] = -1;
-		vtx_decl.normal_offset[2] = -1;
-		vtx_decl.normal_gl_type = VAR_FLOAT;
-		vtx_decl.normal_gl_size = 3;
-		vtx_decl.normal_offset[0] = nat_offset;
-		nat_offset += 12;
-
-		if (vtx_attr.NormalElements)
+		for (int i = 0; i < (vtx_attr.NormalElements ? 3 : 1); i++)
 		{
-			vtx_decl.normal_offset[1] = nat_offset;
-			nat_offset += 12;
-			vtx_decl.normal_offset[2] = nat_offset;
+			vtx_decl.normals[i].components = 3;
+			vtx_decl.normals[i].enable = true;
+			vtx_decl.normals[i].offset = nat_offset;
+			vtx_decl.normals[i].type = VAR_FLOAT;
+			vtx_decl.normals[i].integer = false;
 			nat_offset += 12;
 		}
 

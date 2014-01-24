@@ -75,10 +75,7 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	SetPointer(SHADER_POSITION_ATTRIB, vertex_stride, vtx_decl.position);
 
 	for (int i = 0; i < 3; i++) {
-		if (vtx_decl.num_normals > i) {
-			glEnableVertexAttribArray(SHADER_NORM0_ATTRIB+i);
-			glVertexAttribPointer(SHADER_NORM0_ATTRIB+i, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (u8*)NULL + vtx_decl.normal_offset[i]);
-		}
+		SetPointer(SHADER_NORM0_ATTRIB+i, vertex_stride, vtx_decl.normals[i]);
 	}
 
 	for (int i = 0; i < 2; i++) {
