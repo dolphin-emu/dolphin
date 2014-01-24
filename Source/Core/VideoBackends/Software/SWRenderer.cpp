@@ -39,8 +39,8 @@ void SWRenderer::Init()
 
 void SWRenderer::Shutdown()
 {
-	delete s_xfbColorTexture[0];
-	delete s_xfbColorTexture[1];
+	delete [] s_xfbColorTexture[0];
+	delete [] s_xfbColorTexture[1];
 	glDeleteProgram(program);
 	glDeleteTextures(1, &s_RenderTarget);
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
