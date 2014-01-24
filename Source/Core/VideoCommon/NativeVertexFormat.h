@@ -65,11 +65,11 @@ typedef void (LOADERDECL *TPipelineFunction)();
 
 enum VarType
 {
-	VAR_BYTE,
-	VAR_UNSIGNED_BYTE,
-	VAR_SHORT,
-	VAR_UNSIGNED_SHORT,
-	VAR_FLOAT,
+	VAR_UNSIGNED_BYTE,  // GX_U8  = 0
+	VAR_BYTE,           // GX_S8  = 1
+	VAR_UNSIGNED_SHORT, // GX_U16 = 2
+	VAR_SHORT,          // GX_S16 = 3
+	VAR_FLOAT,          // GX_F32 = 4
 };
 
 struct PortableVertexDeclaration
