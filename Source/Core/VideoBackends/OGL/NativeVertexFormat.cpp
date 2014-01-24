@@ -42,6 +42,18 @@ inline GLuint VarToGL(VarType t)
 	return lookup[t];
 }
 
+static void SetPointer(u32 attrib, u32 stride, const AttributeFormat &format)
+{
+	if (!format.enable)
+		return;
+
+	glEnableVertexAttribArray(attrib);
+	if (format.integer)
+		glVertexAttribIPointer(attrib, format.components, VarToGL(format.type), stride, (u8*)NULL + format.offset);
+	else
+		glVertexAttribPointer(attrib, format.components, VarToGL(format.type), true, stride, (u8*)NULL + format.offset);
+}
+
 void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
 	this->vtx_decl = _vtx_decl;
@@ -60,8 +72,7 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vm->m_index_buffers);
 	glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
 
-	glEnableVertexAttribArray(SHADER_POSITION_ATTRIB);
-	glVertexAttribPointer(SHADER_POSITION_ATTRIB, 3, GL_FLOAT, GL_FALSE, vtx_decl.stride, (u8*)NULL);
+	SetPointer(SHADER_POSITION_ATTRIB, vertex_stride, vtx_decl.position);
 
 	for (int i = 0; i < 3; i++) {
 		if (vtx_decl.num_normals > i) {

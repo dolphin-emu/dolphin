@@ -587,6 +587,11 @@ void VertexLoader::CompileVertexTranslator()
 	}
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
 	nat_offset += 12;
+	vtx_decl.position.components = 3;
+	vtx_decl.position.enable = true;
+	vtx_decl.position.offset = 0;
+	vtx_decl.position.type = VAR_FLOAT;
+	vtx_decl.position.integer = false;
 
 	// Normals
 	vtx_decl.num_normals = 0;

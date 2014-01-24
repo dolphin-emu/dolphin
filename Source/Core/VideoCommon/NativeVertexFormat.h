@@ -72,9 +72,20 @@ enum VarType
 	VAR_FLOAT,          // GX_F32 = 4
 };
 
+struct AttributeFormat
+{
+	VarType type;
+	int components;
+	int offset;
+	bool enable;
+	bool integer;
+};
+
 struct PortableVertexDeclaration
 {
 	int stride;
+
+	AttributeFormat position;
 
 	int num_normals;
 	int normal_offset[3];
