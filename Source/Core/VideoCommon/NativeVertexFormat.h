@@ -89,8 +89,7 @@ struct PortableVertexDeclaration
 	AttributeFormat normals[3];
 	AttributeFormat colors[2];
 	AttributeFormat texcoords[8];
-
-	int posmtx_offset;
+	AttributeFormat posmtx;
 };
 
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp

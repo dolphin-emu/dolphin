@@ -756,12 +756,12 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.PosMatIdx)
 	{
 		WriteCall(PosMtx_Write);
-		vtx_decl.posmtx_offset = nat_offset;
+		vtx_decl.posmtx.components = 4;
+		vtx_decl.posmtx.enable = true;
+		vtx_decl.posmtx.offset = nat_offset;
+		vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
+		vtx_decl.posmtx.integer = false;
 		nat_offset += 4;
-	}
-	else
-	{
-		vtx_decl.posmtx_offset = -1;
 	}
 
 	native_stride = nat_offset;

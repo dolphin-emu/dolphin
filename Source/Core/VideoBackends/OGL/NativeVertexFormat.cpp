@@ -86,10 +86,7 @@ void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		SetPointer(SHADER_TEXTURE0_ATTRIB+i, vertex_stride, vtx_decl.texcoords[i]);
 	}
 
-	if (vtx_decl.posmtx_offset != -1) {
-		glEnableVertexAttribArray(SHADER_POSMTX_ATTRIB);
-		glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (u8*)NULL + vtx_decl.posmtx_offset);
-	}
+	SetPointer(SHADER_POSMTX_ATTRIB, vertex_stride, vtx_decl.posmtx);
 
 	vm->m_last_vao = VAO;
 }

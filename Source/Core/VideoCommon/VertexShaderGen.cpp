@@ -168,7 +168,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
 		}
 		if (components & VB_HAS_POSMTXIDX)
-			out.Write("  float4 blend_indices : BLENDINDICES,\n");
+			out.Write("  float4 fposmtx : BLENDINDICES,\n");
 		out.Write("  float4 rawpos : POSITION) {\n");
 	}
 	out.Write("VS_OUTPUT o;\n");
@@ -176,10 +176,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	// transforms
 	if (components & VB_HAS_POSMTXIDX)
 	{
-		if (api_type == API_D3D)
-			out.Write("int posmtx = blend_indices.x * 255.0;\n"); // TODO: Ugly, should use an integer instead
-		else
-			out.Write("int posmtx = int(fposmtx);\n");
+		out.Write("int posmtx = int(fposmtx * 255.0);\n"); // TODO: Ugly, should use an integer instead
 
 		if (is_writing_shadercode && (DriverDetails::HasBug(DriverDetails::BUG_NODYNUBOACCESS) && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS)) )
 		{
