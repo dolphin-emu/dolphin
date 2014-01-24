@@ -63,7 +63,6 @@ bool cXInterface::Initialize(void *config)
 	GLWin.height = _theight;
 
 	GLWin.evdpy = XOpenDisplay(NULL);
-	GLWin.parent = GLWin.win;
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 
 	if (GLWin.parent == 0)
