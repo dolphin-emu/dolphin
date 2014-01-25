@@ -27,7 +27,6 @@
 
 //BBox
 #include "XFMemory.h"
-extern float GC_ALIGNED16(g_fProjectionMatrix[16]);
 #ifndef _M_GENERIC
 #ifndef __APPLE__
 #define USE_JIT
@@ -45,7 +44,7 @@ NativeVertexFormat *g_nativeVertexFmt;
 
 // Matrix components are first in GC format but later in PC format - we need to store it temporarily
 // when decoding each vertex.
-static u8 s_curposmtx;
+static u8 s_curposmtx = MatrixIndexA.PosNormalMtxIdx;
 static u8 s_curtexmtx[8];
 static int s_texmtxwrite = 0;
 static int s_texmtxread = 0;
@@ -101,6 +100,9 @@ void LOADERDECL PosMtx_Write()
 	DataWrite<u8>(0);
 	DataWrite<u8>(0);
 	DataWrite<u8>(0);
+
+	// Resetting current position matrix to default is needed for bbox to behave
+	s_curposmtx = (u8) MatrixIndexA.PosNormalMtxIdx;
 }
 
 void LOADERDECL UpdateBoundingBoxPrepare()
@@ -219,7 +221,7 @@ void LOADERDECL UpdateBoundingBox()
 	// We need to get the raw projection values for the bounding box calculation
 	// to work properly. That means, no projection hacks!
 	const float * const orig_point = s_bbox_vertex_buffer;
-	const float * const world_matrix = (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
+	const float * const world_matrix = (float*)xfmem + s_curposmtx * 4;
 	const float * const proj_matrix = xfregs.projection.rawProjection;
 
 	// Transform by world matrix
