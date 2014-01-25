@@ -204,7 +204,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 	{
 		// Oh, RIP addressing.
 		_offsetOrBaseReg = 5;
-		emit->WriteModRM(0, _operandReg&7, 5);
+		emit->WriteModRM(0, _operandReg, _offsetOrBaseReg);
 		//TODO : add some checks
 #ifdef _M_X64
 		u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
@@ -327,7 +327,6 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		emit->Write32((u32)offset);
 	}
 }
-
 
 // W = operand extended width (1 if 64-bit)
 // R = register# upper bit
@@ -1509,6 +1508,24 @@ void XEmitter::FWAIT()
 {
 	Write8(0x9B);
 }
+
+// TODO: make this more generic
+void XEmitter::WriteFloatLoadStore(int bits, FloatOp op, OpArg arg)
+{
+	int mf = 0;
+	switch (bits) {
+		case 32: mf = 0; break;
+		case 64: mf = 2; break;
+		default: _assert_msg_(DYNA_REC, 0, "WriteFloatLoadStore: bits is not 32 or 64");
+	}
+	Write8(0xd9 | (mf << 1));
+	// x87 instructions use the reg field of the ModR/M byte as opcode:
+	arg.WriteRest(this, 0, (X64Reg) op);
+}
+
+void XEmitter::FLD(int bits, OpArg src) {WriteFloatLoadStore(bits, floatLD, src);}
+void XEmitter::FST(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatST, dest);}
+void XEmitter::FSTP(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatSTP, dest);}
 
 void XEmitter::RTDSC() { Write8(0x0F); Write8(0x31); }
 

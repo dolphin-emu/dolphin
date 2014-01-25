@@ -97,6 +97,12 @@ enum NormalOp {
 	nrmXCHG,
 };
 
+enum FloatOp {
+	floatLD = 0,
+	floatST = 2,
+	floatSTP = 3,
+};
+
 class XEmitter;
 
 // RIP addressing does not benefit from micro op fusion on Core arch
@@ -115,6 +121,7 @@ struct OpArg
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
 	void WriteVex(XEmitter* emit, int size, int packed, Gen::X64Reg regOp1, X64Reg regOp2) const;
 	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=(X64Reg)0xFF, bool warn_64bit_offset = true) const;
+	void WriteFloatModRM(XEmitter *emit, FloatOp op);
 	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
 	// This one is public - must be written to
 	u64 offset;  // use RIP-relative as much as possible - 64-bit immediates are not available.
@@ -244,6 +251,7 @@ private:
 	void WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
+	void WriteFloatLoadStore(int bits, FloatOp op, OpArg arg);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 protected:
@@ -424,6 +432,10 @@ public:
 	void REP();
 	void REPNE();
 
+	// x87
+	void FLD(int bits, OpArg src);
+	void FST(int bits, OpArg dest);
+	void FSTP(int bits, OpArg dest);
 	void FWAIT();
 
 	// SSE/SSE2: Floating point arithmetic
