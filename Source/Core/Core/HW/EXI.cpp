@@ -9,6 +9,7 @@
 
 #include "ProcessorInterface.h"
 #include "../PowerPC/PowerPC.h"
+#include "MMIO.h"
 
 #include "EXI.h"
 #include "Sram.h"
@@ -62,6 +63,19 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 		channel->PauseAndLock(doLock, unpauseOnUnlock);
 }
 
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+{
+	for (int i = 0; i < MAX_EXI_CHANNELS; ++i)
+	{
+		_dbg_assert_(EXPANSIONINTERFACE, g_Channels[i] != nullptr);
+		// Each channel has 5 32 bit registers assigned to it. We offset the
+		// base that we give to each channel for registration.
+		//
+		// Be careful: this means the base is no longer aligned on a page
+		// boundary and using "base | FOO" is not valid!
+		g_Channels[i]->RegisterMMIO(mmio, base + 5 * 4 * i);
+	}
+}
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 {
@@ -101,34 +115,14 @@ void Update()
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	// TODO 0xfff00000 is mapped to EXI -> mapped to first MB of maskrom
-	u32 iAddr = _iAddress & 0x3FF;
-	u32 iRegister = (iAddr >> 2) % 5;
-	u32 iChannel = (iAddr >> 2) / 5;
-
-	_dbg_assert_(EXPANSIONINTERFACE, iChannel < MAX_EXI_CHANNELS);
-
-	if (iChannel < MAX_EXI_CHANNELS)
-	{
-		g_Channels[iChannel]->Read32(_uReturnValue, iRegister);
-	}
-	else
-	{
-		_uReturnValue = 0;
-	}
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	// TODO 0xfff00000 is mapped to EXI -> mapped to first MB of maskrom
-	u32 iAddr = _iAddress & 0x3FF;
-	u32 iRegister = (iAddr >> 2) % 5;
-	u32 iChannel = (iAddr >> 2) / 5;
-
-	_dbg_assert_(EXPANSIONINTERFACE, iChannel < MAX_EXI_CHANNELS);
-
-	if (iChannel < MAX_EXI_CHANNELS)
-		g_Channels[iChannel]->Write32(_iValue, iRegister);
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Write(_iAddress, _iValue);
 }
 
 void UpdateInterrupts()

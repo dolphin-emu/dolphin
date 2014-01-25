@@ -38,11 +38,11 @@ namespace HW
 		VideoInterface::Init();
 		SerialInterface::Init();
 		ProcessorInterface::Init();
+		ExpansionInterface::Init(); // Needs to be initialized before Memory
 		Memory::Init();
 		DSP::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE);
 		DVDInterface::Init();
 		GPFifo::Init();
-		ExpansionInterface::Init();
 		CCPU::Init(SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore);
 		SystemTimers::Init();
 

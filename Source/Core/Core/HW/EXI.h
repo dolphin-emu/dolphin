@@ -8,6 +8,7 @@
 #include "EXI_Channel.h"
 #include "Thread.h"
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 enum
 {
@@ -21,6 +22,8 @@ void Init();
 void Shutdown();
 void DoState(PointerWrap &p);
 void PauseAndLock(bool doLock, bool unpauseOnUnlock);
+
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void Update();
 void UpdateInterrupts();
