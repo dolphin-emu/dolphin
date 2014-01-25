@@ -313,6 +313,7 @@ void InitMMIO(MMIO::Mapping* mmio)
 	VideoInterface::RegisterMMIO(mmio, 0xCC002000);
 	ProcessorInterface::RegisterMMIO(mmio, 0xCC003000);
 	MemoryInterface::RegisterMMIO(mmio, 0xCC004000);
+	DSP::RegisterMMIO(mmio, 0xCC005000);
 }
 
 void InitMMIOWii(MMIO::Mapping* mmio)
@@ -320,6 +321,7 @@ void InitMMIOWii(MMIO::Mapping* mmio)
 	VideoInterface::RegisterMMIO(mmio, 0xCC002000);
 	ProcessorInterface::RegisterMMIO(mmio, 0xCC003000);
 	MemoryInterface::RegisterMMIO(mmio, 0xCC004000);
+	DSP::RegisterMMIO(mmio, 0xCC005000);
 }
 
 writeFn32 GetHWWriteFun32(const u32 _Address)
