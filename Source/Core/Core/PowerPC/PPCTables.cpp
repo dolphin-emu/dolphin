@@ -199,7 +199,7 @@ void PrintInstructionRunCounts()
 		if (inst.second == 0)
 			break;
 
-		DEBUG_LOG(POWERPC, "%s : %llu", inst.first, inst.second);
+		DEBUG_LOG(POWERPC, "%s : %" PRIu64, inst.first, inst.second);
 		//PanicAlert("%s : %llu", inst.first, inst.second);
 	}
 }
