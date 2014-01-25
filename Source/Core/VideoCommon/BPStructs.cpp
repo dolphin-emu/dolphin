@@ -372,35 +372,15 @@ void BPWritten(const BPCmd& bp)
 	// -------------------------
 	case BPMEM_CLEARBBOX1:
 	case BPMEM_CLEARBBOX2:
+		// Don't compute bounding box if this frame is being skipped!
+		// Wrong but valid values are better than bogus values...
+		if (g_ActiveConfig.bUseBBox && !g_bSkipCurrentFrame)
 		{
-			if(g_ActiveConfig.bUseBBox)
-			{
-				// Don't compute bounding box if this frame is being skipped!
-				// Wrong but valid values are better than bogus values...
-				if(g_bSkipCurrentFrame)
-					break;
+			u8 offset = bp.address & 2;
 
-				if (bp.address == BPMEM_CLEARBBOX1)
-				{
-					int right = bp.newvalue >> 10;
-					int left = bp.newvalue & 0x3ff;
-
-					// We should only set these if bbox is calculated properly.
-					PixelEngine::bbox[0] = left;
-					PixelEngine::bbox[1] = right;
-					PixelEngine::bbox_active = true;
-				}
-				else
-				{
-					int bottom = bp.newvalue >> 10;
-					int top = bp.newvalue & 0x3ff;
-
-					// We should only set these if bbox is calculated properly.
-					PixelEngine::bbox[2] = top;
-					PixelEngine::bbox[3] = bottom;
-					PixelEngine::bbox_active = true;
-				}
-			}
+			PixelEngine::bbox[offset]     = bp.newvalue & 0x3ff;
+			PixelEngine::bbox[offset | 1] = bp.newvalue >> 10;
+			PixelEngine::bbox_active = true;
 		}
 		break;
 	case BPMEM_TEXINVALIDATE:

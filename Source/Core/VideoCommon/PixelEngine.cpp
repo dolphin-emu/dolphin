@@ -203,45 +203,14 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		INFO_LOG(PIXELENGINE, "(r16) TOKEN_REG : %04x", _uReturnValue);
 		break;
 
+	// BBox
 	case PE_BBOX_LEFT:
-	{
-		// Left must be even and 606px max
-		_uReturnValue = std::min((u16) 606, bbox[0]) & ~1;
-
-		INFO_LOG(PIXELENGINE, "R: BBOX_LEFT   = %i", _uReturnValue);
-		bbox_active = false;
-		break;
-	}
-
 	case PE_BBOX_RIGHT:
-	{
-		// Right must be odd and 607px max
-		_uReturnValue = std::min((u16) 607, bbox[1]) | 1;
-
-		INFO_LOG(PIXELENGINE, "R: BBOX_RIGHT  = %i", _uReturnValue);
-		bbox_active = false;
-		break;
-	}
-
 	case PE_BBOX_TOP:
-	{
-		// Top must be even and 478px max
-		_uReturnValue = std::min((u16) 478, bbox[2]) & ~1;
-
-		INFO_LOG(PIXELENGINE, "R: BBOX_TOP    = %i", _uReturnValue);
-		bbox_active = false;
-		break;
-	}
-
 	case PE_BBOX_BOTTOM:
-	{
-		// Bottom must be odd and 479px max
-		_uReturnValue = std::min((u16) 479, bbox[3]) | 1;
-
-		INFO_LOG(PIXELENGINE, "R: BBOX_BOTTOM = %i", _uReturnValue);
+		_uReturnValue = bbox[(_iAddress >> 1) & 3];
 		bbox_active = false;
 		break;
-	}
 
 	// NOTE(neobrain): only PE_PERF_ZCOMP_OUTPUT is implemented in D3D11, but the other values shouldn't be contradictionary to the value of that register (i.e. INPUT registers should always be greater or equal to their corresponding OUTPUT registers).
 	case PE_PERF_ZCOMP_INPUT_ZCOMPLOC_L:
