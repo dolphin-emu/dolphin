@@ -112,9 +112,9 @@ const u8 *XEmitter::AlignCodePage()
 	return code;
 }
 
-void XEmitter::WriteModRM(int mod, int rm, int reg)
+void XEmitter::WriteModRM(int mod, int reg, int rm)
 {
-	Write8((u8)((mod << 6) | ((rm & 7) << 3) | (reg & 7)));
+	Write8((u8)((mod << 6) | ((reg & 7) << 3) | (rm & 7)));
 }
 
 void XEmitter::WriteSIB(int scale, int index, int base)
