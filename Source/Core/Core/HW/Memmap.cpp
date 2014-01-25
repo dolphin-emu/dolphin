@@ -315,6 +315,7 @@ void InitMMIO(MMIO::Mapping* mmio)
 	MemoryInterface::RegisterMMIO(mmio, 0xCC004000);
 	DSP::RegisterMMIO(mmio, 0xCC005000);
 	DVDInterface::RegisterMMIO(mmio, 0xCC006000);
+	SerialInterface::RegisterMMIO(mmio, 0xCC006400);
 }
 
 void InitMMIOWii(MMIO::Mapping* mmio)
@@ -325,6 +326,8 @@ void InitMMIOWii(MMIO::Mapping* mmio)
 	DSP::RegisterMMIO(mmio, 0xCC005000);
 	DVDInterface::RegisterMMIO(mmio, 0xCC006000);
 	DVDInterface::RegisterMMIO(mmio, 0xCD006000);
+	SerialInterface::RegisterMMIO(mmio, 0xCC006400);
+	SerialInterface::RegisterMMIO(mmio, 0xCD006400);
 }
 
 writeFn32 GetHWWriteFun32(const u32 _Address)

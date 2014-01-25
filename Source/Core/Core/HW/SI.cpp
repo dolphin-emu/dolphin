@@ -8,6 +8,7 @@
 #include "../CoreTiming.h"
 #include "../Movie.h"
 #include "../NetPlayProto.h"
+#include "MMIO.h"
 
 #include "SystemTimers.h"
 #include "ProcessorInterface.h"
@@ -281,157 +282,56 @@ void Shutdown()
 	GBAConnectionWaiter_Shutdown();
 }
 
-void Read32(u32& _uReturnValue, const u32 _iAddress)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	// SIBuffer
-	if ((_iAddress >= 0xCC006480 && _iAddress < 0xCC006500) ||
-		(_iAddress >= 0xCD006480 && _iAddress < 0xCD006500))
+	// Register SI buffer direct accesses.
+	for (int i = 0; i < 0x80; i += 4)
+		mmio->Register(base | (0x80 + i),
+			MMIO::DirectRead<u32>((u32*)&g_SIBuffer[i]),
+			MMIO::DirectWrite<u32>((u32*)&g_SIBuffer[i])
+		);
+
+	// In and out for the 4 SI channels.
+	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
-		_uReturnValue = *(u32*)&g_SIBuffer[_iAddress & 0x7F];
-		return;
+		// We need to clear the RDST bit for the SI channel when reading.
+		// CH0 -> Bit 24 + 5
+		// CH1 -> Bit 16 + 5
+		// CH2 -> Bit 8 + 5
+		// CH3 -> Bit 0 + 5
+		int rdst_bit = 8 * (3 - i) + 5;
+
+		mmio->Register(base | (SI_CHANNEL_0_OUT + 0xC * i),
+			MMIO::DirectRead<u32>(&g_Channel[i].m_Out.Hex),
+			MMIO::DirectWrite<u32>(&g_Channel[i].m_Out.Hex)
+		);
+		mmio->Register(base | (SI_CHANNEL_0_IN_HI + 0xC * i),
+			MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
+				g_StatusReg.Hex &= ~(1 << rdst_bit);
+				UpdateInterrupts();
+				return g_Channel[i].m_InHi.Hex;
+			}),
+			MMIO::DirectWrite<u32>(&g_Channel[i].m_InHi.Hex)
+		);
+		mmio->Register(base | (SI_CHANNEL_0_IN_LO + 0xC * i),
+			MMIO::ComplexRead<u32>([i, rdst_bit](u32) {
+				g_StatusReg.Hex &= ~(1 << rdst_bit);
+				UpdateInterrupts();
+				return g_Channel[i].m_InLo.Hex;
+			}),
+			MMIO::DirectWrite<u32>(&g_Channel[i].m_InLo.Hex)
+		);
 	}
 
-	// error if not changed in the switch
-	_uReturnValue = 0xdeadbeef;
+	mmio->Register(base | SI_POLL,
+		MMIO::DirectRead<u32>(&g_Poll.Hex),
+		MMIO::DirectWrite<u32>(&g_Poll.Hex)
+	);
 
-	// registers
-	switch (_iAddress & 0x3FF)
-	{
-	//////////////////////////////////////////////////////////////////////////
-	// Channel 0
-	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_0_OUT:
-		_uReturnValue = g_Channel[0].m_Out.Hex;
-		break;
-
-	case SI_CHANNEL_0_IN_HI:
-		g_StatusReg.RDST0 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[0].m_InHi.Hex;
-		break;
-
-	case SI_CHANNEL_0_IN_LO:
-		g_StatusReg.RDST0 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[0].m_InLo.Hex;
-		break;
-
-	//////////////////////////////////////////////////////////////////////////
-	// Channel 1
-	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_1_OUT:
-		_uReturnValue = g_Channel[1].m_Out.Hex;
-		break;
-
-	case SI_CHANNEL_1_IN_HI:
-		g_StatusReg.RDST1 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[1].m_InHi.Hex;
-		break;
-
-	case SI_CHANNEL_1_IN_LO:
-		g_StatusReg.RDST1 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[1].m_InLo.Hex;
-		break;
-
-	//////////////////////////////////////////////////////////////////////////
-	// Channel 2
-	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_2_OUT:
-		_uReturnValue = g_Channel[2].m_Out.Hex;
-		break;
-
-	case SI_CHANNEL_2_IN_HI:
-		g_StatusReg.RDST2 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[2].m_InHi.Hex;
-		break;
-
-	case SI_CHANNEL_2_IN_LO:
-		g_StatusReg.RDST2 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[2].m_InLo.Hex;
-		break;
-
-	//////////////////////////////////////////////////////////////////////////
-	// Channel 3
-	//////////////////////////////////////////////////////////////////////////
-	case SI_CHANNEL_3_OUT:
-		_uReturnValue = g_Channel[3].m_Out.Hex;
-		break;
-
-	case SI_CHANNEL_3_IN_HI:
-		g_StatusReg.RDST3 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[3].m_InHi.Hex;
-		break;
-
-	case SI_CHANNEL_3_IN_LO:
-		g_StatusReg.RDST3 = 0;
-		UpdateInterrupts();
-		_uReturnValue = g_Channel[3].m_InLo.Hex;
-		break;
-
-	//////////////////////////////////////////////////////////////////////////
-	// Other
-	//////////////////////////////////////////////////////////////////////////
-	case SI_POLL:				_uReturnValue = g_Poll.Hex; break;
-	case SI_COM_CSR:			_uReturnValue = g_ComCSR.Hex; break;
-	case SI_STATUS_REG:			_uReturnValue = g_StatusReg.Hex; break;
-
-	case SI_EXI_CLOCK_COUNT:	_uReturnValue = g_EXIClockCount.Hex; break;
-
-	default:
-		INFO_LOG(SERIALINTERFACE, "(r32-unk): 0x%08x", _iAddress);
-		_dbg_assert_(SERIALINTERFACE,0);
-		break;
-	}
-
-	DEBUG_LOG(SERIALINTERFACE, "(r32) 0x%08x - 0x%08x", _iAddress, _uReturnValue);
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	DEBUG_LOG(SERIALINTERFACE, "(w32) 0x%08x @ 0x%08x", _iValue, _iAddress);
-
-	// SIBuffer
-	if ((_iAddress >= 0xCC006480 && _iAddress < 0xCC006500) ||
-		(_iAddress >= 0xCD006480 && _iAddress < 0xCD006500))
-	{
-		*(u32*)&g_SIBuffer[_iAddress & 0x7F] = _iValue;
-		return;
-	}
-
-	// registers
-	switch (_iAddress & 0x3FF)
-	{
-	case SI_CHANNEL_0_OUT:		g_Channel[0].m_Out.Hex = _iValue; break;
-	case SI_CHANNEL_0_IN_HI:	g_Channel[0].m_InHi.Hex = _iValue; break;
-	case SI_CHANNEL_0_IN_LO:	g_Channel[0].m_InLo.Hex = _iValue; break;
-	case SI_CHANNEL_1_OUT:		g_Channel[1].m_Out.Hex = _iValue; break;
-	case SI_CHANNEL_1_IN_HI:	g_Channel[1].m_InHi.Hex = _iValue; break;
-	case SI_CHANNEL_1_IN_LO:	g_Channel[1].m_InLo.Hex = _iValue; break;
-	case SI_CHANNEL_2_OUT:		g_Channel[2].m_Out.Hex = _iValue; break;
-	case SI_CHANNEL_2_IN_HI:	g_Channel[2].m_InHi.Hex = _iValue; break;
-	case SI_CHANNEL_2_IN_LO:	g_Channel[2].m_InLo.Hex = _iValue; break;
-	case SI_CHANNEL_3_OUT:		g_Channel[3].m_Out.Hex = _iValue; break;
-	case SI_CHANNEL_3_IN_HI:	g_Channel[3].m_InHi.Hex = _iValue; break;
-	case SI_CHANNEL_3_IN_LO:	g_Channel[3].m_InLo.Hex = _iValue; break;
-
-	case SI_POLL:
-		INFO_LOG(SERIALINTERFACE, "Wrote Poll: X=%03d Y=%03d %s%s%s%s%s%s%s%s",
-			g_Poll.X, g_Poll.Y,
-			g_Poll.EN0 ? "EN0 ":" ", g_Poll.EN1 ? "EN1 ":" ",
-			g_Poll.EN2 ? "EN2 ":" ", g_Poll.EN3 ? "EN3 ":" ",
-			g_Poll.VBCPY0 ? "VBCPY0 ":" ", g_Poll.VBCPY1 ? "VBCPY1 ":" ",
-			g_Poll.VBCPY2 ? "VBCPY2 ":" ", g_Poll.VBCPY3 ? "VBCPY3 ":" ");
-		g_Poll.Hex = _iValue;
-		break;
-
-	case SI_COM_CSR:
-		{
-			USIComCSR tmpComCSR(_iValue);
+	mmio->Register(base | SI_COM_CSR,
+		MMIO::DirectRead<u32>(&g_ComCSR.Hex),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			USIComCSR tmpComCSR(val);
 
 			g_ComCSR.CHANNEL	= tmpComCSR.CHANNEL;
 			g_ComCSR.INLNGTH	= tmpComCSR.INLNGTH;
@@ -447,12 +347,13 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			// be careful: run si-buffer after updating the INT flags
 			if (tmpComCSR.TSTART)	RunSIBuffer();
 			UpdateInterrupts();
-		}
-		break;
+		})
+	);
 
-	case SI_STATUS_REG:
-		{
-			USIStatusReg tmpStatus(_iValue);
+	mmio->Register(base | SI_STATUS_REG,
+		MMIO::DirectRead<u32>(&g_StatusReg.Hex),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			USIStatusReg tmpStatus(val);
 
 			// clear bits ( if(tmp.bit) SISR.bit=0 )
 			if (tmpStatus.NOREP0)	g_StatusReg.NOREP0 = 0;
@@ -489,21 +390,25 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 				g_StatusReg.WRST2 = 0;
 				g_StatusReg.WRST3 = 0;
 			}
-		}
-		break;
+		})
+	);
 
-	case SI_EXI_CLOCK_COUNT:
-		g_EXIClockCount.Hex = _iValue;
-		break;
+	mmio->Register(base | SI_EXI_CLOCK_COUNT,
+		MMIO::DirectRead<u32>(&g_EXIClockCount.Hex),
+		MMIO::DirectWrite<u32>(&g_EXIClockCount.Hex)
+	);
+}
 
-	case 0x80: // Bogus? never seen it with ma own eyes
-		INFO_LOG(SERIALINTERFACE, "WII something at 0xCD006480");
-		break;
+void Read32(u32& _uReturnValue, const u32 _iAddress)
+{
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
+}
 
-	default:
-		_dbg_assert_(SERIALINTERFACE, 0);
-		break;
-	}
+void Write32(const u32 _iValue, const u32 _iAddress)
+{
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Write(_iAddress, _iValue);
 }
 
 void UpdateInterrupts()
