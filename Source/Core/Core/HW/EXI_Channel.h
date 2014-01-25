@@ -10,10 +10,6 @@
 #include "EXI_Device.h"
 #include <memory>
 
-#ifdef _WIN32
-#pragma warning(disable:4201)
-#endif
-
 class CEXIChannel
 {
 private:
