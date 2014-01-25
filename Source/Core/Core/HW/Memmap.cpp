@@ -321,15 +321,11 @@ void InitMMIO(MMIO::Mapping* mmio)
 
 void InitMMIOWii(MMIO::Mapping* mmio)
 {
-	VideoInterface::RegisterMMIO(mmio, 0xCC002000);
-	ProcessorInterface::RegisterMMIO(mmio, 0xCC003000);
-	MemoryInterface::RegisterMMIO(mmio, 0xCC004000);
-	DSP::RegisterMMIO(mmio, 0xCC005000);
-	DVDInterface::RegisterMMIO(mmio, 0xCC006000);
+	InitMMIO(mmio);
+
+	WII_IPCInterface::RegisterMMIO(mmio, 0xCD000000);
 	DVDInterface::RegisterMMIO(mmio, 0xCD006000);
-	SerialInterface::RegisterMMIO(mmio, 0xCC006400);
 	SerialInterface::RegisterMMIO(mmio, 0xCD006400);
-	AudioInterface::RegisterMMIO(mmio, 0xCC006C00);
 	AudioInterface::RegisterMMIO(mmio, 0xCD006C00);
 }
 
