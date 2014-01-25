@@ -9,6 +9,7 @@
 #include "CommonTypes.h"
 
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 namespace AudioInterface
 {
@@ -16,6 +17,8 @@ namespace AudioInterface
 void Init();
 void Shutdown();
 void DoState(PointerWrap &p);
+
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void Update(u64 userdata, int cyclesLate);
 
