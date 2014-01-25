@@ -17,6 +17,7 @@
 #include "../VolumeHandler.h"
 #include "AudioInterface.h"
 #include "../Movie.h"
+#include "MMIO.h"
 
 // Disc transfer rate measured in bytes per second
 static const u32 DISC_TRANSFER_RATE_GC = 5 * 1024 * 1024;
@@ -404,38 +405,12 @@ bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
 	}
 }
 
-void Read32(u32& _uReturnValue, const u32 _iAddress)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	switch (_iAddress & 0xFF)
-	{
-	case DI_STATUS_REGISTER:		_uReturnValue = m_DISR.Hex; break;
-	case DI_COVER_REGISTER:			_uReturnValue = m_DICVR.Hex; break;
-	case DI_COMMAND_0:				_uReturnValue = m_DICMDBUF[0].Hex; break;
-	case DI_COMMAND_1:				_uReturnValue = m_DICMDBUF[1].Hex; break;
-	case DI_COMMAND_2:				_uReturnValue = m_DICMDBUF[2].Hex; break;
-	case DI_DMA_ADDRESS_REGISTER:	_uReturnValue = m_DIMAR.Hex; break;
-	case DI_DMA_LENGTH_REGISTER:	_uReturnValue = m_DILENGTH.Hex; break;
-	case DI_DMA_CONTROL_REGISTER:	_uReturnValue = m_DICR.Hex; break;
-	case DI_IMMEDIATE_DATA_BUFFER:	_uReturnValue = m_DIIMMBUF.Hex; break;
-	case DI_CONFIG_REGISTER:		_uReturnValue = m_DICFG.Hex; break;
-
-	default:
-		_dbg_assert_(DVDINTERFACE, 0);
-		_uReturnValue = 0;
-		break;
-	}
-	DEBUG_LOG(DVDINTERFACE, "(r32): 0x%08x - 0x%08x", _iAddress, _uReturnValue);
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	DEBUG_LOG(DVDINTERFACE, "(w32): 0x%08x @ 0x%08x", _iValue, _iAddress);
-
-	switch (_iAddress & 0xFF)
-	{
-	case DI_STATUS_REGISTER:
-		{
-			UDISR tmpStatusReg(_iValue);
+	mmio->Register(base | DI_STATUS_REGISTER,
+		MMIO::DirectRead<u32>(&m_DISR.Hex),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			UDISR tmpStatusReg(val);
 
 			m_DISR.DEINITMASK	= tmpStatusReg.DEINITMASK;
 			m_DISR.TCINTMASK	= tmpStatusReg.TCINTMASK;
@@ -457,12 +432,13 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			}
 
 			UpdateInterrupts();
-		}
-		break;
+		})
+	);
 
-	case DI_COVER_REGISTER:
-		{
-			UDICVR tmpCoverReg(_iValue);
+	mmio->Register(base | DI_COVER_REGISTER,
+		MMIO::DirectRead<u32>(&m_DICVR.Hex),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			UDICVR tmpCoverReg(val);
 
 			m_DICVR.CVRINTMASK = tmpCoverReg.CVRINTMASK;
 
@@ -470,26 +446,32 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 				m_DICVR.CVRINT = 0;
 
 			UpdateInterrupts();
-		}
-		break;
+		})
+	);
 
-	case DI_COMMAND_0:		m_DICMDBUF[0].Hex = _iValue; break;
-	case DI_COMMAND_1:		m_DICMDBUF[1].Hex = _iValue; break;
-	case DI_COMMAND_2:		m_DICMDBUF[2].Hex = _iValue; break;
+	// Command registers are very similar and we can register them with a
+	// simple loop.
+	for (int i = 0; i < 3; ++i)
+		mmio->Register(base | (DI_COMMAND_0 + 4 * i),
+			MMIO::DirectRead<u32>(&m_DICMDBUF[i].Hex),
+			MMIO::DirectWrite<u32>(&m_DICMDBUF[i].Hex)
+		);
 
-	case DI_DMA_ADDRESS_REGISTER:
-		{
-			m_DIMAR.Hex = _iValue & ~0xfc00001f;
-		}
-		break;
-	case DI_DMA_LENGTH_REGISTER:
-		{
-			m_DILENGTH.Hex = _iValue & ~0x1f;
-		}
-		break;
-	case DI_DMA_CONTROL_REGISTER:
-		{
-			m_DICR.Hex = _iValue & 7;
+	// DMA related registers. Mostly direct accesses (+ masking for writes to
+	// handle things like address alignment) and complex write on the DMA
+	// control register that will trigger the DMA.
+	mmio->Register(base | DI_DMA_ADDRESS_REGISTER,
+		MMIO::DirectRead<u32>(&m_DIMAR.Hex),
+		MMIO::DirectWrite<u32>(&m_DIMAR.Hex, ~0xFC00001F)
+	);
+	mmio->Register(base | DI_DMA_LENGTH_REGISTER,
+		MMIO::DirectRead<u32>(&m_DILENGTH.Hex),
+		MMIO::DirectWrite<u32>(&m_DILENGTH.Hex, ~0x1F)
+	);
+	mmio->Register(base | DI_DMA_CONTROL_REGISTER,
+		MMIO::DirectRead<u32>(&m_DICR.Hex),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			m_DICR.Hex = val & 7;
 			if (m_DICR.TSTART)
 			{
 				if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bFastDiscSpeed)
@@ -504,21 +486,31 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 					ExecuteCommand(m_DICR);
 				}
 			}
-		}
-		break;
+		})
+	);
 
-	case DI_IMMEDIATE_DATA_BUFFER:	m_DIIMMBUF.Hex = _iValue; break;
+	mmio->Register(base | DI_IMMEDIATE_DATA_BUFFER,
+		MMIO::DirectRead<u32>(&m_DIIMMBUF.Hex),
+		MMIO::DirectWrite<u32>(&m_DIIMMBUF.Hex)
+	);
 
-	case DI_CONFIG_REGISTER:
-		{
-			WARN_LOG(DVDINTERFACE, "Write to DICFG, ignored as it's read-only");
-		}
-		break;
+	// DI config register is read only.
+	mmio->Register(base | DI_CONFIG_REGISTER,
+		MMIO::DirectRead<u32>(&m_DICFG.Hex),
+		MMIO::InvalidWrite<u32>()
+	);
+}
 
-	default:
-		_dbg_assert_msg_(DVDINTERFACE, 0, "Write to unknown DI address 0x%08x", _iAddress);
-		break;
-	}
+void Read32(u32& _uReturnValue, const u32 _iAddress)
+{
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
+}
+
+void Write32(const u32 _iValue, const u32 _iAddress)
+{
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Write(_iAddress, _iValue);
 }
 
 void UpdateInterrupts()
