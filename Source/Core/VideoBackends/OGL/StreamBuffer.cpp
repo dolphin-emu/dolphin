@@ -152,7 +152,7 @@ public:
 			m_iterator = 0;
 		}
 		u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
-			GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+			GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 		return std::make_pair(pointer, m_iterator);
 	}
 
@@ -187,7 +187,7 @@ public:
 		Align(stride);
 		AllocMemory(size);
 		u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
-			GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+			GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 		return std::make_pair(pointer, m_iterator);
 	}
 
@@ -346,24 +346,40 @@ public:
 // choose best streaming library based on the supported extensions and known issues
 StreamBuffer* StreamBuffer::Create(u32 type, size_t size)
 {
-	bool nvidia = !strcmp(g_ogl_config.gl_vendor, "NVIDIA Corporation");
+	// without basevertex support, only streaming methods whith uploads everything to zero works fine:
+	if(!g_ogl_config.bSupportsGLBaseVertex)
+	{
+		if(!DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
+			return new BufferSubData(type, size);
 
-	if (g_ogl_config.bSupportsGLBufferStorage &&
-		!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER))
-		return new BufferStorage(type, size);
-	else if(!g_ogl_config.bSupportsGLBaseVertex && !DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
-		return new BufferSubData(type, size);
-	else if(!g_ogl_config.bSupportsGLBaseVertex)
+		// BufferData is by far the worst way, only use it if needed
 		return new BufferData(type, size);
-	else if(g_ogl_config.bSupportsGLSync && g_ogl_config.bSupportsGLPinnedMemory &&
-		!(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) && type == GL_ELEMENT_ARRAY_BUFFER))
-		return new PinnedMemory(type, size);
-	else if(nvidia)
-		return new BufferSubData(type, size);
-	else if(g_ogl_config.bSupportsGLSync)
-		return new MapAndSync(type, size);
-	else
-		return new MapAndOrphan(type, size);
+	}
+
+	// Prefer the syncing buffers over the orphaning one
+	if(g_ogl_config.bSupportsGLSync)
+	{
+		// try to use buffer storage whenever possible
+		if (g_ogl_config.bSupportsGLBufferStorage &&
+			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER))
+			return new BufferStorage(type, size);
+
+		// pinned memory is almost as fine
+		if(g_ogl_config.bSupportsGLPinnedMemory &&
+			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) && type == GL_ELEMENT_ARRAY_BUFFER))
+			return new PinnedMemory(type, size);
+
+		// don't fall back to MapAnd* for nvidia drivers
+		if(DriverDetails::HasBug(DriverDetails::BUG_BROKENUNSYNCMAPPING))
+			return new BufferSubData(type, size);
+
+		// mapping fallback
+		if(g_ogl_config.bSupportsGLSync)
+			return new MapAndSync(type, size);
+	}
+
+	// default fallback, should work everywhere, but isn't the best way to do this job
+	return new MapAndOrphan(type, size);
 }
 
 }

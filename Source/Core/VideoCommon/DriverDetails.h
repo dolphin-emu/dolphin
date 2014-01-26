@@ -154,6 +154,17 @@ namespace DriverDetails
 		// The drivers on OS X has broken primitive restart.
 		// Intel HD 4000 series isn't affected by the bug
 		BUG_PRIMITIVERESTART,
+		// Bug: unsync mapping doesn't work fine
+		// Affected devices: nvidia driver
+		// Started Version: -1
+		// Ended Version: -1
+		// The nvidia driver (both windows + linux) doesn't like unsync mapping performance wise.
+		// Because of their threaded behavoir, they seem not to handle unsync mapping complete unsync,
+		// in fact, they serialize the driver which adds a much bigger overhead.
+		// Workaround: Use BufferSubData
+		// TODO: some windows AMD driver/gpu combination seems also affected
+		//       but as they all support pinned memory, it doesn't matter
+		BUG_BROKENUNSYNCMAPPING,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
