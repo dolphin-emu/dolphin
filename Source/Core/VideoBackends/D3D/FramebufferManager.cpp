@@ -179,7 +179,7 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 	*height = targetSource.bottom - targetSource.top;
 }
 
-void XFBSource::Draw(const MathUtil::Rectangle<float> &sourcerc,
+void XFBSource::Draw(const MathUtil::Rectangle<int> &sourcerc,
 	const MathUtil::Rectangle<float> &drawrc) const
 {
 	D3D::drawShadedTexSubQuad(tex->GetSRV(), &sourcerc,

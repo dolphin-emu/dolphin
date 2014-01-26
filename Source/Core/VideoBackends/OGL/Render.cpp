@@ -1352,7 +1352,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
 
-			MathUtil::Rectangle<float> sourceRc;
+			MathUtil::Rectangle<int> sourceRc;
 			sourceRc.left = xfbSource->sourceRc.left;
 			sourceRc.right = xfbSource->sourceRc.right;
 			sourceRc.top = xfbSource->sourceRc.top;

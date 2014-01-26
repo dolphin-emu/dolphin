@@ -556,7 +556,7 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 }
 
 void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
-							const MathUtil::Rectangle<float>* rSource,
+							const MathUtil::Rectangle<int>* rSource,
 							int SourceWidth,
 							int SourceHeight,
 							const MathUtil::Rectangle<float>* rDest,

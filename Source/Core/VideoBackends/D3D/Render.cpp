@@ -791,12 +791,12 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
 			xfbSource = xfbSourceList[i];
-			MathUtil::Rectangle<float> sourceRc;
+			MathUtil::Rectangle<int> sourceRc;
 
 			sourceRc.left = 0;
 			sourceRc.top = 0;
-			sourceRc.right = (float)xfbSource->texWidth;
-			sourceRc.bottom = (float)xfbSource->texHeight;
+			sourceRc.right = (int)xfbSource->texWidth;
+			sourceRc.bottom = (int)xfbSource->texHeight;
 
 			MathUtil::Rectangle<float> drawRc;
 

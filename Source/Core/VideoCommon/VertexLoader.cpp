@@ -254,8 +254,8 @@ void LOADERDECL UpdateBoundingBox()
 	}
 
 	// Convert to screen space and add the point to the list - round like the real hardware
-	s_bbox_points[s_bbox_currPoint].x = (((s32) (0.5f + (16.0f * (screenPoint[0] * xfregs.viewport.wd + (xfregs.viewport.xOrig - 342.0f))))) - 9) >> 4;
-	s_bbox_points[s_bbox_currPoint].y = (((s32) (0.5f + (16.0f * (screenPoint[1] * xfregs.viewport.ht + (xfregs.viewport.yOrig - 342.0f))))) - 9) >> 4;
+	s_bbox_points[s_bbox_currPoint].x = (((s32) (0.5f + (16.0f * (screenPoint[0] * xfregs.viewport.wd + (xfregs.viewport.xOrig - 342.0f))))) + 3) >> 4;
+	s_bbox_points[s_bbox_currPoint].y = (((s32) (0.5f + (16.0f * (screenPoint[1] * xfregs.viewport.ht + (xfregs.viewport.yOrig - 342.0f))))) + 3) >> 4;
 	s_bbox_points[s_bbox_currPoint].z = screenPoint[2];
 
 	// Update point list for primitive

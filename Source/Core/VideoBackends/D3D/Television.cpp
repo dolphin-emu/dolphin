@@ -147,7 +147,7 @@ void Television::Render()
 		// line down. We could even consider implementing a deinterlacing
 		// algorithm.
 
-		MathUtil::Rectangle<float> sourceRc(0.f, 0.f, float(m_curWidth), float(m_curHeight));
+		MathUtil::Rectangle<int> sourceRc(0, 0, int(m_curWidth), int(m_curHeight));
 		MathUtil::Rectangle<float> destRc(-1.f, 1.f, 1.f, -1.f);
 
 		D3D::context->PSSetSamplers(0, 1, &m_samplerState);

@@ -50,7 +50,7 @@ struct XFBSource : public XFBSourceBase
 	XFBSource(D3DTexture2D *_tex) : tex(_tex) {}
 	~XFBSource() { tex->Release(); }
 
-	void Draw(const MathUtil::Rectangle<float> &sourcerc,
+	void Draw(const MathUtil::Rectangle<int> &sourcerc,
 		const MathUtil::Rectangle<float> &drawrc) const;
 	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
 	void CopyEFB(float Gamma);

@@ -62,7 +62,7 @@ namespace D3D
 						ID3D11InputLayout* layout,
 						float Gamma = 1.0f);
 	void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
-							const MathUtil::Rectangle<float>* rSource,
+							const MathUtil::Rectangle<int>* rSource,
 							int SourceWidth,
 							int SourceHeight,
 							const MathUtil::Rectangle<float>* rDest,

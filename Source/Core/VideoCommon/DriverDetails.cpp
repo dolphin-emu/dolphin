@@ -34,7 +34,7 @@ namespace DriverDetails
 
 	Vendor	m_vendor = VENDOR_UNKNOWN;
 	Driver	m_driver = DRIVER_UNKNOWN;
-	s32     m_family = 0.0;
+	s32     m_family = 0;
 	double	m_version = 0.0;
 
 	// This is a list of all known bugs for each vendor
