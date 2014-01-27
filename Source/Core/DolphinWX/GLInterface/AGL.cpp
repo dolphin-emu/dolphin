@@ -123,6 +123,6 @@ void cInterfaceAGL::Update()
 
 void cInterfaceAGL::SwapInterval(int interval)
 {
-	[GLWin.cocoaCtx setValues:(GLint *)&Interval forParameter:NSOpenGLCPSwapInterval];
+	[GLWin.cocoaCtx setValues:(GLint *)&interval forParameter:NSOpenGLCPSwapInterval];
 }
 
