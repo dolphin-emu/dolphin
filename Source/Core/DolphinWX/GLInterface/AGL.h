@@ -32,7 +32,7 @@ public:
 	bool ClearCurrent();
 	void Shutdown();
 	void Update();
-    void SwapInterval(int Interval);
+	void SwapInterval(int interval);
 
 };
 #endif
