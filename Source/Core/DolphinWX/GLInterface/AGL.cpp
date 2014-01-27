@@ -121,4 +121,8 @@ void cInterfaceAGL::Update()
 	[GLWin.cocoaCtx update];
 }
 
+void cInterfaceAGL::SwapInterval(int Interval)
+{
+    [GLWin.cocoaCtx setValues:(GLint *)&Interval forParameter:NSOpenGLCPSwapInterval];
+}
 
