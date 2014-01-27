@@ -57,7 +57,6 @@ public final class AboutActivity extends Activity implements TabListener
 	// The adapter that manages the displaying of items in multiple About fragments.
 	public static final class InfoFragmentAdapter extends ArrayAdapter<AboutFragmentItem>
 	{
-		private final Context ctx;
 		private final int id;
 		private final List<AboutFragmentItem> items;
 
@@ -65,7 +64,6 @@ public final class AboutActivity extends Activity implements TabListener
 		{
 			super(ctx, id, items);
 
-			this.ctx = ctx;
 			this.id = id;
 			this.items = items;
 		}
@@ -81,7 +79,7 @@ public final class AboutActivity extends Activity implements TabListener
 		{
 			if (convertView == null)
 			{
-				LayoutInflater vi = LayoutInflater.from(ctx);
+				LayoutInflater vi = LayoutInflater.from(getContext());
 				convertView = vi.inflate(id, parent, false);
 			}
 
@@ -184,7 +182,7 @@ public final class AboutActivity extends Activity implements TabListener
 			}
 			else if (position == 1)
 			{
-				return new Fragment(); // CPU
+				return new CPUInfoFragment(); // CPU
 			}
 			else if (position == 2)    // GLES 2
 			{

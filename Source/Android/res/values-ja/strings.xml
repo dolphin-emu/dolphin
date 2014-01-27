@@ -17,6 +17,17 @@
     <string name="gles_three">GLES 3</string>
     <string name="desktop_gl">OpenGL</string>
 
+    <!-- About Menu - CPU Info -->
+    <string name="cpu_abi_one">CPU ABI 1</string>
+    <string name="cpu_abi_two">CPU ABI 2</string>
+    <string name="cpu_info">CPU情報</string>
+    <string name="cpu_type">CPUタイプ</string>
+    <string name="cpu_features">CPUの命令セットと機能</string>
+    <string name="num_cores">CPUコア</string>
+    <string name="cpu_implementer">CPUの実装</string>
+    <string name="cpu_hardware">ハードウェア</string>
+    <string name="unknown_part_num">不明 (%1$d)。 我々はそれを文書化することができますので、この番号を報告してください。 </string>
+
     <!-- Folder Browser -->
     <string name="current_dir">現在のディレクトリ： %1$s</string>
     <string name="parent_directory">親ディレクトリ</string>
