@@ -1,13 +1,14 @@
 #include <IOKit/hid/IOHIDLib.h>
 
 #include "../Device.h"
+#include "../ForceFeedback/ForceFeedbackDevice.h"
 
 namespace ciface
 {
 namespace OSX
 {
 
-class Joystick : public Core::Device
+class Joystick : public ForceFeedback::ForceFeedbackDevice
 {
 private:
 	class Button : public Input
@@ -62,9 +63,9 @@ private:
 
 public:
 	bool UpdateInput();
-	bool UpdateOutput();
 
 	Joystick(IOHIDDeviceRef device, std::string name, int index);
+	~Joystick();
 
 	std::string GetName() const;
 	std::string GetSource() const;
@@ -74,6 +75,8 @@ private:
 	const IOHIDDeviceRef	m_device;
 	const std::string	m_device_name;
 	const int	m_index;
+
+	ForceFeedback::FFDeviceAdapterReference m_ff_device;
 };
 
 }

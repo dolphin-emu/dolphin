@@ -7,11 +7,15 @@
 
 #include "../Device.h"
 
+#ifdef _WIN32
 #define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
 #include <dinput.h>
+#elif __APPLE__
+#include "OSX/DirectInputAdapter.h"
+#endif
 
 #include <list>
 

@@ -56,7 +56,7 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 	LONG rglDirection[2] = {-200, 0};
 
 	DIEFFECT eff;
-	ZeroMemory(&eff, sizeof(eff));
+	memset(&eff, 0, sizeof(eff));
 	eff.dwSize = sizeof(DIEFFECT);
 	eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
 	eff.dwDuration = INFINITE;	// (4 * DI_SECONDS)
@@ -71,7 +71,7 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 	// DIPERIODIC is the largest, so we'll use that
 	DIPERIODIC ff;
 	eff.lpvTypeSpecificParams = &ff;
-	ZeroMemory(&ff, sizeof(ff));
+	memset(&ff, 0, sizeof(ff));
 
 	// doesn't seem needed
 	//DIENVELOPE env;
@@ -133,7 +133,7 @@ bool ForceFeedbackDevice::UpdateOutput()
 	size_t ok_count = 0;
 
 	DIEFFECT eff;
-	ZeroMemory(&eff, sizeof(eff));
+	memset(&eff, 0, sizeof(eff));
 	eff.dwSize = sizeof(DIEFFECT);
 	eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
 
@@ -164,6 +164,7 @@ bool ForceFeedbackDevice::UpdateOutput()
 	return (m_state_out.size() == ok_count);
 }
 
+template<>
 void ForceFeedbackDevice::ForceConstant::SetState(const ControlState state)
 {
 	const LONG new_val = LONG(10000 * state);
@@ -179,6 +180,7 @@ void ForceFeedbackDevice::ForceConstant::SetState(const ControlState state)
 	}
 }
 
+template<>
 void ForceFeedbackDevice::ForceRamp::SetState(const ControlState state)
 {
 	const LONG new_val = LONG(10000 * state);
@@ -193,6 +195,7 @@ void ForceFeedbackDevice::ForceRamp::SetState(const ControlState state)
 	}
 }
 
+template<>
 void ForceFeedbackDevice::ForcePeriodic::SetState(const ControlState state)
 {
 	const DWORD new_val = DWORD(10000 * state);
@@ -214,7 +217,7 @@ template <typename P>
 ForceFeedbackDevice::Force<P>::Force(u8 index, EffectState& state)
 : m_index(index), m_state(state)
 {
-	ZeroMemory(&params, sizeof(params));
+	memset(&params, 0, sizeof(params));
 }
 
 template <typename P>

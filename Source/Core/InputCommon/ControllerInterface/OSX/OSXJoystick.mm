@@ -15,6 +15,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 	: m_device(device)
 	, m_device_name(name)
 	, m_index(index)
+	, m_ff_device(nullptr)
 {
 	// Buttons
 	NSDictionary *buttonDict =
@@ -71,14 +72,23 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 		}
 		CFRelease(axes);
 	}
+
+	// Force Feedback
+	FFCAPABILITIES ff_caps;
+	if (SUCCEEDED(ForceFeedback::FFDeviceAdapter::Create(IOHIDDeviceGetService(m_device), &m_ff_device)) &&
+		SUCCEEDED(FFDeviceGetForceFeedbackCapabilities(m_ff_device->m_device, &ff_caps)))
+	{
+		InitForceFeedback(m_ff_device, ff_caps.numFfAxes);
+	}
+}
+
+Joystick::~Joystick()
+{
+	if (m_ff_device)
+		m_ff_device->Release();
 }
 
 bool Joystick::UpdateInput()
-{
-	return true;
-}
-
-bool Joystick::UpdateOutput()
 {
 	return true;
 }
