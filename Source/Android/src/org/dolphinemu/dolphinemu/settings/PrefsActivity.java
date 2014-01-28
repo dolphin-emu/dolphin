@@ -41,7 +41,7 @@ public final class PrefsActivity extends Activity implements ActionBar.TabListen
 		super.onCreate(savedInstanceState);
 
 		// Set the ViewPager.
-		setContentView(R.layout.prefs_viewpager);
+		setContentView(R.layout.viewpager);
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 
 		// Set the ViewPager adapter.
