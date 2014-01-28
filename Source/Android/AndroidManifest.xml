@@ -33,6 +33,7 @@
             </intent-filter>
         </activity>
 
+        <activity android:name="org.dolphinemu.dolphinemu.about.AboutActivity"/>
         <activity android:name="org.dolphinemu.dolphinemu.gamelist.GameListActivity"/>
 
         <activity

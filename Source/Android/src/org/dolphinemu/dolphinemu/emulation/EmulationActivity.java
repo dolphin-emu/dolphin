@@ -22,9 +22,11 @@ import android.view.WindowManager.LayoutParams;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.settings.input.InputConfigFragment;
-import org.dolphinemu.dolphinemu.settings.video.VideoSettingsFragment;
+import org.dolphinemu.dolphinemu.utils.EGLHelper;
 
 import java.util.List;
+
+import javax.microedition.khronos.opengles.GL10;
 
 /**
  * This is the activity where all of the emulation handling happens.
@@ -65,11 +67,7 @@ public final class EmulationActivity extends Activity
 		// This bug is fixed in Qualcomm driver v53
 		// Mali isn't affected by this bug.
 		sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
-		if (sharedPrefs.getString("gpuPref", "Software Rendering").equals("OGL")
-				&& VideoSettingsFragment.SupportsGLES3()
-				&& VideoSettingsFragment.m_GLVendor != null
-				&& VideoSettingsFragment.m_GLVendor.equals("Qualcomm")
-				&& VideoSettingsFragment.m_QualcommVersion < 53.0f)
+		if (hasBuggedDriverDimensions())
 			NativeLibrary.SetDimensions((int)screenHeight, (int)screenWidth);
 		else
 			NativeLibrary.SetDimensions((int)screenWidth, (int)screenHeight);
@@ -329,5 +327,40 @@ public final class EmulationActivity extends Activity
 		}
 
 		return true;
+	}
+
+	// For handling bugged driver dimensions (applies mainly to Qualcomm devices)
+	private boolean hasBuggedDriverDimensions()
+	{
+		final EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
+		final String vendor = eglHelper.getGL().glGetString(GL10.GL_VENDOR);
+		final String version = eglHelper.getGL().glGetString(GL10.GL_VERSION);
+		final String renderer = eglHelper.getGL().glGetString(GL10.GL_RENDERER);
+
+		if (sharedPrefs.getString("gpuPref", "Software Rendering").equals("OGL")
+				&& eglHelper.supportsGLES3()
+				&& vendor.equals("Qualcomm")
+				&& renderer.equals("Adreno (TM) 3"))
+		{
+			final int start = version.indexOf("V@") + 2;
+			final StringBuilder versionBuilder = new StringBuilder();
+			
+			for (int i = start; i < version.length(); i++)
+			{
+				char c = version.charAt(i);
+
+				// End of numeric portion of version string.
+				if (c == ' ')
+					break;
+
+				versionBuilder.append(c);
+			}
+
+			if (Float.parseFloat(versionBuilder.toString()) < 53.0f)
+				return true;
+		}
+		
+
+		return false;
 	}
 }

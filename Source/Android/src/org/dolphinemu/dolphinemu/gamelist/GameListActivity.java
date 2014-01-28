@@ -23,9 +23,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import org.dolphinemu.dolphinemu.AboutFragment;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.about.AboutActivity;
 import org.dolphinemu.dolphinemu.folderbrowser.FolderBrowser;
 import org.dolphinemu.dolphinemu.settings.PrefsActivity;
 import org.dolphinemu.dolphinemu.sidemenu.SideMenuAdapter;
@@ -119,11 +120,7 @@ public final class GameListActivity extends Activity
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle(R.string.device_compat_warning);
 			builder.setMessage(R.string.device_compat_warning_msg);
-			builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					// Do Nothing. Just create the Yes button
-				}
-			});
+			builder.setPositiveButton(R.string.yes, null);
 			builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which)
 				{
@@ -184,13 +181,8 @@ public final class GameListActivity extends Activity
 
 			case 3: // About
 			{
-				mCurFragmentNum = 3;
-				final AboutFragment aboutFragment = new AboutFragment();
-				FragmentTransaction ft = getFragmentManager().beginTransaction();
-				ft.replace(R.id.content_frame, aboutFragment);
-				ft.addToBackStack(null);
-				ft.commit();
-				invalidateOptionsMenu();
+				Intent intent = new Intent(this, AboutActivity.class);
+				startActivity(intent);
 			}
 			break;
 
@@ -261,7 +253,8 @@ public final class GameListActivity extends Activity
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle(R.string.clear_game_list);
 			builder.setMessage(getString(R.string.clear_game_list_confirm));
-			builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener(){
+			builder.setNegativeButton(R.string.no, null);
+			builder.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which)
 				{
 					String directories = NativeLibrary.GetConfig("Dolphin.ini", "General", "GCMPathes", "0");
@@ -277,12 +270,6 @@ public final class GameListActivity extends Activity
 
 					// Now finally, clear the game list.
 					((GameListFragment) getFragmentManager().findFragmentById(R.id.content_frame)).clearGameList();
-				}
-			});
-			builder.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which)
-				{
-					// Do nothing. This just make "No" appear.
 				}
 			});
 
