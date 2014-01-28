@@ -12,6 +12,22 @@
     <string name="build_revision">Build Revision</string>
     <string name="supports_gles3">Supports OpenGL ES 3</string>
     <string name="supports_neon">Supports NEON</string>
+    <string name="general">General</string>
+    <string name="cpu">CPU</string>
+    <string name="gles_two">GLES 2</string>
+    <string name="gles_three">GLES 3</string>
+    <string name="desktop_gl">OpenGL</string>
+
+    <!-- About Menu - CPU Info -->
+    <string name="cpu_abi_one">CPU ABI 1</string>
+    <string name="cpu_abi_two">CPU ABI 2</string>
+    <string name="cpu_info">CPU Info</string>
+    <string name="cpu_type">CPU Type</string>
+    <string name="cpu_features">CPU Features</string>
+    <string name="num_cores">Number of Cores</string>
+    <string name="cpu_implementer">CPU Implementer</string>
+    <string name="cpu_hardware">Hardware</string>
+    <string name="unknown_part_num">Unknown (%1$d). Please report this number so it can be documented!</string>
 
     <!-- Folder Browser -->
     <string name="current_dir">Current Dir: %1$s</string>
