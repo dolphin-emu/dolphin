@@ -331,6 +331,9 @@ void InitDriverInfo()
 			int glrelease = 0;
 			int major = 0;
 			int minor = 0;
+			// TODO: this is known to be broken on windows
+			// nvidia seems to have removed their driver version from this string, so we can't get it.
+			// hopefully we'll never have to workaround nvidia bugs
 			sscanf(g_ogl_config.gl_version, "%d.%d.%d NVIDIA %d.%d", &glmajor, &glminor, &glrelease, &major, &minor);
 			version = 100*major + minor;
 		}
