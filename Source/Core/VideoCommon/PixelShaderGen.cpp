@@ -377,10 +377,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		}
 	}
 
-	// UV coordinates are stored in 17.7 format.. TODO: Use an integer for this!
-	for (int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
-		out.Write("uv%d.xy = uv%d.xy * 128.0;\n", i, i);
-
 	if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 	{
 		out.Write("\tfloat3 _norm0 = normalize(Normal.xyz);\n\n");
@@ -402,7 +398,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// HACK to handle cases where the tex gen is not enabled
 	if (numTexgen == 0)
 	{
-		out.Write("\tfloat3 uv0 = float3(0.0, 0.0, 0.0);\n");
+		out.Write("\tint2 fixpoint_uv0 = int2(0, 0);\n");
 	}
 	else
 	{
@@ -417,7 +413,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 				out.Write("\t\tuv%d.xy = uv%d.xy / uv%d.z;\n", i, i, i);
 			}
 
-			out.Write("uv%d.xy = uv%d.xy * " I_TEXDIMS"[%d].zw;\n", i, i, i);
+			out.Write("int2 fixpoint_uv%d = int2(round(uv%d.xy * " I_TEXDIMS"[%d].zw * 128.0));\n", i, i, i);
+			// TODO: S24 overflows here?
 		}
 	}
 
@@ -444,7 +441,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			if (texcoord < numTexgen)
 			{
 				out.SetConstantsUsed(C_INDTEXSCALE+i/2,C_INDTEXSCALE+i/2);
-				out.Write("\ttempcoord = uv%d.xy / 128.0 * " I_INDTEXSCALE"[%d].%s;\n", texcoord, i/2, (i&1)?"zw":"xy");
+				out.Write("\ttempcoord = round(float2(fixpoint_uv%d.xy) * " I_INDTEXSCALE"[%d].%s) / 128.0;\n", texcoord, i / 2, (i & 1) ? "zw" : "xy"); // TODO: Make indtexscale an integer
 			}
 			else
 				out.Write("\ttempcoord = float2(0.0, 0.0);\n");
@@ -671,7 +668,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 				_assert_(bpmem.tevind[n].mid >= 5);
 				int mtxidx = 2*(bpmem.tevind[n].mid-5);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
-				out.Write("int2 indtevtrans%d = int2(int2(round(uv%d.xy)) * iindtevcrd%d.xx) >> 8;\n", n, texcoord, n);
+				out.Write("int2 indtevtrans%d = int2(fixpoint_uv%d * iindtevcrd%d.xx) >> 8;\n", n, texcoord, n);
 
 				out.Write("if (" I_INDTEXMTX"[%d].w >= 0) indtevtrans%d = indtevtrans%d >> " I_INDTEXMTX"[%d].w;\n", mtxidx, n, n, mtxidx);
 				out.Write("else indtevtrans%d = indtevtrans%d << (-" I_INDTEXMTX"[%d].w);\n", n, n, mtxidx);
@@ -681,7 +678,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 				_assert_(bpmem.tevind[n].mid >= 9);
 				int mtxidx = 2*(bpmem.tevind[n].mid-9);
 				out.SetConstantsUsed(C_INDTEXMTX+mtxidx, C_INDTEXMTX+mtxidx);
-				out.Write("int2 indtevtrans%d = int2(int2(round(uv%d.xy)) * iindtevcrd%d.yy) >> 8;\n", n, texcoord, n);
+				out.Write("int2 indtevtrans%d = int2(fixpoint_uv%d * iindtevcrd%d.yy) >> 8;\n", n, texcoord, n);
 
 				out.Write("if (" I_INDTEXMTX"[%d].w >= 0) indtevtrans%d = indtevtrans%d >> " I_INDTEXMTX"[%d].w;\n", mtxidx, n, n, mtxidx);
 				out.Write("else indtevtrans%d = indtevtrans%d << (-" I_INDTEXMTX"[%d].w);\n", n, n, mtxidx);
@@ -703,19 +700,19 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 
 		// wrap S
 		if (bpmem.tevind[n].sw == ITW_OFF)
-			out.Write("wrappedcoord.x = int(round(uv%d.x));\n", texcoord);
+			out.Write("wrappedcoord.x = fixpoint_uv%d.x;\n", texcoord);
 		else if (bpmem.tevind[n].sw == ITW_0)
 			out.Write("wrappedcoord.x = 0;\n");
 		else
-			out.Write("wrappedcoord.x = int(round(uv%d.x)) %% %s;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw]);
+			out.Write("wrappedcoord.x = fixpoint_uv%d.x %% %s;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw]);
 
 		// wrap T
 		if (bpmem.tevind[n].tw == ITW_OFF)
-			out.Write("wrappedcoord.y = int(round(uv%d.y));\n", texcoord);
+			out.Write("wrappedcoord.y = fixpoint_uv%d.y;\n", texcoord);
 		else if (bpmem.tevind[n].tw == ITW_0)
 			out.Write("wrappedcoord.y = 0;\n");
 		else
-			out.Write("wrappedcoord.y = int(round(uv%d.y)) %% %s;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw]);
+			out.Write("wrappedcoord.y = fixpoint_uv%d.y %% %s;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw]);
 
 		if (bpmem.tevind[n].fb_addprev) // add previous tevcoord
 			out.Write("tevcoord.xy += wrappedcoord + indtevtrans%d;\n", n);
@@ -759,7 +756,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		{
 			// calc tevcord
 			if (bHasTexCoord)
-				out.Write("tevcoord.xy = int2(round(uv%d.xy));\n", texcoord);
+				out.Write("tevcoord.xy = fixpoint_uv%d;\n", texcoord);
 			else
 				out.Write("tevcoord.xy = int2(0, 0);\n");
 		}
