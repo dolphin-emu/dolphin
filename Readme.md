@@ -1,6 +1,6 @@
 # Dolphin - A Gamecube / Triforce / Wii Emulator
 
-[Homepage](http://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](http://forums.dolphin-emu.org/) | [Wiki](http://wiki.dolphin-emu.org/)
+[Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/)
 
 Dolphin is an emulator for running Gamecube, Triforce and Wii games on
 Windows/Linux/OS X systems and recent Android devices. It's licensed under
