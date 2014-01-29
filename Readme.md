@@ -1,4 +1,4 @@
-#Dolphin - A Gamecube / Triforce / Wii Emulator
+# Dolphin - A Gamecube / Triforce / Wii Emulator
 
 [Homesite](http://dolphin-emu.org/) | [Project Site](http://code.google.com/p/dolphin-emu) | [Team Members](http://code.google.com/p/dolphin-emu/people/)
 
@@ -8,18 +8,19 @@ the terms of the GNU General Public License, version 2 (GPLv2).
 
 Please read the [FAQ](http://dolphin-emu.org/docs/faq/) before use.
 
-##System Requirements
-* OS: 
+## System Requirements
+* OS
     * Microsoft Windows (Vista or higher)
     * Linux or Apple Mac OS X (10.7 or higher).
-        * Unix like systems other than Linux might work but are not officially supported.
+        * Unix-like systems other than Linux might work but are not officially supported.
+* Processor
+    * A CPU with SSE2 support. 
+        * A modern CPU (3 GHz and Dual Core, not older than 2008) is highly recommended.
+* Graphics
+    * A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0).
+        * Direct3D 11 / OpenGL 4.4 recommended.
 
-* Processor: A CPU with SSE2 support
-  A modern CPU (3 GHz and Dual Core, not older than 2008) is highly recommended.
-* Graphics: A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0).
-  Direct3D 11 / OpenGL 4.4 recommended.
-
-##Installation on Windows
+## Installation on Windows
 Use the solution file Source/dolphin-emu.sln to build Dolphin on Windows.
 Visual Studio 2013 is a hard requirement since previous versions don't support
 many C++ features that we use. Other compilers might be able to build Dolphin
@@ -31,14 +32,13 @@ Nullsoft Scriptable Install System (NSIS) to be installed. Creating an
 installer is not necessary to run Dolphin since the Build directory contains
 a working Dolphin distribution.
 
-##Installation on Linux/OS X
-
+## Installation on Linux/OS X
 Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
 
-###Build steps:
+### Build steps:
 1. mkdir Build
 2. cd Build
 3. cmake ..
@@ -49,7 +49,7 @@ On OS X, an application bundle will be created in ./Binaries.
 On Linux, it's strongly recommended to perform a global installation via
 "sudo make install".
 
-##Uninstalling
+## Uninstalling
 When Dolphin has been installed with the NSIS installer, you can uninstall
 Dolphin like any other Windows application.
 
@@ -61,7 +61,7 @@ OS X users can simply delete Dolphin.app to uninstall it.
 Additionally, you'll want to remove the global user directory (see below to
 see where it's stored) if you don't plan to reinstall Dolphin.
 
-##Command line usage
+## Command line usage
 Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-V <str>] [-A <str>]  
 
 * -h, --help Show this help message  
@@ -81,7 +81,7 @@ Available video backends are "D3D" (only available on Windows Vista or higher),
 "OGL". There's also "Software Renderer", which uses the CPU for rendering and
 is intended for debugging purposes, only.
 
-##Sys Files
+## Sys Files
 * totaldb.dsy: Database of symbols (for devs only)
 * GC/font_ansi.bin: font dumps
 * GC/font_sjis.bin: font dumps
@@ -94,8 +94,8 @@ some games implement copy protection by checksumming the dumps. You will need
 to dump the DSP files from a console and replace the default dumps if you want
 to fix those issues.
 
-##Folder structure
-These folders are installed read-only and should not be changed.
+## Folder structure
+These folders are installed read-only and should not be changed:
 
 * GameSettings: per-game default settings database
 * GC: DSP and font dumps
@@ -104,24 +104,27 @@ These folders are installed read-only and should not be changed.
 * Themes: icon themes for GUI
 * Wii: default Wii NAND contents
 
-##User folder structure
+## User folder structure
 A number of user writeable directories are created for caching purposes or for
 allowing the user to edit their contents. On OS X and Linux these folders are
 stored in ~/Library/Application Support/Dolphin/ and ~/.dolphin-emu
 respectively. On Windows the user directory is stored in the "My Documents"
 folder by default, but there are various way to override this behavior:
+
 * Creating a file called "portable.txt" next to the Dolphin executable will
   store the user directory in a local directory called "User" next to the
   Dolphin executable.
 * If the registry string value "LocalUserConfig" exists in
-  "HKEY_CURRENT_USER/Dolphin Emulator" and has the value "1", Dolphin will
+  "HKEY\_CURRENT\_USER/Dolphin Emulator" and has the value "1", Dolphin will
   always start in portable mode.
 * If the registry string value "UserConfigPath" exists in
-  "HKEY_CURRENT_USER/Dolphin Emulator", the user folders will be stored in the
+  "HKEY\_CURRENT\_USER/Dolphin Emulator", the user folders will be stored in the
   directory given by that string. The other two methods will be prioritized
   over this setting.
 
+
 List of user folders:
+
 * Cache: used to cache the ISO list
 * Config: configuration files
 * Dump: anything dumped from dolphin
@@ -133,7 +136,7 @@ List of user folders:
 * StateSaves: save states
 * Wii: Wii NAND contents
 
-##Custom textures
+## Custom textures
 Custom textures have to be placed in the user directory under
-Load/Textures/<GameID>/. You can find the Game ID by right-clicking a game
+Load/Textures/[GameID]/. You can find the Game ID by right-clicking a game
 in the ISO list and selecting "ISO Properties".
