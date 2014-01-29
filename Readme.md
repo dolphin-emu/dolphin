@@ -1,6 +1,6 @@
 # Dolphin - A Gamecube / Triforce / Wii Emulator
 
-[Homesite](http://dolphin-emu.org/) | [Project Site](http://code.google.com/p/dolphin-emu) | [Team Members](http://code.google.com/p/dolphin-emu/people/)
+[Homepage](http://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](http://forums.dolphin-emu.org/) | [Wiki](http://wiki.dolphin-emu.org/)
 
 Dolphin is an emulator for running Gamecube, Triforce and Wii games on
 Windows/Linux/OS X systems and recent Android devices. It's licensed under
@@ -11,14 +11,12 @@ Please read the [FAQ](http://dolphin-emu.org/docs/faq/) before use.
 ## System Requirements
 * OS
     * Microsoft Windows (Vista or higher)
-    * Linux or Apple Mac OS X (10.7 or higher).
-        * Unix-like systems other than Linux might work but are not officially supported.
+    * Linux or Apple Mac OS X (10.7 or higher). 
+    * Unix-like systems other than Linux might work but are not officially supported.
 * Processor
-    * A CPU with SSE2 support. 
-        * A modern CPU (3 GHz and Dual Core, not older than 2008) is highly recommended.
+    * A CPU with SSE2 support. A modern CPU (3 GHz and Dual Core, not older than 2008) is highly recommended.
 * Graphics
-    * A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0).
-        * Direct3D 11 / OpenGL 4.4 recommended.
+    * A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0). Direct3D 11 / OpenGL 4.4 recommended.
 
 ## Installation on Windows
 Use the solution file Source/dolphin-emu.sln to build Dolphin on Windows.
