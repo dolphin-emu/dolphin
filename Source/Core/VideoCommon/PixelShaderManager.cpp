@@ -202,10 +202,10 @@ void PixelShaderManager::SetViewportChanged()
 
 void PixelShaderManager::SetIndTexScaleChanged(bool high)
 {
-	constants.indtexscale[high][0] = bpmem.texscale[high].getScaleS(0);
-	constants.indtexscale[high][1] = bpmem.texscale[high].getScaleT(0);
-	constants.indtexscale[high][2] = bpmem.texscale[high].getScaleS(1);
-	constants.indtexscale[high][3] = bpmem.texscale[high].getScaleT(1);
+	constants.indtexscale[high][0] = bpmem.texscale[high].ss0;
+	constants.indtexscale[high][1] = bpmem.texscale[high].ts0;
+	constants.indtexscale[high][2] = bpmem.texscale[high].ss1;
+	constants.indtexscale[high][3] = bpmem.texscale[high].ts1;
 	dirty = true;
 }
 

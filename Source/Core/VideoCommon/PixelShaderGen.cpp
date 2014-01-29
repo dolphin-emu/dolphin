@@ -259,7 +259,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	DeclareUniform(out, ApiType, C_ALPHA, "int4", I_ALPHA);
 	DeclareUniform(out, ApiType, C_TEXDIMS, "float4", I_TEXDIMS"[8]");
 	DeclareUniform(out, ApiType, C_ZBIAS, "int4", I_ZBIAS"[2]");
-	DeclareUniform(out, ApiType, C_INDTEXSCALE, "float4", I_INDTEXSCALE"[2]");
+	DeclareUniform(out, ApiType, C_INDTEXSCALE, "int4", I_INDTEXSCALE"[2]");
 	DeclareUniform(out, ApiType, C_INDTEXMTX, "int4", I_INDTEXMTX"[6]");
 	DeclareUniform(out, ApiType, C_FOGCOLOR, "int4", I_FOGCOLOR);
 	DeclareUniform(out, ApiType, C_FOGI, "int4", I_FOGI"[1]");
@@ -352,7 +352,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			"  int3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
 			"  int alphabump=0;\n"
 			"  int3 tevcoord=int3(0, 0, 0);\n"
-			"  int2 wrappedcoord=int2(0,0); float2 tempcoord=float2(0.0,0.0);\n\n");
+			"  int2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -441,13 +441,13 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			if (texcoord < numTexgen)
 			{
 				out.SetConstantsUsed(C_INDTEXSCALE+i/2,C_INDTEXSCALE+i/2);
-				out.Write("\ttempcoord = round(float2(fixpoint_uv%d.xy) * " I_INDTEXSCALE"[%d].%s) / 128.0;\n", texcoord, i / 2, (i & 1) ? "zw" : "xy"); // TODO: Make indtexscale an integer
+				out.Write("\ttempcoord = fixpoint_uv%d >> " I_INDTEXSCALE"[%d].%s;\n", texcoord, i / 2, (i & 1) ? "zw" : "xy");
 			}
 			else
-				out.Write("\ttempcoord = float2(0.0, 0.0);\n");
+				out.Write("\ttempcoord = int2(0, 0);\n");
 
 			out.Write("\tint3 iindtex%d = ", i);
-			SampleTexture<T>(out, "tempcoord", "abg", texmap, ApiType);
+			SampleTexture<T>(out, "(float2(tempcoord)/128.0)", "abg", texmap, ApiType);
 		}
 	}
 
