@@ -120,6 +120,9 @@ out:
 		}
 	}
 #endif
+#if ANDROID
+	selected_platform = EGL_PLATFORM_ANDROID;
+#endif
 	if (selected_platform == EGL_PLATFORM_NONE)
 		return false;
 
@@ -229,5 +232,8 @@ cPlatform::SwapBuffers()
 #if HAVE_X11
 	if (cPlatform::platform == EGL_PLATFORM_X11)
 		XInterface.SwapBuffers();
+#endif
+#if ANDROID
+	eglSwapBuffers(GLWin.egl_dpy, GLWin.egl_surf);
 #endif
 }
