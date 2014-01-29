@@ -14,9 +14,11 @@ Please read the [FAQ](http://dolphin-emu.org/docs/faq/) before use.
     * Linux or Apple Mac OS X (10.7 or higher). 
     * Unix-like systems other than Linux might work but are not officially supported.
 * Processor
-    * A CPU with SSE2 support. A modern CPU (3 GHz and Dual Core, not older than 2008) is highly recommended.
+    * A CPU with SSE2 support.
+    * A modern CPU (3 GHz and Dual Core, not older than 2008) is highly recommended.
 * Graphics
-    * A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0). Direct3D 11 / OpenGL 4.4 recommended.
+    * A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0).
+    * A graphics card that supports Direct3D 11 / OpenGL 4.4 is recommended.
 
 ## Installation on Windows
 Use the solution file Source/dolphin-emu.sln to build Dolphin on Windows.
