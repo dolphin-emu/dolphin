@@ -459,7 +459,7 @@ void VertexShaderManager::SetConstants()
 			projection hack for metroid other m...attempt to remove black projection layer from cut scenes.
 			g_fProjectionMatrix[15] = 1.0f was the default setting before
 			this hack was added...setting g_fProjectionMatrix[14] to -1 might make the hack more stable, needs more testing.
-			Only works for OGL and DX9...this is not helping DX11
+			Only works for OGL...this is not helping DX11
 			*/
 
 			g_fProjectionMatrix[14] = 0.0f;
