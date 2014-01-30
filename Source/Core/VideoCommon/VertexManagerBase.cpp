@@ -140,17 +140,6 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 	}
 }
 
-void VertexManager::AddVertices(int primitive, u32 numVertices)
-{
-	if (numVertices <= 0)
-		return;
-
-	ADDSTAT(stats.thisFrame.numPrims, numVertices);
-	INCSTAT(stats.thisFrame.numPrimitiveJoins);
-
-	IndexGenerator::AddIndices(primitive, numVertices);
-}
-
 void VertexManager::Flush()
 {
 	if (IsFlushed) return;

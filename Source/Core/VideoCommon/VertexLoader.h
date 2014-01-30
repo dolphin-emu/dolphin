@@ -95,7 +95,7 @@ public:
 
 	int GetVertexSize() const {return m_VertexSize;}
 
-	int SetupRunVertices(int vtx_attr_group, int primitive, int const count);
+	void SetupRunVertices(int vtx_attr_group, int primitive, int const count);
 	void RunVertices(int vtx_attr_group, int primitive, int count);
 
 	// For debugging / profiling

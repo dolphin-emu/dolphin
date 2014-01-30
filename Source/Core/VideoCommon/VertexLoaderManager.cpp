@@ -96,7 +96,7 @@ void MarkAllDirty()
 	s_attr_dirty = 0xff;
 }
 
-static void RefreshLoader(int vtx_attr_group)
+static VertexLoader* RefreshLoader(int vtx_attr_group)
 {
 	if ((s_attr_dirty >> vtx_attr_group) & 1)
 	{
@@ -116,21 +116,27 @@ static void RefreshLoader(int vtx_attr_group)
 		}
 	}
 	s_attr_dirty &= ~(1 << vtx_attr_group);
+	return g_VertexLoaders[vtx_attr_group];
 }
 
 void RunVertices(int vtx_attr_group, int primitive, int count)
 {
 	if (!count)
 		return;
+	RefreshLoader(vtx_attr_group)->RunVertices(vtx_attr_group, primitive, count);
+}
 
-	RefreshLoader(vtx_attr_group);
-	g_VertexLoaders[vtx_attr_group]->RunVertices(vtx_attr_group, primitive, count);
+void SkipVertices(int vtx_attr_group, int count)
+{
+	if (!count)
+		return;
+	u32 stride = RefreshLoader(vtx_attr_group)->GetVertexSize();
+	DataSkip(count * stride);
 }
 
 int GetVertexSize(int vtx_attr_group)
 {
-	RefreshLoader(vtx_attr_group);
-	return g_VertexLoaders[vtx_attr_group]->GetVertexSize();
+	return RefreshLoader(vtx_attr_group)->GetVertexSize();
 }
 
 }  // namespace
