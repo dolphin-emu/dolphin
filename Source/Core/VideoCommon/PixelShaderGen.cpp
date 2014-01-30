@@ -283,23 +283,23 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	}
 	out.Write("\n");
 
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (ApiType == API_OPENGL)
 		out.Write("layout(std140%s) uniform PSBlock {\n", g_ActiveConfig.backend_info.bSupportShadingLanguage420pack ? ", binding = 1" : "");
 
-	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_COLORS, "float4", I_COLORS"[4]");
-	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_KCOLORS, "float4", I_KCOLORS"[4]");
-	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_ALPHA, "float4", I_ALPHA"[1]");  // TODO: Why is this an array...-.-
-	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_TEXDIMS, "float4", I_TEXDIMS"[8]");
-	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_ZBIAS, "float4", I_ZBIAS"[2]");
-	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_INDTEXSCALE, "float4", I_INDTEXSCALE"[2]");
-	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_INDTEXMTX, "float4", I_INDTEXMTX"[6]");
-	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_FOG, "float4", I_FOG"[3]");
+	DeclareUniform(out, ApiType, C_COLORS, "float4", I_COLORS"[4]");
+	DeclareUniform(out, ApiType, C_KCOLORS, "float4", I_KCOLORS"[4]");
+	DeclareUniform(out, ApiType, C_ALPHA, "float4", I_ALPHA"[1]");  // TODO: Why is this an array...-.-
+	DeclareUniform(out, ApiType, C_TEXDIMS, "float4", I_TEXDIMS"[8]");
+	DeclareUniform(out, ApiType, C_ZBIAS, "float4", I_ZBIAS"[2]");
+	DeclareUniform(out, ApiType, C_INDTEXSCALE, "float4", I_INDTEXSCALE"[2]");
+	DeclareUniform(out, ApiType, C_INDTEXMTX, "float4", I_INDTEXMTX"[6]");
+	DeclareUniform(out, ApiType, C_FOG, "float4", I_FOG"[3]");
 
 	// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
-	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_PLIGHTS, "float4", I_PLIGHTS"[40]");
-	DeclareUniform(out, ApiType, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_PMATERIALS, "float4", I_PMATERIALS"[4]");
+	DeclareUniform(out, ApiType, C_PLIGHTS, "float4", I_PLIGHTS"[40]");
+	DeclareUniform(out, ApiType, C_PMATERIALS, "float4", I_PMATERIALS"[4]");
 
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (ApiType == API_OPENGL)
 		out.Write("};\n");
 
 	if (ApiType == API_OPENGL)
