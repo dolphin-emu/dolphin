@@ -28,8 +28,6 @@ if(NOT ANDROID)
 		${XKBCOMMON_LIBRARIES})
 	endif()
 
-	link_directories(${CMAKE_PREFIX_PATH}/lib)
-
 	if(SDL2_FOUND)
 		# Using shared SDL2
 		set(LIBS	${LIBS} ${SDL2_LIBRARY})
