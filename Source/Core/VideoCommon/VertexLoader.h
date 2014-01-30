@@ -97,7 +97,6 @@ public:
 
 	int SetupRunVertices(int vtx_attr_group, int primitive, int const count);
 	void RunVertices(int vtx_attr_group, int primitive, int count);
-	void RunCompiledVertices(int vtx_attr_group, int primitive, int count, u8* Data);
 
 	// For debugging / profiling
 	void AppendToString(std::string *dest) const;

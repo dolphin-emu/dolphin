@@ -915,17 +915,6 @@ void VertexLoader::ConvertVertices ( int count )
 #endif
 }
 
-void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int const count, u8* Data)
-{
-	auto const new_count = SetupRunVertices(vtx_attr_group, primitive, count);
-
-	memcpy_gc(VertexManager::s_pCurBufferPointer, Data, native_stride * new_count);
-	VertexManager::s_pCurBufferPointer += native_stride * new_count;
-	DataSkip(new_count * m_VertexSize);
-
-	VertexManager::AddVertices(primitive, new_count);
-}
-
 void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 {
 	VAT vat;

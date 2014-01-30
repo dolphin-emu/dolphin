@@ -17,7 +17,6 @@
 #include "RenderBase.h"
 #include "CommandProcessor.h"
 #include "HW/ProcessorInterface.h"
-#include "DLCache.h"
 #include "State.h"
 
 namespace PixelEngine
@@ -380,7 +379,6 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 		UpdateInterrupts();
 	}
 	CommandProcessor::interruptTokenWaiting = false;
-	IncrementCheckContextId();
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
@@ -402,7 +400,6 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 
 	CommandProcessor::interruptTokenWaiting = true;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
-	IncrementCheckContextId();
 }
 
 // SetFinish
@@ -412,7 +409,6 @@ void SetFinish()
 	CommandProcessor::interruptFinishWaiting = true;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
-	IncrementCheckContextId();
 }
 
 //This function is used in CommandProcessor when write CTRL_REGISTER and the new fifo is attached.

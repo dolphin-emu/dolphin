@@ -40,11 +40,9 @@ set(SRCS	BPFunctions.cpp
 set(LIBS core png)
 
 if(NOT _M_GENERIC)
-	set(SRCS ${SRCS}	TextureDecoder_x64.cpp
-						DLCache_x64.cpp)
+	set(SRCS ${SRCS}	TextureDecoder_x64.cpp)
 else()
-	set(SRCS ${SRCS}	TextureDecoder_Generic.cpp
-						DLCache_Generic.cpp)
+	set(SRCS ${SRCS}	TextureDecoder_Generic.cpp)
 endif()
 if(NOT ${CL} STREQUAL CL-NOTFOUND)
 	list(APPEND LIBS ${CL})

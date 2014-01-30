@@ -151,8 +151,6 @@ protected:
 	static bool s_skipSwap;
 	static bool XFBWrited;
 
-	static bool s_EnableDLCachingAfterRecording;
-
 private:
 	static unsigned int prev_efb_format;
 	static unsigned int efb_scale_numeratorX;

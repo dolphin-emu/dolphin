@@ -8,7 +8,6 @@
 #include "Timer.h"
 
 #include "Debugger.h"
-#include "DLCache.h"
 #include "EmuWindow.h"
 #include "Fifo.h"
 #include "OnScreenDisplay.h"
@@ -950,7 +949,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
-	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 
 	// Enable configuration changes

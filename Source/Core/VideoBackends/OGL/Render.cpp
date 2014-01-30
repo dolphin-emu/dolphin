@@ -33,7 +33,6 @@
 #include "TextureCache.h"
 #include "RasterFont.h"
 #include "VertexShaderGen.h"
-#include "DLCache.h"
 #include "ProgramShaderCache.h"
 #include "VertexShaderManager.h"
 #include "VertexLoaderManager.h"
@@ -1588,7 +1587,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	}
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
-	DLCache::ProgressiveCleanup();
 	TextureCache::Cleanup();
 
 	frameCount++;
