@@ -19,9 +19,9 @@ namespace Core
 class DeviceQualifier;
 
 //
-//		Device
+// Device
 //
-// a device class
+// A device class
 //
 class Device
 {
@@ -30,11 +30,11 @@ public:
 	class Output;
 
 	//
-	//		Control
+	// Control
 	//
-	//  control includes inputs and outputs
+	// Control includes inputs and outputs
 	//
-	class Control		// input or output
+	class Control // input or output
 	{
 	public:
 		virtual std::string GetName() const = 0;
@@ -45,9 +45,9 @@ public:
 	};
 
 	//
-	//		Input
+	// Input
 	//
-	// an input on a device
+	// An input on a device
 	//
 	class Input : public Control
 	{
@@ -61,9 +61,9 @@ public:
 	};
 
 	//
-	//		Output
+	// Output
 	//
-	// an output on a device
+	// An output on a device
 	//
 	class Output : public Control
 	{
@@ -126,15 +126,15 @@ protected:
 	}
 
 private:
-	std::vector<Input*>		m_inputs;
-	std::vector<Output*>	m_outputs;
+	std::vector<Input*>  m_inputs;
+	std::vector<Output*> m_outputs;
 };
 
 //
-//		DeviceQualifier
+// DeviceQualifier
 //
-// device qualifier used to match devices
-// currently has ( source, id, name ) properties which match a device
+// Device qualifier used to match devices.
+// Currently has ( source, id, name ) properties which match a device
 //
 class DeviceQualifier
 {
@@ -148,9 +148,9 @@ public:
 	bool operator==(const DeviceQualifier& devq) const;
 	bool operator==(const Device* const dev) const;
 
-	std::string		source;
-	int				cid;
-	std::string		name;
+	std::string  source;
+	int          cid;
+	std::string  name;
 };
 
 class DeviceContainer

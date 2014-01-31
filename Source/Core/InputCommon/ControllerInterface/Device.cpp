@@ -10,29 +10,19 @@ namespace Core
 {
 
 //
-//		Device :: ~Device
+// Device :: ~Device
 //
 // Destructor, delete all inputs/outputs on device destruction
 //
 Device::~Device()
 {
-	{
 	// delete inputs
-	std::vector<Device::Input*>::iterator
-		i = m_inputs.begin(),
-		e = m_inputs.end();
-	for ( ;i!=e; ++i)
-		delete *i;
-	}
+	for (Device::Input* input : m_inputs)
+		delete input;
 
-	{
 	// delete outputs
-	std::vector<Device::Output*>::iterator
-		o = m_outputs.begin(),
-		e = m_outputs.end();
-	for ( ;o!=e; ++o)
-		delete *o;
-	}
+	for (Device::Output* output: m_outputs)
+		delete output;
 }
 
 void Device::AddInput(Device::Input* const i)
@@ -47,30 +37,28 @@ void Device::AddOutput(Device::Output* const o)
 
 Device::Input* Device::FindInput(const std::string &name) const
 {
-	std::vector<Input*>::const_iterator
-		it = m_inputs.begin(),
-		itend = m_inputs.end();
-	for (; it != itend; ++it)
-		if ((*it)->GetName() == name)
-			return *it;
+	for (Input* input : m_inputs)
+	{
+		if (input->GetName() == name)
+			return input;
+	}
 
 	return NULL;
 }
 
 Device::Output* Device::FindOutput(const std::string &name) const
 {
-	std::vector<Output*>::const_iterator
-		it = m_outputs.begin(),
-		itend = m_outputs.end();
-	for (; it != itend; ++it)
-		if ((*it)->GetName() == name)
-			return *it;
+	for (Output* output : m_outputs)
+	{
+		if (output->GetName() == name)
+			return output;
+	}
 
 	return NULL;
 }
 
 //
-//		Device :: ClearInputState
+// Device :: ClearInputState
 //
 // Device classes should override this function
 // ControllerInterface will call this when the device returns failure during UpdateInput
@@ -84,26 +72,28 @@ void Device::ClearInputState()
 }
 
 //
-//		DeviceQualifier :: ToString
+// DeviceQualifier :: ToString
 //
-// get string from a device qualifier / serialize
+// Get string from a device qualifier / serialize
 //
 std::string DeviceQualifier::ToString() const
 {
 	if (source.empty() && (cid < 0) && name.empty())
 		return "";
+
 	std::ostringstream ss;
 	ss << source << '/';
-	if ( cid > -1 )
+	if (cid > -1)
 		ss << cid;
 	ss << '/' << name;
+
 	return ss.str();
 }
 
 //
-//		DeviceQualifier	::	FromString
+// DeviceQualifier :: FromString
 //
-// set a device qualifier from a string / unserialize
+// Set a device qualifier from a string / unserialize
 //
 void DeviceQualifier::FromString(const std::string& str)
 {
@@ -119,9 +109,9 @@ void DeviceQualifier::FromString(const std::string& str)
 }
 
 //
-//		DeviceQualifier :: FromDevice
+// DeviceQualifier :: FromDevice
 //
-// set a device qualifier from a device
+// Set a device qualifier from a device
 //
 void DeviceQualifier::FromDevice(const Device* const dev)
 {
@@ -136,6 +126,7 @@ bool DeviceQualifier::operator==(const Device* const dev) const
 		if (dev->GetName() == name)
 			if (dev->GetSource() == source)
 				return true;
+
 	return false;
 }
 
@@ -151,12 +142,11 @@ bool DeviceQualifier::operator==(const DeviceQualifier& devq) const
 
 Device* DeviceContainer::FindDevice(const DeviceQualifier& devq) const
 {
-	std::vector<Device*>::const_iterator
-		di = m_devices.begin(),
-		de = m_devices.end();
-	for (; di!=de; ++di)
-		if (devq == *di)
-			return *di;
+	for (Device* d : m_devices)
+	{
+		if (devq == d)
+			return d;
+	}
 
 	return NULL;
 }
@@ -170,12 +160,9 @@ Device::Input* DeviceContainer::FindInput(const std::string& name, const Device*
 			return inp;
 	}
 
-	std::vector<Device*>::const_iterator
-		di = m_devices.begin(),
-		de = m_devices.end();
-	for (; di != de; ++di)
+	for (Device* d : m_devices)
 	{
-		Device::Input* const i = (*di)->FindInput(name);
+		Device::Input* const i = d->FindInput(name);
 
 		if (i)
 			return i;

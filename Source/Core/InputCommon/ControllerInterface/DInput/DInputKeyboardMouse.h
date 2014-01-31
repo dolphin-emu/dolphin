@@ -21,8 +21,8 @@ class KeyboardMouse : public Core::Device
 private:
 	struct State
 	{
-		BYTE			keyboard[256];
-		DIMOUSESTATE2	mouse;
+		BYTE          keyboard[256];
+		DIMOUSESTATE2 mouse;
 		struct
 		{
 			float x, y;
@@ -98,13 +98,13 @@ public:
 	std::string GetSource() const;
 
 private:
-	const LPDIRECTINPUTDEVICE8	m_kb_device;
-	const LPDIRECTINPUTDEVICE8	m_mo_device;
+	const LPDIRECTINPUTDEVICE8 m_kb_device;
+	const LPDIRECTINPUTDEVICE8 m_mo_device;
 
-	DWORD				m_last_update;
-	State				m_state_in;
-	unsigned char		m_state_out[3];	// NUM CAPS SCROLL
-	bool				m_current_state_out[3];	// NUM CAPS SCROLL
+	DWORD         m_last_update;
+	State         m_state_in;
+	unsigned char m_state_out[3];         // NUM CAPS SCROLL
+	bool          m_current_state_out[3]; // NUM CAPS SCROLL
 };
 
 }
