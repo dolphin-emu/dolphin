@@ -13,11 +13,6 @@
 #include "../JitCommon/JitBase.h"
 #include "JitILAsm.h"
 
-#define JITDISABLE(setting) \
-	if (Core::g_CoreStartupParameter.bJITOff || \
-		Core::g_CoreStartupParameter.setting) \
-		{Default(inst); return;}
-
 #define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0]))
 class JitArmIL : public JitILBase, public ArmGen::ARMXCodeBlock
 {
