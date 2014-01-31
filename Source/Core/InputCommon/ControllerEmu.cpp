@@ -10,7 +10,6 @@
 
 ControllerEmu::~ControllerEmu()
 {
-	// control groups
 	for (ControlGroup* cg : groups)
 		delete cg;
 }
@@ -77,7 +76,6 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 		s->value /= 100;
 	}
 
-	// controls
 	for (Control* c : controls)
 	{
 		// control expression
@@ -129,11 +127,9 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::s
 {
 	std::string group(base + name); group += "/";
 
-	// settings
 	for (Setting* s : settings)
 		sec->Set((group + s->name).c_str(), s->value*100.0f, s->default_value*100.0f);
 
-	// controls
 	for (Control* c : controls)
 	{
 		// control expression
