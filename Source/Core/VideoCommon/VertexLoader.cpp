@@ -551,12 +551,6 @@ void VertexLoader::CompileVertexTranslator()
 	int nat_offset = 0;
 	PortableVertexDeclaration vtx_decl;
 	memset(&vtx_decl, 0, sizeof(vtx_decl));
-	for (int i = 0; i < 8; i++)
-	{
-		vtx_decl.texcoord_offset[i] = -1;
-	}
-
-	// m_VBVertexStride for texmtx and posmtx is computed later when writing.
 
 	// Position Matrix Index
 	if (m_VtxDesc.PosMatIdx)
@@ -588,9 +582,13 @@ void VertexLoader::CompileVertexTranslator()
 	}
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
 	nat_offset += 12;
+	vtx_decl.position.components = 3;
+	vtx_decl.position.enable = true;
+	vtx_decl.position.offset = 0;
+	vtx_decl.position.type = VAR_FLOAT;
+	vtx_decl.position.integer = false;
 
 	// Normals
-	vtx_decl.num_normals = 0;
 	if (m_VtxDesc.Normal != NOT_PRESENT)
 	{
 		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal,
@@ -607,20 +605,13 @@ void VertexLoader::CompileVertexTranslator()
 		}
 		WriteCall(pFunc);
 
-		vtx_decl.num_normals = vtx_attr.NormalElements ? 3 : 1;
-		vtx_decl.normal_offset[0] = -1;
-		vtx_decl.normal_offset[1] = -1;
-		vtx_decl.normal_offset[2] = -1;
-		vtx_decl.normal_gl_type = VAR_FLOAT;
-		vtx_decl.normal_gl_size = 3;
-		vtx_decl.normal_offset[0] = nat_offset;
-		nat_offset += 12;
-
-		if (vtx_attr.NormalElements)
+		for (int i = 0; i < (vtx_attr.NormalElements ? 3 : 1); i++)
 		{
-			vtx_decl.normal_offset[1] = nat_offset;
-			nat_offset += 12;
-			vtx_decl.normal_offset[2] = nat_offset;
+			vtx_decl.normals[i].components = 3;
+			vtx_decl.normals[i].enable = true;
+			vtx_decl.normals[i].offset = nat_offset;
+			vtx_decl.normals[i].type = VAR_FLOAT;
+			vtx_decl.normals[i].integer = false;
 			nat_offset += 12;
 		}
 
@@ -631,17 +622,14 @@ void VertexLoader::CompileVertexTranslator()
 			components |= VB_HAS_NRM1 | VB_HAS_NRM2;
 	}
 
-	vtx_decl.color_gl_type = VAR_UNSIGNED_BYTE;
-	vtx_decl.color_offset[0] = -1;
-	vtx_decl.color_offset[1] = -1;
 	for (int i = 0; i < 2; i++)
 	{
-		components |= VB_HAS_COL0 << i;
+		vtx_decl.colors[i].components = 4;
+		vtx_decl.colors[i].type = VAR_UNSIGNED_BYTE;
+		vtx_decl.colors[i].integer = false;
 		switch (col[i])
 		{
 		case NOT_PRESENT:
-			components &= ~(VB_HAS_COL0 << i);
-			vtx_decl.color_offset[i] = -1;
 			break;
 		case DIRECT:
 			switch (m_VtxAttr.color[i].Comp)
@@ -685,7 +673,9 @@ void VertexLoader::CompileVertexTranslator()
 		// Common for the three bottom cases
 		if (col[i] != NOT_PRESENT)
 		{
-			vtx_decl.color_offset[i] = nat_offset;
+			components |= VB_HAS_COL0 << i;
+			vtx_decl.colors[i].offset = nat_offset;
+			vtx_decl.colors[i].enable = true;
 			nat_offset += 4;
 		}
 	}
@@ -693,7 +683,10 @@ void VertexLoader::CompileVertexTranslator()
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
 	for (int i = 0; i < 8; i++)
 	{
-		vtx_decl.texcoord_offset[i] = -1;
+		vtx_decl.texcoords[i].offset = nat_offset;
+		vtx_decl.texcoords[i].type = VAR_FLOAT;
+		vtx_decl.texcoords[i].integer = false;
+
 		const int format = m_VtxAttr.texCoord[i].Format;
 		const int elements = m_VtxAttr.texCoord[i].Elements;
 
@@ -714,21 +707,18 @@ void VertexLoader::CompileVertexTranslator()
 
 		if (components & (VB_HAS_TEXMTXIDX0 << i))
 		{
+			vtx_decl.texcoords[i].enable = true;
 			if (tc[i] != NOT_PRESENT)
 			{
 				// if texmtx is included, texcoord will always be 3 floats, z will be the texmtx index
-				vtx_decl.texcoord_offset[i] = nat_offset;
-				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
-				vtx_decl.texcoord_size[i] = 3;
+				vtx_decl.texcoords[i].components = 3;
 				nat_offset += 12;
 				WriteCall(m_VtxAttr.texCoord[i].Elements ? TexMtx_Write_Float : TexMtx_Write_Float2);
 			}
 			else
 			{
 				components |= VB_HAS_UV0 << i; // have to include since using now
-				vtx_decl.texcoord_offset[i] = nat_offset;
-				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
-				vtx_decl.texcoord_size[i] = 4;
+				vtx_decl.texcoords[i].components = 4;
 				nat_offset += 16; // still include the texture coordinate, but this time as 6 + 2 bytes
 				WriteCall(TexMtx_Write_Float4);
 			}
@@ -737,9 +727,8 @@ void VertexLoader::CompileVertexTranslator()
 		{
 			if (tc[i] != NOT_PRESENT)
 			{
-				vtx_decl.texcoord_offset[i] = nat_offset;
-				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
-				vtx_decl.texcoord_size[i] = vtx_attr.texCoord[i].Elements ? 2 : 1;
+				vtx_decl.texcoords[i].enable = true;
+				vtx_decl.texcoords[i].components = vtx_attr.texCoord[i].Elements ? 2 : 1;
 				nat_offset += 4 * (vtx_attr.texCoord[i].Elements ? 2 : 1);
 			}
 		}
@@ -768,12 +757,12 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.PosMatIdx)
 	{
 		WriteCall(PosMtx_Write);
-		vtx_decl.posmtx_offset = nat_offset;
+		vtx_decl.posmtx.components = 4;
+		vtx_decl.posmtx.enable = true;
+		vtx_decl.posmtx.offset = nat_offset;
+		vtx_decl.posmtx.type = VAR_UNSIGNED_BYTE;
+		vtx_decl.posmtx.integer = false;
 		nat_offset += 4;
-	}
-	else
-	{
-		vtx_decl.posmtx_offset = -1;
 	}
 
 	native_stride = nat_offset;

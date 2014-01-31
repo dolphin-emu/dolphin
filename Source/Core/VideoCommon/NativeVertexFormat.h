@@ -65,28 +65,31 @@ typedef void (LOADERDECL *TPipelineFunction)();
 
 enum VarType
 {
-	VAR_BYTE,
-	VAR_UNSIGNED_BYTE,
-	VAR_SHORT,
-	VAR_UNSIGNED_SHORT,
-	VAR_FLOAT,
+	VAR_UNSIGNED_BYTE,  // GX_U8  = 0
+	VAR_BYTE,           // GX_S8  = 1
+	VAR_UNSIGNED_SHORT, // GX_U16 = 2
+	VAR_SHORT,          // GX_S16 = 3
+	VAR_FLOAT,          // GX_F32 = 4
+};
+
+struct AttributeFormat
+{
+	VarType type;
+	int components;
+	int offset;
+	bool enable;
+	bool integer;
 };
 
 struct PortableVertexDeclaration
 {
 	int stride;
 
-	int num_normals;
-	int normal_offset[3];
-	VarType normal_gl_type;
-	int normal_gl_size;
-	VarType color_gl_type;  // always GL_UNSIGNED_BYTE
-	int color_offset[2];
-	VarType texcoord_gl_type[8];
-	//int texcoord_gl_size[8];
-	int texcoord_offset[8];
-	int texcoord_size[8];
-	int posmtx_offset;
+	AttributeFormat position;
+	AttributeFormat normals[3];
+	AttributeFormat colors[2];
+	AttributeFormat texcoords[8];
+	AttributeFormat posmtx;
 };
 
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp

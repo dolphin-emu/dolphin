@@ -32,33 +32,27 @@ NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
 	return new D3DVertexFormat();
 }
 
-DXGI_FORMAT VarToD3D(VarType t, int size)
+static const DXGI_FORMAT d3d_format_lookup[5*4*2] =
 {
-	DXGI_FORMAT retval = DXGI_FORMAT_UNKNOWN;
-	static const DXGI_FORMAT lookup1[5] = {
-		DXGI_FORMAT_R8_SNORM, DXGI_FORMAT_R8_UNORM, DXGI_FORMAT_R16_SNORM, DXGI_FORMAT_R16_UNORM, DXGI_FORMAT_R32_FLOAT
-	};
-	static const DXGI_FORMAT lookup2[5] = {
-		DXGI_FORMAT_R8G8_SNORM, DXGI_FORMAT_R8G8_UNORM, DXGI_FORMAT_R16G16_SNORM, DXGI_FORMAT_R16G16_UNORM, DXGI_FORMAT_R32G32_FLOAT
-	};
-	static const DXGI_FORMAT lookup3[5] = {
-		DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R32G32B32_FLOAT
-	};
-	static const DXGI_FORMAT lookup4[5] = {
-		DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R16G16B16A16_SNORM, DXGI_FORMAT_R16G16B16A16_UNORM, DXGI_FORMAT_R32G32B32A32_FLOAT
-	};
+	// float formats
+	DXGI_FORMAT_R8_UNORM, DXGI_FORMAT_R8_SNORM, DXGI_FORMAT_R16_UNORM, DXGI_FORMAT_R16_SNORM, DXGI_FORMAT_R32_FLOAT,
+	DXGI_FORMAT_R8G8_UNORM, DXGI_FORMAT_R8G8_SNORM, DXGI_FORMAT_R16G16_UNORM, DXGI_FORMAT_R16G16_SNORM, DXGI_FORMAT_R32G32_FLOAT,
+	DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R32G32B32_FLOAT,
+	DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_SNORM, DXGI_FORMAT_R16G16B16A16_UNORM, DXGI_FORMAT_R16G16B16A16_SNORM, DXGI_FORMAT_R32G32B32A32_FLOAT,
 
-	switch (size)
-	{
-	case 1: retval = lookup1[t]; break;
-	case 2: retval = lookup2[t]; break;
-	case 3: retval = lookup3[t]; break;
-	case 4: retval = lookup4[t]; break;
-	default: break;
-	}
+	// integer formats
+	DXGI_FORMAT_R8_UINT, DXGI_FORMAT_R8_SINT, DXGI_FORMAT_R16_UINT, DXGI_FORMAT_R16_SINT, DXGI_FORMAT_UNKNOWN,
+	DXGI_FORMAT_R8G8_UINT, DXGI_FORMAT_R8G8_SINT, DXGI_FORMAT_R16G16_UINT, DXGI_FORMAT_R16G16_SINT, DXGI_FORMAT_UNKNOWN,
+	DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN,
+	DXGI_FORMAT_R8G8B8A8_UINT, DXGI_FORMAT_R8G8B8A8_SINT, DXGI_FORMAT_R16G16B16A16_UINT, DXGI_FORMAT_R16G16B16A16_SINT, DXGI_FORMAT_UNKNOWN,
+};
+
+DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
+{
+	DXGI_FORMAT retval = d3d_format_lookup[(int)t + 5*(size-1) + 5*4*(int)integer];
 	if (retval == DXGI_FORMAT_UNKNOWN)
 	{
-		PanicAlert("VarToD3D: Invalid type/size combo %i , %i", (int)t, size);
+		PanicAlert("VarToD3D: Invalid type/size combo %i , %i, %i", (int)t, size, (int)integer);
 	}
 	return retval;
 }
@@ -67,21 +61,26 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
 	vertex_stride = _vtx_decl.stride;
 	memset(m_elems, 0, sizeof(m_elems));
+	const AttributeFormat* format = &_vtx_decl.position;
 
-	m_elems[m_num_elems].SemanticName = "POSITION";
-	m_elems[m_num_elems].AlignedByteOffset = 0;
-	m_elems[m_num_elems].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	++m_num_elems;
+	if (format->enable)
+	{
+		m_elems[m_num_elems].SemanticName = "POSITION";
+		m_elems[m_num_elems].AlignedByteOffset = format->offset;
+		m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
+		m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		++m_num_elems;
+	}
 
 	for (int i = 0; i < 3; i++)
 	{
-		if (_vtx_decl.normal_offset[i] > 0)
+		format = &_vtx_decl.normals[i];
+		if (format->enable)
 		{
 			m_elems[m_num_elems].SemanticName = "NORMAL";
 			m_elems[m_num_elems].SemanticIndex = i;
-			m_elems[m_num_elems].AlignedByteOffset = _vtx_decl.normal_offset[i];
-			m_elems[m_num_elems].Format = VarToD3D(_vtx_decl.normal_gl_type, _vtx_decl.normal_gl_size);
+			m_elems[m_num_elems].AlignedByteOffset = format->offset;
+			m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
 			m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			++m_num_elems;
 		}
@@ -89,12 +88,13 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 2; i++)
 	{
-		if (_vtx_decl.color_offset[i] > 0)
+		format = &_vtx_decl.colors[i];
+		if (format->enable)
 		{
 			m_elems[m_num_elems].SemanticName = "COLOR";
 			m_elems[m_num_elems].SemanticIndex = i;
-			m_elems[m_num_elems].AlignedByteOffset = _vtx_decl.color_offset[i];
-			m_elems[m_num_elems].Format = VarToD3D(_vtx_decl.color_gl_type, 4);
+			m_elems[m_num_elems].AlignedByteOffset = format->offset;
+			m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
 			m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			++m_num_elems;
 		}
@@ -102,22 +102,24 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 
 	for (int i = 0; i < 8; i++)
 	{
-		if (_vtx_decl.texcoord_offset[i] > 0)
+		format = &_vtx_decl.texcoords[i];
+		if (format->enable)
 		{
 			m_elems[m_num_elems].SemanticName = "TEXCOORD";
 			m_elems[m_num_elems].SemanticIndex = i;
-			m_elems[m_num_elems].AlignedByteOffset = _vtx_decl.texcoord_offset[i];
-			m_elems[m_num_elems].Format = VarToD3D(_vtx_decl.texcoord_gl_type[i], _vtx_decl.texcoord_size[i]);
+			m_elems[m_num_elems].AlignedByteOffset = format->offset;
+			m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
 			m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			++m_num_elems;
 		}
 	}
 
-	if (_vtx_decl.posmtx_offset != -1)
+	format = &_vtx_decl.posmtx;
+	if (format->enable)
 	{
 		m_elems[m_num_elems].SemanticName = "BLENDINDICES";
-		m_elems[m_num_elems].AlignedByteOffset = _vtx_decl.posmtx_offset;
-		m_elems[m_num_elems].Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		m_elems[m_num_elems].AlignedByteOffset = format->offset;
+		m_elems[m_num_elems].Format = VarToD3D(format->type, format->components, format->integer);
 		m_elems[m_num_elems].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 		++m_num_elems;
 	}
