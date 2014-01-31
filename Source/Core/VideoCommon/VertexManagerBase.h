@@ -32,8 +32,6 @@ public:
 	// needs to be virtual for DX11's dtor
 	virtual ~VertexManager();
 
-	static void AddVertices(int _primitive, u32 _numVertices);
-
 	static u8 *s_pCurBufferPointer;
 	static u8 *s_pBaseBufferPointer;
 	static u8 *s_pEndBufferPointer;

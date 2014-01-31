@@ -59,7 +59,6 @@ int Renderer::s_LastEFBScale;
 
 bool Renderer::s_skipSwap;
 bool Renderer::XFBWrited;
-bool Renderer::s_EnableDLCachingAfterRecording;
 
 unsigned int Renderer::prev_efb_format = (unsigned int)-1;
 unsigned int Renderer::efb_scale_numeratorX = 1;
@@ -490,18 +489,10 @@ void Renderer::CheckFifoRecording()
 	{
 		if (!wasRecording)
 		{
-			// Disable display list caching because the recorder does not handle it
-			s_EnableDLCachingAfterRecording = g_ActiveConfig.bDlistCachingEnable;
-			g_ActiveConfig.bDlistCachingEnable = false;
-
 			RecordVideoMemory();
 		}
 
 		FifoRecorder::GetInstance().EndFrame(CommandProcessor::fifo.CPBase, CommandProcessor::fifo.CPEnd);
-	}
-	else if (wasRecording)
-	{
-		g_ActiveConfig.bDlistCachingEnable = s_EnableDLCachingAfterRecording;
 	}
 }
 

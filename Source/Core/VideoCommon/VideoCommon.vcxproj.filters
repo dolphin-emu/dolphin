@@ -120,9 +120,6 @@
     <ClCompile Include="VideoState.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="DLCache_x64.cpp">
-      <Filter>Vertex Loading</Filter>
-    </ClCompile>
     <ClCompile Include="VertexLoader.cpp">
       <Filter>Vertex Loading</Filter>
     </ClCompile>
@@ -251,9 +248,6 @@
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="DataReader.h">
-      <Filter>Vertex Loading</Filter>
-    </ClInclude>
-    <ClInclude Include="DLCache.h">
       <Filter>Vertex Loading</Filter>
     </ClInclude>
     <ClInclude Include="VertexLoader.h">

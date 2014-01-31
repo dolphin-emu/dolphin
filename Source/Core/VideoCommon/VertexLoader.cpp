@@ -19,6 +19,7 @@
 #include "BPMemory.h"
 #include "DataReader.h"
 #include "VertexManagerBase.h"
+#include "IndexGenerator.h"
 
 #include "VertexLoader_Position.h"
 #include "VertexLoader_Normal.h"
@@ -836,7 +837,7 @@ void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 }
 #endif
 
-int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const count)
+void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const count)
 {
 	m_numLoadedVertices += count;
 
@@ -850,13 +851,6 @@ int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const 
 		// Also move the Set() here?
 	}
 	g_nativeVertexFmt = m_NativeFmt;
-
-	if (bpmem.genMode.cullmode == 3 && primitive < 5)
-	{
-		// if cull mode is none, ignore triangles and quads
-		DataSkip(count * m_VertexSize);
-		return 0;
-	}
 
 	// Load position and texcoord scale factors.
 	m_VtxAttr.PosFrac				= g_VtxAttr[vtx_attr_group].g0.PosFrac;
@@ -881,17 +875,6 @@ int VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const 
 	s_bbox_primitive = primitive;
 	s_bbox_currPoint = 0;
 	s_bbox_loadedPoints = 0;
-
-	VertexManager::PrepareForAdditionalData(primitive, count, native_stride);
-
-	return count;
-}
-
-void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const count)
-{
-	auto const new_count = SetupRunVertices(vtx_attr_group, primitive, count);
-	ConvertVertices(new_count);
-	VertexManager::AddVertices(primitive, new_count);
 }
 
 void VertexLoader::ConvertVertices ( int count )
@@ -915,15 +898,21 @@ void VertexLoader::ConvertVertices ( int count )
 #endif
 }
 
-void VertexLoader::RunCompiledVertices(int vtx_attr_group, int primitive, int const count, u8* Data)
+void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int const count)
 {
-	auto const new_count = SetupRunVertices(vtx_attr_group, primitive, count);
+	if (bpmem.genMode.cullmode == 3 && primitive < 5)
+	{
+		// if cull mode is none, ignore triangles and quads
+		DataSkip(count * m_VertexSize);
+		return;
+	}
+	SetupRunVertices(vtx_attr_group, primitive, count);
+	VertexManager::PrepareForAdditionalData(primitive, count, native_stride);
+	ConvertVertices(count);
+	IndexGenerator::AddIndices(primitive, count);
 
-	memcpy_gc(VertexManager::s_pCurBufferPointer, Data, native_stride * new_count);
-	VertexManager::s_pCurBufferPointer += native_stride * new_count;
-	DataSkip(new_count * m_VertexSize);
-
-	VertexManager::AddVertices(primitive, new_count);
+	ADDSTAT(stats.thisFrame.numPrims, count);
+	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 }
 
 void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)

@@ -17,7 +17,6 @@
 #include "HW/ProcessorInterface.h"
 #include "HW/GPFifo.h"
 #include "HW/Memmap.h"
-#include "DLCache.h"
 #include "HW/SystemTimers.h"
 #include "Core.h"
 
@@ -409,7 +408,6 @@ void Write16(const u16 _Value, const u32 _Address)
 		{
 			ResetVideoBuffer();
 		}
-		IncrementCheckContextId();
 		DEBUG_LOG(COMMANDPROCESSOR,"Try to write to FIFO_RW_DISTANCE_HI : %04x", _Value);
 		break;
 	case FIFO_RW_DISTANCE_LO:
@@ -527,7 +525,6 @@ void SetCpStatus(bool isCPUThread)
 				{
 					INFO_LOG(COMMANDPROCESSOR, "Hit breakpoint at %i", fifo.CPReadPointer);
 					fifo.bFF_Breakpoint = true;
-					IncrementCheckContextId();
 				}
 			}
 			else

@@ -112,15 +112,6 @@ void InterpretDisplayList(u32 address, u32 size)
 	g_pVideoData = old_pVideoData;
 }
 
-// Defer to backend-specific DL cache.
-extern bool HandleDisplayList(u32 address, u32 size);
-
-void ExecuteDisplayList(u32 address, u32 size)
-{
-	if (!HandleDisplayList(address, size))
-		InterpretDisplayList(address, size);
-}
-
 u32 FifoCommandRunnable(u32 &command_size)
 {
 	u32 cycleTime = 0;
@@ -337,7 +328,7 @@ static void Decode()
 		{
 			u32 address = DataReadU32();
 			u32 count = DataReadU32();
-			ExecuteDisplayList(address, count);
+			InterpretDisplayList(address, count);
 		}
 		break;
 

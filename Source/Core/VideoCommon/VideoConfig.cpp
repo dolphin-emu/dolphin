@@ -90,7 +90,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Enhancements", "Enable3dVision", &b3DVision, false);
 
 	iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true);
-	iniFile.Get("Hacks", "DlistCachingEnable", &bDlistCachingEnable,false);
 	iniFile.Get("Hacks", "EFBCopyEnable", &bEFBCopyEnable, true);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToTexture, true);
 	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
@@ -189,7 +188,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "Enable3dVision", b3DVision);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
-	CHECK_SETTING("Video_Hacks", "DlistCachingEnable", bDlistCachingEnable);
 	CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
@@ -269,7 +267,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Enhancements", "Enable3dVision", b3DVision);
 
 	iniFile.Set("Hacks", "EFBAccessEnable", bEFBAccessEnable);
-	iniFile.Set("Hacks", "DlistCachingEnable", bDlistCachingEnable);
 	iniFile.Set("Hacks", "EFBCopyEnable", bEFBCopyEnable);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
 	iniFile.Set("Hacks", "EFBScaledCopy", bCopyEFBScaled);

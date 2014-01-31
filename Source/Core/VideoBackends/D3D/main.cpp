@@ -20,7 +20,6 @@
 #include "Host.h"
 
 #include "Debugger/DebuggerPanel.h"
-#include "DLCache.h"
 #include "EmuWindow.h"
 #include "IndexGenerator.h"
 #include "FileUtil.h"
@@ -201,7 +200,6 @@ void VideoBackend::Video_Prepare()
 	PixelShaderManager::Init();
 	CommandProcessor::Init();
 	PixelEngine::Init();
-	DLCache::Init();
 
 	// Tell the host that the window is ready
 	Host_Message(WM_USER_CREATE);
@@ -219,7 +217,6 @@ void VideoBackend::Shutdown()
 		s_swapRequested = FALSE;
 
 		// VideoCommon
-		DLCache::Shutdown();
 		Fifo_Shutdown();
 		CommandProcessor::Shutdown();
 		PixelShaderManager::Shutdown();
