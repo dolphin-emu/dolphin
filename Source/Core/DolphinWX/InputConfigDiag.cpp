@@ -31,8 +31,7 @@ void GamepadPage::ConfigExtension(wxCommandEvent& event)
 		wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
 		const std::size_t orig_size = control_groups.size();
 
-		ControlGroupsSizer* const szr =
-			new ControlGroupsSizer(ex->attachments[ex->switch_extension], &dlg, this, &control_groups);
+		ControlGroupsSizer* const szr = new ControlGroupsSizer(ex->attachments[ex->switch_extension].get(), &dlg, this, &control_groups);
 		main_szr->Add(szr, 0, wxLEFT, 5);
 		main_szr->Add(dlg.CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 		dlg.SetSizerAndFit(main_szr);
@@ -49,13 +48,10 @@ PadSettingExtension::PadSettingExtension(wxWindow* const parent, ControllerEmu::
 	: PadSetting(new wxChoice(parent, -1))
 	, extension(ext)
 {
-
-	std::vector<ControllerEmu*>::const_iterator
-		i = extension->attachments.begin(),
-		e = extension->attachments.end();
-
-	for (; i!=e; ++i)
-		((wxChoice*)wxcontrol)->Append(wxGetTranslation(StrToWxStr((*i)->GetName())));
+	for (auto& attachment : extension->attachments)
+	{
+		((wxChoice*)wxcontrol)->Append(wxGetTranslation(StrToWxStr(attachment->GetName())));
+	}
 
 	UpdateGUI();
 }
@@ -724,20 +720,16 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 	static_bitmap = NULL;
 
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-	std::vector<ControllerEmu::ControlGroup::Control*>::iterator
-		ci = group->controls.begin(),
-		ce = group->controls.end();
-	for (; ci != ce; ++ci)
+	for (auto& control : group->controls)
 	{
+		wxStaticText* const label = new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr(control->name)));
 
-		wxStaticText* const label = new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr((*ci)->name)));
-
-		ControlButton* const control_button = new ControlButton(parent, (*ci)->control_ref, 80);
+		ControlButton* const control_button = new ControlButton(parent, control->control_ref.get(), 80);
 		control_button->SetFont(m_SmallFont);
 
 		control_buttons.push_back(control_button);
 
-		if ((*ci)->control_ref->is_input)
+		if (control->control_ref->is_input)
 		{
 			control_button->SetToolTip(_("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
 			control_button->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &GamepadPage::DetectControl, eventsink);
@@ -774,17 +766,13 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			dc.Clear();
 			static_bitmap = new wxStaticBitmap(parent, -1, bitmap, wxDefaultPosition, wxDefaultSize, wxBITMAP_TYPE_BMP);
 
-			std::vector< ControllerEmu::ControlGroup::Setting* >::const_iterator
-				i = group->settings.begin(),
-				e = group->settings.end();
-
 			wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
-			for (; i!=e; ++i)
+			for (auto& groupSetting : group->settings)
 			{
-				PadSettingSpin* setting = new PadSettingSpin(parent, *i);
+				PadSettingSpin* setting = new PadSettingSpin(parent, groupSetting.get());
 				setting->wxcontrol->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &GamepadPage::AdjustSetting, eventsink);
 				options.push_back(setting);
-				szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr((*i)->name))));
+				szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr(groupSetting->name))));
 				szr->Add(setting->wxcontrol, 0, wxLEFT, 0);
 			}
 
@@ -802,7 +790,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			dc.Clear();
 			static_bitmap = new wxStaticBitmap(parent, -1, bitmap, wxDefaultPosition, wxDefaultSize, wxBITMAP_TYPE_BMP);
 
-			PadSettingSpin* const threshold_cbox = new PadSettingSpin(parent, group->settings[0]);
+			PadSettingSpin* const threshold_cbox = new PadSettingSpin(parent, group->settings[0].get());
 			threshold_cbox->wxcontrol->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &GamepadPage::AdjustSetting, eventsink);
 
 			threshold_cbox->wxcontrol->SetToolTip(_("Adjust the analog control pressure required to activate buttons."));
@@ -836,16 +824,13 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 			dc.Clear();
 			static_bitmap = new wxStaticBitmap(parent, -1, bitmap, wxDefaultPosition, wxDefaultSize, wxBITMAP_TYPE_BMP);
 
-			std::vector<ControllerEmu::ControlGroup::Setting*>::const_iterator
-				i = group->settings.begin(),
-				e = group->settings.end();
-			for (; i!=e; ++i)
+			for (auto& groupSetting : group->settings)
 			{
-				PadSettingSpin* setting = new PadSettingSpin(parent, *i);
+				PadSettingSpin* setting = new PadSettingSpin(parent, groupSetting.get());
 				setting->wxcontrol->Bind(wxEVT_COMMAND_SPINCTRL_UPDATED, &GamepadPage::AdjustSetting, eventsink);
 				options.push_back(setting);
 				wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-				szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr((*i)->name))), 0, wxCENTER|wxRIGHT, 3);
+				szr->Add(new wxStaticText(parent, -1, wxGetTranslation(StrToWxStr(groupSetting->name))), 0, wxCENTER|wxRIGHT, 3);
 				szr->Add(setting->wxcontrol, 0, wxRIGHT, 3);
 				Add(szr, 0, wxALL|wxCENTER, 3);
 			}
@@ -877,18 +862,13 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 	default:
 		{
 			//options
-
-			std::vector<ControllerEmu::ControlGroup::Setting*>::const_iterator
-				i = group->settings.begin(),
-				e = group->settings.end();
-			for (; i!=e; ++i)
+			for (auto& groupSetting : group->settings)
 			{
-				PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, (*i)->value, (*i)->name);
+				PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting->value, groupSetting->name);
 				setting_cbox->wxcontrol->Bind(wxEVT_COMMAND_CHECKBOX_CLICKED, &GamepadPage::AdjustSetting, eventsink);
 				options.push_back(setting_cbox);
 
 				Add(setting_cbox->wxcontrol, 0, wxALL|wxLEFT, 5);
-
 			}
 		}
 		break;
@@ -905,9 +885,9 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
 	size_t col_size = 0;
 
 	wxBoxSizer* stacked_groups = NULL;
-	for (ControllerEmu::ControlGroup* group : controller->groups)
+	for (auto& group : controller->groups)
 	{
-		ControlGroupBox* control_group_box = new ControlGroupBox(group, parent, eventsink);
+		ControlGroupBox* control_group_box = new ControlGroupBox(group.get(), parent, eventsink);
 		wxStaticBoxSizer *control_group =
 			new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(group->name)));
 		control_group->Add(control_group_box);

@@ -35,24 +35,24 @@ Nunchuk::Nunchuk(UDPWrapper *wrp, WiimoteEmu::ExtensionReg& _reg)
 	: Attachment(_trans("Nunchuk"), _reg) , m_udpWrap(wrp)
 {
 	// buttons
-	groups.push_back(m_buttons = new Buttons("Buttons"));
-	m_buttons->controls.push_back(new ControlGroup::Input("C"));
-	m_buttons->controls.push_back(new ControlGroup::Input("Z"));
+	groups.emplace_back(m_buttons = new Buttons("Buttons"));
+	m_buttons->controls.emplace_back(new ControlGroup::Input("C"));
+	m_buttons->controls.emplace_back(new ControlGroup::Input("Z"));
 
 	// stick
-	groups.push_back(m_stick = new AnalogStick("Stick"));
+	groups.emplace_back(m_stick = new AnalogStick("Stick"));
 
 	// swing
-	groups.push_back(m_swing = new Force("Swing"));
+	groups.emplace_back(m_swing = new Force("Swing"));
 
 	// tilt
-	groups.push_back(m_tilt = new Tilt("Tilt"));
+	groups.emplace_back(m_tilt = new Tilt("Tilt"));
 
 	// shake
-	groups.push_back(m_shake = new Buttons("Shake"));
-	m_shake->controls.push_back(new ControlGroup::Input("X"));
-	m_shake->controls.push_back(new ControlGroup::Input("Y"));
-	m_shake->controls.push_back(new ControlGroup::Input("Z"));
+	groups.emplace_back(m_shake = new Buttons("Shake"));
+	m_shake->controls.emplace_back(new ControlGroup::Input("X"));
+	m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
+	m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
 
 	// set up register
 	// calibration

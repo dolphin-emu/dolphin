@@ -9,6 +9,7 @@
 #define NOMINMAX
 
 #include <cmath>
+#include <memory>
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -62,11 +63,11 @@ public:
 		{
 		protected:
 			Control(ControllerInterface::ControlReference* const _ref, const char* const _name)
-				: control_ref(_ref), name(_name){}
-		public:
+				: control_ref(_ref), name(_name) {}
 
-			virtual ~Control();
-			ControllerInterface::ControlReference*  const control_ref;
+		public:
+			virtual ~Control() {}
+			std::unique_ptr<ControllerInterface::ControlReference> const control_ref;
 			const char* const  name;
 
 		};
@@ -77,7 +78,6 @@ public:
 
 			Input(const char* const _name)
 				: Control(new ControllerInterface::InputReference, _name) {}
-
 		};
 
 		class Output : public Control
@@ -86,7 +86,6 @@ public:
 
 			Output(const char* const _name)
 				: Control(new ControllerInterface::OutputReference, _name) {}
-
 		};
 
 		class Setting
@@ -108,7 +107,7 @@ public:
 		};
 
 		ControlGroup(const char* const _name, const unsigned int _type = GROUP_TYPE_OTHER) : name(_name), type(_type) {}
-		virtual ~ControlGroup();
+		virtual ~ControlGroup() {}
 
 		virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 		virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
@@ -116,8 +115,8 @@ public:
 		const char* const     name;
 		const unsigned int    type;
 
-		std::vector<Control*> controls;
-		std::vector<Setting*> settings;
+		std::vector<std::unique_ptr<Control>> controls;
+		std::vector<std::unique_ptr<Setting>> settings;
 
 	};
 
@@ -194,7 +193,7 @@ public:
 		template <typename C>
 		void GetState(C* const buttons, const C* bitmasks)
 		{
-			for (Control* control : controls)
+			for (auto& control : controls)
 			{
 				if (control->control_ref->State() > settings[0]->value) // threshold
 					*buttons |= *bitmasks;
@@ -425,17 +424,18 @@ public:
 			: ControlGroup(_name, GROUP_TYPE_EXTENSION)
 			, switch_extension(0)
 			, active_extension(0) {}
-		~Extension();
+
+		~Extension() {}
 
 		void GetState(u8* const data, const bool focus = true);
 
-		std::vector<ControllerEmu*> attachments;
+		std::vector<std::unique_ptr<ControllerEmu>> attachments;
 
 		int switch_extension;
 		int active_extension;
 	};
 
-	virtual ~ControllerEmu();
+	virtual ~ControllerEmu() {}
 
 	virtual std::string GetName() const = 0;
 
@@ -447,7 +447,7 @@ public:
 
 	void UpdateReferences(ControllerInterface& devi);
 
-	std::vector<ControlGroup*> groups;
+	std::vector<std::unique_ptr<ControlGroup>> groups;
 
 	DeviceQualifier default_device;
 };
