@@ -148,29 +148,25 @@ void InputConfigDialog::UpdateProfileComboBox()
 	const CFileSearch::XStringVector& sv = cfs.GetFileNames();
 
 	wxArrayString strs;
-	CFileSearch::XStringVector::const_iterator si = sv.begin(),
-		se = sv.end();
-	for (; si!=se; ++si)
+	for (auto si = sv.cbegin(); si != sv.cend(); ++si)
 	{
 		std::string str(si->begin() + si->find_last_of('/') + 1 , si->end() - 4) ;
 		strs.push_back(StrToWxStr(str));
 	}
 
-	std::vector< GamepadPage* >::iterator i = m_padpages.begin(),
-		e = m_padpages.end();
-	for (; i != e; ++i)
+	for (GamepadPage* page : m_padpages)
 	{
-		(*i)->profile_cbox->Clear();
-		(*i)->profile_cbox->Append(strs);
+		page->profile_cbox->Clear();
+		page->profile_cbox->Append(strs);
 	}
 }
 
 void InputConfigDialog::UpdateControlReferences()
 {
-	std::vector< GamepadPage* >::iterator i = m_padpages.begin(),
-		e = m_padpages.end();
-	for (; i != e; ++i)
-		(*i)->controller->UpdateReferences(g_controller_interface);
+	for (GamepadPage* page : m_padpages)
+	{
+		page->controller->UpdateReferences(g_controller_interface);
+	}
 }
 
 void InputConfigDialog::ClickSave(wxCommandEvent& event)
@@ -188,21 +184,17 @@ void ControlDialog::UpdateListContents()
 	{
 		if (control_reference->is_input)
 		{
-			// for inputs
-			std::vector<Device::Input*>::const_iterator
-				i = dev->Inputs().begin(),
-				e = dev->Inputs().end();
-			for (; i!=e; ++i)
-				control_lbox->Append(StrToWxStr((*i)->GetName()));
+			for (Device::Input* input : dev->Inputs())
+			{
+				control_lbox->Append(StrToWxStr(input->GetName()));
+			}
 		}
-		else
+		else // It's an output
 		{
-			// for outputs
-			std::vector<Device::Output*>::const_iterator
-				i = dev->Outputs().begin(),
-				e = dev->Outputs().end();
-			for (; i!=e; ++i)
-				control_lbox->Append(StrToWxStr((*i)->GetName()));
+			for (Device::Output* output : dev->Outputs())
+			{
+				control_lbox->Append(StrToWxStr(output->GetName()));
+			}
 		}
 	}
 }
@@ -242,24 +234,19 @@ void GamepadPage::UpdateGUI()
 {
 	device_cbox->SetValue(StrToWxStr(controller->default_device.ToString()));
 
-	std::vector< ControlGroupBox* >::const_iterator g = control_groups.begin(),
-		ge = control_groups.end();
-	for (; g!=ge; ++g)
+	for (ControlGroupBox* cgBox : control_groups)
 	{
-		// buttons
-		std::vector<ControlButton*>::const_iterator i = (*g)->control_buttons.begin()
-			, e = (*g)->control_buttons.end();
-		for (; i!=e; ++i) {
-			wxString expr = StrToWxStr((*i)->control_reference->expression);
+		for (ControlButton* button : cgBox->control_buttons)
+		{
+			wxString expr = StrToWxStr(button->control_reference->expression);
 			expr.Replace("&", "&&");
-			(*i)->SetLabel(expr);
+			button->SetLabel(expr);
 		}
 
-		// cboxes
-		std::vector<PadSetting*>::const_iterator si = (*g)->options.begin()
-			, se = (*g)->options.end();
-		for (; si!=se; ++si)
-			(*si)->UpdateGUI();
+		for (PadSetting* padSetting : cgBox->options)
+		{
+			padSetting->UpdateGUI();
+		}
 	}
 }
 
@@ -338,9 +325,10 @@ void ControlDialog::ClearControl(wxCommandEvent&)
 
 inline bool IsAlphabetic(wxString &str)
 {
-	for (wxString::const_iterator it = str.begin(); it != str.end(); ++it)
-		if (!isalpha(*it))
+	for (wxUniChar c : str)
+		if (!isalpha(c))
 			return false;
+
 	return true;
 }
 
@@ -419,7 +407,9 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
 			expr = wxString::Format("%c(%s)", op, selection);
 	}
 	else
+	{
 		expr = wxString::Format(" %c %s", op, device_expr);
+	}
 
 	textctrl->WriteText(expr);
 	control_reference->expression = textctrl->GetValue();
@@ -601,7 +591,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(GamepadPage* const parent)
 void GamepadPage::GetProfilePath(std::string& path)
 {
 	const wxString& name = profile_cbox->GetValue();
-	if (false == name.empty())
+	if (!name.empty())
 	{
 		// TODO: check for dumb characters maybe
 
@@ -619,7 +609,7 @@ void GamepadPage::LoadProfile(wxCommandEvent&)
 	std::string fname;
 	GamepadPage::GetProfilePath(fname);
 
-	if (false == File::Exists(fname))
+	if (!File::Exists(fname))
 		return;
 
 	IniFile inifile;
@@ -638,7 +628,7 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 	GamepadPage::GetProfilePath(fname);
 	File::CreateFullPath(fname);
 
-	if (false == fname.empty())
+	if (!fname.empty())
 	{
 		IniFile inifile;
 		controller->SaveConfig(inifile.GetOrCreateSection("Profile"));
@@ -671,21 +661,18 @@ void GamepadPage::DeleteProfile(wxCommandEvent&)
 
 void InputConfigDialog::UpdateDeviceComboBox()
 {
-	std::vector< GamepadPage* >::iterator i = m_padpages.begin(),
-		e = m_padpages.end();
 	DeviceQualifier dq;
-	for (; i != e; ++i)
+	for (GamepadPage* page : m_padpages)
 	{
-		(*i)->device_cbox->Clear();
-		std::vector<Device*>::const_iterator
-			di = g_controller_interface.Devices().begin(),
-			de = g_controller_interface.Devices().end();
-		for (; di!=de; ++di)
+		page->device_cbox->Clear();
+
+		for (Device* d : g_controller_interface.Devices())
 		{
-			dq.FromDevice(*di);
-			(*i)->device_cbox->Append(StrToWxStr(dq.ToString()));
+			dq.FromDevice(d);
+			page->device_cbox->Append(StrToWxStr(dq.ToString()));
 		}
-		(*i)->device_cbox->SetValue(StrToWxStr((*i)->controller->default_device.ToString()));
+
+		page->device_cbox->SetValue(StrToWxStr(page->controller->default_device.ToString()));
 	}
 }
 
@@ -706,11 +693,8 @@ void GamepadPage::RefreshDevices(wxCommandEvent&)
 
 ControlGroupBox::~ControlGroupBox()
 {
-	std::vector<PadSetting*>::const_iterator
-		i = options.begin(),
-		e = options.end();
-	for (; i!=e; ++i)
-		delete *i;
+	for (PadSetting* padSetting : options)
+		delete padSetting;
 }
 
 ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, GamepadPage* const eventsink)
