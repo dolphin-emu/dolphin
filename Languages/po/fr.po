@@ -4,7 +4,7 @@
 #
 # Translators:
 # FRtranslator <pascal2j-language@yahoo.com>, 2013
-# FRtranslator <pascal2j-language@yahoo.com>, 2013
+# FRtranslator <pascal2j-language@yahoo.com>, 2013-2014
 # delroth <delroth@gmail.com>, 2014
 # RyDroid <rydroid_trans@yahoo.fr>, 2013
 # RyDroid <rydroid_trans@yahoo.fr>, 2013
@@ -17,8 +17,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-01 11:29+0000\n"
-"PO-Revision-Date: 2014-01-18 17:03+0000\n"
-"Last-Translator: delroth <delroth@gmail.com>\n"
+"PO-Revision-Date: 2014-02-01 11:29+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/fr/)\n"
 "Language: fr\n"
@@ -4781,7 +4781,7 @@ msgstr ""
 "devriez utiliser Direct3D ou OpenGL. Certains jeux ont un comportement "
 "différent selon le moteur choisi ; pour obtenir le meilleur résultat, testez "
 "les deux moteurs et choisissez celui qui convient le mieux.\n"
-"Notez que le moteur Direct3D n'est pas disponible pour le anciens Windows.\n"
+"Notez que le moteur Direct3D n'est pas disponible pour les anciens Windows.\n"
 "\n"
 "Dans le doute, sélectionnez OpenGL."
 
@@ -6184,20 +6184,3 @@ msgstr "Correction zNear :"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| OU"
-
-#~ msgid "Cache Display Lists"
-#~ msgstr "Cache des listes d'affichage"
-
-#~ msgid ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Speeds up emulation a bit by caching display lists.\n"
-#~ "Possibly causes issues though.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Accélère légèrement l'émulation en mettant en cache les listes "
-#~ "d'affichage.\n"
-#~ "Peut provoquer des pépins.\n"
-#~ "\n"
-#~ "Dans le doute, décochez cette case."

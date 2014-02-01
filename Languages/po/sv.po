@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-01 11:29+0000\n"
-"PO-Revision-Date: 2014-01-19 17:00+0000\n"
-"Last-Translator: DolphinPhoenix <anton_r_3@hotmail.com>\n"
+"PO-Revision-Date: 2014-02-01 11:29+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Swedish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/sv/)\n"
 "Language: sv\n"
@@ -1012,7 +1012,7 @@ msgid ""
 "Are you trying to use the same file in both slots?"
 msgstr ""
 "Kan inte använda denna fil som ett minneskort.\n"
-"Försöker du använda samma fil i båda spår?"
+"Försöker du använda samma fil på båda platser?"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:39
 msgid "Caps Lock"
@@ -3673,10 +3673,10 @@ msgid ""
 "%s\n"
 "Would you like to copy the old file to this new location?\n"
 msgstr ""
-"Minneskortsfilnamn i spår %c är ogiltig\n"
-"Regionen är inte specifierad\n"
+"Minneskortets filnamn i plats %c är ogiltig\n"
+"Regionen är inte specificerad\n"
 "\n"
-"Sökvägen för spåret %c ändrades till\n"
+"Sökvägen för platsen %c ändrades till\n"
 "%s\n"
 "Vill du kopiera den gamla filen till denna nya plats?\n"
 
@@ -5027,15 +5027,15 @@ msgstr ""
 #: Source/Core/DolphinWX/FrameTools.cpp:403
 #, c-format
 msgid "Slot %i"
-msgstr "Spår %i"
+msgstr "Plats %i"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:705
 msgid "Slot A"
-msgstr "Spår A"
+msgstr "Plats A"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:706
 msgid "Slot B"
-msgstr "Spår B"
+msgstr "Plats B"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:49
 msgid "Snapshot"
@@ -6136,19 +6136,3 @@ msgstr "zNear-korrektion: "
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| ELLER"
-
-#~ msgid "Cache Display Lists"
-#~ msgstr "Cachevisningslista"
-
-#~ msgid ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Speeds up emulation a bit by caching display lists.\n"
-#~ "Possibly causes issues though.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "[EXPERIMENTELL]\n"
-#~ "Snabbar upp emulatorn lite grann genom att cacha visningslistan.\n"
-#~ "Kan möjligtvis orsaka fel.\n"
-#~ "\n"
-#~ "Om du är osäker kan du lämna detta omarkerat."

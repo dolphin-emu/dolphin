@@ -8,7 +8,7 @@
 # DefenderX <darkmodx@gmail.com>, 2013
 # Ghabry <gabelk@web.de>, 2013
 # JackyCola <jackycola@gmail.com>, LucasX <lucasx790@gmail.com>, 2011
-# M T <michtrz@gmail.com>, 2013
+# M T <michtrz@gmail.com>, 2013-2014
 # no_cluez <neobrainx@gmail.com>, 2013
 # Shinrai, 2013
 msgid ""
@@ -16,7 +16,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-01 11:29+0000\n"
-"PO-Revision-Date: 2014-01-18 16:41+0000\n"
+"PO-Revision-Date: 2014-02-01 11:29+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: German (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/de/)\n"
@@ -2475,6 +2475,9 @@ msgid ""
 "Memcard may be truncated\n"
 "FilePosition:%<PRIx64>"
 msgstr ""
+"Konnte Block %d der Speicherdaten nicht lesen.\n"
+"Die Speicherkarte ist vermutlich unvollständig.\n"
+"FilePosition:%<PRIx64>"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:104
 msgid ""
@@ -3043,6 +3046,10 @@ msgid ""
 "TitleID %016<PRIx64>.\n"
 " Dolphin will likely hang now."
 msgstr ""
+"IOCTL_ES_LAUNCH: Das Spiel versucht einen Titel der nicht in deinem NAND-"
+"Dump verfügbar ist neu zu laden.\n"
+"TitleID %016<PRIx64>.\n"
+"Dolphin wird sich jetzt wahrscheinlich aufhängen."
 
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:430
 msgid "IOCTL_ES_READCONTENT - bad destination"
@@ -3605,6 +3612,8 @@ msgid ""
 "MD5 mismatch\n"
 " %016<PRIx64>%016<PRIx64> != %016<PRIx64>%016<PRIx64>"
 msgstr ""
+"MD5 Konflikt\n"
+"%016<PRIx64>%016<PRIx64> != %016<PRIx64>%016<PRIx64>"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "MMU Speed Hack"
@@ -4753,6 +4762,16 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
+"Wählt das Grafik-API, das intern verwendet wird.\n"
+"Der Software-Renderer wird nur für die Fehlersuche verwendet, so dass Sie "
+"entweder Direct3D oder OpenGL verwenden können. Verschiedene Spiele "
+"verhalten sich anders bei jedem Backend, so dass es für die beste "
+"Emulationserfahrung empfehlenswert ist, beide Modi zu testen und den zu "
+"wählen, der Deinen Anforderungen am meisten entspricht.\n"
+"Beachte, dass das Direct3D-Backend nicht auf alten Windows-Versionen "
+"verfügbar ist.\n"
+"\n"
+"Im Zweifel, wähle OpenGL."
 
 #: Source/Core/DolphinWX/NetWindow.cpp:313
 msgid "Send"
@@ -5815,6 +5834,8 @@ msgid ""
 "Warning: Netplay/movies will desync because your CPU does not support DAZ "
 "and Dolphin does not emulate it anymore."
 msgstr ""
+"Warnung: Netplay/Filme werden desynchronisiert, weil diese CPU kein DAZ "
+"unterstützt und Dolphin es nicht mehr emuliert."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:578
 #, c-format
@@ -6086,6 +6107,9 @@ msgid ""
 "It should be 0x%04x (but is 0x%04<PRIx64>)\n"
 "Do you want to generate a new one?"
 msgstr ""
+"Deine SYSCONF-Datei hat die falsche Dateigröße.\n"
+"Erwartet wurde eine Größe von 0x%04x (aber deine ist 0x%04<PRIx64>).\n"
+"Soll eine neue Datei generiert werden?"
 
 #: Source/Core/Core/ActionReplay.cpp:382
 msgid "Zero 3 code not supported"
@@ -6149,20 +6173,3 @@ msgstr "zNear-Korrektur:"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| ODER"
-
-#~ msgid "Cache Display Lists"
-#~ msgstr "Anzeigeliste zwischenspeichern"
-
-#~ msgid ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Speeds up emulation a bit by caching display lists.\n"
-#~ "Possibly causes issues though.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "[EXPERIMENTELL]\n"
-#~ "Beschleunigt die Emulation ein wenig indem Displaylisten in den Cache "
-#~ "geladen werden.\n"
-#~ "Verursacht jedoch möglicherweise Probleme.\n"
-#~ "\n"
-#~ "Im Zweifel deaktiviert lassen."
