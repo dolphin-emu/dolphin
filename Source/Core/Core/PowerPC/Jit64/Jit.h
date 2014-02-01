@@ -37,16 +37,6 @@
 #include "x64Analyzer.h"
 #include "x64Emitter.h"
 
-// Use these to control the instruction selection
-// #define INSTRUCTION_START Default(inst); return;
-// #define INSTRUCTION_START PPCTables::CountInstruction(inst);
-#define INSTRUCTION_START
-
-#define JITDISABLE(setting) \
-	if (Core::g_CoreStartupParameter.bJITOff || \
-	Core::g_CoreStartupParameter.setting) \
-	{Default(inst); return;}
-
 class Jit64 : public Jitx86Base
 {
 private:

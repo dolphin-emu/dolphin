@@ -27,6 +27,16 @@
 
 #include <unordered_set>
 
+// Use these to control the instruction selection
+// #define INSTRUCTION_START Default(inst); return;
+// #define INSTRUCTION_START PPCTables::CountInstruction(inst);
+#define INSTRUCTION_START
+
+#define JITDISABLE(setting)                     \
+	if (Core::g_CoreStartupParameter.bJITOff || \
+		Core::g_CoreStartupParameter.setting)   \
+	{ Default(inst); return; }
+
 class JitBase : public CPUCoreBase
 {
 protected:

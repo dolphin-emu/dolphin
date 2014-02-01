@@ -36,15 +36,6 @@
 #include "../../HW/Memmap.h"
 #include "../../HW/GPFifo.h"
 
-// #define INSTRUCTION_START Default(inst); return;
-// #define INSTRUCTION_START PPCTables::CountInstruction(inst);
-#define INSTRUCTION_START
-
-#define JITDISABLE(setting) \
-	if (Core::g_CoreStartupParameter.bJITOff || \
-		Core::g_CoreStartupParameter.setting) \
-		{Default(inst); return;}
-
 #ifdef _M_X64
 #define DISABLE64 \
 	{Default(inst); return;}

@@ -16,13 +16,6 @@
 #include "../../HW/GPFifo.h"
 #include "../../HW/Memmap.h"
 
-#define INSTRUCTION_START
-
-#define JITDISABLE(setting) \
-	if (Core::g_CoreStartupParameter.bJITOff || \
-		Core::g_CoreStartupParameter.setting) \
-		{Default(inst); return;}
-
 class JitILBase : public JitBase
 {
 protected:
