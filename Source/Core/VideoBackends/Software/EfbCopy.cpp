@@ -45,6 +45,10 @@ namespace EfbCopy
 				EfbInterface::BypassXFB(colorTexture, fbWidth, fbHeight, sourceRc, Gamma);
 
 				SWRenderer::swapColorTexture(); // Tell SWRenderer we are now finished with it.
+
+				// And since fifo player is broken and never calls BeginFrame/EndFrame
+				// We will do this swap now.
+				SWRenderer::Swap(fbWidth, fbHeight);
 			}
 		}
 	}

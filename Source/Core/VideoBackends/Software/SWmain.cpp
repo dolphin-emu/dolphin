@@ -231,11 +231,13 @@ void VideoSoftware::Video_EndField()
 	// messy when the Hardware Rasterizer is enabled.
 	// And Neobrain loves his Hardware Rasterizer
 
-	// If we are runing dual core, Signal the GPU thread about the new colour texture.
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
-		Common::AtomicStoreRelease(s_swapRequested, true);
-	else
-		SWRenderer::Swap(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+	if (!g_SWVideoConfig.bBypassXFB) { // BypassXFB has already done a swap, so skip this.
+		// If we are runing dual core, Signal the GPU thread about the new colour texture.
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+			Common::AtomicStoreRelease(s_swapRequested, true);
+		else
+			SWRenderer::Swap(s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+	}
 }
 
 u32 VideoSoftware::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
