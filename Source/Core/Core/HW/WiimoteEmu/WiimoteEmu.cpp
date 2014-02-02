@@ -268,53 +268,53 @@ Wiimote::Wiimote( const unsigned int index )
 	// ---- set up all the controls ----
 
 	// buttons
-	groups.push_back(m_buttons = new Buttons("Buttons"));
+	groups.emplace_back(m_buttons = new Buttons("Buttons"));
 	for (auto& named_button : named_buttons)
-		m_buttons->controls.push_back(new ControlGroup::Input( named_button));
+		m_buttons->controls.emplace_back(new ControlGroup::Input( named_button));
 
 	// udp
-	groups.push_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
+	groups.emplace_back(m_udp = new UDPWrapper(m_index, _trans("UDP Wiimote")));
 
 	// ir
-	groups.push_back(m_ir = new Cursor(_trans("IR")));
+	groups.emplace_back(m_ir = new Cursor(_trans("IR")));
 
 	// swing
-	groups.push_back(m_swing = new Force(_trans("Swing")));
+	groups.emplace_back(m_swing = new Force(_trans("Swing")));
 
 	// tilt
-	groups.push_back(m_tilt = new Tilt(_trans("Tilt")));
+	groups.emplace_back(m_tilt = new Tilt(_trans("Tilt")));
 
 	// shake
-	groups.push_back(m_shake = new Buttons(_trans("Shake")));
-	m_shake->controls.push_back(new ControlGroup::Input("X"));
-	m_shake->controls.push_back(new ControlGroup::Input("Y"));
-	m_shake->controls.push_back(new ControlGroup::Input("Z"));
+	groups.emplace_back(m_shake = new Buttons(_trans("Shake")));
+	m_shake->controls.emplace_back(new ControlGroup::Input("X"));
+	m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
+	m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
 
 	// extension
-	groups.push_back(m_extension = new Extension(_trans("Extension")));
-	m_extension->attachments.push_back(new WiimoteEmu::None(m_reg_ext));
-	m_extension->attachments.push_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext));
-	m_extension->attachments.push_back(new WiimoteEmu::Classic(m_reg_ext));
-	m_extension->attachments.push_back(new WiimoteEmu::Guitar(m_reg_ext));
-	m_extension->attachments.push_back(new WiimoteEmu::Drums(m_reg_ext));
-	m_extension->attachments.push_back(new WiimoteEmu::Turntable(m_reg_ext));
+	groups.emplace_back(m_extension = new Extension(_trans("Extension")));
+	m_extension->attachments.emplace_back(new WiimoteEmu::None(m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_udp, m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Guitar(m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_reg_ext));
+	m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
 
-	m_extension->settings.push_back(new ControlGroup::Setting(_trans("Motion Plus"), 0, 0, 1));
+	m_extension->settings.emplace_back(new ControlGroup::Setting(_trans("Motion Plus"), 0, 0, 1));
 
 	// rumble
-	groups.push_back(m_rumble = new ControlGroup(_trans("Rumble")));
-	m_rumble->controls.push_back(new ControlGroup::Output(_trans("Motor")));
+	groups.emplace_back(m_rumble = new ControlGroup(_trans("Rumble")));
+	m_rumble->controls.emplace_back(new ControlGroup::Output(_trans("Motor")));
 
 	// dpad
-	groups.push_back(m_dpad = new Buttons("D-Pad"));
+	groups.emplace_back(m_dpad = new Buttons("D-Pad"));
 	for (auto& named_direction : named_directions)
-		m_dpad->controls.push_back(new ControlGroup::Input(named_direction));
+		m_dpad->controls.emplace_back(new ControlGroup::Input(named_direction));
 
 	// options
-	groups.push_back( m_options = new ControlGroup(_trans("Options")));
-	m_options->settings.push_back(new ControlGroup::Setting(_trans("Background Input"), false));
-	m_options->settings.push_back(new ControlGroup::Setting(_trans("Sideways Wiimote"), false));
-	m_options->settings.push_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
+	groups.emplace_back( m_options = new ControlGroup(_trans("Options")));
+	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Background Input"), false));
+	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Sideways Wiimote"), false));
+	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
 
 	// TODO: This value should probably be re-read if SYSCONF gets changed
 	m_sensor_bar_on_top = SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR") != 0;

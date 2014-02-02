@@ -35,17 +35,17 @@ static const u16 drum_button_bitmasks[] =
 Drums::Drums(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Drums"), _reg)
 {
 	// pads
-	groups.push_back(m_pads = new Buttons(_trans("Pads")));
+	groups.emplace_back(m_pads = new Buttons(_trans("Pads")));
 	for (auto& drum_pad_name : drum_pad_names)
-		m_pads->controls.push_back(new ControlGroup::Input(drum_pad_name));
+		m_pads->controls.emplace_back(new ControlGroup::Input(drum_pad_name));
 
 	// stick
-	groups.push_back(m_stick = new AnalogStick("Stick"));
+	groups.emplace_back(m_stick = new AnalogStick("Stick"));
 
 	// buttons
-	groups.push_back(m_buttons = new Buttons("Buttons"));
-	m_buttons->controls.push_back(new ControlGroup::Input("-"));
-	m_buttons->controls.push_back(new ControlGroup::Input("+"));
+	groups.emplace_back(m_buttons = new Buttons("Buttons"));
+	m_buttons->controls.emplace_back(new ControlGroup::Input("-"));
+	m_buttons->controls.emplace_back(new ControlGroup::Input("+"));
 
 	// set up register
 	// id

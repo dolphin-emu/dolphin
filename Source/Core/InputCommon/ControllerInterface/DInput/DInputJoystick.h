@@ -25,9 +25,9 @@ private:
 	{
 		EffectState(LPDIRECTINPUTEFFECT eff) : iface(eff), params(NULL), size(0) {}
 
-		LPDIRECTINPUTEFFECT		iface;
-		void*	params;	// null when force hasn't changed
-		u8		size;	// zero when force should stop
+		LPDIRECTINPUTEFFECT iface;
+		void*               params; // null when force hasn't changed
+		u8                  size;   // zero when force should stop
 	};
 
 	class Button : public Input
@@ -76,9 +76,9 @@ private:
 		P params;
 		const u8 m_index;
 	};
-	typedef Force<DICONSTANTFORCE>	ForceConstant;
-	typedef Force<DIRAMPFORCE>		ForceRamp;
-	typedef Force<DIPERIODIC>		ForcePeriodic;
+	typedef Force<DICONSTANTFORCE>  ForceConstant;
+	typedef Force<DIRAMPFORCE>      ForceRamp;
+	typedef Force<DIPERIODIC>       ForcePeriodic;
 
 public:
 	bool UpdateInput();
@@ -94,13 +94,13 @@ public:
 	std::string GetSource() const;
 
 private:
-	const LPDIRECTINPUTDEVICE8		m_device;
-	const unsigned int				m_index;
+	const LPDIRECTINPUTDEVICE8 m_device;
+	const unsigned int         m_index;
 
-	DIJOYSTATE					m_state_in;
-	std::list<EffectState>		m_state_out;
+	DIJOYSTATE                 m_state_in;
+	std::list<EffectState>     m_state_out;
 
-	bool						m_buffered;
+	bool                       m_buffered;
 };
 
 }

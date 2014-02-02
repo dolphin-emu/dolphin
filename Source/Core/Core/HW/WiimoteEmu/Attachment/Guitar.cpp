@@ -39,26 +39,26 @@ static const u16 guitar_strum_bitmasks[] =
 Guitar::Guitar(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Guitar"), _reg)
 {
 	// frets
-	groups.push_back(m_frets = new Buttons(_trans("Frets")));
+	groups.emplace_back(m_frets = new Buttons(_trans("Frets")));
 	for (auto& guitar_fret_name : guitar_fret_names)
-		m_frets->controls.push_back(new ControlGroup::Input(guitar_fret_name));
+		m_frets->controls.emplace_back(new ControlGroup::Input(guitar_fret_name));
 
 	// strum
-	groups.push_back(m_strum = new Buttons(_trans("Strum")));
-	m_strum->controls.push_back(new ControlGroup::Input("Up"));
-	m_strum->controls.push_back(new ControlGroup::Input("Down"));
+	groups.emplace_back(m_strum = new Buttons(_trans("Strum")));
+	m_strum->controls.emplace_back(new ControlGroup::Input("Up"));
+	m_strum->controls.emplace_back(new ControlGroup::Input("Down"));
 
 	// buttons
-	groups.push_back(m_buttons = new Buttons("Buttons"));
-	m_buttons->controls.push_back(new ControlGroup::Input("-"));
-	m_buttons->controls.push_back(new ControlGroup::Input("+"));
+	groups.emplace_back(m_buttons = new Buttons("Buttons"));
+	m_buttons->controls.emplace_back(new ControlGroup::Input("-"));
+	m_buttons->controls.emplace_back(new ControlGroup::Input("+"));
 
 	// stick
-	groups.push_back(m_stick = new AnalogStick(_trans("Stick")));
+	groups.emplace_back(m_stick = new AnalogStick(_trans("Stick")));
 
 	// whammy
-	groups.push_back(m_whammy = new Triggers(_trans("Whammy")));
-	m_whammy->controls.push_back(new ControlGroup::Input(_trans("Bar")));
+	groups.emplace_back(m_whammy = new Triggers(_trans("Whammy")));
+	m_whammy->controls.emplace_back(new ControlGroup::Input(_trans("Bar")));
 
 	// set up register
 	// id

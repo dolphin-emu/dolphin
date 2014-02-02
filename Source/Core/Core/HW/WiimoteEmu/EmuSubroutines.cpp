@@ -852,7 +852,7 @@ void Wiimote::HandleExtensionSwap()
 			m_extension->active_extension = m_extension->switch_extension;
 
 		// reset register
-		((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension])->Reset();
+		((WiimoteEmu::Attachment*)m_extension->attachments[m_extension->active_extension].get())->Reset();
 	}
 }
 

@@ -10,10 +10,8 @@
 InputPlugin::~InputPlugin()
 {
 	// delete pads
-	std::vector<ControllerEmu*>::const_iterator i = controllers.begin(),
-		e = controllers.end();
-	for ( ; i != e; ++i )
-		delete *i;
+	for (ControllerEmu* pad : controllers)
+		delete pad;
 }
 
 bool InputPlugin::LoadConfig(bool isGC)
@@ -58,25 +56,26 @@ bool InputPlugin::LoadConfig(bool isGC)
 
 	if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + ini_name + ".ini"))
 	{
-		std::vector< ControllerEmu* >::const_iterator
-			i = controllers.begin(),
-			e = controllers.end();
-		for (int n = 0; i!=e; ++i, ++n)
+		int n = 0;
+		for (ControllerEmu* pad : controllers)
 		{
-			// load settings from ini
+			// Load settings from ini
 			if (useProfile[n])
 			{
 				IniFile profile_ini;
 				profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini");
-				(*i)->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
+				pad->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
 			}
 			else
 			{
-				(*i)->LoadConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
+				pad->LoadConfig(inifile.GetOrCreateSection(pad->GetName().c_str()));
 			}
 
-			// update refs
-			(*i)->UpdateReferences(g_controller_interface);
+			// Update refs
+			pad->UpdateReferences(g_controller_interface);
+
+			// Next profile
+			n++;
 		}
 		return true;
 	}
@@ -95,10 +94,8 @@ void InputPlugin::SaveConfig()
 	IniFile inifile;
 	inifile.Load(ini_filename);
 
-	std::vector< ControllerEmu* >::const_iterator i = controllers.begin(),
-		e = controllers.end();
-	for ( ; i!=e; ++i )
-		(*i)->SaveConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
+	for (ControllerEmu* pad : controllers)
+		pad->SaveConfig(inifile.GetOrCreateSection(pad->GetName().c_str()));
 
 	inifile.Save(ini_filename);
 }

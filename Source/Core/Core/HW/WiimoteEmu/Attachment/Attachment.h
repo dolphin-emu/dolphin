@@ -14,14 +14,14 @@ namespace WiimoteEmu
 class Attachment : public ControllerEmu
 {
 public:
-	Attachment( const char* const _name, WiimoteEmu::ExtensionReg& _reg );
+	Attachment(const char* const _name, WiimoteEmu::ExtensionReg& _reg);
 
-	virtual void GetState( u8* const data, const bool focus = true ) {}
+	virtual void GetState(u8* const data, const bool focus = true) {}
 	void Reset();
 	std::string GetName() const override;
 
-	const char*	const			name;
-	WiimoteEmu::ExtensionReg&	reg;
+	const char* const         name;
+	WiimoteEmu::ExtensionReg& reg;
 
 	u8 id[6];
 	u8 calibration[0x10];
@@ -30,7 +30,7 @@ public:
 class None : public Attachment
 {
 public:
-	None( WiimoteEmu::ExtensionReg& _reg );
+	None(WiimoteEmu::ExtensionReg& _reg);
 };
 
 }

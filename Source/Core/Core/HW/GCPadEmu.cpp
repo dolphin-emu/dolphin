@@ -55,31 +55,31 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 	int const mic_hax = index > 1;
 
 	// buttons
-	groups.push_back(m_buttons = new Buttons(_trans("Buttons")));
+	groups.emplace_back(m_buttons = new Buttons(_trans("Buttons")));
 	for (unsigned int i=0; i < sizeof(named_buttons)/sizeof(*named_buttons) - mic_hax; ++i)
-		m_buttons->controls.push_back(new ControlGroup::Input(named_buttons[i]));
+		m_buttons->controls.emplace_back(new ControlGroup::Input(named_buttons[i]));
 
 	// sticks
-	groups.push_back(m_main_stick = new AnalogStick(_trans("Main Stick")));
-	groups.push_back(m_c_stick = new AnalogStick(_trans("C-Stick")));
+	groups.emplace_back(m_main_stick = new AnalogStick(_trans("Main Stick")));
+	groups.emplace_back(m_c_stick = new AnalogStick(_trans("C-Stick")));
 
 	// triggers
-	groups.push_back(m_triggers = new MixedTriggers(_trans("Triggers")));
+	groups.emplace_back(m_triggers = new MixedTriggers(_trans("Triggers")));
 	for (auto& named_trigger : named_triggers)
-		m_triggers->controls.push_back(new ControlGroup::Input(named_trigger));
+		m_triggers->controls.emplace_back(new ControlGroup::Input(named_trigger));
 
 	// rumble
-	groups.push_back(m_rumble = new ControlGroup(_trans("Rumble")));
-	m_rumble->controls.push_back(new ControlGroup::Output(_trans("Motor")));
+	groups.emplace_back(m_rumble = new ControlGroup(_trans("Rumble")));
+	m_rumble->controls.emplace_back(new ControlGroup::Output(_trans("Motor")));
 
 	// dpad
-	groups.push_back(m_dpad = new Buttons(_trans("D-Pad")));
+	groups.emplace_back(m_dpad = new Buttons(_trans("D-Pad")));
 	for (auto& named_direction : named_directions)
-		m_dpad->controls.push_back(new ControlGroup::Input(named_direction));
+		m_dpad->controls.emplace_back(new ControlGroup::Input(named_direction));
 
 	// options
-	groups.push_back(m_options = new ControlGroup(_trans("Options")));
-	m_options->settings.push_back(new ControlGroup::Setting(_trans("Background Input"), false));
+	groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
+	m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Background Input"), false));
 }
 
 std::string GCPad::GetName() const

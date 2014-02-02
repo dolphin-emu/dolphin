@@ -35,24 +35,24 @@
 using namespace ciface::Core;
 
 //
-//		ControllerInterface
+// ControllerInterface
 //
-// some crazy shit I made to control different device inputs and outputs
-// from lots of different sources, hopefully more easily
+// Some crazy shit I made to control different device inputs and outputs
+// from lots of different sources, hopefully more easily.
 //
 class ControllerInterface : public DeviceContainer
 {
 public:
 
 	//
-	//		ControlReference
+	// ControlReference
 	//
-	// these are what you create to actually use the inputs, InputReference or OutputReference
+	// These are what you create to actually use the inputs, InputReference or OutputReference.
 	//
-	// after being bound to devices and controls with ControllerInterface::UpdateReference,
-	//		each one can link to multiple devices and controls
-	//		when you change a ControlReference's expression,
-	//		you must use ControllerInterface::UpdateReference on it to rebind controls
+	// After being bound to devices and controls with ControllerInterface::UpdateReference,
+	// each one can link to multiple devices and controls
+	// when you change a ControlReference's expression,
+	// you must use ControllerInterface::UpdateReference on it to rebind controls
 	//
 	class ControlReference
 	{
@@ -62,15 +62,17 @@ public:
 		virtual Device::Control* Detect(const unsigned int ms, Device* const device) = 0;
 
 		ControlState range;
-		std::string			expression;
-		const bool			is_input;
+		std::string  expression;
+		const bool   is_input;
 		ciface::ExpressionParser::ExpressionParseStatus parse_error;
 
-		virtual ~ControlReference() {
+		virtual ~ControlReference()
+		{
 			delete parsed_expression;
 		}
 
-		int BoundCount() {
+		int BoundCount()
+		{
 			if (parsed_expression)
 				return parsed_expression->num_controls;
 			else
@@ -83,9 +85,9 @@ public:
 	};
 
 	//
-	//		InputReference
+	// InputReference
 	//
-	// control reference for inputs
+	// Control reference for inputs
 	//
 	class InputReference : public ControlReference
 	{
@@ -96,9 +98,9 @@ public:
 	};
 
 	//
-	//		OutputReference
+	// OutputReference
 	//
-	// control reference for outputs
+	// Control reference for outputs
 	//
 	class OutputReference : public ControlReference
 	{
@@ -122,8 +124,8 @@ public:
 	std::recursive_mutex update_lock;
 
 private:
-	bool					m_is_init;
-	void*					m_hwnd;
+	bool   m_is_init;
+	void*  m_hwnd;
 };
 
 extern ControllerInterface g_controller_interface;
