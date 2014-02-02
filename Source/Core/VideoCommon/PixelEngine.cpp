@@ -133,6 +133,11 @@ void DoState(PointerWrap &p)
 	p.Do(bbox_active);
 }
 
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
+{
+	// TODO
+}
+
 void UpdateInterrupts();
 void UpdateTokenInterrupt(bool active);
 void UpdateFinishInterrupt(bool active);

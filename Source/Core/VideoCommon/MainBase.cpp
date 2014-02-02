@@ -311,6 +311,16 @@ void VideoBackendHardware::Video_AbortFrame()
 	CommandProcessor::AbortFrame();
 }
 
+void VideoBackendHardware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
+{
+	CommandProcessor::RegisterMMIO(mmio, base);
+}
+
+void VideoBackendHardware::RegisterPEMMIO(MMIO::Mapping* mmio, u32 base)
+{
+	PixelEngine::RegisterMMIO(mmio, base);
+}
+
 readFn16 VideoBackendHardware::Video_CPRead16()
 {
 	return CommandProcessor::Read16;

@@ -6,6 +6,7 @@
 
 #include "CommonTypes.h"
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 // internal hardware addresses
 enum
@@ -54,6 +55,8 @@ union UPEAlphaReadReg
 
 void Init();
 void DoState(PointerWrap &p);
+
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 // Read
 void Read16(u16& _uReturnValue, const u32 _iAddress);

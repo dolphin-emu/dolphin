@@ -8,6 +8,7 @@
 #include "VideoBackendBase.h"
 
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 extern bool MT;
 
@@ -133,6 +134,8 @@ const static u32 m_cpClockOrigin = 200000;
 void Init();
 void Shutdown();
 void DoState(PointerWrap &p);
+
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 // Read
 void Read16(u16& _rReturnValue, const u32 _Address);

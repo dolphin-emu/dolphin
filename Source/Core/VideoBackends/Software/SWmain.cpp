@@ -360,6 +360,16 @@ void VideoSoftware::Video_AbortFrame(void)
 {
 }
 
+void VideoSoftware::RegisterCPMMIO(MMIO::Mapping* mmio, u32 base)
+{
+	// TODO
+}
+
+void VideoSoftware::RegisterPEMMIO(MMIO::Mapping* mmio, u32 base)
+{
+	// TODO
+}
+
 readFn16 VideoSoftware::Video_CPRead16()
 {
 	return SWCommandProcessor::Read16;

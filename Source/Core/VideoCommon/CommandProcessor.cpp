@@ -19,6 +19,7 @@
 #include "HW/Memmap.h"
 #include "HW/SystemTimers.h"
 #include "Core.h"
+#include "HW/MMIO.h"
 
 namespace CommandProcessor
 {
@@ -33,10 +34,10 @@ UCPStatusReg m_CPStatusReg;
 UCPCtrlReg	m_CPCtrlReg;
 UCPClearReg	m_CPClearReg;
 
-int m_bboxleft;
-int m_bboxtop;
-int m_bboxright;
-int m_bboxbottom;
+u16 m_bboxleft;
+u16 m_bboxtop;
+u16 m_bboxright;
+u16 m_bboxbottom;
 u16 m_tokenReg;
 
 static bool bProcessFifoToLoWatermark = false;
@@ -131,307 +132,192 @@ void Init()
 	et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
 
-void Read16(u16& _rReturnValue, const u32 _Address)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	INFO_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
-	switch (_Address & 0xFFF)
+	struct {
+		u32 addr;
+		u16* ptr;
+		bool readonly;
+		bool writes_align_to_32_bytes;
+	} directly_mapped_vars[] = {
+		{ FIFO_TOKEN_REGISTER, &m_tokenReg },
+
+		// Bounding box registers are read only.
+		{ FIFO_BOUNDING_BOX_LEFT, &m_bboxleft, true },
+		{ FIFO_BOUNDING_BOX_RIGHT, &m_bboxright, true },
+		{ FIFO_BOUNDING_BOX_TOP, &m_bboxtop, true },
+		{ FIFO_BOUNDING_BOX_BOTTOM, &m_bboxbottom, true },
+
+		// Some FIFO addresses need to be aligned on 32 bytes on write - only
+		// the high part can be written directly without a mask.
+		{ FIFO_BASE_LO, MMIO::Utils::LowPart(&fifo.CPBase), false, true },
+		{ FIFO_BASE_HI, MMIO::Utils::HighPart(&fifo.CPBase) },
+		{ FIFO_END_LO, MMIO::Utils::LowPart(&fifo.CPEnd), false, true },
+		{ FIFO_END_HI, MMIO::Utils::HighPart(&fifo.CPEnd) },
+		{ FIFO_HI_WATERMARK_LO, MMIO::Utils::LowPart(&fifo.CPHiWatermark) },
+		{ FIFO_HI_WATERMARK_HI, MMIO::Utils::HighPart(&fifo.CPHiWatermark) },
+		{ FIFO_LO_WATERMARK_LO, MMIO::Utils::LowPart(&fifo.CPLoWatermark) },
+		{ FIFO_LO_WATERMARK_HI, MMIO::Utils::HighPart(&fifo.CPLoWatermark) },
+		// FIFO_RW_DISTANCE has some complex read code different for
+		// single/dual core.
+		{ FIFO_WRITE_POINTER_LO, MMIO::Utils::LowPart(&fifo.CPWritePointer), false, true },
+		{ FIFO_WRITE_POINTER_HI, MMIO::Utils::HighPart(&fifo.CPWritePointer) },
+		// FIFO_READ_POINTER has different code for single/dual core.
+		{ FIFO_BP_LO, MMIO::Utils::LowPart(&fifo.CPBreakpoint), false, true },
+		{ FIFO_BP_HI, MMIO::Utils::HighPart(&fifo.CPBreakpoint) },
+	};
+	for (auto& mapped_var : directly_mapped_vars)
 	{
-	case STATUS_REGISTER:
-		SetCpStatusRegister();
-		_rReturnValue = m_CPStatusReg.Hex;
-		return;
-	case CTRL_REGISTER:		_rReturnValue = m_CPCtrlReg.Hex; return;
-	case CLEAR_REGISTER:
-		_rReturnValue = m_CPClearReg.Hex;
-		PanicAlert("CommandProcessor:: CPU reads from CLEAR_REGISTER!");
-		ERROR_LOG(COMMANDPROCESSOR, "(r) clear: 0x%04x", _rReturnValue);
-		return;
-	case FIFO_TOKEN_REGISTER:		_rReturnValue = m_tokenReg; return;
-	case FIFO_BOUNDING_BOX_LEFT:	_rReturnValue = m_bboxleft; return;
-	case FIFO_BOUNDING_BOX_RIGHT:	_rReturnValue = m_bboxright; return;
-	case FIFO_BOUNDING_BOX_TOP:		_rReturnValue = m_bboxtop; return;
-	case FIFO_BOUNDING_BOX_BOTTOM:	_rReturnValue = m_bboxbottom; return;
-
-	case FIFO_BASE_LO:			_rReturnValue = ReadLow (fifo.CPBase); return;
-	case FIFO_BASE_HI:			_rReturnValue = ReadHigh(fifo.CPBase); return;
-	case FIFO_END_LO:			_rReturnValue = ReadLow (fifo.CPEnd);  return;
-	case FIFO_END_HI:			_rReturnValue = ReadHigh(fifo.CPEnd);  return;
-	case FIFO_HI_WATERMARK_LO:	_rReturnValue = ReadLow (fifo.CPHiWatermark); return;
-	case FIFO_HI_WATERMARK_HI:	_rReturnValue = ReadHigh(fifo.CPHiWatermark); return;
-	case FIFO_LO_WATERMARK_LO:	_rReturnValue = ReadLow (fifo.CPLoWatermark); return;
-	case FIFO_LO_WATERMARK_HI:	_rReturnValue = ReadHigh(fifo.CPLoWatermark); return;
-
-	case FIFO_RW_DISTANCE_LO:
-		if (IsOnThread())
-		{
-			if(fifo.CPWritePointer >= fifo.SafeCPReadPointer)
-				_rReturnValue = ReadLow (fifo.CPWritePointer - fifo.SafeCPReadPointer);
-			else
-				_rReturnValue = ReadLow (fifo.CPEnd - fifo.SafeCPReadPointer + fifo.CPWritePointer - fifo.CPBase + 32);
-		}
-		else
-		{
-			_rReturnValue = ReadLow (fifo.CPReadWriteDistance);
-		}
-		DEBUG_LOG(COMMANDPROCESSOR, "Read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
-		return;
-	case FIFO_RW_DISTANCE_HI:
-		if (IsOnThread())
-		{
-			if(fifo.CPWritePointer >= fifo.SafeCPReadPointer)
-				_rReturnValue = ReadHigh (fifo.CPWritePointer - fifo.SafeCPReadPointer);
-			else
-				_rReturnValue = ReadHigh (fifo.CPEnd - fifo.SafeCPReadPointer + fifo.CPWritePointer - fifo.CPBase + 32);
-		}
-		else
-		{
-			_rReturnValue = ReadHigh(fifo.CPReadWriteDistance);
-		}
-		DEBUG_LOG(COMMANDPROCESSOR, "Read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
-		return;
-	case FIFO_WRITE_POINTER_LO:
-		_rReturnValue = ReadLow (fifo.CPWritePointer);
-		DEBUG_LOG(COMMANDPROCESSOR, "Read FIFO_WRITE_POINTER_LO : %04x", _rReturnValue);
-		return;
-	case FIFO_WRITE_POINTER_HI:
-		_rReturnValue = ReadHigh(fifo.CPWritePointer);
-		DEBUG_LOG(COMMANDPROCESSOR, "Read FIFO_WRITE_POINTER_HI : %04x", _rReturnValue);
-		return;
-	case FIFO_READ_POINTER_LO:
-		if (IsOnThread())
-			_rReturnValue = ReadLow (fifo.SafeCPReadPointer);
-		else
-			_rReturnValue = ReadLow (fifo.CPReadPointer);
-		DEBUG_LOG(COMMANDPROCESSOR, "Read FIFO_READ_POINTER_LO : %04x", _rReturnValue);
-		return;
-	case FIFO_READ_POINTER_HI:
-		if (IsOnThread())
-			_rReturnValue = ReadHigh (fifo.SafeCPReadPointer);
-		else
-			_rReturnValue = ReadHigh (fifo.CPReadPointer);
-		DEBUG_LOG(COMMANDPROCESSOR, "Read FIFO_READ_POINTER_HI : %04x", _rReturnValue);
-		return;
-
-	case FIFO_BP_LO: _rReturnValue = ReadLow (fifo.CPBreakpoint); return;
-	case FIFO_BP_HI: _rReturnValue = ReadHigh(fifo.CPBreakpoint); return;
-
-	case XF_RASBUSY_L:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_RASBUSY_L: %04x", _rReturnValue);
-		return;
-	case XF_RASBUSY_H:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_RASBUSY_H: %04x", _rReturnValue);
-		return;
-
-	case XF_CLKS_L:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_CLKS_L: %04x", _rReturnValue);
-		return;
-	case XF_CLKS_H:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_CLKS_H: %04x", _rReturnValue);
-		return;
-
-	case XF_WAIT_IN_L:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_WAIT_IN_L: %04x", _rReturnValue);
-		return;
-	case XF_WAIT_IN_H:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_WAIT_IN_H: %04x", _rReturnValue);
-		return;
-
-	case XF_WAIT_OUT_L:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_WAIT_OUT_L: %04x", _rReturnValue);
-		return;
-	case XF_WAIT_OUT_H:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_WAIT_OUT_H: %04x", _rReturnValue);
-		return;
-
-	case VCACHE_METRIC_CHECK_L:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_CHECK_L: %04x", _rReturnValue);
-		return;
-	case VCACHE_METRIC_CHECK_H:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_CHECK_H: %04x", _rReturnValue);
-		return;
-
-	case VCACHE_METRIC_MISS_L:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_MISS_L: %04x", _rReturnValue);
-		return;
-	case VCACHE_METRIC_MISS_H:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_MISS_H: %04x", _rReturnValue);
-		return;
-
-	case VCACHE_METRIC_STALL_L:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_STALL_L: %04x", _rReturnValue);
-		return;
-	case VCACHE_METRIC_STALL_H:
-		_rReturnValue = 0;	// TODO: Figure out the true value
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_STALL_H: %04x", _rReturnValue);
-		return;
-
-	case CLKS_PER_VTX_OUT:
-		_rReturnValue = 4; //Number of clocks per vertex.. TODO: Calculate properly
-		DEBUG_LOG(COMMANDPROCESSOR, "Read from CLKS_PER_VTX_OUT: %04x", _rReturnValue);
-		return;
-	default:
-		_rReturnValue = 0;
-		WARN_LOG(COMMANDPROCESSOR, "(r16) unknown CP reg @ %08x", _Address);
-		return;
+		u16 wmask = mapped_var.writes_align_to_32_bytes ? 0xFFE0 : 0xFFFF;
+		mmio->Register(base | mapped_var.addr,
+			MMIO::DirectRead<u16>(mapped_var.ptr),
+			mapped_var.readonly
+				? MMIO::InvalidWrite<u16>()
+				: MMIO::DirectWrite<u16>(mapped_var.ptr, wmask)
+		);
 	}
 
-	return;
+	// Timing and metrics MMIOs are stubbed with fixed values.
+	struct {
+		u32 addr;
+		u16 value;
+	} metrics_mmios[] = {
+		{ XF_RASBUSY_L, 0 },
+		{ XF_RASBUSY_H, 0 },
+		{ XF_CLKS_L, 0 },
+		{ XF_CLKS_H, 0 },
+		{ XF_WAIT_IN_L, 0 },
+		{ XF_WAIT_IN_H, 0 },
+		{ XF_WAIT_OUT_L, 0 },
+		{ XF_WAIT_OUT_H, 0 },
+		{ VCACHE_METRIC_CHECK_L, 0 },
+		{ VCACHE_METRIC_CHECK_H, 0 },
+		{ VCACHE_METRIC_MISS_L, 0 },
+		{ VCACHE_METRIC_MISS_H, 0 },
+		{ VCACHE_METRIC_STALL_L, 0 },
+		{ VCACHE_METRIC_STALL_H, 0 },
+		{ CLKS_PER_VTX_OUT, 4 },
+	};
+	for (auto& metrics_mmio : metrics_mmios)
+	{
+		mmio->Register(base | metrics_mmio.addr,
+			MMIO::Constant<u16>(metrics_mmio.value),
+			MMIO::InvalidWrite<u16>()
+		);
+	}
+
+	mmio->Register(base | STATUS_REGISTER,
+		MMIO::ComplexRead<u16>([](u32) {
+			SetCpStatusRegister();
+			return m_CPStatusReg.Hex;
+		}),
+		MMIO::InvalidWrite<u16>()
+	);
+
+	mmio->Register(base | CTRL_REGISTER,
+		MMIO::DirectRead<u16>(&m_CPCtrlReg.Hex),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			UCPCtrlReg tmp(val);
+			m_CPCtrlReg.Hex = tmp.Hex;
+			SetCpControlRegister();
+			if (!IsOnThread())
+				RunGpu();
+		})
+	);
+
+	mmio->Register(base | CLEAR_REGISTER,
+		MMIO::DirectRead<u16>(&m_CPClearReg.Hex),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			UCPClearReg tmp(val);
+			m_CPClearReg.Hex = tmp.Hex;
+			SetCpClearRegister();
+			if (!IsOnThread())
+				RunGpu();
+		})
+	);
+
+	mmio->Register(base | PERF_SELECT,
+		MMIO::InvalidRead<u16>(),
+		MMIO::Nop<u16>()
+	);
+
+	// Some MMIOs have different handlers for single core vs. dual core mode.
+	mmio->Register(base | FIFO_RW_DISTANCE_LO,
+		IsOnThread()
+			? MMIO::ComplexRead<u16>([](u32) {
+				if (fifo.CPWritePointer >= fifo.SafeCPReadPointer)
+					return ReadLow(fifo.CPWritePointer - fifo.SafeCPReadPointer);
+				else
+					return ReadLow(fifo.CPEnd - fifo.SafeCPReadPointer + fifo.CPWritePointer - fifo.CPBase + 32);
+			  })
+			: MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.CPReadWriteDistance)),
+		MMIO::DirectWrite<u16>(MMIO::Utils::LowPart(&fifo.CPReadWriteDistance), 0xFFE0)
+	);
+	mmio->Register(base | FIFO_RW_DISTANCE_HI,
+		IsOnThread()
+			? MMIO::ComplexRead<u16>([](u32) {
+				if (fifo.CPWritePointer >= fifo.SafeCPReadPointer)
+					return ReadHigh(fifo.CPWritePointer - fifo.SafeCPReadPointer);
+				else
+					return ReadHigh(fifo.CPEnd - fifo.SafeCPReadPointer + fifo.CPWritePointer - fifo.CPBase + 32);
+			  })
+			: MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&fifo.CPReadWriteDistance)),
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			WriteHigh(fifo.CPReadWriteDistance, val);
+			if (fifo.CPReadWriteDistance == 0)
+			{
+				GPFifo::ResetGatherPipe();
+				ResetVideoBuffer();
+			}
+			else
+			{
+				ResetVideoBuffer();
+			}
+			if (!IsOnThread())
+				RunGpu();
+		})
+	);
+	mmio->Register(base | FIFO_READ_POINTER_LO,
+		IsOnThread()
+			? MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.SafeCPReadPointer))
+			: MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.CPReadPointer)),
+		MMIO::DirectWrite<u16>(MMIO::Utils::LowPart(&fifo.CPReadPointer), 0xFFE0)
+	);
+	mmio->Register(base | FIFO_READ_POINTER_HI,
+		IsOnThread()
+			? MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&fifo.SafeCPReadPointer))
+			: MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&fifo.CPReadPointer)),
+		IsOnThread()
+			? MMIO::ComplexWrite<u16>([](u32, u16 val) {
+				WriteHigh(fifo.CPReadPointer, val);
+				fifo.SafeCPReadPointer = fifo.CPReadPointer;
+			  })
+			: MMIO::DirectWrite<u16>(MMIO::Utils::HighPart(&fifo.CPReadPointer))
+	);
+}
+
+void Read16(u16& _rReturnValue, const u32 _Address)
+{
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Read(_Address, _rReturnValue);
 }
 
 void Write16(const u16 _Value, const u32 _Address)
 {
-	INFO_LOG(COMMANDPROCESSOR, "(write16): 0x%04x @ 0x%08x",_Value,_Address);
-
-	switch (_Address & 0xFFF)
-	{
-	case STATUS_REGISTER:
-		{
-			// This should be Read-Only
-			ERROR_LOG(COMMANDPROCESSOR,"\t write to STATUS_REGISTER : %04x", _Value);
-			PanicAlert("CommandProcessor:: CPU writes to STATUS_REGISTER!");
-		}
-		break;
-
-	case CTRL_REGISTER:
-		{
-			UCPCtrlReg tmpCtrl(_Value);
-			m_CPCtrlReg.Hex = tmpCtrl.Hex;
-			INFO_LOG(COMMANDPROCESSOR,"\t Write to CTRL_REGISTER : %04x", _Value);
-			SetCpControlRegister();
-		}
-		break;
-
-	case CLEAR_REGISTER:
-		{
-			UCPClearReg tmpCtrl(_Value);
-			m_CPClearReg.Hex = tmpCtrl.Hex;
-			DEBUG_LOG(COMMANDPROCESSOR,"\t Write to CLEAR_REGISTER : %04x", _Value);
-			SetCpClearRegister();
-		}
-		break;
-
-	case PERF_SELECT:
-		// Seems to select which set of perf registers should be exposed.
-		DEBUG_LOG(COMMANDPROCESSOR, "Write to PERF_SELECT: %04x", _Value);
-		break;
-
-	// Fifo Registers
-	case FIFO_TOKEN_REGISTER:
-		m_tokenReg = _Value;
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_TOKEN_REGISTER : %04x", _Value);
-		break;
-	case FIFO_BASE_LO:
-		WriteLow ((u32 &)fifo.CPBase, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_BASE_LO : %04x", _Value);
-		break;
-	case FIFO_BASE_HI:
-		WriteHigh((u32 &)fifo.CPBase, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_BASE_HI : %04x", _Value);
-		break;
-
-	case FIFO_END_LO:
-		WriteLow ((u32 &)fifo.CPEnd,  _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_END_LO : %04x", _Value);
-		break;
-	case FIFO_END_HI:
-		WriteHigh((u32 &)fifo.CPEnd,  _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_END_HI : %04x", _Value);
-		break;
-
-	case FIFO_WRITE_POINTER_LO:
-		WriteLow ((u32 &)fifo.CPWritePointer, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_WRITE_POINTER_LO : %04x", _Value);
-		break;
-	case FIFO_WRITE_POINTER_HI:
-		WriteHigh((u32 &)fifo.CPWritePointer, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_WRITE_POINTER_HI : %04x", _Value);
-		break;
-
-	case FIFO_READ_POINTER_LO:
-		WriteLow ((u32 &)fifo.CPReadPointer, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_READ_POINTER_LO : %04x", _Value);
-		break;
-	case FIFO_READ_POINTER_HI:
-		WriteHigh((u32 &)fifo.CPReadPointer, _Value);
-		fifo.SafeCPReadPointer = fifo.CPReadPointer;
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_READ_POINTER_HI : %04x", _Value);
-		break;
-
-	case FIFO_HI_WATERMARK_LO:
-		WriteLow ((u32 &)fifo.CPHiWatermark, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_HI_WATERMARK_LO : %04x", _Value);
-		break;
-	case FIFO_HI_WATERMARK_HI:
-		WriteHigh((u32 &)fifo.CPHiWatermark, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_HI_WATERMARK_HI : %04x", _Value);
-		break;
-
-	case FIFO_LO_WATERMARK_LO:
-		WriteLow ((u32 &)fifo.CPLoWatermark, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_LO_WATERMARK_LO : %04x", _Value);
-		break;
-	case FIFO_LO_WATERMARK_HI:
-		WriteHigh((u32 &)fifo.CPLoWatermark, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"\t Write to FIFO_LO_WATERMARK_HI : %04x", _Value);
-		break;
-
-	case FIFO_BP_LO:
-		WriteLow ((u32 &)fifo.CPBreakpoint, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"Write to FIFO_BP_LO : %04x", _Value);
-		break;
-	case FIFO_BP_HI:
-		WriteHigh((u32 &)fifo.CPBreakpoint, _Value);
-		DEBUG_LOG(COMMANDPROCESSOR,"Write to FIFO_BP_HI : %04x", _Value);
-		break;
-
-	case FIFO_RW_DISTANCE_HI:
-		WriteHigh((u32 &)fifo.CPReadWriteDistance, _Value);
-		if (fifo.CPReadWriteDistance == 0)
-		{
-			GPFifo::ResetGatherPipe();
-			ResetVideoBuffer();
-		}
-		else
-		{
-			ResetVideoBuffer();
-		}
-		DEBUG_LOG(COMMANDPROCESSOR,"Try to write to FIFO_RW_DISTANCE_HI : %04x", _Value);
-		break;
-	case FIFO_RW_DISTANCE_LO:
-		WriteLow((u32 &)fifo.CPReadWriteDistance, _Value & 0xFFE0);
-		DEBUG_LOG(COMMANDPROCESSOR,"Try to write to FIFO_RW_DISTANCE_LO : %04x", _Value);
-		break;
-
-	default:
-		WARN_LOG(COMMANDPROCESSOR, "(w16) unknown CP reg write %04x @ %08x", _Value, _Address);
-	}
-
-	if (!IsOnThread())
-		RunGpu();
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Write(_Address, _Value);
 }
 
 void Read32(u32& _rReturnValue, const u32 _Address)
 {
-	_rReturnValue = 0;
-	_dbg_assert_msg_(COMMANDPROCESSOR, 0, "Read32 from CommandProccessor at 0x%08x", _Address);
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Read(_Address, _rReturnValue);
 }
 
 void Write32(const u32 _Data, const u32 _Address)
 {
-	_dbg_assert_msg_(COMMANDPROCESSOR, 0, "Write32 at CommandProccessor at 0x%08x", _Address);
+	// HACK: Remove this function when the new MMIO interface is used.
+	Memory::mmio_mapping->Write(_Address, _Data);
 }
 
 void STACKALIGN GatherPipeBursted()

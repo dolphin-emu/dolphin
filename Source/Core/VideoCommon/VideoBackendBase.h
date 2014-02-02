@@ -10,6 +10,8 @@
 #include "ChunkFile.h"
 #include "../VideoCommon/PerfQueryBase.h"
 
+namespace MMIO { class Mapping; }
+
 typedef void (*writeFn16)(const u16,const u32);
 typedef void (*writeFn32)(const u32,const u32);
 typedef void (*readFn16)(u16&, const u32);
@@ -110,6 +112,11 @@ public:
 	virtual bool Video_IsHiWatermarkActive() = 0;
 	virtual void Video_AbortFrame() = 0;
 
+	// Registers MMIO handlers for the CommandProcessor registers.
+	virtual void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) = 0;
+	virtual void RegisterPEMMIO(MMIO::Mapping* mmio, u32 base) = 0;
+
+	// HACK: Remove these functions when the new MMIO interface is used.
 	virtual readFn16  Video_CPRead16() = 0;
 	virtual writeFn16 Video_CPWrite16() = 0;
 	virtual readFn16  Video_PERead16() = 0;
@@ -161,6 +168,9 @@ class VideoBackendHardware : public VideoBackend
 	bool Video_IsPossibleWaitingSetDrawDone();
 	bool Video_IsHiWatermarkActive();
 	void Video_AbortFrame();
+
+	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
+	void RegisterPEMMIO(MMIO::Mapping* mmio, u32 base) override;
 
 	readFn16  Video_CPRead16();
 	writeFn16 Video_CPWrite16();
