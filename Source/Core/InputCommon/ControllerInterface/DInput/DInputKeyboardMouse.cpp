@@ -5,11 +5,11 @@
 	// (lower would be more sensitive) user can lower sensitivity by setting range
 	// seems decent here ( at 8 ), I don't think anyone would need more sensitive than this
 	// and user can lower it much farther than they would want to with the range
-#define MOUSE_AXIS_SENSITIVITY		8
+#define MOUSE_AXIS_SENSITIVITY   8
 
 	// if input hasn't been received for this many ms, mouse input will be skipped
 	// otherwise it is just some crazy value
-#define DROP_INPUT_TIME				250
+#define DROP_INPUT_TIME          250
 
 namespace ciface
 {
@@ -18,8 +18,8 @@ namespace DInput
 
 static const struct
 {
-	const BYTE			code;
-	const char* const	name;
+	const BYTE        code;
+	const char* const name;
 } named_keys[] =
 {
 #include "NamedKeys.h"
@@ -27,8 +27,8 @@ static const struct
 
 static const struct
 {
-	const BYTE			code;
-	const char* const	name;
+	const BYTE        code;
+	const char* const name;
 } named_lights[] =
 {
 	{ VK_NUMLOCK, "NUM LOCK" },

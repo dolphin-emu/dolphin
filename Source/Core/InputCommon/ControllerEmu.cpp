@@ -10,39 +10,23 @@
 
 ControllerEmu::~ControllerEmu()
 {
-	// control groups
-	std::vector<ControlGroup*>::const_iterator
-		i = groups.begin(),
-		e = groups.end();
-	for (; i!=e; ++i)
-		delete *i;
+	for (ControlGroup* cg : groups)
+		delete cg;
 }
 
 ControllerEmu::ControlGroup::~ControlGroup()
 {
-	// controls
-	std::vector<Control*>::const_iterator
-		ci = controls.begin(),
-		ce = controls.end();
-	for (; ci!=ce; ++ci)
-		delete *ci;
+	for (Control* c : controls)
+		delete c;
 
-	// settings
-	std::vector<Setting*>::const_iterator
-		si = settings.begin(),
-		se = settings.end();
-	for (; si!=se; ++si)
-		delete *si;
+	for (Setting* s : settings)
+		delete s;
 }
 
 ControllerEmu::Extension::~Extension()
 {
-	// attachments
-	std::vector<ControllerEmu*>::const_iterator
-		ai = attachments.begin(),
-		ae = attachments.end();
-	for (; ai!=ae; ++ai)
-		delete *ai;
+	for (ControllerEmu* ai : attachments)
+		delete ai;
 }
 ControllerEmu::ControlGroup::Control::~Control()
 {
@@ -51,52 +35,31 @@ ControllerEmu::ControlGroup::Control::~Control()
 
 void ControllerEmu::UpdateReferences(ControllerInterface& devi)
 {
-	std::vector<ControlGroup*>::const_iterator
-		i = groups.begin(),
-		e = groups.end();
-	for (; i!=e; ++i)
+	for (ControlGroup* cg : groups)
 	{
-		std::vector<ControlGroup::Control*>::const_iterator
-			ci = (*i)->controls.begin(),
-			ce = (*i)->controls.end();
-		for (; ci!=ce; ++ci)
-			devi.UpdateReference((*ci)->control_ref, default_device);
+		for (ControlGroup::Control* control : cg->controls)
+			devi.UpdateReference(control->control_ref, default_device);
 
 		// extension
-		if (GROUP_TYPE_EXTENSION == (*i)->type)
+		if (GROUP_TYPE_EXTENSION == cg->type)
 		{
-			std::vector<ControllerEmu*>::const_iterator
-				ai = ((Extension*)*i)->attachments.begin(),
-				ae = ((Extension*)*i)->attachments.end();
-			for (; ai!=ae; ++ai)
-				(*ai)->UpdateReferences(devi);
+			for (ControllerEmu* ai : ((Extension*)cg)->attachments)
+				ai->UpdateReferences(devi);
 		}
 	}
 }
 
 void ControllerEmu::UpdateDefaultDevice()
 {
-	std::vector<ControlGroup*>::const_iterator
-		i = groups.begin(),
-		e = groups.end();
-	for (; i!=e; ++i)
+	for (ControlGroup* cg : groups)
 	{
-		//std::vector<ControlGroup::Control*>::const_iterator
-			//ci = (*i)->controls.begin(),
-			//ce = (*i)->controls.end();
-		//for (; ci!=ce; ++ci)
-			//(*ci)->control_ref->device_qualifier = default_device;
-
 		// extension
-		if (GROUP_TYPE_EXTENSION == (*i)->type)
+		if (GROUP_TYPE_EXTENSION == cg->type)
 		{
-			std::vector<ControllerEmu*>::const_iterator
-				ai = ((Extension*)*i)->attachments.begin(),
-				ae = ((Extension*)*i)->attachments.end();
-			for (; ai!=ae; ++ai)
+			for (ControllerEmu* ai : ((Extension*)cg)->attachments)
 			{
-				(*ai)->default_device = default_device;
-				(*ai)->UpdateDefaultDevice();
+				ai->default_device = default_device;
+				ai->UpdateDefaultDevice();
 			}
 		}
 	}
@@ -107,50 +70,42 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 	std::string group(base + name); group += "/";
 
 	// settings
-	std::vector<ControlGroup::Setting*>::const_iterator
-		si = settings.begin(),
-		se = settings.end();
-	for (; si!=se; ++si)
+	for (Setting* s : settings)
 	{
-		sec->Get((group+(*si)->name).c_str(), &(*si)->value, (*si)->default_value*100);
-		(*si)->value /= 100;
+		sec->Get((group + s->name).c_str(), &s->value, s->default_value * 100);
+		s->value /= 100;
 	}
 
-	// controls
-	std::vector<ControlGroup::Control*>::const_iterator
-		ci = controls.begin(),
-		ce = controls.end();
-	for (; ci!=ce; ++ci)
+	for (Control* c : controls)
 	{
 		// control expression
-		sec->Get((group + (*ci)->name).c_str(), &(*ci)->control_ref->expression, "");
+		sec->Get((group + c->name).c_str(), &c->control_ref->expression, "");
 
 		// range
-		sec->Get((group+(*ci)->name+"/Range").c_str(), &(*ci)->control_ref->range, 100.0f);
-		(*ci)->control_ref->range /= 100;
+		sec->Get((group + c->name + "/Range").c_str(), &c->control_ref->range, 100.0f);
+		c->control_ref->range /= 100;
 
 	}
 
 	// extensions
 	if (GROUP_TYPE_EXTENSION == type)
 	{
-		Extension* const ex = ((Extension*)this);
+		Extension* const ext = ((Extension*)this);
 
-		ex->switch_extension = 0;
+		ext->switch_extension = 0;
 		unsigned int n = 0;
 		std::string extname;
 		sec->Get((base + name).c_str(), &extname, "");
 
-		std::vector<ControllerEmu*>::const_iterator
-			ai = ((Extension*)this)->attachments.begin(),
-			ae = ((Extension*)this)->attachments.end();
-		for (; ai!=ae; ++ai,++n)
+		for (ControllerEmu* ai : ext->attachments)
 		{
-			(*ai)->default_device.FromString(defdev);
-			(*ai)->LoadConfig(sec, base + (*ai)->GetName() + "/");
+			ai->default_device.FromString(defdev);
+			ai->LoadConfig(sec, base + ai->GetName() + "/");
 
-			if ((*ai)->GetName() == extname)
-				ex->switch_extension = n;
+			if (ai->GetName() == extname)
+				ext->switch_extension = n;
+
+			n++;
 		}
 	}
 }
@@ -163,34 +118,25 @@ void ControllerEmu::LoadConfig(IniFile::Section *sec, const std::string& base)
 		sec->Get((base + "Device").c_str(), &defdev, "");
 		default_device.FromString(defdev);
 	}
-	std::vector<ControlGroup*>::const_iterator i = groups.begin(),
-		e = groups.end();
-	for (; i!=e; ++i)
-		(*i)->LoadConfig(sec, defdev, base);
+
+	for (ControlGroup* cg : groups)
+		cg->LoadConfig(sec, defdev, base);
 }
 
 void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::string& defdev, const std::string& base)
 {
 	std::string group(base + name); group += "/";
 
-	// settings
-	std::vector<ControlGroup::Setting*>::const_iterator
-		si = settings.begin(),
-		se = settings.end();
-	for (; si!=se; ++si)
-		sec->Set((group+(*si)->name).c_str(), (*si)->value*100.0f, (*si)->default_value*100.0f);
+	for (Setting* s : settings)
+		sec->Set((group + s->name).c_str(), s->value*100.0f, s->default_value*100.0f);
 
-	// controls
-	std::vector<ControlGroup::Control*>::const_iterator
-		ci = controls.begin(),
-		ce = controls.end();
-	for (; ci!=ce; ++ci)
+	for (Control* c : controls)
 	{
 		// control expression
-		sec->Set((group+(*ci)->name).c_str(), (*ci)->control_ref->expression, "");
+		sec->Set((group + c->name).c_str(), c->control_ref->expression, "");
 
 		// range
-		sec->Set((group+(*ci)->name+"/Range").c_str(), (*ci)->control_ref->range*100.0f, 100.0f);
+		sec->Set((group + c->name + "/Range").c_str(), c->control_ref->range*100.0f, 100.0f);
 	}
 
 	// extensions
@@ -199,11 +145,8 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::s
 		Extension* const ext = ((Extension*)this);
 		sec->Set((base + name).c_str(), ext->attachments[ext->switch_extension]->GetName(), "None");
 
-		std::vector<ControllerEmu*>::const_iterator
-			ai = ((Extension*)this)->attachments.begin(),
-			ae = ((Extension*)this)->attachments.end();
-		for (; ai!=ae; ++ai)
-			(*ai)->SaveConfig(sec, base + (*ai)->GetName() + "/");
+		for (ControllerEmu* ai : ext->attachments)
+			ai->SaveConfig(sec, base + ai->GetName() + "/");
 	}
 }
 
@@ -213,10 +156,8 @@ void ControllerEmu::SaveConfig(IniFile::Section *sec, const std::string& base)
 	if (base.empty())
 		sec->Set((/*std::string(" ") +*/ base + "Device").c_str(), defdev, "");
 
-	std::vector<ControlGroup*>::const_iterator i = groups.begin(),
-		e = groups.end();
-	for (; i!=e; ++i)
-		(*i)->SaveConfig(sec, defdev, base);
+	for (ControlGroup* cg : groups)
+		cg->SaveConfig(sec, defdev, base);
 }
 
 ControllerEmu::AnalogStick::AnalogStick(const char* const _name) : ControlGroup(_name, GROUP_TYPE_STICK)
