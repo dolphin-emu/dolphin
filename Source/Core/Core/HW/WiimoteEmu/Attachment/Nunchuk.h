@@ -17,7 +17,7 @@ class Nunchuk : public Attachment
 public:
 	Nunchuk(UDPWrapper * wrp, WiimoteEmu::ExtensionReg& _reg);
 
-	virtual void GetState( u8* const data, const bool focus ) override;
+	virtual void GetState(u8* const data, const bool focus) override;
 
 	enum
 	{
@@ -28,15 +28,15 @@ public:
 	void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
-	Tilt*			m_tilt;
-	Force*			m_swing;
+	Tilt*        m_tilt;
+	Force*       m_swing;
 
-	Buttons*		m_shake;
+	Buttons*     m_shake;
 
-	Buttons*		m_buttons;
-	AnalogStick*	m_stick;
+	Buttons*     m_buttons;
+	AnalogStick* m_stick;
 
-	u8	m_shake_step[3];
+	u8 m_shake_step[3];
 
 	UDPWrapper* const m_udpWrap;
 };
