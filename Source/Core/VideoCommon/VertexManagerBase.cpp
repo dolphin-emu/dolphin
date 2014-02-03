@@ -11,6 +11,7 @@
 #include "RenderBase.h"
 #include "BPStructs.h"
 #include "XFMemory.h"
+#include "Debugger.h"
 
 #include "VertexManagerBase.h"
 #include "MainBase.h"
@@ -216,8 +217,13 @@ void VertexManager::Flush()
 	VertexShaderManager::SetConstants();
 	PixelShaderManager::SetConstants();
 
+	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
+		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
+
 	// TODO: need to merge more stuff into VideoCommon
-	g_vertex_manager->vFlush();
+	g_vertex_manager->vFlush(useDstAlpha);
+
+	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	IsFlushed = true;
 }
