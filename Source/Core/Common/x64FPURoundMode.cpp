@@ -101,8 +101,7 @@ namespace FPURoundMode
 			FTZ,       // flush-to-zero only
 			FTZ | DAZ, // flush-to-zero and denormals-are-zero (may not be supported)
 		};
-		// FIXME: proper (?) non-IEEE mode emulation causes issues in lots of games
-		if (nonIEEEMode && false)
+		if (nonIEEEMode)
 		{
 			csr |= denormalLUT[cpu_info.bFlushToZero];
 		}
