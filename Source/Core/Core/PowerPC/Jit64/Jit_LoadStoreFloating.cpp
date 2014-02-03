@@ -12,6 +12,8 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
+namespace {
+
 // pshufb todo: MOVQ
 const u8 GC_ALIGNED16(bswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 const u8 GC_ALIGNED16(bswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -19,11 +21,10 @@ const u8 GC_ALIGNED16(bswapShuffle1x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 
 const u8 GC_ALIGNED16(bswapShuffle1x8Dupe[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0};
 const u8 GC_ALIGNED16(bswapShuffle2x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8};
 
-namespace {
-
 u64 GC_ALIGNED16(temp64);
-u32 GC_ALIGNED16(temp32);
+
 }
+
 // TODO: Add peephole optimizations for multiple consecutive lfd/lfs/stfd/stfs since they are so common,
 // and pshufb could help a lot.
 // Also add hacks for things like lfs/stfs the same reg consecutively, that is, simple memory moves.
@@ -46,11 +47,9 @@ void Jit64::lfs(UGeckoInstruction inst)
 
 	MEMCHECK_START
 
-	MOV(32, M(&temp32), R(EAX));
 	fpr.Lock(d);
 	fpr.BindToRegister(d, false);
-	CVTSS2SD(fpr.RX(d), M(&temp32));
-	MOVDDUP(fpr.RX(d), fpr.R(d));
+	ConvertSingleToDouble(fpr.RX(d), EAX, true);
 
 	MEMCHECK_END
 
@@ -235,13 +234,15 @@ void Jit64::stfs(UGeckoInstruction inst)
 		return;
 	}
 
+	fpr.BindToRegister(s, true, false);
+	ConvertDoubleToSingle(XMM0, fpr.RX(s));
+
 	if (gpr.R(a).IsImm())
 	{
 		u32 addr = (u32)(gpr.R(a).offset + offset);
 		if (Memory::IsRAMAddress(addr))
 		{
 			if (cpu_info.bSSSE3) {
-				CVTSD2SS(XMM0, fpr.R(s));
 				PSHUFB(XMM0, M((void *)bswapShuffle1x4));
 				WriteFloatToConstRamAddress(XMM0, addr);
 				return;
@@ -250,7 +251,6 @@ void Jit64::stfs(UGeckoInstruction inst)
 		else if (addr == 0xCC008000)
 		{
 			// Float directly to write gather pipe! Fun!
-			CVTSD2SS(XMM0, fpr.R(s));
 			CALL((void*)asm_routines.fifoDirectWriteFloat);
 			// TODO
 			js.fifoBytesThisBlock += 4;
@@ -260,7 +260,6 @@ void Jit64::stfs(UGeckoInstruction inst)
 
 	gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 	gpr.Lock(a);
-	fpr.Lock(s);
 	MOV(32, R(ABI_PARAM2), gpr.R(a));
 	ADD(32, R(ABI_PARAM2), Imm32(offset));
 	if (update && offset)
@@ -275,7 +274,6 @@ void Jit64::stfs(UGeckoInstruction inst)
 
 		MEMCHECK_END
 	}
-	CVTSD2SS(XMM0, fpr.R(s));
 	SafeWriteFloatToReg(XMM0, ABI_PARAM2, RegistersInUse());
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -290,11 +288,14 @@ void Jit64::stfsx(UGeckoInstruction inst)
 
 	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
 	gpr.FlushLockX(ABI_PARAM1);
-	fpr.Lock(inst.RS);
 	MOV(32, R(ABI_PARAM1), gpr.R(inst.RB));
 	if (inst.RA)
 		ADD(32, R(ABI_PARAM1), gpr.R(inst.RA));
-	CVTSD2SS(XMM0, fpr.R(inst.RS));
+
+	int s = inst.RS;
+	fpr.Lock(s);
+	fpr.BindToRegister(s, true, false);
+	ConvertDoubleToSingle(XMM0, fpr.RX(s));
 	MOVD_xmm(R(EAX), XMM0);
 	SafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0, RegistersInUse());
 
@@ -313,21 +314,20 @@ void Jit64::lfsx(UGeckoInstruction inst)
 	{
 		ADD(32, R(EAX), gpr.R(inst.RA));
 	}
+	fpr.Lock(inst.RS);
+	fpr.BindToRegister(inst.RS, false);
+	X64Reg s = fpr.RX(inst.RS);
 	if (cpu_info.bSSSE3 && !js.memcheck) {
-		fpr.Lock(inst.RS);
-		fpr.BindToRegister(inst.RS, false, true);
-		X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 #ifdef _M_IX86
 		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVD_xmm(r, MDisp(EAX, (u32)Memory::base));
+		MOVD_xmm(XMM0, MDisp(EAX, (u32)Memory::base));
 #else
-		MOVD_xmm(r, MComplex(RBX, EAX, SCALE_1, 0));
+		MOVD_xmm(XMM0, MComplex(RBX, EAX, SCALE_1, 0));
 #endif
 		MEMCHECK_START
 
-		PSHUFB(r, M((void *)bswapShuffle1x4));
-		CVTSS2SD(r, R(r));
-		MOVDDUP(r, R(r));
+		PSHUFB(XMM0, M((void *)bswapShuffle1x4));
+		ConvertSingleToDouble(s, XMM0);
 
 		MEMCHECK_END
 	} else {
@@ -335,11 +335,7 @@ void Jit64::lfsx(UGeckoInstruction inst)
 
 		MEMCHECK_START
 
-		MOV(32, M(&temp32), R(EAX));
-		CVTSS2SD(XMM0, M(&temp32));
-		fpr.Lock(inst.RS);
-		fpr.BindToRegister(inst.RS, false, true);
-		MOVDDUP(fpr.R(inst.RS).GetSimpleReg(), R(XMM0));
+		ConvertSingleToDouble(s, EAX, true);
 
 		MEMCHECK_END
 	}

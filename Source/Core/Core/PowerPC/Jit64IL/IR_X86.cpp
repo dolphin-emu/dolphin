@@ -1288,10 +1288,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 		}
 		case DupSingleToMReg: {
 			if (!thisUsed) break;
-			X64Reg reg = fregURegWithoutMov(RI, I);
-			Jit->CVTSS2SD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->MOVDDUP(reg, R(reg));
-			RI.fregs[reg] = I;
+
+			X64Reg input = fregEnsureInReg(RI, getOp1(I));
+			X64Reg output = fregURegWithoutMov(RI, I);
+			Jit->ConvertSingleToDouble(output, input);
+
+			RI.fregs[output] = I;
 			fregNormalRegClear(RI, I);
 			break;
 		}
@@ -1412,9 +1414,12 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 		}
 		case DoubleToSingle: {
 			if (!thisUsed) break;
-			X64Reg reg = fregURegWithoutMov(RI, I);
-			Jit->CVTSD2SS(reg, fregLocForInst(RI, getOp1(I)));
-			RI.fregs[reg] = I;
+
+			X64Reg input = fregEnsureInReg(RI, getOp1(I));
+			X64Reg output = fregURegWithoutMov(RI, I);
+			Jit->ConvertDoubleToSingle(output, input);
+
+			RI.fregs[output] = I;
 			fregNormalRegClear(RI, I);
 			break;
 		}

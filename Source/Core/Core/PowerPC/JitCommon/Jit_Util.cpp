@@ -416,6 +416,101 @@ void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm) {
 	}
 }
 
+static u32 GC_ALIGNED16(temp32);
+static u64 GC_ALIGNED16(temp64);
+#ifdef _WIN32
+#include <intrin.h>
+#ifdef _M_X64
+static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0, 0x0000000000400000);
+static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi64x(0, 0x000000007f800000);
+static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi64x(0, 0x0008000000000000);
+static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi64x(0, 0x7ff0000000000000);
+#else
+static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi32(0, 0, 0x00000000, 0x00400000);
+static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi32(0, 0, 0x00000000, 0x7f800000);
+static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi32(0, 0, 0x00080000, 0x00000000);
+static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi32(0, 0, 0x7ff00000, 0x00000000);
+#endif
+#else
+static const __uint128_t GC_ALIGNED16(single_qnan_bit) = 0x0000000000400000;
+static const __uint128_t GC_ALIGNED16(single_exponent) = 0x000000007f800000;
+static const __uint128_t GC_ALIGNED16(double_qnan_bit) = 0x0008000000000000;
+static const __uint128_t GC_ALIGNED16(double_exponent) = 0x7ff0000000000000;
+#endif
+
+// Since the following two functions are used in non-arithmetic PPC float instructions,
+// they must convert floats bitexact and never flush denormals to zero or turn SNaNs into QNaNs.
+// This means we can't use CVTSS2SD/CVTSD2SS :(
+// The x87 FPU doesn't even support flush-to-zero so we can use FLD+FSTP even on denormals.
+// If the number is a NaN, make sure to set the QNaN bit back to its original value.
+
+void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
+{
+	if (src_is_gpr) {
+		MOV(32, M(&temp32), R(src));
+		MOVD_xmm(XMM1, R(src));
+	} else {
+		MOVSS(M(&temp32), src);
+		MOVSS(R(XMM1), src);
+	}
+	FLD(32, M(&temp32));
+	CCFlags cond;
+	if (cpu_info.bSSE4_1) {
+		PTEST(XMM1, M((void *)&single_exponent));
+		cond = CC_NC;
+	} else {
+		FNSTSW_AX();
+		TEST(16, R(AX), Imm16(x87_InvalidOperation));
+		cond = CC_Z;
+	}
+	FSTP(64, M(&temp64));
+	MOVSD(dst, M(&temp64));
+	FixupBranch dont_reset_qnan_bit = J_CC(cond);
+
+	PANDN(XMM1, M((void *)&single_qnan_bit));
+	PSLLQ(XMM1, 29);
+	if (cpu_info.bAVX) {
+		VPANDN(dst, XMM1, R(dst));
+	} else {
+		PANDN(XMM1, R(dst));
+		MOVSD(dst, R(XMM1));
+	}
+
+	SetJumpTarget(dont_reset_qnan_bit);
+	MOVDDUP(dst, R(dst));
+}
+
+void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
+{
+	MOVSD(M(&temp64), src);
+	MOVSD(XMM1, R(src));
+	FLD(64, M(&temp64));
+	CCFlags cond;
+	if (cpu_info.bSSE4_1) {
+		PTEST(XMM1, M((void *)&double_exponent));
+		cond = CC_NC;
+	} else {
+		FNSTSW_AX();
+		TEST(16, R(AX), Imm16(x87_InvalidOperation));
+		cond = CC_Z;
+	}
+	FSTP(32, M(&temp32));
+	MOVSS(XMM0, M(&temp32));
+	FixupBranch dont_reset_qnan_bit = J_CC(cond);
+
+	PANDN(XMM1, M((void *)&double_qnan_bit));
+	PSRLQ(XMM1, 29);
+	if (cpu_info.bAVX) {
+		VPANDN(XMM0, XMM1, R(XMM0));
+	} else {
+		PANDN(XMM1, R(XMM0));
+		MOVSS(XMM0, R(XMM1));
+	}
+
+	SetJumpTarget(dont_reset_qnan_bit);
+	MOVDDUP(dst, R(XMM0));
+}
+
 void EmuCodeBlock::JitClearCA()
 {
 	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0

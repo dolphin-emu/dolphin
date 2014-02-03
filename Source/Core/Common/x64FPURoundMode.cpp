@@ -16,11 +16,11 @@ static const unsigned short FPU_ROUND_MASK = 3 << 10;
 #endif
 
 // OR-mask for disabling FPU exceptions (bits 7-12 in the MXCSR register)
-const u32 EXCEPTION_MASK = 0x1F80;
+static const u32 EXCEPTION_MASK = 0x1F80;
 // Denormals-Are-Zero (non-IEEE mode: denormal inputs are set to +/- 0)
-const u32 DAZ = 0x40;
+static const u32 DAZ = 0x40;
 // Flush-To-Zero (non-IEEE mode: denormal outputs are set to +/- 0)
-const u32 FTZ = 0x8000;
+static const u32 FTZ = 0x8000;
 
 namespace FPURoundMode
 {

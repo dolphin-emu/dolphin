@@ -1437,7 +1437,19 @@ void XEmitter::PSHUFB(X64Reg dest, OpArg arg) {
 	Write8(0x0f);
 	Write8(0x38);
 	Write8(0x00);
-	arg.WriteRest(this, 0);
+	arg.WriteRest(this);
+}
+
+void XEmitter::PTEST(X64Reg dest, OpArg arg) {
+	if (!cpu_info.bSSE4_1) {
+		PanicAlert("Trying to use PTEST on a system that doesn't support it. Nobody hears your screams.");
+	}
+	Write8(0x66);
+	Write8(0x0f);
+	Write8(0x38);
+	Write8(0x17);
+	arg.operandReg = dest;
+	arg.WriteRest(this);
 }
 
 void XEmitter::PAND(X64Reg dest, OpArg arg)     {WriteSSEOp(64, 0xDB, true, dest, arg);}
@@ -1497,6 +1509,8 @@ void XEmitter::VSUBSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64,
 void XEmitter::VMULSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseMUL, false, regOp1, regOp2, arg);}
 void XEmitter::VDIVSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseDIV, false, regOp1, regOp2, arg);}
 void XEmitter::VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)  {WriteAVXOp(64, sseSQRT, false, regOp1, regOp2, arg);}
+void XEmitter::VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg)    {WriteAVXOp(64, sseAND, false, regOp1, regOp2, arg);}
+void XEmitter::VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseANDN, false, regOp1, regOp2, arg);}
 
 // Prefixes
 
@@ -1526,6 +1540,7 @@ void XEmitter::WriteFloatLoadStore(int bits, FloatOp op, OpArg arg)
 void XEmitter::FLD(int bits, OpArg src) {WriteFloatLoadStore(bits, floatLD, src);}
 void XEmitter::FST(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatST, dest);}
 void XEmitter::FSTP(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatSTP, dest);}
+void XEmitter::FNSTSW_AX() { Write8(0xDF); Write8(0xE0); }
 
 void XEmitter::RTDSC() { Write8(0x0F); Write8(0x31); }
 

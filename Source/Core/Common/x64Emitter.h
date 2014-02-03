@@ -433,9 +433,27 @@ public:
 	void REPNE();
 
 	// x87
+	enum x87StatusWordBits {
+		x87_InvalidOperation = 0x1,
+		x87_DenormalizedOperand = 0x2,
+		x87_DivisionByZero = 0x4,
+		x87_Overflow = 0x8,
+		x87_Underflow = 0x10,
+		x87_Precision = 0x20,
+		x87_StackFault = 0x40,
+		x87_ErrorSummary = 0x80,
+		x87_C0 = 0x100,
+		x87_C1 = 0x200,
+		x87_C2 = 0x400,
+		x87_TopOfStack = 0x2000 | 0x1000 | 0x800,
+		x87_C3 = 0x4000,
+		x87_FPUBusy = 0x8000,
+	};
+
 	void FLD(int bits, OpArg src);
 	void FST(int bits, OpArg dest);
 	void FSTP(int bits, OpArg dest);
+	void FNSTSW_AX();
 	void FWAIT();
 
 	// SSE/SSE2: Floating point arithmetic
@@ -562,6 +580,7 @@ public:
 	void PUNPCKLWD(X64Reg dest, const OpArg &arg);
 	void PUNPCKLDQ(X64Reg dest, const OpArg &arg);
 
+	void PTEST(X64Reg dest, OpArg arg);
 	void PAND(X64Reg dest, OpArg arg);
 	void PANDN(X64Reg dest, OpArg arg);
 	void PXOR(X64Reg dest, OpArg arg);
@@ -631,6 +650,8 @@ public:
 	void VMULSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VDIVSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
 	void RTDSC();
 
