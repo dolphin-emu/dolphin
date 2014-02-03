@@ -9,6 +9,8 @@
 #include <pulse/pulseaudio.h>
 #endif
 
+#include <atomic>
+
 #include "Common.h"
 #include "SoundStream.h"
 
@@ -45,7 +47,7 @@ private:
 	static void UnderflowCallback(pa_stream *s, void *userdata);
 
 	std::thread m_thread;
-	bool m_run_thread;
+	std::atomic<bool> m_run_thread;
 
 	int m_pa_error;
 	int m_pa_connected;
