@@ -12,6 +12,7 @@
 #include "VideoBackends/D3D/VideoBackend.h"
 #include "VideoBackends/D3D12/VideoBackend.h"
 #endif
+#include "VideoBackends/Null/VideoBackend.h"
 #include "VideoBackends/OGL/VideoBackend.h"
 #include "VideoBackends/Software/VideoBackend.h"
 
@@ -34,7 +35,7 @@ __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
 void VideoBackendBase::PopulateList()
 {
-	// OGL > D3D11 > D3D12 > SW
+	// OGL > D3D11 > D3D12 > SW > Null
 	g_available_video_backends.push_back(std::make_unique<OGL::VideoBackend>());
 #ifdef _WIN32
 	g_available_video_backends.push_back(std::make_unique<DX11::VideoBackend>());
@@ -48,6 +49,7 @@ void VideoBackendBase::PopulateList()
 	}
 #endif
 	g_available_video_backends.push_back(std::make_unique<SW::VideoSoftware>());
+	g_available_video_backends.push_back(std::make_unique<Null::VideoBackend>());
 
 	const auto iter = std::find_if(g_available_video_backends.begin(), g_available_video_backends.end(), [](const auto& backend) {
 		return backend != nullptr;
