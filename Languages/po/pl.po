@@ -11,8 +11,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-01 11:29+0000\n"
-"PO-Revision-Date: 2014-02-01 11:29+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2014-02-02 16:08+0000\n"
+"Last-Translator: M T <michtrz@gmail.com>\n"
 "Language-Team: Polish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/pl/)\n"
 "Language: pl\n"
@@ -3996,7 +3996,7 @@ msgstr "Offset:"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:589
 msgid "On-Screen Display Messages"
-msgstr "On-Screen Display Messages"
+msgstr "Wiadomości na ekranie"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:300
 msgid "Online &Documentation"
@@ -4835,7 +4835,7 @@ msgstr "Pokaż GameCube"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:553
 msgid "Show Input Display"
-msgstr "Pokaż Input Display"
+msgstr "Pokaż wejścia ekranu"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:277
 msgid "Show Italy"
@@ -6108,3 +6108,19 @@ msgstr "zNear Correction: "
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:545
 msgid "| OR"
 msgstr "| OR"
+
+#~ msgid "Cache Display Lists"
+#~ msgstr "Buforowanie list ekranu"
+
+#~ msgid ""
+#~ "[EXPERIMENTAL]\n"
+#~ "Speeds up emulation a bit by caching display lists.\n"
+#~ "Possibly causes issues though.\n"
+#~ "\n"
+#~ "If unsure, leave this unchecked."
+#~ msgstr ""
+#~ "[EKSPERYMENTALNE]\n"
+#~ "Przyspiesza emulację nieznacznie poprzez buforowanie list ekranu.\n"
+#~ "Możliwe błędy.\n"
+#~ "\n"
+#~ "W razie wątpliwości, pozostaw wyłączone."
