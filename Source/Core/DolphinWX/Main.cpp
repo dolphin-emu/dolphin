@@ -532,14 +532,14 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
                           const std::string& config_name)
 {
-	if (backend_name == "Direct3D 11" || backend_name == "Direct3D 12 (experimental)" || backend_name == "OpenGL")
-	{
-		VideoConfigDiag diag((wxWindow*)parent, backend_name, config_name);
-		diag.ShowModal();
-	}
-	else if (backend_name == "Software Renderer")
+	if (backend_name == "Software Renderer")
 	{
 		SoftwareVideoConfigDialog diag((wxWindow*)parent, backend_name, config_name);
+		diag.ShowModal();
+	}
+	else
+	{
+		VideoConfigDiag diag((wxWindow*)parent, backend_name, config_name);
 		diag.ShowModal();
 	}
 }
