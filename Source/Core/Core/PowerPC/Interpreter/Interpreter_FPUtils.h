@@ -231,3 +231,33 @@ inline u32 ConvertToSingleFTZ(u64 x)
 		return (x >> 32) & 0x80000000;
 	}
 }
+
+inline u64 ConvertToDouble(u32 _x)
+{
+	u64 x = _x;
+	u64 exp = (x >> 23) & 0xff;
+	u64 frac = x & 0x007fffff;
+	if (exp || frac == 0)
+	{
+		// not denormalized
+		u64 y = exp & 0x80;
+		u64 z = y << 54 | y << 53 | y << 52;
+		if (exp > 0 && exp < 255)
+		{
+			// not inf/nan/zero
+			z = ~z;
+		}
+		return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
+	}
+	else
+	{
+		// denormalized
+		exp = 1023 - 126;
+		do
+		{
+			frac <<= 1;
+			exp -= 1;
+		} while ((frac & 0x00800000) == 0);
+		return ((x & 0x80000000) << 32) | (exp << 52) | ((frac & 0x007fffff) << 29);
+	}
+}
