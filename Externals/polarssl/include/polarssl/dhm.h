@@ -3,7 +3,7 @@
  *
  * \brief Diffie-Hellman-Merkle key exchange
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -38,6 +38,9 @@
 #define POLARSSL_ERR_DHM_READ_PUBLIC_FAILED                -0x3200  /**< Reading of the public values failed. */
 #define POLARSSL_ERR_DHM_MAKE_PUBLIC_FAILED                -0x3280  /**< Making of the public value failed. */
 #define POLARSSL_ERR_DHM_CALC_SECRET_FAILED                -0x3300  /**< Calculation of the DHM secret failed. */
+#define POLARSSL_ERR_DHM_INVALID_FORMAT                    -0x3380  /**< The ASN.1 data is not formatted correctly. */
+#define POLARSSL_ERR_DHM_MALLOC_FAILED                     -0x3400  /**< Allocation of memory failed. */
+#define POLARSSL_ERR_DHM_FILE_IO_ERROR                     -0x3480  /**< Read/write of file failed. */
 
 /**
  * RFC 3526 defines a number of standardized Diffie-Hellman groups
@@ -130,6 +133,10 @@
     "EDFE72FE9B6AA4BD7B5A0F1C71CFFF4C19C418E1F6EC0179"\
     "81BC087F2A7065B384B890D3191F2BFA"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          DHM context structure
  */
@@ -143,12 +150,11 @@ typedef struct
     mpi GY;     /*!<  peer = G^Y mod P  */
     mpi K;      /*!<  key = GY^X mod P  */
     mpi RP;     /*!<  cached R^2 mod P  */
+    mpi Vi;     /*!<  blinding value    */
+    mpi Vf;     /*!<  un-blinding value */
+    mpi pX;     /*!<  previous X        */
 }
 dhm_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          Parse the ServerKeyExchange parameters
@@ -219,16 +225,54 @@ int dhm_make_public( dhm_context *ctx, int x_size,
  * \param ctx      DHM context
  * \param output   destination buffer
  * \param olen     number of chars written
+ * \param f_rng    RNG function, for blinding purposes
+ * \param p_rng    RNG parameter
  *
  * \return         0 if successful, or an POLARSSL_ERR_DHM_XXX error code
+ *
+ * \note           If non-NULL, f_rng is used to blind the input as
+ *                 countermeasure against timing attacks. Blinding is
+ *                 automatically used if and only if our secret value X is
+ *                 re-used and costs nothing otherwise, so it is recommended
+ *                 to always pass a non-NULL f_rng argument.
  */
 int dhm_calc_secret( dhm_context *ctx,
-                     unsigned char *output, size_t *olen );
+                     unsigned char *output, size_t *olen,
+                     int (*f_rng)(void *, unsigned char *, size_t),
+                     void *p_rng );
 
 /**
  * \brief          Free the components of a DHM key
  */
 void dhm_free( dhm_context *ctx );
+
+#if defined(POLARSSL_ASN1_PARSE_C)
+/** \ingroup x509_module */
+/**
+ * \brief          Parse DHM parameters
+ *
+ * \param dhm      DHM context to be initialized
+ * \param dhmin    input buffer
+ * \param dhminlen size of the buffer
+ *
+ * \return         0 if successful, or a specific DHM or PEM error code
+ */
+int dhm_parse_dhm( dhm_context *dhm, const unsigned char *dhmin,
+                   size_t dhminlen );
+
+#if defined(POLARSSL_FS_IO)
+/** \ingroup x509_module */
+/**
+ * \brief          Load and parse DHM parameters
+ *
+ * \param dhm      DHM context to be initialized
+ * \param path     filename to read the DHM Parameters from
+ *
+ * \return         0 if successful, or a specific DHM or PEM error code
+ */
+int dhm_parse_dhmfile( dhm_context *dhm, const char *path );
+#endif /* POLARSSL_FS_IO */
+#endif /* POLARSSL_ASN1_PARSE_C */
 
 /**
  * \brief          Checkup routine

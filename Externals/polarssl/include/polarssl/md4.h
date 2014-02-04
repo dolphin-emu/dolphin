@@ -31,7 +31,7 @@
 
 #include <string.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
 typedef UINT32 uint32_t;
 #else
@@ -43,6 +43,10 @@ typedef UINT32 uint32_t;
 #if !defined(POLARSSL_MD4_ALT)
 // Regular implementation
 //
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          MD4 context structure
@@ -57,10 +61,6 @@ typedef struct
     unsigned char opad[64];     /*!< HMAC: outer padding        */
 }
 md4_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          MD4 context setup
@@ -169,6 +169,9 @@ void md4_hmac( const unsigned char *key, size_t keylen,
  * \return         0 if successful, or 1 if the test failed
  */
 int md4_self_test( int verbose );
+
+/* Internal use */
+void md4_process( md4_context *ctx, const unsigned char data[64] );
 
 #ifdef __cplusplus
 }

@@ -233,6 +233,7 @@ int blowfish_crypt_ecb( blowfish_context *ctx,
     return( 0 );
 }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /*
  * Blowfish-CBC buffer encryption/decryption
  */
@@ -284,6 +285,7 @@ int blowfish_crypt_cbc( blowfish_context *ctx,
 
     return( 0 );
 }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 /*

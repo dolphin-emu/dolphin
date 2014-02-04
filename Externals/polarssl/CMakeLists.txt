@@ -1,12 +1,27 @@
 cmake_minimum_required(VERSION 2.6)
 project(POLARSSL C)
 
+enable_testing()
+
+string(REGEX MATCH "clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER}")
+
 if(CMAKE_COMPILER_IS_GNUCC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement")
   set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
   set(CMAKE_C_FLAGS_COVERAGE "-g3 -O0 -fprofile-arcs -ftest-coverage -lgcov")
+  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Werror -Wlogical-op -Wwrite-strings")
+  set(CMAKE_C_FLAGS_CHECKFULL "${CMAKE_C_FLAGS_CHECK} -Wcast-qual")
 endif(CMAKE_COMPILER_IS_GNUCC)
- 
+
+if(CMAKE_COMPILER_IS_CLANG)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -Wall -Wextra -W -Wdeclaration-after-statement")
+  set(CMAKE_C_FLAGS_DEBUG "-g3 -O0")
+  set(CMAKE_C_FLAGS_CHECK "${CMAKE_C_FLAGS} -Werror -Wpointer-arith -Wwrite-strings -Wdocumentation")
+endif(CMAKE_COMPILER_IS_CLANG)
+
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
+    CACHE STRING "Choose the type of build: None Debug Release Coverage Check CheckFull"
+    FORCE)
 if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
   if(CMAKE_COMPILER_IS_GNUCC)
     set(CMAKE_SHARED_LINKER_FLAGS "-fprofile-arcs -ftest-coverage")
@@ -33,5 +48,23 @@ if(ENABLE_ZLIB_SUPPORT)
 endif(ENABLE_ZLIB_SUPPORT)
 
 add_subdirectory(library)
+add_subdirectory(include)
 
-                  
+if(CMAKE_COMPILER_IS_GNUCC)
+  add_subdirectory(tests)
+endif(CMAKE_COMPILER_IS_GNUCC)
+if(CMAKE_COMPILER_IS_CLANG)
+  add_subdirectory(tests)
+endif(CMAKE_COMPILER_IS_CLANG)
+
+add_subdirectory(programs)
+
+ADD_CUSTOM_TARGET(apidoc
+                  COMMAND doxygen doxygen/polarssl.doxyfile
+                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+ADD_CUSTOM_TARGET(memcheck
+    COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
+    COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
+    COMMAND rm -f memcheck.log
+    )

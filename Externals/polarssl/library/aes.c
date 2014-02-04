@@ -37,6 +37,9 @@
 #if defined(POLARSSL_PADLOCK_C)
 #include "polarssl/padlock.h"
 #endif
+#if defined(POLARSSL_AESNI_C)
+#include "polarssl/aesni.h"
+#endif
 
 #if !defined(POLARSSL_AES_ALT)
 
@@ -480,6 +483,11 @@ int aes_setkey_enc( aes_context *ctx, const unsigned char *key, unsigned int key
 #endif
     ctx->rk = RK = ctx->buf;
 
+#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
+    if( aesni_supports( POLARSSL_AESNI_AES ) )
+        return( aesni_setkey_enc( (unsigned char *) ctx->rk, key, keysize ) );
+#endif
+
     for( i = 0; i < (keysize >> 5); i++ )
     {
         GET_UINT32_LE( RK[i], key, i << 2 );
@@ -588,6 +596,15 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int key
     if( ret != 0 )
         return( ret );
 
+#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
+    if( aesni_supports( POLARSSL_AESNI_AES ) )
+    {
+        aesni_inverse_key( (unsigned char *) ctx->rk,
+                           (const unsigned char *) cty.rk, ctx->nr );
+        goto done;
+    }
+#endif
+
     SK = cty.rk + cty.nr * 4;
 
     *RK++ = *SK++;
@@ -611,6 +628,9 @@ int aes_setkey_dec( aes_context *ctx, const unsigned char *key, unsigned int key
     *RK++ = *SK++;
     *RK++ = *SK++;
 
+#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
+done:
+#endif
     memset( &cty, 0, sizeof( aes_context ) );
 
     return( 0 );
@@ -672,6 +692,11 @@ int aes_crypt_ecb( aes_context *ctx,
 {
     int i;
     uint32_t *RK, X0, X1, X2, X3, Y0, Y1, Y2, Y3;
+
+#if defined(POLARSSL_AESNI_C) && defined(POLARSSL_HAVE_X86_64)
+    if( aesni_supports( POLARSSL_AESNI_AES ) )
+        return( aesni_crypt_ecb( ctx, mode, input, output ) );
+#endif
 
 #if defined(POLARSSL_PADLOCK_C) && defined(POLARSSL_HAVE_X86)
     if( aes_padlock_ace )
@@ -769,6 +794,7 @@ int aes_crypt_ecb( aes_context *ctx,
     return( 0 );
 }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /*
  * AES-CBC buffer encryption/decryption
  */
@@ -832,6 +858,7 @@ int aes_crypt_cbc( aes_context *ctx,
 
     return( 0 );
 }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 /*
@@ -876,6 +903,39 @@ int aes_crypt_cfb128( aes_context *ctx,
     }
 
     *iv_off = n;
+
+    return( 0 );
+}
+
+/*
+ * AES-CFB8 buffer encryption/decryption
+ */
+#include <stdio.h>
+int aes_crypt_cfb8( aes_context *ctx,
+                       int mode,
+                       size_t length,
+                       unsigned char iv[16],
+                       const unsigned char *input,
+                       unsigned char *output )
+{
+    unsigned char c;
+    unsigned char ov[17];
+
+    while( length-- )
+    {
+        memcpy(ov, iv, 16);
+        aes_crypt_ecb( ctx, AES_ENCRYPT, iv, iv );
+
+        if( mode == AES_DECRYPT )
+            ov[16] = *input;
+
+        c = *output++ = (unsigned char)( iv[0] ^ *input++ );
+
+        if( mode == AES_ENCRYPT )
+            ov[16] = c;
+
+        memcpy(iv, ov + 1, 16);
+    }
 
     return( 0 );
 }
@@ -947,6 +1007,7 @@ static const unsigned char aes_test_ecb_enc[3][16] =
       0xFF, 0x30, 0xB4, 0xEA, 0x21, 0x63, 0x6D, 0xA4 }
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 static const unsigned char aes_test_cbc_dec[3][16] =
 {
     { 0xFA, 0xCA, 0x37, 0xE0, 0xB0, 0xC8, 0x53, 0x73,
@@ -966,6 +1027,7 @@ static const unsigned char aes_test_cbc_enc[3][16] =
     { 0xFE, 0x3C, 0x53, 0x65, 0x3E, 0x2F, 0x45, 0xB5,
       0x6F, 0xCD, 0x88, 0xB2, 0xCC, 0x89, 0x8F, 0xF0 }
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 /*
@@ -1104,8 +1166,10 @@ int aes_self_test( int verbose )
     int i, j, u, v;
     unsigned char key[32];
     unsigned char buf[64];
-    unsigned char prv[16];
     unsigned char iv[16];
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+    unsigned char prv[16];
+#endif
 #if defined(POLARSSL_CIPHER_MODE_CTR) || defined(POLARSSL_CIPHER_MODE_CFB)
     size_t offset;
 #endif
@@ -1170,6 +1234,7 @@ int aes_self_test( int verbose )
     if( verbose != 0 )
         printf( "\n" );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     /*
      * CBC mode
      */
@@ -1231,6 +1296,7 @@ int aes_self_test( int verbose )
 
     if( verbose != 0 )
         printf( "\n" );
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
     /*

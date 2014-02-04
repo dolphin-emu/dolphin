@@ -35,6 +35,10 @@
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          ARC4 context structure
  */
@@ -46,16 +50,12 @@ typedef struct
 }
 arc4_context;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * \brief          ARC4 key schedule
  *
  * \param ctx      ARC4 context to be initialized
  * \param key      the secret key
- * \param keylen   length of the key
+ * \param keylen   length of the key, in bytes
  */
 void arc4_setup( arc4_context *ctx, const unsigned char *key, unsigned int keylen );
 

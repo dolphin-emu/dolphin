@@ -37,6 +37,10 @@
 // Regular implementation
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          MD2 context structure
  */
@@ -51,10 +55,6 @@ typedef struct
     size_t left;                /*!< amount of data in buffer   */
 }
 md2_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          MD2 context setup
@@ -163,6 +163,9 @@ void md2_hmac( const unsigned char *key, size_t keylen,
  * \return         0 if successful, or 1 if the test failed
  */
 int md2_self_test( int verbose );
+
+/* Internal use */
+void md2_process( md2_context *ctx );
 
 #ifdef __cplusplus
 }

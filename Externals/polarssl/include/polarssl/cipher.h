@@ -5,7 +5,7 @@
  *
  * \author Adriaan de Jong <dejong@fox-it.com>
  *
- *  Copyright (C) 2006-2012, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -30,6 +30,16 @@
 #ifndef POLARSSL_CIPHER_H
 #define POLARSSL_CIPHER_H
 
+#include "config.h"
+
+#if defined(POLARSSL_GCM_C)
+#define POLARSSL_CIPHER_MODE_AEAD
+#endif
+
+#if defined(POLARSSL_CIPHER_MODE_CBC)
+#define POLARSSL_CIPHER_MODE_WITH_PADDING
+#endif
+
 #include <string.h>
 
 #if defined(_MSC_VER) && !defined(inline)
@@ -45,6 +55,11 @@
 #define POLARSSL_ERR_CIPHER_ALLOC_FAILED                   -0x6180  /**< Failed to allocate memory. */
 #define POLARSSL_ERR_CIPHER_INVALID_PADDING                -0x6200  /**< Input data contains invalid padding and is rejected. */
 #define POLARSSL_ERR_CIPHER_FULL_BLOCK_EXPECTED            -0x6280  /**< Decryption of block requires a full block. */
+#define POLARSSL_ERR_CIPHER_AUTH_FAILED                    -0x6300  /**< Authentication failed (for AEAD modes). */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum {
     POLARSSL_CIPHER_ID_NONE = 0,
@@ -54,11 +69,15 @@ typedef enum {
     POLARSSL_CIPHER_ID_3DES,
     POLARSSL_CIPHER_ID_CAMELLIA,
     POLARSSL_CIPHER_ID_BLOWFISH,
+    POLARSSL_CIPHER_ID_ARC4,
 } cipher_id_t;
 
 typedef enum {
     POLARSSL_CIPHER_NONE = 0,
     POLARSSL_CIPHER_NULL,
+    POLARSSL_CIPHER_AES_128_ECB,
+    POLARSSL_CIPHER_AES_192_ECB,
+    POLARSSL_CIPHER_AES_256_ECB,
     POLARSSL_CIPHER_AES_128_CBC,
     POLARSSL_CIPHER_AES_192_CBC,
     POLARSSL_CIPHER_AES_256_CBC,
@@ -68,6 +87,12 @@ typedef enum {
     POLARSSL_CIPHER_AES_128_CTR,
     POLARSSL_CIPHER_AES_192_CTR,
     POLARSSL_CIPHER_AES_256_CTR,
+    POLARSSL_CIPHER_AES_128_GCM,
+    POLARSSL_CIPHER_AES_192_GCM,
+    POLARSSL_CIPHER_AES_256_GCM,
+    POLARSSL_CIPHER_CAMELLIA_128_ECB,
+    POLARSSL_CIPHER_CAMELLIA_192_ECB,
+    POLARSSL_CIPHER_CAMELLIA_256_ECB,
     POLARSSL_CIPHER_CAMELLIA_128_CBC,
     POLARSSL_CIPHER_CAMELLIA_192_CBC,
     POLARSSL_CIPHER_CAMELLIA_256_CBC,
@@ -77,22 +102,40 @@ typedef enum {
     POLARSSL_CIPHER_CAMELLIA_128_CTR,
     POLARSSL_CIPHER_CAMELLIA_192_CTR,
     POLARSSL_CIPHER_CAMELLIA_256_CTR,
+    POLARSSL_CIPHER_CAMELLIA_128_GCM,
+    POLARSSL_CIPHER_CAMELLIA_192_GCM,
+    POLARSSL_CIPHER_CAMELLIA_256_GCM,
+    POLARSSL_CIPHER_DES_ECB,
     POLARSSL_CIPHER_DES_CBC,
+    POLARSSL_CIPHER_DES_EDE_ECB,
     POLARSSL_CIPHER_DES_EDE_CBC,
+    POLARSSL_CIPHER_DES_EDE3_ECB,
     POLARSSL_CIPHER_DES_EDE3_CBC,
+    POLARSSL_CIPHER_BLOWFISH_ECB,
     POLARSSL_CIPHER_BLOWFISH_CBC,
     POLARSSL_CIPHER_BLOWFISH_CFB64,
     POLARSSL_CIPHER_BLOWFISH_CTR,
+    POLARSSL_CIPHER_ARC4_128,
 } cipher_type_t;
 
 typedef enum {
     POLARSSL_MODE_NONE = 0,
-    POLARSSL_MODE_NULL,
+    POLARSSL_MODE_ECB,
     POLARSSL_MODE_CBC,
     POLARSSL_MODE_CFB,
     POLARSSL_MODE_OFB,
     POLARSSL_MODE_CTR,
+    POLARSSL_MODE_GCM,
+    POLARSSL_MODE_STREAM,
 } cipher_mode_t;
+
+typedef enum {
+    POLARSSL_PADDING_PKCS7 = 0,     /**< PKCS7 padding (default)        */
+    POLARSSL_PADDING_ONE_AND_ZEROS, /**< ISO/IEC 7816-4 padding         */
+    POLARSSL_PADDING_ZEROS_AND_LEN, /**< ANSI X.923 padding             */
+    POLARSSL_PADDING_ZEROS,         /**< zero padding (not reversible!) */
+    POLARSSL_PADDING_NONE,          /**< never pad (full blocks only)   */
+} cipher_padding_t;
 
 typedef enum {
     POLARSSL_OPERATION_NONE = -1,
@@ -109,9 +152,12 @@ enum {
     POLARSSL_KEY_LENGTH_DES_EDE = 128,
     /** Key length, in bits (including parity), for DES in three-key EDE */
     POLARSSL_KEY_LENGTH_DES_EDE3 = 192,
-    /** Maximum length of any IV, in bytes */
-    POLARSSL_MAX_IV_LENGTH = 16,
 };
+
+/** Maximum length of any IV, in bytes */
+#define POLARSSL_MAX_IV_LENGTH      16
+/** Maximum block size of any cipher, in bytes */
+#define POLARSSL_MAX_BLOCK_LENGTH   16
 
 /**
  * Base cipher information. The non-mode specific functions and values.
@@ -120,6 +166,10 @@ typedef struct {
 
     /** Base Cipher type (e.g. POLARSSL_CIPHER_ID_AES) */
     cipher_id_t cipher;
+
+    /** Encrypt using ECB */
+    int (*ecb_func)( void *ctx, operation_t mode,
+            const unsigned char *input, unsigned char *output );
 
     /** Encrypt using CBC */
     int (*cbc_func)( void *ctx, operation_t mode, size_t length, unsigned char *iv,
@@ -132,6 +182,10 @@ typedef struct {
     /** Encrypt using CTR */
     int (*ctr_func)( void *ctx, size_t length, size_t *nc_off, unsigned char *nonce_counter,
             unsigned char *stream_block, const unsigned char *input, unsigned char *output );
+
+    /** Encrypt using STREAM */
+    int (*stream_func)( void *ctx, size_t length,
+                        const unsigned char *input, unsigned char *output );
 
     /** Set key for encryption purposes */
     int (*setkey_enc_func)( void *ctx, const unsigned char *key, unsigned int key_length);
@@ -164,8 +218,12 @@ typedef struct {
     /** Name of the cipher */
     const char * name;
 
-    /** IV size, in bytes */
+    /** IV/NONCE size, in bytes.
+     *  For cipher that accept many sizes: recommended size */
     unsigned int iv_size;
+
+    /** Flag for ciphers that accept many sizes of IV/NONCE */
+    int accepts_variable_iv_size;
 
     /** block size, in bytes */
     unsigned int block_size;
@@ -188,8 +246,12 @@ typedef struct {
     /** Operation that the context's key has been initialised for */
     operation_t operation;
 
+    /** Padding functions to use, if relevant for cipher mode */
+    void (*add_padding)( unsigned char *output, size_t olen, size_t data_len );
+    int (*get_padding)( unsigned char *input, size_t ilen, size_t *data_len );
+
     /** Buffer for data that hasn't been encrypted yet */
-    unsigned char unprocessed_data[POLARSSL_MAX_IV_LENGTH];
+    unsigned char unprocessed_data[POLARSSL_MAX_BLOCK_LENGTH];
 
     /** Number of bytes that still need processing */
     size_t unprocessed_len;
@@ -197,13 +259,12 @@ typedef struct {
     /** Current IV or NONCE_COUNTER for CTR-mode */
     unsigned char iv[POLARSSL_MAX_IV_LENGTH];
 
+    /** IV size in bytes (for ciphers with variable-length IVs) */
+    size_t iv_size;
+
     /** Cipher-specific context */
     void *cipher_ctx;
 } cipher_context_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief Returns the list of ciphers supported by the generic cipher module.
@@ -234,6 +295,22 @@ const cipher_info_t *cipher_info_from_string( const char *cipher_name );
  *                      given cipher_type, or NULL if not found.
  */
 const cipher_info_t *cipher_info_from_type( const cipher_type_t cipher_type );
+
+/**
+ * \brief               Returns the cipher information structure associated
+ *                      with the given cipher id, key size and mode.
+ *
+ * \param cipher_id     Id of the cipher to search for
+ *                      (e.g. POLARSSL_CIPHER_ID_AES)
+ * \param key_length    Length of the key in bits
+ * \param mode          Cipher mode (e.g. POLARSSL_MODE_CBC)
+ *
+ * \return              the cipher information structure associated with the
+ *                      given cipher_type, or NULL if not found.
+ */
+const cipher_info_t *cipher_info_from_values( const cipher_id_t cipher_id,
+                                              int key_length,
+                                              const cipher_mode_t mode );
 
 /**
  * \brief               Initialises and fills the cipher context structure with
@@ -294,17 +371,21 @@ static inline cipher_mode_t cipher_get_cipher_mode( const cipher_context_t *ctx 
 }
 
 /**
- * \brief               Returns the size of the cipher's IV.
+ * \brief               Returns the size of the cipher's IV/NONCE in bytes.
  *
  * \param ctx           cipher's context. Must have been initialised.
  *
- * \return              size of the cipher's IV, or 0 if ctx has not been
- *                      initialised.
+ * \return              If IV has not been set yet: (recommended) IV size
+ *                      (0 for ciphers not using IV/NONCE).
+ *                      If IV has already been set: actual size.
  */
 static inline int cipher_get_iv_size( const cipher_context_t *ctx )
 {
     if( NULL == ctx || NULL == ctx->cipher_info )
         return 0;
+
+    if( ctx->iv_size != 0 )
+        return (int) ctx->iv_size;
 
     return ctx->cipher_info->iv_size;
 }
@@ -351,10 +432,10 @@ static inline const char *cipher_get_name( const cipher_context_t *ctx )
  */
 static inline int cipher_get_key_size ( const cipher_context_t *ctx )
 {
-    if( NULL == ctx )
+    if( NULL == ctx || NULL == ctx->cipher_info )
         return POLARSSL_KEY_LENGTH_NONE;
 
-    return ctx->key_length;
+    return ctx->cipher_info->key_length;
 }
 
 /**
@@ -392,16 +473,67 @@ static inline operation_t cipher_get_operation( const cipher_context_t *ctx )
 int cipher_setkey( cipher_context_t *ctx, const unsigned char *key, int key_length,
         const operation_t operation );
 
+#if defined(POLARSSL_CIPHER_MODE_WITH_PADDING)
 /**
- * \brief               Reset the given context, setting the IV to iv
+ * \brief               Set padding mode, for cipher modes that use padding.
+ *                      (Default: PKCS7 padding.)
  *
  * \param ctx           generic cipher context
- * \param iv            IV to use or NONCE_COUNTER in the case of a CTR-mode cipher
+ * \param mode          padding mode
+ *
+ * \returns             0 on success, POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE
+ *                      if selected padding mode is not supported, or
+ *                      POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if the cipher mode
+ *                      does not support padding.
+ */
+int cipher_set_padding_mode( cipher_context_t *ctx, cipher_padding_t mode );
+#endif /* POLARSSL_CIPHER_MODE_WITH_PADDING */
+
+/**
+ * \brief               Set the initialization vector (IV) or nonce
+ *
+ * \param ctx           generic cipher context
+ * \param iv            IV to use (or NONCE_COUNTER for CTR-mode ciphers)
+ * \param iv_len        IV length for ciphers with variable-size IV;
+ *                      discarded by ciphers with fixed-size IV.
+ *
+ * \returns             O on success, or POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
+ *
+ * \note                Some ciphers don't use IVs nor NONCE. For these
+ *                      ciphers, this function has no effect.
+ */
+int cipher_set_iv( cipher_context_t *ctx,
+                   const unsigned char *iv, size_t iv_len );
+
+/**
+ * \brief               Finish preparation of the given context
+ *
+ * \param ctx           generic cipher context
  *
  * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA
  *                      if parameter verification fails.
  */
-int cipher_reset( cipher_context_t *ctx, const unsigned char *iv );
+int cipher_reset( cipher_context_t *ctx );
+
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+/**
+ * \brief               Add additional data (for AEAD ciphers).
+ *                      This function has no effect for non-AEAD ciphers.
+ *                      For AEAD ciphers, it may or may not be called
+ *                      repeatedly, and/or interleaved with calls to
+ *                      cipher_udpate(), depending on the cipher.
+ *                      E.g. for GCM is must be called exactly once, right
+ *                      after cipher_reset().
+ *
+ * \param ctx           generic cipher context
+ * \param ad            Additional data to use.
+ * \param ad_len        Length of ad.
+ *
+ * \returns             0 on success, or a specific error code.
+ */
+int cipher_update_ad( cipher_context_t *ctx,
+                      const unsigned char *ad, size_t ad_len );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 /**
  * \brief               Generic cipher update function. Encrypts/decrypts
@@ -410,6 +542,8 @@ int cipher_reset( cipher_context_t *ctx, const unsigned char *iv );
  *                      that cannot be written immediately will either be added
  *                      to the next block, or flushed when cipher_final is
  *                      called.
+ *                      Exception: for POLARSSL_MODE_ECB, expects single block
+ *                                 in size (e.g. 16 bytes for AES)
  *
  * \param ctx           generic cipher context
  * \param input         buffer holding the input data
@@ -425,6 +559,10 @@ int cipher_reset( cipher_context_t *ctx, const unsigned char *iv );
  *                      POLARSSL_ERR_CIPHER_FEATURE_UNAVAILABLE on an
  *                      unsupported mode for a cipher or a cipher specific
  *                      error code.
+ *
+ * \note                If the underlying cipher is GCM, all calls to this
+ *                      function, except the last one before cipher_finish(),
+ *                      must have ilen a multiple of the block size.
  */
 int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ilen,
         unsigned char *output, size_t *olen );
@@ -436,7 +574,7 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  *                      the last block, and written to the output buffer.
  *
  * \param ctx           Generic cipher context
- * \param output        buffer to write data to. Needs block_size data available.
+ * \param output        buffer to write data to. Needs block_size available.
  * \param olen          length of the data written to the output buffer.
  *
  * \returns             0 on success, POLARSSL_ERR_CIPHER_BAD_INPUT_DATA if
@@ -446,8 +584,39 @@ int cipher_update( cipher_context_t *ctx, const unsigned char *input, size_t ile
  *                      POLARSSL_ERR_CIPHER_INVALID_PADDING on invalid padding
  *                      while decrypting or a cipher specific error code.
  */
-int cipher_finish( cipher_context_t *ctx, unsigned char *output, size_t *olen);
+int cipher_finish( cipher_context_t *ctx,
+                   unsigned char *output, size_t *olen );
 
+#if defined(POLARSSL_CIPHER_MODE_AEAD)
+/**
+ * \brief               Write tag for AEAD ciphers.
+ *                      No effect for other ciphers.
+ *                      Must be called after cipher_finish().
+ *
+ * \param ctx           Generic cipher context
+ * \param tag           buffer to write the tag
+ * \param tag_len       Length of the tag to write
+ *
+ * \return              0 on success, or a specific error code.
+ */
+int cipher_write_tag( cipher_context_t *ctx,
+                      unsigned char *tag, size_t tag_len );
+
+/**
+ * \brief               Check tag for AEAD ciphers.
+ *                      No effect for other ciphers.
+ *                      Calling time depends on the cipher:
+ *                      for GCM, must be called after cipher_finish().
+ *
+ * \param ctx           Generic cipher context
+ * \param tag           Buffer holding the tag
+ * \param tag_len       Length of the tag to check
+ *
+ * \return              0 on success, or a specific error code.
+ */
+int cipher_check_tag( cipher_context_t *ctx,
+                      const unsigned char *tag, size_t tag_len );
+#endif /* POLARSSL_CIPHER_MODE_AEAD */
 
 /**
  * \brief          Checkup routine
@@ -460,4 +629,4 @@ int cipher_self_test( int verbose );
 }
 #endif
 
-#endif /* POLARSSL_MD_H */
+#endif /* POLARSSL_CIPHER_H */

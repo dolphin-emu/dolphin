@@ -3,7 +3,7 @@
  *
  * \brief Error to string translation
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -53,10 +53,12 @@
  * MPI       7  0x0002-0x0010
  * GCM       2  0x0012-0x0014
  * BLOWFISH  2  0x0016-0x0018
+ * THREADING 3  0x001A-0x001E
  * AES       2  0x0020-0x0022
  * CAMELLIA  2  0x0024-0x0026
  * XTEA      1  0x0028-0x0028
  * BASE64    2  0x002A-0x002C
+ * OID       1  0x002E-0x002E
  * PADLOCK   1  0x0030-0x0030
  * DES       1  0x0032-0x0032
  * CTR_DBRG  3  0x0034-0x003A
@@ -67,21 +69,24 @@
  * MD4       1  0x0072-0x0072
  * MD5       1  0x0074-0x0074
  * SHA1      1  0x0076-0x0076
- * SHA2      1  0x0078-0x0078
- * SHA4      1  0x007A-0x007A
+ * SHA256    1  0x0078-0x0078
+ * SHA512    1  0x007A-0x007A
+ * PBKDF2    1  0x007C-0x007C
  *
  * High-level module nr (3 bits - 0x1...-0x8...)
- * Name     ID  Nr of Errors
- * PEM      1   9
- * PKCS#12  1   4 (Started from top)
- * X509     2   23
- * DHM      3   6
- * PKCS5    3   4 (Started from top)
- * RSA      4   9
- * MD       5   4
- * CIPHER   6   5
- * SSL      6   2 (Started from top)
- * SSL      7   31
+ * Name      ID  Nr of Errors
+ * PEM       1   9
+ * PKCS#12   1   4 (Started from top)
+ * X509      2   18
+ * PK        2   13 (Started from top)
+ * DHM       3   9
+ * PKCS5     3   4 (Started from top)
+ * RSA       4   9
+ * ECP       4   7 (Started from top)
+ * MD        5   4
+ * CIPHER    6   6
+ * SSL       6   8 (Started from top)
+ * SSL       7   31
  *
  * Module dependent error code (5 bits 0x.08.-0x.F8.)
  */
@@ -99,7 +104,11 @@ extern "C" {
  * \param buffer    buffer to place representation in
  * \param buflen    length of the buffer
  */
+void polarssl_strerror( int errnum, char *buffer, size_t buflen );
+
+#if defined(POLARSSL_ERROR_STRERROR_BC)
 void error_strerror( int errnum, char *buffer, size_t buflen );
+#endif
 
 #ifdef __cplusplus
 }

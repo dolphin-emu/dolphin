@@ -43,7 +43,7 @@
 int padlock_supports( int feature )
 {
     static int flags = -1;
-    int ebx, edx;
+    int ebx = 0, edx = 0;
 
     if( flags == -1 )
     {
@@ -76,7 +76,7 @@ int padlock_xcryptecb( aes_context *ctx,
                        const unsigned char input[16],
                        unsigned char output[16] )
 {
-    int ebx;
+    int ebx = 0;
     uint32_t *rk;
     uint32_t *blk;
     uint32_t *ctrl;
@@ -117,7 +117,7 @@ int padlock_xcryptcbc( aes_context *ctx,
                        const unsigned char *input,
                        unsigned char *output )
 {
-    int ebx;
+    int ebx = 0;
     size_t count;
     uint32_t *rk;
     uint32_t *iw;

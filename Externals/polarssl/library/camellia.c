@@ -523,6 +523,7 @@ int camellia_crypt_ecb( camellia_context *ctx,
     return( 0 );
 }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /*
  * Camellia-CBC buffer encryption/decryption
  */
@@ -574,6 +575,7 @@ int camellia_crypt_cbc( camellia_context *ctx,
 
     return( 0 );
 }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CFB)
 /*
@@ -732,6 +734,7 @@ static const unsigned char camellia_test_ecb_cipher[3][CAMELLIA_TESTS_ECB][16] =
     }
 };
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 #define CAMELLIA_TESTS_CBC  3
 
 static const unsigned char camellia_test_cbc_key[3][32] =
@@ -793,6 +796,7 @@ static const unsigned char camellia_test_cbc_cipher[3][CAMELLIA_TESTS_CBC][16] =
           0x33, 0x30, 0xCD, 0xF1, 0xB1, 0x86, 0x0A, 0x83 }
     }
 };
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #if defined(POLARSSL_CIPHER_MODE_CTR)
 /*
@@ -867,7 +871,9 @@ int camellia_self_test( int verbose )
     unsigned char buf[64];
     unsigned char src[16];
     unsigned char dst[16];
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     unsigned char iv[16];
+#endif
 #if defined(POLARSSL_CIPHER_MODE_CTR)
     size_t offset, len;
     unsigned char nonce_counter[16];
@@ -917,6 +923,7 @@ int camellia_self_test( int verbose )
     if( verbose != 0 )
         printf( "\n" );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     /*
      * CBC mode
      */
@@ -965,6 +972,7 @@ int camellia_self_test( int verbose )
         if( verbose != 0 )
             printf( "passed\n" );
     }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
     if( verbose != 0 )
         printf( "\n" );
