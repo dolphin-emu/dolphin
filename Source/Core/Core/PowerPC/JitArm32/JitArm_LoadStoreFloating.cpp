@@ -329,6 +329,7 @@ void JitArm::stfXX(UGeckoInstruction inst)
 		if (single)
 		{
 			MOVI2R(rA, (u32)&Memory::Write_U32);
+			VCVT(S0, v0, 0);
 			VMOV(R0, S0);
 			MOV(R1, rB);
 
