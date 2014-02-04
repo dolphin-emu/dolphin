@@ -186,11 +186,6 @@ void VertexManager::vFlush()
 	if (useDstAlpha && !dualSourcePossible)
 	{
 		ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS,g_nativeVertexFmt->m_components);
-		if (!g_ActiveConfig.backend_info.bSupportsGLSLUBO)
-		{
-			// Need to upload these again, if we don't support UBO
-			ProgramShaderCache::UploadConstants();
-		}
 
 		// only update alpha
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);

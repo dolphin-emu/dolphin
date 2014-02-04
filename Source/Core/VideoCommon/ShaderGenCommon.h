@@ -174,18 +174,18 @@ static inline void WriteRegister(T& object, API_TYPE ApiType, const char *prefix
 }
 
 template<class T>
-static inline void WriteLocation(T& object, API_TYPE ApiType, bool using_ubos)
+static inline void WriteLocation(T& object, API_TYPE ApiType)
 {
-	if (using_ubos)
+	if (ApiType == API_OPENGL)
 		return;
 
 	object.Write("uniform ");
 }
 
 template<class T>
-static inline void DeclareUniform(T& object, API_TYPE api_type, bool using_ubos, const u32 num, const char* type, const char* name)
+static inline void DeclareUniform(T& object, API_TYPE api_type, const u32 num, const char* type, const char* name)
 {
-	WriteLocation(object, api_type, using_ubos);
+	WriteLocation(object, api_type);
 	object.Write("%s %s ", type, name);
 	WriteRegister(object, api_type, "c", num);
 	object.Write(";\n");

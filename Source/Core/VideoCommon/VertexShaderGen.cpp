@@ -83,20 +83,20 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	_assert_(bpmem.genMode.numcolchans == xfregs.numChan.numColorChans);
 
 	// uniforms
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (api_type == API_OPENGL)
 		out.Write("layout(std140%s) uniform VSBlock {\n", g_ActiveConfig.backend_info.bSupportShadingLanguage420pack ? ", binding = 2" : "");
 
-	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_POSNORMALMATRIX, "float4", I_POSNORMALMATRIX"[6]");
-	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_PROJECTION, "float4", I_PROJECTION"[4]");
-	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_MATERIALS, "float4", I_MATERIALS"[4]");
-	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_LIGHTS,  "float4", I_LIGHTS"[40]");
-	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_TEXMATRICES, "float4", I_TEXMATRICES"[24]");
-	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_TRANSFORMMATRICES, "float4", I_TRANSFORMMATRICES"[64]");
-	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_NORMALMATRICES, "float4", I_NORMALMATRICES"[32]");
-	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_POSTTRANSFORMMATRICES, "float4", I_POSTTRANSFORMMATRICES"[64]");
-	DeclareUniform(out, api_type, g_ActiveConfig.backend_info.bSupportsGLSLUBO, C_DEPTHPARAMS, "float4", I_DEPTHPARAMS);
+	DeclareUniform(out, api_type, C_POSNORMALMATRIX, "float4", I_POSNORMALMATRIX"[6]");
+	DeclareUniform(out, api_type, C_PROJECTION, "float4", I_PROJECTION"[4]");
+	DeclareUniform(out, api_type, C_MATERIALS, "float4", I_MATERIALS"[4]");
+	DeclareUniform(out, api_type, C_LIGHTS,  "float4", I_LIGHTS"[40]");
+	DeclareUniform(out, api_type, C_TEXMATRICES, "float4", I_TEXMATRICES"[24]");
+	DeclareUniform(out, api_type, C_TRANSFORMMATRICES, "float4", I_TRANSFORMMATRICES"[64]");
+	DeclareUniform(out, api_type, C_NORMALMATRICES, "float4", I_NORMALMATRICES"[32]");
+	DeclareUniform(out, api_type, C_POSTTRANSFORMMATRICES, "float4", I_POSTTRANSFORMMATRICES"[64]");
+	DeclareUniform(out, api_type, C_DEPTHPARAMS, "float4", I_DEPTHPARAMS);
 
-	if (g_ActiveConfig.backend_info.bSupportsGLSLUBO)
+	if (api_type == API_OPENGL)
 		out.Write("};\n");
 
 	GenerateVSOutputStruct(out, api_type);

@@ -420,6 +420,21 @@ Renderer::Renderer()
 		bSuccess = false;
 	}
 
+	if (!GLExtensions::Supports("GL_ARB_uniform_buffer_object"))
+	{
+		// ubo allow us to keep the current constants on shader switches
+		// we also can stream them much nicer and pack into it whatever we want to
+		PanicAlert("GPU: OGL ERROR: Need GL_ARB_uniform_buffer_object.\n"
+				"GPU: Does your video card support OpenGL 3.1?");
+		bSuccess = false;
+	}
+	else if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUBO))
+	{
+		PanicAlert("Buggy GPU driver detected.\n"
+				"Please either install the closed-source GPU driver or update your Mesa 3D version.");
+		bSuccess = false;
+	}
+
 	if (!GLExtensions::Supports("GL_ARB_sampler_objects") && bSuccess)
 	{
 		// Our sampler cache uses this extension. It could easyly be workaround and it's by far the
@@ -440,7 +455,6 @@ Renderer::Renderer()
 	}
 
 	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended");
-	g_Config.backend_info.bSupportsGLSLUBO = GLExtensions::Supports("GL_ARB_uniform_buffer_object") && !DriverDetails::HasBug(DriverDetails::BUG_ANNIHILATEDUBOS);
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
 				((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
 	g_Config.backend_info.bSupportsEarlyZ = GLExtensions::Supports("GL_ARB_shader_image_load_store");
@@ -520,14 +534,6 @@ Renderer::Renderer()
 	if(g_ogl_config.max_samples < 1)
 		g_ogl_config.max_samples = 1;
 
-	if(g_Config.backend_info.bSupportsGLSLUBO && DriverDetails::HasBug(DriverDetails::BUG_BROKENUBO))
-	{
-		g_Config.backend_info.bSupportsGLSLUBO = false;
-		ERROR_LOG(VIDEO, "Buggy driver detected. Disable UBO");
-		OSD::AddMessage("Major performance warning: Buggy GPU driver detected.", 20000);
-		OSD::AddMessage("Please either install the closed-source GPU driver or update your Mesa 3D version.", 20000);
-	}
-
 	UpdateActiveConfig();
 
 	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s",
@@ -535,9 +541,8 @@ Renderer::Renderer()
 				g_ogl_config.gl_renderer,
 				g_ogl_config.gl_version), 5000);
 
-	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s",
+	WARN_LOG(VIDEO,"Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s",
 			g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
-			g_ActiveConfig.backend_info.bSupportsGLSLUBO ? "" : "UniformBuffer ",
 			g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
 			g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
 			g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
