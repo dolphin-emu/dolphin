@@ -252,6 +252,7 @@ void LOADERDECL UpdateBoundingBox()
 
 	default:
 		ERROR_LOG(VIDEO, "Unknown projection type: %d", xfregs.projection.type);
+		screenPoint[0] = screenPoint[1] = screenPoint[2] = 1;
 	}
 
 	// Convert to screen space and add the point to the list - round like the real hardware
