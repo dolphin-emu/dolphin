@@ -13,7 +13,7 @@ public:
 
 	void SetColorMask();
 	void SetBlendMode(bool forceUpdate);
-	void SetScissorRect(const TargetRectangle& rc);
+	void SetScissorRect(const EFBRectangle& rc);
 	void SetGenerationMode();
 	void SetDepthMode();
 	void SetLogicOpMode();

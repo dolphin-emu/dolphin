@@ -303,9 +303,10 @@ bool Renderer::CheckForResize()
 	return false;
 }
 
-void Renderer::SetScissorRect(const TargetRectangle& rc)
+void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
-	D3D::context->RSSetScissorRects(1, rc.AsRECT());
+	TargetRectangle trc = ConvertEFBRectangle(rc);
+	D3D::context->RSSetScissorRects(1, trc.AsRECT());
 }
 
 void Renderer::SetColorMask()
