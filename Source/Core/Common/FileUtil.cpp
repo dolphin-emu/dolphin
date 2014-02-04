@@ -496,7 +496,7 @@ u32 ScanDirectoryTree(const std::string &directory, FSTEntry& parentEntry)
 		entry.physicalName = directory;
 		entry.physicalName += DIR_SEP + entry.virtualName;
 
-		if (IsDirectory(entry.physicalName.c_str()))
+		if (IsDirectory(entry.physicalName))
 		{
 			entry.isDirectory = true;
 			// is a directory, lets go inside
