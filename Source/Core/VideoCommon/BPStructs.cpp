@@ -423,7 +423,8 @@ void BPWritten(const BPCmd& bp)
 
 	case BPMEM_CLEAR_PIXEL_PERF:
 		// GXClearPixMetric writes 0xAAA here, Sunshine alternates this register between values 0x000 and 0xAAA
-		g_perf_query->ResetQuery();
+		if(PerfQueryBase::ShouldEmulate())
+			g_perf_query->ResetQuery();
 		break;
 
 	case BPMEM_PRELOAD_ADDR:

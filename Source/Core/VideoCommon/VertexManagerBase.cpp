@@ -12,6 +12,7 @@
 #include "BPStructs.h"
 #include "XFMemory.h"
 #include "Debugger.h"
+#include "PerfQueryBase.h"
 
 #include "VertexManagerBase.h"
 #include "MainBase.h"
@@ -220,8 +221,11 @@ void VertexManager::Flush()
 	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
 		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
-	// TODO: need to merge more stuff into VideoCommon
+	if(PerfQueryBase::ShouldEmulate())
+		g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	g_vertex_manager->vFlush(useDstAlpha);
+	if(PerfQueryBase::ShouldEmulate())
+		g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 

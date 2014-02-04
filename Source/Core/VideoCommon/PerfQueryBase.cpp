@@ -3,7 +3,7 @@
 
 PerfQueryBase* g_perf_query = 0;
 
-bool PerfQueryBase::ShouldEmulate() const
+bool PerfQueryBase::ShouldEmulate()
 {
 	return g_ActiveConfig.bPerfQueriesEnable;
 }
