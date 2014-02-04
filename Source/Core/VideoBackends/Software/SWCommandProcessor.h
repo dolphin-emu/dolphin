@@ -7,6 +7,7 @@
 #include "Common.h"
 
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 extern volatile bool g_bSkipCurrentFrame;
 extern u8* g_pVideoData;
@@ -122,6 +123,8 @@ namespace SWCommandProcessor
 	void Init();
 	void Shutdown();
 	void DoState(PointerWrap &p);
+
+	void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 	bool RunBuffer();
 	void RunGpu();
