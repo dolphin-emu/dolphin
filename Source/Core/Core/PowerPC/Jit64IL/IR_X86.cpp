@@ -209,9 +209,10 @@ static OpArg regLocForInst(RegInfo& RI, InstLoc I) {
 		if (RI.regs[reg] == I)
 			return R(reg);
 
-	if (regGetSpill(RI, I) == 0)
+	unsigned slot = regGetSpill(RI, I);
+	if (!slot)
 		PanicAlert("Retrieving unknown spill slot?!");
-	return regLocForSlot(RI, regGetSpill(RI, I));
+	return regLocForSlot(RI, slot);
 }
 
 static OpArg fregLocForInst(RegInfo& RI, InstLoc I) {
@@ -219,9 +220,10 @@ static OpArg fregLocForInst(RegInfo& RI, InstLoc I) {
 		if (RI.fregs[reg] == I)
 			return R(reg);
 
-	if (fregGetSpill(RI, I) == 0)
+	unsigned slot = fregGetSpill(RI, I);
+	if (!slot)
 		PanicAlert("Retrieving unknown spill slot?!");
-	return fregLocForSlot(RI, fregGetSpill(RI, I));
+	return fregLocForSlot(RI, slot);
 }
 
 static void regClearInst(RegInfo& RI, InstLoc I) {
@@ -1344,9 +1346,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit) {
 		case FDNeg: {
 			if (!thisUsed) break;
 			X64Reg reg = fregURegWithMov(RI, I);
-			static const u64 GC_ALIGNED16(ssSignBits[2]) =
+			static const u64 GC_ALIGNED16(sdSignBits[2]) =
 				{0x8000000000000000ULL};
-			Jit->PXOR(reg, M((void*)&ssSignBits));
+			Jit->PXOR(reg, M((void*)&sdSignBits));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
