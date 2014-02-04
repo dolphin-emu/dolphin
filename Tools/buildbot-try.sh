@@ -17,7 +17,7 @@ if ! which buildbot >/dev/null 2>&1; then
     exit 1
 fi
 
-if ! git branch | grep -q '^* '; then
+if ! git branch | grep '^* ' | grep -vq 'bisect started'; then
     echo "Unable to determine the current Git branch. Input the Git branch name:"
     read branchname
 else
