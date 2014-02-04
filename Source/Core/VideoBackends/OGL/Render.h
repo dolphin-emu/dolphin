@@ -54,6 +54,7 @@ public:
 	void SetLineWidth() override;
 	void SetSamplerState(int stage,int texindex) override;
 	void SetInterlacingMode() override;
+	void SetViewport() override;
 
 	// TODO: Implement and use these
 	void ApplyState(bool bUseDstAlpha) override {}
@@ -75,8 +76,6 @@ public:
 	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) override;
 
 	void ReinterpretPixelData(unsigned int convtype) override;
-
-	void UpdateViewport() override;
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
 

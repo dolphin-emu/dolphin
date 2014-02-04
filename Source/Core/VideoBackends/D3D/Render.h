@@ -21,6 +21,7 @@ public:
 	void SetLineWidth();
 	void SetSamplerState(int stage,int texindex);
 	void SetInterlacingMode();
+	void SetViewport();
 
 	// TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
 	void ApplyState(bool bUseDstAlpha);
@@ -43,8 +44,6 @@ public:
 	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z);
 
 	void ReinterpretPixelData(unsigned int convtype);
-
-	void UpdateViewport();
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
 
