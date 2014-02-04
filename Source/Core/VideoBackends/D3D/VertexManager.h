@@ -31,7 +31,7 @@ private:
 	void PrepareDrawBuffers();
 	void Draw(u32 stride);
 	// temp
-	void vFlush();
+	void vFlush(bool useDstAlpha);
 
 	u32 m_vertex_buffer_cursor;
 	u32 m_vertex_draw_offset;
