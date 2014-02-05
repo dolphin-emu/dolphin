@@ -339,11 +339,11 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 				if (i % 3)
 				{
 					pcm_l = (((pcm_l + (int)pcm[pos*2]) / 2  * lvolume) >> 8) + (int)(*_pDestBuffer);
-					MathUtil::Clamp(pcm_l, -32767, 32767);
+					MathUtil::Clamp(&pcm_l, -32767, 32767);
 					*_pDestBuffer++ = pcm_l;
 
 					pcm_r = (((pcm_r + (int)pcm[pos*2+1]) / 2 * rvolume) >> 8) + (int)(*_pDestBuffer);
-					MathUtil::Clamp(pcm_r, -32767, 32767);
+					MathUtil::Clamp(&pcm_r, -32767, 32767);
 					*_pDestBuffer++ = pcm_r;
 				}
 				pcm_l = pcm[pos*2];
@@ -373,11 +373,11 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 
 
 				pcm_l = (pcm_l * lvolume >> 8) + (int)(*_pDestBuffer);
-				MathUtil::Clamp(pcm_l, -32767, 32767);
+				MathUtil::Clamp(&pcm_l, -32767, 32767);
 				*_pDestBuffer++ = pcm_l;
 
 				pcm_r = (pcm_r * lvolume >> 8) + (int)(*_pDestBuffer);
-				MathUtil::Clamp(pcm_r, -32767, 32767);
+				MathUtil::Clamp(&pcm_r, -32767, 32767);
 				*_pDestBuffer++ = pcm_r;
 
 				frac += ratio;
@@ -387,11 +387,11 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 			else //1:1 no resampling
 			{
 				pcm_l = (((int)pcm[pos*2] * lvolume) >> 8) + (int)(*_pDestBuffer);
-				MathUtil::Clamp(pcm_l, -32767, 32767);
+				MathUtil::Clamp(&pcm_l, -32767, 32767);
 				*_pDestBuffer++ = pcm_l;
 
 				pcm_r = (((int)pcm[pos*2+1] * rvolume) >> 8) + (int)(*_pDestBuffer);
-				MathUtil::Clamp(pcm_r, -32767, 32767);
+				MathUtil::Clamp(&pcm_r, -32767, 32767);
 				*_pDestBuffer++ = pcm_r;
 
 				pos++;

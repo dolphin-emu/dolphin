@@ -560,8 +560,8 @@ void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)
 		int left  = m_samples_left[i];
 		int right = m_samples_right[i];
 
-		MathUtil::Clamp(left, -32767, 32767);
-		MathUtil::Clamp(right, -32767, 32767);
+		MathUtil::Clamp(&left, -32767, 32767);
+		MathUtil::Clamp(&right, -32767, 32767);
 
 		buffer[2 * i + 0] = Common::swap16(right);
 		buffer[2 * i + 1] = Common::swap16(left);

@@ -14,12 +14,12 @@
 namespace MathUtil
 {
 template<class T>
-inline void Clamp(T& val, const T& min, const T& max)
+inline void Clamp(T* val, const T& min, const T& max)
 {
-	if (val < min)
-		val = min;
-	else if (val > max)
-		val = max;
+	if (*val < min)
+		*val = min;
+	else if (*val > max)
+		*val = max;
 }
 
 

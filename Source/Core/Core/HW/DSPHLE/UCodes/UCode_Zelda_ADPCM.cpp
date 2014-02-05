@@ -56,7 +56,7 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed shor
 	{
 		int sample = delta * nibbles[i] + ((int)hist * coef[idx * 2]) + ((int)hist2 * coef[idx * 2 + 1]);
 		sample >>= 11;
-		MathUtil::Clamp(sample, -32768, 32767);
+		MathUtil::Clamp(&sample, -32768, 32767);
 		out[i] = sample;
 		hist2 = hist;
 		hist = (short)sample;
