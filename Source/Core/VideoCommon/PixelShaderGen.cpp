@@ -138,24 +138,6 @@ static const char *tevCInputTable[] = // CC
 	"int3(127,127,127)", // HALF
 	"ikonsttemp.rgb",    // KONST
 	"int3(0,0,0)",       // ZERO
-	///added extra values to map clamped values
-	"icprev.rgb",        // CPREV,
-	"icprev.aaa",        // APREV,
-	"icc0.rgb",          // C0,
-	"icc0.aaa",          // A0,
-	"icc1.rgb",          // C1,
-	"icc1.aaa",          // A1,
-	"icc2.rgb",          // C2,
-	"icc2.aaa",          // A2,
-	"itextemp.rgb",      // TEXC,
-	"itextemp.aaa",      // TEXA,
-	"icrastemp.rgb",     // RASC,
-	"icrastemp.aaa",     // RASA,
-	"int3(255,255,255)", // ONE
-	"int3(127,127,127)", // HALF
-	"ickonsttemp.rgb",   // KONST
-	"int3(0,0,0)",       // ZERO
-	"PADERROR1", "PADERROR2", "PADERROR3", "PADERROR4"
 };
 
 static const char *tevAInputTable[] = // CA
@@ -168,17 +150,6 @@ static const char *tevAInputTable[] = // CA
 	"irastemp",         // RASA,
 	"ikonsttemp",       // KONST,  (hw1 had quarter)
 	"int4(0,0,0,0)",    // ZERO
-	///added extra values to map clamped values
-	"icprev",            // APREV,
-	"icc0",              // A0,
-	"icc1",              // A1,
-	"icc2",              // A2,
-	"itextemp",          // TEXA,
-	"icrastemp",         // RASA,
-	"ickonsttemp",       // KONST,  (hw1 had quarter)
-	"int4(0,0,0,0)",     // ZERO
-	"PADERROR5", "PADERROR6", "PADERROR7", "PADERROR8",
-	"PADERROR9", "PADERROR10", "PADERROR11", "PADERROR12",
 };
 
 static const char *tevRasTable[] =
@@ -193,8 +164,8 @@ static const char *tevRasTable[] =
 	"int4(0, 0, 0, 0)", // zero
 };
 
-static const char *tevCOutputTable[]  = { "iprev.rgb", "ic0.rgb", "ic1.rgb", "ic2.rgb", "icprev.rgb", "icc0.rgb", "icc1.rgb", "icc2.rgb", };
-static const char *tevAOutputTable[]  = { "iprev.a", "ic0.a", "ic1.a", "ic2.a", "icprev.a", "icc0.a", "icc1.a", "icc2.a" };
+static const char *tevCOutputTable[]  = { "iprev.rgb", "ic0.rgb", "ic1.rgb", "ic2.rgb" };
+static const char *tevAOutputTable[]  = { "iprev.a", "ic0.a", "ic1.a", "ic2.a" };
 
 static char text[16384];
 
@@ -381,10 +352,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 			"  int3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
 			"  int alphabump=0;\n"
 			"  int3 tevcoord=int3(0, 0, 0);\n"
-			"  int2 wrappedcoord=int2(0,0); float2 tempcoord=float2(0.0,0.0);\n"
-			"  int4 icc0=int4(0, 0, 0, 0), icc1=int4(0, 0, 0, 0);\n"
-			"  int4 icc2=int4(0, 0, 0, 0), icprev=int4(0, 0, 0, 0);\n"
-			"  int4 icrastemp = int4(0, 0, 0, 0), ickonsttemp = int4(0, 0, 0, 0);\n\n");
+			"  int2 wrappedcoord=int2(0,0); float2 tempcoord=float2(0.0,0.0);\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -610,45 +578,29 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 
 //table with the color compare operations
-static const char *TEVCMPColorOPTable[16] =
+static const char *TEVCMPColorOPTable[] =
 {
-	"float3(0.0, 0.0, 0.0)",//0
-	"float3(0.0, 0.0, 0.0)",//1
-	"float3(0.0, 0.0, 0.0)",//2
-	"float3(0.0, 0.0, 0.0)",//3
-	"float3(0.0, 0.0, 0.0)",//4
-	"float3(0.0, 0.0, 0.0)",//5
-	"float3(0.0, 0.0, 0.0)",//6
-	"float3(0.0, 0.0, 0.0)",//7
-	"   %s + (((%s.r&255) > %s.r) ? (%s&255): int3(0,0,0))",//#define TEVCMP_R8_GT 8
-	"   %s + (((%s.r&255) == %s.r) ? (%s&255): int3(0,0,0))",//#define TEVCMP_R8_EQ 9
-	"   %s + ((idot((%s.rgb&255), comp16) >  idot((%s.rgb&255), comp16)) ? (%s&255): int3(0,0,0))",//#define TEVCMP_GR16_GT 10
-	"   %s + ((idot((%s.rgb&255), comp16) == idot((%s.rgb&255), comp16)) ? (%s&255): int3(0,0,0))",//#define TEVCMP_GR16_EQ 11
-	"   %s + ((idot((%s.rgb&255), comp24) >  idot((%s.rgb&255), comp24)) ? (%s&255): int3(0,0,0))",//#define TEVCMP_BGR24_GT 12
-	"   %s + ((idot((%s.rgb&255), comp24) == idot((%s.rgb&255), comp24)) ? (%s&255): int3(0,0,0))",//#define TEVCMP_BGR24_EQ 13
-	"   %s + int3(max(sign(int3((%s.rgb&255)) - int3((%s.rgb&255))), int3(0,0,0)) * (%s&255))",//#define TEVCMP_RGB8_GT  14
-	"   %s + int3((int3(255,255,255) - max(sign(abs(int3((%s.rgb&255)) - int3((%s.rgb&255)))), int3(0,0,0))) * (%s&255))"//#define TEVCMP_RGB8_EQ  15
+	"   %s + (((%s.r&255) > %s.r) ? (%s&255): int3(0,0,0))", // TEVCMP_R8_GT
+	"   %s + (((%s.r&255) == %s.r) ? (%s&255): int3(0,0,0))", // TEVCMP_R8_EQ
+	"   %s + ((idot((%s.rgb&255), comp16) >  idot((%s.rgb&255), comp16)) ? (%s&255): int3(0,0,0))", // TEVCMP_GR16_GT
+	"   %s + ((idot((%s.rgb&255), comp16) == idot((%s.rgb&255), comp16)) ? (%s&255): int3(0,0,0))", // TEVCMP_GR16_EQ
+	"   %s + ((idot((%s.rgb&255), comp24) >  idot((%s.rgb&255), comp24)) ? (%s&255): int3(0,0,0))", // TEVCMP_BGR24_GT
+	"   %s + ((idot((%s.rgb&255), comp24) == idot((%s.rgb&255), comp24)) ? (%s&255): int3(0,0,0))", // TEVCMP_BGR24_EQ
+	"   %s + int3(max(sign(int3((%s.rgb&255)) - int3((%s.rgb&255))), int3(0,0,0)) * (%s&255))", // TEVCMP_RGB8_GT
+	"   %s + int3((int3(255,255,255) - max(sign(abs(int3((%s.rgb&255)) - int3((%s.rgb&255)))), int3(0,0,0))) * (%s&255))" // TEVCMP_RGB8_EQ
 };
 
 //table with the alpha compare operations
-static const char *TEVCMPAlphaOPTable[16] =
+static const char *TEVCMPAlphaOPTable[] =
 {
-	"0.0",//0
-	"0.0",//1
-	"0.0",//2
-	"0.0",//3
-	"0.0",//4
-	"0.0",//5
-	"0.0",//6
-	"0.0",//7
-	"   %s.a + (((%s.r&255) > (%s.r&255)) ? (%s.a&255) : 0)",//#define TEVCMP_R8_GT 8
-	"   %s.a + (((%s.r&255) == (%s.r&255)) ? (%s.a&255) : 0)",//#define TEVCMP_R8_EQ 9
-	"   %s.a + ((idot((%s.rgb&255), comp16) >  idot((%s.rgb&255), comp16)) ? (%s.a&255) : 0)",//#define TEVCMP_GR16_GT 10
-	"   %s.a + ((idot((%s.rgb&255), comp16) == idot((%s.rgb&255), comp16)) ? (%s.a&255) : 0)",//#define TEVCMP_GR16_EQ 11
-	"   %s.a + ((idot((%s.rgb&255), comp24) >  idot((%s.rgb&255), comp24)) ? (%s.a&255) : 0)",//#define TEVCMP_BGR24_GT 12
-	"   %s.a + ((idot((%s.rgb&255), comp24) == idot((%s.rgb&255), comp24)) ? (%s.a&255) : 0)",//#define TEVCMP_BGR24_EQ 13
-	"   %s.a + (((%s.a&255) >  (%s.a&255)) ? (%s.a&255) : 0)",//#define TEVCMP_A8_GT 14
-	"   %s.a + (((%s.a&255) == (%s.a&255)) ? (%s.a&255) : 0)" //#define TEVCMP_A8_EQ 15
+	"   %s.a + (((%s.r&255) > (%s.r&255)) ? (%s.a&255) : 0)", // TEVCMP_R8_GT
+	"   %s.a + (((%s.r&255) == (%s.r&255)) ? (%s.a&255) : 0)", // TEVCMP_R8_EQ
+	"   %s.a + ((idot((%s.rgb&255), comp16) >  idot((%s.rgb&255), comp16)) ? (%s.a&255) : 0)", // TEVCMP_GR16_GT
+	"   %s.a + ((idot((%s.rgb&255), comp16) == idot((%s.rgb&255), comp16)) ? (%s.a&255) : 0)", // TEVCMP_GR16_EQ
+	"   %s.a + ((idot((%s.rgb&255), comp24) >  idot((%s.rgb&255), comp24)) ? (%s.a&255) : 0)", // TEVCMP_BGR24_GT
+	"   %s.a + ((idot((%s.rgb&255), comp24) == idot((%s.rgb&255), comp24)) ? (%s.a&255) : 0)", // TEVCMP_BGR24_EQ
+	"   %s.a + (((%s.a&255) >  (%s.a&255)) ? (%s.a&255) : 0)", // TEVCMP_A8_GT
+	"   %s.a + (((%s.a&255) == (%s.a&255)) ? (%s.a&255) : 0)" // TEVCMP_A8_EQ
 };
 
 template<class T>
@@ -710,7 +662,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 
 				out.Write("int2 indtevtrans%d = int2(idot(" I_INDTEXMTX"[%d].xyz, iindtevcrd%d), idot(" I_INDTEXMTX"[%d].xyz, iindtevcrd%d)) >> 3;\n", n, mtxidx, n, mtxidx+1, n);
 
-				// TODO: should use a shader uid branch for this..
+				// TODO: should use a shader uid branch for this for better performance
 				out.Write("if (" I_INDTEXMTX"[%d].w >= 0) indtevtrans%d = indtevtrans%d >> " I_INDTEXMTX"[%d].w;\n", mtxidx, n, n, mtxidx);
 				out.Write("else indtevtrans%d = indtevtrans%d << (-" I_INDTEXMTX"[%d].w);\n", n, n, mtxidx);
 			}
@@ -887,7 +839,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	}
 	else
 	{
-		int cmp = (cc.shift<<1)|cc.op|8; // comparemode stored here
+		int cmp = (cc.shift<<1)|cc.op; // comparemode stored here
 		out.Write(TEVCMPColorOPTable[cmp],//lookup the function from the op table
 				tevCInputTable[cc.d],
 				tevCInputTable[cc.a],
@@ -923,7 +875,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	else
 	{
 		//compare alpha combiner goes here
-		int cmp = (ac.shift<<1)|ac.op|8; // comparemode stored here
+		int cmp = (ac.shift<<1)|ac.op; // comparemode stored here
 		out.Write(TEVCMPAlphaOPTable[cmp],
 				tevAInputTable[ac.d],
 				tevAInputTable[ac.a],
@@ -991,7 +943,7 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 	int compindex = bpmem.alpha_test.comp0;
 	out.Write(tevAlphaFuncsTable[compindex], alphaRef[0]);
 
-	out.Write("%s", tevAlphaFunclogicTable[bpmem.alpha_test.logic]);//lookup the logic op
+	out.Write("%s", tevAlphaFunclogicTable[bpmem.alpha_test.logic]); // lookup the logic op
 
 	// Lookup the second component from the alpha function table
 	compindex = bpmem.alpha_test.comp1;
