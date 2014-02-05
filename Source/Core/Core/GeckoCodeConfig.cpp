@@ -115,23 +115,17 @@ void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::string>& en
 	lines.push_back(name);
 
 	// save all the code lines
-	std::vector<GeckoCode::Code>::const_iterator
-		codes_iter = gcode.codes.begin(),
-		codes_end = gcode.codes.end();
-	for (; codes_iter!=codes_end; ++codes_iter)
+	for (const GeckoCode::Code& code : gcode.codes)
 	{
 		//ss << std::hex << codes_iter->address << ' ' << codes_iter->data;
 		//lines.push_back(StringFromFormat("%08X %08X", codes_iter->address, codes_iter->data));
-		lines.push_back(codes_iter->original_line);
+		lines.push_back(code.original_line);
 		//ss.clear();
 	}
 
 	// save the notes
-	std::vector<std::string>::const_iterator
-		notes_iter = gcode.notes.begin(),
-		notes_end = gcode.notes.end();
-	for (; notes_iter!=notes_end; ++notes_iter)
-		lines.push_back(std::string("*") + *notes_iter);
+	for (const std::string& note : gcode.notes)
+		lines.push_back(std::string("*") + note);
 }
 
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
@@ -139,12 +133,9 @@ void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 
-	std::vector<GeckoCode>::const_iterator
-		gcodes_iter = gcodes.begin(),
-		gcodes_end = gcodes.end();
-	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	for (const GeckoCode& geckoCode : gcodes)
 	{
-		SaveGeckoCode(lines, enabledLines, *gcodes_iter);
+		SaveGeckoCode(lines, enabledLines, geckoCode);
 	}
 
 	inifile.SetLines("Gecko", lines);

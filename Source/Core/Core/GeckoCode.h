@@ -31,9 +31,9 @@ namespace Gecko
 			u32 GetAddress() const;
 		};
 
-		std::vector<Code>	codes;
-		std::string		name, creator;
-		std::vector<std::string>	notes;
+		std::vector<Code> codes;
+		std::string name, creator;
+		std::vector<std::string> notes;
 
 		bool enabled;
 		bool user_defined;

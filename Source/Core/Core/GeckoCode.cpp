@@ -7,24 +7,22 @@
 #include "Thread.h"
 #include "HW/Memmap.h"
 #include "ConfigManager.h"
-
-#include "vector"
 #include "PowerPC/PowerPC.h"
 #include "CommonPaths.h"
+
+#include <vector>
 
 namespace Gecko
 {
 // return true if a code exists
 bool GeckoCode::Exist(u32 address, u32 data)
 {
-	std::vector<GeckoCode::Code>::const_iterator
-		codes_iter = codes.begin(),
-		codes_end = codes.end();
-	for (; codes_iter != codes_end; ++codes_iter)
+	for (const GeckoCode::Code& code : codes)
 	{
-		if (codes_iter->address == address && codes_iter->data == data)
+		if (code.address == address && code.data == data)
 			return true;
 	}
+
 	return false;
 }
 
@@ -35,14 +33,13 @@ bool GeckoCode::Compare(GeckoCode compare) const
 		return false;
 
 	unsigned int exist = 0;
-	std::vector<GeckoCode::Code>::const_iterator
-		codes_iter = codes.begin(),
-		codes_end = codes.end();
-	for (; codes_iter != codes_end; ++codes_iter)
+
+	for (const GeckoCode::Code& code : codes)
 	{
-		if (compare.Exist(codes_iter->address, codes_iter->data))
+		if (compare.Exist(code.address, code.data))
 			exist++;
 	}
+
 	return exist == codes.size();
 }
 
@@ -56,17 +53,15 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 	std::lock_guard<std::mutex> lk(active_codes_lock);
 
 	active_codes.clear();
+
 	// add enabled codes
-	std::vector<GeckoCode>::const_iterator
-		gcodes_iter = gcodes.begin(),
-		gcodes_end = gcodes.end();
-	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	for (const GeckoCode& gecko_code : gcodes)
 	{
-		if (gcodes_iter->enabled)
+		if (gecko_code.enabled)
 		{
 			// TODO: apply modifiers
 			// TODO: don't need description or creator string, just takin up memory
-			active_codes.push_back(*gcodes_iter);
+			active_codes.push_back(gecko_code);
 		}
 	}
 
@@ -101,14 +96,12 @@ bool InstallCodeHandler()
 	std::lock_guard<std::mutex> lk(active_codes_lock);
 
 	int i = 0;
-	std::vector<GeckoCode>::iterator
-		gcodes_iter = active_codes.begin(),
-		gcodes_end = active_codes.end();
-	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+
+	for (const GeckoCode& active_code : active_codes)
 	{
-		if (gcodes_iter->enabled)
+		if (active_code.enabled)
 		{
-			for (auto& code : gcodes_iter->codes)
+			for (const GeckoCode::Code& code : active_code.codes)
 			{
 				// Make sure we have enough memory to hold the code list
 				if ((codelist_location + 24 + i) < 0x80003000)
