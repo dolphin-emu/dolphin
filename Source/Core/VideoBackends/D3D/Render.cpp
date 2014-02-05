@@ -7,7 +7,6 @@
 
 #include "Timer.h"
 
-#include "Debugger.h"
 #include "EmuWindow.h"
 #include "Fifo.h"
 #include "OnScreenDisplay.h"
@@ -725,7 +724,7 @@ void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
+void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
@@ -945,9 +944,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 
 	OSD::DrawMessages();
 	D3D::EndFrame();
-	frameCount++;
-
-	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
 	TextureCache::Cleanup();
 
@@ -973,11 +969,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// update FPS counter
 	if (XFBWrited)
 		s_fps = UpdateFPSCounter();
-
-	// Begin new frame
-	// Set default viewport and scissor, for the clear to work correctly
-	// New frame
-	stats.ResetFrame();
 
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
@@ -1019,9 +1010,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	D3D::BeginFrame();
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 	SetViewport();
-
-	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
-	XFBWrited = false;
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing

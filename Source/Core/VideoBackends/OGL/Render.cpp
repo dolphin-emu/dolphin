@@ -44,7 +44,6 @@
 #include "StringUtil.h"
 #include "FramebufferManager.h"
 #include "Fifo.h"
-#include "Debugger.h"
 #include "Core.h"
 #include "Movie.h"
 #include "BPFunctions.h"
@@ -1277,7 +1276,7 @@ void DumpFrame(const std::vector<u8>& data, int w, int h)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
+void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
@@ -1593,15 +1592,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	TextureCache::Cleanup();
 
-	frameCount++;
-
-	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
-
-	// Begin new frame
-	// Set default viewport and scissor, for the clear to work correctly
-	// New frame
-	stats.ResetFrame();
-
 	// Render to the framebuffer.
 	FramebufferManager::SetFramebuffer(0);
 
@@ -1619,8 +1609,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// Renderer::SetZBufferRender();
 	// SaveTexture("tex.png", GL_TEXTURE_2D, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
-	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
-	XFBWrited = false;
 
 	// Invalidate EFB cache
 	ClearEFBCache();
