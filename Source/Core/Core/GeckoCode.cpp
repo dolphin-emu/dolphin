@@ -55,13 +55,13 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 	active_codes.clear();
 
 	// add enabled codes
-	for (const GeckoCode& geckoCode : gcodes)
+	for (const GeckoCode& gecko_code : gcodes)
 	{
-		if (geckoCode.enabled)
+		if (gecko_code.enabled)
 		{
 			// TODO: apply modifiers
 			// TODO: don't need description or creator string, just takin up memory
-			active_codes.push_back(geckoCode);
+			active_codes.push_back(gecko_code);
 		}
 	}
 
@@ -97,11 +97,11 @@ bool InstallCodeHandler()
 
 	int i = 0;
 
-	for (GeckoCode& activeCode : active_codes)
+	for (GeckoCode& active_code : active_codes)
 	{
-		if (activeCode.enabled)
+		if (active_code.enabled)
 		{
-			for (GeckoCode::Code& code : activeCode.codes)
+			for (GeckoCode::Code& code : active_code.codes)
 			{
 				// Make sure we have enough memory to hold the code list
 				if ((codelist_location + 24 + i) < 0x80003000)
