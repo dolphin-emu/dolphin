@@ -14,30 +14,6 @@ namespace ciface
 namespace DInput
 {
 
-// template instantiation
-template class Joystick::Force<DICONSTANTFORCE>;
-template class Joystick::Force<DIRAMPFORCE>;
-template class Joystick::Force<DIPERIODIC>;
-
-static const struct
-{
-	GUID guid;
-	const char* name;
-} force_type_names[] =
-{
-	{GUID_ConstantForce, "Constant"},	// DICONSTANTFORCE
-	{GUID_RampForce, "Ramp"},			// DIRAMPFORCE
-	{GUID_Square, "Square"},			// DIPERIODIC ...
-	{GUID_Sine, "Sine"},
-	{GUID_Triangle, "Triangle"},
-	{GUID_SawtoothUp, "Sawtooth Up"},
-	{GUID_SawtoothDown, "Sawtooth Down"},
-	//{GUID_Spring, "Spring"},			// DICUSTOMFORCE ... < I think
-	//{GUID_Damper, "Damper"},
-	//{GUID_Inertia, "Inertia"},
-	//{GUID_Friction, "Friction"},
-};
-
 #define DATA_BUFFER_SIZE	32
 
 //-----------------------------------------------------------------------------
@@ -267,87 +243,11 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		}
 	}
 
-	// TODO: check for DIDC_FORCEFEEDBACK in devcaps?
-
-	// get supported ff effects
+	// force feedback
 	std::list<DIDEVICEOBJECTINSTANCE> objects;
-	m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS);
-	// got some ff axes or something
-	if ( objects.size() )
+	if (SUCCEEDED(m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS)))
 	{
-		// temporary
-		DWORD rgdwAxes[2] = {DIJOFS_X, DIJOFS_Y};
-		LONG rglDirection[2] = {-200, 0};
-
-		DIEFFECT eff;
-		ZeroMemory(&eff, sizeof(eff));
-		eff.dwSize = sizeof(DIEFFECT);
-		eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-		eff.dwDuration = INFINITE;	// (4 * DI_SECONDS)
-		eff.dwSamplePeriod = 0;
-		eff.dwGain = DI_FFNOMINALMAX;
-		eff.dwTriggerButton = DIEB_NOTRIGGER;
-		eff.dwTriggerRepeatInterval = 0;
-		eff.cAxes = std::min((DWORD)1, (DWORD)objects.size());
-		eff.rgdwAxes = rgdwAxes;
-		eff.rglDirection = rglDirection;
-
-		// DIPERIODIC is the largest, so we'll use that
-		DIPERIODIC f;
-		eff.lpvTypeSpecificParams = &f;
-		ZeroMemory(&f, sizeof(f));
-
-		// doesn't seem needed
-		//DIENVELOPE env;
-		//eff.lpEnvelope = &env;
-		//ZeroMemory(&env, sizeof(env));
-		//env.dwSize = sizeof(env);
-
-		for (unsigned int f = 0; f < sizeof(force_type_names)/sizeof(*force_type_names); ++f)
-		{
-			// ugly if ladder
-			if (0 == f)
-			{
-				DICONSTANTFORCE  diCF = {-10000};
-				diCF.lMagnitude = DI_FFNOMINALMAX;
-				eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
-				eff.lpvTypeSpecificParams = &diCF;
-			}
-			else if (1 == f)
-			{
-				eff.cbTypeSpecificParams = sizeof(DIRAMPFORCE);
-			}
-			else
-			{
-				eff.cbTypeSpecificParams = sizeof(DIPERIODIC);
-			}
-
-			LPDIRECTINPUTEFFECT pEffect;
-			if (SUCCEEDED(m_device->CreateEffect(force_type_names[f].guid, &eff, &pEffect, NULL)))
-			{
-				m_state_out.push_back(EffectState(pEffect));
-
-				// ugly if ladder again :/
-				if (0 == f)
-					AddOutput(new ForceConstant(f, m_state_out.back()));
-				else if (1 == f)
-					AddOutput(new ForceRamp(f, m_state_out.back()));
-				else
-					AddOutput(new ForcePeriodic(f, m_state_out.back()));
-			}
-		}
-	}
-
-	// disable autocentering
-	if (Outputs().size())
-	{
-		DIPROPDWORD dipdw;
-		dipdw.diph.dwSize = sizeof( DIPROPDWORD );
-		dipdw.diph.dwHeaderSize = sizeof( DIPROPHEADER );
-		dipdw.diph.dwObj = 0;
-		dipdw.diph.dwHow = DIPH_DEVICE;
-		dipdw.dwData = DIPROPAUTOCENTER_OFF;
-		m_device->SetProperty( DIPROP_AUTOCENTER, &dipdw.diph );
+		InitForceFeedback(m_device, objects.size());
 	}
 
 	ClearInputState();
@@ -355,14 +255,6 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 
 Joystick::~Joystick()
 {
-	// release the ff effect iface's
-	for (EffectState& state : m_state_out)
-	{
-		state.iface->Stop();
-		state.iface->Unload();
-		state.iface->Release();
-	}
-
 	m_device->Unacquire();
 	m_device->Release();
 }
@@ -434,42 +326,6 @@ bool Joystick::UpdateInput()
 	return SUCCEEDED(hr);
 }
 
-bool Joystick::UpdateOutput()
-{
-	size_t ok_count = 0;
-
-	DIEFFECT eff;
-	ZeroMemory(&eff, sizeof(eff));
-	eff.dwSize = sizeof(DIEFFECT);
-	eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-
-	for (EffectState& state : m_state_out)
-	{
-		if (state.params)
-		{
-			if (state.size)
-			{
-				eff.cbTypeSpecificParams = state.size;
-				eff.lpvTypeSpecificParams = state.params;
-				// set params and start effect
-				ok_count += SUCCEEDED(state.iface->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START));
-			}
-			else
-			{
-				ok_count += SUCCEEDED(state.iface->Stop());
-			}
-
-			state.params = NULL;
-		}
-		else
-		{
-			++ok_count;
-		}
-	}
-
-	return (m_state_out.size() == ok_count);
-}
-
 // get name
 
 std::string Joystick::Button::GetName() const
@@ -507,12 +363,6 @@ std::string Joystick::Hat::GetName() const
 	return tmpstr;
 }
 
-template <typename P>
-std::string Joystick::Force<P>::GetName() const
-{
-	return force_type_names[m_index].name;
-}
-
 // get / set state
 
 ControlState Joystick::Axis::GetState() const
@@ -533,59 +383,6 @@ ControlState Joystick::Hat::GetState() const
 		return 0;
 
 	return (abs((int)(m_hat / 4500 - m_direction * 2 + 8) % 8 - 4) > 2);
-}
-
-void Joystick::ForceConstant::SetState(const ControlState state)
-{
-	const LONG new_val = LONG(10000 * state);
-
-	LONG &val = params.lMagnitude;
-	if (val != new_val)
-	{
-		val = new_val;
-		m_state.params = &params;	// tells UpdateOutput the state has changed
-
-		 // tells UpdateOutput to either start or stop the force
-		m_state.size = new_val ? sizeof(params) : 0;
-	}
-}
-
-void Joystick::ForceRamp::SetState(const ControlState state)
-{
-	const LONG new_val = LONG(10000 * state);
-
-	if (params.lStart != new_val)
-	{
-		params.lStart = params.lEnd = new_val;
-		m_state.params = &params;	// tells UpdateOutput the state has changed
-
-		 // tells UpdateOutput to either start or stop the force
-		m_state.size = new_val ? sizeof(params) : 0;
-	}
-}
-
-void Joystick::ForcePeriodic::SetState(const ControlState state)
-{
-	const LONG new_val = LONG(10000 * state);
-
-	DWORD &val = params.dwMagnitude;
-	if (val != new_val)
-	{
-		val = new_val;
-		//params.dwPeriod = 0;//DWORD(0.05 * DI_SECONDS);	// zero is working fine for me
-
-		m_state.params = &params;	// tells UpdateOutput the state has changed
-
-		 // tells UpdateOutput to either start or stop the force
-		m_state.size = new_val ? sizeof(params) : 0;
-	}
-}
-
-template <typename P>
-Joystick::Force<P>::Force(u8 index, EffectState& state)
-	: m_index(index), m_state(state)
-{
-	ZeroMemory(&params, sizeof(params));
 }
 
 }

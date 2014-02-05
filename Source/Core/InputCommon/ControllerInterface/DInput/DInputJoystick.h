@@ -2,14 +2,7 @@
 #define _CIFACE_DINPUT_JOYSTICK_H_
 
 #include "../Device.h"
-
-#define DIRECTINPUT_VERSION 0x0800
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
-#include <dinput.h>
-
-#include <list>
+#include "../ForceFeedback/ForceFeedbackDevice.h"
 
 namespace ciface
 {
@@ -18,18 +11,9 @@ namespace DInput
 
 void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND hwnd);
 
-class Joystick : public Core::Device
+class Joystick : public ForceFeedback::ForceFeedbackDevice
 {
 private:
-	struct EffectState
-	{
-		EffectState(LPDIRECTINPUTEFFECT eff) : iface(eff), params(NULL), size(0) {}
-
-		LPDIRECTINPUTEFFECT iface;
-		void*               params; // null when force hasn't changed
-		u8                  size;   // zero when force should stop
-	};
-
 	class Button : public Input
 	{
 	public:
@@ -64,25 +48,8 @@ private:
 		const u8 m_index, m_direction;
 	};
 
-	template <typename P>
-	class Force : public Output
-	{
-	public:
-		std::string GetName() const;
-		Force(u8 index, EffectState& state);
-		void SetState(ControlState state);
-	private:
-		EffectState& m_state;
-		P params;
-		const u8 m_index;
-	};
-	typedef Force<DICONSTANTFORCE>  ForceConstant;
-	typedef Force<DIRAMPFORCE>      ForceRamp;
-	typedef Force<DIPERIODIC>       ForcePeriodic;
-
 public:
 	bool UpdateInput();
-	bool UpdateOutput();
 
 	void ClearInputState();
 
@@ -98,7 +65,6 @@ private:
 	const unsigned int         m_index;
 
 	DIJOYSTATE                 m_state_in;
-	std::list<EffectState>     m_state_out;
 
 	bool                       m_buffered;
 };
