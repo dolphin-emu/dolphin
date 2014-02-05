@@ -14,6 +14,7 @@
 #endif
 
 #include "Common.h"
+#include "MathUtil.h"
 #include "UCode_AXStructs.h"
 #include "../../DSP.h"
 
@@ -216,9 +217,7 @@ u16 AcceleratorGetSample()
 				temp -= 16;
 
 			int val = (scale * temp) + ((0x400 + coef1 * acc_pb->adpcm.yn1 + coef2 * acc_pb->adpcm.yn2) >> 11);
-
-			if (val > 0x7FFF) val = 0x7FFF;
-			else if (val < -0x7FFF) val = -0x7FFF;
+			MathUtil::Clamp(val, -0x7FFF, 0x7FFF);
 
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = val;

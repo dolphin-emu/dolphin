@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "DPL2Decoder.h"
+#include "MathUtil.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -72,17 +73,6 @@ template<class T> static T firfilter(const T *buf, int pos, int len, int count, 
 	return T(r1+r2);
 }
 
-template<class T> inline const T& limit(const T& val, const T& min, const T& max)
-{
-	if (val < min) {
-		return min;
-	} else if (val > max) {
-		return max;
-	} else {
-		return val;
-	}
-}
-
 /*
 // Hamming
 //                        2*pi*k
@@ -133,7 +123,7 @@ float* design_fir(unsigned int *n, float* fc, float opt)
 
 	// Sanity check
 	if(*n==0) return NULL;
-	fc[0]=limit(fc[0],float(0.001),float(1));
+	MathUtil::Clamp(fc[0],float(0.001),float(1));
 
 	float *w=(float*)calloc(sizeof(float),*n);
 

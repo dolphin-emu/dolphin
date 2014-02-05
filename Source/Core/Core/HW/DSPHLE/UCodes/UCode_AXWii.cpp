@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "MathUtil.h"
 #include "StringUtil.h"
 
 #include "../MailHandler.h"
@@ -617,10 +618,8 @@ void CUCode_AXWii::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume,
 		left = ((s64)left * volume_ramp[i]) >> 15;
 		right = ((s64)right * volume_ramp[i]) >> 15;
 
-		if (left < -32767)  left = -32767;
-		if (left > 32767)   left = 32767;
-		if (right < -32767) right = -32767;
-		if (right >  32767) right = 32767;
+		MathUtil::Clamp(left, -32767, 32767);
+		MathUtil::Clamp(right, -32767, 32767);
 
 		m_samples_left[i] = left;
 		m_samples_right[i] = right;
@@ -655,8 +654,7 @@ void CUCode_AXWii::OutputWMSamples(u32* addresses)
 		for (u32 j = 0; j < 3 * 6; ++j)
 		{
 			int sample = in[j];
-			if (sample < -32767) sample = -32767;
-			if (sample > 32767) sample = 32767;
+			MathUtil::Clamp(sample, -32767, 32767);
 			out[j] = Common::swap16((u16)sample);
 		}
 	}

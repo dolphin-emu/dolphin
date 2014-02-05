@@ -8,6 +8,7 @@
 #include "UCode_Zelda.h"
 
 #include "AudioCommon.h"
+#include "MathUtil.h"
 #include "Mixer.h"
 #include "../../Memmap.h"
 #include "../../DSP.h"
@@ -780,12 +781,10 @@ void CUCode_Zelda::MixAdd(short *_Buffer, int _Size)
 		s32 left  = (s32)_Buffer[0] + m_LeftBuffer[i];
 		s32 right = (s32)_Buffer[1] + m_RightBuffer[i];
 
-		if (left < -32768) left = -32768;
-		if (left > 32767)  left = 32767;
+		MathUtil::Clamp(left, -32768, 32767);
 		_Buffer[0] = (short)left;
 
-		if (right < -32768) right = -32768;
-		if (right > 32767)  right = 32767;
+		MathUtil::Clamp(right, -32768, 32767);
 		_Buffer[1] = (short)right;
 
 		_Buffer += 2;

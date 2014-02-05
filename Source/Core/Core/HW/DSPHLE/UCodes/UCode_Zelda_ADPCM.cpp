@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
+#include "MathUtil.h"
 #include "UCode_Zelda.h"
 
 void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed short *out, short *histp, short *hist2p, int type)
@@ -55,10 +56,7 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed shor
 	{
 		int sample = delta * nibbles[i] + ((int)hist * coef[idx * 2]) + ((int)hist2 * coef[idx * 2 + 1]);
 		sample >>= 11;
-		if (sample > 32767)
-			sample = 32767;
-		if (sample < -32768)
-			sample = -32768;
+		MathUtil::Clamp(sample, -32768, 32767);
 		out[i] = sample;
 		hist2 = hist;
 		hist = (short)sample;
