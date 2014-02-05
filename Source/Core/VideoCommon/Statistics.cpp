@@ -3,19 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <string.h>
+#include <utility>
 
 #include "Statistics.h"
 #include "VertexLoaderManager.h"
 
 Statistics stats;
-
-template <class T>
-void Xchg(T& a, T&b)
-{
-	T c = a;
-	a = b;
-	b = c;
-}
 
 void Statistics::ResetFrame()
 {
@@ -24,10 +17,10 @@ void Statistics::ResetFrame()
 
 void Statistics::SwapDL()
 {
-	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
-	Xchg(stats.thisFrame.numXFLoadsInDL, stats.thisFrame.numXFLoads);
-	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
-	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
+	std::swap(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
+	std::swap(stats.thisFrame.numXFLoadsInDL, stats.thisFrame.numXFLoads);
+	std::swap(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
+	std::swap(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 }
 
 char *Statistics::ToString(char *ptr)
