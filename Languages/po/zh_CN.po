@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-01 11:29+0000\n"
+"POT-Creation-Date: 2014-02-05 00:00+0000\n"
 "PO-Revision-Date: 2014-02-02 08:16+0000\n"
 "Last-Translator: delroth <delroth@gmail.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/dolphin-"
@@ -32,7 +32,7 @@ msgstr " (项目太多，无法完全显示)"
 msgid " Game : "
 msgstr " 游戏 : "
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:542
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:528
 msgid "! NOT"
 msgstr "! 非"
 
@@ -153,7 +153,7 @@ msgstr "%s导入 GCI%s"
 msgid "%u Free Blocks; %u Free Dir Entries"
 msgstr "%u 空闲区块; %u 空闲目录项目"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:558
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:544
 msgid "&& AND"
 msgstr "&& 与"
 
@@ -317,7 +317,7 @@ msgstr "(未知)"
 msgid "(off)"
 msgstr "(关)"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:559
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:545
 msgid "+ ADD"
 msgstr "+ 加"
 
@@ -627,7 +627,7 @@ msgstr ""
 "\n"
 "注意: 可在“日志窗口/控制台”中查看系统捕捉值。"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:808
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:780
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "调整激活按钮所需的模拟控制压力。"
 
@@ -672,7 +672,7 @@ msgstr "所有文件 (*.*)|*.*"
 msgid "Analyze"
 msgstr "分析"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:286
+#: Source/Core/InputCommon/ControllerEmu.cpp:202
 msgid "Angle"
 msgstr "角度"
 
@@ -714,7 +714,7 @@ msgstr ""
 msgid "Arabic"
 msgstr "阿拉伯语"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:667
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:653
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "您确定要删除 \"%s\" ?"
@@ -814,7 +814,7 @@ msgstr "后端:"
 msgid "Background Input"
 msgstr "后台输入"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:267
+#: Source/Core/InputCommon/ControllerEmu.cpp:183
 msgid "Backward"
 msgstr "后"
 
@@ -880,7 +880,7 @@ msgstr "蓝 右"
 msgid "Bottom"
 msgstr "底部"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:229
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:217
 #, c-format
 msgid "Bound Controls: %lu"
 msgstr "绑定控制器: %lu"
@@ -1008,7 +1008,7 @@ msgstr "Caps Lock"
 msgid "Catalan"
 msgstr "加泰罗尼亚语"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:299
+#: Source/Core/InputCommon/ControllerEmu.cpp:215
 msgid "Center"
 msgstr "中心"
 
@@ -1115,7 +1115,7 @@ msgstr "选择要作为应用加载器的文件: (仅适用于由文件夹构成
 msgid "Choose the folder to extract to"
 msgstr "选择提取目标文件夹"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:285
+#: Source/Core/InputCommon/ControllerEmu.cpp:201
 msgid "Circle Stick"
 msgstr "圆形杆"
 
@@ -1125,8 +1125,8 @@ msgstr "传统控制器"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:30
 #: Source/Core/DolphinWX/LogWindow.cpp:137
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:537
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:968
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:523
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:932
 msgid "Clear"
 msgstr "清除"
 
@@ -1190,7 +1190,7 @@ msgstr "设置"
 msgid "Configure"
 msgstr "设置"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:102
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:98
 msgid "Configure Control"
 msgstr "设置面板"
 
@@ -1469,11 +1469,11 @@ msgstr "日期:"
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Datel MaxDrive/Pro 文件(*.sav)"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:230
-#: Source/Core/InputCommon/ControllerEmu.cpp:247
-#: Source/Core/InputCommon/ControllerEmu.cpp:255
-#: Source/Core/InputCommon/ControllerEmu.cpp:269
-#: Source/Core/InputCommon/ControllerEmu.cpp:284
+#: Source/Core/InputCommon/ControllerEmu.cpp:146
+#: Source/Core/InputCommon/ControllerEmu.cpp:163
+#: Source/Core/InputCommon/ControllerEmu.cpp:171
+#: Source/Core/InputCommon/ControllerEmu.cpp:185
+#: Source/Core/InputCommon/ControllerEmu.cpp:200
 msgid "Dead Zone"
 msgstr "死区"
 
@@ -1506,7 +1506,7 @@ msgstr "正在解压缩镜像"
 msgid "Decrease Frame limit"
 msgstr "减少帧数限制"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:967
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:931
 msgid "Default"
 msgstr "默认"
 
@@ -1519,7 +1519,7 @@ msgid "Default font"
 msgstr "默认字体"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:19
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:981
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:945
 msgid "Delete"
 msgstr "删除"
 
@@ -1536,7 +1536,7 @@ msgstr "删除已经存在的文件 '%s' 么?"
 msgid "Description"
 msgstr "说明"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:535
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:521
 msgid "Detect"
 msgstr "检测"
 
@@ -1547,8 +1547,8 @@ msgid ""
 "buffer. Clamp."
 msgstr "检测到尝试从DVD读取比合适的输出缓冲区内更多的数据。堆存。"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:118
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:953
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:114
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:917
 msgid "Device"
 msgstr "设备"
 
@@ -1790,7 +1790,7 @@ msgid ""
 "= Compatible)"
 msgstr "加倍模拟GPU的时钟频率。将会提高一些游戏的速度 (开 = 快速，关 = 兼容)"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:263
+#: Source/Core/InputCommon/ControllerEmu.cpp:179
 #: Source/Core/DolphinWX/WXInputBase.cpp:45
 msgid "Down"
 msgstr "下"
@@ -2645,7 +2645,7 @@ msgstr ""
 "使用ASCII格式 (NTSC\\PAL)?\n"
 "选择“否”将使用Shift-  (NTSC-J)"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:266
+#: Source/Core/InputCommon/ControllerEmu.cpp:182
 msgid "Forward"
 msgstr "前"
 
@@ -2870,7 +2870,7 @@ msgstr "头部校检失败"
 msgid "Hebrew"
 msgstr "希伯来语"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:301
+#: Source/Core/InputCommon/ControllerEmu.cpp:217
 msgid "Height"
 msgstr "高度"
 
@@ -2914,7 +2914,7 @@ msgstr ""
 "\n"
 "感谢您的使用！\n"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:297
+#: Source/Core/InputCommon/ControllerEmu.cpp:213
 msgid "Hide"
 msgstr "隐藏"
 
@@ -3098,7 +3098,7 @@ msgstr "信息"
 msgid "Information"
 msgstr "信息"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:528
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:514
 msgid "Input"
 msgstr "输入"
 
@@ -3324,7 +3324,7 @@ msgstr "最近 %i"
 msgid "Latency:"
 msgstr "延迟:"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:264
+#: Source/Core/InputCommon/ControllerEmu.cpp:180
 #: Source/Core/DolphinWX/WXInputBase.cpp:42
 msgid "Left"
 msgstr "左"
@@ -3341,7 +3341,7 @@ msgstr ""
 "左键单击检测热键。\n"
 "按空格清除。"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:742
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:718
 msgid ""
 "Left-click to detect input.\n"
 "Middle-click to clear.\n"
@@ -3351,7 +3351,7 @@ msgstr ""
 "中键单击清除。\n"
 "右键单击得到更多选项。"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:747
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:723
 msgid ""
 "Left/Right-click for more options.\n"
 "Middle-click to clear."
@@ -3367,7 +3367,7 @@ msgstr "小于"
 msgid "Limit by FPS"
 msgstr "依据 FPS 限速"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:979
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:943
 msgid "Load"
 msgstr "载入"
 
@@ -3640,8 +3640,8 @@ msgstr "其它"
 msgid "Misc Settings"
 msgstr "其它设置"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:227
-#: Source/Core/InputCommon/ControllerEmu.cpp:282
+#: Source/Core/InputCommon/ControllerEmu.cpp:143
+#: Source/Core/InputCommon/ControllerEmu.cpp:198
 msgid "Modifier"
 msgstr "修改者"
 
@@ -4025,7 +4025,7 @@ msgid ""
 "manually stop the game."
 msgstr "游戏运行期间其他客户端断开连接！网络对战已禁用。您需要手动停止游戏。"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:528
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:514
 msgid "Output"
 msgstr "输出"
 
@@ -4213,7 +4213,7 @@ msgstr "上一个值"
 msgid "Print"
 msgstr "打印"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:949
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:913
 msgid "Profile"
 msgstr "预设"
 
@@ -4256,11 +4256,11 @@ msgstr "内存"
 msgid "RUSSIA"
 msgstr "俄罗斯"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:229
+#: Source/Core/InputCommon/ControllerEmu.cpp:145
 msgid "Radius"
 msgstr "半径"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:577
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:563
 msgid "Range"
 msgstr "范围"
 
@@ -4331,7 +4331,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:78
 #: Source/Core/DolphinWX/FrameTools.cpp:460
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:958
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:922
 msgid "Refresh"
 msgstr "刷新"
 
@@ -4365,7 +4365,7 @@ msgid "Render to Main Window"
 msgstr "渲染到主窗口"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:192
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:970
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:934
 msgid "Reset"
 msgstr "重置"
 
@@ -4381,7 +4381,7 @@ msgstr "回车"
 msgid "Revision:"
 msgstr "修订版:"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:265
+#: Source/Core/InputCommon/ControllerEmu.cpp:181
 #: Source/Core/DolphinWX/WXInputBase.cpp:44
 msgid "Right"
 msgstr "右"
@@ -4413,7 +4413,7 @@ msgid "Safe"
 msgstr "安全"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:485
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:980
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:944
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:183
 msgid "Save"
 msgstr "保存"
@@ -4548,7 +4548,7 @@ msgid "Section %s not found in SYSCONF"
 msgstr "未在SYSCONF中找到部分%s"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:46
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:539
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:525
 msgid "Select"
 msgstr "选择"
 
@@ -4613,7 +4613,7 @@ msgstr ""
 "\n"
 "如果不确定，请选择【自动】。"
 
-#: Source/Core/InputCommon/InputConfig.cpp:53
+#: Source/Core/InputCommon/InputConfig.cpp:51
 msgid "Selected controller profile does not exist"
 msgstr "所选控制器预设不存在"
 
@@ -5026,7 +5026,7 @@ msgstr ""
 msgid "Speed up Disc Transfer Rate"
 msgstr "提升光盘传输率"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:231
+#: Source/Core/InputCommon/ControllerEmu.cpp:147
 msgid "Square Stick"
 msgstr "方块键"
 
@@ -5169,7 +5169,7 @@ msgstr "屏幕截图"
 msgid "TaruKonga (Bongos)"
 msgstr "TaruKonga (森喜刚鼓)"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:535
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:521
 msgid "Test"
 msgstr "测试"
 
@@ -5360,8 +5360,8 @@ msgstr ""
 msgid "This will let you Manually Edit the INI config file"
 msgstr "这将允许你手动编辑 INI 配置文件"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:237
-#: Source/Core/InputCommon/ControllerEmu.cpp:242
+#: Source/Core/InputCommon/ControllerEmu.cpp:153
+#: Source/Core/InputCommon/ControllerEmu.cpp:158
 msgid "Threshold"
 msgstr "阈值"
 
@@ -5533,7 +5533,7 @@ msgstr "收到未知的消息，ID： %d"
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr "收到未知的消息，ID：%d 来自玩家:%d 剔除玩家!"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:262
+#: Source/Core/InputCommon/ControllerEmu.cpp:178
 #: Source/Core/DolphinWX/WXInputBase.cpp:43
 msgid "Up"
 msgstr "上"
@@ -5774,7 +5774,7 @@ msgstr "颤音"
 msgid "Widescreen Hack"
 msgstr "宽屏修正"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:300
+#: Source/Core/InputCommon/ControllerEmu.cpp:216
 msgid "Width"
 msgstr "宽度"
 
@@ -5925,7 +5925,7 @@ msgstr "您必须输入一个名称!"
 msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "您必须输入一个有效的十进制、十六进制或八进制值。"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:655
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:641
 msgid "You must enter a valid profile name."
 msgstr "您必须输入一个有效的预设名称。"
 
@@ -5971,8 +5971,8 @@ msgstr "Zero 3 代码不支持"
 msgid "Zero code unknown to dolphin: %08x"
 msgstr "Dophin 未知的 Zero 代码: %08x"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:480
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:504
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:466
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:490
 msgid "[ waiting ]"
 msgstr "[ 等待中 ]"
 
@@ -6021,6 +6021,6 @@ msgstr "远剪裁平面修正: "
 msgid "zNear Correction: "
 msgstr "近剪裁平面修正: "
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:545
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:531
 msgid "| OR"
 msgstr "| 或"

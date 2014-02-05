@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-01 11:29+0000\n"
+"POT-Creation-Date: 2014-02-05 00:00+0000\n"
 "PO-Revision-Date: 2014-02-02 08:16+0000\n"
 "Last-Translator: delroth <delroth@gmail.com>\n"
 "Language-Team: Portuguese (http://www.transifex.com/projects/p/dolphin-emu/"
@@ -30,7 +30,7 @@ msgstr "(demasiados para mostrar)"
 msgid " Game : "
 msgstr "Jogo: "
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:542
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:528
 msgid "! NOT"
 msgstr "! NÃO"
 
@@ -146,7 +146,7 @@ msgstr "%sImportar GCI%s"
 msgid "%u Free Blocks; %u Free Dir Entries"
 msgstr "%u Blocos livres; %u Entradas de directórios livres"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:558
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:544
 msgid "&& AND"
 msgstr "&& E"
 
@@ -310,7 +310,7 @@ msgstr "(DESCONHECIDO)"
 msgid "(off)"
 msgstr "(desligado)"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:559
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:545
 msgid "+ ADD"
 msgstr ""
 
@@ -605,7 +605,7 @@ msgstr ""
 "\n"
 "NOTA: Verifique a Janela de Relatórios/Consola para os valores adquiridos."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:808
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:780
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr ""
 "Ajustar a pressão de controlo analógico necessária para activar os botões."
@@ -651,7 +651,7 @@ msgstr "Todos os ficheiros (*.*)|*.*"
 msgid "Analyze"
 msgstr "Analisar"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:286
+#: Source/Core/InputCommon/ControllerEmu.cpp:202
 msgid "Angle"
 msgstr "Ângulo"
 
@@ -693,7 +693,7 @@ msgstr ""
 msgid "Arabic"
 msgstr "Árabe"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:667
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:653
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Tem a certeza que quer apagar \"%s\"?"
@@ -795,7 +795,7 @@ msgstr "Backend:"
 msgid "Background Input"
 msgstr "Introdução em segundo plano"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:267
+#: Source/Core/InputCommon/ControllerEmu.cpp:183
 msgid "Backward"
 msgstr "Retroceder"
 
@@ -861,7 +861,7 @@ msgstr "Azul Direita"
 msgid "Bottom"
 msgstr "Inferior"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:229
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:217
 #, c-format
 msgid "Bound Controls: %lu"
 msgstr "Controlos agregados: %lu"
@@ -988,7 +988,7 @@ msgstr "Caps Lock"
 msgid "Catalan"
 msgstr "Catalão"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:299
+#: Source/Core/InputCommon/ControllerEmu.cpp:215
 msgid "Center"
 msgstr "Centro"
 
@@ -1098,7 +1098,7 @@ msgstr ""
 msgid "Choose the folder to extract to"
 msgstr "Escolha a pasta para extrair"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:285
+#: Source/Core/InputCommon/ControllerEmu.cpp:201
 msgid "Circle Stick"
 msgstr "Stick circular"
 
@@ -1108,8 +1108,8 @@ msgstr "Clássico"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:30
 #: Source/Core/DolphinWX/LogWindow.cpp:137
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:537
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:968
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:523
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:932
 msgid "Clear"
 msgstr "Limpar"
 
@@ -1175,7 +1175,7 @@ msgstr "Configurar"
 msgid "Configure"
 msgstr "Configuração"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:102
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:98
 msgid "Configure Control"
 msgstr "Configuração de Controlos"
 
@@ -1449,11 +1449,11 @@ msgstr "Data:"
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Datel MaxDrive/Pro files(*.sav)"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:230
-#: Source/Core/InputCommon/ControllerEmu.cpp:247
-#: Source/Core/InputCommon/ControllerEmu.cpp:255
-#: Source/Core/InputCommon/ControllerEmu.cpp:269
-#: Source/Core/InputCommon/ControllerEmu.cpp:284
+#: Source/Core/InputCommon/ControllerEmu.cpp:146
+#: Source/Core/InputCommon/ControllerEmu.cpp:163
+#: Source/Core/InputCommon/ControllerEmu.cpp:171
+#: Source/Core/InputCommon/ControllerEmu.cpp:185
+#: Source/Core/InputCommon/ControllerEmu.cpp:200
 msgid "Dead Zone"
 msgstr "Zona morta"
 
@@ -1486,7 +1486,7 @@ msgstr "A descomprimir ISO"
 msgid "Decrease Frame limit"
 msgstr ""
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:967
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:931
 msgid "Default"
 msgstr "Padrão"
 
@@ -1499,7 +1499,7 @@ msgid "Default font"
 msgstr "Tipo de letra Padrão"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:19
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:981
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:945
 msgid "Delete"
 msgstr "Apagar"
 
@@ -1516,7 +1516,7 @@ msgstr "Apagar o ficheiro existente '%s'?"
 msgid "Description"
 msgstr "Descrição"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:535
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:521
 msgid "Detect"
 msgstr "Detectar"
 
@@ -1529,8 +1529,8 @@ msgstr ""
 "Detectada tentativa de leitura excessiva de dados do DVD, mais do que pode "
 "caber dentro do buffer externo."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:118
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:953
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:114
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:917
 msgid "Device"
 msgstr "Dispositivo"
 
@@ -1744,7 +1744,7 @@ msgid ""
 "= Compatible)"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:263
+#: Source/Core/InputCommon/ControllerEmu.cpp:179
 #: Source/Core/DolphinWX/WXInputBase.cpp:45
 msgid "Down"
 msgstr "Baixo"
@@ -2598,7 +2598,7 @@ msgstr ""
 "Formatar como ascii (NTSC\\PAL)?\n"
 "Escolha não para sjis (NTSC-J)"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:266
+#: Source/Core/InputCommon/ControllerEmu.cpp:182
 msgid "Forward"
 msgstr "Frente"
 
@@ -2818,7 +2818,7 @@ msgstr "Verificação de Cabeçalho falhou"
 msgid "Hebrew"
 msgstr "Hebraico"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:301
+#: Source/Core/InputCommon/ControllerEmu.cpp:217
 msgid "Height"
 msgstr "Altura"
 
@@ -2854,7 +2854,7 @@ msgstr ""
 "\n"
 "Sayonara!\n"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:297
+#: Source/Core/InputCommon/ControllerEmu.cpp:213
 msgid "Hide"
 msgstr "Esconder"
 
@@ -3037,7 +3037,7 @@ msgstr "Informação"
 msgid "Information"
 msgstr "Informação"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:528
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:514
 msgid "Input"
 msgstr "Entrada"
 
@@ -3261,7 +3261,7 @@ msgstr ""
 msgid "Latency:"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:264
+#: Source/Core/InputCommon/ControllerEmu.cpp:180
 #: Source/Core/DolphinWX/WXInputBase.cpp:42
 msgid "Left"
 msgstr "Esquerda"
@@ -3278,7 +3278,7 @@ msgstr ""
 "Clique esquerdo para detectar teclas de atalho. \n"
 "Prima barra de espaço para limpar."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:742
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:718
 msgid ""
 "Left-click to detect input.\n"
 "Middle-click to clear.\n"
@@ -3288,7 +3288,7 @@ msgstr ""
 "Clique botão do meio para limpar.\n"
 "Clique botão direito para mais opções."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:747
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:723
 msgid ""
 "Left/Right-click for more options.\n"
 "Middle-click to clear."
@@ -3304,7 +3304,7 @@ msgstr "Inferior que"
 msgid "Limit by FPS"
 msgstr "Limitar por FPS"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:979
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:943
 msgid "Load"
 msgstr "Carregar"
 
@@ -3566,8 +3566,8 @@ msgstr "Diversos"
 msgid "Misc Settings"
 msgstr "Configurações Diversas"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:227
-#: Source/Core/InputCommon/ControllerEmu.cpp:282
+#: Source/Core/InputCommon/ControllerEmu.cpp:143
+#: Source/Core/InputCommon/ControllerEmu.cpp:198
 msgid "Modifier"
 msgstr "Modificador"
 
@@ -3952,7 +3952,7 @@ msgstr ""
 "O outro cliente desligou enquanto o jogo corria!! Netplay está desactivado. "
 "Manualmente parou o jogo."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:528
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:514
 msgid "Output"
 msgstr "Destino"
 
@@ -4140,7 +4140,7 @@ msgstr "Valor anterior"
 msgid "Print"
 msgstr "Imprimir"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:949
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:913
 msgid "Profile"
 msgstr "Perfil"
 
@@ -4183,11 +4183,11 @@ msgstr "RAM"
 msgid "RUSSIA"
 msgstr "RUSSIA"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:229
+#: Source/Core/InputCommon/ControllerEmu.cpp:145
 msgid "Radius"
 msgstr ""
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:577
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:563
 msgid "Range"
 msgstr "Alcance"
 
@@ -4259,7 +4259,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:78
 #: Source/Core/DolphinWX/FrameTools.cpp:460
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:958
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:922
 msgid "Refresh"
 msgstr "Actualizar"
 
@@ -4293,7 +4293,7 @@ msgid "Render to Main Window"
 msgstr "Renderizar para a Janela Principal"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:192
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:970
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:934
 msgid "Reset"
 msgstr "Reset"
 
@@ -4309,7 +4309,7 @@ msgstr "Return"
 msgid "Revision:"
 msgstr "Revisão:"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:265
+#: Source/Core/InputCommon/ControllerEmu.cpp:181
 #: Source/Core/DolphinWX/WXInputBase.cpp:44
 msgid "Right"
 msgstr "Direita"
@@ -4341,7 +4341,7 @@ msgid "Safe"
 msgstr "Seguro"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:485
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:980
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:944
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:183
 msgid "Save"
 msgstr "Guardar"
@@ -4476,7 +4476,7 @@ msgid "Section %s not found in SYSCONF"
 msgstr "Selecção %s não encontrada em SYSCONF"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:46
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:539
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:525
 msgid "Select"
 msgstr "Seleccionar"
 
@@ -4541,7 +4541,7 @@ msgstr ""
 "da sua proporção.\n"
 "Em caso de dúvida, seleccione Automático."
 
-#: Source/Core/InputCommon/InputConfig.cpp:53
+#: Source/Core/InputCommon/InputConfig.cpp:51
 msgid "Selected controller profile does not exist"
 msgstr ""
 
@@ -4945,7 +4945,7 @@ msgstr ""
 msgid "Speed up Disc Transfer Rate"
 msgstr "Aumente a taxa de transferência do disco"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:231
+#: Source/Core/InputCommon/ControllerEmu.cpp:147
 msgid "Square Stick"
 msgstr "Stick quadrado"
 
@@ -5087,7 +5087,7 @@ msgstr "Tirar Screenshot"
 msgid "TaruKonga (Bongos)"
 msgstr ""
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:535
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:521
 msgid "Test"
 msgstr "Teste"
 
@@ -5277,8 +5277,8 @@ msgstr ""
 msgid "This will let you Manually Edit the INI config file"
 msgstr "Isto permite a edição manual do ficheiro de configuração INI"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:237
-#: Source/Core/InputCommon/ControllerEmu.cpp:242
+#: Source/Core/InputCommon/ControllerEmu.cpp:153
+#: Source/Core/InputCommon/ControllerEmu.cpp:158
 msgid "Threshold"
 msgstr "Limite"
 
@@ -5447,7 +5447,7 @@ msgstr ""
 "Mensagem desconhecida com a id:%d recebida pelo jogador:%d Excluindo o "
 "jogador!"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:262
+#: Source/Core/InputCommon/ControllerEmu.cpp:178
 #: Source/Core/DolphinWX/WXInputBase.cpp:43
 msgid "Up"
 msgstr "Cima"
@@ -5673,7 +5673,7 @@ msgstr "Whammy"
 msgid "Widescreen Hack"
 msgstr "Hack de Ecrã Panorâmico"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:300
+#: Source/Core/InputCommon/ControllerEmu.cpp:216
 msgid "Width"
 msgstr "Largura"
 
@@ -5824,7 +5824,7 @@ msgstr "Tem que introduzir um nome!"
 msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "Tem que introduzir um valor decimal,  hexadecimal ou octal válido."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:655
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:641
 msgid "You must enter a valid profile name."
 msgstr "Tem que introduzir um nome de perfil válido."
 
@@ -5864,8 +5864,8 @@ msgstr "Código Zero 3 não é suportado"
 msgid "Zero code unknown to dolphin: %08x"
 msgstr "Código Zero desconhecido para o Dolphin: %08x"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:480
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:504
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:466
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:490
 msgid "[ waiting ]"
 msgstr "[ em espera ]"
 
@@ -5914,6 +5914,6 @@ msgstr "Correcção zFar: "
 msgid "zNear Correction: "
 msgstr "Correcção zNear: "
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:545
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:531
 msgid "| OR"
 msgstr "| OU"

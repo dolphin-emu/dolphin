@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-01 11:29+0000\n"
+"POT-Creation-Date: 2014-02-05 00:00+0000\n"
 "PO-Revision-Date: 2014-02-02 08:16+0000\n"
 "Last-Translator: delroth <delroth@gmail.com>\n"
 "Language-Team: Persian (http://www.transifex.com/projects/p/dolphin-emu/"
@@ -29,7 +29,7 @@ msgstr "(برای نمایش دادن بسیار زیاد است)"
 msgid " Game : "
 msgstr "بازی :"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:542
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:528
 msgid "! NOT"
 msgstr "! نه"
 
@@ -152,7 +152,7 @@ msgstr "%sوارد کردن جی سی آی%s"
 msgid "%u Free Blocks; %u Free Dir Entries"
 msgstr "%u بلوک های آزاد; %u ورودی های پوشه آزاد"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:558
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:544
 msgid "&& AND"
 msgstr "&& و"
 
@@ -316,7 +316,7 @@ msgstr "(ناشناخته)"
 msgid "(off)"
 msgstr "(خاموش)"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:559
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:545
 msgid "+ ADD"
 msgstr ""
 
@@ -615,7 +615,7 @@ msgstr ""
 "\n"
 "توجه: پنجره/کنسول ثبت وقایع را برای بدست آوردن مقادیر برسی کنید."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:808
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:780
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "تنظیم فشار کنترل آنالوگ برای فعال کردن دکمه ها لازم است."
 
@@ -660,7 +660,7 @@ msgstr "همه فایل ها  (*.*)|*.*"
 msgid "Analyze"
 msgstr "تحلیل کردن"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:286
+#: Source/Core/InputCommon/ControllerEmu.cpp:202
 msgid "Angle"
 msgstr "زاویه"
 
@@ -702,7 +702,7 @@ msgstr ""
 msgid "Arabic"
 msgstr "عربی"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:667
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:653
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "آیا شما مطمئن هستید که میخواهید \"%s\" را حذف کنید؟"
@@ -804,7 +804,7 @@ msgstr "پشتوانه:"
 msgid "Background Input"
 msgstr "ورودی پس زمینه"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:267
+#: Source/Core/InputCommon/ControllerEmu.cpp:183
 msgid "Backward"
 msgstr "به عقب"
 
@@ -870,7 +870,7 @@ msgstr "آبی راست"
 msgid "Bottom"
 msgstr "پائین"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:229
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:217
 #, c-format
 msgid "Bound Controls: %lu"
 msgstr "کنترل های محدودیت: %lu"
@@ -1000,7 +1000,7 @@ msgstr "کپس لاک"
 msgid "Catalan"
 msgstr "کاتالان"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:299
+#: Source/Core/InputCommon/ControllerEmu.cpp:215
 msgid "Center"
 msgstr "مرکز"
 
@@ -1110,7 +1110,7 @@ msgstr ""
 msgid "Choose the folder to extract to"
 msgstr "انتخاب پوشه برای استخراج به آن"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:285
+#: Source/Core/InputCommon/ControllerEmu.cpp:201
 msgid "Circle Stick"
 msgstr "استیک دایره"
 
@@ -1120,8 +1120,8 @@ msgstr "کلاسیک"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:30
 #: Source/Core/DolphinWX/LogWindow.cpp:137
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:537
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:968
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:523
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:932
 msgid "Clear"
 msgstr "پاک کردن"
 
@@ -1187,7 +1187,7 @@ msgstr "پیکربندی"
 msgid "Configure"
 msgstr "پیکربندی"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:102
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:98
 msgid "Configure Control"
 msgstr "کنترل پیکربندی"
 
@@ -1464,11 +1464,11 @@ msgstr "تاریخ:"
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "فایل های داتل مکس درایو/حرفه ای (*,sav)"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:230
-#: Source/Core/InputCommon/ControllerEmu.cpp:247
-#: Source/Core/InputCommon/ControllerEmu.cpp:255
-#: Source/Core/InputCommon/ControllerEmu.cpp:269
-#: Source/Core/InputCommon/ControllerEmu.cpp:284
+#: Source/Core/InputCommon/ControllerEmu.cpp:146
+#: Source/Core/InputCommon/ControllerEmu.cpp:163
+#: Source/Core/InputCommon/ControllerEmu.cpp:171
+#: Source/Core/InputCommon/ControllerEmu.cpp:185
+#: Source/Core/InputCommon/ControllerEmu.cpp:200
 msgid "Dead Zone"
 msgstr "منطقه مرده"
 
@@ -1501,7 +1501,7 @@ msgstr "در حال ناهمفشرده کردن آیزو"
 msgid "Decrease Frame limit"
 msgstr ""
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:967
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:931
 msgid "Default"
 msgstr "پیش فرز"
 
@@ -1514,7 +1514,7 @@ msgid "Default font"
 msgstr "دست خط پیش فرز"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:19
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:981
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:945
 msgid "Delete"
 msgstr "حذف"
 
@@ -1531,7 +1531,7 @@ msgstr "فایل موجود '%s' حذف شود؟"
 msgid "Description"
 msgstr "شرح"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:535
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:521
 msgid "Detect"
 msgstr "شناسایی"
 
@@ -1544,8 +1544,8 @@ msgstr ""
 "کوشش برای خواند داده بیشتر از دی وی دی نسبت به داده ای که در حافظه میانجی "
 "گنجانده شده یافت شد. مهار کردن."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:118
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:953
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:114
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:917
 msgid "Device"
 msgstr "دستگاه"
 
@@ -1760,7 +1760,7 @@ msgid ""
 "= Compatible)"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:263
+#: Source/Core/InputCommon/ControllerEmu.cpp:179
 #: Source/Core/DolphinWX/WXInputBase.cpp:45
 msgid "Down"
 msgstr "پائین"
@@ -2623,7 +2623,7 @@ msgstr ""
 "قالب بندی بعنوان اسکی (NTSC\\PAL)?\n"
 "انتخاب پاسخ منفی برای SJIS (NTSC-J)"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:266
+#: Source/Core/InputCommon/ControllerEmu.cpp:182
 msgid "Forward"
 msgstr "جلو"
 
@@ -2849,7 +2849,7 @@ msgstr "چک کردن سر خط برای یافتن خطا با شکست موا�
 msgid "Hebrew"
 msgstr "عبری"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:301
+#: Source/Core/InputCommon/ControllerEmu.cpp:217
 msgid "Height"
 msgstr "ارتفاع"
 
@@ -2887,7 +2887,7 @@ msgstr ""
 "\n"
 "سایونارا!\n"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:297
+#: Source/Core/InputCommon/ControllerEmu.cpp:213
 msgid "Hide"
 msgstr "مخفی"
 
@@ -3071,7 +3071,7 @@ msgstr "مشخصات"
 msgid "Information"
 msgstr "مشخصات"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:528
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:514
 msgid "Input"
 msgstr "ورودی"
 
@@ -3301,7 +3301,7 @@ msgstr ""
 msgid "Latency:"
 msgstr "زمان بيکارى:"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:264
+#: Source/Core/InputCommon/ControllerEmu.cpp:180
 #: Source/Core/DolphinWX/WXInputBase.cpp:42
 msgid "Left"
 msgstr "چپ"
@@ -3318,7 +3318,7 @@ msgstr ""
 "کلیک چپ برای کشف کلیدهای فوری.\n"
 "کلید فاصله برای پاک کردن."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:742
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:718
 msgid ""
 "Left-click to detect input.\n"
 "Middle-click to clear.\n"
@@ -3328,7 +3328,7 @@ msgstr ""
 "کلیک وسط برای پاک کردن.\n"
 "کلیک راست برای گزینه های بیشتر."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:747
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:723
 msgid ""
 "Left/Right-click for more options.\n"
 "Middle-click to clear."
@@ -3344,7 +3344,7 @@ msgstr "کمتر از"
 msgid "Limit by FPS"
 msgstr "محدود کردن توسط تعداد فریم ها بر ثانیه"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:979
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:943
 msgid "Load"
 msgstr "بارگذاری"
 
@@ -3610,8 +3610,8 @@ msgstr "متفرقه"
 msgid "Misc Settings"
 msgstr "تنظیمات متفرقه"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:227
-#: Source/Core/InputCommon/ControllerEmu.cpp:282
+#: Source/Core/InputCommon/ControllerEmu.cpp:143
+#: Source/Core/InputCommon/ControllerEmu.cpp:198
 msgid "Modifier"
 msgstr "پیراینده"
 
@@ -3996,7 +3996,7 @@ msgstr ""
 "مشتری دیگری در حالی که بازی در حال اجراست قطع شد!! نت پلی غیر فعال است. بازی "
 "را دستی متوقف کنید."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:528
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:514
 msgid "Output"
 msgstr "خروجی"
 
@@ -4184,7 +4184,7 @@ msgstr "مقدار قبلی"
 msgid "Print"
 msgstr "چاپ"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:949
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:913
 msgid "Profile"
 msgstr "پروفایل"
 
@@ -4227,11 +4227,11 @@ msgstr "حافطه رم"
 msgid "RUSSIA"
 msgstr "روسیه"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:229
+#: Source/Core/InputCommon/ControllerEmu.cpp:145
 msgid "Radius"
 msgstr ""
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:577
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:563
 msgid "Range"
 msgstr "محدوده"
 
@@ -4303,7 +4303,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:78
 #: Source/Core/DolphinWX/FrameTools.cpp:460
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:958
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:922
 msgid "Refresh"
 msgstr "به روز کردن"
 
@@ -4337,7 +4337,7 @@ msgid "Render to Main Window"
 msgstr "نمایش در پنجره اصلی"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:192
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:970
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:934
 msgid "Reset"
 msgstr "شروع دوباره"
 
@@ -4353,7 +4353,7 @@ msgstr "برگشت"
 msgid "Revision:"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:265
+#: Source/Core/InputCommon/ControllerEmu.cpp:181
 #: Source/Core/DolphinWX/WXInputBase.cpp:44
 msgid "Right"
 msgstr "راست"
@@ -4385,7 +4385,7 @@ msgid "Safe"
 msgstr "بی خطر"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:485
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:980
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:944
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:183
 msgid "Save"
 msgstr "ذخیره"
@@ -4520,7 +4520,7 @@ msgid "Section %s not found in SYSCONF"
 msgstr "بخش %s در SYSCONF پیدا نشد"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:46
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:539
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:525
 msgid "Select"
 msgstr "انتخاب"
 
@@ -4586,7 +4586,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، اتوماتیک را انتخاب کنید."
 
-#: Source/Core/InputCommon/InputConfig.cpp:53
+#: Source/Core/InputCommon/InputConfig.cpp:51
 msgid "Selected controller profile does not exist"
 msgstr "پروفایل انتخاب شده وجود ندارد"
 
@@ -4997,7 +4997,7 @@ msgstr ""
 msgid "Speed up Disc Transfer Rate"
 msgstr "بالا بردن نرخ نقل و انتقال دادهای دیسک"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:231
+#: Source/Core/InputCommon/ControllerEmu.cpp:147
 msgid "Square Stick"
 msgstr "استیک مربع"
 
@@ -5139,7 +5139,7 @@ msgstr "گرفتن عکس فوری"
 msgid "TaruKonga (Bongos)"
 msgstr "تارو کونگا (بنگوس)"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:535
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:521
 msgid "Test"
 msgstr "آزمودن"
 
@@ -5337,8 +5337,8 @@ msgstr ""
 msgid "This will let you Manually Edit the INI config file"
 msgstr "این مورد به شما اجازه خواهد داد تا فایل پیکربندی INI را ویرایش کنید"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:237
-#: Source/Core/InputCommon/ControllerEmu.cpp:242
+#: Source/Core/InputCommon/ControllerEmu.cpp:153
+#: Source/Core/InputCommon/ControllerEmu.cpp:158
 msgid "Threshold"
 msgstr "سرحد"
 
@@ -5507,7 +5507,7 @@ msgstr "پیام ناشناخته با آی دی %d دریافت شد"
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr "پیام ناشناخته با آی دی:%d از بازیکن:%d بیرون انداختن بازیکن!"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:262
+#: Source/Core/InputCommon/ControllerEmu.cpp:178
 #: Source/Core/DolphinWX/WXInputBase.cpp:43
 msgid "Up"
 msgstr "بالا"
@@ -5750,7 +5750,7 @@ msgstr "بد شانسی"
 msgid "Widescreen Hack"
 msgstr "هک کردن صفحه عریض"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:300
+#: Source/Core/InputCommon/ControllerEmu.cpp:216
 msgid "Width"
 msgstr "عرض"
 
@@ -5901,7 +5901,7 @@ msgstr "شما باید یک اسم وارد کنید!"
 msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "شما باید یک مقدار صحیح برای دسیمال، هگزادسیمال یا اکتال وارد کنید."
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:655
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:641
 msgid "You must enter a valid profile name."
 msgstr "شما باید یک اسم معتبر برای پروفایل وارد کنید."
 
@@ -5941,8 +5941,8 @@ msgstr "کد صفر ۳ پشتیبانی نمی شود"
 msgid "Zero code unknown to dolphin: %08x"
 msgstr "کد ناشناخته صفر به دلفین: %08x"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:480
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:504
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:466
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:490
 msgid "[ waiting ]"
 msgstr "[ منتظر بمانید ]"
 
@@ -5991,6 +5991,6 @@ msgstr "اصلاح z دور:"
 msgid "zNear Correction: "
 msgstr "اصلاح z نزدیک:"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:545
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:531
 msgid "| OR"
 msgstr "| یا"
