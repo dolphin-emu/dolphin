@@ -7,10 +7,10 @@
 #include "Thread.h"
 #include "HW/Memmap.h"
 #include "ConfigManager.h"
-
-#include "vector"
 #include "PowerPC/PowerPC.h"
 #include "CommonPaths.h"
+
+#include <vector>
 
 namespace Gecko
 {
@@ -97,11 +97,11 @@ bool InstallCodeHandler()
 
 	int i = 0;
 
-	for (GeckoCode& active_code : active_codes)
+	for (const GeckoCode& active_code : active_codes)
 	{
 		if (active_code.enabled)
 		{
-			for (GeckoCode::Code& code : active_code.codes)
+			for (const GeckoCode::Code& code : active_code.codes)
 			{
 				// Make sure we have enough memory to hold the code list
 				if ((codelist_location + 24 + i) < 0x80003000)
