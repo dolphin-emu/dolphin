@@ -51,6 +51,7 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 */
 
 #include "Common.h"
+#include "MathUtil.h"
 
 #include "StreamADPCM.h"
 #include "AudioInterface.h"
@@ -153,7 +154,7 @@ void Init()
 	m_Control.hex = 0;
 	m_Control.AISFR = AIS_48KHz;
 	m_Volume.hex = 0;
-	m_SampleCounter	= 0;
+	m_SampleCounter = 0;
 	m_InterruptTiming = 0;
 
 	g_LastCPUTime = 0;
@@ -207,8 +208,8 @@ void Write32(const u32 _Value, const u32 _Address)
 		{
 			AICR tmpAICtrl(_Value);
 
-			m_Control.AIINTMSK	= tmpAICtrl.AIINTMSK;
-			m_Control.AIINTVLD	= tmpAICtrl.AIINTVLD;
+			m_Control.AIINTMSK = tmpAICtrl.AIINTMSK;
+			m_Control.AIINTVLD = tmpAICtrl.AIINTVLD;
 
 			// Set frequency of streaming audio
 			if (tmpAICtrl.AISFR != m_Control.AISFR)
@@ -232,7 +233,7 @@ void Write32(const u32 _Value, const u32 _Address)
 			if (tmpAICtrl.PSTAT != m_Control.PSTAT)
 			{
 				DEBUG_LOG(AUDIO_INTERFACE, "%s streaming audio", tmpAICtrl.PSTAT ? "start":"stop");
-				m_Control.PSTAT	= tmpAICtrl.PSTAT;
+				m_Control.PSTAT = tmpAICtrl.PSTAT;
 				g_LastCPUTime = CoreTiming::GetTicks();
 
 				// Tell Drive Interface to start/stop streaming
@@ -338,13 +339,11 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 				if (i % 3)
 				{
 					pcm_l = (((pcm_l + (int)pcm[pos*2]) / 2  * lvolume) >> 8) + (int)(*_pDestBuffer);
-					if (pcm_l > 32767)			pcm_l = 32767;
-					else if (pcm_l < -32767)	pcm_l = -32767;
+					MathUtil::Clamp(&pcm_l, -32767, 32767);
 					*_pDestBuffer++ = pcm_l;
 
 					pcm_r = (((pcm_r + (int)pcm[pos*2+1]) / 2 * rvolume) >> 8) + (int)(*_pDestBuffer);
- 					if (pcm_r > 32767)			pcm_r = 32767;
-					else if (pcm_r < -32767)	pcm_r = -32767;
+					MathUtil::Clamp(&pcm_r, -32767, 32767);
 					*_pDestBuffer++ = pcm_r;
 				}
 				pcm_l = pcm[pos*2];
@@ -361,7 +360,7 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 				static s16 l1 = 0;
 				static s16 l2 = 0;
 
-				if ( frac >= 0x10000 || frac == 0)
+				if (frac >= 0x10000 || frac == 0)
 				{
 					frac &= 0xffff;
 
@@ -374,13 +373,11 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 
 
 				pcm_l = (pcm_l * lvolume >> 8) + (int)(*_pDestBuffer);
-				if (pcm_l > 32767)			pcm_l = 32767;
-				else if (pcm_l < -32767)	pcm_l = -32767;
+				MathUtil::Clamp(&pcm_l, -32767, 32767);
 				*_pDestBuffer++ = pcm_l;
 
 				pcm_r = (pcm_r * lvolume >> 8) + (int)(*_pDestBuffer);
-				if (pcm_r > 32767)			pcm_r = 32767;
-				else if (pcm_r < -32767)	pcm_r = -32767;
+				MathUtil::Clamp(&pcm_r, -32767, 32767);
 				*_pDestBuffer++ = pcm_r;
 
 				frac += ratio;
@@ -390,13 +387,11 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 			else //1:1 no resampling
 			{
 				pcm_l = (((int)pcm[pos*2] * lvolume) >> 8) + (int)(*_pDestBuffer);
-				if (pcm_l > 32767)		pcm_l = 32767;
-				else if (pcm_l < -32767)	pcm_l = -32767;
+				MathUtil::Clamp(&pcm_l, -32767, 32767);
 				*_pDestBuffer++ = pcm_l;
 
 				pcm_r = (((int)pcm[pos*2+1] * rvolume) >> 8) + (int)(*_pDestBuffer);
-				if (pcm_r > 32767)		pcm_r = 32767;
-				else if (pcm_r < -32767)	pcm_r = -32767;
+				MathUtil::Clamp(&pcm_r, -32767, 32767);
 				*_pDestBuffer++ = pcm_r;
 
 				pos++;

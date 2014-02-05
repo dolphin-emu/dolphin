@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common.h"
+#include "MathUtil.h"
 
 #include "DSPCore.h"
 #include "DSPHost.h"
@@ -36,11 +37,7 @@ static s16 ADPCM_Step(u32& _rSamplePos)
 	// 0x400 = 0.5  in 11-bit fixed point
 	int val = (scale * temp) + ((0x400 + coef1 * (s16)g_dsp.ifx_regs[DSP_YN1] + coef2 * (s16)g_dsp.ifx_regs[DSP_YN2]) >> 11);
 
-	// Clamp values.
-	if (val > 0x7FFF)
-		val = 0x7FFF;
-	else if (val < -0x7FFF)
-		val = -0x7FFF;
+	MathUtil::Clamp(&val, -0x7FFF, 0x7FFF);
 
 	g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 	g_dsp.ifx_regs[DSP_YN1] = val;

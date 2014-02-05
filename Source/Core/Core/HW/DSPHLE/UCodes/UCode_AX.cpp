@@ -6,6 +6,7 @@
 #include "../../DSP.h"
 #include "FileUtil.h"
 #include "ConfigManager.h"
+#include "MathUtil.h"
 
 #define AX_GC
 #include "UCode_AX_Voice.h"
@@ -559,12 +560,10 @@ void CUCode_AX::OutputSamples(u32 lr_addr, u32 surround_addr)
 		int left  = m_samples_left[i];
 		int right = m_samples_right[i];
 
-		if (left < -32767)  left = -32767;
-		if (left > 32767)   left = 32767;
-		if (right < -32767) right = -32767;
-		if (right >  32767) right = 32767;
+		MathUtil::Clamp(&left, -32767, 32767);
+		MathUtil::Clamp(&right, -32767, 32767);
 
-		buffer[2 * i] = Common::swap16(right);
+		buffer[2 * i + 0] = Common::swap16(right);
 		buffer[2 * i + 1] = Common::swap16(left);
 	}
 
