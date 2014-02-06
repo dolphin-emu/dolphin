@@ -146,9 +146,6 @@ public final class UserPreferences
 		// External frame buffer emulation. Falls back to disabled upon error.
 		String externalFrameBuffer = prefs.getString("externalFrameBuffer", "Disabled");
 
-		// Whether or not display list caching is enabled.
-		boolean dlistCachingEnabled = prefs.getBoolean("cacheDisplayLists", false);
-
 		// Whether or not to disable destination alpha.
 		boolean disableDstAlphaPass = prefs.getBoolean("disableDestinationAlpha", false);
 

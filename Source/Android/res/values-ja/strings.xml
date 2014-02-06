@@ -185,8 +185,6 @@
     <string name="external_frame_buffer_descrip">XFBをエミュレート方法を決定。</string>
     <string name="external_frame_buffer_virtual">バーチャル</string>
     <string name="external_frame_buffer_real">実機</string>
-    <string name="cache_display_lists">Cache Display Lists</string>
-    <string name="cache_display_lists_descrip">ディスプレイリストをキャッシュすることによりエミュレーション速度を向上。</string>
     <string name="disable_destination_alpha">Disable Destination Alpha</string>
     <string name="disable_destination_alpha_descrip">多くのタイトルで画面効果に使用されている、アルファ透過処理をスキップ 。</string>
     <string name="fast_depth_calculation">高速奥行き計算</string>
