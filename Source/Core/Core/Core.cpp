@@ -613,30 +613,6 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 // This should only be called from VI
 void VideoThrottle()
 {
-	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 2) ?
-		(SConfig::GetInstance().m_Framelimit - 1) * 5 : VideoInterface::TargetRefreshRate;
-
-	if (Host_GetKeyState('\t'))
-		isTabPressed = true;
-	else
-		isTabPressed = false;
-
-	// Disable the frame-limiter when the throttle (Tab) key is held down. Audio throttle: m_Framelimit = 2
-	if (SConfig::GetInstance().m_Framelimit && SConfig::GetInstance().m_Framelimit != 2 && !Host_GetKeyState('\t'))
-	{
-		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
-
-		u32 timeDifference = (u32)Timer.GetTimeDifference();
-		if (timeDifference < frametime)
-		{
-			Common::SleepCurrentThread(frametime - timeDifference - 1);
-		}
-
-		while ((u32)Timer.GetTimeDifference() < frametime)
-			Common::YieldCPU();
-			//Common::SleepCurrentThread(1);
-	}
-
 	// Update info per second
 	u32 ElapseTime = (u32)Timer.GetTimeDifference();
 	if ((ElapseTime >= 1000 && DrawnVideo > 0) || g_requestRefreshInfo)

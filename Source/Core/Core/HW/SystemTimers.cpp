@@ -75,6 +75,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Timer.h"
 #include "VideoBackendBase.h"
 #include "CommandProcessor.h"
+#include "Host.h"
 
 
 namespace SystemTimers
@@ -115,6 +116,7 @@ int et_AudioDMA;
 int et_DSP;
 int et_IPC_HLE;
 int et_PatchEngine;	// PatchEngine updates every 1/60th of a second by default
+int et_Throttle;
 
 // These are badly educated guesses
 // Feel free to experiment. Set these in Init below.
@@ -229,6 +231,29 @@ void PatchEngineCallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_PatchEngine);
 }
 
+void ThrottleCallback(u64 last_time, int cyclesLate)
+{
+	u32 time = Common::Timer::GetTimeMs();
+
+	int diff = (u32)last_time - time;
+	bool frame_limiter = SConfig::GetInstance().m_Framelimit && SConfig::GetInstance().m_Framelimit != 2 && !Host_GetKeyState('\t');
+	u32 next_event = GetTicksPerSecond()/1000;
+	if (SConfig::GetInstance().m_Framelimit > 2)
+	{
+		next_event = next_event * (SConfig::GetInstance().m_Framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
+	}
+
+	const int max_fallback = 40; // 40 ms for one frame on 25 fps games
+	if (frame_limiter && abs(diff) > max_fallback)
+	{
+		WARN_LOG(COMMON, "system too %s, %d ms skipped", diff<0 ? "slow" : "fast", abs(diff) - max_fallback);
+		last_time = time - max_fallback;
+	}
+	else if (frame_limiter && diff > 0)
+		Common::SleepCurrentThread(diff);
+	CoreTiming::ScheduleEvent(next_event - cyclesLate, et_Throttle, last_time + 1);
+}
+
 // split from Init to break a circular dependency between VideoInterface::Init and SystemTimers::Init
 void PreInit()
 {
@@ -274,11 +299,13 @@ void Init()
 	et_AudioDMA = CoreTiming::RegisterEvent("AudioDMACallback", AudioDMACallback);
 	et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
 	et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
+	et_Throttle = CoreTiming::RegisterEvent("Throttle", ThrottleCallback);
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
 	CoreTiming::ScheduleEvent(0, et_DSP);
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
+	CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSyncGPU)
 		CoreTiming::ScheduleEvent(CP_PERIOD, et_CP);
 
