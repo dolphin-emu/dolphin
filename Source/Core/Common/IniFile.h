@@ -56,7 +56,7 @@ public:
 
 		void Set(const char* key, int newValue, int defaultValue);
 		void Set(const char* key, int newValue) {
-			Set(key, StringFromInt(newValue).c_str());
+			Set(key, std::to_string(newValue).c_str());
 		}
 
 		void Set(const char* key, bool newValue, bool defaultValue);
