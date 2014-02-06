@@ -234,24 +234,23 @@ inline u32 ConvertToSingleFTZ(u64 x)
 
 inline u64 ConvertToDouble(u32 _x)
 {
+	// This is a little-endian re-implementation of the algrothm described in
+	// the Power PC Programming Enviroments Manual for Loading single
+	// percision floating point numbers.
+	// See page 566 of http://www.freescale.com/files/product/doc/MPCFPE32B.pdf
+
 	u64 x = _x;
 	u64 exp = (x >> 23) & 0xff;
 	u64 frac = x & 0x007fffff;
-	if (exp || frac == 0)
+
+	if (exp > 0 && exp < 255) // Normal number
 	{
-		// not denormalized
-		u64 y = exp & 0x80;
-		u64 z = y << 54 | y << 53 | y << 52;
-		if (exp > 0 && exp < 255)
-		{
-			// not inf/nan/zero
-			z = ~z;
-		}
+		u64 y = !(exp >> 7);
+		u64 z = y << 61 | y << 60 | y << 59;
 		return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
 	}
-	else
+	else if (exp == 0 && frac != 0) // Subnormal number
 	{
-		// denormalized
 		exp = 1023 - 126;
 		do
 		{
@@ -259,5 +258,11 @@ inline u64 ConvertToDouble(u32 _x)
 			exp -= 1;
 		} while ((frac & 0x00800000) == 0);
 		return ((x & 0x80000000) << 32) | (exp << 52) | ((frac & 0x007fffff) << 29);
+	}
+	else // QNaN, SNaN or Zero
+	{
+		u64 y = exp >> 7;
+		u64 z = y << 61 | y << 60 | y << 59;
+		return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
 	}
 }
