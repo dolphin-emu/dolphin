@@ -56,59 +56,31 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	if (m_AIplaying) {
 		numLeft = (numLeft > numSamples) ? numSamples : numLeft;
 
-		if (AudioInterface::GetAIDSampleRate() == m_sampleRate) // (1:1)
-		{
-#if _M_SSE >= 0x301
-			if (cpu_info.bSSSE3 && !((numLeft * 2) % 8))
-			{
-				static const __m128i sr_mask =
-					_mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL,
-								  0x04050607L, 0x00010203L);
+		//render numleft sample pairs to samples[]
+		//advance indexR with sample position
+		//remember fractional offset
 
-				for (unsigned int i = 0; i < numLeft * 2; i += 8)
-				{
-					_mm_storeu_si128((__m128i *)&samples[i], _mm_shuffle_epi8(_mm_loadu_si128((__m128i *)&m_buffer[(indexR + i) & INDEX_MASK]), sr_mask));
-				}
-			}
-			else
-#endif
-			{
-				for (unsigned int i = 0; i < numLeft * 2; i+=2)
-				{
-					samples[i] = Common::swap16(m_buffer[(indexR + i + 1) & INDEX_MASK]);
-					samples[i+1] = Common::swap16(m_buffer[(indexR + i) & INDEX_MASK]);
-				}
-			}
-			indexR += numLeft * 2;
-		}
-		else //linear interpolation
-		{
-			//render numleft sample pairs to samples[]
-			//advance indexR with sample position
-			//remember fractional offset
+		static u32 frac = 0;
+		const u32 ratio = (u32)( 65536.0f * (float)AudioInterface::GetAIDSampleRate() / (float)m_sampleRate );
 
-			static u32 frac = 0;
-			const u32 ratio = (u32)( 65536.0f * (float)AudioInterface::GetAIDSampleRate() / (float)m_sampleRate );
+		for (u32 i = 0; i < numLeft * 2; i+=2) {
+			u32 indexR2 = indexR + 2; //next sample
+			if ((indexR2 & INDEX_MASK) == (indexW & INDEX_MASK)) //..if it exists
+				indexR2 = indexR;
 
-			for (u32 i = 0; i < numLeft * 2; i+=2) {
-				u32 indexR2 = indexR + 2; //next sample
-				if ((indexR2 & INDEX_MASK) == (indexW & INDEX_MASK)) //..if it exists
-					indexR2 = indexR;
+			s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); //current
+			s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
+			int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
+			samples[i+1] = sampleL;
 
-				s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); //current
-				s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
-				int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
-				samples[i+1] = sampleL;
+			s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
+			s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
+			int sampleR = ((r1 << 16) + (r2 - r1) * (u16)frac)  >> 16;
+			samples[i] = sampleR;
 
-				s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
-				s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
-				int sampleR = ((r1 << 16) + (r2 - r1) * (u16)frac)  >> 16;
-				samples[i] = sampleR;
-
-				frac += ratio;
-				indexR += 2 * (u16)(frac >> 16);
-				frac &= 0xffff;
-			}
+			frac += ratio;
+			indexR += 2 * (u16)(frac >> 16);
+			frac &= 0xffff;
 		}
 
 	} else {
