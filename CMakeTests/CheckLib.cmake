@@ -61,9 +61,31 @@ macro(check_libav)
 		message("pkg-config is required to check for libav")
 	endif()
 	if(LIBAV_FOUND)
-		message("libav found, enabling AVI frame dumps")
-		add_definitions(-DHAVE_LIBAV)
-		include_directories(${LIBAV_INCLUDE_DIRS})
+		message(STATUS "Checking to see if the found libav works")
+
+		set(CMAKE_REQUIRED_INCLUDES ${LIBAV_INCLUDE_DIR})
+		set(CMAKE_REQUIRED_LIBRARIES ${LIBAV_LIBRARY})
+		check_cxx_source_compiles("
+		extern \"C\" {
+		#include <libavcodec/avcodec.h>
+		#include <libavformat/avformat.h>
+		#include <libswscale/swscale.h>
+		#include <libavutil/mathematics.h>
+		}
+
+		int main()
+		{
+			return 0;
+		}"
+		LIBAV_WORKS)
+		if(LIBAV_WORKS)
+			message("libav found and compile test passed, enabling AVI frame dumps")
+			add_definitions(-DHAVE_LIBAV)
+			include_directories(${LIBAV_INCLUDE_DIRS})
+		else()
+			message("libav found but compile test failed, disabling AVI frame dumps")
+			set(LIBAV_FOUND 0 CACHE INTERNAL "")
+		endif()
 	else()
 		message("libav not found, disabling AVI frame dumps")
 	endif()
