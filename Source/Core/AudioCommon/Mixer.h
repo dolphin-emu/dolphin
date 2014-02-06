@@ -8,9 +8,13 @@
 #include "StdMutex.h"
 
 // 16 bit Stereo
-#define MAX_SAMPLES			(1024 * 8)
+#define MAX_SAMPLES			(1024 * 2) // 64ms
 #define INDEX_MASK			(MAX_SAMPLES * 2 - 1)
-#define RESERVED_SAMPLES	(256)
+
+#define LOW_WATERMARK			1280 // 40 ms
+#define MAX_FREQ_SHIFT			0x0100 // of 0x10000
+#define CONTROL_FACTOR			0.3 // in freq_shift per fifo size offset
+#define CONTROL_AVG			32
 
 class CMixer {
 
@@ -24,6 +28,7 @@ public:
 		, m_logAudio(0)
 		, m_indexW(0)
 		, m_indexR(0)
+		, m_numLeftI(0.0f)
 	{
 		// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
 		// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
@@ -97,6 +102,7 @@ protected:
 	volatile u32 m_indexR;
 
 	std::mutex m_csMixing;
+	float m_numLeftI;
 
 	volatile float m_speed; // Current rate of the emulation (1.0 = 100% speed)
 private:

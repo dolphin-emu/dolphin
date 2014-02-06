@@ -44,12 +44,18 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	u32 indexR = Common::AtomicLoad(m_indexR);
 	u32 indexW = Common::AtomicLoad(m_indexW);
 
+	float numLeft = ((indexW - indexR) & INDEX_MASK) / 2;
+	m_numLeftI = (numLeft + m_numLeftI*(CONTROL_AVG-1)) / CONTROL_AVG;
+	float offset = (m_numLeftI - LOW_WATERMARK) * CONTROL_FACTOR;
+	if(offset > MAX_FREQ_SHIFT) offset = MAX_FREQ_SHIFT;
+	if(offset < -MAX_FREQ_SHIFT) offset = -MAX_FREQ_SHIFT;
+
 	//render numleft sample pairs to samples[]
 	//advance indexR with sample position
 	//remember fractional offset
 
 	static u32 frac = 0;
-	const u32 ratio = (u32)( 65536.0f * (float)AudioInterface::GetAIDSampleRate() / (float)m_sampleRate );
+	const u32 ratio = (u32)( 65536.0f * (float)AudioInterface::GetAIDSampleRate() / (float)m_sampleRate + offset );
 
 	if(ratio > 0x10000)
 		ERROR_LOG(AUDIO, "ratio out of range");
