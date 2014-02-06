@@ -14,7 +14,14 @@
 
 #include "Common.h"
 
-std::string StringFromFormat(const char* format, ...);
+std::string StringFromFormat(const char* format, ...)
+#if !defined _WIN32
+// On compilers that support function attributes, this gives StringFromFormat
+// the same errors and warnings that printf would give.
+ __attribute__ ((__format__(printf, 1, 2)))
+#endif
+;
+
 // Cheap!
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
 
