@@ -207,7 +207,7 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 
 u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode(const std::string& area)
 {
-	std::map<std::string, u8> regions = {
+	static std::map<const std::string, u8> regions = {
 		{ "JPN", 0 }, { "USA", 1 }, { "EUR", 2 },
 		{ "AUS", 2 }, { "BRA", 1 }, { "TWN", 3 },
 		{ "ROC", 3 }, { "KOR", 4 }, { "HKG", 5 },
@@ -224,7 +224,7 @@ u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode(const std::string& area)
 
 u8 CWII_IPC_HLE_Device_net_kd_request::GetHardwareModel(const std::string& model)
 {
-	std::map<std::string, u8> models = {
+	static std::map<const std::string, u8> models = {
 		{ "RVL", MODEL_RVL },
 		{ "RVT", MODEL_RVT },
 		{ "RVV", MODEL_RVV },
