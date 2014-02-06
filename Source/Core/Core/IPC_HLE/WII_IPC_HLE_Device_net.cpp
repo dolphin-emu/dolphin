@@ -148,9 +148,9 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 			}
 			if (_GotSettings)
 			{
-				u8 area_code = GetAreaCode(area.c_str());
+				u8 area_code = GetAreaCode(area);
 				u8 id_ctr = config.IdGen();
-				u8 hardware_model = GetHardwareModel(model.c_str());
+				u8 hardware_model = GetHardwareModel(model);
 
 				EcWii &ec = EcWii::GetInstance();
 				u32 HollywoodID = ec.getNgId();
@@ -205,42 +205,37 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 }
 
 
-u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode( const char * area )
+u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode(const std::string& area)
 {
-	u32 i;
-	u8 regions_[] = {0,1,2,2,1,3,3,4,5,5,1,2,6,7};
-	const char* regions[] = {"JPN", "USA", "EUR", "AUS", "BRA", "TWN", "ROC", "KOR", "HKG", "ASI", "LTN", "SAF", "CHN", ""};
-	for (i=0; i<sizeof(regions)/sizeof(*regions); i++)
-	{
-		if (!strncmp(regions[i], area, 4))
-		{
-			return regions_[i];
-		}
-	}
+	std::map<std::string, u8> regions = {
+		{ "JPN", 0 }, { "USA", 1 }, { "EUR", 2 },
+		{ "AUS", 2 }, { "BRA", 1 }, { "TWN", 3 },
+		{ "ROC", 3 }, { "KOR", 4 }, { "HKG", 5 },
+		{ "ASI", 5 }, { "LTN", 1 }, { "SAF", 2 },
+		{ "CHN", 6 },
+	};
 
-	return 7;
+	auto entryPos = regions.find(area);
+	if (entryPos != regions.end())
+		return entryPos->second;
+	else
+		return 7; // Unknown
 }
 
-u8 CWII_IPC_HLE_Device_net_kd_request::GetHardwareModel(const char * model)
+u8 CWII_IPC_HLE_Device_net_kd_request::GetHardwareModel(const std::string& model)
 {
-	u8 mdl;
-	if (!strncmp(model, "RVL", 4))
-	{
-		mdl = MODEL_RVL;
-	}else if (!strncmp(model, "RVT", 4))
-	{
-		mdl = MODEL_RVT;
-	}else if (!strncmp(model, "RVV", 4))
-	{
-		mdl = MODEL_RVV;
-	}else if (!strncmp(model, "RVD", 4))
-	{
-		mdl = MODEL_RVD;
-	}else
-	{
-		mdl = MODEL_ELSE;
-	}
-	return mdl;
+	std::map<std::string, u8> models = {
+		{ "RVL", MODEL_RVL },
+		{ "RVT", MODEL_RVT },
+		{ "RVV", MODEL_RVV },
+		{ "RVD", MODEL_RVD },
+	};
+
+	auto entryPos = models.find(model);
+	if (entryPos != models.end())
+		return entryPos->second;
+	else
+		return MODEL_ELSE;
 }
 
 static inline u8 u64_get_byte(u64 value, u8 shift)
