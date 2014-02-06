@@ -636,6 +636,7 @@ public:
 	void PSRLW(X64Reg reg, int shift);
 	void PSRLD(X64Reg reg, int shift);
 	void PSRLQ(X64Reg reg, int shift);
+	void PSRLQ(X64Reg reg, OpArg arg);
 
 	void PSLLW(X64Reg reg, int shift);
 	void PSLLD(X64Reg reg, int shift);
