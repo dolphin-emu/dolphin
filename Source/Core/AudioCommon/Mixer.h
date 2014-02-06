@@ -24,7 +24,6 @@ public:
 		, m_logAudio(0)
 		, m_indexW(0)
 		, m_indexR(0)
-		, m_AIplaying(true)
 	{
 		// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
 		// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
@@ -40,7 +39,6 @@ public:
 	// Called from audio threads
 	virtual unsigned int Mix(short* samples, unsigned int numSamples);
 	virtual void Premix(short * /*samples*/, unsigned int /*numSamples*/) {}
-	unsigned int GetNumSamples();
 
 	// Called from main thread
 	virtual void PushSamples(const short* samples, unsigned int num_samples);
@@ -98,7 +96,6 @@ protected:
 	volatile u32 m_indexW;
 	volatile u32 m_indexR;
 
-	bool m_AIplaying;
 	std::mutex m_csMixing;
 
 	volatile float m_speed; // Current rate of the emulation (1.0 = 100% speed)
