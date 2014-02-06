@@ -52,7 +52,7 @@ public:
 	friend class cPlatform;
 	void SwapInterval(int Interval);
 	void Swap();
-	void SetMode(u32 mode) { s_opengl_mode = GLInterfaceMode::MODE_DETECT; }
+	void SetMode(u32 mode) { s_opengl_mode = mode; }
 	void UpdateFPSDisplay(const char *Text);
 	void* GetFuncAddress(std::string name);
 	bool Create(void *&window_handle);
