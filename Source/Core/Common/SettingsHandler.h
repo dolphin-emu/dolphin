@@ -22,6 +22,10 @@ public:
 		INITIAL_SEED = 0x73B5DBFA
 	};
 
+	inline void AddSetting(const char *key, const std::string& value)
+	{
+		AddSetting(key, value.c_str());
+	}
 	void AddSetting(const char *key, const char *value);
 
 	const u8 *GetData() const;
