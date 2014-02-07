@@ -158,56 +158,28 @@ bool CBoot::EmulatedBS2_GC()
 	return true;
 }
 
-bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
+bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 {
-	INFO_LOG(BOOT, "Setup Wii Memory...");
-
-	// Write the 256 byte setting.txt to memory.
-	std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
-	std::string area, model, code, video, game;
-
-
-	switch((DiscIO::IVolume::ECountry)_CountryCode)
-	{
-	case DiscIO::IVolume::COUNTRY_KOREA:
-		area = "KOR";
-		video = "NTSC";
-		game = "KR";
-		code = "LKH";
-		break;
-	case DiscIO::IVolume::COUNTRY_TAIWAN:
-		// TODO: Determine if Taiwan have their own specific settings.
-	case DiscIO::IVolume::COUNTRY_JAPAN:
-		area = "JPN";
-		video = "NTSC";
-		game = "JP";
-		code = "LJ";
-		break;
-	case DiscIO::IVolume::COUNTRY_USA:
-		area = "USA";
-		video = "NTSC";
-		game = "US";
-		code = "LU";
-		break;
-	case DiscIO::IVolume::COUNTRY_EUROPE:
-		area = "EUR";
-		video = "PAL";
-		game = "EU";
-		code = "LE";
-		break;
-	default:
-		// PanicAlertT("SetupWiiMem: Unknown country. Wii boot process will be switched to European settings.");
-		area = "EUR";
-		video = "PAL";
-		game = "EU";
-		code = "LE";
-		break;
-	}
-
-	model = "RVL-001(" + area + ")";
+	static const CountrySetting SETTING_EUROPE = {"EUR", "PAL",  "EU", "LE"};
+	static const std::map<IVolume::ECountry, const CountrySetting&> country_settings = {
+		{IVolume::COUNTRY_EUROPE, SETTING_EUROPE},
+		{IVolume::COUNTRY_USA,    {"USA", "NTSC", "US", "LU"}},
+		{IVolume::COUNTRY_JAPAN,  {"JPN", "NTSC", "JP", "LJ"}},
+		{IVolume::COUNTRY_KOREA,  {"KOR", "NTSC", "KR", "LKH"}},
+		//TODO: Determine if Taiwan have their own specific settings.
+		//      Also determine if there are other specific settings
+		//      for other countries.
+		{IVolume::COUNTRY_TAIWAN, {"JPN", "NTSC", "JP", "LJ"}}
+	};
+	auto entryPos = country_settings.find(country);
+	const CountrySetting& country_setting = 
+		(entryPos != country_settings.end()) ? 
+		  entryPos->second : 
+		  SETTING_EUROPE; //Default to EUROPE
 
 	SettingsHandler gen;
-	std::string serno = "";
+	std::string serno;
+	std::string settings_Filename(Common::GetTitleDataPath(TITLEID_SYSMENU) + WII_SETTING);
 	if (File::Exists(settings_Filename))
 	{
 		File::IOFile settingsFileHandle(settings_Filename, "rb");
@@ -230,29 +202,31 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 		INFO_LOG(BOOT, "Using serial number: %s", serno.c_str());
 	}
 
-	gen.AddSetting("AREA", area.c_str());
-	gen.AddSetting("MODEL", model.c_str());
+	std::string model = "RVL-001(" + country_setting.area + ")";
+	gen.AddSetting("AREA", country_setting.area);
+	gen.AddSetting("MODEL", model);
 	gen.AddSetting("DVD", "0");
 	gen.AddSetting("MPCH", "0x7FFE");
-	gen.AddSetting("CODE", code.c_str());
-	gen.AddSetting("SERNO", serno.c_str());
-	gen.AddSetting("VIDEO", video.c_str());
-	gen.AddSetting("GAME", game.c_str());
-
-
+	gen.AddSetting("CODE", country_setting.code);
+	gen.AddSetting("SERNO", serno);
+	gen.AddSetting("VIDEO", country_setting.video);
+	gen.AddSetting("GAME", country_setting.game);
+	
 	File::CreateFullPath(settings_Filename);
-
 	{
 		File::IOFile settingsFileHandle(settings_Filename, "wb");
 
 		if (!settingsFileHandle.WriteBytes(gen.GetData(), SettingsHandler::SETTINGS_SIZE))
 		{
-			PanicAlertT("SetupWiiMem: Cant create setting file");
+			PanicAlertT("SetupWiiMemory: Cant create setting.txt file");
 			return false;
 		}
+		// Write the 256 byte setting.txt to memory.
 		Memory::WriteBigEData(gen.GetData(), 0x3800, SettingsHandler::SETTINGS_SIZE);
 	}
 
+	INFO_LOG(BOOT, "Setup Wii Memory...");
+	
 	/*
 	Set hardcoded global variables to Wii memory. These are partly collected from
 	Wiibrew. These values are needed for the games to function correctly. A few

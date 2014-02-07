@@ -10,6 +10,17 @@
 
 #include "../CoreParameter.h"
 
+#include "Volume.h"
+using DiscIO::IVolume;
+
+typedef struct CountrySetting 
+{
+	const std::string area;
+	const std::string video;
+	const std::string game;
+	const std::string code;
+} CountrySetting;
+	
 class CBoot
 {
 public:
@@ -45,7 +56,7 @@ private:
 	static bool Load_BS2(const std::string& _rBootROMFilename);
 	static void Load_FST(bool _bIsWii);
 
-	static bool SetupWiiMemory(unsigned int _CountryCode);
+	static bool SetupWiiMemory(IVolume::ECountry country);
 };
 
 #endif
