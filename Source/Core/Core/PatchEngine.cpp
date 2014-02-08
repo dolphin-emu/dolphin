@@ -53,7 +53,7 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches,
 	std::string enabledSectionName = std::string(section) + "_Enabled";
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
-	localIni.GetLines(enabledSectionName.c_str(), enabledLines);
+	localIni.GetLines(enabledSectionName, enabledLines);
 	for (auto& line : enabledLines)
 	{
 		if (line.size() != 0 && line[0] == '$')
@@ -140,7 +140,7 @@ static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFi
 	{
 		std::string key = *iter;
 		std::string value;
-		ini.Get(section, key.c_str(), &value, "BOGUS");
+		ini.Get(section, key, &value, "BOGUS");
 		if (value != "BOGUS")
 		{
 			u32 address;

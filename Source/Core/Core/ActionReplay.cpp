@@ -246,7 +246,7 @@ void LogInfo(const char *format, ...)
 			{
 				std::string text = temp;
 				text += '\n';
-				arLog.push_back(text.c_str());
+				arLog.push_back(text);
 			}
 		}
 	}

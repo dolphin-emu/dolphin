@@ -28,7 +28,7 @@ const u8* SettingsHandler::GetData() const
 	return m_buffer;
 }
 
-const std::string SettingsHandler::GetValue(const std::string key)
+const std::string SettingsHandler::GetValue(const std::string& key)
 {
 	std::string delim = std::string("\r\n");
 	std::string toFind = delim + key + "=";
@@ -79,20 +79,16 @@ void SettingsHandler::Reset()
 	memset(m_buffer, 0, SETTINGS_SIZE);
 }
 
-void SettingsHandler::AddSetting(const char *key, const char *value)
+void SettingsHandler::AddSetting(const std::string& key, const std::string& value)
 {
-	while (*key != 0)
-	{
-		WriteByte(*key);
-		key++;
+	for(const char& c : key) {
+		WriteByte(c);
 	}
 
 	WriteByte('=');
 
-	while (*value != 0)
-	{
-		WriteByte(*value);
-		value++;
+	for(const char& c : value) {
+		WriteByte(c);
 	}
 
 	WriteByte(13);

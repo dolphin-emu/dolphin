@@ -565,13 +565,13 @@ void LoadSettings()
 	{
 		std::string secname("Wiimote");
 		secname += (char)('1' + i);
-		IniFile::Section& sec = *inifile.GetOrCreateSection(secname.c_str());
+		IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
 		sec.Get("Source", &g_wiimote_sources[i], i ? WIIMOTE_SRC_NONE : WIIMOTE_SRC_EMU);
 	}
 
 	std::string secname("BalanceBoard");
-	IniFile::Section& sec = *inifile.GetOrCreateSection(secname.c_str());
+	IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 	sec.Get("Source", &g_wiimote_sources[WIIMOTE_BALANCE_BOARD], WIIMOTE_SRC_NONE);
 }
 

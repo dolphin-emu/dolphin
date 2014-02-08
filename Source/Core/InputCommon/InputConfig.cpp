@@ -40,15 +40,17 @@ bool InputPlugin::LoadConfig(bool isGC)
 		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".ini", true);
 		for (int i = 0; i < 4; i++)
 		{
-			if (game_ini.Exists("Controls", (type + "Profile" + num[i]).c_str()))
+			if (game_ini.Exists("Controls", type + "Profile" + num[i]))
 			{
-				game_ini.Get("Controls", (type + "Profile" + num[i]).c_str(), &profile[i]);
-				if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
-					useProfile[i] = true;
-				else
+				if (game_ini.Get("Controls", type + "Profile" + num[i], &profile[i]))
 				{
-					// TODO: Having a PanicAlert for this is dumb.
-					PanicAlertT("Selected controller profile does not exist");
+					if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
+						useProfile[i] = true;
+					else
+					{
+						// TODO: Having a PanicAlert for this is dumb.
+						PanicAlertT("Selected controller profile does not exist");
+					}
 				}
 			}
 		}
@@ -68,7 +70,7 @@ bool InputPlugin::LoadConfig(bool isGC)
 			}
 			else
 			{
-				pad->LoadConfig(inifile.GetOrCreateSection(pad->GetName().c_str()));
+				pad->LoadConfig(inifile.GetOrCreateSection(pad->GetName()));
 			}
 
 			// Update refs
@@ -95,7 +97,7 @@ void InputPlugin::SaveConfig()
 	inifile.Load(ini_filename);
 
 	for (ControllerEmu* pad : controllers)
-		pad->SaveConfig(inifile.GetOrCreateSection(pad->GetName().c_str()));
+		pad->SaveConfig(inifile.GetOrCreateSection(pad->GetName()));
 
 	inifile.Save(ini_filename);
 }

@@ -47,17 +47,17 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 	// settings
 	for (auto& s : settings)
 	{
-		sec->Get((group + s->name).c_str(), &s->value, s->default_value * 100);
+		sec->Get(group + s->name, &s->value, s->default_value * 100);
 		s->value /= 100;
 	}
 
 	for (auto& c : controls)
 	{
 		// control expression
-		sec->Get((group + c->name).c_str(), &c->control_ref->expression, "");
+		sec->Get(group + c->name, &c->control_ref->expression, "");
 
 		// range
-		sec->Get((group + c->name + "/Range").c_str(), &c->control_ref->range, 100.0f);
+		sec->Get(group + c->name + "/Range", &c->control_ref->range, 100.0f);
 		c->control_ref->range /= 100;
 
 	}
@@ -65,12 +65,12 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 	// extensions
 	if (type == GROUP_TYPE_EXTENSION)
 	{
-		Extension* const ext = ((Extension*)this);
+		Extension* const ext = (Extension*)this;
 
 		ext->switch_extension = 0;
 		unsigned int n = 0;
 		std::string extname;
-		sec->Get((base + name).c_str(), &extname, "");
+		sec->Get(base + name, &extname, "");
 
 		for (auto& ai : ext->attachments)
 		{
@@ -90,7 +90,7 @@ void ControllerEmu::LoadConfig(IniFile::Section *sec, const std::string& base)
 	std::string defdev = default_device.ToString();
 	if (base.empty())
 	{
-		sec->Get((base + "Device").c_str(), &defdev, "");
+		sec->Get(base + "Device", &defdev, "");
 		default_device.FromString(defdev);
 	}
 
@@ -103,22 +103,22 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::s
 	std::string group(base + name); group += "/";
 
 	for (auto& s : settings)
-		sec->Set((group + s->name).c_str(), s->value*100.0f, s->default_value*100.0f);
+		sec->Set(group + s->name, s->value*100.0f, s->default_value*100.0f);
 
 	for (auto& c : controls)
 	{
 		// control expression
-		sec->Set((group + c->name).c_str(), c->control_ref->expression, "");
+		sec->Set(group + c->name, c->control_ref->expression, "");
 
 		// range
-		sec->Set((group + c->name + "/Range").c_str(), c->control_ref->range*100.0f, 100.0f);
+		sec->Set(group + c->name + "/Range", c->control_ref->range*100.0f, 100.0f);
 	}
 
 	// extensions
 	if (type == GROUP_TYPE_EXTENSION)
 	{
-		Extension* const ext = ((Extension*)this);
-		sec->Set((base + name).c_str(), ext->attachments[ext->switch_extension]->GetName(), "None");
+		Extension* const ext = (Extension*)this;
+		sec->Set(base + name, ext->attachments[ext->switch_extension]->GetName(), "None");
 
 		for (auto& ai : ext->attachments)
 			ai->SaveConfig(sec, base + ai->GetName() + "/");
@@ -129,7 +129,7 @@ void ControllerEmu::SaveConfig(IniFile::Section *sec, const std::string& base)
 {
 	const std::string defdev = default_device.ToString();
 	if (base.empty())
-		sec->Set((/*std::string(" ") +*/ base + "Device").c_str(), defdev, "");
+		sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
 
 	for (auto& ctrlGroup : groups)
 		ctrlGroup->SaveConfig(sec, defdev, base);
