@@ -161,7 +161,7 @@ bool CBoot::EmulatedBS2_GC()
 bool CBoot::SetupWiiMemory(IVolume::ECountry country)
 {
 	static const CountrySetting SETTING_EUROPE = {"EUR", "PAL",  "EU", "LE"};
-	static const std::map<IVolume::ECountry, const CountrySetting&> country_settings = {
+	static const std::map<IVolume::ECountry, const CountrySetting> country_settings = {
 		{IVolume::COUNTRY_EUROPE, SETTING_EUROPE},
 		{IVolume::COUNTRY_USA,    {"USA", "NTSC", "US", "LU"}},
 		{IVolume::COUNTRY_JAPAN,  {"JPN", "NTSC", "JP", "LJ"}},
