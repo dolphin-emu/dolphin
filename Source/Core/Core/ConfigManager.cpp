@@ -151,18 +151,14 @@ void SConfig::SaveSettings()
 	ini.Get("General", "GCMPathes", &oldPaths, 0);
 	for (int i = numPaths; i < oldPaths; i++)
 	{
-		char tmp[16];
-		sprintf(tmp, "GCMPath%i", i);
-		ini.DeleteKey("General", tmp);
+		ini.DeleteKey("General", StringFromFormat("GCMPath%i", i));
 	}
 
-	ini.Set("General", "GCMPathes",		numPaths);
+	ini.Set("General", "GCMPathes", numPaths);
 
 	for (int i = 0; i < numPaths; i++)
 	{
-		char tmp[16];
-		sprintf(tmp, "GCMPath%i", i);
-		ini.Set("General", tmp, m_ISOFolder[i]);
+		ini.Set("General", StringFromFormat("GCMPath%i", i).c_str(), m_ISOFolder[i]);
 	}
 
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
@@ -249,13 +245,10 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "SlotB",			m_EXIDevice[1]);
 	ini.Set("Core", "SerialPort1",		m_EXIDevice[2]);
 	ini.Set("Core", "BBA_MAC",			m_bba_mac);
-	char sidevicenum[16];
 	for (int i = 0; i < 4; ++i)
 	{
-		sprintf(sidevicenum, "SIDevice%i", i);
-		ini.Set("Core", sidevicenum, m_SIDevice[i]);
+		ini.Set("Core", StringFromFormat("SIDevice%i", i).c_str(), m_SIDevice[i]);
 	}
-
 	ini.Set("Core", "WiiSDCard", m_WiiSDCard);
 	ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
 	ini.Set("Core", "WiimoteContinuousScanning", m_WiimoteContinuousScanning);
@@ -307,11 +300,9 @@ void SConfig::LoadSettings()
 		{
 			for (int i = 0; i < numGCMPaths; i++)
 			{
-				char tmp[16];
-				sprintf(tmp, "GCMPath%i", i);
 				std::string tmpPath;
-				ini.Get("General", tmp, &tmpPath, "");
-				m_ISOFolder.push_back(tmpPath);
+				ini.Get("General", StringFromFormat("GCMPath%i", i).c_str(), &tmpPath, "");
+				m_ISOFolder.push_back(std::move(tmpPath));
 			}
 		}
 
@@ -410,13 +401,10 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "BBA_MAC",		&m_bba_mac);
 		ini.Get("Core", "TimeProfiling",&m_LocalCoreStartupParameter.bJITILTimeProfiling,		false);
 		ini.Get("Core", "OutputIR",		&m_LocalCoreStartupParameter.bJITILOutputIR,			false);
-		char sidevicenum[16];
 		for (int i = 0; i < 4; ++i)
 		{
-			sprintf(sidevicenum, "SIDevice%i", i);
-			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
+			ini.Get("Core", StringFromFormat("SIDevice%i", i).c_str(), (u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
 		}
-
 		ini.Get("Core", "WiiSDCard",		&m_WiiSDCard,									false);
 		ini.Get("Core", "WiiKeyboard",		&m_WiiKeyboard,									false);
 		ini.Get("Core", "WiimoteContinuousScanning", &m_WiimoteContinuousScanning,			false);

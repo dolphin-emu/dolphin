@@ -6,6 +6,7 @@
 
 #include "MemoryUtil.h"
 #include "MemArena.h"
+#include "StringUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -57,20 +58,21 @@ void MemArena::GrabLowMemSpace(size_t size)
 		return;
 	}
 #else
-	char fn[64];
 	for (int i = 0; i < 10000; i++)
 	{
-		sprintf(fn, "dolphinmem.%d", i);
-		fd = shm_open(fn, O_RDWR | O_CREAT | O_EXCL, 0600);
+		std::string file_name = StringFromFormat("dolphinmem.%d", i);
+		fd = shm_open(file_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0600);
 		if (fd != -1)
+		{
+			shm_unlink(file_name.c_str());
 			break;
-		if (errno != EEXIST)
+		}
+		else if (errno != EEXIST)
 		{
 			ERROR_LOG(MEMMAP, "shm_open failed: %s", strerror(errno));
 			return;
 		}
 	}
-	shm_unlink(fn);
 	if (ftruncate(fd, size) < 0)
 		ERROR_LOG(MEMMAP, "Failed to allocate low memory space");
 #endif

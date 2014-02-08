@@ -192,9 +192,7 @@ protected:
 			std::string Temp;
 			for (u32 j = 0; j < InBufferSize; j++)
 			{
-				char Buffer[128];
-				sprintf(Buffer, "%02x ", Memory::Read_U8(InBuffer+j));
-				Temp.append(Buffer);
+				Temp += StringFromFormat("%02x ", Memory::Read_U8(InBuffer+j));
 			}
 
 			GENERIC_LOG(LogType, LogTypes::LDEBUG, "    Buffer: %s", Temp.c_str());
