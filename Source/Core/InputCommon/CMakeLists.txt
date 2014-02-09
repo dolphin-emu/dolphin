@@ -12,13 +12,15 @@ if(WIN32)
 				ControllerInterface/DInput/DInputJoystick.cpp
 				ControllerInterface/DInput/DInputKeyboardMouse.cpp
 				ControllerInterface/SDL/SDL.cpp
-				ControllerInterface/XInput/XInput.cpp)
+				ControllerInterface/XInput/XInput.cpp
+				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(SRCS	${SRCS}
 				ControllerInterface/OSX/OSX.mm
 				ControllerInterface/OSX/OSXKeyboard.mm
 				ControllerInterface/OSX/OSXJoystick.mm
-				ControllerInterface/SDL/SDL.cpp)
+				ControllerInterface/SDL/SDL.cpp
+				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
 elseif(X11_FOUND)
 	set(SRCS	${SRCS}
 				ControllerInterface/SDL/SDL.cpp

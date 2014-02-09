@@ -141,6 +141,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		${CORESERV_LIBRARY}
 		${IOB_LIBRARY}
 		${IOK_LIBRARY}
+		${FORCEFEEDBACK}
 		)
 	if(wxWidgets_FOUND)
 		list(APPEND LIBS
