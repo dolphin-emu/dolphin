@@ -10,9 +10,9 @@
 enum KnownElfTypes
 {
 	KNOWNELF_PSP = 0,
-	KNOWNELF_DS = 1,
+	KNOWNELF_DS  = 1,
 	KNOWNELF_GBA = 2,
-	KNOWNELF_GC = 3,
+	KNOWNELF_GC  = 3,
 };
 
 typedef int SectionID;

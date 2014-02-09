@@ -22,10 +22,10 @@ public:
 private:
 	enum EJoybusCmds
 	{
-		CMD_RESET	= 0xff,
-		CMD_STATUS	= 0x00,
-		CMD_READ	= 0x14,
-		CMD_WRITE	= 0x15
+		CMD_RESET  = 0xff,
+		CMD_STATUS = 0x00,
+		CMD_READ   = 0x14,
+		CMD_WRITE  = 0x15
 	};
 
 	sf::SocketTCP client;

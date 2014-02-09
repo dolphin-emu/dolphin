@@ -10,39 +10,39 @@
 // Vertex array numbers
 enum
 {
-	ARRAY_POSITION	= 0,
-	ARRAY_NORMAL	= 1,
-	ARRAY_COLOR		= 2,
-	ARRAY_COLOR2	= 3,
-	ARRAY_TEXCOORD0	= 4,
+	ARRAY_POSITION  = 0,
+	ARRAY_NORMAL    = 1,
+	ARRAY_COLOR     = 2,
+	ARRAY_COLOR2    = 3,
+	ARRAY_TEXCOORD0 = 4,
 };
 
 // Vertex components
 enum
 {
 	NOT_PRESENT = 0,
-	DIRECT		= 1,
-	INDEX8		= 2,
-	INDEX16		= 3,
+	DIRECT      = 1,
+	INDEX8      = 2,
+	INDEX16     = 3,
 };
 
 enum
 {
-	FORMAT_UBYTE		= 0,	// 2 Cmp
-	FORMAT_BYTE			= 1,	// 3 Cmp
-	FORMAT_USHORT		= 2,
-	FORMAT_SHORT		= 3,
-	FORMAT_FLOAT		= 4,
+	FORMAT_UBYTE   = 0, // 2 Cmp
+	FORMAT_BYTE    = 1, // 3 Cmp
+	FORMAT_USHORT  = 2,
+	FORMAT_SHORT   = 3,
+	FORMAT_FLOAT   = 4,
 };
 
 enum
 {
-	FORMAT_16B_565		= 0,	// NA
-	FORMAT_24B_888		= 1,
-	FORMAT_32B_888x		= 2,
-	FORMAT_16B_4444		= 3,
-	FORMAT_24B_6666		= 4,
-	FORMAT_32B_8888		= 5,
+	FORMAT_16B_565  = 0, // NA
+	FORMAT_24B_888  = 1,
+	FORMAT_32B_888x = 2,
+	FORMAT_16B_4444 = 3,
+	FORMAT_24B_6666 = 4,
+	FORMAT_32B_8888 = 5,
 };
 
 enum

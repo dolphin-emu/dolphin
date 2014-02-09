@@ -26,11 +26,11 @@ private:
 
 	enum
 	{
-		cmdID			= 0x00,
-		cmdGetStatus	= 0x40,
-		cmdSetStatus	= 0x80,
-		cmdGetBuffer	= 0x20,
-		cmdReset		= 0xFF,
+		cmdID        = 0x00,
+		cmdGetStatus = 0x40,
+		cmdSetStatus = 0x80,
+		cmdGetBuffer = 0x20,
+		cmdReset     = 0xFF,
 	};
 
 	int slot;

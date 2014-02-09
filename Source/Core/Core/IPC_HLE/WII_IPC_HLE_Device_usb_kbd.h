@@ -20,9 +20,9 @@ public:
 private:
 	enum
 	{
-		MSG_KBD_CONNECT = 0,
-		MSG_KBD_DISCONNECT,
-		MSG_EVENT
+		MSG_KBD_CONNECT    = 0,
+		MSG_KBD_DISCONNECT = 1,
+		MSG_EVENT          = 2
 	};
 
 	#pragma pack(push, 1)
@@ -58,7 +58,7 @@ private:
 	enum
 	{
 		KBD_LAYOUT_QWERTY = 0,
-		KBD_LAYOUT_AZERTY
+		KBD_LAYOUT_AZERTY = 1
 	};
 	int m_KeyboardLayout;
 	static u8 m_KeyCodesQWERTY[256];

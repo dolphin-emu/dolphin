@@ -56,21 +56,21 @@ private:
 
 	enum
 	{
-		BLOCK_SZ = 0x40,
-		HDR_SZ = 0x20,
-		ICON_SZ = 0x1200,
-		BNR_SZ = 0x60a0,
-		FULL_BNR_MIN = 0x72a0,	// BNR_SZ + 1*ICON_SZ
-		FULL_BNR_MAX = 0xF0A0,	// BNR_SZ + 8*ICON_SZ
-		HEADER_SZ = 0xF0C0,		// HDR_SZ + FULL_BNR_MAX
-		BK_LISTED_SZ = 0x70,	// Size before rounding to nearest block
-		BK_SZ  = 0x80,
-		FILE_HDR_SZ = 0x80,
+		BLOCK_SZ       = 0x40,
+		HDR_SZ         = 0x20,
+		ICON_SZ        = 0x1200,
+		BNR_SZ         = 0x60a0,
+		FULL_BNR_MIN   = 0x72a0, // BNR_SZ + 1*ICON_SZ
+		FULL_BNR_MAX   = 0xF0A0, // BNR_SZ + 8*ICON_SZ
+		HEADER_SZ      = 0xF0C0, // HDR_SZ + FULL_BNR_MAX
+		BK_LISTED_SZ   = 0x70,   // Size before rounding to nearest block
+		BK_SZ          = 0x80,
+		FILE_HDR_SZ    = 0x80,
 
-		SIG_SZ = 0x40,
-		NG_CERT_SZ = 0x180,
-		AP_CERT_SZ = 0x180,
-		FULL_CERT_SZ =  0x3C0,	// SIG_SZ +	NG_CERT_SZ + AP_CERT_SZ + 0x80?
+		SIG_SZ         = 0x40,
+		NG_CERT_SZ     = 0x180,
+		AP_CERT_SZ     = 0x180,
+		FULL_CERT_SZ   = 0x3C0,  // SIG_SZ + NG_CERT_SZ + AP_CERT_SZ + 0x80?
 
 		BK_HDR_MAGIC   = 0x426B0001,
 		FILE_HDR_MAGIC = 0x03adf17e

@@ -105,8 +105,8 @@ public:
 private:
 	enum
 	{
-		NRM_ZERO = 0,
-		NRM_ONE = 1,
+		NRM_ZERO  = 0,
+		NRM_ONE   = 1,
 		NRM_THREE = 3,
 	};
 

@@ -76,17 +76,17 @@ public:
 private:
 	enum USBIOCtl
 	{
-		USBV0_IOCTL_CTRLMSG		= 0,
-		USBV0_IOCTL_BLKMSG		= 1,
-		USBV0_IOCTL_INTRMSG		= 2,
+		USBV0_IOCTL_CTRLMSG = 0,
+		USBV0_IOCTL_BLKMSG  = 1,
+		USBV0_IOCTL_INTRMSG = 2,
 	};
 
 	enum USBEndpoint
 	{
-		HCI_CTRL		= 0x00,
-		HCI_EVENT		= 0x81,
-		ACL_DATA_IN		= 0x82,
-		ACL_DATA_OUT	= 0x02
+		HCI_CTRL     = 0x00,
+		HCI_EVENT    = 0x81,
+		ACL_DATA_IN  = 0x82,
+		ACL_DATA_OUT = 0x02
 	};
 
 	struct SHCICommandMessage

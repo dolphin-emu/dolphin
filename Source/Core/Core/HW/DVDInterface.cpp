@@ -30,35 +30,35 @@ namespace DVDInterface
 // internal hardware addresses
 enum
 {
-	DI_STATUS_REGISTER			= 0x00,
-	DI_COVER_REGISTER			= 0x04,
-	DI_COMMAND_0				= 0x08,
-	DI_COMMAND_1				= 0x0C,
-	DI_COMMAND_2				= 0x10,
-	DI_DMA_ADDRESS_REGISTER		= 0x14,
-	DI_DMA_LENGTH_REGISTER		= 0x18,
-	DI_DMA_CONTROL_REGISTER		= 0x1C,
-	DI_IMMEDIATE_DATA_BUFFER	= 0x20,
-	DI_CONFIG_REGISTER			= 0x24
+	DI_STATUS_REGISTER       = 0x00,
+	DI_COVER_REGISTER        = 0x04,
+	DI_COMMAND_0             = 0x08,
+	DI_COMMAND_1             = 0x0C,
+	DI_COMMAND_2             = 0x10,
+	DI_DMA_ADDRESS_REGISTER  = 0x14,
+	DI_DMA_LENGTH_REGISTER   = 0x18,
+	DI_DMA_CONTROL_REGISTER  = 0x1C,
+	DI_IMMEDIATE_DATA_BUFFER = 0x20,
+	DI_CONFIG_REGISTER       = 0x24
 };
 
 
 // DVD IntteruptTypes
 enum DI_InterruptType
 {
-	INT_DEINT		= 0,
-	INT_TCINT		= 1,
-	INT_BRKINT		= 2,
-	INT_CVRINT		= 3,
+	INT_DEINT  = 0,
+	INT_TCINT  = 1,
+	INT_BRKINT = 2,
+	INT_CVRINT = 3,
 };
 
 // debug commands which may be ORd
 enum
 {
-	STOP_DRIVE	= 0,
-	START_DRIVE	= 0x100,
-	ACCEPT_COPY	= 0x4000,
-	DISC_CHECK	= 0x8000,
+	STOP_DRIVE  = 0,
+	START_DRIVE = 0x100,
+	ACCEPT_COPY = 0x4000,
+	DISC_CHECK  = 0x8000,
 };
 
 // DI Status Register

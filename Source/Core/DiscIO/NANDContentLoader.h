@@ -59,10 +59,10 @@ public:
 
 	enum
 	{
-		TMD_VIEW_SIZE = 0x58,
-		TMD_HEADER_SIZE = 0x1e4,
+		TMD_VIEW_SIZE       = 0x58,
+		TMD_HEADER_SIZE     = 0x1E4,
 		CONTENT_HEADER_SIZE = 0x24,
-		TICKET_SIZE = 0x2A4
+		TICKET_SIZE         = 0x2A4
 	};
 };
 

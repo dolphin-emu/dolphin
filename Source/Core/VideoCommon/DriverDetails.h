@@ -9,10 +9,10 @@ namespace DriverDetails
 	// Enum of supported operating systems
 	enum OS 
 	{
-		OS_ALL = (1 << 0),
+		OS_ALL     = (1 << 0),
 		OS_WINDOWS = (1 << 1),
-		OS_LINUX = (1 << 2),
-		OS_OSX = (1 << 3),
+		OS_LINUX   = (1 << 2),
+		OS_OSX     = (1 << 3),
 		OS_ANDROID = (1 << 4),
 	};
 	// Enum of known vendors
@@ -36,21 +36,21 @@ namespace DriverDetails
 	enum Driver
 	{
 		DRIVER_ALL = 0,
-		DRIVER_NVIDIA, // Official Nvidia, including mobile GPU
-		DRIVER_NOUVEAU, // OSS nouveau
-		DRIVER_ATI, // Official ATI
-		DRIVER_R600, // OSS Radeon
-		DRIVER_INTEL, // Official Intel
-		DRIVER_I965, // OSS Intel
-		DRIVER_ARM_4XX, // Official Mali driver
-		DRIVER_ARM_T6XX, // Official Mali driver
-		DRIVER_LIMA, // OSS Mali driver
+		DRIVER_NVIDIA,       // Official Nvidia, including mobile GPU
+		DRIVER_NOUVEAU,      // OSS nouveau
+		DRIVER_ATI,          // Official ATI
+		DRIVER_R600,         // OSS Radeon
+		DRIVER_INTEL,        // Official Intel
+		DRIVER_I965,         // OSS Intel
+		DRIVER_ARM_4XX,      // Official Mali driver
+		DRIVER_ARM_T6XX,     // Official Mali driver
+		DRIVER_LIMA,         // OSS Mali driver
 		DRIVER_QUALCOMM_3XX, // Official Adreno driver 3xx
 		DRIVER_QUALCOMM_2XX, // Official Adreno driver 2xx
-		DRIVER_FREEDRENO, // OSS Adreno driver
-		DRIVER_IMGTEC, // OSS PowerVR driver
-		DRIVER_VIVANTE, // Official vivante driver
-		DRIVER_UNKNOWN // Unknown driver, default to official hardware driver
+		DRIVER_FREEDRENO,    // OSS Adreno driver
+		DRIVER_IMGTEC,       // OSS PowerVR driver
+		DRIVER_VIVANTE,      // Official vivante driver
+		DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 	};
 
 	// Enum of known bugs

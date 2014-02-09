@@ -14,172 +14,172 @@
 // Network Control Register A
 enum NCRA
 {
-	NCRA_RESET		= 0x01, // RESET
-	NCRA_ST0		= 0x02, // Start transmit command/status
-	NCRA_ST1		= 0x04, // "
-	NCRA_SR			= 0x08  // Start Receive
+	NCRA_RESET = 0x01, // RESET
+	NCRA_ST0   = 0x02, // Start transmit command/status
+	NCRA_ST1   = 0x04, // "
+	NCRA_SR    = 0x08  // Start Receive
 };
 
 // Network Control Register B
 enum NCRB
 {
-	NCRB_PR			= 0x01, // Promiscuous Mode
-	NCRB_CA			= 0x02, // Capture Effect Mode
-	NCRB_PM			= 0x04, // Pass Multicast
-	NCRB_PB			= 0x08, // Pass Bad Frame
-	NCRB_AB			= 0x10, // Accept Broadcast
-	NCRB_HBD		= 0x20, // reserved
-	NCRB_RXINTC		= 0xC0  // Receive Interrupt Counter (mask)
+	NCRB_PR     = 0x01, // Promiscuous Mode
+	NCRB_CA     = 0x02, // Capture Effect Mode
+	NCRB_PM     = 0x04, // Pass Multicast
+	NCRB_PB     = 0x08, // Pass Bad Frame
+	NCRB_AB     = 0x10, // Accept Broadcast
+	NCRB_HBD    = 0x20, // reserved
+	NCRB_RXINTC = 0xC0  // Receive Interrupt Counter (mask)
 };
 
 // Interrupt Mask Register
 // Interrupt Register
 enum Interrupts
 {
-	INT_FRAG		= 0x01, // Fragment Counter
-	INT_R			= 0x02, // Receive
-	INT_T			= 0x04, // Transmit
-	INT_R_ERR		= 0x08, // Receive Error
-	INT_T_ERR		= 0x10, // Transmit Error
-	INT_FIFO_ERR	= 0x20, // FIFO Error
-	INT_BUS_ERR		= 0x40, // BUS Error
-	INT_RBF			= 0x80  // RX Buffer Full
+	INT_FRAG     = 0x01, // Fragment Counter
+	INT_R        = 0x02, // Receive
+	INT_T        = 0x04, // Transmit
+	INT_R_ERR    = 0x08, // Receive Error
+	INT_T_ERR    = 0x10, // Transmit Error
+	INT_FIFO_ERR = 0x20, // FIFO Error
+	INT_BUS_ERR  = 0x40, // BUS Error
+	INT_RBF      = 0x80  // RX Buffer Full
 };
 
 // NWAY Configuration Register
 enum NWAYC
 {
-	NWAYC_FD		= 0x01, // Full Duplex Mode
-	NWAYC_PS100_10	= 0x02, // Port Select 100/10
-	NWAYC_ANE		= 0x04, // Autonegotiate enable
+	NWAYC_FD       = 0x01, // Full Duplex Mode
+	NWAYC_PS100_10 = 0x02, // Port Select 100/10
+	NWAYC_ANE      = 0x04, // Autonegotiate enable
 
 	// Autonegotiation status bits...
 
-	NWAYC_NTTEST	= 0x40, // Reserved
-	NWAYC_LTE		= 0x80  // Link Test Enable
+	NWAYC_NTTEST    = 0x40, // Reserved
+	NWAYC_LTE       = 0x80  // Link Test Enable
 };
 
 enum NWAYS
 {
-	NWAYS_LS10		= 0x01,
-	NWAYS_LS100		= 0x02,
-	NWAYS_LPNWAY	= 0x04,
-	NWAYS_ANCLPT	= 0x08,
-	NWAYS_100TXF	= 0x10,
-	NWAYS_100TXH	= 0x20,
-	NWAYS_10TXF		= 0x40,
-	NWAYS_10TXH		= 0x80
+	NWAYS_LS10   = 0x01,
+	NWAYS_LS100  = 0x02,
+	NWAYS_LPNWAY = 0x04,
+	NWAYS_ANCLPT = 0x08,
+	NWAYS_100TXF = 0x10,
+	NWAYS_100TXH = 0x20,
+	NWAYS_10TXF  = 0x40,
+	NWAYS_10TXH  = 0x80
 };
 
 enum MISC1
 {
-	MISC1_BURSTDMA	= 0x01,
-	MISC1_DISLDMA	= 0x02,
-	MISC1_TPF		= 0x04,
-	MISC1_TPH		= 0x08,
-	MISC1_TXF		= 0x10,
-	MISC1_TXH		= 0x20,
-	MISC1_TXFIFORST	= 0x40,
-	MISC1_RXFIFORST	= 0x80
+	MISC1_BURSTDMA  = 0x01,
+	MISC1_DISLDMA   = 0x02,
+	MISC1_TPF       = 0x04,
+	MISC1_TPH       = 0x08,
+	MISC1_TXF       = 0x10,
+	MISC1_TXH       = 0x20,
+	MISC1_TXFIFORST = 0x40,
+	MISC1_RXFIFORST = 0x80
 };
 
 enum MISC2
 {
-	MISC2_HBRLEN0	= 0x01,
-	MISC2_HBRLEN1	= 0x02,
-	MISC2_RUNTSIZE	= 0x04,
-	MISC2_DREQBCTRL	= 0x08,
-	MISC2_RINTSEL	= 0x10,
-	MISC2_ITPSEL	= 0x20,
-	MISC2_A11A8EN	= 0x40,
-	MISC2_AUTORCVR	= 0x80
+	MISC2_HBRLEN0   = 0x01,
+	MISC2_HBRLEN1   = 0x02,
+	MISC2_RUNTSIZE  = 0x04,
+	MISC2_DREQBCTRL = 0x08,
+	MISC2_RINTSEL   = 0x10,
+	MISC2_ITPSEL    = 0x20,
+	MISC2_A11A8EN   = 0x40,
+	MISC2_AUTORCVR  = 0x80
 };
 
 enum
 {
-	BBA_NCRA		= 0x00,
-	BBA_NCRB		= 0x01,
+	BBA_NCRA      = 0x00,
+	BBA_NCRB      = 0x01,
 
-	BBA_LTPS		= 0x04,
-	BBA_LRPS		= 0x05,
+	BBA_LTPS      = 0x04,
+	BBA_LRPS      = 0x05,
 
-	BBA_IMR			= 0x08,
-	BBA_IR			= 0x09,
+	BBA_IMR       = 0x08,
+	BBA_IR        = 0x09,
 
-	BBA_BP			= 0x0a,
-	BBA_TLBP		= 0x0c,
-	BBA_TWP			= 0x0e,
-	BBA_IOB			= 0x10,
-	BBA_TRP			= 0x12,
-	BBA_RWP			= 0x16,
-	BBA_RRP			= 0x18,
-	BBA_RHBP		= 0x1a,
+	BBA_BP        = 0x0a,
+	BBA_TLBP      = 0x0c,
+	BBA_TWP       = 0x0e,
+	BBA_IOB       = 0x10,
+	BBA_TRP       = 0x12,
+	BBA_RWP       = 0x16,
+	BBA_RRP       = 0x18,
+	BBA_RHBP      = 0x1a,
 
-	BBA_RXINTT		= 0x14,
+	BBA_RXINTT    = 0x14,
 
-	BBA_NAFR_PAR0	= 0x20,
-	BBA_NAFR_PAR1	= 0x21,
-	BBA_NAFR_PAR2	= 0x22,
-	BBA_NAFR_PAR3	= 0x23,
-	BBA_NAFR_PAR4	= 0x24,
-	BBA_NAFR_PAR5	= 0x25,
-	BBA_NAFR_MAR0	= 0x26,
-	BBA_NAFR_MAR1	= 0x27,
-	BBA_NAFR_MAR2	= 0x28,
-	BBA_NAFR_MAR3	= 0x29,
-	BBA_NAFR_MAR4	= 0x2a,
-	BBA_NAFR_MAR5	= 0x2b,
-	BBA_NAFR_MAR6	= 0x2c,
-	BBA_NAFR_MAR7	= 0x2d,
+	BBA_NAFR_PAR0 = 0x20,
+	BBA_NAFR_PAR1 = 0x21,
+	BBA_NAFR_PAR2 = 0x22,
+	BBA_NAFR_PAR3 = 0x23,
+	BBA_NAFR_PAR4 = 0x24,
+	BBA_NAFR_PAR5 = 0x25,
+	BBA_NAFR_MAR0 = 0x26,
+	BBA_NAFR_MAR1 = 0x27,
+	BBA_NAFR_MAR2 = 0x28,
+	BBA_NAFR_MAR3 = 0x29,
+	BBA_NAFR_MAR4 = 0x2a,
+	BBA_NAFR_MAR5 = 0x2b,
+	BBA_NAFR_MAR6 = 0x2c,
+	BBA_NAFR_MAR7 = 0x2d,
 
-	BBA_NWAYC		= 0x30,
-	BBA_NWAYS		= 0x31,
+	BBA_NWAYC     = 0x30,
+	BBA_NWAYS     = 0x31,
 
-	BBA_GCA			= 0x32,
+	BBA_GCA       = 0x32,
 
-	BBA_MISC		= 0x3d,
+	BBA_MISC      = 0x3d,
 
-	BBA_TXFIFOCNT	= 0x3e,
-	BBA_WRTXFIFOD	= 0x48,
+	BBA_TXFIFOCNT = 0x3e,
+	BBA_WRTXFIFOD = 0x48,
 
-	BBA_MISC2		= 0x50,
+	BBA_MISC2     = 0x50,
 
-	BBA_SI_ACTRL	= 0x5c,
-	BBA_SI_STATUS	= 0x5d,
-	BBA_SI_ACTRL2	= 0x60
+	BBA_SI_ACTRL  = 0x5c,
+	BBA_SI_STATUS = 0x5d,
+	BBA_SI_ACTRL2 = 0x60
 };
 
 enum
 {
-	BBA_NUM_PAGES	= 0x10,
-	BBA_PAGE_SIZE	= 0x100,
-	BBA_MEM_SIZE	= BBA_NUM_PAGES * BBA_PAGE_SIZE
+	BBA_NUM_PAGES = 0x10,
+	BBA_PAGE_SIZE = 0x100,
+	BBA_MEM_SIZE  = BBA_NUM_PAGES * BBA_PAGE_SIZE
 };
 
 enum { EXI_DEVTYPE_ETHER = 0x04020200 };
 
 enum SendStatus
 {
-	DESC_CC0	= 0x01,
-	DESC_CC1	= 0x02,
-	DESC_CC2	= 0x04,
-	DESC_CC3	= 0x08,
-	DESC_CRSLOST= 0x10,
-	DESC_UF		= 0x20,
-	DESC_OWC	= 0x40,
-	DESC_OWN	= 0x80
+	DESC_CC0     = 0x01,
+	DESC_CC1     = 0x02,
+	DESC_CC2     = 0x04,
+	DESC_CC3     = 0x08,
+	DESC_CRSLOST = 0x10,
+	DESC_UF      = 0x20,
+	DESC_OWC     = 0x40,
+	DESC_OWN     = 0x80
 };
 
 enum RecvStatus
 {
-	DESC_BF		= 0x01,
-	DESC_CRC	= 0x02,
-	DESC_FAE	= 0x04,
-	DESC_FO		= 0x08,
-	DESC_RW		= 0x10,
-	DESC_MF		= 0x20,
-	DESC_RF		= 0x40,
-	DESC_RERR	= 0x80
+	DESC_BF   = 0x01,
+	DESC_CRC  = 0x02,
+	DESC_FAE  = 0x04,
+	DESC_FO   = 0x08,
+	DESC_RW   = 0x10,
+	DESC_MF   = 0x20,
+	DESC_RF   = 0x40,
+	DESC_RERR = 0x80
 };
 
 #define BBA_RECV_SIZE 0x800

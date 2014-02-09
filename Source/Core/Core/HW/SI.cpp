@@ -27,30 +27,30 @@ void UpdateInterrupts();
 // SI Interrupt Types
 enum SIInterruptType
 {
-	INT_RDSTINT		= 0,
-	INT_TCINT		= 1,
+	INT_RDSTINT = 0,
+	INT_TCINT   = 1,
 };
 static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);
 
 // SI Internal Hardware Addresses
 enum
 {
-	SI_CHANNEL_0_OUT	= 0x00,
-	SI_CHANNEL_0_IN_HI	= 0x04,
-	SI_CHANNEL_0_IN_LO	= 0x08,
-	SI_CHANNEL_1_OUT	= 0x0C,
-	SI_CHANNEL_1_IN_HI	= 0x10,
-	SI_CHANNEL_1_IN_LO	= 0x14,
-	SI_CHANNEL_2_OUT	= 0x18,
-	SI_CHANNEL_2_IN_HI	= 0x1C,
-	SI_CHANNEL_2_IN_LO	= 0x20,
-	SI_CHANNEL_3_OUT	= 0x24,
-	SI_CHANNEL_3_IN_HI	= 0x28,
-	SI_CHANNEL_3_IN_LO	= 0x2C,
-	SI_POLL				= 0x30,
-	SI_COM_CSR			= 0x34,
-	SI_STATUS_REG		= 0x38,
-	SI_EXI_CLOCK_COUNT	= 0x3C,
+	SI_CHANNEL_0_OUT   = 0x00,
+	SI_CHANNEL_0_IN_HI = 0x04,
+	SI_CHANNEL_0_IN_LO = 0x08,
+	SI_CHANNEL_1_OUT   = 0x0C,
+	SI_CHANNEL_1_IN_HI = 0x10,
+	SI_CHANNEL_1_IN_LO = 0x14,
+	SI_CHANNEL_2_OUT   = 0x18,
+	SI_CHANNEL_2_IN_HI = 0x1C,
+	SI_CHANNEL_2_IN_LO = 0x20,
+	SI_CHANNEL_3_OUT   = 0x24,
+	SI_CHANNEL_3_IN_HI = 0x28,
+	SI_CHANNEL_3_IN_LO = 0x2C,
+	SI_POLL            = 0x30,
+	SI_COM_CSR         = 0x34,
+	SI_STATUS_REG      = 0x38,
+	SI_EXI_CLOCK_COUNT = 0x3C,
 };
 
 // SI Channel Output

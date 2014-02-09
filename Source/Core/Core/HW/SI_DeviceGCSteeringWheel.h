@@ -17,16 +17,16 @@ private:
 	// Commands
 	enum EBufferCommands
 	{
-		CMD_RESET		= 0x00,
-		CMD_ORIGIN		= 0x41,
-		CMD_RECALIBRATE	= 0x42,
-		CMD_MOTOR_OFF	= 0xff,
+		CMD_RESET       = 0x00,
+		CMD_ORIGIN      = 0x41,
+		CMD_RECALIBRATE = 0x42,
+		CMD_MOTOR_OFF   = 0xff,
 	};
 
 	struct SOrigin
 	{
 		u8 uCommand;// Maybe should be button bits?
-		u8 unk_1;	// ..and this would be the other half
+		u8 unk_1;   // ..and this would be the other half
 		u8 uOriginStickX;
 		u8 uOriginStickY;
 		u8 uSubStickStickX;

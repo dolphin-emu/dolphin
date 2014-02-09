@@ -16,9 +16,9 @@ public:
 private:
 	enum
 	{
-		init	= 0x00,
-		write	= 0xa0,
-		read	= 0xa2
+		init  = 0x00,
+		write = 0xa0,
+		read  = 0xa2
 	};
 
 	union UAD16Reg

@@ -71,21 +71,21 @@ protected:
 private:
 	enum CmdType
 	{
-		CMD_SETUP = 0x00,
-		CMD_ADD_TO_LR = 0x01,
-		CMD_SUB_TO_LR = 0x02,
-		CMD_ADD_SUB_TO_LR = 0x03,
-		CMD_PROCESS = 0x04,
-		CMD_MIX_AUXA = 0x05,
-		CMD_MIX_AUXB = 0x06,
-		CMD_MIX_AUXC = 0x07,
+		CMD_SETUP             = 0x00,
+		CMD_ADD_TO_LR         = 0x01,
+		CMD_SUB_TO_LR         = 0x02,
+		CMD_ADD_SUB_TO_LR     = 0x03,
+		CMD_PROCESS           = 0x04,
+		CMD_MIX_AUXA          = 0x05,
+		CMD_MIX_AUXB          = 0x06,
+		CMD_MIX_AUXC          = 0x07,
 		CMD_UPL_AUXA_MIX_LRSC = 0x08,
 		CMD_UPL_AUXB_MIX_LRSC = 0x09,
-		CMD_UNK_0A = 0x0A,
-		CMD_OUTPUT = 0x0B,
-		CMD_OUTPUT_DPL2 = 0x0C,
-		CMD_WM_OUTPUT = 0x0D,
-		CMD_END = 0x0E,
+		CMD_UNK_0A            = 0x0A,
+		CMD_OUTPUT            = 0x0B,
+		CMD_OUTPUT_DPL2       = 0x0C,
+		CMD_WM_OUTPUT         = 0x0D,
+		CMD_END               = 0x0E,
 	};
 
 	// A lot of these are similar to the new version, but there is an offset in
@@ -93,22 +93,22 @@ private:
 	// new AXWii).
 	enum CmdTypeOld
 	{
-		CMD_SETUP_OLD = 0x00,
-		CMD_ADD_TO_LR_OLD = 0x01,
-		CMD_SUB_TO_LR_OLD = 0x02,
-		CMD_ADD_SUB_TO_LR_OLD = 0x03,
-		CMD_PB_ADDR_OLD = 0x04,
-		CMD_PROCESS_OLD = 0x05,
-		CMD_MIX_AUXA_OLD = 0x06,
-		CMD_MIX_AUXB_OLD = 0x07,
-		CMD_MIX_AUXC_OLD = 0x08,
+		CMD_SETUP_OLD             = 0x00,
+		CMD_ADD_TO_LR_OLD         = 0x01,
+		CMD_SUB_TO_LR_OLD         = 0x02,
+		CMD_ADD_SUB_TO_LR_OLD     = 0x03,
+		CMD_PB_ADDR_OLD           = 0x04,
+		CMD_PROCESS_OLD           = 0x05,
+		CMD_MIX_AUXA_OLD          = 0x06,
+		CMD_MIX_AUXB_OLD          = 0x07,
+		CMD_MIX_AUXC_OLD          = 0x08,
 		CMD_UPL_AUXA_MIX_LRSC_OLD = 0x09,
 		CMD_UPL_AUXB_MIX_LRSC_OLD = 0x0a,
-		CMD_UNK_0B_OLD = 0x0B,
-		CMD_OUTPUT_OLD = 0x0C,	// no volume!
-		CMD_OUTPUT_DPL2_OLD = 0x0D,
-		CMD_WM_OUTPUT_OLD = 0x0E,
-		CMD_END_OLD = 0x0F
+		CMD_UNK_0B_OLD            = 0x0B,
+		CMD_OUTPUT_OLD            = 0x0C, // no volume!
+		CMD_OUTPUT_DPL2_OLD       = 0x0D,
+		CMD_WM_OUTPUT_OLD         = 0x0E,
+		CMD_END_OLD               = 0x0F
 	};
 };
 

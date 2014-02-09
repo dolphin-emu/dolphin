@@ -14,8 +14,8 @@ public:
 	CDolLoader(u8* _pBuffer, u32 _Size);
 	~CDolLoader();
 
-	bool IsWii()		{ return m_isWii; }
-	u32 GetEntryPoint()	{ return m_dolheader.entryPoint; }
+	bool IsWii()        { return m_isWii; }
+	u32 GetEntryPoint() { return m_dolheader.entryPoint; }
 
 	// Load into emulated memory
 	void Load();
@@ -23,8 +23,8 @@ public:
 private:
 	enum
 	{
-		DOL_NUM_TEXT	= 7,
-		DOL_NUM_DATA	= 11
+		DOL_NUM_TEXT = 7,
+		DOL_NUM_DATA = 11
 	};
 
 	struct SDolHeader

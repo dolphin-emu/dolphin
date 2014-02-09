@@ -25,17 +25,17 @@ class PointerWrap;
 // SI Device IDs for emulator use
 enum TSIDevices
 {
-	SI_NONE				= SI_ERROR_NO_RESPONSE,
-	SI_N64_MIC			= 0x00010000,
-	SI_N64_KEYBOARD		= 0x00020000,
-	SI_N64_MOUSE		= 0x02000000,
-	SI_N64_CONTROLLER	= 0x05000000,
-	SI_GBA				= 0x00040000,
-	SI_GC_CONTROLLER	= (SI_TYPE_GC | SI_GC_STANDARD),
-	SI_GC_KEYBOARD		= (SI_TYPE_GC | 0x00200000),
-	SI_GC_STEERING		= SI_TYPE_GC, // (shuffle2)I think the "chainsaw" is the same (Or else it's just standard)
-	SI_DANCEMAT			= (SI_TYPE_GC | SI_GC_STANDARD | 0x00000300),
-	SI_AM_BASEBOARD		= 0x10110800 // gets ORd with dipswitch state
+	SI_NONE           = SI_ERROR_NO_RESPONSE,
+	SI_N64_MIC        = 0x00010000,
+	SI_N64_KEYBOARD   = 0x00020000,
+	SI_N64_MOUSE      = 0x02000000,
+	SI_N64_CONTROLLER = 0x05000000,
+	SI_GBA            = 0x00040000,
+	SI_GC_CONTROLLER  = (SI_TYPE_GC | SI_GC_STANDARD),
+	SI_GC_KEYBOARD    = (SI_TYPE_GC | 0x00200000),
+	SI_GC_STEERING    = SI_TYPE_GC, // (shuffle2)I think the "chainsaw" is the same (Or else it's just standard)
+	SI_DANCEMAT       = (SI_TYPE_GC | SI_GC_STANDARD | 0x00000300),
+	SI_AM_BASEBOARD   = 0x10110800 // gets ORd with dipswitch state
 };
 
 // For configuration use, since some devices can have the same SI Device ID

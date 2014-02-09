@@ -24,14 +24,16 @@
 #define CONF_SAVETARGETS	8
 #define CONF_SAVESHADERS	16
 
-enum AspectMode {
-	ASPECT_AUTO = 0,
+enum AspectMode
+{
+	ASPECT_AUTO       = 0,
 	ASPECT_FORCE_16_9 = 1,
-	ASPECT_FORCE_4_3 = 2,
-	ASPECT_STRETCH = 3,
+	ASPECT_FORCE_4_3  = 2,
+	ASPECT_STRETCH    = 3,
 };
 
-enum EFBScale {
+enum EFBScale
+{
 	SCALE_FORCE_INTEGRAL = -1,
 	SCALE_AUTO,
 	SCALE_AUTO_INTEGRAL,

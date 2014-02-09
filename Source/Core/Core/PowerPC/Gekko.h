@@ -695,20 +695,20 @@ union UReg_PTE
 // quantize types
 enum EQuantizeType
 {
-	QUANTIZE_FLOAT	=	0,
-	QUANTIZE_U8		=	4,
-	QUANTIZE_U16	=	5,
-	QUANTIZE_S8		=	6,
-	QUANTIZE_S16	=	7,
+	QUANTIZE_FLOAT = 0,
+	QUANTIZE_U8    = 4,
+	QUANTIZE_U16   = 5,
+	QUANTIZE_S8    = 6,
+	QUANTIZE_S16   = 7,
 };
 
 // branches
 enum
 {
-	BO_BRANCH_IF_CTR_0		=  2, // 3
-	BO_DONT_DECREMENT_FLAG	=  4, // 2
-	BO_BRANCH_IF_TRUE		=  8, // 1
-	BO_DONT_CHECK_CONDITION	= 16, // 0
+	BO_BRANCH_IF_CTR_0      =  2, // 3
+	BO_DONT_DECREMENT_FLAG  =  4, // 2
+	BO_BRANCH_IF_TRUE       =  8, // 1
+	BO_DONT_CHECK_CONDITION = 16, // 0
 };
 
 // Special purpose register indices

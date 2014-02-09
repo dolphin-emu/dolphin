@@ -32,17 +32,17 @@ namespace WII_IPCInterface
 
 enum
 {
-	IPC_PPCMSG	= 0x00,
-	IPC_PPCCTRL	= 0x04,
-	IPC_ARMMSG	= 0x08,
-	IPC_ARMCTRL	= 0x0c,
+	IPC_PPCMSG  = 0x00,
+	IPC_PPCCTRL = 0x04,
+	IPC_ARMMSG  = 0x08,
+	IPC_ARMCTRL = 0x0c,
 
-	PPC_IRQFLAG	= 0x30,
-	PPC_IRQMASK	= 0x34,
-	ARM_IRQFLAG	= 0x38,
-	ARM_IRQMASK	= 0x3c,
+	PPC_IRQFLAG = 0x30,
+	PPC_IRQMASK = 0x34,
+	ARM_IRQFLAG = 0x38,
+	ARM_IRQMASK = 0x3c,
 
-	GPIOB_OUT	= 0xc0 // sensor bar power flag??
+	GPIOB_OUT   = 0xc0 // sensor bar power flag??
 };
 
 struct CtrlRegister

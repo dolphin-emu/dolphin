@@ -16,11 +16,11 @@ private:
 
 	enum
 	{
-		EXI_STATUS		= 0,
-		EXI_DMAADDR		= 1,
-		EXI_DMALENGTH	= 2,
-		EXI_DMACONTROL	= 3,
-		EXI_IMMDATA		= 4
+		EXI_STATUS     = 0,
+		EXI_DMAADDR    = 1,
+		EXI_DMALENGTH  = 2,
+		EXI_DMACONTROL = 3,
+		EXI_IMMDATA    = 4
 	};
 	const char* Debug_GetRegisterName(u32 _register)
 	{

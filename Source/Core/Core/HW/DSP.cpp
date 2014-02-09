@@ -42,26 +42,26 @@ namespace DSP
 // register offsets
 enum
 {
-	DSP_MAIL_TO_DSP_HI		= 0x5000,
-	DSP_MAIL_TO_DSP_LO		= 0x5002,
-	DSP_MAIL_FROM_DSP_HI	= 0x5004,
-	DSP_MAIL_FROM_DSP_LO	= 0x5006,
-	DSP_CONTROL				= 0x500A,
-	DSP_INTERRUPT_CONTROL	= 0x5010,
-	AR_INFO					= 0x5012,  // These names are a good guess at best
-	AR_MODE					= 0x5016,  //
-	AR_REFRESH				= 0x501a,
-	AR_DMA_MMADDR_H			= 0x5020,
-	AR_DMA_MMADDR_L			= 0x5022,
-	AR_DMA_ARADDR_H			= 0x5024,
-	AR_DMA_ARADDR_L			= 0x5026,
-	AR_DMA_CNT_H			= 0x5028,
-	AR_DMA_CNT_L			= 0x502A,
-	AUDIO_DMA_START_HI		= 0x5030,
-	AUDIO_DMA_START_LO		= 0x5032,
-	AUDIO_DMA_BLOCKS_LENGTH	= 0x5034,  // Ever used?
-	AUDIO_DMA_CONTROL_LEN	= 0x5036,
-	AUDIO_DMA_BLOCKS_LEFT	= 0x503A,
+	DSP_MAIL_TO_DSP_HI      = 0x5000,
+	DSP_MAIL_TO_DSP_LO      = 0x5002,
+	DSP_MAIL_FROM_DSP_HI    = 0x5004,
+	DSP_MAIL_FROM_DSP_LO    = 0x5006,
+	DSP_CONTROL             = 0x500A,
+	DSP_INTERRUPT_CONTROL   = 0x5010,
+	AR_INFO                 = 0x5012,  // These names are a good guess at best
+	AR_MODE                 = 0x5016,  //
+	AR_REFRESH              = 0x501a,
+	AR_DMA_MMADDR_H         = 0x5020,
+	AR_DMA_MMADDR_L         = 0x5022,
+	AR_DMA_ARADDR_H         = 0x5024,
+	AR_DMA_ARADDR_L         = 0x5026,
+	AR_DMA_CNT_H            = 0x5028,
+	AR_DMA_CNT_L            = 0x502A,
+	AUDIO_DMA_START_HI      = 0x5030,
+	AUDIO_DMA_START_LO      = 0x5032,
+	AUDIO_DMA_BLOCKS_LENGTH = 0x5034,  // Ever used?
+	AUDIO_DMA_CONTROL_LEN   = 0x5036,
+	AUDIO_DMA_BLOCKS_LEFT   = 0x503A,
 };
 
 // UARAMCount
