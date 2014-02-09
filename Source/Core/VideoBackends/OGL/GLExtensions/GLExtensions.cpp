@@ -977,6 +977,15 @@ namespace GLExtensions
 		return *func;
 	}
 
+	void Disable(std::string names)
+	{
+		std::string tmp;
+		std::istringstream buffer(names);
+
+		while (buffer >> tmp)
+			_extensionlist[tmp] = false;
+	}
+
 	// Public members
 	u32 Version() { return _GLVersion; }
 	bool Supports(std::string name)
@@ -1015,24 +1024,26 @@ namespace GLExtensions
 		if (success && !init_gl_3_0()) success = false;
 		if (success && !init_gl_3_1()) success = false;
 		if (success && !init_gl_3_2()) success = false;
-		if (success && !init_arb_uniform_buffer_object()) success = false;
-		if (success && !init_arb_sampler_objects()) success = false;
-		if (success && !init_arb_map_buffer_range()) success = false;
-		if (success && !init_arb_vertex_array_object()) success = false;
-		if (success && !init_arb_framebuffer_object()) success = false;
-		if (success && !init_arb_get_program_binary()) success = false;
-		if (success && !init_arb_sync()) success = false;
-		if (success && !init_arb_es2_compatibility()) success = false;
-		if (success && !init_nv_primitive_restart()) success = false;
-		if (success && !init_arb_blend_func_extended()) success = false;
-		if (success && !init_arb_viewport_array()) success = false;
-		if (success && !init_arb_draw_elements_base_vertex()) success = false;
-		if (success && !init_arb_sample_shading()) success = false;
-		if (success && !init_arb_debug_output()) success = false;
-		if (success && !init_nv_framebuffer_multisample_coverage()) success = false;
-		if (success && !init_khr_debug()) success = false;
-		if (success && !init_arb_buffer_storage()) success = false;
-
+		if (success)
+		{
+			if (!init_arb_uniform_buffer_object()) Disable("GL_ARB_uniform_buffer_object");
+			if (!init_arb_sampler_objects()) Disable("GL_ARB_sampler_objects");
+			if (!init_arb_map_buffer_range()) Disable("GL_ARB_map_buffer_range");
+			if (!init_arb_vertex_array_object()) Disable("GL_ARB_vertex_array_object GL_APPLE_vertex_array_object");
+			if (!init_arb_framebuffer_object()) Disable("GL_ARB_framebuffer_object");
+			if (!init_arb_get_program_binary()) Disable("GL_ARB_get_program_binary");
+			if (!init_arb_sync()) Disable("GL_ARB_sync");
+			if (!init_arb_es2_compatibility()) Disable("GL_ARB_ES2_compatibility");
+			if (!init_nv_primitive_restart()) Disable("GL_NV_primitive_restart");
+			if (!init_arb_blend_func_extended()) Disable("GL_ARB_blend_func_extended");
+			if (!init_arb_viewport_array()) Disable("GL_ARB_viewport_array");
+			if (!init_arb_draw_elements_base_vertex()) Disable("GL_ARB_draw_elements_base_vertex");
+			if (!init_arb_sample_shading()) Disable("GL_ARB_sample_shading");
+			if (!init_arb_debug_output()) Disable("GL_ARB_debug_output");
+			if (!init_nv_framebuffer_multisample_coverage()) Disable("GL_NV_framebuffer_multisample_coverage");
+			if (!init_khr_debug()) Disable("GL_KHR_debug");
+			if (!init_arb_buffer_storage()) Disable("GL_ARB_buffer_storage");
+		}
 		return success;
 	}
 
@@ -1918,7 +1929,9 @@ namespace GLExtensions
 	{
 		if (!Supports("GL_ARB_buffer_storage"))
 			return true;
-		return GrabFunction(glBufferStorage)
-		    & GrabFunction(glNamedBufferStorageEXT);
+		bool res = GrabFunction(glBufferStorage);
+		if (Supports("GL_EXT_direct_state_access"))
+		     res &= GrabFunction(glNamedBufferStorageEXT);
+		return res;
 	}
 }
