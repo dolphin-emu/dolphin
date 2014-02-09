@@ -14,11 +14,13 @@ template class ForceFeedbackDevice::Force<DICONSTANTFORCE>;
 template class ForceFeedbackDevice::Force<DIRAMPFORCE>;
 template class ForceFeedbackDevice::Force<DIPERIODIC>;
 
-static const struct
+typedef struct
 {
 	GUID guid;
 	const char* name;
-} force_type_names[] =
+} ForceType;
+
+static const ForceType force_type_names[] =
 {
 	{GUID_ConstantForce, "Constant"},	// DICONSTANTFORCE
 	{GUID_RampForce, "Ramp"},			// DIRAMPFORCE
@@ -79,17 +81,16 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 	//ZeroMemory(&env, sizeof(env));
 	//env.dwSize = sizeof(env);
 
-	for (unsigned int f = 0; f < sizeof(force_type_names)/sizeof(*force_type_names); ++f)
+	for (const ForceType& f : force_type_names)
 	{
-		// ugly if ladder
-		if (0 == f)
+		if (f.guid == GUID_ConstantForce)
 		{
 			DICONSTANTFORCE  diCF = {-10000};
 			diCF.lMagnitude = DI_FFNOMINALMAX;
 			eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
 			eff.lpvTypeSpecificParams = &diCF;
 		}
-		else if (1 == f)
+		else if (f.guid == GUID_RampForce)
 		{
 			eff.cbTypeSpecificParams = sizeof(DIRAMPFORCE);
 		}
@@ -99,17 +100,16 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 		}
 
 		LPDIRECTINPUTEFFECT pEffect;
-		if (SUCCEEDED(device->CreateEffect(force_type_names[f].guid, &eff, &pEffect, NULL)))
+		if (SUCCEEDED(device->CreateEffect(f.guid, &eff, &pEffect, NULL)))
 		{
 			m_state_out.push_back(EffectState(pEffect));
 
-			// ugly if ladder again :/
-			if (0 == f)
-				AddOutput(new ForceConstant(f, m_state_out.back()));
-			else if (1 == f)
-				AddOutput(new ForceRamp(f, m_state_out.back()));
+			if (f.guid == GUID_ConstantForce)
+				AddOutput(new ForceConstant(f.name, m_state_out.back()));
+			else if (f.guid == GUID_RampForce)
+				AddOutput(new ForceRamp(f.name, m_state_out.back()));
 			else
-				AddOutput(new ForcePeriodic(f, m_state_out.back()));
+				AddOutput(new ForcePeriodic(f.name, m_state_out.back()));
 		}
 	}
 
@@ -214,8 +214,8 @@ void ForceFeedbackDevice::ForcePeriodic::SetState(const ControlState state)
 }
 
 template <typename P>
-ForceFeedbackDevice::Force<P>::Force(u8 index, EffectState& state)
-: m_index(index), m_state(state)
+ForceFeedbackDevice::Force<P>::Force(const char* name, EffectState& state)
+: m_name(name), m_state(state)
 {
 	memset(&params, 0, sizeof(params));
 }
@@ -223,7 +223,7 @@ ForceFeedbackDevice::Force<P>::Force(u8 index, EffectState& state)
 template <typename P>
 std::string ForceFeedbackDevice::Force<P>::GetName() const
 {
-	return force_type_names[m_index].name;
+	return m_name;
 }
 
 }

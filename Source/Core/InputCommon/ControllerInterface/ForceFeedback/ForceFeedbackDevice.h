@@ -42,10 +42,10 @@ private:
 	{
 	public:
 		std::string GetName() const;
-		Force(u8 index, EffectState& state);
+		Force(const char* name, EffectState& state);
 		void SetState(ControlState state);
 	private:
-		const u8 m_index;
+		const char* m_name;
 		EffectState& m_state;
 		P params;
 	};
