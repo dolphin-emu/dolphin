@@ -114,6 +114,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	const char *file, int line, const char *format, va_list args)
 {
 	char temp[MAX_MSGLEN];
+	char msg[MAX_MSGLEN * 2];
 	LogContainer *log = m_Log[type];
 
 	if (!log->IsEnabled() || level > log->GetLevel() || ! log->HasListeners())
@@ -121,15 +122,15 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 
 	CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
-	std::string msg = StringFromFormat("%s %s:%u %c[%s]: %s\n",
-	                                   Common::Timer::GetTimeFormatted().c_str(),
-	                                   file, line, 
-	                                   LogTypes::LOG_LEVEL_TO_CHAR[(int)level],
-	                                   log->GetShortName(), temp);
+	static const char level_to_char[7] = "-NEWID";
+	sprintf(msg, "%s %s:%u %c[%s]: %s\n",
+		Common::Timer::GetTimeFormatted().c_str(),
+		file, line, level_to_char[(int)level],
+		log->GetShortName(), temp);
 #ifdef ANDROID
-	Host_SysMessage(msg.c_str());
+	Host_SysMessage(msg);
 #endif
-	log->Trigger(level, msg.c_str());
+	log->Trigger(level, msg);
 }
 
 void LogManager::Init()

@@ -140,10 +140,6 @@ public:
 	void SetLines(const char* sectionName, const std::vector<std::string> &lines);
 	bool GetLines(const char* sectionName, std::vector<std::string>& lines, const bool remove_comments = true) const;
 
-	inline bool DeleteKey(const char* sectionName, const std::string& key)
-	{
-		return DeleteKey(sectionName, key.c_str());
-	}
 	bool DeleteKey(const char* sectionName, const char* key);
 	bool DeleteSection(const char* sectionName);
 

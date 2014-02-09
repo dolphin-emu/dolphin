@@ -151,7 +151,9 @@ void PrintDataBuffer(LogTypes::LOG_TYPE type, u8* _pData, size_t _Size, const ch
 		std::string Temp;
 		for (int i = 0; i < 16; i++)
 		{
-			Temp.append(StringFromFormat("%02x ", _pData[j++]));
+			char Buffer[128];
+			sprintf(Buffer, "%02x ", _pData[j++]);
+			Temp.append(Buffer);
 
 			if (j >= _Size)
 				break;

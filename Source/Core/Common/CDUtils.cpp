@@ -2,7 +2,6 @@
 
 #include "CDUtils.h"
 #include "Common.h"
-#include "StringUtil.h"
 
 #include <memory> // for std::unique_ptr
 #ifdef _WIN32
@@ -151,10 +150,10 @@ static struct
 	};
 
 // Returns true if a device is a block or char device and not a symbolic link
-bool is_device(const std::string& source_name)
+bool is_device(const char *source_name)
 {
 	struct stat buf;
-	if (0 != lstat(source_name.c_str(), &buf))
+	if (0 != lstat(source_name, &buf))
 		return false;
 
 	return ((S_ISBLK(buf.st_mode) || S_ISCHR(buf.st_mode)) &&
@@ -162,15 +161,17 @@ bool is_device(const std::string& source_name)
 }
 
 // Check a device to see if it is a DVD/CD-ROM drive
-static bool is_cdrom(const std::string& drive, char *mnttype)
+static bool is_cdrom(const char *drive, char *mnttype)
 {
+	bool is_cd=false;
+	int cdfd;
+
 	// Check if the device exists
 	if (!is_device(drive))
 		return(false);
 
-	bool is_cd=false;
 	// If it does exist, verify that it is a cdrom/dvd drive
-	int cdfd = open(drive.c_str(), (O_RDONLY|O_NONBLOCK), 0);
+	cdfd = open(drive, (O_RDONLY|O_NONBLOCK), 0);
 	if ( cdfd >= 0 )
 	{
 #ifdef __linux__
@@ -185,16 +186,21 @@ static bool is_cdrom(const std::string& drive, char *mnttype)
 // Returns a pointer to an array of strings with the device names
 std::vector<std::string> cdio_get_devices ()
 {
+	unsigned int i;
+	char drive[40];
 	std::vector<std::string> drives;
+
 	// Scan the system for DVD/CD-ROM drives.
-	for (unsigned int i = 0; checklist[i].format; ++i)
+	for ( i=0; checklist[i].format; ++i )
 	{
-		for (unsigned int j = checklist[i].num_min; j <= checklist[i].num_max; ++j)
+		unsigned int j;
+		for ( j=checklist[i].num_min; j<=checklist[i].num_max; ++j )
 		{
-			std::string drive = StringFromFormat(checklist[i].format, j);
-			if ( (is_cdrom(drive.c_str(), NULL)) > 0 )
+			sprintf(drive, checklist[i].format, j);
+			if ( (is_cdrom(drive, NULL)) > 0 )
 			{
-				drives.push_back(std::move(drive));
+				std::string str = drive;
+				drives.push_back(str);
 			}
 		}
 	}
@@ -216,5 +222,17 @@ bool cdio_is_cdrom(std::string device)
 #endif
 
 	std::vector<std::string> devices = cdio_get_devices();
-	return std::find(devices.begin(), devices.end(), device) != devices.end();;
+	bool res = false;
+	for (auto& odevice : devices)
+	{
+		if (strncmp(odevice.c_str(), device.c_str(), MAX_PATH) == 0)
+		{
+			res = true;
+			break;
+		}
+	}
+
+	devices.clear();
+	return res;
 }
+

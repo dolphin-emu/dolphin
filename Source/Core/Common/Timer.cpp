@@ -167,23 +167,27 @@ u64 Timer::GetLocalTimeSinceJan1970()
 std::string Timer::GetTimeFormatted()
 {
 	time_t sysTime;
-	time(&sysTime);
-	
-	struct tm * gmTime = localtime(&sysTime);
-
+	struct tm * gmTime;
+	char formattedTime[13];
 	char tmp[13];
+
+	time(&sysTime);
+	gmTime = localtime(&sysTime);
+
 	strftime(tmp, 6, "%M:%S", gmTime);
 
 	// Now tack on the milliseconds
 #ifdef _WIN32
 	struct timeb tp;
 	(void)::ftime(&tp);
-	return StringFromFormat("%s:%03i", tmp, tp.millitm);
+	sprintf(formattedTime, "%s:%03i", tmp, tp.millitm);
 #else
 	struct timeval t;
 	(void)gettimeofday(&t, NULL);
-	return StringFromFormat("%s:%03d", tmp, (int)(t.tv_usec / 1000));
+	sprintf(formattedTime, "%s:%03d", tmp, (int)(t.tv_usec / 1000));
 #endif
+
+	return std::string(formattedTime);
 }
 
 // Returns a timestamp with decimals for precise time comparisons

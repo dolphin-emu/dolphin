@@ -77,8 +77,6 @@ enum LOG_LEVELS
 	LDEBUG   = DEBUG_LEVEL,
 };
 
-static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
-
 #define LOGTYPES_LEVELS LogTypes::LOG_LEVELS
 #define LOGTYPES_TYPE LogTypes::LOG_TYPE
 

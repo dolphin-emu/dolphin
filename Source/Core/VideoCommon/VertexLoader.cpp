@@ -600,10 +600,9 @@ void VertexLoader::CompileVertexTranslator()
 
 		if (pFunc == 0)
 		{
-			Host_SysMessage(
-				StringFromFormat("VertexLoader_Normal::GetFunction(%i %i %i %i) returned zero!", 
-				m_VtxDesc.Normal, m_VtxAttr.NormalFormat, 
-				m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3).c_str());
+			char temp[256];
+			sprintf(temp,"%i %i %i %i", m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
+			Host_SysMessage("VertexLoader_Normal::GetFunction returned zero!");
 		}
 		WriteCall(pFunc);
 
