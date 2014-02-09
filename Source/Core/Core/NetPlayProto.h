@@ -23,12 +23,12 @@ extern NetSettings g_NetPlaySettings;
 
 struct Rpt : public std::vector<u8>
 {
-	u16		channel;
+	u16 channel;
 };
 
 typedef std::vector<u8> NetWiimote;
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2014-01-08"
+#define NETPLAY_VERSION  "Dolphin NetPlay 2014-01-08"
 
 const int NETPLAY_INITIAL_GCTIME = 1272737767;
 

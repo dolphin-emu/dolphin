@@ -59,9 +59,9 @@ namespace File
 struct FSTEntry
 {
 	bool isDirectory;
-	u64 size;						// file length or number of entries from children
-	std::string physicalName;		// name on disk
-	std::string virtualName;		// name in FST names table
+	u64 size;                 // File length or number of entries from children
+	std::string physicalName; // Name on disk
+	std::string virtualName;  // Name in FST names table
 	std::vector<FSTEntry> children;
 };
 

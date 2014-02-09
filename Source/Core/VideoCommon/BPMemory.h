@@ -353,17 +353,17 @@ struct TevStageCombiner
 		// if mid, sw, tw, and addprev are 0, then no indirect stage is used, mask = 0x17fe00
 		struct
 		{
-			u32 bt			: 2; // indirect tex stage ID
-			u32 fmt			: 2; // format: ITF_X
-			u32 bias		: 3; // ITB_X
-			u32 bs			: 2; // ITBA_X, indicates which coordinate will become the 'bump alpha'
-			u32 mid			: 4; // matrix id to multiply offsets with
-			u32 sw			: 3; // ITW_X, wrapping factor for S of regular coord
-			u32 tw			: 3; // ITW_X, wrapping factor for T of regular coord
-			u32 lb_utclod	: 1; // use modified or unmodified texture coordinates for LOD computation
-			u32 fb_addprev	: 1; // 1 if the texture coordinate results from the previous TEV stage should be added
-			u32 pad0		: 3;
-			u32 rid			: 8;
+			u32 bt          : 2; // Indirect tex stage ID
+			u32 fmt         : 2; // Format: ITF_X
+			u32 bias        : 3; // ITB_X
+			u32 bs          : 2; // ITBA_X, indicates which coordinate will become the 'bump alpha'
+			u32 mid         : 4; // Matrix ID to multiply offsets with
+			u32 sw          : 3; // ITW_X, wrapping factor for S of regular coord
+			u32 tw          : 3; // ITW_X, wrapping factor for T of regular coord
+			u32 lb_utclod   : 1; // Use modified or unmodified texture coordinates for LOD computation
+			u32 fb_addprev  : 1; // 1 if the texture coordinate results from the previous TEV stage should be added
+			u32 pad0        : 3;
+			u32 rid         : 8;
 		};
 		struct
 		{
@@ -378,7 +378,7 @@ struct TevStageCombiner
 	{
 		struct
 		{
-			u32 texmap0    : 3; // indirect tex stage texmap
+			u32 texmap0    : 3; // Indirect tex stage texmap
 			u32 texcoord0  : 3;
 			u32 enable0    : 1; // 1 if should read from texture
 			u32 colorchan0 : 3; // RAS1_CC_X
@@ -404,10 +404,10 @@ union TEXSCALE
 {
 	struct
 	{
-		u32 ss0 : 4; // indirect tex stage 0, 2^(-ss0)
-		u32 ts0 : 4; // indirect tex stage 0
-		u32 ss1 : 4; // indirect tex stage 1
-		u32 ts1 : 4; // indirect tex stage 1
+		u32 ss0 : 4; // Indirect tex stage 0, 2^(-ss0)
+		u32 ts0 : 4; // Indirect tex stage 0
+		u32 ss1 : 4; // Indirect tex stage 1
+		u32 ts1 : 4; // Indirect tex stage 1
 		u32 pad : 8;
 		u32 rid : 8;
 	};
@@ -421,8 +421,8 @@ union RAS1_IREF
 {
 	struct
 	{
-		u32 bi0 : 3; // indirect tex stage 0 ntexmap
-		u32 bc0 : 3; // indirect tex stage 0 ntexcoord
+		u32 bi0 : 3; // Indirect tex stage 0 ntexmap
+		u32 bc0 : 3; // Indirect tex stage 0 ntexcoord
 		u32 bi1 : 3;
 		u32 bc1 : 3;
 		u32 bi2 : 3;
@@ -444,15 +444,15 @@ union TexMode0
 {
 	struct
 	{
-		u32 wrap_s : 2;
-		u32 wrap_t : 2;
+		u32 wrap_s     : 2;
+		u32 wrap_t     : 2;
 		u32 mag_filter : 1;
 		u32 min_filter : 3;
-		u32 diag_lod : 1;
-		s32 lod_bias : 8;
-		u32 pad0 : 2;
-		u32 max_aniso : 2;
-		u32 lod_clamp : 1;
+		u32 diag_lod   : 1;
+		s32 lod_bias   : 8;
+		u32 pad0       : 2;
+		u32 max_aniso  : 2;
+		u32 lod_clamp  : 1;
 	};
 	u32 hex;
 };
@@ -469,8 +469,8 @@ union TexImage0
 {
 	struct
 	{
-		u32 width  : 10; //actually w-1
-		u32 height : 10; //actually h-1
+		u32 width  : 10; // Actually w-1
+		u32 height : 10; // Actually h-1
 		u32 format : 4;
 	};
 	u32 hex;
@@ -479,10 +479,10 @@ union TexImage1
 {
 	struct
 	{
-		u32 tmem_even : 15; // tmem line index for even LODs
-		u32 cache_width : 3;
+		u32 tmem_even    : 15; // TMEM line index for even LODs
+		u32 cache_width  : 3;
 		u32 cache_height : 3;
-		u32 image_type : 1; // 1 if this texture is managed manually (0 means we'll autofetch the texture data whenever it changes)
+		u32 image_type   : 1;  // 1 if this texture is managed manually (0 means we'll autofetch the texture data whenever it changes)
 	};
 	u32 hex;
 };
@@ -491,8 +491,8 @@ union TexImage2
 {
 	struct
 	{
-		u32 tmem_odd : 15; // tmem line index for odd LODs
-		u32 cache_width : 3;
+		u32 tmem_odd     : 15; // tmem line index for odd LODs
+		u32 cache_width  : 3;
 		u32 cache_height : 3;
 	};
 	u32 hex;
@@ -536,9 +536,9 @@ union ZTex2
 };
 
 //  Z-texture types (formats)
-#define TEV_ZTEX_TYPE_U8	0
-#define TEV_ZTEX_TYPE_U16	1
-#define TEV_ZTEX_TYPE_U24	2
+#define TEV_ZTEX_TYPE_U8  0
+#define TEV_ZTEX_TYPE_U16 1
+#define TEV_ZTEX_TYPE_U24 2
 
 #define TEV_ZTEX_DISABLE  0
 #define TEV_ZTEX_ADD      1
@@ -565,13 +565,13 @@ union GenMode
 {
 	struct
 	{
-		u32 numtexgens : 4;    //     0xF
-		u32 numcolchans : 5;   //   0x1E0
+		u32 numtexgens    : 4; //     0xF
+		u32 numcolchans   : 5; //   0x1E0
 		u32 multisampling : 1; //   0x200
-		u32 numtevstages : 4;  //  0x3C00
-		u32 cullmode : 2;      //  0xC000
-		u32 numindstages : 3;  // 0x30000
-		u32 zfreeze : 5;       //0x3C0000
+		u32 numtevstages  : 4; //  0x3C00
+		u32 cullmode      : 2; //  0xC000
+		u32 numindstages  : 3; // 0x30000
+		u32 zfreeze       : 5; //0x3C0000
 	};
 	u32 hex;
 };
@@ -580,12 +580,12 @@ union LPSize
 {
 	struct
 	{
-		u32 linesize : 8; // in 1/6th pixels
-		u32 pointsize : 8; // in 1/6th pixels
-		u32 lineoff : 3;
-		u32 pointoff : 3;
+		u32 linesize   : 8; // in 1/6th pixels
+		u32 pointsize  : 8; // in 1/6th pixels
+		u32 lineoff    : 3;
+		u32 pointoff   : 3;
 		u32 lineaspect : 1; // interlacing: adjust for pixels having AR of 1/2
-		u32 padding : 1;
+		u32 padding    : 1;
 	};
 	u32 hex;
 };
@@ -630,13 +630,13 @@ union BlendMode
 	{
 		u32 blendenable   : 1;
 		u32 logicopenable : 1;
-		u32 dither : 1;
-		u32 colorupdate : 1;
-		u32 alphaupdate : 1;
-		u32 dstfactor : 3; //BLEND_ONE, BLEND_INV_SRc etc
-		u32 srcfactor : 3;
-		u32 subtract : 1;
-		u32 logicmode : 4;
+		u32 dither        : 1;
+		u32 colorupdate   : 1;
+		u32 alphaupdate   : 1;
+		u32 dstfactor     : 3; //BLEND_ONE, BLEND_INV_SRc etc
+		u32 srcfactor     : 3;
+		u32 subtract      : 1;
+		u32 logicmode     : 4;
 	};
 	u32 hex;
 };
@@ -666,10 +666,10 @@ union FogParam3
 	struct
 	{
 		u32 c_mant : 11;
-		u32 c_exp : 8;
+		u32 c_exp  : 8;
 		u32 c_sign : 1;
-		u32 proj : 1; // 0 - perspective, 1 - orthographic
-		u32 fsel : 3; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
+		u32 proj   : 1; // 0 - perspective, 1 - orthographic
+		u32 fsel   : 3; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
 	};
 
 	// amount to subtract from eyespacez after range adjustment
@@ -703,10 +703,10 @@ struct FogRangeParams
 	{
 		struct
 		{
-			u32 Center : 10; // viewport center + 342
+			u32 Center  : 10; // viewport center + 342
 			u32 Enabled : 1;
-			u32 unused : 13;
-			u32 regid : 8;
+			u32 unused  : 13;
+			u32 regid   : 8;
 		};
 		u32 hex;
 	};
@@ -739,9 +739,9 @@ union ZMode
 {
 	struct
 	{
-		u32 testenable		: 1;
-		u32 func			: 3;
-		u32 updateenable	: 1;  //size?
+		u32 testenable   : 1;
+		u32 func         : 3;
+		u32 updateenable : 1;  //size?
 	};
 	u32 hex;
 };
@@ -776,34 +776,34 @@ union FieldMask
 	u32 hex;
 };
 
-#define PIXELFMT_RGB8_Z24 0
-#define PIXELFMT_RGBA6_Z24 1
+#define PIXELFMT_RGB8_Z24   0
+#define PIXELFMT_RGBA6_Z24  1
 #define PIXELFMT_RGB565_Z16 2
-#define PIXELFMT_Z24 3
-#define PIXELFMT_Y8 4
-#define PIXELFMT_U8 5
-#define PIXELFMT_V8 6
-#define PIXELFMT_YUV420 7
+#define PIXELFMT_Z24        3
+#define PIXELFMT_Y8         4
+#define PIXELFMT_U8         5
+#define PIXELFMT_V8         6
+#define PIXELFMT_YUV420     7
 
-#define ZC_LINEAR 0
-#define ZC_NEAR 1
-#define ZC_MID 2
-#define ZC_FAR 3
+#define ZC_LINEAR     0
+#define ZC_NEAR       1
+#define ZC_MID        2
+#define ZC_FAR        3
 // It seems these Z formats aren't supported/were removed ?
 #define ZC_INV_LINEAR 4
-#define ZC_INV_NEAR 5
-#define ZC_INV_MID 6
-#define ZC_INV_FAR 7
+#define ZC_INV_NEAR   5
+#define ZC_INV_MID    6
+#define ZC_INV_FAR    7
 
 union PE_CONTROL
 {
 	struct
 	{
-		u32 pixel_format : 3;	// PIXELFMT_X
-		u32 zformat : 3;		// Z Compression for 16bit Z format
-		u32 early_ztest : 1;	// 1: before tex stage
-		u32 unused : 17;
-		u32 rid : 8;
+		u32 pixel_format : 3; // PIXELFMT_X
+		u32 zformat      : 3; // Z Compression for 16bit Z format
+		u32 early_ztest  : 1; // 1: before tex stage
+		u32 unused       : 17;
+		u32 rid          : 8;
 	};
 
 	u32 hex;
@@ -816,12 +816,12 @@ union TCInfo
 {
 	struct
 	{
-		u32 scale_minus_1 : 16;
-		u32 range_bias : 1;
+		u32 scale_minus_1  : 16;
+		u32 range_bias     : 1;
 		u32 cylindric_wrap : 1;
 		// These bits only have effect in the s field of TCoordInfo
-		u32 line_offset : 1;
-		u32 point_offset : 1;
+		u32 line_offset    : 1;
+		u32 point_offset   : 1;
 	};
 	u32 hex;
 };
@@ -837,9 +837,9 @@ union ColReg
 	u32 hex;
 	struct
 	{
-		s32 a : 11;
-		u32 : 1;
-		s32 b : 11;
+		s32 a    : 11;
+		u32      : 1;
+		s32 b    : 11;
 		u32 type : 1;
 	};
 };
@@ -926,18 +926,18 @@ union UPE_Copy
 	u32 Hex;
 	struct
 	{
-		u32 clamp0				: 1; // if set clamp top
-		u32 clamp1				: 1; // if set clamp bottom
-		u32 yuv					: 1; // if set, color conversion from RGB to YUV
-		u32 target_pixel_format	: 4; // realformat is (fmt/2)+((fmt&1)*8).... for some reason the msb is the lsb (pattern: cycling right shift)
-		u32 gamma				: 2; // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
-		u32 half_scale			: 1; // "mipmap" filter... 0 = no filter (scale 1:1) ; 1 = box filter (scale 2:1)
-		u32 scale_invert		: 1; // if set vertical scaling is on
-		u32 clear				: 1;
-		u32 frame_to_field		: 2; // 0 progressive ; 1 is reserved ; 2 = interlaced (even lines) ; 3 = interlaced 1 (odd lines)
-		u32 copy_to_xfb			: 1;
-		u32 intensity_fmt		: 1; // if set, is an intensity format (I4,I8,IA4,IA8)
-		u32	auto_conv			: 1; // if 0 automatic color conversion by texture format and pixel type
+		u32 clamp0              : 1; // if set clamp top
+		u32 clamp1              : 1; // if set clamp bottom
+		u32 yuv                 : 1; // if set, color conversion from RGB to YUV
+		u32 target_pixel_format : 4; // realformat is (fmt/2)+((fmt&1)*8).... for some reason the msb is the lsb (pattern: cycling right shift)
+		u32 gamma               : 2; // gamma correction.. 0 = 1.0 ; 1 = 1.7 ; 2 = 2.2 ; 3 is reserved
+		u32 half_scale          : 1; // "mipmap" filter... 0 = no filter (scale 1:1) ; 1 = box filter (scale 2:1)
+		u32 scale_invert        : 1; // if set vertical scaling is on
+		u32 clear               : 1;
+		u32 frame_to_field      : 2; // 0 progressive ; 1 is reserved ; 2 = interlaced (even lines) ; 3 = interlaced 1 (odd lines)
+		u32 copy_to_xfb         : 1;
+		u32 intensity_fmt       : 1; // if set, is an intensity format (I4,I8,IA4,IA8)
+		u32 auto_conv           : 1; // if 0 automatic color conversion by texture format and pixel type
 	};
 	u32 tp_realFormat() {
 		return target_pixel_format / 2 + (target_pixel_format & 1) * 8;
@@ -1011,7 +1011,7 @@ struct BPMemory
 	u32 copyTexDest; //4b// 4b == CopyAddress (GXDispCopy and GXTexCopy use it)
 	u32 unknown6; //4c
 	u32 copyMipMapStrideChannels; // 4d usually set to 4 when dest is single channel, 8 when dest is 2 channel, 16 when dest is RGBA
-								// also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do with number of bytes to look at when smoothing
+	                              // also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do with number of bytes to look at when smoothing
 	u32 dispcopyyscale; //4e
 	u32 clearcolorAR; //4f
 	u32 clearcolorGB; //50

@@ -19,8 +19,8 @@ namespace OSD
 
 struct Message
 {
-    Message() {}
-    Message(const std::string& s, u32 ts) : str(s), timestamp(ts) {}
+	Message() {}
+	Message(const std::string& s, u32 ts) : str(s), timestamp(ts) {}
 
 	std::string str;
 	u32 timestamp;

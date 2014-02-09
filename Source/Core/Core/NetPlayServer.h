@@ -72,11 +72,11 @@ private:
 
 	bool            m_is_running;
 	bool            m_do_loop;
-	Common::Timer	m_ping_timer;
-	u32		m_ping_key;
+	Common::Timer   m_ping_timer;
+	u32             m_ping_key;
 	bool            m_update_pings;
-	u32		m_current_game;
-	unsigned int	m_target_buffer_size;
+	u32             m_current_game;
+	unsigned int    m_target_buffer_size;
 	PadMapping      m_pad_map[4];
 	PadMapping      m_wiimote_map[4];
 

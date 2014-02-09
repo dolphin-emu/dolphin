@@ -42,21 +42,21 @@ private:
 		// DO NOT obey the warning and give this struct a name. Things will fail.
 		struct
 		{
-		// Indentation Meaning:
-		//	Channels 0, 1, 2
-		//		Channels 0, 1 only
-		//			Channel 0 only
-			u32 EXIINTMASK		: 1;
-			u32 EXIINT			: 1;
-			u32 TCINTMASK		: 1;
-			u32 TCINT			: 1;
-			u32 CLK				: 3;
-			u32 CHIP_SELECT		: 3; // CS1 and CS2 are Channel 0 only
-				u32 EXTINTMASK	: 1;
-				u32 EXTINT		: 1;
-				u32 EXT			: 1; // External Insertion Status (1: External EXI device present)
-					u32 ROMDIS	: 1; // ROM Disable
-			u32					:18;
+			// Indentation Meaning:
+			// Channels 0, 1, 2
+			//  Channels 0, 1 only
+			//      Channel 0 only
+			u32 EXIINTMASK      : 1;
+			u32 EXIINT          : 1;
+			u32 TCINTMASK       : 1;
+			u32 TCINT           : 1;
+			u32 CLK             : 3;
+			u32 CHIP_SELECT     : 3; // CS1 and CS2 are Channel 0 only
+			    u32 EXTINTMASK  : 1;
+			    u32 EXTINT      : 1;
+			    u32 EXT         : 1; // External Insertion Status (1: External EXI device present)
+			        u32 ROMDIS  : 1; // ROM Disable
+			u32                 :18;
 		};
 		UEXI_STATUS() {Hex = 0;}
 		UEXI_STATUS(u32 _hex) {Hex = _hex;}
@@ -68,20 +68,20 @@ private:
 		u32 Hex;
 		struct
 		{
-			u32 TSTART		: 1;
-			u32 DMA			: 1;
-			u32 RW			: 2;
-			u32 TLEN		: 2;
-			u32				:26;
+			u32 TSTART : 1;
+			u32 DMA    : 1;
+			u32 RW     : 2;
+			u32 TLEN   : 2;
+			u32        :26;
 		};
 	};
 
 	// STATE_TO_SAVE
-	UEXI_STATUS		m_Status;
-	u32				m_DMAMemoryAddress;
-	u32				m_DMALength;
-	UEXI_CONTROL	m_Control;
-	u32				m_ImmData;
+	UEXI_STATUS  m_Status;
+	u32          m_DMAMemoryAddress;
+	u32          m_DMALength;
+	UEXI_CONTROL m_Control;
+	u32          m_ImmData;
 
 	// Devices
 	enum

@@ -147,9 +147,9 @@ struct WiiInAddr
 
 struct WiiSockAddr
 {
-    u8 len;
-    u8 family;
-    u8 data[6];
+	u8 len;
+	u8 family;
+	u8 data[6];
 };
 
 struct WiiSockAddrIn

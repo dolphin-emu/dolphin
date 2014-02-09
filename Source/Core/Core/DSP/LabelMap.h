@@ -24,7 +24,7 @@ class LabelMap
 	{
 		label_t(const std::string &lbl, s32 address, LabelType ltype) : name(lbl), addr(address), type(ltype) {}
 		std::string name;
-		s32	addr;
+		s32 addr;
 		LabelType type;
 	};
 	std::vector<label_t> labels;

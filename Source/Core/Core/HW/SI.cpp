@@ -59,10 +59,10 @@ union USIChannelOut
 	u32 Hex;
 	struct
 	{
-		u32 OUTPUT1	:	8;
-		u32 OUTPUT0	:	8;
-		u32 CMD		:	8;
-		u32			:	8;
+		u32 OUTPUT1 : 8;
+		u32 OUTPUT0 : 8;
+		u32 CMD     : 8;
+		u32         : 8;
 	};
 };
 
@@ -72,12 +72,12 @@ union USIChannelIn_Hi
 	u32 Hex;
 	struct
 	{
-		u32 INPUT3		:	8;
-		u32 INPUT2		:	8;
-		u32 INPUT1		:	8;
-		u32 INPUT0		:	6;
-		u32 ERRLATCH	:	1; // 0: no error  1: Error latched. Check SISR.
-		u32 ERRSTAT		:	1; // 0: no error  1: error on last transfer
+		u32 INPUT3   : 8;
+		u32 INPUT2   : 8;
+		u32 INPUT1   : 8;
+		u32 INPUT0   : 6;
+		u32 ERRLATCH : 1; // 0: no error  1: Error latched. Check SISR.
+		u32 ERRSTAT  : 1; // 0: no error  1: error on last transfer
 	};
 };
 
@@ -87,10 +87,10 @@ union USIChannelIn_Lo
 	u32 Hex;
 	struct
 	{
-		u32 INPUT7		:	8;
-		u32 INPUT6		:	8;
-		u32 INPUT5		:	8;
-		u32 INPUT4		:	8;
+		u32 INPUT7 : 8;
+		u32 INPUT6 : 8;
+		u32 INPUT5 : 8;
+		u32 INPUT4 : 8;
 	};
 };
 
@@ -109,17 +109,17 @@ union USIPoll
 	u32 Hex;
 	struct
 	{
-		u32 VBCPY3	:	1;  // 1: write to output buffer only on vblank
-		u32 VBCPY2	:	1;
-		u32 VBCPY1	:	1;
-		u32 VBCPY0	:	1;
-		u32 EN3		:	1;  // Enable polling of channel
-		u32 EN2		:	1;  //  does not affect communication RAM transfers
-		u32 EN1		:	1;
-		u32 EN0		:	1;
-		u32 Y		:	8;  // Polls per frame
-		u32 X		:	10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
-		u32			:	6;
+		u32 VBCPY3  : 1;  // 1: write to output buffer only on vblank
+		u32 VBCPY2  : 1;
+		u32 VBCPY1  : 1;
+		u32 VBCPY0  : 1;
+		u32 EN3     : 1;  // Enable polling of channel
+		u32 EN2     : 1;  //  does not affect communication RAM transfers
+		u32 EN1     : 1;
+		u32 EN0     : 1;
+		u32 Y       : 8;  // Polls per frame
+		u32 X       : 10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
+		u32         : 6;
 	};
 };
 
@@ -129,22 +129,22 @@ union USIComCSR
 	u32 Hex;
 	struct
 	{
-		u32 TSTART		:	1; // write: start transfer  read: transfer status
-		u32 CHANNEL		:	2; // determines which SI channel will be used on the communication interface.
-		u32				:	3;
-		u32 CALLBEN		:	1; // Callback enable
-		u32 CMDEN		:	1; // Command enable?
-		u32 INLNGTH		:	7;
-		u32				:	1;
-		u32 OUTLNGTH	:	7; // Communication Channel Output Length in bytes
-		u32				:	1;
-		u32 CHANEN		:	1; // Channel enable?
-		u32 CHANNUM		:	2; // Channel number?
-		u32 RDSTINTMSK	:	1; // Read Status Interrupt Status Mask
-		u32 RDSTINT		:	1; // Read Status Interrupt Status
-		u32 COMERR		:	1; // Communication Error (set 0)
-		u32 TCINTMSK	:	1; // Transfer Complete Interrupt Mask
-		u32 TCINT		:	1; // Transfer Complete Interrupt
+		u32 TSTART     : 1; // write: start transfer  read: transfer status
+		u32 CHANNEL    : 2; // determines which SI channel will be used on the communication interface.
+		u32            : 3;
+		u32 CALLBEN    : 1; // Callback enable
+		u32 CMDEN      : 1; // Command enable?
+		u32 INLNGTH    : 7;
+		u32            : 1;
+		u32 OUTLNGTH   : 7; // Communication Channel Output Length in bytes
+		u32            : 1;
+		u32 CHANEN     : 1; // Channel enable?
+		u32 CHANNUM    : 2; // Channel number?
+		u32 RDSTINTMSK : 1; // Read Status Interrupt Status Mask
+		u32 RDSTINT    : 1; // Read Status Interrupt Status
+		u32 COMERR     : 1; // Communication Error (set 0)
+		u32 TCINTMSK   : 1; // Transfer Complete Interrupt Mask
+		u32 TCINT      : 1; // Transfer Complete Interrupt
 	};
 	USIComCSR() {Hex = 0;}
 	USIComCSR(u32 _hex) {Hex = _hex;}
@@ -156,35 +156,35 @@ union USIStatusReg
 	u32 Hex;
 	struct
 	{
-		u32 UNRUN3	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		u32 OVRUN3	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		u32 COLL3	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		u32 NOREP3	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		u32 WRST3	:	1; // (R) 1: buffer channel0 not copied
-		u32 RDST3	:	1; // (R) 1: new Data available
-		u32			:	2; // 7:6
-		u32 UNRUN2	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		u32 OVRUN2	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		u32 COLL2	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		u32 NOREP2	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		u32 WRST2	:	1; // (R) 1: buffer channel0 not copied
-		u32 RDST2	:	1; // (R) 1: new Data available
-		u32			:	2; // 15:14
-		u32 UNRUN1	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		u32 OVRUN1	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		u32 COLL1	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		u32 NOREP1	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		u32 WRST1	:	1; // (R) 1: buffer channel0 not copied
-		u32 RDST1	:	1; // (R) 1: new Data available
-		u32			:	2; // 23:22
-		u32 UNRUN0	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		u32 OVRUN0	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		u32 COLL0	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		u32 NOREP0	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		u32 WRST0	:	1; // (R) 1: buffer channel0 not copied
-		u32 RDST0	:	1; // (R) 1: new Data available
-		u32			:	1;
-		u32 WR		:	1; // (RW) write 1 start copy, read 0 copy done
+		u32 UNRUN3  : 1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN3  : 1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL3   : 1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP3  : 1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST3   : 1; // (R) 1: buffer channel0 not copied
+		u32 RDST3   : 1; // (R) 1: new Data available
+		u32         : 2; // 7:6
+		u32 UNRUN2  : 1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN2  : 1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL2   : 1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP2  : 1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST2   : 1; // (R) 1: buffer channel0 not copied
+		u32 RDST2   : 1; // (R) 1: new Data available
+		u32         : 2; // 15:14
+		u32 UNRUN1  : 1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN1  : 1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL1   : 1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP1  : 1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST1   : 1; // (R) 1: buffer channel0 not copied
+		u32 RDST1   : 1; // (R) 1: new Data available
+		u32         : 2; // 23:22
+		u32 UNRUN0  : 1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN0  : 1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL0   : 1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP0  : 1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST0   : 1; // (R) 1: buffer channel0 not copied
+		u32 RDST0   : 1; // (R) 1: new Data available
+		u32         : 1;
+		u32 WR      : 1; // (RW) write 1 start copy, read 0 copy done
 	};
 	USIStatusReg() {Hex = 0;}
 	USIStatusReg(u32 _hex) {Hex = _hex;}
@@ -196,18 +196,18 @@ union USIEXIClockCount
 	u32 Hex;
 	struct
 	{
-		u32 LOCK	:	1; // 1: prevents CPU from setting EXI clock to 32MHz
-		u32			:	0;
+		u32 LOCK : 1; // 1: prevents CPU from setting EXI clock to 32MHz
+		u32      : 0;
 	};
 };
 
 // STATE_TO_SAVE
-static SSIChannel			g_Channel[MAX_SI_CHANNELS];
-static USIPoll				g_Poll;
-static USIComCSR			g_ComCSR;
-static USIStatusReg			g_StatusReg;
-static USIEXIClockCount		g_EXIClockCount;
-static u8					g_SIBuffer[128];
+static SSIChannel       g_Channel[MAX_SI_CHANNELS];
+static USIPoll          g_Poll;
+static USIComCSR        g_ComCSR;
+static USIStatusReg     g_StatusReg;
+static USIEXIClockCount g_EXIClockCount;
+static u8               g_SIBuffer[128];
 
 void DoState(PointerWrap &p)
 {

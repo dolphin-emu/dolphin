@@ -48,12 +48,12 @@ namespace SWCommandProcessor
 	{
 		struct
 		{
-			u16 OverflowHiWatermark	:	1;
-			u16 UnderflowLoWatermark:	1;
-			u16 ReadIdle			:	1; // done reading
-			u16 CommandIdle			:	1; // done processing commands
-			u16 Breakpoint			:	1;
-			u16						:	11;
+			u16 OverflowHiWatermark  : 1;
+			u16 UnderflowLoWatermark : 1;
+			u16 ReadIdle             : 1; // done reading
+			u16 CommandIdle          : 1; // done processing commands
+			u16 Breakpoint           : 1;
+			u16                      : 11;
 		};
 		u16 Hex;
 		UCPStatusReg() {Hex = 0; }
@@ -65,13 +65,13 @@ namespace SWCommandProcessor
 	{
 		struct
 		{
-			u16 GPReadEnable			:	1;
-			u16 BPEnable				:	1;
-			u16 FifoOverflowIntEnable	:	1;
-			u16 FifoUnderflowIntEnable	:	1;
-			u16 GPLinkEnable			:	1;
-			u16 BreakPointIntEnable		:	1;
-			u16							:	10;
+			u16 GPReadEnable           : 1;
+			u16 BPEnable               : 1;
+			u16 FifoOverflowIntEnable  : 1;
+			u16 FifoUnderflowIntEnable : 1;
+			u16 GPLinkEnable           : 1;
+			u16 BreakPointIntEnable    : 1;
+			u16                        : 10;
 		};
 		u16 Hex;
 		UCPCtrlReg() {Hex = 0; }
@@ -83,10 +83,10 @@ namespace SWCommandProcessor
 	{
 		struct
 		{
-			u16 ClearFifoOverflow		:	1;
-			u16 ClearFifoUnderflow		:	1;
-			u16 ClearMetrices			:	1;
-			u16							:	13;
+			u16 ClearFifoOverflow  : 1;
+			u16 ClearFifoUnderflow : 1;
+			u16 ClearMetrices      : 1;
+			u16                    : 13;
 		};
 		u16 Hex;
 		UCPClearReg() {Hex = 0; }

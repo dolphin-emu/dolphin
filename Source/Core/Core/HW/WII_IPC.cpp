@@ -47,14 +47,14 @@ enum
 
 struct CtrlRegister
 {
-	u8 X1	: 1;
-	u8 X2	: 1;
-	u8 Y1	: 1;
-	u8 Y2	: 1;
-	u8 IX1	: 1;
-	u8 IX2	: 1;
-	u8 IY1	: 1;
-	u8 IY2	: 1;
+	u8 X1  : 1;
+	u8 X2  : 1;
+	u8 Y1  : 1;
+	u8 Y2  : 1;
+	u8 IX1 : 1;
+	u8 IX2 : 1;
+	u8 IY1 : 1;
+	u8 IY2 : 1;
 
 	CtrlRegister() { X1 = X2 = Y1 = Y2 = IX1 = IX2 = IY1 = IY2 = 0; }
 

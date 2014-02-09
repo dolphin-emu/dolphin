@@ -50,60 +50,60 @@ private:
 	typedef struct
 	{
 		 u8 bLength;
-		 u8 bDescriptorType;
+		u8 bDescriptorType;
 		u16 bcdUSB;
-		 u8 bDeviceClass;
-		 u8 bDeviceSubClass;
-		 u8 bDeviceProtocol;
-		 u8 bMaxPacketSize0;
+		u8 bDeviceClass;
+		u8 bDeviceSubClass;
+		u8 bDeviceProtocol;
+		u8 bMaxPacketSize0;
 		u16 idVendor;
 		u16 idProduct;
 		u16 bcdDevice;
-		 u8 iManufacturer;
-		 u8 iProduct;
-		 u8 iSerialNumber;
-		 u8 bNumConfigurations;
-		 u8 pad[2];
+		u8 iManufacturer;
+		u8 iProduct;
+		u8 iSerialNumber;
+		u8 bNumConfigurations;
+		u8 pad[2];
 	} WiiHIDDeviceDescriptor;
 
 	typedef struct
 	{
-		 u8 bLength;
-		 u8 bDescriptorType;
+		u8 bLength;
+		u8 bDescriptorType;
 		u16 wTotalLength;
-		 u8 bNumInterfaces;
-		 u8 bConfigurationValue;
-		 u8 iConfiguration;
-		 u8 bmAttributes;
-		 u8 MaxPower;
-		 u8 pad[3];
+		u8 bNumInterfaces;
+		u8 bConfigurationValue;
+		u8 iConfiguration;
+		u8 bmAttributes;
+		u8 MaxPower;
+		u8 pad[3];
 	} WiiHIDConfigDescriptor;
 
 	typedef struct
 	{
-		 u8 bLength;
-		 u8 bDescriptorType;
-		 u8 bInterfaceNumber;
-		 u8 bAlternateSetting;
-		 u8 bNumEndpoints;
-		 u8 bInterfaceClass;
-		 u8 bInterfaceSubClass;
-		 u8 bInterfaceProtocol;
-		 u8 iInterface;
-		 u8 pad[3];
+		u8 bLength;
+		u8 bDescriptorType;
+		u8 bInterfaceNumber;
+		u8 bAlternateSetting;
+		u8 bNumEndpoints;
+		u8 bInterfaceClass;
+		u8 bInterfaceSubClass;
+		u8 bInterfaceProtocol;
+		u8 iInterface;
+		u8 pad[3];
 	} WiiHIDInterfaceDescriptor;
 
 	typedef struct
 	{
-		 u8 bLength;
-		 u8 bDescriptorType;
-		 u8 bEndpointAddress;
-		 u8 bmAttributes;
+		u8 bLength;
+		u8 bDescriptorType;
+		u8 bEndpointAddress;
+		u8 bmAttributes;
 		u16 wMaxPacketSize;
-		 u8 bInterval;
-		 u8 bRefresh;
-		 u8 bSynchAddress;
-		 u8 pad[1];
+		u8 bInterval;
+		u8 bRefresh;
+		u8 bSynchAddress;
+		u8 pad[1];
 	} WiiHIDEndpointDescriptor;
 
 	u32 deviceCommandAddress;

@@ -79,8 +79,8 @@ static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
 {
 	struct DspRomHashes
 	{
-		u32 hash_irom;		// dsp_rom.bin
-		u32 hash_drom;		// dsp_coef.bin
+		u32 hash_irom; // dsp_rom.bin
+		u32 hash_drom; // dsp_coef.bin
 	} KNOWN_ROMS[] = {
 		// Official Nintendo ROM
 		{ 0x66f334fe, 0xf3b93527 },

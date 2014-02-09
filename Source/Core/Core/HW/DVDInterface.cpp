@@ -67,14 +67,14 @@ union UDISR
 	u32 Hex;
 	struct
 	{
-		u32 BREAK			:  1;	// Stop the Device + Interrupt
-		u32 DEINITMASK		:  1;	// Access Device Error Int Mask
-		u32 DEINT			:  1;	// Access Device Error Int
-		u32 TCINTMASK		:  1;	// Transfer Complete Int Mask
-		u32 TCINT			:  1;	// Transfer Complete Int
-		u32 BRKINTMASK		:  1;
-		u32 BRKINT			:  1;	// w 1: clear brkint
-		u32					: 25;
+		u32 BREAK      :  1; // Stop the Device + Interrupt
+		u32 DEINITMASK :  1; // Access Device Error Int Mask
+		u32 DEINT      :  1; // Access Device Error Int
+		u32 TCINTMASK  :  1; // Transfer Complete Int Mask
+		u32 TCINT      :  1; // Transfer Complete Int
+		u32 BRKINTMASK :  1;
+		u32 BRKINT     :  1; // w 1: clear brkint
+		u32            : 25;
 	};
 	UDISR() {Hex = 0;}
 	UDISR(u32 _hex) {Hex = _hex;}
@@ -86,10 +86,10 @@ union UDICVR
 	u32 Hex;
 	struct
 	{
-		u32 CVR				:  1;	// 0: Cover closed	1: Cover open
-		u32 CVRINTMASK		:  1;	// 1: Interrupt enabled
-		u32 CVRINT			:  1;	// r 1: Interrupt requested w 1: Interrupt clear
-		u32					: 29;
+		u32 CVR        :  1; // 0: Cover closed	1: Cover open
+		u32 CVRINTMASK :  1; // 1: Interrupt enabled
+		u32 CVRINT     :  1; // r 1: Interrupt requested w 1: Interrupt clear
+		u32            : 29;
 	};
 	UDICVR() {Hex = 0;}
 	UDICVR(u32 _hex) {Hex = _hex;}
@@ -113,13 +113,13 @@ union UDIMAR
 	u32 Hex;
 	struct
 	{
-		u32 Zerobits	:	5; // Must be zero (32byte aligned)
-		u32				:	27;
+		u32 Zerobits : 5; // Must be zero (32byte aligned)
+		u32          : 27;
 	};
 	struct
 	{
-		u32 Address		:	26;
-		u32				:	6;
+		u32 Address : 26;
+		u32         : 6;
 	};
 };
 
@@ -129,13 +129,13 @@ union UDILENGTH
 	u32 Hex;
 	struct
 	{
-		u32 Zerobits	:	5; // Must be zero (32byte aligned)
-		u32				:	27;
+		u32 Zerobits : 5; // Must be zero (32byte aligned)
+		u32          : 27;
 	};
 	struct
 	{
-		u32 Length		:	26;
-		u32				:	6;
+		u32 Length : 26;
+		u32        : 6;
 	};
 };
 
@@ -145,10 +145,10 @@ union UDICR
 	u32 Hex;
 	struct
 	{
-		u32 TSTART		:	1;	// w:1 start   r:0 ready
-		u32 DMA			:	1;	// 1: DMA Mode    0: Immediate Mode (can only do Access Register Command)
-		u32 RW			:	1;	// 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
-		u32				:  29;
+		u32 TSTART : 1; // w:1 start   r:0 ready
+		u32 DMA    : 1; // 1: DMA Mode    0: Immediate Mode (can only do Access Register Command)
+		u32 RW     : 1; // 0: Read Command (DVD to Memory)  1: Write Command (Memory to DVD)
+		u32        : 29;
 	};
 };
 
@@ -170,8 +170,8 @@ union UDICFG
 	u32 Hex;
 	struct
 	{
-		u32 CONFIG		:	8;
-		u32				:  24;
+		u32 CONFIG : 8;
+		u32        : 24;
 	};
 	UDICFG() {Hex = 0;}
 	UDICFG(u32 _hex) {Hex = _hex;}
@@ -180,22 +180,22 @@ union UDICFG
 
 // STATE_TO_SAVE
 // hardware registers
-static UDISR		m_DISR;
-static UDICVR		m_DICVR;
-static UDICMDBUF	m_DICMDBUF[3];
-static UDIMAR		m_DIMAR;
-static UDILENGTH	m_DILENGTH;
-static UDICR		m_DICR;
-static UDIIMMBUF	m_DIIMMBUF;
-static UDICFG		m_DICFG;
+static UDISR     m_DISR;
+static UDICVR    m_DICVR;
+static UDICMDBUF m_DICMDBUF[3];
+static UDIMAR    m_DIMAR;
+static UDILENGTH m_DILENGTH;
+static UDICR     m_DICR;
+static UDIIMMBUF m_DIIMMBUF;
+static UDICFG    m_DICFG;
 
-static u32			LoopStart;
-static u32			AudioPos;
-static u32			CurrentStart;
-static u32			LoopLength;
-static u32			CurrentLength;
+static u32 LoopStart;
+static u32 AudioPos;
+static u32 CurrentStart;
+static u32 LoopLength;
+static u32 CurrentLength;
 
-u32	 g_ErrorCode = 0;
+u32  g_ErrorCode = 0;
 bool g_bDiscInside = false;
 bool g_bStream = false;
 int  tc = 0;

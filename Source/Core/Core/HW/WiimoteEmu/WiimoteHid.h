@@ -382,23 +382,23 @@ struct cc_trigger
 
 struct nu_cal
 {
-	wm_accel cal_zero;		// zero calibration
+	wm_accel cal_zero; // zero calibration
 	u8 pad1;
-	wm_accel cal_g;			// g size
+	wm_accel cal_g;    // g size
 	u8 pad2;
-	nu_js jx;				//
-	nu_js jy;				//
+	nu_js jx;
+	nu_js jy;
 	u8 sum[2];
 };
 
 struct cc_cal
 {
-	nu_js Lx;				//
-	nu_js Ly;				//
-	nu_js Rx;				//
-	nu_js Ry;				//
-	cc_trigger Tl;			//
-	cc_trigger Tr;			//
+	nu_js Lx;
+	nu_js Ly;
+	nu_js Rx;
+	nu_js Ry;
+	cc_trigger Tl;
+	cc_trigger Tr;
 };
 
 struct gh3_cal
