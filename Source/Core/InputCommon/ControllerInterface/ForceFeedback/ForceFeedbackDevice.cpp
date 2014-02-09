@@ -70,10 +70,11 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 	eff.rgdwAxes = rgdwAxes;
 	eff.rglDirection = rglDirection;
 
-	// DIPERIODIC is the largest, so we'll use that
-	DIPERIODIC ff;
-	eff.lpvTypeSpecificParams = &ff;
-	memset(&ff, 0, sizeof(ff));
+	// initialize parameters
+	DICONSTANTFORCE diCF = { -10000 };
+	diCF.lMagnitude = DI_FFNOMINALMAX;
+	DIRAMPFORCE diRF = { 0 };
+	DIPERIODIC diPE = { 0 };
 
 	// doesn't seem needed
 	//DIENVELOPE env;
@@ -85,18 +86,19 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 	{
 		if (f.guid == GUID_ConstantForce)
 		{
-			DICONSTANTFORCE  diCF = {-10000};
-			diCF.lMagnitude = DI_FFNOMINALMAX;
 			eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
 			eff.lpvTypeSpecificParams = &diCF;
 		}
 		else if (f.guid == GUID_RampForce)
 		{
 			eff.cbTypeSpecificParams = sizeof(DIRAMPFORCE);
+			eff.lpvTypeSpecificParams = &diRF;
 		}
 		else
 		{
+			// all other forces need periodic parameters
 			eff.cbTypeSpecificParams = sizeof(DIPERIODIC);
+			eff.lpvTypeSpecificParams = &diPE;
 		}
 
 		LPDIRECTINPUTEFFECT pEffect;
