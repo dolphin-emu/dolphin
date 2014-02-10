@@ -55,7 +55,7 @@ struct ConfigCache
 	unsigned int framelimit;
 	TEXIDevices m_EXIDevice[MAX_EXI_CHANNELS];
 	std::string strBackend, sBackend;
-	bool bSetFramelimit, bSetEXIDevice[MAX_EXI_CHANNELS], bSetUseFPS, bSetVolume, bSetPads[MAX_SI_CHANNELS], bSetWiimoteSource[MAX_BBMOTES];
+	bool bSetFramelimit, bSetEXIDevice[MAX_EXI_CHANNELS], bSetVolume, bSetPads[MAX_SI_CHANNELS], bSetWiimoteSource[MAX_BBMOTES];
 };
 static ConfigCache config_cache;
 
@@ -114,7 +114,6 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.Volume = SConfig::GetInstance().m_Volume;
 		config_cache.sBackend = SConfig::GetInstance().sBackend;
 		config_cache.framelimit = SConfig::GetInstance().m_Framelimit;
-		config_cache.bUseFPS = SConfig::GetInstance().b_UseFPS;
 		for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
 		{
 			config_cache.iWiimoteSource[i] = g_wiimote_sources[i];
@@ -150,8 +149,6 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "HLE_BS2",				&StartUp.bHLE_BS2, StartUp.bHLE_BS2);
 		if (game_ini.Get("Core", "FrameLimit",		&SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
 			config_cache.bSetFramelimit = true;
-		if (game_ini.Get("Core", "UseFPS",			&SConfig::GetInstance().b_UseFPS, SConfig::GetInstance().b_UseFPS))
-			config_cache.bSetUseFPS = true;
 		if (game_ini.Get("DSP", "Volume",			&SConfig::GetInstance().m_Volume, SConfig::GetInstance().m_Volume))
 			config_cache.bSetVolume = true;
 		game_ini.Get("DSP", "EnableJIT",			&SConfig::GetInstance().m_EnableJIT, SConfig::GetInstance().m_EnableJIT);
@@ -269,8 +266,6 @@ void Stop()
 		// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
 		if (config_cache.bSetFramelimit)
 			SConfig::GetInstance().m_Framelimit = config_cache.framelimit;
-		if (config_cache.bSetUseFPS)
-			SConfig::GetInstance().b_UseFPS = config_cache.bUseFPS;
 		if (config_cache.bSetVolume)
 			SConfig::GetInstance().m_Volume = config_cache.Volume;
 

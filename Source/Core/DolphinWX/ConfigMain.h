@@ -53,7 +53,6 @@ private:
 		ID_IDLESKIP,
 		ID_ENABLECHEATS,
 		ID_FRAMELIMIT,
-		ID_FRAMELIMIT_USEFPSFORLIMITING,
 
 		ID_CPUENGINE,
 		ID_DSPTHREAD,
@@ -123,7 +122,6 @@ private:
 	wxCheckBox* SkipIdle;
 	wxCheckBox* EnableCheats;
 	wxChoice* Framelimit;
-	wxCheckBox* UseFPSForLimiting;
 
 	// Advanced
 	wxRadioBox* CPUEngine;

@@ -613,30 +613,6 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 // This should only be called from VI
 void VideoThrottle()
 {
-	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 2) ?
-		(SConfig::GetInstance().m_Framelimit - 1) * 5 : VideoInterface::TargetRefreshRate;
-
-	if (Host_GetKeyState('\t'))
-		isTabPressed = true;
-	else
-		isTabPressed = false;
-
-	// Disable the frame-limiter when the throttle (Tab) key is held down. Audio throttle: m_Framelimit = 2
-	if (SConfig::GetInstance().m_Framelimit && SConfig::GetInstance().m_Framelimit != 2 && !Host_GetKeyState('\t'))
-	{
-		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
-
-		u32 timeDifference = (u32)Timer.GetTimeDifference();
-		if (timeDifference < frametime)
-		{
-			Common::SleepCurrentThread(frametime - timeDifference - 1);
-		}
-
-		while ((u32)Timer.GetTimeDifference() < frametime)
-			Common::YieldCPU();
-			//Common::SleepCurrentThread(1);
-	}
-
 	// Update info per second
 	u32 ElapseTime = (u32)Timer.GetTimeDifference();
 	if ((ElapseTime >= 1000 && DrawnVideo > 0) || g_requestRefreshInfo)
@@ -697,9 +673,9 @@ void UpdateTitle()
 	if (ElapseTime == 0)
 		ElapseTime = 1;
 
-	u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
-	u32 VPS = DrawnVideo * 1000 / ElapseTime;
-	u32 Speed = DrawnVideo * (100 * 1000) / (VideoInterface::TargetRefreshRate * ElapseTime);
+	float FPS = Common::AtomicLoad(DrawnFrame) * 1000.0 / ElapseTime;
+	float VPS = DrawnVideo * 1000.0 / ElapseTime;
+	float Speed = DrawnVideo * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime);
 
 	// Settings are shown the same for both extended and summary info
 	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC",
@@ -735,11 +711,11 @@ void UpdateTitle()
 	#else	// Summary information
 	std::string SFPS;
 	if (Movie::IsPlayingInput())
-		SFPS = StringFromFormat("VI: %u/%u - Frame: %u/%u - FPS: %u - VPS: %u - %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
+		SFPS = StringFromFormat("VI: %u/%u - Frame: %u/%u - FPS: %.0f - VPS: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames, (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS, VPS, Speed);
 	else if (Movie::IsRecordingInput())
-		SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %u - VPS: %u - %u%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
+		SFPS = StringFromFormat("VI: %u - Frame: %u - FPS: %.0f - VPS: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
 	else
-		SFPS = StringFromFormat("FPS: %u - VPS: %u - %u%%", FPS, VPS, Speed);
+		SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
 	#endif
 
 	// This is our final "frame counter" string
