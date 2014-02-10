@@ -6,14 +6,6 @@
 
 SWStatistics swstats;
 
-template <class T>
-void Xchg(T& a, T&b)
-{
-	T c = a;
-	a = b;
-	b = c;
-}
-
 SWStatistics::SWStatistics()
 {
 	frameCount = 0;
