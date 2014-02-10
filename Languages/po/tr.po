@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-05 00:00+0000\n"
-"PO-Revision-Date: 2014-02-02 08:24+0000\n"
-"Last-Translator: mustafacan <m.can.elmaci@gmail.com>\n"
+"PO-Revision-Date: 2014-02-05 08:16+0000\n"
+"Last-Translator: delroth <delroth@gmail.com>\n"
 "Language-Team: Turkish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/tr/)\n"
 "Language: tr\n"
@@ -158,35 +158,35 @@ msgstr "&& VE"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:303
 msgid "&About..."
-msgstr "H&akkında..."
+msgstr "&Hakkında..."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:100
 msgid "&Boot from DVD Drive..."
-msgstr "DVD sürücüden &başlat..."
+msgstr "DVD Sürücüden &Başlat..."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:235
 msgid "&Breakpoints"
-msgstr "Kesme noktaları (&B)"
+msgstr "&Kesme Noktaları"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:111
 msgid "&Browse for ISOs..."
-msgstr "Kalıplara Gözat... (&B)"
+msgstr "Kalıplara &Gözat... "
 
 #: Source/Core/DolphinWX/FrameTools.cpp:195
 msgid "&Cheats Manager"
-msgstr "Hile Yöneti&cisi"
+msgstr "&Hile Yöneticisi"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:179
 msgid "&DSP Settings"
-msgstr "Ses Ayarları (&D)"
+msgstr "&Ses Ayarları"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:867
 msgid "&Delete ISO..."
-msgstr "Kalıbı Sil... (&D)"
+msgstr "Kalıbı &Sil... "
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:888
 msgid "&Delete selected ISOs..."
-msgstr "Seçilen Kalıpları Sil... (&D)"
+msgstr "Seçilen Kalıpları &Sil... "
 
 #: Source/Core/DolphinWX/FrameTools.cpp:172
 msgid "&Emulation"
@@ -194,15 +194,15 @@ msgstr "&Emülasyon"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:114
 msgid "&File"
-msgstr "Dosya (&F)"
+msgstr "&Dosya"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:343
 msgid "&Frame Advance"
-msgstr "Gelişmiş Kareleme (&F)"
+msgstr "Gelişmiş &Kareleme"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:360
 msgid "&Fullscreen"
-msgstr "Tam Ekran (&F)"
+msgstr "&Tam Ekran"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:178
 msgid "&Graphics Settings"
@@ -210,11 +210,11 @@ msgstr "&Grafik Ayarları"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:304
 msgid "&Help"
-msgstr "Yardım (&H)"
+msgstr "&Yardım"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:182
 msgid "&Hotkey Settings"
-msgstr "Kısayol tuşu ayarları (&H)"
+msgstr "&Kısayol Ayarları"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:237
 msgid "&JIT"
@@ -222,51 +222,51 @@ msgstr "&JIT"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:149
 msgid "&Load State"
-msgstr "Durumu Yük&le"
+msgstr "Durumu &Yükle"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:192
 msgid "&Memcard Manager (GC)"
-msgstr "GC Hafıza Kartı Yönetici (&M)"
+msgstr "&Hafıza Kartı Yöneticisi (GC)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:236
 msgid "&Memory"
-msgstr "Hafıza (&M)"
+msgstr "&Hafıza "
 
 #: Source/Core/DolphinWX/FrameTools.cpp:321
 msgid "&Open..."
-msgstr "Aç...(&O)"
+msgstr "&Aç..."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:188
 msgid "&Options"
-msgstr "Seçenekler (&O)"
+msgstr "&Seçenekler"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:332
 msgid "&Pause"
-msgstr "Duraklat (&P)"
+msgstr "&Duraklat"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:334
 msgid "&Play"
-msgstr "Oynat (&P)"
+msgstr "&Oynat "
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:849
 msgid "&Properties"
-msgstr "Özellikler (&P)"
+msgstr "&Özellikler"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:356
 msgid "&Read-only mode"
-msgstr "Salt okunu&r mod"
+msgstr "&Salt-okunur mod"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:327
 msgid "&Refresh List"
-msgstr "Listeyi Yenile (&R)"
+msgstr "&Listeyi Yenile"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:234
 msgid "&Registers"
-msgstr "Kayıtla&r"
+msgstr "&Kayıtlar"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:340
 msgid "&Reset"
-msgstr "Sıfı&rla"
+msgstr "&Sıfırla"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:238
 msgid "&Sound"
@@ -274,19 +274,19 @@ msgstr "&Ses"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:337
 msgid "&Stop"
-msgstr "Durdur (&S)"
+msgstr "&Durdur"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:211
 msgid "&Tools"
-msgstr "Araçlar (&T)"
+msgstr "&Araçlar"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:239
 msgid "&Video"
-msgstr "Görüntü (&V)"
+msgstr "&Görüntü"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:288
 msgid "&View"
-msgstr "Görünüm (&V)"
+msgstr "&Görünüm"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:181
 msgid "&Wiimote Settings"
@@ -755,7 +755,7 @@ msgstr "Arm JITIL (deneysel)"
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:283
 #: Source/Core/DolphinWX/ConfigMain.cpp:781
 msgid "Aspect Ratio:"
-msgstr "En-boy Oranı:"
+msgstr "En-Boy Oranı:"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:58
 msgid "At least one pane must remain open."
@@ -1166,7 +1166,7 @@ msgstr "Kapat"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:176
 msgid "Co&nfigure..."
-msgstr "Yapıla&ndır"
+msgstr "Yapıla&ndırma"
 
 #: Source/Core/DolphinWX/CheatsWindow.cpp:62
 msgid "Code Info"
@@ -1251,23 +1251,23 @@ msgstr "USB Klavye Bağla"
 #: Source/Core/DolphinWX/FrameTools.cpp:373
 #, c-format
 msgid "Connect Wiimote %i"
-msgstr "Wiimote'u Bağla : %i"
+msgstr "%i. Wiimote'u Bağla"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:204
 msgid "Connect Wiimote 1"
-msgstr "Wiimote 1'i Bağla"
+msgstr "1. Wiimote'u Bağla"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:205
 msgid "Connect Wiimote 2"
-msgstr "Wiimote 2'yi Bağla"
+msgstr "2. Wiimote'u Bağla"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:206
 msgid "Connect Wiimote 3"
-msgstr "Wiimote 3'ü Bağla"
+msgstr "3. Wiimote'u Bağla"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:207
 msgid "Connect Wiimote 4"
-msgstr "Wiimote 4'ü Bağla"
+msgstr "4. Wiimote'u Bağla"
 
 #: Source/Core/DolphinWX/Main.cpp:671
 msgid "Connecting..."
@@ -1905,7 +1905,7 @@ msgstr "Flemenkçe"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:113
 msgid "E&xit"
-msgstr "Çıkış (&x)"
+msgstr "&Çıkış "
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:439
 msgid "EFB Copies"
@@ -2740,7 +2740,7 @@ msgstr "Çerçeve Aralığı"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:139
 msgid "Frame S&kipping"
-msgstr "Çerçeve Atlama(&K)"
+msgstr "Çerçeve &Atlama"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:559
 msgid "Framelimit:"
@@ -2823,7 +2823,7 @@ msgstr "GameCube"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:180
 msgid "Gamecube &Pad Settings"
-msgstr "Gamecube Kolu Ayarları (&P)"
+msgstr "Gamecube &Kolu Ayarları"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:1063
 #: Source/Core/DolphinWX/MemcardManager.cpp:205
@@ -2998,7 +2998,7 @@ msgstr "Kısayol Tuşu Yapılandırması"
 #: Source/Core/DolphinWX/ConfigMain.cpp:581
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:308
 msgid "Hotkeys"
-msgstr "Tuşlar"
+msgstr "Kısayol Tuşları"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:303
 msgid "Hungarian"
@@ -4006,7 +4006,7 @@ msgstr "OSD Mesajları"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:300
 msgid "Online &Documentation"
-msgstr "Çevrimiçi Belgeler (&D)"
+msgstr "Çevrimiçi &Belgeler"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:423
 #, c-format
@@ -4020,7 +4020,7 @@ msgstr "Aç"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:858
 msgid "Open &containing folder"
-msgstr "Dosya konumunu aç (&C)"
+msgstr "Dosya &konumunu aç"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:855
 msgid "Open Wii &save folder"
@@ -4094,7 +4094,7 @@ msgstr "Çıkış"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:350
 msgid "P&lay Recording..."
-msgstr "Çekimi Oynat... (&L)"
+msgstr "Çekimi O&ynat..."
 
 #: Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
@@ -4471,7 +4471,7 @@ msgstr "Rusça"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:150
 msgid "Sa&ve State"
-msgstr "Durumu Kaydet (&V)"
+msgstr "&Durumu Kaydet"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:473
 msgid "Safe"
@@ -4759,7 +4759,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:859
 msgid "Set as &default ISO"
-msgstr "Varsayılan Kalıp Olarak Ayarla (&D)"
+msgstr "&Varsayılan Kalıp Olarak Ayarla"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:802
 #, c-format
@@ -4801,11 +4801,11 @@ msgstr "Omuz Düğmeleri"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:221
 msgid "Show &Console"
-msgstr "Konsolu Göster (&C)"
+msgstr "&Konsolu Göster"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:219
 msgid "Show &Log"
-msgstr "Geçmişi Göster (&L)"
+msgstr "&Geçmişi Göster"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:216
 msgid "Show &Statusbar"
@@ -4861,7 +4861,7 @@ msgstr "Gösterme Dili:"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:220
 msgid "Show Log &Configuration"
-msgstr "Geçmiş Yapılandırmasını Göster (&C)"
+msgstr "Geçmiş &Yapılandırmasını Göster"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:270
 msgid "Show PAL"
@@ -5115,7 +5115,7 @@ msgstr "&NetPlay'i Başlat"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:347
 msgid "Start Re&cording"
-msgstr "Çekimi Başlat (&C)"
+msgstr "Çekimi B&aşlat"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:195
 msgid "Start Recording"
@@ -6115,19 +6115,3 @@ msgstr "zNear Düzeltmesi:"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:531
 msgid "| OR"
 msgstr "| VEYA"
-
-#~ msgid "Cache Display Lists"
-#~ msgstr "Görüntü Listelerini Önbellekle"
-
-#~ msgid ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Speeds up emulation a bit by caching display lists.\n"
-#~ "Possibly causes issues though.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "[DENEME AMAÇLI]\n"
-#~ "Görüntü listelerini önbelleğe alarak emülasyonu biraz hızlandırır. \n"
-#~ "Bazı hatalara neden olabilir. \n"
-#~ "\n"
-#~ "Emin değilseniz, işaretsiz bırakın."

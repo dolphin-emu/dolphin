@@ -11,13 +11,14 @@
 # M T <michtrz@gmail.com>, 2013-2014
 # no_cluez <neobrainx@gmail.com>, 2013
 # Shinrai, 2013
+# Tilka <tilkax@gmail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-05 00:00+0000\n"
-"PO-Revision-Date: 2014-02-02 16:03+0000\n"
-"Last-Translator: M T <michtrz@gmail.com>\n"
+"PO-Revision-Date: 2014-02-08 20:05+0000\n"
+"Last-Translator: Tilka <tilkax@gmail.com>\n"
 "Language-Team: German (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/de/)\n"
 "Language: de\n"
@@ -757,7 +758,7 @@ msgstr "ARM JIT (Experimentell)"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:46
 msgid "Arm JITIL (experimental)"
-msgstr "Arm JITIL (experimental)"
+msgstr "Arm JITIL (experimentell)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:283
 #: Source/Core/DolphinWX/ConfigMain.cpp:781

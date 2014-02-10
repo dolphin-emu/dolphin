@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-05 00:00+0000\n"
-"PO-Revision-Date: 2014-02-02 13:31+0000\n"
+"PO-Revision-Date: 2014-02-05 11:06+0000\n"
 "Last-Translator: DolphinPhoenix <anton_r_3@hotmail.com>\n"
 "Language-Team: Swedish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/sv/)\n"
@@ -150,7 +150,7 @@ msgstr "%sImportera GCI%s"
 #: Source/Core/DolphinWX/MemcardManager.cpp:763
 #, c-format
 msgid "%u Free Blocks; %u Free Dir Entries"
-msgstr "%uFria block; %u fria mappingångar"
+msgstr "%u Fria block; %u fria filkatalogsingångar"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:544
 msgid "&& AND"
@@ -262,7 +262,7 @@ msgstr "&Uppdatera lista"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:234
 msgid "&Registers"
-msgstr "&Listor"
+msgstr "&Register"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:340
 msgid "&Reset"
@@ -318,7 +318,7 @@ msgstr "(av)"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:545
 msgid "+ ADD"
-msgstr "+ ADDERA"
+msgstr "+ PLUS"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:663
 msgid "0x44"
@@ -638,7 +638,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:780
 msgid "Adjust the analog control pressure required to activate buttons."
-msgstr "Justerar analoga kontrolltrycket som krävs för att aktivera knappar."
+msgstr ""
+"Justerar trycket som krävs för att aktivera knappar på analoga kontroller."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:514
 msgid "Advanced"
@@ -851,7 +852,7 @@ msgstr "Banner:"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:61
 msgid "Bar"
-msgstr "Takt"
+msgstr "Svajarm"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:314
 msgid "Basic"
@@ -1124,12 +1125,12 @@ msgid ""
 "directories only)"
 msgstr ""
 "Välj fil som ska användas som apploader: (gäller endast skivor som är "
-"tillverkade från mappar)"
+"tillverkade från filkataloger)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:828
 #: Source/Core/DolphinWX/ISOProperties.cpp:869
 msgid "Choose the folder to extract to"
-msgstr "Välj mappen att extrahera till"
+msgstr "Välj filkatalogen att extrahera till"
 
 #: Source/Core/InputCommon/ControllerEmu.cpp:201
 msgid "Circle Stick"
@@ -1780,7 +1781,7 @@ msgstr "Dolphin FIFO"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1210
 msgid "Dolphin GCPad Configuration"
-msgstr "Dolphin GC-kontrollskonfiguration"
+msgstr "Dolphin konfiguration för GameCube-kontroller"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:726
 #: Source/Core/DolphinWX/FrameTools.cpp:1145
@@ -1987,7 +1988,7 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
-"Emulerar XFB med hjälp av grafikprocessors texturobjekt.\n"
+"Emulerar XFB med hjälp av grafikprocessorns texturobjekt.\n"
 "Fixar många spel som inte fungerar utan XFB-emulering medan den inte är lika "
 "långsam som en riktig XFB-emulering. Men den kan fortfarande misslyckas för "
 "många andra spel (speciellt hemmagjorda applikationer).\n"
@@ -3059,7 +3060,7 @@ msgstr "ISO-detaljer"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:822
 msgid "ISO Directories"
-msgstr "ISO-filmapp"
+msgstr "ISO-filkataloger"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:158
 msgid "ITALY"
@@ -3266,7 +3267,7 @@ msgstr "Ogiltigt värde!"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:449
 msgid "Invalid bat.map or dir entry"
-msgstr "Ogiltig bat.map eller mappingång"
+msgstr "Ogiltig bat.map eller filkatalogsingång"
 
 #: Source/Core/Core/CoreTiming.cpp:466
 #, c-format
@@ -3917,7 +3918,7 @@ msgstr "Ingen fil lästes in"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:426
 msgid "No free dir index entries"
-msgstr "Inga fria ingångar till mappindex"
+msgstr "Inga fria ingångar till filkatalogindex"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:907
 msgid "No recorded file"
@@ -4061,7 +4062,7 @@ msgid ""
 "Opens the default (read-only) configuration for this game in an external "
 "text editor."
 msgstr ""
-"Öppnar standardkonfigurationen (skrivskyddat) för detta spel i en extern "
+"Öppnar standardkonfigurationen (skrivskyddad) för detta spel i en extern "
 "textredigerare."
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:81
@@ -4079,7 +4080,7 @@ msgid ""
 "Right click and export all of the saves,\n"
 "and import the saves to a new memcard\n"
 msgstr ""
-"Filsorteringen i filmappen stämmer inte överens med blocksorteringen\n"
+"Filsorteringen i filkatalogen stämmer inte överens med blocksorteringen\n"
 "Högerklicka och exportera alla sparningar,\n"
 "och importera alla sparningar till ett nytt minneskort\n"
 
@@ -4719,7 +4720,7 @@ msgid ""
 "If unsure, use OpenGL."
 msgstr ""
 "Väljer vilket grafik-API som ska användas internt.\n"
-"Programvarurenderaren används bara för att leta buggar. Om du inte har en "
+"Programvarurenderaren används bara för att felsöka, så om du inte har en "
 "anledning att använda den bör du välja OpenGL här.\n"
 "\n"
 "Om du är osäker kan du använda OpenGL."
@@ -4736,7 +4737,7 @@ msgid ""
 "If unsure, use OpenGL."
 msgstr ""
 "Väljer vilket grafik-API som ska användas internt.\n"
-"Programvarurenderaren används bara för att hitta buggar, så du vill antingen "
+"Programvarurenderaren används bara för att felsöka, så du vill antingen "
 "använda Direct3D eller OpenGL. Olika spel kommer att bete sig annorlunda på "
 "varje backend, så för den bästa emuleringsupplevelsen rekommenderas det att "
 "prova båda och välja den som passar dina systemkrav bäst.\n"
@@ -4983,7 +4984,7 @@ msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:316
 msgid "Sideways Wiimote"
-msgstr "Vertikal Wiimote"
+msgstr "Liggande Wiimote"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:516
 #: Source/Core/DolphinWX/ConfigMain.cpp:284
@@ -5052,9 +5053,9 @@ msgid ""
 "It's only useful for debugging purposes.\n"
 "Do you really want to enable software rendering? If unsure, select 'No'."
 msgstr ""
-"Programvarurendering är storleksordning längsammare jämfört med att använda "
+"Programvarurendering är storleksordning långsammare jämfört med att använda "
 "andra backends.\n"
-"Den är endast användbar för avlusningssyften.\n"
+"Den är endast användbar för felsökningssyften.\n"
 "Vill du verkligen aktivera programvarurendering? Om du är osäker kan du "
 "välja 'Nej'."
 
@@ -5644,7 +5645,7 @@ msgstr "Uppdatera"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:317
 msgid "Upright Wiimote"
-msgstr "Upprätt Wiimote"
+msgstr "Stående Wiimote"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:769
 msgid "Use EuRGB60 Mode (PAL60)"
@@ -5973,7 +5974,7 @@ msgstr "Skriv till kommandotolk"
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:54
 msgid "Write to Debugger"
-msgstr "Skriv till debuggaren"
+msgstr "Skriv till felsökare"
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 msgid "Write to File"
@@ -6138,7 +6139,7 @@ msgid "| OR"
 msgstr "| ELLER"
 
 #~ msgid "Cache Display Lists"
-#~ msgstr "Cachelagra visningslistor"
+#~ msgstr "Cachevisningslista"
 
 #~ msgid ""
 #~ "[EXPERIMENTAL]\n"
@@ -6148,7 +6149,7 @@ msgstr "| ELLER"
 #~ "If unsure, leave this unchecked."
 #~ msgstr ""
 #~ "[EXPERIMENTELL]\n"
-#~ "Snabbar upp emulatorn lite grann genom att cachelagra visningslistor.\n"
+#~ "Snabbar upp emulatorn lite grann genom att cachelagra visningslistan.\n"
 #~ "Kan möjligtvis orsaka fel.\n"
 #~ "\n"
 #~ "Om du är osäker kan du lämna detta omarkerat."

@@ -11,8 +11,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-05 00:00+0000\n"
-"PO-Revision-Date: 2014-02-02 08:16+0000\n"
-"Last-Translator: delroth <delroth@gmail.com>\n"
+"PO-Revision-Date: 2014-02-09 19:44+0000\n"
+"Last-Translator: Lioncash <mathew1800@gmail.com>\n"
 "Language-Team: Japanese (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ja/)\n"
 "Language: ja\n"
@@ -29,7 +29,7 @@ msgstr "(該当数が多すぎます)"
 #: Source/Core/DolphinWX/NetWindow.cpp:528
 #: Source/Core/DolphinWX/NetWindow.cpp:565
 msgid " Game : "
-msgstr "タイトル："
+msgstr "ゲーム："
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:528
 msgid "! NOT"
@@ -231,7 +231,7 @@ msgstr "GCメモリーカードマネージャ(&M)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:236
 msgid "&Memory"
-msgstr "&Memory"
+msgstr "メモリ(&M)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:321
 msgid "&Open..."
@@ -315,7 +315,7 @@ msgstr "(不明)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:382
 msgid "(off)"
-msgstr "オフ"
+msgstr "(オフ)"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:545
 msgid "+ ADD"
@@ -351,7 +351,7 @@ msgstr "32 ビット"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:410
 msgid "3D Vision"
-msgstr "3D Vision"
+msgstr "3Dビジョン"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:345
 msgid "3x Native (1920x1584)"
@@ -367,19 +367,19 @@ msgstr "8 ビット"
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:30
 msgid "<Insert name here>"
-msgstr "コード名を入力してください"
+msgstr "＜コード名を入力してください＞"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:260
 msgid "<No resolutions found>"
-msgstr "<対応できる解像度が見つかりません>"
+msgstr "＜対応できる解像度が見つかりません＞"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:87
 msgid "<Nothing>"
-msgstr "なし"
+msgstr "＜なし＞"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:170
 msgid "<Press Key>"
-msgstr "入力を待機..."
+msgstr "＜入力を待機...＞"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:290
 msgid "<System>"
@@ -701,7 +701,7 @@ msgstr "Apploader ファイルから読み込むことができません"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:833
 msgid "Apploader:"
-msgstr "Apploader"
+msgstr "Apploader:"
 
 #: Source/Core/DolphinWX/CheatsWindow.cpp:111
 msgid "Apply"
@@ -766,7 +766,7 @@ msgstr "出力API (Audio Backend)"
 
 #: Source/Core/AudioCommon/AOSoundStream.cpp:28
 msgid "AudioCommon: Error opening AO device.\n"
-msgstr "AudioCommon: Error opening AO device.\n"
+msgstr "AudioCommon: エラー開AOデバイス\n"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:281
 #: Source/Core/DolphinWX/ConfigMain.cpp:248
@@ -801,7 +801,7 @@ msgstr "B"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:765
 msgid "BP register "
-msgstr "BP register "
+msgstr "BPレジスタ "
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:14
 msgid "Back"
@@ -864,7 +864,7 @@ msgstr "バスドラ"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:142
 msgid "Block Allocation Table checksum failed"
-msgstr "Block Allocation Table checksum failed"
+msgstr "ブロック·アロケーション·テーブルのチェックサムが失敗しました。 "
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:625
 msgid "Blocks"
@@ -945,7 +945,7 @@ msgstr "C-スティック"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:774
 msgid "CP reg"
-msgstr "CP reg"
+msgstr "CPレジスター"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:554
 msgid "CPU Emulator Engine"
@@ -1298,7 +1298,7 @@ msgstr "コア"
 #: Source/Core/AudioCommon/AudioCommon.cpp:76
 #, c-format
 msgid "Could not initialize backend %s."
-msgstr "Could not initialize backend %s."
+msgstr "バックエンド%sは初期化に失敗しました。"
 
 #: Source/Core/Core/CoreParameter.cpp:141
 #, c-format
@@ -1492,7 +1492,7 @@ msgstr "Datel MaxDrive/Pro セーブファイル(*.sav)"
 #: Source/Core/InputCommon/ControllerEmu.cpp:185
 #: Source/Core/InputCommon/ControllerEmu.cpp:200
 msgid "Dead Zone"
-msgstr "'遊び'の調整"
+msgstr "'遊びの調整"
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:35
 msgid "Debug"
@@ -1603,7 +1603,7 @@ msgstr "Disable Destination Alpha"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:407
 msgid "Disable Fog"
-msgstr "Disable Fog"
+msgstr "霧を無効"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:108
 msgid ""
@@ -1764,7 +1764,7 @@ msgstr "Dolphinの設定"
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:208
 msgid "Dolphin Emulated Wiimote Configuration"
-msgstr "Wii リモコンのエミュレーション設定"
+msgstr "Wiiリモコンのエミュレーション設定"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:382
 msgid "Dolphin FIFO"
@@ -2029,7 +2029,7 @@ msgstr "Enable Bounding Box Calculation"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:444
 msgid "Enable Cache"
-msgstr "Enable Cache"
+msgstr "キャッシュを有効化"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:549
 msgid "Enable Cheats"
@@ -2037,7 +2037,7 @@ msgstr "チートコードを有効化"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:343
 msgid "Enable Dual Core"
-msgstr "Enable Dual Core"
+msgstr "デュアルコアを有効化"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:547
 msgid "Enable Dual Core (speedup)"
@@ -2045,7 +2045,7 @@ msgstr "デュアルコア動作を行う (速度向上)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:344
 msgid "Enable Idle Skipping"
-msgstr "Enable Idle Skipping"
+msgstr "アイドルスキップを有効化"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:548
 msgid "Enable Idle Skipping (speedup)"
@@ -2053,7 +2053,7 @@ msgstr "アイドルスキップ処理を行う (速度向上)"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:345
 msgid "Enable MMU"
-msgstr "Enable MMU"
+msgstr "MMUを有効化"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
 msgid "Enable Progressive Scan"
@@ -2069,11 +2069,11 @@ msgstr "スピーカー出力の有効化"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:361
 msgid "Enable WideScreen"
-msgstr "Enable WideScreen"
+msgstr "ワイドスクリーンを有効化"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:521
 msgid "Enable Wireframe"
-msgstr "ワイヤーフレーム有効化"
+msgstr "ワイヤーフレームを有効化"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:85
 msgid ""
@@ -2252,7 +2252,7 @@ msgstr "Execute"
 #: Source/Core/DolphinWX/FrameTools.cpp:366
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:202
 msgid "Exit"
-msgstr "Dolphin を終了"
+msgstr "Dolphinを終了"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:194
 msgid "Export All Wii Saves"
@@ -2378,7 +2378,7 @@ msgstr "コードの取得に失敗しました"
 #: Source/Core/DolphinWX/ISOProperties.cpp:907
 #, c-format
 msgid "Failed to extract to %s!"
-msgstr "%s への抽出に失敗"
+msgstr "%sへの抽出に失敗"
 
 #: Source/Core/DolphinWX/NetWindow.cpp:261
 msgid "Failed to listen.  Is another instance of the NetPlay server running?"
@@ -2430,7 +2430,7 @@ msgstr "Failed to read %s"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:191
 msgid "Failed to read banner.bin"
-msgstr "Failed to read banner.bin"
+msgstr "banner.bin読み取ることができません。"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:228
 msgid "Failed to read bk header"
@@ -2449,7 +2449,7 @@ msgid ""
 "Failed to read block allocation table backup correctly\n"
 "(0x8000-0x9FFF)"
 msgstr ""
-"Failed to read block allocation table backup correctly\n"
+"ブロック·アロケーション·テーブルのバックアップを読み取りできません\n"
 "(0x8000-0x9FFF)"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:98
@@ -2457,13 +2457,13 @@ msgid ""
 "Failed to read block allocation table correctly\n"
 "(0x6000-0x7FFF)"
 msgstr ""
-"Failed to read block allocation table correctly\n"
+"ブロック·アロケーション·テーブルの読み込みに失敗しました\n"
 "(0x6000-0x7FFF)"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:330
 #, c-format
 msgid "Failed to read data from file %d"
-msgstr "Failed to read data from file %d"
+msgstr "ファイル%dからデータを読み取ることができません。"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:422
 #, c-format
@@ -2483,7 +2483,7 @@ msgid ""
 "Failed to read directory correctly\n"
 "(0x2000-0x3FFF)"
 msgstr ""
-"Failed to read directory correctly\n"
+"ディレクトリの読み込みに失敗しました\n"
 "(0x2000-0x3FFF)"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:132
@@ -2513,7 +2513,7 @@ msgstr "Failed to write BT.DINF to SYSCONF"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:271
 msgid "Failed to write bkhdr"
-msgstr "Failed to write bkhdr"
+msgstr "bkhdrの書き込みに失敗しました。"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:430
 #, c-format
@@ -2523,7 +2523,7 @@ msgstr "次のファイルへの書き込みに失敗： %s"
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:207
 #, c-format
 msgid "Failed to write header for %s"
-msgstr "Failed to write header for %s"
+msgstr "%sのヘッダは書き込むことができません。"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:298
 msgid "Farsi"
@@ -2709,7 +2709,7 @@ msgstr "フレーム"
 
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:193
 msgid "Frame Advance"
-msgstr "Frame Advance"
+msgstr "フレームアドバンス"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:541
 msgid "Frame Dumps use FFV1"
@@ -3209,7 +3209,7 @@ msgstr "Dolphinの表示に関する設定"
 
 #: Source/Core/Core/State.cpp:273
 msgid "Internal LZO Error - compression failed"
-msgstr "Internal LZO Error - compression failed"
+msgstr "内部LZOエラー - 圧縮が失敗しました。"
 
 #: Source/Core/Core/State.cpp:397
 #, c-format
@@ -3222,7 +3222,7 @@ msgstr ""
 
 #: Source/Core/Core/State.cpp:534
 msgid "Internal LZO Error - lzo_init() failed"
-msgstr "Internal LZO Error - lzo_init() failed"
+msgstr "内部LZOエラー - lzo_init()が失敗しました。"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
 msgid "Internal Resolution:"
@@ -5199,7 +5199,7 @@ msgstr "台湾"
 #: Source/Core/DolphinWX/TASInputDlg.h:19
 #: Source/Core/DolphinWX/FrameTools.cpp:128
 msgid "TAS Input"
-msgstr "TAS Input"
+msgstr "TAS入力"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:15
 msgid "Tab"
