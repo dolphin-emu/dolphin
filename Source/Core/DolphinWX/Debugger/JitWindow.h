@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef JITWINDOW_H_
-#define JITWINDOW_H_
+#pragma once
 
 #include <vector>
 
@@ -55,5 +54,3 @@ private:
 	void OnAddrBoxChange(wxCommandEvent& event);
 	void OnHostMessage(wxCommandEvent& event);
 };
-
-#endif /*MEMORYWINDOW_*/

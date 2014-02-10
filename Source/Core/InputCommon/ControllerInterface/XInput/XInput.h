@@ -3,8 +3,7 @@
 // compile against the latest version and fall back to dynamically loading the
 // old DLL.
 
-#ifndef _CIFACE_XINPUT_H_
-#define _CIFACE_XINPUT_H_
+#pragma once
 
 #include "../Device.h"
 
@@ -96,6 +95,3 @@ private:
 
 }
 }
-
-
-#endif

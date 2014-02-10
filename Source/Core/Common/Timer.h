@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TIMER_H_
-#define _TIMER_H_
+#pragma once
 
 #include "CommonTypes.h"
 #include <string>
@@ -42,5 +41,3 @@ private:
 };
 
 } // Namespace Common
-
-#endif // _TIMER_H_

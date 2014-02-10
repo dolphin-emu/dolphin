@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BLOB_H
-#define _BLOB_H
+#pragma once
 
 // BLOB
 
@@ -74,6 +73,3 @@ bool DecompressBlobToFile(const char *infile, const char *outfile,
 		CompressCB callback = 0, void *arg = 0);
 
 }  // namespace
-
-#endif
-

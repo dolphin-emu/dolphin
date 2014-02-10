@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JITASM_H
-#define _JITASM_H
+#pragma once
 
 #include "x64Emitter.h"
 #include "../JitCommon/JitAsmCommon.h"
@@ -41,5 +40,3 @@ public:
 };
 
 extern JitILAsmRoutineManager jitil_asm_routines;
-
-#endif

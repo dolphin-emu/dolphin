@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EFB_INTERFACE_H_
-#define _EFB_INTERFACE_H_
+#pragma once
 
 #include "VideoCommon.h"
 
@@ -53,5 +52,3 @@ namespace EfbInterface
 
 	void DoState(PointerWrap &p);
 }
-
-#endif

@@ -1,6 +1,4 @@
-
-#ifndef _VIDEOCOMMON_MAINBASE_H_
-#define _VIDEOCOMMON_MAINBASE_H_
+#pragma once
 
 #include "CommonTypes.h"
 
@@ -11,5 +9,3 @@ extern volatile u32 s_swapRequested;
 
 void VideoFifo_CheckEFBAccess();
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
-
-#endif

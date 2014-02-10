@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __MEMORYCHECKDLG_h__
-#define __MEMORYCHECKDLG_h__
+#pragma once
 
 #include <wx/wx.h>
 
@@ -27,5 +26,3 @@ class MemoryCheckDlg : public wxDialog
 
 		DECLARE_EVENT_TABLE();
 };
-
-#endif

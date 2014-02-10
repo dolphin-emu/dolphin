@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _AOSOUNDSTREAM_H_
-#define _AOSOUNDSTREAM_H_
+#pragma once
 
 #include "SoundStream.h"
 #include "Thread.h"
@@ -53,5 +52,3 @@ public:
 	AOSound(CMixer *mixer) : SoundStream(mixer) {}
 #endif
 };
-
-#endif //_AOSOUNDSTREAM_H_

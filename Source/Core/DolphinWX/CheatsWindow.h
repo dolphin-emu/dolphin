@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __CHEATSWINDOW_H__
-#define __CHEATSWINDOW_H__
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/sizer.h>
@@ -158,6 +157,3 @@ class wxCheatsWindow : public wxDialog
 		// $ Enable Logging Checkbox
 		void OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& event);
 };
-
-#endif
-

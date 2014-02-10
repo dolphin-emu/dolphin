@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXSHADERCACHE_H
-#define _VERTEXSHADERCACHE_H
+#pragma once
 
 #include "VertexShaderGen.h"
 
@@ -64,5 +63,3 @@ private:
 };
 
 }  // namespace DX11
-
-#endif  // _VERTEXSHADERCACHE_H

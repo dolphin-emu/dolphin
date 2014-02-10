@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _XFBENCODER_H
-#define _XFBENCODER_H
+#pragma once
 
 #include "VideoCommon.h"
 
@@ -51,5 +50,3 @@ private:
 };
 
 }
-
-#endif

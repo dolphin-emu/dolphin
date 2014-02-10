@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TELEVISION_H
-#define _TELEVISION_H
+#pragma once
 
 #include "VideoCommon.h"
 
@@ -50,5 +49,3 @@ private:
 };
 
 }
-
-#endif

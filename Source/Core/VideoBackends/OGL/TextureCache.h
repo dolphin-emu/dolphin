@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTUREMNGR_H_
-#define _TEXTUREMNGR_H_
+#pragma once
 
 #include <map>
 
@@ -64,5 +63,3 @@ private:
 bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level);
 
 }
-
-#endif // _TEXTUREMNGR_H_

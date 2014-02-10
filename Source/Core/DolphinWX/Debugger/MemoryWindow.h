@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef MEMORYWINDOW_H_
-#define MEMORYWINDOW_H_
+#pragma once
 
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
@@ -68,5 +67,3 @@ class CMemoryWindow
 		void OnDumpMem2(wxCommandEvent& event);
 		void OnDumpFakeVMEM(wxCommandEvent& event);
 };
-
-#endif /*MEMORYWINDOW_*/

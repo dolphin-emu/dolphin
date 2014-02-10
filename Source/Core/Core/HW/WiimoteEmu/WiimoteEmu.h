@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONEMU_WIIMOTE_H_
-#define _CONEMU_WIIMOTE_H_
+#pragma once
 
 #include "../../Core.h"
 
@@ -248,5 +247,3 @@ private:
 void Spy(Wiimote* wm_, const void* data_, size_t size_);
 
 }
-
-#endif

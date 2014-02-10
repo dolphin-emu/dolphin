@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXIDEVICE_GECKO_H
-#define _EXIDEVICE_GECKO_H
+#pragma once
 
 #include "SFML/Network.hpp"
 #include "Thread.h"
@@ -65,6 +64,3 @@ private:
 
 	static const u32 ident = 0x04700000;
 };
-
-#endif
-

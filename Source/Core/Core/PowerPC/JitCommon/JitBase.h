@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JITBASE_H
-#define _JITBASE_H
+#pragma once
 
 //#define JIT_LOG_X86     // Enables logging of the generated x86 code
 //#define JIT_LOG_GPR     // Enables logging of the PPC general purpose regs
@@ -119,5 +118,3 @@ void Jit(u32 em_address);
 // Merged routines that should be moved somewhere better
 u32 Helper_Mask(u8 mb, u8 me);
 void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *normalEntry, JitBlock *b);
-
-#endif

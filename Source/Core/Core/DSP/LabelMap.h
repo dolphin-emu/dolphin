@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _LABELMAP_H
-#define _LABELMAP_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -38,5 +37,3 @@ public:
 	bool GetLabelValue(const std::string &label, u16 *value, LabelType type = LABEL_ANY) const;
 	void Clear();
 };
-
-#endif  // _LABELMAP_H

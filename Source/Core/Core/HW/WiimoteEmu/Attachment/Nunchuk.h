@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef NUNCHUCK_H
-#define NUNCHUCK_H
+#pragma once
 
 #include "Attachment.h"
 
@@ -42,5 +41,3 @@ private:
 };
 
 }
-
-#endif

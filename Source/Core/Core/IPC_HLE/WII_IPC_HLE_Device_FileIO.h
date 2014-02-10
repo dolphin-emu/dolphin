@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_FILEIO_H_
-#define _WII_IPC_HLE_DEVICE_FILEIO_H_
+#pragma once
 
 #include "WII_IPC_HLE_Device.h"
 #include "FileUtil.h"
@@ -67,6 +66,3 @@ private:
 
 	std::string m_filepath;
 };
-
-#endif
-

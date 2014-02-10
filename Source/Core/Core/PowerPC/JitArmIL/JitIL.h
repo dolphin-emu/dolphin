@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JITARMIL_H
-#define _JITARMIL_H
+#pragma once
 
 #include "../PPCAnalyst.h"
 #include "ArmEmitter.h"
@@ -90,5 +89,3 @@ public:
 	void bclrx(UGeckoInstruction inst);
 	void bcctrx(UGeckoInstruction inst);
 };
-
-#endif

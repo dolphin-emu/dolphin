@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTUREENCODER_H
-#define _TEXTUREENCODER_H
+#pragma once
 
 #include "VideoCommon.h"
 
@@ -118,5 +117,3 @@ public:
 };
 
 }
-
-#endif

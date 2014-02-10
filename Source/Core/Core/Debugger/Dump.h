@@ -6,8 +6,7 @@
 // Purpose: uncompress the dumps from costis GC-Debugger tool
 //
 //
-#ifndef _DUMP_H
-#define _DUMP_H
+#pragma once
 
 #include "Common.h"
 
@@ -36,5 +35,3 @@ private:
 
 	u32 Read32(u32 _pos);
 };
-
-#endif

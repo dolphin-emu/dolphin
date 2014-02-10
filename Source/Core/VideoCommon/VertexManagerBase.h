@@ -1,6 +1,4 @@
-
-#ifndef _VERTEXMANAGERBASE_H
-#define _VERTEXMANAGERBASE_H
+#pragma once
 
 #include "Common.h"
 #include <vector>
@@ -64,5 +62,3 @@ private:
 };
 
 extern VertexManager *g_vertex_manager;
-
-#endif

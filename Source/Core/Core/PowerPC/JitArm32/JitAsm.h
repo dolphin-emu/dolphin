@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _JITARMASM_H
-#define _JITARMASM_H
+#pragma once
+
 #include "ArmEmitter.h"
 #include "../JitCommon/JitAsmCommon.h"
 using namespace ArmGen;
@@ -39,5 +39,3 @@ public:
 };
 
 extern JitArmAsmRoutineManager asm_routines;
-
-#endif  // _JIT64ASM_H

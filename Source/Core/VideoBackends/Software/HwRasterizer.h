@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _HW_RASTERIZER_H
-#define _HW_RASTERIZER_H
+#pragma once
 
 #include <map>
 
@@ -46,5 +45,3 @@ namespace HwRasterizer
 	typedef std::map<u32, TexCacheEntry> TextureCache;
 	static TextureCache textures;
 }
-
-#endif

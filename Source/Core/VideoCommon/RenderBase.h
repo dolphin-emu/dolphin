@@ -12,8 +12,7 @@
 // Next frame, that one is scanned out and the other one gets the copy. = double buffering.
 // ---------------------------------------------------------------------------------------------
 
-#ifndef _COMMON_RENDERBASE_H_
-#define _COMMON_RENDERBASE_H_
+#pragma once
 
 #include "VideoCommon.h"
 #include "Thread.h"
@@ -162,5 +161,3 @@ private:
 extern Renderer *g_renderer;
 
 void UpdateViewport();
-
-#endif // _COMMON_RENDERBASE_H_

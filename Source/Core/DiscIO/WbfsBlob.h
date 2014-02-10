@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WBFS_BLOB_H
-#define _WBFS_BLOB_H
+#pragma once
 
 #include "Blob.h"
 #include "FileUtil.h"
@@ -65,5 +64,3 @@ bool IsWbfsBlob(const char* filename);
 
 
 }  // namespace
-
-#endif  // _FILE_BLOB_H

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _INTERPRETER_H
-#define _INTERPRETER_H
+#pragma once
 
 #include "Atomic.h"
 #include "../Gekko.h"
@@ -332,5 +331,3 @@ private:
 	static bool g_bReserve;
 	static u32  g_reserveAddr;
 };
-
-#endif

@@ -11,8 +11,7 @@
 
 // Note: the technique is inspired by Wiiscrubber, but much simpler - intentionally :)
 
-#ifndef DISC_SCRUBBER_H
-#define DISC_SCRUBBER_H
+#pragma once
 
 #include "CommonTypes.h"
 #include "Blob.h"
@@ -31,5 +30,3 @@ void Cleanup();
 } // namespace DiscScrubber
 
 } // namespace DiscIO
-
-#endif  // DISC_SCRUBBER_H

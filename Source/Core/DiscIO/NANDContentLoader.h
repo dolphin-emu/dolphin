@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _NAND_CONTENT_LOADER_H
-#define _NAND_CONTENT_LOADER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -153,5 +152,3 @@ private:
 };
 
 }
-
-#endif

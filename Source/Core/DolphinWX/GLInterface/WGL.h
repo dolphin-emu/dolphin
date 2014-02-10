@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _INTERFACEWGL_H_
-#define _INTERFACEWGL_H_
+#pragma once
 
 #include "InterfaceBase.h"
 
@@ -22,5 +21,3 @@ public:
 	void Update();
 	bool PeekMessages();
 };
-#endif
-

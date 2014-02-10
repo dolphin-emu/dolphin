@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _UCODE_INITAUDIOSYSTEM
-#define _UCODE_INITAUDIOSYSTEM
+#pragma once
 
 #include "UCodes.h"
 
@@ -18,6 +17,3 @@ public:
 	void Update(int cycles) override;
 	void Init();
 };
-
-#endif
-

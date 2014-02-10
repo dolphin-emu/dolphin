@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ACTIONREPLAY_H_
-#define _ACTIONREPLAY_H_
+#pragma once
 
 #include "IniFile.h"
 
@@ -38,5 +37,3 @@ void EnableSelfLogging(bool enable);
 const std::vector<std::string> &GetSelfLog();
 bool IsSelfLogging();
 }  // namespace
-
-#endif // _ACTIONREPLAY_H_

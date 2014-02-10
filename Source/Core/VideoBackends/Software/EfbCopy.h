@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EFB_COPY_H_
-#define _EFB_COPY_H_
-
+#pragma once
 
 #include "Common.h"
 
@@ -14,6 +12,3 @@ namespace EfbCopy
 	// Clear the EFB if needed
 	void CopyEfb();
 }
-
-
-#endif

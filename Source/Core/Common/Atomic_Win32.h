@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ATOMIC_WIN32_H_
-#define _ATOMIC_WIN32_H_
+#pragma once
 
 #include "Common.h"
 #include <intrin.h>
@@ -79,5 +78,3 @@ inline T* AtomicExchangeAcquire(T* volatile& loc, U newval) {
 }
 
 }
-
-#endif

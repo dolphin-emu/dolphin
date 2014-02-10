@@ -22,8 +22,7 @@
 
    ====================================================================*/
 
-#ifndef _DSP_DISASSEMBLE_H
-#define _DSP_DISASSEMBLE_H
+#pragma once
 
 #include <map>
 #include <vector>
@@ -82,6 +81,3 @@ private:
 
 	LabelMap labels;
 };
-
-#endif  // _DSP_DISASSEMBLE_H
-

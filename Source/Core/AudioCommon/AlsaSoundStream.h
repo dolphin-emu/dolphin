@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ALSA_SOUND_STREAM_H
-#define _ALSA_SOUND_STREAM_H
+#pragma once
 
 #if defined(HAVE_ALSA) && HAVE_ALSA
 #include <alsa/asoundlib.h>
@@ -52,6 +51,3 @@ public:
 	AlsaSound(CMixer *mixer) : SoundStream(mixer) {}
 #endif
 };
-
-#endif
-

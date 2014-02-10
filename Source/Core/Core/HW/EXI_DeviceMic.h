@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXI_DEVICEMIC_H
-#define _EXI_DEVICEMIC_H
+#pragma once
 
 #if HAVE_PORTAUDIO
 
@@ -106,5 +105,3 @@ public:
 };
 
 #endif
-
-#endif // _EXI_DEVICEMIC_H

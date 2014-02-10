@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _OPCODE_DECODING_H
-#define _OPCODE_DECODING_H
+#pragma once
 
 #define GX_NOP                      0x00
 
@@ -39,4 +38,3 @@ void OpcodeDecoder_Init();
 void OpcodeDecoder_Shutdown();
 u32 OpcodeDecoder_Run(bool skipped_frame);
 void InterpretDisplayList(u32 address, u32 size);
-#endif // _OPCODE_DECODING_H

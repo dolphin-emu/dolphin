@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSP_DEBUGGER_LLE_H
-#define _DSP_DEBUGGER_LLE_H
+#pragma once
 
 // general things
 #include <iostream>
@@ -85,5 +84,3 @@ private:
 };
 
 extern DSPDebuggerLLE* m_DebuggerFrame;
-
-#endif //_DSP_DEBUGGER_LLE_H

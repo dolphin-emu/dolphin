@@ -4,8 +4,7 @@
 //
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
-#ifndef _GDSP_CONDITION_CODES_H
-#define _GDSP_CONDITION_CODES_H
+#pragma once
 
 // Anything to do with SR and conditions goes here.
 
@@ -38,5 +37,3 @@ inline bool isOverS32(s64 acc) {
 }
 
 }  // namespace
-
-#endif  // _GDSP_CONDITION_CODES_H

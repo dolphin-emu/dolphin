@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef WXUTILS_H
-#define WXUTILS_H
+#pragma once
 
 #include <string>
 #include <wx/string.h>
@@ -23,5 +22,3 @@ double GetCurrentBitmapLogicalScale();
 
 std::string WxStrToStr(const wxString& str);
 wxString StrToWxStr(const std::string& str);
-
-#endif // WXUTILS

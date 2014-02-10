@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _COMMONFUNCS_H_
-#define _COMMONFUNCS_H_
+#pragma once
 
 #ifdef _WIN32
 #define SLEEP(x) Sleep(x)
@@ -253,5 +252,3 @@ inline T FromBigEndian(T data)
 }
 
 }  // Namespace Common
-
-#endif // _COMMONFUNCS_H_

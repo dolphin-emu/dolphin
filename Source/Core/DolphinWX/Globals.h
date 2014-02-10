@@ -5,9 +5,7 @@
 
 // This file holds global data for DolphinWx and DebuggerWx
 
-
-#ifndef _WX_GLOBALS_H
-#define _WX_GLOBALS_H
+#pragma once
 
 #include "Common.h"
 
@@ -281,5 +279,3 @@ enum
 			),
 
 extern const wxEventType wxEVT_HOST_COMMAND;
-
-#endif // _WX_GLOBALS_H

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __FRAME_H_
-#define __FRAME_H_
+#pragma once
 
 #include <wx/wx.h> // wxWidgets
 #include <wx/busyinfo.h>
@@ -352,6 +351,3 @@ void OnAfterLoadCallback();
 // For TASInputDlg
 void TASManipFunction(SPADStatus *PadStatus, int controllerID);
 bool TASInputHasFocus();
-
-#endif  // __FRAME_H_
-

@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPSYMBOLS_H
-#define _DSPSYMBOLS_H
+#pragma once
 
 #include "Common.h"
 #include "SymbolDB.h"
 
-namespace DSPSymbols {
+namespace DSPSymbols
+{
 
 class DSPSymbolDB : public SymbolDB
 {
@@ -33,6 +33,3 @@ int Line2Addr(int line);   // -1 for not found
 const char *GetLineText(int line);
 
 }  // namespace DSPSymbols
-
-#endif
-

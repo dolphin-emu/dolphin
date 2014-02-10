@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TRANSFORM_UNIT_H_
-#define _TRANSFORM_UNIT_H_
+#pragma once
 
 struct InputVertexData;
 struct OutputVertexData;
@@ -20,5 +19,3 @@ namespace TransformUnit
 	void TransformColor(const InputVertexData *src, OutputVertexData *dst);
 	void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool specialCase);
 }
-
-#endif

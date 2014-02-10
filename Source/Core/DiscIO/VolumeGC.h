@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VOLUME_GC
-#define _VOLUME_GC
+#pragma once
 
 #include "Volume.h"
 #include "Blob.h"
@@ -40,5 +39,3 @@ private:
 };
 
 } // namespace
-
-#endif

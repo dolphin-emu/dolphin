@@ -23,8 +23,7 @@
 
    ====================================================================*/
 
-#ifndef _GDSP_EXT_OP_H
-#define _GDSP_EXT_OP_H
+#pragma once
 
 #include "DSPTables.h"
 
@@ -64,5 +63,3 @@ void nop(const UDSPInstruction opc);
 
 } // end namespace Ext
 } // end namespace DSPinterpeter
-
-#endif

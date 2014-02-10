@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _LIGHTINGSHADERGEN_H_
-#define _LIGHTINGSHADERGEN_H_
+#pragma once
 
 #include "ShaderGenCommon.h"
 #include "NativeVertexFormat.h"
@@ -260,5 +259,3 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		object.Write("}\n");
 	}
 }
-
-#endif // _LIGHTINGSHADERGEN_H_

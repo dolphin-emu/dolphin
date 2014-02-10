@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DEBUGGER_BREAKPOINTS_H
-#define _DEBUGGER_BREAKPOINTS_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -97,6 +96,3 @@ public:
 
 	void Clear() { m_MemChecks.clear(); };
 };
-
-#endif
-

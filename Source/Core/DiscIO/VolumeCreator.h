@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VOLUME_CREATOR_H
-#define _VOLUME_CREATOR_H
+#pragma once
 
 #include "Volume.h"
 
@@ -14,6 +13,3 @@ IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii,
 bool IsVolumeWiiDisc(const IVolume *_rVolume);
 bool IsVolumeWadFile(const IVolume *_rVolume);
 } // namespace
-
-#endif
-

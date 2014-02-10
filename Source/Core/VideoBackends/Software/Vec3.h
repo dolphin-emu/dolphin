@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VEC3_H
-#define _VEC3_H
+#pragma once
 
 #include <stdlib.h>
 #include <math.h>
@@ -106,5 +105,3 @@ public:
 		p.Do(z);
 	}
 };
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __SYSCONF_MANAGER_h__
-#define __SYSCONF_MANAGER_h__
+#pragma once
 
 #include <string>
 #include <vector>
@@ -176,5 +175,3 @@ private:
 	std::vector<SSysConfEntry> m_Entries;
 	bool m_IsValid;
 };
-
-#endif // __SYSCONF_MANAGER_h__

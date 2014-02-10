@@ -23,12 +23,9 @@
 
    ====================================================================*/
 
-#ifndef _DSP_STACKS_H
-#define _DSP_STACKS_H
+#pragma once
 
 #include "Common.h"
 
 void dsp_reg_store_stack(int stack_reg, u16 val);
 u16 dsp_reg_load_stack(int stack_reg);
-
-#endif

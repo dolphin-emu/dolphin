@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXLOADER_NORMAL_H
-#define _VERTEXLOADER_NORMAL_H
+#pragma once
 
 #include "Common.h"
 #include "CommonTypes.h"
@@ -72,5 +71,3 @@ private:
 
 	static Set m_Table[NUM_NRM_TYPE][NUM_NRM_INDICES][NUM_NRM_ELEMENTS][NUM_NRM_FORMAT];
 };
-
-#endif

@@ -12,8 +12,7 @@
 // If Stop is not called when it destructs, the destructor will call Stop().
 // ---------------------------------------------------------------------------------
 
-#ifndef _WAVEFILE_H_
-#define _WAVEFILE_H_
+#pragma once
 
 #include "FileUtil.h"
 
@@ -41,5 +40,3 @@ public:
 	void AddStereoSamplesBE(const short *sample_data, u32 count);  // big endian
 	u32 GetAudioSize() const { return audio_size; }
 };
-
-#endif  // _WAVEFILE_H_

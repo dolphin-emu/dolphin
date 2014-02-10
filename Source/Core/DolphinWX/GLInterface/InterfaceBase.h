@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GLINTERFACEBASE_H_
-#define _GLINTERFACEBASE_H_
+#pragma once
+
 enum GLInterfaceMode {
 	MODE_DETECT = 0,
 	MODE_OPENGL,
@@ -37,4 +37,3 @@ public:
 	virtual void Update() { }
 	virtual bool PeekMessages() { return false; }
 };
-#endif

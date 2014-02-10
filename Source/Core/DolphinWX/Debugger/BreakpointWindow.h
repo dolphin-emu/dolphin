@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __BREAKPOINTWINDOW_h__
-#define __BREAKPOINTWINDOW_h__
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/listctrl.h>
@@ -45,5 +44,3 @@ private:
 	void OnClose(wxCloseEvent& event);
 	void OnSelectBP(wxListEvent& event);
 };
-
-#endif

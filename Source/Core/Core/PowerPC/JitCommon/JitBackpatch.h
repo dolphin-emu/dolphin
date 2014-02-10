@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JITBACKPATCH_H
-#define _JITBACKPATCH_H
+#pragma once
 
 #include "Common.h"
 #include "x64Emitter.h"
@@ -248,5 +247,3 @@ public:
 	const u8 *GetReadTrampoline(const InstructionInfo &info, u32 registersInUse);
 	const u8 *GetWriteTrampoline(const InstructionInfo &info, u32 registersInUse);
 };
-
-#endif

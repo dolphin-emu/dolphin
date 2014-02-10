@@ -5,8 +5,7 @@
 // This file contains a generic symbol map implementation. For CPU-specific
 // magic, derive and extend.
 
-#ifndef _SYMBOL_DB_H
-#define _SYMBOL_DB_H
+#pragma once
 
 #include <string>
 #include <map>
@@ -105,5 +104,3 @@ public:
 	void List();
 	void Index();
 };
-
-#endif

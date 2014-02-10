@@ -22,8 +22,7 @@
 
    ====================================================================*/
 
-#ifndef _DSP_ASSEMBLE_H
-#define _DSP_ASSEMBLE_H
+#pragma once
 
 #include <string>
 #include <map>
@@ -135,5 +134,3 @@ private:
 	int m_current_param;
 	const AssemblerSettings settings_;
 };
-
-#endif  // _DSP_ASSEMBLE_H

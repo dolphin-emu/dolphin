@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BANNER_LOADER_GC_H_
-#define _BANNER_LOADER_GC_H_
+#pragma once
 
 #include "BannerLoader.h"
 #include "VolumeGC.h"
@@ -81,6 +80,3 @@ class CBannerLoaderGC
 };
 
 } // namespace
-
-#endif
-

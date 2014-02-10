@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __MAIN_H_
-#define __MAIN_H_
+#pragma once
 
 #include "Frame.h"
 
@@ -37,5 +36,3 @@ private:
 };
 
 DECLARE_APP(DolphinApp);
-
-#endif

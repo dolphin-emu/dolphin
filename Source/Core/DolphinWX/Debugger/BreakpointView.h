@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __BREAKPOINTVIEW_h__
-#define __BREAKPOINTVIEW_h__
+#pragma once
 
 #include <wx/listctrl.h>
 #include "Common.h"
@@ -16,5 +15,3 @@ public:
 	void Update();
 	void DeleteCurrentSelection();
 };
-
-#endif

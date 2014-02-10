@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFOPLAYBACKANALYZER_H_
-#define _FIFOPLAYBACKANALYZER_H_
+#pragma once
 
 #include "FifoAnalyzer.h"
 #include "FifoDataFile.h"
@@ -47,5 +46,3 @@ private:
 	BPMemory m_BpMem;
 	FifoAnalyzer::CPMemory m_CpMem;
 };
-
-#endif

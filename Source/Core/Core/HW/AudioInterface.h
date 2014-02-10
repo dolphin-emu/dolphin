@@ -4,8 +4,7 @@
 
 // See CPP file for comments.
 
-#ifndef _AUDIOINTERFACE_H
-#define _AUDIOINTERFACE_H
+#pragma once
 
 #include "CommonTypes.h"
 
@@ -33,5 +32,3 @@ unsigned int GetAIDSampleRate();
 void GenerateAISInterrupt();
 
 }  // namespace
-
-#endif

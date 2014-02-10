@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __GECKOCODEDIAG_h__
-#define __GECKOCODEDIAG_h__
+#pragma once
 
 #include "GeckoCode.h"
 #include "GeckoCodeConfig.h"
@@ -47,9 +46,4 @@ private:
 	wxButton* btn_download;
 };
 
-
-
 }
-
-#endif
-

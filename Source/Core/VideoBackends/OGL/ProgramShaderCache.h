@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef PROGRAM_SHADER_CACHE_H_
-#define PROGRAM_SHADER_CACHE_H_
+#pragma once
 
 #include "GLUtil.h"
 
@@ -112,4 +111,3 @@ private:
 };
 
 }  // namespace OGL
-#endif

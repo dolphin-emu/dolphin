@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_WAD_H
-#define _WII_WAD_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -60,6 +59,3 @@ private:
 };
 
 }
-
-#endif
-

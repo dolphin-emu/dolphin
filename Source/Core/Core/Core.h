@@ -9,8 +9,7 @@
 // This is another part of the emu that needs cleaning - Core.cpp really has
 // too much random junk inside.
 
-#ifndef _CORE_H
-#define _CORE_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -87,6 +86,3 @@ void UpdateTitle();
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 
 }  // namespace
-
-#endif
-

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FBMANAGER_D3D_H_
-#define _FBMANAGER_D3D_H_
+#pragma once
 
 #include "d3d11.h"
 
@@ -105,5 +104,3 @@ private:
 };
 
 }  // namespace DX11
-
-#endif

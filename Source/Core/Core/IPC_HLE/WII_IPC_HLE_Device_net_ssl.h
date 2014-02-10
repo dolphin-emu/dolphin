@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_NET_SSL_H_
-#define _WII_IPC_HLE_DEVICE_NET_SSL_H_
+#pragma once
 
 #include "WII_IPC_HLE_Device.h"
 
@@ -54,7 +53,8 @@ enum SSL_IOCTL
 	IOCTLV_NET_SSL_DEBUGGETTIME                = 0x15,
 };
 
-typedef struct {
+typedef struct
+{
 	ssl_context ctx;
 	ssl_session session;
 	havege_state hs;
@@ -83,7 +83,4 @@ public:
 	int getSSLFreeID();
 
 	static WII_SSL _SSL[NET_SSL_MAXINSTANCES];
-
 };
-
-#endif

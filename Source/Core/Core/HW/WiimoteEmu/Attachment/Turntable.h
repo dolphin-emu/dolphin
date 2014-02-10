@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include "Attachment.h"
 
 namespace WiimoteEmu
@@ -37,6 +39,5 @@ private:
 	Slider*      m_right_table;
 	Slider*      m_crossfade;
 };
-
 
 }

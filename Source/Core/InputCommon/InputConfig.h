@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
+#pragma once
 
 #include "Thread.h"
 #include "FileUtil.h"
@@ -38,5 +37,3 @@ public:
 	const char* const gui_name;
 	const char* const profile_name;
 };
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PIXELENGINE_H
-#define _PIXELENGINE_H
+#pragma once
 
 #include "Common.h"
 #include "VideoCommon.h"
@@ -214,5 +213,3 @@ namespace SWPixelEngine
 	bool AllowIdleSkipping();
 
 } // end of namespace SWPixelEngine
-
-#endif

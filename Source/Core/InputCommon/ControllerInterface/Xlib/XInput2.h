@@ -4,8 +4,7 @@
 
 // See XInput2.cpp for extensive documentation.
 
-#ifndef _CIFACE_X11_XINPUT2_H_
-#define _CIFACE_X11_XINPUT2_H_
+#pragma once
 
 #include "../Device.h"
 
@@ -120,5 +119,3 @@ private:
 
 }
 }
-
-#endif

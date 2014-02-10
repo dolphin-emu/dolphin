@@ -12,8 +12,7 @@
 // * [Block Pointers interleaved with block hashes (hash of decompressed data)]
 // * [Data]
 
-#ifndef COMPRESSED_BLOB_H_
-#define COMPRESSED_BLOB_H_
+#pragma once
 
 #include <string>
 
@@ -68,5 +67,3 @@ private:
 };
 
 }  // namespace
-
-#endif  // COMPRESSED_BLOB_H_

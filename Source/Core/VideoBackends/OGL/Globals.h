@@ -2,12 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GLOBALS_H_
-#define _GLOBALS_H_
+#pragma once
 
 #include "Common.h"
 #include "VideoConfig.h"
 
 #include "VideoCommon.h"
-
-#endif // _GLOBALS_H_

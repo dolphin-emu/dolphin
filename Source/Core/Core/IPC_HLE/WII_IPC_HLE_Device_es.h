@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_ES_H_
-#define _WII_IPC_HLE_DEVICE_ES_H_
+#pragma once
 
 #include <map>
 #include "WII_IPC_HLE_Device.h"
@@ -156,5 +155,3 @@ private:
 		 u8 padding     [0x3c];
 	} ecc_cert_t;
 };
-
-#endif

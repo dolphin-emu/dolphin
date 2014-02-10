@@ -3,8 +3,7 @@
 // Refer to the license.txt file included.
 
 
-#ifndef _PROFILER_H
-#define _PROFILER_H
+#pragma once
 
 #ifdef _WIN32
 
@@ -61,5 +60,3 @@ extern bool g_ProfileInstructions;
 
 void WriteProfileResults(const char *filename);
 }
-
-#endif  // _PROFILER_H

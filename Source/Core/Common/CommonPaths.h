@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _COMMON_PATHS_H_
-#define _COMMON_PATHS_H_
+#pragma once
 
 // Make sure we pick up USER_DIR if set in config.h
 #include "Common.h"
@@ -119,5 +118,3 @@
 // Subdirs in Sys
 #define GC_SYS_DIR "GC"
 #define WII_SYS_DIR "Wii"
-
-#endif // _COMMON_PATHS_H_

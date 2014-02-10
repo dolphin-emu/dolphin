@@ -2,15 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPLLE_H
-#define _DSPLLE_H
+#pragma once
 
 #include "Thread.h"
 #include "SoundStream.h"
 #include "DSPLLEGlobals.h" // Local
 #include "../../DSPEmulator.h"
 
-class DSPLLE : public DSPEmulator {
+class DSPLLE : public DSPEmulator
+{
 public:
 	DSPLLE();
 
@@ -45,5 +45,3 @@ private:
 	bool m_bIsRunning;
 	volatile u32 m_cycle_count;
 };
-
-#endif  // _DSPLLE_H

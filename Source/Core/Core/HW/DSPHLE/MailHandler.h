@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _MAILHANDLER_H
-#define _MAILHANDLER_H
+#pragma once
 
 #include <queue>
 
@@ -42,6 +41,3 @@ private:
 	// mail handler
 	std::queue<u32> m_Mails;
 };
-
-#endif
-

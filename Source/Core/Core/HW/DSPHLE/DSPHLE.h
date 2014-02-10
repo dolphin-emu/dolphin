@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPHLE_H
-#define _DSPHLE_H
+#pragma once
 
 #include "AudioCommon.h"
 #include "SoundStream.h"
@@ -79,5 +78,3 @@ private:
 	bool m_bHalt;
 	bool m_bAssertInt;
 };
-
-#endif  // _DSPHLE_H

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __MOVIE_H
-#define __MOVIE_H
+#pragma once
 
 #include "Common.h"
 #include "../InputCommon/GCPadStatus.h"
@@ -184,5 +183,3 @@ typedef void(*ManipFunction)(SPADStatus *, int);
 void SetInputManip(ManipFunction);
 void CallInputManip(SPADStatus *PadStatus, int controllerID);
 };
-
-#endif // __MOVIE_H

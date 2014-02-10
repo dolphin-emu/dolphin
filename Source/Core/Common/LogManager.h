@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _LOGMANAGER_H_
-#define _LOGMANAGER_H_
+#pragma once
 
 #include "Log.h"
 #include "StringUtil.h"
@@ -165,5 +164,3 @@ public:
 	static void Init();
 	static void Shutdown();
 };
-
-#endif // _LOGMANAGER_H_

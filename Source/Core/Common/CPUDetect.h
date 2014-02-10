@@ -4,8 +4,7 @@
 
 
 // Detect the cpu, so we'll know which optimizations to use
-#ifndef _CPUDETECT_H_
-#define _CPUDETECT_H_
+#pragma once
 
 #include <string>
 
@@ -85,5 +84,3 @@ private:
 };
 
 extern CPUInfo cpu_info;
-
-#endif // _CPUDETECT_H_

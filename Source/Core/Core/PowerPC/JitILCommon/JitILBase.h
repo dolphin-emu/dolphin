@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JITILBASE_H
-#define _JITILBASE_H
+#pragma once
 
 #include "IR.h"
 #include "../PowerPC.h"
@@ -143,4 +142,3 @@ public:
 	void subfex(UGeckoInstruction inst);
 
 };
-#endif

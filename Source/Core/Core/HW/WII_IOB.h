@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IOBRIDGE_H_
-#define _WII_IOBRIDGE_H_
+#pragma once
 
 #include "Common.h"
 class PointerWrap;
@@ -28,7 +27,3 @@ void Write32(const u32 _Value, const u32 _Address);
 void Write64(const u64 _Value, const u32 _Address);
 
 } // end of namespace AudioInterface
-
-#endif
-
-

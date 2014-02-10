@@ -1,6 +1,4 @@
-
-#ifndef INCLUDE_SAMPLER_CACHE_H_
-#define INCLUDE_SAMPLER_CACHE_H_
+#pragma once
 
 #include <map>
 
@@ -76,5 +74,3 @@ private:
 extern SamplerCache *g_sampler_cache;
 
 }
-
-#endif

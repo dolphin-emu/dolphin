@@ -1,5 +1,4 @@
-#ifndef _CDUTILS_H_
-#define _CDUTILS_H_
+#pragma once
 
 #include <vector>
 #include <string>
@@ -9,5 +8,3 @@ std::vector<std::string> cdio_get_devices();
 
 // Returns true if device is cdrom/dvd
 bool cdio_is_cdrom(std::string device);
-
-#endif // _CDUTILS_H_

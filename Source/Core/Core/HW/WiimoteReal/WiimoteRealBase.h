@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef WIIMOTE_COMM_H
-#define WIIMOTE_COMM_H
+#pragma once
 
 #ifdef _WIN32
 	#include <windows.h>
@@ -60,5 +59,3 @@ enum win_bt_stack_t
 	MSBT_STACK_BLUESOLEIL
 };
 #endif
-
-#endif // WIIMOTE_COMM_H

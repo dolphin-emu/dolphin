@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _HOST_H
-#define _HOST_H
+#pragma once
 
 
 // Host - defines an interface for the emulator core to communicate back to the
@@ -45,5 +44,3 @@ void Host_UpdateTitle(const char* title);
 // TODO (neobrain): Remove these from host!
 void* Host_GetInstance();
 void* Host_GetRenderHandle();
-
-#endif

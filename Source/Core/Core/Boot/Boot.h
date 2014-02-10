@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BOOT_H
-#define _BOOT_H
+#pragma once
 
 #include <cstdlib>
 #include <string>
@@ -58,5 +57,3 @@ private:
 
 	static bool SetupWiiMemory(IVolume::ECountry country);
 };
-
-#endif

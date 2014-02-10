@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _RENDERER_H_
-#define _RENDERER_H_
+#pragma once
 
 #include "CommonTypes.h"
 #include "EfbInterface.h"
@@ -27,5 +26,3 @@ namespace SWRenderer
 	void Swap(u32 fbWidth, u32 fbHeight);
 	void SwapBuffer();
 }
-
-#endif

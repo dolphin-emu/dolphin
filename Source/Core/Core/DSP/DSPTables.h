@@ -4,8 +4,7 @@
 
 // Additional copyrights go to Duddie (c) 2005 (duddie@walla.com)
 
-#ifndef _DSPTABLES_H
-#define _DSPTABLES_H
+#pragma once
 
 //nclude "Common.h"
 #include "DSPEmitter.h"
@@ -145,5 +144,3 @@ inline void ExecuteInstruction(const UDSPInstruction inst)
 		applyWriteBackLog();
 	}
 }
-
-#endif // _DSPTABLES_H

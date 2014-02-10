@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __REGISTERWINDOW_h__
-#define __REGISTERWINDOW_h__
+#pragma once
 
 class CRegisterView;
 class IniFile;
@@ -33,5 +32,3 @@ private:
 	CRegisterView* m_GPRGridView;
 	void CreateGUIControls();
 };
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _UCODES_H
-#define _UCODES_H
+#pragma once
 
 #include "Common.h"
 #include "ChunkFile.h"
@@ -140,5 +139,3 @@ private:
 };
 
 extern IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii);
-
-#endif

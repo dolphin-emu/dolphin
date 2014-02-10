@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONSOLELISTENER_H
-#define _CONSOLELISTENER_H
+#pragma once
 
 #include "LogManager.h"
 
@@ -37,5 +36,3 @@ private:
 #endif
 	bool bUseColor;
 };
-
-#endif  // _CONSOLELISTENER_H

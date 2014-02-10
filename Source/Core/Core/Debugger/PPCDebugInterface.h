@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PPCDEBUGINTERFACE_H
-#define _PPCDEBUGINTERFACE_H
+#pragma once
 
 #include <string>
 
@@ -43,6 +42,3 @@ public:
 	virtual std::string getDescription(unsigned int address) override;
 	virtual void showJitResults(u32 address) override;
 };
-
-#endif
-

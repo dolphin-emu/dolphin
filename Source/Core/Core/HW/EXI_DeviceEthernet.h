@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXIDEVICE_ETHERNET_H
-#define _EXIDEVICE_ETHERNET_H
+#pragma once
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -327,5 +326,3 @@ public:
 #endif
 
 };
-
-#endif

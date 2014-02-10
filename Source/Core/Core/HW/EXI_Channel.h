@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXICHANNEL_H
-#define _EXICHANNEL_H
+#pragma once
 
 #include "CommonTypes.h"
 
@@ -122,5 +121,3 @@ public:
 	// This should only be used to transition interrupts from SP1 to Channel 2
 	void SetEXIINT(bool exiint) { m_Status.EXIINT = !!exiint; }
 };
-
-#endif

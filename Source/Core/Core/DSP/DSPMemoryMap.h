@@ -23,8 +23,7 @@
 
    ====================================================================*/
 
-#ifndef _GDSP_MEMORY_H
-#define _GDSP_MEMORY_H
+#pragma once
 
 #include "Common.h"
 #include "DSPInterpreter.h"
@@ -51,5 +50,3 @@ inline void dsp_skip_inst()
 {
 	g_dsp.pc += opTable[dsp_peek_code()]->size;
 }
-
-#endif

@@ -5,8 +5,7 @@
 
 // Emulator state saving support.
 
-#ifndef _STATE_H_
-#define _STATE_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -62,5 +61,3 @@ typedef void(*CallbackFunc)(void);
 void SetOnAfterLoadCallback(CallbackFunc callback);
 
 }
-
-#endif

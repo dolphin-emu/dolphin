@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CORETIMING_H
-#define _CORETIMING_H
+#pragma once
 
 // This is a system to schedule events into the emulated machine's future. Time is measured
 // in main CPU clock cycles.
@@ -84,5 +83,3 @@ extern int downcount;
 extern int slicelength;
 
 }; // end of namespace
-
-#endif

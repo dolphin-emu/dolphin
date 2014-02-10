@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PSTEXTUREENCODER_H
-#define _PSTEXTUREENCODER_H
+#pragma once
 
 #include "TextureEncoder.h"
 
@@ -102,5 +101,3 @@ private:
 };
 
 }
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef WIIMOTE_HID_H
-#define WIIMOTE_HID_H
+#pragma once
 
 #include "CommonTypes.h"
 
@@ -408,5 +407,3 @@ struct gh3_cal
 };
 
 #pragma pack(pop)
-
-#endif	//WIIMOTE_HID_H

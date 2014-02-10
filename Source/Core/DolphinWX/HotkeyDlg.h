@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __HOTKEYDIALOG_h__
-#define __HOTKEYDIALOG_h__
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/textctrl.h>
@@ -57,5 +56,3 @@ class HotkeyConfigDialog : public wxDialog
 
 		int GetButtonWaitingID, GetButtonWaitingTimer, g_Pressed, g_Modkey;
 };
-#endif
-

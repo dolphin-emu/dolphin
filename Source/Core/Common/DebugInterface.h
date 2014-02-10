@@ -1,5 +1,4 @@
-#ifndef _DEBUGINTERFACE_H
-#define _DEBUGINTERFACE_H
+#pragma once
 
 #include <string>
 
@@ -34,5 +33,3 @@ public:
 	virtual int getColor(unsigned int /*address*/){return 0xFFFFFFFF;}
 	virtual std::string getDescription(unsigned int /*address*/) = 0;
 };
-
-#endif

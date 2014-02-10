@@ -4,8 +4,7 @@
 
 // PRELIMINARY - seems to fully work with libogc, writing has yet to be tested
 
-#ifndef _WII_IPC_HLE_DEVICE_SDIO_SLOT0_H_
-#define _WII_IPC_HLE_DEVICE_SDIO_SLOT0_H_
+#pragma once
 
 #include "WII_IPC_HLE_Device.h"
 
@@ -125,5 +124,3 @@ private:
 		u32 _BufferOut, u32 BufferOutSize);
 	void OpenInternal();
 };
-
-#endif

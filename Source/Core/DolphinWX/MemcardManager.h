@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __MEMCARD_MANAGER_h__
-#define __MEMCARD_MANAGER_h__
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/sizer.h>
@@ -151,5 +150,3 @@ class CMemcardManager : public wxDialog
 
 		CMemcardListCtrl *m_MemcardList[2];
 };
-
-#endif

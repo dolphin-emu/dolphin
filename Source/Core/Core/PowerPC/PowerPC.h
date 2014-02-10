@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _POWERPC_H
-#define _POWERPC_H
+#pragma once
 
 #include "Common.h"
 #include "CPUCoreBase.h"
@@ -206,5 +205,3 @@ inline void SetXER_SO(int value) {
 }
 
 void UpdateFPRF(double dvalue);
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXIDEVICE_AMBASEBOARD_H
-#define _EXIDEVICE_AMBASEBOARD_H
+#pragma once
 
 class CEXIAMBaseboard : public IEXIDevice
 {
@@ -21,5 +20,3 @@ private:
 	bool m_have_irq;
 	unsigned char m_command[4];
 };
-
-#endif

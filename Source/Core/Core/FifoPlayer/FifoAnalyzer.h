@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFOANALYZER_H
-#define _FIFOANALYZER_H
+#pragma once
 
 #include "Common.h"
 
@@ -37,5 +36,3 @@ namespace FifoAnalyzer
 	u32 CalculateVertexSize(int vatIndex, const CPMemory &cpMem);
 	void CalculateVertexElementSizes(int sizes[], int vatIndex, const CPMemory &cpMem);
 }
-
-#endif

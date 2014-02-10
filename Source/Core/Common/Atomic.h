@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ATOMIC_H_
-#define _ATOMIC_H_
+#pragma once 
 
 #ifdef _WIN32
 
@@ -13,7 +12,5 @@
 
 // GCC-compatible compiler assumed!
 #include "Atomic_GCC.h"
-
-#endif
 
 #endif

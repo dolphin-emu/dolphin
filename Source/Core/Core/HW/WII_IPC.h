@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_H_
-#define _WII_IPC_H_
+#pragma once
 
 #include "Common.h"
 class PointerWrap;
@@ -47,5 +46,3 @@ void GenerateReply(u32 _Address);
 bool IsReady();
 
 }
-
-#endif

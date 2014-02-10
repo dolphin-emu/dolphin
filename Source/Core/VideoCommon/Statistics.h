@@ -6,8 +6,7 @@
 #include "VideoCommon.h"
 #include <vector>
 
-#ifndef _STATISTICS_H
-#define _STATISTICS_H
+#pragma once
 
 struct Statistics
 {
@@ -91,5 +90,3 @@ extern Statistics stats;
 #define ADDSTAT(a,b) ;
 #define SETSTAT(a,x) ;
 #endif
-
-#endif  // _STATISTICS_H

@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef _FILESEARCH_H_
-#define _FILESEARCH_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -23,6 +21,4 @@ private:
 
 	XStringVector m_FileNames;
 };
-
-#endif // _FILESEARCH_H_
 

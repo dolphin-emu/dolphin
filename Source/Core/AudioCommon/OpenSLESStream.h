@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _OPENSLSTREAM_H_
-#define _OPENSLSTREAM_H_
+#pragma once
 
 #include "Thread.h"
 #include "SoundStream.h"
@@ -31,5 +30,3 @@ public:
 	OpenSLESStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}
 #endif // HAVE_OPENSL
 };
-
-#endif

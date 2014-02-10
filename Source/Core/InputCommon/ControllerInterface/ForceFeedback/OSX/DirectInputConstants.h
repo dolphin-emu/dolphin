@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DIRECTINPUTCONSTANTS_H_
-#define _DIRECTINPUTCONSTANTS_H_
+#pragma once
 
 /* 
  * Define all constants from ForceFeedbackConstants.h with DirectInput prefixes.
@@ -146,5 +145,3 @@
 #define DIGFFS_USERFFSWITCHON           FFGFFS_USERFFSWITCHON
 #define DIGFFS_USERFFSWITCHOFF          FFGFFS_USERFFSWITCHOFF
 #define DIGFFS_DEVICELOST               FFGFFS_DEVICELOST
-
-#endif

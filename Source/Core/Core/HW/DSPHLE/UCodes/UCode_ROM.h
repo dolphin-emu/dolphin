@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _UCODE_ROM
-#define _UCODE_ROM
+#pragma once
 
 #include "UCodes.h"
 
@@ -35,6 +34,3 @@ private:
 
 	void BootUCode();
 };
-
-#endif
-

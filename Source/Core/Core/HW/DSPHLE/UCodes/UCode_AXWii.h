@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _UCODE_AXWII_H
-#define _UCODE_AXWII_H
+#pragma once
 
 #include "UCode_AX.h"
 
@@ -111,5 +110,3 @@ private:
 		CMD_END_OLD               = 0x0F
 	};
 };
-
-#endif  // _UCODE_AXWII

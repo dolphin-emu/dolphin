@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONEMU_GCPAD_H_
-#define _CONEMU_GCPAD_H_
+#pragma once
 
 #include <string>
 
@@ -37,5 +36,3 @@ private:
 	const unsigned int		m_index;
 
 };
-
-#endif

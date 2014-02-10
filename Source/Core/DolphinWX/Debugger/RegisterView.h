@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __REGISTERVIEW_h__
-#define __REGISTERVIEW_h__
+#pragma once
 
 #include <wx/grid.h>
 
@@ -65,5 +64,3 @@ public:
 	CRegisterView(wxWindow* parent, wxWindowID id);
 	void Update();
 };
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PROCESSORINTERFACE_H
-#define _PROCESSORINTERFACE_H
+#pragma once
 
 #include "CommonTypes.h"
 class PointerWrap;
@@ -58,5 +57,3 @@ void SetInterrupt(u32 _causemask, bool _bSet=true);
 void ResetButton_Tap();
 
 } // namespace ProcessorInterface
-
-#endif

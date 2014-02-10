@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VIDEOSOFTWARE_CONFIG_H_
-#define _VIDEOSOFTWARE_CONFIG_H_
+#pragma once
 
 #include "Common.h"
 
@@ -43,5 +42,3 @@ struct SWVideoConfig : NonCopyable
 };
 
 extern SWVideoConfig g_SWVideoConfig;
-
-#endif  // _VIDEOSOFTWARE_CONFIG_H_

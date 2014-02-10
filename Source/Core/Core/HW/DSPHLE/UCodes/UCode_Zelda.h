@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _UCODE_ZELDA_H
-#define _UCODE_ZELDA_H
+#pragma once
 
 #include "Common.h"
 #include "UCodes.h"
@@ -293,6 +292,3 @@ private:
 	// Renders a voice and mixes it into LeftBuffer, RightBuffer
 	void RenderAddVoice(ZeldaVoicePB& PB, s32* _LeftBuffer, s32* _RightBuffer, int _Size);
 };
-
-#endif
-

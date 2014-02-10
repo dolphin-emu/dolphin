@@ -10,8 +10,7 @@
 //  * Polyphase sample interpolation support (not very useful)
 //  * Dolby Pro 2 mixing with recent AX versions
 
-#ifndef _UCODE_AX_H
-#define _UCODE_AX_H
+#pragma once
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
@@ -179,5 +178,3 @@ private:
 		CMD_SEND_AUX_AND_MIX      = 0x13,
 	};
 };
-
-#endif // !_UCODE_AX_H

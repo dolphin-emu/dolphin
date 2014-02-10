@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _XFMEMORY_H
-#define _XFMEMORY_H
+#pragma once
 
 #include "Common.h"
 
@@ -274,5 +273,3 @@ extern u32 xfmem[XFMEM_SIZE];
 
 void LoadXFReg(u32 transferSize, u32 address, u32 *pData);
 void LoadIndexedXF(u32 val, int array);
-
-#endif // _XFMEMORY_H

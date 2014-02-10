@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JIT64REGCACHE_H
-#define _JIT64REGCACHE_H
+#pragma once
 
 #include "x64Emitter.h"
 
@@ -144,5 +143,3 @@ public:
 	const int *GetAllocationOrder(int &count) override;
 	OpArg GetDefaultLocation(int reg) const override;
 };
-
-#endif  // _JIT64REGCACHE_H

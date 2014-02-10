@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _RASTERFONT_H_
-#define _RASTERFONT_H_
+#pragma once
 
 class RasterFont
 {
@@ -26,5 +25,3 @@ private:
 	char *temp_buffer;
 	enum {TEMP_BUFFER_SIZE = 64 * 1024};
 };
-
-#endif // _RASTERFONT_H_

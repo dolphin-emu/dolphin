@@ -1,6 +1,8 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#ifndef _DEVICE_H_
-#define _DEVICE_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -167,5 +169,3 @@ protected:
 
 }
 }
-
-#endif

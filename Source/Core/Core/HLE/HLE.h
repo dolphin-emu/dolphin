@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _HLE_H
-#define _HLE_H
+#pragma once
 
 #include <map>
 #include "CommonTypes.h"
@@ -40,6 +39,3 @@ namespace HLE
 
 	static std::map<u32, u32> orig_instruction;
 }
-
-#endif
-

@@ -1,5 +1,8 @@
-#ifndef _CIFACE_SDL_H_
-#define _CIFACE_SDL_H_
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#pragma once
 
 #include "../Device.h"
 
@@ -153,5 +156,3 @@ private:
 
 }
 }
-
-#endif

@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef _VOLUME_H
-#define _VOLUME_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -65,6 +63,3 @@ IVolume::ECountry CountrySwitch(u8 CountryCode);
 u8 GetSysMenuRegion(u16 _TitleVersion);
 
 } // namespace
-
-#endif
-

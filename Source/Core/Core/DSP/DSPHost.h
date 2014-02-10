@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPHOST_H
-#define _DSPHOST_H
+#pragma once
 
 // The user of the DSPCore library must supply a few functions so that the
 // emulation core can access the environment it runs in. If the emulation
@@ -18,5 +17,3 @@ bool DSPHost_Wii();
 void DSPHost_InterruptRequest();
 void DSPHost_CodeLoaded(const u8 *ptr, int size);
 void DSPHost_UpdateDebugger();
-
-#endif

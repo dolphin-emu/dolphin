@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef _INIFILE_H_
-#define _INIFILE_H_
+#pragma once
 
 #include <map>
 #include <string>
@@ -159,5 +157,3 @@ private:
 	std::string* GetLine(const char* section, const char* key);
 	void CreateSection(const char* section);
 };
-
-#endif // _INIFILE_H_

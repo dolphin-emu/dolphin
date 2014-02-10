@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_USB_KBD_H_
-#define _WII_IPC_HLE_DEVICE_USB_KBD_H_
+#pragma once
 
 class CWII_IPC_HLE_Device_usb_kbd : public IWII_IPC_HLE_Device
 {
@@ -64,5 +63,3 @@ private:
 	static u8 m_KeyCodesQWERTY[256];
 	static u8 m_KeyCodesAZERTY[256];
 };
-
-#endif // _WII_IPC_HLE_DEVICE_USB_KBD_H_

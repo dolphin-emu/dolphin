@@ -1,6 +1,4 @@
-
-#ifndef _CONFIG_DIAG_H_
-#define _CONFIG_DIAG_H_
+#pragma once
 
 #include <vector>
 #include <string>
@@ -205,5 +203,3 @@ protected:
 	VideoConfig &vconfig;
 	std::string ininame;
 };
-
-#endif

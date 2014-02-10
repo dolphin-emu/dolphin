@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _OPENALSTREAM_H_
-#define _OPENALSTREAM_H_
+#pragma once
 
 #include "SoundStream.h"
 #include "Thread.h"
@@ -79,5 +78,3 @@ public:
 	{}
 #endif // HAVE_OPENAL
 };
-
-#endif // OPENALSTREAM

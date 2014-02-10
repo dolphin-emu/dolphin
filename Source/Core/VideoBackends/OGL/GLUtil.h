@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GLINIT_H_
-#define _GLINIT_H_
+#pragma once
 
 #include "VideoConfig.h"
 #include "MathUtil.h"
@@ -40,5 +39,3 @@ __forceinline GLenum GL_REPORT_ERROR() { return GL_NO_ERROR; }
 #else
 #define DEBUG_GLSL 0
 #endif
-
-#endif  // _GLINIT_H_

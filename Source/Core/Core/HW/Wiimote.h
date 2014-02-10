@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WIIMOTE_H_
-#define _WIIMOTE_H_
+#pragma once
 
 #include "../InputCommon/InputConfig.h"
 #include "ChunkFile.h"
@@ -63,5 +62,3 @@ void Refresh();
 void LoadSettings();
 
 }
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXLOADER_H
-#define _VERTEXLOADER_H
+#pragma once
 
 // Top vertex loaders
 // Metroid Prime: P I16-flt N I16-s16 T0 I16-u16 T1 i16-flt
@@ -140,5 +139,3 @@ private:
 	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
 #endif
 };
-
-#endif

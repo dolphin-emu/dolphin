@@ -23,8 +23,7 @@
 
    ====================================================================*/
 
-#ifndef _GDSP_INTERFACE_H
-#define _GDSP_INTERFACE_H
+#pragma once
 
 #include "Common.h"
 
@@ -41,5 +40,3 @@ void gdsp_ifx_init();
 
 void gdsp_ifx_write(u32 addr, u32 val);
 u16  gdsp_ifx_read(u16 addr);
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _SIDEVICE_H
-#define _SIDEVICE_H
+#pragma once
 
 #include "Common.h"
 
@@ -97,5 +96,3 @@ public:
 };
 
 extern ISIDevice* SIDevice_Create(const SIDevices device, const int port_number);
-
-#endif

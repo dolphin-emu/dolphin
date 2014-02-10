@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _RASTERFONT_H_
-#define _RASTERFONT_H_
+#pragma once
 
-namespace OGL {
+namespace OGL
+{
 
-class RasterFont {
+class RasterFont
+{
 public:
 	RasterFont();
 	~RasterFont(void);
@@ -24,5 +25,3 @@ private:
 };
 
 }
-
-#endif // _RASTERFONT_H_

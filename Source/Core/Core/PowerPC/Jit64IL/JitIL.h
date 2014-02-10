@@ -14,8 +14,7 @@
 //   * A flush simply does a conditional write to the appropriate CRx.
 //   * If flag available, branch code can become absolutely trivial.
 
-#ifndef _JITIL_H
-#define _JITIL_H
+#pragma once
 
 #include "JitILAsm.h"
 #include "x64Emitter.h"
@@ -126,5 +125,3 @@ public:
 	void DynaRunTable59(UGeckoInstruction _inst) override;
 	void DynaRunTable63(UGeckoInstruction _inst) override;
 };
-
-#endif  // _JITIL_H

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef GCOGL_PIXELSHADER_H
-#define GCOGL_PIXELSHADER_H
+#pragma once
 
 #include "VideoCommon.h"
 #include "ShaderGenCommon.h"
@@ -141,5 +140,3 @@ typedef ShaderConstantProfile PixelShaderConstantProfile; // TODO: Obsolete
 void GeneratePixelShaderCode(PixelShaderCode& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
 void GetPixelShaderConstantProfile(PixelShaderConstantProfile& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components);
-
-#endif // GCOGL_PIXELSHADER_H
