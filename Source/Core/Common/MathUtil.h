@@ -148,8 +148,8 @@ inline double pow2(double x) {return x * x;}
 
 float MathFloatVectorSum(const std::vector<float>&);
 
-#define ROUND_UP(x, a)		(((x) + (a) - 1) & ~((a) - 1))
-#define ROUND_DOWN(x, a)	((x) & ~((a) - 1))
+#define ROUND_UP(x, a)   (((x) + (a) - 1) & ~((a) - 1))
+#define ROUND_DOWN(x, a) ((x) & ~((a) - 1))
 
 // Rounds down. 0 -> undefined
 inline u64 Log2(u64 val)

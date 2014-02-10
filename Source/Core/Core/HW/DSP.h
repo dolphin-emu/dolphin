@@ -14,16 +14,16 @@ namespace DSP
 
 enum DSPInterruptType
 {
-	INT_DSP		= 0,
-	INT_ARAM	= 1,
-	INT_AID		= 2
+	INT_DSP  = 0,
+	INT_ARAM = 1,
+	INT_AID  = 2
 };
 
 // aram size and mask
 enum
 {
-	ARAM_SIZE	= 0x01000000,	// 16 MB
-	ARAM_MASK	= 0x00FFFFFF,
+	ARAM_SIZE = 0x01000000, // 16 MB
+	ARAM_MASK = 0x00FFFFFF,
 };
 
 void Init(bool hle);

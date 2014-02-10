@@ -33,40 +33,40 @@ struct netcfg_connection_t
 {
 	enum
 	{
-		WIRED_IF			=   1, // 0: wifi 1: wired
-		DNS_DHCP			=   2, // 0: manual 1: DHCP
-		IP_DHCP				=   4, // 0: manual 1: DHCP
-		USE_PROXY			=  16,
-		CONNECTION_TEST_OK	=  32,
-		CONNECTION_SELECTED	= 128
+		WIRED_IF            =   1, // 0: wifi 1: wired
+		DNS_DHCP            =   2, // 0: manual 1: DHCP
+		IP_DHCP             =   4, // 0: manual 1: DHCP
+		USE_PROXY           =  16,
+		CONNECTION_TEST_OK  =  32,
+		CONNECTION_SELECTED = 128
 	};
 
 	enum
 	{
-		OPEN		= 0,
-		WEP64		= 1,
-		WEP128		= 2,
-		WPA_TKIP	= 4,
-		WPA2_AES	= 5,
-		WPA_AES		= 6
+		OPEN     = 0,
+		WEP64    = 1,
+		WEP128   = 2,
+		WPA_TKIP = 4,
+		WPA2_AES = 5,
+		WPA_AES  = 6
 	};
 
 	enum status
 	{
-		LINK_BUSY = 1,
-		LINK_NONE,
-		LINK_WIRED,
-		LINK_WIFI_DOWN,
-		LINK_WIFI_UP
+		LINK_BUSY      = 1,
+		LINK_NONE      = 2,
+		LINK_WIRED     = 3,
+		LINK_WIFI_DOWN = 4,
+		LINK_WIFI_UP   = 5
 	};
 
 	enum
 	{
-		PERM_NONE		= 0,
-		PERM_SEND_MAIL	= 1,
-		PERM_RECV_MAIL	= 2,
-		PERM_DOWNLOAD	= 4,
-		PERM_ALL		= PERM_SEND_MAIL | PERM_RECV_MAIL | PERM_DOWNLOAD
+		PERM_NONE      = 0,
+		PERM_SEND_MAIL = 1,
+		PERM_RECV_MAIL = 2,
+		PERM_DOWNLOAD  = 4,
+		PERM_ALL       = PERM_SEND_MAIL | PERM_RECV_MAIL | PERM_DOWNLOAD
 	};
 
 	// settings common to both wired and wireless connections
@@ -119,28 +119,28 @@ struct network_config_t
 
 enum nwc24_err_t
 {
-	WC24_OK 					=   0,
-	WC24_ERR_FATAL				=  -1,
-	WC24_ERR_ID_NONEXISTANCE	= -34,
-	WC24_ERR_ID_GENERATED 		= -35,
-	WC24_ERR_ID_REGISTERED 		= -36,
-	WC24_ERR_ID_NOT_REGISTERED 	= -44,
+	WC24_OK                    =   0,
+	WC24_ERR_FATAL             =  -1,
+	WC24_ERR_ID_NONEXISTANCE   = -34,
+	WC24_ERR_ID_GENERATED      = -35,
+	WC24_ERR_ID_REGISTERED     = -36,
+	WC24_ERR_ID_NOT_REGISTERED = -44,
 };
 
 struct nwc24_config_t
 {
 	enum
 	{
-		NWC24_IDCS_INITIAL = 0,
-		NWC24_IDCS_GENERATED = 1,
+		NWC24_IDCS_INITIAL    = 0,
+		NWC24_IDCS_GENERATED  = 1,
 		NWC24_IDCS_REGISTERED = 2
 	};
 
 	enum
 	{
-		URL_COUNT = 0x05,
-		MAX_URL_LENGTH = 0x80,
-		MAX_EMAIL_LENGTH = 0x40,
+		URL_COUNT           = 0x05,
+		MAX_URL_LENGTH      = 0x80,
+		MAX_EMAIL_LENGTH    = 0x40,
 		MAX_PASSWORD_LENGTH = 0x20,
 	};
 
@@ -521,11 +521,11 @@ public:
 private:
 	enum
 	{
-		IOCTL_NW24_GET_UNIVERSAL_TIME	= 0x14,
-		IOCTL_NW24_SET_UNIVERSAL_TIME	= 0x15,
-		IOCTL_NW24_UNIMPLEMENTED		= 0x16,
-		IOCTL_NW24_SET_RTC_COUNTER		= 0x17,
-		IOCTL_NW24_GET_TIME_DIFF		= 0x18,
+		IOCTL_NW24_GET_UNIVERSAL_TIME = 0x14,
+		IOCTL_NW24_SET_UNIVERSAL_TIME = 0x15,
+		IOCTL_NW24_UNIMPLEMENTED      = 0x16,
+		IOCTL_NW24_SET_RTC_COUNTER    = 0x17,
+		IOCTL_NW24_GET_TIME_DIFF      = 0x18,
 	};
 
 	u64 rtc;
@@ -627,14 +627,14 @@ public:
 private:
 	enum
 	{
-		IOCTLV_NCD_LOCKWIRELESSDRIVER		= 0x1,  // NCDLockWirelessDriver
-		IOCTLV_NCD_UNLOCKWIRELESSDRIVER		= 0x2,  // NCDUnlockWirelessDriver
-		IOCTLV_NCD_GETCONFIG				= 0x3,  // NCDiGetConfig
-		IOCTLV_NCD_SETCONFIG				= 0x4,  // NCDiSetConfig
-		IOCTLV_NCD_READCONFIG				= 0x5,
-		IOCTLV_NCD_WRITECONFIG				= 0x6,
-		IOCTLV_NCD_GETLINKSTATUS			= 0x7,  // NCDGetLinkStatus
-		IOCTLV_NCD_GETWIRELESSMACADDRESS	= 0x8,  // NCDGetWirelessMacAddress
+		IOCTLV_NCD_LOCKWIRELESSDRIVER    = 0x1,  // NCDLockWirelessDriver
+		IOCTLV_NCD_UNLOCKWIRELESSDRIVER  = 0x2,  // NCDUnlockWirelessDriver
+		IOCTLV_NCD_GETCONFIG             = 0x3,  // NCDiGetConfig
+		IOCTLV_NCD_SETCONFIG             = 0x4,  // NCDiSetConfig
+		IOCTLV_NCD_READCONFIG            = 0x5,
+		IOCTLV_NCD_WRITECONFIG           = 0x6,
+		IOCTLV_NCD_GETLINKSTATUS         = 0x7,  // NCDGetLinkStatus
+		IOCTLV_NCD_GETWIRELESSMACADDRESS = 0x8,  // NCDGetWirelessMacAddress
 	};
 
 	WiiNetConfig config;
@@ -655,24 +655,24 @@ public:
 private:
 	enum
 	{
-		IOCTLV_WD_GET_MODE			= 0x1001, // WD_GetMode
-		IOCTLV_WD_SET_LINKSTATE		= 0x1002, // WD_SetLinkState
-		IOCTLV_WD_GET_LINKSTATE		= 0x1003, // WD_GetLinkState
-		IOCTLV_WD_SET_CONFIG		= 0x1004, // WD_SetConfig
-		IOCTLV_WD_GET_CONFIG		= 0x1005, // WD_GetConfig
-		IOCTLV_WD_CHANGE_BEACON		= 0x1006, // WD_ChangeBeacon
-		IOCTLV_WD_DISASSOC			= 0x1007, // WD_DisAssoc
-		IOCTLV_WD_MP_SEND_FRAME		= 0x1008, // WD_MpSendFrame
-		IOCTLV_WD_SEND_FRAME		= 0x1009, // WD_SendFrame
-		IOCTLV_WD_SCAN				= 0x100a, // WD_Scan
-		IOCTLV_WD_CALL_WL			= 0x100c, // WD_CallWL
-		IOCTLV_WD_MEASURE_CHANNEL	= 0x100b, // WD_MeasureChannel
-		IOCTLV_WD_GET_LASTERROR		= 0x100d, // WD_GetLastError
-		IOCTLV_WD_GET_INFO			= 0x100e, // WD_GetInfo
-		IOCTLV_WD_CHANGE_GAMEINFO	= 0x100f, // WD_ChangeGameInfo
-		IOCTLV_WD_CHANGE_VTSF		= 0x1010, // WD_ChangeVTSF
-		IOCTLV_WD_RECV_FRAME		= 0x8000, // WD_ReceiveFrame
-		IOCTLV_WD_RECV_NOTIFICATION	= 0x8001  // WD_ReceiveNotification
+		IOCTLV_WD_GET_MODE          = 0x1001, // WD_GetMode
+		IOCTLV_WD_SET_LINKSTATE     = 0x1002, // WD_SetLinkState
+		IOCTLV_WD_GET_LINKSTATE     = 0x1003, // WD_GetLinkState
+		IOCTLV_WD_SET_CONFIG        = 0x1004, // WD_SetConfig
+		IOCTLV_WD_GET_CONFIG        = 0x1005, // WD_GetConfig
+		IOCTLV_WD_CHANGE_BEACON     = 0x1006, // WD_ChangeBeacon
+		IOCTLV_WD_DISASSOC          = 0x1007, // WD_DisAssoc
+		IOCTLV_WD_MP_SEND_FRAME     = 0x1008, // WD_MpSendFrame
+		IOCTLV_WD_SEND_FRAME        = 0x1009, // WD_SendFrame
+		IOCTLV_WD_SCAN              = 0x100a, // WD_Scan
+		IOCTLV_WD_CALL_WL           = 0x100c, // WD_CallWL
+		IOCTLV_WD_MEASURE_CHANNEL   = 0x100b, // WD_MeasureChannel
+		IOCTLV_WD_GET_LASTERROR     = 0x100d, // WD_GetLastError
+		IOCTLV_WD_GET_INFO          = 0x100e, // WD_GetInfo
+		IOCTLV_WD_CHANGE_GAMEINFO   = 0x100f, // WD_ChangeGameInfo
+		IOCTLV_WD_CHANGE_VTSF       = 0x1010, // WD_ChangeVTSF
+		IOCTLV_WD_RECV_FRAME        = 0x8000, // WD_ReceiveFrame
+		IOCTLV_WD_RECV_NOTIFICATION = 0x8001  // WD_ReceiveNotification
 	};
 
 	enum

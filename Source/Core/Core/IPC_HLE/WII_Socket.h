@@ -53,8 +53,8 @@ typedef struct pollfd pollfd_t;
 #include "WII_IPC_HLE_Device_net_ssl.h"
 
 enum {
-	SO_MSG_OOB		= 0x01,
-	SO_MSG_PEEK		= 0x02,
+	SO_MSG_OOB      = 0x01,
+	SO_MSG_PEEK     = 0x02,
 	SO_MSG_NONBLOCK = 0x04,
 };
 enum {
@@ -147,17 +147,17 @@ struct WiiInAddr
 
 struct WiiSockAddr
 {
-    u8 len;
-    u8 family;
-    u8 data[6];
+	u8 len;
+	u8 family;
+	u8 data[6];
 };
 
 struct WiiSockAddrIn
 {
-    u8 len;
-    u8 family;
-    u16 port;
-    WiiInAddr addr;
+	u8 len;
+	u8 family;
+	u16 port;
+	WiiInAddr addr;
 };
 #pragma pack(pop)
 

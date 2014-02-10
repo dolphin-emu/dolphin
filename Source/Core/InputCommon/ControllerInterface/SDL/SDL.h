@@ -34,9 +34,9 @@ private:
 	{
 		EffectIDState() : effect(SDL_HapticEffect()), id(-1), changed(false) {}
 
-		SDL_HapticEffect	effect;
-		int					id;
-		bool				changed;
+		SDL_HapticEffect effect;
+		int              id;
+		bool             changed;
 	};
 #endif
 
@@ -141,13 +141,13 @@ public:
 	std::string GetSource() const override;
 
 private:
-	SDL_Joystick* const			m_joystick;
-	const int					m_sdl_index;
-	const unsigned int			m_index;
+	SDL_Joystick* const      m_joystick;
+	const int                m_sdl_index;
+	const unsigned int       m_index;
 
 #ifdef USE_SDL_HAPTIC
-	std::list<EffectIDState>	m_state_out;
-	SDL_Haptic*					m_haptic;
+	std::list<EffectIDState> m_state_out;
+	SDL_Haptic*              m_haptic;
 #endif
 };
 

@@ -29,7 +29,7 @@ struct ArraySizeImpl : public std::extent<T>
 #define b8(x)   ( b4(x) | ( b4(x) >> 4) )
 #define b16(x)  ( b8(x) | ( b8(x) >> 8) )
 #define b32(x)  (b16(x) | (b16(x) >>16) )
-#define ROUND_UP_POW2(x)	(b32(x - 1) + 1)
+#define ROUND_UP_POW2(x)  (b32(x - 1) + 1)
 
 #ifndef __GNUC_PREREQ 
 	#define __GNUC_PREREQ(a, b) 0 

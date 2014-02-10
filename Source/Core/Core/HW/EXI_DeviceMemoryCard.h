@@ -48,21 +48,21 @@ private:
 
 	enum
 	{
-		cmdNintendoID			= 0x00,
-		cmdReadArray			= 0x52,
-		cmdArrayToBuffer		= 0x53,
-		cmdSetInterrupt			= 0x81,
-		cmdWriteBuffer			= 0x82,
-		cmdReadStatus			= 0x83,
-		cmdReadID				= 0x85,
-		cmdReadErrorBuffer		= 0x86,
-		cmdWakeUp				= 0x87,
-		cmdSleep				= 0x88,
-		cmdClearStatus			= 0x89,
-		cmdSectorErase			= 0xF1,
-		cmdPageProgram			= 0xF2,
-		cmdExtraByteProgram		= 0xF3,
-		cmdChipErase			= 0xF4,
+		cmdNintendoID       = 0x00,
+		cmdReadArray        = 0x52,
+		cmdArrayToBuffer    = 0x53,
+		cmdSetInterrupt     = 0x81,
+		cmdWriteBuffer      = 0x82,
+		cmdReadStatus       = 0x83,
+		cmdReadID           = 0x85,
+		cmdReadErrorBuffer  = 0x86,
+		cmdWakeUp           = 0x87,
+		cmdSleep            = 0x88,
+		cmdClearStatus      = 0x89,
+		cmdSectorErase      = 0xF1,
+		cmdPageProgram      = 0xF2,
+		cmdExtraByteProgram = 0xF3,
+		cmdChipErase        = 0xF4,
 	};
 
 	std::string m_strFilename;

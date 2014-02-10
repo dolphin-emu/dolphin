@@ -43,10 +43,10 @@ enum CCFlags
 {
 	CC_O   = 0,
 	CC_NO  = 1,
-	CC_B   = 2, CC_C  = 2, CC_NAE = 2,
-	CC_NB  = 3, CC_NC = 3, CC_AE  = 3,
+	CC_B   = 2, CC_C   = 2, CC_NAE = 2,
+	CC_NB  = 3, CC_NC  = 3, CC_AE  = 3,
 	CC_Z   = 4, CC_E   = 4,
-	CC_NZ  = 5,	CC_NE  = 5,
+	CC_NZ  = 5, CC_NE  = 5,
 	CC_BE  = 6, CC_NA  = 6,
 	CC_NBE = 7, CC_A   = 7,
 	CC_S   = 8,

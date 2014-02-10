@@ -22,14 +22,14 @@ typedef struct
 
 static const ForceType force_type_names[] =
 {
-	{GUID_ConstantForce, "Constant"},	// DICONSTANTFORCE
-	{GUID_RampForce, "Ramp"},			// DIRAMPFORCE
-	{GUID_Square, "Square"},			// DIPERIODIC ...
+	{GUID_ConstantForce, "Constant"}, // DICONSTANTFORCE
+	{GUID_RampForce, "Ramp"},         // DIRAMPFORCE
+	{GUID_Square, "Square"},          // DIPERIODIC ...
 	{GUID_Sine, "Sine"},
 	{GUID_Triangle, "Triangle"},
 	{GUID_SawtoothUp, "Sawtooth Up"},
 	{GUID_SawtoothDown, "Sawtooth Down"},
-	//{GUID_Spring, "Spring"},			// DICUSTOMFORCE ... < I think
+	//{GUID_Spring, "Spring"},          // DICUSTOMFORCE ... < I think
 	//{GUID_Damper, "Damper"},
 	//{GUID_Inertia, "Inertia"},
 	//{GUID_Friction, "Friction"},

@@ -161,8 +161,8 @@ struct PBDpopWM
 
 struct PBVolumeEnvelope
 {
-	u16 cur_volume;			// volume at start of frame
-	s16 cur_volume_delta;	// signed per sample delta (96 samples per frame)
+	u16 cur_volume;       // Volume at start of frame
+	s16 cur_volume_delta; // Signed per sample delta (96 samples per frame)
 };
 
 struct PBUnknown2
@@ -254,12 +254,12 @@ struct AXPB
 struct PBBiquadFilter
 {
 
-	u16 on;		// on = 2, off = 0
-	u16 xn1;	// History data
+	u16 on;  // on = 2, off = 0
+	u16 xn1; // History data
 	u16 xn2;
 	u16 yn1;
 	u16 yn2;
-	u16 b0;		// Filter coefficients
+	u16 b0;  // Filter coefficients
 	u16 b1;
 	u16 b2;
 	u16 a1;
@@ -280,13 +280,13 @@ struct AXPBWii
 	u16 this_pb_hi;
 	u16 this_pb_lo;
 
-	u16 src_type;		// Type of sample rate converter (none, 4-tap, linear)
-	u16 coef_select;	// coef for the 4-tap src
+	u16 src_type;       // Type of sample rate converter (none, 4-tap, linear)
+	u16 coef_select;    // coef for the 4-tap src
 	u16 mixer_control_hi;
 	u16 mixer_control_lo;
 
-	u16 running;		// 1=RUN   0=STOP
-	u16 is_stream;		// 1 = stream, 0 = one shot
+	u16 running;        // 1=RUN   0=STOP
+	u16 is_stream;      // 1 = stream, 0 = one shot
 
 	PBMixerWii mixer;
 	PBInitialTimeDelay initial_time_delay;

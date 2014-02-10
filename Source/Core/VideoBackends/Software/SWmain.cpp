@@ -41,9 +41,9 @@ static volatile u32 s_swapRequested = false;
 
 static volatile struct
 {
-    u32 xfbAddr;
-    u32 fbWidth;
-    u32 fbHeight;
+	u32 xfbAddr;
+	u32 fbWidth;
+	u32 fbHeight;
 } s_beginFieldArgs;
 
 namespace SW

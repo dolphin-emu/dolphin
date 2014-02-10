@@ -81,9 +81,9 @@ public:
 private:
 	struct param_t
 	{
-		u32			val;
-		partype_t	type;
-		char		*str;
+		u32       val;
+		partype_t type;
+		char      *str;
 	};
 
 	enum segment_t

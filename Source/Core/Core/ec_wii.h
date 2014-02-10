@@ -41,10 +41,10 @@ public:
 	EcWii();
 	~EcWii();
 	static EcWii& GetInstance();
-	u32 getNgId() 			{return Common::swap32(BootMiiKeysBin.ng_id);}
-	u32 getNgKeyId() 		{return Common::swap32(BootMiiKeysBin.ng_key_id);}
-	const u8* getNgPriv() 	{return BootMiiKeysBin.ng_priv;}
-	const u8* getNgSig() 	{return BootMiiKeysBin.ng_sig;};
+	u32 getNgId()         {return Common::swap32(BootMiiKeysBin.ng_id);}
+	u32 getNgKeyId()      {return Common::swap32(BootMiiKeysBin.ng_key_id);}
+	const u8* getNgPriv() {return BootMiiKeysBin.ng_priv;}
+	const u8* getNgSig()  {return BootMiiKeysBin.ng_sig;};
 private:
 	void InitDefaults();
 
@@ -65,38 +65,38 @@ private:
 
 	struct
 	{
-		u8 creator				[0x100]; // 0x000
-		u8 boot1_hash			[ 0x14]; // 0x100
-		u8 common_key			[ 0x10]; // 0x114
-		u32 ng_id; 						 // 0x124
+		u8 creator              [0x100]; // 0x000
+		u8 boot1_hash           [ 0x14]; // 0x100
+		u8 common_key           [ 0x10]; // 0x114
+		u32 ng_id;                       // 0x124
 		union {
 			struct {
-				u8 ng_priv		[ 0x1e]; // 0x128
-				u8 pad1			[ 0x12];
+				u8 ng_priv      [ 0x1e]; // 0x128
+				u8 pad1         [ 0x12];
 			};
 			struct {
-				u8 pad2			[ 0x1c];
-				u8 nand_hmac	[ 0x14]; //0x144
+				u8 pad2         [ 0x1c];
+				u8 nand_hmac    [ 0x14]; //0x144
 			};
 		};
-		u8 nand_key				[ 0x10]; //0x158
-		u8 rng_key				[ 0x10]; //0x168
-		u32 unk1;						 //0x178
-		u32 unk2;						 //0x17C
-		u8 eeprom_pad			[ 0x80]; //0x180
+		u8 nand_key             [ 0x10]; //0x158
+		u8 rng_key              [ 0x10]; //0x168
+		u32 unk1;                        //0x178
+		u32 unk2;                        //0x17C
+		u8 eeprom_pad           [ 0x80]; //0x180
 
-		u32 ms_id;						 //0x200
-		u32 ca_id;						 //0x204
-		u32 ng_key_id;					 //0x208
-		u8 ng_sig				[ 0x3c]; //0x20c
-		eep_ctr_t counters		[ 0x02]; //0x248
-		u8 fill					[ 0x18]; //0x25c
-		u8 korean_key			[ 0x10]; //0x274
-		u8 pad3					[ 0x74]; //0x284
-		u16 prng_seed			[ 0x02]; //0x2F8
-		u8 pad4					[ 0x04]; //0x2FC
+		u32 ms_id;                       //0x200
+		u32 ca_id;                       //0x204
+		u32 ng_key_id;                   //0x208
+		u8 ng_sig               [ 0x3c]; //0x20c
+		eep_ctr_t counters      [ 0x02]; //0x248
+		u8 fill                 [ 0x18]; //0x25c
+		u8 korean_key           [ 0x10]; //0x274
+		u8 pad3                 [ 0x74]; //0x284
+		u16 prng_seed           [ 0x02]; //0x2F8
+		u8 pad4                 [ 0x04]; //0x2FC
 
-		u8 crack_pad			[0x100]; //0x300
+		u8 crack_pad            [0x100]; //0x300
 
 	}
 

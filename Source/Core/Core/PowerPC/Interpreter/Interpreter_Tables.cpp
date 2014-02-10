@@ -63,7 +63,7 @@ static GekkoOPTemplate primarytable[] =
 	{45, Interpreter::sthu,         {"sthu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S | FL_LOADSTORE, 0, 0, 0, 0}},
 	{36, Interpreter::stw,          {"stw",  OPTYPE_STORE, FL_IN_A | FL_IN_S | FL_LOADSTORE, 0, 0, 0, 0}},
 	{37, Interpreter::stwu,         {"stwu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S | FL_LOADSTORE, 0, 0, 0, 0}},
-	{38, Interpreter::stb,	        {"stb",  OPTYPE_STORE, FL_IN_A | FL_IN_S | FL_LOADSTORE, 0, 0, 0, 0}},
+	{38, Interpreter::stb,          {"stb",  OPTYPE_STORE, FL_IN_A | FL_IN_S | FL_LOADSTORE, 0, 0, 0, 0}},
 	{39, Interpreter::stbu,         {"stbu", OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_S | FL_LOADSTORE, 0, 0, 0, 0}},
 
 	{46, Interpreter::lmw,          {"lmw",   OPTYPE_SYSTEM, FL_EVIL | FL_LOADSTORE, 10, 0, 0, 0}},

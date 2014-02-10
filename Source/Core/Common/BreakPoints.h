@@ -14,9 +14,9 @@ class DebugInterface;
 
 struct TBreakPoint
 {
-	u32		iAddress;
-	bool	bOn;
-	bool	bTemporary;
+	u32  iAddress;
+	bool bOn;
+	bool bTemporary;
 };
 
 struct TMemCheck
@@ -29,18 +29,18 @@ struct TMemCheck
 	u32 StartAddress;
 	u32 EndAddress;
 
-	bool	bRange;
+	bool bRange;
 
-	bool	OnRead;
-	bool	OnWrite;
+	bool OnRead;
+	bool OnWrite;
 
-	bool	Log;
-	bool	Break;
+	bool Log;
+	bool Break;
 
-	u32		numHits;
+	u32 numHits;
 
 	void Action(DebugInterface *dbg_interface, u32 _iValue, u32 addr,
-				bool write, int size, u32 pc);
+	            bool write, int size, u32 pc);
 };
 
 // Code breakpoints.
@@ -71,7 +71,7 @@ public:
 
 private:
 	TBreakPoints m_BreakPoints;
-	u32	m_iBreakOnCount;
+	u32 m_iBreakOnCount;
 };
 
 

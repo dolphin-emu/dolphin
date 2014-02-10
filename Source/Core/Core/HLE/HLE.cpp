@@ -40,35 +40,35 @@ struct SPatch
 
 static const SPatch OSPatches[] =
 {
-	{ "FAKE_TO_SKIP_0",		HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
+	{ "FAKE_TO_SKIP_0",       HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
-	{ "PanicAlert",			HLE_Misc::HLEPanicAlert, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "PanicAlert",           HLE_Misc::HLEPanicAlert,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
 
 	// Name doesn't matter, installed in CBoot::BootUp()
-	{ "HBReload",			HLE_Misc::HBReload, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
+	{ "HBReload",             HLE_Misc::HBReload,              HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
 	// ES_LAUNCH
-	{ "__OSBootDol",		HLE_Misc::OSBootDol, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
-	{ "OSGetResetCode",		HLE_Misc::OSGetResetCode, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
+	{ "__OSBootDol",          HLE_Misc::OSBootDol,             HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
+	{ "OSGetResetCode",       HLE_Misc::OSGetResetCode,        HLE_HOOK_REPLACE, HLE_TYPE_GENERIC },
 
 	// Debug/OS Support
-	{ "OSPanic",			HLE_OS::HLE_OSPanic, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "OSPanic",              HLE_OS::HLE_OSPanic,             HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
 
-	{ "OSReport",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "DEBUGPrint",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "WUD_DEBUGPrint",		HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "vprintf",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "printf",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "puts",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // gcc-optimized printf?
-	{ "___blank(char *,...)",	HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used for early init things (normally)
-	{ "___blank",			HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
-	{ "__write_console",		HLE_OS::HLE_write_console, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used by sysmenu (+more?)
-	{ "GeckoCodehandler",		HLE_Misc::HLEGeckoCodehandler, HLE_HOOK_START, HLE_TYPE_GENERIC },
+	{ "OSReport",             HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "DEBUGPrint",           HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "WUD_DEBUGPrint",       HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "vprintf",              HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "printf",               HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "puts",                 HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // gcc-optimized printf?
+	{ "___blank(char *,...)", HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used for early init things (normally)
+	{ "___blank",             HLE_OS::HLE_GeneralDebugPrint,   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG },
+	{ "__write_console",      HLE_OS::HLE_write_console,       HLE_HOOK_REPLACE, HLE_TYPE_DEBUG }, // used by sysmenu (+more?)
+	{ "GeckoCodehandler",     HLE_Misc::HLEGeckoCodehandler,   HLE_HOOK_START,   HLE_TYPE_GENERIC },
 };
 
 static const SPatch OSBreakPoints[] =
 {
-	{ "FAKE_TO_SKIP_0",		HLE_Misc::UnimplementedFunction },
+	{ "FAKE_TO_SKIP_0", HLE_Misc::UnimplementedFunction },
 };
 
 void Patch(u32 addr, const char *hle_func_name)

@@ -42,26 +42,26 @@ namespace DSP
 // register offsets
 enum
 {
-	DSP_MAIL_TO_DSP_HI		= 0x5000,
-	DSP_MAIL_TO_DSP_LO		= 0x5002,
-	DSP_MAIL_FROM_DSP_HI	= 0x5004,
-	DSP_MAIL_FROM_DSP_LO	= 0x5006,
-	DSP_CONTROL				= 0x500A,
-	DSP_INTERRUPT_CONTROL	= 0x5010,
-	AR_INFO					= 0x5012,  // These names are a good guess at best
-	AR_MODE					= 0x5016,  //
-	AR_REFRESH				= 0x501a,
-	AR_DMA_MMADDR_H			= 0x5020,
-	AR_DMA_MMADDR_L			= 0x5022,
-	AR_DMA_ARADDR_H			= 0x5024,
-	AR_DMA_ARADDR_L			= 0x5026,
-	AR_DMA_CNT_H			= 0x5028,
-	AR_DMA_CNT_L			= 0x502A,
-	AUDIO_DMA_START_HI		= 0x5030,
-	AUDIO_DMA_START_LO		= 0x5032,
-	AUDIO_DMA_BLOCKS_LENGTH	= 0x5034,  // Ever used?
-	AUDIO_DMA_CONTROL_LEN	= 0x5036,
-	AUDIO_DMA_BLOCKS_LEFT	= 0x503A,
+	DSP_MAIL_TO_DSP_HI      = 0x5000,
+	DSP_MAIL_TO_DSP_LO      = 0x5002,
+	DSP_MAIL_FROM_DSP_HI    = 0x5004,
+	DSP_MAIL_FROM_DSP_LO    = 0x5006,
+	DSP_CONTROL             = 0x500A,
+	DSP_INTERRUPT_CONTROL   = 0x5010,
+	AR_INFO                 = 0x5012,  // These names are a good guess at best
+	AR_MODE                 = 0x5016,  //
+	AR_REFRESH              = 0x501a,
+	AR_DMA_MMADDR_H         = 0x5020,
+	AR_DMA_MMADDR_L         = 0x5022,
+	AR_DMA_ARADDR_H         = 0x5024,
+	AR_DMA_ARADDR_L         = 0x5026,
+	AR_DMA_CNT_H            = 0x5028,
+	AR_DMA_CNT_L            = 0x502A,
+	AUDIO_DMA_START_HI      = 0x5030,
+	AUDIO_DMA_START_LO      = 0x5032,
+	AUDIO_DMA_BLOCKS_LENGTH = 0x5034,  // Ever used?
+	AUDIO_DMA_CONTROL_LEN   = 0x5036,
+	AUDIO_DMA_BLOCKS_LEFT   = 0x503A,
 };
 
 // UARAMCount
@@ -70,8 +70,8 @@ union UARAMCount
 	u32 Hex;
 	struct
 	{
-		u32 count	: 31;
-		u32 dir		: 1; // 0: MRAM -> ARAM 1: ARAM -> MRAM
+		u32 count : 31;
+		u32 dir   : 1; // 0: MRAM -> ARAM 1: ARAM -> MRAM
 	};
 };
 
@@ -83,23 +83,23 @@ union UDSPControl
 	struct
 	{
 		// DSP Control
-		u16 DSPReset		: 1;	// Write 1 to reset and waits for 0
-		u16 DSPAssertInt	: 1;
-		u16 DSPHalt			: 1;
+		u16 DSPReset     : 1; // Write 1 to reset and waits for 0
+		u16 DSPAssertInt : 1;
+		u16 DSPHalt      : 1;
 		// Interrupt for DMA to the AI/speakers
-		u16 AID				: 1;
-		u16 AID_mask		: 1;
+		u16 AID          : 1;
+		u16 AID_mask     : 1;
 		// ARAM DMA interrupt
-		u16 ARAM			: 1;
-		u16 ARAM_mask		: 1;
+		u16 ARAM         : 1;
+		u16 ARAM_mask    : 1;
 		// DSP DMA interrupt
-		u16 DSP				: 1;
-		u16 DSP_mask		: 1;
+		u16 DSP          : 1;
+		u16 DSP_mask     : 1;
 		// Other ???
-		u16 DMAState		: 1;	// DSPGetDMAStatus() uses this flag. __ARWaitForDMA() uses it too...maybe it's just general DMA flag
-		u16 unk3			: 1;
-		u16 DSPInit			: 1;	// DSPInit() writes to this flag
-		u16 pad				: 4;
+		u16 DMAState     : 1; // DSPGetDMAStatus() uses this flag. __ARWaitForDMA() uses it too...maybe it's just general DMA flag
+		u16 unk3         : 1;
+		u16 DSPInit      : 1; // DSPInit() writes to this flag
+		u16 pad          : 4;
 	};
 };
 
@@ -188,9 +188,9 @@ union ARAM_Info
 	u16 Hex;
 	struct
 	{
-		u16 size	: 6;
-		u16 unk		: 1;
-		u16			: 9;
+		u16 size : 6;
+		u16 unk  : 1;
+		u16      : 9;
 	};
 };
 static ARAM_Info g_ARAM_Info;
