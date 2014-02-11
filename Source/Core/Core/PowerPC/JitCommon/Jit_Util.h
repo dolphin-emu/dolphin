@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included./
 
-#ifndef _JITUTIL_H
-#define _JITUTIL_H
+#pragma once
 
 #include "x64Emitter.h"
 #include <unordered_map>
@@ -51,5 +50,3 @@ public:
 protected:
 	std::unordered_map<u8 *, u32> registersInUseAtLoc;
 };
-
-#endif  // _JITUTIL_H

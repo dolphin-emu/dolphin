@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_H_
-#define _WII_IPC_HLE_DEVICE_H_
+#pragma once
 
 #include <string>
 #include <queue>
@@ -253,5 +252,3 @@ public:
 		return true;
 	}
 };
-
-#endif

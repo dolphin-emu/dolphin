@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PIXELSHADERMANAGER_H
-#define _PIXELSHADERMANAGER_H
+#pragma once
 
 #include "BPMemory.h"
 #include "XFMemory.h"
@@ -46,6 +45,3 @@ public:
 	static PixelShaderConstants constants;
 	static bool dirty;
 };
-
-
-#endif // _PIXELSHADERMANAGER_H

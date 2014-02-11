@@ -1,6 +1,4 @@
-
-#ifndef SW_VIDEO_BACKEND_H_
-#define SW_VIDEO_BACKEND_H_
+#pragma once
 
 #include "VideoBackendBase.h"
 
@@ -63,5 +61,3 @@ public:
 };
 
 }
-
-#endif

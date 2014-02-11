@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VOLUME_DIRECTORY
-#define _VOLUME_DIRECTORY
+#pragma once
 
 #include <map>
 #include <string>
@@ -142,5 +141,3 @@ private:
 };
 
 } // namespace
-
-#endif

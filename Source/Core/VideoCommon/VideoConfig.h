@@ -9,8 +9,7 @@
 // at the start of every frame. Noone should ever change members of g_ActiveConfig
 // directly.
 
-#ifndef _VIDEO_CONFIG_H_
-#define _VIDEO_CONFIG_H_
+#pragma once
 
 #include "Common.h"
 #include "VideoCommon.h"
@@ -168,5 +167,3 @@ extern VideoConfig g_ActiveConfig;
 
 // Called every frame.
 void UpdateActiveConfig();
-
-#endif  // _VIDEO_CONFIG_H_

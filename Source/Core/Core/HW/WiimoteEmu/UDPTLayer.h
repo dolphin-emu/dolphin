@@ -4,8 +4,7 @@
 
 //UDP Wiimote Translation Layer
 
-#ifndef UDPTLAYER_H
-#define UDPTLAYER_H
+#pragma once
 
 #include "UDPWiimote.h"
 #include "WiimoteEmu.h"
@@ -53,5 +52,3 @@ namespace UDPTLayer
 		*z = 0;
 	}
 }
-
-#endif

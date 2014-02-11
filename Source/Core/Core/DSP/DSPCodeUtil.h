@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPCODEUTIL_H
-#define _DSPCODEUTIL_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -26,5 +25,3 @@ void BinaryStringBEToCode(const std::string &str, std::vector<u16> &code);
 // Load code (big endian binary).
 bool LoadBinary(const char *filename, std::vector<u16> &code);
 bool SaveBinary(const std::vector<u16> &code, const char *filename);
-
-#endif  // _DSPCODEUTIL_H

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __PHACK_SETTINGS_h__
-#define __PHACK_SETTINGS_h__
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
@@ -47,5 +46,3 @@ class CPHackSettings : public wxDialog
 		void SavePHackData(wxCommandEvent& event);
 		void LoadPHackData();
 };
-
-#endif // __PHACK_SETTINGS_h__

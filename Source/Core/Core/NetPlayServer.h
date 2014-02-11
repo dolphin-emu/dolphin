@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _NETPLAY_SERVER_H
-#define _NETPLAY_SERVER_H
+#pragma once
 
 #include "Common.h"
 #include "CommonTypes.h"
@@ -111,5 +110,3 @@ private:
 	static std::thread m_upnp_thread;
 #endif
 };
-
-#endif

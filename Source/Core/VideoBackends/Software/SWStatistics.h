@@ -5,8 +5,7 @@
 #include "CommonTypes.h"
 #include "SWVideoConfig.h"
 
-#ifndef _STATISTICS_H
-#define _STATISTICS_H
+#pragma once
 
 struct SWStatistics
 {
@@ -46,5 +45,3 @@ extern SWStatistics swstats;
 #define ADDSTAT(a,b) ;
 #define SETSTAT(a,x) ;
 #endif
-
-#endif  // _STATISTICS_H

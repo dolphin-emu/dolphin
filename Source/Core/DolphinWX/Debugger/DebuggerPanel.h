@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GFX_DEBUGGER_PANEL_H_
-#define _GFX_DEBUGGER_PANEL_H_
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/notebook.h>
@@ -96,5 +95,3 @@ private:
 	void OnClearPixelShaderCacheButton(wxCommandEvent& event);
 	void OnCountEnter(wxCommandEvent& event);
 };
-
-#endif // _GFX_DEBUGGER_PANEL_H_

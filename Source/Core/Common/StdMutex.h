@@ -1,6 +1,8 @@
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
-#ifndef MUTEX_H_
-#define MUTEX_H_
+#pragma once
 
 #define GCC_VER(x,y,z)	((x) * 10000 + (y) * 100 + (z))
 #define GCC_VERSION GCC_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
@@ -367,5 +369,4 @@ void swap(unique_lock<Mutex>& x, unique_lock<Mutex>& y)
 
 }
 
-#endif
 #endif

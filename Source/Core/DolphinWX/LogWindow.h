@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef LOGWINDOW_H_
-#define LOGWINDOW_H_
+#pragma once
 
 #include "LogManager.h"
 #include "Frame.h"
@@ -79,5 +78,3 @@ private:
 	// LogListener
 	const char *getName() const { return "LogWindow"; }
 };
-
-#endif /*LOGWINDOW_H_*/

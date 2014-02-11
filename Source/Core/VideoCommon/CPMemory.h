@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CPMEMORY_H
-#define _CPMEMORY_H
+#pragma once
 
 #include "Common.h"
 
@@ -253,5 +252,3 @@ void LoadCPReg(u32 SubCmd, u32 Value);
 
 // Fills memory with data from CP regs
 void FillCPMemoryArray(u32 *memory);
-
-#endif // _CPMEMORY_H

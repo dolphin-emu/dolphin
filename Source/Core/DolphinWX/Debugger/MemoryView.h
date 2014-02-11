@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef MEMORYVIEW_H_
-#define MEMORYVIEW_H_
+#pragma once
 
 #include "DebuggerUIUtil.h"
 #include "Common.h"
@@ -57,5 +56,3 @@ private:
 
 	DECLARE_EVENT_TABLE()
 };
-
-#endif // MEMORYVIEW_H_

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __PATCH_ADDEDIT_h__
-#define __PATCH_ADDEDIT_h__
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
@@ -56,4 +55,3 @@ class CPatchAddEdit : public wxDialog
 		std::vector<PatchEngine::PatchEntry>::iterator itCurEntry;
 
 };
-#endif // __PATCH_ADDEDIT_h__

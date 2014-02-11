@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFODATAFILE_H_
-#define _FIFODATAFILE_H_
+#pragma once
 
 #include "Common.h"
 #include <vector>
@@ -95,5 +94,3 @@ private:
 
 	std::vector<FifoFrameInfo> m_Frames;
 };
-
-#endif

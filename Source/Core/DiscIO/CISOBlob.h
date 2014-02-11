@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CISO_BLOB_H
-#define _CISO_BLOB_H
+#pragma once
 
 #include "Blob.h"
 #include "FileUtil.h"
@@ -50,5 +49,3 @@ private:
 };
 
 }  // namespace
-
-#endif  // _FILE_BLOB_H

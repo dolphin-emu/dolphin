@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_H_
-#define _WII_IPC_HLE_H_
+#pragma once
 
 #include "ChunkFile.h"
 
@@ -65,6 +64,3 @@ enum ECommandType
 };
 
 } // end of namespace WII_IPC_HLE_Interface
-
-#endif
-

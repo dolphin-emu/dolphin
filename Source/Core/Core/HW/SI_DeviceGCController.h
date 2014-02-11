@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _SI_DEVICEGCCONTROLLER_H
-#define _SI_DEVICEGCCONTROLLER_H
+#pragma once
 
 #include "SI_Device.h"
 #include "GCPadStatus.h"
@@ -116,5 +115,3 @@ public:
 		return true;
 	}
 };
-
-#endif

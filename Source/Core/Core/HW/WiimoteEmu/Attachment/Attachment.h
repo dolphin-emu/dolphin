@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ATTACHMENT_EMU_H_
-#define _ATTACHMENT_EMU_H_
+#pragma once
 
 #include "ControllerEmu.h"
 #include "../WiimoteEmu.h"
@@ -34,5 +33,3 @@ public:
 };
 
 }
-
-#endif

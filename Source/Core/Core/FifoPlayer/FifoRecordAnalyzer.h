@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFORECORDANALYZER_H_
-#define _FIFORECORDANALYZER_H_
+#pragma once
 
 #include "FifoAnalyzer.h"
 
@@ -40,5 +39,3 @@ private:
 	BPMemory *m_BpMem;
 	FifoAnalyzer::CPMemory m_CpMem;
 };
-
-#endif

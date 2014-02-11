@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GLINTERFACE_H_
-#define _GLINTERFACE_H_
+#pragma once
 
 #include "Thread.h"
 
@@ -111,5 +110,3 @@ typedef struct {
 
 extern cInterfaceBase *GLInterface;
 extern GLWindow GLWin;
-
-#endif

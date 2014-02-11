@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _NETPLAY_PROTO_H
-#define _NETPLAY_PROTO_H
+#pragma once
 
 #include "Common.h"
 #include "CommonTypes.h"
@@ -76,5 +75,3 @@ enum
 namespace NetPlay {
 	bool IsNetPlayRunning();
 };
-
-#endif

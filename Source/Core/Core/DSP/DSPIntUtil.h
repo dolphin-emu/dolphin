@@ -23,8 +23,7 @@
 
    ====================================================================*/
 
-#ifndef _DSP_INT_UTIL_H
-#define _DSP_INT_UTIL_H
+#pragma once
 
 #include "Common.h"
 
@@ -381,5 +380,3 @@ inline s16 dsp_get_ax_h(int _reg)
 {
 	return (s16)g_dsp.r.ax[_reg].h;
 }
-
-#endif

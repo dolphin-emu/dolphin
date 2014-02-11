@@ -1,5 +1,8 @@
-#ifndef UDPWIIMOTE_H
-#define UDPWIIMOTE_H
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#pragma once
 
 #include "Common.h"
 #include <string>
@@ -56,4 +59,3 @@ private:
 	void initBroadcastIPv4();
 	void initBroadcastIPv6();
 };
-#endif

@@ -1,5 +1,4 @@
-#ifndef _EMUWINDOW_H
-#define _EMUWINDOW_H
+#pragma once
 
 #include <windows.h>
 
@@ -17,5 +16,3 @@ void OSDMenu(WPARAM wParam);
 void SetWindowText(const TCHAR* text);
 
 }
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef VIDEO_BACKEND_H_
-#define VIDEO_BACKEND_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -181,5 +180,3 @@ protected:
 	void InitializeShared();
 	void InvalidState();
 };
-
-#endif

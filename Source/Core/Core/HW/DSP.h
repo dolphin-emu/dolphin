@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPINTERFACE_H
-#define _DSPINTERFACE_H
+#pragma once
 
 #include "Common.h"
 class PointerWrap;
@@ -55,7 +54,3 @@ void UpdateAudioDMA();
 void UpdateDSPSlice(int cycles);
 
 }// end of namespace DSP
-
-#endif
-
-

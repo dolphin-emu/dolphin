@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXIDEVICE_AD16_H
-#define _EXIDEVICE_AD16_H
+#pragma once
 
 class CEXIAD16 : public IEXIDevice
 {
@@ -34,6 +33,3 @@ private:
 
 	virtual void TransferByte(u8& _uByte) override;
 };
-
-#endif
-

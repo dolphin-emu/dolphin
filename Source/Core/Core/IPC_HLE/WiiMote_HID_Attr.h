@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef WIIMOTE_HID_ATTR_H_
-#define WIIMOTE_HID_ATTR_H_
+#pragma once
 
 #if 0
 struct SAttrib
@@ -25,6 +24,3 @@ const CAttribTable& GetAttribTable();
 #endif
 
 const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size);
-
-#endif
-

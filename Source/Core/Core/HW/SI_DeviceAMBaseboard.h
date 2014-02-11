@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _SIDEVICE_AMBASEBOARD_H
-#define _SIDEVICE_AMBASEBOARD_H
+#pragma once
 
 // triforce (GC-AM) baseboard
 class CSIDevice_AMBaseboard : public ISIDevice
@@ -28,5 +27,3 @@ public:
 	// send a command directly
 	virtual void SendCommand(u32 _Cmd, u8 _Poll) override;
 };
-
-#endif // _SIDEVICE_AMBASEBOARD_H

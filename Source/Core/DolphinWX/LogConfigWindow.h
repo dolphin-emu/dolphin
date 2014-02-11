@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _LOG_CONFIG_DIAG_H_
-#define _LOG_CONFIG_DIAG_H_
+#pragma once
 
 #include <vector>
 #include <wx/wx.h>
@@ -42,5 +41,3 @@ private:
 	void ToggleLog(int _logType, bool enable);
 	void OnLogCheck(wxCommandEvent& event);
 };
-
-#endif // _LOG_CONFIG_DIAG_H_

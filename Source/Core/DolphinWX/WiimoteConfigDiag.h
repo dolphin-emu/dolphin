@@ -1,6 +1,4 @@
-
-#ifndef WIIMOTE_CONFIG_DIAG_H
-#define WIIMOTE_CONFIG_DIAG_H
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/listbox.h>
@@ -75,6 +73,3 @@ private:
 	wxButton* wiimote_configure_bt[MAX_WIIMOTES];
 	std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;
 };
-
-
-#endif

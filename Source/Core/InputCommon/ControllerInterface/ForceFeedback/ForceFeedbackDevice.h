@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FORCEFEEDBACKDEVICE_H_
-#define _FORCEFEEDBACKDEVICE_H_
+#pragma once
 
 #include "../Device.h"
 
@@ -65,5 +64,3 @@ private:
 
 }
 }
-
-#endif

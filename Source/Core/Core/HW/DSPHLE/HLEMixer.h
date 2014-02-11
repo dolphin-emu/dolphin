@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef HLEMIXER_H
-#define HLEMIXER_H
+#pragma once
+
 #include "AudioCommon.h"
 #include "Mixer.h"
 
@@ -19,7 +19,3 @@ public:
 private:
 	DSPHLE *m_DSPHLE;
 };
-
-#endif // HLEMIXER_H
-
-

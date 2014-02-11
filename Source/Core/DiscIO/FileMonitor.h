@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include <iostream> // System: For std
 
 #include "Common.h" // Common: For u64

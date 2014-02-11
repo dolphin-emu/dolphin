@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CLIPPER_H_
-#define _CLIPPER_H_
-
+#pragma once
 
 #include "Common.h"
 #include "NativeVertexFormat.h"
@@ -27,6 +25,3 @@ namespace Clipper
 
 	void DoState(PointerWrap &p);
 }
-
-
-#endif

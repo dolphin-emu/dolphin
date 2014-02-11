@@ -15,8 +15,7 @@
 // Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _MEMMAP_H
-#define _MEMMAP_H
+#pragma once
 
 // Includes
 #include <string>
@@ -186,6 +185,3 @@ extern u32 pagetable_base;
 extern u32 pagetable_hashmask;
 
 };
-
-#endif
-

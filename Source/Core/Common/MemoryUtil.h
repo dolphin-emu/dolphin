@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef _MEMORYUTIL_H
-#define _MEMORYUTIL_H
+#pragma once
 
 #include <string>
 
@@ -22,5 +20,3 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute = false);
 std::string MemUsage();
 
 inline int GetPageSize() { return 4096; }
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONFIGBOX_H_
-#define _CONFIGBOX_H_
+#pragma once
 
 #define SLIDER_TICK_COUNT			100
 #define DETECT_WAIT_TIME			1500
@@ -240,5 +239,3 @@ private:
 	InputPlugin&				m_plugin;
 	wxTimer*					m_update_timer;
 };
-
-#endif

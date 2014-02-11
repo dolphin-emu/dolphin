@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef GCOGL_VERTEXSHADER_H
-#define GCOGL_VERTEXSHADER_H
+#pragma once
 
 #include "XFMemory.h"
 #include "VideoCommon.h"
@@ -91,5 +90,3 @@ typedef ShaderCode VertexShaderCode; // TODO: Obsolete..
 void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type);
 void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type);
 void GenerateVSOutputStructForGS(ShaderCode& object, API_TYPE api_type);
-
-#endif // GCOGL_VERTEXSHADER_H

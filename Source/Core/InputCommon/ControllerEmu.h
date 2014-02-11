@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONTROLLEREMU_H_
-#define _CONTROLLEREMU_H_
+#pragma once
 
 // windows crap
 #define NOMINMAX
@@ -451,6 +450,3 @@ public:
 
 	DeviceQualifier default_device;
 };
-
-
-#endif

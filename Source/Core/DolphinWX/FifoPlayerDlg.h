@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __FIFO_PLAYER_DLG_h__
-#define __FIFO_PLAYER_DLG_h__
+#pragma once
 
 #include <vector>
 #include <wx/wx.h>
@@ -116,4 +115,3 @@ private:
 
 	s32 m_FramesToRecord;
 };
-#endif

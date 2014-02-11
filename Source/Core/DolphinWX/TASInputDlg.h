@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __TASINPUT_H__
-#define __TASINPUT_H__
+#pragma once
 
 #include <wx/wx.h>
 
@@ -84,5 +83,3 @@ class TASInputDlg : public wxDialog
 
 		DECLARE_EVENT_TABLE();
 };
-
-#endif

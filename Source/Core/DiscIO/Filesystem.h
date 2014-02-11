@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FILESYSTEM_H
-#define _FILESYSTEM_H
+#pragma once
 
 #include "Volume.h"
 
@@ -55,5 +54,3 @@ protected:
 IFileSystem* CreateFileSystem(const IVolume *_rVolume);
 
 } // namespace
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXLOADER_H_
-#define _VERTEXLOADER_H_
+#pragma once
 
 #include "Common.h"
 
@@ -59,5 +58,3 @@ public:
 	void LoadVertex();
 	void DoState(PointerWrap &p);
 };
-
-#endif

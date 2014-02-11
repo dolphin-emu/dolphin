@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DEBUGGER_SYMBOLMAP_H
-#define _DEBUGGER_SYMBOLMAP_H
+#pragma once
 
 #include <vector>
 #include <string>
@@ -27,6 +26,3 @@ void AddAutoBreakpoints();
 
 
 } // end of namespace Debugger
-
-#endif
-

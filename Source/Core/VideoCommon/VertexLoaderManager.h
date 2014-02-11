@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXLOADERMANAGER_H
-#define _VERTEXLOADERMANAGER_H
+#pragma once
 
 #include "Common.h"
 #include <string>
@@ -23,5 +22,3 @@ namespace VertexLoaderManager
 };
 
 void RecomputeCachedArraybases();
-
-#endif  // _VERTEXLOADERMANAGER_H

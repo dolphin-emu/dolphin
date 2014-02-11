@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __ISOPROPERTIES_h__
-#define __ISOPROPERTIES_h__
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/sizer.h>
@@ -214,4 +213,3 @@ private:
 	void SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox);
 	void SaveGameIniValueFrom3StateCheckbox(const char* section, const char* key, wxCheckBox* checkbox);
 };
-#endif

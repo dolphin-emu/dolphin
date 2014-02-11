@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _COMMON_H_
-#define _COMMON_H_
+#pragma once
 
 // DO NOT EVER INCLUDE <windows.h> directly _or indirectly_ from this file
 // since it slows down the build a lot.
@@ -174,5 +173,3 @@ enum EMUSTATE_CHANGE
 };
 
 #include "CommonFuncs.h"
-
-#endif // _COMMON_H_

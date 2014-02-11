@@ -1,6 +1,4 @@
-
-#ifndef OGL_VIDEO_BACKEND_H_
-#define OGL_VIDEO_BACKEND_H_
+#pragma once
 
 #include "VideoBackendBase.h"
 
@@ -25,5 +23,3 @@ class VideoBackend : public VideoBackendHardware
 };
 
 }
-
-#endif

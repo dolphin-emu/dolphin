@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFOFILESTRUCT_H_
-#define _FIFOFILESTRUCT_H_
+#pragma once
 
 #include "Common.h"
 
@@ -68,5 +67,3 @@ struct FileMemoryUpdate
 #pragma pack(pop)
 
 }
-
-#endif

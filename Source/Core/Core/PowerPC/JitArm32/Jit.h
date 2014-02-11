@@ -29,8 +29,8 @@
 
 // Settings
 // ----------
-#ifndef _JITARM_H
-#define _JITARM_H
+#pragma once
+
 #include "../CPUCoreBase.h"
 #include "../PPCAnalyst.h"
 #include "JitArmCache.h"
@@ -255,5 +255,3 @@ public:
 	void psq_st(UGeckoInstruction _inst);
 	void psq_stx(UGeckoInstruction _inst);
 };
-
-#endif // _JIT64_H

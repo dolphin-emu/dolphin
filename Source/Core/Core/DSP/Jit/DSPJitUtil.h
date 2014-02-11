@@ -2,7 +2,4 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __DSPJITUTIL_H__
-#define __DSPJITUTIL_H__
-
-#endif /*__DSPJITUTIL_H__*/
+#pragma once

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_STM_H_
-#define _WII_IPC_HLE_DEVICE_STM_H_
+#pragma once
 
 #include "WII_IPC_HLE_Device.h"
 
@@ -189,5 +188,3 @@ public:
 	// STATE_TO_SAVE
 	u32 m_EventHookAddress;
 };
-
-#endif

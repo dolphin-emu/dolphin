@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JITASMCOMMON_H
-#define _JITASMCOMMON_H
+#pragma once
 
 #include "Jit_Util.h"
 
-class CommonAsmRoutinesBase  {
+class CommonAsmRoutinesBase
+{
 public:
 
 	const u8 *fifoDirectWrite8;
@@ -65,5 +65,3 @@ public:
 	void GenFifoFloatWrite();
 
 };
-
-#endif

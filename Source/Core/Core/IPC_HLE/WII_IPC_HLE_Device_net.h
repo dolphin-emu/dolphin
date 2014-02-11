@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_NET_H_
-#define _WII_IPC_HLE_DEVICE_NET_H_
+#pragma once
 
 #include "WII_IPC_HLE_Device.h"
 
@@ -733,5 +732,3 @@ private:
 	};
 #pragma pack(pop)
 };
-
-#endif

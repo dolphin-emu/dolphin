@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __GCMEMCARD_h__
-#define __GCMEMCARD_h__
+#pragma once
 
 #include "Common.h"
 #include "CommonPaths.h"
@@ -252,5 +251,3 @@ public:
 	s32 FZEROGX_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &FileBuffer);
 	s32 PSO_MakeSaveGameValid(DEntry& direntry, std::vector<GCMBlock> &FileBuffer);
 };
-#endif
-

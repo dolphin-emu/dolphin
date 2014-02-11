@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FRAMEBUFFERMANAGER_H_
-#define _FRAMEBUFFERMANAGER_H_
+#pragma once
 
 #include "GLUtil.h"
 #include "FramebufferManagerBase.h"
@@ -117,5 +116,3 @@ private:
 };
 
 }  // namespace OGL
-
-#endif

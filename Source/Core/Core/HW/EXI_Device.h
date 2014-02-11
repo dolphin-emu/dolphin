@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXIDEVICE_H
-#define _EXIDEVICE_H
+#pragma once
 
 #include "CommonTypes.h"
 #include "ChunkFile.h"
@@ -56,5 +55,3 @@ public:
 };
 
 extern IEXIDevice* EXIDevice_Create(const TEXIDevices device_type, const int channel_num);
-
-#endif

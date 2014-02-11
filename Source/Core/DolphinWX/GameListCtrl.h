@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __GAMELIST_CTRL_H_
-#define __GAMELIST_CTRL_H_
+#pragma once
 
 #include <memory>
 #include <vector>
@@ -109,6 +108,3 @@ private:
 	static void CompressCB(const char* text, float percent, void* arg);
 	static void MultiCompressCB(const char* text, float percent, void* arg);
 };
-
-#endif
-

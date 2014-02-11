@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __GECKOCODE_h__
-#define __GECKOCODE_h__
+#pragma once
 
 #include "Common.h"
 
@@ -47,5 +46,3 @@ namespace Gecko
 	void RunCodeHandler();
 
 }	// namespace Gecko
-
-#endif

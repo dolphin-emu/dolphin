@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PPCTABLES_H
-#define _PPCTABLES_H
+#pragma once
 
 #include "Gekko.h"
 #include "Interpreter/Interpreter.h"
@@ -113,4 +112,3 @@ void LogCompiledInstructions();
 const char *GetInstructionName(UGeckoInstruction _inst);
 
 }  // namespace
-#endif

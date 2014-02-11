@@ -5,8 +5,7 @@
 
 // Gekko related unions, structs, ...
 
-#ifndef _GEKKO_H
-#define _GEKKO_H
+#pragma once
 
 #include "Common.h"
 
@@ -787,6 +786,3 @@ enum
 
 inline s32 SignExt16(s16 x) {return (s32)(s16)x;}
 inline s32 SignExt26(u32 x) {return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)(x);}
-
-#endif
-

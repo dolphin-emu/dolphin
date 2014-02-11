@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __ISOFILE_H_
-#define __ISOFILE_H_
+#pragma once
 
 #include <vector>
 #include <string>
@@ -91,6 +90,3 @@ private:
 
 	std::string CreateCacheFilename();
 };
-
-
-#endif

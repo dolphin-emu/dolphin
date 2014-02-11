@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __DSPREGISTERVIEW_h__
-#define __DSPREGISTERVIEW_h__
+#pragma once
 
 #include <wx/grid.h>
 
@@ -39,5 +38,3 @@ public:
 	DSPRegisterView(wxWindow* parent, wxWindowID id);
 	void Update();
 };
-
-#endif //__DSPREGISTERVIEW_h__

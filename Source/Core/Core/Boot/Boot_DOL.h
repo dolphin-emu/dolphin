@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BOOT_DOL_H
-#define _BOOT_DOL_H
+#pragma once
 
 #include "CommonTypes.h"
 
@@ -53,5 +52,3 @@ private:
 	// Copy sections to internal buffers
 	void Initialize(u8* _pBuffer, u32 _Size);
 };
-
-#endif

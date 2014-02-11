@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef _POINTERWRAP_H_
-#define _POINTERWRAP_H_
+#pragma once
 
 // Extremely simple serialization framework.
 
@@ -431,5 +429,3 @@ private:
 		u32 ExpectedSize;
 	};
 };
-
-#endif  // _POINTERWRAP_H_

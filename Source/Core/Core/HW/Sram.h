@@ -33,8 +33,7 @@ distribution.
 
 
 -------------------------------------------------------------*/
-#ifndef __SRAM_h__
-#define __SRAM_h__
+#pragma once
 
 #include "CommonTypes.h"
 
@@ -69,4 +68,3 @@ void SetCardFlashID(u8* buffer, u8 card_index);
 
 extern SRAM sram_dump;
 extern SRAM g_SRAM;
-#endif

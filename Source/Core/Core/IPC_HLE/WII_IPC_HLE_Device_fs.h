@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_FS_H_
-#define _WII_IPC_HLE_DEVICE_FS_H_
+#pragma once
 
 #include "WII_IPC_HLE_Device.h"
 
@@ -65,6 +64,3 @@ private:
 
 	s32 ExecuteCommand(u32 Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
 };
-
-#endif
-

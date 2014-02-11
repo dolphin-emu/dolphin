@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ELFTYPES_H
-#define _ELFTYPES_H
+#pragma once
 
 // ELF Header Constants
 
@@ -280,6 +279,3 @@ struct Elf32_Dyn
 		Elf32_Addr d_ptr;
 	} d_un;
 };
-
-#endif
-

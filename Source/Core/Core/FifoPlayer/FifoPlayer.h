@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFOPLAYER_H_
-#define _FIFOPLAYER_H_
+#pragma once
 
 #include "FifoPlaybackAnalyzer.h"
 #include <string>
@@ -108,5 +107,3 @@ private:
 
 	std::vector<AnalyzedFrameInfo> m_FrameInfo;
 };
-
-#endif

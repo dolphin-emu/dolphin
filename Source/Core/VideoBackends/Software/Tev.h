@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEV_H_
-#define _TEV_H_
+#pragma once
 
 #include "BPMemLoader.h"
 #include "ChunkFile.h"
@@ -87,5 +86,3 @@ public:
 
 	void DoState(PointerWrap &p);
 };
-
-#endif

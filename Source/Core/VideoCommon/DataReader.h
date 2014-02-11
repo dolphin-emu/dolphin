@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DATAREADER_H
-#define _DATAREADER_H
+#pragma once
 
 #include "VertexManagerBase.h"
 
@@ -169,5 +168,3 @@ private:
 	u8 *buffer;
 	int offset;
 };
-
-#endif

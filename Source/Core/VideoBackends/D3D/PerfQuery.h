@@ -1,5 +1,4 @@
-#ifndef _PERFQUERY_H_
-#define _PERFQUERY_H_
+#pragma once
 
 #include "PerfQueryBase.h"
 
@@ -42,5 +41,3 @@ private:
 };
 
 } // namespace
-
-#endif // _PERFQUERY_H_

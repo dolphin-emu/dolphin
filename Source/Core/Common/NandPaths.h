@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __NANDPATHS_H__
-#define __NANDPATHS_H__
+#pragma once
 
 #include <string>
 #include "CommonTypes.h"
@@ -23,5 +22,3 @@ namespace Common
 	bool CheckTitleTIK(u64 _titleID);
 	void ReadReplacements(replace_v& replacements);
 }
-#endif
-

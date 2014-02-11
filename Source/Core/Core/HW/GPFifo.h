@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GPFIFO_H
-#define _GPFIFO_H
+#pragma once
 
 #include "Common.h"
 class PointerWrap;
@@ -45,5 +44,3 @@ void FastWrite16(const u16 _iValue);
 void FastWrite32(const u32 _iValue);
 void FastWrite64(const u64 _iValue);
 };
-
-#endif

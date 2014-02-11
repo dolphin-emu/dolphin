@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXMANAGER_H_
-#define _VERTEXMANAGER_H_
+#pragma once
 
 #include "CPMemory.h"
 
@@ -50,5 +49,3 @@ private:
 };
 
 }
-
-#endif  // _VERTEXMANAGER_H_

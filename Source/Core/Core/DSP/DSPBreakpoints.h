@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSP_BREAKPOINTS
-#define _DSP_BREAKPOINTS
+#pragma once
 
 #include "Common.h"
 
@@ -60,5 +59,3 @@ public:
 private:
 	u8 b[65536];
 };
-
-#endif

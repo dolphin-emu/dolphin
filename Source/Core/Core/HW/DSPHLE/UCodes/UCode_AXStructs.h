@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _UCODE_AX_STRUCTS_H
-#define _UCODE_AX_STRUCTS_H
+#pragma once
 
 struct PBMixer
 {
@@ -332,5 +331,3 @@ enum
 	FILTER_LOWPASS = 1,
 	FILTER_BIQUAD = 2,
 };
-
-#endif  // _UCODE_AX_STRUCTS_H

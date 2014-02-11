@@ -1,5 +1,4 @@
-#ifndef _CIFACE_XLIB_H_
-#define _CIFACE_XLIB_H_
+#pragma once
 
 #include "../Device.h"
 
@@ -89,5 +88,3 @@ private:
 
 }
 }
-
-#endif

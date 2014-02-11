@@ -1,6 +1,4 @@
-
-#ifndef _FIFO_QUEUE_H_
-#define _FIFO_QUEUE_H_
+#pragma once
 
 // a simple lockless thread-safe,
 // single reader, single writer queue
@@ -116,5 +114,3 @@ private:
 };
 
 }
-
-#endif

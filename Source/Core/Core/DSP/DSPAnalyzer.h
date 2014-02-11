@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-// Basic code analysis.
+#pragma once
 
 #include "DSPInterpreter.h"
 
-namespace DSPAnalyzer {
-
+// Basic code analysis.
+namespace DSPAnalyzer
+{
 #define ISPACE 65536
 
 // Useful things to detect:

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __STDAFX_H_
-#define __STDAFX_H_
+#pragma once
 
 #ifdef _WIN32
 
@@ -31,8 +30,6 @@
 #else
 
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-
-#endif
 
 #endif
 

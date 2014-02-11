@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DVDINTERFACE_H
-#define _DVDINTERFACE_H
+#pragma once
 
 #include "CommonTypes.h"
 class PointerWrap;
@@ -105,5 +104,3 @@ enum DICommand
 };
 
 } // end of namespace DVDInterface
-
-#endif

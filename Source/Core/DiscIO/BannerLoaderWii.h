@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BANNER_LOADER_WII_H_
-#define _BANNER_LOADER_WII_H_
+#pragma once
 
 #include "BannerLoader.h"
 
@@ -62,6 +61,3 @@ class CBannerLoaderWii
 		bool GetStringFromComments(const CommentIndex index, std::string& s);
 };
 } // namespace
-
-#endif
-

@@ -4,8 +4,7 @@
 
 // Adapted from in_cube by hcs & destop
 
-#ifndef _STREAMADPCM_H
-#define _STREAMADPCM_H
+#pragma once
 
 #include "Common.h"
 
@@ -21,6 +20,3 @@ public:
 	static void InitFilter();
 	static void DecodeBlock(s16 *pcm, const u8 *adpcm);
 };
-
-#endif
-

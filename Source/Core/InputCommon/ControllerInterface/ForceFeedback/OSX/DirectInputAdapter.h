@@ -10,8 +10,7 @@
  * for these differences on OS X.
  */
 
-#ifndef _DIRECTINPUTADAPTER_H_
-#define _DIRECTINPUTADAPTER_H_
+#pragma once
 
 typedef LONG* LPLONG; // Missing type for ForceFeedback.h
 #include <CoreFoundation/CoreFoundation.h>
@@ -217,8 +216,5 @@ public:
 	}
 };
 
-
 }
 }
-
-#endif

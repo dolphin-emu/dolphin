@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FIFORECORDER_H_
-#define _FIFORECORDER_H_
+#pragma once
 
 #include "FifoDataFile.h"
 #include "FifoRecordAnalyzer.h"
@@ -63,5 +62,3 @@ private:
 	u8 *m_ExRam;
 	FifoRecordAnalyzer m_RecordAnalyzer;
 };
-
-#endif

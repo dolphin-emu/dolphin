@@ -1,6 +1,4 @@
-
-#ifndef _FRAMEBUFFERMANAGERBASE_H
-#define _FRAMEBUFFERMANAGERBASE_H
+#pragma once
 
 #include <list>
 
@@ -98,5 +96,3 @@ private:
 };
 
 extern FramebufferManagerBase *g_framebuffer_manager;
-
-#endif

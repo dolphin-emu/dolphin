@@ -1,5 +1,4 @@
-#ifndef UDPCONFIGDIAG_H
-#define UDPCONFIGDIAG_H
+#pragma once
 
 #include "UDPWrapper.h"
 
@@ -31,5 +30,3 @@ private:
 	wxCheckBox * nunaccel;
 	wxTextCtrl * port_tbox;
 };
-
-#endif

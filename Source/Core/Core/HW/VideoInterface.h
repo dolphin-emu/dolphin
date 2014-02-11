@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VIDEOINTERFACE_H
-#define _VIDEOINTERFACE_H
+#pragma once
 
 #include "CommonTypes.h"
 class PointerWrap;
@@ -350,5 +349,3 @@ union UVIDTVStatus
 
 	int GetNumFields();
 };
-
-#endif // _VIDEOINTERFACE_H

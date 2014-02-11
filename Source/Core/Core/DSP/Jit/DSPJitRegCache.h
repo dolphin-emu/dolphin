@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPJITREGCACHE_H
-#define _DSPJITREGCACHE_H
+#pragma once
 
 #include "x64Emitter.h"
 
@@ -186,5 +185,3 @@ public:
 	//unreserve the given host reg
 	void putXReg(Gen::X64Reg reg);
 };
-
-#endif /*_DSPJITREGCACHE_H*/

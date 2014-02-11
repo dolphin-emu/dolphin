@@ -16,8 +16,7 @@
 
 // Settings
 // ----------
-#ifndef _JIT64_H
-#define _JIT64_H
+#pragma once
 
 #include "../JitCommon/JitBackpatch.h"
 #include "../JitCommon/JitBase.h"
@@ -221,5 +220,3 @@ public:
 
 	void icbi(UGeckoInstruction inst);
 };
-
-#endif // _JIT64_H

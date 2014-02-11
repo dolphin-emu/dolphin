@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PPCANALYST_H
-#define _PPCANALYST_H
+#pragma once
 
 #include <algorithm>
 #include <vector>
@@ -105,6 +104,3 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db);
 bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);
 
 }  // namespace
-
-#endif
-

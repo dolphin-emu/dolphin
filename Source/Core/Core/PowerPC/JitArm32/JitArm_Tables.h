@@ -15,8 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef JITARM_TABLES_H
-#define JITARM_TABLES_H
+#pragma once
 
 #include "../Gekko.h"
 #include "../PPCTables.h"
@@ -26,4 +25,3 @@ namespace JitArmTables
 	void CompileInstruction(PPCAnalyst::CodeOp & op);
 	void InitTables();
 }
-#endif

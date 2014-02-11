@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPEMITTER_H
-#define _DSPEMITTER_H
+#pragma once
 
 #include <list>
 
@@ -286,7 +285,3 @@ private:
 	void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
 	void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
 };
-
-
-#endif // _DSPEMITTER_H
-

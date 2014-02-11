@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef STREAMBUFFER_H
-#define STREAMBUFFER_H
+#pragma once
 
 #include <utility>
 #include "VideoCommon.h"
@@ -51,5 +50,3 @@ private:
 };
 
 }
-
-#endif // STREAMBUFFER_H

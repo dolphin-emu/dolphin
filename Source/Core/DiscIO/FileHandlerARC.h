@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ARC_FILE_H
-#define _ARC_FILE_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -52,6 +51,3 @@ class CARCFile
 		const SFileInfo* FindFileInfo(std::string _rFullPath) const;
 };
 } // namespace
-
-#endif
-

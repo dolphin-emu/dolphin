@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXI_DEVICEMEMORYCARD_H
-#define _EXI_DEVICEMEMORYCARD_H
+#pragma once
 
 #include "Thread.h"
 
@@ -91,6 +90,3 @@ private:
 protected:
 	virtual void TransferByte(u8 &byte) override;
 };
-
-#endif
-

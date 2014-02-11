@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef CODEVIEW_H_
-#define CODEVIEW_H_
+#pragma once
 
 #define wxUSE_XPM_IN_MSW 1
 #define USE_XPM_BITMAPS 1
@@ -81,5 +80,3 @@ private:
 
 	DECLARE_EVENT_TABLE()
 };
-
-#endif /*CODEVIEW_H_*/

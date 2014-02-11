@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONSTANTMANAGER_H
-#define _CONSTANTMANAGER_H
+#pragma once
 
 // all constant buffer attributes must be 16 bytes aligned, so this are the only allowed components:
 typedef float float4[4];
@@ -38,5 +37,3 @@ struct VertexShaderConstants
 	float4 posttransformmatrices[64];
 	float4 depthparams;
 };
-
-#endif

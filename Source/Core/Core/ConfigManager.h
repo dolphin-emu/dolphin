@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CONFIGMANAGER_H
-#define _CONFIGMANAGER_H
+#pragma once
 
 #include <string>
 #include <vector>
@@ -104,6 +103,3 @@ private:
 
 	static SConfig* m_Instance;
 };
-
-#endif // endif config manager
-

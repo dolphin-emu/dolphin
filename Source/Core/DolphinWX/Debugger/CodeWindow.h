@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef CODEWINDOW_H_
-#define CODEWINDOW_H_
+#pragma once
 
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
@@ -141,5 +140,3 @@ class CCodeWindow
 
 		DECLARE_EVENT_TABLE()
 };
-
-#endif // CODEWINDOW_H_

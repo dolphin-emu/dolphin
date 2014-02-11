@@ -22,8 +22,7 @@
  * # see file COPYING or http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
  */
 
-#ifndef _ECWII_H
-#define _ECWII_H
+#pragma once
 
 #include "Common.h"
 
@@ -109,5 +108,3 @@ private:
 	#pragma pack(pop)
 
 };
-
-#endif

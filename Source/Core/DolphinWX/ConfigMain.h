@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef __CONFIG_MAIN_h__
-#define __CONFIG_MAIN_h__
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/gbsizer.h>
@@ -254,4 +253,3 @@ private:
 
 	static bool SupportsVolumeChanges(std::string backend);
 };
-#endif

@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef _LINEAR_DISKCACHE
-#define _LINEAR_DISKCACHE
+#pragma once
 
 #include "Common.h"
 #include <fstream>
@@ -184,5 +182,3 @@ private:
 	std::fstream m_file;
 	u32 m_num_entries;
 };
-
-#endif  // _LINEAR_DISKCACHE

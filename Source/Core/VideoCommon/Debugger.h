@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GFX_DEBUGGER_H_
-#define _GFX_DEBUGGER_H_
+#pragma once
 
 class GFXDebuggerBase
 {
@@ -62,6 +61,3 @@ void GFXDebuggerUpdateScreen();
 #define GFX_DEBUGGER_PAUSE_AT(event,update) {if (((GFXDebuggerToPauseAtNext & event) && --GFXDebuggerEventToPauseCount<=0) || GFXDebuggerPauseFlag) GFXDebuggerToPause(update);}
 #define GFX_DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc) {if (((GFXDebuggerToPauseAtNext & event) && --GFXDebuggerEventToPauseCount<=0) || GFXDebuggerPauseFlag) {{dumpfunc};GFXDebuggerToPause(update);}}
 #define GFX_DEBUGGER_LOG_AT(event,dumpfunc) {if (( GFXDebuggerToPauseAtNext & event ) ) {{dumpfunc};}}
-
-
-#endif // _GFX_DEBUGGER_H_

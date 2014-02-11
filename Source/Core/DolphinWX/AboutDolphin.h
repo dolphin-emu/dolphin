@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ABOUTDOLPHIN_H_
-#define _ABOUTDOLPHIN_H_
+#pragma once
 
 #include <wx/wx.h>
 #include <wx/dialog.h>
@@ -23,5 +22,3 @@ class AboutDolphin : public wxDialog
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);
 };
-
-#endif //_ABOUTDOLPHIN_H_

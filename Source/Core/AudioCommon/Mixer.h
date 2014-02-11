@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _MIXER_H_
-#define _MIXER_H_
+#pragma once
 
 #include "WaveFile.h"
 #include "StdMutex.h"
@@ -106,5 +105,3 @@ protected:
 private:
 
 };
-
-#endif // _MIXER_H_

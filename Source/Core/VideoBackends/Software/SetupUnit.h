@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef _SETUPUNIT_H_
-#define _SETUPUNIT_H_
+#pragma once
 
 #include "Common.h"
 #include "NativeVertexFormat.h"
@@ -35,5 +33,3 @@ public:
 	void SetupVertex();
 	void DoState(PointerWrap &p);
 };
-
-#endif

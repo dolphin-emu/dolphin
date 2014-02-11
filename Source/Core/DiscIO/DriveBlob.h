@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DRIVE_BLOB_H
-#define _DRIVE_BLOB_H
+#pragma once
 
 #include "Blob.h"
 #include "FileUtil.h"
@@ -42,5 +41,3 @@ public:
 };
 
 }  // namespace
-
-#endif  // _DRIVE_BLOB_H

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _NULLSOUNDSTREAM_H_
-#define _NULLSOUNDSTREAM_H_
+#pragma once
 
 #include <stdlib.h>
 #include "SoundStream.h"
@@ -31,5 +30,3 @@ public:
 	virtual bool usesMixer() const { return true; }
 	virtual void Update();
 };
-
-#endif //_NULLSOUNDSTREAM_H_

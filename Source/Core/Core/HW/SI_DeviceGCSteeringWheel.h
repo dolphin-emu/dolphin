@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _SI_DEVICEGCSTEERINGWHEEL_H
-#define _SI_DEVICEGCSTEERINGWHEEL_H
+#pragma once
 
 #include "SI_Device.h"
 #include "GCPadStatus.h"
@@ -102,5 +101,3 @@ public:
 	// Savestate support
 	virtual void DoState(PointerWrap& p);
 };
-
-#endif

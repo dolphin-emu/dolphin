@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PULSE_AUDIO_STREAM_H
-#define _PULSE_AUDIO_STREAM_H
+#pragma once
 
 #if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
 #include <pulse/pulseaudio.h>
@@ -61,5 +60,3 @@ public:
 	PulseAudio(CMixer *mixer) : SoundStream(mixer) {}
 #endif
 };
-
-#endif

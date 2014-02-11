@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _SERIALINTERFACE_H
-#define _SERIALINTERFACE_H
+#pragma once
 
 #include "Common.h"
 #include "SI_Device.h"
@@ -38,5 +37,3 @@ void Write32(const u32 _iValue, const u32 _iAddress);
 int GetTicksToNextSIPoll();
 
 }; // end of namespace SerialInterface
-
-#endif

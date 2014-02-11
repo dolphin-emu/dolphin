@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _NETPLAY_H
-#define _NETPLAY_H
+#pragma once
 
 #include "Common.h"
 #include "CommonTypes.h"
@@ -131,5 +130,3 @@ private:
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
-
-#endif

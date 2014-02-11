@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _BANNER_LOADER_H_
-#define _BANNER_LOADER_H_
+#pragma once
 
 #include <vector>
 #include <string>
@@ -35,6 +34,3 @@ class IBannerLoader
 
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume);
 } // namespace
-
-#endif
-

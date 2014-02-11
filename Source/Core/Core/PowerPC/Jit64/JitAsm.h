@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JIT64ASM_H
-#define _JIT64ASM_H
+#pragma once
 
 #include "../JitCommon/JitAsmCommon.h"
 
@@ -40,5 +39,3 @@ public:
 };
 
 extern Jit64AsmRoutineManager asm_routines;
-
-#endif  // _JIT64ASM_H

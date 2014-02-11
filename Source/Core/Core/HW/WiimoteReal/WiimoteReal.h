@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef WIIMOTE_REAL_H
-#define WIIMOTE_REAL_H
+#pragma once
 
 #include <functional>
 #include <vector>
@@ -185,5 +183,3 @@ bool IsValidBluetoothName(const std::string& name);
 bool IsBalanceBoardName(const std::string& name);
 
 }; // WiimoteReal
-
-#endif

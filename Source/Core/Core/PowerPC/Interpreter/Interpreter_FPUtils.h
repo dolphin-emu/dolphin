@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _INTERPRETER_FPUTILS_H
-#define _INTERPRETER_FPUTILS_H
+#pragma once
 
 #include "CPUDetect.h"
 #include "Interpreter.h"
@@ -232,5 +231,3 @@ inline u32 ConvertToSingleFTZ(u64 x)
 		return (x >> 32) & 0x80000000;
 	}
 }
-
-#endif

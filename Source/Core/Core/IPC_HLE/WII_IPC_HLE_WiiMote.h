@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_WII_MOTE_
-#define _WII_IPC_HLE_WII_MOTE_
+#pragma once
 
 #include <map>
 #include <string>
@@ -144,6 +143,3 @@ private:
 
 	u16 AddAttribToList(int _AttribID, u8* _pBuffer);
 };
-
-#endif
-

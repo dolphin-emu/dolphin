@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _LOG_H_
-#define _LOG_H_
+#pragma once
 
 #define NOTICE_LEVEL  1  // VERY important information that is NOT errors. Like startup and OSReports.
 #define ERROR_LEVEL   2  // Critical errors
@@ -155,5 +154,3 @@ void GenericLog(LOGTYPES_LEVELS level, LOGTYPES_TYPE type,
 #else // GEKKO
 #define _assert_msg_(_t_, _a_, _fmt_, ...)
 #endif
-
-#endif // _LOG_H_

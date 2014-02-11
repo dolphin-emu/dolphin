@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _POSTPROCESSING_H_
-#define _POSTPROCESSING_H_
+#pragma once
 
 #include "VideoCommon.h"
 #include "GLUtil.h"
@@ -28,5 +27,3 @@ void ApplyShader();
 }  // namespace
 
 }  // namespace
-
-#endif // _POSTPROCESSING_H_

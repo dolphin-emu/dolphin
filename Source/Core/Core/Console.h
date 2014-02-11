@@ -5,10 +5,6 @@
 
 // Simple debugging console currently residing in the Logging window. Not used much.
 
-#ifndef _CONSOLE_H
-#define _CONSOLE_H
+#pragma once
 
 void Console_Submit(const char *cmd);
-
-#endif
-

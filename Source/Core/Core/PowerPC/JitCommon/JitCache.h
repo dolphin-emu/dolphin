@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JITCACHE_H
-#define _JITCACHE_H
+#pragma once
 
 #include <bitset>
 #include <map>
@@ -131,4 +130,3 @@ private:
 	void WriteLinkBlock(u8* location, const u8* address) override;
 	void WriteDestroyBlock(const u8* location, u32 address) override;
 };
-#endif

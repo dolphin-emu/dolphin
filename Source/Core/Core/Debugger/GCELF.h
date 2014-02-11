@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef GCELF_H
-#define GCELF_H
+#pragma once
 
 // ELF File Types
 #define ET_NONE			0 // No file type
@@ -111,6 +110,3 @@ typedef struct
 } Rela_Header;
 
 const char ELFID[4] = {0x7F, 'E', 'L', 'F'};
-
-#endif
-

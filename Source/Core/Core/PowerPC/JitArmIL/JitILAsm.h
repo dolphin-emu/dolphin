@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _JITARMILASM_H
-#define _JITARMILASM_H
+#pragma once
+
 #include "ArmEmitter.h"
 #include "../JitCommon/JitAsmCommon.h"
 using namespace ArmGen;
@@ -26,7 +26,3 @@ public:
 };
 
 extern JitArmILAsmRoutineManager armil_asm_routines;
-
-#endif
-
-

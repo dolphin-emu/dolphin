@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _PATCHENGINE_H
-#define _PATCHENGINE_H
+#pragma once
 
 #include "IniFile.h"
 
@@ -65,5 +64,3 @@ inline int GetPatchTypeCharLength(PatchType type)
 }
 
 }  // namespace
-
-#endif //_PATCHENGINE_H

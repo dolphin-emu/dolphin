@@ -23,8 +23,7 @@
 
    ====================================================================*/
 
-#ifndef _DSPCORE_H
-#define _DSPCORE_H
+#pragma once
 
 #include "Thread.h"
 
@@ -301,5 +300,3 @@ void DSPCore_Step();
 
 u16 DSPCore_ReadRegister(int reg);
 void DSPCore_WriteRegister(int reg, u16 val);
-
-#endif // _DSPCORE_H

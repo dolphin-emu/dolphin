@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_SOCKET_H_
-#define _WII_SOCKET_H_
-
+#pragma once
 
 #ifdef _WIN32
 #include <ws2tcpip.h>
@@ -244,5 +242,3 @@ private:
 
 	s32 errono_last;
 };
-
-#endif

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _ELFREADER_H
-#define _ELFREADER_H
+#pragma once
 
 #include "ElfTypes.h"
 
@@ -74,6 +73,3 @@ public:
 		return bRelocate;
 	}
 };
-
-#endif
-

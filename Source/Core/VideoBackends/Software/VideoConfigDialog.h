@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VIDEOSOFTWARE_CONFIG_DIAG_H_
-#define _VIDEOSOFTWARE_CONFIG_DIAG_H_
+#pragma once
 
 #include <vector>
 #include <string>
@@ -48,5 +47,3 @@ protected:
 	SWVideoConfig& vconfig;
 	std::string ininame;
 };
-
-#endif

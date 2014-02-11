@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _EXIDEVICE_IPL_H
-#define _EXIDEVICE_IPL_H
+#pragma once
 
 #include "EXI_Device.h"
 #include "Sram.h"
@@ -69,6 +68,3 @@ private:
 
 	void LoadFileToIPL(std::string filename, u32 offset);
 };
-
-#endif
-

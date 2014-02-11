@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _GCPAD_H_INCLUDED__
-#define _GCPAD_H_INCLUDED__
+#pragma once
 
 #define PAD_ERR_NONE            0
 #define PAD_ERR_NO_CONTROLLER   -1
@@ -38,5 +37,3 @@ typedef struct
 	unsigned char  analogB;                // 0 <= analogB      <= 255
 	signed char    err;                    // one of PAD_ERR_* number
 } SPADStatus;
-
-#endif

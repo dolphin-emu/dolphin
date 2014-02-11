@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _CPU_H
-#define _CPU_H
+#pragma once
 
 #include "Common.h"
 
@@ -51,6 +50,3 @@ public:
 	// the return value is whether the cpu was unpaused before the call.
 	static bool PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 };
-
-#endif
-

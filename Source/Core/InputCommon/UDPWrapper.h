@@ -1,5 +1,8 @@
-#ifndef UDPWRAPPER_H
-#define UDPWRAPPER_H
+// Copyright 2013 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
+
+#pragma once
 
 #include "UDPWiimote.h"
 
@@ -22,5 +25,3 @@ public:
 	void Refresh();
 	virtual ~UDPWrapper();
 };
-
-#endif

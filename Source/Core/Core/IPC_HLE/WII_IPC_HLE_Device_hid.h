@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_IPC_HLE_DEVICE_HID_H_
-#define _WII_IPC_HLE_DEVICE_HID_H_
+#pragma once
 
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
@@ -138,5 +137,3 @@ private:
 
 	std::list<_hidevent> event_list;
 };
-
-#endif

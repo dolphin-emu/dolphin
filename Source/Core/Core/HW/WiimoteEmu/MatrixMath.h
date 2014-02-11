@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef MATRIXMATH_H
-#define MATRIXMATH_H
+#pragma once
 
 #include <math.h>
 
@@ -89,5 +88,3 @@ inline void MatrixTransformVertex(Matrix const & m, Vertex & v)
 		v.z/=w;
 	}
 }
-
-#endif

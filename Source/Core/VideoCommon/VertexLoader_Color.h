@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXLOADERCOLOR_H
-#define _VERTEXLOADERCOLOR_H
+#pragma once
 
 void LOADERDECL Color_ReadDirect_24b_888();
 void LOADERDECL Color_ReadDirect_32b_888x();
@@ -25,5 +24,3 @@ void LOADERDECL Color_ReadIndex16_32b_888x();
 void LOADERDECL Color_ReadIndex16_16b_4444();
 void LOADERDECL Color_ReadIndex16_24b_6666();
 void LOADERDECL Color_ReadIndex16_32b_8888();
-
-#endif

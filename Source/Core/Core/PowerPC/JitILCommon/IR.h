@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef IR_H
-#define IR_H
+#pragma once
 
 #include "x64Emitter.h"
 #include <vector>
@@ -590,5 +589,3 @@ private:
 };
 
 };
-
-#endif

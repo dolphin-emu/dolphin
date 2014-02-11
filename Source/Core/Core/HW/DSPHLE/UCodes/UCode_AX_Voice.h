@@ -6,8 +6,7 @@
 // Wii version of AX. Maybe it would be better to abstract away the parts that
 // can be made common.
 
-#ifndef _UCODE_AX_VOICE_H
-#define _UCODE_AX_VOICE_H
+#pragma once
 
 #if !defined(AX_GC) && !defined(AX_WII)
 #error UCode_AX_Voice.h included without specifying version
@@ -555,5 +554,3 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
 }
 
 } // namespace
-
-#endif // !_UCODE_AX_VOICE_H

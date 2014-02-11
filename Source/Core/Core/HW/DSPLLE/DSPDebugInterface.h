@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _DSPDEBUGINTERFACE_H
-#define _DSPDEBUGINTERFACE_H
+#pragma once
 
 #include <string>
 #include <string.h>
@@ -36,5 +35,3 @@ public:
 	virtual int getColor(unsigned int address);
 	virtual std::string getDescription(unsigned int address);
 };
-
-#endif  // _DSPDEBUGINTERFACE_H

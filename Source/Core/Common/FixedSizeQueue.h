@@ -2,9 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#ifndef _FIXED_SIZE_QUEUE_H_
-#define _FIXED_SIZE_QUEUE_H_
+#pragma once
 
 // STL-look-a-like interface, but name is mixed case to distinguish it clearly from the
 // real STL classes.
@@ -70,6 +68,3 @@ public:
 		return count;
 	}
 };
-
-#endif // _FIXED_SIZE_QUEUE_H_
-

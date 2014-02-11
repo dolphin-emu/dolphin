@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _OPCODEDECODER_H_
-#define _OPCODEDECODER_H_
+#pragma once
 
 #include "CommonTypes.h"
 #include "ChunkFile.h"
@@ -47,5 +46,3 @@ namespace OpcodeDecoder
 
 	void DoState(PointerWrap &p);
 }
-
-#endif

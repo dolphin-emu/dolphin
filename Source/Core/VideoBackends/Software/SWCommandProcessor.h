@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _COMMANDPROCESSOR_H_
-#define _COMMANDPROCESSOR_H_
+#pragma once
 
 #include "Common.h"
 
@@ -141,6 +140,3 @@ namespace SWCommandProcessor
 	void SetRendering(bool enabled);
 
 } // end of namespace SWCommandProcessor
-
-
-#endif

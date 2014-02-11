@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _COMMANDPROCESSOR_H
-#define _COMMANDPROCESSOR_H
+#pragma once
 
 #include "Common.h"
 #include "VideoBackendBase.h"
@@ -160,7 +159,3 @@ void Update();
 extern volatile u32 VITicks;
 
 } // namespace CommandProcessor
-
-#endif // _COMMANDPROCESSOR_H
-
-

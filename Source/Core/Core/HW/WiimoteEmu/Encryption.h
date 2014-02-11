@@ -4,10 +4,7 @@
 //
 // Copyright (C) Hector Martin "marcan" (hector@marcansoft.com)
 
-
-#ifndef WIIMOTE_EXTENSION_ENCRYPTION_H
-#define WIIMOTE_EXTENSION_ENCRYPTION_H
-
+#pragma once
 
 // ===================================================
 /* They key structure to use with wiimote_gen_key() */
@@ -23,7 +20,3 @@ void wiimote_encrypt(const wiimote_key* const key, u8* const data, int addr, con
 void wiimote_decrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len);
 
 void wiimote_gen_key(wiimote_key* const key, const u8* const keydata);
-
-
-#endif
-

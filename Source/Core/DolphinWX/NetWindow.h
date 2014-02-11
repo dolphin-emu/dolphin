@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _NETWINDOW_H_
-#define _NETWINDOW_H_
+#pragma once
 
 #include "CommonTypes.h"
 
@@ -142,6 +141,3 @@ namespace NetPlay
 {
 	void StopGame();
 }
-
-#endif // _NETWINDOW_H_
-

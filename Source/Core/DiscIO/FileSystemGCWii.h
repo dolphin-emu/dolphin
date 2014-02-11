@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _FILESYSTEM_GC_WII_H
-#define _FILESYSTEM_GC_WII_H
+#pragma once
 
 #include <vector>
 
@@ -43,6 +42,3 @@ private:
 };
 
 } // namespace
-
-#endif
-

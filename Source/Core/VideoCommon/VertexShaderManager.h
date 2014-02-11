@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _VERTEXSHADERMANAGER_H
-#define _VERTEXSHADERMANAGER_H
+#pragma once
 
 #include "VertexShaderGen.h"
 #include "ConstantManager.h"
@@ -38,5 +37,3 @@ public:
 	static VertexShaderConstants constants;
 	static bool dirty;
 };
-
-#endif // _VERTEXSHADERMANAGER_H

@@ -1,5 +1,4 @@
-#ifndef ALDEVICELIST_H
-#define ALDEVICELIST_H
+#pragma once
 
 #include "CommonTypes.h"
 #ifdef _WIN32
@@ -47,5 +46,3 @@ public:
 private:
 	u32 GetMaxNumSources();
 };
-
-#endif // ALDEVICELIST_H

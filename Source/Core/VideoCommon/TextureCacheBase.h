@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _TEXTURECACHEBASE_H
-#define _TEXTURECACHEBASE_H
+#pragma once
 
 #include <map>
 
@@ -140,5 +139,3 @@ private:
 };
 
 extern TextureCache *g_texture_cache;
-
-#endif

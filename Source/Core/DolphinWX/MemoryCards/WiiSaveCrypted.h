@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#ifndef _WII_SAVE_CRYPTED
-#define _WII_SAVE_CRYPTED
+#pragma once
 
 #include "StringUtil.h"
 #include "Crypto/tools.h"
@@ -125,5 +124,3 @@ private:
 	};
 #pragma pack(pop)
 };
-
-#endif

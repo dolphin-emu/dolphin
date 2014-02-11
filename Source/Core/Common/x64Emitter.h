@@ -4,8 +4,7 @@
 
 // WARNING - THIS LIBRARY IS NOT THREAD SAFE!!!
 
-#ifndef _DOLPHIN_INTEL_CODEGEN_
-#define _DOLPHIN_INTEL_CODEGEN_
+#pragma once
 
 #include "Common.h"
 #include "MemoryUtil.h"
@@ -774,5 +773,3 @@ public:
 };
 
 }  // namespace
-
-#endif // _DOLPHIN_INTEL_CODEGEN_
