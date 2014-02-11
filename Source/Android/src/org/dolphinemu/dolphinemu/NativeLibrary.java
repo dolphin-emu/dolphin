@@ -200,6 +200,9 @@ public final class NativeLibrary
 	/** Stops emulation. */
 	public static native void StopEmulation();
 
+	/** Native EGL functions not exposed by Java bindings **/
+	public static native void eglBindAPI(int api);
+
 	static
 	{
 		try

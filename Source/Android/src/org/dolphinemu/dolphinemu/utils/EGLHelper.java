@@ -16,6 +16,8 @@ import javax.microedition.khronos.opengles.GL10;
 import android.opengl.GLES30;
 import android.util.Log;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
+
 /**
  * Utility class that abstracts all the stuff about
  * EGL initialization out of the way if all that is 
@@ -40,6 +42,10 @@ public final class EGLHelper
 	public static final int EGL_OPENGL_ES2_BIT     = 0x0004;
 	public static final int EGL_OPENGL_BIT         = 0x0008;
 	public static final int EGL_OPENGL_ES3_BIT_KHR = 0x0040;
+
+	// API types
+	public static final int EGL_OPENGL_ES_API = 0x30A0;
+	public static final int EGL_OPENGL_API    = 0x30A2;
 
 	/**
 	 * Constructor
@@ -295,6 +301,10 @@ public final class EGLHelper
 				ctx_attribs[1] = 2;
 				break;
 		}
+		if (renderableType == EGL_OPENGL_BIT)
+			NativeLibrary.eglBindAPI(EGL_OPENGL_API);
+		else
+			NativeLibrary.eglBindAPI(EGL_OPENGL_ES_API);
 
 		mEGLContext = mEGL.eglCreateContext(mDisplay, mEGLConfigs[0], EGL10.EGL_NO_CONTEXT, ctx_attribs);
 		mEGLSurface = mEGL.eglCreatePbufferSurface(mDisplay, mEGLConfigs[0], attribs);
