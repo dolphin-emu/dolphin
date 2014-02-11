@@ -2620,10 +2620,6 @@ msgstr ""
 msgid "Guitar"
 msgstr ""
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:429
-msgid "Hacks"
-msgstr ""
-
 #: Source/Core/Core/HW/GCMemcard.cpp:114
 msgid "Header checksum failed"
 msgstr ""
@@ -2982,7 +2978,7 @@ msgid "JIT Recompiler (recommended)"
 msgstr ""
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:49
-msgid "JITIL experimental recompiler"
+msgid "JITIL Recompiler (experimental)"
 msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:176
@@ -4633,6 +4629,10 @@ msgid ""
 "your performance will be.\n"
 "\n"
 "If unsure, select 640x528."
+msgstr ""
+
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:429
+msgid "Speed Hacks"
 msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:355
