@@ -234,9 +234,9 @@ inline u32 ConvertToSingleFTZ(u64 x)
 
 inline u64 ConvertToDouble(u32 _x)
 {
-	// This is a little-endian re-implementation of the algrothm described in
-	// the Power PC Programming Enviroments Manual for Loading single
-	// percision floating point numbers.
+	// This is a little-endian re-implementation of the algorithm described in
+	// the PowerPC Programming Environments Manual for loading single
+	// precision floating point numbers.
 	// See page 566 of http://www.freescale.com/files/product/doc/MPCFPE32B.pdf
 
 	u64 x = _x;

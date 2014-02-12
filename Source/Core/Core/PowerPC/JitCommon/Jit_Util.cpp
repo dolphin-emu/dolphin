@@ -438,11 +438,141 @@ static const __uint128_t GC_ALIGNED16(double_qnan_bit) = 0x0008000000000000;
 static const __uint128_t GC_ALIGNED16(double_exponent) = 0x7ff0000000000000;
 #endif
 
-// Since the following two functions are used in non-arithmetic PPC float instructions,
+// Since the following float conversion functions are used in non-arithmetic PPC float instructions,
 // they must convert floats bitexact and never flush denormals to zero or turn SNaNs into QNaNs.
 // This means we can't use CVTSS2SD/CVTSD2SS :(
 // The x87 FPU doesn't even support flush-to-zero so we can use FLD+FSTP even on denormals.
 // If the number is a NaN, make sure to set the QNaN bit back to its original value.
+
+// Another problem is that officially, converting doubles to single format results in undefined behavior.
+// Relying on undefined behavior is a bug so no software should ever do this.
+// In case it does happen, phire's more accurate implementation of ConvertDoubleToSingle() is reproduced below.
+
+//#define MORE_ACCURATE_DOUBLETOSINGLE
+#ifdef MORE_ACCURATE_DOUBLETOSINGLE
+
+#ifdef _WIN32
+#ifdef _M_X64
+static const __m128i GC_ALIGNED16(double_fraction) = _mm_set_epi64x(0, 0x000fffffffffffff);
+static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0, 0x8000000000000000);
+static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi64x(0, 0x0010000000000000);
+static const __m128i GC_ALIGNED16(double_top_two_bits) = _mm_set_epi64x(0, 0xc000000000000000);
+static const __m128i GC_ALIGNED16(double_bottom_bits)  = _mm_set_epi64x(0, 0x07ffffffe0000000);
+#else
+static const __m128i GC_ALIGNED16(double_fraction) = _mm_set_epi32(0, 0, 0x000fffff, 0xffffffff);
+static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi32(0, 0, 0x80000000, 0x00000000);
+static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi32(0, 0, 0x00100000, 0x00000000);
+static const __m128i GC_ALIGNED16(double_top_two_bits) = _mm_set_epi32(0, 0, 0xc0000000, 0x00000000);
+static const __m128i GC_ALIGNED16(double_bottom_bits)  = _mm_set_epi32(0, 0, 0x07ffffff, 0xe0000000);
+#endif
+#else
+static const __uint128_t GC_ALIGNED16(double_fraction) = 0x000fffffffffffff;
+static const __uint128_t GC_ALIGNED16(double_sign_bit) = 0x8000000000000000;
+static const __uint128_t GC_ALIGNED16(double_explicit_top_bit) = 0x0010000000000000;
+static const __uint128_t GC_ALIGNED16(double_top_two_bits) = 0xc000000000000000;
+static const __uint128_t GC_ALIGNED16(double_bottom_bits)  = 0x07ffffffe0000000;
+#endif
+
+// This is the same algorithm used in the interpreter (and actual hardware)
+// The documentation states that the conversion of a double with an outside the
+// valid range for a single (or a single denormal) is undefined.
+// But testing on actual hardware shows it always picks bits 0..1 and 5..34
+// unless the exponent is in the range of 874 to 896.
+void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
+{
+	MOVSD(XMM1, R(src));
+
+	// Grab Exponent
+	PAND(XMM1, M((void *)&double_exponent));
+	PSRLQ(XMM1, 52);
+	MOVD_xmm(R(EAX), XMM1);
+
+
+	// Check if the double is in the range of valid single subnormal
+	CMP(16, R(EAX), Imm16(896));
+	FixupBranch NoDenormalize = J_CC(CC_G);
+	CMP(16, R(EAX), Imm16(874));
+	FixupBranch NoDenormalize2 = J_CC(CC_L);
+
+	// Denormalise
+
+	// shift = (905 - Exponent) plus the 21 bit double to single shift
+	MOV(16, R(EAX), Imm16(905 + 21));
+	MOVD_xmm(XMM0, R(EAX));
+	PSUBQ(XMM0, R(XMM1));
+
+	// xmm1 = fraction | 0x0010000000000000
+	MOVSD(XMM1, R(src));
+	PAND(XMM1, M((void *)&double_fraction));
+	POR(XMM1, M((void *)&double_explicit_top_bit));
+
+	// fraction >> shift
+	PSRLQ(XMM1, R(XMM0));
+
+	// OR the sign bit in.
+	MOVSD(XMM0, R(src));
+	PAND(XMM0, M((void *)&double_sign_bit));
+	PSRLQ(XMM0, 32);
+	POR(XMM1, R(XMM0));
+
+	FixupBranch end = J(false); // Goto end
+
+	SetJumpTarget(NoDenormalize);
+	SetJumpTarget(NoDenormalize2);
+
+	// Don't Denormalize
+
+	// We want bits 0, 1
+	MOVSD(XMM1, R(src));
+	PAND(XMM1, M((void *)&double_top_two_bits));
+	PSRLQ(XMM1, 32);
+
+	// And 5 through to 34
+	MOVSD(XMM0, R(src));
+	PAND(XMM0, M((void *)&double_bottom_bits));
+	PSRLQ(XMM0, 29);
+
+	// OR them togther
+	POR(XMM1, R(XMM0));
+
+	// End
+	SetJumpTarget(end);
+	MOVDDUP(dst, R(XMM1));
+}
+
+#else // MORE_ACCURATE_DOUBLETOSINGLE
+
+void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
+{
+	MOVSD(M(&temp64), src);
+	MOVSD(XMM1, R(src));
+	FLD(64, M(&temp64));
+	CCFlags cond;
+	if (cpu_info.bSSE4_1) {
+		PTEST(XMM1, M((void *)&double_exponent));
+		cond = CC_NC;
+	} else {
+		FNSTSW_AX();
+		TEST(16, R(AX), Imm16(x87_InvalidOperation));
+		cond = CC_Z;
+	}
+	FSTP(32, M(&temp32));
+	MOVSS(XMM0, M(&temp32));
+	FixupBranch dont_reset_qnan_bit = J_CC(cond);
+
+	PANDN(XMM1, M((void *)&double_qnan_bit));
+	PSRLQ(XMM1, 29);
+	if (cpu_info.bAVX) {
+		VPANDN(XMM0, XMM1, R(XMM0));
+	} else {
+		PANDN(XMM1, R(XMM0));
+		MOVSS(XMM0, R(XMM1));
+	}
+
+	SetJumpTarget(dont_reset_qnan_bit);
+	MOVDDUP(dst, R(XMM0));
+}
+#endif // MORE_ACCURATE_DOUBLETOSINGLE
 
 void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
 {
@@ -478,37 +608,6 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 
 	SetJumpTarget(dont_reset_qnan_bit);
 	MOVDDUP(dst, R(dst));
-}
-
-void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
-{
-	MOVSD(M(&temp64), src);
-	MOVSD(XMM1, R(src));
-	FLD(64, M(&temp64));
-	CCFlags cond;
-	if (cpu_info.bSSE4_1) {
-		PTEST(XMM1, M((void *)&double_exponent));
-		cond = CC_NC;
-	} else {
-		FNSTSW_AX();
-		TEST(16, R(AX), Imm16(x87_InvalidOperation));
-		cond = CC_Z;
-	}
-	FSTP(32, M(&temp32));
-	MOVSS(XMM0, M(&temp32));
-	FixupBranch dont_reset_qnan_bit = J_CC(cond);
-
-	PANDN(XMM1, M((void *)&double_qnan_bit));
-	PSRLQ(XMM1, 29);
-	if (cpu_info.bAVX) {
-		VPANDN(XMM0, XMM1, R(XMM0));
-	} else {
-		PANDN(XMM1, R(XMM0));
-		MOVSS(XMM0, R(XMM1));
-	}
-
-	SetJumpTarget(dont_reset_qnan_bit);
-	MOVDDUP(dst, R(XMM0));
 }
 
 void EmuCodeBlock::JitClearCA()
