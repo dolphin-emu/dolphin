@@ -426,7 +426,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// -- SPEED HACKS --
 	{
 	wxPanel* const page_hacks = new wxPanel(notebook, -1, wxDefaultPosition);
-	notebook->AddPage(page_hacks, _("Hacks"));
+	notebook->AddPage(page_hacks, _("Speed Hacks"));
 	wxBoxSizer* const szr_hacks = new wxBoxSizer(wxVERTICAL);
 
 	// - EFB hacks
