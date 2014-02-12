@@ -85,10 +85,9 @@ void IniFile::Section::Set(const char* key, const std::vector<std::string>& newV
 {
 	std::string temp;
 	// Join the strings with ,
-	std::vector<std::string>::const_iterator it;
-	for (it = newValues.begin(); it != newValues.end(); ++it)
+	for (const auto& value : newValues)
 	{
-		temp = (*it) + ",";
+		temp = value + ",";
 	}
 	// remove last ,
 	temp.resize(temp.length() - 1);
@@ -238,7 +237,7 @@ bool IniFile::DeleteSection(const char* sectionName)
 	Section* s = GetSection(sectionName);
 	if (!s)
 		return false;
-	for (std::vector<Section>::iterator iter = sections.begin(); iter != sections.end(); ++iter)
+	for (auto iter = sections.begin(); iter != sections.end(); ++iter)
 	{
 		if (&(*iter) == s)
 		{
@@ -397,21 +396,21 @@ bool IniFile::Save(const char* filename)
 		return false;
 	}
 
-	for (auto& section : sections)
+	for (const auto& section : sections)
 	{
 		if (section.keys_order.size() != 0 || section.lines.size() != 0)
 			out << "[" << section.name << "]" << std::endl;
 
 		if (section.keys_order.size() == 0)
 		{
-			for (auto s : section.lines)
+			for (const auto& s : section.lines)
 				out << s << std::endl;
 		}
 		else
 		{
-			for (auto kvit = section.keys_order.begin(); kvit != section.keys_order.end(); ++kvit)
+			for (const auto& kvit : section.keys_order)
 			{
-				auto pair = section.values.find(*kvit);
+				auto pair = section.values.find(kvit);
 				out << pair->first << " = " << pair->second << std::endl;
 			}
 		}

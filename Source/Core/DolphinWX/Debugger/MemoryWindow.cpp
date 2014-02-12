@@ -337,7 +337,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event)
 			tmpstr = new char[newsize + 1];
 			memset(tmpstr, 0, newsize + 1);
 		}
-		sprintf(tmpstr, "%s%s", tmpstr, WxStrToStr(rawData).c_str());
+		strcat(tmpstr, WxStrToStr(rawData).c_str());
 		tmp2 = &Dest.front();
 		count = 0;
 		for(i = 0; i < strlen(tmpstr); i++)

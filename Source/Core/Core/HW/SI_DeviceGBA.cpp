@@ -56,7 +56,7 @@ bool GetAvailableSock(sf::SocketTCP& sock_to_fill)
 
 	std::lock_guard<std::mutex> lk(cs_gba);
 
-	if (waiting_socks.size())
+	if (!waiting_socks.empty())
 	{
 		sock_to_fill = waiting_socks.front();
 		waiting_socks.pop();

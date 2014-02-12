@@ -582,9 +582,9 @@ void WiiSockMan::Update()
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 	FD_ZERO(&except_fds);
-	for (auto it = WiiSockets.begin(); it != WiiSockets.end(); ++it)
+	for (auto& entry : WiiSockets)
 	{
-		WiiSocket& sock = it->second;
+		WiiSocket& sock = entry.second;
 		if (sock.valid())
 		{
 			FD_SET(sock.fd, &read_fds);

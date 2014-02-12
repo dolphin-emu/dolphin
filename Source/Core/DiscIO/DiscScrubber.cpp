@@ -267,7 +267,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 	IVolume *OldVolume = m_Disc;
 
 	// Ready some stuff
-	m_Disc = CreateVolumeFromFilename(m_Filename.c_str(), _rPartition.GroupNumber, _rPartition.Number);
+	m_Disc = CreateVolumeFromFilename(m_Filename, _rPartition.GroupNumber, _rPartition.Number);
 	IFileSystem *FileSystem = CreateFileSystem(m_Disc);
 
 	if (!FileSystem)

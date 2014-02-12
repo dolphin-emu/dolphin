@@ -8,11 +8,10 @@
 #include "../Core/PowerPC/JitCommon/JitBase.h"
 
 #include <sstream>
-#include <algorithm>
 
 bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {
-	for (auto& bp : m_BreakPoints)
+	for (const auto& bp : m_BreakPoints)
 		if (bp.iAddress == _iAddress)
 			return true;
 	return false;
@@ -20,7 +19,7 @@ bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 
 bool BreakPoints::IsTempBreakPoint(u32 _iAddress)
 {
-	for (auto& bp : m_BreakPoints)
+	for (const auto& bp : m_BreakPoints)
 		if (bp.iAddress == _iAddress && bp.bTemporary)
 			return true;
 	return false;
@@ -84,7 +83,7 @@ void BreakPoints::Add(u32 em_address, bool temp)
 
 void BreakPoints::Remove(u32 em_address)
 {
-	for (TBreakPoints::iterator i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
+	for (auto i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
 	{
 		if (i->iAddress == em_address)
 		{
@@ -100,12 +99,10 @@ void BreakPoints::Clear()
 {
 	if (jit)
 	{
-		std::for_each(m_BreakPoints.begin(), m_BreakPoints.end(),
-			[](const TBreakPoint& bp)
-			{
-				jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4);
-			}
-		);
+		for (const auto& bp : m_BreakPoints)
+		{
+			jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4);
+		}
 	}
 
 	m_BreakPoints.clear();
@@ -156,7 +153,7 @@ void MemChecks::Add(const TMemCheck& _rMemoryCheck)
 
 void MemChecks::Remove(u32 _Address)
 {
-	for (TMemChecks::iterator i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
+	for (auto i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
 	{
 		if (i->StartAddress == _Address)
 		{

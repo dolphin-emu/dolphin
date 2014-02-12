@@ -143,9 +143,9 @@ void PointGeometryShader::Shutdown()
 {
 	m_ready = false;
 
-	for (ComboMap::iterator it = m_shaders.begin(); it != m_shaders.end(); ++it)
+	for (auto& it : m_shaders)
 	{
-		SAFE_RELEASE(it->second);
+		SAFE_RELEASE(it.second);
 	}
 	m_shaders.clear();
 

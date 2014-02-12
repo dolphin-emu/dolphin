@@ -77,7 +77,7 @@ bool GeckoSockServer::GetAvailableSock(sf::SocketTCP &sock_to_fill)
 
 	std::lock_guard<std::mutex> lk(connection_lock);
 
-	if (waiting_socks.size())
+	if (!waiting_socks.empty())
 	{
 		sock_to_fill = waiting_socks.front();
 		if (clientThread.joinable())

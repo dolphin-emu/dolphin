@@ -108,8 +108,8 @@ namespace ButtonManager
 			: _dev(dev) {}
 		~InputDevice()
 		{
-			for (auto it = _binds.begin(); it != _binds.end(); ++it)
-				delete it->second;
+			for (const auto& bind : _binds)
+				delete bind.second;
 		}
 		void AddBind(sBind *bind) { _binds[bind->_buttontype] = bind; _inputbinds[bind->_bind] = bind; }
 		void PressEvent(int button, int action);
