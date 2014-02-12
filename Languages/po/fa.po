@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2014-02-05 00:00+0000\n"
+"POT-Creation-Date: 2014-02-12 00:00+0000\n"
 "PO-Revision-Date: 2014-02-05 08:16+0000\n"
 "Last-Translator: delroth <delroth@gmail.com>\n"
 "Language-Team: Persian (http://www.transifex.com/projects/p/dolphin-emu/"
@@ -380,7 +380,7 @@ msgstr "<هیچ>"
 msgid "<Press Key>"
 msgstr "<تکمه فشارى>"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:290
+#: Source/Core/DolphinWX/ConfigMain.cpp:289
 msgid "<System>"
 msgstr "<سیستم>"
 
@@ -432,7 +432,7 @@ msgstr "بُردِ مادر ای ام"
 msgid "AR Codes"
 msgstr "کدهای اکشن ریپلی"
 
-#: Source/Core/DolphinWX/AboutDolphin.h:21
+#: Source/Core/DolphinWX/AboutDolphin.h:20
 msgid "About Dolphin"
 msgstr "درباره دلفین"
 
@@ -571,7 +571,7 @@ msgstr "اضافه کردن تکه جدید"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:437
 #: Source/Core/DolphinWX/ISOProperties.cpp:459
-#: Source/Core/DolphinWX/ConfigMain.cpp:803
+#: Source/Core/DolphinWX/ConfigMain.cpp:799
 msgid "Add..."
 msgstr "اضافه کردن..."
 
@@ -623,7 +623,7 @@ msgstr "تنظیم فشار کنترل آنالوگ برای فعال کردن �
 msgid "Advanced"
 msgstr "پیشرفته"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:568
+#: Source/Core/DolphinWX/ConfigMain.cpp:564
 msgid "Advanced Settings"
 msgstr "تنظیمات پیشرفته"
 
@@ -631,7 +631,7 @@ msgstr "تنظیمات پیشرفته"
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "همه فایل های گیم کیوب/وی (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:808
+#: Source/Core/DolphinWX/ConfigMain.cpp:804
 msgid "All GC/Wii images (gcm, iso, wbfs, ciso, gcz)"
 msgstr "همه ایمیجهای گیم کیوب/وی (gcm, iso, wbfs, ciso, gcz)"
 
@@ -680,7 +680,7 @@ msgstr "سایز بارگذار برنامه اشتباه است...آیا این
 msgid "Apploader unable to load from file"
 msgstr "بارگذار برنامه ناتوان در بارگذاری از فایل"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:833
+#: Source/Core/DolphinWX/ConfigMain.cpp:829
 msgid "Apploader:"
 msgstr "بار گذار برنامه:"
 
@@ -698,7 +698,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، (خاموش) را انتخاب کنید."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:291
+#: Source/Core/DolphinWX/ConfigMain.cpp:290
 msgid "Arabic"
 msgstr "عربی"
 
@@ -730,7 +730,7 @@ msgid "Arm JITIL (experimental)"
 msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:283
-#: Source/Core/DolphinWX/ConfigMain.cpp:781
+#: Source/Core/DolphinWX/ConfigMain.cpp:777
 msgid "Aspect Ratio:"
 msgstr "نسبت طول به عرض تصویر:"
 
@@ -738,12 +738,12 @@ msgstr "نسبت طول به عرض تصویر:"
 msgid "At least one pane must remain open."
 msgstr "حداقل یک قطه می بایست باز بماند."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:249
-#: Source/Core/DolphinWX/ConfigMain.cpp:540
+#: Source/Core/DolphinWX/ConfigMain.cpp:248
+#: Source/Core/DolphinWX/ConfigMain.cpp:538
 msgid "Audio"
 msgstr "صدا"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:680
+#: Source/Core/DolphinWX/ConfigMain.cpp:676
 msgid "Audio Backend:"
 msgstr "پشتوانه صدا:"
 
@@ -752,7 +752,7 @@ msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: خطا در باز کردن دستگاه خروجی صدا.\n"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:281
-#: Source/Core/DolphinWX/ConfigMain.cpp:248
+#: Source/Core/DolphinWX/ConfigMain.cpp:247
 msgid "Auto"
 msgstr "اتوماتیک"
 
@@ -790,7 +790,7 @@ msgstr "ثبت اشاره گر پایه"
 msgid "Back"
 msgstr "برگشت"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:684
+#: Source/Core/DolphinWX/ConfigMain.cpp:680
 msgid "Backend Settings"
 msgstr "تنظیمات پشتوانه"
 
@@ -837,7 +837,7 @@ msgstr "نوار"
 msgid "Basic"
 msgstr "بنیانی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:562
+#: Source/Core/DolphinWX/ConfigMain.cpp:558
 msgid "Basic Settings"
 msgstr "تنظیمات بنیانی"
 
@@ -866,7 +866,7 @@ msgid "Blue Right"
 msgstr "آبی راست"
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:105
-#: Source/Core/DolphinWX/ConfigMain.cpp:274
+#: Source/Core/DolphinWX/ConfigMain.cpp:273
 msgid "Bottom"
 msgstr "پائین"
 
@@ -929,7 +929,7 @@ msgstr "استیک سی"
 msgid "CP reg"
 msgstr "ثبت سی پی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:554
+#: Source/Core/DolphinWX/ConfigMain.cpp:551
 msgid "CPU Emulator Engine"
 msgstr "موتور پردازشگر برابرساز"
 
@@ -973,7 +973,7 @@ msgstr "قادر به باز گشایی نیست %s"
 msgid "Cannot unregister events with events pending"
 msgstr "رویدادهایی را که معوق اند نمی تواند از ثبت درآورد."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:1072
+#: Source/Core/DolphinWX/ConfigMain.cpp:1065
 #, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
@@ -984,7 +984,7 @@ msgstr ""
 "%s\n"
 "این یک فایل کارت حافظه معتبر گیم کیوب نیست"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:1108
+#: Source/Core/DolphinWX/ConfigMain.cpp:1101
 msgid ""
 "Cannot use that file as a memory card.\n"
 "Are you trying to use the same file in both slots?"
@@ -996,7 +996,7 @@ msgstr ""
 msgid "Caps Lock"
 msgstr "کپس لاک"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:292
+#: Source/Core/DolphinWX/ConfigMain.cpp:291
 msgid "Catalan"
 msgstr "کاتالان"
 
@@ -1020,7 +1020,7 @@ msgstr "تعویض دیسک"
 msgid "Change Game"
 msgstr "تعویض بازی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:504
+#: Source/Core/DolphinWX/ConfigMain.cpp:502
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -1036,7 +1036,7 @@ msgstr "تغییرات علامت به پارامتر z دور (بعد از تص
 msgid "Changes sign to zNear Parameter (after correction)"
 msgstr "تغییرات علامت به پارامتر z نزدیک (بعد از تصحیح)"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:508
+#: Source/Core/DolphinWX/ConfigMain.cpp:506
 msgid "Changing this will have no effect while the emulator is running!"
 msgstr ""
 "تغییر دادن این مورد در حالی که برابرساز در حال اجراست اثری نخواهد داشت!"
@@ -1065,31 +1065,31 @@ msgstr "برسی عدم نقص پارتیشن"
 msgid "Checking integrity..."
 msgstr "برسی عدم نقص..."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:293
+#: Source/Core/DolphinWX/ConfigMain.cpp:292
 msgid "Chinese (Simplified)"
 msgstr "چینی (ساده شده)"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:294
+#: Source/Core/DolphinWX/ConfigMain.cpp:293
 msgid "Chinese (Traditional)"
 msgstr "چینی (سنتی)"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:810
+#: Source/Core/DolphinWX/ConfigMain.cpp:806
 msgid "Choose a DVD root directory:"
 msgstr "انتخاب یک پوشه ریشه برای دی وی دی:"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:814
+#: Source/Core/DolphinWX/ConfigMain.cpp:810
 msgid "Choose a NAND root directory:"
 msgstr "انتخاب یک پوشه ریشه برای نند:"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:807
+#: Source/Core/DolphinWX/ConfigMain.cpp:803
 msgid "Choose a default ISO:"
 msgstr "انتخاب آیزو پیش فرض:"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:1231
+#: Source/Core/DolphinWX/ConfigMain.cpp:1224
 msgid "Choose a directory to add"
 msgstr "انتخاب پوشه برای اضافه کردن"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:1059
+#: Source/Core/DolphinWX/ConfigMain.cpp:1052
 msgid "Choose a file to open"
 msgstr "انتخاب فایل برای باز کردن"
 
@@ -1097,7 +1097,7 @@ msgstr "انتخاب فایل برای باز کردن"
 msgid "Choose a memory card:"
 msgstr "انتخاب کارت حافظه:"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:811
+#: Source/Core/DolphinWX/ConfigMain.cpp:807
 msgid ""
 "Choose file to use as apploader: (applies to discs constructed from "
 "directories only)"
@@ -1182,8 +1182,8 @@ msgid "Config"
 msgstr "پیکربندی"
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:38
-#: Source/Core/DolphinWX/InputConfigDiag.h:125
-#: Source/Core/DolphinWX/InputConfigDiag.h:144
+#: Source/Core/DolphinWX/InputConfigDiag.h:124
+#: Source/Core/DolphinWX/InputConfigDiag.h:143
 msgid "Configure"
 msgstr "پیکربندی"
 
@@ -1206,7 +1206,7 @@ msgstr "پیکربندی..."
 msgid "Confirm File Overwrite"
 msgstr "تائید بازنویسی فایل"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:584
+#: Source/Core/DolphinWX/ConfigMain.cpp:580
 msgid "Confirm on Stop"
 msgstr "تائید برای توقف"
 
@@ -1220,7 +1220,7 @@ msgstr "اتصال"
 msgid "Connect Balance Board"
 msgstr ""
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:775
+#: Source/Core/DolphinWX/ConfigMain.cpp:771
 msgid "Connect USB Keyboard"
 msgstr "اتصال کیبورد USB"
 
@@ -1321,7 +1321,7 @@ msgstr ""
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "قادر به یافتن دستور باز برای پسوند 'ini' نیست!"
 
-#: Source/Core/Core/BootManager.cpp:233
+#: Source/Core/Core/BootManager.cpp:230
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -1383,7 +1383,7 @@ msgstr ""
 msgid "Custom Projection Hack"
 msgstr "هک کردن دستی تصویر"
 
-#: Source/Core/DolphinWX/PHackSettings.h:17
+#: Source/Core/DolphinWX/PHackSettings.h:16
 msgid "Custom Projection Hack Settings"
 msgstr "تنظیمات مربوط به هک کردن دستی تصویر"
 
@@ -1391,7 +1391,7 @@ msgstr "تنظیمات مربوط به هک کردن دستی تصویر"
 msgid "Customize some Orthographic Projection parameters."
 msgstr "دستکاری برخی از پارامتر های خطوط عمودی تصویر."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:295
+#: Source/Core/DolphinWX/ConfigMain.cpp:294
 msgid "Czech"
 msgstr "چکوسلواکی"
 
@@ -1407,20 +1407,20 @@ msgstr "پد هدایتی"
 msgid "DSP"
 msgstr "پردازشگر صدای دلفین"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:644
+#: Source/Core/DolphinWX/ConfigMain.cpp:640
 msgid "DSP Emulator Engine"
 msgstr "موتور برابرساز پردازشگر صدای دلفین"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:358
-#: Source/Core/DolphinWX/ConfigMain.cpp:258
+#: Source/Core/DolphinWX/ConfigMain.cpp:257
 msgid "DSP HLE emulation (fast)"
 msgstr "برابرسازی سطح بالای پردازشگر صدای دلفین (سریع)"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:260
+#: Source/Core/DolphinWX/ConfigMain.cpp:259
 msgid "DSP LLE interpreter (slow)"
 msgstr "مفسر سطح پائین پردازشگر صدای دلفین (کند)"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:259
+#: Source/Core/DolphinWX/ConfigMain.cpp:258
 msgid "DSP LLE recompiler"
 msgstr "ری کامپایلر سطح پائین پردازشگر صدای دلفین"
 
@@ -1428,11 +1428,11 @@ msgstr "ری کامپایلر سطح پائین پردازشگر صدای دلف
 msgid "DSP settings"
 msgstr "تنظیمات پردازشگر صدای دلفین"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:646
+#: Source/Core/DolphinWX/ConfigMain.cpp:642
 msgid "DSPLLE on Separate Thread"
 msgstr ""
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:830
+#: Source/Core/DolphinWX/ConfigMain.cpp:826
 msgid "DVD Root:"
 msgstr "ریشه دی وی دی:"
 
@@ -1505,7 +1505,7 @@ msgstr ""
 msgid "Default"
 msgstr "پیش فرز"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:827
+#: Source/Core/DolphinWX/ConfigMain.cpp:823
 msgid "Default ISO:"
 msgstr "آیزو پیش فرز:"
 
@@ -1549,8 +1549,8 @@ msgstr ""
 msgid "Device"
 msgstr "دستگاه"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:736
-#: Source/Core/DolphinWX/ConfigMain.cpp:790
+#: Source/Core/DolphinWX/ConfigMain.cpp:732
+#: Source/Core/DolphinWX/ConfigMain.cpp:786
 msgid "Device Settings"
 msgstr "تنظیمات دستگاه"
 
@@ -1652,7 +1652,7 @@ msgstr "تقسیم"
 msgid "Do you want to stop the current emulation?"
 msgstr "آیا می خواهید برابرسازی فعلی را متوقف کنید؟"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:649
+#: Source/Core/DolphinWX/ConfigMain.cpp:645
 msgid "Dolby Pro Logic II decoder"
 msgstr "کدبردار دالبی پرو لاجیک دو"
 
@@ -1704,7 +1704,7 @@ msgstr "دلفین %s پیکربندی گرافیک"
 msgid "Dolphin &Web Site"
 msgstr "&وب سایت دلفین"
 
-#: Source/Core/DolphinWX/ConfigMain.h:24
+#: Source/Core/DolphinWX/ConfigMain.h:23
 msgid "Dolphin Configuration"
 msgstr "پیکر بندی دلفین"
 
@@ -1782,7 +1782,7 @@ msgstr "طبل ها"
 msgid "Dummy"
 msgstr "مصنوعی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:647
+#: Source/Core/DolphinWX/ConfigMain.cpp:643
 msgid "Dump Audio"
 msgstr "نسخه برداری صدا"
 
@@ -1831,8 +1831,8 @@ msgstr ""
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:511
-#: Source/Core/DolphinWX/ConfigMain.cpp:269
-#: Source/Core/DolphinWX/ConfigMain.cpp:296
+#: Source/Core/DolphinWX/ConfigMain.cpp:268
+#: Source/Core/DolphinWX/ConfigMain.cpp:295
 msgid "Dutch"
 msgstr "هلندی"
 
@@ -1869,7 +1869,7 @@ msgstr "به روز شدن های اولیه حافظه"
 msgid "Edit"
 msgstr "ویرایش"
 
-#: Source/Core/DolphinWX/ARCodeAddEdit.h:17
+#: Source/Core/DolphinWX/ARCodeAddEdit.h:16
 msgid "Edit ActionReplay Code"
 msgstr "ویرایش کدهای اکشن ریپلی"
 
@@ -1877,7 +1877,7 @@ msgstr "ویرایش کدهای اکشن ریپلی"
 msgid "Edit Config"
 msgstr "ویرایش پیکربندی"
 
-#: Source/Core/DolphinWX/PatchAddEdit.h:17
+#: Source/Core/DolphinWX/PatchAddEdit.h:16
 msgid "Edit Patch"
 msgstr "ویرایش وصله"
 
@@ -1977,7 +1977,7 @@ msgstr "فعال کردن محاسبه حد جعبه"
 msgid "Enable Cache"
 msgstr "فعال کردن حافظه ميانى"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:549
+#: Source/Core/DolphinWX/ConfigMain.cpp:547
 msgid "Enable Cheats"
 msgstr "فعال کردن کدهای تقلب"
 
@@ -1985,7 +1985,7 @@ msgstr "فعال کردن کدهای تقلب"
 msgid "Enable Dual Core"
 msgstr "فعال کردن پردازنده با دو هسته یا بیشتر"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:547
+#: Source/Core/DolphinWX/ConfigMain.cpp:545
 msgid "Enable Dual Core (speedup)"
 msgstr "فعال کردن پردازنده با دو هسته یا بیشتر (بالا بردن سرعت)"
 
@@ -1993,7 +1993,7 @@ msgstr "فعال کردن پردازنده با دو هسته یا بیشتر (�
 msgid "Enable Idle Skipping"
 msgstr "فعال کردن جهش بیکاری"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:548
+#: Source/Core/DolphinWX/ConfigMain.cpp:546
 msgid "Enable Idle Skipping (speedup)"
 msgstr "فعال کردن جهش بیکاری (بالا بردن سرعت)"
 
@@ -2005,7 +2005,7 @@ msgstr "فعال کردن واحد مدیریت حافظه"
 msgid "Enable Progressive Scan"
 msgstr "فعال کردن پويش تصاعدی (Progressive Scan)"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:768
+#: Source/Core/DolphinWX/ConfigMain.cpp:764
 msgid "Enable Screen Saver"
 msgstr "فعال کردن اسکیرین سیور"
 
@@ -2075,7 +2075,7 @@ msgstr ""
 msgid "Enables Custom Projection Hack"
 msgstr "فعال کردن پروژه هک دستی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:517
+#: Source/Core/DolphinWX/ConfigMain.cpp:515
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on "
 "OSX."
@@ -2083,7 +2083,7 @@ msgstr ""
 "فعال کردن برابر سازی دالبی پرو لاجیک دو توسط خروجی فراگیر 5.1 (Surround). در "
 "OSX موجود نیست."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:519
+#: Source/Core/DolphinWX/ConfigMain.cpp:517
 msgid ""
 "Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL backend only."
 msgstr ""
@@ -2125,8 +2125,8 @@ msgid "End"
 msgstr "پایان"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:506
-#: Source/Core/DolphinWX/ConfigMain.cpp:264
-#: Source/Core/DolphinWX/ConfigMain.cpp:297
+#: Source/Core/DolphinWX/ConfigMain.cpp:263
+#: Source/Core/DolphinWX/ConfigMain.cpp:296
 msgid "English"
 msgstr "انگلیسی"
 
@@ -2153,7 +2153,7 @@ msgstr "ورودی 1/%d"
 msgid "Equal"
 msgstr "همگن"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:1238
+#: Source/Core/DolphinWX/ConfigMain.cpp:1231
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:32
 msgid "Error"
 msgstr "خطا"
@@ -2163,7 +2163,7 @@ msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "بارگذاری زبان انتخاب شده با شکست مواجه شد. برگشت به زبان پیش فرض سیستم."
 
-#: Source/Core/Common/ChunkFile.h:272
+#: Source/Core/Common/ChunkFile.h:270
 #, c-format
 msgid ""
 "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
@@ -2471,7 +2471,7 @@ msgstr ""
 msgid "Failed to write header for %s"
 msgstr "نوشتن سرخط برای %s با شکست مواجه شد"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:298
+#: Source/Core/DolphinWX/ConfigMain.cpp:297
 msgid "Farsi"
 msgstr "پارسی"
 
@@ -2572,7 +2572,7 @@ msgstr "۱۶:۹ اجباری"
 msgid "Force 4:3"
 msgstr "۴:۳ اجباری"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:555
+#: Source/Core/DolphinWX/ConfigMain.cpp:552
 msgid "Force Console as NTSC-J"
 msgstr "کنسول به عنوان NTSC-J اجباری"
 
@@ -2605,7 +2605,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:497
+#: Source/Core/DolphinWX/ConfigMain.cpp:495
 msgid ""
 "Forces NTSC-J mode for using the Japanese ROM font.\n"
 "Left unchecked, dolphin defaults to NTSC-U and automatically enables this "
@@ -2670,7 +2670,7 @@ msgstr "محدوده فریم"
 msgid "Frame S&kipping"
 msgstr "پری&دن از روی فریم"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:559
+#: Source/Core/DolphinWX/ConfigMain.cpp:556
 msgid "Framelimit:"
 msgstr "حد فریم:"
 
@@ -2683,8 +2683,8 @@ msgid "Free Look"
 msgstr "نگاه آزاد"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:508
-#: Source/Core/DolphinWX/ConfigMain.cpp:266
-#: Source/Core/DolphinWX/ConfigMain.cpp:299
+#: Source/Core/DolphinWX/ConfigMain.cpp:265
+#: Source/Core/DolphinWX/ConfigMain.cpp:298
 msgid "French"
 msgstr "فرانسوی"
 
@@ -2745,7 +2745,7 @@ msgstr "پیکربندی بازی"
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
 msgstr "فایل های ذخیره بازی گیم کیوب(*.gci;*.gcs;*.sav)"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:541
+#: Source/Core/DolphinWX/ConfigMain.cpp:539
 msgid "Gamecube"
 msgstr "گیم کیوب"
 
@@ -2753,7 +2753,7 @@ msgstr "گیم کیوب"
 msgid "Gamecube &Pad Settings"
 msgstr "تنظیمات &دسته گیم کیوب"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:1063
+#: Source/Core/DolphinWX/ConfigMain.cpp:1056
 #: Source/Core/DolphinWX/MemcardManager.cpp:205
 msgid "Gamecube Memory Cards (*.raw,*.gcp)"
 msgstr "کارت های حافظه گیم کیوب (*.raw.*.gcp)"
@@ -2768,7 +2768,7 @@ msgid "Gecko Codes"
 msgstr "کدهای گیکو"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:200
-#: Source/Core/DolphinWX/ConfigMain.cpp:538
+#: Source/Core/DolphinWX/ConfigMain.cpp:536
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:180
 msgid "General"
 msgstr "کلی"
@@ -2778,8 +2778,8 @@ msgid "General Settings"
 msgstr "تنظیمات جامع"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:507
-#: Source/Core/DolphinWX/ConfigMain.cpp:265
-#: Source/Core/DolphinWX/ConfigMain.cpp:300
+#: Source/Core/DolphinWX/ConfigMain.cpp:264
+#: Source/Core/DolphinWX/ConfigMain.cpp:299
 msgid "German"
 msgstr "آلمانی"
 
@@ -2817,7 +2817,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را رها کنید."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:301
+#: Source/Core/DolphinWX/ConfigMain.cpp:300
 msgid "Greek"
 msgstr "یونانی"
 
@@ -2845,7 +2845,7 @@ msgstr "هک"
 msgid "Header checksum failed"
 msgstr "چک کردن سر خط برای یافتن خطا با شکست مواجه شد"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:302
+#: Source/Core/DolphinWX/ConfigMain.cpp:301
 msgid "Hebrew"
 msgstr "عبری"
 
@@ -2914,16 +2914,16 @@ msgstr "خانه"
 msgid "Host"
 msgstr "میزبان"
 
-#: Source/Core/DolphinWX/HotkeyDlg.h:31
+#: Source/Core/DolphinWX/HotkeyDlg.h:30
 msgid "Hotkey Configuration"
 msgstr "پیکربندی شرت کات"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:581
+#: Source/Core/DolphinWX/ConfigMain.cpp:577
 #: Source/Core/DolphinWX/HotkeyDlg.cpp:308
 msgid "Hotkeys"
 msgstr "شرت کاتها"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:303
+#: Source/Core/DolphinWX/ConfigMain.cpp:302
 msgid "Hungarian"
 msgstr "مجارستانی"
 
@@ -2950,7 +2950,7 @@ msgstr ""
 msgid "IOCTL_ES_READCONTENT - bad destination"
 msgstr "IOCTL_ES_READCONTENT - مقصد ناصحیح"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:734
+#: Source/Core/DolphinWX/ConfigMain.cpp:730
 msgid "IPL Settings"
 msgstr "تنظیمات آی پی ال"
 
@@ -2970,7 +2970,7 @@ msgstr "میزان حساسیت فروسرخ"
 msgid "ISO Details"
 msgstr "جزئیات آیزو"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:822
+#: Source/Core/DolphinWX/ConfigMain.cpp:818
 msgid "ISO Directories"
 msgstr "پوشه های آیزو"
 
@@ -3083,7 +3083,7 @@ msgstr "درج"
 msgid "Insert Encrypted or Decrypted code here..."
 msgstr "درج کد رمز شده و یا کشف شده..."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:774
+#: Source/Core/DolphinWX/ConfigMain.cpp:770
 msgid "Insert SD Card"
 msgstr "درج کارت اس دی"
 
@@ -3131,11 +3131,11 @@ msgstr ""
 "بررسی درست بودن پارتیشن %d با شکست مواجه شد. نسخه برداری شما به احتمال زیاد "
 "خراب یا نادرست وصله خورده است."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:539
+#: Source/Core/DolphinWX/ConfigMain.cpp:537
 msgid "Interface"
 msgstr "واسط گرافیک"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:632
+#: Source/Core/DolphinWX/ConfigMain.cpp:628
 msgid "Interface Settings"
 msgstr "تنظیمات واسط گرافیک"
 
@@ -3222,8 +3222,8 @@ msgid "Invalid state"
 msgstr "وضعیت نامعتبر"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:510
-#: Source/Core/DolphinWX/ConfigMain.cpp:268
-#: Source/Core/DolphinWX/ConfigMain.cpp:304
+#: Source/Core/DolphinWX/ConfigMain.cpp:267
+#: Source/Core/DolphinWX/ConfigMain.cpp:303
 msgid "Italian"
 msgstr "ایتالیایی"
 
@@ -3241,8 +3241,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:176
 #: Source/Core/DolphinWX/ISOProperties.cpp:515
-#: Source/Core/DolphinWX/ConfigMain.cpp:283
-#: Source/Core/DolphinWX/ConfigMain.cpp:305
+#: Source/Core/DolphinWX/ConfigMain.cpp:282
+#: Source/Core/DolphinWX/ConfigMain.cpp:304
 msgid "Japanese"
 msgstr "ژاپنی"
 
@@ -3269,8 +3269,8 @@ msgid "Key"
 msgstr "کلید"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:518
-#: Source/Core/DolphinWX/ConfigMain.cpp:286
-#: Source/Core/DolphinWX/ConfigMain.cpp:306
+#: Source/Core/DolphinWX/ConfigMain.cpp:285
+#: Source/Core/DolphinWX/ConfigMain.cpp:305
 msgid "Korean"
 msgstr "کره ای"
 
@@ -3288,7 +3288,7 @@ msgstr "دکمه ال"
 msgid "L-Analog"
 msgstr "ال آنالوگ"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:592
+#: Source/Core/DolphinWX/ConfigMain.cpp:588
 msgid "Language:"
 msgstr "زبان:"
 
@@ -3297,7 +3297,7 @@ msgstr "زبان:"
 msgid "Last %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:682
+#: Source/Core/DolphinWX/ConfigMain.cpp:678
 msgid "Latency:"
 msgstr "زمان بيکارى:"
 
@@ -3339,10 +3339,6 @@ msgstr ""
 #: Source/Core/DolphinWX/CheatsWindow.cpp:195
 msgid "Less Than"
 msgstr "کمتر از"
-
-#: Source/Core/DolphinWX/ConfigMain.cpp:552
-msgid "Limit by FPS"
-msgstr "محدود کردن توسط تعداد فریم ها بر ثانیه"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:943
 msgid "Load"
@@ -3455,7 +3451,7 @@ msgstr ""
 msgid "Load preset values from hack patterns available."
 msgstr "بارگذاری مقدار های از پیش تنظیم شده از الگوهای هک موجود است."
 
-#: Source/Core/DolphinWX/LogWindow.h:38
+#: Source/Core/DolphinWX/LogWindow.h:37
 msgid "Log"
 msgstr "ثبت وقایع"
 
@@ -3560,7 +3556,7 @@ msgstr "بایت حافظه"
 msgid "Memory Card"
 msgstr "کارت حافظه"
 
-#: Source/Core/DolphinWX/MemcardManager.h:23
+#: Source/Core/DolphinWX/MemcardManager.h:22
 msgid ""
 "Memory Card Manager WARNING-Make backups before using, should be fixed but "
 "could mangle stuff!"
@@ -3606,7 +3602,7 @@ msgstr "حداقل"
 msgid "Misc"
 msgstr "متفرقه"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:787
+#: Source/Core/DolphinWX/ConfigMain.cpp:783
 msgid "Misc Settings"
 msgstr "تنظیمات متفرقه"
 
@@ -3798,7 +3794,7 @@ msgstr "بدون کشور (SDK)"
 msgid "No ISOs or WADS found"
 msgstr "هیچ آیزو یا وادی پیدا نشد"
 
-#: Source/Core/Core/ConfigManager.h:17
+#: Source/Core/Core/ConfigManager.h:16
 msgid "No audio output"
 msgstr ""
 
@@ -3842,7 +3838,7 @@ msgstr "پوشه فایل ذخیره برای عنوان %s پیدا نشد"
 msgid "None"
 msgstr "هیچ"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:307
+#: Source/Core/DolphinWX/ConfigMain.cpp:306
 msgid "Norwegian Bokmaal"
 msgstr "بوکمال نروژی"
 
@@ -3905,7 +3901,7 @@ msgstr "شیی"
 msgid "Object Range"
 msgstr "محدوده شیی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:247
+#: Source/Core/DolphinWX/ConfigMain.cpp:246
 msgid "Off"
 msgstr "خاموش"
 
@@ -3913,7 +3909,7 @@ msgstr "خاموش"
 msgid "Offset:"
 msgstr "افست:"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:589
+#: Source/Core/DolphinWX/ConfigMain.cpp:585
 msgid "On-Screen Display Messages"
 msgstr "پیام های روی صفحه نمایش"
 
@@ -4046,7 +4042,7 @@ msgstr ""
 msgid "Patches"
 msgstr "وصله ها"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:543
+#: Source/Core/DolphinWX/ConfigMain.cpp:541
 msgid "Paths"
 msgstr "مسیرها"
 
@@ -4112,23 +4108,23 @@ msgstr "لطفا قبل از ذخیره کردن یک چشم انداز بساز
 msgid "Plus-Minus"
 msgstr "مینوس پلاس"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:308
+#: Source/Core/DolphinWX/ConfigMain.cpp:307
 msgid "Polish"
 msgstr "لهستانی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:718
+#: Source/Core/DolphinWX/ConfigMain.cpp:714
 msgid "Port 1"
 msgstr "درگاه ۱"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:719
+#: Source/Core/DolphinWX/ConfigMain.cpp:715
 msgid "Port 2"
 msgstr "درگاه ۲"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:720
+#: Source/Core/DolphinWX/ConfigMain.cpp:716
 msgid "Port 3"
 msgstr "درگاه ۳"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:721
+#: Source/Core/DolphinWX/ConfigMain.cpp:717
 msgid "Port 4"
 msgstr "درگاه ۴"
 
@@ -4137,11 +4133,11 @@ msgstr "درگاه ۴"
 msgid "Port :"
 msgstr "درگاه :"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:309
+#: Source/Core/DolphinWX/ConfigMain.cpp:308
 msgid "Portuguese"
 msgstr "پرتقالی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:310
+#: Source/Core/DolphinWX/ConfigMain.cpp:309
 msgid "Portuguese (Brazilian)"
 msgstr "پرتقالی (برزیلی)"
 
@@ -4188,7 +4184,7 @@ msgstr "چاپ"
 msgid "Profile"
 msgstr "پروفایل"
 
-#: Source/Core/DolphinWX/ISOProperties.h:42
+#: Source/Core/DolphinWX/ISOProperties.h:41
 msgid "Properties"
 msgstr "خواص"
 
@@ -4317,7 +4313,7 @@ msgstr "به روز کردن لیست بازی"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:438
 #: Source/Core/DolphinWX/ISOProperties.cpp:460
-#: Source/Core/DolphinWX/ConfigMain.cpp:804
+#: Source/Core/DolphinWX/ConfigMain.cpp:800
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:64
 msgid "Remove"
 msgstr "پاک کردن"
@@ -4367,12 +4363,12 @@ msgstr "استیک راست"
 msgid "Rumble"
 msgstr "شوک"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:507
+#: Source/Core/DolphinWX/ConfigMain.cpp:505
 msgid ""
 "Run DSP LLE on a dedicated thread (not recommended: might cause freezes)."
 msgstr ""
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:311
+#: Source/Core/DolphinWX/ConfigMain.cpp:310
 msgid "Russian"
 msgstr "روسی"
 
@@ -4501,7 +4497,7 @@ msgstr "جستجو"
 msgid "Search Filter"
 msgstr "فیلتر جستجو"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:802
+#: Source/Core/DolphinWX/ConfigMain.cpp:798
 msgid "Search Subfolders"
 msgstr "جستجوی پوشه های فرعی"
 
@@ -4513,8 +4509,8 @@ msgstr "جستجوی موضوع فعلی"
 msgid "Search for hex Value:"
 msgstr "جستجو برای مقدار هگزا:"
 
-#: Source/Core/Common/SysConf.h:90 Source/Core/Common/SysConf.h:113
-#: Source/Core/Common/SysConf.h:133 Source/Core/Common/SysConf.h:154
+#: Source/Core/Common/SysConf.h:89 Source/Core/Common/SysConf.h:112
+#: Source/Core/Common/SysConf.h:132 Source/Core/Common/SysConf.h:153
 #, c-format
 msgid "Section %s not found in SYSCONF"
 msgstr "بخش %s در SYSCONF پیدا نشد"
@@ -4644,11 +4640,11 @@ msgstr "موقعیت سنسور بار:"
 msgid "Separator"
 msgstr "جدا کننده"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:312
+#: Source/Core/DolphinWX/ConfigMain.cpp:311
 msgid "Serbian"
 msgstr "صربستانی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:511
+#: Source/Core/DolphinWX/ConfigMain.cpp:509
 msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use"
 msgstr ""
@@ -4671,7 +4667,7 @@ msgstr ""
 "ست کردن کد اکشن ریپلی_فعال است: فهرست بزرگتر از سایز لیست کد اکشن ریپلی است "
 "%lu"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:522
+#: Source/Core/DolphinWX/ConfigMain.cpp:520
 msgid ""
 "Sets the latency (in ms).  Higher values may reduce audio crackling. OpenAL "
 "backend only."
@@ -4683,8 +4679,8 @@ msgstr ""
 msgid "Settings..."
 msgstr "تنظیمات..."
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:250
-msgid "SetupWiiMem: Cant create setting file"
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:221
+msgid "SetupWiiMemory: Cant create setting.txt file"
 msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
@@ -4795,11 +4791,11 @@ msgstr "نمایش واد"
 msgid "Show Wii"
 msgstr "نمایش وی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:500
+#: Source/Core/DolphinWX/ConfigMain.cpp:498
 msgid "Show a confirmation box before stopping a game."
 msgstr "نمایش پنجره تایید قبل از متوقف کردن بازی."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:501
+#: Source/Core/DolphinWX/ConfigMain.cpp:499
 msgid ""
 "Show a message box when a potentially serious error has occurred.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may also "
@@ -4818,7 +4814,7 @@ msgstr "نمایش بلوک اول"
 msgid "Show lag counter"
 msgstr "نمایش شمارنده تاخیر"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:502
+#: Source/Core/DolphinWX/ConfigMain.cpp:500
 msgid ""
 "Show messages on the emulation screen area.\n"
 "These messages include memory card writes, video backend and CPU "
@@ -4874,7 +4870,7 @@ msgid "Sideways Wiimote"
 msgstr "ویموت فرعی"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:516
-#: Source/Core/DolphinWX/ConfigMain.cpp:284
+#: Source/Core/DolphinWX/ConfigMain.cpp:283
 msgid "Simplified Chinese"
 msgstr "چینی ساده شده"
 
@@ -4882,7 +4878,7 @@ msgstr "چینی ساده شده"
 msgid "Size"
 msgstr "سایز"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:701
+#: Source/Core/DolphinWX/ConfigMain.cpp:697
 msgid "Skip BIOS"
 msgstr "جهش از روی بایوس"
 
@@ -4917,11 +4913,11 @@ msgstr ""
 msgid "Slot %i"
 msgstr "شکاف %i"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:705
+#: Source/Core/DolphinWX/ConfigMain.cpp:701
 msgid "Slot A"
 msgstr "شکاف ای"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:706
+#: Source/Core/DolphinWX/ConfigMain.cpp:702
 msgid "Slot B"
 msgstr "شکاف بی"
 
@@ -4933,7 +4929,7 @@ msgstr "عکس فوری"
 msgid "Software Renderer"
 msgstr "ارائه دهنده نرم افزاری"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.h:85
+#: Source/Core/DolphinWX/VideoConfigDiag.h:83
 msgid ""
 "Software rendering is an order of magnitude slower than using the other "
 "backends.\n"
@@ -4946,7 +4942,7 @@ msgstr ""
 "آیا شما واقعا قصد فعال کردن این گزینه را دارید؟ اگر در این مورد اطمینان "
 "ندارید، 'نه' را انتخاب کنید."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:669
+#: Source/Core/DolphinWX/ConfigMain.cpp:665
 msgid "Sound Settings"
 msgstr "تنظیمات صدا"
 
@@ -4965,8 +4961,8 @@ msgid "Space"
 msgstr "فضا"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:509
-#: Source/Core/DolphinWX/ConfigMain.cpp:267
-#: Source/Core/DolphinWX/ConfigMain.cpp:313
+#: Source/Core/DolphinWX/ConfigMain.cpp:266
+#: Source/Core/DolphinWX/ConfigMain.cpp:312
 msgid "Spanish"
 msgstr "اسپانیایی"
 
@@ -5080,7 +5076,7 @@ msgstr "صادر کردن فایل به %s با موفقیت انجام شد"
 msgid "Successfully imported save files"
 msgstr "فایل های ذخیره با موفقیت وارد شدند"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:314
+#: Source/Core/DolphinWX/ConfigMain.cpp:313
 msgid "Swedish"
 msgstr ""
 
@@ -5098,8 +5094,8 @@ msgid ""
 "Core mode. (ON = Compatible, OFF = Fast)"
 msgstr ""
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:730
-#: Source/Core/DolphinWX/ConfigMain.cpp:784
+#: Source/Core/DolphinWX/ConfigMain.cpp:726
+#: Source/Core/DolphinWX/ConfigMain.cpp:780
 msgid "System Language:"
 msgstr "زبان سیستم:"
 
@@ -5108,7 +5104,7 @@ msgstr "زبان سیستم:"
 msgid "TAIWAN"
 msgstr "تایوان"
 
-#: Source/Core/DolphinWX/TASInputDlg.h:19
+#: Source/Core/DolphinWX/TASInputDlg.h:18
 #: Source/Core/DolphinWX/FrameTools.cpp:128
 msgid "TAS Input"
 msgstr "ورودی تاس"
@@ -5167,7 +5163,7 @@ msgstr "آدرس بی اعتبار است"
 msgid "The checksum was successfully fixed"
 msgstr "چک سام با موفقیت درست شد"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:1238
+#: Source/Core/DolphinWX/ConfigMain.cpp:1231
 msgid "The chosen directory is already in the list"
 msgstr "پوشه برگزیده قبلا در لیست بوده است"
 
@@ -5236,19 +5232,19 @@ msgid ""
 msgstr ""
 "زبان انتخاب شده توسط سیستم شما پشتیبانی نمی شود. برگشت به زبان پیش فرض سیستم."
 
-#: Source/Core/Core/NetPlayClient.cpp:95
+#: Source/Core/Core/NetPlayClient.cpp:94
 msgid "The server and client's NetPlay versions are incompatible!"
 msgstr "نسخه سرور و نت پلی مشتری نا سازگار است!"
 
-#: Source/Core/Core/NetPlayClient.cpp:92
+#: Source/Core/Core/NetPlayClient.cpp:91
 msgid "The server is full!"
 msgstr "سرور پر شده است!"
 
-#: Source/Core/Core/NetPlayClient.cpp:98
+#: Source/Core/Core/NetPlayClient.cpp:97
 msgid "The server responded: the game is currently running!"
 msgstr "سرور پاسخ داد: بازی در حال اجراست!"
 
-#: Source/Core/Core/NetPlayClient.cpp:101
+#: Source/Core/Core/NetPlayClient.cpp:100
 msgid "The server sent an unknown error message!"
 msgstr "سرور یک پیغام خطای ناشناخته فرستاد!"
 
@@ -5261,7 +5257,7 @@ msgstr "فایل مشخص شده \"%s\" وجود ندارد"
 msgid "The value is invalid"
 msgstr "مقدار بی اعتبار است"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:628
+#: Source/Core/DolphinWX/ConfigMain.cpp:624
 msgid "Theme:"
 msgstr "تم:"
 
@@ -5289,7 +5285,7 @@ msgstr ""
 "این شبیه ساز اکشن ریپلی از کدهایی که توسط خود اکشن ریپلی پیراسته شده باشد "
 "پشتیبانی نمی کند."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:514
+#: Source/Core/DolphinWX/ConfigMain.cpp:512
 msgid "This could cause slow down in Wii Menu and some games."
 msgstr "این مورد میتواند سبب کند شدن منوی وی و تعدادی از بازی ها شود."
 
@@ -5313,7 +5309,7 @@ msgstr ""
 "\n"
 "اگر در این مورد اطمینان ندارید، این گزینه را فعال نکنید."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:494
+#: Source/Core/DolphinWX/ConfigMain.cpp:492
 msgid ""
 "This limits the game speed to the specified number of frames per second "
 "(full speed is 60 for NTSC and 50 for PAL). Alternatively, use Audio to "
@@ -5321,7 +5317,7 @@ msgid ""
 "noise depending on the game)."
 msgstr ""
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:493
+#: Source/Core/DolphinWX/ConfigMain.cpp:491
 msgid ""
 "This splits the Video and CPU threads, so they can be run on separate "
 "cores.\n"
@@ -5382,12 +5378,12 @@ msgid "Toggle IR"
 msgstr ""
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:105
-#: Source/Core/DolphinWX/ConfigMain.cpp:275
+#: Source/Core/DolphinWX/ConfigMain.cpp:274
 msgid "Top"
 msgstr "بالا"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:517
-#: Source/Core/DolphinWX/ConfigMain.cpp:285
+#: Source/Core/DolphinWX/ConfigMain.cpp:284
 msgid "Traditional Chinese"
 msgstr "چینی سنتی"
 
@@ -5399,7 +5395,7 @@ msgstr "آزمایش برای بارگذاری فایل ناشناخته."
 msgid "Triggers"
 msgstr "دکمه ها"
 
-#: Source/Core/Common/SysConf.h:78 Source/Core/Common/SysConf.h:101
+#: Source/Core/Common/SysConf.h:77 Source/Core/Common/SysConf.h:100
 msgid "Trying to read from invalid SYSCONF"
 msgstr "تلاش برای خواندن از روی SYSCONF نامعتبر"
 
@@ -5411,7 +5407,7 @@ msgstr ""
 "تلاش برای خواندن از SYSCONF نامعتبر\n"
 "آی دی های بلوتوث ویموت موجود نیست"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:315
+#: Source/Core/DolphinWX/ConfigMain.cpp:314
 msgid "Turkish"
 msgstr "ترکی"
 
@@ -5521,7 +5517,7 @@ msgstr "به روز کردن"
 msgid "Upright Wiimote"
 msgstr "ویموت عمودی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:769
+#: Source/Core/DolphinWX/ConfigMain.cpp:765
 msgid "Use EuRGB60 Mode (PAL60)"
 msgstr "استفاده از حالت پال ۶۰ هرتز (PAL60)"
 
@@ -5533,7 +5529,7 @@ msgstr "استفاده از حالت تمام صفحه"
 msgid "Use Hex"
 msgstr "استفاده از حالت  شانزده شانزدهی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:587
+#: Source/Core/DolphinWX/ConfigMain.cpp:583
 msgid "Use Panic Handlers"
 msgstr "استفاده از دستگذار پنیک"
 
@@ -5608,7 +5604,7 @@ msgstr "ویدیو"
 msgid "Virtual"
 msgstr "مجازی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:675
+#: Source/Core/DolphinWX/ConfigMain.cpp:671
 msgid "Volume"
 msgstr "حجم صدا"
 
@@ -5635,7 +5631,7 @@ msgstr ""
 
 #: Source/Core/Common/MsgHandler.cpp:53
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:33
-#: Source/Core/DolphinWX/VideoConfigDiag.h:86
+#: Source/Core/DolphinWX/VideoConfigDiag.h:84
 msgid "Warning"
 msgstr "اخطار"
 
@@ -5754,7 +5750,7 @@ msgstr "هک کردن صفحه عریض"
 msgid "Width"
 msgstr "عرض"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:542
+#: Source/Core/DolphinWX/ConfigMain.cpp:540
 msgid "Wii"
 msgstr "وی"
 
@@ -5762,7 +5758,7 @@ msgstr "وی"
 msgid "Wii Console"
 msgstr "میز فرمان وی"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:836
+#: Source/Core/DolphinWX/ConfigMain.cpp:832
 msgid "Wii NAND Root:"
 msgstr "ریشه وی نند:"
 
@@ -5905,7 +5901,7 @@ msgstr "شما باید یک مقدار صحیح برای دسیمال، هگز�
 msgid "You must enter a valid profile name."
 msgstr "شما باید یک اسم معتبر برای پروفایل وارد کنید."
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:928
+#: Source/Core/DolphinWX/ConfigMain.cpp:921
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "برای اعمال تغییرات شما باید دلفین را از نو اجرا کنید."
 
@@ -5962,7 +5958,7 @@ msgstr ""
 msgid "[Custom]"
 msgstr "[دستی]"
 
-#: Source/Core/DolphinWX/ConfigMain.cpp:812
+#: Source/Core/DolphinWX/ConfigMain.cpp:808
 msgid "apploader (.img)"
 msgstr "بارگذار برنامه (.img)"
 
@@ -5994,3 +5990,6 @@ msgstr "اصلاح z نزدیک:"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:531
 msgid "| OR"
 msgstr "| یا"
+
+#~ msgid "Limit by FPS"
+#~ msgstr "محدود کردن توسط تعداد فریم ها بر ثانیه"
