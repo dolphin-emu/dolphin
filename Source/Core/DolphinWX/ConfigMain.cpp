@@ -46,7 +46,7 @@ const CPUCore CPUCores[] = {
 	{4, wxTRANSLATE("Arm JITIL (experimental)")},
 #else
 	{1, wxTRANSLATE("JIT Recompiler (recommended)")},
-	{2, wxTRANSLATE("JITIL experimental recompiler")},
+	{2, wxTRANSLATE("JITIL Recompiler (experimental)")},
 #endif
 };
 
