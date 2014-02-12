@@ -2622,7 +2622,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:429
 msgid "Hacks"
-msgstr "Speed Hacks"
+msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:114
 msgid "Header checksum failed"
@@ -2983,7 +2983,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:49
 msgid "JITIL experimental recompiler"
-msgstr "JITIL Recompiler (experimental)"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:176
 #: Source/Core/DolphinWX/ISOProperties.cpp:515
