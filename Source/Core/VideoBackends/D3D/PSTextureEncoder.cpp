@@ -1012,10 +1012,9 @@ void PSTextureEncoder::Shutdown()
 	SAFE_RELEASE(m_classLinkage);
 	SAFE_RELEASE(m_dynamicShader);
 
-	for (ComboMap::iterator it = m_staticShaders.begin();
-		it != m_staticShaders.end(); ++it)
+	for (auto& it : m_staticShaders)
 	{
-		SAFE_RELEASE(it->second);
+		SAFE_RELEASE(it.second);
 	}
 	m_staticShaders.clear();
 

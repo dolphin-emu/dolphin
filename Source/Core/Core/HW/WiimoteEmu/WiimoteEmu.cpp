@@ -252,7 +252,7 @@ void Wiimote::Reset()
 	memset(m_shake_step, 0, sizeof(m_shake_step));
 
 	// clear read request queue
-	while (m_read_requests.size())
+	while (!m_read_requests.empty())
 	{
 		delete[] m_read_requests.front().data;
 		m_read_requests.pop();
@@ -351,7 +351,7 @@ bool Wiimote::Step()
 	}
 
 	// check if there is a read data request
-	if (m_read_requests.size())
+	if (!m_read_requests.empty())
 	{
 		ReadRequest& rr = m_read_requests.front();
 		// send up to 16 bytes to the wii

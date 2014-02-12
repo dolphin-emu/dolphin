@@ -106,7 +106,7 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 		WriteToBuffer(FST_ADDRESS, m_fstSize, m_FSTData, _Offset, _Length, _pBuffer);
 	}
 
-	if(m_virtualDisk.size() == 0)
+	if(m_virtualDisk.empty())
 		return true;
 
 	// Determine which file the offset refers to

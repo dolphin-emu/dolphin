@@ -277,7 +277,7 @@ void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 
 	UpdateLog();
 	// Scroll to the last line
-	if (msgQueue.size() > 0)
+	if (!msgQueue.empty())
 	{
 		m_Log->ScrollLines(1);
 		m_Log->ShowPosition( m_Log->GetLastPosition() );

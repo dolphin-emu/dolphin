@@ -1010,19 +1010,19 @@ void CISOProperties::LoadGameConfig()
 	// First set values from default gameini, then apply values from local gameini
 	int iTemp;
 	GameIniDefault.Get("Video", "ProjectionHack", &iTemp);
-	PHackEnable->SetValue(iTemp);
+	PHackEnable->SetValue(!!iTemp);
 	if (GameIniLocal.Get("Video", "ProjectionHack", &iTemp))
-		PHackEnable->SetValue(iTemp);
+		PHackEnable->SetValue(!!iTemp);
 
 	GameIniDefault.Get("Video", "PH_SZNear", &PHack_Data.PHackSZNear);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZNear", &iTemp))
-		PHack_Data.PHackSZNear = iTemp;
+		PHack_Data.PHackSZNear = !!iTemp;
 	GameIniDefault.Get("Video", "PH_SZFar", &PHack_Data.PHackSZFar);
 	if (GameIniLocal.GetIfExists("Video", "PH_SZFar", &iTemp))
-		PHack_Data.PHackSZFar = iTemp;
+		PHack_Data.PHackSZFar = !!iTemp;
 	GameIniDefault.Get("Video", "PH_ExtraParam", &PHack_Data.PHackExP);
 	if (GameIniLocal.GetIfExists("Video", "PH_ExtraParam", &iTemp))
-		PHack_Data.PHackExP = iTemp;
+		PHack_Data.PHackExP = !!iTemp;
 
 	std::string sTemp;
 	GameIniDefault.Get("Video", "PH_ZNear", &PHack_Data.PHZNear);
@@ -1242,9 +1242,9 @@ void CISOProperties::PatchList_Save()
 		if (DefaultPatches.find(p.name) == DefaultPatches.end())
 		{
 			lines.push_back("$" + p.name);
-			for (auto iter2 = p.entries.begin(); iter2 != p.entries.end(); ++iter2)
+			for (const PatchEngine::PatchEntry& entry : p.entries)
 			{
-				std::string temp = StringFromFormat("0x%08X:%s:0x%08X", iter2->address, PatchEngine::PatchTypeStrings[iter2->type], iter2->value);
+				std::string temp = StringFromFormat("0x%08X:%s:0x%08X", entry.address, PatchEngine::PatchTypeStrings[entry.type], entry.value);
 				lines.push_back(temp);
 			}
 		}
@@ -1308,9 +1308,8 @@ void CISOProperties::ActionReplayList_Load()
 	ActionReplay::LoadCodes(arCodes, GameIniDefault, GameIniLocal);
 
 	u32 index = 0;
-	for (std::vector<ActionReplay::ARCode>::const_iterator it = arCodes.begin(); it != arCodes.end(); ++it)
+	for (const ActionReplay::ARCode& arCode : arCodes)
 	{
-		ActionReplay::ARCode arCode = *it;
 		Cheats->Append(StrToWxStr(arCode.name));
 		Cheats->Check(index, arCode.active);
 		if (!arCode.user_defined)
@@ -1324,7 +1323,7 @@ void CISOProperties::ActionReplayList_Save()
 	std::vector<std::string> lines;
 	std::vector<std::string> enabledLines;
 	u32 index = 0;
-	for (auto code : arCodes)
+	for (const ActionReplay::ARCode& code : arCodes)
 	{
 		if (Cheats->IsChecked(index))
 			enabledLines.push_back("$" + code.name);
@@ -1333,7 +1332,7 @@ void CISOProperties::ActionReplayList_Save()
 		if (DefaultCheats.find(code.name) == DefaultCheats.end())
 		{
 			lines.push_back("$" + code.name);
-			for (auto& op : code.ops)
+			for (const ActionReplay::AREntry& op : code.ops)
 			{
 				lines.push_back(WxStrToStr(wxString::Format(wxT("%08X %08X"), op.cmd_addr, op.value)));
 			}

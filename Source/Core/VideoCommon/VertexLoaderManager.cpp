@@ -43,7 +43,7 @@ static VertexLoaderMap g_VertexLoaderMap;
 void Init()
 {
 	MarkAllDirty();
-	for (auto& vertexLoader : g_VertexLoaders)
+	for (VertexLoader*& vertexLoader : g_VertexLoaders)
 		vertexLoader = NULL;
 	RecomputeCachedArraybases();
 }
@@ -75,19 +75,19 @@ void AppendListToString(std::string *dest)
 	std::vector<entry> entries;
 
 	size_t total_size = 0;
-	for (VertexLoaderMap::const_iterator iter = g_VertexLoaderMap.begin(); iter != g_VertexLoaderMap.end(); ++iter)
+	for (const auto& map_entry : g_VertexLoaderMap)
 	{
 		entry e;
-		iter->second->AppendToString(&e.text);
-		e.num_verts = iter->second->GetNumLoadedVerts();
+		map_entry.second->AppendToString(&e.text);
+		e.num_verts = map_entry.second->GetNumLoadedVerts();
 		entries.push_back(e);
 		total_size += e.text.size() + 1;
 	}
 	sort(entries.begin(), entries.end());
 	dest->reserve(dest->size() + total_size);
-	for (std::vector<entry>::const_iterator iter = entries.begin(); iter != entries.end(); ++iter)
+	for (const entry& entry : entries)
 	{
-		dest->append(iter->text);
+		dest->append(entry.text);
 	}
 }
 

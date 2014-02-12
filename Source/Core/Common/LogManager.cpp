@@ -81,7 +81,7 @@ LogManager::LogManager()
 	m_consoleLog = new ConsoleListener();
 	m_debuggerLog = new DebuggerLogListener();
 
-	for (auto& container : m_Log)
+	for (LogContainer* container : m_Log)
 	{
 		container->SetEnable(true);
 		container->AddListener(m_fileLog);
@@ -102,7 +102,7 @@ LogManager::~LogManager()
 		m_logManager->RemoveListener((LogTypes::LOG_TYPE)i, m_debuggerLog);
 	}
 
-	for (auto& container : m_Log)
+	for (LogContainer* container : m_Log)
 		delete container;
 
 	delete m_fileLog;
@@ -168,10 +168,9 @@ void LogContainer::Trigger(LogTypes::LOG_LEVELS level, const char *msg)
 {
 	std::lock_guard<std::mutex> lk(m_listeners_lock);
 
-	std::set<LogListener*>::const_iterator i;
-	for (i = m_listeners.begin(); i != m_listeners.end(); ++i)
+	for (LogListener* listener : m_listeners)
 	{
-		(*i)->Log(level, msg);
+		listener->Log(level, msg);
 	}
 }
 

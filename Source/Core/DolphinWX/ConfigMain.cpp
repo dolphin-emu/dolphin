@@ -184,7 +184,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	CreateGUIControls();
 
 	// Update selected ISO paths
-	for(auto& folder : SConfig::GetInstance().m_ISOFolder)
+	for(const std::string& folder : SConfig::GetInstance().m_ISOFolder)
 	{
 		ISOPaths->Append(StrToWxStr(folder));
 	}
@@ -250,7 +250,7 @@ void CConfigMain::InitializeGUILists()
 		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 
 	// Emulator Engine
-	for (auto& CPUCores_a : CPUCores)
+	for (const CPUCore& CPUCores_a : CPUCores)
 		arrayStringFor_CPUEngine.Add(wxGetTranslation(CPUCores_a.name));
 
 	// DSP Engine
@@ -979,12 +979,9 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 
 void CConfigMain::AddAudioBackends()
 {
-	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
-	// I'm sure Billiard will change this into an auto sometimes soon :P
-	for (std::vector<std::string>::const_iterator iter = backends.begin();
-		 iter != backends.end(); ++iter)
+	for (const std::string& backend : AudioCommon::GetSoundBackends())
 	{
-		BackendSelection->Append(wxGetTranslation(StrToWxStr(*iter)));
+		BackendSelection->Append(wxGetTranslation(StrToWxStr(backend)));
 		int num = BackendSelection->
 			FindString(StrToWxStr(SConfig::GetInstance().sBackend));
 		BackendSelection->SetSelection(num);

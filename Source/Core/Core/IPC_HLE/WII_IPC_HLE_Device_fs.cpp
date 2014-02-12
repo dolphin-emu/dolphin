@@ -59,8 +59,7 @@ bool CWII_IPC_HLE_Device_fs::Close(u32 _CommandAddress, bool _bForce)
 static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
 {
 	u64 sizeOfFiles = 0;
-	const std::vector<File::FSTEntry>& children = parentEntry.children;
-	for (const auto& entry : children)
+	for (const File::FSTEntry& entry : parentEntry.children)
 	{
 		if (entry.isDirectory)
 			sizeOfFiles += ComputeTotalFileSize(entry);
@@ -146,10 +145,10 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 					// Decode entities of invalid file system characters so that
 					// games (such as HP:HBP) will be able to find what they expect.
-					for (Common::replace_v::const_iterator it = replacements.begin(); it != replacements.end(); ++it)
+					for (const Common::replace_t& r : replacements)
 					{
-						for (size_t j = 0; (j = FileName.find(it->second, j)) != FileName.npos; ++j)
-							FileName.replace(j, it->second.length(), 1, it->first);
+						for (size_t j = 0; (j = FileName.find(r.second, j)) != FileName.npos; ++j)
+							FileName.replace(j, r.second.length(), 1, r.first);
 					}
 
 					strcpy(pFilename, FileName.c_str());

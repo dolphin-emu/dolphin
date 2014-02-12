@@ -606,9 +606,9 @@ void Update()
 void UpdateDevices()
 {
 	// Check if a hardware device must be updated
-	for (TDeviceMap::const_iterator itr = g_DeviceMap.begin(); itr != g_DeviceMap.end(); ++itr)
+	for (const auto& entry : g_DeviceMap)
 	{
-		if (itr->second->IsOpened() && itr->second->Update())
+		if (entry.second->IsOpened() && entry.second->Update())
 		{
 			break;
 		}

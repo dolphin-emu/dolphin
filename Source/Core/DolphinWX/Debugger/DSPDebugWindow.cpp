@@ -205,11 +205,10 @@ void DSPDebuggerLLE::UpdateSymbolMap()
 
 	m_SymbolList->Freeze();	// HyperIris: wx style fast filling
 	m_SymbolList->Clear();
-	for (SymbolDB::XFuncMap::iterator iter = DSPSymbols::g_dsp_symbol_db.GetIterator();
-		 iter != DSPSymbols::g_dsp_symbol_db.End(); ++iter)
+	for (const auto& symbol : DSPSymbols::g_dsp_symbol_db.Symbols())
 	{
-		int idx = m_SymbolList->Append(StrToWxStr(iter->second.name));
-		m_SymbolList->SetClientData(idx, (void*)&iter->second);
+		int idx = m_SymbolList->Append(StrToWxStr(symbol.second.name));
+		m_SymbolList->SetClientData(idx, (void*)&symbol.second);
 	}
 	m_SymbolList->Thaw();
 }

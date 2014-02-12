@@ -117,9 +117,9 @@ public:
 		case MODE_WRITE:
 		case MODE_MEASURE:
 		case MODE_VERIFY:
-			for (auto itr = x.begin(); itr != x.end(); ++itr)
+			for (V& val : x)
 			{
-				Do(*itr);
+				Do(val);
 			}
 			break;
 		}

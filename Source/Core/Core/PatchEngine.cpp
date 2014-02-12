@@ -53,8 +53,8 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches,
 	std::string enabledSectionName = std::string(section) + "_Enabled";
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
-	localIni.GetLines(enabledSectionName, enabledLines);
-	for (auto& line : enabledLines)
+	localIni.GetLines(enabledSectionName.c_str(), enabledLines);
+	for (const std::string& line : enabledLines)
 	{
 		if (line.size() != 0 && line[0] == '$')
 		{
@@ -71,7 +71,7 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches,
 		Patch currentPatch;
 		inis[i]->GetLines(section, lines);
 
-		for (auto line : lines)
+		for (std::string& line : lines)
 		{
 			if (line.size() == 0)
 				continue;
@@ -124,10 +124,9 @@ static void LoadDiscList(const char *section, std::vector<std::string> &_discLis
 	if (!ini.GetLines(section, lines))
 		return;
 
-	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
+	for (const std::string& line : lines)
 	{
-		std::string line = *iter;
-		if (line.size())
+		if (!line.empty())
 			_discList.push_back(line);
 	}
 }
@@ -136,9 +135,8 @@ static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFi
 {
 	std::vector<std::string> keys;
 	ini.GetKeys(section, keys);
-	for (std::vector<std::string>::const_iterator iter = keys.begin(); iter != keys.end(); ++iter)
+	for (const std::string& key : keys)
 	{
-		std::string key = *iter;
 		std::string value;
 		ini.Get(section, key, &value, "BOGUS");
 		if (value != "BOGUS")
@@ -184,15 +182,15 @@ void LoadPatches()
 
 void ApplyPatches(const std::vector<Patch> &patches)
 {
-	for (const auto& patch : patches)
+	for (const Patch& patch : patches)
 	{
 		if (patch.active)
 		{
-			for (std::vector<PatchEntry>::const_iterator iter2 = patch.entries.begin(); iter2 != patch.entries.end(); ++iter2)
+			for (const PatchEntry& entry : patch.entries)
 			{
-				u32 addr = iter2->address;
-				u32 value = iter2->value;
-				switch (iter2->type)
+				u32 addr = entry.address;
+				u32 value = entry.value;
+				switch (entry.type)
 				{
 				case PATCH_8BIT:
 					Memory::Write_U8((u8)value, addr);
