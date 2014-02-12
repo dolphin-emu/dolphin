@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <time.h>
+#include <cinttypes>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -113,7 +114,7 @@ std::string Timer::GetTimeElapsedFormatted() const
 	// Hours
 	u32 Hours = Minutes / 60;
 
-	std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03lu",
+	std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03" PRIu64,
 		Hours, Minutes % 60, Seconds % 60, Milliseconds % 1000);
 	return TmpStr;
 }

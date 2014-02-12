@@ -90,7 +90,7 @@ const u8 *JitArm::BackPatch(u8 *codePtr, u32, void *ctx_void)
 
 	if (!DisamLoadStore(Value, rD, accessSize, Store))
 	{
-		printf("Invalid backpatch at location 0x%08x(0x%08x)\n", ctx->CTX_PC, Value);
+		printf("Invalid backpatch at location 0x%08lx(0x%08x)\n", ctx->CTX_PC, Value);
 		exit(0);
 	}
 
