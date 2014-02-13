@@ -42,7 +42,7 @@ public:
 	virtual ~CMixer() {}
 
 	// Called from audio threads
-	virtual unsigned int Mix(short* samples, unsigned int numSamples);
+	virtual unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
 	virtual void Premix(short * /*samples*/, unsigned int /*numSamples*/) {}
 
 	// Called from main thread

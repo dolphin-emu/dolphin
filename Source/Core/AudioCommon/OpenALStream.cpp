@@ -192,7 +192,7 @@ void OpenALStream::SoundLoop()
 		unsigned int minSamples = surround_capable ? 240 : 0; // DPL2 accepts 240 samples minimum (FWRDURATION)
 
 		numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
-		numSamples = m_mixer->Mix(realtimeBuffer, numSamples);
+		numSamples = m_mixer->Mix(realtimeBuffer, numSamples, false);
 
 		// Convert the samples from short to float
 		float dest[OAL_MAX_SAMPLES * STEREO_CHANNELS];

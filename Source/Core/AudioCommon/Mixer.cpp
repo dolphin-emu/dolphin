@@ -20,7 +20,7 @@
 #endif
 
 // Executed from sound stream thread
-unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
+unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
 {
 	if (!samples)
 		return 0;
@@ -58,7 +58,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 
 	u32 framelimit = SConfig::GetInstance().m_Framelimit;
 	float aid_sample_rate = AudioInterface::GetAIDSampleRate() + offset;
-	if (framelimit > 2)
+	if (consider_framelimit && framelimit > 2)
 	{
 		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
 	}
