@@ -24,7 +24,7 @@ CISOFileReader::CISOFileReader(std::FILE* file)
 	m_block_size = header.block_size;
 
 	MapType count = 0;
-	for (u32 idx = 0; idx < CISO_MAP_SIZE; idx++)
+	for (u32 idx = 0; idx < CISO_MAP_SIZE; ++idx)
 		m_ciso_map[idx] = (1 == header.map[idx]) ? count++ : UNUSED_BLOCK_ID;
 }
 
@@ -60,22 +60,19 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 		if (block < CISO_MAP_SIZE && UNUSED_BLOCK_ID != m_ciso_map[block])
 		{
 			// calculate the base address
-			auto const file_off = CISO_HEADER_SIZE + m_ciso_map[block] * m_block_size + data_offset;
+			auto const file_off = CISO_HEADER_SIZE + m_ciso_map[block] * (u64)m_block_size + data_offset;
 
 			if (!(m_file.Seek(file_off, SEEK_SET) && m_file.ReadArray(out_ptr, bytes_to_read)))
 				return false;
-
-			out_ptr += bytes_to_read;
-			offset += bytes_to_read;
-			nbytes -= bytes_to_read;
 		}
 		else
 		{
 			std::fill_n(out_ptr, bytes_to_read, 0);
-			out_ptr += bytes_to_read;
-			offset += bytes_to_read;
-			nbytes -= bytes_to_read;
 		}
+
+		out_ptr += bytes_to_read;
+		offset += bytes_to_read;
+		nbytes -= bytes_to_read;
 	}
 
 	return true;
