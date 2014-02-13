@@ -354,10 +354,10 @@ void CCodeWindow::NotifyMapLoaded()
 	//symbols->Show(false); // hide it for faster filling
 	symbols->Freeze();	// HyperIris: wx style fast filling
 	symbols->Clear();
-	for (PPCSymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); ++iter)
+	for (const auto& symbol : g_symbolDB.Symbols())
 	{
-		int idx = symbols->Append(StrToWxStr(iter->second.name));
-		symbols->SetClientData(idx, (void*)&iter->second);
+		int idx = symbols->Append(StrToWxStr(symbol.second.name));
+		symbols->SetClientData(idx, (void*)&symbol.second);
 	}
 	symbols->Thaw();
 	//symbols->Show(true);

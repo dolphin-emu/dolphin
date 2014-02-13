@@ -192,7 +192,7 @@ std::vector<std::string> cdio_get_devices ()
 		for (unsigned int j = checklist[i].num_min; j <= checklist[i].num_max; ++j)
 		{
 			std::string drive = StringFromFormat(checklist[i].format, j);
-			if ( (is_cdrom(drive.c_str(), NULL)) > 0 )
+			if ( (is_cdrom(drive, NULL)) > 0 )
 			{
 				drives.push_back(std::move(drive));
 			}

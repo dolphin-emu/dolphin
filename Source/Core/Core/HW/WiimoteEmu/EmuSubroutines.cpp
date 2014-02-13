@@ -1257,7 +1257,7 @@ void Wiimote::DoState(PointerWrap& p)
 		if (p.mode == PointerWrap::MODE_READ)
 		{
 			//clear
-			while (m_read_requests.size())
+			while (!m_read_requests.empty())
 				m_read_requests.pop();
 
 			p.Do(size);

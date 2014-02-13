@@ -673,9 +673,9 @@ void UpdateTitle()
 	if (ElapseTime == 0)
 		ElapseTime = 1;
 
-	float FPS = Common::AtomicLoad(DrawnFrame) * 1000.0 / ElapseTime;
-	float VPS = DrawnVideo * 1000.0 / ElapseTime;
-	float Speed = DrawnVideo * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime);
+	float FPS = (float) (Common::AtomicLoad(DrawnFrame) * 1000.0 / ElapseTime);
+	float VPS = (float) (DrawnVideo * 1000.0 / ElapseTime);
+	float Speed = (float) (DrawnVideo * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
 	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(),	_CoreParameter.bCPUThread ? "DC" : "SC",

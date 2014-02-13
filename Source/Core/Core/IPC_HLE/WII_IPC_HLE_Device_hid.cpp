@@ -94,9 +94,9 @@ CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
 		deinit_libusb = true;
 	}
 
-	for ( std::map<u32,libusb_device_handle*>::const_iterator iter = open_devices.begin(); iter != open_devices.end(); ++iter )
+	for (const auto& device : open_devices)
 	{
-		libusb_close(iter->second);
+		libusb_close(device.second);
 	}
 	open_devices.clear();
 

@@ -102,7 +102,7 @@ public:
 		while (it != expr.end())
 		{
 			char c = *it;
-			it++;
+			++it;
 			if (c == '`')
 				return false;
 			if (c > 0 && c == otherDelim)
@@ -140,7 +140,7 @@ public:
 			if (!isalpha(c))
 				break;
 			name += c;
-			it++;
+			++it;
 		}
 
 		ControlQualifier qualifier;

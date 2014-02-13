@@ -70,7 +70,7 @@ inline void UpdateFPSCR()
 inline double ForceSingle(double _x)
 {
 	// convert to float...
-	float x = _x;
+	float x = (float) _x;
 	if (!cpu_info.bFlushToZero && FPSCR.NI)
 	{
 		x = FlushToZero(x);

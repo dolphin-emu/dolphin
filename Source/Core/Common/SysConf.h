@@ -79,7 +79,7 @@ public:
 		}
 
 		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-		for (; index < m_Entries.end() - 1; index++)
+		for (; index < m_Entries.end() - 1; ++index)
 		{
 			if (strcmp(index->name, sectionName) == 0)
 				break;
@@ -102,7 +102,7 @@ public:
 		}
 
 		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-		for (; index < m_Entries.end() - 1; index++)
+		for (; index < m_Entries.end() - 1; ++index)
 		{
 			if (strcmp(index->name, sectionName) == 0)
 				break;
@@ -122,7 +122,7 @@ public:
 			return false;
 
 		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-		for (; index < m_Entries.end() - 1; index++)
+		for (; index < m_Entries.end() - 1; ++index)
 		{
 			if (strcmp(index->name, sectionName) == 0)
 				break;
@@ -143,7 +143,7 @@ public:
 			return false;
 
 		std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-		for (; index < m_Entries.end() - 1; index++)
+		for (; index < m_Entries.end() - 1; ++index)
 		{
 			if (strcmp(index->name, sectionName) == 0)
 				break;

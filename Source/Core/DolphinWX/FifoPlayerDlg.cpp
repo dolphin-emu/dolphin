@@ -515,7 +515,7 @@ void FifoPlayerDlg::OnFindNextClick(wxCommandEvent& event)
 		return;
 	}
 
-	for (std::vector<SearchResult>::iterator it = search_results.begin(); it != search_results.end(); ++it)
+	for (auto it = search_results.begin(); it != search_results.end(); ++it)
 	{
 		if (it->cmd_idx > cur_cmd_index)
 		{
@@ -534,7 +534,7 @@ void FifoPlayerDlg::OnFindPreviousClick(wxCommandEvent& event)
 		return;
 	}
 
-	for (std::vector<SearchResult>::reverse_iterator it = search_results.rbegin(); it != search_results.rend(); ++it)
+	for (auto it = search_results.rbegin(); it != search_results.rend(); ++it)
 	{
 		if (it->cmd_idx < cur_cmd_index)
 		{

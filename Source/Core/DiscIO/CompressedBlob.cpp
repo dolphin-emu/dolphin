@@ -21,9 +21,8 @@
 namespace DiscIO
 {
 
-CompressedBlobReader::CompressedBlobReader(const char *filename)
+CompressedBlobReader::CompressedBlobReader(const char *filename) : file_name(filename)
 {
-	file_name = filename;
 	m_file.Open(filename, "rb");
 	file_size = File::GetSize(filename);
 	m_file.ReadArray(&header, 1);

@@ -1789,7 +1789,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 		}
 		else if (inst.SH)
 		{
-			if (mask == -(1U << inst.SH))
+			if (mask == 0U - (1U << inst.SH))
 			{
 				MOV(32, R(EAX), gpr.R(s));
 				SHL(32, R(EAX), Imm8(inst.SH));

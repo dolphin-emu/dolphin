@@ -168,10 +168,9 @@ void LogContainer::Trigger(LogTypes::LOG_LEVELS level, const char *msg)
 {
 	std::lock_guard<std::mutex> lk(m_listeners_lock);
 
-	std::set<LogListener*>::const_iterator i;
-	for (i = m_listeners.begin(); i != m_listeners.end(); ++i)
+	for (const auto& listener : m_listeners)
 	{
-		(*i)->Log(level, msg);
+		listener->Log(level, msg);
 	}
 }
 
