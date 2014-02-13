@@ -127,8 +127,8 @@ namespace ButtonManager
 		bool pressed = false;
 		pressed = m_buttons[std::make_pair(padID, button)]->Pressed();
 
-		for (auto it = m_controllers.begin(); it != m_controllers.end(); ++it)
-			pressed |= it->second->ButtonValue(padID, button);
+		for (const auto& ctrl : m_controllers)
+			pressed |= ctrl.second->ButtonValue(padID, button);
 
 		return pressed;
 	}
@@ -172,10 +172,10 @@ namespace ButtonManager
 	}
 	void Shutdown()
 	{
-		for(auto it = m_buttons.begin(); it != m_buttons.end(); ++it)
-			delete it->second;
-		for (auto it = m_controllers.begin(); it != m_controllers.end(); ++it)
-			delete it->second;
+		for (const auto& button : m_buttons)
+			delete button.second;
+		for (const auto& controller : m_controllers)
+			delete controller.second;
 		m_controllers.clear();
 		m_buttons.clear();
 	}

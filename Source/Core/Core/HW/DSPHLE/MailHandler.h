@@ -26,7 +26,7 @@ public:
 
 	u32 GetNextMail()
 	{
-		if (m_Mails.size())
+		if (!m_Mails.empty())
 		{
 			return m_Mails.front();
 		}

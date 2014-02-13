@@ -374,7 +374,7 @@ using namespace Gen;
 				JitBlock &b = blocks[it2->second];
 				*GetICachePtr(b.originalAddress) = JIT_ICACHE_INVALID_WORD;
 				DestroyBlock(it2->second, true);
-				it2++;
+				++it2;
 			}
 			if (it1 != it2)
 			{

@@ -87,10 +87,9 @@ void IniFile::Section::Set(const std::string& key, const std::vector<std::string
 {
 	std::string temp;
 	// Join the strings with ,
-	std::vector<std::string>::const_iterator it;
-	for (it = newValues.begin(); it != newValues.end(); ++it)
+	for (const std::string& value : newValues)
 	{
-		temp = (*it) + ",";
+		temp = value + ",";
 	}
 	// remove last ,
 	temp.resize(temp.length() - 1);
@@ -210,7 +209,7 @@ bool IniFile::Section::Delete(const std::string& key)
 
 const IniFile::Section* IniFile::GetSection(const std::string& sectionName) const
 {
-	for (const auto& sect : sections)
+	for (const Section& sect : sections)
 		if (!strcasecmp(sect.name.c_str(), sectionName.c_str()))
 			return (&(sect));
 	return 0;
@@ -218,7 +217,7 @@ const IniFile::Section* IniFile::GetSection(const std::string& sectionName) cons
 
 IniFile::Section* IniFile::GetSection(const std::string& sectionName)
 {
-	for (auto& sect : sections)
+	for (Section& sect : sections)
 		if (!strcasecmp(sect.name.c_str(), sectionName.c_str()))
 			return (&(sect));
 	return 0;
@@ -240,7 +239,7 @@ bool IniFile::DeleteSection(const std::string& sectionName)
 	Section* s = GetSection(sectionName);
 	if (!s)
 		return false;
-	for (std::vector<Section>::iterator iter = sections.begin(); iter != sections.end(); ++iter)
+	for (auto iter = sections.begin(); iter != sections.end(); ++iter)
 	{
 		if (&(*iter) == s)
 		{
@@ -399,21 +398,21 @@ bool IniFile::Save(const std::string& filename)
 		return false;
 	}
 
-	for (auto& section : sections)
+	for (const Section& section : sections)
 	{
 		if (section.keys_order.size() != 0 || section.lines.size() != 0)
 			out << "[" << section.name << "]" << std::endl;
 
 		if (section.keys_order.size() == 0)
 		{
-			for (auto s : section.lines)
+			for (const std::string& s : section.lines)
 				out << s << std::endl;
 		}
 		else
 		{
-			for (auto kvit = section.keys_order.begin(); kvit != section.keys_order.end(); ++kvit)
+			for (const std::string& kvit : section.keys_order)
 			{
-				auto pair = section.values.find(*kvit);
+				auto pair = section.values.find(kvit);
 				out << pair->first << " = " << pair->second << std::endl;
 			}
 		}

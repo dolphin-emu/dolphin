@@ -172,7 +172,7 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 		tcend = textures.upper_bound(start_address + size);
 
 	if (iter != textures.begin())
-		iter--;
+		--iter;
 
 	for (; iter != tcend; ++iter)
 	{

@@ -47,7 +47,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 		std::string folder = StringFromFormat("%s/%08x/", titleFolder.c_str(), pathMask | i);
 		File::ScanDirectoryTree(folder, FST_Temp);
 
-		for (auto& entry : FST_Temp.children)
+		for (const File::FSTEntry& entry : FST_Temp.children)
 		{
 			if (entry.isDirectory)
 			{
@@ -65,7 +65,7 @@ void CWiiSaveCrypted::ExportAllSaves()
 		}
 	}
 	SuccessAlertT("Found %x save files", (unsigned int) titles.size());
-	for (auto& title : titles)
+	for (const u64& title : titles)
 	{
 		CWiiSaveCrypted* exportSave = new CWiiSaveCrypted("", title);
 		delete exportSave;
@@ -377,21 +377,21 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 		__name = FilesList[i].substr(WiiTitlePath.length()+1);
 
 
-		for (Common::replace_v::const_iterator iter = replacements.begin(); iter != replacements.end(); ++iter)
+		for (const Common::replace_t& repl : replacements)
 		{
-			for (size_t j = 0; (j = __name.find(iter->second, j)) != __name.npos; ++j)
+			for (size_t j = 0; (j = __name.find(repl.second, j)) != __name.npos; ++j)
 			{
-				__name.replace(j, iter->second.length(), 1, iter->first);
+				__name.replace(j, repl.second.length(), 1, repl.first);
 			}
 		}
 
 		if (__name.length() > 0x44)
 		{
-			PanicAlertT("%s is too long for the filename, max chars is 45", __name.c_str());
+			PanicAlertT("\"%s\" is too long for the filename, max length is 0x44 + \\0", __name.c_str());
 			b_valid = false;
 			return;
 		}
-		strncpy((char *)tmpFileHDR.name, __name.c_str(), __name.length());
+		strncpy((char *)tmpFileHDR.name, __name.c_str(), sizeof(tmpFileHDR.name));
 
 		{
 		File::IOFile fpData_bin(encryptedSavePath, "ab");
@@ -583,7 +583,7 @@ void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>&
 
 		File::FSTEntry FST_Temp;
 		File::ScanDirectoryTree(Directories[i], FST_Temp);
-		for (auto& elem : FST_Temp.children)
+		for (const File::FSTEntry& elem : FST_Temp.children)
 		{
 			if (strncmp(elem.virtualName.c_str(), "banner.bin", 10) != 0)
 			{

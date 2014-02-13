@@ -196,14 +196,11 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	socket.Send(spac);
 
 	// sync values with new client
-	std::map<sf::SocketTCP, Client>::const_iterator
-		i,
-		e = m_players.end();
-	for (i = m_players.begin(); i!=e; ++i)
+	for (const auto& p : m_players)
 	{
 		spac.Clear();
 		spac << (MessageId)NP_MSG_PLAYER_JOIN;
-		spac << i->second.pid << i->second.name << i->second.revision;
+		spac << p.second.pid << p.second.name << p.second.revision;
 		socket.Send(spac);
 	}
 
@@ -613,7 +610,7 @@ void NetPlayServer::unmapPortThread()
 // discovers the IGD
 bool NetPlayServer::initUPnP()
 {
-	UPNPDev *devlist, *dev;
+	UPNPDev *devlist;
 	std::vector<UPNPDev *> igds;
 	int descXMLsize = 0, upnperror = 0;
 	char *descXML;
@@ -642,18 +639,14 @@ bool NetPlayServer::initUPnP()
 	}
 
 	// Look for the IGD
-	dev = devlist;
-	while (dev)
+	for (UPNPDev* dev = devlist; dev; dev = dev->pNext)
 	{
 		if (strstr(dev->st, "InternetGatewayDevice"))
 			igds.push_back(dev);
-		dev = dev->pNext;
 	}
 
-	std::vector<UPNPDev *>::iterator i;
-	for (i = igds.begin(); i != igds.end(); i++)
+	for (const UPNPDev* dev : igds)
 	{
-		dev = *i;
 		descXML = (char *) miniwget(dev->descURL, &descXMLsize, 0);
 		if (descXML)
 		{

@@ -710,15 +710,14 @@ void Renderer::DrawDebugInfo()
 		int a = 0;
 		GLfloat color[3] = {0.0f, 1.0f, 1.0f};
 
-		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin();
-			it != stats.efb_regions.end(); ++it)
+		for (const EFBRectangle& rect : stats.efb_regions)
 		{
 			GLfloat halfWidth = EFB_WIDTH / 2.0f;
 			GLfloat halfHeight = EFB_HEIGHT / 2.0f;
-			GLfloat x =  (GLfloat) -1.0f + ((GLfloat)it->left / halfWidth);
-			GLfloat y =  (GLfloat) 1.0f - ((GLfloat)it->top / halfHeight);
-			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)it->right / halfWidth);
-			GLfloat y2 = (GLfloat) 1.0f - ((GLfloat)it->bottom / halfHeight);
+			GLfloat x =  (GLfloat) -1.0f + ((GLfloat)rect.left / halfWidth);
+			GLfloat y =  (GLfloat) 1.0f - ((GLfloat)rect.top / halfHeight);
+			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)rect.right / halfWidth);
+			GLfloat y2 = (GLfloat) 1.0f - ((GLfloat)rect.bottom / halfHeight);
 
 			Vertices[a++] = x;
 			Vertices[a++] = y;
@@ -1782,7 +1781,7 @@ void Renderer::FlipImageData(u8 *data, int w, int h, int pixel_width)
 	{
 		for(int x = 0; x < w; ++x)
 		{
-			for (auto delta = 0; delta < pixel_width; ++delta)
+			for (int delta = 0; delta < pixel_width; ++delta)
 				std::swap(data[(y * w + x) * pixel_width + delta], data[((h - 1 - y) * w + x) * pixel_width + delta]);
 		}
 	}

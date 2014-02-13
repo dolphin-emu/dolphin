@@ -55,18 +55,17 @@ DSPDisassembler::~DSPDisassembler()
 		return;
 
 	int count = 0;
-	for (std::map<u16, int>::const_iterator iter = unk_opcodes.begin();
-		iter != unk_opcodes.end(); ++iter)
+	for (const auto& entry : unk_opcodes)
 	{
-		if (iter->second > 0)
+		if (entry.second > 0)
 		{
 			count++;
-			fprintf(uo.GetHandle(), "OP%04x\t%d", iter->first, iter->second);
+			fprintf(uo.GetHandle(), "OP%04x\t%d", entry.first, entry.second);
 			for (int j = 15; j >= 0; j--)  // print op bits
 			{
 				if ((j & 0x3) == 3)
 					fprintf(uo.GetHandle(), "\tb");
-				fprintf(uo.GetHandle(), "%d", (iter->first >> j) & 0x1);
+				fprintf(uo.GetHandle(), "%d", (entry.first >> j) & 0x1);
 			}
 			fprintf(uo.GetHandle(), "\n");
 		}

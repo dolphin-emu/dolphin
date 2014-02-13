@@ -206,23 +206,23 @@ void ARMXEmitter::ORI2R(ARMReg rd, ARMReg rs, u32 val, ARMReg scratch)
 
 void ARMXEmitter::FlushLitPool()
 {
-	for(std::vector<LiteralPool>::iterator it = currentLitPool.begin(); it != currentLitPool.end(); ++it) {
+	for(LiteralPool& pool : currentLitPool) {
 		// Search for duplicates
-		for(std::vector<LiteralPool>::iterator old_it = currentLitPool.begin(); old_it != it; ++old_it) {
-			if ((*old_it).val == (*it).val)
-				(*it).loc = (*old_it).loc;
+		for(LiteralPool& old_pool : currentLitPool) {
+			if (old_pool.val == pool.val)
+				pool.loc = old_pool.loc;
 		}
 
 		// Write the constant to Literal Pool
-		if (!(*it).loc)
+		if (!pool.loc)
 		{
-			(*it).loc = (s32)code;
-			Write32((*it).val);
+			pool.loc = (s32)code;
+			Write32(pool.val);
 		}
-		s32 offset = (*it).loc - (s32)(*it).ldr_address - 8;
+		s32 offset = pool.loc - (s32)pool.ldr_address - 8;
 
 		// Backpatch the LDR
-		*(u32*)(*it).ldr_address |= (offset >= 0) << 23 | abs(offset);
+		*(u32*)pool.ldr_address |= (offset >= 0) << 23 | abs(offset);
 	}
 	// TODO: Save a copy of previous pools in case they are still in range.
 	currentLitPool.clear();

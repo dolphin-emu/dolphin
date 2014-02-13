@@ -48,7 +48,7 @@ void VideoBackend::PopulateList()
 #endif
 	g_available_video_backends.push_back(backends[3] = new SW::VideoSoftware);
 
-	for (auto& backend : backends)
+	for (VideoBackend* backend : backends)
 	{
 		if (backend)
 		{
@@ -72,7 +72,7 @@ void VideoBackend::ActivateBackend(const std::string& name)
 	if (name.length() == 0) // If NULL, set it to the default backend (expected behavior)
 		g_video_backend = s_default_backend;
 
-	for (std::vector<VideoBackend*>::const_iterator it = g_available_video_backends.begin(); it != g_available_video_backends.end(); ++it)
-		if (name == (*it)->GetName())
-			g_video_backend = *it;
+	for (VideoBackend* backend : g_available_video_backends)
+		if (name == backend->GetName())
+			g_video_backend = backend;
 }

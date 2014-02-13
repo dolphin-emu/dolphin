@@ -410,8 +410,8 @@ void PixelShaderCache::Init()
 // ONLY to be used during shutdown.
 void PixelShaderCache::Clear()
 {
-	for (PSCache::iterator iter = PixelShaders.begin(); iter != PixelShaders.end(); iter++)
-		iter->second.Destroy();
+	for (auto& iter : PixelShaders)
+		iter.second.Destroy();
 	PixelShaders.clear();
 	pixel_uid_checker.Invalidate();
 

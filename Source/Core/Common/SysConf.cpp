@@ -25,8 +25,7 @@ SysConf::~SysConf()
 
 void SysConf::Clear()
 {
-	for (std::vector<SSysConfEntry>::const_iterator i = m_Entries.begin();
-			i < m_Entries.end() - 1; i++)
+	for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
 		delete [] i->data;
 	m_Entries.clear();
 }
@@ -85,8 +84,7 @@ bool SysConf::LoadFromFileInternal(FILE *fh)
 	}
 
 	// Last offset is an invalid entry. We ignore it throughout this class
-	for (std::vector<SSysConfEntry>::iterator i = m_Entries.begin();
-			i < m_Entries.end() - 1; i++)
+	for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
 	{
 		SSysConfEntry& curEntry = *i;
 		f.Seek(curEntry.offset, SEEK_SET);
@@ -300,7 +298,7 @@ void SysConf::GenerateSysConf()
 	items[26].data[0] = 0x01;
 
 
-	for (auto& item : items)
+	for (const SSysConfEntry& item : items)
 		m_Entries.push_back(item);
 
 	File::CreateFullPath(m_FilenameDefault);
@@ -362,8 +360,7 @@ bool SysConf::SaveToFile(const char *filename)
 {
 	File::IOFile f(filename, "r+b");
 
-	for (std::vector<SSysConfEntry>::iterator i = m_Entries.begin();
-			i < m_Entries.end() - 1; i++)
+	for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
 	{
 		// Seek to after the name of this entry
 		f.Seek(i->offset + i->nameLength + 1, SEEK_SET);

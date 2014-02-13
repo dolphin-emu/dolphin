@@ -119,12 +119,12 @@ void PPCSymbolDB::FillInCallers()
 		p.second.callers.clear();
 	}
 
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
+	for (auto& entry : functions)
 	{
-		Symbol &f = iter->second;
-		for (auto& call : f.calls)
+		Symbol &f = entry.second;
+		for (const SCall& call : f.calls)
 		{
-			SCall NewCall(iter->first, call.callAddress);
+			SCall NewCall(entry.first, call.callAddress);
 			u32 FunctionAddress = call.function;
 
 			XFuncMap::iterator FuncIterator = functions.find(FunctionAddress);
@@ -149,12 +149,12 @@ void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 	{
 		const Symbol &f = iter->second;
 		INFO_LOG(OSHLE, "The function %s at %08x calls:", f.name.c_str(), f.address);
-		for (std::vector<SCall>::const_iterator fiter = f.calls.begin(); fiter!=f.calls.end(); ++fiter)
+		for (const SCall& call : f.calls)
 		{
-			XFuncMap::const_iterator n = functions.find(fiter->function);
+			XFuncMap::const_iterator n = functions.find(call.function);
 			if (n != functions.end())
 			{
-				INFO_LOG(CONSOLE,"* %08x : %s", fiter->callAddress, n->second.name.c_str());
+				INFO_LOG(CONSOLE,"* %08x : %s", call.callAddress, n->second.name.c_str());
 			}
 		}
 	}
@@ -171,12 +171,12 @@ void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 	{
 		const Symbol &f = iter->second;
 		INFO_LOG(CONSOLE,"The function %s at %08x is called by:",f.name.c_str(),f.address);
-		for (std::vector<SCall>::const_iterator fiter = f.callers.begin(); fiter != f.callers.end(); ++fiter)
+		for (const SCall& caller : f.callers)
 		{
-			XFuncMap::const_iterator n = functions.find(fiter->function);
+			XFuncMap::const_iterator n = functions.find(caller.function);
 			if (n != functions.end())
 			{
-				INFO_LOG(CONSOLE,"* %08x : %s", fiter->callAddress, n->second.name.c_str());
+				INFO_LOG(CONSOLE,"* %08x : %s", caller.callAddress, n->second.name.c_str());
 			}
 		}
 	}

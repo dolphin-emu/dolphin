@@ -41,8 +41,8 @@ public:
 			offset = 0;
 			context->Map(buf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 
-			for(std::list<bool*>::iterator it = observers.begin(); it != observers.end(); ++it)
-				**it = true;
+			for(bool* observer : observers)
+				*observer = true;
 		}
 		else
 		{

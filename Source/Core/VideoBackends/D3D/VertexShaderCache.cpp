@@ -157,8 +157,8 @@ void VertexShaderCache::Init()
 
 void VertexShaderCache::Clear()
 {
-	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
-		iter->second.Destroy();
+	for (auto& iter : vshaders)
+		iter.second.Destroy();
 	vshaders.clear();
 	vertex_uid_checker.Invalidate();
 

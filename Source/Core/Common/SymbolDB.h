@@ -95,11 +95,6 @@ public:
 	const XFuncMap &Symbols() const {return functions;}
 	XFuncMap &AccessSymbols() {return functions;}
 
-	// deprecated
-	XFuncMap::iterator GetIterator() { return functions.begin(); }
-	XFuncMap::const_iterator GetConstIterator() { return functions.begin(); }
-	XFuncMap::iterator End() { return functions.end(); }
-
 	void Clear(const char *prefix = "");
 	void List();
 	void Index();
