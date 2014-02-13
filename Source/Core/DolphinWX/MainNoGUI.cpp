@@ -25,6 +25,11 @@
 #import <Cocoa/Cocoa.h>
 #endif
 
+#if defined _WIN32 && defined _M_X64
+// required for _set_FMA3_enable in main
+#include <math.h>
+#endif
+
 #include "Core.h"
 #include "Host.h"
 #include "CPUDetect.h"
@@ -286,6 +291,10 @@ int main(int argc, char* argv[])
 	[NSApplication sharedApplication];
 	[NSApp activateIgnoringOtherApps: YES];
 	[NSApp finishLaunching];
+#elif defined _WIN32 && defined _M_X64
+	// FMA3 support in the 2013 CRT is broken on Vista and Windows 7 RTM (fixed in SP1). Just disable it.
+	// This issue is documented in Microsoft Connect ID 811093.
+	_set_FMA3_enable(0);
 #endif
 	int ch, help = 0;
 	struct option longopts[] = {

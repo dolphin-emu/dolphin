@@ -33,6 +33,11 @@
 
 #include <wx/intl.h>
 
+#if defined _WIN32 && defined _M_X64
+// required for _set_FMA3_enable in DolphinApp::OnInit
+#include <math.h>
+#endif
+
 #ifdef _WIN32
 #include <shellapi.h>
 
@@ -120,6 +125,11 @@ bool DolphinApp::Initialize(int& c, wxChar **v)
 
 bool DolphinApp::OnInit()
 {
+#if defined _WIN32 && defined _M_X64
+	// FMA3 support in the 2013 CRT is broken on Vista and Windows 7 RTM (fixed in SP1). Just disable it.
+	// This issue is documented in Microsoft Connect ID 811093.
+	_set_FMA3_enable(0);
+#endif
 	InitLanguageSupport();
 
 	// Declarations and definitions
