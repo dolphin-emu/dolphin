@@ -144,7 +144,7 @@ bool BootCore(const std::string& _rFilename)
 		game_ini.Get("Core", "BlockMerging",		&StartUp.bMergeBlocks, StartUp.bMergeBlocks);
 		game_ini.Get("Core", "DSPHLE",				&StartUp.bDSPHLE, StartUp.bDSPHLE);
 		game_ini.Get("Core", "DSPThread",			&StartUp.bDSPThread, StartUp.bDSPThread);
-		game_ini.Get("Core", "GFXBackend",			&StartUp.m_strVideoBackend, StartUp.m_strVideoBackend.c_str());
+		game_ini.Get("Core", "GFXBackend",			&StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
 		game_ini.Get("Core", "CPUCore",				&StartUp.iCPUCore, StartUp.iCPUCore);
 		game_ini.Get("Core", "HLE_BS2",				&StartUp.bHLE_BS2, StartUp.bHLE_BS2);
 		if (game_ini.Get("Core", "FrameLimit",		&SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
@@ -152,13 +152,13 @@ bool BootCore(const std::string& _rFilename)
 		if (game_ini.Get("DSP", "Volume",			&SConfig::GetInstance().m_Volume, SConfig::GetInstance().m_Volume))
 			config_cache.bSetVolume = true;
 		game_ini.Get("DSP", "EnableJIT",			&SConfig::GetInstance().m_EnableJIT, SConfig::GetInstance().m_EnableJIT);
-		game_ini.Get("DSP", "Backend",				&SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend.c_str());
+		game_ini.Get("DSP", "Backend",				&SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend);
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 
 		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
 			int source;
-			game_ini.Get("Controls", StringFromFormat("PadType%u", i).c_str(), &source, -1);
+			game_ini.Get("Controls", StringFromFormat("PadType%u", i), &source, -1);
 			if (source >= (int) SIDEVICE_NONE && source <= (int) SIDEVICE_AM_BASEBOARD)
 			{
 				SConfig::GetInstance().m_SIDevice[i] = (SIDevices) source;
@@ -175,7 +175,7 @@ bool BootCore(const std::string& _rFilename)
 			int source;
 			for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
 			{
-				game_ini.Get("Controls", StringFromFormat("WiimoteSource%u", i).c_str(), &source, -1);
+				game_ini.Get("Controls", StringFromFormat("WiimoteSource%u", i), &source, -1);
 				if (source != -1 && g_wiimote_sources[i] != (unsigned) source && source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_HYBRID)
 				{
 					config_cache.bSetWiimoteSource[i] = true;

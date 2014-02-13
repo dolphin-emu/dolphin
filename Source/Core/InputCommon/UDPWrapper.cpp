@@ -8,12 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char* DefaultPort(const int index)
+const std::string DefaultPort(const int index)
 {
 	static std::string s;
 	s = "443";
 	s += (char)('2' + index);
-	return s.c_str();
+	return s;
 }
 
 UDPWrapper::UDPWrapper(int indx, const char* const _name) :
@@ -33,13 +33,13 @@ void UDPWrapper::LoadConfig(IniFile::Section *sec, const std::string& defdev, co
 	std::string group( base + name ); group += "/";
 
 	int _updAccel,_updIR,_updButt,_udpEn,_updNun,_updNunAccel;
-	sec->Get((group + "Enable").c_str(),&_udpEn, 0);
-	sec->Get((group + "Port").c_str(), &port, DefaultPort(index));
-	sec->Get((group + "Update_Accel").c_str(), &_updAccel, 1);
-	sec->Get((group + "Update_IR").c_str(), &_updIR, 1);
-	sec->Get((group + "Update_Butt").c_str(), &_updButt, 1);
-	sec->Get((group + "Update_Nunchuk").c_str(), &_updNun, 1);
-	sec->Get((group + "Update_NunchukAccel").c_str(), &_updNunAccel, 0);
+	sec->Get(group + "Enable",&_udpEn, 0);
+	sec->Get(group + "Port", &port, DefaultPort(index));
+	sec->Get(group + "Update_Accel", &_updAccel, 1);
+	sec->Get(group + "Update_IR", &_updIR, 1);
+	sec->Get(group + "Update_Butt", &_updButt, 1);
+	sec->Get(group + "Update_Nunchuk", &_updNun, 1);
+	sec->Get(group + "Update_NunchukAccel", &_updNunAccel, 0);
 
 	udpEn=(_udpEn>0);
 	updAccel=(_updAccel>0);
@@ -56,13 +56,13 @@ void UDPWrapper::SaveConfig(IniFile::Section *sec, const std::string& defdev, co
 {
 	ControlGroup::SaveConfig(sec,defdev,base);
 	std::string group( base + name ); group += "/";
-	sec->Set((group + "Enable").c_str(), (int)udpEn, 0);
-	sec->Set((group + "Port").c_str(), port, DefaultPort(index));
-	sec->Set((group + "Update_Accel").c_str(), (int)updAccel, 1);
-	sec->Set((group + "Update_IR").c_str(), (int)updIR, 1);
-	sec->Set((group + "Update_Butt").c_str(), (int)updButt, 1);
-	sec->Set((group + "Update_Nunchuk").c_str(), (int)updNun, 1);
-	sec->Set((group + "Update_NunchukAccel").c_str(), (int)updNunAccel, 0);
+	sec->Set(group + "Enable", (int)udpEn, 0);
+	sec->Set(group + "Port", port, DefaultPort(index));
+	sec->Set(group + "Update_Accel", (int)updAccel, 1);
+	sec->Set(group + "Update_IR", (int)updIR, 1);
+	sec->Set(group + "Update_Butt", (int)updButt, 1);
+	sec->Set(group + "Update_Nunchuk", (int)updNun, 1);
+	sec->Set(group + "Update_NunchukAccel", (int)updNunAccel, 0);
 }
 
 
@@ -74,7 +74,7 @@ void UDPWrapper::Refresh()
 		if (strcmp(inst->getPort(),port.c_str()))
 		{
 			delete inst;
-			inst= new UDPWiimote(port.c_str(),"Dolphin-Emu",index); //TODO: Changeable display name
+			inst = new UDPWiimote(port.c_str(),"Dolphin-Emu",index); //TODO: Changeable display name
 		}
 		return;
 	}
@@ -82,11 +82,11 @@ void UDPWrapper::Refresh()
 	{
 		if (inst)
 			delete inst;
-		inst=NULL;
+		inst = NULL;
 		return;
 	}
 	//else
-	inst= new UDPWiimote(port.c_str(),"Dolphin-Emu",index);
+	inst = new UDPWiimote(port.c_str(),"Dolphin-Emu",index);
 }
 
 UDPWrapper::~UDPWrapper()

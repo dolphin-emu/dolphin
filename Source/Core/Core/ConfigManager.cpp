@@ -8,6 +8,7 @@
 #include "IniFile.h"
 #include "FileUtil.h"
 #include "NANDContentLoader.h"
+#include "HW/SI.h"
 
 SConfig* SConfig::m_Instance;
 
@@ -158,7 +159,7 @@ void SConfig::SaveSettings()
 
 	for (int i = 0; i < numPaths; i++)
 	{
-		ini.Set("General", StringFromFormat("GCMPath%i", i).c_str(), m_ISOFolder[i]);
+		ini.Set("General", StringFromFormat("GCMPath%i", i), m_ISOFolder[i]);
 	}
 
 	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
@@ -190,7 +191,7 @@ void SConfig::SaveSettings()
 	for (int i = 0; i < NUM_HOTKEYS; i++)
 	{
 		ini.Set("Hotkeys", g_HKData[i].IniText, m_LocalCoreStartupParameter.iHotkey[i]);
-		ini.Set("Hotkeys", (std::string(g_HKData[i].IniText) + "Modifier").c_str(),
+		ini.Set("Hotkeys", std::string(g_HKData[i].IniText) + "Modifier",
 				m_LocalCoreStartupParameter.iHotkeyModifier[i]);
 	}
 
@@ -245,9 +246,9 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "SlotB",			m_EXIDevice[1]);
 	ini.Set("Core", "SerialPort1",		m_EXIDevice[2]);
 	ini.Set("Core", "BBA_MAC",			m_bba_mac);
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
-		ini.Set("Core", StringFromFormat("SIDevice%i", i).c_str(), m_SIDevice[i]);
+		ini.Set("Core", StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
 	}
 	ini.Set("Core", "WiiSDCard", m_WiiSDCard);
 	ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
@@ -300,7 +301,7 @@ void SConfig::LoadSettings()
 			for (int i = 0; i < numGCMPaths; i++)
 			{
 				std::string tmpPath;
-				ini.Get("General", StringFromFormat("GCMPath%i", i).c_str(), &tmpPath, "");
+				ini.Get("General", StringFromFormat("GCMPath%i", i), &tmpPath, "");
 				m_ISOFolder.push_back(std::move(tmpPath));
 			}
 		}
@@ -338,7 +339,7 @@ void SConfig::LoadSettings()
 		{
 			ini.Get("Hotkeys", g_HKData[i].IniText,
 					&m_LocalCoreStartupParameter.iHotkey[i], g_HKData[i].DefaultKey);
-			ini.Get("Hotkeys", (std::string(g_HKData[i].IniText) + "Modifier").c_str(),
+			ini.Get("Hotkeys", std::string(g_HKData[i].IniText) + "Modifier",
 					&m_LocalCoreStartupParameter.iHotkeyModifier[i], g_HKData[i].DefaultModifier);
 		}
 
@@ -400,9 +401,9 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "BBA_MAC",		&m_bba_mac);
 		ini.Get("Core", "TimeProfiling",&m_LocalCoreStartupParameter.bJITILTimeProfiling,		false);
 		ini.Get("Core", "OutputIR",		&m_LocalCoreStartupParameter.bJITILOutputIR,			false);
-		for (int i = 0; i < 4; ++i)
+		for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 		{
-			ini.Get("Core", StringFromFormat("SIDevice%i", i).c_str(), (u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
+			ini.Get("Core", StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
 		}
 		ini.Get("Core", "WiiSDCard",		&m_WiiSDCard,									false);
 		ini.Get("Core", "WiiKeyboard",		&m_WiiKeyboard,									false);
@@ -413,7 +414,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "MMU",				&m_LocalCoreStartupParameter.bMMU,				false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.bTLBHack,			false);
 		ini.Get("Core", "BBDumpPort",		&m_LocalCoreStartupParameter.iBBDumpPort,		-1);
-		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeamSpeedHack,			false);
+		ini.Get("Core", "VBeam",			&m_LocalCoreStartupParameter.bVBeamSpeedHack,	false);
 		ini.Get("Core", "SyncGPU",			&m_LocalCoreStartupParameter.bSyncGPU,			false);
 		ini.Get("Core", "FastDiscSpeed",	&m_LocalCoreStartupParameter.bFastDiscSpeed,	false);
 		ini.Get("Core", "DCBZ",				&m_LocalCoreStartupParameter.bDCBZOFF,			false);

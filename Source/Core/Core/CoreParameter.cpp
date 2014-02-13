@@ -134,7 +134,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				bootDrive)
 			{
 				m_BootType = BOOT_ISO;
-				DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
+				DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename);
 				if (pVolume == NULL)
 				{
 					if (bootDrive)
@@ -210,7 +210,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 				bNTSC = true;
 				m_BootType = BOOT_DFF;
 
-				FifoDataFile *ddfFile = FifoDataFile::Load(m_strFilename.c_str(), true);
+				FifoDataFile *ddfFile = FifoDataFile::Load(m_strFilename, true);
 
 				if (ddfFile)
 				{
@@ -220,7 +220,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 			}
 			else if (DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename).IsValid())
 			{
-				const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
+				const DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename);
 				const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_strFilename);
 
 				if (ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex()) == NULL)
