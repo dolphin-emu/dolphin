@@ -360,10 +360,6 @@ void FPURegCache::StoreFromRegister(int i)
 		regs[i].location = newLoc;
 		regs[i].away = false;
 	}
-	else
-	{
-	//	_assert_msg_(DYNA_REC,0,"already stored");
-	}
 }
 
 void RegCache::Flush(FlushMode mode)
