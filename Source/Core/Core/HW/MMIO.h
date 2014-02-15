@@ -92,10 +92,10 @@ public:
 	// Note that for reads we cannot simply return the read value because C++
 	// allows overloading only with parameter types, not return types.
 #define READ_FUNC(Size) \
-	void Read(u32 addr, u##Size& val) const \
+	void Read(u32 addr, u##Size* val) const \
 	{ \
 		u32 id = UniqueID(addr) / sizeof (u##Size); \
-		val = m_Read##Size##Handlers[id].Read(addr); \
+		*val = m_Read##Size##Handlers[id].Read(addr); \
 	}
 	READ_FUNC(8) READ_FUNC(16) READ_FUNC(32)
 #undef READ_FUNC
@@ -134,7 +134,7 @@ public:
 
 	// Dummy 64 bits variants of these functions. While 64 bits MMIO access is
 	// not supported, we need these in order to make the code compile.
-	void Read(u32 addr, u64& val) const { _dbg_assert_(MEMMAP, 0); }
+	void Read(u32 addr, u64* val) const { _dbg_assert_(MEMMAP, 0); }
 	void Write(u32 addr, u64 val) const { _dbg_assert_(MEMMAP, 0); }
 
 private:
