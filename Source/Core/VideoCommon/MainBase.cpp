@@ -320,25 +320,3 @@ void VideoBackendHardware::RegisterPEMMIO(MMIO::Mapping* mmio, u32 base)
 {
 	PixelEngine::RegisterMMIO(mmio, base);
 }
-
-readFn16 VideoBackendHardware::Video_CPRead16()
-{
-	return CommandProcessor::Read16;
-}
-writeFn16 VideoBackendHardware::Video_CPWrite16()
-{
-	return CommandProcessor::Write16;
-}
-
-readFn16  VideoBackendHardware::Video_PERead16()
-{
-	return PixelEngine::Read16;
-}
-writeFn16 VideoBackendHardware::Video_PEWrite16()
-{
-	return PixelEngine::Write16;
-}
-writeFn32 VideoBackendHardware::Video_PEWrite32()
-{
-	return PixelEngine::Write32;
-}

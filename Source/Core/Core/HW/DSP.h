@@ -38,14 +38,6 @@ void DoState(PointerWrap &p);
 void GenerateDSPInterrupt(DSPInterruptType _DSPInterruptType, bool _bSet = true);
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType _DSPInterruptType, bool _bSet = true);
 
-// Read32
-void Read16(u16& _uReturnValue, const u32 _uAddress);
-void Read32(u32& _uReturnValue, const u32 _uAddress);
-
-// Write
-void Write16(const u16 _uValue, const u32 _uAddress);
-void Write32(const u32 _uValue, const u32 _uAddress);
-
 // Audio/DSP Helper
 u8 ReadARAM(const u32 _uAddress);
 void WriteARAM(u8 value, u32 _uAddress);

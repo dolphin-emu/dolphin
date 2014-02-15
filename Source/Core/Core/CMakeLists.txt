@@ -120,7 +120,6 @@ set(SRCS	ActionReplay.cpp
 			HW/StreamADPCM.cpp
 			HW/SystemTimers.cpp
 			HW/VideoInterface.cpp
-			HW/WII_IOB.cpp
 			HW/WII_IPC.cpp
 			HW/Wiimote.cpp
 			HW/WiimoteEmu/WiimoteEmu.cpp

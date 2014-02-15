@@ -113,18 +113,6 @@ void Update()
 	g_Channels[2]->Update();
 }
 
-void Read32(u32& _uReturnValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Write(_iAddress, _iValue);
-}
-
 void UpdateInterrupts()
 {
 	// Interrupts are mapped a bit strangely:

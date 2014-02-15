@@ -296,30 +296,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	);
 }
 
-void Read16(u16& _rReturnValue, const u32 _Address)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Read(_Address, _rReturnValue);
-}
-
-void Write16(const u16 _Value, const u32 _Address)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Write(_Address, _Value);
-}
-
-void Read32(u32& _rReturnValue, const u32 _Address)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Read(_Address, _rReturnValue);
-}
-
-void Write32(const u32 _Data, const u32 _Address)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Write(_Address, _Data);
-}
-
 void STACKALIGN GatherPipeBursted()
 {
 	ProcessFifoEvents();

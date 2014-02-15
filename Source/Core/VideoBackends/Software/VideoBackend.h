@@ -49,12 +49,6 @@ class VideoSoftware : public VideoBackend
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 	void RegisterPEMMIO(MMIO::Mapping* mmio, u32 base) override;
 
-	readFn16  Video_CPRead16() override;
-	writeFn16 Video_CPWrite16() override;
-	readFn16  Video_PERead16() override;
-	writeFn16 Video_PEWrite16() override;
-	writeFn32 Video_PEWrite32() override;
-
 	void UpdateFPSDisplay(const char*) override;
 	unsigned int PeekMessages() override;
 

@@ -29,7 +29,6 @@
 #include "EXI.h"
 #include "AudioInterface.h"
 #include "MemoryInterface.h"
-#include "WII_IOB.h"
 #include "WII_IPC.h"
 #include "../ConfigManager.h"
 #include "../Debugger/Debugger_SymbolMap.h"
@@ -87,227 +86,6 @@ u8 *m_pVirtualFakeVMEM;
 // MMIO mapping object.
 MMIO::Mapping* mmio_mapping;
 
-// =================================
-// Read and write shortcuts
-// ----------------
-writeFn8  hwWrite8 [NUMHWMEMFUN];
-writeFn16 hwWrite16[NUMHWMEMFUN];
-writeFn32 hwWrite32[NUMHWMEMFUN];
-writeFn64 hwWrite64[NUMHWMEMFUN];
-
-readFn8   hwRead8 [NUMHWMEMFUN];
-readFn16  hwRead16[NUMHWMEMFUN];
-readFn32  hwRead32[NUMHWMEMFUN];
-readFn64  hwRead64[NUMHWMEMFUN];
-
-writeFn8  hwWriteWii8 [NUMHWMEMFUN];
-writeFn16 hwWriteWii16[NUMHWMEMFUN];
-writeFn32 hwWriteWii32[NUMHWMEMFUN];
-writeFn64 hwWriteWii64[NUMHWMEMFUN];
-
-readFn8   hwReadWii8 [NUMHWMEMFUN];
-readFn16  hwReadWii16[NUMHWMEMFUN];
-readFn32  hwReadWii32[NUMHWMEMFUN];
-readFn64  hwReadWii64[NUMHWMEMFUN];
-
-// Default read and write functions
-template <class T>
-void HW_Default_Write(const T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Write%lu %08x", (unsigned long)sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
-
-template <class T>
-void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Read%lu %08x", (unsigned long)sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
-
-#define HW_PAGE_SHIFT 10
-#define HW_PAGE_SIZE (1 << HW_PAGE_SHIFT)
-#define HW_PAGE_MASK (HW_PAGE_SHIFT - 1)
-
-template <class T, u8 *P> void HW_Read_Memory(T &_Data, const u32 _Address)
-{
-	_Data = *(T *)&P[_Address & HW_PAGE_MASK];
-}
-
-template <class T, u8 *P> void HW_Write_Memory(T _Data, const u32 _Address)
-{
-	*(T *)&P[_Address & HW_PAGE_MASK] = _Data;
-}
-
-// Create shortcuts to the hardware devices' read and write functions.
-// This can be seen as an alternative to a switch() or if() table.
-#define BLOCKSIZE 4
-#define CP_START		0x00 //0x0000 >> 10
-#define WII_IPC_START	0x00 //0x0000 >> 10
-#define PE_START		0x04 //0x1000 >> 10
-#define VI_START		0x08 //0x2000 >> 10
-#define PI_START		0x0C //0x3000 >> 10
-#define MI_START		0x10 //0x4000 >> 10
-#define DSP_START		0x14 //0x5000 >> 10
-#define DVD_START		0x18 //0x6000 >> 10
-#define SI_START		0x19 //0x6400 >> 10
-#define EI_START		0x1A //0x6800 >> 10
-#define AUDIO_START		0x1B //0x6C00 >> 10
-#define GP_START		0x20 //0x8000 >> 10
-
-void InitHWMemFuncs()
-{
-	for (int i = 0; i < NUMHWMEMFUN; i++)
-	{
-		hwWrite8 [i] = HW_Default_Write<u8>;
-		hwWrite16[i] = HW_Default_Write<u16>;
-		hwWrite32[i] = HW_Default_Write<u32>;
-		hwWrite64[i] = HW_Default_Write<u64>;
-		hwRead8  [i] = HW_Default_Read<u8&>;
-		hwRead16 [i] = HW_Default_Read<u16&>;
-		hwRead32 [i] = HW_Default_Read<u32&>;
-		hwRead64 [i] = HW_Default_Read<u64&>;
-
-		// To prevent Dolphin from crashing when accidentally running Wii
-		// executables in GC mode (or running malicious GC executables...)
-		hwWriteWii8 [i] = HW_Default_Write<u8>;
-		hwWriteWii16[i] = HW_Default_Write<u16>;
-		hwWriteWii32[i] = HW_Default_Write<u32>;
-		hwWriteWii64[i] = HW_Default_Write<u64>;
-		hwReadWii8  [i] = HW_Default_Read<u8&>;
-		hwReadWii16 [i] = HW_Default_Read<u16&>;
-		hwReadWii32 [i] = HW_Default_Read<u32&>;
-		hwReadWii64 [i] = HW_Default_Read<u64&>;
-	}
-
-	for (int i = 0; i < BLOCKSIZE; i++)
-	{
-		hwRead16 [CP_START+i] = g_video_backend->Video_CPRead16();
-		hwWrite16[CP_START+i] = g_video_backend->Video_CPWrite16();
-
-		hwRead16 [PE_START+i] = g_video_backend->Video_PERead16();
-		hwWrite16[PE_START+i] = g_video_backend->Video_PEWrite16();
-		hwWrite32[PE_START+i] = g_video_backend->Video_PEWrite32();
-
-		hwRead8  [VI_START+i] = VideoInterface::Read8;
-		hwRead16 [VI_START+i] = VideoInterface::Read16;
-		hwRead32 [VI_START+i] = VideoInterface::Read32;
-		hwWrite16[VI_START+i] = VideoInterface::Write16;
-		hwWrite32[VI_START+i] = VideoInterface::Write32;
-
-		hwRead16 [PI_START+i] = ProcessorInterface::Read16;
-		hwRead32 [PI_START+i] = ProcessorInterface::Read32;
-		hwWrite32[PI_START+i] = ProcessorInterface::Write32;
-
-		hwRead16 [MI_START+i] = MemoryInterface::Read16;
-		hwRead32 [MI_START+i] = MemoryInterface::Read32;
-		hwWrite32[MI_START+i] = MemoryInterface::Write32;
-		hwWrite16[MI_START+i] = MemoryInterface::Write16;
-
-		hwRead16 [DSP_START+i] = DSP::Read16;
-		hwWrite16[DSP_START+i] = DSP::Write16;
-		hwRead32 [DSP_START+i] = DSP::Read32;
-		hwWrite32[DSP_START+i] = DSP::Write32;
-	}
-
-	hwRead32 [DVD_START] = DVDInterface::Read32;
-	hwWrite32[DVD_START] = DVDInterface::Write32;
-
-	hwRead32 [SI_START] = SerialInterface::Read32;
-	hwWrite32[SI_START] = SerialInterface::Write32;
-
-	hwRead32 [EI_START] = ExpansionInterface::Read32;
-	hwWrite32[EI_START] = ExpansionInterface::Write32;
-
-	hwRead32 [AUDIO_START] = AudioInterface::Read32;
-	hwWrite32[AUDIO_START] = AudioInterface::Write32;
-
-	hwWrite8 [GP_START] = GPFifo::Write8;
-	hwWrite16[GP_START] = GPFifo::Write16;
-	hwWrite32[GP_START] = GPFifo::Write32;
-	hwWrite64[GP_START] = GPFifo::Write64;
-}
-
-
-void InitHWMemFuncsWii()
-{
-	for (int i = 0; i < NUMHWMEMFUN; i++)
-	{
-		hwWrite8 [i] = HW_Default_Write<u8>;
-		hwWrite16[i] = HW_Default_Write<u16>;
-		hwWrite32[i] = HW_Default_Write<u32>;
-		hwWrite64[i] = HW_Default_Write<u64>;
-		hwRead8  [i] = HW_Default_Read<u8&>;
-		hwRead16 [i] = HW_Default_Read<u16&>;
-		hwRead32 [i] = HW_Default_Read<u32&>;
-		hwRead64 [i] = HW_Default_Read<u64&>;
-
-		hwWriteWii8 [i] = HW_Default_Write<u8>;
-		hwWriteWii16[i] = HW_Default_Write<u16>;
-		hwWriteWii32[i] = HW_Default_Write<u32>;
-		hwWriteWii64[i] = HW_Default_Write<u64>;
-		hwReadWii8  [i] = HW_Default_Read<u8&>;
-		hwReadWii16 [i] = HW_Default_Read<u16&>;
-		hwReadWii32 [i] = HW_Default_Read<u32&>;
-		hwReadWii64 [i] = HW_Default_Read<u64&>;
-	}
-
-	// MI, PI, DSP are still mapped to 0xCCxxxxxx
-	for (int i = 0; i < BLOCKSIZE; i++)
-	{
-		hwRead16 [CP_START+i] = g_video_backend->Video_CPRead16();
-		hwWrite16[CP_START+i] = g_video_backend->Video_CPWrite16();
-
-		hwRead16 [PE_START+i] = g_video_backend->Video_PERead16();
-		hwWrite16[PE_START+i] = g_video_backend->Video_PEWrite16();
-		hwWrite32[PE_START+i] = g_video_backend->Video_PEWrite32();
-
-		hwRead16 [PI_START+i] = ProcessorInterface::Read16;
-		hwRead32 [PI_START+i] = ProcessorInterface::Read32;
-		hwWrite32[PI_START+i] = ProcessorInterface::Write32;
-
-		hwRead8  [VI_START+i] = VideoInterface::Read8;
-		hwRead16 [VI_START+i] = VideoInterface::Read16;
-		hwRead32 [VI_START+i] = VideoInterface::Read32;
-		hwWrite16[VI_START+i] = VideoInterface::Write16;
-		hwWrite32[VI_START+i] = VideoInterface::Write32;
-
-		hwRead16 [MI_START+i] = MemoryInterface::Read16;
-		hwRead32 [MI_START+i] = MemoryInterface::Read32;
-		hwWrite32[MI_START+i] = MemoryInterface::Write32;
-		hwWrite16[MI_START+i] = MemoryInterface::Write16;
-
-		hwRead16 [DSP_START+i] = DSP::Read16;
-		hwWrite16[DSP_START+i] = DSP::Write16;
-		hwRead32 [DSP_START+i] = DSP::Read32;
-		hwWrite32[DSP_START+i] = DSP::Write32;
-	}
-
-	hwWrite8 [GP_START] = GPFifo::Write8;
-	hwWrite16[GP_START] = GPFifo::Write16;
-	hwWrite32[GP_START] = GPFifo::Write32;
-	hwWrite64[GP_START] = GPFifo::Write64;
-
-	for (int i = 0; i < BLOCKSIZE; i++)
-	{
-		hwReadWii32[WII_IPC_START+i] = WII_IPCInterface::Read32;
-		hwWriteWii32[WII_IPC_START+i] = WII_IPCInterface::Write32;
-	}
-
-	hwRead32	[DVD_START] = DVDInterface::Read32;
-	hwReadWii32	[DVD_START] = DVDInterface::Read32;
-	hwWrite32	[DVD_START] = DVDInterface::Write32;
-	hwWriteWii32[DVD_START] = DVDInterface::Write32;
-
-	hwRead32	[SI_START] = SerialInterface::Read32;
-	hwReadWii32	[SI_START] = SerialInterface::Read32;
-	hwWrite32	[SI_START] = SerialInterface::Write32;
-	hwWriteWii32[SI_START] = SerialInterface::Write32;
-
-	hwRead32	[EI_START] = ExpansionInterface::Read32;
-	hwReadWii32	[EI_START] = ExpansionInterface::Read32;
-	hwWrite32	[EI_START] = ExpansionInterface::Write32;
-	hwWriteWii32[EI_START] = ExpansionInterface::Write32;
-
-	// [F|RES] i thought this doesn't exist anymore
-	hwRead32	[AUDIO_START] = AudioInterface::Read32;
-	hwReadWii32	[AUDIO_START] = AudioInterface::Read32;
-	hwWrite32	[AUDIO_START] = AudioInterface::Write32;
-	hwWriteWii32[AUDIO_START] = AudioInterface::Write32;
-}
-
 void InitMMIO(MMIO::Mapping* mmio)
 {
 	g_video_backend->RegisterCPMMIO(mmio, 0xCC000000);
@@ -331,11 +109,6 @@ void InitMMIOWii(MMIO::Mapping* mmio)
 	SerialInterface::RegisterMMIO(mmio, 0xCD006400);
 	ExpansionInterface::RegisterMMIO(mmio, 0xCD006800);
 	AudioInterface::RegisterMMIO(mmio, 0xCD006C00);
-}
-
-writeFn32 GetHWWriteFun32(const u32 _Address)
-{
-	return hwWrite32[(_Address >> HWSHIFT) & (NUMHWMEMFUN-1)];
 }
 
 bool IsInitialized()
@@ -378,11 +151,6 @@ void Init()
 	base = MemoryMap_Setup(views, num_views, flags, &g_arena);
 
 	mmio_mapping = new MMIO::Mapping();
-
-	if (wii)
-		InitHWMemFuncsWii();
-	else
-		InitHWMemFuncs();
 
 	if (wii)
 		InitMMIOWii(mmio_mapping);

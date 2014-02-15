@@ -30,16 +30,6 @@
 class PointerWrap;
 namespace MMIO { class Mapping; }
 
-typedef void (*writeFn8 )(const u8, const u32);
-typedef void (*writeFn16)(const u16,const u32);
-typedef void (*writeFn32)(const u32,const u32);
-typedef void (*writeFn64)(const u64,const u32);
-
-typedef void (*readFn8 )(u8&,  const u32);
-typedef void (*readFn16)(u16&, const u32);
-typedef void (*readFn32)(u32&, const u32);
-typedef void (*readFn64)(u64&, const u32);
-
 namespace Memory
 {
 // Base is a pointer to the base of the memory map. Yes, some MMU tricks
@@ -103,11 +93,7 @@ u32 ReadUnchecked_U32(const u32 _Address);
 void WriteUnchecked_U8(const u8 _Data, const u32 _Address);
 void WriteUnchecked_U32(const u32 _Data, const u32 _Address);
 
-void InitHWMemFuncs();
-void InitHWMemFuncsWii();
-
 bool IsRAMAddress(const u32 addr, bool allow_locked_cache = false, bool allow_fake_vmem = false);
-writeFn32 GetHWWriteFun32(const u32 _Address);
 
 inline u8* GetCachePtr() {return m_pL1Cache;}
 inline u8* GetMainRAMPtr() {return m_pRAM;}

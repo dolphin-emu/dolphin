@@ -12,10 +12,6 @@
 
 namespace MMIO { class Mapping; }
 
-typedef void (*writeFn16)(const u16,const u32);
-typedef void (*writeFn32)(const u32,const u32);
-typedef void (*readFn16)(u16&, const u32);
-
 
 enum FieldType
 {
@@ -116,13 +112,6 @@ public:
 	virtual void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) = 0;
 	virtual void RegisterPEMMIO(MMIO::Mapping* mmio, u32 base) = 0;
 
-	// HACK: Remove these functions when the new MMIO interface is used.
-	virtual readFn16  Video_CPRead16() = 0;
-	virtual writeFn16 Video_CPWrite16() = 0;
-	virtual readFn16  Video_PERead16() = 0;
-	virtual writeFn16 Video_PEWrite16() = 0;
-	virtual writeFn32 Video_PEWrite32() = 0;
-
 	static void PopulateList();
 	static void ClearList();
 	static void ActivateBackend(const std::string& name);
@@ -171,12 +160,6 @@ class VideoBackendHardware : public VideoBackend
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 	void RegisterPEMMIO(MMIO::Mapping* mmio, u32 base) override;
-
-	readFn16  Video_CPRead16();
-	writeFn16 Video_CPWrite16();
-	readFn16  Video_PERead16();
-	writeFn16 Video_PEWrite16();
-	writeFn32 Video_PEWrite32();
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 	void DoState(PointerWrap &p);

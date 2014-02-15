@@ -11,9 +11,6 @@
 
 #include "MMIOHandlers.h"
 
-// HACK: Remove when the new MMIO interface is used.
-#include "Memmap.h"
-
 namespace MMIO
 {
 

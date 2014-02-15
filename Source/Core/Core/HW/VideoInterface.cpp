@@ -397,36 +397,6 @@ void SetRegionReg(char region)
 		m_DTVStatus.ntsc_j = region == 'J';
 }
 
-void Read8(u8& _uReturnValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
-}
-
-void Read16(u16& _uReturnValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
-}
-
-void Write16(const u16 _iValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Write(_iAddress, _iValue);
-}
-
-void Read32(u32& _uReturnValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Write(_iAddress, _iValue);
-}
-
 void UpdateInterrupts()
 {
 	if ((m_InterruptRegister[0].IR_INT && m_InterruptRegister[0].IR_MASK) ||

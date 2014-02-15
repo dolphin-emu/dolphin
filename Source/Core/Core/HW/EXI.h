@@ -32,7 +32,4 @@ void ChangeDeviceCallback(u64 userdata, int cyclesLate);
 void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 device_num);
 IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1);
 
-void Read32(u32& _uReturnValue, const u32 _iAddress);
-void Write32(const u32 _iValue, const u32 _iAddress);
-
 } // end of namespace ExpansionInterface

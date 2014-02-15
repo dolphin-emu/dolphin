@@ -205,18 +205,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	mmio->Register(base | UNK_1D0, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
 }
 
-void Read32(u32& _rReturnValue, const u32 _Address)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Read(_Address, _rReturnValue);
-}
-
-void Write32(const u32 _Value, const u32 _Address)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Write(_Address, _Value);
-}
-
 void UpdateInterrupts(u64 userdata, int cyclesLate)
 {
 	if ((ctrl.Y1 & ctrl.IY1) || (ctrl.Y2 & ctrl.IY2))

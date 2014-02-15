@@ -137,12 +137,6 @@ void DoState(PointerWrap &p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-// Read
-void Read16(u16& _rReturnValue, const u32 _Address);
-void Write16(const u16 _Data, const u32 _Address);
-void Read32(u32& _rReturnValue, const u32 _Address);
-void Write32(const u32 _Data, const u32 _Address);
-
 void SetCpStatus(bool isCPUThread = false);
 void GatherPipeBursted();
 void UpdateInterrupts(u64 userdata);

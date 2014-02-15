@@ -370,29 +370,6 @@ void VideoSoftware::RegisterPEMMIO(MMIO::Mapping* mmio, u32 base)
 	SWPixelEngine::RegisterMMIO(mmio, base);
 }
 
-readFn16 VideoSoftware::Video_CPRead16()
-{
-	return SWCommandProcessor::Read16;
-}
-writeFn16 VideoSoftware::Video_CPWrite16()
-{
-	return SWCommandProcessor::Write16;
-}
-
-readFn16  VideoSoftware::Video_PERead16()
-{
-	return SWPixelEngine::Read16;
-}
-writeFn16 VideoSoftware::Video_PEWrite16()
-{
-	return SWPixelEngine::Write16;
-}
-writeFn32 VideoSoftware::Video_PEWrite32()
-{
-	return SWPixelEngine::Write32;
-}
-
-
 // Draw messages on top of the screen
 unsigned int VideoSoftware::PeekMessages()
 {

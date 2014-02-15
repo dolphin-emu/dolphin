@@ -492,9 +492,6 @@
     <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
     </ClCompile>
-    <ClCompile Include="HW\WII_IOB.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wii IO Bridge</Filter>
-    </ClCompile>
     <ClCompile Include="HW\WII_IPC.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wii IPC</Filter>
     </ClCompile>
@@ -1024,9 +1021,6 @@
     </ClInclude>
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\WII_IOB.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wii IO Bridge</Filter>
     </ClInclude>
     <ClInclude Include="HW\WII_IPC.h">
       <Filter>HW %28Flipper/Hollywood%29\Wii IPC</Filter>

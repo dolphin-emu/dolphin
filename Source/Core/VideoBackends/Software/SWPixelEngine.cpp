@@ -91,24 +91,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	);
 }
 
-void Read16(u16& _uReturnValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Write(_iAddress, _iValue);
-}
-
-void Write16(const u16 _iValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Write(_iAddress, _iValue);
-}
-
 bool AllowIdleSkipping()
 {
 	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread || (!pereg.ctrl.PETokenEnable && !pereg.ctrl.PEFinishEnable);

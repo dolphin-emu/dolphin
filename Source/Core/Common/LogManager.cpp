@@ -60,7 +60,6 @@ LogManager::LogManager()
 	m_Log[LogTypes::CONSOLE]			= new LogContainer("CONSOLE",		"Dolphin Console");
 	m_Log[LogTypes::OSREPORT]			= new LogContainer("OSREPORT",		"OSReport");
 	m_Log[LogTypes::WIIMOTE]			= new LogContainer("Wiimote",		"Wiimote");
-	m_Log[LogTypes::WII_IOB]			= new LogContainer("WII_IOB",		"WII IO Bridge");
 	m_Log[LogTypes::WII_IPC]			= new LogContainer("WII_IPC",		"WII IPC");
 	m_Log[LogTypes::WII_IPC_HID]		= new LogContainer("WII_IPC_HID",	"WII IPC HID");
 	m_Log[LogTypes::WII_IPC_HLE]		= new LogContainer("WII_IPC_HLE",	"WII IPC HLE");

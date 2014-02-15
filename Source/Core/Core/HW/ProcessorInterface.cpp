@@ -155,24 +155,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	}
 }
 
-void Read16(u16& _uReturnValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
-}
-
-void Read32(u32& _uReturnValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Read(_iAddress, _uReturnValue);
-}
-
-void Write32(const u32 _uValue, const u32 _iAddress)
-{
-	// HACK: Remove this function when the new MMIO interface is used.
-	Memory::mmio_mapping->Write(_iAddress, _uValue);
-}
-
 void UpdateException()
 {
 	if ((m_InterruptCause & m_InterruptMask) != 0)
