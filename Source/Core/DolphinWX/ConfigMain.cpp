@@ -84,23 +84,23 @@ static const wxLanguage langIds[] =
 };
 
 // Strings for Device Selections
-#define DEV_NONE_STR		_trans("<Nothing>")
-#define DEV_DUMMY_STR		_trans("Dummy")
+#define DEV_NONE_STR       _trans("<Nothing>")
+#define DEV_DUMMY_STR      _trans("Dummy")
 
-#define SIDEV_STDCONT_STR	_trans("Standard Controller")
-#define SIDEV_STEERING_STR	_trans("Steering Wheel")
-#define SIDEV_DANCEMAT_STR	_trans("Dance Mat")
-#define SIDEV_BONGO_STR		_trans("TaruKonga (Bongos)")
-#define SIDEV_GBA_STR		"GBA"
-#define SIDEV_AM_BB_STR		_trans("AM-Baseboard")
+#define SIDEV_STDCONT_STR  _trans("Standard Controller")
+#define SIDEV_STEERING_STR _trans("Steering Wheel")
+#define SIDEV_DANCEMAT_STR _trans("Dance Mat")
+#define SIDEV_BONGO_STR    _trans("TaruKonga (Bongos)")
+#define SIDEV_GBA_STR      "GBA"
+#define SIDEV_AM_BB_STR    _trans("AM-Baseboard")
 
-#define EXIDEV_MEMCARD_STR	_trans("Memory Card")
-#define EXIDEV_MIC_STR		_trans("Mic")
-#define EXIDEV_BBA_STR		"BBA"
-#define EXIDEV_AM_BB_STR	_trans("AM-Baseboard")
-#define EXIDEV_GECKO_STR	"USBGecko"
+#define EXIDEV_MEMCARD_STR _trans("Memory Card")
+#define EXIDEV_MIC_STR     _trans("Mic")
+#define EXIDEV_BBA_STR     "BBA"
+#define EXIDEV_AM_BB_STR   _trans("AM-Baseboard")
+#define EXIDEV_GECKO_STR   "USBGecko"
 
-#define WXSTR_TRANS(a)		wxString(wxGetTranslation(wxT(a)))
+#define WXSTR_TRANS(a)     wxString(wxGetTranslation(wxT(a)))
 #ifdef WIN32
 //only used with xgettext to be picked up as translatable string.
 //win32 does not have wx on its path, the provided wxALL_FILES
@@ -246,12 +246,12 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_Framelimit.Add(_("Off"));
 	arrayStringFor_Framelimit.Add(_("Auto"));
 	arrayStringFor_Framelimit.Add(_("Audio"));
-	for (int i = 10; i <= 120; i += 5)	// from 10 to 120
+	for (int i = 10; i <= 120; i += 5) // from 10 to 120
 		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 
 	// Emulator Engine
-	for (const CPUCore& CPUCores_a : CPUCores)
-		arrayStringFor_CPUEngine.Add(wxGetTranslation(CPUCores_a.name));
+	for (const CPUCore& CPUCore : CPUCores)
+		arrayStringFor_CPUEngine.Add(wxGetTranslation(CPUCore.name));
 
 	// DSP Engine
 	arrayStringFor_DSPEngine.Add(_("DSP HLE emulation (fast)"));
@@ -325,9 +325,11 @@ void CConfigMain::InitializeGUIValues()
 	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
 
 	// General - Advanced
-	for (unsigned int a = 0; a < (sizeof(CPUCores) / sizeof(CPUCore)); ++a)
-		if (CPUCores[a].CPUid == startup_params.iCPUCore)
-			CPUEngine->SetSelection(a);
+	for (unsigned int i = 0; i < (sizeof(CPUCores) / sizeof(CPUCore)); ++i)
+	{
+		if (CPUCores[i].CPUid == startup_params.iCPUCore)
+			CPUEngine->SetSelection(i);
+	}
 	_NTSCJ->SetValue(startup_params.bForceNTSCJ);
 
 
@@ -335,6 +337,7 @@ void CConfigMain::InitializeGUIValues()
 	ConfirmStop->SetValue(startup_params.bConfirmStop);
 	UsePanicHandlers->SetValue(startup_params.bUsePanicHandlers);
 	OnScreenDisplayMessages->SetValue(startup_params.bOnScreenDisplayMessages);
+
 	// need redesign
 	for (unsigned int i = 0; i < sizeof(langIds) / sizeof(wxLanguage); i++)
 	{
@@ -599,16 +602,17 @@ void CConfigMain::CreateGUIControls()
 
 	CFileSearch cfs(CFileSearch::XStringVector(1, "*"), theme_dirs);
 	auto const& sv = cfs.GetFileNames();
-	std::for_each(sv.begin(), sv.end(), [theme_selection](const std::string& filename)
+
+	for (const std::string& filename : sv)
 	{
 		std::string name, ext;
 		SplitPath(filename, NULL, &name, &ext);
 
 		name += ext;
 		auto const wxname = StrToWxStr(name);
-		if (-1 == theme_selection->FindString(wxname))
+		if (theme_selection->FindString(wxname) == -1)
 			theme_selection->Append(wxname);
-	});
+	}
 
 	theme_selection->SetStringSelection(StrToWxStr(SConfig::GetInstance().m_LocalCoreStartupParameter.theme_name));
 
@@ -1159,9 +1163,9 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 	{
 		// Change plugged device! :D
 		ExpansionInterface::ChangeDevice(
-			(deviceNum == 1) ? 1 : 0,	// SlotB is on channel 1, slotA and SP1 are on 0
-			tempType,					// The device enum to change to
-			(deviceNum == 2) ? 2 : 0);	// SP1 is device 2, slots are device 0
+			(deviceNum == 1) ? 1 : 0,  // SlotB is on channel 1, slotA and SP1 are on 0
+			tempType,                  // The device enum to change to
+			(deviceNum == 2) ? 2 : 0); // SP1 is device 2, slots are device 0
 	}
 }
 
@@ -1248,8 +1252,8 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 	// Save changes right away
 	SConfig::GetInstance().m_ISOFolder.clear();
 
-	for (unsigned int i = 0; i < ISOPaths->GetCount(); i++)
-		SConfig::GetInstance().m_ISOFolder.push_back(WxStrToStr(ISOPaths->GetStrings()[i]));
+	for (const wxString& isoPathStr : ISOPaths->GetStrings())
+		SConfig::GetInstance().m_ISOFolder.push_back(WxStrToStr(isoPathStr));
 }
 
 void CConfigMain::RecursiveDirectoryChanged(wxCommandEvent& WXUNUSED (event))
