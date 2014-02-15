@@ -66,14 +66,12 @@ void CodeConfigPanel::UpdateCodeList(bool checkRunning)
 	btn_download->Enable((!checkRunning || Core::IsRunning()) && !m_gameid.empty());
 
 	m_listbox_gcodes->Clear();
+
 	// add the codes to the listbox
-	std::vector<GeckoCode>::const_iterator
-		gcodes_iter = m_gcodes.begin(),
-		gcodes_end = m_gcodes.end();
-	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
+	for (const GeckoCode& gcode : m_gcodes)
 	{
-		m_listbox_gcodes->Append(StrToWxStr(gcodes_iter->name));
-		if (gcodes_iter->enabled)
+		m_listbox_gcodes->Append(StrToWxStr(gcode.name));
+		if (gcode.enabled)
 			m_listbox_gcodes->Check(m_listbox_gcodes->GetCount()-1, true);
 	}
 
@@ -110,21 +108,16 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 
 		// notes textctrl
 		m_infobox.textctrl_notes->Clear();
-		std::vector<std::string>::const_iterator
-			notes_iter = m_gcodes[sel].notes.begin(),
-			notes_end = m_gcodes[sel].notes.end();
-		for (; notes_iter!=notes_end; ++notes_iter)
-			m_infobox.textctrl_notes->AppendText(StrToWxStr(*notes_iter));
-		m_infobox.textctrl_notes->ScrollLines(-99);	// silly
+
+		for (const std::string& gcode_note : m_gcodes[sel].notes)
+			m_infobox.textctrl_notes->AppendText(StrToWxStr(gcode_note));
+		m_infobox.textctrl_notes->ScrollLines(-99); // silly
 
 		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator) + StrToWxStr(m_gcodes[sel].creator));
 
 		// add codes to info listbox
-		std::vector<GeckoCode::Code>::const_iterator
-		codes_iter = m_gcodes[sel].codes.begin(),
-		codes_end = m_gcodes[sel].codes.end();
-		for (; codes_iter!=codes_end; ++codes_iter)
-			m_infobox.listbox_codes->Append(wxString::Format(wxT("%08X %08X"), codes_iter->address, codes_iter->data));
+		for (const GeckoCode::Code code : m_gcodes[sel].codes)
+			m_infobox.listbox_codes->Append(wxString::Format(wxT("%08X %08X"), code.address, code.data));
 	}
 	else
 	{
@@ -197,7 +190,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 		while ((std::getline(ss, line).good()))
 		{
 			// empty line
-			if (0 == line.size() || line == "\r" || line == "\n")	// \r\n checks might not be needed
+			if (line.empty() || line == "\r" || line == "\n") // \r\n checks might not be needed
 			{
 				// add the code
 				if (gcode.codes.size())
@@ -209,7 +202,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 
 			switch (read_state)
 			{
-				// read new code
+			// read new code
 			case 0 :
 			{
 				std::istringstream ssline(line);
@@ -222,7 +215,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 			}
 				break;
 
-				// read code lines
+			// read code lines
 			case 1 :
 			{
 				std::istringstream ssline(line);
@@ -241,13 +234,12 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 				else
 				{
 					gcode.notes.push_back(line);
-					read_state = 2;	// start reading comments
+					read_state = 2; // start reading comments
 				}
-
 			}
 				break;
 
-				// read comment lines
+			// read comment lines
 			case 2 :
 				// append comment line
 				gcode.notes.push_back(line);
