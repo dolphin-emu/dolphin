@@ -845,12 +845,12 @@ void FifoPlayerDlg::UpdateAnalyzerGui()
 	FifoPlayer &player = FifoPlayer::GetInstance();
 	FifoDataFile* file = player.GetFile();
 
-	int num_frames = (file) ? player.GetFile()->GetFrameCount() : 0;
-	if ((int)m_framesList->GetCount() != num_frames)
+	size_t num_frames = (file) ? player.GetFile()->GetFrameCount() : 0U;
+	if (m_framesList->GetCount() != num_frames)
 	{
 		m_framesList->Clear();
 
-		for (int i = 0; i < num_frames; ++i)
+		for (size_t i = 0; i < num_frames; ++i)
 		{
 			m_framesList->Append(wxString::Format(wxT("Frame %i"), i));
 		}
@@ -897,8 +897,8 @@ wxString FifoPlayerDlg::CreateRecordingFifoSizeLabel() const
 
 	if (file)
 	{
-		int fifoBytes = 0;
-		for (int i = 0; i < file->GetFrameCount(); ++i)
+		size_t fifoBytes = 0;
+		for (size_t i = 0; i < file->GetFrameCount(); ++i)
 			fifoBytes += file->GetFrame(i).fifoDataSize;
 
 		return CreateIntegerLabel(fifoBytes, _("FIFO Byte"));
@@ -913,8 +913,8 @@ wxString FifoPlayerDlg::CreateRecordingMemSizeLabel() const
 
 	if (file)
 	{
-		int memBytes = 0;
-		for (int frameNum = 0; frameNum < file->GetFrameCount(); ++frameNum)
+		size_t memBytes = 0;
+		for (size_t frameNum = 0; frameNum < file->GetFrameCount(); ++frameNum)
 		{
 			const vector<MemoryUpdate>& memUpdates = file->GetFrame(frameNum).memoryUpdates;
 			for (auto& memUpdate : memUpdates)
@@ -933,20 +933,20 @@ wxString FifoPlayerDlg::CreateRecordingFrameCountLabel() const
 
 	if (file)
 	{
-		int numFrames = file->GetFrameCount();
+		size_t numFrames = file->GetFrameCount();
 		return CreateIntegerLabel(numFrames, _("Frame"));
 	}
 
 	return wxEmptyString;
 }
 
-wxString FifoPlayerDlg::CreateIntegerLabel(int size, const wxString& label) const
+wxString FifoPlayerDlg::CreateIntegerLabel(size_t size, const wxString& label) const
 {
 	wxString postfix;
 	if (size != 1)
 		postfix = _("s");
 
-	return wxString::Format(wxT("%i"), size) + wxT(" ") + label + postfix;
+	return wxString::Format(wxT("%u"), size) + wxT(" ") + label + postfix;
 }
 
 bool FifoPlayerDlg::GetSaveButtonEnabled() const

@@ -64,8 +64,8 @@ public:
 	u32 *GetXFRegs() { return m_XFRegs; }
 
 	void AddFrame(const FifoFrameInfo &frameInfo);
-	const FifoFrameInfo &GetFrame(int frame) const { return m_Frames[frame]; }
-	int GetFrameCount() { return (int)m_Frames.size(); }
+	const FifoFrameInfo &GetFrame(size_t frame) const { return m_Frames[frame]; }
+	size_t GetFrameCount() { return m_Frames.size(); }
 
 	bool Save(const char *filename);
 
