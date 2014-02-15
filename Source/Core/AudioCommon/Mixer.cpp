@@ -7,6 +7,8 @@
 #include "AudioCommon.h"
 #include "CPUDetect.h"
 #include "../Core/Host.h"
+#include "ConfigManager.h"
+#include "HW/VideoInterface.h"
 
 #include "../Core/HW/AudioInterface.h"
 
@@ -18,7 +20,7 @@
 #endif
 
 // Executed from sound stream thread
-unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
+unsigned int CMixer::Mix(short* samples, unsigned int numSamples, bool consider_framelimit)
 {
 	if (!samples)
 		return 0;
@@ -32,16 +34,7 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		return numSamples;
 	}
 
-	unsigned int numLeft = GetNumSamples();
-	if (m_AIplaying) {
-		if (numLeft < numSamples)//cannot do much about this
-			m_AIplaying = false;
-		if (numLeft < MAX_SAMPLES/4)//low watermark
-			m_AIplaying = false;
-	} else {
-		if (numLeft > MAX_SAMPLES/2)//high watermark
-			m_AIplaying = true;
-	}
+	unsigned int currentSample = 0;
 
 	// Cache access in non-volatile variable
 	// This is the only function changing the read value, so it's safe to
@@ -53,100 +46,68 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	u32 indexR = Common::AtomicLoad(m_indexR);
 	u32 indexW = Common::AtomicLoad(m_indexW);
 
-	if (m_AIplaying) {
-		numLeft = (numLeft > numSamples) ? numSamples : numLeft;
+	float numLeft = ((indexW - indexR) & INDEX_MASK) / 2;
+	m_numLeftI = (numLeft + m_numLeftI*(CONTROL_AVG-1)) / CONTROL_AVG;
+	float offset = (m_numLeftI - LOW_WATERMARK) * CONTROL_FACTOR;
+	if(offset > MAX_FREQ_SHIFT) offset = MAX_FREQ_SHIFT;
+	if(offset < -MAX_FREQ_SHIFT) offset = -MAX_FREQ_SHIFT;
 
-		if (AudioInterface::GetAIDSampleRate() == m_sampleRate) // (1:1)
-		{
-#if _M_SSE >= 0x301
-			if (cpu_info.bSSSE3 && !((numLeft * 2) % 8))
-			{
-				static const __m128i sr_mask =
-					_mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL,
-								  0x04050607L, 0x00010203L);
+	//render numleft sample pairs to samples[]
+	//advance indexR with sample position
+	//remember fractional offset
 
-				for (unsigned int i = 0; i < numLeft * 2; i += 8)
-				{
-					_mm_storeu_si128((__m128i *)&samples[i], _mm_shuffle_epi8(_mm_loadu_si128((__m128i *)&m_buffer[(indexR + i) & INDEX_MASK]), sr_mask));
-				}
-			}
-			else
-#endif
-			{
-				for (unsigned int i = 0; i < numLeft * 2; i+=2)
-				{
-					samples[i] = Common::swap16(m_buffer[(indexR + i + 1) & INDEX_MASK]);
-					samples[i+1] = Common::swap16(m_buffer[(indexR + i) & INDEX_MASK]);
-				}
-			}
-			indexR += numLeft * 2;
-		}
-		else //linear interpolation
-		{
-			//render numleft sample pairs to samples[]
-			//advance indexR with sample position
-			//remember fractional offset
+	u32 framelimit = SConfig::GetInstance().m_Framelimit;
+	float aid_sample_rate = AudioInterface::GetAIDSampleRate() + offset;
+	if (consider_framelimit && framelimit > 2)
+	{
+		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
+	}
 
-			static u32 frac = 0;
-			const u32 ratio = (u32)( 65536.0f * (float)AudioInterface::GetAIDSampleRate() / (float)m_sampleRate );
+	static u32 frac = 0;
+	const u32 ratio = (u32)( 65536.0f * aid_sample_rate / (float)m_sampleRate );
 
-			for (u32 i = 0; i < numLeft * 2; i+=2) {
-				u32 indexR2 = indexR + 2; //next sample
-				if ((indexR2 & INDEX_MASK) == (indexW & INDEX_MASK)) //..if it exists
-					indexR2 = indexR;
+	if(ratio > 0x10000)
+		ERROR_LOG(AUDIO, "ratio out of range");
 
-				s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); //current
-				s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
-				int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
-				samples[i+1] = sampleL;
+	for (; currentSample < numSamples*2 && ((indexW-indexR) & INDEX_MASK) > 2; currentSample+=2) {
+		u32 indexR2 = indexR + 2; //next sample
 
-				s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
-				s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
-				int sampleR = ((r1 << 16) + (r2 - r1) * (u16)frac)  >> 16;
-				samples[i] = sampleR;
+		s16 l1 = Common::swap16(m_buffer[indexR & INDEX_MASK]); //current
+		s16 l2 = Common::swap16(m_buffer[indexR2 & INDEX_MASK]); //next
+		int sampleL = ((l1 << 16) + (l2 - l1) * (u16)frac)  >> 16;
+		samples[currentSample+1] = sampleL;
 
-				frac += ratio;
-				indexR += 2 * (u16)(frac >> 16);
-				frac &= 0xffff;
-			}
-		}
+		s16 r1 = Common::swap16(m_buffer[(indexR + 1) & INDEX_MASK]); //current
+		s16 r2 = Common::swap16(m_buffer[(indexR2 + 1) & INDEX_MASK]); //next
+		int sampleR = ((r1 << 16) + (r2 - r1) * (u16)frac)  >> 16;
+		samples[currentSample] = sampleR;
 
-	} else {
-		numLeft = 0;
+		frac += ratio;
+		indexR += 2 * (u16)(frac >> 16);
+		frac &= 0xffff;
 	}
 
 	// Padding
-	if (numSamples > numLeft)
+	unsigned short s[2];
+	s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
+	s[1] = Common::swap16(m_buffer[(indexR - 2) & INDEX_MASK]);
+	for (; currentSample < numSamples*2; currentSample+=2)
 	{
-		unsigned short s[2];
-		s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
-		s[1] = Common::swap16(m_buffer[(indexR - 2) & INDEX_MASK]);
-		for (unsigned int i = numLeft*2; i < numSamples*2; i+=2)
-			*(u32*)(samples+i) = *(u32*)(s);
-//		memset(&samples[numLeft * 2], 0, (numSamples - numLeft) * 4);
+		samples[currentSample] = s[0];
+		samples[currentSample+1] = s[1];
 	}
 
 	// Flush cached variable
 	Common::AtomicStore(m_indexR, indexR);
 
-	//when logging, also throttle HLE audio
-	if (m_logAudio) {
-		if (m_AIplaying) {
-			Premix(samples, numLeft);
+	// Add the DSPHLE sound, re-sampling is done inside
+	Premix(samples, numSamples);
 
-			AudioInterface::Callback_GetStreaming(samples, numLeft, m_sampleRate);
-
-			g_wave_writer.AddStereoSamples(samples, numLeft);
-		}
-	}
-	else { 	//or mix as usual
-		// Add the DSPHLE sound, re-sampling is done inside
-		Premix(samples, numSamples);
-
-		// Add the DTK Music
-		// Re-sampling is done inside
-		AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
-	}
+	// Add the DTK Music
+	// Re-sampling is done inside
+	AudioInterface::Callback_GetStreaming(samples, numSamples, m_sampleRate);
+	if (m_logAudio)
+		g_wave_writer.AddStereoSamples(samples, numSamples);
 
 	return numSamples;
 }
@@ -196,26 +157,5 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 	Common::AtomicAdd(m_indexW, num_samples * 2);
 
 	return;
-}
-
-unsigned int CMixer::GetNumSamples()
-{
-	// Guess how many samples would be available after interpolation.
-	// As interpolation needs at least on sample from the future to
-	// linear interpolate between them, one sample less is available.
-	// We also can't say the current interpolation state (specially
-	// the frac), so to be sure, subtract one again to be sure not
-	// to underflow the fifo.
-
-	u32 numSamples = ((Common::AtomicLoad(m_indexW) - Common::AtomicLoad(m_indexR)) & INDEX_MASK) / 2;
-
-	if (AudioInterface::GetAIDSampleRate() == m_sampleRate)
-		; //numSamples = numSamples; // 1:1
-	else if (m_sampleRate == 48000 && AudioInterface::GetAIDSampleRate() == 32000)
-		numSamples = numSamples * 3 / 2 - 2; // most common case
-	else
-		numSamples = numSamples * m_sampleRate / AudioInterface::GetAIDSampleRate() - 2;
-
-	return numSamples;
 }
 
