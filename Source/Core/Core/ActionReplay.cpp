@@ -19,6 +19,7 @@
 // Zero Codes: any code with no address.  These codes are used to do special operations like memory copy, etc
 // -------------------------------------------------------------------------------------------------------------
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -111,7 +112,7 @@ bool CompareValues(const u32 val1, const u32 val2, const int type);
 
 // ----------------------
 // AR Remote Functions
-void LoadCodes(IniFile &globalIni, IniFile &localIni, bool forceLoad)
+void LoadCodes(const IniFile &globalIni, const IniFile &localIni, bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats
@@ -132,22 +133,17 @@ void LoadCodes(IniFile &globalIni, IniFile &localIni, bool forceLoad)
 		}
 	}
 
-	IniFile* inis[] = {&globalIni, &localIni};
-	for (size_t i = 0; i < ArraySize(inis); ++i)
+	const std::array<const IniFile*, 2> inis = {&globalIni, &localIni};
+	for (const IniFile* ini : inis)
 	{
 		std::vector<std::string> lines;
 		std::vector<std::string> encryptedLines;
 		ARCode currentCode;
 
-		inis[i]->GetLines("ActionReplay", lines);
+		ini->GetLines("ActionReplay", lines);
 
-		std::vector<std::string>::const_iterator
-			it = lines.begin(),
-			lines_end = lines.end();
-		for (; it != lines_end; ++it)
+		for (std::string line : lines)
 		{
-			const std::string line = *it;
-
 			if (line.empty())
 				continue;
 
@@ -171,7 +167,7 @@ void LoadCodes(IniFile &globalIni, IniFile &localIni, bool forceLoad)
 
 				currentCode.name = line.substr(1, line.size() - 1);
 				currentCode.active = enabledNames.find(currentCode.name) != enabledNames.end();
-				currentCode.user_defined = (i == 1);
+				currentCode.user_defined = (ini == &localIni);
 			}
 			else
 			{

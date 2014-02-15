@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include "PerfQueryBase.h"
 
 namespace OGL {
@@ -32,7 +33,7 @@ private:
 	void FlushOne();
 
 	// This contains gl query objects with unretrieved results.
-	ActiveQuery m_query_buffer[PERF_QUERY_BUFFER_SIZE];
+	std::array<ActiveQuery, PERF_QUERY_BUFFER_SIZE> m_query_buffer;
 	u32 m_query_read_pos;
 
 	// TODO: sloppy
