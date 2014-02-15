@@ -90,6 +90,7 @@ void GenericLog(LOGTYPES_LEVELS level, LOGTYPES_TYPE type,
 #endif
 		;
 
+#define MIN_LOGLEVEL NOTICE_LEVEL
 #if defined LOGGING || defined _DEBUG || defined DEBUGFAST
 #define MAX_LOGLEVEL DEBUG_LEVEL
 #else

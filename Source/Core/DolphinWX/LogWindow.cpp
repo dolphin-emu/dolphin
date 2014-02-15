@@ -7,6 +7,7 @@
 #include "Console.h"
 #include "IniFile.h"
 #include "FileUtil.h"
+#include "MathUtil.h"
 #include "Debugger/DebuggerUIUtil.h"
 #include "WxUtils.h"
 
@@ -53,10 +54,7 @@ void CLogWindow::CreateGUIControls()
 	ini.Get("Options", "Verbosity", &verbosity, 0);
 
 	// Ensure the verbosity level is valid
-	if (verbosity < 1)
-		verbosity = 1;
-	if (verbosity > MAX_LOGLEVEL)
-		verbosity = MAX_LOGLEVEL;
+	MathUtil::Clamp(&verbosity, MIN_LOGLEVEL, MAX_LOGLEVEL);
 
 	// Get the logger output settings from the config ini file.
 	ini.Get("Options", "WriteToFile", &m_writeFile, false);
@@ -195,8 +193,7 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 
 	{
 	std::lock_guard<std::mutex> lk(m_LogSection);
-	int msgQueueSize = (int)msgQueue.size();
-	for (int i = 0; i < msgQueueSize; i++)
+	for (size_t i = 0; i < msgQueue.size(); i++)
 		msgQueue.pop();
 	}
 
@@ -297,8 +294,8 @@ void CLogWindow::UpdateLog()
 	if (!msgQueue.empty())
 	{
 		std::lock_guard<std::mutex> lk(m_LogSection);
-		int msgQueueSize = (int)msgQueue.size();
-		for (int i = 0; i < msgQueueSize; i++)
+
+		for (size_t i = 0; i < msgQueue.size(); i++)
 		{
 			switch (msgQueue.front().first)
 			{
