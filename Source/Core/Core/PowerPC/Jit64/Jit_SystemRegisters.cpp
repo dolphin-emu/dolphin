@@ -19,7 +19,6 @@ void Jit64::mtspr(UGeckoInstruction inst)
 
 	switch (iIndex)
 	{
-
 	case SPR_DMAU:
 
 	case SPR_SPRG0:
@@ -46,20 +45,9 @@ void Jit64::mtspr(UGeckoInstruction inst)
 	case SPR_GQR0 + 5:
 	case SPR_GQR0 + 6:
 	case SPR_GQR0 + 7:
-		// Prevent recompiler from compiling in old quantizer values.
-		// If the value changed, destroy all blocks using this quantizer
-		// This will create a little bit of block churn, but hopefully not too bad.
-		{
-			/*
-			MOV(32, R(EAX), M(&PowerPC::ppcState.spr[iIndex]));  // Load old value
-			CMP(32, R(EAX), gpr.R(inst.RD));
-			FixupBranch skip_destroy = J_CC(CC_E, false);
-			int gqr = iIndex - SPR_GQR0;
-			ABI_CallFunctionC(ProtectFunction(&Jit64::DestroyBlocksWithFlag, 1), (u32)BLOCK_USE_GQR0 << gqr);
-			SetJumpTarget(skip_destroy);*/
-		}
+		// These are safe to do the easy way, see the bottom of this function.
 		break;
-		// TODO - break block if quantizers are written to.
+
 	default:
 		Default(inst);
 		return;
@@ -276,40 +264,40 @@ void Jit64::crXXX(UGeckoInstruction inst)
 	// Compute combined bit
 	switch(inst.SUBOP10)
 	{
-	case 33:	// crnor
+	case 33:  // crnor
 		OR(8, R(EAX), R(ECX));
 		NOT(8, R(EAX));
 		break;
 
-	case 129:	// crandc
+	case 129: // crandc
 		NOT(8, R(ECX));
 		AND(8, R(EAX), R(ECX));
 		break;
 
-	case 193:	// crxor
+	case 193: // crxor
 		XOR(8, R(EAX), R(ECX));
 		break;
 
-	case 225:	// crnand
+	case 225: // crnand
 		AND(8, R(EAX), R(ECX));
 		NOT(8, R(EAX));
 		break;
 
-	case 257:	// crand
+	case 257: // crand
 		AND(8, R(EAX), R(ECX));
 		break;
 
-	case 289:	// creqv
+	case 289: // creqv
 		XOR(8, R(EAX), R(ECX));
 		NOT(8, R(EAX));
 		break;
 
-	case 417:	// crorc
+	case 417: // crorc
 		NOT(8, R(ECX));
 		OR(8, R(EAX), R(ECX));
 		break;
 
-	case 449:	// cror
+	case 449: // cror
 		OR(8, R(EAX), R(ECX));
 		break;
 	}
