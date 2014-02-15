@@ -486,6 +486,10 @@ void Renderer::SetViewport()
 	// [4] = yorig + height/2 + 342
 	// [5] = 16777215 * farz
 
+	// D3D crashes for zero viewports
+	if (xfregs.viewport.wd == 0 || xfregs.viewport.ht == 0)
+		return;
+
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 

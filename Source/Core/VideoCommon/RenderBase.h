@@ -160,5 +160,3 @@ private:
 
 extern Renderer *g_renderer;
 
-extern void SetViewport();
-

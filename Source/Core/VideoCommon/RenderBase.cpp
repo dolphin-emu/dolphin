@@ -512,12 +512,6 @@ void Renderer::RecordVideoMemory()
 	FifoRecorder::GetInstance().SetVideoMemory(bpMem, cpMem, xfMem, xfRegs, sizeof(XFRegisters) / 4);
 }
 
-void SetViewport()
-{
-	if (xfregs.viewport.wd != 0 && xfregs.viewport.ht != 0)
-		g_renderer->SetViewport();
-}
-
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
 	// TODO: merge more generic parts into VideoCommon
