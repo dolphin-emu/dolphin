@@ -80,7 +80,9 @@ void Jit64::lfd(UGeckoInstruction inst)
 	fpr.Lock(d);
 	fpr.BindToRegister(d, true);
 	X64Reg xd = fpr.RX(d);
-	if (cpu_info.bSSSE3) {
+
+	if (cpu_info.bSSSE3)
+	{
 #ifdef _M_X64
 		MOVQ_xmm(XMM0, MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 #else
@@ -116,20 +118,9 @@ void Jit64::lfd(UGeckoInstruction inst)
 		MOVSD(xd, R(XMM0));
 
 		MEMCHECK_END
-#if 0
-		// Alternate implementation; possibly faster
-		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(XMM0, MDisp(ABI_PARAM1, (u32)Memory::base + offset));
-		PSHUFLW(XMM0, R(XMM0), 0x1B);
-		PSRLW(XMM0, 8);
-		MOVSD(xd, R(XMM0));
-		MOVQ_xmm(XMM0, MDisp(ABI_PARAM1, (u32)Memory::base + offset));
-		PSHUFLW(XMM0, R(XMM0), 0x1B);
-		PSLLW(XMM0, 8);
-		POR(xd, R(XMM0));
-#endif
 #endif
 	}
+
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
