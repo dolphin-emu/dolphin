@@ -46,8 +46,8 @@ std::vector<Patch> onFrame;
 std::map<u32, int> speedHacks;
 std::vector<std::string> discList;
 
-void LoadPatchSection(const char *section, std::vector<Patch> &patches,
-                      IniFile &globalIni, IniFile &localIni)
+void LoadPatchSection(const char *section, std::vector<Patch>& patches,
+                      IniFile& globalIni, IniFile& localIni)
 {
 	// Load the name of all enabled patches
 	std::string enabledSectionName = std::string(section) + "_Enabled";
@@ -63,13 +63,13 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches,
 		}
 	}
 
-	IniFile* inis[] = {&globalIni, &localIni};
+	const IniFile* inis[2] = {&globalIni, &localIni};
 
-	for (size_t i = 0; i < ArraySize(inis); ++i)
+	for (const IniFile* ini : inis)
 	{
 		std::vector<std::string> lines;
 		Patch currentPatch;
-		inis[i]->GetLines(section, lines);
+		ini->GetLines(section, lines);
 
 		for (std::string& line : lines)
 		{
@@ -86,7 +86,7 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches,
 				// Set active and name
 				currentPatch.name = line.substr(1, line.size() - 1);
 				currentPatch.active = enabledNames.find(currentPatch.name) != enabledNames.end();
-				currentPatch.user_defined = (i == 1);
+				currentPatch.user_defined = (ini == &localIni);
 			}
 			else
 			{

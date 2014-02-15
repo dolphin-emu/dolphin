@@ -14,16 +14,16 @@ PerfQuery::PerfQuery()
 	: m_query_read_pos()
 	, m_query_count()
 {
-	for (u32 i = 0; i != ArraySize(m_query_buffer); ++i)
-		glGenQueries(1, &m_query_buffer[i].query_id);
+	for (ActiveQuery& query : m_query_buffer)
+		glGenQueries(1, &query.query_id);
 
 	ResetQuery();
 }
 
 PerfQuery::~PerfQuery()
 {
-	for (u32 i = 0; i != ArraySize(m_query_buffer); ++i)
-		glDeleteQueries(1, &m_query_buffer[i].query_id);
+	for (ActiveQuery& query : m_query_buffer)
+		glDeleteQueries(1, &query.query_id);
 }
 
 void PerfQuery::EnableQuery(PerfQueryGroup type)
@@ -32,10 +32,10 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 		return;
 
 	// Is this sane?
-	if (m_query_count > ArraySize(m_query_buffer) / 2)
+	if (m_query_count > m_query_buffer.size() / 2)
 		WeakFlush();
 
-	if (ArraySize(m_query_buffer) == m_query_count)
+	if (m_query_buffer.size() == m_query_count)
 	{
 		FlushOne();
 		//ERROR_LOG(VIDEO, "Flushed query buffer early!");
@@ -44,7 +44,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 	// start query
 	if (type == PQG_ZCOMP_ZCOMPLOC || type == PQG_ZCOMP)
 	{
-		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count) % ArraySize(m_query_buffer)];
+		auto& entry = m_query_buffer[(m_query_read_pos + m_query_count) % m_query_buffer.size()];
 
 		glBeginQuery(GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL ? GL_SAMPLES_PASSED : GL_ANY_SAMPLES_PASSED, entry.query_id);
 		entry.query_type = type;
@@ -86,7 +86,7 @@ void PerfQuery::FlushOne()
 	// NOTE: Reported pixel metrics should be referenced to native resolution
 	m_results[entry.query_type] += (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
 
-	m_query_read_pos = (m_query_read_pos + 1) % ArraySize(m_query_buffer);
+	m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
 	--m_query_count;
 }
 
