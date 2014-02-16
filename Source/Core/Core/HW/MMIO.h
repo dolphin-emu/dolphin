@@ -31,6 +31,19 @@ enum Block
 const u32 BLOCK_SIZE = 0x10000;
 const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
 
+// Checks if a given physical memory address refers to the MMIO address range.
+// In practice, most games use a virtual memory mapping (via BATs set in the
+// IPL) that matches the physical memory mapping for MMIOs.
+//
+// We have a special exception here for FIFO writes: these are handled via a
+// different mechanism and should not go through the normal MMIO access
+// interface.
+inline bool IsMMIOAddress(u32 address)
+{
+	return ((address & 0xE0000000) == 0xC0000000) &&
+	       ((address & 0x0000FFFF) != 0x00008000);
+}
+
 // Compute the internal unique ID for a given MMIO address. This ID is computed
 // from a very simple formula: (block_id << 16) | lower_16_bits(address).
 //
