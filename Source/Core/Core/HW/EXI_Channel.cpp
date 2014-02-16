@@ -9,9 +9,9 @@
 #include "../Movie.h"
 #include "MMIO.h"
 
-#define EXI_READ		0
-#define EXI_WRITE		1
-#define EXI_READWRITE	2
+#define EXI_READ      0
+#define EXI_WRITE     1
+#define EXI_READWRITE 2
 
 #include "ProcessorInterface.h"
 #include "../PowerPC/PowerPC.h"
@@ -197,9 +197,9 @@ bool CEXIChannel::IsCausingInterrupt()
 		if (GetDevice(m_Status.CHIP_SELECT)->IsInterruptSet())
 			m_Status.EXIINT = 1;
 
-	if ((m_Status.EXIINT	& m_Status.EXIINTMASK) ||
-		(m_Status.TCINT		& m_Status.TCINTMASK) ||
-		(m_Status.EXTINT	& m_Status.EXTINTMASK))
+	if ((m_Status.EXIINT & m_Status.EXIINTMASK) ||
+		(m_Status.TCINT  & m_Status.TCINTMASK) ||
+		(m_Status.EXTINT & m_Status.EXTINTMASK))
 	{
 		return true;
 	}

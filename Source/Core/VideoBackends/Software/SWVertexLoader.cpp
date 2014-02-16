@@ -182,12 +182,12 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		case DIRECT:
 			switch (colComp[i])
 			{
-			case FORMAT_16B_565:	m_VertexSize += 2; m_colorLoader[i] = (Color_ReadDirect_16b_565); break;
-			case FORMAT_24B_888:	m_VertexSize += 3; m_colorLoader[i] = (Color_ReadDirect_24b_888); break;
-			case FORMAT_32B_888x:	m_VertexSize += 4; m_colorLoader[i] = (Color_ReadDirect_32b_888x); break;
-			case FORMAT_16B_4444:	m_VertexSize += 2; m_colorLoader[i] = (Color_ReadDirect_16b_4444); break;
-			case FORMAT_24B_6666:	m_VertexSize += 3; m_colorLoader[i] = (Color_ReadDirect_24b_6666); break;
-			case FORMAT_32B_8888:	m_VertexSize += 4; m_colorLoader[i] = (Color_ReadDirect_32b_8888); break;
+			case FORMAT_16B_565:  m_VertexSize += 2; m_colorLoader[i] = (Color_ReadDirect_16b_565); break;
+			case FORMAT_24B_888:  m_VertexSize += 3; m_colorLoader[i] = (Color_ReadDirect_24b_888); break;
+			case FORMAT_32B_888x: m_VertexSize += 4; m_colorLoader[i] = (Color_ReadDirect_32b_888x); break;
+			case FORMAT_16B_4444: m_VertexSize += 2; m_colorLoader[i] = (Color_ReadDirect_16b_4444); break;
+			case FORMAT_24B_6666: m_VertexSize += 3; m_colorLoader[i] = (Color_ReadDirect_24b_6666); break;
+			case FORMAT_32B_8888: m_VertexSize += 4; m_colorLoader[i] = (Color_ReadDirect_32b_8888); break;
 			default: _assert_(0); break;
 			}
 			AddAttributeLoader(LoadColor, i);
@@ -196,12 +196,12 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 			m_VertexSize += 1;
 			switch (colComp[i])
 			{
-			case FORMAT_16B_565:	m_colorLoader[i] = (Color_ReadIndex8_16b_565); break;
-			case FORMAT_24B_888:	m_colorLoader[i] = (Color_ReadIndex8_24b_888); break;
-			case FORMAT_32B_888x:	m_colorLoader[i] = (Color_ReadIndex8_32b_888x); break;
-			case FORMAT_16B_4444:	m_colorLoader[i] = (Color_ReadIndex8_16b_4444); break;
-			case FORMAT_24B_6666:	m_colorLoader[i] = (Color_ReadIndex8_24b_6666); break;
-			case FORMAT_32B_8888:	m_colorLoader[i] = (Color_ReadIndex8_32b_8888); break;
+			case FORMAT_16B_565:  m_colorLoader[i] = (Color_ReadIndex8_16b_565); break;
+			case FORMAT_24B_888:  m_colorLoader[i] = (Color_ReadIndex8_24b_888); break;
+			case FORMAT_32B_888x: m_colorLoader[i] = (Color_ReadIndex8_32b_888x); break;
+			case FORMAT_16B_4444: m_colorLoader[i] = (Color_ReadIndex8_16b_4444); break;
+			case FORMAT_24B_6666: m_colorLoader[i] = (Color_ReadIndex8_24b_6666); break;
+			case FORMAT_32B_8888: m_colorLoader[i] = (Color_ReadIndex8_32b_8888); break;
 			default: _assert_(0); break;
 			}
 			AddAttributeLoader(LoadColor, i);
@@ -210,12 +210,12 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 			m_VertexSize += 2;
 			switch (colComp[i])
 			{
-			case FORMAT_16B_565:	m_colorLoader[i] = (Color_ReadIndex16_16b_565); break;
-			case FORMAT_24B_888:	m_colorLoader[i] = (Color_ReadIndex16_24b_888); break;
-			case FORMAT_32B_888x:	m_colorLoader[i] = (Color_ReadIndex16_32b_888x); break;
-			case FORMAT_16B_4444:	m_colorLoader[i] = (Color_ReadIndex16_16b_4444); break;
-			case FORMAT_24B_6666:	m_colorLoader[i] = (Color_ReadIndex16_24b_6666); break;
-			case FORMAT_32B_8888:	m_colorLoader[i] = (Color_ReadIndex16_32b_8888); break;
+			case FORMAT_16B_565:  m_colorLoader[i] = (Color_ReadIndex16_16b_565); break;
+			case FORMAT_24B_888:  m_colorLoader[i] = (Color_ReadIndex16_24b_888); break;
+			case FORMAT_32B_888x: m_colorLoader[i] = (Color_ReadIndex16_32b_888x); break;
+			case FORMAT_16B_4444: m_colorLoader[i] = (Color_ReadIndex16_16b_4444); break;
+			case FORMAT_24B_6666: m_colorLoader[i] = (Color_ReadIndex16_24b_6666); break;
+			case FORMAT_32B_8888: m_colorLoader[i] = (Color_ReadIndex16_32b_8888); break;
 			default: _assert_(0); break;
 			}
 			AddAttributeLoader(LoadColor, i);

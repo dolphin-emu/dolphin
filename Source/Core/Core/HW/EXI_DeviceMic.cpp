@@ -203,8 +203,8 @@ void CEXIMic::TransferByte(u8 &byte)
 {
 	if (m_position == 0)
 	{
-		command = byte;	// first byte is command
-		byte = 0xFF;	// would be tristate, but we don't care.
+		command = byte; // first byte is command
+		byte = 0xFF;    // would be tristate, but we don't care.
 		m_position++;
 		return;
 	}

@@ -77,11 +77,11 @@ bool CWII_IPC_HLE_Device_net_kd_request::Close(u32 _CommandAddress, bool _bForce
 
 bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 {
-	u32 Parameter		= Memory::Read_U32(_CommandAddress + 0xC);
-	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 Parameter     = Memory::Read_U32(_CommandAddress + 0xC);
+	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+	u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
 	u32 ReturnValue = 0;
 	switch (Parameter)
@@ -628,11 +628,11 @@ static unsigned int opt_name_mapping[][2] = {
 
 bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 {
-	u32 Command			= Memory::Read_U32(_CommandAddress + 0x0C);
-	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 Command       = Memory::Read_U32(_CommandAddress + 0x0C);
+	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+	u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
 	u32 ReturnValue = 0;
 	switch (Command)
@@ -646,9 +646,9 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 	}
 	case IOCTL_SO_SOCKET:
 	{
-		u32 af		= Memory::Read_U32(BufferIn);
-		u32 type	= Memory::Read_U32(BufferIn + 0x04);
-		u32 prot	= Memory::Read_U32(BufferIn + 0x08);
+		u32 af   = Memory::Read_U32(BufferIn);
+		u32 type = Memory::Read_U32(BufferIn + 0x04);
+		u32 prot = Memory::Read_U32(BufferIn + 0x08);
 
 		WiiSockMan &sm = WiiSockMan::getInstance();
 		ReturnValue = sm.newSocket(af, type, prot);
@@ -912,9 +912,9 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
 			for (int i = 0; i < nfds; i++)
 			{
-				ufds[i].fd = Memory::Read_U32(BufferOut + 0xc*i);				//fd
-				int events = Memory::Read_U32(BufferOut + 0xc*i + 4);			//events
-				ufds[i].revents = Memory::Read_U32(BufferOut + 0xc*i + 8);	//revents
+				ufds[i].fd = Memory::Read_U32(BufferOut + 0xc*i);          //fd
+				int events = Memory::Read_U32(BufferOut + 0xc*i + 4);      //events
+				ufds[i].revents = Memory::Read_U32(BufferOut + 0xc*i + 8); //revents
 
 				// Translate Wii to native events
 				int unhandled_events = events;
@@ -1246,14 +1246,14 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 
 		if (BufferInSize3)
 		{
-			hints.ai_flags		= Memory::Read_U32(_BufferIn3);
-			hints.ai_family		= Memory::Read_U32(_BufferIn3 + 0x4);
-			hints.ai_socktype	= Memory::Read_U32(_BufferIn3 + 0x8);
-			hints.ai_protocol	= Memory::Read_U32(_BufferIn3 + 0xC);
-			hints.ai_addrlen	= Memory::Read_U32(_BufferIn3 + 0x10);
-			hints.ai_canonname	= NULL;
-			hints.ai_addr		= NULL;
-			hints.ai_next		= NULL;
+			hints.ai_flags     = Memory::Read_U32(_BufferIn3);
+			hints.ai_family    = Memory::Read_U32(_BufferIn3 + 0x4);
+			hints.ai_socktype  = Memory::Read_U32(_BufferIn3 + 0x8);
+			hints.ai_protocol  = Memory::Read_U32(_BufferIn3 + 0xC);
+			hints.ai_addrlen   = Memory::Read_U32(_BufferIn3 + 0x10);
+			hints.ai_canonname = NULL;
+			hints.ai_addr      = NULL;
+			hints.ai_next      = NULL;
 		}
 
 		char* pNodeName = NULL;
@@ -1336,10 +1336,10 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			INFO_LOG(WII_IPC_NET, "IOCTLV_SO_ICMPPING %i IPs", num_ip);
 		}
 
-		ip_info.length		= Memory::Read_U8(_BufferIn + 16);
-		ip_info.addr_family	= Memory::Read_U8(_BufferIn + 17);
-		ip_info.icmp_id		= Memory::Read_U16(_BufferIn + 18);
-		ip_info.ip			= Memory::Read_U32(_BufferIn + 20);
+		ip_info.length      = Memory::Read_U8(_BufferIn + 16);
+		ip_info.addr_family = Memory::Read_U8(_BufferIn + 17);
+		ip_info.icmp_id     = Memory::Read_U16(_BufferIn + 18);
+		ip_info.ip          = Memory::Read_U32(_BufferIn + 20);
 
 		if (ip_info.length != 8 || ip_info.addr_family != AF_INET)
 		{

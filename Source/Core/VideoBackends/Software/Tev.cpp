@@ -119,7 +119,7 @@ inline s16 Clamp255(s16 in)
 
 inline s16 Clamp1024(s16 in)
 {
-		return in>1023?1023:(in<-1024?-1024:in);
+	return in>1023?1023:(in<-1024?-1024:in);
 }
 
 void Tev::SetRasColor(int colorChan, int swaptable)
@@ -595,10 +595,12 @@ void Tev::Draw()
 #if ALLOW_TEV_DUMPS
 		if (g_SWVideoConfig.bDumpTevStages)
 		{
-			u8 stage[4] = { IndirectTex[stageNum][TextureSampler::ALP_SMP],
-							IndirectTex[stageNum][TextureSampler::BLU_SMP],
-							IndirectTex[stageNum][TextureSampler::GRN_SMP],
-							255};
+			u8 stage[4] = { 
+				IndirectTex[stageNum][TextureSampler::ALP_SMP],
+				IndirectTex[stageNum][TextureSampler::BLU_SMP],
+				IndirectTex[stageNum][TextureSampler::GRN_SMP],
+				255
+			};
 			DebugUtil::DrawTempBuffer(stage, INDIRECT + stageNum);
 		}
 #endif

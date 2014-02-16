@@ -44,10 +44,10 @@ private:
 		ControlState GetState() const;
 
 	private:
-		std::string	m_keyname;
-		Display* const	m_display;
+		std::string       m_keyname;
+		Display* const    m_display;
 		const char* const m_keyboard;
-		const KeyCode	m_keycode;
+		const KeyCode     m_keycode;
 	};
 
 	class Button : public Input
@@ -73,9 +73,9 @@ private:
 
 	private:
 		const float& m_cursor;
-		const u8 m_index;
-		const bool m_positive;
-		std::string name;
+		const u8     m_index;
+		const bool   m_positive;
+		std::string  name;
 	};
 
 	class Axis : public Input
@@ -88,9 +88,9 @@ private:
 
 	private:
 		const float& m_axis;
-		const u8 m_index;
-		const bool m_positive;
-		std::string name;
+		const u8     m_index;
+		const bool   m_positive;
+		std::string  name;
 	};
 
 private:
@@ -109,12 +109,12 @@ public:
 	int GetId() const;
 
 private:
-	Window m_window;
-	Display* m_display;
-	State m_state;
-	int				xi_opcode;
-	const int		pointer_deviceid, keyboard_deviceid;
-	std::string		name;
+	Window      m_window;
+	Display*    m_display;
+	State       m_state;
+	int         xi_opcode;
+	const int   pointer_deviceid, keyboard_deviceid;
+	std::string name;
 };
 
 }

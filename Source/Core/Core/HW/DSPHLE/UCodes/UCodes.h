@@ -132,8 +132,8 @@ private:
 		u16 dram_size;
 		u16 dram_dest;
 	};
-	SUCode	m_NextUCode;
-	int	m_NextUCode_steps;
+	SUCode m_NextUCode;
+	int m_NextUCode_steps;
 
 	bool m_NeedsResumeMail;
 };

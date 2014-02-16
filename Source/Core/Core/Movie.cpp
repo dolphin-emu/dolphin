@@ -605,14 +605,14 @@ void SetWiiInputDisplayString(int remoteID, u8* const coreData, u8* const accelD
 
 void CheckPadStatus(SPADStatus *PadStatus, int controllerID)
 {
-	g_padState.A		 = ((PadStatus->button & PAD_BUTTON_A) != 0);
-	g_padState.B		 = ((PadStatus->button & PAD_BUTTON_B) != 0);
-	g_padState.X		 = ((PadStatus->button & PAD_BUTTON_X) != 0);
-	g_padState.Y		 = ((PadStatus->button & PAD_BUTTON_Y) != 0);
-	g_padState.Z		 = ((PadStatus->button & PAD_TRIGGER_Z) != 0);
+	g_padState.A         = ((PadStatus->button & PAD_BUTTON_A) != 0);
+	g_padState.B         = ((PadStatus->button & PAD_BUTTON_B) != 0);
+	g_padState.X         = ((PadStatus->button & PAD_BUTTON_X) != 0);
+	g_padState.Y         = ((PadStatus->button & PAD_BUTTON_Y) != 0);
+	g_padState.Z         = ((PadStatus->button & PAD_TRIGGER_Z) != 0);
 	g_padState.Start     = ((PadStatus->button & PAD_BUTTON_START) != 0);
 
-	g_padState.DPadUp	 = ((PadStatus->button & PAD_BUTTON_UP) != 0);
+	g_padState.DPadUp    = ((PadStatus->button & PAD_BUTTON_UP) != 0);
 	g_padState.DPadDown  = ((PadStatus->button & PAD_BUTTON_DOWN) != 0);
 	g_padState.DPadLeft  = ((PadStatus->button & PAD_BUTTON_LEFT) != 0);
 	g_padState.DPadRight = ((PadStatus->button & PAD_BUTTON_RIGHT) != 0);

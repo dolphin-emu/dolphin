@@ -51,10 +51,10 @@ public:
 class Player
 {
  public:
-	PlayerId		pid;
-	std::string		name;
-	std::string		revision;
-	u32                     ping;
+	PlayerId    pid;
+	std::string name;
+	std::string revision;
+	u32         ping;
 };
 
 class NetPlayClient

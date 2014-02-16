@@ -247,23 +247,23 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 		m_numSteps = _uMail;
 		m_step = 0;
 	}
-	else if ((_uMail >> 16) == 0xCDD1)			// A 0xCDD1000X mail should come right after we send a DSP_SYNCEND mail
+	else if ((_uMail >> 16) == 0xCDD1) // A 0xCDD1000X mail should come right after we send a DSP_SYNCEND mail
 	{
 		// The low part of the mail tells the operation to perform
 		// Seeing as every possible operation number halts the uCode,
 		// except 3, that thing seems to be intended for debugging
 		switch (_uMail & 0xFFFF)
 		{
-		case 0x0003:		// Do nothing
+		case 0x0003: // Do nothing
 			return;
 
-		case 0x0000:		// Halt
-		case 0x0001:		// Dump memory? and halt
-		case 0x0002:		// Do something and halt
+		case 0x0000: // Halt
+		case 0x0001: // Dump memory? and halt
+		case 0x0002: // Do something and halt
 			WARN_LOG(DSPHLE, "Zelda uCode(SMS version): received halting operation %04X", _uMail & 0xFFFF);
 			return;
 
-		default:			// Invalid (the real ucode would likely crash)
+		default:     // Invalid (the real ucode would likely crash)
 			WARN_LOG(DSPHLE, "Zelda uCode(SMS version): received invalid operation %04X", _uMail & 0xFFFF);
 			return;
 		}
@@ -381,31 +381,31 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 		m_numSteps = _uMail;
 		m_step = 0;
 	}
-	else if ((_uMail >> 16) == 0xCDD1)			// A 0xCDD1000X mail should come right after we send a DSP_FRAME_END mail
+	else if ((_uMail >> 16) == 0xCDD1) // A 0xCDD1000X mail should come right after we send a DSP_FRAME_END mail
 	{
 		// The low part of the mail tells the operation to perform
 		// Seeing as every possible operation number halts the uCode,
 		// except 3, that thing seems to be intended for debugging
 		switch (_uMail & 0xFFFF)
 		{
-		case 0x0003:	// Do nothing - continue normally
+		case 0x0003: // Do nothing - continue normally
 			return;
 
-		case 0x0001:	// accepts params to either dma to iram and/or dram (used for hotbooting a new ucode)
+		case 0x0001: // accepts params to either dma to iram and/or dram (used for hotbooting a new ucode)
 			// TODO find a better way to protect from HLEMixer?
 			soundStream->GetMixer()->SetHLEReady(false);
 			m_UploadSetupInProgress = true;
 			return;
 
-		case 0x0002:	// Let IROM play us off
+		case 0x0002: // Let IROM play us off
 			m_DSPHLE->SetUCode(UCODE_ROM);
 			return;
 
-		case 0x0000:	// Halt
+		case 0x0000: // Halt
 			WARN_LOG(DSPHLE, "Zelda uCode: received halting operation %04X", _uMail & 0xFFFF);
 			return;
 
-		default:		// Invalid (the real ucode would likely crash)
+		default:     // Invalid (the real ucode would likely crash)
 			WARN_LOG(DSPHLE, "Zelda uCode: received invalid operation %04X", _uMail & 0xFFFF);
 			return;
 		}

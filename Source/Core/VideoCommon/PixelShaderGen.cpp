@@ -1046,14 +1046,14 @@ void SampleTexture(T& out, const char *texcoords, const char *texswap, int texma
 
 static const char *tevAlphaFuncsTable[] =
 {
-	"(false)",									// NEVER
-	"(prev.a <= %s - (0.25/255.0))",			// LESS
-	"(abs( prev.a - %s ) < (0.5/255.0))",		// EQUAL
-	"(prev.a < %s + (0.25/255.0))",			// LEQUAL
-	"(prev.a >= %s + (0.25/255.0))",			// GREATER
-	"(abs( prev.a - %s ) >= (0.5/255.0))",	// NEQUAL
-	"(prev.a > %s - (0.25/255.0))",			// GEQUAL
-	"(true)"									// ALWAYS
+	"(false)",                             // NEVER
+	"(prev.a <= %s - (0.25/255.0))",       // LESS
+	"(abs( prev.a - %s ) < (0.5/255.0))",  // EQUAL
+	"(prev.a < %s + (0.25/255.0))",        // LEQUAL
+	"(prev.a >= %s + (0.25/255.0))",       // GREATER
+	"(abs( prev.a - %s ) >= (0.5/255.0))", // NEQUAL
+	"(prev.a > %s - (0.25/255.0))",        // GEQUAL
+	"(true)"                               // ALWAYS
 };
 
 static const char *tevAlphaFunclogicTable[] =
@@ -1124,14 +1124,14 @@ static inline void WriteAlphaTest(T& out, pixel_shader_uid_data& uid_data, API_T
 
 static const char *tevFogFuncsTable[] =
 {
-	"",																// No Fog
-	"",																// ?
-	"",																// Linear
-	"",																// ?
-	"\tfog = 1.0 - exp2(-8.0 * fog);\n",						// exp
-	"\tfog = 1.0 - exp2(-8.0 * fog * fog);\n",				// exp2
-	"\tfog = exp2(-8.0 * (1.0 - fog));\n",					// backward exp
-	"\tfog = 1.0 - fog;\n   fog = exp2(-8.0 * fog * fog);\n"	// backward exp2
+	"",                                                      // No Fog
+	"",                                                      // ?
+	"",                                                      // Linear
+	"",                                                      // ?
+	"\tfog = 1.0 - exp2(-8.0 * fog);\n",                     // exp
+	"\tfog = 1.0 - exp2(-8.0 * fog * fog);\n",               // exp2
+	"\tfog = exp2(-8.0 * (1.0 - fog));\n",                   // backward exp
+	"\tfog = 1.0 - fog;\n   fog = exp2(-8.0 * fog * fog);\n" // backward exp2
 };
 
 template<class T>
@@ -1153,7 +1153,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	else
 	{
 		// orthographic
-		// ze = a*Zs	(here, no B_SHF)
+		// ze = a*Zs    (here, no B_SHF)
 		out.Write("\tfloat ze = " I_FOG"[1].x * zCoord;\n");
 	}
 

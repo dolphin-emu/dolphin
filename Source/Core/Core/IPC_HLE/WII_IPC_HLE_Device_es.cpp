@@ -68,23 +68,23 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
 {
 }
 
-static u8 key_sd   [0x10]	= {0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08, 0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d};
-static u8 key_ecc  [0x1e]	= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
-static u8 key_empty[0x10]	= {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+static u8 key_sd   [0x10] = {0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08, 0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d};
+static u8 key_ecc  [0x1e] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+static u8 key_empty[0x10] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 // default key table
 u8* CWII_IPC_HLE_Device_es::keyTable[11] = {
-	key_ecc,	// ECC Private Key
-	key_empty,	// Console ID
-	key_empty,	// NAND AES Key
-	key_empty,	// NAND HMAC
-	key_empty,	// Common Key
-	key_empty,	// PRNG seed
-	key_sd,		// SD Key
-	key_empty,	// Unknown
-	key_empty,	// Unknown
-	key_empty,	// Unknown
-	key_empty,	// Unknown
+	key_ecc,   // ECC Private Key
+	key_empty, // Console ID
+	key_empty, // NAND AES Key
+	key_empty, // NAND HMAC
+	key_empty, // Common Key
+	key_empty, // PRNG seed
+	key_sd,    // SD Key
+	key_empty, // Unknown
+	key_empty, // Unknown
+	key_empty, // Unknown
+	key_empty, // Unknown
 };
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
@@ -875,12 +875,12 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 	case IOCTL_ES_DECRYPT:
 		{
-			u32 keyIndex	= Memory::Read_U32(Buffer.InBuffer[0].m_Address);
-			u8* IV			= Memory::GetPointer(Buffer.InBuffer[1].m_Address);
-			u8* source		= Memory::GetPointer(Buffer.InBuffer[2].m_Address);
-			u32 size		= Buffer.InBuffer[2].m_Size;
-			u8* newIV		= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+			u32 keyIndex    = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+			u8* IV          = Memory::GetPointer(Buffer.InBuffer[1].m_Address);
+			u8* source      = Memory::GetPointer(Buffer.InBuffer[2].m_Address);
+			u32 size        = Buffer.InBuffer[2].m_Size;
+			u8* newIV       = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+			u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
 			aes_context AES_ctx;
 			aes_setkey_dec(&AES_ctx, keyTable[keyIndex], 128);
@@ -898,12 +898,12 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			bool bSuccess = false;
 			u16 IOSv = 0xffff;
 
-			u64 TitleID		= Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-			u32 view		= Memory::Read_U32(Buffer.InBuffer[1].m_Address);
-			u64 ticketid	= Memory::Read_U64(Buffer.InBuffer[1].m_Address+4);
-			u32 devicetype	= Memory::Read_U32(Buffer.InBuffer[1].m_Address+12);
-			u64 titleid		= Memory::Read_U64(Buffer.InBuffer[1].m_Address+16);
-			u16 access		= Memory::Read_U16(Buffer.InBuffer[1].m_Address+24);
+			u64 TitleID    = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+			u32 view       = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+			u64 ticketid   = Memory::Read_U64(Buffer.InBuffer[1].m_Address+4);
+			u32 devicetype = Memory::Read_U32(Buffer.InBuffer[1].m_Address+12);
+			u64 titleid    = Memory::Read_U64(Buffer.InBuffer[1].m_Address+16);
+			u16 access     = Memory::Read_U16(Buffer.InBuffer[1].m_Address+24);
 
 
 			if ((u32)(TitleID>>32) != 0x00000001 || TitleID == TITLEID_SYSMENU)

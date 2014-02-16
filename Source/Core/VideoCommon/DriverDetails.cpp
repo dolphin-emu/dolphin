@@ -74,21 +74,21 @@ namespace DriverDetails
 				case VENDOR_NVIDIA:
 				case VENDOR_TEGRA:
 					m_driver = DRIVER_NVIDIA;
-				break;
+					break;
 				case VENDOR_ATI:
 					m_driver = DRIVER_ATI;
-				break;
+					break;
 				case VENDOR_INTEL:
 					m_driver = DRIVER_INTEL;
-				break;
+					break;
 				case VENDOR_IMGTEC:
 					m_driver = DRIVER_IMGTEC;
-				break;
+					break;
 				case VENDOR_VIVANTE:
 					m_driver = DRIVER_VIVANTE;
-				break;
+					break;
 				default:
-				break;
+					break;
 			}
 
 		for(auto& bug : m_known_bugs)

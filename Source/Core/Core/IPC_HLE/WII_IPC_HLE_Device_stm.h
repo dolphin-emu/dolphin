@@ -8,20 +8,20 @@
 
 enum
 {
-	IOCTL_STM_EVENTHOOK			= 0x1000,
-	IOCTL_STM_GET_IDLEMODE		= 0x3001,
-	IOCTL_STM_RELEASE_EH		= 0x3002,
-	IOCTL_STM_HOTRESET			= 0x2001,
-	IOCTL_STM_HOTRESET_FOR_PD	= 0x2002,
-	IOCTL_STM_SHUTDOWN			= 0x2003,
-	IOCTL_STM_IDLE				= 0x2004,
-	IOCTL_STM_WAKEUP			= 0x2005,
-	IOCTL_STM_VIDIMMING			= 0x5001,
-	IOCTL_STM_LEDFLASH			= 0x6001,
-	IOCTL_STM_LEDMODE			= 0x6002,
-	IOCTL_STM_READVER			= 0x7001,
-	IOCTL_STM_READDDRREG		= 0x4001,
-	IOCTL_STM_READDDRREG2		= 0x4002,
+	IOCTL_STM_EVENTHOOK       = 0x1000,
+	IOCTL_STM_GET_IDLEMODE    = 0x3001,
+	IOCTL_STM_RELEASE_EH      = 0x3002,
+	IOCTL_STM_HOTRESET        = 0x2001,
+	IOCTL_STM_HOTRESET_FOR_PD = 0x2002,
+	IOCTL_STM_SHUTDOWN        = 0x2003,
+	IOCTL_STM_IDLE            = 0x2004,
+	IOCTL_STM_WAKEUP          = 0x2005,
+	IOCTL_STM_VIDIMMING       = 0x5001,
+	IOCTL_STM_LEDFLASH        = 0x6001,
+	IOCTL_STM_LEDMODE         = 0x6002,
+	IOCTL_STM_READVER         = 0x7001,
+	IOCTL_STM_READDDRREG      = 0x4001,
+	IOCTL_STM_READDDRREG2     = 0x4002,
 };
 
 // The /dev/stm/immediate
@@ -55,11 +55,11 @@ public:
 
 	virtual bool IOCtl(u32 _CommandAddress)
 	{
-		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
-		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-		u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
+		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+		u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+		u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+		u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
 		// Prepare the out buffer(s) with zeroes as a safety precaution
 		// to avoid returning bad values
@@ -145,11 +145,11 @@ public:
 
 	virtual bool IOCtl(u32 _CommandAddress)
 	{
-		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
-		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-		u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+		u32 Parameter     = Memory::Read_U32(_CommandAddress + 0x0C);
+		u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+		u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+		u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+		u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
 		// Prepare the out buffer(s) with zeros as a safety precaution
 		// to avoid returning bad values

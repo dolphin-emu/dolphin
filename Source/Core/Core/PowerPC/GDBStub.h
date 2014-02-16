@@ -14,8 +14,8 @@
 #include "../HW/Memmap.h"
 
 #ifdef _WIN32
-#define SIGTRAP 5
-#define	SIGTERM		15
+#define SIGTRAP      5
+#define SIGTERM     15
 #define MSG_WAITALL  8
 #endif
 

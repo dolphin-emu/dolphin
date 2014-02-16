@@ -132,27 +132,27 @@ bool BootCore(const std::string& _rFilename)
 		config_cache.bSetFramelimit = false;
 
 		// General settings
-		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
-		game_ini.Get("Core", "SkipIdle",			&StartUp.bSkipIdle, StartUp.bSkipIdle);
-		game_ini.Get("Core", "EnableFPRF",			&StartUp.bEnableFPRF, StartUp.bEnableFPRF);
-		game_ini.Get("Core", "MMU",					&StartUp.bMMU, StartUp.bMMU);
-		game_ini.Get("Core", "TLBHack",				&StartUp.bTLBHack, StartUp.bTLBHack);
-		game_ini.Get("Core", "DCBZ",				&StartUp.bDCBZOFF, StartUp.bDCBZOFF);
-		game_ini.Get("Core", "VBeam",				&StartUp.bVBeamSpeedHack, StartUp.bVBeamSpeedHack);
-		game_ini.Get("Core", "SyncGPU",				&StartUp.bSyncGPU, StartUp.bSyncGPU);
-		game_ini.Get("Core", "FastDiscSpeed",		&StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
-		game_ini.Get("Core", "BlockMerging",		&StartUp.bMergeBlocks, StartUp.bMergeBlocks);
-		game_ini.Get("Core", "DSPHLE",				&StartUp.bDSPHLE, StartUp.bDSPHLE);
-		game_ini.Get("Core", "DSPThread",			&StartUp.bDSPThread, StartUp.bDSPThread);
-		game_ini.Get("Core", "GFXBackend",			&StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
-		game_ini.Get("Core", "CPUCore",				&StartUp.iCPUCore, StartUp.iCPUCore);
-		game_ini.Get("Core", "HLE_BS2",				&StartUp.bHLE_BS2, StartUp.bHLE_BS2);
-		if (game_ini.Get("Core", "FrameLimit",		&SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
+		game_ini.Get("Core", "CPUThread",        &StartUp.bCPUThread, StartUp.bCPUThread);
+		game_ini.Get("Core", "SkipIdle",         &StartUp.bSkipIdle, StartUp.bSkipIdle);
+		game_ini.Get("Core", "EnableFPRF",       &StartUp.bEnableFPRF, StartUp.bEnableFPRF);
+		game_ini.Get("Core", "MMU",              &StartUp.bMMU, StartUp.bMMU);
+		game_ini.Get("Core", "TLBHack",          &StartUp.bTLBHack, StartUp.bTLBHack);
+		game_ini.Get("Core", "DCBZ",             &StartUp.bDCBZOFF, StartUp.bDCBZOFF);
+		game_ini.Get("Core", "VBeam",            &StartUp.bVBeamSpeedHack, StartUp.bVBeamSpeedHack);
+		game_ini.Get("Core", "SyncGPU",          &StartUp.bSyncGPU, StartUp.bSyncGPU);
+		game_ini.Get("Core", "FastDiscSpeed",    &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
+		game_ini.Get("Core", "BlockMerging",     &StartUp.bMergeBlocks, StartUp.bMergeBlocks);
+		game_ini.Get("Core", "DSPHLE",           &StartUp.bDSPHLE, StartUp.bDSPHLE);
+		game_ini.Get("Core", "DSPThread",        &StartUp.bDSPThread, StartUp.bDSPThread);
+		game_ini.Get("Core", "GFXBackend",       &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
+		game_ini.Get("Core", "CPUCore",          &StartUp.iCPUCore, StartUp.iCPUCore);
+		game_ini.Get("Core", "HLE_BS2",          &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
+		if (game_ini.Get("Core", "FrameLimit",   &SConfig::GetInstance().m_Framelimit, SConfig::GetInstance().m_Framelimit))
 			config_cache.bSetFramelimit = true;
-		if (game_ini.Get("DSP", "Volume",			&SConfig::GetInstance().m_Volume, SConfig::GetInstance().m_Volume))
+		if (game_ini.Get("DSP", "Volume",        &SConfig::GetInstance().m_Volume, SConfig::GetInstance().m_Volume))
 			config_cache.bSetVolume = true;
-		game_ini.Get("DSP", "EnableJIT",			&SConfig::GetInstance().m_EnableJIT, SConfig::GetInstance().m_EnableJIT);
-		game_ini.Get("DSP", "Backend",				&SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend);
+		game_ini.Get("DSP", "EnableJIT",         &SConfig::GetInstance().m_EnableJIT, SConfig::GetInstance().m_EnableJIT);
+		game_ini.Get("DSP", "Backend",           &SConfig::GetInstance().sBackend, SConfig::GetInstance().sBackend);
 		VideoBackend::ActivateBackend(StartUp.m_strVideoBackend);
 
 		for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)

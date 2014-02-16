@@ -16,12 +16,12 @@
 #include "Sram.h"
 #include "GCMemcard.h"
 
-#define MC_STATUS_BUSY					0x80
-#define MC_STATUS_UNLOCKED				0x40
-#define MC_STATUS_SLEEP					0x20
-#define MC_STATUS_ERASEERROR			0x10
-#define MC_STATUS_PROGRAMEERROR			0x08
-#define MC_STATUS_READY					0x01
+#define MC_STATUS_BUSY              0x80
+#define MC_STATUS_UNLOCKED          0x40
+#define MC_STATUS_SLEEP             0x20
+#define MC_STATUS_ERASEERROR        0x10
+#define MC_STATUS_PROGRAMEERROR     0x08
+#define MC_STATUS_READY             0x01
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
 
@@ -63,12 +63,12 @@ CEXIMemoryCard::CEXIMemoryCard(const int index)
 	formatDelay = 0;
 
 	//Nintendo Memory Card EXI IDs
-	//0x00000004 Memory Card 59		4Mbit
-	//0x00000008 Memory Card 123	8Mb
-	//0x00000010 Memory Card 251	16Mb
-	//0x00000020 Memory Card 507	32Mb
-	//0x00000040 Memory Card 1019	64Mb
-	//0x00000080 Memory Card 2043	128Mb
+	//0x00000004 Memory Card 59     4Mbit
+	//0x00000008 Memory Card 123    8Mb
+	//0x00000010 Memory Card 251    16Mb
+	//0x00000020 Memory Card 507    32Mb
+	//0x00000040 Memory Card 1019   64Mb
+	//0x00000080 Memory Card 2043   128Mb
 
 	//0x00000510 16Mb "bigben" card
 	//card_id = 0xc243;

@@ -337,9 +337,9 @@ void STACKALIGN GatherPipeBursted()
 	"FIFO is overflowed by GatherPipe !\nCPU thread is too fast!");
 
 	// check if we are in sync
-	_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== ProcessorInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");
-	_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== ProcessorInterface::Fifo_CPUBase, "FIFOs linked but out of sync");
-	_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== ProcessorInterface::Fifo_CPUEnd, "FIFOs linked but out of sync");
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer == ProcessorInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPBase         == ProcessorInterface::Fifo_CPUBase, "FIFOs linked but out of sync");
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd          == ProcessorInterface::Fifo_CPUEnd, "FIFOs linked but out of sync");
 }
 
 void UpdateInterrupts(u64 userdata)
@@ -486,11 +486,11 @@ void SetCpStatusRegister()
 
 	INFO_LOG(COMMANDPROCESSOR,"\t Read from STATUS_REGISTER : %04x", m_CPStatusReg.Hex);
 	DEBUG_LOG(COMMANDPROCESSOR, "(r) status: iBP %s | fReadIdle %s | fCmdIdle %s | iOvF %s | iUndF %s"
-		, m_CPStatusReg.Breakpoint ?			"ON" : "OFF"
-		, m_CPStatusReg.ReadIdle ?				"ON" : "OFF"
-		, m_CPStatusReg.CommandIdle ?			"ON" : "OFF"
-		, m_CPStatusReg.OverflowHiWatermark ?	"ON" : "OFF"
-		, m_CPStatusReg.UnderflowLoWatermark ?	"ON" : "OFF"
+		, m_CPStatusReg.Breakpoint           ? "ON" : "OFF"
+		, m_CPStatusReg.ReadIdle             ? "ON" : "OFF"
+		, m_CPStatusReg.CommandIdle          ? "ON" : "OFF"
+		, m_CPStatusReg.OverflowHiWatermark  ? "ON" : "OFF"
+		, m_CPStatusReg.UnderflowLoWatermark ? "ON" : "OFF"
 			);
 }
 
@@ -527,12 +527,12 @@ void SetCpControlRegister()
 	}
 
 	DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | BP %s | Int %s | OvF %s | UndF %s | LINK %s"
-		, fifo.bFF_GPReadEnable ?				"ON" : "OFF"
-		, fifo.bFF_BPEnable ?					"ON" : "OFF"
-		, fifo.bFF_BPInt ?						"ON" : "OFF"
-		, m_CPCtrlReg.FifoOverflowIntEnable ?	"ON" : "OFF"
-		, m_CPCtrlReg.FifoUnderflowIntEnable ?	"ON" : "OFF"
-		, m_CPCtrlReg.GPLinkEnable ?			"ON" : "OFF"
+		, fifo.bFF_GPReadEnable              ? "ON" : "OFF"
+		, fifo.bFF_BPEnable                  ? "ON" : "OFF"
+		, fifo.bFF_BPInt                     ? "ON" : "OFF"
+		, m_CPCtrlReg.FifoOverflowIntEnable  ? "ON" : "OFF"
+		, m_CPCtrlReg.FifoUnderflowIntEnable ? "ON" : "OFF"
+		, m_CPCtrlReg.GPLinkEnable           ? "ON" : "OFF"
 		);
 
 }

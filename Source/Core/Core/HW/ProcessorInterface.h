@@ -16,22 +16,22 @@ namespace ProcessorInterface
 
 enum InterruptCause
 {
-    INT_CAUSE_PI          =    0x1, // YAGCD says: GP runtime error
-    INT_CAUSE_RSW         =    0x2, // Reset Switch
-    INT_CAUSE_DI          =    0x4, // DVD interrupt
-    INT_CAUSE_SI          =    0x8, // Serial interface
-    INT_CAUSE_EXI         =   0x10, // Expansion interface
-    INT_CAUSE_AI          =   0x20, // Audio Interface Streaming
-    INT_CAUSE_DSP         =   0x40, // DSP interface
-    INT_CAUSE_MEMORY      =   0x80, // Memory interface
-    INT_CAUSE_VI          =  0x100, // Video interface
-    INT_CAUSE_PE_TOKEN    =  0x200, // GP Token
-    INT_CAUSE_PE_FINISH   =  0x400, // GP Finished
-    INT_CAUSE_CP          =  0x800, // Command Fifo
-    INT_CAUSE_DEBUG       = 0x1000, // Debugger (from devkit)
-    INT_CAUSE_HSP         = 0x2000, // High Speed Port (from sdram controller)
-    INT_CAUSE_WII_IPC     = 0x4000, // Wii IPC
-    INT_CAUSE_RST_BUTTON  = 0x10000 // ResetButtonState (1 = unpressed, 0 = pressed) it's a state, not maskable
+	INT_CAUSE_PI          =    0x1, // YAGCD says: GP runtime error
+	INT_CAUSE_RSW         =    0x2, // Reset Switch
+	INT_CAUSE_DI          =    0x4, // DVD interrupt
+	INT_CAUSE_SI          =    0x8, // Serial interface
+	INT_CAUSE_EXI         =   0x10, // Expansion interface
+	INT_CAUSE_AI          =   0x20, // Audio Interface Streaming
+	INT_CAUSE_DSP         =   0x40, // DSP interface
+	INT_CAUSE_MEMORY      =   0x80, // Memory interface
+	INT_CAUSE_VI          =  0x100, // Video interface
+	INT_CAUSE_PE_TOKEN    =  0x200, // GP Token
+	INT_CAUSE_PE_FINISH   =  0x400, // GP Finished
+	INT_CAUSE_CP          =  0x800, // Command Fifo
+	INT_CAUSE_DEBUG       = 0x1000, // Debugger (from devkit)
+	INT_CAUSE_HSP         = 0x2000, // High Speed Port (from sdram controller)
+	INT_CAUSE_WII_IPC     = 0x4000, // Wii IPC
+	INT_CAUSE_RST_BUTTON  = 0x10000 // ResetButtonState (1 = unpressed, 0 = pressed) it's a state, not maskable
 };
 
 

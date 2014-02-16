@@ -35,10 +35,10 @@ private:
 		ControlState GetState() const;
 
 	private:
-		std::string	m_keyname;
-		Display* const	m_display;
+		std::string       m_keyname;
+		Display* const    m_display;
 		const char* const m_keyboard;
-		const KeyCode	m_keycode;
+		const KeyCode     m_keycode;
 	};
 
 	class Button : public Input
@@ -65,8 +65,8 @@ private:
 
 	private:
 		const float& m_cursor;
-		const u8 m_index;
-		const bool m_positive;
+		const u8     m_index;
+		const bool   m_positive;
 	};
 
 public:
@@ -81,9 +81,9 @@ public:
 	int GetId() const;
 
 private:
-	Window m_window;
+	Window   m_window;
 	Display* m_display;
-	State m_state;
+	State    m_state;
 };
 
 }

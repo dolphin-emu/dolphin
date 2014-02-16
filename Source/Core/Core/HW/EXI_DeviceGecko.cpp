@@ -8,12 +8,12 @@
 #include "EXI_DeviceGecko.h"
 #include "../Core.h"
 
-u16							GeckoSockServer::server_port;
-int							GeckoSockServer::client_count;
-std::thread					GeckoSockServer::connectionThread;
-volatile bool				GeckoSockServer::server_running;
-std::queue<sf::SocketTCP>	GeckoSockServer::waiting_socks;
-std::mutex					GeckoSockServer::connection_lock;
+u16                       GeckoSockServer::server_port;
+int                       GeckoSockServer::client_count;
+std::thread               GeckoSockServer::connectionThread;
+volatile bool             GeckoSockServer::server_running;
+std::queue<sf::SocketTCP> GeckoSockServer::waiting_socks;
+std::mutex                GeckoSockServer::connection_lock;
 
 GeckoSockServer::GeckoSockServer()
 	: client_running(false)

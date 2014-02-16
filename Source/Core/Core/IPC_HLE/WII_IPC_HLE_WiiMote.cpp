@@ -591,7 +591,8 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16 MTU, u16 Flush
 
 	l2cap_cfg_req_cp* cr = (l2cap_cfg_req_cp*)&Buffer[Offset];
 	cr->dcid = rChannel.DCID;
-	cr->flags = 0;									Offset += sizeof(l2cap_cfg_req_cp);
+	cr->flags = 0;
+	Offset += sizeof(l2cap_cfg_req_cp);
 
 	INFO_LOG(WII_IPC_WIIMOTE, "[L2CAP] SendConfigurationRequest");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Dcid: 0x%04x", cr->dcid);
@@ -607,10 +608,10 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16 MTU, u16 Flush
 	{
 		if (MTU == 0)
 			MTU = rChannel.MTU;
-		pOptions = (l2cap_cfg_opt_t*)&Buffer[Offset];	Offset += sizeof(l2cap_cfg_opt_t);
+		pOptions = (l2cap_cfg_opt_t*)&Buffer[Offset]; Offset += sizeof(l2cap_cfg_opt_t);
 		pOptions->type		= L2CAP_OPT_MTU;
 		pOptions->length	= L2CAP_OPT_MTU_SIZE;
-		*(u16*)&Buffer[Offset] = MTU;					Offset += L2CAP_OPT_MTU_SIZE;
+		*(u16*)&Buffer[Offset] = MTU;                 Offset += L2CAP_OPT_MTU_SIZE;
 		DEBUG_LOG(WII_IPC_WIIMOTE, "    MTU: 0x%04x", MTU);
 	}
 
@@ -618,10 +619,10 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16 MTU, u16 Flush
 	{
 		if (FlushTimeOut == 0)
 			FlushTimeOut = rChannel.FlushTimeOut;
-		pOptions = (l2cap_cfg_opt_t*)&Buffer[Offset];	Offset += sizeof(l2cap_cfg_opt_t);
+		pOptions = (l2cap_cfg_opt_t*)&Buffer[Offset]; Offset += sizeof(l2cap_cfg_opt_t);
 		pOptions->type		= L2CAP_OPT_FLUSH_TIMO;
 		pOptions->length	= L2CAP_OPT_FLUSH_TIMO_SIZE;
-		*(u16*)&Buffer[Offset] = FlushTimeOut;			Offset += L2CAP_OPT_FLUSH_TIMO_SIZE;
+		*(u16*)&Buffer[Offset] = FlushTimeOut;        Offset += L2CAP_OPT_FLUSH_TIMO_SIZE;
 		DEBUG_LOG(WII_IPC_WIIMOTE, "    FlushTimeOut: 0x%04x", FlushTimeOut);
 	}
 
@@ -640,11 +641,11 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16 MTU, u16 Flush
 //
 //
 
-#define SDP_UINT8  		0x08
-#define SDP_UINT16		0x09
-#define SDP_UINT32		0x0A
-#define SDP_SEQ8		0x35
-#define SDP_SEQ16		0x36
+#define SDP_UINT8   0x08
+#define SDP_UINT16  0x09
+#define SDP_UINT32  0x0A
+#define SDP_SEQ8    0x35
+#define SDP_SEQ16   0x36
 
 void CWII_IPC_HLE_WiiMote::SDPSendServiceSearchResponse(u16 cid, u16 TransactionID, u8* pServiceSearchPattern, u16 MaximumServiceRecordCount)
 {
@@ -666,13 +667,13 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceSearchResponse(u16 cid, u16 Transaction
 	l2cap_hdr_t* pHeader = (l2cap_hdr_t*)&DataFrame[Offset]; Offset += sizeof(l2cap_hdr_t);
 	pHeader->dcid = cid;
 
-	buffer.Write8 (Offset, 0x03);				Offset++;
-	buffer.Write16(Offset, TransactionID);		Offset += 2;		// transaction ID
-	buffer.Write16(Offset, 0x0009);				Offset += 2;		// param length
-	buffer.Write16(Offset, 0x0001);				Offset += 2;		// TotalServiceRecordCount
-	buffer.Write16(Offset, 0x0001);				Offset += 2;		// CurrentServiceRecordCount
-	buffer.Write32(Offset, 0x10000);			Offset += 4;		// ServiceRecordHandleList[4]
-	buffer.Write8(Offset, 0x00);				Offset++;			// no continuation state;
+	buffer.Write8 (Offset, 0x03);          Offset++;
+	buffer.Write16(Offset, TransactionID); Offset += 2; // Transaction ID
+	buffer.Write16(Offset, 0x0009);        Offset += 2; // Param length
+	buffer.Write16(Offset, 0x0001);        Offset += 2; // TotalServiceRecordCount
+	buffer.Write16(Offset, 0x0001);        Offset += 2; // CurrentServiceRecordCount
+	buffer.Write32(Offset, 0x10000);       Offset += 4; // ServiceRecordHandleList[4]
+	buffer.Write8(Offset, 0x00);           Offset++;    // No continuation state;
 
 
 	pHeader->length = (u16)(Offset - sizeof(l2cap_hdr_t));
@@ -683,7 +684,7 @@ static u32 ParseCont(u8* pCont)
 {
 	u32 attribOffset = 0;
 	CBigEndianBuffer attribList(pCont);
-	u8 typeID		= attribList.Read8(attribOffset);		attribOffset++;
+	u8 typeID = attribList.Read8(attribOffset); attribOffset++;
 
 	if (typeID == 0x02)
 	{
@@ -704,9 +705,9 @@ int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 	u32 attribOffset = 0;
 	CBigEndianBuffer attribList(pAttribIDList);
 
-	u8 sequence		= attribList.Read8(attribOffset);		attribOffset++;
-	u8 seqSize		= attribList.Read8(attribOffset);		attribOffset++;
-	u8 typeID		= attribList.Read8(attribOffset);		attribOffset++;
+	u8 sequence = attribList.Read8(attribOffset); attribOffset++;
+	u8 seqSize  = attribList.Read8(attribOffset); attribOffset++;
+	u8 typeID   = attribList.Read8(attribOffset); attribOffset++;
 
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 	_dbg_assert_(WII_IPC_WIIMOTE, sequence == SDP_SEQ8);
@@ -717,12 +718,12 @@ int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 
 	if (typeID == SDP_UINT32)
 	{
-		_startID = attribList.Read16(attribOffset);			attribOffset += 2;
-		_endID = attribList.Read16(attribOffset);			attribOffset += 2;
+		_startID = attribList.Read16(attribOffset); attribOffset += 2;
+		_endID = attribList.Read16(attribOffset);   attribOffset += 2;
 	}
 	else
 	{
-		_startID = attribList.Read16(attribOffset);		attribOffset += 2;
+		_startID = attribList.Read16(attribOffset); attribOffset += 2;
 		_endID = _startID;
 		DEBUG_LOG(WII_IPC_WIIMOTE, "Read just a single attrib - not tested");
 		PanicAlert("Read just a single attrib - not tested");
@@ -755,13 +756,13 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 Transact
 	CBigEndianBuffer buffer(DataFrame);
 
 	int Offset = 0;
-	l2cap_hdr_t* pHeader = (l2cap_hdr_t*)&DataFrame[Offset];			Offset += sizeof(l2cap_hdr_t);
+	l2cap_hdr_t* pHeader = (l2cap_hdr_t*)&DataFrame[Offset]; Offset += sizeof(l2cap_hdr_t);
 	pHeader->dcid = cid;
 
-	buffer.Write8 (Offset, 0x05);										Offset++;
-	buffer.Write16(Offset, TransactionID);								Offset += 2;			// transaction ID
+	buffer.Write8 (Offset, 0x05);          Offset++;
+	buffer.Write16(Offset, TransactionID); Offset += 2; // Transaction ID
 
-	memcpy(buffer.GetPointer(Offset), pPacket, packetSize);				Offset += packetSize;
+	memcpy(buffer.GetPointer(Offset), pPacket, packetSize); Offset += packetSize;
 
 	pHeader->length = (u16)(Offset - sizeof(l2cap_hdr_t));
 	m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, pHeader->length + sizeof(l2cap_hdr_t));

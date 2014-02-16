@@ -25,7 +25,7 @@ std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = NULL;
 NetSettings g_NetPlaySettings;
 
-#define RPT_SIZE_HACK	(1 << 16)
+#define RPT_SIZE_HACK  (1 << 16)
 
 NetPad::NetPad()
 {

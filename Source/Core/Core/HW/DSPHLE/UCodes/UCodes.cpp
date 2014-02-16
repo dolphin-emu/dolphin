@@ -40,11 +40,11 @@ IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 	case 0x3ad3b7ac: // Naruto3, Paper Mario - The Thousand Year Door
 	case 0x3daf59b9: // Alien Hominid
 	case 0x4e8a8b21: // spdemo, ctaxi, 18 wheeler, disney, monkeyball 1/2,cubivore,puzzlecollection,wario,
-					 // capcom vs snk, naruto2, lost kingdoms, star fox, mario party 4, mortal kombat,
-					 // smugglers run warzone, smash brothers, sonic mega collection, ZooCube
-					 // nddemo, starfox
+	                 // capcom vs snk, naruto2, lost kingdoms, star fox, mario party 4, mortal kombat,
+	                 // smugglers run warzone, smash brothers, sonic mega collection, ZooCube
+	                 // nddemo, starfox
 	case 0x07f88145: // bustamove, ikaruga, fzero, robotech battle cry, star soldier, soul calibur2,
-					 // Zelda:OOT, Tony hawk, viewtiful joe
+	                  // Zelda:OOT, Tony hawk, viewtiful joe
 	case 0xe2136399: // billy hatcher, dragonballz, mario party 5, TMNT, ava1080
 	case 0x3389a79e: // MP1/MP2 Wii (Metroid Prime Trilogy)
 		INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", _CRC);
@@ -116,16 +116,16 @@ void IUCode::PrepareBootUCode(u32 mail)
 {
 	switch (m_NextUCode_steps)
 	{
-	case 0: m_NextUCode.mram_dest_addr	= mail;				break;
-	case 1: m_NextUCode.mram_size		= mail & 0xffff;	break;
-	case 2: m_NextUCode.mram_dram_addr	= mail & 0xffff;	break;
-	case 3: m_NextUCode.iram_mram_addr	= mail;				break;
-	case 4: m_NextUCode.iram_size		= mail & 0xffff;	break;
-	case 5: m_NextUCode.iram_dest		= mail & 0xffff;	break;
-	case 6: m_NextUCode.iram_startpc	= mail & 0xffff;	break;
-	case 7: m_NextUCode.dram_mram_addr	= mail;				break;
-	case 8: m_NextUCode.dram_size		= mail & 0xffff;	break;
-	case 9: m_NextUCode.dram_dest		= mail & 0xffff;	break;
+	case 0: m_NextUCode.mram_dest_addr = mail;          break;
+	case 1: m_NextUCode.mram_size      = mail & 0xffff; break;
+	case 2: m_NextUCode.mram_dram_addr = mail & 0xffff; break;
+	case 3: m_NextUCode.iram_mram_addr = mail;          break;
+	case 4: m_NextUCode.iram_size      = mail & 0xffff; break;
+	case 5: m_NextUCode.iram_dest      = mail & 0xffff; break;
+	case 6: m_NextUCode.iram_startpc   = mail & 0xffff; break;
+	case 7: m_NextUCode.dram_mram_addr = mail;          break;
+	case 8: m_NextUCode.dram_size      = mail & 0xffff; break;
+	case 9: m_NextUCode.dram_dest      = mail & 0xffff; break;
 	}
 	m_NextUCode_steps++;
 

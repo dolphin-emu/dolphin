@@ -19,7 +19,7 @@
 
 #include "../WiimoteEmu/WiimoteHid.h"
 
-unsigned int	g_wiimote_sources[MAX_BBMOTES];
+unsigned int g_wiimote_sources[MAX_BBMOTES];
 
 namespace WiimoteReal
 {

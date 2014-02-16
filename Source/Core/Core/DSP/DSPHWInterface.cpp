@@ -310,15 +310,10 @@ static void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 
 static void gdsp_do_dma()
 {
-	u16 ctl;
-	u32 addr;
-	u16 dsp_addr;
-	u16 len;
-
-	addr = (g_dsp.ifx_regs[DSP_DSMAH] << 16) | g_dsp.ifx_regs[DSP_DSMAL];
-	ctl = g_dsp.ifx_regs[DSP_DSCR];
-	dsp_addr = g_dsp.ifx_regs[DSP_DSPA] * 2;
-	len = g_dsp.ifx_regs[DSP_DSBL];
+	u32 addr     = (g_dsp.ifx_regs[DSP_DSMAH] << 16) | g_dsp.ifx_regs[DSP_DSMAL];
+	u16 ctl      = g_dsp.ifx_regs[DSP_DSCR];
+	u16 dsp_addr = g_dsp.ifx_regs[DSP_DSPA] * 2;
+	u16 len      = g_dsp.ifx_regs[DSP_DSBL];
 
 	if (len > 0x4000)
 	{

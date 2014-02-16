@@ -81,16 +81,16 @@ void SetupDeviceObjects()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)access_efb_cbuf, "constant buffer for Renderer::AccessEFB");
 
 	D3D11_DEPTH_STENCIL_DESC ddesc;
-	ddesc.DepthEnable	  = FALSE;
+	ddesc.DepthEnable      = FALSE;
 	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ZERO;
-	ddesc.DepthFunc		= D3D11_COMPARISON_ALWAYS;
-	ddesc.StencilEnable	= FALSE;
+	ddesc.DepthFunc        = D3D11_COMPARISON_ALWAYS;
+	ddesc.StencilEnable    = FALSE;
 	ddesc.StencilReadMask  = D3D11_DEFAULT_STENCIL_READ_MASK;
 	ddesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[0]);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
 	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
-	ddesc.DepthEnable	  = TRUE;
+	ddesc.DepthEnable      = TRUE;
 	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[1]);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
 	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ZERO;
@@ -130,12 +130,12 @@ void SetupDeviceObjects()
 	hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[3]);
 	CHECK(hr==S_OK, "Create blend state for Renderer::ClearScreen");
 
-	ddesc.DepthEnable	   = FALSE;
-	ddesc.DepthWriteMask	= D3D11_DEPTH_WRITE_MASK_ZERO;
-	ddesc.DepthFunc		 = D3D11_COMPARISON_LESS;
-	ddesc.StencilEnable	 = FALSE;
-	ddesc.StencilReadMask   = D3D11_DEFAULT_STENCIL_READ_MASK;
-	ddesc.StencilWriteMask  = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	ddesc.DepthEnable      = FALSE;
+	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ZERO;
+	ddesc.DepthFunc        = D3D11_COMPARISON_LESS;
+	ddesc.StencilEnable    = FALSE;
+	ddesc.StencilReadMask  = D3D11_DEFAULT_STENCIL_READ_MASK;
+	ddesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 	hr = D3D::device->CreateDepthStencilState(&ddesc, &resetdepthstate);
 	CHECK(hr==S_OK, "Create depth state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetdepthstate, "depth stencil state for Renderer::ResetAPIState");
@@ -216,12 +216,12 @@ Renderer::Renderer()
 	gx_state.blenddc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
 	memset(&gx_state.depthdc, 0, sizeof(gx_state.depthdc));
-	gx_state.depthdc.DepthEnable        = TRUE;
-	gx_state.depthdc.DepthWriteMask     = D3D11_DEPTH_WRITE_MASK_ALL;
-	gx_state.depthdc.DepthFunc          = D3D11_COMPARISON_LESS;
-	gx_state.depthdc.StencilEnable      = FALSE;
-	gx_state.depthdc.StencilReadMask    = D3D11_DEFAULT_STENCIL_READ_MASK;
-	gx_state.depthdc.StencilWriteMask   = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	gx_state.depthdc.DepthEnable      = TRUE;
+	gx_state.depthdc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
+	gx_state.depthdc.DepthFunc        = D3D11_COMPARISON_LESS;
+	gx_state.depthdc.StencilEnable    = FALSE;
+	gx_state.depthdc.StencilReadMask  = D3D11_DEFAULT_STENCIL_READ_MASK;
+	gx_state.depthdc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
 	// TODO: Do we need to enable multisampling here?
 	gx_state.rastdc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0, false, true, false, false);
@@ -327,15 +327,15 @@ void Renderer::SetColorMask()
 // and EFB pokes (which will change the color or depth of a pixel).
 //
 // The behavior of EFB peeks can only be modified by:
-//	- GX_PokeAlphaRead
+//  - GX_PokeAlphaRead
 // The behavior of EFB pokes can be modified by:
-//	- GX_PokeAlphaMode (TODO)
-//	- GX_PokeAlphaUpdate (TODO)
-//	- GX_PokeBlendMode (TODO)
-//	- GX_PokeColorUpdate (TODO)
-//	- GX_PokeDither (TODO)
-//	- GX_PokeDstAlpha (TODO)
-//	- GX_PokeZMode (TODO)
+//  - GX_PokeAlphaMode (TODO)
+//  - GX_PokeAlphaUpdate (TODO)
+//  - GX_PokeBlendMode (TODO)
+//  - GX_PokeColorUpdate (TODO)
+//  - GX_PokeDither (TODO)
+//  - GX_PokeDstAlpha (TODO)
+//  - GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
 	// TODO: This function currently is broken if anti-aliasing is enabled
@@ -1198,22 +1198,22 @@ void Renderer::SetLogicOpMode()
 	// D3D11 doesn't support logic blending, so this is a huge hack
 	// TODO: Make use of D3D11.1's logic blending support
 
-	//		0	0x00
-	//		1	Source & destination
-	//		2	Source & ~destination
-	//		3	Source
-	//		4	~Source & destination
-	//		5	Destination
-	//		6	Source ^ destination =  Source & ~destination | ~Source & destination
-	//		7	Source | destination
-	//		8	~(Source | destination)
-	//		9	~(Source ^ destination) = ~Source & ~destination | Source & destination
-	//		10	~Destination
-	//		11	Source | ~destination
-	//		12	~Source
-	//		13	~Source | destination
-	//		14	~(Source & destination)
-	//		15	0xff
+	// 0   0x00
+	// 1   Source & destination
+	// 2   Source & ~destination
+	// 3   Source
+	// 4   ~Source & destination
+	// 5   Destination
+	// 6   Source ^ destination =  Source & ~destination | ~Source & destination
+	// 7   Source | destination
+	// 8   ~(Source | destination)
+	// 9   ~(Source ^ destination) = ~Source & ~destination | Source & destination
+	// 10  ~Destination
+	// 11  Source | ~destination
+	// 12  ~Source
+	// 13  ~Source | destination
+	// 14  ~(Source & destination)
+	// 15  0xff
 	const D3D11_BLEND_OP d3dLogicOps[16] =
 	{
 		D3D11_BLEND_OP_ADD,//0
@@ -1321,7 +1321,8 @@ void Renderer::SetSamplerState(int stage, int texindex)
 
 	unsigned int mip = d3dMipFilters[tm0.min_filter & 3];
 
-	if (texindex) stage += 4;
+	if (texindex)
+		stage += 4;
 
 	if (g_ActiveConfig.bForceFiltering)
 	{

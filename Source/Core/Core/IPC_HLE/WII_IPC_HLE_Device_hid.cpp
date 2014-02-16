@@ -130,11 +130,11 @@ u32 CWII_IPC_HLE_Device_hid::Update()
 
 bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 {
-	u32 Parameter		= Memory::Read_U32(_CommandAddress + 0xC);
-	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 Parameter     = Memory::Read_U32(_CommandAddress + 0xC);
+	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+	u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
 	u32 ReturnValue = 0;
 	switch (Parameter)
@@ -536,7 +536,8 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 	static bool has_warned_about_drivers = false;
 #endif
 
-	for (ssize_t i = 0; i < cnt; i++) {
+	for (ssize_t i = 0; i < cnt; i++)
+	{
 		libusb_device *device = list[i];
 		struct libusb_device_descriptor desc;
 		int dRet = libusb_get_device_descriptor (device, &desc);
@@ -610,10 +611,10 @@ libusb_device_handle * CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
 
 int CWII_IPC_HLE_Device_hid::GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check)
 {
-	int i;
 	int pos = -1;
 	u64 unique_id = ((u64)idVendor << 32) | ((u64)idProduct << 16) | ((u64)bus << 8) | (u64)port;
-	for (i=0; i<MAX_DEVICE_DEVNUM; i++)
+
+	for (int i=0; i<MAX_DEVICE_DEVNUM; i++)
 	{
 		u64 id = hidDeviceAliases[i] & HID_ID_MASK;
 		if(id == 0 && pos == -1)
@@ -626,10 +627,12 @@ int CWII_IPC_HLE_Device_hid::GetAvaiableDevNum(u16 idVendor, u16 idProduct, u8 b
 			return i;
 		}
 	}
+
 	if(pos != -1)
 	{
 		hidDeviceAliases[pos] = unique_id | ((u64)check << 48);
 		return pos;
 	}
+
 	return -1;
 }

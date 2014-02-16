@@ -51,11 +51,11 @@ private:
 	class Client
 	{
 	public:
-		PlayerId		pid;
-		std::string		name;
-		std::string		revision;
+		PlayerId    pid;
+		std::string name;
+		std::string revision;
 
-		sf::SocketTCP	socket;
+		sf::SocketTCP socket;
 		u32 ping;
 		u32 current_game;
 	};
