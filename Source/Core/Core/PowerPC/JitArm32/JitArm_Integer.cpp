@@ -1015,7 +1015,7 @@ void JitArm::twx(UGeckoInstruction inst)
 	SetJumpTarget(exit3);
 	SetJumpTarget(exit4);
 	SetJumpTarget(exit5);
-	WriteExit(js.compilerPC + 4, 1);
+	WriteExit(js.compilerPC + 4);
 
 	gpr.Unlock(RA, RB);
 }
