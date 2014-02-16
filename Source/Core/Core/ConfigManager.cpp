@@ -71,6 +71,7 @@ static const struct
 	{ "ToggleAspectRatio",   0,                   0 /* wxMOD_NONE */ },
 	{ "ToggleEFBCopies",     0,                   0 /* wxMOD_NONE */ },
 	{ "ToggleFog",           0,                   0 /* wxMOD_NONE */ },
+	{ "ToggleThrottle",      9 /* '\t' */,        0 /* wxMOD_NONE */ },
 	{ "IncreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
 	{ "DecreaseFrameLimit",  0,                   0 /* wxMOD_NONE */ },
 	{ "LoadStateSlot1",      340 /* WXK_F1 */,    0 /* wxMOD_NONE */ },

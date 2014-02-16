@@ -62,9 +62,9 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
-#include "Core/Host.h"
 #include "Core/PatchEngine.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
@@ -237,7 +237,8 @@ void ThrottleCallback(u64 last_time, int cyclesLate)
 	u32 time = Common::Timer::GetTimeMs();
 
 	int diff = (u32)last_time - time;
-	bool frame_limiter = SConfig::GetInstance().m_Framelimit && SConfig::GetInstance().m_Framelimit != 2 && !Host_GetKeyState('\t');
+	const SConfig& config = SConfig::GetInstance();
+	bool frame_limiter = config.m_Framelimit && config.m_Framelimit != 2 && !Core::IsFramelimiterTempDisabled;
 	u32 next_event = GetTicksPerSecond()/1000;
 	if (SConfig::GetInstance().m_Framelimit > 2)
 	{

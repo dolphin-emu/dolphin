@@ -7,7 +7,7 @@
 #include "Common/Atomic.h"
 #include "Common/CPUDetect.h"
 #include "Core/ConfigManager.h"
-#include "Core/Host.h"
+#include "Core/Core.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/VideoInterface.h"
 
@@ -124,7 +124,7 @@ void CMixer::PushSamples(const short *samples, unsigned int num_samples)
 			if (*PowerPC::GetStatePtr() != PowerPC::CPU_RUNNING || soundStream->IsMuted())
 				break;
 			// Shortcut key for Throttle Skipping
-			if (Host_GetKeyState('\t'))
+			if (Core::IsFramelimiterTempDisabled)
 				break;
 			SLEEP(1);
 			soundStream->Update();

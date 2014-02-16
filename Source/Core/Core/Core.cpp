@@ -90,7 +90,7 @@ static bool g_requestRefreshInfo = false;
 static int g_pauseAndLockDepth = 0;
 
 SCoreStartupParameter g_CoreStartupParameter;
-bool isTabPressed = false;
+bool IsFramelimiterTempDisabled = false;
 
 std::string GetStateFileName() { return g_stateFileName; }
 void SetStateFileName(std::string val) { g_stateFileName = val; }
