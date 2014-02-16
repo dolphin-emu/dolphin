@@ -20,7 +20,6 @@
 #include "CheatsWindow.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
-#include "ConsoleListener.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"
@@ -281,11 +280,8 @@ CFrame::CFrame(wxFrame* parent,
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
 
-	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
-
-	// Give it a console early to show potential messages from this onward
-	ConsoleListener *Console = LogManager::GetInstance()->GetConsoleListener();
-	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
+	if (ShowLogWindow)
+		SConfig::GetInstance().m_InterfaceLogWindow = true;
 
 	// Start debugging maximized
 	if (UseDebugger) this->Maximize(true);
@@ -363,8 +359,6 @@ CFrame::CFrame(wxFrame* parent,
 			ToggleLogWindow(true);
 		if (SConfig::GetInstance().m_InterfaceLogConfigWindow)
 			ToggleLogConfigWindow(true);
-		if (SConfig::GetInstance().m_InterfaceConsole)
-			ToggleConsole(true);
 	}
 
 	// Show window
@@ -652,7 +646,6 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 	// Add space for the log/console/debugger window
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 			(SConfig::GetInstance().m_InterfaceLogWindow ||
-			 SConfig::GetInstance().m_InterfaceConsole ||
 			 SConfig::GetInstance().m_InterfaceLogConfigWindow) &&
 			!m_Mgr->GetPane(wxT("Pane 1")).IsFloating())
 	{

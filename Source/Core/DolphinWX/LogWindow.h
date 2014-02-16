@@ -51,7 +51,7 @@ private:
 	bool m_ignoreLogTimer;
 	LogManager *m_LogManager;
 	std::queue<std::pair<u8, wxString> > msgQueue;
-	bool m_writeFile, m_writeConsole, m_writeWindow, m_writeDebugger, m_LogAccess;
+	bool m_writeFile, m_writeWindow, m_LogAccess;
 
 	// Controls
 	wxBoxSizer *sBottom;
@@ -68,7 +68,6 @@ private:
 	void PopulateBottom();
 	void UnPopulateBottom();
 	void OnClose(wxCloseEvent& event);
-	void OnSubmit(wxCommandEvent& event);
 	void OnFontChange(wxCommandEvent& event);
 	void OnWrapLineCheck(wxCommandEvent& event);
 	void OnClear(wxCommandEvent& event);

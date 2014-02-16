@@ -55,7 +55,6 @@ struct SConfig : NonCopyable
 	bool m_InterfaceStatusbar;
 	bool m_InterfaceLogWindow;
 	bool m_InterfaceLogConfigWindow;
-	bool m_InterfaceConsole;
 
 	bool m_ListDrives;
 	bool m_ListWad;
