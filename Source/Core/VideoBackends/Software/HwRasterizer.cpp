@@ -163,8 +163,8 @@ namespace HwRasterizer
 		// While GLES uses texture coordinates
 		if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 		{
-			width = texUnit.texImage0[0].width;
-			height = texUnit.texImage0[0].height;
+			width = (float)texUnit.texImage0[0].width;
+			height = (float)texUnit.texImage0[0].height;
 		}
 		else
 		{
