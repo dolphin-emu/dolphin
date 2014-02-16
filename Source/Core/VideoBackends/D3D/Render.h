@@ -13,7 +13,7 @@ public:
 
 	void SetColorMask();
 	void SetBlendMode(bool forceUpdate);
-	void SetScissorRect(const TargetRectangle& rc);
+	void SetScissorRect(const EFBRectangle& rc);
 	void SetGenerationMode();
 	void SetDepthMode();
 	void SetLogicOpMode();
@@ -21,6 +21,7 @@ public:
 	void SetLineWidth();
 	void SetSamplerState(int stage,int texindex);
 	void SetInterlacingMode();
+	void SetViewport();
 
 	// TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
 	void ApplyState(bool bUseDstAlpha);
@@ -38,13 +39,11 @@ public:
 
 	TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc);
 
-	void Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma);
+	void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma);
 
 	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z);
 
 	void ReinterpretPixelData(unsigned int convtype);
-
-	void UpdateViewport();
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
 

@@ -25,9 +25,7 @@
 #include "VertexManager.h"
 #include "IndexGenerator.h"
 #include "FileUtil.h"
-#include "Debugger.h"
 #include "StreamBuffer.h"
-#include "PerfQueryBase.h"
 #include "Render.h"
 
 #include "main.h"
@@ -131,7 +129,7 @@ void VertexManager::Draw(u32 stride)
 	INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 }
 
-void VertexManager::vFlush()
+void VertexManager::vFlush(bool useDstAlpha)
 {
 	GLVertexFormat *nativeVertexFmt = (GLVertexFormat*)g_nativeVertexFmt;
 	u32 stride  = nativeVertexFmt->GetVertexStride();
@@ -143,9 +141,6 @@ void VertexManager::vFlush()
 
 	PrepareDrawBuffers(stride);
 	GL_REPORT_ERRORD();
-
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate
-		&& bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
 
 	// Makes sure we can actually do Dual source blending
 	bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
@@ -177,10 +172,7 @@ void VertexManager::vFlush()
 		g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
 
-	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw(stride);
-	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-	//ERROR_LOG(VIDEO, "PerfQuery result: %d", g_perf_query->GetQueryResult(bpmem.zcontrol.early_ztest ? PQ_ZCOMP_OUTPUT_ZCOMPLOC : PQ_ZCOMP_OUTPUT));
 
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
@@ -200,7 +192,6 @@ void VertexManager::vFlush()
 		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
 			glEnable(GL_BLEND);
 	}
-	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS)

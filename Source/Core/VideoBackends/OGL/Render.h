@@ -46,7 +46,7 @@ public:
 
 	void SetColorMask() override;
 	void SetBlendMode(bool forceUpdate) override;
-	void SetScissorRect(const TargetRectangle& rc) override;
+	void SetScissorRect(const EFBRectangle& rc) override;
 	void SetGenerationMode() override;
 	void SetDepthMode() override;
 	void SetLogicOpMode() override;
@@ -54,6 +54,7 @@ public:
 	void SetLineWidth() override;
 	void SetSamplerState(int stage,int texindex) override;
 	void SetInterlacingMode() override;
+	void SetViewport() override;
 
 	// TODO: Implement and use these
 	void ApplyState(bool bUseDstAlpha) override {}
@@ -70,13 +71,11 @@ public:
 
 	TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-	void Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma) override;
+	void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma) override;
 
 	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) override;
 
 	void ReinterpretPixelData(unsigned int convtype) override;
-
-	void UpdateViewport() override;
 
 	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
 

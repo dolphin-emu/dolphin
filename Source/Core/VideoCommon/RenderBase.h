@@ -49,7 +49,7 @@ public:
 
 	virtual void SetColorMask() = 0;
 	virtual void SetBlendMode(bool forceUpdate) = 0;
-	virtual void SetScissorRect(const TargetRectangle& rc) = 0;
+	virtual void SetScissorRect(const EFBRectangle& rc) = 0;
 	virtual void SetGenerationMode() = 0;
 	virtual void SetDepthMode() = 0;
 	virtual void SetLogicOpMode() = 0;
@@ -57,6 +57,7 @@ public:
 	virtual void SetLineWidth() = 0;
 	virtual void SetSamplerState(int stage,int texindex) = 0;
 	virtual void SetInterlacingMode() = 0;
+	virtual void SetViewport() = 0;
 
 	virtual void ApplyState(bool bUseDstAlpha) = 0;
 	virtual void RestoreState() = 0;
@@ -105,9 +106,8 @@ public:
 	virtual void RestoreAPIState() = 0;
 
 	// Finish up the current frame, print some stats
-	virtual void Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma = 1.0f) = 0;
-
-	virtual void UpdateViewport() = 0;
+	static void Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma = 1.0f);
+	virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc,float Gamma = 1.0f) = 0;
 
 	virtual bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc) = 0;
 
@@ -160,4 +160,3 @@ private:
 
 extern Renderer *g_renderer;
 
-void UpdateViewport();

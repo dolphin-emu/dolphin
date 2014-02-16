@@ -30,6 +30,9 @@
 #include "XFMemory.h"
 #include "FifoPlayer/FifoRecorder.h"
 #include "AVIDump.h"
+#include "Debugger.h"
+#include "Statistics.h"
+#include "Core.h"
 
 #include <cmath>
 #include <string>
@@ -117,7 +120,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	}
 	else
 	{
-		g_renderer->Swap(xfbAddr, fbWidth, fbHeight,sourceRc,Gamma);
+		Swap(xfbAddr, fbWidth, fbHeight,sourceRc,Gamma);
 		Common::AtomicStoreRelease(s_swapRequested, false);
 	}
 }
@@ -509,8 +512,19 @@ void Renderer::RecordVideoMemory()
 	FifoRecorder::GetInstance().SetVideoMemory(bpMem, cpMem, xfMem, xfRegs, sizeof(XFRegisters) / 4);
 }
 
-void UpdateViewport()
+void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
-	if (xfregs.viewport.wd != 0 && xfregs.viewport.ht != 0)
-		g_renderer->UpdateViewport();
+	// TODO: merge more generic parts into VideoCommon
+	g_renderer->SwapImpl(xfbAddr, fbWidth, fbHeight, rc, Gamma);
+
+	frameCount++;
+	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
+
+	// Begin new frame
+	// Set default viewport and scissor, for the clear to work correctly
+	// New frame
+	stats.ResetFrame();
+
+	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
+	XFBWrited = false;
 }

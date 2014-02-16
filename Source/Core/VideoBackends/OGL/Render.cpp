@@ -44,7 +44,6 @@
 #include "StringUtil.h"
 #include "FramebufferManager.h"
 #include "Fifo.h"
-#include "Debugger.h"
 #include "Core.h"
 #include "Movie.h"
 #include "BPFunctions.h"
@@ -862,9 +861,10 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // Renderer::GetTargetHeight() = the fixed ini file setting
 // donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
-void Renderer::SetScissorRect(const TargetRectangle& rc)
+void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
-	glScissor(rc.left, rc.bottom, rc.GetWidth(), rc.GetHeight());
+	TargetRectangle trc = g_renderer->ConvertEFBRectangle(rc);
+	glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
 }
 
 void Renderer::SetColorMask()
@@ -1077,8 +1077,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	return 0;
 }
 
-// Called from VertexShaderManager
-void Renderer::UpdateViewport()
+void Renderer::SetViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -1276,7 +1275,7 @@ void DumpFrame(const std::vector<u8>& data, int w, int h)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
+void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	static int w = 0, h = 0;
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
@@ -1592,15 +1591,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	TextureCache::Cleanup();
 
-	frameCount++;
-
-	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
-
-	// Begin new frame
-	// Set default viewport and scissor, for the clear to work correctly
-	// New frame
-	stats.ResetFrame();
-
 	// Render to the framebuffer.
 	FramebufferManager::SetFramebuffer(0);
 
@@ -1618,8 +1608,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// Renderer::SetZBufferRender();
 	// SaveTexture("tex.png", GL_TEXTURE_2D, s_FakeZTarget,
 	//	      GetTargetWidth(), GetTargetHeight());
-	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
-	XFBWrited = false;
 
 	// Invalidate EFB cache
 	ClearEFBCache();
@@ -1650,7 +1638,7 @@ void Renderer::RestoreAPIState()
 	SetDepthMode();
 	SetBlendMode(true);
 	SetLogicOpMode();
-	UpdateViewport();
+	SetViewport();
 
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 		glPolygonMode(GL_FRONT_AND_BACK, g_ActiveConfig.bWireFrame ? GL_LINE : GL_FILL);

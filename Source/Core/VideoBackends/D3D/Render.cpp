@@ -7,7 +7,6 @@
 
 #include "Timer.h"
 
-#include "Debugger.h"
 #include "EmuWindow.h"
 #include "Fifo.h"
 #include "OnScreenDisplay.h"
@@ -303,9 +302,10 @@ bool Renderer::CheckForResize()
 	return false;
 }
 
-void Renderer::SetScissorRect(const TargetRectangle& rc)
+void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
-	D3D::context->RSSetScissorRects(1, rc.AsRECT());
+	TargetRectangle trc = ConvertEFBRectangle(rc);
+	D3D::context->RSSetScissorRects(1, trc.AsRECT());
 }
 
 void Renderer::SetColorMask()
@@ -475,8 +475,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 }
 
 
-// Called from VertexShaderManager
-void Renderer::UpdateViewport()
+void Renderer::SetViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
 	// [0] = width/2
@@ -485,6 +484,10 @@ void Renderer::UpdateViewport()
 	// [3] = xorig + width/2 + 342
 	// [4] = yorig + height/2 + 342
 	// [5] = 16777215 * farz
+
+	// D3D crashes for zero viewports
+	if (xfregs.viewport.wd == 0 || xfregs.viewport.ht == 0)
+		return;
 
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
@@ -724,7 +727,7 @@ void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
+void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc,float Gamma)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
@@ -944,9 +947,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 
 	OSD::DrawMessages();
 	D3D::EndFrame();
-	frameCount++;
-
-	GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
 
 	TextureCache::Cleanup();
 
@@ -972,11 +972,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	// update FPS counter
 	if (XFBWrited)
 		s_fps = UpdateFPSCounter();
-
-	// Begin new frame
-	// Set default viewport and scissor, for the clear to work correctly
-	// New frame
-	stats.ResetFrame();
 
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
@@ -1017,10 +1012,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbHeight,const EFBRectangle& r
 	RestoreAPIState();
 	D3D::BeginFrame();
 	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-	UpdateViewport();
-
-	Core::Callback_VideoCopiedToXFB(XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
-	XFBWrited = false;
+	SetViewport();
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
@@ -1037,7 +1029,7 @@ void Renderer::RestoreAPIState()
 	D3D::stateman->PopBlendState();
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();
-	UpdateViewport();
+	SetViewport();
 	BPFunctions::SetScissor();
 }
 

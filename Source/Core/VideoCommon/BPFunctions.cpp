@@ -47,8 +47,7 @@ void SetScissor()
 	if (rc.left > rc.right) rc.right = rc.left;
 	if (rc.top > rc.bottom) rc.bottom = rc.top;
 
-	TargetRectangle trc = g_renderer->ConvertEFBRectangle(rc);
-	g_renderer->SetScissorRect(trc);
+	g_renderer->SetScissorRect(rc);
 }
 
 void SetLineWidth()

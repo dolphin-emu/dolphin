@@ -18,6 +18,7 @@
 #include "XFMemory.h"
 #include "VideoCommon.h"
 #include "VertexManagerBase.h"
+#include "RenderBase.h"
 
 #include "RenderBase.h"
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
@@ -172,8 +173,6 @@ static void ViewportCorrectionMatrix(Matrix44& result)
 	result.data[4*1+1] = intendedHt / Ht;
 	result.data[4*1+3] = (-intendedHt + 2.f * (Y - intendedY)) / Ht + 1.f;
 }
-
-void UpdateViewport();
 
 void VertexShaderManager::Init()
 {
@@ -373,7 +372,7 @@ void VertexShaderManager::SetConstants()
 		constants.depthparams[1] = xfregs.viewport.zRange / 16777216.0f;
 		dirty = true;
 		// This is so implementation-dependent that we can't have it here.
-		UpdateViewport();
+		g_renderer->SetViewport();
 		
 		// Update projection if the viewport isn't 1:1 useable
 		if(!g_ActiveConfig.backend_info.bSupportsOversizedViewports)

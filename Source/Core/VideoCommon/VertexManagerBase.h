@@ -58,7 +58,7 @@ private:
 
 	//virtual void Draw(u32 stride, bool alphapass) = 0;
 	// temp
-	virtual void vFlush() = 0;
+	virtual void vFlush(bool useDstAlpha) = 0;
 };
 
 extern VertexManager *g_vertex_manager;

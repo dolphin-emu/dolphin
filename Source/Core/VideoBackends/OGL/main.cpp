@@ -97,7 +97,7 @@ std::string VideoBackend::GetName()
 
 std::string VideoBackend::GetDisplayName()
 {
-	if (g_renderer && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+	if (GLInterface != nullptr && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
 		return "OpenGLES";
 	else
 		return "OpenGL";

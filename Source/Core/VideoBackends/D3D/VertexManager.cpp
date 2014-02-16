@@ -197,11 +197,8 @@ void VertexManager::Draw(UINT stride)
 	}
 }
 
-void VertexManager::vFlush()
+void VertexManager::vFlush(bool useDstAlpha)
 {
-	bool useDstAlpha = !g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-		bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24;
-
 	if (!PixelShaderCache::SetShader(
 		useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE,
 		g_nativeVertexFmt->m_components))
@@ -219,11 +216,7 @@ void VertexManager::vFlush()
 	g_nativeVertexFmt->SetupVertexPointers();
 	g_renderer->ApplyState(useDstAlpha);
 
-	g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
 	Draw(stride);
-	g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-
-	GFX_DEBUGGER_PAUSE_AT(NEXT_FLUSH, true);
 
 	g_renderer->RestoreState();
 }
