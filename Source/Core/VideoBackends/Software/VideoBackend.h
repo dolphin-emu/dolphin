@@ -2,6 +2,8 @@
 
 #include "VideoBackendBase.h"
 
+namespace MMIO { class Mapping; }
+
 namespace SW
 {
 
@@ -44,11 +46,8 @@ class VideoSoftware : public VideoBackend
 	bool Video_IsPossibleWaitingSetDrawDone() override;
 	void Video_AbortFrame() override;
 
-	readFn16  Video_CPRead16() override;
-	writeFn16 Video_CPWrite16() override;
-	readFn16  Video_PERead16() override;
-	writeFn16 Video_PEWrite16() override;
-	writeFn32 Video_PEWrite32() override;
+	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
+	void RegisterPEMMIO(MMIO::Mapping* mmio, u32 base) override;
 
 	void UpdateFPSDisplay(const char*) override;
 	unsigned int PeekMessages() override;

@@ -8,6 +8,7 @@
 #include "SI_Device.h"
 class PointerWrap;
 class ISIDevice;
+namespace MMIO { class Mapping; }
 
 // SI number of channels
 enum
@@ -22,6 +23,8 @@ void Init();
 void Shutdown();
 void DoState(PointerWrap &p);
 
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+
 void UpdateDevices();
 
 void RemoveDevice(int _iDeviceNumber);
@@ -30,9 +33,6 @@ void AddDevice(ISIDevice* pDevice);
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate);
 void ChangeDevice(SIDevices device, int channel);
-
-void Read32(u32& _uReturnValue, const u32 _iAddress);
-void Write32(const u32 _iValue, const u32 _iAddress);
 
 int GetTicksToNextSIPoll();
 

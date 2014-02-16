@@ -1043,8 +1043,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			color = s_efbCache[1][cacheRectIdx][yRect * EFB_CACHE_RECT_SIZE + xRect];
 
 			// check what to do with the alpha channel (GX_PokeAlphaRead)
-			PixelEngine::UPEAlphaReadReg alpha_read_mode;
-			PixelEngine::Read16((u16&)alpha_read_mode, PE_ALPHAREAD);
+			PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
 
 			if (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24)
 			{

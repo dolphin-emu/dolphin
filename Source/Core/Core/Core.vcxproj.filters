@@ -492,9 +492,6 @@
     <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
     </ClCompile>
-    <ClCompile Include="HW\WII_IOB.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\Wii IO Bridge</Filter>
-    </ClCompile>
     <ClCompile Include="HW\WII_IPC.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wii IPC</Filter>
     </ClCompile>
@@ -508,6 +505,9 @@
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
     <ClCompile Include="HW\MemmapFunctions.cpp">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\MMIO.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
     <ClCompile Include="HW\SystemTimers.cpp">
@@ -1022,9 +1022,6 @@
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Real</Filter>
     </ClInclude>
-    <ClInclude Include="HW\WII_IOB.h">
-      <Filter>HW %28Flipper/Hollywood%29\Wii IO Bridge</Filter>
-    </ClInclude>
     <ClInclude Include="HW\WII_IPC.h">
       <Filter>HW %28Flipper/Hollywood%29\Wii IPC</Filter>
     </ClInclude>
@@ -1035,6 +1032,12 @@
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
     <ClInclude Include="HW\Memmap.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\MMIO.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\MMIOHandlers.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
     <ClInclude Include="HW\SystemTimers.h">

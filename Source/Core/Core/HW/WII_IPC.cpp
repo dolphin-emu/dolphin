@@ -12,6 +12,7 @@
 #include "CPU.h"
 #include "Memmap.h"
 #include "ProcessorInterface.h"
+#include "MMIO.h"
 
 #include "../IPC_HLE/WII_IPC_HLE.h"
 #include "WII_IPC.h"
@@ -37,12 +38,21 @@ enum
 	IPC_ARMMSG  = 0x08,
 	IPC_ARMCTRL = 0x0c,
 
+	PPCSPEED    = 0x18,
+	VISOLID     = 0x24,
+
 	PPC_IRQFLAG = 0x30,
 	PPC_IRQMASK = 0x34,
 	ARM_IRQFLAG = 0x38,
 	ARM_IRQMASK = 0x3c,
 
-	GPIOB_OUT   = 0xc0 // sensor bar power flag??
+	GPIOB_OUT   = 0xc0,
+	GPIOB_DIR   = 0xc4,
+	GPIOB_IN    = 0xc8,
+
+	UNK_180     = 0x180,
+	UNK_1CC     = 0x1cc,
+	UNK_1D0     = 0x1d0,
 };
 
 struct CtrlRegister
@@ -135,86 +145,64 @@ void Shutdown()
 {
 }
 
-void Read32(u32& _rReturnValue, const u32 _Address)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	switch(_Address & 0xFFFF)
-	{
-	case IPC_PPCCTRL:
-		_rReturnValue = ctrl.ppc();
-		DEBUG_LOG(WII_IPC, "r32 IPC_PPCCTRL %03x [R:%i A:%i E:%i]",
-			ctrl.ppc(), ctrl.Y1, ctrl.Y2, ctrl.X1);
+	mmio->Register(base | IPC_PPCMSG,
+		MMIO::InvalidRead<u32>(),
+		MMIO::DirectWrite<u32>(&ppc_msg)
+	);
 
-		// if ((REASON_REG & 0x14) == 0x14) CALL IPCReplayHandler
-		// if ((REASON_REG & 0x22) != 0x22) Jumps to the end
-		break;
-
-	case IPC_ARMMSG:	// looks a little bit like a callback function
-		_rReturnValue = arm_msg;
-		DEBUG_LOG(WII_IPC, "r32 IPC_ARMMSG %08x ", _rReturnValue);
-		break;
-
-	case GPIOB_OUT:
-		_rReturnValue = sensorbar_power;
-		break;
-
-	default:
-		_dbg_assert_msg_(WII_IPC, 0, "r32 from %08x", _Address);
-		break;
-	}
-}
-
-void Write32(const u32 _Value, const u32 _Address)
-{
-	switch(_Address & 0xFFFF)
-	{
-	case IPC_PPCMSG:	// __ios_Ipc2 ... a value from __responses is loaded
-		{
-			ppc_msg = _Value;
-			DEBUG_LOG(WII_IPC, "IPC_PPCMSG = %08x", ppc_msg);
-		}
-		break;
-
-	case IPC_PPCCTRL:
-		{
-			ctrl.ppc(_Value);
-			DEBUG_LOG(WII_IPC, "w32 %08x IPC_PPCCTRL = %03x [R:%i A:%i E:%i]",
-				_Value, ctrl.ppc(), ctrl.Y1, ctrl.Y2, ctrl.X1);
+	mmio->Register(base | IPC_PPCCTRL,
+		MMIO::ComplexRead<u32>([](u32) {
+			return ctrl.ppc();
+		}),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			ctrl.ppc(val);
 			if (ctrl.X1)
-			{
-				INFO_LOG(WII_IPC, "New pointer available: %08x", ppc_msg);
-				// Let the HLE handle the request on it's own time
 				WII_IPC_HLE_Interface::EnqRequest(ppc_msg);
-			}
-		}
-		break;
+			WII_IPC_HLE_Interface::Update();
+			CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
+		})
+	);
 
-	case PPC_IRQFLAG:	// ACR REGISTER IT IS CALLED IN DEBUG
-		{
-			ppc_irq_flags &= ~_Value;
-			DEBUG_LOG(WII_IPC,  "w32 PPC_IRQFLAG %08x (%08x)", _Value, ppc_irq_flags);
-		}
-		break;
+	mmio->Register(base | IPC_ARMMSG,
+		MMIO::DirectRead<u32>(&arm_msg),
+		MMIO::InvalidWrite<u32>()
+	);
 
-	case PPC_IRQMASK:	// __OSInterruptInit (0x40000000)
-		{
-			ppc_irq_masks = _Value;
+	mmio->Register(base | PPC_IRQFLAG,
+		MMIO::InvalidRead<u32>(),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			ppc_irq_flags &= ~val;
+			WII_IPC_HLE_Interface::Update();
+			CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
+		})
+	);
+
+	mmio->Register(base | PPC_IRQMASK,
+		MMIO::InvalidRead<u32>(),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			ppc_irq_masks = val;
 			if (ppc_irq_masks & INT_CAUSE_IPC_BROADWAY) // wtf?
 				Reset();
-			DEBUG_LOG(WII_IPC, "w32 PPC_IRQMASK %08x", ppc_irq_masks);
-		}
-		break;
+			WII_IPC_HLE_Interface::Update();
+			CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
+		})
+	);
 
-	case GPIOB_OUT:
-		sensorbar_power = _Value;
-		break;
+	mmio->Register(base | GPIOB_OUT,
+		MMIO::Constant<u32>(0),
+		MMIO::DirectWrite<u32>(&sensorbar_power)
+	);
 
-	default:
-		_dbg_assert_msg_(WII_IPC, 0, "w32 %08x @ %08x", _Value, _Address);
-		break;
-	}
-
-	WII_IPC_HLE_Interface::Update();
-	CoreTiming::ScheduleEvent_Threadsafe(0, updateInterrupts, 0);
+	// Register some stubbed/unknown MMIOs required to make Wii games work.
+	mmio->Register(base | PPCSPEED, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
+	mmio->Register(base | VISOLID, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
+	mmio->Register(base | GPIOB_DIR, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
+	mmio->Register(base | GPIOB_IN, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
+	mmio->Register(base | UNK_180, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
+	mmio->Register(base | UNK_1CC, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
+	mmio->Register(base | UNK_1D0, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
 }
 
 void UpdateInterrupts(u64 userdata, int cyclesLate)

@@ -5,7 +5,9 @@
 #pragma once
 
 #include "CommonTypes.h"
+
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 namespace VideoInterface
 {
@@ -324,12 +326,7 @@ union UVIDTVStatus
 	void SetRegionReg(char region);
 	void DoState(PointerWrap &p);
 
-	void Read8(u8& _uReturnValue, const u32 _uAddress);
-	void Read16(u16& _uReturnValue, const u32 _uAddress);
-	void Read32(u32& _uReturnValue, const u32 _uAddress);
-
-	void Write16(const u16 _uValue, const u32 _uAddress);
-	void Write32(const u32 _uValue, const u32 _uAddress);
+	void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 	// returns a pointer to the current visible xfb
 	u32 GetXFBAddressTop();

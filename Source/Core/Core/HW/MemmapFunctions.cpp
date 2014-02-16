@@ -20,10 +20,10 @@
 
 #include "GPFifo.h"
 #include "Memmap.h"
-#include "WII_IOB.h"
 #include "../Core.h"
 #include "../PowerPC/PowerPC.h"
 #include "VideoBackendBase.h"
+#include "MMIO.h"
 
 #ifdef USE_GDBSTUB
 #include "../PowerPC/GDBStub.h"
@@ -61,28 +61,6 @@ extern u8 *m_pEFB;
 extern bool m_IsInitialized;
 extern bool bFakeVMEM;
 
-// Read and write shortcuts
-
-// It appears that some clever games use stfd to write 64 bits to the fifo. Hence the hwWrite64.
-
-extern writeFn8  hwWrite8 [NUMHWMEMFUN];
-extern writeFn16 hwWrite16[NUMHWMEMFUN];
-extern writeFn32 hwWrite32[NUMHWMEMFUN];
-extern writeFn64 hwWrite64[NUMHWMEMFUN];
-
-extern readFn8   hwRead8 [NUMHWMEMFUN];
-extern readFn16  hwRead16[NUMHWMEMFUN];
-extern readFn32  hwRead32[NUMHWMEMFUN];
-
-extern writeFn8  hwWriteWii8 [NUMHWMEMFUN];
-extern writeFn16 hwWriteWii16[NUMHWMEMFUN];
-extern writeFn32 hwWriteWii32[NUMHWMEMFUN];
-extern writeFn64 hwWriteWii64[NUMHWMEMFUN];
-
-extern readFn8   hwReadWii8 [NUMHWMEMFUN];
-extern readFn16  hwReadWii16[NUMHWMEMFUN];
-extern readFn32  hwReadWii32[NUMHWMEMFUN];
-
 // Overloaded byteswap functions, for use within the templated functions below.
 inline u8 bswap(u8 val)   {return val;}
 inline u16 bswap(u16 val) {return Common::swap16(val);}
@@ -90,42 +68,6 @@ inline u32 bswap(u32 val) {return Common::swap32(val);}
 inline u64 bswap(u64 val) {return Common::swap64(val);}
 // =================
 
-
-// Read and write
-// ----------------
-// The read and write macros that direct us to the right functions
-
-// All these little inline functions are needed because we can't paste symbols together in templates
-// like we can in macros.
-inline void hwRead(u8 &var, u32 addr)  {hwRead8 [(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwRead(u16 &var, u32 addr) {hwRead16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwRead(u32 &var, u32 addr) {hwRead32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwRead(u64 &var, u32 addr) {PanicAlert("hwRead: There's no 64-bit HW read. %08x", addr);}
-
-inline void hwWrite(u8 var, u32 addr)  {hwWrite8[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWrite(u16 var, u32 addr) {hwWrite16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWrite(u32 var, u32 addr) {hwWrite32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWrite(u64 var, u32 addr) {hwWrite64[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-
-inline void hwReadWii(u8 &var, u32 addr)  {hwReadWii8 [(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwReadWii(u16 &var, u32 addr) {hwReadWii16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwReadWii(u32 &var, u32 addr) {hwReadWii32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwReadWii(u64 &var, u32 addr) {PanicAlert("hwReadWii: There's no 64-bit HW read. %08x", addr);}
-
-inline void hwWriteWii(u8 var, u32 addr)  {hwWriteWii8[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWriteWii(u16 var, u32 addr) {hwWriteWii16[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWriteWii(u32 var, u32 addr) {hwWriteWii32[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-inline void hwWriteWii(u64 var, u32 addr) {hwWriteWii64[(addr>>HWSHIFT) & (NUMHWMEMFUN-1)](var, addr);}
-
-inline void hwReadIOBridge(u8 &var, u32 addr)  {WII_IOBridge::Read8(var, addr);}
-inline void hwReadIOBridge(u16 &var, u32 addr) {WII_IOBridge::Read16(var, addr);}
-inline void hwReadIOBridge(u32 &var, u32 addr) {WII_IOBridge::Read32(var, addr);}
-inline void hwReadIOBridge(u64 &var, u32 addr) {PanicAlert("hwReadIOBridge: There's no 64-bit HW read. %08x", addr);}
-
-inline void hwWriteIOBridge(u8 var, u32 addr)  {WII_IOBridge::Write8(var, addr);}
-inline void hwWriteIOBridge(u16 var, u32 addr) {WII_IOBridge::Write16(var, addr);}
-inline void hwWriteIOBridge(u32 var, u32 addr) {WII_IOBridge::Write32(var, addr);}
-inline void hwWriteIOBridge(u64 var, u32 addr) {PanicAlert("hwWriteIOBridge: There's no 64-bit HW write. %08x", addr);}
 
 // Nasty but necessary. Super Mario Galaxy pointer relies on this stuff.
 u32 EFB_Read(const u32 addr)
@@ -155,20 +97,8 @@ inline void ReadFromHardware(T &_var, const u32 em_address, const u32 effective_
 	{
 		if (em_address < 0xcc000000)
 			_var = EFB_Read(em_address);
-		else if (em_address <= 0xcc009000)
-			hwRead(_var, em_address);
-		/* WIIMODE */
-		else if (((em_address & 0xFF000000) == 0xCD000000) &&
-			(em_address <= 0xcd009000))
-			hwReadWii(_var, em_address);
-		else if (((em_address & 0xFFF00000) == 0xCD800000) &&
-			(em_address <= 0xCD809000))
-			hwReadIOBridge(_var, em_address);
 		else
-		{
-			/* Disabled because the debugger makes trouble with */
-			/*_dbg_assert_(MEMMAP,0); */
-		}
+			mmio_mapping->Read(em_address, &_var);
 	}
 	else if (((em_address & 0xF0000000) == 0x80000000) ||
 		((em_address & 0xF0000000) == 0xC0000000) ||
@@ -245,28 +175,10 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 			}
 			return;
 		}
-		else if (em_address <= 0xcc009000)
-		{
-			hwWrite(data, em_address);
-			return;
-		}
-		/* WIIMODE */
-		else if (((em_address & 0xFF000000) == 0xCD000000) &&
-			(em_address <= 0xcd009000))
-		{
-				hwWriteWii(data,em_address);
-				return;
-		}
-		else if (((em_address & 0xFFF00000) == 0xCD800000) &&
-			(em_address <= 0xCD809000))
-		{
-				hwWriteIOBridge(data,em_address);
-				return;
-		}
 		else
 		{
-			ERROR_LOG(MEMMAP, "hwwrite [%08x] := %08x (PC: %08x)", em_address, (u32)data, PC);
-			_dbg_assert_msg_(MEMMAP,0,"Memory - Unknown HW address %08x", em_address);
+			mmio_mapping->Write(em_address, data);
+			return;
 		}
 	}
 	else if (((em_address & 0xF0000000) == 0x80000000) ||

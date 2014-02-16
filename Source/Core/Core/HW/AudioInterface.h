@@ -9,6 +9,7 @@
 #include "CommonTypes.h"
 
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 namespace AudioInterface
 {
@@ -17,14 +18,13 @@ void Init();
 void Shutdown();
 void DoState(PointerWrap &p);
 
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+
 void Update(u64 userdata, int cyclesLate);
 
 // Called by DSP emulator
 void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DACSampleRate);
 unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples, unsigned int _sampleRate = 48000);
-
-void Read32(u32& _uReturnValue, const u32 _iAddress);
-void Write32(const u32 _iValue, const u32 _iAddress);
 
 // Get the audio rates (48000 or 32000 only)
 unsigned int GetAIDSampleRate();

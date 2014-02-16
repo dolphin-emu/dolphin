@@ -8,6 +8,7 @@
 #include "VideoBackendBase.h"
 
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 extern bool MT;
 
@@ -134,11 +135,7 @@ void Init();
 void Shutdown();
 void DoState(PointerWrap &p);
 
-// Read
-void Read16(u16& _rReturnValue, const u32 _Address);
-void Write16(const u16 _Data, const u32 _Address);
-void Read32(u32& _rReturnValue, const u32 _Address);
-void Write32(const u32 _Data, const u32 _Address);
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void SetCpStatus(bool isCPUThread = false);
 void GatherPipeBursted();

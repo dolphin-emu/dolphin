@@ -6,6 +6,7 @@
 
 #include "CommonTypes.h"
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 namespace DVDInterface
 {
@@ -13,6 +14,8 @@ namespace DVDInterface
 void Init();
 void Shutdown();
 void DoState(PointerWrap &p);
+
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 // Disc detection and swapping
 void SetDiscInside(bool _DiscInside);
@@ -31,12 +34,6 @@ bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength);
 // For AudioInterface
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples);
 extern bool g_bStream;
-
-// Read32
-void Read32(u32& _uReturnValue, const u32 _iAddress);
-
-// Write32
-void Write32(const u32 _iValue, const u32 _iAddress);
 
 
 // Not sure about endianness here. I'll just name them like this...

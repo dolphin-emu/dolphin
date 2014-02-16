@@ -145,6 +145,7 @@
     <ClCompile Include="HW\Memmap.cpp" />
     <ClCompile Include="HW\MemmapFunctions.cpp" />
     <ClCompile Include="HW\MemoryInterface.cpp" />
+    <ClCompile Include="HW\MMIO.cpp" />
     <ClCompile Include="HW\ProcessorInterface.cpp" />
     <ClCompile Include="HW\SI.cpp" />
     <ClCompile Include="HW\SI_Device.cpp" />
@@ -170,7 +171,6 @@
     <ClCompile Include="HW\WiimoteEmu\WiimoteEmu.cpp" />
     <ClCompile Include="HW\WiimoteReal\IOWin.cpp" />
     <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp" />
-    <ClCompile Include="HW\WII_IOB.cpp" />
     <ClCompile Include="HW\WII_IPC.cpp" />
     <ClCompile Include="IPC_HLE\ICMPWin.cpp" />
     <ClCompile Include="IPC_HLE\WiiMote_HID_Attr.cpp" />
@@ -342,6 +342,8 @@
     <ClInclude Include="HW\HW.h" />
     <ClInclude Include="HW\Memmap.h" />
     <ClInclude Include="HW\MemoryInterface.h" />
+    <ClInclude Include="HW\MMIO.h" />
+    <ClInclude Include="HW\MMIOHandlers.h" />
     <ClInclude Include="HW\ProcessorInterface.h" />
     <ClInclude Include="HW\SI.h" />
     <ClInclude Include="HW\SI_Device.h" />
@@ -368,7 +370,6 @@
     <ClInclude Include="HW\WiimoteEmu\WiimoteHid.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteReal.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h" />
-    <ClInclude Include="HW\WII_IOB.h" />
     <ClInclude Include="HW\WII_IPC.h" />
     <ClInclude Include="IPC_HLE\fakepoll.h" />
     <ClInclude Include="IPC_HLE\hci.h" />

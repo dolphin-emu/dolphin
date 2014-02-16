@@ -8,6 +8,7 @@
 #include "VideoCommon.h"
 
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 namespace SWPixelEngine
 {
@@ -200,12 +201,7 @@ namespace SWPixelEngine
 	void Init();
 	void DoState(PointerWrap &p);
 
-	// Read
-	void Read16(u16& _uReturnValue, const u32 _iAddress);
-
-	// Write
-	void Write16(const u16 _iValue, const u32 _iAddress);
-	void Write32(const u32 _iValue, const u32 _iAddress);
+	void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 	// gfx backend support
 	void SetToken(const u16 _token, const int _bSetTokenAcknowledge);

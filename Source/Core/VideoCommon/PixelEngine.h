@@ -6,6 +6,7 @@
 
 #include "CommonTypes.h"
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 // internal hardware addresses
 enum
@@ -55,18 +56,14 @@ union UPEAlphaReadReg
 void Init();
 void DoState(PointerWrap &p);
 
-// Read
-void Read16(u16& _uReturnValue, const u32 _iAddress);
-
-// Write
-void Write16(const u16 _iValue, const u32 _iAddress);
-void Write32(const u32 _iValue, const u32 _iAddress);
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 // gfx backend support
 void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
 void SetFinish(void);
 void ResetSetFinish(void);
 void ResetSetToken(void);
+UPEAlphaReadReg GetAlphaReadMode();
 
 // Bounding box functionality. Paper Mario (both) are a couple of the few games that use it.
 extern u16 bbox[4];

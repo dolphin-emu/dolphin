@@ -6,6 +6,7 @@
 
 #include "Common.h"
 class PointerWrap;
+namespace MMIO { class Mapping; }
 
 namespace WII_IPCInterface
 {
@@ -36,8 +37,7 @@ void Reset();
 void Shutdown();
 void DoState(PointerWrap &p);
 
-void Read32(u32& _rReturnValue, const u32 _Address);
-void Write32(const u32 _Value, const u32 _Address);
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void UpdateInterrupts(u64 userdata = 0, int cyclesLate = 0);
 void GenerateAck(u32 _Address);

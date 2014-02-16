@@ -62,6 +62,7 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
 #include "SystemTimers.h"
+#include "MMIO.h"
 
 namespace AudioInterface
 {
@@ -170,43 +171,12 @@ void Shutdown()
 {
 }
 
-void Read32(u32& _rReturnValue, const u32 _Address)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	switch (_Address & 0xFFFF)
-	{
-	case AI_CONTROL_REGISTER:
-		_rReturnValue = m_Control.hex;
-		break;
-
-	case AI_VOLUME_REGISTER:
-		_rReturnValue = m_Volume.hex;
-		break;
-
-	case AI_SAMPLE_COUNTER:
-		Update(0, 0);
-		_rReturnValue = m_SampleCounter;
-		break;
-
-	case AI_INTERRUPT_TIMING:
-		_rReturnValue = m_InterruptTiming;
-		break;
-
-	default:
-		ERROR_LOG(AUDIO_INTERFACE, "Unknown read 0x%08x", _Address);
-		_dbg_assert_msg_(AUDIO_INTERFACE, 0, "AudioInterface - Read from 0x%08x", _Address);
-		_rReturnValue = 0;
-		return;
-	}
-	DEBUG_LOG(AUDIO_INTERFACE, "r32 %08x %08x", _Address, _rReturnValue);
-}
-
-void Write32(const u32 _Value, const u32 _Address)
-{
-	switch (_Address & 0xFFFF)
-	{
-	case AI_CONTROL_REGISTER:
-		{
-			AICR tmpAICtrl(_Value);
+	mmio->Register(base | AI_CONTROL_REGISTER,
+		MMIO::DirectRead<u32>(&m_Control.hex),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			AICR tmpAICtrl(val);
 
 			m_Control.AIINTMSK = tmpAICtrl.AIINTMSK;
 			m_Control.AIINTVLD = tmpAICtrl.AIINTVLD;
@@ -260,32 +230,30 @@ void Write32(const u32 _Value, const u32 _Address)
 			}
 
 			UpdateInterrupts();
-		}
-		break;
+		})
+	);
 
-	case AI_VOLUME_REGISTER:
-		m_Volume.hex = _Value;
-		DEBUG_LOG(AUDIO_INTERFACE,  "Set volume: left(%02x) right(%02x)", m_Volume.left, m_Volume.right);
-		break;
+	mmio->Register(base | AI_VOLUME_REGISTER,
+		MMIO::DirectRead<u32>(&m_Volume.hex),
+		MMIO::DirectWrite<u32>(&m_Volume.hex)
+	);
 
-	case AI_SAMPLE_COUNTER:
-		// Why was this commented out? Does something do this?
-		_dbg_assert_msg_(AUDIO_INTERFACE, 0, "AIS - sample counter is read only");
-		m_SampleCounter = _Value;
-		break;
+	mmio->Register(base | AI_SAMPLE_COUNTER,
+		MMIO::ComplexRead<u32>([](u32) {
+			Update(0, 0);
+			return m_SampleCounter;
+		}),
+		MMIO::DirectWrite<u32>(&m_SampleCounter)
+	);
 
-	case AI_INTERRUPT_TIMING:
-		m_InterruptTiming = _Value;
-		CoreTiming::RemoveEvent(et_AI);
-		CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2), et_AI);
-		DEBUG_LOG(AUDIO_INTERFACE, "Set interrupt: %08x samples", m_InterruptTiming);
-		break;
-
-	default:
-		ERROR_LOG(AUDIO_INTERFACE, "Unknown write %08x @ %08x", _Value, _Address);
-		_dbg_assert_msg_(AUDIO_INTERFACE,0,"AIS - Write %08x to %08x", _Value, _Address);
-		break;
-	}
+	mmio->Register(base | AI_INTERRUPT_TIMING,
+		MMIO::DirectRead<u32>(&m_InterruptTiming),
+		MMIO::ComplexWrite<u32>([](u32, u32 val) {
+			m_InterruptTiming = val;
+			CoreTiming::RemoveEvent(et_AI);
+			CoreTiming::ScheduleEvent(((int)GetAIPeriod() / 2), et_AI);
+		})
+	);
 }
 
 static void UpdateInterrupts()

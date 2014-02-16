@@ -11,6 +11,7 @@
 #include "ChunkFile.h"
 #include "CoreTiming.h"
 #include "ConfigManager.h"
+#include "HW/MMIO.h"
 #include "HW/ProcessorInterface.h"
 
 #include "SWPixelEngine.h"
@@ -60,30 +61,22 @@ void Init()
 	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
 }
 
-void Read16(u16& _uReturnValue, const u32 _iAddress)
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-	DEBUG_LOG(PIXELENGINE, "(r16): 0x%08x", _iAddress);
-
-	u16 address = _iAddress & 0xFFF;
-
-	if (address <= 0x2e)
-		_uReturnValue = ((u16*)&pereg)[address >> 1];
-}
-
-void Write32(const u32 _iValue, const u32 _iAddress)
-{
-	WARN_LOG(PIXELENGINE, "(w32): 0x%08x @ 0x%08x",_iValue,_iAddress);
-}
-
-void Write16(const u16 _iValue, const u32 _iAddress)
-{
-	u16 address = _iAddress & 0xFFF;
-
-	switch (address)
+	// Directly map reads and writes to the pereg structure.
+	for (size_t i = 0; i < sizeof (pereg) / sizeof (u16); ++i)
 	{
-	case PE_CTRL_REGISTER:
-		{
-			UPECtrlReg tmpCtrl(_iValue);
+		u16* ptr = (u16*)&pereg + i;
+		mmio->Register(base | (i * 2),
+			MMIO::DirectRead<u16>(ptr),
+			MMIO::DirectWrite<u16>(ptr)
+		);
+	}
+
+	// The control register has some more complex logic to perform on writes.
+	mmio->RegisterWrite(base | PE_CTRL_REGISTER,
+		MMIO::ComplexWrite<u16>([](u32, u16 val) {
+			UPECtrlReg tmpCtrl(val);
 
 			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = false;
 			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = false;
@@ -93,15 +86,9 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 			pereg.ctrl.PEToken = 0;		// this flag is write only
 			pereg.ctrl.PEFinish = 0;	// this flag is write only
 
-			DEBUG_LOG(PIXELENGINE, "(w16): PE_CTRL_REGISTER: 0x%04x", _iValue);
 			UpdateInterrupts();
-		}
-		break;
-	default:
-		if (address <= 0x2e)
-			((u16*)&pereg)[address >> 1] = _iValue;
-		break;
-	}
+		})
+	);
 }
 
 bool AllowIdleSkipping()
