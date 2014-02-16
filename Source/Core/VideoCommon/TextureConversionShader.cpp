@@ -105,6 +105,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	WRITE(p, "  sampleUv.x = xib + halfxb * %d;\n", blkW);
 	WRITE(p, "  sampleUv.y = yb + xoff;\n");
+	WRITE(p, "  bool first = xb == (halfxb * 2);\n");
 }
 
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType)
@@ -373,8 +374,6 @@ void WriteRGBA8Encoder(char* p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_RGBA8, ApiType);
 
-	WRITE(p, "  bool first = xb == (halfxb * 2);\n");
-
 	WRITE(p, "  float4 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
@@ -562,8 +561,6 @@ void WriteZ16LEncoder(char* p,API_TYPE ApiType)
 void WriteZ24Encoder(char* p, API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_Z24X8, ApiType);
-
-	WRITE(p, "  bool first = xb == (halfxb * 2);\n");
 
 	WRITE(p, "  float depth0;\n");
 	WRITE(p, "  float depth1;\n");
