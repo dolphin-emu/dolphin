@@ -400,7 +400,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 						destination = SignExt16(js.next_inst.BD << 2);
 					else
 						destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-					WriteExit(destination, 0);
+					WriteExit(destination);
 				}
 				else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
 				{
@@ -424,7 +424,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			}
 			else
 			{
-				WriteExit(js.next_compilerPC + 4, 0);
+				WriteExit(js.next_compilerPC + 4);
 			}
 
 			js.cancel = true;
@@ -507,7 +507,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 					destination = SignExt16(js.next_inst.BD << 2);
 				else
 					destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-				WriteExit(destination, 0);
+				WriteExit(destination);
 			}
 			else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
 			{
@@ -534,7 +534,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			if (!!(4 & test_bit) == condition) SetJumpTarget(continue2);
 			if (!!(2 & test_bit) == condition) SetJumpTarget(continue1);
 
-			WriteExit(js.next_compilerPC + 4, 1);
+			WriteExit(js.next_compilerPC + 4);
 
 			js.cancel = true;
 		}
@@ -2221,5 +2221,5 @@ void Jit64::twx(UGeckoInstruction inst)
 	SetJumpTarget(exit3);
 	SetJumpTarget(exit4);
 	SetJumpTarget(exit5);
-	WriteExit(js.compilerPC + 4, 1);
+	WriteExit(js.compilerPC + 4);
 }

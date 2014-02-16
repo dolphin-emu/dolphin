@@ -186,23 +186,25 @@ void JitArm::WriteExceptionExit()
 	MOVI2R(A, (u32)asm_routines.testExceptions);
 	B(A);
 }
-void JitArm::WriteExit(u32 destination, int exit_num)
+void JitArm::WriteExit(u32 destination)
 {
 	Cleanup();
 
 	DoDownCount();
 	//If nobody has taken care of this yet (this can be removed when all branches are done)
 	JitBlock *b = js.curBlock;
-	b->exitAddress[exit_num] = destination;
-	b->exitPtrs[exit_num] = GetWritableCodePtr();
+	JitBlock::LinkData linkData;
+	linkData.exitAddress = destination;
+	linkData.exitPtrs = GetWritableCodePtr();
+	linkData.linkStatus = false;
 
 	// Link opportunity!
-	int block = blocks.GetBlockNumberFromStartAddress(destination);
-	if (block >= 0 && jo.enableBlocklink)
+	int block; 
+	if (jo.enableBlocklink && (block = blocks.GetBlockNumberFromStartAddress(destination)) >= 0)
 	{
 		// It exists! Joy of joy!
 		B(blocks.GetBlock(block)->checkedEntry);
-		b->linkStatus[exit_num] = true;
+		linkData.linkStatus = true;
 	}
 	else
 	{
@@ -212,6 +214,8 @@ void JitArm::WriteExit(u32 destination, int exit_num)
 		MOVI2R(A, (u32)asm_routines.dispatcher);
 		B(A);
 	}
+
+	b->linkData.push_back(linkData);
 }
 
 void STACKALIGN JitArm::Run()
@@ -496,7 +500,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	if	(broken_block)
 	{
 		printf("Broken Block going to 0x%08x\n", nextPC);
-		WriteExit(nextPC, 0);
+		WriteExit(nextPC);
 	}
 
 	b->flags = js.block_flags;

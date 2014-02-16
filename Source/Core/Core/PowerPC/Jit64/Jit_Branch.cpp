@@ -91,7 +91,7 @@ void Jit64::bx(UGeckoInstruction inst)
 		// make idle loops go faster
 		js.downcountAmount += 8;
 	}
-	WriteExit(destination, 0);
+	WriteExit(destination);
 }
 
 // TODO - optimize to hell and beyond
@@ -136,13 +136,13 @@ void Jit64::bcx(UGeckoInstruction inst)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
-	WriteExit(destination, 0);
+	WriteExit(destination);
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
-	WriteExit(js.compilerPC + 4, 1);
+	WriteExit(js.compilerPC + 4);
 }
 
 void Jit64::bcctrx(UGeckoInstruction inst)
@@ -190,7 +190,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		WriteExitDestInEAX();
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
-		WriteExit(js.compilerPC + 4, 1);
+		WriteExit(js.compilerPC + 4);
 	}
 }
 
@@ -245,5 +245,5 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		SetJumpTarget( pConditionDontBranch );
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		SetJumpTarget( pCTRDontBranch );
-	WriteExit(js.compilerPC + 4, 1);
+	WriteExit(js.compilerPC + 4);
 }
