@@ -368,7 +368,7 @@ void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& W
 void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 {
 	const u8* const memptr = Memory::GetPointer(0);
-	if (memptr == NULL)
+	if (memptr == nullptr)
 	{
 		PanicAlertT("A game is not currently running.");
 		return;
@@ -402,7 +402,7 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 {
 	const u8* const memptr = Memory::GetPointer(0);
-	if (memptr == NULL)
+	if (memptr == nullptr)
 	{
 		PanicAlertT("A game is not currently running.");
 		return;

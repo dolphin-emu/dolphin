@@ -275,7 +275,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		wx_cY_t->SetValue(wxString::Format(wxT("%i"), cY));
 	}
 
-	if (((PadStatus->button & PAD_BUTTON_UP) != 0))
+	if ((PadStatus->button & PAD_BUTTON_UP) != 0)
 	{
 		wx_up_button->SetValue(true);
 		DU_cont = true;
@@ -286,7 +286,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		DU_cont = false;
 	}
 
-	if (((PadStatus->button & PAD_BUTTON_DOWN) != 0))
+	if ((PadStatus->button & PAD_BUTTON_DOWN) != 0)
 	{
 		wx_down_button->SetValue(true);
 		DD_cont = true;
@@ -297,7 +297,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		DD_cont = false;
 	}
 
-	if (((PadStatus->button & PAD_BUTTON_LEFT) != 0))
+	if ((PadStatus->button & PAD_BUTTON_LEFT) != 0)
 	{
 		wx_left_button->SetValue(true);
 		DL_cont = true;
@@ -308,7 +308,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		DL_cont = false;
 	}
 
-	if (((PadStatus->button & PAD_BUTTON_RIGHT) != 0))
+	if ((PadStatus->button & PAD_BUTTON_RIGHT) != 0)
 	{
 		wx_right_button->SetValue(true);
 		DR_cont = true;
@@ -319,7 +319,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		DR_cont = false;
 	}
 
-	if (((PadStatus->button & PAD_BUTTON_A) != 0))
+	if ((PadStatus->button & PAD_BUTTON_A) != 0)
 	{
 		wx_a_button->SetValue(true);
 		A_cont = true;
@@ -330,7 +330,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		A_cont = false;
 	}
 
-	if (((PadStatus->button & PAD_BUTTON_B) != 0))
+	if ((PadStatus->button & PAD_BUTTON_B) != 0)
 	{
 		wx_b_button->SetValue(true);
 		B_cont = true;
@@ -341,7 +341,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		B_cont = false;
 	}
 
-	if (((PadStatus->button & PAD_BUTTON_X) != 0))
+	if ((PadStatus->button & PAD_BUTTON_X) != 0)
 	{
 		wx_x_button->SetValue(true);
 		X_cont = true;
@@ -352,7 +352,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		X_cont = false;
 	}
 
-	if (((PadStatus->button & PAD_BUTTON_Y) != 0))
+	if ((PadStatus->button & PAD_BUTTON_Y) != 0)
 	{
 		wx_y_button->SetValue(true);
 		Y_cont = true;
@@ -363,7 +363,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		Y_cont = false;
 	}
 
-	if (((PadStatus->triggerLeft) != 0))
+	if ((PadStatus->triggerLeft) != 0)
 	{
 		if (PadStatus->triggerLeft == 255)
 		{
@@ -388,7 +388,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		L_cont = false;
 	}
 
-	if (((PadStatus->triggerRight) != 0))
+	if ((PadStatus->triggerRight) != 0)
 	{
 		if (PadStatus->triggerRight == 255)
 		{
@@ -413,7 +413,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		R_cont = false;
 	}
 
-	if (((PadStatus->button & PAD_TRIGGER_Z) != 0))
+	if ((PadStatus->button & PAD_TRIGGER_Z) != 0)
 	{
 		wx_z_button->SetValue(true);
 		Z_cont = true;
@@ -424,7 +424,7 @@ void TASInputDlg::GetKeyBoardInput(SPADStatus *PadStatus)
 		Z_cont = false;
 	}
 
-	if (((PadStatus->button & PAD_BUTTON_START) != 0))
+	if ((PadStatus->button & PAD_BUTTON_START) != 0)
 	{
 		wx_start_button->SetValue(true);
 		START_cont = true;
