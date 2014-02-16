@@ -44,10 +44,10 @@ private:
 
 	u8  IV[0x10];
 
-	u32 //_bannerSize,
-		_numberOfFiles,
-		_sizeOfFiles,
-		_totalSize;
+	//u32 _bannerSize;
+	u32 _numberOfFiles;
+	u32 _sizeOfFiles;
+	u32 _totalSize;
 
 	u64 m_TitleID;
 
@@ -91,7 +91,7 @@ private:
 	{
 		Data_Bin_HDR hdr;
 		u8 BNR[FULL_BNR_MAX];
-	}_header, _encryptedHeader;
+	} _header, _encryptedHeader;
 
 	struct BK_Header // Not encrypted
 	{
@@ -109,7 +109,7 @@ private:
 		u64 SaveGameTitle;
 		u8 MACaddress[6];
 		u8 padding[0x12];
-	}bkhdr;
+	} bkhdr;
 
 	struct FileHDR // encrypted
 	{
