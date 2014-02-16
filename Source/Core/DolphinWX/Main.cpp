@@ -620,25 +620,6 @@ void Host_UpdateBreakPointView()
 	}
 }
 
-bool Host_GetKeyState(int keycode)
-{
-#ifdef _WIN32
-	return (0 != GetAsyncKeyState(keycode));
-#elif defined __WXGTK__
-	std::unique_lock<std::recursive_mutex> lk(main_frame->keystate_lock, std::try_to_lock);
-	if (!lk.owns_lock())
-		return false;
-
-	bool key_pressed;
-	if (!wxIsMainThread()) wxMutexGuiEnter();
-	key_pressed = wxGetKeyState(wxKeyCode(keycode));
-	if (!wxIsMainThread()) wxMutexGuiLeave();
-	return key_pressed;
-#else
-	return wxGetKeyState(wxKeyCode(keycode));
-#endif
-}
-
 void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 {
 	main_frame->GetRenderWindowSize(x, y, width, height);
