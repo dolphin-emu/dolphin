@@ -246,7 +246,7 @@ void ThrottleCallback(u64 last_time, int cyclesLate)
 	const int max_fallback = 40; // 40 ms for one frame on 25 fps games
 	if (frame_limiter && abs(diff) > max_fallback)
 	{
-		WARN_LOG(COMMON, "system too %s, %d ms skipped", diff<0 ? "slow" : "fast", abs(diff) - max_fallback);
+		DEBUG_LOG(COMMON, "system too %s, %d ms skipped", diff<0 ? "slow" : "fast", abs(diff) - max_fallback);
 		last_time = time - max_fallback;
 	}
 	else if (frame_limiter && diff > 0)
