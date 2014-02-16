@@ -5,6 +5,8 @@
 #include "Core.h"
 #include "Frame.h"
 
+#include <array>
+
 #include <wx/intl.h>
 
 #ifdef __APPLE__
@@ -210,11 +212,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	choice_backend = new wxChoice(page_general, wxID_ANY, wxDefaultPosition);
 	RegisterControl(choice_backend, wxGetTranslation(backend_desc));
 
-	std::vector<VideoBackend*>::const_iterator
-			it = g_available_video_backends.begin(),
-			itend = g_available_video_backends.end();
-	for (; it != itend; ++it)
-		choice_backend->AppendString(wxGetTranslation(StrToWxStr((*it)->GetDisplayName())));
+	for (VideoBackend* backend : g_available_video_backends)
+		choice_backend->AppendString(wxGetTranslation(StrToWxStr((backend->GetDisplayName()))));
 
 	choice_backend->SetStringSelection(wxGetTranslation(StrToWxStr(g_video_backend->GetDisplayName())));
 	choice_backend->Bind(wxEVT_COMMAND_CHOICE_SELECTED, &VideoConfigDiag::Event_Backend, this);
@@ -234,18 +233,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	{
 		wxChoice* const choice_adapter = CreateChoice(page_general, vconfig.iAdapter, wxGetTranslation(adapter_desc));
 
-		std::vector<std::string>::const_iterator
-			it = vconfig.backend_info.Adapters.begin(),
-			itend = vconfig.backend_info.Adapters.end();
-		for (; it != itend; ++it)
-			choice_adapter->AppendString(StrToWxStr(*it));
+		for (const std::string& adapter : vconfig.backend_info.Adapters)
+			choice_adapter->AppendString(StrToWxStr(adapter));
 
 		choice_adapter->Select(vconfig.iAdapter);
 
 		szr_basic->Add(new wxStaticText(page_general, -1, _("Adapter:")), 1, wxALIGN_CENTER_VERTICAL, 5);
 		szr_basic->Add(choice_adapter, 1, 0, 0);
 	}
-
 
 	// - display
 	wxFlexGridSizer* const szr_display = new wxFlexGridSizer(2, 5, 5);
@@ -278,11 +273,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// aspect-ratio
 	{
-	const wxString ar_choices[] = { _("Auto"), _("Force 16:9"), _("Force 4:3"), _("Stretch to Window") };
+	const std::array<wxString, 4> ar_choices = { _("Auto"), _("Force 16:9"), _("Force 4:3"), _("Stretch to Window") };
 
 	szr_display->Add(new wxStaticText(page_general, -1, _("Aspect Ratio:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	wxChoice* const choice_aspect = CreateChoice(page_general, vconfig.iAspectRatio, wxGetTranslation(ar_desc),
-														sizeof(ar_choices)/sizeof(*ar_choices), ar_choices);
+														ar_choices.size(), ar_choices.data());
 	szr_display->Add(choice_aspect, 1, 0, 0);
 	}
 
@@ -340,12 +335,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// Internal resolution
 	{
-	const wxString efbscale_choices[] = { _("Auto (Window Size)"), _("Auto (Multiple of 640x528)"),
+	const std::array<wxString, 8> efbscale_choices = {
+		_("Auto (Window Size)"), _("Auto (Multiple of 640x528)"),
 		_("1x Native (640x528)"), _("1.5x Native (960x792)"), _("2x Native (1280x1056)"),
-		_("2.5x Native (1600x1320)"), _("3x Native (1920x1584)"), _("4x Native (2560x2112)") };
+		_("2.5x Native (1600x1320)"), _("3x Native (1920x1584)"), _("4x Native (2560x2112)")
+	};
 
 	wxChoice *const choice_efbscale = CreateChoice(page_enh,
-		vconfig.iEFBScale, wxGetTranslation(internal_res_desc), sizeof(efbscale_choices)/sizeof(*efbscale_choices), efbscale_choices);
+		vconfig.iEFBScale, wxGetTranslation(internal_res_desc), efbscale_choices.size(), efbscale_choices.data());
 
 	szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Internal Resolution:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 	szr_enh->Add(choice_efbscale);
@@ -356,11 +353,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	text_aamode = new wxStaticText(page_enh, -1, _("Anti-Aliasing:"));
 	choice_aamode = CreateChoice(page_enh, vconfig.iMultisampleMode, wxGetTranslation(aa_desc));
 
-	std::vector<std::string>::const_iterator
-		it = vconfig.backend_info.AAModes.begin(),
-		itend = vconfig.backend_info.AAModes.end();
-	for (; it != itend; ++it)
-		choice_aamode->AppendString(wxGetTranslation(StrToWxStr(*it)));
+	for (const std::string& aamode : vconfig.backend_info.AAModes)
+		choice_aamode->AppendString(wxGetTranslation(StrToWxStr(aamode)));
 
 	choice_aamode->Select(vconfig.iMultisampleMode);
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -369,9 +363,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// AF
 	{
-	const wxString af_choices[] = {wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x")};
+	const std::array<wxString, 5> af_choices = {wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x")};
 	szr_enh->Add(new wxStaticText(page_enh, -1, _("Anisotropic Filtering:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-	szr_enh->Add(CreateChoice(page_enh, vconfig.iMaxAnisotropy, wxGetTranslation(af_desc), 5, af_choices));
+	szr_enh->Add(CreateChoice(page_enh, vconfig.iMaxAnisotropy, wxGetTranslation(af_desc), af_choices.size(), af_choices.data()));
 	}
 
 	// postproc shader
@@ -381,11 +375,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		RegisterControl(choice_ppshader, wxGetTranslation(ppshader_desc));
 		choice_ppshader->AppendString(_("(off)"));
 
-		std::vector<std::string>::const_iterator
-			it = vconfig.backend_info.PPShaders.begin(),
-			itend = vconfig.backend_info.PPShaders.end();
-		for (; it != itend; ++it)
-			choice_ppshader->AppendString(StrToWxStr(*it));
+		for (const std::string& ppshader : vconfig.backend_info.PPShaders)
+			choice_ppshader->AppendString(StrToWxStr(ppshader));
 
 		if (vconfig.sPostProcessingShader.empty())
 			choice_ppshader->Select(0);
@@ -489,7 +480,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	group_xfb->Add(virtual_xfb, 0, wxRIGHT, 5);
 	group_xfb->Add(real_xfb, 0, wxRIGHT, 5);
 	szr_hacks->Add(group_xfb, 0, wxEXPAND | wxALL, 5);
-	}	// xfb
+	} // xfb
 
 	// - other hacks
 	{
