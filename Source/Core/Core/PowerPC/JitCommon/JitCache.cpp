@@ -165,6 +165,7 @@ using namespace Gen;
 		JitBlock &b = blocks[num_blocks];
 		b.invalid = false;
 		b.originalAddress = em_address;
+		b.linkData.clear();
 		num_blocks++; //commit the current block
 		return num_blocks - 1;
 	}
