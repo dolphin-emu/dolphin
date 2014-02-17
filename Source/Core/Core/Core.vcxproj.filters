@@ -103,9 +103,6 @@
     <Filter Include="HW %28Flipper/Hollywood%29\VI - Video Interface">
       <UniqueIdentifier>{fa27e799-34c8-440a-9de3-6720df6022e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="HW %28Flipper/Hollywood%29\Wii IO Bridge">
-      <UniqueIdentifier>{a6444fcf-11b7-42d3-859f-cfe23fe83e9d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\Wii IPC">
       <UniqueIdentifier>{2b41ab45-ba8c-45dc-92cc-9107c1fa3e36}</UniqueIdentifier>
     </Filter>
