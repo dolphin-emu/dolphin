@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-12 00:00+0000\n"
-"PO-Revision-Date: 2014-02-06 18:27+0000\n"
+"PO-Revision-Date: 2014-02-16 12:28+0000\n"
 "Last-Translator: Mewster <mewster@libero.it>\n"
 "Language-Team: Italian (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/it/)\n"
@@ -4817,9 +4817,8 @@ msgid "Settings..."
 msgstr "Impostazioni..."
 
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:221
-#, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "SetupWiiMem: Impossibile creare file di configurazione"
+msgstr "SetupWiiMemory: Impossibile creare il file setting.txt"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
 msgid "Shake"
@@ -6161,22 +6160,3 @@ msgstr "Correzione zNear: "
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:531
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "Cache Display Lists"
-#~ msgstr "Cache delle Display List"
-
-#~ msgid "Limit by FPS"
-#~ msgstr "Limita per FPS"
-
-#~ msgid ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Speeds up emulation a bit by caching display lists.\n"
-#~ "Possibly causes issues though.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "[SPERIMENTALE]\n"
-#~ "Velocizza leggermente l'emulazione salvando in cache le display list.\n"
-#~ "Potrebbe causare dei problemi.\n"
-#~ "\n"
-#~ "Nel dubbio, lascia deselezionato."

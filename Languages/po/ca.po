@@ -12,8 +12,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-12 00:00+0000\n"
-"PO-Revision-Date: 2014-02-05 08:16+0000\n"
-"Last-Translator: delroth <delroth@gmail.com>\n"
+"PO-Revision-Date: 2014-02-16 11:47+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Catalan (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/ca/)\n"
 "Language: ca\n"
@@ -1324,6 +1324,14 @@ msgid ""
 "If so, then you may need to re-specify your memory card location in the "
 "options."
 msgstr ""
+"No s'ha pogut escriure al fitxer de la targeta de memòria %s.\n"
+"\n"
+"Estàs executant Dolphin des d'un CD/DVD, o potser l'arxiu de guardat està "
+"protegit contra escriptura?\n"
+"\n"
+"Estàs rebent aquest missatge després de moure el directori de l'emulador?\n"
+"Si és així, llavors és possible que tinguis de tornar a especificar la "
+"ubicació a la targeta de memòria en les opcions."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:1149
 msgid "Couldn't find open command for extension 'ini'!"
@@ -3560,6 +3568,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Fa els objectes distants més visibles eliminant la boira, incrementat el el "
+"detall general.\n"
+"Desactivar la boria trencarà alguns jocs que depenen en una emulació "
+"adequada de la boira.\n"
+"\n"
+"Si no n'estàs segur, deixa-ho desmarcat."
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:114
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:117
@@ -4651,6 +4665,11 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
+"Selecciona una API gràfica per ús intern.\n"
+"El renderitzat per software només es fa servir per la depuració, així que a "
+"menys que tinguis una raò per fer-lo servir voldràs seleccionar OpenGL.\n"
+"\n"
+"Si no n'estàs segur, fes servir OpenGL."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:70
 msgid ""
@@ -4663,6 +4682,15 @@ msgid ""
 "\n"
 "If unsure, use OpenGL."
 msgstr ""
+"Selecciona una API gràfica per ús intern.\n"
+"El renderitzat per software només es fa servir per la depuració, així que "
+"voldràs utilitzar Direct3D o OpenGL. Diferents jocs es comportaran de manera "
+"diferent en cada motor gràfic, pero la millor experiència d'emulació es "
+"recomana provar els dos i triar el que millor et funcioni.\n"
+"Tingues en compte que el Direct3D no està disponible en versions antigues de "
+"Windows.\n"
+"\n"
+"Si no n'estàs segur, fes servir OpenGL."
 
 #: Source/Core/DolphinWX/NetWindow.cpp:313
 msgid "Send"
@@ -4716,9 +4744,8 @@ msgid "Settings..."
 msgstr "Configuració..."
 
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:221
-#, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "SetupWiiMem: No es pot crear l'arxiu de configuració"
+msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
 msgid "Shake"
@@ -5130,6 +5157,8 @@ msgid ""
 "Synchronizes the GPU and CPU threads to help prevent random freezes in Dual "
 "Core mode. (ON = Compatible, OFF = Fast)"
 msgstr ""
+"Sincronitza els processos de la GPU i CPU per ajudar a prevenir congelacions "
+"aleatòries en em mode doble nucli. (ON = Compatible, OFF= Ràpid)"
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:726
 #: Source/Core/DolphinWX/ConfigMain.cpp:780
@@ -5584,6 +5613,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Utilitza un algorisme menys precis per calcular valors de profunditat.\n"
+"Causa problemes en alguns jocs però pot donar un augment decent a la "
+"velocitat.\n"
+"\n"
+"Si no n'estàs segur, deixa-ho marcat."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:120
 msgid ""
@@ -5710,6 +5744,8 @@ msgid ""
 "Warning: Netplay/movies will desync because your CPU does not support DAZ "
 "and Dolphin does not emulate it anymore."
 msgstr ""
+"Avís: Netplay/pel·lícules estaran desincronitzades perquè la seva CPU no "
+"suporta DAZ i Dolphin no l'emula més."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:578
 #, c-format
@@ -5910,7 +5946,7 @@ msgstr "La creació de la veu principal XAudio2 ha fallat:%#X"
 #: Source/Core/AudioCommon/XAudio2_7Stream.cpp:93
 #, c-format
 msgid "XAudio2_7 CreateSourceVoice failed: %#X"
-msgstr ""
+msgstr "XAudio2_7 CreateSourceVoice ha fallat: %#X"
 
 #: Source/Core/AudioCommon/XAudio2_7Stream.cpp:181
 #, c-format
@@ -5920,7 +5956,7 @@ msgstr "XAudio2_7 init ha fallat: %#X"
 #: Source/Core/AudioCommon/XAudio2_7Stream.cpp:191
 #, c-format
 msgid "XAudio2_7 master voice creation failed: %#X"
-msgstr ""
+msgstr "XAudio2_7 creació de veu mestra ha fallat: %#X"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:776
 msgid "XF reg"
@@ -5960,6 +5996,9 @@ msgid ""
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 msgstr ""
+"La teva ROM DSP té el has incorrecte.\n"
+"Vols parar ara per solucionar el problema?\n"
+"Si selecciones \"No, l'audio podria quedar distorsionat."
 
 #: Source/Core/Core/CoreParameter.cpp:180
 msgid ""
@@ -6042,6 +6081,3 @@ msgstr "Correcció ZAprop"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:531
 msgid "| OR"
 msgstr "| O"
-
-#~ msgid "Limit by FPS"
-#~ msgstr "Limitar per FPS "

@@ -17,7 +17,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-12 00:00+0000\n"
-"PO-Revision-Date: 2014-02-06 22:35+0000\n"
+"PO-Revision-Date: 2014-02-16 12:00+0000\n"
 "Last-Translator: FRtranslator <pascal2j-language@yahoo.com>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/fr/)\n"
@@ -4833,9 +4833,8 @@ msgid "Settings..."
 msgstr "Configurer..."
 
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:221
-#, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "SetupWiiMem: Impossible de créer le fichier de paramètres"
+msgstr "SetupWiiMemory : Impossible de créer le fichier setting.txt"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
 msgid "Shake"
@@ -5480,7 +5479,7 @@ msgstr ""
 "Ceci limite la vitesse du jeu au nombre spécifié d'images par seconde (60 i/"
 "s pour le NTSC, 50 i/s pour le PAL). Vous pouvez à la place utiliser Audio "
 "pour gérer via le DSP (peut éliminer les problèmes audio, mais peut "
-"provoquer un bruit constant selon les jeux).²"
+"provoquer un bruit constant selon les jeux)."
 
 #: Source/Core/DolphinWX/ConfigMain.cpp:491
 msgid ""
@@ -6181,23 +6180,3 @@ msgstr "Correction zNear :"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:531
 msgid "| OR"
 msgstr "| OU"
-
-#~ msgid "Cache Display Lists"
-#~ msgstr "Mise en cache des Listes d'affichage"
-
-#~ msgid "Limit by FPS"
-#~ msgstr "Nb de FPS comme limite"
-
-#~ msgid ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Speeds up emulation a bit by caching display lists.\n"
-#~ "Possibly causes issues though.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Accélère légèrement l'émulation en mettant en cache les listes "
-#~ "d'affichage.\n"
-#~ "Il est possible que cela cause des pépins.\n"
-#~ "\n"
-#~ "Dans le doute, décochez cette case."

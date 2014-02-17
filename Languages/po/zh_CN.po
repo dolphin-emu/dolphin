@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-12 00:00+0000\n"
-"PO-Revision-Date: 2014-02-08 01:11+0000\n"
+"PO-Revision-Date: 2014-02-16 13:59+0000\n"
 "Last-Translator: lxf2000 <gaoboyuan8@qq.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/projects/p/dolphin-"
 "emu/language/zh_CN/)\n"
@@ -4673,7 +4673,7 @@ msgstr "发送"
 
 #: Source/Core/DolphinWX/WiimoteConfigDiag.cpp:111
 msgid "Sensor Bar Position:"
-msgstr "传感器栏位置:"
+msgstr "感应条位置："
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:64
 msgid "Separator"
@@ -4713,9 +4713,8 @@ msgid "Settings..."
 msgstr "设置..."
 
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:221
-#, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "安装Wii内存：无法创建设置文件"
+msgstr "SetupWiiMemory: 无法创建 setting.txt 文件"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
 msgid "Shake"
@@ -6021,22 +6020,3 @@ msgstr "近剪裁平面修正: "
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:531
 msgid "| OR"
 msgstr "| 或"
-
-#~ msgid "Cache Display Lists"
-#~ msgstr "缓存显示列表"
-
-#~ msgid "Limit by FPS"
-#~ msgstr "依据 FPS 限速"
-
-#~ msgid ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Speeds up emulation a bit by caching display lists.\n"
-#~ "Possibly causes issues though.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "[实验性]\n"
-#~ "通过缓存显示列表略微提高模拟速度。\n"
-#~ "另一方面也可能产生问题。\n"
-#~ "\n"
-#~ "如果没有把握，请不要勾选此项。"

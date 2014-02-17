@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2014-02-12 00:00+0000\n"
-"PO-Revision-Date: 2014-02-05 11:06+0000\n"
-"Last-Translator: DolphinPhoenix <anton_r_3@hotmail.com>\n"
+"PO-Revision-Date: 2014-02-16 11:47+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Swedish (http://www.transifex.com/projects/p/dolphin-emu/"
 "language/sv/)\n"
 "Language: sv\n"
@@ -86,7 +86,7 @@ msgid ""
 " Card file size is invalid (0x%x bytes)"
 msgstr ""
 "%s misslyckades att läsas in som ett minneskort \n"
-" Kortets filstorlek är ogiltig (0x%x bytes)"
+" Kortets filstorlek är ogiltig (0x%x byte)"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:66
 #, c-format
@@ -95,7 +95,7 @@ msgid ""
 " Card size is invalid (0x%x bytes)"
 msgstr ""
 "%s misslyckades att läsas in som ett minneskort \n"
-" Kortets storlek är ogiltig (0x%x bytes)"
+" Kortets storlek är ogiltig (0x%x byte)"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:46
 #, c-format
@@ -103,9 +103,9 @@ msgid ""
 "%s failed to load as a memorycard \n"
 "file is not large enough to be a valid memory card file (0x%x bytes)"
 msgstr ""
-"%s misslyckades att läsas in som ett minneskort.\n"
+"%s misslyckades att läsas in som ett minneskort\n"
 "Filen är inte tillräckligt stor för att vara en giltig minneskortsfil (0x%x "
-"bytes)"
+"byte)"
 
 #: Source/Core/DolphinWX/MemoryCards/WiiSaveCrypted.cpp:412
 #, c-format
@@ -2567,8 +2567,8 @@ msgstr "Snabb version av MMU. Fungerar inte för alla spel."
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
 msgstr ""
-"Allvarlig desynkronisering. Avbryter Aborting uppspelning. (Fel i "
-"PlayWiimote: %u != %u, byte %u.)%s"
+"Allvarlig desynkronisering. Avbryter uppspelning. (Fel i PlayWiimote: %u != "
+"%u, byte %u.)%s"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:202
 msgid "Fifo Player"
@@ -3192,7 +3192,7 @@ msgstr "Installera till Wii-meny"
 msgid ""
 "InstallExceptionHandler called, but this platform does not yet support it."
 msgstr ""
-"InstallExceptionHandler anropade, man denna plattform stödjer inte det ännu."
+"InstallExceptionHandler anropades, men denna plattform stödjer inte det ännu."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1387
 msgid "Installing WAD..."
@@ -3641,7 +3641,7 @@ msgstr "Minneskortet har redan en sparning för denna titel"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:278
 msgid "Memcard already opened"
-msgstr "Minneskort är redan öppnat"
+msgstr "Minneskortet har redan öppnats"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:924
 msgid "Memory Byte"
@@ -4249,21 +4249,21 @@ msgstr "Efterprocesseringseffekt:"
 #: Source/Core/Core/Movie.cpp:932
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
-msgstr "För tidigt filmslut i PlayController. %u + 8 > %u"
+msgstr "Tidigt filmslut i PlayController. %u + 8 > %u"
 
 #: Source/Core/Core/Movie.cpp:1052
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
-msgstr "För tidigt filmslut i PlayWiimote. %u + %d > %u"
+msgstr "Tidigt filmslut i PlayWiimote. %u + %d > %u"
 
 #: Source/Core/Core/Movie.cpp:1028
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
-msgstr "För tidigt filmslut i PlayWiimote. %u > %u"
+msgstr "Tidigt filmslut i PlayWiimote. %u > %u"
 
 #: Source/Core/DolphinWX/PHackSettings.cpp:35
 msgid "Presets: "
-msgstr "Snabbväljare:"
+msgstr "Förval:"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:192
 msgid "Prev Page"
@@ -4369,7 +4369,7 @@ msgstr "Inspelningsinformation"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:189
 msgid "Recording Options"
-msgstr "Inspelningsinställningar"
+msgstr "Inspelningsalternativ"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:25
 msgid "Red"
@@ -4604,7 +4604,7 @@ msgstr "Sök undermappar"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:238
 msgid "Search current Object"
-msgstr "Spara aktuellt objekt"
+msgstr "Sök aktuellt objekt"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:242
 msgid "Search for hex Value:"
@@ -4650,7 +4650,7 @@ msgstr "Välj flytande fönster"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:617
 msgid "Select the file to load"
-msgstr "Öppna fil"
+msgstr "Öppna fil att läsa in"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1333
 msgid "Select the save file"
@@ -4792,9 +4792,8 @@ msgid "Settings..."
 msgstr "Inställningar..."
 
 #: Source/Core/Core/Boot/Boot_BS2Emu.cpp:221
-#, fuzzy
 msgid "SetupWiiMemory: Cant create setting.txt file"
-msgstr "SetupWiiMem: Kan inte skapa inställningsfil"
+msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
 msgid "Shake"
@@ -4806,7 +4805,7 @@ msgstr "Kort namn:"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:92
 msgid "Shoulder Buttons"
-msgstr "Avtyckarknappar"
+msgstr "Axelknappar"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:221
 msgid "Show &Console"
@@ -5041,7 +5040,7 @@ msgstr "Ögonblicksbild"
 
 #: Source/Core/VideoBackends/Software/SWmain.cpp:58
 msgid "Software Renderer"
-msgstr "Programrenderare"
+msgstr "Programvarurenderare"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.h:83
 msgid ""
@@ -5516,7 +5515,7 @@ msgstr "Försökte läsa in en okänd filtyp."
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:67
 msgid "Triggers"
-msgstr "Axelknappar"
+msgstr "Avtryckare"
 
 #: Source/Core/Common/SysConf.h:77 Source/Core/Common/SysConf.h:100
 msgid "Trying to read from invalid SYSCONF"
@@ -6134,22 +6133,3 @@ msgstr "zNear-korrektion: "
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:531
 msgid "| OR"
 msgstr "| ELLER"
-
-#~ msgid "Cache Display Lists"
-#~ msgstr "Cachevisningslista"
-
-#~ msgid "Limit by FPS"
-#~ msgstr "Begränsa efter bildrutefrekvens"
-
-#~ msgid ""
-#~ "[EXPERIMENTAL]\n"
-#~ "Speeds up emulation a bit by caching display lists.\n"
-#~ "Possibly causes issues though.\n"
-#~ "\n"
-#~ "If unsure, leave this unchecked."
-#~ msgstr ""
-#~ "[EXPERIMENTELL]\n"
-#~ "Snabbar upp emulatorn lite grann genom att cachelagra visningslistan.\n"
-#~ "Kan möjligtvis orsaka fel.\n"
-#~ "\n"
-#~ "Om du är osäker kan du lämna detta omarkerat."
