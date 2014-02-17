@@ -6,6 +6,7 @@
 #include "LogManager.h"
 #include "ConsoleListener.h"
 #include "LogWindow.h"
+#include "MathUtil.h"
 #include "FileUtil.h"
 #include "WxUtils.h"
 
@@ -103,10 +104,7 @@ void LogConfigWindow::LoadSettings()
 	ini.Get("Options", "Verbosity", &verbosity, 0);
 
 	// Ensure the verbosity level is valid.
-	if (verbosity < 1)
-		verbosity = 1;
-	if (verbosity > MAX_LOGLEVEL)
-		verbosity = MAX_LOGLEVEL;
+	MathUtil::Clamp(&verbosity, MIN_LOGLEVEL, MAX_LOGLEVEL);
 
 	// Actually set the logging verbosity.
 	m_verbosity->SetSelection(verbosity - 1);

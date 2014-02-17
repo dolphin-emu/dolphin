@@ -39,9 +39,9 @@ private:
 	wxCheckListBox	*m_listbox_gcodes;
 	struct
 	{
-		wxStaticText	*label_name, *label_notes, *label_creator;
-		wxTextCtrl		*textctrl_notes;
-		wxListBox	*listbox_codes;
+		wxStaticText *label_name, *label_notes, *label_creator;
+		wxTextCtrl   *textctrl_notes;
+		wxListBox    *listbox_codes;
 	} m_infobox;
 	wxButton* btn_download;
 };

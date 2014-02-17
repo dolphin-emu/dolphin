@@ -35,13 +35,6 @@ using namespace Common;
 namespace PatchEngine
 {
 
-const char *PatchTypeStrings[] =
-{
-	"byte",
-	"word",
-	"dword",
-};
-
 std::vector<Patch> onFrame;
 std::map<u32, int> speedHacks;
 std::vector<std::string> discList;

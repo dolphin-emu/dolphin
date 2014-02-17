@@ -4,6 +4,7 @@
 
 #include "Common.h" // Common
 #include "ConsoleListener.h"
+#include "MathUtil.h"
 
 #include "Globals.h" // Local
 #include "Frame.h"
@@ -39,8 +40,8 @@ void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 	if (!g_pCodeWindow)
 	{
 		if (nb->GetPage(0)->GetId() == IDM_LOGWINDOW ||
-				nb->GetPage(0)->GetId() == IDM_LOGCONFIGWINDOW ||
-				nb->GetPage(0)->GetId() == IDM_CONSOLEWINDOW)
+		    nb->GetPage(0)->GetId() == IDM_LOGCONFIGWINDOW ||
+		    nb->GetPage(0)->GetId() == IDM_CONSOLEWINDOW)
 		{
 			// Closing a pane containing the logwindow or a console closes both
 			SConfig::GetInstance().m_InterfaceConsole = false;
@@ -799,13 +800,6 @@ void CFrame::ResizeConsole()
 #endif
 }
 
-static int Limit(int i, int Low, int High)
-{
-	if (i < Low) return Low;
-	if (i > High) return High;
-	return i;
-}
-
 void CFrame::SetPaneSize()
 {
 	if (Perspectives.size() <= ActivePerspective)
@@ -826,12 +820,12 @@ void CFrame::SetPaneSize()
 				continue;
 
 			// Width and height of the active perspective
-			u32 W = Perspectives[ActivePerspective].Width[j],
-				H = Perspectives[ActivePerspective].Height[j];
+			int W = Perspectives[ActivePerspective].Width[j];
+			int H = Perspectives[ActivePerspective].Height[j];
 
 			// Check limits
-			W = Limit(W, 5, 95);
-			H = Limit(H, 5, 95);
+			MathUtil::Clamp(&W, 5, 95);
+			MathUtil::Clamp(&H, 5, 95);
 
 			// Convert percentages to pixel lengths
 			W = (W * iClientX) / 100;
@@ -932,13 +926,16 @@ void CFrame::LoadIniPerspectives()
 		for (auto& Width : _SWidth)
 		{
 			int _Tmp;
-			if (TryParse(Width.c_str(), &_Tmp)) Tmp.Width.push_back(_Tmp);
+			if (TryParse(Width.c_str(), &_Tmp))
+				Tmp.Width.push_back(_Tmp);
 		}
 		for (auto& Height : _SHeight)
 		{
 			int _Tmp;
-			if (TryParse(Height.c_str(), &_Tmp)) Tmp.Height.push_back(_Tmp);
+			if (TryParse(Height.c_str(), &_Tmp))
+				Tmp.Height.push_back(_Tmp);
 		}
+
 		Perspectives.push_back(Tmp);
 	}
 }
@@ -970,8 +967,11 @@ void CFrame::UpdateCurrentPerspective()
 
 void CFrame::SaveIniPerspectives()
 {
-	if (Perspectives.size() == 0) return;
-	if (ActivePerspective >= Perspectives.size()) ActivePerspective = 0;
+	if (Perspectives.size() == 0)
+		return;
+
+	if (ActivePerspective >= Perspectives.size())
+		ActivePerspective = 0;
 
 	// Turn off edit before saving
 	TogglePaneStyle(false, IDM_EDIT_PERSPECTIVES);

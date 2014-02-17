@@ -53,8 +53,8 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	EntrySelection->SetRange(0, (int)tempEntries.size()-1);
 	EntrySelection->SetValue((int)tempEntries.size()-1);
 	wxArrayString wxArrayStringFor_EditPatchType;
-	for (int i = 0; i < 3; ++i)
-		wxArrayStringFor_EditPatchType.Add(StrToWxStr(PatchEngine::PatchTypeStrings[i]));
+	for (const char* patchTypeStr : PatchEngine::PatchTypeStrings)
+		wxArrayStringFor_EditPatchType.Add(StrToWxStr(patchTypeStr));
 	EditPatchType = new wxRadioBox(this, ID_EDITPATCH_TYPE, _("Type"), wxDefaultPosition, wxDefaultSize, wxArrayStringFor_EditPatchType, 3, wxRA_SPECIFY_COLS);
 	EditPatchType->SetSelection((int)tempEntries.at(0).type);
 	wxStaticText* EditPatchValueText = new wxStaticText(this, ID_EDITPATCH_VALUE_TEXT, _("Value:"));
@@ -175,8 +175,7 @@ void CPatchAddEdit::AddRemoveEntry(wxCommandEvent& event)
 
 void CPatchAddEdit::UpdateEntryCtrls(PatchEngine::PatchEntry pE)
 {
-	sbEntry->GetStaticBox()->SetLabel(wxString::Format(_("Entry %d/%d"), currentItem,
-									  (int)tempEntries.size()));
+	sbEntry->GetStaticBox()->SetLabel(wxString::Format(_("Entry %d/%u"), currentItem, tempEntries.size()));
 	EditPatchOffset->SetValue(wxString::Format(wxT("%08X"), pE.address));
 	EditPatchType->SetSelection(pE.type);
 	EditPatchValue->SetValue(wxString::Format(wxT("%0*X"),

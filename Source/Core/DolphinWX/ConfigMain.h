@@ -135,13 +135,13 @@ private:
 	// Audio
 	wxBoxSizer* sAudioPage; // GC settings
 	wxRadioBox* DSPEngine;
-	wxSlider*	VolumeSlider;
+	wxSlider* VolumeSlider;
 	wxStaticText* VolumeText;
-	wxCheckBox*	DumpAudio;
-	wxCheckBox*	DPL2Decoder;
+	wxCheckBox* DumpAudio;
+	wxCheckBox* DPL2Decoder;
 	wxArrayString wxArrayBackends;
-	wxChoice*	BackendSelection;
-	wxSpinCtrl*	Latency;
+	wxChoice*   BackendSelection;
+	wxSpinCtrl* Latency;
 
 	// Interface
 	wxCheckBox* ConfirmStop;

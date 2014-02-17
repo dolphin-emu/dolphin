@@ -482,8 +482,8 @@ void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
 		h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
 	ToolBar->SetToolBitmapSize(wxSize(w, h));
 
-	ToolBar->AddTool(IDM_SAVE_PERSPECTIVE,	_("Save"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Save current perspective"));
-	ToolBar->AddTool(IDM_EDIT_PERSPECTIVES,	_("Edit"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Edit current perspective"));
+	ToolBar->AddTool(IDM_SAVE_PERSPECTIVE,  _("Save"), g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Save current perspective"));
+	ToolBar->AddTool(IDM_EDIT_PERSPECTIVES, _("Edit"), g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Edit current perspective"));
 
 	ToolBar->SetToolDropDown(IDM_SAVE_PERSPECTIVE, true);
 	ToolBar->SetToolDropDown(IDM_EDIT_PERSPECTIVES, true);
@@ -581,7 +581,7 @@ void CFrame::BootGame(const std::string& filename)
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
 		else if (!StartUp.m_strDefaultGCM.empty()
-				&&	wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
+				&& wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
 		{
 			bootfile = StartUp.m_strDefaultGCM;
 		}

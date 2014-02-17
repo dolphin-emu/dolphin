@@ -179,14 +179,10 @@ void CMemcardManager::CreateGUIControls()
 
 	for (int slot = SLOT_A; slot <= SLOT_B; slot++)
 	{
-		m_CopyFrom[slot]	= new wxButton(this, ID_COPYFROM_A + slot,
-			wxString::Format(_("%1$sCopy%1$s"), ARROW[slot ? 0 : 1]));
-		m_SaveImport[slot]	= new wxButton(this, ID_SAVEIMPORT_A + slot,
-			wxString::Format(_("%sImport GCI%s"), ARROWS));
-		m_SaveExport[slot]	= new wxButton(this, ID_SAVEEXPORT_A + slot,
-			wxString::Format(_("%sExport GCI%s"), ARROWS));
-		m_Delete[slot]		= new wxButton(this, ID_DELETE_A + slot,
-			wxString::Format(_("%sDelete%s"), ARROWS));
+		m_CopyFrom[slot]   = new wxButton(this, ID_COPYFROM_A + slot,   wxString::Format(_("%1$sCopy%1$s"), ARROW[slot ? 0 : 1]));
+		m_SaveImport[slot] = new wxButton(this, ID_SAVEIMPORT_A + slot, wxString::Format(_("%sImport GCI%s"), ARROWS));
+		m_SaveExport[slot] = new wxButton(this, ID_SAVEEXPORT_A + slot, wxString::Format(_("%sExport GCI%s"), ARROWS));
+		m_Delete[slot]     = new wxButton(this, ID_DELETE_A + slot,     wxString::Format(_("%sDelete%s"), ARROWS));
 
 
 		m_PrevPage[slot] = new wxButton(this, ID_PREVPAGE_A + slot, _("Prev Page"));
@@ -608,12 +604,11 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 	int j;
 
-	wxString wxTitle,
-			 wxComment,
-			 wxBlock,
-			 wxFirstBlock,
-			 wxLabel;
-
+	wxString wxTitle;
+	wxString wxComment;
+	wxString wxBlock;
+	wxString wxFirstBlock;
+	wxString wxLabel;
 
 	m_MemcardList[card]->Hide();
 	m_MemcardList[card]->ClearAll();
@@ -629,7 +624,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	list->RemoveAll();
 
 	u8 nFiles = memoryCard[card]->GetNumFiles();
-	int *images = new int[nFiles*2];
+	std::vector<int> images(nFiles*2);
 
 	for (u8 i = 0;i < nFiles;i++)
 	{
@@ -684,8 +679,8 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		}
 	}
 
-	int	pagesMax = (mcmSettings.usePages) ?
-					(page[card] + 1) * itemsPerPage : 128;
+	int pagesMax = (mcmSettings.usePages) ?
+	               (page[card] + 1) * itemsPerPage : 128;
 
 	for (j = page[card] * itemsPerPage; (j < nFiles) && (j < pagesMax); j++)
 	{
@@ -749,7 +744,6 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		}
 	}
 
-	delete[] images;
 	// Automatic column width and then show the list
 	for (int i = COLUMN_BANNER; i <= COLUMN_FIRSTBLOCK; i++)
 	{
