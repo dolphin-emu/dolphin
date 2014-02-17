@@ -97,17 +97,18 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 {
 	u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
 
-	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+	u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
 	// As a safety precaution we fill the out buffer with zeros to avoid
 	// returning nonsense values
 	Memory::Memset(BufferOut, 0, BufferOutSize);
 
 	u32 ReturnValue = 0;
-	switch (Cmd) {
+	switch (Cmd)
+	{
 	case IOCTL_WRITEHCR:
 		{
 		u32 reg = Memory::Read_U32(BufferIn);
@@ -273,8 +274,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 }
 
 u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize,
-												   u32 _rwBuffer, u32 _rwBufferSize,
-												   u32 _BufferOut, u32 _BufferOutSize)
+                                                   u32 _rwBuffer, u32 _rwBufferSize,
+                                                   u32 _BufferOut, u32 _BufferOutSize)
 {
 	// The game will send us a SendCMD with this information. To be able to read and write
 	// to a file we need to prepare a 0x10 byte output buffer as response.
@@ -291,14 +292,14 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 	} req;
 
 	req.command = Memory::Read_U32(_BufferIn + 0);
-	req.type	= Memory::Read_U32(_BufferIn + 4);
-	req.resp	= Memory::Read_U32(_BufferIn + 8);
-	req.arg		= Memory::Read_U32(_BufferIn + 12);
-	req.blocks	= Memory::Read_U32(_BufferIn + 16);
-	req.bsize	= Memory::Read_U32(_BufferIn + 20);
-	req.addr	= Memory::Read_U32(_BufferIn + 24);
-	req.isDMA	= Memory::Read_U32(_BufferIn + 28);
-	req.pad0	= Memory::Read_U32(_BufferIn + 32);
+	req.type    = Memory::Read_U32(_BufferIn + 4);
+	req.resp    = Memory::Read_U32(_BufferIn + 8);
+	req.arg     = Memory::Read_U32(_BufferIn + 12);
+	req.blocks  = Memory::Read_U32(_BufferIn + 16);
+	req.bsize   = Memory::Read_U32(_BufferIn + 20);
+	req.addr    = Memory::Read_U32(_BufferIn + 24);
+	req.isDMA   = Memory::Read_U32(_BufferIn + 28);
+	req.pad0    = Memory::Read_U32(_BufferIn + 32);
 
 	// Note: req.addr is the virtual address of _rwBuffer
 

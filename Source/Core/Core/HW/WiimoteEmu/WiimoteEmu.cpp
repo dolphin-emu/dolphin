@@ -899,21 +899,21 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 	// Buttons
 #if defined HAVE_X11 && HAVE_X11
-	set_control(m_buttons, 0, "Click 1");		// A
-	set_control(m_buttons, 1, "Click 3");		// B
+	set_control(m_buttons, 0, "Click 1"); // A
+	set_control(m_buttons, 1, "Click 3"); // B
 #else
-	set_control(m_buttons, 0, "Click 0");		// A
-	set_control(m_buttons, 1, "Click 1");		// B
+	set_control(m_buttons, 0, "Click 0"); // A
+	set_control(m_buttons, 1, "Click 1"); // B
 #endif
-	set_control(m_buttons, 2, "1");		// 1
-	set_control(m_buttons, 3, "2");		// 2
-	set_control(m_buttons, 4, "Q");		// -
-	set_control(m_buttons, 5, "E");		// +
+	set_control(m_buttons, 2, "1"); // 1
+	set_control(m_buttons, 3, "2"); // 2
+	set_control(m_buttons, 4, "Q"); // -
+	set_control(m_buttons, 5, "E"); // +
 
 #ifdef _WIN32
-	set_control(m_buttons, 6, "RETURN");		// Home
+	set_control(m_buttons, 6, "RETURN"); // Home
 #else
-	set_control(m_buttons, 6, "Return");		// Home
+	set_control(m_buttons, 6, "Return"); // Home
 #endif
 
 	// Shake
@@ -928,20 +928,20 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 	// DPad
 #ifdef _WIN32
-	set_control(m_dpad, 0, "UP");		// Up
-	set_control(m_dpad, 1, "DOWN");		// Down
-	set_control(m_dpad, 2, "LEFT");		// Left
-	set_control(m_dpad, 3, "RIGHT");	// Right
+	set_control(m_dpad, 0, "UP");    // Up
+	set_control(m_dpad, 1, "DOWN");  // Down
+	set_control(m_dpad, 2, "LEFT");  // Left
+	set_control(m_dpad, 3, "RIGHT"); // Right
 #elif __APPLE__
-	set_control(m_dpad, 0, "Up Arrow");		// Up
-	set_control(m_dpad, 1, "Down Arrow");	// Down
-	set_control(m_dpad, 2, "Left Arrow");	// Left
-	set_control(m_dpad, 3, "Right Arrow");	// Right
+	set_control(m_dpad, 0, "Up Arrow");    // Up
+	set_control(m_dpad, 1, "Down Arrow");  // Down
+	set_control(m_dpad, 2, "Left Arrow");  // Left
+	set_control(m_dpad, 3, "Right Arrow"); // Right
 #else
-	set_control(m_dpad, 0, "Up");		// Up
-	set_control(m_dpad, 1, "Down");		// Down
-	set_control(m_dpad, 2, "Left");		// Left
-	set_control(m_dpad, 3, "Right");	// Right
+	set_control(m_dpad, 0, "Up");    // Up
+	set_control(m_dpad, 1, "Down");  // Down
+	set_control(m_dpad, 2, "Left");  // Left
+	set_control(m_dpad, 3, "Right"); // Right
 #endif
 
 	// ugly stuff

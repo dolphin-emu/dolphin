@@ -23,30 +23,30 @@ namespace VideoInterface
 
 // STATE_TO_SAVE
 // Registers listed in order:
-static UVIVerticalTimingRegister	m_VerticalTimingRegister;
-static UVIDisplayControlRegister	m_DisplayControlRegister;
-static UVIHorizontalTiming0			m_HTiming0;
-static UVIHorizontalTiming1			m_HTiming1;
-static UVIVBlankTimingRegister		m_VBlankTimingOdd;
-static UVIVBlankTimingRegister		m_VBlankTimingEven;
-static UVIBurstBlankingRegister		m_BurstBlankingOdd;
-static UVIBurstBlankingRegister		m_BurstBlankingEven;
-static UVIFBInfoRegister			m_XFBInfoTop;
-static UVIFBInfoRegister			m_XFBInfoBottom;
-static UVIFBInfoRegister			m_3DFBInfoTop;		// Start making your stereoscopic demos! :p
-static UVIFBInfoRegister			m_3DFBInfoBottom;
-static u16							m_VBeamPos = 0;	// 0: Inactive
-static u16							m_HBeamPos = 0;	// 0: Inactive
-static UVIInterruptRegister			m_InterruptRegister[4];
-static UVILatchRegister				m_LatchRegister[2];
-static UVIHorizontalStepping		m_HorizontalStepping;
-static UVIHorizontalScaling			m_HorizontalScaling;
-static SVIFilterCoefTables			m_FilterCoefTables;
-static u32							m_UnkAARegister = 0;// ??? 0x00FF0000
-static u16							m_Clock = 0;		// 0: 27MHz, 1: 54MHz
-static UVIDTVStatus					m_DTVStatus;
-static u16							m_FBWidth = 0;		// Only correct when scaling is enabled?
-static UVIBorderBlankRegister		m_BorderHBlank;
+static UVIVerticalTimingRegister m_VerticalTimingRegister;
+static UVIDisplayControlRegister m_DisplayControlRegister;
+static UVIHorizontalTiming0      m_HTiming0;
+static UVIHorizontalTiming1      m_HTiming1;
+static UVIVBlankTimingRegister   m_VBlankTimingOdd;
+static UVIVBlankTimingRegister   m_VBlankTimingEven;
+static UVIBurstBlankingRegister  m_BurstBlankingOdd;
+static UVIBurstBlankingRegister  m_BurstBlankingEven;
+static UVIFBInfoRegister         m_XFBInfoTop;
+static UVIFBInfoRegister         m_XFBInfoBottom;
+static UVIFBInfoRegister         m_3DFBInfoTop;     // Start making your stereoscopic demos! :p
+static UVIFBInfoRegister         m_3DFBInfoBottom;
+static u16                       m_VBeamPos = 0;    // 0: Inactive
+static u16                       m_HBeamPos = 0;    // 0: Inactive
+static UVIInterruptRegister      m_InterruptRegister[4];
+static UVILatchRegister          m_LatchRegister[2];
+static UVIHorizontalStepping     m_HorizontalStepping;
+static UVIHorizontalScaling      m_HorizontalScaling;
+static SVIFilterCoefTables       m_FilterCoefTables;
+static u32                       m_UnkAARegister = 0;// ??? 0x00FF0000
+static u16                       m_Clock = 0;       // 0: 27MHz, 1: 54MHz
+static UVIDTVStatus              m_DTVStatus;
+static u16                       m_FBWidth = 0;     // Only correct when scaling is enabled?
+static UVIBorderBlankRegister    m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
 // 0xcc002080 - 0xcc002100 even more unknown
 

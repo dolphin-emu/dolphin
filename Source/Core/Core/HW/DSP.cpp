@@ -460,9 +460,9 @@ void GenerateDSPInterrupt(DSPInterruptType type, bool _bSet)
 {
 	switch (type)
 	{
-	case INT_DSP:	g_dspState.DSPControl.DSP		= _bSet ? 1 : 0; break;
-	case INT_ARAM:	g_dspState.DSPControl.ARAM		= _bSet ? 1 : 0; if (_bSet) g_dspState.DSPControl.DMAState = 0; break;
-	case INT_AID:	g_dspState.DSPControl.AID		= _bSet ? 1 : 0; break;
+	case INT_DSP:  g_dspState.DSPControl.DSP  = _bSet ? 1 : 0; break;
+	case INT_ARAM: g_dspState.DSPControl.ARAM = _bSet ? 1 : 0; if (_bSet) g_dspState.DSPControl.DMAState = 0; break;
+	case INT_AID:  g_dspState.DSPControl.AID  = _bSet ? 1 : 0; break;
 	}
 
 	UpdateInterrupts();

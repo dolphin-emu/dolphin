@@ -62,16 +62,16 @@ StreamingVoiceContext::StreamingVoiceContext(IXAudio2 *pXAudio2, CMixer *pMixer,
 {
 	WAVEFORMATEXTENSIBLE wfx = {};
 
-	wfx.Format.wFormatTag		= WAVE_FORMAT_EXTENSIBLE;
-	wfx.Format.nSamplesPerSec	= m_mixer->GetSampleRate();
-	wfx.Format.nChannels		= 2;
-	wfx.Format.wBitsPerSample	= 16;
-	wfx.Format.nBlockAlign		= wfx.Format.nChannels*wfx.Format.wBitsPerSample / 8;
-	wfx.Format.nAvgBytesPerSec	= wfx.Format.nSamplesPerSec * wfx.Format.nBlockAlign;
-	wfx.Format.cbSize			= sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
+	wfx.Format.wFormatTag       = WAVE_FORMAT_EXTENSIBLE;
+	wfx.Format.nSamplesPerSec   = m_mixer->GetSampleRate();
+	wfx.Format.nChannels        = 2;
+	wfx.Format.wBitsPerSample   = 16;
+	wfx.Format.nBlockAlign      = wfx.Format.nChannels*wfx.Format.wBitsPerSample / 8;
+	wfx.Format.nAvgBytesPerSec  = wfx.Format.nSamplesPerSec * wfx.Format.nBlockAlign;
+	wfx.Format.cbSize           = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
 	wfx.Samples.wValidBitsPerSample = 16;
-	wfx.dwChannelMask			= SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
-	wfx.SubFormat				= KSDATAFORMAT_SUBTYPE_PCM;
+	wfx.dwChannelMask           = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
+	wfx.SubFormat               = KSDATAFORMAT_SUBTYPE_PCM;
 
 	// create source voice
 	HRESULT hr;
@@ -221,7 +221,7 @@ void XAudio2::Update()
 	//	XAUDIO2_PERFORMANCE_DATA perfData;
 	//	pXAudio2->GetPerformanceData(&perfData);
 	//	NOTICE_LOG(DSPHLE, "XAudio2 latency (samples): %i", perfData.CurrentLatencyInSamples);
-	//	NOTICE_LOG(DSPHLE, "XAudio2	total glitches: %i", perfData.GlitchesSinceEngineStarted);
+	//	NOTICE_LOG(DSPHLE, "XAudio2 total glitches: %i", perfData.GlitchesSinceEngineStarted);
 	//}
 }
 

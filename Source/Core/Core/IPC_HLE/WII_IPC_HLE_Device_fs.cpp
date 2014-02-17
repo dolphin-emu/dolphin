@@ -267,13 +267,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			NANDStat fs;
 
 			//TODO: scrape the real amounts from somewhere...
-			fs.BlockSize	= 0x4000;
-			fs.FreeUserBlocks	= 0x5DEC;
-			fs.UsedUserBlocks	= 0x1DD4;
-			fs.FreeSysBlocks	= 0x10;
-			fs.UsedSysBlocks	= 0x02F0;
-			fs.Free_INodes	= 0x146B;
-			fs.Used_Inodes	= 0x0394;
+			fs.BlockSize      = 0x4000;
+			fs.FreeUserBlocks = 0x5DEC;
+			fs.UsedUserBlocks = 0x1DD4;
+			fs.FreeSysBlocks  = 0x10;
+			fs.UsedSysBlocks  = 0x02F0;
+			fs.Free_INodes    = 0x146B;
+			fs.Used_Inodes    = 0x0394;
 
 			*(NANDStat*)Memory::GetPointer(_BufferOut) = fs;
 
@@ -335,10 +335,10 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			u32 OwnerID = 0;
 			u16 GroupID = 0x3031; // this is also known as makercd, 01 (0x3031) for nintendo and 08 (0x3038) for MH3 etc
 			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn), 64);
-			u8 OwnerPerm = 0x3;		// read/write
-			u8 GroupPerm = 0x3;		// read/write
-			u8 OtherPerm = 0x3;		// read/write
-			u8 Attributes = 0x00;	// no attributes
+			u8 OwnerPerm = 0x3;   // read/write
+			u8 GroupPerm = 0x3;   // read/write
+			u8 OtherPerm = 0x3;   // read/write
+			u8 Attributes = 0x00; // no attributes
 			if (File::IsDirectory(Filename))
 			{
 				INFO_LOG(WII_IPC_FILEIO, "FS: GET_ATTR Directory %s - all permission flags are set", Filename.c_str());
@@ -360,13 +360,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			if (_BufferOutSize == 76)
 			{
 				u32 Addr = _BufferOut;
-				Memory::Write_U32(OwnerID, Addr);										Addr += 4;
-				Memory::Write_U16(GroupID, Addr);										Addr += 2;
-				memcpy(Memory::GetPointer(Addr), Memory::GetPointer(_BufferIn), 64);	Addr += 64;
-				Memory::Write_U8(OwnerPerm, Addr);										Addr += 1;
-				Memory::Write_U8(GroupPerm, Addr);										Addr += 1;
-				Memory::Write_U8(OtherPerm, Addr);										Addr += 1;
-				Memory::Write_U8(Attributes, Addr);										Addr += 1;
+				Memory::Write_U32(OwnerID, Addr);                                    Addr += 4;
+				Memory::Write_U16(GroupID, Addr);                                    Addr += 2;
+				memcpy(Memory::GetPointer(Addr), Memory::GetPointer(_BufferIn), 64); Addr += 64;
+				Memory::Write_U8(OwnerPerm, Addr);                                   Addr += 1;
+				Memory::Write_U8(GroupPerm, Addr);                                   Addr += 1;
+				Memory::Write_U8(OtherPerm, Addr);                                   Addr += 1;
+				Memory::Write_U8(Attributes, Addr);                                  Addr += 1;
 			}
 
 			return FS_RESULT_OK;

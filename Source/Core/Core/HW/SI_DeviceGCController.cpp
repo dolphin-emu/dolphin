@@ -26,16 +26,16 @@ CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNum
 	, m_LastButtonCombo(COMBO_NONE)
 {
 	memset(&m_Origin, 0, sizeof(SOrigin));
-	m_Origin.uCommand			= CMD_ORIGIN;
-	m_Origin.uOriginStickX		= 0x80; // center
-	m_Origin.uOriginStickY		= 0x80;
-	m_Origin.uSubStickStickX	= 0x80;
-	m_Origin.uSubStickStickY	= 0x80;
-	m_Origin.uTrigger_L			= 0x1F; // 0-30 is the lower deadzone
-	m_Origin.uTrigger_R			= 0x1F;
+	m_Origin.uCommand        = CMD_ORIGIN;
+	m_Origin.uOriginStickX   = 0x80; // center
+	m_Origin.uOriginStickY   = 0x80;
+	m_Origin.uSubStickStickX = 0x80;
+	m_Origin.uSubStickStickY = 0x80;
+	m_Origin.uTrigger_L      = 0x1F; // 0-30 is the lower deadzone
+	m_Origin.uTrigger_R      = 0x1F;
 
 	// Dunno if we need to do this, game/lib should set it?
-	m_Mode						= 0x03;
+	m_Mode                   = 0x03;
 }
 
 int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
@@ -60,8 +60,8 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 			GetData(high, low);
 			for (int i = 0; i < (_iLength - 1) / 2; i++)
 			{
-				_pBuffer[0 + i] = (high >> (i * 8)) & 0xff;
-				_pBuffer[4 + i] = (low >> (i * 8)) & 0xff;
+				_pBuffer[i + 0] = (high >> (i * 8)) & 0xff;
+				_pBuffer[i + 4] = (low >> (i * 8)) & 0xff;
 			}
 		}
 		break;
@@ -119,8 +119,8 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	u32 netValues[2];
 	if (NetPlay_GetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues))
 	{
-		_Hi  = netValues[0];	// first 4 bytes
-		_Low = netValues[1];	// last  4 bytes
+		_Hi  = netValues[0]; // first 4 bytes
+		_Low = netValues[1]; // last  4 bytes
 		return true;
 	}
 
@@ -149,46 +149,46 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	// Low bits are packed differently per mode
 	if (m_Mode == 0 || m_Mode == 5 || m_Mode == 6 || m_Mode == 7)
 	{
-		_Low  = (u8)(PadStatus.analogB >> 4);					// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);		// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 8);	// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 12);	// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.substickY) << 16);			// All 8 bits
-		_Low |= (u32)((u8)(PadStatus.substickX) << 24);			// All 8 bits
+		_Low  = (u8)(PadStatus.analogB >> 4);                   // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);       // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 8);  // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 12);  // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.substickY) << 16);         // All 8 bits
+		_Low |= (u32)((u8)(PadStatus.substickX) << 24);         // All 8 bits
 	}
 	else if (m_Mode == 1)
 	{
-		_Low  = (u8)(PadStatus.analogB >> 4);					// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);		// Top 4 bits
-		_Low |= (u32)((u8)PadStatus.triggerRight << 8);			// All 8 bits
-		_Low |= (u32)((u8)PadStatus.triggerLeft << 16);			// All 8 bits
-		_Low |= (u32)((u8)PadStatus.substickY << 24);			// Top 4 bits
-		_Low |= (u32)((u8)PadStatus.substickX << 28);			// Top 4 bits
+		_Low  = (u8)(PadStatus.analogB >> 4);                   // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.analogA >> 4) << 4);       // Top 4 bits
+		_Low |= (u32)((u8)PadStatus.triggerRight << 8);         // All 8 bits
+		_Low |= (u32)((u8)PadStatus.triggerLeft << 16);         // All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 24);           // Top 4 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 28);           // Top 4 bits
 	}
 	else if (m_Mode == 2)
 	{
-		_Low  = (u8)(PadStatus.analogB);						// All 8 bits
-		_Low |= (u32)((u8)(PadStatus.analogA) << 8);			// All 8 bits
-		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 16);	// Top 4 bits
-		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 20);	// Top 4 bits
-		_Low |= (u32)((u8)PadStatus.substickY << 24);			// Top 4 bits
-		_Low |= (u32)((u8)PadStatus.substickX << 28);			// Top 4 bits
+		_Low  = (u8)(PadStatus.analogB);                        // All 8 bits
+		_Low |= (u32)((u8)(PadStatus.analogA) << 8);            // All 8 bits
+		_Low |= (u32)((u8)(PadStatus.triggerRight >> 4) << 16); // Top 4 bits
+		_Low |= (u32)((u8)(PadStatus.triggerLeft >> 4) << 20);  // Top 4 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 24);           // Top 4 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 28);           // Top 4 bits
 	}
 	else if (m_Mode == 3)
 	{
 		// Analog A/B are always 0
-		_Low  = (u8)PadStatus.triggerRight;						// All 8 bits
-		_Low |= (u32)((u8)PadStatus.triggerLeft << 8);			// All 8 bits
-		_Low |= (u32)((u8)PadStatus.substickY << 16);			// All 8 bits
-		_Low |= (u32)((u8)PadStatus.substickX << 24);			// All 8 bits
+		_Low  = (u8)PadStatus.triggerRight;                     // All 8 bits
+		_Low |= (u32)((u8)PadStatus.triggerLeft << 8);          // All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 16);           // All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 24);           // All 8 bits
 	}
 	else if (m_Mode == 4)
 	{
-		_Low  = (u8)(PadStatus.analogB);						// All 8 bits
-		_Low |= (u32)((u8)(PadStatus.analogA) << 8);			// All 8 bits
+		_Low  = (u8)(PadStatus.analogB);                        // All 8 bits
+		_Low |= (u32)((u8)(PadStatus.analogA) << 8);            // All 8 bits
 		// triggerLeft/Right are always 0
-		_Low |= (u32)((u8)PadStatus.substickY << 16);			// All 8 bits
-		_Low |= (u32)((u8)PadStatus.substickX << 24);			// All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickY << 16);           // All 8 bits
+		_Low |= (u32)((u8)PadStatus.substickX << 24);           // All 8 bits
 	}
 
 	// Keep track of the special button combos (embedded in controller hardware... :( )
@@ -214,12 +214,12 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 				ProcessorInterface::ResetButton_Tap();
 			else if (m_LastButtonCombo == COMBO_ORIGIN)
 			{
-				m_Origin.uOriginStickX		= PadStatus.stickX;
-				m_Origin.uOriginStickY		= PadStatus.stickY;
-				m_Origin.uSubStickStickX	= PadStatus.substickX;
-				m_Origin.uSubStickStickY	= PadStatus.substickY;
-				m_Origin.uTrigger_L			= PadStatus.triggerLeft;
-				m_Origin.uTrigger_R			= PadStatus.triggerRight;
+				m_Origin.uOriginStickX   = PadStatus.stickX;
+				m_Origin.uOriginStickY   = PadStatus.stickY;
+				m_Origin.uSubStickStickX = PadStatus.substickX;
+				m_Origin.uSubStickStickY = PadStatus.substickY;
+				m_Origin.uTrigger_L      = PadStatus.triggerLeft;
+				m_Origin.uTrigger_R      = PadStatus.triggerRight;
 			}
 			m_LastButtonCombo = COMBO_NONE;
 		}

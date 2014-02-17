@@ -319,29 +319,29 @@ bool Joystick::UpdateOutput()
 #ifdef USE_SDL_HAPTIC
 	for (auto &i : m_state_out)
 	{
-		if (i.changed)	// if SetState was called on this output
+		if (i.changed) // if SetState was called on this output
 		{
-			if (-1 == i.id)	// effect isn't currently uploaded
+			if (-1 == i.id) // effect isn't currently uploaded
 			{
-				if (i.effect.type)		// if outputstate is >0  this would be true
+				if (i.effect.type) // if outputstate is >0  this would be true
 				{
-					if ((i.id = SDL_HapticNewEffect(m_haptic, &i.effect)) > -1)	// upload the effect
+					if ((i.id = SDL_HapticNewEffect(m_haptic, &i.effect)) > -1) // upload the effect
 					{
-						SDL_HapticRunEffect(m_haptic, i.id, 1);	// run the effect
+						SDL_HapticRunEffect(m_haptic, i.id, 1); // run the effect
 					}
 				}
 			}
-			else	// effect is already uploaded
+			else // effect is already uploaded
 			{
-				if (i.effect.type)	// if ouputstate >0
+				if (i.effect.type) // if ouputstate >0
 				{
 					SDL_HapticUpdateEffect(m_haptic, i.id, &i.effect);	// update the effect
 				}
 				else
 				{
-					SDL_HapticStopEffect(m_haptic, i.id);	// else, stop and remove the effect
+					SDL_HapticStopEffect(m_haptic, i.id); // else, stop and remove the effect
 					SDL_HapticDestroyEffect(m_haptic, i.id);
-					i.id = -1;	// mark it as not uploaded
+					i.id = -1; // mark it as not uploaded
 				}
 			}
 

@@ -356,25 +356,25 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			USIStatusReg tmpStatus(val);
 
 			// clear bits ( if(tmp.bit) SISR.bit=0 )
-			if (tmpStatus.NOREP0)	g_StatusReg.NOREP0 = 0;
-			if (tmpStatus.COLL0)	g_StatusReg.COLL0 = 0;
-			if (tmpStatus.OVRUN0)	g_StatusReg.OVRUN0 = 0;
-			if (tmpStatus.UNRUN0)	g_StatusReg.UNRUN0 = 0;
+			if (tmpStatus.NOREP0) g_StatusReg.NOREP0 = 0;
+			if (tmpStatus.COLL0)  g_StatusReg.COLL0 = 0;
+			if (tmpStatus.OVRUN0) g_StatusReg.OVRUN0 = 0;
+			if (tmpStatus.UNRUN0) g_StatusReg.UNRUN0 = 0;
 
-			if (tmpStatus.NOREP1)	g_StatusReg.NOREP1 = 0;
-			if (tmpStatus.COLL1)	g_StatusReg.COLL1 = 0;
-			if (tmpStatus.OVRUN1)	g_StatusReg.OVRUN1 = 0;
-			if (tmpStatus.UNRUN1)	g_StatusReg.UNRUN1 = 0;
+			if (tmpStatus.NOREP1) g_StatusReg.NOREP1 = 0;
+			if (tmpStatus.COLL1)  g_StatusReg.COLL1 = 0;
+			if (tmpStatus.OVRUN1) g_StatusReg.OVRUN1 = 0;
+			if (tmpStatus.UNRUN1) g_StatusReg.UNRUN1 = 0;
 
-			if (tmpStatus.NOREP2)	g_StatusReg.NOREP2 = 0;
-			if (tmpStatus.COLL2)	g_StatusReg.COLL2 = 0;
-			if (tmpStatus.OVRUN2)	g_StatusReg.OVRUN2 = 0;
-			if (tmpStatus.UNRUN2)	g_StatusReg.UNRUN2 = 0;
+			if (tmpStatus.NOREP2) g_StatusReg.NOREP2 = 0;
+			if (tmpStatus.COLL2)  g_StatusReg.COLL2 = 0;
+			if (tmpStatus.OVRUN2) g_StatusReg.OVRUN2 = 0;
+			if (tmpStatus.UNRUN2) g_StatusReg.UNRUN2 = 0;
 
-			if (tmpStatus.NOREP3)	g_StatusReg.NOREP3 = 0;
-			if (tmpStatus.COLL3)	g_StatusReg.COLL3 = 0;
-			if (tmpStatus.OVRUN3)	g_StatusReg.OVRUN3 = 0;
-			if (tmpStatus.UNRUN3)	g_StatusReg.UNRUN3 = 0;
+			if (tmpStatus.NOREP3) g_StatusReg.NOREP3 = 0;
+			if (tmpStatus.COLL3)  g_StatusReg.COLL3 = 0;
+			if (tmpStatus.OVRUN3) g_StatusReg.OVRUN3 = 0;
+			if (tmpStatus.UNRUN3) g_StatusReg.UNRUN3 = 0;
 
 			// send command to devices
 			if (tmpStatus.WR)
@@ -409,8 +409,8 @@ void UpdateInterrupts()
 		g_ComCSR.RDSTINT = 0;
 
 	// check if we have to generate an interrupt
-	if ((g_ComCSR.RDSTINT	& g_ComCSR.RDSTINTMSK) ||
-		(g_ComCSR.TCINT		& g_ComCSR.TCINTMSK))
+	if ((g_ComCSR.RDSTINT & g_ComCSR.RDSTINTMSK) ||
+		(g_ComCSR.TCINT   & g_ComCSR.TCINTMSK))
 	{
 		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, true);
 	}

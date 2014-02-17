@@ -75,9 +75,9 @@ unsigned int PPCDebugInterface::readExtraMemory(int memory, unsigned int address
 		return Memory::ReadUnchecked_U32(address);
 	case 1:
 		return (DSP::ReadARAM(address)     << 24) |
-			   (DSP::ReadARAM(address + 1) << 16) |
-			   (DSP::ReadARAM(address + 2) << 8) |
-			   (DSP::ReadARAM(address + 3));
+		       (DSP::ReadARAM(address + 1) << 16) |
+		       (DSP::ReadARAM(address + 2) << 8) |
+		       (DSP::ReadARAM(address + 3));
 	default:
 		return 0;
 	}
@@ -140,7 +140,6 @@ void PPCDebugInterface::toggleMemCheck(unsigned int address)
 		MemCheck.Break = true;
 
 		PowerPC::memchecks.Add(MemCheck);
-
 	}
 	else
 		PowerPC::memchecks.Remove(address);

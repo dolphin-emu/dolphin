@@ -562,9 +562,9 @@ bool CEXIETHERNET::RecvHandlePacket()
 		page_ptr(BBA_RHBP));
 #endif
 
-	write_ptr	= ptr_from_page_ptr(BBA_RWP);
-	end_ptr		= ptr_from_page_ptr(BBA_RHBP);
-	read_ptr	= ptr_from_page_ptr(BBA_RRP);
+	write_ptr = ptr_from_page_ptr(BBA_RWP);
+	end_ptr   = ptr_from_page_ptr(BBA_RHBP);
+	read_ptr  = ptr_from_page_ptr(BBA_RRP);
 
 	descriptor = (Descriptor *)write_ptr;
 	write_ptr += 4;

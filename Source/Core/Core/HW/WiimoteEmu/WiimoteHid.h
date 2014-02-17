@@ -175,10 +175,10 @@ struct wm_report
 		u8 data[0];
 		struct
 		{
-			u8 rumble : 1;	// enable/disable rumble
+			u8 rumble : 1; // enable/disable rumble
 			// only valid for certain reports
-			u8 ack : 1;		// respond with an ack
-			u8 enable : 1;	// enable/disable certain features
+			u8 ack    : 1; // respond with an ack
+			u8 enable : 1; // enable/disable certain features
 		};
 	};
 };
@@ -232,7 +232,7 @@ struct wm_status_report
 struct wm_write_data
 {
 	u8 rumble : 1;
-	u8 space : 2;	//see WM_SPACE_*
+	u8 space : 2; //see WM_SPACE_*
 	u8 : 5;
 	u8 address[3];
 	u8 size;
@@ -251,7 +251,7 @@ struct wm_acknowledge
 struct wm_read_data
 {
 	u8 rumble : 1;
-	u8 space : 2;	//see WM_SPACE_*
+	u8 space : 2; //see WM_SPACE_*
 	u8 : 5;
 	u8 address[3];
 	u16 size;
@@ -266,7 +266,7 @@ struct wm_read_data
 struct wm_read_data_reply
 {
 	wm_core buttons;
-	u8 error : 4;	//see WM_RDERR_*
+	u8 error : 4; //see WM_RDERR_*
 	u8 size : 4;
 	u16 address;
 	u8 data[16];

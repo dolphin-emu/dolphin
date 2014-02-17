@@ -72,11 +72,11 @@ bool CWII_IPC_HLE_Device_net_ssl::Close(u32 _CommandAddress, bool _bForce)
 
 bool CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
 {
-	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
-	u32 Command			= Memory::Read_U32(_CommandAddress + 0x0C);
+	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+	u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 Command       = Memory::Read_U32(_CommandAddress + 0x0C);
 
 	INFO_LOG(WII_IPC_SSL, "%s unknown %i "
 	"(BufferIn: (%08x, %i), BufferOut: (%08x, %i)",

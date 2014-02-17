@@ -177,14 +177,14 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 	case USBV0_IOCTL_CTRLMSG: // HCI command is received from the stack
 		{
 			// This is the HCI datapath from CPU to Wiimote, the USB stuff is little endian..
-			m_CtrlSetup.bRequestType	= *( u8*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address);
-			m_CtrlSetup.bRequest		= *( u8*)Memory::GetPointer(CommandBuffer.InBuffer[1].m_Address);
-			m_CtrlSetup.wValue			= *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[2].m_Address);
-			m_CtrlSetup.wIndex			= *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[3].m_Address);
-			m_CtrlSetup.wLength			= *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[4].m_Address);
-			m_CtrlSetup.m_PayLoadAddr	= CommandBuffer.PayloadBuffer[0].m_Address;
-			m_CtrlSetup.m_PayLoadSize	= CommandBuffer.PayloadBuffer[0].m_Size;
-			m_CtrlSetup.m_Address		= CommandBuffer.m_Address;
+			m_CtrlSetup.bRequestType  = *( u8*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address);
+			m_CtrlSetup.bRequest      = *( u8*)Memory::GetPointer(CommandBuffer.InBuffer[1].m_Address);
+			m_CtrlSetup.wValue        = *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[2].m_Address);
+			m_CtrlSetup.wIndex        = *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[3].m_Address);
+			m_CtrlSetup.wLength       = *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[4].m_Address);
+			m_CtrlSetup.m_PayLoadAddr = CommandBuffer.PayloadBuffer[0].m_Address;
+			m_CtrlSetup.m_PayLoadSize = CommandBuffer.PayloadBuffer[0].m_Size;
+			m_CtrlSetup.m_Address     = CommandBuffer.m_Address;
 
 			// check termination
 			_dbg_assert_msg_(WII_IPC_WIIMOTE, *(u8*)Memory::GetPointer(CommandBuffer.InBuffer[5].m_Address) == 0,
@@ -470,7 +470,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		m_last_ticks = now;
 	}
 
- 	SendEventNumberOfCompletedPackets();
+	SendEventNumberOfCompletedPackets();
 
 	return packet_transferred;
 }
@@ -507,8 +507,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::WriteToEndpoint(CtrlBuffer& e
 		"queue to %08x", endpoint.m_address);
 
 	hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(endpoint.m_buffer);
-	pHeader->con_handle	= HCI_MK_CON_HANDLE(conn_handle, HCI_PACKET_START, HCI_POINT2POINT);
-	pHeader->length		= size;
+	pHeader->con_handle = HCI_MK_CON_HANDLE(conn_handle, HCI_PACKET_START, HCI_POINT2POINT);
+	pHeader->length = size;
 
 	// Write the packet to the buffer
 	std::copy(data, data + size, (u8*)pHeader + sizeof(hci_acldata_hdr_t));
@@ -870,12 +870,12 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventNumberOfCompletedPackets");
 
-	hci_event_hdr_t* event_hdr		= (hci_event_hdr_t*)Event.m_buffer;
-	hci_num_compl_pkts_ep* event	= (hci_num_compl_pkts_ep*)((u8*)event_hdr + sizeof(hci_event_hdr_t));
-	hci_num_compl_pkts_info* info	= (hci_num_compl_pkts_info*)((u8*)event + sizeof(hci_num_compl_pkts_ep));
+	hci_event_hdr_t* event_hdr    = (hci_event_hdr_t*)Event.m_buffer;
+	hci_num_compl_pkts_ep* event  = (hci_num_compl_pkts_ep*)((u8*)event_hdr + sizeof(hci_event_hdr_t));
+	hci_num_compl_pkts_info* info = (hci_num_compl_pkts_info*)((u8*)event + sizeof(hci_num_compl_pkts_ep));
 
-	event_hdr->event	= HCI_EVENT_NUM_COMPL_PKTS;
-	event_hdr->length	= sizeof(hci_num_compl_pkts_ep);
+	event_hdr->event  = HCI_EVENT_NUM_COMPL_PKTS;
+	event_hdr->length = sizeof(hci_num_compl_pkts_ep);
 	event->num_con_handles = 0;
 
 	u32 acc = 0;
@@ -941,10 +941,10 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventLinkKeyNotification(const u8 
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventLinkKeyNotification");
 
 	// event header
-	pEventLinkKey->EventType		= HCI_EVENT_RETURN_LINK_KEYS;
-	pEventLinkKey->PayloadLength	= payload_length;
+	pEventLinkKey->EventType     = HCI_EVENT_RETURN_LINK_KEYS;
+	pEventLinkKey->PayloadLength = payload_length;
 	// this is really hci_return_link_keys_ep.num_keys
-	pEventLinkKey->numKeys			= num_to_send;
+	pEventLinkKey->numKeys = num_to_send;
 
 	// copy infos - this only works correctly if we're meant to start at first device and read all keys
 	for (int i = 0; i < num_to_send; i++)

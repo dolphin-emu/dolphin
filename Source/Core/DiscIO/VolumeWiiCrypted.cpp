@@ -82,7 +82,7 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 
 		// increase buffers
 		_Length -= CopySize;
-		_pBuffer	+= CopySize;
+		_pBuffer    += CopySize;
 		_ReadOffset += CopySize;
 	}
 

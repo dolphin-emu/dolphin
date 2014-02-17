@@ -356,9 +356,9 @@ void CVolumeDirectory::BuildFST()
 	m_dataStartAddress = ROUND_UP(FST_ADDRESS + m_fstSize, 0x8000ull);
 	u64 curDataAddress = m_dataStartAddress;
 
-	u32 fstOffset = 0;		// offset within FST data
-	u32 nameOffset = 0;		// offset within name table
-	u32 rootOffset = 0;		// offset of root of FST
+	u32 fstOffset = 0;  // Offset within FST data
+	u32 nameOffset = 0; // Offset within name table
+	u32 rootOffset = 0; // Offset of root of FST
 
 	// write root entry
 	WriteEntryData(fstOffset, DIRECTORY_ENTRY, 0, 0, totalEntries);

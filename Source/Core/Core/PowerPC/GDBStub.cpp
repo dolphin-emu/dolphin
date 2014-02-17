@@ -36,13 +36,13 @@
 
 #include "Host.h"
 
-#define		GDB_BFR_MAX	10000
-#define		GDB_MAX_BP	10
+#define GDB_BFR_MAX  10000
+#define GDB_MAX_BP   10
 
-#define		GDB_STUB_START	'$'
-#define		GDB_STUB_END	'#'
-#define		GDB_STUB_ACK	'+'
-#define		GDB_STUB_NAK	'-'
+#define GDB_STUB_START '$'
+#define GDB_STUB_END   '#'
+#define GDB_STUB_ACK   '+'
+#define GDB_STUB_NAK   '-'
 
 
 static int tmpsock = -1;

@@ -82,17 +82,17 @@ public:
 	bool m_connected;
 	CFRunLoopRef m_wiimote_thread_run_loop;
 #elif defined(__linux__) && HAVE_BLUEZ
-	bdaddr_t bdaddr;					// Bluetooth address
-	int cmd_sock;						// Command socket
-	int int_sock;						// Interrupt socket
+	bdaddr_t bdaddr;                    // Bluetooth address
+	int cmd_sock;                       // Command socket
+	int int_sock;                       // Interrupt socket
 	int wakeup_pipe_w, wakeup_pipe_r;
 
 #elif defined(_WIN32)
-	std::basic_string<TCHAR> devicepath;	// Unique wiimote reference
-	//ULONGLONG btaddr;					// Bluetooth address
-	HANDLE dev_handle;					// HID handle
-	OVERLAPPED hid_overlap_read, hid_overlap_write;	// Overlap handle
-	enum win_bt_stack_t stack;			// Type of bluetooth stack to use
+	std::basic_string<TCHAR> devicepath; // Unique wiimote reference
+	//ULONGLONG btaddr;                  // Bluetooth address
+	HANDLE dev_handle;                   // HID handle
+	OVERLAPPED hid_overlap_read, hid_overlap_write; // Overlap handle
+	enum win_bt_stack_t stack;           // Type of bluetooth stack to use
 #endif
 
 protected:

@@ -187,10 +187,10 @@ bool IsWbfsBlob(const char* filename)
 	u8 magic[4] = {0, 0, 0, 0};
 	f.ReadBytes(&magic, 4);
 
-	return	(magic[0] == 'W') &&
-			(magic[1] == 'B') &&
-			(magic[2] == 'F') &&
-			(magic[3] == 'S');
+	return (magic[0] == 'W') &&
+	       (magic[1] == 'B') &&
+	       (magic[2] == 'F') &&
+	       (magic[3] == 'S');
 }
 
 }  // namespace

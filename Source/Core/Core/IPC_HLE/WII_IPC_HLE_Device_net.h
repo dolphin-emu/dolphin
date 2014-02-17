@@ -22,7 +22,7 @@ struct netcfg_proxy_t
 	u8 padding_1[2];
 	u8 proxy_name[255];
 	u8 padding_2;
-	u16 proxy_port;			// 0-34463
+	u16 proxy_port;        // 0-34463
 	u8 proxy_username[32];
 	u8 padding_3;
 	u8 proxy_password[32];
@@ -91,8 +91,8 @@ struct netcfg_connection_t
 	u8 padding_7[3];
 	u8 encryption;
 	u8 padding_8[3];
-	u8 key_length;		// length of key in bytes.  0x00 for WEP64 and WEP128.
-	u8 unknown;			// 0x00 or 0x01 toggled with a WPA-PSK (TKIP) and with a WEP entered with hex instead of ascii.
+	u8 key_length;      // length of key in bytes.  0x00 for WEP64 and WEP128.
+	u8 unknown;         // 0x00 or 0x01 toggled with a WPA-PSK (TKIP) and with a WEP entered with hex instead of ascii.
 	u8 padding_9;
 	u8 key[64];         // encryption key; for WEP, key is stored 4 times (20 bytes for WEP64 and 52 bytes for WEP128) then padded with 0x00
 	u8 padding_10[236];
@@ -143,11 +143,11 @@ struct nwc24_config_t
 		MAX_PASSWORD_LENGTH = 0x20,
 	};
 
-	u32 magic;		/* 'WcCf' 0x57634366 */
-	u32 _unk_04;	/* must be 8 */
+	u32 magic;      /* 'WcCf' 0x57634366 */
+	u32 _unk_04;    /* must be 8 */
 	u64 nwc24_id;
 	u32 id_generation;
-	u32 creation_stage;	/* 0==not_generated;1==generated;2==registered; */
+	u32 creation_stage; /* 0==not_generated;1==generated;2==registered; */
 	char email[MAX_EMAIL_LENGTH];
 	char paswd[MAX_PASSWORD_LENGTH];
 	char mlchkid[0x24];
@@ -472,9 +472,9 @@ public:
 
 	virtual bool IOCtl(u32 _CommandAddress)
 	{
-		u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
-		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+		u32 Parameter = Memory::Read_U32(_CommandAddress + 0x0C);
+		u32 BufferIn  = Memory::Read_U32(_CommandAddress + 0x10);
+		u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 
 		u32 result = 0;
 		u32 common_result = 0;

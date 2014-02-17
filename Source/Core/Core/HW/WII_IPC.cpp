@@ -119,13 +119,13 @@ void DoState(PointerWrap &p)
 void Init()
 {
 	ctrl = CtrlRegister();
-	ppc_msg =
-	arm_msg =
+	ppc_msg = 0;
+	arm_msg = 0;
 
-	ppc_irq_flags =
-	ppc_irq_masks =
-	arm_irq_flags =
-	arm_irq_masks =
+	ppc_irq_flags = 0;
+	ppc_irq_masks = 0;
+	arm_irq_flags = 0;
+	arm_irq_masks = 0;
 
 	sensorbar_power = 0;
 

@@ -167,23 +167,23 @@ static const char *Debug_GetInterruptName(u32 _causemask)
 {
 	switch (_causemask)
 	{
-	case INT_CAUSE_PI:				return "INT_CAUSE_PI";
-	case INT_CAUSE_DI:				return "INT_CAUSE_DI";
-	case INT_CAUSE_RSW:				return "INT_CAUSE_RSW";
-	case INT_CAUSE_SI:				return "INT_CAUSE_SI";
-	case INT_CAUSE_EXI:				return "INT_CAUSE_EXI";
-	case INT_CAUSE_AI:				return "INT_CAUSE_AI";
-	case INT_CAUSE_DSP:				return "INT_CAUSE_DSP";
-	case INT_CAUSE_MEMORY:			return "INT_CAUSE_MEMORY";
-	case INT_CAUSE_VI:				return "INT_CAUSE_VI";
-	case INT_CAUSE_PE_TOKEN:		return "INT_CAUSE_PE_TOKEN";
-	case INT_CAUSE_PE_FINISH:		return "INT_CAUSE_PE_FINISH";
-	case INT_CAUSE_CP:				return "INT_CAUSE_CP";
-	case INT_CAUSE_DEBUG:			return "INT_CAUSE_DEBUG";
-	case INT_CAUSE_WII_IPC:			return "INT_CAUSE_WII_IPC";
-	case INT_CAUSE_HSP:				return "INT_CAUSE_HSP";
-	case INT_CAUSE_RST_BUTTON:		return "INT_CAUSE_RST_BUTTON";
-	default:						return "!!! ERROR-unknown Interrupt !!!";
+	case INT_CAUSE_PI:         return "INT_CAUSE_PI";
+	case INT_CAUSE_DI:         return "INT_CAUSE_DI";
+	case INT_CAUSE_RSW:        return "INT_CAUSE_RSW";
+	case INT_CAUSE_SI:         return "INT_CAUSE_SI";
+	case INT_CAUSE_EXI:        return "INT_CAUSE_EXI";
+	case INT_CAUSE_AI:         return "INT_CAUSE_AI";
+	case INT_CAUSE_DSP:        return "INT_CAUSE_DSP";
+	case INT_CAUSE_MEMORY:     return "INT_CAUSE_MEMORY";
+	case INT_CAUSE_VI:         return "INT_CAUSE_VI";
+	case INT_CAUSE_PE_TOKEN:   return "INT_CAUSE_PE_TOKEN";
+	case INT_CAUSE_PE_FINISH:  return "INT_CAUSE_PE_FINISH";
+	case INT_CAUSE_CP:         return "INT_CAUSE_CP";
+	case INT_CAUSE_DEBUG:      return "INT_CAUSE_DEBUG";
+	case INT_CAUSE_WII_IPC:    return "INT_CAUSE_WII_IPC";
+	case INT_CAUSE_HSP:        return "INT_CAUSE_HSP";
+	case INT_CAUSE_RST_BUTTON: return "INT_CAUSE_RST_BUTTON";
+	default:                   return "!!! ERROR-unknown Interrupt !!!";
 	}
 }
 

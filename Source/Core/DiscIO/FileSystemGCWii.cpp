@@ -121,8 +121,8 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 bool CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
 {
 	u32 AppSize = Read32(0x2440 + 0x14);// apploader size
-	AppSize += Read32(0x2440 + 0x18);	// + trailer size
-	AppSize += 0x20;					// + header size
+	AppSize += Read32(0x2440 + 0x18);   // + trailer size
+	AppSize += 0x20;                    // + header size
 	DEBUG_LOG(DISCIO,"AppSize -> %x", AppSize);
 
 	std::vector<u8> buffer(AppSize);
@@ -150,8 +150,8 @@ u32 CFileSystemGCWii::GetBootDOLSize() const
 	// Iterate through the 7 code segments
 	for (u8 i = 0; i < 7; i++)
 	{
-		offset	= Read32(DolOffset + 0x00 + i * 4);
-		size	= Read32(DolOffset + 0x90 + i * 4);
+		offset = Read32(DolOffset + 0x00 + i * 4);
+		size   = Read32(DolOffset + 0x90 + i * 4);
 		if (offset + size > DolSize)
 			DolSize = offset + size;
 	}
@@ -159,8 +159,8 @@ u32 CFileSystemGCWii::GetBootDOLSize() const
 	// Iterate through the 11 data segments
 	for (u8 i = 0; i < 11; i++)
 	{
-		offset	= Read32(DolOffset + 0x1c + i * 4);
-		size	= Read32(DolOffset + 0xac + i * 4);
+		offset = Read32(DolOffset + 0x1c + i * 4);
+		size   = Read32(DolOffset + 0xac + i * 4);
 		if (offset + size > DolSize)
 			DolSize = offset + size;
 	}

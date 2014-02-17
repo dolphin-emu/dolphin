@@ -150,9 +150,9 @@ s32 WiiSocket::closeFd()
 
 s32 WiiSocket::_fcntl(u32 cmd, u32 arg)
 {
-#define F_GETFL			3
-#define F_SETFL			4
-#define F_NONBLOCK		4
+#define F_GETFL     3
+#define F_SETFL     4
+#define F_NONBLOCK  4
 	s32 ret = 0;
 	if (cmd == F_GETFL)
 	{
@@ -490,7 +490,6 @@ void WiiSocket::update(bool read, bool write, bool except)
 									BufferOutSize2 ? &addrlen : 0);
 					ReturnValue = WiiSockMan::getNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
 
-
 					INFO_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
 					"BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
 					"BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
@@ -510,7 +509,6 @@ void WiiSocket::update(bool read, bool write, bool except)
 					break;
 				}
 			}
-
 		}
 
 		if ( nonBlock || forceNonBlock

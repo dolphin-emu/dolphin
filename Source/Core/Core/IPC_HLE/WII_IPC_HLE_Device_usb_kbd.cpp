@@ -59,7 +59,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
 {
-	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
 
 	if (SConfig::GetInstance().m_WiiKeyboard && !m_MessageQueue.empty())
 	{

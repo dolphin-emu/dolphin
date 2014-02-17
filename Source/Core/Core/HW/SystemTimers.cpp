@@ -84,18 +84,18 @@ namespace SystemTimers
 u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, stop bugging me!)
 
 /*
-Gamecube						MHz
-flipper <-> ARAM bus:			81 (DSP)
-gekko <-> flipper bus:			162
-flipper <-> 1T-SRAM bus:		324
-gekko:							486
+Gamecube                   MHz
+flipper <-> ARAM bus:      81 (DSP)
+gekko <-> flipper bus:     162
+flipper <-> 1T-SRAM bus:   324
+gekko:                     486
 
 These contain some guesses:
-Wii								MHz
-hollywood <-> GDDR3 RAM bus:	??? no idea really
-broadway <-> hollywood bus:		243
-hollywood <-> 1T-SRAM bus:		486
-broadway:						729
+Wii                             MHz
+hollywood <-> GDDR3 RAM bus:    ??? no idea really
+broadway <-> hollywood bus:     243
+hollywood <-> 1T-SRAM bus:      486
+broadway:                       729
 */
 // Ratio of TB and Decrementer to clock cycles.
 // TB clk is 1/4 of BUS clk. And it seems BUS clk is really 1/3 of CPU clk.

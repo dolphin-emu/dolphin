@@ -112,8 +112,8 @@ private:
 		{
 			if (m_address)
 			{
-				u32 InBufferNum		= Memory::Read_U32(m_address + 0x10);
-				u32 BufferVector	= Memory::Read_U32(m_address + 0x18);
+				u32 InBufferNum  = Memory::Read_U32(m_address + 0x10);
+				u32 BufferVector = Memory::Read_U32(m_address + 0x18);
 				m_buffer = Memory::Read_U32(
 					BufferVector + InBufferNum * sizeof(SIOCtlVBuffer::SBuffer));
 			}
