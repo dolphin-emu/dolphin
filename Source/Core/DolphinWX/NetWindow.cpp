@@ -16,7 +16,7 @@
 #include <sstream>
 #include <string>
 
-#define NETPLAY_TITLEBAR	"Dolphin NetPlay"
+#define NETPLAY_TITLEBAR  "Dolphin NetPlay"
 #define INITIAL_PAD_BUFFER_SIZE 20
 
 BEGIN_EVENT_TABLE(NetPlayDiag, wxFrame)

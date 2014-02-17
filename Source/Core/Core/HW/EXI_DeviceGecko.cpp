@@ -136,7 +136,7 @@ void GeckoSockServer::ClientThread()
 			if (client.Send(&packet[0], packet.size()) == sf::Socket::Disconnected)
 				client_running = false;
 		}
-		}	// unlock transfer
+		} // unlock transfer
 
 		if (did_nothing)
 			Common::YieldCPU();

@@ -492,13 +492,13 @@ static void gdb_read_registers()
 		wbe32hex(bufptr + i*8, riPS0(i));
 	}
 	bufptr += 32 * 8;
-	wbe32hex(bufptr, PC); 		bufptr += 4;
-	wbe32hex(bufptr, MSR); 		bufptr += 4;
-	wbe32hex(bufptr, GetCR()); 	bufptr += 4;
-	wbe32hex(bufptr, LR); 		bufptr += 4;
+	wbe32hex(bufptr, PC);      bufptr += 4;
+	wbe32hex(bufptr, MSR);     bufptr += 4;
+	wbe32hex(bufptr, GetCR()); bufptr += 4;
+	wbe32hex(bufptr, LR);      bufptr += 4;
 
 
-	wbe32hex(bufptr, CTR); 		bufptr += 4;
+	wbe32hex(bufptr, CTR);     bufptr += 4;
 	wbe32hex(bufptr, PowerPC::ppcState.spr[SPR_XER]); bufptr += 4;
 	// MQ register not used.
 	wbe32hex(bufptr, 0x0BADC0DE); bufptr += 4;
@@ -841,10 +841,10 @@ void gdb_init(u32 port)
 
 	saddr_client.sin_addr.s_addr = ntohl(saddr_client.sin_addr.s_addr);
 	/*if (((saddr_client.sin_addr.s_addr >> 24) & 0xff) != 127 ||
-	 *	    ((saddr_client.sin_addr.s_addr >> 16) & 0xff) !=   0 ||
-	 *	    ((saddr_client.sin_addr.s_addr >>  8) & 0xff) !=   0 ||
-	 *	    ((saddr_client.sin_addr.s_addr >>  0) & 0xff) !=   1)
-	 *		ERROR_LOG(GDB_STUB, "gdb: incoming connection not from localhost");
+	 *      ((saddr_client.sin_addr.s_addr >> 16) & 0xff) !=   0 ||
+	 *      ((saddr_client.sin_addr.s_addr >>  8) & 0xff) !=   0 ||
+	 *      ((saddr_client.sin_addr.s_addr >>  0) & 0xff) !=   1)
+	 *      ERROR_LOG(GDB_STUB, "gdb: incoming connection not from localhost");
 	 */
 	close(tmpsock);
 	tmpsock = -1;

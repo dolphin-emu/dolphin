@@ -72,8 +72,8 @@ IWII_IPC_HLE_Device* es_handles[ES_MAX_COUNT];
 
 
 typedef std::deque<u32> ipc_msg_queue;
-static ipc_msg_queue request_queue;	// ppc -> arm
-static ipc_msg_queue reply_queue;	// arm -> ppc
+static ipc_msg_queue request_queue; // ppc -> arm
+static ipc_msg_queue reply_queue;   // arm -> ppc
 static std::mutex s_reply_queue;
 
 static int enque_reply;

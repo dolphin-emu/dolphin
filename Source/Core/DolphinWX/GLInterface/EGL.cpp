@@ -58,7 +58,8 @@ void cInterfaceEGL::DetectMode()
 		EGL_NONE };
 
 	// Get how many configs there are
-	if (!eglChooseConfig( GLWin.egl_dpy, attribs, NULL, 0, &num_configs)) {
+	if (!eglChooseConfig( GLWin.egl_dpy, attribs, NULL, 0, &num_configs))
+	{
 		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
 		goto err_exit;
 	}
@@ -101,7 +102,7 @@ err_exit:
 }
 
 // Create rendering window.
-//		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
+// Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceEGL::Create(void *&window_handle)
 {
 	const char *s;
@@ -112,14 +113,16 @@ bool cInterfaceEGL::Create(void *&window_handle)
 
 	GLWin.egl_dpy = Platform.EGLGetDisplay();
 
-	if (!GLWin.egl_dpy) {
+	if (!GLWin.egl_dpy)
+	{
 		INFO_LOG(VIDEO, "Error: eglGetDisplay() failed\n");
 		return false;
 	}
 
 	GLWin.platform = Platform.platform;
 
-	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor)) {
+	if (!eglInitialize(GLWin.egl_dpy, &egl_major, &egl_minor))
+	{
 		INFO_LOG(VIDEO, "Error: eglInitialize() failed\n");
 		return false;
 	}
@@ -147,7 +150,7 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	{
 		case MODE_OPENGL:
 			attribs[1] = EGL_OPENGL_BIT;
-			ctx_attribs[0] = EGL_NONE;	
+			ctx_attribs[0] = EGL_NONE;
 		break;
 		case MODE_OPENGLES2:
 			attribs[1] = EGL_OPENGL_ES2_BIT;
@@ -163,7 +166,8 @@ bool cInterfaceEGL::Create(void *&window_handle)
 		break;
 	}
 
-	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs)) {
+	if (!eglChooseConfig( GLWin.egl_dpy, attribs, &config, 1, &num_configs))
+	{
 		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
 		exit(1);
 	}
@@ -189,16 +193,17 @@ bool cInterfaceEGL::Create(void *&window_handle)
 	INFO_LOG(VIDEO, "EGL_CLIENT_APIS = %s\n", s);
 
 	GLWin.egl_ctx = eglCreateContext(GLWin.egl_dpy, config, EGL_NO_CONTEXT, ctx_attribs );
-	if (!GLWin.egl_ctx) {
+	if (!GLWin.egl_ctx)
+	{
 		INFO_LOG(VIDEO, "Error: eglCreateContext failed\n");
 		exit(1);
 	}
 
 	GLWin.native_window = Platform.CreateWindow();
 
-	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config,
-				GLWin.native_window, NULL);
-	if (!GLWin.egl_surf) {
+	GLWin.egl_surf = eglCreateWindowSurface(GLWin.egl_dpy, config, GLWin.native_window, NULL);
+	if (!GLWin.egl_surf)
+	{
 		INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
 		exit(1);
 	}

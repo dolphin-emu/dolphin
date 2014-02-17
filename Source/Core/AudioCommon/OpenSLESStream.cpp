@@ -44,7 +44,7 @@ static void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
 	_assert_msg_(AUDIO, SL_RESULT_SUCCESS == result, "Couldn't enqueue audio stream.");
 
 
-	curBuffer ^= 1;	// Switch buffer
+	curBuffer ^= 1; // Switch buffer
 	// Render to the fresh buffer
 	g_mixer->Mix(reinterpret_cast<short *>(buffer[curBuffer]), BUFFER_SIZE_IN_SAMPLES);
 }

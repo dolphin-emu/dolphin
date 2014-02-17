@@ -79,7 +79,7 @@ private:
 	PadMapping      m_pad_map[4];
 	PadMapping      m_wiimote_map[4];
 
-	std::map<sf::SocketTCP, Client>	m_players;
+	std::map<sf::SocketTCP, Client> m_players;
 
 	struct
 	{

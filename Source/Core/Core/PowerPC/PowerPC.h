@@ -108,7 +108,7 @@ void OnIdleIL();
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 
-	// Easy register access macros.
+// Easy register access macros.
 #define HID0 ((UReg_HID0&)PowerPC::ppcState.spr[SPR_HID0])
 #define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
 #define HID4 ((UReg_HID4&)PowerPC::ppcState.spr[SPR_HID4])
@@ -126,7 +126,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define rSPR(i) PowerPC::ppcState.spr[i]
 #define LR     PowerPC::ppcState.spr[SPR_LR]
 #define CTR    PowerPC::ppcState.spr[SPR_CTR]
-#define rDEC    PowerPC::ppcState.spr[SPR_DEC]
+#define rDEC   PowerPC::ppcState.spr[SPR_DEC]
 #define SRR0   PowerPC::ppcState.spr[SPR_SRR0]
 #define SRR1   PowerPC::ppcState.spr[SPR_SRR1]
 #define SPRG0  PowerPC::ppcState.spr[SPR_SPRG0]
@@ -134,10 +134,10 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define SPRG2  PowerPC::ppcState.spr[SPR_SPRG2]
 #define SPRG3  PowerPC::ppcState.spr[SPR_SPRG3]
 #define GQR(x) PowerPC::ppcState.spr[SPR_GQR0+x]
-#define TL	   PowerPC::ppcState.spr[SPR_TL]
-#define TU	   PowerPC::ppcState.spr[SPR_TU]
+#define TL     PowerPC::ppcState.spr[SPR_TL]
+#define TU     PowerPC::ppcState.spr[SPR_TU]
 
-#define rPS0(i)	(*(double*)(&PowerPC::ppcState.ps[i][0]))
+#define rPS0(i) (*(double*)(&PowerPC::ppcState.ps[i][0]))
 #define rPS1(i) (*(double*)(&PowerPC::ppcState.ps[i][1]))
 
 #define riPS0(i) (*(u64*)(&PowerPC::ppcState.ps[i][0]))

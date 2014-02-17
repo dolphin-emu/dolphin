@@ -16,9 +16,9 @@
 
 #ifdef USE_SDL_HAPTIC
 	#include <SDL_haptic.h>
-	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
+	#define SDL_INIT_FLAGS  SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
 #else
-	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK
+	#define SDL_INIT_FLAGS  SDL_INIT_JOYSTICK
 #endif
 
 namespace ciface

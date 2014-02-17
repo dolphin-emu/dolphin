@@ -192,8 +192,8 @@ void WiiSocket::update(bool read, bool write, bool except)
 			{
 			case IOCTL_SO_FCNTL:
 			{
-				u32 cmd	= Memory::Read_U32(BufferIn + 4);
-				u32 arg	= Memory::Read_U32(BufferIn + 8);
+				u32 cmd = Memory::Read_U32(BufferIn + 4);
+				u32 arg = Memory::Read_U32(BufferIn + 8);
 				ReturnValue = _fcntl(cmd, arg);
 				break;
 			}

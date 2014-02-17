@@ -404,7 +404,7 @@ void CWII_IPC_HLE_WiiMote::ReceiveConnectionResponse(u8 _Ident, u8* _pData, u32 
 	INFO_LOG(WII_IPC_WIIMOTE, "[L2CAP] ReceiveConnectionResponse");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", rsp->dcid);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
- 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Status: 0x%04x", rsp->status);
 
 	_dbg_assert_(WII_IPC_WIIMOTE, rsp->result == L2CAP_SUCCESS);
@@ -503,7 +503,7 @@ void CWII_IPC_HLE_WiiMote::ReceiveConfigurationResponse(u8 _Ident, u8* _pData, u
 	INFO_LOG(WII_IPC_WIIMOTE, "[L2CAP] ReceiveConfigurationResponse");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", rsp->flags);
- 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
 
 	_dbg_assert_(WII_IPC_WIIMOTE, rsp->result == L2CAP_SUCCESS);
 
@@ -609,8 +609,8 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16 MTU, u16 Flush
 		if (MTU == 0)
 			MTU = rChannel.MTU;
 		pOptions = (l2cap_cfg_opt_t*)&Buffer[Offset]; Offset += sizeof(l2cap_cfg_opt_t);
-		pOptions->type		= L2CAP_OPT_MTU;
-		pOptions->length	= L2CAP_OPT_MTU_SIZE;
+		pOptions->type   = L2CAP_OPT_MTU;
+		pOptions->length = L2CAP_OPT_MTU_SIZE;
 		*(u16*)&Buffer[Offset] = MTU;                 Offset += L2CAP_OPT_MTU_SIZE;
 		DEBUG_LOG(WII_IPC_WIIMOTE, "    MTU: 0x%04x", MTU);
 	}
@@ -620,8 +620,8 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16 MTU, u16 Flush
 		if (FlushTimeOut == 0)
 			FlushTimeOut = rChannel.FlushTimeOut;
 		pOptions = (l2cap_cfg_opt_t*)&Buffer[Offset]; Offset += sizeof(l2cap_cfg_opt_t);
-		pOptions->type		= L2CAP_OPT_FLUSH_TIMO;
-		pOptions->length	= L2CAP_OPT_FLUSH_TIMO_SIZE;
+		pOptions->type   = L2CAP_OPT_FLUSH_TIMO;
+		pOptions->length = L2CAP_OPT_FLUSH_TIMO_SIZE;
 		*(u16*)&Buffer[Offset] = FlushTimeOut;        Offset += L2CAP_OPT_FLUSH_TIMO_SIZE;
 		DEBUG_LOG(WII_IPC_WIIMOTE, "    FlushTimeOut: 0x%04x", FlushTimeOut);
 	}
@@ -734,8 +734,8 @@ int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 
 
 void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 TransactionID, u32 ServiceHandle,
-														   u16 startAttrID, u16 endAttrID,
-														   u16 MaximumAttributeByteCount, u8* pContinuationState)
+                                                           u16 startAttrID, u16 endAttrID,
+                                                           u16 MaximumAttributeByteCount, u8* pContinuationState)
 {
 	if (ServiceHandle != 0x10000)
 	{
@@ -744,7 +744,7 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 Transact
 	}
 
 
-//	_dbg_assert_(WII_IPC_WIIMOTE, ServiceHandle == 0x10000);
+	// _dbg_assert_(WII_IPC_WIIMOTE, ServiceHandle == 0x10000);
 
 	u32 contState = ParseCont(pContinuationState);
 
@@ -767,12 +767,12 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 Transact
 	pHeader->length = (u16)(Offset - sizeof(l2cap_hdr_t));
 	m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, pHeader->length + sizeof(l2cap_hdr_t));
 
-	//	Debugger::PrintDataBuffer(LogTypes::WIIMOTE, DataFrame, pHeader->length + sizeof(l2cap_hdr_t), "test response: ");
+	// Debugger::PrintDataBuffer(LogTypes::WIIMOTE, DataFrame, pHeader->length + sizeof(l2cap_hdr_t), "test response: ");
 }
 
 void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 {
-	//	Debugger::PrintDataBuffer(LogTypes::WIIMOTE, _pData, _Size, "HandleSDP: ");
+	// Debugger::PrintDataBuffer(LogTypes::WIIMOTE, _pData, _Size, "HandleSDP: ");
 
 	CBigEndianBuffer buffer(_pData);
 

@@ -36,7 +36,7 @@ void cInterfaceGLX::Swap()
 }
 
 // Create rendering window.
-//		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
+// Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceGLX::Create(void *&window_handle)
 {
 	int _tx, _ty, _twidth, _theight;

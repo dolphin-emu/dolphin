@@ -4,7 +4,7 @@
 
 #pragma once
 
-#define GCC_VER(x,y,z)	((x) * 10000 + (y) * 100 + (z))
+#define GCC_VER(x,y,z) ((x) * 10000 + (y) * 100 + (z))
 #define GCC_VERSION GCC_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 
 #ifndef __has_include
@@ -311,9 +311,9 @@ inline thread::id get_id()
 #endif
 }
 
-}	// namespace this_thread
+} // namespace this_thread
 
-}	// namespace std
+} // namespace std
 
 #undef USE_RVALUE_REFERENCES
 #undef USE_BEGINTHREADEX

@@ -193,7 +193,7 @@ u16 AcceleratorGetSample()
 
 	switch (acc_pb->audio_addr.sample_format)
 	{
-		case 0x00:	// ADPCM
+		case 0x00: // ADPCM
 		{
 			// ADPCM decoding, not much to explain here.
 			if ((*acc_cur_addr & 15) == 0)
@@ -225,14 +225,14 @@ u16 AcceleratorGetSample()
 			break;
 		}
 
-		case 0x0A:	// 16-bit PCM audio
+		case 0x0A: // 16-bit PCM audio
 			ret = (DSP::ReadARAM(*acc_cur_addr * 2) << 8) | DSP::ReadARAM(*acc_cur_addr * 2 + 1);
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = ret;
 			*acc_cur_addr += 1;
 			break;
 
-		case 0x19:	// 8-bit PCM audio
+		case 0x19: // 8-bit PCM audio
 			ret = DSP::ReadARAM(*acc_cur_addr) << 8;
 			acc_pb->adpcm.yn2 = acc_pb->adpcm.yn1;
 			acc_pb->adpcm.yn1 = ret;

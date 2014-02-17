@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#pragma	once
+#pragma once
 
 #include <d3d11.h>
 #include <MathUtil.h>

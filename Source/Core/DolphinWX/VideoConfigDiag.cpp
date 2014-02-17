@@ -489,7 +489,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	group_xfb->Add(virtual_xfb, 0, wxRIGHT, 5);
 	group_xfb->Add(real_xfb, 0, wxRIGHT, 5);
 	szr_hacks->Add(group_xfb, 0, wxEXPAND | wxALL, 5);
-	}	// xfb
+	} // xfb
 
 	// - other hacks
 	{

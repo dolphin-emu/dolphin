@@ -97,7 +97,7 @@ public:
 
 protected:
 	Report m_last_input_report;
-	u16	m_channel;
+	u16 m_channel;
 
 private:
 	void ClearReadQueue();
@@ -123,8 +123,8 @@ private:
 	std::mutex                m_thread_ready_mutex;
 	std::condition_variable   m_thread_ready_cond;
 
-	Common::FifoQueue<Report>	m_read_reports;
-	Common::FifoQueue<Report>	m_write_reports;
+	Common::FifoQueue<Report> m_read_reports;
+	Common::FifoQueue<Report> m_write_reports;
 
 	Common::Timer m_last_audio_report;
 };

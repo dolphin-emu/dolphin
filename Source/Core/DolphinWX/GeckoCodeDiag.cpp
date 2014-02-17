@@ -94,7 +94,7 @@ void CodeConfigPanel::LoadCodes(const IniFile& globalIni, const IniFile& localIn
 
 void CodeConfigPanel::ToggleCode(wxCommandEvent& evt)
 {
-	const int sel = evt.GetInt();	// this right?
+	const int sel = evt.GetInt(); // this right?
 	if (sel > -1)
 		m_gcodes[sel].enabled = m_listbox_gcodes->IsChecked(sel);
 }
@@ -115,7 +115,7 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 			notes_end = m_gcodes[sel].notes.end();
 		for (; notes_iter!=notes_end; ++notes_iter)
 			m_infobox.textctrl_notes->AppendText(StrToWxStr(*notes_iter));
-		m_infobox.textctrl_notes->ScrollLines(-99);	// silly
+		m_infobox.textctrl_notes->ScrollLines(-99); // silly
 
 		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator) + StrToWxStr(m_gcodes[sel].creator));
 
@@ -133,11 +133,6 @@ void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
 		m_infobox.label_creator->SetLabel(wxGetTranslation(wxstr_creator));
 	}
 }
-
-//void CodeConfigPanel::ApplyChanges(wxCommandEvent&)
-//{
-//	Gecko::SetActiveCodes(m_gcodes);
-//}
 
 void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 {
@@ -170,7 +165,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 	if (sf::Http::Response::Ok == resp.GetStatus())
 	{
 		// temp vector containing parsed codes
-		std::vector<GeckoCode>	gcodes;
+		std::vector<GeckoCode> gcodes;
 
 		// parse the codes
 		std::istringstream ss(resp.GetBody());
@@ -184,7 +179,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 		// eh w/e
 		//std::getline(ss, line);
 		//if (line != m_gameid)
-		//	PanicAlert("Bad code file.");
+		//    PanicAlert("Bad code file.");
 
 		// seek past the header, get to the first code
 		std::getline(ss, line);
@@ -197,7 +192,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 		while ((std::getline(ss, line).good()))
 		{
 			// empty line
-			if (0 == line.size() || line == "\r" || line == "\n")	// \r\n checks might not be needed
+			if (0 == line.size() || line == "\r" || line == "\n") // \r\n checks might not be needed
 			{
 				// add the code
 				if (gcode.codes.size())
@@ -241,7 +236,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 				else
 				{
 					gcode.notes.push_back(line);
-					read_state = 2;	// start reading comments
+					read_state = 2; // start reading comments
 				}
 
 			}

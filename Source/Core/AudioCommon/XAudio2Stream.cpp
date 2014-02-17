@@ -217,11 +217,11 @@ void XAudio2::Update()
 	//static int xi = 0;
 	//if (100000 == ++xi)
 	//{
-	//	xi = 0;
-	//	XAUDIO2_PERFORMANCE_DATA perfData;
-	//	pXAudio2->GetPerformanceData(&perfData);
-	//	NOTICE_LOG(DSPHLE, "XAudio2 latency (samples): %i", perfData.CurrentLatencyInSamples);
-	//	NOTICE_LOG(DSPHLE, "XAudio2 total glitches: %i", perfData.GlitchesSinceEngineStarted);
+	//    xi = 0;
+	//    XAUDIO2_PERFORMANCE_DATA perfData;
+	//    pXAudio2->GetPerformanceData(&perfData);
+	//    NOTICE_LOG(DSPHLE, "XAudio2 latency (samples): %i", perfData.CurrentLatencyInSamples);
+	//    NOTICE_LOG(DSPHLE, "XAudio2 total glitches: %i", perfData.GlitchesSinceEngineStarted);
 	//}
 }
 
@@ -250,7 +250,7 @@ void XAudio2::Stop()
 		m_mastering_voice = nullptr;
 	}
 
-	m_xaudio2.reset();	// release interface
+	m_xaudio2.reset(); // release interface
 
 	if (m_xaudio2_dll)
 	{

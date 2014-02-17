@@ -17,7 +17,7 @@ namespace ciface
 namespace DInput
 {
 
-#define DATA_BUFFER_SIZE	32
+#define DATA_BUFFER_SIZE 32
 
 //-----------------------------------------------------------------------------
 // Modified some MSDN code to get all the XInput device GUID.Data1 values in a vector,
@@ -130,7 +130,7 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices
 
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
-	std::map< std::basic_string<TCHAR>, int>	name_counts;
+	std::map< std::basic_string<TCHAR>, int> name_counts;
 
 	std::vector<DWORD> xinput_guids;
 	GetXInputGUIDS( xinput_guids );

@@ -66,9 +66,9 @@ void JitArm::rfi(UGeckoInstruction inst)
 	gpr.Flush();
 	fpr.Flush();
 
- 	// See Interpreter rfi for details
+	// See Interpreter rfi for details
 	const u32 mask = 0x87C0FFFF;
-		const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
+	const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
 	// MSR = ((MSR & ~mask) | (SRR1 & mask)) & clearMSR13;
 	// R0 = MSR location
 	// R1 = MSR contents
@@ -134,18 +134,18 @@ void JitArm::bx(UGeckoInstruction inst)
 		destination = SignExt26(inst.LI << 2);
 	else
 		destination = js.compilerPC + SignExt26(inst.LI << 2);
-	#ifdef ACID_TEST
-		if (inst.LK)
-		{
-			MOV(R14, 0);
-			STRB(R14, R9, PPCSTATE_OFF(cr_fast[0]));
-		}
-	#endif
- 	if (destination == js.compilerPC)
+#ifdef ACID_TEST
+	if (inst.LK)
 	{
- 		//PanicAlert("Idle loop detected at %08x", destination);
-		//	CALL(ProtectFunction(&CoreTiming::Idle, 0));
-		//	JMP(Asm::testExceptions, true);
+		MOV(R14, 0);
+		STRB(R14, R9, PPCSTATE_OFF(cr_fast[0]));
+	}
+#endif
+	if (destination == js.compilerPC)
+	{
+		//PanicAlert("Idle loop detected at %08x", destination);
+		// CALL(ProtectFunction(&CoreTiming::Idle, 0));
+		// JMP(Asm::testExceptions, true);
 		// make idle loops go faster
 		MOVI2R(R14, (u32)&CoreTiming::Idle);
 		BL(R14);

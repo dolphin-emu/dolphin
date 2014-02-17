@@ -951,9 +951,9 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 				}
 
 				// No need to change fd or events as they are input only.
-				//Memory::Write_U32(ufds[i].fd, BufferOut + 0xc*i);	//fd
-				//Memory::Write_U32(events, BufferOut + 0xc*i + 4);	//events
-				Memory::Write_U32(revents, BufferOut + 0xc*i + 8);	//revents
+				//Memory::Write_U32(ufds[i].fd, BufferOut + 0xc*i); //fd
+				//Memory::Write_U32(events, BufferOut + 0xc*i + 4); //events
+				Memory::Write_U32(revents, BufferOut + 0xc*i + 8);  //revents
 
 				DEBUG_LOG(WII_IPC_NET, "IOCTL_SO_POLL socket %d revents %08X events %08X", i, revents, ufds[i].events);
 			}
@@ -1030,7 +1030,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 				}
 
 				//ERROR_LOG(WII_IPC_NET, "\n%s",
-				//	ArrayToString(Memory::GetPointer(BufferOut), BufferOutSize, 16).c_str());
+				// ArrayToString(Memory::GetPointer(BufferOut), BufferOutSize, 16).c_str());
 				ReturnValue = 0;
 			}
 			else

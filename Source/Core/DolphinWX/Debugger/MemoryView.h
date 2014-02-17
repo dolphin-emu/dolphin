@@ -27,8 +27,8 @@ public:
 		curAddress = addr;
 		Refresh();
 	}
-	int dataType;	// u8,u16,u32
-	int curAddress;	// Will be accessed by parent
+	int dataType;   // u8,u16,u32
+	int curAddress; // Will be accessed by parent
 
 private:
 	int YToAddress(int y);

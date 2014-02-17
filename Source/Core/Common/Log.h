@@ -140,12 +140,12 @@ void GenericLog(LOGTYPES_LEVELS level, LOGTYPES_TYPE type,
 
 #ifndef GEKKO
 #ifdef _WIN32
-#define _assert_msg_(_t_, _a_, _fmt_, ...)		\
+#define _assert_msg_(_t_, _a_, _fmt_, ...) \
 	if (!(_a_)) {\
 		if (!PanicYesNo(_fmt_, __VA_ARGS__)) {Crash();} \
 	}
 #else // not win32
-#define _assert_msg_(_t_, _a_, _fmt_, ...)		\
+#define _assert_msg_(_t_, _a_, _fmt_, ...) \
 	if (!(_a_)) {\
 		if (!PanicYesNo(_fmt_, ##__VA_ARGS__)) {Crash();} \
 	}

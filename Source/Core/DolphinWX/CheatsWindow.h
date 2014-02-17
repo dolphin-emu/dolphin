@@ -60,13 +60,13 @@ protected:
 		u32 old_value;
 	};
 
-	std::vector<CheatSearchResult>	search_results;
+	std::vector<CheatSearchResult> search_results;
 	unsigned int search_type_size;
 
 	wxChoice* search_type;
-	wxListBox*	lbox_search_results;
+	wxListBox* lbox_search_results;
 	wxStaticText* label_results_count;
-	wxTextCtrl*	textctrl_value_x;
+	wxTextCtrl* textctrl_value_x;
 	wxButton *btnInitScan, *btnNextScan;
 
 	struct

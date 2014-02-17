@@ -211,7 +211,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 	m_players[socket] = player;
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
-	UpdatePadMapping();	// sync pad mappings with everyone
+	UpdatePadMapping(); // sync pad mappings with everyone
 	UpdateWiimoteMapping();
 	}
 
@@ -486,7 +486,7 @@ void NetPlayServer::SendChatMessage(const std::string& msg)
 {
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_CHAT_MESSAGE;
-	spac << (PlayerId)0;	// server id always 0
+	spac << (PlayerId)0; // server id always 0
 	spac << msg;
 
 	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);

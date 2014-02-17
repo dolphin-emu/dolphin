@@ -35,15 +35,15 @@ namespace Memory
 // EFB RE
 /*
 GXPeekZ
-80322de8: rlwinm	r0, r3, 2, 14, 29 (0003fffc)   a =  x << 2 & 0x3fffc
-80322dec: oris	r0, r0, 0xC800                     a |= 0xc8000000
-80322df0: rlwinm	r3, r0, 0, 20, 9 (ffc00fff)    x = a & 0xffc00fff
-80322df4: rlwinm	r0, r4, 12, 4, 19 (0ffff000)   a = (y << 12) & 0x0ffff000;
-80322df8: or	r0, r3, r0                         a |= x;
-80322dfc: rlwinm	r0, r0, 0, 10, 7 (ff3fffff)    a &= 0xff3fffff
-80322e00: oris	r3, r0, 0x0040                     x = a | 0x00400000
-80322e04: lwz	r0, 0 (r3)						   r0 = *r3
-80322e08: stw	r0, 0 (r5)						   z =
+80322de8: rlwinm    r0, r3, 2, 14, 29 (0003fffc)   a =  x << 2 & 0x3fffc
+80322dec: oris      r0, r0, 0xC800                 a |= 0xc8000000
+80322df0: rlwinm    r3, r0, 0, 20, 9 (ffc00fff)    x = a & 0xffc00fff
+80322df4: rlwinm    r0, r4, 12, 4, 19 (0ffff000)   a = (y << 12) & 0x0ffff000;
+80322df8: or        r0, r3, r0                     a |= x;
+80322dfc: rlwinm    r0, r0, 0, 10, 7 (ff3fffff)    a &= 0xff3fffff
+80322e00: oris      r3, r0, 0x0040                 x = a | 0x00400000
+80322e04: lwz       r0, 0 (r3)                     r0 = *r3
+80322e08: stw       r0, 0 (r5)                     z =
 80322e0c: blr
 */
 
@@ -148,11 +148,12 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 	// reason we end up in this function:
 	if (em_address == 0xCC008000)
 	{
-		switch (sizeof(T)) {
-		case 1:	GPFifo::Write8((u8)data, em_address); return;
-		case 2:	GPFifo::Write16((u16)data, em_address); return;
-		case 4:	GPFifo::Write32((u32)data, em_address); return;
-		case 8:	GPFifo::Write64((u64)data, em_address); return;
+		switch (sizeof(T))
+		{
+		case 1: GPFifo::Write8((u8)data, em_address); return;
+		case 2: GPFifo::Write16((u16)data, em_address); return;
+		case 4: GPFifo::Write32((u32)data, em_address); return;
+		case 8: GPFifo::Write64((u64)data, em_address); return;
 		}
 	}
 	if ((em_address & 0xC8000000) == 0xC8000000)
@@ -466,23 +467,23 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 // *********************************************************************************
 
 /*
-*	PearPC
-*	ppc_mmu.cc
+* PearPC
+* ppc_mmu.cc
 *
-*	Copyright (C) 2003, 2004 Sebastian Biallas (sb@biallas.net)
+* Copyright (C) 2003, 2004 Sebastian Biallas (sb@biallas.net)
 *
-*	This program is free software; you can redistribute it and/or modify
-*	it under the terms of the GNU General Public License version 2 as
-*	published by the Free Software Foundation.
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License version 2 as
+* published by the Free Software Foundation.
 *
-*	This program is distributed in the hope that it will be useful,
-*	but WITHOUT ANY WARRANTY; without even the implied warranty of
-*	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*	GNU General Public License for more details.
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
 *
-*	You should have received a copy of the GNU General Public License
-*	along with this program; if not, write to the Free Software
-*	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
 
 
@@ -503,8 +504,8 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 
 #define EA_SR(v)         (((v)>>28)&0xf)
 #define EA_PageIndex(v)  (((v)>>12)&0xffff)
-#define EA_Offset(v)	((v)&0xfff)
-#define EA_API(v)		(((v)>>22)&0x3f)
+#define EA_Offset(v)     ((v)&0xfff)
+#define EA_API(v)        (((v)>>22)&0x3f)
 
 #define PA_RPN(v)        (((v)>>12)&0xfffff)
 #define PA_Offset(v)     ((v)&0xfff)
@@ -759,10 +760,10 @@ u32 TranslatePageAddress(const u32 _Address, const XCheckTLBFlag _Flag)
 
 	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)];
 
-	u32 offset = EA_Offset(_Address);			// 12 bit
-	u32 page_index = EA_PageIndex(_Address);	// 16 bit
-	u32 VSID = SR_VSID(sr);						// 24 bit
-	u32 api = EA_API(_Address);					//  6 bit (part of page_index)
+	u32 offset = EA_Offset(_Address);        // 12 bit
+	u32 page_index = EA_PageIndex(_Address); // 16 bit
+	u32 VSID = SR_VSID(sr);                  // 24 bit
+	u32 api = EA_API(_Address);              //  6 bit (part of page_index)
 
 	u8* pRAM = GetPointer(0);
 

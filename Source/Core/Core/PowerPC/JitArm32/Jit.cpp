@@ -497,7 +497,7 @@ const u8* JitArm::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlo
 	}
 	if (memory_exception)
 		BKPT(0x500);
-	if	(broken_block)
+	if (broken_block)
 	{
 		printf("Broken Block going to 0x%08x\n", nextPC);
 		WriteExit(nextPC);

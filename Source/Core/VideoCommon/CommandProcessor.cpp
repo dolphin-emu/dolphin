@@ -31,8 +31,8 @@ int et_UpdateInterrupts;
 // STATE_TO_SAVE
 SCPFifoStruct fifo;
 UCPStatusReg m_CPStatusReg;
-UCPCtrlReg	m_CPCtrlReg;
-UCPClearReg	m_CPClearReg;
+UCPCtrlReg  m_CPCtrlReg;
+UCPClearReg m_CPClearReg;
 
 u16 m_bboxleft;
 u16 m_bboxtop;
@@ -541,11 +541,11 @@ void SetCpControlRegister()
 // We don't emulate proper GP timing anyway at the moment, so this code would just slow down emulation.
 void SetCpClearRegister()
 {
-//	if (IsOnThread())
-//	{
-//		if (!m_CPClearReg.ClearFifoUnderflow && m_CPClearReg.ClearFifoOverflow)
-//			bProcessFifoToLoWatermark = true;
-//	}
+	// if (IsOnThread())
+	// {
+	//     if (!m_CPClearReg.ClearFifoUnderflow && m_CPClearReg.ClearFifoOverflow)
+	//         bProcessFifoToLoWatermark = true;
+	// }
 }
 
 void Update()

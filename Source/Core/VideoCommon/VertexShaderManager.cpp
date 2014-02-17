@@ -378,7 +378,7 @@ void VertexShaderManager::SetConstants()
 		if(!g_ActiveConfig.backend_info.bSupportsOversizedViewports)
 		{
 			ViewportCorrectionMatrix(s_viewportCorrection);
-			bProjectionChanged = true;			
+			bProjectionChanged = true;
 		}
 	}
 

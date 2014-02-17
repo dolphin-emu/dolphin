@@ -204,10 +204,10 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 	}
 
-// 	INFO_LOG(WII_IPC_SD, "InBuffer");
-// 	DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
-// 	INFO_LOG(WII_IPC_SD, "OutBuffer");
-// 	DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
+	// INFO_LOG(WII_IPC_SD, "InBuffer");
+	// DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
+	// INFO_LOG(WII_IPC_SD, "OutBuffer");
+	// DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
 
 	if (ReturnValue == RET_EVENT_REGISTER)
 	{
@@ -333,7 +333,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 	case SEND_CSD:
 		DEBUG_LOG(WII_IPC_SD, "SEND_CSD");
 		// <WntrMute> shuffle2_, OCR: 0x80ff8000 CID: 0x38a00000 0x480032d5 0x3c608030 0x8803d420
-		//	CSD: 0xff928040 0xc93efbcf 0x325f5a83 0x00002600
+		// CSD: 0xff928040 0xc93efbcf 0x325f5a83 0x00002600
 
 		// Values used currently are from lpfaint99
 		Memory::Write_U32(0x80168000, _BufferOut);

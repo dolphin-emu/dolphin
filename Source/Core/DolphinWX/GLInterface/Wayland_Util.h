@@ -9,9 +9,9 @@
 #include <wayland-cursor.h>
 #include <xkbcommon/xkbcommon.h>
 
-#define MOD_SHIFT_MASK		0x01
-#define MOD_ALT_MASK		0x02
-#define MOD_CONTROL_MASK	0x04
+#define MOD_SHIFT_MASK    0x01
+#define MOD_ALT_MASK      0x02
+#define MOD_CONTROL_MASK  0x04
 
 
 class cWaylandInterface

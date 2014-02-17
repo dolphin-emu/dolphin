@@ -376,15 +376,15 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			}
 
 			// Update DSP related flags
-			g_dspState.DSPControl.DSPReset		= tmpControl.DSPReset;
-			g_dspState.DSPControl.DSPAssertInt	= tmpControl.DSPAssertInt;
-			g_dspState.DSPControl.DSPHalt		= tmpControl.DSPHalt;
-			g_dspState.DSPControl.DSPInit		= tmpControl.DSPInit;
+			g_dspState.DSPControl.DSPReset     = tmpControl.DSPReset;
+			g_dspState.DSPControl.DSPAssertInt = tmpControl.DSPAssertInt;
+			g_dspState.DSPControl.DSPHalt      = tmpControl.DSPHalt;
+			g_dspState.DSPControl.DSPInit      = tmpControl.DSPInit;
 
 			// Interrupt (mask)
-			g_dspState.DSPControl.AID_mask	= tmpControl.AID_mask;
-			g_dspState.DSPControl.ARAM_mask	= tmpControl.ARAM_mask;
-			g_dspState.DSPControl.DSP_mask	= tmpControl.DSP_mask;
+			g_dspState.DSPControl.AID_mask  = tmpControl.AID_mask;
+			g_dspState.DSPControl.ARAM_mask = tmpControl.ARAM_mask;
+			g_dspState.DSPControl.DSP_mask  = tmpControl.DSP_mask;
 
 			// Interrupt
 			if (tmpControl.AID)  g_dspState.DSPControl.AID  = 0;
@@ -392,8 +392,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			if (tmpControl.DSP)  g_dspState.DSPControl.DSP  = 0;
 
 			// unknown
-			g_dspState.DSPControl.unk3	= tmpControl.unk3;
-			g_dspState.DSPControl.pad	= tmpControl.pad;
+			g_dspState.DSPControl.unk3 = tmpControl.unk3;
+			g_dspState.DSPControl.pad  = tmpControl.pad;
 			if (g_dspState.DSPControl.pad != 0)
 			{
 				PanicAlert("DSPInterface (w) g_dspState.DSPControl (CC00500A) gets a value with junk in the padding %08x", val);

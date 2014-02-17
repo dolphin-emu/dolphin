@@ -879,7 +879,7 @@ u32 CEXIIPL::NetPlay_GetGCTime()
 	std::lock_guard<std::mutex> lk(crit_netplay_client);
 
 	if (netplay_client)
-		return NETPLAY_INITIAL_GCTIME;	// watev
+		return NETPLAY_INITIAL_GCTIME; // watev
 	else
 		return 0;
 }

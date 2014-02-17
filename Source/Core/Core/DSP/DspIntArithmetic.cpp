@@ -832,7 +832,7 @@ void lsr16(const UDSPInstruction opc)
 	u8 areg = (opc >> 8) & 0x1;
 
 	u64 acc = dsp_get_long_acc(areg);
-	acc &= 0x000000FFFFFFFFFFULL; 	// Lop off the extraneous sign extension our 64-bit fake accum causes
+	acc &= 0x000000FFFFFFFFFFULL; // Lop off the extraneous sign extension our 64-bit fake accum causes
 	acc >>= 16;
 
 	zeroWriteBackLog();
@@ -887,7 +887,7 @@ void lsr(const UDSPInstruction opc)
 	u8 rreg = (opc >> 8) & 0x01;
 	u16 shift;
 	u64 acc = dsp_get_long_acc(rreg);
-	acc &= 0x000000FFFFFFFFFFULL; 	// Lop off the extraneous sign extension our 64-bit fake accum causes
+	acc &= 0x000000FFFFFFFFFFULL; // Lop off the extraneous sign extension our 64-bit fake accum causes
 
 	if ((opc & 0x3f) == 0)
 		shift = 0;

@@ -370,11 +370,11 @@ bool batchdecrypt(u32 *codes, u16 size)
 	tmparray[1] = 0;
 	tmparray[2] = 4; // Skip crc
 	tmparray[3] = size;
-	getbitstring(tmparray,tmparray2+1,11);	// Game id
-	getbitstring(tmparray,tmparray2+2,17);	// Code id
-	getbitstring(tmparray,tmparray2+3,1);	// Master code
-	getbitstring(tmparray,tmparray2+4,1);	// Unknown
-	getbitstring(tmparray,tmparray2+5,2);	// Region
+	getbitstring(tmparray,tmparray2+1,11); // Game id
+	getbitstring(tmparray,tmparray2+2,17); // Code id
+	getbitstring(tmparray,tmparray2+3,1);  // Master code
+	getbitstring(tmparray,tmparray2+4,1);  // Unknown
+	getbitstring(tmparray,tmparray2+5,2);  // Region
 
 	// Grab gameid and region from the last decrypted code
 	// Maybe check this against dolphin's GameID? - "code is for wrong game" type msg
@@ -473,7 +473,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 	{
 		// Commented out since we just send the code anyways and hope for the best XD
 		//PanicAlert("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"
-		//	"First Code in Block(should be verification code):\n%s", vCodes[0].c_str());
+		// "First Code in Block(should be verification code):\n%s", vCodes[0].c_str());
 
 		for (i = 0; i < (vCodes.size()<<1); i+=2)
 		{

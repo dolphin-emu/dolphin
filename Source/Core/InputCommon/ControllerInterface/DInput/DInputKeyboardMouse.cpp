@@ -218,12 +218,12 @@ bool KeyboardMouse::UpdateOutput()
 	{
 		bool want_on = false;
 		if (m_state_out[i])
-			want_on = m_state_out[i] > GetTickCount() % 255 ;	// light should flash when output is 0.5
+			want_on = m_state_out[i] > GetTickCount() % 255 ; // light should flash when output is 0.5
 
 		// lights are set to their original state when output is zero
 		if (want_on ^ m_current_state_out[i])
 		{
-			kbinputs.push_back(KInput(named_lights[i].code));		// press
+			kbinputs.push_back(KInput(named_lights[i].code));       // press
 			kbinputs.push_back(KInput(named_lights[i].code, true)); // release
 
 			m_current_state_out[i] ^= 1;

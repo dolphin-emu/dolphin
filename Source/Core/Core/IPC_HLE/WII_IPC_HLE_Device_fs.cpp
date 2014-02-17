@@ -17,7 +17,7 @@
 
 #include "../VolumeHandler.h"
 
-#define MAX_NAME				(12)
+#define MAX_NAME  12
 
 static Common::replace_v replacements;
 

@@ -72,9 +72,9 @@ namespace EfbInterface
 				u32 src = *(u32*)rgb;
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff00003f;
-				val |= (src >> 4) & 0x00000fc0;	// blue
-				val |= (src >> 6) & 0x0003f000;	// green
-				val |= (src >> 8) & 0x00fc0000;	// red
+				val |= (src >> 4) & 0x00000fc0; // blue
+				val |= (src >> 6) & 0x0003f000; // green
+				val |= (src >> 8) & 0x00fc0000; // red
 				*dst = val;
 			}
 			break;
@@ -112,10 +112,10 @@ namespace EfbInterface
 				u32 src = *(u32*)color;
 				u32 *dst = (u32*)&efb[offset];
 				u32 val = *dst & 0xff000000;
-				val |= (src >> 2) & 0x0000003f;	// alpha
-				val |= (src >> 4) & 0x00000fc0;	// blue
-				val |= (src >> 6) & 0x0003f000;	// green
-				val |= (src >> 8) & 0x00fc0000;	// red
+				val |= (src >> 2) & 0x0000003f; // alpha
+				val |= (src >> 4) & 0x00000fc0; // blue
+				val |= (src >> 6) & 0x0003f000; // green
+				val |= (src >> 8) & 0x00fc0000; // red
 				*dst = val;
 			}
 			break;

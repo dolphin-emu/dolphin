@@ -88,24 +88,24 @@ bool UsesFPU(UGeckoInstruction _inst)
 {
 	switch (_inst.OPCD)
 	{
-	case 04:	// PS
+	case 04: // PS
 		return _inst.SUBOP10 != 1014;
 
-	case 48:	// lfs
-	case 49:	// lfsu
-	case 50:	// lfd
-	case 51:	// lfdu
-	case 52:	// stfs
-	case 53:	// stfsu
-	case 54:	// stfd
-	case 55:	// stfdu
-	case 56:	// psq_l
-	case 57:	// psq_lu
+	case 48: // lfs
+	case 49: // lfsu
+	case 50: // lfd
+	case 51: // lfdu
+	case 52: // stfs
+	case 53: // stfsu
+	case 54: // stfd
+	case 55: // stfdu
+	case 56: // psq_l
+	case 57: // psq_lu
 
-	case 59:	// FPU-sgl
-	case 60:	// psq_st
-	case 61:	// psq_stu
-	case 63:	// FPU-dbl
+	case 59: // FPU-sgl
+	case 60: // psq_st
+	case 61: // psq_stu
+	case 63: // FPU-dbl
 		return true;
 
 	case 31:

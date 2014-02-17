@@ -425,8 +425,9 @@ static void regMarkMemAddress(RegInfo& RI, InstLoc I, InstLoc AI, unsigned OpNum
 }
 
 // in 64-bit build, this returns a completely bizarre address sometimes!
-static std::pair<OpArg, u32> regBuildMemAddress(RegInfo& RI, InstLoc I,
-				InstLoc AI, unsigned OpNum,	unsigned Size, X64Reg* dest) {
+static std::pair<OpArg, u32> regBuildMemAddress(RegInfo& RI, InstLoc I, InstLoc AI,
+                                                unsigned OpNum, unsigned Size, X64Reg* dest)
+{
 	if (isImm(*AI)) {
 		unsigned addr = RI.Build->GetImmValue(AI);
 		if (Memory::IsRAMAddress(addr)) {

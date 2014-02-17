@@ -17,12 +17,6 @@ namespace ciface
 namespace DInput
 {
 
-//BOOL CALLBACK DIEnumEffectsCallback(LPCDIEFFECTINFO pdei, LPVOID pvRef)
-//{
-//	((std::list<DIEFFECTINFO>*)pvRef)->push_back(*pdei);
-//	return DIENUM_CONTINUE;
-//}
-
 BOOL CALLBACK DIEnumDeviceObjectsCallback(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
 {
 	((std::list<DIDEVICEOBJECTINSTANCE>*)pvRef)->push_back(*lpddoi);

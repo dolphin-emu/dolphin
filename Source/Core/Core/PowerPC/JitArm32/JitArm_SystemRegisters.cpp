@@ -197,7 +197,7 @@ void JitArm::mcrxr(UGeckoInstruction inst)
 void JitArm::mtmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
- 	// Don't interpret this, if we do we get thrown out
+	// Don't interpret this, if we do we get thrown out
 	//JITDISABLE(bJITSystemRegistersOff)
 
 	STR(gpr.R(inst.RS), R9, PPCSTATE_OFF(msr));
@@ -256,40 +256,40 @@ void JitArm::crXXX(UGeckoInstruction inst)
 	// Compute combined bit
 	switch(inst.SUBOP10)
 	{
-	case 33:	// crnor
+	case 33: // crnor
 		ORR(rA, rA, rB);
 		MVN(rA, rA);
 		break;
 
-	case 129:	// crandc
+	case 129: // crandc
 		MVN(rB, rB);
 		AND(rA, rA, rB);
 		break;
 
-	case 193:	// crxor
+	case 193: // crxor
 		EOR(rA, rA, rB);
 		break;
 
-	case 225:	// crnand
+	case 225: // crnand
 		AND(rA, rA, rB);
 		MVN(rA, rA);
 		break;
 
-	case 257:	// crand
+	case 257: // crand
 		AND(rA, rA, rB);
 		break;
 
-	case 289:	// creqv
+	case 289: // creqv
 		EOR(rA, rA, rB);
 		MVN(rA, rA);
 		break;
 
-	case 417:	// crorc
+	case 417: // crorc
 		MVN(rA, rA);
 		ORR(rA, rA, rB);
 		break;
 
-	case 449:	// cror
+	case 449: // cror
 		ORR(rA, rA, rB);
 		break;
 	}

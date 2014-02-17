@@ -87,7 +87,7 @@ union UDICVR
 	u32 Hex;
 	struct
 	{
-		u32 CVR        :  1; // 0: Cover closed	1: Cover open
+		u32 CVR        :  1; // 0: Cover closed  1: Cover open
 		u32 CVRINTMASK :  1; // 1: Interrupt enabled
 		u32 CVRINT     :  1; // r 1: Interrupt requested w 1: Interrupt clear
 		u32            : 29;
@@ -249,17 +249,17 @@ void TransferComplete(u64 userdata, int cyclesLate)
 
 void Init()
 {
-	m_DISR.Hex		= 0;
-	m_DICVR.Hex		= 0;
-	m_DICMDBUF[0].Hex= 0;
-	m_DICMDBUF[1].Hex= 0;
-	m_DICMDBUF[2].Hex= 0;
-	m_DIMAR.Hex		= 0;
-	m_DILENGTH.Hex	= 0;
-	m_DICR.Hex		= 0;
-	m_DIIMMBUF.Hex	= 0;
-	m_DICFG.Hex		= 0;
-	m_DICFG.CONFIG	= 1; // Disable bootrom descrambler
+	m_DISR.Hex        = 0;
+	m_DICVR.Hex       = 0;
+	m_DICMDBUF[0].Hex = 0;
+	m_DICMDBUF[1].Hex = 0;
+	m_DICMDBUF[2].Hex = 0;
+	m_DIMAR.Hex       = 0;
+	m_DILENGTH.Hex    = 0;
+	m_DICR.Hex        = 0;
+	m_DIIMMBUF.Hex    = 0;
+	m_DICFG.Hex       = 0;
+	m_DICFG.CONFIG    = 1; // Disable bootrom descrambler
 
 	AudioPos = 0;
 	LoopStart = 0;
@@ -412,10 +412,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::ComplexWrite<u32>([](u32, u32 val) {
 			UDISR tmpStatusReg(val);
 
-			m_DISR.DEINITMASK	= tmpStatusReg.DEINITMASK;
-			m_DISR.TCINTMASK	= tmpStatusReg.TCINTMASK;
-			m_DISR.BRKINTMASK	= tmpStatusReg.BRKINTMASK;
-			m_DISR.BREAK		= tmpStatusReg.BREAK;
+			m_DISR.DEINITMASK = tmpStatusReg.DEINITMASK;
+			m_DISR.TCINTMASK  = tmpStatusReg.TCINTMASK;
+			m_DISR.BRKINTMASK = tmpStatusReg.BRKINTMASK;
+			m_DISR.BREAK      = tmpStatusReg.BREAK;
 
 			if (tmpStatusReg.DEINT)
 				m_DISR.DEINT = 0;
@@ -503,10 +503,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void UpdateInterrupts()
 {
-	if ((m_DISR.DEINT	& m_DISR.DEINITMASK) ||
-		(m_DISR.TCINT	& m_DISR.TCINTMASK)  ||
-		(m_DISR.BRKINT	& m_DISR.BRKINTMASK) ||
-		(m_DICVR.CVRINT	& m_DICVR.CVRINTMASK))
+	if ((m_DISR.DEINT   & m_DISR.DEINITMASK) ||
+	    (m_DISR.TCINT   & m_DISR.TCINTMASK)  ||
+	    (m_DISR.BRKINT  & m_DISR.BRKINTMASK) ||
+	    (m_DICVR.CVRINT & m_DICVR.CVRINTMASK))
 	{
 		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, true);
 	}
@@ -523,10 +523,10 @@ void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
 {
 	switch(_DVDInterrupt)
 	{
-	case INT_DEINT:		m_DISR.DEINT	= 1; break;
-	case INT_TCINT:		m_DISR.TCINT	= 1; break;
-	case INT_BRKINT:	m_DISR.BRKINT	= 1; break;
-	case INT_CVRINT:	m_DICVR.CVRINT	= 1; break;
+	case INT_DEINT:  m_DISR.DEINT   = 1; break;
+	case INT_TCINT:  m_DISR.TCINT   = 1; break;
+	case INT_BRKINT: m_DISR.BRKINT  = 1; break;
+	case INT_CVRINT: m_DICVR.CVRINT = 1; break;
 	}
 
 	UpdateInterrupts();
@@ -534,7 +534,7 @@ void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
 
 void ExecuteCommand(UDICR& _DICR)
 {
-//	_dbg_assert_(DVDINTERFACE, _DICR.RW == 0); // only DVD to Memory
+	// _dbg_assert_(DVDINTERFACE, _DICR.RW == 0); // only DVD to Memory
 	int GCAM = ((SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_AM_BASEBOARD)
 		&& (SConfig::GetInstance().m_EXIDevice[2] == EXIDEVICE_AM_BASEBOARD))
 		? 1 : 0;
@@ -825,9 +825,9 @@ void ExecuteCommand(UDICR& _DICR)
 		break;
 
 	// Audio Stream (Immediate)
-	//	m_DICMDBUF[0].CMDBYTE1		= subcommand
-	//	m_DICMDBUF[1].Hex << 2		= offset on disc
-	//	m_DICMDBUF[2].Hex			= Length of the stream
+	// m_DICMDBUF[0].CMDBYTE1 = Subcommand
+	// m_DICMDBUF[1].Hex << 2 = Offset on disc
+	// m_DICMDBUF[2].Hex      = Length of the stream
 	case 0xE1:
 		{
 			u32 pos = m_DICMDBUF[1].Hex << 2;

@@ -65,14 +65,14 @@ enum Opcode {
 	ICmpCRUnsigned, // CR for unsigned int compare
 	ICmpEq,         // One if equal, zero otherwise
 	ICmpNe,
-	ICmpUgt,	// One if op1 > op2, zero otherwise
+	ICmpUgt, // One if op1 > op2, zero otherwise
 	ICmpUlt,
 	ICmpUge,
 	ICmpUle,
-	ICmpSgt,	// One if op1 > op2, zero otherwise
+	ICmpSgt, // One if op1 > op2, zero otherwise
 	ICmpSlt,
 	ICmpSge,
-	ICmpSle,	// Opposite of sgt
+	ICmpSle, // Opposite of sgt
 	// Memory store operators
 	Store8,
 	Store16,
@@ -147,9 +147,9 @@ enum Opcode {
 	RFIExit,
 	InterpreterBranch,
 
-	IdleBranch,	   // branch operation belonging to idle loop
+	IdleBranch,    // branch operation belonging to idle loop
 	ShortIdleLoop, // Idle loop seen in homebrew like wii mahjong,
-		       // just a branch
+	               // just a branch
 
 	// used for exception checking, at least until someone
 	// has a better idea of integrating it
@@ -573,7 +573,7 @@ private:
 	InstLoc isNeg(InstLoc I) const;
 
 	std::vector<Inst> InstList; // FIXME: We must ensure this is continuous!
-	std::vector<bool> MarkUsed;	// Used for IRWriter
+	std::vector<bool> MarkUsed; // Used for IRWriter
 	std::vector<unsigned> ConstList;
 	InstLoc curReadPtr;
 	InstLoc GRegCache[32];

@@ -252,7 +252,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 	f.WriteArray(&header, 1);
 
-	if (0 != header.size)	// non-zero header size means the state is compressed
+	if (header.size != 0) // non-zero header size means the state is compressed
 	{
 		lzo_uint i = 0;
 		while (true)
@@ -282,7 +282,7 @@ void CompressAndDumpState(CompressAndDumpState_args save_args)
 			i += cur_len;
 		}
 	}
-	else	// uncompressed
+	else // uncompressed
 	{
 		f.WriteBytes(buffer_data, buffer_size);
 	}
@@ -374,7 +374,7 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 
 	std::vector<u8> buffer;
 
-	if (0 != header.size)	// non-zero size means the state is compressed
+	if (header.size != 0) // non-zero size means the state is compressed
 	{
 		Core::DisplayMessage("Decompressing State...", 500);
 
@@ -402,7 +402,7 @@ void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 			i += new_len;
 		}
 	}
-	else	// uncompressed
+	else // uncompressed
 	{
 		const size_t size = (size_t)(f.GetSize() - sizeof(StateHeader));
 		buffer.resize(size);

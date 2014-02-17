@@ -92,7 +92,7 @@ void Host_GetRenderWindowSize(int& x, int& y, int& width, int& height)
 void Host_RequestRenderWindowSize(int width, int height) {}
 void Host_SetStartupDebuggingParameters()
 {
-    SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	StartUp.bEnableDebugging = false;
 	StartUp.bBootToPause = false;
 }
@@ -118,10 +118,12 @@ void Host_SysMessage(const char *fmt, ...)
 	va_end(list);
 
 	size_t len = strlen(msg);
-	if (msg[len - 1] != '\n') {
+	if (msg[len - 1] != '\n')
+	{
 		msg[len - 1] = '\n';
 		msg[len] = '\0';
 	}
+	
 	fprintf(stderr, "%s", msg);
 }
 
@@ -289,14 +291,16 @@ int main(int argc, char* argv[])
 #endif
 	int ch, help = 0;
 	struct option longopts[] = {
-		{ "exec",	no_argument,	NULL,	'e' },
-		{ "help",	no_argument,	NULL,	'h' },
-		{ "version",	no_argument,	NULL,	'v' },
-		{ NULL,		0,		NULL,	0 }
+		{ "exec",    no_argument, NULL, 'e' },
+		{ "help",    no_argument, NULL, 'h' },
+		{ "version", no_argument, NULL, 'v' },
+		{ NULL,      0,           NULL,  0  }
 	};
 
-	while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1) {
-		switch (ch) {
+	while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1)
+	{
+		switch (ch)
+		{
 		case 'e':
 			break;
 		case 'h':
@@ -309,13 +313,14 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (help == 1 || argc == optind) {
+	if (help == 1 || argc == optind)
+	{
 		fprintf(stderr, "%s\n\n", scm_rev_str);
 		fprintf(stderr, "A multi-platform Gamecube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
-		fprintf(stderr, "  -e, --exec	Load the specified file\n");
-		fprintf(stderr, "  -h, --help	Show this help message\n");
-		fprintf(stderr, "  -v, --help	Print version and exit\n");
+		fprintf(stderr, "  -e, --exec   Load the specified file\n");
+		fprintf(stderr, "  -h, --help   Show this help message\n");
+		fprintf(stderr, "  -v, --help   Print version and exit\n");
 		return 1;
 	}
 
@@ -346,7 +351,8 @@ int main(int argc, char* argv[])
 #endif
 #if HAVE_X11
 #if USE_EGL
-		if (GLWin.platform == EGL_PLATFORM_X11) {
+		if (GLWin.platform == EGL_PLATFORM_X11)
+		{
 #endif
 			XInitThreads();
 			X11_MainLoop();

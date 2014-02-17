@@ -53,7 +53,7 @@ bool bMMU = false;
 // Init() declarations
 // ----------------
 // Store the MemArena here
-u8*	base = NULL;
+u8* base = NULL;
 
 // The MemArena class
 MemArena g_arena;
@@ -127,7 +127,7 @@ static const MemoryView views[] =
 //  Don't map any memory for the EFB. We want all access to this area to go
 //  through the hardware access handlers.
 #ifndef _M_X64
-//	{&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
+// {&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
 #endif
 	{&m_pL1Cache,  &m_pVirtualL1Cache,       0xE0000000, L1_CACHE_SIZE, 0},
 
@@ -166,7 +166,7 @@ void DoState(PointerWrap &p)
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	p.DoArray(m_pPhysicalRAM, RAM_SIZE);
-//	p.DoArray(m_pVirtualEFB, EFB_SIZE);
+	//p.DoArray(m_pVirtualEFB, EFB_SIZE);
 	p.DoArray(m_pVirtualL1Cache, L1_CACHE_SIZE);
 	p.DoMarker("Memory RAM");
 	if (bFakeVMEM)

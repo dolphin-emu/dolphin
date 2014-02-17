@@ -44,7 +44,7 @@ static GekkoOPTemplate primarytable[] =
 	{17, &Jit64::sc}, //"sc",          OPTYPE_SYSTEM, FL_ENDBLOCK, 1}},
 
 	{7,  &Jit64::mulli}, //"mulli",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_RC_BIT, 2}},
-	{8,  &Jit64::subfic}, //"subfic",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_A |	FL_SET_CA}},
+	{8,  &Jit64::subfic}, //"subfic",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CA}},
 	{10, &Jit64::cmpXX}, //"cmpli",    OPTYPE_INTEGER, FL_IN_A | FL_SET_CRn}},
 	{11, &Jit64::cmpXX}, //"cmpi",     OPTYPE_INTEGER, FL_IN_A | FL_SET_CRn}},
 	{12, &Jit64::reg_imm}, //"addic",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_SET_CA}},

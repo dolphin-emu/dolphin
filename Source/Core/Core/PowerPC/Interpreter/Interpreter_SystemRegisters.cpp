@@ -468,6 +468,6 @@ void Interpreter::mffsx(UGeckoInstruction _inst)
 	// TODO(ector): grab all overflow flags etc and set them in FPSCR
 
 	UpdateFPSCR();
-	riPS0(_inst.FD)	= (u64)FPSCR.Hex;
+	riPS0(_inst.FD) = (u64)FPSCR.Hex;
 	if (_inst.Rc) PanicAlert("mffsx: inst_.Rc");
 }

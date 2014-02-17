@@ -36,28 +36,28 @@ class CMemcardManager : public wxDialog
 	private:
 		DECLARE_EVENT_TABLE();
 
-		int page[2],
-			itemsPerPage,
-			maxPages;
-		std::string DefaultMemcard[2],
-					DefaultIOPath;
+		int page[2];
+		int itemsPerPage;
+		int maxPages;
+		std::string DefaultMemcard[2];
+		std::string DefaultIOPath;
 		IniFile MemcardManagerIni;
 		IniFile::Section* iniMemcardSection;
 
-		wxButton *m_CopyFrom[2],
-				 *m_SaveImport[2],
-				 *m_SaveExport[2],
-				 *m_Delete[2],
-				 *m_NextPage[2],
-				 *m_PrevPage[2],
-				 *m_ConvertToGci;
+		wxButton* m_CopyFrom[2];
+		wxButton* m_SaveImport[2];
+		wxButton* m_SaveExport[2];
+		wxButton* m_Delete[2];
+		wxButton* m_NextPage[2];
+		wxButton* m_PrevPage[2];
+		wxButton* m_ConvertToGci;
 		wxFilePickerCtrl *m_MemcardPath[2];
 		wxStaticText *t_Status[2];
 
 		enum
 		{
-			ID_COPYFROM_A = 1000,	// Do not rearrange these items,
-			ID_COPYFROM_B,			// ID_..._B must be 1 more than ID_..._A
+			ID_COPYFROM_A = 1000, // Do not rearrange these items,
+			ID_COPYFROM_B,        // ID_..._B must be 1 more than ID_..._A
 			ID_FIXCHECKSUM_A,
 			ID_FIXCHECKSUM_B,
 			ID_DELETE_A,
@@ -142,8 +142,8 @@ class CMemcardManager : public wxDialog
 				Unbind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this);
 			}
 			_mcmSettings & __mcmSettings;
-			bool prevPage,
-				 nextPage;
+			bool prevPage;
+			bool nextPage;
 		private:
 			void OnRightClick(wxMouseEvent& event);
 		};

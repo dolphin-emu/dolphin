@@ -96,8 +96,8 @@ private:
 	struct BK_Header // Not encrypted
 	{
 		u32 size;   // 0x00000070
-//		u16 magic;  // 'Bk'
-//		u16 magic2; // or version (0x0001)
+		// u16 magic;  // 'Bk'
+		// u16 magic2; // or version (0x0001)
 		u32 magic;  // 0x426B0001
 		u32 NGid;
 		u32 numberOfFiles;

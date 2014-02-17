@@ -59,7 +59,7 @@ private:
 
 	void ClearIsoFiles()
 	{
-		while (!m_ISOFiles.empty())	// so lazy
+		while (!m_ISOFiles.empty()) // so lazy
 		{
 			delete m_ISOFiles.back();
 			m_ISOFiles.pop_back();

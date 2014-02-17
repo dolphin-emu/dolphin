@@ -857,12 +857,12 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 	case IOCTL_ES_ENCRYPT:
 		{
-			u32 keyIndex	= Memory::Read_U32(Buffer.InBuffer[0].m_Address);
-			u8* IV			= Memory::GetPointer(Buffer.InBuffer[1].m_Address);
-			u8* source		= Memory::GetPointer(Buffer.InBuffer[2].m_Address);
-			u32 size		= Buffer.InBuffer[2].m_Size;
-			u8* newIV		= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+			u32 keyIndex    = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+			u8* IV          = Memory::GetPointer(Buffer.InBuffer[1].m_Address);
+			u8* source      = Memory::GetPointer(Buffer.InBuffer[2].m_Address);
+			u32 size        = Buffer.InBuffer[2].m_Size;
+			u8* newIV       = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+			u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
 			aes_context AES_ctx;
 			aes_setkey_enc(&AES_ctx, keyTable[keyIndex], 128);
@@ -988,7 +988,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			Memory::Write_U32(0, _CommandAddress + 0x4);
 
 			ERROR_LOG(WII_IPC_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x", TitleID,view,ticketid,devicetype,titleid,access);
-			//					   IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000 0001000248414341 ffff
+			//                     IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000 0001000248414341 ffff
 
 			// This is necessary because Reset(true) above deleted this object.  Ew.
 
@@ -1016,7 +1016,7 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 		{
 			WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
 			_dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
-			u8* destination	= Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+			u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 
 			EcWii &ec = EcWii::GetInstance();
 			get_ng_cert(destination, ec.getNgId(), ec.getNgKeyId(), ec.getNgPriv(), ec.getNgSig());

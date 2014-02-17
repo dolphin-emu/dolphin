@@ -16,12 +16,12 @@
 bool Assemble(const char *text, std::vector<u16> &code, bool force)
 {
 	AssemblerSettings settings;
-	//	settings.pc = 0;
+	// settings.pc = 0;
 	// settings.decode_registers = false;
 	// settings.decode_names = false;
 	settings.force = force;
-	//	settings.print_tabs = false;
-	//	settings.ext_separator = '\'';
+	// settings.print_tabs = false;
+	// settings.ext_separator = '\'';
 
 	// TODO: fix the terrible api of the assembler.
 	DSPAssembler assembler(settings);

@@ -33,7 +33,7 @@
 #define BPMEM_FIELDMASK        0x44
 #define BPMEM_SETDRAWDONE      0x45
 #define BPMEM_BUSCLOCK0        0x46
-#define BPMEM_PE_TOKEN_ID	   0x47
+#define BPMEM_PE_TOKEN_ID      0x47
 #define BPMEM_PE_TOKEN_INT_ID  0x48
 #define BPMEM_EFB_TL           0x49
 #define BPMEM_EFB_BR           0x4A

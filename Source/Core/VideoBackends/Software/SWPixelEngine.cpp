@@ -78,13 +78,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
 			UPECtrlReg tmpCtrl(val);
 
-			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = false;
-			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = false;
+			if (tmpCtrl.PEToken)  g_bSignalTokenInterrupt = false;
+			if (tmpCtrl.PEFinish) g_bSignalFinishInterrupt = false;
 
 			pereg.ctrl.PETokenEnable = tmpCtrl.PETokenEnable;
 			pereg.ctrl.PEFinishEnable = tmpCtrl.PEFinishEnable;
-			pereg.ctrl.PEToken = 0;		// this flag is write only
-			pereg.ctrl.PEFinish = 0;	// this flag is write only
+			pereg.ctrl.PEToken = 0;  // this flag is write only
+			pereg.ctrl.PEFinish = 0; // this flag is write only
 
 			UpdateInterrupts();
 		})
@@ -99,7 +99,7 @@ bool AllowIdleSkipping()
 void UpdateInterrupts()
 {
 	// check if there is a token-interrupt
-	if (g_bSignalTokenInterrupt	& pereg.ctrl.PETokenEnable)
+	if (g_bSignalTokenInterrupt & pereg.ctrl.PETokenEnable)
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, true);
 	else
 		ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, false);

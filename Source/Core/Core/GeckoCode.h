@@ -45,4 +45,4 @@ namespace Gecko
 	bool RunActiveCodes();
 	void RunCodeHandler();
 
-}	// namespace Gecko
+} // namespace Gecko

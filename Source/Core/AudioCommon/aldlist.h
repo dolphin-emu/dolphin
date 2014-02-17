@@ -12,12 +12,12 @@ using namespace std;
 
 typedef struct
 {
-	string			strDeviceName;
-	s32				iMajorVersion;
-	s32				iMinorVersion;
-	u32	uiSourceCount;
-	vector<string>	*pvstrExtensions;
-	bool			bSelected;
+	string          strDeviceName;
+	s32             iMajorVersion;
+	s32             iMinorVersion;
+	u32             uiSourceCount;
+	vector<string>* pvstrExtensions;
+	bool            bSelected;
 } ALDEVICEINFO, *LPALDEVICEINFO;
 
 class ALDeviceList

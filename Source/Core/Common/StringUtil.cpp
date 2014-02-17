@@ -520,11 +520,7 @@ std::string SHIFTJISToUTF8(const std::string& input)
 
 std::string UTF16ToUTF8(const std::wstring& input)
 {
-	std::string result =
-	//	CodeToUTF8("UCS-2", input);
-	//	CodeToUTF8("UCS-2LE", input);
-	//	CodeToUTF8("UTF-16", input);
-		CodeToUTF8("UTF-16LE", input);
+	std::string result = CodeToUTF8("UTF-16LE", input);
 
 	// TODO: why is this needed?
 	result.erase(std::remove(result.begin(), result.end(), 0x00), result.end());

@@ -3,7 +3,7 @@
 $Id: assemble.cpp,v 1.3 2008-11-11 01:04:26 wntrmute Exp $
 
 project:      GameCube DSP Tool (gcdsp)
-mail:		  duddie@walla.com
+mail:         duddie@walla.com
 
 Copyright (c) 2005 Duddie
 
@@ -817,11 +817,11 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 
 			if (c == 0x0a || c == 0x0d || c == ';')
 				c = 0x00;
-			if (c == 0x09)				// tabs to spaces
+			if (c == 0x09) // tabs to spaces
 				c = ' ';
 			if (c == '"')
 				upper = !upper;
-			if (upper && c >= 'a' && c <= 'z')	// convert to uppercase
+			if (upper && c >= 'a' && c <= 'z') // convert to uppercase
 				c = c - 'a' + 'A';
 			line[i] = c;
 			if (c == 0)
@@ -847,7 +847,7 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 			if (valid)
 			{
 				label = std::string(line).substr(0, col_pos);
-				ptr	+= col_pos + 1;
+				ptr += col_pos + 1;
 			}
 		}
 

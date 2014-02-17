@@ -382,7 +382,7 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 re
 void EmuCodeBlock::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
 {
 #ifdef _M_X64
- 	MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
+	MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
 #else
 	MOV(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), arg);
 #endif

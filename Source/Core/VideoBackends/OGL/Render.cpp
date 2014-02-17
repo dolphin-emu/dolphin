@@ -924,15 +924,15 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
 // and EFB pokes (which will change the color or depth of a pixel).
 //
 // The behavior of EFB peeks can only be modified by:
-//	- GX_PokeAlphaRead
+// - GX_PokeAlphaRead
 // The behavior of EFB pokes can be modified by:
-//	- GX_PokeAlphaMode (TODO)
-//	- GX_PokeAlphaUpdate (TODO)
-//	- GX_PokeBlendMode (TODO)
-//	- GX_PokeColorUpdate (TODO)
-//	- GX_PokeDither (TODO)
-//	- GX_PokeDstAlpha (TODO)
-//	- GX_PokeZMode (TODO)
+// - GX_PokeAlphaMode (TODO)
+// - GX_PokeAlphaUpdate (TODO)
+// - GX_PokeBlendMode (TODO)
+// - GX_PokeColorUpdate (TODO)
+// - GX_PokeDither (TODO)
+// - GX_PokeDstAlpha (TODO)
+// - GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
 	u32 cacheRectIdx = (y / EFB_CACHE_RECT_SIZE) * EFB_CACHE_WIDTH

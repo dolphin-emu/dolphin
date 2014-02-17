@@ -36,7 +36,7 @@ public:
 		void Set(const std::string& key, const std::string& newValue);
 		void Set(const std::string& key, const std::string& newValue, const std::string& defaultValue);
 
- 		bool Get(const std::string& key, std::string* value, const std::string& defaultValue = NULL_STRING);
+		bool Get(const std::string& key, std::string* value, const std::string& defaultValue = NULL_STRING);
 
 		void Set(const std::string& key, u32 newValue) {
 			Set(key, StringFromFormat("0x%08x", newValue));

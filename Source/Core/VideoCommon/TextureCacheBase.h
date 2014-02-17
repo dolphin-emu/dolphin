@@ -21,8 +21,8 @@ public:
 	enum TexCacheEntryType
 	{
 		TCET_NORMAL,
-		TCET_EC_VRAM,		// EFB copy which sits in VRAM and is ready to be used
-		TCET_EC_DYNAMIC,	// EFB copy which sits in RAM and needs to be decoded before being used
+		TCET_EC_VRAM,    // EFB copy which sits in VRAM and is ready to be used
+		TCET_EC_DYNAMIC, // EFB copy which sits in RAM and needs to be decoded before being used
 	};
 
 	struct TCacheEntryBase
@@ -94,7 +94,7 @@ public:
 	static void Invalidate();
 	static void InvalidateRange(u32 start_address, u32 size);
 	static void MakeRangeDynamic(u32 start_address, u32 size);
-	static void ClearRenderTargets();	// currently only used by OGL
+	static void ClearRenderTargets(); // currently only used by OGL
 	static bool Find(u32 start_address, u64 hash);
 
 	virtual TCacheEntryBase* CreateTexture(unsigned int width, unsigned int height,

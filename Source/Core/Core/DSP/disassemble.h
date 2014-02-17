@@ -2,7 +2,7 @@
 
    project:      GameCube DSP Tool (gcdsp)
    created:      2005.03.04
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie
 

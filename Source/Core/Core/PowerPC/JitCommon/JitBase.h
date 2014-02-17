@@ -91,7 +91,7 @@ public:
 
 	virtual void Jit(u32 em_address) = 0;
 
-	virtual	const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) = 0;
+	virtual const u8 *BackPatch(u8 *codePtr, u32 em_address, void *ctx) = 0;
 
 	virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
 

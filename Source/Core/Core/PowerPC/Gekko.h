@@ -259,10 +259,10 @@ union UGeckoInstruction
 	};
 	struct
 	{
-		u32			:	17;
+		u32         :  17;
 		// Field mask, identifies the FPSCR fields to be updated by mtfsf
-		u32 FM		:	8;
-		u32			:	7;
+		u32 FM      :   8;
+		u32         :   7;
 	};
 
 	// paired single quantized load/store
@@ -289,7 +289,7 @@ union UGeckoInstruction
 
 	struct
 	{
-		u32         :   11;
+		u32         : 11;
 		// Number of bytes to use in lswi/stswi (0 means 32 bytes)
 		u32 NB      : 5;
 	};
@@ -774,15 +774,15 @@ enum
 };
 
 // Exceptions
-#define EXCEPTION_DECREMENTER			0x00000001
-#define EXCEPTION_SYSCALL				0x00000002
-#define EXCEPTION_EXTERNAL_INT			0x00000004
-#define EXCEPTION_DSI					0x00000008
-#define EXCEPTION_ISI					0x00000010
-#define EXCEPTION_ALIGNMENT				0x00000020
-#define EXCEPTION_FPU_UNAVAILABLE		0x00000040
-#define EXCEPTION_PROGRAM				0x00000080
-#define EXCEPTION_PERFORMANCE_MONITOR	0x00000100
+#define EXCEPTION_DECREMENTER          0x00000001
+#define EXCEPTION_SYSCALL              0x00000002
+#define EXCEPTION_EXTERNAL_INT         0x00000004
+#define EXCEPTION_DSI                  0x00000008
+#define EXCEPTION_ISI                  0x00000010
+#define EXCEPTION_ALIGNMENT            0x00000020
+#define EXCEPTION_FPU_UNAVAILABLE      0x00000040
+#define EXCEPTION_PROGRAM              0x00000080
+#define EXCEPTION_PERFORMANCE_MONITOR  0x00000100
 
 inline s32 SignExt16(s16 x) {return (s32)(s16)x;}
 inline s32 SignExt26(u32 x) {return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)(x);}

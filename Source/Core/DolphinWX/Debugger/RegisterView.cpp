@@ -57,7 +57,7 @@ wxString CRegTable::GetValue(int row, int col)
 		{
 			switch (col)
 			{
-			case 0:	return StrToWxStr(special_reg_names[row - 32]);
+			case 0: return StrToWxStr(special_reg_names[row - 32]);
 			case 1: return wxString::Format(wxT("%08x"), GetSpecialRegValue(row - 32));
 			default: return wxEmptyString;
 			}
@@ -79,9 +79,9 @@ static void SetSpecialRegValue(int reg, u32 value)
 	case 6: PowerPC::ppcState.spr[SPR_SRR0] = value; break;
 	case 7: PowerPC::ppcState.spr[SPR_SRR1] = value; break;
 	case 8: PowerPC::ppcState.Exceptions = value; break;
-// Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system aware?
-// 	case 9: return ProcessorInterface::GetMask();
-// 	case 10: return ProcessorInterface::GetCause();
+	// Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system aware?
+	// case 9: return ProcessorInterface::GetMask();
+	// case 10: return ProcessorInterface::GetCause();
 	default: return;
 	}
 }

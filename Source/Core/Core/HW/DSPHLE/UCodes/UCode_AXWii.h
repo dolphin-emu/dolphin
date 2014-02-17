@@ -65,7 +65,7 @@ protected:
 	void UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume);
 	void OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume,
 	                   bool upload_auxc);
-	void OutputWMSamples(u32* addresses);	// 4 addresses
+	void OutputWMSamples(u32* addresses); // 4 addresses
 
 private:
 	enum CmdType

@@ -254,7 +254,7 @@ public:
 
 	s32 CheckNwc24Config(void)
 	{
-		if (Magic() != 0x57634366)	/* 'WcCf' magic */
+		if (Magic() != 0x57634366) /* 'WcCf' magic */
 		{
 			ERROR_LOG(WII_IPC_WC24, "Magic mismatch");
 			return -14;

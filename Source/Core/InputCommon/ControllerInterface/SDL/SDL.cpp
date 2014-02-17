@@ -31,7 +31,7 @@ void Init( std::vector<Core::Device*>& devices )
 {
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
-	std::map<std::string, int>	name_counts;
+	std::map<std::string, int> name_counts;
 
 	if (SDL_Init( SDL_INIT_FLAGS ) >= 0)
 	{
@@ -335,7 +335,7 @@ bool Joystick::UpdateOutput()
 			{
 				if (i.effect.type) // if ouputstate >0
 				{
-					SDL_HapticUpdateEffect(m_haptic, i.id, &i.effect);	// update the effect
+					SDL_HapticUpdateEffect(m_haptic, i.id, &i.effect); // update the effect
 				}
 				else
 				{

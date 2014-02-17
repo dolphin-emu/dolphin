@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 //DL facts:
-//	Ikaruga uses (nearly) NO display lists!
+//  Ikaruga uses (nearly) NO display lists!
 //  Zelda WW uses TONS of display lists
 //  Zelda TP uses almost 100% display lists except menus (we like this!)
 //  Super Mario Galaxy has nearly all geometry and more than half of the state in DLs (great!)

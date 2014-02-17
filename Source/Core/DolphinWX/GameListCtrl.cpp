@@ -50,7 +50,7 @@ bool sorted = false;
 extern CFrame* main_frame;
 
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
-								long sortData = CGameListCtrl::COLUMN_TITLE)
+                                long sortData = CGameListCtrl::COLUMN_TITLE)
 {
 	int t = 1;
 
@@ -70,8 +70,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	{
 		indexOne = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
 	}
-	else
-	{	// GC
+	else // GC
+	{
 		indexOne = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 
@@ -79,8 +79,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 	{
 		indexOther = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
 	}
-	else
-	{	// GC
+	else // GC
+	{
 		indexOther = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 	}
 

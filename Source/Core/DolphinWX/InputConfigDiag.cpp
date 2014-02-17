@@ -118,7 +118,7 @@ ControlDialog::ControlDialog(GamepadPage* const parent, InputPlugin& plugin, Con
 	szr->Add(d_szr, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5);
 	szr->Add(control_chooser, 1, wxEXPAND|wxALL, 5);
 
-	SetSizerAndFit(szr);	// needed
+	SetSizerAndFit(szr); // needed
 
 	UpdateGUI();
 	SetFocus();
@@ -965,7 +965,7 @@ GamepadPage::GamepadPage(wxWindow* parent, InputPlugin& plugin, const unsigned i
 
 	UpdateGUI();
 
-	SetSizerAndFit(mapping);	// needed
+	SetSizerAndFit(mapping); // needed
 	Layout();
 };
 

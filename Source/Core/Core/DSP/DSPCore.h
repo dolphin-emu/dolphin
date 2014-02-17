@@ -3,7 +3,7 @@
    filename:     DSPCore.h
    project:      GCemu
    created:      2004-6-18
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie & Tratax
 
@@ -168,7 +168,7 @@
 #define SR_MUL_UNSIGNED    0x8000 // 0 = normal. 1 = unsigned  (CLR15, SET15) If set, treats ax?.l as unsigned (MULX family only).
 
 // This should be the bits affected by CMP. Does not include logic zero.
-#define SR_CMP_MASK		0x3f
+#define SR_CMP_MASK    0x3f
 
 // exceptions vector
 #define EXP_STOVF       1 // 0x0002 stack under/over flow

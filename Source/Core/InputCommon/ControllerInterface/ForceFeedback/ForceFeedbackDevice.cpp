@@ -61,7 +61,7 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
 	memset(&eff, 0, sizeof(eff));
 	eff.dwSize = sizeof(DIEFFECT);
 	eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-	eff.dwDuration = INFINITE;	// (4 * DI_SECONDS)
+	eff.dwDuration = INFINITE; // (4 * DI_SECONDS)
 	eff.dwSamplePeriod = 0;
 	eff.dwGain = DI_FFNOMINALMAX;
 	eff.dwTriggerButton = DIEB_NOTRIGGER;
@@ -175,7 +175,7 @@ void ForceFeedbackDevice::ForceConstant::SetState(const ControlState state)
 	if (val != new_val)
 	{
 		val = new_val;
-		m_state.params = &params;	// tells UpdateOutput the state has changed
+		m_state.params = &params; // tells UpdateOutput the state has changed
 		
 		// tells UpdateOutput to either start or stop the force
 		m_state.size = new_val ? sizeof(params) : 0;
@@ -190,7 +190,7 @@ void ForceFeedbackDevice::ForceRamp::SetState(const ControlState state)
 	if (params.lStart != new_val)
 	{
 		params.lStart = params.lEnd = new_val;
-		m_state.params = &params;	// tells UpdateOutput the state has changed
+		m_state.params = &params; // tells UpdateOutput the state has changed
 
 		// tells UpdateOutput to either start or stop the force
 		m_state.size = new_val ? sizeof(params) : 0;
@@ -206,9 +206,9 @@ void ForceFeedbackDevice::ForcePeriodic::SetState(const ControlState state)
 	if (val != new_val)
 	{
 		val = new_val;
-		//params.dwPeriod = 0;//DWORD(0.05 * DI_SECONDS);	// zero is working fine for me
+		//params.dwPeriod = 0;//DWORD(0.05 * DI_SECONDS); // zero is working fine for me
 
-		m_state.params = &params;	// tells UpdateOutput the state has changed
+		m_state.params = &params; // tells UpdateOutput the state has changed
 
 		// tells UpdateOutput to either start or stop the force
 		m_state.size = new_val ? sizeof(params) : 0;

@@ -121,7 +121,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 	// get supported triggers
 	for (int i = 0; i != sizeof(named_triggers)/sizeof(*named_triggers); ++i)
 	{
-		//BYTE val = (&caps.Gamepad.bLeftTrigger)[i];	// should be max value / MSDN lies
+		//BYTE val = (&caps.Gamepad.bLeftTrigger)[i];  // should be max value / MSDN lies
 		if ((&caps.Gamepad.bLeftTrigger)[i])
 			AddInput(new Trigger(i, (&m_state_in.Gamepad.bLeftTrigger)[i], 255 ));
 	}
@@ -143,7 +143,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 	// get supported motors
 	for (int i = 0; i != sizeof(named_motors)/sizeof(*named_motors); ++i)
 	{
-		//WORD val = (&caps.Vibration.wLeftMotorSpeed)[i];	// should be max value / nope, more lies
+		//WORD val = (&caps.Vibration.wLeftMotorSpeed)[i]; // should be max value / nope, more lies
 		if ((&caps.Vibration.wLeftMotorSpeed)[i])
 			AddOutput(new Motor(i, (&m_state_out.wLeftMotorSpeed)[i], 65535));
 	}

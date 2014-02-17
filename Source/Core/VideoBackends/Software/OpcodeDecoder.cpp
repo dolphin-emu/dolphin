@@ -191,8 +191,8 @@ void DecodeStandard(u32 bufferSize)
 		// zelda 4 swords calls it and checks the metrics registers after that
 		break;
 
-	case GX_CMD_INVL_VC:// Invalidate	(vertex cache?)
-		DEBUG_LOG(VIDEO, "Invalidate	(vertex cache?)");
+	case GX_CMD_INVL_VC:// Invalidate (vertex cache?)
+		DEBUG_LOG(VIDEO, "Invalidate  (vertex cache?)");
 		break;
 
 	case GX_LOAD_BP_REG: //0x61

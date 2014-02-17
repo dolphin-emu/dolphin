@@ -2,7 +2,7 @@
 
    project:      GameCube DSP Tool (gcdsp)
    created:      2005.03.04
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie
 
@@ -121,7 +121,7 @@ private:
 
 	LabelMap labels;
 
-	u32	code_line;
+	u32 code_line;
 	bool failed;
 	std::string last_error_str;
 	err_t last_error;
