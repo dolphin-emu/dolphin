@@ -105,13 +105,13 @@ inline u64 _rotr64(u64 x, unsigned int shift){
 	#define freelocale _free_locale
 	#define newlocale(mask, locale, base) _create_locale(mask, locale)
 
-	#define LC_GLOBAL_LOCALE	((locale_t)-1)
-	#define LC_ALL_MASK			LC_ALL
-	#define LC_COLLATE_MASK		LC_COLLATE
-	#define LC_CTYPE_MASK		LC_CTYPE
-	#define LC_MONETARY_MASK	LC_MONETARY
-	#define LC_NUMERIC_MASK		LC_NUMERIC
-	#define LC_TIME_MASK		LC_TIME
+	#define LC_GLOBAL_LOCALE    ((locale_t)-1)
+	#define LC_ALL_MASK         LC_ALL
+	#define LC_COLLATE_MASK     LC_COLLATE
+	#define LC_CTYPE_MASK       LC_CTYPE
+	#define LC_MONETARY_MASK    LC_MONETARY
+	#define LC_NUMERIC_MASK     LC_NUMERIC
+	#define LC_TIME_MASK        LC_TIME
 
 	inline locale_t uselocale(locale_t new_locale)
 	{

@@ -32,10 +32,10 @@ namespace DriverDetails
 	const u32 m_os = OS_ALL | OS_LINUX;
 #endif
 
-	Vendor	m_vendor = VENDOR_UNKNOWN;
-	Driver	m_driver = DRIVER_UNKNOWN;
-	s32     m_family = 0;
-	double	m_version = 0.0;
+	Vendor m_vendor = VENDOR_UNKNOWN;
+	Driver m_driver = DRIVER_UNKNOWN;
+	s32    m_family = 0;
+	double m_version = 0.0;
 
 	// This is a list of all known bugs for each vendor
 	// We use this to check if the device and driver has a issue

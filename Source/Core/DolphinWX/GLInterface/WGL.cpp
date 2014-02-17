@@ -63,7 +63,7 @@ void cInterfaceWGL::UpdateFPSDisplay(const char *text)
 }
 
 // Create rendering window.
-//		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
+// Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceWGL::Create(void *&window_handle)
 {
 	int _tx, _ty, _twidth, _theight;

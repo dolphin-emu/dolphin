@@ -44,19 +44,19 @@ enum
 };
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
-	EVT_TEXT(IDM_MEM_ADDRBOX,		CMemoryWindow::OnAddrBoxChange)
-	EVT_LISTBOX(IDM_SYMBOLLIST,		CMemoryWindow::OnSymbolListChange)
-	EVT_HOST_COMMAND(wxID_ANY,		CMemoryWindow::OnHostMessage)
-	EVT_BUTTON(IDM_SETVALBUTTON,	CMemoryWindow::SetMemoryValue)
-	EVT_BUTTON(IDM_DUMP_MEMORY,		CMemoryWindow::OnDumpMemory)
-	EVT_BUTTON(IDM_DUMP_MEM2,		CMemoryWindow::OnDumpMem2)
-	EVT_BUTTON(IDM_DUMP_FAKEVMEM,	CMemoryWindow::OnDumpFakeVMEM)
-	EVT_CHECKBOX(IDM_U8,			CMemoryWindow::U8)
-	EVT_CHECKBOX(IDM_U16,			CMemoryWindow::U16)
-	EVT_CHECKBOX(IDM_U32,			CMemoryWindow::U32)
-	EVT_BUTTON(IDM_SEARCH,			CMemoryWindow::onSearch)
-	EVT_CHECKBOX(IDM_ASCII,			CMemoryWindow::onAscii)
-	EVT_CHECKBOX(IDM_HEX,			CMemoryWindow::onHex)
+	EVT_TEXT(IDM_MEM_ADDRBOX,       CMemoryWindow::OnAddrBoxChange)
+	EVT_LISTBOX(IDM_SYMBOLLIST,     CMemoryWindow::OnSymbolListChange)
+	EVT_HOST_COMMAND(wxID_ANY,      CMemoryWindow::OnHostMessage)
+	EVT_BUTTON(IDM_SETVALBUTTON,    CMemoryWindow::SetMemoryValue)
+	EVT_BUTTON(IDM_DUMP_MEMORY,     CMemoryWindow::OnDumpMemory)
+	EVT_BUTTON(IDM_DUMP_MEM2,       CMemoryWindow::OnDumpMem2)
+	EVT_BUTTON(IDM_DUMP_FAKEVMEM,   CMemoryWindow::OnDumpFakeVMEM)
+	EVT_CHECKBOX(IDM_U8,            CMemoryWindow::U8)
+	EVT_CHECKBOX(IDM_U16,           CMemoryWindow::U16)
+	EVT_CHECKBOX(IDM_U32,           CMemoryWindow::U32)
+	EVT_BUTTON(IDM_SEARCH,          CMemoryWindow::onSearch)
+	EVT_CHECKBOX(IDM_ASCII,         CMemoryWindow::onAscii)
+	EVT_CHECKBOX(IDM_HEX,           CMemoryWindow::onHex)
 END_EVENT_TABLE()
 
 CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
@@ -71,7 +71,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	DebugInterface* di = &PowerPC::debug_interface;
 
 	//symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition,
-	//	   	wxSize(20, 100), 0, NULL, wxLB_SORT);
+	//      wxSize(20, 100), 0, NULL, wxLB_SORT);
 	//sizerLeft->Add(symbols, 1, wxEXPAND);
 	memview = new CMemoryView(di, this);
 	memview->dataType = 0;

@@ -92,7 +92,7 @@ public:
 
 	virtual ~CNANDContentLoader();
 
-	bool IsValid() const override	{ return m_Valid; }
+	bool IsValid() const override { return m_Valid; }
 	void RemoveTitle(void) const override;
 	u64 GetTitleID() const override  { return m_TitleID; }
 	u16 GetIosVersion() const override { return m_IosVersion; }

@@ -59,12 +59,12 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 	EVT_TEXT(IDM_ADDRBOX, CCodeWindow::OnAddrBoxChange)
 
 	// Other
-	EVT_LISTBOX(ID_SYMBOLLIST,			CCodeWindow::OnSymbolListChange)
-	EVT_LISTBOX(ID_CALLSTACKLIST,		CCodeWindow::OnCallstackListChange)
-	EVT_LISTBOX(ID_CALLERSLIST,			CCodeWindow::OnCallersListChange)
-	EVT_LISTBOX(ID_CALLSLIST,			CCodeWindow::OnCallsListChange)
+	EVT_LISTBOX(ID_SYMBOLLIST,    CCodeWindow::OnSymbolListChange)
+	EVT_LISTBOX(ID_CALLSTACKLIST, CCodeWindow::OnCallstackListChange)
+	EVT_LISTBOX(ID_CALLERSLIST,   CCodeWindow::OnCallersListChange)
+	EVT_LISTBOX(ID_CALLSLIST,     CCodeWindow::OnCallsListChange)
 
-	EVT_HOST_COMMAND(wxID_ANY,			CCodeWindow::OnHostMessage)
+	EVT_HOST_COMMAND(wxID_ANY,    CCodeWindow::OnHostMessage)
 
 END_EVENT_TABLE()
 
@@ -562,12 +562,12 @@ void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 		h = m_Bitmaps[0].GetHeight();
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
-	toolBar->AddTool(IDM_STEP,		_("Step"),			m_Bitmaps[Toolbar_Step]);
-	toolBar->AddTool(IDM_STEPOVER,	_("Step Over"),		m_Bitmaps[Toolbar_StepOver]);
-	toolBar->AddTool(IDM_SKIP,		_("Skip"),			m_Bitmaps[Toolbar_Skip]);
+	toolBar->AddTool(IDM_STEP,     _("Step"),      m_Bitmaps[Toolbar_Step]);
+	toolBar->AddTool(IDM_STEPOVER, _("Step Over"), m_Bitmaps[Toolbar_StepOver]);
+	toolBar->AddTool(IDM_SKIP,     _("Skip"),      m_Bitmaps[Toolbar_Skip]);
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_GOTOPC,		_("Show PC"),		m_Bitmaps[Toolbar_GotoPC]);
-	toolBar->AddTool(IDM_SETPC,		_("Set PC"),		m_Bitmaps[Toolbar_SetPC]);
+	toolBar->AddTool(IDM_GOTOPC,   _("Show PC"),   m_Bitmaps[Toolbar_GotoPC]);
+	toolBar->AddTool(IDM_SETPC,    _("Set PC"),    m_Bitmaps[Toolbar_SetPC]);
 	toolBar->AddSeparator();
 	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, _T("")));
 

@@ -20,7 +20,7 @@ class FixedSizeQueue
 	int count;  // sacrifice 4 bytes for a simpler implementation. may optimize away in the future.
 
 	// Make copy constructor private for now.
-	FixedSizeQueue(FixedSizeQueue &other) {	}
+	FixedSizeQueue(FixedSizeQueue &other) {}
 
 public:
 	FixedSizeQueue()

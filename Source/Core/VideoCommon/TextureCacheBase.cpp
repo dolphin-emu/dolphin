@@ -130,7 +130,7 @@ void TextureCache::Cleanup()
 	TexCache::iterator tcend = textures.end();
 	while (iter != tcend)
 	{
-		if (	frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount
+		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second->frameCount
 
 			// EFB copies living on the host GPU are unrecoverable and thus shouldn't be deleted
 			&& ! iter->second->IsEfbCopy() )
@@ -378,12 +378,12 @@ TextureCache::TCacheEntryBase* TextureCache::Load(unsigned int const stage,
 		tlut_hash = GetHash64(&texMem[tlutaddr], palette_size, g_ActiveConfig.iSafeTextureCache_ColorSamples);
 
 		// NOTE: For non-paletted textures, texID is equal to the texture address.
-		//		A paletted texture, however, may have multiple texIDs assigned though depending on the currently used tlut.
-		//		This (changing texID depending on the tlut_hash) is a trick to get around
-		//		an issue with Metroid Prime's fonts (it has multiple sets of fonts on each other
-		//		stored in a single texture and uses the palette to make different characters
-		//		visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
-		//		we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
+		//       A paletted texture, however, may have multiple texIDs assigned though depending on the currently used tlut.
+		//       This (changing texID depending on the tlut_hash) is a trick to get around
+		//       an issue with Metroid Prime's fonts (it has multiple sets of fonts on each other
+		//       stored in a single texture and uses the palette to make different characters
+		//       visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
+		//       we must make sure that a paletted texture gets assigned multiple IDs for each tlut used.
 		//
 		// TODO: Because texID isn't always the same as the address now, CopyRenderTargetToTexture might be broken now
 		texID ^= ((u32)tlut_hash) ^(u32)(tlut_hash >> 32);
@@ -579,40 +579,40 @@ void TextureCache::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat
 	// Emulation methods:
 	//
 	// - EFB to RAM:
-	//		Encodes the requested EFB data at its native resolution to the emulated RAM using shaders.
-	//		Load() decodes the data from there again (using TextureDecoder) if the EFB copy is being used as a texture again.
-	//		Advantage: CPU can read data from the EFB copy and we don't lose any important updates to the texture
-	//		Disadvantage: Encoding+decoding steps often are redundant because only some games read or modify EFB copies before using them as textures.
+	//      Encodes the requested EFB data at its native resolution to the emulated RAM using shaders.
+	//      Load() decodes the data from there again (using TextureDecoder) if the EFB copy is being used as a texture again.
+	//      Advantage: CPU can read data from the EFB copy and we don't lose any important updates to the texture
+	//      Disadvantage: Encoding+decoding steps often are redundant because only some games read or modify EFB copies before using them as textures.
 	//
 	// - EFB to texture:
-	//		Copies the requested EFB data to a texture object in VRAM, performing any color conversion using shaders.
-	//		Advantage:	Works for many games, since in most cases EFB copies aren't read or modified at all before being used as a texture again.
-	//					Since we don't do any further encoding or decoding here, this method is much faster.
-	//					It also allows enhancing the visual quality by doing scaled EFB copies.
+	//      Copies the requested EFB data to a texture object in VRAM, performing any color conversion using shaders.
+	//      Advantage: Works for many games, since in most cases EFB copies aren't read or modified at all before being used as a texture again.
+	//                 Since we don't do any further encoding or decoding here, this method is much faster.
+	//                 It also allows enhancing the visual quality by doing scaled EFB copies.
 	//
 	// - Hybrid EFB copies:
-	//		1a) Whenever this function gets called, encode the requested EFB data to RAM (like EFB to RAM)
-	//		1b) Set type to TCET_EC_DYNAMIC for all texture cache entries in the destination address range.
-	//			If EFB copy caching is enabled, further checks will (try to) prevent redundant EFB copies.
-	//		2) Check if a texture cache entry for the specified dstAddr already exists (i.e. if an EFB copy was triggered to that address before):
-	//		2a) Entry doesn't exist:
-	//			- Also copy the requested EFB data to a texture object in VRAM (like EFB to texture)
-	//			- Create a texture cache entry for the target (type = TCET_EC_VRAM)
-	//			- Store a hash of the encoded RAM data in the texcache entry.
-	//		2b) Entry exists AND type is TCET_EC_VRAM:
-	//			- Like case 2a, but reuse the old texcache entry instead of creating a new one.
-	//		2c) Entry exists AND type is TCET_EC_DYNAMIC:
-	//			- Only encode the texture to RAM (like EFB to RAM) and store a hash of the encoded data in the existing texcache entry.
-	//			- Do NOT copy the requested EFB data to a VRAM object. Reason: the texture is dynamic, i.e. the CPU is modifying it. Storing a VRAM copy is useless, because we'd always end up deleting it and reloading the data from RAM anyway.
-	//		3) If the EFB copy gets used as a texture, compare the source RAM hash with the hash you stored when encoding the EFB data to RAM.
-	//		3a) If the two hashes match AND type is TCET_EC_VRAM, reuse the VRAM copy you created
-	//		3b) If the two hashes differ AND type is TCET_EC_VRAM, screw your existing VRAM copy. Set type to TCET_EC_DYNAMIC.
-	//			Redecode the source RAM data to a VRAM object. The entry basically behaves like a normal texture now.
-	//		3c) If type is TCET_EC_DYNAMIC, treat the EFB copy like a normal texture.
-	//		Advantage: 	Non-dynamic EFB copies can be visually enhanced like with EFB to texture.
-	//					Compatibility is as good as EFB to RAM.
-	//		Disadvantage:	Slower than EFB to texture and often even slower than EFB to RAM.
-	//						EFB copy cache depends on accurate texture hashing being enabled. However, with accurate hashing you end up being as slow as without a copy cache anyway.
+	//      1a) Whenever this function gets called, encode the requested EFB data to RAM (like EFB to RAM)
+	//      1b) Set type to TCET_EC_DYNAMIC for all texture cache entries in the destination address range.
+	//          If EFB copy caching is enabled, further checks will (try to) prevent redundant EFB copies.
+	//      2) Check if a texture cache entry for the specified dstAddr already exists (i.e. if an EFB copy was triggered to that address before):
+	//      2a) Entry doesn't exist:
+	//          - Also copy the requested EFB data to a texture object in VRAM (like EFB to texture)
+	//          - Create a texture cache entry for the target (type = TCET_EC_VRAM)
+	//          - Store a hash of the encoded RAM data in the texcache entry.
+	//      2b) Entry exists AND type is TCET_EC_VRAM:
+	//          - Like case 2a, but reuse the old texcache entry instead of creating a new one.
+	//      2c) Entry exists AND type is TCET_EC_DYNAMIC:
+	//          - Only encode the texture to RAM (like EFB to RAM) and store a hash of the encoded data in the existing texcache entry.
+	//          - Do NOT copy the requested EFB data to a VRAM object. Reason: the texture is dynamic, i.e. the CPU is modifying it. Storing a VRAM copy is useless, because we'd always end up deleting it and reloading the data from RAM anyway.
+	//      3) If the EFB copy gets used as a texture, compare the source RAM hash with the hash you stored when encoding the EFB data to RAM.
+	//      3a) If the two hashes match AND type is TCET_EC_VRAM, reuse the VRAM copy you created
+	//      3b) If the two hashes differ AND type is TCET_EC_VRAM, screw your existing VRAM copy. Set type to TCET_EC_DYNAMIC.
+	//          Redecode the source RAM data to a VRAM object. The entry basically behaves like a normal texture now.
+	//      3c) If type is TCET_EC_DYNAMIC, treat the EFB copy like a normal texture.
+	//      Advantage: Non-dynamic EFB copies can be visually enhanced like with EFB to texture.
+	//                 Compatibility is as good as EFB to RAM.
+	//      Disadvantage: Slower than EFB to texture and often even slower than EFB to RAM.
+	//                    EFB copy cache depends on accurate texture hashing being enabled. However, with accurate hashing you end up being as slow as without a copy cache anyway.
 	//
 	// Disadvantage of all methods: Calling this function requires the GPU to perform a pipeline flush which stalls any further CPU processing.
 	//

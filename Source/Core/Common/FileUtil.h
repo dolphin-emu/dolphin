@@ -198,7 +198,7 @@ public:
 	bool IsOpen() { return NULL != m_file; }
 
 	// m_good is set to false when a read, write or other function fails
-	bool IsGood() {	return m_good; }
+	bool IsGood() { return m_good; }
 	operator void*() { return m_good ? m_file : NULL; }
 
 	std::FILE* ReleaseHandle();

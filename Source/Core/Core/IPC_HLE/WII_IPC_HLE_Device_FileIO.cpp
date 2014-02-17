@@ -66,7 +66,7 @@ void HLE_IPC_CreateVirtualFATFilesystem()
 }
 
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName)
-	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)	// not a real hardware
+	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false) // not a real hardware
 	, m_Mode(0)
 	, m_SeekPos(0)
 {
@@ -148,7 +148,7 @@ File::IOFile CWII_IPC_HLE_Device_FileIO::OpenFile()
 
 bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 {
-	u32 ReturnValue	= FS_RESULT_FATAL;
+	u32 ReturnValue = FS_RESULT_FATAL;
 	const s32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
 	const s32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
 
@@ -210,8 +210,8 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 {
 	u32 ReturnValue = FS_EACCESS;
-	const u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Read to this memory address
-	const u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
+	const u32 Address = Memory::Read_U32(_CommandAddress + 0xC); // Read to this memory address
+	const u32 Size    = Memory::Read_U32(_CommandAddress + 0x10);
 
 
 	if (auto file = OpenFile())
@@ -249,9 +249,8 @@ bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 {
 	u32 ReturnValue = FS_EACCESS;
-	const u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Write data from this memory address
-	const u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
-
+	const u32 Address = Memory::Read_U32(_CommandAddress + 0xC); // Write data from this memory address
+	const u32 Size    = Memory::Read_U32(_CommandAddress + 0x10);
 
 	if (auto file = OpenFile())
 	{

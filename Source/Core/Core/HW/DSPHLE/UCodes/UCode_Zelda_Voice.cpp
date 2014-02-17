@@ -487,9 +487,9 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 	}
 
 	// XK: Use this to disable MIDI music (GREAT for testing). Also kills some sound FX.
-	//if(PB.SoundType == 0x0d00) {
-	//	PB.NeedsReset = 0;
-	//	return;
+	//if (PB.SoundType == 0x0d00) {
+	//    PB.NeedsReset = 0;
+	//    return;
 	//}
 
 	// The Resample calls actually don't resample yet.
@@ -500,18 +500,18 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 	// First jump table at ZWW: 2a6
 	switch (PB.Format)
 	{
-	case 0x0005:		// AFC with extra low bitrate (32:5 compression).
-	case 0x0009:		// AFC with normal bitrate (32:9 compression).
+	case 0x0005: // AFC with extra low bitrate (32:5 compression).
+	case 0x0009: // AFC with normal bitrate (32:9 compression).
 		RenderVoice_AFC(PB, m_ResampleBuffer + 4, _Size);
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
 
-	case 0x0008:		// PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD + very little in Zelda WW.
+	case 0x0008: // PCM8 - normal PCM 8-bit audio. Used in Mario Kart DD + very little in Zelda WW.
 		RenderVoice_PCM8(PB, m_ResampleBuffer + 4, _Size);
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
 
-	case 0x0010:		// PCM16 - normal PCM 16-bit audio.
+	case 0x0010: // PCM16 - normal PCM 16-bit audio.
 		RenderVoice_PCM16(PB, m_ResampleBuffer + 4, _Size);
 		Resample(PB, _Size, m_ResampleBuffer + 4, m_VoiceBuffer, true);
 		break;
@@ -535,10 +535,10 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 	default:
 		// Second jump table
 		// TODO: Cases to find examples of:
-		//		 -0x0002
-		//		 -0x0003
-		//		 -0x0006
-		//		 -0x000a
+		//       -0x0002
+		//       -0x0003
+		//       -0x0006
+		//       -0x000a
 		switch (PB.Format)
 		{
 		// Synthesized sounds
@@ -547,8 +547,7 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			RenderSynth_RectWave(PB, m_VoiceBuffer, _Size);
 			break;
 
-		case 0x0001: // Example: "Denied" sound when trying to pull out a sword
-					 // indoors in ZWW
+		case 0x0001: // Example: "Denied" sound when trying to pull out a sword indoors in ZWW
 			RenderSynth_SawWave(PB, m_VoiceBuffer, _Size);
 			break;
 

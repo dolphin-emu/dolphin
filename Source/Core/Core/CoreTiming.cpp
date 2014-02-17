@@ -395,8 +395,8 @@ void Advance()
 	{
 		if (first->time <= globalTimer)
 		{
-//			LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
-//				event_types[first->type].name ? event_types[first->type].name : "?", (u64)globalTimer, (u64)first->time);
+			//LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
+			//             event_types[first->type].name ? event_types[first->type].name : "?", (u64)globalTimer, (u64)first->time);
 			Event* evt = first;
 			first = first->next;
 			event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));

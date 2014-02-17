@@ -9,7 +9,7 @@
 
 // TODO: Get rid of this file.
 
-#define PROFILE					0
+#define PROFILE   0
 
 #if PROFILE
 	void ProfilerDump(u64 _count);

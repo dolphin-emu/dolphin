@@ -60,10 +60,10 @@ enum
 	NP_MSG_PLAYER_PING_DATA = 0xE2,
 };
 
-typedef u8	MessageId;
-typedef u8	PlayerId;
-typedef s8	PadMapping;
-typedef u32	FrameNum;
+typedef u8  MessageId;
+typedef u8  PlayerId;
+typedef s8  PadMapping;
+typedef u32 FrameNum;
 
 enum
 {
@@ -72,6 +72,7 @@ enum
 	CON_ERR_VERSION_MISMATCH = 3
 };
 
-namespace NetPlay {
+namespace NetPlay
+{
 	bool IsNetPlayRunning();
 };

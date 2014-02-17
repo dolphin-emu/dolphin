@@ -50,7 +50,7 @@ void JitArmIL::Shutdown()
 }
 void JitArmIL::unknown_instruction(UGeckoInstruction inst)
 {
-	//	CCPU::Break();
+	// CCPU::Break();
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
@@ -348,7 +348,7 @@ const u8* JitArmIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	}
 	if (memory_exception)
 		BKPT(0x500);
-	if	(broken_block)
+	if (broken_block)
 	{
 		printf("Broken Block going to 0x%08x\n", nextPC);
 		WriteExit(nextPC);

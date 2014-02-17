@@ -4,12 +4,12 @@
 
 #pragma once
 
-#define SLIDER_TICK_COUNT			100
-#define DETECT_WAIT_TIME			1500
-#define PREVIEW_UPDATE_TIME			25
+#define SLIDER_TICK_COUNT    100
+#define DETECT_WAIT_TIME     1500
+#define PREVIEW_UPDATE_TIME  25
 
 // might have to change this setup for wiimote
-#define PROFILES_PATH				"Profiles/"
+#define PROFILES_PATH       "Profiles/"
 
 #include <wx/wx.h>
 #include <wx/listbox.h>
@@ -42,7 +42,7 @@ public:
 
 	virtual ~PadSetting() {}
 
-	wxControl* const	wxcontrol;
+	wxControl* const wxcontrol;
 };
 
 class PadSettingExtension : public PadSetting
@@ -52,7 +52,7 @@ public:
 	void UpdateGUI();
 	void UpdateValue();
 
-	ControllerEmu::Extension* const	extension;
+	ControllerEmu::Extension* const extension;
 };
 
 class PadSettingSpin : public PadSetting
@@ -61,7 +61,7 @@ public:
 	PadSettingSpin(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting)
 		: PadSetting(new wxSpinCtrl(parent, -1, wxEmptyString, wxDefaultPosition
 			, wxSize(54, -1), 0, setting->low, setting->high, (int)(setting->value * 100)))
-		, value(setting->value) {}
+			, value(setting->value) {}
 
 	void UpdateGUI();
 	void UpdateValue();
@@ -76,7 +76,7 @@ public:
 	void UpdateGUI();
 	void UpdateValue();
 
-	ControlState&		value;
+	ControlState& value;
 };
 
 class GamepadPage;
@@ -101,19 +101,19 @@ public:
 	void SetSelectedControl(wxCommandEvent& event);
 	void AppendControl(wxCommandEvent& event);
 
-	ControllerInterface::ControlReference* const		control_reference;
-	InputPlugin&				m_plugin;
-	wxComboBox*				device_cbox;
+	ControllerInterface::ControlReference* const control_reference;
+	InputPlugin& m_plugin;
+	wxComboBox*  device_cbox;
 
-	wxTextCtrl*		textctrl;
-	wxListBox*		control_lbox;
-	wxSlider*		range_slider;
+	wxTextCtrl* textctrl;
+	wxListBox*  control_lbox;
+	wxSlider*   range_slider;
 
 private:
-	GamepadPage* const		m_parent;
-	wxStaticText*		m_bound_label;
-	wxStaticText*		m_error_label;
-	DeviceQualifier	m_devq;
+	GamepadPage* const m_parent;
+	wxStaticText*      m_bound_label;
+	wxStaticText*      m_error_label;
+	DeviceQualifier    m_devq;
 	bool GetExpressionForSelectedControl(wxString &expr);
 };
 
@@ -124,7 +124,7 @@ public:
 		: wxButton(parent, -1, _("Configure"), wxDefaultPosition)
 		, extension(ext) {}
 
-	ControllerEmu::Extension* const	extension;
+	ControllerEmu::Extension* const extension;
 };
 
 class ControlButton : public wxButton
@@ -132,7 +132,7 @@ class ControlButton : public wxButton
 public:
 	ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const _ref, const unsigned int width, const std::string& label = "");
 
-	ControllerInterface::ControlReference* const		control_reference;
+	ControllerInterface::ControlReference* const control_reference;
 };
 
 class UDPConfigButton : public wxButton
@@ -151,11 +151,11 @@ public:
 	ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent, GamepadPage* const eventsink);
 	~ControlGroupBox();
 
-	std::vector<PadSetting*>		options;
+	std::vector<PadSetting*> options;
 
-	ControllerEmu::ControlGroup* const	control_group;
-	wxStaticBitmap*					static_bitmap;
-	std::vector<ControlButton*>		control_buttons;
+	ControllerEmu::ControlGroup* const control_group;
+	wxStaticBitmap*                    static_bitmap;
+	std::vector<ControlButton*>        control_buttons;
 };
 
 class ControlGroupsSizer : public wxBoxSizer
@@ -200,19 +200,19 @@ public:
 
 	void GetProfilePath(std::string& path);
 
-	wxComboBox*					profile_cbox;
-	wxComboBox*					device_cbox;
+	wxComboBox* profile_cbox;
+	wxComboBox* device_cbox;
 
-	std::vector<ControlGroupBox*>		control_groups;
+	std::vector<ControlGroupBox*> control_groups;
 
 protected:
 
-	ControllerEmu* const				controller;
+	ControllerEmu* const controller;
 
 private:
 
-	ControlDialog*				m_control_dialog;
-	InputConfigDialog* const	m_config_dialog;
+	ControlDialog*           m_control_dialog;
+	InputConfigDialog* const m_config_dialog;
 	InputPlugin &m_plugin;
 };
 
@@ -234,8 +234,8 @@ public:
 
 private:
 
-	wxNotebook*					m_pad_notebook;
-	std::vector<GamepadPage*>	m_padpages;
-	InputPlugin&				m_plugin;
-	wxTimer*					m_update_timer;
+	wxNotebook*               m_pad_notebook;
+	std::vector<GamepadPage*> m_padpages;
+	InputPlugin&              m_plugin;
+	wxTimer*                  m_update_timer;
 };

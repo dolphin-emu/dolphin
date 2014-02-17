@@ -100,7 +100,7 @@ CPanel::CPanel(
 #endif
 
 CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title,
-		const wxPoint& pos, const wxSize& size,	long style)
+		const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
 {
 	// Give it an icon
@@ -707,12 +707,12 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		SConfig::GetInstance().m_ListTaiwan &&
 		SConfig::GetInstance().m_ListUnknown)))
 	{
-		SConfig::GetInstance().m_ListGC		= SConfig::GetInstance().m_ListWii =
-		SConfig::GetInstance().m_ListWad	= SConfig::GetInstance().m_ListJap =
-		SConfig::GetInstance().m_ListUsa	= SConfig::GetInstance().m_ListPal =
-		SConfig::GetInstance().m_ListFrance	= SConfig::GetInstance().m_ListItaly =
-		SConfig::GetInstance().m_ListKorea	= SConfig::GetInstance().m_ListTaiwan =
-		SConfig::GetInstance().m_ListUnknown= true;
+		SConfig::GetInstance().m_ListGC      = SConfig::GetInstance().m_ListWii =
+		SConfig::GetInstance().m_ListWad     = SConfig::GetInstance().m_ListJap =
+		SConfig::GetInstance().m_ListUsa     = SConfig::GetInstance().m_ListPal =
+		SConfig::GetInstance().m_ListFrance  = SConfig::GetInstance().m_ListItaly =
+		SConfig::GetInstance().m_ListKorea   = SConfig::GetInstance().m_ListTaiwan =
+		SConfig::GetInstance().m_ListUnknown = true;
 
 		GetMenuBar()->FindItem(IDM_LISTGC)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTWII)->Check(true);

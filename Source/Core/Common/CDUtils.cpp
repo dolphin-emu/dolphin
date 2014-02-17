@@ -47,7 +47,7 @@ std::vector<std::string> cdio_get_devices()
 			if (is_cdrom(drive))
 			{
 				std::string str(TStrToUTF8(drive));
-				str.pop_back();	// we don't want the final backslash
+				str.pop_back(); // we don't want the final backslash
 				drives.push_back(std::move(str));
 			}
 

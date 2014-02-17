@@ -205,7 +205,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		libusb_submit_transfer(transfer);
 
 		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-		//		  bmRequestType, bRequest, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		//          bmRequestType, bRequest, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 		// It's the async way!
 		return false;
@@ -237,7 +237,7 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 		libusb_submit_transfer(transfer);
 
 		//DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Interrupt %s)(%d,%d,%X) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-		//	Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		//          Parameter == IOCTL_HID_INTERRUPT_IN ? "In" : "Out", endpoint, length, data, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 		// It's the async way!
 		return false;

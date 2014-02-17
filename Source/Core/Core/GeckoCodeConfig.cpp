@@ -29,7 +29,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 			if (line.empty())
 				continue;
 
-			std::istringstream	ss(line);
+			std::istringstream ss(line);
 
 			switch ((line)[0])
 			{

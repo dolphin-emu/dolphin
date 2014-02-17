@@ -151,7 +151,7 @@ void SWBPWritten(int address, int newvalue)
 				}
 			}
 		}
- 		break;
+		break;
 
 	case BPMEM_TEV_REGISTER_L:   // Reg 1
 	case BPMEM_TEV_REGISTER_L+2: // Reg 2

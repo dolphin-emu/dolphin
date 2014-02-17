@@ -203,7 +203,7 @@ void DSPDebuggerLLE::UpdateSymbolMap()
 	if (g_dsp.dram == NULL)
 		return;
 
-	m_SymbolList->Freeze();	// HyperIris: wx style fast filling
+	m_SymbolList->Freeze(); // HyperIris: wx style fast filling
 	m_SymbolList->Clear();
 	for (const auto& symbol : DSPSymbols::g_dsp_symbol_db.Symbols())
 	{

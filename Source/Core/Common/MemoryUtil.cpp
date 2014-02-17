@@ -58,7 +58,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 #else
 	if (ptr == NULL)
 	{
-#endif	
+#endif
 		PanicAlert("Failed to allocate executable memory");
 	}
 #if !defined(_WIN32) && defined(__x86_64__) && !defined(MAP_32BIT)

@@ -150,7 +150,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForc
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 {
 	//ERROR_LOG(WII_IPC_WIIMOTE, "Passing ioctl to ioctlv");
-	return IOCtlV(_CommandAddress);	//hack
+	return IOCtlV(_CommandAddress); // FIXME: Hack
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
@@ -333,8 +333,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint valid, sending packet to %08x", m_ACLEndpoint.m_address);
 
 		hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(m_ACLEndpoint.m_buffer);
-		pHeader->con_handle	= HCI_MK_CON_HANDLE(_ConnectionHandle, HCI_PACKET_START, HCI_POINT2POINT);
-		pHeader->length		= _Size;
+		pHeader->con_handle = HCI_MK_CON_HANDLE(_ConnectionHandle, HCI_PACKET_START, HCI_POINT2POINT);
+		pHeader->length     = _Size;
 
 		// Write the packet to the buffer
 		memcpy((u8*)pHeader + sizeof(hci_acldata_hdr_t), _pData, pHeader->length);
@@ -607,9 +607,9 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(const bdad
 
 	static char s_szLinkType[][128] =
 	{
-		{ "HCI_LINK_SCO		0x00 - Voice"},
-		{ "HCI_LINK_ACL		0x01 - Data"},
-		{ "HCI_LINK_eSCO	0x02 - eSCO"},
+		{ "HCI_LINK_SCO     0x00 - Voice"},
+		{ "HCI_LINK_ACL     0x01 - Data"},
+		{ "HCI_LINK_eSCO    0x02 - eSCO"},
 	};
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventConnectionComplete");
@@ -642,9 +642,9 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 
 	static char LinkType[][128] =
 	{
-		{ "HCI_LINK_SCO		0x00 - Voice"},
-		{ "HCI_LINK_ACL		0x01 - Data" },
-		{ "HCI_LINK_eSCO	0x02 - eSCO" },
+		{ "HCI_LINK_SCO     0x00 - Voice"},
+		{ "HCI_LINK_ACL     0x01 - Data" },
+		{ "HCI_LINK_eSCO    0x02 - eSCO" },
 	};
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventRequestConnection");

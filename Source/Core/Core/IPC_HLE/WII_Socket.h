@@ -187,7 +187,7 @@ private:
 public:
 	WiiSocket() : fd(-1), nonBlock(false) {}
 	~WiiSocket();
-	void operator=(WiiSocket const&);	// Don't implement
+	void operator=(WiiSocket const&); // Don't implement
 
 };
 
@@ -200,7 +200,7 @@ public:
 	static WiiSockMan& getInstance()
 	{
 		static WiiSockMan instance; // Guaranteed to be destroyed.
-		return instance;			// Instantiated on first use.
+		return instance;            // Instantiated on first use.
 	}
 	void Update();
 	static void EnqueueReply(u32 CommandAddress, s32 ReturnValue);

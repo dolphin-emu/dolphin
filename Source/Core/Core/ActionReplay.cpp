@@ -195,7 +195,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 					{
 						// Encrypted AR code
 						// Decryption is done in "blocks", so we must push blocks into a vector,
-						//	then send to decrypt when a new block is encountered, or if it's the last block.
+						// then send to decrypt when a new block is encountered, or if it's the last block.
 						encryptedLines.push_back(pieces[0]+pieces[1]+pieces[2]);
 					}
 				}
@@ -293,7 +293,7 @@ bool RunCode(const ARCode &arcode)
 		// after a conditional code, skip lines if needed
 		if (skip_count)
 		{
-			if (skip_count > 0)	// skip x lines
+			if (skip_count > 0) // skip x lines
 			{
 				LogInfo("Line skipped");
 				--skip_count;
@@ -302,13 +302,13 @@ bool RunCode(const ARCode &arcode)
 			{
 				// skip all lines
 				LogInfo("All Lines skipped");
-				return true;	// don't need to iterate through the rest of the ops
+				return true; // don't need to iterate through the rest of the ops
 			}
 			else if (-CONDTIONAL_ALL_LINES_UNTIL == skip_count)
 			{
 				// skip until a "00000000 40000000" line is reached
 				LogInfo("Line skipped");
-				if (0 == addr && 0x40000000 == data)	// check for an endif line
+				if (addr == 0 && 0x40000000 == data) // check for an endif line
 					skip_count = 0;
 			}
 
@@ -642,7 +642,7 @@ bool Subtype_AddCode(const ARAddr addr, const u32 data)
 		LogInfo("--------");
 
 		const u32 read = Memory::Read_U32(new_addr);
-		const float fread = *((float*)&read) + (float)data;	// data contains an integer value
+		const float fread = *((float*)&read) + (float)data; // data contains an integer value
 		const u32 newval = *((u32*)&fread);
 		Memory::Write_U32(newval, new_addr);
 		LogInfo("Old Value %08x", read);
@@ -928,7 +928,7 @@ bool CompareValues(const u32 val1, const u32 val2, const int type)
 
 	case CONDTIONAL_AND:
 		LogInfo("Type 7: If And");
-		return !!(val1 & val2);	// bitwise AND
+		return !!(val1 & val2); // bitwise AND
 		break;
 
 	default: LogInfo("Unknown Compare type");

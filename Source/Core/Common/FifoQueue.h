@@ -63,7 +63,7 @@ public:
 		m_read_ptr = AtomicLoad(tmpptr->next);
 		// set the next element to NULL to stop the recursive deletion
 		tmpptr->next = NULL;
-		delete tmpptr;	// this also deletes the element
+		delete tmpptr; // this also deletes the element
 	}
 
 	bool Pop(T& t)

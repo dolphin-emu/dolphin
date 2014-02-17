@@ -824,7 +824,7 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const char *inputFile, const std::s
 		gci.ReadBytes(tmp, 0xD);
 		if (!strcasecmp(fileType.c_str(), ".gcs"))
 		{
-			if (!memcmp(tmp, "GCSAVE", 6))	// Header must be uppercase
+			if (!memcmp(tmp, "GCSAVE", 6)) // Header must be uppercase
 				offset = GCS;
 			else
 				return GCSFAIL;
@@ -988,7 +988,8 @@ void GCMemcard::Gcs_SavConvert(DEntry &tempDEntry, int saveType, int length)
 	switch(saveType)
 	{
 	case GCS:
-	{	// field containing the Block count as displayed within
+	{
+		// field containing the Block count as displayed within
 		// the GameSaves software is not stored in the GCS file.
 		// It is stored only within the corresponding GSV file.
 		// If the GCS file is added without using the GameSaves software,
@@ -1269,7 +1270,7 @@ void GCMemcard::FormatInternal(GCMC_Header &GCP)
 	p_hdr->SramBias = g_SRAM.counter_bias;
 	p_hdr->SramLang = g_SRAM.lang;
 	// TODO: determine the purpose of Unk2 1 works for slot A, 0 works for both slot A and slot B
-	*(u32*)&p_hdr->Unk2 = 0;		// = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+	*(u32*)&p_hdr->Unk2 = 0; // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
 	*(u16*)&p_hdr->deviceID = 0;
 	calc_checksumsBE((u16*)p_hdr, 0xFE, &p_hdr->Checksum, &p_hdr->Checksum_Inv);
 

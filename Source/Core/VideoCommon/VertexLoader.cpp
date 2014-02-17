@@ -391,7 +391,7 @@ void LOADERDECL UpdateBoundingBox()
 	{
 		m = (p1.x - p0.x) ? ((p1.y - p0.y) / (p1.x - p0.x)) : highNum;
 		c = p0.y - (m * p0.x);
-		if (i0 & 1)	{ s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
+		if (i0 & 1) { s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
 		if (i0 & 2) { s = (s32)((-c / m) + roundUp); if (s >= 0 && s <= 607) top = 0;   left = (s < left) ? s : left; right = (s > right) ? s : right; }
 		if (i0 & 4) { s = (s32)((m * 607) + c + roundUp); if (s >= 0 && s <= 479) right = 607; top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
 		if (i0 & 8) { s = (s32)(((479 - c) / m) + roundUp); if (s >= 0 && s <= 607) bottom = 479; left = (s < left) ? s : left; right = (s > right) ? s : right; }
@@ -405,7 +405,7 @@ void LOADERDECL UpdateBoundingBox()
 		{
 			m = (p2.x - p1.x) ? ((p2.y - p1.y) / (p2.x - p1.x)) : highNum;
 			c = p1.y - (m * p1.x);
-			if (i1 & 1)	{ s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
+			if (i1 & 1) { s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
 			if (i1 & 2) { s = (s32)((-c / m) + roundUp); if (s >= 0 && s <= 607) top = 0;   left = (s < left) ? s : left; right = (s > right) ? s : right; }
 			if (i1 & 4) { s = (s32)((m * 607) + c + roundUp); if (s >= 0 && s <= 479) right = 607; top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
 			if (i1 & 8) { s = (s32)(((479 - c) / m) + roundUp); if (s >= 0 && s <= 607) bottom = 479; left = (s < left) ? s : left; right = (s > right) ? s : right; }
@@ -416,7 +416,7 @@ void LOADERDECL UpdateBoundingBox()
 		{
 			m = (p2.x - p0.x) ? ((p2.y - p0.y) / (p2.x - p0.x)) : highNum;
 			c = p0.y - (m * p0.x);
-			if (i2 & 1)	{ s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
+			if (i2 & 1) { s = (s32)(c + roundUp); if (s >= 0 && s <= 479) left = 0;   top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
 			if (i2 & 2) { s = (s32)((-c / m) + roundUp); if (s >= 0 && s <= 607) top = 0;   left = (s < left) ? s : left; right = (s > right) ? s : right; }
 			if (i2 & 4) { s = (s32)((m * 607) + c + roundUp); if (s >= 0 && s <= 479) right = 607; top = (s < top) ? s : top;  bottom = (s > bottom) ? s : bottom; }
 			if (i2 & 8) { s = (s32)(((479 - c) / m) + roundUp); if (s >= 0 && s <= 607) bottom = 479; left = (s < left) ? s : left; right = (s > right) ? s : right; }
@@ -636,12 +636,12 @@ void VertexLoader::CompileVertexTranslator()
 		case DIRECT:
 			switch (m_VtxAttr.color[i].Comp)
 			{
-			case FORMAT_16B_565:	m_VertexSize += 2; WriteCall(Color_ReadDirect_16b_565); break;
-			case FORMAT_24B_888:	m_VertexSize += 3; WriteCall(Color_ReadDirect_24b_888); break;
-			case FORMAT_32B_888x:	m_VertexSize += 4; WriteCall(Color_ReadDirect_32b_888x); break;
-			case FORMAT_16B_4444:	m_VertexSize += 2; WriteCall(Color_ReadDirect_16b_4444); break;
-			case FORMAT_24B_6666:	m_VertexSize += 3; WriteCall(Color_ReadDirect_24b_6666); break;
-			case FORMAT_32B_8888:	m_VertexSize += 4; WriteCall(Color_ReadDirect_32b_8888); break;
+			case FORMAT_16B_565:  m_VertexSize += 2; WriteCall(Color_ReadDirect_16b_565); break;
+			case FORMAT_24B_888:  m_VertexSize += 3; WriteCall(Color_ReadDirect_24b_888); break;
+			case FORMAT_32B_888x: m_VertexSize += 4; WriteCall(Color_ReadDirect_32b_888x); break;
+			case FORMAT_16B_4444: m_VertexSize += 2; WriteCall(Color_ReadDirect_16b_4444); break;
+			case FORMAT_24B_6666: m_VertexSize += 3; WriteCall(Color_ReadDirect_24b_6666); break;
+			case FORMAT_32B_8888: m_VertexSize += 4; WriteCall(Color_ReadDirect_32b_8888); break;
 			default: _assert_(0); break;
 			}
 			break;
@@ -649,12 +649,12 @@ void VertexLoader::CompileVertexTranslator()
 			m_VertexSize += 1;
 			switch (m_VtxAttr.color[i].Comp)
 			{
-			case FORMAT_16B_565:	WriteCall(Color_ReadIndex8_16b_565); break;
-			case FORMAT_24B_888:	WriteCall(Color_ReadIndex8_24b_888); break;
-			case FORMAT_32B_888x:	WriteCall(Color_ReadIndex8_32b_888x); break;
-			case FORMAT_16B_4444:	WriteCall(Color_ReadIndex8_16b_4444); break;
-			case FORMAT_24B_6666:	WriteCall(Color_ReadIndex8_24b_6666); break;
-			case FORMAT_32B_8888:	WriteCall(Color_ReadIndex8_32b_8888); break;
+			case FORMAT_16B_565:  WriteCall(Color_ReadIndex8_16b_565); break;
+			case FORMAT_24B_888:  WriteCall(Color_ReadIndex8_24b_888); break;
+			case FORMAT_32B_888x: WriteCall(Color_ReadIndex8_32b_888x); break;
+			case FORMAT_16B_4444: WriteCall(Color_ReadIndex8_16b_4444); break;
+			case FORMAT_24B_6666: WriteCall(Color_ReadIndex8_24b_6666); break;
+			case FORMAT_32B_8888: WriteCall(Color_ReadIndex8_32b_8888); break;
 			default: _assert_(0); break;
 			}
 			break;
@@ -662,12 +662,12 @@ void VertexLoader::CompileVertexTranslator()
 			m_VertexSize += 2;
 			switch (m_VtxAttr.color[i].Comp)
 			{
-			case FORMAT_16B_565:	WriteCall(Color_ReadIndex16_16b_565); break;
-			case FORMAT_24B_888:	WriteCall(Color_ReadIndex16_24b_888); break;
-			case FORMAT_32B_888x:	WriteCall(Color_ReadIndex16_32b_888x); break;
-			case FORMAT_16B_4444:	WriteCall(Color_ReadIndex16_16b_4444); break;
-			case FORMAT_24B_6666:	WriteCall(Color_ReadIndex16_24b_6666); break;
-			case FORMAT_32B_8888:	WriteCall(Color_ReadIndex16_32b_8888); break;
+			case FORMAT_16B_565:  WriteCall(Color_ReadIndex16_16b_565); break;
+			case FORMAT_24B_888:  WriteCall(Color_ReadIndex16_24b_888); break;
+			case FORMAT_32B_888x: WriteCall(Color_ReadIndex16_32b_888x); break;
+			case FORMAT_16B_4444: WriteCall(Color_ReadIndex16_16b_4444); break;
+			case FORMAT_24B_6666: WriteCall(Color_ReadIndex16_24b_6666); break;
+			case FORMAT_32B_8888: WriteCall(Color_ReadIndex16_32b_8888); break;
 			default: _assert_(0); break;
 			}
 			break;

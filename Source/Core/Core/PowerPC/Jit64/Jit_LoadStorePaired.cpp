@@ -107,11 +107,11 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	CALLptr(MScaled(EDX, addr_scale, (u32)(u64)asm_routines.pairedLoadQuantized));
 	ABI_RestoreStack(0);
 
-//	MEMCHECK_START // FIXME: MMU does not work here because of unsafe memory access
+	// MEMCHECK_START // FIXME: MMU does not work here because of unsafe memory access
 
 	CVTPS2PD(fpr.RX(inst.RS), R(XMM0));
 
-//	MEMCHECK_END
+	// MEMCHECK_END
 
 	gpr.UnlockAll();
 	gpr.UnlockAllX();

@@ -347,8 +347,8 @@ struct wm_speaker_data
 // Custom structs
 
 /**
- *	@struct accel_t
- *	@brief Accelerometer struct. For any device with an accelerometer.
+ * @struct accel_t
+ * @brief Accelerometer struct. For any device with an accelerometer.
  */
 struct accel_cal
 {

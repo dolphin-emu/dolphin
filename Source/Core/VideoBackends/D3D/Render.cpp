@@ -465,9 +465,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), NULL);
 		D3D::drawColorQuad(rgbaColor, (float)RectToLock.left   * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
-									- (float)RectToLock.top	* 2.f / (float)Renderer::GetTargetHeight() + 1.f,
-									  (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
-									- (float)RectToLock.bottom * 2.f / (float)Renderer::GetTargetHeight() + 1.f);
+		                            - (float)RectToLock.top    * 2.f / (float)Renderer::GetTargetHeight() + 1.f,
+		                              (float)RectToLock.right  * 2.f / (float)Renderer::GetTargetWidth()  - 1.f,
+		                            - (float)RectToLock.bottom * 2.f / (float)Renderer::GetTargetHeight() + 1.f);
 
 		RestoreAPIState();
 		return 0;
@@ -514,10 +514,9 @@ void Renderer::SetViewport()
 	Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
 	// Some games set invalid values for z-min and z-max so fix them to the max and min allowed and let the shaders do this work
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y,
-										Wd, Ht,
-										0.f,	// (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
-										1.f);   //  xfregs.viewport.farZ / 16777216.0f;
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
+										0.f,  // (xfregs.viewport.farZ - xfregs.viewport.zRange) / 16777216.0f;
+										1.f); //  xfregs.viewport.farZ / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);
 }
 

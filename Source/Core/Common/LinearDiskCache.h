@@ -87,7 +87,7 @@ public:
 					Read(value, value_size) &&
 					Read(&entry_number) &&
 					entry_number == m_num_entries+1)
- 				{
+				{
 					reader.Read(key, value, value_size);
 				}
 				else

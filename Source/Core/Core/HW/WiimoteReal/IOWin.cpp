@@ -19,7 +19,7 @@
 
 // Used for pair up
 #undef NTDDI_VERSION
-#define NTDDI_VERSION	NTDDI_WINXPSP2
+#define NTDDI_VERSION  NTDDI_WINXPSP2
 #include <bthdef.h>
 #include <BluetoothAPIs.h>
 
@@ -49,7 +49,7 @@ typedef DWORD (__stdcall *PBth_BluetoothGetRadioInfo)(HANDLE, PBLUETOOTH_RADIO_I
 typedef DWORD (__stdcall *PBth_BluetoothRemoveDevice)(const BLUETOOTH_ADDRESS*);
 typedef DWORD (__stdcall *PBth_BluetoothSetServiceState)(HANDLE, const BLUETOOTH_DEVICE_INFO*, const GUID*, DWORD);
 typedef DWORD (__stdcall *PBth_BluetoothAuthenticateDevice)(HWND, HANDLE, BLUETOOTH_DEVICE_INFO*, PWCHAR, ULONG);
-typedef DWORD (__stdcall *PBth_BluetoothEnumerateInstalledServices)(HANDLE,	BLUETOOTH_DEVICE_INFO*, DWORD*, GUID*);
+typedef DWORD (__stdcall *PBth_BluetoothEnumerateInstalledServices)(HANDLE, BLUETOOTH_DEVICE_INFO*, DWORD*, GUID*);
 
 PHidD_GetHidGuid HidD_GetHidGuid = NULL;
 PHidD_GetAttributes HidD_GetAttributes = NULL;
@@ -244,7 +244,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 
 	// Don't mind me, just a random sleep to fix stuff on Windows
 	//if (!wiimotes.empty())
-	//	SLEEP(2000);
+	//    SLEEP(2000);
 
 }
 int CheckDeviceType_Write(HANDLE &dev_handle, const u8* buf, size_t size, int attempts)

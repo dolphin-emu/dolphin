@@ -4,7 +4,7 @@
 
 #pragma once
 
-#define GCC_VER(x,y,z)	((x) * 10000 + (y) * 100 + (z))
+#define GCC_VER(x,y,z) ((x) * 10000 + (y) * 100 + (z))
 #define GCC_VERSION GCC_VER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 
 #ifndef __has_include
@@ -194,7 +194,7 @@ private:
 };
 
 #else
-typedef recursive_mutex mutex;	// just use CriticalSections
+typedef recursive_mutex mutex; // just use CriticalSections
 
 #endif
 
@@ -345,11 +345,6 @@ public:
 	{
 		return owns;
 	}
-
-	//explicit operator bool () const
-	//{
-	//	return owns_lock();
-	//}
 
 	mutex_type* mutex() const
 	{

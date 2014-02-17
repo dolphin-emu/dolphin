@@ -37,21 +37,21 @@ public:
 private:
 	DECLARE_EVENT_TABLE();
 
-	wxPanel *m_MainPanel;
+	wxPanel*    m_MainPanel;
 
-	wxButton	*m_pButtonPause;
-	wxButton	*m_pButtonPauseAtNext;
-	wxButton	*m_pButtonPauseAtNextFrame;
-	wxButton	*m_pButtonCont;
-	wxChoice	*m_pPauseAtList;
-	wxButton	*m_pButtonDump;
-	wxChoice	*m_pDumpList;
-	wxButton	*m_pButtonUpdateScreen;
-	wxButton	*m_pButtonClearScreen;
-	wxButton	*m_pButtonClearTextureCache;
-	wxButton	*m_pButtonClearVertexShaderCache;
-	wxButton	*m_pButtonClearPixelShaderCache;
-	wxTextCtrl	*m_pCount;
+	wxButton*   m_pButtonPause;
+	wxButton*   m_pButtonPauseAtNext;
+	wxButton*   m_pButtonPauseAtNextFrame;
+	wxButton*   m_pButtonCont;
+	wxChoice*   m_pPauseAtList;
+	wxButton*   m_pButtonDump;
+	wxChoice*   m_pDumpList;
+	wxButton*   m_pButtonUpdateScreen;
+	wxButton*   m_pButtonClearScreen;
+	wxButton*   m_pButtonClearTextureCache;
+	wxButton*   m_pButtonClearVertexShaderCache;
+	wxButton*   m_pButtonClearPixelShaderCache;
+	wxTextCtrl* m_pCount;
 
 
 	// TODO: Prefix with GFX_

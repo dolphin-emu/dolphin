@@ -84,23 +84,23 @@ static const wxLanguage langIds[] =
 };
 
 // Strings for Device Selections
-#define DEV_NONE_STR		_trans("<Nothing>")
-#define DEV_DUMMY_STR		_trans("Dummy")
+#define DEV_NONE_STR        _trans("<Nothing>")
+#define DEV_DUMMY_STR       _trans("Dummy")
 
-#define SIDEV_STDCONT_STR	_trans("Standard Controller")
-#define SIDEV_STEERING_STR	_trans("Steering Wheel")
-#define SIDEV_DANCEMAT_STR	_trans("Dance Mat")
-#define SIDEV_BONGO_STR		_trans("TaruKonga (Bongos)")
-#define SIDEV_GBA_STR		"GBA"
-#define SIDEV_AM_BB_STR		_trans("AM-Baseboard")
+#define SIDEV_STDCONT_STR   _trans("Standard Controller")
+#define SIDEV_STEERING_STR  _trans("Steering Wheel")
+#define SIDEV_DANCEMAT_STR  _trans("Dance Mat")
+#define SIDEV_BONGO_STR     _trans("TaruKonga (Bongos)")
+#define SIDEV_GBA_STR       "GBA"
+#define SIDEV_AM_BB_STR     _trans("AM-Baseboard")
 
-#define EXIDEV_MEMCARD_STR	_trans("Memory Card")
-#define EXIDEV_MIC_STR		_trans("Mic")
-#define EXIDEV_BBA_STR		"BBA"
-#define EXIDEV_AM_BB_STR	_trans("AM-Baseboard")
-#define EXIDEV_GECKO_STR	"USBGecko"
+#define EXIDEV_MEMCARD_STR  _trans("Memory Card")
+#define EXIDEV_MIC_STR      _trans("Mic")
+#define EXIDEV_BBA_STR      "BBA"
+#define EXIDEV_AM_BB_STR    _trans("AM-Baseboard")
+#define EXIDEV_GECKO_STR    "USBGecko"
 
-#define WXSTR_TRANS(a)		wxString(wxGetTranslation(wxT(a)))
+#define WXSTR_TRANS(a)      wxString(wxGetTranslation(wxT(a)))
 #ifdef WIN32
 //only used with xgettext to be picked up as translatable string.
 //win32 does not have wx on its path, the provided wxALL_FILES
@@ -246,7 +246,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_Framelimit.Add(_("Off"));
 	arrayStringFor_Framelimit.Add(_("Auto"));
 	arrayStringFor_Framelimit.Add(_("Audio"));
-	for (int i = 10; i <= 120; i += 5)	// from 10 to 120
+	for (int i = 10; i <= 120; i += 5) // from 10 to 120
 		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 
 	// Emulator Engine
@@ -1090,7 +1090,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 				ExpansionInterface::ChangeDevice(
 					isSlotA ? 0 : 1, // SlotA: channel 0, SlotB channel 1
 					EXIDEVICE_MEMORYCARD,
-					0);	// SP1 is device 2, slots are device 0
+					0); // SP1 is device 2, slots are device 0
 			}
 		}
 		else
@@ -1159,9 +1159,9 @@ void CConfigMain::ChooseEXIDevice(wxString deviceName, int deviceNum)
 	{
 		// Change plugged device! :D
 		ExpansionInterface::ChangeDevice(
-			(deviceNum == 1) ? 1 : 0,	// SlotB is on channel 1, slotA and SP1 are on 0
-			tempType,					// The device enum to change to
-			(deviceNum == 2) ? 2 : 0);	// SP1 is device 2, slots are device 0
+			(deviceNum == 1) ? 1 : 0,  // SlotB is on channel 1, slotA and SP1 are on 0
+			tempType,                  // The device enum to change to
+			(deviceNum == 2) ? 2 : 0); // SP1 is device 2, slots are device 0
 	}
 }
 
@@ -1311,7 +1311,7 @@ inline u8 CConfigMain::GetSADRCountryCode(int language)
 	case 1: //English
 		countrycode = 49; // United States
 		break;
-	case 2:	//German
+	case 2: //German
 		countrycode = 78; //Germany
 		break;
 	case 3: //French
@@ -1323,7 +1323,7 @@ inline u8 CConfigMain::GetSADRCountryCode(int language)
 	case 5: //Italian
 		countrycode = 83; //Italy
 		break;
-	case 6:	//Dutch
+	case 6: //Dutch
 		countrycode = 94; //Netherlands
 		break;
 	case 7: //Simplified Chinese

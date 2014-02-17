@@ -97,7 +97,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bJITOff = false; // debugger only settings
 	bJITLoadStoreOff = false;
 	bJITLoadStoreFloatingOff = false;
-	bJITLoadStorePairedOff = false;		// XXX not 64-bit clean
+	bJITLoadStorePairedOff = false; // XXX not 64-bit clean
 	bJITFloatingPointOff = false;
 	bJITIntegerOff = false;
 	bJITPairedOff = false;
@@ -271,7 +271,8 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 					delete pVolume;
 				}
 				else
-				{	// null pVolume means that we are loading from nand folder (Most Likely Wii Menu)
+				{
+					// null pVolume means that we are loading from nand folder (Most Likely Wii Menu)
 					// if this is the second boot we would be using the Name and id of the last title
 					m_strName.clear();
 					m_strUniqueID.clear();

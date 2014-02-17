@@ -1571,9 +1571,9 @@ namespace GLExtensions
 	bool _isES;
 	u32 _GLVersion;
 	std::unordered_map<std::string, bool> m_extension_list;
-	
+
 	// Private initialization functions
-	bool InitFunctionPointers();	
+	bool InitFunctionPointers();
 
 	// Initializes the extension list the old way
 	void InitExtensionList21()
@@ -1767,7 +1767,7 @@ namespace GLExtensions
 		// Grab a few functions for initial checking
 		// We need them to grab the extension list
 		// Also to check if there is an error grabbing the version
-		// If it fails then the user's drivers don't support GL 3.0	
+		// If it fails then the user's drivers don't support GL 3.0
 		if (GetFuncAddress ("glGetIntegerv", (void**)&glGetIntegerv) == NULL)
 			return false;
 		if (GetFuncAddress("glGetString", (void**)&glGetString) == NULL)
@@ -1781,7 +1781,7 @@ namespace GLExtensions
 		InitExtensionList();
 
 		return InitFunctionPointers();
-	}	
+	}
 
 	// Private initialization functions
 	bool HasFeatures(const std::string& extensions)

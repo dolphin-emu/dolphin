@@ -57,8 +57,7 @@ class CCodeWindow
 
 		void Update();
 		void NotifyMapLoaded();
-		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter,
-			   	wxMenuBar *pMenuBar);
+		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter, wxMenuBar *pMenuBar);
 		void CreateMenuOptions(wxMenu *pMenu);
 		void CreateMenuSymbols(wxMenuBar *pMenuBar);
 		void RecreateToolbar(wxAuiToolBar*);

@@ -28,16 +28,16 @@
 #include <soundtouch/STTypes.h>
 
 // 16 bit Stereo
-#define SFX_MAX_SOURCE			1
-#define OAL_MAX_BUFFERS			32
-#define OAL_MAX_SAMPLES			256
-#define STEREO_CHANNELS			2
-#define SURROUND_CHANNELS		6	// number of channels in surround mode
-#define SIZE_SHORT				2
-#define SIZE_FLOAT				4   // size of a float in bytes
-#define FRAME_STEREO_SHORT		STEREO_CHANNELS * SIZE_SHORT
-#define FRAME_STEREO_FLOAT		STEREO_CHANNELS * SIZE_FLOAT
-#define FRAME_SURROUND_FLOAT	SURROUND_CHANNELS * SIZE_FLOAT
+#define SFX_MAX_SOURCE          1
+#define OAL_MAX_BUFFERS         32
+#define OAL_MAX_SAMPLES         256
+#define STEREO_CHANNELS         2
+#define SURROUND_CHANNELS       6   // number of channels in surround mode
+#define SIZE_SHORT              2
+#define SIZE_FLOAT              4   // size of a float in bytes
+#define FRAME_STEREO_SHORT      STEREO_CHANNELS * SIZE_SHORT
+#define FRAME_STEREO_FLOAT      STEREO_CHANNELS * SIZE_FLOAT
+#define FRAME_SURROUND_FLOAT    SURROUND_CHANNELS * SIZE_FLOAT
 #endif
 
 class OpenALStream: public SoundStream

@@ -24,8 +24,8 @@
 using namespace DVDInterface;
 
 
-#define DI_COVER_REG_INITIALIZED	0 // Should be 4, but doesn't work correctly...
-#define DI_COVER_REG_NO_DISC		1
+#define DI_COVER_REG_INITIALIZED  0 // Should be 4, but doesn't work correctly...
+#define DI_COVER_REG_NO_DISC      1
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -72,11 +72,11 @@ bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 
 bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 {
-	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
-	u32 Command			= Memory::Read_U32(BufferIn) >> 24;
+	u32 BufferIn      = Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize  = Memory::Read_U32(_CommandAddress + 0x14);
+	u32 BufferOut     = Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 Command       = Memory::Read_U32(BufferIn) >> 24;
 
 	DEBUG_LOG(WII_IPC_DVD, "IOCtl Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
 		Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
@@ -453,8 +453,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 {
-	u32 BufferIn	= Memory::Read_U32(_CommandAddress + 0x10);
-	u32 Command		= Memory::Read_U32(BufferIn) >> 24;
+	u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
+	u32 Command  = Memory::Read_U32(BufferIn) >> 24;
 
 	// Hacks below
 
@@ -477,14 +477,14 @@ int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 		return SystemTimers::GetTicksPerSecond() / 146;
 		break;
 
-//	case DVDLowAudioBufferConfig:
-//	case DVDLowInquiry:
-//	case DVDLowReadDiskID:
-//	case DVDLowWaitForCoverClose:
-//	case DVDLowGetCoverReg:
-//	case DVDLowGetCoverStatus:
-//	case DVDLowReset:
-//	case DVDLowClosePartition:
+	// case DVDLowAudioBufferConfig:
+	// case DVDLowInquiry:
+	// case DVDLowReadDiskID:
+	// case DVDLowWaitForCoverClose:
+	// case DVDLowGetCoverReg:
+	// case DVDLowGetCoverStatus:
+	// case DVDLowReset:
+	// case DVDLowClosePartition:
 	default:
 		// random numbers here!
 		// More than ~1/2000th of a second hangs DKCR with DSP HLE, maybe.

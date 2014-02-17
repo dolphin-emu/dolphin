@@ -358,27 +358,27 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 		//if(((((u8*)&wm->m_reg_ext)[0xf0] == 0xaa) || ((u8*)&wm->m_reg_motion_plus)[0xf0] == 0xaa) && rdr->address>>8 < 0xf0) {
 
 		//if(!wm->GetMotionPlusActive() && ((u8*)&wm->m_reg_ext)[0xf0] == 0xaa && rdr->address>>8 < 0xf0) {
-
+		
 		//if(!wm->GetMotionPlusActive() && ((u8*)&wm->m_reg_ext)[0xf0] == 0xaa) {
-
-		//	SWARN_LOG(CONSOLE, "key %s", ArrayToString(((u8*)&wm->m_ext_key), sizeof(wm->m_ext_key), 0, 30).c_str());
-		//	SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
-		//	wiimote_decrypt(&wm->m_ext_key, rdr->data, dataReply[2]&0xffff, rdr->size+1);
-		//	SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
-		//	decrypted = true;
+		
+			// SWARN_LOG(CONSOLE, "key %s", ArrayToString(((u8*)&wm->m_ext_key), sizeof(wm->m_ext_key), 0, 30).c_str());
+			// SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
+			// wiimote_decrypt(&wm->m_ext_key, rdr->data, dataReply[2]&0xffff, rdr->size+1);
+			// SWARN_LOG(CONSOLE, "decrypt %s", ArrayToString(rdr->data, rdr->size+1, 0, 30).c_str());
+			// decrypted = true;
 		//}
 
 		// save data
 		if (!emu && !rdr->error)
 		{
 			//if (dataReply[1] == 0xa4 && wm->GetMotionPlusActive())
-				//memcpy(&((u8*)&wm->m_reg_motion_plus)[rdr->address>>8], rdr->data, rdr->size+1);
+			//    memcpy(&((u8*)&wm->m_reg_motion_plus)[rdr->address>>8], rdr->data, rdr->size+1);
 			//if (dataReply[1] == 0xa4 && !wm->GetMotionPlusActive())
 			//if (dataReply[1] == 0xa4)
-			//	memcpy(&((u8*)&wm->m_reg_ext)[rdr->address>>8], rdr->data, rdr->size+1);
+			//    memcpy(&((u8*)&wm->m_reg_ext)[rdr->address>>8], rdr->data, rdr->size+1);
 			//if (!wm->GetMotionPlusActive() && wm->GetMotionPlusAttached())
 			//if (dataReply[1] == 0xa6)
-			//	memcpy(&((u8*)&wm->m_reg_motion_plus)[rdr->address>>8], rdr->data, rdr->size+1);
+			//    memcpy(&((u8*)&wm->m_reg_motion_plus)[rdr->address>>8], rdr->data, rdr->size+1);
 			//INFO_LOG(CONSOLE, "Saving[0x%2x:0x%2x]: %s", dataReply[1], rdr->address>>8, ArrayToString(rdr->data, rdr->size+1).c_str());
 		}
 
@@ -395,39 +395,41 @@ void Spy(Wiimote* wm_, const void* data_, size_t size_)
 
 			// decrypt
 			//if(((u8*)&wm->m_reg_ext)[0xf0] == 0xaa) {
-			//	wiimote_decrypt(&wm->m_ext_key, &data[0x07], 0x00, (data[4] >> 0x04) + 1);
+			//    wiimote_decrypt(&wm->m_ext_key, &data[0x07], 0x00, (data[4] >> 0x04) + 1);
 
-			//if (wm->m_extension->name == "NUNCHUCK") {
-			//	INFO_LOG(CONSOLE, "\nGame got the Nunchuck calibration:\n");
-			//	INFO_LOG(CONSOLE, "Cal_zero.x: %i\n", data[7 + 0]);
-			//	INFO_LOG(CONSOLE, "Cal_zero.y: %i\n", data[7 + 1]);
-			//	INFO_LOG(CONSOLE, "Cal_zero.z: %i\n",  data[7 + 2]);
-			//	INFO_LOG(CONSOLE, "Cal_g.x: %i\n", data[7 + 4]);
-			//	INFO_LOG(CONSOLE, "Cal_g.y: %i\n",  data[7 + 5]);
-			//	INFO_LOG(CONSOLE, "Cal_g.z: %i\n",  data[7 + 6]);
-			//	INFO_LOG(CONSOLE, "Js.Max.x: %i\n",  data[7 + 8]);
-			//	INFO_LOG(CONSOLE, "Js.Min.x: %i\n",  data[7 + 9]);
-			//	INFO_LOG(CONSOLE, "Js.Center.x: %i\n", data[7 + 10]);
-			//	INFO_LOG(CONSOLE, "Js.Max.y: %i\n",  data[7 + 11]);
-			//	INFO_LOG(CONSOLE, "Js.Min.y: %i\n",  data[7 + 12]);
-			//	INFO_LOG(CONSOLE, "JS.Center.y: %i\n\n", data[7 + 13]);
+			//if (wm->m_extension->name == "NUNCHUCK")
+			//{
+				// INFO_LOG(CONSOLE, "\nGame got the Nunchuck calibration:\n");
+				// INFO_LOG(CONSOLE, "Cal_zero.x: %i\n", data[7 + 0]);
+				// INFO_LOG(CONSOLE, "Cal_zero.y: %i\n", data[7 + 1]);
+				// INFO_LOG(CONSOLE, "Cal_zero.z: %i\n",  data[7 + 2]);
+				// INFO_LOG(CONSOLE, "Cal_g.x: %i\n", data[7 + 4]);
+				// INFO_LOG(CONSOLE, "Cal_g.y: %i\n",  data[7 + 5]);
+				// INFO_LOG(CONSOLE, "Cal_g.z: %i\n",  data[7 + 6]);
+				// INFO_LOG(CONSOLE, "Js.Max.x: %i\n",  data[7 + 8]);
+				// INFO_LOG(CONSOLE, "Js.Min.x: %i\n",  data[7 + 9]);
+				// INFO_LOG(CONSOLE, "Js.Center.x: %i\n", data[7 + 10]);
+				// INFO_LOG(CONSOLE, "Js.Max.y: %i\n",  data[7 + 11]);
+				// INFO_LOG(CONSOLE, "Js.Min.y: %i\n",  data[7 + 12]);
+				// INFO_LOG(CONSOLE, "JS.Center.y: %i\n\n", data[7 + 13]);
 			//}
-			//else // g_Config.bClassicControllerConnected {
-			//	INFO_LOG(CONSOLE, "\nGame got the Classic Controller calibration:\n");
-			//	INFO_LOG(CONSOLE, "Lx.Max: %i\n", data[7 + 0]);
-			//	INFO_LOG(CONSOLE, "Lx.Min: %i\n", data[7 + 1]);
-			//	INFO_LOG(CONSOLE, "Lx.Center: %i\n",  data[7 + 2]);
-			//	INFO_LOG(CONSOLE, "Ly.Max: %i\n", data[7 + 3]);
-			//	INFO_LOG(CONSOLE, "Ly.Min: %i\n",  data[7 + 4]);
-			//	INFO_LOG(CONSOLE, "Ly.Center: %i\n",  data[7 + 5]);
-			//	INFO_LOG(CONSOLE, "Rx.Max.x: %i\n",  data[7 + 6]);
-			//	INFO_LOG(CONSOLE, "Rx.Min.x: %i\n",  data[7 + 7]);
-			//	INFO_LOG(CONSOLE, "Rx.Center.x: %i\n", data[7 + 8]);
-			//	INFO_LOG(CONSOLE, "Ry.Max.y: %i\n",  data[7 + 9]);
-			//	INFO_LOG(CONSOLE, "Ry.Min: %i\n",  data[7 + 10]);
-			//	INFO_LOG(CONSOLE, "Ry.Center: %i\n\n", data[7 + 11]);
-			//	INFO_LOG(CONSOLE, "Lt.Neutral: %i\n",  data[7 + 12]);
-			//	INFO_LOG(CONSOLE, "Rt.Neutral %i\n\n", data[7 + 13]);
+			//else // g_Config.bClassicControllerConnected
+			//{
+				// INFO_LOG(CONSOLE, "\nGame got the Classic Controller calibration:\n");
+				// INFO_LOG(CONSOLE, "Lx.Max: %i\n", data[7 + 0]);
+				// INFO_LOG(CONSOLE, "Lx.Min: %i\n", data[7 + 1]);
+				// INFO_LOG(CONSOLE, "Lx.Center: %i\n",  data[7 + 2]);
+				// INFO_LOG(CONSOLE, "Ly.Max: %i\n", data[7 + 3]);
+				// INFO_LOG(CONSOLE, "Ly.Min: %i\n",  data[7 + 4]);
+				// INFO_LOG(CONSOLE, "Ly.Center: %i\n",  data[7 + 5]);
+				// INFO_LOG(CONSOLE, "Rx.Max.x: %i\n",  data[7 + 6]);
+				// INFO_LOG(CONSOLE, "Rx.Min.x: %i\n",  data[7 + 7]);
+				// INFO_LOG(CONSOLE, "Rx.Center.x: %i\n", data[7 + 8]);
+				// INFO_LOG(CONSOLE, "Ry.Max.y: %i\n",  data[7 + 9]);
+				// INFO_LOG(CONSOLE, "Ry.Min: %i\n",  data[7 + 10]);
+				// INFO_LOG(CONSOLE, "Ry.Center: %i\n\n", data[7 + 11]);
+				// INFO_LOG(CONSOLE, "Lt.Neutral: %i\n",  data[7 + 12]);
+				// INFO_LOG(CONSOLE, "Rt.Neutral %i\n\n", data[7 + 13]);
 			//}
 
 			// save values

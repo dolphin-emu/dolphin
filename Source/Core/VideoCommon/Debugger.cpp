@@ -58,7 +58,7 @@ void GFXDebuggerCheckAndPause(bool update)
 		{
 			g_video_backend->UpdateFPSDisplay("Paused by Video Debugger");
 
-			if (update)	GFXDebuggerUpdateScreen();
+			if (update) GFXDebuggerUpdateScreen();
 			SLEEP(5);
 		}
 		g_pdebugger->OnContinue();

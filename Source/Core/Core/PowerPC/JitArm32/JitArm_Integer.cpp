@@ -1005,7 +1005,7 @@ void JitArm::twx(UGeckoInstruction inst)
 	SetJumpTarget(take5);
 	
 	LDR(RA, R9, PPCSTATE_OFF(Exceptions));
-	MOVI2R(RB, EXCEPTION_PROGRAM); // XXX: Can be optimized	
+	MOVI2R(RB, EXCEPTION_PROGRAM); // XXX: Can be optimized
 	ORR(RA, RA, RB);
 	STR(RA, R9, PPCSTATE_OFF(Exceptions));
 	WriteExceptionExit();

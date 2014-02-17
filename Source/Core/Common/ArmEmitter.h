@@ -118,7 +118,7 @@ private:
 	OpType Type;
 
 	// IMM types
-	u8	Rotation; // Only for u8 values
+	u8 Rotation; // Only for u8 values
 
 	// Register types
 	u8 IndexOrShift;
@@ -302,9 +302,9 @@ bool TryMakeOperand2_AllowNegation(s32 imm, Operand2 &op2, bool *negated);
 // Use this only when you know imm can be made into an Operand2.
 Operand2 AssumeMakeOperand2(u32 imm);
 
-inline Operand2 R(ARMReg Reg)	{ return Operand2(Reg, TYPE_REG); }
-inline Operand2 IMM(u32 Imm)	{ return Operand2(Imm, TYPE_IMM); }
-inline Operand2 Mem(void *ptr)	{ return Operand2((u32)ptr, TYPE_IMM); }
+inline Operand2 R(ARMReg Reg)  { return Operand2(Reg, TYPE_REG); }
+inline Operand2 IMM(u32 Imm)   { return Operand2(Imm, TYPE_IMM); }
+inline Operand2 Mem(void *ptr) { return Operand2((u32)ptr, TYPE_IMM); }
 //usage: struct {int e;} s; STRUCT_OFFSET(s,e)
 #define STRUCT_OFF(str,elem) ((u32)((u32)&(str).elem-(u32)&(str)))
 
@@ -474,8 +474,8 @@ public:
 	void UDIV(ARMReg dest, ARMReg dividend, ARMReg divisor);
 	void SDIV(ARMReg dest, ARMReg dividend, ARMReg divisor);
 
-	void MUL (ARMReg dest,	ARMReg src, ARMReg op2);
-	void MULS(ARMReg dest,	ARMReg src, ARMReg op2);
+	void MUL (ARMReg dest, ARMReg src, ARMReg op2);
+	void MULS(ARMReg dest, ARMReg src, ARMReg op2);
 
 	void UMULL(ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
 	void UMULLS(ARMReg destLo, ARMReg destHi, ARMReg rn, ARMReg rm);
@@ -599,7 +599,7 @@ private:
 
 	void VREVX(u32 size, u32 Size, ARMReg Vd, ARMReg Vm);
 
-public:		
+public:
 	NEONXEmitter(ARMXEmitter *emit)
 		: _emit(emit)
 	{}

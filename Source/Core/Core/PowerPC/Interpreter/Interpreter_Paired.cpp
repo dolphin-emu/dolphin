@@ -358,9 +358,9 @@ void Interpreter::ps_cmpu0(UGeckoInstruction _inst)
 	double fb = rPS0(_inst.FB);
 	int compareResult;
 
-	if (fa < fb)         		compareResult = 8;
-	else if (fa > fb)        	compareResult = 4;
-	else if (fa == fb)			compareResult = 2;
+	if (fa < fb)       compareResult = 8;
+	else if (fa > fb)  compareResult = 4;
+	else if (fa == fb) compareResult = 2;
 	else
 	{
 		compareResult = 1;
@@ -379,9 +379,9 @@ void Interpreter::ps_cmpo0(UGeckoInstruction _inst)
 	double fb = rPS0(_inst.FB);
 	int compareResult;
 
-	if (fa < fb)         		compareResult = 8;
-	else if (fa > fb)        	compareResult = 4;
-	else if (fa == fb)			compareResult = 2;
+	if (fa < fb)       compareResult = 8;
+	else if (fa > fb)  compareResult = 4;
+	else if (fa == fb) compareResult = 2;
 	else
 	{
 		compareResult = 1;
@@ -407,9 +407,9 @@ void Interpreter::ps_cmpu1(UGeckoInstruction _inst)
 	double fb = rPS1(_inst.FB);
 	int compareResult;
 
-	if (fa < fb)         		compareResult = 8;
-	else if (fa > fb)        	compareResult = 4;
-	else if (fa == fb)			compareResult = 2;
+	if (fa < fb)       compareResult = 8;
+	else if (fa > fb)  compareResult = 4;
+	else if (fa == fb) compareResult = 2;
 	else
 	{
 		compareResult = 1;
@@ -428,9 +428,9 @@ void Interpreter::ps_cmpo1(UGeckoInstruction _inst)
 	double fb = rPS1(_inst.FB);
 	int compareResult;
 
-	if (fa < fb)         		compareResult = 8;
-	else if (fa > fb)        	compareResult = 4;
-	else if (fa == fb)			compareResult = 2;
+	if (fa < fb)       compareResult = 8;
+	else if (fa > fb)  compareResult = 4;
+	else if (fa == fb) compareResult = 2;
 	else
 	{
 		compareResult = 1;

@@ -40,9 +40,9 @@ void Interpreter::fcmpo(UGeckoInstruction _inst)
 
 	int compareResult;
 
-	if (fa < fb)				compareResult = 8;
-	else if (fa > fb)           compareResult = 4;
-	else if (fa == fb)          compareResult = 2;
+	if (fa < fb)       compareResult = 8;
+	else if (fa > fb)  compareResult = 4;
+	else if (fa == fb) compareResult = 2;
 	else
 	{
 		FPSCR.FX = 1;
@@ -71,9 +71,9 @@ void Interpreter::fcmpu(UGeckoInstruction _inst)
 
 	int compareResult;
 
-	if (fa < fb)            compareResult = 8;
-	else if (fa > fb)       compareResult = 4;
-	else if (fa == fb)		compareResult = 2;
+	if (fa < fb)       compareResult = 8;
+	else if (fa > fb)  compareResult = 4;
+	else if (fa == fb) compareResult = 2;
 	else
 	{
 		compareResult = 1;
@@ -483,7 +483,7 @@ void Interpreter::fsubx(UGeckoInstruction _inst)
 void Interpreter::fsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
- 	UpdateFPRF(rPS0(_inst.FD));
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 

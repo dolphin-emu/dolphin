@@ -8,7 +8,7 @@
 namespace WiimoteEmu
 {
 
-static const u8 guitar_id[]	= { 0x00, 0x00, 0xa4, 0x20, 0x01, 0x03 };
+static const u8 guitar_id[] = { 0x00, 0x00, 0xa4, 0x20, 0x01, 0x03 };
 
 static const u16 guitar_fret_bitmasks[] =
 {
@@ -82,7 +82,7 @@ void Guitar::GetState(u8* const data, const bool focus)
 	}
 
 	// TODO: touch bar, probably not
-	gdata->tb = 0x0F;	// not touched
+	gdata->tb = 0x0F; // not touched
 
 	// whammy bar
 	u8 whammy;

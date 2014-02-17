@@ -582,9 +582,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 
 		// Filesystem icons
 		wxImageList * const m_iconList = new wxImageList(16, 16);
-		m_iconList->Add(wxBitmap(disc_xpm), wxNullBitmap);	// 0
-		m_iconList->Add(wxBitmap(folder_xpm), wxNullBitmap);	// 1
-		m_iconList->Add(wxBitmap(file_xpm), wxNullBitmap);	// 2
+		m_iconList->Add(wxBitmap(disc_xpm), wxNullBitmap);   // 0
+		m_iconList->Add(wxBitmap(folder_xpm), wxNullBitmap); // 1
+		m_iconList->Add(wxBitmap(file_xpm), wxNullBitmap);   // 2
 
 		// Filesystem tree
 		m_Treectrl = new wxTreeCtrl(m_Filesystem, ID_TREECTRL,

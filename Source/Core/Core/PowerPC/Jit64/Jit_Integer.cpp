@@ -254,7 +254,8 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 		}
 		break;
 	case 15:
-		if (a == 0) {	// lis
+		if (a == 0) // lis
+		{
 			// Merge with next instruction if loading a 32-bits immediate value (lis + addi, lis + ori)
 			if (!js.isLastInstruction && !Core::g_CoreStartupParameter.bEnableDebugging)
 			{
@@ -349,7 +350,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		}
 		else
 		{
-			signedCompare = false;	// silence compiler warning
+			signedCompare = false; // silence compiler warning
 			PanicAlert("cmpXX");
 		}
 	}

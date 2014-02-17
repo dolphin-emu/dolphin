@@ -332,7 +332,7 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 				{
 					frac &= 0xffff;
 
-					l1 = l2;		   //current
+					l1 = l2;           //current
 					l2 = pcm[pos * 2]; //next
 				}
 

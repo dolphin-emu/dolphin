@@ -310,7 +310,7 @@ static GekkoOPTemplate table59[] =
 	{18, Interpreter::fdivsx,       {"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 16, 0, 0, 0}}, // TODO
 	{20, Interpreter::fsubsx,       {"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
 	{21, Interpreter::faddsx,       {"faddsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
-//	{22, Interpreter::fsqrtsx,      {"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, // Not implemented on gekko
+	//{22, Interpreter::fsqrtsx,      {"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}}, // Not implemented on gekko
 	{24, Interpreter::fresx,        {"fresx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
 	{25, Interpreter::fmulsx,       {"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},
 	{28, Interpreter::fmsubsx,      {"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 0, 0, 0, 0}},

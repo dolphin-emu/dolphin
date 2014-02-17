@@ -475,8 +475,8 @@ void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
 		h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
 	ToolBar->SetToolBitmapSize(wxSize(w, h));
 
-	ToolBar->AddTool(IDM_SAVE_PERSPECTIVE,	_("Save"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Save current perspective"));
-	ToolBar->AddTool(IDM_EDIT_PERSPECTIVES,	_("Edit"),	g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Edit current perspective"));
+	ToolBar->AddTool(IDM_SAVE_PERSPECTIVE,  _("Save"), g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Save current perspective"));
+	ToolBar->AddTool(IDM_EDIT_PERSPECTIVES, _("Edit"), g_pCodeWindow->m_Bitmaps[Toolbar_GotoPC], _("Edit current perspective"));
 
 	ToolBar->SetToolDropDown(IDM_SAVE_PERSPECTIVE, true);
 	ToolBar->SetToolDropDown(IDM_EDIT_PERSPECTIVES, true);
@@ -574,7 +574,7 @@ void CFrame::BootGame(const std::string& filename)
 				bootfile = m_GameListCtrl->GetSelectedISO()->GetFileName();
 		}
 		else if (!StartUp.m_strDefaultGCM.empty()
-				&&	wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
+				&& wxFileExists(wxSafeConvertMB2WX(StartUp.m_strDefaultGCM.c_str())))
 		{
 			bootfile = StartUp.m_strDefaultGCM;
 		}
@@ -1185,7 +1185,7 @@ void CFrame::OnConfigPAD(wxCommandEvent& WXUNUSED (event))
 {
 	InputPlugin *const pad_plugin = Pad::GetPlugin();
 	bool was_init = false;
-	if (g_controller_interface.IsInit())	// check if game is running
+	if (g_controller_interface.IsInit()) // check if game is running
 	{
 		was_init = true;
 	}
@@ -1203,7 +1203,7 @@ void CFrame::OnConfigPAD(wxCommandEvent& WXUNUSED (event))
 	InputConfigDialog m_ConfigFrame(this, *pad_plugin, _trans("Dolphin GCPad Configuration"));
 	m_ConfigFrame.ShowModal();
 	m_ConfigFrame.Destroy();
-	if (!was_init)				// if game isn't running
+	if (!was_init) // if game isn't running
 	{
 		Pad::Shutdown();
 	}
@@ -1213,7 +1213,7 @@ void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
 {
 	InputPlugin *const wiimote_plugin = Wiimote::GetPlugin();
 	bool was_init = false;
-	if (g_controller_interface.IsInit())	// check if game is running
+	if (g_controller_interface.IsInit()) // check if game is running
 	{
 		was_init = true;
 	}
@@ -1231,7 +1231,7 @@ void CFrame::OnConfigWiimote(wxCommandEvent& WXUNUSED (event))
 	WiimoteConfigDiag m_ConfigFrame(this, *wiimote_plugin);
 	m_ConfigFrame.ShowModal();
 	m_ConfigFrame.Destroy();
-	if (!was_init)				// if game isn't running
+	if (!was_init) // if game isn't running
 	{
 		Wiimote::Shutdown();
 	}

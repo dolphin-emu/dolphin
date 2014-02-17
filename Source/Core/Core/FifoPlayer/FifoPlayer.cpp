@@ -309,8 +309,8 @@ void FifoPlayer::WriteFifo(u8 *data, u32 start, u32 end)
 
 void FifoPlayer::SetupFifo()
 {
-	WriteCP(0x02, 0);	// disable read, BP, interrupts
-	WriteCP(0x04, 7);	// clear overflow, underflow, metrics
+	WriteCP(0x02, 0); // disable read, BP, interrupts
+	WriteCP(0x04, 7); // clear overflow, underflow, metrics
 
 	const FifoFrameInfo& frame = m_File->GetFrame(m_CurrentFrame);
 
@@ -344,7 +344,7 @@ void FifoPlayer::SetupFifo()
 	FlushWGP();
 	WritePI(20, frame.fifoStart);
 
-	WriteCP(0x02, 17);	// enable read & GP link
+	WriteCP(0x02, 17); // enable read & GP link
 }
 
 void FifoPlayer::LoadMemory()

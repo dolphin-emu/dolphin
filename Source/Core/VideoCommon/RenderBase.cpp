@@ -441,7 +441,7 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 
 	// -----------------------------------------------------------------------
 	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
-	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
+	// Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
 	// ------------------
 	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH && g_ActiveConfig.bCrop)
 	{

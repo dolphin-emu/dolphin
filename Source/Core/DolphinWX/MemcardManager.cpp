@@ -160,7 +160,7 @@ bool CMemcardManager::SaveSettings()
 	iniMemcardSection->Set("cBanner", mcmSettings.column[COLUMN_BANNER], true);
 	iniMemcardSection->Set("cTitle", mcmSettings.column[COLUMN_TITLE], true);
 	iniMemcardSection->Set("cComment", mcmSettings.column[COLUMN_COMMENT], true);
-	iniMemcardSection->Set("cIcon",	mcmSettings.column[COLUMN_ICON], true);
+	iniMemcardSection->Set("cIcon", mcmSettings.column[COLUMN_ICON], true);
 	iniMemcardSection->Set("cBlocks", mcmSettings.column[COLUMN_BLOCKS], true);
 	iniMemcardSection->Set("cFirst Block", mcmSettings.column[COLUMN_FIRSTBLOCK], true);
 
@@ -179,13 +179,13 @@ void CMemcardManager::CreateGUIControls()
 
 	for (int slot = SLOT_A; slot <= SLOT_B; slot++)
 	{
-		m_CopyFrom[slot]	= new wxButton(this, ID_COPYFROM_A + slot,
+		m_CopyFrom[slot]    = new wxButton(this, ID_COPYFROM_A + slot,
 			wxString::Format(_("%1$sCopy%1$s"), ARROW[slot ? 0 : 1]));
-		m_SaveImport[slot]	= new wxButton(this, ID_SAVEIMPORT_A + slot,
+		m_SaveImport[slot]  = new wxButton(this, ID_SAVEIMPORT_A + slot,
 			wxString::Format(_("%sImport GCI%s"), ARROWS));
-		m_SaveExport[slot]	= new wxButton(this, ID_SAVEEXPORT_A + slot,
+		m_SaveExport[slot]  = new wxButton(this, ID_SAVEEXPORT_A + slot,
 			wxString::Format(_("%sExport GCI%s"), ARROWS));
-		m_Delete[slot]		= new wxButton(this, ID_DELETE_A + slot,
+		m_Delete[slot]      = new wxButton(this, ID_DELETE_A + slot,
 			wxString::Format(_("%sDelete%s"), ARROWS));
 
 
@@ -389,8 +389,8 @@ void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 		break;
 	}
 
-	if (memoryCard[SLOT_A])	ReloadMemcard(WxStrToStr(m_MemcardPath[SLOT_A]->GetPath()).c_str(), SLOT_A);
-	if (memoryCard[SLOT_B])	ReloadMemcard(WxStrToStr(m_MemcardPath[SLOT_B]->GetPath()).c_str(), SLOT_B);
+	if (memoryCard[SLOT_A]) ReloadMemcard(WxStrToStr(m_MemcardPath[SLOT_A]->GetPath()).c_str(), SLOT_A);
+	if (memoryCard[SLOT_B]) ReloadMemcard(WxStrToStr(m_MemcardPath[SLOT_B]->GetPath()).c_str(), SLOT_B);
 }
 bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 {
@@ -684,7 +684,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		}
 	}
 
-	int	pagesMax = (mcmSettings.usePages) ?
+	int pagesMax = (mcmSettings.usePages) ?
 					(page[card] + 1) * itemsPerPage : 128;
 
 	for (j = page[card] * itemsPerPage; (j < nFiles) && (j < pagesMax); j++)
@@ -718,7 +718,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		wxBlock.Printf(wxT("%10d"), blocks);
 		m_MemcardList[card]->SetItem(index,COLUMN_BLOCKS, wxBlock);
 		firstblock = memoryCard[card]->DEntry_FirstBlock(fileIndex);
-		//if (firstblock == 0xFFFF) firstblock = 3;	// to make firstblock -1
+		//if (firstblock == 0xFFFF) firstblock = 3; // to make firstblock -1
 		wxFirstBlock.Printf(wxT("%15d"), firstblock);
 		m_MemcardList[card]->SetItem(index, COLUMN_FIRSTBLOCK, wxFirstBlock);
 		m_MemcardList[card]->SetItem(index, COLUMN_ICON, wxEmptyString);
@@ -808,14 +808,14 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 
 		popupMenu->AppendSeparator();
 
-//		popupMenu->AppendCheckItem(COLUMN_BANNER, _("Show save banner"));
+		// popupMenu->AppendCheckItem(COLUMN_BANNER, _("Show save banner"));
 		popupMenu->AppendCheckItem(COLUMN_TITLE, _("Show save title"));
 		popupMenu->AppendCheckItem(COLUMN_COMMENT, _("Show save comment"));
 		popupMenu->AppendCheckItem(COLUMN_ICON, _("Show save icon"));
 		popupMenu->AppendCheckItem(COLUMN_BLOCKS, _("Show save blocks"));
 		popupMenu->AppendCheckItem(COLUMN_FIRSTBLOCK, _("Show first block"));
 
-//		for (int i = COLUMN_BANNER; i <= COLUMN_FIRSTBLOCK; i++)
+		// for (int i = COLUMN_BANNER; i <= COLUMN_FIRSTBLOCK; i++)
 		for (int i = COLUMN_TITLE; i <= COLUMN_FIRSTBLOCK; i++)
 		{
 			popupMenu->FindItem(i)->Check(__mcmSettings.column[i]);

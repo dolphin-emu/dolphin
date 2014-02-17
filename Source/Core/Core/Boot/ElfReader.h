@@ -66,7 +66,7 @@ public:
 		return GetPtr(segments[segment].p_offset);
 	}
 	u32 GetSectionAddr(SectionID section) const { return sectionAddrs[section]; }
-	int GetSectionSize(SectionID section) const { return sections[section].sh_size;	}
+	int GetSectionSize(SectionID section) const { return sections[section].sh_size; }
 	SectionID GetSectionByName(const char *name, int firstSection = 0) const; //-1 for not found
 
 	bool DidRelocate() {

@@ -60,9 +60,9 @@ public:
 	bool IsEnabled() const { return m_enable; }
 	void SetEnable(bool enable) { m_enable = enable; }
 
-	LogTypes::LOG_LEVELS GetLevel() const { return m_level;	}
+	LogTypes::LOG_LEVELS GetLevel() const { return m_level; }
 
-	void SetLevel(LogTypes::LOG_LEVELS level) {	m_level = level; }
+	void SetLevel(LogTypes::LOG_LEVELS level) { m_level = level; }
 
 	bool HasListeners() const { return !m_listeners.empty(); }
 
@@ -86,7 +86,7 @@ private:
 	~LogManager();
 public:
 
-	static u32 GetMaxLevel() { return MAX_LOGLEVEL;	}
+	static u32 GetMaxLevel() { return MAX_LOGLEVEL; }
 
 	void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 			 const char *file, int line, const char *fmt, va_list args);

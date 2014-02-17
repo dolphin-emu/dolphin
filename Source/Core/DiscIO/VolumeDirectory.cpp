@@ -240,8 +240,8 @@ std::string CVolumeDirectory::ExtractDirectoryName(const std::string& _rDirector
 	if(lastSep != directoryName.size() - 1)
 	{
 		// TODO: This assumes that file names will always have a dot in them
-		//	   and directory names never will; both assumptions are often
-		//	   right but in general wrong.
+		//       and directory names never will; both assumptions are often
+		//       right but in general wrong.
 		size_t extensionStart = directoryName.find_last_of('.');
 		if(extensionStart != std::string::npos && extensionStart > lastSep)
 		{
@@ -344,7 +344,7 @@ void CVolumeDirectory::BuildFST()
 	// read data from physical disk to rootEntry
 	u32 totalEntries = AddDirectoryEntries(m_rootDirectory, rootEntry) + 1;
 
-	m_fstNameOffset = totalEntries * ENTRY_SIZE;	// offset in FST nameTable
+	m_fstNameOffset = totalEntries * ENTRY_SIZE; // offset in FST nameTable
 	m_fstSize = m_fstNameOffset + m_totalNameSize;
 	m_FSTData = new u8[(u32)m_fstSize];
 

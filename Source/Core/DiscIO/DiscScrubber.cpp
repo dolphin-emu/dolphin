@@ -238,7 +238,7 @@ bool ParseDisc()
 
 		for (auto& rPartition : PartitionGroup[x].PartitionsVec)
 		{
-			const SPartitionHeader& rHeader	= rPartition.Header;
+			const SPartitionHeader& rHeader = rPartition.Header;
 
 			MarkAsUsed(rPartition.Offset, 0x2c0);
 

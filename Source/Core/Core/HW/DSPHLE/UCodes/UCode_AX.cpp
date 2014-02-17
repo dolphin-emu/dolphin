@@ -34,7 +34,7 @@ CUCode_AX::~CUCode_AX()
 {
 	if (m_run_on_thread)
 	{
-		m_cmdlist_size = (u16)-1;	// Special value to signal end
+		m_cmdlist_size = (u16)-1; // Special value to signal end
 		NotifyAXThread();
 		m_axthread.join();
 	}
@@ -94,7 +94,7 @@ void CUCode_AX::AXThread()
 				m_cmdlist_cv.wait(lk);
 		}
 
-		if (m_cmdlist_size == (u16)-1)	// End of thread signal
+		if (m_cmdlist_size == (u16)-1) // End of thread signal
 			break;
 
 		m_processing.lock();
@@ -202,7 +202,7 @@ void CUCode_AX::HandleCommandList()
 				SetMainLR(HILO_TO_32(addr));
 				break;
 
-			case CMD_UNK_08: curr_idx += 10; break;	// TODO: check
+			case CMD_UNK_08: curr_idx += 10; break; // TODO: check
 
 			case CMD_MIX_AUXB_NOWRITE:
 				addr_hi = m_cmdlist[curr_idx++];

@@ -9,7 +9,7 @@
 #include "Thread.h"
 
 namespace SWRenderer
-{	
+{
 	void Init();
 	void Prepare();
 	void Shutdown();

@@ -86,8 +86,8 @@ void Jit64::bx(UGeckoInstruction inst)
 	if (destination == js.compilerPC)
 	{
 		//PanicAlert("Idle loop detected at %08x", destination);
-		//	CALL(ProtectFunction(&CoreTiming::Idle, 0));
-		//	JMP(Asm::testExceptions, true);
+		// CALL(ProtectFunction(&CoreTiming::Idle, 0));
+		// JMP(Asm::testExceptions, true);
 		// make idle loops go faster
 		js.downcountAmount += 8;
 	}
@@ -163,7 +163,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		//NPC = CTR & 0xfffffffc;
 		MOV(32, R(EAX), M(&CTR));
 		if (inst.LK_3)
-			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); // LR = PC + 4;
 		AND(32, R(EAX), Imm32(0xFFFFFFFC));
 		WriteExitDestInEAX();
 	}
@@ -186,7 +186,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		AND(32, R(EAX), Imm32(0xFFFFFFFC));
 		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
 		if (inst.LK_3)
-			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); // LR = PC + 4;
 		WriteExitDestInEAX();
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);

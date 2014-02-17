@@ -225,9 +225,9 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	}
 
 	//bool ordered = inst.SUBOP10 == 32;
-	int a	= inst.FA;
-	int b	= inst.FB;
-	int crf	= inst.CRFD;
+	int a   = inst.FA;
+	int b   = inst.FB;
+	int crf = inst.CRFD;
 
 	fpr.Lock(a,b);
 	fpr.BindToRegister(b, true);
@@ -245,7 +245,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	}
 
 	// if (B != B) or (A != A), goto NaN's jump target
-	pNaN    	 = J_CC(CC_P);
+	pNaN = J_CC(CC_P);
 
 	if (a != b)
 	{

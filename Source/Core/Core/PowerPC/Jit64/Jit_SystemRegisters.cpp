@@ -93,7 +93,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 void Jit64::mtmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
- 	// Don't interpret this, if we do we get thrown out
+	// Don't interpret this, if we do we get thrown out
 	//JITDISABLE(bJITSystemRegistersOff)
 	if (!gpr.R(inst.RS).IsImm())
 	{

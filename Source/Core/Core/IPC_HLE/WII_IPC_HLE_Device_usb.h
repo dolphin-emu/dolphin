@@ -218,7 +218,7 @@ private:
 	// Execute HCI Message
 	void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
 
-	// OGF 0x01	Link control commands and return parameters
+	// OGF 0x01 - Link control commands and return parameters
 	void CommandWriteInquiryMode(u8* _Input);
 	void CommandWritePageScanType(u8* _Input);
 	void CommandHostBufferSize(u8* _Input);
@@ -237,11 +237,11 @@ private:
 	void CommandDeleteStoredLinkKey(u8* _Input);
 	void CommandChangeConPacketType(u8* _Input);
 
-	// OGF 0x02	Link policy commands and return parameters
+	// OGF 0x02 - Link policy commands and return parameters
 	void CommandWriteLinkPolicy(u8* _Input);
 	void CommandSniffMode(u8* _Input);
 
-	// OGF 0x03	Host Controller and Baseband commands and return parameters
+	// OGF 0x03 - Host Controller and Baseband commands and return parameters
 	void CommandReset(u8* _Input);
 	void CommandWriteLocalName(u8* _Input);
 	void CommandWritePageTimeOut(u8* _Input);
@@ -253,13 +253,13 @@ private:
 	void CommandWriteInquiryScanType(u8* _Input);
 	void CommandWriteLinkSupervisionTimeout(u8* _Input);
 
-	// OGF 0x04	Informational commands and return parameters
+	// OGF 0x04 - Informational commands and return parameters
 	void CommandReadBufferSize(u8* _Input);
 	void CommandReadLocalVer(u8* _Input);
 	void CommandReadLocalFeatures(u8* _Input);
 	void CommandReadBDAdrr(u8* _Input);
 
-	// OGF 0x3F Vendor specific
+	// OGF 0x3F - Vendor specific
 	void CommandVendorSpecific_FC4C(u8* _Input, u32 _Size);
 	void CommandVendorSpecific_FC4F(u8* _Input, u32 _Size);
 

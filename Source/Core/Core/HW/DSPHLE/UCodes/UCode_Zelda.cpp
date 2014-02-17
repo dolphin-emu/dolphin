@@ -126,7 +126,7 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 {
 	//ERROR_LOG(DSPHLE, "Light version mail %08X, list in progress: %s, step: %i/%i",
-	//	_uMail, m_bListInProgress ? "yes":"no", m_step, m_numSteps);
+	// _uMail, m_bListInProgress ? "yes":"no", m_step, m_numSteps);
 
 	if (m_bSyncCmdPending)
 	{
@@ -199,11 +199,11 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 				if (m_CurBuffer == m_NumBuffers)
 				{
 					m_rMailHandler.PushMail(DSP_FRAME_END);
-					//	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+					// DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
 					soundStream->GetMixer()->SetHLEReady(true);
 					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-//					soundStream->Update(); //do it in this thread to avoid sync problems
+					// soundStream->Update(); //do it in this thread to avoid sync problems
 
 					m_bSyncCmdPending = false;
 				}
@@ -333,7 +333,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 
 					soundStream->GetMixer()->SetHLEReady(true);
 					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-//					soundStream->Update(); //do it in this thread to avoid sync problems
+					// soundStream->Update(); //do it in this thread to avoid sync problems
 
 					m_bSyncCmdPending = false;
 				}

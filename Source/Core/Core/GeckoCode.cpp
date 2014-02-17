@@ -161,4 +161,4 @@ void RunCodeHandler()
 	}
 }
 
-}	// namespace Gecko
+} // namespace Gecko

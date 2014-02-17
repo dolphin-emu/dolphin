@@ -179,7 +179,7 @@ void CEXIMic::SetCS(int cs)
 void CEXIMic::UpdateNextInterruptTicks()
 {
 	next_int_ticks = CoreTiming::GetTicks() +
-		(SystemTimers::GetTicksPerSecond() / sample_rate) *	buff_size_samples;
+		(SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
 }
 
 bool CEXIMic::IsInterruptSet()

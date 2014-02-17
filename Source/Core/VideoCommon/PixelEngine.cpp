@@ -221,13 +221,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::ComplexWrite<u16>([](u32, u16 val) {
 			UPECtrlReg tmpCtrl(val);
 
-			if (tmpCtrl.PEToken)	g_bSignalTokenInterrupt = 0;
-			if (tmpCtrl.PEFinish)	g_bSignalFinishInterrupt = 0;
+			if (tmpCtrl.PEToken)  g_bSignalTokenInterrupt = 0;
+			if (tmpCtrl.PEFinish) g_bSignalFinishInterrupt = 0;
 
 			m_Control.PETokenEnable  = tmpCtrl.PETokenEnable;
 			m_Control.PEFinishEnable = tmpCtrl.PEFinishEnable;
-			m_Control.PEToken = 0;		// this flag is write only
-			m_Control.PEFinish = 0;		// this flag is write only
+			m_Control.PEToken = 0;  // this flag is write only
+			m_Control.PEFinish = 0; // this flag is write only
 
 			DEBUG_LOG(PIXELENGINE, "(w16) CTRL_REGISTER: 0x%04x", val);
 			UpdateInterrupts();
@@ -280,8 +280,8 @@ void UpdateFinishInterrupt(bool active)
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
-//			  Think about the right order between tokenVal and tokenINT... one day maybe.
-//			  Cleanup++
+//            Think about the right order between tokenVal and tokenINT... one day maybe.
+//            Cleanup++
 
 // Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
 void SetToken_OnMainThread(u64 userdata, int cyclesLate)

@@ -412,7 +412,7 @@ FixupBranch ARMXEmitter::BL_CC(CCFlags Cond)
 void ARMXEmitter::SetJumpTarget(FixupBranch const &branch)
 {
 	s32 distance =  (s32(code) - 8)  - (s32)branch.ptr;
-     _dbg_assert_msg_(DYNA_REC, distance > -33554432
+	_dbg_assert_msg_(DYNA_REC, distance > -33554432
                      && distance <=  33554432,
                      "SetJumpTarget out of range (%p calls %p)", code,
 					 branch.ptr);
@@ -420,13 +420,13 @@ void ARMXEmitter::SetJumpTarget(FixupBranch const &branch)
 		*(u32*)branch.ptr = (u32)(branch.condition | (10 << 24) | ((distance >> 2) &
 		0x00FFFFFF));
 	else // BL
-		*(u32*)branch.ptr =	(u32)(branch.condition | 0x0B000000 | ((distance >> 2)
+		*(u32*)branch.ptr = (u32)(branch.condition | 0x0B000000 | ((distance >> 2)
 		& 0x00FFFFFF));
 }
 void ARMXEmitter::B (const void *fnptr)
 {
 	s32 distance = (s32)fnptr - (s32(code) + 8);
-        _dbg_assert_msg_(DYNA_REC, distance > -33554432
+	_dbg_assert_msg_(DYNA_REC, distance > -33554432
                      && distance <=  33554432,
                      "B out of range (%p calls %p)", code, fnptr);
 
@@ -553,19 +553,19 @@ void ARMXEmitter::SBC (ARMReg Rd, ARMReg Rn, Operand2 Rm) { WriteInstruction(6, 
 void ARMXEmitter::SBCS(ARMReg Rd, ARMReg Rn, Operand2 Rm) { WriteInstruction(6, Rd, Rn, Rm, true); }
 void ARMXEmitter::RSC (ARMReg Rd, ARMReg Rn, Operand2 Rm) { WriteInstruction(7, Rd, Rn, Rm); }
 void ARMXEmitter::RSCS(ARMReg Rd, ARMReg Rn, Operand2 Rm) { WriteInstruction(7, Rd, Rn, Rm, true); }
-void ARMXEmitter::TST (			  ARMReg Rn, Operand2 Rm) { WriteInstruction(8, R0, Rn, Rm, true); }
-void ARMXEmitter::TEQ (			  ARMReg Rn, Operand2 Rm) { WriteInstruction(9, R0, Rn, Rm, true); }
-void ARMXEmitter::CMP (			  ARMReg Rn, Operand2 Rm) { WriteInstruction(10, R0, Rn, Rm, true); }
-void ARMXEmitter::CMN (			  ARMReg Rn, Operand2 Rm) { WriteInstruction(11, R0, Rn, Rm, true); }
+void ARMXEmitter::TST (           ARMReg Rn, Operand2 Rm) { WriteInstruction(8, R0, Rn, Rm, true); }
+void ARMXEmitter::TEQ (           ARMReg Rn, Operand2 Rm) { WriteInstruction(9, R0, Rn, Rm, true); }
+void ARMXEmitter::CMP (           ARMReg Rn, Operand2 Rm) { WriteInstruction(10, R0, Rn, Rm, true); }
+void ARMXEmitter::CMN (           ARMReg Rn, Operand2 Rm) { WriteInstruction(11, R0, Rn, Rm, true); }
 void ARMXEmitter::ORR (ARMReg Rd, ARMReg Rn, Operand2 Rm) { WriteInstruction(12, Rd, Rn, Rm); }
 void ARMXEmitter::ORRS(ARMReg Rd, ARMReg Rn, Operand2 Rm) { WriteInstruction(12, Rd, Rn, Rm, true); }
-void ARMXEmitter::MOV (ARMReg Rd,			 Operand2 Rm) { WriteInstruction(13, Rd, R0, Rm); }
-void ARMXEmitter::MOVS(ARMReg Rd,			 Operand2 Rm) { WriteInstruction(13, Rd, R0, Rm, true); }
+void ARMXEmitter::MOV (ARMReg Rd,            Operand2 Rm) { WriteInstruction(13, Rd, R0, Rm); }
+void ARMXEmitter::MOVS(ARMReg Rd,            Operand2 Rm) { WriteInstruction(13, Rd, R0, Rm, true); }
 void ARMXEmitter::BIC (ARMReg Rd, ARMReg Rn, Operand2 Rm) { WriteInstruction(14, Rd, Rn, Rm); }
 void ARMXEmitter::BICS(ARMReg Rd, ARMReg Rn, Operand2 Rm) { WriteInstruction(14, Rd, Rn, Rm, true); }
-void ARMXEmitter::MVN (ARMReg Rd,			 Operand2 Rm) { WriteInstruction(15, Rd, R0, Rm); }
-void ARMXEmitter::MVNS(ARMReg Rd,			 Operand2 Rm) { WriteInstruction(15, Rd, R0, Rm, true); }
-void ARMXEmitter::MOVW(ARMReg Rd,			 Operand2 Rm) { WriteInstruction(16, Rd, R0, Rm); }
+void ARMXEmitter::MVN (ARMReg Rd,            Operand2 Rm) { WriteInstruction(15, Rd, R0, Rm); }
+void ARMXEmitter::MVNS(ARMReg Rd,            Operand2 Rm) { WriteInstruction(15, Rd, R0, Rm, true); }
+void ARMXEmitter::MOVW(ARMReg Rd,            Operand2 Rm) { WriteInstruction(16, Rd, R0, Rm); }
 void ARMXEmitter::MOVT(ARMReg Rd, Operand2 Rm, bool TopBits) { WriteInstruction(17, Rd, R0, TopBits ? Rm.Value >> 16 : Rm); }
 
 void ARMXEmitter::WriteInstruction (u32 Op, ARMReg Rd, ARMReg Rn, Operand2 Rm, bool SetFlags) // This can get renamed later
@@ -614,11 +614,11 @@ void ARMXEmitter::LSRS(ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedData
 void ARMXEmitter::ASR (ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(4, false, dest, src, op2);}
 void ARMXEmitter::ASRS(ARMReg dest, ARMReg src, Operand2 op2) { WriteShiftedDataOp(4, true, dest, src, op2);}
 
-void ARMXEmitter::MUL (ARMReg dest,	ARMReg src, ARMReg op2)
+void ARMXEmitter::MUL (ARMReg dest, ARMReg src, ARMReg op2)
 {
 	Write32(condition | (dest << 16) | (src << 8) | (9 << 4) | op2);
 }
-void ARMXEmitter::MULS(ARMReg dest,	ARMReg src, ARMReg op2)
+void ARMXEmitter::MULS(ARMReg dest, ARMReg src, ARMReg op2)
 {
 	Write32(condition | (1 << 20) | (dest << 16) | (src << 8) | (9 << 4) | op2);
 }
@@ -697,11 +697,11 @@ void ARMXEmitter::REV16(ARMReg dest, ARMReg src)
 	Write32(condition | (0x6BF << 16) | (dest << 12) | (0xFB << 4) | src);
 }
 
-void ARMXEmitter::_MSR (bool write_nzcvq, bool write_g,		Operand2 op2)
+void ARMXEmitter::_MSR (bool write_nzcvq, bool write_g, Operand2 op2)
 {
 	Write32(condition | (0x320F << 12) | (write_nzcvq << 19) | (write_g << 18) | op2.Imm12Mod());
 }
-void ARMXEmitter::_MSR (bool write_nzcvq, bool write_g,		ARMReg src)
+void ARMXEmitter::_MSR (bool write_nzcvq, bool write_g, ARMReg src)
 {
 	Write32(condition | (0x120F << 12) | (write_nzcvq << 19) | (write_g << 18) | src);
 }

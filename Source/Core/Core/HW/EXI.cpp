@@ -29,15 +29,15 @@ void Init()
 		g_Channels[i] = new CEXIChannel(i);
 
 	if (Movie::IsPlayingInput() && Movie::IsUsingMemcard() && Movie::IsConfigSaved())
-		g_Channels[0]->AddDevice(EXIDEVICE_MEMORYCARD,	0); // SlotA
+		g_Channels[0]->AddDevice(EXIDEVICE_MEMORYCARD, 0); // SlotA
 	else if(Movie::IsPlayingInput() && !Movie::IsUsingMemcard() && Movie::IsConfigSaved())
-		g_Channels[0]->AddDevice(EXIDEVICE_NONE,		0); // SlotA
+		g_Channels[0]->AddDevice(EXIDEVICE_NONE,       0); // SlotA
 	else
-		g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[0],	0); // SlotA
-	g_Channels[0]->AddDevice(EXIDEVICE_MASKROM,						1);
-	g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[2],	2); // Serial Port 1
-	g_Channels[1]->AddDevice(SConfig::GetInstance().m_EXIDevice[1],	0); // SlotB
-	g_Channels[2]->AddDevice(EXIDEVICE_AD16,						0);
+		g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[0], 0); // SlotA
+	g_Channels[0]->AddDevice(EXIDEVICE_MASKROM,                         1);
+	g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[2],     2); // Serial Port 1
+	g_Channels[1]->AddDevice(SConfig::GetInstance().m_EXIDevice[1],     0); // SlotB
+	g_Channels[2]->AddDevice(EXIDEVICE_AD16,                            0);
 
 	changeDevice = CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);
 }

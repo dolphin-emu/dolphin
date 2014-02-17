@@ -41,7 +41,7 @@
  */
 ALDeviceList::ALDeviceList()
 {
-	ALDEVICEINFO	ALDeviceInfo;
+	ALDEVICEINFO ALDeviceInfo;
 	char *devices;
 	s32 index;
 	const char *defaultDeviceName = NULL;

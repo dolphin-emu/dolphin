@@ -154,10 +154,10 @@ static inline uint64_t __rdtsc()
 	return (uint64_t)hi << 32 | lo;
 #else
 	__asm__ __volatile__ (
-			"xor	%%eax,%%eax;"
-			"push	%%ebx;"
+			"xor    %%eax,%%eax;"
+			"push   %%ebx;"
 			"cpuid;"
-			"pop	%%ebx;"
+			"pop    %%ebx;"
 			::: "%eax", "%ecx", "%edx");
 	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
 #endif
@@ -315,7 +315,7 @@ void JitIL::WriteCallInterpreter(UGeckoInstruction inst)
 
 void JitIL::unknown_instruction(UGeckoInstruction inst)
 {
-	//	CCPU::Break();
+	// CCPU::Break();
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
@@ -365,7 +365,6 @@ static void ImHere()
 			return;
 	}
 	DEBUG_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
-	//		printf("I'm here - PC = %08x , LR = %08x", PC, LR);
 	been_here[PC] = 1;
 }
 

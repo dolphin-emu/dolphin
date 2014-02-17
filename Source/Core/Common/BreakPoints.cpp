@@ -132,11 +132,11 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mcstrs)
 		std::stringstream ss;
 		ss << std::hex << mcstr;
 		ss >> mc.StartAddress;
-		mc.bRange	= mcstr.find("n") != mcstr.npos;
-		mc.OnRead	= mcstr.find("r") != mcstr.npos;
-		mc.OnWrite	= mcstr.find("w") != mcstr.npos;
-		mc.Log		= mcstr.find("l") != mcstr.npos;
-		mc.Break	= mcstr.find("p") != mcstr.npos;
+		mc.bRange  = mcstr.find("n") != mcstr.npos;
+		mc.OnRead  = mcstr.find("r") != mcstr.npos;
+		mc.OnWrite = mcstr.find("w") != mcstr.npos;
+		mc.Log     = mcstr.find("l") != mcstr.npos;
+		mc.Break   = mcstr.find("p") != mcstr.npos;
 		if (mc.bRange)
 			ss >> mc.EndAddress;
 		else

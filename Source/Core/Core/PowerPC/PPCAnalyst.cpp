@@ -287,7 +287,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa,
 	// Disabled the following optimization in preference of FAST_ICACHE
 	//UGeckoInstruction previnst = Memory::Read_Opcode_JIT_LC(address - 4);
 	//if (previnst.hex == 0x4e800020)
-	//	st->isFirstBlockOfFunction = true;
+	//    st->isFirstBlockOfFunction = true;
 
 	gpa->any = true;
 	fpa->any = false;

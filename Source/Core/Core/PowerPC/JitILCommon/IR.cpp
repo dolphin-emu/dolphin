@@ -77,38 +77,41 @@ integer code are more aggresively combining blocks and dead condition
 register elimination, which should be very helpful for small blocks.
 
 TODO (in no particular order):
-JIT for misc remaining FP instructions
-JIT for bcctrx
-Misc optimizations for FP instructions
-Inter-block dead register elimination; this seems likely to have large
-	performance benefits, although I'm not completely sure.
-Inter-block inlining; also likely to have large performance benefits.
-	The tricky parts are deciding which blocks to inline, and that the
-	IR can't really deal with branches whose destination is in the
-	the middle of a generated block.
-Specialized slw/srw/sraw; I think there are some tricks that could
-	have a non-trivial effect, and there are significantly shorter
-	implementations for 64-bit involving abusing 64-bit shifts.
-64-bit compat (it should only be a few tweaks to register allocation and
-	the load/store code)
-Scheduling to reduce register pressure: PowerPC	compilers like to push
-	uses far away from definitions, but it's rather unfriendly to modern
-	x86 processors, which are short on registers and extremely good at
-	instruction reordering.
-Common subexpression elimination
-Optimize load/store of sum using complex addressing (partially implemented)
-Loop optimizations (loop-carried registers, LICM)
-Code refactoring/cleanup
-Investigate performance of the JIT itself; this doesn't affect
-	framerates significantly, but it does take a visible amount
-	of time for a complicated piece of code like a video decoder
-	to compile.
-Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
-	use a spare segment register, and expand the backpatch solution
-	to work in all the relevant situations.  On 64-bit, the existing
-	fast memory solution should basically work.  An alternative
-	would be to figure out a heuristic for what loads actually
-	vary their "type", and special-case them.
+- JIT for misc remaining FP instructions
+- JIT for bcctrx
+- Misc optimizations for FP instructions
+- Inter-block dead register elimination; this seems likely to have large
+  performance benefits, although I'm not completely sure.
+
+- Inter-block inlining; also likely to have large performance benefits.
+  The tricky parts are deciding which blocks to inline, and that the
+  IR can't really deal with branches whose destination is in the
+  the middle of a generated block.
+
+- Specialized slw/srw/sraw; I think there are some tricks that could
+  have a non-trivial effect, and there are significantly shorter
+  implementations for 64-bit involving abusing 64-bit shifts.
+  64-bit compat (it should only be a few tweaks to register allocation and the load/store code)
+
+- Scheduling to reduce register pressure: PowerPCcompilers like to push
+  uses far away from definitions, but it's rather unfriendly to modern
+  x86 processors, which are short on registers and extremely good at instruction reordering.
+ 
+- Common subexpression elimination
+- Optimize load/store of sum using complex addressing (partially implemented)
+- Loop optimizations (loop-carried registers, LICM)
+- Code refactoring/cleanup
+
+- Investigate performance of the JIT itself; this doesn't affect
+  framerates significantly, but it does take a visible amount
+  of time for a complicated piece of code like a video decoder to compile.
+
+- Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
+  use a spare segment register, and expand the backpatch solution
+  to work in all the relevant situations.  On 64-bit, the existing
+  fast memory solution should basically work.  An alternative
+  would be to figure out a heuristic for what loads actually
+  vary their "type", and special-case them.
 
 */
 

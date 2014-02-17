@@ -144,7 +144,7 @@ public:
 	{
 		// TODO: Not ready for usage yet
 		return true;
-//		return constant_usage[index];
+		//return constant_usage[index];
 	}
 private:
 	std::vector<bool> constant_usage; // TODO: Is vector<bool> appropriate here?

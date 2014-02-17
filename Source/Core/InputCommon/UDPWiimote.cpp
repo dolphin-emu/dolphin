@@ -259,9 +259,9 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 	if (bf[0] != 0xde)
 		return -1;
 	//if (bf[1]==0)
-	//	time=0;
+	//    time=0;
 	//if (bf[1]<time) //NOT LONGER NEEDED TO ALLOW MULTIPLE IPHONES ON A SINGLE PORT
-	//	return -1;
+	//    return -1;
 	//time=bf[1];
 	u32 *p=(u32*)(&bf[3]);
 	if (bf[2] & ACCEL_FLAG)

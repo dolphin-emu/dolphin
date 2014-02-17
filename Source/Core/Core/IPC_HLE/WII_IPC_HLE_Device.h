@@ -16,8 +16,8 @@
 #define FS_EINVAL       (u32)-4     // Invalid argument Invalid FD
 #define FS_ENOENT       (u32)-6     // File not found
 #define FS_EBUSY        (u32)-8     // Resource busy
-#define FS_EIO          (u32)-12	    // Returned on ECC error
-#define FS_ENOMEM       (u32)-22	    // Alloc failed during request
+#define FS_EIO          (u32)-12    // Returned on ECC error
+#define FS_ENOMEM       (u32)-22    // Alloc failed during request
 #define FS_EFATAL       (u32)-101   // Fatal error
 #define FS_EACCESS      (u32)-102   // Permission denied
 #define FS_ECORRUPT     (u32)-103   // returned for "corrupted" NAND
@@ -33,7 +33,7 @@
 #define FS_EDIRDEPTH    (u32)-116   // Max directory depth exceeded
 #define FS_EBUSY2       (u32)-118   // Resource busy
 //#define FS_EFATAL       (u32)-119   // Fatal error not used by IOS as fatal ERROR
-#define	FS_EESEXHAUSTED (u32)-1016  // Max of 2 ES handles at a time
+#define FS_EESEXHAUSTED (u32)-1016  // Max of 2 ES handles at a time
 
 // A struct for IOS ioctlv calls
 struct SIOCtlVBuffer

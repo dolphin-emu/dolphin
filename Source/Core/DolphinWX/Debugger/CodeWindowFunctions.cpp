@@ -94,8 +94,7 @@ void CCodeWindow::Save()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
-	ini.Set("General", "DebuggerFont",
-		   	WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
+	ini.Set("General", "DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
 
 	// Boot to pause or not
 	ini.Set("General", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
@@ -352,7 +351,7 @@ void CCodeWindow::NotifyMapLoaded()
 
 	g_symbolDB.FillInCallers();
 	//symbols->Show(false); // hide it for faster filling
-	symbols->Freeze();	// HyperIris: wx style fast filling
+	symbols->Freeze(); // HyperIris: wx style fast filling
 	symbols->Clear();
 	for (const auto& symbol : g_symbolDB.Symbols())
 	{
@@ -426,8 +425,8 @@ void CCodeWindow::ToggleCodeWindow(bool bShow)
 {
 	if (bShow)
 		Parent->DoAddPage(this,
-			   	iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW]);
 	else // Hide
 		Parent->DoRemovePage(this);
 }
@@ -438,10 +437,10 @@ void CCodeWindow::ToggleRegisterWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_RegisterWindow)
-		   	m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
+			m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
 		Parent->DoAddPage(m_RegisterWindow,
-			   	iNbAffiliation[IDM_REGISTERWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_REGISTERWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_REGISTERWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_REGISTERWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
@@ -456,10 +455,10 @@ void CCodeWindow::ToggleBreakPointWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_BreakpointWindow)
-		   	m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
+			m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
 		Parent->DoAddPage(m_BreakpointWindow,
-			   	iNbAffiliation[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
@@ -474,10 +473,10 @@ void CCodeWindow::ToggleMemoryWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_MemoryWindow)
-		   	m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
+			m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
 		Parent->DoAddPage(m_MemoryWindow,
-			   	iNbAffiliation[IDM_MEMORYWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_MEMORYWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_MEMORYWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_MEMORYWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
@@ -492,10 +491,10 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_JitWindow)
-		   	m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
+			m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
 		Parent->DoAddPage(m_JitWindow,
-			   	iNbAffiliation[IDM_JITWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_JITWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_JITWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_JITWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
@@ -511,10 +510,10 @@ void CCodeWindow::ToggleSoundWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_SoundWindow)
-		   	m_SoundWindow = new DSPDebuggerLLE(Parent, IDM_SOUNDWINDOW);
+			m_SoundWindow = new DSPDebuggerLLE(Parent, IDM_SOUNDWINDOW);
 		Parent->DoAddPage(m_SoundWindow,
-			   	iNbAffiliation[IDM_SOUNDWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_SOUNDWINDOW - IDM_LOGWINDOW]);
+		       iNbAffiliation[IDM_SOUNDWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_SOUNDWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{
@@ -529,10 +528,10 @@ void CCodeWindow::ToggleVideoWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_VideoWindow)
-		   	m_VideoWindow = new GFXDebuggerPanel(Parent, IDM_VIDEOWINDOW);
+			m_VideoWindow = new GFXDebuggerPanel(Parent, IDM_VIDEOWINDOW);
 		Parent->DoAddPage(m_VideoWindow,
-			   	iNbAffiliation[IDM_VIDEOWINDOW - IDM_LOGWINDOW],
-			   	Parent->bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW]);
+		        iNbAffiliation[IDM_VIDEOWINDOW - IDM_LOGWINDOW],
+		        Parent->bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
 	{

@@ -215,19 +215,17 @@ void CLogWindow::OnWrapLineCheck(wxCommandEvent& event)
 #else
 	wxString Text;
 	// Unfortunately wrapping styles can only be changed dynamically with wxGTK
-	// Notice:	To retain the colors when changing word wrapping we need to
-	//			loop through every letter with GetStyle and then reapply them letter by letter
+	// Notice: To retain the colors when changing word wrapping we need to
+	//         loop through every letter with GetStyle and then reapply them letter by letter
 	// Prevent m_Log access while it's being destroyed
 	m_LogAccess = false;
 	UnPopulateBottom();
 	Text = m_Log->GetValue();
 	m_Log->Destroy();
 	if (event.IsChecked())
-		m_Log = CreateTextCtrl(this, IDM_LOG,
-				wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_WORDWRAP);
+		m_Log = CreateTextCtrl(this, IDM_LOG, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_WORDWRAP);
 	else
-		m_Log = CreateTextCtrl(this, IDM_LOG,
-				wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+		m_Log = CreateTextCtrl(this, IDM_LOG, wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
 	m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
 	m_Log->AppendText(Text);
 	PopulateBottom();
@@ -301,7 +299,7 @@ void CLogWindow::UpdateLog()
 			}
 			msgQueue.pop();
 		}
-	}	// unlock log
+	} // unlock log
 
 	// m_LogTimer->Start(UPDATETIME);
 	m_ignoreLogTimer = false;

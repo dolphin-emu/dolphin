@@ -157,7 +157,7 @@ u64 Timer::GetLocalTimeSinceJan1970()
 		tzDST = 0;
 
 	// Lazy way to get local time in sec
-	gmTime	= gmtime(&sysTime);
+	gmTime = gmtime(&sysTime);
 	tzDiff = sysTime - mktime(gmTime);
 
 	return (u64)(sysTime + tzDiff + tzDST);

@@ -115,7 +115,7 @@ int et_CP;
 int et_AudioDMA;
 int et_DSP;
 int et_IPC_HLE;
-int et_PatchEngine;	// PatchEngine updates every 1/60th of a second by default
+int et_PatchEngine; // PatchEngine updates every 1/60th of a second by default
 int et_Throttle;
 
 // These are badly educated guesses

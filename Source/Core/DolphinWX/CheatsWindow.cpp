@@ -14,7 +14,7 @@
 #include "Frame.h"
 #include "WxUtils.h"
 
-#define MAX_CHEAT_SEARCH_RESULTS_DISPLAY	256
+#define MAX_CHEAT_SEARCH_RESULTS_DISPLAY  256
 extern std::vector<ActionReplay::ARCode> arCodes;
 extern CFrame* main_frame;
 
@@ -424,7 +424,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 	const int filters[] = {7, 6, 1, 2, 4};
 	int filter_mask = filters[search_type->GetSelection()];
 
-	if (value_x_radiobtn.rad_oldvalue->GetValue())	// using old value comparison
+	if (value_x_radiobtn.rad_oldvalue->GetValue()) // using old value comparison
 	{
 		for (; i!=e; ++i)
 		{
@@ -442,7 +442,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 			}
 		}
 	}
-	else	// using user entered x value comparison
+	else // using user entered x value comparison
 	{
 		u32 user_x_val;
 
@@ -638,7 +638,7 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	arCodes.push_back(new_cheat);
 	// save the gameini
 	isoprops.SaveGameConfig();
-	isoprops.ActionReplayList_Load();	// loads the new arcodes
+	isoprops.ActionReplayList_Load(); // loads the new arcodes
 	//ActionReplay::UpdateActiveList();
 	}
 

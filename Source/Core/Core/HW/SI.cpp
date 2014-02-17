@@ -98,10 +98,10 @@ union USIChannelIn_Lo
 // SI Channel
 struct SSIChannel
 {
-	USIChannelOut	m_Out;
+	USIChannelOut   m_Out;
 	USIChannelIn_Hi m_InHi;
 	USIChannelIn_Lo m_InLo;
-	ISIDevice*		m_pDevice;
+	ISIDevice*      m_pDevice;
 };
 
 // SI Poll: Controls how often a device is polled
@@ -333,19 +333,19 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::ComplexWrite<u32>([](u32, u32 val) {
 			USIComCSR tmpComCSR(val);
 
-			g_ComCSR.CHANNEL	= tmpComCSR.CHANNEL;
-			g_ComCSR.INLNGTH	= tmpComCSR.INLNGTH;
-			g_ComCSR.OUTLNGTH	= tmpComCSR.OUTLNGTH;
+			g_ComCSR.CHANNEL    = tmpComCSR.CHANNEL;
+			g_ComCSR.INLNGTH    = tmpComCSR.INLNGTH;
+			g_ComCSR.OUTLNGTH   = tmpComCSR.OUTLNGTH;
 			g_ComCSR.RDSTINTMSK = tmpComCSR.RDSTINTMSK;
-			g_ComCSR.TCINTMSK	= tmpComCSR.TCINTMSK;
+			g_ComCSR.TCINTMSK   = tmpComCSR.TCINTMSK;
 
-			g_ComCSR.COMERR		= 0;
+			g_ComCSR.COMERR     = 0;
 
-			if (tmpComCSR.RDSTINT)	g_ComCSR.RDSTINT = 0;
-			if (tmpComCSR.TCINT)	g_ComCSR.TCINT = 0;
+			if (tmpComCSR.RDSTINT) g_ComCSR.RDSTINT = 0;
+			if (tmpComCSR.TCINT)   g_ComCSR.TCINT = 0;
 
 			// be careful: run si-buffer after updating the INT flags
-			if (tmpComCSR.TSTART)	RunSIBuffer();
+			if (tmpComCSR.TSTART)  RunSIBuffer();
 			UpdateInterrupts();
 		})
 	);
@@ -424,8 +424,8 @@ void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
 {
 	switch(_SIInterrupt)
 	{
-	case INT_RDSTINT:	g_ComCSR.RDSTINT = 1; break;
-	case INT_TCINT:		g_ComCSR.TCINT = 1; break;
+	case INT_RDSTINT: g_ComCSR.RDSTINT = 1; break;
+	case INT_TCINT:   g_ComCSR.TCINT = 1; break;
 	}
 
 	UpdateInterrupts();

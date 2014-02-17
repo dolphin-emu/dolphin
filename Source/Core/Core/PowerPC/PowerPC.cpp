@@ -62,13 +62,13 @@ void DoState(PointerWrap &p)
 	// it changes registers even in MODE_MEASURE (which is suspicious and seems like it could cause desyncs)
 	// and because the values it's changing have been added to CoreTiming::DoState, so it might conflict to mess with them here.
 
-//	rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
-//	*((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
+	// rSPR(SPR_DEC) = SystemTimers::GetFakeDecrementer();
+	// *((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL comes first :)
 
 	p.DoPOD(ppcState);
 
-//	SystemTimers::DecrementerSet();
-//	SystemTimers::TimeBaseSet();
+	// SystemTimers::DecrementerSet();
+	// SystemTimers::TimeBaseSet();
 
 	JitInterface::DoState(p);
 }
@@ -357,7 +357,7 @@ void CheckExceptions()
 	else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
 	{
 		//This happens a lot - Gamecube OS uses deferred FPU context switching
-		SRR0 = PC;	// re-execute the instruction
+		SRR0 = PC; // re-execute the instruction
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 16) & 1;
 		MSR &= ~0x04EF36;

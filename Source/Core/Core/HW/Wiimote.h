@@ -7,7 +7,8 @@
 #include "../InputCommon/InputConfig.h"
 #include "ChunkFile.h"
 
-enum {
+enum
+{
 	WIIMOTE_CHAN_0 = 0,
 	WIIMOTE_CHAN_1,
 	WIIMOTE_CHAN_2,
@@ -18,14 +19,14 @@ enum {
 };
 
 
-#define WIIMOTE_INI_NAME	"WiimoteNew"
+#define WIIMOTE_INI_NAME  "WiimoteNew"
 
 enum
 {
-	WIIMOTE_SRC_NONE = 0,
-	WIIMOTE_SRC_EMU = 1,
-	WIIMOTE_SRC_REAL = 2,
-	WIIMOTE_SRC_HYBRID = 3,	// emu + real
+	WIIMOTE_SRC_NONE   = 0,
+	WIIMOTE_SRC_EMU    = 1,
+	WIIMOTE_SRC_REAL   = 2,
+	WIIMOTE_SRC_HYBRID = 3, // emu + real
 };
 
 extern unsigned int g_wiimote_sources[MAX_BBMOTES];

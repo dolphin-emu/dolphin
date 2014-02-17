@@ -25,26 +25,28 @@ namespace ButtonManager
 	std::map<std::pair<int, int>, Button*> m_buttons;
 	std::map<std::pair<int, int>, Axis*> m_axises;
 	std::unordered_map<std::string, InputDevice*> m_controllers;
-	const char* configStrings[] = {	"InputA",
-					"InputB",
-					"InputStart",
-					"InputX",
-					"InputY",
-					"InputZ",
-					"DPadUp",
-					"DPadDown",
-					"DPadLeft",
-					"DPadRight",
-					"MainUp",
-					"MainDown",
-					"MainLeft",
-					"MainRight",
-					"CStickUp",
-					"CStickDown",
-					"CStickLeft",
-					"CStickRight",
-					"InputL",
-					"InputR" };
+	const char* configStrings[] = {
+		"InputA",
+		"InputB",
+		"InputStart",
+		"InputX",
+		"InputY",
+		"InputZ",
+		"DPadUp",
+		"DPadDown",
+		"DPadLeft",
+		"DPadRight",
+		"MainUp",
+		"MainDown",
+		"MainLeft",
+		"MainRight",
+		"CStickUp",
+		"CStickDown",
+		"CStickLeft",
+		"CStickRight",
+		"InputL",
+		"InputR"
+	};
 	const int configStringNum = 20;
 
 	void AddBind(std::string dev, sBind *bind)

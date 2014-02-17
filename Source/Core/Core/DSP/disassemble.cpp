@@ -3,7 +3,7 @@
    filename:     disassemble.cpp
    project:      GameCube DSP Tool (gcdsp)
    created:      2005.03.04
-   mail:		  duddie@walla.com
+   mail:         duddie@walla.com
 
    Copyright (c) 2005 Duddie
 
@@ -221,7 +221,7 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 			break;
 		}
 	}
-	const DSPOPCTemplate fake_op = {"CW",		0x0000, 0x0000, nop, NULL, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
+	const DSPOPCTemplate fake_op = {"CW", 0x0000, 0x0000, nop, NULL, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
 	if (!opc)
 		opc = &fake_op;
 

@@ -59,11 +59,11 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
 				wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING),
 				0, wxEXPAND);
 	sizerBig->Add(sizerSplit, 2, wxEXPAND);
-//	sizerBig->Add(memview, 5, wxEXPAND);
-//	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
+	// sizerBig->Add(memview, 5, wxEXPAND);
+	// sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
 	sizerBig->Add(button_refresh = new wxButton(this, IDM_REFRESH_LIST, _("&Refresh")));
-//	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
-//	sizerRight->Add(new wxButton(this, IDM_SETPC, _("S&et PC")));
+	// sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
+	// sizerRight->Add(new wxButton(this, IDM_SETPC, _("S&et PC")));
 
 	SetSizer(sizerBig);
 
