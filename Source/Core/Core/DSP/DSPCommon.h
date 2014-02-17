@@ -4,5 +4,6 @@
 
 #pragma once
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
+
 typedef u16 UDSPInstruction;

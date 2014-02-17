@@ -2,14 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Blob.h"
-#include "CDUtils.h"
-#include "CISOBlob.h"
-#include "CompressedBlob.h"
-#include "DriveBlob.h"
-#include "FileBlob.h"
-#include "FileUtil.h"
-#include "WbfsBlob.h"
+#include "Common/CDUtils.h"
+#include "Common/FileUtil.h"
+
+#include "DiscIO/Blob.h"
+#include "DiscIO/CISOBlob.h"
+#include "DiscIO/CompressedBlob.h"
+#include "DiscIO/DriveBlob.h"
+#include "DiscIO/FileBlob.h"
+#include "DiscIO/WbfsBlob.h"
 
 namespace DiscIO
 {

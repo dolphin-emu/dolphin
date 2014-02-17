@@ -2,14 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "StringUtil.h"
 #include <string>
 
-#include "Common.h"
-#include "HLE_OS.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
 
-#include "../PowerPC/PowerPC.h"
-#include "../HW/Memmap.h"
+#include "Core/HLE/HLE_OS.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace HLE_OS
 {

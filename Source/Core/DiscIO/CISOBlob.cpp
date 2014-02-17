@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Blob.h"
-#include "CISOBlob.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/CISOBlob.h"
 
 namespace DiscIO
 {

@@ -10,10 +10,9 @@
 
 #include <atomic>
 
-#include "Common.h"
-#include "SoundStream.h"
-
-#include "Thread.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
 
 class PulseAudio : public SoundStream
 {

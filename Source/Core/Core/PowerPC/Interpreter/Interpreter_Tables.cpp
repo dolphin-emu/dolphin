@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Interpreter_Tables.h"
+#include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
 
 typedef void (*_Instruction) (UGeckoInstruction instCode);
 

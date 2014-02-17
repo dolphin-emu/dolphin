@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "UCode_AX.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AX.h"
 
 class CUCode_AXWii : public CUCode_AX
 {

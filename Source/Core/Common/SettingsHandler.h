@@ -8,7 +8,7 @@
 
 #include <string>
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 class SettingsHandler
 {

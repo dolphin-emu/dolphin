@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "Common.h"
-#include "MemoryUtil.h"
+#include "Common/Common.h"
+#include "Common/MemoryUtil.h"
 
 namespace Gen
 {

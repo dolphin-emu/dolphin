@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "ArmEmitter.h"
-#include "../Gekko.h"
-#include "../PPCAnalyst.h"
+#include "Common/ArmEmitter.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 using namespace ArmGen;
 // This ARM Register cache actually pre loads the most used registers before

@@ -2,22 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "SWVertexLoader.h"
-#include "VertexLoader_Position.h"
-#include "VertexLoader_Normal.h"
-#include "VertexLoader_Color.h"
-#include "VertexLoader_TextCoord.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/SetupUnit.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVertexLoader.h"
+#include "VideoBackends/Software/TransformUnit.h"
+#include "VideoBackends/Software/XFMemLoader.h"
 
-#include "CPMemLoader.h"
-#include "XFMemLoader.h"
-
-#include "TransformUnit.h"
-#include "SetupUnit.h"
-#include "SWStatistics.h"
-#include "VertexManagerBase.h"
-#include "DataReader.h"
+#include "VideoCommon/DataReader.h"
+#include "VideoCommon/VertexLoader_Color.h"
+#include "VideoCommon/VertexLoader_Normal.h"
+#include "VideoCommon/VertexLoader_Position.h"
+#include "VideoCommon/VertexLoader_TextCoord.h"
+#include "VideoCommon/VertexManagerBase.h"
 
 // Vertex loaders read these
 extern int tcIndex;

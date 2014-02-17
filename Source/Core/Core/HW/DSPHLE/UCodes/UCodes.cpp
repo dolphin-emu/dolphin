@@ -6,16 +6,16 @@
 #include <Windows.h>
 #endif
 
-#include "UCodes.h"
+#include "Common/Hash.h"
 
-#include "UCode_AX.h"
-#include "UCode_AXWii.h"
-#include "UCode_Zelda.h"
-#include "UCode_ROM.h"
-#include "UCode_CARD.h"
-#include "UCode_InitAudioSystem.h"
-#include "UCode_GBA.h"
-#include "Hash.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AX.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AXWii.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_CARD.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_GBA.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_InitAudioSystem.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_ROM.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
 
 IUCode* UCodeFactory(u32 _CRC, DSPHLE *dsp_hle, bool bWii)
 {

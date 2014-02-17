@@ -2,19 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <FileUtil.h>
-#include <IniFile.h>
-
-#include "WxUtils.h"
-#include "NetPlayClient.h"
-#include "NetPlayServer.h"
-#include "NetWindow.h"
-#include "Frame.h"
-#include "Core.h"
-#include "ConfigManager.h"
-
 #include <sstream>
 #include <string>
+
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
+
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/NetWindow.h"
+#include "DolphinWX/WxUtils.h"
 
 #define NETPLAY_TITLEBAR  "Dolphin NetPlay"
 #define INITIAL_PAD_BUFFER_SIZE 20

@@ -8,10 +8,9 @@
 #include <alsa/asoundlib.h>
 #endif
 
-#include "Common.h"
-#include "SoundStream.h"
-
-#include "Thread.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
 
 class AlsaSound : public SoundStream
 {

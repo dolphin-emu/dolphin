@@ -2,9 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <sys/stat.h>
 
-#include "CommonPaths.h"
-#include "FileUtil.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -28,9 +30,6 @@
 #include <CoreFoundation/CFURL.h>
 #include <CoreFoundation/CFBundle.h>
 #endif
-
-#include <algorithm>
-#include <sys/stat.h>
 
 #ifndef S_ISDIR
 #define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)

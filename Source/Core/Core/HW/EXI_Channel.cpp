@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "EXI_Channel.h"
-#include "EXI_Device.h"
-#include "EXI.h"
-#include "../ConfigManager.h"
-#include "../Movie.h"
-#include "MMIO.h"
+#include "Core/ConfigManager.h"
+#include "Core/Movie.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/EXI_Channel.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/MMIO.h"
 
 #define EXI_READ      0
 #define EXI_WRITE     1

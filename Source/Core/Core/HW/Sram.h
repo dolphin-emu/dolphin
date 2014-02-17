@@ -35,7 +35,7 @@ distribution.
 -------------------------------------------------------------*/
 #pragma once
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 #pragma pack(push,1)
 union SRAM

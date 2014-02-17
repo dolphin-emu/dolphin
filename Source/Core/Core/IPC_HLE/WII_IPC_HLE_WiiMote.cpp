@@ -2,17 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h" // Common
-#include "StringUtil.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
 
-#include "WII_IPC_HLE_WiiMote.h" // Core
-#include "WII_IPC_HLE_Device_usb.h"
-#include "../ConfigManager.h"
-#include "../Host.h"
-#include "../Core.h"
-#include "../HW/Wiimote.h"
-#include "l2cap.h" // Local
-#include "WiiMote_HID_Attr.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "Core/IPC_HLE/WiiMote_HID_Attr.h"
+
+#include "Core/IPC_HLE/l2cap.h" // Local
 
 static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = NULL;
 

@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "ShaderGenCommon.h"
-#include "NativeVertexFormat.h"
-#include "XFMemory.h"
+#include "VideoCommon/ShaderGenCommon.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/XFMemory.h"
 
 
 #define LIGHT_COL "%s[5*%d].%s"

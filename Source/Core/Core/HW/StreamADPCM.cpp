@@ -4,8 +4,8 @@
 
 // Adapted from in_cube by hcs & destop
 
-#include "StreamADPCM.h"
-#include "MathUtil.h"
+#include "Common/MathUtil.h"
+#include "Core/HW/StreamADPCM.h"
 
 // STATE_TO_SAVE (not saved yet!)
 static s32 histl1;

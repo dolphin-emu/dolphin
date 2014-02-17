@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
 #include <X11/X.h>
 #include <X11/keysym.h>

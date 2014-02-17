@@ -120,16 +120,17 @@ TODO (in no particular order):
 #endif
 
 #include <algorithm>
-#include <memory>
 #include <cinttypes>
 #include <ctime>
+#include <memory>
 #include <set>
-#include "IR.h"
-#include "../PPCTables.h"
-#include "../../CoreTiming.h"
-#include "../../HW/Memmap.h"
-#include "../../HW/GPFifo.h"
-#include "../../Core.h"
+
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/JitILCommon/IR.h"
 using namespace Gen;
 
 namespace IREmitter {

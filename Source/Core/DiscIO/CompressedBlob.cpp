@@ -11,10 +11,10 @@
 
 #include <cinttypes>
 
-#include "CompressedBlob.h"
-#include "DiscScrubber.h"
-#include "FileUtil.h"
-#include "Hash.h"
+#include "Common/FileUtil.h"
+#include "Common/Hash.h"
+#include "DiscIO/CompressedBlob.h"
+#include "DiscIO/DiscScrubber.h"
 
 #include "zlib.h"
 

@@ -2,16 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "GLUtil.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
-#include "MemoryUtil.h"
-#include "ProgramShaderCache.h"
-#include "VertexShaderGen.h"
+#include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
+#include "Common/MemoryUtil.h"
 
-#include "CPMemory.h"
-#include "NativeVertexFormat.h"
-#include "VertexManager.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/VertexManager.h"
+
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VertexShaderGen.h"
 
 // Here's some global state. We only use this to keep track of what we've sent to the OpenGL state
 // machine.

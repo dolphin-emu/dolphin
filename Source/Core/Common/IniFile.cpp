@@ -5,18 +5,17 @@
 
 // see IniFile.h
 
-#include <stdlib.h>
-#include <stdio.h>
-
+#include <algorithm>
+#include <cstdlib>
+#include <cstdio>
+#include <fstream>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <fstream>
-#include <algorithm>
 
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "IniFile.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 
 namespace {
 

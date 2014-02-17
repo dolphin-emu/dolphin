@@ -7,16 +7,15 @@
 // windows crap
 #define NOMINMAX
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
-#include <vector>
 #include <string>
-#include <algorithm>
+#include <vector>
 
-#include "GCPadStatus.h"
-
-#include "ControllerInterface/ControllerInterface.h"
-#include "IniFile.h"
+#include "Common/IniFile.h"
+#include "InputCommon/GCPadStatus.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #define sign(x) ((x)?(x)<0?-1:1:0)
 

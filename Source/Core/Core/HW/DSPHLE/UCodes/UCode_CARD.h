@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "UCodes.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 class CUCode_CARD : public IUCode
 {

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Common.h"
-#include "ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/ChunkFile.h"
 
 namespace HW
 {

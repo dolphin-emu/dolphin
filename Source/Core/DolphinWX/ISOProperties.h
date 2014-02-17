@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <string>
+
 #include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/filepicker.h>
@@ -14,14 +16,13 @@
 #include <wx/gbsizer.h>
 #include <wx/notebook.h>
 #include <wx/mimetype.h>
-#include <string>
 
-#include "ISOFile.h"
-#include "Filesystem.h"
-#include "IniFile.h"
-#include "PatchEngine.h"
-#include "ActionReplay.h"
-#include "GeckoCodeDiag.h"
+#include "Common/IniFile.h"
+#include "Core/ActionReplay.h"
+#include "Core/PatchEngine.h"
+#include "DiscIO/Filesystem.h"
+#include "DolphinWX/GeckoCodeDiag.h"
+#include "DolphinWX/ISOFile.h"
 
 struct PHackData
 {

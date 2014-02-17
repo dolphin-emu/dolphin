@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "BPMemory.h"
+#include "Common/Common.h"
+#include "VideoCommon/BPMemory.h"
 
 // BP state
 // STATE_TO_SAVE

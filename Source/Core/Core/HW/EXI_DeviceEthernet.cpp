@@ -2,11 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Memmap.h"
-#include "EXI_Device.h"
-#include "EXI_DeviceEthernet.h"
-#include "StringUtil.h"
-#include "../ConfigManager.h"
+#include "Common/StringUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceEthernet.h"
+#include "Core/HW/Memmap.h"
 
 // XXX: The BBA stores multi-byte elements as little endian.
 // Multiple parts of this implementation depend on dolphin

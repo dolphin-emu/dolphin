@@ -2,20 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "ChunkFile.h"
-#include "../ConfigManager.h"
-#include "../CoreTiming.h"
-#include "../Movie.h"
-#include "../NetPlayProto.h"
-#include "MMIO.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "SystemTimers.h"
-#include "ProcessorInterface.h"
-#include "VideoInterface.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/SI_DeviceGBA.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
 
-#include "SI.h"
-#include "SI_DeviceGBA.h"
 
 namespace SerialInterface
 {

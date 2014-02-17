@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "Common.h"
 #include <fstream>
+
+#include "Common/Common.h"
 
 // On disk format:
 //header{

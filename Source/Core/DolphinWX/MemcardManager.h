@@ -13,9 +13,9 @@
 #include <wx/imaglist.h>
 #include <wx/fontmap.h>
 
-#include "IniFile.h"
-#include "FileUtil.h"
-#include "HW/GCMemcard.h"
+#include "Core/HW/GCMemcard.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX

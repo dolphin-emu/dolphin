@@ -5,8 +5,8 @@
 #pragma once
 
 
-#include "Common.h"
-#include "BPMemory.h"
+#include "Common/Common.h"
+#include "VideoCommon/BPMemory.h"
 
 void InitBPMemory();
 void SWBPWritten(int address, int newvalue);

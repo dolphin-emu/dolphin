@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Common.h"
-#include "AudioCommon.h"
+#include "AudioCommon/AudioCommon.h"
+#include "Common/Common.h"
 
 // TODO: Get rid of this file.
 

@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "GeckoCodeDiag.h"
-#include "Core.h"
-#include "WxUtils.h"
+#include <sstream>
 
 #include <SFML/Network/Http.hpp>
 
-#include <sstream>
+#include "Core/Core.h"
+#include "DolphinWX/GeckoCodeDiag.h"
+#include "DolphinWX/WxUtils.h"
 
 namespace Gecko
 {

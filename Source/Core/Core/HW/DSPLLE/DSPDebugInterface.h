@@ -7,8 +7,8 @@
 #include <string>
 #include <string.h>
 
-#include "DebugInterface.h"
-#include "Common.h"
+#include "Common/Common.h"
+#include "Common/DebugInterface.h"
 
 class DSPDebugInterface : public DebugInterface
 {

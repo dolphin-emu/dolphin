@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "../Device.h"
-#include "Android/ButtonManager.h"
+#include "DolphinWX/Android/ButtonManager.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {

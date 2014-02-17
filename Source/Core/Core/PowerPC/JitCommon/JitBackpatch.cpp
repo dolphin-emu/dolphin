@@ -2,15 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <string>
 #include <cinttypes>
+#include <string>
 
-#include "Common.h"
 #include "disasm.h"
-#include "JitBase.h"
-#include "JitBackpatch.h"
 
-#include "StringUtil.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/JitBackpatch.h"
+
 #ifdef _WIN32
 	#include <windows.h>
 #endif

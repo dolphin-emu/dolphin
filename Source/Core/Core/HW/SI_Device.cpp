@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "SI_Device.h"
-#include "SI_DeviceGCController.h"
-#include "SI_DeviceGCSteeringWheel.h"
-#include "SI_DeviceDanceMat.h"
-#include "SI_DeviceGBA.h"
-#include "SI_DeviceAMBaseboard.h"
+#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI_DeviceAMBaseboard.h"
+#include "Core/HW/SI_DeviceDanceMat.h"
+#include "Core/HW/SI_DeviceGBA.h"
+#include "Core/HW/SI_DeviceGCController.h"
+#include "Core/HW/SI_DeviceGCSteeringWheel.h"
 
 
 // --- interface ISIDevice ---

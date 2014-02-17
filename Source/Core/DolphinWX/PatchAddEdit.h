@@ -6,7 +6,8 @@
 
 #include <wx/wx.h>
 #include <wx/spinctrl.h>
-#include "ISOProperties.h"
+
+#include "DolphinWX/ISOProperties.h"
 
 class CPatchAddEdit : public wxDialog
 {

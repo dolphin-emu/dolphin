@@ -12,30 +12,31 @@
 // Next frame, that one is scanned out and the other one gets the copy. = double buffering.
 // ---------------------------------------------------------------------------------------------
 
-
-#include "RenderBase.h"
-#include "Atomic.h"
-#include "BPMemory.h"
-#include "CommandProcessor.h"
-#include "CPMemory.h"
-#include "MainBase.h"
-#include "VideoConfig.h"
-#include "FramebufferManagerBase.h"
-#include "TextureCacheBase.h"
-#include "Fifo.h"
-#include "OpcodeDecoding.h"
-#include "Timer.h"
-#include "StringUtil.h"
-#include "Host.h"
-#include "XFMemory.h"
-#include "FifoPlayer/FifoRecorder.h"
-#include "AVIDump.h"
-#include "Debugger.h"
-#include "Statistics.h"
-#include "Core.h"
-
 #include <cmath>
 #include <string>
+
+#include "Common/Atomic.h"
+#include "Common/StringUtil.h"
+#include "Common/Timer.h"
+
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
+
+#include "VideoCommon/AVIDump.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/FramebufferManagerBase.h"
+#include "VideoCommon/MainBase.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 // TODO: Move these out of here.
 int frameCount;

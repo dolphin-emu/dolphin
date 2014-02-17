@@ -27,10 +27,11 @@
 #include <string>
 #include <map>
 
-#include "Common.h"
-#include "disassemble.h"
-#include "DSPTables.h"
-#include "LabelMap.h"
+#include "Common/Common.h"
+
+#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPTables.h"
+#include "Core/DSP/LabelMap.h"
 
 enum err_t
 {

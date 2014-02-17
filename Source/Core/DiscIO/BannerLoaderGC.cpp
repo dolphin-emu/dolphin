@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonTypes.h"
-#include "ColorUtil.h"
-#include "BannerLoaderGC.h"
+#include "Common/CommonTypes.h"
+#include "Common/ColorUtil.h"
+#include "DiscIO/BannerLoaderGC.h"
 
 namespace DiscIO
 {

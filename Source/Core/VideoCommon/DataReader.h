@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "VertexManagerBase.h"
+#include "VideoCommon/VertexManagerBase.h"
 
 extern u8* g_pVideoData;
 

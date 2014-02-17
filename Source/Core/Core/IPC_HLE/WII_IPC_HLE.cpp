@@ -21,38 +21,40 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 */
 
 #include <map>
-#include <string>
 #include <list>
+#include <string>
 
-#include "Common.h"
-#include "CommonPaths.h"
-#include "Thread.h"
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device.h"
-#include "WII_IPC_HLE_Device_DI.h"
-#include "WII_IPC_HLE_Device_FileIO.h"
-#include "WII_IPC_HLE_Device_stm.h"
-#include "WII_IPC_HLE_Device_fs.h"
-#include "WII_IPC_HLE_Device_net.h"
-#include "WII_IPC_HLE_Device_net_ssl.h"
-#include "WII_IPC_HLE_Device_es.h"
-#include "WII_IPC_HLE_Device_usb.h"
-#include "WII_IPC_HLE_Device_usb_kbd.h"
-#include "WII_IPC_HLE_Device_sdio_slot0.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h" // For Copy
+#include "Common/Thread.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/WII_IPC.h"
+
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
 
 #if defined(__LIBUSB__) || defined (_WIN32)
-	#include "WII_IPC_HLE_Device_hid.h"
+	#include "Core/IPC_HLE/WII_IPC_HLE_Device_hid.h"
 #endif
 
-#include "FileUtil.h" // For Copy
-#include "../ConfigManager.h"
-#include "../HW/CPU.h"
-#include "../HW/Memmap.h"
-#include "../HW/WII_IPC.h"
-#include "../Debugger/Debugger_SymbolMap.h"
-#include "../PowerPC/PowerPC.h"
-#include "../HW/SystemTimers.h"
-#include "CoreTiming.h"
+#include "Core/PowerPC/PowerPC.h"
 
 
 namespace WII_IPC_HLE_Interface

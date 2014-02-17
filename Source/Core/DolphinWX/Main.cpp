@@ -2,34 +2,33 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <vector>
 #include <string>
+#include <vector>
 
-#include "Common.h"
-#include "CommonPaths.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/CPUDetect.h"
+#include "Common/ExtendedTrace.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
 #endif
 
-#include "CPUDetect.h"
-#include "IniFile.h"
-#include "FileUtil.h"
+#include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
+#include "Core/HW/Wiimote.h"
 
-#include "Host.h" // Core
-#include "HW/Wiimote.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/Main.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/JitWindow.h"
 
-#include "WxUtils.h"
-#include "Globals.h" // Local
-#include "Main.h"
-#include "ConfigManager.h"
-#include "Debugger/CodeWindow.h"
-#include "Debugger/JitWindow.h"
-#include "ExtendedTrace.h"
-#include "BootManager.h"
-#include "Frame.h"
-
-#include "VideoBackendBase.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 #include <wx/intl.h>
 

@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Drums.h"
-
+#include "Core/HW/WiimoteEmu/Attachment/Drums.h"
 
 namespace WiimoteEmu
 {

@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "BPMemory.h"
-#include "CPMemory.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CPMemory.h"
 
 namespace FifoAnalyzer
 {

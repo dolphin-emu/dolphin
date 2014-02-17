@@ -2,15 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoConfig.h"
-#include "Host.h"
-#include "RenderBase.h"
+#include "Core/Host.h"
 
-#include "VertexShaderManager.h"
-#include "GLInterface.h"
-#include "WGL.h"
+#include "DolphinWX/GLInterface/GLInterface.h"
+#include "DolphinWX/GLInterface/WGL.h"
 
-#include "EmuWindow.h"
+#include "VideoCommon/EmuWindow.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
+
 static HDC hDC = NULL;       // Private GDI Device Context
 static HGLRC hRC = NULL;     // Permanent Rendering Context
 static HINSTANCE dllHandle = NULL; // Handle to OpenGL32.dll 

@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "../PowerPC/PowerPC.h"
-#include "MemoryInterface.h"
-#include "MMIO.h"
+#include "Core/HW/MemoryInterface.h"
+#include "Core/HW/MMIO.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace MemoryInterface
 {

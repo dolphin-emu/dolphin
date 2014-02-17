@@ -2,19 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "BreakpointWindow.h"
-#include "BreakpointView.h"
-#include "CodeWindow.h"
-#include "HW/Memmap.h"
-#include "BreakpointDlg.h"
-#include "MemoryCheckDlg.h"
-#include "PowerPC/PowerPC.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/Debugger/BreakpointDlg.h"
+#include "DolphinWX/Debugger/BreakpointView.h"
+#include "DolphinWX/Debugger/BreakpointWindow.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/MemoryCheckDlg.h"
 
 extern "C" {
-#include "../resources/toolbar_add_breakpoint.c"
-#include "../resources/toolbar_add_memorycheck.c"
-#include "../resources/toolbar_debugger_delete.c"
+#include "DolphinWX/resources/toolbar_add_breakpoint.c"
+#include "DolphinWX/resources/toolbar_add_memorycheck.c"
+#include "DolphinWX/resources/toolbar_debugger_delete.c"
 }
 
 class CBreakPointBar : public wxAuiToolBar

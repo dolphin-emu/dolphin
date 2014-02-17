@@ -5,8 +5,8 @@
 #pragma once
 
 #include <map>
-#include "VideoCommon.h"
-#include "TextureDecoder.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace HiresTextures
 {

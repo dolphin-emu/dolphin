@@ -10,7 +10,7 @@
 #include <stdint.h>
 #endif
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 class AVIDump
 {

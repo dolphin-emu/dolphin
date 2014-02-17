@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Common.h"
-#include "SoundStream.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/Common.h"
 
 
 class CMixer;

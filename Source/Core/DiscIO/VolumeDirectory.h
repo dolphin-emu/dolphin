@@ -7,8 +7,8 @@
 #include <map>
 #include <string>
 
-#include "FileUtil.h"
-#include "Volume.h"
+#include "Common/FileUtil.h"
+#include "DiscIO/Volume.h"
 
 //
 // --- this volume type is used for reading files directly from the hard drive ---

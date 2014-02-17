@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "CommonTypes.h"
-#include "EfbInterface.h"
-#include "Thread.h"
+#include "Common/CommonTypes.h"
+#include "Common/Thread.h"
+#include "VideoBackends/Software/EfbInterface.h"
 
 namespace SWRenderer
 {

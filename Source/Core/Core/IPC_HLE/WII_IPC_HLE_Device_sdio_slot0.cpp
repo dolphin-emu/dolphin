@@ -2,17 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "../ConfigManager.h"
+#include "Common/Common.h"
+#include "Common/SDCardUtil.h"
 
-#include "SDCardUtil.h"
+#include "Core/Core.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device_sdio_slot0.h"
-
-#include "../HW/CPU.h"
-#include "../HW/Memmap.h"
-#include "../Core.h"
 
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)

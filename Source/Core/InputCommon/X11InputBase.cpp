@@ -2,10 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "X11InputBase.h"
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+
+#include "InputCommon/X11InputBase.h"
+
 namespace InputCommon
 {
 #if defined(HAVE_WX) && HAVE_WX

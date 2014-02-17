@@ -2,22 +2,22 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h" // Common
-#include "ChunkFile.h"
-#include "../ConfigManager.h"
-#include "../CoreTiming.h"
-#include "SystemTimers.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
 
-#include "StreamADPCM.h" // Core
-#include "DVDInterface.h"
-#include "../PowerPC/PowerPC.h"
-#include "ProcessorInterface.h"
-#include "Thread.h"
-#include "Memmap.h"
-#include "../VolumeHandler.h"
-#include "AudioInterface.h"
-#include "../Movie.h"
-#include "MMIO.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/VolumeHandler.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/StreamADPCM.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/PowerPC.h"
 
 // Disc transfer rate measured in bytes per second
 static const u32 DISC_TRANSFER_RATE_GC = 5 * 1024 * 1024;

@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
-#include "CPUDetect.h"
-
 #include <cinttypes>
+
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
+#include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
 
 namespace Gen
 {

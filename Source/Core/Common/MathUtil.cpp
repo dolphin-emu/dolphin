@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "MathUtil.h"
-
 #include <cmath>
 #include <numeric>
+
+#include "Common/MathUtil.h"
 
 namespace MathUtil
 {

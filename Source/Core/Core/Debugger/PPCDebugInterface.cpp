@@ -2,18 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Debugger_SymbolMap.h"
-#include "DebugInterface.h"
-#include "PPCDebugInterface.h"
 #include "PowerPCDisasm.h"
-#include "../Host.h"
-#include "../Core.h"
-#include "../HW/CPU.h"
-#include "../HW/DSP.h"
-#include "../HW/Memmap.h"
-#include "../PowerPC/PowerPC.h"
-#include "../PowerPC/JitCommon/JitBase.h"
-#include "../PowerPC/PPCSymbolDB.h"
+
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 
 void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 {

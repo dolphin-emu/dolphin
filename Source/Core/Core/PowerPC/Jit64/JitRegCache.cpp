@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Jit.h"
-#include "JitAsm.h"
-#include "JitRegCache.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
+#include "Core/PowerPC/Jit64/JitRegCache.h"
 
 using namespace Gen;
 using namespace PowerPC;

@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <math.h>
+#include <cmath>
 
-#include "UCodes.h"
-#include "UCode_Zelda.h"
-#include "AudioCommon.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 
-#include "Mixer.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
 
 void CUCode_Zelda::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {

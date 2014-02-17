@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Android.h"
+#include "InputCommon/ControllerInterface/Android/Android.h"
 
 namespace ciface
 {

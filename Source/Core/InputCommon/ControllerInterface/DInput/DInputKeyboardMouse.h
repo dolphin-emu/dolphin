@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../Device.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 #define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN

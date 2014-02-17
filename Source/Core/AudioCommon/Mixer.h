@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "WaveFile.h"
-#include "StdMutex.h"
+#include "AudioCommon/WaveFile.h"
+#include "Common/StdMutex.h"
 
 // 16 bit Stereo
 #define MAX_SAMPLES     (1024 * 2) // 64ms

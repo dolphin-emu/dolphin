@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "gl_common.h"
+#include "VideoBackends/OGL/GLExtensions/gl_common.h"
 
 #define GL_RENDERBUFFER_COVERAGE_SAMPLES_NV 0x8CAB
 #define GL_RENDERBUFFER_COLOR_SAMPLES_NV 0x8E10

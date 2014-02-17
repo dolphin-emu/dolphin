@@ -9,17 +9,16 @@
 // performance hit, it's not enabled by default, but it's useful for
 // locating performance issues.
 
-#include "Common.h"
+#include "disasm.h"
+
+#include "Common/Common.h"
+#include "Common/MemoryUtil.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-#include "JitBase.h"
-#include "MemoryUtil.h"
-#include "disasm.h"
-
-#include "../JitInterface.h"
 
 #if defined USE_OPROFILE && USE_OPROFILE
 #include <opagent.h>

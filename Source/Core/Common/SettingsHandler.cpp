@@ -4,9 +4,9 @@
 
 // Thanks to Treeki for writing the original class - 29/01/2012
 
-#include "CommonPaths.h"
-#include "Timer.h"
-#include "SettingsHandler.h"
+#include "Common/CommonPaths.h"
+#include "Common/SettingsHandler.h"
+#include "Common/Timer.h"
 
 #include <time.h>
 

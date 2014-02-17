@@ -14,8 +14,8 @@
 #include <vector>
 #include <string>
 
-#include "CommonTypes.h"
-#include "CoreParameter.h"
+#include "Common/CommonTypes.h"
+#include "Core/CoreParameter.h"
 
 namespace Core
 {

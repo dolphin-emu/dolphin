@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
-#include "SWVideoConfig.h"
-#include "VideoBackendBase.h"
-#include "ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 #include <wx/wx.h>
 #include <wx/textctrl.h>

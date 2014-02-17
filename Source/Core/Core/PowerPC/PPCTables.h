@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Gekko.h"
-#include "Interpreter/Interpreter.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 
 enum
 {

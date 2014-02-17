@@ -10,11 +10,10 @@
 #include <algorithm>
 #include <cinttypes>
 
-#include "WiiSaveCrypted.h"
-#include "FileUtil.h"
-#include "MathUtil.h"
-#include "NandPaths.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+#include "Common/MathUtil.h"
+#include "Common/NandPaths.h"
+#include "DolphinWX/MemoryCards/WiiSaveCrypted.h"
 
 static Common::replace_v replacements;
 

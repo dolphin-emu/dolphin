@@ -6,7 +6,8 @@
 
 #include <wx/wx.h>
 #include <wx/notebook.h>
-#include "Debugger.h"
+
+#include "VideoCommon/Debugger.h"
 
 class GFXDebuggerPanel : public wxPanel, public GFXDebuggerBase
 {

@@ -2,7 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "UDPWiimote.h"
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
+#include <functional>
+#include <list>
+#include <string.h>
+
+#include "Common/Thread.h"
+#include "Common/Timer.h"
+
+#include "InputCommon/UDPWiimote.h"
 
 #ifdef _WIN32
 
@@ -41,15 +51,6 @@
 
 #endif
 
-#include "Thread.h"
-#include "Timer.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include <list>
-#include <functional>
 
 struct UDPWiimote::_d
 {

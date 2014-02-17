@@ -2,20 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 #include <wx/artprov.h>
 
-#include "../WxUtils.h"
-#include "StringUtil.h"
-#include "DSPDebugWindow.h"
-#include "DSPRegisterView.h"
-#include "CodeView.h"
-#include "MemoryView.h"
-#include "HW/DSPLLE/DSPSymbols.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+#include "Core/HW/DSPLLE/DSPSymbols.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeView.h"
+#include "DolphinWX/Debugger/DSPDebugWindow.h"
+#include "DolphinWX/Debugger/DSPRegisterView.h"
+#include "DolphinWX/Debugger/MemoryView.h"
 
 DSPDebuggerLLE* m_DebuggerFrame = NULL;
 

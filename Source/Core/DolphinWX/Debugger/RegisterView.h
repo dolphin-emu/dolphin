@@ -6,7 +6,7 @@
 
 #include <wx/grid.h>
 
-#include "Common.h"
+#include "Common/Common.h"
 
 // New register view:
 // R0  0x8000000    F0   0.0000       F0_PS1 0.0000

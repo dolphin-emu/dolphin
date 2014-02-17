@@ -2,10 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Boot_DOL.h"
-#include "FileUtil.h"
-#include "../HW/Memmap.h"
-#include "CommonFuncs.h"
+#include "Common/CommonFuncs.h"
+#include "Common/FileUtil.h"
+
+#include "Core/Boot/Boot_DOL.h"
+#include "Core/HW/Memmap.h"
 
 CDolLoader::CDolLoader(u8* _pBuffer, u32 _Size)
 	: m_isWii(false)

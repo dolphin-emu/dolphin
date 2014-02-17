@@ -2,16 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "IniFile.h"
-#include "DebuggerPanel.h"
-#include "FileUtil.h"
-#include "../../Core/ConfigManager.h"
-
-#include "VideoConfig.h"
-#include "TextureCacheBase.h"
-#include "PixelShaderGen.h"
-#include "VertexShaderGen.h"
-#include "NativeVertexFormat.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Core/ConfigManager.h"
+#include "DolphinWX/Debugger/DebuggerPanel.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoConfig.h"
 
 BEGIN_EVENT_TABLE(GFXDebuggerPanel, wxPanel)
 	EVT_CLOSE(GFXDebuggerPanel::OnClose)

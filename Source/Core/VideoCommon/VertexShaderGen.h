@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "XFMemory.h"
-#include "VideoCommon.h"
-#include "ShaderGenCommon.h"
-#include "LightingShaderGen.h"
+#include "VideoCommon/LightingShaderGen.h"
+#include "VideoCommon/ShaderGenCommon.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/XFMemory.h"
 
 // TODO should be reordered
 #define SHADER_POSITION_ATTRIB  0

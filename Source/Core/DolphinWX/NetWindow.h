@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "CommonTypes.h"
-
 #include <queue>
 #include <string>
 
@@ -18,11 +16,10 @@
 #include <wx/listbox.h>
 #include <wx/spinctrl.h>
 
-#include "GameListCtrl.h"
-
-#include "FifoQueue.h"
-
-#include "NetPlayClient.h"
+#include "Common/CommonTypes.h"
+#include "Common/FifoQueue.h"
+#include "Core/NetPlayClient.h"
+#include "DolphinWX/GameListCtrl.h"
 
 enum
 {

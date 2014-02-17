@@ -2,28 +2,30 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Movie.h"
-
-#include "Core.h"
-#include "ConfigManager.h"
-#include "Thread.h"
-#include "FileUtil.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/SI.h"
-#include "HW/Wiimote.h"
-#include "HW/WiimoteEmu/WiimoteEmu.h"
-#include "HW/WiimoteEmu/WiimoteHid.h"
-#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
-#include "State.h"
-#include "Timer.h"
-#include "VideoConfig.h"
-#include "HW/EXI.h"
-#include "HW/EXI_Device.h"
-#include "HW/EXI_Channel.h"
-#include "HW/DVDInterface.h"
-#include "../Common/NandPaths.h"
 #include "polarssl/md5.h"
-#include "NetPlayProto.h"
+
+#include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
+#include "Core/State.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/EXI_Channel.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/VideoConfig.h"
 
 // The chunk to allocate movie data in multiples of.
 #define DTM_BASE_LENGTH (1024)

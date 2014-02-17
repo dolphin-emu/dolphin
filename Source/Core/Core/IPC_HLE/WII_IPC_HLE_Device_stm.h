@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 enum
 {

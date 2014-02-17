@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "BreakpointDlg.h"
-#include "StringUtil.h"
-#include "PowerPC/PowerPC.h"
-#include "BreakpointWindow.h"
-#include "../WxUtils.h"
+#include "Common/StringUtil.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/Debugger/BreakpointDlg.h"
+#include "DolphinWX/Debugger/BreakpointWindow.h"
+#include "DolphinWX/WxUtils.h"
 
 BEGIN_EVENT_TABLE(BreakPointDlg, wxDialog)
 	EVT_BUTTON(wxID_OK, BreakPointDlg::OnOK)

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "CommonTypes.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 
 namespace OpcodeDecoder
 {

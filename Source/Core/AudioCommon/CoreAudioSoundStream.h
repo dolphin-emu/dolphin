@@ -8,7 +8,7 @@
 #include <AudioUnit/AudioUnit.h>
 #endif
 
-#include "SoundStream.h"
+#include "AudioCommon/SoundStream.h"
 
 class CoreAudioSound : public SoundStream
 {

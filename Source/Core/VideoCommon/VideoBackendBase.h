@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "ChunkFile.h"
-#include "../VideoCommon/PerfQueryBase.h"
+#include "Common/ChunkFile.h"
+#include "VideoCommon/PerfQueryBase.h"
 
 namespace MMIO { class Mapping; }
 

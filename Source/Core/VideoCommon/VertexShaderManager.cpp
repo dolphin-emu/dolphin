@@ -2,25 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "VideoConfig.h"
-#include "MathUtil.h"
-
 #include <cmath>
 #include <sstream>
 
-#include "Statistics.h"
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
 
-#include "VertexShaderGen.h"
-#include "VertexShaderManager.h"
-#include "BPMemory.h"
-#include "CPMemory.h"
-#include "XFMemory.h"
-#include "VideoCommon.h"
-#include "VertexManagerBase.h"
-#include "RenderBase.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/XFMemory.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VertexShaderManager.h"
 
-#include "RenderBase.h"
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 // track changes

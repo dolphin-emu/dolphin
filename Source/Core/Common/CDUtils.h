@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
 // Returns a pointer to an array of strings with the device names
 std::vector<std::string> cdio_get_devices();

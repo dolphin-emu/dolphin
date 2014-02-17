@@ -1,22 +1,20 @@
+#include "Common/Common.h"
 
-#include "Common.h"
-
-#include "Statistics.h"
-#include "OpcodeDecoding.h"
-#include "IndexGenerator.h"
-#include "VertexShaderManager.h"
-#include "PixelShaderManager.h"
-#include "NativeVertexFormat.h"
-#include "TextureCacheBase.h"
-#include "RenderBase.h"
-#include "BPStructs.h"
-#include "XFMemory.h"
-#include "Debugger.h"
-#include "PerfQueryBase.h"
-
-#include "VertexManagerBase.h"
-#include "MainBase.h"
-#include "VideoConfig.h"
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/MainBase.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 VertexManager *g_vertex_manager;
 

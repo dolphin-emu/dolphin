@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/wx.h>
 #endif

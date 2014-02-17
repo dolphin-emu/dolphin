@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FifoDataFile.h"
-#include "FifoFileStruct.h"
+#include "Common/FileUtil.h"
 
-#include "FileUtil.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/FifoPlayer/FifoFileStruct.h"
 
 using namespace FifoFileStruct;
 using namespace std;

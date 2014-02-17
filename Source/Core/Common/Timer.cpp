@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <time.h>
+#include <ctime>
 #include <cinttypes>
 
 #ifdef _WIN32
@@ -13,8 +13,8 @@
 #include <sys/time.h>
 #endif
 
-#include "Timer.h"
-#include "StringUtil.h"
+#include "Common/StringUtil.h"
+#include "Common/Timer.h"
 
 namespace Common
 {

@@ -2,35 +2,34 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "ControllerInterface.h"
+#include "Common/Thread.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #if USE_EGL
-#include "GLInterface/GLInterface.h"
+#include "DolphinWX/GLInterface/GLInterface.h"
 #endif
 
 #ifdef CIFACE_USE_XINPUT
-	#include "XInput/XInput.h"
+	#include "InputCommon/ControllerInterface/XInput/XInput.h"
 #endif
 #ifdef CIFACE_USE_DINPUT
-	#include "DInput/DInput.h"
+	#include "InputCommon/ControllerInterface/DInput/DInput.h"
 #endif
 #ifdef CIFACE_USE_XLIB
-	#include "Xlib/Xlib.h"
+	#include "InputCommon/ControllerInterface/Xlib/Xlib.h"
 	#ifdef CIFACE_USE_X11_XINPUT2
-		#include "Xlib/XInput2.h"
+		#include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 	#endif
 #endif
 #ifdef CIFACE_USE_OSX
-	#include "OSX/OSX.h"
+	#include "InputCommon/ControllerInterface/OSX/OSX.h"
 #endif
 #ifdef CIFACE_USE_SDL
-	#include "SDL/SDL.h"
+	#include "InputCommon/ControllerInterface/SDL/SDL.h"
 #endif
 #ifdef CIFACE_USE_ANDROID
-	#include "Android/Android.h"
+	#include "InputCommon/ControllerInterface/Android/Android.h"
 #endif
-
-#include "Thread.h"
 
 using namespace ciface::ExpressionParser;
 

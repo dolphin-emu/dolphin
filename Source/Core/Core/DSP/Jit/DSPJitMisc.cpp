@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../DSPEmitter.h"
-#include "../DSPIntUtil.h"
+#include "Core/DSP/DSPEmitter.h"
+#include "Core/DSP/DSPIntUtil.h"
 
 using namespace Gen;
 

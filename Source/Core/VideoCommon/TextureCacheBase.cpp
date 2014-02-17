@@ -2,18 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "MemoryUtil.h"
+#include "Common/FileUtil.h"
+#include "Common/MemoryUtil.h"
 
-#include "VideoConfig.h"
-#include "Statistics.h"
-#include "HiresTextures.h"
-#include "RenderBase.h"
-#include "FileUtil.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/Memmap.h"
 
-#include "TextureCacheBase.h"
-#include "Debugger.h"
-#include "ConfigManager.h"
-#include "HW/Memmap.h"
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 // ugly
 extern int frameCount;

@@ -50,19 +50,18 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
   TODO maybe the files should be merged?
 */
 
-#include "Common.h"
-#include "MathUtil.h"
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
 
-#include "StreamADPCM.h"
-#include "AudioInterface.h"
-
-#include "CPU.h"
-#include "ProcessorInterface.h"
-#include "DVDInterface.h"
-#include "../PowerPC/PowerPC.h"
-#include "../CoreTiming.h"
-#include "SystemTimers.h"
-#include "MMIO.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/StreamADPCM.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace AudioInterface
 {

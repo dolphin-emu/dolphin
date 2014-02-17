@@ -2,8 +2,6 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Globals.h"
-
 #include <wx/imaglist.h>
 #include <wx/fontmap.h>
 #include <wx/filename.h>
@@ -12,35 +10,36 @@
 #include <cinttypes>
 #include <memory>
 
-#include "FileSearch.h"
-#include "StringUtil.h"
-#include "ConfigManager.h"
-#include "GameListCtrl.h"
-#include "Blob.h"
-#include "Core.h"
-#include "ISOProperties.h"
-#include "FileUtil.h"
-#include "CDUtils.h"
-#include "WxUtils.h"
-#include "Main.h"
-#include "MathUtil.h"
-#include "HW/DVDInterface.h"
+#include "Common/CDUtils.h"
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/MathUtil.h"
+#include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/DVDInterface.h"
+#include "DiscIO/Blob.h"
 
-#include "resources/Flag_Europe.xpm"
-#include "resources/Flag_Germany.xpm"
-#include "resources/Flag_France.xpm"
-#include "resources/Flag_Italy.xpm"
-#include "resources/Flag_Japan.xpm"
-#include "resources/Flag_USA.xpm"
-#include "resources/Flag_Taiwan.xpm"
-#include "resources/Flag_Korea.xpm"
-#include "resources/Flag_Unknown.xpm"
-#include "resources/Flag_SDK.xpm"
+#include "DolphinWX/GameListCtrl.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/Main.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWx/resources/Flag_Europe.xpm"
+#include "DolphinWX/resources/Flag_Germany.xpm"
+#include "DolphinWX/resources/Flag_France.xpm"
+#include "DolphinWX/resources/Flag_Italy.xpm"
+#include "DolphinWX/resources/Flag_Japan.xpm"
+#include "DolphinWX/resources/Flag_USA.xpm"
+#include "DolphinWX/resources/Flag_Taiwan.xpm"
+#include "DolphinWX/resources/Flag_Korea.xpm"
+#include "DolphinWX/resources/Flag_Unknown.xpm"
+#include "DolphinWX/resources/Flag_SDK.xpm"
 
-#include "resources/Platform_Wad.xpm"
-#include "resources/Platform_Wii.xpm"
-#include "resources/Platform_Gamecube.xpm"
-#include "resources/rating_gamelist.h"
+#include "DolphinWX/resources/Platform_Wad.xpm"
+#include "DolphinWX/resources/Platform_Wii.xpm"
+#include "DolphinWX/resources/Platform_Gamecube.xpm"
+#include "DolphinWX/resources/rating_gamelist.h"
 
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;

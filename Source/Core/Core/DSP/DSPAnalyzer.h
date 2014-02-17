@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "DSPInterpreter.h"
+#include "Core/DSP/DSPInterpreter.h"
 
 // Basic code analysis.
 namespace DSPAnalyzer

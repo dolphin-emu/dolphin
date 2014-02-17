@@ -1,11 +1,11 @@
-#include "VideoConfigDiag.h"
-
-#include "FileUtil.h"
-#include "TextureCacheBase.h"
-#include "Core.h"
-#include "Frame.h"
-
 #include <wx/intl.h>
+
+#include "Common/FileUtil.h"
+#include "Core/Core.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/VideoConfigDiag.h"
+#include "VideoCommon/TextureCacheBase.h"
+
 
 #ifdef __APPLE__
 #include <ApplicationServices/ApplicationServices.h>

@@ -6,11 +6,10 @@
 
 #include <map>
 
-#include "VideoCommon.h"
-#include "GLUtil.h"
-#include "BPStructs.h"
-
-#include "TextureCacheBase.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace OGL
 {

@@ -2,16 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "NANDContentLoader.h"
-
 #include <algorithm>
 #include <cctype>
 #include <polarssl/aes.h>
-#include "MathUtil.h"
-#include "FileUtil.h"
-#include "Log.h"
-#include "WiiWad.h"
-#include "StringUtil.h"
+
+#include "Common/FileUtil.h"
+#include "Common/MathUtil.h"
+#include "Common/Log.h"
+#include "Common/StringUtil.h"
+
+#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/WiiWad.h"
 
 namespace DiscIO
 {

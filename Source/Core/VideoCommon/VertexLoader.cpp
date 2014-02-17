@@ -2,32 +2,32 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "VideoCommon.h"
-#include "VideoConfig.h"
-#include "MemoryUtil.h"
-#include "StringUtil.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
-#include "PixelEngine.h"
-#include "Host.h"
+#include "Common/Common.h"
+#include "Common/MemoryUtil.h"
+#include "Common/StringUtil.h"
+#include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
 
-#include "LookUpTables.h"
-#include "Statistics.h"
-#include "VertexLoaderManager.h"
-#include "VertexLoader.h"
-#include "BPMemory.h"
-#include "DataReader.h"
-#include "VertexManagerBase.h"
-#include "IndexGenerator.h"
+#include "Core/Host.h"
 
-#include "VertexLoader_Position.h"
-#include "VertexLoader_Normal.h"
-#include "VertexLoader_Color.h"
-#include "VertexLoader_TextCoord.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/DataReader.h"
+#include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexLoader_Color.h"
+#include "VideoCommon/VertexLoader_Normal.h"
+#include "VideoCommon/VertexLoader_Position.h"
+#include "VideoCommon/VertexLoader_TextCoord.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 //BBox
-#include "XFMemory.h"
+#include "VideoCommon/XFMemory.h"
 #ifndef _M_GENERIC
 #ifndef __APPLE__
 #define USE_JIT

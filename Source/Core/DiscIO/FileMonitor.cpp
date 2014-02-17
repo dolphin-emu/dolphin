@@ -2,20 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <iostream>
-#include <vector>
-#include <string>
 #include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
 
+#include "Common/Common.h"
+#include "Common/IniFile.h"
+#include "Common/LogManager.h"
 
-#include "Common.h"
-#include "IniFile.h"
-#include "LogManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
 
-#include "../Core/Core.h"
-#include "../Core/ConfigManager.h"
-#include "FileSystemGCWii.h"
-#include "VolumeCreator.h"
+#include "DiscIO/FileSystemGCWii.h"
+#include "DiscIO/VolumeCreator.h"
 
 namespace FileMon
 {

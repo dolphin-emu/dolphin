@@ -11,6 +11,9 @@
 // might have to change this setup for wiimote
 #define PROFILES_PATH       "Profiles/"
 
+#include <sstream>
+#include <vector>
+
 #include <wx/wx.h>
 #include <wx/listbox.h>
 #include <wx/textctrl.h>
@@ -22,14 +25,11 @@
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
 
-#include <sstream>
-#include <vector>
-
-#include "ControllerInterface/ControllerInterface.h"
-#include "ControllerEmu.h"
-#include "InputConfig.h"
-#include "FileSearch.h"
-#include "UDPWrapper.h"
+#include "Common/FileSearch.h"
+#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/InputConfig.h"
+#include "InputCommon/UDPWrapper.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 class PadSetting
 {

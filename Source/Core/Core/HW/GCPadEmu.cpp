@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "GCPadEmu.h"
-#include "../Host.h"
+#include "Core/Host.h"
+#include "Core/HW/GCPadEmu.h"
 
 const u16 button_bitmasks[] =
 {

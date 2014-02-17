@@ -2,10 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VolumeWiiCrypted.h"
-#include "VolumeGC.h"
-#include "StringUtil.h"
 #include <polarssl/sha1.h>
+
+#include "Common/StringUtil.h"
+#include "DiscIO/VolumeGC.h"
+#include "DiscIO/VolumeWiiCrypted.h"
 
 namespace DiscIO
 {

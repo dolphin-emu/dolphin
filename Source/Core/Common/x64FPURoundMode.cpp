@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "FPURoundMode.h"
-#include "CPUDetect.h"
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
+#include "Common/FPURoundMode.h"
 
 #ifndef _WIN32
 static const unsigned short FPU_ROUND_NEAR = 0 << 10;

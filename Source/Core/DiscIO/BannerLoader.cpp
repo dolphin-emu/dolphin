@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "BannerLoader.h"
-#include "BannerLoaderWii.h"
-#include "BannerLoaderGC.h"
+#include "Common/FileUtil.h"
 
-#include "VolumeCreator.h"
-#include "FileUtil.h"
+#include "DiscIO/BannerLoader.h"
+#include "DiscIO/BannerLoaderGC.h"
+#include "DiscIO/BannerLoaderWii.h"
+#include "DiscIO/VolumeCreator.h"
 
 namespace DiscIO
 {

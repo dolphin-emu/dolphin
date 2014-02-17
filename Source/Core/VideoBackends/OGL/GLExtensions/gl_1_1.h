@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "gl_common.h"
+#include "VideoBackends/OGL/GLExtensions/gl_common.h"
 
 typedef void (GLAPIENTRY * PFNGLCLEARINDEXPROC) ( GLfloat c );
 typedef void (GLAPIENTRY * PFNGLCLEARCOLORPROC) ( GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha );

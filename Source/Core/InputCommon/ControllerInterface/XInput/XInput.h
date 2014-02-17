@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../Device.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 #define NOMINMAX
 #include <Windows.h>

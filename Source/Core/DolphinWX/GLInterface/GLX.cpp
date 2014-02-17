@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Host.h"
-#include "RenderBase.h"
-#include "VideoConfig.h"
+#include "Core/Host.h"
 
-#include "GLInterface.h"
-#include "GLX.h"
+#include "DolphinWX/GLInterface/GLInterface.h"
+#include "DolphinWX/GLInterface/GLX.h"
+
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 typedef int ( * PFNGLXSWAPINTERVALSGIPROC) (int interval);
 PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = NULL;

@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "MathUtil.h"
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
 
-#include "Interpreter.h"
-#include "Interpreter_FPUtils.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
-#include "../JitInterface.h"
+#include "Core/PowerPC/JitInterface.h"
 
 
 bool Interpreter::g_bReserve;

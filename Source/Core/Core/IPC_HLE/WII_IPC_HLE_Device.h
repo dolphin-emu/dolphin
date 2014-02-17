@@ -4,11 +4,12 @@
 
 #pragma once
 
-#include <string>
 #include <queue>
-#include "../HW/Memmap.h"
+#include <string>
 
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+
+#include "Core/HW/Memmap.h"
 
 #define FS_SUCCESS      (u32)0      // Success
 #define FS_EACCES       (u32)-1     // Permission denied

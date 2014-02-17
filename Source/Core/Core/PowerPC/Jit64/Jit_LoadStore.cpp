@@ -5,11 +5,11 @@
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
 // Should give a very noticable speed boost to paired single heavy code.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "Jit.h"
-#include "JitAsm.h"
-#include "JitRegCache.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
+#include "Core/PowerPC/Jit64/JitRegCache.h"
 
 void Jit64::lXXx(UGeckoInstruction inst)
 {

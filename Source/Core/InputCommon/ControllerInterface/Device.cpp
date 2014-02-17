@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Device.h"
-
-#include <string>
 #include <sstream>
+#include <string>
+
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {

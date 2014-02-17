@@ -4,13 +4,13 @@
 
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
-#include "CommonTypes.h"
-#include "Blob.h"
-#include "Volume.h"
+#include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {

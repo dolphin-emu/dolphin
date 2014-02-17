@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "x64Analyzer.h"
+#include "Common/x64Analyzer.h"
 
 bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 {

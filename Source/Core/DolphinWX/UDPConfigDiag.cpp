@@ -1,12 +1,11 @@
-#include "UDPConfigDiag.h"
-#include "UDPWrapper.h"
-
-#include "Common.h"
-#include "ControllerEmu.h"
-#include "IniFile.h"
-#include "WxUtils.h"
-
 #include <string>
+
+#include "Common/Common.h"
+#include "Common/IniFile.h"
+#include "DolphinWX/UDPConfigDiag.h"
+#include "DolphinWX/WxUtils.h"
+#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/UDPWrapper.h"
 
 UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 	wxDialog(parent, -1, _("UDP Wiimote"), wxDefaultPosition, wxDefaultSize),

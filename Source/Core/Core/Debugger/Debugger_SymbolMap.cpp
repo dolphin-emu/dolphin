@@ -2,14 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "StringUtil.h"
-#include "Debugger_SymbolMap.h"
-#include "../Core.h"
-#include "../HW/Memmap.h"
-#include "../PowerPC/PowerPC.h"
-#include "../PowerPC/PPCAnalyst.h"
-#include "../PowerPC/PPCSymbolDB.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+
+#include "Core/Core.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 
 namespace Dolphin_Debugger
 {

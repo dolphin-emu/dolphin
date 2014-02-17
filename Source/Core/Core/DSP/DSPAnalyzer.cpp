@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DSPAnalyzer.h"
-#include "DSPInterpreter.h"
-#include "DSPTables.h"
-#include "DSPMemoryMap.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/DSPTables.h"
 
 namespace DSPAnalyzer {
 

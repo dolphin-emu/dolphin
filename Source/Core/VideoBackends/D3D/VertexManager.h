@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "VertexManagerBase.h"
-#include "LineGeometryShader.h"
-#include "PointGeometryShader.h"
+#include "VideoBackends/D3D/LineGeometryShader.h"
+#include "VideoBackends/D3D/PointGeometryShader.h"
+#include "VideoCommon/VertexManagerBase.h"
 
 namespace DX11
 {

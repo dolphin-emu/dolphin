@@ -9,15 +9,15 @@
 #include <windows.h>
 #endif
 
-#include "Common.h"
-#include "../../HLE/HLE.h"
-#include "../../PatchEngine.h"
-#include "../Profiler.h"
-#include "Jit.h"
-#include "JitAsm.h"
-#include "JitRegCache.h"
-#include "Jit64_Tables.h"
-#include "HW/ProcessorInterface.h"
+#include "Common/Common.h"
+#include "Core/PatchEngine.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/Profiler.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
+#include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #if defined(_DEBUG) || defined(DEBUGFAST)
 #include "PowerPCDisasm.h"
 #endif

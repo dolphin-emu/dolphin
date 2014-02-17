@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "CommonTypes.h"
-
-#include "EXI_Device.h"
 #include <memory>
+
+#include "Common/CommonTypes.h"
+#include "Core/HW/EXI_Device.h"
 
 namespace MMIO { class Mapping; }
 

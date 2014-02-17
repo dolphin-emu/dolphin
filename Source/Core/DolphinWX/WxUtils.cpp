@@ -2,12 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-
 #include <wx/wx.h>
 #include <wx/string.h>
 
-#include "WxUtils.h"
+#include "Common/Common.h"
+#include "DolphinWX/WxUtils.h"
 
 #ifdef __APPLE__
 #import <AppKit/AppKit.h>

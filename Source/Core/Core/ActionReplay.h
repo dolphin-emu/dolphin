@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "IniFile.h"
+#include "Common/IniFile.h"
 
 namespace ActionReplay
 {

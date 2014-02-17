@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../Device.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 #define DINPUT_SOURCE_NAME "DInput"
 

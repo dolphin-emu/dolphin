@@ -2,17 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include <cmath>
 
-#include <math.h>
-
-#include "TransformUnit.h"
-#include "XFMemLoader.h"
-#include "CPMemLoader.h"
-#include "BPMemLoader.h"
-#include "NativeVertexFormat.h"
-
-#include "Vec3.h"
+#include "Common/Common.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
+#include "VideoBackends/Software/TransformUnit.h"
+#include "VideoBackends/Software/Vec3.h"
+#include "VideoBackends/Software/XFMemLoader.h"
 
 
 namespace TransformUnit

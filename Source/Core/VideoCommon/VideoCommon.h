@@ -9,9 +9,9 @@
 #include <windows.h>
 #endif
 
-#include "Common.h"
-#include "MathUtil.h"
-#include "VideoBackendBase.h"
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 #if defined(_MSC_VER) && !defined(__x86_64__) && !defined(_M_X64)
 void * memcpy_amd(void *dest, const void *src, size_t n);

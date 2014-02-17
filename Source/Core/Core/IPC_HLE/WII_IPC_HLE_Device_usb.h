@@ -5,14 +5,14 @@
 #pragma once
 
 #include <algorithm>
-#include <vector>
 #include <queue>
+#include <vector>
 
-#include "hci.h"
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device.h"
-#include "WII_IPC_HLE_WiiMote.h"
-#include "../HW/Wiimote.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/hci.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
 struct SQueuedEvent
 {

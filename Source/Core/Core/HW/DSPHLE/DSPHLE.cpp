@@ -4,19 +4,19 @@
 
 #include <iostream>
 
-#include "ChunkFile.h"
-#include "IniFile.h"
-#include "HLEMixer.h"
-#include "StringUtil.h"
-#include "LogManager.h"
-#include "IniFile.h"
-#include "DSPHLE.h"
-#include "UCodes/UCodes.h"
-#include "../AudioInterface.h"
-#include "ConfigManager.h"
-#include "Core.h"
-#include "HW/SystemTimers.h"
-#include "HW/VideoInterface.h"
+#include "Common/ChunkFile.h"
+#include "Common/IniFile.h"
+#include "Common/LogManager.h"
+#include "Common/StringUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
+#include "Core/HW/DSPHLE/HLEMixer.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 DSPHLE::DSPHLE()
 {

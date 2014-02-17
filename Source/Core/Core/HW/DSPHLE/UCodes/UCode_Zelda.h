@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Common.h"
-#include "UCodes.h"
+#include "Common/Common.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 // Obviously missing things that must be in here, somewhere among the "unknown":
 //   * Volume

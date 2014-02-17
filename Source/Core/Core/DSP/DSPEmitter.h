@@ -6,14 +6,14 @@
 
 #include <list>
 
-#include "DSPCommon.h"
-#include "x64ABI.h"
-#include "x64Emitter.h"
-#include "Jit/DSPJitRegCache.h"
+#include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
+
+#include "Core/DSP/DSPCommon.h"
+#include "Core/DSP/Jit/DSPJitRegCache.h"
 
 #define COMPILED_CODE_SIZE 2097152
-
-#define MAX_BLOCKS 0x10000
+#define MAX_BLOCKS         0x10000
 
 typedef u32 (*DSPCompiledCode)();
 typedef const u8 *Block;

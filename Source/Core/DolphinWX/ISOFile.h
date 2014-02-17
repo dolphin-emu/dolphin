@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
-#include "Volume.h"
-#include "VolumeCreator.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/image.h>

@@ -2,18 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "CommonPaths.h"
-#include "Timer.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/MemoryUtil.h"
+#include "Common/Timer.h"
 
-#include "EXI_DeviceIPL.h"
-#include "../Core.h"
-#include "../ConfigManager.h"
-#include "MemoryUtil.h"
-#include "FileUtil.h"
-#include "../Movie.h"
-#include "../CoreTiming.h"
-#include "SystemTimers.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/SystemTimers.h"
 
 // We should provide an option to choose from the above, or figure out the checksum (the algo in yagcd seems wrong)
 // so that people can change default language.

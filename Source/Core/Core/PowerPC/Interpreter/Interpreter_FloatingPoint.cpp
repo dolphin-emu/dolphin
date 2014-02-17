@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <math.h>
+#include <cmath>
 #include <limits>
 
 #ifdef _WIN32
@@ -17,10 +17,10 @@
 #undef _interlockedbittestandreset64
 #endif
 
-#include "Interpreter.h"
-#include "Interpreter_FPUtils.h"
-#include "MathUtil.h"
-#include "../LUT_frsqrtex.h"
+#include "Common/MathUtil.h"
+#include "Core/PowerPC/LUT_frsqrtex.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
 using namespace MathUtil;
 

@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "JitIL_Tables.h"
+#include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 
 // Should be moved in to the Jit class
 typedef void (JitIL::*_Instruction) (UGeckoInstruction instCode);

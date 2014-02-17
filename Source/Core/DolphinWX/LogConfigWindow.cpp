@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "LogConfigWindow.h"
-#include "LogManager.h"
-#include "LogWindow.h"
-#include "FileUtil.h"
-#include "WxUtils.h"
+#include "Common/FileUtil.h"
+#include "Common/LogManager.h"
+#include "DolphinWX/LogConfigWindow.h"
+#include "DolphinWX/LogWindow.h"
+#include "DolphinWX/WxUtils.h"
 
 LogConfigWindow::LogConfigWindow(wxWindow* parent, CLogWindow *log_window, wxWindowID id)
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("Log Configuration"))

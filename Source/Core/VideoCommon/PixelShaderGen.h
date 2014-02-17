@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "VideoCommon.h"
-#include "ShaderGenCommon.h"
-#include "BPMemory.h"
-#include "LightingShaderGen.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/LightingShaderGen.h"
+#include "VideoCommon/ShaderGenCommon.h"
+#include "VideoCommon/VideoCommon.h"
 
 #define I_COLORS      "color"
 #define I_KCOLORS     "k"

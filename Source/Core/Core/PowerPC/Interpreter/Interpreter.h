@@ -4,16 +4,16 @@
 
 #pragma once
 
-#include "Atomic.h"
-#include "../Gekko.h"
-#include "../PowerPC.h"
-#include "../CPUCoreBase.h"
-#include "../../Core.h"
-#include "../../CoreTiming.h"
-#include "../../ConfigManager.h"
-#include "../../HLE/HLE.h"
-#include "../../HW/Memmap.h"
-#include "../../HW/CPU.h"
+#include "Common/Atomic.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PowerPC.h"
 
 class Interpreter : public CPUCoreBase
 {

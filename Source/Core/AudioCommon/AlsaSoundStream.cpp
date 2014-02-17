@@ -4,9 +4,9 @@
 
 #include <functional>
 
-#include "Common.h"
-#include "Thread.h"
-#include "AlsaSoundStream.h"
+#include "AudioCommon/AlsaSoundStream.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
 
 #define FRAME_COUNT_MIN 256
 #define BUFFER_SIZE_MAX 8192

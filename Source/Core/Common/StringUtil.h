@@ -4,14 +4,13 @@
 
 #pragma once
 
-#include <stdarg.h>
-
-#include <vector>
-#include <string>
-#include <sstream>
+#include <cstdarg>
 #include <iomanip>
+#include <sstream>
+#include <string>
+#include <vector>
 
-#include "Common.h"
+#include "Common/Common.h"
 
 std::string StringFromFormat(const char* format, ...)
 #if !defined _WIN32

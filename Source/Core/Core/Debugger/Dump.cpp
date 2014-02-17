@@ -2,11 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
+#include <cstdio>
 
-#include "Common.h"
-#include "Dump.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+
+#include "Core/Debugger/Dump.h"
 
 CDump::CDump(const char* _szFilename) :
 	m_pData(NULL)

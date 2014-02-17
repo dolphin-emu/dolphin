@@ -2,15 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FifoAnalyzer.h"
-#include "FifoDataFile.h"
-#include "FifoPlaybackAnalyzer.h"
+#include "Common/Common.h"
 
-#include "Common.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 
-#include "OpcodeDecoding.h"
-#include "TextureDecoder.h"
-#include "VertexLoader.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VertexLoader.h"
 
 using namespace std;
 using namespace FifoAnalyzer;

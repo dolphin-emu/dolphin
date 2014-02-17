@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "WII_IPC_HLE_Device.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 std::string HLE_IPC_BuildFilename(std::string _pFilename, int _size);
 void HLE_IPC_CreateVirtualFATFilesystem();

@@ -4,9 +4,9 @@
 
 #include <functional>
 
-#include "EXI_Device.h"
-#include "EXI_DeviceGecko.h"
-#include "../Core.h"
+#include "Core/Core.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceGecko.h"
 
 u16                       GeckoSockServer::server_port;
 int                       GeckoSockServer::client_count;

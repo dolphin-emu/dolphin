@@ -4,18 +4,22 @@
 
 // Fast image conversion using OpenGL shaders.
 
-#include "TextureConverter.h"
-#include "TextureConversionShader.h"
-#include "TextureCache.h"
-#include "ProgramShaderCache.h"
-#include "FramebufferManager.h"
-#include "Globals.h"
-#include "VideoConfig.h"
-#include "ImageWrite.h"
-#include "Render.h"
-#include "FileUtil.h"
-#include "HW/Memmap.h"
-#include "DriverDetails.h"
+#include "Common/FileUtil.h"
+
+#include "Core/HW/Memmap.h"
+
+#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/Globals.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/TextureCache.h"
+#include "VideoBackends/OGL/TextureConverter.h"
+
+#include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/VideoConfig.h"
+
 
 namespace OGL
 {

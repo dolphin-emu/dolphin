@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "InputConfigDiag.h"
-#include "WxUtils.h"
+#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/WxUtils.h"
 
 void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 {

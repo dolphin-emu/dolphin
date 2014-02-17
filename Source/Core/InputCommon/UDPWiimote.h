@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Common.h"
 #include <string>
+#include "Common/Common.h"
 
 #define UDPWM_B1 (1<<0)
 #define UDPWM_B2 (1<<1)

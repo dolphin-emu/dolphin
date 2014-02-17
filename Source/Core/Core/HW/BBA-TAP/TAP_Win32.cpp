@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "StringUtil.h"
-// GROSS CODE ALERT: headers need to be included in the following order
-#include "TAP_Win32.h"
-#include "../EXI_Device.h"
-#include "../EXI_DeviceEthernet.h"
+#include "Common/StringUtil.h"
+
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceEthernet.h"
+#include "Core/HW/BBA-TAP/TAP_Win32.h"
 
 namespace Win32TAPHelper
 {

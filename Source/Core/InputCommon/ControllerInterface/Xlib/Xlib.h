@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../Device.h"
-
-#include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <X11/Xlib.h>
+
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {

@@ -4,5 +4,5 @@
 
 #pragma once
 
-#include "Render.h"
-#include "MainBase.h"
+#include "VideoBackends/D3D/Render.h"
+#include "VideoCommon/MainBase.h"

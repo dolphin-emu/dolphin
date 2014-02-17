@@ -2,16 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "FileUtil.h"
-
-#include <string>
-#include <vector>
 #include <algorithm>
 #include <cinttypes>
+#include <string>
+#include <vector>
 
-#include "FileSystemGCWii.h"
-#include "StringUtil.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
+#include "DiscIO/FileSystemGCWii.h"
 
 namespace DiscIO
 {

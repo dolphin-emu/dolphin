@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "x64Emitter.h"
-#include "../JitCommon/JitAsmCommon.h"
+#include "Common/x64Emitter.h"
+#include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 
 // In Dolphin, we don't use inline assembly. Instead, we generate all machine-near
 // code at runtime. In the case of fixed code like this, after writing it, we write

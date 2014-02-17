@@ -2,20 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <algorithm>
-#include <unordered_map>
+#include <cstdio>
+#include <cstdlib>
 #include <ctime>
+#include <unordered_map>
 #include <unordered_set>
 
 #include <windows.h>
 #include <dbt.h>
 #include <setupapi.h>
 
-#include "Common.h"
-#include "WiimoteReal.h"
-#include "StringUtil.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 // Used for pair up
 #undef NTDDI_VERSION

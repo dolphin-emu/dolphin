@@ -13,8 +13,8 @@
 
 #pragma once
 
-#include "CommonTypes.h"
-#include "Blob.h"
+#include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
 
 
 namespace DiscIO

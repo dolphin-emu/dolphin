@@ -2,17 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-
-#include "../OGL/GLUtil.h"
-#include "Core.h"
-#include "ImageWrite.h"
-#include "RasterFont.h"
-#include "SWRenderer.h"
-#include "SWStatistics.h"
-#include "SWCommandProcessor.h"
-
-#include "OnScreenDisplay.h"
+#include "Common/Common.h"
+#include "Core/Core.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/Software/RasterFont.h"
+#include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/SWRenderer.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 static GLuint s_RenderTarget = 0;
 

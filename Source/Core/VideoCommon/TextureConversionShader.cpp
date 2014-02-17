@@ -2,19 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
-#include <stdio.h>
-#include <math.h>
+#include <cmath>
+#include <cstdio>
 #include <locale.h>
 #ifdef __APPLE__
 	#include <xlocale.h>
 #endif
 
-#include "TextureConversionShader.h"
-#include "TextureDecoder.h"
-#include "BPMemory.h"
-#include "RenderBase.h"
-#include "VideoConfig.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 #define WRITE p+=sprintf
 

@@ -27,9 +27,10 @@
 #include <map>
 #include <vector>
 
-#include "Common.h"
-#include "DSPTables.h"
-#include "LabelMap.h"
+#include "Common/Common.h"
+
+#include "Core/DSP/DSPTables.h"
+#include "Core/DSP/LabelMap.h"
 
 struct AssemblerSettings
 {

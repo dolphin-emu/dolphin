@@ -2,17 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <map>
 #include <memory>
-#include <cinttypes>
 
-#include "Common.h"
-#include "../../HLE/HLE.h"
-#include "../../PatchEngine.h"
-#include "../Profiler.h"
-#include "JitIL.h"
-#include "JitILAsm.h"
-#include "JitIL_Tables.h"
+#include "Common/Common.h"
+#include "Core/PatchEngine.h"
+#include "Core/HLE/HLE.h"
+#include "Core/PowerPC/Profiler.h"
+#include "Core/PowerPC/Jit64IL/JitIL.h"
+#include "Core/PowerPC/Jit64IL/JitILAsm.h"
+#include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 
 using namespace Gen;
 using namespace PowerPC;

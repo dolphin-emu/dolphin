@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "CPMemory.h"
+#include "Common/Common.h"
+#include "VideoCommon/CPMemory.h"
 
 // CP state
 u8 *cached_arraybases[16];

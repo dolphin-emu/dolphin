@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "Common.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "NativeVertexFormat.h"
-#include "CPMemLoader.h"
-#include "ChunkFile.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
 
 class SetupUnit;
 

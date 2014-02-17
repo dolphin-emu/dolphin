@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "x64Emitter.h"
 #include <vector>
+
+#include "Common/x64Emitter.h"
 
 namespace IREmitter {
 enum Opcode {

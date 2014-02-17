@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DInput.h"
+#include "Common/StringUtil.h"
 
-#include "StringUtil.h"
+#include "InputCommon/ControllerInterface/DInput/DInput.h"
 
-#include "DInputJoystick.h"
-#include "DInputKeyboardMouse.h"
+#include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
+#include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
 
 #pragma comment(lib, "Dinput8.lib")
 #pragma comment(lib, "dxguid.lib")

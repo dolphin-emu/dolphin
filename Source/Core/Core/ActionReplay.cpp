@@ -22,14 +22,15 @@
 #include <string>
 #include <vector>
 
-#include "Common.h"
-#include "StringUtil.h"
-#include "HW/Memmap.h"
-#include "ActionReplay.h"
-#include "Core.h"
-#include "ARDecrypt.h"
-#include "LogManager.h"
-#include "ConfigManager.h"
+#include "Common/Common.h"
+#include "Common/LogManager.h"
+#include "Common/StringUtil.h"
+
+#include "Core/ActionReplay.h"
+#include "Core/ARDecrypt.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 
 namespace ActionReplay
 {

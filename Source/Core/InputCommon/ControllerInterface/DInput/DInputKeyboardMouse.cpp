@@ -2,8 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DInputKeyboardMouse.h"
-#include "DInput.h"
+#include <algorithm>
+#include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
+#include "InputCommon/ControllerInterface/DInput/DInput.h"
 
 	// (lower would be more sensitive) user can lower sensitivity by setting range
 	// seems decent here ( at 8 ), I don't think anyone would need more sensitive than this
@@ -25,7 +26,7 @@ static const struct
 	const char* const name;
 } named_keys[] =
 {
-#include "NamedKeys.h"
+#include "InputCommon/ControllerInterface/DInput/NamedKeys.h"
 };
 
 static const struct

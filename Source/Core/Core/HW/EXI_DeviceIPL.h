@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "EXI_Device.h"
-#include "Sram.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/Sram.h"
 
 class CEXIIPL : public IEXIDevice
 {

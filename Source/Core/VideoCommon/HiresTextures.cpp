@@ -2,16 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "HiresTextures.h"
-
+#include <algorithm>
 #include <cstring>
 #include <utility>
-#include <algorithm>
 #include <SOIL/SOIL.h>
-#include "CommonPaths.h"
-#include "FileUtil.h"
-#include "FileSearch.h"
-#include "StringUtil.h"
+
+#include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
+#include "VideoCommon/HiresTextures.h"
 
 namespace HiresTextures
 {

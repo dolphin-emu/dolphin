@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "XFMemory.h"
+#include "VideoCommon/XFMemory.h"
 
 // STATE_TO_SAVE
 XFRegisters xfregs;

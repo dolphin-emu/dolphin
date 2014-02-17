@@ -2,17 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "Hash.h"
-#include "DSP/DSPAnalyzer.h"
-#include "DSP/DSPCore.h"
-#include "DSP/DSPHost.h"
-#include "DSPSymbols.h"
-#include "DSPLLETools.h"
-#include "../DSP.h"
-#include "../../ConfigManager.h"
-#include "../../PowerPC/PowerPC.h"
-#include "Host.h"
+#include "Common/Common.h"
+#include "Common/Hash.h"
+
+#include "Core/Host.h"
+#include "Core/ConfigManager.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPHost.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPLLE/DSPSymbols.h"
+#include "Core/HW/DSPLLE/DSPLLETools.h"
+#include "Core/PowerPC/PowerPC.h"
+
 #include "OnScreenDisplay.h"
 
 // The user of the DSPCore library must supply a few functions so that the

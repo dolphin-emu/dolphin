@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "InputConfigDiag.h"
-#include "UDPConfigDiag.h"
-#include "WxUtils.h"
-#include "HW/Wiimote.h"
-#include "ControllerInterface/ExpressionParser.h"
+#include "Core/HW/Wiimote.h"
+#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/UDPConfigDiag.h"
+#include "DolphinWX/WxUtils.h"
+#include "InputCommon/ControllerInterface/ExpressionParser.h"
 
 using namespace ciface::ExpressionParser;
 

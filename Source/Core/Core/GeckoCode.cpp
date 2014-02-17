@@ -2,15 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "GeckoCode.h"
-
-#include "Thread.h"
-#include "HW/Memmap.h"
-#include "ConfigManager.h"
-#include "PowerPC/PowerPC.h"
-#include "CommonPaths.h"
-
 #include <vector>
+
+#include "Common/CommonPaths.h"
+#include "Common/Thread.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/GeckoCode.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace Gecko
 {

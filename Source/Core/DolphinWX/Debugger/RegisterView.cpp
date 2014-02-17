@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DebuggerUIUtil.h"
-#include "RegisterView.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/ProcessorInterface.h"
-#include "IniFile.h"
-#include "../WxUtils.h"
+#include "Common/IniFile.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
+#include "DolphinWX/Debugger/RegisterView.h"
 
 // F-zero 80005e60 wtf??
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Attachment.h"
+#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
 class UDPWrapper;
 

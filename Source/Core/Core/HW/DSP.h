@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
+
 class PointerWrap;
 class DSPEmulator;
 namespace MMIO { class Mapping; }

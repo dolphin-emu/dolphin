@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "ChunkFile.h"
-#include "CPUCoreBase.h"
+#include "Common/ChunkFile.h"
+#include "Core/PowerPC/CPUCoreBase.h"
 
 namespace JitInterface
 {

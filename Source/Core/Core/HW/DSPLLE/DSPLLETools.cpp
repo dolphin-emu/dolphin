@@ -6,18 +6,18 @@
 #include <Windows.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
-#include "Common.h"
-#include "DSPLLEGlobals.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
 
-#include "FileUtil.h"
-#include "DSP/DSPCore.h"
-#include "DSP/DSPCodeUtil.h"
-#include "DSPLLETools.h"
-#include "DSP/disassemble.h"
-#include "DSP/DSPInterpreter.h"
+#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPCodeUtil.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
+#include "Core/HW/DSPLLE/DSPLLETools.h"
 
 bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 {

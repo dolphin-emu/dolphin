@@ -9,9 +9,9 @@
 #include <wx/spinbutt.h>
 #include <wx/notebook.h>
 #include <wx/filepicker.h>
-#include "ConfigManager.h"
+#include "Core/ConfigManager.h"
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include "X11Utils.h"
+#include "DolphinWX/X11Utils.h"
 #endif
 
 class CConfigMain : public wxDialog

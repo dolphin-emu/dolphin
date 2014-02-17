@@ -23,22 +23,22 @@
 #include <string>
 #include <vector>
 
-#include "CommonTypes.h"
-#include "CommonPaths.h"
-#include "IniFile.h"
-#include "BootManager.h"
-#include "Volume.h"
-#include "VolumeCreator.h"
-#include "ConfigManager.h"
-#include "SysConf.h"
-#include "Core.h"
-#include "Host.h"
-#include "VideoBackendBase.h"
-#include "Movie.h"
-#include "NetPlayProto.h"
-#include "HW/WiimoteReal/WiimoteReal.h"
-#include "HW/SI.h"
-#include "HW/EXI.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
+#include "Common/CommonTypes.h"
+#include "Common/CommonPaths.h"
+#include "Common/IniFile.h"
+#include "Common/SysConf.h"
+#include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace BootManager
 {

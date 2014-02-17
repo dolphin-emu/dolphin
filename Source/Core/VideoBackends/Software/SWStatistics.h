@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonTypes.h"
-#include "SWVideoConfig.h"
+#include "Common/CommonTypes.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
 
 #pragma once
 

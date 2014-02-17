@@ -16,18 +16,17 @@
 	   0x10 - 0x1a leads to a 0x22 Input report
    0x30 - 0x3f   Input    This file: Update() */
 
-#include <vector>
-#include <string>
 #include <fstream>
+#include <string>
+#include <vector>
 
-#include "Common.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
 
-#include "WiimoteEmu.h"
-#include "WiimoteHid.h"
-#include "../WiimoteReal/WiimoteReal.h"
-
-#include "Attachment/Attachment.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
 namespace WiimoteEmu
 {

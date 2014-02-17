@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "D3DBase.h"
-#include "D3DBlob.h"
-#include "NativeVertexFormat.h"
-#include "VertexManager.h"
-#include "VertexShaderCache.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DBlob.h"
+#include "VideoBackends/D3D/VertexManager.h"
+#include "VideoBackends/D3D/VertexShaderCache.h"
+#include "VideoCommon/NativeVertexFormat.h"
 
 namespace DX11
 {

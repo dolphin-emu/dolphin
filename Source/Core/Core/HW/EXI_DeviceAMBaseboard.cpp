@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../Core.h"
+#include "Core/Core.h"
 
-#include "EXI_Device.h"
-#include "EXI_DeviceAMBaseboard.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceAMBaseboard.h"
 
 CEXIAMBaseboard::CEXIAMBaseboard()
 	: m_position(0)

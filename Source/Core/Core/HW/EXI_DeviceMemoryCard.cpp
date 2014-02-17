@@ -2,19 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "../Core.h"
-#include "../CoreTiming.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
-#include "../ConfigManager.h"
-#include "../Movie.h"
-#include "EXI.h"
-#include "EXI_Device.h"
-#include "EXI_DeviceMemoryCard.h"
-#include "Sram.h"
-#include "GCMemcard.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceMemoryCard.h"
+#include "Core/HW/GCMemcard.h"
+#include "Core/HW/Sram.h"
 
 #define MC_STATUS_BUSY              0x80
 #define MC_STATUS_UNLOCKED          0x40

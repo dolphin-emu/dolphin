@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "../Device.h"
+#include <list>
+
+#include "InputCommon/ControllerInterface/Device.h"
 
 #ifdef _WIN32
 #define DIRECTINPUT_VERSION 0x0800
@@ -13,10 +15,8 @@
 #include <Windows.h>
 #include <dinput.h>
 #elif __APPLE__
-#include "OSX/DirectInputAdapter.h"
+#include "InputCommon/ControllerInterface/ForceFeedback/OSX/DirectInputAdapter.h"
 #endif
-
-#include <list>
 
 namespace ciface
 {

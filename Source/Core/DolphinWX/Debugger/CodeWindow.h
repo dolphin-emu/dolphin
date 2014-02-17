@@ -4,17 +4,15 @@
 
 #pragma once
 
-#include <wx/dialog.h>
-#include <wx/textctrl.h>
-#include <wx/listbox.h>
 #include <wx/artprov.h>
+#include <wx/dialog.h>
+#include <wx/listbox.h>
+#include <wx/textctrl.h>
 
-#include "Thread.h"
-#include "CoreParameter.h"
-
-// GUI global
-#include "../Globals.h"
-#include "../Frame.h"
+#include "Common/Thread.h"
+#include "Core/CoreParameter.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
 
 class CFrame;
 class CRegisterWindow;

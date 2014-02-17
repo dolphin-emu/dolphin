@@ -5,7 +5,8 @@
 #pragma once
 
 #include <map>
-#include "CommonTypes.h"
+
+#include "Common/CommonTypes.h"
 
 namespace HLE
 {

@@ -5,7 +5,8 @@
 #pragma once
 
 #include <wx/listctrl.h>
-#include "Common.h"
+
+#include "Common/Common.h"
 
 class CBreakPointView : public wxListCtrl
 {

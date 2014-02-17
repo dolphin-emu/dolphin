@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Thread.h"
+#include "Common/Thread.h"
 
 // Data structure to be passed to the flushing thread.
 struct FlushData

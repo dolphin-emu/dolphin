@@ -2,16 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoCommon.h"
-#include "TextureDecoder.h"
+#include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 
-#include "BPMemLoader.h"
-#include "EfbCopy.h"
-#include "Rasterizer.h"
-#include "SWPixelEngine.h"
-#include "Tev.h"
-#include "HW/Memmap.h"
-#include "Core.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/EfbCopy.h"
+#include "VideoBackends/Software/Rasterizer.h"
+#include "VideoBackends/Software/SWPixelEngine.h"
+#include "VideoBackends/Software/Tev.h"
+
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/TextureDecoder.h"
 
 
 void InitBPMemory()

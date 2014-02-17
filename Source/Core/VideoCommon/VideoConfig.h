@@ -11,11 +11,11 @@
 
 #pragma once
 
-#include "Common.h"
-#include "VideoCommon.h"
-
-#include <vector>
 #include <string>
+#include <vector>
+
+#include "Common/Common.h"
+#include "VideoCommon/VideoCommon.h"
 
 // Log in two categories, and save three other options in the same byte
 #define CONF_LOG          1

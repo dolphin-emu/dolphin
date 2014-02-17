@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "Common.h"
-
-#include <vector>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
+
+#include "Common/Common.h"
 
 namespace Gecko
 {

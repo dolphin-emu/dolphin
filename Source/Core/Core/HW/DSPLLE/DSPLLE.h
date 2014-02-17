@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "Thread.h"
-#include "SoundStream.h"
-#include "DSPLLEGlobals.h" // Local
-#include "../../DSPEmulator.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/Thread.h"
+
+#include "Core/DSPEmulator.h"
+#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
 
 class DSPLLE : public DSPEmulator
 {

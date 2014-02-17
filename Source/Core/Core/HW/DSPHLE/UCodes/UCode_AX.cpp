@@ -2,14 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "UCode_AX.h"
-#include "../../DSP.h"
-#include "FileUtil.h"
-#include "ConfigManager.h"
-#include "MathUtil.h"
+#include "Common/FileUtil.h"
+#include "Common/MathUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AX.h"
 
 #define AX_GC
-#include "UCode_AX_Voice.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AX_Voice.h"
 
 CUCode_AX::CUCode_AX(DSPHLE* dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)

@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
 
-#include "CPUDetect.h"
-#include "JitBase.h"
-#include "Jit_Util.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 
 using namespace Gen;
 

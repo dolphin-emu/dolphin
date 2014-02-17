@@ -2,16 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoConfig.h"
-#include "Host.h"
-#include "RenderBase.h"
-#include "ConfigManager.h"
-
 #include <wx/panel.h>
 
-#include "VertexShaderManager.h"
-#include "GLInterface.h"
-#include "AGL.h"
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
+
+#include "DolphinWX/GLInterface/GLInterface.h"
+#include "DolphinWX/GLInterface/AGL.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 
 void cInterfaceAGL::Swap()
 {

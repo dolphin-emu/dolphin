@@ -25,10 +25,10 @@
 
 #pragma once
 
-#include "Thread.h"
+#include "Common/Thread.h"
 
-#include "DSPBreakpoints.h"
-#include "DSPEmitter.h"
+#include "Core/DSP/DSPBreakpoints.h"
+#include "Core/DSP/DSPEmitter.h"
 
 #define DSP_IRAM_BYTE_SIZE  0x2000
 #define DSP_IRAM_SIZE       0x1000

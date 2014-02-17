@@ -39,16 +39,16 @@ typedef struct pollfd pollfd_t;
 #include <errno.h>
 #endif
 
-#include <algorithm>    // std::for_each
-#include <unordered_map>
-#include <stdio.h>
-#include <string>
+#include <algorithm>
+#include <cstdio>
 #include <list>
+#include <string>
+#include <unordered_map>
 
-#include "FileUtil.h"
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device_net.h"
-#include "WII_IPC_HLE_Device_net_ssl.h"
+#include "Common/FileUtil.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 
 enum {
 	SO_MSG_OOB      = 0x01,

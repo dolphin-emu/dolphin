@@ -1,12 +1,14 @@
 #pragma once
 
-#include "CommonTypes.h"
+#include <string>
+#include <vector>
+
+#include "Common/CommonTypes.h"
+
 #ifdef _WIN32
 #pragma warning(disable: 4786)  //disable warning "identifier was truncated to
 								//'255' characters in the browser information"
 #endif
-#include <vector>
-#include <string>
 
 using namespace std;
 

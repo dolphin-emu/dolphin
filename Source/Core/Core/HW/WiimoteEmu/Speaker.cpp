@@ -2,14 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 //#define WIIMOTE_SPEAKER_DUMP
 #ifdef WIIMOTE_SPEAKER_DUMP
+#include <cstdlib>
 #include <fstream>
-#include "WaveFile.h"
-#include <stdlib.h>
-#include "FileUtil.h"
+#include "AudioCommon/WaveFile.h"
+#include "Common/FileUtil.h"
 #endif
 
 namespace WiimoteEmu

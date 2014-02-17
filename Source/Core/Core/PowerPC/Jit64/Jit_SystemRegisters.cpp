@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "../../HW/SystemTimers.h"
-#include "HW/ProcessorInterface.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SystemTimers.h"
 
-#include "Jit.h"
-#include "JitRegCache.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitRegCache.h"
 
 void Jit64::mtspr(UGeckoInstruction inst)
 {

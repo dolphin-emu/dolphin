@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "UCodes.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 struct CUCode_GBA : public IUCode
 {

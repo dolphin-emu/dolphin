@@ -2,45 +2,42 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "CommonPaths.h"
-
 #include <wx/fontdlg.h>
 #include <wx/mimetype.h>
 
-#include "Host.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/LogManager.h"
 
-#include "DebuggerUIUtil.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/HLE/HLE.h"
+#include "Core/Boot/Boot.h"
+#include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/CPU.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Profiler.h"
+#include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/JitCache.h" // for ClearCache()
 
-#include "../WxUtils.h"
-#include "RegisterWindow.h"
-#include "BreakpointWindow.h"
-#include "MemoryWindow.h"
-#include "JitWindow.h"
-#include "DebuggerPanel.h"
-#include "DSPDebugWindow.h"
-#include "FileUtil.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/BreakpointWindow.h"
+#include "DolphinWX/Debugger/CodeView.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/DebuggerPanel.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
+#include "DolphinWX/Debugger/DSPDebugWindow.h"
+#include "DolphinWX/Debugger/JitWindow.h"
+#include "DolphinWX/Debugger/MemoryWindow.h"
+#include "DolphinWX/Debugger/RegisterWindow.h"
 
-#include "CodeWindow.h"
-#include "CodeView.h"
-
-#include "Core.h"
-#include "HLE/HLE.h"
-#include "Boot/Boot.h"
-#include "LogManager.h"
-#include "HW/CPU.h"
-#include "PowerPC/PowerPC.h"
-#include "Debugger/PPCDebugInterface.h"
-#include "Debugger/Debugger_SymbolMap.h"
-#include "PowerPC/PPCAnalyst.h"
-#include "PowerPC/Profiler.h"
-#include "PowerPC/PPCSymbolDB.h"
-#include "PowerPC/SignatureDB.h"
-#include "PowerPC/PPCTables.h"
-#include "PowerPC/JitCommon/JitBase.h"
-#include "PowerPC/JitCommon/JitCache.h" // for ClearCache()
-
-#include "ConfigManager.h"
 
 // Save and load settings
 // -----------------------------

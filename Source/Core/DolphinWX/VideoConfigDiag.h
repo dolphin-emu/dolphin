@@ -1,12 +1,8 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <map>
-
-#include "ConfigManager.h"
-#include "VideoConfig.h"
-#include "Core.h"
+#include <string>
+#include <vector>
 
 #include <wx/wx.h>
 #include <wx/textctrl.h>
@@ -18,8 +14,11 @@
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
 
-#include "MsgHandler.h"
-#include "WxUtils.h"
+#include "Common/MsgHandler.h"
+#include "Core/Core.h"
+#include "Core/ConfigManager.h"
+#include "DolphinWX/WxUtils.h"
+#include "VideoCommon/VideoConfig.h"
 
 template <typename W>
 class BoolSetting : public W

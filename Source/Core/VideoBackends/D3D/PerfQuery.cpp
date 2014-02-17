@@ -1,7 +1,6 @@
-#include "RenderBase.h"
-
-#include "D3DBase.h"
-#include "PerfQuery.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/PerfQuery.h"
+#include "VideoCommon/RenderBase.h"
 
 namespace DX11 {
 

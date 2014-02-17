@@ -4,8 +4,8 @@
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
-#include "../DSPEmitter.h"
-#include "../DSPIntUtil.h" // Helper functions
+#include "Core/DSP/DSPEmitter.h"
+#include "Core/DSP/DSPIntUtil.h" // Helper functions
 
 using namespace Gen;
 

@@ -2,10 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonPaths.h"
-#include "FileBlob.h"
-#include "MathUtil.h"
-#include "VolumeDirectory.h"
+#include "Common/CommonPaths.h"
+#include "Common/MathUtil.h"
+
+#include "DiscIO/FileBlob.h"
+#include "DiscIO/VolumeDirectory.h"
 
 namespace DiscIO
 {

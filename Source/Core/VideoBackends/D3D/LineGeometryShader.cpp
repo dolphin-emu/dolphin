@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "LineGeometryShader.h"
-
 #include <sstream>
-#include "D3DBase.h"
-#include "D3DShader.h"
-#include "VertexShaderGen.h"
+
+#include "VideoBackends/D3D/LineGeometryShader.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DShader.h"
+#include "VideoCommon/VertexShaderGen.h"
 
 namespace DX11
 {

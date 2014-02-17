@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VolumeHandler.h"
-#include "VolumeCreator.h"
+#include "Core/VolumeHandler.h"
+#include "DiscIO/VolumeCreator.h"
 
 namespace VolumeHandler
 {

@@ -2,10 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonPaths.h"
-#include "FileUtil.h"
-#include "NandPaths.h"
 #include <fstream>
+
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
 
 namespace Common
 {

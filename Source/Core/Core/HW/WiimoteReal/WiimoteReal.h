@@ -7,16 +7,16 @@
 #include <functional>
 #include <vector>
 
-#include "WiimoteRealBase.h"
-#include "ChunkFile.h"
-#include "Thread.h"
-#include "FifoQueue.h"
-#include "Timer.h"
+#include "Common/ChunkFile.h"
+#include "Common/FifoQueue.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
 
-#include "../Wiimote.h"
-#include "../WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteRealBase.h"
 
-#include "../InputCommon/InputConfig.h"
+#include "InputCommon/InputConfig.h"
 
 typedef std::vector<u8> Report;
 

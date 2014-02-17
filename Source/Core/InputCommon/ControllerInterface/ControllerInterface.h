@@ -4,16 +4,17 @@
 
 #pragma once
 
-#include <vector>
-#include <string>
-#include <sstream>
-#include <map>
 #include <algorithm>
+#include <map>
+#include <sstream>
+#include <string>
+#include <vector>
 
-#include "Common.h"
-#include "Thread.h"
-#include "ExpressionParser.h"
-#include "Device.h"
+
+#include "Common/Common.h"
+#include "Common/Thread.h"
+#include "InputCommon/ControllerInterface/ExpressionParser.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 // enable disable sources
 #ifdef _WIN32

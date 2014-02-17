@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "Common.h"
-#include "SI_Device.h"
+#include "Common/Common.h"
+#include "Core/HW/SI_Device.h"
+
 class PointerWrap;
 class ISIDevice;
 namespace MMIO { class Mapping; }

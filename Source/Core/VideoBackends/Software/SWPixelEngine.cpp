@@ -2,20 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-
 // http://developer.nvidia.com/object/General_FAQ.html#t6 !!!!!
 
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
 
-#include "Common.h"
-#include "ChunkFile.h"
-#include "CoreTiming.h"
-#include "ConfigManager.h"
-#include "HW/MMIO.h"
-#include "HW/ProcessorInterface.h"
-
-#include "SWPixelEngine.h"
-#include "SWCommandProcessor.h"
+#include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/SWPixelEngine.h"
 
 
 namespace SWPixelEngine

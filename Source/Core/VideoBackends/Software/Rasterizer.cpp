@@ -2,17 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "Rasterizer.h"
-#include "HwRasterizer.h"
-#include "EfbInterface.h"
-#include "BPMemLoader.h"
-#include "XFMemLoader.h"
-#include "Tev.h"
-#include "SWPixelEngine.h"
-#include "SWStatistics.h"
-#include "SWVideoConfig.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/HwRasterizer.h"
+#include "VideoBackends/Software/Rasterizer.h"
+#include "VideoBackends/Software/SWPixelEngine.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoBackends/Software/Tev.h"
+#include "VideoBackends/Software/XFMemLoader.h"
 
 
 #define BLOCK_SIZE 2

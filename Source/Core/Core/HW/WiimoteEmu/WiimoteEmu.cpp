@@ -4,30 +4,27 @@
 
 #include <cmath>
 
-#include "Attachment/Classic.h"
-#include "Attachment/Nunchuk.h"
-#include "Attachment/Guitar.h"
-#include "Attachment/Drums.h"
-#include "Attachment/Turntable.h"
+#include "Common/Common.h"
+#include "Common/Timer.h"
 
-#include "WiimoteEmu.h"
-#include "WiimoteHid.h"
+#include "Core/Host.h"
+#include "Core/ConfigManager.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 
-#include "../WiimoteReal/WiimoteReal.h"
+#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
+#include "Core/HW/WiimoteEmu/Attachment/Drums.h"
+#include "Core/HW/WiimoteEmu/Attachment/Guitar.h"
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 
-#include "Timer.h"
-#include "Common.h"
-#include "../../Host.h"
-#include "../../ConfigManager.h"
-
-#include "UDPTLayer.h"
+#include "Core/HW/WiimoteEmu/MatrixMath.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/UDPTLayer.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 inline double round(double x) { return (x-floor(x))>0.5 ? ceil(x) : floor(x); } //because damn MSVSC doesen't comply to C99
-
-#include "MatrixMath.h"
-
-#include "../../Movie.h"
-#include "NetPlayClient.h"
 
 namespace
 {

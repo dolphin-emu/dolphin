@@ -6,12 +6,12 @@
 
 #include <map>
 
-#include "VideoCommon.h"
-#include "TextureDecoder.h"
-#include "BPMemory.h"
-#include "Thread.h"
+#include "Common/CommonTypes.h"
+#include "Common/Thread.h"
 
-#include "CommonTypes.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoCommon.h"
 
 struct VideoConfig;
 

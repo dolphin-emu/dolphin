@@ -2,13 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DSPDebugInterface.h"
-
-#include "DSP/DSPCore.h"
-#include "DSP/disassemble.h"
-
-#include "DSPSymbols.h"
-#include "DSP/DSPMemoryMap.h"
+#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/HW/DSPLLE/DSPDebugInterface.h"
+#include "Core/HW/DSPLLE/DSPSymbols.h"
 
 void DSPDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 {

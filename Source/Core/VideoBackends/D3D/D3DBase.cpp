@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "StringUtil.h"
-#include "VideoConfig.h"
+#include "Common/StringUtil.h"
+#include "VideoCommon/VideoConfig.h"
 
-#include "D3DBase.h"
-#include "D3DTexture.h"
-#include "GfxState.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DTexture.h"
+#include "VideoBackends/D3D/GfxState.h"
 
 namespace DX11
 {

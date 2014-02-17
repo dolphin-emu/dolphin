@@ -2,26 +2,28 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "Timer.h"
-#include "State.h"
-#include "Core.h"
-#include "ConfigManager.h"
-#include "StringUtil.h"
-#include "Thread.h"
-#include "CoreTiming.h"
-#include "Movie.h"
-#include "HW/Wiimote.h"
-#include "HW/DSP.h"
-#include "HW/HW.h"
-#include "HW/CPU.h"
-#include "PowerPC/JitCommon/JitBase.h"
-#include "VideoBackendBase.h"
-
 #include <lzo/lzo1x.h>
-#include "HW/Memmap.h"
-#include "HW/VideoInterface.h"
-#include "HW/SystemTimers.h"
+
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
+
+#include "Core/Core.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/State.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/HW.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace State
 {

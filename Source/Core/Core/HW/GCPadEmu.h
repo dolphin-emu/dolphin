@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "ControllerEmu.h"
+#include "InputCommon/ControllerEmu.h"
 
 class GCPad : public ControllerEmu
 {

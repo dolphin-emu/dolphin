@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Common.h"
-#include "SymbolDB.h"
+#include "Common/Common.h"
+#include "Common/SymbolDB.h"
 
 namespace DSPSymbols
 {

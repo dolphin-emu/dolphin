@@ -3,25 +3,28 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
-#include "Common.h"
-#include "HLE_OS.h"
 
-#include "../PowerPC/PowerPC.h"
-#include "../HW/Memmap.h"
-#include "../Host.h"
-#include "IPC_HLE/WII_IPC_HLE_Device_DI.h"
-#include "ConfigManager.h"
-#include "VolumeCreator.h"
-#include "Filesystem.h"
-#include "../Boot/Boot_DOL.h"
-#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
-#include "HLE.h"
-#include "PowerPC/PPCAnalyst.h"
-#include "PowerPC/PPCCache.h"
-#include "PowerPC/SignatureDB.h"
-#include "PowerPC/PPCSymbolDB.h"
-#include "CommonPaths.h"
-#include "TextureCacheBase.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
+#include "Core/Boot/Boot_DOL.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HLE/HLE_OS.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCCache.h"
+#include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeCreator.h"
+
+#include "VideoCommon/TextureCacheBase.h"
 
 namespace HLE_Misc
 {

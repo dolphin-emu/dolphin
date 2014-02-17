@@ -2,21 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
 
-#include "../PowerPC/PowerPC.h"
-#include "../Core.h"
-#include "ProcessorInterface.h"
-#include "VideoInterface.h"
-#include "Memmap.h"
-#include "../CoreTiming.h"
-#include "SystemTimers.h"
-#include "StringUtil.h"
-#include "MMIO.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/State.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 
-#include "VideoBackendBase.h"
-#include "State.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace VideoInterface
 {

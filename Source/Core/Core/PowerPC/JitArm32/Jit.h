@@ -1,19 +1,6 @@
-// Copyright (C) 2003 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // ========================
 // See comments in Jit.cpp.
@@ -31,13 +18,13 @@
 // ----------
 #pragma once
 
-#include "../CPUCoreBase.h"
-#include "../PPCAnalyst.h"
-#include "JitArmCache.h"
-#include "JitRegCache.h"
-#include "JitFPRCache.h"
-#include "JitAsm.h"
-#include "../JitCommon/JitBase.h"
+#include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/JitArm32/JitArmCache.h"
+#include "Core/PowerPC/JitArm32/JitAsm.h"
+#include "Core/PowerPC/JitArm32/JitFPRCache.h"
+#include "Core/PowerPC/JitArm32/JitRegCache.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 #define PPCSTATE_OFF(elem) ((s32)STRUCT_OFF(PowerPC::ppcState, elem) - (s32)STRUCT_OFF(PowerPC::ppcState, spr[0]))
 class JitArm : public JitBase, public ArmGen::ARMXCodeBlock

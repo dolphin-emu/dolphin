@@ -2,21 +2,24 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "AudioCommon.h"
-#include "FileUtil.h"
-#include "Mixer.h"
-#include "NullSoundStream.h"
-#include "DSoundStream.h"
-#include "XAudio2_7Stream.h"
-#include "XAudio2Stream.h"
-#include "AOSoundStream.h"
-#include "AlsaSoundStream.h"
-#include "CoreAudioSoundStream.h"
-#include "OpenALStream.h"
-#include "PulseAudioStream.h"
-#include "OpenSLESStream.h"
-#include "../Core/Movie.h"
-#include "../Core/ConfigManager.h"
+
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/AOSoundStream.h"
+#include "AudioCommon/AlsaSoundStream.h"
+#include "AudioCommon/CoreAudioSoundStream.h"
+#include "AudioCommon/DSoundStream.h"
+#include "AudioCommon/Mixer.h"
+#include "AudioCommon/NullSoundStream.h"
+#include "AudioCommon/OpenALStream.h"
+#include "AudioCommon/OpenSLESStream.h"
+#include "AudioCommon/PulseAudioStream.h"
+#include "AudioCommon/XAudio2_7Stream.h"
+#include "AudioCommon/XAudio2Stream.h"
+
+#include "Common/FileUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Movie.h"
 
 // This shouldn't be a global, at least not here.
 SoundStream *soundStream = nullptr;

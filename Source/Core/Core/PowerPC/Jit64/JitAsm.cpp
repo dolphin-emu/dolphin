@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "MemoryUtil.h"
+#include "Common/MemoryUtil.h"
 
-#include "Jit.h"
-#include "JitAsm.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
 
 using namespace Gen;
 

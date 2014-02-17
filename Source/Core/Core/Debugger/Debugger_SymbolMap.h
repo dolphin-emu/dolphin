@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace Dolphin_Debugger
 {

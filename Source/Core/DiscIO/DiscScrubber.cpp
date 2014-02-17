@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Filesystem.h"
-#include "VolumeCreator.h"
-#include "FileUtil.h"
-#include "DiscScrubber.h"
-
 #include <cinttypes>
+
+#include "Common/FileUtil.h"
+#include "DiscIO/DiscScrubber.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeCreator.h"
 
 namespace DiscIO
 {

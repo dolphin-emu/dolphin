@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Common.h"
-#include "VideoCommon.h"
+#include "Common/Common.h"
+#include "VideoCommon/VideoCommon.h"
 
 class PointerWrap;
 namespace MMIO { class Mapping; }

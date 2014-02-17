@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "VideoCommon.h"
-#include "GLUtil.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace OGL
 {

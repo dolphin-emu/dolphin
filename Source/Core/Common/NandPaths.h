@@ -5,7 +5,7 @@
 #pragma once
 
 #include <string>
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 #define TITLEID_SYSMENU 0x0000000100000002ull
 

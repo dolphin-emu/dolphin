@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "ArmEmitter.h"
-#include "../Gekko.h"
-#include "../PPCAnalyst.h"
-#include "JitRegCache.h"
+#include "Common/ArmEmitter.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/JitArm32/JitRegCache.h"
 
 #define ARMFPUREGS 32
 using namespace ArmGen;

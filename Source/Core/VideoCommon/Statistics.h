@@ -2,9 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonTypes.h"
-#include "VideoCommon.h"
 #include <vector>
+
+#include "Common/CommonTypes.h"
+#include "VideoCommon/VideoCommon.h"
 
 #pragma once
 

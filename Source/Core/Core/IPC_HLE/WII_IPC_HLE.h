@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
 
 class IWII_IPC_HLE_Device;
 

@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "VideoCommon.h"
-#include "LookUpTables.h"
-#include "VertexLoader.h"
-#include "VertexLoader_Color.h"
-#include "VertexManagerBase.h"
+#include "Common/Common.h"
+
+#include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoader_Color.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoCommon.h"
 
 #define RSHIFT 0
 #define GSHIFT 8

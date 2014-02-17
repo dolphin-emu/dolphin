@@ -1,7 +1,5 @@
 #pragma once
 
-#include "UDPWrapper.h"
-
 #include <wx/wx.h>
 #include <wx/listbox.h>
 #include <wx/textctrl.h>
@@ -12,6 +10,8 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
+
+#include "InputCommon/UDPWrapper.h"
 
 class UDPConfigDiag : public wxDialog
 {

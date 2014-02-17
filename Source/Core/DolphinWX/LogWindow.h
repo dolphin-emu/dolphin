@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "LogManager.h"
-#include "Frame.h"
-#include "Thread.h"
 #include <queue>
+
+#include "Common/LogManager.h"
+#include "Common/Thread.h"
+#include "DolphinWX/Frame.h"
 
 enum
 {

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "../Device.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 extern "C" {
 #include <X11/Xlib.h>

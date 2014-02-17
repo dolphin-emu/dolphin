@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "Volume.h"
-#include "Blob.h"
-#include "NANDContentLoader.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/Volume.h"
 
 // --- this volume type is used for Wad files ---
 // Some of this code might look redundant with the CNANDContentLoader class, however,

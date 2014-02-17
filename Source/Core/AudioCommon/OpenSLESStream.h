@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Thread.h"
-#include "SoundStream.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/Thread.h"
 
 class OpenSLESStream : public SoundStream
 {

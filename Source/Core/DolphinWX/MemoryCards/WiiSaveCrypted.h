@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "StringUtil.h"
-#include "Crypto/tools.h"
 #include <polarssl/aes.h>
-#include "polarssl/md5.h"
+#include <polarssl/md5.h>
+
+#include "Common/StringUtil.h"
+#include "Common/Crypto/tools.h"
 
 // --- this is used for encrypted Wii save files
 

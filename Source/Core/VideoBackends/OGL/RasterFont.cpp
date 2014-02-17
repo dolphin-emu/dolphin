@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "GLUtil.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/RasterFont.h"
 
-#include "RasterFont.h"
-#include "ProgramShaderCache.h"
 // globals
 
 namespace OGL {

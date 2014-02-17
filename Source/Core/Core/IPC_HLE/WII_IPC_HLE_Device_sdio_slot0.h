@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 class CWII_IPC_HLE_Device_sdio_slot0 : public IWII_IPC_HLE_Device
 {

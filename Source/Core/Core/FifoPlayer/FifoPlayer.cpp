@@ -2,21 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FifoDataFile.h"
-#include "FifoPlayer.h"
+#include "Common/Common.h"
 
-#include "Common.h"
-#include "ConfigManager.h"
-#include "Core.h"
-#include "CoreTiming.h"
-#include "Host.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/Host.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/PowerPC.h"
 
-#include "HW/GPFifo.h"
-#include "HW/Memmap.h"
-#include "HW/SystemTimers.h"
-#include "PowerPC/PowerPC.h"
-
-#include "BPMemory.h"
+#include "VideoCommon/BPMemory.h"
 
 FifoPlayer::~FifoPlayer()
 {

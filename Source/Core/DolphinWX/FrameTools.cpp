@@ -14,52 +14,52 @@ window handle that is returned by CreateWindow() can be accessed from
 Core::GetWindowHandle().
 */
 
-#include "NetWindow.h"
-#include "Common.h" // Common
-#include "FileUtil.h"
-#include "FileSearch.h"
-#include "Timer.h"
-#include "VideoBackendBase.h"
+#include <wx/datetime.h>
+
+#include "Common/Common.h"
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/Timer.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 #ifdef __APPLE__
 #include <AppKit/AppKit.h>
 #endif
 
-#include "Globals.h" // Local
-#include "Frame.h"
-#include "ConfigMain.h"
-#include "MemcardManager.h"
-#include "CheatsWindow.h"
-#include "AboutDolphin.h"
-#include "GameListCtrl.h"
-#include "BootManager.h"
-#include "LogWindow.h"
-#include "LogConfigWindow.h"
-#include "FifoPlayerDlg.h"
-#include "WxUtils.h"
-#include "Host.h"
+#include "DolphinWX/AboutDolphin.h"
+#include "DolphinWX/CheatsWindow.h"
+#include "DolphinWX/ConfigMain.h"
+#include "DolphinWX/FifoPlayerDlg.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/GameListCtrl.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/HotkeyDlg.h"
+#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/LogWindow.h"
+#include "DolphinWX/LogConfigWindow.h"
+#include "DolphinWX/MemcardManager.h"
+#include "DolphinWX/NetWindow.h"
+#include "DolphinWX/TASInputDlg.h"
+#include "DolphinWX/WiimoteConfigDiag.h"
+#include "DolphinWX/WXInputBase.h"
+#include "DolphinWX/WxUtils.h"
 
-#include "ConfigManager.h" // Core
-#include "Core.h"
-#include "Movie.h"
-#include "HW/CPU.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/DVDInterface.h"
-#include "HW/ProcessorInterface.h"
-#include "HW/GCPad.h"
-#include "HW/Wiimote.h"
-#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/Movie.h"
+#include "Core/State.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/Wiimote.h"
 //#include "IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
-#include "State.h"
-#include "VolumeHandler.h"
-#include "NANDContentLoader.h"
-#include "WXInputBase.h"
-#include "WiimoteConfigDiag.h"
-#include "InputConfigDiag.h"
-#include "HotkeyDlg.h"
-#include "TASInputDlg.h"
-
-#include <wx/datetime.h> // wxWidgets
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/VolumeHandler.h"
+#include "DiscIO/NANDContentLoader.h"
 
 #ifdef _WIN32
 #ifndef SM_XVIRTUALSCREEN
@@ -78,7 +78,7 @@ Core::GetWindowHandle().
 
 // Resources
 extern "C" {
-#include "resources/Dolphin.c" // Dolphin icon
+#include "DolphinWX/resources/Dolphin.c" // Dolphin icon
 };
 
 bool confirmStop = false;

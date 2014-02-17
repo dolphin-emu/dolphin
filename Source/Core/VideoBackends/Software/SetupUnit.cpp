@@ -2,12 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "SetupUnit.h"
-
-#include "CPMemLoader.h"
-#include "OpcodeDecoder.h"
-#include "SWStatistics.h"
-#include "Clipper.h"
+#include "VideoBackends/Software/Clipper.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/OpcodeDecoder.h"
+#include "VideoBackends/Software/SetupUnit.h"
+#include "VideoBackends/Software/SWStatistics.h"
 
 
 void SetupUnit::Init(u8 primitiveType)

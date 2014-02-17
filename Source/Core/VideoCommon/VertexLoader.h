@@ -10,13 +10,13 @@
 #include <algorithm>
 #include <string>
 
-#include "Common.h"
+#include "Common/Common.h"
+#include "Common/x64Emitter.h"
 
-#include "CPMemory.h"
-#include "DataReader.h"
-#include "NativeVertexFormat.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/DataReader.h"
+#include "VideoCommon/NativeVertexFormat.h"
 
-#include "x64Emitter.h"
 
 class VertexLoaderUID
 {

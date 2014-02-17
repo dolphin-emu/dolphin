@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "Common.h"
-#include "Mixer.h"
-#include "WaveFile.h"
+#include "AudioCommon/Mixer.h"
+#include "AudioCommon/WaveFile.h"
+#include "Common/Common.h"
 
 class SoundStream
 {

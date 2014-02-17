@@ -4,7 +4,10 @@
 
 #pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
+
+#include "Core/Core.h"
+#include "Core/ConfigManager.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/wx.h>
@@ -17,8 +20,6 @@
 #include <X11/extensions/Xrandr.h>
 #endif
 
-#include "Core.h"
-#include "ConfigManager.h"
 
 // EWMH state actions, see
 // http://freedesktop.org/wiki/Specifications/wm-spec?action=show&redirect=Standards%2Fwm-spec

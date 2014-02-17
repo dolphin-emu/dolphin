@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VolumeGC.h"
-#include "StringUtil.h"
-#include "FileMonitor.h"
+#include "Common/StringUtil.h"
+#include "DiscIO/FileMonitor.h"
+#include "DiscIO/VolumeGC.h"
 
 namespace DiscIO
 {

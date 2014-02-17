@@ -2,18 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "MathUtil.h"
-#include "StringUtil.h"
+#include "AudioCommon/Mixer.h"
+#include "Common/MathUtil.h"
+#include "Common/StringUtil.h"
 
-#include "../MailHandler.h"
-#include "Mixer.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
 
-#include "UCodes.h"
-#include "UCode_AXStructs.h"
-#include "UCode_AXWii.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AXStructs.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AXWii.h"
 
 #define AX_WII
-#include "UCode_AX_Voice.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AX_Voice.h"
 
 
 CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)

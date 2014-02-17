@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Vec3.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "VideoBackends/Software/Vec3.h"
 
 #ifdef WIN32
 #define LOADERDECL __cdecl

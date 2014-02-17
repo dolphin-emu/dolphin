@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "Common.h"
-#include "CommonTypes.h"
-#include "HW/EXI_Device.h"
+#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+
+#include "Core/HW/EXI_Device.h"
 
 struct NetSettings
 {

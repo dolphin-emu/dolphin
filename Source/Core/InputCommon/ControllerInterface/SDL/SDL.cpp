@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "SDL.h"
-#include <StringUtil.h>
-
+#include <algorithm>
 #include <map>
 #include <sstream>
-#include <algorithm>
+
+#include "Common/StringUtil.h"
+#include "InputCommon/ControllerInterface/SDL/SDL.h"
 
 #ifdef _WIN32
 #pragma comment(lib, "SDL2.lib")

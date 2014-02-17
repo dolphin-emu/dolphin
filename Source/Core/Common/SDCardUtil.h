@@ -4,6 +4,6 @@
 
 #pragma once
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 bool SDCardCreate(u64 disk_size /*in MB*/, const char* filename);

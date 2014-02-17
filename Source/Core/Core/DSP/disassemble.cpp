@@ -23,13 +23,14 @@
 
    ====================================================================*/
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
-#include "Common.h"
-#include "FileUtil.h"
-#include "disassemble.h"
-#include "DSPTables.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+
+#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPTables.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable:4996)

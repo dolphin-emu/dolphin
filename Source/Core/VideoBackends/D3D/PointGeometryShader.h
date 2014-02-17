@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "VideoCommon.h"
+#include "VideoCommon/VideoCommon.h"
 
 struct ID3D11Buffer;
 struct ID3D11GeometryShader;

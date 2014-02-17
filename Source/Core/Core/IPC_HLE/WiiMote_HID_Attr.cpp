@@ -2,9 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
 #include <vector>
-#include "WiiMote_HID_Attr.h"
+
+#include "Common/Common.h"
+#include "Core/IPC_HLE/WiiMote_HID_Attr.h"
 
 #if 0
 // 0x00 (checked)

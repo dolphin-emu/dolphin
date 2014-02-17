@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "Common.h"
-#include "VideoConfig.h"
-#include "main.h"
+#include "Common/Common.h"
 
-#include "VideoCommon.h"
+#include "VideoBackends/D3D/main.h"
+
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"

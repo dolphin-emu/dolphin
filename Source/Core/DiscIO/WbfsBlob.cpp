@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "WbfsBlob.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+#include "DiscIO/WbfsBlob.h"
 
 namespace DiscIO
 {

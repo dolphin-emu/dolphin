@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Turntable.h"
-
+#include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 
 namespace WiimoteEmu
 {

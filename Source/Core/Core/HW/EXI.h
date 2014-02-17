@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include "CommonTypes.h"
-#include "EXI_Channel.h"
-#include "Thread.h"
+#include "Common/CommonTypes.h"
+#include "Common/Thread.h"
+
+#include "Core/HW/EXI_Channel.h"
+
 class PointerWrap;
 namespace MMIO { class Mapping; }
 

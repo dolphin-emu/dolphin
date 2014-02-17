@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Frame.h"
+#include "DolphinWX/Frame.h"
 
 // Define a new application
 class CFrame;

@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "IniFile.h"
 #include <string>
+
+#include "Common/IniFile.h"
 
 enum Hotkey
 {

@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "FifoAnalyzer.h"
-#include "FifoDataFile.h"
-
 #include <string>
 #include <vector>
+
+#include "Core/FifoPlayer/FifoAnalyzer.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
 
 struct AnalyzedFrameInfo
 {

@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "GLUtil.h"
-#include "FramebufferManagerBase.h"
-#include "ProgramShaderCache.h"
-#include "Render.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/Render.h"
+
+#include "VideoCommon/FramebufferManagerBase.h"
 
 // On the GameCube, the game sends a request for the graphics processor to
 // transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM

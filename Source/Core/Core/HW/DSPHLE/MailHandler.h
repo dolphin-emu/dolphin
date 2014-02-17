@@ -6,8 +6,8 @@
 
 #include <queue>
 
-#include "Common.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
 class CMailHandler
 {

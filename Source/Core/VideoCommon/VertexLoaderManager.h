@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "Common.h"
 #include <string>
+
+#include "Common/Common.h"
 
 namespace VertexLoaderManager
 {

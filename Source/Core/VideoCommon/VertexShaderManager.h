@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "VertexShaderGen.h"
-#include "ConstantManager.h"
+#include "VideoCommon/ConstantManager.h"
+#include "VideoCommon/VertexShaderGen.h"
 
 class PointerWrap;
 

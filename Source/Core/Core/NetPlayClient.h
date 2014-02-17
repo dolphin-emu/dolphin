@@ -4,22 +4,22 @@
 
 #pragma once
 
-#include "Common.h"
-#include "CommonTypes.h"
-#include "Thread.h"
-#include "Timer.h"
-
-#include <SFML/Network.hpp>
-
-#include "NetPlayProto.h"
-#include "GCPadStatus.h"
-
 #include <functional>
 #include <map>
 #include <queue>
 #include <sstream>
 
-#include "FifoQueue.h"
+#include <SFML/Network.hpp>
+
+#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/FifoQueue.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
+
+#include "Core/NetPlayProto.h"
+
+#include "InputCommon/GCPadStatus.h"
 
 class NetPad
 {

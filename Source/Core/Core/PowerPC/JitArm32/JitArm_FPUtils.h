@@ -1,14 +1,15 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
+
 #pragma once
 
-#include "../Interpreter/Interpreter_FPUtils.h"
+#include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
-#include "Jit.h"
-#include "JitRegCache.h"
-#include "JitFPRCache.h"
-#include "JitAsm.h"
+#include "Core/PowerPC/JitArm32/Jit.h"
+#include "Core/PowerPC/JitArm32/JitAsm.h"
+#include "Core/PowerPC/JitArm32/JitFPRCache.h"
+#include "Core/PowerPC/JitArm32/JitRegCache.h"
 
 static const double minmaxFloat[2] = {-(double)0x80000000, (double)0x7FFFFFFF};
 static const double doublenum = 0xfff8000000000000ull;

@@ -4,10 +4,9 @@
 
 #include <functional>
 
-#include "Common.h"
-#include "Thread.h"
-
-#include "PulseAudioStream.h"
+#include "AudioCommon/PulseAudioStream.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
 
 namespace
 {

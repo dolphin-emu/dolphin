@@ -3,29 +3,28 @@
 // Refer to the license.txt file included.
 
 #include <wx/button.h>
+#include <wx/listctrl.h>
 #include <wx/textctrl.h>
-#include <wx/listctrl.h>
 #include <wx/thread.h>
-#include <wx/listctrl.h>
 
-#include "JitWindow.h"
-#include "HW/CPU.h"
-#include "PowerPC/PowerPC.h"
-#include "PowerPC/JitCommon/JitBase.h"
-#include "PowerPC/JitCommon/JitCache.h"
-#include "PowerPC/PPCAnalyst.h"
-#include "PowerPCDisasm.h"
-#include "disasm.h"
+#include "PowerPCDisasm.h" // Bochs
+#include "disasm.h"        // Bochs
 
-#include "Debugger/PPCDebugInterface.h"
-#include "Debugger/Debugger_SymbolMap.h"
+#include "Common/LogManager.h"
+#include "Common/StringUtil.h"
 
-#include "Core.h"
-#include "StringUtil.h"
-#include "LogManager.h"
-#include "../WxUtils.h"
+#include "Core/Core.h"
+#include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/CPU.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
-#include "../Globals.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/JitWindow.h"
 
 enum
 {

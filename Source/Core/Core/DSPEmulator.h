@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "ChunkFile.h"
-#include "SoundStream.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/ChunkFile.h"
 
 class DSPEmulator
 {

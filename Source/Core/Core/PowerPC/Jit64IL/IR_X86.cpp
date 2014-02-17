@@ -24,10 +24,10 @@ The register allocation is linear scan allocation.
 #pragma warning(disable:4146)   // unary minus operator applied to unsigned type, result still unsigned
 #endif
 
-#include "JitIL.h"
-#include "../../../Common/CPUDetect.h"
-#include "MathUtil.h"
-#include "HW/ProcessorInterface.h"
+#include "Common/CPUDetect.h"
+#include "Common/MathUtil.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/Jit64IL/JitIL.h"
 
 using namespace IREmitter;
 using namespace Gen;

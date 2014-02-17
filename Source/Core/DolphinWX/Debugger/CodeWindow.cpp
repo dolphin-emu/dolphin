@@ -2,44 +2,39 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-// Include
-#include "Common.h"
-
 #include <wx/wx.h>
 
-#include "Host.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/LogManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/Boot/Boot.h"
+#include "Core/ConfigManager.h"
+#include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/SignatureDB.h"
+#include "DolphinWX/Debugger/BreakpointWindow.h"
+#include "DolphinWX/Debugger/CodeView.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/JitWindow.h"
+#include "DolphinWX/Debugger/MemoryWindow.h"
+#include "DolphinWX/Debugger/RegisterWindow.h"
+#include "DolphinWX/WxUtils.h"
 
-#include "RegisterWindow.h"
-#include "BreakpointWindow.h"
-#include "MemoryWindow.h"
-#include "JitWindow.h"
-
-#include "CodeWindow.h"
-#include "CodeView.h"
-
-#include "../WxUtils.h"
-#include "FileUtil.h"
-#include "Core.h"
-#include "HW/Memmap.h"
-#include "HLE/HLE.h"
-#include "Boot/Boot.h"
-#include "LogManager.h"
-#include "HW/CPU.h"
-#include "PowerPC/PowerPC.h"
-#include "PowerPC/JitInterface.h"
-#include "Debugger/PPCDebugInterface.h"
-#include "Debugger/Debugger_SymbolMap.h"
-#include "PowerPC/PPCAnalyst.h"
-#include "PowerPC/PPCSymbolDB.h"
-#include "PowerPC/SignatureDB.h"
-#include "PowerPC/PPCTables.h"
-
-#include "ConfigManager.h"
 
 extern "C"  // Bitmaps
 {
-	#include "../resources/toolbar_add_memorycheck.c"
-	#include "../resources/toolbar_add_breakpoint.c"
+	#include "DolphinWX/resources/toolbar_add_memorycheck.c"
+	#include "DolphinWX/resources/toolbar_add_breakpoint.c"
 }
 
 // -------

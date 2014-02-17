@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FileUtil.h"
-#include "WII_IPC_HLE_Device_net_ssl.h"
-#include "WII_Socket.h"
+#include "Common/FileUtil.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
+#include "Core/IPC_HLE/WII_Socket.h"
 
 WII_SSL CWII_IPC_HLE_Device_net_ssl::_SSL[NET_SSL_MAXINSTANCES];
 

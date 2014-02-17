@@ -23,18 +23,18 @@
 
    ====================================================================*/
 
-#include "Atomic.h"
-#include "Thread.h"
-#include "MemoryUtil.h"
+#include "Common/Atomic.h"
+#include "Common/CPUDetect.h"
+#include "Common/Thread.h"
+#include "Common/MemoryUtil.h"
 
-#include "DSPCore.h"
-#include "DSPHost.h"
-#include "DSPTables.h"
-#include "DSPAnalyzer.h"
-#include "DSPAccelerator.h"
-#include "DSPInterpreter.h"
-#include "DSPHWInterface.h"
-#include "CPUDetect.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPAccelerator.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPHost.h"
+#include "Core/DSP/DSPHWInterface.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPTables.h"
 
 #if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
 #include <tmmintrin.h>

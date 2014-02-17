@@ -2,17 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DebuggerUIUtil.h"
-#include "Common.h"
-#include "Host.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/Memmap.h"
-
-#include "MemoryView.h"
-#include "../WxUtils.h"
-
 #include <wx/event.h>
 #include <wx/clipbrd.h>
+
+#include "Common/Common.h"
+#include "Core/Host.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
+#include "DolphinWX/Debugger/MemoryView.h"
 
 enum
 {

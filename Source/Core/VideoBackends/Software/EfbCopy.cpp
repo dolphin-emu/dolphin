@@ -2,18 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "BPMemLoader.h"
-#include "EfbCopy.h"
-#include "EfbInterface.h"
-#include "SWRenderer.h"
-#include "TextureEncoder.h"
-#include "SWStatistics.h"
-#include "SWVideoConfig.h"
-#include "DebugUtil.h"
-#include "HwRasterizer.h"
-#include "SWCommandProcessor.h"
-#include "HW/Memmap.h"
-#include "Core.h"
+#include "Core/Core.h"
+#include "Core/HW/Memmap.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/DebugUtil.h"
+#include "VideoBackends/Software/EfbCopy.h"
+#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/HwRasterizer.h"
+#include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/SWRenderer.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoBackends/Software/TextureEncoder.h"
 
 static const float s_gammaLUT[] =
 {

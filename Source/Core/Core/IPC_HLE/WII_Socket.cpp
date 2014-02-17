@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "WII_Socket.h"
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device.h"
-// No Wii socket support while using NetPlay or TAS
-#include "NetPlayProto.h"
-#include "Movie.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_Socket.h" // No Wii socket support while using NetPlay or TAS
+
 
 using WII_IPC_HLE_Interface::ECommandType;
 using WII_IPC_HLE_Interface::COMMAND_IOCTL;

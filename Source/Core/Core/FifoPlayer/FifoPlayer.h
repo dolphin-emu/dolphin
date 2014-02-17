@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "FifoPlaybackAnalyzer.h"
 #include <string>
 #include <vector>
+
+#include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 
 class FifoDataFile;
 struct MemoryUpdate;

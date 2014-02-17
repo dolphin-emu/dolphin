@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <stdlib.h>
-#include "SoundStream.h"
+#include <cstdlib>
+#include "AudioCommon/SoundStream.h"
 
 #define BUF_SIZE (48000 * 4 / 32)
 

@@ -2,19 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "RenderBase.h"
+#include "Core/HW/Memmap.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/PixelShaderCache.h"
+#include "VideoBackends/D3D/TextureCache.h"
+#include "VideoBackends/D3D/VertexShaderCache.h"
+#include "VideoBackends/D3D/TextureEncoder.h"
+#include "VideoBackends/D3D/PSTextureEncoder.h"
 
-#include "D3DBase.h"
-#include "D3DUtil.h"
-#include "FramebufferManager.h"
-#include "PixelShaderCache.h"
-#include "TextureCache.h"
-#include "VertexShaderCache.h"
-#include "TextureEncoder.h"
-#include "PSTextureEncoder.h"
-#include "HW/Memmap.h"
-#include "VideoConfig.h"
-#include "ImageWrite.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {

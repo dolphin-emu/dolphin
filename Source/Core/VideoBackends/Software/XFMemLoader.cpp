@@ -2,12 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoCommon.h"
-
-#include "XFMemLoader.h"
-#include "CPMemLoader.h"
-#include "Clipper.h"
-#include "HW/Memmap.h"
+#include "Core/HW/Memmap.h"
+#include "VideoBackends/Software/Clipper.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/XFMemLoader.h"
+#include "VideoCommon/VideoCommon.h"
 
 XFRegisters swxfregs;
 

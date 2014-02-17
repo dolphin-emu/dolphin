@@ -4,35 +4,36 @@
 
 #include <cinttypes>
 #include <cmath>
-
-#include "Timer.h"
-
-#include "EmuWindow.h"
-#include "Fifo.h"
-#include "OnScreenDisplay.h"
-#include "PixelEngine.h"
-#include "Statistics.h"
-#include "VertexShaderManager.h"
-#include "VideoConfig.h"
-
-#include "D3DBase.h"
-#include "D3DUtil.h"
-#include "FramebufferManager.h"
-#include "GfxState.h"
-#include "PixelShaderCache.h"
-#include "Render.h"
-#include "TextureCache.h"
-#include "VertexShaderCache.h"
-#include "Core.h"
-#include "Movie.h"
-#include "Television.h"
-#include "Host.h"
-#include "BPFunctions.h"
-#include "AVIDump.h"
-#include "FPSCounter.h"
-#include "ConfigManager.h"
 #include <strsafe.h>
-#include "ImageWrite.h"
+
+#include "Common/Timer.h"
+
+#include "Core/Core.h"
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
+#include "Core/Movie.h"
+
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/GfxState.h"
+#include "VideoBackends/D3D/PixelShaderCache.h"
+#include "VideoBackends/D3D/Render.h"
+#include "VideoBackends/D3D/Television.h"
+#include "VideoBackends/D3D/TextureCache.h"
+#include "VideoBackends/D3D/VertexShaderCache.h"
+
+#include "VideoCommon/AVIDump.h"
+#include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/EmuWindow.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/FPSCounter.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {

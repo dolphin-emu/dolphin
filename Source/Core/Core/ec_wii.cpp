@@ -7,13 +7,15 @@
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
-#include <stdio.h>
+#include <cstdio>
 #include <string.h>
-#include "Common.h"
+
 #include "polarssl/sha1.h"
-#include "Crypto/tools.h"
-#include "FileUtil.h"
-#include "ec_wii.h"
+
+#include "Common/FileUtil.h"
+#include "Common/Crypto/tools.h"
+
+#include "Core/ec_wii.h"
 
 static u32 default_NG_id = 0x0403AC68;
 static u32 default_NG_key_id = 0x6AAB8C59;

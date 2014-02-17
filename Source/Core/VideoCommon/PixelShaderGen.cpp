@@ -2,20 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
 #include <cmath>
+#include <cstdio>
 #include <assert.h>
 #include <locale.h>
 #ifdef __APPLE__
 	#include <xlocale.h>
 #endif
 
-#include "LightingShaderGen.h"
-#include "PixelShaderGen.h"
-#include "XFMemory.h"  // for texture projection mode
-#include "BPMemory.h"
-#include "VideoConfig.h"
-#include "NativeVertexFormat.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/LightingShaderGen.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"  // for texture projection mode
 
 
 //   old tev->pixelshader notes

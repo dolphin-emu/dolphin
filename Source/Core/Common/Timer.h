@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "CommonTypes.h"
 #include <string>
+#include "Common/CommonTypes.h"
 
 namespace Common
 {

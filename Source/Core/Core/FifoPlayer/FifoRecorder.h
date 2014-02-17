@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "FifoDataFile.h"
-#include "FifoRecordAnalyzer.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 
 class FifoRecorder
 {

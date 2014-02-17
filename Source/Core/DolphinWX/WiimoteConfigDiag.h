@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include <wx/wx.h>
 #include <wx/listbox.h>
 #include <wx/textctrl.h>
@@ -11,11 +13,9 @@
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
 
-#include "InputConfigDiag.h"
-#include "ConfigManager.h"
-#include <HW/Wiimote.h>
-
-#include <map>
+#include "Core/ConfigManager.h"
+#include "Core/HW/Wiimote.h"
+#include "DolphinWX/InputConfigDiag.h"
 
 class WiimoteConfigDiag : public wxDialog
 {

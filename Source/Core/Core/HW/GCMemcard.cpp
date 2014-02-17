@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "GCMemcard.h"
-#include "ColorUtil.h"
-
 #include <cinttypes>
+
+#include "Common/ColorUtil.h"
+#include "Core/HW/GCMemcard.h"
 
 static void ByteSwap(u8 *valueA, u8 *valueB)
 {

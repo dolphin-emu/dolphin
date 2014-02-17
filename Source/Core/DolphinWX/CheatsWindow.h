@@ -20,12 +20,10 @@
 #include <string>
 #include <vector>
 
-#include "ActionReplay.h"
-
-#include "GeckoCodeDiag.h"
-
-#include "Filesystem.h"
-#include "IniFile.h"
+#include "Core/ActionReplay.h"
+#include "Common/IniFile.h"
+#include "DiscIO/Filesystem.h"
+#include "DolphinWX/GeckoCodeDiag.h"
 
 class CreateCodeDialog : public wxDialog
 {

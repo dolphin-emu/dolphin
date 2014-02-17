@@ -6,9 +6,9 @@
 
 #include <wx/wx.h>
 
-#include "Common.h"
-#include "CoreParameter.h"
-#include "../InputCommon/GCPadStatus.h"
+#include "Common/Common.h"
+#include "Core/CoreParameter.h"
+#include "InputCommon/GCPadStatus.h"
 
 class TASInputDlg : public wxDialog
 {
