@@ -3,8 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "LogWindow.h"
-#include "ConsoleListener.h"
-#include "Console.h"
 #include "IniFile.h"
 #include "FileUtil.h"
 #include "Debugger/DebuggerUIUtil.h"
@@ -17,7 +15,6 @@
 
 BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
 	EVT_CLOSE(CLogWindow::OnClose)
-	EVT_TEXT_ENTER(IDM_SUBMITCMD, CLogWindow::OnSubmit)
 	EVT_BUTTON(IDM_CLEARLOG, CLogWindow::OnClear)
 	EVT_CHOICE(IDM_FONT, CLogWindow::OnFontChange)
 	EVT_CHECKBOX(IDM_WRAPLINE, CLogWindow::OnWrapLineCheck)
@@ -60,18 +57,7 @@ void CLogWindow::CreateGUIControls()
 
 	// Get the logger output settings from the config ini file.
 	ini.Get("Options", "WriteToFile", &m_writeFile, false);
-	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
 	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
-#ifdef _MSC_VER
-	if (IsDebuggerPresent())
-	{
-		ini.Get("Options", "WriteToDebugger", &m_writeDebugger, true);
-	}
-	else
-#endif
-	{
-		m_writeDebugger = false;
-	}
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
@@ -87,16 +73,6 @@ void CLogWindow::CreateGUIControls()
 			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
 		else
 			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
-
-		if (m_writeConsole && enable)
-			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
-		else
-			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetConsoleListener());
-
-		if (m_writeDebugger && enable)
-			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetDebuggerListener());
-		else
-			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetDebuggerListener());
 
 		m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
 	}
@@ -182,25 +158,15 @@ void CLogWindow::SaveSettings()
 	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
 }
 
-void CLogWindow::OnSubmit(wxCommandEvent& WXUNUSED (event))
-{
-	if (!m_cmdline) return;
-	Console_Submit(WxStrToStr(m_cmdline->GetValue()).c_str());
-	m_cmdline->SetValue(wxEmptyString);
-}
-
 void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 {
 	m_Log->Clear();
 
-	{
+	
 	std::lock_guard<std::mutex> lk(m_LogSection);
 	int msgQueueSize = (int)msgQueue.size();
 	for (int i = 0; i < msgQueueSize; i++)
 		msgQueue.pop();
-	}
-
-	m_LogManager->GetConsoleListener()->ClearScreen();
 }
 
 void CLogWindow::UnPopulateBottom()

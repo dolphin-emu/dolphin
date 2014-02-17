@@ -408,8 +408,6 @@ void CCodeWindow::OpenPages()
 		Parent->ToggleLogWindow(true);
 	if (bShowOnStart[IDM_LOGCONFIGWINDOW - IDM_LOGWINDOW])
 		Parent->ToggleLogConfigWindow(true);
-	if (bShowOnStart[IDM_CONSOLEWINDOW - IDM_LOGWINDOW])
-		Parent->ToggleConsole(true);
 	if (bShowOnStart[IDM_REGISTERWINDOW - IDM_LOGWINDOW])
 		ToggleRegisterWindow(true);
 	if (bShowOnStart[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW])

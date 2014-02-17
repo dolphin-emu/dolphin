@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common.h" // Common
-#include "ConsoleListener.h"
 
 #include "Globals.h" // Local
 #include "Frame.h"
@@ -26,7 +25,6 @@ void CFrame::OnManagerResize(wxAuiManagerEvent& event)
 		m_LogWindow->winpos = m_Mgr->GetPane(_T("Pane 1")).dock_direction;
 	}
 	event.Skip();
-	ResizeConsole();
 }
 
 void CFrame::OnPaneClose(wxAuiManagerEvent& event)
@@ -39,14 +37,10 @@ void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 	if (!g_pCodeWindow)
 	{
 		if (nb->GetPage(0)->GetId() == IDM_LOGWINDOW ||
-				nb->GetPage(0)->GetId() == IDM_LOGCONFIGWINDOW ||
-				nb->GetPage(0)->GetId() == IDM_CONSOLEWINDOW)
+		    nb->GetPage(0)->GetId() == IDM_LOGCONFIGWINDOW)
 		{
-			// Closing a pane containing the logwindow or a console closes both
-			SConfig::GetInstance().m_InterfaceConsole = false;
 			SConfig::GetInstance().m_InterfaceLogWindow = false;
 			SConfig::GetInstance().m_InterfaceLogConfigWindow = false;
-			ToggleConsole(false);
 			ToggleLogWindow(false);
 			ToggleLogConfigWindow(false);
 		}
@@ -132,59 +126,6 @@ void CFrame::ToggleLogConfigWindow(bool bShow)
 		TogglePane();
 }
 
-void CFrame::ToggleConsole(bool bShow)
-{
-#ifdef _WIN32
-	GetMenuBar()->FindItem(IDM_CONSOLEWINDOW)->Check(bShow);
-
-	if (bShow)
-	{
-		// If the console doesn't exist, we create it
-		if (!GetConsoleWindow())
-		{
-			ConsoleListener *Console = LogManager::GetInstance()->GetConsoleListener();
-			Console->Open();
-		}
-		else
-		{
-			ShowWindow(GetConsoleWindow(), SW_SHOW);
-		}
-
-		// Create the parent window if it doesn't exist
-		wxPanel *ConsoleParent = (wxPanel*)FindWindowById(IDM_CONSOLEWINDOW);
-		if (!ConsoleParent) ConsoleParent = new wxPanel(this, IDM_CONSOLEWINDOW,
-				wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("Console"));
-
-		wxWindow *ConsoleWin = new wxWindow();
-		ConsoleWin->SetHWND((WXHWND)GetConsoleWindow());
-		ConsoleWin->AdoptAttributesFromHWND();
-		ConsoleWin->Reparent(ConsoleParent);
-
-		ConsoleParent->Enable();
-		const int nbIndex = IDM_CONSOLEWINDOW - IDM_LOGWINDOW;
-		DoAddPage(ConsoleParent,
-				g_pCodeWindow ? g_pCodeWindow->iNbAffiliation[nbIndex] : 0,
-				g_pCodeWindow ? bFloatWindow[nbIndex] : false);
-	}
-	else // Hide
-	{
-		if(GetConsoleWindow())
-			ShowWindow(GetConsoleWindow(), SW_HIDE); // WIN32
-
-		wxPanel *ConsoleParent = (wxPanel*)FindWindowById(IDM_CONSOLEWINDOW);
-		if (ConsoleParent)
-			ConsoleParent->Disable();
-
-		// Then close the page
-		DoRemovePage(ConsoleParent, true);
-	}
-
-	// Hide or Show the pane
-	if (!g_pCodeWindow)
-		TogglePane();
-#endif
-}
-
 void CFrame::OnToggleWindow(wxCommandEvent& event)
 {
 	bool bShow = GetMenuBar()->IsChecked(event.GetId());
@@ -200,11 +141,6 @@ void CFrame::OnToggleWindow(wxCommandEvent& event)
 			if (!g_pCodeWindow)
 				SConfig::GetInstance().m_InterfaceLogConfigWindow = bShow;
 			ToggleLogConfigWindow(bShow);
-			break;
-		case IDM_CONSOLEWINDOW:
-			if (!g_pCodeWindow)
-				SConfig::GetInstance().m_InterfaceConsole = bShow;
-			ToggleConsole(bShow);
 			break;
 		case IDM_REGISTERWINDOW:
 			g_pCodeWindow->ToggleRegisterWindow(bShow);
@@ -233,7 +169,7 @@ void CFrame::ClosePages()
 {
 	ToggleLogWindow(false);
 	ToggleLogConfigWindow(false);
-	ToggleConsole(false);
+
 	if (g_pCodeWindow)
 	{
 		g_pCodeWindow->ToggleCodeWindow(false);
@@ -275,8 +211,6 @@ void CFrame::OnNotebookPageClose(wxAuiNotebookEvent& event)
 		ToggleLogWindow(false);
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_LOGCONFIGWINDOW)
 		ToggleLogConfigWindow(false);
-	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_CONSOLEWINDOW)
-		ToggleConsole(false);
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_REGISTERWINDOW)
 		g_pCodeWindow->ToggleRegisterWindow(false);
 	if (Ctrl->GetPage(event.GetSelection())->GetId() == IDM_BREAKPOINTWINDOW)
@@ -299,7 +233,6 @@ void CFrame::OnFloatingPageClosed(wxCloseEvent& event)
 void CFrame::OnFloatingPageSize(wxSizeEvent& event)
 {
 	event.Skip();
-	ResizeConsole();
 }
 
 void CFrame::OnFloatWindow(wxCommandEvent& event)
@@ -392,7 +325,6 @@ void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
 {
 	event.Skip();
 	event.Allow();
-	ResizeConsole();
 }
 
 void CFrame::ShowResizePane()
@@ -772,33 +704,6 @@ void CFrame::OnSelectPerspective(wxCommandEvent& event)
 	DoLoadPerspective();
 }
 
-void CFrame::ResizeConsole()
-{
-#ifdef _WIN32
-	// Get the console parent window
-	wxWindow * Win = FindWindowById(IDM_CONSOLEWINDOW);
-	if (!Win) return;
-
-	const int wxBorder = 2, Border = 4,
-		  MenuBar = 30, ScrollBar = 19;
-
-	// Get the client size
-	int X = Win->GetSize().GetX();
-	int Y = Win->GetSize().GetY();
-	int InternalWidth = X - wxBorder*2 - ScrollBar;
-	int InternalHeight = Y - wxBorder*2;
-	int WindowWidth = InternalWidth + Border*2 +
-		/*max out the width in the word wrap mode*/ 100;
-	int WindowHeight = InternalHeight + MenuBar;
-	// Resize buffer
-	ConsoleListener* Console = LogManager::GetInstance()->GetConsoleListener();
-	Console->PixelSpace(0,0, InternalWidth, InternalHeight, false);
-	// Move the window to hide the border
-	MoveWindow(GetConsoleWindow(), -Border-wxBorder, -MenuBar-wxBorder,
-			WindowWidth + 100, WindowHeight, true);
-#endif
-}
-
 static int Limit(int i, int Low, int High)
 {
 	if (i < Low) return Low;
@@ -1062,11 +967,6 @@ wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title,
 	m_MainSizer->Add(Child, 1, wxEXPAND);
 
 	Frame->Bind(wxEVT_CLOSE_WINDOW, &CFrame::OnFloatingPageClosed, this);
-
-	if (Id == IDM_CONSOLEWINDOW_PARENT)
-	{
-		Frame->Bind(wxEVT_SIZE, &CFrame::OnFloatingPageSize, this);
-	}
 
 	// Main sizer
 	Frame->SetSizer(m_MainSizer);

@@ -23,20 +23,18 @@ public:
 private:
 	LogManager *m_LogManager;
 	CLogWindow *m_LogWindow;
-	bool m_writeFile, m_writeConsole, m_writeWindow, m_writeDebugger;
+	bool m_writeFile, m_writeWindow;
 	bool enableAll;
 
 	// Controls
-	wxCheckBox *m_writeFileCB, *m_writeConsoleCB, *m_writeWindowCB, *m_writeDebuggerCB;
+	wxCheckBox *m_writeFileCB, *m_writeWindowCB;
 	wxCheckListBox* m_checks;
 	wxRadioBox *m_verbosity;
 
 	void CreateGUIControls();
 	void OnVerbosityChange(wxCommandEvent& event);
 	void OnWriteFileChecked(wxCommandEvent& event);
-	void OnWriteConsoleChecked(wxCommandEvent& event);
 	void OnWriteWindowChecked(wxCommandEvent& event);
-	void OnWriteDebuggerChecked(wxCommandEvent& event);
 	void OnToggleAll(wxCommandEvent& event);
 	void ToggleLog(int _logType, bool enable);
 	void OnLogCheck(wxCommandEvent& event);

@@ -218,17 +218,11 @@ void CFrame::CreateMenu()
 	viewMenu->AppendSeparator();
 	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _("Show &Log"));
 	viewMenu->AppendCheckItem(IDM_LOGCONFIGWINDOW, _("Show Log &Configuration"));
-	viewMenu->AppendCheckItem(IDM_CONSOLEWINDOW, _("Show &Console"));
 	viewMenu->AppendSeparator();
-
-#ifndef _WIN32
-	viewMenu->Enable(IDM_CONSOLEWINDOW, false);
-#endif
 
 	if (g_pCodeWindow)
 	{
 		viewMenu->Check(IDM_LOGWINDOW, g_pCodeWindow->bShowOnStart[0]);
-		viewMenu->Check(IDM_CONSOLEWINDOW, g_pCodeWindow->bShowOnStart[1]);
 
 		const wxString MenuText[] = {
 			wxTRANSLATE("&Registers"),
@@ -251,7 +245,6 @@ void CFrame::CreateMenu()
 	{
 		viewMenu->Check(IDM_LOGWINDOW, SConfig::GetInstance().m_InterfaceLogWindow);
 		viewMenu->Check(IDM_LOGCONFIGWINDOW, SConfig::GetInstance().m_InterfaceLogConfigWindow);
-		viewMenu->Check(IDM_CONSOLEWINDOW, SConfig::GetInstance().m_InterfaceConsole);
 	}
 
 	wxMenu *platformMenu = new wxMenu;
