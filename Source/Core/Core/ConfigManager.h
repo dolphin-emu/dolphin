@@ -75,6 +75,7 @@ struct SConfig : NonCopyable
 	bool m_PauseMovie;
 	bool m_ShowLag;
 	std::string m_strMovieAuthor;
+	unsigned int m_FrameSkip;
 
 	// DSP settings
 	bool m_EnableJIT;
