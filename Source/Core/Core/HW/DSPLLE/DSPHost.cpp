@@ -4,7 +4,6 @@
 
 #include "Common/Common.h"
 #include "Common/Hash.h"
-
 #include "Core/Host.h"
 #include "Core/ConfigManager.h"
 #include "Core/DSP/DSPAnalyzer.h"
@@ -14,8 +13,7 @@
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 #include "Core/HW/DSPLLE/DSPLLETools.h"
 #include "Core/PowerPC/PowerPC.h"
-
-#include "OnScreenDisplay.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 // The user of the DSPCore library must supply a few functions so that the
 // emulation core can access the environment it runs in. If the emulation

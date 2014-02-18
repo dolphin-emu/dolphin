@@ -8,6 +8,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/SettingsHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/ec_wii.h"
@@ -457,7 +458,6 @@ bool CWII_IPC_HLE_Device_net_wd_command::Close(u32 CommandAddress, bool Force)
 // This is just for debugging / playing around.
 // There really is no reason to implement wd unless we can bend it such that
 // we can talk to the DS.
-#include "StringUtil.h"
 bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 {
 	u32 return_value = 0;

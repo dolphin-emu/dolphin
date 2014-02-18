@@ -204,9 +204,9 @@ bool AVIDump::SetVideoFormat()
 
 #else
 
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "Log.h"
+#include "Common/FileUtil.h"
+#include "Common/Log.h"
+#include "Common/StringUtil.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
