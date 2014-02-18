@@ -472,6 +472,9 @@ endif()
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
 #
+include_directories(Source/Core)
+
+# TODO(delroth): Remove when relative-includes is done.
 include_directories(Source/Core/AudioCommon)
 include_directories(Source/Core/Common)
 include_directories(Source/Core/Core)

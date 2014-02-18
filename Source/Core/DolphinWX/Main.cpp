@@ -12,10 +12,6 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 
-#if defined HAVE_X11 && HAVE_X11
-#include <X11/Xlib.h>
-#endif
-
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
@@ -31,6 +27,10 @@
 #include "VideoCommon/VideoBackendBase.h"
 
 #include <wx/intl.h>
+
+#if defined HAVE_X11 && HAVE_X11
+#include <X11/Xlib.h>
+#endif
 
 #ifdef _WIN32
 #include <shellapi.h>

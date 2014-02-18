@@ -9,6 +9,14 @@
 #include "Core/Core.h"
 #include "Core/ConfigManager.h"
 
+// HACK: Xlib.h (included from gtk/gdk headers and directly) uses #defines on
+// common names such as "Status", "BadRequest" or "Response", causing SFML
+// headers to be completely broken.
+//
+// We work around that issue by including SFML first before X11 headers. This
+// is terrible, but such is the life with Xlib.
+#include <SFML/Network.hpp>
+
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/wx.h>
 #include <gtk/gtk.h>

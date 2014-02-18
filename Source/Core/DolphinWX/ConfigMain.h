@@ -7,8 +7,10 @@
 #include <wx/wx.h>
 #include <wx/gbsizer.h>
 #include <wx/spinbutt.h>
+#include <wx/spinctrl.h>
 #include <wx/notebook.h>
 #include <wx/filepicker.h>
+
 #include "Core/ConfigManager.h"
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include "DolphinWX/X11Utils.h"

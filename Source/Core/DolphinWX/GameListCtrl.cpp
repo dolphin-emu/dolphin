@@ -25,7 +25,7 @@
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
-#include "DolphinWx/resources/Flag_Europe.xpm"
+#include "DolphinWX/resources/Flag_Europe.xpm"
 #include "DolphinWX/resources/Flag_Germany.xpm"
 #include "DolphinWX/resources/Flag_France.xpm"
 #include "DolphinWX/resources/Flag_Italy.xpm"

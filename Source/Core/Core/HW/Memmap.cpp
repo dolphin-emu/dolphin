@@ -22,7 +22,7 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI.h"
-#include "core/HW/GPFifo.h"
+#include "Core/HW/GPFifo.h"
 #include "Core/HW/MemoryInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
