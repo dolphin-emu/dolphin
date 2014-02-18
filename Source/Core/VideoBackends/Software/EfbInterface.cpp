@@ -473,9 +473,9 @@ namespace EfbInterface
 
 		// GameCube/Wii uses the BT.601 standard algorithm for converting to YCbCr; see
 		// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-		out->Y =  0.257f * color[RED_C] +  0.504f * color[GRN_C] +  0.098f * color[BLU_C];
-		out->U = -0.148f * color[RED_C] + -0.291f * color[GRN_C] +  0.439f * color[BLU_C];
-		out->V =  0.439f * color[RED_C] + -0.368f * color[GRN_C] + -0.071f * color[BLU_C];
+		out->Y = (u8)( 0.257f * color[RED_C] +  0.504f * color[GRN_C] +  0.098f * color[BLU_C]);
+		out->U = (u8)(-0.148f * color[RED_C] + -0.291f * color[GRN_C] +  0.439f * color[BLU_C]);
+		out->V = (u8)( 0.439f * color[RED_C] + -0.368f * color[GRN_C] + -0.071f * color[BLU_C]);
 	}
 
 	u32 GetDepth(u16 x, u16 y)
