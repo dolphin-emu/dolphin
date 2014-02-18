@@ -4,7 +4,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include "EmuWindow.h"
+#include "VideoCommon/EmuWindow.h"
 #endif
 
 #include "AudioCommon/AudioCommon.h"

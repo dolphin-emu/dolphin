@@ -22,7 +22,6 @@
     <IntDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <OutDir>$(IntDir)bin\</OutDir>
     <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
-    <IncludePath>$(SolutionDir)Core;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->
@@ -32,16 +31,7 @@
       Order matters! (first hit, first use).
         Note: Directory containing source file being compiled is always searched first.
       -->
-      <AdditionalIncludeDirectories>$(CoreDir)AudioCommon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(CoreDir)Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(CoreDir)Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(CoreDir)DiscIO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(CoreDir)DolphinWX;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(CoreDir)InputCommon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(CoreDir)VideoBackends\D3D;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(CoreDir)VideoBackends\OGL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(CoreDir)VideoBackends\Software;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(CoreDir)VideoCommon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)GL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
