@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "DSP/DSPCodeUtil.h"
-#include "DSP/DSPTables.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+#include "Core/DSP/DSPCodeUtil.h"
+#include "Core/DSP/DSPTables.h"
 
 // Stub out the dsplib host stuff, since this is just a simple cmdline tools.
 u8 DSPHost_ReadHostMemory(u32 addr) { return 0; }
