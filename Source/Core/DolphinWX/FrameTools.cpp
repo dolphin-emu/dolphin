@@ -16,15 +16,32 @@ Core::GetWindowHandle().
 
 #include <wx/datetime.h>
 
+#ifdef __APPLE__
+#include <AppKit/AppKit.h>
+#endif
+
 #include "Common/Common.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Timer.h"
-#include "VideoCommon/VideoBackendBase.h"
 
-#ifdef __APPLE__
-#include <AppKit/AppKit.h>
-#endif
+#include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/Movie.h"
+#include "Core/State.h"
+#include "Core/VolumeHandler.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/Wiimote.h"
+//#include "IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "DiscIO/NANDContentLoader.h"
 
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/CheatsWindow.h"
@@ -35,8 +52,8 @@ Core::GetWindowHandle().
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/HotkeyDlg.h"
 #include "DolphinWX/InputConfigDiag.h"
-#include "DolphinWX/LogWindow.h"
 #include "DolphinWX/LogConfigWindow.h"
+#include "DolphinWX/LogWindow.h"
 #include "DolphinWX/MemcardManager.h"
 #include "DolphinWX/NetWindow.h"
 #include "DolphinWX/TASInputDlg.h"
@@ -44,22 +61,7 @@ Core::GetWindowHandle().
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
 
-#include "Core/BootManager.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/Host.h"
-#include "Core/Movie.h"
-#include "Core/State.h"
-#include "Core/HW/CPU.h"
-#include "Core/HW/DVDInterface.h"
-#include "Core/HW/GCPad.h"
-#include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/Wiimote.h"
-//#include "IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/VolumeHandler.h"
-#include "DiscIO/NANDContentLoader.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 #ifdef _WIN32
 #ifndef SM_XVIRTUALSCREEN
@@ -78,7 +80,7 @@ Core::GetWindowHandle().
 
 // Resources
 extern "C" {
-#include "DolphinWX/resources/Dolphin.c" // Dolphin icon
+#include "DolphinWX/resources/Dolphin.c" // NOLINT: Dolphin icon
 };
 
 bool confirmStop = false;

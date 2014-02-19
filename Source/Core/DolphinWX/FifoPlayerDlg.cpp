@@ -4,6 +4,8 @@
 
 #include <algorithm>
 #include <vector>
+#include <wx/clipbrd.h>
+#include <wx/spinctrl.h>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
@@ -13,9 +15,6 @@
 #include "DolphinWX/FifoPlayerDlg.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/OpcodeDecoding.h"
-
-#include <wx/spinctrl.h>
-#include <wx/clipbrd.h>
 
 DECLARE_EVENT_TYPE(RECORDING_FINISHED_EVENT, -1)
 DEFINE_EVENT_TYPE(RECORDING_FINISHED_EVENT)

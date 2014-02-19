@@ -10,15 +10,14 @@
 #include <list>
 #include <map>
 #include <vector>
-
-#include <wx/wx.h>
 #include <wx/button.h>
 #include <wx/frame.h>
 #include <wx/listctrl.h>
-#include <wx/statbox.h>
-#include <wx/stattext.h>
 #include <wx/sizer.h>
+#include <wx/statbox.h>
 #include <wx/statline.h>
+#include <wx/stattext.h>
+#include <wx/wx.h>
 #include <wx/aui/aui.h>
 
 #include "Core/DSP/disassemble.h"

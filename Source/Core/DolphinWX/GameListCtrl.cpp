@@ -2,13 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <wx/imaglist.h>
-#include <wx/fontmap.h>
-#include <wx/filename.h>
-
 #include <algorithm>
 #include <cinttypes>
 #include <memory>
+#include <wx/filename.h>
+#include <wx/fontmap.h>
+#include <wx/imaglist.h>
 
 #include "Common/CDUtils.h"
 #include "Common/FileSearch.h"
@@ -19,26 +18,24 @@
 #include "Core/Core.h"
 #include "Core/HW/DVDInterface.h"
 #include "DiscIO/Blob.h"
-
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/resources/Flag_Europe.xpm"
-#include "DolphinWX/resources/Flag_Germany.xpm"
 #include "DolphinWX/resources/Flag_France.xpm"
+#include "DolphinWX/resources/Flag_Germany.xpm"
 #include "DolphinWX/resources/Flag_Italy.xpm"
 #include "DolphinWX/resources/Flag_Japan.xpm"
-#include "DolphinWX/resources/Flag_USA.xpm"
-#include "DolphinWX/resources/Flag_Taiwan.xpm"
 #include "DolphinWX/resources/Flag_Korea.xpm"
-#include "DolphinWX/resources/Flag_Unknown.xpm"
 #include "DolphinWX/resources/Flag_SDK.xpm"
-
+#include "DolphinWX/resources/Flag_Taiwan.xpm"
+#include "DolphinWX/resources/Flag_Unknown.xpm"
+#include "DolphinWX/resources/Flag_USA.xpm"
+#include "DolphinWX/resources/Platform_Gamecube.xpm"
 #include "DolphinWX/resources/Platform_Wad.xpm"
 #include "DolphinWX/resources/Platform_Wii.xpm"
-#include "DolphinWX/resources/Platform_Gamecube.xpm"
 #include "DolphinWX/resources/rating_gamelist.h"
 
 size_t CGameListCtrl::m_currentItem = 0;

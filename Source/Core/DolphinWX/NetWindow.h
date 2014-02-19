@@ -6,15 +6,14 @@
 
 #include <queue>
 #include <string>
-
-#include <wx/wx.h>
-#include <wx/event.h>
-#include <wx/sizer.h>
 #include <wx/dialog.h>
-#include <wx/notebook.h>
+#include <wx/event.h>
 #include <wx/gbsizer.h>
 #include <wx/listbox.h>
+#include <wx/notebook.h>
+#include <wx/sizer.h>
 #include <wx/spinctrl.h>
+#include <wx/wx.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"

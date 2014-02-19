@@ -3,20 +3,19 @@
 #include <map>
 #include <string>
 #include <vector>
-
-#include <wx/wx.h>
-#include <wx/textctrl.h>
 #include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/combobox.h>
 #include <wx/checkbox.h>
+#include <wx/combobox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/wx.h>
 
 #include "Common/MsgHandler.h"
-#include "Core/Core.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/VideoConfig.h"
 

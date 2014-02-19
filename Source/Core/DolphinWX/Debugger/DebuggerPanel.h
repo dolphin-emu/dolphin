@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <wx/wx.h>
 #include <wx/notebook.h>
+#include <wx/wx.h>
 
 #include "VideoCommon/Debugger.h"
 

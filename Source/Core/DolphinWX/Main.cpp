@@ -4,6 +4,8 @@
 
 #include <string>
 #include <vector>
+#include <wx/intl.h>
+#include <wx/stdpaths.h>
 
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
@@ -25,8 +27,6 @@
 #include "DolphinWX/Debugger/JitWindow.h"
 
 #include "VideoCommon/VideoBackendBase.h"
-
-#include <wx/intl.h>
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
@@ -74,7 +74,6 @@ BEGIN_EVENT_TABLE(DolphinApp, wxApp)
 	EVT_END_SESSION(DolphinApp::OnEndSession)
 END_EVENT_TABLE()
 
-#include <wx/stdpaths.h>
 bool wxMsgAlert(const char*, const char*, bool, int);
 std::string wxStringTranslator(const char *);
 

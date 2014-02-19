@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <wx/event.h>
 #include <wx/clipbrd.h>
+#include <wx/event.h>
 
 #include "Common/Common.h"
 #include "Core/Host.h"

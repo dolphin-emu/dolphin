@@ -6,20 +6,19 @@
 
 #include <string>
 #include <vector>
-
-#include <wx/wx.h>
-#include <wx/busyinfo.h>
-#include <wx/mstream.h>
-#include <wx/listctrl.h>
 #include <wx/artprov.h>
-#include <wx/aui/aui.h>
+#include <wx/busyinfo.h>
+#include <wx/listctrl.h>
+#include <wx/mstream.h>
 #include <wx/tooltip.h>
+#include <wx/wx.h>
+#include <wx/aui/aui.h>
 
 #include "Common/CDUtils.h"
 #include "Core/Movie.h"
 #include "DolphinWX/Globals.h"
-#include "DolphinWX/LogWindow.h"
 #include "DolphinWX/LogConfigWindow.h"
+#include "DolphinWX/LogWindow.h"
 #include "DolphinWX/TASInputDlg.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 

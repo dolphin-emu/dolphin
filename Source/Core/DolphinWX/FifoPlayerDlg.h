@@ -5,8 +5,8 @@
 #pragma once
 
 #include <vector>
-#include <wx/wx.h>
 #include <wx/notebook.h>
+#include <wx/wx.h>
 
 class wxSpinCtrl;
 class wxSpinEvent;

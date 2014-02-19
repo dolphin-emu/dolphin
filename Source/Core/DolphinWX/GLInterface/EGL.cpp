@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "Core/Host.h"
-#include "DolphinWX/GLInterface/GLInterface.h"
 #include "DolphinWX/GLInterface/EGL.h"
+#include "DolphinWX/GLInterface/GLInterface.h"
 #include "VideoCommon/RenderBase.h"
 
 // Show the current FPS

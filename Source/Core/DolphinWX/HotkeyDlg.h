@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include <wx/wx.h>
-#include <wx/textctrl.h>
 #include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/combobox.h>
 #include <wx/checkbox.h>
+#include <wx/combobox.h>
 #include <wx/gbsizer.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/wx.h>
 
 #include "Common/Common.h"
 #include "Core/CoreParameter.h"

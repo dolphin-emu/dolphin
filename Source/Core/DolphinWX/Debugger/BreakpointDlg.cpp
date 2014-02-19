@@ -4,9 +4,9 @@
 
 #include "Common/StringUtil.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/BreakpointDlg.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
-#include "DolphinWX/WxUtils.h"
 
 BEGIN_EVENT_TABLE(BreakPointDlg, wxDialog)
 	EVT_BUTTON(wxID_OK, BreakPointDlg::OnOK)

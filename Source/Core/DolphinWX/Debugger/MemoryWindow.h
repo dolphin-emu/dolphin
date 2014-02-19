@@ -5,8 +5,8 @@
 #pragma once
 
 #include <wx/dialog.h>
-#include <wx/textctrl.h>
 #include <wx/listbox.h>
+#include <wx/textctrl.h>
 
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"

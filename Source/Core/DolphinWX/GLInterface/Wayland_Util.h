@@ -5,8 +5,8 @@
 #pragma once
 
 #include <wayland-client.h>
-#include <wayland-egl.h>
 #include <wayland-cursor.h>
+#include <wayland-egl.h>
 #include <xkbcommon/xkbcommon.h>
 
 #define MOD_SHIFT_MASK    0x01

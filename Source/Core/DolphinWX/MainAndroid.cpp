@@ -14,38 +14,36 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
 
-#include "Common.h"
-#include "FileUtil.h"
-
-#include "Core.h"
-#include "Host.h"
-#include "CPUDetect.h"
-#include "Thread.h"
-
-#include "State.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/Wiimote.h"
-
-#include "VideoBackendBase.h"
-#include "ConfigManager.h"
-#include "LogManager.h"
-#include "BootManager.h"
-#include "OnScreenDisplay.h"
-
-// Banner loading
-#include "Filesystem.h"
-#include "BannerLoader.h"
-#include "VolumeCreator.h"
-
-#include "Android/ButtonManager.h"
-
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
 #include <jni.h>
 #include <android/log.h>
 #include <android/native_window_jni.h>
+
+#include "Android/ButtonManager.h"
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
+#include "Common/FileUtil.h"
+#include "Common/LogManager.h"
+#include "Common/Thread.h"
+#include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/State.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/PowerPC/PowerPC.h"
+
+// Banner loading
+#include "DiscIO/BannerLoader.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeCreator.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoBackendBase.h"
+
 ANativeWindow* surf;
 int g_width, g_height;
 std::string g_filename;

@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <wx/wx.h>
 #include <wx/string.h>
+#include <wx/wx.h>
 
 #include "Common/Common.h"
 #include "DolphinWX/WxUtils.h"

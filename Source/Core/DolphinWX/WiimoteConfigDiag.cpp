@@ -1,8 +1,8 @@
-#include "DolphinWX/Frame.h"
-#include "DolphinWX/WiimoteConfigDiag.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/WiimoteConfigDiag.h"
 
 WiimoteConfigDiag::WiimoteConfigDiag(wxWindow* const parent, InputPlugin& plugin)
 	: wxDialog(parent, -1, _("Dolphin Wiimote Configuration"), wxDefaultPosition, wxDefaultSize)

@@ -7,8 +7,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 
-#include "DolphinWX/GLInterface/GLInterface.h"
 #include "DolphinWX/GLInterface/AGL.h"
+#include "DolphinWX/GLInterface/GLInterface.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"

@@ -3,22 +3,20 @@
 // Refer to the license.txt file included.
 
 #include <wx/button.h>
+#include <wx/listctrl.h>
 #include <wx/textctrl.h>
-#include <wx/listctrl.h>
 #include <wx/thread.h>
-#include <wx/listctrl.h>
 
 #include "Common/FileUtil.h"
 #include "Common/LogManager.h"
-#include "Core/Core.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/MemoryWindow.h"

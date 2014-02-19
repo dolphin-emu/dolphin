@@ -3,13 +3,11 @@
 // Refer to the license.txt file included.
 
 #include "Common/CommonPaths.h"
-
 #include "Core/ActionReplay.h"
-#include "Core/Core.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/VolumeHandler.h"
 #include "Core/HW/Memmap.h"
-
 #include "DolphinWX/CheatsWindow.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"

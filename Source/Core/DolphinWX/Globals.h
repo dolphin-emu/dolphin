@@ -7,6 +7,23 @@
 
 #pragma once
 
+#include <wx/aboutdlg.h>
+#include <wx/busyinfo.h>
+#include <wx/button.h>
+#include <wx/choice.h>
+#include <wx/cmdline.h>
+#include <wx/filedlg.h>
+#include <wx/image.h>
+#include <wx/imagpng.h>
+#include <wx/listctrl.h>
+#include <wx/log.h>
+#include <wx/progdlg.h>
+#include <wx/spinctrl.h>
+#include <wx/srchctrl.h>
+#include <wx/stattext.h>
+#include <wx/toolbar.h>
+#include <wx/wx.h>
+
 #include "Common/Common.h"
 
 enum
@@ -250,23 +267,6 @@ enum
 	ID_TOOLBAR = 500,
 	LIST_CTRL = 1000
 };
-
-#include <wx/wx.h>
-#include <wx/toolbar.h>
-#include <wx/log.h>
-#include <wx/image.h>
-#include <wx/aboutdlg.h>
-#include <wx/filedlg.h>
-#include <wx/spinctrl.h>
-#include <wx/srchctrl.h>
-#include <wx/listctrl.h>
-#include <wx/progdlg.h>
-#include <wx/imagpng.h>
-#include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/choice.h>
-#include <wx/cmdline.h>
-#include <wx/busyinfo.h>
 
 // custom message macro
 #define EVT_HOST_COMMAND(id, fn) \

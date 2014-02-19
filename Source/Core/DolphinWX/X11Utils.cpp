@@ -2,17 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DolphinWX/X11Utils.h"
-
 #include <spawn.h>
-#include <sys/wait.h>
 #include <unistd.h>
+#include <sys/wait.h>
+
+#include "DolphinWX/X11Utils.h"
 
 extern char **environ;
 
 #if defined(HAVE_WX) && HAVE_WX
-#include <string>
 #include <algorithm>
+#include <string>
+
 #include "DolphinWX/WxUtils.h"
 #endif
 

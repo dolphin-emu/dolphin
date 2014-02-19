@@ -13,18 +13,11 @@
 #ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
 #endif
-
 #include <wx/datetime.h>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Timer.h"
-
-#include "DolphinWX/CheatsWindow.h"
-#include "DolphinWX/ConfigMain.h"
-#include "DolphinWX/Frame.h"
-#include "DolphinWX/GameListCtrl.h"
-#include "DolphinWX/Globals.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
@@ -36,6 +29,12 @@
 #include "Core/HW/GCPad.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
+#include "DolphinWX/CheatsWindow.h"
+#include "DolphinWX/ConfigMain.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/GameListCtrl.h"
+#include "DolphinWX/Globals.h"
+
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -44,7 +43,7 @@
 // Resources
 
 extern "C" {
-#include "DolphinWX/resources/Dolphin.c" // Dolphin icon
+#include "DolphinWX/resources/Dolphin.c" // NOLINT: Dolphin icon
 };
 
 #ifdef _WIN32

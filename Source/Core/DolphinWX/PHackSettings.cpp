@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Core/ConfigManager.h"
 #include "Common/CommonPaths.h"
+#include "Core/ConfigManager.h"
 #include "DolphinWX/PHackSettings.h"
 #include "DolphinWX/WxUtils.h"
 

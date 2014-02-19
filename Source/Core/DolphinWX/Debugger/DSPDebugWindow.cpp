@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
-
 #include <wx/artprov.h>
 
 #include "Common/Common.h"
