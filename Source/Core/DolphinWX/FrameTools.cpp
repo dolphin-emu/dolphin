@@ -139,6 +139,8 @@ void CFrame::CreateMenu()
 	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
 	for(int i = 0; i < 10; i++)
 		skippingMenu->Append(IDM_FRAMESKIP0 + i, wxString::Format(wxT("%i"), i), wxEmptyString, wxITEM_RADIO);
+	skippingMenu->Check(IDM_FRAMESKIP0 + SConfig::GetInstance().m_FrameSkip, true);
+	Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
 
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_SCREENSHOT, GetMenuLabel(HK_SCREENSHOT));
@@ -1547,6 +1549,7 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 	int amount = event.GetId() - IDM_FRAMESKIP0;
 
 	Movie::SetFrameSkipping((unsigned int)amount);
+	SConfig::GetInstance().m_FrameSkip = amount;
 }
 
 
