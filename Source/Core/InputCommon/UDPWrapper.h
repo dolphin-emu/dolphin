@@ -6,11 +6,10 @@
 
 #include <string>
 
-#include "InputCommon/ControllerEmu.h"
-#include "InputCommon/UDPWiimote.h"
-
 #include "Common/Common.h"
 #include "Common/IniFile.h"
+#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/UDPWiimote.h"
 
 class UDPWrapper : public ControllerEmu::ControlGroup
 {

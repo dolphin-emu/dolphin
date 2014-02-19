@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include "InputCommon/ControllerInterface/Device.h"
-
 extern "C" {
+#include <X11/keysym.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput2.h>
-#include <X11/keysym.h>
 }
+
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {

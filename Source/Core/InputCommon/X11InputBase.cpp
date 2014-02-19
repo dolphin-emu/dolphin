@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <string.h>
-#include <stdio.h>
+#include <cstdio>
+#include <cstring>
 #include <ctype.h>
 
 #include "InputCommon/X11InputBase.h"
