@@ -7,8 +7,8 @@
 #include <polarssl/aes.h>
 
 #include "Common/FileUtil.h"
-#include "Common/MathUtil.h"
 #include "Common/Log.h"
+#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 
 #include "DiscIO/NANDContentLoader.h"
