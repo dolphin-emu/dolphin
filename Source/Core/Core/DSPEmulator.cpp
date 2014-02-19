@@ -4,8 +4,8 @@
 
 #include "Core/DSPEmulator.h"
 
-#include "Core/HW/DSPLLE/DSPLLE.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPLLE/DSPLLE.h"
 
 DSPEmulator *CreateDSPEmulator(bool HLE)
 {

@@ -23,10 +23,8 @@
 #include <string>
 #include <vector>
 
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
-#include "Common/CommonTypes.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "Common/SysConf.h"
 #include "Core/BootManager.h"
@@ -38,6 +36,8 @@
 #include "Core/HW/EXI.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace BootManager

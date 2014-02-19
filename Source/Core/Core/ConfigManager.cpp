@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DiscIO/NANDContentLoader.h"
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/SI.h"
+#include "DiscIO/NANDContentLoader.h"
 
 SConfig* SConfig::m_Instance;
 

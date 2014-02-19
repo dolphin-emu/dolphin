@@ -6,8 +6,8 @@
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 
 #include "VideoCommon/VertexLoader.h"
-#include "VideoCommon/VertexLoader_Position.h"
 #include "VideoCommon/VertexLoader_Normal.h"
+#include "VideoCommon/VertexLoader_Position.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
 
 namespace FifoAnalyzer

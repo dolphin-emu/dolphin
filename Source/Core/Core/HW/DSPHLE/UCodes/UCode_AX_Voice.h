@@ -17,6 +17,8 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "Core/HW/DSP.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AX.h"
 #include "Core/HW/DSPHLE/UCodes/UCode_AXStructs.h"
 
 #ifdef AX_GC

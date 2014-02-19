@@ -7,8 +7,8 @@
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Mixer.h"
 
-#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 void CUCode_Zelda::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {

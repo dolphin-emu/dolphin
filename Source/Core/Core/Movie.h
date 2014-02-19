@@ -4,12 +4,12 @@
 
 #pragma once
 
+#include <string>
+
 #include "Common/ChunkFile.h"
 #include "Common/Common.h"
 
 #include "InputCommon/GCPadStatus.h"
-
-#include <string>
 
 namespace WiimoteEmu
 {

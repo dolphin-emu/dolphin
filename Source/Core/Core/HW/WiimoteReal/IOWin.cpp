@@ -2,27 +2,26 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+// Used for pair up
+#undef NTDDI_VERSION
+#define NTDDI_VERSION  NTDDI_WINXPSP2
+
 #include <algorithm>
+#include <BluetoothAPIs.h>
+#include <bthdef.h>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-#include <unordered_map>
-#include <unordered_set>
-
-#include <windows.h>
 #include <dbt.h>
 #include <setupapi.h>
+#include <unordered_map>
+#include <unordered_set>
+#include <windows.h>
 
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
 
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-
-// Used for pair up
-#undef NTDDI_VERSION
-#define NTDDI_VERSION  NTDDI_WINXPSP2
-#include <bthdef.h>
-#include <BluetoothAPIs.h>
 
 //#define AUTHENTICATE_WIIMOTES
 #define SHARE_WRITE_WIIMOTES

@@ -1,6 +1,8 @@
 // Copyright 2013 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
+//
+#define AX_WII // Used in UCode_AX_Voice.
 
 #include "AudioCommon/Mixer.h"
 #include "Common/MathUtil.h"
@@ -8,12 +10,10 @@
 
 #include "Core/HW/DSPHLE/MailHandler.h"
 
-#include "Core/HW/DSPHLE/UCodes/UCodes.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AX_Voice.h"
 #include "Core/HW/DSPHLE/UCodes/UCode_AXStructs.h"
 #include "Core/HW/DSPHLE/UCodes/UCode_AXWii.h"
-
-#define AX_WII
-#include "Core/HW/DSPHLE/UCodes/UCode_AX_Voice.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 
 CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)

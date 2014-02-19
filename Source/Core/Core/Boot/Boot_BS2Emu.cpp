@@ -15,10 +15,10 @@
 #include "Core/VolumeHandler.h"
 #include "Core/Boot/Boot.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/DVDInterface.h"
-#include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/VolumeCreator.h"

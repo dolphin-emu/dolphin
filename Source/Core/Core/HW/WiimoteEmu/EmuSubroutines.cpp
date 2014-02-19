@@ -25,8 +25,8 @@
 
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteEmu
 {

@@ -15,10 +15,10 @@
 // [OnLoad]
 // 0x80020394=dword,0x4e800020
 
+#include <algorithm>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <algorithm>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"

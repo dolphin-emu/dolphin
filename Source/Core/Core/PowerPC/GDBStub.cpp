@@ -4,11 +4,10 @@
 
 // Originally written by Sven Peter <sven@fail0verflow.com> for anergistic.
 
-#include "Core/PowerPC/GDBStub.h"
-
+#include <fcntl.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 #include <unistd.h>
 #ifdef _WIN32
 #include <ws2tcpip.h>
@@ -19,9 +18,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #endif
-#include <stdarg.h>
 
-#include "Host.h"
+#include "Core/Host.h"
+#include "Core/PowerPC/GDBStub.h"
 
 #define GDB_BFR_MAX  10000
 #define GDB_MAX_BP   10

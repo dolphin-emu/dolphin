@@ -23,18 +23,18 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/Jit64IL/JitILAsm.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
-#include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Core/PowerPC/JitILCommon/IR.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 #ifdef _M_X64
 #define DISABLE64 \

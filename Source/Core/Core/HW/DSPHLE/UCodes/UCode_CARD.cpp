@@ -5,8 +5,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
-#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/UCode_CARD.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 
 CUCode_CARD::CUCode_CARD(DSPHLE *dsp_hle, u32 crc)

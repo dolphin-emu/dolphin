@@ -4,8 +4,8 @@
 //
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
-#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPIntCCUtil.h"
+#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPIntUtil.h"
 
 // Arithmetic and accumulator control.

@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include <list>
-
 #include <libusb.h>
+#include <list>
 
 #include "Common/Thread.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"

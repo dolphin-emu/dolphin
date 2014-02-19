@@ -9,8 +9,8 @@
 #include "Core/Movie.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/HW/WII_IPC.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 

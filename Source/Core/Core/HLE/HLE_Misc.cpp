@@ -18,8 +18,8 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCCache.h"
-#include "Core/PowerPC/SignatureDB.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/SignatureDB.h"
 
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/VolumeCreator.h"

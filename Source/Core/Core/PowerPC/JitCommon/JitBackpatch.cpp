@@ -9,8 +9,8 @@
 
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitBackpatch.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 #ifdef _WIN32
 	#include <windows.h>

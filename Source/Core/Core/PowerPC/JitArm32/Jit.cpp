@@ -4,20 +4,21 @@
 
 #include <map>
 
-#include "Common/Common.h"
 #include "Common/ArmEmitter.h"
+#include "Common/Common.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
-#include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PPCAnalyst.h"
-#include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/Profiler.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/JitArm32/Jit.h"
 #include "Core/PowerPC/JitArm32/JitArm_Tables.h"
 

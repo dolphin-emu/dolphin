@@ -6,8 +6,6 @@
 #include <cstdlib>
 #include <queue>
 
-#include "SFML/Network.hpp"
-
 #include "Common/Common.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
@@ -15,8 +13,10 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+
+#include "SFML/Network.hpp"
 
 unsigned int g_wiimote_sources[MAX_BBMOTES];
 

@@ -30,8 +30,8 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/SignatureDB.h"
 
-#include "DiscIO/VolumeCreator.h"
 #include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/VolumeCreator.h"
 
 void CBoot::Load_FST(bool _bIsWii)
 {

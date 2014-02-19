@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <ctime> // For profiling
 #include <map>
 #include <memory>
 
@@ -11,8 +12,8 @@
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
-#include "Core/PowerPC/Jit64IL/JitILAsm.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
+#include "Core/PowerPC/Jit64IL/JitILAsm.h"
 
 using namespace Gen;
 using namespace PowerPC;
@@ -129,10 +130,6 @@ ps_muls0
 ps_adds1
 
 */
-
-
-// For profiling
-#include <time.h>
 
 #ifdef _WIN32
 #include <windows.h>

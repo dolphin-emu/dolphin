@@ -25,11 +25,11 @@
 
 #include "Common/Atomic.h"
 #include "Common/CPUDetect.h"
-#include "Common/Thread.h"
 #include "Common/MemoryUtil.h"
+#include "Common/Thread.h"
 
-#include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPAccelerator.h"
+#include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPHWInterface.h"

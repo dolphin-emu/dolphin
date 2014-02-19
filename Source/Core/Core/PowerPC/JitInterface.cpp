@@ -9,8 +9,12 @@
 #include <windows.h>
 #endif
 
-#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/Profiler.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 #ifndef _M_GENERIC
 #include "Core/PowerPC/Jit64/Jit.h"
@@ -25,11 +29,6 @@
 #include "Core/PowerPC/JitArmIL/JitIL.h"
 #include "Core/PowerPC/JitArmIL/JitIL_Tables.h"
 #endif
-
-#include "Core/ConfigManager.h"
-#include "Core/HW/Memmap.h"
-#include "Core/PowerPC/Profiler.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
 
 bool bFakeVMEM = false;
 bool bMMU = false;

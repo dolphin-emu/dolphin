@@ -3,20 +3,20 @@
 // Refer to the license.txt file included.
 
 
-#include <stdio.h>
+#include <cstdio>
 #include <signal.h>
 #ifdef ANDROID
 #include <asm/sigcontext.h>
 #else
-#include <sys/ucontext.h>   // Look in here for the context definition.
 #include <execinfo.h>
+#include <sys/ucontext.h>   // Look in here for the context definition.
 #endif
 
 #include "Common/Common.h"
 #include "Core/MemTools.h"
 #include "Core/HW/Memmap.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 namespace EMM

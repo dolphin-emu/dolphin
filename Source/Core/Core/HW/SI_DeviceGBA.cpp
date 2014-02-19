@@ -4,12 +4,11 @@
 
 #include <queue>
 
-#include "SFML/Network.hpp"
-
 #include "Common/Thread.h"
-
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceGBA.h"
+
+#include "SFML/Network.hpp"
 
 static std::thread connectionThread;
 static std::queue<sf::SocketTCP> waiting_socks;

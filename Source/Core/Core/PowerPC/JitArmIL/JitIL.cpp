@@ -4,8 +4,8 @@
 
 #include <map>
 
-#include "Common/Common.h"
 #include "Common/ArmEmitter.h"
+#include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"

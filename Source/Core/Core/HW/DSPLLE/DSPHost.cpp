@@ -4,14 +4,15 @@
 
 #include "Common/Common.h"
 #include "Common/Hash.h"
-#include "Core/Host.h"
+
 #include "Core/ConfigManager.h"
+#include "Core/Host.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/DSPLLE/DSPSymbols.h"
 #include "Core/HW/DSPLLE/DSPLLETools.h"
+#include "Core/HW/DSPLLE/DSPSymbols.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/OnScreenDisplay.h"
 

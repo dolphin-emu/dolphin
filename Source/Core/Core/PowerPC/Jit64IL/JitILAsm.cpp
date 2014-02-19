@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64IL/JitIL.h"
-#include "Core/PowerPC/Jit64IL/JitILAsm.h"
-
 #include "Common/CPUDetect.h"
 #include "Common/MemoryUtil.h"
+
+#include "Core/PowerPC/Jit64IL/JitIL.h"
+#include "Core/PowerPC/Jit64IL/JitILAsm.h"
 
 using namespace Gen;
 

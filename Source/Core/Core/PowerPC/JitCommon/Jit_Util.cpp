@@ -5,8 +5,8 @@
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
 
-#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 using namespace Gen;
 

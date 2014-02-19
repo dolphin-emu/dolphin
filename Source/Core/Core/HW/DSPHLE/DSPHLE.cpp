@@ -14,8 +14,8 @@
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
-#include "Core/HW/DSPHLE/HLEMixer.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/HLEMixer.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 DSPHLE::DSPHLE()

@@ -10,8 +10,8 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/UCode_ROM.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 CUCode_Rom::CUCode_Rom(DSPHLE *dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)

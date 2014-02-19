@@ -4,8 +4,8 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 
-#include "InputCommon/UDPWrapper.h"
 #include "InputCommon/UDPWiimote.h"
+#include "InputCommon/UDPWrapper.h"
 
 namespace WiimoteEmu
 {

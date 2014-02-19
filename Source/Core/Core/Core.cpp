@@ -9,8 +9,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 
-#include "DiscIO/FileMonitor.h"
-
 #include "Common/Atomic.h"
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
@@ -48,13 +46,14 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
-
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
-
 #include "Core/PowerPC/PowerPC.h"
+
 #ifdef USE_GDBSTUB
 #include "Core/PowerPC/GDBStub.h"
 #endif
+
+#include "DiscIO/FileMonitor.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"

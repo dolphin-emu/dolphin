@@ -22,10 +22,10 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
-#include "Core/PowerPC/JitCommon/JitBackpatch.h"  // for EmuCodeBlock
+#include "Core/PowerPC/JitCommon/JitBackpatch.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"      // for EmuCodeBlock
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START Default(inst); return;

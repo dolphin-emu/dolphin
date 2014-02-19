@@ -7,22 +7,22 @@
 #include "Common/Common.h"
 #include "Common/Timer.h"
 
-#include "Core/Host.h"
 #include "Core/ConfigManager.h"
+#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 
+#include "Core/HW/WiimoteEmu/MatrixMath.h"
+#include "Core/HW/WiimoteEmu/UDPTLayer.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 #include "Core/HW/WiimoteEmu/Attachment/Drums.h"
 #include "Core/HW/WiimoteEmu/Attachment/Guitar.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
-
-#include "Core/HW/WiimoteEmu/MatrixMath.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "Core/HW/WiimoteEmu/UDPTLayer.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+
 
 inline double round(double x) { return (x-floor(x))>0.5 ? ceil(x) : floor(x); } //because damn MSVSC doesen't comply to C99
 

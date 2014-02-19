@@ -9,11 +9,10 @@
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/l2cap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/IPC_HLE/WiiMote_HID_Attr.h"
-
-#include "Core/IPC_HLE/l2cap.h" // Local
 
 static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = NULL;
 

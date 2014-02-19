@@ -10,9 +10,9 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/JitArmIL/JitIL.h"
 #include "Core/PowerPC/JitArmIL/JitILAsm.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
 JitArmILAsmRoutineManager armil_asm_routines;
 void JitArmILAsmRoutineManager::Generate()

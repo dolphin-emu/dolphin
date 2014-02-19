@@ -8,8 +8,8 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 

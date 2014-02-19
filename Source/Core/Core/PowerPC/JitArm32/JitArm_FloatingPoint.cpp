@@ -11,12 +11,10 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/JitArm32/JitArm_FPUtils.h"
-
 #include "Core/PowerPC/JitArm32/Jit.h"
+#include "Core/PowerPC/JitArm32/JitArm_FPUtils.h"
 #include "Core/PowerPC/JitArm32/JitAsm.h"
 #include "Core/PowerPC/JitArm32/JitFPRCache.h"
-#include "Core/PowerPC/JitArm32/JitArm_FPUtils.h"
 #include "Core/PowerPC/JitArm32/JitRegCache.h"
 
 void JitArm::Helper_UpdateCR1(ARMReg fpscr, ARMReg temp)

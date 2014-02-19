@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 
-#include "Core/Core.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceAD16.h"
 #include "Core/HW/EXI_DeviceAMBaseboard.h"

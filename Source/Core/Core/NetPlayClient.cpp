@@ -2,24 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
-
-// for wiimote
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
-// for gcpad
+#include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/SI_DeviceDanceMat.h"
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/SI_DeviceGCSteeringWheel.h"
-// for gctime
-#include "Core/HW/EXI_DeviceIPL.h"
-// for wiimote/ OSD messages
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/Movie.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+
 
 std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = NULL;

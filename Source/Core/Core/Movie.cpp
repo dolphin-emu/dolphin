@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "polarssl/md5.h"
+#include <polarssl/md5.h>
 
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"

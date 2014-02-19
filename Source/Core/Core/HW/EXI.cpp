@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
 #include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"

@@ -5,8 +5,8 @@
 #include "Common/Common.h"
 #include "Common/SDCardUtil.h"
 
-#include "Core/Core.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"

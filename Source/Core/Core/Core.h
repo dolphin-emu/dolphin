@@ -11,8 +11,8 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/CoreParameter.h"

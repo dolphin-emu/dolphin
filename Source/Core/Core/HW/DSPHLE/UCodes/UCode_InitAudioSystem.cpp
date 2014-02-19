@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "Core/ConfigManager.h"
-#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/UCode_InitAudioSystem.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 CUCode_InitAudioSystem::CUCode_InitAudioSystem(DSPHLE *dsp_hle, u32 crc)
 	: IUCode(dsp_hle, crc)

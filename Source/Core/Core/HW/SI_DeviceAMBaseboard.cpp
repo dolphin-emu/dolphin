@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Core/HW/GCPad.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceAMBaseboard.h"
 
-#include "Core/HW/GCPad.h"
 #include "InputCommon/GCPadStatus.h"
 
 // where to put baseboard debug

@@ -15,9 +15,9 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #if defined(_DEBUG) || defined(DEBUGFAST)
 #include "PowerPCDisasm.h"
 #endif

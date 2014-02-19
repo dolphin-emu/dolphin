@@ -5,10 +5,9 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
-
-#include "Core/PowerPC/JitInterface.h"
 
 
 bool Interpreter::g_bReserve;

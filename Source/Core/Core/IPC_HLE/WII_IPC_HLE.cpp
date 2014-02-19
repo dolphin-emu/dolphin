@@ -20,13 +20,13 @@ in case of success they are
 They will also generate a true or false return for UpdateInterrupts() in WII_IPC.cpp.
 */
 
-#include <map>
 #include <list>
+#include <map>
 #include <string>
 
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
-#include "Common/FileUtil.h" // For Copy
+#include "Common/FileUtil.h"
 #include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"

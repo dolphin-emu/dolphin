@@ -9,8 +9,8 @@
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
-#include "Core/Core.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
 #include "Core/State.h"

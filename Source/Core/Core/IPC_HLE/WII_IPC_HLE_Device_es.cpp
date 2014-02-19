@@ -33,8 +33,6 @@
 */
 // =============
 
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
-
 // need to include this before polarssl/aes.h,
 // otherwise we may not get __STDC_FORMAT_MACROS
 #include <cinttypes>
@@ -47,12 +45,13 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/ec_wii.h"
 #include "Core/Movie.h"
 #include "Core/VolumeHandler.h"
 #include "Core/Boot/Boot_DOL.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
-#include "Core/ec_wii.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32
 #include <Windows.h>

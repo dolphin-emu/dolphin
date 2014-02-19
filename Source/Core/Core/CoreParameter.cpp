@@ -10,15 +10,15 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "DiscIO/NANDContentLoader.h"
-#include "DiscIO/VolumeCreator.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h" // for bWii
 #include "Core/CoreParameter.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
+
+#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/VolumeCreator.h"
 
 SCoreStartupParameter::SCoreStartupParameter()
 : hInstance(0),

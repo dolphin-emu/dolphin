@@ -8,8 +8,8 @@
 #include "Core/HW/GCPadEmu.h"
 
 #include "InputCommon/GCPadStatus.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 
 namespace Pad

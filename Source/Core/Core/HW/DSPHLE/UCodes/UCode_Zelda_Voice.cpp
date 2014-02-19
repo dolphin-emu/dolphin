@@ -10,8 +10,8 @@
 
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 void CUCode_Zelda::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 {

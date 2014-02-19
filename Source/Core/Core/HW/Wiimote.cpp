@@ -10,8 +10,8 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace Wiimote
 {

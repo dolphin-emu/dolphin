@@ -6,9 +6,9 @@
 
 #include "Common/Common.h"
 
+#include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPIntExtOps.h"
-#include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPTables.h"
 
 void nop(const UDSPInstruction opc)
