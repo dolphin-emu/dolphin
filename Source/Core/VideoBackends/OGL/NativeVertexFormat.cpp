@@ -3,8 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common/MemoryUtil.h"
-#include "Common/x64ABI.h"
-#include "Common/x64Emitter.h"
 
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
