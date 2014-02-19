@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <map>
-#include <oleauto.h>
 #include <sstream>
 #include <wbemidl.h>
 

@@ -11,9 +11,10 @@
 #define SLEEP(x) usleep(x*1000)
 #endif
 
+#include <clocale>
 #include <cstddef>
 #include <type_traits>
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 // Will fail to compile on a non-array:
 // TODO: make this a function when constexpr is available
