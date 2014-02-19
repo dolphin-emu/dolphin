@@ -11,8 +11,8 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
-#include "Common/Timer.h"
 #include "Common/Thread.h"
+#include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

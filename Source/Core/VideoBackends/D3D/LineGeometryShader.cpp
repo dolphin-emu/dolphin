@@ -4,9 +4,9 @@
 
 #include <sstream>
 
-#include "VideoBackends/D3D/LineGeometryShader.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/LineGeometryShader.h"
 #include "VideoCommon/VertexShaderGen.h"
 
 namespace DX11

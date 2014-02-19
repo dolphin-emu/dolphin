@@ -10,9 +10,9 @@
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/HwRasterizer.h"
-#include "VideoBackends/Software/SWVideoConfig.h"
-#include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/TextureSampler.h"
 
 #include "VideoCommon/ImageWrite.h"

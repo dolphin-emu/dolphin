@@ -11,8 +11,8 @@
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/ImageWrite.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
 
 namespace OGL

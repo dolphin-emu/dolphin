@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Core/ConfigManager.h"
 #include "Common/LinearDiskCache.h"
+#include "Core/ConfigManager.h"
 #include "VideoBackends/OGL/GLUtil.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/VertexShaderGen.h"

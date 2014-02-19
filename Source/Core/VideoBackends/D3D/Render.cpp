@@ -8,8 +8,8 @@
 
 #include "Common/Timer.h"
 
-#include "Core/Core.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 

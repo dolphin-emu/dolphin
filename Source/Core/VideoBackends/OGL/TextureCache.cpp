@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <fstream>
 #include <cmath>
+#include <fstream>
 #include <vector>
 
 #ifdef _WIN32

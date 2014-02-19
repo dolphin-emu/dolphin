@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <dxgi.h>
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <dxgi.h>
 #include <vector>
 
 #include "Common/Common.h"

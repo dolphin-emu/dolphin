@@ -2,13 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
-
-#if defined(HAVE_WX) && HAVE_WX
-#include "VideoBackends/Software/VideoConfigDialog.h"
-#endif // HAVE_WX
-
 #include "Common/Atomic.h"
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/LogManager.h"
 
@@ -26,13 +21,17 @@
 #include "VideoBackends/Software/OpcodeDecoder.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/SWCommandProcessor.h"
-#include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/SWPixelEngine.h"
+#include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/SWStatistics.h"
 #include "VideoBackends/Software/SWVertexLoader.h"
 #include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/VideoBackend.h"
 #include "VideoBackends/Software/XFMemLoader.h"
+
+#if defined(HAVE_WX) && HAVE_WX
+#include "VideoBackends/Software/VideoConfigDialog.h"
+#endif // HAVE_WX
 
 #include "VideoCommon/OnScreenDisplay.h"
 

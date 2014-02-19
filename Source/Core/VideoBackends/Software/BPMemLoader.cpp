@@ -11,8 +11,8 @@
 #include "VideoBackends/Software/SWPixelEngine.h"
 #include "VideoBackends/Software/Tev.h"
 
-#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoCommon.h"
 
 
 void InitBPMemory()

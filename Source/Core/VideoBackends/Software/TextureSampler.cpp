@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cmath>
+
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/TextureSampler.h"
 #include "VideoCommon/TextureDecoder.h"
-
-#include <cmath>
 
 #define ALLOW_MIPMAP 1
 

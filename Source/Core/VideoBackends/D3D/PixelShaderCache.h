@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <map>
 #include <d3d11.h>
+#include <map>
 
 #include "VideoCommon/PixelShaderGen.h"
 
