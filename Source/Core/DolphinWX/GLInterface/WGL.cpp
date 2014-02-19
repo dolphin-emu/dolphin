@@ -5,7 +5,6 @@
 #include "Core/Host.h"
 
 #include "DolphinWX/GLInterface/GLInterface.h"
-#include "DolphinWX/GLInterface/WGL.h"
 
 #include "VideoCommon/EmuWindow.h"
 #include "VideoCommon/RenderBase.h"
