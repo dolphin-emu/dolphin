@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "AudioCommon/aldlist.h"
-#include "AudioCommon/OpenALStream.h"
 #include "AudioCommon/DPL2Decoder.h"
+#include "AudioCommon/OpenALStream.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
