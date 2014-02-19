@@ -5,13 +5,13 @@
 #pragma once
 
 #include <cstdio>
-#include <string.h>
+#include <cstring>
 
+// Don't include common.h here as it will break LogManager
+#include "Common/CommonTypes.h"
 #include "Common/StdConditionVariable.h"
 #include "Common/StdMutex.h"
 #include "Common/StdThread.h"
-// Don't include common.h here as it will break LogManager
-#include "Common/CommonTypes.h"
 
 // This may not be defined outside _WIN32
 #ifndef _WIN32

@@ -29,10 +29,10 @@
 // Modified for Dolphin.
 
 #include <cinttypes>
-#include <ctime>
 #include <cstdio>
 #include <cstdlib>
-#include <string.h>
+#include <cstring>
+#include <ctime>
 #include <errno.h>
 
 #include "Common/FileUtil.h"

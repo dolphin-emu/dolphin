@@ -9,8 +9,8 @@
 #endif
 #include "Common/FileUtil.h"
 #include "Common/LogManager.h"
-#include "Common/Timer.h"
 #include "Common/Thread.h"
+#include "Common/Timer.h"
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		const char *file, int line, const char* fmt, ...)

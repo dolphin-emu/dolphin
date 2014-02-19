@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
 
 #include "Common/CommonPaths.h"
 #include "Common/StringUtil.h"

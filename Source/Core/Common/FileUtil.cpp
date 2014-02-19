@@ -3,32 +3,32 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <fcntl.h>
 #include <sys/stat.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 
 #ifdef _WIN32
-#include <windows.h>
-#include <shlobj.h>    // for SHGetFolderPath
-#include <shellapi.h>
 #include <commdlg.h>   // for GetSaveFileName
-#include <io.h>
 #include <direct.h>    // getcwd
+#include <io.h>
+#include <shellapi.h>
+#include <shlobj.h>    // for SHGetFolderPath
+#include <windows.h>
 #else
-#include <sys/param.h>
-#include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
-#include <stdlib.h>
 #include <libgen.h>
+#include <stdlib.h>
+#include <sys/param.h>
+#include <sys/types.h>
 #endif
-#include <fcntl.h>
 
 #if defined(__APPLE__)
+#include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
-#include <CoreFoundation/CFBundle.h>
 #endif
 
 #ifndef S_ISDIR
