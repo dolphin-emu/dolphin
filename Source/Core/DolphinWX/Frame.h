@@ -15,10 +15,6 @@
 #include <wx/aui/aui.h>
 #include <wx/tooltip.h>
 
-#ifdef __APPLE__
-#include <Cocoa/Cocoa.h>
-#endif
-
 #include "Common/CDUtils.h"
 #include "Core/Movie.h"
 #include "DolphinWX/Globals.h"

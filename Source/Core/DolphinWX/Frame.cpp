@@ -10,6 +10,10 @@
 // m_Panel. The new child window handle that is returned by CreateWindow() can
 // be accessed from Core::GetWindowHandle().
 
+#ifdef __APPLE__
+#include <Cocoa/Cocoa.h>
+#endif
+
 #include <wx/datetime.h>
 
 #include "Common/Common.h"
@@ -42,7 +46,6 @@
 extern "C" {
 #include "DolphinWX/resources/Dolphin.c" // Dolphin icon
 };
-
 
 #ifdef _WIN32
 // I could not use FindItemByHWND() instead of this, it crashed on that occasion I used it */
