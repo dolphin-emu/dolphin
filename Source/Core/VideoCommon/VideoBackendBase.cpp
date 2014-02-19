@@ -2,14 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoCommon/VideoBackendBase.h"
-
 // TODO: ugly
 #ifdef _WIN32
 #include "VideoBackends/D3D/VideoBackend.h"
 #endif
 #include "VideoBackends/OGL/VideoBackend.h"
 #include "VideoBackends/Software/VideoBackend.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 std::vector<VideoBackend*> g_available_video_backends;
 VideoBackend* g_video_backend = NULL;

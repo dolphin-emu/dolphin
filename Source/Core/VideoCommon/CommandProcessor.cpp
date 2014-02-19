@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "Common/Thread.h"
-#include "Common/Atomic.h"
-#include "Common/ChunkFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"

@@ -8,8 +8,8 @@
 //#include "VideoCommon.h" // to get debug logs
 #include "Common/CPUDetect.h"
 
-#include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
 
 #ifdef _OPENMP

@@ -7,17 +7,16 @@
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
-#include "VideoCommon/XFMemory.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
 

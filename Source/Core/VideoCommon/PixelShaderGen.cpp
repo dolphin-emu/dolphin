@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cassert>
 #include <cmath>
 #include <cstdio>
-#include <assert.h>
 #include <locale.h>
 #ifdef __APPLE__
 	#include <xlocale.h>

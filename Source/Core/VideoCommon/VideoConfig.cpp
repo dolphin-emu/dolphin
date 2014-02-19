@@ -7,14 +7,12 @@
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
-
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;

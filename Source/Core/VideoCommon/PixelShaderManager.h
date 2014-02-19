@@ -5,9 +5,9 @@
 #pragma once
 
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/XFMemory.h"
 #include "VideoCommon/ConstantManager.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/XFMemory.h"
 
 class PointerWrap;
 

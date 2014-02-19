@@ -15,18 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
-//#include "VideoCommon.h" // to get debug logs
-
-#include "CPUDetect.h"
-#include "TextureDecoder.h"
-#include "VideoConfig.h"
-
-#include "LookUpTables.h"
-
 #include <cmath>
 
-
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
+#include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/TextureDecoder.h"
+//#include "VideoCommon/VideoCommon.h" // to get debug logs
+#include "VideoCommon/VideoConfig.h"
 
 bool TexFmt_Overlay_Enable=false;
 bool TexFmt_Overlay_Center=false;

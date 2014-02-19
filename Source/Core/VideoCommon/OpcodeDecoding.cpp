@@ -14,24 +14,22 @@
 
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
-
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
-
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/CPMemory.h"
-#include "VideoCommon/XFMemory.h"
-
 #include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
+
 
 u8* g_pVideoData = 0;
 bool g_bRecordFifoData = false;

@@ -7,8 +7,8 @@
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/NativeVertexFormat.h"
-#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 

@@ -10,9 +10,9 @@
 #endif
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 #define WRITE p+=sprintf
