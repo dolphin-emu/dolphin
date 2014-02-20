@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <fstream>
 #include <cstdio>
+#include <fstream>
 #include <string>
-#include <vector>
 #include <string.h>
+#include <vector>
 
-#include "Common.h"
-#include "StringUtil.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
 
 // User directory indices for GetUserPath
 enum {

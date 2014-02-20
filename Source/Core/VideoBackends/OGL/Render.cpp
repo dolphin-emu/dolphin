@@ -2,63 +2,64 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Globals.h"
-#include "Thread.h"
-#include "Atomic.h"
-
-#include <vector>
+#include <cinttypes>
 #include <cmath>
 #include <cstdio>
-#include <cinttypes>
+#include <vector>
 
-#include "GLUtil.h"
+#include "Common/Atomic.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Movie.h"
+
+#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/Globals.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/main.h"
+#include "VideoBackends/OGL/PostProcessing.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/RasterFont.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/SamplerCache.h"
+#include "VideoBackends/OGL/StreamBuffer.h"
+#include "VideoBackends/OGL/TextureCache.h"
+#include "VideoBackends/OGL/TextureConverter.h"
+#include "VideoBackends/OGL/VertexManager.h"
+
+#include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/FPSCounter.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
+
 #if defined(HAVE_WX) && HAVE_WX
-#include "WxUtils.h"
+#include "DolphinWX/WxUtils.h"
 #endif
-
-#include "FileUtil.h"
 
 #ifdef _WIN32
 #include <mmsystem.h>
 #endif
 
-#include "CommonPaths.h"
-#include "DriverDetails.h"
-#include "VideoConfig.h"
-#include "Statistics.h"
-#include "ImageWrite.h"
-#include "PixelEngine.h"
-#include "Render.h"
-#include "BPStructs.h"
-#include "TextureCache.h"
-#include "RasterFont.h"
-#include "VertexShaderGen.h"
-#include "ProgramShaderCache.h"
-#include "VertexShaderManager.h"
-#include "VertexLoaderManager.h"
-#include "VertexLoader.h"
-#include "PostProcessing.h"
-#include "TextureConverter.h"
-#include "OnScreenDisplay.h"
-#include "Timer.h"
-#include "StringUtil.h"
-#include "FramebufferManager.h"
-#include "Fifo.h"
-#include "Core.h"
-#include "Movie.h"
-#include "BPFunctions.h"
-#include "FPSCounter.h"
-#include "ConfigManager.h"
-#include "VertexManager.h"
-#include "SamplerCache.h"
-#include "StreamBuffer.h"
-
-#include "main.h" // Local
 #ifdef _WIN32
-#include "EmuWindow.h"
+#include "VideoCommon/EmuWindow.h"
 #endif
 #if defined _WIN32 || defined HAVE_LIBAV
-#include "AVIDump.h"
+#include "VideoCommon/AVIDump.h"
 #endif
 
 

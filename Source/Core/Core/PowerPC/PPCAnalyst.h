@@ -5,14 +5,13 @@
 #pragma once
 
 #include <algorithm>
-#include <vector>
-#include <map>
-
 #include <cstdlib>
+#include <map>
 #include <string>
+#include <vector>
 
-#include "Common.h"
-#include "PPCTables.h"
+#include "Common/Common.h"
+#include "Core/PowerPC/PPCTables.h"
 
 class PPCSymbolDB;
 struct Symbol;

@@ -2,10 +2,11 @@
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
+#include <cstdio>
 #include <string.h>
-#include <stdio.h>
-#include "../Common.h"
-#include "tools.h"
+
+#include "Common/Common.h"
+#include "Common/Crypto/tools.h"
 
 /*static void bn_print(char *name, u8 *a, u32 n)
 {

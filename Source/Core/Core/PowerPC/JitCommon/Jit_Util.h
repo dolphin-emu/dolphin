@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "x64Emitter.h"
 #include <unordered_map>
+
+#include "Common/x64Emitter.h"
 
 #define MEMCHECK_START \
 	FixupBranch memException; \

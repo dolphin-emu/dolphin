@@ -2,18 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoState.h"
-
-#include "BPMemory.h"
-#include "CPMemory.h"
-#include "XFMemory.h"
-#include "TextureDecoder.h"
-#include "Fifo.h"
-#include "CommandProcessor.h"
-#include "PixelEngine.h"
-#include "PixelShaderManager.h"
-#include "VertexShaderManager.h"
-#include "VertexManagerBase.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoState.h"
+#include "VideoCommon/XFMemory.h"
 
 static void DoState(PointerWrap &p)
 {

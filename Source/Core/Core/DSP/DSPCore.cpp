@@ -23,18 +23,18 @@
 
    ====================================================================*/
 
-#include "Common.h"
-#include "Hash.h"
-#include "Thread.h"
-#include "DSPCore.h"
-#include "DSPEmitter.h"
-#include "DSPHost.h"
-#include "DSPAnalyzer.h"
-#include "MemoryUtil.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/Hash.h"
+#include "Common/MemoryUtil.h"
+#include "Common/Thread.h"
 
-#include "DSPHWInterface.h"
-#include "DSPIntUtil.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPEmitter.h"
+#include "Core/DSP/DSPHost.h"
+#include "Core/DSP/DSPHWInterface.h"
+#include "Core/DSP/DSPIntUtil.h"
 
 SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;

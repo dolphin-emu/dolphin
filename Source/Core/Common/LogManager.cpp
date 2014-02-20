@@ -5,12 +5,12 @@
 #include <algorithm>
 
 #ifdef ANDROID
-#include "Host.h"
+#include "Core/Host.h"
 #endif
-#include "LogManager.h"
-#include "Timer.h"
-#include "Thread.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+#include "Common/LogManager.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		const char *file, int line, const char* fmt, ...)

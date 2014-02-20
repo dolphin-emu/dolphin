@@ -36,56 +36,58 @@ Make AA apply instantly during gameplay if possible
 
 */
 
-#include "Globals.h"
-#include "Atomic.h"
-#include "CommonPaths.h"
-#include "Thread.h"
-#include "LogManager.h"
-
-#include <cstdarg>
 #include <algorithm>
+#include <cstdarg>
+
+#include "Common/Atomic.h"
+#include "Common/CommonPaths.h"
+#include "Common/LogManager.h"
+#include "Common/Thread.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+
+#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/Globals.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/PerfQuery.h"
+#include "VideoBackends/OGL/PostProcessing.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/SamplerCache.h"
+#include "VideoBackends/OGL/TextureCache.h"
+#include "VideoBackends/OGL/TextureConverter.h"
+#include "VideoBackends/OGL/VertexManager.h"
+#include "VideoBackends/OGL/VideoBackend.h"
+
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/MainBase.h"
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VideoState.h"
+
 
 #ifdef _WIN32
-#include "EmuWindow.h"
-#include "IniFile.h"
+#include "Common/IniFile.h"
+#include "VideoCommon/EmuWindow.h"
 #endif
 
 #if defined(HAVE_WX) && HAVE_WX
-#include "VideoConfigDiag.h"
-#include "Debugger/DebuggerPanel.h"
+#include "DolphinWX/VideoConfigDiag.h"
+#include "DolphinWX/Debugger/DebuggerPanel.h"
 #endif // HAVE_WX
-
-#include "MainBase.h"
-#include "VideoConfig.h"
-#include "LookUpTables.h"
-#include "ImageWrite.h"
-#include "Render.h"
-#include "GLUtil.h"
-#include "Fifo.h"
-#include "OpcodeDecoding.h"
-#include "TextureCache.h"
-#include "BPStructs.h"
-#include "VertexLoader.h"
-#include "VertexLoaderManager.h"
-#include "VertexManager.h"
-#include "PixelShaderManager.h"
-#include "VertexShaderManager.h"
-#include "ProgramShaderCache.h"
-#include "CommandProcessor.h"
-#include "PixelEngine.h"
-#include "TextureConverter.h"
-#include "PostProcessing.h"
-#include "OnScreenDisplay.h"
-#include "FramebufferManager.h"
-#include "Core.h"
-#include "Host.h"
-#include "SamplerCache.h"
-#include "PerfQuery.h"
-
-#include "VideoState.h"
-#include "IndexGenerator.h"
-#include "VideoBackend.h"
-#include "ConfigManager.h"
 
 namespace OGL
 {

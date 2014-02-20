@@ -7,13 +7,13 @@
 #include <vector>
 
 #include <wx/dialog.h>
-#include <wx/textctrl.h>
-#include <wx/listctrl.h>
 #include <wx/listbox.h>
+#include <wx/listctrl.h>
+#include <wx/textctrl.h>
 
-#include "MemoryView.h"
-#include "Thread.h"
-#include "CoreParameter.h"
+#include "Common/Thread.h"
+#include "Core/CoreParameter.h"
+#include "DolphinWX/Debugger/MemoryView.h"
 
 class JitBlockList : public wxListCtrl
 {

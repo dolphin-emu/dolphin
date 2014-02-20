@@ -7,10 +7,10 @@
 #include <string>
 #include <vector>
 
-#include "Boot/Boot.h"
-#include "HW/EXI_Device.h"
-#include "HW/SI_Device.h"
-#include "SysConf.h"
+#include "Common/SysConf.h"
+#include "Core/Boot/Boot.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/SI_Device.h"
 
 // DSP Backend Types
 #define BACKEND_NULLSOUND   _trans("No audio output")

@@ -2,27 +2,26 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "CommonPaths.h"
-#include "FileUtil.h"
-#include "NandPaths.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
+#include "Common/SettingsHandler.h"
 
-#include "../PowerPC/PowerPC.h"
-#include "../Core.h"
-#include "../HW/EXI_DeviceIPL.h"
-#include "../HW/Memmap.h"
-#include "../HW/DVDInterface.h"
-#include "../HW/CPU.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/MemTools.h"
+#include "Core/PatchEngine.h"
+#include "Core/VolumeHandler.h"
+#include "Core/Boot/Boot.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
 
-#include "../VolumeHandler.h"
-#include "../PatchEngine.h"
-#include "../MemTools.h"
-
-#include "../ConfigManager.h"
-#include "VolumeCreator.h"
-#include "Boot.h"
-#include "HLE/HLE.h"
-#include "SettingsHandler.h"
+#include "DiscIO/VolumeCreator.h"
 
 void CBoot::RunFunction(u32 _iAddr)
 {

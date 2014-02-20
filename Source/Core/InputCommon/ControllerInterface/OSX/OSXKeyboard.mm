@@ -2,14 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <sstream>
+
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 #include <Cocoa/Cocoa.h>
 #include <wx/wx.h> // wxWidgets
 
-#include "OSXKeyboard.h"
-
-#include <sstream>
+#include "InputCommon/ControllerInterface/OSX/OSXKeyboard.h"
 
 namespace ciface
 {

@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../PowerPC/PowerPC.h"
-#include "Boot.h"
-#include "../HLE/HLE.h"
-#include "Boot_ELF.h"
-#include "ElfReader.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+
+#include "Core/Boot/Boot.h"
+#include "Core/Boot/Boot_ELF.h"
+#include "Core/Boot/ElfReader.h"
+#include "Core/HLE/HLE.h"
+#include "Core/PowerPC/PowerPC.h"
 
 bool CBoot::IsElfWii(const char *filename)
 {

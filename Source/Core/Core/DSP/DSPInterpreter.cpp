@@ -23,12 +23,11 @@
 
    ====================================================================*/
 
-#include "DSPTables.h"
-#include "DSPCore.h"
-#include "DSPAnalyzer.h"
-
-#include "DSPHWInterface.h"
-#include "DSPIntUtil.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPHWInterface.h"
+#include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/DSPTables.h"
 
 namespace DSPInterpreter {
 

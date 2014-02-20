@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FileUtil.h"
-#include "IniFile.h"
-#include "SWVideoConfig.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
 
 SWVideoConfig g_SWVideoConfig;
 

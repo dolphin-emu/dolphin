@@ -4,19 +4,19 @@
 
 // Thanks to Treeki for writing the original class - 29/01/2012
 
-#include "CommonPaths.h"
-#include "Timer.h"
-#include "SettingsHandler.h"
-
-#include <time.h>
+#include <ctime>
 
 #ifdef _WIN32
-#include <Windows.h>
 #include <mmsystem.h>
 #include <sys/timeb.h>
+#include <windows.h>
 #else
 #include <sys/time.h>
 #endif
+
+#include "Common/CommonPaths.h"
+#include "Common/SettingsHandler.h"
+#include "Common/Timer.h"
 
 SettingsHandler::SettingsHandler()
 {

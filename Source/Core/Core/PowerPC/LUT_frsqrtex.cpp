@@ -5,7 +5,7 @@
 
 // Gekko related unions, structs, ...
 
-#include "LUT_frsqrtex.h"
+#include "Core/PowerPC/LUT_frsqrtex.h"
 
 const unsigned int frsqrtex_lut[65536] = {
 	0x69FA0000, 0x69F8A600, 0x69F74C00,

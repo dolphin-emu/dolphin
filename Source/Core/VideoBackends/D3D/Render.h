@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderBase.h"
+#include "VideoCommon/RenderBase.h"
 
 namespace DX11
 {

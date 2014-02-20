@@ -6,13 +6,13 @@
 #include <unordered_map>
 #include <vector>
 
-#include "VideoCommon.h"
-#include "Statistics.h"
+#include "Core/HW/Memmap.h"
 
-#include "VertexShaderManager.h"
-#include "VertexLoader.h"
-#include "VertexLoaderManager.h"
-#include "HW/Memmap.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
 
 static int s_attr_dirty;  // bitfield
 

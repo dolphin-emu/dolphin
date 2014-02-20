@@ -2,21 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "SI.h"
-#include "SI_Device.h"
-#include "SI_DeviceGCController.h"
-
-#include "EXI_Device.h"
-#include "EXI_DeviceMic.h"
-
-#include "GCPad.h"
-
-#include "../Movie.h"
-
-#include "../CoreTiming.h"
-#include "SystemTimers.h"
-#include "ProcessorInterface.h"
-#include "../Core.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceMic.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI_DeviceGCController.h"
+#include "Core/HW/SystemTimers.h"
 
 // --- standard gamecube controller ---
 CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNumber)

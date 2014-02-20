@@ -4,8 +4,11 @@
 
 #pragma once
 
-#include "SoundStream.h"
-#include "Thread.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/Thread.h"
+#include "Core/Core.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/SystemTimers.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 #ifdef _WIN32
@@ -21,9 +24,6 @@
 #include <AL/alext.h>
 #endif
 
-#include "Core.h"
-#include "HW/SystemTimers.h"
-#include "HW/AudioInterface.h"
 #include <soundtouch/SoundTouch.h>
 #include <soundtouch/STTypes.h>
 

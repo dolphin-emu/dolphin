@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "VideoConfigDiag.h"
-#include "VideoConfigDialog.h"
 
-#include "FileUtil.h"
-#include "Core.h"
+#include "Common/FileUtil.h"
+#include "Core/Core.h"
+#include "DolphinWX/VideoConfigDiag.h"
+#include "VideoBackends/Software/VideoConfigDialog.h"
 
 template <typename T>
 IntegerSetting<T>::IntegerSetting(wxWindow* parent, const wxString& label, T& setting, int minVal, int maxVal, long style) :

@@ -6,13 +6,13 @@
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <string.h>
-#include <stdio.h>
-#include <time.h>
-#include <stdlib.h>
 
-#include "../Common.h"
-#include "tools.h"
+#include "Common/Common.h"
+#include "Common/Crypto/tools.h"
 // y**2 + x*y = x**3 + x + b
 /*
 static u8 ec_b[30] =

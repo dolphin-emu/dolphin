@@ -14,10 +14,11 @@
 
 #if defined(WIN32)
 
+#include <cstdio>
 #include <windows.h>
-#include <stdio.h>
-#include "ExtendedTrace.h"
-#include "StringUtil.h"
+
+#include "Common/ExtendedTrace.h"
+#include "Common/StringUtil.h"
 using namespace std;
 
 #include <tchar.h>

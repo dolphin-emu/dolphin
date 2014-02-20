@@ -7,11 +7,13 @@
 #pragma once
 
 #include <signal.h>
-#include "Common.h"
-#include "Thread.h"
-#include "PowerPC.h"
-#include "../HW/CPU.h"
-#include "../HW/Memmap.h"
+
+#include "Common/Common.h"
+#include "Common/Thread.h"
+
+#include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32
 #define SIGTRAP      5

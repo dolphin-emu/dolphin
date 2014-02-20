@@ -5,9 +5,9 @@
 #ifndef JITIL_TABLES_H
 #define JITIL_TABLES_H
 
-#include "../Gekko.h"
-#include "../PPCTables.h"
-#include "../Jit64IL/JitIL.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Jit64IL/JitIL.h"
 
 namespace JitILTables
 {

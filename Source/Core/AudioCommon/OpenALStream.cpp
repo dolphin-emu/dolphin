@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "aldlist.h"
-#include "OpenALStream.h"
-#include "DPL2Decoder.h"
+#include "AudioCommon/aldlist.h"
+#include "AudioCommon/DPL2Decoder.h"
+#include "AudioCommon/OpenALStream.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 

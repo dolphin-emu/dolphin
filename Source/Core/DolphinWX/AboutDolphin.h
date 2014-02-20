@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include <wx/wx.h>
-#include <wx/dialog.h>
 #include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/statbox.h>
+#include <wx/dialog.h>
 #include <wx/mstream.h>
 #include <wx/statbmp.h>
+#include <wx/statbox.h>
+#include <wx/stattext.h>
+#include <wx/wx.h>
 
 class AboutDolphin : public wxDialog
 {

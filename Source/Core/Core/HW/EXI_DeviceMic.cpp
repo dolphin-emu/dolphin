@@ -2,19 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
 #if HAVE_PORTAUDIO
 
-#include "../CoreTiming.h"
-#include "SystemTimers.h"
-
-#include "EXI_Device.h"
-#include "EXI_DeviceMic.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceMic.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/SystemTimers.h"
 
 #include <portaudio.h>
-
-#include "GCPad.h"
 
 void CEXIMic::StreamLog(const char *msg)
 {

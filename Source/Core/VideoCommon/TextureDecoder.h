@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Hash.h"
+#include "Common/Hash.h"
 
 enum
 {

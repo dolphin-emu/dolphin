@@ -2,8 +2,8 @@
 
 #include <map>
 
-#include "Render.h"
-#include "GLUtil.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/Render.h"
 
 namespace OGL
 {

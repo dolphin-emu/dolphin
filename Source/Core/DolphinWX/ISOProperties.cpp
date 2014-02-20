@@ -6,27 +6,25 @@
 #import <Cocoa/Cocoa.h>
 #endif
 
-#include <type_traits>
 #include <cinttypes>
+#include <type_traits>
 
-#include "Common.h"
-#include "CommonPaths.h"
-#include "Globals.h"
-
-#include "WxUtils.h"
-#include "VolumeCreator.h"
-#include "Filesystem.h"
-#include "ISOProperties.h"
-#include "PHackSettings.h"
-#include "PatchAddEdit.h"
-#include "ARCodeAddEdit.h"
-#include "GeckoCodeDiag.h"
-#include "ConfigManager.h"
-#include "StringUtil.h"
-
-#include "resources/isoprop_file.xpm"
-#include "resources/isoprop_folder.xpm"
-#include "resources/isoprop_disc.xpm"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeCreator.h"
+#include "DolphinWX/ARCodeAddEdit.h"
+#include "DolphinWX/GeckoCodeDiag.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/PatchAddEdit.h"
+#include "DolphinWX/PHackSettings.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/resources/isoprop_disc.xpm"
+#include "DolphinWX/resources/isoprop_file.xpm"
+#include "DolphinWX/resources/isoprop_folder.xpm"
 
 struct WiiPartition
 {

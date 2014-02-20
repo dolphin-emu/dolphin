@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Log.h"
+#include "Common/Log.h"
 
-#include "D3DBase.h"
-#include "GfxState.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/GfxState.h"
 
 namespace DX11
 {

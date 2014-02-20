@@ -2,11 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../ConfigManager.h"
-#include "../Core.h" // Local core functions
-#include "WII_IPC_HLE_Device_usb.h"
-#include "WII_IPC_HLE_Device_usb_kbd.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h" // Local core functions
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
 
 #ifdef _WIN32
 #include <windows.h>

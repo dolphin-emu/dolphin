@@ -12,28 +12,24 @@
 // while interpreting them, and hope that the vertex format doesn't change, though, if you do it right
 // when they are called. The reason is that the vertex format affects the sizes of the vertices.
 
-#include "Common.h"
-#include "VideoCommon.h"
-#include "OpcodeDecoding.h"
-#include "CommandProcessor.h"
-#include "CPUDetect.h"
-#include "Core.h"
-#include "Host.h"
-#include "HW/Memmap.h"
-#include "FifoPlayer/FifoRecorder.h"
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/HW/Memmap.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/DataReader.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/OpcodeDecoding.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
-#include "VertexLoaderManager.h"
-
-#include "Statistics.h"
-
-#include "XFMemory.h"
-#include "CPMemory.h"
-#include "BPMemory.h"
-
-#include "Fifo.h"
-#include "DataReader.h"
-
-#include "VideoConfig.h"
 
 u8* g_pVideoData = 0;
 bool g_bRecordFifoData = false;

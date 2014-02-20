@@ -14,14 +14,14 @@
 
 #pragma once
 
-#include "VideoCommon.h"
-#include "Thread.h"
-#include "MathUtil.h"
-#include "NativeVertexFormat.h"
-#include "FramebufferManagerBase.h"
-#include "BPMemory.h"
-
 #include <string>
+
+#include "Common/MathUtil.h"
+#include "Common/Thread.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/FramebufferManagerBase.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VideoCommon.h"
 
 // TODO: Move these out of here.
 extern int frameCount;

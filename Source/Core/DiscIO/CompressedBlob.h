@@ -16,8 +16,8 @@
 
 #include <string>
 
-#include "Blob.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+#include "DiscIO/Blob.h"
 
 namespace DiscIO
 {

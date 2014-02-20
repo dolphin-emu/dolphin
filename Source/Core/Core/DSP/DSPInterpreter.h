@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "DSPTables.h"
+#include "Core/DSP/DSPTables.h"
 
 #define DSP_REG_MASK    0x1f
 

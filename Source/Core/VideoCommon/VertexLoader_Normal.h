@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "Common.h"
-#include "CommonTypes.h"
+#include "Common/Common.h"
 
 class VertexLoader_Normal
 {

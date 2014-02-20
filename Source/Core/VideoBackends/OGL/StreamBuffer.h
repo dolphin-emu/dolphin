@@ -5,9 +5,9 @@
 #pragma once
 
 #include <utility>
-#include "VideoCommon.h"
-#include "FramebufferManager.h"
-#include "GLUtil.h"
+#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace OGL
 {

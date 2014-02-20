@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "Volume.h"
-#include "Blob.h"
 #include <polarssl/aes.h>
+
+#include "DiscIO/Blob.h"
+#include "DiscIO/Volume.h"
 
 // --- this volume type is used for encrypted Wii images ---
 

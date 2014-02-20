@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "Common.h"
 #include <vector>
+
+#include "Common/Common.h"
 
 namespace File
 {

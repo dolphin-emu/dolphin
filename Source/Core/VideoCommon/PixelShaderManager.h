@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "BPMemory.h"
-#include "XFMemory.h"
-#include "PixelShaderGen.h"
-#include "ConstantManager.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/ConstantManager.h"
+#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/XFMemory.h"
 
 class PointerWrap;
 

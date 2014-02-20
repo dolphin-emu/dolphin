@@ -2,13 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Globals.h"
-#include "GLUtil.h"
-#include "StreamBuffer.h"
-#include "MemoryUtil.h"
-#include "Render.h"
-#include "DriverDetails.h"
-#include "OnScreenDisplay.h"
+#include "Common/MemoryUtil.h"
+
+#include "VideoBackends/OGL/Globals.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/StreamBuffer.h"
+
+#include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 namespace OGL
 {

@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <algorithm>
+#include <cstdio>
+#include <cstdlib>
 
-#include "CommonPaths.h"
-#include "StringUtil.h"
+#include "Common/CommonPaths.h"
+#include "Common/StringUtil.h"
 
 #ifdef _WIN32
 	#include <Windows.h>

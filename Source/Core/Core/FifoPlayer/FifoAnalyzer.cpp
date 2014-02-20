@@ -2,14 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FifoAnalyzer.h"
+#include "Core/Core.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"
 
-#include "Core.h"
-
-#include "VertexLoader.h"
-#include "VertexLoader_Position.h"
-#include "VertexLoader_Normal.h"
-#include "VertexLoader_TextCoord.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexLoader_Normal.h"
+#include "VideoCommon/VertexLoader_Position.h"
+#include "VideoCommon/VertexLoader_TextCoord.h"
 
 namespace FifoAnalyzer
 {

@@ -1,10 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "JitIL.h"
-#include "../JitInterface.h"
-#include "JitIL_Tables.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/JitArmIL/JitIL.h"
+#include "Core/PowerPC/JitArmIL/JitIL_Tables.h"
 
 // Should be moved in to the Jit class
 typedef void (JitArmIL::*_Instruction) (UGeckoInstruction instCode);

@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "Log.h"
-#include "StringUtil.h"
-#include "Thread.h"
-#include "FileUtil.h"
-
 #include <set>
 #include <string.h>
+
+#include "Common/FileUtil.h"
+#include "Common/Log.h"
+#include "Common/StringUtil.h"
+#include "Common/Thread.h"
 
 #define MAX_MESSAGES 8000
 #define MAX_MSGLEN  1024

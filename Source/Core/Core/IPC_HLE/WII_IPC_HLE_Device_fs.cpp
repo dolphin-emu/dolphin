@@ -2,20 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "CommonPaths.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 
-#include "WII_IPC_HLE_Device_fs.h"
-#include "WII_IPC_HLE_Device_FileIO.h"
-
-#include "StringUtil.h"
-#include "FileSearch.h"
-#include "FileUtil.h"
-#include "NandPaths.h"
-#include "ChunkFile.h"
-#include "../HW/SystemTimers.h"
-
-#include "../VolumeHandler.h"
+#include "Core/VolumeHandler.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
 #define MAX_NAME  12
 

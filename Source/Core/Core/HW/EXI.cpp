@@ -2,18 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "ChunkFile.h"
-#include "../ConfigManager.h"
-#include "../CoreTiming.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "ProcessorInterface.h"
-#include "../PowerPC/PowerPC.h"
-#include "MMIO.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/Sram.h"
+#include "Core/PowerPC/PowerPC.h"
 
-#include "EXI.h"
-#include "Sram.h"
-#include "../Movie.h"
 SRAM g_SRAM;
 
 namespace ExpansionInterface

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../Device.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {

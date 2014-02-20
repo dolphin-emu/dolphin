@@ -2,18 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-
-#include "Tev.h"
-#include "EfbInterface.h"
-#include "TextureSampler.h"
-#include "XFMemLoader.h"
-#include "SWPixelEngine.h"
-#include "SWStatistics.h"
-#include "SWVideoConfig.h"
-#include "DebugUtil.h"
-
 #include <cmath>
+
+#include "Common/Common.h"
+
+#include "VideoBackends/Software/DebugUtil.h"
+#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/SWPixelEngine.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoBackends/Software/Tev.h"
+#include "VideoBackends/Software/TextureSampler.h"
+#include "VideoBackends/Software/XFMemLoader.h"
 
 #ifdef _DEBUG
 #define ALLOW_TEV_DUMPS 1

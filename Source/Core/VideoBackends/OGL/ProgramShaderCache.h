@@ -4,13 +4,11 @@
 
 #pragma once
 
-#include "GLUtil.h"
-
-#include "PixelShaderGen.h"
-#include "VertexShaderGen.h"
-
-#include "LinearDiskCache.h"
-#include "ConfigManager.h"
+#include "Common/LinearDiskCache.h"
+#include "Core/ConfigManager.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/VertexShaderGen.h"
 
 namespace OGL
 {

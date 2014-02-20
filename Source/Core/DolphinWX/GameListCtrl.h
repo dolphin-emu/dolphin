@@ -10,8 +10,8 @@
 #include <wx/listctrl.h>
 #include <wx/tipwin.h>
 
-#include "ISOFile.h"
-#include "MemoryCards/WiiSaveCrypted.h"
+#include "DolphinWX/ISOFile.h"
+#include "DolphinWX/MemoryCards/WiiSaveCrypted.h"
 
 class wxEmuStateTip : public wxTipWindow
 {

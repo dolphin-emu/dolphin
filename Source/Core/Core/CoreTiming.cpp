@@ -2,16 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <vector>
 #include <cinttypes>
+#include <vector>
 
-#include "Thread.h"
-#include "PowerPC/PowerPC.h"
-#include "CoreTiming.h"
-#include "Core.h"
-#include "StringUtil.h"
-#include "VideoBackendBase.h"
-#include "FifoQueue.h"
+#include "Common/FifoQueue.h"
+#include "Common/StringUtil.h"
+#include "Common/Thread.h"
+
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 #define MAX_SLICE_LENGTH 20000
 

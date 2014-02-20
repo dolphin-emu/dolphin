@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include "PerfQueryBase.h"
+#include "VideoCommon/PerfQueryBase.h"
 
 namespace OGL {
 

@@ -5,7 +5,8 @@
 #pragma once
 
 #include <d3d11.h>
-#include <MathUtil.h>
+
+#include "Common/MathUtil.h"
 
 namespace DX11
 {

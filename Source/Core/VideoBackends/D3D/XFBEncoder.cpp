@@ -2,14 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "XFBEncoder.h"
-
-#include "D3DBase.h"
-#include "D3DBlob.h"
-#include "D3DShader.h"
-#include "Render.h"
-#include "GfxState.h"
-#include "FramebufferManager.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DBlob.h"
+#include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/GfxState.h"
+#include "VideoBackends/D3D/Render.h"
+#include "VideoBackends/D3D/XFBEncoder.h"
 
 namespace DX11
 {

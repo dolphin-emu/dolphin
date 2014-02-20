@@ -13,8 +13,8 @@
 #pragma once
 
 #include <memory>
-#include "Thread.h"
-#include "SoundStream.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/Thread.h"
 
 #ifdef _WIN32
 

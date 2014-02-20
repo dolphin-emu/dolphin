@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../WxUtils.h"
-#include "MemoryCheckDlg.h"
-#include "Common.h"
-#include "StringUtil.h"
-#include "PowerPC/PowerPC.h"
-#include "BreakpointWindow.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/BreakpointWindow.h"
+#include "DolphinWX/Debugger/MemoryCheckDlg.h"
 
 #define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, wxT(text), wxDefaultPosition, wxDefaultSize)
 

@@ -4,15 +4,15 @@
 
 #include <cmath>
 
-#include "Common.h"
-#include "IniFile.h"
-#include "VideoConfig.h"
-#include "VideoCommon.h"
-#include "FileUtil.h"
-#include "Core.h"
-#include "Movie.h"
-#include "OnScreenDisplay.h"
-#include "ConfigManager.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Movie.h"
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;

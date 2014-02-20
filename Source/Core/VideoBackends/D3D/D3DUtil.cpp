@@ -4,12 +4,12 @@
 
 #include <list>
 
-#include "D3DBase.h"
-#include "D3DUtil.h"
-#include "PixelShaderCache.h"
-#include "VertexShaderCache.h"
-#include "D3DShader.h"
-#include "GfxState.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/D3DUtil.h"
+#include "VideoBackends/D3D/GfxState.h"
+#include "VideoBackends/D3D/PixelShaderCache.h"
+#include "VideoBackends/D3D/VertexShaderCache.h"
 
 namespace DX11
 {

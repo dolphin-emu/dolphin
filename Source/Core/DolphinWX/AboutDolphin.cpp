@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "AboutDolphin.h"
-#include "WxUtils.h"
-#include "resources/dolphin_logo.cpp"
+#include "Common/Common.h"
+#include "DolphinWX/AboutDolphin.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/resources/dolphin_logo.cpp"
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,

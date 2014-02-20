@@ -2,14 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonPaths.h"
-#include "FileUtil.h"
-#include "VideoCommon.h"
-#include "VideoConfig.h"
-#include "GLUtil.h"
-#include "PostProcessing.h"
-#include "ProgramShaderCache.h"
-#include "FramebufferManager.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+
+#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/PostProcessing.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {

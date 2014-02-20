@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include "CommonTypes.h"
-
 #include <map>
 #include <string>
 #include <vector>
-#include "../Debugger/PPCDebugInterface.h"
 
-#include "SymbolDB.h"
+#include "Common/CommonTypes.h"
+#include "Common/SymbolDB.h"
+
+#include "Core/Debugger/PPCDebugInterface.h"
 
 // This has functionality overlapping Debugger_Symbolmap. Should merge that stuff in here later.
 class PPCSymbolDB : public SymbolDB

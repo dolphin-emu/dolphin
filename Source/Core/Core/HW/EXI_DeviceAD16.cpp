@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../Core.h"
+#include "Core/Core.h"
 
-#include "EXI_Device.h"
-#include "EXI_DeviceAD16.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceAD16.h"
 
 CEXIAD16::CEXIAD16() :
 	m_uPosition(0),

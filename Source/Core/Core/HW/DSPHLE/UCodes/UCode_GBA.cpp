@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "UCodes.h"
-#include "UCode_GBA.h"
-
-#include "../../DSP.h"
-#include "ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_GBA.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 CUCode_GBA::CUCode_GBA(DSPHLE *dsp_hle, u32 crc)
 : IUCode(dsp_hle, crc)

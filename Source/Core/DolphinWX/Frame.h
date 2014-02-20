@@ -4,28 +4,26 @@
 
 #pragma once
 
-#include <wx/wx.h> // wxWidgets
-#include <wx/busyinfo.h>
-#include <wx/mstream.h>
-#include <wx/listctrl.h>
-#include <wx/artprov.h>
-#include <wx/aui/aui.h>
-#include <wx/tooltip.h>
 #include <string>
 #include <vector>
+#include <wx/artprov.h>
+#include <wx/busyinfo.h>
+#include <wx/listctrl.h>
+#include <wx/mstream.h>
+#include <wx/tooltip.h>
+#include <wx/wx.h>
+#include <wx/aui/aui.h>
 
-#ifdef __APPLE__
-#include <Cocoa/Cocoa.h>
-#endif
+#include "Common/CDUtils.h"
+#include "Core/Movie.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/LogConfigWindow.h"
+#include "DolphinWX/LogWindow.h"
+#include "DolphinWX/TASInputDlg.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
 
-#include "CDUtils.h"
-#include "Debugger/CodeWindow.h"
-#include "LogWindow.h"
-#include "LogConfigWindow.h"
-#include "TASInputDlg.h"
-#include "Movie.h"
 #if defined(HAVE_X11) && HAVE_X11
-#include "X11Utils.h"
+#include "DolphinWX/X11Utils.h"
 #endif
 
 // A shortcut to access the bitmaps

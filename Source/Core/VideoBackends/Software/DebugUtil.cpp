@@ -2,19 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
-#include "DebugUtil.h"
-#include "BPMemLoader.h"
-#include "TextureSampler.h"
-#include "SWVideoConfig.h"
-#include "EfbInterface.h"
-#include "SWStatistics.h"
-#include "HwRasterizer.h"
-#include "StringUtil.h"
-#include "SWCommandProcessor.h"
-#include "ImageWrite.h"
-#include "FileUtil.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/DebugUtil.h"
+#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/HwRasterizer.h"
+#include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoBackends/Software/TextureSampler.h"
+
+#include "VideoCommon/ImageWrite.h"
+
 
 namespace DebugUtil
 {

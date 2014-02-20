@@ -2,19 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FileUtil.h"
-#include "LinearDiskCache.h"
+#include "Common/FileUtil.h"
+#include "Common/LinearDiskCache.h"
 
-#include "Debugger.h"
-#include "Statistics.h"
-#include "VertexShaderGen.h"
+#include "Core/ConfigManager.h"
 
-#include "D3DShader.h"
-#include "Globals.h"
-#include "VertexShaderCache.h"
-#include "VertexShaderManager.h"
+#include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/Globals.h"
+#include "VideoBackends/D3D/VertexShaderCache.h"
 
-#include "ConfigManager.h"
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VertexShaderManager.h"
 
 namespace DX11 {
 

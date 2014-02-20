@@ -2,13 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
+#include "Core/HW/Memmap.h"
 
-#include "EfbInterface.h"
-#include "BPMemLoader.h"
-#include "LookUpTables.h"
-#include "SWPixelEngine.h"
-#include "HW/Memmap.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/SWPixelEngine.h"
+
+#include "VideoCommon/LookUpTables.h"
 
 
 u8 efb[EFB_WIDTH*EFB_HEIGHT*6];

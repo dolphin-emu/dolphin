@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include <wx/wx.h>
 #include <wx/notebook.h>
-#include "Debugger.h"
+#include <wx/wx.h>
+
+#include "VideoCommon/Debugger.h"
 
 class GFXDebuggerPanel : public wxPanel, public GFXDebuggerBase
 {

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BPMemory.h"
+#include "VideoCommon/BPMemory.h"
 
 void BPInit();
 void LoadBPReg(u32 value0);

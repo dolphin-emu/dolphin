@@ -2,40 +2,40 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
 #include <getopt.h>
 
-#include "Common.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
+#include "Common/FileUtil.h"
+#include "Common/LogManager.h"
+#include "Common/Thread.h"
+
+#include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 #if HAVE_X11
 #include <X11/keysym.h>
-#include "State.h"
-#include "X11Utils.h"
+#include "Core/State.h"
+#include "DolphinWX/X11Utils.h"
 #endif
 
 #if HAVE_WAYLAND
 #include <wayland-client.h>
-#include "GLInterface/GLInterface.h"
+#include "DolphinWX/GLInterface/GLInterface.h"
 #endif
 
 #ifdef __APPLE__
 #import <Cocoa/Cocoa.h>
 #endif
-
-#include "Core.h"
-#include "Host.h"
-#include "CPUDetect.h"
-#include "Thread.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/Wiimote.h"
-
-#include "VideoBackendBase.h"
-#include "ConfigManager.h"
-#include "LogManager.h"
-#include "BootManager.h"
 
 bool rendererHasFocus = true;
 bool running = true;

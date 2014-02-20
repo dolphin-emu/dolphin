@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../JitCommon/JitCache.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
 
 typedef void (*CompiledCode)();

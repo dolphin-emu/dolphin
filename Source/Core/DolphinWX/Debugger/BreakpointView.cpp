@@ -4,13 +4,13 @@
 
 #include <wx/wx.h>
 
-#include "BreakpointView.h"
-#include "DebuggerUIUtil.h"
-#include "Debugger/Debugger_SymbolMap.h"
-#include "PowerPC/PPCSymbolDB.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/Memmap.h"
-#include "../WxUtils.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/BreakpointView.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
 
 CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id)
 	: wxListCtrl(parent, id, wxDefaultPosition, wxDefaultSize,

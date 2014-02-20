@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "TextureEncoder.h"
-#include "EfbInterface.h"
-#include "BPMemLoader.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/TextureEncoder.h"
 
-#include "LookUpTables.h"
-#include "TextureDecoder.h"
+#include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/TextureDecoder.h"
 
 
 namespace TextureEncoder

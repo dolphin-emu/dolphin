@@ -7,9 +7,9 @@
 #include <cstdlib>
 #include <string>
 
-#include "../CoreParameter.h"
+#include "Core/CoreParameter.h"
 
-#include "Volume.h"
+#include "DiscIO/Volume.h"
 using DiscIO::IVolume;
 
 typedef struct CountrySetting 

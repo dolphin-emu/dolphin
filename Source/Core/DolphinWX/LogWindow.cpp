@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "LogWindow.h"
-#include "IniFile.h"
-#include "FileUtil.h"
-#include "Debugger/DebuggerUIUtil.h"
-#include "WxUtils.h"
-
 #include <wx/fontmap.h>
+
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "DolphinWX/LogWindow.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
 
 // Milliseconds between msgQueue flushes to wxTextCtrl
 #define UPDATETIME 200

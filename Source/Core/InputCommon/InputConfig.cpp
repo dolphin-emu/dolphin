@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "InputConfig.h"
-#include "CommonPaths.h"
-#include "../Core/ConfigManager.h"
-#include "../Core/HW/Wiimote.h"
+#include "Common/CommonPaths.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/Wiimote.h"
+#include "InputCommon/InputConfig.h"
 
 InputPlugin::~InputPlugin()
 {

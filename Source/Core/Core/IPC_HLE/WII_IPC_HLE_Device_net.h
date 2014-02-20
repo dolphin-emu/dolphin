@@ -4,13 +4,14 @@
 
 #pragma once
 
-#include "WII_IPC_HLE_Device.h"
+#include "Common/FileUtil.h"
+#include "Common/Timer.h"
+
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 #ifdef _WIN32
 #include <ws2tcpip.h>
 #endif
-#include "Timer.h"
-#include "FileUtil.h"
 
 // data layout of the network configuration file (/shared2/sys/net/02/config.dat)
 // needed for /dev/net/ncd/manage

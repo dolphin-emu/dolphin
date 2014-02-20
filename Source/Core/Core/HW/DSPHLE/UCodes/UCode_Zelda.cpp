@@ -6,15 +6,14 @@
 // Zelda: The Windwaker, Mario Sunshine, Mario Kart, Twilight Princess,
 // Super Mario Galaxy
 
-#include "UCodes.h"
-#include "UCode_Zelda.h"
-#include "../MailHandler.h"
+#include "AudioCommon/Mixer.h"
+#include "AudioCommon/WaveFile.h"
 
-#include "Mixer.h"
-
-#include "WaveFile.h"
-#include "../../DSP.h"
-#include "ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 
 CUCode_Zelda::CUCode_Zelda(DSPHLE *dsp_hle, u32 _CRC)

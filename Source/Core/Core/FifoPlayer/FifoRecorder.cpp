@@ -2,11 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "ConfigManager.h"
-#include "Core.h"
-#include "FifoRecorder.h"
-#include "Thread.h"
-#include "HW/Memmap.h"
+#include "Common/Thread.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/HW/Memmap.h"
 
 static FifoRecorder instance;
 static std::recursive_mutex sMutex;

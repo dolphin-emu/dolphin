@@ -5,8 +5,8 @@
 #include <functional>
 #include <string.h>
 
-#include "AOSoundStream.h"
-#include "Mixer.h"
+#include "AudioCommon/AOSoundStream.h"
+#include "AudioCommon/Mixer.h"
 
 #if defined(HAVE_AO) && HAVE_AO
 

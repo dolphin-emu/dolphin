@@ -2,8 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Sram.h"
-#include "../ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/Sram.h"
+
 // english
 SRAM sram_dump = {{
 	0x04, 0x6B,

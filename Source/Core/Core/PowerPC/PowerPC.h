@@ -4,12 +4,13 @@
 
 #pragma once
 
-#include "Common.h"
-#include "CPUCoreBase.h"
-#include "Gekko.h"
-#include "BreakPoints.h"
-#include "../Debugger/PPCDebugInterface.h"
-#include "PPCCache.h"
+#include "Common/BreakPoints.h"
+#include "Common/Common.h"
+
+#include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCCache.h"
 
 class PointerWrap;
 

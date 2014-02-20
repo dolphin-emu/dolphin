@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "ControllerEmu.h"
-#include "../WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/ControllerEmu.h"
 
 namespace WiimoteEmu
 {

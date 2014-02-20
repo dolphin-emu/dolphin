@@ -5,8 +5,8 @@
 #include <string.h>
 #include <utility>
 
-#include "Statistics.h"
-#include "VertexLoaderManager.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoaderManager.h"
 
 Statistics stats;
 

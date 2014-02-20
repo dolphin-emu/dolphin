@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DSPHLE.h"
-#include "HLEMixer.h"
-#include "UCodes/UCodes.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/HLEMixer.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 void HLEMixer::Premix(short *samples, unsigned int numSamples)
 {

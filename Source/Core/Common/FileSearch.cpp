@@ -2,20 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
 
-#include "Common.h"
-#include "CommonPaths.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
+#include "Common/StringUtil.h"
+
 #ifndef _WIN32
 #include <sys/types.h>
 #include <dirent.h>
 #else
 #include <windows.h>
 #endif
-
-#include <algorithm>
-
-#include "FileSearch.h"
-#include "StringUtil.h"
 
 
 CFileSearch::CFileSearch(const CFileSearch::XStringVector& _rSearchStrings, const CFileSearch::XStringVector& _rDirectories)

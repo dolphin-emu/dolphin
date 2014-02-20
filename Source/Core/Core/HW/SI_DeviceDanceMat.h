@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include "SI_Device.h"
-#include "GCPadStatus.h"
-
+#include "Core/HW/SI_Device.h"
+#include "InputCommon/GCPadStatus.h"
 
 // standard gamecube controller
 class CSIDevice_DanceMat : public ISIDevice

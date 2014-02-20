@@ -2,15 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DInputJoystick.h"
-#include "DInput.h"
-
+#include <algorithm>
 #include <map>
 #include <sstream>
-#include <algorithm>
-
 #include <wbemidl.h>
-#include <oleauto.h>
+
+#include "InputCommon/ControllerInterface/DInput/DInput.h"
+#include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 
 namespace ciface
 {

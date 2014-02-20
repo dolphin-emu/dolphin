@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "MemcardManager.h"
-#include "Common.h"
+#include <wx/mstream.h>
 
-#include "WxUtils.h"
-#include "wx/mstream.h"
+#include "Common/Common.h"
+#include "DolphinWX/MemcardManager.h"
+#include "DolphinWX/WxUtils.h"
 
 #define ARROWS slot ? _T("") : ARROW[slot], slot ? ARROW[slot] : _T("")
 

@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "FifoAnalyzer.h"
+#include "Common/Common.h"
 
-#include "Common.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"
 
-#include "BPMemory.h"
+#include "VideoCommon/BPMemory.h"
 
 class FifoRecordAnalyzer
 {

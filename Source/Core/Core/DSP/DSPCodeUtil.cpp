@@ -5,13 +5,13 @@
 #include <iostream>
 #include <vector>
 
-#include "Common.h"
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "DSPCodeUtil.h"
-#include "assemble.h"
-#include "disassemble.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
+#include "Core/DSP/assemble.h"
+#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPCodeUtil.h"
 
 bool Assemble(const char *text, std::vector<u16> &code, bool force)
 {

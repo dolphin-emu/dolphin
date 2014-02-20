@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "ARCodeAddEdit.h"
-#include "ARDecrypt.h"
-#include "WxUtils.h"
+#include "Core/ARDecrypt.h"
+#include "DolphinWX/ARCodeAddEdit.h"
+#include "DolphinWX/WxUtils.h"
 
 extern std::vector<ActionReplay::ARCode> arCodes;
 

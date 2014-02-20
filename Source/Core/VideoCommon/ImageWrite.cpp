@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "png.h"
-#include "ImageWrite.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+#include "VideoCommon/ImageWrite.h"
 
 bool SaveData(const char* filename, const char* data)
 {

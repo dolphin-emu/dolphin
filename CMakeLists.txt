@@ -472,16 +472,7 @@ endif()
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
 #
-include_directories(Source/Core/AudioCommon)
-include_directories(Source/Core/Common)
-include_directories(Source/Core/Core)
-include_directories(Source/Core/DebuggerUICommon)
-include_directories(Source/Core/DebuggerWX)
-include_directories(Source/Core/DiscIO)
-include_directories(Source/Core/DolphinWX)
-include_directories(Source/Core/InputCommon)
-include_directories(Source/Core/VideoCommon)
-include_directories(Source/Core/VideoUICommon)
+include_directories(Source/Core)
 
 ########################################
 # Process externals and setup their include directories

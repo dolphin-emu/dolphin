@@ -6,16 +6,17 @@
 #include <string>
 #include <vector>
 
-#include "Common.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
-#include "../HW/Memmap.h"
-#include "../PowerPC/PowerPC.h"
-#include "../Host.h"
-#include "StringUtil.h"
-#include "PPCSymbolDB.h"
-#include "SignatureDB.h"
-#include "PPCAnalyst.h"
+#include "Core/Host.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/SignatureDB.h"
+
 
 PPCSymbolDB g_symbolDB;
 

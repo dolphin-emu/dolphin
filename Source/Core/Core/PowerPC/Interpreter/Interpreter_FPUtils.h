@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "CPUDetect.h"
-#include "Interpreter.h"
-#include "MathUtil.h"
+#include "Common/CPUDetect.h"
+#include "Common/MathUtil.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 
 using namespace MathUtil;
 

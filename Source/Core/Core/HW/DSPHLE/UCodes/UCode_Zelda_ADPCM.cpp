@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "MathUtil.h"
-#include "UCode_Zelda.h"
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
 
 void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed short *out, short *histp, short *hist2p, int type)
 {

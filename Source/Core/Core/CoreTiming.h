@@ -17,11 +17,10 @@
 // inside callback:
 //   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
 
-#include "Common.h"
-
 #include <string>
 
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
 namespace CoreTiming
 {

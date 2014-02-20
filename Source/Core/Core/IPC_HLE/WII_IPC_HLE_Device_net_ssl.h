@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "WII_IPC_HLE_Device.h"
-
+#include <polarssl/havege.h>
 #include <polarssl/net.h>
 #include <polarssl/ssl.h>
-#include <polarssl/havege.h>
+
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 #define NET_SSL_MAX_HOSTNAME_LEN 256
 #define NET_SSL_MAXINSTANCES 4

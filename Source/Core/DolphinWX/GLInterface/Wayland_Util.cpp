@@ -2,11 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Core.h"
-#include "State.h"
-#include "GLInterface.h"
 #include <linux/input.h>
 #include <sys/mman.h>
+
+#include "Core/Core.h"
+#include "Core/State.h"
+#include "DolphinWX/GLInterface/GLInterface.h"
 
 static void
 hide_cursor(void)

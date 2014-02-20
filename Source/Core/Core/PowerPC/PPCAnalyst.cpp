@@ -2,19 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <string>
 #include <queue>
+#include <string>
 
-#include "StringUtil.h"
-#include "Interpreter/Interpreter.h"
-#include "../HW/Memmap.h"
-#include "JitInterface.h"
-#include "PPCTables.h"
-#include "PPCSymbolDB.h"
-#include "SignatureDB.h"
-#include "PPCAnalyst.h"
-#include "../ConfigManager.h"
-#include "../GeckoCode.h"
+#include "Common/StringUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/GeckoCode.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 
 // Analyzes PowerPC code in memory to find functions
 // After running, for each function we will know what functions it calls

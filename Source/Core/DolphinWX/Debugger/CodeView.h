@@ -7,11 +7,11 @@
 #define wxUSE_XPM_IN_MSW 1
 #define USE_XPM_BITMAPS 1
 
+#include <vector>
+
 #include <wx/wx.h>
 
-#include "Common.h"
-
-#include <vector>
+#include "Common/Common.h"
 
 DECLARE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE, -1);
 

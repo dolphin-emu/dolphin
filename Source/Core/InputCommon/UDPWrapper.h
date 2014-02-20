@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "UDPWiimote.h"
-
-#include "Common.h"
-#include "ControllerEmu.h"
-#include "IniFile.h"
 #include <string>
+
+#include "Common/Common.h"
+#include "Common/IniFile.h"
+#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/UDPWiimote.h"
 
 class UDPWrapper : public ControllerEmu::ControlGroup
 {

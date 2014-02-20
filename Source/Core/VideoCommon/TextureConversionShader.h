@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "Common.h"
-#include "TextureDecoder.h"
-#include "VideoCommon.h"
+#include "Common/Common.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace TextureConversionShader
 {

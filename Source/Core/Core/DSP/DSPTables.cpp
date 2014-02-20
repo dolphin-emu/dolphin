@@ -4,12 +4,12 @@
 
 // Additional copyrights go to Duddie (c) 2005 (duddie@walla.com)
 
-#include "Common.h"
-#include "DSPTables.h"
+#include "Common/Common.h"
 
-#include "DSPInterpreter.h"
-#include "DSPIntExtOps.h"
-#include "DSPEmitter.h"
+#include "Core/DSP/DSPEmitter.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPIntExtOps.h"
+#include "Core/DSP/DSPTables.h"
 
 void nop(const UDSPInstruction opc)
 {

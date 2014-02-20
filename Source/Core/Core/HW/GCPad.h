@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonTypes.h"
-#include "GCPadStatus.h"
-#include "../InputCommon/InputConfig.h"
+#include "Common/CommonTypes.h"
+#include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
 
 #pragma once
 

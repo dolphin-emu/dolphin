@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "x64Emitter.h"
+#include "Common/x64Emitter.h"
 
 using namespace Gen;
 enum FlushMode

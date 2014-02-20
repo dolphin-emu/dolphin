@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "D3DBase.h"
-#include "D3DBlob.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DBlob.h"
 
 struct ID3D11PixelShader;
 struct ID3D11VertexShader;

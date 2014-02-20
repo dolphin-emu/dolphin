@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "DebugInterface.h"
+#include "Common/DebugInterface.h"
 
 //wrapper between disasm control and Dolphin debugger
 

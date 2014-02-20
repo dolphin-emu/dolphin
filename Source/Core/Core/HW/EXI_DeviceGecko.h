@@ -4,11 +4,12 @@
 
 #pragma once
 
-#include "SFML/Network.hpp"
-#include "Thread.h"
-
 #include <deque>
 #include <queue>
+
+#include <SFML/Network.hpp>
+
+#include "Common/Thread.h"
 
 class GeckoSockServer
 	: public sf::SocketTCP

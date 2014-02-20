@@ -36,7 +36,7 @@
 
 // partial std::condition_variable implementation for win32/pthread
 
-#include "StdMutex.h"
+#include "Common/StdMutex.h"
 
 #if (_MSC_VER >= 1600) || (GCC_VERSION >= GCC_VER(4,3,0) && __GXX_EXPERIMENTAL_CXX0X__)
 #define USE_RVALUE_REFERENCES

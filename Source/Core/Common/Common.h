@@ -7,9 +7,9 @@
 // DO NOT EVER INCLUDE <windows.h> directly _or indirectly_ from this file
 // since it slows down the build a lot.
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 // SVN version number
 extern const char *scm_desc_str;
@@ -44,10 +44,6 @@ private:
 	NonCopyable& operator=(NonCopyable& other);
 };
 #endif
-
-#include "Log.h"
-#include "CommonTypes.h"
-#include "MsgHandler.h"
 
 #ifdef __APPLE__
 // The Darwin ABI requires that stack frames be aligned to 16-byte boundaries.
@@ -172,4 +168,7 @@ enum EMUSTATE_CHANGE
 	EMUSTATE_CHANGE_STOP
 };
 
-#include "CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/CommonFuncs.h" // NOLINT: needs to be included after CommonTypes
+#include "Common/Log.h"
+#include "Common/MsgHandler.h"

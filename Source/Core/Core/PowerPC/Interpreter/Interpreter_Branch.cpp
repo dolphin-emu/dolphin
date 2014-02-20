@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Interpreter.h"
-#include "../PPCAnalyst.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 
 void Interpreter::bx(UGeckoInstruction _inst)
 {

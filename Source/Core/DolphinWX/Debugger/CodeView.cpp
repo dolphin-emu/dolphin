@@ -2,19 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "StringUtil.h"
-#include "DebuggerUIUtil.h"
-#include "DebugInterface.h"
-
-#include "Host.h"
-#include "CodeView.h"
-#include "SymbolDB.h"
-#include "../WxUtils.h"
-
-#include <wx/event.h>
 #include <wx/clipbrd.h>
+#include <wx/event.h>
 #include <wx/textdlg.h>
+
+#include "Common/Common.h"
+#include "Common/DebugInterface.h"
+#include "Common/StringUtil.h"
+#include "Common/SymbolDB.h"
+#include "Core/Host.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeView.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
 
 DEFINE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE);
 

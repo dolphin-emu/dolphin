@@ -28,15 +28,15 @@
 // A simple and portable piece of code used to generate a blank FAT32 image file.
 // Modified for Dolphin.
 
-#include "SDCardUtil.h"
-#include "FileUtil.h"
-
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
 #include <cinttypes>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+#include <errno.h>
+
+#include "Common/FileUtil.h"
+#include "Common/SDCardUtil.h"
 
 #ifndef _WIN32
 #include <unistd.h> // for unlink()

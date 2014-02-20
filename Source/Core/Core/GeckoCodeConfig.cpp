@@ -2,13 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "GeckoCodeConfig.h"
-
-#include "StringUtil.h"
-
-#include <vector>
-#include <string>
 #include <sstream>
+#include <string>
+#include <vector>
+
+#include "Common/StringUtil.h"
+
+#include "Core/GeckoCodeConfig.h"
 
 namespace Gecko
 {

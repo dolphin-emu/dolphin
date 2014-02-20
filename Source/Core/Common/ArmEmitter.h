@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
@@ -6,12 +6,14 @@
 
 #pragma once
 
-#include "Common.h"
-#include "MemoryUtil.h"
+#include <vector>
+
+#include "Common/Common.h"
+#include "Common/MemoryUtil.h"
+
 #if defined(__SYMBIAN32__) || defined(PANDORA)
 #include <signal.h>
 #endif
-#include <vector>
 
 #undef _IP
 #undef R0

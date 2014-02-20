@@ -4,19 +4,19 @@
 
 #pragma once
 
-#include "Common.h"
-#include "CommonTypes.h"
-#include "Thread.h"
-#include "Timer.h"
-
-#include <SFML/Network.hpp>
-
-#include "NetPlayProto.h"
-
 #include <functional>
 #include <map>
 #include <queue>
 #include <sstream>
+
+#include <SFML/Network.hpp>
+
+#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
+
+#include "Core/NetPlayProto.h"
 
 class NetPlayServer
 {

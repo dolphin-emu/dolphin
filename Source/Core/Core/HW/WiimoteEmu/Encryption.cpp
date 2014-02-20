@@ -5,8 +5,8 @@
 // Copyright (C) Hector Martin "marcan" (hector@marcansoft.com)
 
 
-#include "Common.h"
-#include "Encryption.h"
+#include "Common/Common.h"
+#include "Core/HW/WiimoteEmu/Encryption.h"
 
 
 static const u8 ans_tbl[7][6] = {

@@ -2,8 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <memory.h>
-#include "Common.h"
+#include <memory>
+
+#include "Common/Common.h"
+#include "Common/CPUDetect.h"
+#include "Common/StringUtil.h"
 
 #ifdef _WIN32
 #define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
@@ -84,10 +87,6 @@ static unsigned long long _xgetbv(unsigned int index)
 }
 
 #endif
-
-#include "Common.h"
-#include "CPUDetect.h"
-#include "StringUtil.h"
 
 CPUInfo cpu_info;
 

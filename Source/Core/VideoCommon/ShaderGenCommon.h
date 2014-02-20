@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <stdarg.h>
+#include <algorithm>
+#include <cstdarg>
+#include <cstdio>
 #include <string>
 #include <vector>
-#include <algorithm>
 
-#include "CommonTypes.h"
-#include "VideoCommon.h"
+#include "Common/CommonTypes.h"
+#include "VideoCommon/VideoCommon.h"
 
 /**
  * Common interface for classes that need to go through the shader generation path (GenerateVertexShader, GeneratePixelShader)

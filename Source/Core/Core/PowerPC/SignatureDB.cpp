@@ -2,13 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "PPCAnalyst.h"
-#include "../HW/Memmap.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
 
-#include "SignatureDB.h"
-#include "PPCSymbolDB.h"
+#include "Core/HW/Memmap.h"
+
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/SignatureDB.h"
 
 namespace {
 

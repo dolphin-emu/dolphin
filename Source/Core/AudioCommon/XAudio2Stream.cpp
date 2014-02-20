@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <xaudio2.h>
-#include "AudioCommon.h"
-#include "XAudio2Stream.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/XAudio2Stream.h"
 
 #ifndef XAUDIO2_DLL
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path.

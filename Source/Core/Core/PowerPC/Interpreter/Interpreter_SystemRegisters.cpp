@@ -14,12 +14,12 @@
 #undef _interlockedbittestandreset64
 #endif
 
-#include "CPUDetect.h"
-#include "Interpreter.h"
-#include "Interpreter_FPUtils.h"
-#include "FPURoundMode.h"
-#include "../../HW/GPFifo.h"
-#include "../../HW/SystemTimers.h"
+#include "Common/CPUDetect.h"
+#include "Common/FPURoundMode.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
 /*
 

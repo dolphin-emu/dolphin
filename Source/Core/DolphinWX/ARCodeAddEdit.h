@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include <wx/wx.h>
 #include <wx/spinctrl.h>
-#include "ISOProperties.h"
+#include <wx/wx.h>
+
+#include "DolphinWX/ISOProperties.h"
 
 class CARCodeAddEdit : public wxDialog
 {

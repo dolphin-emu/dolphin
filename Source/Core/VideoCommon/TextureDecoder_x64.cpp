@@ -2,16 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-//#include "VideoCommon.h" // to get debug logs
-
-#include "CPUDetect.h"
-#include "TextureDecoder.h"
-#include "VideoConfig.h"
-
-#include "LookUpTables.h"
-
 #include <cmath>
+
+#include "Common/Common.h"
+//#include "VideoCommon.h" // to get debug logs
+#include "Common/CPUDetect.h"
+
+#include "VideoCommon/LookUpTables.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoConfig.h"
 
 #ifdef _OPENMP
 #include <omp.h>

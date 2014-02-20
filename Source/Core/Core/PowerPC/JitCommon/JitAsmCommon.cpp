@@ -2,12 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "JitAsmCommon.h"
-#include "JitBase.h"
+#include "Common/CPUDetect.h"
+#include "Common/MemoryUtil.h"
 
-#include "CPUDetect.h"
-#include "MemoryUtil.h"
-
+#include "Core/PowerPC/JitCommon/JitAsmCommon.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 #define QUANTIZED_REGS_TO_SAVE (ABI_ALL_CALLEE_SAVED & ~((1 << RAX) | (1 << RCX) | (1 << RDX) | \
                                                          (1 << XMM0) | (1 << XMM1)))

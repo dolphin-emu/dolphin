@@ -17,9 +17,9 @@
 
 #pragma once
 
-// Includes
 #include <string>
-#include "Common.h"
+
+#include "Common/Common.h"
 
 // Enable memory checks in the Debug/DebugFast builds, but NOT in release
 #if defined(_DEBUG) || defined(DEBUGFAST)

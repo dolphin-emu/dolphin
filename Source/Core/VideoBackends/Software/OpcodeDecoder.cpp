@@ -2,21 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-
-#include "DataReader.h"
-
-#include "OpcodeDecoder.h"
-#include "BPMemLoader.h"
-#include "CPMemLoader.h"
-#include "XFMemLoader.h"
-#include "SWVertexLoader.h"
-#include "SWStatistics.h"
-#include "DebugUtil.h"
-#include "SWCommandProcessor.h"
-#include "CPMemLoader.h"
-#include "SWVideoConfig.h"
-#include "HW/Memmap.h"
+#include "Common/Common.h"
+#include "Core/HW/Memmap.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/CPMemLoader.h"
+#include "VideoBackends/Software/DebugUtil.h"
+#include "VideoBackends/Software/OpcodeDecoder.h"
+#include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVertexLoader.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoBackends/Software/XFMemLoader.h"
+#include "VideoCommon/DataReader.h"
 
 typedef void (*DecodingFunction)(u32);
 

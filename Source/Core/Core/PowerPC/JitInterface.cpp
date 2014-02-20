@@ -9,27 +9,26 @@
 #include <windows.h>
 #endif
 
-#include "JitInterface.h"
-#include "JitCommon/JitBase.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/Profiler.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 #ifndef _M_GENERIC
-#include "Jit64IL/JitIL.h"
-#include "Jit64/Jit.h"
-#include "Jit64/Jit64_Tables.h"
-#include "Jit64IL/JitIL_Tables.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/Jit64_Tables.h"
+#include "Core/PowerPC/Jit64IL/JitIL.h"
+#include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 #endif
 
 #ifdef _M_ARM
-#include "JitArm32/Jit.h"
-#include "JitArm32/JitArm_Tables.h"
-#include "JitArmIL/JitIL.h"
-#include "JitArmIL/JitIL_Tables.h"
+#include "Core/PowerPC/JitArm32/Jit.h"
+#include "Core/PowerPC/JitArm32/JitArm_Tables.h"
+#include "Core/PowerPC/JitArmIL/JitIL.h"
+#include "Core/PowerPC/JitArmIL/JitIL_Tables.h"
 #endif
-
-#include "Profiler.h"
-#include "PPCSymbolDB.h"
-#include "HW/Memmap.h"
-#include "ConfigManager.h"
 
 bool bFakeVMEM = false;
 bool bMMU = false;

@@ -15,18 +15,19 @@
 // Official Git repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
-#include "Atomic.h"
+#include "Common/Atomic.h"
+#include "Common/Common.h"
 
-#include "GPFifo.h"
-#include "Memmap.h"
-#include "../Core.h"
-#include "../PowerPC/PowerPC.h"
-#include "VideoBackendBase.h"
-#include "MMIO.h"
+#include "Core/Core.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/MMIO.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 #ifdef USE_GDBSTUB
-#include "../PowerPC/GDBStub.h"
+#include "Core/PowerPC/GDBStub.h"
 #endif
 
 namespace Memory

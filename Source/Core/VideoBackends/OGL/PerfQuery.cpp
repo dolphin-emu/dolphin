@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "GLInterface/GLInterface.h"
-#include "RenderBase.h"
-#include "GLUtil.h"
-#include "PerfQuery.h"
+#include "DolphinWX/GLInterface/GLInterface.h"
+#include "VideoBackends/OGL/GLUtil.h"
+#include "VideoBackends/OGL/PerfQuery.h"
+#include "VideoCommon/RenderBase.h"
 
 namespace OGL
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 enum PerfQueryType
 {

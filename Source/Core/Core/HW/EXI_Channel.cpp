@@ -2,20 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "EXI_Channel.h"
-#include "EXI_Device.h"
-#include "EXI.h"
-#include "../ConfigManager.h"
-#include "../Movie.h"
-#include "MMIO.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/EXI_Channel.h"
+#include "Core/HW/EXI_Device.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #define EXI_READ      0
 #define EXI_WRITE     1
 #define EXI_READWRITE 2
-
-#include "ProcessorInterface.h"
-#include "../PowerPC/PowerPC.h"
-#include "CoreTiming.h"
 
 CEXIChannel::CEXIChannel(u32 ChannelId) :
 	m_DMAMemoryAddress(0),

@@ -56,26 +56,27 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 			CWII_IPC_HLE_WiiMote::Update()
 */
 
+#include "Common/Atomic.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
+#include "Common/Timer.h"
 
-#include "Common.h"
-#include "Atomic.h"
-#include "../PatchEngine.h"
-#include "SystemTimers.h"
-#include "DSP.h"
-#include "AudioInterface.h"
-#include "VideoInterface.h"
-#include "SI.h"
-#include "EXI_DeviceIPL.h"
-#include "../PowerPC/PowerPC.h"
-#include "../CoreTiming.h"
-#include "../ConfigManager.h"
-#include "../IPC_HLE/WII_IPC_HLE.h"
-#include "../DSPEmulator.h"
-#include "Thread.h"
-#include "Timer.h"
-#include "VideoBackendBase.h"
-#include "CommandProcessor.h"
-#include "Host.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/DSPEmulator.h"
+#include "Core/Host.h"
+#include "Core/PatchEngine.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/VideoInterface.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 
 namespace SystemTimers

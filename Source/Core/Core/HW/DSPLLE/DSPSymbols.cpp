@@ -6,13 +6,13 @@
 #include <map>
 #include <string>
 
-#include "Common.h"
-#include "StringUtil.h"
-#include "FileUtil.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
-#include "DSP/DSPCore.h"
-#include "DSPSymbols.h"
-#include "DSP/disassemble.h"
+#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/HW/DSPLLE/DSPSymbols.h"
 
 namespace DSPSymbols {
 

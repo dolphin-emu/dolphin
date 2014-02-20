@@ -1,25 +1,23 @@
 #pragma once
 
-#include <vector>
-#include <string>
 #include <map>
-
-#include "ConfigManager.h"
-#include "VideoConfig.h"
-#include "Core.h"
-
-#include <wx/wx.h>
-#include <wx/textctrl.h>
+#include <string>
+#include <vector>
 #include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/combobox.h>
 #include <wx/checkbox.h>
+#include <wx/combobox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/wx.h>
 
-#include "MsgHandler.h"
-#include "WxUtils.h"
+#include "Common/MsgHandler.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "DolphinWX/WxUtils.h"
+#include "VideoCommon/VideoConfig.h"
 
 template <typename W>
 class BoolSetting : public W

@@ -2,16 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "ProgramShaderCache.h"
-#include "DriverDetails.h"
-#include "MathUtil.h"
-#include "StreamBuffer.h"
-#include "Debugger.h"
-#include "Statistics.h"
-#include "ImageWrite.h"
-#include "Render.h"
-#include "PixelShaderManager.h"
-#include "VertexShaderManager.h"
+#include "Common/MathUtil.h"
+
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/StreamBuffer.h"
+
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexShaderManager.h"
 
 namespace OGL
 {

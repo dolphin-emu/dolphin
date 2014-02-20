@@ -2,8 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Classic.h"
-
+#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 
 namespace WiimoteEmu
 {

@@ -4,21 +4,29 @@
 
 #pragma once
 
-#include "Common.h"
+// HACK: Xlib.h (included from gtk/gdk headers and directly) uses #defines on
+// common names such as "Status", "BadRequest" or "Response", causing SFML
+// headers to be completely broken.
+//
+// We work around that issue by including SFML first before X11 headers. This
+// is terrible, but such is the life with Xlib.
+#include <SFML/Network.hpp> // NOLINT
 
 #if defined(HAVE_WX) && HAVE_WX
-#include <wx/wx.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
+#include <wx/wx.h>
 #endif
 
-#include <X11/Xlib.h>
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif
+#include <X11/Xlib.h>
 
-#include "Core.h"
-#include "ConfigManager.h"
+#include "Common/Common.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+
 
 // EWMH state actions, see
 // http://freedesktop.org/wiki/Specifications/wm-spec?action=show&redirect=Standards%2Fwm-spec

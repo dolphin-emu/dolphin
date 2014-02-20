@@ -6,11 +6,11 @@
 
 #ifdef _WIN32
 
-#include "Atomic_Win32.h"
+#include "Common/Atomic_Win32.h"
 
 #else
 
 // GCC-compatible compiler assumed!
-#include "Atomic_GCC.h"
+#include "Common/Atomic_GCC.h"
 
 #endif

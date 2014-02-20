@@ -6,9 +6,8 @@
 
 #include "d3d11.h"
 
-#include "FramebufferManagerBase.h"
-
-#include "D3DTexture.h"
+#include "VideoBackends/D3D/D3DTexture.h"
+#include "VideoCommon/FramebufferManagerBase.h"
 
 namespace DX11 {
 

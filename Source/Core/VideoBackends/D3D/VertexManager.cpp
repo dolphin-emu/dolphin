@@ -2,22 +2,22 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "D3DBase.h"
-#include "PixelShaderCache.h"
-#include "VertexManager.h"
-#include "VertexShaderCache.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/PixelShaderCache.h"
+#include "VideoBackends/D3D/Render.h"
+#include "VideoBackends/D3D/VertexManager.h"
+#include "VideoBackends/D3D/VertexShaderCache.h"
 
-#include "BPMemory.h"
-#include "Debugger.h"
-#include "IndexGenerator.h"
-#include "MainBase.h"
-#include "PixelShaderManager.h"
-#include "RenderBase.h"
-#include "Render.h"
-#include "Statistics.h"
-#include "TextureCacheBase.h"
-#include "VertexShaderManager.h"
-#include "VideoConfig.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/MainBase.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;

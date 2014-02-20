@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "gl_common.h"
+#include "VideoBackends/OGL/GLExtensions/gl_common.h"
 
 // These two are provided by ARB_imaging as well
 extern PFNGLBLENDCOLORPROC glBlendColor;

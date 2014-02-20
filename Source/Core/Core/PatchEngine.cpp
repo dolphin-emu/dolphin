@@ -15,20 +15,21 @@
 // [OnLoad]
 // 0x80020394=dword,0x4e800020
 
+#include <algorithm>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-#include <algorithm>
 
-#include "CommonPaths.h"
-#include "StringUtil.h"
-#include "PatchEngine.h"
-#include "HW/Memmap.h"
-#include "ActionReplay.h"
-#include "GeckoCode.h"
-#include "GeckoCodeConfig.h"
-#include "FileUtil.h"
-#include "ConfigManager.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
+#include "Core/ActionReplay.h"
+#include "Core/ConfigManager.h"
+#include "Core/GeckoCode.h"
+#include "Core/GeckoCodeConfig.h"
+#include "Core/PatchEngine.h"
+#include "Core/HW/Memmap.h"
 
 using namespace Common;
 

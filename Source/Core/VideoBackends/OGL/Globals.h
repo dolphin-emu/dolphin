@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common.h"
-#include "VideoConfig.h"
+#include "Common/Common.h"
 
-#include "VideoCommon.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"

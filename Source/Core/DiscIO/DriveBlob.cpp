@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DriveBlob.h"
-#include "StringUtil.h"
+#include "Common/StringUtil.h"
+#include "DiscIO/DriveBlob.h"
 
 namespace DiscIO
 {

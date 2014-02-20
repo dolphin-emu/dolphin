@@ -2,11 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <vector>
 #include <cmath>
-
-
 #include <fstream>
+#include <vector>
+
 #ifdef _WIN32
 #define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
 #define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
@@ -19,24 +18,27 @@
 #undef _interlockedbittestandreset64
 #endif
 
-#include "BPStructs.h"
-#include "CommonPaths.h"
-#include "FileUtil.h"
-#include "FramebufferManager.h"
-#include "Globals.h"
-#include "Hash.h"
-#include "HiresTextures.h"
-#include "HW/Memmap.h"
-#include "ImageWrite.h"
-#include "MemoryUtil.h"
-#include "ProgramShaderCache.h"
-#include "Render.h"
-#include "Statistics.h"
-#include "StringUtil.h"
-#include "TextureCache.h"
-#include "TextureConverter.h"
-#include "TextureDecoder.h"
-#include "VideoConfig.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/Hash.h"
+#include "Common/MemoryUtil.h"
+#include "Common/StringUtil.h"
+
+#include "Core/HW/Memmap.h"
+
+#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/Globals.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/TextureCache.h"
+#include "VideoBackends/OGL/TextureConverter.h"
+
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {

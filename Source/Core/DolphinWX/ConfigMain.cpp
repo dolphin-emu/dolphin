@@ -2,35 +2,37 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <string> // System
-#include <vector>
 #include <algorithm>
 #include <functional>
+#include <string>
+#include <vector>
 #include <wx/spinbutt.h>
 
-#include "Common.h"
-#include "CommonPaths.h"
-#include "FileSearch.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileSearch.h"
+#include "Common/SysConf.h"
 
-#include "Core.h" // Core
-#include "HW/EXI.h"
-#include "HW/SI.h"
-#include "HW/DSPHLE/DSPHLE.h"
-#include "HW/DSPLLE/DSPLLE.h"
-#include "HW/GCMemcard.h"
-#include "IPC_HLE/WII_IPC_HLE.h"
-#include "NANDContentLoader.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/NetPlayProto.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/GCMemcard.h"
+#include "Core/HW/SI.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPLLE/DSPLLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 
-#include "WxUtils.h"
-#include "Globals.h" // Local
-#include "ConfigMain.h"
-#include "ConfigManager.h"
-#include "SysConf.h"
-#include "Frame.h"
-#include "HotkeyDlg.h"
-#include "Main.h"
-#include "VideoBackendBase.h"
-#include "NetPlayProto.h"
+#include "DiscIO/NANDContentLoader.h"
+
+#include "DolphinWX/ConfigMain.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/HotkeyDlg.h"
+#include "DolphinWX/Main.h"
+#include "DolphinWX/WxUtils.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 #define TEXT_BOX(page, text) new wxStaticText(page, wxID_ANY, text, wxDefaultPosition, wxDefaultSize)
 

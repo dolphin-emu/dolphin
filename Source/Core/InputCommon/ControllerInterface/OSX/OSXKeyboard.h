@@ -6,7 +6,7 @@
 
 #include <IOKit/hid/IOHIDLib.h>
 
-#include "../Device.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {

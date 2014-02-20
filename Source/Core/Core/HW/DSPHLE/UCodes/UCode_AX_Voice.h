@@ -12,12 +12,14 @@
 #error UCode_AX_Voice.h included without specifying version
 #endif
 
-#include "Common.h"
-#include "MathUtil.h"
-#include "UCode_AXStructs.h"
-#include "../../DSP.h"
-
 #include <functional>
+
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AX.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AXStructs.h"
 
 #ifdef AX_GC
 # define PB_TYPE AXPB

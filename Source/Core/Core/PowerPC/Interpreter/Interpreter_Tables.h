@@ -6,7 +6,7 @@
 
 #include "../Gekko.h"
 #include "../PPCTables.h"
-#include "Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 
 namespace InterpreterTables
 {

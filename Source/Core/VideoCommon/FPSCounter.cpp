@@ -2,10 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FPSCounter.h"
-#include "FileUtil.h"
-#include "Timer.h"
-#include "VideoConfig.h"
+#include "Common/FileUtil.h"
+#include "Common/Timer.h"
+
+#include "VideoCommon/FPSCounter.h"
+#include "VideoCommon/VideoConfig.h"
 
 #define FPS_REFRESH_INTERVAL 1000
 

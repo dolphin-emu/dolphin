@@ -2,22 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <queue>
 #include <algorithm>
-#include <stdlib.h>
+#include <cstdlib>
+#include <queue>
 
-#include "Common.h"
-#include "IniFile.h"
-#include "StringUtil.h"
-#include "Timer.h"
-#include "Host.h"
-#include "ConfigManager.h"
+#include "Common/Common.h"
+#include "Common/IniFile.h"
+#include "Common/StringUtil.h"
+#include "Common/Timer.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
+#include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+
 #include "SFML/Network.hpp"
-
-
-#include "WiimoteReal.h"
-
-#include "../WiimoteEmu/WiimoteHid.h"
 
 unsigned int g_wiimote_sources[MAX_BBMOTES];
 

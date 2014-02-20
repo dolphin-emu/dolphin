@@ -2,24 +2,27 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "WII_IPC_HLE_Device_es.h"
-#include "WII_IPC_HLE_Device_net.h"
-#include "../ConfigManager.h"
-#include "FileUtil.h"
-#include <stdio.h>
+#include <cstdio>
 #include <string>
-#include "ICMP.h"
-#include "CommonPaths.h"
-#include "SettingsHandler.h"
-#include "ec_wii.h"
-#include "WII_Socket.h"
+
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/SettingsHandler.h"
+#include "Common/StringUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/ec_wii.h"
+#include "Core/IPC_HLE/ICMP.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
+#include "Core/IPC_HLE/WII_Socket.h"
 
 #ifdef _WIN32
 #include <ws2tcpip.h>
 #include <iphlpapi.h>
 #include <iphlpapi.h>
 
-#include "fakepoll.h"
+#include "Core/IPC_HLE/fakepoll.h"
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
@@ -455,7 +458,6 @@ bool CWII_IPC_HLE_Device_net_wd_command::Close(u32 CommandAddress, bool Force)
 // This is just for debugging / playing around.
 // There really is no reason to implement wd unless we can bend it such that
 // we can talk to the DS.
-#include "StringUtil.h"
 bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 {
 	u32 return_value = 0;

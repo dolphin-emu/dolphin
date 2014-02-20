@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
-#include "Common.h"
+#include "Common/Common.h"
 
 namespace Dolphin_Debugger
 {

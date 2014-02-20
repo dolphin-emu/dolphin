@@ -2,14 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "GLExtensions.h"
-#include "Log.h"
+#include <sstream>
+#include <unordered_map>
+
+#include "Common/Log.h"
+#include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h>
 #endif
-#include <unordered_map>
-#include <sstream>
 
 // gl_1_1
 PFNGLCLEARINDEXPROC glClearIndex;

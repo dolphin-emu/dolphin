@@ -2,24 +2,25 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Boot.h"
-#include "../PowerPC/PowerPC.h"
-#include "../HLE/HLE.h"
-#include "../HW/Memmap.h"
-#include "../ConfigManager.h"
-#include "../PatchEngine.h"
-#include "../IPC_HLE/WII_IPC_HLE.h"
-#include "../IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
-
-#include "WiiWad.h"
-#include "NANDContentLoader.h"
-#include "FileUtil.h"
-#include "Boot_DOL.h"
-#include "Volume.h"
-#include "VolumeCreator.h"
-#include "CommonPaths.h"
-
 #include <memory>
+
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/PatchEngine.h"
+#include "Core/Boot/Boot.h"
+#include "Core/Boot/Boot_DOL.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/WiiWad.h"
 
 static u32 state_checksum(u32 *buf, int len)
 {

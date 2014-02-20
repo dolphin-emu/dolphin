@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FileHandlerARC.h"
-#include "StringUtil.h"
-#include "Blob.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/FileHandlerARC.h"
 
 #define ARC_ID 0x55aa382d
 

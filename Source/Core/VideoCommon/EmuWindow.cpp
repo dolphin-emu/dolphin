@@ -4,13 +4,14 @@
 
 #include <windows.h>
 
-#include "VideoConfig.h"
-#include "EmuWindow.h"
-#include "Fifo.h"
-#include "VideoBackendBase.h"
-#include "Core.h"
-#include "Host.h"
-#include "ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+
+#include "VideoCommon/EmuWindow.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace EmuWindow
 {

@@ -6,9 +6,8 @@
 
 #pragma once
 
-//nclude "Common.h"
-#include "DSPEmitter.h"
-#include "DSPCommon.h"
+#include "Core/DSP/DSPCommon.h"
+#include "Core/DSP/DSPEmitter.h"
 
 // The non-ADDR ones that end with _D are the opposite one - if the bit specify
 // ACC0, then ACC_D will be ACC1.

@@ -2,25 +2,25 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "Atomic.h"
-#include "MathUtil.h"
-#include "ChunkFile.h"
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/MathUtil.h"
 
-#include "../HW/Memmap.h"
-#include "../HW/CPU.h"
-#include "../Core.h"
-#include "../CoreTiming.h"
-#include "../HW/SystemTimers.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/Host.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/EXI.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
 
-#include "Interpreter/Interpreter.h"
-#include "PowerPC.h"
-#include "PPCTables.h"
-#include "CPUCoreBase.h"
-#include "JitInterface.h"
+#include "Core/PowerPC/CPUCoreBase.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#include "../Host.h"
-#include "HW/EXI.h"
 
 CPUCoreBase *cpu_core_base;
 

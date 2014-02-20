@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "PatchAddEdit.h"
-#include "WxUtils.h"
+#include "DolphinWX/PatchAddEdit.h"
+#include "DolphinWX/WxUtils.h"
 
 extern std::vector<PatchEngine::Patch> onFrame;
 

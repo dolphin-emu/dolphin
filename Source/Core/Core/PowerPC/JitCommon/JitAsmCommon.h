@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Jit_Util.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 
 class CommonAsmRoutinesBase
 {

@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "GeckoCode.h"
-#include "GeckoCodeConfig.h"
+#include <wx/wx.h>
 
-#include "wx/wx.h"
+#include "Core/GeckoCode.h"
+#include "Core/GeckoCodeConfig.h"
 
 namespace Gecko
 {

@@ -2,19 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <time.h>
 #include <cinttypes>
+#include <ctime>
 
 #ifdef _WIN32
-#include <Windows.h>
 #include <mmsystem.h>
 #include <sys/timeb.h>
+#include <windows.h>
 #else
 #include <sys/time.h>
 #endif
 
-#include "Timer.h"
-#include "StringUtil.h"
+#include "Common/StringUtil.h"
+#include "Common/Timer.h"
 
 namespace Common
 {

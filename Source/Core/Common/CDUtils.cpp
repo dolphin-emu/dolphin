@@ -1,13 +1,13 @@
 // Most of the code in this file was shamelessly ripped from libcdio With minor adjustments
 
-#include "CDUtils.h"
-#include "Common.h"
-#include "StringUtil.h"
-
 #include <memory> // for std::unique_ptr
+
+#include "Common/CDUtils.h"
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+
 #ifdef _WIN32
 #include <windows.h>
-#include "StringUtil.h"
 #elif __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOBSD.h>

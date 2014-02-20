@@ -2,15 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "IniFile.h"
-#include "Debugger.h"
-#include "FileUtil.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 
-#include "VideoConfig.h"
-#include "TextureCacheBase.h"
-#include "PixelShaderGen.h"
-#include "VertexShaderGen.h"
-#include "NativeVertexFormat.h"
+#include "VideoCommon/Debugger.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoConfig.h"
 
 //void UpdateFPSDisplay(const char *text);
 extern NativeVertexFormat *g_nativeVertexFmt;

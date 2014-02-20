@@ -2,18 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Atomic.h"
-#include "Mixer.h"
-#include "AudioCommon.h"
-#include "CPUDetect.h"
-#include "../Core/Host.h"
-#include "ConfigManager.h"
-#include "HW/VideoInterface.h"
-
-#include "../Core/HW/AudioInterface.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
+#include "Common/Atomic.h"
+#include "Common/CPUDetect.h"
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/VideoInterface.h"
 
 // UGLINESS
-#include "../Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
 #include <tmmintrin.h>

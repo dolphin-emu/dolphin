@@ -2,38 +2,37 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 
-#include "Common.h"
-#include "CommonPaths.h"
-#include "Atomic.h"
-#include "CommonTypes.h"
-#include "LogManager.h"
-#include "Thread.h"
-#include "ChunkFile.h"
-#include "IniFile.h"
-#include "ConfigManager.h"
-#include "CPUDetect.h"
-#include "Core.h"
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/CPUDetect.h"
+#include "Common/IniFile.h"
+#include "Common/LogManager.h"
+#include "Common/Thread.h"
 
-#include "DSPLLEGlobals.h" // Local
-#include "DSP/DSPHost.h"
-#include "DSP/DSPInterpreter.h"
-#include "DSP/DSPHWInterface.h"
-#include "DSP/disassemble.h"
-#include "DSPSymbols.h"
-#include "Host.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPHost.h"
+#include "Core/DSP/DSPHWInterface.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPTables.h"
+#include "Core/HW/AudioInterface.h"
+#include "Core/HW/Memmap.h"
 
-#include "AudioCommon.h"
-#include "Mixer.h"
-
-#include "DSP/DSPTables.h"
-#include "DSP/DSPCore.h"
-#include "DSPLLE.h"
-#include "../Memmap.h"
-#include "../AudioInterface.h"
+#include "Core/HW/DSPLLE/DSPLLE.h"
+#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
+#include "Core/HW/DSPLLE/DSPSymbols.h"
 
 
-DSPLLE::DSPLLE() {
+DSPLLE::DSPLLE()
+{
 	soundStream = NULL;
 	m_InitMixer = false;
 	m_bIsRunning = false;

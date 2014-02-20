@@ -3,7 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <d3d11.h>
-#include "D3DBlob.h"
+
+#include "VideoBackends/D3D/D3DBlob.h"
 
 namespace DX11
 {

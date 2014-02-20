@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 
 void Interpreter::Helper_UpdateCR0(u32 _uValue)
 {

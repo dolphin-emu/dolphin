@@ -3,16 +3,17 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <vector>
 #include <cinttypes>
+#include <vector>
 
-#include "Common.h"
-#include "PPCTables.h"
-#include "StringUtil.h"
-#include "FileUtil.h"
-#include "Interpreter/Interpreter.h"
-#include "Interpreter/Interpreter_Tables.h"
-#include "JitInterface.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
 
 GekkoOPInfo *m_infoTable[64];
 GekkoOPInfo *m_infoTable4[1024];

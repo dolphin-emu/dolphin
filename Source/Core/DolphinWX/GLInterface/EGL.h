@@ -5,8 +5,9 @@
 #pragma once
 
 #include <EGL/egl.h>
-#include "InterfaceBase.h"
-#include "ConfigManager.h"
+
+#include "Core/ConfigManager.h"
+#include "DolphinWX/GLInterface/InterfaceBase.h"
 
 
 class cPlatform

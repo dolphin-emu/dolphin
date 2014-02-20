@@ -2,17 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "Wiimote.h"
-#include "WiimoteReal/WiimoteReal.h"
-#include "WiimoteEmu/WiimoteEmu.h"
-#include "Movie.h"
-#include "../ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Movie.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
-#include "ControllerInterface/ControllerInterface.h"
-
-#include "../InputCommon/InputConfig.h"
+#include "InputCommon/InputConfig.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace Wiimote
 {

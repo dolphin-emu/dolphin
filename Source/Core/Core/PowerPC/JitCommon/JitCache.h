@@ -8,8 +8,8 @@
 #include <map>
 #include <vector>
 
-#include "../Gekko.h"
-#include "../PPCAnalyst.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 // Define this in order to get VTune profile support for the Jit generated code.
 // Add the VTune include/lib directories to the project directories to get this to build.

@@ -1,5 +1,5 @@
 
-#include "XInput.h"
+#include "InputCommon/ControllerInterface/XInput/XInput.h"
 
 namespace ciface
 {

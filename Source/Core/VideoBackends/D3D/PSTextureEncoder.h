@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "TextureEncoder.h"
+#include "VideoBackends/D3D/TextureEncoder.h"
 
 struct ID3D11Texture2D;
 struct ID3D11RenderTargetView;

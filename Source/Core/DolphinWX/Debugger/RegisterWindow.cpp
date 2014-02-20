@@ -4,9 +4,9 @@
 
 #include <wx/wx.h>
 
-#include "RegisterWindow.h"
-#include "PowerPC/PowerPC.h"
-#include "RegisterView.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/Debugger/RegisterView.h"
+#include "DolphinWX/Debugger/RegisterWindow.h"
 
 extern const char* GetGRPName(unsigned int index);
 

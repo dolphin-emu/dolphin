@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "Common.h"
+#include "Common/Common.h"
 
 bool Assemble(const char *text, std::vector<u16> &code, bool force = false);
 bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &text);

@@ -4,10 +4,9 @@
 
 #pragma once
 
-#include "Common.h"
-#include "NativeVertexFormat.h"
-#include "ChunkFile.h"
-
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
 
 namespace Clipper
 {

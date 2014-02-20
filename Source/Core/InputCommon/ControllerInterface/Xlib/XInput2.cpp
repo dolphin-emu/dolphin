@@ -2,10 +2,10 @@
 // Licensed under the GNU General Public License, version 2 or higher.
 // Refer to the license.txt file included.
 
-
-#include "XInput2.h"
-#include <X11/XKBlib.h>
 #include <cmath>
+#include <X11/XKBlib.h>
+
+#include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
 // This is an input plugin using the XInput 2.0 extension to the X11 protocol,
 // loosely based on the old XLib plugin. (Has nothing to do with the XInput

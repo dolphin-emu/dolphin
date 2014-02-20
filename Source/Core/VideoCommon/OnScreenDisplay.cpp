@@ -3,16 +3,17 @@
 // Refer to the license.txt file included.
 
 #include <list>
-
-#include "Common.h"
-
-#include "ConfigManager.h"
-#include "OnScreenDisplay.h"
-#include "RenderBase.h"
-#include "Timer.h"
-
 #include <map>
 #include <string>
+
+#include "Common/Common.h"
+#include "Common/Timer.h"
+
+#include "Core/ConfigManager.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/RenderBase.h"
+
 
 namespace OSD
 {

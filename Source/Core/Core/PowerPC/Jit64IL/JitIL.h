@@ -16,24 +16,25 @@
 
 #pragma once
 
-#include "JitILAsm.h"
-#include "x64Emitter.h"
-#include "x64ABI.h"
-#include "x64Analyzer.h"
-#include "../PowerPC.h"
-#include "../PPCTables.h"
-#include "../PPCAnalyst.h"
-#include "../JitCommon/JitBase.h"
-#include "../JitCommon/JitCache.h"
-#include "../JitCommon/JitBackpatch.h"
-#include "../JitCommon/Jit_Util.h"
-#include "../JitILCommon/JitILBase.h"
-#include "../JitILCommon/IR.h"
-#include "../../ConfigManager.h"
-#include "../../Core.h"
-#include "../../CoreTiming.h"
-#include "../../HW/Memmap.h"
-#include "../../HW/GPFifo.h"
+#include "Common/x64ABI.h"
+#include "Common/x64Analyzer.h"
+#include "Common/x64Emitter.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/Jit64IL/JitILAsm.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/JitCommon/JitBackpatch.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/JitILCommon/IR.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 #ifdef _M_X64
 #define DISABLE64 \

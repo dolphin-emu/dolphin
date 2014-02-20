@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "BannerLoader.h"
+#include "DiscIO/BannerLoader.h"
 
 namespace DiscIO
 {

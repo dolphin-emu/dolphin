@@ -2,14 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "GCPadStatus.h"
+#include "Common/Common.h"
 
-#include "ControllerInterface/ControllerInterface.h"
-#include "GCPadEmu.h"
-#include "../ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/HW/GCPadEmu.h"
 
-#include "../../InputCommon/InputConfig.h"
+#include "InputCommon/GCPadStatus.h"
+#include "InputCommon/InputConfig.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 
 namespace Pad
 {

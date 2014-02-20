@@ -2,33 +2,31 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Globals.h"
-
 #include <fstream>
 #include <vector>
 
-#include "Fifo.h"
+#include "Common/FileUtil.h"
+#include "Common/MemoryUtil.h"
 
-#include "DriverDetails.h"
-#include "VideoConfig.h"
-#include "Statistics.h"
-#include "MemoryUtil.h"
-#include "Render.h"
-#include "ImageWrite.h"
-#include "BPMemory.h"
-#include "TextureCache.h"
-#include "PixelShaderManager.h"
-#include "VertexShaderManager.h"
-#include "ProgramShaderCache.h"
-#include "VertexShaderGen.h"
-#include "VertexLoader.h"
-#include "VertexManager.h"
-#include "IndexGenerator.h"
-#include "FileUtil.h"
-#include "StreamBuffer.h"
-#include "Render.h"
+#include "VideoBackends/OGL/Globals.h"
+#include "VideoBackends/OGL/main.h"
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/StreamBuffer.h"
+#include "VideoBackends/OGL/TextureCache.h"
+#include "VideoBackends/OGL/VertexManager.h"
 
-#include "main.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;

@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "PPCCache.h"
-#include "../HW/Memmap.h"
-#include "PowerPC.h"
-#include "JitCommon/JitBase.h"
-#include "JitCommon/JitCache.h"
-#include "JitInterface.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCCache.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
 namespace PowerPC
 {

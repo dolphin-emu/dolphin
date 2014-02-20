@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "Common.h"
-
-#include <X11/X.h>
 #include <X11/keysym.h>
+#include <X11/X.h>
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/wx.h>
 #endif
+
+#include "Common/Common.h"
 
 namespace InputCommon
 {

@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "SI_Device.h"
-#include "SI_DeviceGBA.h"
+#include <queue>
+
+#include "Common/Thread.h"
+#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI_DeviceGBA.h"
 
 #include "SFML/Network.hpp"
-#include "Thread.h"
-#include <queue>
 
 static std::thread connectionThread;
 static std::queue<sf::SocketTCP> waiting_socks;

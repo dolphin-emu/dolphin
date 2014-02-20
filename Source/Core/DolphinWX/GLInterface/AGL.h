@@ -8,7 +8,7 @@
 #import <AppKit/AppKit.h>
 #endif
 
-#include "InterfaceBase.h"
+#include "DolphinWX/GLInterface/InterfaceBase.h"
 
 class cInterfaceAGL : public cInterfaceBase
 {

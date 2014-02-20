@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "Common.h"
 #include <array>
 #include <string>
 #include <type_traits>
 
-#include "MMIOHandlers.h"
+#include "Common/Common.h"
+#include "Core/HW/MMIOHandlers.h"
 
 namespace MMIO
 {

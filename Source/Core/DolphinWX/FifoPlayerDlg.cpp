@@ -2,20 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "FifoPlayerDlg.h"
-#include "FileUtil.h"
-#include "Thread.h"
-#include "FifoPlayer/FifoPlayer.h"
-#include "FifoPlayer/FifoRecorder.h"
-#include "OpcodeDecoding.h"
-#include "WxUtils.h"
-
-#include <wx/spinctrl.h>
-#include <wx/clipbrd.h>
-
 #include <algorithm>
 #include <vector>
+#include <wx/clipbrd.h>
+#include <wx/spinctrl.h>
+
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/Thread.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/FifoPlayer/FifoRecorder.h"
+#include "DolphinWX/FifoPlayerDlg.h"
+#include "DolphinWX/WxUtils.h"
+#include "VideoCommon/OpcodeDecoding.h"
 
 DECLARE_EVENT_TYPE(RECORDING_FINISHED_EVENT, -1)
 DEFINE_EVENT_TYPE(RECORDING_FINISHED_EVENT)

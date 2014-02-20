@@ -2,14 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "VideoCommon.h"
-#include "XFMemory.h"
-#include "CPMemory.h"
-#include "VertexManagerBase.h"
-#include "VertexShaderManager.h"
-#include "PixelShaderManager.h"
-#include "HW/Memmap.h"
+#include "Common/Common.h"
+#include "Core/HW/Memmap.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/XFMemory.h"
 
 void XFMemWritten(u32 transferSize, u32 baseAddress)
 {

@@ -4,9 +4,10 @@
 
 #include <sstream>
 
-#include "JitBase.h"
-#include "PowerPCDisasm.h"
 #include "disasm.h"
+#include "PowerPCDisasm.h"
+
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 JitBase *jit;
 

@@ -2,23 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "CommonPaths.h"
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "CDUtils.h"
-#include "NANDContentLoader.h"
-
-#include "VolumeCreator.h" // DiscIO
-
-#include "Boot/Boot.h" // Core
-#include "Boot/Boot_DOL.h"
-#include "CoreParameter.h"
-#include "ConfigManager.h"
-#include "Core.h" // for bWii
-#include "FifoPlayer/FifoDataFile.h"
-
 #include <cinttypes>
+
+#include "Common/CDUtils.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/Core.h" // for bWii
+#include "Core/CoreParameter.h"
+#include "Core/Boot/Boot.h"
+#include "Core/Boot/Boot_DOL.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+
+#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/VolumeCreator.h"
 
 SCoreStartupParameter::SCoreStartupParameter()
 : hInstance(0),

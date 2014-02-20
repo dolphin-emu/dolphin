@@ -4,11 +4,12 @@
 
 #include <string>
 
-#include "Common.h"
-#include "../Debugger/Debugger_SymbolMap.h"
-#include "../HW/Memmap.h"
-#include "../PowerPC/PPCSymbolDB.h"
-#include "ElfReader.h"
+#include "Common/Common.h"
+
+#include "Core/Boot/ElfReader.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 
 void bswap(Elf32_Word &w) {w = Common::swap32(w);}
 void bswap(Elf32_Half &w) {w = Common::swap16(w);}

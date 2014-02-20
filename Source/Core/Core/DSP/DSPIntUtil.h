@@ -25,12 +25,12 @@
 
 #pragma once
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "DSPInterpreter.h"
-#include "DSPCore.h"
-#include "DSPMemoryMap.h"
-#include "DSPStacks.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/DSPStacks.h"
 
 
 // ---------------------------------------------------------------------------------------

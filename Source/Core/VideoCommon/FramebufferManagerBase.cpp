@@ -1,8 +1,7 @@
 
-#include "FramebufferManagerBase.h"
-
-#include "RenderBase.h"
-#include "VideoConfig.h"
+#include "VideoCommon/FramebufferManagerBase.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 FramebufferManagerBase *g_framebuffer_manager;
 

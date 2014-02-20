@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "VideoCommon.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace DX11
 {

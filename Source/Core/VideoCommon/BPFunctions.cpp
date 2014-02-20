@@ -2,15 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "BPFunctions.h"
-#include "Common.h"
-#include "RenderBase.h"
-#include "TextureCacheBase.h"
-#include "VertexManagerBase.h"
-#include "VertexShaderManager.h"
-#include "VideoConfig.h"
-#include "HW/Memmap.h"
-#include "ConfigManager.h"
+#include "Common/Common.h"
+
+#include "Core/ConfigManager.h"
+#include "Core/HW/Memmap.h"
+
+#include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 
 const bool renderFog = false;
 namespace BPFunctions

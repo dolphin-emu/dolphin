@@ -4,14 +4,14 @@
 
 #include <sstream>
 
-#include "UCodes.h"
-#include "UCode_Zelda.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
+#include "Common/MathUtil.h"
 
-#include "AudioCommon.h"
-#include "MathUtil.h"
-#include "Mixer.h"
-#include "../../Memmap.h"
-#include "../../DSP.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_Zelda.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 void CUCode_Zelda::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 {

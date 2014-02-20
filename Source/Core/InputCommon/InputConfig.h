@@ -4,15 +4,15 @@
 
 #pragma once
 
-#include "Thread.h"
-#include "FileUtil.h"
-#include "IniFile.h"
-
-#include "ControllerInterface/ControllerInterface.h"
-#include "ControllerEmu.h"
-
-#include <vector>
 #include <map>
+#include <vector>
+
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/Thread.h"
+
+#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 // InputPlugin isn't a very good name anymore since it's used by GCPad/Wiimote
 // which are not even plugins anymore.

@@ -4,11 +4,12 @@
 
 #pragma once
 
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device.h"
 #include <libusb.h>
-#include "Thread.h"
 #include <list>
+
+#include "Common/Thread.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 #define HID_ID_MASK 0x0000FFFFFFFFFFFF
 #define MAX_HID_INTERFACES 1

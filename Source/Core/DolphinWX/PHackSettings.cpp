@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "CommonPaths.h"
-#include "PHackSettings.h"
-#include "ConfigManager.h"
-#include "WxUtils.h"
+#include "Common/CommonPaths.h"
+#include "Core/ConfigManager.h"
+#include "DolphinWX/PHackSettings.h"
+#include "DolphinWX/WxUtils.h"
 
 extern PHackData PHack_Data;
 

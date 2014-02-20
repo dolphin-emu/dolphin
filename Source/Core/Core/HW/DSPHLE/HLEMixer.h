@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "AudioCommon.h"
-#include "Mixer.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 
 class DSPHLE;
 

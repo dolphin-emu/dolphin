@@ -2,4 +2,4 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "stdafx.h"
+#include "VideoCommon/stdafx.h"

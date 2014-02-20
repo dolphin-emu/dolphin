@@ -2,15 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "MemoryUtil.h"
+#include "Common/Common.h"
+#include "Common/MemoryUtil.h"
 
-#include <VideoCommon.h>
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/DebugUtil.h"
+#include "VideoBackends/Software/HwRasterizer.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
 
-#include "BPMemLoader.h"
-#include "HwRasterizer.h"
-#include "NativeVertexFormat.h"
-#include "DebugUtil.h"
+#include "VideoCommon/VideoCommon.h"
 
 #define TEMP_SIZE (1024*1024*4)
 

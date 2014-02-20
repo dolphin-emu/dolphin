@@ -5,26 +5,25 @@
 #pragma once
 
 // general things
+#include <algorithm>
 #include <iostream>
-#include <vector>
 #include <list>
 #include <map>
-#include <algorithm>
-
-#include <wx/wx.h>
-#include <wx/frame.h>
+#include <vector>
 #include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/statbox.h>
-#include <wx/sizer.h>
+#include <wx/frame.h>
 #include <wx/listctrl.h>
+#include <wx/sizer.h>
+#include <wx/statbox.h>
 #include <wx/statline.h>
+#include <wx/stattext.h>
+#include <wx/wx.h>
 #include <wx/aui/aui.h>
 
-#include "DSP/disassemble.h"
-#include "DSP/DSPInterpreter.h"
-#include "DSP/DSPMemoryMap.h"
-#include "HW/DSPLLE/DSPDebugInterface.h"
+#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/HW/DSPLLE/DSPDebugInterface.h"
 
 class DSPRegisterView;
 class CCodeView;

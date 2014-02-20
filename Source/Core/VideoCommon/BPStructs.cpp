@@ -4,20 +4,21 @@
 
 #include <cmath>
 
-#include "VideoConfig.h"
-#include "Statistics.h"
-#include "RenderBase.h"
-#include "VideoCommon.h"
-#include "PixelShaderManager.h"
-#include "PixelEngine.h"
-#include "BPFunctions.h"
-#include "BPStructs.h"
-#include "TextureDecoder.h"
-#include "VertexLoader.h"
-#include "VertexShaderManager.h"
-#include "Thread.h"
-#include "HW/Memmap.h"
-#include "PerfQueryBase.h"
+#include "Common/Thread.h"
+#include "Core/HW/Memmap.h"
+
+#include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VertexLoader.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 using namespace BPFunctions;
 

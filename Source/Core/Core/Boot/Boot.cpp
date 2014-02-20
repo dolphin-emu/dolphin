@@ -3,37 +3,35 @@
 // Refer to the license.txt file included.
 
 
-#include "Common.h" // Common
-#include "StringUtil.h"
-#include "FileUtil.h"
-#include "MathUtil.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/Hash.h"
+#include "Common/MathUtil.h"
+#include "Common/StringUtil.h"
 
-#include "../HLE/HLE.h" // Core
-#include "../PowerPC/PowerPC.h"
-#include "../PowerPC/PPCAnalyst.h"
-#include "../Core.h"
-#include "../HW/EXI_DeviceIPL.h"
-#include "../HW/Memmap.h"
-#include "../HW/ProcessorInterface.h"
-#include "../HW/DVDInterface.h"
-#include "../HW/VideoInterface.h"
-#include "../IPC_HLE/WII_IPC_HLE.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Host.h"
+#include "Core/PatchEngine.h"
+#include "Core/VolumeHandler.h"
+#include "Core/Boot/Boot.h"
+#include "Core/Boot/Boot_DOL.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/VideoInterface.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/SignatureDB.h"
 
-#include "../Debugger/Debugger_SymbolMap.h" // Debugger
-
-#include "Boot_DOL.h"
-#include "Boot.h"
-#include "../Host.h"
-#include "../VolumeHandler.h"
-#include "../PatchEngine.h"
-#include "../PowerPC/SignatureDB.h"
-#include "../PowerPC/PPCSymbolDB.h"
-
-#include "../ConfigManager.h"
-#include "VolumeCreator.h" // DiscIO
-#include "NANDContentLoader.h"
-#include "Hash.h"
-#include "CommonPaths.h"
+#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/VolumeCreator.h"
 
 void CBoot::Load_FST(bool _bIsWii)
 {

@@ -1,14 +1,15 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
-#include "../JitILCommon/IR.h"
-#include "../PPCTables.h"
-#include "../../CoreTiming.h"
-#include "../../HW/Memmap.h"
-#include "JitILAsm.h"
-#include "JitIL.h"
-#include "ArmEmitter.h"
-#include "../../Core.h"
+
+#include "Common/ArmEmitter.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PPCTables.h"
+#include "Core/PowerPC/JitArmIL/JitIL.h"
+#include "Core/PowerPC/JitArmIL/JitILAsm.h"
+#include "Core/PowerPC/JitILCommon/IR.h"
 
 using namespace IREmitter;
 using namespace ArmGen;

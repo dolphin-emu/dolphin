@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "X11_Util.h"
-#include "InterfaceBase.h"
+#include "DolphinWX/GLInterface/InterfaceBase.h"
+#include "DolphinWX/GLInterface/X11_Util.h"
 
 class cInterfaceGLX : public cInterfaceBase
 {

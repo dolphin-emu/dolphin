@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include "CPMemory.h"
-
-#include "VertexManagerBase.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/VertexManagerBase.h"
 
 namespace OGL
 {

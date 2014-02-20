@@ -4,24 +4,24 @@
 
 #pragma once
 
-#include <wx/wx.h>
-#include <wx/sizer.h>
-#include <wx/filepicker.h>
-#include <wx/statbmp.h>
-#include <wx/imaglist.h>
-#include <wx/fontmap.h>
-#include <wx/treectrl.h>
-#include <wx/gbsizer.h>
-#include <wx/notebook.h>
-#include <wx/mimetype.h>
 #include <string>
+#include <wx/filepicker.h>
+#include <wx/fontmap.h>
+#include <wx/gbsizer.h>
+#include <wx/imaglist.h>
+#include <wx/mimetype.h>
+#include <wx/notebook.h>
+#include <wx/sizer.h>
+#include <wx/statbmp.h>
+#include <wx/treectrl.h>
+#include <wx/wx.h>
 
-#include "ISOFile.h"
-#include "Filesystem.h"
-#include "IniFile.h"
-#include "PatchEngine.h"
-#include "ActionReplay.h"
-#include "GeckoCodeDiag.h"
+#include "Common/IniFile.h"
+#include "Core/ActionReplay.h"
+#include "Core/PatchEngine.h"
+#include "DiscIO/Filesystem.h"
+#include "DolphinWX/GeckoCodeDiag.h"
+#include "DolphinWX/ISOFile.h"
 
 struct PHackData
 {

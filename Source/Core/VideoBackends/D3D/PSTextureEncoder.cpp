@@ -2,16 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "PSTextureEncoder.h"
-
-#include "D3DBase.h"
-#include "D3DShader.h"
-#include "GfxState.h"
-#include "BPMemory.h"
-#include "FramebufferManager.h"
-#include "Render.h"
-#include "HW/Memmap.h"
-#include "TextureCache.h"
+#include "Core/HW/Memmap.h"
+#include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DShader.h"
+#include "VideoBackends/D3D/FramebufferManager.h"
+#include "VideoBackends/D3D/GfxState.h"
+#include "VideoBackends/D3D/PSTextureEncoder.h"
+#include "VideoBackends/D3D/Render.h"
+#include "VideoBackends/D3D/TextureCache.h"
+#include "VideoCommon/BPMemory.h"
 
 // "Static mode" will compile a new EFB encoder shader for every combination of
 // encoding configurations. It's compatible with Shader Model 4.

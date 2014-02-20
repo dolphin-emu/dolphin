@@ -2,24 +2,24 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-
-#include "WII_IPC_HLE_Device_DI.h"
-#include "WII_IPC_HLE.h"
-
-#include "../HW/DVDInterface.h"
-#include "../HW/CPU.h"
-#include "../HW/Memmap.h"
-#include "../Core.h"
-#include "../VolumeHandler.h"
-#include "VolumeCreator.h"
-#include "Filesystem.h"
-#include "LogManager.h"
-#include "../HW/SystemTimers.h"
-
-#include "../../DiscIO/FileMonitor.h"
-
 #include <cinttypes>
+
+#include "Common/Common.h"
+#include "Common/LogManager.h"
+
+#include "Core/Core.h"
+#include "Core/VolumeHandler.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
+
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
+
+#include "DiscIO/FileMonitor.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/VolumeCreator.h"
 
 using namespace DVDInterface;
 

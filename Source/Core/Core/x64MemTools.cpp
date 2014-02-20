@@ -2,22 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
-#ifdef __APPLE__
-#include "Thread.h"
-#endif
-
+#include <cstdio>
 #include <vector>
 
-#include "Common.h"
-#include "MemTools.h"
-#include "HW/Memmap.h"
-#include "PowerPC/PowerPC.h"
-#include "PowerPC/JitInterface.h"
-#ifndef _M_GENERIC
-#include "PowerPC/JitCommon/JitBase.h"
+#ifdef __APPLE__
+#include "Common/Thread.h"
 #endif
-#include "x64Analyzer.h"
+
+#include "Common/Common.h"
+#include "Common/x64Analyzer.h"
+
+#include "Core/MemTools.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#ifndef _M_GENERIC
+#include "Core/PowerPC/JitCommon/JitBase.h"
+#endif
 
 namespace EMM
 {

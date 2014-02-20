@@ -2,10 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Filesystem.h"
-
-#include "VolumeCreator.h"
-#include "FileSystemGCWii.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/FileSystemGCWii.h"
+#include "DiscIO/VolumeCreator.h"
 
 namespace DiscIO
 {

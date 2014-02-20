@@ -6,9 +6,9 @@
 #include <IOKit/hid/IOHIDLib.h>
 #include <Cocoa/Cocoa.h>
 
-#include "OSX.h"
-#include "OSXKeyboard.h"
-#include "OSXJoystick.h"
+#include "InputCommon/ControllerInterface/OSX/OSX.h"
+#include "InputCommon/ControllerInterface/OSX/OSXKeyboard.h"
+#include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 
 #include <map>
 

@@ -1,27 +1,13 @@
-// Copyright (C) 2010 Dolphin Project.
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, version 2.0.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License 2.0 for more details.
-
-// A copy of the GPL 2.0 should have been included with the program.
-// If not, see http://www.gnu.org/licenses/
-
-// Official SVN repository and contact information can be found at
-// http://code.google.com/p/dolphin-emu/
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2
+// Refer to the license.txt file included.
 
 // Originally written by Sven Peter <sven@fail0verflow.com> for anergistic.
 
-#include "GDBStub.h"
-
+#include <fcntl.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
-#include <fcntl.h>
 #include <unistd.h>
 #ifdef _WIN32
 #include <ws2tcpip.h>
@@ -32,9 +18,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #endif
-#include <stdarg.h>
 
-#include "Host.h"
+#include "Core/Host.h"
+#include "Core/PowerPC/GDBStub.h"
 
 #define GDB_BFR_MAX  10000
 #define GDB_MAX_BP   10

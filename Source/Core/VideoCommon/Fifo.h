@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Common.h"
-#include "VideoBackendBase.h"
+#include "Common/Common.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 class PointerWrap;
 

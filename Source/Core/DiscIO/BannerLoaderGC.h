@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "BannerLoader.h"
-#include "VolumeGC.h"
-#include "StringUtil.h"
+#include "Common/StringUtil.h"
+
+#include "DiscIO/BannerLoader.h"
+#include "DiscIO/VolumeGC.h"
 
 namespace DiscIO
 {

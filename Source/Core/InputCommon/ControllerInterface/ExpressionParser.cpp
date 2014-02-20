@@ -2,13 +2,14 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "ExpressionParser.h"
-
+#include <algorithm>
 #include <cassert>
 #include <iostream>
-#include <string>
 #include <map>
+#include <string>
 #include <vector>
+
+#include "InputCommon/ControllerInterface/ExpressionParser.h"
 
 using namespace ciface::Core;
 

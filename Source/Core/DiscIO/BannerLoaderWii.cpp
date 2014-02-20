@@ -2,15 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
 #include <algorithm>
+#include <cstdio>
 
-#include "CommonTypes.h"
-#include "ColorUtil.h"
-#include "BannerLoaderWii.h"
-#include "VolumeCreator.h"
-#include "FileUtil.h"
-#include "FileHandlerARC.h"
+#include "Common/ColorUtil.h"
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+
+#include "DiscIO/BannerLoaderWii.h"
+#include "DiscIO/FileHandlerARC.h"
+#include "DiscIO/VolumeCreator.h"
 
 namespace DiscIO
 {

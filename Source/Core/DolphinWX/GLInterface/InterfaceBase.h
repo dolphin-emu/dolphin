@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Common/Common.h"
+
 enum GLInterfaceMode {
 	MODE_DETECT = 0,
 	MODE_OPENGL,

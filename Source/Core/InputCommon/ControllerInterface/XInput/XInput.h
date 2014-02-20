@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include "../Device.h"
-
 #define NOMINMAX
-#include <Windows.h>
+#include <windows.h>
 #include <XInput.h>
+
+#include "InputCommon/ControllerInterface/Device.h"
 
 #ifndef XINPUT_DEVSUBTYPE_FLIGHT_STICK
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path and/or _WIN32_WINNT is wrong.

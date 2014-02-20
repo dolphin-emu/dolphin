@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "TASInputDlg.h"
-#include "Movie.h"
+#include "Core/Movie.h"
+#include "DolphinWX/TASInputDlg.h"
 
 BEGIN_EVENT_TABLE(TASInputDlg, wxDialog)
 

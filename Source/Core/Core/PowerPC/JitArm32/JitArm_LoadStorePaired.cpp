@@ -1,17 +1,18 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2
 // Refer to the license.txt file included.
-#include "Common.h"
 
-#include "../../Core.h"
-#include "../PowerPC.h"
-#include "../../CoreTiming.h"
-#include "../PPCTables.h"
-#include "ArmEmitter.h"
+#include "Common/ArmEmitter.h"
+#include "Common/Common.h"
 
-#include "Jit.h"
-#include "JitRegCache.h"
-#include "JitAsm.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCTables.h"
+
+#include "Core/PowerPC/JitArm32/Jit.h"
+#include "Core/PowerPC/JitArm32/JitAsm.h"
+#include "Core/PowerPC/JitArm32/JitRegCache.h"
 
 void JitArm::psq_l(UGeckoInstruction inst)
 {

@@ -2,15 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "ChunkFile.h"
-
-#include "WII_IPC_HLE_Device_fs.h"
-#include "WII_IPC_HLE_Device_FileIO.h"
-#include "NandPaths.h"
 #include <algorithm>
+
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
+
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
 
 static Common::replace_v replacements;

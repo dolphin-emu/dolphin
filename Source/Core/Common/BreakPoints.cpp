@@ -2,12 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "DebugInterface.h"
-#include "BreakPoints.h"
-#include "../Core/PowerPC/JitCommon/JitBase.h"
-
 #include <sstream>
+
+#include "Common/BreakPoints.h"
+#include "Common/Common.h"
+#include "Common/DebugInterface.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {

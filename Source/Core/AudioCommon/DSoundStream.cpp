@@ -7,8 +7,8 @@
 
 #include <windows.h>
 
-#include "AudioCommon.h"
-#include "DSoundStream.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/DSoundStream.h"
 
 bool DSound::CreateBuffer()
 {

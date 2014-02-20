@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 
-#include "UDPWrapper.h"
-#include "UDPWiimote.h"
+#include "InputCommon/UDPWiimote.h"
+#include "InputCommon/UDPWrapper.h"
 
 namespace WiimoteEmu
 {

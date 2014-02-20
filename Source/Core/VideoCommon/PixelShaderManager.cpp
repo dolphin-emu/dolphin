@@ -4,13 +4,14 @@
 
 #include <cmath>
 
-#include "Common.h"
-#include "Statistics.h"
-#include "PixelShaderManager.h"
-#include "VideoCommon.h"
-#include "VideoConfig.h"
+#include "Common/Common.h"
 
-#include "RenderBase.h"
+#include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
+
 static bool s_bFogRangeAdjustChanged;
 static bool s_bViewPortChanged;
 static int nLightsChanged[2]; // min,max

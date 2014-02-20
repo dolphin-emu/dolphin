@@ -6,7 +6,7 @@
 #pragma warning(disable:4146)  // unary minus operator applied to unsigned type, result still unsigned
 #endif
 
-#include "JitILBase.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 static void ComputeRC(IREmitter::IRBuilder& ibuild, IREmitter::InstLoc val)
 {

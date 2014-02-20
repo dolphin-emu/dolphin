@@ -3,12 +3,13 @@
 // Refer to the license.txt file included.
 
 #ifdef ANDROID
-#include "Common.h"
 #include <assert.h>
-#include "OpenSLESStream.h"
 
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
+
+#include "AudioCommon/OpenSLESStream.h"
+#include "Common/Common.h"
 
 // engine interfaces
 static SLObjectItf engineObject;

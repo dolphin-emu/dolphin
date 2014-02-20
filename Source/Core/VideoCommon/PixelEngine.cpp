@@ -6,19 +6,18 @@
 // http://developer.nvidia.com/object/General_FAQ.html#t6 !!!!!
 
 
-#include "Common.h"
-#include "VideoCommon.h"
-#include "ChunkFile.h"
-#include "Atomic.h"
-#include "CoreTiming.h"
-#include "ConfigManager.h"
-
-#include "PixelEngine.h"
-#include "RenderBase.h"
-#include "CommandProcessor.h"
-#include "HW/MMIO.h"
-#include "HW/ProcessorInterface.h"
-#include "State.h"
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/State.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace PixelEngine
 {

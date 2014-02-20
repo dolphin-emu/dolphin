@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Volume.h"
+#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {

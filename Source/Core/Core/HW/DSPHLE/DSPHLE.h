@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "AudioCommon.h"
-#include "SoundStream.h"
-#include "MailHandler.h"
-#include "../../DSPEmulator.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/SoundStream.h"
+
+#include "Core/DSPEmulator.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
 
 class IUCode;
 

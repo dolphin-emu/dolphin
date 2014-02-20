@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include <stdlib.h>
-#include <math.h>
-#include "ChunkFile.h"
+#include <cmath>
+#include <cstdlib>
+
+#include "Common/ChunkFile.h"
 
 class Vec3
 {

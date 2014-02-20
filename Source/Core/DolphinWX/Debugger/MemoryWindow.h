@@ -5,13 +5,13 @@
 #pragma once
 
 #include <wx/dialog.h>
-#include <wx/textctrl.h>
 #include <wx/listbox.h>
-#include "MemoryView.h"
-#include "Thread.h"
-#include "StringUtil.h"
+#include <wx/textctrl.h>
 
-#include "CoreParameter.h"
+#include "Common/StringUtil.h"
+#include "Common/Thread.h"
+#include "Core/CoreParameter.h"
+#include "DolphinWX/Debugger/MemoryView.h"
 
 class CRegisterWindow;
 class CBreakPointWindow;

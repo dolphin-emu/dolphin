@@ -4,9 +4,9 @@
 
 #include <cstddef>
 
-#include "Common.h"
-#include "VideoConfig.h"
-#include "IndexGenerator.h"
+#include "Common/Common.h"
+#include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/VideoConfig.h"
 
 //Init
 u16 *IndexGenerator::index_buffer_current;

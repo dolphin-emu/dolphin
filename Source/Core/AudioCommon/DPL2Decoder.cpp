@@ -7,13 +7,14 @@
 //  * Copyright (c) 2004-2006 Milan Cutka
 //  * based on mplayer HRTF plugin by ylai
 
+#include <cmath>
+#include <cstdlib>
 #include <functional>
-#include <vector>
-#include <math.h>
-#include <stdlib.h>
 #include <string.h>
-#include "DPL2Decoder.h"
-#include "MathUtil.h"
+#include <vector>
+
+#include "AudioCommon/DPL2Decoder.h"
+#include "Common/MathUtil.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

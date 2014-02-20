@@ -2,17 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../Core.h"
-#include "../Debugger/Debugger_SymbolMap.h"
-#include "../Host.h"
-#include "../HW/SystemTimers.h"
-#include "../HW/Wiimote.h"
-#include "../HW/WII_IPC.h"
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device_usb.h"
-#include "../ConfigManager.h"
-#include "../Movie.h"
-#include "CoreTiming.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreTiming.h"
+#include "Core/Host.h"
+#include "Core/Movie.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/HW/WII_IPC.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
 // The device class
 CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName)

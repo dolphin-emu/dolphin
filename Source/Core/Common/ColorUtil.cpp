@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "ColorUtil.h"
+#include "Common/ColorUtil.h"
+#include "Common/Common.h"
 
 namespace ColorUtil
 {

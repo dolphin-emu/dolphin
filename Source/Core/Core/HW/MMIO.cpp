@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "MMIO.h"
-#include "MMIOHandlers.h"
-
 #include <functional>
+
+#include "Core/HW/MMIO.h"
+#include "Core/HW/MMIOHandlers.h"
 
 namespace MMIO
 {

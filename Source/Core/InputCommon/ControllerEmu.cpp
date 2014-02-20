@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "ControllerEmu.h"
+#include "InputCommon/ControllerEmu.h"
 
 #if defined(HAVE_X11) && HAVE_X11
 #include <X11/Xlib.h>

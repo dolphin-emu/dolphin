@@ -12,8 +12,8 @@
 
 #pragma once
 
-#include "UCodes.h"
-#include "UCode_AXStructs.h"
+#include "Core/HW/DSPHLE/UCodes/UCode_AXStructs.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 // We can't directly use the mixer_control field from the PB because it does
 // not mean the same in all AX versions. The AX UCode converts the

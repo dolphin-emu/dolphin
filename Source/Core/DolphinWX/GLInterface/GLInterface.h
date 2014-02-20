@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Thread.h"
+#include "Common/Thread.h"
 
 #if USE_EGL
 // Currently Wayland/EGL and X11/EGL platforms are supported.
@@ -19,19 +19,19 @@ enum egl_platform {
 };
 
 #if HAVE_X11
-#include "GLInterface/X11_Util.h"
+#include "DolphinWX/GLInterface/X11_Util.h"
 #endif
 #if HAVE_WAYLAND
-#include "GLInterface/Wayland_Util.h"
+#include "DolphinWX/GLInterface/Wayland_Util.h"
 #endif
 
-#include "GLInterface/EGL.h"
+#include "DolphinWX/GLInterface/EGL.h"
 #elif defined(__APPLE__)
-#include "GLInterface/AGL.h"
+#include "DolphinWX/GLInterface/AGL.h"
 #elif defined(_WIN32)
-#include "GLInterface/WGL.h"
+#include "DolphinWX/GLInterface/WGL.h"
 #elif HAVE_X11
-#include "GLInterface/GLX.h"
+#include "DolphinWX/GLInterface/GLX.h"
 #include <GL/glx.h>
 #else
 #error Platform doesnt have a GLInterface

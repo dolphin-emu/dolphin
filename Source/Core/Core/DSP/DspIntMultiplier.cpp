@@ -7,10 +7,9 @@
 
 // Multiplier and product register control
 
-#include "DSPInterpreter.h"
-
-#include "DSPIntCCUtil.h"
-#include "DSPIntUtil.h"
+#include "Core/DSP/DSPIntCCUtil.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPIntUtil.h"
 
 namespace DSPInterpreter {
 

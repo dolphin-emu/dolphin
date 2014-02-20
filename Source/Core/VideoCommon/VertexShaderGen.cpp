@@ -2,20 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <math.h>
+#include <cmath>
 #include <locale.h>
 #ifdef __APPLE__
 	#include <xlocale.h>
 #endif
 
-#include "NativeVertexFormat.h"
-
-#include "BPMemory.h"
-#include "CPMemory.h"
-#include "DriverDetails.h"
-#include "LightingShaderGen.h"
-#include "VertexShaderGen.h"
-#include "VideoConfig.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CPMemory.h"
+#include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/LightingShaderGen.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoConfig.h"
 
 static char text[16768];
 

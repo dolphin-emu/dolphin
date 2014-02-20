@@ -2,15 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "ChunkFile.h"
-#include "ProcessorInterface.h"
-#include "Memmap.h"
-#include "VideoBackendBase.h"
-#include "../PowerPC/JitCommon/JitBase.h"
-#include "../PowerPC/PowerPC.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "GPFifo.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace GPFifo
 {

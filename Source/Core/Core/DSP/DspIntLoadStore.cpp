@@ -4,10 +4,9 @@
 //
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
-#include "DSPInterpreter.h"
-
-#include "DSPMemoryMap.h"
-#include "DSPIntUtil.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/DSPMemoryMap.h"
 
 namespace DSPInterpreter {
 

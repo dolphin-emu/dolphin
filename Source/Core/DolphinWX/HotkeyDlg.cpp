@@ -4,8 +4,8 @@
 
 #include <wx/notebook.h>
 
-#include "HotkeyDlg.h"
-#include "ConfigManager.h"
+#include "Core/ConfigManager.h"
+#include "DolphinWX/HotkeyDlg.h"
 
 BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
 	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1,

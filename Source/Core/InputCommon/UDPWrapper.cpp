@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "UDPWrapper.h"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "InputCommon/UDPWrapper.h"
 
 const std::string DefaultPort(const int index)
 {

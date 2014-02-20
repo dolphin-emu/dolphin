@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "UDPWiimote.h"
-#include "WiimoteEmu.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/UDPWiimote.h"
 
 namespace UDPTLayer
 {

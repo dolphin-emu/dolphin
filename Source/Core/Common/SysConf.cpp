@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "FileUtil.h"
-#include "SysConf.h"
-
 #include <cinttypes>
+
+#include "Common/FileUtil.h"
+#include "Common/SysConf.h"
 
 SysConf::SysConf()
 	: m_IsValid(false)

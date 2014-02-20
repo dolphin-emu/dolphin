@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
 #include "scmrev.h"
+#include "Common/Common.h"
 
 #ifdef _DEBUG
 	#define BUILD_TYPE_STR "Debug "

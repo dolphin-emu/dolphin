@@ -39,17 +39,17 @@ Initial import
 
 #include <cstdio>
 #include <cstdlib>
-
-#include <map>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <map>
 
-#include "Common.h"
-#include "FileUtil.h"
-#include "DSPInterpreter.h"
-#include "DSPTables.h"
-#include "disassemble.h"
-#include "assemble.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+
+#include "Core/DSP/assemble.h"
+#include "Core/DSP/disassemble.h"
+#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPTables.h"
 
 static const char *err_string[] =
 {

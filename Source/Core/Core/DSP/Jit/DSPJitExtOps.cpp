@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../DSPEmitter.h"
-#include "../DSPMemoryMap.h"
+#include "Core/DSP/DSPEmitter.h"
+#include "Core/DSP/DSPMemoryMap.h"
 
 using namespace Gen;
 

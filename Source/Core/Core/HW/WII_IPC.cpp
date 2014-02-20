@@ -6,17 +6,16 @@
 #include <queue>
 #include <vector>
 
-#include "Common.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "CPU.h"
-#include "Memmap.h"
-#include "ProcessorInterface.h"
-#include "MMIO.h"
-
-#include "../IPC_HLE/WII_IPC_HLE.h"
-#include "WII_IPC.h"
-#include "CoreTiming.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/WII_IPC.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 
 
 // This is the intercommunication between ARM and PPC. Currently only PPC actually uses it, because of the IOS HLE

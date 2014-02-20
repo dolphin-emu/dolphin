@@ -7,8 +7,8 @@
 // instead of other possible places. This may be accomplished by adding the path to
 // the AdditionalIncludeDirectories for this file via msbuild.
 
-#include "AudioCommon.h"
-#include "XAudio2_7Stream.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/XAudio2_7Stream.h"
 
 #ifdef HAVE_DXSDK
 #include <dxsdkver.h>

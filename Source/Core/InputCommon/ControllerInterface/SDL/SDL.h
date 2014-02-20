@@ -4,11 +4,12 @@
 
 #pragma once
 
-#include "../Device.h"
-
 #include <list>
 
 #include <SDL.h>
+
+#include "InputCommon/ControllerInterface/Device.h"
+
 
 #if SDL_VERSION_ATLEAST(1, 3, 0)
 	#define USE_SDL_HAPTIC

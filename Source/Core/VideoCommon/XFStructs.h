@@ -4,4 +4,4 @@
 
 #pragma once
 
-#include "XFMemory.h"
+#include "VideoCommon/XFMemory.h"

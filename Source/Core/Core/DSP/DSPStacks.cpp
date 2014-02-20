@@ -23,10 +23,10 @@
 
    ====================================================================*/
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "DSPCore.h"
-#include "DSPStacks.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPStacks.h"
 
 // Stacks. The stacks are outside the DSP RAM, in dedicated hardware.
 

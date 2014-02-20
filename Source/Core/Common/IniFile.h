@@ -5,11 +5,11 @@
 #pragma once
 
 #include <map>
-#include <string>
 #include <set>
+#include <string>
 #include <vector>
 
-#include "StringUtil.h"
+#include "Common/StringUtil.h"
 
 struct CaseInsensitiveStringCompare
 {

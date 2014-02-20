@@ -2,8 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "LabelMap.h"
-#include "DSPTables.h"
+#include "Core/DSP/DSPTables.h"
+#include "Core/DSP/LabelMap.h"
 
 LabelMap::LabelMap()
 {

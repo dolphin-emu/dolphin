@@ -2,7 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 #pragma once
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 namespace DriverDetails
 {

@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "WaveFile.h"
-#include "../Core/ConfigManager.h"
+#include "AudioCommon/WaveFile.h"
+#include "Common/Common.h"
+#include "Core/ConfigManager.h"
 
 enum {BUF_SIZE = 32*1024};
 

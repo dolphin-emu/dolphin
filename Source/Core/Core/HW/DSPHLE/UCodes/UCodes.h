@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "Common.h"
-#include "ChunkFile.h"
-#include "Thread.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
+#include "Common/Thread.h"
 
-#include "../DSPHLE.h"
-#include "../../Memmap.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
 
 #define UCODE_ROM                   0x00000000
 #define UCODE_INIT_AUDIO_SYSTEM     0x00000001

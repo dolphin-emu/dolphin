@@ -2,9 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DSPDebugWindow.h"
-#include "DSPRegisterView.h"
-#include "../WxUtils.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/DSPDebugWindow.h"
+#include "DolphinWX/Debugger/DSPRegisterView.h"
 
 wxString CDSPRegTable::GetValue(int row, int col)
 {

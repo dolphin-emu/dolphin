@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "../Device.h"
-
 #define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <Windows.h>
 #include <dinput.h>
+#include <windows.h>
+
+#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {

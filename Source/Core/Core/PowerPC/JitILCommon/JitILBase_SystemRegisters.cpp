@@ -2,11 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
-#include "JitILBase.h"
-
-#include "../../HW/SystemTimers.h"
-
+#include "Common/Common.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 void JitILBase::mtspr(UGeckoInstruction inst)
 {

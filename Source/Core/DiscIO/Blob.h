@@ -14,7 +14,7 @@
 // detect whether the file is a compressed blob, or just a big hunk of data, or a drive, and
 // automatically do the right thing.
 
-#include "CommonTypes.h"
+#include "Common/CommonTypes.h"
 
 namespace DiscIO
 {

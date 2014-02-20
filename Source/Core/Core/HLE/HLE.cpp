@@ -2,20 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h"
+#include "Common/Common.h"
 
-#include "HLE.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HLE/HLE_Misc.h"
+#include "Core/HLE/HLE_OS.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 
-#include "../PowerPC/PowerPC.h"
-#include "../PowerPC/PPCSymbolDB.h"
-#include "../HW/Memmap.h"
-#include "../Debugger/Debugger_SymbolMap.h"
-
-#include "HLE_OS.h"
-#include "HLE_Misc.h"
-#include "IPC_HLE/WII_IPC_HLE_Device_es.h"
-#include "ConfigManager.h"
-#include "Core.h"
 
 namespace HLE
 {

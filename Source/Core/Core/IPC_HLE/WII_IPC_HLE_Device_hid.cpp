@@ -2,12 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../Core.h"
-#include "../Debugger/Debugger_SymbolMap.h"
-#include "../HW/WII_IPC.h"
-#include "WII_IPC_HLE.h"
-#include "WII_IPC_HLE_Device_hid.h"
-#include "errno.h"
+#include <errno.h>
+
+#include "Core/Core.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/WII_IPC.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_hid.h"
 
 #define MAX_DEVICE_DEVNUM 256
 static u64 hidDeviceAliases[MAX_DEVICE_DEVNUM];

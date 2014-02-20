@@ -6,8 +6,8 @@
 
 #include <IOKit/hid/IOHIDLib.h>
 
-#include "../Device.h"
-#include "../ForceFeedback/ForceFeedbackDevice.h"
+#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 
 namespace ciface
 {

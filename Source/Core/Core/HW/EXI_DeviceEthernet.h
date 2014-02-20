@@ -8,7 +8,7 @@
 #include <Windows.h>
 #endif
 
-#include "Thread.h"
+#include "Common/Thread.h"
 
 // Network Control Register A
 enum NCRA

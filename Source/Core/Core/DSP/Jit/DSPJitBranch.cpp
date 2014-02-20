@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "../DSPAnalyzer.h"
-#include "../DSPEmitter.h"
-#include "../DSPMemoryMap.h"
-#include "../DSPStacks.h"
+#include "Core/DSP/DSPAnalyzer.h"
+#include "Core/DSP/DSPEmitter.h"
+#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/DSPStacks.h"
 
 using namespace Gen;
 

@@ -2,19 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <stdio.h>
+#include <cstdio>
 
-#include "Common.h"
-#include "Atomic.h"
-#include "ChunkFile.h"
-#include "../PowerPC/PowerPC.h"
+#include "Common/Atomic.h"
+#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
-#include "CPU.h"
-#include "../CoreTiming.h"
-#include "ProcessorInterface.h"
-#include "GPFifo.h"
-#include "VideoBackendBase.h"
-#include "MMIO.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/CPU.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/MMIO.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/PowerPC.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace ProcessorInterface
 {

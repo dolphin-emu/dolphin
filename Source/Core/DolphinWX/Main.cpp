@@ -2,36 +2,35 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <vector>
 #include <string>
+#include <vector>
+#include <wx/intl.h>
+#include <wx/stdpaths.h>
 
-#include "Common.h"
-#include "CommonPaths.h"
+#include "Common/Common.h"
+#include "Common/CommonPaths.h"
+#include "Common/CPUDetect.h"
+#include "Common/ExtendedTrace.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+
+#include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
+#include "Core/HW/Wiimote.h"
+
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/Main.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/JitWindow.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
 #endif
-
-#include "CPUDetect.h"
-#include "IniFile.h"
-#include "FileUtil.h"
-
-#include "Host.h" // Core
-#include "HW/Wiimote.h"
-
-#include "WxUtils.h"
-#include "Globals.h" // Local
-#include "Main.h"
-#include "ConfigManager.h"
-#include "Debugger/CodeWindow.h"
-#include "Debugger/JitWindow.h"
-#include "ExtendedTrace.h"
-#include "BootManager.h"
-#include "Frame.h"
-
-#include "VideoBackendBase.h"
-
-#include <wx/intl.h>
 
 #ifdef _WIN32
 #include <shellapi.h>
@@ -75,7 +74,6 @@ BEGIN_EVENT_TABLE(DolphinApp, wxApp)
 	EVT_END_SESSION(DolphinApp::OnEndSession)
 END_EVENT_TABLE()
 
-#include <wx/stdpaths.h>
 bool wxMsgAlert(const char*, const char*, bool, int);
 std::string wxStringTranslator(const char *);
 

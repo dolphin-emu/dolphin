@@ -5,8 +5,9 @@
 #pragma once
 
 #include <vector>
-#include "Common.h"
-#include "ActionReplay.h"
+
+#include "Common/Common.h"
+#include "Core/ActionReplay.h"
 
 namespace ActionReplay
 {

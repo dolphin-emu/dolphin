@@ -6,16 +6,16 @@
 
 #include <polarssl/aes.h>
 
-#include "VolumeCreator.h"
+#include "Common/Hash.h"
+#include "Common/StringUtil.h"
 
-#include "Volume.h"
-#include "VolumeDirectory.h"
-#include "VolumeGC.h"
-#include "VolumeWiiCrypted.h"
-#include "VolumeWad.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/VolumeDirectory.h"
+#include "DiscIO/VolumeGC.h"
+#include "DiscIO/VolumeWad.h"
+#include "DiscIO/VolumeWiiCrypted.h"
 
-#include "Hash.h"
-#include "StringUtil.h"
 
 namespace DiscIO
 {

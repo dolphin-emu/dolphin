@@ -2,17 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Globals.h"
-#include "CheatsWindow.h"
-#include "ActionReplay.h"
-#include "CommonPaths.h"
-#include "Core.h"
-#include "ConfigManager.h"
-#include "VolumeHandler.h"
-#include "ISOProperties.h"
-#include "HW/Memmap.h"
-#include "Frame.h"
-#include "WxUtils.h"
+#include "Common/CommonPaths.h"
+#include "Core/ActionReplay.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/VolumeHandler.h"
+#include "Core/HW/Memmap.h"
+#include "DolphinWX/CheatsWindow.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/WxUtils.h"
+
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY  256
 extern std::vector<ActionReplay::ARCode> arCodes;

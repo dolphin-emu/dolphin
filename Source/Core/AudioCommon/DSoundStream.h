@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "SoundStream.h"
-#include "Thread.h"
+#include "AudioCommon/SoundStream.h"
+#include "Common/Thread.h"
 
 #ifdef _WIN32
 #include <Windows.h>

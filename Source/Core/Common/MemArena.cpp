@@ -4,9 +4,9 @@
 
 #include <set>
 
-#include "MemoryUtil.h"
-#include "MemArena.h"
-#include "StringUtil.h"
+#include "Common/MemArena.h"
+#include "Common/MemoryUtil.h"
+#include "Common/StringUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>

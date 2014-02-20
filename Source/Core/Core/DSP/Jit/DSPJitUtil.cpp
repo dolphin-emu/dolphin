@@ -2,10 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "DSPJitUtil.h"
-#include "../DSPEmitter.h"
-#include "../DSPHWInterface.h"
-#include "../DSPMemoryMap.h"
+#include "Core/DSP/DSPEmitter.h"
+#include "Core/DSP/DSPHWInterface.h"
+#include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/Jit/DSPJitUtil.h"
 
 using namespace Gen;
 

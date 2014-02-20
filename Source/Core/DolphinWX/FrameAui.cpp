@@ -2,14 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common.h" // Common
-
-#include "Globals.h" // Local
-#include "Frame.h"
-#include "LogWindow.h"
-#include "WxUtils.h"
-
-#include "ConfigManager.h" // Core
+#include "Common/Common.h"
+#include "Core/ConfigManager.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/LogWindow.h"
+#include "DolphinWX/WxUtils.h"
 
 // ------------
 // Aui events

@@ -2,39 +2,39 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/Atomic.h"
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "Common/LogManager.h"
 
-#include "Common.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/VideoInterface.h"
+
+#include "VideoBackends/OGL/GLExtensions/GLExtensions.h"
+#include "VideoBackends/Software/BPMemLoader.h"
+#include "VideoBackends/Software/Clipper.h"
+#include "VideoBackends/Software/DebugUtil.h"
+#include "VideoBackends/Software/EfbInterface.h"
+#include "VideoBackends/Software/HwRasterizer.h"
+#include "VideoBackends/Software/OpcodeDecoder.h"
+#include "VideoBackends/Software/Rasterizer.h"
+#include "VideoBackends/Software/SWCommandProcessor.h"
+#include "VideoBackends/Software/SWPixelEngine.h"
+#include "VideoBackends/Software/SWRenderer.h"
+#include "VideoBackends/Software/SWStatistics.h"
+#include "VideoBackends/Software/SWVertexLoader.h"
+#include "VideoBackends/Software/SWVideoConfig.h"
+#include "VideoBackends/Software/VideoBackend.h"
+#include "VideoBackends/Software/XFMemLoader.h"
 
 #if defined(HAVE_WX) && HAVE_WX
-#include "VideoConfigDialog.h"
+#include "VideoBackends/Software/VideoConfigDialog.h"
 #endif // HAVE_WX
 
-#include "../OGL/GLExtensions/GLExtensions.h"
-#include "Atomic.h"
-#include "SWCommandProcessor.h"
-#include "OpcodeDecoder.h"
-#include "SWVideoConfig.h"
-#include "SWPixelEngine.h"
-#include "BPMemLoader.h"
-#include "XFMemLoader.h"
-#include "Clipper.h"
-#include "Rasterizer.h"
-#include "SWRenderer.h"
-#include "HwRasterizer.h"
-#include "LogManager.h"
-#include "EfbInterface.h"
-#include "DebugUtil.h"
-#include "FileUtil.h"
-#include "VideoBackend.h"
-#include "Core.h"
-#include "OpcodeDecoder.h"
-#include "SWVertexLoader.h"
-#include "SWStatistics.h"
-#include "HW/VideoInterface.h"
-#include "HW/Memmap.h"
-#include "ConfigManager.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
-#include "OnScreenDisplay.h"
 #define VSYNC_ENABLED 0
 
 static volatile u32 s_swapRequested = false;

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "NativeVertexFormat.h"
-#include "ChunkFile.h"
+#include "Common/ChunkFile.h"
+#include "VideoBackends/Software/NativeVertexFormat.h"
 
 namespace Rasterizer
 {

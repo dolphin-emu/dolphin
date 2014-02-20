@@ -2,15 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Globals.h"
-#include "FramebufferManager.h"
-#include "VertexShaderGen.h"
-#include "OnScreenDisplay.h"
-#include "DriverDetails.h"
+#include "Core/HW/Memmap.h"
 
-#include "TextureConverter.h"
-#include "Render.h"
-#include "HW/Memmap.h"
+#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/Globals.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/TextureConverter.h"
+
+#include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VertexShaderGen.h"
 
 namespace OGL
 {

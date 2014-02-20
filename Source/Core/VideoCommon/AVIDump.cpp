@@ -6,9 +6,9 @@
 #define __STDC_CONSTANT_MACROS 1
 #endif
 
-#include "AVIDump.h"
-#include "HW/VideoInterface.h" //for TargetRefreshRate
-#include "VideoConfig.h"
+#include "Core/HW/VideoInterface.h" //for TargetRefreshRate
+#include "VideoCommon/AVIDump.h"
+#include "VideoCommon/VideoConfig.h"
 
 #ifdef _WIN32
 
@@ -19,9 +19,9 @@
 #include <vfw.h>
 #include <winerror.h>
 
-#include "FileUtil.h"
-#include "CommonPaths.h"
-#include "Log.h"
+#include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/Log.h"
 
 HWND m_emuWnd;
 LONG m_byteBuffer;
@@ -204,9 +204,9 @@ bool AVIDump::SetVideoFormat()
 
 #else
 
-#include "FileUtil.h"
-#include "StringUtil.h"
-#include "Log.h"
+#include "Common/FileUtil.h"
+#include "Common/Log.h"
+#include "Common/StringUtil.h"
 
 extern "C" {
 #include <libavcodec/avcodec.h>
