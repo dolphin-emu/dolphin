@@ -2,14 +2,20 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <algorithm>
+#include <cstdarg>
+#include <cstring>
+#include <mutex>
+#include <ostream>
+#include <set>
+#include <string>
 
 #ifdef ANDROID
 #include "Core/Host.h"
 #endif
 #include "Common/FileUtil.h"
+#include "Common/Log.h"
 #include "Common/LogManager.h"
-#include "Common/Thread.h"
+#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,

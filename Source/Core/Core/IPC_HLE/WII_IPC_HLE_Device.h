@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Common/ChunkFile.h"
+#include "Common/StringUtil.h"
 
 #include "Core/HW/Memmap.h"
 

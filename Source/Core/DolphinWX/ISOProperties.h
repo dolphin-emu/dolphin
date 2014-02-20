@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <set>
 #include <string>
 #include <wx/filepicker.h>
 #include <wx/fontmap.h>

@@ -5,6 +5,7 @@
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
 // Only Linux platforms have /proc/cpuinfo
 #if !defined(BLACKBERRY) && !defined(IOS) && !defined(__SYMBIAN32__)

@@ -13,15 +13,15 @@
 
 #if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__
 // GCC 4.4 provides <mutex>
-#include <mutex>
+#include <mutex> // IWYU pragma: export
 #elif __has_include(<mutex>) && !ANDROID
 // Clang + libc++
-#include <mutex>
+#include <mutex> // IWYU pragma: export
 
 #elif _MSC_VER >= 1700
 
 // The standard implementation is included since VS2012
-#include <mutex>
+#include <mutex> // IWYU pragma: export
 
 #else
 

@@ -13,12 +13,14 @@
 // - Zero backwards/forwards compatibility
 // - Serialization code for anything complex has to be manually written.
 
+#include <cstddef>
 #include <deque>
 #include <list>
 #include <map>
 #include <set>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "Common/Common.h"

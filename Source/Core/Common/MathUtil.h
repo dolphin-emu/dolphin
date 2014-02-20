@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include <cstdlib>
 #include <vector>
 
 #include "Common/Common.h"
-#include "Common/FPURoundMode.h"
 
 namespace MathUtil
 {

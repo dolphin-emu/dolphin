@@ -14,7 +14,7 @@
 #if GCC_VERSION >= GCC_VER(4,4,0) && __GXX_EXPERIMENTAL_CXX0X__
 
 // GCC 4.4 provides <condition_variable>
-#include <condition_variable>
+#include <condition_variable> // IWYU pragma: export
 
 #elif __has_include(<condition_variable>) && !ANDROID
 
@@ -23,14 +23,12 @@
 //
 // We work around this issue by undefining and redefining _.
 
-#undef _
-#include <condition_variable>
-#define _(s) wxGetTranslation((s))
+#include <condition_variable> // IWYU pragma: export
 
 #elif _MSC_VER >= 1700
 
 // The standard implementation is included since VS2012
-#include <condition_variable>
+#include <condition_variable> // IWYU pragma: export
 
 #else
 

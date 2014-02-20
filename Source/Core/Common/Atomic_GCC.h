@@ -2,6 +2,8 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+// IWYU pragma: private, include "Common/Atomic.h"
+
 #pragma once
 
 #include "Common/Common.h"

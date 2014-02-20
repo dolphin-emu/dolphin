@@ -4,6 +4,7 @@
 
 #include <cinttypes>
 #include <ctime>
+#include <string>
 
 #ifdef _WIN32
 #include <mmsystem.h>
@@ -13,6 +14,7 @@
 #include <sys/time.h>
 #endif
 
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 

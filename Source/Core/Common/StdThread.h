@@ -16,15 +16,15 @@
 #ifndef _GLIBCXX_USE_SCHED_YIELD
 #define _GLIBCXX_USE_SCHED_YIELD
 #endif
-#include <thread>
+#include <thread> // IWYU pragma: export
 #elif __has_include(<thread>) && !ANDROID
 // Clang + libc++
-#include <thread>
+#include <thread> // IWYU pragma: export
 
 #elif _MSC_VER >= 1700
 
 // The standard implementation is included since VS2012
-#include <thread>
+#include <thread> // IWYU pragma: export
 
 #else
 

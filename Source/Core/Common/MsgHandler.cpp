@@ -2,7 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstdarg>
 #include <cstdio>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/StringUtil.h"

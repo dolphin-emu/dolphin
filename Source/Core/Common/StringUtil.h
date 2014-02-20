@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdarg>
+#include <cstddef>
 #include <iomanip>
 #include <sstream>
 #include <string>

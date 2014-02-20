@@ -2,17 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <cstdlib>
+#include <string>
 
 #include "Common/Common.h"
-#include "Common/MemoryUtil.h"
-#include "Common/StringUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #include <psapi.h>
+#include "Common/StringUtil.h"
 #else
-#include <errno.h>
 #include <stdio.h>
+#include <sys/mman.h>
 #endif
 
 #if !defined(_WIN32) && defined(__x86_64__) && !defined(MAP_32BIT)

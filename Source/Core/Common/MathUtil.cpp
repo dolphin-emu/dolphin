@@ -3,8 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstring>
 #include <numeric>
 
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
 namespace MathUtil

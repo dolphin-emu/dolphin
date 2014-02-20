@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstring>
 #include <fstream>
 
 #include "Common/Common.h"

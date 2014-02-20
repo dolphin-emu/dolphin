@@ -15,7 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "FPURoundMode.h"
+#include "Common/CommonTypes.h"
+#include "Common/FPURoundMode.h"
 
 // Generic, do nothing
 namespace FPURoundMode

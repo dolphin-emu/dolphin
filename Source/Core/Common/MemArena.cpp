@@ -2,20 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <cstdlib>
 #include <set>
+#include <string>
 
+#include "Common/Common.h"
 #include "Common/MemArena.h"
-#include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #else
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <cerrno>
 #include <cstring>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
 #ifdef ANDROID
 #include <sys/ioctl.h>
 #include <linux/ashmem.h>

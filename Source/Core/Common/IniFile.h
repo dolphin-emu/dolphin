@@ -4,11 +4,12 @@
 
 #pragma once
 
+#include <cstring>
 #include <map>
-#include <set>
 #include <string>
 #include <vector>
 
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
 struct CaseInsensitiveStringCompare

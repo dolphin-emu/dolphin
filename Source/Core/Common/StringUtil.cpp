@@ -3,9 +3,18 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstdarg>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <iomanip>
+#include <istream>
+#include <limits.h>
+#include <string>
+#include <vector>
 
+#include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/StringUtil.h"
 

@@ -29,12 +29,12 @@
 // Modified for Dolphin.
 
 #include <cinttypes>
+#include <cstddef>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <errno.h>
 
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/SDCardUtil.h"
 
