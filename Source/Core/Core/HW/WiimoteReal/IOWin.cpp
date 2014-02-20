@@ -7,16 +7,16 @@
 #define NTDDI_VERSION  NTDDI_WINXPSP2
 
 #include <algorithm>
-#include <BluetoothAPIs.h>
-#include <bthdef.h>
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-#include <dbt.h>
-#include <setupapi.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <windows.h>
+// The following Windows headers MUST be included after windows.h.
+#include <BluetoothAPIs.h> //NOLINT
+#include <dbt.h>           //NOLINT
+#include <setupapi.h>      //NOLINT
 
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
