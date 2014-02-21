@@ -13,7 +13,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 
 void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 {

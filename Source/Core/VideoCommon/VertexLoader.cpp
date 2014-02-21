@@ -5,8 +5,6 @@
 #include "Common/Common.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
-#include "Common/x64ABI.h"
-#include "Common/x64Emitter.h"
 
 #include "Core/Host.h"
 
@@ -32,6 +30,9 @@
 #ifndef __APPLE__
 #define USE_JIT
 #endif
+#include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
+using namespace Gen;
 #endif
 
 #define COMPILED_CODE_SIZE 4096
@@ -87,7 +88,6 @@ static const float fractionTable[32] = {
 	1.0f / (1U << 28), 1.0f / (1U << 29), 1.0f / (1U << 30), 1.0f / (1U << 31),
 };
 
-using namespace Gen;
 
 void LOADERDECL PosMtx_ReadDirect_UByte()
 {
@@ -801,7 +801,7 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 	m_PipelineStages[m_numPipelineStages++] = func;
 #endif
 }
-// ARMTODO: This should be done in a better way
+
 #ifndef _M_GENERIC
 void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 {

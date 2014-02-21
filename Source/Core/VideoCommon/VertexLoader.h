@@ -11,12 +11,14 @@
 #include <string>
 
 #include "Common/Common.h"
-#include "Common/x64Emitter.h"
 
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
+#ifndef _M_GENERIC
+#include "Common/x64Emitter.h"
+#endif
 
 class VertexLoaderUID
 {
@@ -81,7 +83,6 @@ private:
 	}
 };
 
-// ARMTODO: This should be done in a better way
 #ifndef _M_GENERIC
 class VertexLoader : public Gen::XCodeBlock, NonCopyable
 #else

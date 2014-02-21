@@ -125,8 +125,15 @@ if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
 	endif()
 endif()
 
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+	set(_M_GENERIC 1)
+	set(_M_ARM64 1)
+	add_definitions(-D_M_GENERIC=1 -D_M_ARM64=1)
+endif()
+
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "mips")
 	set(_M_GENERIC 1)
+	add_definitions(-D_M_GENERIC=1)
 endif()
 
 # Set these next two lines to test generic

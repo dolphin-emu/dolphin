@@ -27,20 +27,19 @@ set(SRCS	BreakPoints.cpp
 			Crypto/ec.cpp)
 
 if(_M_ARM) #ARM
-	set(SRCS	${SRCS}
-				ArmCPUDetect.cpp
-				ArmEmitter.cpp)
+	set(SRCS ${SRCS}
+	         ArmCPUDetect.cpp
+	         ArmEmitter.cpp)
 else()
 	if(NOT _M_GENERIC) #X86
-		set(SRCS	${SRCS}
-					x64FPURoundMode.cpp
-					)
+		set(SRCS ${SRCS}
+		         x64FPURoundMode.cpp)
 	endif()
 	set(SRCS ${SRCS} x64CPUDetect.cpp)
 endif()
 if(_M_GENERIC) #Generic
-	set(SRCS	${SRCS}
-				GenericFPURoundMode.cpp)
+	set(SRCS ${SRCS} 
+	         GenericFPURoundMode.cpp)
 endif()
 if(WIN32)
 	set(SRCS ${SRCS} ExtendedTrace.cpp)
