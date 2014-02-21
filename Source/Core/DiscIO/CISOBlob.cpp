@@ -3,9 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cmath>
+#include <cstdio>
 
-#include "DiscIO/Blob.h"
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "DiscIO/CISOBlob.h"
 
 namespace DiscIO

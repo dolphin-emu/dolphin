@@ -3,10 +3,15 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cmath>
+#include <cstddef>
+#include <string>
+#include <vector>
 
+#include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
 
 #define ALIGN_40(x) ROUND_UP(Common::swap32(x), 0x40)

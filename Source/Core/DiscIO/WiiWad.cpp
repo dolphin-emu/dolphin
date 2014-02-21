@@ -3,13 +3,14 @@
 // Refer to the license.txt file included.
 
 
-#include <algorithm>
-#include <cctype>
+#include <cstddef>
+#include <string>
 
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Log.h"
 #include "Common/MathUtil.h"
-#include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/WiiWad.h"
 
 namespace DiscIO

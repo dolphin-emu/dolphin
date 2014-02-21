@@ -2,15 +2,18 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <cstring>
+#include <string>
 #include <vector>
 
 #include <polarssl/aes.h>
 
-#include "Common/Hash.h"
+#include "Common/Common.h"
 #include "Common/StringUtil.h"
 
+#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 #include "DiscIO/VolumeDirectory.h"
 #include "DiscIO/VolumeGC.h"
 #include "DiscIO/VolumeWad.h"

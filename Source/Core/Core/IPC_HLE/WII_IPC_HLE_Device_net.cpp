@@ -7,6 +7,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
 #include "Common/SettingsHandler.h"
 #include "Common/StringUtil.h"
 

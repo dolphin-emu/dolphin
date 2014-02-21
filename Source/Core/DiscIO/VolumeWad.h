@@ -4,8 +4,10 @@
 
 #pragma once
 
-#include "DiscIO/Blob.h"
-#include "DiscIO/NANDContentLoader.h"
+#include <string>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for Wad files ---
@@ -14,6 +16,9 @@
 
 namespace DiscIO
 {
+
+class IBlobReader;
+
 class CVolumeWAD : public IVolume
 {
 public:

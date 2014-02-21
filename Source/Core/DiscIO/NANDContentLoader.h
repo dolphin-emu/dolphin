@@ -4,15 +4,12 @@
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "Common/Common.h"
-#include "Common/FileUtil.h"
-#include "Common/NandPaths.h"
-
-#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 namespace DiscIO

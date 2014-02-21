@@ -14,8 +14,8 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Blob.h"
 
+namespace File { class IOFile; }
 
 namespace DiscIO
 {

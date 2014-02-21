@@ -16,6 +16,7 @@
 
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
 

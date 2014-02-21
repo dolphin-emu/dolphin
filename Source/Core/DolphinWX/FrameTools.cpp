@@ -23,6 +23,7 @@ Core::GetWindowHandle().
 #include "Common/Common.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/NandPaths.h"
 #include "Common/Timer.h"
 
 #include "Core/BootManager.h"

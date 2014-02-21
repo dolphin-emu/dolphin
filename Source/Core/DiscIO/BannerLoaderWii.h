@@ -4,10 +4,17 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 #include "DiscIO/BannerLoader.h"
 
 namespace DiscIO
 {
+
+class IVolume;
+
 class CBannerLoaderWii
 	: public IBannerLoader
 {
@@ -60,4 +67,5 @@ class CBannerLoaderWii
 
 		bool GetStringFromComments(const CommentIndex index, std::string& s);
 };
+
 } // namespace

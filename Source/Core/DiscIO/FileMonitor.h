@@ -4,10 +4,9 @@
 
 #pragma once
 
-#include <iostream> // System: For std
+#include <string>
 
-#include "Common/Common.h" // Common: For u64
-
+#include "Common/CommonTypes.h"
 
 namespace FileMon
 {

@@ -2,8 +2,17 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/StringUtil.h"
+#include <cstdio>
+#include <cstring>
+
+#include "Common/Common.h"
+#include "Common/FileUtil.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/DriveBlob.h"
+
+#ifdef _WIN32
+#include "Common/StringUtil.h"
+#endif
 
 namespace DiscIO
 {

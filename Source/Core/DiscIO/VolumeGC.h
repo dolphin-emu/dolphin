@@ -4,13 +4,19 @@
 
 #pragma once
 
-#include "DiscIO/Blob.h"
+#include <string>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for GC disc images ---
 
 namespace DiscIO
 {
+
+class IBlobReader;
+
 class CVolumeGC : public IVolume
 {
 public:
