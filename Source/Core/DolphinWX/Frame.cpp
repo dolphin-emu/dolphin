@@ -706,13 +706,16 @@ bool CFrame::RendererHasFocus()
 	if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
 		return true;
 #else
-	if (wxWindow::FindFocus() == nullptr)
+	wxWindow *window = wxWindow::FindFocus();
+	if (window == nullptr)
 		return false;
 	// Why these different cases?
-	if (m_RenderParent == wxWindow::FindFocus() ||
-			m_RenderParent == wxWindow::FindFocus()->GetParent() ||
-			m_RenderParent->GetParent() == wxWindow::FindFocus()->GetParent())
+	if (m_RenderParent == window ||
+	    m_RenderParent == window->GetParent() ||
+	    m_RenderParent->GetParent() == window->GetParent())
+	{
 		return true;
+	}
 #endif
 	return false;
 }
