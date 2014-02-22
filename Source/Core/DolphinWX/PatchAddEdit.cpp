@@ -2,8 +2,32 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+#include <vector>
+#include <wx/arrstr.h>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gbsizer.h>
+#include <wx/gdicmn.h>
+#include <wx/radiobox.h>
+#include <wx/sizer.h>
+#include <wx/spinbutt.h>
+#include <wx/statbox.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+
+#include "Common/Common.h"
+#include "Core/PatchEngine.h"
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
+
+class wxWindow;
 
 extern std::vector<PatchEngine::Patch> onFrame;
 

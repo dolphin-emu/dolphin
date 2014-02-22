@@ -4,10 +4,20 @@
 
 #pragma once
 
-#include <wx/notebook.h>
-#include <wx/wx.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
 #include "VideoCommon/Debugger.h"
+
+class wxButton;
+class wxChoice;
+class wxTextCtrl;
+class wxWindow;
 
 class GFXDebuggerPanel : public wxPanel, public GFXDebuggerBase
 {

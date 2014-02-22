@@ -2,10 +2,29 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstdio>
+#include <string>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+
 #include "Common/CommonPaths.h"
-#include "Core/ConfigManager.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PHackSettings.h"
 #include "DolphinWX/WxUtils.h"
+
+class wxWindow;
 
 extern PHackData PHack_Data;
 

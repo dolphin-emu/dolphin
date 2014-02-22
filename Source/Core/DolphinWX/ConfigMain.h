@@ -4,17 +4,41 @@
 
 #pragma once
 
-#include <wx/filepicker.h>
-#include <wx/gbsizer.h>
-#include <wx/notebook.h>
-#include <wx/spinbutt.h>
-#include <wx/spinctrl.h>
-#include <wx/wx.h>
+#include <cstdio>
+#include <string>
 
-#include "Core/ConfigManager.h"
+#include <wx/arrstr.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+
+#include "Common/CommonTypes.h"
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include "DolphinWX/X11Utils.h"
 #endif
+
+class wxBoxSizer;
+class wxButton;
+class wxCheckBox;
+class wxChoice;
+class wxDirPickerCtrl;
+class wxFileDirPickerEvent;
+class wxFilePickerCtrl;
+class wxGridBagSizer;
+class wxListBox;
+class wxNotebook;
+class wxPanel;
+class wxRadioBox;
+class wxSlider;
+class wxSpinCtrl;
+class wxSpinEvent;
+class wxStaticBoxSizer;
+class wxStaticText;
+class wxWindow;
 
 class CConfigMain : public wxDialog
 {

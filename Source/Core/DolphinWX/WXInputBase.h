@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include "Common/Common.h"
 #if defined(HAVE_WX) && HAVE_WX
-#include <wx/wx.h>
+#include <wx/string.h>
 #endif
 
 namespace InputCommon

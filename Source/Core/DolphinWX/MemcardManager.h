@@ -4,18 +4,27 @@
 
 #pragma once
 
-#include <wx/filepicker.h>
-#include <wx/fontmap.h>
-#include <wx/imaglist.h>
+#include <string>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
 #include <wx/listctrl.h>
-#include <wx/sizer.h>
-#include <wx/statbmp.h>
-#include <wx/stattext.h>
-#include <wx/wx.h>
+#include <wx/string.h>
+#include <wx/toplevel.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
-#include "Common/FileUtil.h"
+#include "Common/Common.h"
 #include "Common/IniFile.h"
-#include "Core/HW/GCMemcard.h"
+
+class GCMemcard;
+class wxButton;
+class wxFileDirPickerEvent;
+class wxFilePickerCtrl;
+class wxStaticText;
+class wxWindow;
 
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX

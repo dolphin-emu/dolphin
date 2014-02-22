@@ -4,30 +4,22 @@
 
 #pragma once
 
-// general things
-#include <algorithm>
-#include <iostream>
-#include <list>
-#include <map>
-#include <vector>
-#include <wx/button.h>
-#include <wx/frame.h>
-#include <wx/listctrl.h>
-#include <wx/sizer.h>
-#include <wx/statbox.h>
-#include <wx/statline.h>
-#include <wx/stattext.h>
-#include <wx/wx.h>
-#include <wx/aui/aui.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/panel.h>
+#include <wx/windowid.h>
+#include <wx/aui/framemanager.h>
 
-#include "Core/DSP/disassemble.h"
-#include "Core/DSP/DSPInterpreter.h"
-#include "Core/DSP/DSPMemoryMap.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 
 class DSPRegisterView;
 class CCodeView;
 class CMemoryView;
+class wxAuiNotebook;
+class wxAuiToolBar;
+class wxListBox;
+class wxWindow;
 
 class DSPDebuggerLLE : public wxPanel
 {

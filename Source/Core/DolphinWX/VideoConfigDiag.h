@@ -1,23 +1,33 @@
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <string>
 #include <vector>
-#include <wx/button.h>
 #include <wx/checkbox.h>
-#include <wx/combobox.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
+#include <wx/choice.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/msgdlg.h>
+#include <wx/radiobut.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/wx.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/window.h>
 
-#include "Common/MsgHandler.h"
+#include "Common/CommonTypes.h"
+#include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
+#include "Core/CoreParameter.h"
 #include "DolphinWX/WxUtils.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+class wxBoxSizer;
+class wxControl;
+class wxPanel;
 
 template <typename W>
 class BoolSetting : public W

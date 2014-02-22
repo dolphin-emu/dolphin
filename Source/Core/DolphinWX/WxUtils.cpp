@@ -2,10 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+#include <wx/bitmap.h>
+#include <wx/chartype.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/mstream.h>
 #include <wx/string.h>
-#include <wx/wx.h>
+#include <wx/utils.h>
 
-#include "Common/Common.h"
 #include "DolphinWX/WxUtils.h"
 
 #ifdef __APPLE__
@@ -55,6 +60,12 @@ double GetCurrentBitmapLogicalScale()
 	}
 #endif
 	return 1.0;
+}
+
+wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
+{
+	wxMemoryInputStream is(data, length);
+	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
 }
 
 }  // namespace

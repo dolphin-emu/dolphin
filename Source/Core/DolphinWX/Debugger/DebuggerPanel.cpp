@@ -2,15 +2,32 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <string>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/choice.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/msgdlg.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
+#include <wx/validate.h>
+#include <wx/windowid.h>
+
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreParameter.h"
 #include "DolphinWX/Debugger/DebuggerPanel.h"
-#include "VideoCommon/NativeVertexFormat.h"
-#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/Debugger.h"
 #include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/VertexShaderGen.h"
-#include "VideoCommon/VideoConfig.h"
+
+class wxWindow;
 
 BEGIN_EVENT_TABLE(GFXDebuggerPanel, wxPanel)
 	EVT_CLOSE(GFXDebuggerPanel::OnClose)

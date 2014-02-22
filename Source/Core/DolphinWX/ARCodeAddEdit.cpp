@@ -2,9 +2,32 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <cstdlib>
+#include <string>
+#include <vector>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gbsizer.h>
+#include <wx/gdicmn.h>
+#include <wx/sizer.h>
+#include <wx/spinbutt.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
+#include "Core/ActionReplay.h"
 #include "Core/ARDecrypt.h"
 #include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/WxUtils.h"
+
+class wxWindow;
 
 extern std::vector<ActionReplay::ARCode> arCodes;
 

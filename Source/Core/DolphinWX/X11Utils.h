@@ -15,17 +15,14 @@
 #if defined(HAVE_WX) && HAVE_WX
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
-#include <wx/wx.h>
+#include <wx/arrstr.h>
 #endif
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif
+#include <X11/X.h>
 #include <X11/Xlib.h>
-
-#include "Common/Common.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
 
 
 // EWMH state actions, see

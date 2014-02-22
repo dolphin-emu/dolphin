@@ -4,21 +4,24 @@
 
 #pragma once
 
-#include <queue>
 #include <string>
+#include <vector>
 #include <wx/dialog.h>
 #include <wx/event.h>
-#include <wx/gbsizer.h>
-#include <wx/listbox.h>
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/spinctrl.h>
-#include <wx/wx.h>
+#include <wx/frame.h>
 
-#include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Core/NetPlayClient.h"
-#include "DolphinWX/GameListCtrl.h"
+#include "Core/NetPlayProto.h"
+
+class CGameListCtrl;
+class wxButton;
+class wxCheckBox;
+class wxChoice;
+class wxListBox;
+class wxString;
+class wxTextCtrl;
+class wxWindow;
 
 enum
 {

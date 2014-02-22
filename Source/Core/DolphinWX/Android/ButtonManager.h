@@ -6,8 +6,6 @@
 
 #include <map>
 #include <string>
-#include "Common/CommonPaths.h"
-#include "VideoCommon/VideoBackendBase.h"
 
 namespace ButtonManager
 {

@@ -1,11 +1,37 @@
-#include <wx/intl.h>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
+#include <wx/arrstr.h>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/control.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/radiobut.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/window.h>
 
 #include "Common/FileUtil.h"
+#include "Common/SysConf.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreParameter.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/VideoConfigDiag.h"
-#include "VideoCommon/TextureCacheBase.h"
-
+#include "DolphinWX/WxUtils.h"
+#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 #ifdef __APPLE__
 #include <ApplicationServices/ApplicationServices.h>

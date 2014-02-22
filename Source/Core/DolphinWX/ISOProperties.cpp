@@ -7,17 +7,69 @@
 #endif
 
 #include <cinttypes>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
+#include <fstream>
+#include <set>
+#include <string>
 #include <type_traits>
+#include <vector>
+#include <wx/arrstr.h>
+#include <wx/bitmap.h>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/checkbox.h>
+#include <wx/checklst.h>
+#include <wx/choice.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/dirdlg.h>
+#include <wx/dynarray.h>
+#include <wx/event.h>
+#include <wx/filedlg.h>
+#include <wx/gbsizer.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/imaglist.h>
+#include <wx/itemid.h>
+#include <wx/menu.h>
+#include <wx/mimetype.h>
+#include <wx/msgdlg.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/progdlg.h>
+#include <wx/sizer.h>
+#include <wx/statbmp.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/thread.h>
+#include <wx/translation.h>
+#include <wx/treebase.h>
+#include <wx/treectrl.h>
+#include <wx/utils.h>
+#include <wx/validate.h>
+#include <wx/windowid.h>
 
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Common/SysConf.h"
+#include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreParameter.h"
+#include "Core/GeckoCodeConfig.h"
+#include "Core/PatchEngine.h"
+#include "Core/Boot/Boot.h"
 #include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/GeckoCodeDiag.h"
-#include "DolphinWX/Globals.h"
+#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/PHackSettings.h"
@@ -25,6 +77,8 @@
 #include "DolphinWX/resources/isoprop_disc.xpm"
 #include "DolphinWX/resources/isoprop_file.xpm"
 #include "DolphinWX/resources/isoprop_folder.xpm"
+
+class wxWindow;
 
 struct WiiPartition
 {

@@ -4,14 +4,17 @@
 
 #pragma once
 
-#include <wx/artprov.h>
-#include <wx/dialog.h>
-#include <wx/listbox.h>
-#include <wx/textctrl.h>
+#include <wx/bitmap.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
-#include "Core/CoreParameter.h"
-#include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 
 class CFrame;
@@ -22,6 +25,12 @@ class CJitWindow;
 class CCodeView;
 class DSPDebuggerLLE;
 class GFXDebuggerPanel;
+struct SCoreStartupParameter;
+
+class wxAuiToolBar;
+class wxListBox;
+class wxMenu;
+class wxMenuBar;
 
 class CCodeWindow
 	: public wxPanel

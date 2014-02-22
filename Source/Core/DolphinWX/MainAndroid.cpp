@@ -24,6 +24,7 @@
 
 #include "Android/ButtonManager.h"
 #include "Common/Common.h"
+#include "Common/CommonPaths.h"
 #include "Common/CPUDetect.h"
 #include "Common/FileUtil.h"
 #include "Common/LogManager.h"

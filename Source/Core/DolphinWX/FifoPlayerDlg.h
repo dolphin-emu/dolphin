@@ -4,12 +4,28 @@
 
 #pragma once
 
+#include <cstddef>
 #include <vector>
-#include <wx/notebook.h>
-#include <wx/wx.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/string.h>
 
+#include "Common/CommonTypes.h"
+
+class wxButton;
+class wxCheckBox;
+class wxCommandEvent;
+class wxEvent;
+class wxEvtHandler;
+class wxListBox;
+class wxNotebook;
+class wxPaintEvent;
+class wxPanel;
 class wxSpinCtrl;
 class wxSpinEvent;
+class wxStaticText;
+class wxTextCtrl;
+class wxWindow;
 
 class FifoPlayerDlg : public wxDialog
 {

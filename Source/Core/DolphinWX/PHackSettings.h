@@ -4,10 +4,19 @@
 
 #pragma once
 
-#include <wx/spinctrl.h>
-#include <wx/wx.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
-#include "DolphinWX/ISOProperties.h"
+#include "Common/IniFile.h"
+
+class wxCheckBox;
+class wxChoice;
+class wxTextCtrl;
+class wxWindow;
 
 class CPHackSettings : public wxDialog
 {

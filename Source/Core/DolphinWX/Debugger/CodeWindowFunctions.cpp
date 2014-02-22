@@ -2,34 +2,48 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <istream>
+#include <string>
+#include <utility>
+#include <vector>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/filedlg.h>
+#include <wx/font.h>
+#include <wx/fontdata.h>
 #include <wx/fontdlg.h>
+#include <wx/listbox.h>
+#include <wx/menu.h>
+#include <wx/menuitem.h>
 #include <wx/mimetype.h>
+#include <wx/string.h>
+#include <wx/textdlg.h>
+#include <wx/translation.h>
+#include <wx/utils.h>
 
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-#include "Common/LogManager.h"
+#include "Common/IniFile.h"
+#include "Common/SymbolDB.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/Boot/Boot.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HLE/HLE.h"
-#include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/SignatureDB.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitCommon/JitCache.h" // for ClearCache()
 
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
-#include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerPanel.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"

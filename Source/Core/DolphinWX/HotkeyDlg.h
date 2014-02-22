@@ -4,23 +4,26 @@
 
 #pragma once
 
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/combobox.h>
-#include <wx/gbsizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/wx.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
-#include "Common/Common.h"
 #include "Core/CoreParameter.h"
-#include "DolphinWX/WXInputBase.h"
 
 #if defined(HAVE_X11) && HAVE_X11
 #include "InputCommon/X11InputBase.h"
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #endif
+
+class wxButton;
+class wxTimer;
+class wxTimerEvent;
+class wxWindow;
 
 class HotkeyConfigDialog : public wxDialog
 {

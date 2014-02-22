@@ -2,10 +2,32 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <wx/app.h>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/font.h>
+#include <wx/gbsizer.h>
+#include <wx/gdicmn.h>
 #include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/setup.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/timer.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
 #include "Core/ConfigManager.h"
+#include "Core/CoreParameter.h"
 #include "DolphinWX/HotkeyDlg.h"
+#include "DolphinWX/WXInputBase.h"
+
+class wxWindow;
 
 BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
 	EVT_COMMAND_RANGE(0, NUM_HOTKEYS - 1,

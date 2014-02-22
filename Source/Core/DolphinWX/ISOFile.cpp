@@ -3,26 +3,34 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <cstdio>
+#include <cstring>
 #include <string>
 #include <vector>
-#include <wx/mstream.h>
+#include <wx/bitmap.h>
+#include <wx/filefn.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/string.h>
 
 #include "Common/ChunkFile.h"
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
-#include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/CoreParameter.h"
+#include "Core/Boot/Boot.h"
 
 #include "DiscIO/BannerLoader.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
 
-#include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 

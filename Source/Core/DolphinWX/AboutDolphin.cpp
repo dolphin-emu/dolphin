@@ -2,10 +2,24 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <wx/bitmap.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/mstream.h>
+#include <wx/sizer.h>
+#include <wx/statbmp.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+
 #include "Common/Common.h"
 #include "DolphinWX/AboutDolphin.h"
-#include "DolphinWX/WxUtils.h"
 #include "DolphinWX/resources/dolphin_logo.cpp"
+
+class wxWindow;
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxString &title, const wxPoint &position,

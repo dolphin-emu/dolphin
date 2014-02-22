@@ -4,9 +4,15 @@
 
 #pragma once
 
+#include <cstring>
+#include <wx/defs.h>
 #include <wx/grid.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
 
 #include "Common/Common.h"
+
+class wxWindow;
 
 // New register view:
 // R0  0x8000000    F0   0.0000       F0_PS1 0.0000

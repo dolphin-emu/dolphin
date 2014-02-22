@@ -4,10 +4,20 @@
 
 #pragma once
 
-#include <wx/wx.h>
+#include <string>
+#include <vector>
+#include <wx/panel.h>
 
 #include "Core/GeckoCode.h"
-#include "Core/GeckoCodeConfig.h"
+
+class IniFile;
+class wxButton;
+class wxCheckListBox;
+class wxCommandEvent;
+class wxListBox;
+class wxStaticText;
+class wxTextCtrl;
+class wxWindow;
 
 namespace Gecko
 {

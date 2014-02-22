@@ -4,11 +4,24 @@
 
 #pragma once
 
-#include <wx/wx.h>
+#include <wx/bitmap.h>
+#include <wx/dcmemory.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
+#include <wx/toplevel.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
 #include "Common/Common.h"
-#include "Core/CoreParameter.h"
 #include "InputCommon/GCPadStatus.h"
+
+class wxCheckBox;
+class wxSlider;
+class wxStaticBitmap;
+class wxTextCtrl;
+class wxWindow;
 
 class TASInputDlg : public wxDialog
 {
