@@ -17,7 +17,6 @@
 #include "DolphinWX/WXInputBase.h"
 
 #if defined(HAVE_X11) && HAVE_X11
-#include "InputCommon/X11InputBase.h"
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #endif
