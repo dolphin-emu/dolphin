@@ -88,7 +88,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
 u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 {
 	if (!SConfig::GetInstance().m_WiiKeyboard || !m_Active)
-		return false;
+		return 0;
 
 	u8 Modifiers = 0x00;
 	u8 PressedKeys[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
