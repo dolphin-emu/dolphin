@@ -3,7 +3,7 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:0.5.+'
+		classpath 'com.android.tools.build:gradle:0.8.+'
 	}
 }
 apply plugin: 'android'
@@ -28,6 +28,7 @@ android {
 	tasks.withType(Compile) {
 		compileTask -> compileTask.dependsOn(nativeLibsToJar)
 	}
+
 	sourceSets {
 		main {
 			manifest.srcFile 'AndroidManifest.xml'
@@ -51,14 +52,19 @@ android {
 		debug.setRoot('build-types/debug')
 		release.setRoot('build-types/release')
 	}
+
 	signingConfigs {
 		release {
-			storeFile file(System.getenv("KEYSTORE"))
-			storePassword System.getenv("KEYSTORE_PASSWORD")
-			keyAlias System.getenv("KEY_ALIAS")
-			keyPassword System.getenv("KEY_PASSWORD")
+			if (System.getenv("KEYSTORE") != null)
+			{
+				storeFile file(System.getenv("KEYSTORE"))
+				storePassword System.getenv("KEYSTORE_PASSWORD")
+				keyAlias System.getenv("KEY_ALIAS")
+				keyPassword System.getenv("KEY_PASSWORD")
+			}
 		}
 	}
+
 	buildTypes {
 		release {
 			signingConfig signingConfigs.release
