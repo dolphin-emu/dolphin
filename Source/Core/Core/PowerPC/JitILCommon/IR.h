@@ -566,7 +566,7 @@ public:
 
 private:
 	IRBuilder(IRBuilder&); // DO NOT IMPLEMENT
-	unsigned isSameValue(InstLoc Op1, InstLoc Op2) const;
+	bool isSameValue(InstLoc Op1, InstLoc Op2) const;
 	unsigned getComplexity(InstLoc I) const;
 	unsigned getNumberOfOperands(InstLoc I) const;
 	void simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2);

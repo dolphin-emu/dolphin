@@ -1075,7 +1075,7 @@ bool IRBuilder::IsMarkUsed(InstLoc I) const {
 	return MarkUsed[i];
 }
 
-unsigned IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) const {
+bool IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) const {
 	if (Op1 == Op2) {
 		return true;
 	}
