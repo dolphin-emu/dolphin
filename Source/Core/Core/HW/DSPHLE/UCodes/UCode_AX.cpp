@@ -208,7 +208,7 @@ void CUCode_AX::HandleCommandList()
 			case CMD_MIX_AUXB_NOWRITE:
 				addr_hi = m_cmdlist[curr_idx++];
 				addr_lo = m_cmdlist[curr_idx++];
-				MixAUXSamples(false, 0, HILO_TO_32(addr));
+				MixAUXSamples(1, 0, HILO_TO_32(addr));
 				break;
 
 			case CMD_COMPRESSOR_TABLE_ADDR: curr_idx += 2; break;
