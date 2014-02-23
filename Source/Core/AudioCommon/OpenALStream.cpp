@@ -15,22 +15,19 @@ soundtouch::SoundTouch soundTouch;
 //
 bool OpenALStream::Start()
 {
-	ALDeviceList *pDeviceList = NULL;
-	ALCcontext *pContext = NULL;
-	ALCdevice *pDevice = NULL;
 	bool bReturn = false;
 
-	pDeviceList = new ALDeviceList();
+	ALDeviceList *pDeviceList = new ALDeviceList();
 	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
 	{
 		char *defDevName = pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice());
 
 		WARN_LOG(AUDIO, "Found OpenAL device %s", defDevName);
 
-		pDevice = alcOpenDevice(defDevName);
+		ALCdevice *pDevice = alcOpenDevice(defDevName);
 		if (pDevice)
 		{
-			pContext = alcCreateContext(pDevice, NULL);
+			ALCcontext *pContext = alcCreateContext(pDevice, NULL);
 			if (pContext)
 			{
 				// Used to determine an appropriate period size (2x period = total buffer size)

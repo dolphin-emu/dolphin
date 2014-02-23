@@ -657,7 +657,6 @@ ContinueWithBlock:
 				switch (count) {
 				case 0: _LeftBuffer[i] += (u64)unmixed_audio * ramp >> 29; break;
 				case 1: _RightBuffer[i] += (u64)unmixed_audio * ramp >> 29; break;
-					break;
 				}
 			}
 		}

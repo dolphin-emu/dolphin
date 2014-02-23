@@ -23,8 +23,9 @@
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
-
+#ifdef _WIN32
 inline double round(double x) { return (x-floor(x))>0.5 ? ceil(x) : floor(x); } //because damn MSVSC doesen't comply to C99
+#endif
 
 namespace
 {
@@ -649,13 +650,10 @@ void Wiimote::Update()
 	u8 data[MAX_PAYLOAD];
 	memset(data, 0, sizeof(data));
 
-	// figure out what data we need
-	s8 rptf_size = MAX_PAYLOAD;
-
 	Movie::SetPolledDevice();
 
 	const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
-	rptf_size = rptf.size;
+	s8 rptf_size = rptf.size;
 	if (Movie::IsPlayingInput() && Movie::PlayWiimote(m_index, data, rptf, m_reg_ir.mode))
 	{
 		if (rptf.core)

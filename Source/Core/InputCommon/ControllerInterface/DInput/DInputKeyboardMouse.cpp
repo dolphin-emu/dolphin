@@ -138,7 +138,6 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIREC
 
 void GetMousePos(float* const x, float* const y)
 {
-	unsigned int win_width = 2, win_height = 2;
 	POINT point = { 1, 1 };
 	GetCursorPos(&point);
 	// Get the cursor position relative to the upper left corner of the rendering window
@@ -148,8 +147,8 @@ void GetMousePos(float* const x, float* const y)
 	RECT rect;
 	GetClientRect(hwnd, &rect);
 	// Width and height is the size of the rendering window
-	win_width = rect.right - rect.left;
-	win_height = rect.bottom - rect.top;
+	unsigned int win_width = rect.right - rect.left;
+	unsigned int win_height = rect.bottom - rect.top;
 
 	// Return the mouse position as a range from -1 to 1
 	*x = (float)point.x / (float)win_width * 2 - 1;

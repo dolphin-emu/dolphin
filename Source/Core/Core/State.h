@@ -29,7 +29,7 @@ void Shutdown();
 
 void EnableCompression(bool compression);
 
-bool ReadHeader(const std::string filename, StateHeader& header);
+bool ReadHeader(const std::string& filename, StateHeader& header);
 
 // These don't happen instantly - they get scheduled as events.
 // ...But only if we're not in the main cpu thread.

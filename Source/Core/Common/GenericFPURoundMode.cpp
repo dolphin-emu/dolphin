@@ -21,13 +21,13 @@
 // Generic, do nothing
 namespace FPURoundMode
 {
-	void SetRoundMode(enum RoundModes mode)
+	void SetRoundMode(RoundModes mode)
 	{
 	}
-	void SetPrecisionMode(enum PrecisionModes mode)
+	void SetPrecisionMode(PrecisionModes mode)
 	{
 	}
-	void SetSIMDMode(enum RoundModes rounding_mode, bool non_ieee_mode)
+	void SetSIMDMode(RoundModes rounding_mode, bool non_ieee_mode)
 	{
 	}
 	void SaveSIMDState()

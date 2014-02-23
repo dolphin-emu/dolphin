@@ -141,13 +141,13 @@ void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
 	WRITE(p, "  %s = floor(%s * 255.0 / exp2(8.0 - %d.0));\n", dest, src, depth);
 }
 
-void WriteEncoderEnd(char* p, API_TYPE ApiType)
+void WriteEncoderEnd(char*& p, API_TYPE ApiType)
 {
 	WRITE(p, "}\n");
 	IntensityConstantAdded = false;
 }
 
-void WriteI8Encoder(char* p, API_TYPE ApiType)
+void WriteI8Encoder(char*& p, API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_I8, ApiType);
 	WRITE(p, "  float3 texSample;\n");
@@ -169,7 +169,7 @@ void WriteI8Encoder(char* p, API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteI4Encoder(char* p, API_TYPE ApiType)
+void WriteI4Encoder(char*& p, API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_I4, ApiType);
 	WRITE(p, "  float3 texSample;\n");
@@ -210,7 +210,7 @@ void WriteI4Encoder(char* p, API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteIA8Encoder(char* p,API_TYPE ApiType)
+void WriteIA8Encoder(char*& p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_IA8, ApiType);
 	WRITE(p, "  float4 texSample;\n");
@@ -228,7 +228,7 @@ void WriteIA8Encoder(char* p,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteIA4Encoder(char* p,API_TYPE ApiType)
+void WriteIA4Encoder(char*& p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_IA4, ApiType);
 	WRITE(p, "  float4 texSample;\n");
@@ -260,7 +260,7 @@ void WriteIA4Encoder(char* p,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteRGB565Encoder(char* p,API_TYPE ApiType)
+void WriteRGB565Encoder(char*& p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_RGB565, ApiType);
 
@@ -283,7 +283,7 @@ void WriteRGB565Encoder(char* p,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteRGB5A3Encoder(char* p,API_TYPE ApiType)
+void WriteRGB5A3Encoder(char*& p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_RGB5A3, ApiType);
 
@@ -349,7 +349,7 @@ void WriteRGB5A3Encoder(char* p,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteRGBA4443Encoder(char* p,API_TYPE ApiType)
+void WriteRGBA4443Encoder(char*& p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_RGB5A3, ApiType);
 
@@ -373,7 +373,7 @@ void WriteRGBA4443Encoder(char* p,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteRGBA8Encoder(char* p,API_TYPE ApiType)
+void WriteRGBA8Encoder(char*& p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_RGBA8, ApiType);
 
@@ -398,7 +398,7 @@ void WriteRGBA8Encoder(char* p,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteC4Encoder(char* p, const char* comp,API_TYPE ApiType)
+void WriteC4Encoder(char*& p, const char* comp,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_CTF_R4, ApiType);
 	WRITE(p, "  float4 color0;\n");
@@ -420,7 +420,7 @@ void WriteC4Encoder(char* p, const char* comp,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteC8Encoder(char* p, const char* comp,API_TYPE ApiType)
+void WriteC8Encoder(char*& p, const char* comp,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_CTF_R8, ApiType);
 
@@ -432,7 +432,7 @@ void WriteC8Encoder(char* p, const char* comp,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteCC4Encoder(char* p, const char* comp,API_TYPE ApiType)
+void WriteCC4Encoder(char*& p, const char* comp,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_CTF_RA4, ApiType);
 	WRITE(p, "  float2 texSample;\n");
@@ -462,7 +462,7 @@ void WriteCC4Encoder(char* p, const char* comp,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteCC8Encoder(char* p, const char* comp, API_TYPE ApiType)
+void WriteCC8Encoder(char*& p, const char* comp, API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_CTF_RA8, ApiType);
 
@@ -472,7 +472,7 @@ void WriteCC8Encoder(char* p, const char* comp, API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteZ8Encoder(char* p, const char* multiplier,API_TYPE ApiType)
+void WriteZ8Encoder(char*& p, const char* multiplier,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_CTF_Z8M, ApiType);
 
@@ -493,7 +493,7 @@ void WriteZ8Encoder(char* p, const char* multiplier,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteZ16Encoder(char* p,API_TYPE ApiType)
+void WriteZ16Encoder(char*& p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_Z16, ApiType);
 
@@ -525,7 +525,7 @@ void WriteZ16Encoder(char* p,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteZ16LEncoder(char* p,API_TYPE ApiType)
+void WriteZ16LEncoder(char*& p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_CTF_Z16L, ApiType);
 
@@ -561,7 +561,7 @@ void WriteZ16LEncoder(char* p,API_TYPE ApiType)
 	WriteEncoderEnd(p, ApiType);
 }
 
-void WriteZ24Encoder(char* p, API_TYPE ApiType)
+void WriteZ24Encoder(char*& p, API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_Z24X8, ApiType);
 

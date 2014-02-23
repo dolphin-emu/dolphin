@@ -18,7 +18,7 @@ namespace FPURoundMode
 	static u32 saved_sse_state = _mm_getcsr();
 	static const u32 default_sse_state = _mm_getcsr();
 
-	void SetRoundMode(enum RoundModes mode)
+	void SetRoundMode(RoundModes mode)
 	{
 		// Set FPU rounding mode to mimic the PowerPC's
 		#ifdef _M_IX86
@@ -49,7 +49,7 @@ namespace FPURoundMode
 		#endif
 	}
 
-	void SetPrecisionMode(enum PrecisionModes mode)
+	void SetPrecisionMode(PrecisionModes mode)
 	{
 		#ifdef _M_IX86
 			// sets the floating-point lib to 53-bit
@@ -75,7 +75,7 @@ namespace FPURoundMode
 		#endif
 	}
 
-	void SetSIMDMode(enum RoundModes rounding_mode, bool non_ieee_mode)
+	void SetSIMDMode(RoundModes rounding_mode, bool non_ieee_mode)
 	{
 		// OR-mask for disabling FPU exceptions (bits 7-12 in the MXCSR register)
 		const u32 EXCEPTION_MASK = 0x1F80;

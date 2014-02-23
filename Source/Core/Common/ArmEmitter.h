@@ -735,8 +735,8 @@ public:
 	{
 #ifndef __SYMBIAN32__
 		FreeMemoryPages(region, region_size);
-#endif
 		region = NULL;
+#endif
 		region_size = 0;
 	}
 

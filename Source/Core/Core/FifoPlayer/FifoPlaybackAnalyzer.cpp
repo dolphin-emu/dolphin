@@ -59,8 +59,10 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 		u32 cmdStart = 0;
 		u32 nextMemUpdate = 0;
 
+#if LOG_FIFO_CMDS
 		// Debugging
 		vector<CmdData> prevCmds;
+#endif
 
 		while (cmdStart < frame.fifoDataSize)
 		{
@@ -75,7 +77,7 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile *file, std::vector<Analyze
 
 			u32 cmdSize = DecodeCommand(&frame.fifoData[cmdStart]);
 
-#if (LOG_FIFO_CMDS)
+#if LOG_FIFO_CMDS
 			CmdData cmdData;
 			cmdData.offset = cmdStart;
 			cmdData.ptr = &frame.fifoData[cmdStart];
@@ -118,7 +120,7 @@ void FifoPlaybackAnalyzer::AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrame
 	for (const auto& range : m_WrittenMemory)
 	{
 		if (range.begin < end &&
-			range.end > begin)
+		    range.end > begin)
 		{
 			s32 preSize = range.begin - begin;
 			s32 postSize = end - range.end;
@@ -210,7 +212,9 @@ u32 FifoPlaybackAnalyzer::DecodeCommand(u8 *data)
 			FifoAnalyzer::LoadBPReg(bp, m_BpMem);
 
 			if (bp.address == BPMEM_TRIGGER_EFB_COPY)
+			{
 				StoreEfbCopyRegion();
+			}
 		}
 		break;
 
@@ -256,9 +260,13 @@ void FifoPlaybackAnalyzer::StoreEfbCopyRegion()
 	{
 		format |= _GX_TF_ZTF;
 		if (copyfmt == 11)
+		{
 			format = GX_TF_Z16;
+		}
 		else if (format < GX_TF_Z8 || format > GX_TF_Z24X8)
+		{
 			format |= _GX_TF_CTF;
+		}
 	}
 	else
 	{

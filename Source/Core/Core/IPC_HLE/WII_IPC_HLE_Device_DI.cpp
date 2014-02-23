@@ -468,14 +468,12 @@ int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 		// More than ~1150K "bytes / sec" hangs NSMBWii on boot.
 		// Less than ~800K "bytes / sec" hangs DKCR randomly (ok, probably not true)
 		return SystemTimers::GetTicksPerSecond() / 975000 * Size;
-		break;
 	}
 
 	case DVDLowClearCoverInterrupt:
 		// Less than ~1/155th of a second hangs Oregon Trail at "loading wheel".
 		// More than ~1/140th of a second hangs Resident Evil Archives: Resident Evil Zero.
 		return SystemTimers::GetTicksPerSecond() / 146;
-		break;
 
 	// case DVDLowAudioBufferConfig:
 	// case DVDLowInquiry:
@@ -489,6 +487,5 @@ int CWII_IPC_HLE_Device_di::GetCmdDelay(u32 _CommandAddress)
 		// random numbers here!
 		// More than ~1/2000th of a second hangs DKCR with DSP HLE, maybe.
 		return SystemTimers::GetTicksPerSecond() / 15000;
-		break;
 	}
 }

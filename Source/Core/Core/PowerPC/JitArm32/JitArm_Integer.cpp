@@ -109,7 +109,7 @@ void JitArm::subfic(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
-	Default(inst); return;
+	Default(inst); return; // FIXME
 	int a = inst.RA, d = inst.RD;
 
 	int imm = inst.SIMM_16;
@@ -615,7 +615,7 @@ void JitArm::addex(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
-	Default(inst); return;
+	Default(inst); return; // FIXME
 	ARMReg RA = gpr.R(a);
 	ARMReg RB = gpr.R(b);
 	ARMReg RD = gpr.R(d);

@@ -366,7 +366,7 @@ void Jit64::Trace()
 	{
 		char reg[50];
 		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
-		strncat(regs, reg, 500);
+		strncat(regs, reg, sizeof(regs) - 1);
 	}
 #endif
 
@@ -375,7 +375,7 @@ void Jit64::Trace()
 	{
 		char reg[50];
 		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
-		strncat(fregs, reg, 750);
+		strncat(fregs, reg, sizeof(fregs) - 1);
 	}
 #endif
 

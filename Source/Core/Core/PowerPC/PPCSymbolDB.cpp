@@ -211,7 +211,7 @@ bool PPCSymbolDB::LoadMap(const char *filename)
 			continue;
 
 		char temp[256];
-		sscanf(line, "%s", temp);
+		sscanf(line, "%255s", temp);
 
 		if (strcmp(temp, "UNUSED")==0) continue;
 		if (strcmp(temp, ".text")==0)  {started = true; continue;};
@@ -234,7 +234,7 @@ bool PPCSymbolDB::LoadMap(const char *filename)
 
 		u32 address, vaddress, size, unknown;
 		char name[512];
-		sscanf(line, "%08x %08x %08x %i %s", &address, &size, &vaddress, &unknown, name);
+		sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &unknown, name);
 
 		const char *namepos = strstr(line, name);
 		if (namepos != 0) //would be odd if not :P

@@ -368,7 +368,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 	for(u32 i = 0; i < _numberOfFiles; i++)
 	{
 		FileHDR tmpFileHDR;
-		std::string __name, __ext;
+		std::string __name;
 		memset(&tmpFileHDR, 0, FILE_HDR_SZ);
 
 		u32 _fileSize =  0;

@@ -2111,7 +2111,7 @@ void Jit64::srawix(UGeckoInstruction inst)
 	}
 	else
 	{
-		Default(inst); return;
+		Default(inst); return; // FIXME
 		gpr.Lock(a, s);
 		JitClearCA();
 		gpr.BindToRegister(a, a == s, true);

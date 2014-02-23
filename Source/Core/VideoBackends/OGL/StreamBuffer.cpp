@@ -272,6 +272,7 @@ public:
 		glBindBuffer(m_buffertype, 0);
 		glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
 		FreeAlignedMemory(m_pointer);
+		m_pointer = NULL;
 	}
 
 	std::pair<u8*, size_t> Map(size_t size, u32 stride) {

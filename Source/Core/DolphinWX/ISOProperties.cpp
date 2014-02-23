@@ -916,7 +916,6 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
 void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 {
-	std::vector<const DiscIO::SFileInfo *> fst;
 	DiscIO::IFileSystem *FS = NULL;
 	wxString Path = wxDirSelector(_("Choose the folder to extract to"));
 

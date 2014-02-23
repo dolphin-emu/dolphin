@@ -610,10 +610,8 @@ void NetPlayServer::unmapPortThread()
 // discovers the IGD
 bool NetPlayServer::initUPnP()
 {
-	UPNPDev *devlist;
 	std::vector<UPNPDev *> igds;
 	int descXMLsize = 0, upnperror = 0;
-	char *descXML;
 
 	// Don't init if already inited
 	if (m_upnp_inited)
@@ -627,7 +625,7 @@ bool NetPlayServer::initUPnP()
 	memset(&m_upnp_data, 0, sizeof(IGDdatas));
 
 	// Find all UPnP devices
-	devlist = upnpDiscover(2000, NULL, NULL, 0, 0, &upnperror);
+	UPNPDev *devlist = upnpDiscover(2000, NULL, NULL, 0, 0, &upnperror);
 	if (!devlist)
 	{
 		WARN_LOG(NETPLAY, "An error occured trying to discover UPnP devices.");
@@ -647,7 +645,7 @@ bool NetPlayServer::initUPnP()
 
 	for (const UPNPDev* dev : igds)
 	{
-		descXML = (char *) miniwget(dev->descURL, &descXMLsize, 0);
+		char* descXML = (char*) miniwget(dev->descURL, &descXMLsize, 0);
 		if (descXML)
 		{
 			parserootdesc(descXML, descXMLsize, &m_upnp_data);

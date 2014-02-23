@@ -89,9 +89,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
 
-			//Where in the x86 code are we?
-			PVOID codeAddr = pPtrs->ExceptionRecord->ExceptionAddress;
-			unsigned char *codePtr = (unsigned char*)codeAddr;
+			// virtual address of the inaccessible data
 			u64 badAddress = (u64)pPtrs->ExceptionRecord->ExceptionInformation[1];
 			CONTEXT *ctx = pPtrs->ContextRecord;
 
@@ -104,7 +102,6 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 				// Let's not prevent debugging.
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
-
 		}
 
 	case EXCEPTION_STACK_OVERFLOW:

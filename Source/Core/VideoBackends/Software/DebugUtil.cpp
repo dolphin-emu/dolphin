@@ -44,7 +44,7 @@ void Init()
 	}
 }
 
-void SaveTexture(const std::string filename, u32 texmap, s32 mip)
+void SaveTexture(const std::string& filename, u32 texmap, s32 mip)
 {
 	FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
 	u8 subTexmap = texmap & 3;
@@ -123,7 +123,7 @@ void DumpActiveTextures()
 	}
 }
 
-void DumpEfb(const std::string filename)
+void DumpEfb(const std::string& filename)
 {
 	u8 *data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
 	u8 *writePtr = data;
@@ -146,7 +146,7 @@ void DumpEfb(const std::string filename)
 	delete[] data;
 }
 
-void DumpDepth(const std::string filename)
+void DumpDepth(const std::string& filename)
 {
 	u8 *data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
 	u8 *writePtr = data;

@@ -55,7 +55,7 @@ static u32 s_DepthCbufid;
 static u32 s_Textures[8];
 static u32 s_ActiveTexture;
 
-bool SaveTexture(const std::string filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
+bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width, int virtual_height, unsigned int level)
 {
 	if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
 		return false;
@@ -121,7 +121,7 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	}
 }
 
-bool TextureCache::TCacheEntry::Save(const std::string filename, unsigned int level)
+bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
 	return SaveTexture(filename, GL_TEXTURE_2D, texture, virtual_width, virtual_height, level);
 }

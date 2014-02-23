@@ -134,6 +134,7 @@ static void DSPCore_FreeMemoryPages()
 	FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
 	FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
 	FreeMemoryPages(g_dsp.coef, DSP_COEF_BYTE_SIZE);
+	g_dsp.irom = g_dsp.iram = g_dsp.dram = g_dsp.coef = NULL;
 }
 
 bool DSPCore_Init(const char *irom_filename, const char *coef_filename,

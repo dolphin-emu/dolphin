@@ -48,7 +48,7 @@ namespace BootManager
 struct ConfigCache
 {
 	bool valid, bCPUThread, bSkipIdle, bEnableFPRF, bMMU, bDCBZOFF, m_EnableJIT, bDSPThread,
-		bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack, bUseFPS;
+	     bVBeamSpeedHack, bSyncGPU, bFastDiscSpeed, bMergeBlocks, bDSPHLE, bHLE_BS2, bTLBHack;
 	int iCPUCore, Volume;
 	int iWiimoteSource[MAX_BBMOTES];
 	SIDevices Pads[MAX_SI_CHANNELS];

@@ -129,11 +129,8 @@ CEXIIPL::~CEXIIPL()
 		m_szBuffer[m_count] = 0x00;
 	}
 
-	if (m_pIPL != NULL)
-	{
-		FreeMemoryPages(m_pIPL, ROM_SIZE);
-		m_pIPL = NULL;
-	}
+	FreeMemoryPages(m_pIPL, ROM_SIZE);
+	m_pIPL = NULL;
 
 	// SRAM
 	File::IOFile file(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM, "wb");

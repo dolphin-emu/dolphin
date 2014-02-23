@@ -20,11 +20,11 @@ namespace FPURoundMode
 		PREC_53 = 1,
 		PREC_64 = 2
 	};
-	void SetRoundMode(enum RoundModes mode);
+	void SetRoundMode(RoundModes mode);
 
-	void SetPrecisionMode(enum PrecisionModes mode);
+	void SetPrecisionMode(PrecisionModes mode);
 
-	void SetSIMDMode(enum RoundModes rounding_mode, bool non_ieee_mode);
+	void SetSIMDMode(RoundModes rounding_mode, bool non_ieee_mode);
 
 /*
  * There are two different flavors of float to int conversion:

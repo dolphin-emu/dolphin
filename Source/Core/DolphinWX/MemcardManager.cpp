@@ -64,8 +64,8 @@ wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, u32 width, u32 height
 
 	u8 *pdata = new u8[bytes];
 
-	memset(pdata,0,bytes);
 	memcpy(pdata,hdr,sizeof(hdr));
+	memset(pdata+sizeof(hdr),0,bytes-sizeof(hdr));
 
 	u8 *pixelData = pdata + sizeof(hdr);
 

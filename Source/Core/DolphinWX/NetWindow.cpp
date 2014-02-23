@@ -657,11 +657,6 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiim
 	for (auto& player : m_player_list)
 		player_names.Add(player->name);
 
-	wxString wiimote_names[5];
-	wiimote_names[0] = _("None");
-	for (unsigned int i=1; i < 5; ++i)
-		wiimote_names[i] = wxString(_("Wiimote ")) + (wxChar)(wxT('0')+i);
-
 	for (unsigned int i=0; i<4; ++i)
 	{
 		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);

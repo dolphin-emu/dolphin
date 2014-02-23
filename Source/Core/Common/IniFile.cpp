@@ -124,13 +124,12 @@ bool IniFile::Section::Get(const std::string& key, std::vector<std::string>& out
 	}
 	// ignore starting , if any
 	size_t subStart = temp.find_first_not_of(",");
-	size_t subEnd;
 
 	// split by ,
 	while (subStart != std::string::npos)
 	{
 		// Find next ,
-		subEnd = temp.find_first_of(",", subStart);
+		size_t subEnd = temp.find_first_of(",", subStart);
 		if (subStart != subEnd)
 			// take from first char until next ,
 			out.push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
