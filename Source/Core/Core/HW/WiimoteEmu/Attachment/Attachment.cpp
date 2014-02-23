@@ -10,8 +10,8 @@ namespace WiimoteEmu
 // Extension device IDs to be written to the last bytes of the extension reg
 // The id for nothing inserted
 static const u8 nothing_id[] = { 0x00, 0x00, 0x00, 0x00, 0x2e, 0x2e };
-// The id for a partially inserted extension
-static const u8 partially_id[] = { 0x00, 0x00, 0x00, 0x00, 0xff, 0xff };
+// The id for a partially inserted extension (currently unused)
+//static const u8 partially_id[] = { 0x00, 0x00, 0x00, 0x00, 0xff, 0xff };
 
 Attachment::Attachment( const char* const _name, WiimoteEmu::ExtensionReg& _reg )
 	: name( _name ), reg( _reg )

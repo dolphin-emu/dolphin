@@ -28,11 +28,6 @@
 
 //BBox
 #include "VideoCommon/XFMemory.h"
-#ifndef _M_GENERIC
-#ifndef __APPLE__
-#define USE_JIT
-#endif
-#endif
 
 #define COMPILED_CODE_SIZE 4096
 
@@ -472,7 +467,6 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_compiledCode = NULL;
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
-	m_numPipelineStages = 0;
 	m_NativeFmt = 0;
 	loop_counter = 0;
 	VertexLoader_Normal::Init();
@@ -482,11 +476,12 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_VtxDesc = vtx_desc;
 	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
 
-	#ifdef USE_JIT
+	#ifdef USE_VERTEX_LOADER_JIT
 	AllocCodeSpace(COMPILED_CODE_SIZE);
 	CompileVertexTranslator();
 	WriteProtect();
 	#else
+	m_numPipelineStages = 0;
 	CompileVertexTranslator();
 	#endif
 
@@ -494,7 +489,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 
 VertexLoader::~VertexLoader()
 {
-	#ifdef USE_JIT
+	#ifdef USE_VERTEX_LOADER_JIT
 	FreeCodeSpace();
 	#endif
 	delete m_NativeFmt;
@@ -505,7 +500,7 @@ void VertexLoader::CompileVertexTranslator()
 	m_VertexSize = 0;
 	const TVtxAttr &vtx_attr = m_VtxAttr;
 
-#ifdef USE_JIT
+#ifdef USE_VERTEX_LOADER_JIT
 	if (m_compiledCode)
 		PanicAlert("Trying to recompile a vertex translator");
 
@@ -531,6 +526,9 @@ void VertexLoader::CompileVertexTranslator()
 		WriteSetVariable(32, &s_texmtxwrite, Imm32(0));
 		WriteSetVariable(32, &s_texmtxread, Imm32(0));
 	}
+#else
+	// Reset pipeline
+	m_numPipelineStages = 0;
 #endif
 
 	// Colors
@@ -544,8 +542,6 @@ void VertexLoader::CompileVertexTranslator()
 		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (const u32)((m_VtxDesc.Hex >> 31) & 3)
 	};
 
-	// Reset pipeline
-	m_numPipelineStages = 0;
 	u32 components = 0;
 
 	// Position in pc vertex format.
@@ -770,7 +766,7 @@ void VertexLoader::CompileVertexTranslator()
 	native_stride = nat_offset;
 	vtx_decl.stride = native_stride;
 
-#ifdef USE_JIT
+#ifdef USE_VERTEX_LOADER_JIT
 	// End loop here
 #ifdef _M_X64
 	MOV(64, R(RAX), Imm64((u64)&loop_counter));
@@ -790,7 +786,7 @@ void VertexLoader::CompileVertexTranslator()
 
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
-#ifdef USE_JIT
+#ifdef USE_VERTEX_LOADER_JIT
 #ifdef _M_X64
 	MOV(64, R(RAX), Imm64((u64)func));
 	CALLptr(R(RAX));
@@ -805,7 +801,7 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 #ifndef _M_GENERIC
 void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 {
-#ifdef USE_JIT
+#ifdef USE_VERTEX_LOADER_JIT
 #ifdef _M_X64
 	MOV(64, R(RAX), Imm64((u64)address));
 	MOV(bits, dest, MatR(RAX));
@@ -817,7 +813,7 @@ void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 
 void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 {
-#ifdef USE_JIT
+#ifdef USE_VERTEX_LOADER_JIT
 #ifdef _M_X64
 	MOV(64, R(RAX), Imm64((u64)address));
 	MOV(bits, MatR(RAX), value);
@@ -870,7 +866,7 @@ void VertexLoader::SetupRunVertices(int vtx_attr_group, int primitive, int const
 
 void VertexLoader::ConvertVertices ( int count )
 {
-#ifdef USE_JIT
+#ifdef USE_VERTEX_LOADER_JIT
 	if (count > 0)
 	{
 		loop_counter = count;

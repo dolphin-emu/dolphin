@@ -296,7 +296,7 @@ restart:
 	{
 		PB.ReachedEnd = 0;
 
-		if ((PB.RepeatMode == 0) || (!PB.StopOnSilence == 0))
+		if ((PB.RepeatMode == 0) || (PB.StopOnSilence != 0))
 		{
 			PB.KeyOff = 1;
 			PB.RemLength = 0;
