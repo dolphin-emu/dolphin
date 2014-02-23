@@ -1,6 +1,7 @@
 set(SRCS	BreakPoints.cpp
 			CDUtils.cpp
 			ColorUtil.cpp
+			ConsoleListener.cpp
 			FileSearch.cpp
 			FileUtil.cpp
 			Hash.cpp

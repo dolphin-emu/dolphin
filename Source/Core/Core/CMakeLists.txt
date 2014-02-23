@@ -2,6 +2,7 @@ set(SRCS	ActionReplay.cpp
 			ARDecrypt.cpp
 			BootManager.cpp
 			ConfigManager.cpp
+			Console.cpp
 			Core.cpp
 			CoreParameter.cpp
 			CoreTiming.cpp

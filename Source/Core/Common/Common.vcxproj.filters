@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Crypto">
@@ -52,6 +52,9 @@
     <ClInclude Include="Crypto\tools.h">
       <Filter>Crypto</Filter>
     </ClInclude>
+    <ClInclude Include="ConsoleListener.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
     <ClInclude Include="Log.h">
       <Filter>Logging</Filter>
     </ClInclude>
@@ -93,6 +96,9 @@
     </ClCompile>
     <ClCompile Include="Crypto\ec.cpp">
       <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="ConsoleListener.cpp">
+      <Filter>Logging</Filter>
     </ClCompile>
     <ClCompile Include="LogManager.cpp">
       <Filter>Logging</Filter>
