@@ -28,8 +28,6 @@ import java.util.List;
  */
 public final class GLES2InfoFragment extends ListFragment
 {
-	private final EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
-
 	private final Limit[] Limits = {
 			new Limit("Vendor", GLES20.GL_VENDOR, Type.STRING),
 			new Limit("Version", GLES20.GL_VERSION, Type.STRING),
@@ -56,6 +54,8 @@ public final class GLES2InfoFragment extends ListFragment
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
+		final EGLHelper eglHelper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
+
 		ListView rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
 		List<AboutActivity.AboutFragmentItem> Input = new ArrayList<AboutActivity.AboutFragmentItem>();
 
