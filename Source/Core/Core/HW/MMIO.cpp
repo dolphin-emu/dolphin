@@ -194,8 +194,8 @@ template <typename T>
 ReadHandlingMethod<T>* InvalidRead()
 {
 	return ComplexRead<T>([](u32 addr) {
-		ERROR_LOG(MEMMAP, "Trying to read from an invalid MMIO (addr=%08x)",
-			addr);
+		ERROR_LOG(MEMMAP, "Trying to read%d from an invalid MMIO (addr=%08x)",
+			8 * (int)(sizeof (T)), addr);
 		return -1;
 	});
 }
@@ -203,8 +203,8 @@ template <typename T>
 WriteHandlingMethod<T>* InvalidWrite()
 {
 	return ComplexWrite<T>([](u32 addr, T val) {
-		ERROR_LOG(MEMMAP, "Trying to write to an invalid MMIO (addr=%08x, val=%08x)",
-			addr, (u32)val);
+		ERROR_LOG(MEMMAP, "Trying to write%d to an invalid MMIO (addr=%08x, val=%08x)",
+			8 * (int)(sizeof (T)), addr, (u32)val);
 	});
 }
 
@@ -230,8 +230,9 @@ ReadHandlingMethod<T>* ReadToSmaller(Mapping* mmio, u32 high_part_addr, u32 low_
 	mmio->GetHandlerForRead(low_part_addr, &low_part);
 
 	// TODO(delroth): optimize
-	return ComplexRead<T>([high_part, low_part](u32 addr) {
-		return ((T)high_part->Read(addr) << (8 * sizeof (ST))) | low_part->Read(addr);
+	return ComplexRead<T>([=](u32 addr) {
+		return ((T)high_part->Read(high_part_addr) << (8 * sizeof (ST)))
+			| low_part->Read(low_part_addr);
 	});
 }
 
@@ -246,9 +247,9 @@ WriteHandlingMethod<T>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, u32 lo
 	mmio->GetHandlerForWrite(low_part_addr, &low_part);
 
 	// TODO(delroth): optimize
-	return ComplexWrite<T>([high_part, low_part](u32 addr, T val) {
-		high_part->Write(addr, val >> (8 * sizeof (ST)));
-		low_part->Write(addr, (ST)val);
+	return ComplexWrite<T>([=](u32 addr, T val) {
+		high_part->Write(high_part_addr, val >> (8 * sizeof (ST)));
+		low_part->Write(low_part_addr, (ST)val);
 	});
 }
 
