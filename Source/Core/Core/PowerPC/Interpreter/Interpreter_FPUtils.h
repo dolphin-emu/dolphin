@@ -231,3 +231,38 @@ inline u32 ConvertToSingleFTZ(u64 x)
 		return (x >> 32) & 0x80000000;
 	}
 }
+
+inline u64 ConvertToDouble(u32 _x)
+{
+	// This is a little-endian re-implementation of the algorithm described in
+	// the PowerPC Programming Environments Manual for loading single
+	// precision floating point numbers.
+	// See page 566 of http://www.freescale.com/files/product/doc/MPCFPE32B.pdf
+
+	u64 x = _x;
+	u64 exp = (x >> 23) & 0xff;
+	u64 frac = x & 0x007fffff;
+
+	if (exp > 0 && exp < 255) // Normal number
+	{
+		u64 y = !(exp >> 7);
+		u64 z = y << 61 | y << 60 | y << 59;
+		return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
+	}
+	else if (exp == 0 && frac != 0) // Subnormal number
+	{
+		exp = 1023 - 126;
+		do
+		{
+			frac <<= 1;
+			exp -= 1;
+		} while ((frac & 0x00800000) == 0);
+		return ((x & 0x80000000) << 32) | (exp << 52) | ((frac & 0x007fffff) << 29);
+	}
+	else // QNaN, SNaN or Zero
+	{
+		u64 y = exp >> 7;
+		u64 z = y << 61 | y << 60 | y << 59;
+		return ((x & 0xc0000000) << 32) | z | ((x & 0x3fffffff) << 29);
+	}
+}

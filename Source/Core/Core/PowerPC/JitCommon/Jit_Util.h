@@ -48,6 +48,10 @@ public:
 
 	void ForceSinglePrecisionS(Gen::X64Reg xmm);
 	void ForceSinglePrecisionP(Gen::X64Reg xmm);
+
+	// AX might get trashed
+	void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, bool src_is_gpr = false);
+	void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
 protected:
 	std::unordered_map<u8 *, u32> registersInUseAtLoc;
 };

@@ -100,6 +100,12 @@ enum NormalOp {
 	nrmXCHG,
 };
 
+enum FloatOp {
+	floatLD = 0,
+	floatST = 2,
+	floatSTP = 3,
+};
+
 class XEmitter;
 
 // RIP addressing does not benefit from micro op fusion on Core arch
@@ -118,6 +124,7 @@ struct OpArg
 	void WriteRex(XEmitter *emit, int opBits, int bits, int customOp = -1) const;
 	void WriteVex(XEmitter* emit, int size, int packed, Gen::X64Reg regOp1, X64Reg regOp2) const;
 	void WriteRest(XEmitter *emit, int extraBytes=0, X64Reg operandReg=(X64Reg)0xFF, bool warn_64bit_offset = true) const;
+	void WriteFloatModRM(XEmitter *emit, FloatOp op);
 	void WriteSingleByteOp(XEmitter *emit, u8 op, X64Reg operandReg, int bits);
 	// This one is public - must be written to
 	u64 offset;  // use RIP-relative as much as possible - 64-bit immediates are not available.
@@ -247,6 +254,7 @@ private:
 	void WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0);
 	void WriteAVXOp(int size, u8 sseOp, bool packed, X64Reg regOp1, X64Reg regOp2, OpArg arg, int extrabytes = 0);
+	void WriteFloatLoadStore(int bits, FloatOp op, OpArg arg);
 	void WriteNormalOp(XEmitter *emit, int bits, NormalOp op, const OpArg &a1, const OpArg &a2);
 
 protected:
@@ -427,6 +435,28 @@ public:
 	void REP();
 	void REPNE();
 
+	// x87
+	enum x87StatusWordBits {
+		x87_InvalidOperation = 0x1,
+		x87_DenormalizedOperand = 0x2,
+		x87_DivisionByZero = 0x4,
+		x87_Overflow = 0x8,
+		x87_Underflow = 0x10,
+		x87_Precision = 0x20,
+		x87_StackFault = 0x40,
+		x87_ErrorSummary = 0x80,
+		x87_C0 = 0x100,
+		x87_C1 = 0x200,
+		x87_C2 = 0x400,
+		x87_TopOfStack = 0x2000 | 0x1000 | 0x800,
+		x87_C3 = 0x4000,
+		x87_FPUBusy = 0x8000,
+	};
+
+	void FLD(int bits, OpArg src);
+	void FST(int bits, OpArg dest);
+	void FSTP(int bits, OpArg dest);
+	void FNSTSW_AX();
 	void FWAIT();
 
 	// SSE/SSE2: Floating point arithmetic
@@ -553,6 +583,7 @@ public:
 	void PUNPCKLWD(X64Reg dest, const OpArg &arg);
 	void PUNPCKLDQ(X64Reg dest, const OpArg &arg);
 
+	void PTEST(X64Reg dest, OpArg arg);
 	void PAND(X64Reg dest, OpArg arg);
 	void PANDN(X64Reg dest, OpArg arg);
 	void PXOR(X64Reg dest, OpArg arg);
@@ -608,6 +639,7 @@ public:
 	void PSRLW(X64Reg reg, int shift);
 	void PSRLD(X64Reg reg, int shift);
 	void PSRLQ(X64Reg reg, int shift);
+	void PSRLQ(X64Reg reg, OpArg arg);
 
 	void PSLLW(X64Reg reg, int shift);
 	void PSLLD(X64Reg reg, int shift);
@@ -622,6 +654,8 @@ public:
 	void VMULSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VDIVSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 	void VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg);
+	void VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg);
 
 	void RTDSC();
 

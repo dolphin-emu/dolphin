@@ -203,7 +203,7 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 	{
 		// Oh, RIP addressing.
 		_offsetOrBaseReg = 5;
-		emit->WriteModRM(0, _operandReg&7, 5);
+		emit->WriteModRM(0, _operandReg, _offsetOrBaseReg);
 		//TODO : add some checks
 #ifdef _M_X64
 		u64 ripAddr = (u64)emit->GetCodePtr() + 4 + extraBytes;
@@ -326,7 +326,6 @@ void OpArg::WriteRest(XEmitter *emit, int extraBytes, X64Reg _operandReg,
 		emit->Write32((u32)offset);
 	}
 }
-
 
 // W = operand extended width (1 if 64-bit)
 // R = register# upper bit
@@ -1390,6 +1389,10 @@ void XEmitter::PSRLQ(X64Reg reg, int shift) {
 	Write8(shift);
 }
 
+void XEmitter::PSRLQ(X64Reg reg, OpArg arg) {
+	WriteSSEOp(64, 0xd3, true, reg, arg);
+}
+
 void XEmitter::PSLLW(X64Reg reg, int shift) {
 	WriteSSEOp(64, 0x71, true, (X64Reg)6, R(reg));
 	Write8(shift);
@@ -1437,7 +1440,19 @@ void XEmitter::PSHUFB(X64Reg dest, OpArg arg) {
 	Write8(0x0f);
 	Write8(0x38);
 	Write8(0x00);
-	arg.WriteRest(this, 0);
+	arg.WriteRest(this);
+}
+
+void XEmitter::PTEST(X64Reg dest, OpArg arg) {
+	if (!cpu_info.bSSE4_1) {
+		PanicAlert("Trying to use PTEST on a system that doesn't support it. Nobody hears your screams.");
+	}
+	Write8(0x66);
+	Write8(0x0f);
+	Write8(0x38);
+	Write8(0x17);
+	arg.operandReg = dest;
+	arg.WriteRest(this);
 }
 
 void XEmitter::PAND(X64Reg dest, OpArg arg)     {WriteSSEOp(64, 0xDB, true, dest, arg);}
@@ -1458,7 +1473,7 @@ void XEmitter::PADDUSW(X64Reg dest, OpArg arg)  {WriteSSEOp(64, 0xDD, true, dest
 void XEmitter::PSUBB(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xF8, true, dest, arg);}
 void XEmitter::PSUBW(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xF9, true, dest, arg);}
 void XEmitter::PSUBD(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xFA, true, dest, arg);}
-void XEmitter::PSUBQ(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xDB, true, dest, arg);}
+void XEmitter::PSUBQ(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xFB, true, dest, arg);}
 
 void XEmitter::PSUBSB(X64Reg dest, OpArg arg)   {WriteSSEOp(64, 0xE8, true, dest, arg);}
 void XEmitter::PSUBSW(X64Reg dest, OpArg arg)   {WriteSSEOp(64, 0xE9, true, dest, arg);}
@@ -1497,6 +1512,8 @@ void XEmitter::VSUBSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64,
 void XEmitter::VMULSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseMUL, false, regOp1, regOp2, arg);}
 void XEmitter::VDIVSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseDIV, false, regOp1, regOp2, arg);}
 void XEmitter::VSQRTSD(X64Reg regOp1, X64Reg regOp2, OpArg arg)  {WriteAVXOp(64, sseSQRT, false, regOp1, regOp2, arg);}
+void XEmitter::VPAND(X64Reg regOp1, X64Reg regOp2, OpArg arg)    {WriteAVXOp(64, sseAND, false, regOp1, regOp2, arg);}
+void XEmitter::VPANDN(X64Reg regOp1, X64Reg regOp2, OpArg arg)   {WriteAVXOp(64, sseANDN, false, regOp1, regOp2, arg);}
 
 // Prefixes
 
@@ -1508,6 +1525,25 @@ void XEmitter::FWAIT()
 {
 	Write8(0x9B);
 }
+
+// TODO: make this more generic
+void XEmitter::WriteFloatLoadStore(int bits, FloatOp op, OpArg arg)
+{
+	int mf = 0;
+	switch (bits) {
+		case 32: mf = 0; break;
+		case 64: mf = 2; break;
+		default: _assert_msg_(DYNA_REC, 0, "WriteFloatLoadStore: bits is not 32 or 64");
+	}
+	Write8(0xd9 | (mf << 1));
+	// x87 instructions use the reg field of the ModR/M byte as opcode:
+	arg.WriteRest(this, 0, (X64Reg) op);
+}
+
+void XEmitter::FLD(int bits, OpArg src) {WriteFloatLoadStore(bits, floatLD, src);}
+void XEmitter::FST(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatST, dest);}
+void XEmitter::FSTP(int bits, OpArg dest) {WriteFloatLoadStore(bits, floatSTP, dest);}
+void XEmitter::FNSTSW_AX() { Write8(0xDF); Write8(0xE0); }
 
 void XEmitter::RTDSC() { Write8(0x0F); Write8(0x31); }
 
