@@ -33,7 +33,6 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/LogManager.h"
-#include "Core/Console.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/WxUtils.h"
@@ -44,7 +43,6 @@
 
 BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
 	EVT_CLOSE(CLogWindow::OnClose)
-	EVT_TEXT_ENTER(IDM_SUBMITCMD, CLogWindow::OnSubmit)
 	EVT_BUTTON(IDM_CLEARLOG, CLogWindow::OnClear)
 	EVT_CHOICE(IDM_FONT, CLogWindow::OnFontChange)
 	EVT_CHECKBOX(IDM_WRAPLINE, CLogWindow::OnWrapLineCheck)
@@ -207,13 +205,6 @@ void CLogWindow::SaveSettings()
 	ini.Set("Options", "Font", m_FontChoice->GetSelection());
 	ini.Set("Options", "WrapLines", m_WrapLine->IsChecked());
 	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
-}
-
-void CLogWindow::OnSubmit(wxCommandEvent& WXUNUSED (event))
-{
-	if (!m_cmdline) return;
-	Console_Submit(WxStrToStr(m_cmdline->GetValue()).c_str());
-	m_cmdline->SetValue(wxEmptyString);
 }
 
 void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))

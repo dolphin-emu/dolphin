@@ -82,7 +82,6 @@ private:
 	void PopulateBottom();
 	void UnPopulateBottom();
 	void OnClose(wxCloseEvent& event);
-	void OnSubmit(wxCommandEvent& event);
 	void OnFontChange(wxCommandEvent& event);
 	void OnWrapLineCheck(wxCommandEvent& event);
 	void OnClear(wxCommandEvent& event);
