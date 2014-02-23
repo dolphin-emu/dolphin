@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "Common/Common.h"
 
 u32 HashFletcher(const u8* data_u8, size_t length);  // FAST. Length & 1 == 0.

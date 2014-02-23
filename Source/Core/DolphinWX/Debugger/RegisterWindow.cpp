@@ -2,11 +2,19 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <wx/wx.h>
+#include <cstddef>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
 
-#include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/RegisterView.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
+
+class wxWindow;
 
 extern const char* GetGRPName(unsigned int index);
 

@@ -1,6 +1,9 @@
 // Most of the code in this file was shamelessly ripped from libcdio With minor adjustments
 
-#include <memory> // for std::unique_ptr
+#include <algorithm>
+#include <cstdlib>
+#include <string>
+#include <vector>
 
 #include "Common/CDUtils.h"
 #include "Common/Common.h"
@@ -19,6 +22,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 #endif // WIN32
 
 #ifdef __linux__

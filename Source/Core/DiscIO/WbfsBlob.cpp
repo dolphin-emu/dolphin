@@ -2,6 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <vector>
+
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "DiscIO/WbfsBlob.h"
 

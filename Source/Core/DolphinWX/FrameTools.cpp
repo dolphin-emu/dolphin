@@ -14,31 +14,60 @@ window handle that is returned by CreateWindow() can be accessed from
 Core::GetWindowHandle().
 */
 
-#include <wx/datetime.h>
+#include <cstdarg>
+#include <cstdio>
+#include <mutex>
+#include <string>
+#include <vector>
+#include <wx/app.h>
+#include <wx/bitmap.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/filedlg.h>
+#include <wx/filefn.h>
+#include <wx/gdicmn.h>
+#include <wx/menu.h>
+#include <wx/menuitem.h>
+#include <wx/msgdlg.h>
+#include <wx/panel.h>
+#include <wx/progdlg.h>
+#include <wx/statusbr.h>
+#include <wx/strconv.h>
+#include <wx/string.h>
+#include <wx/thread.h>
+#include <wx/toplevel.h>
+#include <wx/translation.h>
+#include <wx/utils.h>
+#include <wx/window.h>
+#include <wx/aui/auibar.h>
+#include <wx/aui/framemanager.h>
 
 #ifdef __APPLE__
 #include <AppKit/AppKit.h>
 #endif
 
+#include "Common/CDUtils.h"
 #include "Common/Common.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
-#include "Common/Timer.h"
+#include "Common/NandPaths.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreParameter.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
-#include "Core/VolumeHandler.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SI_Device.h"
 #include "Core/HW/Wiimote.h"
-//#include "IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/NANDContentLoader.h"
@@ -52,7 +81,7 @@ Core::GetWindowHandle().
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/HotkeyDlg.h"
 #include "DolphinWX/InputConfigDiag.h"
-#include "DolphinWX/LogConfigWindow.h"
+#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/MemcardManager.h"
 #include "DolphinWX/NetWindow.h"
@@ -60,6 +89,10 @@ Core::GetWindowHandle().
 #include "DolphinWX/WiimoteConfigDiag.h"
 #include "DolphinWX/WXInputBase.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/MemoryCards/WiiSaveCrypted.h"
+
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -82,6 +115,9 @@ Core::GetWindowHandle().
 extern "C" {
 #include "DolphinWX/resources/Dolphin.c" // NOLINT: Dolphin icon
 };
+
+class InputPlugin;
+class wxFrame;
 
 bool confirmStop = false;
 

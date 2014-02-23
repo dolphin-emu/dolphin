@@ -4,24 +4,33 @@
 
 #pragma once
 
+#include <cstddef>
+#include <set>
 #include <string>
-#include <wx/filepicker.h>
-#include <wx/fontmap.h>
-#include <wx/gbsizer.h>
-#include <wx/imaglist.h>
-#include <wx/mimetype.h>
-#include <wx/notebook.h>
-#include <wx/sizer.h>
-#include <wx/statbmp.h>
-#include <wx/treectrl.h>
-#include <wx/wx.h>
+#include <vector>
+#include <wx/arrstr.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
+#include <wx/toplevel.h>
+#include <wx/translation.h>
+#include <wx/treebase.h>
+#include <wx/windowid.h>
 
 #include "Common/IniFile.h"
-#include "Core/ActionReplay.h"
-#include "Core/PatchEngine.h"
-#include "DiscIO/Filesystem.h"
-#include "DolphinWX/GeckoCodeDiag.h"
-#include "DolphinWX/ISOFile.h"
+
+class GameListItem;
+class wxButton;
+class wxCheckBox;
+class wxCheckListBox;
+class wxChoice;
+class wxStaticBitmap;
+class wxTextCtrl;
+class wxTreeCtrl;
+class wxWindow;
+namespace DiscIO { struct SFileInfo; }
+namespace Gecko { class CodeConfigPanel; }
 
 struct PHackData
 {

@@ -3,20 +3,19 @@
 // Refer to the license.txt file included.
 
 #include <cstdarg>
+#include <cstddef>
 #include <cstdio>
-#include <cstdlib>
+#include <cstring>
 #include <getopt.h>
 
 #include "Common/Common.h"
-#include "Common/CPUDetect.h"
-#include "Common/FileUtil.h"
 #include "Common/LogManager.h"
 #include "Common/Thread.h"
 
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Host.h"
+#include "Core/CoreParameter.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/PowerPC/PowerPC.h"
 

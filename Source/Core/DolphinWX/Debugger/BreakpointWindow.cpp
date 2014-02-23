@@ -2,9 +2,26 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <wx/bitmap.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/listbase.h>
+#include <wx/panel.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
+#include <wx/aui/auibar.h>
+#include <wx/aui/framemanager.h>
+
+#include "Common/BreakPoints.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/BreakpointDlg.h"
 #include "DolphinWX/Debugger/BreakpointView.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
@@ -16,6 +33,8 @@ extern "C" {
 #include "DolphinWX/resources/toolbar_add_memorycheck.c"
 #include "DolphinWX/resources/toolbar_debugger_delete.c"
 }
+
+class wxWindow;
 
 class CBreakPointBar : public wxAuiToolBar
 {

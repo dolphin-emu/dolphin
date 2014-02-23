@@ -2,7 +2,9 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include <cstddef>
+#include <cstring>
+#include <errno.h>
 
 // Neither Android nor OS X support TLS
 #if  defined(__APPLE__) || (ANDROID && __clang__)

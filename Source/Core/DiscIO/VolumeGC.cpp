@@ -2,8 +2,15 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <string>
+#include <vector>
+
+#include "Common/Common.h"
 #include "Common/StringUtil.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/FileMonitor.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeGC.h"
 
 namespace DiscIO

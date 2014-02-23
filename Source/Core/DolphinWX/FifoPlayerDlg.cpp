@@ -3,18 +3,46 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstddef>
+#include <mutex>
+#include <string>
 #include <vector>
+
+#include <wx/accel.h>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/checkbox.h>
 #include <wx/clipbrd.h>
+#include <wx/dataobj.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/filedlg.h>
+#include <wx/gdicmn.h>
+#include <wx/listbox.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/spinbutt.h>
 #include <wx/spinctrl.h>
+#include <wx/statbox.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
+#include <wx/utils.h>
 
 #include "Common/Common.h"
-#include "Common/FileUtil.h"
-#include "Common/Thread.h"
+#include "Core/FifoPlayer/FifoDataFile.h"
+#include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "DolphinWX/FifoPlayerDlg.h"
 #include "DolphinWX/WxUtils.h"
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/OpcodeDecoding.h"
+
+class wxWindow;
 
 DECLARE_EVENT_TYPE(RECORDING_FINISHED_EVENT, -1)
 DEFINE_EVENT_TYPE(RECORDING_FINISHED_EVENT)

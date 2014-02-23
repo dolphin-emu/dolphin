@@ -6,7 +6,22 @@
 #include <functional>
 #include <string>
 #include <vector>
+
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/filepicker.h>
+#include <wx/gbsizer.h>
+#include <wx/listbox.h>
+#include <wx/menu.h>
+#include <wx/msgdlg.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/radiobox.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/spinbutt.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
 
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
@@ -15,6 +30,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/EXI.h"
 #include "Core/HW/GCMemcard.h"
@@ -31,6 +47,7 @@
 #include "DolphinWX/HotkeyDlg.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 

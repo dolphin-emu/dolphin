@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
+#include "Common/x64Emitter.h"
 
 // x86/x64 ABI:s, and helpers to help follow them when JIT-ing code.
 // All convensions return values in EAX (+ possibly EDX).

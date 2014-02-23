@@ -4,6 +4,7 @@
 
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
+#include "Common/FPURoundMode.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
 

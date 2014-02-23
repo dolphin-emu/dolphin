@@ -4,17 +4,23 @@
 
 #pragma once
 
-#include <wx/dialog.h>
-#include <wx/listbox.h>
-#include <wx/textctrl.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/panel.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
-#include "Common/StringUtil.h"
-#include "Common/Thread.h"
-#include "Core/CoreParameter.h"
-#include "DolphinWX/Debugger/MemoryView.h"
+#include "Common/CommonTypes.h"
 
-class CRegisterWindow;
-class CBreakPointWindow;
+class CMemoryView;
+class IniFile;
+class wxButton;
+class wxCheckBox;
+class wxListBox;
+class wxTextCtrl;
+class wxWindow;
 
 class CMemoryWindow
 	: public wxPanel

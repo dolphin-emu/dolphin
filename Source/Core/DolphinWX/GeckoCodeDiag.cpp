@@ -3,12 +3,33 @@
 // Refer to the license.txt file included.
 
 #include <sstream>
-
+#include <string>
+#include <vector>
 #include <SFML/Network/Http.hpp>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/checklst.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/listbox.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
+#include <wx/window.h>
 
+#include "Common/Common.h"
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
+#include "Core/GeckoCode.h"
+#include "Core/GeckoCodeConfig.h"
 #include "DolphinWX/GeckoCodeDiag.h"
 #include "DolphinWX/WxUtils.h"
+
+class IniFile;
 
 namespace Gecko
 {

@@ -4,10 +4,23 @@
 
 #pragma once
 
-#include <wx/spinctrl.h>
-#include <wx/wx.h>
+#include <vector>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/string.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
-#include "DolphinWX/ISOProperties.h"
+#include "Core/PatchEngine.h"
+
+class wxButton;
+class wxRadioBox;
+class wxSpinButton;
+class wxSpinEvent;
+class wxStaticBoxSizer;
+class wxTextCtrl;
+class wxWindow;
 
 class CPatchAddEdit : public wxDialog
 {

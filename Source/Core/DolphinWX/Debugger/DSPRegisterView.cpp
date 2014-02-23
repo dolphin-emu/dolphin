@@ -2,9 +2,21 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <wx/chartype.h>
+#include <wx/colour.h>
+#include <wx/defs.h>
+#include <wx/gdicmn.h>
+#include <wx/grid.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
+
+#include "Common/CommonTypes.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPTables.h"
 #include "DolphinWX/WxUtils.h"
-#include "DolphinWX/Debugger/DSPDebugWindow.h"
 #include "DolphinWX/Debugger/DSPRegisterView.h"
+
+class wxWindow;
 
 wxString CDSPRegTable::GetValue(int row, int col)
 {

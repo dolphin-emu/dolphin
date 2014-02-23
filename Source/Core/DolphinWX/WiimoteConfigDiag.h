@@ -1,20 +1,17 @@
 #pragma once
 
 #include <map>
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/combobox.h>
-#include <wx/listbox.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/wx.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/windowid.h>
 
+#include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
-#include "DolphinWX/InputConfigDiag.h"
+
+class InputPlugin;
+class wxButton;
+class wxWindow;
 
 class WiimoteConfigDiag : public wxDialog
 {

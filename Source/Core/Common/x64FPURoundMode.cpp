@@ -4,7 +4,6 @@
 
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
-#include "Common/FPURoundMode.h"
 
 #ifndef _WIN32
 static const unsigned short FPU_ROUND_NEAR = 0 << 10;

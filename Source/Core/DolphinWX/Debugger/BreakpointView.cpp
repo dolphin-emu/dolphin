@@ -2,15 +2,27 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <wx/wx.h>
+#include <cstddef>
+#include <cstdio>
 
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/HW/Memmap.h"
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/gdicmn.h>
+#include <wx/listbase.h>
+#include <wx/listctrl.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
+
+#include "Common/BreakPoints.h"
+#include "Common/CommonTypes.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/BreakpointView.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
+
+class wxWindow;
+struct Symbol;
 
 CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id)
 	: wxListCtrl(parent, id, wxDefaultPosition, wxDefaultSize,

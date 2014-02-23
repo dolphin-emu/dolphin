@@ -2,11 +2,59 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cctype>
+#include <cstddef>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
+#include <wx/app.h>
+#include <wx/arrstr.h>
+#include <wx/bitmap.h>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/combobox.h>
+#include <wx/control.h>
+#include <wx/dcmemory.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/font.h>
+#include <wx/gdicmn.h>
+#include <wx/listbox.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/spinctrl.h>
+#include <wx/statbmp.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/timer.h>
+#include <wx/toplevel.h>
+#include <wx/translation.h>
+#include <wx/unichar.h>
+
+#include "Common/FileSearch.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/MsgHandler.h"
 #include "Core/HW/Wiimote.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/UDPConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
+#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/InputConfig.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/ControllerInterface/ExpressionParser.h"
+
+class UDPWrapper;
+class wxWindow;
 
 using namespace ciface::ExpressionParser;
 

@@ -2,10 +2,16 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
+#include <string>
+
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/FileHandlerARC.h"
+#include "DiscIO/Filesystem.h"
 
 #define ARC_ID 0x55aa382d
 

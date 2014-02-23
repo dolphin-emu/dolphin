@@ -6,9 +6,12 @@
 
 #include <map>
 #include <string>
+#include <vector>
 
-#include "Common/FileUtil.h"
+#include "Common/CommonTypes.h"
 #include "DiscIO/Volume.h"
+
+namespace File { struct FSTEntry; }
 
 //
 // --- this volume type is used for reading files directly from the hard drive ---

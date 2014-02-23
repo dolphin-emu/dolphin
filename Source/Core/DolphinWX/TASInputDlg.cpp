@@ -2,8 +2,29 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Core/Movie.h"
+#include <cstddef>
+#include <wx/bitmap.h>
+#include <wx/chartype.h>
+#include <wx/checkbox.h>
+#include <wx/dcmemory.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/layout.h>
+#include <wx/sizer.h>
+#include <wx/slider.h>
+#include <wx/statbmp.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
+#include <wx/validate.h>
+#include <wx/window.h>
+#include <wx/windowid.h>
+
+#include "Common/CommonTypes.h"
 #include "DolphinWX/TASInputDlg.h"
+#include "InputCommon/GCPadStatus.h"
 
 BEGIN_EVENT_TABLE(TASInputDlg, wxDialog)
 

@@ -7,6 +7,11 @@
 #include <string>
 #include <wx/string.h>
 
+class wxBitmap;
+
+// A shortcut to access the bitmaps
+#define wxGetBitmapFromMemory(name) WxUtils::_wxGetBitmapFromMemory(name, sizeof(name))
+
 namespace WxUtils
 {
 
@@ -17,6 +22,8 @@ void Launch(const char *filename);
 void Explore(const char *path);
 
 double GetCurrentBitmapLogicalScale();
+
+wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length);
 
 }  // namespace
 

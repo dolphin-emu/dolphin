@@ -2,9 +2,29 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <vector>
+#include <wx/brush.h>
+#include <wx/chartype.h>
 #include <wx/clipbrd.h>
+#include <wx/colour.h>
+#include <wx/control.h>
+#include <wx/dataobj.h>
+#include <wx/dcclient.h>
+#include <wx/defs.h>
 #include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/menu.h>
+#include <wx/menuitem.h>
+#include <wx/pen.h>
+#include <wx/setup.h>
+#include <wx/string.h>
 #include <wx/textdlg.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
 
 #include "Common/Common.h"
 #include "Common/DebugInterface.h"

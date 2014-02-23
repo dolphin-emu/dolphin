@@ -2,40 +2,61 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <wx/wx.h>
+#include <cstdio>
+#include <string>
+#include <vector>
+#include <wx/bitmap.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/listbox.h>
+#include <wx/menu.h>
+#include <wx/menuitem.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/textdlg.h>
+#include <wx/thread.h>
+#include <wx/translation.h>
+#include <wx/window.h>
+#include <wx/windowid.h>
+#include <wx/aui/auibar.h>
 
+#include "Common/BreakPoints.h"
 #include "Common/Common.h"
-#include "Common/FileUtil.h"
-#include "Common/LogManager.h"
-#include "Core/ConfigManager.h"
+#include "Common/StringUtil.h"
+#include "Common/SymbolDB.h"
 #include "Core/Core.h"
+#include "Core/CoreParameter.h"
 #include "Core/Host.h"
-#include "Core/Boot/Boot.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/Debugger/PPCDebugInterface.h"
-#include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/SignatureDB.h"
+#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
-#include "DolphinWX/Debugger/JitWindow.h"
-#include "DolphinWX/Debugger/MemoryWindow.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
-
 
 extern "C"  // Bitmaps
 {
 	#include "DolphinWX/resources/toolbar_add_memorycheck.c" // NOLINT
 	#include "DolphinWX/resources/toolbar_add_breakpoint.c" // NOLINT
 }
+
+class DebugInterface;
 
 // -------
 // Main

@@ -5,15 +5,19 @@
 #ifdef _WIN32
 #include <io.h>
 #include <windows.h>
-#else
-#include <unistd.h>
 #endif
 
+#include <algorithm>
 #include <cinttypes>
+#include <cstdio>
+#include <cstring>
+#include <string>
 #include <zlib.h>
 
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
+#include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
 

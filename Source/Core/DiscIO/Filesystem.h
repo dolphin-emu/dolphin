@@ -4,10 +4,16 @@
 
 #pragma once
 
-#include "DiscIO/Volume.h"
+#include <cstddef>
+#include <cstring>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 
 namespace DiscIO
 {
+
+class IVolume;
 
 // file info of an FST entry
 struct SFileInfo

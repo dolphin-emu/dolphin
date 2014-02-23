@@ -6,6 +6,10 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+#include "Common/Log.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/CoreParameter.h"
 #include "DolphinWX/X11Utils.h"
 
 extern char **environ;

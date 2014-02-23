@@ -4,6 +4,8 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <cstddef>
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -11,7 +13,9 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "DiscIO/Filesystem.h"
 #include "DiscIO/FileSystemGCWii.h"
+#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {

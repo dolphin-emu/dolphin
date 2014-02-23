@@ -11,24 +11,37 @@
 // might have to change this setup for wiimote
 #define PROFILES_PATH       "Profiles/"
 
-#include <sstream>
+#include <cstddef>
+#include <string>
 #include <vector>
 #include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/combobox.h>
-#include <wx/listbox.h>
-#include <wx/notebook.h>
+#include <wx/control.h>
+#include <wx/dialog.h>
+#include <wx/gdicmn.h>
 #include <wx/panel.h>
+#include <wx/sizer.h>
 #include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/wx.h>
+#include <wx/string.h>
+#include <wx/translation.h>
 
-#include "Common/FileSearch.h"
 #include "InputCommon/ControllerEmu.h"
-#include "InputCommon/InputConfig.h"
-#include "InputCommon/UDPWrapper.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/Device.h"
+
+class InputPlugin;
+class UDPWrapper;
+class wxComboBox;
+class wxCommandEvent;
+class wxEvent;
+class wxListBox;
+class wxNotebook;
+class wxSlider;
+class wxStaticBitmap;
+class wxStaticText;
+class wxTextCtrl;
+class wxTimer;
+class wxTimerEvent;
+class wxWindow;
 
 class PadSetting
 {

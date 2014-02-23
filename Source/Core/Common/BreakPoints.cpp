@@ -3,11 +3,14 @@
 // Refer to the license.txt file included.
 
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include "Common/BreakPoints.h"
 #include "Common/Common.h"
 #include "Common/DebugInterface.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/JitCache.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {

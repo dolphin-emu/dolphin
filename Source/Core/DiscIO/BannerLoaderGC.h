@@ -4,13 +4,21 @@
 
 #pragma once
 
-#include "Common/StringUtil.h"
+#include <cstring>
+#include <string>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 
 #include "DiscIO/BannerLoader.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeGC.h"
 
 namespace DiscIO
 {
+
+class IFileSystem;
+
 class CBannerLoaderGC
 	: public IBannerLoader
 {

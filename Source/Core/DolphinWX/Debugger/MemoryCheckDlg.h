@@ -4,9 +4,12 @@
 
 #pragma once
 
-#include <wx/wx.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
 
 class CBreakPointWindow;
+class wxCheckBox;
+class wxTextCtrl;
 
 class MemoryCheckDlg : public wxDialog
 {

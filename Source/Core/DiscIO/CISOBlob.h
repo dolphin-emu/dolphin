@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <cstdio>
+
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
 

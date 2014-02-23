@@ -2,12 +2,23 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/IniFile.h"
+#include <wx/chartype.h>
+#include <wx/colour.h>
+#include <wx/defs.h>
+#include <wx/grid.h>
+#include <wx/string.h>
+#include <wx/windowid.h>
+
+#include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/RegisterView.h"
+
+class wxWindow;
 
 // F-zero 80005e60 wtf??
 

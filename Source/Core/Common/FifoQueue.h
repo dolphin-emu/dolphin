@@ -3,7 +3,11 @@
 // a simple lockless thread-safe,
 // single reader, single writer queue
 
+#include <algorithm>
+#include <cstddef>
+
 #include "Common/Atomic.h"
+#include "Common/CommonTypes.h"
 
 namespace Common
 {

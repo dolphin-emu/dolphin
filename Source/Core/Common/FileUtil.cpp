@@ -3,9 +3,16 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
 #include <fcntl.h>
+#include <limits.h>
+#include <string>
+#include <vector>
 #include <sys/stat.h>
 
+#include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 
@@ -21,14 +28,14 @@
 #include <errno.h>
 #include <libgen.h>
 #include <stdlib.h>
-#include <sys/param.h>
-#include <sys/types.h>
+#include <unistd.h>
 #endif
 
 #if defined(__APPLE__)
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
+#include <sys/param.h>
 #endif
 
 #ifndef S_ISDIR

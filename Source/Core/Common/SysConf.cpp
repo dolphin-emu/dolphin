@@ -3,7 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <vector>
 
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
 

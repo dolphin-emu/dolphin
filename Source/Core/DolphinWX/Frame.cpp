@@ -13,31 +13,58 @@
 #ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
 #endif
-#include <wx/datetime.h>
+
+#include <cstddef>
+#include <string>
+#include <utility>
+#include <vector>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/frame.h>
+#include <wx/gdicmn.h>
+#include <wx/icon.h>
+#include <wx/listbase.h>
+#include <wx/menu.h>
+#include <wx/menuitem.h>
+#include <wx/mousestate.h>
+#include <wx/msgdlg.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/statusbr.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/thread.h>
+#include <wx/toplevel.h>
+#include <wx/translation.h>
+#include <wx/window.h>
+#include <wx/windowid.h>
+#include <wx/aui/auibar.h>
+#include <wx/aui/auibook.h>
+#include <wx/aui/framemanager.h>
 
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
-#include "Common/Timer.h"
+#include "Common/Thread.h"
 
-#include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreParameter.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
-#include "Core/VolumeHandler.h"
-#include "Core/HW/DVDInterface.h"
-#include "Core/HW/GCPad.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
-#include "DolphinWX/CheatsWindow.h"
-#include "DolphinWX/ConfigMain.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
+#include "DolphinWX/LogWindow.h"
+#include "DolphinWX/TASInputDlg.h"
+#include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+
+#include "InputCommon/GCPadStatus.h"
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 // Resources

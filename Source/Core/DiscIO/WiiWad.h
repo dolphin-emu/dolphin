@@ -4,16 +4,14 @@
 
 #pragma once
 
-#include <map>
 #include <string>
-#include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Blob.h"
-#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {
+
+class IBlobReader;
 
 class WiiWAD
 {

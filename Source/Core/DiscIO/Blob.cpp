@@ -2,7 +2,12 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
+#include <cstring>
+#include <string>
+
 #include "Common/CDUtils.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 
 #include "DiscIO/Blob.h"

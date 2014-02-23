@@ -3,18 +3,21 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <iostream>
+#include <cctype>
+#include <cstring>
 #include <string>
 #include <vector>
 
 #include "Common/Common.h"
-#include "Common/IniFile.h"
 #include "Common/LogManager.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Boot/Boot.h"
 
-#include "DiscIO/FileSystemGCWii.h"
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
 namespace FileMon

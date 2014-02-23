@@ -4,10 +4,18 @@
 
 #pragma once
 
-#include "DolphinWX/Frame.h"
+#include <wx/app.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/string.h>
+
+class CFrame;
+class wxLocale;
+class wxTimer;
+class wxTimerEvent;
 
 // Define a new application
-class CFrame;
 class DolphinApp : public wxApp
 {
 public:

@@ -7,12 +7,22 @@
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
-#include <algorithm>
 #include <cinttypes>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <vector>
+#include <polarssl/aes.h>
+#include <polarssl/md5.h>
+#include <polarssl/sha1.h>
 
+#include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
+#include "Common/Crypto/tools.h"
 #include "DolphinWX/MemoryCards/WiiSaveCrypted.h"
 
 static Common::replace_v replacements;

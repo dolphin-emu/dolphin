@@ -4,14 +4,17 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdio>
 #include <fstream>
 #include <string>
-#include <string.h>
 #include <vector>
 
 #include "Common/Common.h"
+
+#ifdef _WIN32
 #include "Common/StringUtil.h"
+#endif
 
 // User directory indices for GetUserPath
 enum {

@@ -2,20 +2,28 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstdio>
+#include <cstring>
 #include <disasm.h>        // Bochs
 #include <PowerPCDisasm.h> // Bochs
 #include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/listbase.h>
 #include <wx/listctrl.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
 #include <wx/textctrl.h>
-#include <wx/thread.h>
+#include <wx/translation.h>
+#include <wx/window.h>
+#include <wx/windowid.h>
 
-#include "Common/LogManager.h"
+#include "Common/Common.h"
 #include "Common/StringUtil.h"
-#include "Core/Core.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/Debugger/PPCDebugInterface.h"
-#include "Core/HW/CPU.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"

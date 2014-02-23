@@ -2,11 +2,11 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <memory>
+#include <cstring>
+#include <string>
 
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
-#include "Common/StringUtil.h"
 
 #ifdef _WIN32
 #define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set

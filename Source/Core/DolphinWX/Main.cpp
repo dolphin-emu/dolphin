@@ -2,21 +2,43 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include <mutex>
 #include <string>
-#include <vector>
+#include <utility>
+#include <wx/app.h>
+#include <wx/buffer.h>
+#include <wx/chartype.h>
+#include <wx/cmdline.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/image.h>
+#include <wx/imagpng.h>
 #include <wx/intl.h>
-#include <wx/stdpaths.h>
+#include <wx/language.h>
+#include <wx/msgdlg.h>
+#include <wx/setup.h>
+#include <wx/string.h>
+#include <wx/thread.h>
+#include <wx/timer.h>
+#include <wx/translation.h>
+#include <wx/utils.h>
+#include <wx/window.h>
 
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/CPUDetect.h"
-#include "Common/ExtendedTrace.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/LogManager.h"
+#include "Common/Thread.h"
 
-#include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
-#include "Core/Host.h"
+#include "Core/CoreParameter.h"
+#include "Core/Movie.h"
 #include "Core/HW/Wiimote.h"
 
 #include "DolphinWX/Frame.h"
@@ -34,6 +56,7 @@
 
 #ifdef _WIN32
 #include <shellapi.h>
+#include "Common/ExtendedTrace.h"
 
 #ifndef SM_XVIRTUALSCREEN
 #define SM_XVIRTUALSCREEN 76
@@ -53,6 +76,8 @@
 #ifdef __APPLE__
 #import <AppKit/AppKit.h>
 #endif
+
+class wxFrame;
 
 // Nvidia drivers >= v302 will check if the application exports a global
 // variable named NvOptimusEnablement to know if it should run the app in high

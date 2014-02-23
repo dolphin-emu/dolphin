@@ -3,15 +3,19 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdio>
+#include <string>
+#include <vector>
 
 #include "Common/ColorUtil.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
 #include "DiscIO/BannerLoaderWii.h"
-#include "DiscIO/FileHandlerARC.h"
-#include "DiscIO/VolumeCreator.h"
+#include "DiscIO/Volume.h"
 
 namespace DiscIO
 {

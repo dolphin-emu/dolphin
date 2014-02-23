@@ -168,7 +168,7 @@ enum EMUSTATE_CHANGE
 	EMUSTATE_CHANGE_STOP
 };
 
-#include "Common/CommonTypes.h"
-#include "Common/CommonFuncs.h" // NOLINT: needs to be included after CommonTypes
-#include "Common/Log.h"
-#include "Common/MsgHandler.h"
+#include "Common/CommonTypes.h" // IWYU pragma: export
+#include "Common/CommonFuncs.h" // IWYU pragma: export // NOLINT
+#include "Common/Log.h" // IWYU pragma: export
+#include "Common/MsgHandler.h" // IWYU pragma: export

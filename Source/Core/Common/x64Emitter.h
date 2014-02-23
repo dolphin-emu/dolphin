@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstring>
+
 #include "Common/Common.h"
 #include "Common/MemoryUtil.h"
 

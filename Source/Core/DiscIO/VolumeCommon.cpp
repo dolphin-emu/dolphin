@@ -2,6 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <string>
+#include <vector>
+
+#include "Common/Common.h"
 #include "DiscIO/Volume.h"
 
 namespace DiscIO

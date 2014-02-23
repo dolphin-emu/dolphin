@@ -2,19 +2,37 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include <fstream>
-#include <iostream>
-#include <sstream>
+#include <cstdio>
 #include <wx/artprov.h>
+#include <wx/chartype.h>
+#include <wx/defs.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/listbox.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/thread.h>
+#include <wx/translation.h>
+#include <wx/windowid.h>
+#include <wx/aui/auibar.h>
+#include <wx/aui/auibook.h>
+#include <wx/aui/framemanager.h>
 
 #include "Common/Common.h"
 #include "Common/StringUtil.h"
+#include "Common/SymbolDB.h"
+#include "Core/DSP/DSPCore.h"
+#include "Core/HW/DSPLLE/DSPDebugInterface.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/DSPDebugWindow.h"
 #include "DolphinWX/Debugger/DSPRegisterView.h"
 #include "DolphinWX/Debugger/MemoryView.h"
+
+class wxWindow;
 
 DSPDebuggerLLE* m_DebuggerFrame = NULL;
 

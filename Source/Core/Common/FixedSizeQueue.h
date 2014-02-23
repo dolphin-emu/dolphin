@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 // STL-look-a-like interface, but name is mixed case to distinguish it clearly from the
 // real STL classes.
 

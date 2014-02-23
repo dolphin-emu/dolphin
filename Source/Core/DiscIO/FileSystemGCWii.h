@@ -4,12 +4,17 @@
 
 #pragma once
 
+#include <cstddef>
+#include <string>
 #include <vector>
 
+#include "Common/CommonTypes.h"
 #include "DiscIO/Filesystem.h"
 
 namespace DiscIO
 {
+
+class IVolume;
 
 class CFileSystemGCWii : public IFileSystem
 {

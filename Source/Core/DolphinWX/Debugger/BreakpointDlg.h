@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include <wx/wx.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
 
 class CBreakPointWindow;
+class wxTextCtrl;
 
 class BreakPointDlg : public wxDialog
 {

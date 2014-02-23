@@ -1,17 +1,12 @@
 #pragma once
 
-#include <wx/button.h>
-#include <wx/checkbox.h>
-#include <wx/combobox.h>
-#include <wx/listbox.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/wx.h>
+#include <wx/dialog.h>
 
-#include "InputCommon/UDPWrapper.h"
+class UDPWrapper;
+class wxCheckBox;
+class wxCommandEvent;
+class wxTextCtrl;
+class wxWindow;
 
 class UDPConfigDiag : public wxDialog
 {

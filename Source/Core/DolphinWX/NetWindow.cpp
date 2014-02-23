@@ -2,20 +2,50 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <cstddef>
 #include <sstream>
 #include <string>
+#include <vector>
+#include <wx/anybutton.h>
+#include <wx/arrstr.h>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/frame.h>
+#include <wx/gdicmn.h>
+#include <wx/listbox.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/sizer.h>
+#include <wx/spinctrl.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/translation.h>
 
+#include "Common/Common.h"
+#include "Common/FifoQueue.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
+#include "Core/CoreParameter.h"
 #include "Core/NetPlayClient.h"
+#include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
+#include "Core/HW/EXI_Device.h"
 
 #include "DolphinWX/Frame.h"
+#include "DolphinWX/GameListCtrl.h"
+#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
+
+class wxWindow;
 
 #define NETPLAY_TITLEBAR  "Dolphin NetPlay"
 #define INITIAL_PAD_BUFFER_SIZE 20

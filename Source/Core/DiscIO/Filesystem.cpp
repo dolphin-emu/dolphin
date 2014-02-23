@@ -4,7 +4,6 @@
 
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/FileSystemGCWii.h"
-#include "DiscIO/VolumeCreator.h"
 
 namespace DiscIO
 {

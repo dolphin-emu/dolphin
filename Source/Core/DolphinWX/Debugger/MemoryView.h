@@ -4,9 +4,13 @@
 
 #pragma once
 
-#include "Common/Common.h"
-#include "Common/DebugInterface.h"
-#include "DolphinWX/Debugger/DebuggerUIUtil.h"
+#include <wx/control.h>
+#include <wx/event.h>
+
+#include "Common/CommonTypes.h"
+
+class DebugInterface;
+class wxWindow;
 
 class CMemoryView : public wxControl
 {

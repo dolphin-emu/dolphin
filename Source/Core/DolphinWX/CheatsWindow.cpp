@@ -2,18 +2,50 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/CommonPaths.h"
+#include <climits>
+#include <cstddef>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <vector>
+#include <wx/button.h>
+#include <wx/chartype.h>
+#include <wx/checkbox.h>
+#include <wx/checklst.h>
+#include <wx/choice.h>
+#include <wx/defs.h>
+#include <wx/dialog.h>
+#include <wx/event.h>
+#include <wx/gdicmn.h>
+#include <wx/listbox.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/radiobut.h>
+#include <wx/sizer.h>
+#include <wx/statbox.h>
+#include <wx/stattext.h>
+#include <wx/string.h>
+#include <wx/textctrl.h>
+#include <wx/toplevel.h>
+#include <wx/translation.h>
+#include <wx/validate.h>
+
+#include "Common/Common.h"
+#include "Common/IniFile.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/VolumeHandler.h"
+#include "Core/CoreParameter.h"
+#include "Core/GeckoCode.h"
+#include "Core/GeckoCodeConfig.h"
 #include "Core/HW/Memmap.h"
 #include "DolphinWX/CheatsWindow.h"
 #include "DolphinWX/Frame.h"
-#include "DolphinWX/Globals.h"
+#include "DolphinWX/GeckoCodeDiag.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
 
+class wxWindow;
 
 #define MAX_CHEAT_SEARCH_RESULTS_DISPLAY  256
 extern std::vector<ActionReplay::ARCode> arCodes;

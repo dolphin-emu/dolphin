@@ -6,11 +6,11 @@
 
 #ifdef _WIN32
 
-#include "Common/Atomic_Win32.h"
+#include "Common/Atomic_Win32.h" // IWYU pragma: export
 
 #else
 
 // GCC-compatible compiler assumed!
-#include "Common/Atomic_GCC.h"
+#include "Common/Atomic_GCC.h" // IWYU pragma: export
 
 #endif

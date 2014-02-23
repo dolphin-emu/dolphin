@@ -4,13 +4,14 @@
 
 #pragma once
 
+#include <vector>
+
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
 
 namespace DiscIO
 {
-
-struct wbfs_head_t;
 
 class WbfsFileReader : public IBlobReader
 {

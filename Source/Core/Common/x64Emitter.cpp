@@ -6,7 +6,6 @@
 
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
-#include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 
 namespace Gen

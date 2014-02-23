@@ -2,8 +2,13 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
-#include "Common/SymbolDB.h"
+#include <cstring>
+#include <map>
+#include <string>
+#include <utility>
 
+#include "Common/Common.h"
+#include "Common/SymbolDB.h"
 
 void SymbolDB::List()
 {

@@ -3,14 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 
-#include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/StringUtil.h"
 
 #ifndef _WIN32
-#include <sys/types.h>
 #include <dirent.h>
 #else
 #include <windows.h>

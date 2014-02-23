@@ -4,6 +4,6 @@
 
 #pragma once
 
-#include <wx/wx.h>
+#include <wx/font.h>
 
 extern wxFont DebuggerFont;

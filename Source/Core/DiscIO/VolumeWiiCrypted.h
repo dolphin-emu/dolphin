@@ -4,15 +4,20 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
 #include <polarssl/aes.h>
 
-#include "DiscIO/Blob.h"
+#include "Common/CommonTypes.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for encrypted Wii images ---
 
 namespace DiscIO
 {
+
+class IBlobReader;
+
 class CVolumeWiiCrypted : public IVolume
 {
 public:
