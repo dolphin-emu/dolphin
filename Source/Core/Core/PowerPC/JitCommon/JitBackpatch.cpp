@@ -173,7 +173,8 @@ const u8 *Jitx86Base::BackPatch(u8 *codePtr, u32 emAddress, void *ctx_void)
 	if (!jit->IsInCodeSpace(codePtr))
 		return 0;  // this will become a regular crash real soon after this
 
-	InstructionInfo info;
+	InstructionInfo info = {};
+
 	if (!DisassembleMov(codePtr, &info)) {
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
 		return 0;
