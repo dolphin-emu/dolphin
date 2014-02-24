@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <polarssl/havege.h>
+#include <polarssl/entropy.h>
 #include <polarssl/net.h>
 #include <polarssl/ssl.h>
 
@@ -57,10 +57,10 @@ typedef struct
 {
 	ssl_context ctx;
 	ssl_session session;
-	havege_state hs;
-	x509_cert cacert;
-	x509_cert clicert;
-	rsa_context rsa;
+	entropy_context entropy;
+	x509_crt cacert;
+	x509_crt clicert;
+	pk_context pk;
 	int sockfd;
 	char hostname[NET_SSL_MAX_HOSTNAME_LEN];
 	bool active;

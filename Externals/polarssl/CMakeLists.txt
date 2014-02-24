@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 project(POLARSSL C)
 
-enable_testing()
-
 string(REGEX MATCH "clang" CMAKE_COMPILER_IS_CLANG "${CMAKE_C_COMPILER}")
 
 if(CMAKE_COMPILER_IS_GNUCC)
@@ -48,23 +46,3 @@ if(ENABLE_ZLIB_SUPPORT)
 endif(ENABLE_ZLIB_SUPPORT)
 
 add_subdirectory(library)
-add_subdirectory(include)
-
-if(CMAKE_COMPILER_IS_GNUCC)
-  add_subdirectory(tests)
-endif(CMAKE_COMPILER_IS_GNUCC)
-if(CMAKE_COMPILER_IS_CLANG)
-  add_subdirectory(tests)
-endif(CMAKE_COMPILER_IS_CLANG)
-
-add_subdirectory(programs)
-
-ADD_CUSTOM_TARGET(apidoc
-                  COMMAND doxygen doxygen/polarssl.doxyfile
-                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
-ADD_CUSTOM_TARGET(memcheck
-    COMMAND ctest -O memcheck.log -D ExperimentalMemCheck
-    COMMAND tail -n1 memcheck.log | grep 'Memory checking results:' > /dev/null
-    COMMAND rm -f memcheck.log
-    )

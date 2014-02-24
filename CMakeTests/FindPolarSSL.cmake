@@ -31,23 +31,23 @@ if (POLARSSL_FOUND)
 	check_cxx_source_compiles("
 	#include <polarssl/net.h>
 	#include <polarssl/ssl.h>
-	#include <polarssl/havege.h>
+	#include <polarssl/entropy.h>
 	int main()
 	{
-	ssl_context ctx;
-	ssl_session session;
-	havege_state hs;
+		ssl_context ctx;
+		ssl_session session;
+		entropy_context entropy;
 
-	ssl_init(&ctx);
-	havege_init(&hs);
-	ssl_set_rng(&ctx, havege_random, &hs);
-	ssl_set_session(&ctx, &session);
+		ssl_init(&ctx);
+		entropy_init(&entropy);
+		ssl_set_rng(&ctx, entropy_func, &entropy);
+		ssl_set_session(&ctx, &session);
 
-	ssl_close_notify(&ctx);
-	ssl_session_free(&session);
-	ssl_free(&ctx);
+		ssl_close_notify(&ctx);
+		ssl_session_free(&session);
+		ssl_free(&ctx);
 
-	return 0;
+		return 0;
 	}"
 	POLARSSL_WORKS)
 

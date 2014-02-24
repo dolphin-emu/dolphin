@@ -28,12 +28,12 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl()
 			ssl_session_free(&_SSL[i].session);
 			ssl_free(&_SSL[i].ctx);
 
-			x509_free(&_SSL[i].cacert);
-			x509_free(&_SSL[i].clicert);
+			x509_crt_free(&_SSL[i].cacert);
+			x509_crt_free(&_SSL[i].clicert);
 
 			memset(&_SSL[i].ctx, 0, sizeof(ssl_context));
 			memset(&_SSL[i].session, 0, sizeof(ssl_session));
-			memset(&_SSL[i].hs, 0, sizeof(havege_state));
+			memset(&_SSL[i].entropy, 0, sizeof(entropy_context));
 			memset(_SSL[i].hostname, 0, NET_SSL_MAX_HOSTNAME_LEN);
 
 			_SSL[i].active = false;
@@ -147,13 +147,12 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 				goto _SSL_NEW_ERROR;
 			}
 
-			havege_init(&_SSL[sslID].hs);
-			ssl_set_rng(&_SSL[sslID].ctx, havege_random, &_SSL[sslID].hs);
+			entropy_init(&_SSL[sslID].entropy);
+			ssl_set_rng(&_SSL[sslID].ctx, entropy_func, &_SSL[sslID].entropy);
 
 			// For some reason we can't use TLSv1.2, v1.1 and below are fine!
 			ssl_set_max_version(&_SSL[sslID].ctx, SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_2);
 
-			ssl_set_ciphersuites(&_SSL[sslID].ctx, ssl_default_ciphersuites);
 			ssl_set_session(&_SSL[sslID].ctx, &_SSL[sslID].session);
 
 			ssl_set_endpoint(&_SSL[sslID].ctx, SSL_IS_CLIENT);
@@ -192,12 +191,12 @@ _SSL_NEW_ERROR:
 			ssl_session_free(&_SSL[sslID].session);
 			ssl_free(&_SSL[sslID].ctx);
 
-			x509_free(&_SSL[sslID].cacert);
-			x509_free(&_SSL[sslID].clicert);
+			x509_crt_free(&_SSL[sslID].cacert);
+			x509_crt_free(&_SSL[sslID].clicert);
 
 			memset(&_SSL[sslID].ctx, 0, sizeof(ssl_context));
 			memset(&_SSL[sslID].session, 0, sizeof(ssl_session));
-			memset(&_SSL[sslID].hs, 0, sizeof(havege_state));
+			memset(&_SSL[sslID].entropy, 0, sizeof(entropy_context));
 			memset(_SSL[sslID].hostname, 0, NET_SSL_MAX_HOSTNAME_LEN);
 
 			_SSL[sslID].active = false;
@@ -231,7 +230,7 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			int ret = x509parse_crt_der(
+			int ret = x509_crt_parse_der(
 				&_SSL[sslID].cacert,
 				Memory::GetPointer(BufferOut2),
 				BufferOutSize2);
@@ -268,23 +267,23 @@ _SSL_NEW_ERROR:
 		if (SSLID_VALID(sslID))
 		{
 			std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
-			int ret = x509parse_crtfile(&_SSL[sslID].clicert, (cert_base_path + "clientca.pem").c_str());
-			int rsa_ret = x509parse_keyfile(&_SSL[sslID].rsa, (cert_base_path + "clientcakey.pem").c_str(), NULL);
-			if (ret || rsa_ret)
+			int ret = x509_crt_parse_file(&_SSL[sslID].clicert, (cert_base_path + "clientca.pem").c_str());
+			int pk_ret = pk_parse_keyfile(&_SSL[sslID].pk, (cert_base_path + "clientcakey.pem").c_str(), NULL);
+			if (ret || pk_ret)
 			{
-				x509_free(&_SSL[sslID].clicert);
-				rsa_free(&_SSL[sslID].rsa);
-				memset(&_SSL[sslID].clicert, 0, sizeof(x509_cert));
-				memset(&_SSL[sslID].rsa, 0, sizeof(rsa_context));
+				x509_crt_free(&_SSL[sslID].clicert);
+				pk_free(&_SSL[sslID].pk);
+				memset(&_SSL[sslID].clicert, 0, sizeof(x509_crt));
+				memset(&_SSL[sslID].pk, 0, sizeof(pk_context));
 				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 			}
 			else
 			{
-				ssl_set_own_cert(&_SSL[sslID].ctx, &_SSL[sslID].clicert, &_SSL[sslID].rsa);
+				ssl_set_own_cert(&_SSL[sslID].ctx, &_SSL[sslID].clicert, &_SSL[sslID].pk);
 				Memory::Write_U32(SSL_OK, _BufferIn);
 			}
 
-			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = (%d, %d)", ret, rsa_ret);
+			INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = (%d, %d)", ret, pk_ret);
 		}
 		else
 		{
@@ -306,10 +305,10 @@ _SSL_NEW_ERROR:
 		int sslID = Memory::Read_U32(BufferOut) - 1;
 		if (SSLID_VALID(sslID))
 		{
-			x509_free(&_SSL[sslID].clicert);
-			rsa_free(&_SSL[sslID].rsa);
-			memset(&_SSL[sslID].clicert, 0, sizeof(x509_cert));
-			memset(&_SSL[sslID].rsa, 0, sizeof(rsa_context));
+			x509_crt_free(&_SSL[sslID].clicert);
+			pk_free(&_SSL[sslID].pk);
+			memset(&_SSL[sslID].clicert, 0, sizeof(x509_crt));
+			memset(&_SSL[sslID].pk, 0, sizeof(pk_context));
 
 			ssl_set_own_cert(&_SSL[sslID].ctx, NULL, NULL);
 			Memory::Write_U32(SSL_OK, _BufferIn);
@@ -328,10 +327,10 @@ _SSL_NEW_ERROR:
 		{
 			std::string cert_base_path(File::GetUserPath(D_WIIUSER_IDX));
 
-			int ret = x509parse_crtfile(&_SSL[sslID].cacert, (cert_base_path + "rootca.pem").c_str());
+			int ret = x509_crt_parse_file(&_SSL[sslID].cacert, (cert_base_path + "rootca.pem").c_str());
 			if (ret)
 			{
-				x509_free(&_SSL[sslID].clicert);
+				x509_crt_free(&_SSL[sslID].clicert);
 				Memory::Write_U32(SSL_ERR_FAILED, _BufferIn);
 			}
 			else
