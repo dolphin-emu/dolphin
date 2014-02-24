@@ -162,7 +162,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 
 		switch (Mode)
 		{
-			case 0:
+			case WII_SEEK_SET:
 			{
 				if ((SeekPosition >=0) && (SeekPosition <= fileSize))
 				{
@@ -171,7 +171,8 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 				}
 				break;
 			}
-			case 1:
+
+			case WII_SEEK_CUR:
 			{
 				s32 wantedPos = SeekPosition+m_SeekPos;
 				if (wantedPos >=0 && wantedPos <= fileSize)
@@ -181,7 +182,8 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 				}
 				break;
 			}
-			case 2:
+
+			case WII_SEEK_END:
 			{
 				s32 wantedPos = fileSize+m_SeekPos;
 				if (wantedPos >=0 && wantedPos <= fileSize)
@@ -191,6 +193,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 				}
 				break;
 			}
+
 			default:
 			{
 				PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
