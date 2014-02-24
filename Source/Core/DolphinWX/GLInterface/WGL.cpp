@@ -128,9 +128,6 @@ bool cInterfaceWGL::Create(void *&window_handle)
 		return false;
 	}
 
-	// Grab the swap interval function pointer
-	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
-
 	return true;
 }
 
@@ -141,7 +138,13 @@ bool cInterfaceWGL::MakeCurrent()
 
 bool cInterfaceWGL::ClearCurrent()
 {
-	return wglMakeCurrent(hDC, NULL) ? true : false;
+	bool success = wglMakeCurrent(hDC, NULL) ? true : false;
+	if (success)
+	{
+		// Grab the swap interval function pointer
+		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
+	}
+	return success;
 }
 
 // Update window width, size and etc. Called from Render.cpp

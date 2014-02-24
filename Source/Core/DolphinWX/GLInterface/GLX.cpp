@@ -110,7 +110,6 @@ bool cInterfaceGLX::Create(void *&window_handle)
 		PanicAlert("Unable to create GLX context.");
 		return false;
 	}
-	glXSwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC)GLInterface->GetFuncAddress("glXSwapIntervalSGI");
 
 	GLWin.x = _tx;
 	GLWin.y = _ty;
@@ -131,7 +130,14 @@ bool cInterfaceGLX::MakeCurrent()
 	XMoveResizeWindow(GLWin.evdpy, GLWin.win, GLWin.x, GLWin.y,
 			GLWin.width, GLWin.height);
 	#endif
-	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
+
+	bool success = glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
+	if (success)
+	{
+		// load this function based on the current bound context
+		glXSwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC)GLInterface->GetFuncAddress("glXSwapIntervalSGI");
+	}
+	return success;
 }
 
 bool cInterfaceGLX::ClearCurrent()
