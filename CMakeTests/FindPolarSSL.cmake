@@ -6,13 +6,19 @@
 #  POLARSSL_WORKS, this is true if polarssl is found and contains the methods
 #  needed by dolphin-emu
 
-if(POLARSSL_INCLUDE_DIR AND POLARSSL_LIBRARY)
-	# Already in cache, be silent
+# validate cached values (but use them as hints)
+set(POLARSSL_INCLUDE_DIR_HINT POLARSSL_INCLUDE_DIR)
+set(POLARSSL_LIBRARY_HINT POLARSSL_LIBRARY)
+unset(POLARSSL_INCLUDE_DIR CACHE)
+unset(POLARSSL_LIBRARY CACHE)
+find_path(POLARSSL_INCLUDE_DIR polarssl/ssl.h HINTS ${POLARSSL_INCLUDE_DIR_HINT})
+find_library(POLARSSL_LIBRARY polarssl HINTS ${POLARSSL_LIBRARY_HINT})
+
+if(POLARSSL_INCLUDE_DIR STREQUAL POLARSSL_INCLUDE_DIR_HINT AND
+   POLARSSL_LIBRARY     STREQUAL POLARSSL_LIBRARY_HINT)
+	# using cached values, be silent
 	set(POLARSSL_FIND_QUIETLY TRUE)
 endif()
-
-find_path(POLARSSL_INCLUDE_DIR polarssl/ssl.h)
-find_library(POLARSSL_LIBRARY polarssl)
 
 if (POLARSSL_INCLUDE_DIR AND POLARSSL_LIBRARY)
 	set (POLARSSL_FOUND TRUE)
