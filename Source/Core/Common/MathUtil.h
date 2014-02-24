@@ -150,7 +150,7 @@ float MathFloatVectorSum(const std::vector<float>&);
 #define ROUND_DOWN(x, a) ((x) & ~((a) - 1))
 
 // Rounds down. 0 -> undefined
-inline u64 Log2(u64 val)
+inline int Log2(u64 val)
 {
 #if defined(__GNUC__)
 	return 63 - __builtin_clzll(val);
@@ -161,7 +161,7 @@ inline u64 Log2(u64 val)
 	return result;
 
 #else
-	u64 result = -1;
+	int result = -1;
 	while (val != 0)
 	{
 		val >>= 1;
