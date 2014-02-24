@@ -30,14 +30,18 @@ if (POLARSSL_FOUND)
 		message (STATUS "Found the polarssl headers at ${POLARSSL_INCLUDE_DIR}")
 	endif (NOT POLARSSL_FIND_QUIETLY)
 
-	message(STATUS "Checking to see if system version contains necessary methods")
-
 	set(CMAKE_REQUIRED_INCLUDES ${POLARSSL_INCLUDE_DIR})
 	set(CMAKE_REQUIRED_LIBRARIES ${POLARSSL_LIBRARY})
+	unset(POLARSSL_WORKS CACHE)
 	check_cxx_source_compiles("
-	#include <polarssl/net.h>
 	#include <polarssl/ssl.h>
 	#include <polarssl/entropy.h>
+	#include <polarssl/version.h>
+
+	#if POLARSSL_VERSION_NUMBER < 0x01030000
+	#error \"Shared PolarSSL version is too old\"
+	#endif
+
 	int main()
 	{
 		ssl_context ctx;
@@ -56,10 +60,9 @@ if (POLARSSL_FOUND)
 		return 0;
 	}"
 	POLARSSL_WORKS)
-
 else ()
 	message (STATUS "Could not find polarssl")
 endif ()
 
-MARK_AS_ADVANCED(POLARSSL_INCLUDE_DIR POLARSSL_LIBRARY)
+mark_as_advanced(POLARSSL_INCLUDE_DIR POLARSSL_LIBRARY)
 
