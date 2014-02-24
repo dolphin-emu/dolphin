@@ -3,7 +3,7 @@
  *
  * \brief HAVEGE: HArdware Volatile Entropy Gathering and Expansion
  *
- *  Copyright (C) 2006-2010, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -31,6 +31,10 @@
 
 #define COLLECT_SIZE 1024
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * \brief          HAVEGE state structure
  */
@@ -41,10 +45,6 @@ typedef struct
     int WALK[8192];
 }
 havege_state;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          HAVEGE initialization

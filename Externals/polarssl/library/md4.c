@@ -78,7 +78,7 @@ void md4_starts( md4_context *ctx )
     ctx->state[3] = 0x10325476;
 }
 
-static void md4_process( md4_context *ctx, const unsigned char data[64] )
+void md4_process( md4_context *ctx, const unsigned char data[64] )
 {
     uint32_t X[16], A, B, C, D;
 

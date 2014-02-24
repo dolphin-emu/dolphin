@@ -31,7 +31,7 @@
 
 #include <string.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(EFIX64) && !defined(EFI32)
 #include <basetsd.h>
 typedef UINT32 uint32_t;
 #else
@@ -43,6 +43,10 @@ typedef UINT32 uint32_t;
 #if !defined(POLARSSL_SHA1_ALT)
 // Regular implementation
 //
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * \brief          SHA-1 context structure
@@ -57,10 +61,6 @@ typedef struct
     unsigned char opad[64];     /*!< HMAC: outer padding        */
 }
 sha1_context;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * \brief          SHA-1 context setup

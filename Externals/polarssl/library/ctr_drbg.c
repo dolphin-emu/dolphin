@@ -1,7 +1,7 @@
 /*
  *  CTR_DRBG implementation based on AES-256 (NIST SP 800-90)
  *
- *  Copyright (C) 2006-2011, Brainspark B.V.
+ *  Copyright (C) 2006-2013, Brainspark B.V.
  *
  *  This file is part of PolarSSL (http://www.polarssl.org)
  *  Lead Maintainer: Paul Bakker <polarssl_maintainer at polarssl.org>
@@ -92,23 +92,24 @@ void ctr_drbg_set_entropy_len( ctr_drbg_context *ctx, size_t len )
 {
     ctx->entropy_len = len;
 }
-    
+
 void ctr_drbg_set_reseed_interval( ctr_drbg_context *ctx, int interval )
 {
     ctx->reseed_interval = interval;
 }
-    
-int block_cipher_df( unsigned char *output,
-                     const unsigned char *data, size_t data_len )
+
+static int block_cipher_df( unsigned char *output,
+                            const unsigned char *data, size_t data_len )
 {
     unsigned char buf[CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16];
     unsigned char tmp[CTR_DRBG_SEEDLEN];
     unsigned char key[CTR_DRBG_KEYSIZE];
     unsigned char chain[CTR_DRBG_BLOCKSIZE];
-    unsigned char *p = buf, *iv;
+    unsigned char *p, *iv;
     aes_context aes_ctx;
 
-    int i, j, buf_len, use_len;
+    int i, j;
+    size_t buf_len, use_len;
 
     memset( buf, 0, CTR_DRBG_MAX_SEED_INPUT + CTR_DRBG_BLOCKSIZE + 16 );
 
@@ -150,11 +151,12 @@ int block_cipher_df( unsigned char *output,
             for( i = 0; i < CTR_DRBG_BLOCKSIZE; i++ )
                 chain[i] ^= p[i];
             p += CTR_DRBG_BLOCKSIZE;
-            use_len -= CTR_DRBG_BLOCKSIZE;
+            use_len -= ( use_len >= CTR_DRBG_BLOCKSIZE ) ?
+                       CTR_DRBG_BLOCKSIZE : use_len;
 
             aes_crypt_ecb( &aes_ctx, AES_ENCRYPT, chain, chain );
         }
-        
+
         memcpy( tmp + j, chain, CTR_DRBG_BLOCKSIZE );
 
         /*
@@ -180,7 +182,7 @@ int block_cipher_df( unsigned char *output,
     return( 0 );
 }
 
-int ctr_drbg_update_internal( ctr_drbg_context *ctx,
+static int ctr_drbg_update_internal( ctr_drbg_context *ctx,
                               const unsigned char data[CTR_DRBG_SEEDLEN] )
 {
     unsigned char tmp[CTR_DRBG_SEEDLEN];
@@ -242,7 +244,7 @@ int ctr_drbg_reseed( ctr_drbg_context *ctx,
     memset( seed, 0, CTR_DRBG_MAX_SEED_INPUT );
 
     /*
-     * Gather enropy_len bytes of entropy to seed state
+     * Gather entropy_len bytes of entropy to seed state
      */
     if( 0 != ctx->f_entropy( ctx->p_entropy, seed,
                              ctx->entropy_len ) )
@@ -348,7 +350,7 @@ int ctr_drbg_random( void *p_rng, unsigned char *output, size_t output_len )
 #if defined(POLARSSL_FS_IO)
 int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path )
 {
-    int ret;
+    int ret = POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR;
     FILE *f;
     unsigned char buf[ CTR_DRBG_MAX_INPUT ];
 
@@ -356,16 +358,19 @@ int ctr_drbg_write_seed_file( ctr_drbg_context *ctx, const char *path )
         return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
 
     if( ( ret = ctr_drbg_random( ctx, buf, CTR_DRBG_MAX_INPUT ) ) != 0 )
-        return( ret );
+        goto exit;
 
     if( fwrite( buf, 1, CTR_DRBG_MAX_INPUT, f ) != CTR_DRBG_MAX_INPUT )
     {
-        fclose( f );
-        return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
+        ret = POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR;
+        goto exit;
     }
 
+    ret = 0;
+
+exit:
     fclose( f );
-    return( 0 );
+    return( ret );
 }
 
 int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
@@ -382,7 +387,10 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
     fseek( f, 0, SEEK_SET );
 
     if( n > CTR_DRBG_MAX_INPUT )
+    {
+        fclose( f );
         return( POLARSSL_ERR_CTR_DRBG_INPUT_TOO_BIG );
+    }
 
     if( fread( buf, 1, n, f ) != n )
     {
@@ -390,10 +398,10 @@ int ctr_drbg_update_seed_file( ctr_drbg_context *ctx, const char *path )
         return( POLARSSL_ERR_CTR_DRBG_FILE_IO_ERROR );
     }
 
-    ctr_drbg_update( ctx, buf, n );
-    
     fclose( f );
-    
+
+    ctr_drbg_update( ctx, buf, n );
+
     return( ctr_drbg_write_seed_file( ctx, path ) );
 }
 #endif /* POLARSSL_FS_IO */
@@ -443,7 +451,8 @@ unsigned char result_nopr[16] =
       0x9d, 0x90, 0x3e, 0x07, 0x7c, 0x6f, 0x21, 0x8f };
 
 int test_offset;
-int ctr_drbg_self_test_entropy( void *data, unsigned char *buf, size_t len )
+static int ctr_drbg_self_test_entropy( void *data, unsigned char *buf,
+                                       size_t len )
 {
     unsigned char *p = data;
     memcpy( buf, p + test_offset, len );

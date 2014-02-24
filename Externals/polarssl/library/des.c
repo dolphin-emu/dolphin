@@ -606,6 +606,7 @@ int des_crypt_ecb( des_context *ctx,
     return( 0 );
 }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /*
  * DES-CBC buffer encryption/decryption
  */
@@ -657,6 +658,7 @@ int des_crypt_cbc( des_context *ctx,
 
     return( 0 );
 }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 /*
  * 3DES-ECB block encryption/decryption
@@ -701,6 +703,7 @@ int des3_crypt_ecb( des3_context *ctx,
     return( 0 );
 }
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
 /*
  * 3DES-CBC buffer encryption/decryption
  */
@@ -752,6 +755,7 @@ int des3_crypt_cbc( des3_context *ctx,
 
     return( 0 );
 }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
 #endif /* !POLARSSL_DES_ALT */
 
@@ -819,8 +823,10 @@ int des_self_test( int verbose )
     des3_context ctx3;
     unsigned char key[24];
     unsigned char buf[8];
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     unsigned char prv[8];
     unsigned char iv[8];
+#endif
 
     memset( key, 0, 24 );
 
@@ -895,6 +901,7 @@ int des_self_test( int verbose )
     if( verbose != 0 )
         printf( "\n" );
 
+#if defined(POLARSSL_CIPHER_MODE_CBC)
     /*
      * CBC mode
      */
@@ -985,6 +992,7 @@ int des_self_test( int verbose )
         if( verbose != 0 )
             printf( "passed\n" );
     }
+#endif /* POLARSSL_CIPHER_MODE_CBC */
 
     if( verbose != 0 )
         printf( "\n" );

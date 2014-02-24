@@ -43,6 +43,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="..\library\aes.c" />
+    <ClCompile Include="..\library\aesni.c" />
     <ClCompile Include="..\library\arc4.c" />
     <ClCompile Include="..\library\asn1parse.c" />
     <ClCompile Include="..\library\asn1write.c" />
@@ -57,6 +58,10 @@
     <ClCompile Include="..\library\debug.c" />
     <ClCompile Include="..\library\des.c" />
     <ClCompile Include="..\library\dhm.c" />
+    <ClCompile Include="..\library\ecdh.c" />
+    <ClCompile Include="..\library\ecdsa.c" />
+    <ClCompile Include="..\library\ecp.c" />
+    <ClCompile Include="..\library\ecp_curves.c" />
     <ClCompile Include="..\library\entropy.c" />
     <ClCompile Include="..\library\entropy_poll.c" />
     <ClCompile Include="..\library\error.c" />
@@ -67,25 +72,40 @@
     <ClCompile Include="..\library\md4.c" />
     <ClCompile Include="..\library\md5.c" />
     <ClCompile Include="..\library\md_wrap.c" />
+    <ClCompile Include="..\library\memory.c" />
+    <ClCompile Include="..\library\memory_buffer_alloc.c" />
     <ClCompile Include="..\library\net.c" />
+    <ClCompile Include="..\library\oid.c" />
     <ClCompile Include="..\library\padlock.c" />
     <ClCompile Include="..\library\pbkdf2.c" />
     <ClCompile Include="..\library\pem.c" />
+    <ClCompile Include="..\library\pk.c" />
+    <ClCompile Include="..\library\pk_wrap.c" />
     <ClCompile Include="..\library\pkcs11.c" />
     <ClCompile Include="..\library\pkcs12.c" />
     <ClCompile Include="..\library\pkcs5.c" />
+    <ClCompile Include="..\library\pkparse.c" />
+    <ClCompile Include="..\library\pkwrite.c" />
+    <ClCompile Include="..\library\ripemd160.c" />
     <ClCompile Include="..\library\rsa.c" />
     <ClCompile Include="..\library\sha1.c" />
-    <ClCompile Include="..\library\sha2.c" />
-    <ClCompile Include="..\library\sha4.c" />
+    <ClCompile Include="..\library\sha256.c" />
+    <ClCompile Include="..\library\sha512.c" />
     <ClCompile Include="..\library\ssl_cache.c" />
+    <ClCompile Include="..\library\ssl_ciphersuites.c" />
     <ClCompile Include="..\library\ssl_cli.c" />
     <ClCompile Include="..\library\ssl_srv.c" />
     <ClCompile Include="..\library\ssl_tls.c" />
+    <ClCompile Include="..\library\threading.c" />
     <ClCompile Include="..\library\timing.c" />
     <ClCompile Include="..\library\version.c" />
-    <ClCompile Include="..\library\x509parse.c" />
-    <ClCompile Include="..\library\x509write.c" />
+    <ClCompile Include="..\library\x509.c" />
+    <ClCompile Include="..\library\x509_create.c" />
+    <ClCompile Include="..\library\x509_crl.c" />
+    <ClCompile Include="..\library\x509_crt.c" />
+    <ClCompile Include="..\library\x509_csr.c" />
+    <ClCompile Include="..\library\x509write_crt.c" />
+    <ClCompile Include="..\library\x509write_csr.c" />
     <ClCompile Include="..\library\xtea.c" />
   </ItemGroup>
   <ItemGroup>

@@ -29,6 +29,9 @@
 
 #include "config.h"
 #include "ssl.h"
+#if defined(POLARSSL_ECP_C)
+#include "ecp.h"
+#endif
 
 #if defined(POLARSSL_DEBUG_C)
 
@@ -41,11 +44,20 @@
 #define SSL_DEBUG_BUF( level, text, buf, len )           \
     debug_print_buf( ssl, level, __FILE__, __LINE__, text, buf, len );
 
+#if defined(POLARSSL_BIGNUM_C)
 #define SSL_DEBUG_MPI( level, text, X )                  \
     debug_print_mpi( ssl, level, __FILE__, __LINE__, text, X );
+#endif
 
+#if defined(POLARSSL_ECP_C)
+#define SSL_DEBUG_ECP( level, text, X )                  \
+    debug_print_ecp( ssl, level, __FILE__, __LINE__, text, X );
+#endif
+
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 #define SSL_DEBUG_CRT( level, text, crt )                \
     debug_print_crt( ssl, level, __FILE__, __LINE__, text, crt );
+#endif
 
 #else
 
@@ -53,6 +65,7 @@
 #define SSL_DEBUG_RET( level, text, ret )       do { } while( 0 )
 #define SSL_DEBUG_BUF( level, text, buf, len )  do { } while( 0 )
 #define SSL_DEBUG_MPI( level, text, X )         do { } while( 0 )
+#define SSL_DEBUG_ECP( level, text, X )         do { } while( 0 )
 #define SSL_DEBUG_CRT( level, text, crt )       do { } while( 0 )
 
 #endif
@@ -74,13 +87,23 @@ void debug_print_buf( const ssl_context *ssl, int level,
                       const char *file, int line, const char *text,
                       unsigned char *buf, size_t len );
 
+#if defined(POLARSSL_BIGNUM_C)
 void debug_print_mpi( const ssl_context *ssl, int level,
                       const char *file, int line,
                       const char *text, const mpi *X );
+#endif
 
+#if defined(POLARSSL_ECP_C)
+void debug_print_ecp( const ssl_context *ssl, int level,
+                      const char *file, int line,
+                      const char *text, const ecp_point *X );
+#endif
+
+#if defined(POLARSSL_X509_CRT_PARSE_C)
 void debug_print_crt( const ssl_context *ssl, int level,
                       const char *file, int line,
-                      const char *text, const x509_cert *crt );
+                      const char *text, const x509_crt *crt );
+#endif
 
 #ifdef __cplusplus
 }

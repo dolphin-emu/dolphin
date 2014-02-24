@@ -38,7 +38,7 @@
 #endif
 
 #if !defined(POLARSSL_NO_PLATFORM_ENTROPY)
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 
 #if !defined(_WIN32_WINNT)
 #define _WIN32_WINNT 0x0400
@@ -59,7 +59,7 @@ int platform_entropy_poll( void *data, unsigned char *output, size_t len,
         return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
     }
 
-    if( CryptGenRandom( provider, len, output ) == FALSE )
+    if( CryptGenRandom( provider, (DWORD) len, output ) == FALSE )
         return POLARSSL_ERR_ENTROPY_SOURCE_FAILED;
 
     CryptReleaseContext( provider, 0 );

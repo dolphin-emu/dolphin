@@ -6,13 +6,19 @@
 #  POLARSSL_WORKS, this is true if polarssl is found and contains the methods
 #  needed by dolphin-emu
 
-if(POLARSSL_INCLUDE_DIR AND POLARSSL_LIBRARY)
-	# Already in cache, be silent
+# validate cached values (but use them as hints)
+set(POLARSSL_INCLUDE_DIR_HINT POLARSSL_INCLUDE_DIR)
+set(POLARSSL_LIBRARY_HINT POLARSSL_LIBRARY)
+unset(POLARSSL_INCLUDE_DIR CACHE)
+unset(POLARSSL_LIBRARY CACHE)
+find_path(POLARSSL_INCLUDE_DIR polarssl/ssl.h HINTS ${POLARSSL_INCLUDE_DIR_HINT})
+find_library(POLARSSL_LIBRARY polarssl HINTS ${POLARSSL_LIBRARY_HINT})
+
+if(POLARSSL_INCLUDE_DIR STREQUAL POLARSSL_INCLUDE_DIR_HINT AND
+   POLARSSL_LIBRARY     STREQUAL POLARSSL_LIBRARY_HINT)
+	# using cached values, be silent
 	set(POLARSSL_FIND_QUIETLY TRUE)
 endif()
-
-find_path(POLARSSL_INCLUDE_DIR polarssl/ssl.h)
-find_library(POLARSSL_LIBRARY polarssl)
 
 if (POLARSSL_INCLUDE_DIR AND POLARSSL_LIBRARY)
 	set (POLARSSL_FOUND TRUE)
@@ -24,36 +30,39 @@ if (POLARSSL_FOUND)
 		message (STATUS "Found the polarssl headers at ${POLARSSL_INCLUDE_DIR}")
 	endif (NOT POLARSSL_FIND_QUIETLY)
 
-	message(STATUS "Checking to see if system version contains necessary methods")
-
 	set(CMAKE_REQUIRED_INCLUDES ${POLARSSL_INCLUDE_DIR})
 	set(CMAKE_REQUIRED_LIBRARIES ${POLARSSL_LIBRARY})
+	unset(POLARSSL_WORKS CACHE)
 	check_cxx_source_compiles("
-	#include <polarssl/net.h>
 	#include <polarssl/ssl.h>
-	#include <polarssl/havege.h>
+	#include <polarssl/entropy.h>
+	#include <polarssl/version.h>
+
+	#if POLARSSL_VERSION_NUMBER < 0x01030000
+	#error \"Shared PolarSSL version is too old\"
+	#endif
+
 	int main()
 	{
-	ssl_context ctx;
-	ssl_session session;
-	havege_state hs;
+		ssl_context ctx;
+		ssl_session session;
+		entropy_context entropy;
 
-	ssl_init(&ctx);
-	havege_init(&hs);
-	ssl_set_rng(&ctx, havege_random, &hs);
-	ssl_set_session(&ctx, &session);
+		ssl_init(&ctx);
+		entropy_init(&entropy);
+		ssl_set_rng(&ctx, entropy_func, &entropy);
+		ssl_set_session(&ctx, &session);
 
-	ssl_close_notify(&ctx);
-	ssl_session_free(&session);
-	ssl_free(&ctx);
+		ssl_close_notify(&ctx);
+		ssl_session_free(&session);
+		ssl_free(&ctx);
 
-	return 0;
+		return 0;
 	}"
 	POLARSSL_WORKS)
-
 else ()
 	message (STATUS "Could not find polarssl")
 endif ()
 
-MARK_AS_ADVANCED(POLARSSL_INCLUDE_DIR POLARSSL_LIBRARY)
+mark_as_advanced(POLARSSL_INCLUDE_DIR POLARSSL_LIBRARY)
 
