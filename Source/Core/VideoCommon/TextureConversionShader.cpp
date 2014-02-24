@@ -66,8 +66,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	int blkW = TexDecoder_GetBlockWidthInTexels(format);
 	int blkH = TexDecoder_GetBlockHeightInTexels(format);
 	int samples = GetEncodedSampleCount(format);
-	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
-	int factor = samples == 1 ? 2 : 1;
+
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
@@ -91,22 +90,21 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	"  float2 uv0 = float2(0.0, 0.0);\n"
 	);
 
-	WRITE(p, "  uv1.x = uv1.x << %d;\n", Log2(samples));
+	WRITE(p, "  int y_block_position = uv1.y & ~(%d - 1);\n", blkH);
+	WRITE(p, "  int y_offset_in_block = uv1.y & (%d - 1);\n", blkH);
+	WRITE(p, "  int x_virtual_position = (uv1.x << %d) + y_offset_in_block * position.z;\n", Log2(samples));
+	WRITE(p, "  int x_block_position = (x_virtual_position >> %d) & ~(%d - 1);\n", Log2(blkH), blkW);
+	if (samples == 1)
+	{
+		// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
+		WRITE(p, "  bool first = 0 == (x_virtual_position & %d);\n", 8 * samples); // first cache line, used in the encoders
+		WRITE(p, "  x_virtual_position = x_virtual_position << 1;\n");
+	}
+	WRITE(p, "  int x_offset_in_block = x_virtual_position & (%d - 1);\n", blkW);
+	WRITE(p, "  int y_offset = (x_virtual_position >> %d) & (%d - 1);\n", Log2(blkW), blkH);
 
-	WRITE(p, "  int yl = uv1.y >> %d;\n", Log2(blkH));
-	WRITE(p, "  int yb = yl << %d;\n", Log2(blkH));
-	WRITE(p, "  int yoff = uv1.y - yb;\n");
-	WRITE(p, "  int xp = uv1.x + yoff * position.z;\n");
-	WRITE(p, "  int xel = xp >> %d;\n", Log2(samples == 1 ? factor : blkW));
-	WRITE(p, "  int xb = xel >> %d;\n", Log2(blkH));
-	WRITE(p, "  int xoff = xel - (xb << %d);\n", Log2(blkH));
-	WRITE(p, "  int xl = (uv1.x << %d) >> %d;\n", Log2(factor), Log2(blkW));
-	WRITE(p, "  int xib = (uv1.x << %d) - (xl << %d);\n", Log2(factor), Log2(blkW));
-	WRITE(p, "  int halfxb = xb >> %d;\n", Log2(factor));
-
-	WRITE(p, "  sampleUv.x = xib + (halfxb << %d);\n", Log2(blkW));
-	WRITE(p, "  sampleUv.y = yb + xoff;\n");
-	WRITE(p, "  bool first = xb == (halfxb << 1);\n");
+	WRITE(p, "  sampleUv.x = x_offset_in_block + x_block_position;\n");
+	WRITE(p, "  sampleUv.y = y_block_position + y_offset;\n");
 }
 
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType)
