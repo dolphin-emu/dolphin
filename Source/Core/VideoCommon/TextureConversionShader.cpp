@@ -14,6 +14,7 @@
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
+#include "Common/MathUtil.h"
 
 #define WRITE p+=sprintf
 
@@ -90,22 +91,22 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	"  float2 uv0 = float2(0.0, 0.0);\n"
 	);
 
-	WRITE(p, "  uv1.x = uv1.x * %d;\n", samples);
+	WRITE(p, "  uv1.x = uv1.x << %d;\n", Log2(samples));
 
-	WRITE(p, "  int yl = uv1.y / %d;\n", blkH);
-	WRITE(p, "  int yb = yl * %d;\n", blkH);
+	WRITE(p, "  int yl = uv1.y >> %d;\n", Log2(blkH));
+	WRITE(p, "  int yb = yl << %d;\n", Log2(blkH));
 	WRITE(p, "  int yoff = uv1.y - yb;\n");
 	WRITE(p, "  int xp = uv1.x + yoff * position.z;\n");
-	WRITE(p, "  int xel = xp / %d;\n", samples == 1 ? factor : blkW);
-	WRITE(p, "  int xb = xel / %d;\n", blkH);
-	WRITE(p, "  int xoff = xel - xb * %d;\n", blkH);
-	WRITE(p, "  int xl =  uv1.x * %d / %d;\n", factor, blkW);
-	WRITE(p, "  int xib = uv1.x * %d - xl * %d;\n", factor, blkW);
-	WRITE(p, "  int halfxb = xb / %d;\n", factor);
+	WRITE(p, "  int xel = xp >> %d;\n", Log2(samples == 1 ? factor : blkW));
+	WRITE(p, "  int xb = xel >> %d;\n", Log2(blkH));
+	WRITE(p, "  int xoff = xel - (xb << %d);\n", Log2(blkH));
+	WRITE(p, "  int xl = (uv1.x << %d) >> %d;\n", Log2(factor), Log2(blkW));
+	WRITE(p, "  int xib = (uv1.x << %d) - (xl << %d);\n", Log2(factor), Log2(blkW));
+	WRITE(p, "  int halfxb = xb >> %d;\n", Log2(factor));
 
-	WRITE(p, "  sampleUv.x = xib + halfxb * %d;\n", blkW);
+	WRITE(p, "  sampleUv.x = xib + (halfxb << %d);\n", Log2(blkW));
 	WRITE(p, "  sampleUv.y = yb + xoff;\n");
-	WRITE(p, "  bool first = xb == (halfxb * 2);\n");
+	WRITE(p, "  bool first = xb == (halfxb << 1);\n");
 }
 
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType)
