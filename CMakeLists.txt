@@ -17,9 +17,8 @@ option(OPENMP "Enable OpenMP parallelization" ON)
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 ########################################
 # Optional Targets
-# TODO: Add DSPSpy and TestSuite.
+# TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
-option(UNITTESTS "Build unitests" OFF)
 
 # Update compiler before calling project()
 if (APPLE)
