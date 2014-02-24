@@ -29,6 +29,9 @@
 
 #if HAVE_WAYLAND
 #include <wayland-client.h>
+#endif
+
+#ifdef USE_EGL
 #include "DolphinWX/GLInterface/GLInterface.h"
 #endif
 
