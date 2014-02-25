@@ -311,19 +311,19 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		if (per_pixel_depth)
 			out.Write("#define depth gl_FragDepth\n");
 
-		out.Write("VARYIN float4 colors_02;\n");
-		out.Write("VARYIN float4 colors_12;\n");
+		out.Write("centroid in float4 colors_02;\n");
+		out.Write("centroid in float4 colors_12;\n");
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		// Let's set up attributes
 		for (unsigned int i = 0; i < xfregs.numTexGen.numTexGens; ++i)
 		{
-			out.Write("VARYIN float3 uv%d_2;\n", i);
+			out.Write("centroid in float3 uv%d_2;\n", i);
 		}
-		out.Write("VARYIN float4 clipPos_2;\n");
+		out.Write("centroid in float4 clipPos_2;\n");
 		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
 		{
-			out.Write("VARYIN float4 Normal_2;\n");
+			out.Write("centroid in float4 Normal_2;\n");
 		}
 
 		if (forced_early_z)

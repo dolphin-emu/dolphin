@@ -68,7 +68,7 @@ void CreatePrograms()
 	 */
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *VProgramRgbToYuyv =
-		"VARYOUT vec2 uv0;\n"
+		"out vec2 uv0;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"uniform sampler2D samp9;\n"
 		"void main()\n"
@@ -79,7 +79,7 @@ void CreatePrograms()
 		"}\n";
 	const char *FProgramRgbToYuyv =
 		"uniform sampler2D samp9;\n"
-		"VARYIN vec2 uv0;\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
@@ -110,7 +110,7 @@ void CreatePrograms()
 		"}\n";
 	const char *FProgramYuyvToRgb =
 		"uniform sampler2D samp9;\n"
-		"VARYIN vec2 uv0;\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"

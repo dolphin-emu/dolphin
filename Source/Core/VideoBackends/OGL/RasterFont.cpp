@@ -115,9 +115,9 @@ const u8 rasters[char_count][char_height] = {
 
 static const char *s_vertexShaderSrc =
 	"uniform vec2 charSize;\n"
-	"ATTRIN vec2 rawpos;\n"
-	"ATTRIN vec2 tex0;\n"
-	"VARYOUT vec2 uv0;\n"
+	"in vec2 rawpos;\n"
+	"in vec2 tex0;\n"
+	"out vec2 uv0;\n"
 	"void main(void) {\n"
 	"	gl_Position = vec4(rawpos,0,1);\n"
 	"	uv0 = tex0 * charSize;\n"
@@ -126,7 +126,7 @@ static const char *s_vertexShaderSrc =
 static const char *s_fragmentShaderSrc =
 	"uniform sampler2D samp8;\n"
 	"uniform vec4 color;\n"
-	"VARYIN vec2 uv0;\n"
+	"in vec2 uv0;\n"
 	"out vec4 ocol0;\n"
 	"void main(void) {\n"
 	"	ocol0 = texture(samp8,uv0) * color;\n"
