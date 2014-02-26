@@ -90,7 +90,6 @@ void EnqueReplyCallback(u64 userdata, int)
 
 void Init()
 {
-
 	_dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isn't empty on init");
 	CWII_IPC_HLE_Device_es::m_ContentFile = "";
 	u32 i;
@@ -107,8 +106,7 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_fs(i, std::string("/dev/fs")); i++;
 
 	// IOS allows two ES devices at a time<
-	u32 j;
-	for (j=0; j<ES_MAX_COUNT; j++)
+	for (u32 j=0; j<ES_MAX_COUNT; j++)
 	{
 		g_DeviceMap[i] = es_handles[j] = new CWII_IPC_HLE_Device_es(i, std::string("/dev/es")); i++;
 		es_inuse[j] = false;
@@ -124,10 +122,10 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_kbd(i, std::string("/dev/usb/kbd")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_sdio_slot0(i, std::string("/dev/sdio/slot0")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/sdio/slot1")); i++;
-	#if  defined(__LIBUSB__) || defined(_WIN32)
+	#if defined(__LIBUSB__) || defined(_WIN32)
 		g_DeviceMap[i] = new CWII_IPC_HLE_Device_hid(i, std::string("/dev/usb/hid")); i++;
 	#else
-        g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/hid")); i++;
+		g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/hid")); i++;
 	#endif
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stub(i, std::string("/dev/usb/oh1")); i++;
 	g_DeviceMap[i] = new IWII_IPC_HLE_Device(i, std::string("_Unimplemented_Device_")); i++;
@@ -139,8 +137,7 @@ void Reset(bool _bHard)
 {
 	CoreTiming::RemoveAllEvents(enque_reply);
 
-	u32 i;
-	for (i=0; i<IPC_MAX_FDS; i++)
+	for (u32 i=0; i<IPC_MAX_FDS; i++)
 	{
 		if (g_FdMap[i] != NULL && !g_FdMap[i]->IsHardware())
 		{
@@ -148,28 +145,28 @@ void Reset(bool _bHard)
 			g_FdMap[i]->Close(0, true);
 			delete g_FdMap[i];
 		}
+
 		g_FdMap[i] = NULL;
 	}
 
-	u32 j;
-	for (j=0; j<ES_MAX_COUNT; j++)
+	for (u32 j=0; j<ES_MAX_COUNT; j++)
 	{
 		es_inuse[j] = false;
 	}
 
-	TDeviceMap::iterator itr = g_DeviceMap.begin();
-	while (itr != g_DeviceMap.end())
+	for (const auto& entry : g_DeviceMap)
 	{
-		if (itr->second)
+		if (entry.second)
 		{
 			// Force close
-			itr->second->Close(0, true);
+			entry.second->Close(0, true);
+
 			// Hardware should not be deleted unless it is a hard reset
 			if (_bHard)
-				delete itr->second;
+				delete entry.second;
 		}
-		++itr;
 	}
+
 	if (_bHard)
 	{
 		g_DeviceMap.erase(g_DeviceMap.begin(), g_DeviceMap.end());
@@ -191,14 +188,12 @@ void Shutdown()
 
 void SetDefaultContentFile(const std::string& _rFilename)
 {
-	TDeviceMap::const_iterator itr = g_DeviceMap.begin();
-	while (itr != g_DeviceMap.end())
+	for (const auto& entry : g_DeviceMap)
 	{
-		if (itr->second && itr->second->GetDeviceName().find(std::string("/dev/es")) == 0)
+		if (entry.second && entry.second->GetDeviceName().find(std::string("/dev/es")) == 0)
 		{
-			((CWII_IPC_HLE_Device_es*)itr->second)->LoadWAD(_rFilename);
+			((CWII_IPC_HLE_Device_es*)entry.second)->LoadWAD(_rFilename);
 		}
-		++itr;
 	}
 }
 
@@ -214,27 +209,26 @@ void SDIO_EventNotify()
 	if (pDevice)
 		pDevice->EventNotify();
 }
+
 int getFreeDeviceId()
 {
-	u32 i;
-	for (i=0; i<IPC_MAX_FDS; i++)
+	for (u32 i=0; i<IPC_MAX_FDS; i++)
 	{
 		if (g_FdMap[i] == NULL)
 		{
 			return i;
 		}
 	}
+
 	return -1;
 }
 
 IWII_IPC_HLE_Device* GetDeviceByName(const std::string& _rDeviceName)
 {
-	TDeviceMap::const_iterator itr = g_DeviceMap.begin();
-	while (itr != g_DeviceMap.end())
+	for (const auto& entry : g_DeviceMap)
 	{
-		if (itr->second && itr->second->GetDeviceName() == _rDeviceName)
-			return itr->second;
-		++itr;
+		if (entry.second && entry.second->GetDeviceName() == _rDeviceName)
+			return entry.second;
 	}
 
 	return NULL;
@@ -269,22 +263,17 @@ void DoState(PointerWrap &p)
 	p.Do(reply_queue);
 	p.Do(last_reply_time);
 
-	TDeviceMap::const_iterator itr;
-
-	itr = g_DeviceMap.begin();
-	while (itr != g_DeviceMap.end())
+	for (const auto& entry : g_DeviceMap)
 	{
-			if (itr->second->IsHardware())
-			{
-				itr->second->DoState(p);
-			}
-			++itr;
+		if (entry.second->IsHardware())
+		{
+			entry.second->DoState(p);
+		}
 	}
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		u32 i;
-		for (i=0; i<IPC_MAX_FDS; i++)
+		for (u32 i=0; i<IPC_MAX_FDS; i++)
 		{
 			u32 exists = 0;
 			p.Do(exists);
@@ -309,7 +298,8 @@ void DoState(PointerWrap &p)
 				g_FdMap[i] = NULL;
 			}
 		}
-		for (i=0; i<ES_MAX_COUNT; i++)
+
+		for (u32 i=0; i<ES_MAX_COUNT; i++)
 		{
 			p.Do(es_inuse[i]);
 			u32 handleID = es_handles[i]->GetDeviceID();
@@ -320,8 +310,7 @@ void DoState(PointerWrap &p)
 	}
 	else
 	{
-		u32 i;
-		for (i=0; i<IPC_MAX_FDS; i++)
+		for (u32 i=0; i<IPC_MAX_FDS; i++)
 		{
 			u32 exists = g_FdMap[i] ? 1 : 0;
 			p.Do(exists);
@@ -340,7 +329,8 @@ void DoState(PointerWrap &p)
 				}
 			}
 		}
-		for (i=0; i<ES_MAX_COUNT; i++)
+
+		for (u32 i=0; i<ES_MAX_COUNT; i++)
 		{
 			p.Do(es_inuse[i]);
 			u32 handleID = es_handles[i]->GetDeviceID();
@@ -370,7 +360,6 @@ void ExecuteCommand(u32 _Address)
 		std::string DeviceName;
 		Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
 
-
 		WARN_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
 		if (DeviceID >= 0)
 		{
@@ -388,12 +377,12 @@ void ExecuteCommand(u32 _Address)
 						break;
 					}
 				}
+
 				if (j == ES_MAX_COUNT)
 				{
 					Memory::Write_U32(FS_EESEXHAUSTED, _Address + 4);
 					CmdSuccess = true;
 				}
-
 			}
 			else if (DeviceName.find("/dev/") == 0)
 			{
@@ -430,7 +419,6 @@ void ExecuteCommand(u32 _Address)
 					pDevice = NULL;
 				}
 			}
-
 		}
 		else
 		{
@@ -445,8 +433,7 @@ void ExecuteCommand(u32 _Address)
 		{
 			CmdSuccess = pDevice->Close(_Address);
 
-			u32 j;
-			for (j=0; j<ES_MAX_COUNT; j++)
+			for (u32 j=0; j<ES_MAX_COUNT; j++)
 			{
 				if (es_handles[j] == g_FdMap[DeviceID])
 				{
