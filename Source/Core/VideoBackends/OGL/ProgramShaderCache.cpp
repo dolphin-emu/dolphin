@@ -464,9 +464,9 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define frac fract\n"
 		"#define lerp mix\n"
 
-		// Terrible hack, look at DriverDetails.h
-		"%s\n"
-		"%s\n"
+		// Terrible hacks, look at DriverDetails.h
+		"%s\n" // replace textureSize as constant
+		"%s\n" // wipe out all centroid usages
 
 		, v==GLSLES3 ? "#version 300 es" : v==GLSL_130 ? "#version 130" : v==GLSL_140 ? "#version 140" : "#version 150"
 		, v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""

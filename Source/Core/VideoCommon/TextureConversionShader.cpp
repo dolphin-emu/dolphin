@@ -95,7 +95,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	WRITE(p, "  int x_block_position = (x_virtual_position >> %d) & %d;\n", Log2(blkH), ~(blkW - 1));
 	if (samples == 1)
 	{
-		// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
+		// 32 bit textures (RGBA8 and Z24) are stored in 2 cache line increments
 		WRITE(p, "  bool first = 0 == (x_virtual_position & %d);\n", 8 * samples); // first cache line, used in the encoders
 		WRITE(p, "  x_virtual_position = x_virtual_position << 1;\n");
 	}
@@ -107,10 +107,13 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 
 	WRITE(p, "  float2 uv0 = float2(sampleUv);\n");                // sampleUv is the sample position in (int)gx_coords
 	WRITE(p, "  uv0 += float2(0.5, 0.5);\n");                      // move to center of pixel
-	WRITE(p, "  uv0 *= float(position.w);\n");                     // scale by two if needed (this will move to pixels border to filter linear)
-	WRITE(p, "  uv0 += float2(position.xy);\n");                   // move to copyed rect
-	WRITE(p, "  uv0 /= float2(%d, %d);\n", EFB_WIDTH, EFB_HEIGHT); // normlize to [0:1]
-	WRITE(p, "  uv0.y = 1.0-uv0.y;\n");                            // ogl foo (disable this line for d3d)
+	WRITE(p, "  uv0 *= float(position.w);\n");                     // scale by two if needed (also move to pixel borders so that linear filtering will average adjacent pixel)
+	WRITE(p, "  uv0 += float2(position.xy);\n");                   // move to copied rect
+	WRITE(p, "  uv0 /= float2(%d, %d);\n", EFB_WIDTH, EFB_HEIGHT); // normalize to [0:1]
+	if (ApiType == API_OPENGL)                                     // ogl has to flip up and down
+	{
+		WRITE(p, "  uv0.y = 1.0-uv0.y;\n");
+	}
 
 	WRITE(p, "  float sample_offset = position.w / float(%d);\n", EFB_WIDTH);
 }
