@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <functional>
 
 #include "Common/Common.h"
 #include "Common/MemoryUtil.h"
@@ -739,6 +740,26 @@ public:
 	#define DECLARE_IMPORT(x) extern "C" void *__imp_##x
 
 #endif
+
+	// Utility to generate a call to a std::function object.
+	//
+	// Unfortunately, calling operator() directly is undefined behavior in C++
+	// (this method might be a thunk in the case of multi-inheritance) so we
+	// have to go through a trampoline function.
+	template <typename T, typename... Args>
+	static void CallLambdaTrampoline(const std::function<T(Args...)>* f,
+	                                 Args... args)
+	{
+		(*f)(args...);
+	}
+
+	template <typename T, typename... Args>
+	void ABI_CallLambdaC(const std::function<T(Args...)>* f, u32 p1)
+	{
+		// Double casting is required by VC++ for some reason.
+		auto trampoline = (void(*)())&XEmitter::CallLambdaTrampoline<T, Args...>;
+		ABI_CallFunctionPC((void*)trampoline, const_cast<void*>((const void*)f), p1);
+	}
 };  // class XEmitter
 
 
