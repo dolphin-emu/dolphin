@@ -148,12 +148,12 @@ public:
 
 	virtual void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const
 	{
-		v.VisitComplex(read_lambda_);
+		v.VisitComplex(&read_lambda_);
 	}
 
 	virtual void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const
 	{
-		v.VisitComplex(write_lambda_);
+		v.VisitComplex(&write_lambda_);
 	}
 
 private:
@@ -313,9 +313,9 @@ void ReadHandler<T>::ResetMethod(ReadHandlingMethod<T>* method)
 			ret = [addr, mask](u32) { return *addr & mask; };
 		}
 
-		virtual void VisitComplex(std::function<T(u32)> lambda)
+		virtual void VisitComplex(const std::function<T(u32)>* lambda)
 		{
-			ret = lambda;
+			ret = *lambda;
 		}
 	};
 
@@ -367,9 +367,9 @@ void WriteHandler<T>::ResetMethod(WriteHandlingMethod<T>* method)
 			ret = [ptr, mask](u32, T val) { *ptr = val & mask; };
 		}
 
-		virtual void VisitComplex(std::function<void(u32, T)> lambda)
+		virtual void VisitComplex(const std::function<void(u32, T)>* lambda)
 		{
-			ret = lambda;
+			ret = *lambda;
 		}
 	};
 
