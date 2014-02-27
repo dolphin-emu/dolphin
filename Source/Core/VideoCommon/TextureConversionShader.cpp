@@ -14,6 +14,7 @@
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
+#include "Common/MathUtil.h"
 
 #define WRITE p+=sprintf
 
@@ -65,8 +66,7 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	int blkW = TexDecoder_GetBlockWidthInTexels(format);
 	int blkH = TexDecoder_GetBlockHeightInTexels(format);
 	int samples = GetEncodedSampleCount(format);
-	// 32 bit textures (RGBA8 and Z24) are store in 2 cache line increments
-	int factor = samples == 1 ? 2 : 1;
+
 	if (ApiType == API_OPENGL)
 	{
 		WRITE(p, "#define samp0 samp9\n");
@@ -87,37 +87,41 @@ void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 	WRITE(p, "{\n"
 	"  int2 sampleUv;\n"
 	"  int2 uv1 = int2(gl_FragCoord.xy);\n"
-	"  float2 uv0 = float2(0.0, 0.0);\n"
 	);
 
-	WRITE(p, "  uv1.x = uv1.x * %d;\n", samples);
+	WRITE(p, "  int y_block_position = uv1.y & %d;\n", ~(blkH - 1));
+	WRITE(p, "  int y_offset_in_block = uv1.y & %d;\n", blkH - 1);
+	WRITE(p, "  int x_virtual_position = (uv1.x << %d) + y_offset_in_block * position.z;\n", Log2(samples));
+	WRITE(p, "  int x_block_position = (x_virtual_position >> %d) & %d;\n", Log2(blkH), ~(blkW - 1));
+	if (samples == 1)
+	{
+		// 32 bit textures (RGBA8 and Z24) are stored in 2 cache line increments
+		WRITE(p, "  bool first = 0 == (x_virtual_position & %d);\n", 8 * samples); // first cache line, used in the encoders
+		WRITE(p, "  x_virtual_position = x_virtual_position << 1;\n");
+	}
+	WRITE(p, "  int x_offset_in_block = x_virtual_position & %d;\n", blkW - 1);
+	WRITE(p, "  int y_offset = (x_virtual_position >> %d) & %d;\n", Log2(blkW), blkH - 1);
 
-	WRITE(p, "  int yl = uv1.y / %d;\n", blkH);
-	WRITE(p, "  int yb = yl * %d;\n", blkH);
-	WRITE(p, "  int yoff = uv1.y - yb;\n");
-	WRITE(p, "  int xp = uv1.x + yoff * position.z;\n");
-	WRITE(p, "  int xel = xp / %d;\n", samples == 1 ? factor : blkW);
-	WRITE(p, "  int xb = xel / %d;\n", blkH);
-	WRITE(p, "  int xoff = xel - xb * %d;\n", blkH);
-	WRITE(p, "  int xl =  uv1.x * %d / %d;\n", factor, blkW);
-	WRITE(p, "  int xib = uv1.x * %d - xl * %d;\n", factor, blkW);
-	WRITE(p, "  int halfxb = xb / %d;\n", factor);
+	WRITE(p, "  sampleUv.x = x_offset_in_block + x_block_position;\n");
+	WRITE(p, "  sampleUv.y = y_block_position + y_offset;\n");
 
-	WRITE(p, "  sampleUv.x = xib + halfxb * %d;\n", blkW);
-	WRITE(p, "  sampleUv.y = yb + xoff;\n");
+	WRITE(p, "  float2 uv0 = float2(sampleUv);\n");                // sampleUv is the sample position in (int)gx_coords
+	WRITE(p, "  uv0 += float2(0.5, 0.5);\n");                      // move to center of pixel
+	WRITE(p, "  uv0 *= float(position.w);\n");                     // scale by two if needed (also move to pixel borders so that linear filtering will average adjacent pixel)
+	WRITE(p, "  uv0 += float2(position.xy);\n");                   // move to copied rect
+	WRITE(p, "  uv0 /= float2(%d, %d);\n", EFB_WIDTH, EFB_HEIGHT); // normalize to [0:1]
+	if (ApiType == API_OPENGL)                                     // ogl has to flip up and down
+	{
+		WRITE(p, "  uv0.y = 1.0-uv0.y;\n");
+	}
+
+	WRITE(p, "  float sample_offset = position.w / float(%d);\n", EFB_WIDTH);
 }
 
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset, API_TYPE ApiType)
 {
-	WRITE(p,                                          // sampleUv is the sample position in (int)gx_coords
-		"uv0 = float2(sampleUv + int2(%d, 0));\n" // pixel offset (if more than one pixel is samped)
-		"uv0 += float2(0.5, 0.5);\n"              // move to center of pixel
-		"uv0 *= float(position.w);\n"             // scale by two if needed (this will move to pixels border to filter linear)
-		"uv0 += float2(position.xy);\n"           // move to copyed rect
-		"uv0 /= float2(%d, %d);\n"                // normlize to [0:1]
-		"uv0.y = 1.0-uv0.y;\n"                    // ogl foo (disable this line for d3d)
-		"%s = texture(samp0, uv0).%s;\n",
-		xoffset, EFB_WIDTH, EFB_HEIGHT, dest, colorComp
+	WRITE(p, "  %s = texture(samp0, uv0 + float2(%d, 0) * sample_offset).%s;\n",
+		dest, xoffset, colorComp
 	);
 }
 
@@ -373,8 +377,6 @@ void WriteRGBA8Encoder(char* p,API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_RGBA8, ApiType);
 
-	WRITE(p, "  bool first = xb == (halfxb * 2);\n");
-
 	WRITE(p, "  float4 texSample;\n");
 	WRITE(p, "  float4 color0;\n");
 	WRITE(p, "  float4 color1;\n");
@@ -562,8 +564,6 @@ void WriteZ16LEncoder(char* p,API_TYPE ApiType)
 void WriteZ24Encoder(char* p, API_TYPE ApiType)
 {
 	WriteSwizzler(p, GX_TF_Z24X8, ApiType);
-
-	WRITE(p, "  bool first = xb == (halfxb * 2);\n");
 
 	WRITE(p, "  float depth0;\n");
 	WRITE(p, "  float depth1;\n");

@@ -652,14 +652,14 @@ void Renderer::Init()
 	s_pfont = new RasterFont();
 
 	ProgramShaderCache::CompileShader(s_ShowEFBCopyRegions,
-		"ATTRIN vec2 rawpos;\n"
-		"ATTRIN vec3 color0;\n"
-		"VARYOUT vec4 c;\n"
+		"in vec2 rawpos;\n"
+		"in vec3 color0;\n"
+		"out vec4 c;\n"
 		"void main(void) {\n"
 		"	gl_Position = vec4(rawpos, 0.0, 1.0);\n"
 		"	c = vec4(color0, 1.0);\n"
 		"}\n",
-		"VARYIN vec4 c;\n"
+		"in vec4 c;\n"
 		"out vec4 ocol0;\n"
 		"void main(void) {\n"
 		"	ocol0 = c;\n"

@@ -68,7 +68,7 @@ void CreatePrograms()
 	 */
 	// Output is BGRA because that is slightly faster than RGBA.
 	const char *VProgramRgbToYuyv =
-		"VARYOUT vec2 uv0;\n"
+		"out vec2 uv0;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"uniform sampler2D samp9;\n"
 		"void main()\n"
@@ -79,7 +79,7 @@ void CreatePrograms()
 		"}\n";
 	const char *FProgramRgbToYuyv =
 		"uniform sampler2D samp9;\n"
-		"VARYIN vec2 uv0;\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
@@ -110,14 +110,14 @@ void CreatePrograms()
 		"}\n";
 	const char *FProgramYuyvToRgb =
 		"uniform sampler2D samp9;\n"
-		"VARYIN vec2 uv0;\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"void main()\n"
 		"{\n"
 		"	ivec2 uv = ivec2(gl_FragCoord.xy);\n"
 			// We switch top/bottom here. TODO: move this to screen blit.
 		"	ivec2 ts = textureSize(samp9, 0);\n"
-		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x/2, ts.y-uv.y-1), 0);\n"
+		"	vec4 c0 = texelFetch(samp9, ivec2(uv.x>>1, ts.y-uv.y-1), 0);\n"
 		"	float y = mix(c0.b, c0.r, (uv.x & 1) == 1);\n"
 		"	float yComp = 1.164 * (y - 0.0625);\n"
 		"	float uComp = c0.g - 0.5;\n"

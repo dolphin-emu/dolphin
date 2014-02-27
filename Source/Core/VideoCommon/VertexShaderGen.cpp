@@ -106,26 +106,26 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 	if(api_type == API_OPENGL)
 	{
-		out.Write("ATTRIN float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
+		out.Write("in float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
 		if (components & VB_HAS_POSMTXIDX)
-			out.Write("ATTRIN float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+			out.Write("in float fposmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 		if (components & VB_HAS_NRM0)
-			out.Write("ATTRIN float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
+			out.Write("in float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
 		if (components & VB_HAS_NRM1)
-			out.Write("ATTRIN float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
+			out.Write("in float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
 		if (components & VB_HAS_NRM2)
-			out.Write("ATTRIN float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
+			out.Write("in float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
 
 		if (components & VB_HAS_COL0)
-			out.Write("ATTRIN float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
+			out.Write("in float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
 		if (components & VB_HAS_COL1)
-			out.Write("ATTRIN float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
+			out.Write("in float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
 
 		for (int i = 0; i < 8; ++i)
 		{
 			u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
 			if ((components & (VB_HAS_UV0<<i)) || hastexmtx)
-				out.Write("ATTRIN float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
+				out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
 		}
 
 		// Let's set up attributes
@@ -133,15 +133,15 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		{
 			if (i < xfregs.numTexGen.numTexGens)
 			{
-				out.Write("VARYOUT  float3 uv%d_2;\n", i);
+				out.Write("centroid out  float3 uv%d_2;\n", i);
 			}
 		}
-		out.Write("VARYOUT   float4 clipPos_2;\n");
+		out.Write("centroid out   float4 clipPos_2;\n");
 		if (g_ActiveConfig.bEnablePixelLighting && g_ActiveConfig.backend_info.bSupportsPixelLighting)
-			out.Write("VARYOUT   float4 Normal_2;\n");
+			out.Write("centroid out   float4 Normal_2;\n");
 
-		out.Write("VARYOUT   float4 colors_02;\n");
-		out.Write("VARYOUT   float4 colors_12;\n");
+		out.Write("centroid out   float4 colors_02;\n");
+		out.Write("centroid out   float4 colors_12;\n");
 
 		out.Write("void main()\n{\n");
 	}

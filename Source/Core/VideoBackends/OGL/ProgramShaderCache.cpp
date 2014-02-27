@@ -452,12 +452,6 @@ void ProgramShaderCache::CreateHeader ( void )
 		// Precision defines for GLSLES3
 		"%s\n"
 
-		"\n"// A few required defines and ones that will make our lives a lot easier
-		"#define ATTRIN in\n"
-		"#define ATTROUT out\n"
-		"#define VARYIN %s\n"
-		"#define VARYOUT %s\n"
-
 		// Silly differences
 		"#define float2 vec2\n"
 		"#define float3 vec3\n"
@@ -470,8 +464,9 @@ void ProgramShaderCache::CreateHeader ( void )
 		"#define frac fract\n"
 		"#define lerp mix\n"
 
-		// Terrible hack, look at DriverDetails.h
-		"%s\n"
+		// Terrible hacks, look at DriverDetails.h
+		"%s\n" // replace textureSize as constant
+		"%s\n" // wipe out all centroid usages
 
 		, v==GLSLES3 ? "#version 300 es" : v==GLSL_130 ? "#version 130" : v==GLSL_140 ? "#version 140" : "#version 150"
 		, v<GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : ""
@@ -480,9 +475,8 @@ void ProgramShaderCache::CreateHeader ( void )
 
 		, v==GLSLES3 ? "precision highp float;" : ""
 
-		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "in" : "centroid in"
-		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "out" : "centroid out"
 		, DriverDetails::HasBug(DriverDetails::BUG_BROKENTEXTURESIZE) ? "#define textureSize(x, y) ivec2(1, 1)" : ""
+		, DriverDetails::HasBug(DriverDetails::BUG_BROKENCENTROID) ? "#define centroid" : ""
 	);
 }
 

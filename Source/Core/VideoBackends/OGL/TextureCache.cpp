@@ -346,7 +346,7 @@ TextureCache::TextureCache()
 	const char *pColorMatrixProg =
 		"uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[7];\n"
-		"VARYIN vec2 uv0;\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
@@ -358,7 +358,7 @@ TextureCache::TextureCache()
 	const char *pDepthMatrixProg =
 		"uniform sampler2D samp9;\n"
 		"uniform vec4 colmat[5];\n"
-		"VARYIN vec2 uv0;\n"
+		"in vec2 uv0;\n"
 		"out vec4 ocol0;\n"
 		"\n"
 		"void main(){\n"
@@ -369,7 +369,7 @@ TextureCache::TextureCache()
 		"}\n";
 
 	const char *VProgram =
-		"VARYOUT vec2 uv0;\n"
+		"out vec2 uv0;\n"
 		"uniform sampler2D samp9;\n"
 		"uniform vec4 copy_position;\n" // left, top, right, bottom
 		"void main()\n"
