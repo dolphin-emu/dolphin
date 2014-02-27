@@ -148,7 +148,21 @@ bool CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
 			}
 
 			entropy_init(&_SSL[sslID].entropy);
-			ssl_set_rng(&_SSL[sslID].ctx, entropy_func, &_SSL[sslID].entropy);
+			const char* pers = "dolphin-emu";
+			ret = ctr_drbg_init(&_SSL[sslID].ctr_drbg, entropy_func,
+			                    &_SSL[sslID].entropy,
+			                    (const unsigned char*)pers,
+			                    strlen(pers));
+			if (ret)
+			{
+				ssl_free(&_SSL[sslID].ctx);
+				// Cleanup possibly dirty ctx
+				memset(&_SSL[sslID].ctx, 0, sizeof(ssl_context));
+				entropy_free(&_SSL[sslID].entropy);
+				goto _SSL_NEW_ERROR;
+			}
+
+			ssl_set_rng(&_SSL[sslID].ctx, ctr_drbg_random, &_SSL[sslID].ctr_drbg);
 
 			// For some reason we can't use TLSv1.2, v1.1 and below are fine!
 			ssl_set_max_version(&_SSL[sslID].ctx, SSL_MAJOR_VERSION_3, SSL_MINOR_VERSION_2);
@@ -191,6 +205,8 @@ _SSL_NEW_ERROR:
 			ssl_session_free(&_SSL[sslID].session);
 			ssl_free(&_SSL[sslID].ctx);
 
+			entropy_free(&_SSL[sslID].entropy);
+			
 			x509_crt_free(&_SSL[sslID].cacert);
 			x509_crt_free(&_SSL[sslID].clicert);
 
