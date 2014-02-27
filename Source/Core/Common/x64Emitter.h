@@ -171,7 +171,7 @@ private:
 	u16 indexReg;
 };
 
-inline OpArg M(void *ptr)       {return OpArg((u64)ptr, (int)SCALE_RIP);}
+inline OpArg M(const void *ptr) {return OpArg((u64)ptr, (int)SCALE_RIP);}
 inline OpArg R(X64Reg value)    {return OpArg(0, SCALE_NONE, value);}
 inline OpArg MatR(X64Reg value) {return OpArg(0, SCALE_ATREG, value);}
 inline OpArg MDisp(X64Reg value, int offset) {
@@ -194,9 +194,9 @@ inline OpArg Imm16(u16 imm) {return OpArg(imm, SCALE_IMM16);} //rarely used
 inline OpArg Imm32(u32 imm) {return OpArg(imm, SCALE_IMM32);}
 inline OpArg Imm64(u64 imm) {return OpArg(imm, SCALE_IMM64);}
 #ifdef _ARCH_64
-inline OpArg ImmPtr(void* imm) {return Imm64((u64)imm);}
+inline OpArg ImmPtr(const void* imm) {return Imm64((u64)imm);}
 #else
-inline OpArg ImmPtr(void* imm) {return Imm32((u32)imm);}
+inline OpArg ImmPtr(const void* imm) {return Imm32((u32)imm);}
 #endif
 inline u32 PtrOffset(void* ptr, void* base) {
 #ifdef _ARCH_64 
