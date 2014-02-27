@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <polarssl/ctr_drbg.h>
 #include <polarssl/entropy.h>
 #include <polarssl/net.h>
 #include <polarssl/ssl.h>
@@ -58,6 +59,7 @@ typedef struct
 	ssl_context ctx;
 	ssl_session session;
 	entropy_context entropy;
+	ctr_drbg_context ctr_drbg;
 	x509_crt cacert;
 	x509_crt clicert;
 	pk_context pk;
