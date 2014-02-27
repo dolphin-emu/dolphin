@@ -54,9 +54,9 @@ double GetCurrentBitmapLogicalScale()
 {
 #ifdef __APPLE__
 	// wx doesn't expose this itself, unfortunately.
-    if ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
+	if ([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
 	{
-        return [[NSScreen mainScreen] backingScaleFactor];
+		return [[NSScreen mainScreen] backingScaleFactor];
 	}
 #endif
 	return 1.0;
