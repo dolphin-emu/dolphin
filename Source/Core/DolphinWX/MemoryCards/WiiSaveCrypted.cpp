@@ -22,7 +22,7 @@
 #include "Common/MathUtil.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Crypto/tools.h"
+#include "Common/Crypto/ec.h"
 #include "DolphinWX/MemoryCards/WiiSaveCrypted.h"
 
 static Common::replace_v replacements;

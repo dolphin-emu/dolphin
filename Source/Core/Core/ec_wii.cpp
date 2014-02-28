@@ -13,7 +13,7 @@
 #include <polarssl/sha1.h>
 
 #include "Common/FileUtil.h"
-#include "Common/Crypto/tools.h"
+#include "Common/Crypto/ec.h"
 
 #include "Core/ec_wii.h"
 
