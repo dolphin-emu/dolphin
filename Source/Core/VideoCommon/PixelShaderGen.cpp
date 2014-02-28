@@ -101,10 +101,10 @@ static const char *tevKSelTableA[] = // KASEL
 
 static const char *tevScaleTable[] = // CS
 {
-	"*1",     // SCALE_1
-	"*2",     // SCALE_2
-	"*4",     // SCALE_4
-	"/ 2",  // DIVIDE_2
+	"",       // SCALE_1
+	" << 1",  // SCALE_2
+	" << 2",  // SCALE_4
+	" >> 1",  // DIVIDE_2
 };
 
 static const char *tevBiasTable[] = // TB
@@ -802,10 +802,10 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 
 		out.Write("((%s&255) * (int3(255,255,255) - (%s&255)) + (%s&255) * (%s&255)) / 255", tevCInputTable[cc.a], tevCInputTable[cc.c], tevCInputTable[cc.b], tevCInputTable[cc.c]);
 
-		out.Write("%s", tevBiasTable[cc.bias]);
+		out.Write(" %s", tevBiasTable[cc.bias]);
 
 		if (cc.shift > TEVSCALE_1)
-			out.Write(")%s", tevScaleTable[cc.shift]);
+			out.Write(") %s", tevScaleTable[cc.shift]);
 	}
 	else
 	{
@@ -846,10 +846,10 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 
 		out.Write("((%s.a&255) * (255 - (%s.a&255)) + (%s.a&255) * (%s.a&255)) / 255", tevAInputTable[ac.a], tevAInputTable[ac.c], tevAInputTable[ac.b], tevAInputTable[ac.c]);
 
-		out.Write("%s",tevBiasTable[ac.bias]);
+		out.Write(" %s",tevBiasTable[ac.bias]);
 
 		if (ac.shift>0)
-			out.Write(")%s", tevScaleTable[ac.shift]);
+			out.Write(") %s", tevScaleTable[ac.shift]);
 	}
 	else
 	{
