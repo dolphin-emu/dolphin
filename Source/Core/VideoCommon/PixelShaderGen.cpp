@@ -18,16 +18,7 @@
 #include "VideoCommon/XFMemory.h"  // for texture projection mode
 
 
-//   old tev->pixelshader notes
-//
-//   color for this stage (alpha, color) is given by bpmem.tevorders[0].colorchan0
-//   konstant for this stage (alpha, color) is given by bpmem.tevksel
-//   inputs are given by bpmem.combiners[0].colorC.a/b/c/d     << could be current channel color
-//   according to GXTevColorArg table above
-//   output is given by .outreg
-//   tevtemp is set according to swapmodetables and
-
-static const char *tevKSelTableC[] = // KCSEL
+static const char *tevKSelTableC[] =
 {
 	"255,255,255",  // 1   = 0x00
 	"223,223,223",  // 7_8 = 0x01
@@ -63,7 +54,7 @@ static const char *tevKSelTableC[] = // KCSEL
 	I_KCOLORS"[3].aaa", // K3_A = 0x1F
 };
 
-static const char *tevKSelTableA[] = // KASEL
+static const char *tevKSelTableA[] =
 {
 	"255",  // 1   = 0x00
 	"223",  // 7_8 = 0x01
@@ -99,7 +90,7 @@ static const char *tevKSelTableA[] = // KASEL
 	I_KCOLORS"[3].a", // K3_A = 0x1F
 };
 
-static const char *tevScaleTable[] = // CS
+static const char *tevScaleTable[] =
 {
 	"",       // SCALE_1
 	" << 1",  // SCALE_2
@@ -107,7 +98,7 @@ static const char *tevScaleTable[] = // CS
 	" >> 1",  // DIVIDE_2
 };
 
-static const char *tevBiasTable[] = // TB
+static const char *tevBiasTable[] =
 {
 	"",       // ZERO,
 	"+ 128",  // ADDHALF,
@@ -115,12 +106,12 @@ static const char *tevBiasTable[] = // TB
 	"",
 };
 
-static const char *tevOpTable[] = { // TEV
+static const char *tevOpTable[] = {
 	"+",      // TEVOP_ADD = 0,
 	"-",      // TEVOP_SUB = 1,
 };
 
-static const char *tevCInputTable[] = // CC
+static const char *tevCInputTable[] =
 {
 	"iprev.rgb",         // CPREV,
 	"iprev.aaa",         // APREV,
@@ -140,7 +131,7 @@ static const char *tevCInputTable[] = // CC
 	"int3(0,0,0)",       // ZERO
 };
 
-static const char *tevAInputTable[] = // CA
+static const char *tevAInputTable[] =
 {
 	"iprev",            // APREV,
 	"ic0",              // A0,
