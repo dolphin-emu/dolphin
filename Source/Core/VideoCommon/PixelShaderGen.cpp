@@ -988,6 +988,8 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 		// perspective
 		// ze = A/(B - (Zs >> B_SHF)
 		// TODO: Verify that we want to drop lower bits here! (currently taken over from software renderer)
+		//       Maybe we want to use "ze = (A << B_SHF)/((B << B_SHF) - Zs)" instead?
+		//       That's equivalent, but keeps the lower bits of Zs.
 		out.Write("\tfloat ze = (" I_FOGF"[1].x * 16777215.0) / float(" I_FOGI"[0].y - (zCoord >> " I_FOGI"[0].w));\n");
 	}
 	else
