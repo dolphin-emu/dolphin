@@ -23,9 +23,6 @@
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
-
-inline double round(double x) { return (x-floor(x))>0.5 ? ceil(x) : floor(x); } //because damn MSVSC doesen't comply to C99
-
 namespace
 {
 // :)
@@ -523,8 +520,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 			MatrixTransformVertex(tot,v[i]);
 			if ((v[i].x<-1)||(v[i].x>1)||(v[i].y<-1)||(v[i].y>1))
 				continue;
-			x[i]=(u16)round((v[i].x+1)/2*(camWidth-1));
-			y[i]=(u16)round((v[i].y+1)/2*(camHeight-1));
+			x[i] = (u16)lround((v[i].x+1)/2*(camWidth-1));
+			y[i] = (u16)lround((v[i].y+1)/2*(camHeight-1));
 		}
 		// PanicAlert("%f %f\n%f %f\n%f %f\n%f %f\n%d %d\n%d %d\n%d %d\n%d %d",
 		//      v[0].x,v[0].y,v[1].x,v[1].y,v[2].x,v[2].y,v[3].x,v[3].y,
@@ -649,13 +646,10 @@ void Wiimote::Update()
 	u8 data[MAX_PAYLOAD];
 	memset(data, 0, sizeof(data));
 
-	// figure out what data we need
-	s8 rptf_size = MAX_PAYLOAD;
-
 	Movie::SetPolledDevice();
 
 	const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
-	rptf_size = rptf.size;
+	s8 rptf_size = rptf.size;
 	if (Movie::IsPlayingInput() && Movie::PlayWiimote(m_index, data, rptf, m_reg_ir.mode))
 	{
 		if (rptf.core)

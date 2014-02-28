@@ -14,7 +14,6 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-const bool renderFog = false;
 namespace BPFunctions
 {
 // ----------------------------------------------

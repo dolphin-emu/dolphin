@@ -392,7 +392,6 @@ bool CBoot::EmulatedBS2_Wii()
 		Memory::Write_U32(firmwareVer ? firmwareVer : 0x00090204, 0x00003140);
 
 		// Load patches and run startup patches
-		std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();
 		PatchEngine::LoadPatches();
 
 		// return

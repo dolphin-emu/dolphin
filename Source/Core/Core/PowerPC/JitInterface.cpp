@@ -77,7 +77,6 @@ namespace JitInterface
 				PanicAlert("Unrecognizable cpu_core: %d", core);
 				jit = NULL;
 				return NULL;
-				break;
 			}
 		}
 		jit = static_cast<JitBase*>(ptr);

@@ -26,7 +26,7 @@ Inputs:
 data      : This is an array of RGBA with 8 bits per channel. 4 bytes for each pixel.
 row_stride: Determines the amount of bytes per row of pixels.
 */
-bool TextureToPng(u8* data, int row_stride, const std::string filename, int width, int height, bool saveAlpha)
+bool TextureToPng(u8* data, int row_stride, const std::string& filename, int width, int height, bool saveAlpha)
 {
 	bool success = false;
 

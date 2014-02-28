@@ -296,7 +296,7 @@ restart:
 	{
 		PB.ReachedEnd = 0;
 
-		if ((PB.RepeatMode == 0) || (!PB.StopOnSilence == 0))
+		if ((PB.RepeatMode == 0) || (PB.StopOnSilence != 0))
 		{
 			PB.KeyOff = 1;
 			PB.RemLength = 0;
@@ -657,7 +657,6 @@ ContinueWithBlock:
 				switch (count) {
 				case 0: _LeftBuffer[i] += (u64)unmixed_audio * ramp >> 29; break;
 				case 1: _RightBuffer[i] += (u64)unmixed_audio * ramp >> 29; break;
-					break;
 				}
 			}
 		}

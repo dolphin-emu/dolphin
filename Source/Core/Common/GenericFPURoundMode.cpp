@@ -21,13 +21,13 @@
 // Generic, do nothing
 namespace FPURoundMode
 {
-	void SetRoundMode(u32 mode)
+	void SetRoundMode(RoundModes mode)
 	{
 	}
-	void SetPrecisionMode(u32 mode)
+	void SetPrecisionMode(PrecisionModes mode)
 	{
 	}
-	void SetSIMDMode(u32 mode, u32 nonIEEEMode)
+	void SetSIMDMode(RoundModes rounding_mode, bool non_ieee_mode)
 	{
 	}
 	void SaveSIMDState()

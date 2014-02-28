@@ -368,7 +368,7 @@ void CConfigMain::InitializeGUIValues()
 	if (startup_params.bDSPHLE)
 		DSPEngine->SetSelection(0);
 	else
-		DSPEngine->SetSelection(SConfig::GetInstance().m_EnableJIT ? 1 : 2);
+		DSPEngine->SetSelection(SConfig::GetInstance().m_DSPEnableJIT ? 1 : 2);
 
 	// Audio
 	VolumeSlider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
@@ -957,8 +957,7 @@ void CConfigMain::AudioSettingsChanged(wxCommandEvent& event)
 	{
 	case ID_DSPENGINE:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPHLE = DSPEngine->GetSelection() == 0;
-		if (!DSPEngine->GetSelection() == 0)
-			SConfig::GetInstance().m_EnableJIT = DSPEngine->GetSelection() == 1;
+		SConfig::GetInstance().m_DSPEnableJIT = DSPEngine->GetSelection() == 1;
 		AudioCommon::UpdateSoundStream();
 		break;
 

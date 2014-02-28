@@ -146,7 +146,6 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 			BufferIn, BufferInSize, BufferOut, BufferOutSize);
 		deviceCommandAddress = _CommandAddress;
 		return false;
-		break;
 	}
 	case IOCTL_HID_OPEN:
 	{
@@ -210,7 +209,6 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		// It's the async way!
 		return false;
-		break;
 	}
 	case IOCTL_HID_INTERRUPT_OUT:
 	case IOCTL_HID_INTERRUPT_IN:
@@ -242,7 +240,6 @@ bool CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
 		// It's the async way!
 		return false;
-		break;
 	}
 	case IOCTL_HID_SHUTDOWN:
 	{

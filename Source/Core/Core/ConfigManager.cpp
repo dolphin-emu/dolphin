@@ -267,7 +267,7 @@ void SConfig::SaveSettings()
 	ini.Set("Movie", "Author", m_strMovieAuthor);
 
 	// DSP
-	ini.Set("DSP", "EnableJIT", m_EnableJIT);
+	ini.Set("DSP", "EnableJIT", m_DSPEnableJIT);
 	ini.Set("DSP", "DumpAudio", m_DumpAudio);
 	ini.Set("DSP", "Backend", sBackend);
 	ini.Set("DSP", "Volume", m_Volume);
@@ -430,7 +430,7 @@ void SConfig::LoadSettings()
 		ini.Get("Movie", "Author", &m_strMovieAuthor, "");
 
 		// DSP
-		ini.Get("DSP", "EnableJIT", &m_EnableJIT, true);
+		ini.Get("DSP", "EnableJIT", &m_DSPEnableJIT, true);
 		ini.Get("DSP", "DumpAudio", &m_DumpAudio, false);
 	#if defined __linux__ && HAVE_ALSA
 		ini.Get("DSP", "Backend", &sBackend, BACKEND_ALSA);

@@ -228,10 +228,6 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	dc.GetTextExtent(_T("W"),&w,&h);
 	int fontSize = w;
 	int textPlacement = 17 + 9 * fontSize;
-	struct branch
-	{
-		int src, dst, srcAddr;
-	};
 
 	// TODO: Add any drawing code here...
 	int width   = rc.width;

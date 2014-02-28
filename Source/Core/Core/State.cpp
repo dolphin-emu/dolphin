@@ -184,9 +184,10 @@ std::map<double, int> GetSavedStates()
 	std::map<double, int> m;
 	for (int i = 1; i <= (int)NUM_STATES; i++)
 	{
-		if (File::Exists(MakeStateFilename(i)))
+		std::string filename = MakeStateFilename(i);
+		if (File::Exists(filename))
 		{
-			if (ReadHeader(MakeStateFilename(i), header))
+			if (ReadHeader(filename, header))
 			{
 				double d = Common::Timer::GetDoubleTime() - header.time;
 				// increase time until unique value is obtained
@@ -340,7 +341,7 @@ void SaveAs(const std::string& filename, bool wait)
 	Core::PauseAndLock(false, wasUnpaused);
 }
 
-bool ReadHeader(const std::string filename, StateHeader& header)
+bool ReadHeader(const std::string& filename, StateHeader& header)
 {
 	Flush();
 	File::IOFile f(filename, "rb");

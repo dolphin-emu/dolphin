@@ -134,7 +134,7 @@ namespace AudioCommon
 		{
 			return true;
 		}
-		return SConfig::GetInstance().m_EnableJIT;
+		return SConfig::GetInstance().m_DSPEnableJIT;
 	}
 
 	void PauseAndLock(bool doLock, bool unpauseOnUnlock)

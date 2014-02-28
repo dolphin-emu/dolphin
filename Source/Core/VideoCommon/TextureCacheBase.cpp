@@ -73,11 +73,8 @@ void TextureCache::Invalidate()
 TextureCache::~TextureCache()
 {
 	Invalidate();
-	if (temp)
-	{
-		FreeAlignedMemory(temp);
-		temp = NULL;
-	}
+	FreeAlignedMemory(temp);
+	temp = NULL;
 }
 
 void TextureCache::OnConfigChanged(VideoConfig& config)
@@ -238,11 +235,11 @@ bool TextureCache::CheckForCustomTextureLODs(u64 tex_hash, int texformat, unsign
 
 	for (unsigned int level = 1; level < levels; ++level)
 	{
-		sprintf(texPathTemp, "%s_mip%i", texBasePathTemp, level);
+		sprintf(texPathTemp, "%s_mip%u", texBasePathTemp, level);
 		if (!HiresTextures::HiresTexExists(texPathTemp))
 		{
 			if (level > 1)
-				WARN_LOG(VIDEO, "Couldn't find custom texture LOD with index %i (filename: %s), disabling custom LODs for this texture", level, texPathTemp);
+				WARN_LOG(VIDEO, "Couldn't find custom texture LOD with index %u (filename: %s), disabling custom LODs for this texture", level, texPathTemp);
 
 			return false;
 		}
@@ -260,7 +257,7 @@ PC_TexFormat TextureCache::LoadCustomTexture(u64 tex_hash, int texformat, unsign
 	if (level == 0)
 		sprintf(texPathTemp, "%s_%08x_%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat);
 	else
-		sprintf(texPathTemp, "%s_%08x_%i_mip%i", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat, level);
+		sprintf(texPathTemp, "%s_%08x_%i_mip%u", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID.c_str(), tex_hash_u32, texformat, level);
 
 	unsigned int required_size = 0;
 	PC_TexFormat ret = HiresTextures::GetHiresTex(texPathTemp, &newWidth, &newHeight, &required_size, texformat, temp_size, temp);

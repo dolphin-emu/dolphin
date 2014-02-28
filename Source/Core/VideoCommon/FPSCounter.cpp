@@ -32,7 +32,7 @@ static void LogFPSToFile(unsigned long val)
 		s_bench_file.Open(File::GetUserPath(D_LOGS_IDX) + "fps.txt", "w");
 
 	char buffer[256];
-	snprintf(buffer, 256, "%ld\n", val);
+	snprintf(buffer, 256, "%lu\n", val);
 	s_bench_file.WriteArray(buffer, strlen(buffer));
 }
 

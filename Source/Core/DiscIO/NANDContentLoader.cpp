@@ -374,9 +374,9 @@ void CNANDContentLoader::RemoveTitle() const
 		// remove tmd?
 		for (u32 i = 0; i < m_numEntries; i++)
 		{
-			char szFilename[1024];
 			if (!(m_Content[i].m_Type & 0x8000)) // skip shared apps
 			{
+				char szFilename[1024];
 				sprintf(szFilename, "%s%08x.app", Common::GetTitleContentPath(m_TitleID).c_str(), m_Content[i].m_ContentID);
 				INFO_LOG(DISCIO, "Delete %s", szFilename);
 				File::Delete(szFilename);

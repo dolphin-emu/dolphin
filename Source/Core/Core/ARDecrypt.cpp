@@ -22,11 +22,6 @@ const char *filter = "0123456789ABCDEFGHJKMNPQRTUVWXYZILOS";
 
 u32 genseeds[0x20];
 
-
-const u8 bitstringlen[0x08] = {
-	0x06, 0x0A, 0x0C, 0x11, 0x11, 0x08, 0x07, 0x20,
-};
-
 const u8 gentable0[0x38] = {
 	0x39, 0x31, 0x29, 0x21, 0x19, 0x11, 0x09, 0x01,
 	0x3A, 0x32, 0x2A, 0x22, 0x1A, 0x12, 0x0A, 0x02,
@@ -150,51 +145,56 @@ const u32 table7[0x40] = {
 
 void generateseeds(u32 *seeds, const u8 *seedtable, u8 doreverse)
 {
-	int i,j;
 	u32 tmp3;
 	u8 array0[0x38],array1[0x38],array2[0x08];
 	u8 tmp,tmp2;
 
-	i = 0;
-	while (i < 0x38)
+	for (int i = 0; i < 0x38; ++i)
 	{
 		tmp = (gentable0[i] - 1);
-		array0[i++] = ((u32)(0-(seedtable[tmp>>3] & gentable1[tmp&7])) >> 31);
+		array0[i] = ((u32)(0-(seedtable[tmp>>3] & gentable1[tmp&7])) >> 31);
 	}
 
-	i = 0;
-	while (i < 0x10)
+	for (int i = 0; i < 0x10; ++i)
 	{
 		memset(array2,0,8);
 		tmp2 = gentable2[i];
 
-		for (j = 0; j < 0x38; j++)
+		for (int j = 0; j < 0x38; j++)
 		{
 			tmp = (tmp2+j);
 
 			if (j > 0x1B)
 			{
-				if (tmp > 0x37) tmp-=0x1C;
+				if (tmp > 0x37)
+				{
+					tmp-=0x1C;
+				}
 			}
-			else if (tmp > 0x1B) tmp-=0x1C;
+			else if (tmp > 0x1B)
+			{
+				tmp-=0x1C;
+			}
 
 			array1[j] = array0[tmp];
 		}
-		for (j = 0; j < 0x30; j++)
+		for (int j = 0; j < 0x30; j++)
 		{
-			if (!array1[gentable3[j]-1]) continue;
+			if (!array1[gentable3[j]-1])
+			{
+				continue;
+			}
 			tmp = (((j*0x2AAB)>>16) - (j>>0x1F));
 			array2[tmp] |= (gentable1[j-(tmp*6)]>>2);
 		}
 		seeds[i<<1] = ((array2[0]<<24)|(array2[2]<<16)|(array2[4]<<8)|array2[6]);
 		seeds[(i<<1)+1] = ((array2[1]<<24)|(array2[3]<<16)|(array2[5]<<8)|array2[7]);
-		i++;
 	}
 
 	if (!doreverse)
 	{
-		j = 0x1F;
-		for (i = 0; i < 16; i+=2)
+		int j = 0x1F;
+		for (int i = 0; i < 16; i+=2)
 		{
 			tmp3 = seeds[i];
 			seeds[i] = seeds[j-1];
@@ -227,20 +227,17 @@ void setcode(u32 *dst, u32 addr, u32 val)
 
 u16 gencrc16(u32 *codes, u16 size)
 {
-	u16 ret=0;
-	u8 tmp=0,tmp2;
-	int i;
+	u16 ret = 0;
 
 	if (size > 0)
 	{
-		while (tmp < size)
+		for (u8 tmp = 0; tmp < size; ++tmp)
 		{
-			for (i = 0; i < 4; i++)
+			for (int i = 0; i < 4; ++i)
 			{
-				tmp2 = ((codes[tmp] >> (i<<3))^ret);
+				u8 tmp2 = ((codes[tmp] >> (i<<3))^ret);
 				ret = ((crctable0[(tmp2>>4)&0x0F]^crctable1[tmp2&0x0F])^(ret>>8));
 			}
-			tmp++;
 		}
 	}
 	return ret;
@@ -248,9 +245,7 @@ u16 gencrc16(u32 *codes, u16 size)
 
 u8 verifycode(u32 *codes, u16 size)
 {
-	u16 tmp;
-
-	tmp = gencrc16(codes,size);
+	u16 tmp = gencrc16(codes,size);
 	return (((tmp>>12)^(tmp>>8)^(tmp>>4)^tmp)&0x0F);
 }
 
@@ -343,7 +338,10 @@ bool getbitstring(u32 *ctrl, u32 *out, u8 len)
 			ctrl[1]++;
 			tmp = (ctrl[0]+(ctrl[1]<<2));
 		}
-		if (ctrl[1] >= ctrl[3]) return false;
+		if (ctrl[1] >= ctrl[3])
+		{
+			return false;
+		}
 		*out = ((*out<<1) | ((tmp >> (0x1F-ctrl[2])) & 1));
 		ctrl[2]++;
 	}
@@ -377,13 +375,16 @@ bool batchdecrypt(u32 *codes, u16 size)
 	getbitstring(tmparray,tmparray2+5,2);  // Region
 
 	// Grab gameid and region from the last decrypted code
-	// Maybe check this against dolphin's GameID? - "code is for wrong game" type msg
+	// TODO: Maybe check this against dolphin's GameID? - "code is for wrong game" type msg
 	//gameid = tmparray2[1];
 	//region = tmparray2[5];
 
 	tmp = codes[0];
 	codes[0] &= 0x0FFFFFFF;
-	if ((tmp>>28) != verifycode(codes,size)) return false;
+	if ((tmp>>28) != verifycode(codes,size))
+	{
+		return false;
+	}
 
 	return true;
 
@@ -411,23 +412,24 @@ int GetVal(const char *flt, char chr)
 
 int alphatobin(u32 *dst, std::vector<std::string> alpha, int size)
 {
-	int i,j=0,k;
-	int ret=0,org=(size+1);
+	int j = 0;
+	int ret = 0;
+	int org = size + 1;
 	u32 bin[2];
 	u8 parity;
 
-	while (size)
+	for (; size; --size)
 	{
-		bin[0]=0;
-		for (i = 0; i < 6; i++)
+		bin[0] = 0;
+		for (int i = 0; i < 6; i++)
 		{
 			bin[0] |= (GetVal(filter,alpha[j>>1][i]) << (((5-i)*5)+2));
 		}
 		bin[0] |= (GetVal(filter,alpha[j>>1][6]) >> 3);
 		dst[j++] = bin[0];
 
-		bin[1]=0;
-		for (i = 0; i < 6; i++)
+		bin[1] = 0;
+		for (int i = 0; i < 6; i++)
 		{
 			bin[1] |= (GetVal(filter,alpha[j>>1][i+6]) << (((5-i)*5)+4));
 		}
@@ -435,16 +437,20 @@ int alphatobin(u32 *dst, std::vector<std::string> alpha, int size)
 		dst[j++] = bin[1];
 
 		//verify parity bit
-		k=0;
-		parity=0;
-		for (i = 0; i < 64; i++)
+		int k = 0;
+		parity = 0;
+		for (int i = 0; i < 64; i++)
 		{
-			if (i == 32) k++;
+			if (i == 32)
+			{
+				k++;
+			}
 			parity ^= (bin[k] >> (i-(k<<5)));
 		}
-		if ((parity&1) != (GetVal(filter,alpha[(j-2)>>1][12])&1)) ret=(org-size);
-
-		size--;
+		if ((parity&1) != (GetVal(filter,alpha[(j-2)>>1][12])&1))
+		{
+			ret=(org-size);
+		}
 	}
 
 	return ret;
@@ -456,12 +462,11 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 	buildseeds();
 
 	u32 uCodes[1200];
-	u32 i,ret;
+	u32 ret;
 
-	for(i = 0; i < vCodes.size(); ++i)
+	for (std::string& s : vCodes)
 	{
-		transform(vCodes[i].begin(), vCodes[i].end(), vCodes[i].begin(), toupper);
-		//PanicAlert("Encrypted AR Code\n%s", vCodes[i].c_str());
+		std::transform(s.begin(), s.end(), s.begin(), toupper);
 	}
 
 	if ((ret=alphatobin(uCodes, vCodes, (int)vCodes.size())))
@@ -475,7 +480,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 		//PanicAlert("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"
 		// "First Code in Block(should be verification code):\n%s", vCodes[0].c_str());
 
-		for (i = 0; i < (vCodes.size()<<1); i+=2)
+		for (size_t i = 0; i < (vCodes.size()<<1); i+=2)
 		{
 			AREntry op;
 			op.cmd_addr = uCodes[i];
@@ -487,7 +492,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 	else
 	{
 		// Skip passing the verification code back
-		for (i = 2; i < (vCodes.size()<<1); i+=2)
+		for (size_t i = 2; i < (vCodes.size()<<1); i+=2)
 		{
 			AREntry op;
 			op.cmd_addr = uCodes[i];

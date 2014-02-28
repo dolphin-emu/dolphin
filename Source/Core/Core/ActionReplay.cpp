@@ -100,14 +100,14 @@ struct ARAddr
 };
 
 void LogInfo(const char *format, ...);
-bool Subtype_RamWriteAndFill(const ARAddr addr, const u32 data);
-bool Subtype_WriteToPointer(const ARAddr addr, const u32 data);
-bool Subtype_AddCode(const ARAddr addr, const u32 data);
-bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr addr, const u32 data);
-bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr addr, const u32 data);
-bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr addr, const u32 data);
-bool NormalCode(const ARAddr addr, const u32 data);
-bool ConditionalCode(const ARAddr addr, const u32 data, int* const pSkipCount);
+bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data);
+bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data);
+bool Subtype_AddCode(const ARAddr& addr, const u32 data);
+bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr& addr, const u32 data);
+bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const u32 data);
+bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u32 data);
+bool NormalCode(const ARAddr& addr, const u32 data);
+bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkipCount);
 bool CompareValues(const u32 val1, const u32 val2, const int type);
 
 // ----------------------
@@ -487,7 +487,7 @@ bool IsSelfLogging()
 
 // ----------------------
 // Code Functions
-bool Subtype_RamWriteAndFill(const ARAddr addr, const u32 data)
+bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
 {
 	const u32 new_addr = addr.GCAddress();
 
@@ -544,7 +544,7 @@ bool Subtype_RamWriteAndFill(const ARAddr addr, const u32 data)
 	return true;
 }
 
-bool Subtype_WriteToPointer(const ARAddr addr, const u32 data)
+bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
 {
 	const u32 new_addr = addr.GCAddress();
 	const u32 ptr = Memory::Read_U32(new_addr);
@@ -603,7 +603,7 @@ bool Subtype_WriteToPointer(const ARAddr addr, const u32 data)
 	return true;
 }
 
-bool Subtype_AddCode(const ARAddr addr, const u32 data)
+bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 {
 	// Used to increment/decrement a value in memory
 	const u32 new_addr = addr.GCAddress();
@@ -663,7 +663,7 @@ bool Subtype_AddCode(const ARAddr addr, const u32 data)
 	return true;
 }
 
-bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr addr, const u32 data)
+bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr& addr, const u32 data)
 {
 	// code not yet implemented - TODO
 	// u32 new_addr = (addr & 0x01FFFFFF) | 0x80000000;
@@ -675,7 +675,7 @@ bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr addr, const u32 data)
 	return false;
 }
 
-bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr addr, const u32 data) // This needs more testing
+bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const u32 data) // This needs more testing
 {
 	const u32 new_addr = ((ARAddr*)&val_last)->GCAddress();
 	const u8 size = ((ARAddr*)&val_last)->size;
@@ -750,7 +750,7 @@ bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr addr, const u32 data
 }
 
 // Looks like this is new?? - untested
-bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr addr, const u32 data)
+bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u32 data)
 {
 	const u32 addr_dest = val_last | 0x06000000;
 	const u32 addr_src = addr.GCAddress();
@@ -796,7 +796,7 @@ bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr addr, const u32 data)
 	return true;
 }
 
-bool NormalCode(const ARAddr addr, const u32 data)
+bool NormalCode(const ARAddr& addr, const u32 data)
 {
 	switch (addr.subtype)
 	{
@@ -834,7 +834,7 @@ bool NormalCode(const ARAddr addr, const u32 data)
 	return true;
 }
 
-bool ConditionalCode(const ARAddr addr, const u32 data, int* const pSkipCount)
+bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkipCount)
 {
 	const u32 new_addr = addr.GCAddress();
 

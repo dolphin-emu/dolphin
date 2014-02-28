@@ -1296,7 +1296,7 @@ void IRBuilder::WriteToFile(u64 codeHash) {
 			alwaysUseds.find(opcode) != alwaysUseds.end();
 
 		// Line number
-		fprintf(file, "%4d", i);
+		fprintf(file, "%4u", i);
 
 		if (!thisUsed) {
 			fprintf(file, "%*c", 32, ' ');

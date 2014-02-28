@@ -128,7 +128,7 @@ IF (NOT MINIUPNPC_VERSION_1_7_OR_HIGHER)
 	   static struct IGDdatas data;
 	   int main()
 	   {
-	   char externalIP[16]     = "";
+	   char externalIP[16]     = \"\";
 	   UPNP_GetExternalIPAddress(urls.controlURL, data.first.servicetype, externalIP);
 
 	   return 0;
@@ -148,7 +148,7 @@ IF (NOT MINIUPNPC_VERSION_1_7_OR_HIGHER)
 		static struct IGDdatas data;
 		int main()
 		{
-		char externalIP[16]     = "";
+		char externalIP[16]     = \"\";
 		UPNP_GetExternalIPAddress(urls.controlURL, data.servicetype, externalIP);
 
 		return 0;

@@ -280,8 +280,10 @@ void Init(bool hle)
 void Shutdown()
 {
 	if (!g_ARAM.wii_mode)
+	{
 		FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
-	g_ARAM.ptr = NULL;
+		g_ARAM.ptr = NULL;
+	}
 
 	dsp_emulator->Shutdown();
 	delete dsp_emulator;
@@ -563,7 +565,7 @@ void Do_ARAM_DMA()
 		{
 			while (g_arDMA.Cnt.count)
 			{
-				// These are logically seperated in code to show that a memory map has been set up
+				// These are logically separated in code to show that a memory map has been set up
 				// See below in the write section for more information
 				if ((g_ARAM_Info.Hex & 0xf) == 3)
 				{

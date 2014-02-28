@@ -722,7 +722,6 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 		WiiSockMan &sm = WiiSockMan::getInstance();
 		sm.doSock(fd, _CommandAddress, (NET_IOCTL)Command);
 		return false;
-		break;
 	}
 	/////////////////////////////////////////////////////////////
 	//                  TODO: Tidy all below                   //

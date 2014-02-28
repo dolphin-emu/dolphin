@@ -14,10 +14,9 @@
 
 namespace DiscIO
 {
-const u64 wii_sector_size = 0x8000;
-const u64 wii_sector_count = 143432 * 2;
-const u64 wii_sector_log2 = 15;
-const u64 wii_disc_header_size = 256;
+static const u64 wii_sector_size = 0x8000;
+static const u64 wii_sector_count = 143432 * 2;
+static const u64 wii_disc_header_size = 256;
 
 static inline u64 align(u64 value, u64 bounds)
 {

@@ -442,7 +442,7 @@ void NetPlayDiag::GetNetSettings(NetSettings &settings)
 	settings.m_CPUthread = instance.m_LocalCoreStartupParameter.bCPUThread;
 	settings.m_CPUcore = instance.m_LocalCoreStartupParameter.iCPUCore;
 	settings.m_DSPHLE = instance.m_LocalCoreStartupParameter.bDSPHLE;
-	settings.m_DSPEnableJIT = instance.m_EnableJIT;
+	settings.m_DSPEnableJIT = instance.m_DSPEnableJIT;
 	settings.m_WriteToMemcard = m_memcard_write->GetValue();
 	settings.m_EXIDevice[0] = instance.m_EXIDevice[0];
 	settings.m_EXIDevice[1] = instance.m_EXIDevice[1];
@@ -656,11 +656,6 @@ PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiim
 	player_names.Add(_("None"));
 	for (auto& player : m_player_list)
 		player_names.Add(player->name);
-
-	wxString wiimote_names[5];
-	wiimote_names[0] = _("None");
-	for (unsigned int i=1; i < 5; ++i)
-		wiimote_names[i] = wxString(_("Wiimote ")) + (wxChar)(wxT('0')+i);
 
 	for (unsigned int i=0; i<4; ++i)
 	{

@@ -25,6 +25,14 @@ extern const char *netplay_dolphin_ver;
 #define LOGGING 1
 #endif
 
+#if defined(__GNUC__) || __clang__
+// Disable "unused function" warnings for the ones manually marked as such.
+#define UNUSED __attribute__((unused))
+#else
+// Not sure MSVC even checks this...
+#define UNUSED
+#endif
+
 #define STACKALIGN
 
 #if __cplusplus >= 201103 || defined(_MSC_VER) || defined(__GXX_EXPERIMENTAL_CXX0X__)

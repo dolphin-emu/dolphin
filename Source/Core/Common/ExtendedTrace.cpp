@@ -362,8 +362,6 @@ void StackTrace(HANDLE hThread, const char* lpszMessage, FILE *file, DWORD eip, 
 {
 	STACKFRAME     callStack;
 	BOOL           bResult;
-	TCHAR          symInfo[BUFFERSIZE] = _T("?");
-	TCHAR          srcInfo[BUFFERSIZE] = _T("?");
 	HANDLE         hProcess = GetCurrentProcess();
 
 	// If it's not this thread, let's suspend it, and resume it at the end

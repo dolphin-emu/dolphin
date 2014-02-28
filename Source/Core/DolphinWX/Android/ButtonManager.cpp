@@ -114,8 +114,7 @@ namespace ButtonManager
 	}
 	bool GetButtonPressed(int padID, ButtonType button)
 	{
-		bool pressed = false;
-		pressed = m_buttons[std::make_pair(padID, button)]->Pressed();
+		bool pressed = m_buttons[std::make_pair(padID, button)]->Pressed();
 
 		for (const auto& ctrl : m_controllers)
 			pressed |= ctrl.second->ButtonValue(padID, button);

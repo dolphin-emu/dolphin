@@ -12,8 +12,6 @@
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 
-const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
-
 // The big problem is likely instructions that set the quantizers in the same block.
 // We will have to break block after quantizers are written to.
 void Jit64::psq_st(UGeckoInstruction inst)

@@ -79,7 +79,7 @@ struct SConfig : NonCopyable
 	unsigned int m_FrameSkip;
 
 	// DSP settings
-	bool m_EnableJIT;
+	bool m_DSPEnableJIT;
 	bool m_DumpAudio;
 	int m_Volume;
 	std::string sBackend;

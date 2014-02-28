@@ -85,7 +85,6 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 	}
 
 #ifdef WIIMOTE_SPEAKER_DUMP
-	std::stringstream name;
 	static int num = 0;
 
 	if (num == 0)

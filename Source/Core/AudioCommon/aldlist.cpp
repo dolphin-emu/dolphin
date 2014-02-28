@@ -42,10 +42,6 @@
 ALDeviceList::ALDeviceList()
 {
 	ALDEVICEINFO ALDeviceInfo;
-	char *devices;
-	s32 index;
-	const char *defaultDeviceName = NULL;
-	const char *actualDeviceName = NULL;
 
 	// DeviceInfo vector stores, for each enumerated device, it's device name, selection status, spec version #, and extension support
 	vDeviceInfo.clear();
@@ -57,11 +53,10 @@ ALDeviceList::ALDeviceList()
 	//if (LoadOAL10Library(NULL, &ALFunction) == TRUE) {
 		if (alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
 		{
-			devices = (char *)alcGetString(NULL, ALC_DEVICE_SPECIFIER);
-			defaultDeviceName = (char *)alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
-			index = 0;
+			const char *devices = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+			const char *defaultDeviceName = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
 			// go through device list (each device terminated with a single NULL, list terminated with double NULL)
-			while (devices != NULL && strlen(devices) > 0)
+			for (s32 index = 0; devices != NULL && strlen(devices) > 0; index++, devices += strlen(devices) + 1)
 			{
 				if (strcmp(defaultDeviceName, devices) == 0)
 				{
@@ -75,7 +70,7 @@ ALDeviceList::ALDeviceList()
 					{
 						alcMakeContextCurrent(context);
 						// if new actual device name isn't already in the list, then add it...
-						actualDeviceName = alcGetString(device, ALC_DEVICE_SPECIFIER);
+						const char *actualDeviceName = alcGetString(device, ALC_DEVICE_SPECIFIER);
 						bool bNewName = true;
 						for (s32 i = 0; i < GetNumDevices(); i++)
 						{
@@ -130,8 +125,6 @@ ALDeviceList::ALDeviceList()
 					}
 					alcCloseDevice(device);
 				}
-				devices += strlen(devices) + 1;
-				index += 1;
 			}
 		}
 	//}

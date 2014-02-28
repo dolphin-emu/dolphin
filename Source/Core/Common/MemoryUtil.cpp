@@ -129,11 +129,10 @@ void FreeMemoryPages(void* ptr, size_t size)
 	if (ptr)
 	{
 #ifdef _WIN32
-	
 		if (!VirtualFree(ptr, 0, MEM_RELEASE))
+		{
 			PanicAlert("FreeMemoryPages failed!\n%s", GetLastErrorMsg());
-		ptr = NULL; // Is this our responsibility?
-	
+		}
 #else
 		munmap(ptr, size);
 #endif
@@ -145,9 +144,9 @@ void FreeAlignedMemory(void* ptr)
 	if (ptr)
 	{
 #ifdef _WIN32
-	_aligned_free(ptr);
+		_aligned_free(ptr);
 #else
-	free(ptr);
+		free(ptr);
 #endif
 	}
 }
