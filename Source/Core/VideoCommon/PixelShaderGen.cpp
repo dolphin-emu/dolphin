@@ -150,8 +150,8 @@ static const char *tevRasTable[] =
 	"ERROR13", //2
 	"ERROR14", //3
 	"ERROR15", //4
-	"(int4(1,1,1,1) * alphabump)", // use bump alpha
-	"(int4(1,1,1,1) * (alphabump | (alphabump >> 5)))", //normalized
+	"(int4(1, 1, 1, 1) * alphabump)", // bump alpha (0..248)
+	"(int4(1, 1, 1, 1) * (alphabump | (alphabump >> 5)))", // normalized bump alpha (0..255)
 	"int4(0, 0, 0, 0)", // zero
 };
 
