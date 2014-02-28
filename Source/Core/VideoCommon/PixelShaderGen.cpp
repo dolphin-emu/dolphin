@@ -573,33 +573,6 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 }
 
 
-
-//table with the color compare operations
-static const char *TEVCMPColorOPTable[] =
-{
-	"   %s + (((%s.r&255) > %s.r) ? (%s&255): int3(0,0,0))", // TEVCMP_R8_GT
-	"   %s + (((%s.r&255) == %s.r) ? (%s&255): int3(0,0,0))", // TEVCMP_R8_EQ
-	"   %s + ((idot((%s.rgb&255), comp16) >  idot((%s.rgb&255), comp16)) ? (%s&255): int3(0,0,0))", // TEVCMP_GR16_GT
-	"   %s + ((idot((%s.rgb&255), comp16) == idot((%s.rgb&255), comp16)) ? (%s&255): int3(0,0,0))", // TEVCMP_GR16_EQ
-	"   %s + ((idot((%s.rgb&255), comp24) >  idot((%s.rgb&255), comp24)) ? (%s&255): int3(0,0,0))", // TEVCMP_BGR24_GT
-	"   %s + ((idot((%s.rgb&255), comp24) == idot((%s.rgb&255), comp24)) ? (%s&255): int3(0,0,0))", // TEVCMP_BGR24_EQ
-	"   %s + int3(max(sign(int3((%s.rgb&255)) - int3((%s.rgb&255))), int3(0,0,0)) * (%s&255))", // TEVCMP_RGB8_GT
-	"   %s + int3((int3(255,255,255) - max(sign(abs(int3((%s.rgb&255)) - int3((%s.rgb&255)))), int3(0,0,0))) * (%s&255))" // TEVCMP_RGB8_EQ
-};
-
-//table with the alpha compare operations
-static const char *TEVCMPAlphaOPTable[] =
-{
-	"   %s.a + (((%s.r&255) > (%s.r&255)) ? (%s.a&255) : 0)", // TEVCMP_R8_GT
-	"   %s.a + (((%s.r&255) == (%s.r&255)) ? (%s.a&255) : 0)", // TEVCMP_R8_EQ
-	"   %s.a + ((idot((%s.rgb&255), comp16) >  idot((%s.rgb&255), comp16)) ? (%s.a&255) : 0)", // TEVCMP_GR16_GT
-	"   %s.a + ((idot((%s.rgb&255), comp16) == idot((%s.rgb&255), comp16)) ? (%s.a&255) : 0)", // TEVCMP_GR16_EQ
-	"   %s.a + ((idot((%s.rgb&255), comp24) >  idot((%s.rgb&255), comp24)) ? (%s.a&255) : 0)", // TEVCMP_BGR24_GT
-	"   %s.a + ((idot((%s.rgb&255), comp24) == idot((%s.rgb&255), comp24)) ? (%s.a&255) : 0)", // TEVCMP_BGR24_EQ
-	"   %s.a + (((%s.a&255) >  (%s.a&255)) ? (%s.a&255) : 0)", // TEVCMP_A8_GT
-	"   %s.a + (((%s.a&255) == (%s.a&255)) ? (%s.a&255) : 0)" // TEVCMP_A8_EQ
-};
-
 template<class T>
 static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, API_TYPE ApiType, const char swapModeTable[4][5])
 {
@@ -836,12 +809,22 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	}
 	else
 	{
-		int cmp = (cc.shift<<1)|cc.op; // comparemode stored here
-		out.Write(TEVCMPColorOPTable[cmp],//lookup the function from the op table
-				tevCInputTable[cc.d],
-				tevCInputTable[cc.a],
-				tevCInputTable[cc.b],
-				tevCInputTable[cc.c]);
+		static const char *function_table[] =
+		{
+			"(((%s.r&255) > %s.r) ? (%s&255): int3(0,0,0))", // TEVCMP_R8_GT
+			"(((%s.r&255) == %s.r) ? (%s&255): int3(0,0,0))", // TEVCMP_R8_EQ
+			"((idot((%s.rgb&255), comp16) >  idot((%s.rgb&255), comp16)) ? (%s&255): int3(0,0,0))", // TEVCMP_GR16_GT
+			"((idot((%s.rgb&255), comp16) == idot((%s.rgb&255), comp16)) ? (%s&255): int3(0,0,0))", // TEVCMP_GR16_EQ
+			"((idot((%s.rgb&255), comp24) >  idot((%s.rgb&255), comp24)) ? (%s&255): int3(0,0,0))", // TEVCMP_BGR24_GT
+			"((idot((%s.rgb&255), comp24) == idot((%s.rgb&255), comp24)) ? (%s&255): int3(0,0,0))", // TEVCMP_BGR24_EQ
+			"int3(max(sign(int3((%s.rgb&255)) - int3((%s.rgb&255))), int3(0,0,0)) * (%s&255))", // TEVCMP_RGB8_GT
+			"int3((int3(255,255,255) - max(sign(abs(int3((%s.rgb&255)) - int3((%s.rgb&255)))), int3(0,0,0))) * (%s&255))" // TEVCMP_RGB8_EQ
+		};
+
+		int mode = (cc.shift<<1)|cc.op;
+		out.Write("   %s + ", tevCInputTable[cc.d]);
+		out.Write(function_table[mode], tevCInputTable[cc.a],
+					tevCInputTable[cc.b], tevCInputTable[cc.c]);
 	}
 	if (cc.clamp)
 		out.Write(", int3(0,0,0), int3(255,255,255))");
@@ -867,17 +850,25 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 
 		if (ac.shift>0)
 			out.Write(")%s", tevScaleTable[ac.shift]);
-
 	}
 	else
 	{
-		//compare alpha combiner goes here
-		int cmp = (ac.shift<<1)|ac.op; // comparemode stored here
-		out.Write(TEVCMPAlphaOPTable[cmp],
-				tevAInputTable[ac.d],
-				tevAInputTable[ac.a],
-				tevAInputTable[ac.b],
-				tevAInputTable[ac.c]);
+		static const char *function_table[] =
+		{
+			"(((%s.r&255) > (%s.r&255)) ? (%s.a&255) : 0)", // TEVCMP_R8_GT
+			"(((%s.r&255) == (%s.r&255)) ? (%s.a&255) : 0)", // TEVCMP_R8_EQ
+			"((idot((%s.rgb&255), comp16) >  idot((%s.rgb&255), comp16)) ? (%s.a&255) : 0)", // TEVCMP_GR16_GT
+			"((idot((%s.rgb&255), comp16) == idot((%s.rgb&255), comp16)) ? (%s.a&255) : 0)", // TEVCMP_GR16_EQ
+			"((idot((%s.rgb&255), comp24) >  idot((%s.rgb&255), comp24)) ? (%s.a&255) : 0)", // TEVCMP_BGR24_GT
+			"((idot((%s.rgb&255), comp24) == idot((%s.rgb&255), comp24)) ? (%s.a&255) : 0)", // TEVCMP_BGR24_EQ
+			"(((%s.a&255) >  (%s.a&255)) ? (%s.a&255) : 0)", // TEVCMP_A8_GT
+			"(((%s.a&255) == (%s.a&255)) ? (%s.a&255) : 0)" // TEVCMP_A8_EQ
+		};
+
+		int mode = (ac.shift<<1)|ac.op;
+		out.Write("   %s.a + ", tevAInputTable[ac.d]);
+		out.Write(function_table[mode], tevAInputTable[ac.a],
+				tevAInputTable[ac.b], tevAInputTable[ac.c]);
 	}
 	if (ac.clamp)
 		out.Write(", 0, 255)");
