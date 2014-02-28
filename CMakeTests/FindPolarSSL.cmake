@@ -34,8 +34,10 @@ if (POLARSSL_FOUND)
 	set(CMAKE_REQUIRED_LIBRARIES ${POLARSSL_LIBRARY})
 	unset(POLARSSL_WORKS CACHE)
 	check_cxx_source_compiles("
-	#include <polarssl/ssl.h>
+	#include <polarssl/ctr_drbg.h>
 	#include <polarssl/entropy.h>
+	#include <polarssl/net.h>
+	#include <polarssl/ssl.h>
 	#include <polarssl/version.h>
 
 	#if POLARSSL_VERSION_NUMBER < 0x01030000
@@ -47,15 +49,27 @@ if (POLARSSL_FOUND)
 		ssl_context ctx;
 		ssl_session session;
 		entropy_context entropy;
+		ctr_drbg_context ctr_drbg;
+		x509_crt cacert;
+		x509_crt clicert;
+		pk_context pk;
 
 		ssl_init(&ctx);
 		entropy_init(&entropy);
-		ssl_set_rng(&ctx, entropy_func, &entropy);
+
+		const char* pers = \"dolphin-emu\";
+		ctr_drbg_init(&ctr_drbg, entropy_func,
+		                    &entropy,
+		                    (const unsigned char*)pers,
+		                    strlen(pers));
+	
+		ssl_set_rng(&ctx, ctr_drbg_random, &ctr_drbg);
 		ssl_set_session(&ctx, &session);
 
 		ssl_close_notify(&ctx);
 		ssl_session_free(&session);
 		ssl_free(&ctx);
+		entropy_free(&entropy);
 
 		return 0;
 	}"
