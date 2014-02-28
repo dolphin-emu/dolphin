@@ -125,18 +125,18 @@ void cmp(const UDSPInstruction opc)
 }
 
 // CMPAR $acS axR.h
-// 1100 0001 xxxx xxxx
+// 110r s001 xxxx xxxx
 // Compares accumulator $acS with accumulator axR.h.
 // Not described by Duddie's doc - at least not as a separate instruction.
 //
 // flags out: x-xx xxxx
 void cmpar(const UDSPInstruction opc)
 {
-	u8 rreg = ((opc >> 12) & 0x1) + DSP_REG_AXH0;
+	u8 rreg = (opc >> 12) & 0x1;
 	u8 sreg = (opc >> 11) & 0x1;
 
 	s64 sr = dsp_get_long_acc(sreg);
-	s64 rr = (s16)g_dsp.r.ax[rreg-DSP_REG_AXH0].h;
+	s64 rr = (s16)g_dsp.r.ax[rreg].h;
 	rr <<= 16;
 	s64 res = dsp_convert_long_acc(sr - rr);
 
