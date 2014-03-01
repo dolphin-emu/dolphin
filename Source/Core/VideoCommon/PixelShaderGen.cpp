@@ -491,7 +491,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// The performance impact of this additional calculation doesn't matter, but it prevents
 	// the host GPU driver from performing any early depth test optimizations.
 	if (g_ActiveConfig.bFastDepthCalc)
-		out.Write("\tint zCoord = int(round(rawpos.z * 16777215.0));\n");
+		out.Write("\tint zCoord = int(round(rawpos.z * float(0xFFFFFF)));\n");
 	else
 	{
 		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
@@ -511,7 +511,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	// Note: z-textures are not written to depth buffer if early depth test is used
 	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
-		out.Write("\tdepth = float(zCoord) / 16777215.0;\n");
+		out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
 
 	// Note: depth texture output is only written to depth buffer if late depth test is used
 	// theoretical final depth value is used for fog calculation, though, so we have to emulate ztextures anyway
@@ -521,11 +521,11 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.SetConstantsUsed(C_ZBIAS, C_ZBIAS+1);
 		out.Write("\tzCoord = idot(" I_ZBIAS"[0].xyzw, itextemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
 									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
-		out.Write("\tzCoord = zCoord & 16777215;\n");
+		out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
 	}
 
 	if (per_pixel_depth && bpmem.UseLateDepthTest())
-		out.Write("\tdepth = float(zCoord) / 16777215.0;\n");
+		out.Write("\tdepth = float(zCoord) / float(0xFFFFFF);\n");
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 	{
@@ -587,7 +587,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		if (bpmem.tevind[n].bs != ITBA_OFF)
 		{
 			const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
-			const char *tevIndAlphaMask[] = {"248", "224", "240", "248"};
+			const char *tevIndAlphaMask[] = {"248", "224", "240", "248"}; // 0b11111000, 0b11100000, 0b11110000, 0b11111000
 			out.Write("alphabump = iindtex%d.%s & %s;\n",
 					bpmem.tevind[n].bt,
 					tevIndAlphaSel[bpmem.tevind[n].bs],
