@@ -185,7 +185,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 
 			case WII_SEEK_END:
 			{
-				s32 wantedPos = fileSize+m_SeekPos;
+				s32 wantedPos = SeekPosition+fileSize;
 				if (wantedPos >=0 && wantedPos <= fileSize)
 				{
 					m_SeekPos = wantedPos;
