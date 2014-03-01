@@ -32,7 +32,7 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 	D3D::context->PSSetShaderResources(stage, 1, &texture->GetSRV());
 }
 
-bool TextureCache::TCacheEntry::Save(const std::string filename, unsigned int level)
+bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
 	// TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
 	static bool warn_once = true;
