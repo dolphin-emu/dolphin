@@ -1000,7 +1000,7 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 			break;
 
 		case ID_UP:
-			placeholder = wx_start_button;
+			placeholder = wx_up_button;
 			if(DU_turbo)
 				DU_turbo = false;
 			else
@@ -1008,7 +1008,7 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 			break;
 
 		case ID_DOWN:
-			placeholder = wx_start_button;
+			placeholder = wx_down_button;
 			if(DD_turbo)
 				DD_turbo = false;
 			else
