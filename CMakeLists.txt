@@ -1,7 +1,7 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8)
 
 option(ANDROID "Enables a build for Android" OFF)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
@@ -330,6 +330,14 @@ if(NOT OPENMP_FOUND)
 	add_definitions(-Wno-unknown-pragmas)
 	message("OpenMP parallelization disabled")
 endif()
+
+include(FindGTest OPTIONAL)
+if(GTEST_FOUND)
+	include_directories(${GTEST_INCLUDE_DIRS})
+	message("GTest found, unit tests can be compiled and ran with 'ctest'")
+else()
+	message("GTest NOT found, disabling unit tests")
+endif(GTEST_FOUND)
 
 if(NOT ANDROID)
 
