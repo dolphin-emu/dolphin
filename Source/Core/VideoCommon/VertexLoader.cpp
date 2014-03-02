@@ -768,7 +768,7 @@ void VertexLoader::CompileVertexTranslator()
 
 #ifdef USE_VERTEX_LOADER_JIT
 	// End loop here
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)&loop_counter));
 	SUB(32, MatR(RAX), Imm8(1));
 #else
@@ -787,7 +787,7 @@ void VertexLoader::CompileVertexTranslator()
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)func));
 	CALLptr(R(RAX));
 #else
@@ -802,7 +802,7 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)address));
 	MOV(bits, dest, MatR(RAX));
 #else
@@ -814,7 +814,7 @@ void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
 void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
 {
 #ifdef USE_VERTEX_LOADER_JIT
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(64, R(RAX), Imm64((u64)address));
 	MOV(bits, MatR(RAX), value);
 #else

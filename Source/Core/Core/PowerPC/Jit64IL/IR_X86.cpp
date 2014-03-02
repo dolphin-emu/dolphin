@@ -61,7 +61,7 @@ struct RegInfo {
 };
 
 static u32 regsInUse(RegInfo& R) {
-#ifdef _M_X64
+#if _M_X86_64
 	u32 result = 0;
 	for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
 	{
@@ -140,7 +140,7 @@ static void fregSpill(RegInfo& RI, X64Reg reg) {
 }
 
 // ECX is scratch, so we don't allocate it
-#ifdef _M_X64
+#if _M_X86_64
 
 // 64-bit - calling conventions differ between linux & windows, so...
 #ifdef _WIN32
@@ -259,7 +259,7 @@ static X64Reg fregEnsureInReg(RegInfo& RI, InstLoc I) {
 }
 
 static void regSpillCallerSaved(RegInfo& RI) {
-#ifdef _M_IX86
+#if _M_X86_32
 	// 32-bit
 	regSpill(RI, EDX);
 	regSpill(RI, ECX);
@@ -1134,7 +1134,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			if (cpu_info.bSSSE3) {
 				static const u32 GC_ALIGNED16(maskSwapa64_1[4]) =
 				{0x04050607L, 0x00010203L, 0xFFFFFFFFL, 0xFFFFFFFFL};
-#ifdef _M_X64
+#if _M_X86_64
 				// TODO: Remove regEnsureInReg() and use ECX
 				X64Reg address = regEnsureInReg(RI, getOp1(I));
 				Jit->MOVQ_xmm(reg, MComplex(RBX, address, SCALE_1, 0));
@@ -1170,7 +1170,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->MOVZX(32, 16, EAX, M(((char *)&GQR(quantreg)) + 2));
 			Jit->MOVZX(32, 8, EDX, R(AL));
 			Jit->OR(32, R(EDX), Imm8(w << 3));
-#ifdef _M_IX86
+#if _M_X86_32
 			int addr_scale = SCALE_4;
 #else
 			int addr_scale = SCALE_8;
@@ -1223,7 +1223,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 					X64Reg value = fregBinLHSRegWithMov(RI, I);
 					Jit->PSHUFB(value, M((void*)maskSwapa64_1));
 					Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
-#ifdef _M_X64
+#if _M_X86_64
 					Jit->MOVQ_xmm(MComplex(RBX, ECX, SCALE_1, 0), value);
 #else
 					Jit->AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
@@ -1274,7 +1274,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			u32 quantreg = *I >> 24;
 			Jit->MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
 			Jit->MOVZX(32, 8, EDX, R(AL));
-#ifdef _M_IX86
+#if _M_X86_32
 			int addr_scale = SCALE_4;
 #else
 			int addr_scale = SCALE_8;
@@ -1763,7 +1763,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 			Jit->OR(32, M((void *)&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_ISI));
 
 			// Remove the invalid instruction from the icache, forcing a recompile
-#ifdef _M_IX86
+#if _M_X86_32
 			Jit->MOV(32, M(jit->GetBlockCache()->GetICachePtr(InstLoc)), Imm32(JIT_ICACHE_INVALID_WORD));
 #else
 			Jit->MOV(64, R(RAX), ImmPtr(jit->GetBlockCache()->GetICachePtr(InstLoc)));

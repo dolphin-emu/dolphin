@@ -242,7 +242,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 		ADD(32, R(EAX), gpr.R(inst.RA));
 	AND(32, R(EAX), Imm32(~31));
 	XORPD(XMM0, R(XMM0));
-#ifdef _M_X64
+#if _M_X86_64
 	MOVAPS(MComplex(EBX, EAX, SCALE_1, 0), XMM0);
 	MOVAPS(MComplex(EBX, EAX, SCALE_1, 16), XMM0);
 #else
@@ -333,7 +333,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			MOV(32, R(ABI_PARAM1), gpr.R(a));
 			MOV(32, R(EAX), gpr.R(s));
 			BSWAP(32, EAX);
-#ifdef _M_X64
+#if _M_X86_64
 			MOV(accessSize, MComplex(RBX, ABI_PARAM1, SCALE_1, (u32)offset), R(EAX));
 #else
 			AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
@@ -351,7 +351,7 @@ void Jit64::stX(UGeckoInstruction inst)
 		}
 
 		/* // TODO - figure out why Beyond Good and Evil hates this
-		#if defined(_WIN32) && defined(_M_X64)
+		#if defined(_WIN32) && _M_X86_64
 		if (accessSize == 32 && !update)
 		{
 		// Fast and daring - requires 64-bit
@@ -437,7 +437,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
 
-#ifdef _M_X64
+#if _M_X86_64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
@@ -460,7 +460,7 @@ void Jit64::stmw(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
 
-#ifdef _M_X64
+#if _M_X86_64
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)

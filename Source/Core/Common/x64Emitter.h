@@ -193,13 +193,13 @@ inline OpArg Imm8 (u8 imm)  {return OpArg(imm, SCALE_IMM8);}
 inline OpArg Imm16(u16 imm) {return OpArg(imm, SCALE_IMM16);} //rarely used
 inline OpArg Imm32(u32 imm) {return OpArg(imm, SCALE_IMM32);}
 inline OpArg Imm64(u64 imm) {return OpArg(imm, SCALE_IMM64);}
-#ifdef _M_X64
+#ifdef _ARCH_64
 inline OpArg ImmPtr(void* imm) {return Imm64((u64)imm);}
 #else
 inline OpArg ImmPtr(void* imm) {return Imm32((u32)imm);}
 #endif
 inline u32 PtrOffset(void* ptr, void* base) {
-#ifdef _M_X64
+#ifdef _ARCH_64 
 	s64 distance = (s64)ptr-(s64)base;
 	if (distance >= 0x80000000LL ||
 	    distance < -0x80000000LL) {
@@ -695,7 +695,7 @@ public:
 	void ABI_AlignStack(unsigned int frameSize, bool noProlog = false);
 	void ABI_RestoreStack(unsigned int frameSize, bool noProlog = false);
 
-	#ifdef _M_IX86
+	#if _M_X86_32
 	inline int ABI_GetNumXMMRegs() { return 8; }
 	#else
 	inline int ABI_GetNumXMMRegs() { return 16; }
@@ -707,7 +707,7 @@ public:
 	void CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);
 	void CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4, u32 arg5);
 
-#if defined(_M_IX86)
+#if _M_X86_32
 
 	#define CallCdeclFunction3_I(a,b,c,d) CallCdeclFunction3((void *)(a), (b), (c), (d))
 	#define CallCdeclFunction4_I(a,b,c,d,e) CallCdeclFunction4((void *)(a), (b), (c), (d), (e))

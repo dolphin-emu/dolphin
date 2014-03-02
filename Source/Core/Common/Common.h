@@ -101,25 +101,25 @@ private:
 
 #endif
 
+// Architecture detection for Windows
+// Architecture detection is done in cmake on all other platforms
+// Windows is built on only x86/x86_64
+#if _WIN32 || _WIN64
+#define _M_X86 1
+#if _WIN64
+#define _ARCH_64 1
+#define _M_X86_64 1
+#else
+#define _ARCH_32 1
+#define _M_X86_32 1
+#endif
+#endif
+
 // Windows compatibility
-#define _M_64BIT defined(_LP64) || defined(_WIN64)
 #ifndef _WIN32
 #include <limits.h>
 #define MAX_PATH PATH_MAX
-#ifdef __x86_64__
-#define _M_X64 1
-#endif
-#ifdef __i386__
-#define _M_IX86 1
-#endif
-#ifdef __arm__
-#define _M_ARM 1
-#define _M_GENERIC 1
-#endif
-#ifdef __mips__
-#define _M_MIPS 1
-#define _M_GENERIC 1
-#endif
+
 #define __forceinline inline __attribute__((always_inline))
 #define GC_ALIGNED16(x) __attribute__((aligned(16))) x
 #define GC_ALIGNED32(x) __attribute__((aligned(32))) x

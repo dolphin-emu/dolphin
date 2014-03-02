@@ -47,7 +47,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + inst.I]));
 	MOVZX(32, 8, EDX, R(AL));
 	// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32] without a base register!
-#ifdef _M_IX86
+#if _M_X86_32
 	int addr_scale = SCALE_4;
 #else
 	int addr_scale = SCALE_8;
@@ -96,7 +96,7 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	MOVZX(32, 8, EDX, R(AL));
 	if (inst.W)
 		OR(32, R(EDX), Imm8(8));
-#ifdef _M_IX86
+#if _M_X86_32
 	int addr_scale = SCALE_4;
 #else
 	int addr_scale = SCALE_8;

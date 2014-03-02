@@ -126,7 +126,7 @@ static const MemoryView views[] =
 
 //  Don't map any memory for the EFB. We want all access to this area to go
 //  through the hardware access handlers.
-#ifndef _M_X64
+#if _ARCH_32
 // {&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
 #endif
 	{&m_pL1Cache,  &m_pVirtualL1Cache,       0xE0000000, L1_CACHE_SIZE, 0},

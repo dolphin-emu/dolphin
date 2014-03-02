@@ -75,7 +75,7 @@ MEMCPY_AMD.CPP
 #include <windows.h>
 #endif
 
-#if defined(_MSC_VER) && !defined(__x86_64__) && !defined(_M_X64)
+#if defined(_MSC_VER) && _M_X86_32
 
 void * memcpy_amd(void *dest, const void *src, size_t n)
 {

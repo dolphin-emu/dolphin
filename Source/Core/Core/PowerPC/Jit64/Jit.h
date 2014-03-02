@@ -76,7 +76,7 @@ public:
 	}
 
 	const char *GetName() override {
-#ifdef _M_X64
+#if _M_X86_64
 		return "JIT64";
 #else
 		return "JIT32";

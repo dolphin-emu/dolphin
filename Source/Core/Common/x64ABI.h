@@ -31,7 +31,7 @@
 // Callee-save:  RBX RBP R12 R13 R14 R15
 // Parameters:   RDI RSI RDX RCX R8 R9
 
-#ifdef _M_IX86 // 32 bit calling convention, shared by all
+#if _M_X86_32 // 32 bit calling convention, shared by all
 
 // 32-bit don't pass parameters in regs, but these are convenient to have anyway when we have to
 // choose regs to put stuff in.

@@ -1298,7 +1298,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 				if (((u64)(magic+1) * (max_quotient*divisor-1)) >> (shift + 32) != max_quotient-1)
 				{
 					// If failed, use slower round-down method
-#ifdef _M_X64
+#if _M_X86_64
 					gpr.Lock(a, b, d);
 					gpr.BindToRegister(d, d == a, true);
 					MOV(32, R(EAX), Imm32(magic));
@@ -1324,7 +1324,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 				else
 				{
 					// If success, use faster round-up method
-#ifdef _M_X64
+#if _M_X86_64
 					gpr.Lock(a, b, d);
 					gpr.BindToRegister(a, true, false);
 					gpr.BindToRegister(d, false, true);
@@ -1920,7 +1920,7 @@ void Jit64::srwx(UGeckoInstruction inst)
 	}
 	else
 	{
-#ifdef _M_X64
+#if _M_X86_64
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
 		gpr.BindToRegister(a, (a == b || a == s), true);
@@ -1976,7 +1976,7 @@ void Jit64::slwx(UGeckoInstruction inst)
 	}
 	else
 	{
-#ifdef _M_X64
+#if _M_X86_64
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
 		gpr.BindToRegister(a, (a == b || a == s), true);
@@ -2030,7 +2030,7 @@ void Jit64::srawx(UGeckoInstruction inst)
 	int a = inst.RA;
 	int b = inst.RB;
 	int s = inst.RS;
-#ifdef _M_X64
+#if _M_X86_64
 	gpr.Lock(a, s, b);
 	gpr.FlushLockX(ECX);
 	gpr.BindToRegister(a, (a == s || a == b), true);

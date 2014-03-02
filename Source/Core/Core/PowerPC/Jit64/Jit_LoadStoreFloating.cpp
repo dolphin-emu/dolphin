@@ -80,7 +80,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 
 	if (cpu_info.bSSSE3)
 	{
-#ifdef _M_X64
+#if _M_X86_64
 		MOVQ_xmm(XMM0, MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 #else
 		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
@@ -89,7 +89,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 		PSHUFB(XMM0, M((void *)bswapShuffle1x8Dupe));
 		MOVSD(xd, R(XMM0));
 	} else {
-#ifdef _M_X64
+#if _M_X86_64
 		MOV(64, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 		BSWAP(64, EAX);
 		MOV(64, M(&temp64), R(EAX));
@@ -165,7 +165,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 	if (cpu_info.bSSSE3) {
 		MOVAPD(XMM0, fpr.R(s));
 		PSHUFB(XMM0, M((void*)bswapShuffle1x8));
-#ifdef _M_X64
+#if _M_X86_64
 		MOVQ_xmm(MComplex(RBX, ABI_PARAM1, SCALE_1, 0), XMM0);
 #else
 		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
@@ -307,7 +307,7 @@ void Jit64::lfsx(UGeckoInstruction inst)
 	fpr.BindToRegister(inst.RS, false);
 	X64Reg s = fpr.RX(inst.RS);
 	if (cpu_info.bSSSE3 && !js.memcheck) {
-#ifdef _M_IX86
+#if _M_X86_32
 		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
 		MOVD_xmm(XMM0, MDisp(EAX, (u32)Memory::base));
 #else

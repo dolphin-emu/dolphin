@@ -16,14 +16,14 @@
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-#ifndef _M_GENERIC
+#if _M_X86
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 #endif
 
-#ifdef _M_ARM
+#if _M_ARM_32
 #include "Core/PowerPC/JitArm32/Jit.h"
 #include "Core/PowerPC/JitArm32/JitArm_Tables.h"
 #include "Core/PowerPC/JitArmIL/JitIL.h"
@@ -48,7 +48,7 @@ namespace JitInterface
 		CPUCoreBase *ptr = NULL;
 		switch(core)
 		{
-			#ifndef _M_GENERIC
+			#if _M_X86
 			case 1:
 			{
 				ptr = new Jit64();
@@ -60,7 +60,7 @@ namespace JitInterface
 				break;
 			}
 			#endif
-			#ifdef _M_ARM
+			#if _M_ARM_32
 			case 3:
 			{
 				ptr = new JitArm();
@@ -87,7 +87,7 @@ namespace JitInterface
 	{
 		switch(core)
 		{
-			#ifndef _M_GENERIC
+			#if _M_X86
 			case 1:
 			{
 				Jit64Tables::InitTables();
@@ -99,7 +99,7 @@ namespace JitInterface
 				break;
 			}
 			#endif
-			#ifdef _M_ARM
+			#if _M_ARM_32
 			case 3:
 			{
 				JitArmTables::InitTables();
@@ -126,7 +126,7 @@ namespace JitInterface
 	void WriteProfileResults(const char *filename)
 	{
 		// Can't really do this with no jit core available
-		#ifndef _M_GENERIC
+		#if _M_X86
 
 		std::vector<BlockStat> stats;
 		stats.reserve(jit->GetBlockCache()->GetNumBlocks());

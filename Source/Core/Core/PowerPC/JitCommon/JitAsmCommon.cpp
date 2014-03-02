@@ -144,7 +144,7 @@ void CommonAsmRoutines::GenQuantizedStores()
 	UD2();
 	const u8* storePairedFloat = AlignCode4();
 
-#ifdef _M_X64
+#if _M_X86_64
 	SHUFPS(XMM0, R(XMM0), 1);
 	MOVQ_xmm(M(&psTemp[0]), XMM0);
 	TEST(32, R(ECX), Imm32(0x0C000000));
@@ -362,7 +362,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 
 	const u8* loadPairedFloatTwo = AlignCode4();
 	if (cpu_info.bSSSE3) {
-#ifdef _M_X64
+#if _M_X86_64
 		MOVQ_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
 #else
 		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
@@ -370,7 +370,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 #endif
 		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
 	} else {
-#ifdef _M_X64
+#if _M_X86_64
 		MOV(64, R(RCX), MComplex(RBX, RCX, 1, 0));
 		BSWAP(64, RCX);
 		ROL(64, R(RCX), Imm8(32));
@@ -401,7 +401,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 
 	const u8* loadPairedFloatOne = AlignCode4();
 	if (cpu_info.bSSSE3) {
-#ifdef _M_X64
+#if _M_X86_64
 		MOVD_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
 #else
 		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
@@ -410,7 +410,7 @@ void CommonAsmRoutines::GenQuantizedLoads()
 		PSHUFB(XMM0, M((void *)pbswapShuffle1x4));
 		UNPCKLPS(XMM0, M((void*)m_one));
 	} else {
-#ifdef _M_X64
+#if _M_X86_64
 		MOV(32, R(RCX), MComplex(RBX, RCX, 1, 0));
 		BSWAP(32, RCX);
 		MOVD_xmm(XMM0, R(RCX));

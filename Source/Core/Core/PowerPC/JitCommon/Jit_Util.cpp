@@ -16,7 +16,7 @@ static u32 GC_ALIGNED16(float_buffer);
 
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
 #else
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
@@ -43,7 +43,7 @@ void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int acc
 
 void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
 #else
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
@@ -54,7 +54,7 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
 u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset, bool signExtend)
 {
 	u8 *result;
-#ifdef _M_X64
+#if _M_X86_64
 	if (opAddress.IsSimpleReg())
 	{
 		// Deal with potential wraparound.  (This is just a heuristic, and it would
@@ -124,7 +124,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 	{
 		registersInUse &= ~(1 << RAX | 1 << reg_value);
 	}
-#if defined(_M_X64)
+#if _M_X86_64
 	if (!Core::g_CoreStartupParameter.bMMU &&
 	    Core::g_CoreStartupParameter.bFastmem &&
 	    !opAddress.IsImm() &&
@@ -268,7 +268,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 		PanicAlert("WARNING: likely incorrect use of UnsafeWriteRegToReg!");
 	}
 	if (swap) BSWAP(accessSize, reg_value);
-#ifdef _M_X64
+#if _M_X86_64
 	result = GetWritableCodePtr();
 	MOV(accessSize, MComplex(RBX, reg_addr, SCALE_1, offset), R(reg_value));
 #else
@@ -283,7 +283,7 @@ u8 *EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int acc
 void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, u32 registersInUse, int flags)
 {
 	registersInUse &= ~(1 << RAX);
-#if defined(_M_X64)
+#if _M_X86_64
 	if (!Core::g_CoreStartupParameter.bMMU &&
 	    Core::g_CoreStartupParameter.bFastmem &&
 	    !(flags & (SAFE_LOADSTORE_NO_SWAP | SAFE_LOADSTORE_NO_FASTMEM))
@@ -366,7 +366,7 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 re
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
 		PSHUFB(xmm_value, M((void *)pbswapShuffle1x4));
-#ifdef _M_X64
+#if _M_X86_64
 		MOVD_xmm(MComplex(RBX, reg_addr, SCALE_1, 0), xmm_value);
 #else
 		AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
@@ -382,7 +382,7 @@ void EmuCodeBlock::SafeWriteFloatToReg(X64Reg xmm_value, X64Reg reg_addr, u32 re
 
 void EmuCodeBlock::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
 #else
 	MOV(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), arg);
@@ -391,7 +391,7 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg,
 
 void EmuCodeBlock::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
 {
-#ifdef _M_X64
+#if _M_X86_64
 	MOV(32, R(RAX), Imm32(address));
 	MOVSS(MComplex(RBX, RAX, 1, 0), xmm_reg);
 #else
@@ -420,7 +420,7 @@ void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm) {
 static u32 GC_ALIGNED16(temp32);
 static u64 GC_ALIGNED16(temp64);
 
-#ifdef _M_X64
+#if _M_X86_64
 static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0, 0x0000000000400000);
 static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi64x(0, 0x000000007f800000);
 static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi64x(0, 0x0008000000000000);
@@ -445,7 +445,7 @@ static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi32(0, 0, 0x7ff00
 //#define MORE_ACCURATE_DOUBLETOSINGLE
 #ifdef MORE_ACCURATE_DOUBLETOSINGLE
 
-#ifdef _M_X64
+#if _M_X86_64
 static const __m128i GC_ALIGNED16(double_fraction) = _mm_set_epi64x(0, 0x000fffffffffffff);
 static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0, 0x8000000000000000);
 static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi64x(0, 0x0010000000000000);

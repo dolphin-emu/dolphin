@@ -346,7 +346,7 @@ static void ImHere()
 	{
 		if (!f)
 		{
-#ifdef _M_X64
+#if _M_X86_64
 			f.Open("log64.txt", "w");
 #else
 			f.Open("log32.txt", "w");

@@ -7,7 +7,7 @@
 
 #ifdef _WIN32
 
-#ifdef _M_IX86
+#if _M_X86_32
 #define PROFILER_QUERY_PERFORMANCE_COUNTER(pt)      \
                     LEA(32, EAX, M(pt)); PUSH(EAX); \
                     CALL(QueryPerformanceCounter)

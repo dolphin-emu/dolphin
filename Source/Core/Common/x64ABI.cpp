@@ -20,7 +20,7 @@ unsigned int XEmitter::ABI_GetAlignedFrameSize(unsigned int frameSize, bool noPr
 	// for Win64) into this rather than having a separate prolog.
 	// On Windows 32-bit, the required alignment is only 4 bytes, so we just
 	// ensure that the frame size isn't misaligned.
-#ifdef _M_X64
+#if _M_X86_64
 	// expect frameSize == 0
 	frameSize = noProlog ? 0x28 : 0;
 #elif defined(_WIN32)
@@ -38,7 +38,7 @@ void XEmitter::ABI_AlignStack(unsigned int frameSize, bool noProlog) {
 	unsigned int fillSize =
 		ABI_GetAlignedFrameSize(frameSize, noProlog) - frameSize;
 	if (fillSize != 0) {
-#ifdef _M_X64
+#if _M_X86_64
 		SUB(64, R(RSP), Imm8(fillSize));
 #else
 		SUB(32, R(ESP), Imm8(fillSize));
@@ -49,7 +49,7 @@ void XEmitter::ABI_AlignStack(unsigned int frameSize, bool noProlog) {
 void XEmitter::ABI_RestoreStack(unsigned int frameSize, bool noProlog) {
 	unsigned int alignedSize = ABI_GetAlignedFrameSize(frameSize, noProlog);
 	if (alignedSize != 0) {
-#ifdef _M_X64
+#if _M_X86_64
 		ADD(64, R(RSP), Imm8(alignedSize));
 #else
 		ADD(32, R(ESP), Imm8(alignedSize));
@@ -60,13 +60,13 @@ void XEmitter::ABI_RestoreStack(unsigned int frameSize, bool noProlog) {
 void XEmitter::ABI_PushRegistersAndAdjustStack(u32 mask, bool noProlog)
 {
 	int regSize =
-#ifdef _M_X64
+#if _M_X86_64
 		8;
 #else
 		4;
 #endif
 	int shadow = 0;
-#if defined(_WIN32) && defined(_M_X64)
+#if defined(_WIN32) && _M_X86_64
 	shadow = 0x20;
 #endif
 	int count = 0;
@@ -101,13 +101,13 @@ void XEmitter::ABI_PushRegistersAndAdjustStack(u32 mask, bool noProlog)
 void XEmitter::ABI_PopRegistersAndAdjustStack(u32 mask, bool noProlog)
 {
 	int regSize =
-#ifdef _M_X64
+#if _M_X86_64
 		8;
 #else
 		4;
 #endif
 	int size = 0;
-#if defined(_WIN32) && defined(_M_X64)
+#if defined(_WIN32) && _M_X86_64
 	size += 0x20;
 #endif
 	for (int x = 0; x < 16; x++)
@@ -137,7 +137,7 @@ void XEmitter::ABI_PopRegistersAndAdjustStack(u32 mask, bool noProlog)
 	}
 }
 
-#ifdef _M_IX86 // All32
+#if _M_X86_32 // All32
 
 // Shared code between Win32 and Unix32
 void XEmitter::ABI_CallFunction(void *func) {
