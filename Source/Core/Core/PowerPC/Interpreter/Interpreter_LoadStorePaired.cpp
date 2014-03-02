@@ -2,6 +2,7 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include "Common/MathUtil.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
@@ -47,46 +48,43 @@ const float m_quantizeTable[] =
 	1.0 / (1 <<  4),    1.0 / (1 <<  3), 1.0 / (1 <<  2), 1.0 / (1 <<  1),
 };
 
-template <class T>
-inline T CLAMP(T a, T bottom, T top) {
-	if (a > top) return top;
-	if (a < bottom) return bottom;
-	return a;
-}
-
 void Interpreter::Helper_Quantize(const u32 _Addr, const double _fValue, const EQuantizeType _quantizeType, const unsigned int _uScale)
 {
 	switch (_quantizeType)
 	{
 	case QUANTIZE_FLOAT:
-		Memory::Write_U32( ConvertToSingleFTZ( *(u64*)&_fValue ), _Addr );
+		Memory::Write_U32(ConvertToSingleFTZ(*(u64*)&_fValue), _Addr);
 		break;
 
 	// used for THP player
 	case QUANTIZE_U8:
 		{
-			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], 0.0f, 255.0f);
+			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			MathUtil::Clamp(&fResult, 0.0f, 255.0f);
 			Memory::Write_U8((u8)fResult, _Addr);
 		}
 		break;
 
 	case QUANTIZE_U16:
 		{
-			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], 0.0f, 65535.0f);
+			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			MathUtil::Clamp(&fResult, 0.0f, 65535.0f);
 			Memory::Write_U16((u16)fResult, _Addr);
 		}
 		break;
 
 	case QUANTIZE_S8:
 		{
-			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], -128.0f, 127.0f);
+			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			MathUtil::Clamp(&fResult, -128.0f, 127.0f);
 			Memory::Write_U8((u8)(s8)fResult, _Addr);
 		}
 		break;
 
 	case QUANTIZE_S16:
 		{
-			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], -32768.0f, 32767.0f);
+			float fResult = (float)_fValue * m_quantizeTable[_uScale];
+			MathUtil::Clamp(&fResult, -32768.0f, 32767.0f);
 			Memory::Write_U16((u16)(s16)fResult, _Addr);
 		}
 		break;
