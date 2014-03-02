@@ -448,8 +448,11 @@ void JitArm::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
-	if (!Core::g_CoreStartupParameter.bFastmem){
-		Default(inst); return;
+
+	if (!Core::g_CoreStartupParameter.bFastmem)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	u32 a = inst.RA;
@@ -476,8 +479,11 @@ void JitArm::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
-	if (!Core::g_CoreStartupParameter.bFastmem){
-		Default(inst); return;
+
+	if (!Core::g_CoreStartupParameter.bFastmem)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	u32 a = inst.RA;
@@ -500,6 +506,7 @@ void JitArm::stmw(UGeckoInstruction inst)
 	}
 	gpr.Unlock(rA, rB, rC);
 }
+
 void JitArm::dcbst(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -511,12 +518,14 @@ void JitArm::dcbst(UGeckoInstruction inst)
 	// dcbt = 0x7c00022c
 	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
 	{
-		Default(inst); return;
+		FallBackToInterpreter(inst);
+		return;
 	}
 }
+
 void JitArm::icbi(UGeckoInstruction inst)
 {
-	Default(inst);
+	FallBackToInterpreter(inst);
 	WriteExit(js.compilerPC + 4);
 }
 

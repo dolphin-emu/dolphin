@@ -36,9 +36,10 @@ void Jit64::lfs(UGeckoInstruction inst)
 	int a = inst.RA;
 	if (!a)
 	{
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	}
+
 	s32 offset = (s32)(s16)inst.SIMM_16;
 
 	SafeLoadToReg(EAX, gpr.R(a), 32, offset, RegistersInUse(), false);
@@ -60,15 +61,20 @@ void Jit64::lfd(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff)
 
-	if (js.memcheck) { Default(inst); return; }
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	int d = inst.RD;
 	int a = inst.RA;
 	if (!a)
 	{
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	}
+
 	s32 offset = (s32)(s16)inst.SIMM_16;
 	gpr.FlushLockX(ABI_PARAM1);
 	gpr.Lock(a);
@@ -129,13 +135,17 @@ void Jit64::stfd(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff)
 
-	if (js.memcheck) { Default(inst); return; }
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	int s = inst.RS;
 	int a = inst.RA;
 	if (!a)
 	{
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -218,8 +228,10 @@ void Jit64::stfs(UGeckoInstruction inst)
 	int s = inst.RS;
 	int a = inst.RA;
 	s32 offset = (s32)(s16)inst.SIMM_16;
-	if (!a || update) {
-		Default(inst);
+
+	if (!a || update)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 

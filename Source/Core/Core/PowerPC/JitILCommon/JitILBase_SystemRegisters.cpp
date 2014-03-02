@@ -9,12 +9,14 @@
 void JitILBase::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-		JITDISABLE(bJITSystemRegistersOff)
-		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-	switch(iIndex) {
+	JITDISABLE(bJITSystemRegistersOff)
+	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+
+	switch (iIndex)
+	{
 		case SPR_TL:
 		case SPR_TU:
-			Default(inst);
+			FallBackToInterpreter(inst);
 			return;
 		case SPR_LR:
 			ibuild.EmitStoreLink(ibuild.EmitLoadGReg(inst.RD));
@@ -37,7 +39,7 @@ void JitILBase::mtspr(UGeckoInstruction inst)
 			ibuild.EmitStoreSRR(ibuild.EmitLoadGReg(inst.RD), iIndex - SPR_SRR0);
 			return;
 		default:
-			Default(inst);
+			FallBackToInterpreter(inst);
 			return;
 	}
 }
@@ -51,7 +53,7 @@ void JitILBase::mfspr(UGeckoInstruction inst)
 	{
 	case SPR_TL:
 	case SPR_TU:
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	case SPR_LR:
 		ibuild.EmitStoreGReg(ibuild.EmitLoadLink(), inst.RD);
@@ -70,7 +72,7 @@ void JitILBase::mfspr(UGeckoInstruction inst)
 		ibuild.EmitStoreGReg(ibuild.EmitLoadGQR(iIndex - SPR_GQR0), inst.RD);
 		return;
 	default:
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	}
 }

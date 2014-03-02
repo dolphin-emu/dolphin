@@ -19,12 +19,16 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff)
 
-	if (js.memcheck) { Default(inst); return; }
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	if (!inst.RA)
 	{
 		// TODO: Support these cases if it becomes necessary.
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -71,11 +75,15 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStorePairedOff)
 
-	if (js.memcheck) { Default(inst); return; }
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	if (!inst.RA)
 	{
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	}
 

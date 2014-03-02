@@ -55,7 +55,7 @@ void JitArm::Shutdown()
 	asm_routines.Shutdown();
 }
 
-// This is only called by Default() in this file. It will execute an instruction with the interpreter functions.
+// This is only called by FallBackToInterpreter() in this file. It will execute an instruction with the interpreter functions.
 void JitArm::WriteCallInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush();
@@ -70,7 +70,7 @@ void JitArm::unknown_instruction(UGeckoInstruction inst)
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
-void JitArm::Default(UGeckoInstruction _inst)
+void JitArm::FallBackToInterpreter(UGeckoInstruction _inst)
 {
 	WriteCallInterpreter(_inst.hex);
 }

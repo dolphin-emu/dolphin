@@ -20,11 +20,20 @@ void Jit64::lXXx(UGeckoInstruction inst)
 
 	// Skip disabled JIT instructions
 	if (Core::g_CoreStartupParameter.bJITLoadStorelbzxOff && (inst.OPCD == 31) && (inst.SUBOP10 == 87))
-	{ Default(inst); return; }
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 	if (Core::g_CoreStartupParameter.bJITLoadStorelXzOff && ((inst.OPCD == 34) || (inst.OPCD == 40) || (inst.OPCD == 32)))
-	{ Default(inst); return; }
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 	if (Core::g_CoreStartupParameter.bJITLoadStorelwzOff && (inst.OPCD == 32))
-	{ Default(inst); return; }
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	// Determine memory access size and sign extend
 	int accessSize = 0;
@@ -225,7 +234,8 @@ void Jit64::dcbst(UGeckoInstruction inst)
 	// dcbt = 0x7c00022c
 	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
 	{
-		Default(inst); return;
+		FallBackToInterpreter(inst);
+		return;
 	}
 }
 
@@ -235,7 +245,9 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
 
-	Default(inst); return;
+	// FIXME
+	FallBackToInterpreter(inst);
+	return;
 
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)
@@ -398,7 +410,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 	int a = inst.RA, b = inst.RB, s = inst.RS;
 	if (!a || a == s || a == b)
 	{
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	}
 	gpr.Lock(a, b, s);
@@ -451,7 +463,8 @@ void Jit64::lmw(UGeckoInstruction inst)
 	}
 	gpr.UnlockAllX();
 #else
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
 #endif
 }
 
@@ -473,12 +486,13 @@ void Jit64::stmw(UGeckoInstruction inst)
 	}
 	gpr.UnlockAllX();
 #else
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
 #endif
 }
 
 void Jit64::icbi(UGeckoInstruction inst)
 {
-	Default(inst);
+	FallBackToInterpreter(inst);
 	WriteExit(js.compilerPC + 4);
 }

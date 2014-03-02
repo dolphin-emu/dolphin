@@ -296,7 +296,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 	case 12: regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, false, true); break; //addic
 	case 13: regimmop(d, a, true, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, true, true); break; //addic_rc
 	default:
-		Default(inst);
+		FallBackToInterpreter(inst);
 		break;
 	}
 }
@@ -2111,15 +2111,21 @@ void Jit64::srawix(UGeckoInstruction inst)
 	}
 	else
 	{
-		Default(inst); return; // FIXME
+		// FIXME
+		FallBackToInterpreter(inst);
+		return;
+
 		gpr.Lock(a, s);
 		JitClearCA();
 		gpr.BindToRegister(a, a == s, true);
+
 		if (a != s)
 		{
 			MOV(32, gpr.R(a), gpr.R(s));
 		}
-		if (inst.Rc) {
+
+		if (inst.Rc)
+		{
 			ComputeRC(gpr.R(a));
 		}
 		gpr.UnlockAll();

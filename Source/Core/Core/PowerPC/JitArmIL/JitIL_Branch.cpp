@@ -11,7 +11,7 @@
 #include "Core/PowerPC/JitArmIL/JitIL.h"
 
 // FIXME
-#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
+#define NORMALBRANCH_START FallBackToInterpreter(inst); ibuild.EmitInterpreterBranch(); return;
 //#define NORMALBRANCH_START
 
 void JitArmIL::bx(UGeckoInstruction inst)

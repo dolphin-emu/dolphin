@@ -109,7 +109,11 @@ void JitArm::subfic(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
-	Default(inst); return; // FIXME
+
+	// FIXME
+	FallBackToInterpreter(inst);
+	return;
+
 	int a = inst.RA, d = inst.RD;
 
 	int imm = inst.SIMM_16;
@@ -328,8 +332,9 @@ void JitArm::arith(UGeckoInstruction inst)
 			}
 		break;
 		default:
-			WARN_LOG(DYNA_REC, "Unkown OPCD %d with arith function", inst.OPCD);
-			Default(inst); return;
+			WARN_LOG(DYNA_REC, "Unknown OPCD %d with arith function", inst.OPCD);
+			FallBackToInterpreter(inst);
+			return;
 		break;
 	}
 	if (isImm[0] && isImm[1]) // Immediate propagation
@@ -615,7 +620,11 @@ void JitArm::addex(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff)
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
-	Default(inst); return; // FIXME
+
+	// FIXME
+	FallBackToInterpreter(inst);
+	return;
+
 	ARMReg RA = gpr.R(a);
 	ARMReg RB = gpr.R(b);
 	ARMReg RD = gpr.R(d);

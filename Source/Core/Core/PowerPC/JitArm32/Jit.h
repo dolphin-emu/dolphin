@@ -114,7 +114,7 @@ public:
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst);
-	void Default(UGeckoInstruction _inst);
+	void FallBackToInterpreter(UGeckoInstruction _inst);
 	void DoNothing(UGeckoInstruction _inst);
 	void HLEFunction(UGeckoInstruction _inst);
 

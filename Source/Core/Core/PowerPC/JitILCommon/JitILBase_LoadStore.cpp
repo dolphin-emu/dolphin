@@ -9,10 +9,17 @@ void JitILBase::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
-	if (js.memcheck) { Default(inst); return; }
+
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
+
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
 	IREmitter::InstLoc val = ibuild.EmitLoad16(addr);
 	val = ibuild.EmitSExt16(val);
 	ibuild.EmitStoreGReg(val, inst.RD);
@@ -22,12 +29,19 @@ void JitILBase::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
-	if (js.memcheck) { Default(inst); return; }
+
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
+
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
 	if (inst.OPCD & 1)
 		ibuild.EmitStoreGReg(addr, inst.RA);
+
 	IREmitter::InstLoc val;
 	switch (inst.OPCD & ~0x1)
 	{
@@ -53,11 +67,18 @@ void JitILBase::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
-	if (js.memcheck) { Default(inst); return; }
-	IREmitter::InstLoc addr =
-		ibuild.EmitIntConst((s32)(s16)inst.SIMM_16);
+
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
+
+	IREmitter::InstLoc addr = ibuild.EmitIntConst((s32)(s16)inst.SIMM_16);
+
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
 	IREmitter::InstLoc val = ibuild.EmitLoad16(addr);
 	val = ibuild.EmitSExt16(val);
 	ibuild.EmitStoreGReg(val, inst.RD);
@@ -67,7 +88,13 @@ void JitILBase::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
-	if (js.memcheck) { Default(inst); return; }
+
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
+
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 
 	if (inst.RA)
@@ -99,14 +126,16 @@ void JitILBase::dcbst(UGeckoInstruction inst)
 	// dcbt = 0x7c00022c
 	if ((Memory::ReadUnchecked_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c)
 	{
-		Default(inst); return;
+		FallBackToInterpreter(inst);
+		return;
 	}
 }
 
 // Zero cache line.
 void JitILBase::dcbz(UGeckoInstruction inst)
 {
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
 
 	// TODO!
 #if 0
@@ -133,13 +162,21 @@ void JitILBase::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
-	if (js.memcheck) { Default(inst); return; }
-	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
-			   value = ibuild.EmitLoadGReg(inst.RS);
+
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
+
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
+	IREmitter::InstLoc value = ibuild.EmitLoadGReg(inst.RS);
+
 	if (inst.RA)
 		addr = ibuild.EmitAdd(ibuild.EmitLoadGReg(inst.RA), addr);
 	if (inst.OPCD & 1)
 		ibuild.EmitStoreGReg(addr, inst.RA);
+
 	switch (inst.OPCD & ~1)
 	{
 	case 36: ibuild.EmitStore32(value, addr); break; //stw
@@ -153,12 +190,21 @@ void JitILBase::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
-	if (js.memcheck) { Default(inst); return; }
-	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB),
-			   value = ibuild.EmitLoadGReg(inst.RS);
+
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
+
+	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
+	IREmitter::InstLoc value = ibuild.EmitLoadGReg(inst.RS);
+
 	addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
 	if (inst.SUBOP10 & 32)
 		ibuild.EmitStoreGReg(addr, inst.RA);
+
 	switch (inst.SUBOP10 & ~32)
 	{
 	case 151: ibuild.EmitStore32(value, addr); break; //stw
@@ -173,10 +219,18 @@ void JitILBase::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
-	if (js.memcheck) { Default(inst); return; }
+
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
+
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
+
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
 	for (int i = inst.RD; i < 32; i++)
 	{
 		IREmitter::InstLoc val = ibuild.EmitLoad32(addr);
@@ -189,10 +243,18 @@ void JitILBase::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff)
-	if (js.memcheck) { Default(inst); return; }
+
+	if (js.memcheck)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
+
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
+
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+
 	for (int i = inst.RD; i < 32; i++)
 	{
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(i);
@@ -203,6 +265,6 @@ void JitILBase::stmw(UGeckoInstruction inst)
 
 void JitILBase::icbi(UGeckoInstruction inst)
 {
-	Default(inst);
+	FallBackToInterpreter(inst);
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
 }

@@ -199,7 +199,7 @@ void Jit64::Shutdown()
 	asm_routines.Shutdown();
 }
 
-// This is only called by Default() in this file. It will execute an instruction with the interpreter functions.
+// This is only called by FallBackToInterpreter() in this file. It will execute an instruction with the interpreter functions.
 void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 {
 	gpr.Flush(FLUSH_ALL);
@@ -218,7 +218,7 @@ void Jit64::unknown_instruction(UGeckoInstruction inst)
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
-void Jit64::Default(UGeckoInstruction _inst)
+void Jit64::FallBackToInterpreter(UGeckoInstruction _inst)
 {
 	WriteCallInterpreter(_inst.hex);
 }

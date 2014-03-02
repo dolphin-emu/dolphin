@@ -17,7 +17,7 @@
 
 // Zelda and many more games seem to pass the Acid Test.
 
-//#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
+//#define NORMALBRANCH_START FallBackToInterpreter(inst); ibuild.EmitInterpreterBranch(); return;
 #define NORMALBRANCH_START
 
 void JitILBase::sc(UGeckoInstruction inst)
