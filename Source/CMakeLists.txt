@@ -52,6 +52,9 @@ if (DSPTOOL)
 	add_subdirectory(DSPTool)
 endif()
 
+if (GTEST_FOUND)
+	add_subdirectory(UnitTests)
+endif()
 
 
 
