@@ -253,7 +253,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	DeclareUniform(out, ApiType, C_INDTEXSCALE, "int4", I_INDTEXSCALE"[2]");
 	DeclareUniform(out, ApiType, C_INDTEXMTX, "int4", I_INDTEXMTX"[6]");
 	DeclareUniform(out, ApiType, C_FOGCOLOR, "int4", I_FOGCOLOR);
-	DeclareUniform(out, ApiType, C_FOGI, "int4", I_FOGI"[1]");
+	DeclareUniform(out, ApiType, C_FOGI, "int4", I_FOGI);
 	DeclareUniform(out, ApiType, C_FOGF, "float4", I_FOGF"[2]");
 
 	// For pixel lighting - TODO: Should only be defined when per pixel lighting is enabled!
@@ -989,7 +989,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 		// TODO: Verify that we want to drop lower bits here! (currently taken over from software renderer)
 		//       Maybe we want to use "ze = (A << B_SHF)/((B << B_SHF) - Zs)" instead?
 		//       That's equivalent, but keeps the lower bits of Zs.
-		out.Write("\tfloat ze = (" I_FOGF"[1].x * 16777215.0) / float(" I_FOGI"[0].y - (zCoord >> " I_FOGI"[0].w));\n");
+		out.Write("\tfloat ze = (" I_FOGF"[1].x * 16777215.0) / float(" I_FOGI".y - (zCoord >> " I_FOGI".w));\n");
 	}
 	else
 	{
