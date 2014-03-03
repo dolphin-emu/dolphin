@@ -108,7 +108,10 @@ void PPCDebugInterface::ClearBreakpoint(unsigned int address)
 	PowerPC::breakpoints.Remove(address);
 }
 
-void PPCDebugInterface::ClearAllBreakpoints() {}
+void PPCDebugInterface::ClearAllBreakpoints()
+{
+	PowerPC::breakpoints.Clear();
+}
 
 void PPCDebugInterface::ToggleBreakpoint(unsigned int address)
 {
