@@ -2,9 +2,10 @@
 // Licensed under GPLv2
 // Refer to the license.txt file included.
 
+#include <emmintrin.h>
+
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
-
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
@@ -418,8 +419,7 @@ void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm) {
 
 static u32 GC_ALIGNED16(temp32);
 static u64 GC_ALIGNED16(temp64);
-#ifdef _WIN32
-#include <intrin.h>
+
 #ifdef _M_X64
 static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi64x(0, 0x0000000000400000);
 static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi64x(0, 0x000000007f800000);
@@ -430,12 +430,6 @@ static const __m128i GC_ALIGNED16(single_qnan_bit) = _mm_set_epi32(0, 0, 0x00000
 static const __m128i GC_ALIGNED16(single_exponent) = _mm_set_epi32(0, 0, 0x00000000, 0x7f800000);
 static const __m128i GC_ALIGNED16(double_qnan_bit) = _mm_set_epi32(0, 0, 0x00080000, 0x00000000);
 static const __m128i GC_ALIGNED16(double_exponent) = _mm_set_epi32(0, 0, 0x7ff00000, 0x00000000);
-#endif
-#else
-static const __uint128_t GC_ALIGNED16(single_qnan_bit) = 0x0000000000400000;
-static const __uint128_t GC_ALIGNED16(single_exponent) = 0x000000007f800000;
-static const __uint128_t GC_ALIGNED16(double_qnan_bit) = 0x0008000000000000;
-static const __uint128_t GC_ALIGNED16(double_exponent) = 0x7ff0000000000000;
 #endif
 
 // Since the following float conversion functions are used in non-arithmetic PPC float instructions,
@@ -451,7 +445,6 @@ static const __uint128_t GC_ALIGNED16(double_exponent) = 0x7ff0000000000000;
 //#define MORE_ACCURATE_DOUBLETOSINGLE
 #ifdef MORE_ACCURATE_DOUBLETOSINGLE
 
-#ifdef _WIN32
 #ifdef _M_X64
 static const __m128i GC_ALIGNED16(double_fraction) = _mm_set_epi64x(0, 0x000fffffffffffff);
 static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi64x(0, 0x8000000000000000);
@@ -464,13 +457,6 @@ static const __m128i GC_ALIGNED16(double_sign_bit) = _mm_set_epi32(0, 0, 0x80000
 static const __m128i GC_ALIGNED16(double_explicit_top_bit) = _mm_set_epi32(0, 0, 0x00100000, 0x00000000);
 static const __m128i GC_ALIGNED16(double_top_two_bits) = _mm_set_epi32(0, 0, 0xc0000000, 0x00000000);
 static const __m128i GC_ALIGNED16(double_bottom_bits)  = _mm_set_epi32(0, 0, 0x07ffffff, 0xe0000000);
-#endif
-#else
-static const __uint128_t GC_ALIGNED16(double_fraction) = 0x000fffffffffffff;
-static const __uint128_t GC_ALIGNED16(double_sign_bit) = 0x8000000000000000;
-static const __uint128_t GC_ALIGNED16(double_explicit_top_bit) = 0x0010000000000000;
-static const __uint128_t GC_ALIGNED16(double_top_two_bits) = 0xc000000000000000;
-static const __uint128_t GC_ALIGNED16(double_bottom_bits)  = 0x07ffffffe0000000;
 #endif
 
 // This is the same algorithm used in the interpreter (and actual hardware)
