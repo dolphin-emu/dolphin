@@ -332,7 +332,7 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 			{
 				int Address = LastAddress + i;
 				char disasm[256];
-				debugger->disasm(Address, disasm, 256);
+				debugger->Disassemble(Address, disasm, 256);
 				fprintf(f.GetHandle(),"%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm);
 			}
 			// Write a blank line after each block
