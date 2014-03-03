@@ -1,6 +1,3 @@
-add_custom_target(unittests)
-add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
-
 macro(add_dolphin_test target srcs libs)
 	add_executable(Tests/${target} EXCLUDE_FROM_ALL ${srcs})
 	target_link_libraries(Tests/${target} ${libs} ${GTEST_BOTH_LIBRARIES})
