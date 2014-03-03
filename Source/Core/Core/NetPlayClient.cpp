@@ -184,8 +184,10 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 	case NP_MSG_PAD_MAPPING :
 		{
-			for (PadMapping i = 0; i < 4; i++)
-				packet >> m_pad_map[i];
+			for (PadMapping& mapping : m_pad_map)
+			{
+				packet >> mapping;
+			}
 
 			UpdateDevices();
 
@@ -195,8 +197,10 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 	case NP_MSG_WIIMOTE_MAPPING :
 		{
-			for (PadMapping i = 0; i < 4; i++)
-				packet >> m_wiimote_map[i];
+			for (PadMapping& mapping : m_wiimote_map)
+			{
+				packet >> mapping;
+			}
 
 			m_dialog->Update();
 		}
@@ -759,15 +763,19 @@ void NetPlayClient::Stop()
 	if (m_is_running == false)
 		return;
 	bool isPadMapped = false;
-	for (unsigned int i = 0; i < 4; ++i)
+	for (PadMapping mapping : m_pad_map)
 	{
-		if (m_pad_map[i] == m_local_player->pid)
+		if (mapping == m_local_player->pid)
+		{
 			isPadMapped = true;
+		}
 	}
-	for (unsigned int i = 0; i < 4; ++i)
+	for (PadMapping mapping : m_wiimote_map)
 	{
-		if (m_wiimote_map[i] == m_local_player->pid)
+		if (mapping == m_local_player->pid)
+		{
 			isPadMapped = true;
+		}
 	}
 	// tell the server to stop if we have a pad mapped in game.
 	if (isPadMapped)

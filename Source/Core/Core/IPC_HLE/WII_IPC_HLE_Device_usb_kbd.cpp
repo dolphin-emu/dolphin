@@ -27,8 +27,10 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	ini.Get("USB Keyboard", "Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
-	for(int i = 0; i < 256; i++)
-		m_OldKeyBuffer[i] = false;
+	for (bool& pressed : m_OldKeyBuffer)
+	{
+		pressed = false;
+	}
 
 	m_OldModifiers = 0x00;
 

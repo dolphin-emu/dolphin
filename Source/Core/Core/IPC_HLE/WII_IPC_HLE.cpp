@@ -92,20 +92,20 @@ void Init()
 {
 	_dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isn't empty on init");
 	CWII_IPC_HLE_Device_es::m_ContentFile = "";
-	u32 i;
-	for (i=0; i<IPC_MAX_FDS; i++)
+
+	for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 	{
-		g_FdMap[i] = NULL;
+		dev = NULL;
 	}
 
-	i = 0;
+	u32 i = 0;
 	// Build hardware devices
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh1_57e_305(i, std::string("/dev/usb/oh1/57e/305")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_immediate(i, std::string("/dev/stm/immediate")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_eventhook(i, std::string("/dev/stm/eventhook")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_fs(i, std::string("/dev/fs")); i++;
 
-	// IOS allows two ES devices at a time<
+	// IOS allows two ES devices at a time
 	for (u32 j=0; j<ES_MAX_COUNT; j++)
 	{
 		g_DeviceMap[i] = es_handles[j] = new CWII_IPC_HLE_Device_es(i, std::string("/dev/es")); i++;
@@ -137,21 +137,21 @@ void Reset(bool _bHard)
 {
 	CoreTiming::RemoveAllEvents(enque_reply);
 
-	for (u32 i=0; i<IPC_MAX_FDS; i++)
+	for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 	{
-		if (g_FdMap[i] != NULL && !g_FdMap[i]->IsHardware())
+		if (dev != NULL && !dev->IsHardware())
 		{
 			// close all files and delete their resources
-			g_FdMap[i]->Close(0, true);
-			delete g_FdMap[i];
+			dev->Close(0, true);
+			delete dev;
 		}
 
-		g_FdMap[i] = NULL;
+		dev = NULL;
 	}
 
-	for (u32 j=0; j<ES_MAX_COUNT; j++)
+	for (bool& in_use : es_inuse)
 	{
-		es_inuse[j] = false;
+		in_use = false;
 	}
 
 	for (const auto& entry : g_DeviceMap)
@@ -228,7 +228,9 @@ IWII_IPC_HLE_Device* GetDeviceByName(const std::string& _rDeviceName)
 	for (const auto& entry : g_DeviceMap)
 	{
 		if (entry.second && entry.second->GetDeviceName() == _rDeviceName)
+		{
 			return entry.second;
+		}
 	}
 
 	return NULL;
@@ -237,9 +239,11 @@ IWII_IPC_HLE_Device* GetDeviceByName(const std::string& _rDeviceName)
 IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID)
 {
 	if (g_DeviceMap.find(_ID) != g_DeviceMap.end())
+	{
 		return g_DeviceMap[_ID];
+	}
 
-		return NULL;
+	return NULL;
 }
 
 // This is called from ExecuteCommand() COMMAND_OPEN_DEVICE
@@ -310,22 +314,22 @@ void DoState(PointerWrap &p)
 	}
 	else
 	{
-		for (u32 i=0; i<IPC_MAX_FDS; i++)
+		for (IWII_IPC_HLE_Device*& dev : g_FdMap)
 		{
-			u32 exists = g_FdMap[i] ? 1 : 0;
+			u32 exists = dev ? 1 : 0;
 			p.Do(exists);
 			if (exists)
 			{
-				u32 isHw = g_FdMap[i]->IsHardware() ? 1 : 0;
+				u32 isHw = dev->IsHardware() ? 1 : 0;
 				p.Do(isHw);
 				if (isHw)
 				{
-					u32 hwId = g_FdMap[i]->GetDeviceID();
+					u32 hwId = dev->GetDeviceID();
 					p.Do(hwId);
 				}
 				else
 				{
-					g_FdMap[i]->DoState(p);
+					dev->DoState(p);
 				}
 			}
 		}

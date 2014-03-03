@@ -17,10 +17,10 @@ bool OpenALStream::Start()
 {
 	bool bReturn = false;
 
-	ALDeviceList *pDeviceList = new ALDeviceList();
-	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
+	ALDeviceList pDeviceList;
+	if (pDeviceList.GetNumDevices())
 	{
-		char *defDevName = pDeviceList->GetDeviceName(pDeviceList->GetDefaultDevice());
+		char *defDevName = pDeviceList.GetDeviceName(pDeviceList.GetDefaultDevice());
 
 		WARN_LOG(AUDIO, "Found OpenAL device %s", defDevName);
 
@@ -49,7 +49,6 @@ bool OpenALStream::Start()
 		{
 			PanicAlertT("OpenAL: can't open device %s", defDevName);
 		}
-		delete pDeviceList;
 	}
 	else
 	{

@@ -20,8 +20,8 @@ CUCode_AXWii::CUCode_AXWii(DSPHLE *dsp_hle, u32 l_CRC)
 	: CUCode_AX(dsp_hle, l_CRC),
 	  m_last_main_volume(0x8000)
 {
-	for (int i = 0; i < 3; ++i)
-		m_last_aux_volumes[i] = 0x8000;
+	for (u16& volume : m_last_aux_volumes)
+		volume = 0x8000;
 
 	WARN_LOG(DSPHLE, "Instantiating CUCode_AXWii");
 

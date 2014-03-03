@@ -170,14 +170,14 @@ static IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _Part
 	SPartitionGroup PartitionGroup[4];
 
 	// read all partitions
-	for (u32 x = 0; x < 4; x++)
+	for (SPartitionGroup& group : PartitionGroup)
 	{
 		for (u32 i = 0; i < numPartitions; i++)
 		{
 			SPartition Partition;
 			Partition.Offset = ((u64)Reader.Read32(PartitionsOffset + (i * 8) + 0)) << 2;
 			Partition.Type   = Reader.Read32(PartitionsOffset + (i * 8) + 4);
-			PartitionGroup[x].PartitionsVec.push_back(Partition);
+			group.PartitionsVec.push_back(Partition);
 		}
 	}
 

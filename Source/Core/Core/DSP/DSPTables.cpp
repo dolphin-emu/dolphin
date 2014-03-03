@@ -492,7 +492,7 @@ const char* pdname(u16 val)
 {
 	static char tmpstr[12]; // nasty
 
-	for (auto& pdlabel : pdlabels)
+	for (const pdlabel_t& pdlabel : pdlabels)
 	{
 		if (pdlabel.addr == val)
 			return pdlabel.name;
@@ -527,31 +527,37 @@ void InitInstructionTable()
 	{
 		extOpTable[i] = &cw;
 
-		for (auto& ext : opcodes_ext)
+		for (const DSPOPCTemplate& ext : opcodes_ext)
 		{
 			u16 mask = ext.opcode_mask;
 			if ((mask & i) == ext.opcode)
 			{
 				if (extOpTable[i] == &cw)
+				{
 					extOpTable[i] = &ext;
+				}
 				else
 				{
 					//if the entry already in the table
 					//is a strict subset, allow it
 					if ((extOpTable[i]->opcode_mask | ext.opcode_mask) != extOpTable[i]->opcode_mask)
+					{
 						ERROR_LOG(DSPLLE, "opcode ext table place %d already in use by %s when inserting %s", i, extOpTable[i]->name, ext.name);
+					}
 				}
 			}
 		}
 	}
 
 	// op table
-	for (int i = 0; i < OPTABLE_SIZE; i++)
-		opTable[i] = &cw;
+	for (const DSPOPCTemplate*& opcode : opTable)
+	{
+		opcode = &cw;
+	}
 
 	for (int i = 0; i < OPTABLE_SIZE; i++)
 	{
-		for (auto& opcode : opcodes)
+		for (const DSPOPCTemplate& opcode : opcodes)
 		{
 			u16 mask = opcode.opcode_mask;
 			if ((mask & i) == opcode.opcode)
@@ -564,6 +570,8 @@ void InitInstructionTable()
 		}
 	}
 
-	for (int i=0; i < WRITEBACKLOGSIZE; i++)
-		writeBackLogIdx[i] = -1;
+	for (int& elem : writeBackLogIdx)
+	{
+		elem = -1;
+	}
 }

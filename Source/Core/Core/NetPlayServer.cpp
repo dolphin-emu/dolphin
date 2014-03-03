@@ -156,11 +156,11 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	player.pid = (PlayerId)(m_players.size() + 1);
 
 	// try to automatically assign new user a pad
-	for (unsigned int m = 0; m < 4; ++m)
+	for (PadMapping& mapping : m_pad_map)
 	{
-		if (m_pad_map[m] == -1)
+		if (mapping == -1)
 		{
-			m_pad_map[m] = player.pid;
+			mapping = player.pid;
 			break;
 		}
 	}
@@ -229,9 +229,9 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 
 	if (m_is_running)
 	{
-		for (int i = 0; i < 4; i++)
+		for (PadMapping mapping : m_pad_map)
 		{
-			if (m_pad_map[i] == pid)
+			if (mapping == pid)
 			{
 				PanicAlertT("Client disconnect while game is running!! NetPlay is disabled. You must manually stop the game.");
 				std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
@@ -260,14 +260,22 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 	std::lock_guard<std::recursive_mutex> lks(m_crit.send);
 	SendToClients(spac);
 
-	for (int i = 0; i < 4; i++)
-		if (m_pad_map[i] == pid)
-			m_pad_map[i] = -1;
+	for (PadMapping& mapping : m_pad_map)
+	{
+		if (mapping == pid)
+		{
+			mapping = -1;
+		}
+	}
 	UpdatePadMapping();
 
-	for (int i = 0; i < 4; i++)
-		if (m_wiimote_map[i] == pid)
-			m_wiimote_map[i] = -1;
+	for (PadMapping& mapping : m_wiimote_map)
+	{
+		if (mapping == pid)
+		{
+			mapping = -1;
+		}
+	}
 	UpdateWiimoteMapping();
 
 	return 0;
@@ -307,8 +315,10 @@ void NetPlayServer::UpdatePadMapping()
 {
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_PAD_MAPPING;
-	for (int i = 0; i < 4; i++)
-		spac << m_pad_map[i];
+	for (PadMapping mapping : m_pad_map)
+	{
+		spac << mapping;
+	}
 	SendToClients(spac);
 }
 
@@ -317,8 +327,10 @@ void NetPlayServer::UpdateWiimoteMapping()
 {
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_WIIMOTE_MAPPING;
-	for (int i = 0; i < 4; i++)
-		spac << m_wiimote_map[i];
+	for (PadMapping mapping : m_wiimote_map)
+	{
+		spac << mapping;
+	}
 	SendToClients(spac);
 }
 
@@ -552,12 +564,14 @@ bool NetPlayServer::StartGame(const std::string &path)
 // called from multiple threads
 void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
 {
-	std::map<sf::SocketTCP, Client>::iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for ( ; i!=e; ++i)
-		if (i->second.pid && (i->second.pid != skip_pid))
-			i->second.socket.Send(packet);
+	for (std::pair<const sf::SocketTCP, Client>& p : m_players)
+	{
+		if (p.second.pid &&
+		    p.second.pid != skip_pid)
+		{
+			p.second.socket.Send(packet);
+		}
+	}
 }
 
 #ifdef USE_UPNP

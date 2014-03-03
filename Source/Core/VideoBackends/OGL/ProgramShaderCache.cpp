@@ -404,21 +404,26 @@ void ProgramShaderCache::Shutdown(void)
 	// store all shaders in cache on disk
 	if (g_ogl_config.bSupportsGLSLCache && !g_Config.bEnableShaderDebugging)
 	{
-		PCache::iterator iter = pshaders.begin();
-		for (; iter != pshaders.end(); ++iter)
+		for (auto& entry : pshaders)
 		{
-			if(iter->second.in_cache) continue;
+			if(entry.second.in_cache)
+			{
+				continue;
+			}
 
 			GLint binary_size;
-			glGetProgramiv(iter->second.shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
-			if(!binary_size) continue;
+			glGetProgramiv(entry.second.shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
+			if(!binary_size)
+			{
+				continue;
+			}
 
 			u8 *data = new u8[binary_size+sizeof(GLenum)];
 			u8 *binary = data + sizeof(GLenum);
 			GLenum *prog_format = (GLenum*)data;
-			glGetProgramBinary(iter->second.shader.glprogid, binary_size, NULL, prog_format, binary);
+			glGetProgramBinary(entry.second.shader.glprogid, binary_size, NULL, prog_format, binary);
 
-			g_program_disk_cache.Append(iter->first, data, binary_size+sizeof(GLenum));
+			g_program_disk_cache.Append(entry.first, data, binary_size+sizeof(GLenum));
 			delete [] data;
 		}
 
@@ -428,9 +433,10 @@ void ProgramShaderCache::Shutdown(void)
 
 	glUseProgram(0);
 
-	PCache::iterator iter = pshaders.begin();
-	for (; iter != pshaders.end(); ++iter)
-		iter->second.Destroy();
+	for (auto& entry : pshaders)
+	{
+		entry.second.Destroy();
+	}
 	pshaders.clear();
 
 	pixel_uid_checker.Invalidate();

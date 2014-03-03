@@ -325,11 +325,9 @@ CNANDContentManager CNANDContentManager::m_Instance;
 
 CNANDContentManager::~CNANDContentManager()
 {
-	CNANDContentMap::iterator itr = m_Map.begin();
-	while (itr != m_Map.end())
+	for (auto& entry : m_Map)
 	{
-		delete itr->second;
-		++itr;
+		delete entry.second;
 	}
 	m_Map.clear();
 }

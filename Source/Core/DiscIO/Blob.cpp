@@ -34,8 +34,10 @@ void SectorReader::SetSectorSize(int blocksize)
 }
 
 SectorReader::~SectorReader() {
-	for (int i = 0; i < CACHE_SIZE; i++)
-		delete [] cache[i];
+	for (u8*& block : cache)
+	{
+		delete [] block;
+	}
 }
 
 const u8 *SectorReader::GetBlockData(u64 block_num)

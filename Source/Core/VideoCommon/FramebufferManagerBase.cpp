@@ -22,12 +22,10 @@ FramebufferManagerBase::FramebufferManagerBase()
 
 FramebufferManagerBase::~FramebufferManagerBase()
 {
-	VirtualXFBListType::iterator
-		it = m_virtualXFBList.begin(),
-		vlend = m_virtualXFBList.end();
-	for (; it != vlend; ++it)
-		delete it->xfbSource;
-
+	for (VirtualXFB& vxfb : m_virtualXFBList)
+	{
+		delete vxfb.xfbSource;
+	}
 	m_virtualXFBList.clear();
 
 	delete m_realXFBSource;

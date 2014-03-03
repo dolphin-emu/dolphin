@@ -61,12 +61,10 @@ void TextureCache::RequestInvalidateTextureCache()
 
 void TextureCache::Invalidate()
 {
-	TexCache::iterator
-		iter = textures.begin(),
-		tcend = textures.end();
-	for (; iter != tcend; ++iter)
-		delete iter->second;
-
+	for (auto& tex : textures)
+	{
+		delete tex.second;
+	}
 	textures.clear();
 }
 
