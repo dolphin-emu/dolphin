@@ -647,7 +647,8 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	}
 
 	long code_value;
-	if (!textctrl_value->GetValue().ToLong(&code_value, 10 + checkbox_use_hex->GetValue()*6))
+	int base = checkbox_use_hex->IsChecked() ? 16 : 10;
+	if (!textctrl_value->GetValue().ToLong(&code_value, base))
 	{
 		PanicAlertT("Invalid Value!");
 		return;
