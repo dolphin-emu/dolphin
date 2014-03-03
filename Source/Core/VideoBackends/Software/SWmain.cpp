@@ -213,26 +213,31 @@ void VideoSoftware::Video_EndField()
 	// BeginField and EndFeild, We could possibly get away with copying out the whole thing
 	// at BeginField for less lag, but for the safest emulation we run it here.
 
-	if (g_bSkipCurrentFrame || s_beginFieldArgs.xfbAddr == 0 ) {
+	if (g_bSkipCurrentFrame || s_beginFieldArgs.xfbAddr == 0)
+	{
 		swstats.frameCount++;
 		swstats.ResetFrame();
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
-	if (!g_SWVideoConfig.bHwRasterizer) {
-		if(!g_SWVideoConfig.bBypassXFB) {
+	if (!g_SWVideoConfig.bHwRasterizer)
+	{
+		if(!g_SWVideoConfig.bBypassXFB)
+		{
 			EfbInterface::yuv422_packed *xfb = (EfbInterface::yuv422_packed *) Memory::GetPointer(s_beginFieldArgs.xfbAddr);
 
 			SWRenderer::UpdateColorTexture(xfb, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 		}
 	}
 
-	// Idealy we would just move all the opengl contex stuff to the CPU thread, but this gets
-	// messy when the Hardware Rasterizer is enabled.
-	// And Neobrain loves his Hardware Rasterizer
+	// Ideally we would just move all the OpenGL context stuff to the CPU thread,
+	// but this gets messy when the hardware rasterizer is enabled.
+	// And neobrain loves his hardware rasterizer.
 
-	if (!g_SWVideoConfig.bBypassXFB) { // BypassXFB has already done a swap, so skip this.
-		// If we are runing dual core, Signal the GPU thread about the new colour texture.
+	// If BypassXFB has already done a swap (cf. EfbCopy::CopyToXfb), skip this.
+	if (!g_SWVideoConfig.bBypassXFB)
+	{
+		// If we are in dual core mode, notify the GPU thread about the new color texture.
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 			Common::AtomicStoreRelease(s_swapRequested, true);
 		else
