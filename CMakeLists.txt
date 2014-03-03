@@ -331,15 +331,6 @@ if(NOT OPENMP_FOUND)
 	message("OpenMP parallelization disabled")
 endif()
 
-include(FindGTest OPTIONAL)
-if(GTEST_FOUND)
-	enable_testing()
-	include_directories(${GTEST_INCLUDE_DIRS})
-	message("GTest found, unit tests can be compiled and ran with 'make unittests'")
-else()
-	message("GTest NOT found, disabling unit tests")
-endif(GTEST_FOUND)
-
 if(NOT ANDROID)
 
 	include(FindOpenGL)
@@ -476,6 +467,21 @@ if(NOT ANDROID)
 		endif()
 	endif()
 endif()
+
+########################################
+# Unit testing: only enabled if GTest is present.
+#
+add_custom_target(unittests)
+include(FindGTest OPTIONAL)
+if(GTEST_FOUND)
+	enable_testing()
+	include_directories(${GTEST_INCLUDE_DIRS})
+	add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
+	message("GTest found, unit tests can be compiled and ran with 'make unittests'")
+else()
+	add_custom_command(TARGET unittests POST_BUILD COMMAND echo Running unittests requires GTest.)
+	message("GTest NOT found, disabling unit tests")
+endif(GTEST_FOUND)
 
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
