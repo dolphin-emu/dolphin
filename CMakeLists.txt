@@ -469,21 +469,6 @@ if(NOT ANDROID)
 endif()
 
 ########################################
-# Unit testing: only enabled if GTest is present.
-#
-add_custom_target(unittests)
-include(FindGTest OPTIONAL)
-if(GTEST_FOUND)
-	enable_testing()
-	include_directories(${GTEST_INCLUDE_DIRS})
-	add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
-	message("GTest found, unit tests can be compiled and ran with 'make unittests'")
-else()
-	add_custom_command(TARGET unittests POST_BUILD COMMAND echo Running unittests requires GTest.)
-	message("GTest NOT found, disabling unit tests")
-endif(GTEST_FOUND)
-
-########################################
 # Setup include directories (and make sure they are preferred over the Externals)
 #
 include_directories(Source/Core)
@@ -737,6 +722,16 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h
 	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_MASTER} "\n"
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common")
+
+########################################
+# Unit testing.
+#
+include_directories(Externals/gtest/include)
+add_subdirectory(Externals/gtest)
+
+enable_testing()
+add_custom_target(unittests)
+add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
 
 
 ########################################
