@@ -12,7 +12,7 @@
 #if defined(_WIN32)
 	#include <windows.h>
 	typedef CONTEXT SContext;
-	#if defined(_M_X64)
+	#if _M_X86_64
 		#define CTX_RAX Rax
 		#define CTX_RBX Rbx
 		#define CTX_RCX Rcx
@@ -30,7 +30,7 @@
 		#define CTX_R14 R14
 		#define CTX_R15 R15
 		#define CTX_RIP Rip
-	#elif defined(_M_IX86)
+	#elif _M_X86_32
 		#define CTX_EAX Eax
 		#define CTX_EBX Ebx
 		#define CTX_ECX Ecx
@@ -46,7 +46,7 @@
 #elif defined(__APPLE__)
 	#include <mach/mach.h>
 	#include <mach/message.h>
-	#if defined(_M_X64)
+	#if _M_X86_64
 		typedef x86_thread_state64_t SContext;
 		#define CTX_RAX __rax
 		#define CTX_RBX __rbx
@@ -65,7 +65,7 @@
 		#define CTX_R14 __r14
 		#define CTX_R15 __r15
 		#define CTX_RIP __rip
-	#elif defined(_M_IX86)
+	#elif _M_X86_32
 		typedef x86_thread_state32_t SContext;
 		#define CTX_EAX __eax
 		#define CTX_EBX __ebx
@@ -76,16 +76,12 @@
 		#define CTX_EBP __ebp
 		#define CTX_ESP __esp
 		#define CTX_EIP __eip
-	#elif defined(_M_ARM)
-		typedef arm_thread_state_t SContext;
-		// Add others if required.
-		#define CTX_PC  __pc
 	#else
 		#error No context definition for OS
 	#endif
 #elif defined(__linux__)
 	#include <signal.h>
-	#if defined(_M_X64)
+	#if _M_X86_64
 		#include <ucontext.h>
 		typedef mcontext_t SContext;
 		#define CTX_RAX gregs[REG_RAX]
@@ -105,7 +101,7 @@
 		#define CTX_R14 gregs[REG_R14]
 		#define CTX_R15 gregs[REG_R15]
 		#define CTX_RIP gregs[REG_RIP]
-	#elif defined(_M_IX86)
+	#elif _M_X86_32
 		#ifdef ANDROID
 		#include <asm/sigcontext.h>
 		typedef sigcontext SContext;
@@ -131,7 +127,7 @@
 		#define CTX_ESP gregs[REG_ESP]
 		#define CTX_EIP gregs[REG_EIP]
 		#endif
-	#elif defined(_M_ARM)
+	#elif _M_ARM_32
 		// Add others if required.
 		typedef struct sigcontext SContext;
 		#define CTX_PC  arm_pc
@@ -141,7 +137,7 @@
 #elif defined(__NetBSD__)
 	#include <ucontext.h>
 	typedef mcontext_t SContext;
-	#if defined(_M_X64)
+	#if _M_X86_64
 		#define CTX_RAX __gregs[_REG_RAX]
 		#define CTX_RBX __gregs[_REG_RBX]
 		#define CTX_RCX __gregs[_REG_RCX]
@@ -159,7 +155,7 @@
 		#define CTX_R14 __gregs[_REG_R14]
 		#define CTX_R15 __gregs[_REG_R15]
 		#define CTX_RIP __gregs[_REG_RIP]
-	#elif defined(_M_IX86)
+	#elif _M_X86_32
 		#define CTX_EAX __gregs[__REG_EAX]
 		#define CTX_EBX __gregs[__REG_EBX]
 		#define CTX_ECX __gregs[__REG_ECX]
@@ -175,7 +171,7 @@
 #elif defined(__FreeBSD__)
 	#include <ucontext.h>
 	typedef mcontext_t SContext;
-	#if defined(_M_X64)
+	#if _M_X86_64
 		#define CTX_RAX mc_rax
 		#define CTX_RBX mc_rbx
 		#define CTX_RCX mc_rcx
@@ -193,7 +189,7 @@
 		#define CTX_R14 mc_r14
 		#define CTX_R15 mc_r15
 		#define CTX_RIP mc_rip
-	#elif defined(_M_IX86)
+	#elif _M_X86_32
 		#define CTX_EAX mc_eax
 		#define CTX_EBX mc_ebx
 		#define CTX_ECX mc_ecx
@@ -208,7 +204,7 @@
 	#endif
 #endif
 
-#if defined(_M_X64)
+#if _M_X86_64
 #define CTX_PC CTX_RIP
 #include <stddef.h>
 static inline u64 *ContextRN(SContext* ctx, int n)
@@ -234,7 +230,7 @@ static inline u64 *ContextRN(SContext* ctx, int n)
 	};
 	return (u64 *) ((char *) ctx + offsets[n]);
 }
-#elif defined(_M_IX86)
+#elif _M_X86_32
 #define CTX_PC CTX_EIP
 #endif
 

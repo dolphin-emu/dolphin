@@ -129,7 +129,7 @@ void MemArena::ReleaseView(void* view, size_t size)
 
 u8* MemArena::Find4GBBase()
 {
-#ifdef _M_X64
+#if _ARCH_64
 #ifdef _WIN32
 	// 64 bit
 	u8* base = (u8*)VirtualAlloc(0, 0xE1000000, MEM_RESERVE, PAGE_READWRITE);
@@ -206,7 +206,7 @@ static bool Memory_TryBase(u8 *base, const MemoryView *views, int num_views, u32
 			if (!*views[i].out_ptr_low)
 				goto bail;
 		}
-#ifdef _M_X64
+#if _ARCH_64
 		*views[i].out_ptr = (u8*)arena->CreateView(
 			position, views[i].size, base + views[i].virtual_address);
 #else
@@ -247,7 +247,7 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	arena->GrabLowMemSpace(total_mem);
 
 	// Now, create views in high memory where there's plenty of space.
-#ifdef _M_X64
+#if _ARCH_64
 	u8 *base = MemArena::Find4GBBase();
 	// This really shouldn't fail - in 64-bit, there will always be enough
 	// address space.

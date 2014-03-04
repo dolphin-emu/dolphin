@@ -99,7 +99,7 @@ u32 HashEctor(const u8* ptr, int length)
 }
 
 
-#ifdef _M_X64
+#if _ARCH_64
 
 //-----------------------------------------------------------------------------
 // Block read - if your platform needs to do endian-swapping or can only

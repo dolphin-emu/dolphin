@@ -75,7 +75,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 	}
 #endif
 
-#if defined(_M_X64)
+#if _ARCH_64
 	if ((u64)ptr >= 0x80000000 && low == true)
 		PanicAlert("Executable memory ended up above 2GB!");
 #endif

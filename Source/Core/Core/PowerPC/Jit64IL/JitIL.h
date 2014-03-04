@@ -36,7 +36,7 @@
 #include "Core/PowerPC/JitILCommon/IR.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
-#ifdef _M_X64
+#if _M_X86_64
 #define DISABLE64 \
 	{Default(inst); return;}
 #else
@@ -82,7 +82,7 @@ public:
 	}
 
 	const char *GetName() override {
-#ifdef _M_X64
+#if _M_X86_64
 		return "JIT64IL";
 #else
 		return "JIT32IL";

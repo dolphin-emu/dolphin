@@ -47,7 +47,7 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *no
 	while ((u8*)disasmPtr < end)
 	{
 		char sptr[1000] = "";
-#ifdef _M_X64
+#if _ARCH_64
 		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
 #else
 		disasmPtr += x64disasm.disasm32(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);

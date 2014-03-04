@@ -98,16 +98,16 @@ CPUInfo::CPUInfo() {
 void CPUInfo::Detect()
 {
 	memset(this, 0, sizeof(*this));
-#ifdef _M_IX86
+#if _M_X86_32
 	Mode64bit = false;
-#elif defined (_M_X64)
+#elif _M_X86_64
 	Mode64bit = true;
 	OS64bit = true;
 #endif
 	num_cores = 1;
 
 #ifdef _WIN32
-#ifdef _M_IX86
+#if _M_X86_32
 	BOOL f64 = false;
 	IsWow64Process(GetCurrentProcess(), &f64);
 	OS64bit = (f64 == TRUE) ? true : false;
@@ -170,9 +170,9 @@ void CPUInfo::Detect()
 			GC_ALIGNED16(u8 fx_state[512]);
 			memset(fx_state, 0, sizeof(fx_state));
 #ifdef _WIN32
-#ifdef _M_IX86
+#if _M_X86_32
 			_fxsave(fx_state);
-#elif defined (_M_X64)
+#elif _M_X86_64
 			_fxsave64(fx_state);
 #endif
 #else

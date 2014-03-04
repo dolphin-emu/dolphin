@@ -115,25 +115,53 @@ if(DOLPHIN_IS_STABLE)
 else()
 	set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_REVISION})
 endif()
+
+# Architecture detection and arch specific settings
 message(${CMAKE_SYSTEM_PROCESSOR})
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
-	set(_M_GENERIC 1)
+
+# Detect 64bit or 32bit
+# CMake doesn't provide a simple way to determine 32bit or 64bit
+# If we ever support a architecture that is 64bit with 32bit pointers then this'll break
+# Of course the chances of that are slim(x32?) so who cares
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+	set(_ARCH_64 1)
+	add_definitions(-D_ARCH_64=1)
+else()
+	set(_ARCH_32 1)
+	add_definitions(-D_ARCH_32=1)
+endif()
+
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86")
+	add_definitions(-msse2)
+	set(_M_X86 1)
+	add_definitions(-D_M_X86=1)
+	if(_ARCH_64)
+		set(_M_X86_64 1)
+		add_definitions(-D_M_X86_64=1)
+	else()
+		set(_M_X86_32 1)
+		add_definitions(-D_M_X86_32=1)
+	endif()
+elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
+	# This option only applies to 32bit ARM
 	set(_M_ARM 1)
+	set(_M_ARM_32 1)
+	add_definitions(-D_M_ARM=1 -D_M_ARM_32=1)
+	set(_M_GENERIC 1)
+	add_definitions(-D_M_GENERIC=1)
 	if(${ANDROID_NDK_ABI_NAME} MATCHES "armeabi-v7a")
 		add_definitions(-marm -march=armv7-a)
 	endif()
-endif()
-
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "mips")
+elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64")
+	# This option only applies to 64bit ARM
+	set(_M_ARM 1)
+	set(_M_ARM_64 1)
+	add_definitions(-D_M_ARM=1 -D_M_ARM_64=1)
 	set(_M_GENERIC 1)
-endif()
-
-# Set these next two lines to test generic
-#set(_M_GENERIC 1)
-#add_definitions(-D_M_GENERIC=1)
-# Various compile flags
-if(NOT _M_GENERIC)
-	add_definitions(-msse2)
+	add_definitions(-D_M_GENERIC=1)
+else()
+	set(_M_GENERIC 1)
+	add_definitions(-D_M_GENERIC=1)
 endif()
 
 include(CheckCXXCompilerFlag)

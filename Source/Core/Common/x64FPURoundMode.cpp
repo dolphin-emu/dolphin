@@ -21,7 +21,7 @@ namespace FPURoundMode
 	void SetRoundMode(RoundModes mode)
 	{
 		// Set FPU rounding mode to mimic the PowerPC's
-		#ifdef _M_IX86
+		#ifdef _M_X86_32
 			// This shouldn't really be needed anymore since we use SSE
 		#ifdef _WIN32
 			const int table[4] =
@@ -51,7 +51,7 @@ namespace FPURoundMode
 
 	void SetPrecisionMode(PrecisionModes mode)
 	{
-		#ifdef _M_IX86
+		#ifdef _M_X86_32
 			// sets the floating-point lib to 53-bit
 			// PowerPC has a 53bit floating pipeline only
 			// eg: sscanf is very sensitive

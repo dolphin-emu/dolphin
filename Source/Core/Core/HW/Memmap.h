@@ -69,7 +69,7 @@ enum
 	ADDR_MASK_HW_ACCESS = 0x0c000000,
 	ADDR_MASK_MEM1      = 0x20000000,
 
-#ifndef _M_X64
+#if _ARCH_32
 	MEMVIEW32_MASK  = 0x3FFFFFFF,
 #endif
 };
@@ -99,10 +99,10 @@ inline u8* GetCachePtr() {return m_pL1Cache;}
 inline u8* GetMainRAMPtr() {return m_pRAM;}
 inline u32 ReadFast32(const u32 _Address)
 {
-#if defined(_M_X64)
-	return Common::swap32(*(u32 *)(base + _Address));
-#else
+#if _ARCH_32
 	return Common::swap32(*(u32 *)(base + (_Address & MEMVIEW32_MASK)));  // ReadUnchecked_U32(_Address);
+#else
+	return Common::swap32(*(u32 *)(base + _Address));
 #endif
 }
 
