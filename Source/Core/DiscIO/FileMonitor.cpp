@@ -38,12 +38,14 @@ bool IsSoundFile(const std::string& filename)
 	std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 
 	std::unordered_set<std::string> extensions = {
-		".adp",   // 1080 Avalanche, Crash Bandicoot, etc
+		".adp",   // 1080 Avalanche, Crash Bandicoot, etc.
+		".adx",   // Sonic Adventure 2 Battle, etc.
 		".afc",   // Zelda WW
 		".ast",   // Zelda TP, Mario Kart
+		".brstm", // Wii Sports, Wario Land, etc.
 		".dsp",   // Metroid Prime
 		".hps",   // SSB Melee
-		".brstm", // Wii Sports, Wario Land, etc.
+		".ogg",   // Tony Hawk's Underground 2
 		".sad"    // Disaster 
 	};
 
