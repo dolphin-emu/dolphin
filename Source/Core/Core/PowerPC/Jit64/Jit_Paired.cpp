@@ -22,13 +22,18 @@ void Jit64::ps_mr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	int d = inst.FD;
 	int b = inst.FB;
 	if (d == b)
 		return;
+
 	fpr.BindToRegister(d, false);
 	MOVAPD(fpr.RX(d), fpr.R(b));
 }
@@ -41,9 +46,12 @@ void Jit64::ps_sel(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
@@ -67,9 +75,13 @@ void Jit64::ps_sign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	int d = inst.FD;
 	int b = inst.FB;
 
@@ -105,9 +117,13 @@ void Jit64::ps_recip(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	OpArg divisor;
 	int d = inst.FD;
 	int b = inst.FB;
@@ -185,9 +201,13 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	switch (inst.SUBOP5)
 	{
 	case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::DIVPD); break; //div
@@ -203,10 +223,14 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
+
 	// TODO: (inst.SUBOP5 == 10) breaks Sonic Colours (black screen)
-	if (inst.Rc || (inst.SUBOP5 == 10)) {
-		Default(inst); return;
+	if (inst.Rc || (inst.SUBOP5 == 10))
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
@@ -245,9 +269,13 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	int d = inst.FD;
 	int a = inst.FA;
 	int c = inst.FC;
@@ -284,9 +312,13 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
@@ -321,9 +353,13 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
-	if (inst.Rc) {
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	int a = inst.FA;
 	int b = inst.FB;
 	int c = inst.FC;
@@ -364,7 +400,7 @@ void Jit64::ps_maddXX(UGeckoInstruction inst)
 		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_maddXX WTF!!!");
-		//Default(inst);
+		//FallBackToInterpreter(inst);
 		//fpr.UnlockAll();
 		return;
 	}

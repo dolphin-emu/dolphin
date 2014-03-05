@@ -39,7 +39,7 @@ public:
 
 	// OPCODES
 	virtual void unknown_instruction(UGeckoInstruction inst) = 0;
-	virtual void Default(UGeckoInstruction inst) = 0;
+	virtual void FallBackToInterpreter(UGeckoInstruction inst) = 0;
 	virtual void DoNothing(UGeckoInstruction inst) = 0;
 	virtual void HLEFunction(UGeckoInstruction inst) = 0;
 

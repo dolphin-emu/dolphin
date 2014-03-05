@@ -49,7 +49,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
 		break;
 
 	default:
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -79,7 +79,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	case SPR_PMC2:
 	case SPR_PMC3:
 	case SPR_PMC4:
-		Default(inst);
+		FallBackToInterpreter(inst);
 		return;
 	default:
 		gpr.Lock(d);

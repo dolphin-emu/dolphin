@@ -345,8 +345,9 @@ void JitArm::fabsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -361,8 +362,9 @@ void JitArm::fnabsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -378,8 +380,9 @@ void JitArm::fnegx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -394,8 +397,9 @@ void JitArm::faddsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -413,8 +417,9 @@ void JitArm::faddx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -430,8 +435,9 @@ void JitArm::fsubsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -449,8 +455,9 @@ void JitArm::fsubx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -466,8 +473,9 @@ void JitArm::fmulsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -484,8 +492,9 @@ void JitArm::fmulx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -500,8 +509,9 @@ void JitArm::fmrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -516,8 +526,9 @@ void JitArm::fmaddsx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -546,8 +557,9 @@ void JitArm::fmaddx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff)
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -576,8 +588,9 @@ void JitArm::fnmaddx(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -603,8 +616,9 @@ void JitArm::fnmaddsx(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
@@ -634,12 +648,14 @@ void JitArm::fresx(UGeckoInstruction inst)
 
 	u32 b = inst.FB, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst);
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
 		return;
 	}
 
-	Default(inst); return;
+	FallBackToInterpreter(inst);
+	return;
 
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vD0 = fpr.R0(d, false);
@@ -660,9 +676,12 @@ void JitArm::fselx(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vC0 = fpr.R0(c);
@@ -685,9 +704,13 @@ void JitArm::frsqrtex(UGeckoInstruction inst)
 	JITDISABLE(bJITPairedOff)
 
 	u32 b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vD0 = fpr.R0(d, false);
 	ARMReg fpscrReg = gpr.GetReg();

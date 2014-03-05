@@ -21,9 +21,13 @@ void JitArm::ps_rsqrte(UGeckoInstruction inst)
 	JITDISABLE(bJITPairedOff)
 
 	u32 b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vB1 = fpr.R1(b);
 	ARMReg vD0 = fpr.R0(d, false);
@@ -84,9 +88,12 @@ void JitArm::ps_sel(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -122,9 +129,13 @@ void JitArm::ps_add(UGeckoInstruction inst)
 	JITDISABLE(bJITPairedOff)
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -142,9 +153,13 @@ void JitArm::ps_div(UGeckoInstruction inst)
 	JITDISABLE(bJITPairedOff)
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -162,9 +177,13 @@ void JitArm::ps_res(UGeckoInstruction inst)
 	JITDISABLE(bJITPairedOff)
 
 	u32 b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vB0 = fpr.R0(b);
 	ARMReg vB1 = fpr.R1(b);
 	ARMReg vD0 = fpr.R0(d, false);
@@ -184,9 +203,12 @@ void JitArm::ps_nmadd(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -217,9 +239,12 @@ void JitArm::ps_madd(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -248,9 +273,12 @@ void JitArm::ps_nmsub(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -281,9 +309,12 @@ void JitArm::ps_msub(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -312,9 +343,12 @@ void JitArm::ps_madds0(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -343,9 +377,12 @@ void JitArm::ps_madds1(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -372,9 +409,12 @@ void JitArm::ps_sum0(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vB1 = fpr.R1(b);
 	ARMReg vC1 = fpr.R1(c);
@@ -393,9 +433,12 @@ void JitArm::ps_sum1(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	if (inst.Rc) {
-		Default(inst); return;
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vB1 = fpr.R1(b);
 	ARMReg vC0 = fpr.R0(c);
@@ -413,9 +456,13 @@ void JitArm::ps_sub(UGeckoInstruction inst)
 	JITDISABLE(bJITPairedOff)
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vB0 = fpr.R0(b);
@@ -433,9 +480,13 @@ void JitArm::ps_mul(UGeckoInstruction inst)
 	JITDISABLE(bJITPairedOff)
 
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vC0 = fpr.R0(c);
@@ -453,9 +504,13 @@ void JitArm::ps_muls0(UGeckoInstruction inst)
 	JITDISABLE(bJITPairedOff)
 
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vC0 = fpr.R0(c);
@@ -480,9 +535,13 @@ void JitArm::ps_muls1(UGeckoInstruction inst)
 	JITDISABLE(bJITPairedOff)
 
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
+
 	ARMReg vA0 = fpr.R0(a);
 	ARMReg vA1 = fpr.R1(a);
 	ARMReg vC1 = fpr.R1(c);
@@ -505,9 +564,13 @@ void JitArm::ps_merge00(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
+
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	ARMReg vA0 = fpr.R0(a);
@@ -523,9 +586,13 @@ void JitArm::ps_merge01(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
+
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	ARMReg vA0 = fpr.R0(a);
@@ -540,9 +607,13 @@ void JitArm::ps_merge10(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
+
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	ARMReg vA1 = fpr.R1(a);
@@ -562,9 +633,13 @@ void JitArm::ps_merge11(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
+
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	ARMReg vA1 = fpr.R1(a);
@@ -579,9 +654,13 @@ void JitArm::ps_mr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
+
 	u32 b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	ARMReg vB0 = fpr.R0(b);
@@ -596,9 +675,13 @@ void JitArm::ps_neg(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
+
 	u32 b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	ARMReg vB0 = fpr.R0(b);
@@ -613,9 +696,13 @@ void JitArm::ps_abs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
+
 	u32 b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	ARMReg vB0 = fpr.R0(b);
@@ -630,9 +717,13 @@ void JitArm::ps_nabs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff)
+
 	u32 b = inst.FB, d = inst.FD;
-	if (inst.Rc){
-		Default(inst); return;
+
+	if (inst.Rc)
+	{
+		FallBackToInterpreter(inst);
+		return;
 	}
 
 	ARMReg vB0 = fpr.R0(b);

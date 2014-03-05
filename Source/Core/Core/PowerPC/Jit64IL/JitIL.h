@@ -38,7 +38,7 @@
 
 #if _M_X86_64
 #define DISABLE64 \
-	{Default(inst); return;}
+	{FallBackToInterpreter(inst); return;}
 #else
 #define DISABLE64
 #endif
@@ -116,7 +116,7 @@ public:
 
 	// OPCODES
 	void unknown_instruction(UGeckoInstruction _inst) override;
-	void Default(UGeckoInstruction _inst) override;
+	void FallBackToInterpreter(UGeckoInstruction _inst) override;
 	void DoNothing(UGeckoInstruction _inst) override;
 	void HLEFunction(UGeckoInstruction _inst) override;
 

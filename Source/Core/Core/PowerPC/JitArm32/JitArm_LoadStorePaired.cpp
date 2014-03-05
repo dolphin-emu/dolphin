@@ -25,7 +25,11 @@ void JitArm::psq_l(UGeckoInstruction inst)
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
+	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 16, 3); // Type
@@ -63,7 +67,11 @@ void JitArm::psq_lx(UGeckoInstruction inst)
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
+	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.Ix]));
 	UBFX(R12, R11, 16, 3); // Type
@@ -113,7 +121,11 @@ void JitArm::psq_st(UGeckoInstruction inst)
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
+	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 0, 3); // Type
@@ -157,7 +169,11 @@ void JitArm::psq_stx(UGeckoInstruction inst)
 	// R12 contains scale
 	// R11 contains type
 	// R10 is the ADDR
-	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem) { Default(inst); return; }
+	if (js.memcheck || !Core::g_CoreStartupParameter.bFastmem)
+	{
+		FallBackToInterpreter(inst);
+		return;
+	}
 
 	LDR(R11, R9, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 	UBFX(R12, R11, 0, 3); // Type

@@ -595,7 +595,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		case LoadGQR:
 		case BlockEnd:
 		case BlockStart:
-		case InterpreterFallback:
+		case FallBackToInterpreter:
 		case SystemCall:
 		case RFIExit:
 		case InterpreterBranch:
@@ -742,7 +742,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress) {
 		}
 
 		switch (getOpcode(*I)) {
-		case InterpreterFallback: {
+		case FallBackToInterpreter: {
 			unsigned InstCode = ibuild->GetImmValue(getOp1(I));
 			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
 			// There really shouldn't be anything live across an
