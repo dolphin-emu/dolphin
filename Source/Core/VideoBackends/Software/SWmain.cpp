@@ -167,6 +167,7 @@ void VideoSoftware::Shutdown()
 	// TODO: should be in Video_Cleanup
 	HwRasterizer::Shutdown();
 	SWRenderer::Shutdown();
+	DebugUtil::Shutdown();
 
 	// Do our OSD callbacks
 	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
