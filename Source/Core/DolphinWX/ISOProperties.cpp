@@ -182,7 +182,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	GameIniDefault.Load(GameIniFileDefault);
 	if (_iniFilenameRevisionSpecific != "")
-		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific);
+		GameIniDefault.Load(GameIniFileDefaultRevisionSpecific, true);
 	GameIniLocal.Load(GameIniFileLocal);
 
 	// Setup GUI
