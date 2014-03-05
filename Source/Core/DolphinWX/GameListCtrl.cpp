@@ -43,6 +43,7 @@
 #include "Common/Common.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/MakeUnique.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
@@ -576,14 +577,13 @@ void CGameListCtrl::ScanForISOs()
 			if (dialog.WasCancelled())
 				break;
 
-			std::unique_ptr<GameListItem> iso_file(new GameListItem(rFilenames[i]));
-			const GameListItem& ISOFile = *iso_file;
+			auto iso_file = newstd::make_unique<GameListItem>(rFilenames[i]);
 
-			if (ISOFile.IsValid())
+			if (iso_file->IsValid())
 			{
 				bool list = true;
 
-				switch(ISOFile.GetPlatform())
+				switch(iso_file->GetPlatform())
 				{
 					case GameListItem::WII_DISC:
 						if (!SConfig::GetInstance().m_ListWii)
@@ -599,7 +599,7 @@ void CGameListCtrl::ScanForISOs()
 						break;
 				}
 
-				switch(ISOFile.GetCountry())
+				switch(iso_file->GetCountry())
 				{
 					case DiscIO::IVolume::COUNTRY_TAIWAN:
 						if (!SConfig::GetInstance().m_ListTaiwan)
@@ -642,7 +642,7 @@ void CGameListCtrl::ScanForISOs()
 
 		for (const auto& drive : drives)
 		{
-			std::unique_ptr<GameListItem> gli(new GameListItem(drive));
+			auto gli = newstd::make_unique<GameListItem>(drive);
 
 			if (gli->IsValid())
 				m_ISOFiles.push_back(gli.release());
