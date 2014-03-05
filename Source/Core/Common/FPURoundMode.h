@@ -8,14 +8,15 @@
 
 namespace FPURoundMode
 {
-	enum RoundModes
+	enum RoundModes : u32
 	{
 		ROUND_NEAR = 0,
 		ROUND_CHOP = 1,
 		ROUND_UP   = 2,
 		ROUND_DOWN = 3
 	};
-	enum PrecisionModes {
+	enum PrecisionModes : u32
+	{
 		PREC_24 = 0,
 		PREC_53 = 1,
 		PREC_64 = 2
