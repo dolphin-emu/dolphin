@@ -205,16 +205,16 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 	// dot product for integer vectors
 	out.Write("int idot(int3 x, int3 y)\n"
-			  "{\n"
-			  "\tint3 tmp = x * y;\n"
-			  "\treturn tmp.x + tmp.y + tmp.z;\n"
-			  "}\n");
+	          "{\n"
+	          "\tint3 tmp = x * y;\n"
+	          "\treturn tmp.x + tmp.y + tmp.z;\n"
+	          "}\n");
 
 	out.Write("int idot(int4 x, int4 y)\n"
-			  "{\n"
-			  "\tint4 tmp = x * y;\n"
-			  "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
-			  "}\n\n");
+	          "{\n"
+	          "\tint4 tmp = x * y;\n"
+	          "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
+	          "}\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -339,11 +339,11 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	}
 
 	out.Write("\tint4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = " I_COLORS"[0];\n"
-			  "\tint4 rastemp = int4(0, 0, 0, 0), textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, 0, 0);\n"
-			  "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
-			  "\tint alphabump=0;\n"
-			  "\tint3 tevcoord=int3(0, 0, 0);\n"
-			  "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n\n");
+	          "\tint4 rastemp = int4(0, 0, 0, 0), textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, 0, 0);\n"
+	          "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
+	          "\tint alphabump=0;\n"
+	          "\tint3 tevcoord=int3(0, 0, 0);\n"
+	          "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -815,7 +815,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		int mode = (cc.shift<<1)|cc.op;
 		out.Write("   %s + ", tevCInputTable[cc.d]);
 		out.Write(function_table[mode], tevCInputTable[cc.a],
-					tevCInputTable[cc.b], tevCInputTable[cc.c]);
+		          tevCInputTable[cc.b], tevCInputTable[cc.c]);
 	}
 	if (cc.clamp)
 		out.Write(", int3(0,0,0), int3(255,255,255))");
