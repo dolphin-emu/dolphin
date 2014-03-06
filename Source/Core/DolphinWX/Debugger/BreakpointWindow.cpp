@@ -153,8 +153,9 @@ void CBreakPointWindow::OnSelectBP(wxListEvent& event)
 // Clear all breakpoints and memchecks
 void CBreakPointWindow::OnClear(wxCommandEvent& WXUNUSED(event))
 {
-	PowerPC::breakpoints.Clear();
-	PowerPC::memchecks.Clear();
+	PowerPC::debug_interface.ClearAllBreakpoints();
+	PowerPC::debug_interface.ClearAllMemChecks();
+
 	NotifyUpdate();
 }
 

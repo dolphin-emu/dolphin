@@ -121,6 +121,11 @@ void PPCDebugInterface::ToggleBreakpoint(unsigned int address)
 		PowerPC::breakpoints.Add(address);
 }
 
+void PPCDebugInterface::ClearAllMemChecks()
+{
+	PowerPC::memchecks.Clear();
+}
+
 bool PPCDebugInterface::IsMemCheck(unsigned int address)
 {
 	return (Memory::AreMemoryBreakpointsActivated()

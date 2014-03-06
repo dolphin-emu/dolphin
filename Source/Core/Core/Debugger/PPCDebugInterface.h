@@ -23,6 +23,7 @@ public:
 	virtual void ClearBreakpoint(unsigned int address) override;
 	virtual void ClearAllBreakpoints() override;
 	virtual void ToggleBreakpoint(unsigned int address) override;
+	virtual void ClearAllMemChecks() override;
 	virtual bool IsMemCheck(unsigned int address) override;
 	virtual void ToggleMemCheck(unsigned int address) override;
 	virtual unsigned int ReadMemory(unsigned int address) override;

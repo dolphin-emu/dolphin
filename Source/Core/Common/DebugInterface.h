@@ -18,6 +18,7 @@ public:
 	virtual void ClearBreakpoint(unsigned int /*address*/){}
 	virtual void ClearAllBreakpoints() {}
 	virtual void ToggleBreakpoint(unsigned int /*address*/){}
+	virtual void ClearAllMemChecks() {}
 	virtual bool IsMemCheck(unsigned int /*address*/) {return false;}
 	virtual void ToggleMemCheck(unsigned int /*address*/){}
 	virtual unsigned int ReadMemory(unsigned int /*address*/){return 0;}
