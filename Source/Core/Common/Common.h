@@ -101,20 +101,6 @@ private:
 
 #endif
 
-// Architecture detection for Windows
-// Architecture detection is done in cmake on all other platforms
-// Windows is built on only x86/x86_64
-#if _WIN32 || _WIN64
-#define _M_X86 1
-#if _WIN64
-#define _ARCH_64 1
-#define _M_X86_64 1
-#else
-#define _ARCH_32 1
-#define _M_X86_32 1
-#endif
-#endif
-
 // Windows compatibility
 #ifndef _WIN32
 #include <limits.h>
