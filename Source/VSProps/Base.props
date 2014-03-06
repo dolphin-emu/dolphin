@@ -57,7 +57,9 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/d2Zi+ /volatile:iso  /D PSAPI_VERSION=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/d2Zi+ /volatile:iso /D PSAPI_VERSION=1 /D _M_X86=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Platform)'=='Win32'">/D _ARCH_32=1 /D _M_X86_32=1 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Platform)'=='x64'">/D _ARCH_64=1 /D _M_X86_64=1 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <!--
       This is for GetVersionEx being marked as depreciated - which is idiotic and there's
