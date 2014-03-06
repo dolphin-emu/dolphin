@@ -81,20 +81,20 @@ void wxCheatsWindow::Init_ChildControls()
 	wxPanel* const panel = new wxPanel(this);
 
 	// Main Notebook
-	m_Notebook_Main = new wxNotebook(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	m_Notebook_Main = new wxNotebook(panel, wxID_ANY);
 
 	// --- Tabs ---
 	// $ Cheats List Tab
-	m_Tab_Cheats = new wxPanel(m_Notebook_Main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	m_Tab_Cheats = new wxPanel(m_Notebook_Main, wxID_ANY);
 
 	m_CheckListBox_CheatsList = new wxCheckListBox(m_Tab_Cheats, wxID_ANY, wxDefaultPosition, wxSize(300, 0), m_CheatStringList, wxLB_HSCROLL, wxDefaultValidator);
 	m_CheckListBox_CheatsList->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &wxCheatsWindow::OnEvent_CheatsList_ItemSelected, this);
 	m_CheckListBox_CheatsList->Bind(wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, &wxCheatsWindow::OnEvent_CheatsList_ItemToggled, this);
 
-	m_Label_Codename = new wxStaticText(m_Tab_Cheats, wxID_ANY, _("Name: "), wxDefaultPosition, wxDefaultSize);
-	m_GroupBox_Info = new wxStaticBox(m_Tab_Cheats, wxID_ANY, _("Code Info"), wxDefaultPosition, wxDefaultSize);
+	m_Label_Codename = new wxStaticText(m_Tab_Cheats, wxID_ANY, _("Name: "));
+	m_GroupBox_Info = new wxStaticBox(m_Tab_Cheats, wxID_ANY, _("Code Info"));
 
-	m_Label_NumCodes = new wxStaticText(m_Tab_Cheats, wxID_ANY, _("Number Of Codes: "),  wxDefaultPosition, wxDefaultSize);
+	m_Label_NumCodes = new wxStaticText(m_Tab_Cheats, wxID_ANY, _("Number Of Codes: "));
 	m_ListBox_CodesList = new wxListBox(m_Tab_Cheats, wxID_ANY, wxDefaultPosition, wxSize(120, 150), 0, 0, wxLB_HSCROLL);
 
 	wxStaticBoxSizer* sGroupBoxInfo = new wxStaticBoxSizer(m_GroupBox_Info, wxVERTICAL);
@@ -112,7 +112,7 @@ void wxCheatsWindow::Init_ChildControls()
 	wxPanel* const tab_cheat_search = new CheatSearchTab(m_Notebook_Main);
 
 	// $ Log Tab
-	m_Tab_Log = new wxPanel(m_Notebook_Main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	m_Tab_Log = new wxPanel(m_Notebook_Main, wxID_ANY);
 
 	wxButton* const button_updatelog = new wxButton(m_Tab_Log, wxID_ANY, _("Update"));
 	button_updatelog->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &wxCheatsWindow::OnEvent_ButtonUpdateLog_Press, this);
@@ -141,9 +141,9 @@ void wxCheatsWindow::Init_ChildControls()
 	m_Notebook_Main->AddPage(m_Tab_Log, _("Logging"));
 
 	// Button Strip
-	button_apply = new wxButton(panel, wxID_APPLY, _("Apply"), wxDefaultPosition, wxDefaultSize);
+	button_apply = new wxButton(panel, wxID_APPLY, _("Apply"));
 	button_apply->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &wxCheatsWindow::OnEvent_ApplyChanges_Press, this);
-	wxButton* const button_cancel = new wxButton(panel, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize);
+	wxButton* const button_cancel = new wxButton(panel, wxID_CANCEL, _("Cancel"));
 	button_cancel->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &wxCheatsWindow::OnEvent_ButtonClose_Press, this);
 
 	Bind(wxEVT_CLOSE_WINDOW, &wxCheatsWindow::OnEvent_Close, this);
@@ -164,7 +164,7 @@ void wxCheatsWindow::Init_ChildControls()
 }
 
 CheatSearchTab::CheatSearchTab(wxWindow* const parent)
-	: wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize)
+	: wxPanel(parent, -1)
 {
 	// first scan button
 	btnInitScan = new wxButton(this, -1, _("New Scan"));
@@ -188,7 +188,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	sizer_cheat_new_search->Add(size_radiobtn.rad_32, 0, wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, 5);
 
 	// result controls
-	lbox_search_results = new wxListBox(this, -1, wxDefaultPosition, wxDefaultSize);
+	lbox_search_results = new wxListBox(this, -1);
 	label_results_count = new wxStaticText(this, -1, _("Count:"));
 
 	// create AR code button
@@ -599,7 +599,7 @@ void CheatSearchTab::CreateARCode(wxCommandEvent&)
 }
 
 CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
-	: wxDialog(parent, -1, _("Create AR Code"), wxDefaultPosition)
+	: wxDialog(parent, -1, _("Create AR Code"))
 	, code_address(address)
 {
 	wxStaticText* const label_name = new wxStaticText(this, -1, _("Name: "));

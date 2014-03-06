@@ -56,8 +56,7 @@ void LogConfigWindow::CreateGUIControls()
 	for (int i = 0; i < MAX_LOGLEVEL; ++i)
 		wxLevelsUse.Add(wxLevels[i]);
 	m_verbosity = new wxRadioBox(this, wxID_ANY, _("Verbosity"),
-			wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0,
-			wxRA_SPECIFY_ROWS, wxDefaultValidator);
+			wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0, wxRA_SPECIFY_ROWS);
 	m_verbosity->Bind(wxEVT_COMMAND_RADIOBOX_SELECTED, &LogConfigWindow::OnVerbosityChange, this);
 
 	// Options
