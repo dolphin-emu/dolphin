@@ -10,6 +10,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
+#include "Common/Network.h"
 #include "Common/SettingsHandler.h"
 #include "Common/StringUtil.h"
 
@@ -305,54 +306,27 @@ s32 CWII_IPC_HLE_Device_net_kd_request::NWC24MakeUserID(u64* nwc24_id, u32 holly
 	return WC24_OK;
 }
 
-std::string MacAddressToString(u8* mac)
-{
-	return StringFromFormat("%02" PRIx8 ":%02" PRIx8 ":%02" PRIx8 ":" 
-	                        "%02" PRIx8 ":%02" PRIx8 ":%02" PRIx8,
-	                        mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-}
-
 void SaveMacAddress(u8* mac)
 {
 	SConfig::GetInstance().m_WirelessMac = MacAddressToString(mac);
 	SConfig::GetInstance().SaveSettings();
 }
 
-void GenerateMacAddress(u8* mac)
-{
-	mac[0] = 0x00;
-	mac[1] = 0x17;
-	mac[2] = 0xAB;
-	mac[3] = rand() & 0xFF;
-	mac[4] = rand() & 0xFF;
-	mac[5] = rand() & 0xFF;
-}
-
 void GetMacAddress(u8* mac)
 {
+	// Parse MAC address from config, and generate a new one if it doesn't
+	// exist or can't be parsed.
 	std::string wireless_mac = SConfig::GetInstance().m_WirelessMac;
-	if (!wireless_mac.empty())
+	if (!StringToMacAddress(wireless_mac, mac))
 	{
-		memset(mac, 0, 6);
-		if ((sscanf(wireless_mac.c_str(), 
-		            " %" SCNx8 ":%" SCNx8 ":%" SCNx8 ":%" SCNx8 ":%" SCNx8 ":%" SCNx8 " ",
-		            &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]) != 6) &&
-		    (sscanf(wireless_mac.c_str(), 
-		            " %" SCNx8 "-%" SCNx8 "-%" SCNx8 "-%" SCNx8 "-%" SCNx8 "-%" SCNx8 " ",
-		            &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]) != 6))
+		GenerateMacAddress(IOS, mac);
+		SaveMacAddress(mac);
+		if (!wireless_mac.empty())
 		{
-			// Unable to parse the MAC address, generate a new one instead.
-			GenerateMacAddress(mac);
-			SaveMacAddress(mac);
 			ERROR_LOG(WII_IPC_NET, "The MAC provided (%s) is invalid. We have "\
 			                       "generated another one for you.",
-			                       wireless_mac.c_str());
+			                       MacAddressToString(mac).c_str());
 		}
-	}
-	else
-	{
-		GenerateMacAddress(mac);
-		SaveMacAddress(mac);
 	}
 	INFO_LOG(WII_IPC_NET, "Using MAC address: %s", MacAddressToString(mac).c_str());
 }
@@ -435,7 +409,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 	case IOCTLV_NCD_GETWIRELESSMACADDRESS:
 		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
 		
-		u8 address[6];
+		u8 address[MAC_ADDRESS_SIZE];
 		GetMacAddress(address);
 		Memory::WriteBigEData(address,
 		                      CommandBuffer.PayloadBuffer.at(1).m_Address,
@@ -532,7 +506,7 @@ bool CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
 		memcpy(info->country, "US", 2);
 		info->ntr_allowed_channels = Common::swap16(0xfffe);
 		
-		u8 address[6];
+		u8 address[MAC_ADDRESS_SIZE];
 		GetMacAddress(address);
 		memcpy(info->mac, address, sizeof(info->mac));
 		}
@@ -1238,7 +1212,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
 			Memory::Write_U32(0, _BufferOut);
 			break;
 		case 0x1004: // mac address
-			u8 address[6];
+			u8 address[MAC_ADDRESS_SIZE];
 			GetMacAddress(address);
 			Memory::WriteBigEData(address, _BufferOut, sizeof(address));
 			break;
