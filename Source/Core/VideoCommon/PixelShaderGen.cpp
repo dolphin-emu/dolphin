@@ -204,17 +204,17 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	uid_data.genMode_numtexgens = bpmem.genMode.numtexgens;
 
 	// dot product for integer vectors
-	out.Write(  "int idot(int3 x, int3 y)\n"
-				"{\n"
-				"\tint3 tmp = x * y;\n"
-				"\treturn tmp.x + tmp.y + tmp.z;\n"
-				"}\n");
+	out.Write("int idot(int3 x, int3 y)\n"
+			  "{\n"
+			  "\tint3 tmp = x * y;\n"
+			  "\treturn tmp.x + tmp.y + tmp.z;\n"
+			  "}\n");
 
-	out.Write(  "int idot(int4 x, int4 y)\n"
-				"{\n"
-				"\tint4 tmp = x * y;\n"
-				"\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
-				"}\n\n");
+	out.Write("int idot(int4 x, int4 y)\n"
+			  "{\n"
+			  "\tint4 tmp = x * y;\n"
+			  "\treturn tmp.x + tmp.y + tmp.z + tmp.w;\n"
+			  "}\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
@@ -338,12 +338,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("        ) {\n");
 	}
 
-	out.Write("  int4 ic0 = " I_COLORS"[1], ic1 = " I_COLORS"[2], ic2 = " I_COLORS"[3], iprev = " I_COLORS"[0];\n"
-			"  int4 irastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0), ikonsttemp = int4(0, 0, 0, 0);\n"
-			"  int3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
-			"  int alphabump=0;\n"
-			"  int3 tevcoord=int3(0, 0, 0);\n"
-			"  int2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n\n");
+	out.Write("\tint4 ic0 = " I_COLORS"[1], ic1 = " I_COLORS"[2], ic2 = " I_COLORS"[3], iprev = " I_COLORS"[0];\n"
+			  "\tint4 irastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0), ikonsttemp = int4(0, 0, 0, 0);\n"
+			  "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
+			  "\tint alphabump=0;\n"
+			  "\tint3 tevcoord=int3(0, 0, 0);\n"
+			  "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n\n");
 
 	if (ApiType == API_OPENGL)
 	{
