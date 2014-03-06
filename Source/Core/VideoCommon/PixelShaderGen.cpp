@@ -113,33 +113,33 @@ static const char *tevOpTable[] = {
 
 static const char *tevCInputTable[] =
 {
-	"iprev.rgb",         // CPREV,
-	"iprev.aaa",         // APREV,
-	"ic0.rgb",           // C0,
-	"ic0.aaa",           // A0,
-	"ic1.rgb",           // C1,
-	"ic1.aaa",           // A1,
-	"ic2.rgb",           // C2,
-	"ic2.aaa",           // A2,
-	"itextemp.rgb",      // TEXC,
-	"itextemp.aaa",      // TEXA,
-	"irastemp.rgb",      // RASC,
-	"irastemp.aaa",      // RASA,
+	"prev.rgb",         // CPREV,
+	"prev.aaa",         // APREV,
+	"c0.rgb",           // C0,
+	"c0.aaa",           // A0,
+	"c1.rgb",           // C1,
+	"c1.aaa",           // A1,
+	"c2.rgb",           // C2,
+	"c2.aaa",           // A2,
+	"textemp.rgb",      // TEXC,
+	"textemp.aaa",      // TEXA,
+	"rastemp.rgb",      // RASC,
+	"rastemp.aaa",      // RASA,
 	"int3(255,255,255)", // ONE
 	"int3(127,127,127)", // HALF
-	"ikonsttemp.rgb",    // KONST
+	"konsttemp.rgb",    // KONST
 	"int3(0,0,0)",       // ZERO
 };
 
 static const char *tevAInputTable[] =
 {
-	"iprev",            // APREV,
-	"ic0",              // A0,
-	"ic1",              // A1,
-	"ic2",              // A2,
-	"itextemp",         // TEXA,
-	"irastemp",         // RASA,
-	"ikonsttemp",       // KONST,  (hw1 had quarter)
+	"prev",            // APREV,
+	"c0",              // A0,
+	"c1",              // A1,
+	"c2",              // A2,
+	"textemp",         // TEXA,
+	"rastemp",         // RASA,
+	"konsttemp",       // KONST,  (hw1 had quarter)
 	"int4(0,0,0,0)",    // ZERO
 };
 
@@ -155,8 +155,8 @@ static const char *tevRasTable[] =
 	"int4(0, 0, 0, 0)", // zero
 };
 
-static const char *tevCOutputTable[]  = { "iprev.rgb", "ic0.rgb", "ic1.rgb", "ic2.rgb" };
-static const char *tevAOutputTable[]  = { "iprev.a", "ic0.a", "ic1.a", "ic2.a" };
+static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
+static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
 
 static char text[16384];
 
@@ -338,8 +338,8 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		out.Write("        ) {\n");
 	}
 
-	out.Write("\tint4 ic0 = " I_COLORS"[1], ic1 = " I_COLORS"[2], ic2 = " I_COLORS"[3], iprev = " I_COLORS"[0];\n"
-			  "\tint4 irastemp = int4(0, 0, 0, 0), itextemp = int4(0, 0, 0, 0), ikonsttemp = int4(0, 0, 0, 0);\n"
+	out.Write("\tint4 c0 = " I_COLORS"[1], c1 = " I_COLORS"[2], c2 = " I_COLORS"[3], prev = " I_COLORS"[0];\n"
+			  "\tint4 rastemp = int4(0, 0, 0, 0), textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, 0, 0);\n"
 			  "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
 			  "\tint alphabump=0;\n"
 			  "\tint3 tevcoord=int3(0, 0, 0);\n"
@@ -468,14 +468,14 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 		// regardless of the used destination register
 		if (bpmem.combiners[numStages - 1].colorC.dest != 0)
 		{
-			out.Write("\tiprev.rgb = %s;\n", tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
+			out.Write("\tprev.rgb = %s;\n", tevCOutputTable[bpmem.combiners[numStages - 1].colorC.dest]);
 		}
 		if (bpmem.combiners[numStages - 1].alphaC.dest != 0)
 		{
-			out.Write("\tiprev.a = %s;\n", tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
+			out.Write("\tprev.a = %s;\n", tevAOutputTable[bpmem.combiners[numStages - 1].alphaC.dest]);
 		}
 	}
-	out.Write("\tiprev = iprev & 255;\n");
+	out.Write("\tprev = prev & 255;\n");
 
 	AlphaTest::TEST_RESULT Pretest = bpmem.alpha_test.TestResult();
 	uid_data.Pretest = Pretest;
@@ -517,9 +517,9 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	// theoretical final depth value is used for fog calculation, though, so we have to emulate ztextures anyway
 	if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !skip_ztexture)
 	{
-		// use the texture input of the last texture stage (itextemp), hopefully this has been read and is in correct format...
+		// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
 		out.SetConstantsUsed(C_ZBIAS, C_ZBIAS+1);
-		out.Write("\tzCoord = idot(" I_ZBIAS"[0].xyzw, itextemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
+		out.Write("\tzCoord = idot(" I_ZBIAS"[0].xyzw, textemp.xyzw) + " I_ZBIAS"[1].w %s;\n",
 									(bpmem.ztex2.op == ZTEXTURE_ADD) ? "+ zCoord" : "");
 		out.Write("\tzCoord = zCoord & 0xFFFFFF;\n");
 	}
@@ -530,12 +530,12 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
 	{
 		out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-		out.Write("\tocol0 = float4(float3(iprev.rgb), float(" I_ALPHA".a)) / 255.0;\n");
+		out.Write("\tocol0 = float4(float3(prev.rgb), float(" I_ALPHA".a)) / 255.0;\n");
 	}
 	else
 	{
 		WriteFog<T>(out, uid_data);
-		out.Write("\tocol0 = float4(iprev) / 255.0;\n");
+		out.Write("\tocol0 = float4(prev) / 255.0;\n");
 	}
 
 	// Use dual-source color blending to perform dst alpha in a single pass
@@ -545,7 +545,7 @@ static inline void GeneratePixelShader(T& out, DSTALPHA_MODE dstAlphaMode, API_T
 
 		// Colors will be blended against the alpha from ocol1 and
 		// the alpha from ocol0 will be written to the framebuffer.
-		out.Write("\tocol1 = float4(iprev) / 255.0;\n");
+		out.Write("\tocol1 = float4(prev) / 255.0;\n");
 		out.Write("\tocol0.a = float(" I_ALPHA".a) / 255.0;\n");
 	}
 
@@ -709,7 +709,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		uid_data.stagehash[n].tevorders_colorchan = bpmem.tevorders[n / 2].getColorChan(n & 1);
 
 		const char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
-		out.Write("\tirastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
+		out.Write("\trastemp = %s.%s;\n", tevRasTable[bpmem.tevorders[n / 2].getColorChan(n & 1)], rasswap);
 	}
 
 	uid_data.stagehash[n].tevorders_enable = bpmem.tevorders[n / 2].getEnable(n & 1);
@@ -737,12 +737,12 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		const char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 		uid_data.SetTevindrefTexmap(i, texmap);
 
-		out.Write("\titextemp = ");
+		out.Write("\ttextemp = ");
 		SampleTexture<T>(out, "(float2(tevcoord.xy)/128.0)", texswap, texmap, ApiType);
 	}
 	else
 	{
-		out.Write("\titextemp = int4(255, 255, 255, 255);\n");
+		out.Write("\ttextemp = int4(255, 255, 255, 255);\n");
 	}
 
 
@@ -755,7 +755,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		int ka = bpmem.tevksel[n / 2].getKA(n & 1);
 		uid_data.stagehash[n].tevksel_kc = kc;
 		uid_data.stagehash[n].tevksel_ka = ka;
-		out.Write("\tikonsttemp = int4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
+		out.Write("\tkonsttemp = int4(%s, %s);\n", tevKSelTableC[kc], tevKSelTableA[ka]);
 
 		if (kc > 7)
 			out.SetConstantsUsed(C_KCOLORS+((kc-0xc)%4),C_KCOLORS+((kc-0xc)%4));
@@ -883,12 +883,12 @@ static inline void SampleTexture(T& out, const char *texcoords, const char *texs
 static const char *tevAlphaFuncsTable[] =
 {
 	"(false)",					// NEVER
-	"(iprev.a <  %s)",			// LESS
-	"(iprev.a == %s)",			// EQUAL
-	"(iprev.a <= %s)",			// LEQUAL
-	"(iprev.a >  %s)",			// GREATER
-	"(iprev.a != %s)",			// NEQUAL
-	"(iprev.a >= %s)",			// GEQUAL
+	"(prev.a <  %s)",			// LESS
+	"(prev.a == %s)",			// EQUAL
+	"(prev.a <= %s)",			// LEQUAL
+	"(prev.a >  %s)",			// GREATER
+	"(prev.a != %s)",			// NEQUAL
+	"(prev.a >= %s)",			// GEQUAL
 	"(true)"					// ALWAYS
 };
 
@@ -1024,7 +1024,7 @@ static inline void WriteFog(T& out, pixel_shader_uid_data& uid_data)
 	}
 
 	out.Write("\tint ifog = int(round(fog * 256.0));\n");
-	out.Write("\tiprev.rgb = (iprev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
+	out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR".rgb * ifog) >> 8;\n");
 }
 
 void GetPixelShaderUid(PixelShaderUid& object, DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, u32 components)
