@@ -113,21 +113,21 @@ static const char *tevOpTable[] = {
 
 static const char *tevCInputTable[] =
 {
-	"prev.rgb",         // CPREV,
-	"prev.aaa",         // APREV,
-	"c0.rgb",           // C0,
-	"c0.aaa",           // A0,
-	"c1.rgb",           // C1,
-	"c1.aaa",           // A1,
-	"c2.rgb",           // C2,
-	"c2.aaa",           // A2,
-	"textemp.rgb",      // TEXC,
-	"textemp.aaa",      // TEXA,
-	"rastemp.rgb",      // RASC,
-	"rastemp.aaa",      // RASA,
+	"prev.rgb",          // CPREV,
+	"prev.aaa",          // APREV,
+	"c0.rgb",            // C0,
+	"c0.aaa",            // A0,
+	"c1.rgb",            // C1,
+	"c1.aaa",            // A1,
+	"c2.rgb",            // C2,
+	"c2.aaa",            // A2,
+	"textemp.rgb",       // TEXC,
+	"textemp.aaa",       // TEXA,
+	"rastemp.rgb",       // RASC,
+	"rastemp.aaa",       // RASA,
 	"int3(255,255,255)", // ONE
 	"int3(127,127,127)", // HALF
-	"konsttemp.rgb",    // KONST
+	"konsttemp.rgb",     // KONST
 	"int3(0,0,0)",       // ZERO
 };
 
@@ -140,7 +140,7 @@ static const char *tevAInputTable[] =
 	"textemp",         // TEXA,
 	"rastemp",         // RASA,
 	"konsttemp",       // KONST,  (hw1 had quarter)
-	"int4(0,0,0,0)",    // ZERO
+	"int4(0,0,0,0)",   // ZERO
 };
 
 static const char *tevRasTable[] =
@@ -800,7 +800,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	}
 	else
 	{
-		static const char *function_table[] =
+		const char *function_table[] =
 		{
 			"(((%s.r&255) > %s.r) ? (%s&255): int3(0,0,0))", // TEVCMP_R8_GT
 			"(((%s.r&255) == %s.r) ? (%s&255): int3(0,0,0))", // TEVCMP_R8_EQ
@@ -844,7 +844,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 	}
 	else
 	{
-		static const char *function_table[] =
+		const char *function_table[] =
 		{
 			"(((%s.r&255) > (%s.r&255)) ? (%s.a&255) : 0)", // TEVCMP_R8_GT
 			"(((%s.r&255) == (%s.r&255)) ? (%s.a&255) : 0)", // TEVCMP_R8_EQ
