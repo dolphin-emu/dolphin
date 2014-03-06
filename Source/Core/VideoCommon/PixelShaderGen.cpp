@@ -859,7 +859,7 @@ static inline void WriteStage(T& out, pixel_shader_uid_data& uid_data, int n, AP
 		int mode = (ac.shift<<1)|ac.op;
 		out.Write("   %s.a + ", tevAInputTable[ac.d]);
 		out.Write(function_table[mode], tevAInputTable[ac.a],
-				tevAInputTable[ac.b], tevAInputTable[ac.c]);
+		          tevAInputTable[ac.b], tevAInputTable[ac.c]);
 	}
 	if (ac.clamp)
 		out.Write(", 0, 255)");
