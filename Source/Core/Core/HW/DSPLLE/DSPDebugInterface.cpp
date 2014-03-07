@@ -127,6 +127,11 @@ bool DSPDebugInterface::IsMemCheck(unsigned int address)
 	return false;
 }
 
+void DSPDebugInterface::ClearAllMemChecks()
+{
+	PanicAlert("MemCheck functionality not supported in DSP module.");
+}
+
 void DSPDebugInterface::ToggleMemCheck(unsigned int address)
 {
 	PanicAlert("MemCheck functionality not supported in DSP module.");
