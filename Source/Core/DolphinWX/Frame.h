@@ -127,7 +127,6 @@ public:
 	void UpdateGameList();
 	void ToggleLogWindow(bool bShow);
 	void ToggleLogConfigWindow(bool bShow);
-	void ToggleConsole(bool bShow);
 	void PostEvent(wxCommandEvent& event);
 	void StatusBarMessage(const char * Text, ...);
 	void ClearStatusBar();
@@ -238,7 +237,6 @@ private:
 	void ResetToolbarStyle();
 	void TogglePaneStyle(bool On, int EventId);
 	void ToggleNotebookStyle(bool On, long Style);
-	void ResizeConsole();
 	// Float window
 	void DoUnfloatPage(int Id);
 	void OnFloatingPageClosed(wxCloseEvent& event);
