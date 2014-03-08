@@ -129,8 +129,7 @@ void CLogWindow::CreateGUIControls()
 	}
 
 	// Font
-	m_FontChoice = new wxChoice(this, IDM_FONT,
-			wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
+	m_FontChoice = new wxChoice(this, IDM_FONT);
 	m_FontChoice->Append(_("Default font"));
 	m_FontChoice->Append(_("Monospaced font"));
 	m_FontChoice->Append(_("Selected font"));
@@ -161,8 +160,7 @@ void CLogWindow::CreateGUIControls()
 
 	// Sizers
 	wxBoxSizer *sTop = new wxBoxSizer(wxHORIZONTAL);
-	sTop->Add(new wxButton(this, IDM_CLEARLOG, _("Clear"),
-				wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
+	sTop->Add(new wxButton(this, IDM_CLEARLOG, _("Clear"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
 	sTop->Add(m_FontChoice, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 3);
 	sTop->Add(m_WrapLine, 0, wxALIGN_CENTER_VERTICAL);
 

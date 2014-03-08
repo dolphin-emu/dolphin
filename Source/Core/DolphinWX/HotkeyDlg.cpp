@@ -281,11 +281,11 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 	// A small type font
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
-	wxNotebook *Notebook = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	wxNotebook *Notebook = new wxNotebook(this, wxID_ANY);
 
 	for (int j = 0; j < 2; j++)
 	{
-		wxPanel *Page = new wxPanel(Notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+		wxPanel *Page = new wxPanel(Notebook, wxID_ANY);
 		Notebook->AddPage(Page, pageNames[j]);
 
 		wxGridBagSizer *sHotkeys = new wxGridBagSizer();
@@ -309,8 +309,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 			wxStaticText *stHotkeys = new wxStaticText(Page, wxID_ANY, hkText[i]);
 
 			// Key selection button
-			m_Button_Hotkeys[i] = new wxButton(Page, i, wxEmptyString,
-					wxDefaultPosition, size);
+			m_Button_Hotkeys[i] = new wxButton(Page, i, wxEmptyString, wxDefaultPosition, size);
 			m_Button_Hotkeys[i]->SetFont(m_SmallFont);
 			m_Button_Hotkeys[i]->SetToolTip(_("Left click to detect hotkeys.\nEnter space to clear."));
 			SetButtonText(i,

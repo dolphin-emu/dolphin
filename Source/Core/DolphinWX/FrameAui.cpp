@@ -1080,15 +1080,13 @@ wxWindow * CFrame::GetNotebookPageFromId(wxWindowID Id)
 	return NULL;
 }
 
-wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title,
-		wxWindow * Child)
+wxFrame* CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title, wxWindow* Child)
 {
-	wxFrame * Frame = new wxFrame(this, Id, Title,
-			wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
+	wxFrame* Frame = new wxFrame(this, Id, Title);
 
 	Child->Reparent(Frame);
 
-	wxBoxSizer * m_MainSizer = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* m_MainSizer = new wxBoxSizer(wxHORIZONTAL);
 
 	m_MainSizer->Add(Child, 1, wxEXPAND);
 

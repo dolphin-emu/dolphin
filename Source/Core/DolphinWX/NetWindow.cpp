@@ -81,7 +81,7 @@ void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
 }
 
 NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list)
-	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
+	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR))
 	, m_game_list(game_list)
 {
 	IniFile inifile;
@@ -91,8 +91,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	wxPanel* const panel = new wxPanel(this);
 
 	// top row
-	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, _("Nickname :"),
-			wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, _("Nickname :"));
 
 	std::string nickname;
 	netplay_section.Get("Nickname", &nickname, "Player");
@@ -104,24 +103,22 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 
 
 	// tabs
-	wxNotebook* const notebook = new wxNotebook(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-	wxPanel* const connect_tab = new wxPanel(notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	wxNotebook* const notebook = new wxNotebook(panel, wxID_ANY);
+	wxPanel* const connect_tab = new wxPanel(notebook, wxID_ANY);
 	notebook->AddPage(connect_tab, _("Connect"));
-	wxPanel* const host_tab = new wxPanel(notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	wxPanel* const host_tab = new wxPanel(notebook, wxID_ANY);
 	notebook->AddPage(host_tab, _("Host"));
 
 
 	// connect tab
 	{
-	wxStaticText* const ip_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Address :"),
-			wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const ip_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Address :"));
 
 	std::string address;
 	netplay_section.Get("Address", &address, "localhost");
 	m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(address));
 
-	wxStaticText* const port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port :"),
-			wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port :"));
 
 	// string? w/e
 	std::string port;
@@ -144,8 +141,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 		"All memory cards must be identical between players or disabled.\n"
 		"Wiimote support is probably terrible. Don't use it.\n"
 		"\n"
-		"The host must have the chosen TCP port open/forwarded!\n"),
-		wxDefaultPosition, wxDefaultSize);
+		"The host must have the chosen TCP port open/forwarded!\n"));
 
 	wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
 	top_szr->Add(ip_lbl, 0, wxCENTER | wxRIGHT, 5);
@@ -165,8 +161,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 
 	// host tab
 	{
-	wxStaticText* const port_lbl = new wxStaticText(host_tab, wxID_ANY, _("Port :"),
-			wxDefaultPosition, wxDefaultSize);
+	wxStaticText* const port_lbl = new wxStaticText(host_tab, wxID_ANY, _("Port :"));
 
 	// string? w/e
 	std::string port;
@@ -314,7 +309,7 @@ void NetPlaySetupDiag::OnQuit(wxCommandEvent&)
 
 NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game_list,
 		const std::string& game, const bool is_hosting)
-	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
+	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR))
 	, m_selected_game(game)
 	, m_start_btn(NULL)
 	, m_game_list(game_list)
@@ -617,7 +612,7 @@ bool NetPlayDiag::IsRecording()
 }
 
 ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* const game_list, wxString& game_name)
-	: wxDialog(parent, wxID_ANY, _("Change Game"), wxDefaultPosition, wxDefaultSize)
+	: wxDialog(parent, wxID_ANY, _("Change Game"))
 	, m_game_name(game_name)
 {
 	m_game_lbox = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SORT);
@@ -644,7 +639,7 @@ void ChangeGameDiag::OnPick(wxCommandEvent& event)
 }
 
 PadMapDiag::PadMapDiag(wxWindow* const parent, PadMapping map[], PadMapping wiimotemap[], std::vector<const Player *>& player_list)
-	: wxDialog(parent, wxID_ANY, _("Configure Pads"), wxDefaultPosition, wxDefaultSize)
+	: wxDialog(parent, wxID_ANY, _("Configure Pads"))
 	, m_mapping(map)
 	, m_wiimapping (wiimotemap)
 	, m_player_list(player_list)

@@ -39,9 +39,9 @@ static const wxString wxstr_name(wxTRANSLATE("Name: ")),
 	wxstr_creator(wxTRANSLATE("Creator: "));
 
 CodeConfigPanel::CodeConfigPanel(wxWindow* const parent)
-	: wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize)
+	: wxPanel(parent, -1)
 {
-	m_listbox_gcodes = new wxCheckListBox(this, -1, wxDefaultPosition, wxDefaultSize);
+	m_listbox_gcodes = new wxCheckListBox(this, -1);
 	m_listbox_gcodes->Bind(wxEVT_COMMAND_LISTBOX_SELECTED, &CodeConfigPanel::UpdateInfoBox, this);
 	m_listbox_gcodes->Bind(wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, &CodeConfigPanel::ToggleCode, this);
 

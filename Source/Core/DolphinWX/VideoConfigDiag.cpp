@@ -209,8 +209,7 @@ wxArrayString GetListOfResolutions()
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
 	: wxDialog(parent, -1,
-		wxString::Format(_("Dolphin %s Graphics Configuration"), wxGetTranslation(StrToWxStr(title))),
-		wxDefaultPosition, wxDefaultSize)
+		wxString::Format(_("Dolphin %s Graphics Configuration"), wxGetTranslation(StrToWxStr(title))))
 	, vconfig(g_Config)
 	, ininame(_ininame)
 {
@@ -218,11 +217,11 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
-	wxNotebook* const notebook = new wxNotebook(this, -1, wxDefaultPosition, wxDefaultSize);
+	wxNotebook* const notebook = new wxNotebook(this, -1);
 
 	// -- GENERAL --
 	{
-	wxPanel* const page_general = new wxPanel(notebook, -1, wxDefaultPosition);
+	wxPanel* const page_general = new wxPanel(notebook, -1);
 	notebook->AddPage(page_general, _("General"));
 	wxBoxSizer* const szr_general = new wxBoxSizer(wxVERTICAL);
 
@@ -233,7 +232,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// backend
 	{
 	wxStaticText* const label_backend = new wxStaticText(page_general, wxID_ANY, _("Backend:"));
-	choice_backend = new wxChoice(page_general, wxID_ANY, wxDefaultPosition);
+	choice_backend = new wxChoice(page_general, wxID_ANY);
 	RegisterControl(choice_backend, wxGetTranslation(backend_desc));
 
 	std::vector<VideoBackend*>::const_iterator
@@ -357,7 +356,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// -- ENHANCEMENTS --
 	{
-	wxPanel* const page_enh = new wxPanel(notebook, -1, wxDefaultPosition);
+	wxPanel* const page_enh = new wxPanel(notebook, -1);
 	notebook->AddPage(page_enh, _("Enhancements"));
 	wxBoxSizer* const szr_enh_main = new wxBoxSizer(wxVERTICAL);
 
@@ -403,7 +402,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// postproc shader
 	if (vconfig.backend_info.PPShaders.size())
 	{
-		wxChoice *const choice_ppshader = new wxChoice(page_enh, -1, wxDefaultPosition);
+		wxChoice *const choice_ppshader = new wxChoice(page_enh, -1);
 		RegisterControl(choice_ppshader, wxGetTranslation(ppshader_desc));
 		choice_ppshader->AppendString(_("(off)"));
 
@@ -451,7 +450,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// -- SPEED HACKS --
 	{
-	wxPanel* const page_hacks = new wxPanel(notebook, -1, wxDefaultPosition);
+	wxPanel* const page_hacks = new wxPanel(notebook, -1);
 	notebook->AddPage(page_hacks, _("Hacks"));
 	wxBoxSizer* const szr_hacks = new wxBoxSizer(wxVERTICAL);
 
@@ -536,7 +535,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 
 	// -- ADVANCED --
 	{
-	wxPanel* const page_advanced = new wxPanel(notebook, -1, wxDefaultPosition);
+	wxPanel* const page_advanced = new wxPanel(notebook, -1);
 	notebook->AddPage(page_advanced, _("Advanced"));
 	wxBoxSizer* const szr_advanced = new wxBoxSizer(wxVERTICAL);
 
@@ -604,7 +603,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	page_advanced->SetSizerAndFit(szr_advanced);
 	}
 
-	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"), wxDefaultPosition);
+	wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"));
 	btn_close->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &VideoConfigDiag::Event_ClickClose, this);
 
 	Bind(wxEVT_CLOSE_WINDOW, &VideoConfigDiag::Event_Close, this);

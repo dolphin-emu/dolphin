@@ -25,7 +25,7 @@ BEGIN_EVENT_TABLE(BreakPointDlg, wxDialog)
 END_EVENT_TABLE()
 
 BreakPointDlg::BreakPointDlg(CBreakPointWindow *_Parent)
-	: wxDialog(_Parent, wxID_ANY, wxT("BreakPoint"), wxDefaultPosition, wxDefaultSize)
+	: wxDialog(_Parent, wxID_ANY, wxT("BreakPoint"))
 	, Parent(_Parent)
 {
 	m_pEditAddress = new wxTextCtrl(this, wxID_ANY, wxT("80000000"));

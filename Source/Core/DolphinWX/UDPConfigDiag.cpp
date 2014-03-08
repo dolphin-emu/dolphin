@@ -16,7 +16,7 @@
 class wxWindow;
 
 UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
-	wxDialog(parent, -1, _("UDP Wiimote"), wxDefaultPosition, wxDefaultSize),
+	wxDialog(parent, -1, _("UDP Wiimote")),
 	wrp(_wrp)
 {
 	wxBoxSizer *const outer_sizer = new wxBoxSizer(wxVERTICAL);

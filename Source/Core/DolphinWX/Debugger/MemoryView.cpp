@@ -55,7 +55,7 @@ BEGIN_EVENT_TABLE(CMemoryView, wxControl)
 END_EVENT_TABLE()
 
 CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent)
-	: wxControl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+	: wxControl(parent, wxID_ANY)
 	, curAddress(debuginterface->GetPC())
 	, debugger(debuginterface)
 	, align(debuginterface->GetInstructionSize(0))
