@@ -2190,6 +2190,7 @@ void Jit64::twx(UGeckoInstruction inst)
 	FixupBranch ag = J_CC(CC_G);
 	FixupBranch ae = J_CC(CC_Z);
 	// FIXME: will never be reached. But also no known code uses it...
+	_assert_msg_(DYNA_REC, (inst.TO & 3) == 0, "Seems like something actually does use this.");
 	FixupBranch ll = J_CC(CC_NO);
 	FixupBranch lg = J_CC(CC_O);
 
