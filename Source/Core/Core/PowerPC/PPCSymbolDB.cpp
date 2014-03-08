@@ -104,11 +104,11 @@ Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 	return 0;
 }
 
-const char *PPCSymbolDB::GetDescription(u32 addr)
+const std::string PPCSymbolDB::GetDescription(u32 addr)
 {
 	Symbol *symbol = GetSymbolFromAddr(addr);
 	if (symbol)
-		return symbol->name.c_str();
+		return symbol->name;
 	else
 		return " --- ";
 }
