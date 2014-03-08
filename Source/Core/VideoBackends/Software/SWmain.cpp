@@ -172,6 +172,7 @@ void VideoSoftware::Shutdown()
 
 void VideoSoftware::Video_Cleanup()
 {
+	GLInterface->ClearCurrent();
 }
 
 // This is called after Video_Initialize() from the Core
