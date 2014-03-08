@@ -35,12 +35,12 @@ TEST(IsMMIOAddress, SpecialAddresses)
 class MappingTest : public testing::Test
 {
 protected:
-	virtual void SetUp()
+	virtual void SetUp() override
 	{
 		m_mapping = new MMIO::Mapping();
 	}
 
-	virtual void TearDown()
+	virtual void TearDown() override
 	{
 		delete m_mapping;
 	}

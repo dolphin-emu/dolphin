@@ -49,10 +49,10 @@ public:
 	static CompressedBlobReader* Create(const char *filename);
 	~CompressedBlobReader();
 	const CompressedBlobHeader &GetHeader() const { return header; }
-	u64 GetDataSize() const { return header.data_size; }
-	u64 GetRawSize() const { return file_size; }
+	u64 GetDataSize() const override { return header.data_size; }
+	u64 GetRawSize() const override { return file_size; }
 	u64 GetBlockCompressedSize(u64 block_num) const;
-	void GetBlock(u64 block_num, u8 *out_ptr);
+	void GetBlock(u64 block_num, u8 *out_ptr) override;
 private:
 	CompressedBlobReader(const char *filename);
 

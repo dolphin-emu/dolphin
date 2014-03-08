@@ -85,20 +85,20 @@ public:
 	CSIDevice_GCController(SIDevices device, int _iDeviceNumber);
 
 	// Run the SI Buffer
-	virtual int RunBuffer(u8* _pBuffer, int _iLength);
+	virtual int RunBuffer(u8* _pBuffer, int _iLength) override;
 
 	// Send and Receive pad input from network
 	static bool NetPlay_GetInput(u8 numPAD, SPADStatus status, u32 *PADStatus);
 	static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
 
 	// Return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low);
+	virtual bool GetData(u32& _Hi, u32& _Low) override;
 
 	// Send a command directly
-	virtual void SendCommand(u32 _Cmd, u8 _Poll);
+	virtual void SendCommand(u32 _Cmd, u8 _Poll) override;
 
 	// Savestate support
-	virtual void DoState(PointerWrap& p);
+	virtual void DoState(PointerWrap& p) override;
 };
 
 
@@ -108,7 +108,7 @@ class CSIDevice_TaruKonga : public CSIDevice_GCController
 public:
 	CSIDevice_TaruKonga(SIDevices device, int _iDeviceNumber) : CSIDevice_GCController(device, _iDeviceNumber) { }
 
-	virtual bool GetData(u32& _Hi, u32& _Low)
+	virtual bool GetData(u32& _Hi, u32& _Low) override
 	{
 		CSIDevice_GCController::GetData(_Hi, _Low);
 		_Hi &= ~PAD_USE_ORIGIN << 16;

@@ -29,7 +29,7 @@ class FileLogListener : public LogListener
 public:
 	FileLogListener(const char *filename);
 
-	void Log(LogTypes::LOG_LEVELS, const char *msg);
+	void Log(LogTypes::LOG_LEVELS, const char *msg) override;
 
 	bool IsValid() { return !m_logfile.fail(); }
 	bool IsEnabled() const { return m_enable; }
@@ -46,7 +46,7 @@ private:
 class DebuggerLogListener : public LogListener
 {
 public:
-	void Log(LogTypes::LOG_LEVELS, const char *msg);
+	void Log(LogTypes::LOG_LEVELS, const char *msg) override;
 };
 
 class LogContainer

@@ -20,21 +20,21 @@ class PulseAudio : public SoundStream
 public:
 	PulseAudio(CMixer *mixer);
 
-	virtual bool Start();
-	virtual void Stop();
+	virtual bool Start() override;
+	virtual void Stop() override;
 
 	static bool isValid() {return true;}
 
 	virtual bool usesMixer() const {return true;}
 
-	virtual void Update();
+	virtual void Update() override;
 
 	void StateCallback(pa_context *c);
 	void WriteCallback(pa_stream *s, size_t length);
 	void UnderflowCallback(pa_stream *s);
 
 private:
-	virtual void SoundLoop();
+	virtual void SoundLoop() override;
 
 	bool PulseInit();
 	void PulseShutdown();

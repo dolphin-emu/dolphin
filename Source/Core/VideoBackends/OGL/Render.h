@@ -77,7 +77,7 @@ public:
 
 	void ReinterpretPixelData(unsigned int convtype) override;
 
-	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc);
+	bool SaveScreenshot(const std::string &filename, const TargetRectangle &rc) override;
 
 private:
 	void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc, const TargetRectangle& targetPixelRc, const u32* data);

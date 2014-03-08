@@ -48,7 +48,7 @@ private:
 			const float *colmat) override;
 
 		void Bind(unsigned int stage) override;
-		bool Save(const std::string& filename, unsigned int level);
+		bool Save(const std::string& filename, unsigned int level) override;
 	};
 
 	~TextureCache();

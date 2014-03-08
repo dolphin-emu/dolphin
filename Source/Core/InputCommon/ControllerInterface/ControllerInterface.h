@@ -96,8 +96,8 @@ public:
 	{
 	public:
 		InputReference() : ControlReference(true) {}
-		ControlState State(const ControlState state);
-		Device::Control* Detect(const unsigned int ms, Device* const device);
+		ControlState State(const ControlState state) override;
+		Device::Control* Detect(const unsigned int ms, Device* const device) override;
 	};
 
 	//
@@ -109,8 +109,8 @@ public:
 	{
 	public:
 		OutputReference() : ControlReference(false) {}
-		ControlState State(const ControlState state);
-		Device::Control* Detect(const unsigned int ms, Device* const device);
+		ControlState State(const ControlState state) override;
+		Device::Control* Detect(const unsigned int ms, Device* const device) override;
 	};
 
 	ControllerInterface() : m_is_init(false), m_hwnd(NULL) {}

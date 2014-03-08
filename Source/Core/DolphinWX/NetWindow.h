@@ -67,19 +67,19 @@ public:
 	void OnStart(wxCommandEvent& event);
 
 	// implementation of NetPlayUI methods
-	void BootGame(const std::string& filename);
-	void StopGame();
+	void BootGame(const std::string& filename) override;
+	void StopGame() override;
 
-	void Update();
-	void AppendChat(const std::string& msg);
+	void Update() override;
+	void AppendChat(const std::string& msg) override;
 
-	void OnMsgChangeGame(const std::string& filename);
-	void OnMsgStartGame();
-	void OnMsgStopGame();
+	void OnMsgChangeGame(const std::string& filename) override;
+	void OnMsgStartGame() override;
+	void OnMsgStopGame() override;
 
 	static NetPlayDiag *&GetInstance() { return npd; };
 
-	bool IsRecording();
+	bool IsRecording() override;
 
 private:
     DECLARE_EVENT_TABLE()

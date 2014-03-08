@@ -116,7 +116,7 @@ public:
 	};
 
 	Wiimote(const unsigned int index);
-	std::string GetName() const;
+	std::string GetName() const override;
 
 	void Update();
 	void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
@@ -125,7 +125,7 @@ public:
 	void DoState(PointerWrap& p);
 	void RealState();
 
-	void LoadDefaults(const ControllerInterface& ciface);
+	void LoadDefaults(const ControllerInterface& ciface) override;
 
 protected:
 	bool Step();

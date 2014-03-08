@@ -147,7 +147,7 @@ public:
 	~MapAndOrphan() {
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) {
+	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
 		Align(stride);
 		if(m_iterator + size >= m_size) {
 			glBufferData(m_buffertype, m_size, NULL, GL_STREAM_DRAW);
@@ -158,7 +158,7 @@ public:
 		return std::make_pair(pointer, m_iterator);
 	}
 
-	void Unmap(size_t used_size) {
+	void Unmap(size_t used_size) override {
 		glFlushMappedBufferRange(m_buffertype, 0, used_size);
 		glUnmapBuffer(m_buffertype);
 		m_iterator += used_size;
@@ -185,7 +185,7 @@ public:
 		DeleteFences();
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) {
+	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
 		Align(stride);
 		AllocMemory(size);
 		u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
@@ -193,7 +193,7 @@ public:
 		return std::make_pair(pointer, m_iterator);
 	}
 
-	void Unmap(size_t used_size) {
+	void Unmap(size_t used_size) override {
 		glFlushMappedBufferRange(m_buffertype, 0, used_size);
 		glUnmapBuffer(m_buffertype);
 		m_iterator += used_size;
@@ -235,13 +235,13 @@ public:
 		glBindBuffer(m_buffertype, 0);
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) {
+	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
 		Align(stride);
 		AllocMemory(size);
 		return std::make_pair(m_pointer + m_iterator, m_iterator);
 	}
 
-	void Unmap(size_t used_size) {
+	void Unmap(size_t used_size) override {
 		m_iterator += used_size;
 	}
 
@@ -275,13 +275,13 @@ public:
 		m_pointer = NULL;
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) {
+	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
 		Align(stride);
 		AllocMemory(size);
 		return std::make_pair(m_pointer + m_iterator, m_iterator);
 	}
 
-	void Unmap(size_t used_size) {
+	void Unmap(size_t used_size) override {
 		m_iterator += used_size;
 	}
 
@@ -307,11 +307,11 @@ public:
 		delete [] m_pointer;
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) {
+	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
 		return std::make_pair(m_pointer, 0);
 	}
 
-	void Unmap(size_t used_size) {
+	void Unmap(size_t used_size) override {
 		glBufferSubData(m_buffertype, 0, used_size, m_pointer);
 	}
 
@@ -335,11 +335,11 @@ public:
 		delete [] m_pointer;
 	}
 
-	std::pair<u8*, size_t> Map(size_t size, u32 stride) {
+	std::pair<u8*, size_t> Map(size_t size, u32 stride) override {
 		return std::make_pair(m_pointer, 0);
 	}
 
-	void Unmap(size_t used_size) {
+	void Unmap(size_t used_size) override {
 		glBufferData(m_buffertype, used_size, m_pointer, GL_STREAM_DRAW);
 	}
 

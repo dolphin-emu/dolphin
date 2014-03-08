@@ -24,13 +24,13 @@ class CBannerLoaderWii
 
 		virtual ~CBannerLoaderWii();
 
-		virtual bool IsValid();
+		virtual bool IsValid() override;
 
-		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight);
+		virtual std::vector<u32> GetBanner(int* pWidth, int* pHeight) override;
 
-		virtual std::vector<std::string> GetNames();
-		virtual std::string GetCompany();
-		virtual std::vector<std::string> GetDescriptions();
+		virtual std::vector<std::string> GetNames() override;
+		virtual std::string GetCompany() override;
+		virtual std::vector<std::string> GetDescriptions() override;
 
 	private:
 

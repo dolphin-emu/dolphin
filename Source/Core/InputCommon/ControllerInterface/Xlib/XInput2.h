@@ -39,9 +39,9 @@ private:
 	{
 		friend class KeyboardMouse;
 	public:
-		std::string GetName() const { return m_keyname; }
+		std::string GetName() const override { return m_keyname; }
 		Key(Display* display, KeyCode keycode, const char* keyboard);
-		ControlState GetState() const;
+		ControlState GetState() const override;
 
 	private:
 		std::string       m_keyname;
@@ -53,9 +53,9 @@ private:
 	class Button : public Input
 	{
 	public:
-		std::string GetName() const { return name; }
+		std::string GetName() const override { return name; }
 		Button(unsigned int index, unsigned int& buttons);
-		ControlState GetState() const;
+		ControlState GetState() const override;
 
 	private:
 		const unsigned int& m_buttons;
@@ -66,10 +66,10 @@ private:
 	class Cursor : public Input
 	{
 	public:
-		std::string GetName() const { return name; }
-		bool IsDetectable() { return false; }
+		std::string GetName() const override { return name; }
+		bool IsDetectable() override { return false; }
 		Cursor(u8 index, bool positive, const float& cursor);
-		ControlState GetState() const;
+		ControlState GetState() const override;
 
 	private:
 		const float& m_cursor;
@@ -81,10 +81,10 @@ private:
 	class Axis : public Input
 	{
 	public:
-		std::string GetName() const { return name; }
-		bool IsDetectable() { return false; }
+		std::string GetName() const override { return name; }
+		bool IsDetectable() override { return false; }
 		Axis(u8 index, bool positive, const float& axis);
-		ControlState GetState() const;
+		ControlState GetState() const override;
 
 	private:
 		const float& m_axis;
@@ -98,15 +98,15 @@ private:
 	void UpdateCursor();
 
 public:
-	bool UpdateInput();
-	bool UpdateOutput();
+	bool UpdateInput() override;
+	bool UpdateOutput() override;
 
 	KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid);
 	~KeyboardMouse();
 
-	std::string GetName() const;
-	std::string GetSource() const;
-	int GetId() const;
+	std::string GetName() const override;
+	std::string GetSource() const override;
+	int GetId() const override;
 
 private:
 	Window      m_window;

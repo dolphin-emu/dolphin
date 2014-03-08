@@ -40,10 +40,10 @@ public:
 	bool bSaveTargets;
 	bool bSaveShaders;
 
-	void OnPause();
+	void OnPause() override;
 
 	// Called from GFX thread once the GFXDebuggerPauseFlag spin lock has finished
-	void OnContinue();
+	void OnContinue() override;
 
 private:
 	DECLARE_EVENT_TABLE();

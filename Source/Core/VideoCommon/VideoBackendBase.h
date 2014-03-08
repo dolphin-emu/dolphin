@@ -133,41 +133,41 @@ extern VideoBackend* g_video_backend;
 // inherited by D3D/OGL backends
 class VideoBackendHardware : public VideoBackend
 {
-	void RunLoop(bool enable);
-	bool Initialize(void *&) { InitializeShared(); return true; }
+	void RunLoop(bool enable) override;
+	bool Initialize(void *&) override { InitializeShared(); return true; }
 
-	void EmuStateChange(EMUSTATE_CHANGE);
+	void EmuStateChange(EMUSTATE_CHANGE) override;
 
-	void Video_EnterLoop();
-	void Video_ExitLoop();
-	void Video_BeginField(u32, u32, u32);
-	void Video_EndField();
+	void Video_EnterLoop() override;
+	void Video_ExitLoop() override;
+	void Video_BeginField(u32, u32, u32) override;
+	void Video_EndField() override;
 
-	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
-	u32 Video_GetQueryResult(PerfQueryType type);
+	u32 Video_AccessEFB(EFBAccessType, u32, u32, u32) override;
+	u32 Video_GetQueryResult(PerfQueryType type) override;
 
-	void Video_AddMessage(const char* pstr, unsigned int milliseconds);
-	void Video_ClearMessages();
-	bool Video_Screenshot(const char* filename);
+	void Video_AddMessage(const char* pstr, unsigned int milliseconds) override;
+	void Video_ClearMessages() override;
+	bool Video_Screenshot(const char* filename) override;
 
-	void Video_SetRendering(bool bEnabled);
+	void Video_SetRendering(bool bEnabled) override;
 
-	void Video_GatherPipeBursted();
+	void Video_GatherPipeBursted() override;
 
-	bool Video_IsPossibleWaitingSetDrawDone();
-	bool Video_IsHiWatermarkActive();
-	void Video_AbortFrame();
+	bool Video_IsPossibleWaitingSetDrawDone() override;
+	bool Video_IsHiWatermarkActive() override;
+	void Video_AbortFrame() override;
 
 	void RegisterCPMMIO(MMIO::Mapping* mmio, u32 base) override;
 	void RegisterPEMMIO(MMIO::Mapping* mmio, u32 base) override;
 
-	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
-	void DoState(PointerWrap &p);
+	void PauseAndLock(bool doLock, bool unpauseOnUnlock=true) override;
+	void DoState(PointerWrap &p) override;
 
 	bool m_invalid;
 
 public:
-	 void CheckInvalidState();
+	 void CheckInvalidState() override;
 
 protected:
 	void InitializeShared();

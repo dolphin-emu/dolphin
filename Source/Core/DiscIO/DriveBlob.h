@@ -20,7 +20,7 @@ class DriveReader : public SectorReader
 {
 private:
 	DriveReader(const char *drive);
-	void GetBlock(u64 block_num, u8 *out_ptr);
+	void GetBlock(u64 block_num, u8 *out_ptr) override;
 
 #ifdef _WIN32
 	HANDLE hDisc;
@@ -35,10 +35,10 @@ private:
 public:
 	static DriveReader *Create(const char *drive);
 	~DriveReader();
-	u64 GetDataSize() const { return size; }
-	u64 GetRawSize() const { return size; }
+	u64 GetDataSize() const override { return size; }
+	u64 GetRawSize() const override { return size; }
 
-	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr);
+	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr) override;
 };
 
 }  // namespace

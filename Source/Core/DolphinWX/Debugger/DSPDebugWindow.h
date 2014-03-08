@@ -27,7 +27,7 @@ public:
 	DSPDebuggerLLE(wxWindow *parent, wxWindowID id = wxID_ANY);
 	virtual ~DSPDebuggerLLE();
 
-	void Update();
+	void Update() override;
 
 private:
 	DECLARE_EVENT_TABLE();
