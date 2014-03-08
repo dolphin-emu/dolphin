@@ -6,6 +6,8 @@
 
 #include "Common/Common.h"
 #include "Common/CPUDetect.h"
+
+#include "Core/HW/MMIO.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
@@ -118,6 +120,122 @@ u8 *EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, Gen::OpArg opAddress, int ac
 	return result;
 }
 
+// Visitor that generates code to read a MMIO value to EAX.
+template <typename T>
+class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
+{
+public:
+	MMIOReadCodeGenerator(Gen::XCodeBlock* code, u32 registers_in_use,
+	                      Gen::X64Reg dst_reg, u32 address, bool sign_extend)
+		: m_code(code), m_registers_in_use(registers_in_use), m_dst_reg(dst_reg),
+		  m_address(address), m_sign_extend(sign_extend)
+	{
+	}
+
+	virtual void VisitConstant(T value)
+	{
+		LoadConstantToReg(8 * sizeof (T), value);
+	}
+	virtual void VisitDirect(const T* addr, u32 mask)
+	{
+		LoadAddrMaskToReg(8 * sizeof (T), addr, mask);
+	}
+	virtual void VisitComplex(const std::function<T(u32)>* lambda)
+	{
+		CallLambda(8 * sizeof (T), lambda);
+	}
+
+private:
+	// Generates code to load a constant to the destination register. In
+	// practice it would be better to avoid using a register for this, but it
+	// would require refactoring a lot of JIT code.
+	void LoadConstantToReg(int sbits, u32 value)
+	{
+		if (m_sign_extend)
+		{
+			u32 sign = !!(value & (1 << (sbits - 1)));
+			value |= sign * ((0xFFFFFFFF >> sbits) << sbits);
+		}
+		m_code->MOV(32, R(m_dst_reg), Gen::Imm32(value));
+	}
+
+	// Generate the proper MOV instruction depending on whether the read should
+	// be sign extended or zero extended.
+	void MoveOpArgToReg(int sbits, Gen::OpArg arg)
+	{
+		if (m_sign_extend)
+			m_code->MOVSX(32, sbits, m_dst_reg, arg);
+		else
+			m_code->MOVZX(32, sbits, m_dst_reg, arg);
+	}
+
+	void LoadAddrMaskToReg(int sbits, const void* ptr, u32 mask)
+	{
+#ifdef _ARCH_64
+		m_code->MOV(64, R(EAX), ImmPtr(ptr));
+#else
+		m_code->MOV(32, R(EAX), ImmPtr(ptr));
+#endif
+		// If we do not need to mask, we can do the sign extend while loading
+		// from memory. If masking is required, we have to first zero extend,
+		// then mask, then sign extend if needed (1 instr vs. 2/3).
+		u32 all_ones = (1ULL << sbits) - 1;
+		if ((all_ones & mask) == all_ones)
+			MoveOpArgToReg(sbits, MDisp(EAX, 0));
+		else
+		{
+			m_code->MOVZX(32, sbits, m_dst_reg, MDisp(EAX, 0));
+			m_code->AND(32, R(m_dst_reg), Imm32(mask));
+			if (m_sign_extend)
+				m_code->MOVSX(32, sbits, m_dst_reg, R(m_dst_reg));
+		}
+	}
+
+	void CallLambda(int sbits, const std::function<T(u32)>* lambda)
+	{
+		m_code->ABI_PushRegistersAndAdjustStack(m_registers_in_use, false);
+		m_code->ABI_CallLambdaC(lambda, m_address);
+		m_code->ABI_PopRegistersAndAdjustStack(m_registers_in_use, false);
+		MoveOpArgToReg(sbits, R(EAX));
+	}
+
+	Gen::XCodeBlock* m_code;
+	u32 m_registers_in_use;
+	Gen::X64Reg m_dst_reg;
+	u32 m_address;
+	bool m_sign_extend;
+};
+
+void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
+                                 u32 registers_in_use, u32 address,
+                                 int access_size, bool sign_extend)
+{
+	switch (access_size)
+	{
+	case 8:
+		{
+			MMIOReadCodeGenerator<u8> gen(this, registers_in_use, reg_value,
+			                              address, sign_extend);
+			mmio->GetHandlerForRead8(address).Visit(gen);
+			break;
+		}
+	case 16:
+		{
+			MMIOReadCodeGenerator<u16> gen(this, registers_in_use, reg_value,
+			                               address, sign_extend);
+			mmio->GetHandlerForRead16(address).Visit(gen);
+			break;
+		}
+	case 32:
+		{
+			MMIOReadCodeGenerator<u32> gen(this, registers_in_use, reg_value,
+			                               address, sign_extend);
+			mmio->GetHandlerForRead32(address).Visit(gen);
+			break;
+		}
+	}
+}
+
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, u32 registersInUse, bool signExtend, int flags)
 {
 	if (!jit->js.memcheck)
@@ -157,9 +275,24 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		if (opAddress.IsImm())
 		{
 			u32 address = (u32)opAddress.offset + offset;
+
+			// If we know the address, try the following loading methods in
+			// order:
+			//
+			// 1. If the address is in RAM, generate an unsafe load (directly
+			//    access the RAM buffer and load from there).
+			// 2. If the address is in the MMIO range, find the appropriate
+			//    MMIO handler and generate the code to load using the handler.
+			// 3. Otherwise, just generate a call to Memory::Read_* with the
+			//    address hardcoded.
 			if ((address & mem_mask) == 0)
 			{
 				UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend);
+			}
+			else if (!Core::g_CoreStartupParameter.bMMU && MMIO::IsMMIOAddress(address))
+			{
+				MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
+				              address, accessSize, signExtend);
 			}
 			else
 			{

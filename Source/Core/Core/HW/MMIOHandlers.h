@@ -88,7 +88,7 @@ class ReadHandlingMethodVisitor
 public:
 	virtual void VisitConstant(T value) = 0;
 	virtual void VisitDirect(const T* addr, u32 mask) = 0;
-	virtual void VisitComplex(std::function<T(u32)> lambda) = 0;
+	virtual void VisitComplex(const std::function<T(u32)>* lambda) = 0;
 };
 template <typename T>
 class WriteHandlingMethodVisitor
@@ -96,7 +96,7 @@ class WriteHandlingMethodVisitor
 public:
 	virtual void VisitNop() = 0;
 	virtual void VisitDirect(T* addr, u32 mask) = 0;
-	virtual void VisitComplex(std::function<void(u32, T)> lambda) = 0;
+	virtual void VisitComplex(const std::function<void(u32, T)>* lambda) = 0;
 };
 
 // These classes are INTERNAL. Do not use outside of the MMIO implementation
