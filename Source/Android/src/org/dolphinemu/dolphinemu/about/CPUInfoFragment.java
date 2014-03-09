@@ -1,10 +1,15 @@
+/**
+ * Copyright 2014 Dolphin Emulator Project
+ * Licensed under GPLv2
+ * Refer to the license.txt file included.
+ */
+
 package org.dolphinemu.dolphinemu.about;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.about.AboutActivity.AboutFragmentItem;
 import org.dolphinemu.dolphinemu.utils.CPUHelper;
 
 import android.app.ListFragment;
@@ -25,7 +30,7 @@ public final class CPUInfoFragment extends ListFragment
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
 		ListView rootView = (ListView) inflater.inflate(R.layout.gamelist_listview, container, false);
-		List<AboutActivity.AboutFragmentItem> items = new ArrayList<AboutActivity.AboutFragmentItem>();
+		List<AboutFragmentItem> items = new ArrayList<AboutFragmentItem>();
 
 		CPUHelper cpuHelper = new CPUHelper(getActivity());
 
@@ -39,7 +44,7 @@ public final class CPUInfoFragment extends ListFragment
 		if (CPUHelper.isARM())
 			items.add(new AboutFragmentItem(getString(R.string.cpu_implementer), cpuHelper.getImplementer()));
 
-		AboutActivity.InfoFragmentAdapter adapter = new AboutActivity.InfoFragmentAdapter(getActivity(), R.layout.about_layout, items);
+		AboutInfoFragmentAdapter adapter = new AboutInfoFragmentAdapter(getActivity(), R.layout.about_layout, items);
 		rootView.setAdapter(adapter);
 
 		return rootView;
