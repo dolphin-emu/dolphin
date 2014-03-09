@@ -9,12 +9,12 @@
 	#include <xlocale.h>
 #endif
 
+#include "Common/MathUtil.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
-#include "Common/MathUtil.h"
 
 #define WRITE p+=sprintf
 
