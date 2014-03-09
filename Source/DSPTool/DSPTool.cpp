@@ -6,17 +6,18 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/DSP/DSPCodeUtil.h"
+#include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
 
 // Stub out the dsplib host stuff, since this is just a simple cmdline tools.
-u8 DSPHost_ReadHostMemory(u32 addr) { return 0; }
-void DSPHost_WriteHostMemory(u8 value, u32 addr) {}
-void DSPHost_OSD_AddMessage(const std::string& str, u32 ms) {}
-bool DSPHost_OnThread() { return false; }
-bool DSPHost_Wii() { return false; }
-void DSPHost_CodeLoaded(const u8 *ptr, int size) {}
-void DSPHost_InterruptRequest() {}
-void DSPHost_UpdateDebugger() {}
+u8 DSPHost::ReadHostMemory(u32 addr) { return 0; }
+void DSPHost::WriteHostMemory(u8 value, u32 addr) {}
+void DSPHost::OSD_AddMessage(const std::string& str, u32 ms) {}
+bool DSPHost::OnThread() { return false; }
+bool DSPHost::IsWiiHost() { return false; }
+void DSPHost::CodeLoaded(const u8 *ptr, int size) {}
+void DSPHost::InterruptRequest() {}
+void DSPHost::UpdateDebugger() {}
 
 // This test goes from text ASM to binary to text ASM and once again back to binary.
 // Then the two binaries are compared.
