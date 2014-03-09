@@ -264,7 +264,7 @@ void DSPEmitter::Compile(u16 start_addr)
 			DSPJitRegCache c(gpr);
 			HandleLoop();
 			gpr.saveRegs();
-			if (!DSPHost_OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+			if (!DSPHost::OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 			{
 				MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
 			}
@@ -298,7 +298,7 @@ void DSPEmitter::Compile(u16 start_addr)
 				DSPJitRegCache c(gpr);
 				//don't update g_dsp.pc -- the branch insn already did
 				gpr.saveRegs();
-				if (!DSPHost_OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+				if (!DSPHost::OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 				{
 					MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
 				}
@@ -361,7 +361,7 @@ void DSPEmitter::Compile(u16 start_addr)
 	}
 
 	gpr.saveRegs();
-	if (!DSPHost_OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+	if (!DSPHost::OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
 	{
 		MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
 	}
@@ -389,7 +389,7 @@ void DSPEmitter::CompileDispatcher()
 	const u8 *dispatcherLoop = GetCodePtr();
 
 	FixupBranch exceptionExit;
-	if (DSPHost_OnThread())
+	if (DSPHost::OnThread())
 	{
 		CMP(8, M(const_cast<bool*>(&g_dsp.external_interrupt_waiting)), Imm8(0));
 		exceptionExit = J_CC(CC_NE);
@@ -420,7 +420,7 @@ void DSPEmitter::CompileDispatcher()
 
 	// DSP gave up the remaining cycles.
 	SetJumpTarget(_halt);
-	if (DSPHost_OnThread())
+	if (DSPHost::OnThread())
 	{
 		SetJumpTarget(exceptionExit);
 	}

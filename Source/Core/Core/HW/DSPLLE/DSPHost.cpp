@@ -21,40 +21,43 @@
 // core isn't used, for example in an asm/disasm tool, then most of these
 // can be stubbed out.
 
-u8 DSPHost_ReadHostMemory(u32 addr)
+namespace DSPHost
+{
+
+u8 ReadHostMemory(u32 addr)
 {
 	return DSP::ReadARAM(addr);
 }
 
-void DSPHost_WriteHostMemory(u8 value, u32 addr)
+void WriteHostMemory(u8 value, u32 addr)
 {
 	DSP::WriteARAM(value, addr);
 }
 
-void DSPHost_OSD_AddMessage(const std::string& str, u32 ms)
+void OSD_AddMessage(const std::string& str, u32 ms)
 {
 	OSD::AddMessage(str, ms);
 }
 
-bool DSPHost_OnThread()
+bool OnThread()
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	return  _CoreParameter.bDSPThread;
 }
 
-bool DSPHost_Wii()
+bool IsWiiHost()
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	return  _CoreParameter.bWii;
 }
 
-void DSPHost_InterruptRequest()
+void InterruptRequest()
 {
 	// Fire an interrupt on the PPC ASAP.
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
-void DSPHost_CodeLoaded(const u8 *ptr, int size)
+void CodeLoaded(const u8 *ptr, int size)
 {
 	g_dsp.iram_crc = HashEctor(ptr, size);
 
@@ -93,7 +96,7 @@ void DSPHost_CodeLoaded(const u8 *ptr, int size)
 	// Always add the ROM.
 	DSPSymbols::AutoDisassembly(0x8000, 0x9000);
 
-	DSPHost_UpdateDebugger();
+	UpdateDebugger();
 
 	if (dspjit)
 		dspjit->ClearIRAM();
@@ -101,7 +104,9 @@ void DSPHost_CodeLoaded(const u8 *ptr, int size)
 	DSPAnalyzer::Analyze();
 }
 
-void DSPHost_UpdateDebugger()
+void UpdateDebugger()
 {
 	Host_RefreshDSPDebuggerWindow();
+}
+
 }

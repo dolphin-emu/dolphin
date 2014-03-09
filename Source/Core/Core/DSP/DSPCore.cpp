@@ -114,15 +114,14 @@ static bool VerifyRoms(const char *irom_filename, const char *coef_filename)
 
 	if (rom_idx == 1)
 	{
-		DSPHost_OSD_AddMessage("You are using an old free DSP ROM made by the Dolphin Team.", 6000);
-		DSPHost_OSD_AddMessage("Only games using the Zelda UCode will work correctly.", 6000);
+		DSPHost::OSD_AddMessage("You are using an old free DSP ROM made by the Dolphin Team.", 6000);
+		DSPHost::OSD_AddMessage("Only games using the Zelda UCode will work correctly.", 6000);
 	}
-
-	if (rom_idx == 2)
+	else if (rom_idx == 2)
 	{
-		DSPHost_OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
-		DSPHost_OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
-		DSPHost_OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.\n", 8000);
+		DSPHost::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
+		DSPHost::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
+		DSPHost::OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.\n", 8000);
 	}
 
 	return true;
@@ -339,7 +338,7 @@ int DSPCore_RunCycles(int cycles)
 			DSPInterpreter::Step();
 			cycles--;
 
-			DSPHost_UpdateDebugger();
+			DSPHost::UpdateDebugger();
 			break;
 		case DSPCORE_STOP:
 			break;
@@ -355,7 +354,7 @@ void DSPCore_SetState(DSPCoreState new_state)
 	if (new_state == DSPCORE_RUNNING)
 		step_event.Set();
 	// Sleep(10);
-	DSPHost_UpdateDebugger();
+	DSPHost::UpdateDebugger();
 }
 
 DSPCoreState DSPCore_GetState()
