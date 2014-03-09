@@ -40,6 +40,14 @@ const u32 FPSCR_ANY_X      = FPSCR_OX | FPSCR_UX | FPSCR_ZX | FPSCR_XX | FPSCR_V
 const u64 PPC_NAN_U64      = 0x7ff8000000000000ull;
 const double PPC_NAN       = *(double* const)&PPC_NAN_U64;
 
+// the 4 less-significand bits in FPSCR[FPRF]
+enum FPCC {
+	FL = 8, // <
+	FG = 4, // >
+	FE = 2, // =
+	FU = 1, // ?
+};
+
 inline void SetFPException(u32 mask)
 {
 	if ((FPSCR.Hex & mask) != mask)

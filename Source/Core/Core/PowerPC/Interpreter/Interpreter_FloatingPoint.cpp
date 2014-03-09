@@ -33,29 +33,36 @@ void Interpreter::Helper_UpdateCR1(double _fValue)
 	SetCRField(1, (FPSCR.FX << 4) | (FPSCR.FEX << 3) | (FPSCR.VX << 2) | FPSCR.OX);
 }
 
-void Interpreter::fcmpo(UGeckoInstruction _inst)
+void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa, double fb)
 {
-	double fa = rPS0(_inst.FA);
-	double fb = rPS0(_inst.FB);
-
 	int compareResult;
 
-	if (fa < fb)       compareResult = 8;
-	else if (fa > fb)  compareResult = 4;
-	else if (fa == fb) compareResult = 2;
-	else
+	if (fa < fb)
+	{
+		compareResult = FPCC::FL;
+	}
+	else if (fa > fb)
+	{
+		compareResult = FPCC::FG;
+	}
+	else if (fa == fb)
+	{
+		compareResult = FPCC::FE;
+	}
+	else // NaN
 	{
 		FPSCR.FX = 1;
-		compareResult = 1;
+		compareResult = FPCC::FU;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
 			SetFPException(FPSCR_VXSNAN);
 			if (FPSCR.VE == 0)
+			{
 				SetFPException(FPSCR_VXVC);
+			}
 		}
-		else
+		else // QNaN
 		{
-			//if (IsQNAN(fa) || IsQNAN(fb)) // this is always true
 			SetFPException(FPSCR_VXVC);
 		}
 	}
@@ -64,26 +71,43 @@ void Interpreter::fcmpo(UGeckoInstruction _inst)
 	SetCRField(_inst.CRFD, compareResult);
 }
 
-void Interpreter::fcmpu(UGeckoInstruction _inst)
+void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double fa, double fb)
 {
-	double fa = rPS0(_inst.FA);
-	double fb = rPS0(_inst.FB);
-
 	int compareResult;
 
-	if (fa < fb)       compareResult = 8;
-	else if (fa > fb)  compareResult = 4;
-	else if (fa == fb) compareResult = 2;
+	if (fa < fb)
+	{
+		compareResult = FPCC::FL;
+	}
+	else if (fa > fb)
+	{
+		compareResult = FPCC::FG;
+	}
+	else if (fa == fb)
+	{
+		compareResult = FPCC::FE;
+	}
 	else
 	{
-		compareResult = 1;
+		compareResult = FPCC::FU;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
+			FPSCR.FX = 1;
 			SetFPException(FPSCR_VXSNAN);
 		}
 	}
 	FPSCR.FPRF = compareResult;
 	SetCRField(_inst.CRFD, compareResult);
+}
+
+void Interpreter::fcmpo(UGeckoInstruction _inst)
+{
+	Helper_FloatCompareOrdered(_inst, rPS0(_inst.FA), rPS0(_inst.FB));
+}
+
+void Interpreter::fcmpu(UGeckoInstruction _inst)
+{
+	Helper_FloatCompareUnordered(_inst, rPS0(_inst.FA), rPS0(_inst.FB));
 }
 
 // Apply current rounding mode

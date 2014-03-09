@@ -410,7 +410,8 @@ union UReg_FPSCR
 		u32 VXSOFT  : 1;
 		// reserved
 		u32         : 1;
-		// Floating point result flags (not sticky)
+		// Floating point result flags (includes FPCC) (not sticky)
+		// from more to less significand: class, <, >, =, ?
 		u32 FPRF    : 5;
 		// Fraction inexact (not sticky)
 		u32 FI      : 1;
