@@ -49,7 +49,7 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
 	}
 
 	// Set SSE rounding mode and denormal handling
-	FPURoundMode::SetSIMDMode(FPSCR.RN, FPSCR.NI);
+	FPURoundMode::SetSIMDMode(fp.RN, fp.NI);
 }
 
 void Interpreter::mtfsb0x(UGeckoInstruction _inst)

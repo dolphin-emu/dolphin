@@ -73,7 +73,7 @@ TEST_F(MappingTest, ReadWriteDirect)
 	m_mapping->Register(0xCC001234, MMIO::DirectRead<u16>(&target_16), MMIO::DirectWrite<u16>(&target_16));
 	m_mapping->Register(0xCC001234, MMIO::DirectRead<u32>(&target_32), MMIO::DirectWrite<u32>(&target_32));
 
-	for (int i = 0; i < 100; ++i)
+	for (u32 i = 0; i < 100; ++i)
 	{
 		u8 val8;   m_mapping->Read(0xCC001234, &val8);  EXPECT_EQ(i, val8);
 		u16 val16; m_mapping->Read(0xCC001234, &val16); EXPECT_EQ(i, val16);
